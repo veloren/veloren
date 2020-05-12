@@ -123,7 +123,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
         use comp::quadruped_medium::Species::*;
         Self {
             head_upper: match (body.species, body.body_type) {
-                (Wolf, _) => (12.0, 16.0),
+                (Grolgar, _) => (12.0, 16.0),
                 (Saber, _) => (14.0, 12.0),
                 (Viper, _) => (14.0, 10.0),
                 (Tuskram, _) => (9.0, 12.0),
@@ -133,7 +133,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tarasque, _) => (12.0, 19.0),
             },
             head_lower: match (body.species, body.body_type) {
-                (Wolf, _) => (-4.0, -7.0),
+                (Grolgar, _) => (-4.0, -7.0),
                 (Saber, _) => (-6.0, 0.0),
                 (Viper, _) => (-3.0, -1.0),
                 (Tuskram, _) => (-3.0, -1.0),
@@ -143,7 +143,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tarasque, _) => (-5.0, -6.0),
             },
             jaw: match (body.species, body.body_type) {
-                (Wolf, _) => (3.0, -5.0),
+                (Grolgar, _) => (3.0, -5.0),
                 (Saber, _) => (2.0, -1.0),
                 (Viper, _) => (3.0, -2.0),
                 (Tuskram, _) => (2.0, -2.0),
@@ -153,7 +153,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tarasque, _) => (4.0, -9.0),
             },
             tail: match (body.species, body.body_type) {
-                (Wolf, _) => (-6.0, -2.0),
+                (Grolgar, _) => (-6.0, -2.0),
                 (Saber, _) => (-4.0, -2.0),
                 (Viper, _) => (-6.0, -1.0),
                 (Tuskram, _) => (-6.0, -2.0),
@@ -163,7 +163,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tarasque, _) => (-7.0, -2.0),
             },
             torso_back: match (body.species, body.body_type) {
-                (Wolf, _) => (4.0, 11.0),
+                (Grolgar, _) => (4.0, 11.0),
                 (Saber, _) => (4.0, 9.0),
                 (Viper, _) => (4.0, 7.0),
                 (Tuskram, _) => (4.0, 9.0),
@@ -173,7 +173,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tarasque, _) => (4.0, 9.0),
             },
             torso_mid: match (body.species, body.body_type) {
-                (Wolf, _) => (-7.0, 10.5),
+                (Grolgar, _) => (-7.0, 10.5),
                 (Saber, _) => (-7.0, 9.5),
                 (Viper, _) => (-7.0, 7.0),
                 (Tuskram, _) => (-7.0, 9.0),
@@ -183,7 +183,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tarasque, _) => (-7.0, 8.0),
             },
             ears: match (body.species, body.body_type) {
-                (Wolf, _) => (-1.0, 5.0),
+                (Grolgar, _) => (-1.0, 5.0),
                 (Saber, _) => (-1.0, 6.0),
                 (Viper, _) => (10.0, 2.0),
                 (Tuskram, _) => (10.0, 2.0),
@@ -193,7 +193,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tarasque, _) => (1.5, -2.0),
             },
             feet_f: match (body.species, body.body_type) {
-                (Wolf, _) => (5.0, 6.0, 2.0),
+                (Grolgar, _) => (5.0, 6.0, 2.0),
                 (Saber, _) => (4.0, 6.0, 3.0),
                 (Viper, _) => (4.0, 6.0, 3.0),
                 (Tuskram, _) => (4.0, 6.0, 4.5),
@@ -203,7 +203,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tarasque, _) => (4.0, 6.0, 3.0),
             },
             feet_b: match (body.species, body.body_type) {
-                (Wolf, _) => (5.0, -4.0, 3.0),
+                (Grolgar, _) => (5.0, -4.0, 3.0),
                 (Saber, _) => (4.0, -6.0, 3.5),
                 (Viper, _) => (4.0, -4.0, 3.5),
                 (Tuskram, _) => (4.0, -8.0, 5.5),
@@ -213,7 +213,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tarasque, _) => (4.0, -8.0, 3.5),
             },
             height: match (body.species, body.body_type) {
-                (Wolf, _) => (1.2),
+                (Grolgar, _) => (1.2),
                 (Saber, _) => (1.0),
                 (Viper, _) => (0.7),
                 (Tuskram, _) => (1.0),

@@ -1,38 +1,38 @@
 ({
-    (Wolf, Male): (
+    (Grolgar, Male): (
         left_front: (
             offset: (-2.5, -4.0, -1.5),
-            lateral: ("npc.wolf.male.foot_lf"),
+            lateral: ("npc.grolgar.male.foot_lf"),
         ),
         right_front: (
             offset: (-2.5, -4.0, -1.5),
-            lateral: ("npc.wolf.male.foot_rf"),
+            lateral: ("npc.grolgar.male.foot_rf"),
         ),
         left_back: (
             offset: (-2.5, -4.0, -3.0),
-            lateral: ("npc.wolf.male.foot_lb"),
+            lateral: ("npc.grolgar.male.foot_lb"),
         ),
         right_back: (
             offset: (-2.5, -4.0, -3.0),
-            lateral: ("npc.wolf.male.foot_rb"),
+            lateral: ("npc.grolgar.male.foot_rb"),
         ),
     ),
-    (Wolf, Female): (
+    (Grolgar, Female): (
         left_front: (
             offset: (-2.5, -4.0, -1.5),
-            lateral: ("npc.wolf.female.foot_lf"),
+            lateral: ("npc.grolgar.female.foot_lf"),
         ),
         right_front: (
             offset: (-2.5, -4.0, -1.5),
-            lateral: ("npc.wolf.female.foot_rf"),
+            lateral: ("npc.grolgar.female.foot_rf"),
         ),
         left_back: (
             offset: (-2.5, -4.0, -3.0),
-            lateral: ("npc.wolf.female.foot_lb"),
+            lateral: ("npc.grolgar.female.foot_lb"),
         ),
         right_back: (
             offset: (-2.5, -4.0, -3.0),
-            lateral: ("npc.wolf.female.foot_rb"),
+            lateral: ("npc.grolgar.female.foot_rb"),
         ),
     ),
     (Saber, Male): (
