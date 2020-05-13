@@ -32,7 +32,14 @@ impl Singleplayer {
         let (sender, receiver) = unbounded();
 
         // Create server
-        let settings = ServerSettings::singleplayer();
+        let settings = ServerSettings::singleplayer(
+            crate::settings::Settings::get_settings_path()
+                .parent()
+                .unwrap()
+                .join("saves")
+                .to_string_lossy()
+                .to_string(),
+        );
 
         let thread_pool = client.map(|c| c.thread_pool().clone());
         let settings2 = settings.clone();
