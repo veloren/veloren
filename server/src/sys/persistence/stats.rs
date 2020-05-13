@@ -19,7 +19,7 @@ impl<'a> System<'a> for Sys {
         if scheduler.should_run() {
             timer.start();
 
-            stats::update(
+            stats::batch_update(
                 (&players, &player_stats)
                     .join()
                     .filter_map(|(player, stats)| player.character_id.map(|id| (id, stats))),
