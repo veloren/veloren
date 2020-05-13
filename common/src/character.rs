@@ -11,10 +11,20 @@ pub struct Character {
     pub tool: Option<String>, // TODO: Remove once we start persisting inventories
 }
 
-/// Represents the character data sent by the server after loading from the
-/// database.
+/// Represents a single character item in the character list presented during
+/// character selection. This is a subset of the full character data used for
+/// presentation purposes.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CharacterItem {
     pub character: Character,
     pub body: comp::Body,
+    pub level: usize,
+}
+
+/// The full representation of the data we store in the database for each
+/// character
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct CharacterData {
+    pub body: comp::Body,
+    pub stats: comp::Stats,
 }

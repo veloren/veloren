@@ -40,7 +40,7 @@ impl PlayState for CharSelectionState {
         let mut clock = Clock::start();
 
         // Load the player's character list
-        self.client.borrow_mut().load_characters();
+        self.client.borrow_mut().load_character_list();
 
         let mut current_client_state = self.client.borrow().get_client_state();
         while let ClientState::Pending | ClientState::Registered = current_client_state {
@@ -87,11 +87,13 @@ impl PlayState for CharSelectionState {
                         if let Some(selected_character) =
                             char_data.get(self.char_selection_ui.selected_character)
                         {
-                            self.client.borrow_mut().request_character(
-                                selected_character.character.alias.clone(),
-                                selected_character.body,
-                                selected_character.character.tool.clone(),
-                            );
+                            if let Some(character_id) = selected_character.character.id {
+                                self.client.borrow_mut().request_character(
+                                    character_id,
+                                    selected_character.body,
+                                    selected_character.character.tool.clone(),
+                                );
+                            }
                         }
 
                         return PlayStateResult::Switch(Box::new(SessionState::new(

@@ -225,6 +225,7 @@ impl Client {
                     break Err(match err {
                         RegisterError::AlreadyLoggedIn => Error::AlreadyLoggedIn,
                         RegisterError::AuthError(err) => Error::AuthErr(err),
+                        RegisterError::InvalidCharacter => Error::InvalidCharacter,
                     });
                 },
                 ServerMsg::StateAnswer(Ok(ClientState::Registered)) => break Ok(()),
@@ -234,15 +235,18 @@ impl Client {
     }
 
     /// Request a state transition to `ClientState::Character`.
-    pub fn request_character(&mut self, name: String, body: comp::Body, main: Option<String>) {
-        self.postbox
-            .send_message(ClientMsg::Character { name, body, main });
+    pub fn request_character(&mut self, character_id: i32, body: comp::Body, main: Option<String>) {
+        self.postbox.send_message(ClientMsg::Character {
+            character_id,
+            body,
+            main,
+        });
 
         self.client_state = ClientState::Pending;
     }
 
     /// Load the current players character list
-    pub fn load_characters(&mut self) {
+    pub fn load_character_list(&mut self) {
         self.character_list.loading = true;
         self.postbox.send_message(ClientMsg::RequestCharacterList);
     }
