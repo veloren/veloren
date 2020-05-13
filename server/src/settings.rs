@@ -97,7 +97,7 @@ impl ServerSettings {
         Ok(())
     }
 
-    pub fn singleplayer() -> Self {
+    pub fn singleplayer(persistence_db_dir: String) -> Self {
         let load = Self::load();
         Self {
             //BUG: theoretically another process can grab the port between here and server
@@ -123,6 +123,7 @@ impl ServerSettings {
             start_time: 9.0 * 3600.0,
             admins: vec!["singleplayer".to_string()], /* TODO: Let the player choose if they want
                                                        * to use admin commands or not */
+            persistence_db_dir,
             ..load // Fill in remaining fields from server_settings.ron.
         }
     }
