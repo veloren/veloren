@@ -1,34 +1,15 @@
 pub mod character;
-mod models;
+pub mod stats;
 
+mod error;
+mod models;
 mod schema;
 
 extern crate diesel;
 
 use diesel::prelude::*;
 use diesel_migrations::embed_migrations;
-use std::{env, fmt, fs, path::Path};
-
-#[derive(Debug)]
-pub enum Error {
-    // The player has alredy reached the max character limit
-    CharacterLimitReached,
-    // An error occured when performing a database action
-    DatabaseError(diesel::result::Error),
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", match self {
-            Self::DatabaseError(diesel_error) => diesel_error.to_string(),
-            Self::CharacterLimitReached => String::from("Character limit exceeded"),
-        })
-    }
-}
-
-impl From<diesel::result::Error> for Error {
-    fn from(error: diesel::result::Error) -> Error { Error::DatabaseError(error) }
-}
+use std::{env, fs, path::Path};
 
 // See: https://docs.rs/diesel_migrations/1.4.0/diesel_migrations/macro.embed_migrations.html
 // This macro is called at build-time, and produces the necessary migration info

@@ -15,7 +15,7 @@ pub enum ClientMsg {
     },
     DeleteCharacter(i32),
     Character {
-        name: String,
+        character_id: i32,
         body: comp::Body,
         main: Option<String>, // Specifier for the weapon
     },

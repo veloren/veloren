@@ -341,14 +341,19 @@ impl CharSelectionUi {
             Mode::Select(data) => data.clone(),
             Mode::Create {
                 name, body, tool, ..
-            } => Some(vec![CharacterItem {
-                character: Character {
-                    id: None,
-                    alias: name.clone(),
-                    tool: tool.map(|specifier| specifier.to_string()),
-                },
-                body: comp::Body::Humanoid(body.clone()),
-            }]),
+            } => {
+                let body = comp::Body::Humanoid(body.clone());
+
+                Some(vec![CharacterItem {
+                    character: Character {
+                        id: None,
+                        alias: name.clone(),
+                        tool: tool.map(|specifier| specifier.to_string()),
+                    },
+                    body,
+                    level: 1,
+                }])
+            },
         }
     }
 
@@ -802,8 +807,8 @@ impl CharSelectionUi {
                         &self
                             .voxygen_i18n
                             .get("char_selection.level_fmt")
-                            .replace("{level_nb}", "1"),
-                    ) //TODO Insert real level here as soon as they get saved
+                            .replace("{level_nb}", &character_item.level.to_string()),
+                    )
                     .down_from(self.ids.character_names[i], 4.0)
                     .font_size(self.fonts.cyri.scale(17))
                     .font_id(self.fonts.cyri.conrod_id)
