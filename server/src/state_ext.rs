@@ -1,9 +1,12 @@
-use crate::{client::Client, settings::ServerSettings, sys::sentinel::DeletedEntities, SpawnPoint};
+use crate::{
+    client::Client, persistence, settings::ServerSettings, sys::sentinel::DeletedEntities,
+    SpawnPoint,
+};
 use common::{
     assets,
     comp::{self, item},
     effect::Effect,
-    msg::{ClientState, ServerMsg},
+    msg::{ClientState, RegisterError, RequestStateError, ServerMsg},
     state::State,
     sync::{Uid, WorldSyncExt},
     util::Dir,
@@ -33,7 +36,7 @@ pub trait StateExt {
     fn create_player_character(
         &mut self,
         entity: EcsEntity,
-        name: String,
+        character_id: i32,
         body: comp::Body,
         main: Option<String>,
         server_settings: &ServerSettings,
@@ -152,18 +155,39 @@ impl StateExt for State {
     fn create_player_character(
         &mut self,
         entity: EcsEntity,
-        name: String,
+        character_id: i32,
         body: comp::Body,
         main: Option<String>,
         server_settings: &ServerSettings,
     ) {
+        // Grab persisted character data from the db and insert their associated
+        // components. If for some reason the data can't be returned (missing
+        // data, DB error), kick the client back to the character select screen.
+        match persistence::character::load_character_data(character_id) {
+            Ok(stats) => self.write_component(entity, stats),
+            Err(error) => {
+                log::warn!(
+                    "{}",
+                    format!(
+                        "Failed to load character data for character_id {}: {}",
+                        character_id, error
+                    )
+                );
+
+                if let Some(client) = self.ecs().write_storage::<Client>().get_mut(entity) {
+                    client.error_state(RequestStateError::RegisterDenied(
+                        RegisterError::InvalidCharacter,
+                    ))
+                }
+            },
+        }
+
         // Give no item when an invalid specifier is given
         let main = main.and_then(|specifier| assets::load_cloned::<comp::Item>(&specifier).ok());
 
         let spawn_point = self.ecs().read_resource::<SpawnPoint>().0;
 
         self.write_component(entity, body);
-        self.write_component(entity, comp::Stats::new(name, body));
         self.write_component(entity, comp::Energy::new(1000));
         self.write_component(entity, comp::Controller::default());
         self.write_component(entity, comp::Pos(spawn_point));
@@ -222,6 +246,19 @@ impl StateExt for State {
             },
         );
 
+        // Set the character id for the player
+        // TODO this results in a warning in the console: "Error modifying synced
+        // component, it doesn't seem to exist"
+        // It appears to be caused by the player not yet existing on the client at this
+        // point, despite being able to write the data on the server
+        &self
+            .ecs()
+            .write_storage::<comp::Player>()
+            .get_mut(entity)
+            .map(|player| {
+                player.character_id = Some(character_id);
+            });
+
         // Make sure physics are accepted.
         self.write_component(entity, comp::ForceUpdate);
 
@@ -236,6 +273,7 @@ impl StateExt for State {
         ) {
             self.write_component(entity, comp::Admin);
         }
+
         // Tell the client its request was successful.
         if let Some(client) = self.ecs().write_storage::<Client>().get_mut(entity) {
             client.allow_state(ClientState::Character);

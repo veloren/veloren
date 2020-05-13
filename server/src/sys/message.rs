@@ -171,7 +171,11 @@ impl<'a> System<'a> for Sys {
                         },
                         _ => {},
                     },
-                    ClientMsg::Character { name, body, main } => match client.client_state {
+                    ClientMsg::Character {
+                        character_id,
+                        body,
+                        main,
+                    } => match client.client_state {
                         // Become Registered first.
                         ClientState::Connected => client.error_state(RequestStateError::Impossible),
                         ClientState::Registered | ClientState::Spectator => {
@@ -193,7 +197,7 @@ impl<'a> System<'a> for Sys {
 
                             server_emitter.emit(ServerEvent::SelectCharacter {
                                 entity,
-                                name,
+                                character_id,
                                 body,
                                 main,
                             });
@@ -311,7 +315,7 @@ impl<'a> System<'a> for Sys {
                     },
                     ClientMsg::RequestCharacterList => {
                         if let Some(player) = players.get(entity) {
-                            match persistence::character::load_characters(
+                            match persistence::character::load_character_list(
                                 &player.uuid().to_string(),
                             ) {
                                 Ok(character_list) => {

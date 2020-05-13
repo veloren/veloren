@@ -1,6 +1,13 @@
-use super::schema::{body, character};
+use super::schema::{body, character, stats};
 use crate::comp;
 use common::character::Character as CharacterData;
+
+/// The required elements to build comp::Stats from database data
+pub struct StatsJoinData<'a> {
+    pub alias: &'a str,
+    pub body: &'a comp::Body,
+    pub stats: &'a Stats,
+}
 
 /// `Character` represents a playable character belonging to a player
 #[derive(Identifiable, Queryable, Debug)]
@@ -60,6 +67,92 @@ impl From<&Body> for comp::Body {
             hair_color: body.hair_color as u8,
             skin: body.skin as u8,
             eye_color: body.eye_color as u8,
+        })
+    }
+}
+
+/// `Stats` represents the stats for a character
+#[derive(Associations, AsChangeset, Identifiable, Queryable, Debug, Insertable)]
+#[belongs_to(Character)]
+#[primary_key(character_id)]
+#[table_name = "stats"]
+pub struct Stats {
+    pub character_id: i32,
+    pub level: i32,
+    pub exp: i32,
+    pub endurance: i32,
+    pub fitness: i32,
+    pub willpower: i32,
+}
+
+impl From<StatsJoinData<'_>> for comp::Stats {
+    fn from(data: StatsJoinData) -> comp::Stats {
+        let mut base_stats = comp::Stats::new(String::from(data.alias), *data.body);
+
+        base_stats.level.set_level(data.stats.level as u32);
+        base_stats.exp.set_current(data.stats.exp as u32);
+
+        base_stats.update_max_hp();
+        base_stats
+            .health
+            .set_to(base_stats.health.maximum(), comp::HealthSource::Revive);
+
+        base_stats.endurance = data.stats.endurance as u32;
+        base_stats.fitness = data.stats.fitness as u32;
+        base_stats.willpower = data.stats.willpower as u32;
+
+        base_stats
+    }
+}
+
+#[derive(AsChangeset, Debug, PartialEq)]
+#[primary_key(character_id)]
+#[table_name = "stats"]
+pub struct StatsUpdate {
+    pub level: i32,
+    pub exp: i32,
+    pub endurance: i32,
+    pub fitness: i32,
+    pub willpower: i32,
+}
+
+impl From<&comp::Stats> for StatsUpdate {
+    fn from(stats: &comp::Stats) -> StatsUpdate {
+        StatsUpdate {
+            level: stats.level.level() as i32,
+            exp: stats.exp.current() as i32,
+            endurance: stats.endurance as i32,
+            fitness: stats.fitness as i32,
+            willpower: stats.willpower as i32,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::comp;
+
+    #[test]
+    fn stats_update_from_stats() {
+        let mut stats = comp::Stats::new(
+            String::from("Test"),
+            comp::Body::Humanoid(comp::humanoid::Body::random()),
+        );
+
+        stats.level.set_level(2);
+        stats.exp.set_current(20);
+
+        stats.endurance = 2;
+        stats.fitness = 3;
+        stats.willpower = 4;
+
+        assert_eq!(StatsUpdate::from(&stats), StatsUpdate {
+            level: 2,
+            exp: 20,
+            endurance: 2,
+            fitness: 3,
+            willpower: 4,
         })
     }
 }

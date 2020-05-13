@@ -94,6 +94,7 @@ impl Server {
             .insert(AuthProvider::new(settings.auth_server_address.clone()));
         state.ecs_mut().insert(Tick(0));
         state.ecs_mut().insert(ChunkGenerator::new());
+
         // System timers for performance monitoring
         state.ecs_mut().insert(sys::EntitySyncTimer::default());
         state.ecs_mut().insert(sys::MessageTimer::default());
@@ -102,6 +103,17 @@ impl Server {
         state.ecs_mut().insert(sys::TerrainSyncTimer::default());
         state.ecs_mut().insert(sys::TerrainTimer::default());
         state.ecs_mut().insert(sys::WaypointTimer::default());
+        state
+            .ecs_mut()
+            .insert(sys::StatsPersistenceTimer::default());
+
+        // System schedulers to control execution of systems
+        state
+            .ecs_mut()
+            .insert(sys::StatsPersistenceScheduler::every(Duration::from_secs(
+                10,
+            )));
+
         // Server-only components
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
@@ -374,7 +386,13 @@ impl Server {
             .nanos as i64;
         let terrain_nanos = self.state.ecs().read_resource::<sys::TerrainTimer>().nanos as i64;
         let waypoint_nanos = self.state.ecs().read_resource::<sys::WaypointTimer>().nanos as i64;
+        let stats_persistence_nanos = self
+            .state
+            .ecs()
+            .read_resource::<sys::StatsPersistenceTimer>()
+            .nanos as i64;
         let total_sys_ran_in_dispatcher_nanos = terrain_nanos + waypoint_nanos;
+
         // Report timing info
         self.metrics
             .tick_time
@@ -431,6 +449,11 @@ impl Server {
             .tick_time
             .with_label_values(&["waypoint"])
             .set(waypoint_nanos);
+        self.metrics
+            .tick_time
+            .with_label_values(&["persistence:stats"])
+            .set(stats_persistence_nanos);
+
         // Report other info
         self.metrics
             .player_online

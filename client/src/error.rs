@@ -12,6 +12,8 @@ pub enum Error {
     AuthErr(String),
     AuthClientError(AuthClientError),
     AuthServerNotTrusted,
+    /// Persisted character data is invalid or missing
+    InvalidCharacter,
     //TODO: InvalidAlias,
     Other(String),
 }
