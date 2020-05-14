@@ -22,8 +22,9 @@ use common::{
     },
     event::{EventBus, SfxEvent, SfxEventItem},
     msg::{
-        validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, PlayerListUpdate,
-        RegisterError, RequestStateError, ServerInfo, ServerMsg, MAX_BYTES_CHAT_MSG,
+        validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, Notification,
+        PlayerListUpdate, RegisterError, RequestStateError, ServerInfo, ServerMsg,
+        MAX_BYTES_CHAT_MSG,
     },
     net::PostBox,
     state::State,
@@ -59,6 +60,7 @@ pub enum Event {
     },
     Disconnect,
     DisconnectionNotification(u64),
+    Notification(Notification),
 }
 
 pub struct Client {
@@ -864,6 +866,9 @@ impl Client {
                     ServerMsg::CharacterActionError(error) => {
                         warn!("CharacterActionError: {:?}.", error);
                         self.character_list.error = Some(error);
+                    },
+                    ServerMsg::Notification(n) => {
+                        frontend_events.push(Event::Notification(n));
                     },
                 }
             }

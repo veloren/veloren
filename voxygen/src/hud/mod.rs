@@ -7,6 +7,7 @@ mod img_ids;
 mod item_imgs;
 mod map;
 mod minimap;
+mod popup;
 mod settings_window;
 mod skillbar;
 mod slots;
@@ -26,6 +27,7 @@ use img_ids::Imgs;
 use item_imgs::ItemImgs;
 use map::Map;
 use minimap::MiniMap;
+use popup::Popup;
 use serde::{Deserialize, Serialize};
 use settings_window::{SettingsTab, SettingsWindow};
 use skillbar::Skillbar;
@@ -174,6 +176,7 @@ widget_ids! {
         map,
         world_map,
         character_window,
+        popup,
         minimap,
         bag,
         social,
@@ -1641,6 +1644,10 @@ impl Hud {
             None => {},
         }
 
+        // Popup
+        Popup::new(&self.voxygen_i18n, client, &self.new_messages, &self.fonts)
+            .set(self.ids.popup, ui_widgets);
+
         // MiniMap
         match MiniMap::new(
             &self.show,
@@ -1733,6 +1740,16 @@ impl Hud {
             )
             .set(self.ids.skillbar, ui_widgets);
         }
+
+        // The chat box breaks if it has non-chat messages left in the queue, so take
+        // them out.
+        self.new_messages.retain(|msg| {
+            if let ClientEvent::Chat { .. } = &msg {
+                true
+            } else {
+                false
+            }
+        });
 
         // Chat box
         match Chat::new(

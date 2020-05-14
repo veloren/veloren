@@ -27,6 +27,11 @@ pub enum PlayerListUpdate {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Notification {
+    WaypointSaved,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ServerMsg {
     InitialSync {
         entity_package: sync::EntityPackage<EcsCompPacket>,
@@ -64,6 +69,8 @@ pub enum ServerMsg {
     Disconnect,
     Shutdown,
     TooManyPlayers,
+    /// Send a popup notification such as "Waypoint Saved"
+    Notification(Notification),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
