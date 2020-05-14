@@ -9,7 +9,7 @@ use common::{
     cmd::{ChatCommand, CHAT_COMMANDS},
     comp,
     event::{EventBus, ServerEvent},
-    msg::{PlayerListUpdate, ServerMsg},
+    msg::{Notification, PlayerListUpdate, ServerMsg},
     npc::{self, get_npc_name},
     state::TimeOfDay,
     sync::{Uid, WorldSyncExt},
@@ -838,7 +838,8 @@ fn handle_waypoint(
                 .ecs()
                 .write_storage::<comp::Waypoint>()
                 .insert(target, comp::Waypoint::new(pos.0));
-            server.notify_client(client, ServerMsg::private(String::from("Waypoint set!")));
+            server.notify_client(client, ServerMsg::private(String::from("Waypoint saved!")));
+            server.notify_client(client, ServerMsg::Notification(Notification::WaypointSaved));
         },
         None => server.notify_client(
             client,
