@@ -72,6 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Player now starts with a lantern. Equipping/unequipping a lantern has the same effect as the `/lantern` command
 - Added tab completion in chat for player names and chat commands
 - Added server persistence for character stats
+- Added a popup when setting your character's waypoint
 
 ### Changed
 

@@ -93,6 +93,7 @@ fn main() {
 
                     println!("{}", message)
                 },
+                Event::Notification(_) => {}, // TODO?
             }
         }
 

@@ -15,7 +15,7 @@ use common::{
     clock::Clock,
     comp,
     comp::{Pos, Vel, MAX_PICKUP_RANGE_SQR},
-    msg::ClientState,
+    msg::{ClientState, Notification},
     terrain::{Block, BlockKind},
     util::Dir,
     vol::ReadVol,
@@ -101,6 +101,10 @@ impl SessionState {
                         chat_type: ChatType::Meta,
                         message,
                     });
+                },
+                client::Event::Notification(Notification::WaypointSaved) => {
+                    self.hud
+                        .new_message(client::Event::Notification(Notification::WaypointSaved));
                 },
             }
         }

@@ -147,6 +147,7 @@ https://account.veloren.net."#,
         "hud.show_tips": "Show Tips",
         "hud.quests": "Quests",
         "hud.you_died": "You Died",
+        "hud.waypoint_saved": "Waypoint Saved",
 
         "hud.press_key_to_show_keybindings_fmt": "Press {key} to show keybindings",
         "hud.press_key_to_show_debug_info_fmt": "Press {key} to show debug info",
