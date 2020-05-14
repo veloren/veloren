@@ -1,21 +1,21 @@
 docker:
-    stage: publish
-    when: delayed
-    start_in: 5 seconds
-    image:
-      name: gcr.io/kaniko-project/executor:debug
-      entrypoint: [""]
-    dependencies:
-        - linux
-    before_script:
-        - ls "$CI_PROJECT_DIR/server-cli/"
-    only:
-      refs:
-          - /^r[0-9]+\.[0-9]+\.[0-9]+/
-          - /^v[0-9]+\.[0-9]+/
-          - /^master$/
-    tags:
-        - veloren-docker
-    script:
-        - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-        - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/server-cli/Dockerfile --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}-server"
+  stage: publish
+  when: delayed
+  start_in: 5 seconds
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  dependencies:
+    - linux
+  before_script:
+    - ls "$CI_PROJECT_DIR/server-cli/"
+  only:
+    refs:
+      - /^r[0-9]+\.[0-9]+\.[0-9]+/
+      - /^v[0-9]+\.[0-9]+/
+      - /^master$/
+  tags:
+    - veloren-docker
+  script:
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/server-cli/Dockerfile --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}-server"

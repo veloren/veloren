@@ -1,22 +1,22 @@
 check:
-    stage: check-compile
-    tags:
-        - veloren-docker
-    script:
-        - RUSTFLAGS="-D warnings" cargo check --locked
+  stage: check-compile
+  tags:
+    - veloren-docker
+  script:
+    - RUSTFLAGS="-D warnings" cargo check --locked
 
 code-quality:
-    stage: check-compile
-    tags:
-        - veloren-docker
-    script:
-        - cargo clippy -- --warn clippy::all
-        - cargo fmt --all -- --check
+  stage: check-compile
+  tags:
+    - veloren-docker
+  script:
+    - cargo clippy -- --warn clippy::all
+    - cargo fmt --all -- --check
 
 security:
-    stage: check-compile
-    allow_failure: true
-    tags:
-        - veloren-docker
-    script:
-        - cargo audit
+  stage: check-compile
+  allow_failure: true
+  tags:
+    - veloren-docker
+  script:
+    - cargo audit

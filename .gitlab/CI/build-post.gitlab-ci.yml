@@ -1,114 +1,105 @@
 unittests:
-    stage: build-post
-    when: delayed
-    start_in: 5 seconds
-    tags:
-        - veloren-docker
-    script:
-        - echo "Workaround, cargo tests fails due some rust files are already deleted, so we just stack cargo test. if its the os error, it wont appear on them all, if its a real error, it will retry and then fail"
-        - cargo test || ( sleep 10 && cargo test ) || ( sleep 10 && cargo test ) || cargo test || cargo test || cargo test || cargo test || cargo test || cargo test || cargo test || cargo test || cargo test || cargo test
+  stage: build-post
+  when: delayed
+  start_in: 5 seconds
+  tags:
+    - veloren-docker
+  script:
+    - cargo test
+  retry:
+    max: 2
 
 coverage:
-    stage: build-post
-    allow_failure: true
-    when: delayed
-    start_in: 5 seconds
-    tags:
-        - veloren-docker
-    script:
-        - echo "Workaround, tarpaulin fails due some rust files are already deleted, so we just stack tarpaulin. if its the os error, it wont appear on them all, if its a real error, it will retry and then fail"
-        - cargo tarpaulin -v || ( sleep 10 && cargo tarpaulin -v ) || ( sleep 10 && cargo tarpaulin -v ) || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v
+  stage: build-post
+  allow_failure: true
+  when: delayed
+  start_in: 5 seconds
+  tags:
+    - veloren-docker
+  script:
+    - cargo tarpaulin -v
+  retry:
+    max: 2
 
 benchmarks:
-    stage: build-post
-    when: delayed
-    start_in: 5 seconds
-    tags:
-        - veloren-docker
-    script:
-        - unset DISABLE_GIT_LFS_CHECK
-        - cargo bench
+  stage: build-post
+  when: delayed
+  start_in: 5 seconds
+  tags:
+    - veloren-docker
+  script:
+    - unset DISABLE_GIT_LFS_CHECK
+    - cargo bench
+  retry:
+    max: 2
 
 localization-status:
-    variables:
-        GIT_DEPTH: 0
-    stage: build-post
-    when: delayed
-    start_in: 5 seconds
-    allow_failure: true
-    tags:
-        - veloren-docker
-    script:
-        - cargo test -q test_all_localizations -- --nocapture --ignored
+  variables:
+    GIT_DEPTH: 0
+  stage: build-post
+  when: delayed
+  start_in: 5 seconds
+  allow_failure: true
+  tags:
+    - veloren-docker
+  script:
+    - cargo test -q test_all_localizations -- --nocapture --ignored
+
+# Artifacts
+
+.artifact: &artifact
+  stage: build-post
+  when: delayed
+  start_in: 5 seconds
+  only:
+    refs:
+      - /^r[0-9]+\.[0-9]+\.[0-9]+/
+      - /^v[0-9]+\.[0-9]+/
+      - /^master$/
+  tags:
+    - veloren-docker
 
 linux:
-    stage: build-post
-    when: delayed
-    start_in: 5 seconds
-    only:
-        refs:
-            - /^r[0-9]+\.[0-9]+\.[0-9]+/
-            - /^v[0-9]+\.[0-9]+/
-            - /^master$/
-    tags:
-        - veloren-docker
-    script:
-        - cargo build --release
-        - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
-        - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
-        - strip --strip-all veloren-server-cli
-        - strip --strip-all veloren-voxygen
-    artifacts:
-        paths:
-            - veloren-server-cli
-            - veloren-voxygen
-            - assets/
-            - LICENSE
-        expire_in: 1 week
+  <<: *artifact
+  script:
+    - cargo build --release
+    - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
+    - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
+    - strip --strip-all veloren-server-cli
+    - strip --strip-all veloren-voxygen
+  artifacts:
+    paths:
+      - veloren-server-cli
+      - veloren-voxygen
+      - assets/
+      - LICENSE
+    expire_in: 1 week
 
 windows:
-    stage: build-post
-    when: delayed
-    start_in: 5 seconds
-    only:
-        refs:
-            - /^r[0-9]+\.[0-9]+\.[0-9]+/
-            - /^v[0-9]+\.[0-9]+/
-            - /^master$/
-    tags:
-        - veloren-docker
-    script:
-        - cargo build --target=x86_64-pc-windows-gnu --release
-        - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
-        - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
-    artifacts:
-        paths:
-            - veloren-server-cli.exe
-            - veloren-voxygen.exe
-            - assets/
-            - LICENSE
-        expire_in: 1 week
+  <<: *artifact
+  script:
+    - cargo build --target=x86_64-pc-windows-gnu --release
+    - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
+    - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
+  artifacts:
+    paths:
+      - veloren-server-cli.exe
+      - veloren-voxygen.exe
+      - assets/
+      - LICENSE
+    expire_in: 1 week
 
 macos:
-    stage: build-post
-    when: delayed
-    start_in: 5 seconds
-    only:
-        refs:
-            - /^r[0-9]+\.[0-9]+\.[0-9]+/
-            - /^v[0-9]+\.[0-9]+/
-            - /^master$/
-    tags:
-        - veloren-docker
-    script:
-        - PATH="/dockercache/osxcross/target/bin:$PATH" COREAUDIO_SDK_PATH=/dockercache/osxcross/target/SDK/MacOSX10.13.sdk CC=o64-clang CXX=o64-clang++ cargo build --target x86_64-apple-darwin --release
-        - cp -r target/x86_64-apple-darwin/release/veloren-server-cli $CI_PROJECT_DIR
-        - cp -r target/x86_64-apple-darwin/release/veloren-voxygen $CI_PROJECT_DIR
-    artifacts:
-        paths:
-            - veloren-server-cli
-            - veloren-voxygen
-            - assets/
-            - LICENSE
-        expire_in: 1 week
-    allow_failure: true
+  <<: *artifact
+  script:
+    - PATH="/dockercache/osxcross/target/bin:$PATH" COREAUDIO_SDK_PATH=/dockercache/osxcross/target/SDK/MacOSX10.13.sdk CC=o64-clang CXX=o64-clang++ cargo build --target x86_64-apple-darwin --release
+    - cp -r target/x86_64-apple-darwin/release/veloren-server-cli $CI_PROJECT_DIR
+    - cp -r target/x86_64-apple-darwin/release/veloren-voxygen $CI_PROJECT_DIR
+  artifacts:
+    paths:
+      - veloren-server-cli
+      - veloren-voxygen
+      - assets/
+      - LICENSE
+    expire_in: 1 week
+  allow_failure: true
