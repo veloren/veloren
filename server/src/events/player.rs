@@ -78,7 +78,7 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
         state.read_storage::<comp::Stats>().get(entity),
     ) {
         if let Some(character_id) = player.character_id {
-            persistence::stats::update(character_id, stats, None, db_dir);
+            persistence::stats::update_item(character_id, stats, db_dir);
         }
     }
 
