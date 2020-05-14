@@ -1,32 +1,31 @@
-unittests:
+# Template to only run if actual changes has been made to the code and not just documentation
+.tests: &tests
   stage: build-post
-  when: delayed
-  start_in: 5 seconds
+  rules:
+    - changes:
+        - "*.{rs,ron,toml}"
+      when: delayed
+      start_in: 5 seconds
   tags:
     - veloren-docker
+
+unittests:
+  <<: *tests
   script:
     - cargo test
   retry:
     max: 2
 
 coverage:
-  stage: build-post
+  <<: *tests
   allow_failure: true
-  when: delayed
-  start_in: 5 seconds
-  tags:
-    - veloren-docker
   script:
     - cargo tarpaulin -v
   retry:
     max: 2
 
 benchmarks:
-  stage: build-post
-  when: delayed
-  start_in: 5 seconds
-  tags:
-    - veloren-docker
+  <<: *tests
   script:
     - unset DISABLE_GIT_LFS_CHECK
     - cargo bench
@@ -34,28 +33,26 @@ benchmarks:
     max: 2
 
 localization-status:
+  <<: *tests
   variables:
     GIT_DEPTH: 0
-  stage: build-post
-  when: delayed
-  start_in: 5 seconds
   allow_failure: true
-  tags:
-    - veloren-docker
   script:
     - cargo test -q test_all_localizations -- --nocapture --ignored
 
 # Artifacts
-
+# TODO: Only build artifacts if actual changes has been made like we do for the tests
 .artifact: &artifact
   stage: build-post
-  when: delayed
-  start_in: 5 seconds
-  only:
-    refs:
-      - /^r[0-9]+\.[0-9]+\.[0-9]+/
-      - /^v[0-9]+\.[0-9]+/
-      - /^master$/
+  # only:
+  #   refs:
+  #     - /^r[0-9]+\.[0-9]+\.[0-9]+/
+  #     - /^v[0-9]+\.[0-9]+/
+  #     - /^master$/
+  rules:
+    - if: $CI_COMMIT_REF_NAME =~ /^master.$/ || $CI_COMMIT_TAG =~ /^r[0-9]+\.[0-9]+\.[0-9]+/ || $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+/
+    - changes:
+        - "*.{rs,ron,toml}"
   tags:
     - veloren-docker
 
