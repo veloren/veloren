@@ -1,6 +1,12 @@
 use super::SysTimer;
-use common::comp::{Player, Pos, Waypoint, WaypointArea};
+use crate::client::Client;
+use common::{
+    comp::{Player, Pos, Waypoint, WaypointArea},
+    msg::{Notification, ServerMsg},
+};
 use specs::{Entities, Join, ReadStorage, System, Write, WriteStorage};
+
+const NOTIFY_DISTANCE: f32 = 10.0;
 
 /// This system updates player waypoints
 /// TODO: Make this faster by only considering local waypoints
@@ -12,19 +18,28 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Player>,
         ReadStorage<'a, WaypointArea>,
         WriteStorage<'a, Waypoint>,
+        WriteStorage<'a, Client>,
         Write<'a, SysTimer<Self>>,
     );
 
     fn run(
         &mut self,
-        (entities, positions, players, waypoint_areas, mut waypoints, mut timer): Self::SystemData,
+        (entities, positions, players, waypoint_areas, mut waypoints, mut clients, mut timer): Self::SystemData,
     ) {
         timer.start();
 
-        for (entity, player_pos, _) in (&entities, &positions, &players).join() {
+        for (entity, player_pos, _, client) in
+            (&entities, &positions, &players, &mut clients).join()
+        {
             for (waypoint_pos, waypoint_area) in (&positions, &waypoint_areas).join() {
-                if player_pos.0.distance_squared(waypoint_pos.0) < waypoint_area.radius().powf(2.0)
-                {
+                if player_pos.0.distance_squared(waypoint_pos.0) < waypoint_area.radius().powi(2) {
+                    if let Some(wp) = waypoints.get(entity) {
+                        if player_pos.0.distance_squared(wp.get_pos()) > NOTIFY_DISTANCE.powi(2) {
+                            client
+                                .postbox
+                                .send_message(ServerMsg::Notification(Notification::WaypointSaved));
+                        }
+                    }
                     let _ = waypoints.insert(entity, Waypoint::new(player_pos.0));
                 }
             }
