@@ -1619,29 +1619,27 @@ impl Hud {
         // Bag button and nearby icons
         let ecs = client.state().ecs();
         let stats = ecs.read_storage::<comp::Stats>();
-        let player_stats = match stats.get(client.entity()) {
-            Some(stats) => stats,
-            None => return events,
-        };
-        match Buttons::new(
-            client,
-            self.show.bag,
-            &self.imgs,
-            &self.fonts,
-            global_state,
-            &self.rot_imgs,
-            tooltip_manager,
-            &self.voxygen_i18n,
-            &player_stats,
-        )
-        .set(self.ids.buttons, ui_widgets)
-        {
-            Some(buttons::Event::ToggleBag) => self.show.toggle_bag(),
-            Some(buttons::Event::ToggleSettings) => self.show.toggle_settings(),
-            Some(buttons::Event::ToggleSocial) => self.show.toggle_social(),
-            Some(buttons::Event::ToggleSpell) => self.show.toggle_spell(),
-            Some(buttons::Event::ToggleMap) => self.show.toggle_map(),
-            None => {},
+        if let Some(player_stats) = stats.get(client.entity()) {
+            match Buttons::new(
+                client,
+                self.show.bag,
+                &self.imgs,
+                &self.fonts,
+                global_state,
+                &self.rot_imgs,
+                tooltip_manager,
+                &self.voxygen_i18n,
+                &player_stats,
+            )
+            .set(self.ids.buttons, ui_widgets)
+            {
+                Some(buttons::Event::ToggleBag) => self.show.toggle_bag(),
+                Some(buttons::Event::ToggleSettings) => self.show.toggle_settings(),
+                Some(buttons::Event::ToggleSocial) => self.show.toggle_social(),
+                Some(buttons::Event::ToggleSpell) => self.show.toggle_spell(),
+                Some(buttons::Event::ToggleMap) => self.show.toggle_map(),
+                None => {},
+            }
         }
 
         // Popup
@@ -1665,33 +1663,29 @@ impl Hud {
 
         // Bag contents
         if self.show.bag {
-            let ecs = client.state().ecs();
-            let stats = ecs.read_storage::<comp::Stats>();
-            let player_stats = match stats.get(client.entity()) {
-                Some(stats) => stats,
-                None => return events,
-            };
-            match Bag::new(
-                client,
-                &self.imgs,
-                &self.item_imgs,
-                &self.fonts,
-                &self.rot_imgs,
-                tooltip_manager,
-                &mut self.slot_manager,
-                self.pulse,
-                &self.voxygen_i18n,
-                &player_stats,
-                &self.show,
-            )
-            .set(self.ids.bag, ui_widgets)
-            {
-                Some(bag::Event::Stats) => self.show.stats = !self.show.stats,
-                Some(bag::Event::Close) => {
-                    self.show.bag(false);
-                    self.force_ungrab = true;
-                },
-                None => {},
+            if let Some(player_stats) = stats.get(client.entity()) {
+                match Bag::new(
+                    client,
+                    &self.imgs,
+                    &self.item_imgs,
+                    &self.fonts,
+                    &self.rot_imgs,
+                    tooltip_manager,
+                    &mut self.slot_manager,
+                    self.pulse,
+                    &self.voxygen_i18n,
+                    &player_stats,
+                    &self.show,
+                )
+                .set(self.ids.bag, ui_widgets)
+                {
+                    Some(bag::Event::Stats) => self.show.stats = !self.show.stats,
+                    Some(bag::Event::Close) => {
+                        self.show.bag(false);
+                        self.force_ungrab = true;
+                    },
+                    None => {},
+                }
             }
         }
 
