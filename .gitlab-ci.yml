@@ -1,15 +1,19 @@
-image: registry.gitlab.com/veloren/veloren-docker-ci:latest
+stages:
+    - optional-builds
+    - check-compile
+    - build-post
+    - publish
 
 variables:
     GIT_STRATEGY: fetch
     GIT_DEPTH: 3
     GIT_CLEAN_FLAGS: -f
 
-stages:
-    - optional-builds
-    - check-compile
-    - build-post
-    - publish
+default:
+  image: registry.gitlab.com/veloren/veloren-docker-ci:latest
+  # https://docs.gitlab.com/ee/ci/pipelines/settings.html#auto-cancel-pending-pipelines
+  interruptible: true
+
 
 before_script:
     - source $HOME/.cargo/env
