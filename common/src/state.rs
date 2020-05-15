@@ -153,6 +153,7 @@ impl State {
         ecs.register::<comp::Waypoint>();
         ecs.register::<comp::Projectile>();
         ecs.register::<comp::Attacking>();
+        ecs.register::<comp::ItemDrop>();
 
         // Register synced resources used by the ECS.
         ecs.insert(TimeOfDay(0.0));

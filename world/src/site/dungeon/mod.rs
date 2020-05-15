@@ -11,6 +11,7 @@ use common::{
     astar::Astar,
     comp,
     generation::{ChunkSupplement, EntityInfo},
+    npc,
     store::{Id, Store},
     terrain::{Block, BlockKind, Structure, TerrainChunkSize},
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, Vox, WriteVol},
@@ -49,6 +50,8 @@ pub struct GenCtx<'a, R: Rng> {
 
 const ALT_OFFSET: i32 = -2;
 
+const LEVELS: usize = 5;
+
 impl Dungeon {
     pub fn generate(wpos: Vec2<i32>, sim: Option<&WorldSim>, rng: &mut impl Rng) -> Self {
         let mut ctx = GenCtx { sim, rng };
@@ -61,9 +64,9 @@ impl Dungeon {
                 + 6,
             seed: ctx.rng.gen(),
             noise: RandomField::new(ctx.rng.gen()),
-            floors: (0..6)
+            floors: (0..LEVELS)
                 .scan(Vec2::zero(), |stair_tile, level| {
-                    let (floor, st) = Floor::generate(&mut ctx, *stair_tile, level);
+                    let (floor, st) = Floor::generate(&mut ctx, *stair_tile, level as i32);
                     *stair_tile = st;
                     Some(floor)
                 })
@@ -184,7 +187,7 @@ const TILE_SIZE: i32 = 13;
 #[derive(Clone)]
 pub enum Tile {
     UpStair,
-    DownStair,
+    DownStair(Id<Room>),
     Room(Id<Room>),
     Tunnel,
     Solid,
@@ -194,7 +197,7 @@ impl Tile {
     fn is_passable(&self) -> bool {
         match self {
             Tile::UpStair => true,
-            Tile::DownStair => true,
+            Tile::DownStair(_) => true,
             Tile::Room(_) => true,
             Tile::Tunnel => true,
             _ => false,
@@ -206,7 +209,10 @@ pub struct Room {
     seed: u32,
     loot_density: f32,
     enemy_density: Option<f32>,
+    boss: bool,
     area: Rect<i32, i32>,
+    height: i32,
+    pillars: Option<i32>, // Pillars with the given separation
 }
 
 pub struct Floor {
@@ -227,40 +233,69 @@ impl Floor {
         stair_tile: Vec2<i32>,
         level: i32,
     ) -> (Self, Vec2<i32>) {
-        let new_stair_tile = std::iter::from_fn(|| {
-            Some(FLOOR_SIZE.map(|sz| ctx.rng.gen_range(-sz / 2 + 2, sz / 2 - 1)))
-        })
-        .filter(|pos| *pos != stair_tile)
-        .take(8)
-        .max_by_key(|pos| (*pos - stair_tile).map(|e| e.abs()).sum())
-        .unwrap();
+        let final_level = level == LEVELS as i32 - 1;
+
+        let new_stair_tile = if final_level {
+            Vec2::zero()
+        } else {
+            std::iter::from_fn(|| {
+                Some(FLOOR_SIZE.map(|sz| ctx.rng.gen_range(-sz / 2 + 2, sz / 2 - 1)))
+            })
+            .filter(|pos| *pos != stair_tile)
+            .take(8)
+            .max_by_key(|pos| (*pos - stair_tile).map(|e| e.abs()).sum())
+            .unwrap()
+        };
 
         let tile_offset = -FLOOR_SIZE / 2;
         let mut this = Floor {
             tile_offset,
             tiles: Grid::new(FLOOR_SIZE, Tile::Solid),
             rooms: Store::default(),
-            solid_depth: if level == 0 { 80 } else { 13 * 2 },
-            hollow_depth: 13,
+            solid_depth: if level == 0 { 80 } else { 32 },
+            hollow_depth: 30,
             stair_tile: new_stair_tile - tile_offset,
         };
 
+        const STAIR_ROOM_HEIGHT: i32 = 13;
         // Create rooms for entrance and exit
         this.create_room(Room {
             seed: ctx.rng.gen(),
             loot_density: 0.0,
             enemy_density: None,
+            boss: false,
             area: Rect::from((stair_tile - tile_offset - 1, Extent2::broadcast(3))),
+            height: STAIR_ROOM_HEIGHT,
+            pillars: None,
         });
         this.tiles.set(stair_tile - tile_offset, Tile::UpStair);
-        this.create_room(Room {
-            seed: ctx.rng.gen(),
-            loot_density: 0.0,
-            enemy_density: None,
-            area: Rect::from((new_stair_tile - tile_offset - 1, Extent2::broadcast(3))),
-        });
-        this.tiles
-            .set(new_stair_tile - tile_offset, Tile::DownStair);
+        if final_level {
+            // Boss room
+            this.create_room(Room {
+                seed: ctx.rng.gen(),
+                loot_density: 0.0,
+                enemy_density: Some(0.001), // Minions!
+                boss: true,
+                area: Rect::from((new_stair_tile - tile_offset - 4, Extent2::broadcast(9))),
+                height: 30,
+                pillars: Some(2),
+            });
+        } else {
+            // Create downstairs room
+            let downstair_room = this.create_room(Room {
+                seed: ctx.rng.gen(),
+                loot_density: 0.0,
+                enemy_density: None,
+                boss: false,
+                area: Rect::from((new_stair_tile - tile_offset - 1, Extent2::broadcast(3))),
+                height: STAIR_ROOM_HEIGHT,
+                pillars: None,
+            });
+            this.tiles.set(
+                new_stair_tile - tile_offset,
+                Tile::DownStair(downstair_room),
+            );
+        }
 
         this.create_rooms(ctx, level, 7);
         // Create routes between all rooms
@@ -316,8 +351,11 @@ impl Floor {
             self.create_room(Room {
                 seed: ctx.rng.gen(),
                 loot_density: 0.000025 + level as f32 * 0.00015,
-                enemy_density: Some(0.001 + level as f32 * 0.00004),
+                enemy_density: Some(0.001 + level as f32 * 0.00006),
+                boss: false,
                 area,
+                height: ctx.rng.gen_range(10, 15),
+                pillars: None,
             });
         }
     }
@@ -334,7 +372,7 @@ impl Floor {
         let transition = |_a: &Vec2<i32>, b: &Vec2<i32>| match self.tiles.get(*b) {
             Some(Tile::Room(_)) | Some(Tile::Tunnel) => 1.0,
             Some(Tile::Solid) => 25.0,
-            Some(Tile::UpStair) | Some(Tile::DownStair) => 0.0,
+            Some(Tile::UpStair) | Some(Tile::DownStair(_)) => 0.0,
             _ => 100000.0,
         };
         let satisfied = |l: &Vec2<i32>| *l == b;
@@ -367,6 +405,7 @@ impl Floor {
         for x in area.min.x..area.max.x {
             for y in area.min.y..area.max.y {
                 let tile_pos = Vec2::new(x, y).map(|e| e.div_euclid(TILE_SIZE)) - self.tile_offset;
+                let wpos2d = origin.xy() + Vec2::new(x, y);
                 if let Some(Tile::Room(room)) = self.tiles.get(tile_pos) {
                     let room = &self.rooms[*room];
 
@@ -376,10 +415,20 @@ impl Floor {
                                 .map(|e| e.div_euclid(TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2),
                         );
 
+                    let tile_is_pillar = room
+                        .pillars
+                        .map(|pillar_space| {
+                            tile_pos
+                                .map(|e| e.rem_euclid(pillar_space) == 0)
+                                .reduce_and()
+                        })
+                        .unwrap_or(false);
+
                     if room
                         .enemy_density
                         .map(|density| rng.gen_range(0, density.recip() as usize) == 0)
                         .unwrap_or(false)
+                        && !tile_is_pillar
                     {
                         // Bad
                         let entity = EntityInfo::at(
@@ -389,7 +438,7 @@ impl Floor {
                                 .map(|e| (RandomField::new(room.seed.wrapping_add(10 + e)).get(Vec3::from(tile_pos)) % 32) as i32 - 16)
                                 .map(|e| e as f32 / 16.0),
                         )
-                        .do_if(RandomField::new(room.seed.wrapping_add(1)).chance(Vec3::from(tile_pos), 0.2), |e| e.into_giant())
+                        .do_if(RandomField::new(room.seed.wrapping_add(1)).chance(Vec3::from(tile_pos), 0.2) && !room.boss, |e| e.into_giant())
                         .with_alignment(comp::Alignment::Enemy)
                         .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
                         .with_automatic_name()
@@ -403,6 +452,46 @@ impl Floor {
                         }));
 
                         supplement.add_entity(entity);
+                    }
+
+                    if room.boss {
+                        let boss_spawn_tile = room.area.center();
+                        // Don't spawn the boss in a pillar
+                        let boss_spawn_tile = boss_spawn_tile + if tile_is_pillar { 1 } else { 0 };
+
+                        if tile_pos == boss_spawn_tile && tile_wcenter.xy() == wpos2d {
+                            let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                                .with_scale(4.0)
+                                .with_level(rng.gen_range(50, 70))
+                                .with_alignment(comp::Alignment::Enemy)
+                                .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
+                                .with_name(format!(
+                                    "{}, Destroyer of Worlds",
+                                    npc::get_npc_name(npc::NpcKind::Humanoid)
+                                ))
+                                .with_main_tool(assets::load_expect_cloned(
+                                    match rng.gen_range(0, 5) {
+                                        0 => "common.items.weapons.sword.starter_sword",
+                                        1 => "common.items.weapons.sword.short_sword_0",
+                                        2 => "common.items.weapons.sword.wood_sword",
+                                        3 => "common.items.weapons.sword.zweihander_sword_0",
+                                        _ => "common.items.weapons.hammer.hammer_1",
+                                    },
+                                ))
+                                .with_loot_drop(match rng.gen_range(0, 3) {
+                                    0 => comp::Item::expect_from_asset(
+                                        "common.items.boss_drops.lantern",
+                                    ),
+                                    1 => comp::Item::expect_from_asset(
+                                        "common.items.boss_drops.potions",
+                                    ),
+                                    _ => comp::Item::expect_from_asset(
+                                        "common.items.boss_drops.xp_potion",
+                                    ),
+                                });
+
+                            supplement.add_entity(entity);
+                        }
                     }
                 }
             }
@@ -477,9 +566,20 @@ impl Floor {
                     BlockMask::nothing()
                 }
             },
-            Some(Tile::Room(_)) | Some(Tile::DownStair)
+            Some(Tile::Room(room)) | Some(Tile::DownStair(room))
                 if dist_to_wall < wall_thickness
-                    || z as f32 >= self.hollow_depth as f32 - 13.0 * tunnel_dist.powf(4.0) =>
+                    || z as f32
+                        >= self.rooms[*room].height as f32 * (1.0 - tunnel_dist.powf(4.0))
+                    || self.rooms[*room]
+                        .pillars
+                        .map(|pillar_space| {
+                            tile_pos
+                                .map(|e| e.rem_euclid(pillar_space) == 0)
+                                .reduce_and()
+                                && rtile_pos.map(|e| e as f32).magnitude_squared()
+                                    < 3.5f32.powf(2.0)
+                        })
+                        .unwrap_or(false) =>
             {
                 BlockMask::nothing()
             },
@@ -492,7 +592,7 @@ impl Floor {
                     empty
                 }
             },
-            Some(Tile::DownStair) => {
+            Some(Tile::DownStair(_)) => {
                 make_staircase(Vec3::new(rtile_pos.x, rtile_pos.y, z), 0.0, 0.5, 9.0)
                     .resolve_with(empty)
             },
