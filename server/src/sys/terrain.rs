@@ -245,11 +245,15 @@ impl<'a> System<'a> for Sys {
                     },
                 };
 
-                let mut scale = 1.0;
+                let mut scale = entity.scale;
 
                 // TODO: Remove this and implement scaling or level depending on stuff like
                 // species instead
-                stats.level.set_level(rand::thread_rng().gen_range(1, 9));
+                stats.level.set_level(
+                    entity.level.unwrap_or_else(|| {
+                        (rand::thread_rng().gen_range(1, 9) as f32 * scale) as u32
+                    }),
+                );
 
                 // Replace stuff if it's a boss
                 if entity.is_giant {
@@ -336,6 +340,7 @@ impl<'a> System<'a> for Sys {
                     alignment,
                     agent: comp::Agent::default().with_patrol_origin(entity.pos),
                     scale: comp::Scale(scale),
+                    drop_item: entity.loot_drop,
                 })
             }
         }

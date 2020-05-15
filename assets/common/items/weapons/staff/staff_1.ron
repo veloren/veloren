@@ -3,7 +3,7 @@ Item(
     description: "Two-Hand Staff\n\nPower: 2-10\n\nWalking stick with a sharpened end\n\n<Right-Click to use>",
     kind: Tool(
         (
-            kind: Staff(BasicStaff),    
+            kind: Staff(BasicStaff),
             equip_time_millis: 200,
         )
     ),
