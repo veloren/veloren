@@ -34,6 +34,9 @@ pub struct Civs {
     sites: Store<Site>,
 }
 
+// Change this to get rid of particularly horrid seeds
+const SEED_SKIP: u8 = 1;
+
 pub struct GenCtx<'a, R: Rng> {
     sim: &'a mut WorldSim,
     rng: R,
@@ -41,9 +44,11 @@ pub struct GenCtx<'a, R: Rng> {
 
 impl<'a, R: Rng> GenCtx<'a, R> {
     pub fn reseed(&mut self) -> GenCtx<'_, impl Rng> {
+        let mut entropy = self.rng.gen::<[u8; 32]>();
+        entropy[0] = entropy[0].wrapping_add(SEED_SKIP); // Skip bad seeds
         GenCtx {
             sim: self.sim,
-            rng: ChaChaRng::from_seed(self.rng.gen()),
+            rng: ChaChaRng::from_seed(entropy),
         }
     }
 }
