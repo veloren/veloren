@@ -42,7 +42,6 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
 }
 
 pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event {
-    let db_dir = &server.server_settings.persistence_db_dir.clone();
     let state = server.state_mut();
 
     // Tell other clients to remove from player list
@@ -73,12 +72,13 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
     }
 
     // Sync the player's character data to the database
-    if let (Some(player), Some(stats)) = (
+    if let (Some(player), Some(stats), updater) = (
         state.read_storage::<Player>().get(entity),
         state.read_storage::<comp::Stats>().get(entity),
+        state.ecs().read_resource::<persistence::stats::Updater>(),
     ) {
         if let Some(character_id) = player.character_id {
-            persistence::stats::update_item(character_id, stats, db_dir);
+            updater.update(character_id, stats);
         }
     }
 
