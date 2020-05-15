@@ -106,10 +106,17 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 .ecs()
                 .write_storage()
                 .insert(entity, Body::Object(object::Body::Pouch));
-            let _ = state.ecs().write_storage().insert(
-                entity,
-                assets::load_expect_cloned::<Item>("common.items.cheese"),
-            );
+
+            let mut item_drops = state.ecs().write_storage::<comp::ItemDrop>();
+            let item = if let Some(item_drop) = item_drops.get(entity).cloned() {
+                item_drops.remove(entity);
+                item_drop.0
+            } else {
+                assets::load_expect_cloned::<Item>("common.items.cheese")
+            };
+
+            let _ = state.ecs().write_storage().insert(entity, item);
+
             state.ecs().write_storage::<comp::Stats>().remove(entity);
             state.ecs().write_storage::<comp::Agent>().remove(entity);
             state

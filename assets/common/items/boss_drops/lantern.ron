@@ -1,0 +1,12 @@
+Item(
+    name: "Magic Lantern",
+    description: "Illuminates even the darkest dungeon\nA great monster was slain for this item",
+    kind: Lantern(
+        (
+            kind: Blue0,
+            color: (r: 220, g: 220, b: 255),
+            strength_thousandths: 6500,
+            flicker_thousandths: 300,
+        ),
+    ),
+)

@@ -1,0 +1,8 @@
+Item(
+    name: "Potion of Skill",
+    description: "Provides 250 XP to the drinker\n\n<Right-Click to use>",
+    kind: Consumable(
+        kind: Potion,
+        effect: Xp(250),
+    ),
+)
