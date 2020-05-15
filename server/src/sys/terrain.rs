@@ -2,7 +2,7 @@ use super::SysTimer;
 use crate::{chunk_generator::ChunkGenerator, client::Client, Tick};
 use common::{
     assets,
-    comp::{self, item, CharacterAbility, ItemConfig, Player, Pos, Alignment},
+    comp::{self, item, Alignment, CharacterAbility, ItemConfig, Player, Pos},
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
     msg::ServerMsg,
@@ -266,7 +266,11 @@ impl<'a> System<'a> for Sys {
                             "Gentle"
                         };
                         stats = comp::Stats::new(
-                            format!("{} Giant {}", adjective, get_npc_name(&NPC_NAMES.humanoid, body_new.race)),
+                            format!(
+                                "{} Giant {}",
+                                adjective,
+                                get_npc_name(&NPC_NAMES.humanoid, body_new.race)
+                            ),
                             body,
                         );
                     }
