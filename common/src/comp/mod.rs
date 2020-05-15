@@ -31,7 +31,9 @@ pub use controller::{
 pub use energy::{Energy, EnergySource};
 pub use inputs::CanBuild;
 pub use inventory::{
-    item, item::Item, slot, Inventory, InventoryUpdate, InventoryUpdateEvent, MAX_PICKUP_RANGE_SQR,
+    item,
+    item::{Item, ItemDrop},
+    slot, Inventory, InventoryUpdate, InventoryUpdateEvent, MAX_PICKUP_RANGE_SQR,
 };
 pub use last::Last;
 pub use location::{Waypoint, WaypointArea};

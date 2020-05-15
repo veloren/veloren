@@ -1,5 +1,5 @@
 use crate::{comp, sync::Uid, util::Dir};
-use comp::{item::ToolKind, InventoryUpdateEvent};
+use comp::{item::ToolKind, InventoryUpdateEvent, Item};
 use parking_lot::Mutex;
 use serde::Deserialize;
 use specs::Entity as EcsEntity;
@@ -107,6 +107,7 @@ pub enum ServerEvent {
         agent: comp::Agent,
         alignment: comp::Alignment,
         scale: comp::Scale,
+        drop_item: Option<Item>,
     },
     CreateWaypoint(Vec3<f32>),
     ClientDisconnect(EcsEntity),
