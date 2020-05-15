@@ -82,9 +82,8 @@ pub const ALL_SPECIES: [Species; 8] = [
 ];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
+    type IntoIter = std::iter::Copied<std::slice::Iter<'static, Self::Item>>;
     type Item = Species;
-
-    type IntoIter = impl Iterator<Item = Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter { ALL_SPECIES.iter().copied() }
 }
