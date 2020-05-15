@@ -64,8 +64,8 @@ impl<'a> System<'a> for Sys {
                 let stat = stats.get_mut_unchecked();
                 while stat.exp.current() >= stat.exp.maximum() {
                     stat.exp.change_by(-(stat.exp.maximum() as i64));
-                    stat.exp.change_maximum_by(25);
                     stat.level.change_by(1);
+                    stat.exp.update_maximum(stat.level.level());
                 }
 
                 stat.update_max_hp();

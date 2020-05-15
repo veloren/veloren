@@ -87,9 +87,13 @@ pub struct Stats {
 
 impl From<StatsJoinData<'_>> for comp::Stats {
     fn from(data: StatsJoinData) -> comp::Stats {
+        let level = data.stats.level as u32;
+
         let mut base_stats = comp::Stats::new(String::from(data.alias), *data.body);
 
-        base_stats.level.set_level(data.stats.level as u32);
+        base_stats.level.set_level(level);
+        base_stats.exp.update_maximum(level);
+
         base_stats.exp.set_current(data.stats.exp as u32);
 
         base_stats.update_max_hp();
@@ -154,5 +158,37 @@ mod tests {
             fitness: 3,
             willpower: 4,
         })
+    }
+
+    #[test]
+    fn loads_stats_with_correct_level() {
+        let data = StatsJoinData {
+            alias: "test",
+            body: &comp::Body::from(&Body {
+                character_id: 0,
+                race: 0,
+                body_type: comp::humanoid::BodyType::Female as i16,
+                hair_style: 0,
+                beard: 0,
+                eyebrows: 0,
+                accessory: 0,
+                hair_color: 0,
+                skin: 0,
+                eye_color: 0,
+            }),
+            stats: &Stats {
+                character_id: 0,
+                level: 3,
+                exp: 70,
+                endurance: 0,
+                fitness: 2,
+                willpower: 3,
+            },
+        };
+
+        let stats = comp::Stats::from(data);
+
+        assert_eq!(stats.level.level(), 3);
+        assert_eq!(stats.exp.current(), 70);
     }
 }
