@@ -37,6 +37,7 @@ before_script:
   - ln -s /dockercache/veloren/target target
 
 include:
+  - local: .gitlab/CI/recompile.yml
   - local: .gitlab/CI/optional-builds.gitlab-ci.yml
   - local: .gitlab/CI/check-compile.gitlab-ci.yml
   - local: .gitlab/CI/build-post.gitlab-ci.yml

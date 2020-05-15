@@ -1,11 +1,5 @@
-# Template to only run if actual changes has been made to the code and not just documentation
-.only: &only
-  rules:
-    - changes:
-        - "*.{rs,ron,toml}"
-
 check:
-  <<: *only
+  extends: .recompile
   stage: check-compile
   tags:
     - veloren-docker
@@ -13,7 +7,7 @@ check:
     - RUSTFLAGS="-D warnings" cargo check --locked
 
 code-quality:
-  <<: *only
+  extends: .recompile
   stage: check-compile
   tags:
     - veloren-docker
@@ -22,7 +16,7 @@ code-quality:
     - cargo fmt --all -- --check
 
 security:
-  <<: *only
+  extends: .recompile
   stage: check-compile
   allow_failure: true
   tags:

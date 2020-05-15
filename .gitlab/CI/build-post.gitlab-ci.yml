@@ -1,11 +1,7 @@
 # Template to only run if actual changes has been made to the code and not just documentation
 .tests: &tests
+  extends: .recompile
   stage: build-post
-  rules:
-    - changes:
-        - "*.{rs,ron,toml}"
-      when: delayed
-      start_in: 5 seconds
   tags:
     - veloren-docker
 
@@ -41,18 +37,11 @@ localization-status:
     - cargo test -q test_all_localizations -- --nocapture --ignored
 
 # Artifacts
-# TODO: Only build artifacts if actual changes has been made like we do for the tests
 .artifact: &artifact
+  extends: .recompile
   stage: build-post
-  # only:
-  #   refs:
-  #     - /^r[0-9]+\.[0-9]+\.[0-9]+/
-  #     - /^v[0-9]+\.[0-9]+/
-  #     - /^master$/
   rules:
     - if: $CI_COMMIT_REF_NAME =~ /^master.$/ || $CI_COMMIT_TAG =~ /^r[0-9]+\.[0-9]+\.[0-9]+/ || $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+/
-    - changes:
-        - "*.{rs,ron,toml}"
   tags:
     - veloren-docker
 
