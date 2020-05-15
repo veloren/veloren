@@ -85,16 +85,15 @@ impl fmt::Display for StatChangeError {
 impl Error for StatChangeError {}
 
 impl Exp {
+    /// Used to determine how much exp is required to reach the next level. When
+    /// a character levels up, the next level target is increased by this value
+    const EXP_INCREASE_FACTOR: u32 = 25;
+
     pub fn current(&self) -> u32 { self.current }
 
     pub fn maximum(&self) -> u32 { self.maximum }
 
     pub fn set_current(&mut self, current: u32) { self.current = current; }
-
-    // TODO: Uncomment when needed
-    // pub fn set_maximum(&mut self, maximum: u32) {
-    // self.maximum = maximum;
-    // }
 
     pub fn change_by(&mut self, current: i64) {
         self.current = ((self.current as i64) + current) as u32;
@@ -102,6 +101,10 @@ impl Exp {
 
     pub fn change_maximum_by(&mut self, maximum: i64) {
         self.maximum = ((self.maximum as i64) + maximum) as u32;
+    }
+
+    pub fn update_maximum(&mut self, level: u32) {
+        self.maximum = Self::EXP_INCREASE_FACTOR + (level * Self::EXP_INCREASE_FACTOR);
     }
 }
 
