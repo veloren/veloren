@@ -130,6 +130,7 @@ https://account.veloren.net."#,
         "hud.show_tips": "Pokarz wskazówki",
         "hud.quests": "Zadania",
         "hud.you_died": "Umarłeś",
+        "hud.waypoint_saved": "Lokalizacja zapamiętana.",
 
         "hud.press_key_to_show_keybindings_fmt": "Kliknij {key} aby sprawdzić skróty klawiszowe",
         "hud.press_key_to_show_debug_info_fmt": "Kliknij {key} aby pokazać zaawansowane informacje",
