@@ -271,9 +271,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 _0.1.0 was part of the legacy engine_
 
 [unreleased]: https://gitlab.com/veloren/veloren/compare?from=v0.6.0&to=master
-[0.0.6]: https://gitlab.com/veloren/veloren/compare?from=v0.5.0&to=v0.6.0
-[0.0.5]: https://gitlab.com/veloren/veloren/compare?from=v0.4.0&to=v0.5.0
-[0.0.4]: https://gitlab.com/veloren/veloren/compare?from=v0.3.0&to=v0.4.0
-[0.0.3]: https://gitlab.com/veloren/veloren/compare?from=v0.2.0&to=v0.3.0
-[0.0.2]: https://gitlab.com/veloren/veloren/compare?from=7d17f8b67a2a6d5aa00730f028cedc430fd5075a&to=v0.2.0
-[0.0.1]: https://gitlab.com/veloren/game
+[0.6.0]: https://gitlab.com/veloren/veloren/compare?from=v0.5.0&to=v0.6.0
+[0.5.0]: https://gitlab.com/veloren/veloren/compare?from=v0.4.0&to=v0.5.0
+[0.4.0]: https://gitlab.com/veloren/veloren/compare?from=v0.3.0&to=v0.4.0
+[0.3.0]: https://gitlab.com/veloren/veloren/compare?from=v0.2.0&to=v0.3.0
+[0.2.0]: https://gitlab.com/veloren/veloren/compare?from=7d17f8b67a2a6d5aa00730f028cedc430fd5075a&to=v0.2.0
+[0.1.0]: https://gitlab.com/veloren/game
