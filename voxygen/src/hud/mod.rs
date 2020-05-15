@@ -35,7 +35,7 @@ use spell::Spell;
 use crate::{
     ecs::comp as vcomp,
     i18n::{i18n_asset_key, LanguageMetadata, VoxygenLocalization},
-    render::{AaMode, CloudMode, Consts, FluidMode, Globals, Renderer},
+    render::{AaMode, CloudMode, Consts, FluidMode, Globals, LightingMode, Renderer},
     scene::camera::{self, Camera},
     ui::{fonts::ConrodVoxygenFonts, slot, Graphic, Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, GameInput},
@@ -246,6 +246,7 @@ pub enum Event {
     ChangeLanguage(LanguageMetadata),
     ChangeBinding(GameInput),
     ChangeFreeLookBehavior(PressBehavior),
+    ChangeLightingMode(LightingMode),
 }
 
 // TODO: Are these the possible layouts we want?
@@ -1857,6 +1858,9 @@ impl Hud {
                     },
                     settings_window::Event::ChangeLanguage(language) => {
                         events.push(Event::ChangeLanguage(language));
+                    },
+                    settings_window::Event::ChangeLightingMode(new_lighting_mode) => {
+                        events.push(Event::ChangeLightingMode(new_lighting_mode));
                     },
                     settings_window::Event::ToggleFullscreen => {
                         events.push(Event::ToggleFullscreen);

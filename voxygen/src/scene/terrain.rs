@@ -2,7 +2,7 @@ use crate::{
     mesh::Meshable,
     render::{
         Consts, FluidPipeline, Globals, Instances, Light, Mesh, Model, Renderer, Shadow,
-        SpriteInstance, SpritePipeline, TerrainLocals, TerrainPipeline, Texture,
+        ShadowLocals, SpriteInstance, SpritePipeline, TerrainLocals, TerrainPipeline, Texture,
     },
 };
 
@@ -2191,6 +2191,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         globals: &Consts<Globals>,
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
+        shadow_mats: &Consts<ShadowLocals>,
         lod: &LodData,
         focus_pos: Vec3<f32>,
     ) {
@@ -2205,8 +2206,28 @@ impl<V: RectRasterableVol> Terrain<V> {
             })
             .take(self.chunks.len());
 
-        // Opaque
+        // Shadows
         for (_, chunk) in chunk_iter.clone() {
+            /* if chunk.visible */
+            {
+                renderer.render_shadow(
+                    &chunk.opaque_model,
+                    globals,
+                    &chunk.locals,
+                    shadow_mats,
+                    lights,
+                    shadows,
+                    &lod.map,
+                    &lod.horizon,
+                );
+            }
+        }
+
+        // Flush shadows.
+        renderer.flush_shadows();
+
+        // Terrain
+        for (_, chunk) in chunk_iter {
             if chunk.visible {
                 renderer.render_terrain_chunk(
                     &chunk.opaque_model,

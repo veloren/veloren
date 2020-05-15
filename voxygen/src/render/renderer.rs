@@ -5,11 +5,11 @@ use super::{
     mesh::Mesh,
     model::{DynamicModel, Model},
     pipelines::{
-        figure, fluid, lod_terrain, postprocess, skybox, sprite, terrain, ui, Globals, Light,
-        Shadow,
+        figure, fluid, lod_terrain, postprocess, shadow, skybox, sprite, terrain, ui, Globals,
+        Light, Shadow,
     },
     texture::Texture,
-    AaMode, CloudMode, FilterMethod, FluidMode, Pipeline, RenderError, WrapMode,
+    AaMode, CloudMode, FilterMethod, FluidMode, LightingMode, Pipeline, RenderError, WrapMode,
 };
 use common::assets::{self, watch::ReloadIndicator};
 use gfx::{
@@ -23,7 +23,7 @@ use log::error;
 use vek::*;
 
 /// Represents the format of the pre-processed color target.
-pub type TgtColorFmt = gfx::format::Srgba8;
+pub type TgtColorFmt = gfx::format::Rgba16F;
 /// Represents the format of the pre-processed depth and stencil target.
 pub type TgtDepthStencilFmt = gfx::format::DepthStencil;
 
@@ -31,6 +31,9 @@ pub type TgtDepthStencilFmt = gfx::format::DepthStencil;
 pub type WinColorFmt = gfx::format::Srgba8;
 /// Represents the format of the window's depth target.
 pub type WinDepthFmt = gfx::format::Depth;
+
+/// Represents the format of the pre-processed shadow depth target.
+pub type ShadowDepthStencilFmt = gfx::format::Depth32F;
 
 /// A handle to a pre-processed color target.
 pub type TgtColorView = gfx::handle::RenderTargetView<gfx_backend::Resources, TgtColorFmt>;
@@ -49,11 +52,32 @@ pub type LodTextureFmt = (gfx::format::R8_G8_B8_A8, gfx::format::Unorm); //[gfx:
 /// Represents the format of LOD map color targets.
 pub type LodColorFmt = (gfx::format::R8_G8_B8_A8, gfx::format::Srgb); //[gfx::format::U8Norm; 4];
 
+/// A handle to a shadow depth target.
+pub type ShadowDepthStencilView =
+    gfx::handle::DepthStencilView<gfx_backend::Resources, ShadowDepthStencilFmt>;
+/// A handle to a shadow depth target as a resource.
+pub type ShadowResourceView = gfx::handle::ShaderResourceView<
+    gfx_backend::Resources,
+    <ShadowDepthStencilFmt as gfx::format::Formatted>::View,
+>;
+
 /// A handle to a render color target as a resource.
 pub type TgtColorRes = gfx::handle::ShaderResourceView<
     gfx_backend::Resources,
     <TgtColorFmt as gfx::format::Formatted>::View,
 >;
+
+/// A type that holds shadow map data.  Since shadow mapping may not be
+/// supported on all platforms, we try to keep it separate.
+pub struct ShadowMapRenderer {
+    encoder: gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
+
+    depth_stencil_view: ShadowDepthStencilView,
+    res: ShadowResourceView,
+    sampler: Sampler<gfx_backend::Resources>,
+
+    pipeline: GfxPipeline<shadow::pipe::Init<'static>>,
+}
 
 /// A type that encapsulates rendering state. `Renderer` is central to Voxygen's
 /// rendering subsystem and contains any state necessary to interact with the
@@ -74,6 +98,8 @@ pub struct Renderer {
 
     sampler: Sampler<gfx_backend::Resources>,
 
+    shadow_map: Option<ShadowMapRenderer>,
+
     skybox_pipeline: GfxPipeline<skybox::pipe::Init<'static>>,
     figure_pipeline: GfxPipeline<figure::pipe::Init<'static>>,
     terrain_pipeline: GfxPipeline<terrain::pipe::Init<'static>>,
@@ -91,6 +117,7 @@ pub struct Renderer {
     aa_mode: AaMode,
     cloud_mode: CloudMode,
     fluid_mode: FluidMode,
+    lighting_mode: LightingMode,
 }
 
 impl Renderer {
@@ -104,6 +131,7 @@ impl Renderer {
         aa_mode: AaMode,
         cloud_mode: CloudMode,
         fluid_mode: FluidMode,
+        lighting_mode: LightingMode,
     ) -> Result<Self, RenderError> {
         let mut shader_reload_indicator = ReloadIndicator::new();
 
@@ -117,17 +145,37 @@ impl Renderer {
             lod_terrain_pipeline,
             postprocess_pipeline,
             player_shadow_pipeline,
+            shadow_pipeline,
         ) = create_pipelines(
             &mut factory,
             aa_mode,
             cloud_mode,
             fluid_mode,
+            lighting_mode,
             &mut shader_reload_indicator,
         )?;
 
         let dims = win_color_view.get_dimensions();
         let (tgt_color_view, tgt_depth_stencil_view, tgt_color_res) =
             Self::create_rt_views(&mut factory, (dims.0, dims.1), aa_mode)?;
+
+        let shadow_map = shadow_pipeline.and_then(|pipeline| {
+            match Self::create_shadow_views(&mut factory, dims.0.max(dims.1)) {
+                Ok((depth_stencil_view, res, sampler)) => Some(ShadowMapRenderer {
+                    encoder: factory.create_command_buffer().into(),
+
+                    depth_stencil_view,
+                    res,
+                    sampler,
+
+                    pipeline,
+                }),
+                Err(err) => {
+                    log::warn!("Could not create shadow map views: {:?}", err);
+                    None
+                },
+            }
+        });
 
         let sampler = factory.create_sampler_linear();
 
@@ -151,7 +199,10 @@ impl Renderer {
             tgt_depth_stencil_view,
 
             tgt_color_res,
+
             sampler,
+
+            shadow_map,
 
             skybox_pipeline,
             figure_pipeline,
@@ -170,6 +221,7 @@ impl Renderer {
             aa_mode,
             cloud_mode,
             fluid_mode,
+            lighting_mode,
         })
     }
 
@@ -235,6 +287,19 @@ impl Renderer {
         self.on_resize()?;
 
         // Recreate pipelines with the new fluid mode
+        self.recreate_pipelines();
+
+        Ok(())
+    }
+
+    /// Change the lighting mode.
+    pub fn set_lighting_mode(&mut self, lighting_mode: LightingMode) -> Result<(), RenderError> {
+        self.lighting_mode = lighting_mode;
+
+        // Recreate render target
+        self.on_resize()?;
+
+        // Recreate pipelines with the new lighting mode
         self.recreate_pipelines();
 
         Ok(())
@@ -311,6 +376,87 @@ impl Renderer {
         Ok((tgt_color_view, tgt_depth_stencil_view, tgt_color_res))
     }
 
+    /// Create textures and views for shadow maps.
+    fn create_shadow_views(
+        factory: &mut gfx_device_gl::Factory,
+        size: u16,
+    ) -> Result<
+        (
+            ShadowDepthStencilView,
+            ShadowResourceView,
+            Sampler<gfx_backend::Resources>,
+        ),
+        RenderError,
+    > {
+        let levels = 1;
+
+        /* let color_cty = <<TgtColorFmt as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped
+                >::get_channel_type();
+        let tgt_color_tex = factory.create_texture(
+            kind,
+            levels,
+            gfx::memory::Bind::SHADER_RESOURCE | gfx::memory::Bind::RENDER_TARGET,
+            gfx::memory::Usage::Data,
+            Some(color_cty),
+        )?;
+        let tgt_color_res = factory.view_texture_as_shader_resource::<TgtColorFmt>(
+            &tgt_color_tex,
+            (0, levels - 1),
+            gfx::format::Swizzle::new(),
+        )?;
+        let tgt_color_view = factory.view_texture_as_render_target(&tgt_color_tex, 0, None)?;
+
+        let depth_stencil_cty = <<TgtDepthStencilFmt as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped>::get_channel_type();
+        let tgt_depth_stencil_tex = factory.create_texture(
+            kind,
+            levels,
+            gfx::memory::Bind::DEPTH_STENCIL,
+            gfx::memory::Usage::Data,
+            Some(depth_stencil_cty),
+        )?;
+        let tgt_depth_stencil_view =
+            factory.view_texture_as_depth_stencil_trivial(&tgt_depth_stencil_tex)?; */
+        let depth_stencil_cty = <<ShadowDepthStencilFmt as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped>::get_channel_type();
+        let shadow_tex = factory
+            .create_texture(
+                gfx::texture::Kind::CubeArray(size / 4, 32),
+                1 as gfx::texture::Level,
+                gfx::memory::Bind::SHADER_RESOURCE | gfx::memory::Bind::DEPTH_STENCIL,
+                gfx::memory::Usage::Data,
+                Some(depth_stencil_cty),
+                /* Some(<<F as gfx::format::Formatted>::Channel as
+                 * gfx::format::ChannelTyped>::get_channel_type()), */
+            )
+            .map_err(|err| RenderError::CombinedError(gfx::CombinedError::Texture(err)))?;
+
+        let mut sampler_info = gfx::texture::SamplerInfo::new(
+            gfx::texture::FilterMethod::Bilinear,
+            gfx::texture::WrapMode::Border,
+        );
+        sampler_info.comparison = Some(Comparison::LessEqual);
+        sampler_info.border = [1.0; 4].into();
+        let shadow_tex_sampler = factory.create_sampler(sampler_info);
+
+        let tgt_shadow_view = factory.view_texture_as_depth_stencil_trivial(&shadow_tex)?;
+        /* let tgt_shadow_res = factory.view_texture_as_shader_resource::<TgtColorFmt>(
+            &tgt_color_tex,
+            (0, levels - 1),
+            gfx::format::Swizzle::new(),
+        )?; */
+
+        // let tgt_shadow_view =
+        // factory.view_texture_as_depth_stencil_trivial(&tgt_color_tex)?;
+        // let tgt_shadow_view = factory.view_texture_as_shader_resource(&tgt_color_tex,
+        // 0, None)?;
+        let tgt_shadow_res = factory.view_texture_as_shader_resource::<ShadowDepthStencilFmt>(
+            &shadow_tex,
+            (0, levels - 1),
+            gfx::format::Swizzle::new(),
+        )?;
+
+        Ok((tgt_shadow_view, tgt_shadow_res, shadow_tex_sampler))
+    }
+
     /// Get the resolution of the render target.
     pub fn get_resolution(&self) -> Vec2<u16> {
         Vec2::new(
@@ -322,14 +468,29 @@ impl Renderer {
     /// Queue the clearing of the depth target ready for a new frame to be
     /// rendered.
     pub fn clear(&mut self) {
+        if let Some(shadow_map) = self.shadow_map.as_mut() {
+            shadow_map
+                .encoder
+                .clear_depth(&shadow_map.depth_stencil_view, 1.0);
+        }
         self.encoder.clear_depth(&self.tgt_depth_stencil_view, 1.0);
         self.encoder.clear_stencil(&self.tgt_depth_stencil_view, 0);
         self.encoder.clear_depth(&self.win_depth_view, 1.0);
     }
 
+    /// Perform all queued draw calls for shadows.
+    pub fn flush_shadows(&mut self) {
+        if let Some(shadow_map) = self.shadow_map.as_mut() {
+            shadow_map.encoder.flush(&mut self.device);
+        }
+    }
+
     /// Perform all queued draw calls for this frame and clean up discarded
     /// items.
     pub fn flush(&mut self) {
+        if let Some(shadow_map) = self.shadow_map.as_mut() {
+            shadow_map.encoder.flush(&mut self.device);
+        }
         self.encoder.flush(&mut self.device);
         self.device.cleanup();
 
@@ -346,6 +507,7 @@ impl Renderer {
             self.aa_mode,
             self.cloud_mode,
             self.fluid_mode,
+            self.lighting_mode,
             &mut self.shader_reload_indicator,
         ) {
             Ok((
@@ -358,6 +520,7 @@ impl Renderer {
                 lod_terrain_pipeline,
                 postprocess_pipeline,
                 player_shadow_pipeline,
+                shadow_pipeline,
             )) => {
                 self.skybox_pipeline = skybox_pipeline;
                 self.figure_pipeline = figure_pipeline;
@@ -368,6 +531,11 @@ impl Renderer {
                 self.lod_terrain_pipeline = lod_terrain_pipeline;
                 self.postprocess_pipeline = postprocess_pipeline;
                 self.player_shadow_pipeline = player_shadow_pipeline;
+                if let (Some(pipeline), Some(shadow_map)) =
+                    (shadow_pipeline, self.shadow_map.as_mut())
+                {
+                    shadow_map.pipeline = pipeline;
+                }
             },
             Err(e) => error!(
                 "Could not recreate shaders from assets due to an error: {:#?}",
@@ -516,6 +684,8 @@ impl Renderer {
         model: &Model<skybox::SkyboxPipeline>,
         globals: &Consts<Globals>,
         locals: &Consts<skybox::Locals>,
+        map: &Texture<LodColorFmt>,
+        horizon: &Texture<LodTextureFmt>,
     ) {
         self.encoder.draw(
             &gfx::Slice {
@@ -531,6 +701,8 @@ impl Renderer {
                 locals: locals.buf.clone(),
                 globals: globals.buf.clone(),
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+                map: (map.srv.clone(), map.sampler.clone()),
+                horizon: (horizon.srv.clone(), horizon.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth_stencil: (self.tgt_depth_stencil_view.clone(), (1, 1)),
             },
@@ -549,6 +721,12 @@ impl Renderer {
         map: &Texture<LodColorFmt>,
         horizon: &Texture<LodTextureFmt>,
     ) {
+        let shadow_maps = if let Some(shadow_map) = &mut self.shadow_map {
+            (shadow_map.res.clone(), shadow_map.sampler.clone())
+        } else {
+            (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone())
+        };
+
         self.encoder.draw(
             &gfx::Slice {
                 start: model.vertex_range().start,
@@ -565,6 +743,7 @@ impl Renderer {
                 bones: bones.buf.clone(),
                 lights: lights.buf.clone(),
                 shadows: shadows.buf.clone(),
+                shadow_maps,
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 map: (map.srv.clone(), map.sampler.clone()),
                 horizon: (horizon.srv.clone(), horizon.sampler.clone()),
@@ -586,6 +765,12 @@ impl Renderer {
         map: &Texture<LodColorFmt>,
         horizon: &Texture<LodTextureFmt>,
     ) {
+        let shadow_maps = if let Some(shadow_map) = &mut self.shadow_map {
+            (shadow_map.res.clone(), shadow_map.sampler.clone())
+        } else {
+            (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone())
+        };
+
         self.encoder.draw(
             &gfx::Slice {
                 start: model.vertex_range().start,
@@ -602,6 +787,7 @@ impl Renderer {
                 bones: bones.buf.clone(),
                 lights: lights.buf.clone(),
                 shadows: shadows.buf.clone(),
+                shadow_maps,
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 map: (map.srv.clone(), map.sampler.clone()),
                 horizon: (horizon.srv.clone(), horizon.sampler.clone()),
@@ -623,6 +809,12 @@ impl Renderer {
         map: &Texture<LodColorFmt>,
         horizon: &Texture<LodTextureFmt>,
     ) {
+        let shadow_maps = if let Some(shadow_map) = &mut self.shadow_map {
+            (shadow_map.res.clone(), shadow_map.sampler.clone())
+        } else {
+            (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone())
+        };
+
         self.encoder.draw(
             &gfx::Slice {
                 start: model.vertex_range().start,
@@ -639,6 +831,7 @@ impl Renderer {
                 bones: bones.buf.clone(),
                 lights: lights.buf.clone(),
                 shadows: shadows.buf.clone(),
+                shadow_maps,
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 map: (map.srv.clone(), map.sampler.clone()),
                 horizon: (horizon.srv.clone(), horizon.sampler.clone()),
@@ -660,6 +853,12 @@ impl Renderer {
         map: &Texture<LodColorFmt>,
         horizon: &Texture<LodTextureFmt>,
     ) {
+        let shadow_maps = if let Some(shadow_map) = &mut self.shadow_map {
+            (shadow_map.res.clone(), shadow_map.sampler.clone())
+        } else {
+            (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone())
+        };
+
         self.encoder.draw(
             &gfx::Slice {
                 start: model.vertex_range().start,
@@ -675,11 +874,59 @@ impl Renderer {
                 globals: globals.buf.clone(),
                 lights: lights.buf.clone(),
                 shadows: shadows.buf.clone(),
+                shadow_maps,
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 map: (map.srv.clone(), map.sampler.clone()),
                 horizon: (horizon.srv.clone(), horizon.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth_stencil: (self.tgt_depth_stencil_view.clone(), (1, 1)),
+            },
+        );
+    }
+
+    /// Queue the rendering of the player silhouette in the upcoming frame.
+    pub fn render_shadow(
+        &mut self,
+        model: &Model<terrain::TerrainPipeline>,
+        globals: &Consts<Globals>,
+        terrain_locals: &Consts<terrain::Locals>,
+        locals: &Consts<shadow::Locals>,
+        lights: &Consts<Light>,
+        shadows: &Consts<Shadow>,
+        map: &Texture<LodColorFmt>,
+        horizon: &Texture<LodTextureFmt>,
+    ) {
+        // NOTE: Don't render shadows if the shader is not supported.
+        let shadow_map = if let Some(shadow_map) = &mut self.shadow_map {
+            shadow_map
+        } else {
+            return;
+        };
+        shadow_map.encoder.draw(
+            &gfx::Slice {
+                start: model.vertex_range().start,
+                end: model.vertex_range().end,
+                base_vertex: 0,
+                instances: None,
+                buffer: gfx::IndexBuffer::Auto,
+            },
+            &shadow_map.pipeline.pso,
+            &shadow::pipe::Data {
+                // Terrain vertex stuff
+                vbuf: model.vbuf.clone(),
+                locals: terrain_locals.buf.clone(),
+                globals: globals.buf.clone(),
+                lights: lights.buf.clone(),
+                shadows: shadows.buf.clone(),
+                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+                map: (map.srv.clone(), map.sampler.clone()),
+                horizon: (horizon.srv.clone(), horizon.sampler.clone()),
+
+                // Shadow stuff
+                light_shadows: locals.buf.clone(),
+                tgt_depth_stencil: shadow_map.depth_stencil_view.clone(),
+                /* tgt_depth_stencil: (self.shadow_depth_stencil_view.clone(), (1, 1)),
+                 * shadow_tex: (self.shadow_res.clone(), self.shadow_sampler.clone()), */
             },
         );
     }
@@ -697,6 +944,11 @@ impl Renderer {
         horizon: &Texture<LodTextureFmt>,
         waves: &Texture,
     ) {
+        let shadow_maps = if let Some(shadow_map) = &mut self.shadow_map {
+            (shadow_map.res.clone(), shadow_map.sampler.clone())
+        } else {
+            (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone())
+        };
         self.encoder.draw(
             &gfx::Slice {
                 start: model.vertex_range().start,
@@ -712,6 +964,7 @@ impl Renderer {
                 globals: globals.buf.clone(),
                 lights: lights.buf.clone(),
                 shadows: shadows.buf.clone(),
+                shadow_maps,
                 map: (map.srv.clone(), map.sampler.clone()),
                 horizon: (horizon.srv.clone(), horizon.sampler.clone()),
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
@@ -734,6 +987,11 @@ impl Renderer {
         map: &Texture<LodColorFmt>,
         horizon: &Texture<LodTextureFmt>,
     ) {
+        let shadow_maps = if let Some(shadow_map) = &mut self.shadow_map {
+            (shadow_map.res.clone(), shadow_map.sampler.clone())
+        } else {
+            (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone())
+        };
         self.encoder.draw(
             &gfx::Slice {
                 start: model.vertex_range().start,
@@ -749,6 +1007,7 @@ impl Renderer {
                 globals: globals.buf.clone(),
                 lights: lights.buf.clone(),
                 shadows: shadows.buf.clone(),
+                shadow_maps,
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 map: (map.srv.clone(), map.sampler.clone()),
                 horizon: (horizon.srv.clone(), horizon.sampler.clone()),
@@ -867,6 +1126,7 @@ fn create_pipelines(
     aa_mode: AaMode,
     cloud_mode: CloudMode,
     fluid_mode: FluidMode,
+    lighting_mode: LightingMode,
     shader_reload_indicator: &mut ReloadIndicator,
 ) -> Result<
     (
@@ -879,9 +1139,15 @@ fn create_pipelines(
         GfxPipeline<lod_terrain::pipe::Init<'static>>,
         GfxPipeline<postprocess::pipe::Init<'static>>,
         GfxPipeline<figure::pipe::Init<'static>>,
+        Option<GfxPipeline<shadow::pipe::Init<'static>>>,
     ),
     RenderError,
 > {
+    let constants = assets::load_watched::<String>(
+        "voxygen.shaders.include.constants",
+        shader_reload_indicator,
+    )
+    .unwrap();
     let globals =
         assets::load_watched::<String>("voxygen.shaders.include.globals", shader_reload_indicator)
             .unwrap();
@@ -900,6 +1166,35 @@ fn create_pipelines(
     let lod =
         assets::load_watched::<String>("voxygen.shaders.include.lod", shader_reload_indicator)
             .unwrap();
+
+    // We dynamically add extra configuration settings to the constants file.
+    let constants = format!(
+        r#"
+{}
+
+#define VOXYGEN_COMPUTATION_PREERENCE {}
+#define FLUID_MODE {}
+#define CLOUD_MODE {}
+#define LIGHTING_ALGORITHM {}
+
+"#,
+        constants,
+        // TODO: Configurable vertex/fragment shader preference.
+        "VOXYGEN_COMPUTATION_PREERENCE_FRAGMENT",
+        match fluid_mode {
+            FluidMode::Cheap => "FLUID_MODE_CHEAP",
+            FluidMode::Shiny => "FLUID_MODE_SHINY",
+        },
+        match cloud_mode {
+            CloudMode::None => "CLOUD_MODE_NONE",
+            CloudMode::Regular => "CLOUD_MODE_REGULAR",
+        },
+        match lighting_mode {
+            LightingMode::Ashikmin => "LIGHTING_ALGORITHM_ASHIKHMIN",
+            LightingMode::BlinnPhong => "LIGHTING_ALGORITHM_BLINN_PHONG",
+            LightingMode::Lambertian => "CLOUD_MODE_NONE",
+        },
+    );
 
     let anti_alias = assets::load_watched::<String>(
         &["voxygen.shaders.antialias.", match aa_mode {
@@ -925,6 +1220,7 @@ fn create_pipelines(
     .unwrap();
 
     let mut include_ctx = IncludeContext::new();
+    include_ctx.include("constants.glsl", &constants);
     include_ctx.include("globals.glsl", &globals);
     include_ctx.include("sky.glsl", &sky);
     include_ctx.include("light.glsl", &light);
@@ -1074,6 +1370,35 @@ fn create_pipelines(
         gfx::state::CullFace::Back,
     )?;
 
+    // Construct a pipeline for rendering shadow maps.
+    let shadow_pipeline = match create_shadow_pipeline(
+        factory,
+        shadow::pipe::new(),
+        &assets::load_watched::<String>(
+            "voxygen.shaders.light-shadows-vert",
+            shader_reload_indicator,
+        )
+        .unwrap(),
+        &assets::load_watched::<String>(
+            "voxygen.shaders.light-shadows-geom",
+            shader_reload_indicator,
+        )
+        .unwrap(),
+        &assets::load_watched::<String>(
+            "voxygen.shaders.light-shadows-frag",
+            shader_reload_indicator,
+        )
+        .unwrap(),
+        &include_ctx,
+        gfx::state::CullFace::Back,
+    ) {
+        Ok(pipe) => Some(pipe),
+        Err(err) => {
+            log::warn!("Could not load shadow map pipeline: {:?}", err);
+            None
+        },
+    };
+
     Ok((
         skybox_pipeline,
         figure_pipeline,
@@ -1084,11 +1409,12 @@ fn create_pipelines(
         lod_terrain_pipeline,
         postprocess_pipeline,
         player_shadow_pipeline,
+        shadow_pipeline,
     ))
 }
 
 /// Create a new pipeline from the provided vertex shader and fragment shader.
-fn create_pipeline<'a, P: gfx::pso::PipelineInit>(
+fn create_pipeline<P: gfx::pso::PipelineInit>(
     factory: &mut gfx_backend::Factory,
     pipe: P,
     vs: &str,
@@ -1111,6 +1437,48 @@ fn create_pipeline<'a, P: gfx::pso::PipelineInit>(
                 method: gfx::state::RasterMethod::Fill,
                 offset: None,
                 samples: Some(gfx::state::MultiSample),
+            },
+            pipe,
+        )?,
+    });
+
+    result
+}
+
+/// Create a new shadow map pipeline.
+fn create_shadow_pipeline<P: gfx::pso::PipelineInit>(
+    factory: &mut gfx_backend::Factory,
+    pipe: P,
+    vs: &str,
+    gs: &str,
+    fs: &str,
+    ctx: &IncludeContext,
+    cull_face: gfx::state::CullFace,
+) -> Result<GfxPipeline<P>, RenderError> {
+    let vs = ctx.expand(vs)?;
+    let gs = ctx.expand(gs)?;
+    let fs = ctx.expand(fs)?;
+
+    let shader_set =
+        factory.create_shader_set_geometry(vs.as_bytes(), gs.as_bytes(), fs.as_bytes())?;
+
+    let result = Ok(GfxPipeline {
+        pso: factory.create_pipeline_state(
+            &shader_set,
+            gfx::Primitive::TriangleList,
+            gfx::state::Rasterizer {
+                front_face: gfx::state::FrontFace::CounterClockwise,
+                // Second-depth shadow mapping: should help reduce z-fighting provided all objects
+                // are "watertight" (every triangle edge is shared with at most one other
+                // triangle); this *should* be true for Veloren.
+                cull_face: /*cull_face*//*gfx::state::CullFace::Nothing*/match cull_face {
+                    gfx::state::CullFace::Front => gfx::state::CullFace::Back,
+                    gfx::state::CullFace::Back => gfx::state::CullFace::Front,
+                    gfx::state::CullFace::Nothing => gfx::state::CullFace::Nothing,
+                },
+                method: gfx::state::RasterMethod::Fill,
+                offset: Some(gfx::state::Offset(4, /*10*/10)),
+                samples: None,//Some(gfx::state::MultiSample),
             },
             pipe,
         )?,

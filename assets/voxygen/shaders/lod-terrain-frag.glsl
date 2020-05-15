@@ -1,5 +1,21 @@
 #version 330 core
 
+#include <constants.glsl>
+
+#define LIGHTING_TYPE LIGHTING_TYPE_REFLECTION
+
+#define LIGHTING_REFLECTION_KIND LIGHTING_REFLECTION_KIND_GLOSSY
+
+#if (FLUID_MODE == FLUID_MODE_CHEAP)
+#define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
+#elif (FLUID_MODE == FLUID_MODE_SHINY)
+#define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_RADIANCE
+#endif
+
+#define LIGHTING_DISTRIBUTION_SCHEME LIGHTING_DISTRIBUTION_SCHEME_VOXEL
+
+#define LIGHTING_DISTRIBUTION LIGHTING_DISTRIBUTION_BECKMANN
+
 #include <globals.glsl>
 #include <sky.glsl>
 #include <lod.glsl>
@@ -83,10 +99,6 @@ void main() {
     // vec3 f_up = faceforward(cam_pos.xyz - f_pos, vec3(0.0, 0.0, -1.0), cam_pos.xyz - f_pos);
     // vec3 f_norm = faceforward(f_norm, /*vec3(cam_pos.xyz - f_pos.xyz)*/vec3(0.0, 0.0, -1.0), f_norm);
 
-    vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
-    vec3 view_dir = -cam_to_frag;
-    // vec3 view_dir = normalize(f_pos - cam_pos.xyz);
-
     // const vec3 normals[3] = vec3[](vec3(1,0,0), vec3(0,1,0), vec3(0,0,1));//, vec3(-1,0,0), vec3(0,-1,0), vec3(0,0,-1));
     // const mat3 side_norms = vec3(1, 0, 0), vec3(0, 1, 0), vec3(0, 0, 1);
     // mat3 sides = mat3(
@@ -156,11 +168,138 @@ void main() {
     // }
     // voxel_norm = normalize(voxel_norm); */
 
-    float dist_lerp = clamp(pow(max(distance(focus_pos.xy, f_pos.xy) - view_distance.x, 0.0) / 1024.0, 2.0), 0, 1);
+    float dist_lerp = clamp(pow(max(distance(focus_pos.xy, f_pos.xy) - view_distance.x, 0.0) / 4096.0, 2.0), 0, 1);
     // dist_lerp = 0.0;
     // voxel_norm = normalize(mix(voxel_norm, f_norm, /*pow(dist_lerp, 1.0)*/dist_lerp));
 
-    vec3 voxel_norm = f_norm;
+    // IDEA:
+    // We can represent three faces as sign(voxel_norm).
+    vec3 sides = sign(f_norm);
+    // There are three relevant vectors: normal, tangent, and bitangent.
+    // We say normal is the z component, tangent the x component, bitangent the y.
+    // A blocking side is in the reverse direction of each.
+    // So -sides is the *direction* of the next block.
+    // Now, we want to multiply this by the *distance* to the nearest integer in that direction.
+    // If sides.x is -1, the direction is 1, so the distance is 1.0 - fract(f_pos.x) and the delta is 1.0 - fract(f_pos.x).
+    // If sides.x is 1, the direction is -1, so the distance is fract(f_pos.x) and the delta is -fract(f_pos.x) = 1.0 + fract(-f_pos.x).
+    // If sides.x is 0, the direction is 0, so the distance is 0.0 and the delta is 0.0 = 0.0 + fract(0.0 * f_pos.x).
+    // (we ignore f_pos < 0 for the time being).
+    // Then this is 1.0 + sides.x * fract(-sides.x * f_pos.x);
+    // We repeat this for y.
+    //
+    // We treat z as the dependent variable.
+    // IF voxel_norm.x > 0.0, z should increase by voxel_norm.z / voxel_norm.x * delta_sides.x in the x direction;
+    // IF voxel_norm.y > 0.0, z should increase by voxel_norm.z / voxel_norm.y * delta_sides.y in the y direction;
+    // IF voxel_norm.x = 0.0, z should not increase in the x direction;
+    // IF voxel_norm.y = 0.0, z should not increase in the y direction;
+    // we assume that ¬(voxel_norm.z = 0).
+    //
+    // Now observe that we can rephrase this as saying, given a desired change in z (to get to the next integer), how far must
+    // we travel along x and y?
+    //
+    // TODO: Handle negative numbers.
+    vec3 delta_sides = mix(-fract(f_pos), 1.0 - fract(f_pos), lessThan(sides, vec3(0.0)));
+    // vec3 delta_sides = mix(1.0 - fract(f_pos), -fract(f_pos), lessThan(sides, vec3(0.0)));
+    // vec3 delta_sides = 1.0 + sides * fract(-sides * f_pos);
+    // Three faces: xy, xz, and yz.
+    // TODO: Handle zero slopes (for xz and yz).
+    vec2 corner_xy = min(abs(f_norm.xy / f_norm.z * delta_sides.z), 1.0);
+    vec2 corner_yz = min(abs(f_norm.yz / f_norm.x * delta_sides.x), 1.0);
+    vec2 corner_xz = min(abs(f_norm.xz / f_norm.y * delta_sides.y), 1.0);
+    // vec3 corner_delta = vec3(voxel_norm.xy / voxel_norm.z * delta_sides.z, delta_sides.z);
+    // Now we just compute an (upper bounded) distance to the corner in each direction.
+    // vec3 corner_distance = min(abs(corner_delta), 1.0);
+    // Now, if both sides hit something, lerp to 0.0.  If one side hits something, lerp to 0.4.  And if no sides hit something,
+    // lerp to 1.0.
+    // Bilinear interpolation on each plane:
+    float ao_xy = dot(vec2(1.0 - corner_xy.x, corner_xy.x), mat2(vec2(corner_xy.x < 1.00 ? corner_xy.y < 1.00 ? 0.0 : 0.25 : corner_xy.y < 1.00 ? 0.25 : 1.0, corner_xy.x < 1.00 ? 0.25 : 1.0), vec2(corner_xy.y < 1.00 ? 0.25 : 1.0, 1.0)) * vec2(1.0 - corner_xy.y, corner_xy.y));
+    float ao_yz = dot(vec2(1.0 - corner_yz.x, corner_yz.x), mat2(vec2(corner_yz.x < 1.00 ? corner_yz.y < 1.00 ? 0.0 : 0.25 : corner_yz.y < 1.00 ? 0.25 : 1.0, corner_yz.x < 1.00 ? 0.25 : 1.0), vec2(corner_yz.y < 1.00 ? 0.25 : 1.0, 1.0)) * vec2(1.0 - corner_yz.y, corner_yz.y));
+    float ao_xz = dot(vec2(1.0 - corner_xz.x, corner_xz.x), mat2(vec2(corner_xz.x < 1.00 ? corner_xz.y < 1.00 ? 0.0 : 0.25 : corner_xz.y < 1.00 ? 0.25 : 1.0, corner_xz.x < 1.00 ? 0.25 : 1.0), vec2(corner_xz.y < 1.00 ? 0.25 : 1.0, 1.0)) * vec2(1.0 - corner_xz.y, corner_xz.y));
+    // Now, multiply each component by the face "share" which is just the absolute value of its normal for that plane...
+    // vec3 f_ao_vec = mix(abs(vec3(ao_yz, ao_xz, ao_xy)), vec3(1.0), bvec3(f_norm.yz == vec2(0.0), f_norm.xz == vec2(0.0), f_norm.xy == vec2(0.0)));
+    // vec3 f_ao_vec = mix(abs(vec3(ao_yz, ao_xz, ao_xy)), vec3(1.0), bvec3(length(f_norm.yz) <= 0.0, length(f_norm.xz) <= 0.0, length(f_norm.xy) <= 0.0));
+    // vec3 f_ao_vec = mix(abs(vec3(ao_yz, ao_xz, ao_xy)), vec3(1.0), bvec3(abs(f_norm.x) <= 0.0, abs(f_norm.y) <= 0.0, abs(f_norm.z) <= 0.0));
+    vec3 f_ao_vec = mix(/*abs(voxel_norm)*/vec3(1.0, 1.0, 1.0), /*abs(voxel_norm) * */vec3(ao_yz, ao_xz, ao_xy), /*abs(voxel_norm)*/vec3(length(f_norm.yz), length(f_norm.xz), length(f_norm.xy))/*vec3(1.0)*//*sign(max(view_dir * sides, 0.0))*/);
+    // f_ao_vec *= sign(max(view_dir * sides, 0.0));
+    // vec3 f_ao_view = max(vec3(dot(view_dir.yz, sides.yz), dot(view_dir.xz, sides.xz), dot(view_dir.xy, sides.xy)), 0.0);
+    // delta_sides *= sqrt(1.0 - f_ao_view * f_ao_view);
+    // delta_sides *= 1.0 - mix(view_dir / f_ao_view, vec3(0.0), equal(f_ao_view, vec3(0.0)));// sqrt(1.0 - f_ao_view * f_ao_view);
+    // delta_sides *= 1.0 - /*sign*/(max(vec3(dot(view_dir.yz, sides.yz), dot(view_dir.xz, sides.xz), dot(view_dir.xy, sides.xy)), 0.0));
+    // f_ao = length(f_ao_vec);
+    // f_ao = dot(f_ao_vec, vec3(1.0)) / 3.0;
+    // f_ao = 1.0 / sqrt(3.0) * sqrt(dot(f_ao_vec, vec3(1.0)));
+    // f_ao = pow(f_ao_vec.x * f_ao_vec.y * f_ao_vec.z * 3.0, 1.0 / 2.0); // 1.0 / sqrt(3.0) * sqrt(dot(f_ao_vec, vec3(1.0)));
+    // f_ao = pow(f_ao_vec.x * f_ao_vec.y * f_ao_vec.z, 1.0 / 3.0); // 1.0 / sqrt(3.0) * sqrt(dot(f_ao_vec, vec3(1.0)));
+    // f_ao = f_ao_vec.x * f_ao_vec.y * f_ao_vec.z + (1.0 - f_ao_vec.x) * (1.0 - f_ao_vec.y) * (1.0 - f_ao_vec.z);
+    // f_ao = sqrt((f_ao_vec.x + f_ao_vec.y + f_ao_vec.z) / 3.0); // 1.0 / sqrt(3.0) * sqrt(dot(f_ao_vec, vec3(1.0)));
+    // f_ao = sqrt(dot(f_ao_vec, abs(voxel_norm)));
+    // f_ao = 3.0 / (1.0 / f_ao_vec.x + 1.0 / f_ao_vec.y + 1.0 / f_ao_vec.z);
+    // f_ao = min(ao_yz, min(ao_xz, ao_xy));
+    // f_ao = max(f_ao_vec.x, max(f_ao_vec.y, f_ao_vec.z));
+    // f_ao = min(f_ao_vec.x, min(f_ao_vec.y, f_ao_vec.z));
+    // f_ao = sqrt(dot(f_ao_vec * abs(voxel_norm), sqrt(1.0 - delta_sides * delta_sides)) / 3.0);
+    // f_ao = dot(f_ao_vec, sqrt(1.0 - delta_sides * delta_sides));
+    // f_ao = dot(f_ao_vec, 1.0 - abs(delta_sides));
+    // f_ao =
+    //     f_ao_vec.x < 1.0 ?
+    //         f_ao_vec.y < 1.0 ?
+    //             abs(delta_sides.x) < abs(delta_sides.y) ?
+    //                 f_ao_vec.z < 1.0 ? abs(delta_sides.x) < abs(delta_sides.z) ? f_ao_vec.x : f_ao_vec.z : f_ao_vec.x :
+    //                 f_ao_vec.z < 1.0 ? abs(delta_sides.y) < abs(delta_sides.z) ? f_ao_vec.y : f_ao_vec.z : f_ao_vec.y :
+    //         f_ao_vec.z < 1.0 ? abs(delta_sides.x) < abs(delta_sides.z) ? f_ao_vec.x : f_ao_vec.z : f_ao_vec.x :
+    //     f_ao_vec.y < 1.0 ?
+    //         f_ao_vec.z < 1.0 ? abs(delta_sides.y) < abs(delta_sides.z) ? f_ao_vec.y : f_ao_vec.z : f_ao_vec.y :
+    //         f_ao_vec.z;
+    // f_ao = abs(delta_sides.x) < abs(delta_sides.y) ? abs(delta_sides.x) < abs(delta_sides.z) ? f_ao_vec.x : f_ao_vec.z :
+    //                                                  abs(delta_sides.y) < abs(delta_sides.z) ? f_ao_vec.y : f_ao_vec.z;
+    // f_ao = abs(delta_sides.x) * f_ao_vec.x < abs(delta_sides.y) * f_ao_vec.y ? abs(delta_sides.x) * f_ao_vec.x < abs(delta_sides.z) * f_ao_vec.z ? f_ao_vec.x : f_ao_vec.z :
+    //                                                                            abs(delta_sides.y) * f_ao_vec.y < abs(delta_sides.z) * f_ao_vec.z ? f_ao_vec.y : f_ao_vec.z;
+    // f_ao = dot(abs(voxel_norm), abs(voxel_norm) * f_ao_vec)/* / 3.0*/;
+    // f_ao = sqrt(dot(abs(voxel_norm), f_ao_vec) / 3.0);
+    // f_ao = /*abs(sides)*/max(sign(1.0 + view_dir * sides), 0.0) * f_ao);
+    // f_ao = mix(f_ao, 1.0, dist_lerp);
+
+    // vec3 voxel_norm = f_norm;
+    // vec3 voxel_norm =
+    //      /*f_ao_vec.x < 1.0*/true ?
+    //          /*f_ao_vec.y < 1.0*/true ?
+    //              abs(delta_sides.x) < abs(delta_sides.y) ?
+    //                  /*f_ao_vec.z < 1.0 */true ? abs(delta_sides.x) < abs(delta_sides.z) ? vec3(sides.x, 0.0, 0.0) : vec3(0.0, 0.0, sides.z) : vec3(sides.x, 0.0, 0.0) :
+    //                  /*f_ao_vec.z < 1.0*/true ? abs(delta_sides.y) < abs(delta_sides.z) ? vec3(0.0, sides.y, 0.0) : vec3(0.0, 0.0, sides.z) : vec3(0.0, sides.y, 0.0) :
+    //          /*f_ao_vec.z < 1.0*/true ? abs(delta_sides.x) < abs(delta_sides.z) ? vec3(sides.x, 0.0, 0.0) : vec3(0.0, 0.0, sides.z) : vec3(sides.x, 0.0, 0.0) :
+    //      /*f_ao_vec.y < 1.0*/true ?
+    //          /*f_ao_vec.z < 1.0*/true ? abs(delta_sides.y) < abs(delta_sides.z) ? vec3(0.0, sides.y, 0.0) : vec3(0.0, 0.0, sides.z) : vec3(0.0, sides.y, 0.0) :
+    //          vec3(0.0, 0.0, sides.z);
+    /* vec3 voxel_norm =
+         f_ao_vec.x < 1.0 ?
+             f_ao_vec.y < 1.0 ?
+                 abs(delta_sides.x) < abs(delta_sides.y) ?
+                     f_ao_vec.z < 1.0 ? abs(delta_sides.x) < abs(delta_sides.z) ? vec3(sides.x, 0.0, 0.0) : vec3(0.0, 0.0, sides.z) : vec3(sides.x, 0.0, 0.0) :
+                     f_ao_vec.z < 1.0 ? abs(delta_sides.y) < abs(delta_sides.z) ? vec3(0.0, sides.y, 0.0) : vec3(0.0, 0.0, sides.z) : vec3(0.0, sides.y, 0.0) :
+             f_ao_vec.z < 1.0 ? abs(delta_sides.x) < abs(delta_sides.z) ? vec3(sides.x, 0.0, 0.0) : vec3(0.0, 0.0, sides.z) : vec3(sides.x, 0.0, 0.0) :
+         f_ao_vec.y < 1.0 ?
+             f_ao_vec.z < 1.0 ? abs(delta_sides.y) < abs(delta_sides.z) ? vec3(0.0, sides.y, 0.0) : vec3(0.0, 0.0, sides.z) : vec3(0.0, sides.y, 0.0) :
+             f_ao_vec.z < 1.0 ? vec3(0.0, 0.0, sides.z) : vec3(0.0, 0.0, 0.0); */
+    // vec3 voxel_norm =
+    //      f_ao_vec.x < 1.0 ?
+    //          f_ao_vec.y < 1.0 ?
+    //              abs(delta_sides.x) * f_ao_vec.x < abs(delta_sides.y) * f_ao_vec.y ?
+    //                  f_ao_vec.z < 1.0 ? abs(delta_sides.x) * f_ao_vec.x < abs(delta_sides.z) * f_ao_vec.z ? vec3(sides.x, 0.0, 0.0) : vec3(0.0, 0.0, sides.z) : vec3(sides.x, 0.0, 0.0) :
+    //                  f_ao_vec.z < 1.0 ? abs(delta_sides.y) * f_ao_vec.y < abs(delta_sides.z) * f_ao_vec.z ? vec3(0.0, sides.y, 0.0) : vec3(0.0, 0.0, sides.z) : vec3(0.0, sides.y, 0.0) :
+    //          f_ao_vec.z < 1.0 ? abs(delta_sides.x) * f_ao_vec.x < abs(delta_sides.z) * f_ao_vec.z ? vec3(sides.x, 0.0, 0.0) : vec3(0.0, 0.0, sides.z) : vec3(sides.x, 0.0, 0.0) :
+    //      f_ao_vec.y < 1.0 ?
+    //          f_ao_vec.z < 1.0 ? abs(delta_sides.y) * f_ao_vec.y < abs(delta_sides.z) * f_ao_vec.z ? vec3(0.0, sides.y, 0.0) : vec3(0.0, 0.0, sides.z) : vec3(0.0, sides.y, 0.0) :
+    //          f_ao_vec.z < 1.0 ? vec3(0.0, 0.0, sides.z) : vec3(0.0, 0.0, 0.0);
+    vec3 voxel_norm = vec3(0.0);
+    // voxel_norm = mix(voxel_norm, f_norm, dist_lerp);
+
+    f_pos.xyz -= abs(voxel_norm) * delta_sides;
+    voxel_norm = voxel_norm == vec3(0.0) ? f_norm : voxel_norm;
+
+    // f_ao = 1.0;
+    // f_ao = dot(f_ao_vec, sqrt(1.0 - delta_sides * delta_sides));
+    f_ao = sqrt(dot(f_ao_vec * abs(voxel_norm), sqrt(1.0 - delta_sides * delta_sides)) / 3.0);
+    // f_ao = dot(abs(voxel_norm), f_ao_vec);
     // voxel_norm = f_norm;
 
     // Note: because voxels, we reduce the normal for reflections to just its z component, dpendng on distance to camera.
@@ -188,6 +327,10 @@ void main() {
             mix(-1.0, 1.0, clamp(pow(f_norm.y * 0.5, 64), 0, 1)),
             mix(-1.0, 1.0, clamp(pow(f_norm.z * 0.5, 64), 0, 1))
         )); */
+    vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
+    vec3 view_dir = -cam_to_frag;
+    // vec3 view_dir = normalize(f_pos - cam_pos.xyz);
+
 
     vec3 sun_dir = get_sun_dir(time_of_day.x);
     vec3 moon_dir = get_moon_dir(time_of_day.x);
@@ -212,27 +355,70 @@ void main() {
     // float brightness_denominator = (ambient_sides + vec3(SUN_AMBIANCE * sun_light + moon_light);
 
     float alpha = 1.0;//0.1;//0.2;///1.0;//sqrt(2.0);
-    const float n2 = 1.01;
+    const float n2 = 1.5;
     const float R_s2s0 = pow((1.0 - n2) / (1.0 + n2), 2);
     const float R_s1s0 = pow((1.3325 - n2) / (1.3325 + n2), 2);
     const float R_s2s1 = pow((1.0 - 1.3325) / (1.0 + 1.3325), 2);
     const float R_s1s2 = pow((1.3325 - 1.0) / (1.3325 + 1.0), 2);
+    float cam_alt = alt_at(cam_pos.xy);
+    float fluid_alt = medium.x == 1u ? max(cam_alt + 1, floor(shadow_alt)) : view_distance.w;
     float R_s = (f_pos.z < my_alt) ? mix(R_s2s1 * R_s1s0, R_s1s0, medium.x) : mix(R_s2s0, R_s1s2 * R_s2s0, medium.x);
 
 	vec3 emitted_light, reflected_light;
+
+    vec3 mu = medium.x == 1u/* && f_pos.z <= fluid_alt*/ ? MU_WATER : vec3(0.0);
+    // NOTE: Default intersection point is camera position, meaning if we fail to intersect we assume the whole camera is in water.
+    vec3 cam_attenuation = compute_attenuation_point(cam_pos.xyz, view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/f_pos);
     // Use f_norm here for better shadows.
     // vec3 light_frac = light_reflection_factor(f_norm/*l_norm*/, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(/*1.0*/R_s), alpha);
 
 	// vec3 light, diffuse_light, ambient_light;
     // get_sun_diffuse(f_norm, time_of_day.x, cam_to_frag, (0.25 * shade_frac + 0.25 * light_frac) * f_col, 0.5 * shade_frac * f_col, 0.5 * shade_frac * /*vec3(1.0)*/f_col, 2.0, emitted_light, reflected_light);
     float max_light = 0.0;
-    max_light += get_sun_diffuse2(/*f_norm*/voxel_norm/*l_norm*/, sun_dir, moon_dir, view_dir, vec3(1.0)/* * (0.5 * light_frac + vec3(0.5 * shade_frac))*/, vec3(1.0), /*0.5 * shade_frac * *//*vec3(1.0)*//*f_col*/vec3(R_s), alpha, dist_lerp/*max(distance(focus_pos.xy, f_pos.xyz) - view_distance.x, 0.0) / 1000 < 1.0*/, emitted_light, reflected_light);
+    max_light += get_sun_diffuse2(/*f_norm*/voxel_norm/*l_norm*/, sun_dir, moon_dir, view_dir, f_pos, vec3(0.0), cam_attenuation, fluid_alt, vec3(1.0)/* * (0.5 * light_frac + vec3(0.5 * shade_frac))*/, vec3(1.0), /*0.5 * shade_frac * *//*vec3(1.0)*//*f_col*/vec3(R_s), alpha, dist_lerp/*max(distance(focus_pos.xy, f_pos.xyz) - view_distance.x, 0.0) / 1000 < 1.0*/, emitted_light, reflected_light);
     // emitted_light = vec3(1.0);
     emitted_light *= max(shade_frac, MIN_SHADOW);
     reflected_light *= shade_frac;
     max_light *= shade_frac;
     // reflected_light = vec3(0.0);
 
+    // dot(diffuse_factor, /*R_r * */vec4(abs(norm) * (1.0 - dist), dist))
+
+    // corner_xy = mix(all(lessThan(corner_xy, 1.0)) ? vec2(0.0) : 0.4 * (), 1.0
+    //
+    // TODO: Handle similar logic for z.
+
+    // So we repeat this for all three sides to find the "next" position on each side.
+    // vec3 delta_sides = 1.0 + sides * fract(-sides * f_pos);
+    // Now, we
+    // Now, all we have to do is find out whether (again, assuming f_pos is positive) next_sides represents a new integer.
+    // We currently just treat this as "new floor != old floor".
+
+    // So to find the position at the nearest voxel, we just subtract voxel_norm * fract(sides * ) from f_pos.z.
+    // Then to find out whether we meet a new "block" in 1 voxel, we just
+    // on the "other" side can be found (according to my temporary theory) as the cross product
+    // vec3 norm = normalize(cross(
+    //     vec3(/*2.0 * SAMPLE_W*/square.z - square.x, 0.0, altx1 - altx0),
+    //     vec3(0.0, /*2.0 * SAMPLE_W*/square.w - square.y, alty1 - alty0)
+    // ));
+    // vec3 norm = normalize(vec3(
+	// 	(altx0 - altx1) / (square.z - square.x),
+	// 	(alty0 - alty1) / (square.w - square.y),
+    //     1.0
+	// 	//(abs(square.w - square.y) + abs(square.z - square.x)) / (slope + 0.00001) // Avoid NaN
+    // ));
+    //
+    // If a side coordinate is 0, then it counts as no AO;
+    // otherwise, it counts as fractional AO.  So what we need is to know whether the fractional AO to the next block in that direction pushes us to a new integer.
+    //
+    // vec3 ao_pos_z = floor(f_pos + f_norm);
+    // vec3 ao_pos_z = corner_distance;
+    // vec3 ao_pos = 0.5 - clamp(min(fract(abs(f_pos)), 1.0 - fract(abs(f_pos))), 0.0, 0.5);
+    //
+    // f_ao = /*sqrt*/1.0 - 2.0 * sqrt(dot(ao_pos, ao_pos) / 2.0);
+    // f_ao = /*sqrt*/1.0 - (dot(ao_pos, ao_pos)/* / 2.0*/);
+    // f_ao = /*sqrt*/1.0 - 2.0 * (dot(ao_pos, ao_pos)/* / 2.0*/);
+    // f_ao = /*sqrt*/1.0 - 2.0 * sqrt(dot(ao_pos, ao_pos) / 2.0);
 	float ao = /*pow(f_ao, 0.5)*/f_ao * 0.9 + 0.1;
 	emitted_light *= ao;
 	reflected_light *= ao;
@@ -246,7 +432,7 @@ void main() {
 	// get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light, 1.0);
 	// vec3 surf_color = illuminate(f_col, light, diffuse_light, ambient_light);
 	// f_col = f_col + (hash(vec4(floor(vec3(focus_pos.xy + splay(v_pos_orig), f_pos.z)) * 3.0 - round(f_norm) * 0.5, 0)) - 0.5) * 0.05; // Small-scale noise
-    vec3 surf_color = /*illuminate(emitted_light, reflected_light)*/illuminate(max_light, f_col * emitted_light, f_col * reflected_light);
+    vec3 surf_color = /*illuminate(emitted_light, reflected_light)*/illuminate(max_light, view_dir, f_col * emitted_light, f_col * reflected_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 

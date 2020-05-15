@@ -29,6 +29,8 @@ gfx_defines! {
         lights: gfx::ConstantBuffer<Light> = "u_lights",
         shadows: gfx::ConstantBuffer<Shadow> = "u_shadows",
 
+        shadow_maps: gfx::TextureSampler<f32> = "t_shadow_maps",
+
         map: gfx::TextureSampler<[f32; 4]> = "t_map",
         horizon: gfx::TextureSampler<[f32; 4]> = "t_horizon",
 

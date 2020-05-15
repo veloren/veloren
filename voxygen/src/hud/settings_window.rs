@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     i18n::{list_localizations, LanguageMetadata, VoxygenLocalization},
-    render::{AaMode, CloudMode, FluidMode},
+    render::{AaMode, CloudMode, FluidMode, LightingMode},
     ui::{fonts::ConrodVoxygenFonts, ImageSlider, ScaleMode, ToggleButton},
     window::GameInput,
     GlobalState,
@@ -115,6 +115,8 @@ widget_ids! {
         fluid_mode_list,
         fullscreen_button,
         fullscreen_label,
+        lighting_mode_text,
+        lighting_mode_list,
         save_window_size_button,
         audio_volume_slider,
         audio_volume_text,
@@ -228,6 +230,7 @@ pub enum Event {
     ChangeAaMode(AaMode),
     ChangeCloudMode(CloudMode),
     ChangeFluidMode(FluidMode),
+    ChangeLightingMode(LightingMode),
     AdjustMusicVolume(f32),
     AdjustSfxVolume(f32),
     ChangeAudioDevice(String),
@@ -1858,11 +1861,56 @@ impl<'a> Widget for SettingsWindow<'a> {
                 events.push(Event::ChangeFluidMode(mode_list[clicked]));
             }
 
+            // LightingMode
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.lighting_rendering_mode"),
+            )
+            .down_from(state.ids.fluid_mode_list, 8.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.lighting_mode_text, ui);
+
+            let mode_list = [
+                LightingMode::Ashikmin,
+                LightingMode::BlinnPhong,
+                LightingMode::Lambertian,
+            ];
+            let mode_label_list = [
+                &self
+                    .localized_strings
+                    .get("hud.settings.lighting_rendering_mode.ashikmin"),
+                &self
+                    .localized_strings
+                    .get("hud.settings.lighting_rendering_mode.blinnphong"),
+                &self
+                    .localized_strings
+                    .get("hud.settings.lighting_rendering_mode.lambertian"),
+            ];
+
+            // Get which lighting rendering mode is currently active
+            let selected = mode_list
+                .iter()
+                .position(|x| *x == self.global_state.settings.graphics.lighting_mode);
+
+            if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
+                .w_h(400.0, 22.0)
+                .color(MENU_BG)
+                .label_color(TEXT_COLOR)
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .down_from(state.ids.lighting_mode_text, 8.0)
+                .set(state.ids.lighting_mode_list, ui)
+            {
+                events.push(Event::ChangeLightingMode(mode_list[clicked]));
+            }
+
             // Fullscreen
             Text::new(&self.localized_strings.get("hud.settings.fullscreen"))
                 .font_size(self.fonts.cyri.scale(14))
                 .font_id(self.fonts.cyri.conrod_id)
-                .down_from(state.ids.fluid_mode_list, 8.0)
+                .down_from(state.ids.lighting_mode_list, 8.0)
                 .color(TEXT_COLOR)
                 .set(state.ids.fullscreen_label, ui);
 

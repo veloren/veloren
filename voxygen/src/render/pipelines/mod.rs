@@ -2,6 +2,7 @@ pub mod figure;
 pub mod fluid;
 pub mod lod_terrain;
 pub mod postprocess;
+pub mod shadow;
 pub mod skybox;
 pub mod sprite;
 pub mod terrain;
@@ -32,6 +33,8 @@ gfx_defines! {
         view_distance: [f32; 4] = "view_distance",
         time_of_day: [f32; 4] = "time_of_day", // TODO: Make this f64.
         tick: [f32; 4] = "tick",
+        /// x, y represent the resolution of the screen;
+        /// w, z represent the near and far planes of the shadow map.
         screen_res: [f32; 4] = "screen_res",
         light_shadow_count: [u32; 4] = "light_shadow_count",
         medium: [u32; 4] = "medium",
@@ -64,6 +67,7 @@ impl Globals {
         time_of_day: f64,
         tick: f64,
         screen_res: Vec2<u16>,
+        shadow_planes: Vec2<f32>,
         light_count: usize,
         shadow_count: usize,
         medium: BlockKind,
@@ -81,7 +85,13 @@ impl Globals {
             view_distance: [view_distance, tgt_detail, map_bounds.x, map_bounds.y],
             time_of_day: [time_of_day as f32; 4],
             tick: [tick as f32; 4],
-            screen_res: Vec4::from(screen_res.map(|e| e as f32)).into_array(),
+            // Provide the shadow map far plane as well.
+            screen_res: [
+                screen_res.x as f32,
+                screen_res.y as f32,
+                shadow_planes.x,
+                shadow_planes.y,
+            ],
             light_shadow_count: [light_count as u32, shadow_count as u32, 0, 0],
             medium: [if medium.is_fluid() { 1 } else { 0 }; 4],
             select_pos: select_pos
@@ -108,6 +118,7 @@ impl Default for Globals {
             0.0,
             0.0,
             Vec2::new(800, 500),
+            Vec2::new(1.0, 25.0),
             0,
             0,
             BlockKind::Air,

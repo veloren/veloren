@@ -451,6 +451,7 @@ impl Window {
                 settings.graphics.aa_mode,
                 settings.graphics.cloud_mode,
                 settings.graphics.fluid_mode,
+                settings.graphics.lighting_mode,
             )?,
             window,
             cursor_grabbed: false,

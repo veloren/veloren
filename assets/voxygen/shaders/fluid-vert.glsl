@@ -1,7 +1,24 @@
 #version 330 core
 
+#include <constants.glsl>
+
+#define LIGHTING_TYPE (LIGHTING_TYPE_TRANSMISSION | LIGHTING_TYPE_REFLECTION)
+
+#define LIGHTING_REFLECTION_KIND LIGHTING_REFLECTION_KIND_SPECULAR
+
+#if (FLUID_MODE == FLUID_MODE_CHEAP)
+#define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
+#elif (FLUID_MODE == FLUID_MODE_SHINY)
+#define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_RADIANCE
+#endif
+
+#define LIGHTING_DISTRIBUTION_SCHEME LIGHTING_DISTRIBUTION_SCHEME_MICROFACET
+
+#define LIGHTING_DISTRIBUTION LIGHTING_DISTRIBUTION_BECKMANN
+
 #include <globals.glsl>
 #include <srgb.glsl>
+#include <random.glsl>
 
 in uint v_pos_norm;
 in uint v_col_light;
@@ -26,7 +43,11 @@ void main() {
 
 	// Small waves
 	f_pos.xy += 0.01; // Avoid z-fighting
-	f_pos.z -= 0.1 + 0.1 * (sin(tick.x * 2.0 + f_pos.x * 2.0 + f_pos.y * 2.0) + 1.0) * 0.5;
+	// f_pos.x += 0.1 * sin(tick.x / 60 * hash(vec4(f_pos.xyz, 1.0)));
+	// f_pos.y += 0.1 * sin(tick.x / 60 * hash(vec4(f_pos.xyz, 2.0)));
+#if (FLUID_MODE == FLUID_MODE_SHINY)
+	f_pos.z -= 0.1 + 0.1 * (sin(tick.x/* / 60.0*/* 2.0 + f_pos.x * 2.0 + f_pos.y * 2.0) + 1.0) * 0.5;
+#endif
 
     f_col = vec3(
     	float((v_col_light >>  8) & 0xFFu),

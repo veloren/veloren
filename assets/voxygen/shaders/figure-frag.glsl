@@ -1,4 +1,18 @@
-#version 330 core
+#version 400 core
+
+#include <constants.glsl>
+
+#define LIGHTING_TYPE LIGHTING_TYPE_REFLECTION
+
+#define LIGHTING_REFLECTION_KIND LIGHTING_REFLECTION_KIND_GLOSSY
+
+#define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
+
+#define LIGHTING_DISTRIBUTION_SCHEME LIGHTING_DISTRIBUTION_SCHEME_MICROFACET
+
+#define LIGHTING_DISTRIBUTION LIGHTING_DISTRIBUTION_BECKMANN
+
+#define HAS_SHADOW_MAPS
 
 #include <globals.glsl>
 
@@ -59,7 +73,7 @@ void main() {
 
 	vec3 surf_color = /*srgb_to_linear*/(model_col.rgb * f_col);
     float alpha = 1.0;
-    const float n2 = 1.01;
+    const float n2 = 1.5;
     const float R_s2s0 = pow((1.0 - n2) / (1.0 + n2), 2);
     const float R_s1s0 = pow((1.3325 - n2) / (1.3325 + n2), 2);
     const float R_s2s1 = pow((1.0 - 1.3325) / (1.0 + 1.3325), 2);
@@ -102,7 +116,7 @@ void main() {
 	// diffuse_light += point_light;
     // reflected_light += point_light;
 	// vec3 surf_color = illuminate(srgb_to_linear(model_col.rgb * f_col), light, diffuse_light, ambient_light);
-	surf_color = illuminate(max_light, surf_color * emitted_light, surf_color * reflected_light);
+	surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 	vec4 clouds;

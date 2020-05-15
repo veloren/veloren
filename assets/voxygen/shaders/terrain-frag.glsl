@@ -1,4 +1,22 @@
-#version 330 core
+#version 400 core
+
+#include <constants.glsl>
+
+#define LIGHTING_TYPE LIGHTING_TYPE_REFLECTION
+
+#define LIGHTING_REFLECTION_KIND LIGHTING_REFLECTION_KIND_GLOSSY
+
+#if (FLUID_MODE == FLUID_MODE_CHEAP)
+#define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
+#elif (FLUID_MODE == FLUID_MODE_SHINY)
+#define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_RADIANCE
+#endif
+
+#define LIGHTING_DISTRIBUTION_SCHEME LIGHTING_DISTRIBUTION_SCHEME_MICROFACET
+
+#define LIGHTING_DISTRIBUTION LIGHTING_DISTRIBUTION_BECKMANN
+
+#define HAS_SHADOW_MAPS
 
 #include <globals.glsl>
 #include <random.glsl>
@@ -19,13 +37,45 @@ out vec4 tgt_color;
 #include <lod.glsl>
 
 void main() {
+    // tgt_color = vec4(0.0, 0.0, 0.0, 1.0);
+	// for (uint i = 0u; i < light_shadow_count.x; i ++) {
+    //     // uint i = 1u;
+	// 	Light L = lights[i];
+
+    //     vec4 light_col = vec4(
+    //         hash(vec4(1.0, 0.0, 0.0, i)),
+    //         hash(vec4(1.0, 1.0, 0.0, i)),
+    //         hash(vec4(1.0, 0.0, 1.0, i)),
+    //         1.0
+    //     );
+
+	// 	vec3 light_pos = L.light_pos.xyz;
+
+	// 	// Pre-calculate difference between light and fragment
+	// 	vec3 fragToLight = f_pos - light_pos;
+
+    //     // use the light to fragment vector to sample from the depth map
+    //     float bias = 0.05;//0.05;
+    //     // float closestDepth = texture(t_shadow_maps, vec4(fragToLight, i)/*, 0.0*//*, bias*/).r;
+    //     // float closestDepth = texture(t_shadow_maps, vec4(fragToLight, lightIndex), bias);
+    //     float visibility = texture(t_shadow_maps, vec4(fragToLight, i), (length(fragToLight) - bias)/* / screen_res.w*/);
+    //     // it is currently in linear range between [0,1]. Re-transform back to original value
+    //     // closestDepth *= screen_res.w; // far plane
+    //     // now test for shadows
+    //     // float shadow = /*currentDepth*/(screen_res.w - bias) > closestDepth ? 1.0 : 0.0;
+    //     // float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+
+    //     tgt_color += light_col * vec4(vec3(/*closestDepth*/visibility/* + bias*//* / screen_res.w */) * 1.0 / light_shadow_count.x, 0.0);
+    // }
+    // return;
+
 	// First 3 normals are negative, next 3 are positive
 	vec3 normals[6] = vec3[](vec3(-1,0,0), vec3(1,0,0), vec3(0,-1,0), vec3(0,1,0), vec3(0,0,-1), vec3(0,0,1));
 
 	// TODO: last 3 bits in v_pos_norm should be a number between 0 and 5, rather than 0-2 and a direction.
-	uint norm_axis = (f_pos_norm >> 30) & 0x3u;
-	// Increase array access by 3 to access positive values
-	uint norm_dir = ((f_pos_norm >> 29) & 0x1u) * 3u;
+	// uint norm_axis = (f_pos_norm >> 30) & 0x3u;
+	// // Increase array access by 3 to access positive values
+	// uint norm_dir = ((f_pos_norm >> 29) & 0x1u) * 3u;
 	// Use an array to avoid conditional branching
 	vec3 f_norm = normals[(f_pos_norm >> 29) & 0x7u];
     // Whether this face is facing fluid or not.
@@ -43,9 +93,9 @@ void main() {
     float f_alt = alt_at(f_pos.xy);
     vec4 f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
 
-    float alpha = 1.0;
+    float alpha = 1.0;//0.0001;//1.0;
     // TODO: Possibly angle with water surface into account?  Since we can basically assume it's horizontal.
-    const float n2 = 1.01;
+    const float n2 = 1.5;//1.01;
     const float R_s2s0 = pow((1.0 - n2) / (1.0 + n2), 2);
     const float R_s1s0 = pow((1.3325 - n2) / (1.3325 + n2), 2);
     const float R_s2s1 = pow((1.0 - 1.3325) / (1.0 + 1.3325), 2);
@@ -84,7 +134,9 @@ void main() {
     // Compute attenuation due to water from the camera.
     vec3 mu = faces_fluid/* && f_pos.z <= fluid_alt*/ ? MU_WATER : vec3(0.0);
     // NOTE: Default intersection point is camera position, meaning if we fail to intersect we assume the whole camera is in water.
-    vec3 cam_attenuation = compute_attenuation_point(f_pos, -view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/cam_pos.xyz);
+    vec3 cam_attenuation =
+        medium.x == 1u ? compute_attenuation_point(cam_pos.xyz, view_dir, MU_WATER, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/f_pos)
+        : compute_attenuation_point(f_pos, -view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/cam_pos.xyz);
 
     // Computing light attenuation from water.
     vec3 emitted_light, reflected_light;
@@ -97,7 +149,7 @@ void main() {
     reflected_light *= f_light * point_shadow * shade_frac;
     max_light *= f_light * point_shadow * shade_frac;
 
-    max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
+    max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, 1.0, emitted_light, reflected_light);
 
     // float f_ao = 1.0;
 
@@ -127,7 +179,7 @@ void main() {
 
 	// vec3 surf_color = illuminate(srgb_to_linear(f_col), light, diffuse_light, ambient_light);
 	vec3 col = srgb_to_linear(f_col + hash(vec4(floor(f_chunk_pos * 3.0 - f_norm * 0.5), 0)) * 0.02); // Small-scale noise
-    vec3 surf_color = illuminate(max_light, col * emitted_light, col * reflected_light);
+    vec3 surf_color = illuminate(max_light, view_dir, col * emitted_light, col * reflected_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 	vec4 clouds;

@@ -63,11 +63,11 @@ vec4 get_cloud_color(vec3 dir, vec3 origin, float time_of_day, float max_dist, f
 			dist += fuzz * 0.01 * min(pow(dist * 0.005, 2.0), 1.0);
 
 			vec3 pos = origin + dir * min(dist, max_dist);
-			vec2 sample = cloud_at(pos);
+			vec2 sample_ = cloud_at(pos);
 
-			float integral = sample.y * INCR;
+			float integral = sample_.y * INCR;
 			passthrough *= 1.0 - integral;
-			cloud_shade = mix(cloud_shade, sample.x, passthrough * integral);
+			cloud_shade = mix(cloud_shade, sample_.x, passthrough * integral);
 			dist += INCR * delta;
 
 			if (passthrough < 0.1) {

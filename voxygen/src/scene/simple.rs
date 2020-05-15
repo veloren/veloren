@@ -206,6 +206,8 @@ impl Scene {
         const VD: f32 = 115.0; // View Distance
         // const MAP_BOUNDS: Vec2<f32> = Vec2::new(140.0, 2048.0);
         const TIME: f64 = 10.0 * 60.0 * 60.0; //43200.0; // 12 hours*3600 seconds
+        const SHADOW_NEAR: f32 = 1.0;
+        const SHADOW_FAR: f32 = 25.0;
 
         if let Err(err) = renderer.update_consts(&mut self.globals, &[Globals::new(
             view_mat,
@@ -218,6 +220,7 @@ impl Scene {
             TIME,
             scene_data.time,
             renderer.get_resolution(),
+            Vec2::new(SHADOW_NEAR, SHADOW_FAR),
             0,
             0,
             BlockKind::Air,
@@ -265,7 +268,13 @@ impl Scene {
         body: Option<humanoid::Body>,
         loadout: Option<&Loadout>,
     ) {
-        renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);
+        renderer.render_skybox(
+            &self.skybox.model,
+            &self.globals,
+            &self.skybox.locals,
+            &self.lod.map,
+            &self.lod.horizon,
+        );
 
         if let Some(body) = body {
             let model = &self

@@ -73,7 +73,7 @@ vec4 textureBicubic(sampler2D sampler, vec2 texCoords) {
 }
 
 float alt_at(vec2 pos) {
-	return texture/*textureBicubic*/(t_map, pos_to_uv(t_map, pos)).a * (/*1300.0*//*1278.7266845703125*/view_distance.w) + /*140.0*/view_distance.z;
+	return (texture/*textureBicubic*/(t_map, pos_to_uv(t_map, pos)).a * (/*1300.0*//*1278.7266845703125*/view_distance.w) + /*140.0*/view_distance.z);
 		//+ (texture(t_noise, pos * 0.002).x - 0.5) * 64.0;
 
     // return 0.0
@@ -83,7 +83,12 @@ float alt_at(vec2 pos) {
 }
 
 float alt_at_real(vec2 pos) {
-	return textureBicubic(t_map, pos_to_tex(pos)).a * (/*1300.0*//*1278.7266845703125*/view_distance.w) + /*140.0*/view_distance.z;
+    // Basic idea: only really need the real altitude for an accurate water height estimation, so if we are in the cheap shader take a shortcut.
+// #if (FLUID_MODE == FLUID_MODE_CHEAP)
+// 	return alt_at(pos);
+// #elif (FLUID_MODE == FLUID_MODE_SHINY)
+	return (textureBicubic(t_map, pos_to_tex(pos)).a * (/*1300.0*//*1278.7266845703125*/view_distance.w) + /*140.0*/view_distance.z);
+// #endif
 		//+ (texture(t_noise, pos * 0.002).x - 0.5) * 64.0;
 
     // return 0.0
@@ -271,6 +276,6 @@ vec3 lod_pos(vec2 pos, vec2 focus_pos) {
 vec3 lod_col(vec2 pos) {
 	//return vec3(0, 0.5, 0);
 	return /*linear_to_srgb*/(textureBicubic(t_map, pos_to_tex(pos)).rgb)
-		+ (texture(t_noise, pos * 0.04 + texture(t_noise, pos * 0.005).xy * 2.0 + texture(t_noise, pos * 0.06).xy * 0.6).x - 0.5) * 0.1;
+		;//+ (texture(t_noise, pos * 0.04 + texture(t_noise, pos * 0.005).xy * 2.0 + texture(t_noise, pos * 0.06).xy * 0.6).x - 0.5) * 0.1;
 		//+ (texture(t_noise, pos * 0.04 + texture(t_noise, pos * 0.005).xy * 2.0 + texture(t_noise, pos * 0.06).xy * 0.6).x - 0.5) * 0.1;
 }

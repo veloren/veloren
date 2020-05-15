@@ -8,7 +8,7 @@ const float PI = 3.141592;
 const vec3 SKY_DAY_TOP = vec3(0.1, 0.5, 0.9);
 const vec3 SKY_DAY_MID = vec3(0.02, 0.28, 0.8);
 const vec3 SKY_DAY_BOT = vec3(0.1, 0.2, 0.3);
-const vec3 DAY_LIGHT   = vec3(1.5, 1.4, 1.0);
+const vec3 DAY_LIGHT   = vec3(1.5, 1.4, 1.0);//vec3(1.5, 1.4, 1.0);
 const vec3 SUN_HALO_DAY = vec3(0.35, 0.35, 0.0);
 
 const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
@@ -26,9 +26,9 @@ const vec3 NIGHT_LIGHT   = vec3(0.002, 0.02, 0.02);
 // Linear RGB, scattering coefficients for atmosphere at roughly R, G, B wavelengths.
 //
 // See https://en.wikipedia.org/wiki/Diffuse_sky_radiation
-const vec3 MU_SCATTER = vec3(0.05, 0.10, 0.23);
+const vec3 MU_SCATTER = vec3(0.05, 0.10, 0.23) * 2.0;
 
-const float SUN_COLOR_FACTOR = 6.0;//1.8;
+const float SUN_COLOR_FACTOR = 6.0;//6.0;// * 1.5;//1.8;
 
 const float UNDERWATER_MIST_DIST = 100.0;
 
@@ -423,12 +423,16 @@ float fog(vec3 f_pos, vec3 focus_pos, uint medium) {
 	float avg_col = (color.r + color.g + color.b) / 3.0;
 	return ((color - avg_col) * light + (diffuse + ambience) * avg_col) * (diffuse + ambience);
 } */
-vec3 illuminate(float max_light, /*vec3 max_light, */vec3 emitted, vec3 reflected) {
+vec3 illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitted, vec3 reflected) {
     const float NIGHT_EXPOSURE = 10.0;
     const float DUSK_EXPOSURE = 2.0;//0.8;
     const float DAY_EXPOSURE = 1.0;//0.7;
 
+#if (LIGHTING_ALGORITHM == LIGHTING_ALGORITHM_ASHIKHMIN)
     const float DAY_SATURATION = 1.1;
+#else
+    const float DAY_SATURATION = 1.0;
+#endif
     const float DUSK_SATURATION = 0.6;
     const float NIGHT_SATURATION = 0.1;
 
@@ -460,6 +464,10 @@ vec3 illuminate(float max_light, /*vec3 max_light, */vec3 emitted, vec3 reflecte
 		DAY_EXPOSURE,
 		max(-sun_dir.z, 0)
 	);
+    vec3 now_light = moon_dir.z < 0 ? moon_dir : sun_dir;
+    float cos_view_light = dot(-now_light, view_dir);
+    // alpha *= exp(1.0 - cos_view_light);
+    // sky_light *= 1.0 - log(1.0 + view_dir.z);
     float alph = sky_light > 0.0 && max_light > 0.0 ? mix(1.0 / log(/*1.0*//*1.0 + *//*lum_sky + */1.0 + max_light / (0.0 + sky_light)), 1.0, clamp(max_light - sky_light, 0.0, 1.0)) : 1.0;
     alpha = alpha * min(alph, 1.0);//((max_light > 0.0 && max_light > sky_light /* && sky_light > 0.0*/) ? /*1.0*/1.0 / log(/*1.0*//*1.0 + *//*lum_sky + */1.0 + max_light - (0.0 + sky_light)) : 1.0);
     // alpha = alpha * min(1.0, (max_light == 0.0 ? 1.0 : (1.0 + abs(lum_sky)) / /*(1.0 + max_light)*/max_light));
@@ -505,7 +513,8 @@ vec3 illuminate(float max_light, /*vec3 max_light, */vec3 emitted, vec3 reflecte
     // vec3 c = sqrt(col_adjusted) * T;
     // vec3 c = /*col_adjusted * */col_adjusted * T;
 
-    return c;
+    return color;
+    // return c;
     // float sum_col = color.r + color.g + color.b;
     // return /*srgb_to_linear*/(/*0.5*//*0.125 * */vec3(pow(color.x, gamma), pow(color.y, gamma), pow(color.z, gamma)));
 }

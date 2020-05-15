@@ -22,6 +22,7 @@ pub use self::{
         postprocess::{
             create_mesh as create_pp_mesh, Locals as PostProcessLocals, PostProcessPipeline,
         },
+        shadow::{Locals as ShadowLocals, ShadowPipeline},
         skybox::{create_mesh as create_skybox_mesh, Locals as SkyboxLocals, SkyboxPipeline},
         sprite::{Instance as SpriteInstance, SpritePipeline},
         terrain::{Locals as TerrainLocals, TerrainPipeline},
@@ -32,8 +33,8 @@ pub use self::{
         Globals, Light, Shadow,
     },
     renderer::{
-        LodColorFmt, LodTextureFmt, Renderer, TgtColorFmt, TgtDepthStencilFmt, WinColorFmt,
-        WinDepthFmt,
+        LodColorFmt, LodTextureFmt, Renderer, ShadowDepthStencilFmt, TgtColorFmt,
+        TgtDepthStencilFmt, WinColorFmt, WinDepthFmt,
     },
     texture::Texture,
 };
@@ -83,4 +84,12 @@ pub enum CloudMode {
 pub enum FluidMode {
     Cheap,
     Shiny,
+}
+
+/// Lighting modes
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum LightingMode {
+    Ashikmin,
+    BlinnPhong,
+    Lambertian,
 }

@@ -22,6 +22,7 @@ fn main() {
         render::AaMode::SsaaX4,
         render::CloudMode::Regular,
         render::FluidMode::Shiny,
+        render::LightingMode::Ashikmin,
     )
     .unwrap();
 

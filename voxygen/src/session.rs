@@ -700,6 +700,16 @@ impl PlayState for SessionState {
                         localized_strings.log_missing_entries();
                         self.hud.update_language(localized_strings.clone());
                     },
+                    HudEvent::ChangeLightingMode(new_lighting_mode) => {
+                        // Do this first so if it crashes the setting isn't saved :)
+                        global_state
+                            .window
+                            .renderer_mut()
+                            .set_lighting_mode(new_lighting_mode)
+                            .unwrap();
+                        global_state.settings.graphics.lighting_mode = new_lighting_mode;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::ToggleFullscreen => {
                         global_state
                             .window
@@ -751,6 +761,10 @@ impl PlayState for SessionState {
                 }
 
                 let renderer = global_state.window.renderer_mut();
+
+                // Flush renderer to synchronize commands sent on the main encoder with the
+                // start of the shadow encoder.
+                renderer.flush();
                 // Clear the screen
                 renderer.clear();
                 // Render the screen using the global renderer

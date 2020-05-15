@@ -1,3 +1,7 @@
+// Linear RGB, attenuation coefficients for water at roughly R, G, B wavelengths.
+// See https://en.wikipedia.org/wiki/Electromagnetic_absorption_by_water
+const vec3 MU_WATER = vec3(0.6, 0.04, 0.01);
+
 //https://gamedev.stackexchange.com/questions/92015/optimized-linear-to-srgb-glsl
 vec3 srgb_to_linear(vec3 srgb) {
     bvec3 cutoff = lessThan(srgb, vec3(0.04045));
@@ -54,7 +58,7 @@ float BeckmannDistribution_D_Voxel(vec3 wh, vec3 norm, float alpha) {
     // vec3 cos_sides_i = /*sides * */sides * norm;
     // vec3 cos_sides_o = max(sides * view_dir, 0.0);
 
-    vec3 NdotH = max(wh * sides, 0.0);/*cos_sides_i*///max(sides * wh, 0.0);
+    vec3 NdotH = wh * sides;//max(wh * sides, 0.0);/*cos_sides_i*///max(sides * wh, 0.0);
 
     const float PI = 3.1415926535897932384626433832795;
     vec3 NdotH2 = NdotH * NdotH;
@@ -94,6 +98,27 @@ float BeckmannDistribution_D_Voxel(vec3 wh, vec3 norm, float alpha) {
     // float k_spec = exp((NdotH2 - 1) / NdotH2m2) / (PI * NdotH2m2 * NdotH2);
     // return mix(k_spec, 0.0, NdotH == 0.0); */
     // return voxel_norm;
+}
+
+float TrowbridgeReitzDistribution_D_Voxel(vec3 wh, vec3 norm, float alpha) {
+    vec3 sides = sign(norm);
+    // vec3 cos_sides_i = /*sides * */sides * norm;
+    // vec3 cos_sides_o = max(sides * view_dir, 0.0);
+
+    vec3 NdotH = wh * sides;//max(wh * sides, 0.0);/*cos_sides_i*///max(sides * wh, 0.0);
+
+    const float PI = 3.1415926535897932384626433832795;
+    vec3 NdotH2 = NdotH * NdotH;
+    // vec3 m2 = alpha * alpha;
+    // vec3 NdotH2m2 = NdotH2 * m2;
+    vec3 NdotH2m2 = NdotH2 * alpha * alpha;
+    // vec3 Tan2Theta = (1 - NdotH2) / NdotH2;
+    // vec3 e = (NdotH2 / m2 + (1 - NdotH2) / m2) * Tan2Theta;
+    // vec3 e = 1 / m2 * (1 - NdotH2) / NdotH2;
+    vec3 e = (1 - NdotH2) / NdotH2m2;
+    vec3 k_spec = 1.0 / (PI * NdotH2m2 * NdotH2 * (1 + e) * (1 + e));
+    // vec3 k_spec = exp((NdotH2 - 1) / NdotH2m2) / (PI * NdotH2m2 * NdotH2);
+    return dot(mix(k_spec, /*cos_sides_o*/vec3(0.0), equal(NdotH, vec3(0.0))), /*cos_sides_i*/abs(norm));
 }
 
 float BeckmannDistribution_Lambda(vec3 norm, vec3 dir, float alpha) {
@@ -162,7 +187,12 @@ vec3 FresnelBlend_f(vec3 norm, vec3 dir, vec3 light_dir, vec3 R_d, vec3 R_s, flo
         (1 - pow5(1 - .5f * AbsCosTheta(wo))); */
     // Vector3f wh = wi + wo;
     vec3 wh = -light_dir + dir;
-    if (cos_wi <= 0.0 || cos_wo <= 0.0) {
+#if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
+    bool is_blocked = cos_wi == 0.0 || cos_wo == 0.0;
+#else
+    bool is_blocked = cos_wi <= 0.0 || cos_wo <= 0.0;
+#endif
+    if (is_blocked) {
         return vec3(/*diffuse*/0.0);
     }
     // if (cos_wo < 0.0) {
@@ -178,8 +208,8 @@ vec3 FresnelBlend_f(vec3 norm, vec3 dir, vec3 light_dir, vec3 R_d, vec3 R_s, flo
     wh = normalize(wh);//mix(normalize(wh), vec3(0.0), equal(light_dir, dir));
     float dot_wi_wh = dot(-light_dir, wh);
     vec3 specular = BeckmannDistribution_D(dot(wh, norm), alpha) /
-        (4 * abs(dot_wi_wh)) *
-        max(abs(cos_wi), abs(cos_wo)) *
+        (4 * abs(dot_wi_wh) *
+        max(abs(cos_wi), abs(cos_wo))) *
         schlick_fresnel(R_s, dot_wi_wh);
     // Spectrum specular = distribution->D(wh) /
     //     (4 * AbsDot(wi, wh) *
@@ -199,26 +229,71 @@ vec3 FresnelBlend_Voxel_f(vec3 norm, vec3 dir, vec3 light_dir, vec3 R_d, vec3 R_
     float cos_wi = /*max(*/dot(-light_dir, norm)/*, 0.0)*/;
     float cos_wo = /*max(*/dot(dir, norm)/*, 0.0)*/;
 
+#if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
+    vec4 AbsNdotL = abs(vec4(light_dir, cos_wi));
+    vec4 AbsNdotV = abs(vec4(dir, cos_wo));
+#else
     vec3 sides = sign(norm);
-    vec4 diffuse_factor =
-        (1.0 - pow5(1.0 - 0.5 * max(vec4(-light_dir * sides, abs(cos_wi)), 0.0))) *
-        (1.0 - pow5(1.0 - 0.5 * max(vec4(dir * sides, abs(cos_wo)), 0.0)));
+    vec4 AbsNdotL = vec4(max(-light_dir * sides, 0.0), abs(cos_wi));
+    vec4 AbsNdotV = vec4(max(dir * sides, 0.0), abs(cos_wo));
+#endif
 
-    vec3 diffuse = (28.0 / (23.0 * PI)) * R_d *
+    // float R_r = 1.0 - R_s;
+    // float R_r = 1.0 - schlick_fresnel(R_s, cos_wi);
+    // // Rs + pow5(1.0 - cosTheta) * (1.0 - Rs)
+    // vec4 R_r = 1.0 - (R_s + (1.0 - R_s) * schlick_fresnel(R_s, cos_wi));
+    // mat4 R_r = 1.0 - (vec4(R_s, 0.0) + vec4(1.0 - R_s, 0.0) * pow5(1.0 - AbsNdotL));
+    // vec4 AbsNdotL5 = pow5(1.0 - AbsNdotL);
+    // vec4 R_s4 = vec4(R_s, 0.0);
+    // mat4 R_r =
+    //     // mat4(1.0 - (R_s.r + (1.0 - R_s.r) * AbsNdotL5),
+    //     //      1.0 - (R_s.g + (1.0 - R_s.g) * AbsNdotL5),
+    //     //      1.0 - (R_s.b + (1.0 - R_s.b) * AbsNdotL5),
+    //     //      vec4(0.0)
+    //     //     );
+    //     mat4(1.0 - (R_s4 + (1.0 - R_s4) * AbsNdotL5.x),
+    //          1.0 - (R_s4 + (1.0 - R_s4) * AbsNdotL5.y),
+    //          1.0 - (R_s4 + (1.0 - R_s4) * AbsNdotL5.z),
+    //          1.0 - (R_s4 + (1.0 - R_s4) * AbsNdotL5.w)
+    //         );
+    // * ) (R1.0 - R_s.r) 1.0 - (vec4(R_s, 0.0) + vec4(1.0 - R_s, 0.0) * pow5(1.0 - AbsNdotL));
+
+    vec4 diffuse_factor =
+        // vec4(abs(vec4(-light_dir * sides, cos_wi)))
+        (1.0 - pow5(1.0 - 0.5 * AbsNdotL)) *
+        // (1.0 - pow5(1.0 - 0.5 * abs(vec4(-light_dir * sides, cos_wi)))) *
+        // (1.0 - pow5(1.0 - 0.5 * abs(vec4(dir * sides, cos_wo))))
+        (1.0 - pow5(1.0 - 0.5 * AbsNdotV))
+        // vec4(1.0)
+        ;
+    /* vec4 diffuse_factor =
+        (1.0 - pow5(1.0 - 0.5 * max(vec4(-light_dir * sides, abs(cos_wi)), 0.0))) *
+        (1.0 - pow5(1.0 - 0.5 * max(vec4(dir * sides, abs(cos_wo)), 0.0))); */
+
+    vec3 diffuse = (28.0 / (23.0 * PI))/*(1.0 / PI)*/ * R_d *
         (1.0 - R_s) *
-        dot(diffuse_factor, vec4(abs(norm) * (1.0 - dist), dist));
+        //vec3(
+        dot(diffuse_factor, /*R_r * */vec4(abs(norm) * (1.0 - dist), dist))
+        //)
+        ;
 
     vec3 wh = -light_dir + dir;
-    if (cos_wi <= 0.0 || cos_wo <= 0.0) {
+#if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
+    bool is_blocked = cos_wi == 0.0 || cos_wo == 0.0;
+#else
+    bool is_blocked = cos_wi <= 0.0 || cos_wo <= 0.0;
+#endif
+    if (is_blocked) {
         return vec3(/*diffuse*/0.0);
     }
     wh = normalize(wh);//mix(normalize(wh), vec3(0.0), equal(light_dir, dir));
     float dot_wi_wh = dot(-light_dir, wh);
+    // float distr = TrowbridgeReitzDistribution_D_Voxel(wh, norm, alpha);
     float distr = BeckmannDistribution_D_Voxel(wh, norm, alpha);
     // float distr = BeckmannDistribution_D(dot(wh, norm), alpha);
     vec3 specular = distr /
-        (4 * abs(dot_wi_wh)) *
-        max(abs(cos_wi), abs(cos_wo)) *
+        (4 * abs(dot_wi_wh) *
+        max(abs(cos_wi), abs(cos_wo))) *
         schlick_fresnel(R_s, dot_wi_wh);
     return mix(/*diffuse*//* + specular*/diffuse + specular, vec3(0.0), bvec3(all(equal(light_dir, dir))));
 }
@@ -226,7 +301,7 @@ vec3 FresnelBlend_Voxel_f(vec3 norm, vec3 dir, vec3 light_dir, vec3 R_d, vec3 R_
 // Phong reflection.
 //
 // Note: norm, dir, light_dir must all be normalizd.
-vec3 light_reflection_factor(vec3 norm, vec3 dir, vec3 light_dir, vec3 k_d, vec3 k_s, float alpha) {
+vec3 light_reflection_factor2(vec3 norm, vec3 dir, vec3 light_dir, vec3 k_d, vec3 k_s, float alpha) {
     // TODO: These are supposed to be the differential changes in the point location p, in tangent space.
     // That is, assuming we can parameterize a 2D surface by some function p : R² → R³, mapping from
     // points in a plane to 3D points on the surface, we can define
@@ -291,11 +366,67 @@ vec3 light_reflection_factor(vec3 norm, vec3 dir, vec3 light_dir, vec3 k_d, vec3
 }
 
 vec3 light_reflection_factor(vec3 norm, vec3 dir, vec3 light_dir, vec3 k_d, vec3 k_s, float alpha, float voxel_lighting) {
-    //if (voxel_lighting < 1.0) {
+#if (LIGHTING_ALGORITHM == LIGHTING_ALGORITHM_LAMBERTIAN)
+    const float PI = 3.141592;
+#if (LIGHTING_DISTRIBUTION_SCHEME == LIGHTING_DISTRIBUTION_SCHEME_VOXEL)
+#if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
+    vec4 AbsNdotL = abs(vec4(light_dir, dot(norm, light_dir)));
+#else
+    vec3 sides = sign(norm);
+    vec4 AbsNdotL = max(vec4(-light_dir * sides, dot(norm, -light_dir)), 0.0);
+#endif
+    float diffuse = dot(AbsNdotL, vec4(abs(norm) * (1.0 - voxel_lighting), voxel_lighting));
+#elif (LIGHTING_DISTRIBUTION_SCHEME == LIGHTING_DISTRIBUTION_SCHEME_MICROFACET)
+#if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
+    float diffuse = abs(dot(norm, light_dir));
+#else
+    float diffuse = max(dot(norm, -light_dir), 0.0);
+#endif
+#endif
+    return k_d / PI * diffuse;
+#elif (LIGHTING_ALGORITHM == LIGHTING_ALGORITHM_BLINN_PHONG)
+    const float PI = 3.141592;
+    alpha = alpha * sqrt(2.0);
+#if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
+    float ndotL = abs(dot(norm, light_dir));
+#else
+    float ndotL = max(dot(norm, -light_dir), 0.0);
+#endif
+
+    if (ndotL > 0.0) {
+#if (LIGHTING_DISTRIBUTION_SCHEME == LIGHTING_DISTRIBUTION_SCHEME_VOXEL)
+#if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
+        vec4 AbsNdotL = abs(vec4(light_dir, ndotL));
+#else
+        vec3 sides = sign(norm);
+        vec4 AbsNdotL = max(vec4(-light_dir * sides, ndotL), 0.0);
+#endif
+        float diffuse = dot(AbsNdotL, vec4(abs(norm) * (1.0 - voxel_lighting), voxel_lighting));
+#elif (LIGHTING_DISTRIBUTION_SCHEME == LIGHTING_DISTRIBUTION_SCHEME_MICROFACET)
+        float diffuse = ndotL;
+#endif
+        vec3 H = normalize(-light_dir + dir);
+
+#if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
+        float NdotH = abs(dot(norm, H));
+#else
+        float NdotH = max(dot(norm, H), 0.0);
+#endif
+        return (1.0 - k_s) / PI * k_d * diffuse + k_s * pow(NdotH, alpha/* * 4.0*/);
+    }
+
+    return vec3(0.0);
+#elif (LIGHTING_ALGORITHM == LIGHTING_ALGORITHM_ASHIKHMIN)
+#if (LIGHTING_DISTRIBUTION_SCHEME == LIGHTING_DISTRIBUTION_SCHEME_VOXEL)
         return FresnelBlend_Voxel_f(norm, dir, light_dir, k_d/* * max(dot(norm, -light_dir), 0.0)*/, k_s, alpha, voxel_lighting);
+#elif (LIGHTING_DISTRIBUTION_SCHEME == LIGHTING_DISTRIBUTION_SCHEME_MICROFACET)
+    //if (voxel_lighting < 1.0) {
+        return FresnelBlend_f(norm, dir, light_dir, k_d/* * max(dot(norm, -light_dir), 0.0)*/, k_s, alpha);
     //} else {
     //    return FresnelBlend_f(norm, dir, light_dir, k_d/* * max(dot(norm, -light_dir), 0.0)*/, k_s, alpha);
     //}
+#endif
+#endif
 }
 
 float rel_luminance(vec3 rgb)
@@ -338,6 +469,9 @@ bool IntersectRayPlane(vec3 rayOrigin, vec3 rayDirection, vec3 posOnPlane, vec3 
 //
 // Ideally, defaultpos is set so we can avoid branching on error.
 vec3 compute_attenuation(vec3 wpos, vec3 ray_dir, vec3 mu, float surface_alt, vec3 defaultpos) {
+#if (LIGHTING_TRANSPORT_MODE == LIGHTING_TRANSPORT_MODE_IMPORTANCE)
+    return vec3(1.0);
+#elif (LIGHTING_TRANSPORT_MODE == LIGHTING_TRANSPORT_MODE_RADIANCE)
     // return vec3(1.0);
     /*if (mu == vec3(0.0)) {
         return vec3(1.0);
@@ -345,17 +479,41 @@ vec3 compute_attenuation(vec3 wpos, vec3 ray_dir, vec3 mu, float surface_alt, ve
         return vec3(0.0);
     }*/
     // return vec3(0.0);
-    vec3 surface_dir = /*surface_alt < wpos.z ? vec3(0.0, 0.0, -1.0) : vec3(0.0, 0.0, 1.0)*/vec3(0.0, 0.0, sign(surface_alt - wpos.z));
-    // vec3 surface_dir = surface_alt < wpos.z ? vec3(0.0, 0.0, -1.0) : vec3(0.0, 0.0, 1.0);
+    // vec3 surface_dir = /*surface_alt < wpos.z ? vec3(0.0, 0.0, -1.0) : vec3(0.0, 0.0, 1.0)*/vec3(0.0, 0.0, sign(surface_alt - wpos.z));
+    vec3 surface_dir = surface_alt < wpos.z ? vec3(0.0, 0.0, -1.0) : vec3(0.0, 0.0, 1.0);
     // vec3 surface_dir = faceforward(vec3(0.0, 0.0, 1.0), ray_dir, vec3(0.0, 0.0, 1.0));
     bool _intersects_surface = IntersectRayPlane(wpos, ray_dir, vec3(0.0, 0.0, surface_alt), surface_dir, defaultpos);
     float depth = length(defaultpos - wpos);
     return exp(-mu * depth);
+#endif
+}
+
+vec3 compute_attenuation2(vec3 wpos, vec3 ray_dir, vec3 mu, float surface_alt, vec3 defaultpos) {
+#if (LIGHTING_TRANSPORT_MODE == LIGHTING_TRANSPORT_MODE_IMPORTANCE)
+    return vec3(1.0);
+#elif (LIGHTING_TRANSPORT_MODE == LIGHTING_TRANSPORT_MODE_RADIANCE)
+    // return vec3(1.0);
+    /*if (mu == vec3(0.0)) {
+        return vec3(1.0);
+    }*//* else {
+        return vec3(0.0);
+    }*/
+    // return vec3(0.0);
+    // vec3 surface_dir = /*surface_alt < wpos.z ? vec3(0.0, 0.0, -1.0) : vec3(0.0, 0.0, 1.0)*/vec3(0.0, 0.0, sign(surface_alt - wpos.z));
+    vec3 surface_dir = surface_alt < wpos.z ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 0.0, -1.0);
+    // vec3 surface_dir = faceforward(vec3(0.0, 0.0, 1.0), ray_dir, vec3(0.0, 0.0, 1.0));
+    bool _intersects_surface = IntersectRayPlane(wpos, ray_dir, vec3(0.0, 0.0, surface_alt), surface_dir, defaultpos);
+    float depth = length(defaultpos - wpos);
+    return exp(-mu * depth);
+#endif
 }
 
 // Same as compute_attenuation but since both point are known, set a maximum to make sure we don't exceed the length
 // from the default point.
 vec3 compute_attenuation_point(vec3 wpos, vec3 ray_dir, vec3 mu, float surface_alt, vec3 defaultpos) {
+#if (LIGHTING_TRANSPORT_MODE == LIGHTING_TRANSPORT_MODE_IMPORTANCE)
+    return vec3(1.0);
+#elif (LIGHTING_TRANSPORT_MODE == LIGHTING_TRANSPORT_MODE_RADIANCE)
     // return vec3(1.0);
     /*if (mu == vec3(0.0)) {
         return vec3(1.0);
@@ -370,4 +528,5 @@ vec3 compute_attenuation_point(vec3 wpos, vec3 ray_dir, vec3 mu, float surface_a
     bool _intersects_surface = IntersectRayPlane(wpos, ray_dir, vec3(0.0, 0.0, surface_alt), surface_dir, defaultpos);
     float depth2 = min(max_length, dot(defaultpos - wpos, defaultpos - wpos));
     return exp(-mu * sqrt(depth2));
+#endif
 }

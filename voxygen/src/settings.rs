@@ -1,7 +1,7 @@
 use crate::{
     hud::{BarNumbers, CrosshairType, Intro, PressBehavior, ShortcutNumbers, XpBar},
     i18n,
-    render::{AaMode, CloudMode, FluidMode},
+    render::{AaMode, CloudMode, FluidMode, LightingMode},
     ui::ScaleMode,
     window::{GameInput, KeyMouse},
 };
@@ -556,6 +556,7 @@ pub struct GraphicsSettings {
     pub aa_mode: AaMode,
     pub cloud_mode: CloudMode,
     pub fluid_mode: FluidMode,
+    pub lighting_mode: LightingMode,
     pub window_size: [u16; 2],
     pub fullscreen: bool,
     pub lod_detail: u32,
@@ -573,6 +574,7 @@ impl Default for GraphicsSettings {
             aa_mode: AaMode::Fxaa,
             cloud_mode: CloudMode::Regular,
             fluid_mode: FluidMode::Shiny,
+            lighting_mode: LightingMode::Ashikmin,
             window_size: [1920, 1080],
             fullscreen: false,
             lod_detail: 500,

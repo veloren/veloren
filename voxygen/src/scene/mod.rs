@@ -15,7 +15,7 @@ use crate::{
     audio::{music::MusicMgr, sfx::SfxMgr, AudioFrontend},
     render::{
         create_pp_mesh, create_skybox_mesh, Consts, Globals, Light, Model, PostProcessLocals,
-        PostProcessPipeline, Renderer, Shadow, SkyboxLocals, SkyboxPipeline,
+        PostProcessPipeline, Renderer, Shadow, ShadowLocals, SkyboxLocals, SkyboxPipeline,
     },
     settings::Settings,
     window::{AnalogGameInput, Event},
@@ -39,6 +39,12 @@ const LIGHT_DIST_RADIUS: f32 = 64.0; // The distance beyond which lights may not
 const SHADOW_DIST_RADIUS: f32 = 8.0;
 const SHADOW_MAX_DIST: f32 = 96.0; // The distance beyond which shadows may not be visible
 
+// const NEAR_PLANE: f32 = 0.5;
+// const FAR_PLANE: f32 = 100000.0;
+
+const SHADOW_NEAR: f32 = 0.5; //0.5;//1.0; // Near plane for shadow map rendering.
+const SHADOW_FAR: f32 = 512.0; //100000.0;//25.0; // Far plane for shadow map rendering.
+
 /// Above this speed is considered running
 /// Used for first person camera effects
 const RUNNING_THRESHOLD: f32 = 0.7;
@@ -56,6 +62,7 @@ struct PostProcess {
 pub struct Scene {
     globals: Consts<Globals>,
     lights: Consts<Light>,
+    shadow_mats: Consts<ShadowLocals>,
     shadows: Consts<Shadow>,
     camera: Camera,
     camera_input_state: Vec2<f32>,
@@ -101,6 +108,9 @@ impl Scene {
                 .unwrap(),
             shadows: renderer
                 .create_consts(&[Shadow::default(); MAX_SHADOW_COUNT])
+                .unwrap(),
+            shadow_mats: renderer
+                .create_consts(&[ShadowLocals::default(); MAX_LIGHT_COUNT * 6])
                 .unwrap(),
             camera: Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson),
             camera_input_state: Vec2::zero(),
@@ -344,6 +354,41 @@ impl Scene {
             .update_consts(&mut self.shadows, &shadows)
             .expect("Failed to update light constants");
 
+        // Update light projection matrices for the shadow map.
+        // NOTE: The aspect ratio is currently always 1 for our cube maps, since they
+        // are equal on all sides.
+        let shadow_aspect = 1.0;
+        // First, create a perspective projection matrix at 90 degrees (to cover a whole
+        // face of the cube map we're using).
+        let shadow_proj =
+            Mat4::perspective_rh_no(90.0f32.to_radians(), shadow_aspect, SHADOW_NEAR, SHADOW_FAR);
+        // Next, construct the 6 orientations we'll use for the six faces, in terms of
+        // their (forward, up) vectors.
+        let orientations = [
+            (Vec3::new(1.0, 0.0, 0.0), Vec3::new(0.0, -1.0, 0.0)),
+            (Vec3::new(-1.0, 0.0, 0.0), Vec3::new(0.0, -1.0, 0.0)),
+            (Vec3::new(0.0, 1.0, 0.0), Vec3::new(0.0, 0.0, 1.0)),
+            (Vec3::new(0.0, -1.0, 0.0), Vec3::new(0.0, 0.0, -1.0)),
+            (Vec3::new(0.0, 0.0, 1.0), Vec3::new(0.0, -1.0, 0.0)),
+            (Vec3::new(0.0, 0.0, -1.0), Vec3::new(0.0, -1.0, 0.0)),
+        ];
+        // NOTE: We could create the shadow map collection at the same time as the
+        // lights, but then we'd have to sort them both, which wastes time.
+        let shadow_mats = lights
+            .iter()
+            .flat_map(|light| {
+                // Now, construct the full projection matrix by making the light look at each
+                // cube face.
+                let eye = Vec3::new(light.pos[0], light.pos[1], light.pos[2]);
+                orientations.iter().map(move |&(forward, up)| {
+                    ShadowLocals::new(shadow_proj * Mat4::look_at_rh(eye, eye + forward, up))
+                })
+            })
+            .collect::<Vec<_>>();
+        renderer
+            .update_consts(&mut self.shadow_mats, &shadow_mats)
+            .expect("Failed to update light constants");
+
         // Update global constants.
         renderer
             .update_consts(&mut self.globals, &[Globals::new(
@@ -357,6 +402,7 @@ impl Scene {
                 scene_data.state.get_time_of_day(),
                 scene_data.state.get_time(),
                 renderer.get_resolution(),
+                Vec2::new(SHADOW_NEAR, SHADOW_FAR),
                 lights.len(),
                 shadows.len(),
                 scene_data
@@ -413,6 +459,7 @@ impl Scene {
             &self.globals,
             &self.lights,
             &self.shadows,
+            &self.shadow_mats,
             self.lod.get_data(),
             self.camera.get_focus_pos(),
         );
@@ -431,7 +478,14 @@ impl Scene {
         self.lod.render(renderer, &self.globals);
 
         // Render the skybox.
-        renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);
+        let lod = self.lod.get_data();
+        renderer.render_skybox(
+            &self.skybox.model,
+            &self.globals,
+            &self.skybox.locals,
+            &lod.map,
+            &lod.horizon,
+        );
 
         self.figure_mgr.render_player(
             renderer,
@@ -441,7 +495,7 @@ impl Scene {
             &self.globals,
             &self.lights,
             &self.shadows,
-            self.lod.get_data(),
+            lod,
             &self.camera,
             scene_data.figure_lod_render_distance,
         );
@@ -451,7 +505,7 @@ impl Scene {
             &self.globals,
             &self.lights,
             &self.shadows,
-            self.lod.get_data(),
+            lod,
             self.camera.get_focus_pos(),
             scene_data.sprite_render_distance,
         );
