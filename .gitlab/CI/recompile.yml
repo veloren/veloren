@@ -1,0 +1,6 @@
+# Template to only run if actual changes has been made to the code and not just documentation
+.recompile:
+  rules:
+    - changes:
+        - "*.{rs,ron,toml,vox,png}"
+        - "rust-toolchain"
