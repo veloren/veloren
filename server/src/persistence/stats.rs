@@ -21,9 +21,15 @@ fn update(character_id: i32, stats: &StatsUpdate, connection: &SqliteConnection)
 
 fn batch_update(updates: impl Iterator<Item = (i32, StatsUpdate)>, db_dir: &str) {
     let connection = establish_connection(db_dir);
+    if let Err(err) = connection.transaction::<_, diesel::result::Error, _>(|| {
+        updates.for_each(|(character_id, stats_update)| {
+            update(character_id, &stats_update, &connection)
+        });
 
-    updates
-        .for_each(|(character_id, stats_update)| update(character_id, &stats_update, &connection));
+        Ok(())
+    }) {
+        log::error!("Error during stats batch update transaction: {:?}", err);
+    }
 }
 
 pub struct Updater {
