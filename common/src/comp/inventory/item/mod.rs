@@ -123,6 +123,8 @@ impl Item {
         }
     }
 
+    pub fn expect_from_asset(asset: &str) -> Self { (*assets::load_expect::<Self>(asset)).clone() }
+
     pub fn set_amount(&mut self, give_amount: u32) -> Result<(), assets::Error> {
         use ItemKind::*;
         match self.kind {
@@ -233,5 +235,12 @@ impl Item {
 }
 
 impl Component for Item {
+    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct ItemDrop(pub Item);
+
+impl Component for ItemDrop {
     type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }

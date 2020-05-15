@@ -2,7 +2,7 @@ use super::SysTimer;
 use crate::{chunk_generator::ChunkGenerator, client::Client, Tick};
 use common::{
     assets,
-    comp::{self, item, CharacterAbility, ItemConfig, Player, Pos},
+    comp::{self, item, Alignment, CharacterAbility, ItemConfig, Player, Pos},
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
     msg::ServerMsg,
@@ -245,20 +245,30 @@ impl<'a> System<'a> for Sys {
                     },
                 };
 
-                let mut scale = 1.0;
+                let mut scale = entity.scale;
 
                 // TODO: Remove this and implement scaling or level depending on stuff like
                 // species instead
-                stats.level.set_level(rand::thread_rng().gen_range(1, 9));
+                stats.level.set_level(
+                    entity.level.unwrap_or_else(|| {
+                        (rand::thread_rng().gen_range(1, 9) as f32 * scale) as u32
+                    }),
+                );
 
                 // Replace stuff if it's a boss
                 if entity.is_giant {
                     if rand::random::<f32>() < 0.65 {
                         let body_new = comp::humanoid::Body::random();
                         body = comp::Body::Humanoid(body_new);
+                        let adjective = if let Alignment::Enemy = entity.alignment {
+                            "Angry"
+                        } else {
+                            "Gentle"
+                        };
                         stats = comp::Stats::new(
                             format!(
-                                "Gentle {} Giant",
+                                "{} Giant {}",
+                                adjective,
                                 get_npc_name(&NPC_NAMES.humanoid, body_new.race)
                             ),
                             body,
@@ -336,6 +346,7 @@ impl<'a> System<'a> for Sys {
                     alignment,
                     agent: comp::Agent::default().with_patrol_origin(entity.pos),
                     scale: comp::Scale(scale),
+                    drop_item: entity.loot_drop,
                 })
             }
         }
