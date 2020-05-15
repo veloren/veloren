@@ -355,7 +355,11 @@ impl Floor {
                 boss: false,
                 area,
                 height: ctx.rng.gen_range(10, 15),
-                pillars: None,
+                pillars: if ctx.rng.gen_range(0, 4) == 0 {
+                    Some(2)
+                } else {
+                    None
+                },
             });
         }
     }
@@ -556,12 +560,39 @@ impl Floor {
         let tunnel_dist =
             1.0 - (dist_to_wall - wall_thickness).max(0.0) / (TILE_SIZE as f32 - wall_thickness);
 
+        let floor_sprite = if RandomField::new(7331).chance(Vec3::from(pos), 0.00005) {
+            BlockMask::new(
+                Block::new(
+                    match (RandomField::new(1337).get(Vec3::from(pos)) / 2) % 20 {
+                        0 => BlockKind::Apple,
+                        1 => BlockKind::VeloriteFrag,
+                        2 => BlockKind::Velorite,
+                        3..=8 => BlockKind::Mushroom,
+                        _ => BlockKind::ShortGrass,
+                    },
+                    Rgb::white(),
+                ),
+                1,
+            )
+        } else if let Some(Tile::Room(room)) | Some(Tile::DownStair(room)) =
+            self.tiles.get(tile_pos)
+        {
+            let room = &self.rooms[*room];
+            if RandomField::new(room.seed).chance(Vec3::from(pos), room.loot_density) {
+                BlockMask::new(Block::new(BlockKind::Chest, Rgb::white()), 1)
+            } else {
+                empty
+            }
+        } else {
+            empty
+        };
+
         move |z| match self.tiles.get(tile_pos) {
             Some(Tile::Solid) => BlockMask::nothing(),
             Some(Tile::Tunnel) => {
                 if dist_to_wall >= wall_thickness && (z as f32) < 8.0 - 8.0 * tunnel_dist.powf(4.0)
                 {
-                    empty
+                    if z == 0 { floor_sprite } else { empty }
                 } else {
                     BlockMask::nothing()
                 }
@@ -583,11 +614,9 @@ impl Floor {
             {
                 BlockMask::nothing()
             },
-            Some(Tile::Room(room)) => {
-                let room = &self.rooms[*room];
-                if z == 0 && RandomField::new(room.seed).chance(Vec3::from(pos), room.loot_density)
-                {
-                    BlockMask::new(Block::new(BlockKind::Chest, Rgb::white()), 1)
+            Some(Tile::Room(_)) => {
+                if z == 0 {
+                    floor_sprite
                 } else {
                     empty
                 }
