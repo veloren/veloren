@@ -9,7 +9,6 @@ use std::{
         Arc,
     },
     thread,
-    time::Duration,
 };
 
 pub struct SimpleMetrics {
@@ -49,10 +48,10 @@ impl SimpleMetrics {
         //TODO: make this a job
         self.handle = Some(thread::spawn(move || {
             let server = tiny_http::Server::http(addr).unwrap();
-            const timeout: std::time::Duration = std::time::Duration::from_secs(1);
+            const TIMEOUT: std::time::Duration = std::time::Duration::from_secs(1);
             debug!("starting tiny_http server to serve metrics");
             while running2.load(Ordering::Relaxed) {
-                let request = match server.recv_timeout(timeout) {
+                let request = match server.recv_timeout(TIMEOUT) {
                     Ok(Some(rq)) => rq,
                     Ok(None) => continue,
                     Err(e) => { println!("error: {}", e); break }
@@ -62,7 +61,10 @@ impl SimpleMetrics {
                 let mut buffer = vec![];
                 encoder.encode(&mf, &mut buffer).expect("Failed to encoder metrics text.");
                 let response = tiny_http::Response::from_string(String::from_utf8(buffer).expect("Failed to parse bytes as a string."));
-                request.respond(response);
+                match request.respond(response) {
+                    Err(e) => error!(?e, "The metrics HTTP server had encountered and error with answering"),
+                    _ => (),
+                }
             }
             debug!("stopping tiny_http server to serve metrics");
         }));

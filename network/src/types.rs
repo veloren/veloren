@@ -118,14 +118,6 @@ impl Frame {
     }
 }
 
-#[derive(Debug)]
-pub(crate) enum Requestor {
-    User,
-    Api,
-    Scheduler,
-    Remote,
-}
-
 impl Pid {
     /// create a new Pid with a random interior value
     ///

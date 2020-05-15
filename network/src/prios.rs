@@ -9,6 +9,7 @@ use crate::{
     message::OutGoingMessage,
     types::{Frame, Pid, Prio, Sid},
 };
+use futures::channel::oneshot;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     sync::mpsc::{channel, Receiver, Sender},
@@ -18,13 +19,26 @@ use tracing::*;
 
 const PRIO_MAX: usize = 64;
 
+struct PidSidInfo {
+    len: u64,
+    empty_notify: Option<oneshot::Sender<()>>,
+}
+
 pub(crate) struct PrioManager {
     points: [u32; PRIO_MAX],
     messages: [VecDeque<(Pid, Sid, OutGoingMessage)>; PRIO_MAX],
     messages_rx: Receiver<(Prio, Pid, Sid, OutGoingMessage)>,
-    pid_sid_owned: HashMap<(Pid, Sid), u64>,
+    pid_sid_owned: HashMap<(Pid, Sid), PidSidInfo>,
+    //you can register to be notified if a pid_sid combination is flushed completly here
+    pid_sid_flushed_rx: Receiver<(Pid, Sid, oneshot::Sender<()>)>,
     queued: HashSet<u8>,
 }
+
+/*
+ERROR Okay ich kann die frames und msg nicht counten, da api auf msg basis zöhlt und BParticipant auf frame basis.
+Der Priomanager hört auf gekillte PID, SIDs, und entweder returned sofort wenn keine msg drinn ist, oder schreibt es in id_sid_owned und haut es dann raus
+Evtl sollten wir auch den prioManger auf mehr Async umstellen. auch wenn der TICK selber syncron ist. mal schaun.
+*/
 
 impl PrioManager {
     const FRAME_DATA_SIZE: u64 = 1400;
@@ -36,8 +50,14 @@ impl PrioManager {
         310419, 356578, 409600, 470507, 540470, 620838,
     ];
 
-    pub fn new() -> (Self, Sender<(Prio, Pid, Sid, OutGoingMessage)>) {
+    pub fn new() -> (
+        Self,
+        Sender<(Prio, Pid, Sid, OutGoingMessage)>,
+        Sender<(Pid, Sid, oneshot::Sender<()>)>,
+    ) {
+        // (a2p_msg_s, a2p_msg_r)
         let (messages_tx, messages_rx) = channel();
+        let (pid_sid_flushed_tx, pid_sid_flushed_rx) = channel();
         (
             Self {
                 points: [0; PRIO_MAX],
@@ -109,15 +129,18 @@ impl PrioManager {
                 ],
                 messages_rx,
                 queued: HashSet::new(), //TODO: optimize with u64 and 64 bits
+                pid_sid_flushed_rx,
                 pid_sid_owned: HashMap::new(),
             },
             messages_tx,
+            pid_sid_flushed_tx,
         )
     }
 
     fn tick(&mut self) {
         // Check Range
         let mut times = 0;
+        let mut closed = 0;
         for (prio, pid, sid, msg) in self.messages_rx.try_iter() {
             debug_assert!(prio as usize <= PRIO_MAX);
             times += 1;
@@ -125,13 +148,29 @@ impl PrioManager {
             self.queued.insert(prio);
             self.messages[prio as usize].push_back((pid, sid, msg));
             if let Some(cnt) = self.pid_sid_owned.get_mut(&(pid, sid)) {
-                *cnt += 1;
+                cnt.len += 1;
             } else {
-                self.pid_sid_owned.insert((pid, sid), 1);
+                self.pid_sid_owned.insert((pid, sid), PidSidInfo {
+                    len: 1,
+                    empty_notify: None,
+                });
             }
         }
-        if times > 0 {
-            trace!(?times, "tick");
+        //this must be AFTER messages
+        for (pid, sid, return_sender) in self.pid_sid_flushed_rx.try_iter() {
+            closed += 1;
+            if let Some(cnt) = self.pid_sid_owned.get_mut(&(pid, sid)) {
+                // register sender
+                cnt.empty_notify = Some(return_sender);
+            } else {
+                // return immediately
+                futures::executor::block_on(async {
+                    return_sender.send(());
+                });
+            }
+        }
+        if times > 0 || closed > 0 {
+            trace!(?times, ?closed, "tick");
         }
     }
 
@@ -219,9 +258,14 @@ impl PrioManager {
                                     "the pid_sid_owned counter works wrong, more pid,sid removed \
                                      than inserted",
                                 );
-                                *cnt -= 1;
-                                if *cnt == 0 {
-                                    self.pid_sid_owned.remove(&(pid, sid));
+                                cnt.len -= 1;
+                                if cnt.len == 0 {
+                                    let cnt = self.pid_sid_owned.remove(&(pid, sid)).unwrap();
+                                    cnt.empty_notify.map(|empty_notify| {
+                                        futures::executor::block_on(async {
+                                            empty_notify.send(());
+                                        })
+                                    });
                                 }
                             } else {
                                 self.messages[prio as usize].push_back((pid, sid, msg));
