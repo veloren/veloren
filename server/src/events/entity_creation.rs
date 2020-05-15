@@ -1,8 +1,8 @@
 use crate::{sys, Server, StateExt};
 use common::{
     comp::{
-        self, Agent, Alignment, Body, Gravity, LightEmitter, Loadout, Pos, Projectile, Scale,
-        Stats, Vel, WaypointArea,
+        self, Agent, Alignment, Body, Gravity, Item, ItemDrop, LightEmitter, Loadout, Pos,
+        Projectile, Scale, Stats, Vel, WaypointArea,
     },
     util::Dir,
 };
@@ -32,14 +32,22 @@ pub fn handle_create_npc(
     agent: Agent,
     alignment: Alignment,
     scale: Scale,
+    drop_item: Option<Item>,
 ) {
-    server
+    let entity = server
         .state
         .create_npc(pos, stats, loadout, body)
         .with(agent)
         .with(scale)
-        .with(alignment)
-        .build();
+        .with(alignment);
+
+    let entity = if let Some(drop_item) = drop_item {
+        entity.with(ItemDrop(drop_item))
+    } else {
+        entity
+    };
+
+    entity.build();
 }
 
 pub fn handle_shoot(
