@@ -186,7 +186,7 @@ const TILE_SIZE: i32 = 13;
 
 #[derive(Clone)]
 pub enum Tile {
-    UpStair,
+    UpStair(Id<Room>),
     DownStair(Id<Room>),
     Room(Id<Room>),
     Tunnel,
@@ -196,7 +196,7 @@ pub enum Tile {
 impl Tile {
     fn is_passable(&self) -> bool {
         match self {
-            Tile::UpStair => true,
+            Tile::UpStair(_) => true,
             Tile::DownStair(_) => true,
             Tile::Room(_) => true,
             Tile::Tunnel => true,
@@ -259,7 +259,7 @@ impl Floor {
 
         const STAIR_ROOM_HEIGHT: i32 = 13;
         // Create rooms for entrance and exit
-        this.create_room(Room {
+        let upstair_room = this.create_room(Room {
             seed: ctx.rng.gen(),
             loot_density: 0.0,
             enemy_density: None,
@@ -268,7 +268,8 @@ impl Floor {
             height: STAIR_ROOM_HEIGHT,
             pillars: None,
         });
-        this.tiles.set(stair_tile - tile_offset, Tile::UpStair);
+        this.tiles
+            .set(stair_tile - tile_offset, Tile::UpStair(upstair_room));
         if final_level {
             // Boss room
             this.create_room(Room {
@@ -376,7 +377,7 @@ impl Floor {
         let transition = |_a: &Vec2<i32>, b: &Vec2<i32>| match self.tiles.get(*b) {
             Some(Tile::Room(_)) | Some(Tile::Tunnel) => 1.0,
             Some(Tile::Solid) => 25.0,
-            Some(Tile::UpStair) | Some(Tile::DownStair(_)) => 0.0,
+            Some(Tile::UpStair(_)) | Some(Tile::DownStair(_)) => 0.0,
             _ => 100000.0,
         };
         let satisfied = |l: &Vec2<i32>| *l == b;
@@ -625,14 +626,14 @@ impl Floor {
                 make_staircase(Vec3::new(rtile_pos.x, rtile_pos.y, z), 0.0, 0.5, 9.0)
                     .resolve_with(empty)
             },
-            Some(Tile::UpStair) => {
+            Some(Tile::UpStair(room)) => {
                 let mut block = make_staircase(
                     Vec3::new(rtile_pos.x, rtile_pos.y, z),
                     TILE_SIZE as f32 / 2.0,
                     0.5,
                     9.0,
                 );
-                if z < self.hollow_depth {
+                if z < self.rooms[*room].height {
                     block = block.resolve_with(empty);
                 }
                 block
