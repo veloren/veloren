@@ -1,7 +1,7 @@
 use crate::{
     message::{self, InCommingMessage, MessageBuffer, OutGoingMessage},
     scheduler::Scheduler,
-    types::{Mid, Pid, Prio, Promises, Requestor::User, Sid},
+    types::{Mid, Pid, Prio, Promises, Sid},
 };
 use async_std::{io, sync::RwLock, task};
 use futures::{
@@ -14,7 +14,7 @@ use serde::{de::DeserializeOwned, Serialize};
 use std::{
     collections::HashMap,
     sync::{
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicU64, Ordering},
         Arc,
     },
 };
@@ -40,10 +40,11 @@ pub enum Address {
 pub struct Participant {
     local_pid: Pid,
     remote_pid: Pid,
-    stream_open_sender: RwLock<mpsc::UnboundedSender<(Prio, Promises, oneshot::Sender<Stream>)>>,
-    stream_opened_receiver: RwLock<mpsc::UnboundedReceiver<Stream>>,
+    a2b_steam_open_s: RwLock<mpsc::UnboundedSender<(Prio, Promises, oneshot::Sender<Stream>)>>,
+    b2a_stream_opened_r: RwLock<mpsc::UnboundedReceiver<Stream>>,
     closed: AtomicBool,
-    disconnect_sender: Option<mpsc::UnboundedSender<Pid>>,
+    a2s_disconnect_s:
+        Option<mpsc::UnboundedSender<(Pid, oneshot::Sender<async_std::io::Result<()>>)>>,
 }
 
 /// `Streams` represents a channel to send `n` messages with a certain priority
@@ -70,10 +71,10 @@ pub struct Stream {
     mid: Mid,
     prio: Prio,
     promises: Promises,
-    msg_send_sender: std::sync::mpsc::Sender<(Prio, Pid, Sid, OutGoingMessage)>,
-    msg_recv_receiver: mpsc::UnboundedReceiver<InCommingMessage>,
+    a2b_msg_s: std::sync::mpsc::Sender<(Prio, Pid, Sid, OutGoingMessage)>,
+    b2a_msg_recv_r: mpsc::UnboundedReceiver<InCommingMessage>,
     closed: Arc<AtomicBool>,
-    shutdown_sender: Option<mpsc::UnboundedSender<Sid>>,
+    a2b_close_stream_s: Option<mpsc::UnboundedSender<Sid>>,
 }
 
 /// Error type thrown by [`Networks`](Network) methods
@@ -162,17 +163,17 @@ impl Network {
     /// [`ThreadPool`]: uvth::ThreadPool
     pub fn new(participant_id: Pid, thread_pool: &ThreadPool, registry: Option<&Registry>) -> Self {
         let p = participant_id;
-        debug!(?p, ?User, "starting Network");
+        debug!(?p, "starting Network");
         let (scheduler, listen_sender, connect_sender, connected_receiver, shutdown_sender) =
             Scheduler::new(participant_id, registry);
         thread_pool.execute(move || {
-            trace!(?p, ?User, "starting sheduler in own thread");
+            trace!(?p, "starting sheduler in own thread");
             let _handle = task::block_on(
                 scheduler
                     .run()
                     .instrument(tracing::info_span!("scheduler", ?p)),
             );
-            trace!(?p, ?User, "stopping sheduler and his own thread");
+            trace!(?p, "stopping sheduler and his own thread");
         });
         Self {
             local_pid: participant_id,
@@ -210,14 +211,14 @@ impl Network {
     ///
     /// [`connected`]: Network::connected
     pub async fn listen(&self, address: Address) -> Result<(), NetworkError> {
-        let (result_sender, result_receiver) = oneshot::channel::<async_std::io::Result<()>>();
-        debug!(?address, ?User, "listening on address");
+        let (s2a_result_s, s2a_result_r) = oneshot::channel::<async_std::io::Result<()>>();
+        debug!(?address, "listening on address");
         self.listen_sender
             .write()
             .await
-            .send((address, result_sender))
+            .send((address, s2a_result_s))
             .await?;
-        match result_receiver.await? {
+        match s2a_result_r.await? {
             //waiting guarantees that we either listened sucessfully or get an error like port in
             // use
             Ok(()) => Ok(()),
@@ -256,7 +257,7 @@ impl Network {
     /// [`Addresses`]: crate::api::Address
     pub async fn connect(&self, address: Address) -> Result<Arc<Participant>, NetworkError> {
         let (pid_sender, pid_receiver) = oneshot::channel::<io::Result<Participant>>();
-        debug!(?address, ?User, "connect to address");
+        debug!(?address, "connect to address");
         self.connect_sender
             .write()
             .await
@@ -266,7 +267,6 @@ impl Network {
         let pid = participant.remote_pid;
         debug!(
             ?pid,
-            ?User,
             "received Participant id from remote and return to user"
         );
         let participant = Arc::new(participant);
@@ -317,8 +317,10 @@ impl Network {
     /// are not allowed to keep others. If you do so the [`Participant`]
     /// can't be disconnected properly. If you no longer have the respective
     /// [`Participant`], try using the [`participants`] method to get it.
+    ///
     /// This function will wait for all [`Streams`] to properly close, including
-    /// all messages to be send before closing.
+    /// all messages to be send before closing. If an error occurs with one
+    /// of the messavb
     ///
     /// # Examples
     /// ```rust
@@ -349,12 +351,33 @@ impl Network {
         self.participants.write().await.remove(&pid)?;
         participant.closed.store(true, Ordering::Relaxed);
 
-        if Arc::try_unwrap(participant).is_err() {
-            warn!(
-                "you are disconnecting and still keeping a reference to this participant, this is \
-                 a bad idea. Participant will only be dropped when you drop your last reference"
-            );
+        match Arc::try_unwrap(participant) {
+            Err(_) => {
+                warn!(
+                    "you are disconnecting and still keeping a reference to this participant, \
+                     this is a bad idea. Participant will only be dropped when you drop your last \
+                     reference"
+                );
+            },
+            Ok(mut participant) => {
+                trace!("waiting now for participant to close");
+                let (finished_sender, finished_receiver) = oneshot::channel();
+                // we are deleting here asyncly before DROP is called. Because this is done
+                // nativly async, while drop needs an BLOCK! Drop will recognis
+                // that it has been delete here and don't try another double delete.
+                participant
+                    .a2s_disconnect_s
+                    .take()
+                    .unwrap()
+                    .send((pid, finished_sender))
+                    .await
+                    .expect("something is wrong in internal scheduler coding");
+                let res = finished_receiver.await.unwrap();
+                trace!("participant is now closed");
+                res?;
+            },
         };
+
         Ok(())
     }
 
@@ -370,17 +393,17 @@ impl Participant {
     pub(crate) fn new(
         local_pid: Pid,
         remote_pid: Pid,
-        stream_open_sender: mpsc::UnboundedSender<(Prio, Promises, oneshot::Sender<Stream>)>,
-        stream_opened_receiver: mpsc::UnboundedReceiver<Stream>,
-        disconnect_sender: mpsc::UnboundedSender<Pid>,
+        a2b_steam_open_s: mpsc::UnboundedSender<(Prio, Promises, oneshot::Sender<Stream>)>,
+        b2a_stream_opened_r: mpsc::UnboundedReceiver<Stream>,
+        a2s_disconnect_s: mpsc::UnboundedSender<(Pid, oneshot::Sender<async_std::io::Result<()>>)>,
     ) -> Self {
         Self {
             local_pid,
             remote_pid,
-            stream_open_sender: RwLock::new(stream_open_sender),
-            stream_opened_receiver: RwLock::new(stream_opened_receiver),
+            a2b_steam_open_s: RwLock::new(a2b_steam_open_s),
+            b2a_stream_opened_r: RwLock::new(b2a_stream_opened_r),
             closed: AtomicBool::new(false),
-            disconnect_sender: Some(disconnect_sender),
+            a2s_disconnect_s: Some(a2s_disconnect_s),
         }
     }
 
@@ -422,29 +445,29 @@ impl Participant {
     pub async fn open(&self, prio: u8, promises: Promises) -> Result<Stream, ParticipantError> {
         //use this lock for now to make sure that only one open at a time is made,
         // TODO: not sure if we can paralise that, check in future
-        let mut stream_open_sender = self.stream_open_sender.write().await;
+        let mut a2b_steam_open_s = self.a2b_steam_open_s.write().await;
         if self.closed.load(Ordering::Relaxed) {
             warn!(?self.remote_pid, "participant is closed but another open is tried on it");
             return Err(ParticipantError::ParticipantClosed);
         }
-        let (sid_sender, sid_receiver) = oneshot::channel();
-        if stream_open_sender
-            .send((prio, promises, sid_sender))
+        let (p2a_return_stream_s, p2a_return_stream_r) = oneshot::channel();
+        if a2b_steam_open_s
+            .send((prio, promises, p2a_return_stream_s))
             .await
             .is_err()
         {
-            debug!(?self.remote_pid, ?User, "stream_open_sender failed, closing participant");
+            debug!(?self.remote_pid, "stream_open_sender failed, closing participant");
             self.closed.store(true, Ordering::Relaxed);
             return Err(ParticipantError::ParticipantClosed);
         }
-        match sid_receiver.await {
+        match p2a_return_stream_r.await {
             Ok(stream) => {
                 let sid = stream.sid;
-                debug!(?sid, ?self.remote_pid, ?User, "opened stream");
+                debug!(?sid, ?self.remote_pid, "opened stream");
                 Ok(stream)
             },
             Err(_) => {
-                debug!(?self.remote_pid, ?User, "sid_receiver failed, closing participant");
+                debug!(?self.remote_pid, "p2a_return_stream_r failed, closing participant");
                 self.closed.store(true, Ordering::Relaxed);
                 Err(ParticipantError::ParticipantClosed)
             },
@@ -478,7 +501,7 @@ impl Participant {
     pub async fn opened(&self) -> Result<Stream, ParticipantError> {
         //use this lock for now to make sure that only one open at a time is made,
         // TODO: not sure if we can paralise that, check in future
-        let mut stream_opened_receiver = self.stream_opened_receiver.write().await;
+        let mut stream_opened_receiver = self.b2a_stream_opened_r.write().await;
         if self.closed.load(Ordering::Relaxed) {
             warn!(?self.remote_pid, "participant is closed but another open is tried on it");
             return Err(ParticipantError::ParticipantClosed);
@@ -507,10 +530,10 @@ impl Stream {
         sid: Sid,
         prio: Prio,
         promises: Promises,
-        msg_send_sender: std::sync::mpsc::Sender<(Prio, Pid, Sid, OutGoingMessage)>,
-        msg_recv_receiver: mpsc::UnboundedReceiver<InCommingMessage>,
+        a2b_msg_s: std::sync::mpsc::Sender<(Prio, Pid, Sid, OutGoingMessage)>,
+        b2a_msg_recv_r: mpsc::UnboundedReceiver<InCommingMessage>,
         closed: Arc<AtomicBool>,
-        shutdown_sender: mpsc::UnboundedSender<Sid>,
+        a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
     ) -> Self {
         Self {
             pid,
@@ -518,10 +541,10 @@ impl Stream {
             mid: 0,
             prio,
             promises,
-            msg_send_sender,
-            msg_recv_receiver,
+            a2b_msg_s,
+            b2a_msg_recv_r,
             closed,
-            shutdown_sender: Some(shutdown_sender),
+            a2b_close_stream_s: Some(a2b_close_stream_s),
         }
     }
 
@@ -600,8 +623,8 @@ impl Stream {
         if self.closed.load(Ordering::Relaxed) {
             return Err(StreamError::StreamClosed);
         }
-        debug!(?messagebuffer, ?User, "sending a message");
-        self.msg_send_sender
+        //debug!(?messagebuffer, "sending a message");
+        self.a2b_msg_s
             .send((self.prio, self.pid, self.sid, OutGoingMessage {
                 buffer: messagebuffer,
                 cursor: 0,
@@ -632,8 +655,8 @@ impl Stream {
     pub async fn recv_raw(&mut self) -> Result<MessageBuffer, StreamError> {
         //no need to access self.closed here, as when this stream is closed the Channel
         // is closed which will trigger a None
-        let msg = self.msg_recv_receiver.next().await?;
-        info!(?msg, ?User, "delivering a message");
+        let msg = self.b2a_msg_recv_r.next().await?;
+        info!(?msg, "delivering a message");
         Ok(msg.buffer)
     }
 }
@@ -642,11 +665,20 @@ impl Drop for Network {
     fn drop(&mut self) {
         let pid = self.local_pid;
         debug!(?pid, "shutting down Network");
+        debug!(
+            ?pid,
+            "shutting down Participants of Network, while we still have metrics"
+        );
+        task::block_on(async {
+            self.participants.write().await.clear();
+        });
+        debug!(?pid, "shutting down Scheduler");
         self.shutdown_sender
             .take()
             .unwrap()
             .send(())
             .expect("scheduler is closed, but nobody other should be able to close it");
+        debug!(?pid, "participants have shut down!");
     }
 }
 
@@ -656,14 +688,41 @@ impl Drop for Participant {
         // participant from network
         let pid = self.remote_pid;
         debug!(?pid, "shutting down Participant");
-        task::block_on(async {
-            self.disconnect_sender
-                .take()
-                .unwrap()
-                .send(self.remote_pid)
-                .await
-                .expect("something is wrong in internal scheduler coding")
-        });
+        match self.a2s_disconnect_s.take() {
+            None => debug!(
+                ?pid,
+                "Participant has been shutdown cleanly, no further waiting is requiered!"
+            ),
+            Some(mut a2s_disconnect_s) => {
+                debug!(
+                    ?pid,
+                    "unclean shutdown detected, active waiting for client to be disconnected"
+                );
+                task::block_on(async {
+                    let (finished_sender, finished_receiver) = oneshot::channel();
+                    a2s_disconnect_s
+                        .send((self.remote_pid, finished_sender))
+                        .await
+                        .expect("something is wrong in internal scheduler coding");
+                    match finished_receiver.await {
+                        Ok(Err(e)) => error!(
+                            ?pid,
+                            ?e,
+                            "Error while dropping the participant, couldn't send all outgoing \
+                             messages, dropping remaining"
+                        ),
+                        Err(e) => warn!(
+                            ?e,
+                            "//TODO i dont know why the finish doesnt work, i normally would \
+                             expect to have sended a return message from the participant... \
+                             ignoring to not caue a panic for now, please fix me"
+                        ),
+                        _ => (),
+                    };
+                });
+            },
+        }
+        debug!(?pid, "network dropped");
     }
 }
 
@@ -674,12 +733,16 @@ impl Drop for Stream {
             let sid = self.sid;
             let pid = self.pid;
             debug!(?pid, ?sid, "shutting down Stream");
-            if task::block_on(self.shutdown_sender.take().unwrap().send(self.sid)).is_err() {
+            if task::block_on(self.a2b_close_stream_s.take().unwrap().send(self.sid)).is_err() {
                 warn!(
                     "Other side got already dropped, probably due to timing, other side will \
                      handle this gracefully"
                 );
             };
+        } else {
+            let sid = self.sid;
+            let pid = self.pid;
+            debug!(?pid, ?sid, "not needed");
         }
     }
 }

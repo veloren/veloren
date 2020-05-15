@@ -75,7 +75,14 @@ fn main() {
         .get_matches();
 
     let trace = matches.value_of("trace").unwrap();
-    let filter = EnvFilter::from_default_env().add_directive(trace.parse().unwrap())/*
+    let filter = EnvFilter::from_default_env()
+        .add_directive(trace.parse().unwrap())
+        .add_directive("network_speed=debug".parse().unwrap())
+        .add_directive("veloren_network::participant=trace".parse().unwrap())
+        .add_directive("veloren_network::protocol=trace".parse().unwrap())
+        .add_directive("veloren_network::scheduler=trace".parse().unwrap())
+        .add_directive("veloren_network::api=trace".parse().unwrap())
+        /*
     .add_directive("veloren_network::participant=debug".parse().unwrap()).add_directive("veloren_network::api=debug".parse().unwrap())*/;
     tracing_subscriber::FmtSubscriber::builder()
         .with_max_level(Level::ERROR)
@@ -165,6 +172,13 @@ fn client(address: Address) {
             std::thread::sleep(std::time::Duration::from_millis(5000));
             break;
         }
-    }
-    debug!("closing client");
+    };
+    drop(s1);
+    std::thread::sleep(std::time::Duration::from_millis(5000));
+    info!("closing participant");
+    block_on(client.disconnect(p1)).unwrap();
+    std::thread::sleep(std::time::Duration::from_millis(75000));
+    info!("DROPPING! client");
+    drop(client);
+    std::thread::sleep(std::time::Duration::from_millis(75000));
 }
