@@ -180,22 +180,17 @@ impl PlayState for SessionState {
 
                 let cam_dist = cam_ray.0;
 
-                if let Ok(Some(_)) = cam_ray.1 {
-                    // The ray hit something, is it within pickup range?
-                    let select_pos = if player_pos.distance_squared(cam_pos + cam_dir * cam_dist)
-                        <= MAX_PICKUP_RANGE_SQR
+                match cam_ray.1 {
+                    Ok(Some(_))
+                        if player_pos.distance_squared(cam_pos + cam_dir * cam_dist)
+                            <= MAX_PICKUP_RANGE_SQR =>
                     {
-                        Some((cam_pos + cam_dir * cam_dist).map(|e| e.floor() as i32))
-                    } else {
-                        None
-                    };
-
-                    (
-                        Some((cam_pos + cam_dir * (cam_dist - 0.01)).map(|e| e.floor() as i32)),
-                        select_pos,
-                    )
-                } else {
-                    (None, None)
+                        (
+                            Some((cam_pos + cam_dir * (cam_dist - 0.01)).map(|e| e.floor() as i32)),
+                            Some((cam_pos + cam_dir * cam_dist).map(|e| e.floor() as i32)),
+                        )
+                    },
+                    _ => (None, None),
                 }
             };
 
@@ -223,7 +218,7 @@ impl PlayState for SessionState {
                     },
                     Event::InputUpdate(GameInput::Primary, state) => {
                         // Check the existence of CanBuild component. If it's here, use LMB to
-                        // place blocks, if not, use it to attack
+                        // break blocks, if not, use it to attack
                         let mut client = self.client.borrow_mut();
                         if state
                             && client
@@ -232,8 +227,8 @@ impl PlayState for SessionState {
                                 .get(client.entity())
                                 .is_some()
                         {
-                            if let Some(build_pos) = build_pos {
-                                client.place_block(build_pos, self.selected_block);
+                            if let Some(select_pos) = select_pos {
+                                client.remove_block(select_pos);
                             }
                         } else {
                             self.inputs.primary.set_state(state);
@@ -252,8 +247,8 @@ impl PlayState for SessionState {
                                 .get(client.entity())
                                 .is_some()
                         {
-                            if let Some(select_pos) = select_pos {
-                                client.remove_block(select_pos);
+                            if let Some(build_pos) = build_pos {
+                                client.place_block(build_pos, self.selected_block);
                             }
                         } else {
                             self.inputs.secondary.set_state(state);
