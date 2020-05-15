@@ -2,7 +2,7 @@ use super::SysTimer;
 use crate::{chunk_generator::ChunkGenerator, client::Client, Tick};
 use common::{
     assets,
-    comp::{self, item, CharacterAbility, ItemConfig, Player, Pos},
+    comp::{self, item, CharacterAbility, ItemConfig, Player, Pos, Alignment},
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
     msg::ServerMsg,
@@ -260,11 +260,13 @@ impl<'a> System<'a> for Sys {
                     if rand::random::<f32>() < 0.65 {
                         let body_new = comp::humanoid::Body::random();
                         body = comp::Body::Humanoid(body_new);
+                        let adjective = if let Alignment::Enemy = entity.alignment {
+                            "Angry"
+                        } else {
+                            "Gentle"
+                        };
                         stats = comp::Stats::new(
-                            format!(
-                                "Gentle {} Giant",
-                                get_npc_name(&NPC_NAMES.humanoid, body_new.race)
-                            ),
+                            format!("{} Giant {}", adjective, get_npc_name(&NPC_NAMES.humanoid, body_new.race)),
                             body,
                         );
                     }
