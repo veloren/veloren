@@ -1,0 +1,367 @@
+/// Localization for Polish
+VoxygenLocalization(
+    metadata: (
+        language_name: "Polish",
+        language_identifier: "PL",
+    ),
+    convert_utf8_to_ascii: false,
+    fonts: {
+        "opensans": Font (
+            asset_key: "voxygen.font.OpenSans-Regular",
+            scale_ratio: 1.0,
+        ),
+        "metamorph": Font (
+            asset_key: "voxygen.font.Metamorphous-Regular",
+            scale_ratio: 1.0,
+        ),
+        "alkhemi": Font (
+            asset_key: "voxygen.font.Alkhemikal",
+            scale_ratio: 1.0,
+        ),
+        "wizard": Font (
+            asset_key: "voxygen.font.wizard",
+            scale_ratio: 1.0,
+        ),
+        "cyri": Font (
+            asset_key: "voxygen.font.haxrcorp_4089_cyrillic_altgr_extended",
+            scale_ratio: 1.0,
+        ),
+    },
+    string_map: {
+        /// Start Common section
+        // Texts used in multiple locations with the same formatting
+        "common.username": "użytkownik",
+        "common.singleplayer": "Jednoosobowa",
+        "common.multiplayer": "Wieloosobowa",
+        "common.servers": "Serwery",
+        "common.quit": "Wyjdź",
+        "common.settings": "Ustawienia",
+        "common.languages": "Języki",
+        "common.interface": "Interfejs",
+        "common.gameplay": "Gra",
+        "common.controls": "Kontrola",
+        "common.video": "Grafika",
+        "common.sound": "Dźwięk",
+        "common.resume": "Kontynuuj",
+        "common.characters": "Postać",
+        "common.close": "Zamknij",
+        "common.yes": "Tak",
+        "common.no": "Nie",
+        "common.back": "Wstecz",
+        "common.create": "Stwórz",
+        "common.okay": "Ok",
+        "common.accept": "Zaakceptuj",
+        "common.disclaimer": "Uwaga",
+        "common.cancel": "Anuluj",
+        "common.none": "Nic",
+        "common.error": "Błąd",
+        "common.fatal_error": "Błąd krytyczny",
+
+        // Message when connection to the server is lost
+        "common.connection_lost": r#"Connection lost!
+Did the server restart?
+Is the client up to date?"#,
+
+
+        "common.races.orc": "Ork",
+        "common.races.human": "Człowiek",
+        "common.races.dwarf": "Krasnolud",
+        "common.races.elf": "Elf",
+        "common.races.undead": "Nieumarły",
+        "common.races.danari": "Danari",
+
+        "common.weapons.axe": "Siekiera",
+        "common.weapons.sword": "Miecz",
+        "common.weapons.staff": "Berło",
+        "common.weapons.bow": "Łuk",
+        "common.weapons.hammer": "Młot",
+        /// End Common section
+
+
+        /// Start Main screen section
+        "main.connecting": "Łączenie",
+        "main.creating_world": "Tworzenie świata",
+
+        // Welcome notice that appears the first time Veloren is started
+        "main.notice": r#"Witaj w wersji alfa gry Valoren!
+
+Zanim zaczniesz, pamiętaj, że:
+
+- Gra jest w wczesnej alfie. Spodziewaj się błędów, ektremalnie niedokończonej fabuły, niedopracowanych mechanik i brakujących funkcji.
+
+- Jeżeli posiadasz opinie, pomysły lub chcesz zgłosić błąąd, możesz się z nami zkontaktować poprzez Reddit, GitLab lub serwer Discord.
+
+- Veloron jest pod licencją GPL 3 open-source licence (Licencja otwartego kodu źródłowego). To oznacza, że masz prawo do gry, modyfikacji i rozpowszechniania gry jakkolwiek ci się podoba (pod warunkiem twoja praca też będzie pod licencją GPL 3).
+
+- Veloren jest projektem społecznym typu non-profit, gdzie każda osoba pracująca jest wolontariuszem. Jeżeli lubisz tę gre, zapraszamy do dołączenia do naszego zespołu!
+
+Dziękujemy za przeczytanie tej wiadomości i mamy nadzieję, że polubisz tę gre!
+
+~ Stwórcy Veloren"#,
+
+        // Login process description
+        "main.login_process": r#"Informacje o procesie logowania:
+
+Jeżeli masz problem z logowaniem:
+
+Pamiętaj, że potrzebujesz konta,
+by dołączyć do serwerów z włączoną weryfikacją.
+
+Możesz stworzyć konto pod:
+
+https://account.veloren.net."#,
+        "main.login.server_not_found": "Serwer nie znaleziony",
+        "main.login.authentication_error": "Błąd weryfikacji",
+        "main.login.server_full": "Serwen jest pełen",
+        "main.login.untrusted_auth_server": "Serwer weryfikacji jest niezaufany",
+        "main.login.outdated_client_or_server": "SerwerOszalał: Prawdopodobnie wersje są niekompatybilne, sprawdź aktualizacje!",
+        "main.login.timeout": "Timeout: Serwer nie odpowiedział na czas. (Przeciążenie, bądź błędy sieci).",
+        "main.login.server_shut_down": "Serwer zamknięty",
+        "main.login.already_logged_in": "Jesteś już zalogowany na serwerze.",
+        "main.login.network_error": "Błąd sieci.",
+        "main.login.failed_sending_request": "Zapytanie do serwera weryfikacji zakończyło się niepowodzeniem.",
+        "main.login.client_crashed": "Crash clienta",
+
+        /// End Main screen section
+
+
+        /// Start HUD Section
+        "hud.do_not_show_on_startup": "Nie pokazuj wskazówek na początku gry",
+        "hud.show_tips": "Pokarz wskazówki",
+        "hud.quests": "Zadania",
+        "hud.you_died": "Umarłeś",
+
+        "hud.press_key_to_show_keybindings_fmt": "Kliknij {key} aby sprawdzić skróty klawiszowe",
+        "hud.press_key_to_show_debug_info_fmt": "Kliknij {key} aby pokazać zaawansowane informacje",
+        "hud.press_key_to_toggle_keybindings_fmt": "Kliknij {key} aby przełączyć skróty klawiszowe",
+        "hud.press_key_to_toggle_debug_info_fmt": "Kliknij {key} aby przełączyć zaawanowane informacje",
+
+        // Respawn message
+        "hud.press_key_to_respawn": r#"Kliknij {key} aby się odrodzić przy ostatnim odwiedzonym ognisku."#,
+
+        // Welcome message
+        "hud.welcome": r#"Witaj w wersji alfa gry Valoren
+
+
+Kilka porad zanim zaczniesz.
+
+Kliknij F1 aby sprawdzić domyślne klawisze.
+
+Wpisz /help w czat aby zobaczyć dostępne komendy
+
+
+Na świecie możesz znaleść skrzynki i inne obiekty z losowym łupem!
+
+Kliknij prawym przyciskiem myszki, aby je zebrać.
+
+Aby użyć, bądź założyć twój łóp użyj klawisza 'B', aby otworzyć ekwipunek.
+
+Kliknij podwójnie na rzecz, aby ją użyć, bądź założyć.
+
+Wyrzuć niepotrzebne przedmioty poprzed przeciągnięcie ich poza obszar ekwipunku.
+
+
+Noce w Veloren potrafią być ciemne.
+
+Załóż swoją lampę i zapal ją klikając przycisk 'G'
+
+
+Chcesz odblokować swój systemowy kursor z gry? Kliknij 'TAB'
+
+
+Ciesz się swoim pobytem w Veloren!"#,
+
+
+        // Inventory
+        "hud.bag.inventory": "Ekwipunek {playername}",
+        "hud.bag.stats_title": "Statystyki {playername}",
+        "hud.bag.exp": "Exp",
+        "hud.bag.armor": "Zbroja",
+        "hud.bag.stats": "Statystyki",
+        "hud.bag.head": "Głowa",
+        "hud.bag.neck": "Szyja",
+        "hud.bag.tabard": "Tabard",
+        "hud.bag.shoulders": "Ramiona",
+        "hud.bag.chest": "Klatka piersiowa",
+        "hud.bag.hands": "Ręce",
+        "hud.bag.lantern": "Lampa",
+        "hud.bag.belt": "Pas",
+        "hud.bag.ring": "Obrączka",
+        "hud.bag.back": "Tył",
+        "hud.bag.legs": "Nogi",
+        "hud.bag.feet": "Stopy",
+        "hud.bag.mainhand": "Główna ręka",
+        "hud.bag.offhand": "Druga ręka",    
+
+
+        // Map and Questlog
+        "hud.map.map_title": "Mapa",
+        "hud.map.qlog_title": "Zadania",
+
+        // Settings
+        "hud.settings.general": "Ogólne",
+        "hud.settings.none": "Brak",
+        "hud.settings.press_behavior.toggle": "Przełącz",
+        "hud.settings.press_behavior.hold": "Przytrzymaj",
+        "hud.settings.help_window": "Pomic",
+        "hud.settings.debug_info": "Zaawansowane informacje",
+        "hud.settings.tips_on_startup": "Porady na poczatku gry",
+        "hud.settings.ui_scale": "Skala interfejsu",
+        "hud.settings.relative_scaling": "Względne skalowanie",
+        "hud.settings.custom_scaling": "Własne skalowanie",
+        "hud.settings.crosshair": "Wskaźnik",
+        "hud.settings.transparency": "Przezroczystość",
+        "hud.settings.hotbar": "Pasek slotów",        
+        "hud.settings.toggle_shortcuts": "Przełącz skróty klawiszowe",
+        "hud.settings.toggle_bar_experience": "Przełącz pasek doświadczenia",
+        "hud.settings.scrolling_combat_text": "Przewijanie tekstu walki",
+        "hud.settings.single_damage_number": "Ilość pojedynczego obrażenia",
+        "hud.settings.cumulated_damage": "Obrażenie zkumulowane",
+        "hud.settings.incoming_damage": "Obrażenie nadchodzące",
+        "hud.settings.cumulated_incoming_damage": "Nadchodzące obrażenie skumulowane",
+        "hud.settings.energybar_numbers": "Liczby paska energii",
+        "hud.settings.values": "Wartości",
+        "hud.settings.percentages": "Procenty",
+        "hud.settings.chat": "Czat",
+        "hud.settings.background_transparency": "Przezroczystość tła",        
+
+        "hud.settings.pan_sensitivity": "Czułość myszki",
+        "hud.settings.zoom_sensitivity": "Czułość przybliżenia",
+        "hud.settings.invert_scroll_zoom": "Odwróć przybliżenie",
+        "hud.settings.invert_mouse_y_axis": "Odwróć oś Y myszki",
+        "hud.settings.enable_mouse_smoothing": "Wygładzanie kamery",
+        "hud.settings.free_look_behavior": "Zachowanie wolnego spoglądania",
+
+        "hud.settings.view_distance": "Odległość widzenia",
+        "hud.settings.sprites_view_distance": "Odległość widzenia obiektów Sprite",
+        "hud.settings.figures_view_distance": "Odległość widzenia obiektów Entity",
+        "hud.settings.maximum_fps": "Maksymalne odświerzanie ekranu",
+        "hud.settings.fov": "Pole widzenia(stopnie)",
+        "hud.settings.gamma": "Gamma",
+        "hud.settings.antialiasing_mode": "Tryb wygładzania krawędzi",
+        "hud.settings.cloud_rendering_mode": "Renderowanie chmur",
+        "hud.settings.fluid_rendering_mode": "Renderowanie cieczy",
+        "hud.settings.fluid_rendering_mode.cheap": "Szybkie",
+        "hud.settings.fluid_rendering_mode.shiny": "Ładne",
+        "hud.settings.cloud_rendering_mode.regular": "Zwykłe",
+        "hud.settings.fullscreen": "Pełen ekran",
+        "hud.settings.save_window_size": "Zapisz wielkość okna",
+
+        "hud.settings.music_volume": "Głośność muzyki",
+        "hud.settings.sound_effect_volume": "Głośność efektów dźwiękowych",
+        "hud.settings.audio_device": "Urządzenie wyjścia",
+
+        "hud.settings.awaitingkey": "Naciśnij klawisz...",
+
+        "hud.social": "Społeczność",
+        "hud.social.online": "Aktywni",
+        "hud.social.friends": "Znajomi",
+        "hud.social.not_yet_available": "Jeszcze nie dostępne",
+        "hud.social.faction": "Gildie",
+        "hud.social.play_online_fmt": "{nb_player} graczy aktywnych",
+
+        "hud.spell": "Czary",
+
+        "hud.free_look_indicator": "Wolne spoglądanie",       
+
+        /// End HUD section
+
+
+        /// Start GameInput section
+
+        "gameinput.primary": "Pierwszy atak",
+        "gameinput.secondary": "Drugi atak",
+        "gameinput.slot1": "Slot 1",        
+        "gameinput.slot2": "Slot 2",
+        "gameinput.slot3": "Slot 3",
+        "gameinput.slot4": "Slot 4",
+        "gameinput.slot5": "Slot 5",
+        "gameinput.slot6": "Slot 6",
+        "gameinput.slot7": "Slot 7",
+        "gameinput.slot8": "Slot 8",
+        "gameinput.slot9": "Slot 9",
+        "gameinput.slot10": "Slot 10",
+        "gameinput.swaploadout": "Zamień wyposażenie",
+        "gameinput.togglecursor": "Przełącz kursor",
+        "gameinput.help": "Przełącz okno pomocy",
+        "gameinput.toggleinterface": "Przełącz interfejs",
+        "gameinput.toggledebug": "Przełącz zaawanowane informacje",
+        "gameinput.screenshot": "Zrób zrzut ekranu",
+        "gameinput.toggleingameui": "Przełącz nazwy",
+        "gameinput.fullscreen": "Przełącz tryb pełnoekranowy",
+        "gameinput.moveforward": "Przód",
+        "gameinput.moveleft": "Tył",
+        "gameinput.moveright": "Prawo",
+        "gameinput.moveback": "Lewo",
+        "gameinput.jump": "Skok",
+        "gameinput.glide": "Szybowanie",
+        "gameinput.roll": "Przewrót",
+        "gameinput.climb": "Wspinanie",
+        "gameinput.climbdown": "Zchodzenie",
+        "gameinput.wallleap": "Skok od ściany",
+        "gameinput.togglelantern": "Przełącz lampę",
+        "gameinput.mount": "Usiądź na",
+        "gameinput.enter": "Enter",
+        "gameinput.command": "Komenda",
+        "gameinput.escape": "Wyjście",
+        "gameinput.map": "Mapa",
+        "gameinput.bag": "Plecak",
+        "gameinput.social": "Społeczność",
+        "gameinput.sit": "Usiądź",
+        "gameinput.spellbook": "Czary",
+        "gameinput.settings": "Ustawienia",
+        "gameinput.respawn": "Odrodzenie",
+        "gameinput.charge": "Ładowanie",
+        "gameinput.togglewield": "Przełącz władanie",
+        "gameinput.interact": "Interakcja",
+        "gameinput.freelook": "Tryb wolnego spoglądania",
+        
+        /// End GameInput section
+
+
+        /// Start chracter selection section
+        "char_selection.loading_characters": "Ładowanie postaci...",
+        "char_selection.delete_permanently": "Czy chcesz usunąć tę postać na stałe?",
+        "char_selection.deleting_character": "Usuwanie postaci...",
+        "char_selection.change_server": "Zmień serwer",
+        "char_selection.enter_world": "Wejdź w świat",
+        "char_selection.logout": "Wyloguj",
+        "char_selection.create_new_charater": "Tworzenie nowej postaci",
+        "char_selection.creating_character": "Tworzenie postaci...",
+        "char_selection.character_creation": "Kreacja postaci",
+        "char_selection.human_default": "Domyślny człowiek",
+        "char_selection.level_fmt": "Poziom {level_nb}",
+        "char_selection.uncanny_valley": "Dolina Niesamowitości",
+        "char_selection.plains_of_uncertainty": "Pola Niepewności",
+        "char_selection.beard": "Broda",
+        "char_selection.hair_style": "Styl włosów",
+        "char_selection.hair_color": "Kolor włosów",
+        "char_selection.chest_color": "Kolor klatki piersiowej",
+        "char_selection.eye_color": "Kolor oczu",
+        "char_selection.skin": "Skóra",
+        "char_selection.eyebrows": "Powieki",
+        "char_selection.accessories": "Dodatki",
+
+        /// End chracter selection section
+
+
+        /// Start character window section
+        "character_window.character_name": "Nazwa postaci",
+        // Charater stats
+        "character_window.character_stats": r#"Wytrzymałość
+
+Kondycja
+
+Siło woli
+"#,
+
+
+        /// Start character window section
+
+
+        /// Start Escape Menu Section
+        "esc_menu.logout": "Wyloguj",
+        "esc_menu.quit_game": "Opuść gre",
+        /// End Escape Menu Section
+    }
+)
