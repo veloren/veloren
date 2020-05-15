@@ -117,6 +117,9 @@ impl Server {
         // Server-only components
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
+        state.ecs_mut().insert(crate::settings::PersistenceDBDir(
+            settings.persistence_db_dir.clone(),
+        ));
 
         #[cfg(feature = "worldgen")]
         let world = World::generate(settings.world_seed, WorldOpts {
@@ -236,7 +239,9 @@ impl Server {
         // Run pending DB migrations (if any)
         debug!("Running DB migrations...");
 
-        if let Some(error) = persistence::run_migrations().err() {
+        if let Some(error) =
+            persistence::run_migrations(&this.server_settings.persistence_db_dir).err()
+        {
             log::info!("Migration error: {}", format!("{:#?}", error));
         }
 

@@ -163,7 +163,10 @@ impl StateExt for State {
         // Grab persisted character data from the db and insert their associated
         // components. If for some reason the data can't be returned (missing
         // data, DB error), kick the client back to the character select screen.
-        match persistence::character::load_character_data(character_id) {
+        match persistence::character::load_character_data(
+            character_id,
+            &server_settings.persistence_db_dir,
+        ) {
             Ok(stats) => self.write_component(entity, stats),
             Err(error) => {
                 log::warn!(
