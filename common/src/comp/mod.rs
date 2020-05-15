@@ -39,4 +39,4 @@ pub use phys::{Collider, ForceUpdate, Gravity, Mass, Ori, PhysicsState, Pos, Sca
 pub use player::Player;
 pub use projectile::Projectile;
 pub use stats::{Exp, HealthChange, HealthSource, Level, Stats};
-pub use visual::LightEmitter;
+pub use visual::{LightAnimation, LightEmitter};

@@ -1,5 +1,6 @@
 use super::{ClientState, EcsCompPacket};
 use crate::{
+    character::CharacterItem,
     comp, state, sync,
     terrain::{Block, TerrainChunk},
     ChatType,
@@ -138,6 +139,11 @@ pub struct WorldMapMsg {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Notification {
+    WaypointSaved,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ServerMsg {
     InitialSync {
         entity_package: sync::EntityPackage<EcsCompPacket>,
@@ -145,6 +151,10 @@ pub enum ServerMsg {
         time_of_day: state::TimeOfDay,
         world_map: WorldMapMsg,
     },
+    /// A list of characters belonging to the a authenticated player was sent
+    CharacterListUpdate(Vec<CharacterItem>),
+    /// An error occured while creating or deleting a character
+    CharacterActionError(String),
     PlayerListUpdate(PlayerListUpdate),
     StateAnswer(Result<ClientState, (RequestStateError, ClientState)>),
     /// Trigger cleanup for when the client goes back to the `Registered` state
@@ -171,6 +181,8 @@ pub enum ServerMsg {
     Disconnect,
     Shutdown,
     TooManyPlayers,
+    /// Send a popup notification such as "Waypoint Saved"
+    Notification(Notification),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -186,6 +198,7 @@ pub enum RequestStateError {
 pub enum RegisterError {
     AlreadyLoggedIn,
     AuthError(String),
+    InvalidCharacter,
     //TODO: InvalidAlias,
 }
 

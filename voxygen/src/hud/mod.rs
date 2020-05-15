@@ -7,6 +7,7 @@ mod img_ids;
 mod item_imgs;
 mod map;
 mod minimap;
+mod popup;
 mod settings_window;
 mod skillbar;
 mod slots;
@@ -26,6 +27,7 @@ use img_ids::Imgs;
 use item_imgs::ItemImgs;
 use map::Map;
 use minimap::MiniMap;
+use popup::Popup;
 use serde::{Deserialize, Serialize};
 use settings_window::{SettingsTab, SettingsWindow};
 use skillbar::Skillbar;
@@ -143,6 +145,7 @@ widget_ids! {
         ping,
         coordinates,
         velocity,
+        orientation,
         loaded_distance,
         time,
         entity_count,
@@ -173,6 +176,7 @@ widget_ids! {
         map,
         world_map,
         character_window,
+        popup,
         minimap,
         bag,
         social,
@@ -196,6 +200,7 @@ pub struct DebugInfo {
     pub ping_ms: f64,
     pub coordinates: Option<comp::Pos>,
     pub velocity: Option<comp::Vel>,
+    pub ori: Option<comp::Ori>,
     pub num_chunks: u32,
     pub num_visible_chunks: u32,
     pub num_figures: u32,
@@ -445,6 +450,7 @@ pub struct Hud {
     force_ungrab: bool,
     force_chat_input: Option<String>,
     force_chat_cursor: Option<Index>,
+    tab_complete: Option<String>,
     pulse: f32,
     velocity: f32,
     voxygen_i18n: std::sync::Arc<VoxygenLocalization>,
@@ -518,6 +524,7 @@ impl Hud {
             force_ungrab: false,
             force_chat_input: None,
             force_chat_cursor: None,
+            tab_complete: None,
             pulse: 0.0,
             velocity: 0.0,
             voxygen_i18n,
@@ -1451,6 +1458,20 @@ impl Hud {
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.velocity, ui_widgets);
+            // Player's orientation vector
+            let orientation_text = match debug_info.ori {
+                Some(ori) => format!(
+                    "Orientation: ({:.1}, {:.1}, {:.1})",
+                    ori.0.x, ori.0.y, ori.0.z,
+                ),
+                None => "Player has no Ori component".to_owned(),
+            };
+            Text::new(&orientation_text)
+                .color(TEXT_COLOR)
+                .down_from(self.ids.velocity, 5.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .set(self.ids.orientation, ui_widgets);
             // Loaded distance
             Text::new(&format!(
                 "View distance: {:.2} blocks ({:.2} chunks)",
@@ -1458,7 +1479,7 @@ impl Hud {
                 client.loaded_distance() / TerrainChunk::RECT_SIZE.x as f32,
             ))
             .color(TEXT_COLOR)
-            .down_from(self.ids.velocity, 5.0)
+            .down_from(self.ids.orientation, 5.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.loaded_distance, ui_widgets);
@@ -1600,30 +1621,32 @@ impl Hud {
         // Bag button and nearby icons
         let ecs = client.state().ecs();
         let stats = ecs.read_storage::<comp::Stats>();
-        let player_stats = match stats.get(client.entity()) {
-            Some(stats) => stats,
-            None => return events,
-        };
-        match Buttons::new(
-            client,
-            self.show.bag,
-            &self.imgs,
-            &self.fonts,
-            global_state,
-            &self.rot_imgs,
-            tooltip_manager,
-            &self.voxygen_i18n,
-            &player_stats,
-        )
-        .set(self.ids.buttons, ui_widgets)
-        {
-            Some(buttons::Event::ToggleBag) => self.show.toggle_bag(),
-            Some(buttons::Event::ToggleSettings) => self.show.toggle_settings(),
-            Some(buttons::Event::ToggleSocial) => self.show.toggle_social(),
-            Some(buttons::Event::ToggleSpell) => self.show.toggle_spell(),
-            Some(buttons::Event::ToggleMap) => self.show.toggle_map(),
-            None => {},
+        if let Some(player_stats) = stats.get(client.entity()) {
+            match Buttons::new(
+                client,
+                self.show.bag,
+                &self.imgs,
+                &self.fonts,
+                global_state,
+                &self.rot_imgs,
+                tooltip_manager,
+                &self.voxygen_i18n,
+                &player_stats,
+            )
+            .set(self.ids.buttons, ui_widgets)
+            {
+                Some(buttons::Event::ToggleBag) => self.show.toggle_bag(),
+                Some(buttons::Event::ToggleSettings) => self.show.toggle_settings(),
+                Some(buttons::Event::ToggleSocial) => self.show.toggle_social(),
+                Some(buttons::Event::ToggleSpell) => self.show.toggle_spell(),
+                Some(buttons::Event::ToggleMap) => self.show.toggle_map(),
+                None => {},
+            }
         }
+
+        // Popup
+        Popup::new(&self.voxygen_i18n, client, &self.new_messages, &self.fonts)
+            .set(self.ids.popup, ui_widgets);
 
         // MiniMap
         match MiniMap::new(
@@ -1642,33 +1665,29 @@ impl Hud {
 
         // Bag contents
         if self.show.bag {
-            let ecs = client.state().ecs();
-            let stats = ecs.read_storage::<comp::Stats>();
-            let player_stats = match stats.get(client.entity()) {
-                Some(stats) => stats,
-                None => return events,
-            };
-            match Bag::new(
-                client,
-                &self.imgs,
-                &self.item_imgs,
-                &self.fonts,
-                &self.rot_imgs,
-                tooltip_manager,
-                &mut self.slot_manager,
-                self.pulse,
-                &self.voxygen_i18n,
-                &player_stats,
-                &self.show,
-            )
-            .set(self.ids.bag, ui_widgets)
-            {
-                Some(bag::Event::Stats) => self.show.stats = !self.show.stats,
-                Some(bag::Event::Close) => {
-                    self.show.bag(false);
-                    self.force_ungrab = true;
-                },
-                None => {},
+            if let Some(player_stats) = stats.get(client.entity()) {
+                match Bag::new(
+                    client,
+                    &self.imgs,
+                    &self.item_imgs,
+                    &self.fonts,
+                    &self.rot_imgs,
+                    tooltip_manager,
+                    &mut self.slot_manager,
+                    self.pulse,
+                    &self.voxygen_i18n,
+                    &player_stats,
+                    &self.show,
+                )
+                .set(self.ids.bag, ui_widgets)
+                {
+                    Some(bag::Event::Stats) => self.show.stats = !self.show.stats,
+                    Some(bag::Event::Close) => {
+                        self.show.bag(false);
+                        self.force_ungrab = true;
+                    },
+                    None => {},
+                }
             }
         }
 
@@ -1718,6 +1737,16 @@ impl Hud {
             .set(self.ids.skillbar, ui_widgets);
         }
 
+        // The chat box breaks if it has non-chat messages left in the queue, so take
+        // them out.
+        self.new_messages.retain(|msg| {
+            if let ClientEvent::Chat { .. } = &msg {
+                true
+            } else {
+                false
+            }
+        });
+
         // Chat box
         match Chat::new(
             &mut self.new_messages,
@@ -1726,9 +1755,15 @@ impl Hud {
             &self.fonts,
         )
         .and_then(self.force_chat_input.take(), |c, input| c.input(input))
+        .and_then(self.tab_complete.take(), |c, input| {
+            c.prepare_tab_completion(input, &client)
+        })
         .and_then(self.force_chat_cursor.take(), |c, pos| c.cursor_pos(pos))
         .set(self.ids.chat, ui_widgets)
         {
+            Some(chat::Event::TabCompletionStart(input)) => {
+                self.tab_complete = Some(input);
+            },
             Some(chat::Event::SendMessage(message)) => {
                 events.push(Event::SendMessage(message));
             },
@@ -2304,6 +2339,27 @@ impl Hud {
         camera: &Camera,
         dt: Duration,
     ) -> Vec<Event> {
+        // conrod eats tabs. Un-eat a tabstop so tab completion can work
+        if self.ui.ui.global_input().events().any(|event| {
+            use conrod_core::{event, input};
+            match event {
+                //event::Event::Raw(event::Input::Press(input::Button::Keyboard(input::Key::Tab)))
+                // => true,
+                event::Event::Ui(event::Ui::Press(
+                    _,
+                    event::Press {
+                        button: event::Button::Keyboard(input::Key::Tab),
+                        ..
+                    },
+                )) => true,
+                _ => false,
+            }
+        }) {
+            self.ui
+                .ui
+                .handle_event(conrod_core::event::Input::Text("\t".to_string()));
+        }
+
         if let Some(maybe_id) = self.to_focus.take() {
             self.ui.focus_widget(maybe_id);
         }

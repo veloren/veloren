@@ -21,6 +21,7 @@ pub struct ServerSettings {
     /// When set to None, loads the default map file (if available); otherwise,
     /// uses the value of the file options to decide how to proceed.
     pub map_file: Option<FileOpts>,
+    pub persistence_db_dir: String,
 }
 
 impl Default for ServerSettings {
@@ -56,6 +57,7 @@ impl Default for ServerSettings {
             .iter()
             .map(|n| n.to_string())
             .collect(),
+            persistence_db_dir: "saves".to_owned(),
         }
     }
 }
@@ -95,7 +97,7 @@ impl ServerSettings {
         Ok(())
     }
 
-    pub fn singleplayer() -> Self {
+    pub fn singleplayer(persistence_db_dir: String) -> Self {
         let load = Self::load();
         Self {
             //BUG: theoretically another process can grab the port between here and server
@@ -121,9 +123,12 @@ impl ServerSettings {
             start_time: 9.0 * 3600.0,
             admins: vec!["singleplayer".to_string()], /* TODO: Let the player choose if they want
                                                        * to use admin commands or not */
+            persistence_db_dir,
             ..load // Fill in remaining fields from server_settings.ron.
         }
     }
 
     fn get_settings_path() -> PathBuf { PathBuf::from(r"server_settings.ron") }
 }
+
+pub struct PersistenceDBDir(pub String);

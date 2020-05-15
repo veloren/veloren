@@ -15,7 +15,7 @@ use common::{
     clock::Clock,
     comp,
     comp::{Pos, Vel, MAX_PICKUP_RANGE_SQR},
-    msg::ClientState,
+    msg::{ClientState, Notification},
     terrain::{Block, BlockKind},
     util::Dir,
     vol::ReadVol,
@@ -105,6 +105,10 @@ impl SessionState {
                         chat_type: ChatType::Meta,
                         message,
                     });
+                },
+                client::Event::Notification(Notification::WaypointSaved) => {
+                    self.hud
+                        .new_message(client::Event::Notification(Notification::WaypointSaved));
                 },
             }
         }
@@ -335,6 +339,9 @@ impl PlayState for SessionState {
                             self.client.borrow_mut().swap_loadout();
                         }
                     }
+                    Event::InputUpdate(GameInput::ToggleLantern, true) => {
+                        self.client.borrow_mut().toggle_lantern();
+                    },
                     Event::InputUpdate(GameInput::Mount, true) => {
                         let mut client = self.client.borrow_mut();
                         if client.is_mounted() {
@@ -496,6 +503,14 @@ impl PlayState for SessionState {
                         .state()
                         .ecs()
                         .read_storage::<Vel>()
+                        .get(self.client.borrow().entity())
+                        .cloned(),
+                    ori: self
+                        .client
+                        .borrow()
+                        .state()
+                        .ecs()
+                        .read_storage::<comp::Ori>()
                         .get(self.client.borrow().entity())
                         .cloned(),
                     num_chunks: self.scene.terrain().chunk_count() as u32,

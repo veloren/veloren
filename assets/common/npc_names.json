@@ -243,9 +243,9 @@
             ]
         },
         "species": {
-            "wolf": {
-                "keyword": "wolf",
-                "generic": "Wolf"
+            "grolgar": {
+                "keyword": "grolgar",
+                "generic": "Grolgar"
             },
             "saber": {
                 "keyword": "sabertooth",
@@ -475,6 +475,10 @@
             "parrot": {
                 "keyword": "parrot",
                 "generic": "Parrot"
+            },
+            "cockatrice": {
+                "keyword": "cockatrice",
+                "generic": "Cockatrice"
             }
         }
     },
@@ -489,6 +493,10 @@
             "ogre": {
                 "keyword": "ogre",
                 "generic": "Ogre"
+            },
+            "cyclops": {
+                "keyword": "cyclops",
+                "generic": "Cyclops"
             }
         }
     },
@@ -537,6 +545,20 @@
             "fungome": {
                 "keyword": "fungome",
                 "generic": "Fungome"
+            }
+        }
+    },
+    "dragon": {
+        "body": {
+            "keyword": "dragon",
+            "names": [
+                "Smaug"
+            ]
+        },
+        "species": {
+            "reddragon": {
+                "keyword": "reddragon",
+                "generic": "Reddragon"
             }
         }
     }

@@ -1,5 +1,8 @@
 use super::SysTimer;
-use crate::{auth_provider::AuthProvider, client::Client, CLIENT_TIMEOUT};
+use crate::{
+    auth_provider::AuthProvider, client::Client, persistence, settings::PersistenceDBDir,
+    CLIENT_TIMEOUT,
+};
 use common::{
     comp::{Admin, CanBuild, ControlEvent, Controller, ForceUpdate, Ori, Player, Pos, Stats, Vel},
     event::{EventBus, ServerEvent},
@@ -24,6 +27,7 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, Time>,
+        ReadExpect<'a, PersistenceDBDir>,
         ReadExpect<'a, TerrainGrid>,
         Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
@@ -47,6 +51,7 @@ impl<'a> System<'a> for Sys {
             entities,
             server_event_bus,
             time,
+            persistence_db_dir,
             terrain,
             mut timer,
             uids,
@@ -67,6 +72,8 @@ impl<'a> System<'a> for Sys {
         timer.start();
 
         let time = time.0;
+
+        let persistence_db_dir = &persistence_db_dir.0;
 
         let mut server_emitter = server_event_bus.emitter();
 
@@ -134,7 +141,7 @@ impl<'a> System<'a> for Sys {
                             Ok((username, uuid)) => (username, uuid),
                         };
 
-                        let player = Player::new(username, view_distance, uuid);
+                        let player = Player::new(username, None, view_distance, uuid);
 
                         if !player.is_valid() {
                             // Invalid player
@@ -154,6 +161,7 @@ impl<'a> System<'a> for Sys {
                                 client.notify(ServerMsg::PlayerListUpdate(PlayerListUpdate::Init(
                                     player_list.clone(),
                                 )));
+
                                 // Add to list to notify all clients of the new player
                                 new_players.push(entity);
                             },
@@ -170,16 +178,19 @@ impl<'a> System<'a> for Sys {
                         },
                         _ => {},
                     },
-                    ClientMsg::Character { name, body, main } => match client.client_state {
+                    ClientMsg::Character {
+                        character_id,
+                        body,
+                        main,
+                    } => match client.client_state {
                         // Become Registered first.
                         ClientState::Connected => client.error_state(RequestStateError::Impossible),
                         ClientState::Registered | ClientState::Spectator => {
-                            if let (Some(player), false) = (
-                                players.get(entity),
-                                // Only send login message if it wasn't already sent
-                                // previously
-                                client.login_msg_sent,
-                            ) {
+                            // Only send login message if it wasn't already
+                            // sent previously
+                            if let (Some(player), false) =
+                                (players.get(entity), client.login_msg_sent)
+                            {
                                 new_chat_msgs.push((
                                     None,
                                     ServerMsg::broadcast(format!(
@@ -187,12 +198,13 @@ impl<'a> System<'a> for Sys {
                                         &player.alias
                                     )),
                                 ));
+
                                 client.login_msg_sent = true;
                             }
 
-                            server_emitter.emit(ServerEvent::CreateCharacter {
+                            server_emitter.emit(ServerEvent::SelectCharacter {
                                 entity,
-                                name,
+                                character_id,
                                 body,
                                 main,
                             });
@@ -307,6 +319,58 @@ impl<'a> System<'a> for Sys {
                     },
                     ClientMsg::Terminate => {
                         server_emitter.emit(ServerEvent::ClientDisconnect(entity));
+                    },
+                    ClientMsg::RequestCharacterList => {
+                        if let Some(player) = players.get(entity) {
+                            match persistence::character::load_character_list(
+                                &player.uuid().to_string(),
+                                persistence_db_dir,
+                            ) {
+                                Ok(character_list) => {
+                                    client.notify(ServerMsg::CharacterListUpdate(character_list));
+                                },
+                                Err(error) => {
+                                    client
+                                        .notify(ServerMsg::CharacterActionError(error.to_string()));
+                                },
+                            }
+                        }
+                    },
+                    ClientMsg::CreateCharacter { alias, tool, body } => {
+                        if let Some(player) = players.get(entity) {
+                            match persistence::character::create_character(
+                                &player.uuid().to_string(),
+                                alias,
+                                tool,
+                                &body,
+                                persistence_db_dir,
+                            ) {
+                                Ok(character_list) => {
+                                    client.notify(ServerMsg::CharacterListUpdate(character_list));
+                                },
+                                Err(error) => {
+                                    client
+                                        .notify(ServerMsg::CharacterActionError(error.to_string()));
+                                },
+                            }
+                        }
+                    },
+                    ClientMsg::DeleteCharacter(character_id) => {
+                        if let Some(player) = players.get(entity) {
+                            match persistence::character::delete_character(
+                                &player.uuid().to_string(),
+                                character_id,
+                                persistence_db_dir,
+                            ) {
+                                Ok(character_list) => {
+                                    client.notify(ServerMsg::CharacterListUpdate(character_list));
+                                },
+                                Err(error) => {
+                                    client
+                                        .notify(ServerMsg::CharacterActionError(error.to_string()));
+                                },
+                            }
+                        }
                     },
                 }
             }

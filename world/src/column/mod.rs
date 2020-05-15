@@ -2,58 +2,21 @@ use crate::{
     all::ForestKind,
     block::StructureMeta,
     sim::{local_cells, uniform_idx_as_vec2, vec2_as_uniform_idx, RiverKind, SimChunk, WorldSim},
-    util::{RandomPerm, Sampler, UnitChooser},
+    util::Sampler,
     CONFIG,
 };
-use common::{
-    assets,
-    terrain::{BlockKind, Structure, TerrainChunkSize},
-    vol::RectVolSize,
-};
-use lazy_static::lazy_static;
+use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 use noise::NoiseFn;
 use roots::find_roots_cubic;
 use std::{
     cmp::Reverse,
     f32, f64,
     ops::{Add, Div, Mul, Neg, Sub},
-    sync::Arc,
 };
 use vek::*;
 
 pub struct ColumnGen<'a> {
     pub sim: &'a WorldSim,
-}
-
-static UNIT_CHOOSER: UnitChooser = UnitChooser::new(0x700F4EC7);
-static DUNGEON_RAND: RandomPerm = RandomPerm::new(0x42782335);
-
-lazy_static! {
-    pub static ref DUNGEONS: Vec<Arc<Structure>> = vec![
-        assets::load_map("world.structure.dungeon.ruins", |s: Structure| s
-            .with_center(Vec3::new(57, 58, 61))
-            .with_default_kind(BlockKind::Dense))
-        .unwrap(),
-        assets::load_map("world.structure.dungeon.ruins_2", |s: Structure| s
-            .with_center(Vec3::new(53, 57, 60))
-            .with_default_kind(BlockKind::Dense))
-        .unwrap(),
-        assets::load_map("world.structure.dungeon.ruins_3", |s: Structure| s
-            .with_center(Vec3::new(58, 45, 72))
-            .with_default_kind(BlockKind::Dense))
-        .unwrap(),
-        assets::load_map(
-            "world.structure.dungeon.meso_sewer_temple",
-            |s: Structure| s
-                .with_center(Vec3::new(63, 62, 60))
-                .with_default_kind(BlockKind::Dense)
-        )
-        .unwrap(),
-        assets::load_map("world.structure.dungeon.ruins_maze", |s: Structure| s
-            .with_center(Vec3::new(60, 60, 116))
-            .with_default_kind(BlockKind::Dense))
-        .unwrap(),
-    ];
 }
 
 impl<'a> ColumnGen<'a> {
@@ -84,15 +47,6 @@ impl<'a> ColumnGen<'a> {
                 meta: Some(StructureMeta::Pyramid { height: 140 }),
             })*/
             None
-        } else if seed % 17 == 2 && chunk.chaos < 0.2 {
-            Some(StructureData {
-                pos,
-                seed,
-                meta: Some(StructureMeta::Volume {
-                    units: UNIT_CHOOSER.get(seed),
-                    volume: &DUNGEONS[DUNGEON_RAND.get(seed) as usize % DUNGEONS.len()],
-                }),
-            })
         } else {
             None
         }

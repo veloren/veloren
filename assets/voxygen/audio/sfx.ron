@@ -27,37 +27,38 @@
             files: [
                 "voxygen.audio.sfx.weapon.sword_out",
             ],
-            threshold: 1.0,
+            threshold: 0.5,
         ),
         Unwield(Sword(BasicSword)): (
             files: [
                 "voxygen.audio.sfx.weapon.sword_in",
             ],
-            threshold: 1.0,
+            threshold: 0.5,
         ),
-        Inventory(Collected): (
+        
+		Inventory(Collected): (
             files: [
                 "voxygen.audio.sfx.inventory.add_item",
             ],
-            threshold: 0.5,
+            threshold: 0.3,
         ),
         Inventory(Swapped): (
             files: [
                 "voxygen.audio.sfx.inventory.add_item",
             ],
-            threshold: 0.5,
+            threshold: 0.3,
         ),
         Inventory(Given): (
             files: [
                 "voxygen.audio.sfx.inventory.add_item",
             ],
-            threshold: 0.5,
+            threshold: 0.3,
         ),
         Inventory(Dropped): (
             files: [
-                "voxygen.audio.sfx.footsteps.stepgrass_4",
+                "voxygen.audio.sfx.inventory.drop_item",
             ],
-            threshold: 0.5,
+            threshold: 0.3,
         ),
         Inventory(Consumed(Potion)): (
             files: [

@@ -52,19 +52,16 @@ impl Animation for BetaAnimation {
                 next.chest.ori = Quaternion::rotation_z(slow * 0.2)
                     * Quaternion::rotation_x(slow * 0.2)
                     * Quaternion::rotation_y(slow * -0.1);
-                next.chest.scale = Vec3::one();
 
                 next.belt.offset = Vec3::new(0.0, 0.0, -2.0);
                 next.belt.ori = Quaternion::rotation_z(slow * 0.1)
                     * Quaternion::rotation_x(slow * 0.1)
                     * Quaternion::rotation_y(slow * -0.04);
-                next.belt.scale = Vec3::one();
 
                 next.shorts.offset = Vec3::new(0.0, 0.0, -5.0);
                 next.shorts.ori = Quaternion::rotation_z(slow * 0.1)
                     * Quaternion::rotation_x(slow * 0.1)
                     * Quaternion::rotation_y(slow * -0.05);
-                next.shorts.scale = Vec3::one();
 
                 next.l_hand.offset = Vec3::new(0.0, 1.0, 0.0);
                 next.l_hand.ori = Quaternion::rotation_x(1.27);
@@ -74,7 +71,6 @@ impl Animation for BetaAnimation {
                 next.r_hand.scale = Vec3::one() * 1.05;
                 next.main.offset = Vec3::new(0.0, 6.0, -1.0);
                 next.main.ori = Quaternion::rotation_x(-0.3);
-                next.main.scale = Vec3::one();
 
                 next.control.offset = Vec3::new(-8.0 + slow * 1.5, 1.5 + slow * 1.0, 0.0);
                 next.control.ori = Quaternion::rotation_x(-1.4)
@@ -84,12 +80,10 @@ impl Animation for BetaAnimation {
                 next.l_foot.offset = Vec3::new(-3.4, footquick * -9.5, 8.0);
                 next.l_foot.ori = Quaternion::rotation_x(footquick * 0.3)
                     * Quaternion::rotation_y(footquick * -0.6);
-                next.l_foot.scale = Vec3::one();
 
                 next.r_foot.offset = Vec3::new(3.4, footquick * 9.5, 8.0);
                 next.r_foot.ori = Quaternion::rotation_x(footquick * -0.3)
                     * Quaternion::rotation_y(footquick * 0.2);
-                next.r_foot.scale = Vec3::one();
                 next.torso.offset = Vec3::new(0.0, 0.0, 0.1) * skeleton_attr.scaler;
                 next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
             },
@@ -97,7 +91,7 @@ impl Animation for BetaAnimation {
         }
 
         next.l_shoulder.offset = Vec3::new(
-            skeleton_attr.shoulder.0,
+            -skeleton_attr.shoulder.0,
             skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );

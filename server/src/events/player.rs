@@ -1,5 +1,7 @@
 use super::Event;
-use crate::{auth_provider::AuthProvider, client::Client, state_ext::StateExt, Server};
+use crate::{
+    auth_provider::AuthProvider, client::Client, persistence, state_ext::StateExt, Server,
+};
 use common::{
     comp,
     comp::Player,
@@ -40,6 +42,7 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
 }
 
 pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event {
+    let db_dir = &server.server_settings.persistence_db_dir.clone();
     let state = server.state_mut();
 
     // Tell other clients to remove from player list
@@ -68,6 +71,17 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
             }
         }
     }
+
+    // Sync the player's character data to the database
+    if let (Some(player), Some(stats)) = (
+        state.read_storage::<Player>().get(entity),
+        state.read_storage::<comp::Stats>().get(entity),
+    ) {
+        if let Some(character_id) = player.character_id {
+            persistence::stats::update_item(character_id, stats, db_dir);
+        }
+    }
+
     // Delete client entity
     if let Err(err) = state.delete_entity_recorded(entity) {
         error!("Failed to delete disconnected client: {:?}", err);

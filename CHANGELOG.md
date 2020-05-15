@@ -13,18 +13,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added zoomable and rotatable minimap
 - Added rotating orientation marker to main-map
 - Added daily Mac builds
-- Allow spawning individual pet species, not just generic body kinds.
+- Allow spawning individual pet species, not just generic body kinds
 - Configurable fonts
 - Configurable keybindings from the Controls menu
-- Tanslation status tracking
+- Translation status tracking
 - Added gamma setting
 - Added new orc hairstyles
-- Added sfx for wielding/unwielding weapons
+- Added SFX for wielding/unwielding weapons
 - Fixed NPCs attacking the player forever after killing them
-- Added sfx for collecting, dropping and using inventory items
+- Added SFX for collecting, dropping and using inventory items
 - New attack animation
-- weapon control system
-- Game pauses when in singleplayer and pause menu
+- Weapon control system
+- Game pauses when in single player and pause menu
 - Added authentication system (to play on the official server register on https://account.veloren.net)
 - Added gamepad/controller support
 - Added player feedback when attempting to pickup an item with a full inventory
@@ -34,21 +34,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Turkish translation
 - Complete rewrite of the combat system into a state machine
 - Abilities like Dash and Triplestrike
-- Armor can now be eqipped as items
+- Armor can now be equipped as items
 - Fireball explosions
 - Inventory supports stacking
 - Many new armors and weapons to find in chests
 - Fleshed out "attack" animation into alpha, beta and spin type attacks
-- Fleshed out range attack into charging and shooting anims for staff/bow
+- Fleshed out range attack into charging and shooting animations for staff/bow
 - Customized attack animation for hammers and axes
-- German translation
+- Added German translation
 - Added a silhouette for players when they are occluded
 - Added transparency to the player when zooming in
 - Made armor and hotbar slots actually function
 - Added dragging and right-click to use functionality to inventory, armor & hotbar slots
 - Added capes, lanterns, tabards, rings, helmets & necklaces as equippable armor
 - 6 new music tracks
-- Added basic world and civilisation simulation
+- Added basic world and civilization simulation
 - Added overhauled towns
 - Added fields, crops and scarecrows
 - Added paths
@@ -63,13 +63,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added non-uniform block heights
 - Added `/sudo` command
 - Added a Level of Detail (LoD) system for terrain sprites and entities
-- Added owl, hyena, parrot npcs
+- Added owl, hyena, parrot, cockatrice, red dragon NPCs
 - Added dungeon entrances
 - Villagers tools and clothing
 - Cultists clothing
+- You can start the game by pressing "enter" from the character selection menu
+- Added server-side character saving
+- Player now starts with a lantern. Equipping/unequipping a lantern has the same effect as the `/lantern` command
+- Added tab completion in chat for player names and chat commands
+- Added server persistence for character stats
+- Added a popup when setting your character's waypoint
 
 ### Changed
 
+- The /give_item command can now specify the amount of items. Syntax is now `/give_item <name> [num]`
 - Brighter / higher contrast main-map
 - Removed highlighting of non-collectible sprites
 - Fixed /give_exp ignoring player argument
@@ -83,6 +90,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rewrote the humanoid skeleton to be more ideal for attack animations
 - Arrows can no longer hurt their owners
 - Increased overall character scale
+- `/sudo player /tp` is short for `/sudo player /tp me`
+- The `/object` command can create any object in comp::object::Body
+- The `/help` command takes an optional argument. `/help /sudo` will show you information about only the sudo command.
 
 ### Removed
 
@@ -148,7 +158,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved computations to terrain fragment shaders
 - Fixed title music
 - Made rolling less violent when changing directions
-- Fixed singleplayer crash
+- Fixed single player crash
 - Improved error information in client and server
 - Store items as RON files
 - Updated download info in readme
@@ -185,7 +195,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added adjustable FOV slider
 - Added /explosion command
 - Added first person switch
-- Added singleplayer server settings
+- Added single player server settings
 - Added admin check for commands
 - Started asset reloading system
 - Added SRGB conversion in shaders
@@ -237,7 +247,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hang Gliding
 - Pets: Pig and Wolf. They can be spawned with /pig and /wolf commands.
 - Name tags: You can finally know who is this guy with the blue shirt!
-- Singleplayer: No need to start a server just to play alone
+- single player: No need to start a server just to play alone
 - Character customization: It isn't fully complete but still allows you to look different than others
 - Music!
 - Major performance improvements related to the fact that we rewrote the entire game

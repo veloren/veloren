@@ -8,6 +8,8 @@ services:
       - "14004:14004"
       - "14005:14005"
     restart: on-failure:0
+    volumes:
+        - "./saves:/opt/saves"
   watchtower:
     image: containrrr/watchtower
     volumes:

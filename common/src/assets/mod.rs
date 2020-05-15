@@ -167,7 +167,7 @@ pub fn load_cloned<A: Asset + Clone + 'static>(specifier: &str) -> Result<A, Err
 pub fn load_expect<A: Asset + 'static>(specifier: &str) -> Arc<A> {
     load(specifier).unwrap_or_else(|err| {
         panic!(
-            "Failed loading essential asset: {} (error={})",
+            "Failed loading essential asset: {} (error={:?})",
             specifier, err
         )
     })
@@ -276,7 +276,7 @@ impl Asset for String {
 
 lazy_static! {
     /// Lazy static to find and cache where the asset directory is.
-    static ref ASSETS_PATH: PathBuf = {
+    pub static ref ASSETS_PATH: PathBuf = {
         let mut paths = Vec::new();
 
         // VELOREN_ASSETS environment variable

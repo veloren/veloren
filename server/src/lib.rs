@@ -9,6 +9,7 @@ pub mod error;
 pub mod events;
 pub mod input;
 pub mod metrics;
+pub mod persistence;
 pub mod settings;
 pub mod state_ext;
 pub mod sys;
@@ -21,11 +22,12 @@ use crate::{
     auth_provider::AuthProvider,
     chunk_generator::ChunkGenerator,
     client::{Client, RegionSubscription},
-    cmd::CHAT_COMMANDS,
+    cmd::ChatCommandExt,
     state_ext::StateExt,
     sys::sentinel::{DeletedEntities, TrackedComps},
 };
 use common::{
+    cmd::ChatCommand,
     comp,
     event::{EventBus, ServerEvent},
     msg::{server::WorldMapMsg, ClientMsg, ClientState, ServerInfo, ServerMsg},
@@ -53,6 +55,9 @@ use world::{
     sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, WORLD_SIZE},
     World,
 };
+
+#[macro_use] extern crate diesel;
+#[macro_use] extern crate diesel_migrations;
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
@@ -89,6 +94,7 @@ impl Server {
             .insert(AuthProvider::new(settings.auth_server_address.clone()));
         state.ecs_mut().insert(Tick(0));
         state.ecs_mut().insert(ChunkGenerator::new());
+
         // System timers for performance monitoring
         state.ecs_mut().insert(sys::EntitySyncTimer::default());
         state.ecs_mut().insert(sys::MessageTimer::default());
@@ -97,9 +103,23 @@ impl Server {
         state.ecs_mut().insert(sys::TerrainSyncTimer::default());
         state.ecs_mut().insert(sys::TerrainTimer::default());
         state.ecs_mut().insert(sys::WaypointTimer::default());
+        state
+            .ecs_mut()
+            .insert(sys::StatsPersistenceTimer::default());
+
+        // System schedulers to control execution of systems
+        state
+            .ecs_mut()
+            .insert(sys::StatsPersistenceScheduler::every(Duration::from_secs(
+                10,
+            )));
+
         // Server-only components
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
+        state.ecs_mut().insert(crate::settings::PersistenceDBDir(
+            settings.persistence_db_dir.clone(),
+        ));
 
         #[cfg(feature = "worldgen")]
         let world = World::generate(settings.world_seed, WorldOpts {
@@ -220,7 +240,18 @@ impl Server {
                 .expect("Failed to initialize server metrics submodule."),
             server_settings: settings.clone(),
         };
+
+        // Run pending DB migrations (if any)
+        debug!("Running DB migrations...");
+
+        if let Some(error) =
+            persistence::run_migrations(&this.server_settings.persistence_db_dir).err()
+        {
+            log::info!("Migration error: {}", format!("{:#?}", error));
+        }
+
         debug!("created veloren server with: {:?}", &settings);
+
         log::info!(
             "Server version: {}[{}]",
             *common::util::GIT_HASH,
@@ -365,7 +396,13 @@ impl Server {
             .nanos as i64;
         let terrain_nanos = self.state.ecs().read_resource::<sys::TerrainTimer>().nanos as i64;
         let waypoint_nanos = self.state.ecs().read_resource::<sys::WaypointTimer>().nanos as i64;
+        let stats_persistence_nanos = self
+            .state
+            .ecs()
+            .read_resource::<sys::StatsPersistenceTimer>()
+            .nanos as i64;
         let total_sys_ran_in_dispatcher_nanos = terrain_nanos + waypoint_nanos;
+
         // Report timing info
         self.metrics
             .tick_time
@@ -422,6 +459,11 @@ impl Server {
             .tick_time
             .with_label_values(&["waypoint"])
             .set(waypoint_nanos);
+        self.metrics
+            .tick_time
+            .with_label_values(&["persistence:stats"])
+            .set(stats_persistence_nanos);
+
         // Report other info
         self.metrics
             .player_online
@@ -437,6 +479,9 @@ impl Server {
             });
             self.metrics.chonks_count.set(chonk_cnt as i64);
             self.metrics.chunks_count.set(chunk_cnt as i64);
+
+            let entity_count = self.state.ecs().entities().join().count();
+            self.metrics.entity_count.set(entity_count as i64);
         }
         //self.metrics.entity_count.set(self.state.);
         self.metrics
@@ -526,18 +571,16 @@ impl Server {
         };
 
         // Find the command object and run its handler.
-        let action_opt = CHAT_COMMANDS.iter().find(|x| x.keyword == kwd);
-        match action_opt {
-            Some(action) => action.execute(self, entity, args),
-            // Unknown command
-            None => {
-                if let Some(client) = self.state.ecs().write_storage::<Client>().get_mut(entity) {
-                    client.notify(ServerMsg::private(format!(
-                        "Unknown command '/{}'.\nType '/help' for available commands",
-                        kwd
-                    )));
-                }
-            },
+        if let Ok(command) = kwd.parse::<ChatCommand>() {
+            command.execute(self, entity, args);
+        } else {
+            self.notify_client(
+                entity,
+                ServerMsg::private(format!(
+                    "Unknown command '/{}'.\nType '/help' for available commands",
+                    kwd
+                )),
+            );
         }
     }
 

@@ -12,14 +12,14 @@ use vek::{Rgb, Vec3};
 pub fn handle_create_character(
     server: &mut Server,
     entity: EcsEntity,
-    name: String,
+    character_id: i32,
     body: Body,
     main: Option<String>,
 ) {
     let state = &mut server.state;
     let server_settings = &server.server_settings;
 
-    state.create_player_character(entity, name, body, main, server_settings);
+    state.create_player_character(entity, character_id, body, main, server_settings);
     sys::subscription::initialize_region_subscription(state.ecs(), entity);
 }
 
@@ -79,9 +79,10 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
         .state
         .create_object(Pos(pos), comp::object::Body::CampfireLit)
         .with(LightEmitter {
-            offset: Vec3::unit_z() * 0.5,
             col: Rgb::new(1.0, 0.65, 0.2),
             strength: 2.0,
+            flicker: 1.0,
+            animated: true,
         })
         .with(WaypointArea::default())
         .build();

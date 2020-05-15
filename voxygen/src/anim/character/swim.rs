@@ -107,7 +107,7 @@ impl Animation for SwimAnimation {
 
         next.l_shoulder.offset = Vec3::new(
             -skeleton_attr.shoulder.0,
-            skeleton_attr.shoulder.0,
+            skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );
         next.l_shoulder.ori = Quaternion::rotation_x(short * 0.15);
@@ -115,7 +115,7 @@ impl Animation for SwimAnimation {
 
         next.r_shoulder.offset = Vec3::new(
             skeleton_attr.shoulder.0,
-            skeleton_attr.shoulder.0,
+            skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );
         next.r_shoulder.ori = Quaternion::rotation_x(short * -0.15);
@@ -139,8 +139,7 @@ impl Animation for SwimAnimation {
         next.lantern.scale = Vec3::one() * 0.65;
 
         next.torso.offset = Vec3::new(0.0, -0.3 + shortalt * -0.065, 0.4) * skeleton_attr.scaler;
-        next.torso.ori =
-            Quaternion::rotation_x(speed * -0.190 * wave_stop * 1.05) * Quaternion::rotation_y(0.0);
+        next.torso.ori = Quaternion::rotation_x(speed * -0.190 * wave_stop * 1.05);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
         next.control.scale = Vec3::one();

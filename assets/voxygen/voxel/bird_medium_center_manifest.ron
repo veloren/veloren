@@ -195,4 +195,32 @@
             center: ("npc.parrot.female.tail"),
         )
     ),
+    (Cockatrice, Male): (
+        head: (
+            offset: (-2.5, -3.5, -8.0),
+            center: ("npc.cockatrice.male.head"),
+        ),
+        torso: (
+            offset: (-3.5, -6.5, -7.5),
+            center: ("npc.cockatrice.male.torso"),
+        ),
+        tail: (
+            offset: (-1.5, -3.5, -4.0),
+            center: ("npc.cockatrice.male.tail"),
+        )
+    ),
+    (Cockatrice, Female): (
+        head: (
+            offset: (-2.5, -3.5, -8.0),
+            center: ("npc.cockatrice.female.head"),
+        ),
+        torso: (
+            offset: (-3.5, -6.5, -7.5),
+            center: ("npc.cockatrice.female.torso"),
+        ),
+        tail: (
+            offset: (-1.5, -3.5, -4.0),
+            center: ("npc.cockatrice.female.tail"),
+        )
+    ),
 })

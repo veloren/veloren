@@ -136,6 +136,7 @@ https://account.veloren.net."#,
         "main.login.already_logged_in": "You are already logged into the server.",
         "main.login.network_error": "Network error",
         "main.login.failed_sending_request": "Request to Auth server failed",
+        "main.login.invalid_character": "The selected character is invalid",
         "main.login.client_crashed": "Client crashed",
 
         /// End Main screen section
@@ -146,6 +147,7 @@ https://account.veloren.net."#,
         "hud.show_tips": "Show Tips",
         "hud.quests": "Quests",
         "hud.you_died": "You Died",
+        "hud.waypoint_saved": "Waypoint Saved",
 
         "hud.press_key_to_show_keybindings_fmt": "Press {key} to show keybindings",
         "hud.press_key_to_show_debug_info_fmt": "Press {key} to show debug info",
@@ -180,7 +182,7 @@ Throw them away by clicking them once and clicking outside of the bag
 
 Nights can get pretty dark in Veloren.
 
-Light your lantern by typing /lantern into the chat
+Equip your lantern and light it by pressing G.
 
 
 Want to free your cursor to close this window? Press TAB!
@@ -316,6 +318,7 @@ Enjoy your stay in the World of Veloren."#,
         "gameinput.climb": "Climb",
         "gameinput.climbdown": "Climb Down",
         "gameinput.wallleap": "Wall Leap",
+        "gameinput.togglelantern": "Toggle Lantern",
         "gameinput.mount": "Mount",
         "gameinput.enter": "Enter",
         "gameinput.command": "Command",
@@ -336,11 +339,14 @@ Enjoy your stay in the World of Veloren."#,
 
 
         /// Start chracter selection section
+        "char_selection.loading_characters": "Loading characters...",
         "char_selection.delete_permanently": "Permanently delete this Character?",
+        "char_selection.deleting_character": "Deleting Character...",
         "char_selection.change_server": "Change Server",
         "char_selection.enter_world": "Enter World",
         "char_selection.logout": "Logout",
         "char_selection.create_new_charater": "Create New Character",
+        "char_selection.creating_character": "Creating Character...",
         "char_selection.character_creation": "Character Creation",
 
         "char_selection.human_default": "Human Default",

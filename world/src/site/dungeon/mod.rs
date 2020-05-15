@@ -205,7 +205,7 @@ impl Tile {
 pub struct Room {
     seed: u32,
     loot_density: f32,
-    enemy_density: f32,
+    enemy_density: Option<f32>,
     area: Rect<i32, i32>,
 }
 
@@ -249,14 +249,14 @@ impl Floor {
         this.create_room(Room {
             seed: ctx.rng.gen(),
             loot_density: 0.0,
-            enemy_density: 0.0,
+            enemy_density: None,
             area: Rect::from((stair_tile - tile_offset - 1, Extent2::broadcast(3))),
         });
         this.tiles.set(stair_tile - tile_offset, Tile::UpStair);
         this.create_room(Room {
             seed: ctx.rng.gen(),
             loot_density: 0.0,
-            enemy_density: 0.0,
+            enemy_density: None,
             area: Rect::from((new_stair_tile - tile_offset - 1, Extent2::broadcast(3))),
         });
         this.tiles
@@ -316,7 +316,7 @@ impl Floor {
             self.create_room(Room {
                 seed: ctx.rng.gen(),
                 loot_density: 0.000025 + level as f32 * 0.00015,
-                enemy_density: 0.001 + level as f32 * 0.00004,
+                enemy_density: Some(0.001 + level as f32 * 0.00004),
                 area,
             });
         }
@@ -364,59 +364,45 @@ impl Floor {
         origin: Vec3<i32>,
         supplement: &mut ChunkSupplement,
     ) {
-        let align = |e: i32| {
-            e.div_euclid(TILE_SIZE)
-                + if e.rem_euclid(TILE_SIZE) > TILE_SIZE / 2 {
-                    1
-                } else {
-                    0
-                }
-        };
-        let aligned_area = Aabr {
-            min: area.min.map(align) + self.tile_offset,
-            max: area.max.map(align) + self.tile_offset,
-        };
-
-        for x in aligned_area.min.x..aligned_area.max.x {
-            for y in aligned_area.min.y..aligned_area.max.y {
-                let tile_pos = Vec2::new(x, y);
+        for x in area.min.x..area.max.x {
+            for y in area.min.y..area.max.y {
+                let tile_pos = Vec2::new(x, y).map(|e| e.div_euclid(TILE_SIZE)) - self.tile_offset;
                 if let Some(Tile::Room(room)) = self.tiles.get(tile_pos) {
                     let room = &self.rooms[*room];
 
-                    for x in 0..TILE_SIZE {
-                        for y in 0..TILE_SIZE {
-                            let pos = tile_pos * TILE_SIZE + Vec2::new(x, y);
+                    let tile_wcenter = origin
+                        + Vec3::from(
+                            Vec2::new(x, y)
+                                .map(|e| e.div_euclid(TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2),
+                        );
 
-                            let nth_block =
-                                pos.x + TILE_SIZE + (pos.y + TILE_SIZE) * TILE_SIZE * FLOOR_SIZE.x;
-                            if nth_block.rem_euclid(room.enemy_density.recip() as i32) == 0 {
-                                // Bad
-                                let entity = EntityInfo::at(
-                                    (origin
-                                        + Vec3::from(self.tile_offset + tile_pos) * TILE_SIZE
-                                        + TILE_SIZE / 2)
-                                        .map(|e| e as f32)
-                                    // Randomly displace them a little
-                                    + Vec3::<u32>::iota()
-                                        .map(|e| (RandomField::new(room.seed.wrapping_add(10 + e)).get(Vec3::from(tile_pos)) % 32) as i32 - 16)
-                                        .map(|e| e as f32 / 16.0),
-                                )
-                                .do_if(RandomField::new(room.seed.wrapping_add(1)).chance(Vec3::from(tile_pos), 0.2), |e| e.into_giant())
-                                .with_alignment(comp::Alignment::Enemy)
-                                .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
-                                .with_automatic_name()
-                                .with_main_tool(assets::load_expect_cloned(match rng.gen_range(0, 6) {
-                                    0 => "common.items.weapons.axe.starter_axe",
-                                    1 => "common.items.weapons.sword.starter_sword",
-                                    2 => "common.items.weapons.sword.short_sword_0",
-                                    3 => "common.items.weapons.hammer.hammer_1",
-                                    4 => "common.items.weapons.staff.starter_staff",
-                                    _ => "common.items.weapons.bow.starter_bow",
-                                }));
+                    if room
+                        .enemy_density
+                        .map(|density| rng.gen_range(0, density.recip() as usize) == 0)
+                        .unwrap_or(false)
+                    {
+                        // Bad
+                        let entity = EntityInfo::at(
+                            tile_wcenter.map(|e| e as f32)
+                            // Randomly displace them a little
+                            + Vec3::<u32>::iota()
+                                .map(|e| (RandomField::new(room.seed.wrapping_add(10 + e)).get(Vec3::from(tile_pos)) % 32) as i32 - 16)
+                                .map(|e| e as f32 / 16.0),
+                        )
+                        .do_if(RandomField::new(room.seed.wrapping_add(1)).chance(Vec3::from(tile_pos), 0.2), |e| e.into_giant())
+                        .with_alignment(comp::Alignment::Enemy)
+                        .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
+                        .with_automatic_name()
+                        .with_main_tool(assets::load_expect_cloned(match rng.gen_range(0, 6) {
+                            0 => "common.items.weapons.axe.starter_axe",
+                            1 => "common.items.weapons.sword.starter_sword",
+                            2 => "common.items.weapons.sword.short_sword_0",
+                            3 => "common.items.weapons.hammer.hammer_1",
+                            4 => "common.items.weapons.staff.starter_staff",
+                            _ => "common.items.weapons.bow.starter_bow",
+                        }));
 
-                                supplement.add_entity(entity);
-                            }
-                        }
+                        supplement.add_entity(entity);
                     }
                 }
             }

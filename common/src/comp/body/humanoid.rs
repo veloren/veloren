@@ -7,7 +7,7 @@ pub struct Body {
     pub body_type: BodyType,
     pub hair_style: u8,
     pub beard: u8,
-    pub eyebrows: Eyebrows,
+    pub eyebrows: u8,
     pub accessory: u8,
     pub hair_color: u8,
     pub skin: u8,
@@ -29,7 +29,7 @@ impl Body {
             body_type,
             hair_style: rng.gen_range(0, race.num_hair_styles(body_type)),
             beard: rng.gen_range(0, race.num_beards(body_type)),
-            eyebrows: *(&ALL_EYEBROWS).choose(rng).unwrap(),
+            eyebrows: rng.gen_range(0, race.num_eyebrows(body_type)),
             accessory: rng.gen_range(0, race.num_accessories(body_type)),
             hair_color: rng.gen_range(0, race.num_hair_colors()) as u8,
             skin: rng.gen_range(0, race.num_skin_colors()) as u8,
@@ -444,6 +444,8 @@ impl Race {
             (Race::Undead, BodyType::Male) => 1,
         }
     }
+
+    pub fn num_eyebrows(self, _body_type: BodyType) -> u8 { 1 }
 
     pub fn num_beards(self, body_type: BodyType) -> u8 {
         match (self, body_type) {

@@ -86,12 +86,13 @@ pub enum ServerEvent {
         entity: EcsEntity,
         vel: Vec3<f32>,
     },
+    ToggleLantern(EcsEntity),
     Mount(EcsEntity, EcsEntity),
     Unmount(EcsEntity),
     Possess(Uid, Uid),
-    CreateCharacter {
+    SelectCharacter {
         entity: EcsEntity,
-        name: String,
+        character_id: i32,
         body: comp::Body,
         main: Option<String>,
     },

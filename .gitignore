@@ -33,6 +33,10 @@ maps
 screenshots
 todo.txt
 
+# Game data
+*.sqlite
+*.sqlite-journal
+
 # direnv
 /.envrc
 *.bat
