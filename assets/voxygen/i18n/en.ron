@@ -351,7 +351,7 @@ Enjoy your stay in the World of Veloren."#,
 
         "char_selection.human_default": "Human Default",
         "char_selection.level_fmt": "Level {level_nb}",
-        "char_selection.uncanny_valley": "Uncanny Valley",
+        "char_selection.uncanny_valley": "Wilderness",
         "char_selection.plains_of_uncertainty": "Plains of Uncertainty",
         "char_selection.beard": "Beard",
         "char_selection.hair_style": "Hair Style",
@@ -361,6 +361,7 @@ Enjoy your stay in the World of Veloren."#,
         "char_selection.skin": "Skin",
         "char_selection.eyebrows": "Eyebrows",
         "char_selection.accessories": "Accessories",
+        "char_selection.create_info_name": "Your Character needs a name!",
 
         /// End chracter selection section
 

@@ -100,6 +100,7 @@ impl TooltipManager {
         image_dims: Option<(f64, f64)>,
         src_id: widget::Id,
         bottom_offset: f64,
+        x_offset: f64,
         ui: &mut UiCell,
     ) {
         let tooltip_id = self.tooltip_id;
@@ -121,7 +122,7 @@ impl TooltipManager {
 
             // Determine position based on size and mouse position
             // Flow to the bottom right of the mouse
-            let x = (m_x + t_w / 2.0).min(w_w / 2.0 - t_w / 2.0);
+            let x = (m_x + t_w / 2.0).min(w_w / 2.0 - t_w / 2.0 + x_offset);
             let y = (m_y - mp_h - t_h / 2.0).max(-w_h / 2.0 + t_h / 2.0 + bottom_offset);
             tooltip
                 .floating(true)
@@ -157,6 +158,7 @@ pub struct Tooltipped<'a, W> {
     image_dims: Option<(f64, f64)>,
     // Offsets limit of bottom of tooltip
     bottom_offset: Option<f64>,
+    x_offset: Option<f64>,
     tooltip: &'a Tooltip<'a>,
 }
 impl<'a, W: Widget> Tooltipped<'a, W> {
@@ -167,6 +169,11 @@ impl<'a, W: Widget> Tooltipped<'a, W> {
 
     pub fn tooltip_image_dims(mut self, dims: (f64, f64)) -> Self {
         self.image_dims = Some(dims);
+        self
+    }
+
+    pub fn x_offset(mut self, off: f64) -> Self {
+        self.x_offset = Some(off);
         self
     }
 
@@ -185,6 +192,7 @@ impl<'a, W: Widget> Tooltipped<'a, W> {
             self.image_dims,
             id,
             self.bottom_offset.unwrap_or(0.0),
+            self.x_offset.unwrap_or(0.0),
             ui,
         );
         event
@@ -219,6 +227,7 @@ impl<W: Widget> Tooltipable for W {
             img_id: None,
             image_dims: None,
             bottom_offset: None,
+            x_offset: None,
             tooltip,
         }
     }

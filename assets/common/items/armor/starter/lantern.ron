@@ -1,0 +1,12 @@
+Item(
+    name: "Black Lantern",
+    description: "Used by city guards.",
+    kind: Lantern(
+        (
+            kind: Black0,
+            color: (r: 255, g: 190, b: 75),
+            strength_thousandths: 3000,
+            flicker_thousandths: 300,
+        ),
+    ),
+)
