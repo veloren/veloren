@@ -240,7 +240,9 @@ impl StateExt for State {
                     back: None,
                     ring: None,
                     neck: None,
-                    lantern: None,
+                    lantern: Some(assets::load_expect_cloned(
+                        "common.items.armor.starter.lantern",
+                    )),
                     head: None,
                     tabard: None,
                 }

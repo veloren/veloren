@@ -8,7 +8,7 @@ lazy_static! {
 }
 /// The `Default` inventory should contain 3 items: cheese, apple, lantern
 #[test]
-fn create_default_count() { assert_eq!(Inventory::default().count(), 3) }
+fn create_default_count() { assert_eq!(Inventory::default().count(), 2) }
 
 /// Attempting to push into a full inventory should return the same item.
 #[test]

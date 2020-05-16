@@ -17,7 +17,7 @@
 VoxygenLocalization(
             metadata: (
                 language_name: "Italiano",
-                language_identifier: "it",
+                language_identifier: "it_IT",
             ),
             convert_utf8_to_ascii: false,
              fonts: {
