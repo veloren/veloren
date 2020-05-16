@@ -1,3 +1,5 @@
+// TODO: Re-add tunes that are not fitting general outside day/night situations
+
 (
     tracks: [
         (
@@ -14,13 +16,13 @@
             timing: Some(Night),
             artist: "Aeronic",
         ),
-        (
+        /*(
             title: "Snowtop Volume",
             path: "voxygen.audio.soundtrack.snowtop_volume",
             length: 89.0,
             timing: Some(Day),
             artist: "Aeronic",
-        ),
+        ),*/
         (
             title: "Mineral Deposits",
             path: "voxygen.audio.soundtrack.mineral_deposits",
@@ -42,13 +44,13 @@
             timing: Some(Night),
             artist: "Aeronic",
         ),
-        (
+        /*(
             title: "Rest Assured",
             path: "voxygen.audio.soundtrack.rest_assured",
             length: 185.0,
             timing: Some(Day),
             artist: "badbbad",
-        ),
+        ),*/
         (
             title: "Just The Beginning",
             path: "voxygen.audio.soundtrack.just_the_beginning",
@@ -70,13 +72,13 @@
             timing: Some(Night),
             artist: "badbbad",
         ),
-        (
+        /*(
             title: "Down The Rabbit Hole",
             path: "voxygen.audio.soundtrack.down_the_rabbit_hole",
             length: 244.0,
             timing: Some(Night),
             artist: "badbbad",
-        ),
+        ),*/
         (
             title: "Between The Fairies",
             path: "voxygen.audio.soundtrack.between_the_fairies",

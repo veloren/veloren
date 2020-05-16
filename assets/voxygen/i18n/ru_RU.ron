@@ -1,0 +1,369 @@
+/// Localization for "global" Russian
+VoxygenLocalization(
+    metadata: (
+        language_name: "Русский",
+        language_identifier: "ru_RU",
+    ),
+    convert_utf8_to_ascii: false,
+    fonts: {
+        "opensans": Font (
+            asset_key: "voxygen.font.OpenSans-Regular",
+            scale_ratio: 1.0,
+        ),
+        "metamorph": Font (
+            asset_key: "voxygen.font.Metamorphous-Regular",
+            scale_ratio: 1.0,
+        ),
+        "alkhemi": Font (
+            asset_key: "voxygen.font.Alkhemikal",
+            scale_ratio: 1.0,
+        ),
+        "wizard": Font (
+            asset_key: "voxygen.font.wizard",
+            scale_ratio: 1.0,
+        ),
+        "cyri": Font (
+            asset_key: "voxygen.font.haxrcorp_4089_cyrillic_altgr_extended",
+            scale_ratio: 1.0,
+        ),
+    },
+    string_map: {
+        /// Start Common section
+        // Texts used in multiple locations with the same formatting
+        "common.username": "Имя пользователя",
+        "common.singleplayer": "Одиночная игра",
+        "common.multiplayer": "Мультиплеер",
+        "common.servers": "Сервера",
+        "common.quit": "Выход",
+        "common.settings": "Настройки",
+        "common.languages": "Язык",
+        "common.interface": "Интерфейс",
+        "common.gameplay": "Геймплей",
+        "common.controls": "Управление",
+        "common.video": "Видео",
+        "common.sound": "Звук",
+        "common.resume": "Продолжить",
+        "common.characters": "Персонажи",
+        "common.close": "Закрыть",
+        "common.yes": "Да",
+        "common.no": "Нет",
+        "common.back": "Назад",
+        "common.create": "Создать",
+        "common.okay": "Хорошо",
+        "common.accept": "Принять",
+        "common.disclaimer": "Дисклеймер",
+        "common.cancel": "Отмена",
+        "common.none": "Нет",
+        "common.error": "Ошибка",
+        "common.fatal_error": "Критическая ошибка",
+
+        // Message when connection to the server is lost
+        "common.connection_lost": r#"Соединение потеряно!
+Сервер перезагрузился?
+Клиент обновлен до последней версии?"#,
+
+
+        "common.races.orc": "Орк",
+        "common.races.human": "Человек",
+        "common.races.dwarf": "Дварф",
+        "common.races.elf": "Эльф",
+        "common.races.undead": "Нежить",
+        "common.races.danari": "Данари",
+
+        "common.weapons.axe": "Топор",
+        "common.weapons.sword": "Меч",
+        "common.weapons.staff": "Посох",
+        "common.weapons.bow": "Лук",
+        "common.weapons.hammer": "Молот",
+        /// End Common section
+
+
+        /// Start Main screen section
+        "main.connecting": "Подключение",
+        "main.creating_world": "Создание мира",
+
+        // Welcome notice that appears the first time Veloren is started
+        "main.notice": r#"Добро пожаловать в Veloren-Alpha!
+
+Прежде чем начать веселье, прими во внимание следующие вещи:
+
+- Это очень ранняя альфа. Тут есть баги, крайне незавершенный геймплей, неотполированные механики и отсутсвующие фичи.
+- Если у вас есть конструктивный фидбек или сообщение об ошибке, вы можете связаться с нами через Reddit, GitLab или наш Discord-сервер.
+- Veloren лицензирован GPL 3 open-source licence. Это означает, игра бесплатна, ее можно модифицировать и переделывать на свой вкус (при условии, что готовая работа тоже лицензирована GPL 3).
+- Veloren - некоммерческий проект, каждый работает над ним добровольно.
+Если тебе нравится, что ты видишь, милости просим присоедниться к команде разработчиков или худождественной команде!
+- 'Воксельная РПГ' - самобытный жанр. ФПС тоже привыкли называть 'Клонами Дума'. 
+
+Как и они, мы пытаемся построить нишу. Эта игра не клон, ее развитие в будущем будет отличаться от существующих игр.
+
+Спасибо за прочтение, мы надеемся, вам понравится игра!
+
+~ Команда разработчиков Veloren"#,
+
+
+        // Login process description
+        "main.login_process": r#"Информация по входу:
+
+Если у вас есть проблемы со входом:
+
+Обратите внимание, что теперь вам нужен аккаунт
+играть на серверах с включенной аутентификацией.
+
+Вы можете создать аккаунт тут:
+
+https://account.veloren.net."#,
+        "main.login.server_not_found": "Сервер не найден",
+        "main.login.authentication_error": "Ошибка аутентификации на сервер",
+        "main.login.server_full": "Сервер полон",
+        "main.login.untrusted_auth_server": "Аутентификация не пройдена",
+        "main.login.outdated_client_or_server": "ServerWentMad: Возможно, версии несовместимы. Проверьте наличие обновлений.",
+        "main.login.timeout": "Timeout: Сервер не ответил вовремя. (Перегрузка или проблемы с сетью).",
+        "main.login.server_shut_down": "Сервер выключен",
+        "main.login.already_logged_in": "Вы уже вошли на сервер.",
+        "main.login.network_error": "Ошибка сети",
+        "main.login.failed_sending_request": "Запрос аутентификации провален",
+        "main.login.client_crashed": "Клиент вылетел",
+
+        /// End Main screen section
+
+
+        /// Start HUD Section
+        "hud.do_not_show_on_startup": "Не показывать это при запуске",
+        "hud.show_tips": "Показать советы",
+        "hud.quests": "Квесты",
+        "hud.you_died": "Вы мертвы",
+        
+        "hud.press_key_to_show_keybindings_fmt": "Нажмите {key}, чтобы посмотреть раскладку",
+        "hud.press_key_to_show_debug_info_fmt": "Нажмите {key}, чтобы показать панель отладки",
+        "hud.press_key_to_toggle_keybindings_fmt": "Нажмите {key}, чтобы привязать клавишу",
+        "hud.press_key_to_toggle_debug_info_fmt": "Нажмите {key}, чтобы переназначить панель отладки",
+
+        // Respawn message
+        "hud.press_key_to_respawn": r#"Нажмите {key}, чтобы возродиться на последнем костре, который вы посетили."#,
+
+        // Welcome message
+        "hud.welcome": r#"Добро пожаловать в Veloren-Alpha!,
+
+
+Немного советов перед тем началом игры:
+
+
+НАИБОЛЕЕ ВАЖНО: Чтобы установить точку спауна, напишите /waypoint в чат.
+
+Это возможно, даже если вы уже мертвы!
+
+
+Нажмите F1, чтобы увидеть доступые команды.
+
+Напишите /help, чтобы увидеть команды чата.
+
+
+В мире есть сундуки и другие рандомно генерируемые объекты!
+
+Нажмите ПКМ, чтобы собрать их.
+
+Чтобы использовать то, что мы нашли в сундуках, откройте свой инвентарь 'B'.
+
+Двойной клик на предмет в инвентаре использует или экипирует его.
+
+Чтобы выкинуть их, кликните на предмет, а потом кликите вне инвентаря.
+
+
+Ночи в Veloren могут быть довольно темными.
+
+Зажгите свой фонарь, написав /lantern в чат.
+
+
+Хотите увидеть курсор, чтобы закрыть это окно? Нажмите TAB!
+
+
+Наслаждайтесь миром Veloren."#,
+
+
+        // Inventory
+        "hud.bag.inventory": "Инвентарь",
+        "hud.bag.stats_title": "Статы",
+        "hud.bag.exp": "Опыт",
+        "hud.bag.armor": "Броня",
+        "hud.bag.stats": "Статы",
+        "hud.bag.head": "Голова",
+        "hud.bag.neck": "Шея",
+        "hud.bag.tabard": "Накидка",
+        "hud.bag.shoulders": "Плечи",
+        "hud.bag.chest": "Нагрудник",
+        "hud.bag.hands": "Руки",
+        "hud.bag.lantern": "Фонарь",
+        "hud.bag.belt": "Пояс",
+        "hud.bag.ring": "Кольцо",
+        "hud.bag.back": "Спина",
+        "hud.bag.legs": "Ноги",
+        "hud.bag.feet": "Ботинки",
+        "hud.bag.mainhand": "Главная рука",
+        "hud.bag.offhand": "Второстепенная рука",    
+
+
+        // Map and Questlog
+        "hud.map.map_title": "Карта",
+        "hud.map.qlog_title": "Квесты",
+
+        // Settings
+        "hud.settings.general": "Общие",
+        "hud.settings.none": "Нет",
+        "hud.settings.press_behavior.toggle": "Переключить",
+        "hud.settings.press_behavior.hold": "Держать",
+        "hud.settings.help_window": "Окно помощи",
+        "hud.settings.debug_info": "Панель отладки",
+        "hud.settings.tips_on_startup": "Советы на старте",
+        "hud.settings.ui_scale": "Размер интерфейса",
+        "hud.settings.relative_scaling": "Относительное масштабирование",
+        "hud.settings.custom_scaling": "Пользовательское масштабирование",
+        "hud.settings.crosshair": "Перекрестие",
+        "hud.settings.transparency": "Прозрачность",
+        "hud.settings.hotbar": "Хотбар",        
+        "hud.settings.toggle_shortcuts": "Отображать ярлыки",
+        "hud.settings.toggle_bar_experience": "Отображать полоску опыта",
+        "hud.settings.scrolling_combat_text": "Боевой журнал",
+        "hud.settings.single_damage_number": "Отдельные числа урона",
+        "hud.settings.cumulated_damage": "Суммарный урон",
+        "hud.settings.incoming_damage": "Входящий урон",
+        "hud.settings.cumulated_incoming_damage": "Суммарный входящий урон",
+        "hud.settings.energybar_numbers": "Отображение полоски энергии",
+        "hud.settings.values": "Значение",
+        "hud.settings.percentages": "Проценты",
+        "hud.settings.chat": "Чат",
+        "hud.settings.background_transparency": "Прозрачность заднего фона",
+
+        "hud.settings.pan_sensitivity": "Чувствительность камеры",
+        "hud.settings.zoom_sensitivity": "Чувствительность зума",
+        "hud.settings.invert_scroll_zoom": "Инвертировать прокрутку зума",
+        "hud.settings.invert_mouse_y_axis": "Инвертировать ось Y",
+        "hud.settings.free_look_behavior": "Настройка свободной камеры",
+
+        "hud.settings.view_distance": "Дальность прорисовки",
+        "hud.settings.maximum_fps": "Максимум FPS",
+        "hud.settings.fov": "Поле зрения (градусы)",
+        "hud.settings.gamma": "Гамма",
+        "hud.settings.antialiasing_mode": "Сглаживание",
+        "hud.settings.cloud_rendering_mode": "Рендер облаков",
+        "hud.settings.fluid_rendering_mode": "Рендер жидкостей",
+        "hud.settings.fluid_rendering_mode.cheap": "Низко",
+        "hud.settings.fluid_rendering_mode.shiny": "Высоко",
+        "hud.settings.cloud_rendering_mode.regular": "Обычно",
+        "hud.settings.fullscreen": "Полный экран",
+        "hud.settings.save_window_size": "Сохранить размер окна",
+
+        "hud.settings.music_volume": "Громкость музыки",
+        "hud.settings.sound_effect_volume": "Громкость звуковых эффектов",
+        "hud.settings.audio_device": "Устройство аудио",
+
+        "hud.settings.awaitingkey": "Нажми клавишу...",
+
+        "hud.social": "Социальное",
+        "hud.social.online": "Онлайн",
+        "hud.social.friends": "Друзья",
+        "hud.social.not_yet_available": "Пока недоступно",
+        "hud.social.faction": "Фракция",
+        "hud.social.play_online_fmt": "{nb_player} игрок(ов) онлайн",
+
+        "hud.spell": "Заклинание",
+
+        "hud.free_look_indicator": "Свободная камера активна",       
+
+        /// End HUD section
+
+
+        /// Start GameInput section
+
+        "gameinput.primary": "Основная атака",
+        "gameinput.secondary": "Второстепенная атака/Блок/Прицел",
+       "gameinput.slot1": "Быстрый слот 1",        
+        "gameinput.slot2": "Быстрый слот 2",
+        "gameinput.slot3": "Быстрый слот 3",
+        "gameinput.slot4": "Быстрый слот 4",
+        "gameinput.slot5": "Быстрый слот 5",
+        "gameinput.slot6": "Быстрый слот 6",
+        "gameinput.slot7": "Быстрый слот 7",
+        "gameinput.slot8": "Быстрый слот 8",
+        "gameinput.slot9": "Быстрый слот 9",
+        "gameinput.slot10": "Быстрый слот 10",
+        "gameinput.swaploadout": "Сменить снаряжение",
+        "gameinput.togglecursor": "Отображать курсор курсор",
+        "gameinput.help": "Отображать окно помощи",
+        "gameinput.toggleinterface": "Отображать интерфейс",
+        "gameinput.toggledebug": "Отображать FPS и экран отладки",
+        "gameinput.screenshot": "Сделать скриншот",
+        "gameinput.toggleingameui": "Отображать неймтеги",
+        "gameinput.fullscreen": "Включить полный экран",
+        "gameinput.moveforward": "Двигаться вперед",
+        "gameinput.moveleft": "Двигаться влево",
+        "gameinput.moveright": "Двигаться вправо",
+        "gameinput.moveback": "Двигаться назад",
+        "gameinput.jump": "Прыжок",
+        "gameinput.glide": "Глайдер",
+        "gameinput.roll": "Кувырок",
+        "gameinput.climb": "Карабкаться",
+        "gameinput.climbdown": "Карабкаться вниз",
+        "gameinput.wallleap": "Прыжок от стены",
+        "gameinput.mount": "Оседлать",
+        "gameinput.enter": "Войти",
+        "gameinput.command": "Командовать",
+        "gameinput.escape": "Выйти",
+        "gameinput.map": "Карта",
+        "gameinput.bag": "Рюкзак",
+        "gameinput.social": "Социальное",
+        "gameinput.sit": "Сесть",
+        "gameinput.spellbook": "Заклинания",
+        "gameinput.settings": "Найстройки",
+        "gameinput.respawn": "Возродиться",
+        "gameinput.charge": "Зарядить",
+        "gameinput.togglewield": "Достать/убрать оружие",
+        "gameinput.interact": "Взаимодействовать",
+        "gameinput.freelook": "Свободная камера",
+        
+        /// End GameInput section
+
+
+        /// Start chracter selection section
+        "char_selection.delete_permanently": "Навсегда удалить этого персонажа?",
+        "char_selection.change_server": "Сменить сервер",
+        "char_selection.enter_world": "Войти в мир",
+        "char_selection.logout": "Выйти в меню",
+        "char_selection.create_new_charater": "Создать нового персонажа",
+        "char_selection.character_creation": "Создание персонажа",
+
+        "char_selection.human_default": "Стандартный человек",
+        "char_selection.level_fmt": "Уровень {level_nb}",
+        "char_selection.uncanny_valley": "Uncanny Valley",
+        "char_selection.plains_of_uncertainty": "Plains of Uncertainty",
+        "char_selection.beard": "Борода",
+        "char_selection.hair_style": "Прическа",
+        "char_selection.hair_color": "Цвет волос",
+        "char_selection.chest_color": "Цвет нагрудника",
+        "char_selection.eye_color": "Цвет глаз",
+        "char_selection.skin": "Кожа",
+        "char_selection.eyebrows": "Брови",
+        "char_selection.accessories": "Аксессуары",
+
+        /// End chracter selection section
+
+
+        /// Start character window section
+        "character_window.character_name": "Имя персонажа",
+        // Charater stats
+        "character_window.character_stats": r#"Стойкость
+
+Выносливость
+
+Сила воли
+"#,
+
+
+        /// Start character window section
+
+
+        /// Start Escape Menu Section
+        "esc_menu.logout": "Выйти в меню",
+        "esc_menu.quit_game": "Выйти из игры",
+        /// End Escape Menu Section
+    }
+)
