@@ -1,4 +1,4 @@
-/// Localization for Polish
+/// Localization for Polish / Tłumaczenia dla języka polskiego
 VoxygenLocalization(
     metadata: (
         language_name: "Polish",
@@ -23,18 +23,20 @@ VoxygenLocalization(
             scale_ratio: 1.0,
         ),
         "cyri": Font (
-            asset_key: "voxygen.font.haxrcorp_4089_cyrillic_altgr_extended",
+            asset_key: "voxygen.font.OpenSans-Regular",
             scale_ratio: 1.0,
         ),
     },
     string_map: {
-        /// Start Common section
+        /// Start Common section 
         // Texts used in multiple locations with the same formatting
+        /// Początek sekcji Zwykłej
+        // Tekst użyty w wielu lokalizacja z podobnym formatowaniem
         "common.username": "użytkownik",
-        "common.singleplayer": "Jednoosobowa",
-        "common.multiplayer": "Wieloosobowa",
-        "common.servers": "Serwery",
-        "common.quit": "Wyjdź",
+        "common.singleplayer": "Tryb jednoosobowy",
+        "common.multiplayer": "Tryb wieloosobowy",
+        "common.servers": "Lista serwerów",
+        "common.quit": "Wyjdź z gry",
         "common.settings": "Ustawienia",
         "common.languages": "Języki",
         "common.interface": "Interfejs",
@@ -58,9 +60,10 @@ VoxygenLocalization(
         "common.fatal_error": "Błąd krytyczny",
 
         // Message when connection to the server is lost
-        "common.connection_lost": r#"Connection lost!
-Did the server restart?
-Is the client up to date?"#,
+        // Wiadomość, kiedy połączenie zostało przerwane
+        "common.connection_lost": r#"Stracono połączenie!
+Możliwe, że serwer został zrestartowany.
+Warto również sprawdzić, czy jesteś na najnowszej wersji."#,
 
 
         "common.races.orc": "Ork",
@@ -76,20 +79,23 @@ Is the client up to date?"#,
         "common.weapons.bow": "Łuk",
         "common.weapons.hammer": "Młot",
         /// End Common section
+        // Koniec sekcji Zwykłej
 
 
         /// Start Main screen section
+        /// Początek sekcji Ekranu głównego
         "main.connecting": "Łączenie",
         "main.creating_world": "Tworzenie świata",
 
         // Welcome notice that appears the first time Veloren is started
+        // Wiadomość powitalna, która pokazuje się, kiedy gra jest uruchomiona poraz pierwszy
         "main.notice": r#"Witaj w wersji alfa gry Valoren!
 
 Zanim zaczniesz, pamiętaj, że:
 
 - Gra jest w wczesnej alfie. Spodziewaj się błędów, ektremalnie niedokończonej fabuły, niedopracowanych mechanik i brakujących funkcji.
 
-- Jeżeli posiadasz opinie, pomysły lub chcesz zgłosić błąąd, możesz się z nami zkontaktować poprzez Reddit, GitLab lub serwer Discord.
+- Jeżeli posiadasz opinie, pomysły lub chcesz zgłosić błąd, możesz się z nami zkontaktować poprzez Reddit, GitLab lub serwer Discord.
 
 - Veloron jest pod licencją GPL 3 open-source licence (Licencja otwartego kodu źródłowego). To oznacza, że masz prawo do gry, modyfikacji i rozpowszechniania gry jakkolwiek ci się podoba (pod warunkiem twoja praca też będzie pod licencją GPL 3).
 
@@ -97,17 +103,18 @@ Zanim zaczniesz, pamiętaj, że:
 
 Dziękujemy za przeczytanie tej wiadomości i mamy nadzieję, że polubisz tę gre!
 
-~ Stwórcy Veloren"#,
+~ Twórcy Veloren"#,
 
         // Login process description
+        // Opis procesu logowania
         "main.login_process": r#"Informacje o procesie logowania:
 
 Jeżeli masz problem z logowaniem:
 
-Pamiętaj, że potrzebujesz konta,
-by dołączyć do serwerów z włączoną weryfikacją.
+Pamiętaj, aby dołączyć do serwerów 
+z włączoną weryfikacją potrzebujesz konta.
 
-Możesz stworzyć konto pod:
+Konto możesz stworzyć pod:
 
 https://account.veloren.net."#,
         "main.login.server_not_found": "Serwer nie znaleziony",
@@ -123,14 +130,16 @@ https://account.veloren.net."#,
         "main.login.client_crashed": "Crash clienta",
 
         /// End Main screen section
+        /// Koniec sekcji Ekranu głównego
 
 
         /// Start HUD Section
+        /// Poczętek sekcji HUD
         "hud.do_not_show_on_startup": "Nie pokazuj wskazówek na początku gry",
         "hud.show_tips": "Pokarz wskazówki",
         "hud.quests": "Zadania",
         "hud.you_died": "Umarłeś",
-        "hud.waypoint_saved": "Lokalizacja zapamiętana.",
+
 
         "hud.press_key_to_show_keybindings_fmt": "Kliknij {key} aby sprawdzić skróty klawiszowe",
         "hud.press_key_to_show_debug_info_fmt": "Kliknij {key} aby pokazać zaawansowane informacje",
@@ -138,9 +147,11 @@ https://account.veloren.net."#,
         "hud.press_key_to_toggle_debug_info_fmt": "Kliknij {key} aby przełączyć zaawanowane informacje",
 
         // Respawn message
+        // Widomość  po śmierci
         "hud.press_key_to_respawn": r#"Kliknij {key} aby się odrodzić przy ostatnim odwiedzonym ognisku."#,
 
         // Welcome message
+        // Wiadomość powitalna
         "hud.welcome": r#"Witaj w wersji alfa gry Valoren
 
 
@@ -174,6 +185,7 @@ Ciesz się swoim pobytem w Veloren!"#,
 
 
         // Inventory
+        // Ekwipunek
         "hud.bag.inventory": "Ekwipunek {playername}",
         "hud.bag.stats_title": "Statystyki {playername}",
         "hud.bag.exp": "Exp",
@@ -196,10 +208,12 @@ Ciesz się swoim pobytem w Veloren!"#,
 
 
         // Map and Questlog
+        // Mapa i zadania
         "hud.map.map_title": "Mapa",
         "hud.map.qlog_title": "Zadania",
 
         // Settings
+        // Ustawienia
         "hud.settings.general": "Ogólne",
         "hud.settings.none": "Brak",
         "hud.settings.press_behavior.toggle": "Przełącz",
@@ -266,9 +280,11 @@ Ciesz się swoim pobytem w Veloren!"#,
         "hud.free_look_indicator": "Wolne spoglądanie",       
 
         /// End HUD section
+        /// Koniec sekcji HUD
 
 
         /// Start GameInput section
+        /// Początek sekcji Interakcji
 
         "gameinput.primary": "Pierwszy atak",
         "gameinput.secondary": "Drugi atak",
@@ -318,16 +334,18 @@ Ciesz się swoim pobytem w Veloren!"#,
         "gameinput.freelook": "Tryb wolnego spoglądania",
         
         /// End GameInput section
+        /// Koniec sekcji Interakcji
 
 
         /// Start chracter selection section
+        /// Początek sekcji Wyboru postaci
         "char_selection.loading_characters": "Ładowanie postaci...",
         "char_selection.delete_permanently": "Czy chcesz usunąć tę postać na stałe?",
         "char_selection.deleting_character": "Usuwanie postaci...",
         "char_selection.change_server": "Zmień serwer",
         "char_selection.enter_world": "Wejdź w świat",
         "char_selection.logout": "Wyloguj",
-        "char_selection.create_new_charater": "Tworzenie nowej postaci",
+        "char_selection.create_new_charater": "Stwórz nową postać",
         "char_selection.creating_character": "Tworzenie postaci...",
         "char_selection.character_creation": "Kreacja postaci",
         "char_selection.human_default": "Domyślny człowiek",
@@ -340,29 +358,35 @@ Ciesz się swoim pobytem w Veloren!"#,
         "char_selection.chest_color": "Kolor klatki piersiowej",
         "char_selection.eye_color": "Kolor oczu",
         "char_selection.skin": "Skóra",
-        "char_selection.eyebrows": "Powieki",
+        "char_selection.eyebrows": "Brwi",
         "char_selection.accessories": "Dodatki",
 
         /// End chracter selection section
+        /// Koniec sekcji Wyboru postaci
 
 
         /// Start character window section
+        /// Początek sekcji Okna postaci
         "character_window.character_name": "Nazwa postaci",
         // Charater stats
+        // Statystyki postaci
         "character_window.character_stats": r#"Wytrzymałość
 
 Kondycja
 
-Siło woli
+Siła woli
 "#,
 
 
-        /// Start character window section
+        /// ???Start character window section
+        /// Koniec sekcji Okna postaci
 
 
         /// Start Escape Menu Section
+        /// Początek sekcji Menu pauzy
         "esc_menu.logout": "Wyloguj",
         "esc_menu.quit_game": "Opuść gre",
         /// End Escape Menu Section
+        /// Koniec sekcji Menu pauzy
     }
 )
