@@ -42,6 +42,8 @@ void main() {
 		combined_mat *
 		vec4(pos, 1)).xyz;
 
+	f_pos.z -= 25.0 * pow(distance(focus_pos.xy, f_pos.xy) / view_distance.x, 20.0);
+
 	f_col = vec3((uvec3(v_col) >> uvec3(0, 8, 16)) & uvec3(0xFFu)) / 255.0;
 
 	f_ao = float(v_ao_bone & 0x3u) / 4.0;
