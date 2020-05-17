@@ -1,4 +1,4 @@
-#version 400 core
+#version 330 core
 
 #include <constants.glsl>
 

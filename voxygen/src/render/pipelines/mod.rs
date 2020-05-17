@@ -14,6 +14,10 @@ use common::terrain::BlockKind;
 use gfx::{self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta};
 use vek::*;
 
+pub const MAX_POINT_LIGHT_COUNT: usize = 32;
+pub const MAX_FIGURE_SHADOW_COUNT: usize = 24;
+pub const MAX_DIRECTED_LIGHT_COUNT: usize = 6;
+
 gfx_defines! {
     constant Globals {
         view_mat: [[f32; 4]; 4] = "view_mat",
@@ -37,6 +41,7 @@ gfx_defines! {
         /// w, z represent the near and far planes of the shadow map.
         screen_res: [f32; 4] = "screen_res",
         light_shadow_count: [u32; 4] = "light_shadow_count",
+        shadow_proj_factors: [f32; 4] = "shadow_proj_factors",
         medium: [u32; 4] = "medium",
         select_pos: [i32; 4] = "select_pos",
         gamma: [f32; 4] = "gamma",
@@ -47,6 +52,7 @@ gfx_defines! {
     constant Light {
         pos: [f32; 4] = "light_pos",
         col: [f32; 4] = "light_col",
+        // proj: [[f32; 4]; 4] = "light_proj";
     }
 
     constant Shadow {
@@ -70,6 +76,7 @@ impl Globals {
         shadow_planes: Vec2<f32>,
         light_count: usize,
         shadow_count: usize,
+        directed_light_count: usize,
         medium: BlockKind,
         select_pos: Option<Vec3<i32>>,
         gamma: f32,
@@ -92,7 +99,18 @@ impl Globals {
                 shadow_planes.x,
                 shadow_planes.y,
             ],
-            light_shadow_count: [light_count as u32, shadow_count as u32, 0, 0],
+            light_shadow_count: [
+                (light_count % MAX_POINT_LIGHT_COUNT) as u32,
+                (shadow_count % MAX_FIGURE_SHADOW_COUNT) as u32,
+                (directed_light_count % MAX_DIRECTED_LIGHT_COUNT) as u32,
+                0,
+            ],
+            shadow_proj_factors: [
+                (shadow_planes.y + shadow_planes.x) / (shadow_planes.y - shadow_planes.x),
+                (2.0 * shadow_planes.y * shadow_planes.x) / (shadow_planes.y - shadow_planes.x),
+                0.0,
+                0.0,
+            ],
             medium: [if medium.is_fluid() { 1 } else { 0 }; 4],
             select_pos: select_pos
                 .map(|sp| Vec4::from(sp) + Vec4::unit_w())
@@ -119,6 +137,7 @@ impl Default for Globals {
             0.0,
             Vec2::new(800, 500),
             Vec2::new(1.0, 25.0),
+            0,
             0,
             0,
             BlockKind::Air,

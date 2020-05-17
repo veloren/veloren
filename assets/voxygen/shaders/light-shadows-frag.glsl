@@ -3,6 +3,7 @@
 // However, in the future we might apply some depth transforms here.
 
 #version 330 core
+// #extension ARB_texture_storage : enable
 
 #include <constants.glsl>
 
@@ -25,17 +26,23 @@
 // Currently, we only need lights for the light position
 #include <light.glsl>
 
-in vec4 FragPos; // FragPos from GS (output per emitvertex)
-flat in int FragLayer;
+// in vec3 FragPos; // FragPos from GS (output per emitvertex)
+// flat in int FragLayer;
 
 void main()
 {
-    // get distance between fragment and light source
-    float lightDistance = length(FragPos.xyz - lights[FragLayer & 31].light_pos.xyz);
+    // Only need to do anything with point lights, since sun and moon should already have nonlinear
+    // distance.
+    /*if (FragLayer > 0) */{
+        // get distance between fragment and light source
+        // float lightDistance = length(FragPos - lights[((FragLayer - 1) & 31)].light_pos.xyz);
 
-    // map to [0;1] range by dividing by far_plane
-    lightDistance = lightDistance / /*FragPos.w;*/screen_res.w;
+        // map to [0;1] range by dividing by far_plane
+        // lightDistance = lightDistance  / /*FragPos.w;*/screen_res.w;
 
-    // write this as modified depth
-    gl_FragDepth = lightDistance;
+        // write this as modified depth
+        // lightDistance =  -1000.0 / (lightDistance + 10000.0);
+        // lightDistance /= screen_res.w;
+        // gl_FragDepth = lightDistance;//  / /*FragPos.w;*/screen_res.w;//-1000.0 / (lightDistance + 1000.0);//lightDistance
+    }
 }

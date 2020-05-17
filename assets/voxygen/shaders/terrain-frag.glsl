@@ -1,4 +1,5 @@
-#version 400 core
+#version 330 core
+// #extension GL_ARB_texture_storage : require
 
 #include <constants.glsl>
 
@@ -38,34 +39,50 @@ out vec4 tgt_color;
 
 void main() {
     // tgt_color = vec4(0.0, 0.0, 0.0, 1.0);
-	// for (uint i = 0u; i < light_shadow_count.x; i ++) {
+    // float sum = 0.0;
+	// for (uint i = 0u; i < /* 6 * */light_shadow_count.x; i ++) {
     //     // uint i = 1u;
-	// 	Light L = lights[i];
+	// 	Light L = lights[i/* / 6*/];
 
-    //     vec4 light_col = vec4(
+    //     /* vec4 light_col = vec4(
     //         hash(vec4(1.0, 0.0, 0.0, i)),
     //         hash(vec4(1.0, 1.0, 0.0, i)),
     //         hash(vec4(1.0, 0.0, 1.0, i)),
     //         1.0
-    //     );
+    //     ); */
+    //     vec3 light_col = vec3(1.0);//L.light_col.rgb;
+    //     float light_strength = L.light_col.a / 255.0;
+    //     // float light_strength = 1.0 / light_shadow_count.x;
 
 	// 	vec3 light_pos = L.light_pos.xyz;
 
 	// 	// Pre-calculate difference between light and fragment
 	// 	vec3 fragToLight = f_pos - light_pos;
 
+    //     //  vec3 f_norm = normals[(f_pos_norm >> 29) & 0x7u];
+
     //     // use the light to fragment vector to sample from the depth map
     //     float bias = 0.05;//0.05;
     //     // float closestDepth = texture(t_shadow_maps, vec4(fragToLight, i)/*, 0.0*//*, bias*/).r;
     //     // float closestDepth = texture(t_shadow_maps, vec4(fragToLight, lightIndex), bias);
-    //     float visibility = texture(t_shadow_maps, vec4(fragToLight, i), (length(fragToLight) - bias)/* / screen_res.w*/);
+    //     float closestDepth = texture(t_shadow_maps, vec4(fragToLight, i + 1)/*, bias*/).r;
+    //     // float visibility = texture(t_shadow_maps, vec4(fragToLight, i + 1), -(length(fragToLight) - bias)/* / screen_res.w*/);
     //     // it is currently in linear range between [0,1]. Re-transform back to original value
     //     // closestDepth *= screen_res.w; // far plane
     //     // now test for shadows
     //     // float shadow = /*currentDepth*/(screen_res.w - bias) > closestDepth ? 1.0 : 0.0;
     //     // float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
 
-    //     tgt_color += light_col * vec4(vec3(/*closestDepth*/visibility/* + bias*//* / screen_res.w */) * 1.0 / light_shadow_count.x, 0.0);
+    //     // tgt_color += light_col * vec4(vec3(/*closestDepth*/visibility/* + bias*//* / screen_res.w */) * 1.0 / light_shadow_count.x, 0.0);
+    //     tgt_color.rgb += light_col * vec3(closestDepth + 0.05 / screen_res.w) * 1.0 /*/ light_shadow_count.x*/ * light_strength;
+    //     sum += light_strength;
+    // }
+
+    // /* if (light_shadow_count.x == 1) {
+    //     tgt_color.rgb = vec3(0.0);
+    // } */
+    // if (sum > 0.0) {
+    //     tgt_color.rgb /= sum;
     // }
     // return;
 

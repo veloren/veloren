@@ -419,7 +419,7 @@ impl Renderer {
         let depth_stencil_cty = <<ShadowDepthStencilFmt as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped>::get_channel_type();
         let shadow_tex = factory
             .create_texture(
-                gfx::texture::Kind::CubeArray(size / 4, 32),
+                gfx::texture::Kind::/*CubeArray*/Cube(size / 4 /* size * 2*//*, 32 */),
                 1 as gfx::texture::Level,
                 gfx::memory::Bind::SHADER_RESOURCE | gfx::memory::Bind::DEPTH_STENCIL,
                 gfx::memory::Usage::Data,
@@ -436,7 +436,12 @@ impl Renderer {
         sampler_info.comparison = Some(Comparison::LessEqual);
         sampler_info.border = [1.0; 4].into();
         let shadow_tex_sampler = factory.create_sampler(sampler_info);
-
+        /* let tgt_shadow_view = factory.view_texture_as_depth_stencil::<ShadowDepthStencilFmt>(
+            &shadow_tex,
+            0,
+            Some(1),
+            gfx::texture::DepthStencilFlags::empty(),
+        )?; */
         let tgt_shadow_view = factory.view_texture_as_depth_stencil_trivial(&shadow_tex)?;
         /* let tgt_shadow_res = factory.view_texture_as_shader_resource::<TgtColorFmt>(
             &tgt_color_tex,
@@ -454,7 +459,24 @@ impl Renderer {
             gfx::format::Swizzle::new(),
         )?;
 
-        Ok((tgt_shadow_view, tgt_shadow_res, shadow_tex_sampler))
+        /* let tgt_sun_res = factory.view_texture_as_depth_stencil::<ShadowDepthStencilFmt>(
+            &shadow_tex,
+            0,
+            Some(0),
+            gfx::texture::DepthStencilFlags::RO_DEPTH,
+        )?;
+        let tgt_moon_res = factory.view_texture_as_depth_stencil::<ShadowDepthStencilFmt>(
+            &shadow_tex,
+            0,
+            Some(1),
+            gfx::texture::DepthStencilFlags::RO_DEPTH,
+        )?; */
+
+        Ok((
+            tgt_shadow_view,
+            tgt_shadow_res,
+            /* tgt_directed_res, */ shadow_tex_sampler,
+        ))
     }
 
     /// Get the resolution of the render target.
@@ -465,13 +487,23 @@ impl Renderer {
         )
     }
 
+    /// Get the resolution of the shadow render target.
+    pub fn get_shadow_resolution(&self) -> Vec2<u16> {
+        if let Some(shadow_map) = &self.shadow_map {
+            let dims = shadow_map.depth_stencil_view.get_dimensions();
+            Vec2::new(dims.0, dims.1)
+        } else {
+            Vec2::new(1, 1)
+        }
+    }
+
     /// Queue the clearing of the depth target ready for a new frame to be
     /// rendered.
     pub fn clear(&mut self) {
         if let Some(shadow_map) = self.shadow_map.as_mut() {
-            shadow_map
-                .encoder
-                .clear_depth(&shadow_map.depth_stencil_view, 1.0);
+            let encoder = &mut shadow_map.encoder;
+            encoder.clear_depth(&shadow_map.depth_stencil_view, 1.0);
+            // encoder.clear_stencil(&shadow_map.depth_stencil_view, 0);
         }
         self.encoder.clear_depth(&self.tgt_depth_stencil_view, 1.0);
         self.encoder.clear_stencil(&self.tgt_depth_stencil_view, 0);
@@ -481,7 +513,8 @@ impl Renderer {
     /// Perform all queued draw calls for shadows.
     pub fn flush_shadows(&mut self) {
         if let Some(shadow_map) = self.shadow_map.as_mut() {
-            shadow_map.encoder.flush(&mut self.device);
+            let encoder = &mut shadow_map.encoder;
+            encoder.flush(&mut self.device);
         }
     }
 
@@ -489,7 +522,8 @@ impl Renderer {
     /// items.
     pub fn flush(&mut self) {
         if let Some(shadow_map) = self.shadow_map.as_mut() {
-            shadow_map.encoder.flush(&mut self.device);
+            let encoder = &mut shadow_map.encoder;
+            encoder.flush(&mut self.device);
         }
         self.encoder.flush(&mut self.device);
         self.device.cleanup();
@@ -902,7 +936,8 @@ impl Renderer {
         } else {
             return;
         };
-        shadow_map.encoder.draw(
+        let encoder = &mut shadow_map.encoder;
+        encoder.draw(
             &gfx::Slice {
                 start: model.vertex_range().start,
                 end: model.vertex_range().end,
@@ -1471,14 +1506,14 @@ fn create_shadow_pipeline<P: gfx::pso::PipelineInit>(
                 // Second-depth shadow mapping: should help reduce z-fighting provided all objects
                 // are "watertight" (every triangle edge is shared with at most one other
                 // triangle); this *should* be true for Veloren.
-                cull_face: /*cull_face*//*gfx::state::CullFace::Nothing*/match cull_face {
+                cull_face: /*gfx::state::CullFace::Nothing*/match cull_face {
                     gfx::state::CullFace::Front => gfx::state::CullFace::Back,
                     gfx::state::CullFace::Back => gfx::state::CullFace::Front,
                     gfx::state::CullFace::Nothing => gfx::state::CullFace::Nothing,
                 },
                 method: gfx::state::RasterMethod::Fill,
-                offset: Some(gfx::state::Offset(4, /*10*/10)),
-                samples: None,//Some(gfx::state::MultiSample),
+                offset: None,//Some(gfx::state::Offset(4, /*10*/-10)),
+                samples:None,//Some(gfx::state::MultiSample),
             },
             pipe,
         )?,

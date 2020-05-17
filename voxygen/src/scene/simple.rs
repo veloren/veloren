@@ -223,6 +223,7 @@ impl Scene {
             Vec2::new(SHADOW_NEAR, SHADOW_FAR),
             0,
             0,
+            0,
             BlockKind::Air,
             None,
             scene_data.gamma,

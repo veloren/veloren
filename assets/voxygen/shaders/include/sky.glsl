@@ -513,8 +513,8 @@ vec3 illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitted
     // vec3 c = sqrt(col_adjusted) * T;
     // vec3 c = /*col_adjusted * */col_adjusted * T;
 
-    return color;
-    // return c;
+    // return color;
+    return c;
     // float sum_col = color.r + color.g + color.b;
     // return /*srgb_to_linear*/(/*0.5*//*0.125 * */vec3(pow(color.x, gamma), pow(color.y, gamma), pow(color.z, gamma)));
 }

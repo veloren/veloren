@@ -31,7 +31,7 @@ gfx_defines! {
         // Shadow stuff
         light_shadows: gfx::ConstantBuffer<Locals> = "u_light_shadows",
 
-        tgt_depth_stencil: gfx::DepthTarget<ShadowDepthStencilFmt> = gfx::preset::depth::LESS_EQUAL_TEST,//,Stencil::new(Comparison::Always,0xff,(StencilOp::Keep,StencilOp::Keep,StencilOp::Keep))),
+        tgt_depth_stencil: gfx::DepthTarget<ShadowDepthStencilFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,//,Stencil::new(Comparison::Always,0xff,(StencilOp::Keep,StencilOp::Keep,StencilOp::Keep))),
     }
 }
 

@@ -10,6 +10,7 @@ uniform u_globals {
 	vec4 tick;
 	vec4 screen_res;
 	uvec4 light_shadow_count;
+    vec4 shadow_proj_factors;
 	uvec4 medium;
 	ivec4 select_pos;
 	vec4 gamma;

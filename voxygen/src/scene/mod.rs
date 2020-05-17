@@ -35,6 +35,7 @@ const CURSOR_PAN_SCALE: f32 = 0.005;
 
 const MAX_LIGHT_COUNT: usize = 32;
 const MAX_SHADOW_COUNT: usize = 24;
+const NUM_DIRECTED_LIGHTS: usize = 2;
 const LIGHT_DIST_RADIUS: f32 = 64.0; // The distance beyond which lights may not emit light from their origin
 const SHADOW_DIST_RADIUS: f32 = 8.0;
 const SHADOW_MAX_DIST: f32 = 96.0; // The distance beyond which shadows may not be visible
@@ -42,8 +43,8 @@ const SHADOW_MAX_DIST: f32 = 96.0; // The distance beyond which shadows may not 
 // const NEAR_PLANE: f32 = 0.5;
 // const FAR_PLANE: f32 = 100000.0;
 
-const SHADOW_NEAR: f32 = 0.5; //0.5;//1.0; // Near plane for shadow map rendering.
-const SHADOW_FAR: f32 = 512.0; //100000.0;//25.0; // Far plane for shadow map rendering.
+const SHADOW_NEAR: f32 = 1.0; //1.0; //0.5;//1.0; // Near plane for shadow map rendering.
+const SHADOW_FAR: f32 = 128.0; //25.0; //100000.0;//25.0; // Far plane for shadow map rendering.
 
 /// Above this speed is considered running
 /// Used for first person camera effects
@@ -110,7 +111,7 @@ impl Scene {
                 .create_consts(&[Shadow::default(); MAX_SHADOW_COUNT])
                 .unwrap(),
             shadow_mats: renderer
-                .create_consts(&[ShadowLocals::default(); MAX_LIGHT_COUNT * 6])
+                .create_consts(&[ShadowLocals::default(); MAX_LIGHT_COUNT * 6 + 2])
                 .unwrap(),
             camera: Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson),
             camera_input_state: Vec2::zero(),
@@ -358,9 +359,36 @@ impl Scene {
             .expect("Failed to update light constants");
 
         // Update light projection matrices for the shadow map.
+        let time_of_day = scene_data.state.get_time_of_day();
+        let shadow_res = renderer.get_shadow_resolution();
         // NOTE: The aspect ratio is currently always 1 for our cube maps, since they
         // are equal on all sides.
-        let shadow_aspect = 1.0;
+        let shadow_aspect = shadow_res.x as f32 / shadow_res.y as f32;
+        // First, add a projected matrix for our directed hard lights.
+        let directed_view_proj = Mat4::orthographic_rh_no(FrustumPlanes {
+            left: -(shadow_res.x as f32) / 2.0,
+            right: shadow_res.x as f32 / 2.0,
+            bottom: -(shadow_res.y as f32) / 2.0,
+            top: shadow_res.y as f32 / 2.0,
+            near: SHADOW_NEAR,
+            far: SHADOW_FAR,
+        });
+        // Construct matrices to transform from world space to light space for the sun
+        // and moon.
+        const TIME_FACTOR: f32 = (std::f32::consts::PI * 2.0) / (3600.0 * 24.0);
+        let angle_rad = time_of_day as f32 * TIME_FACTOR;
+        let sun_dir = Vec3::new(angle_rad.sin(), 0.0, angle_rad.cos());
+        let moon_dir = Vec3::new(-angle_rad.sin(), 0.0, angle_rad.cos() - 0.5);
+        let sun_view_mat = Mat4::model_look_at_rh(-sun_dir, Vec3::zero(), Vec3::up());
+        let moon_view_mat = Mat4::model_look_at_rh(-moon_dir, Vec3::zero(), Vec3::up());
+        // Now, construct the full projection matrices in the first two directed light
+        // slots.
+        let mut shadow_mats = Vec::with_capacity(6 * (lights.len() + 1));
+        shadow_mats.push(ShadowLocals::new(directed_view_proj * sun_view_mat));
+        shadow_mats.push(ShadowLocals::new(directed_view_proj * moon_view_mat));
+        // This leaves us with four dummy slots, which we push as defaults.
+        shadow_mats.extend_from_slice(&[ShadowLocals::default(); 6 - NUM_DIRECTED_LIGHTS] as _);
+        // Now, we tackle point lights.
         // First, create a perspective projection matrix at 90 degrees (to cover a whole
         // face of the cube map we're using).
         let shadow_proj =
@@ -376,18 +404,22 @@ impl Scene {
             (Vec3::new(0.0, 0.0, -1.0), Vec3::new(0.0, -1.0, 0.0)),
         ];
         // NOTE: We could create the shadow map collection at the same time as the
-        // lights, but then we'd have to sort them both, which wastes time.
-        let shadow_mats = lights
-            .iter()
-            .flat_map(|light| {
-                // Now, construct the full projection matrix by making the light look at each
-                // cube face.
-                let eye = Vec3::new(light.pos[0], light.pos[1], light.pos[2]);
-                orientations.iter().map(move |&(forward, up)| {
-                    ShadowLocals::new(shadow_proj * Mat4::look_at_rh(eye, eye + forward, up))
-                })
+        // lights, but then we'd have to sort them both, which wastes time.  Plus, we
+        // want to prepend our directed lights.
+        shadow_mats.extend(lights.iter().flat_map(|light| {
+            // Now, construct the full projection matrix by making the light look at each
+            // cube face.
+            let eye = Vec3::new(light.pos[0], light.pos[1], light.pos[2]);
+            orientations.iter().map(move |&(forward, up)| {
+                ShadowLocals::new(shadow_proj * Mat4::look_at_rh(eye, eye + forward, up))
             })
-            .collect::<Vec<_>>();
+        }));
+        /* shadow_mats.push(
+                    Mat4::orthographic_rh_no
+        float near_plane = 1.0f, far_plane = 7.5f;
+        glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+
+                ); */
         renderer
             .update_consts(&mut self.shadow_mats, &shadow_mats)
             .expect("Failed to update light constants");
@@ -402,12 +434,13 @@ impl Scene {
                 self.loaded_distance,
                 self.lod.get_data().tgt_detail as f32,
                 self.map_bounds,
-                scene_data.state.get_time_of_day(),
+                time_of_day,
                 scene_data.state.get_time(),
                 renderer.get_resolution(),
                 Vec2::new(SHADOW_NEAR, SHADOW_FAR),
                 lights.len(),
                 shadows.len(),
+                NUM_DIRECTED_LIGHTS,
                 scene_data
                     .state
                     .terrain()
@@ -422,8 +455,7 @@ impl Scene {
             .expect("Failed to update global constants");
 
         // Maintain LoD.
-        self.lod
-            .maintain(renderer, scene_data.state.get_time_of_day());
+        self.lod.maintain(renderer, time_of_day);
 
         // Maintain the terrain.
         self.terrain.maintain(

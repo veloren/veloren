@@ -2,10 +2,30 @@
 
 // NOTE: We only technically need this for cube map arrays and geometry shader
 // instancing.
-#version 400 core
+#version 330 core
+// #extension ARB_texture_storage : enable
 
-// Currently, we only need globals for the max light count (light_shadow_count.x).
+#include <constants.glsl>
+
+#define LIGHTING_TYPE LIGHTING_TYPE_REFLECTION
+
+#define LIGHTING_REFLECTION_KIND LIGHTING_REFLECTION_KIND_GLOSSY
+
+#if (FLUID_MODE == FLUID_MODE_CHEAP)
+#define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
+#elif (FLUID_MODE == FLUID_MODE_SHINY)
+#define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_RADIANCE
+#endif
+
+#define LIGHTING_DISTRIBUTION_SCHEME LIGHTING_DISTRIBUTION_SCHEME_MICROFACET
+
+#define LIGHTING_DISTRIBUTION LIGHTING_DISTRIBUTION_BECKMANN
+
+// Currently, we only need globals for the max light count (light_shadow_count.x)
+// and the far plane (scene_res.z).
 #include <globals.glsl>
+// Currently, we only need lights for the light position
+#include <light.glsl>
 
 // Since our output primitive is a triangle strip, we have to render three vertices
 // each.
@@ -140,14 +160,14 @@
 // Since wgpu doesn't support geometry shaders anyway, it seems likely that we'll have
 // to do the multiple draw calls, anyway... I don't think gl_Layer can be set from
 // outside a geometry shader.  But in wgpu, such a thing is much cheaper, anyway.
-#define MAX_POINT_LIGHTS 32
+#define MAX_POINT_LIGHTS 31
 
 // We use geometry shader instancing to construct each face separately.
 #define MAX_LAYER_VERTICES_PER_FACE (MAX_POINT_LIGHTS * VERTICES_PER_FACE)
 
 #define MAX_LAYER_FACES (MAX_POINT_LIGHTS * FACES_PER_POINT_LIGHT)
 
-layout (triangles, invocations = 6) in;
+layout (triangles/*, invocations = 6*/) in;
 
 layout (triangle_strip, max_vertices = /*MAX_LAYER_VERTICES_PER_FACE*/96) out;
 
@@ -166,33 +186,70 @@ uniform u_light_shadows {
 // 128, which would mean FragPos would sum to 4 * 3 * 32 = 384; this could be
 // remedied only by setting MAX_POINT_LIGHTS to ), we might enable it again soon.
 //
-out vec4 FragPos; // FragPos from GS (output per emitvertex)
-flat out int FragLayer; // Current layer
+// out vec3 FragPos; // FragPos from GS (output per emitvertex)
+// flat out int FragLayer; // Current layer
+
+// const vec3 normals[6] = vec3[](vec3(-1,0,0), vec3(1,0,0), vec3(0,-1,0), vec3(0,1,0), vec3(0,0,-1), vec3(0,0,1));
 
 void main() {
+    // return;
     // NOTE: Assuming that light_shadow_count.x < MAX_POINT_LIGHTS.  We could min
     // it, but that might make this less optimized, and I'd like to keep this loop as
     // optimized as is reasonably possible.
-    int face = gl_InvocationID;
+    // int face = gl_InvocationID;
 
-    for (int layer = 0; layer < light_shadow_count.x; ++layer)
+    // Part 1: emit directed lights.
+    /* if (face <= light_shadow_count.z) {
+        // Directed light.
+        for(int i = 0; i < VERTICES_PER_FACE; ++i) // for each triangle vertex
+        {
+            // NOTE: See above, we don't make FragPos a uniform.
+            FragPos = gl_in[i].gl_Position;
+            FragLayer = 0; // 0 is the directed light layer.
+            // vec4 FragPos = gl_in[i].gl_Position;
+            gl_Layer = i; // built-in variable that specifies to which face we render.
+            gl_Position = shadowMats[i].shadowMatrices * FragPos;
+            EmitVertex();
+        }
+        EndPrimitive();
+    } */
+
+    // Part 2: emit point lights.
+    /* if (light_shadow_count.x == 1) {
+        return;
+    } */
+    for (int layer = 1; layer <= /*light_shadow_count.x*/1; ++layer)
     {
+        int layer_base = layer * FACES_PER_POINT_LIGHT;
         // We use instancing here in order to increase the number of emitted vertices.
         // int face = gl_InvocationID;
-        // for(int face = 0; face < FACES_PER_POINT_LIGHT; ++face)
-        // {
-            int layer_face = layer * FACES_PER_POINT_LIGHT + face;
+        for(int face = 0; face < FACES_PER_POINT_LIGHT; ++face)
+        {
+            // int layer_face = layer * FACES_PER_POINT_LIGHT + face;
+            // int layer_face = layer * FACES_PER_POINT_LIGHT + face;
             for(int i = 0; i < VERTICES_PER_FACE; ++i) // for each triangle vertex
             {
                 // NOTE: See above, we don't make FragPos a uniform.
-                FragPos = gl_in[i].gl_Position;
-                FragLayer = layer;
+                vec3 FragPos = gl_in[i].gl_Position.xyz;
+                // FragPos = gl_in[i].gl_Position.xyz;
+                // FragLayer = layer;
+                // float lightDistance = length(FragPos - lights[((layer - 1) & 31)].light_pos.xyz);
+                // lightDistance /= screen_res.w;
+
                 // vec4 FragPos = gl_in[i].gl_Position;
-                gl_Layer = layer_face; // built-in variable that specifies to which face we render.
-                gl_Position = shadowMats[layer_face].shadowMatrices * FragPos;
+                // NOTE: Our normals map to the same thing as cube map normals, *except* that their normal direction is
+                // swapped; we can fix this by doing normal ^ 0x1u.  However, we also want to cull back faces, not front
+                // faces, so we only care about the shadow cast by the *back* of the triangle, which means we ^ 0x1u
+                // again and cancel it out.
+                // int face = int(((floatBitsToUint(gl_Position.w) >> 29) & 0x7u) ^ 0x1u);
+                int layer_face = layer_base + face;
+                gl_Layer = face;//layer_face; // built-in variable that specifies to which face we render.
+                gl_Position = shadowMats[layer_face].shadowMatrices * vec4(FragPos, 1.0);
+                // lightDistance = -(lightDistance + screen_res.z) / (screen_res.w - screen_res.z);
+                // gl_Position.z = lightDistance;
                 EmitVertex();
             }
             EndPrimitive();
-        // }
+         }
     }
 }

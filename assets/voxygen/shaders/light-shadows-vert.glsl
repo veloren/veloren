@@ -1,4 +1,5 @@
 #version 330 core
+// #extension ARB_texture_storage : enable
 
 #include <constants.glsl>
 
@@ -45,7 +46,7 @@ void main() {
 	// f_pos = v_pos;
 	vec3 f_pos = f_chunk_pos + model_offs;
 
-	gl_Position = /*all_mat * */vec4(f_pos, 1.0);
+	gl_Position = /*all_mat * */vec4(f_pos/*, 1.0*/, /*float(((f_pos_norm >> 29) & 0x7u) ^ 0x1)*/uintBitsToFloat(v_pos_norm)/*1.0*/);
     // shadowMapCoord = lights[gl_InstanceID].light_pos * gl_Vertex;
     // vec4(v_pos, 0.0, 1.0);
 }
