@@ -44,5 +44,13 @@
             vox_spec: ("armor.foot.cultist", (-2.5, -3.5, -9.0)),
             color: None
         ),
+        Steel0:(
+            vox_spec: ("armor.foot.steel-0", (-2.5, -3.5, -9.0)),
+            color: None
+        ),
+        Leather2:(
+            vox_spec: ("armor.foot.leather-2", (-2.5, -3.5, -9.0)),
+            color: None
+        ),
     },
 ))

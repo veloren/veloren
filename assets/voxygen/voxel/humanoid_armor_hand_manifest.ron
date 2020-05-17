@@ -100,6 +100,25 @@
                 color: Some((57, 81, 132))
             )
         ),
-
+        Steel0: (
+            left: (
+                vox_spec: ("armor.hand.steel_left-0", (-1.5, -1.5, -7.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.hand.steel_right-0", (-1.5, -1.5, -7.0)),
+                color: None
+            )
+        ),
+        Leather2: (
+            left: (
+                vox_spec: ("armor.hand.leather_left-2", (-1.5, -1.5, -7.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.hand.leather_right-2", (-1.5, -1.5, -7.0)),
+                color: None
+            )
+        ),
     },
 ))

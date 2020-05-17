@@ -68,5 +68,13 @@
             vox_spec: ("armor.pants.cultist", (-5.0, -3.5, 1.0)),
             color: Some((57, 81, 132))
         ),
+        Steel0:(
+            vox_spec: ("armor.pants.steel-0", (-6.0, -4.5, 1.0)),
+            color: None
+        ),
+        Leather2:(
+            vox_spec: ("armor.pants.leather-2", (-5.0, -3.5, 1.0)),
+            color: None
+        ),
     },
 ))
