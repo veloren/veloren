@@ -83,6 +83,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a popup when setting your character's waypoint
 - Added dungeon arenas
 - Added dungeon bosses and rare boss loot
+- Added 2 sets of armour. One Steel and one Leather.
+
 
 ### Changed
 
