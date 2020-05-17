@@ -1,0 +1,8 @@
+Item(
+    name: "Steel Gauntlets",
+    description: "Gauntlets made of steel",
+    kind: Armor(
+        kind: Hand(Steel0),
+        stats: (20),
+    ),
+)

@@ -27,8 +27,10 @@ pub enum Chest {
     WorkerOrange1 = 24,
     CultistPurple = 25,
     CultistBlue = 26,
+    Steel0 = 27,
+    Leather2 = 28,
 }
-pub const ALL_CHESTS: [Chest; 26] = [
+pub const ALL_CHESTS: [Chest; 28] = [
     Chest::Blue,
     Chest::Brown,
     Chest::Dark,
@@ -55,6 +57,8 @@ pub const ALL_CHESTS: [Chest; 26] = [
     Chest::WorkerOrange1,
     Chest::CultistPurple,
     Chest::CultistBlue,
+    Chest::Steel0,
+    Chest::Leather2,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -72,8 +76,11 @@ pub enum Belt {
     ClothBlue0 = 9,
     ClothGreen0 = 10,
     Cultist = 11,
+    Leather2 = 12,
+    Steel0 = 13,
 }
-pub const ALL_BELTS: [Belt; 12] = [
+
+pub const ALL_BELTS: [Belt; 14] = [
     Belt::None,
     Belt::Dark,
     Belt::TurqCloth,
@@ -86,6 +93,8 @@ pub const ALL_BELTS: [Belt; 12] = [
     Belt::ClothBlue0,
     Belt::ClothGreen0,
     Belt::Cultist,
+    Belt::Leather2,
+    Belt::Steel0,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -108,8 +117,10 @@ pub enum Pants {
     WorkerBlue0 = 14,
     CultistPurple = 15,
     CultistBlue = 16,
+    Steel0 = 17,
+    Leather2 = 18,
 }
-pub const ALL_PANTS: [Pants; 17] = [
+pub const ALL_PANTS: [Pants; 19] = [
     Pants::None,
     Pants::Blue,
     Pants::Brown,
@@ -127,6 +138,8 @@ pub const ALL_PANTS: [Pants; 17] = [
     Pants::WorkerBlue0,
     Pants::CultistPurple,
     Pants::CultistBlue,
+    Pants::Steel0,
+    Pants::Leather2,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -141,8 +154,10 @@ pub enum Hand {
     ClothGreen0 = 7,
     CultistPurple = 8,
     CultistBlue = 9,
+    Steel0 = 10,
+    Leather2 = 11,
 }
-pub const ALL_HANDS: [Hand; 9] = [
+pub const ALL_HANDS: [Hand; 11] = [
     Hand::Cloth,
     Hand::Assassin,
     Hand::Plate0,
@@ -152,6 +167,8 @@ pub const ALL_HANDS: [Hand; 9] = [
     Hand::ClothGreen0,
     Hand::CultistPurple,
     Hand::CultistBlue,
+    Hand::Steel0,
+    Hand::Leather2,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -167,8 +184,11 @@ pub enum Foot {
     ClothBlue0 = 8,
     ClothGreen0 = 9,
     Cultist = 10,
+    Steel0 = 11,
+    Leather2 = 12,
 }
-pub const ALL_FEET: [Foot; 10] = [
+
+pub const ALL_FEET: [Foot; 12] = [
     Foot::Dark,
     Foot::Sandal0,
     Foot::Jester,
@@ -179,6 +199,8 @@ pub const ALL_FEET: [Foot; 10] = [
     Foot::ClothBlue0,
     Foot::ClothGreen0,
     Foot::Cultist,
+    Foot::Steel0,
+    Foot::Leather2,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -195,8 +217,10 @@ pub enum Shoulder {
     ClothGreen0 = 9,
     CultistPurple = 10,
     CultistBlue = 11,
+    Steel0 = 12,
+    Leather2 = 13,
 }
-pub const ALL_SHOULDERS: [Shoulder; 11] = [
+pub const ALL_SHOULDERS: [Shoulder; 13] = [
     Shoulder::Brown1,
     Shoulder::Chain,
     Shoulder::Assassin,
@@ -208,6 +232,8 @@ pub const ALL_SHOULDERS: [Shoulder; 11] = [
     Shoulder::ClothGreen0,
     Shoulder::CultistPurple,
     Shoulder::CultistBlue,
+    Shoulder::Steel0,
+    Shoulder::Leather2,
 ];
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]

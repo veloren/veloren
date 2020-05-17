@@ -1,0 +1,8 @@
+Item(
+    name: "Steel Cuirass",
+   description: "A cuirass of steel plate",
+    kind: Armor(
+        kind: Chest(Steel0),
+        stats: (20),
+    ),
+)

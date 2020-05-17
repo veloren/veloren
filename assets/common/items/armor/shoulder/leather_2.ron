@@ -1,0 +1,8 @@
+Item(
+    name: "Leather Shoulder Pad",
+    description: "A simple shoulder pad made of leather",
+    kind: Armor(
+        kind: Shoulder(Leather2),
+        stats: (20),
+    ),
+)

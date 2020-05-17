@@ -1,0 +1,8 @@
+Item(
+    name: "Steel Belt",
+    description: "A belt made from Steel.",
+    kind: Armor(
+        kind: Belt(Steel0),
+        stats: (20),
+    ),
+)
