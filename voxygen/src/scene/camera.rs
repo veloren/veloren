@@ -185,10 +185,10 @@ impl Camera {
         }
     }
 
-    /// Get the distance of the camera from the target
+    /// Get the distance of the camera from the focus
     pub fn get_distance(&self) -> f32 { self.dist }
 
-    /// Set the distance of the camera from the target (i.e., zoom).
+    /// Set the distance of the camera from the focus (i.e., zoom).
     pub fn set_distance(&mut self, dist: f32) { self.tgt_dist = dist; }
 
     pub fn update(&mut self, time: f64, dt: f32, smoothing_enabled: bool) {
@@ -206,11 +206,12 @@ impl Camera {
             let lerped_focus = Lerp::lerp(
                 self.focus,
                 self.tgt_focus,
-                (delta as f32) / self.interp_time() * if matches!(self.mode, CameraMode::FirstPerson) {
-                    2.0
-                } else {
-                    1.0
-                },
+                (delta as f32) / self.interp_time()
+                    * if matches!(self.mode, CameraMode::FirstPerson) {
+                        2.0
+                    } else {
+                        1.0
+                    },
             );
 
             // Snap when close enough in x/y, but lerp otherwise
@@ -298,8 +299,8 @@ impl Camera {
 
     /// Get the mode of the camera
     pub fn get_mode(&self) -> CameraMode {
-        // Perfom a bit of a trick... don't report first-person until the camera has lerped close
-        // enough to the player.
+        // Perfom a bit of a trick... don't report first-person until the camera has
+        // lerped close enough to the player.
         match self.mode {
             CameraMode::FirstPerson if self.dist < 0.5 => CameraMode::FirstPerson,
             CameraMode::FirstPerson => CameraMode::ThirdPerson,
