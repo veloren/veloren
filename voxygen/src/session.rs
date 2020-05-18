@@ -1,6 +1,6 @@
 use crate::{
     ecs::MyEntity,
-    hud::{DebugInfo, Event as HudEvent, Hud, PressBehavior},
+    hud::{DebugInfo, Event as HudEvent, Hud, HudInfo, PressBehavior},
     i18n::{i18n_asset_key, VoxygenLocalization},
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
@@ -511,6 +511,19 @@ impl PlayState for SessionState {
                 },
                 &self.scene.camera(),
                 clock.get_last_delta(),
+                HudInfo {
+                    is_aiming: {
+                        let client = self.client.borrow();
+                        let aimed = client
+                            .state()
+                            .read_storage::<comp::CharacterState>()
+                            .get(client.entity())
+                            .map(|cs| cs.is_aimed())
+                            .unwrap_or(false);
+                        aimed
+                    },
+                    is_first_person: matches!(self.scene.camera().get_mode(), camera::CameraMode::FirstPerson),
+                },
             );
 
             // Look for changes in the localization files
