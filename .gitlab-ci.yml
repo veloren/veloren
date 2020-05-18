@@ -38,6 +38,7 @@ before_script:
 
 include:
   - local: .gitlab/CI/recompile.yml
+  - local: .gitlab/CI/release.yml
   - local: .gitlab/CI/optional-builds.gitlab-ci.yml
   - local: .gitlab/CI/check-compile.gitlab-ci.yml
   - local: .gitlab/CI/build-post.gitlab-ci.yml
