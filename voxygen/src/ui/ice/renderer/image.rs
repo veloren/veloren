@@ -1,13 +1,13 @@
 use super::{
-    super::{cache::FrameRenderer, widget::image, Rotation},
-    Primitive,
+    super::{widget::image, Rotation},
+    IcedRenderer, Primitive,
 };
 use iced::mouse;
 use vek::Rgba;
 
-impl image::Renderer for FrameRenderer<'_> {
+impl image::Renderer for IcedRenderer {
     fn dimensions(&self, handle: image::Handle) -> (u32, u32) {
-        self.renderer
+        self
             .cache
             .graphic_cache()
             .get_graphic_dims((handle, Rotation::None))

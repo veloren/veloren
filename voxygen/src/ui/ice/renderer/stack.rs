@@ -1,10 +1,7 @@
-use super::{
-    super::{cache::FrameRenderer, widget::stack},
-    Primitive,
-};
+use super::{super::widget::stack, IcedRenderer, Primitive};
 use iced::{mouse, Element, Layout, Point};
 
-impl stack::Renderer for FrameRenderer<'_> {
+impl stack::Renderer for IcedRenderer {
     fn draw<M>(
         &mut self,
         defaults: &Self::Defaults,

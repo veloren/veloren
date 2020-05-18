@@ -1,10 +1,7 @@
-use super::{
-    super::{cache::FrameRenderer, widget::background_container},
-    Primitive,
-};
+use super::{super::widget::background_container, IcedRenderer, Primitive};
 use iced::{Element, Layout, Point};
 
-impl background_container::Renderer for FrameRenderer<'_> {
+impl background_container::Renderer for IcedRenderer {
     fn draw<M, B>(
         &mut self,
         defaults: &Self::Defaults,

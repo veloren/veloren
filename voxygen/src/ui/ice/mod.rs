@@ -21,16 +21,17 @@ use super::{
     scale::{Scale, ScaleMode},
 };
 use crate::{render::Renderer, window::Window, Error};
-use cache::{FrameRenderer, GlyphCalcCache};
 use clipboard::Clipboard;
 use iced::{mouse, Cache, Size, UserInterface};
 use vek::*;
 
-pub type Element<'a, 'b, M> = iced::Element<'a, M, FrameRenderer<'b>>;
+pub type Element<'a, M> = iced::Element<'a, M, IcedRenderer>;
+
+#[derive(Clone, Copy, Default)]
+pub struct FontId(glyph_brush::FontId);
 
 pub struct IcedUi {
     renderer: IcedRenderer,
-    glyph_calc_cache: GlyphCalcCache,
     cache: Option<Cache>,
     events: Vec<Event>,
     clipboard: Clipboard,
@@ -47,8 +48,7 @@ impl IcedUi {
 
         // TODO: examine how much mem fonts take up and reduce clones if significant
         Ok(Self {
-            renderer: IcedRenderer::new(renderer, scaled_dims, default_font.clone())?,
-            glyph_calc_cache: GlyphCalcCache::new(default_font),
+            renderer: IcedRenderer::new(renderer, scaled_dims, default_font)?,
             cache: Some(Cache::new()),
             events: Vec::new(),
             // TODO: handle None
@@ -99,8 +99,9 @@ impl IcedUi {
     }
 
     // TODO: produce root internally???
-    // TODO: see if this lifetime soup can be simplified
-    pub fn maintain<'a, M, E: for<'b> Into<iced::Element<'a, M, FrameRenderer<'b>>>>(
+    // TODO: closure/trait for sending messages back? (take a look at higher level
+    // iced libs)
+    pub fn maintain<'a, M, E: Into<Element<'a, M>>>(
         &mut self,
         root: E,
         renderer: &mut Renderer,
@@ -133,22 +134,20 @@ impl IcedUi {
         // TODO: convert to f32 at source
         let window_size = self.scale.scaled_window_size().map(|e| e as f32);
 
-        let mut frame_renderer = FrameRenderer::new(&mut self.renderer, &mut self.glyph_calc_cache);
-
         let mut user_interface = UserInterface::build(
             root,
             Size::new(window_size.x, window_size.y),
             self.cache.take().unwrap(),
-            &mut frame_renderer,
+            &mut self.renderer,
         );
 
         let messages = user_interface.update(
             self.events.drain(..),
             Some(&self.clipboard),
-            &frame_renderer,
+            &mut self.renderer,
         );
 
-        let (primitive, mouse_interaction) = user_interface.draw(&mut frame_renderer);
+        let (primitive, mouse_interaction) = user_interface.draw(&mut self.renderer);
 
         self.cache = Some(user_interface.into_cache());
 

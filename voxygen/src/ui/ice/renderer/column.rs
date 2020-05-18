@@ -1,7 +1,7 @@
-use super::{super::cache::FrameRenderer, Primitive};
+use super::{IcedRenderer, Primitive};
 use iced::{column, mouse, Element, Layout, Point};
 
-impl column::Renderer for FrameRenderer<'_> {
+impl column::Renderer for IcedRenderer {
     fn draw<M>(
         &mut self,
         defaults: &Self::Defaults,

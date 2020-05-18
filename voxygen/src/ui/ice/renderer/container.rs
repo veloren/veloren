@@ -1,7 +1,7 @@
-use super::super::cache::FrameRenderer;
+use super::IcedRenderer;
 use iced::{container, Element, Layout, Point, Rectangle};
 
-impl container::Renderer for FrameRenderer<'_> {
+impl container::Renderer for IcedRenderer {
     type Style = ();
 
     fn draw<M>(

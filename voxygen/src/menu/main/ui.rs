@@ -191,7 +191,7 @@ struct IcedState {
 pub type Message = Event;
 impl IcedState {
     pub fn view(&mut self) -> Element<Message> {
-        use iced::{Align, Column, Container, Length, Row, Space};
+        use iced::{Align, Column, Container, Length, Row, Space, Text};
         use ui::ice::{
             compound_graphic::{CompoundGraphic, Graphic},
             BackgroundContainer, Image, Padding,
@@ -201,7 +201,12 @@ impl IcedState {
         let buttons = Column::with_children(vec![
             Image::new(self.imgs.button).fix_aspect_ratio().into(),
             Image::new(self.imgs.button).fix_aspect_ratio().into(),
-            Image::new(self.imgs.button).fix_aspect_ratio().into(),
+            /* BackgroundContainer::new(
+                Image::new(self.imgs.button).fix_aspect_ratio(),
+                Text::new("Quit"),
+            )
+            .into(), */
+            Text::new("Quit").size(20).into(),
         ])
         .width(Length::Fill)
         .max_width(200)

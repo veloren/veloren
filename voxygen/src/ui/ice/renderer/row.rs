@@ -1,7 +1,7 @@
-use super::{super::cache::FrameRenderer, Primitive};
+use super::{IcedRenderer, Primitive};
 use iced::{mouse, row, Element, Layout, Point};
 
-impl row::Renderer for FrameRenderer<'_> {
+impl row::Renderer for IcedRenderer {
     fn draw<M>(
         &mut self,
         defaults: &Self::Defaults,
