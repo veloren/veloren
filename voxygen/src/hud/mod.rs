@@ -611,7 +611,11 @@ impl Hud {
                 }
                 // Crosshair
                 let show_crosshair = (info.is_aiming || info.is_first_person) && !stats.is_dead;
-                self.crosshair_opacity = Lerp::lerp(self.crosshair_opacity, if show_crosshair { 1.0 } else { 0.0 }, 5.0 * dt.as_secs_f32());
+                self.crosshair_opacity = Lerp::lerp(
+                    self.crosshair_opacity,
+                    if show_crosshair { 1.0 } else { 0.0 },
+                    5.0 * dt.as_secs_f32(),
+                );
 
                 if !self.show.help {
                     Image::new(

@@ -522,7 +522,10 @@ impl PlayState for SessionState {
                             .unwrap_or(false);
                         aimed
                     },
-                    is_first_person: matches!(self.scene.camera().get_mode(), camera::CameraMode::FirstPerson),
+                    is_first_person: matches!(
+                        self.scene.camera().get_mode(),
+                        camera::CameraMode::FirstPerson
+                    ),
                 },
             );
 

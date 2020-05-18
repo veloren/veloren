@@ -239,9 +239,8 @@ impl Scene {
             CameraMode::ThirdPerson => 1.65,
         };
 
-        self.camera.set_focus_pos(
-            player_pos + Vec3::unit_z() * (up - tilt.min(0.0).sin() * dist * 0.6),
-        );
+        self.camera
+            .set_focus_pos(player_pos + Vec3::unit_z() * (up - tilt.min(0.0).sin() * dist * 0.6));
 
         // Tick camera for interpolation.
         self.camera.update(
