@@ -1,7 +1,6 @@
 docker:
   stage: publish
-  when: delayed
-  start_in: 5 seconds
+  extends: .release
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
@@ -9,11 +8,6 @@ docker:
     - linux
   before_script:
     - ls "$CI_PROJECT_DIR/server-cli/"
-  only:
-    refs:
-      - /^r[0-9]+\.[0-9]+\.[0-9]+/
-      - /^v[0-9]+\.[0-9]+/
-      - /^master$/
   tags:
     - veloren-docker
   script:
