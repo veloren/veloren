@@ -100,7 +100,7 @@ impl IcedUi {
 
     // TODO: produce root internally???
     // TODO: see if this lifetime soup can be simplified
-    pub fn maintain<'a, 'b, M, E: Into<iced::Element<'a, M, FrameRenderer<'b>>>>(
+    pub fn maintain<'a, M, E: for<'b> Into<iced::Element<'a, M, FrameRenderer<'b>>>>(
         &mut self,
         root: E,
         renderer: &mut Renderer,
