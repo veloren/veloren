@@ -296,7 +296,7 @@ lazy_static! {
         }
 
         // System paths
-        #[cfg(target_os = "linux")]
+        #[cfg(all(unix, not(target_os = "macos"), not(target_os = "ios"), not(target_os = "android")))]
         {
             if let Ok(result) = std::env::var("XDG_DATA_HOME") {
                 paths.push(format!("{}/veloren/assets", result).into());
