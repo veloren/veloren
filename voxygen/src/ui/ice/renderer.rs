@@ -5,6 +5,7 @@ mod container;
 mod image;
 mod row;
 mod space;
+mod text;
 
 use super::{
     super::graphic::{self, Graphic, TexId},
@@ -189,8 +190,8 @@ impl IcedRenderer {
         // Draw glyph cache (use for debugging).
         /*self.draw_commands
             .push(DrawCommand::Scissor(default_scissor(renderer)));
-        start = mesh.vertices().len();
-        mesh.push_quad(create_ui_quad(
+        self.start = self.mesh.vertices().len();
+        self.mesh.push_quad(create_ui_quad(
             Aabr {
                 min: (-1.0, -1.0).into(),
                 max: (1.0, 1.0).into(),
@@ -199,11 +200,11 @@ impl IcedRenderer {
                 min: (0.0, 1.0).into(),
                 max: (1.0, 0.0).into(),
             },
-            Rgba::new(1.0, 1.0, 1.0, 0.8),
+            Rgba::new(1.0, 1.0, 1.0, 0.3),
             UiMode::Text,
         ));
         self.draw_commands
-            .push(DrawCommand::plain(start..mesh.vertices().len()));*/
+            .push(DrawCommand::plain(self.start..self.mesh.vertices().len()));*/
 
         // Fill in placeholder glyph quads
         let (glyph_cache, cache_tex) = self.cache.glyph_cache_mut_and_tex();
@@ -234,11 +235,11 @@ impl IcedRenderer {
                 let rect = Aabr {
                     min: Vec2::new(
                         pixel_coords.min.x as f32 / half_res.x - 1.0,
-                        pixel_coords.min.y as f32 / half_res.y - 1.0,
+                        1.0 - pixel_coords.max.y as f32 / half_res.y,
                     ),
                     max: Vec2::new(
                         pixel_coords.max.x as f32 / half_res.x - 1.0,
-                        pixel_coords.max.y as f32 / half_res.y - 1.0,
+                        1.0 - pixel_coords.min.y as f32 / half_res.y,
                     ),
                 };
                 (uv, rect)
@@ -483,12 +484,13 @@ impl IcedRenderer {
                     // seems redundant...
                     glyph_brush::rusttype::Rect {
                         min: glyph_brush::rusttype::Point {
-                            x: bounds.x,
-                            y: bounds.y,
+                            x: bounds.x * self.p_scale,
+                            //y: (self.win_dims.y - bounds.y) * self.p_scale,
+                            y: bounds.y * self.p_scale,
                         },
                         max: glyph_brush::rusttype::Point {
-                            x: bounds.x + bounds.width,
-                            y: bounds.y + bounds.height,
+                            x: (bounds.x + bounds.width) * self.p_scale,
+                            y: (bounds.y + bounds.height) * self.p_scale,
                         },
                     },
                     0.0, // z (we don't use this)
@@ -579,3 +581,24 @@ fn default_scissor(renderer: &Renderer) -> Aabr<u16> {
         },
     }
 }
+
+impl iced::Renderer for IcedRenderer {
+    // Default styling
+    type Defaults = ();
+    // TODO: use graph of primitives to enable diffing???
+    type Output = (Primitive, iced::mouse::Interaction);
+
+    fn layout<'a, M>(
+        &mut self,
+        element: &iced::Element<'a, M, Self>,
+        limits: &iced::layout::Limits,
+    ) -> iced::layout::Node {
+        let node = element.layout(self, limits);
+
+        // Trim text measurements cache?
+
+        node
+    }
+}
+
+// TODO: impl Debugger
