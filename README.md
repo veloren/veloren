@@ -1,5 +1,5 @@
 <p align="center">
-	<img alt="Veloren logo on a screenshot" src="https://i.redd.it/balynnef4x531.png">
+	<img alt="Veloren logo on a screenshot" src="https://cdn.discordapp.com/attachments/541307708146581519/712295605170602075/logo.png">
 </p>
 
 [![pipeline status](https://gitlab.com/veloren/veloren/badges/master/pipeline.svg)](https://gitlab.com/veloren/veloren/commits/master)
@@ -33,10 +33,10 @@ This will be needed to play on auth-enabled servers, including the official serv
 
 ## Get Veloren
 
-Currently we provide 64-bit builds for Linux and Windows which can be downloaded on the official website: 
+Currently we provide 64-bit builds for Linux and Windows which can be downloaded on the official website:
 [https://www.veloren.net](https://veloren.net/welcome)
 
-*Note: Mac and 32-bit systems are supported but you need to [compile the game for them yourself](https://book.veloren.net/compile/index.html).*
+_Note: Mac and 32-bit systems are supported but you need to [compile the game for them yourself](https://book.veloren.net/compile/index.html)._
 
 Due to rapid developement stable versions become outdated fast and might be **incompatible with the public server**.
 
@@ -59,6 +59,7 @@ If you want to compile Veloren yourself, take a look at the [How to Compile Guid
 [AUR latest master](https://aur.archlinux.org/packages/veloren-git): `yay -Syu veloren-git`
 
 ## F.A.Q.
+
 ### **Q:** How is this game licensed?
 
 **A:** **It's free to play, modify and distribute. Forever.** Since it is a community project, we decided to license it under the **GNU GPL 3.0** license which means it will always stay free and open source.
