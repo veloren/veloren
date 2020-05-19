@@ -54,7 +54,7 @@ void main() {
 	vec3 color = mix(mix(surf_color, fog_color, fog_level), clouds.rgb, clouds.a);
 
 	if ((flags & 1) == 1 && int(cam_mode) == 1) {
-		float distance = distance(vec3(cam_pos), vec3(model_mat * vec4(vec3(0), 1))) - 2;
+		float distance = distance(vec3(cam_pos), focus_pos.xyz) - 2;
 
 		float opacity = clamp(distance / distance_divider, 0, 1);
 
