@@ -406,10 +406,8 @@ impl<'a> System<'a> for Sys {
                         } else {
                             let bubble = SpeechBubble::player_new(message.clone(), *time);
                             let _ = speech_bubbles.insert(entity, bubble);
-                            match players.get(entity) {
-                                Some(player) => {
-                                    let stat =
-                                        stats.get(entity).expect("Expected stat.name for player");
+                            match stats.get(entity) {
+                                Some(stat) => {
                                     if admins.get(entity).is_some() {
                                         format!("[ADMIN][{}] {}", &stat.name, message)
                                     } else {
