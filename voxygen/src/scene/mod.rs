@@ -78,6 +78,7 @@ pub struct SceneData<'a> {
     pub mouse_smoothing: bool,
     pub sprite_render_distance: f32,
     pub figure_lod_render_distance: f32,
+    pub is_aiming: bool,
 }
 
 impl Scene {
@@ -236,6 +237,7 @@ impl Scene {
                     player_scale * 1.65
                 }
             },
+            CameraMode::ThirdPerson if scene_data.is_aiming => 2.1,
             CameraMode::ThirdPerson => 1.65,
         };
 
