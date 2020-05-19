@@ -1,6 +1,6 @@
 use crate::{
     ecs::MyEntity,
-    hud::{DebugInfo, Event as HudEvent, Hud, PressBehavior},
+    hud::{DebugInfo, Event as HudEvent, Hud, HudInfo, PressBehavior},
     i18n::{i18n_asset_key, VoxygenLocalization},
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
@@ -164,6 +164,25 @@ impl PlayState for SessionState {
             {
                 Some(pos) => pos.0 + (Vec3::unit_z() * 2.0),
                 _ => cam_pos, // Should never happen, but a safe fallback
+            };
+
+            let (is_aiming, aim_dir_offset) = {
+                let client = self.client.borrow();
+                let is_aiming = client
+                    .state()
+                    .read_storage::<comp::CharacterState>()
+                    .get(client.entity())
+                    .map(|cs| cs.is_aimed())
+                    .unwrap_or(false);
+
+                (
+                    is_aiming,
+                    if is_aiming {
+                        Vec3::unit_z() * 0.025
+                    } else {
+                        Vec3::zero()
+                    },
+                )
             };
 
             let cam_dir: Vec3<f32> = Vec3::from(view_mat.inverted() * -Vec4::unit_z());
@@ -435,7 +454,7 @@ impl PlayState for SessionState {
 
             if !free_look {
                 ori = self.scene.camera().get_orientation();
-                self.inputs.look_dir = Dir::from_unnormalized(cam_dir).unwrap();
+                self.inputs.look_dir = Dir::from_unnormalized(cam_dir + aim_dir_offset).unwrap();
             }
             // Calculate the movement input vector of the player from the current key
             // presses and the camera direction.
@@ -511,6 +530,13 @@ impl PlayState for SessionState {
                 },
                 &self.scene.camera(),
                 clock.get_last_delta(),
+                HudInfo {
+                    is_aiming,
+                    is_first_person: matches!(
+                        self.scene.camera().get_mode(),
+                        camera::CameraMode::FirstPerson
+                    ),
+                },
             );
 
             // Look for changes in the localization files
@@ -737,6 +763,7 @@ impl PlayState for SessionState {
                         .graphics
                         .figure_lod_render_distance
                         as f32,
+                    is_aiming,
                 };
 
                 // Runs if either in a multiplayer server or the singleplayer server is unpaused

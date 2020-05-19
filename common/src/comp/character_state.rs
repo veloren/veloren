@@ -91,6 +91,17 @@ impl CharacterState {
         }
     }
 
+    pub fn is_aimed(&self) -> bool {
+        match self {
+            CharacterState::BasicMelee(_)
+            | CharacterState::BasicRanged(_)
+            | CharacterState::DashMelee(_)
+            | CharacterState::TripleStrike(_)
+            | CharacterState::BasicBlock => true,
+            _ => false,
+        }
+    }
+
     pub fn is_block(&self) -> bool {
         match self {
             CharacterState::BasicBlock => true,
