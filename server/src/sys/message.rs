@@ -408,10 +408,12 @@ impl<'a> System<'a> for Sys {
                             let _ = speech_bubbles.insert(entity, bubble);
                             match players.get(entity) {
                                 Some(player) => {
+                                    let stat =
+                                        stats.get(entity).expect("Expected stat.name for player");
                                     if admins.get(entity).is_some() {
-                                        format!("[ADMIN][{}] {}", &player.alias, message)
+                                        format!("[ADMIN][{}] {}", &stat.name, message)
                                     } else {
-                                        format!("[{}] {}", &player.alias, message)
+                                        format!("[{}] {}", &stat.name, message)
                                     }
                                 },
                                 None => format!("[<Unknown>] {}", message),
