@@ -95,6 +95,7 @@ void main() {
 		proj_mat *
 		view_mat *
 		vec4(f_pos/*newRay*/, 1);
+    // gl_Position.z = -gl_Position.z / gl_Position.w;
 	// gl_Position.z = -gl_Position.z / 100.0;
 	gl_Position.z = -1000.0 / (gl_Position.z + 10000.0);
 }

@@ -298,9 +298,13 @@ void main() {
 
     // f_ao = 1.0;
     // f_ao = dot(f_ao_vec, sqrt(1.0 - delta_sides * delta_sides));
+
     f_ao = sqrt(dot(f_ao_vec * abs(voxel_norm), sqrt(1.0 - delta_sides * delta_sides)) / 3.0);
-    // f_ao = dot(abs(voxel_norm), f_ao_vec);
-    // voxel_norm = f_norm;
+
+    // vec3 ao_pos2 = min(fract(f_pos), 1.0 - fract(f_pos));
+    // f_ao = sqrt(dot(ao_pos2, ao_pos2));
+    // // f_ao = dot(abs(voxel_norm), f_ao_vec);
+    // // voxel_norm = f_norm;
 
     // Note: because voxels, we reduce the normal for reflections to just its z component, dpendng on distance to camera.
     // Idea: the closer we are to facing top-down, the more the norm should tend towards up-z.

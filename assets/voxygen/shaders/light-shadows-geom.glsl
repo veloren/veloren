@@ -169,7 +169,7 @@
 
 layout (triangles/*, invocations = 6*/) in;
 
-layout (triangle_strip, max_vertices = /*MAX_LAYER_VERTICES_PER_FACE*/96) out;
+layout (triangle_strip, max_vertices = /*MAX_LAYER_VERTICES_PER_FACE*//*96*/18) out;
 
 struct ShadowLocals {
 	mat4 shadowMatrices;
@@ -245,6 +245,10 @@ void main() {
                 int layer_face = layer_base + face;
                 gl_Layer = face;//layer_face; // built-in variable that specifies to which face we render.
                 gl_Position = shadowMats[layer_face].shadowMatrices * vec4(FragPos, 1.0);
+                // gl_Position.z = -((gl_Position.z + screen_res.z) / (screen_res.w - screen_res.z)) * lightDistance;
+                // gl_Position.z = gl_Position.z / screen_res.w;
+                // gl_Position.z = gl_Position.z / gl_Position.w;
+                // gl_Position.z = -1000.0 / (gl_Position.z + 10000.0);
                 // lightDistance = -(lightDistance + screen_res.z) / (screen_res.w - screen_res.z);
                 // gl_Position.z = lightDistance;
                 EmitVertex();

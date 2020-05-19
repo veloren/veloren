@@ -43,8 +43,8 @@ const SHADOW_MAX_DIST: f32 = 96.0; // The distance beyond which shadows may not 
 // const NEAR_PLANE: f32 = 0.5;
 // const FAR_PLANE: f32 = 100000.0;
 
-const SHADOW_NEAR: f32 = 1.0; //1.0; //0.5;//1.0; // Near plane for shadow map rendering.
-const SHADOW_FAR: f32 = 128.0; //25.0; //100000.0;//25.0; // Far plane for shadow map rendering.
+const SHADOW_NEAR: f32 = 0.25; //1.0; //0.5;//1.0; // Near plane for shadow map rendering.
+const SHADOW_FAR: f32 = 128.0; //100000.0;//128.0; //25.0; //100000.0;//25.0; // Far plane for shadow map rendering.
 
 /// Above this speed is considered running
 /// Used for first person camera effects

@@ -2,7 +2,8 @@ use crate::{
     mesh::Meshable,
     render::{
         Consts, FluidPipeline, Globals, Instances, Light, Mesh, Model, Renderer, Shadow,
-        ShadowLocals, SpriteInstance, SpritePipeline, TerrainLocals, TerrainPipeline, Texture,
+        ShadowLocals, ShadowPipeline, SpriteInstance, SpritePipeline, TerrainLocals,
+        TerrainPipeline, Texture,
     },
 };
 
@@ -27,10 +28,12 @@ struct TerrainChunkData {
     load_time: f32,
     opaque_model: Model<TerrainPipeline>,
     fluid_model: Option<Model<FluidPipeline>>,
+    shadow_model: Model<ShadowPipeline>,
     sprite_instances: HashMap<(BlockKind, usize), Instances<SpriteInstance>>,
     locals: Consts<TerrainLocals>,
 
     visible: bool,
+    can_shadow: bool,
     z_bounds: (f32, f32),
     frustum_last_plane_index: u8,
 }
@@ -48,6 +51,7 @@ struct MeshWorkerResponse {
     z_bounds: (f32, f32),
     opaque_mesh: Mesh<TerrainPipeline>,
     fluid_mesh: Mesh<FluidPipeline>,
+    shadow_mesh: Mesh<ShadowPipeline>,
     sprite_instances: HashMap<(BlockKind, usize), Vec<SpriteInstance>>,
     started_tick: u64,
 }
@@ -254,12 +258,13 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
     volume: <VolGrid2d<V> as SampleVol<Aabr<i32>>>::Sample,
     range: Aabb<i32>,
 ) -> MeshWorkerResponse {
-    let (opaque_mesh, fluid_mesh) = volume.generate_mesh(range);
+    let (opaque_mesh, fluid_mesh, shadow_mesh) = volume.generate_mesh(range);
     MeshWorkerResponse {
         pos,
         z_bounds,
         opaque_mesh,
         fluid_mesh,
+        shadow_mesh,
         // Extract sprite locations from volume
         sprite_instances: {
             let mut instances = HashMap::new();
@@ -2106,6 +2111,9 @@ impl<V: RectRasterableVol> Terrain<V> {
                         } else {
                             None
                         },
+                        shadow_model: renderer
+                            .create_model(&response.shadow_mesh)
+                            .expect("Failed to upload chunk mesh to the GPU!"),
                         sprite_instances: response
                             .sprite_instances
                             .into_iter()
@@ -2130,6 +2138,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                             }])
                             .expect("Failed to upload chunk locals to the GPU!"),
                         visible: false,
+                        can_shadow: false,
                         z_bounds: response.z_bounds,
                         frustum_last_plane_index: 0,
                     });
@@ -2155,8 +2164,8 @@ impl<V: RectRasterableVol> Terrain<V> {
             // Limit focus_pos to chunk bounds and ensure the chunk is within the fog
             // boundary
             let nearest_in_chunk = Vec2::from(focus_pos).clamped(chunk_pos, chunk_pos + chunk_sz);
-            let in_range = Vec2::<f32>::from(focus_pos).distance_squared(nearest_in_chunk)
-                < loaded_distance.powf(2.0);
+            let distance_2 = Vec2::<f32>::from(focus_pos).distance_squared(nearest_in_chunk);
+            let in_range = distance_2 < loaded_distance.powf(2.0);
 
             if !in_range {
                 chunk.visible = in_range;
@@ -2176,6 +2185,9 @@ impl<V: RectRasterableVol> Terrain<V> {
 
             chunk.frustum_last_plane_index = last_plane_index;
             chunk.visible = in_frustum;
+            // FIXME: Hack that only works when only the lantern casts point shadows
+            // (and hardcodes the shadow distance).  Should ideally exist per-light, too.
+            chunk.can_shadow = distance_2 < (128.0 * 128.0);
         }
     }
 
@@ -2207,11 +2219,12 @@ impl<V: RectRasterableVol> Terrain<V> {
             .take(self.chunks.len());
 
         // Shadows
+        // let mut shadow_vertex_count = 0;
         for (_, chunk) in chunk_iter.clone() {
-            /* if chunk.visible */
-            {
+            if chunk.can_shadow {
+                // shadow_vertex_count += chunk.shadow_model.vertex_range.len();
                 renderer.render_shadow(
-                    &chunk.opaque_model,
+                    &chunk.shadow_model,
                     globals,
                     &chunk.locals,
                     shadow_mats,
@@ -2227,10 +2240,13 @@ impl<V: RectRasterableVol> Terrain<V> {
         renderer.flush_shadows();
 
         // Terrain
+        // let mut terrain_vertex_count = 0;
         for (_, chunk) in chunk_iter {
+            // terrain_vertex_count += chunk.opaque_model.vertex_range.len();
             if chunk.visible {
                 renderer.render_terrain_chunk(
                     &chunk.opaque_model,
+                    // &chunk.shadow_model,
                     globals,
                     &chunk.locals,
                     lights,
@@ -2240,6 +2256,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                 );
             }
         }
+        // println!("Vertex count (shadow / terrain / ratio): {:?} / {:?} / {:?}", shadow_vertex_count, terrain_vertex_count, shadow_vertex_count as f64 / terrain_vertex_count as f64);
     }
 
     pub fn render_translucent(

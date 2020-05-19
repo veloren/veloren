@@ -1,6 +1,6 @@
 use crate::{
     mesh::{vol, Meshable},
-    render::{self, FluidPipeline, Mesh, TerrainPipeline},
+    render::{self, mesh::Quad, FluidPipeline, Mesh, ShadowPipeline, TerrainPipeline},
 };
 use common::{
     terrain::{Block, BlockKind},
@@ -12,6 +12,7 @@ use vek::*;
 
 type TerrainVertex = <TerrainPipeline as render::Pipeline>::Vertex;
 type FluidVertex = <FluidPipeline as render::Pipeline>::Vertex;
+type ShadowVertex = <ShadowPipeline as render::Pipeline>::Vertex;
 
 trait Blendable {
     fn is_blended(&self) -> bool;
@@ -202,13 +203,18 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
     Meshable<'a, TerrainPipeline, FluidPipeline> for VolGrid2d<V>
 {
     type Pipeline = TerrainPipeline;
+    type ShadowPipeline = ShadowPipeline;
     type Supplement = Aabb<i32>;
     type TranslucentPipeline = FluidPipeline;
 
     fn generate_mesh(
         &'a self,
         range: Self::Supplement,
-    ) -> (Mesh<Self::Pipeline>, Mesh<Self::TranslucentPipeline>) {
+    ) -> (
+        Mesh<Self::Pipeline>,
+        Mesh<Self::TranslucentPipeline>,
+        Mesh<Self::ShadowPipeline>,
+    ) {
         let mut light = calc_light(range, self);
 
         let mut lowest_opaque = range.size().d;
@@ -463,7 +469,84 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
         //         opaque_mesh
         //     });
 
-        (opaque_mesh, fluid_mesh)
+        let mut shadow_mesh = Mesh::new();
+
+        let x_size = (range.size().w - 2) as usize;
+        let y_size = (range.size().h - 2) as usize;
+        let z_size = (z_end - z_start + 1) as usize;
+        let draw_delta = Vec3::new(1, 1, z_start);
+        let mesh_delta = Vec3::new(0, 0, z_start + range.min.z);
+
+        // x (u = y, v = z)
+        greedy_mesh_cross_section(
+            Vec3::new(y_size, z_size, x_size),
+            |pos| {
+                should_draw_greedy(
+                    Vec3::new(pos.z, pos.x, pos.y),
+                    draw_delta,
+                    Vec3::unit_x(), /* , pos.z, 0, x_size */
+                    |pos| flat_get(pos),
+                )
+            },
+            |pos, dim, faces_forward| {
+                shadow_mesh.push_quad(create_quad_greedy(
+                    Vec3::new(pos.z, pos.x, pos.y),
+                    mesh_delta,
+                    dim,
+                    Vec2::new(Vec3::unit_y(), Vec3::unit_z()),
+                    Vec3::unit_x(),
+                    faces_forward,
+                ));
+            },
+        );
+
+        // y (u = z, v = x)
+        greedy_mesh_cross_section(
+            Vec3::new(z_size, x_size, y_size),
+            |pos| {
+                should_draw_greedy(
+                    Vec3::new(pos.y, pos.z, pos.x),
+                    draw_delta,
+                    Vec3::unit_y(), /* , pos.z, 0, y_size */
+                    |pos| flat_get(pos),
+                )
+            },
+            |pos, dim, faces_forward| {
+                shadow_mesh.push_quad(create_quad_greedy(
+                    Vec3::new(pos.y, pos.z, pos.x),
+                    mesh_delta,
+                    dim,
+                    Vec2::new(Vec3::unit_z(), Vec3::unit_x()),
+                    Vec3::unit_y(),
+                    faces_forward,
+                ));
+            },
+        );
+
+        // z (u = x, v = y)
+        greedy_mesh_cross_section(
+            Vec3::new(x_size, y_size, z_size),
+            |pos| {
+                should_draw_greedy(
+                    Vec3::new(pos.x, pos.y, pos.z),
+                    draw_delta,
+                    Vec3::unit_z(), /* , pos.z, 0, z_size */
+                    |pos| flat_get(pos),
+                )
+            },
+            |pos, dim, faces_forward| {
+                shadow_mesh.push_quad(create_quad_greedy(
+                    Vec3::new(pos.x, pos.y, pos.z),
+                    mesh_delta,
+                    dim,
+                    Vec2::new(Vec3::unit_x(), Vec3::unit_y()),
+                    Vec3::unit_z(),
+                    faces_forward,
+                ));
+            },
+        );
+
+        (opaque_mesh, fluid_mesh, shadow_mesh)
     }
 }
 
@@ -491,6 +574,154 @@ fn faces_to_make<M: Clone>(
         make_face(blocks[0][1][1]),
         make_face(blocks[2][1][1]),
     ]
+}
+
+// Greedy meshing.
+fn greedy_mesh_cross_section(
+    /* mask: &mut [bool], */
+    dims: Vec3<usize>,
+    // Should we draw a face here (below this vertex)?  If so, is it front or back facing?
+    draw_face: impl Fn(Vec3<usize>) -> Option<bool>,
+    // Vertex, width and height, and whether it's front facing (face is implicit from the cross
+    // section).
+    mut push_quads: impl FnMut(Vec3<usize>, Vec2<usize>, bool),
+) {
+    // mask represents which faces are either set while the other is unset, or unset
+    // while the other is set.
+    let mut mask = vec![None; dims.y * dims.x];
+    (0..dims.z + 1).for_each(|d| {
+        // Compute mask
+        mask.iter_mut().enumerate().for_each(|(posi, mask)| {
+            let i = posi % dims.x;
+            let j = posi / dims.x;
+            *mask = draw_face(Vec3::new(i, j, d));
+        });
+
+        (0..dims.y).for_each(|j| {
+            let mut i = 0;
+            while i < dims.x {
+                // Compute width (number of set x bits for this row and layer, starting at the
+                // current minimum column).
+                if let Some(ori) = mask[j * dims.x + i] {
+                    let width = 1 + mask[j * dims.x + i + 1..j * dims.x + dims.x]
+                        .iter()
+                        .take_while(move |&&mask| mask == Some(ori))
+                        .count();
+                    let max_x = i + width;
+                    // Compute height (number of rows having w set x bits for this layer, starting
+                    // at the current minimum column and row).
+                    let height = 1
+                        + (j + 1..dims.y)
+                            .take_while(|h| {
+                                mask[h * dims.x + i..h * dims.x + max_x]
+                                    .iter()
+                                    .all(|&mask| mask == Some(ori))
+                            })
+                            .count();
+                    let max_y = j + height;
+                    // Add quad.
+                    push_quads(Vec3::new(i, j, d /* + 1 */), Vec2::new(width, height), ori);
+                    // Unset mask bits in drawn region, so we don't try to re-draw them.
+                    (j..max_y).for_each(|l| {
+                        mask[l * dims.x + i..l * dims.x + max_x]
+                            .iter_mut()
+                            .for_each(|mask| {
+                                *mask = None;
+                            });
+                    });
+                    // Update x value.
+                    i = max_x;
+                } else {
+                    i += 1;
+                }
+            }
+        });
+    });
+}
+
+fn create_quad_greedy(
+    origin: Vec3<usize>,
+    mesh_delta: Vec3<i32>,
+    dim: Vec2<usize>,
+    uv: Vec2<Vec3<f32>>,
+    norm: Vec3<f32>,
+    faces_forward: bool,
+) -> Quad<ShadowPipeline> {
+    let origin = origin.map(|e| e as i32) + mesh_delta;
+    // let origin = (uv.x * origin.x + uv.y * origin.y + norm * origin.z) +
+    // Vec3::new(0, 0, z_start + range.min.z - 1);//Vec3::new(-1, -1, z_start +
+    // range.min.z - 1);
+    let origin = origin.map(|e| e as f32); // + orientation.z;
+    // let origin = uv.x * origin.x + uv.y * origin.y + norm * origin.z +
+    // Vec3::new(0.0, 0.0, (z_start + range.min.z - 1) as f32);
+    /* if (origin.x < 0.0 || origin.y < 0.0) {
+        return;
+    } */
+    // let ori = if faces_forward { Vec3::new(u, v, norm) } else { Vec3::new(uv.y,
+    // uv.x, -norm) };
+    let dim = uv.map2(dim.map(|e| e as f32), |e, f| e * f);
+    let (dim, norm) = if faces_forward {
+        (dim, norm)
+    } else {
+        (Vec2::new(dim.y, dim.x), -norm)
+    };
+    // let (uv, norm, origin) = if faces_forward { (uv, norm, origin) } else {
+    // (Vec2::new(uv.y, uv.x), -norm, origin) }; let (uv, norm, origin) = if
+    // faces_forward { (uv, norm, origin) } else { (Vec2::new(uv.y, uv.x), -norm,
+    // origin/* - norm*/) }; let origin = Vec3::new(origin.x as f32., origin.y
+    // as f32, (origin.z + z_start) as f32); let norm = norm.map(|e| e as f32);
+    Quad::new(
+        ShadowVertex::new(origin, norm),
+        ShadowVertex::new(origin + dim.x, norm),
+        ShadowVertex::new(origin + dim.x + dim.y, norm),
+        ShadowVertex::new(origin + dim.y, norm),
+    )
+}
+
+fn should_draw_greedy(
+    pos: Vec3<usize>,
+    draw_delta: Vec3<i32>,
+    delta: Vec3<i32>,
+    /* depth, min_depth, max_depth, */ flat_get: impl Fn(Vec3<i32>) -> Block,
+) -> Option<bool> {
+    let pos = pos.map(|e| e as i32) + draw_delta; // - delta;
+    //
+    /* if (depth as isize) <= min_depth {
+        // let to = flat_get(pos).is_opaque();
+        debug_assert!(depth <= max_depth);
+        /* if depth >= max_depth - 1 {
+            let from = flat_get(pos - delta).is_opaque();
+        } else {
+            None
+        } */
+        if flat_get(pos + delta).is_opaque() {
+            Some(true)
+        } else {
+            None
+        }
+    } else */
+    {
+        let from = flat_get(pos - delta).is_opaque(); // map(|v| v.is_opaque()).unwrap_or(false);
+        //
+        /* if depth > max_depth {
+            if from {
+                // Backward-facing
+                Some(false)
+            } else {
+                None
+            }
+        } else */
+        {
+            let to = flat_get(pos).is_opaque(); //map(|v| v.is_opaque()).unwrap_or(false);
+            if from == to {
+                None
+            } else {
+                // If going from transparent to opaque, forward facing; otherwise, backward
+                // facing.
+                Some(from)
+            }
+        }
+    }
 }
 
 /*

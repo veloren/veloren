@@ -20,13 +20,20 @@ where
      * &'a V: BaseVol<Vox=Cell>, */
 {
     type Pipeline = FigurePipeline;
+    type ShadowPipeline = FigurePipeline;
     type Supplement = (Vec3<f32>, Vec3<f32>);
     type TranslucentPipeline = FigurePipeline;
+
+    // TODO: Make sprites cast shadows?
 
     fn generate_mesh(
         &'a self,
         (offs, scale): Self::Supplement,
-    ) -> (Mesh<Self::Pipeline>, Mesh<Self::TranslucentPipeline>) {
+    ) -> (
+        Mesh<Self::Pipeline>,
+        Mesh<Self::TranslucentPipeline>,
+        Mesh<Self::ShadowPipeline>,
+    ) {
         let mut mesh = Mesh::new();
 
         let vol_iter = (self.lower_bound().x..self.upper_bound().x)
@@ -74,7 +81,7 @@ where
             }
         }
 
-        (mesh, Mesh::new())
+        (mesh, Mesh::new(), Mesh::new())
     }
 }
 
@@ -86,13 +93,20 @@ where
      * &'a V: BaseVol<Vox=Cell>, */
 {
     type Pipeline = SpritePipeline;
+    type ShadowPipeline = SpritePipeline;
     type Supplement = (Vec3<f32>, Vec3<f32>);
     type TranslucentPipeline = SpritePipeline;
+
+    // TODO: Make sprites cast shadows?
 
     fn generate_mesh(
         &'a self,
         (offs, scale): Self::Supplement,
-    ) -> (Mesh<Self::Pipeline>, Mesh<Self::TranslucentPipeline>) {
+    ) -> (
+        Mesh<Self::Pipeline>,
+        Mesh<Self::TranslucentPipeline>,
+        Mesh<Self::ShadowPipeline>,
+    ) {
         let mut mesh = Mesh::new();
 
         let vol_iter = (self.lower_bound().x..self.upper_bound().x)
@@ -139,7 +153,7 @@ where
             }
         }
 
-        (mesh, Mesh::new())
+        (mesh, Mesh::new(), Mesh::new())
     }
 }
 

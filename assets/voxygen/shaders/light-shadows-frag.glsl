@@ -26,7 +26,7 @@
 // Currently, we only need lights for the light position
 #include <light.glsl>
 
-// in vec3 FragPos; // FragPos from GS (output per emitvertex)
+in vec3 FragPos; // FragPos from GS (output per emitvertex)
 // flat in int FragLayer;
 
 void main()
@@ -35,14 +35,14 @@ void main()
     // distance.
     /*if (FragLayer > 0) */{
         // get distance between fragment and light source
-        // float lightDistance = length(FragPos - lights[((FragLayer - 1) & 31)].light_pos.xyz);
+        // float lightDistance = length(FragPos - lights[((/*FragLayer*/1 - 1) & 31)].light_pos.xyz);
 
-        // map to [0;1] range by dividing by far_plane
-        // lightDistance = lightDistance  / /*FragPos.w;*/screen_res.w;
+        // // map to [0;1] range by dividing by far_plane
+        // lightDistance = lightDistance  / screen_res.w;//FragPos.w;//screen_res.w;
 
-        // write this as modified depth
-        // lightDistance =  -1000.0 / (lightDistance + 10000.0);
-        // lightDistance /= screen_res.w;
+        // // write this as modified depth
+        // // lightDistance =  -1000.0 / (lightDistance + 10000.0);
+        // // lightDistance /= screen_res.w;
         // gl_FragDepth = lightDistance;//  / /*FragPos.w;*/screen_res.w;//-1000.0 / (lightDistance + 1000.0);//lightDistance
     }
 }

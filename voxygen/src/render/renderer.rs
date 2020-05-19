@@ -388,7 +388,7 @@ impl Renderer {
         ),
         RenderError,
     > {
-        let levels = 1;
+        let levels = 1; //10;
 
         /* let color_cty = <<TgtColorFmt as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped
                 >::get_channel_type();
@@ -420,7 +420,7 @@ impl Renderer {
         let shadow_tex = factory
             .create_texture(
                 gfx::texture::Kind::/*CubeArray*/Cube(size / 4 /* size * 2*//*, 32 */),
-                1 as gfx::texture::Level,
+                levels as gfx::texture::Level,
                 gfx::memory::Bind::SHADER_RESOURCE | gfx::memory::Bind::DEPTH_STENCIL,
                 gfx::memory::Usage::Data,
                 Some(depth_stencil_cty),
@@ -431,18 +431,21 @@ impl Renderer {
 
         let mut sampler_info = gfx::texture::SamplerInfo::new(
             gfx::texture::FilterMethod::Bilinear,
-            gfx::texture::WrapMode::Border,
+            gfx::texture::WrapMode::Clamp, //Border,
         );
-        sampler_info.comparison = Some(Comparison::LessEqual);
+        sampler_info.comparison = Some(Comparison::Less);
+        // sampler_info.lod_bias = (-3.0).into();
+        // sampler_info.lod_range = (1.into(), (levels - 1).into());
         sampler_info.border = [1.0; 4].into();
         let shadow_tex_sampler = factory.create_sampler(sampler_info);
-        /* let tgt_shadow_view = factory.view_texture_as_depth_stencil::<ShadowDepthStencilFmt>(
+        let tgt_shadow_view = factory.view_texture_as_depth_stencil::<ShadowDepthStencilFmt>(
             &shadow_tex,
-            0,
-            Some(1),
+            0,    // levels,
+            None, // Some(1),
             gfx::texture::DepthStencilFlags::empty(),
-        )?; */
-        let tgt_shadow_view = factory.view_texture_as_depth_stencil_trivial(&shadow_tex)?;
+        )?;
+        // let tgt_shadow_view =
+        // factory.view_texture_as_depth_stencil_trivial(&shadow_tex)?;
         /* let tgt_shadow_res = factory.view_texture_as_shader_resource::<TgtColorFmt>(
             &tgt_color_tex,
             (0, levels - 1),
@@ -879,6 +882,7 @@ impl Renderer {
     /// frame.
     pub fn render_terrain_chunk(
         &mut self,
+        // model: &Model<shadow::ShadowPipeline>,
         model: &Model<terrain::TerrainPipeline>,
         globals: &Consts<Globals>,
         locals: &Consts<terrain::Locals>,
@@ -921,7 +925,7 @@ impl Renderer {
     /// Queue the rendering of the player silhouette in the upcoming frame.
     pub fn render_shadow(
         &mut self,
-        model: &Model<terrain::TerrainPipeline>,
+        model: &Model<shadow::ShadowPipeline>,
         globals: &Consts<Globals>,
         terrain_locals: &Consts<terrain::Locals>,
         locals: &Consts<shadow::Locals>,
@@ -1506,14 +1510,14 @@ fn create_shadow_pipeline<P: gfx::pso::PipelineInit>(
                 // Second-depth shadow mapping: should help reduce z-fighting provided all objects
                 // are "watertight" (every triangle edge is shared with at most one other
                 // triangle); this *should* be true for Veloren.
-                cull_face: /*gfx::state::CullFace::Nothing*/match cull_face {
-                    gfx::state::CullFace::Front => gfx::state::CullFace::Back,
-                    gfx::state::CullFace::Back => gfx::state::CullFace::Front,
-                    gfx::state::CullFace::Nothing => gfx::state::CullFace::Nothing,
-                },
+                cull_face, /*gfx::state::CullFace::Nothing*//*match cull_face {
+                               gfx::state::CullFace::Front => gfx::state::CullFace::Back,
+                               gfx::state::CullFace::Back => gfx::state::CullFace::Front,
+                               gfx::state::CullFace::Nothing => gfx::state::CullFace::Nothing,
+                           }*/
                 method: gfx::state::RasterMethod::Fill,
-                offset: None,//Some(gfx::state::Offset(4, /*10*/-10)),
-                samples:None,//Some(gfx::state::MultiSample),
+                offset: None,  //Some(gfx::state::Offset(2, 10)),
+                samples: None, // Some(gfx::state::MultiSample),
             },
             pipe,
         )?,
