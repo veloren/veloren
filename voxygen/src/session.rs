@@ -175,7 +175,14 @@ impl PlayState for SessionState {
                     .map(|cs| cs.is_aimed())
                     .unwrap_or(false);
 
-                (is_aiming, if is_aiming { Vec3::unit_z() * 0.025 } else { Vec3::zero() })
+                (
+                    is_aiming,
+                    if is_aiming {
+                        Vec3::unit_z() * 0.025
+                    } else {
+                        Vec3::zero()
+                    },
+                )
             };
 
             let cam_dir: Vec3<f32> = Vec3::from(view_mat.inverted() * -Vec4::unit_z());
