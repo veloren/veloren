@@ -193,12 +193,17 @@ impl<'a> Widget for Social<'a> {
             .color(TEXT_COLOR)
             .set(ids.online_title, ui);
             for (i, (_, player_alias)) in self.client.player_list.iter().enumerate() {
-                Text::new(player_alias)
-                    .down(3.0)
-                    .font_size(self.fonts.cyri.scale(15))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(ids.player_names[i], ui);
+                Text::new(&format!(
+                    "({}) {} Lvl {}",
+                    player_alias,
+                    self.client.character_list.characters[i].character.alias,
+                    self.client.character_list.characters[i].level
+                ))
+                .down(3.0)
+                .font_size(self.fonts.cyri.scale(15))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(ids.player_names[i], ui);
             }
         }
 
