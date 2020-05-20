@@ -20,10 +20,17 @@ pub struct ServerInfo {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum PlayerListUpdate {
-    Init(HashMap<u64, String>),
-    Add(u64, String),
+    Init(HashMap<u64, PlayerInfo>),
+    Add(u64, PlayerInfo),
     Remove(u64),
     Alias(u64, String),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlayerInfo {
+    pub player_alias: String,
+    pub character_name: String,
+    pub character_level: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
