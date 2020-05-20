@@ -479,7 +479,7 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
 
         // x (u = y, v = z)
         greedy_mesh_cross_section(
-            Vec3::new(y_size, z_size, x_size),
+            Vec3::new(y_size, z_size, x_size - 1),
             |pos| {
                 should_draw_greedy(
                     Vec3::new(pos.z, pos.x, pos.y),
@@ -502,12 +502,12 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
 
         // y (u = z, v = x)
         greedy_mesh_cross_section(
-            Vec3::new(z_size, x_size, y_size),
+            Vec3::new(z_size, x_size, y_size - 1),
             |pos| {
                 should_draw_greedy(
                     Vec3::new(pos.y, pos.z, pos.x),
                     draw_delta,
-                    Vec3::unit_y(), /* , pos.z, 0, y_size */
+                    Vec3::unit_y(),
                     |pos| flat_get(pos),
                 )
             },
@@ -527,12 +527,18 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
         greedy_mesh_cross_section(
             Vec3::new(x_size, y_size, z_size),
             |pos| {
-                should_draw_greedy(
-                    Vec3::new(pos.x, pos.y, pos.z),
-                    draw_delta,
-                    Vec3::unit_z(), /* , pos.z, 0, z_size */
-                    |pos| flat_get(pos),
-                )
+                if pos.z == 0 {
+                    let pos = pos.map(|e| e as i32) + draw_delta; // - delta;
+                    let to = flat_get(pos).is_opaque(); //map(|v| v.is_opaque()).unwrap_or(false);
+                    if to { Some(false) } else { None }
+                } else {
+                    should_draw_greedy(
+                        Vec3::new(pos.x, pos.y, pos.z),
+                        draw_delta,
+                        Vec3::unit_z(),
+                        |pos| flat_get(pos),
+                    )
+                }
             },
             |pos, dim, faces_forward| {
                 shadow_mesh.push_quad(create_quad_greedy(
@@ -647,29 +653,13 @@ fn create_quad_greedy(
     norm: Vec3<f32>,
     faces_forward: bool,
 ) -> Quad<ShadowPipeline> {
-    let origin = origin.map(|e| e as i32) + mesh_delta;
-    // let origin = (uv.x * origin.x + uv.y * origin.y + norm * origin.z) +
-    // Vec3::new(0, 0, z_start + range.min.z - 1);//Vec3::new(-1, -1, z_start +
-    // range.min.z - 1);
-    let origin = origin.map(|e| e as f32); // + orientation.z;
-    // let origin = uv.x * origin.x + uv.y * origin.y + norm * origin.z +
-    // Vec3::new(0.0, 0.0, (z_start + range.min.z - 1) as f32);
-    /* if (origin.x < 0.0 || origin.y < 0.0) {
-        return;
-    } */
-    // let ori = if faces_forward { Vec3::new(u, v, norm) } else { Vec3::new(uv.y,
-    // uv.x, -norm) };
+    let origin = (origin.map(|e| e as i32) + mesh_delta).map(|e| e as f32);
     let dim = uv.map2(dim.map(|e| e as f32), |e, f| e * f);
     let (dim, norm) = if faces_forward {
         (dim, norm)
     } else {
         (Vec2::new(dim.y, dim.x), -norm)
     };
-    // let (uv, norm, origin) = if faces_forward { (uv, norm, origin) } else {
-    // (Vec2::new(uv.y, uv.x), -norm, origin) }; let (uv, norm, origin) = if
-    // faces_forward { (uv, norm, origin) } else { (Vec2::new(uv.y, uv.x), -norm,
-    // origin/* - norm*/) }; let origin = Vec3::new(origin.x as f32., origin.y
-    // as f32, (origin.z + z_start) as f32); let norm = norm.map(|e| e as f32);
     Quad::new(
         ShadowVertex::new(origin, norm),
         ShadowVertex::new(origin + dim.x, norm),
@@ -682,45 +672,17 @@ fn should_draw_greedy(
     pos: Vec3<usize>,
     draw_delta: Vec3<i32>,
     delta: Vec3<i32>,
-    /* depth, min_depth, max_depth, */ flat_get: impl Fn(Vec3<i32>) -> Block,
+    flat_get: impl Fn(Vec3<i32>) -> Block,
 ) -> Option<bool> {
     let pos = pos.map(|e| e as i32) + draw_delta; // - delta;
-    //
-    /* if (depth as isize) <= min_depth {
-        // let to = flat_get(pos).is_opaque();
-        debug_assert!(depth <= max_depth);
-        /* if depth >= max_depth - 1 {
-            let from = flat_get(pos - delta).is_opaque();
-        } else {
-            None
-        } */
-        if flat_get(pos + delta).is_opaque() {
-            Some(true)
-        } else {
-            None
-        }
-    } else */
-    {
-        let from = flat_get(pos - delta).is_opaque(); // map(|v| v.is_opaque()).unwrap_or(false);
-        //
-        /* if depth > max_depth {
-            if from {
-                // Backward-facing
-                Some(false)
-            } else {
-                None
-            }
-        } else */
-        {
-            let to = flat_get(pos).is_opaque(); //map(|v| v.is_opaque()).unwrap_or(false);
-            if from == to {
-                None
-            } else {
-                // If going from transparent to opaque, forward facing; otherwise, backward
-                // facing.
-                Some(from)
-            }
-        }
+    let from = flat_get(pos - delta).is_opaque(); // map(|v| v.is_opaque()).unwrap_or(false);
+    let to = flat_get(pos).is_opaque(); //map(|v| v.is_opaque()).unwrap_or(false);
+    if from == to {
+        None
+    } else {
+        // If going from transparent to opaque, forward facing; otherwise, backward
+        // facing.
+        Some(from)
     }
 }
 

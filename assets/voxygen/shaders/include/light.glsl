@@ -74,9 +74,20 @@ float ShadowCalculation(uint lightIndex, vec3 fragToLight, /*float currentDepth*
     };
 
     float shadow = 0.0;
-    float bias   = -0.015;//-0.05;//-0.1;//0.0;//0.1
+    float bias   = 0.0;//-0.003;//-0.003;//-0.005;//0.001;//-1.0;//-0.001;//0.001;//0.003;//-0.05;//-0.1;//0.0;//0.1
+
+    {
+        float currentDepth = VectorToDepth(fragToLight);// + bias;
+
+        float visibility = texture(t_shadow_maps, vec4(fragToLight, currentDepth));// / (screen_res.w/* - screen_res.z*/)/*1.0 -bias*//*-(currentDepth - bias) / screen_res.w*//*-screen_res.w*/);
+        if (visibility == 1.0 || visibility == 0.0) {
+            return visibility;
+        }
+        // return visibility == 1.0 ? 1.0 : 0.0;
+    }
+
     int samples  = 20;
-    // float lightDistance = length(fragToLight);
+    float lightDistance = length(fragToLight);
     float viewDistance = length(cam_pos.xyz - fragPos);
     // float diskRadius = 0.00001;
     // float diskRadius = 1.0;
@@ -114,8 +125,8 @@ float ShadowCalculation(uint lightIndex, vec3 fragToLight, /*float currentDepth*
     // currentDepth /= screen_res.w;
     // float currentDepth = VectorToDepth(fragToLight) + bias;
 
-    // float visibility = texture(t_shadow_maps, vec4(fragToLight, 0.0), currentDepth);// / (screen_res.w/* - screen_res.z*/)/*1.0 -bias*//*-(currentDepth - bias) / screen_res.w*//*-screen_res.w*/);
-    // return visibility;
+    // float visibility = texture(t_shadow_maps, vec4(fragToLight, currentDepth));// / (screen_res.w/* - screen_res.z*/)/*1.0 -bias*//*-(currentDepth - bias) / screen_res.w*//*-screen_res.w*/);
+    // return visibility == 1.0 ? 1.0 : 0.0;
     return shadow;
 }
 #else
@@ -273,10 +284,10 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
 #endif
         vec3 direct_light = PI * color * strength * square_factor * light_reflection_factor(/*direct_norm_dir*/wnorm, /*cam_to_frag*/view_dir, direct_light_dir, k_d, k_s, alpha, voxel_lighting);
         float computed_shadow = ShadowCalculation(i, -difference, wpos/*, light_distance*/);
-        // directed_light += /*is_direct ? */max(computed_shadow, /*LIGHT_AMBIENCE*/0.0) * direct_light * square_factor/* : vec3(0.0)*/;
-        directed_light += is_direct ? mix(/*LIGHT_AMBIENCE*/0.0, 1.0, computed_shadow) * direct_light * square_factor : vec3(0.0);
+        directed_light += is_direct ? max(computed_shadow, /*LIGHT_AMBIENCE*/0.0) * direct_light * square_factor : vec3(0.0);
+        // directed_light += is_direct ? mix(LIGHT_AMBIENCE, 1.0, computed_shadow) * direct_light * square_factor : vec3(0.0);
         // ambient_light += is_direct ? vec3(0.0) : vec3(0.0); // direct_light * square_factor * LIGHT_AMBIENCE;
-        // ambient_light += direct_light * (1.0 - square_factor * LIGHT_AMBIENCE);
+        // ambient_light += is_direct ? direct_light * (1.0 - square_factor * LIGHT_AMBIENCE) : vec3(0.0);
 
         vec3 cam_light_diff = light_pos - focus_pos.xyz;
         float cam_distance_2 = dot(cam_light_diff, cam_light_diff);// + 0.0001;

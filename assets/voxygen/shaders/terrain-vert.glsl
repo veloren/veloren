@@ -48,8 +48,16 @@ void main() {
 	// f_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));
 	// f_pos.z -= min(32.0, 25.0 * pow(distance(focus_pos.xy, f_pos.xy) / view_distance.x, 20.0));
 
-	f_col = vec3((uvec3(v_col_light) >> uvec3(8, 16, 24)) & uvec3(0xFFu)) / 255.0;
+    // vec3 light_col = vec3(
+    //          hash(floor(vec4(f_pos.x, 0, 0, 0))),
+    //          hash(floor(vec4(0, f_pos.y, 0, 1))),
+    //          hash(floor(vec4(0, 0, f_pos.z, 2)))
+    //     );
 
+	// f_col = light_col;// f_col = vec3((uvec3(v_col_light) >> uvec3(8, 16, 24)) & uvec3(0xFFu)) / 255.0;
+	// f_light = 1.0;//float(v_col_light & 0x3Fu) / 64.0;
+	// f_ao = 1.0;//float((v_col_light >> 6u) & 3u) / 4.0;
+	f_col = f_col = vec3((uvec3(v_col_light) >> uvec3(8, 16, 24)) & uvec3(0xFFu)) / 255.0;
 	f_light = float(v_col_light & 0x3Fu) / 64.0;
 	f_ao = float((v_col_light >> 6u) & 3u) / 4.0;
 

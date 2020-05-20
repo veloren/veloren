@@ -1510,11 +1510,11 @@ fn create_shadow_pipeline<P: gfx::pso::PipelineInit>(
                 // Second-depth shadow mapping: should help reduce z-fighting provided all objects
                 // are "watertight" (every triangle edge is shared with at most one other
                 // triangle); this *should* be true for Veloren.
-                cull_face, /*gfx::state::CullFace::Nothing*//*match cull_face {
+                cull_face: /*gfx::state::CullFace::Nothing*/match cull_face {
                                gfx::state::CullFace::Front => gfx::state::CullFace::Back,
                                gfx::state::CullFace::Back => gfx::state::CullFace::Front,
                                gfx::state::CullFace::Nothing => gfx::state::CullFace::Nothing,
-                           }*/
+                           },
                 method: gfx::state::RasterMethod::Fill,
                 offset: None,  //Some(gfx::state::Offset(2, 10)),
                 samples: None, // Some(gfx::state::MultiSample),
