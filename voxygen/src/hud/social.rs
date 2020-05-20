@@ -194,10 +194,16 @@ impl<'a> Widget for Social<'a> {
             .set(ids.online_title, ui);
             for (i, (_, player_alias)) in self.client.player_list.iter().enumerate() {
                 Text::new(&format!(
-                    "({}) {} Lvl {}",
+                    "[{}] {} Lvl {}",
                     player_alias,
-                    self.client.character_list.characters[i].character.alias,
-                    self.client.character_list.characters[i].level
+                    match self.client.character_list.characters.get(i) {
+                        Some(s) => &s.character.alias,
+                        None => "<Unknown>",
+                    },
+                    match self.client.character_list.characters.get(i) {
+                        Some(s) => s.level.to_string(),
+                        None => "<Unknown>".to_string(),
+                    },
                 ))
                 .down(3.0)
                 .font_size(self.fonts.cyri.scale(15))
