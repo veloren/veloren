@@ -10,8 +10,8 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     msg::{
-        validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, PlayerListUpdate,
-        RequestStateError, ServerMsg, MAX_BYTES_CHAT_MSG,
+        validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, PlayerInfo,
+        PlayerListUpdate, RequestStateError, ServerMsg, MAX_BYTES_CHAT_MSG,
     },
     state::{BlockChange, Time},
     sync::Uid,
@@ -83,9 +83,15 @@ impl<'a> System<'a> for Sys {
         let mut new_chat_msgs = Vec::new();
 
         // Player list to send new players.
-        let player_list = (&uids, &players)
+        let player_list = (&uids, &players, &stats)
             .join()
-            .map(|(uid, player)| ((*uid).into(), player.alias.clone()))
+            .map(|(uid, player, stats)| {
+                ((*uid).into(), PlayerInfo {
+                    player_alias: player.alias.clone(),
+                    character_name: stats.name.clone(),
+                    character_level: stats.level.level(),
+                })
+            })
             .collect::<HashMap<_, _>>();
         // List of new players to update player lists of all clients.
         let mut new_players = Vec::new();
@@ -382,11 +388,15 @@ impl<'a> System<'a> for Sys {
         // Handle new players.
         // Tell all clients to add them to the player list.
         for entity in new_players {
-            if let (Some(uid), Some(player)) = (uids.get(entity), players.get(entity)) {
-                let msg = ServerMsg::PlayerListUpdate(PlayerListUpdate::Add(
-                    (*uid).into(),
-                    player.alias.clone(),
-                ));
+            if let (Some(uid), Some(player), Some(stats)) =
+                (uids.get(entity), players.get(entity), stats.get(entity))
+            {
+                let msg =
+                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Add((*uid).into(), PlayerInfo {
+                        player_alias: player.alias.clone(),
+                        character_name: stats.name.clone(),
+                        character_level: stats.level.level(), // TODO: stats.level.amount,
+                    }));
                 for client in (&mut clients).join().filter(|c| c.is_registered()) {
                     client.notify(msg.clone())
                 }
