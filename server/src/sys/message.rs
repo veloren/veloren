@@ -406,16 +406,22 @@ impl<'a> System<'a> for Sys {
                         } else {
                             let bubble = SpeechBubble::player_new(message.clone(), *time);
                             let _ = speech_bubbles.insert(entity, bubble);
-                            match stats.get(entity) {
-                                Some(stat) => {
-                                    if admins.get(entity).is_some() {
-                                        format!("[ADMIN][{}] {}", &stat.name, message)
-                                    } else {
-                                        format!("[{}] {}", &stat.name, message)
-                                    }
+                            format!(
+                                "{}[{}] {}: {}",
+                                match admins.get(entity) {
+                                    Some(_) => "[ADMIN]",
+                                    None => "",
                                 },
-                                None => format!("[<Unknown>] {}", message),
-                            }
+                                match players.get(entity) {
+                                    Some(player) => &player.alias,
+                                    None => "<Unknown>",
+                                },
+                                match stats.get(entity) {
+                                    Some(stat) => &stat.name,
+                                    None => "<Unknown>",
+                                },
+                                message
+                            )
                         }
                     } else {
                         message
