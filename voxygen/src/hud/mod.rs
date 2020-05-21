@@ -207,6 +207,11 @@ pub struct DebugInfo {
     pub num_figures_visible: u32,
 }
 
+pub struct HudInfo {
+    pub is_aiming: bool,
+    pub is_first_person: bool,
+}
+
 pub enum Event {
     SendMessage(String),
     AdjustMousePan(u32),
@@ -457,6 +462,7 @@ pub struct Hud {
     slot_manager: slots::SlotManager,
     hotbar: hotbar::State,
     events: Vec<Event>,
+    crosshair_opacity: f32,
 }
 
 impl Hud {
@@ -531,6 +537,7 @@ impl Hud {
             slot_manager,
             hotbar: hotbar::State::new(),
             events: Vec::new(),
+            crosshair_opacity: 0.0,
         }
     }
 
@@ -546,6 +553,7 @@ impl Hud {
         global_state: &GlobalState,
         debug_info: DebugInfo,
         dt: Duration,
+        info: HudInfo,
     ) -> Vec<Event> {
         let mut events = std::mem::replace(&mut self.events, Vec::new());
         let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
@@ -604,7 +612,14 @@ impl Hud {
                         .set(self.ids.death_bg, ui_widgets);
                 }
                 // Crosshair
-                if !self.show.help && !stats.is_dead {
+                let show_crosshair = (info.is_aiming || info.is_first_person) && !stats.is_dead;
+                self.crosshair_opacity = Lerp::lerp(
+                    self.crosshair_opacity,
+                    if show_crosshair { 1.0 } else { 0.0 },
+                    5.0 * dt.as_secs_f32(),
+                );
+
+                if !self.show.help {
                     Image::new(
                         // TODO: Do we want to match on this every frame?
                         match global_state.settings.gameplay.crosshair_type {
@@ -619,7 +634,7 @@ impl Hud {
                         1.0,
                         1.0,
                         1.0,
-                        global_state.settings.gameplay.crosshair_transp,
+                        self.crosshair_opacity * global_state.settings.gameplay.crosshair_transp,
                     )))
                     .set(self.ids.crosshair_outer, ui_widgets);
                     Image::new(self.imgs.crosshair_inner)
@@ -2338,6 +2353,7 @@ impl Hud {
         debug_info: DebugInfo,
         camera: &Camera,
         dt: Duration,
+        info: HudInfo,
     ) -> Vec<Event> {
         // conrod eats tabs. Un-eat a tabstop so tab completion can work
         if self.ui.ui.global_input().events().any(|event| {
@@ -2363,7 +2379,7 @@ impl Hud {
         if let Some(maybe_id) = self.to_focus.take() {
             self.ui.focus_widget(maybe_id);
         }
-        let events = self.update_layout(client, global_state, debug_info, dt);
+        let events = self.update_layout(client, global_state, debug_info, dt, info);
         let camera::Dependents {
             view_mat, proj_mat, ..
         } = camera.dependents();

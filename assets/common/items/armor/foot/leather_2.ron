@@ -1,0 +1,8 @@
+Item(
+    name: "Leather Boots",
+    description: "Boots made of simple leather",
+    kind: Armor(
+        kind: Foot(Leather2),
+        stats: (20),
+    ),
+)

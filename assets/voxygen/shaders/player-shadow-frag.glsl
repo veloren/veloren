@@ -44,8 +44,8 @@ uniform u_bones {
 out vec4 tgt_color;
 
 void main() {
-	float distance = distance(vec3(cam_pos), vec3(model_mat * vec4(vec3(0), 1))) - 2;
-		
+	float distance = distance(vec3(cam_pos), focus_pos.xyz) - 2;
+
 	float opacity = clamp(distance / distance_divider, 0, 1);
 
 	if(threshold_matrix[int(gl_FragCoord.x) % 4][int(gl_FragCoord.y) % 4] > opacity) {

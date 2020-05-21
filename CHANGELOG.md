@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added context-sensitive crosshair
+
+### Changed
+
+- Improved camera aiming
+
+### Removed
+
+## [0.6.0] - 2020-05-16
+
+### Added
+
 - Added music system
 - Added zoomable and rotatable minimap
 - Added rotating orientation marker to main-map
@@ -73,6 +85,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added tab completion in chat for player names and chat commands
 - Added server persistence for character stats
 - Added a popup when setting your character's waypoint
+- Added dungeon arenas
+- Added dungeon bosses and rare boss loot
+- Added 2 sets of armour. One Steel and one Leather.
+
 
 ### Changed
 
@@ -96,7 +112,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-## [0.5.0] - 2019-01-31
+## [0.5.0] - 2020-01-31
 
 ### Added
 
@@ -260,9 +276,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _0.1.0 was part of the legacy engine_
 
-[unreleased]: https://gitlab.com/veloren/veloren/compare?from=v0.5.0&to=master
-[0.0.5]: https://gitlab.com/veloren/veloren/compare?from=v0.4.0&to=v0.5.0
-[0.0.4]: https://gitlab.com/veloren/veloren/compare?from=v0.3.0&to=v0.4.0
-[0.0.3]: https://gitlab.com/veloren/veloren/compare?from=v0.2.0&to=v0.3.0
-[0.0.2]: https://gitlab.com/veloren/veloren/compare?from=7d17f8b67a2a6d5aa00730f028cedc430fd5075a&to=v0.2.0
-[0.0.1]: https://gitlab.com/veloren/game
+[unreleased]: https://gitlab.com/veloren/veloren/compare?from=v0.6.0&to=master
+[0.6.0]: https://gitlab.com/veloren/veloren/compare?from=v0.5.0&to=v0.6.0
+[0.5.0]: https://gitlab.com/veloren/veloren/compare?from=v0.4.0&to=v0.5.0
+[0.4.0]: https://gitlab.com/veloren/veloren/compare?from=v0.3.0&to=v0.4.0
+[0.3.0]: https://gitlab.com/veloren/veloren/compare?from=v0.2.0&to=v0.3.0
+[0.2.0]: https://gitlab.com/veloren/veloren/compare?from=7d17f8b67a2a6d5aa00730f028cedc430fd5075a&to=v0.2.0
+[0.1.0]: https://gitlab.com/veloren/game

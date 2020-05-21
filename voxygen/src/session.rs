@@ -1,6 +1,6 @@
 use crate::{
     ecs::MyEntity,
-    hud::{DebugInfo, Event as HudEvent, Hud, PressBehavior},
+    hud::{DebugInfo, Event as HudEvent, Hud, HudInfo, PressBehavior},
     i18n::{i18n_asset_key, VoxygenLocalization},
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
@@ -170,6 +170,25 @@ impl PlayState for SessionState {
                 _ => cam_pos, // Should never happen, but a safe fallback
             };
 
+            let (is_aiming, aim_dir_offset) = {
+                let client = self.client.borrow();
+                let is_aiming = client
+                    .state()
+                    .read_storage::<comp::CharacterState>()
+                    .get(client.entity())
+                    .map(|cs| cs.is_aimed())
+                    .unwrap_or(false);
+
+                (
+                    is_aiming,
+                    if is_aiming {
+                        Vec3::unit_z() * 0.025
+                    } else {
+                        Vec3::zero()
+                    },
+                )
+            };
+
             let cam_dir: Vec3<f32> = Vec3::from(view_mat.inverted() * -Vec4::unit_z());
 
             // Check to see whether we're aiming at anything
@@ -184,22 +203,17 @@ impl PlayState for SessionState {
 
                 let cam_dist = cam_ray.0;
 
-                if let Ok(Some(_)) = cam_ray.1 {
-                    // The ray hit something, is it within pickup range?
-                    let select_pos = if player_pos.distance_squared(cam_pos + cam_dir * cam_dist)
-                        <= MAX_PICKUP_RANGE_SQR
+                match cam_ray.1 {
+                    Ok(Some(_))
+                        if player_pos.distance_squared(cam_pos + cam_dir * cam_dist)
+                            <= MAX_PICKUP_RANGE_SQR =>
                     {
-                        Some((cam_pos + cam_dir * cam_dist).map(|e| e.floor() as i32))
-                    } else {
-                        None
-                    };
-
-                    (
-                        Some((cam_pos + cam_dir * (cam_dist - 0.01)).map(|e| e.floor() as i32)),
-                        select_pos,
-                    )
-                } else {
-                    (None, None)
+                        (
+                            Some((cam_pos + cam_dir * (cam_dist - 0.01)).map(|e| e.floor() as i32)),
+                            Some((cam_pos + cam_dir * cam_dist).map(|e| e.floor() as i32)),
+                        )
+                    },
+                    _ => (None, None),
                 }
             };
 
@@ -227,7 +241,7 @@ impl PlayState for SessionState {
                     },
                     Event::InputUpdate(GameInput::Primary, state) => {
                         // Check the existence of CanBuild component. If it's here, use LMB to
-                        // place blocks, if not, use it to attack
+                        // break blocks, if not, use it to attack
                         let mut client = self.client.borrow_mut();
                         if state
                             && client
@@ -236,8 +250,8 @@ impl PlayState for SessionState {
                                 .get(client.entity())
                                 .is_some()
                         {
-                            if let Some(build_pos) = build_pos {
-                                client.place_block(build_pos, self.selected_block);
+                            if let Some(select_pos) = select_pos {
+                                client.remove_block(select_pos);
                             }
                         } else {
                             self.inputs.primary.set_state(state);
@@ -256,8 +270,8 @@ impl PlayState for SessionState {
                                 .get(client.entity())
                                 .is_some()
                         {
-                            if let Some(select_pos) = select_pos {
-                                client.remove_block(select_pos);
+                            if let Some(build_pos) = build_pos {
+                                client.place_block(build_pos, self.selected_block);
                             }
                         } else {
                             self.inputs.secondary.set_state(state);
@@ -444,7 +458,7 @@ impl PlayState for SessionState {
 
             if !free_look {
                 ori = self.scene.camera().get_orientation();
-                self.inputs.look_dir = Dir::from_unnormalized(cam_dir).unwrap();
+                self.inputs.look_dir = Dir::from_unnormalized(cam_dir + aim_dir_offset).unwrap();
             }
             // Calculate the movement input vector of the player from the current key
             // presses and the camera direction.
@@ -520,6 +534,13 @@ impl PlayState for SessionState {
                 },
                 &self.scene.camera(),
                 clock.get_last_delta(),
+                HudInfo {
+                    is_aiming,
+                    is_first_person: matches!(
+                        self.scene.camera().get_mode(),
+                        camera::CameraMode::FirstPerson
+                    ),
+                },
             );
 
             // Look for changes in the localization files
@@ -762,6 +783,7 @@ impl PlayState for SessionState {
                         .graphics
                         .figure_lod_render_distance
                         as f32,
+                    is_aiming,
                 };
 
                 // Runs if either in a multiplayer server or the singleplayer server is unpaused

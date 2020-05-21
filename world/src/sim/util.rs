@@ -25,7 +25,7 @@ pub fn map_edge_factor(posi: usize) -> f32 {
 
 /// Computes the cumulative distribution function of the weighted sum of k
 /// independent, uniformly distributed random variables between 0 and 1.  For
-/// each variable i, we use weights[i] as the weight to give samples[i] (the
+/// each variable i, we use `weights[i]` as the weight to give `samples[i]` (the
 /// weights should all be positive).
 ///
 /// If the precondition is met, the distribution of the result of calling this
@@ -37,23 +37,26 @@ pub fn map_edge_factor(posi: usize) -> f32 {
 ///
 /// NOTE:
 ///
-/// Per [1], the problem of determing the CDF of
+/// Per [[1]], the problem of determing the CDF of
 /// the sum of uniformly distributed random variables over *different* ranges is
 /// considerably more complicated than it is for the same-range case.
 /// Fortunately, it also provides a reference to [2], which contains a complete
 /// derivation of an exact rule for the density function for this case.  The CDF
-/// is just the integral of the cumulative distribution function [3],
+/// is just the integral of the cumulative distribution function [[3]],
 /// which we use to convert this into a CDF formula.
 ///
 /// This allows us to sum weighted, uniform, independent random variables.
 ///
 /// At some point, we should probably contribute this back to stats-rs.
 ///
-/// 1. https://www.r-bloggers.com/sums-of-random-variables/,
+/// 1. [https://www.r-bloggers.com/sums-of-random-variables/][1],
 /// 2. Sadooghi-Alvandi, S., A. Nematollahi, & R. Habibi, 2009.
 ///    On the Distribution of the Sum of Independent Uniform Random Variables.
 ///    Statistical Papers, 50, 171-175.
-/// 3. hhttps://en.wikipedia.org/wiki/Cumulative_distribution_function
+/// 3. [https://en.wikipedia.org/wiki/Cumulative_distribution_function][3]
+///
+/// [1]: https://www.r-bloggers.com/sums-of-random-variables/
+/// [3]: https://en.wikipedia.org/wiki/Cumulative_distribution_function
 pub fn cdf_irwin_hall<const N: usize>(weights: &[f32; N], samples: [f32; N]) -> f32 {
     // Let J_k = {(j_1, ... , j_k) : 1 ≤ j_1 < j_2 < ··· < j_k ≤ N }.
     //

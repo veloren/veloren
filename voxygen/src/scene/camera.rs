@@ -169,9 +169,10 @@ impl Camera {
     pub fn zoom_switch(&mut self, delta: f32) {
         if delta > 0_f32 || self.mode != CameraMode::FirstPerson {
             let t = self.tgt_dist + delta;
+            const MIN_THIRD_PERSON: f32 = 2.35;
             match self.mode {
                 CameraMode::ThirdPerson => {
-                    if t < 1_f32 {
+                    if t < MIN_THIRD_PERSON {
                         self.set_mode(CameraMode::FirstPerson);
                     } else {
                         self.tgt_dist = t;
@@ -179,16 +180,16 @@ impl Camera {
                 },
                 CameraMode::FirstPerson => {
                     self.set_mode(CameraMode::ThirdPerson);
-                    self.tgt_dist = 1_f32;
+                    self.tgt_dist = MIN_THIRD_PERSON;
                 },
             }
         }
     }
 
-    /// Get the distance of the camera from the target
-    pub fn get_distance(&self) -> f32 { self.tgt_dist }
+    /// Get the distance of the camera from the focus
+    pub fn get_distance(&self) -> f32 { self.dist }
 
-    /// Set the distance of the camera from the target (i.e., zoom).
+    /// Set the distance of the camera from the focus (i.e., zoom).
     pub fn set_distance(&mut self, dist: f32) { self.tgt_dist = dist; }
 
     pub fn update(&mut self, time: f64, dt: f32, smoothing_enabled: bool) {
@@ -198,16 +199,33 @@ impl Camera {
             self.dist = f32::lerp(
                 self.dist,
                 self.tgt_dist,
-                (delta as f32) / self.interp_time(),
+                0.65 * (delta as f32) / self.interp_time(),
             );
         }
 
-        if (self.focus - self.tgt_focus).magnitude() > 0.01 {
-            self.focus = Vec3::lerp(
+        if (self.focus - self.tgt_focus).magnitude_squared() > 0.001 {
+            let lerped_focus = Lerp::lerp(
                 self.focus,
                 self.tgt_focus,
-                (delta as f32) / self.interp_time(),
+                (delta as f32) / self.interp_time()
+                    * if matches!(self.mode, CameraMode::FirstPerson) {
+                        2.0
+                    } else {
+                        1.0
+                    },
             );
+
+            // Snap when close enough in x/y, but lerp otherwise
+            if (self.focus.xy() - self.tgt_focus.xy()).magnitude_squared() > 2.0f32.powf(2.0) {
+                self.focus.x = lerped_focus.x;
+                self.focus.y = lerped_focus.y;
+            } else {
+                self.focus.x = self.tgt_focus.x;
+                self.focus.y = self.tgt_focus.y;
+            }
+
+            // Always lerp in z
+            self.focus.z = lerped_focus.z;
         }
 
         let lerp_angle = |a: f32, b: f32, rate: f32| {
@@ -281,5 +299,13 @@ impl Camera {
     }
 
     /// Get the mode of the camera
-    pub fn get_mode(&self) -> CameraMode { self.mode }
+    pub fn get_mode(&self) -> CameraMode {
+        // Perfom a bit of a trick... don't report first-person until the camera has
+        // lerped close enough to the player.
+        match self.mode {
+            CameraMode::FirstPerson if self.dist < 0.5 => CameraMode::FirstPerson,
+            CameraMode::FirstPerson => CameraMode::ThirdPerson,
+            mode => mode,
+        }
+    }
 }

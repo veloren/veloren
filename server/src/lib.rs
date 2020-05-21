@@ -94,6 +94,12 @@ impl Server {
             .insert(AuthProvider::new(settings.auth_server_address.clone()));
         state.ecs_mut().insert(Tick(0));
         state.ecs_mut().insert(ChunkGenerator::new());
+        state.ecs_mut().insert(persistence::stats::Updater::new(
+            settings.persistence_db_dir.clone(),
+        ));
+        state.ecs_mut().insert(crate::settings::PersistenceDBDir(
+            settings.persistence_db_dir.clone(),
+        ));
 
         // System timers for performance monitoring
         state.ecs_mut().insert(sys::EntitySyncTimer::default());
@@ -117,9 +123,6 @@ impl Server {
         // Server-only components
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
-        state.ecs_mut().insert(crate::settings::PersistenceDBDir(
-            settings.persistence_db_dir.clone(),
-        ));
 
         #[cfg(feature = "worldgen")]
         let world = World::generate(settings.world_seed, WorldOpts {

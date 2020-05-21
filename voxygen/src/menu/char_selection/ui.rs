@@ -891,30 +891,58 @@ impl CharSelectionUi {
                     to_select = true;
                 }
                 // Create Button
-                if Button::image(self.imgs.button)
+                let create_button = Button::image(self.imgs.button)
                     .bottom_right_with_margins_on(ui_widgets.window, 10.0, 10.0)
                     .w_h(150.0, 40.0)
-                    .hover_image(self.imgs.button_hover)
-                    .press_image(self.imgs.button_press)
+                    .hover_image(if *name != "Character Name" && *name != "" {
+                        self.imgs.button_hover
+                    } else {
+                        self.imgs.button
+                    })
+                    .press_image(if *name != "Character Name" && *name != "" {
+                        self.imgs.button_press
+                    } else {
+                        self.imgs.button
+                    })
                     .label(&self.voxygen_i18n.get("common.create"))
                     .label_font_id(self.fonts.cyri.conrod_id)
-                    .label_color(
-                        /* if self.mode { TEXT_COLOR } else { */ TEXT_COLOR, /* ,  } */
-                    )
+                    .label_color(if *name != "Character Name" && *name != "" {
+                        TEXT_COLOR
+                    } else {
+                        TEXT_COLOR_2
+                    })
                     .label_font_size(self.fonts.cyri.scale(20))
-                    .label_y(conrod_core::position::Relative::Scalar(3.0))
-                    .set(self.ids.create_button, ui_widgets)
-                    .was_clicked()
-                {
-                    self.info_content = InfoContent::CreatingCharacter;
+                    .label_y(conrod_core::position::Relative::Scalar(3.0));
 
-                    events.push(Event::AddCharacter {
-                        alias: name.clone(),
-                        tool: tool.map(|tool| tool.to_string()),
-                        body: comp::Body::Humanoid(body.clone()),
-                    });
+                if *name == "Character Name" || *name == "" {
+                    //TODO: We need a server side list of disallowed names and certain naming rules
+                    if create_button
+                        .with_tooltip(
+                            tooltip_manager,
+                            &self.voxygen_i18n.get("char_selection.create_info_name"),
+                            "",
+                            &tooltip_human,
+                        )
+                        .bottom_offset(55.0)
+                        .x_offset(-10.0)
+                        .set(self.ids.create_button, ui_widgets)
+                        .was_clicked()
+                    {}
+                } else {
+                    if create_button
+                        .set(self.ids.create_button, ui_widgets)
+                        .was_clicked()
+                    {
+                        self.info_content = InfoContent::CreatingCharacter;
 
-                    to_select = true;
+                        events.push(Event::AddCharacter {
+                            alias: name.clone(),
+                            tool: tool.map(|tool| tool.to_string()),
+                            body: comp::Body::Humanoid(body.clone()),
+                        });
+
+                        to_select = true;
+                    }
                 }
                 // Character Name Input
                 Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))

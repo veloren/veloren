@@ -95,6 +95,7 @@ pub struct SceneData<'a> {
     pub mouse_smoothing: bool,
     pub sprite_render_distance: f32,
     pub figure_lod_render_distance: f32,
+    pub is_aiming: bool,
 }
 
 impl Scene {
@@ -220,7 +221,8 @@ impl Scene {
         let is_running = ecs
             .read_storage::<comp::Vel>()
             .get(scene_data.player_entity)
-            .map(|v| v.0.magnitude_squared() > RUNNING_THRESHOLD.powi(2));
+            .map(|v| v.0.magnitude_squared() > RUNNING_THRESHOLD.powi(2))
+            .unwrap_or(false);
 
         let on_ground = ecs
             .read_storage::<comp::PhysicsState>()
@@ -251,18 +253,18 @@ impl Scene {
             CameraMode::FirstPerson => {
                 if player_rolling {
                     player_scale * 0.8
-                } else if is_running.unwrap_or(false) && on_ground.unwrap_or(false) {
-                    player_scale * 1.6 + (scene_data.state.get_time() as f32 * 17.0).sin() * 0.05
+                } else if is_running && on_ground.unwrap_or(false) {
+                    player_scale * 1.65 + (scene_data.state.get_time() as f32 * 17.0).sin() * 0.05
                 } else {
-                    player_scale * 1.6
+                    player_scale * 1.65
                 }
             },
-            CameraMode::ThirdPerson => 1.2,
+            CameraMode::ThirdPerson if scene_data.is_aiming => player_scale * 2.1,
+            CameraMode::ThirdPerson => player_scale * 1.65,
         };
 
-        self.camera.set_focus_pos(
-            player_pos + Vec3::unit_z() * (up + dist * 0.15 - tilt.min(0.0) * dist * 0.4),
-        );
+        self.camera
+            .set_focus_pos(player_pos + Vec3::unit_z() * (up - tilt.min(0.0).sin() * dist * 0.6));
 
         // Tick camera for interpolation.
         self.camera.update(

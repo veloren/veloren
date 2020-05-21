@@ -1,6 +1,6 @@
 [package]
 name = "veloren-client"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2018"
 
