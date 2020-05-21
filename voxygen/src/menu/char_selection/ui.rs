@@ -894,19 +894,19 @@ impl CharSelectionUi {
                 let create_button = Button::image(self.imgs.button)
                     .bottom_right_with_margins_on(ui_widgets.window, 10.0, 10.0)
                     .w_h(150.0, 40.0)
-                    .hover_image(if *name != "Character Name" {
+                    .hover_image(if *name != "Character Name" && *name != "" {
                         self.imgs.button_hover
                     } else {
                         self.imgs.button
                     })
-                    .press_image(if *name != "Character Name" {
+                    .press_image(if *name != "Character Name" && *name != "" {
                         self.imgs.button_press
                     } else {
                         self.imgs.button
                     })
                     .label(&self.voxygen_i18n.get("common.create"))
                     .label_font_id(self.fonts.cyri.conrod_id)
-                    .label_color(if *name != "Character Name" {
+                    .label_color(if *name != "Character Name" && *name != "" {
                         TEXT_COLOR
                     } else {
                         TEXT_COLOR_2
@@ -914,7 +914,7 @@ impl CharSelectionUi {
                     .label_font_size(self.fonts.cyri.scale(20))
                     .label_y(conrod_core::position::Relative::Scalar(3.0));
 
-                if *name == "Character Name" {
+                if *name == "Character Name" || *name == "" {
                     //TODO: We need a server side list of disallowed names and certain naming rules
                     if create_button
                         .with_tooltip(
