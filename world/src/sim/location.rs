@@ -1,3 +1,5 @@
+use core::hash::BuildHasherDefault;
+use fxhash::FxHasher64;
 use hashbrown::HashSet;
 use rand::{seq::SliceRandom, Rng};
 use vek::*;
@@ -7,7 +9,11 @@ pub struct Location {
     pub(crate) name: String,
     pub(crate) center: Vec2<i32>,
     pub(crate) kingdom: Option<Kingdom>,
-    pub(crate) neighbours: HashSet<usize>,
+    // We use this hasher (FxHasher64) because
+    // (1) we don't care about DDOS attacks (ruling out SipHash);
+    // (2) we care about determinism across computers (ruling out AAHash);
+    // (3) we have 8-byte keys (for which FxHash is fastest).
+    pub(crate) neighbours: HashSet<u64, BuildHasherDefault<FxHasher64>>,
 }
 
 impl Location {
