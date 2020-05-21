@@ -21,7 +21,7 @@ use rand_chacha::ChaChaRng;
 use std::{fmt, hash::Hash, ops::Range};
 use vek::*;
 
-const INITIAL_CIV_COUNT: usize = 64;
+const INITIAL_CIV_COUNT: usize = (crate::sim::WORLD_SIZE.x * crate::sim::WORLD_SIZE.y * 3) / 65536; //48 at default scale
 
 #[derive(Default)]
 pub struct Civs {
@@ -66,7 +66,7 @@ impl Civs {
             }
         }
 
-        for _ in 0..INITIAL_CIV_COUNT * 4 {
+        for _ in 0..INITIAL_CIV_COUNT * 3 {
             attempt(5, || {
                 let loc = find_site_loc(&mut ctx, None)?;
                 this.establish_site(&mut ctx.reseed(), loc, |place| Site {
