@@ -1,7 +1,11 @@
 use crate::path::Path;
-use core::cmp::Ordering::Equal;
+use core::{
+    cmp::Ordering::{self, Equal},
+    f32, fmt,
+    hash::{BuildHasher, Hash},
+};
 use hashbrown::{HashMap, HashSet};
-use std::{cmp::Ordering, collections::BinaryHeap, f32, hash::Hash};
+use std::collections::BinaryHeap;
 
 #[derive(Copy, Clone, Debug)]
 pub struct PathEntry<S> {
@@ -43,33 +47,62 @@ impl<T> PathResult<T> {
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct Astar<S: Clone + Eq + Hash> {
+#[derive(Clone)]
+pub struct Astar<S, Hasher> {
     iter: usize,
     max_iters: usize,
     potential_nodes: BinaryHeap<PathEntry<S>>,
-    came_from: HashMap<S, S>,
-    cheapest_scores: HashMap<S, f32>,
-    final_scores: HashMap<S, f32>,
-    visited: HashSet<S>,
+    came_from: HashMap<S, S, Hasher>,
+    cheapest_scores: HashMap<S, f32, Hasher>,
+    final_scores: HashMap<S, f32, Hasher>,
+    visited: HashSet<S, Hasher>,
     cheapest_node: Option<S>,
     cheapest_cost: Option<f32>,
 }
 
-impl<S: Clone + Eq + Hash> Astar<S> {
-    pub fn new(max_iters: usize, start: S, heuristic: impl FnOnce(&S) -> f32) -> Self {
+/// NOTE: Must manually derive since Hasher doesn't implement it.
+impl<S: Clone + Eq + Hash + fmt::Debug, H: BuildHasher> fmt::Debug for Astar<S, H> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Astar")
+            .field("iter", &self.iter)
+            .field("max_iters", &self.max_iters)
+            .field("potential_nodes", &self.potential_nodes)
+            .field("came_from", &self.came_from)
+            .field("cheapest_scores", &self.cheapest_scores)
+            .field("final_scores", &self.final_scores)
+            .field("visited", &self.visited)
+            .field("cheapest_node", &self.cheapest_node)
+            .field("cheapest_cost", &self.cheapest_cost)
+            .finish()
+    }
+}
+
+impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
+    pub fn new(max_iters: usize, start: S, heuristic: impl FnOnce(&S) -> f32, hasher: H) -> Self {
         Self {
             max_iters,
             iter: 0,
-            potential_nodes: std::iter::once(PathEntry {
+            potential_nodes: core::iter::once(PathEntry {
                 cost: 0.0,
                 node: start.clone(),
             })
             .collect(),
-            came_from: HashMap::default(),
-            cheapest_scores: std::iter::once((start.clone(), 0.0)).collect(),
-            final_scores: std::iter::once((start.clone(), heuristic(&start))).collect(),
-            visited: std::iter::once(start).collect(),
+            came_from: HashMap::with_hasher(hasher.clone()),
+            cheapest_scores: {
+                let mut h = HashMap::with_capacity_and_hasher(1, hasher.clone());
+                h.extend(core::iter::once((start.clone(), 0.0)));
+                h
+            },
+            final_scores: {
+                let mut h = HashMap::with_capacity_and_hasher(1, hasher.clone());
+                h.extend(core::iter::once((start.clone(), heuristic(&start))));
+                h
+            },
+            visited: {
+                let mut s = HashSet::with_capacity_and_hasher(1, hasher);
+                s.extend(core::iter::once(start));
+                s
+            },
             cheapest_node: None,
             cheapest_cost: None,
         }

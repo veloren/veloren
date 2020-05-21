@@ -18,9 +18,10 @@ use common::{
     terrain::{Block, BlockKind, TerrainChunkSize},
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, Vox, WriteVol},
 };
+use fxhash::FxHasher32;
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
-use std::{collections::VecDeque, f32};
+use std::{collections::VecDeque, f32, hash::BuildHasherDefault};
 use vek::*;
 
 #[allow(dead_code)]
@@ -967,7 +968,11 @@ pub struct Sample<'a> {
 }
 
 pub struct Land {
-    tiles: HashMap<Vec2<i32>, Tile>,
+    /// We use this hasher (FxHasher32) because
+    /// (1) we need determinism across computers (ruling out AAHash);
+    /// (2) we don't care about DDOS attacks (ruling out SipHash);
+    /// (3) we have 4-byte keys (for which FxHash is fastest).
+    tiles: HashMap<Vec2<i32>, Tile, BuildHasherDefault<FxHasher32>>,
     plots: Store<Plot>,
     sampler_warp: StructureGen2d,
     hazard: Id<Plot>,
@@ -978,7 +983,7 @@ impl Land {
         let mut plots = Store::default();
         let hazard = plots.insert(Plot::Hazard);
         Self {
-            tiles: HashMap::new(),
+            tiles: HashMap::default(),
             plots,
             sampler_warp: StructureGen2d::new(rng.gen(), AREA_SIZE, AREA_SIZE * 2 / 5),
             hazard,
@@ -1089,21 +1094,38 @@ impl Land {
             |from: &Vec2<i32>, to: &Vec2<i32>| path_cost_fn(self.tile_at(*from), self.tile_at(*to));
         let satisfied = |pos: &Vec2<i32>| *pos == dest;
 
-        Astar::new(250, origin, heuristic)
-            .poll(250, heuristic, neighbors, transition, satisfied)
-            .into_path()
+        // We use this hasher (FxHasher32) because
+        // (1) we don't care about DDOS attacks (ruling out SipHash);
+        // (2) we don't care about determinism across computers (we could use AAHash);
+        // (3) we have 4-byte keys (for which FxHash is fastest).
+        Astar::new(
+            250,
+            origin,
+            heuristic,
+            BuildHasherDefault::<FxHasher32>::default(),
+        )
+        .poll(250, heuristic, neighbors, transition, satisfied)
+        .into_path()
     }
 
+    /// We use this hasher (FxHasher32) because
+    /// (1) we don't care about DDOS attacks (ruling out SipHash);
+    /// (2) we care about determinism across computers (ruling out AAHash);
+    /// (3) we have 8-byte keys (for which FxHash is fastest).
     fn grow_from(
         &self,
         start: Vec2<i32>,
         max_size: usize,
         _rng: &mut impl Rng,
         mut match_fn: impl FnMut(Option<&Plot>) -> bool,
-    ) -> HashSet<Vec2<i32>> {
+    ) -> HashSet<Vec2<i32>, BuildHasherDefault<FxHasher32>> {
         let mut open = VecDeque::new();
         open.push_back(start);
-        let mut closed = HashSet::new();
+        // We use this hasher (FxHasher32) because
+        // (1) we don't care about DDOS attacks (ruling out SipHash);
+        // (2) we care about determinism across computers (ruling out AAHash);
+        // (3) we have 8-byte keys (for which FxHash is fastest).
+        let mut closed = HashSet::with_hasher(BuildHasherDefault::<FxHasher32>::default());
 
         while open.len() + closed.len() < max_size {
             let next_pos = if let Some(next_pos) = open.pop_front() {

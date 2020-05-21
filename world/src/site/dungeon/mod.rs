@@ -16,9 +16,11 @@ use common::{
     terrain::{Block, BlockKind, Structure, TerrainChunkSize},
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, Vox, WriteVol},
 };
+use core::{f32, hash::BuildHasherDefault};
+use fxhash::FxHasher32;
 use lazy_static::lazy_static;
 use rand::prelude::*;
-use std::{f32, sync::Arc};
+use std::sync::Arc;
 use vek::*;
 
 impl WorldSim {
@@ -381,7 +383,16 @@ impl Floor {
             _ => 100000.0,
         };
         let satisfied = |l: &Vec2<i32>| *l == b;
-        let mut astar = Astar::new(20000, a, heuristic);
+        // We use this hasher (FxHasher32) because
+        // (1) we don't care about DDOS attacks (ruling out SipHash);
+        // (2) we don't care about determinism across computers (we could use AAHash);
+        // (3) we have 4-byte keys (for which FxHash is fastest).
+        let mut astar = Astar::new(
+            20000,
+            a,
+            heuristic,
+            BuildHasherDefault::<FxHasher32>::default(),
+        );
         let path = astar
             .poll(
                 FLOOR_SIZE.product() as usize + 1,
