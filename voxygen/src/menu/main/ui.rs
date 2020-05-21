@@ -183,6 +183,7 @@ impl MainMenuUi {
             "voxygen.background.bg_13",
             "voxygen.background.bg_14",
             "voxygen.background.bg_15",
+            "voxygen.background.bg_16",
         ];
         let mut rng = thread_rng();
 
