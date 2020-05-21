@@ -2,6 +2,7 @@
 
 mod econ;
 
+use self::{Occupation::*, Stock::*};
 use crate::{
     sim::WorldSim,
     site::{Dungeon, Settlement, Site as WorldSite},
@@ -15,10 +16,15 @@ use common::{
     terrain::TerrainChunkSize,
     vol::RectVolSize,
 };
+use core::{
+    fmt,
+    hash::{BuildHasherDefault, Hash},
+    ops::Range,
+};
+use fxhash::{FxHasher32, FxHasher64};
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
-use std::{fmt, hash::Hash, ops::Range};
 use vek::*;
 
 const INITIAL_CIV_COUNT: usize = 64;
@@ -29,7 +35,15 @@ pub struct Civs {
     places: Store<Place>,
 
     tracks: Store<Track>,
-    track_map: HashMap<Id<Site>, HashMap<Id<Site>, Id<Track>>>,
+    /// We use this hasher (FxHasher64) because
+    /// (1) we don't care about DDOS attacks (ruling out SipHash);
+    /// (2) we care about determinism across computers (ruling out AAHash);
+    /// (3) we have 8-byte keys (for which FxHash is fastest).
+    track_map: HashMap<
+        Id<Site>,
+        HashMap<Id<Site>, Id<Track>, BuildHasherDefault<FxHasher64>>,
+        BuildHasherDefault<FxHasher64>,
+    >,
 
     sites: Store<Site>,
 }
@@ -235,7 +249,16 @@ impl Civs {
         let transition =
             |a: &Id<Site>, b: &Id<Site>| self.tracks.get(self.track_between(*a, *b).unwrap()).cost;
         let satisfied = |p: &Id<Site>| *p == b;
-        let mut astar = Astar::new(100, a, heuristic);
+        // We use this hasher (FxHasher64) because
+        // (1) we don't care about DDOS attacks (ruling out SipHash);
+        // (2) we care about determinism across computers (ruling out AAHash);
+        // (3) we have 8-byte keys (for which FxHash is fastest).
+        let mut astar = Astar::new(
+            100,
+            a,
+            heuristic,
+            BuildHasherDefault::<FxHasher64>::default(),
+        );
         astar
             .poll(100, heuristic, neighbors, transition, satisfied)
             .into_path()
@@ -281,8 +304,12 @@ impl Civs {
         loc: Vec2<i32>,
         area: Range<usize>,
     ) -> Option<Id<Place>> {
-        let mut dead = HashSet::new();
-        let mut alive = HashSet::new();
+        // We use this hasher (FxHasher64) because
+        // (1) we don't care about DDOS attacks (ruling out SipHash);
+        // (2) we care about determinism across computers (ruling out AAHash);
+        // (3) we have 8-byte keys (for which FxHash is fastest).
+        let mut dead = HashSet::with_hasher(BuildHasherDefault::<FxHasher64>::default());
+        let mut alive = HashSet::with_hasher(BuildHasherDefault::<FxHasher64>::default());
         alive.insert(loc);
 
         // Fill the surrounding area
@@ -495,7 +522,16 @@ fn find_path(
     let transition =
         |a: &Vec2<i32>, b: &Vec2<i32>| 1.0 + walk_in_dir(sim, *a, *b - *a).unwrap_or(10000.0);
     let satisfied = |l: &Vec2<i32>| *l == b;
-    let mut astar = Astar::new(20000, a, heuristic);
+    // We use this hasher (FxHasher64) because
+    // (1) we don't care about DDOS attacks (ruling out SipHash);
+    // (2) we care about determinism across computers (ruling out AAHash);
+    // (3) we have 8-byte keys (for which FxHash is fastest).
+    let mut astar = Astar::new(
+        20000,
+        a,
+        heuristic,
+        BuildHasherDefault::<FxHasher64>::default(),
+    );
     astar
         .poll(20000, heuristic, neighbors, transition, satisfied)
         .into_path()
@@ -688,13 +724,13 @@ impl fmt::Display for Site {
         writeln!(f, "- coin: {}", self.coin.floor() as u32)?;
         writeln!(f, "Stocks")?;
         for (stock, q) in self.stocks.iter() {
-            writeln!(f, "- {}: {}", stock, q.floor())?;
+            writeln!(f, "- {:?}: {}", stock, q.floor())?;
         }
         writeln!(f, "Values")?;
         for stock in TRADE_STOCKS.iter() {
             writeln!(
                 f,
-                "- {}: {}",
+                "- {:?}: {}",
                 stock,
                 self.values[*stock]
                     .map(|x| x.to_string())
@@ -703,11 +739,16 @@ impl fmt::Display for Site {
         }
         writeln!(f, "Laborers")?;
         for (labor, n) in self.labors.iter() {
-            writeln!(f, "- {}: {}", labor, (*n * self.population).floor() as u32)?;
+            writeln!(
+                f,
+                "- {:?}: {}",
+                labor,
+                (*n * self.population).floor() as u32
+            )?;
         }
         writeln!(f, "Export targets")?;
         for (stock, n) in self.export_targets.iter() {
-            writeln!(f, "- {}: {}", stock, n)?;
+            writeln!(f, "- {:?}: {}", stock, n)?;
         }
 
         Ok(())
@@ -723,43 +764,50 @@ pub enum SiteKind {
 impl Site {
     pub fn simulate(&mut self, years: f32, nat_res: &NaturalResources) {
         // Insert natural resources into the economy
-        if self.stocks[FISH] < nat_res.river {
-            self.stocks[FISH] = nat_res.river;
+        if self.stocks[Fish] < nat_res.river {
+            self.stocks[Fish] = nat_res.river;
         }
-        if self.stocks[WHEAT] < nat_res.farmland {
-            self.stocks[WHEAT] = nat_res.farmland;
+        if self.stocks[Wheat] < nat_res.farmland {
+            self.stocks[Wheat] = nat_res.farmland;
         }
-        if self.stocks[LOGS] < nat_res.wood {
-            self.stocks[LOGS] = nat_res.wood;
+        if self.stocks[Logs] < nat_res.wood {
+            self.stocks[Logs] = nat_res.wood;
         }
-        if self.stocks[GAME] < nat_res.wood {
-            self.stocks[GAME] = nat_res.wood;
+        if self.stocks[Game] < nat_res.wood {
+            self.stocks[Game] = nat_res.wood;
         }
-        if self.stocks[ROCK] < nat_res.rock {
-            self.stocks[ROCK] = nat_res.rock;
+        if self.stocks[Rock] < nat_res.rock {
+            self.stocks[Rock] = nat_res.rock;
         }
 
+        // We use this hasher (FxHasher32) because
+        // (1) we don't care about DDOS attacks (ruling out SipHash);
+        // (2) we care about determinism across computers (ruling out AAHash);
+        // (3) we have 1-byte keys (for which FxHash is supposedly fastest).
         let orders = vec![
-            (None, vec![(FOOD, 0.5)]),
-            (Some(COOK), vec![(FLOUR, 16.0), (MEAT, 4.0), (WOOD, 3.0)]),
-            (Some(LUMBERJACK), vec![(LOGS, 4.5)]),
-            (Some(MINER), vec![(ROCK, 7.5)]),
-            (Some(FISHER), vec![(FISH, 4.0)]),
-            (Some(HUNTER), vec![(GAME, 4.0)]),
-            (Some(FARMER), vec![(WHEAT, 4.0)]),
+            (None, vec![(Food, 0.5)]),
+            (Some(Cook), vec![(Flour, 16.0), (Meat, 4.0), (Wood, 3.0)]),
+            (Some(Lumberjack), vec![(Logs, 4.5)]),
+            (Some(Miner), vec![(Rock, 7.5)]),
+            (Some(Fisher), vec![(Fish, 4.0)]),
+            (Some(Hunter), vec![(Game, 4.0)]),
+            (Some(Farmer), vec![(Wheat, 4.0)]),
         ]
         .into_iter()
-        .collect::<HashMap<_, Vec<(Stock, f32)>>>();
+        .collect::<HashMap<_, Vec<(Stock, f32)>, BuildHasherDefault<FxHasher32>>>();
 
         // Per labourer, per year
-        let production = Stocks::from_list(&[
-            (FARMER, (FLOUR, 2.0)),
-            (LUMBERJACK, (WOOD, 1.5)),
-            (MINER, (STONE, 0.6)),
-            (FISHER, (MEAT, 3.0)),
-            (HUNTER, (MEAT, 0.25)),
-            (COOK, (FOOD, 20.0)),
-        ]);
+        let production = MapVec::from_list(
+            &[
+                (Farmer, (Flour, 2.0)),
+                (Lumberjack, (Wood, 1.5)),
+                (Miner, (Stone, 0.6)),
+                (Fisher, (Meat, 3.0)),
+                (Hunter, (Meat, 0.25)),
+                (Cook, (Food, 20.0)),
+            ],
+            (Rock, 0.0),
+        );
 
         let mut demand = Stocks::from_default(0.0);
         for (labor, orders) in &orders {
@@ -881,7 +929,7 @@ impl Site {
         // Births/deaths
         const NATURAL_BIRTH_RATE: f32 = 0.15;
         const DEATH_RATE: f32 = 0.05;
-        let birth_rate = if self.surplus[FOOD] > 0.0 {
+        let birth_rate = if self.surplus[Food] > 0.0 {
             NATURAL_BIRTH_RATE
         } else {
             0.0
@@ -890,26 +938,33 @@ impl Site {
     }
 }
 
-type Occupation = &'static str;
-const FARMER: Occupation = "farmer";
-const LUMBERJACK: Occupation = "lumberjack";
-const MINER: Occupation = "miner";
-const FISHER: Occupation = "fisher";
-const HUNTER: Occupation = "hunter";
-const COOK: Occupation = "cook";
+#[repr(u8)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+enum Occupation {
+    Farmer = 0,
+    Lumberjack = 1,
+    Miner = 2,
+    Fisher = 3,
+    Hunter = 4,
+    Cook = 5,
+}
 
-type Stock = &'static str;
-const WHEAT: Stock = "wheat";
-const FLOUR: Stock = "flour";
-const MEAT: Stock = "meat";
-const FISH: Stock = "fish";
-const GAME: Stock = "game";
-const FOOD: Stock = "food";
-const LOGS: Stock = "logs";
-const WOOD: Stock = "wood";
-const ROCK: Stock = "rock";
-const STONE: Stock = "stone";
-const TRADE_STOCKS: [Stock; 5] = [FLOUR, MEAT, FOOD, WOOD, STONE];
+#[repr(u8)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum Stock {
+    Wheat = 0,
+    Flour = 1,
+    Meat = 2,
+    Fish = 3,
+    Game = 4,
+    Food = 5,
+    Logs = 6,
+    Wood = 7,
+    Rock = 8,
+    Stone = 9,
+}
+
+const TRADE_STOCKS: [Stock; 5] = [Flour, Meat, Food, Wood, Stone];
 
 #[derive(Debug, Clone)]
 struct TradeState {
@@ -934,21 +989,35 @@ impl Default for TradeState {
 
 pub type Stocks<T> = MapVec<Stock, T>;
 
-#[derive(Default, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct MapVec<K, T> {
-    entries: HashMap<K, T>,
+    /// We use this hasher (FxHasher32) because
+    /// (1) we don't care about DDOS attacks (ruling out SipHash);
+    /// (2) we care about determinism across computers (ruling out AAHash);
+    /// (3) we have 1-byte keys (for which FxHash is supposedly fastest).
+    entries: HashMap<K, T, BuildHasherDefault<FxHasher32>>,
     default: T,
 }
 
-impl<K: Copy + Eq + Hash, T: Default + Clone> MapVec<K, T> {
-    pub fn from_list<'a>(i: impl IntoIterator<Item = &'a (K, T)>) -> Self
+/// Need manual implementation of Default since K doesn't need that bound.
+impl<K, T: Default> Default for MapVec<K, T> {
+    fn default() -> Self {
+        Self {
+            entries: Default::default(),
+            default: Default::default(),
+        }
+    }
+}
+
+impl<K: Copy + Eq + Hash, T: Clone> MapVec<K, T> {
+    pub fn from_list<'a>(i: impl IntoIterator<Item = &'a (K, T)>, default: T) -> Self
     where
         K: 'a,
         T: 'a,
     {
         Self {
             entries: i.into_iter().cloned().collect(),
-            default: T::default(),
+            default,
         }
     }
 
@@ -986,12 +1055,12 @@ impl<K: Copy + Eq + Hash, T: Default + Clone> MapVec<K, T> {
     }
 }
 
-impl<K: Copy + Eq + Hash, T: Default + Clone> std::ops::Index<K> for MapVec<K, T> {
+impl<K: Copy + Eq + Hash, T: Clone> std::ops::Index<K> for MapVec<K, T> {
     type Output = T;
 
     fn index(&self, entry: K) -> &Self::Output { self.get(entry) }
 }
 
-impl<K: Copy + Eq + Hash, T: Default + Clone> std::ops::IndexMut<K> for MapVec<K, T> {
+impl<K: Copy + Eq + Hash, T: Clone> std::ops::IndexMut<K> for MapVec<K, T> {
     fn index_mut(&mut self, entry: K) -> &mut Self::Output { self.get_mut(entry) }
 }

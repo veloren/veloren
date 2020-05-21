@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Improved camera aiming
+- Made civsim, sites, etc. deterministic from the same seed.
 
 ### Removed
 

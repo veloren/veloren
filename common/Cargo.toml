@@ -13,6 +13,7 @@ specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git" }
 specs = { version = "0.15.1", features = ["serde", "nightly", "storage-event-control"] }
 vek = { version = "0.10.0", features = ["serde"] }
 dot_vox = "4.0.0"
+fxhash = "0.2.1"
 image = "0.22.3"
 mio = "0.6.19"
 mio-extras = "2.0.5"
