@@ -3,7 +3,7 @@ use serde_derive::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, net::SocketAddr, path::PathBuf};
 use world::sim::FileOpts;
 
-const DEFAULT_WORLD_SEED: u32 = 5284;
+const DEFAULT_WORLD_SEED: u32 = 59686;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]

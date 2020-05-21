@@ -232,7 +232,7 @@ pub type ModernMap = WorldMap_0_5_0;
 /// TODO: Consider using some naming convention to automatically change this
 /// with changing versions, or at least keep it in a constant somewhere that's
 /// easy to change.
-pub const DEFAULT_WORLD_MAP: &'static str = "world.map.veloren_0_5_0_0";
+pub const DEFAULT_WORLD_MAP: &'static str = "world.map.veloren_0_6_0_0";
 
 impl WorldFileLegacy {
     #[inline]
