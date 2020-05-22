@@ -3,6 +3,7 @@ use crate::{
     channel::Channel,
     message::{InCommingMessage, MessageBuffer, OutGoingMessage},
     metrics::NetworkMetrics,
+    prios::PrioManager,
     protocols::Protocols,
     types::{Cid, Frame, Pid, Prio, Promises, Sid},
 };
@@ -15,10 +16,10 @@ use futures::{
     stream::StreamExt,
 };
 use std::{
-    collections::HashMap,
+    collections::{HashMap, VecDeque},
     sync::{
-        atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering},
-        Arc, Mutex,
+        atomic::{AtomicBool, AtomicUsize, Ordering},
+        Arc,
     },
 };
 use tracing::*;
@@ -45,9 +46,6 @@ struct ControlChannels {
     s2b_create_channel_r: mpsc::UnboundedReceiver<(Cid, Sid, Protocols, oneshot::Sender<()>)>,
     a2b_close_stream_r: mpsc::UnboundedReceiver<Sid>,
     a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
-    a2p_msg_s: Arc<Mutex<std::sync::mpsc::Sender<(Prio, Pid, Sid, OutGoingMessage)>>>, //api stream
-    p2b_notify_empty_stream_s: Arc<Mutex<std::sync::mpsc::Sender<(Pid, Sid, oneshot::Sender<()>)>>>,
-    s2b_frame_r: mpsc::UnboundedReceiver<(Pid, Sid, Frame)>, //scheduler
     s2b_shutdown_bparticipant_r: oneshot::Receiver<oneshot::Sender<async_std::io::Result<()>>>, /* own */
 }
 
@@ -67,21 +65,17 @@ impl BParticipant {
         remote_pid: Pid,
         offset_sid: Sid,
         metrics: Arc<NetworkMetrics>,
-        a2p_msg_s: std::sync::mpsc::Sender<(Prio, Pid, Sid, OutGoingMessage)>,
-        p2b_notify_empty_stream_s: std::sync::mpsc::Sender<(Pid, Sid, oneshot::Sender<()>)>,
     ) -> (
         Self,
         mpsc::UnboundedSender<(Prio, Promises, oneshot::Sender<Stream>)>,
         mpsc::UnboundedReceiver<Stream>,
         mpsc::UnboundedSender<(Cid, Sid, Protocols, oneshot::Sender<()>)>,
-        mpsc::UnboundedSender<(Pid, Sid, Frame)>,
         oneshot::Sender<oneshot::Sender<async_std::io::Result<()>>>,
     ) {
         let (a2b_steam_open_s, a2b_steam_open_r) =
             mpsc::unbounded::<(Prio, Promises, oneshot::Sender<Stream>)>();
         let (b2a_stream_opened_s, b2a_stream_opened_r) = mpsc::unbounded::<Stream>();
         let (a2b_close_stream_s, a2b_close_stream_r) = mpsc::unbounded();
-        let (s2b_frame_s, s2b_frame_r) = mpsc::unbounded::<(Pid, Sid, Frame)>();
         let (s2b_shutdown_bparticipant_s, s2b_shutdown_bparticipant_r) = oneshot::channel();
         let (s2b_create_channel_s, s2b_create_channel_r) =
             mpsc::unbounded::<(Cid, Sid, Protocols, oneshot::Sender<()>)>();
@@ -92,9 +86,6 @@ impl BParticipant {
             s2b_create_channel_r,
             a2b_close_stream_r,
             a2b_close_stream_s,
-            a2p_msg_s: Arc::new(Mutex::new(a2p_msg_s)),
-            p2b_notify_empty_stream_s: Arc::new(Mutex::new(p2b_notify_empty_stream_s)),
-            s2b_frame_r,
             s2b_shutdown_bparticipant_r,
         });
 
@@ -111,7 +102,6 @@ impl BParticipant {
             a2b_steam_open_s,
             b2a_stream_opened_r,
             s2b_create_channel_s,
-            s2b_frame_s,
             s2b_shutdown_bparticipant_s,
         )
     }
@@ -119,37 +109,84 @@ impl BParticipant {
     pub async fn run(mut self) {
         //those managers that listen on api::Participant need an additional oneshot for
         // shutdown scenario, those handled by scheduler will be closed by it.
-        let (shutdown_open_mgr_sender, shutdown_open_mgr_receiver) = oneshot::channel();
+        let (shutdown_send_mgr_sender, shutdown_send_mgr_receiver) = oneshot::channel();
         let (shutdown_stream_close_mgr_sender, shutdown_stream_close_mgr_receiver) =
             oneshot::channel();
+        let (shutdown_open_mgr_sender, shutdown_open_mgr_receiver) = oneshot::channel();
+        let (b2b_prios_flushed_s, b2b_prios_flushed_r) = oneshot::channel();
         let (w2b_frames_s, w2b_frames_r) = mpsc::unbounded::<(Cid, Frame)>();
+        let (prios, a2p_msg_s, p2b_notify_empty_stream_s) = PrioManager::new();
 
         let run_channels = self.run_channels.take().unwrap();
         futures::join!(
             self.open_mgr(
                 run_channels.a2b_steam_open_r,
                 run_channels.a2b_close_stream_s.clone(),
-                run_channels.a2p_msg_s.clone(),
+                a2p_msg_s.clone(),
                 shutdown_open_mgr_receiver,
             ),
             self.handle_frames_mgr(
                 w2b_frames_r,
                 run_channels.b2a_stream_opened_s,
                 run_channels.a2b_close_stream_s,
-                run_channels.a2p_msg_s.clone(),
+                a2p_msg_s.clone(),
             ),
             self.create_channel_mgr(run_channels.s2b_create_channel_r, w2b_frames_s,),
-            self.send_mgr(run_channels.s2b_frame_r),
+            self.send_mgr(prios, shutdown_send_mgr_receiver, b2b_prios_flushed_s),
             self.stream_close_mgr(
                 run_channels.a2b_close_stream_r,
                 shutdown_stream_close_mgr_receiver,
-                run_channels.p2b_notify_empty_stream_s,
+                p2b_notify_empty_stream_s,
             ),
             self.participant_shutdown_mgr(
                 run_channels.s2b_shutdown_bparticipant_r,
-                vec!(shutdown_open_mgr_sender, shutdown_stream_close_mgr_sender)
+                b2b_prios_flushed_r,
+                vec!(
+                    shutdown_send_mgr_sender,
+                    shutdown_open_mgr_sender,
+                    shutdown_stream_close_mgr_sender
+                )
             ),
         );
+    }
+
+    async fn send_mgr(
+        &self,
+        mut prios: PrioManager,
+        mut shutdown_send_mgr_receiver: oneshot::Receiver<()>,
+        b2b_prios_flushed_s: oneshot::Sender<()>,
+    ) {
+        //This time equals the MINIMUM Latency in average, so keep it down and //Todo:
+        // make it configureable or switch to await E.g. Prio 0 = await, prio 50
+        // wait for more messages
+        const TICK_TIME: std::time::Duration = std::time::Duration::from_millis(10);
+        const FRAMES_PER_TICK: usize = 10005;
+        self.running_mgr.fetch_add(1, Ordering::Relaxed);
+        let mut closing_up = false;
+        trace!("start send_mgr");
+        //while !self.closed.load(Ordering::Relaxed) {
+        loop {
+            let mut frames = VecDeque::new();
+            prios.fill_frames(FRAMES_PER_TICK, &mut frames).await;
+            let len = frames.len();
+            if len > 0 {
+                trace!("tick {}", len);
+            }
+            for (_, frame) in frames {
+                self.send_frame(frame).await;
+            }
+            async_std::task::sleep(TICK_TIME).await;
+            //shutdown after all msg are send!
+            if !closing_up && shutdown_send_mgr_receiver.try_recv().unwrap().is_some() {
+                closing_up = true;
+            }
+            if closing_up && (len == 0) {
+                break;
+            }
+        }
+        trace!("stop send_mgr");
+        b2b_prios_flushed_s.send(()).unwrap();
+        self.running_mgr.fetch_sub(1, Ordering::Relaxed);
     }
 
     async fn send_frame(&self, frame: Frame) {
@@ -175,11 +212,10 @@ impl BParticipant {
         mut w2b_frames_r: mpsc::UnboundedReceiver<(Cid, Frame)>,
         mut b2a_stream_opened_s: mpsc::UnboundedSender<Stream>,
         a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
-        a2p_msg_s: Arc<Mutex<std::sync::mpsc::Sender<(Prio, Pid, Sid, OutGoingMessage)>>>,
+        a2p_msg_s: std::sync::mpsc::Sender<(Prio, Sid, OutGoingMessage)>,
     ) {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
-        trace!("start handle_frames");
-        let a2p_msg_s = { a2p_msg_s.lock().unwrap().clone() };
+        trace!("start handle_frames_mgr");
         let mut messages = HashMap::new();
         let pid_string = &self.remote_pid.to_string();
         while let Some((cid, frame)) = w2b_frames_r.next().await {
@@ -255,7 +291,7 @@ impl BParticipant {
                 _ => unreachable!("never reaches frame!"),
             }
         }
-        trace!("stop handle_frames");
+        trace!("stop handle_frames_mgr");
         self.running_mgr.fetch_sub(1, Ordering::Relaxed);
     }
 
@@ -267,14 +303,14 @@ impl BParticipant {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
         trace!("start create_channel_mgr");
         s2b_create_channel_r
-            .for_each_concurrent(None, |(cid, sid, protocol, b2s_create_channel_done_s)| {
+            .for_each_concurrent(None, |(cid, _, protocol, b2s_create_channel_done_s)| {
                 // This channel is now configured, and we are running it in scope of the
                 // participant.
                 let w2b_frames_s = w2b_frames_s.clone();
                 let channels = self.channels.clone();
                 async move {
                     let (channel, b2w_frame_s, b2r_read_shutdown) =
-                        Channel::new(cid, self.remote_pid, self.metrics.clone());
+                        Channel::new(cid, self.remote_pid);
                     channels.write().await.push(ChannelInfo {
                         cid,
                         b2w_frame_s,
@@ -299,29 +335,15 @@ impl BParticipant {
         self.running_mgr.fetch_sub(1, Ordering::Relaxed);
     }
 
-    async fn send_mgr(&self, mut s2b_frame_r: mpsc::UnboundedReceiver<(Pid, Sid, Frame)>) {
-        self.running_mgr.fetch_add(1, Ordering::Relaxed);
-        trace!("start send_mgr");
-        while let Some((_, sid, frame)) = s2b_frame_r.next().await {
-            self.send_frame(frame).await;
-        }
-        trace!("stop send_mgr");
-        self.running_mgr.fetch_sub(1, Ordering::Relaxed);
-    }
-
     async fn open_mgr(
         &self,
         mut a2b_steam_open_r: mpsc::UnboundedReceiver<(Prio, Promises, oneshot::Sender<Stream>)>,
         a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
-        a2p_msg_s: Arc<Mutex<std::sync::mpsc::Sender<(Prio, Pid, Sid, OutGoingMessage)>>>,
+        a2p_msg_s: std::sync::mpsc::Sender<(Prio, Sid, OutGoingMessage)>,
         shutdown_open_mgr_receiver: oneshot::Receiver<()>,
     ) {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
         trace!("start open_mgr");
-        let send_outgoing = {
-            //fighting the borrow checker ;)
-            a2p_msg_s.lock().unwrap().clone()
-        };
         let mut stream_ids = self.offset_sid;
         let mut shutdown_open_mgr_receiver = shutdown_open_mgr_receiver.fuse();
         //from api or shutdown signal
@@ -330,10 +352,10 @@ impl BParticipant {
             _ = shutdown_open_mgr_receiver => None,
         } {
             debug!(?prio, ?promises, "got request to open a new steam");
-            let send_outgoing = send_outgoing.clone();
+            let a2p_msg_s = a2p_msg_s.clone();
             let sid = stream_ids;
             let stream = self
-                .create_stream(sid, prio, promises, send_outgoing, &a2b_close_stream_s)
+                .create_stream(sid, prio, promises, a2p_msg_s, &a2b_close_stream_s)
                 .await;
             self.send_frame(Frame::OpenStream {
                 sid,
@@ -355,6 +377,7 @@ impl BParticipant {
     async fn participant_shutdown_mgr(
         &self,
         s2b_shutdown_bparticipant_r: oneshot::Receiver<oneshot::Sender<async_std::io::Result<()>>>,
+        b2b_prios_flushed_r: oneshot::Receiver<()>,
         mut to_shutdown: Vec<oneshot::Sender<()>>,
     ) {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
@@ -367,11 +390,12 @@ impl BParticipant {
             };
         }
         debug!("closing all streams");
-        let mut streams = self.streams.write().await;
-        for (sid, si) in streams.drain() {
+        for (sid, si) in self.streams.write().await.drain() {
             trace!(?sid, "shutting down Stream");
             si.closed.store(true, Ordering::Relaxed);
         }
+        debug!("waiting for prios to be flushed");
+        b2b_prios_flushed_r.await.unwrap();
         debug!("closing all channels");
         for ci in self.channels.write().await.drain(..) {
             ci.b2r_read_shutdown.send(()).unwrap();
@@ -401,9 +425,7 @@ impl BParticipant {
         &self,
         mut a2b_close_stream_r: mpsc::UnboundedReceiver<Sid>,
         shutdown_stream_close_mgr_receiver: oneshot::Receiver<()>,
-        mut p2b_notify_empty_stream_s: Arc<
-            Mutex<std::sync::mpsc::Sender<(Pid, Sid, oneshot::Sender<()>)>>,
-        >,
+        p2b_notify_empty_stream_s: std::sync::mpsc::Sender<(Sid, oneshot::Sender<()>)>,
     ) {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
         trace!("start stream_close_mgr");
@@ -436,9 +458,7 @@ impl BParticipant {
             trace!(?sid, "wait for stream to be flushed");
             let (s2b_stream_finished_closed_s, s2b_stream_finished_closed_r) = oneshot::channel();
             p2b_notify_empty_stream_s
-                .lock()
-                .unwrap()
-                .send((self.remote_pid, sid, s2b_stream_finished_closed_s))
+                .send((sid, s2b_stream_finished_closed_s))
                 .unwrap();
             s2b_stream_finished_closed_r.await.unwrap();
 
@@ -460,7 +480,7 @@ impl BParticipant {
         sid: Sid,
         prio: Prio,
         promises: Promises,
-        a2p_msg_s: std::sync::mpsc::Sender<(Prio, Pid, Sid, OutGoingMessage)>,
+        a2p_msg_s: std::sync::mpsc::Sender<(Prio, Sid, OutGoingMessage)>,
         a2b_close_stream_s: &mpsc::UnboundedSender<Sid>,
     ) -> Stream {
         let (b2a_msg_recv_s, b2a_msg_recv_r) = mpsc::unbounded::<InCommingMessage>();
