@@ -1,12 +1,10 @@
 use crate::{
     api::{Address, Participant},
     channel::Handshake,
-    message::OutGoingMessage,
     metrics::NetworkMetrics,
     participant::BParticipant,
-    prios::PrioManager,
     protocols::{Protocols, TcpProtocol, UdpProtocol},
-    types::{Cid, Frame, Pid, Prio, Sid},
+    types::{Cid, Pid, Prio, Sid},
 };
 use async_std::{
     io, net,
@@ -22,7 +20,7 @@ use futures::{
 };
 use prometheus::Registry;
 use std::{
-    collections::{HashMap, HashSet, VecDeque},
+    collections::HashMap,
     sync::{
         atomic::{AtomicBool, AtomicU64, Ordering},
         Arc,
@@ -34,7 +32,6 @@ use tracing_futures::Instrument;
 #[derive(Debug)]
 struct ParticipantInfo {
     s2b_create_channel_s: mpsc::UnboundedSender<(Cid, Sid, Protocols, oneshot::Sender<()>)>,
-    s2b_frame_s: mpsc::UnboundedSender<(Pid, Sid, Frame)>,
     s2b_shutdown_bparticipant_s:
         Option<oneshot::Sender<oneshot::Sender<async_std::io::Result<()>>>>,
 }
@@ -58,8 +55,6 @@ struct ControlChannels {
 struct ParticipantChannels {
     s2a_connected_s: mpsc::UnboundedSender<Participant>,
     a2s_disconnect_s: mpsc::UnboundedSender<(Pid, oneshot::Sender<async_std::io::Result<()>>)>,
-    a2p_msg_s: std::sync::mpsc::Sender<(Prio, Pid, Sid, OutGoingMessage)>,
-    p2b_notify_empty_stream_s: std::sync::mpsc::Sender<(Pid, Sid, oneshot::Sender<()>)>,
 }
 
 #[derive(Debug)]
@@ -72,7 +67,6 @@ pub struct Scheduler {
     participants: Arc<RwLock<HashMap<Pid, ParticipantInfo>>>,
     channel_ids: Arc<AtomicU64>,
     channel_listener: RwLock<HashMap<Address, oneshot::Sender<()>>>,
-    prios: Arc<Mutex<PrioManager>>,
     metrics: Arc<NetworkMetrics>,
 }
 
@@ -93,7 +87,6 @@ impl Scheduler {
             mpsc::unbounded::<(Address, oneshot::Sender<io::Result<Participant>>)>();
         let (s2a_connected_s, s2a_connected_r) = mpsc::unbounded::<Participant>();
         let (a2s_scheduler_shutdown_s, a2s_scheduler_shutdown_r) = oneshot::channel::<()>();
-        let (prios, a2p_msg_s, p2b_notify_empty_stream_s) = PrioManager::new();
         let (a2s_disconnect_s, a2s_disconnect_r) =
             mpsc::unbounded::<(Pid, oneshot::Sender<async_std::io::Result<()>>)>();
 
@@ -107,8 +100,6 @@ impl Scheduler {
         let participant_channels = ParticipantChannels {
             s2a_connected_s,
             a2s_disconnect_s,
-            a2p_msg_s,
-            p2b_notify_empty_stream_s,
         };
 
         let metrics = Arc::new(NetworkMetrics::new(&local_pid).unwrap());
@@ -126,7 +117,6 @@ impl Scheduler {
                 participants: Arc::new(RwLock::new(HashMap::new())),
                 channel_ids: Arc::new(AtomicU64::new(0)),
                 channel_listener: RwLock::new(HashMap::new()),
-                prios: Arc::new(Mutex::new(prios)),
                 metrics,
             },
             a2s_listen_s,
@@ -143,7 +133,6 @@ impl Scheduler {
             self.listen_mgr(run_channels.a2s_listen_r),
             self.connect_mgr(run_channels.a2s_connect_r),
             self.disconnect_mgr(run_channels.a2s_disconnect_r),
-            self.send_outgoing_mgr(),
             self.scheduler_shutdown_mgr(run_channels.a2s_scheduler_shutdown_r),
         );
     }
@@ -259,7 +248,7 @@ impl Scheduler {
             // 3. Participant will try to access the BParticipant senders and receivers with
             // their next api action, it will fail and be closed then.
             let (finished_sender, finished_receiver) = oneshot::channel();
-            if let Some(pi) = self.participants.write().await.get_mut(&pid) {
+            if let Some(mut pi) = self.participants.write().await.remove(&pid) {
                 pi.s2b_shutdown_bparticipant_s
                     .take()
                     .unwrap()
@@ -267,47 +256,9 @@ impl Scheduler {
                     .unwrap();
             }
             let e = finished_receiver.await.unwrap();
-            //only remove after flush!
-            self.participants.write().await.remove(&pid).unwrap();
-            return_once_successfull_shutdown.send(e);
+            return_once_successfull_shutdown.send(e).unwrap();
         }
         trace!("stop disconnect_mgr");
-    }
-
-    async fn send_outgoing_mgr(&self) {
-        //This time equals the MINIMUM Latency in average, so keep it down and //Todo:
-        // make it configureable or switch to await E.g. Prio 0 = await, prio 50
-        // wait for more messages
-        const TICK_TIME: std::time::Duration = std::time::Duration::from_millis(10);
-        const FRAMES_PER_TICK: usize = 1000005;
-        trace!("start send_outgoing_mgr");
-        while !self.closed.load(Ordering::Relaxed) {
-            let mut frames = VecDeque::new();
-            self.prios
-                .lock()
-                .await
-                .fill_frames(FRAMES_PER_TICK, &mut frames);
-            if frames.len() > 0 {
-                trace!("tick {}", frames.len());
-            }
-            let mut already_traced = HashSet::new();
-            for (pid, sid, frame) in frames {
-                if let Some(pi) = self.participants.write().await.get_mut(&pid) {
-                    pi.s2b_frame_s.send((pid, sid, frame)).await.unwrap();
-                } else {
-                    if !already_traced.contains(&(pid, sid)) {
-                        error!(
-                            ?pid,
-                            ?sid,
-                            "dropping frames, as participant no longer exists!"
-                        );
-                        already_traced.insert((pid, sid));
-                    }
-                }
-            }
-            async_std::task::sleep(TICK_TIME).await;
-        }
-        trace!("stop send_outgoing_mgr");
     }
 
     async fn scheduler_shutdown_mgr(&self, a2s_scheduler_shutdown_r: oneshot::Receiver<()>) {
@@ -503,15 +454,8 @@ impl Scheduler {
                             a2b_steam_open_s,
                             b2a_stream_opened_r,
                             mut s2b_create_channel_s,
-                            s2b_frame_s,
                             s2b_shutdown_bparticipant_s,
-                        ) = BParticipant::new(
-                            pid,
-                            sid,
-                            metrics.clone(),
-                            participant_channels.a2p_msg_s,
-                            participant_channels.p2b_notify_empty_stream_s,
-                        );
+                        ) = BParticipant::new(pid, sid, metrics.clone());
 
                         let participant = Participant::new(
                             local_pid,
@@ -524,7 +468,6 @@ impl Scheduler {
                         metrics.participants_connected_total.inc();
                         participants.insert(pid, ParticipantInfo {
                             s2b_create_channel_s: s2b_create_channel_s.clone(),
-                            s2b_frame_s,
                             s2b_shutdown_bparticipant_s: Some(s2b_shutdown_bparticipant_s),
                         });
                         pool.spawn_ok(

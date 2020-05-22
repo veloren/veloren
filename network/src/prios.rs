@@ -7,7 +7,7 @@
 
 use crate::{
     message::OutGoingMessage,
-    types::{Frame, Pid, Prio, Sid},
+    types::{Frame, Prio, Sid},
 };
 use futures::channel::oneshot;
 use std::{
@@ -26,11 +26,11 @@ struct PidSidInfo {
 
 pub(crate) struct PrioManager {
     points: [u32; PRIO_MAX],
-    messages: [VecDeque<(Pid, Sid, OutGoingMessage)>; PRIO_MAX],
-    messages_rx: Receiver<(Prio, Pid, Sid, OutGoingMessage)>,
-    pid_sid_owned: HashMap<(Pid, Sid), PidSidInfo>,
+    messages: [VecDeque<(Sid, OutGoingMessage)>; PRIO_MAX],
+    messages_rx: Receiver<(Prio, Sid, OutGoingMessage)>,
+    sid_owned: HashMap<Sid, PidSidInfo>,
     //you can register to be notified if a pid_sid combination is flushed completly here
-    pid_sid_flushed_rx: Receiver<(Pid, Sid, oneshot::Sender<()>)>,
+    sid_flushed_rx: Receiver<(Sid, oneshot::Sender<()>)>,
     queued: HashSet<u8>,
 }
 
@@ -38,6 +38,12 @@ pub(crate) struct PrioManager {
 ERROR Okay ich kann die frames und msg nicht counten, da api auf msg basis zöhlt und BParticipant auf frame basis.
 Der Priomanager hört auf gekillte PID, SIDs, und entweder returned sofort wenn keine msg drinn ist, oder schreibt es in id_sid_owned und haut es dann raus
 Evtl sollten wir auch den prioManger auf mehr Async umstellen. auch wenn der TICK selber syncron ist. mal schaun.
+*/
+
+/*
+ERROR, okay wie hauen alles komplett um, PRIOS wird ein  teildes BPARTICIPANT
+Der BPARTICIPANT bekommt vom Scheduler seine throughput werte, und berichtet zurück
+PRIOS wird ASYNC!
 */
 
 impl PrioManager {
@@ -52,12 +58,12 @@ impl PrioManager {
 
     pub fn new() -> (
         Self,
-        Sender<(Prio, Pid, Sid, OutGoingMessage)>,
-        Sender<(Pid, Sid, oneshot::Sender<()>)>,
+        Sender<(Prio, Sid, OutGoingMessage)>,
+        Sender<(Sid, oneshot::Sender<()>)>,
     ) {
         // (a2p_msg_s, a2p_msg_r)
         let (messages_tx, messages_rx) = channel();
-        let (pid_sid_flushed_tx, pid_sid_flushed_rx) = channel();
+        let (sid_flushed_tx, sid_flushed_rx) = channel();
         (
             Self {
                 points: [0; PRIO_MAX],
@@ -129,11 +135,11 @@ impl PrioManager {
                 ],
                 messages_rx,
                 queued: HashSet::new(), //TODO: optimize with u64 and 64 bits
-                pid_sid_flushed_rx,
-                pid_sid_owned: HashMap::new(),
+                sid_flushed_rx,
+                sid_owned: HashMap::new(),
             },
             messages_tx,
-            pid_sid_flushed_tx,
+            sid_flushed_tx,
         )
     }
 
@@ -141,31 +147,31 @@ impl PrioManager {
         // Check Range
         let mut times = 0;
         let mut closed = 0;
-        for (prio, pid, sid, msg) in self.messages_rx.try_iter() {
+        for (prio, sid, msg) in self.messages_rx.try_iter() {
             debug_assert!(prio as usize <= PRIO_MAX);
             times += 1;
-            //trace!(?prio, ?sid, ?pid, "tick");
+            //trace!(?prio, ?sid, "tick");
             self.queued.insert(prio);
-            self.messages[prio as usize].push_back((pid, sid, msg));
-            if let Some(cnt) = self.pid_sid_owned.get_mut(&(pid, sid)) {
+            self.messages[prio as usize].push_back((sid, msg));
+            if let Some(cnt) = self.sid_owned.get_mut(&sid) {
                 cnt.len += 1;
             } else {
-                self.pid_sid_owned.insert((pid, sid), PidSidInfo {
+                self.sid_owned.insert(sid, PidSidInfo {
                     len: 1,
                     empty_notify: None,
                 });
             }
         }
         //this must be AFTER messages
-        for (pid, sid, return_sender) in self.pid_sid_flushed_rx.try_iter() {
+        for (sid, return_sender) in self.sid_flushed_rx.try_iter() {
             closed += 1;
-            if let Some(cnt) = self.pid_sid_owned.get_mut(&(pid, sid)) {
+            if let Some(cnt) = self.sid_owned.get_mut(&sid) {
                 // register sender
                 cnt.empty_notify = Some(return_sender);
             } else {
                 // return immediately
                 futures::executor::block_on(async {
-                    return_sender.send(());
+                    return_sender.send(()).unwrap();
                 });
             }
         }
@@ -193,9 +199,8 @@ impl PrioManager {
     }
 
     /// returns if msg is empty
-    fn tick_msg<E: Extend<(Pid, Sid, Frame)>>(
+    fn tick_msg<E: Extend<(Sid, Frame)>>(
         msg: &mut OutGoingMessage,
-        msg_pid: Pid,
         msg_sid: Sid,
         frames: &mut E,
     ) -> bool {
@@ -205,13 +210,13 @@ impl PrioManager {
         );
         if to_send > 0 {
             if msg.cursor == 0 {
-                frames.extend(std::iter::once((msg_pid, msg_sid, Frame::DataHeader {
+                frames.extend(std::iter::once((msg_sid, Frame::DataHeader {
                     mid: msg.mid,
                     sid: msg.sid,
                     length: msg.buffer.data.len() as u64,
                 })));
             }
-            frames.extend(std::iter::once((msg_pid, msg_sid, Frame::Data {
+            frames.extend(std::iter::once((msg_sid, Frame::Data {
                 mid: msg.mid,
                 start: msg.cursor,
                 data: msg.buffer.data[msg.cursor as usize..(msg.cursor + to_send) as usize]
@@ -231,7 +236,7 @@ impl PrioManager {
     ///    high prio messages!
     ///  - if no_of_frames is too low you wont saturate your Socket fully, thus
     ///    have a lower bandwidth as possible
-    pub fn fill_frames<E: Extend<(Pid, Sid, Frame)>>(
+    pub async fn fill_frames<E: Extend<(Sid, Frame)>>(
         &mut self,
         no_of_frames: usize,
         frames: &mut E,
@@ -246,29 +251,26 @@ impl PrioManager {
                     // => messages with same prio get a fair chance :)
                     //TODO: evalaute not poping every time
                     match self.messages[prio as usize].pop_front() {
-                        Some((pid, sid, mut msg)) => {
-                            if Self::tick_msg(&mut msg, pid, sid, frames) {
+                        Some((sid, mut msg)) => {
+                            if Self::tick_msg(&mut msg, sid, frames) {
                                 //debug!(?m.mid, "finish message");
                                 //check if prio is empty
                                 if self.messages[prio as usize].is_empty() {
                                     self.queued.remove(&prio);
                                 }
                                 //decrease pid_sid counter by 1 again
-                                let cnt = self.pid_sid_owned.get_mut(&(pid, sid)).expect(
+                                let cnt = self.sid_owned.get_mut(&sid).expect(
                                     "the pid_sid_owned counter works wrong, more pid,sid removed \
                                      than inserted",
                                 );
                                 cnt.len -= 1;
                                 if cnt.len == 0 {
-                                    let cnt = self.pid_sid_owned.remove(&(pid, sid)).unwrap();
-                                    cnt.empty_notify.map(|empty_notify| {
-                                        futures::executor::block_on(async {
-                                            empty_notify.send(());
-                                        })
-                                    });
+                                    let cnt = self.sid_owned.remove(&sid).unwrap();
+                                    cnt.empty_notify
+                                        .map(|empty_notify| empty_notify.send(()).unwrap());
                                 }
                             } else {
-                                self.messages[prio as usize].push_back((pid, sid, msg));
+                                self.messages[prio as usize].push_back((sid, msg));
                                 //trace!(?m.mid, "repush message");
                             }
                         },
@@ -283,12 +285,6 @@ impl PrioManager {
                 },
             }
         }
-    }
-
-    /// if you want to make sure to empty the prio of a single pid and sid, use
-    /// this
-    pub(crate) fn contains_pid_sid(&self, pid: Pid, sid: Sid) -> bool {
-        self.pid_sid_owned.contains_key(&(pid, sid))
     }
 }
 
@@ -315,9 +311,9 @@ mod tests {
     const SIZE: u64 = PrioManager::FRAME_DATA_SIZE;
     const USIZE: usize = PrioManager::FRAME_DATA_SIZE as usize;
 
-    fn mock_out(prio: Prio, sid: u64) -> (Prio, Pid, Sid, OutGoingMessage) {
+    fn mock_out(prio: Prio, sid: u64) -> (Prio, Sid, OutGoingMessage) {
         let sid = Sid::new(sid);
-        (prio, Pid::fake(0), sid, OutGoingMessage {
+        (prio, sid, OutGoingMessage {
             buffer: Arc::new(MessageBuffer {
                 data: vec![48, 49, 50],
             }),
@@ -327,12 +323,12 @@ mod tests {
         })
     }
 
-    fn mock_out_large(prio: Prio, sid: u64) -> (Prio, Pid, Sid, OutGoingMessage) {
+    fn mock_out_large(prio: Prio, sid: u64) -> (Prio, Sid, OutGoingMessage) {
         let sid = Sid::new(sid);
         let mut data = vec![48; USIZE];
         data.append(&mut vec![49; USIZE]);
         data.append(&mut vec![50; 20]);
-        (prio, Pid::fake(0), sid, OutGoingMessage {
+        (prio, sid, OutGoingMessage {
             buffer: Arc::new(MessageBuffer { data }),
             cursor: 0,
             mid: 1,
@@ -340,7 +336,7 @@ mod tests {
         })
     }
 
-    fn assert_header(frames: &mut VecDeque<(Pid, Sid, Frame)>, f_sid: u64, f_length: u64) {
+    fn assert_header(frames: &mut VecDeque<(Sid, Frame)>, f_sid: u64, f_length: u64) {
         let frame = frames
             .pop_front()
             .expect("frames vecdeque doesn't contain enough frames!")
@@ -354,7 +350,7 @@ mod tests {
         }
     }
 
-    fn assert_data(frames: &mut VecDeque<(Pid, Sid, Frame)>, f_start: u64, f_data: Vec<u8>) {
+    fn assert_data(frames: &mut VecDeque<(Sid, Frame)>, f_start: u64, f_data: Vec<u8>) {
         let frame = frames
             .pop_front()
             .expect("frames vecdeque doesn't contain enough frames!")

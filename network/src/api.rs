@@ -14,7 +14,7 @@ use serde::{de::DeserializeOwned, Serialize};
 use std::{
     collections::HashMap,
     sync::{
-        atomic::{AtomicBool, AtomicU64, Ordering},
+        atomic::{AtomicBool, Ordering},
         Arc,
     },
 };
@@ -71,7 +71,7 @@ pub struct Stream {
     mid: Mid,
     prio: Prio,
     promises: Promises,
-    a2b_msg_s: std::sync::mpsc::Sender<(Prio, Pid, Sid, OutGoingMessage)>,
+    a2b_msg_s: std::sync::mpsc::Sender<(Prio, Sid, OutGoingMessage)>,
     b2a_msg_recv_r: mpsc::UnboundedReceiver<InCommingMessage>,
     closed: Arc<AtomicBool>,
     a2b_close_stream_s: Option<mpsc::UnboundedSender<Sid>>,
@@ -530,7 +530,7 @@ impl Stream {
         sid: Sid,
         prio: Prio,
         promises: Promises,
-        a2b_msg_s: std::sync::mpsc::Sender<(Prio, Pid, Sid, OutGoingMessage)>,
+        a2b_msg_s: std::sync::mpsc::Sender<(Prio, Sid, OutGoingMessage)>,
         b2a_msg_recv_r: mpsc::UnboundedReceiver<InCommingMessage>,
         closed: Arc<AtomicBool>,
         a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
@@ -584,6 +584,7 @@ impl Stream {
     /// [`send_raw`]: Stream::send_raw
     /// [`recv`]: Stream::recv
     /// [`Serialized`]: Serialize
+    #[inline]
     pub fn send<M: Serialize>(&mut self, msg: M) -> Result<(), StreamError> {
         self.send_raw(Arc::new(message::serialize(&msg)))
     }
@@ -624,13 +625,12 @@ impl Stream {
             return Err(StreamError::StreamClosed);
         }
         //debug!(?messagebuffer, "sending a message");
-        self.a2b_msg_s
-            .send((self.prio, self.pid, self.sid, OutGoingMessage {
-                buffer: messagebuffer,
-                cursor: 0,
-                mid: self.mid,
-                sid: self.sid,
-            }))?;
+        self.a2b_msg_s.send((self.prio, self.sid, OutGoingMessage {
+            buffer: messagebuffer,
+            cursor: 0,
+            mid: self.mid,
+            sid: self.sid,
+        }))?;
         self.mid += 1;
         Ok(())
     }
@@ -643,6 +643,7 @@ impl Stream {
     ///
     /// A [`StreamError`] will be returned in the error case, e.g. when the
     /// `Stream` got closed already.
+    #[inline]
     pub async fn recv<M: DeserializeOwned>(&mut self) -> Result<M, StreamError> {
         Ok(message::deserialize(self.recv_raw().await?))
     }

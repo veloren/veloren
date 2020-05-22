@@ -18,7 +18,6 @@ use tracing::*;
 
 pub(crate) struct Channel {
     cid: Cid,
-    metrics: Arc<NetworkMetrics>,
     remote_pid: Pid,
     to_wire_receiver: Option<mpsc::UnboundedReceiver<Frame>>,
     read_stop_receiver: Option<oneshot::Receiver<()>>,
@@ -28,14 +27,12 @@ impl Channel {
     pub fn new(
         cid: u64,
         remote_pid: Pid,
-        metrics: Arc<NetworkMetrics>,
     ) -> (Self, mpsc::UnboundedSender<Frame>, oneshot::Sender<()>) {
         let (to_wire_sender, to_wire_receiver) = mpsc::unbounded::<Frame>();
         let (read_stop_sender, read_stop_receiver) = oneshot::channel();
         (
             Self {
                 cid,
-                metrics,
                 remote_pid,
                 to_wire_receiver: Some(to_wire_receiver),
                 read_stop_receiver: Some(read_stop_receiver),
