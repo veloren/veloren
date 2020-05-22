@@ -4,3 +4,5 @@
     - changes:
         - "*.{rs,ron,toml,vox,png}"
         - "rust-toolchain"
+        - ".gitlab-ci.yml"
+        - "*.gitlab-ci.yml"
