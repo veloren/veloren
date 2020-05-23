@@ -1,0 +1,89 @@
+.tests: &tests
+  extends: .recompile
+  stage: build-post
+  tags:
+    - veloren-docker
+
+unittests:
+  <<: *tests
+  script:
+    - cargo test
+  retry:
+    max: 2
+
+coverage:
+  <<: *tests
+  allow_failure: true
+  script:
+    - cargo tarpaulin -v
+  retry:
+    max: 2
+
+benchmarks:
+  <<: *tests
+  script:
+    - unset DISABLE_GIT_LFS_CHECK
+    - cargo bench
+  retry:
+    max: 2
+
+localization-status:
+  <<: *tests
+  variables:
+    GIT_DEPTH: 0
+  allow_failure: true
+  script:
+    - cargo test -q test_all_localizations -- --nocapture --ignored
+
+# Artifacts
+.artifact: &artifact
+  extends: .recompile
+  extends: .release
+  stage: build-post
+  tags:
+    - veloren-docker
+
+linux:
+  <<: *artifact
+  script:
+    - cargo build --release
+    - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
+    - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
+    - strip --strip-all veloren-server-cli
+    - strip --strip-all veloren-voxygen
+  artifacts:
+    paths:
+      - veloren-server-cli
+      - veloren-voxygen
+      - assets/
+      - LICENSE
+    expire_in: 1 week
+
+windows:
+  <<: *artifact
+  script:
+    - cargo build --target=x86_64-pc-windows-gnu --release
+    - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
+    - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
+  artifacts:
+    paths:
+      - veloren-server-cli.exe
+      - veloren-voxygen.exe
+      - assets/
+      - LICENSE
+    expire_in: 1 week
+
+macos:
+  <<: *artifact
+  script:
+    - PATH="/dockercache/osxcross/target/bin:$PATH" COREAUDIO_SDK_PATH=/dockercache/osxcross/target/SDK/MacOSX10.13.sdk CC=o64-clang CXX=o64-clang++ cargo build --target x86_64-apple-darwin --release
+    - cp -r target/x86_64-apple-darwin/release/veloren-server-cli $CI_PROJECT_DIR
+    - cp -r target/x86_64-apple-darwin/release/veloren-voxygen $CI_PROJECT_DIR
+  artifacts:
+    paths:
+      - veloren-server-cli
+      - veloren-voxygen
+      - assets/
+      - LICENSE
+    expire_in: 1 week
+  allow_failure: true
