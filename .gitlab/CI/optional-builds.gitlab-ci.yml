@@ -1,0 +1,51 @@
+.optional-release: &optional-release
+  stage: optional-builds
+  tags:
+    - veloren-docker
+  except:
+    - schedules
+  when: manual
+
+optional-release:linux:
+  <<: *optional-release
+  script:
+    - cargo build --verbose --release
+    - cp target/release/veloren-server-cli $CI_PROJECT_DIR
+    - cp target/release/veloren-voxygen $CI_PROJECT_DIR
+    - strip --strip-all veloren-server-cli
+    - strip --strip-all veloren-voxygen
+  artifacts:
+    paths:
+      - veloren-server-cli
+      - veloren-voxygen
+      - assets/
+      - LICENSE
+    expire_in: 1 week
+
+optional-release:windows:
+  <<: *optional-release
+  script:
+    - cargo build --verbose --target=x86_64-pc-windows-gnu --release
+    - cp target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
+    - cp target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
+  artifacts:
+    paths:
+      - veloren-server-cli.exe
+      - veloren-voxygen.exe
+      - assets/
+      - LICENSE
+    expire_in: 1 week
+
+optional-release:macos:
+  <<: *optional-release
+  script:
+    - PATH="/dockercache/osxcross/target/bin:$PATH" COREAUDIO_SDK_PATH=/dockercache/osxcross/target/SDK/MacOSX10.13.sdk CC=o64-clang CXX=o64-clang++ cargo build --target x86_64-apple-darwin --release
+    - cp -r target/x86_64-apple-darwin/release/veloren-server-cli $CI_PROJECT_DIR
+    - cp -r target/x86_64-apple-darwin/release/veloren-voxygen $CI_PROJECT_DIR
+  artifacts:
+    paths:
+      - veloren-server-cli
+      - veloren-voxygen
+      - assets/
+      - LICENSE
+    expire_in: 1 week
