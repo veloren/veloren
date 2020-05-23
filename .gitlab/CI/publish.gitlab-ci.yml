@@ -1,3 +1,5 @@
+# Publishes veloren-server-cli to the gitlab container registry
+# https://gitlab.com/veloren/veloren/container_registry
 docker:
   stage: publish
   extends: .release
