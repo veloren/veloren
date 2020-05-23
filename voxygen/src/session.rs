@@ -271,11 +271,6 @@ impl PlayState for SessionState {
                             }
                         } else {
                             self.inputs.secondary.set_state(state);
-
-                            // Check for select_block that is highlighted
-                            if let Some(select_pos) = self.scene.select_pos() {
-                                client.collect_block(select_pos);
-                            }
                         }
                     },
 
@@ -391,6 +386,12 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::Interact, state) => {
                         let mut client = self.client.borrow_mut();
 
+                        // Collect terrain sprites
+                        if let Some(select_pos) = self.scene.select_pos() {
+                            client.collect_block(select_pos);
+                        }
+
+                        // Collect lootable entities
                         let player_pos = client
                             .state()
                             .read_storage::<comp::Pos>()
