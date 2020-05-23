@@ -339,24 +339,31 @@ fn handle_alias(
     action: &ChatCommand,
 ) {
     if let Ok(alias) = scan_fmt!(&args, &action.arg_fmt(), String) {
-        server
+        let old_alias_optional = server
             .state
             .ecs_mut()
             .write_storage::<comp::Player>()
             .get_mut(target)
-            .map(|player| player.alias = alias);
+            .map(|player| std::mem::replace(&mut player.alias, alias));
 
         // Update name on client player lists
         let ecs = server.state.ecs();
-        if let (Some(uid), Some(player)) = (
+        if let (Some(uid), Some(player), Some(old_alias)) = (
             ecs.read_storage::<Uid>().get(target),
             ecs.read_storage::<comp::Player>().get(target),
+            old_alias_optional,
         ) {
             let msg = ServerMsg::PlayerListUpdate(PlayerListUpdate::Alias(
                 (*uid).into(),
                 player.alias.clone(),
             ));
             server.state.notify_registered_clients(msg);
+            server
+                .state
+                .notify_registered_clients(ServerMsg::broadcast(format!(
+                    "{} is now known as {}.",
+                    old_alias, player.alias
+                )));
         }
     } else {
         server.notify_client(
