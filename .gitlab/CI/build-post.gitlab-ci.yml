@@ -1,4 +1,3 @@
-# Template to only run if actual changes has been made to the code and not just documentation
 .tests: &tests
   extends: .recompile
   stage: build-post

@@ -1,4 +1,4 @@
 # Template to only run if pushes to master or a tag happened
 .release:
   rules:
-    - if: $CI_COMMIT_REF_NAME =~ /^master.$/ || $CI_COMMIT_TAG =~ /^r[0-9]+\.[0-9]+\.[0-9]+/ || $CI_COMMIT_REF_NAME =~ /^v[0-9]+\.[0-9]+/
+    - if: $CI_COMMIT_REF_NAME =~ /^master.$/ || $CI_COMMIT_REF_NAME =~ /^r[0-9]+\.[0-9]+\.[0-9]+/ || $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+/
