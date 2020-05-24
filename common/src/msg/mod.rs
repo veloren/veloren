@@ -7,8 +7,8 @@ pub use self::{
     client::ClientMsg,
     ecs_packet::EcsCompPacket,
     server::{
-        Notification, PlayerInfo, PlayerListUpdate, RegisterError, RequestStateError, ServerInfo,
-        ServerMsg,
+        CharacterInfo, Notification, PlayerInfo, PlayerListUpdate, RegisterError,
+        RequestStateError, ServerInfo, ServerMsg,
     },
 };
 

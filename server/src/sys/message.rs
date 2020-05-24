@@ -10,8 +10,8 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     msg::{
-        validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, PlayerInfo,
-        PlayerListUpdate, RequestStateError, ServerMsg, MAX_BYTES_CHAT_MSG,
+        validate_chat_msg, CharacterInfo, ChatMsgValidationError, ClientMsg, ClientState,
+        PlayerInfo, PlayerListUpdate, RequestStateError, ServerMsg, MAX_BYTES_CHAT_MSG,
     },
     state::{BlockChange, Time},
     sync::Uid,
@@ -88,8 +88,11 @@ impl<'a> System<'a> for Sys {
             .map(|(uid, player, stats)| {
                 ((*uid).into(), PlayerInfo {
                     player_alias: player.alias.clone(),
-                    character_name: stats.name.clone(),
-                    character_level: stats.level.level(),
+                    // TODO: player might not have a character selected
+                    character: Some(CharacterInfo {
+                        name: stats.name.clone(),
+                        level: stats.level.level(),
+                    }),
                 })
             })
             .collect::<HashMap<_, _>>();
@@ -388,14 +391,11 @@ impl<'a> System<'a> for Sys {
         // Handle new players.
         // Tell all clients to add them to the player list.
         for entity in new_players {
-            if let (Some(uid), Some(player), Some(stats)) =
-                (uids.get(entity), players.get(entity), stats.get(entity))
-            {
+            if let (Some(uid), Some(player)) = (uids.get(entity), players.get(entity)) {
                 let msg =
                     ServerMsg::PlayerListUpdate(PlayerListUpdate::Add((*uid).into(), PlayerInfo {
                         player_alias: player.alias.clone(),
-                        character_name: stats.name.clone(),
-                        character_level: stats.level.level(), // TODO: stats.level.amount,
+                        character: None, // new players will be on character select.
                     }));
                 for client in (&mut clients).join().filter(|c| c.is_registered()) {
                     client.notify(msg.clone())
