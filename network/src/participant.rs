@@ -2,7 +2,7 @@ use crate::{
     api::Stream,
     channel::Channel,
     message::{InCommingMessage, MessageBuffer, OutGoingMessage},
-    metrics::NetworkMetrics,
+    metrics::{NetworkMetrics, PidCidFrameCache},
     prios::PrioManager,
     protocols::Protocols,
     types::{Cid, Frame, Pid, Prio, Promises, Sid},
@@ -27,6 +27,7 @@ use tracing::*;
 #[derive(Debug)]
 struct ChannelInfo {
     cid: Cid,
+    cid_string: String, //optimisation
     b2w_frame_s: mpsc::UnboundedSender<Frame>,
     b2r_read_shutdown: oneshot::Sender<()>,
 }
@@ -52,6 +53,7 @@ struct ControlChannels {
 #[derive(Debug)]
 pub struct BParticipant {
     remote_pid: Pid,
+    remote_pid_string: String, //optimisation
     offset_sid: Sid,
     channels: Arc<RwLock<Vec<ChannelInfo>>>,
     streams: RwLock<HashMap<Sid, StreamInfo>>,
@@ -92,6 +94,7 @@ impl BParticipant {
         (
             Self {
                 remote_pid,
+                remote_pid_string: remote_pid.to_string(),
                 offset_sid,
                 channels: Arc::new(RwLock::new(vec![])),
                 streams: RwLock::new(HashMap::new()),
@@ -164,6 +167,8 @@ impl BParticipant {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
         let mut closing_up = false;
         trace!("start send_mgr");
+        let mut send_cache =
+            PidCidFrameCache::new(self.metrics.frames_out_total.clone(), self.remote_pid);
         //while !self.closed.load(Ordering::Relaxed) {
         loop {
             let mut frames = VecDeque::new();
@@ -173,7 +178,7 @@ impl BParticipant {
                 trace!("tick {}", len);
             }
             for (_, frame) in frames {
-                self.send_frame(frame).await;
+                self.send_frame(frame, &mut send_cache).await;
             }
             async_std::task::sleep(TICK_TIME).await;
             //shutdown after all msg are send!
@@ -189,17 +194,12 @@ impl BParticipant {
         self.running_mgr.fetch_sub(1, Ordering::Relaxed);
     }
 
-    async fn send_frame(&self, frame: Frame) {
+    async fn send_frame(&self, frame: Frame, frames_out_total_cache: &mut PidCidFrameCache) {
         // find out ideal channel here
         //TODO: just take first
         if let Some(ci) = self.channels.write().await.get_mut(0) {
-            self.metrics
-                .frames_out_total
-                .with_label_values(&[
-                    &self.remote_pid.to_string(),
-                    &ci.cid.to_string(),
-                    frame.get_string(),
-                ])
+            frames_out_total_cache
+                .with_label_values(ci.cid, &frame)
                 .inc();
             ci.b2w_frame_s.send(frame).await.unwrap();
         } else {
@@ -217,13 +217,12 @@ impl BParticipant {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
         trace!("start handle_frames_mgr");
         let mut messages = HashMap::new();
-        let pid_string = &self.remote_pid.to_string();
         while let Some((cid, frame)) = w2b_frames_r.next().await {
             let cid_string = cid.to_string();
             //trace!("handling frame");
             self.metrics
                 .frames_in_total
-                .with_label_values(&[&pid_string, &cid_string, frame.get_string()])
+                .with_label_values(&[&self.remote_pid_string, &cid_string, frame.get_string()])
                 .inc();
             match frame {
                 Frame::OpenStream {
@@ -247,7 +246,7 @@ impl BParticipant {
                     if let Some(si) = self.streams.write().await.remove(&sid) {
                         self.metrics
                             .streams_closed_total
-                            .with_label_values(&[&pid_string])
+                            .with_label_values(&[&self.remote_pid_string])
                             .inc();
                         si.closed.store(true, Ordering::Relaxed);
                     } else {
@@ -313,19 +312,20 @@ impl BParticipant {
                         Channel::new(cid, self.remote_pid);
                     channels.write().await.push(ChannelInfo {
                         cid,
+                        cid_string: cid.to_string(),
                         b2w_frame_s,
                         b2r_read_shutdown,
                     });
                     b2s_create_channel_done_s.send(()).unwrap();
                     self.metrics
                         .channels_connected_total
-                        .with_label_values(&[&self.remote_pid.to_string()])
+                        .with_label_values(&[&self.remote_pid_string])
                         .inc();
                     trace!(?cid, "running channel in participant");
                     channel.run(protocol, w2b_frames_s).await;
                     self.metrics
                         .channels_disconnected_total
-                        .with_label_values(&[&self.remote_pid.to_string()])
+                        .with_label_values(&[&self.remote_pid_string])
                         .inc();
                     trace!(?cid, "channel got closed");
                 }
@@ -345,6 +345,8 @@ impl BParticipant {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
         trace!("start open_mgr");
         let mut stream_ids = self.offset_sid;
+        let mut send_cache =
+            PidCidFrameCache::new(self.metrics.frames_out_total.clone(), self.remote_pid);
         let mut shutdown_open_mgr_receiver = shutdown_open_mgr_receiver.fuse();
         //from api or shutdown signal
         while let Some((prio, promises, p2a_return_stream)) = select! {
@@ -357,11 +359,14 @@ impl BParticipant {
             let stream = self
                 .create_stream(sid, prio, promises, a2p_msg_s, &a2b_close_stream_s)
                 .await;
-            self.send_frame(Frame::OpenStream {
-                sid,
-                prio,
-                promises,
-            })
+            self.send_frame(
+                Frame::OpenStream {
+                    sid,
+                    prio,
+                    promises,
+                },
+                &mut send_cache,
+            )
             .await;
             p2a_return_stream.send(stream).unwrap();
             stream_ids += Sid::from(1);
@@ -429,6 +434,8 @@ impl BParticipant {
     ) {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
         trace!("start stream_close_mgr");
+        let mut send_cache =
+            PidCidFrameCache::new(self.metrics.frames_out_total.clone(), self.remote_pid);
         let mut shutdown_stream_close_mgr_receiver = shutdown_stream_close_mgr_receiver.fuse();
 
         //from api or shutdown signal
@@ -465,11 +472,12 @@ impl BParticipant {
             trace!(?sid, "stream was successfully flushed");
             self.metrics
                 .streams_closed_total
-                .with_label_values(&[&self.remote_pid.to_string()])
+                .with_label_values(&[&self.remote_pid_string])
                 .inc();
             //only now remove the Stream, that means we can still recv on it.
             self.streams.write().await.remove(&sid);
-            self.send_frame(Frame::CloseStream { sid }).await;
+            self.send_frame(Frame::CloseStream { sid }, &mut send_cache)
+                .await;
         }
         trace!("stop stream_close_mgr");
         self.running_mgr.fetch_sub(1, Ordering::Relaxed);
@@ -493,7 +501,7 @@ impl BParticipant {
         });
         self.metrics
             .streams_opened_total
-            .with_label_values(&[&self.remote_pid.to_string()])
+            .with_label_values(&[&self.remote_pid_string])
             .inc();
         Stream::new(
             self.remote_pid,

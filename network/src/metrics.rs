@@ -1,6 +1,10 @@
-use crate::types::Pid;
-use prometheus::{IntCounter, IntCounterVec, IntGauge, IntGaugeVec, Opts, Registry};
+use crate::types::{Cid, Frame, Pid};
+use prometheus::{
+    core::{AtomicI64, GenericCounter},
+    IntCounter, IntCounterVec, IntGauge, IntGaugeVec, Opts, Registry,
+};
 use std::error::Error;
+use tracing::*;
 
 //TODO: switch over to Counter for frames_count, message_count, bytes_send,
 // frames_message_count 1 NetworkMetrics per Network
@@ -237,5 +241,93 @@ impl std::fmt::Debug for NetworkMetrics {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "NetworkMetrics()")
+    }
+}
+
+/*
+pub(crate) struct PidCidFrameCache<T: MetricVecBuilder> {
+    metric: MetricVec<T>,
+    pid: String,
+    cache: Vec<[T::M; 8]>,
+}
+*/
+
+pub(crate) struct PidCidFrameCache {
+    metric: IntCounterVec,
+    pid: String,
+    cache: Vec<[GenericCounter<AtomicI64>; 8]>,
+}
+
+impl PidCidFrameCache {
+    const CACHE_SIZE: usize = 16;
+
+    pub fn new(metric: IntCounterVec, pid: Pid) -> Self {
+        Self {
+            metric,
+            pid: pid.to_string(),
+            cache: vec![],
+        }
+    }
+
+    fn populate(&mut self, cid: Cid) {
+        let start_cid = self.cache.len();
+        for i in start_cid..=cid as usize {
+            let cid = (i as Cid).to_string();
+            let entry = [
+                self.metric
+                    .with_label_values(&[&self.pid, &cid, Frame::int_to_string(0)]),
+                self.metric
+                    .with_label_values(&[&self.pid, &cid, Frame::int_to_string(1)]),
+                self.metric
+                    .with_label_values(&[&self.pid, &cid, Frame::int_to_string(2)]),
+                self.metric
+                    .with_label_values(&[&self.pid, &cid, Frame::int_to_string(3)]),
+                self.metric
+                    .with_label_values(&[&self.pid, &cid, Frame::int_to_string(4)]),
+                self.metric
+                    .with_label_values(&[&self.pid, &cid, Frame::int_to_string(5)]),
+                self.metric
+                    .with_label_values(&[&self.pid, &cid, Frame::int_to_string(6)]),
+                self.metric
+                    .with_label_values(&[&self.pid, &cid, Frame::int_to_string(7)]),
+            ];
+            self.cache.push(entry);
+        }
+    }
+
+    pub fn with_label_values(&mut self, cid: Cid, frame: &Frame) -> &GenericCounter<AtomicI64> {
+        if cid > (Self::CACHE_SIZE as Cid) {
+            warn!(
+                ?cid,
+                "cid, getting quite high, is this a attack on the cache?"
+            );
+        }
+        self.populate(cid);
+        &self.cache[cid as usize][frame.get_int() as usize]
+    }
+}
+
+pub(crate) struct CidFrameCache {
+    cache: [GenericCounter<AtomicI64>; 8],
+}
+
+impl CidFrameCache {
+    pub fn new(metric: IntCounterVec, cid: Cid) -> Self {
+        let cid = cid.to_string();
+        let cache = [
+            metric.with_label_values(&[&cid, Frame::int_to_string(0)]),
+            metric.with_label_values(&[&cid, Frame::int_to_string(1)]),
+            metric.with_label_values(&[&cid, Frame::int_to_string(2)]),
+            metric.with_label_values(&[&cid, Frame::int_to_string(3)]),
+            metric.with_label_values(&[&cid, Frame::int_to_string(4)]),
+            metric.with_label_values(&[&cid, Frame::int_to_string(5)]),
+            metric.with_label_values(&[&cid, Frame::int_to_string(6)]),
+            metric.with_label_values(&[&cid, Frame::int_to_string(7)]),
+        ];
+        Self { cache }
+    }
+
+    pub fn with_label_values(&mut self, frame: &Frame) -> &GenericCounter<AtomicI64> {
+        &self.cache[frame.get_int() as usize]
     }
 }

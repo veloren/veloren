@@ -133,6 +133,7 @@ impl Scheduler {
             self.listen_mgr(run_channels.a2s_listen_r),
             self.connect_mgr(run_channels.a2s_connect_r),
             self.disconnect_mgr(run_channels.a2s_disconnect_r),
+            self.prio_adj_mgr(),
             self.scheduler_shutdown_mgr(run_channels.a2s_scheduler_shutdown_r),
         );
     }
@@ -259,6 +260,12 @@ impl Scheduler {
             return_once_successfull_shutdown.send(e).unwrap();
         }
         trace!("stop disconnect_mgr");
+    }
+
+    async fn prio_adj_mgr(&self) {
+        trace!("start prio_adj_mgr");
+        //TODO adjust prios in participants here!
+        trace!("stop prio_adj_mgr");
     }
 
     async fn scheduler_shutdown_mgr(&self, a2s_scheduler_shutdown_r: oneshot::Receiver<()>) {
