@@ -566,6 +566,7 @@ impl Hud {
             let stats = ecs.read_storage::<comp::Stats>();
             let energy = ecs.read_storage::<comp::Energy>();
             let hp_floater_lists = ecs.read_storage::<vcomp::HpFloaterList>();
+            let speech_bubbles = ecs.read_storage::<comp::SpeechBubble>();
             let interpolated = ecs.read_storage::<vcomp::Interpolated>();
             let players = ecs.read_storage::<comp::Player>();
             let scales = ecs.read_storage::<comp::Scale>();
@@ -890,7 +891,7 @@ impl Hud {
             let mut sct_bg_walker = self.ids.sct_bgs.walk();
 
             // Render overhead name tags and health bars
-            for (pos, name, stats, energy, height_offset, hpfl) in (
+            for (pos, name, stats, energy, height_offset, hpfl, bubble) in (
                 &entities,
                 &pos,
                 interpolated.maybe(),
@@ -900,11 +901,12 @@ impl Hud {
                 scales.maybe(),
                 &bodies,
                 &hp_floater_lists,
+                speech_bubbles.maybe(),
             )
                 .join()
-                .filter(|(entity, _, _, stats, _, _, _, _, _)| *entity != me && !stats.is_dead)
+                .filter(|(entity, _, _, stats, _, _, _, _, _, _)| *entity != me && !stats.is_dead)
                 // Don't show outside a certain range
-                .filter(|(_, pos, _, _, _, _, _, _, hpfl)| {
+                .filter(|(_, pos, _, _, _, _, _, _, hpfl, _)| {
                     pos.0.distance_squared(player_pos)
                         < (if hpfl
                             .time_since_last_dmg_by_me
@@ -916,7 +918,7 @@ impl Hud {
                         })
                         .powi(2)
                 })
-                .map(|(_, pos, interpolated, stats, energy, player, scale, body, hpfl)| {
+                .map(|(_, pos, interpolated, stats, energy, player, scale, body, hpfl, bubble)| {
                     // TODO: This is temporary
                     // If the player used the default character name display their name instead
                     let name = if stats.name == "Character Name" {
@@ -932,6 +934,7 @@ impl Hud {
                         // TODO: when body.height() is more accurate remove the 2.0
                         body.height() * 2.0 * scale.map_or(1.0, |s| s.0),
                         hpfl,
+                        bubble,
                     )
                 })
             {
@@ -944,6 +947,7 @@ impl Hud {
                 // Chat bubble, name, level, and hp bars
                 overhead::Overhead::new(
                     &name,
+                    bubble,
                     stats,
                     energy,
                     own_level,

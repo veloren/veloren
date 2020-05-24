@@ -2,7 +2,7 @@ use super::SysTimer;
 use common::{
     comp::{
         Body, CanBuild, CharacterState, Collider, Energy, Gravity, Item, LightEmitter, Loadout,
-        Mass, MountState, Mounting, Ori, Player, Pos, Scale, Stats, Sticky, Vel,
+        Mass, MountState, Mounting, Ori, Player, Pos, Scale, SpeechBubble, Stats, Sticky, Vel,
     },
     msg::EcsCompPacket,
     sync::{CompSyncPackage, EntityPackage, EntitySyncPackage, Uid, UpdateTracker, WorldSyncExt},
@@ -54,6 +54,7 @@ pub struct TrackedComps<'a> {
     pub gravity: ReadStorage<'a, Gravity>,
     pub loadout: ReadStorage<'a, Loadout>,
     pub character_state: ReadStorage<'a, CharacterState>,
+    pub speech_bubble: ReadStorage<'a, SpeechBubble>,
 }
 impl<'a> TrackedComps<'a> {
     pub fn create_entity_package(
@@ -125,6 +126,10 @@ impl<'a> TrackedComps<'a> {
             .get(entity)
             .cloned()
             .map(|c| comps.push(c.into()));
+        self.speech_bubble
+            .get(entity)
+            .cloned()
+            .map(|c| comps.push(c.into()));
         // Add untracked comps
         pos.map(|c| comps.push(c.into()));
         vel.map(|c| comps.push(c.into()));
@@ -152,6 +157,7 @@ pub struct ReadTrackers<'a> {
     pub gravity: ReadExpect<'a, UpdateTracker<Gravity>>,
     pub loadout: ReadExpect<'a, UpdateTracker<Loadout>>,
     pub character_state: ReadExpect<'a, UpdateTracker<CharacterState>>,
+    pub speech_bubble: ReadExpect<'a, UpdateTracker<SpeechBubble>>,
 }
 impl<'a> ReadTrackers<'a> {
     pub fn create_sync_packages(
@@ -188,6 +194,12 @@ impl<'a> ReadTrackers<'a> {
                 &*self.character_state,
                 &comps.character_state,
                 filter,
+            )
+            .with_component(
+                &comps.uid,
+                &*self.speech_bubble,
+                &comps.speech_bubble,
+                filter,
             );
 
         (entity_sync_package, comp_sync_package)
@@ -213,6 +225,7 @@ pub struct WriteTrackers<'a> {
     gravity: WriteExpect<'a, UpdateTracker<Gravity>>,
     loadout: WriteExpect<'a, UpdateTracker<Loadout>>,
     character_state: WriteExpect<'a, UpdateTracker<CharacterState>>,
+    speech_bubble: WriteExpect<'a, UpdateTracker<SpeechBubble>>,
 }
 
 fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
@@ -236,6 +249,7 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     trackers
         .character_state
         .record_changes(&comps.character_state);
+    trackers.speech_bubble.record_changes(&comps.speech_bubble);
 }
 
 pub fn register_trackers(world: &mut World) {
@@ -256,6 +270,7 @@ pub fn register_trackers(world: &mut World) {
     world.register_tracker::<Gravity>();
     world.register_tracker::<Loadout>();
     world.register_tracker::<CharacterState>();
+    world.register_tracker::<SpeechBubble>();
 }
 
 /// Deleted entities grouped by region
