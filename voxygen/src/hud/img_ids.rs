@@ -272,6 +272,18 @@ image_ids! {
         progress_frame: "voxygen.element.frames.progress_bar",
         progress: "voxygen.element.misc_bg.progress",
 
+        // Chat bubbles
+        chat_bubble_top_left: "voxygen.element.frames.bubble.top_left",
+        chat_bubble_top: "voxygen.element.frames.bubble.top",
+        chat_bubble_top_right: "voxygen.element.frames.bubble.top_right",
+        chat_bubble_left: "voxygen.element.frames.bubble.left",
+        chat_bubble_mid: "voxygen.element.frames.bubble.mid",
+        chat_bubble_right: "voxygen.element.frames.bubble.right",
+        chat_bubble_bottom_left: "voxygen.element.frames.bubble.bottom_left",
+        chat_bubble_bottom: "voxygen.element.frames.bubble.bottom",
+        chat_bubble_bottom_right: "voxygen.element.frames.bubble.bottom_right",
+        chat_bubble_tail: "voxygen.element.frames.bubble.tail",
+
         <BlankGraphic>
         nothing: (),
     }
