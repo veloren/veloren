@@ -32,7 +32,7 @@ VoxygenLocalization(
         // Texts used in multiple locations with the same formatting
         /// Początek sekcji Zwykłej
         // Tekst użyty w wielu lokalizacja z podobnym formatowaniem
-        "common.username": "użytkownik",
+        "common.username": "Nazwa użytkownika",
         "common.singleplayer": "Tryb jednoosobowy",
         "common.multiplayer": "Tryb wieloosobowy",
         "common.servers": "Lista serwerów",
@@ -62,8 +62,8 @@ VoxygenLocalization(
         // Message when connection to the server is lost
         // Wiadomość, kiedy połączenie zostało przerwane
         "common.connection_lost": r#"Stracono połączenie!
-Możliwe, że serwer został zrestartowany.
-Warto również sprawdzić, czy jesteś na najnowszej wersji."#,
+Możliwe, że serwer został zrestartowany lub
+nie korzystasz z aktualnej wersji gry."#,
 
 
         "common.races.orc": "Ork",
@@ -73,7 +73,7 @@ Warto również sprawdzić, czy jesteś na najnowszej wersji."#,
         "common.races.undead": "Nieumarły",
         "common.races.danari": "Danari",
 
-        "common.weapons.axe": "Siekiera",
+        "common.weapons.axe": "Topór",
         "common.weapons.sword": "Miecz",
         "common.weapons.staff": "Berło",
         "common.weapons.bow": "Łuk",
@@ -95,11 +95,11 @@ Zanim zaczniesz, pamiętaj, że:
 
 - Gra jest w wczesnej alfie. Spodziewaj się błędów, ektremalnie niedokończonej fabuły, niedopracowanych mechanik i brakujących funkcji.
 
-- Jeżeli posiadasz opinie, pomysły lub chcesz zgłosić błąd, możesz się z nami zkontaktować poprzez Reddit, GitLab lub serwer Discord.
+- Jeżeli chcesz podzielić się swą opinią, masz sugestie lub pomysły, albo chcesz zgłosić błąd, możesz się z nami zkontaktować poprzez Reddit, GitLab lub serwer Discord.
 
-- Veloron jest pod licencją GPL 3 open-source licence (Licencja otwartego kodu źródłowego). To oznacza, że masz prawo do gry, modyfikacji i rozpowszechniania gry jakkolwiek ci się podoba (pod warunkiem twoja praca też będzie pod licencją GPL 3).
+- Veloren znajduję się pod licencją GPL 3 open-source licence (Licencja otwartego kodu źródłowego). To oznacza, że masz prawo do modyfikacji i rozpowszechniania gry jakkolwiek ci się podoba (pod warunkiem twoja praca też będzie pod licencją GPL 3).
 
-- Veloren jest projektem społecznym typu non-profit, gdzie każda osoba pracująca jest wolontariuszem. Jeżeli lubisz tę gre, zapraszamy do dołączenia do naszego zespołu!
+- Veloren jest projektem typu non-profit, gdzie każda osoba pracująca jest wolontariuszem. Jeżeli lubisz tę gre, zapraszamy do dołączenia do naszego zespołu!
 
 Dziękujemy za przeczytanie tej wiadomości i mamy nadzieję, że polubisz tę gre!
 
@@ -111,22 +111,22 @@ Dziękujemy za przeczytanie tej wiadomości i mamy nadzieję, że polubisz tę g
 
 Jeżeli masz problem z logowaniem:
 
-Pamiętaj, aby dołączyć do serwerów 
+Pamiętaj aby dołączyć do serwerów 
 z włączoną weryfikacją potrzebujesz konta.
 
-Konto możesz stworzyć pod:
+Konto możesz stworzyć na stronie:
 
 https://account.veloren.net."#,
         "main.login.server_not_found": "Serwer nie znaleziony",
         "main.login.authentication_error": "Błąd weryfikacji",
-        "main.login.server_full": "Serwen jest pełen",
+        "main.login.server_full": "Serwer jest pełen",
         "main.login.untrusted_auth_server": "Serwer weryfikacji jest niezaufany",
         "main.login.outdated_client_or_server": "SerwerOszalał: Prawdopodobnie wersje są niekompatybilne, sprawdź aktualizacje!",
         "main.login.timeout": "Timeout: Serwer nie odpowiedział na czas. (Przeciążenie, bądź błędy sieci).",
         "main.login.server_shut_down": "Serwer zamknięty",
         "main.login.already_logged_in": "Jesteś już zalogowany na serwerze.",
         "main.login.network_error": "Błąd sieci.",
-        "main.login.failed_sending_request": "Zapytanie do serwera weryfikacji zakończyło się niepowodzeniem.",
+        "main.login.failed_sending_request": "Zapytanie do serwera weryfikacji nie powiodło się",
         "main.login.client_crashed": "Crash clienta",
 
         /// End Main screen section
@@ -136,7 +136,7 @@ https://account.veloren.net."#,
         /// Start HUD Section
         /// Poczętek sekcji HUD
         "hud.do_not_show_on_startup": "Nie pokazuj wskazówek na początku gry",
-        "hud.show_tips": "Pokarz wskazówki",
+        "hud.show_tips": "Pokaż wskazówki",
         "hud.quests": "Zadania",
         "hud.you_died": "Umarłeś",
 
@@ -144,51 +144,51 @@ https://account.veloren.net."#,
         "hud.press_key_to_show_keybindings_fmt": "Kliknij {key} aby sprawdzić skróty klawiszowe",
         "hud.press_key_to_show_debug_info_fmt": "Kliknij {key} aby pokazać zaawansowane informacje",
         "hud.press_key_to_toggle_keybindings_fmt": "Kliknij {key} aby przełączyć skróty klawiszowe",
-        "hud.press_key_to_toggle_debug_info_fmt": "Kliknij {key} aby przełączyć zaawanowane informacje",
+        "hud.press_key_to_toggle_debug_info_fmt": "Kliknij {key} aby przełączyć zaawansowane informacje",
 
         // Respawn message
         // Widomość  po śmierci
-        "hud.press_key_to_respawn": r#"Kliknij {key} aby się odrodzić przy ostatnim odwiedzonym ognisku."#,
+        "hud.press_key_to_respawn": r#"Kliknij {key} aby się odrodzić przy ostatnio odwiedzonym ognisku."#,
 
         // Welcome message
         // Wiadomość powitalna
-        "hud.welcome": r#"Witaj w wersji alfa gry Valoren
+        "hud.welcome": r#"Witaj w wersji alfa gry Veloren!
 
 
-Kilka porad zanim zaczniesz.
+Kilka porad zanim zaczniesz:
 
 Kliknij F1 aby sprawdzić domyślne klawisze.
 
 Wpisz /help w czat aby zobaczyć dostępne komendy
 
 
-Na świecie możesz znaleść skrzynki i inne obiekty z losowym łupem!
+Po świecie są losowo poukrywane skrzynki i inne obiekty z losowym łupem!
 
 Kliknij prawym przyciskiem myszki, aby je zebrać.
 
 Aby użyć, bądź założyć twój łóp użyj klawisza 'B', aby otworzyć ekwipunek.
 
-Kliknij podwójnie na rzecz, aby ją użyć, bądź założyć.
+Kliknij podwójnie na rzecz, aby ją użyć bądź założyć.
 
 Wyrzuć niepotrzebne przedmioty poprzed przeciągnięcie ich poza obszar ekwipunku.
 
 
 Noce w Veloren potrafią być ciemne.
 
-Załóż swoją lampę i zapal ją klikając przycisk 'G'
+Wyekwipuj swoją lampę i zapal ją klikając przycisk 'G'
 
 
 Chcesz odblokować swój systemowy kursor z gry? Kliknij 'TAB'
 
 
-Ciesz się swoim pobytem w Veloren!"#,
+Ciesz się swoim pobytem w świecie Veloren!"#,
 
 
         // Inventory
         // Ekwipunek
         "hud.bag.inventory": "Ekwipunek {playername}",
         "hud.bag.stats_title": "Statystyki {playername}",
-        "hud.bag.exp": "Exp",
+        "hud.bag.exp": "Punktów doświadczenia",
         "hud.bag.armor": "Zbroja",
         "hud.bag.stats": "Statystyki",
         "hud.bag.head": "Głowa",
@@ -199,7 +199,7 @@ Ciesz się swoim pobytem w Veloren!"#,
         "hud.bag.hands": "Ręce",
         "hud.bag.lantern": "Lampa",
         "hud.bag.belt": "Pas",
-        "hud.bag.ring": "Obrączka",
+        "hud.bag.ring": "Pierścień",
         "hud.bag.back": "Tył",
         "hud.bag.legs": "Nogi",
         "hud.bag.feet": "Stopy",
