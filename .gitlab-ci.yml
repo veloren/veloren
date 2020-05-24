@@ -37,6 +37,10 @@ before_script:
   - ln -s /dockercache/veloren/target target
 
 include:
+  # pipelines run for branches and tags.
+  # https://docs.gitlab.com/ee/ci/yaml/#workflowrules
+  # TODO: https://docs.gitlab.com/ee/ci/merge_request_pipelines/pipelines_for_merged_results/index.html#enable-pipelines-for-merged-results
+  - template: "Workflows/Branch-Pipelines.gitlab-ci.yml"
   - local: .gitlab/CI/recompile.yml
   - local: .gitlab/CI/release.yml
   - local: .gitlab/CI/optional-builds.gitlab-ci.yml
