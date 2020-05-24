@@ -22,6 +22,8 @@ pub struct ServerInfo {
 pub enum PlayerListUpdate {
     Init(HashMap<u64, PlayerInfo>),
     Add(u64, PlayerInfo),
+    SelectedCharacter(u64, CharacterInfo),
+    LevelChange(u64, u32),
     Remove(u64),
     Alias(u64, String),
 }
@@ -29,8 +31,13 @@ pub enum PlayerListUpdate {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerInfo {
     pub player_alias: String,
-    pub character_name: String,
-    pub character_level: u32,
+    pub character: Option<CharacterInfo>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CharacterInfo {
+    pub name: String,
+    pub level: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -746,6 +746,23 @@ impl Client {
                             );
                         }
                     },
+                    ServerMsg::PlayerListUpdate(PlayerListUpdate::SelectedCharacter(
+                        uid,
+                        char_info,
+                    )) => {
+                        warn!(
+                            "ServerMsg::PlayerListUpdate PlayerListUpdate::LevelChange not \
+                             implemented: {} {:?}",
+                            uid, char_info
+                        );
+                    },
+                    ServerMsg::PlayerListUpdate(PlayerListUpdate::LevelChange(uid, next_level)) => {
+                        warn!(
+                            "ServerMsg::PlayerListUpdate PlayerListUpdate::LevelChange not \
+                             implemented: {} {}",
+                            uid, next_level
+                        );
+                    },
                     ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(uid)) => {
                         if self.player_list.remove(&uid).is_none() {
                             warn!(
