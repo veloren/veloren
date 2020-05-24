@@ -1,5 +1,5 @@
-use crate::path::Chaser;
-use specs::{Component, Entity as EcsEntity};
+use crate::{path::Chaser, state::Time};
+use specs::{Component, Entity as EcsEntity, FlaggedStorage, HashMapStorage};
 use specs_idvs::IDVStorage;
 use vek::*;
 
@@ -84,4 +84,18 @@ impl Activity {
 
 impl Default for Activity {
     fn default() -> Self { Activity::Idle(Vec2::zero()) }
+}
+
+/// Default duration in seconds of chat bubbles
+pub const SPEECH_BUBBLE_DURATION: f64 = 5.0;
+
+/// Adds a speech bubble to the entity
+#[derive(Clone, Default, Debug, Serialize, Deserialize)]
+pub struct SpeechBubble {
+    pub message: String,
+    pub timeout: Option<Time>,
+    // TODO add icon enum for player chat type / npc quest+trade
+}
+impl Component for SpeechBubble {
+    type Storage = FlaggedStorage<Self, HashMapStorage<Self>>;
 }

@@ -1,6 +1,6 @@
 use super::{img_ids::Imgs, HP_COLOR, LOW_HP_COLOR, MANA_COLOR};
 use crate::ui::{fonts::ConrodVoxygenFonts, Ingameable};
-use common::comp::{Energy, Stats};
+use common::comp::{Energy, SpeechBubble, Stats};
 use conrod_core::{
     position::Align,
     widget::{self, Image, Rectangle, Text},
@@ -42,6 +42,7 @@ widget_ids! {
 #[derive(WidgetCommon)]
 pub struct Overhead<'a> {
     name: &'a str,
+    bubble: Option<&'a SpeechBubble>,
     stats: &'a Stats,
     energy: &'a Energy,
     own_level: u32,
@@ -55,6 +56,7 @@ pub struct Overhead<'a> {
 impl<'a> Overhead<'a> {
     pub fn new(
         name: &'a str,
+        bubble: Option<&'a SpeechBubble>,
         stats: &'a Stats,
         energy: &'a Energy,
         own_level: u32,
@@ -64,6 +66,7 @@ impl<'a> Overhead<'a> {
     ) -> Self {
         Self {
             name,
+            bubble,
             stats,
             energy,
             own_level,
@@ -84,11 +87,12 @@ impl<'a> Ingameable for Overhead<'a> {
         // Number of conrod primitives contained in the overhead display. TODO maybe
         // this could be done automatically?
         // - 2 Text::new for name
-        // - 2 Text::new for speech bubble
-        // - 10 Image::new for speech bubble (9-slice + tail)
         // - 1 for level: either Text or Image
         // - 4 for HP + mana + fg + bg
-        19
+        // If there's a speech bubble
+        // - 1 Text::new for speech bubble
+        // - 10 Image::new for speech bubble (9-slice + tail)
+        7 + if self.bubble.is_some() { 11 } else { 0 }
     }
 }
 
@@ -126,80 +130,78 @@ impl<'a> Widget for Overhead<'a> {
             .x_y(0.0, MANA_BAR_Y + 50.0)
             .set(state.ids.name, ui);
 
-        // Speech bubble
-        Text::new("Hello")
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(15)
-            .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-            .up_from(state.ids.name, 10.0)
-            .x_align_to(state.ids.name, Align::Middle)
-            .parent(id)
-            .set(state.ids.chat_bubble_text, ui);
-        Image::new(self.imgs.chat_bubble_top_left)
-            .w_h(10.0, 10.0)
-            .top_left_with_margin_on(state.ids.chat_bubble_text, -10.0)
-            .parent(id)
-            .set(state.ids.chat_bubble_top_left, ui);
-        Image::new(self.imgs.chat_bubble_top)
-            .h(10.0)
-            .w_of(state.ids.chat_bubble_text)
-            .mid_top_with_margin_on(state.ids.chat_bubble_text, -10.0)
-            .parent(id)
-            .set(state.ids.chat_bubble_top, ui);
-        Image::new(self.imgs.chat_bubble_top_right)
-            .w_h(10.0, 10.0)
-            .top_right_with_margin_on(state.ids.chat_bubble_text, -10.0)
-            .parent(id)
-            .set(state.ids.chat_bubble_top_right, ui);
-        Image::new(self.imgs.chat_bubble_left)
-            .w(10.0)
-            .h_of(state.ids.chat_bubble_text)
-            .mid_left_with_margin_on(state.ids.chat_bubble_text, -10.0)
-            .parent(id)
-            .set(state.ids.chat_bubble_left, ui);
-        Image::new(self.imgs.chat_bubble_mid)
-            .wh_of(state.ids.chat_bubble_text)
-            .top_left_of(state.ids.chat_bubble_text)
-            .parent(id)
-            .set(state.ids.chat_bubble_mid, ui);
-        Image::new(self.imgs.chat_bubble_right)
-            .w(10.0)
-            .h_of(state.ids.chat_bubble_text)
-            .mid_right_with_margin_on(state.ids.chat_bubble_text, -10.0)
-            .parent(id)
-            .set(state.ids.chat_bubble_right, ui);
-        Image::new(self.imgs.chat_bubble_bottom_left)
-            .w_h(10.0, 10.0)
-            .bottom_left_with_margin_on(state.ids.chat_bubble_text, -10.0)
-            .parent(id)
-            .set(state.ids.chat_bubble_bottom_left, ui);
-        Image::new(self.imgs.chat_bubble_bottom)
-            .h(10.0)
-            .w_of(state.ids.chat_bubble_text)
-            .mid_bottom_with_margin_on(state.ids.chat_bubble_text, -10.0)
-            .parent(id)
-            .set(state.ids.chat_bubble_bottom, ui);
-        Image::new(self.imgs.chat_bubble_bottom_right)
-            .w_h(10.0, 10.0)
-            .bottom_right_with_margin_on(state.ids.chat_bubble_text, -10.0)
-            .parent(id)
-            .set(state.ids.chat_bubble_bottom_right, ui);
-        Image::new(self.imgs.chat_bubble_tail)
-            .w_h(11.0, 16.0)
-            .mid_bottom_with_margin_on(state.ids.chat_bubble_text, -16.0)
-            .parent(id)
-            .set(state.ids.chat_bubble_tail, ui);
-        // Why is there a second text widget?: The first is to position the 9-slice
-        // around and the second is to display text. Changing .depth manually
-        // causes strange problems in unrelated parts of the ui (the debug
-        // overlay is offset by a npc's screen position) TODO
-        Text::new("Hello")
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(15)
-            .top_left_of(state.ids.chat_bubble_text)
-            .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-            .parent(id)
-            .set(state.ids.chat_bubble_text2, ui);
+        if let Some(bubble) = self.bubble {
+            // Speech bubble
+            let mut text = Text::new(&bubble.message)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(18)
+                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                .up_from(state.ids.name, 10.0)
+                .x_align_to(state.ids.name, Align::Middle)
+                .parent(id);
+            if let Some(w) = text.get_w(ui) {
+                if w > 250.0 {
+                    text = text.w(250.0);
+                }
+            }
+            Image::new(self.imgs.chat_bubble_top_left)
+                .w_h(10.0, 10.0)
+                .top_left_with_margin_on(state.ids.chat_bubble_text, -10.0)
+                .parent(id)
+                .set(state.ids.chat_bubble_top_left, ui);
+            Image::new(self.imgs.chat_bubble_top)
+                .h(10.0)
+                .w_of(state.ids.chat_bubble_text)
+                .mid_top_with_margin_on(state.ids.chat_bubble_text, -10.0)
+                .parent(id)
+                .set(state.ids.chat_bubble_top, ui);
+            Image::new(self.imgs.chat_bubble_top_right)
+                .w_h(10.0, 10.0)
+                .top_right_with_margin_on(state.ids.chat_bubble_text, -10.0)
+                .parent(id)
+                .set(state.ids.chat_bubble_top_right, ui);
+            Image::new(self.imgs.chat_bubble_left)
+                .w(10.0)
+                .h_of(state.ids.chat_bubble_text)
+                .mid_left_with_margin_on(state.ids.chat_bubble_text, -10.0)
+                .parent(id)
+                .set(state.ids.chat_bubble_left, ui);
+            Image::new(self.imgs.chat_bubble_mid)
+                .wh_of(state.ids.chat_bubble_text)
+                .top_left_of(state.ids.chat_bubble_text)
+                .parent(id)
+                .set(state.ids.chat_bubble_mid, ui);
+            Image::new(self.imgs.chat_bubble_right)
+                .w(10.0)
+                .h_of(state.ids.chat_bubble_text)
+                .mid_right_with_margin_on(state.ids.chat_bubble_text, -10.0)
+                .parent(id)
+                .set(state.ids.chat_bubble_right, ui);
+            Image::new(self.imgs.chat_bubble_bottom_left)
+                .w_h(10.0, 10.0)
+                .bottom_left_with_margin_on(state.ids.chat_bubble_text, -10.0)
+                .parent(id)
+                .set(state.ids.chat_bubble_bottom_left, ui);
+            Image::new(self.imgs.chat_bubble_bottom)
+                .h(10.0)
+                .w_of(state.ids.chat_bubble_text)
+                .mid_bottom_with_margin_on(state.ids.chat_bubble_text, -10.0)
+                .parent(id)
+                .set(state.ids.chat_bubble_bottom, ui);
+            Image::new(self.imgs.chat_bubble_bottom_right)
+                .w_h(10.0, 10.0)
+                .bottom_right_with_margin_on(state.ids.chat_bubble_text, -10.0)
+                .parent(id)
+                .set(state.ids.chat_bubble_bottom_right, ui);
+            let tail = Image::new(self.imgs.chat_bubble_tail)
+                .w_h(11.0, 16.0)
+                .mid_bottom_with_margin_on(state.ids.chat_bubble_text, -16.0)
+                .parent(id);
+            // Move text to front (conrod depth is lowest first; not a z-index)
+            tail.set(state.ids.chat_bubble_tail, ui);
+            text.depth(tail.get_depth() - 1.0)
+                .set(state.ids.chat_bubble_text, ui);
+        }
 
         let hp_percentage =
             self.stats.health.current() as f64 / self.stats.health.maximum() as f64 * 100.0;
