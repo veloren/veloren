@@ -1,4 +1,4 @@
-#![feature(trait_alias, try_trait, async_closure)]
+#![feature(trait_alias, try_trait, async_closure, const_if_match)]
 
 //! Crate to handle high level networking of messages with different
 //! requirements and priorities over a number of protocols

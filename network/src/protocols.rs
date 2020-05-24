@@ -1,5 +1,5 @@
 use crate::{
-    metrics::NetworkMetrics,
+    metrics::{CidFrameCache, NetworkMetrics},
     types::{Cid, Frame, Mid, Pid, Sid},
 };
 use async_std::{
@@ -64,6 +64,7 @@ impl TcpProtocol {
         end_receiver: oneshot::Receiver<()>,
     ) {
         trace!("starting up tcp write()");
+        let mut metrics_cache = CidFrameCache::new(self.metrics.frames_wire_in_total.clone(), cid);
         let mut stream = self.stream.clone();
         let mut end_receiver = end_receiver.fuse();
         loop {
@@ -173,10 +174,7 @@ impl TcpProtocol {
                     Frame::Raw(data)
                 },
             };
-            self.metrics
-                .frames_wire_in_total
-                .with_label_values(&[&cid.to_string(), frame.get_string()])
-                .inc();
+            metrics_cache.with_label_values(&frame).inc();
             from_wire_sender.send((cid, frame)).await.unwrap();
         }
         trace!("shutting down tcp read()");
@@ -188,12 +186,9 @@ impl TcpProtocol {
     pub async fn write(&self, cid: Cid, mut to_wire_receiver: mpsc::UnboundedReceiver<Frame>) {
         trace!("starting up tcp write()");
         let mut stream = self.stream.clone();
-        let cid_string = cid.to_string();
+        let mut metrics_cache = CidFrameCache::new(self.metrics.frames_wire_out_total.clone(), cid);
         while let Some(frame) = to_wire_receiver.next().await {
-            self.metrics
-                .frames_wire_out_total
-                .with_label_values(&[&cid_string, frame.get_string()])
-                .inc();
+            metrics_cache.with_label_values(&frame).inc();
             match frame {
                 Frame::Handshake {
                     magic_number,
@@ -296,6 +291,7 @@ impl UdpProtocol {
         end_receiver: oneshot::Receiver<()>,
     ) {
         trace!("starting up udp read()");
+        let mut metrics_cache = CidFrameCache::new(self.metrics.frames_wire_in_total.clone(), cid);
         let mut data_in = self.data_in.write().await;
         let mut end_receiver = end_receiver.fuse();
         while let Some(bytes) = select! {
@@ -388,10 +384,7 @@ impl UdpProtocol {
                 },
                 _ => Frame::Raw(bytes),
             };
-            self.metrics
-                .frames_wire_in_total
-                .with_label_values(&[&cid.to_string(), frame.get_string()])
-                .inc();
+            metrics_cache.with_label_values(&frame).inc();
             from_wire_sender.send((cid, frame)).await.unwrap();
         }
         trace!("shutting down udp read()");
@@ -400,12 +393,9 @@ impl UdpProtocol {
     pub async fn write(&self, cid: Cid, mut to_wire_receiver: mpsc::UnboundedReceiver<Frame>) {
         trace!("starting up udp write()");
         let mut buffer = [0u8; 2000];
-        let cid_string = cid.to_string();
+        let mut metrics_cache = CidFrameCache::new(self.metrics.frames_wire_out_total.clone(), cid);
         while let Some(frame) = to_wire_receiver.next().await {
-            self.metrics
-                .frames_wire_out_total
-                .with_label_values(&[&cid_string, frame.get_string()])
-                .inc();
+            metrics_cache.with_label_values(&frame).inc();
             let len = match frame {
                 Frame::Handshake {
                     magic_number,

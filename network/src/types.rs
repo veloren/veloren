@@ -89,33 +89,49 @@ pub(crate) enum Frame {
 }
 
 impl Frame {
-    pub fn get_string(&self) -> &str {
+    pub const fn int_to_string(i: u8) -> &'static str {
+        match i {
+            0 => "Handshake",
+            1 => "ParticipantId",
+            2 => "Shutdown",
+            3 => "OpenStream",
+            4 => "CloseStream",
+            5 => "DataHeader",
+            6 => "Data",
+            7 => "Raw",
+            _ => "",
+        }
+    }
+
+    pub fn get_int(&self) -> u8 {
         match self {
             Frame::Handshake {
                 magic_number: _,
                 version: _,
-            } => "Handshake",
-            Frame::ParticipantId { pid: _ } => "ParticipantId",
-            Frame::Shutdown => "Shutdown",
+            } => 0,
+            Frame::ParticipantId { pid: _ } => 1,
+            Frame::Shutdown => 2,
             Frame::OpenStream {
                 sid: _,
                 prio: _,
                 promises: _,
-            } => "OpenStream",
-            Frame::CloseStream { sid: _ } => "CloseStream",
+            } => 3,
+            Frame::CloseStream { sid: _ } => 4,
             Frame::DataHeader {
                 mid: _,
                 sid: _,
                 length: _,
-            } => "DataHeader",
+            } => 5,
             Frame::Data {
                 mid: _,
                 start: _,
                 data: _,
-            } => "Data",
-            Frame::Raw(_) => "Raw",
+            } => 6,
+            Frame::Raw(_) => 7,
         }
     }
+
+    pub fn get_string(&self) -> &str { Self::int_to_string(self.get_int()) }
 }
 
 impl Pid {
