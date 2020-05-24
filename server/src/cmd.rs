@@ -833,11 +833,12 @@ fn handle_waypoint(
 ) {
     match server.state.read_component_cloned::<comp::Pos>(target) {
         Some(pos) => {
+            let time = server.state.ecs().read_resource();
             let _ = server
                 .state
                 .ecs()
                 .write_storage::<comp::Waypoint>()
-                .insert(target, comp::Waypoint::new(pos.0));
+                .insert(target, comp::Waypoint::new(pos.0, *time));
             server.notify_client(client, ServerMsg::private(String::from("Waypoint saved!")));
             server.notify_client(client, ServerMsg::Notification(Notification::WaypointSaved));
         },
