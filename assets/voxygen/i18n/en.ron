@@ -13,7 +13,7 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
 /// Localization for "global" English
-VoxygenLocalization(
+(
     metadata: (
         language_name: "English",
         language_identifier: "en",

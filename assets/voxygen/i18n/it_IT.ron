@@ -14,7 +14,7 @@
 
 
 /// Localization for "global" Italian
-VoxygenLocalization(
+(
             metadata: (
                 language_name: "Italiano",
                 language_identifier: "it_IT",

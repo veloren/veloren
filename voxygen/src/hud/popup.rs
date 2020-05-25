@@ -1,5 +1,5 @@
 use super::Show;
-use crate::{i18n::VoxygenLocalization, ui::fonts::ConrodVoxygenFonts};
+use crate::{i18n::Localization, ui::fonts::Fonts};
 use client::{self, Client};
 use common::msg::Notification;
 use conrod_core::{
@@ -21,10 +21,10 @@ widget_ids! {
 
 #[derive(WidgetCommon)]
 pub struct Popup<'a> {
-    voxygen_i18n: &'a std::sync::Arc<VoxygenLocalization>,
+    i18n: &'a Localization,
     client: &'a Client,
     new_notifications: &'a VecDeque<Notification>,
-    fonts: &'a ConrodVoxygenFonts,
+    fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     show: &'a Show,
@@ -34,14 +34,14 @@ pub struct Popup<'a> {
 /// Dungeon Cleared (TODO), and Quest Completed (TODO)
 impl<'a> Popup<'a> {
     pub fn new(
-        voxygen_i18n: &'a std::sync::Arc<VoxygenLocalization>,
+        i18n: &'a Localization,
         client: &'a Client,
         new_notifications: &'a VecDeque<Notification>,
-        fonts: &'a ConrodVoxygenFonts,
+        fonts: &'a Fonts,
         show: &'a Show,
     ) -> Self {
         Self {
-            voxygen_i18n,
+            i18n,
             client,
             new_notifications,
             fonts,
@@ -126,7 +126,7 @@ impl<'a> Widget for Popup<'a> {
                         if s.infos.is_empty() {
                             s.last_info_update = Instant::now();
                         }
-                        let text = self.voxygen_i18n.get("hud.waypoint_saved");
+                        let text = self.i18n.get("hud.waypoint_saved");
                         s.infos.push_back(text.to_string());
                     });
                 },

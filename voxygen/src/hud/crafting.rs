@@ -5,8 +5,8 @@ use super::{
 };
 use crate::{
     hud::get_quality_col,
-    i18n::VoxygenLocalization,
-    ui::{fonts::ConrodVoxygenFonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
+    i18n::Localization,
+    ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
 };
 use client::{self, Client};
 use common::comp::{
@@ -55,8 +55,8 @@ pub enum Event {
 pub struct Crafting<'a> {
     client: &'a Client,
     imgs: &'a Imgs,
-    fonts: &'a ConrodVoxygenFonts,
-    localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+    fonts: &'a Fonts,
+    localized_strings: &'a Localization,
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
     item_imgs: &'a ItemImgs,
@@ -69,8 +69,8 @@ impl<'a> Crafting<'a> {
     pub fn new(
         client: &'a Client,
         imgs: &'a Imgs,
-        fonts: &'a ConrodVoxygenFonts,
-        localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+        fonts: &'a Fonts,
+        localized_strings: &'a Localization,
         rot_imgs: &'a ImgsRot,
         tooltip_manager: &'a mut TooltipManager,
         item_imgs: &'a ItemImgs,

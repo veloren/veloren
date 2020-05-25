@@ -3,8 +3,8 @@ use super::{
     Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
-    i18n::VoxygenLocalization,
-    ui::{fonts::ConrodVoxygenFonts, img_ids, ImageSlider},
+    i18n::Localization,
+    ui::{fonts::Fonts, img_ids, ImageSlider},
     GlobalState,
 };
 use client::{self, Client};
@@ -41,11 +41,11 @@ pub struct Map<'a> {
     world_map: &'a (img_ids::Rotations, Vec2<u32>),
     imgs: &'a Imgs,
     rot_imgs: &'a ImgsRot,
-    fonts: &'a ConrodVoxygenFonts,
+    fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     _pulse: f32,
-    localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+    localized_strings: &'a Localization,
     global_state: &'a GlobalState,
 }
 impl<'a> Map<'a> {
@@ -56,9 +56,9 @@ impl<'a> Map<'a> {
         imgs: &'a Imgs,
         rot_imgs: &'a ImgsRot,
         world_map: &'a (img_ids::Rotations, Vec2<u32>),
-        fonts: &'a ConrodVoxygenFonts,
+        fonts: &'a Fonts,
         pulse: f32,
-        localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+        localized_strings: &'a Localization,
         global_state: &'a GlobalState,
     ) -> Self {
         Self {

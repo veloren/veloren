@@ -6,9 +6,9 @@ use super::{
 
 use crate::{
     hud::get_buff_info,
-    i18n::VoxygenLocalization,
+    i18n::Localization,
     settings::Settings,
-    ui::{fonts::ConrodVoxygenFonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
+    ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
     window::GameInput,
     GlobalState,
 };
@@ -70,8 +70,8 @@ pub struct Group<'a> {
     settings: &'a Settings,
     imgs: &'a Imgs,
     rot_imgs: &'a ImgsRot,
-    fonts: &'a ConrodVoxygenFonts,
-    localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+    fonts: &'a Fonts,
+    localized_strings: &'a Localization,
     pulse: f32,
     global_state: &'a GlobalState,
     tooltip_manager: &'a mut TooltipManager,
@@ -88,8 +88,8 @@ impl<'a> Group<'a> {
         settings: &'a Settings,
         imgs: &'a Imgs,
         rot_imgs: &'a ImgsRot,
-        fonts: &'a ConrodVoxygenFonts,
-        localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+        fonts: &'a Fonts,
+        localized_strings: &'a Localization,
         pulse: f32,
         global_state: &'a GlobalState,
         tooltip_manager: &'a mut TooltipManager,

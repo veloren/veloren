@@ -1,6 +1,6 @@
 use crate::{
     settings::ControlSettings,
-    ui::{fonts::ConrodVoxygenFonts, Ingameable},
+    ui::{fonts::Fonts, Ingameable},
     window::GameInput,
 };
 use conrod_core::{
@@ -25,7 +25,7 @@ widget_ids! {
 pub struct Overitem<'a> {
     name: &'a str,
     distance_from_player_sqr: &'a f32,
-    fonts: &'a ConrodVoxygenFonts,
+    fonts: &'a Fonts,
     controls: &'a ControlSettings,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -35,7 +35,7 @@ impl<'a> Overitem<'a> {
     pub fn new(
         name: &'a str,
         distance_from_player_sqr: &'a f32,
-        fonts: &'a ConrodVoxygenFonts,
+        fonts: &'a Fonts,
         controls: &'a ControlSettings,
     ) -> Self {
         Self {

@@ -47,7 +47,7 @@ impl PlayState for MainMenuState {
 
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
         span!(_guard, "tick", "<MainMenuState as PlayState>::tick");
-        let localized_strings = crate::i18n::VoxygenLocalization::load_expect(
+        let localized_strings = crate::i18n::Localization::load_expect(
             &crate::i18n::i18n_asset_key(&global_state.settings.language.selected_language),
         );
 

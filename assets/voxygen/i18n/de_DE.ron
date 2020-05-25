@@ -11,7 +11,7 @@
 /// `assets/voxygen/i18n` and that's it!
 
 /// Lokalisation für Deutsch/Deutschland
-VoxygenLocalization(
+(
     metadata: (
         language_name: "Deutsch",
         language_identifier: "de_DE",

@@ -1,9 +1,9 @@
 use crate::{
-    i18n::{i18n_asset_key, VoxygenLocalization},
+    i18n::{i18n_asset_key, Localization},
     render::Renderer,
     ui::{
         self,
-        fonts::ConrodVoxygenFonts,
+        fonts::Fonts,
         ice::{Element, IcedUi},
         img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic},
         Graphic, Ui,
@@ -190,7 +190,7 @@ struct IcedState {
 }
 pub type Message = Event;
 impl IcedState {
-    pub fn view(&mut self) -> Element<Message> {
+    pub fn view(&mut self, i18n: &Localization) -> Element<Message> {
         use iced::{Align, Column, Container, Length, Row, Space, Text};
         use ui::ice::{
             compound_graphic::{CompoundGraphic, Graphic},
@@ -206,12 +206,29 @@ impl IcedState {
                 Text::new("Quit"),
             )
             .into(), */
-            Text::new("Quit").size(20).into(),
+            Text::new(i18n.get("common.quit")).size(40).into(),
         ])
         .width(Length::Fill)
         .max_width(200)
         .spacing(5)
         .padding(10);
+
+        // Quit
+        /*if Button::image(self.imgs.button)
+            .w_h(190.0, 40.0)
+            .bottom_left_with_margins_on(ui_widgets.window, 60.0, 30.0)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)
+            .label(i18n.get("common.quit"))
+            .label_font_id(self.fonts.cyri.conrod_id)
+            .label_color(TEXT_COLOR)
+            .label_font_size(self.fonts.cyri.scale(20))
+            .label_y(Relative::Scalar(3.0))
+            .set(self.ids.quit_button, ui_widgets)
+            .was_clicked()
+        {
+            events.push(Event::Quit);
+        }*/
 
         let buttons = Container::new(buttons)
             .width(Length::Fill)
@@ -331,8 +348,8 @@ pub struct MainMenuUi {
     time: f32,
     anim_timer: f32,
     bg_img_id: conrod_core::image::Id,
-    voxygen_i18n: std::sync::Arc<VoxygenLocalization>,
-    fonts: ConrodVoxygenFonts,
+    i18n: std::sync::Arc<Localization>,
+    fonts: Fonts,
     tip_no: u16,
     pub show_iced: bool,
 }
@@ -376,21 +393,22 @@ impl<'a> MainMenuUi {
         ));
         //let chosen_tip = *tips.choose(&mut rng).unwrap();
         // Load language
-        let voxygen_i18n = VoxygenLocalization::load_expect(&i18n_asset_key(
+        let i18n = Localization::load_expect(&i18n_asset_key(
             &global_state.settings.language.selected_language,
         ));
         // Load fonts.
-        let fonts = ConrodVoxygenFonts::load(&voxygen_i18n.fonts, &mut ui)
-            .expect("Impossible to load fonts!");
+        let fonts = Fonts::load(&i18n.fonts, &mut ui).expect("Impossible to load fonts!");
 
         // TODO: newtype Font
         let ice_font = {
             use std::io::Read;
             let mut buf = Vec::new();
-            common::assets::load_file("voxygen.font.OpenSans-Regular", &["ttf"])
-                .unwrap()
-                .read_to_end(&mut buf)
-                .unwrap();
+            common::assets::load_file("voxygen.font.haxrcorp_4089_cyrillic_altgr_extended", &[
+                "ttf",
+            ])
+            .unwrap()
+            .read_to_end(&mut buf)
+            .unwrap();
             glyph_brush::rusttype::Font::from_bytes(buf).unwrap()
         };
 
@@ -421,7 +439,7 @@ impl<'a> MainMenuUi {
             anim_timer: 0.0,
             //show_disclaimer: global_state.settings.show_disclaimer,
             bg_img_id,
-            voxygen_i18n,
+            i18n,
             fonts,
             tip_no: 0,
             show_iced: false,
@@ -438,8 +456,8 @@ impl<'a> MainMenuUi {
         let (ref mut ui_widgets, ref mut _tooltip_manager) = self.ui.set_widgets();
         let tip_msg = format!(
             "{} {}",
-            &self.voxygen_i18n.get("main.tip"),
-            &self.voxygen_i18n.get_variation("loading.tips", self.tip_no),
+            &self.i18n.get("main.tip"),
+            &self.i18n.get_variation("loading.tips", self.tip_no),
         );
         let tip_show = global_state.settings.gameplay.loading_tips;
         let mut rng = thread_rng();
@@ -450,7 +468,7 @@ impl<'a> MainMenuUi {
         const TEXT_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
         //const INACTIVE: Color = Color::Rgba(0.47, 0.47, 0.47, 0.47);
 
-        let intro_text = &self.voxygen_i18n.get("main.login_process");
+        let intro_text = &self.i18n.get("main.login_process");
 
         // Tooltip
         /*let _tooltip = Tooltip::new({
@@ -614,9 +632,9 @@ impl<'a> MainMenuUi {
                 .press_image(self.imgs.button_press)
                 .label_y(Relative::Scalar(2.0))
                 .label(match popup_type {
-                    PopupType::Error => self.voxygen_i18n.get("common.okay"),
-                    PopupType::ConnectionInfo => self.voxygen_i18n.get("common.cancel"),
-                    PopupType::AuthTrustPrompt(_) => self.voxygen_i18n.get("common.cancel"),
+                    PopupType::Error => self.i18n.get("common.okay"),
+                    PopupType::ConnectionInfo => self.i18n.get("common.cancel"),
+                    PopupType::AuthTrustPrompt(_) => self.i18n.get("common.cancel"),
                 })
                 .label_font_id(self.fonts.cyri.conrod_id)
                 .label_font_size(self.fonts.cyri.scale(15))
@@ -652,7 +670,7 @@ impl<'a> MainMenuUi {
                 {
                     events.push(Event::AuthServerTrust(auth_server.clone(), true));
                     change_popup = Some(Some(PopupData {
-                        msg: self.voxygen_i18n.get("main.connecting").into(),
+                        msg: self.i18n.get("main.connecting").into(),
                         popup_type: PopupType::ConnectionInfo,
                     }));
                 }
@@ -690,13 +708,13 @@ impl<'a> MainMenuUi {
                     .scroll_kids_vertically()
                     .set(self.ids.disc_window, ui_widgets);
 
-                Text::new(&self.voxygen_i18n.get("common.disclaimer"))
+                Text::new(&self.i18n.get("common.disclaimer"))
                     .top_left_with_margins_on(self.ids.disc_window, 30.0, 40.0)
                     .font_size(self.fonts.cyri.scale(35))
                     .font_id(self.fonts.alkhemi.conrod_id)
                     .color(TEXT_COLOR)
                     .set(self.ids.disc_text_1, ui_widgets);
-                Text::new(&self.voxygen_i18n.get("main.notice"))
+                Text::new(&self.i18n.get("main.notice"))
                     .top_left_with_margins_on(self.ids.disc_window, 110.0, 40.0)
                     .font_size(self.fonts.cyri.scale(26))
                     .font_id(self.fonts.cyri.conrod_id)
@@ -708,7 +726,7 @@ impl<'a> MainMenuUi {
                     .hover_image(self.imgs.button_hover)
                     .press_image(self.imgs.button_press)
                     .label_y(Relative::Scalar(2.0))
-                    .label(&self.voxygen_i18n.get("common.accept"))
+                    .label(&self.i18n.get("common.accept"))
                     .label_font_size(self.fonts.cyri.scale(22))
                     .label_color(TEXT_COLOR)
                     .label_font_id(self.fonts.cyri.conrod_id)
@@ -727,7 +745,7 @@ impl<'a> MainMenuUi {
                     self.connect = true;
                     self.connecting = Some(std::time::Instant::now());
                     self.popup = Some(PopupData {
-                        msg: [self.voxygen_i18n.get("main.connecting"), "..."].concat(),
+                        msg: [self.i18n.get("main.connecting"), "..."].concat(),
                         popup_type: PopupType::ConnectionInfo,
                     });
 
@@ -764,7 +782,7 @@ impl<'a> MainMenuUi {
                     self.connect = true;
                     self.connecting = Some(std::time::Instant::now());
                     self.popup = Some(PopupData {
-                        msg: [self.voxygen_i18n.get(""), ""].concat(),
+                        msg: [self.i18n.get(""), ""].concat(),
                         popup_type: PopupType::ConnectionInfo,
                     });
                 };
@@ -893,7 +911,7 @@ impl<'a> MainMenuUi {
                     .hover_image(self.imgs.button_hover)
                     .press_image(self.imgs.button_press)
                     .label_y(Relative::Scalar(2.0))
-                    .label(&self.voxygen_i18n.get("common.close"))
+                    .label(&self.i18n.get("common.close"))
                     .label_font_size(self.fonts.cyri.scale(20))
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_color(TEXT_COLOR)
@@ -942,7 +960,7 @@ impl<'a> MainMenuUi {
                     .w_h(258.0*scale, 55.0*scale)
                     .down_from(self.ids.address_bg, 20.0*scale)
                     .align_middle_x_of(self.ids.address_bg)
-                    .label(&self.voxygen_i18n.get("common.multiplayer"))
+                    .label(&self.i18n.get("common.multiplayer"))
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_color(TEXT_COLOR)
                     .label_font_size(self.fonts.cyri.scale(18))
@@ -970,7 +988,7 @@ impl<'a> MainMenuUi {
                     .w_h(258.0 * scale, 55.0 * scale)
                     .down_from(self.ids.login_button, 20.0 * scale)
                     .align_middle_x_of(self.ids.address_bg)
-                    .label(&self.voxygen_i18n.get("common.singleplayer"))
+                    .label(&self.i18n.get("common.singleplayer"))
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_color(TEXT_COLOR)
                     .label_font_size(self.fonts.cyri.scale(18))
@@ -989,7 +1007,7 @@ impl<'a> MainMenuUi {
                 .bottom_left_with_margins_on(ui_widgets.window, 60.0 * scale, 30.0 * scale)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
-                .label(&self.voxygen_i18n.get("common.quit"))
+                .label(&self.i18n.get("common.quit"))
                 .label_font_id(self.fonts.cyri.conrod_id)
                 .label_color(TEXT_COLOR)
                 .label_font_size(self.fonts.cyri.scale(16))
@@ -1006,7 +1024,7 @@ impl<'a> MainMenuUi {
                     .up_from(self.ids.quit_button, 8.0*scale)
                     //.hover_image(self.imgs.button_hover)
                     //.press_image(self.imgs.button_press)
-                    .label(&self.voxygen_i18n.get("common.settings"))
+                    .label(&self.i18n.get("common.settings"))
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_color(TEXT_COLOR_2)
                     .label_font_size(self.fonts.cyri.scale(16))
@@ -1023,7 +1041,7 @@ impl<'a> MainMenuUi {
                 .up_from(self.ids.settings_button, 8.0 * scale)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
-                .label(&self.voxygen_i18n.get("common.servers"))
+                .label(&self.i18n.get("common.servers"))
                 .label_font_id(self.fonts.cyri.conrod_id)
                 .label_color(TEXT_COLOR)
                 .label_font_size(self.fonts.cyri.scale(16))
@@ -1079,8 +1097,10 @@ impl<'a> MainMenuUi {
     pub fn maintain(&mut self, global_state: &mut GlobalState, dt: Duration) -> Vec<Event> {
         let events = self.update_layout(global_state, dt);
         self.ui.maintain(global_state.window.renderer_mut(), None);
-        self.ice_ui
-            .maintain(self.ice_state.view(), global_state.window.renderer_mut());
+        self.ice_ui.maintain(
+            self.ice_state.view(&self.i18n),
+            global_state.window.renderer_mut(),
+        );
         events
     }
 
