@@ -135,7 +135,7 @@ impl ControlSettings {
             GameInput::ToggleIngameUi => KeyMouse::Key(VirtualKeyCode::F6),
             GameInput::Roll => MIDDLE_CLICK_KEY,
             GameInput::Respawn => KeyMouse::Key(VirtualKeyCode::Space),
-            GameInput::Interact => KeyMouse::Mouse(MouseButton::Right),
+            GameInput::Interact => KeyMouse::Key(VirtualKeyCode::E),
             GameInput::ToggleWield => KeyMouse::Key(VirtualKeyCode::T),
             //GameInput::Charge => KeyMouse::Key(VirtualKeyCode::Key1),
             GameInput::FreeLook => KeyMouse::Key(VirtualKeyCode::L),
@@ -568,7 +568,7 @@ impl Default for GraphicsSettings {
     fn default() -> Self {
         Self {
             view_distance: 10,
-            sprite_render_distance: 250,
+            sprite_render_distance: 150,
             figure_lod_render_distance: 250,
             max_fps: 60,
             fov: 50,

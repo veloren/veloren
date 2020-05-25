@@ -620,6 +620,12 @@ impl Window {
                     },
                     glutin::DeviceEvent::MouseWheel { delta, .. } if cursor_grabbed && *focused => {
                         events.push(Event::Zoom({
+                            // Since scrolling apparently acts different depending on platform
+                            #[cfg(target_os = "windows")]
+                            const PLATFORM_FACTOR: f32 = -4.0;
+                            #[cfg(not(target_os = "windows"))]
+                            const PLATFORM_FACTOR: f32 = 1.0;
+
                             let y = match delta {
                                 glutin::MouseScrollDelta::LineDelta(_x, y) => y,
                                 // TODO: Check to see if there is a better way to find the "line
@@ -629,7 +635,7 @@ impl Window {
                                 // across operating systems.
                                 glutin::MouseScrollDelta::PixelDelta(pos) => (pos.y / 16.0) as f32,
                             };
-                            y * (zoom_sensitivity as f32 / 100.0) * zoom_inversion
+                            y * (zoom_sensitivity as f32 / 100.0) * zoom_inversion * PLATFORM_FACTOR
                         }))
                     },
                     _ => {},
