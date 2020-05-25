@@ -1,14 +1,14 @@
-use crate::i18n::{Font, VoxygenFonts};
+use crate::i18n;
 use common::assets::Asset;
 
-pub struct ConrodVoxygenFont {
-    metadata: Font,
+pub struct Font {
+    metadata: i18n::Font,
     pub conrod_id: conrod_core::text::font::Id,
 }
 
-impl ConrodVoxygenFont {
+impl Font {
     #[allow(clippy::needless_return)] // TODO: Pending review in #587
-    pub fn new(font: &Font, ui: &mut crate::ui::Ui) -> ConrodVoxygenFont {
+    pub fn new(font: &i18n::Font, ui: &mut crate::ui::Ui) -> Font {
         return Self {
             metadata: font.clone(),
             conrod_id: ui.new_font(crate::ui::Font::load_expect(&font.asset_key)),
@@ -22,14 +22,14 @@ impl ConrodVoxygenFont {
 macro_rules! conrod_fonts {
     ($([ $( $name:ident$(,)? )* ])*) => {
         $(
-            pub struct ConrodVoxygenFonts {
-                $(pub $name: ConrodVoxygenFont,)*
+            pub struct Fonts {
+                $(pub $name: Font,)*
             }
 
-            impl ConrodVoxygenFonts {
-                pub fn load(voxygen_fonts: &VoxygenFonts, ui: &mut crate::ui::Ui) -> Result<Self, common::assets::Error> {
+            impl Fonts {
+                pub fn load(fonts: &i18n::Fonts, ui: &mut crate::ui::Ui) -> Result<Self, common::assets::Error> {
                     Ok(Self {
-                        $( $name: ConrodVoxygenFont::new(voxygen_fonts.get(stringify!($name)).unwrap(), ui),)*
+                        $( $name: Font::new(fonts.get(stringify!($name)).unwrap(), ui),)*
                     })
                 }
             }

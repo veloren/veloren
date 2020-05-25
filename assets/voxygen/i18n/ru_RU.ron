@@ -1,5 +1,5 @@
 /// Localization for "global" Russian
-VoxygenLocalization(
+(
     metadata: (
         language_name: "Русский",
         language_identifier: "ru_RU",

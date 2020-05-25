@@ -4,8 +4,8 @@ use super::{
 };
 use crate::{
     hud::{get_buff_info, BuffPosition},
-    i18n::VoxygenLocalization,
-    ui::{fonts::ConrodVoxygenFonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
+    i18n::Localization,
+    ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
     GlobalState,
 };
 
@@ -34,12 +34,12 @@ widget_ids! {
 #[derive(WidgetCommon)]
 pub struct BuffsBar<'a> {
     imgs: &'a Imgs,
-    fonts: &'a ConrodVoxygenFonts,
+    fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
-    localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+    localized_strings: &'a Localization,
     buffs: &'a Buffs,
     pulse: f32,
     global_state: &'a GlobalState,
@@ -49,10 +49,10 @@ impl<'a> BuffsBar<'a> {
     #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn new(
         imgs: &'a Imgs,
-        fonts: &'a ConrodVoxygenFonts,
+        fonts: &'a Fonts,
         rot_imgs: &'a ImgsRot,
         tooltip_manager: &'a mut TooltipManager,
-        localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+        localized_strings: &'a Localization,
         buffs: &'a Buffs,
         pulse: f32,
         global_state: &'a GlobalState,

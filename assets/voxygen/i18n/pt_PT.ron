@@ -1,5 +1,5 @@
 /// Localization for portuguese (Portugal)
-VoxygenLocalization(
+(
     metadata: (
         language_name: "Português",
         language_identifier: "pt_PT",

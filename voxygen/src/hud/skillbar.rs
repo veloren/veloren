@@ -6,9 +6,9 @@ use super::{
     STAMINA_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
 };
 use crate::{
-    i18n::VoxygenLocalization,
+    i18n::Localization,
     ui::{
-        fonts::ConrodVoxygenFonts,
+        fonts::Fonts,
         slot::{ContentSize, SlotMaker},
         ImageFrame, Tooltip, TooltipManager, Tooltipable,
     },
@@ -121,7 +121,7 @@ pub struct Skillbar<'a> {
     global_state: &'a GlobalState,
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
-    fonts: &'a ConrodVoxygenFonts,
+    fonts: &'a Fonts,
     rot_imgs: &'a ImgsRot,
     stats: &'a Stats,
     health: &'a Health,
@@ -133,7 +133,7 @@ pub struct Skillbar<'a> {
     hotbar: &'a hotbar::State,
     tooltip_manager: &'a mut TooltipManager,
     slot_manager: &'a mut slots::SlotManager,
-    localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+    localized_strings: &'a Localization,
     pulse: f32,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -146,7 +146,7 @@ impl<'a> Skillbar<'a> {
         global_state: &'a GlobalState,
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
-        fonts: &'a ConrodVoxygenFonts,
+        fonts: &'a Fonts,
         rot_imgs: &'a ImgsRot,
         stats: &'a Stats,
         health: &'a Health,
@@ -159,7 +159,7 @@ impl<'a> Skillbar<'a> {
         hotbar: &'a hotbar::State,
         tooltip_manager: &'a mut TooltipManager,
         slot_manager: &'a mut slots::SlotManager,
-        localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+        localized_strings: &'a Localization,
         show: &'a Show,
     ) -> Self {
         Self {

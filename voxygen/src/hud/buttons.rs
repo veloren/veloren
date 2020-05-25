@@ -3,8 +3,8 @@ use super::{
     BLACK, CRITICAL_HP_COLOR, LOW_HP_COLOR, TEXT_COLOR,
 };
 use crate::{
-    i18n::VoxygenLocalization,
-    ui::{fonts::ConrodVoxygenFonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
+    i18n::Localization,
+    ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
     window::GameInput,
     GlobalState,
 };
@@ -49,13 +49,13 @@ pub struct Buttons<'a> {
     client: &'a Client,
     show_bag: bool,
     imgs: &'a Imgs,
-    fonts: &'a ConrodVoxygenFonts,
+    fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     global_state: &'a GlobalState,
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
-    localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+    localized_strings: &'a Localization,
     stats: &'a Stats,
 }
 
@@ -65,11 +65,11 @@ impl<'a> Buttons<'a> {
         client: &'a Client,
         show_bag: bool,
         imgs: &'a Imgs,
-        fonts: &'a ConrodVoxygenFonts,
+        fonts: &'a Fonts,
         global_state: &'a GlobalState,
         rot_imgs: &'a ImgsRot,
         tooltip_manager: &'a mut TooltipManager,
-        localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+        localized_strings: &'a Localization,
         stats: &'a Stats,
     ) -> Self {
         Self {

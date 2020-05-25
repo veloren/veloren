@@ -4,8 +4,8 @@ use super::{
 };
 
 use crate::{
-    i18n::VoxygenLocalization,
-    ui::{fonts::ConrodVoxygenFonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
+    i18n::Localization,
+    ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
 };
 use client::{self, Client};
 use common::{comp::group, sync::Uid};
@@ -66,8 +66,8 @@ pub struct Social<'a> {
     show: &'a Show,
     client: &'a Client,
     imgs: &'a Imgs,
-    fonts: &'a ConrodVoxygenFonts,
-    localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+    fonts: &'a Fonts,
+    localized_strings: &'a Localization,
     selected_entity: Option<(specs::Entity, Instant)>,
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
@@ -82,8 +82,8 @@ impl<'a> Social<'a> {
         show: &'a Show,
         client: &'a Client,
         imgs: &'a Imgs,
-        fonts: &'a ConrodVoxygenFonts,
-        localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+        fonts: &'a Fonts,
+        localized_strings: &'a Localization,
         selected_entity: Option<(specs::Entity, Instant)>,
         rot_imgs: &'a ImgsRot,
         tooltip_manager: &'a mut TooltipManager,

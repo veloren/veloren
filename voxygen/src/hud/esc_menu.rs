@@ -1,5 +1,5 @@
 use super::{img_ids::Imgs, settings_window::SettingsTab, TEXT_COLOR};
-use crate::{i18n::VoxygenLocalization, ui::fonts::ConrodVoxygenFonts};
+use crate::{i18n::Localization, ui::fonts::Fonts};
 use conrod_core::{
     widget::{self, Button, Image},
     widget_ids, Color, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
@@ -22,19 +22,15 @@ widget_ids! {
 #[derive(WidgetCommon)]
 pub struct EscMenu<'a> {
     imgs: &'a Imgs,
-    fonts: &'a ConrodVoxygenFonts,
-    localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+    fonts: &'a Fonts,
+    localized_strings: &'a Localization,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 
 impl<'a> EscMenu<'a> {
-    pub fn new(
-        imgs: &'a Imgs,
-        fonts: &'a ConrodVoxygenFonts,
-        localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
-    ) -> Self {
+    pub fn new(imgs: &'a Imgs, fonts: &'a Fonts, localized_strings: &'a Localization) -> Self {
         Self {
             imgs,
             fonts,

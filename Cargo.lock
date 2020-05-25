@@ -1864,7 +1864,7 @@ checksum = "5fca6f9d679bff1322c76c9a1ad4b8553b30a94f3f75bea6936e19032c2f2ec3"
 dependencies = [
  "glyph_brush_layout",
  "log",
- "ordered-float",
+ "ordered-float 1.1.0",
  "rustc-hash",
  "rusttype 0.8.3",
  "twox-hash",

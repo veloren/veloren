@@ -46,13 +46,13 @@ use spell::Spell;
 use crate::{
     ecs::{comp as vcomp, comp::HpFloaterList},
     hud::img_ids::ImgsRot,
-    i18n::{i18n_asset_key, LanguageMetadata, VoxygenLocalization},
+    i18n::{i18n_asset_key, LanguageMetadata, Localization},
     render::{Consts, Globals, RenderMode, Renderer},
     scene::{
         camera::{self, Camera},
         lod,
     },
-    ui::{fonts::ConrodVoxygenFonts, img_ids::Rotations, slot, Graphic, Ingameable, ScaleMode, Ui},
+    ui::{fonts::Fonts, img_ids::Rotations, slot, Graphic, Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, FullScreenSettings, GameInput},
     GlobalState,
 };
@@ -598,7 +598,7 @@ pub struct Hud {
     world_map: (/* Id */ Rotations, Vec2<u32>),
     imgs: Imgs,
     item_imgs: ItemImgs,
-    fonts: ConrodVoxygenFonts,
+    fonts: Fonts,
     rot_imgs: ImgsRot,
     new_messages: VecDeque<comp::ChatMsg>,
     new_notifications: VecDeque<common::msg::Notification>,
@@ -614,7 +614,7 @@ pub struct Hud {
     tab_complete: Option<String>,
     pulse: f32,
     velocity: f32,
-    voxygen_i18n: std::sync::Arc<VoxygenLocalization>,
+    i18n: std::sync::Arc<Localization>,
     slot_manager: slots::SlotManager,
     hotbar: hotbar::State,
     events: Vec<Event>,
@@ -649,12 +649,11 @@ impl Hud {
         // Load item images.
         let item_imgs = ItemImgs::new(&mut ui, imgs.not_found);
         // Load language.
-        let voxygen_i18n = VoxygenLocalization::load_expect(&i18n_asset_key(
+        let i18n = Localization::load_expect(&i18n_asset_key(
             &global_state.settings.language.selected_language,
         ));
         // Load fonts.
-        let fonts = ConrodVoxygenFonts::load(&voxygen_i18n.fonts, &mut ui)
-            .expect("Impossible to load fonts!");
+        let fonts = Fonts::load(&i18n.fonts, &mut ui).expect("Impossible to load fonts!");
         // Get the server name.
         let server = &client.server_info.name;
         // Get the id, unwrap is safe because this CANNOT be None at this
@@ -715,7 +714,7 @@ impl Hud {
             tab_complete: None,
             pulse: 0.0,
             velocity: 0.0,
-            voxygen_i18n,
+            i18n,
             slot_manager,
             hotbar: hotbar_state,
             events: Vec::new(),
@@ -723,10 +722,10 @@ impl Hud {
         }
     }
 
-    pub fn update_language(&mut self, voxygen_i18n: std::sync::Arc<VoxygenLocalization>) {
-        self.voxygen_i18n = voxygen_i18n;
-        self.fonts = ConrodVoxygenFonts::load(&self.voxygen_i18n.fonts, &mut self.ui)
-            .expect("Impossible to load fonts!");
+    pub fn update_language(&mut self, i18n: std::sync::Arc<Localization>) {
+        self.i18n = i18n;
+        self.fonts =
+            Fonts::load(&self.i18n.fonts, &mut self.ui).expect("Impossible to load fonts!");
     }
 
     #[allow(clippy::assign_op_pattern)] // TODO: Pending review in #587
@@ -1256,7 +1255,7 @@ impl Hud {
                     in_group,
                     &global_state.settings.gameplay,
                     self.pulse,
-                    &self.voxygen_i18n,
+                    &self.i18n,
                     &self.imgs,
                     &self.fonts,
                 )
@@ -1459,8 +1458,8 @@ impl Hud {
                 Intro::Show => {
                     if self.pulse > 20.0 {
                         self.show.want_grab = false;
-                        let quest_headline = &self.voxygen_i18n.get("hud.temp_quest_headline");
-                        let quest_text = &self.voxygen_i18n.get("hud.temp_quest_text");
+                        let quest_headline = &self.i18n.get("hud.temp_quest_headline");
+                        let quest_text = &self.i18n.get("hud.temp_quest_text");
                         Image::new(self.imgs.quest_bg)
                             .w_h(404.0, 858.0)
                             .middle_of(ui_widgets.window)
@@ -1497,7 +1496,7 @@ impl Hud {
                             .hover_image(self.imgs.button_hover)
                             .press_image(self.imgs.button_press)
                             .mid_bottom_with_margin_on(self.ids.q_text_bg, -120.0)
-                            .label(&self.voxygen_i18n.get("common.accept"))
+                            .label(&self.i18n.get("common.accept"))
                             .label_font_id(self.fonts.cyri.conrod_id)
                             .label_font_size(self.fonts.cyri.scale(22))
                             .label_color(TEXT_COLOR)
@@ -1675,7 +1674,7 @@ impl Hud {
             if let Some(help_key) = global_state.settings.controls.get_binding(GameInput::Help) {
                 Text::new(
                     &self
-                        .voxygen_i18n
+                        .i18n
                         .get("hud.press_key_to_toggle_keybindings_fmt")
                         .replace("{key}", help_key.to_string().as_str()),
                 )
@@ -1693,7 +1692,7 @@ impl Hud {
             {
                 Text::new(
                     &self
-                        .voxygen_i18n
+                        .i18n
                         .get("hud.press_key_to_toggle_debug_info_fmt")
                         .replace("{key}", toggle_debug_key.to_string().as_str()),
                 )
@@ -1708,7 +1707,7 @@ impl Hud {
             if let Some(help_key) = global_state.settings.controls.get_binding(GameInput::Help) {
                 Text::new(
                     &self
-                        .voxygen_i18n
+                        .i18n
                         .get("hud.press_key_to_show_keybindings_fmt")
                         .replace("{key}", help_key.to_string().as_str()),
                 )
@@ -1726,7 +1725,7 @@ impl Hud {
             {
                 Text::new(
                     &self
-                        .voxygen_i18n
+                        .i18n
                         .get("hud.press_key_to_show_debug_info_fmt")
                         .replace("{key}", toggle_debug_key.to_string().as_str()),
                 )
@@ -1744,7 +1743,7 @@ impl Hud {
             {
                 Text::new(
                     &self
-                        .voxygen_i18n
+                        .i18n
                         .get("hud.press_key_to_toggle_lantern_fmt")
                         .replace("{key}", toggle_lantern_key.to_string().as_str()),
                 )
@@ -1789,7 +1788,7 @@ impl Hud {
                 global_state,
                 &self.rot_imgs,
                 tooltip_manager,
-                &self.voxygen_i18n,
+                &self.i18n,
                 &player_stats,
             )
             .set(self.ids.buttons, ui_widgets)
@@ -1811,7 +1810,7 @@ impl Hud {
                 &self.fonts,
                 &self.rot_imgs,
                 tooltip_manager,
-                &self.voxygen_i18n,
+                &self.i18n,
                 &player_buffs,
                 self.pulse,
                 &global_state,
@@ -1831,7 +1830,7 @@ impl Hud {
             &self.imgs,
             &self.rot_imgs,
             &self.fonts,
-            &self.voxygen_i18n,
+            &self.i18n,
             self.pulse,
             &global_state,
             tooltip_manager,
@@ -1848,7 +1847,7 @@ impl Hud {
         }
         // Popup (waypoint saved and similar notifications)
         Popup::new(
-            &self.voxygen_i18n,
+            &self.i18n,
             client,
             &self.new_notifications,
             &self.fonts,
@@ -1884,7 +1883,7 @@ impl Hud {
                     tooltip_manager,
                     &mut self.slot_manager,
                     self.pulse,
-                    &self.voxygen_i18n,
+                    &self.i18n,
                     &player_stats,
                     &self.show,
                 )
@@ -1951,7 +1950,7 @@ impl Hud {
                 &self.hotbar,
                 tooltip_manager,
                 &mut self.slot_manager,
-                &self.voxygen_i18n,
+                &self.i18n,
                 &self.show,
             )
             .set(self.ids.skillbar, ui_widgets);
@@ -1965,7 +1964,7 @@ impl Hud {
                     client,
                     &self.imgs,
                     &self.fonts,
-                    &self.voxygen_i18n,
+                    &self.i18n,
                     &self.rot_imgs,
                     tooltip_manager,
                     &self.item_imgs,
@@ -2004,7 +2003,7 @@ impl Hud {
             global_state,
             &self.imgs,
             &self.fonts,
-            &self.voxygen_i18n,
+            &self.i18n,
         )
         .and_then(self.force_chat_input.take(), |c, input| c.input(input))
         .and_then(self.tab_complete.take(), |c, input| {
@@ -2041,7 +2040,7 @@ impl Hud {
                 &self.show,
                 &self.imgs,
                 &self.fonts,
-                &self.voxygen_i18n,
+                &self.i18n,
                 fps as f32,
             )
             .set(self.ids.settings_window, ui_widgets)
@@ -2194,7 +2193,7 @@ impl Hud {
                     client,
                     &self.imgs,
                     &self.fonts,
-                    &self.voxygen_i18n,
+                    &self.i18n,
                     info.selected_entity,
                     &self.rot_imgs,
                     tooltip_manager,
@@ -2222,14 +2221,8 @@ impl Hud {
 
         // Spellbook
         if self.show.spell {
-            match Spell::new(
-                &self.show,
-                client,
-                &self.imgs,
-                &self.fonts,
-                &self.voxygen_i18n,
-            )
-            .set(self.ids.spell, ui_widgets)
+            match Spell::new(&self.show, client, &self.imgs, &self.fonts, &self.i18n)
+                .set(self.ids.spell, ui_widgets)
             {
                 Some(spell::Event::Close) => {
                     self.show.spell(false);
@@ -2249,7 +2242,7 @@ impl Hud {
                 &self.world_map,
                 &self.fonts,
                 self.pulse,
-                &self.voxygen_i18n,
+                &self.i18n,
                 &global_state,
             )
             .set(self.ids.map, ui_widgets)
@@ -2268,7 +2261,7 @@ impl Hud {
         }
 
         if self.show.esc_menu {
-            match EscMenu::new(&self.imgs, &self.fonts, &self.voxygen_i18n)
+            match EscMenu::new(&self.imgs, &self.fonts, &self.i18n)
                 .set(self.ids.esc_menu, ui_widgets)
             {
                 Some(esc_menu::Event::OpenSettings(tab)) => {
@@ -2311,7 +2304,7 @@ impl Hud {
             if self.show.free_look {
                 Text::new(
                     &self
-                        .voxygen_i18n
+                        .i18n
                         .get("hud.free_look_indicator")
                         .replace("{key}", freelook_key.to_string().as_str()),
                 )
@@ -2322,7 +2315,7 @@ impl Hud {
                 .set(self.ids.free_look_bg, ui_widgets);
                 Text::new(
                     &self
-                        .voxygen_i18n
+                        .i18n
                         .get("hud.free_look_indicator")
                         .replace("{key}", freelook_key.to_string().as_str()),
                 )
@@ -2336,13 +2329,13 @@ impl Hud {
 
         // Auto walk indicator
         if self.show.auto_walk {
-            Text::new(&self.voxygen_i18n.get("hud.auto_walk_indicator"))
+            Text::new(&self.i18n.get("hud.auto_walk_indicator"))
                 .color(TEXT_BG)
                 .mid_top_with_margin_on(ui_widgets.window, 70.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(20))
                 .set(self.ids.auto_walk_bg, ui_widgets);
-            Text::new(&self.voxygen_i18n.get("hud.auto_walk_indicator"))
+            Text::new(&self.i18n.get("hud.auto_walk_indicator"))
                 .color(KILL_COLOR)
                 .top_left_with_margins_on(self.ids.auto_walk_bg, -1.0, -1.0)
                 .font_id(self.fonts.cyri.conrod_id)

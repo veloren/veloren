@@ -2,7 +2,7 @@ use super::{
     img_ids::Imgs, ERROR_COLOR, FACTION_COLOR, GROUP_COLOR, INFO_COLOR, KILL_COLOR, LOOT_COLOR,
     OFFLINE_COLOR, ONLINE_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR, WORLD_COLOR,
 };
-use crate::{i18n::VoxygenLocalization, ui::fonts::ConrodVoxygenFonts, GlobalState};
+use crate::{ui::fonts::Fonts, GlobalState, Localization};
 use client::{cmd, Client};
 use common::{
     comp::{
@@ -52,7 +52,7 @@ pub struct Chat<'a> {
 
     global_state: &'a GlobalState,
     imgs: &'a Imgs,
-    fonts: &'a ConrodVoxygenFonts,
+    fonts: &'a Fonts,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -60,7 +60,7 @@ pub struct Chat<'a> {
     // TODO: add an option to adjust this
     history_max: usize,
 
-    localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+    localized_strings: &'a Localization,
 }
 
 impl<'a> Chat<'a> {
@@ -69,8 +69,8 @@ impl<'a> Chat<'a> {
         client: &'a Client,
         global_state: &'a GlobalState,
         imgs: &'a Imgs,
-        fonts: &'a ConrodVoxygenFonts,
-        localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+        fonts: &'a Fonts,
+        localized_strings: &'a Localization,
     ) -> Self {
         Self {
             new_messages,
@@ -536,12 +536,7 @@ fn do_tab_completion(cursor: usize, input: &str, word: &str) -> (String, usize) 
     }
 }
 
-fn cursor_offset_to_index(
-    offset: usize,
-    text: &str,
-    ui: &Ui,
-    fonts: &ConrodVoxygenFonts,
-) -> Option<Index> {
+fn cursor_offset_to_index(offset: usize, text: &str, ui: &Ui, fonts: &Fonts) -> Option<Index> {
     // This moves the cursor to the given offset. Conrod is a pain.
     //
     // Width and font must match that of the chat TextEdit

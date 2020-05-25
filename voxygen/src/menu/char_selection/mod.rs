@@ -1,7 +1,7 @@
 mod ui;
 
 use crate::{
-    i18n::{i18n_asset_key, VoxygenLocalization},
+    i18n::{i18n_asset_key, Localization},
     render::Renderer,
     scene::simple::{self as scene, Scene},
     session::SessionState,
@@ -149,7 +149,7 @@ impl PlayState for CharSelectionState {
             }
 
             // Tick the client (currently only to keep the connection alive).
-            let localized_strings = VoxygenLocalization::load_expect(&i18n_asset_key(
+            let localized_strings = Localization::load_expect(&i18n_asset_key(
                 &global_state.settings.language.selected_language,
             ));
 

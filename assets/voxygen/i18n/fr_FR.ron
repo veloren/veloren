@@ -1,5 +1,5 @@
 /// Localization for French (France locale)
-VoxygenLocalization(
+(
     metadata: (
         language_name: "Français",
         language_identifier: "fr_FR",
