@@ -235,6 +235,7 @@ pub enum Event {
     Sct(bool),
     SctPlayerBatch(bool),
     SctDamageBatch(bool),
+    SpeechBubbleDarkMode(bool),
     ToggleDebug(bool),
     UiScale(ScaleChange),
     CharacterSelection,
@@ -944,13 +945,14 @@ impl Hud {
                 );
                 let ingame_pos = pos + Vec3::unit_z() * height_offset;
 
-                // Chat bubble, name, level, and hp bars
+                // Speech bubble, name, level, and hp bars
                 overhead::Overhead::new(
                     &name,
                     bubble,
                     stats,
                     energy,
                     own_level,
+                    &global_state.settings.gameplay,
                     self.pulse,
                     &self.imgs,
                     &self.fonts,
@@ -1626,6 +1628,9 @@ impl Hud {
             .set(self.ids.settings_window, ui_widgets)
             {
                 match event {
+                    settings_window::Event::SpeechBubbleDarkMode(sbdm) => {
+                        events.push(Event::SpeechBubbleDarkMode(sbdm));
+                    },
                     settings_window::Event::Sct(sct) => {
                         events.push(Event::Sct(sct));
                     },

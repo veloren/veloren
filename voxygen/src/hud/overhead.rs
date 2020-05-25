@@ -1,5 +1,8 @@
 use super::{img_ids::Imgs, HP_COLOR, LOW_HP_COLOR, MANA_COLOR};
-use crate::ui::{fonts::ConrodVoxygenFonts, Ingameable};
+use crate::{
+    settings::GameplaySettings,
+    ui::{fonts::ConrodVoxygenFonts, Ingameable},
+};
 use common::comp::{Energy, SpeechBubble, Stats};
 use conrod_core::{
     position::Align,
@@ -9,19 +12,19 @@ use conrod_core::{
 
 widget_ids! {
     struct Ids {
-        // Chat bubble
-        chat_bubble_text,
-        chat_bubble_text2,
-        chat_bubble_top_left,
-        chat_bubble_top,
-        chat_bubble_top_right,
-        chat_bubble_left,
-        chat_bubble_mid,
-        chat_bubble_right,
-        chat_bubble_bottom_left,
-        chat_bubble_bottom,
-        chat_bubble_bottom_right,
-        chat_bubble_tail,
+        // Speech bubble
+        speech_bubble_text,
+        speech_bubble_text2,
+        speech_bubble_top_left,
+        speech_bubble_top,
+        speech_bubble_top_right,
+        speech_bubble_left,
+        speech_bubble_mid,
+        speech_bubble_right,
+        speech_bubble_bottom_left,
+        speech_bubble_bottom,
+        speech_bubble_bottom_right,
+        speech_bubble_tail,
 
         // Name
         name_bg,
@@ -46,6 +49,7 @@ pub struct Overhead<'a> {
     stats: &'a Stats,
     energy: &'a Energy,
     own_level: u32,
+    settings: &'a GameplaySettings,
     pulse: f32,
     imgs: &'a Imgs,
     fonts: &'a ConrodVoxygenFonts,
@@ -60,6 +64,7 @@ impl<'a> Overhead<'a> {
         stats: &'a Stats,
         energy: &'a Energy,
         own_level: u32,
+        settings: &'a GameplaySettings,
         pulse: f32,
         imgs: &'a Imgs,
         fonts: &'a ConrodVoxygenFonts,
@@ -70,6 +75,7 @@ impl<'a> Overhead<'a> {
             stats,
             energy,
             own_level,
+            settings,
             pulse,
             imgs,
             fonts,
@@ -130,77 +136,122 @@ impl<'a> Widget for Overhead<'a> {
             .x_y(0.0, MANA_BAR_Y + 50.0)
             .set(state.ids.name, ui);
 
+        // Speech bubble
         if let Some(bubble) = self.bubble {
-            // Speech bubble
+            let dark_mode = self.settings.speech_bubble_dark_mode;
             let mut text = Text::new(&bubble.message)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(18)
-                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                 .up_from(state.ids.name, 10.0)
                 .x_align_to(state.ids.name, Align::Middle)
                 .parent(id);
+            text = if dark_mode {
+                text.color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+            } else {
+                text.color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+            };
             if let Some(w) = text.get_w(ui) {
                 if w > 250.0 {
                     text = text.w(250.0);
                 }
             }
-            Image::new(self.imgs.chat_bubble_top_left)
-                .w_h(10.0, 10.0)
-                .top_left_with_margin_on(state.ids.chat_bubble_text, -10.0)
-                .parent(id)
-                .set(state.ids.chat_bubble_top_left, ui);
-            Image::new(self.imgs.chat_bubble_top)
-                .h(10.0)
-                .w_of(state.ids.chat_bubble_text)
-                .mid_top_with_margin_on(state.ids.chat_bubble_text, -10.0)
-                .parent(id)
-                .set(state.ids.chat_bubble_top, ui);
-            Image::new(self.imgs.chat_bubble_top_right)
-                .w_h(10.0, 10.0)
-                .top_right_with_margin_on(state.ids.chat_bubble_text, -10.0)
-                .parent(id)
-                .set(state.ids.chat_bubble_top_right, ui);
-            Image::new(self.imgs.chat_bubble_left)
-                .w(10.0)
-                .h_of(state.ids.chat_bubble_text)
-                .mid_left_with_margin_on(state.ids.chat_bubble_text, -10.0)
-                .parent(id)
-                .set(state.ids.chat_bubble_left, ui);
-            Image::new(self.imgs.chat_bubble_mid)
-                .wh_of(state.ids.chat_bubble_text)
-                .top_left_of(state.ids.chat_bubble_text)
-                .parent(id)
-                .set(state.ids.chat_bubble_mid, ui);
-            Image::new(self.imgs.chat_bubble_right)
-                .w(10.0)
-                .h_of(state.ids.chat_bubble_text)
-                .mid_right_with_margin_on(state.ids.chat_bubble_text, -10.0)
-                .parent(id)
-                .set(state.ids.chat_bubble_right, ui);
-            Image::new(self.imgs.chat_bubble_bottom_left)
-                .w_h(10.0, 10.0)
-                .bottom_left_with_margin_on(state.ids.chat_bubble_text, -10.0)
-                .parent(id)
-                .set(state.ids.chat_bubble_bottom_left, ui);
-            Image::new(self.imgs.chat_bubble_bottom)
-                .h(10.0)
-                .w_of(state.ids.chat_bubble_text)
-                .mid_bottom_with_margin_on(state.ids.chat_bubble_text, -10.0)
-                .parent(id)
-                .set(state.ids.chat_bubble_bottom, ui);
-            Image::new(self.imgs.chat_bubble_bottom_right)
-                .w_h(10.0, 10.0)
-                .bottom_right_with_margin_on(state.ids.chat_bubble_text, -10.0)
-                .parent(id)
-                .set(state.ids.chat_bubble_bottom_right, ui);
-            let tail = Image::new(self.imgs.chat_bubble_tail)
-                .w_h(11.0, 16.0)
-                .mid_bottom_with_margin_on(state.ids.chat_bubble_text, -16.0)
-                .parent(id);
+            Image::new(if dark_mode {
+                self.imgs.dark_bubble_top_left
+            } else {
+                self.imgs.speech_bubble_top_left
+            })
+            .w_h(10.0, 10.0)
+            .top_left_with_margin_on(state.ids.speech_bubble_text, -10.0)
+            .parent(id)
+            .set(state.ids.speech_bubble_top_left, ui);
+            Image::new(if dark_mode {
+                self.imgs.dark_bubble_top
+            } else {
+                self.imgs.speech_bubble_top
+            })
+            .h(10.0)
+            .w_of(state.ids.speech_bubble_text)
+            .mid_top_with_margin_on(state.ids.speech_bubble_text, -10.0)
+            .parent(id)
+            .set(state.ids.speech_bubble_top, ui);
+            Image::new(if dark_mode {
+                self.imgs.dark_bubble_top_right
+            } else {
+                self.imgs.speech_bubble_top_right
+            })
+            .w_h(10.0, 10.0)
+            .top_right_with_margin_on(state.ids.speech_bubble_text, -10.0)
+            .parent(id)
+            .set(state.ids.speech_bubble_top_right, ui);
+            Image::new(if dark_mode {
+                self.imgs.dark_bubble_left
+            } else {
+                self.imgs.speech_bubble_left
+            })
+            .w(10.0)
+            .h_of(state.ids.speech_bubble_text)
+            .mid_left_with_margin_on(state.ids.speech_bubble_text, -10.0)
+            .parent(id)
+            .set(state.ids.speech_bubble_left, ui);
+            Image::new(if dark_mode {
+                self.imgs.dark_bubble_mid
+            } else {
+                self.imgs.speech_bubble_mid
+            })
+            .wh_of(state.ids.speech_bubble_text)
+            .top_left_of(state.ids.speech_bubble_text)
+            .parent(id)
+            .set(state.ids.speech_bubble_mid, ui);
+            Image::new(if dark_mode {
+                self.imgs.dark_bubble_right
+            } else {
+                self.imgs.speech_bubble_right
+            })
+            .w(10.0)
+            .h_of(state.ids.speech_bubble_text)
+            .mid_right_with_margin_on(state.ids.speech_bubble_text, -10.0)
+            .parent(id)
+            .set(state.ids.speech_bubble_right, ui);
+            Image::new(if dark_mode {
+                self.imgs.dark_bubble_bottom_left
+            } else {
+                self.imgs.speech_bubble_bottom_left
+            })
+            .w_h(10.0, 10.0)
+            .bottom_left_with_margin_on(state.ids.speech_bubble_text, -10.0)
+            .parent(id)
+            .set(state.ids.speech_bubble_bottom_left, ui);
+            Image::new(if dark_mode {
+                self.imgs.dark_bubble_bottom
+            } else {
+                self.imgs.speech_bubble_bottom
+            })
+            .h(10.0)
+            .w_of(state.ids.speech_bubble_text)
+            .mid_bottom_with_margin_on(state.ids.speech_bubble_text, -10.0)
+            .parent(id)
+            .set(state.ids.speech_bubble_bottom, ui);
+            Image::new(if dark_mode {
+                self.imgs.dark_bubble_bottom_right
+            } else {
+                self.imgs.speech_bubble_bottom_right
+            })
+            .w_h(10.0, 10.0)
+            .bottom_right_with_margin_on(state.ids.speech_bubble_text, -10.0)
+            .parent(id)
+            .set(state.ids.speech_bubble_bottom_right, ui);
+            let tail = Image::new(if dark_mode {
+                self.imgs.dark_bubble_tail
+            } else {
+                self.imgs.speech_bubble_tail
+            })
+            .w_h(11.0, 16.0)
+            .mid_bottom_with_margin_on(state.ids.speech_bubble_text, -16.0)
+            .parent(id);
             // Move text to front (conrod depth is lowest first; not a z-index)
-            tail.set(state.ids.chat_bubble_tail, ui);
+            tail.set(state.ids.speech_bubble_tail, ui);
             text.depth(tail.get_depth() - 1.0)
-                .set(state.ids.chat_bubble_text, ui);
+                .set(state.ids.speech_bubble_text, ui);
         }
 
         let hp_percentage =
