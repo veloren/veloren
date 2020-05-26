@@ -378,27 +378,32 @@ impl<'a> System<'a> for Sys {
             // last!) ---
 
             // Attack a target that's attacking us
-            if let Some(stats) = stats.get(entity) {
+            if let Some(my_stats) = stats.get(entity) {
                 // Only if the attack was recent
-                if stats.health.last_change.0 < 5.0 {
+                if my_stats.health.last_change.0 < 5.0 {
                     if let comp::HealthSource::Attack { by }
                     | comp::HealthSource::Projectile { owner: Some(by) } =
-                        stats.health.last_change.1.cause
+                        my_stats.health.last_change.1.cause
                     {
                         if !agent.activity.is_attack() {
                             if let Some(attacker) = uid_allocator.retrieve_entity_internal(by.id())
                             {
-                                let message = "npc.speech.villager_under_attack".to_string();
-                                let bubble = SpeechBubble::npc_new(message, *time);
-                                let _ = speech_bubbles.insert(entity, bubble);
+                                if stats.get(attacker).map_or(false, |a| !a.is_dead) {
+                                    if agent.can_speak {
+                                        let message =
+                                            "npc.speech.villager_under_attack".to_string();
+                                        let bubble = SpeechBubble::npc_new(message, *time);
+                                        let _ = speech_bubbles.insert(entity, bubble);
+                                    }
 
-                                agent.activity = Activity::Attack {
-                                    target: attacker,
-                                    chaser: Chaser::default(),
-                                    time: time.0,
-                                    been_close: false,
-                                    powerup: 0.0,
-                                };
+                                    agent.activity = Activity::Attack {
+                                        target: attacker,
+                                        chaser: Chaser::default(),
+                                        time: time.0,
+                                        been_close: false,
+                                        powerup: 0.0,
+                                    };
+                                }
                             }
                         }
                     }

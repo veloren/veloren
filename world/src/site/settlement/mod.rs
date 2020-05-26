@@ -784,8 +784,8 @@ impl Settlement {
                 if matches!(sample.plot, Some(Plot::Town))
                     && RandomField::new(self.seed).chance(Vec3::from(wpos2d), 1.0 / (50.0 * 50.0))
                 {
+                    let is_human: bool;
                     let entity = EntityInfo::at(entity_wpos)
-                        .with_alignment(comp::Alignment::Npc)
                         .with_body(match rng.gen_range(0, 4) {
                             0 => {
                                 let species = match rng.gen_range(0, 3) {
@@ -793,7 +793,7 @@ impl Settlement {
                                     1 => quadruped_small::Species::Sheep,
                                     _ => quadruped_small::Species::Cat,
                                 };
-
+                                is_human = false;
                                 comp::Body::QuadrupedSmall(quadruped_small::Body::random_with(
                                     rng, &species,
                                 ))
@@ -805,14 +805,22 @@ impl Settlement {
                                     2 => bird_medium::Species::Goose,
                                     _ => bird_medium::Species::Peacock,
                                 };
-
+                                is_human = false;
                                 comp::Body::BirdMedium(bird_medium::Body::random_with(
                                     rng, &species,
                                 ))
                             },
-                            _ => comp::Body::Humanoid(humanoid::Body::random()),
+                            _ => {
+                                is_human = true;
+                                comp::Body::Humanoid(humanoid::Body::random())
+                            },
                         })
-                        .do_if(rng.gen(), |entity| {
+                        .with_alignment(if is_human {
+                            comp::Alignment::Npc
+                        } else {
+                            comp::Alignment::Tame
+                        })
+                        .do_if(is_human && rng.gen(), |entity| {
                             entity.with_main_tool(assets::load_expect_cloned(
                                 match rng.gen_range(0, 7) {
                                     0 => "common.items.weapons.tool.broom",
