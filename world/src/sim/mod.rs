@@ -1353,14 +1353,15 @@ impl WorldSim {
             .map(|l| l.center)
             .enumerate()
             .collect::<Vec<_>>();
+        // NOTE: We assume that usize is 8 or fewer bytes.
         (0..locations.len()).for_each(|i| {
             let pos = locations[i].center.map(|e| e as i64);
 
             loc_clone.sort_by_key(|(_, l)| l.map(|e| e as i64).distance_squared(pos));
 
             loc_clone.iter().skip(1).take(2).for_each(|(j, _)| {
-                locations[i].neighbours.insert(*j);
-                locations[*j].neighbours.insert(i);
+                locations[i].neighbours.insert(*j as u64);
+                locations[*j].neighbours.insert(i as u64);
             });
         });
 

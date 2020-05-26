@@ -5,10 +5,12 @@ use std::{
     ops::{Index, IndexMut},
 };
 
-pub struct Id<T>(usize, PhantomData<T>);
+// NOTE: We use u64 to make sure we are consistent across all machines.  We
+// assume that usize fits into 8 bytes.
+pub struct Id<T>(u64, PhantomData<T>);
 
 impl<T> Id<T> {
-    pub fn id(&self) -> usize { self.0 }
+    pub fn id(&self) -> u64 { self.0 }
 }
 
 impl<T> Copy for Id<T> {}
@@ -37,12 +39,19 @@ impl<T> Default for Store<T> {
 }
 
 impl<T> Store<T> {
-    pub fn get(&self, id: Id<T>) -> &T { self.items.get(id.0).unwrap() }
+    pub fn get(&self, id: Id<T>) -> &T {
+        // NOTE: Safe conversion, because it came from usize.
+        self.items.get(id.0 as usize).unwrap()
+    }
 
-    pub fn get_mut(&mut self, id: Id<T>) -> &mut T { self.items.get_mut(id.0).unwrap() }
+    pub fn get_mut(&mut self, id: Id<T>) -> &mut T {
+        // NOTE: Safe conversion, because it came from usize.
+        self.items.get_mut(id.0 as usize).unwrap()
+    }
 
     pub fn ids(&self) -> impl Iterator<Item = Id<T>> {
-        (0..self.items.len()).map(|i| Id(i, PhantomData))
+        // NOTE: Assumes usize fits into 8 bytes.
+        (0..self.items.len() as u64).map(|i| Id(i, PhantomData))
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &T> { self.items.iter() }
@@ -53,11 +62,13 @@ impl<T> Store<T> {
         self.items
             .iter()
             .enumerate()
-            .map(|(i, item)| (Id(i, PhantomData), item))
+            // NOTE: Assumes usize fits into 8 bytes.
+            .map(|(i, item)| (Id(i as u64, PhantomData), item))
     }
 
     pub fn insert(&mut self, item: T) -> Id<T> {
-        let id = Id(self.items.len(), PhantomData);
+        // NOTE: Assumes usize fits into 8 bytes.
+        let id = Id(self.items.len() as u64, PhantomData);
         self.items.push(item);
         id
     }

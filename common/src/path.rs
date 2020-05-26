@@ -3,6 +3,7 @@ use crate::{
     terrain::Block,
     vol::{BaseVol, ReadVol},
 };
+use hashbrown::hash_map::DefaultHashBuilder;
 use rand::{thread_rng, Rng};
 use std::iter::FromIterator;
 use vek::*;
@@ -92,7 +93,11 @@ impl Route {
 pub struct Chaser {
     last_search_tgt: Option<Vec3<f32>>,
     route: Route,
-    astar: Option<Astar<Vec3<i32>>>,
+    /// We use this hasher (AAHasher) because:
+    /// (1) we care about DDOS attacks (ruling out FxHash);
+    /// (2) we don't care about determinism across computers (we can use
+    /// AAHash).
+    astar: Option<Astar<Vec3<i32>, DefaultHashBuilder>>,
 }
 
 impl Chaser {
@@ -147,7 +152,7 @@ impl Chaser {
 }
 
 fn find_path<V>(
-    astar: &mut Option<Astar<Vec3<i32>>>,
+    astar: &mut Option<Astar<Vec3<i32>, DefaultHashBuilder>>,
     vol: &V,
     startf: Vec3<f32>,
     endf: Vec3<f32>,
@@ -263,7 +268,12 @@ where
     let satisfied = |pos: &Vec3<i32>| pos == &end;
 
     let mut new_astar = match astar.take() {
-        None => Astar::new(20_000, start, heuristic.clone()),
+        None => Astar::new(
+            20_000,
+            start,
+            heuristic.clone(),
+            DefaultHashBuilder::default(),
+        ),
         Some(astar) => astar,
     };
 

@@ -8,6 +8,7 @@ edition = "2018"
 bincode = "1.2.0"
 common = { package = "veloren-common", path = "../common" }
 bitvec = "0.17.4"
+fxhash = "0.2.1"
 image = "0.22.3"
 itertools = "0.8.2"
 vek = "0.10.0"
