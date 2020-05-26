@@ -28,7 +28,7 @@ impl text::Renderer for IcedRenderer {
 
     fn draw(
         &mut self,
-        _defaults: &Self::Defaults,
+        defaults: &Self::Defaults,
         bounds: Rectangle,
         content: &str,
         size: u16,
@@ -38,25 +38,27 @@ impl text::Renderer for IcedRenderer {
         vertical_alignment: VerticalAlignment,
     ) -> Self::Output {
         use glyph_brush::{HorizontalAlign, VerticalAlign};
-        let h_align = match horizontal_alignment {
-            HorizontalAlignment::Left => HorizontalAlign::Left,
-            HorizontalAlignment::Center => HorizontalAlign::Center,
-            HorizontalAlignment::Right => HorizontalAlign::Right,
+        // glyph_brush thought it would be a great idea to change what the bounds and
+        // position mean based on the alignment
+        // TODO: add option to align based on the geometry of the rendered glyphs
+        // instead of all possible glyphs
+        let (x, h_align) = match horizontal_alignment {
+            HorizontalAlignment::Left => (bounds.x, HorizontalAlign::Left),
+            HorizontalAlignment::Center => (bounds.center_x(), HorizontalAlign::Center),
+            HorizontalAlignment::Right => (bounds.x + bounds.width, HorizontalAlign::Right),
         };
 
-        let v_align = match vertical_alignment {
-            VerticalAlignment::Top => VerticalAlign::Top,
-            VerticalAlignment::Center => VerticalAlign::Center,
-            VerticalAlignment::Bottom => VerticalAlign::Bottom,
+        let (y, v_align) = match vertical_alignment {
+            VerticalAlignment::Top => (bounds.y, VerticalAlign::Top),
+            VerticalAlignment::Center => (bounds.center_y(), VerticalAlign::Center),
+            VerticalAlignment::Bottom => (bounds.y + bounds.height, VerticalAlign::Bottom),
         };
 
         let p_scale = self.p_scale;
 
         let section = glyph_brush::Section {
             text: content,
-            // TODO: do snap to pixel thing here IF it is being done down the line
-            //screen_position: (bounds.x * p_scale, (self.win_dims.y - bounds.y) * p_scale),
-            screen_position: (bounds.x * p_scale, bounds.y * p_scale),
+            screen_position: (x * p_scale, y * p_scale),
             bounds: (bounds.width * p_scale, bounds.height * p_scale),
             scale: glyph_brush::rusttype::Scale::uniform(size as f32 * p_scale),
             layout: glyph_brush::Layout::Wrap {
@@ -86,7 +88,7 @@ impl text::Renderer for IcedRenderer {
                 glyphs,
                 //size: size as f32,
                 bounds,
-                linear_color: color.unwrap_or(Color::BLACK).into_linear().into(),
+                linear_color: color.unwrap_or(defaults.text_color).into_linear().into(),
                 /*font,
                  *horizontal_alignment,
                  *vertical_alignment, */

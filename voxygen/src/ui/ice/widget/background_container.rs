@@ -1,4 +1,4 @@
-use iced::{layout, Element, Hasher, Layout, Length, Point, Size, Widget};
+use iced::{layout, Clipboard, Element, Event, Hasher, Layout, Length, Point, Size, Widget};
 use std::{hash::Hash, u32};
 
 // Note: it might be more efficient to make this generic over the content type
@@ -63,7 +63,7 @@ pub trait Background<R: iced::Renderer>: Sized {
     fn width(&self) -> Length;
     fn height(&self) -> Length;
     fn aspect_ratio_fixed(&self) -> bool;
-    fn pixel_dims(&self, renderer: &R) -> [u16; 2];
+    fn pixel_dims(&self, renderer: &R) -> (u16, u16);
     fn draw(
         &self,
         renderer: &mut R,
@@ -158,7 +158,7 @@ where
             .width(self.width())
             .height(self.height());
 
-        let [pixel_w, pixel_h] = self.background.pixel_dims(renderer);
+        let (pixel_w, pixel_h) = self.background.pixel_dims(renderer);
         let (horizontal_pad_frac, vertical_pad_frac, top_pad_frac, left_pad_frac) = {
             let Padding {
                 top,
@@ -207,6 +207,10 @@ where
             // Get content size
             // again, why is loose() used here?
             let mut content = self.content.layout(renderer, &limits.loose());
+
+            // TODO: handle cases where self and/or children are not Length::Fill
+            // If fill use max_size
+            //if match self.width(), self.height()
 
             // This time we need to adjust up to meet the aspect ratio
             // so that the container is larger than the contents
@@ -259,6 +263,25 @@ where
         };
 
         layout::Node::with_children(size, vec![content])
+    }
+
+    fn on_event(
+        &mut self,
+        event: Event,
+        layout: Layout<'_>,
+        cursor_position: Point,
+        messages: &mut Vec<M>,
+        renderer: &R,
+        clipboard: Option<&dyn Clipboard>,
+    ) {
+        self.content.on_event(
+            event,
+            layout.children().next().unwrap(),
+            cursor_position,
+            messages,
+            renderer,
+            clipboard,
+        );
     }
 
     fn draw(

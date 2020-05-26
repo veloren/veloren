@@ -1,4 +1,7 @@
+// TODO: reorganize modules (e.g. put all these in a widget submodule)
+mod aspect_ratio_container;
 mod background_container;
+mod button;
 mod column;
 mod compound_graphic;
 mod container;
@@ -6,6 +9,8 @@ mod image;
 mod row;
 mod space;
 mod text;
+
+pub use button::Style as ButtonStyle;
 
 use super::{
     super::graphic::{self, Graphic, TexId},
@@ -155,6 +160,15 @@ impl IcedRenderer {
 
     pub fn add_graphic(&mut self, graphic: Graphic) -> graphic::Id {
         self.cache.add_graphic(graphic)
+    }
+
+    fn image_dims(&self, handle: super::widget::image::Handle) -> (u32, u32) {
+        self
+            .cache
+            .graphic_cache()
+            .get_graphic_dims((handle, Rotation::None))
+            // TODO: don't unwrap
+            .unwrap()
     }
 
     pub fn resize(&mut self, scaled_dims: Vec2<f32>, renderer: &mut Renderer) {
@@ -582,9 +596,22 @@ fn default_scissor(renderer: &Renderer) -> Aabr<u16> {
     }
 }
 
+// TODO: expose to user
+pub struct Defaults {
+    pub text_color: iced::Color,
+}
+
+impl Default for Defaults {
+    fn default() -> Self {
+        Self {
+            text_color: iced::Color::WHITE,
+        }
+    }
+}
+
 impl iced::Renderer for IcedRenderer {
     // Default styling
-    type Defaults = ();
+    type Defaults = Defaults;
     // TODO: use graph of primitives to enable diffing???
     type Output = (Primitive, iced::mouse::Interaction);
 

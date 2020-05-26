@@ -6,14 +6,7 @@ use iced::mouse;
 use vek::Rgba;
 
 impl image::Renderer for IcedRenderer {
-    fn dimensions(&self, handle: image::Handle) -> (u32, u32) {
-        self
-            .cache
-            .graphic_cache()
-            .get_graphic_dims((handle, Rotation::None))
-            // TODO: don't unwrap
-            .unwrap()
-    }
+    fn dimensions(&self, handle: image::Handle) -> (u32, u32) { self.image_dims(handle) }
 
     fn draw(
         &mut self,
