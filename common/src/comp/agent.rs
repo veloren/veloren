@@ -89,13 +89,46 @@ impl Default for Activity {
 /// Default duration in seconds of speech bubbles
 pub const SPEECH_BUBBLE_DURATION: f64 = 5.0;
 
+/// The contents of a speech bubble
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum SpeechBubbleMessage {
+    /// This message was said by a player and needs no translation
+    Plain(String),
+    /// This message was said by an NPC. The fields are a i18n key and a random
+    /// u16 index
+    Localized(String, u16),
+}
+
 /// Adds a speech bubble to the entity
-#[derive(Clone, Default, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SpeechBubble {
-    pub message: String,
+    pub message: SpeechBubbleMessage,
     pub timeout: Option<Time>,
     // TODO add icon enum for player chat type / npc quest+trade
 }
 impl Component for SpeechBubble {
     type Storage = FlaggedStorage<Self, HashMapStorage<Self>>;
+}
+impl SpeechBubble {
+    pub fn npc_new(i18n_key: String, now: Time) -> Self {
+        let message = SpeechBubbleMessage::Localized(i18n_key, rand::random());
+        let timeout = Some(Time(now.0 + SPEECH_BUBBLE_DURATION));
+        Self { message, timeout }
+    }
+
+    pub fn player_new(message: String, now: Time) -> Self {
+        let message = SpeechBubbleMessage::Plain(message);
+        let timeout = Some(Time(now.0 + SPEECH_BUBBLE_DURATION));
+        Self { message, timeout }
+    }
+
+    pub fn message<F>(&self, i18n_variation: F) -> String
+    where
+        F: Fn(String, u16) -> String,
+    {
+        match &self.message {
+            SpeechBubbleMessage::Plain(m) => m.to_string(),
+            SpeechBubbleMessage::Localized(k, i) => i18n_variation(k.to_string(), *i).to_string(),
+        }
+    }
 }

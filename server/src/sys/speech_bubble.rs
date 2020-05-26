@@ -21,7 +21,6 @@ impl<'a> System<'a> for Sys {
             .map(|(ent, _)| ent)
             .collect();
         for ent in expired_ents {
-            println!("Remoaving bobble");
             speech_bubbles.remove(ent);
         }
 

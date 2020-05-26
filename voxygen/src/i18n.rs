@@ -53,10 +53,15 @@ pub type VoxygenFonts = HashMap<String, Font>;
 pub struct VoxygenLocalization {
     /// A map storing the localized texts
     ///
-    /// Localized content can be access using a String key
+    /// Localized content can be accessed using a String key.
     pub string_map: HashMap<String, String>,
 
-    /// Either to convert the input text encoded in UTF-8
+    /// A map for storing variations of localized texts, for example multiple
+    /// ways of saying "Help, I'm under attack". Used primarily for npc
+    /// dialogue.
+    pub vector_map: HashMap<String, Vec<String>>,
+
+    /// Whether to convert the input text encoded in UTF-8
     /// into a ASCII version by using the `deunicode` crate.
     pub convert_utf8_to_ascii: bool,
 
@@ -78,23 +83,56 @@ impl VoxygenLocalization {
         }
     }
 
-    /// Return the missing keys compared to the reference language and return
-    /// them
-    pub fn list_missing_entries(&self) -> HashSet<String> {
+    /// Get a variation of localized text from the given key
+    ///
+    /// `index` should be a random number from `0` to `u16::max()`
+    ///
+    /// If the key is not present in the localization object
+    /// then the key is returned.
+    pub fn get_variation<'a>(&'a self, key: &'a str, index: u16) -> &str {
+        match self.vector_map.get(key) {
+            Some(v) if !v.is_empty() => &v[index as usize % v.len()],
+            _ => key,
+        }
+    }
+
+    /// Return the missing keys compared to the reference language
+    pub fn list_missing_entries(&self) -> (HashSet<String>, HashSet<String>) {
         let reference_localization =
             load_expect::<VoxygenLocalization>(i18n_asset_key(REFERENCE_LANG).as_ref());
-        let reference_keys: HashSet<_> =
-            reference_localization.string_map.keys().cloned().collect();
-        let current_keys: HashSet<_> = self.string_map.keys().cloned().collect();
 
-        reference_keys.difference(&current_keys).cloned().collect()
+        let reference_string_keys: HashSet<_> =
+            reference_localization.string_map.keys().cloned().collect();
+        let string_keys: HashSet<_> = self.string_map.keys().cloned().collect();
+        let strings = reference_string_keys
+            .difference(&string_keys)
+            .cloned()
+            .collect();
+
+        let reference_vector_keys: HashSet<_> =
+            reference_localization.vector_map.keys().cloned().collect();
+        let vector_keys: HashSet<_> = self.vector_map.keys().cloned().collect();
+        let vectors = reference_vector_keys
+            .difference(&vector_keys)
+            .cloned()
+            .collect();
+
+        (strings, vectors)
     }
 
     /// Log missing entries (compared to the reference language) as warnings
     pub fn log_missing_entries(&self) {
-        for missing_key in self.list_missing_entries() {
+        let (missing_strings, missing_vectors) = self.list_missing_entries();
+        for missing_key in missing_strings {
             log::warn!(
-                "[{:?}] Missing key {:?}",
+                "[{:?}] Missing string key {:?}",
+                self.metadata.language_identifier,
+                missing_key
+            );
+        }
+        for missing_key in missing_vectors {
+            log::warn!(
+                "[{:?}] Missing vector key {:?}",
                 self.metadata.language_identifier,
                 missing_key
             );
@@ -115,6 +153,10 @@ impl Asset for VoxygenLocalization {
         if asked_localization.convert_utf8_to_ascii {
             for value in asked_localization.string_map.values_mut() {
                 *value = deunicode(value);
+            }
+
+            for value in asked_localization.vector_map.values_mut() {
+                *value = value.into_iter().map(|s| deunicode(s)).collect();
             }
         }
         asked_localization.metadata.language_name =
