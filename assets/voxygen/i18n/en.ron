@@ -376,14 +376,52 @@ Fitness
 
 Willpower
 "#,
-
-
-        /// Start character window section
+        /// End character window section
 
 
         /// Start Escape Menu Section
         "esc_menu.logout": "Logout",
         "esc_menu.quit_game": "Quit Game",
         /// End Escape Menu Section
+    },
+
+    vector_map: {
+        "npc.speech.villager_under_attack": [
+            "Help, I'm under attack!",
+            "Help! I'm under attack!",
+            "Ouch! I'm under attack!",
+            "Ouch! I'm under attack! Help!",
+            "Help me! I'm under attack!",
+            "I'm under attack! Help!",
+            "I'm under attack! Help me!",
+            "Help!",
+            "Help! Help!",
+            "Help! Help! Help!",
+            "I'm under attack!",
+            "AAAHHH! I'm under attack!",
+            "AAAHHH! I'm under attack! Help!",
+            "Help! We're under attack!",
+            "Help! Murderer!",
+            "Help! There's a murder on the loose!",
+            "Help! They're trying to kill me!",
+            "Guards, I'm under attack!",
+            "Guards! I'm under attack!",
+            "I'm under attack! Guards!",
+            "Help! Guards! I'm under attack!",
+            "Guards! Come quick!",
+            "Guards! Guards!",
+            "Guards! There's a villain attacking me!",
+            "Guards, slay this foul villain!",
+            "Guards! There's a murderer!",
+            "Guards! Help me!",
+            "You won't get away with this! Guards!",
+            "You fiend!",
+            "Help me!",
+            "Help! Please!",
+            "Ouch! Guards! Help!",
+            "They're coming for me!",
+            "Help! Help! I'm being repressed",
+            "Ah, now we see the violence inherent in the system.",
+        ],
     }
 )

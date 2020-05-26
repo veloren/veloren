@@ -323,5 +323,8 @@ Force
 Dexterité
 
 Intelligence"#,
+    },
+
+    vector_map: {
     }
 )

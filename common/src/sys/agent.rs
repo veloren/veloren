@@ -4,7 +4,7 @@ use crate::{
         agent::Activity,
         item::{tool::ToolKind, ItemKind},
         Agent, Alignment, CharacterState, ControlAction, Controller, Loadout, MountState, Ori, Pos,
-        Scale, Stats,
+        Scale, SpeechBubble, Stats,
     },
     path::Chaser,
     state::{DeltaTime, Time},
@@ -38,6 +38,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Alignment>,
         WriteStorage<'a, Agent>,
         WriteStorage<'a, Controller>,
+        WriteStorage<'a, SpeechBubble>,
         ReadStorage<'a, MountState>,
     );
 
@@ -58,6 +59,7 @@ impl<'a> System<'a> for Sys {
             alignments,
             mut agents,
             mut controllers,
+            mut speech_bubbles,
             mount_states,
         ): Self::SystemData,
     ) {
@@ -386,6 +388,10 @@ impl<'a> System<'a> for Sys {
                         if !agent.activity.is_attack() {
                             if let Some(attacker) = uid_allocator.retrieve_entity_internal(by.id())
                             {
+                                let message = "npc.speech.villager_under_attack".to_string();
+                                let bubble = SpeechBubble::npc_new(message, *time);
+                                let _ = speech_bubbles.insert(entity, bubble);
+
                                 agent.activity = Activity::Attack {
                                     target: attacker,
                                     chaser: Chaser::default(),

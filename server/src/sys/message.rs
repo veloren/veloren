@@ -6,7 +6,7 @@ use crate::{
 use common::{
     comp::{
         Admin, CanBuild, ControlEvent, Controller, ForceUpdate, Ori, Player, Pos, SpeechBubble,
-        Stats, Vel, SPEECH_BUBBLE_DURATION,
+        Stats, Vel,
     },
     event::{EventBus, ServerEvent},
     msg::{
@@ -76,8 +76,6 @@ impl<'a> System<'a> for Sys {
     ) {
         timer.start();
 
-        let time = time.0;
-
         let persistence_db_dir = &persistence_db_dir.0;
 
         let mut server_emitter = server_event_bus.emitter();
@@ -97,13 +95,13 @@ impl<'a> System<'a> for Sys {
 
             // Update client ping.
             if new_msgs.len() > 0 {
-                client.last_ping = time
-            } else if time - client.last_ping > CLIENT_TIMEOUT // Timeout
+                client.last_ping = time.0
+            } else if time.0 - client.last_ping > CLIENT_TIMEOUT // Timeout
                 || client.postbox.error().is_some()
             // Postbox error
             {
                 server_emitter.emit(ServerEvent::ClientDisconnect(entity));
-            } else if time - client.last_ping > CLIENT_TIMEOUT * 0.5 {
+            } else if time.0 - client.last_ping > CLIENT_TIMEOUT * 0.5 {
                 // Try pinging the client if the timeout is nearing.
                 client.postbox.send_message(ServerMsg::Ping);
             }
@@ -406,11 +404,7 @@ impl<'a> System<'a> for Sys {
                             server_emitter.emit(ServerEvent::ChatCmd(entity, argv));
                             continue;
                         } else {
-                            let timeout = Some(Time(time + SPEECH_BUBBLE_DURATION));
-                            let bubble = SpeechBubble {
-                                message: message.clone(),
-                                timeout,
-                            };
+                            let bubble = SpeechBubble::player_new(message.clone(), *time);
                             let _ = speech_bubbles.insert(entity, bubble);
                             match players.get(entity) {
                                 Some(player) => {

@@ -524,5 +524,8 @@ Volontà
                 "esc_menu.logout": "Disconnettiti",
                 "esc_menu.quit_game": "Esci dal Gioco",
                 /// End Escape Menu Section
-            }
+    },
+
+    vector_map: {
+    }
 )

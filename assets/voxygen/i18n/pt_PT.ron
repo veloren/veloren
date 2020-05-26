@@ -368,5 +368,8 @@ Força de vontade
         "esc_menu.logout": "Desconectar",
         "esc_menu.quit_game": "Sair do jogo",
         /// End Escape Menu Section
+    },
+
+    vector_map: {
     }
 )

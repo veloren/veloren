@@ -954,6 +954,7 @@ impl Hud {
                     own_level,
                     &global_state.settings.gameplay,
                     self.pulse,
+                    &self.voxygen_i18n,
                     &self.imgs,
                     &self.fonts,
                 )
