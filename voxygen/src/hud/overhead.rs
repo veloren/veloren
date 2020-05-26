@@ -150,7 +150,7 @@ impl<'a> Widget for Overhead<'a> {
             let mut text = Text::new(&bubble_contents)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(18)
-                .up_from(state.ids.name, 10.0)
+                .up_from(state.ids.name, 20.0)
                 .x_align_to(state.ids.name, Align::Middle)
                 .parent(id);
             text = if dark_mode {
@@ -168,8 +168,8 @@ impl<'a> Widget for Overhead<'a> {
             } else {
                 self.imgs.speech_bubble_top_left
             })
-            .w_h(10.0, 10.0)
-            .top_left_with_margin_on(state.ids.speech_bubble_text, -10.0)
+            .w_h(16.0, 16.0)
+            .top_left_with_margin_on(state.ids.speech_bubble_text, -20.0)
             .parent(id)
             .set(state.ids.speech_bubble_top_left, ui);
             Image::new(if dark_mode {
@@ -177,9 +177,9 @@ impl<'a> Widget for Overhead<'a> {
             } else {
                 self.imgs.speech_bubble_top
             })
-            .h(10.0)
-            .w_of(state.ids.speech_bubble_text)
-            .mid_top_with_margin_on(state.ids.speech_bubble_text, -10.0)
+            .h(16.0)
+            .padded_w_of(state.ids.speech_bubble_text, -4.0)
+            .mid_top_with_margin_on(state.ids.speech_bubble_text, -20.0)
             .parent(id)
             .set(state.ids.speech_bubble_top, ui);
             Image::new(if dark_mode {
@@ -187,8 +187,8 @@ impl<'a> Widget for Overhead<'a> {
             } else {
                 self.imgs.speech_bubble_top_right
             })
-            .w_h(10.0, 10.0)
-            .top_right_with_margin_on(state.ids.speech_bubble_text, -10.0)
+            .w_h(16.0, 16.0)
+            .top_right_with_margin_on(state.ids.speech_bubble_text, -20.0)
             .parent(id)
             .set(state.ids.speech_bubble_top_right, ui);
             Image::new(if dark_mode {
@@ -196,9 +196,9 @@ impl<'a> Widget for Overhead<'a> {
             } else {
                 self.imgs.speech_bubble_left
             })
-            .w(10.0)
-            .h_of(state.ids.speech_bubble_text)
-            .mid_left_with_margin_on(state.ids.speech_bubble_text, -10.0)
+            .w(16.0)
+            .padded_h_of(state.ids.speech_bubble_text, -4.0)
+            .mid_left_with_margin_on(state.ids.speech_bubble_text, -20.0)
             .parent(id)
             .set(state.ids.speech_bubble_left, ui);
             Image::new(if dark_mode {
@@ -206,8 +206,8 @@ impl<'a> Widget for Overhead<'a> {
             } else {
                 self.imgs.speech_bubble_mid
             })
-            .wh_of(state.ids.speech_bubble_text)
-            .top_left_of(state.ids.speech_bubble_text)
+            .padded_wh_of(state.ids.speech_bubble_text, -4.0)
+            .top_left_with_margin_on(state.ids.speech_bubble_text, -4.0)
             .parent(id)
             .set(state.ids.speech_bubble_mid, ui);
             Image::new(if dark_mode {
@@ -215,9 +215,9 @@ impl<'a> Widget for Overhead<'a> {
             } else {
                 self.imgs.speech_bubble_right
             })
-            .w(10.0)
-            .h_of(state.ids.speech_bubble_text)
-            .mid_right_with_margin_on(state.ids.speech_bubble_text, -10.0)
+            .w(16.0)
+            .padded_h_of(state.ids.speech_bubble_text, -4.0)
+            .mid_right_with_margin_on(state.ids.speech_bubble_text, -20.0)
             .parent(id)
             .set(state.ids.speech_bubble_right, ui);
             Image::new(if dark_mode {
@@ -225,8 +225,8 @@ impl<'a> Widget for Overhead<'a> {
             } else {
                 self.imgs.speech_bubble_bottom_left
             })
-            .w_h(10.0, 10.0)
-            .bottom_left_with_margin_on(state.ids.speech_bubble_text, -10.0)
+            .w_h(16.0, 16.0)
+            .bottom_left_with_margin_on(state.ids.speech_bubble_text, -20.0)
             .parent(id)
             .set(state.ids.speech_bubble_bottom_left, ui);
             Image::new(if dark_mode {
@@ -234,9 +234,9 @@ impl<'a> Widget for Overhead<'a> {
             } else {
                 self.imgs.speech_bubble_bottom
             })
-            .h(10.0)
-            .w_of(state.ids.speech_bubble_text)
-            .mid_bottom_with_margin_on(state.ids.speech_bubble_text, -10.0)
+            .h(16.0)
+            .padded_w_of(state.ids.speech_bubble_text, -4.0)
+            .mid_bottom_with_margin_on(state.ids.speech_bubble_text, -20.0)
             .parent(id)
             .set(state.ids.speech_bubble_bottom, ui);
             Image::new(if dark_mode {
@@ -244,8 +244,8 @@ impl<'a> Widget for Overhead<'a> {
             } else {
                 self.imgs.speech_bubble_bottom_right
             })
-            .w_h(10.0, 10.0)
-            .bottom_right_with_margin_on(state.ids.speech_bubble_text, -10.0)
+            .w_h(16.0, 16.0)
+            .bottom_right_with_margin_on(state.ids.speech_bubble_text, -20.0)
             .parent(id)
             .set(state.ids.speech_bubble_bottom_right, ui);
             let tail = Image::new(if dark_mode {
@@ -253,8 +253,8 @@ impl<'a> Widget for Overhead<'a> {
             } else {
                 self.imgs.speech_bubble_tail
             })
-            .w_h(11.0, 16.0)
-            .mid_bottom_with_margin_on(state.ids.speech_bubble_text, -16.0)
+            .w_h(22.0, 28.0)
+            .mid_bottom_with_margin_on(state.ids.speech_bubble_text, -32.0)
             .parent(id);
             // Move text to front (conrod depth is lowest first; not a z-index)
             tail.set(state.ids.speech_bubble_tail, ui);
