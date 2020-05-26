@@ -35,37 +35,47 @@
 //!
 //! # Examples
 //! ```rust
-//! // Client
-//! use futures::executor::block_on;
-//! use veloren_network::{Network, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
+//! use async_std::task::sleep;
+//! use futures::{executor::block_on, join};
+//! use uvth::ThreadPoolBuilder;
+//! use veloren_network::{Address, Network, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
 //!
-//! let network = Network::new(Pid::new(), ThreadPoolBuilder::new().build(), None);
-//! block_on(async {
-//!     let server = network
+//! // Client
+//! async fn client() -> std::result::Result<(), Box<dyn std::error::Error>> {
+//!     sleep(std::time::Duration::from_secs(1)).await; // `connect` MUST be after `listen`
+//!     let client_network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+//!     let server = client_network
 //!         .connect(Address::Tcp("127.0.0.1:12345".parse().unwrap()))
 //!         .await?;
-//!     let stream = server
+//!     let mut stream = server
 //!         .open(10, PROMISES_ORDERED | PROMISES_CONSISTENCY)
 //!         .await?;
 //!     stream.send("Hello World")?;
-//! });
-//! ```
+//!     Ok(())
+//! }
 //!
-//! ```rust
 //! // Server
-//! use futures::executor::block_on;
-//! use veloren_network::{Network, Pid};
-//!
-//! let network = Network::new(Pid::new(), ThreadPoolBuilder::new().build(), None);
-//! block_on(async {
-//!     network
+//! async fn server() -> std::result::Result<(), Box<dyn std::error::Error>> {
+//!     let server_network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+//!     server_network
 //!         .listen(Address::Tcp("127.0.0.1:12345".parse().unwrap()))
 //!         .await?;
-//!     let client = network.connected().await?;
-//!     let stream = server.opened().await?;
+//!     let client = server_network.connected().await?;
+//!     let mut stream = client.opened().await?;
 //!     let msg: String = stream.recv().await?;
 //!     println!("got message: {}", msg);
-//! });
+//!     assert_eq!(msg, "Hello World");
+//!     Ok(())
+//! }
+//!
+//! fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+//!     block_on(async {
+//!         let (result_c, result_s) = join!(client(), server(),);
+//!         result_c?;
+//!         result_s?;
+//!         Ok(())
+//!     })
+//! }
 //! ```
 //!
 //! [`Network`]: crate::api::Network

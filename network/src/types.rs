@@ -60,8 +60,9 @@ pub(crate) enum Frame {
         magic_number: [u8; 7],
         version: [u32; 3],
     },
-    ParticipantId {
+    Init {
         pid: Pid,
+        secret: u128,
     },
     Shutdown, /* Shutsdown this channel gracefully, if all channels are shut down, Participant
                * is deleted */
@@ -89,10 +90,12 @@ pub(crate) enum Frame {
 }
 
 impl Frame {
+    pub const FRAMES_LEN: u8 = 8;
+
     pub const fn int_to_string(i: u8) -> &'static str {
         match i {
             0 => "Handshake",
-            1 => "ParticipantId",
+            1 => "Init",
             2 => "Shutdown",
             3 => "OpenStream",
             4 => "CloseStream",
@@ -109,7 +112,7 @@ impl Frame {
                 magic_number: _,
                 version: _,
             } => 0,
-            Frame::ParticipantId { pid: _ } => 1,
+            Frame::Init { pid: _, secret: _ } => 1,
             Frame::Shutdown => 2,
             Frame::OpenStream {
                 sid: _,
@@ -140,10 +143,10 @@ impl Pid {
     /// # Example
     /// ```rust
     /// use uvth::ThreadPoolBuilder;
-    /// use veloren_network::Network;
+    /// use veloren_network::{Network, Pid};
     ///
     /// let pid = Pid::new();
-    /// let _network = Network::new(pid, ThreadPoolBuilder::new().build(), None);
+    /// let _network = Network::new(pid, &ThreadPoolBuilder::new().build(), None);
     /// ```
     pub fn new() -> Self {
         Self {

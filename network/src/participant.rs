@@ -118,7 +118,7 @@ impl BParticipant {
         let (shutdown_open_mgr_sender, shutdown_open_mgr_receiver) = oneshot::channel();
         let (b2b_prios_flushed_s, b2b_prios_flushed_r) = oneshot::channel();
         let (w2b_frames_s, w2b_frames_r) = mpsc::unbounded::<(Cid, Frame)>();
-        let (prios, a2p_msg_s, p2b_notify_empty_stream_s) = PrioManager::new();
+        let (prios, a2p_msg_s, b2p_notify_empty_stream_s) = PrioManager::new();
 
         let run_channels = self.run_channels.take().unwrap();
         futures::join!(
@@ -139,7 +139,7 @@ impl BParticipant {
             self.stream_close_mgr(
                 run_channels.a2b_close_stream_r,
                 shutdown_stream_close_mgr_receiver,
-                p2b_notify_empty_stream_s,
+                b2p_notify_empty_stream_s,
             ),
             self.participant_shutdown_mgr(
                 run_channels.s2b_shutdown_bparticipant_r,
@@ -182,11 +182,13 @@ impl BParticipant {
             }
             async_std::task::sleep(TICK_TIME).await;
             //shutdown after all msg are send!
-            if !closing_up && shutdown_send_mgr_receiver.try_recv().unwrap().is_some() {
-                closing_up = true;
-            }
             if closing_up && (len == 0) {
                 break;
+            }
+            //this IF below the break IF to give it another chance to close all streams
+            // closed
+            if !closing_up && shutdown_send_mgr_receiver.try_recv().unwrap().is_some() {
+                closing_up = true;
             }
         }
         trace!("stop send_mgr");
@@ -403,7 +405,9 @@ impl BParticipant {
         b2b_prios_flushed_r.await.unwrap();
         debug!("closing all channels");
         for ci in self.channels.write().await.drain(..) {
-            ci.b2r_read_shutdown.send(()).unwrap();
+            if let Err(e) = ci.b2r_read_shutdown.send(()) {
+                debug!(?e, ?ci.cid, "seems like this read protocol got already dropped by closing the Stream itself, just ignoring the fact");
+            };
         }
         //Wait for other bparticipants mgr to close via AtomicUsize
         const SLEEP_TIME: std::time::Duration = std::time::Duration::from_millis(5);
@@ -430,7 +434,7 @@ impl BParticipant {
         &self,
         mut a2b_close_stream_r: mpsc::UnboundedReceiver<Sid>,
         shutdown_stream_close_mgr_receiver: oneshot::Receiver<()>,
-        p2b_notify_empty_stream_s: std::sync::mpsc::Sender<(Sid, oneshot::Sender<()>)>,
+        b2p_notify_empty_stream_s: std::sync::mpsc::Sender<(Sid, oneshot::Sender<()>)>,
     ) {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
         trace!("start stream_close_mgr");
@@ -464,7 +468,7 @@ impl BParticipant {
 
             trace!(?sid, "wait for stream to be flushed");
             let (s2b_stream_finished_closed_s, s2b_stream_finished_closed_r) = oneshot::channel();
-            p2b_notify_empty_stream_s
+            b2p_notify_empty_stream_s
                 .send((sid, s2b_stream_finished_closed_s))
                 .unwrap();
             s2b_stream_finished_closed_r.await.unwrap();
