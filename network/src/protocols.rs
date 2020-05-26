@@ -21,7 +21,7 @@ use tracing::*;
 // detect a invalid client, e.g. sending an empty line would make 10 first char
 // const FRAME_RESERVED_1: u8 = 0;
 const FRAME_HANDSHAKE: u8 = 1;
-const FRAME_PARTICIPANT_ID: u8 = 2;
+const FRAME_INIT: u8 = 2;
 const FRAME_SHUTDOWN: u8 = 3;
 const FRAME_OPEN_STREAM: u8 = 4;
 const FRAME_CLOSE_STREAM: u8 = 5;
@@ -63,7 +63,7 @@ impl TcpProtocol {
         mut from_wire_sender: mpsc::UnboundedSender<(Cid, Frame)>,
         end_receiver: oneshot::Receiver<()>,
     ) {
-        trace!("starting up tcp write()");
+        trace!("starting up tcp read()");
         let mut metrics_cache = CidFrameCache::new(self.metrics.frames_wire_in_total.clone(), cid);
         let mut stream = self.stream.clone();
         let mut end_receiver = end_receiver.fuse();
@@ -94,11 +94,13 @@ impl TcpProtocol {
                         ],
                     }
                 },
-                FRAME_PARTICIPANT_ID => {
+                FRAME_INIT => {
                     let mut bytes = [0u8; 16];
                     stream.read_exact(&mut bytes).await.unwrap();
                     let pid = Pid::from_le_bytes(bytes);
-                    Frame::ParticipantId { pid }
+                    stream.read_exact(&mut bytes).await.unwrap();
+                    let secret = u128::from_le_bytes(bytes);
+                    Frame::Init { pid, secret }
                 },
                 FRAME_SHUTDOWN => Frame::Shutdown,
                 FRAME_OPEN_STREAM => {
@@ -203,12 +205,10 @@ impl TcpProtocol {
                     stream.write_all(&version[1].to_le_bytes()).await.unwrap();
                     stream.write_all(&version[2].to_le_bytes()).await.unwrap();
                 },
-                Frame::ParticipantId { pid } => {
-                    stream
-                        .write_all(&FRAME_PARTICIPANT_ID.to_be_bytes())
-                        .await
-                        .unwrap();
+                Frame::Init { pid, secret } => {
+                    stream.write_all(&FRAME_INIT.to_be_bytes()).await.unwrap();
                     stream.write_all(&pid.to_le_bytes()).await.unwrap();
+                    stream.write_all(&secret.to_le_bytes()).await.unwrap();
                 },
                 Frame::Shutdown => {
                     stream
@@ -315,13 +315,18 @@ impl UdpProtocol {
                         ],
                     }
                 },
-                FRAME_PARTICIPANT_ID => {
+                FRAME_INIT => {
                     let pid = Pid::from_le_bytes([
                         bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
                         bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14],
                         bytes[15], bytes[16],
                     ]);
-                    Frame::ParticipantId { pid }
+                    let secret = u128::from_le_bytes([
+                        bytes[17], bytes[18], bytes[19], bytes[20], bytes[21], bytes[22],
+                        bytes[23], bytes[24], bytes[25], bytes[26], bytes[27], bytes[28],
+                        bytes[29], bytes[30], bytes[31], bytes[32],
+                    ]);
+                    Frame::Init { pid, secret }
                 },
                 FRAME_SHUTDOWN => Frame::Shutdown,
                 FRAME_OPEN_STREAM => {
@@ -427,8 +432,8 @@ impl UdpProtocol {
                     buffer[19] = x[3];
                     20
                 },
-                Frame::ParticipantId { pid } => {
-                    let x = FRAME_PARTICIPANT_ID.to_be_bytes();
+                Frame::Init { pid, secret } => {
+                    let x = FRAME_INIT.to_be_bytes();
                     buffer[0] = x[0];
                     let x = pid.to_le_bytes();
                     buffer[1] = x[0];
@@ -447,7 +452,24 @@ impl UdpProtocol {
                     buffer[14] = x[13];
                     buffer[15] = x[14];
                     buffer[16] = x[15];
-                    17
+                    let x = secret.to_le_bytes();
+                    buffer[17] = x[0];
+                    buffer[18] = x[1];
+                    buffer[19] = x[2];
+                    buffer[20] = x[3];
+                    buffer[21] = x[4];
+                    buffer[22] = x[5];
+                    buffer[23] = x[6];
+                    buffer[24] = x[7];
+                    buffer[25] = x[8];
+                    buffer[26] = x[9];
+                    buffer[27] = x[10];
+                    buffer[28] = x[11];
+                    buffer[29] = x[12];
+                    buffer[30] = x[13];
+                    buffer[31] = x[14];
+                    buffer[32] = x[15];
+                    33
                 },
                 Frame::Shutdown => {
                     let x = FRAME_SHUTDOWN.to_be_bytes();

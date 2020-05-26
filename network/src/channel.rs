@@ -70,9 +70,11 @@ impl Channel {
     }
 }
 
+#[derive(Debug)]
 pub(crate) struct Handshake {
     cid: Cid,
     local_pid: Pid,
+    secret: u128,
     init_handshake: bool,
     metrics: Arc<NetworkMetrics>,
 }
@@ -91,18 +93,20 @@ impl Handshake {
     pub fn new(
         cid: u64,
         local_pid: Pid,
+        secret: u128,
         metrics: Arc<NetworkMetrics>,
         init_handshake: bool,
     ) -> Self {
         Self {
             cid,
             local_pid,
+            secret,
             metrics,
             init_handshake,
         }
     }
 
-    pub async fn setup(self, protocol: &Protocols) -> Result<(Pid, Sid), ()> {
+    pub async fn setup(self, protocol: &Protocols) -> Result<(Pid, Sid, u128), ()> {
         let (to_wire_sender, to_wire_receiver) = mpsc::unbounded::<Frame>();
         let (from_wire_sender, from_wire_receiver) = mpsc::unbounded::<(Cid, Frame)>();
         let (read_stop_sender, read_stop_receiver) = oneshot::channel();
@@ -134,7 +138,7 @@ impl Handshake {
         mut from_wire_receiver: mpsc::UnboundedReceiver<(Cid, Frame)>,
         mut to_wire_sender: mpsc::UnboundedSender<Frame>,
         _read_stop_sender: oneshot::Sender<()>,
-    ) -> Result<(Pid, Sid), ()> {
+    ) -> Result<(Pid, Sid, u128), ()> {
         const ERR_S: &str = "Got A Raw Message, these are usually Debug Messages indicating that \
                              something went wrong on network layer and connection will be closed";
         let mut pid_string = "".to_string();
@@ -203,7 +207,7 @@ impl Handshake {
                 }
                 debug!("handshake completed");
                 if self.init_handshake {
-                    self.send_pid(&mut to_wire_sender, &pid_string).await;
+                    self.send_init(&mut to_wire_sender, &pid_string).await;
                 } else {
                     self.send_handshake(&mut to_wire_sender).await;
                 }
@@ -238,7 +242,7 @@ impl Handshake {
         };
 
         match from_wire_receiver.next().await {
-            Some((_, Frame::ParticipantId { pid })) => {
+            Some((_, Frame::Init { pid, secret })) => {
                 debug!(?pid, "Participant send their ID");
                 pid_string = pid.to_string();
                 self.metrics
@@ -248,11 +252,11 @@ impl Handshake {
                 let stream_id_offset = if self.init_handshake {
                     STREAM_ID_OFFSET1
                 } else {
-                    self.send_pid(&mut to_wire_sender, &pid_string).await;
+                    self.send_init(&mut to_wire_sender, &pid_string).await;
                     STREAM_ID_OFFSET2
                 };
                 info!(?pid, "this Handshake is now configured!");
-                return Ok((pid, stream_id_offset));
+                return Ok((pid, stream_id_offset, secret));
             },
             Some((_, Frame::Shutdown)) => {
                 info!("shutdown signal received");
@@ -298,14 +302,15 @@ impl Handshake {
             .unwrap();
     }
 
-    async fn send_pid(&self, to_wire_sender: &mut mpsc::UnboundedSender<Frame>, pid_string: &str) {
+    async fn send_init(&self, to_wire_sender: &mut mpsc::UnboundedSender<Frame>, pid_string: &str) {
         self.metrics
             .frames_out_total
             .with_label_values(&[pid_string, &self.cid.to_string(), "ParticipantId"])
             .inc();
         to_wire_sender
-            .send(Frame::ParticipantId {
+            .send(Frame::Init {
                 pid: self.local_pid,
+                secret: self.secret,
             })
             .await
             .unwrap();

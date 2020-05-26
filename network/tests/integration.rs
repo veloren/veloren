@@ -103,7 +103,7 @@ fn stream_send_first_then_receive() {
     s1_a.send(42).unwrap();
     s1_a.send("3rdMessage").unwrap();
     drop(s1_a);
-    std::thread::sleep(std::time::Duration::from_millis(2000));
+    std::thread::sleep(std::time::Duration::from_millis(500));
     assert_eq!(block_on(s1_b.recv()), Ok(1u8));
     assert_eq!(block_on(s1_b.recv()), Ok(42));
     assert_eq!(block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
@@ -130,4 +130,30 @@ fn stream_simple_udp_3msg() {
     assert_eq!(block_on(s1_b.recv()), Ok(1337));
     s1_a.send("3rdMessage").unwrap();
     assert_eq!(block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
+}
+
+use uvth::ThreadPoolBuilder;
+use veloren_network::{Address, Network, Pid};
+#[test]
+#[ignore]
+fn tcp_and_udp_2_connections() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let (_, _) = helper::setup(true, 0);
+    let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+    let remote = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+    block_on(async {
+        remote
+            .listen(Address::Tcp("0.0.0.0:2000".parse().unwrap()))
+            .await?;
+        remote
+            .listen(Address::Udp("0.0.0.0:2001".parse().unwrap()))
+            .await?;
+        let p1 = network
+            .connect(Address::Tcp("127.0.0.1:2000".parse().unwrap()))
+            .await?;
+        let p2 = network
+            .connect(Address::Udp("127.0.0.1:2001".parse().unwrap()))
+            .await?;
+        assert!(std::sync::Arc::ptr_eq(&p1, &p2));
+        Ok(())
+    })
 }

@@ -19,6 +19,7 @@ use futures::{
     stream::StreamExt,
 };
 use prometheus::Registry;
+use rand::Rng;
 use std::{
     collections::HashMap,
     sync::{
@@ -31,6 +32,7 @@ use tracing_futures::Instrument;
 
 #[derive(Debug)]
 struct ParticipantInfo {
+    secret: u128,
     s2b_create_channel_s: mpsc::UnboundedSender<(Cid, Sid, Protocols, oneshot::Sender<()>)>,
     s2b_shutdown_bparticipant_s:
         Option<oneshot::Sender<oneshot::Sender<async_std::io::Result<()>>>>,
@@ -60,6 +62,7 @@ struct ParticipantChannels {
 #[derive(Debug)]
 pub struct Scheduler {
     local_pid: Pid,
+    local_secret: u128,
     closed: AtomicBool,
     pool: Arc<ThreadPool>,
     run_channels: Option<ControlChannels>,
@@ -107,9 +110,13 @@ impl Scheduler {
             metrics.register(registry).unwrap();
         }
 
+        let mut rng = rand::thread_rng();
+        let local_secret: u128 = rng.gen();
+
         (
             Self {
                 local_pid,
+                local_secret,
                 closed: AtomicBool::new(false),
                 pool: Arc::new(ThreadPool::new().unwrap()),
                 run_channels,
@@ -248,16 +255,22 @@ impl Scheduler {
             // 2. we need to close BParticipant, this will drop its senderns and receivers
             // 3. Participant will try to access the BParticipant senders and receivers with
             // their next api action, it will fail and be closed then.
-            let (finished_sender, finished_receiver) = oneshot::channel();
+            trace!(?pid, "got request to close participant");
             if let Some(mut pi) = self.participants.write().await.remove(&pid) {
+                let (finished_sender, finished_receiver) = oneshot::channel();
                 pi.s2b_shutdown_bparticipant_s
                     .take()
                     .unwrap()
                     .send(finished_sender)
                     .unwrap();
+                drop(pi);
+                let e = finished_receiver.await.unwrap();
+                return_once_successfull_shutdown.send(e).unwrap();
+            } else {
+                debug!(?pid, "looks like participant is already dropped");
+                return_once_successfull_shutdown.send(Ok(())).unwrap();
             }
-            let e = finished_receiver.await.unwrap();
-            return_once_successfull_shutdown.send(e).unwrap();
+            trace!(?pid, "closed participant");
         }
         trace!("stop disconnect_mgr");
     }
@@ -275,8 +288,7 @@ impl Scheduler {
         debug!("shutting down all BParticipants gracefully");
         let mut participants = self.participants.write().await;
         let mut waitings = vec![];
-        //close participants but don't remove them from self.participants yet
-        for (pid, pi) in participants.iter_mut() {
+        for (pid, mut pi) in participants.drain() {
             trace!(?pid, "shutting down BParticipants");
             let (finished_sender, finished_receiver) = oneshot::channel();
             waitings.push((pid, finished_receiver));
@@ -298,8 +310,6 @@ impl Scheduler {
                 _ => (),
             };
         }
-        //remove participants once everything is shut down
-        participants.clear();
         //removing the possibility to create new participants, needed to close down
         // some mgr:
         self.participant_channels.lock().await.take();
@@ -443,77 +453,108 @@ impl Scheduler {
         let metrics = self.metrics.clone();
         let pool = self.pool.clone();
         let local_pid = self.local_pid;
-        self.pool.spawn_ok(async move {
-            trace!(?cid, "open channel and be ready for Handshake");
-            let handshake = Handshake::new(cid, local_pid, metrics.clone(), send_handshake);
-            match handshake.setup(&protocol).await {
-                Ok((pid, sid)) => {
-                    trace!(
-                        ?cid,
-                        ?pid,
-                        "detected that my channel is ready!, activating it :)"
-                    );
-                    let mut participants = participants.write().await;
-                    if !participants.contains_key(&pid) {
-                        debug!(?cid, "new participant connected via a channel");
-                        let (
-                            bparticipant,
-                            a2b_steam_open_s,
-                            b2a_stream_opened_r,
-                            mut s2b_create_channel_s,
-                            s2b_shutdown_bparticipant_s,
-                        ) = BParticipant::new(pid, sid, metrics.clone());
-
-                        let participant = Participant::new(
-                            local_pid,
-                            pid,
-                            a2b_steam_open_s,
-                            b2a_stream_opened_r,
-                            participant_channels.a2s_disconnect_s,
+        let local_secret = self.local_secret;
+        // this is necessary for UDP to work at all and to remove code duplication
+        self.pool.spawn_ok(
+            async move {
+                trace!(?cid, "open channel and be ready for Handshake");
+                let handshake = Handshake::new(
+                    cid,
+                    local_pid,
+                    local_secret,
+                    metrics.clone(),
+                    send_handshake,
+                );
+                match handshake.setup(&protocol).await {
+                    Ok((pid, sid, secret)) => {
+                        trace!(
+                            ?cid,
+                            ?pid,
+                            "detected that my channel is ready!, activating it :)"
                         );
+                        let mut participants = participants.write().await;
+                        if !participants.contains_key(&pid) {
+                            debug!(?cid, "new participant connected via a channel");
+                            let (
+                                bparticipant,
+                                a2b_steam_open_s,
+                                b2a_stream_opened_r,
+                                mut s2b_create_channel_s,
+                                s2b_shutdown_bparticipant_s,
+                            ) = BParticipant::new(pid, sid, metrics.clone());
 
-                        metrics.participants_connected_total.inc();
-                        participants.insert(pid, ParticipantInfo {
-                            s2b_create_channel_s: s2b_create_channel_s.clone(),
-                            s2b_shutdown_bparticipant_s: Some(s2b_shutdown_bparticipant_s),
-                        });
-                        pool.spawn_ok(
-                            bparticipant
-                                .run()
-                                .instrument(tracing::info_span!("participant", ?pid)),
-                        );
-                        //create a new channel within BParticipant and wait for it to run
-                        let (b2s_create_channel_done_s, b2s_create_channel_done_r) =
-                            oneshot::channel();
-                        s2b_create_channel_s
-                            .send((cid, sid, protocol, b2s_create_channel_done_s))
-                            .await
-                            .unwrap();
-                        b2s_create_channel_done_r.await.unwrap();
-                        if let Some(pid_oneshot) = s2a_return_pid_s {
-                            // someone is waiting with connect, so give them their PID
-                            pid_oneshot.send(Ok(participant)).unwrap();
-                        } else {
-                            // noone is waiting on this Participant, return in to Network
-                            participant_channels
-                                .s2a_connected_s
-                                .send(participant)
+                            let participant = Participant::new(
+                                local_pid,
+                                pid,
+                                a2b_steam_open_s,
+                                b2a_stream_opened_r,
+                                participant_channels.a2s_disconnect_s,
+                            );
+
+                            metrics.participants_connected_total.inc();
+                            participants.insert(pid, ParticipantInfo {
+                                secret,
+                                s2b_create_channel_s: s2b_create_channel_s.clone(),
+                                s2b_shutdown_bparticipant_s: Some(s2b_shutdown_bparticipant_s),
+                            });
+                            pool.spawn_ok(
+                                bparticipant
+                                    .run()
+                                    .instrument(tracing::info_span!("participant", ?pid)),
+                            );
+                            //create a new channel within BParticipant and wait for it to run
+                            let (b2s_create_channel_done_s, b2s_create_channel_done_r) =
+                                oneshot::channel();
+                            s2b_create_channel_s
+                                .send((cid, sid, protocol, b2s_create_channel_done_s))
                                 .await
                                 .unwrap();
+                            b2s_create_channel_done_r.await.unwrap();
+                            if let Some(pid_oneshot) = s2a_return_pid_s {
+                                // someone is waiting with connect, so give them their PID
+                                pid_oneshot.send(Ok(participant)).unwrap();
+                            } else {
+                                // noone is waiting on this Participant, return in to Network
+                                participant_channels
+                                    .s2a_connected_s
+                                    .send(participant)
+                                    .await
+                                    .unwrap();
+                            }
+                        } else {
+                            let pi = &participants[&pid];
+                            trace!("2nd+ channel of participant, going to compare security ids");
+                            if pi.secret != secret {
+                                warn!(
+                                    ?pid,
+                                    ?secret,
+                                    "Detected incompatible Secret!, this is probably an attack!"
+                                );
+                                error!("just dropping here, TODO handle this correctly!");
+                                //TODO
+                                if let Some(pid_oneshot) = s2a_return_pid_s {
+                                    // someone is waiting with connect, so give them their Error
+                                    pid_oneshot
+                                        .send(Err(std::io::Error::new(
+                                            std::io::ErrorKind::PermissionDenied,
+                                            "invalid secret, denying connection",
+                                        )))
+                                        .unwrap();
+                                }
+                                return;
+                            }
+                            error!(
+                                "ufff i cant answer the pid_oneshot. as i need to create the SAME \
+                                 participant. maybe switch to ARC"
+                            );
                         }
-                    } else {
-                        error!(
-                            "2ND channel of participants opens, but we cannot verify that this is \
-                             not a attack to "
-                        );
-                        //ERROR DEADLOCK AS NO SENDER HERE!
-                        //sender.send(frame_recv_sender).unwrap();
-                    }
-                    //From now on this CHANNEL can receiver other frames! move
-                    // directly to participant!
-                },
-                Err(()) => {},
+                        //From now on this CHANNEL can receiver other frames!
+                        // move directly to participant!
+                    },
+                    Err(()) => {},
+                }
             }
-        });
+            .instrument(tracing::trace_span!("")),
+        ); /*WORKAROUND FOR SPAN NOT TO GET LOST*/
     }
 }

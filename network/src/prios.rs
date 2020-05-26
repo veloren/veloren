@@ -143,7 +143,7 @@ impl PrioManager {
         )
     }
 
-    fn tick(&mut self) {
+    async fn tick(&mut self) {
         // Check Range
         let mut times = 0;
         let mut closed = 0;
@@ -170,9 +170,7 @@ impl PrioManager {
                 cnt.empty_notify = Some(return_sender);
             } else {
                 // return immediately
-                futures::executor::block_on(async {
-                    return_sender.send(()).unwrap();
-                });
+                return_sender.send(()).unwrap();
             }
         }
         if times > 0 || closed > 0 {
@@ -241,7 +239,7 @@ impl PrioManager {
         no_of_frames: usize,
         frames: &mut E,
     ) {
-        self.tick();
+        self.tick().await;
         for _ in 0..no_of_frames {
             match self.calc_next_prio() {
                 Some(prio) => {
@@ -304,8 +302,9 @@ mod tests {
     use crate::{
         message::{MessageBuffer, OutGoingMessage},
         prios::*,
-        types::{Frame, Pid, Prio, Sid},
+        types::{Frame, Prio, Sid},
     };
+    use futures::executor::block_on;
     use std::{collections::VecDeque, sync::Arc};
 
     const SIZE: u64 = PrioManager::FRAME_DATA_SIZE;
@@ -340,7 +339,7 @@ mod tests {
         let frame = frames
             .pop_front()
             .expect("frames vecdeque doesn't contain enough frames!")
-            .2;
+            .1;
         if let Frame::DataHeader { mid, sid, length } = frame {
             assert_eq!(mid, 1);
             assert_eq!(sid, Sid::new(f_sid));
@@ -354,7 +353,7 @@ mod tests {
         let frame = frames
             .pop_front()
             .expect("frames vecdeque doesn't contain enough frames!")
-            .2;
+            .1;
         if let Frame::Data { mid, start, data } = frame {
             assert_eq!(mid, 1);
             assert_eq!(start, f_start);
@@ -364,20 +363,12 @@ mod tests {
         }
     }
 
-    fn assert_contains(mgr: &PrioManager, sid: u64) {
-        assert!(mgr.contains_pid_sid(Pid::fake(0), Sid::new(sid)));
-    }
-
-    fn assert_no_contains(mgr: &PrioManager, sid: u64) {
-        assert!(!mgr.contains_pid_sid(Pid::fake(0), Sid::new(sid)));
-    }
-
     #[test]
     fn single_p16() {
-        let (mut mgr, tx) = PrioManager::new();
-        tx.send(mock_out(16, 1337)).unwrap();
+        let (mut mgr, msg_tx, _flush_tx) = PrioManager::new();
+        msg_tx.send(mock_out(16, 1337)).unwrap();
         let mut frames = VecDeque::new();
-        mgr.fill_frames(100, &mut frames);
+        block_on(mgr.fill_frames(100, &mut frames));
 
         assert_header(&mut frames, 1337, 3);
         assert_data(&mut frames, 0, vec![48, 49, 50]);
@@ -386,17 +377,12 @@ mod tests {
 
     #[test]
     fn single_p16_p20() {
-        let (mut mgr, tx) = PrioManager::new();
-        tx.send(mock_out(16, 1337)).unwrap();
-        tx.send(mock_out(20, 42)).unwrap();
+        let (mut mgr, msg_tx, _flush_tx) = PrioManager::new();
+        msg_tx.send(mock_out(16, 1337)).unwrap();
+        msg_tx.send(mock_out(20, 42)).unwrap();
         let mut frames = VecDeque::new();
 
-        mgr.fill_frames(100, &mut frames);
-
-        assert_no_contains(&mgr, 1337);
-        assert_no_contains(&mgr, 42);
-        assert_no_contains(&mgr, 666);
-
+        block_on(mgr.fill_frames(100, &mut frames));
         assert_header(&mut frames, 1337, 3);
         assert_data(&mut frames, 0, vec![48, 49, 50]);
         assert_header(&mut frames, 42, 3);
@@ -406,11 +392,11 @@ mod tests {
 
     #[test]
     fn single_p20_p16() {
-        let (mut mgr, tx) = PrioManager::new();
-        tx.send(mock_out(20, 42)).unwrap();
-        tx.send(mock_out(16, 1337)).unwrap();
+        let (mut mgr, msg_tx, _flush_tx) = PrioManager::new();
+        msg_tx.send(mock_out(20, 42)).unwrap();
+        msg_tx.send(mock_out(16, 1337)).unwrap();
         let mut frames = VecDeque::new();
-        mgr.fill_frames(100, &mut frames);
+        block_on(mgr.fill_frames(100, &mut frames));
 
         assert_header(&mut frames, 1337, 3);
         assert_data(&mut frames, 0, vec![48, 49, 50]);
@@ -421,22 +407,22 @@ mod tests {
 
     #[test]
     fn multiple_p16_p20() {
-        let (mut mgr, tx) = PrioManager::new();
-        tx.send(mock_out(20, 2)).unwrap();
-        tx.send(mock_out(16, 1)).unwrap();
-        tx.send(mock_out(16, 3)).unwrap();
-        tx.send(mock_out(16, 5)).unwrap();
-        tx.send(mock_out(20, 4)).unwrap();
-        tx.send(mock_out(20, 7)).unwrap();
-        tx.send(mock_out(16, 6)).unwrap();
-        tx.send(mock_out(20, 10)).unwrap();
-        tx.send(mock_out(16, 8)).unwrap();
-        tx.send(mock_out(20, 12)).unwrap();
-        tx.send(mock_out(16, 9)).unwrap();
-        tx.send(mock_out(16, 11)).unwrap();
-        tx.send(mock_out(20, 13)).unwrap();
+        let (mut mgr, msg_tx, _flush_tx) = PrioManager::new();
+        msg_tx.send(mock_out(20, 2)).unwrap();
+        msg_tx.send(mock_out(16, 1)).unwrap();
+        msg_tx.send(mock_out(16, 3)).unwrap();
+        msg_tx.send(mock_out(16, 5)).unwrap();
+        msg_tx.send(mock_out(20, 4)).unwrap();
+        msg_tx.send(mock_out(20, 7)).unwrap();
+        msg_tx.send(mock_out(16, 6)).unwrap();
+        msg_tx.send(mock_out(20, 10)).unwrap();
+        msg_tx.send(mock_out(16, 8)).unwrap();
+        msg_tx.send(mock_out(20, 12)).unwrap();
+        msg_tx.send(mock_out(16, 9)).unwrap();
+        msg_tx.send(mock_out(16, 11)).unwrap();
+        msg_tx.send(mock_out(20, 13)).unwrap();
         let mut frames = VecDeque::new();
-        mgr.fill_frames(100, &mut frames);
+        block_on(mgr.fill_frames(100, &mut frames));
 
         for i in 1..14 {
             assert_header(&mut frames, i, 3);
@@ -447,34 +433,29 @@ mod tests {
 
     #[test]
     fn multiple_fill_frames_p16_p20() {
-        let (mut mgr, tx) = PrioManager::new();
-        tx.send(mock_out(20, 2)).unwrap();
-        tx.send(mock_out(16, 1)).unwrap();
-        tx.send(mock_out(16, 3)).unwrap();
-        tx.send(mock_out(16, 5)).unwrap();
-        tx.send(mock_out(20, 4)).unwrap();
-        tx.send(mock_out(20, 7)).unwrap();
-        tx.send(mock_out(16, 6)).unwrap();
-        tx.send(mock_out(20, 10)).unwrap();
-        tx.send(mock_out(16, 8)).unwrap();
-        tx.send(mock_out(20, 12)).unwrap();
-        tx.send(mock_out(16, 9)).unwrap();
-        tx.send(mock_out(16, 11)).unwrap();
-        tx.send(mock_out(20, 13)).unwrap();
+        let (mut mgr, msg_tx, _flush_tx) = PrioManager::new();
+        msg_tx.send(mock_out(20, 2)).unwrap();
+        msg_tx.send(mock_out(16, 1)).unwrap();
+        msg_tx.send(mock_out(16, 3)).unwrap();
+        msg_tx.send(mock_out(16, 5)).unwrap();
+        msg_tx.send(mock_out(20, 4)).unwrap();
+        msg_tx.send(mock_out(20, 7)).unwrap();
+        msg_tx.send(mock_out(16, 6)).unwrap();
+        msg_tx.send(mock_out(20, 10)).unwrap();
+        msg_tx.send(mock_out(16, 8)).unwrap();
+        msg_tx.send(mock_out(20, 12)).unwrap();
+        msg_tx.send(mock_out(16, 9)).unwrap();
+        msg_tx.send(mock_out(16, 11)).unwrap();
+        msg_tx.send(mock_out(20, 13)).unwrap();
 
         let mut frames = VecDeque::new();
-        mgr.fill_frames(3, &mut frames);
-
-        assert_no_contains(&mgr, 1);
-        assert_no_contains(&mgr, 3);
-        assert_contains(&mgr, 13);
-
+        block_on(mgr.fill_frames(3, &mut frames));
         for i in 1..4 {
             assert_header(&mut frames, i, 3);
             assert_data(&mut frames, 0, vec![48, 49, 50]);
         }
         assert!(frames.is_empty());
-        mgr.fill_frames(11, &mut frames);
+        block_on(mgr.fill_frames(11, &mut frames));
         for i in 4..14 {
             assert_header(&mut frames, i, 3);
             assert_data(&mut frames, 0, vec![48, 49, 50]);
@@ -484,10 +465,10 @@ mod tests {
 
     #[test]
     fn single_large_p16() {
-        let (mut mgr, tx) = PrioManager::new();
-        tx.send(mock_out_large(16, 1)).unwrap();
+        let (mut mgr, msg_tx, _flush_tx) = PrioManager::new();
+        msg_tx.send(mock_out_large(16, 1)).unwrap();
         let mut frames = VecDeque::new();
-        mgr.fill_frames(100, &mut frames);
+        block_on(mgr.fill_frames(100, &mut frames));
 
         assert_header(&mut frames, 1, SIZE * 2 + 20);
         assert_data(&mut frames, 0, vec![48; USIZE]);
@@ -498,11 +479,11 @@ mod tests {
 
     #[test]
     fn multiple_large_p16() {
-        let (mut mgr, tx) = PrioManager::new();
-        tx.send(mock_out_large(16, 1)).unwrap();
-        tx.send(mock_out_large(16, 2)).unwrap();
+        let (mut mgr, msg_tx, _flush_tx) = PrioManager::new();
+        msg_tx.send(mock_out_large(16, 1)).unwrap();
+        msg_tx.send(mock_out_large(16, 2)).unwrap();
         let mut frames = VecDeque::new();
-        mgr.fill_frames(100, &mut frames);
+        block_on(mgr.fill_frames(100, &mut frames));
 
         assert_header(&mut frames, 1, SIZE * 2 + 20);
         assert_data(&mut frames, 0, vec![48; USIZE]);
@@ -517,11 +498,11 @@ mod tests {
 
     #[test]
     fn multiple_large_p16_sudden_p0() {
-        let (mut mgr, tx) = PrioManager::new();
-        tx.send(mock_out_large(16, 1)).unwrap();
-        tx.send(mock_out_large(16, 2)).unwrap();
+        let (mut mgr, msg_tx, _flush_tx) = PrioManager::new();
+        msg_tx.send(mock_out_large(16, 1)).unwrap();
+        msg_tx.send(mock_out_large(16, 2)).unwrap();
         let mut frames = VecDeque::new();
-        mgr.fill_frames(3, &mut frames);
+        block_on(mgr.fill_frames(3, &mut frames));
 
         assert_header(&mut frames, 1, SIZE * 2 + 20);
         assert_data(&mut frames, 0, vec![48; USIZE]);
@@ -529,8 +510,8 @@ mod tests {
         assert_data(&mut frames, 0, vec![48; USIZE]);
         assert_data(&mut frames, SIZE, vec![49; USIZE]);
 
-        tx.send(mock_out(0, 3)).unwrap();
-        mgr.fill_frames(100, &mut frames);
+        msg_tx.send(mock_out(0, 3)).unwrap();
+        block_on(mgr.fill_frames(100, &mut frames));
 
         assert_header(&mut frames, 3, 3);
         assert_data(&mut frames, 0, vec![48, 49, 50]);
@@ -543,15 +524,15 @@ mod tests {
 
     #[test]
     fn single_p20_thousand_p16_at_once() {
-        let (mut mgr, tx) = PrioManager::new();
+        let (mut mgr, msg_tx, _flush_tx) = PrioManager::new();
         for _ in 0..998 {
-            tx.send(mock_out(16, 2)).unwrap();
+            msg_tx.send(mock_out(16, 2)).unwrap();
         }
-        tx.send(mock_out(20, 1)).unwrap();
-        tx.send(mock_out(16, 2)).unwrap();
-        tx.send(mock_out(16, 2)).unwrap();
+        msg_tx.send(mock_out(20, 1)).unwrap();
+        msg_tx.send(mock_out(16, 2)).unwrap();
+        msg_tx.send(mock_out(16, 2)).unwrap();
         let mut frames = VecDeque::new();
-        mgr.fill_frames(2000, &mut frames);
+        block_on(mgr.fill_frames(2000, &mut frames));
 
         assert_header(&mut frames, 2, 3);
         assert_data(&mut frames, 0, vec![48, 49, 50]);
@@ -565,18 +546,18 @@ mod tests {
 
     #[test]
     fn single_p20_thousand_p16_later() {
-        let (mut mgr, tx) = PrioManager::new();
+        let (mut mgr, msg_tx, _flush_tx) = PrioManager::new();
         for _ in 0..998 {
-            tx.send(mock_out(16, 2)).unwrap();
+            msg_tx.send(mock_out(16, 2)).unwrap();
         }
         let mut frames = VecDeque::new();
-        mgr.fill_frames(2000, &mut frames);
+        block_on(mgr.fill_frames(2000, &mut frames));
         //^unimportant frames, gonna be dropped
-        tx.send(mock_out(20, 1)).unwrap();
-        tx.send(mock_out(16, 2)).unwrap();
-        tx.send(mock_out(16, 2)).unwrap();
+        msg_tx.send(mock_out(20, 1)).unwrap();
+        msg_tx.send(mock_out(16, 2)).unwrap();
+        msg_tx.send(mock_out(16, 2)).unwrap();
         let mut frames = VecDeque::new();
-        mgr.fill_frames(2000, &mut frames);
+        block_on(mgr.fill_frames(2000, &mut frames));
 
         //important in that test is, that after the first frames got cleared i reset
         // the Points even though 998 prio 16 messages have been send at this

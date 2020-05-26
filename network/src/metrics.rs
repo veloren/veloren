@@ -255,7 +255,7 @@ pub(crate) struct PidCidFrameCache<T: MetricVecBuilder> {
 pub(crate) struct PidCidFrameCache {
     metric: IntCounterVec,
     pid: String,
-    cache: Vec<[GenericCounter<AtomicI64>; 8]>,
+    cache: Vec<[GenericCounter<AtomicI64>; Frame::FRAMES_LEN as usize]>,
 }
 
 impl PidCidFrameCache {
@@ -308,7 +308,7 @@ impl PidCidFrameCache {
 }
 
 pub(crate) struct CidFrameCache {
-    cache: [GenericCounter<AtomicI64>; 8],
+    cache: [GenericCounter<AtomicI64>; Frame::FRAMES_LEN as usize],
 }
 
 impl CidFrameCache {
