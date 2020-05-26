@@ -158,6 +158,7 @@ rotation_image_ids! {
     }
 }
 
+#[derive(Clone)] // TODO: why does iced require Clone?
 pub enum Event {
     LoginAttempt {
         username: String,
@@ -187,26 +188,59 @@ pub struct PopupData {
 // No state currently
 struct IcedState {
     imgs: IcedImgs,
+    quit_button: iced::button::State,
 }
 pub type Message = Event;
 impl IcedState {
+    pub fn new(imgs: IcedImgs) -> Self {
+        Self {
+            imgs,
+            quit_button: iced::button::State::new(),
+        }
+    }
+
     pub fn view(&mut self, i18n: &Localization) -> Element<Message> {
-        use iced::{Align, Column, Container, Length, Row, Space, Text};
+        // TODO: scale with window size
+        let button_font_size = 30;
+        const TEXT_COLOR: iced::Color = iced::Color::from_rgb(1.0, 1.0, 1.0);
+        const DISABLED_TEXT_COLOR: iced::Color = iced::Color::from_rgba(1.0, 1.0, 1.0, 0.2);
+
+        use iced::{
+            Align, Button, Column, Container, HorizontalAlignment, Length, Row, Space, Text,
+            VerticalAlignment,
+        };
         use ui::ice::{
             compound_graphic::{CompoundGraphic, Graphic},
-            BackgroundContainer, Image, Padding,
+            AspectRatioContainer, BackgroundContainer, ButtonStyle, Image, Padding,
         };
         use vek::*;
+
+        let button_style = ButtonStyle::new(self.imgs.button)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)
+            .text_color(TEXT_COLOR)
+            .disabled_text_color(DISABLED_TEXT_COLOR);
 
         let buttons = Column::with_children(vec![
             Image::new(self.imgs.button).fix_aspect_ratio().into(),
             Image::new(self.imgs.button).fix_aspect_ratio().into(),
-            /* BackgroundContainer::new(
-                Image::new(self.imgs.button).fix_aspect_ratio(),
-                Text::new("Quit"),
+            AspectRatioContainer::new(
+                Button::new(
+                    &mut self.quit_button,
+                    Text::new(i18n.get("common.quit"))
+                        .size(button_font_size)
+                        .height(Length::Fill)
+                        .width(Length::Fill)
+                        .horizontal_alignment(HorizontalAlignment::Center)
+                        .vertical_alignment(VerticalAlignment::Center),
+                )
+                .height(Length::Fill)
+                .width(Length::Fill)
+                .style(button_style)
+                .on_press(Message::Quit),
             )
-            .into(), */
-            Text::new(i18n.get("common.quit")).size(40).into(),
+            .ratio_of_image(self.imgs.button)
+            .into(),
         ])
         .width(Length::Fill)
         .max_width(200)
@@ -314,13 +348,7 @@ impl IcedState {
                 .height(Length::Fill)
                 .spacing(10);
 
-        BackgroundContainer::new(
-            Image::new(self.imgs.bg)
-                .width(Length::Fill)
-                .height(Length::Fill),
-            content,
-        )
-        .into()
+        BackgroundContainer::new(Image::new(self.imgs.bg), content).into()
     }
 
     pub fn update(message: Message) {
@@ -413,9 +441,7 @@ impl<'a> MainMenuUi {
         };
 
         let mut ice_ui = IcedUi::new(window, ice_font).unwrap();
-        let ice_state = IcedState {
-            imgs: IcedImgs::load(&mut ice_ui).expect("Failed to load images"),
-        };
+        let ice_state = IcedState::new(IcedImgs::load(&mut ice_ui).expect("Failed to load images"));
 
         Self {
             ui,

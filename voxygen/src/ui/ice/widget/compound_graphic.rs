@@ -230,7 +230,9 @@ where
 
     fn aspect_ratio_fixed(&self) -> bool { self.fix_aspect_ratio }
 
-    fn pixel_dims(&self, _renderer: &R) -> [u16; 2] { self.graphics_size }
+    fn pixel_dims(&self, _renderer: &R) -> (u16, u16) {
+        (self.graphics_size[0], self.graphics_size[1])
+    }
 
     fn draw(
         &self,

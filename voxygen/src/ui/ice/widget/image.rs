@@ -123,9 +123,9 @@ where
 
     fn aspect_ratio_fixed(&self) -> bool { self.fix_aspect_ratio }
 
-    fn pixel_dims(&self, renderer: &R) -> [u16; 2] {
+    fn pixel_dims(&self, renderer: &R) -> (u16, u16) {
         let (w, h) = renderer.dimensions(self.handle);
-        [w as u16, h as u16]
+        (w as u16, h as u16)
     }
 
     fn draw(

@@ -8,8 +8,9 @@ mod winit_conversion;
 pub use cache::Font;
 pub use graphic::{Id, Rotation};
 pub use iced::Event;
-pub use renderer::IcedRenderer;
+pub use renderer::{ButtonStyle, IcedRenderer};
 pub use widget::{
+    aspect_ratio_container::AspectRatioContainer,
     background_container::{BackgroundContainer, Padding},
     compound_graphic,
     image::Image,
