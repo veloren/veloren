@@ -329,6 +329,8 @@ impl<'a> System<'a> for Sys {
                     .health
                     .set_to(stats.health.maximum(), comp::HealthSource::Revive);
 
+                let can_speak = alignment == comp::Alignment::Npc;
+
                 // TODO: This code sets an appropriate base_damage for the enemy. This doesn't
                 // work because the damage is now saved in an ability
                 /*
@@ -344,7 +346,7 @@ impl<'a> System<'a> for Sys {
                     loadout,
                     body,
                     alignment,
-                    agent: comp::Agent::default().with_patrol_origin(entity.pos),
+                    agent: comp::Agent::new(entity.pos, can_speak),
                     scale: comp::Scale(scale),
                     drop_item: entity.loot_drop,
                 })

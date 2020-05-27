@@ -109,6 +109,7 @@ impl Server {
         state.ecs_mut().insert(sys::TerrainSyncTimer::default());
         state.ecs_mut().insert(sys::TerrainTimer::default());
         state.ecs_mut().insert(sys::WaypointTimer::default());
+        state.ecs_mut().insert(sys::SpeechBubbleTimer::default());
         state
             .ecs_mut()
             .insert(sys::StatsPersistenceTimer::default());

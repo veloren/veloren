@@ -4,7 +4,7 @@ use crate::{
         agent::Activity,
         item::{tool::ToolKind, ItemKind},
         Agent, Alignment, CharacterState, ControlAction, Controller, Loadout, MountState, Ori, Pos,
-        Scale, Stats,
+        Scale, SpeechBubble, Stats,
     },
     path::Chaser,
     state::{DeltaTime, Time},
@@ -38,6 +38,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Alignment>,
         WriteStorage<'a, Agent>,
         WriteStorage<'a, Controller>,
+        WriteStorage<'a, SpeechBubble>,
         ReadStorage<'a, MountState>,
     );
 
@@ -58,6 +59,7 @@ impl<'a> System<'a> for Sys {
             alignments,
             mut agents,
             mut controllers,
+            mut speech_bubbles,
             mount_states,
         ): Self::SystemData,
     ) {
@@ -376,23 +378,32 @@ impl<'a> System<'a> for Sys {
             // last!) ---
 
             // Attack a target that's attacking us
-            if let Some(stats) = stats.get(entity) {
+            if let Some(my_stats) = stats.get(entity) {
                 // Only if the attack was recent
-                if stats.health.last_change.0 < 5.0 {
+                if my_stats.health.last_change.0 < 5.0 {
                     if let comp::HealthSource::Attack { by }
                     | comp::HealthSource::Projectile { owner: Some(by) } =
-                        stats.health.last_change.1.cause
+                        my_stats.health.last_change.1.cause
                     {
                         if !agent.activity.is_attack() {
                             if let Some(attacker) = uid_allocator.retrieve_entity_internal(by.id())
                             {
-                                agent.activity = Activity::Attack {
-                                    target: attacker,
-                                    chaser: Chaser::default(),
-                                    time: time.0,
-                                    been_close: false,
-                                    powerup: 0.0,
-                                };
+                                if stats.get(attacker).map_or(false, |a| !a.is_dead) {
+                                    if agent.can_speak {
+                                        let message =
+                                            "npc.speech.villager_under_attack".to_string();
+                                        let bubble = SpeechBubble::npc_new(message, *time);
+                                        let _ = speech_bubbles.insert(entity, bubble);
+                                    }
+
+                                    agent.activity = Activity::Attack {
+                                        target: attacker,
+                                        chaser: Chaser::default(),
+                                        time: time.0,
+                                        been_close: false,
+                                        powerup: 0.0,
+                                    };
+                                }
                             }
                         }
                     }

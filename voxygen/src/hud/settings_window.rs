@@ -153,6 +153,8 @@ widget_ids! {
         sct_num_dur_text,
         sct_num_dur_slider,
         sct_num_dur_value,
+        speech_bubble_dark_mode_text,
+        speech_bubble_dark_mode_button,
         free_look_behavior_text,
         free_look_behavior_list
     }
@@ -235,6 +237,7 @@ pub enum Event {
     Sct(bool),
     SctPlayerBatch(bool),
     SctDamageBatch(bool),
+    SpeechBubbleDarkMode(bool),
     ChangeLanguage(LanguageMetadata),
     ChangeBinding(GameInput),
     ChangeFreeLookBehavior(PressBehavior),
@@ -943,17 +946,45 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.sct_batch_inc_text, ui);
             }
 
+            // Speech bubble dark mode
+            let speech_bubble_dark_mode = ToggleButton::new(
+                self.global_state.settings.gameplay.speech_bubble_dark_mode,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
+            )
+            .down_from(
+                if self.global_state.settings.gameplay.sct {
+                    state.ids.sct_batch_inc_radio
+                } else {
+                    state.ids.sct_show_radio
+                },
+                20.0,
+            )
+            .x(0.0)
+            .w_h(18.0, 18.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.speech_bubble_dark_mode_button, ui);
+            if self.global_state.settings.gameplay.speech_bubble_dark_mode
+                != speech_bubble_dark_mode
+            {
+                events.push(Event::SpeechBubbleDarkMode(speech_bubble_dark_mode));
+            }
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.speech_bubble_dark_mode"),
+            )
+            .right_from(state.ids.speech_bubble_dark_mode_button, 10.0)
+            .font_size(self.fonts.cyri.scale(18))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.speech_bubble_dark_mode_text, ui);
+
             // Energybars Numbers
             // Hotbar text
             Text::new(&self.localized_strings.get("hud.settings.energybar_numbers"))
-                .down_from(
-                    if self.global_state.settings.gameplay.sct {
-                        state.ids.sct_batch_inc_radio
-                    } else {
-                        state.ids.sct_show_radio
-                    },
-                    20.0,
-                )
+                .down_from(state.ids.speech_bubble_dark_mode_button, 20.0)
                 .font_size(self.fonts.cyri.scale(18))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)

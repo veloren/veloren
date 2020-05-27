@@ -272,6 +272,29 @@ image_ids! {
         progress_frame: "voxygen.element.frames.progress_bar",
         progress: "voxygen.element.misc_bg.progress",
 
+        // Speech bubbles
+        speech_bubble_top_left: "voxygen.element.frames.bubble.top_left",
+        speech_bubble_top: "voxygen.element.frames.bubble.top",
+        speech_bubble_top_right: "voxygen.element.frames.bubble.top_right",
+        speech_bubble_left: "voxygen.element.frames.bubble.left",
+        speech_bubble_mid: "voxygen.element.frames.bubble.mid",
+        speech_bubble_right: "voxygen.element.frames.bubble.right",
+        speech_bubble_bottom_left: "voxygen.element.frames.bubble.bottom_left",
+        speech_bubble_bottom: "voxygen.element.frames.bubble.bottom",
+        speech_bubble_bottom_right: "voxygen.element.frames.bubble.bottom_right",
+        speech_bubble_tail: "voxygen.element.frames.bubble.tail",
+
+        dark_bubble_top_left: "voxygen.element.frames.bubble_dark.top_left",
+        dark_bubble_top: "voxygen.element.frames.bubble_dark.top",
+        dark_bubble_top_right: "voxygen.element.frames.bubble_dark.top_right",
+        dark_bubble_left: "voxygen.element.frames.bubble_dark.left",
+        dark_bubble_mid: "voxygen.element.frames.bubble_dark.mid",
+        dark_bubble_right: "voxygen.element.frames.bubble_dark.right",
+        dark_bubble_bottom_left: "voxygen.element.frames.bubble_dark.bottom_left",
+        dark_bubble_bottom: "voxygen.element.frames.bubble_dark.bottom",
+        dark_bubble_bottom_right: "voxygen.element.frames.bubble_dark.bottom_right",
+        dark_bubble_tail: "voxygen.element.frames.bubble_dark.tail",
+
         <BlankGraphic>
         nothing: (),
     }

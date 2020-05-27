@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added context-sensitive crosshair
 - Announce alias changes to all clients.
 - Dance animation
+- Speech bubbles appear when nearby players talk
+- NPCs call for help when attacked
 
 ### Changed
 

@@ -594,6 +594,10 @@ impl PlayState for SessionState {
                         global_state.settings.gameplay.sct_damage_batch = sct_damage_batch;
                         global_state.settings.save_to_file_warn();
                     },
+                    HudEvent::SpeechBubbleDarkMode(sbdm) => {
+                        global_state.settings.gameplay.speech_bubble_dark_mode = sbdm;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::ToggleDebug(toggle_debug) => {
                         global_state.settings.gameplay.toggle_debug = toggle_debug;
                         global_state.settings.save_to_file_warn();
