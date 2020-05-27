@@ -60,10 +60,10 @@ impl Animation for ShootAnimation {
         match active_tool_kind {
             //TODO: Inventory
             Some(ToolKind::Staff(_)) => {
-                next.l_hand.offset = Vec3::new(1.0, -2.0, -5.0);
+                next.l_hand.offset = Vec3::new(1.5, 0.5, -4.0);
                 next.l_hand.ori = Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.3);
                 next.l_hand.scale = Vec3::one() * 1.05;
-                next.r_hand.offset = Vec3::new(9.0, 1.0, 0.0);
+                next.r_hand.offset = Vec3::new(8.0, 4.0, 2.0);
                 next.r_hand.ori = Quaternion::rotation_x(1.8)
                     * Quaternion::rotation_y(0.5)
                     * Quaternion::rotation_z(-0.27);
@@ -104,15 +104,21 @@ impl Animation for ShootAnimation {
             _ => {},
         }
         if velocity > 0.5 {
-            next.l_foot.offset =
-                Vec3::new(-3.4 - foot * 1.0 + exp * -1.0, foote * 0.8 + exp * 1.5, 8.0);
+            next.l_foot.offset = Vec3::new(
+                -skeleton_attr.foot.0 - foot * 1.0 + exp * -1.0,
+                foote * 0.8 + exp * 1.5,
+                skeleton_attr.foot.2,
+            );
             next.l_foot.ori = Quaternion::rotation_x(exp * 0.5)
                 * Quaternion::rotation_z(exp * 0.4)
                 * Quaternion::rotation_y(0.15);
             next.l_foot.scale = Vec3::one();
 
-            next.r_foot.offset =
-                Vec3::new(3.4 + foot * 1.0 + exp * 1.0, foote * -0.8 + exp * -1.0, 8.0);
+            next.r_foot.offset = Vec3::new(
+                skeleton_attr.foot.0 + foot * 1.0 + exp * 1.0,
+                foote * -0.8 + exp * -1.0,
+                skeleton_attr.foot.2,
+            );
             next.r_foot.ori = Quaternion::rotation_x(exp * -0.5)
                 * Quaternion::rotation_z(exp * 0.4)
                 * Quaternion::rotation_y(0.0);
@@ -121,11 +127,16 @@ impl Animation for ShootAnimation {
             next.torso.ori = Quaternion::rotation_x(-0.15);
             next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
         } else {
-            next.l_foot.offset = Vec3::new(-3.4, -2.5, 8.0 + exp * 2.5);
+            next.l_foot.offset = Vec3::new(
+                -skeleton_attr.foot.0,
+                -2.5,
+                skeleton_attr.foot.2 + exp * 2.5,
+            );
             next.l_foot.ori =
                 Quaternion::rotation_x(exp * -0.2 - 0.2) * Quaternion::rotation_z(exp * 1.0);
 
-            next.r_foot.offset = Vec3::new(3.4, 3.5 - exp * 2.0, 8.0);
+            next.r_foot.offset =
+                Vec3::new(skeleton_attr.foot.0, 3.5 - exp * 2.0, skeleton_attr.foot.2);
             next.r_foot.ori = Quaternion::rotation_x(exp * 0.1) * Quaternion::rotation_z(exp * 0.5);
             next.torso.offset = Vec3::new(0.0, 0.0, 0.1) * skeleton_attr.scaler;
             next.torso.ori = Quaternion::rotation_z(0.0);

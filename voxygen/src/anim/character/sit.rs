@@ -85,16 +85,16 @@ impl Animation for SitAnimation {
 
         next.l_foot.offset = Vec3::new(
             -skeleton_attr.foot.0,
-            skeleton_attr.foot.1,
-            skeleton_attr.foot.2,
+            4.0 + skeleton_attr.foot.1,
+            3.0 + skeleton_attr.foot.2,
         );
         next.l_foot.ori = Quaternion::rotation_x(slow * 0.1 + stop * 1.2 + slow * 0.1);
         next.l_foot.scale = Vec3::one();
 
         next.r_foot.offset = Vec3::new(
             skeleton_attr.foot.0,
-            skeleton_attr.foot.1,
-            skeleton_attr.foot.2,
+            4.0 + skeleton_attr.foot.1,
+            3.0 + skeleton_attr.foot.2,
         );
         next.r_foot.ori = Quaternion::rotation_x(slowa * 0.1 + stop * 1.2 + slowa * 0.1);
         next.r_foot.scale = Vec3::one();

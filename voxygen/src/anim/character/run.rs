@@ -21,11 +21,33 @@ impl Animation for RunAnimation {
         let speed = Vec2::<f32>::from(velocity).magnitude();
         *rate = 1.0;
 
-        let walkintensity = if speed > 5.0 { 1.0 } else { 0.7 };
+        let walkintensity = if speed > 5.0 { 1.0 } else { 0.45 };
         let walk = if speed > 5.0 { 1.0 } else { 0.5 };
         let lower = if speed > 5.0 { 0.0 } else { 1.0 };
-        let snapfoot = if speed > 5.0 { 1.1 } else { 2.0 };
+        let _snapfoot = if speed > 5.0 { 1.1 } else { 2.0 };
         let lab = 1.0;
+        let foothoril = (anim_time as f32 * 16.0 * walk * lab as f32 + PI * 1.45).sin();
+        let foothorir = (anim_time as f32 * 16.0 * walk * lab as f32 + PI * (0.45)).sin();
+
+        let footvertl = (anim_time as f32 * 16.0 * walk * lab as f32).sin();
+        let footvertr = (anim_time as f32 * 16.0 * walk * lab as f32 + PI).sin();
+
+        let footrotl = (((5.0)
+            / (2.5
+                + (2.5)
+                    * ((anim_time as f32 * 16.0 * walk * lab as f32 + PI * 1.4).sin())
+                        .powf(2.0 as f32)))
+        .sqrt())
+            * ((anim_time as f32 * 16.0 * walk * lab as f32 + PI * 1.4).sin());
+
+        let footrotr = (((5.0)
+            / (1.0
+                + (4.0)
+                    * ((anim_time as f32 * 16.0 * walk * lab as f32 + PI * 0.4).sin())
+                        .powf(2.0 as f32)))
+        .sqrt())
+            * ((anim_time as f32 * 16.0 * walk * lab as f32 + PI * 0.4).sin());
+
         let short = (((5.0)
             / (1.5
                 + 3.5 * ((anim_time as f32 * lab as f32 * 16.0 * walk).sin()).powf(2.0 as f32)))
@@ -40,20 +62,8 @@ impl Animation for RunAnimation {
         .sqrt())
             * ((anim_time as f32 * lab as f32 * 16.0 * walk).sin());
 
-        let shortalt = (((5.0)
-            / (1.5
-                + 3.5
-                    * ((anim_time as f32 * lab as f32 * 16.0 * walk + PI / 2.0).sin())
-                        .powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 16.0 * walk + PI / 2.0).sin());
-
-        let foot = (((5.0)
-            / (snapfoot
-                + (5.0 - snapfoot)
-                    * ((anim_time as f32 * lab as f32 * 16.0 * walk).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 16.0 * walk).sin());
+        let shortalt = (anim_time as f32 * lab as f32 * 16.0 * walk + PI / 2.0).sin();
+        let shortalter = (anim_time as f32 * lab as f32 * 16.0 * walk + PI / -2.0).sin();
 
         let wave_stop = (anim_time as f32 * 26.0).min(PI / 2.0 / 2.0).sin();
 
@@ -78,7 +88,7 @@ impl Animation for RunAnimation {
             .reduce_and()
             && ori.angle_between(last_ori).is_finite()
         {
-            ori.angle_between(last_ori).min(0.5)
+            ori.angle_between(last_ori).min(0.2)
                 * last_ori.determine_side(Vec2::zero(), ori).signum()
         } else {
             0.0
@@ -87,22 +97,25 @@ impl Animation for RunAnimation {
         next.head.offset = Vec3::new(
             0.0,
             -3.0 + skeleton_attr.head.0,
-            -1.0 + skeleton_attr.head.1 + short * 0.1,
+            skeleton_attr.head.1 + short * 0.1,
         );
-        next.head.ori = Quaternion::rotation_z(head_look.x - short * 0.1)
-            * Quaternion::rotation_x(head_look.y + 0.35);
+        next.head.ori = Quaternion::rotation_z(tilt * -2.5 + head_look.x * 0.2 - short * 0.1)
+            * Quaternion::rotation_x(head_look.y + 0.45 - lower * 0.35);
         next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
         next.chest.offset = Vec3::new(
             0.0,
             skeleton_attr.chest.0,
-            skeleton_attr.chest.1 + 2.0 + short * 1.1 - lower,
+            skeleton_attr.chest.1 + 2.0 + shortalt * -1.5 - lower,
         );
-        next.chest.ori = Quaternion::rotation_z(short * 0.15 * walkintensity);
+        next.chest.ori = Quaternion::rotation_z(short * 0.18 * walkintensity + tilt * -0.6)
+            * Quaternion::rotation_y(tilt * 1.6)
+            * Quaternion::rotation_x(shortalter * 0.035 + wave_stop * speed * -0.07 + (tilt.abs()));
         next.chest.scale = Vec3::one();
 
         next.belt.offset = Vec3::new(0.0, skeleton_attr.belt.0, skeleton_attr.belt.1);
-        next.belt.ori = Quaternion::rotation_z(short * 0.1);
+        next.belt.ori =
+            Quaternion::rotation_z(short * 0.1 + tilt * -1.1) * Quaternion::rotation_y(tilt * 0.5);
         next.belt.scale = Vec3::one();
 
         next.back.offset = Vec3::new(0.0, skeleton_attr.back.0, skeleton_attr.back.1);
@@ -110,41 +123,44 @@ impl Animation for RunAnimation {
         next.back.scale = Vec3::one() * 1.02;
 
         next.shorts.offset = Vec3::new(0.0, skeleton_attr.shorts.0, skeleton_attr.shorts.1);
-        next.shorts.ori = Quaternion::rotation_z(short * 0.2);
+        next.shorts.ori =
+            Quaternion::rotation_z(short * 0.25 + tilt * -1.5) * Quaternion::rotation_y(tilt * 0.7);
         next.shorts.scale = Vec3::one();
 
         next.l_hand.offset = Vec3::new(
-            -skeleton_attr.hand.0 + wave_stop * 1.0 * walkintensity,
-            skeleton_attr.hand.1 + short * 3.0 * walkintensity,
-            1.0 + skeleton_attr.hand.2 + short * -0.75 * walkintensity,
+            -skeleton_attr.hand.0 + foothorir * -1.3,
+            3.0 + skeleton_attr.hand.1 + foothorir * -7.0 * walkintensity,
+            1.5 + skeleton_attr.hand.2 - foothorir * 5.5 * walkintensity,
         );
-        next.l_hand.ori = Quaternion::rotation_x(0.2 + short * 1.5 * walk)
-            * Quaternion::rotation_y(wave_stop * -0.1);
+        next.l_hand.ori = Quaternion::rotation_x(0.6 + footrotr * -1.2 * walkintensity)
+            * Quaternion::rotation_y(footrotr * 0.4 * walkintensity);
         next.l_hand.scale = Vec3::one();
 
         next.r_hand.offset = Vec3::new(
-            skeleton_attr.hand.0 + wave_stop * -1.0 * walkintensity,
-            skeleton_attr.hand.1 + short * -3.0 * walkintensity,
-            1.0 + skeleton_attr.hand.2 + short * 0.75 * walkintensity,
+            skeleton_attr.hand.0 + foothoril * 1.3,
+            3.0 + skeleton_attr.hand.1 + foothoril * -6.5 * walkintensity,
+            1.5 + skeleton_attr.hand.2 - foothoril * 7.0 * walkintensity,
         );
-        next.r_hand.ori = Quaternion::rotation_x(0.2 + short * -1.5 * walk)
-            * Quaternion::rotation_y(wave_stop * 0.1);
+        next.r_hand.ori = Quaternion::rotation_x(0.6 + footrotl * -1.2 * walkintensity)
+            * Quaternion::rotation_y(footrotl * -0.4 * walkintensity);
         next.r_hand.scale = Vec3::one();
 
         next.l_foot.offset = Vec3::new(
             -skeleton_attr.foot.0,
-            -skeleton_attr.foot.1 + foot * 1.0,
-            skeleton_attr.foot.2 + 1.0,
+            -1.5 + skeleton_attr.foot.1 + foothoril * -8.5 * walkintensity - lower * 1.0,
+            2.0 + skeleton_attr.foot.2 + ((footvertl * -2.7).max(-1.0)) * walkintensity,
         );
-        next.l_foot.ori = Quaternion::rotation_x(foot * -1.2 * walkintensity);
+        next.l_foot.ori = Quaternion::rotation_x(-0.2 + footrotl * -1.2 * walkintensity)
+            * Quaternion::rotation_y(tilt * 1.8);
         next.l_foot.scale = Vec3::one();
 
         next.r_foot.offset = Vec3::new(
             skeleton_attr.foot.0,
-            -skeleton_attr.foot.1 + foot * -1.0,
-            skeleton_attr.foot.2 + 1.0,
+            -1.5 + skeleton_attr.foot.1 + foothorir * -8.5 * walkintensity - lower * 1.0,
+            2.0 + skeleton_attr.foot.2 + ((footvertr * -2.7).max(-1.0)) * walkintensity,
         );
-        next.r_foot.ori = Quaternion::rotation_x(foot * 1.2 * walkintensity);
+        next.r_foot.ori = Quaternion::rotation_x(-0.2 + footrotr * -1.2 * walkintensity)
+            * Quaternion::rotation_y(tilt * 1.8);
         next.r_foot.scale = Vec3::one();
 
         next.l_shoulder.offset = Vec3::new(
@@ -178,13 +194,11 @@ impl Animation for RunAnimation {
             skeleton_attr.lantern.2,
         );
         next.lantern.ori =
-            Quaternion::rotation_x(shorte * -0.7 + 0.4) * Quaternion::rotation_y(shorte * 0.4);
+            Quaternion::rotation_x(shorte * 0.7 + 0.4) * Quaternion::rotation_y(shorte * 0.4);
         next.lantern.scale = Vec3::one() * 0.65;
 
-        next.torso.offset = Vec3::new(0.0, -0.3 + shortalt * -0.065, 0.0) * skeleton_attr.scaler;
-        next.torso.ori =
-            Quaternion::rotation_x(wave_stop * speed * -0.05 + wave_stop * speed * -0.005)
-                * Quaternion::rotation_y(tilt);
+        next.torso.offset = Vec3::new(0.0, -0.3, 0.0) * skeleton_attr.scaler;
+        next.torso.ori = Quaternion::rotation_y(0.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
         next.control.offset = Vec3::new(0.0, 0.0, 0.0);

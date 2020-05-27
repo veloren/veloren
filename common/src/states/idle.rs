@@ -32,6 +32,12 @@ impl CharacterBehavior for Data {
         update
     }
 
+    fn dance(&self, data: &JoinData) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        attempt_dance(data, &mut update);
+        update
+    }
+
     fn swap_loadout(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         attempt_swap_loadout(data, &mut update);

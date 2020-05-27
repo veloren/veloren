@@ -63,10 +63,10 @@ impl Animation for BetaAnimation {
                     * Quaternion::rotation_x(slow * 0.1)
                     * Quaternion::rotation_y(slow * -0.05);
 
-                next.l_hand.offset = Vec3::new(0.0, 1.0, 0.0);
+                next.l_hand.offset = Vec3::new(-0.75, -1.0, -2.5);
                 next.l_hand.ori = Quaternion::rotation_x(1.27);
                 next.l_hand.scale = Vec3::one() * 1.04;
-                next.r_hand.offset = Vec3::new(0.0, 0.0, -3.0);
+                next.r_hand.offset = Vec3::new(0.75, -1.5, -5.5);
                 next.r_hand.ori = Quaternion::rotation_x(1.27);
                 next.r_hand.scale = Vec3::one() * 1.05;
                 next.main.offset = Vec3::new(0.0, 6.0, -1.0);
@@ -77,11 +77,16 @@ impl Animation for BetaAnimation {
                     * Quaternion::rotation_y(slow * 2.0 + 0.7)
                     * Quaternion::rotation_z(1.7 - slow * 0.4 + fast * 0.6);
                 next.control.scale = Vec3::one();
-                next.l_foot.offset = Vec3::new(-3.4, footquick * -9.5, 8.0);
+                next.l_foot.offset = Vec3::new(
+                    -skeleton_attr.foot.0,
+                    footquick * -9.5,
+                    skeleton_attr.foot.2,
+                );
                 next.l_foot.ori = Quaternion::rotation_x(footquick * 0.3)
                     * Quaternion::rotation_y(footquick * -0.6);
 
-                next.r_foot.offset = Vec3::new(3.4, footquick * 9.5, 8.0);
+                next.r_foot.offset =
+                    Vec3::new(skeleton_attr.foot.0, footquick * 9.5, skeleton_attr.foot.2);
                 next.r_foot.ori = Quaternion::rotation_x(footquick * -0.3)
                     * Quaternion::rotation_y(footquick * 0.2);
                 next.torso.offset = Vec3::new(0.0, 0.0, 0.1) * skeleton_attr.scaler;
