@@ -240,6 +240,13 @@ impl From<u64> for Sid {
     fn from(internal: u64) -> Self { Sid { internal } }
 }
 
+impl std::fmt::Display for Sid {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.internal)
+    }
+}
+
 #[inline]
 fn sixlet_to_str(sixlet: u128) -> char {
     match sixlet {

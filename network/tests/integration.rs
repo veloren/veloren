@@ -1,9 +1,11 @@
 use async_std::task;
 use task::block_on;
-use veloren_network::{NetworkError, StreamError};
+use veloren_network::NetworkError;
 mod helper;
 use helper::{network_participant_stream, tcp, udp};
 use std::io::ErrorKind;
+use uvth::ThreadPoolBuilder;
+use veloren_network::{Address, Network, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
 
 #[test]
 #[ignore]
@@ -11,49 +13,6 @@ fn network_20s() {
     let (_, _) = helper::setup(false, 0);
     let (_n_a, _, _, _n_b, _, _) = block_on(network_participant_stream(tcp()));
     std::thread::sleep(std::time::Duration::from_secs(30));
-}
-
-#[test]
-fn close_network() {
-    let (_, _) = helper::setup(false, 0);
-    let (_, _p1_a, mut s1_a, _, _p1_b, mut s1_b) = block_on(network_participant_stream(tcp()));
-
-    std::thread::sleep(std::time::Duration::from_millis(30));
-
-    assert_eq!(s1_a.send("Hello World"), Err(StreamError::StreamClosed));
-    let msg1: Result<String, _> = block_on(s1_b.recv());
-    assert_eq!(msg1, Err(StreamError::StreamClosed));
-}
-
-#[test]
-fn close_participant() {
-    let (_, _) = helper::setup(false, 0);
-    let (n_a, p1_a, mut s1_a, n_b, p1_b, mut s1_b) = block_on(network_participant_stream(tcp()));
-
-    block_on(n_a.disconnect(p1_a)).unwrap();
-    block_on(n_b.disconnect(p1_b)).unwrap();
-
-    std::thread::sleep(std::time::Duration::from_millis(30));
-    assert_eq!(s1_a.send("Hello World"), Err(StreamError::StreamClosed));
-    assert_eq!(
-        block_on(s1_b.recv::<String>()),
-        Err(StreamError::StreamClosed)
-    );
-}
-
-#[test]
-fn close_stream() {
-    let (_, _) = helper::setup(false, 0);
-    let (_n_a, _, mut s1_a, _n_b, _, _) = block_on(network_participant_stream(tcp()));
-
-    // s1_b is dropped directly while s1_a isn't
-    std::thread::sleep(std::time::Duration::from_millis(30));
-
-    assert_eq!(s1_a.send("Hello World"), Err(StreamError::StreamClosed));
-    assert_eq!(
-        block_on(s1_a.recv::<String>()),
-        Err(StreamError::StreamClosed)
-    );
 }
 
 #[test]
@@ -79,39 +38,6 @@ fn stream_simple_3msg() {
 }
 
 #[test]
-fn stream_simple_3msg_then_close() {
-    let (_, _) = helper::setup(false, 0);
-    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(tcp()));
-
-    s1_a.send(1u8).unwrap();
-    s1_a.send(42).unwrap();
-    s1_a.send("3rdMessage").unwrap();
-    assert_eq!(block_on(s1_b.recv()), Ok(1u8));
-    assert_eq!(block_on(s1_b.recv()), Ok(42));
-    assert_eq!(block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
-    drop(s1_a);
-    std::thread::sleep(std::time::Duration::from_millis(30));
-    assert_eq!(s1_b.send("Hello World"), Err(StreamError::StreamClosed));
-}
-
-#[test]
-fn stream_send_first_then_receive() {
-    // recv should still be possible even if stream got closed if they are in queue
-    let (_, _) = helper::setup(false, 0);
-    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(tcp()));
-
-    s1_a.send(1u8).unwrap();
-    s1_a.send(42).unwrap();
-    s1_a.send("3rdMessage").unwrap();
-    drop(s1_a);
-    std::thread::sleep(std::time::Duration::from_millis(500));
-    assert_eq!(block_on(s1_b.recv()), Ok(1u8));
-    assert_eq!(block_on(s1_b.recv()), Ok(42));
-    assert_eq!(block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
-    assert_eq!(s1_b.send("Hello World"), Err(StreamError::StreamClosed));
-}
-
-#[test]
 fn stream_simple_udp() {
     let (_, _) = helper::setup(false, 0);
     let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(udp()));
@@ -133,8 +59,6 @@ fn stream_simple_udp_3msg() {
     assert_eq!(block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
 }
 
-use uvth::ThreadPoolBuilder;
-use veloren_network::{Address, Network, Pid};
 #[test]
 #[ignore]
 fn tcp_and_udp_2_connections() -> std::result::Result<(), Box<dyn std::error::Error>> {
@@ -167,7 +91,7 @@ fn failed_listen_on_used_ports() -> std::result::Result<(), Box<dyn std::error::
     let tcp1 = tcp();
     block_on(network.listen(udp1.clone()))?;
     block_on(network.listen(tcp1.clone()))?;
-    std::thread::sleep(std::time::Duration::from_millis(50));
+    std::thread::sleep(std::time::Duration::from_millis(200));
 
     let network2 = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     let e1 = block_on(network2.listen(udp1));
@@ -181,4 +105,60 @@ fn failed_listen_on_used_ports() -> std::result::Result<(), Box<dyn std::error::
         _ => assert!(false),
     };
     Ok(())
+}
+
+/// There is a bug an impris-desktop-1 which fails the DOC tests,
+/// it fails exactly `api_stream_send_main` and `api_stream_recv_main` by
+/// deadlocking at different times!
+/// So i rather put the same test into a unit test, as my gues is that it's
+/// compiler related
+#[test]
+fn api_stream_send_main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let (_, _) = helper::setup(false, 0);
+    // Create a Network, listen on Port `2200` and wait for a Stream to be opened,
+    // then answer `Hello World`
+    let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+    let remote = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+    block_on(async {
+        network
+            .listen(Address::Tcp("127.0.0.1:2200".parse().unwrap()))
+            .await?;
+        let remote_p = remote
+            .connect(Address::Tcp("127.0.0.1:2200".parse().unwrap()))
+            .await?;
+        remote_p
+            .open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY)
+            .await?;
+        let participant_a = network.connected().await?;
+        let mut stream_a = participant_a.opened().await?;
+        //Send  Message
+        stream_a.send("Hello World")?;
+        Ok(())
+    })
+}
+
+#[test]
+fn api_stream_recv_main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let (_, _) = helper::setup(false, 0);
+    // Create a Network, listen on Port `2220` and wait for a Stream to be opened,
+    // then listen on it
+    let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+    let remote = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+    block_on(async {
+        network
+            .listen(Address::Tcp("127.0.0.1:2220".parse().unwrap()))
+            .await?;
+        let remote_p = remote
+            .connect(Address::Tcp("127.0.0.1:2220".parse().unwrap()))
+            .await?;
+        let mut stream_p = remote_p
+            .open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY)
+            .await?;
+        stream_p.send("Hello World")?;
+        let participant_a = network.connected().await?;
+        let mut stream_a = participant_a.opened().await?;
+        //Send  Message
+        println!("{}", stream_a.recv::<String>().await?);
+        Ok(())
+    })
 }

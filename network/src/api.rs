@@ -1,3 +1,7 @@
+//!
+//!
+//!
+//! (cd network/examples/async_recv && RUST_BACKTRACE=1 cargo run)
 use crate::{
     message::{self, InCommingMessage, MessageBuffer, OutGoingMessage},
     scheduler::Scheduler,
@@ -115,13 +119,13 @@ pub enum StreamError {
 /// use futures::executor::block_on;
 ///
 /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
-/// // Create a Network, listen on port `12345` to accept connections and connect to port `8080` to connect to a (pseudo) database Application
+/// // Create a Network, listen on port `2999` to accept connections and connect to port `8080` to connect to a (pseudo) database Application
 /// let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
 /// block_on(async{
 ///     # //setup pseudo database!
 ///     # let database = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
 ///     # database.listen(Address::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
-///     network.listen(Address::Tcp("127.0.0.1:12345".parse().unwrap())).await?;
+///     network.listen(Address::Tcp("127.0.0.1:2999".parse().unwrap())).await?;
 ///     let database = network.connect(Address::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
 ///     # Ok(())
 /// })
@@ -248,20 +252,20 @@ impl Network {
     /// use veloren_network::{Address, Network, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
-    /// // Create a Network, connect on port `2000` TCP and `2001` UDP like listening above
+    /// // Create a Network, connect on port `2010` TCP and `2011` UDP like listening above
     /// let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     /// # let remote = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     /// block_on(async {
-    ///     # remote.listen(Address::Tcp("0.0.0.0:2000".parse().unwrap())).await?;
-    ///     # remote.listen(Address::Udp("0.0.0.0:2001".parse().unwrap())).await?;
+    ///     # remote.listen(Address::Tcp("0.0.0.0:2010".parse().unwrap())).await?;
+    ///     # remote.listen(Address::Udp("0.0.0.0:2011".parse().unwrap())).await?;
     ///     let p1 = network
-    ///         .connect(Address::Tcp("127.0.0.1:2000".parse().unwrap()))
+    ///         .connect(Address::Tcp("127.0.0.1:2010".parse().unwrap()))
     ///         .await?;
     ///     # //this doesn't work yet, so skip the test
     ///     # //TODO fixme!
     ///     # return Ok(());
     ///     let p2 = network
-    ///         .connect(Address::Udp("127.0.0.1:2001".parse().unwrap()))
+    ///         .connect(Address::Udp("127.0.0.1:2011".parse().unwrap()))
     ///         .await?;
     ///     assert!(std::sync::Arc::ptr_eq(&p1, &p2));
     ///     # Ok(())
@@ -311,14 +315,14 @@ impl Network {
     /// use veloren_network::{Address, Network, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
-    /// // Create a Network, listen on port `2000` TCP and opens returns their Pid
+    /// // Create a Network, listen on port `2020` TCP and opens returns their Pid
     /// let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     /// # let remote = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     /// block_on(async {
     ///     network
-    ///         .listen(Address::Tcp("0.0.0.0:2000".parse().unwrap()))
+    ///         .listen(Address::Tcp("0.0.0.0:2020".parse().unwrap()))
     ///         .await?;
-    ///     # remote.connect(Address::Tcp("0.0.0.0:2000".parse().unwrap())).await?;
+    ///     # remote.connect(Address::Tcp("0.0.0.0:2020".parse().unwrap())).await?;
     ///     while let Ok(participant) = network.connected().await {
     ///         println!("Participant connected: {}", participant.remote_pid());
     ///         # //skip test here as it would be a endless loop
@@ -350,7 +354,9 @@ impl Network {
     ///
     /// This function will wait for all [`Streams`] to properly close, including
     /// all messages to be send before closing. If an error occurs with one
-    /// of the messavb
+    /// of the messages.
+    /// Except if the remote side already dropped the [`Participant`]
+    /// simultaneously, then messages won't be sended
     ///
     /// # Examples
     /// ```rust
@@ -359,14 +365,14 @@ impl Network {
     /// use veloren_network::{Address, Network, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
-    /// // Create a Network, listen on port `2000` TCP and opens returns their Pid and close connection.
+    /// // Create a Network, listen on port `2030` TCP and opens returns their Pid and close connection.
     /// let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     /// # let remote = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     /// block_on(async {
     ///     network
-    ///         .listen(Address::Tcp("0.0.0.0:2000".parse().unwrap()))
+    ///         .listen(Address::Tcp("0.0.0.0:2030".parse().unwrap()))
     ///         .await?;
-    ///     # remote.connect(Address::Tcp("0.0.0.0:2000".parse().unwrap())).await?;
+    ///     # remote.connect(Address::Tcp("0.0.0.0:2030".parse().unwrap())).await?;
     ///     while let Ok(participant) = network.connected().await {
     ///         println!("Participant connected: {}", participant.remote_pid());
     ///         network.disconnect(participant).await?;
@@ -469,13 +475,13 @@ impl Participant {
     /// use veloren_network::{Address, Network, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
-    /// // Create a Network, connect on port 2000 and open a stream
+    /// // Create a Network, connect on port 2100 and open a stream
     /// let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     /// # let remote = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     /// block_on(async {
-    ///     # remote.listen(Address::Tcp("0.0.0.0:2000".parse().unwrap())).await?;
+    ///     # remote.listen(Address::Tcp("0.0.0.0:2100".parse().unwrap())).await?;
     ///     let p1 = network
-    ///         .connect(Address::Tcp("127.0.0.1:2000".parse().unwrap()))
+    ///         .connect(Address::Tcp("127.0.0.1:2100".parse().unwrap()))
     ///         .await?;
     ///     let _s1 = p1.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
     ///     # Ok(())
@@ -530,13 +536,13 @@ impl Participant {
     /// use futures::executor::block_on;
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
-    /// // Create a Network, connect on port 2000 and wait for the other side to open a stream
+    /// // Create a Network, connect on port 2110 and wait for the other side to open a stream
     /// // Note: It's quite unusal to activly connect, but then wait on a stream to be connected, usually the Appication taking initiative want's to also create the first Stream.
     /// let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     /// # let remote = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     /// block_on(async {
-    ///     # remote.listen(Address::Tcp("0.0.0.0:2000".parse().unwrap())).await?;
-    ///     let p1 = network.connect(Address::Tcp("127.0.0.1:2000".parse().unwrap())).await?;
+    ///     # remote.listen(Address::Tcp("0.0.0.0:2110".parse().unwrap())).await?;
+    ///     let p1 = network.connect(Address::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
     ///     # let p2 = remote.connected().await?;
     ///     # p2.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
     ///     let _s1 = p1.opened().await?;
@@ -613,9 +619,14 @@ impl Stream {
     /// any more. A [`StreamError`] will be returned in the error case, e.g.
     /// when the `Stream` got closed already.
     ///
-    /// Note when a `Stream` is dropped, it will still send all messages, though
-    /// the `drop` will return immediately, however, when a [`Participant`]
-    /// gets gracefully shut down, all remaining messages will be send.
+    /// Note when a `Stream` is dropped locally, it will still send all
+    /// messages, though the `drop` will return immediately, however, when a
+    /// [`Participant`] gets gracefully shut down, all remaining messages
+    /// will be send. If the `Stream` is dropped from remote side no further
+    /// messages are send, because the remote side has no way of listening
+    /// to them either way. If the last channel is destroyed (e.g. by losing
+    /// the internet connection or non-gracefull shutdown, pending messages
+    /// are also dropped.
     ///
     /// # Example
     /// ```rust
@@ -623,21 +634,51 @@ impl Stream {
     /// # use veloren_network::{PROMISES_ORDERED, PROMISES_CONSISTENCY};
     /// use uvth::ThreadPoolBuilder;
     /// use futures::executor::block_on;
+    /// use tracing::*;
+    /// use tracing_subscriber::EnvFilter;
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
-    /// // Create a Network, listen on Port `2000` and wait for a Stream to be opened, then answer `Hello World`
+    ///
+    /// std::thread::spawn(|| {
+    /// let filter = EnvFilter::from_default_env()
+    ///             .add_directive("trace".parse().unwrap())
+    ///             .add_directive("async_std::task::block_on=warn".parse().unwrap())
+    ///             .add_directive("veloren_network::tests=trace".parse().unwrap())
+    ///             .add_directive("veloren_network::controller=trace".parse().unwrap())
+    ///             .add_directive("veloren_network::channel=trace".parse().unwrap())
+    ///             .add_directive("veloren_network::message=trace".parse().unwrap())
+    ///             .add_directive("veloren_network::metrics=trace".parse().unwrap())
+    ///             .add_directive("veloren_network::types=trace".parse().unwrap());
+    /// let _sub = tracing_subscriber::FmtSubscriber::builder()
+    ///             // all spans/events with a level higher than TRACE (e.g, info, warn, etc.)
+    ///             // will be written to stdout.
+    ///             .with_max_level(Level::TRACE)
+    ///             .with_env_filter(filter)
+    ///             // sets this to be the default, global subscriber for this application.
+    ///             .try_init();
+    ///
+    /// // Create a Network, listen on Port `2200` and wait for a Stream to be opened, then answer `Hello World`
     /// let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     /// # let remote = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     /// block_on(async {
-    ///     network.listen(Address::Tcp("127.0.0.1:2000".parse().unwrap())).await?;
-    ///     # let remote_p = remote.connect(Address::Tcp("127.0.0.1:2000".parse().unwrap())).await?;
-    ///     # remote_p.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
-    ///     let participant_a = network.connected().await?;
-    ///     let mut stream_a = participant_a.opened().await?;
+    ///     network.listen(Address::Tcp("127.0.0.1:2200".parse().unwrap())).await.unwrap();
+    ///     # let remote_p = remote.connect(Address::Tcp("127.0.0.1:2200".parse().unwrap())).await.unwrap();
+    ///     # remote_p.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await.unwrap();
+    ///     let participant_a = network.connected().await.unwrap();
+    ///     let mut stream_a = participant_a.opened().await.unwrap();
     ///     //Send  Message
-    ///     stream_a.send("Hello World");
-    ///     # Ok(())
+    ///     stream_a.send("Hello World").unwrap();
     /// })
+    /// });
+    ///
+    ///     std::thread::sleep(std::time::Duration::from_secs(70));
+    ///     println!("Sleep another 10s");
+    ///     std::thread::sleep(std::time::Duration::from_secs(10));
+    ///     println!("TRACING THE DEADLOCK");
+    ///     assert!(false);
+    ///
+    /// std::thread::sleep(std::time::Duration::from_secs(150));
+    /// Ok(())
     /// # }
     /// ```
     ///
@@ -668,9 +709,9 @@ impl Stream {
     /// # let remote1 = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     /// # let remote2 = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     /// block_on(async {
-    ///     network.listen(Address::Tcp("127.0.0.1:2000".parse().unwrap())).await?;
-    ///     # let remote1_p = remote1.connect(Address::Tcp("127.0.0.1:2000".parse().unwrap())).await?;
-    ///     # let remote2_p = remote2.connect(Address::Tcp("127.0.0.1:2000".parse().unwrap())).await?;
+    ///     network.listen(Address::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
+    ///     # let remote1_p = remote1.connect(Address::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
+    ///     # let remote2_p = remote2.connect(Address::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
     ///     # assert_eq!(remote1_p.remote_pid(), remote2_p.remote_pid());
     ///     # remote1_p.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
     ///     # remote2_p.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
@@ -717,6 +758,31 @@ impl Stream {
     ///
     /// A [`StreamError`] will be returned in the error case, e.g. when the
     /// `Stream` got closed already.
+    ///
+    /// # Example
+    /// ```rust
+    /// use veloren_network::{Network, Address, Pid};
+    /// # use veloren_network::{PROMISES_ORDERED, PROMISES_CONSISTENCY};
+    /// use uvth::ThreadPoolBuilder;
+    /// use futures::executor::block_on;
+    ///
+    /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    /// // Create a Network, listen on Port `2220` and wait for a Stream to be opened, then listen on it
+    /// let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+    /// # let remote = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+    /// block_on(async {
+    ///     network.listen(Address::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
+    ///     # let remote_p = remote.connect(Address::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
+    ///     # let mut stream_p = remote_p.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
+    ///     # stream_p.send("Hello World");
+    ///     let participant_a = network.connected().await?;
+    ///     let mut stream_a = participant_a.opened().await?;
+    ///     //Send  Message
+    ///     println!("{}", stream_a.recv::<String>().await?);
+    ///     # Ok(())
+    /// })
+    /// # }
+    /// ```
     #[inline]
     pub async fn recv<M: DeserializeOwned>(&mut self) -> Result<M, StreamError> {
         Ok(message::deserialize(self.recv_raw().await?))
@@ -731,7 +797,7 @@ impl Stream {
         //no need to access self.closed here, as when this stream is closed the Channel
         // is closed which will trigger a None
         let msg = self.b2a_msg_recv_r.next().await?;
-        info!(?msg, "delivering a message");
+        //info!(?msg, "delivering a message");
         Ok(msg.buffer)
     }
 }
@@ -745,6 +811,23 @@ impl Drop for Network {
             "shutting down Participants of Network, while we still have metrics"
         );
         task::block_on(async {
+            // we need to carefully shut down here! as otherwise we might call
+            // Participant::Drop with a2s_disconnect_s here which would open
+            // another task::block, which would panic! also i can't `.write` on
+            // `self.participants` as the `disconnect` fn needs it.
+            let mut participant_clone = self.participants().await;
+            for (_, p) in participant_clone.drain() {
+                match self.disconnect(p).await {
+                    Err(e) => {
+                        error!(
+                            ?e,
+                            "error while dropping network, the error occured when dropping a \
+                             participant but can't be notified to the user any more"
+                        );
+                    },
+                    _ => (),
+                }
+            }
             self.participants.write().await.clear();
         });
         debug!(?pid, "shutting down Scheduler");

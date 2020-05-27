@@ -1,6 +1,4 @@
 use prometheus::{Encoder, Registry, TextEncoder};
-use tiny_http;
-use tracing::*;
 use std::{
     error::Error,
     net::SocketAddr,
@@ -10,6 +8,8 @@ use std::{
     },
     thread,
 };
+use tiny_http;
+use tracing::*;
 
 pub struct SimpleMetrics {
     running: Arc<AtomicBool>,
@@ -54,15 +54,25 @@ impl SimpleMetrics {
                 let request = match server.recv_timeout(TIMEOUT) {
                     Ok(Some(rq)) => rq,
                     Ok(None) => continue,
-                    Err(e) => { println!("error: {}", e); break }
+                    Err(e) => {
+                        println!("error: {}", e);
+                        break;
+                    },
                 };
                 let mf = registry.gather();
                 let encoder = TextEncoder::new();
                 let mut buffer = vec![];
-                encoder.encode(&mf, &mut buffer).expect("Failed to encoder metrics text.");
-                let response = tiny_http::Response::from_string(String::from_utf8(buffer).expect("Failed to parse bytes as a string."));
+                encoder
+                    .encode(&mf, &mut buffer)
+                    .expect("Failed to encoder metrics text.");
+                let response = tiny_http::Response::from_string(
+                    String::from_utf8(buffer).expect("Failed to parse bytes as a string."),
+                );
                 match request.respond(response) {
-                    Err(e) => error!(?e, "The metrics HTTP server had encountered and error with answering"),
+                    Err(e) => error!(
+                        ?e,
+                        "The metrics HTTP server had encountered and error with answering"
+                    ),
                     _ => (),
                 }
             }

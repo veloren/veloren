@@ -21,13 +21,14 @@ use std::{
         atomic::{AtomicBool, AtomicUsize, Ordering},
         Arc,
     },
+    time::{Duration, Instant},
 };
 use tracing::*;
 
 #[derive(Debug)]
 struct ChannelInfo {
     cid: Cid,
-    cid_string: String, //optimisation
+    cid_string: String, //optimisationmetrics
     b2w_frame_s: mpsc::UnboundedSender<Frame>,
     b2r_read_shutdown: oneshot::Sender<()>,
 }
@@ -109,7 +110,7 @@ impl BParticipant {
         )
     }
 
-    pub async fn run(mut self) {
+    pub async fn run(mut self, b2s_prio_statistic_s: mpsc::UnboundedSender<(Pid, u64, u64)>) {
         //those managers that listen on api::Participant need an additional oneshot for
         // shutdown scenario, those handled by scheduler will be closed by it.
         let (shutdown_send_mgr_sender, shutdown_send_mgr_receiver) = oneshot::channel();
@@ -118,7 +119,8 @@ impl BParticipant {
         let (shutdown_open_mgr_sender, shutdown_open_mgr_receiver) = oneshot::channel();
         let (b2b_prios_flushed_s, b2b_prios_flushed_r) = oneshot::channel();
         let (w2b_frames_s, w2b_frames_r) = mpsc::unbounded::<(Cid, Frame)>();
-        let (prios, a2p_msg_s, b2p_notify_empty_stream_s) = PrioManager::new();
+        let (prios, a2p_msg_s, b2p_notify_empty_stream_s) =
+            PrioManager::new(self.metrics.clone(), self.remote_pid_string.clone());
 
         let run_channels = self.run_channels.take().unwrap();
         futures::join!(
@@ -135,7 +137,12 @@ impl BParticipant {
                 a2p_msg_s.clone(),
             ),
             self.create_channel_mgr(run_channels.s2b_create_channel_r, w2b_frames_s,),
-            self.send_mgr(prios, shutdown_send_mgr_receiver, b2b_prios_flushed_s),
+            self.send_mgr(
+                prios,
+                shutdown_send_mgr_receiver,
+                b2b_prios_flushed_s,
+                b2s_prio_statistic_s
+            ),
             self.stream_close_mgr(
                 run_channels.a2b_close_stream_r,
                 shutdown_stream_close_mgr_receiver,
@@ -158,11 +165,12 @@ impl BParticipant {
         mut prios: PrioManager,
         mut shutdown_send_mgr_receiver: oneshot::Receiver<()>,
         b2b_prios_flushed_s: oneshot::Sender<()>,
+        mut b2s_prio_statistic_s: mpsc::UnboundedSender<(Pid, u64, u64)>,
     ) {
         //This time equals the MINIMUM Latency in average, so keep it down and //Todo:
         // make it configureable or switch to await E.g. Prio 0 = await, prio 50
         // wait for more messages
-        const TICK_TIME: std::time::Duration = std::time::Duration::from_millis(10);
+        const TICK_TIME: Duration = Duration::from_millis(10);
         const FRAMES_PER_TICK: usize = 10005;
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
         let mut closing_up = false;
@@ -180,6 +188,10 @@ impl BParticipant {
             for (_, frame) in frames {
                 self.send_frame(frame, &mut send_cache).await;
             }
+            b2s_prio_statistic_s
+                .send((self.remote_pid, len as u64, /*  */ 0))
+                .await
+                .unwrap();
             async_std::task::sleep(TICK_TIME).await;
             //shutdown after all msg are send!
             if closing_up && (len == 0) {
@@ -199,11 +211,28 @@ impl BParticipant {
     async fn send_frame(&self, frame: Frame, frames_out_total_cache: &mut PidCidFrameCache) {
         // find out ideal channel here
         //TODO: just take first
-        if let Some(ci) = self.channels.write().await.get_mut(0) {
+        let mut lock = self.channels.write().await;
+        if let Some(ci) = lock.get_mut(0) {
+            //note: this is technically wrong we should only increase when it suceeded, but
+            // this requiered me to clone `frame` which is a to big performance impact for
+            // error handling
             frames_out_total_cache
                 .with_label_values(ci.cid, &frame)
                 .inc();
-            ci.b2w_frame_s.send(frame).await.unwrap();
+            if let Err(e) = ci.b2w_frame_s.send(frame).await {
+                warn!(
+                    ?e,
+                    "the channel got closed unexpectedly, cleaning it up now."
+                );
+                let ci = lock.remove(0);
+                if let Err(e) = ci.b2r_read_shutdown.send(()) {
+                    debug!(
+                        ?e,
+                        "error shutdowning channel, which is prob fine as we detected it to no \
+                         longer work in the first place"
+                    );
+                };
+            }
         } else {
             error!("participant has no channel to communicate on");
         }
@@ -219,6 +248,10 @@ impl BParticipant {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
         trace!("start handle_frames_mgr");
         let mut messages = HashMap::new();
+        let mut dropped_instant = Instant::now();
+        let mut dropped_cnt = 0u64;
+        let mut dropped_sid = Sid::new(0);
+
         while let Some((cid, frame)) = w2b_frames_r.next().await {
             let cid_string = cid.to_string();
             //trace!("handling frame");
@@ -245,19 +278,26 @@ impl BParticipant {
                     // However Stream.send() is not async and their receiver isn't dropped if Steam
                     // is dropped, so i need a way to notify the Stream that it's send messages will
                     // be dropped... from remote, notify local
+                    trace!(
+                        ?sid,
+                        "got remote request to close a stream, without flushing it, local \
+                         messages are dropped"
+                    );
+                    // no wait for flush here, as the remote wouldn't care anyway.
                     if let Some(si) = self.streams.write().await.remove(&sid) {
                         self.metrics
                             .streams_closed_total
                             .with_label_values(&[&self.remote_pid_string])
                             .inc();
                         si.closed.store(true, Ordering::Relaxed);
+                        trace!(?sid, "closed stream from remote");
                     } else {
-                        error!(
+                        warn!(
+                            ?sid,
                             "couldn't find stream to close, either this is a duplicate message, \
                              or the local copy of the Stream got closed simultaniously"
                         );
                     }
-                    trace!("closed frame from remote");
                 },
                 Frame::DataHeader { mid, sid, length } => {
                     let imsg = InCommingMessage {
@@ -283,14 +323,43 @@ impl BParticipant {
                         //debug!(?mid, "finished receiving message");
                         let imsg = messages.remove(&mid).unwrap();
                         if let Some(si) = self.streams.write().await.get_mut(&imsg.sid) {
-                            si.b2a_msg_recv_s.send(imsg).await.unwrap();
+                            if let Err(e) = si.b2a_msg_recv_s.send(imsg).await {
+                                warn!(
+                                    ?e,
+                                    ?mid,
+                                    "dropping message, as streams seem to be in act of beeing \
+                                     dropped right now"
+                                );
+                            }
                         } else {
-                            error!("dropping message as stream no longer seems to exist");
+                            //aggregate errors
+                            let n = Instant::now();
+                            if dropped_sid != imsg.sid
+                                || n.duration_since(dropped_instant) > Duration::from_secs(1)
+                            {
+                                warn!(
+                                    ?dropped_cnt,
+                                    "dropping multiple messages as stream no longer seems to \
+                                     exist because it was dropped probably."
+                                );
+                                dropped_cnt = 0;
+                                dropped_instant = n;
+                                dropped_sid = imsg.sid;
+                            } else {
+                                dropped_cnt += 1;
+                            }
                         }
                     }
                 },
                 _ => unreachable!("never reaches frame!"),
             }
+        }
+        if dropped_cnt > 0 {
+            warn!(
+                ?dropped_cnt,
+                "dropping multiple messages as stream no longer seems to exist because it was \
+                 dropped probably."
+            );
         }
         trace!("stop handle_frames_mgr");
         self.running_mgr.fetch_sub(1, Ordering::Relaxed);
@@ -392,8 +461,8 @@ impl BParticipant {
         let sender = s2b_shutdown_bparticipant_r.await.unwrap();
         debug!("closing all managers");
         for sender in to_shutdown.drain(..) {
-            if sender.send(()).is_err() {
-                warn!("manager seems to be closed already, weird, maybe a bug");
+            if let Err(e) = sender.send(()) {
+                warn!(?e, "manager seems to be closed already, weird, maybe a bug");
             };
         }
         debug!("closing all streams");
@@ -410,7 +479,7 @@ impl BParticipant {
             };
         }
         //Wait for other bparticipants mgr to close via AtomicUsize
-        const SLEEP_TIME: std::time::Duration = std::time::Duration::from_millis(5);
+        const SLEEP_TIME: Duration = Duration::from_millis(5);
         async_std::task::sleep(SLEEP_TIME).await;
         let mut i: u32 = 1;
         while self.running_mgr.load(Ordering::Relaxed) > 1 {
@@ -458,14 +527,15 @@ impl BParticipant {
             // be handled at the remote side.
 
             trace!(?sid, "stopping api to use this stream");
-            self.streams
-                .read()
-                .await
-                .get(&sid)
-                .unwrap()
-                .closed
-                .store(true, Ordering::Relaxed);
+            match self.streams.read().await.get(&sid) {
+                Some(si) => {
+                    si.closed.store(true, Ordering::Relaxed);
+                },
+                None => warn!("couldn't find the stream, might be simulanious close from remote"),
+            }
 
+            //TODO: what happens if RIGHT NOW the remote sends a StreamClose and this
+            // streams get closed and removed? RACE CONDITION
             trace!(?sid, "wait for stream to be flushed");
             let (s2b_stream_finished_closed_s, s2b_stream_finished_closed_r) = oneshot::channel();
             b2p_notify_empty_stream_s

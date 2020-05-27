@@ -13,6 +13,7 @@ use tracing_subscriber::EnvFilter;
 use uvth::ThreadPoolBuilder;
 use veloren_network::{Address, Network, Participant, Pid, Stream, PROMISES_NONE};
 
+#[allow(dead_code)]
 pub fn setup(tracing: bool, mut sleep: u64) -> (u64, u64) {
     if tracing {
         sleep += 1000
@@ -48,6 +49,7 @@ pub fn setup(tracing: bool, mut sleep: u64) -> (u64, u64) {
     (0, 0)
 }
 
+#[allow(dead_code)]
 pub async fn network_participant_stream(
     addr: Address,
 ) -> (
@@ -72,6 +74,7 @@ pub async fn network_participant_stream(
     (n_a, p1_a, s1_a, n_b, p1_b, s1_b)
 }
 
+#[allow(dead_code)]
 pub fn tcp() -> veloren_network::Address {
     lazy_static! {
         static ref PORTS: AtomicU16 = AtomicU16::new(5000);
@@ -80,6 +83,7 @@ pub fn tcp() -> veloren_network::Address {
     veloren_network::Address::Tcp(SocketAddr::from(([127, 0, 0, 1], port)))
 }
 
+#[allow(dead_code)]
 pub fn udp() -> veloren_network::Address {
     lazy_static! {
         static ref PORTS: AtomicU16 = AtomicU16::new(5000);

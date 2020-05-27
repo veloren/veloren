@@ -28,7 +28,7 @@ impl Server {
         let (command_sender, command_receiver) = mpsc::unbounded();
 
         let thread_pool = ThreadPoolBuilder::new().build();
-        let network = Network::new(Pid::new(), &thread_pool);
+        let network = Network::new(Pid::new(), &thread_pool, None);
 
         let run_channels = Some(ControlChannels { command_receiver });
         (

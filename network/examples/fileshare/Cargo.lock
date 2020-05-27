@@ -1010,7 +1010,6 @@ version = "0.1.0"
 dependencies = [
  "async-std",
  "bincode",
- "byteorder",
  "futures",
  "lazy_static",
  "prometheus",

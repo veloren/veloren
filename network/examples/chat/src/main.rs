@@ -1,3 +1,8 @@
+//!run with
+//! ```bash
+//! (cd network/examples/chat && RUST_BACKTRACE=1 cargo run --release -- --trace=info --port 15006)
+//! (cd network/examples/chat && RUST_BACKTRACE=1 cargo run --release -- --trace=info --port 15006 --mode=client)
+//! ```
 use async_std::io;
 use clap::{App, Arg};
 use futures::executor::{block_on, ThreadPool};
@@ -96,7 +101,7 @@ fn main() {
 
 fn server(address: Address) {
     let thread_pool = ThreadPoolBuilder::new().build();
-    let server = Arc::new(Network::new(Pid::new(), &thread_pool));
+    let server = Arc::new(Network::new(Pid::new(), &thread_pool, None));
     let pool = ThreadPool::new().unwrap();
     block_on(async {
         server.listen(address).await.unwrap();
@@ -135,7 +140,7 @@ async fn client_connection(network: Arc<Network>, participant: Arc<Participant>)
 
 fn client(address: Address) {
     let thread_pool = ThreadPoolBuilder::new().build();
-    let client = Network::new(Pid::new(), &thread_pool);
+    let client = Network::new(Pid::new(), &thread_pool, None);
     let pool = ThreadPool::new().unwrap();
 
     block_on(async {

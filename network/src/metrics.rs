@@ -27,13 +27,13 @@ pub struct NetworkMetrics {
     // Frames counted at protocol level, seperated by CHANNEL (and PARTICIPANT) AND FRAME TYPE,
     pub frames_wire_out_total: IntCounterVec,
     pub frames_wire_in_total: IntCounterVec,
-    pub frames_count: IntGaugeVec,
-    // send Messages, seperated by STREAM (and PARTICIPANT, CHANNEL),
-    pub message_count: IntGaugeVec,
-    // send Messages bytes, seperated by STREAM (and PARTICIPANT, CHANNEL),
-    pub bytes_send: IntGaugeVec,
-    // Frames, seperated by MESSAGE (and PARTICIPANT, CHANNEL, STREAM),
-    pub frames_message_count: IntGaugeVec,
+    // throughput at protocol level, seperated by CHANNEL (and PARTICIPANT),
+    pub wire_out_throughput: IntCounterVec,
+    pub wire_in_throughput: IntCounterVec,
+    // send(prio) Messages count, seperated by STREAM AND PARTICIPANT,
+    pub message_out_total: IntCounterVec,
+    // send(prio) Messages throughput, seperated by STREAM AND PARTICIPANT,
+    pub message_out_throughput: IntCounterVec,
     // TODO: queued Messages, seperated by STREAM (add PART, CHANNEL),
     // queued Messages, seperated by PARTICIPANT
     pub queued_count: IntGaugeVec,
@@ -137,31 +137,35 @@ impl NetworkMetrics {
             ),
             &["channel", "frametype"],
         )?;
-
-        let frames_count = IntGaugeVec::new(
+        let wire_out_throughput = IntCounterVec::new(
             Opts::new(
-                "frames_count",
-                "number of all frames send by streams on the network",
+                "wire_out_throughput",
+                "throupgput of all data frames send per channel, at the protocol level",
             ),
             &["channel"],
         )?;
-        let message_count = IntGaugeVec::new(
+        let wire_in_throughput = IntCounterVec::new(
             Opts::new(
-                "message_count",
+                "wire_in_throughput",
+                "throupgput of all data frames send per channel, at the protocol level",
+            ),
+            &["channel"],
+        )?;
+        //TODO IN
+        let message_out_total = IntCounterVec::new(
+            Opts::new(
+                "message_out_total",
                 "number of messages send by streams on the network",
             ),
-            &["channel"],
+            &["participant", "stream"],
         )?;
-        let bytes_send = IntGaugeVec::new(
-            Opts::new("bytes_send", "bytes send by streams on the network"),
-            &["channel"],
-        )?;
-        let frames_message_count = IntGaugeVec::new(
+        //TODO IN
+        let message_out_throughput = IntCounterVec::new(
             Opts::new(
-                "frames_message_count",
-                "bytes sends per message on the network",
+                "message_out_throughput",
+                "throughput of messages send by streams on the network",
             ),
-            &["channel"],
+            &["participant", "stream"],
         )?;
         let queued_count = IntGaugeVec::new(
             Opts::new(
@@ -199,10 +203,10 @@ impl NetworkMetrics {
             frames_in_total,
             frames_wire_out_total,
             frames_wire_in_total,
-            frames_count,
-            message_count,
-            bytes_send,
-            frames_message_count,
+            wire_out_throughput,
+            wire_in_throughput,
+            message_out_total,
+            message_out_throughput,
             queued_count,
             queued_bytes,
             participants_ping,
@@ -218,15 +222,15 @@ impl NetworkMetrics {
         registry.register(Box::new(self.channels_disconnected_total.clone()))?;
         registry.register(Box::new(self.streams_opened_total.clone()))?;
         registry.register(Box::new(self.streams_closed_total.clone()))?;
+        registry.register(Box::new(self.network_info.clone()))?;
         registry.register(Box::new(self.frames_out_total.clone()))?;
         registry.register(Box::new(self.frames_in_total.clone()))?;
         registry.register(Box::new(self.frames_wire_out_total.clone()))?;
         registry.register(Box::new(self.frames_wire_in_total.clone()))?;
-        registry.register(Box::new(self.network_info.clone()))?;
-        registry.register(Box::new(self.frames_count.clone()))?;
-        registry.register(Box::new(self.message_count.clone()))?;
-        registry.register(Box::new(self.bytes_send.clone()))?;
-        registry.register(Box::new(self.frames_message_count.clone()))?;
+        registry.register(Box::new(self.wire_out_throughput.clone()))?;
+        registry.register(Box::new(self.wire_in_throughput.clone()))?;
+        registry.register(Box::new(self.message_out_total.clone()))?;
+        registry.register(Box::new(self.message_out_throughput.clone()))?;
         registry.register(Box::new(self.queued_count.clone()))?;
         registry.register(Box::new(self.queued_bytes.clone()))?;
         registry.register(Box::new(self.participants_ping.clone()))?;

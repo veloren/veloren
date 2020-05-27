@@ -1,5 +1,8 @@
 #![feature(async_closure, exclusive_range_pattern)]
-
+//!run with
+//! (cd network/examples/fileshare && RUST_BACKTRACE=1 cargo run --profile=release -Z unstable-options  -- --trace=info --port 15006)
+//! (cd network/examples/fileshare && RUST_BACKTRACE=1 cargo run --profile=release -Z unstable-options  -- --trace=info --port 15007)
+//! ```
 use async_std::{io, path::PathBuf};
 use clap::{App, Arg, SubCommand};
 use futures::{
@@ -152,7 +155,7 @@ async fn client(mut cmd_sender: mpsc::UnboundedSender<LocalCommand>) {
                 cmd_sender.send(LocalCommand::Disconnect).await.unwrap();
             },
             ("connect", Some(connect_matches)) => {
-                let socketaddr = connect_matches.value_of("ipport").unwrap().parse().unwrap();
+                let socketaddr = connect_matches.value_of("ip:port").unwrap().parse().unwrap();
                 cmd_sender
                     .send(LocalCommand::Connect(Address::Tcp(socketaddr)))
                     .await

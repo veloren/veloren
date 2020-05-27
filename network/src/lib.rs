@@ -103,6 +103,7 @@ mod participant;
 mod prios;
 mod protocols;
 mod scheduler;
+#[macro_use]
 mod types;
 
 pub use api::{Address, Network, NetworkError, Participant, ParticipantError, Stream, StreamError};
