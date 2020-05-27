@@ -1,8 +1,9 @@
 use async_std::task;
 use task::block_on;
-use veloren_network::StreamError;
+use veloren_network::{NetworkError, StreamError};
 mod helper;
 use helper::{network_participant_stream, tcp, udp};
+use std::io::ErrorKind;
 
 #[test]
 #[ignore]
@@ -156,4 +157,28 @@ fn tcp_and_udp_2_connections() -> std::result::Result<(), Box<dyn std::error::Er
         assert!(std::sync::Arc::ptr_eq(&p1, &p2));
         Ok(())
     })
+}
+
+#[test]
+fn failed_listen_on_used_ports() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    let (_, _) = helper::setup(false, 0);
+    let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+    let udp1 = udp();
+    let tcp1 = tcp();
+    block_on(network.listen(udp1.clone()))?;
+    block_on(network.listen(tcp1.clone()))?;
+    std::thread::sleep(std::time::Duration::from_millis(50));
+
+    let network2 = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+    let e1 = block_on(network2.listen(udp1));
+    let e2 = block_on(network2.listen(tcp1));
+    match e1 {
+        Err(NetworkError::ListenFailed(e)) if e.kind() == ErrorKind::AddrInUse => (),
+        _ => assert!(false),
+    };
+    match e2 {
+        Err(NetworkError::ListenFailed(e)) if e.kind() == ErrorKind::AddrInUse => (),
+        _ => assert!(false),
+    };
+    Ok(())
 }
