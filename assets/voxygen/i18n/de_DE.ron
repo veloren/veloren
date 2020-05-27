@@ -383,5 +383,8 @@ Willenskraft
         "esc_menu.logout": "Ausloggen",
         "esc_menu.quit_game": "Desktop",
         /// End Escape Menu Section
+    },
+
+    vector_map: {
     }
 )

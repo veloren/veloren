@@ -4,7 +4,10 @@ use crate::{
     CLIENT_TIMEOUT,
 };
 use common::{
-    comp::{Admin, CanBuild, ControlEvent, Controller, ForceUpdate, Ori, Player, Pos, Stats, Vel},
+    comp::{
+        Admin, CanBuild, ControlEvent, Controller, ForceUpdate, Ori, Player, Pos, SpeechBubble,
+        Stats, Vel,
+    },
     event::{EventBus, ServerEvent},
     msg::{
         validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, PlayerListUpdate,
@@ -43,6 +46,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Player>,
         WriteStorage<'a, Client>,
         WriteStorage<'a, Controller>,
+        WriteStorage<'a, SpeechBubble>,
     );
 
     fn run(
@@ -67,11 +71,10 @@ impl<'a> System<'a> for Sys {
             mut players,
             mut clients,
             mut controllers,
+            mut speech_bubbles,
         ): Self::SystemData,
     ) {
         timer.start();
-
-        let time = time.0;
 
         let persistence_db_dir = &persistence_db_dir.0;
 
@@ -92,13 +95,13 @@ impl<'a> System<'a> for Sys {
 
             // Update client ping.
             if new_msgs.len() > 0 {
-                client.last_ping = time
-            } else if time - client.last_ping > CLIENT_TIMEOUT // Timeout
+                client.last_ping = time.0
+            } else if time.0 - client.last_ping > CLIENT_TIMEOUT // Timeout
                 || client.postbox.error().is_some()
             // Postbox error
             {
                 server_emitter.emit(ServerEvent::ClientDisconnect(entity));
-            } else if time - client.last_ping > CLIENT_TIMEOUT * 0.5 {
+            } else if time.0 - client.last_ping > CLIENT_TIMEOUT * 0.5 {
                 // Try pinging the client if the timeout is nearing.
                 client.postbox.send_message(ServerMsg::Ping);
             }
@@ -394,13 +397,16 @@ impl<'a> System<'a> for Sys {
         for (entity, msg) in new_chat_msgs {
             match msg {
                 ServerMsg::ChatMsg { chat_type, message } => {
-                    if let Some(entity) = entity {
+                    let message = if let Some(entity) = entity {
                         // Handle chat commands.
                         if message.starts_with("/") && message.len() > 1 {
                             let argv = String::from(&message[1..]);
                             server_emitter.emit(ServerEvent::ChatCmd(entity, argv));
+                            continue;
                         } else {
-                            let message = match players.get(entity) {
+                            let bubble = SpeechBubble::player_new(message.clone(), *time);
+                            let _ = speech_bubbles.insert(entity, bubble);
+                            match players.get(entity) {
                                 Some(player) => {
                                     if admins.get(entity).is_some() {
                                         format!("[ADMIN][{}] {}", &player.alias, message)
@@ -409,17 +415,14 @@ impl<'a> System<'a> for Sys {
                                     }
                                 },
                                 None => format!("[<Unknown>] {}", message),
-                            };
-                            let msg = ServerMsg::ChatMsg { chat_type, message };
-                            for client in (&mut clients).join().filter(|c| c.is_registered()) {
-                                client.notify(msg.clone());
                             }
                         }
                     } else {
-                        let msg = ServerMsg::ChatMsg { chat_type, message };
-                        for client in (&mut clients).join().filter(|c| c.is_registered()) {
-                            client.notify(msg.clone());
-                        }
+                        message
+                    };
+                    let msg = ServerMsg::ChatMsg { chat_type, message };
+                    for client in (&mut clients).join().filter(|c| c.is_registered()) {
+                        client.notify(msg.clone());
                     }
                 },
                 _ => {

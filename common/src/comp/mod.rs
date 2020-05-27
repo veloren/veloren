@@ -18,7 +18,7 @@ mod visual;
 // Reexports
 pub use ability::{CharacterAbility, ItemConfig, Loadout};
 pub use admin::Admin;
-pub use agent::{Agent, Alignment};
+pub use agent::{Agent, Alignment, SpeechBubble, SPEECH_BUBBLE_DURATION};
 pub use body::{
     biped_large, bird_medium, bird_small, critter, dragon, fish_medium, fish_small, golem,
     humanoid, object, quadruped_medium, quadruped_small, AllBodies, Body, BodyData,

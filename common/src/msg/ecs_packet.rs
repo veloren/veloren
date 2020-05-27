@@ -24,6 +24,7 @@ sum_type! {
         Sticky(comp::Sticky),
         Loadout(comp::Loadout),
         CharacterState(comp::CharacterState),
+        SpeechBubble(comp::SpeechBubble),
         Pos(comp::Pos),
         Vel(comp::Vel),
         Ori(comp::Ori),
@@ -50,6 +51,7 @@ sum_type! {
         Sticky(PhantomData<comp::Sticky>),
         Loadout(PhantomData<comp::Loadout>),
         CharacterState(PhantomData<comp::CharacterState>),
+        SpeechBubble(PhantomData<comp::SpeechBubble>),
         Pos(PhantomData<comp::Pos>),
         Vel(PhantomData<comp::Vel>),
         Ori(PhantomData<comp::Ori>),
@@ -76,6 +78,7 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Sticky(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Loadout(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::CharacterState(comp) => sync::handle_insert(comp, entity, world),
+            EcsCompPacket::SpeechBubble(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Pos(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Vel(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Ori(comp) => sync::handle_insert(comp, entity, world),
@@ -100,6 +103,7 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Sticky(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Loadout(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::CharacterState(comp) => sync::handle_modify(comp, entity, world),
+            EcsCompPacket::SpeechBubble(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Pos(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Vel(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Ori(comp) => sync::handle_modify(comp, entity, world),
@@ -127,6 +131,9 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPhantom::Loadout(_) => sync::handle_remove::<comp::Loadout>(entity, world),
             EcsCompPhantom::CharacterState(_) => {
                 sync::handle_remove::<comp::CharacterState>(entity, world)
+            },
+            EcsCompPhantom::SpeechBubble(_) => {
+                sync::handle_remove::<comp::SpeechBubble>(entity, world)
             },
             EcsCompPhantom::Pos(_) => sync::handle_remove::<comp::Pos>(entity, world),
             EcsCompPhantom::Vel(_) => sync::handle_remove::<comp::Vel>(entity, world),
