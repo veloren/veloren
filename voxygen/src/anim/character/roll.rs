@@ -1,6 +1,5 @@
 use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
 use common::comp::item::ToolKind;
-use std::f32::consts::PI;
 use vek::*;
 
 pub struct RollAnimation;
@@ -19,95 +18,89 @@ impl Animation for RollAnimation {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
 
-        let wave = (anim_time as f32 * 4.5).sin();
-        let wave_quick = (anim_time as f32 * 7.5).sin();
-        let wave_quick_cos = (anim_time as f32 * 7.5).cos();
-        let wave_slow = (anim_time as f32 * 2.3 + PI).sin();
-        let wave_dub = (anim_time as f32 * 4.5).sin();
-
+        let spin = anim_time as f32;
         let ori = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
         let tilt = if Vec2::new(ori, last_ori)
             .map(|o| Vec2::<f32>::from(o).magnitude_squared())
-            .map(|m| m > 0.001 && m.is_finite())
+            .map(|m| m > 0.0001 && m.is_finite())
             .reduce_and()
             && ori.angle_between(last_ori).is_finite()
         {
-            ori.angle_between(last_ori).min(0.5)
+            ori.angle_between(last_ori).min(0.05)
                 * last_ori.determine_side(Vec2::zero(), ori).signum()
         } else {
             0.0
-        } * 1.3;
+        };
 
         next.head.offset = Vec3::new(
             0.0,
             -2.0 + skeleton_attr.head.0 + 3.0,
-            skeleton_attr.head.1 - 2.0,
+            skeleton_attr.head.1 - 1.0,
         );
-        next.head.ori = Quaternion::rotation_x(wave_dub * -0.8);
+        next.head.ori = Quaternion::rotation_x(-0.75);
         next.head.scale = Vec3::one();
 
-        next.chest.offset = Vec3::new(
-            0.0,
-            skeleton_attr.chest.0,
-            skeleton_attr.chest.1 + wave_dub * -5.0,
-        );
-        next.chest.ori = Quaternion::rotation_x(wave_dub * 0.4);
+        next.chest.offset = Vec3::new(0.0, skeleton_attr.chest.0, -9.5 + skeleton_attr.chest.1);
+        next.chest.ori = Quaternion::rotation_x(-0.2);
         next.chest.scale = Vec3::one() * 1.01;
 
-        next.belt.offset = Vec3::new(0.0, skeleton_attr.belt.0 + 2.0, skeleton_attr.belt.1 + 2.0);
-        next.belt.ori = Quaternion::rotation_x(0.0 + wave_dub * 0.8);
+        next.belt.offset = Vec3::new(0.0, skeleton_attr.belt.0 + 1.0, skeleton_attr.belt.1 + 1.0);
+        next.belt.ori = Quaternion::rotation_x(0.55);
+
+        next.back.offset = Vec3::new(0.0, skeleton_attr.back.0, skeleton_attr.back.1);
+        next.back.scale = Vec3::one() * 1.02;
 
         next.shorts.offset = Vec3::new(
             0.0,
-            skeleton_attr.shorts.0 + 2.0,
-            skeleton_attr.shorts.1 + 3.0,
+            skeleton_attr.shorts.0 + 4.5,
+            skeleton_attr.shorts.1 + 2.5,
         );
-        next.shorts.ori = Quaternion::rotation_x(0.0 + wave_dub * 0.8);
+        next.shorts.ori = Quaternion::rotation_x(0.8);
 
         next.l_hand.offset = Vec3::new(
-            -skeleton_attr.chest.0 + wave * -0.5,
-            skeleton_attr.hand.1 + wave_quick_cos * -5.5,
-            skeleton_attr.hand.2 + wave_quick * 0.5,
+            -skeleton_attr.hand.0,
+            skeleton_attr.hand.1 + 1.0,
+            skeleton_attr.hand.2 + 2.0,
         );
 
-        next.l_hand.ori =
-            Quaternion::rotation_x(wave_slow * 6.5) * Quaternion::rotation_y(wave * 0.3);
+        next.l_hand.ori = Quaternion::rotation_x(0.6);
         next.l_hand.scale = Vec3::one();
 
         next.r_hand.offset = Vec3::new(
-            skeleton_attr.hand.0 + wave * 0.5,
-            skeleton_attr.hand.1 + wave_quick_cos * 2.5,
-            skeleton_attr.hand.2 + wave_quick * 3.0,
+            -1.0 + skeleton_attr.hand.0,
+            skeleton_attr.hand.1 + 1.0,
+            skeleton_attr.hand.2 + 2.0,
         );
-        next.r_hand.ori =
-            Quaternion::rotation_x(wave_slow * 6.5) * Quaternion::rotation_y(wave * 0.3);
+
+        next.r_hand.ori = Quaternion::rotation_x(0.6);
+        next.r_hand.scale = Vec3::one();
 
         next.l_foot.offset = Vec3::new(
-            -skeleton_attr.foot.0,
-            skeleton_attr.foot.1,
-            skeleton_attr.foot.2 + wave_dub * -1.2,
+            1.0 - skeleton_attr.foot.0,
+            skeleton_attr.foot.1 + 5.5,
+            skeleton_attr.foot.2 - 5.0,
         );
-        next.l_foot.ori = Quaternion::rotation_x(wave * 0.6);
+        next.l_foot.ori = Quaternion::rotation_x(0.9);
 
         next.r_foot.offset = Vec3::new(
             skeleton_attr.foot.0,
-            skeleton_attr.foot.1,
-            skeleton_attr.foot.2 + wave_dub * -1.0,
+            skeleton_attr.foot.1 + 5.5,
+            skeleton_attr.foot.2 - 5.0,
         );
-        next.r_foot.ori = Quaternion::rotation_x(wave * -0.4);
+        next.r_foot.ori = Quaternion::rotation_x(0.9);
 
         next.l_shoulder.offset = Vec3::new(
             -skeleton_attr.shoulder.0,
-            skeleton_attr.shoulder.0,
-            skeleton_attr.shoulder.2,
+            skeleton_attr.shoulder.1 + 2.0,
+            skeleton_attr.shoulder.2 + 1.0,
         );
         next.l_shoulder.ori = Quaternion::rotation_x(0.0);
         next.l_shoulder.scale = Vec3::one() * 1.1;
 
         next.r_shoulder.offset = Vec3::new(
             skeleton_attr.shoulder.0,
-            skeleton_attr.shoulder.0,
+            skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );
         next.r_shoulder.ori = Quaternion::rotation_x(0.0);
@@ -121,7 +114,7 @@ impl Animation for RollAnimation {
         next.main.scale = Vec3::one();
 
         next.second.offset = Vec3::new(0.0, 0.0, 0.0);
-        next.second.scale = Vec3::one() * 0.0;
+        next.second.scale = Vec3::one();
 
         next.lantern.offset = Vec3::new(
             skeleton_attr.lantern.0,
@@ -131,9 +124,9 @@ impl Animation for RollAnimation {
         next.lantern.ori = Quaternion::rotation_x(0.1) * Quaternion::rotation_y(0.1);
         next.lantern.scale = Vec3::one() * 0.65;
 
-        next.torso.offset =
-            Vec3::new(0.0, 0.0, 0.0 + wave_dub * 16.0) / 11.0 * skeleton_attr.scaler;
-        next.torso.ori = Quaternion::rotation_x(wave_slow * 6.5) * Quaternion::rotation_y(tilt);
+        next.torso.offset = Vec3::new(0.0, 0.0, 8.0) / 11.0 * skeleton_attr.scaler;
+        next.torso.ori =
+            Quaternion::rotation_x(spin * -10.0) * Quaternion::rotation_z(tilt * -10.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
         next.control.offset = Vec3::new(0.0, 0.0, 0.0);

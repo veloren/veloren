@@ -312,6 +312,14 @@ impl PlayState for SessionState {
                             self.client.borrow_mut().toggle_sit();
                         }
                     }
+                    Event::InputUpdate(GameInput::Dance, state)
+                        if state != self.key_state.toggle_dance =>
+                    {
+                        self.key_state.toggle_dance = state;
+                        if state {
+                            self.client.borrow_mut().toggle_dance();
+                        }
+                    }
                     Event::InputUpdate(GameInput::MoveForward, state) => self.key_state.up = state,
                     Event::InputUpdate(GameInput::MoveBack, state) => self.key_state.down = state,
                     Event::InputUpdate(GameInput::MoveLeft, state) => self.key_state.left = state,

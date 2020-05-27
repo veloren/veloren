@@ -558,7 +558,7 @@ impl FigureMgr {
                         // In air
                         (false, _, false) => anim::character::JumpAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
-                            (active_tool_kind, time),
+                            (active_tool_kind, ori, state.last_ori, time),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -566,7 +566,7 @@ impl FigureMgr {
                         // Swim
                         (false, _, true) => anim::character::SwimAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
-                            (active_tool_kind, vel.0, ori.magnitude(), time),
+                            (active_tool_kind, vel.0, ori, state.last_ori, time),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -603,7 +603,13 @@ impl FigureMgr {
                             } else {
                                 anim::character::ChargeAnimation::update_skeleton(
                                     &target_base,
-                                    (active_tool_kind, vel.0.magnitude(), time),
+                                    (
+                                        active_tool_kind,
+                                        vel.0.magnitude(),
+                                        ori,
+                                        state.last_ori,
+                                        time,
+                                    ),
                                     state.state_time,
                                     &mut state_animation_rate,
                                     skeleton_attr,
@@ -714,6 +720,15 @@ impl FigureMgr {
                         },
                         CharacterState::Sit { .. } => {
                             anim::character::SitAnimation::update_skeleton(
+                                &CharacterSkeleton::new(),
+                                (active_tool_kind, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::Dance { .. } => {
+                            anim::character::DanceAnimation::update_skeleton(
                                 &CharacterSkeleton::new(),
                                 (active_tool_kind, time),
                                 state.state_time,

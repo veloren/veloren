@@ -27,9 +27,9 @@ impl CharacterBehavior for Data {
         update
     }
 
-    fn dance(&self, data: &JoinData) -> StateUpdate {
+    fn sit(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        attempt_dance(data, &mut update);
+        attempt_sit(data, &mut update);
         update
     }
 
