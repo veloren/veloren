@@ -37,10 +37,10 @@ impl Animation for EquipAnimation {
         match active_tool_kind {
             //TODO: Inventory
             Some(ToolKind::Sword(_)) => {
-                next.l_hand.offset = Vec3::new(-0.25, -5.0, -5.0);
+                next.l_hand.offset = Vec3::new(-0.75, -1.0, -2.5);
                 next.l_hand.ori = Quaternion::rotation_x(1.57) * Quaternion::rotation_y(-0.2);
                 next.l_hand.scale = Vec3::one() * 1.04;
-                next.r_hand.offset = Vec3::new(1.25, -5.5, -8.0);
+                next.r_hand.offset = Vec3::new(0.75, -1.5, -5.5);
                 next.r_hand.ori = Quaternion::rotation_x(1.57) * Quaternion::rotation_y(0.3);
                 next.r_hand.scale = Vec3::one() * 1.05;
                 next.main.offset = Vec3::new(0.0, 0.0, -6.0);
@@ -76,10 +76,10 @@ impl Animation for EquipAnimation {
                 next.control.scale = Vec3::one();
             },
             Some(ToolKind::Hammer(_)) => {
-                next.l_hand.offset = Vec3::new(-7.0 + 9.0, 4.6 + 1.5, 7.5 - 1.6);
+                next.l_hand.offset = Vec3::new(-7.0, 5.5, 3.5);
                 next.l_hand.ori = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.32);
                 next.l_hand.scale = Vec3::one() * 1.08;
-                next.r_hand.offset = Vec3::new(8.0, 5.75, 4.0);
+                next.r_hand.offset = Vec3::new(8.0, 7.75, 0.0);
                 next.r_hand.ori = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.22);
                 next.r_hand.scale = Vec3::one() * 1.06;
                 next.main.offset = Vec3::new(6.0, 7.0, 0.0);

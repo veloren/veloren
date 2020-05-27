@@ -38,10 +38,10 @@ impl Animation for SpinAnimation {
             //TODO: Inventory
             Some(ToolKind::Axe(_)) | Some(ToolKind::Hammer(_)) | Some(ToolKind::Sword(_)) => {
                 //INTENTION: SWORD
-                next.l_hand.offset = Vec3::new(0.0, 1.0, 0.0);
+                next.l_hand.offset = Vec3::new(-0.75, -1.0, -2.5);
                 next.l_hand.ori = Quaternion::rotation_x(1.27);
                 next.l_hand.scale = Vec3::one() * 1.04;
-                next.r_hand.offset = Vec3::new(0.0, 0.0, -3.0);
+                next.r_hand.offset = Vec3::new(0.75, -1.5, -5.5);
                 next.r_hand.ori = Quaternion::rotation_x(1.27);
                 next.r_hand.scale = Vec3::one() * 1.05;
                 next.main.offset = Vec3::new(0.0, 6.0, -1.0);
@@ -85,11 +85,11 @@ impl Animation for SpinAnimation {
 
             _ => {},
         }
-        next.l_foot.offset = Vec3::new(-3.4, foot * 1.0, 8.0);
+        next.l_foot.offset = Vec3::new(-skeleton_attr.foot.0, foot * 1.0, skeleton_attr.foot.2);
         next.l_foot.ori = Quaternion::rotation_x(foot * -1.2);
         next.l_foot.scale = Vec3::one();
 
-        next.r_foot.offset = Vec3::new(3.4, foot * -1.0, 8.0);
+        next.r_foot.offset = Vec3::new(skeleton_attr.foot.0, foot * -1.0, skeleton_attr.foot.2);
         next.r_foot.ori = Quaternion::rotation_x(foot * 1.2);
         next.r_foot.scale = Vec3::one();
 

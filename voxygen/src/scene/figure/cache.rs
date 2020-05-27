@@ -151,38 +151,10 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         )),
                         CameraMode::FirstPerson => None,
                     },
-                    if camera_mode == CameraMode::FirstPerson
-                        && character_state.map(|cs| cs.is_dodge()).unwrap_or_default()
-                    {
-                        None
-                    } else {
-                        Some(humanoid_armor_hand_spec.mesh_left_hand(&body, loadout, generate_mesh))
-                    },
-                    if character_state.map(|cs| cs.is_dodge()).unwrap_or_default() {
-                        None
-                    } else {
-                        Some(humanoid_armor_hand_spec.mesh_right_hand(
-                            &body,
-                            loadout,
-                            generate_mesh,
-                        ))
-                    },
-                    match camera_mode {
-                        CameraMode::ThirdPerson => Some(humanoid_armor_foot_spec.mesh_left_foot(
-                            &body,
-                            loadout,
-                            generate_mesh,
-                        )),
-                        CameraMode::FirstPerson => None,
-                    },
-                    match camera_mode {
-                        CameraMode::ThirdPerson => Some(humanoid_armor_foot_spec.mesh_right_foot(
-                            &body,
-                            loadout,
-                            generate_mesh,
-                        )),
-                        CameraMode::FirstPerson => None,
-                    },
+                    Some(humanoid_armor_hand_spec.mesh_left_hand(&body, loadout, generate_mesh)),
+                    Some(humanoid_armor_hand_spec.mesh_right_hand(&body, loadout, generate_mesh)),
+                    Some(humanoid_armor_foot_spec.mesh_left_foot(&body, loadout, generate_mesh)),
+                    Some(humanoid_armor_foot_spec.mesh_right_foot(&body, loadout, generate_mesh)),
                     match camera_mode {
                         CameraMode::ThirdPerson => {
                             Some(humanoid_armor_shoulder_spec.mesh_left_shoulder(

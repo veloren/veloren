@@ -1,122 +1,122 @@
 ((
     default: (
         left: (
-            vox_spec: ("armor.hand.hand_right_none", (-1.5, -1.5, -7.0)),
+            vox_spec: ("armor.hand.hand_right_none", (-1.5, -1.5, -2.5)),
             color: None
         ),
         right: (
-            vox_spec: ("armor.hand.hand_right_none", (-1.5, -1.5, -7.0)),
+            vox_spec: ("armor.hand.hand_right_none", (-1.5, -1.5, -2.5)),
             color: None
         )
     ),
     map: {
         Assassin: (
             left: (
-                vox_spec: ("armor.hand.assa_right", (-1.5, -1.5, -7.0)),
+                vox_spec: ("armor.hand.assa_right", (-1.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hand.assa_right", (-1.5, -1.5, -7.0)),
+                vox_spec: ("armor.hand.assa_right", (-1.5, -1.5, -2.5)),
                 color: None
             )
         ),
         Cloth: (
             left: (
-                vox_spec: ("armor.hand.cloth_basic_right", (-1.5, -1.5, -7.0)),
+                vox_spec: ("armor.hand.cloth_basic_right", (-1.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hand.cloth_basic_right", (-1.5, -1.5, -7.0)),
+                vox_spec: ("armor.hand.cloth_basic_right", (-1.5, -1.5, -2.5)),
                 color: None
             )
         ),
         Plate0: (
             left: (
-                vox_spec: ("armor.hand.plate_right-0", (-1.5, -1.5, -7.0)),
+                vox_spec: ("armor.hand.plate_right-0", (-1.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hand.plate_right-0", (-1.5, -1.5, -7.0)),
+                vox_spec: ("armor.hand.plate_right-0", (-1.5, -1.5, -2.5)),
                 color: None
             )
         ),
         Leather0: (
             left: (
-                vox_spec: ("armor.hand.leather_right-0", (-1.5, -1.5, -7.0)),
+                vox_spec: ("armor.hand.leather_right-0", (-1.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hand.leather_right-0", (-1.5, -1.5, -7.0)),
+                vox_spec: ("armor.hand.leather_right-0", (-1.5, -1.5, -2.5)),
                 color: None
             )
         ),
         ClothPurple0: (
             left: (
-                vox_spec: ("armor.hand.cloth_purple_right-0", (-1.5, -1.5, -7.0)),
+                vox_spec: ("armor.hand.cloth_purple_right-0", (-1.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hand.cloth_purple_right-0", (-1.5, -1.5, -7.0)),
+                vox_spec: ("armor.hand.cloth_purple_right-0", (-1.5, -1.5, -2.5)),
                 color: None
             )
         ),
         ClothBlue0: (
             left: (
-                vox_spec: ("armor.hand.cloth_blue_right-0", (-1.5, -1.5, -7.0)),
+                vox_spec: ("armor.hand.cloth_blue_right-0", (-1.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hand.cloth_blue_right-0", (-1.5, -1.5, -7.0)),
+                vox_spec: ("armor.hand.cloth_blue_right-0", (-1.5, -1.5, -2.5)),
                 color: None
             )
         ),
         ClothGreen0: (
             left: (
-                vox_spec: ("armor.hand.cloth_green_right-0", (-1.5, -1.5, -7.0)),
+                vox_spec: ("armor.hand.cloth_green_right-0", (-1.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hand.cloth_green_right-0", (-1.5, -1.5, -7.0)),
+                vox_spec: ("armor.hand.cloth_green_right-0", (-1.5, -1.5, -2.5)),
                 color: None
             )
         ),
         CultistPurple: (
             left: (
-                vox_spec: ("armor.hand.cultist_right", (-3.0, -1.5, -7.0)),
+                vox_spec: ("armor.hand.cultist_right", (-3.0, -1.5, -2.5)),
                 color: Some((30, 0, 64))
             ),
             right: (
-                 vox_spec: ("armor.hand.cultist_right", (-2.0, -1.5, -7.0)),
+                 vox_spec: ("armor.hand.cultist_right", (-2.0, -1.5, -2.5)),
                 color: Some((30, 0, 64))
             )
         ),
         CultistBlue: (
             left: (
-                vox_spec: ("armor.hand.cultist_right", (-3.0, -1.5, -7.0)),
+                vox_spec: ("armor.hand.cultist_right", (-3.0, -1.5, -2.5)),
                 color: Some((57, 81, 132))
             ),
             right: (
-                 vox_spec: ("armor.hand.cultist_right", (-2.0, -1.5, -7.0)),
+                 vox_spec: ("armor.hand.cultist_right", (-2.0, -1.5, -2.5)),
                 color: Some((57, 81, 132))
             )
         ),
         Steel0: (
             left: (
-                vox_spec: ("armor.hand.steel_left-0", (-1.5, -1.5, -7.0)),
+                vox_spec: ("armor.hand.steel_left-0", (-1.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hand.steel_right-0", (-1.5, -1.5, -7.0)),
+                vox_spec: ("armor.hand.steel_right-0", (-1.5, -1.5, -2.5)),
                 color: None
             )
         ),
         Leather2: (
             left: (
-                vox_spec: ("armor.hand.leather_left-2", (-1.5, -1.5, -7.0)),
+                vox_spec: ("armor.hand.leather_left-2", (-1.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hand.leather_right-2", (-1.5, -1.5, -7.0)),
+                vox_spec: ("armor.hand.leather_right-2", (-1.5, -1.5, -2.5)),
                 color: None
             )
         ),

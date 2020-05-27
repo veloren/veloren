@@ -6,12 +6,12 @@ use vek::*;
 pub struct SwimAnimation;
 
 impl Animation for SwimAnimation {
-    type Dependency = (Option<ToolKind>, Vec3<f32>, f32, f64);
+    type Dependency = (Option<ToolKind>, Vec3<f32>, Vec3<f32>, Vec3<f32>, f64);
     type Skeleton = CharacterSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
-        (_active_tool_kind, velocity, _orientation, global_time): Self::Dependency,
+        (_active_tool_kind, velocity, orientation, last_ori, global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -43,7 +43,19 @@ impl Animation for SwimAnimation {
                 .sin()
                 * 0.1,
         );
-
+        let ori = Vec2::from(orientation);
+        let last_ori = Vec2::from(last_ori);
+        let tilt = if Vec2::new(ori, last_ori)
+            .map(|o| Vec2::<f32>::from(o).magnitude_squared())
+            .map(|m| m > 0.001 && m.is_finite())
+            .reduce_and()
+            && ori.angle_between(last_ori).is_finite()
+        {
+            ori.angle_between(last_ori).min(0.2)
+                * last_ori.determine_side(Vec2::zero(), ori).signum()
+        } else {
+            0.0
+        } * 1.3;
         next.head.offset = Vec3::new(
             0.0,
             -3.0 + skeleton_attr.head.0,
@@ -75,34 +87,34 @@ impl Animation for SwimAnimation {
 
         next.l_hand.offset = Vec3::new(
             -skeleton_attr.hand.0,
-            skeleton_attr.hand.1 - foot * 1.2,
-            skeleton_attr.hand.2 + foot * -3.0,
+            1.5 + skeleton_attr.hand.1 - foot * 1.2,
+            2.0 + skeleton_attr.hand.2 + foot * -3.0,
         );
         next.l_hand.ori = Quaternion::rotation_x(0.8 + foot * -0.6) * Quaternion::rotation_y(0.2);
         next.l_hand.scale = Vec3::one();
 
         next.r_hand.offset = Vec3::new(
             skeleton_attr.hand.0,
-            skeleton_attr.hand.1 + foot * 1.2,
-            skeleton_attr.hand.2 + foot * 3.0,
+            1.5 + skeleton_attr.hand.1 + foot * 1.2,
+            2.0 + skeleton_attr.hand.2 + foot * 3.0,
         );
         next.r_hand.ori = Quaternion::rotation_x(0.8 + foot * 0.6) * Quaternion::rotation_y(-0.2);
         next.r_hand.scale = Vec3::one();
 
         next.l_foot.offset = Vec3::new(
             -skeleton_attr.foot.0,
-            4.0 + skeleton_attr.foot.1 + foot * 1.2,
-            -5.0 + skeleton_attr.foot.2 + foot * 6.5,
+            skeleton_attr.foot.1 + foot * 1.2,
+            -3.0 + skeleton_attr.foot.2 + foot * 3.5,
         );
-        next.l_foot.ori = Quaternion::rotation_x(-1.40 + foot * 0.6);
+        next.l_foot.ori = Quaternion::rotation_x(-1.1 + foot * 0.6);
         next.l_foot.scale = Vec3::one();
 
         next.r_foot.offset = Vec3::new(
             skeleton_attr.foot.0,
-            4.0 + skeleton_attr.foot.1 - foot * 1.2,
-            -5.0 + skeleton_attr.foot.2 + foot * -6.5,
+            skeleton_attr.foot.1 - foot * 1.2,
+            -3.0 + skeleton_attr.foot.2 + foot * -3.5,
         );
-        next.r_foot.ori = Quaternion::rotation_x(-1.40 + foot * -0.6);
+        next.r_foot.ori = Quaternion::rotation_x(-1.1 + foot * -0.6);
         next.r_foot.scale = Vec3::one();
 
         next.l_shoulder.offset = Vec3::new(
@@ -139,7 +151,8 @@ impl Animation for SwimAnimation {
         next.lantern.scale = Vec3::one() * 0.65;
 
         next.torso.offset = Vec3::new(0.0, -0.3 + shortalt * -0.065, 0.4) * skeleton_attr.scaler;
-        next.torso.ori = Quaternion::rotation_x(speed * -0.190 * wave_stop * 1.05);
+        next.torso.ori = Quaternion::rotation_x(speed * -0.190 * wave_stop * 1.05)
+            * Quaternion::rotation_z(tilt * 12.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
         next.control.scale = Vec3::one();

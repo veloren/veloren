@@ -28,6 +28,12 @@ impl CharacterBehavior for Data {
         update
     }
 
+    fn dance(&self, data: &JoinData) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        attempt_dance(data, &mut update);
+        update
+    }
+
     fn unwield(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         update.character = CharacterState::Idle;
