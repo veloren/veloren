@@ -158,7 +158,6 @@ rotation_image_ids! {
     }
 }
 
-#[derive(Clone)] // TODO: why does iced require Clone?
 pub enum Event {
     LoginAttempt {
         username: String,
@@ -190,7 +189,12 @@ struct IcedState {
     imgs: IcedImgs,
     quit_button: iced::button::State,
 }
-pub type Message = Event;
+
+#[derive(Clone)] // TODO: why does iced require Clone?
+enum Message {
+    Quit,
+}
+
 impl IcedState {
     pub fn new(imgs: IcedImgs) -> Self {
         Self {
@@ -351,9 +355,9 @@ impl IcedState {
         BackgroundContainer::new(Image::new(self.imgs.bg), content).into()
     }
 
-    pub fn update(message: Message) {
+    pub fn update(&mut self, message: Message, events: &mut Vec<Event>) {
         match message {
-            _ => unimplemented!(),
+            Message::Quit => events.push(Event::Quit),
         }
     }
 }
@@ -1121,12 +1125,16 @@ impl<'a> MainMenuUi {
     pub fn handle_iced_event(&mut self, event: ui::ice::Event) { self.ice_ui.handle_event(event); }
 
     pub fn maintain(&mut self, global_state: &mut GlobalState, dt: Duration) -> Vec<Event> {
-        let events = self.update_layout(global_state, dt);
+        let mut events = self.update_layout(global_state, dt);
         self.ui.maintain(global_state.window.renderer_mut(), None);
-        self.ice_ui.maintain(
+        let (messages, _) = self.ice_ui.maintain(
             self.ice_state.view(&self.i18n),
             global_state.window.renderer_mut(),
         );
+        messages
+            .into_iter()
+            .for_each(|message| self.ice_state.update(message, &mut events));
+
         events
     }
 

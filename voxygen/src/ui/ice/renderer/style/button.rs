@@ -1,6 +1,5 @@
-use super::{super::Rotation, widget::image, Defaults, IcedRenderer, Primitive};
-use iced::{button, mouse, Color, Element, Layout, Point, Rectangle};
-use vek::Rgba;
+use super::super::widget::image;
+use iced::Color;
 
 #[derive(Clone, Copy)]
 struct Background {
@@ -69,22 +68,22 @@ impl Style {
         self
     }
 
-    fn disabled(&self) -> (Option<image::Handle>, Color) {
+    pub fn disabled(&self) -> (Option<image::Handle>, Color) {
         (
             self.background.as_ref().map(|b| b.default),
             self.disabled_text,
         )
     }
 
-    fn pressed(&self) -> (Option<image::Handle>, Color) {
+    pub fn pressed(&self) -> (Option<image::Handle>, Color) {
         (self.background.as_ref().map(|b| b.press), self.enabled_text)
     }
 
-    fn hovered(&self) -> (Option<image::Handle>, Color) {
+    pub fn hovered(&self) -> (Option<image::Handle>, Color) {
         (self.background.as_ref().map(|b| b.hover), self.enabled_text)
     }
 
-    fn active(&self) -> (Option<image::Handle>, Color) {
+    pub fn active(&self) -> (Option<image::Handle>, Color) {
         (
             self.background.as_ref().map(|b| b.default),
             self.enabled_text,
@@ -99,67 +98,5 @@ impl Default for Style {
             enabled_text: Color::WHITE,
             disabled_text: Color::from_rgb(0.5, 0.5, 0.5),
         }
-    }
-}
-
-impl button::Renderer for IcedRenderer {
-    // TODO: what if this gets large enough to not be copied around?
-    type Style = Style;
-
-    const DEFAULT_PADDING: u16 = 0;
-
-    fn draw<M>(
-        &mut self,
-        defaults: &Self::Defaults,
-        bounds: Rectangle,
-        cursor_position: Point,
-        is_disabled: bool,
-        is_pressed: bool,
-        style: &Self::Style,
-        content: &Element<'_, M, Self>,
-        content_layout: Layout<'_>,
-    ) -> Self::Output {
-        let is_mouse_over = bounds.contains(cursor_position);
-
-        let (maybe_image, text_color) = if is_disabled {
-            style.disabled()
-        } else if is_mouse_over {
-            if is_pressed {
-                style.pressed()
-            } else {
-                style.hovered()
-            }
-        } else {
-            style.active()
-        };
-
-        let (content, _) = content.draw(
-            self,
-            &Defaults { text_color },
-            content_layout,
-            cursor_position,
-        );
-
-        let primitive = if let Some(handle) = maybe_image {
-            let background = Primitive::Image {
-                handle: (handle, Rotation::None),
-                bounds,
-                color: Rgba::broadcast(255),
-            };
-
-            Primitive::Group {
-                primitives: vec![background, content],
-            }
-        } else {
-            content
-        };
-
-        let mouse_interaction = if is_mouse_over {
-            mouse::Interaction::Pointer
-        } else {
-            mouse::Interaction::default()
-        };
-
-        (primitive, mouse_interaction)
     }
 }

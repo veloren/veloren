@@ -1,4 +1,4 @@
-use super::{IcedRenderer, Primitive};
+use super::super::{IcedRenderer, Primitive};
 use iced::{mouse, row, Element, Layout, Point};
 
 impl row::Renderer for IcedRenderer {
