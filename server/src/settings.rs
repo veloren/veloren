@@ -42,7 +42,7 @@ impl Default for ServerSettings {
                 "xMAC94x",
                 "Timo",
                 "Songtronix",
-                "Slipped",
+                "slipped",
                 "Sharp",
                 "Acrimon",
                 "imbris",

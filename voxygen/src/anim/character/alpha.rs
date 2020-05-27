@@ -72,10 +72,10 @@ impl Animation for AlphaAnimation {
                 next.shorts.offset = Vec3::new(0.0, skeleton_attr.shorts.0, skeleton_attr.shorts.1);
                 next.shorts.ori = next.chest.ori * -0.45;
 
-                next.l_hand.offset = Vec3::new(-0.25, -5.0, 1.0);
+                next.l_hand.offset = Vec3::new(-0.75, -1.0, -2.5);
                 next.l_hand.ori = Quaternion::rotation_x(1.27);
                 next.l_hand.scale = Vec3::one() * 1.05;
-                next.r_hand.offset = Vec3::new(1.25, -5.5, -2.0);
+                next.r_hand.offset = Vec3::new(0.75, -1.5, -5.5);
                 next.r_hand.ori = Quaternion::rotation_x(1.27);
                 next.r_hand.scale = Vec3::one() * 1.05;
                 next.main.offset = Vec3::new(0.0, 0.0, 0.0);
@@ -89,12 +89,20 @@ impl Animation for AlphaAnimation {
                     * Quaternion::rotation_z(1.4 + slow * -0.5);
                 next.control.scale = Vec3::one();
 
-                next.l_foot.offset = Vec3::new(-3.4, slow * -3.0 + quick * 3.0 - 4.0, 8.0);
+                next.l_foot.offset = Vec3::new(
+                    -skeleton_attr.foot.0,
+                    slow * -3.0 + quick * 3.0 - 4.0,
+                    skeleton_attr.foot.2,
+                );
                 next.l_foot.ori = Quaternion::rotation_x(slow * 0.6)
                     * Quaternion::rotation_y((slow * -0.2).max(0.0));
                 next.l_foot.scale = Vec3::one();
 
-                next.r_foot.offset = Vec3::new(3.4, slow * 3.0 + quick * -3.0 + 5.0, 8.0);
+                next.r_foot.offset = Vec3::new(
+                    skeleton_attr.foot.0,
+                    slow * 3.0 + quick * -3.0 + 5.0,
+                    skeleton_attr.foot.2,
+                );
                 next.r_foot.ori = Quaternion::rotation_x(slow * -0.6)
                     * Quaternion::rotation_y((slow * 0.2).min(0.0));
                 next.r_foot.scale = Vec3::one();
@@ -161,14 +169,16 @@ impl Animation for AlphaAnimation {
                 next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
             },
             Some(ToolKind::Hammer(_)) => {
-                next.l_hand.offset = Vec3::new(0.0, 3.0, 8.0);
-                next.l_hand.ori = Quaternion::rotation_x(1.27);
+                next.l_hand.offset = Vec3::new(-7.0, 5.5, 3.5);
+                next.l_hand.ori = Quaternion::rotation_x(0.3) * Quaternion::rotation_y(0.32);
                 next.l_hand.scale = Vec3::one() * 1.05;
-                next.r_hand.offset = Vec3::new(0.0, 0.0, -3.0);
-                next.r_hand.ori = Quaternion::rotation_x(1.27);
+                next.r_hand.offset = Vec3::new(8.0, 7.75, 0.0);
+                next.r_hand.ori = Quaternion::rotation_x(0.3) * Quaternion::rotation_y(0.22);
                 next.r_hand.scale = Vec3::one() * 1.05;
-                next.main.offset = Vec3::new(0.0, 6.0, -1.0);
-                next.main.ori = Quaternion::rotation_x(-0.3);
+                next.main.offset = Vec3::new(6.0, 7.0, 0.0);
+                next.main.ori = Quaternion::rotation_x(0.3)
+                    * Quaternion::rotation_y(-1.35)
+                    * Quaternion::rotation_z(1.57);
                 next.head.offset =
                     Vec3::new(0.0, -2.0 + skeleton_attr.head.0, skeleton_attr.head.1);
                 next.head.ori = Quaternion::rotation_z(slower * 0.05)
@@ -195,12 +205,14 @@ impl Animation for AlphaAnimation {
                 next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
                 if velocity > 0.5 {
-                    next.l_foot.offset = Vec3::new(-3.4, foot * -2.0, 8.0);
+                    next.l_foot.offset =
+                        Vec3::new(-skeleton_attr.foot.0, foot * -2.0, skeleton_attr.foot.2);
                     next.l_foot.ori = Quaternion::rotation_x(foot * -0.4)
                         * Quaternion::rotation_z((slower * 0.6).max(0.0));
                     next.l_foot.scale = Vec3::one();
 
-                    next.r_foot.offset = Vec3::new(3.4, foot * 2.0, 8.0);
+                    next.r_foot.offset =
+                        Vec3::new(skeleton_attr.foot.0, foot * 2.0, skeleton_attr.foot.2);
                     next.r_foot.ori = Quaternion::rotation_x(foot * 0.4)
                         * Quaternion::rotation_z((slower * 0.6).max(0.0));
                     next.r_foot.scale = Vec3::one();
@@ -208,12 +220,20 @@ impl Animation for AlphaAnimation {
                     next.torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(-0.15);
                     next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
                 } else {
-                    next.l_foot.offset = Vec3::new(-3.4, -2.5, 8.0 + (slower * 2.5).max(0.0));
+                    next.l_foot.offset = Vec3::new(
+                        -skeleton_attr.foot.0,
+                        -2.5,
+                        skeleton_attr.foot.2 + (slower * 2.5).max(0.0),
+                    );
                     next.l_foot.ori = Quaternion::rotation_x(slower * -0.2 - 0.2)
                         * Quaternion::rotation_z((slower * 1.0).max(0.0));
                     next.l_foot.scale = Vec3::one();
 
-                    next.r_foot.offset = Vec3::new(3.4, 3.5 - slower * 2.0, 8.0);
+                    next.r_foot.offset = Vec3::new(
+                        skeleton_attr.foot.0,
+                        3.5 - slower * 2.0,
+                        skeleton_attr.foot.2,
+                    );
                     next.r_foot.ori = Quaternion::rotation_x(slower * 0.1)
                         * Quaternion::rotation_z((slower * 0.5).max(0.0));
                     next.r_foot.scale = Vec3::one();
@@ -222,10 +242,10 @@ impl Animation for AlphaAnimation {
                     next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
                 }
 
-                next.control.offset = Vec3::new(-6.0, 3.0 + slower * 2.0, 8.0 + slower * 5.0);
-                next.control.ori = Quaternion::rotation_x(-0.2 + slower * 1.8)
+                next.control.offset = Vec3::new(-4.0, 3.0 + slower * 2.0, 5.0 + slower * 5.0);
+                next.control.ori = Quaternion::rotation_x(-0.7 + slower * 1.8)
                     * Quaternion::rotation_y(0.0)
-                    * Quaternion::rotation_z(1.4 + 1.57);
+                    * Quaternion::rotation_z(1.4);
                 next.control.scale = Vec3::one();
 
                 next.torso.offset = Vec3::new(0.0, 0.0, 0.1) * skeleton_attr.scaler;

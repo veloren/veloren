@@ -74,7 +74,7 @@ impl Animation for ClimbAnimation {
         next.l_hand.offset = Vec3::new(
             -skeleton_attr.hand.0,
             skeleton_attr.hand.1 + quicka * 1.5,
-            skeleton_attr.hand.2 - quick * 4.0,
+            5.0 + skeleton_attr.hand.2 - quick * 4.0,
         );
         next.l_hand.ori = Quaternion::rotation_x(2.2 + quicka * 0.5);
         next.l_hand.scale = Vec3::one();
@@ -82,7 +82,7 @@ impl Animation for ClimbAnimation {
         next.r_hand.offset = Vec3::new(
             skeleton_attr.hand.0,
             skeleton_attr.hand.1 - quicka * 1.5,
-            skeleton_attr.hand.2 + quick * 4.0,
+            5.0 + skeleton_attr.hand.2 + quick * 4.0,
         );
         next.r_hand.ori = Quaternion::rotation_x(2.2 - quicka * 0.5);
         next.r_hand.scale = Vec3::one();

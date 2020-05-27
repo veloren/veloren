@@ -31,6 +31,7 @@ pub enum ControlAction {
     Wield,
     Unwield,
     Sit,
+    Dance,
     Stand,
 }
 

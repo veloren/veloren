@@ -398,6 +398,21 @@ impl Client {
         }
     }
 
+    pub fn toggle_dance(&mut self) {
+        let is_dancing = self
+            .state
+            .ecs()
+            .read_storage::<comp::CharacterState>()
+            .get(self.entity)
+            .map(|cs| matches!(cs, comp::CharacterState::Dance));
+
+        match is_dancing {
+            Some(true) => self.control_action(ControlAction::Stand),
+            Some(false) => self.control_action(ControlAction::Dance),
+            None => warn!("Can't toggle dance, client entity doesn't have a `CharacterState`"),
+        }
+    }
+
     fn control_action(&mut self, control_action: ControlAction) {
         if let Some(controller) = self
             .state

@@ -6,12 +6,12 @@ use vek::*;
 pub struct ChargeAnimation;
 
 impl Animation for ChargeAnimation {
-    type Dependency = (Option<ToolKind>, f32, f64);
+    type Dependency = (Option<ToolKind>, f32, Vec3<f32>, Vec3<f32>, f64);
     type Skeleton = CharacterSkeleton;
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, velocity, _global_time): Self::Dependency,
+        (active_tool_kind, velocity, orientation, last_ori, _global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -47,24 +47,37 @@ impl Animation for ChargeAnimation {
         let stop = ((anim_time as f32).powf(0.3 as f32)).min(1.2);
         let stopa = ((anim_time as f32).powf(0.9 as f32)).min(5.0);
 
+        let ori = Vec2::from(orientation);
+        let last_ori = Vec2::from(last_ori);
+        let tilt = if Vec2::new(ori, last_ori)
+            .map(|o| Vec2::<f32>::from(o).magnitude_squared())
+            .map(|m| m > 0.001 && m.is_finite())
+            .reduce_and()
+            && ori.angle_between(last_ori).is_finite()
+        {
+            ori.angle_between(last_ori).min(0.2)
+                * last_ori.determine_side(Vec2::zero(), ori).signum()
+        } else {
+            0.0
+        } * 1.3;
+
         next.head.offset = Vec3::new(
             0.0 + stop * -2.0,
             -2.0 + stop * 2.5 + skeleton_attr.head.0,
             skeleton_attr.head.1,
         );
-        next.head.ori = Quaternion::rotation_z(stop * -1.0)
-            * Quaternion::rotation_x(0.0)
-            * Quaternion::rotation_y(stop * -0.3);
+        next.head.ori =
+            Quaternion::rotation_z(stop * -1.0 + tilt * -2.0) * Quaternion::rotation_y(stop * -0.3);
         next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
         next.chest.offset = Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1);
-        next.chest.ori = Quaternion::rotation_z(stop * 1.2 + stress * stop * 0.02);
+        next.chest.ori = Quaternion::rotation_z(stop * 1.2 + stress * stop * 0.02 + tilt * -2.0);
 
         next.belt.offset = Vec3::new(0.0, skeleton_attr.belt.0, skeleton_attr.belt.1);
-        next.belt.ori = Quaternion::rotation_z(stop * -0.5);
+        next.belt.ori = Quaternion::rotation_z(stop * -0.5 + tilt * 2.0);
 
         next.shorts.offset = Vec3::new(0.0, skeleton_attr.shorts.0, skeleton_attr.shorts.1);
-        next.shorts.ori = Quaternion::rotation_z(stop * -0.7);
+        next.shorts.ori = Quaternion::rotation_z(stop * -0.7 + tilt * 4.0);
 
         match active_tool_kind {
             //TODO: Inventory
@@ -115,32 +128,47 @@ impl Animation for ChargeAnimation {
             },
             _ => {},
         }
-        if velocity > 0.5 {
-            next.l_foot.offset = Vec3::new(-3.4 - foot * 1.5, foote * 2.0, 8.0);
+
+        if velocity > 0.2 {
+            next.l_foot.offset = Vec3::new(
+                -skeleton_attr.foot.0 - foot * 1.5,
+                skeleton_attr.foot.1 + foote * 2.0,
+                skeleton_attr.foot.2,
+            );
             next.l_foot.ori = Quaternion::rotation_x(foote * -0.1)
                 * Quaternion::rotation_z(0.4)
                 * Quaternion::rotation_y(0.15);
 
-            next.r_foot.offset = Vec3::new(3.4 + foot * 1.5, foote * -1.5, 8.0);
+            next.r_foot.offset = Vec3::new(
+                skeleton_attr.foot.0 + foot * 1.5,
+                skeleton_attr.foot.1 + foote * -1.5,
+                skeleton_attr.foot.2,
+            );
             next.r_foot.ori = Quaternion::rotation_x(0.0)
                 * Quaternion::rotation_z(0.4)
                 * Quaternion::rotation_y(0.0);
 
-            next.torso.offset =
-                Vec3::new(0.0 + foot * 0.03, foote * 0.05, 0.1) * skeleton_attr.scaler;
+            next.torso.offset = Vec3::new(0.0, 0.0, 0.1) * skeleton_attr.scaler;
             next.torso.ori = Quaternion::rotation_z(0.0);
             next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
         } else {
-            next.l_foot.offset = Vec3::new(-3.4, -2.5 + stop * -1.3, 8.0);
+            next.l_foot.offset = Vec3::new(
+                -skeleton_attr.foot.0,
+                -2.5 + stop * -1.3,
+                skeleton_attr.foot.2 + tilt * -4.0 * foot,
+            );
             next.l_foot.ori = Quaternion::rotation_x(stop * -0.2 - 0.2 + stop * stress * 0.02)
                 * Quaternion::rotation_z(stop * 0.1)
                 * Quaternion::rotation_y(stop * 0.08);
-            next.l_foot.scale = Vec3::one();
 
-            next.r_foot.offset = Vec3::new(3.4, 3.5 + stop * 1.5, 8.0);
+            next.r_foot.offset = Vec3::new(
+                skeleton_attr.foot.0,
+                3.5 + stop * 1.5,
+                skeleton_attr.foot.2 + tilt * 4.0 * foot,
+            );
             next.r_foot.ori =
                 Quaternion::rotation_x(stop * 0.1) * Quaternion::rotation_z(stop * 0.1);
-            next.r_foot.scale = Vec3::one();
+
             next.torso.offset = Vec3::new(0.0, 0.0, 0.1) * skeleton_attr.scaler;
             next.torso.ori = Quaternion::rotation_z(0.0);
             next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;

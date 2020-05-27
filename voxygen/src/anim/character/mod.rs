@@ -4,6 +4,7 @@ pub mod block;
 pub mod blockidle;
 pub mod charge;
 pub mod climb;
+pub mod dance;
 pub mod dash;
 pub mod equip;
 pub mod gliding;
@@ -22,10 +23,10 @@ pub mod wield;
 pub use self::{
     alpha::AlphaAnimation, beta::BetaAnimation, block::BlockAnimation,
     blockidle::BlockIdleAnimation, charge::ChargeAnimation, climb::ClimbAnimation,
-    dash::DashAnimation, equip::EquipAnimation, gliding::GlidingAnimation, idle::IdleAnimation,
-    jump::JumpAnimation, roll::RollAnimation, run::RunAnimation, shoot::ShootAnimation,
-    sit::SitAnimation, spin::SpinAnimation, stand::StandAnimation, swim::SwimAnimation,
-    wield::WieldAnimation,
+    dance::DanceAnimation, dash::DashAnimation, equip::EquipAnimation, gliding::GlidingAnimation,
+    idle::IdleAnimation, jump::JumpAnimation, roll::RollAnimation, run::RunAnimation,
+    shoot::ShootAnimation, sit::SitAnimation, spin::SpinAnimation, stand::StandAnimation,
+    swim::SwimAnimation, wield::WieldAnimation,
 };
 
 use super::{Bone, Skeleton};
@@ -50,6 +51,7 @@ pub struct CharacterSkeleton {
     main: Bone,
     second: Bone,
     lantern: Bone,
+    hold: Bone,
     torso: Bone,
     control: Bone,
     l_control: Bone,
@@ -104,7 +106,9 @@ impl Skeleton for CharacterSkeleton {
                     torso_mat * chest_mat * control_mat * r_control_mat * second_mat,
                 ),
                 FigureBoneData::new(lantern_final_mat),
-                FigureBoneData::default(),
+                FigureBoneData::new(
+                    torso_mat * chest_mat * l_hand_mat * self.hold.compute_base_matrix(),
+                ),
             ],
             (lantern_final_mat * Vec4::new(0.0, 0.0, 0.0, 1.0)).xyz(),
         )
@@ -126,6 +130,7 @@ impl Skeleton for CharacterSkeleton {
         self.main.interpolate(&target.main, dt);
         self.second.interpolate(&target.second, dt);
         self.lantern.interpolate(&target.lantern, dt);
+        self.hold.interpolate(&target.hold, dt);
         self.torso.interpolate(&target.torso, dt);
         self.control.interpolate(&target.control, dt);
         self.l_control.interpolate(&target.l_control, dt);
@@ -216,18 +221,18 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 (Danari, Female) => 1.15,
             },
             head: match (body.race, body.body_type) {
-                (Orc, Male) => (0.0, 14.0),
-                (Orc, Female) => (0.0, 14.0),
-                (Human, Male) => (0.3, 13.5),
-                (Human, Female) => (0.0, 13.8),
-                (Elf, Male) => (0.5, 13.5),
-                (Elf, Female) => (1.0, 13.5),
-                (Dwarf, Male) => (0.0, 14.5),
-                (Dwarf, Female) => (0.0, 14.0),
-                (Undead, Male) => (0.5, 13.6),
-                (Undead, Female) => (0.5, 14.5),
-                (Danari, Male) => (0.5, 14.0),
-                (Danari, Female) => (0.5, 14.0),
+                (Orc, Male) => (0.0, 13.5),
+                (Orc, Female) => (0.0, 13.0),
+                (Human, Male) => (0.3, 13.0),
+                (Human, Female) => (0.0, 13.5),
+                (Elf, Male) => (0.5, 13.0),
+                (Elf, Female) => (1.0, 13.0),
+                (Dwarf, Male) => (0.0, 14.0),
+                (Dwarf, Female) => (0.0, 13.5),
+                (Undead, Male) => (0.5, 13.0),
+                (Undead, Female) => (0.5, 14.0),
+                (Danari, Male) => (0.5, 12.5),
+                (Danari, Female) => (0.5, 13.5),
             },
             chest: match (body.race, body.body_type) {
                 (_, _) => (0.0, 7.0),
@@ -242,10 +247,10 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 (_, _) => (0.0, -5.0),
             },
             hand: match (body.race, body.body_type) {
-                (_, _) => (7.0, -0.25, 5.0),
+                (_, _) => (7.0, -0.25, 0.5),
             },
             foot: match (body.race, body.body_type) {
-                (_, _) => (3.4, -0.1, 8.0),
+                (_, _) => (3.4, 0.5, 1.0),
             },
             shoulder: match (body.race, body.body_type) {
                 (_, _) => (5.0, 0.0, 5.0),

@@ -121,6 +121,12 @@ pub fn attempt_sit(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
+pub fn attempt_dance(data: &JoinData, update: &mut StateUpdate) {
+    if data.physics.on_ground && data.body.is_humanoid() {
+        update.character = CharacterState::Dance;
+    }
+}
+
 /// Checks that player can `Climb` and updates `CharacterState` if so
 pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.climb.is_some()
