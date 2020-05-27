@@ -1,16 +1,9 @@
-// TODO: reorganize modules (e.g. put all these in a widget submodule)
-mod aspect_ratio_container;
-mod background_container;
-mod button;
-mod column;
-mod compound_graphic;
-mod container;
-mod image;
-mod row;
-mod space;
-mod text;
+mod defaults;
+mod style;
+mod widgets;
 
-pub use button::Style as ButtonStyle;
+pub use defaults::Defaults;
+pub use style::ButtonStyle;
 
 use super::{
     super::graphic::{self, Graphic, TexId},
@@ -24,7 +17,6 @@ use crate::{
     Error,
 };
 use common::util::srgba_to_linear;
-//use log::warn;
 use std::ops::Range;
 use vek::*;
 
@@ -593,19 +585,6 @@ fn default_scissor(renderer: &Renderer) -> Aabr<u16> {
             x: screen_w,
             y: screen_h,
         },
-    }
-}
-
-// TODO: expose to user
-pub struct Defaults {
-    pub text_color: iced::Color,
-}
-
-impl Default for Defaults {
-    fn default() -> Self {
-        Self {
-            text_color: iced::Color::WHITE,
-        }
     }
 }
 

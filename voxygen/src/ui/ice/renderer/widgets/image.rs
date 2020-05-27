@@ -1,4 +1,4 @@
-use super::{
+use super::super::{
     super::{widget::image, Rotation},
     IcedRenderer, Primitive,
 };

@@ -1,7 +1,7 @@
-use super::{super::widget::stack, IcedRenderer, Primitive};
-use iced::{mouse, Element, Layout, Point};
+use super::super::{IcedRenderer, Primitive};
+use iced::{column, mouse, Element, Layout, Point};
 
-impl stack::Renderer for IcedRenderer {
+impl column::Renderer for IcedRenderer {
     fn draw<M>(
         &mut self,
         defaults: &Self::Defaults,
