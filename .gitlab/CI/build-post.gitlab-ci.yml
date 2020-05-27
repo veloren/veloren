@@ -37,7 +37,6 @@ localization-status:
 
 # Artifacts
 .artifact: &artifact
-  extends: .recompile
   extends: .release
   stage: build-post
   tags:
