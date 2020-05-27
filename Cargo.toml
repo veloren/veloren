@@ -9,7 +9,7 @@ members = [
 	"server-cli",
 	"voxygen",
 	"world",
-    "network",
+	"network",
 ]
 
 # default profile for devs, fast to compile, okay enough to run, no debug information

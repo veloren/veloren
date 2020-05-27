@@ -58,6 +58,26 @@ impl TcpProtocol {
         Self { stream, metrics }
     }
 
+    /// read_except and if it fails, close the protocol
+    async fn read_except_or_close(
+        cid: Cid,
+        mut stream: &TcpStream,
+        mut bytes: &mut [u8],
+        from_wire_sender: &mut mpsc::UnboundedSender<(Cid, Frame)>,
+    ) {
+        match stream.read_exact(&mut bytes).await {
+            Err(e) => {
+                warn!(
+                    ?e,
+                    "closing tcp protocol due to read error, sending close frame to gracefully \
+                     shutdown"
+                );
+                from_wire_sender.send((cid, Frame::Shutdown)).await.unwrap();
+            },
+            _ => (),
+        }
+    }
+
     pub async fn read(
         &self,
         cid: Cid,
@@ -66,8 +86,13 @@ impl TcpProtocol {
     ) {
         trace!("starting up tcp read()");
         let mut metrics_cache = CidFrameCache::new(self.metrics.frames_wire_in_total.clone(), cid);
+        let throughput_cache = self
+            .metrics
+            .wire_in_throughput
+            .with_label_values(&[&cid.to_string()]);
         let mut stream = self.stream.clone();
         let mut end_receiver = end_receiver.fuse();
+
         loop {
             let mut bytes = [0u8; 1];
             let r = select! {
@@ -82,7 +107,8 @@ impl TcpProtocol {
             let frame = match frame_no {
                 FRAME_HANDSHAKE => {
                     let mut bytes = [0u8; 19];
-                    stream.read_exact(&mut bytes).await.unwrap();
+                    Self::read_except_or_close(cid, &mut stream, &mut bytes, &mut from_wire_sender)
+                        .await;
                     let magic_number = [
                         bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6],
                     ];
@@ -97,7 +123,8 @@ impl TcpProtocol {
                 },
                 FRAME_INIT => {
                     let mut bytes = [0u8; 16];
-                    stream.read_exact(&mut bytes).await.unwrap();
+                    Self::read_except_or_close(cid, &mut stream, &mut bytes, &mut from_wire_sender)
+                        .await;
                     let pid = Pid::from_le_bytes(bytes);
                     stream.read_exact(&mut bytes).await.unwrap();
                     let secret = u128::from_le_bytes(bytes);
@@ -106,7 +133,8 @@ impl TcpProtocol {
                 FRAME_SHUTDOWN => Frame::Shutdown,
                 FRAME_OPEN_STREAM => {
                     let mut bytes = [0u8; 10];
-                    stream.read_exact(&mut bytes).await.unwrap();
+                    Self::read_except_or_close(cid, &mut stream, &mut bytes, &mut from_wire_sender)
+                        .await;
                     let sid = Sid::from_le_bytes([
                         bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6],
                         bytes[7],
@@ -121,7 +149,8 @@ impl TcpProtocol {
                 },
                 FRAME_CLOSE_STREAM => {
                     let mut bytes = [0u8; 8];
-                    stream.read_exact(&mut bytes).await.unwrap();
+                    Self::read_except_or_close(cid, &mut stream, &mut bytes, &mut from_wire_sender)
+                        .await;
                     let sid = Sid::from_le_bytes([
                         bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6],
                         bytes[7],
@@ -130,7 +159,8 @@ impl TcpProtocol {
                 },
                 FRAME_DATA_HEADER => {
                     let mut bytes = [0u8; 24];
-                    stream.read_exact(&mut bytes).await.unwrap();
+                    Self::read_except_or_close(cid, &mut stream, &mut bytes, &mut from_wire_sender)
+                        .await;
                     let mid = Mid::from_le_bytes([
                         bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6],
                         bytes[7],
@@ -147,7 +177,8 @@ impl TcpProtocol {
                 },
                 FRAME_DATA => {
                     let mut bytes = [0u8; 18];
-                    stream.read_exact(&mut bytes).await.unwrap();
+                    Self::read_except_or_close(cid, &mut stream, &mut bytes, &mut from_wire_sender)
+                        .await;
                     let mid = Mid::from_le_bytes([
                         bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6],
                         bytes[7],
@@ -158,22 +189,27 @@ impl TcpProtocol {
                     ]);
                     let length = u16::from_le_bytes([bytes[16], bytes[17]]);
                     let mut data = vec![0; length as usize];
-                    stream.read_exact(&mut data).await.unwrap();
+                    throughput_cache.inc_by(length as i64);
+                    Self::read_except_or_close(cid, &mut stream, &mut data, &mut from_wire_sender)
+                        .await;
                     Frame::Data { mid, start, data }
                 },
                 FRAME_RAW => {
                     let mut bytes = [0u8; 2];
-                    stream.read_exact(&mut bytes).await.unwrap();
+                    Self::read_except_or_close(cid, &mut stream, &mut bytes, &mut from_wire_sender)
+                        .await;
                     let length = u16::from_le_bytes([bytes[0], bytes[1]]);
                     let mut data = vec![0; length as usize];
-                    stream.read_exact(&mut data).await.unwrap();
+                    Self::read_except_or_close(cid, &mut stream, &mut data, &mut from_wire_sender)
+                        .await;
                     Frame::Raw(data)
                 },
                 _ => {
                     // report a RAW frame, but cannot rely on the next 2 bytes to be a size.
                     // guessing 256 bytes, which might help to sort down issues
                     let mut data = vec![0; 256];
-                    stream.read(&mut data).await.unwrap();
+                    Self::read_except_or_close(cid, &mut stream, &mut data, &mut from_wire_sender)
+                        .await;
                     Frame::Raw(data)
                 },
             };
@@ -183,6 +219,25 @@ impl TcpProtocol {
         trace!("shutting down tcp read()");
     }
 
+    /// read_except and if it fails, close the protocol
+    async fn write_or_close(
+        stream: &mut TcpStream,
+        bytes: &[u8],
+        to_wire_receiver: &mut mpsc::UnboundedReceiver<Frame>,
+    ) -> bool {
+        match stream.write_all(&bytes).await {
+            Err(e) => {
+                warn!(
+                    ?e,
+                    "got an error writing to tcp, going to close this channel"
+                );
+                to_wire_receiver.close();
+                true
+            },
+            _ => false,
+        }
+    }
+
     //dezerialize here as this is executed in a seperate thread PER channel.
     // Limites Throughput per single Receiver but stays in same thread (maybe as its
     // in a threadpool) for TCP, UDP and MPSC
@@ -190,80 +245,188 @@ impl TcpProtocol {
         trace!("starting up tcp write()");
         let mut stream = self.stream.clone();
         let mut metrics_cache = CidFrameCache::new(self.metrics.frames_wire_out_total.clone(), cid);
+        let throughput_cache = self
+            .metrics
+            .wire_out_throughput
+            .with_label_values(&[&cid.to_string()]);
         while let Some(frame) = to_wire_receiver.next().await {
             metrics_cache.with_label_values(&frame).inc();
-            match frame {
+            if match frame {
                 Frame::Handshake {
                     magic_number,
                     version,
                 } => {
-                    stream
-                        .write_all(&FRAME_HANDSHAKE.to_be_bytes())
+                    Self::write_or_close(
+                        &mut stream,
+                        &FRAME_HANDSHAKE.to_be_bytes(),
+                        &mut to_wire_receiver,
+                    )
+                    .await
+                        || Self::write_or_close(&mut stream, &magic_number, &mut to_wire_receiver)
+                            .await
+                        || Self::write_or_close(
+                            &mut stream,
+                            &version[0].to_le_bytes(),
+                            &mut to_wire_receiver,
+                        )
                         .await
-                        .unwrap();
-                    stream.write_all(&magic_number).await.unwrap();
-                    stream.write_all(&version[0].to_le_bytes()).await.unwrap();
-                    stream.write_all(&version[1].to_le_bytes()).await.unwrap();
-                    stream.write_all(&version[2].to_le_bytes()).await.unwrap();
+                        || Self::write_or_close(
+                            &mut stream,
+                            &version[1].to_le_bytes(),
+                            &mut to_wire_receiver,
+                        )
+                        .await
+                        || Self::write_or_close(
+                            &mut stream,
+                            &version[2].to_le_bytes(),
+                            &mut to_wire_receiver,
+                        )
+                        .await
                 },
                 Frame::Init { pid, secret } => {
-                    stream.write_all(&FRAME_INIT.to_be_bytes()).await.unwrap();
-                    stream.write_all(&pid.to_le_bytes()).await.unwrap();
-                    stream.write_all(&secret.to_le_bytes()).await.unwrap();
+                    Self::write_or_close(
+                        &mut stream,
+                        &FRAME_INIT.to_be_bytes(),
+                        &mut to_wire_receiver,
+                    )
+                    .await
+                        || Self::write_or_close(
+                            &mut stream,
+                            &pid.to_le_bytes(),
+                            &mut to_wire_receiver,
+                        )
+                        .await
+                        || Self::write_or_close(
+                            &mut stream,
+                            &secret.to_le_bytes(),
+                            &mut to_wire_receiver,
+                        )
+                        .await
                 },
                 Frame::Shutdown => {
-                    stream
-                        .write_all(&FRAME_SHUTDOWN.to_be_bytes())
-                        .await
-                        .unwrap();
+                    Self::write_or_close(
+                        &mut stream,
+                        &FRAME_SHUTDOWN.to_be_bytes(),
+                        &mut to_wire_receiver,
+                    )
+                    .await
                 },
                 Frame::OpenStream {
                     sid,
                     prio,
                     promises,
                 } => {
-                    stream
-                        .write_all(&FRAME_OPEN_STREAM.to_be_bytes())
+                    Self::write_or_close(
+                        &mut stream,
+                        &FRAME_OPEN_STREAM.to_be_bytes(),
+                        &mut to_wire_receiver,
+                    )
+                    .await
+                        || Self::write_or_close(
+                            &mut stream,
+                            &sid.to_le_bytes(),
+                            &mut to_wire_receiver,
+                        )
                         .await
-                        .unwrap();
-                    stream.write_all(&sid.to_le_bytes()).await.unwrap();
-                    stream.write_all(&prio.to_le_bytes()).await.unwrap();
-                    stream.write_all(&promises.to_le_bytes()).await.unwrap();
+                        || Self::write_or_close(
+                            &mut stream,
+                            &prio.to_le_bytes(),
+                            &mut to_wire_receiver,
+                        )
+                        .await
+                        || Self::write_or_close(
+                            &mut stream,
+                            &promises.to_le_bytes(),
+                            &mut to_wire_receiver,
+                        )
+                        .await
                 },
                 Frame::CloseStream { sid } => {
-                    stream
-                        .write_all(&FRAME_CLOSE_STREAM.to_be_bytes())
+                    Self::write_or_close(
+                        &mut stream,
+                        &FRAME_CLOSE_STREAM.to_be_bytes(),
+                        &mut to_wire_receiver,
+                    )
+                    .await
+                        || Self::write_or_close(
+                            &mut stream,
+                            &sid.to_le_bytes(),
+                            &mut to_wire_receiver,
+                        )
                         .await
-                        .unwrap();
-                    stream.write_all(&sid.to_le_bytes()).await.unwrap();
                 },
                 Frame::DataHeader { mid, sid, length } => {
-                    stream
-                        .write_all(&FRAME_DATA_HEADER.to_be_bytes())
+                    Self::write_or_close(
+                        &mut stream,
+                        &FRAME_DATA_HEADER.to_be_bytes(),
+                        &mut to_wire_receiver,
+                    )
+                    .await
+                        || Self::write_or_close(
+                            &mut stream,
+                            &mid.to_le_bytes(),
+                            &mut to_wire_receiver,
+                        )
                         .await
-                        .unwrap();
-                    stream.write_all(&mid.to_le_bytes()).await.unwrap();
-                    stream.write_all(&sid.to_le_bytes()).await.unwrap();
-                    stream.write_all(&length.to_le_bytes()).await.unwrap();
+                        || Self::write_or_close(
+                            &mut stream,
+                            &sid.to_le_bytes(),
+                            &mut to_wire_receiver,
+                        )
+                        .await
+                        || Self::write_or_close(
+                            &mut stream,
+                            &length.to_le_bytes(),
+                            &mut to_wire_receiver,
+                        )
+                        .await
                 },
                 Frame::Data { mid, start, data } => {
-                    stream.write_all(&FRAME_DATA.to_be_bytes()).await.unwrap();
-                    stream.write_all(&mid.to_le_bytes()).await.unwrap();
-                    stream.write_all(&start.to_le_bytes()).await.unwrap();
-                    stream
-                        .write_all(&(data.len() as u16).to_le_bytes())
+                    throughput_cache.inc_by(data.len() as i64);
+                    Self::write_or_close(
+                        &mut stream,
+                        &FRAME_DATA.to_be_bytes(),
+                        &mut to_wire_receiver,
+                    )
+                    .await
+                        || Self::write_or_close(
+                            &mut stream,
+                            &mid.to_le_bytes(),
+                            &mut to_wire_receiver,
+                        )
                         .await
-                        .unwrap();
-                    stream.write_all(&data).await.unwrap();
+                        || Self::write_or_close(
+                            &mut stream,
+                            &start.to_le_bytes(),
+                            &mut to_wire_receiver,
+                        )
+                        .await
+                        || Self::write_or_close(
+                            &mut stream,
+                            &(data.len() as u16).to_le_bytes(),
+                            &mut to_wire_receiver,
+                        )
+                        .await
+                        || Self::write_or_close(&mut stream, &data, &mut to_wire_receiver).await
                 },
                 Frame::Raw(data) => {
-                    stream.write_all(&FRAME_RAW.to_be_bytes()).await.unwrap();
-                    stream
-                        .write_all(&(data.len() as u16).to_le_bytes())
+                    Self::write_or_close(
+                        &mut stream,
+                        &FRAME_RAW.to_be_bytes(),
+                        &mut to_wire_receiver,
+                    )
+                    .await
+                        || Self::write_or_close(
+                            &mut stream,
+                            &(data.len() as u16).to_le_bytes(),
+                            &mut to_wire_receiver,
+                        )
                         .await
-                        .unwrap();
-                    stream.write_all(&data).await.unwrap();
+                        || Self::write_or_close(&mut stream, &data, &mut to_wire_receiver).await
                 },
+            } {
+                //failure
+                return;
             }
         }
         trace!("shutting down tcp write()");
@@ -293,6 +456,10 @@ impl UdpProtocol {
     ) {
         trace!("starting up udp read()");
         let mut metrics_cache = CidFrameCache::new(self.metrics.frames_wire_in_total.clone(), cid);
+        let throughput_cache = self
+            .metrics
+            .wire_in_throughput
+            .with_label_values(&[&cid.to_string()]);
         let mut data_in = self.data_in.write().await;
         let mut end_receiver = end_receiver.fuse();
         while let Some(bytes) = select! {
@@ -379,6 +546,7 @@ impl UdpProtocol {
                     ]);
                     let length = u16::from_le_bytes([bytes[17], bytes[18]]);
                     let mut data = vec![0; length as usize];
+                    throughput_cache.inc_by(length as i64);
                     data.copy_from_slice(&bytes[19..]);
                     Frame::Data { mid, start, data }
                 },
@@ -400,6 +568,10 @@ impl UdpProtocol {
         trace!("starting up udp write()");
         let mut buffer = [0u8; 2000];
         let mut metrics_cache = CidFrameCache::new(self.metrics.frames_wire_out_total.clone(), cid);
+        let throughput_cache = self
+            .metrics
+            .wire_out_throughput
+            .with_label_values(&[&cid.to_string()]);
         while let Some(frame) = to_wire_receiver.next().await {
             metrics_cache.with_label_values(&frame).inc();
             let len = match frame {
@@ -572,6 +744,7 @@ impl UdpProtocol {
                     for i in 0..data.len() {
                         buffer[19 + i] = data[i];
                     }
+                    throughput_cache.inc_by(data.len() as i64);
                     19 + data.len()
                 },
                 Frame::Raw(data) => {

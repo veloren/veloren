@@ -4,7 +4,7 @@ use crate::{
     metrics::NetworkMetrics,
     participant::BParticipant,
     protocols::{Protocols, TcpProtocol, UdpProtocol},
-    types::{Cid, Pid, Prio, Sid},
+    types::{Cid, Pid, Sid},
 };
 use async_std::{
     io, net,
@@ -51,12 +51,14 @@ struct ControlChannels {
     a2s_connect_r: mpsc::UnboundedReceiver<(Address, oneshot::Sender<io::Result<Participant>>)>,
     a2s_scheduler_shutdown_r: oneshot::Receiver<()>,
     a2s_disconnect_r: mpsc::UnboundedReceiver<(Pid, oneshot::Sender<async_std::io::Result<()>>)>,
+    b2s_prio_statistic_r: mpsc::UnboundedReceiver<(Pid, u64, u64)>,
 }
 
 #[derive(Debug, Clone)]
 struct ParticipantChannels {
     s2a_connected_s: mpsc::UnboundedSender<Participant>,
     a2s_disconnect_s: mpsc::UnboundedSender<(Pid, oneshot::Sender<async_std::io::Result<()>>)>,
+    b2s_prio_statistic_s: mpsc::UnboundedSender<(Pid, u64, u64)>,
 }
 
 #[derive(Debug)]
@@ -92,17 +94,20 @@ impl Scheduler {
         let (a2s_scheduler_shutdown_s, a2s_scheduler_shutdown_r) = oneshot::channel::<()>();
         let (a2s_disconnect_s, a2s_disconnect_r) =
             mpsc::unbounded::<(Pid, oneshot::Sender<async_std::io::Result<()>>)>();
+        let (b2s_prio_statistic_s, b2s_prio_statistic_r) = mpsc::unbounded::<(Pid, u64, u64)>();
 
         let run_channels = Some(ControlChannels {
             a2s_listen_r,
             a2s_connect_r,
             a2s_scheduler_shutdown_r,
             a2s_disconnect_r,
+            b2s_prio_statistic_r,
         });
 
         let participant_channels = ParticipantChannels {
             s2a_connected_s,
             a2s_disconnect_s,
+            b2s_prio_statistic_s,
         };
 
         let metrics = Arc::new(NetworkMetrics::new(&local_pid).unwrap());
@@ -140,7 +145,7 @@ impl Scheduler {
             self.listen_mgr(run_channels.a2s_listen_r),
             self.connect_mgr(run_channels.a2s_connect_r),
             self.disconnect_mgr(run_channels.a2s_disconnect_r),
-            self.prio_adj_mgr(),
+            self.prio_adj_mgr(run_channels.b2s_prio_statistic_r),
             self.scheduler_shutdown_mgr(run_channels.a2s_scheduler_shutdown_r),
         );
     }
@@ -151,7 +156,7 @@ impl Scheduler {
     ) {
         trace!("start listen_mgr");
         a2s_listen_r
-            .for_each_concurrent(None, |(address, s2a_result_s)| {
+            .for_each_concurrent(None, |(address, s2a_listen_result_s)| {
                 let address = address.clone();
 
                 async move {
@@ -169,7 +174,7 @@ impl Scheduler {
                         .write()
                         .await
                         .insert(address.clone(), end_sender);
-                    self.channel_creator(address, end_receiver, s2a_result_s)
+                    self.channel_creator(address, end_receiver, s2a_listen_result_s)
                         .await;
                 }
             })
@@ -275,9 +280,15 @@ impl Scheduler {
         trace!("stop disconnect_mgr");
     }
 
-    async fn prio_adj_mgr(&self) {
+    async fn prio_adj_mgr(
+        &self,
+        mut b2s_prio_statistic_r: mpsc::UnboundedReceiver<(Pid, u64, u64)>,
+    ) {
         trace!("start prio_adj_mgr");
-        //TODO adjust prios in participants here!
+        while let Some((_pid, _frame_cnt, _unused)) = b2s_prio_statistic_r.next().await {
+
+            //TODO adjust prios in participants here!
+        }
         trace!("stop prio_adj_mgr");
     }
 
@@ -300,14 +311,13 @@ impl Scheduler {
         }
         debug!("wait for partiticipants to be shut down");
         for (pid, recv) in waitings {
-            match recv.await {
-                Err(e) => error!(
+            if let Err(e) = recv.await {
+                error!(
                     ?pid,
                     ?e,
                     "failed to finish sending all remainding messages to participant when \
                      shutting down"
-                ),
-                _ => (),
+                );
             };
         }
         //removing the possibility to create new participants, needed to close down
@@ -499,7 +509,7 @@ impl Scheduler {
                             });
                             pool.spawn_ok(
                                 bparticipant
-                                    .run()
+                                    .run(participant_channels.b2s_prio_statistic_s)
                                     .instrument(tracing::info_span!("participant", ?pid)),
                             );
                             //create a new channel within BParticipant and wait for it to run

@@ -1,13 +1,18 @@
+///run with
+/// ```bash
+/// (cd network/examples/network-speed && RUST_BACKTRACE=1 cargo run --profile=debuginfo -Z unstable-options -- --trace=error --protocol=tcp --mode=server)
+/// (cd network/examples/network-speed && RUST_BACKTRACE=1 cargo run --profile=debuginfo -Z unstable-options -- --trace=error --protocol=tcp --mode=client)
+/// ```
 mod metrics;
 
 use clap::{App, Arg};
 use futures::executor::block_on;
-use network::{Address, Network, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED, MessageBuffer};
+use network::{Address, MessageBuffer, Network, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
 use serde::{Deserialize, Serialize};
 use std::{
+    sync::Arc,
     thread,
     time::{Duration, Instant},
-    sync::Arc,
 };
 use tracing::*;
 use tracing_subscriber::EnvFilter;
@@ -152,11 +157,12 @@ fn client(address: Address) {
     let mut s1 = block_on(p1.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY)).unwrap(); //remote representation of s1
     let mut last = Instant::now();
     let mut id = 0u64;
-    let raw_msg = Arc::new(MessageBuffer{
+    let raw_msg = Arc::new(MessageBuffer {
         data: bincode::serialize(&Msg::Ping {
             id,
             data: vec![0; 1000],
-        }).unwrap(),
+        })
+        .unwrap(),
     });
     loop {
         s1.send_raw(raw_msg.clone()).unwrap();
@@ -172,13 +178,13 @@ fn client(address: Address) {
             std::thread::sleep(std::time::Duration::from_millis(5000));
             break;
         }
-    };
+    }
     drop(s1);
     std::thread::sleep(std::time::Duration::from_millis(5000));
     info!("closing participant");
     block_on(client.disconnect(p1)).unwrap();
-    std::thread::sleep(std::time::Duration::from_millis(75000));
+    std::thread::sleep(std::time::Duration::from_millis(25000));
     info!("DROPPING! client");
     drop(client);
-    std::thread::sleep(std::time::Duration::from_millis(75000));
+    std::thread::sleep(std::time::Duration::from_millis(25000));
 }

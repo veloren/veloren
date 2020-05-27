@@ -1,10 +1,13 @@
+//!run with
+//! ```bash
+//! (cd network/examples/async_recv && RUST_BACKTRACE=1 cargo run)
+//! ```
 use chrono::prelude::*;
 use clap::{App, Arg};
 use futures::executor::block_on;
 use network::{Address, Network, Pid, Stream, PROMISES_NONE};
 use serde::{Deserialize, Serialize};
 use std::{
-    net::SocketAddr,
     thread,
     time::{Duration, Instant},
 };
@@ -107,7 +110,7 @@ fn main() {
 
 fn server(address: Address) {
     let thread_pool = ThreadPoolBuilder::new().build();
-    let server = Network::new(Pid::new(), &thread_pool);
+    let server = Network::new(Pid::new(), &thread_pool, None);
     block_on(server.listen(address.clone())).unwrap(); //await
     println!("waiting for client");
 
@@ -179,7 +182,7 @@ async fn async_task2(mut s: Stream) -> u64 {
 
 fn client(address: Address) {
     let thread_pool = ThreadPoolBuilder::new().build();
-    let client = Network::new(Pid::new(), &thread_pool);
+    let client = Network::new(Pid::new(), &thread_pool, None);
 
     let p1 = block_on(client.connect(address.clone())).unwrap(); //remote representation of p1
     let s1 = block_on(p1.open(16, PROMISES_NONE)).unwrap(); //remote representation of s1

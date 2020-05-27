@@ -1,3 +1,7 @@
+//!run with
+//! ```bash
+//! (cd network/examples/tcp-loadtest && RUST_BACKTRACE=1 cargo run 127.0.0.1 52000)
+//! ```
 use std::{
     env,
     io::Write,

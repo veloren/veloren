@@ -7,12 +7,16 @@
 
 use crate::{
     message::OutGoingMessage,
+    metrics::NetworkMetrics,
     types::{Frame, Prio, Sid},
 };
 use futures::channel::oneshot;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
-    sync::mpsc::{channel, Receiver, Sender},
+    sync::{
+        mpsc::{channel, Receiver, Sender},
+        Arc,
+    },
 };
 
 use tracing::*;
@@ -32,19 +36,9 @@ pub(crate) struct PrioManager {
     //you can register to be notified if a pid_sid combination is flushed completly here
     sid_flushed_rx: Receiver<(Sid, oneshot::Sender<()>)>,
     queued: HashSet<u8>,
+    metrics: Arc<NetworkMetrics>,
+    pid: String,
 }
-
-/*
-ERROR Okay ich kann die frames und msg nicht counten, da api auf msg basis zöhlt und BParticipant auf frame basis.
-Der Priomanager hört auf gekillte PID, SIDs, und entweder returned sofort wenn keine msg drinn ist, oder schreibt es in id_sid_owned und haut es dann raus
-Evtl sollten wir auch den prioManger auf mehr Async umstellen. auch wenn der TICK selber syncron ist. mal schaun.
-*/
-
-/*
-ERROR, okay wie hauen alles komplett um, PRIOS wird ein  teildes BPARTICIPANT
-Der BPARTICIPANT bekommt vom Scheduler seine throughput werte, und berichtet zurück
-PRIOS wird ASYNC!
-*/
 
 impl PrioManager {
     const FRAME_DATA_SIZE: u64 = 1400;
@@ -56,7 +50,10 @@ impl PrioManager {
         310419, 356578, 409600, 470507, 540470, 620838,
     ];
 
-    pub fn new() -> (
+    pub fn new(
+        metrics: Arc<NetworkMetrics>,
+        pid: String,
+    ) -> (
         Self,
         Sender<(Prio, Sid, OutGoingMessage)>,
         Sender<(Sid, oneshot::Sender<()>)>,
@@ -137,6 +134,8 @@ impl PrioManager {
                 queued: HashSet::new(), //TODO: optimize with u64 and 64 bits
                 sid_flushed_rx,
                 sid_owned: HashMap::new(),
+                metrics,
+                pid,
             },
             messages_tx,
             sid_flushed_tx,
@@ -145,11 +144,19 @@ impl PrioManager {
 
     async fn tick(&mut self) {
         // Check Range
-        let mut times = 0;
+        let mut messages = 0;
         let mut closed = 0;
         for (prio, sid, msg) in self.messages_rx.try_iter() {
             debug_assert!(prio as usize <= PRIO_MAX);
-            times += 1;
+            messages += 1;
+            self.metrics
+                .message_out_total
+                .with_label_values(&[&self.pid, &sid.to_string()])
+                .inc();
+            self.metrics
+                .message_out_throughput
+                .with_label_values(&[&self.pid, &sid.to_string()])
+                .inc_by(msg.buffer.data.len() as i64);
             //trace!(?prio, ?sid, "tick");
             self.queued.insert(prio);
             self.messages[prio as usize].push_back((sid, msg));
@@ -173,8 +180,8 @@ impl PrioManager {
                 return_sender.send(()).unwrap();
             }
         }
-        if times > 0 || closed > 0 {
-            trace!(?times, ?closed, "tick");
+        if messages > 0 || closed > 0 {
+            trace!(?messages, ?closed, "tick");
         }
     }
 
@@ -239,10 +246,14 @@ impl PrioManager {
         no_of_frames: usize,
         frames: &mut E,
     ) {
+        for v in self.messages.iter_mut() {
+            v.reserve_exact(no_of_frames)
+        }
         self.tick().await;
         for _ in 0..no_of_frames {
             match self.calc_next_prio() {
                 Some(prio) => {
+                    //let prio2 = self.calc_next_prio().unwrap();
                     //trace!(?prio, "handle next prio");
                     self.points[prio as usize] += Self::PRIOS[prio as usize];
                     //pop message from front of VecDeque, handle it and push it back, so that all
@@ -268,8 +279,8 @@ impl PrioManager {
                                         .map(|empty_notify| empty_notify.send(()).unwrap());
                                 }
                             } else {
+                                error!(?msg.mid, "repush message");
                                 self.messages[prio as usize].push_back((sid, msg));
-                                //trace!(?m.mid, "repush message");
                             }
                         },
                         None => unreachable!("msg not in VecDeque, but queued"),
@@ -301,14 +312,30 @@ impl std::fmt::Debug for PrioManager {
 mod tests {
     use crate::{
         message::{MessageBuffer, OutGoingMessage},
+        metrics::NetworkMetrics,
         prios::*,
-        types::{Frame, Prio, Sid},
+        types::{Frame, Pid, Prio, Sid},
     };
-    use futures::executor::block_on;
-    use std::{collections::VecDeque, sync::Arc};
+    use futures::{channel::oneshot, executor::block_on};
+    use std::{
+        collections::VecDeque,
+        sync::{mpsc::Sender, Arc},
+    };
 
     const SIZE: u64 = PrioManager::FRAME_DATA_SIZE;
     const USIZE: usize = PrioManager::FRAME_DATA_SIZE as usize;
+
+    fn mock_new() -> (
+        PrioManager,
+        Sender<(Prio, Sid, OutGoingMessage)>,
+        Sender<(Sid, oneshot::Sender<()>)>,
+    ) {
+        let pid = Pid::fake(1);
+        PrioManager::new(
+            Arc::new(NetworkMetrics::new(&pid).unwrap()),
+            pid.to_string(),
+        )
+    }
 
     fn mock_out(prio: Prio, sid: u64) -> (Prio, Sid, OutGoingMessage) {
         let sid = Sid::new(sid);
@@ -365,7 +392,7 @@ mod tests {
 
     #[test]
     fn single_p16() {
-        let (mut mgr, msg_tx, _flush_tx) = PrioManager::new();
+        let (mut mgr, msg_tx, _flush_tx) = mock_new();
         msg_tx.send(mock_out(16, 1337)).unwrap();
         let mut frames = VecDeque::new();
         block_on(mgr.fill_frames(100, &mut frames));
@@ -377,7 +404,7 @@ mod tests {
 
     #[test]
     fn single_p16_p20() {
-        let (mut mgr, msg_tx, _flush_tx) = PrioManager::new();
+        let (mut mgr, msg_tx, _flush_tx) = mock_new();
         msg_tx.send(mock_out(16, 1337)).unwrap();
         msg_tx.send(mock_out(20, 42)).unwrap();
         let mut frames = VecDeque::new();
@@ -392,7 +419,7 @@ mod tests {
 
     #[test]
     fn single_p20_p16() {
-        let (mut mgr, msg_tx, _flush_tx) = PrioManager::new();
+        let (mut mgr, msg_tx, _flush_tx) = mock_new();
         msg_tx.send(mock_out(20, 42)).unwrap();
         msg_tx.send(mock_out(16, 1337)).unwrap();
         let mut frames = VecDeque::new();
@@ -407,7 +434,7 @@ mod tests {
 
     #[test]
     fn multiple_p16_p20() {
-        let (mut mgr, msg_tx, _flush_tx) = PrioManager::new();
+        let (mut mgr, msg_tx, _flush_tx) = mock_new();
         msg_tx.send(mock_out(20, 2)).unwrap();
         msg_tx.send(mock_out(16, 1)).unwrap();
         msg_tx.send(mock_out(16, 3)).unwrap();
@@ -433,7 +460,7 @@ mod tests {
 
     #[test]
     fn multiple_fill_frames_p16_p20() {
-        let (mut mgr, msg_tx, _flush_tx) = PrioManager::new();
+        let (mut mgr, msg_tx, _flush_tx) = mock_new();
         msg_tx.send(mock_out(20, 2)).unwrap();
         msg_tx.send(mock_out(16, 1)).unwrap();
         msg_tx.send(mock_out(16, 3)).unwrap();
@@ -465,7 +492,7 @@ mod tests {
 
     #[test]
     fn single_large_p16() {
-        let (mut mgr, msg_tx, _flush_tx) = PrioManager::new();
+        let (mut mgr, msg_tx, _flush_tx) = mock_new();
         msg_tx.send(mock_out_large(16, 1)).unwrap();
         let mut frames = VecDeque::new();
         block_on(mgr.fill_frames(100, &mut frames));
@@ -479,7 +506,7 @@ mod tests {
 
     #[test]
     fn multiple_large_p16() {
-        let (mut mgr, msg_tx, _flush_tx) = PrioManager::new();
+        let (mut mgr, msg_tx, _flush_tx) = mock_new();
         msg_tx.send(mock_out_large(16, 1)).unwrap();
         msg_tx.send(mock_out_large(16, 2)).unwrap();
         let mut frames = VecDeque::new();
@@ -498,7 +525,7 @@ mod tests {
 
     #[test]
     fn multiple_large_p16_sudden_p0() {
-        let (mut mgr, msg_tx, _flush_tx) = PrioManager::new();
+        let (mut mgr, msg_tx, _flush_tx) = mock_new();
         msg_tx.send(mock_out_large(16, 1)).unwrap();
         msg_tx.send(mock_out_large(16, 2)).unwrap();
         let mut frames = VecDeque::new();
@@ -524,7 +551,7 @@ mod tests {
 
     #[test]
     fn single_p20_thousand_p16_at_once() {
-        let (mut mgr, msg_tx, _flush_tx) = PrioManager::new();
+        let (mut mgr, msg_tx, _flush_tx) = mock_new();
         for _ in 0..998 {
             msg_tx.send(mock_out(16, 2)).unwrap();
         }
@@ -546,7 +573,7 @@ mod tests {
 
     #[test]
     fn single_p20_thousand_p16_later() {
-        let (mut mgr, msg_tx, _flush_tx) = PrioManager::new();
+        let (mut mgr, msg_tx, _flush_tx) = mock_new();
         for _ in 0..998 {
             msg_tx.send(mock_out(16, 2)).unwrap();
         }
