@@ -79,7 +79,7 @@ pub struct Server {
     thread_pool: ThreadPool,
 
     server_info: ServerInfo,
-    metrics: ServerMetrics,
+    _metrics: ServerMetrics,
     tick_metrics: TickMetrics,
 
     server_settings: ServerSettings,
@@ -242,7 +242,7 @@ impl Server {
                 git_date: common::util::GIT_DATE.to_string(),
                 auth_provider: settings.auth_server_address.clone(),
             },
-            metrics,
+            _metrics: metrics,
             tick_metrics,
             server_settings: settings.clone(),
         };
