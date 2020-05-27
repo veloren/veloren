@@ -52,6 +52,7 @@ pub(crate) struct UdpProtocol {
     data_in: RwLock<mpsc::UnboundedReceiver<Vec<u8>>>,
 }
 
+//TODO: PERFORMACE: Use BufWriter and BufReader from std::io!
 impl TcpProtocol {
     pub(crate) fn new(stream: TcpStream, metrics: Arc<NetworkMetrics>) -> Self {
         Self { stream, metrics }

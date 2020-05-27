@@ -331,3 +331,63 @@ impl CidFrameCache {
         &self.cache[frame.get_int() as usize]
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        metrics::*,
+        types::{Frame, Pid},
+    };
+
+    #[test]
+    fn register_metrics() {
+        let registry = Registry::new();
+        let metrics = NetworkMetrics::new(&Pid::fake(1)).unwrap();
+        metrics.register(&registry).unwrap();
+    }
+
+    #[test]
+    fn pid_cid_frame_cache() {
+        let pid = Pid::fake(1);
+        let frame1 = Frame::Raw("Foo".as_bytes().to_vec());
+        let frame2 = Frame::Raw("Bar".as_bytes().to_vec());
+        let metrics = NetworkMetrics::new(&pid).unwrap();
+        let mut cache = PidCidFrameCache::new(metrics.frames_in_total, pid);
+        let v1 = cache.with_label_values(1, &frame1);
+        v1.inc();
+        assert_eq!(v1.get(), 1);
+        let v2 = cache.with_label_values(1, &frame1);
+        v2.inc();
+        assert_eq!(v2.get(), 2);
+        let v3 = cache.with_label_values(1, &frame2);
+        v3.inc();
+        assert_eq!(v3.get(), 3);
+        let v4 = cache.with_label_values(3, &frame1);
+        v4.inc();
+        assert_eq!(v4.get(), 1);
+        let v5 = cache.with_label_values(3, &Frame::Shutdown);
+        v5.inc();
+        assert_eq!(v5.get(), 1);
+    }
+
+    #[test]
+    fn cid_frame_cache() {
+        let pid = Pid::fake(1);
+        let frame1 = Frame::Raw("Foo".as_bytes().to_vec());
+        let frame2 = Frame::Raw("Bar".as_bytes().to_vec());
+        let metrics = NetworkMetrics::new(&pid).unwrap();
+        let mut cache = CidFrameCache::new(metrics.frames_wire_out_total, 1);
+        let v1 = cache.with_label_values(&frame1);
+        v1.inc();
+        assert_eq!(v1.get(), 1);
+        let v2 = cache.with_label_values(&frame1);
+        v2.inc();
+        assert_eq!(v2.get(), 2);
+        let v3 = cache.with_label_values(&frame2);
+        v3.inc();
+        assert_eq!(v3.get(), 3);
+        let v4 = cache.with_label_values(&Frame::Shutdown);
+        v4.inc();
+        assert_eq!(v4.get(), 1);
+    }
+}

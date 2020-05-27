@@ -310,3 +310,34 @@ fn sixlet_to_str(sixlet: u128) -> char {
         _ => '-',
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::types::*;
+
+    #[test]
+    fn frame_int2str() {
+        assert_eq!(Frame::int_to_string(3), "OpenStream");
+        assert_eq!(Frame::int_to_string(7), "Raw");
+        assert_eq!(Frame::int_to_string(8), "");
+    }
+
+    #[test]
+    fn frame_get_int() {
+        assert_eq!(Frame::get_int(&Frame::Raw("Foo".as_bytes().to_vec())), 7);
+        assert_eq!(Frame::get_int(&Frame::Shutdown), 2);
+    }
+
+    #[test]
+    fn frame_creation() {
+        Pid::new();
+        assert_eq!(format!("{}", Pid::fake(2)), "CAAAAA");
+    }
+
+    #[test]
+    fn test_sixlet_to_str() {
+        assert_eq!(sixlet_to_str(0), 'A');
+        assert_eq!(sixlet_to_str(63), '/');
+        assert_eq!(sixlet_to_str(64), '-');
+    }
+}
