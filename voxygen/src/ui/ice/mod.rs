@@ -1,20 +1,15 @@
 //    tooltip_manager: TooltipManager,
 mod cache;
 mod clipboard;
+pub mod component;
 mod renderer;
-mod widget;
+pub mod widget;
 mod winit_conversion;
 
 pub use cache::Font;
 pub use graphic::{Id, Rotation};
 pub use iced::Event;
 pub use renderer::{ButtonStyle, IcedRenderer};
-pub use widget::{
-    aspect_ratio_container::AspectRatioContainer,
-    background_container::{BackgroundContainer, Padding},
-    compound_graphic,
-    image::Image,
-};
 pub use winit_conversion::window_event;
 
 use super::{

@@ -227,7 +227,7 @@ impl IcedRenderer {
                     .collect::<Vec<[u8; 4]>>();
 
                 if let Err(err) = renderer.update_texture(cache_tex, offset, size, &new_data) {
-                    log::warn!("Failed to update glyph cache texture: {:?}", err);
+                    tracing::warn!("Failed to update glyph cache texture: {:?}", err);
                 }
             },
             // Urgh more allocation we don't need
@@ -278,7 +278,7 @@ impl IcedRenderer {
                     });
             },
             Err(glyph_brush::BrushError::TextureTooSmall { suggested: (x, y) }) => {
-                log::error!(
+                tracing::error!(
                     "Texture to small for all glyphs, would need one of the size: ({}, {})",
                     x,
                     y
