@@ -184,38 +184,55 @@ pub struct PopupData {
     popup_type: PopupType,
 }
 
-// No state currently
+use ui::ice::component::neat_button;
 struct IcedState {
     imgs: IcedImgs,
-    quit_button: iced::button::State,
+    quit_button: neat_button::State,
+    settings_button: neat_button::State,
+    servers_button: neat_button::State,
+    multiplayer_button: neat_button::State,
+    #[cfg(feature = "singleplayer")]
+    singleplayer_button: neat_button::State,
+    show_servers: bool,
 }
 
 #[derive(Clone)] // TODO: why does iced require Clone?
 enum Message {
     Quit,
+    ShowServers,
+    #[cfg(feature = "singleplayer")]
+    Singleplayer,
+    Multiplayer,
 }
 
 impl IcedState {
     pub fn new(imgs: IcedImgs) -> Self {
         Self {
             imgs,
-            quit_button: iced::button::State::new(),
+            servers_button: Default::default(),
+            settings_button: Default::default(),
+            quit_button: Default::default(),
+            multiplayer_button: Default::default(),
+            #[cfg(feature = "singleplayer")]
+            singleplayer_button: Default::default(),
+            show_servers: false,
         }
     }
 
     pub fn view(&mut self, i18n: &Localization) -> Element<Message> {
-        // TODO: scale with window size
-        let button_font_size = 30;
+        //let button_font_size = 30;
         const TEXT_COLOR: iced::Color = iced::Color::from_rgb(1.0, 1.0, 1.0);
         const DISABLED_TEXT_COLOR: iced::Color = iced::Color::from_rgba(1.0, 1.0, 1.0, 0.2);
+        const FILL_FRAC_ONE: f32 = 0.77;
+        const FILL_FRAC_TWO: f32 = 0.53;
 
-        use iced::{
-            Align, Button, Column, Container, HorizontalAlignment, Length, Row, Space, Text,
-            VerticalAlignment,
-        };
+        use iced::{Align, Column, Container, Length, Row, Space};
         use ui::ice::{
-            compound_graphic::{CompoundGraphic, Graphic},
-            AspectRatioContainer, BackgroundContainer, ButtonStyle, Image, Padding,
+            widget::{
+                compound_graphic::{CompoundGraphic, Graphic},
+                BackgroundContainer, Image, Padding,
+            },
+            ButtonStyle,
         };
         use vek::*;
 
@@ -224,49 +241,30 @@ impl IcedState {
             .press_image(self.imgs.button_press)
             .text_color(TEXT_COLOR)
             .disabled_text_color(DISABLED_TEXT_COLOR);
-
         let buttons = Column::with_children(vec![
-            Image::new(self.imgs.button).fix_aspect_ratio().into(),
-            Image::new(self.imgs.button).fix_aspect_ratio().into(),
-            AspectRatioContainer::new(
-                Button::new(
-                    &mut self.quit_button,
-                    Text::new(i18n.get("common.quit"))
-                        .size(button_font_size)
-                        .height(Length::Fill)
-                        .width(Length::Fill)
-                        .horizontal_alignment(HorizontalAlignment::Center)
-                        .vertical_alignment(VerticalAlignment::Center),
-                )
-                .height(Length::Fill)
-                .width(Length::Fill)
-                .style(button_style)
-                .on_press(Message::Quit),
-            )
-            .ratio_of_image(self.imgs.button)
-            .into(),
+            self.servers_button.view(
+                i18n.get("common.servers"),
+                FILL_FRAC_ONE,
+                button_style,
+                Some(Message::ShowServers),
+            ),
+            self.settings_button.view(
+                i18n.get("common.settings"),
+                FILL_FRAC_ONE,
+                button_style,
+                None,
+            ),
+            self.quit_button.view(
+                i18n.get("common.quit"),
+                FILL_FRAC_ONE,
+                button_style,
+                Some(Message::Quit),
+            ),
         ])
         .width(Length::Fill)
         .max_width(200)
         .spacing(5)
         .padding(10);
-
-        // Quit
-        /*if Button::image(self.imgs.button)
-            .w_h(190.0, 40.0)
-            .bottom_left_with_margins_on(ui_widgets.window, 60.0, 30.0)
-            .hover_image(self.imgs.button_hover)
-            .press_image(self.imgs.button_press)
-            .label(i18n.get("common.quit"))
-            .label_font_id(self.fonts.cyri.conrod_id)
-            .label_color(TEXT_COLOR)
-            .label_font_size(self.fonts.cyri.scale(20))
-            .label_y(Relative::Scalar(3.0))
-            .set(self.ids.quit_button, ui_widgets)
-            .was_clicked()
-        {
-            events.push(Event::Quit);
-        }*/
 
         let buttons = Container::new(buttons)
             .width(Length::Fill)
@@ -303,20 +301,22 @@ impl IcedState {
             .height(Length::FillPortion(50))
             .into(),
             Column::with_children(vec![
-                BackgroundContainer::new(
-                    CompoundGraphic::padded_image(self.imgs.button, [106, 26], [10, 0, 10, 2])
-                        .fix_aspect_ratio(),
-                    Space::new(Length::Fill, Length::Fill),
-                )
-                .into(),
-                BackgroundContainer::new(
-                    CompoundGraphic::padded_image(self.imgs.button, [106, 26], [10, 2, 10, 0])
-                        .fix_aspect_ratio(),
-                    Space::new(Length::Fill, Length::Fill),
-                )
-                .into(),
+                self.multiplayer_button.view(
+                    i18n.get("common.multiplayer"),
+                    FILL_FRAC_TWO,
+                    button_style,
+                    Some(Message::Multiplayer),
+                ),
+                #[cfg(feature = "singleplayer")]
+                self.singleplayer_button.view(
+                    i18n.get("common.singleplayer"),
+                    FILL_FRAC_TWO,
+                    button_style,
+                    Some(Message::Singleplayer),
+                ),
             ])
             .max_width(240)
+            .spacing(8) // TODO scale with available window size, awkward because both width and height can become limiting factors, might need custom column, could also just use fill portion
             .height(Length::FillPortion(25))
             .into(),
         ])
@@ -358,6 +358,10 @@ impl IcedState {
     pub fn update(&mut self, message: Message, events: &mut Vec<Event>) {
         match message {
             Message::Quit => events.push(Event::Quit),
+            Message::ShowServers => self.show_servers = true,
+            #[cfg(feature = "singleplayer")]
+            Message::Singleplayer => events.push(Event::StartSingleplayer),
+            Message::Multiplayer => (), //TODO
         }
     }
 }
