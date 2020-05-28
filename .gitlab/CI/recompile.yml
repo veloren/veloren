@@ -1,6 +1,7 @@
 # Template to only run if actual changes has been made to the code and not just documentation
 .recompile:
   rules:
+    - if: $CI_COMMIT_REF_NAME !~ /^master$/
     - changes:
         - "**/*.{rs,ron,toml,vox,png}"
         - "rust-toolchain"
