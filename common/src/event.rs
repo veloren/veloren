@@ -1,5 +1,5 @@
 use crate::{comp, sync::Uid, util::Dir};
-use comp::{item::ToolCategory, CharacterAbilityType, InventoryUpdateEvent};
+use comp::{item::ToolCategory, CharacterAbilityType, InventoryUpdateEvent, Item};
 use parking_lot::Mutex;
 use serde::Deserialize;
 use specs::Entity as EcsEntity;
