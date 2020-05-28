@@ -36,11 +36,13 @@ before_script:
   - rm -r target || echo "target doesnt exist, which is fine"
   - ln -s /dockercache/veloren/target target
 
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_IID
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
 include:
-  # pipelines run for branches and tags.
-  # https://docs.gitlab.com/ee/ci/yaml/#workflowrules
-  # TODO: https://docs.gitlab.com/ee/ci/merge_request_pipelines/pipelines_for_merged_results/index.html#enable-pipelines-for-merged-results
-  - template: "Workflows/Branch-Pipelines.gitlab-ci.yml"
   - local: .gitlab/CI/recompile.yml
   - local: .gitlab/CI/release.yml
   - local: .gitlab/CI/optional-builds.gitlab-ci.yml
