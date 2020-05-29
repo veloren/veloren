@@ -269,7 +269,7 @@ impl<'a> System<'a> for Sys {
                             format!(
                                 "{} Giant {}",
                                 adjective,
-                                get_npc_name(&NPC_NAMES.humanoid, body_new.race)
+                                get_npc_name(&NPC_NAMES.humanoid, body_new.species)
                             ),
                             body,
                         );

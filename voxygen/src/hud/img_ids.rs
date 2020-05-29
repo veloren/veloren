@@ -241,6 +241,7 @@ image_ids! {
 
         // Icons
         fire_spell_1: "voxygen.element.icons.fire_spell_0",
+        snake_arrow_0: "voxygen.element.icons.snake",
         heal_0: "voxygen.element.icons.heal_0",
 
         // Buttons

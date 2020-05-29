@@ -87,12 +87,12 @@ Il client è aggiornato?"#,
 
 
 
-                "common.races.orc": "Orco",
-                "common.races.human": "Umano",
-                "common.races.dwarf": "Nano",
-                "common.races.elf": "Elfo",
-                "common.races.undead": "Non-Morto",
-                "common.races.danari": "Danari",
+                "common.species.orc": "Orco",
+                "common.species.human": "Umano",
+                "common.species.dwarf": "Nano",
+                "common.species.elf": "Elfo",
+                "common.species.undead": "Non-Morto",
+                "common.species.danari": "Danari",
 
 
 

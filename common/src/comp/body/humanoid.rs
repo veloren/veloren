@@ -3,11 +3,11 @@ use vek::Rgb;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Body {
-    pub race: Race,
+    pub species: Species,
     pub body_type: BodyType,
     pub hair_style: u8,
     pub beard: u8,
-    pub eyebrows: u8,
+    pub eyes: u8,
     pub accessory: u8,
     pub hair_color: u8,
     pub skin: u8,
@@ -17,37 +17,39 @@ pub struct Body {
 impl Body {
     pub fn random() -> Self {
         let mut rng = thread_rng();
-        let race = *(&ALL_RACES).choose(&mut rng).unwrap();
-        Self::random_with(&mut rng, &race)
+        let species = *(&ALL_SPECIES).choose(&mut rng).unwrap();
+        Self::random_with(&mut rng, &species)
     }
 
     #[inline]
-    pub fn random_with(rng: &mut impl Rng, &race: &Race) -> Self {
+    pub fn random_with(rng: &mut impl Rng, &species: &Species) -> Self {
         let body_type = *(&ALL_BODY_TYPES).choose(rng).unwrap();
         Self {
-            race,
+            species,
             body_type,
-            hair_style: rng.gen_range(0, race.num_hair_styles(body_type)),
-            beard: rng.gen_range(0, race.num_beards(body_type)),
-            eyebrows: rng.gen_range(0, race.num_eyebrows(body_type)),
-            accessory: rng.gen_range(0, race.num_accessories(body_type)),
-            hair_color: rng.gen_range(0, race.num_hair_colors()) as u8,
-            skin: rng.gen_range(0, race.num_skin_colors()) as u8,
-            eye_color: rng.gen_range(0, race.num_eye_colors()) as u8,
+            hair_style: rng.gen_range(0, species.num_hair_styles(body_type)),
+            beard: rng.gen_range(0, species.num_beards(body_type)),
+            accessory: rng.gen_range(0, species.num_accessories(body_type)),
+            hair_color: rng.gen_range(0, species.num_hair_colors()) as u8,
+            skin: rng.gen_range(0, species.num_skin_colors()) as u8,
+            eye_color: rng.gen_range(0, species.num_eye_colors()) as u8,
+            eyes: rng.gen_range(0, 1), /* TODO Add a way to set specific head-segments for NPCs
+                                        * with the default being a random one */
         }
     }
 
     pub fn validate(&mut self) {
         self.hair_style = self
             .hair_style
-            .min(self.race.num_hair_styles(self.body_type) - 1);
-        self.beard = self.beard.min(self.race.num_beards(self.body_type) - 1);
-        self.hair_color = self.hair_color.min(self.race.num_hair_colors() - 1);
-        self.skin = self.skin.min(self.race.num_skin_colors() - 1);
-        self.eye_color = self.hair_style.min(self.race.num_eye_colors() - 1);
+            .min(self.species.num_hair_styles(self.body_type) - 1);
+        self.beard = self.beard.min(self.species.num_beards(self.body_type) - 1);
+        self.hair_color = self.hair_color.min(self.species.num_hair_colors() - 1);
+        self.skin = self.skin.min(self.species.num_skin_colors() - 1);
+        self.eyes = self.eyes.min(self.species.num_eyes(self.body_type) - 1);
+        self.eye_color = self.hair_style.min(self.species.num_eye_colors() - 1);
         self.accessory = self
             .accessory
-            .min(self.race.num_accessories(self.body_type) - 1);
+            .min(self.species.num_accessories(self.body_type) - 1);
     }
 }
 
@@ -57,7 +59,7 @@ impl From<Body> for super::Body {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
-pub enum Race {
+pub enum Species {
     Danari = 0,
     Dwarf = 1,
     Elf = 2,
@@ -79,36 +81,36 @@ pub struct AllSpecies<SpeciesMeta> {
     pub undead: SpeciesMeta,
 }
 
-impl<'a, SpeciesMeta> core::ops::Index<&'a Race> for AllSpecies<SpeciesMeta> {
+impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
     type Output = SpeciesMeta;
 
     #[inline]
-    fn index(&self, &index: &'a Race) -> &Self::Output {
+    fn index(&self, &index: &'a Species) -> &Self::Output {
         match index {
-            Race::Danari => &self.danari,
-            Race::Dwarf => &self.dwarf,
-            Race::Elf => &self.elf,
-            Race::Human => &self.human,
-            Race::Orc => &self.orc,
-            Race::Undead => &self.undead,
+            Species::Danari => &self.danari,
+            Species::Dwarf => &self.dwarf,
+            Species::Elf => &self.elf,
+            Species::Human => &self.human,
+            Species::Orc => &self.orc,
+            Species::Undead => &self.undead,
         }
     }
 }
 
-pub const ALL_RACES: [Race; 6] = [
-    Race::Danari,
-    Race::Dwarf,
-    Race::Elf,
-    Race::Human,
-    Race::Orc,
-    Race::Undead,
+pub const ALL_SPECIES: [Species; 6] = [
+    Species::Danari,
+    Species::Dwarf,
+    Species::Elf,
+    Species::Human,
+    Species::Orc,
+    Species::Undead,
 ];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     type IntoIter = std::iter::Copied<std::slice::Iter<'static, Self::Item>>;
-    type Item = Race;
+    type Item = Species;
 
-    fn into_iter(self) -> Self::IntoIter { ALL_RACES.iter().copied() }
+    fn into_iter(self) -> Self::IntoIter { ALL_SPECIES.iter().copied() }
 }
 
 // Hair Colors
@@ -348,37 +350,37 @@ pub const UNDEAD_EYE_COLORS: [EyeColor; 5] = [
     EyeColor::ToxicGreen,
 ];
 
-impl Race {
+impl Species {
     fn hair_colors(self) -> &'static [(u8, u8, u8)] {
         match self {
-            Race::Danari => &DANARI_HAIR_COLORS,
-            Race::Dwarf => &DWARF_HAIR_COLORS,
-            Race::Elf => &ELF_HAIR_COLORS,
-            Race::Human => &HUMAN_HAIR_COLORS,
-            Race::Orc => &ORC_HAIR_COLORS,
-            Race::Undead => &UNDEAD_HAIR_COLORS,
+            Species::Danari => &DANARI_HAIR_COLORS,
+            Species::Dwarf => &DWARF_HAIR_COLORS,
+            Species::Elf => &ELF_HAIR_COLORS,
+            Species::Human => &HUMAN_HAIR_COLORS,
+            Species::Orc => &ORC_HAIR_COLORS,
+            Species::Undead => &UNDEAD_HAIR_COLORS,
         }
     }
 
     fn skin_colors(self) -> &'static [Skin] {
         match self {
-            Race::Danari => &DANARI_SKIN_COLORS,
-            Race::Dwarf => &DWARF_SKIN_COLORS,
-            Race::Elf => &ELF_SKIN_COLORS,
-            Race::Human => &HUMAN_SKIN_COLORS,
-            Race::Orc => &ORC_SKIN_COLORS,
-            Race::Undead => &UNDEAD_SKIN_COLORS,
+            Species::Danari => &DANARI_SKIN_COLORS,
+            Species::Dwarf => &DWARF_SKIN_COLORS,
+            Species::Elf => &ELF_SKIN_COLORS,
+            Species::Human => &HUMAN_SKIN_COLORS,
+            Species::Orc => &ORC_SKIN_COLORS,
+            Species::Undead => &UNDEAD_SKIN_COLORS,
         }
     }
 
     fn eye_colors(self) -> &'static [EyeColor] {
         match self {
-            Race::Danari => &DANARI_EYE_COLORS,
-            Race::Dwarf => &DWARF_EYE_COLORS,
-            Race::Elf => &ELF_EYE_COLORS,
-            Race::Human => &HUMAN_EYE_COLORS,
-            Race::Orc => &ORC_EYE_COLORS,
-            Race::Undead => &UNDEAD_EYE_COLORS,
+            Species::Danari => &DANARI_EYE_COLORS,
+            Species::Dwarf => &DWARF_EYE_COLORS,
+            Species::Elf => &ELF_EYE_COLORS,
+            Species::Human => &HUMAN_EYE_COLORS,
+            Species::Orc => &ORC_EYE_COLORS,
+            Species::Undead => &UNDEAD_EYE_COLORS,
         }
     }
 
@@ -412,54 +414,71 @@ impl Race {
 
     pub fn num_hair_styles(self, body_type: BodyType) -> u8 {
         match (self, body_type) {
-            (Race::Danari, BodyType::Female) => 2,
-            (Race::Danari, BodyType::Male) => 2,
-            (Race::Dwarf, BodyType::Female) => 4,
-            (Race::Dwarf, BodyType::Male) => 3,
-            (Race::Elf, BodyType::Female) => 21,
-            (Race::Elf, BodyType::Male) => 4,
-            (Race::Human, BodyType::Female) => 19,
-            (Race::Human, BodyType::Male) => 17,
-            (Race::Orc, BodyType::Female) => 7,
-            (Race::Orc, BodyType::Male) => 8,
-            (Race::Undead, BodyType::Female) => 4,
-            (Race::Undead, BodyType::Male) => 3,
+            (Species::Danari, BodyType::Female) => 4,
+            (Species::Danari, BodyType::Male) => 4,
+            (Species::Dwarf, BodyType::Female) => 7,
+            (Species::Dwarf, BodyType::Male) => 4,
+            (Species::Elf, BodyType::Female) => 21,
+            (Species::Elf, BodyType::Male) => 4,
+            (Species::Human, BodyType::Female) => 19,
+            (Species::Human, BodyType::Male) => 17,
+            (Species::Orc, BodyType::Female) => 7,
+            (Species::Orc, BodyType::Male) => 8,
+            (Species::Undead, BodyType::Female) => 6,
+            (Species::Undead, BodyType::Male) => 5,
         }
     }
 
     pub fn num_accessories(self, body_type: BodyType) -> u8 {
         match (self, body_type) {
-            (Race::Danari, BodyType::Female) => 1,
-            (Race::Danari, BodyType::Male) => 1,
-            (Race::Dwarf, BodyType::Female) => 7,
-            (Race::Dwarf, BodyType::Male) => 7,
-            (Race::Elf, BodyType::Female) => 2,
-            (Race::Elf, BodyType::Male) => 1,
-            (Race::Human, BodyType::Female) => 1,
-            (Race::Human, BodyType::Male) => 1,
-            (Race::Orc, BodyType::Female) => 4,
-            (Race::Orc, BodyType::Male) => 5,
-            (Race::Undead, BodyType::Female) => 1,
-            (Race::Undead, BodyType::Male) => 1,
+            (Species::Danari, BodyType::Female) => 1,
+            (Species::Danari, BodyType::Male) => 1,
+            (Species::Dwarf, BodyType::Female) => 7,
+            (Species::Dwarf, BodyType::Male) => 7,
+            (Species::Elf, BodyType::Female) => 2,
+            (Species::Elf, BodyType::Male) => 1,
+            (Species::Human, BodyType::Female) => 1,
+            (Species::Human, BodyType::Male) => 1,
+            (Species::Orc, BodyType::Female) => 4,
+            (Species::Orc, BodyType::Male) => 5,
+            (Species::Undead, BodyType::Female) => 1,
+            (Species::Undead, BodyType::Male) => 1,
         }
     }
 
     pub fn num_eyebrows(self, _body_type: BodyType) -> u8 { 1 }
 
+    pub fn num_eyes(self, body_type: BodyType) -> u8 {
+        match (self, body_type) {
+            (Species::Danari, BodyType::Female) => 6,
+            (Species::Danari, BodyType::Male) => 7,
+            (Species::Dwarf, BodyType::Female) => 6,
+            (Species::Dwarf, BodyType::Male) => 7,
+            (Species::Elf, BodyType::Female) => 6,
+            (Species::Elf, BodyType::Male) => 7,
+            (Species::Human, BodyType::Female) => 6,
+            (Species::Human, BodyType::Male) => 5,
+            (Species::Orc, BodyType::Female) => 6,
+            (Species::Orc, BodyType::Male) => 2,
+            (Species::Undead, BodyType::Female) => 3,
+            (Species::Undead, BodyType::Male) => 4,
+        }
+    }
+
     pub fn num_beards(self, body_type: BodyType) -> u8 {
         match (self, body_type) {
-            (Race::Danari, BodyType::Female) => 1,
-            (Race::Danari, BodyType::Male) => 2,
-            (Race::Dwarf, BodyType::Female) => 1,
-            (Race::Dwarf, BodyType::Male) => 20,
-            (Race::Elf, BodyType::Female) => 1,
-            (Race::Elf, BodyType::Male) => 1,
-            (Race::Human, BodyType::Female) => 1,
-            (Race::Human, BodyType::Male) => 4,
-            (Race::Orc, BodyType::Female) => 1,
-            (Race::Orc, BodyType::Male) => 3,
-            (Race::Undead, BodyType::Female) => 1,
-            (Race::Undead, BodyType::Male) => 1,
+            (Species::Danari, BodyType::Female) => 1,
+            (Species::Danari, BodyType::Male) => 2,
+            (Species::Dwarf, BodyType::Female) => 1,
+            (Species::Dwarf, BodyType::Male) => 20,
+            (Species::Elf, BodyType::Female) => 1,
+            (Species::Elf, BodyType::Male) => 1,
+            (Species::Human, BodyType::Female) => 1,
+            (Species::Human, BodyType::Male) => 4,
+            (Species::Orc, BodyType::Female) => 1,
+            (Species::Orc, BodyType::Male) => 3,
+            (Species::Undead, BodyType::Female) => 1,
+            (Species::Undead, BodyType::Male) => 1,
         }
     }
 }
@@ -471,13 +490,6 @@ pub enum BodyType {
     Male = 1,
 }
 pub const ALL_BODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum Eyebrows {
-    Yup = 0,
-}
-pub const ALL_EYEBROWS: [Eyebrows; 1] = [Eyebrows::Yup];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]

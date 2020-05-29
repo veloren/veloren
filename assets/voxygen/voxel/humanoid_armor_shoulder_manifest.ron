@@ -53,11 +53,11 @@
         ),
         Plate0: (
             left: (
-                vox_spec: ("armor.shoulder.plate_right-0", (-3.6, -3.5, 1.0)),
+                vox_spec: ("armor.shoulder.plate_right-0", (-3.6, -3.5, -0.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.shoulder.plate_right-0", (-2.6, -3.5, 1.0)),
+                vox_spec: ("armor.shoulder.plate_right-0", (-2.6, -3.5, 0.0)),
                 color: None
             )
         ),

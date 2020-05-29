@@ -52,12 +52,12 @@ VoxygenLocalization(
         "common.cancel": "Annuler",
         "common.none": "Aucun",
 
-        "common.races.orc": "Orc",
-        "common.races.human": "Humain",
-        "common.races.dwarf": "Nain",
-        "common.races.elf": "Elfe",
-        "common.races.undead": "Mort vivant",
-        "common.races.danari": "Danari",
+        "common.species.orc": "Orc",
+        "common.species.human": "Humain",
+        "common.species.dwarf": "Nain",
+        "common.species.elf": "Elfe",
+        "common.species.undead": "Mort vivant",
+        "common.species.danari": "Danari",
 
         "common.weapons.axe": "Hâche",
         "common.weapons.sword": "Épée",

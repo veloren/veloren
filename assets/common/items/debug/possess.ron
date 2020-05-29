@@ -1,11 +1,11 @@
 Item(
-    name: "Rod of Possession",
-    description: "It's fixed on my branch.",
+    name: "Belzeshrub the Broom-God",
+    description: "You can hear him giggle whenever\nyou hit the ground a bit too hard...",
     kind: Tool(
         (
-            kind: Debug(Possess),
+            kind: Debug(Boost),
             equip_time_millis: 0,            
         )
     ),
 )
-// ... as zesterer always uses to tell us.
+// And the ground is pretty hard at maximum velocity...

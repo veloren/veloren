@@ -1,6 +1,6 @@
 Item(
-    name: "Weightless Rod",
-    description: "The sky is the limit.",
+    name: "Belzeshrub the Broom-God",
+    description: "You can hear him giggle whenever\nyou hit the ground a bit too hard...",
     kind: Tool(
         (
             kind: Debug(Boost),

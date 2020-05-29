@@ -790,13 +790,29 @@ impl<'a> Widget for Skillbar<'a> {
                         .1
                         .get(i)
                         .map(|item| (item.name(), item.description())),
-                    hotbar::SlotContents::Ability3 => Some((
-                        "Firebomb",
-                        "\nWhirls a big fireball into the air. \nExplodes the ground and does\na \
-                         big amount of damage",
-                    )),
+                    hotbar::SlotContents::Ability3 => content_source
+                        .2
+                        .active_item
+                        .as_ref()
+                        .map(|i| &i.item.kind)
+                        .and_then(|kind| match kind {
+                            ItemKind::Tool(Tool { kind, .. }) => match kind {
+                                ToolKind::Staff(_) => Some((
+                                    "Firebomb",
+                                    "\nWhirls a big fireball into the air. \nExplodes the ground \
+                                     and does\na big amount of damage",
+                                )),
+                                ToolKind::Debug(DebugKind::Boost) => Some((
+                                    "Possessing Arrow",
+                                    "\nShoots a poisonous arrow.\nLets you control your target.",
+                                )),
+                                _ => None,
+                            },
+                            _ => None,
+                        }),
                 })
         };
+
         const SLOT_TOOLTIP_UPSHIFT: f64 = 70.0;
         //Slot 5
         let slot = slot_maker
