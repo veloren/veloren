@@ -8,3 +8,4 @@ mod image;
 mod row;
 mod space;
 mod text;
+mod text_input;

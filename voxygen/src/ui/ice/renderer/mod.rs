@@ -1,14 +1,18 @@
 mod defaults;
+mod primitive;
 mod style;
-mod widgets;
+mod widget;
 
 pub use defaults::Defaults;
 pub use style::ButtonStyle;
 
+pub(self) use primitive::Primitive;
+
 use super::{
     super::graphic::{self, Graphic, TexId},
     cache::Cache,
-    widget, Font, Rotation,
+    widget::image,
+    Font, Rotation,
 };
 use crate::{
     render::{
@@ -52,36 +56,6 @@ enum State {
     Plain,
 }
 
-pub enum Primitive {
-    // Allocation :(
-    Group {
-        primitives: Vec<Primitive>,
-    },
-    Image {
-        handle: (widget::image::Handle, Rotation),
-        bounds: iced::Rectangle,
-        color: Rgba<u8>,
-    },
-    Rectangle {
-        bounds: iced::Rectangle,
-        color: Rgba<u8>,
-    },
-    Text {
-        glyphs: Vec<(
-            glyph_brush::rusttype::PositionedGlyph<'static>,
-            glyph_brush::Color,
-            glyph_brush::FontId,
-        )>,
-        //size: f32,
-        bounds: iced::Rectangle,
-        linear_color: Rgba<f32>,
-        /*font: iced::Font,
-         *horizontal_alignment: iced::HorizontalAlignment,
-         *vertical_alignment: iced::VerticalAlignment, */
-    },
-    Nothing,
-}
-
 // Optimization idea inspired by what I think iced wgpu renderer may be doing:
 // Could have layers of things which don't intersect and thus can be reordered
 // arbitrarily
@@ -107,6 +81,8 @@ pub struct IcedRenderer {
     p_scale: f32,
     // Pretend dims :) (i.e. scaled)
     win_dims: Vec2<f32>,
+    // Scissor for the whole window
+    window_scissor: Aabr<u16>,
 
     // Per-frame/update
     current_state: State,
@@ -145,6 +121,7 @@ impl IcedRenderer {
             align,
             p_scale,
             win_dims: scaled_dims,
+            window_scissor: default_scissor(renderer),
             start: 0,
             //current_scissor: default_scissor(renderer),
         })
@@ -154,7 +131,7 @@ impl IcedRenderer {
         self.cache.add_graphic(graphic)
     }
 
-    fn image_dims(&self, handle: super::widget::image::Handle) -> (u32, u32) {
+    fn image_dims(&self, handle: image::Handle) -> (u32, u32) {
         self
             .cache
             .graphic_cache()
@@ -218,7 +195,7 @@ impl IcedRenderer {
 
         let brush_result = glyph_cache.process_queued(
             |rect, tex_data| {
-                let offset = [rect.min.x as u16, rect.min.y as u16];
+                let offset = [rect.min[0] as u16, rect.min[1] as u16];
                 let size = [rect.width() as u16, rect.height() as u16];
 
                 let new_data = tex_data
@@ -377,6 +354,12 @@ impl IcedRenderer {
                 bounds,
                 color,
             } => {
+                let color = srgba_to_linear(color.map(|e| e as f32 / 255.0));
+                // Don't draw a transparent image.
+                if color[3] == 0.0 {
+                    return;
+                }
+
                 let (graphic_id, rotation) = handle;
                 let gl_aabr = self.gl_aabr(bounds);
 
@@ -385,12 +368,6 @@ impl IcedRenderer {
                 match graphic_cache.get_graphic(graphic_id) {
                     Some(Graphic::Blank) | None => return,
                     _ => {},
-                }
-
-                let color = srgba_to_linear(color.map(|e| e as f32 / 255.0));
-                // Don't draw a transparent image.
-                if color[3] == 0.0 {
-                    return;
                 }
 
                 let resolution = Vec2::new(
@@ -445,10 +422,12 @@ impl IcedRenderer {
                 self.mesh
                     .push_quad(create_ui_quad(gl_aabr, uv_aabr, color, UiMode::Image));
             },
-            Primitive::Rectangle { bounds, color } => {
-                let color = srgba_to_linear(color.map(|e| e as f32 / 255.0));
+            Primitive::Rectangle {
+                bounds,
+                linear_color,
+            } => {
                 // Don't draw a transparent rectangle.
-                if color[3] == 0.0 {
+                if linear_color[3] == 0.0 {
                     return;
                 }
 
@@ -460,7 +439,7 @@ impl IcedRenderer {
                         min: Vec2::zero(),
                         max: Vec2::zero(),
                     },
-                    color,
+                    linear_color,
                     UiMode::Geometry,
                 ));
             },
@@ -474,8 +453,6 @@ impl IcedRenderer {
             } => {
                 self.switch_state(State::Plain);
 
-                // TODO: Scissor?
-
                 // TODO: makes sure we are not doing all this work for hidden text
                 // e.g. in chat
                 let glyph_cache = self.cache.glyph_cache_mut();
@@ -486,20 +463,21 @@ impl IcedRenderer {
                 // Queue the glyphs to be cached.
                 glyph_cache.queue_pre_positioned(
                     glyphs,
+                    // TODO: glyph_brush should document that these need to be the same length
+                    vec![(); glyph_count],
                     // Since we already passed in `bounds` to position the glyphs some of this
                     // seems redundant...
-                    glyph_brush::rusttype::Rect {
-                        min: glyph_brush::rusttype::Point {
-                            x: bounds.x * self.p_scale,
-                            //y: (self.win_dims.y - bounds.y) * self.p_scale,
-                            y: bounds.y * self.p_scale,
-                        },
-                        max: glyph_brush::rusttype::Point {
-                            x: (bounds.x + bounds.width) * self.p_scale,
-                            y: (bounds.y + bounds.height) * self.p_scale,
-                        },
+                    glyph_brush::ab_glyph::Rect {
+                        min: glyph_brush::ab_glyph::point(
+                             bounds.x * self.p_scale,
+                             //(self.win_dims.y - bounds.y) * self.p_scale,
+                             bounds.y * self.p_scale,
+                        ),
+                        max: glyph_brush::ab_glyph::point(
+                            (bounds.x + bounds.width) * self.p_scale,
+                            (bounds.y + bounds.height) * self.p_scale,
+                        ),
                     },
-                    0.0, // z (we don't use this)
                 );
 
                 // Leave ui and verts blank to fill in when processing cached glyphs
@@ -521,6 +499,66 @@ impl IcedRenderer {
                         UiMode::Text,
                     ));
                 }
+            },
+            Primitive::Clip { bounds, content } => {
+                // Check for a change in the scissor.
+                let new_scissor = {
+                    // Calculate minimum x and y coordinates while
+                    // flipping y axis (from +down to +uo) and
+                    // moving origin from top-left corner to bottom-left
+                    let min_x = bounds.x;
+                    let min_y = self.win_dims.y - bounds.y;
+                    let intersection = Aabr {
+                        min: Vec2 {
+                            x: (min_x * self.p_scale) as u16,
+                            y: (min_y * self.p_scale) as u16,
+                        },
+                        max: Vec2 {
+                            x: ((min_x + bounds.width) * self.p_scale) as u16,
+                            y: ((min_y + bounds.height) * self.p_scale) as u16,
+                        },
+                    }
+                    .intersection(self.window_scissor);
+
+                    if intersection.is_valid() {
+                        intersection
+                    } else {
+                        Aabr::new_empty(Vec2::zero())
+                    }
+                };
+                // Not expecting this case: new_cursor == current_scissor
+
+                // Finish the current command.
+                // TODO: ensure we never push empty commands (make fields private & debug assert
+                // in constructors?)
+                self.draw_commands.push(match self.current_state {
+                    State::Plain => DrawCommand::plain(self.start..self.mesh.vertices().len()),
+                    State::Image(id) => {
+                        DrawCommand::image(self.start..self.mesh.vertices().len(), id)
+                    },
+                });
+                self.start = self.mesh.vertices().len();
+
+                self.draw_commands.push(DrawCommand::Scissor(new_scissor));
+
+                // TODO: support nested clips?
+                // TODO: if last command is a clip changing back to the default replace it with
+                // this
+
+                // Renderer child
+                self.draw_primitive(*content, renderer);
+
+                // Reset scissor
+                self.draw_commands.push(match self.current_state {
+                    State::Plain => DrawCommand::plain(self.start..self.mesh.vertices().len()),
+                    State::Image(id) => {
+                        DrawCommand::image(self.start..self.mesh.vertices().len(), id)
+                    },
+                });
+                self.start = self.mesh.vertices().len();
+
+                self.draw_commands
+                    .push(DrawCommand::Scissor(self.window_scissor));
             },
             Primitive::Nothing => {},
         }
