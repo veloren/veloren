@@ -100,11 +100,11 @@ pub fn create_character(
 
                 let new_body = Body {
                     character_id: inserted_character.id as i32,
-                    race: body_data.race as i16,
+                    species: body_data.species as i16,
                     body_type: body_data.body_type as i16,
                     hair_style: body_data.hair_style as i16,
                     beard: body_data.beard as i16,
-                    eyebrows: body_data.eyebrows as i16,
+                    eyes: body_data.eyes as i16,
                     accessory: body_data.accessory as i16,
                     hair_color: body_data.hair_color as i16,
                     skin: body_data.skin as i16,

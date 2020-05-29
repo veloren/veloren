@@ -91,7 +91,7 @@ impl EntityInfo {
 
     pub fn with_automatic_name(mut self) -> Self {
         self.name = match &self.body {
-            Body::Humanoid(body) => Some(get_npc_name(&NPC_NAMES.humanoid, body.race)),
+            Body::Humanoid(body) => Some(get_npc_name(&NPC_NAMES.humanoid, body.species)),
             Body::QuadrupedMedium(body) => {
                 Some(get_npc_name(&NPC_NAMES.quadruped_medium, body.species))
             },

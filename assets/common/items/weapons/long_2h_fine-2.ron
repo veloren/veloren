@@ -1,0 +1,10 @@
+Item(
+    name: "Fine Longsword",
+    description: "A Very Fine Double-Edged, Two-Hand LongSword\n\nPower: 2-10\n\n<Right-Click to use>",
+    kind: Tool(
+       (
+            kind: Sword(LongFine2),    
+            equip_time_millis: 500,
+        )
+    ),
+)

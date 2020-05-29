@@ -9,7 +9,7 @@ use common::{
         dragon::{BodyType as DBodyType, Species as DSpecies},
         fish_medium, fish_small,
         golem::{BodyType as GBodyType, Species as GSpecies},
-        humanoid::{Body, BodyType, EyeColor, Race, Skin},
+        humanoid::{Body, BodyType, EyeColor, Skin, Species},
         item::{
             armor::{Armor, Back, Belt, Chest, Foot, Hand, Head, Pants, Shoulder, Tabard},
             tool::{Tool, ToolKind},
@@ -122,18 +122,18 @@ struct MobSidedVoxSpec {
     right: ArmorVoxSpec,
 }
 
-// All reliant on humanoid::Race and humanoid::BodyType
+// All reliant on humanoid::Species and humanoid::BodyType
 #[derive(Serialize, Deserialize)]
 struct HumHeadSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     head: VoxSpec<i32>,
-    eyes: VoxSpec<i32>,
+    eyes: Vec<Option<VoxSpec<i32>>>,
     hair: Vec<Option<VoxSpec<i32>>>,
     beard: Vec<Option<VoxSpec<i32>>>,
     accessory: Vec<Option<VoxSpec<i32>>>,
 }
 #[derive(Serialize, Deserialize)]
-pub struct HumHeadSpec(HashMap<(Race, BodyType), HumHeadSubSpec>);
+pub struct HumHeadSpec(HashMap<(Species, BodyType), HumHeadSubSpec>);
 
 impl Asset for HumHeadSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
@@ -150,77 +150,80 @@ impl HumHeadSpec {
 
     pub fn mesh_head(
         &self,
-        race: Race,
-        body_type: BodyType,
-        hair_color: u8,
-        hair_style: u8,
-        beard: u8,
-        eye_color: u8,
-        skin: u8,
-        _eyebrows: u8,
-        accessory: u8,
+        body: &Body,
         generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
     ) -> Mesh<FigurePipeline> {
-        let spec = match self.0.get(&(race, body_type)) {
+        let spec = match self.0.get(&(body.species, body.body_type)) {
             Some(spec) => spec,
             None => {
                 error!(
                     "No head specification exists for the combination of {:?} and {:?}",
-                    race, body_type
+                    body.species, body.body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
             },
         };
 
-        let hair_rgb = race.hair_color(hair_color);
-        let skin = race.skin_color(skin);
-        let eye_rgb = race.eye_color(eye_color);
+        let hair_rgb = body.species.hair_color(body.hair_color);
+        let skin_rgb = body.species.skin_color(body.skin);
+        let eye_rgb = body.species.eye_color(body.eye_color);
 
         // Load segment pieces
         let bare_head = graceful_load_mat_segment(&spec.head.0);
-        let eyes = color_segment(
-            graceful_load_mat_segment(&spec.eyes.0).map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
-            skin,
-            hair_rgb,
-            eye_rgb,
-        );
-        let hair = match spec.hair.get(hair_style as usize) {
+
+        let eyes = match spec.eyes.get(body.eyes as usize) {
+            Some(Some(spec)) => Some((
+                color_segment(
+                    graceful_load_mat_segment(&spec.0).map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
+                    skin_rgb,
+                    hair_rgb,
+                    eye_rgb,
+                ),
+                Vec3::from(spec.1),
+            )),
+            Some(None) => None,
+            None => {
+                warn!("No specification for these eyes: {:?}", body.eyes);
+                None
+            },
+        };
+        let hair = match spec.hair.get(body.hair_style as usize) {
             Some(Some(spec)) => Some((
                 graceful_load_segment(&spec.0).map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
                 Vec3::from(spec.1),
             )),
             Some(None) => None,
             None => {
-                warn!("No specification for hair style {}", hair_style);
+                warn!("No specification for hair style {}", body.hair_style);
                 None
             },
         };
-        let beard = match spec.beard.get(beard as usize) {
+        let beard = match spec.beard.get(body.beard as usize) {
             Some(Some(spec)) => Some((
                 graceful_load_segment(&spec.0).map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
                 Vec3::from(spec.1),
             )),
             Some(None) => None,
             None => {
-                warn!("No specification for this beard: {:?}", beard);
+                warn!("No specification for this beard: {:?}", body.beard);
                 None
             },
         };
-        let accessory = match spec.accessory.get(accessory as usize) {
+        let accessory = match spec.accessory.get(body.accessory as usize) {
             Some(Some(spec)) => Some((graceful_load_segment(&spec.0), Vec3::from(spec.1))),
             Some(None) => None,
             None => {
-                warn!("No specification for this accessory: {:?}", accessory);
+                warn!("No specification for this accessory: {:?}", body.accessory);
                 None
             },
         };
 
         let (head, origin_offset) = DynaUnionizer::new()
             .add(
-                color_segment(bare_head, skin, hair_rgb, eye_rgb),
+                color_segment(bare_head, skin_rgb, hair_rgb, eye_rgb),
                 spec.head.1.into(),
             )
-            .add(eyes, spec.eyes.1.into())
+            .maybe_add(eyes)
             .maybe_add(hair)
             .maybe_add(beard)
             .maybe_add(accessory)
@@ -379,9 +382,9 @@ impl HumArmorShoulderSpec {
             } else {
                 graceful_load_mat_segment(&spec.right.vox_spec.0)
             },
-            body.race.skin_color(body.skin),
-            body.race.hair_color(body.hair_color),
-            body.race.eye_color(body.eye_color),
+            body.species.skin_color(body.skin),
+            body.species.hair_color(body.hair_color),
+            body.species.eye_color(body.eye_color),
         );
 
         // TODO: use this if we can
@@ -458,9 +461,9 @@ impl HumArmorChestSpec {
         let color = |mat_segment| {
             color_segment(
                 mat_segment,
-                body.race.skin_color(body.skin),
-                body.race.hair_color(body.hair_color),
-                body.race.eye_color(body.eye_color),
+                body.species.skin_color(body.skin),
+                body.species.hair_color(body.hair_color),
+                body.species.eye_color(body.eye_color),
             )
         };
 
@@ -518,9 +521,9 @@ impl HumArmorHandSpec {
             } else {
                 graceful_load_mat_segment(&spec.right.vox_spec.0)
             },
-            body.race.skin_color(body.skin),
-            body.race.hair_color(body.hair_color),
-            body.race.eye_color(body.eye_color),
+            body.species.skin_color(body.skin),
+            body.species.hair_color(body.hair_color),
+            body.species.eye_color(body.eye_color),
         );
 
         let offset = if flipped {
@@ -590,9 +593,9 @@ impl HumArmorBeltSpec {
 
         let mut belt_segment = color_segment(
             graceful_load_mat_segment(&spec.vox_spec.0),
-            body.race.skin_color(body.skin),
-            body.race.hair_color(body.hair_color),
-            body.race.eye_color(body.eye_color),
+            body.species.skin_color(body.skin),
+            body.species.hair_color(body.hair_color),
+            body.species.eye_color(body.eye_color),
         );
 
         if let Some(color) = spec.color {
@@ -634,9 +637,9 @@ impl HumArmorBackSpec {
 
         let mut back_segment = color_segment(
             graceful_load_mat_segment(&spec.vox_spec.0),
-            body.race.skin_color(body.skin),
-            body.race.hair_color(body.hair_color),
-            body.race.eye_color(body.eye_color),
+            body.species.skin_color(body.skin),
+            body.species.hair_color(body.hair_color),
+            body.species.eye_color(body.eye_color),
         );
         if let Some(color) = spec.color {
             let back_color = Vec3::from(color);
@@ -678,9 +681,9 @@ impl HumArmorPantsSpec {
         let color = |mat_segment| {
             color_segment(
                 mat_segment,
-                body.race.skin_color(body.skin),
-                body.race.hair_color(body.hair_color),
-                body.race.eye_color(body.eye_color),
+                body.species.skin_color(body.skin),
+                body.species.hair_color(body.hair_color),
+                body.species.eye_color(body.eye_color),
             )
         };
 
@@ -738,9 +741,9 @@ impl HumArmorFootSpec {
             } else {
                 graceful_load_mat_segment(&spec.vox_spec.0)
             },
-            body.race.skin_color(body.skin),
-            body.race.hair_color(body.hair_color),
-            body.race.eye_color(body.eye_color),
+            body.species.skin_color(body.skin),
+            body.species.hair_color(body.hair_color),
+            body.species.eye_color(body.eye_color),
         );
 
         if let Some(color) = spec.color {
@@ -827,9 +830,9 @@ impl HumArmorLanternSpec {
 
         let mut lantern_segment = color_segment(
             graceful_load_mat_segment(&spec.vox_spec.0),
-            body.race.skin_color(body.skin),
-            body.race.hair_color(body.hair_color),
-            body.race.eye_color(body.eye_color),
+            body.species.skin_color(body.skin),
+            body.species.hair_color(body.hair_color),
+            body.species.eye_color(body.eye_color),
         );
         if let Some(color) = spec.color {
             let lantern_color = Vec3::from(color);
@@ -871,9 +874,9 @@ impl HumArmorHeadSpec {
         let color = |mat_segment| {
             color_segment(
                 mat_segment,
-                body.race.skin_color(body.skin),
-                body.race.hair_color(body.hair_color),
-                body.race.eye_color(body.eye_color),
+                body.species.skin_color(body.skin),
+                body.species.hair_color(body.hair_color),
+                body.species.eye_color(body.eye_color),
             )
         };
 
@@ -926,9 +929,9 @@ impl HumArmorTabardSpec {
         let color = |mat_segment| {
             color_segment(
                 mat_segment,
-                body.race.skin_color(body.skin),
-                body.race.hair_color(body.hair_color),
-                body.race.eye_color(body.eye_color),
+                body.species.skin_color(body.skin),
+                body.species.hair_color(body.hair_color),
+                body.species.eye_color(body.eye_color),
             )
         };
 

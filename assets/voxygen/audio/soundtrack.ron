@@ -1,7 +1,15 @@
 // TODO: Re-add tunes that are not fitting general outside day/night situations
+// TODO: Add an ambient-soundtrack that runs independently from the musical soundtrack
 
 (
     tracks: [
+        (
+            title: "Forest Day", // Ambience Track
+            path: "voxygen.audio.ambient.forest_day",
+            length: 629.0,
+            timing: Some(Day),
+            artist: "https://www.youtube.com/watch?v=FwVTkB-BIvM",
+        ),        
         (
             title: "Into The Dark Forest",
             path: "voxygen.audio.soundtrack.into_the_dark_forest",
@@ -92,6 +100,13 @@
             length: 175.0,
             timing: Some(Night),
             artist: "badbbad",
+        ),
+        (
+            title: "Forest Morning", // Ambience Track
+            path: "voxygen.audio.ambient.forest_morning",
+            length: 600.0,
+            timing: Some(Day),
+            artist: "https://www.youtube.com/watch?v=eq4nfIdK6C4",
         ),
     ]
 )

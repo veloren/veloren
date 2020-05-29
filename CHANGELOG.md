@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dance animation
 - Speech bubbles appear when nearby players talk
 - NPCs call for help when attacked
+- Eyebrows and shapes can now be selected
 
 ### Changed
 

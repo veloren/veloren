@@ -1,11 +1,11 @@
 table! {
     body (character_id) {
         character_id -> Integer,
-        race -> SmallInt,
+        species -> SmallInt,
         body_type -> SmallInt,
         hair_style -> SmallInt,
         beard -> SmallInt,
-        eyebrows -> SmallInt,
+        eyes -> SmallInt,
         accessory -> SmallInt,
         hair_color -> SmallInt,
         skin -> SmallInt,
