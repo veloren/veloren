@@ -33,8 +33,6 @@ before_script:
   - export DISABLE_GIT_LFS_CHECK=true
   - export VELOREN_ASSETS="$(pwd)/assets"
   - echo "VELOREN_ASSETS=$VELOREN_ASSETS"
-  - rm -r target || echo "target doesnt exist, which is fine"
-  - ln -s /dockercache/veloren/target target
 
 workflow:
   rules:

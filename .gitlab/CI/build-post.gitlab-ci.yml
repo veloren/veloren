@@ -7,6 +7,7 @@
 unittests:
   <<: *tests
   script:
+    - ln -s /dockercache/cache-all target
     - cargo test
   retry:
     max: 2
@@ -15,6 +16,7 @@ coverage:
   <<: *tests
   allow_failure: true
   script:
+    - ln -s /dockercache/cache-tarpaulin target
     - cargo tarpaulin -v
   retry:
     max: 2
@@ -23,6 +25,7 @@ benchmarks:
   <<: *tests
   script:
     - unset DISABLE_GIT_LFS_CHECK
+    - ln -s /dockercache/cache-all target
     - cargo bench
   retry:
     max: 2
@@ -33,6 +36,7 @@ localization-status:
     GIT_DEPTH: 0
   allow_failure: true
   script:
+    - ln -s /dockercache/cache-all target
     - cargo test -q test_all_localizations -- --nocapture --ignored
 
 # Artifacts
@@ -45,6 +49,7 @@ localization-status:
 linux:
   <<: *artifact
   script:
+    - ln -s /dockercache/cache-release-linux target
     - cargo build --release
     - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
     - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
@@ -61,6 +66,7 @@ linux:
 windows:
   <<: *artifact
   script:
+    - ln -s /dockercache/cache-release-windows target
     - cargo build --target=x86_64-pc-windows-gnu --release
     - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
     - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
@@ -75,6 +81,7 @@ windows:
 macos:
   <<: *artifact
   script:
+    - ln -s /dockercache/cache-release-macos target
     - PATH="/dockercache/osxcross/target/bin:$PATH" COREAUDIO_SDK_PATH=/dockercache/osxcross/target/SDK/MacOSX10.13.sdk CC=o64-clang CXX=o64-clang++ cargo build --target x86_64-apple-darwin --release
     - cp -r target/x86_64-apple-darwin/release/veloren-server-cli $CI_PROJECT_DIR
     - cp -r target/x86_64-apple-darwin/release/veloren-voxygen $CI_PROJECT_DIR

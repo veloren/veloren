@@ -9,6 +9,7 @@
 optional-release:linux:
   <<: *optional-release
   script:
+    - ln -s /dockercache/cache-release-linux target
     - cargo build --verbose --release
     - cp target/release/veloren-server-cli $CI_PROJECT_DIR
     - cp target/release/veloren-voxygen $CI_PROJECT_DIR
@@ -25,6 +26,7 @@ optional-release:linux:
 optional-release:windows:
   <<: *optional-release
   script:
+    - ln -s /dockercache/cache-release-windows target
     - cargo build --verbose --target=x86_64-pc-windows-gnu --release
     - cp target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
     - cp target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
@@ -39,6 +41,7 @@ optional-release:windows:
 optional-release:macos:
   <<: *optional-release
   script:
+    - ln -s /dockercache/cache-release-macos target
     - PATH="/dockercache/osxcross/target/bin:$PATH" COREAUDIO_SDK_PATH=/dockercache/osxcross/target/SDK/MacOSX10.13.sdk CC=o64-clang CXX=o64-clang++ cargo build --target x86_64-apple-darwin --release
     - cp -r target/x86_64-apple-darwin/release/veloren-server-cli $CI_PROJECT_DIR
     - cp -r target/x86_64-apple-darwin/release/veloren-voxygen $CI_PROJECT_DIR
