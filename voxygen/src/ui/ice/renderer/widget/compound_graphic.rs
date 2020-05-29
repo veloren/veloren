@@ -27,7 +27,7 @@ impl compound_graphic::Renderer for IcedRenderer {
                         },
                         GraphicKind::Color(color) => Primitive::Rectangle {
                             bounds,
-                            linear_color: srgba_to_linear(color.map(|e| e as f32 * 255.0)),
+                            linear_color: srgba_to_linear(color.map(|e| e as f32 / 255.0)),
                         },
                     })
                     .collect(),

@@ -193,6 +193,12 @@ struct IcedState {
     multiplayer_button: neat_button::State,
     #[cfg(feature = "singleplayer")]
     singleplayer_button: neat_button::State,
+    username_input: iced::text_input::State,
+    password_input: iced::text_input::State,
+    server_input: iced::text_input::State,
+    username_value: String,
+    password_value: String,
+    server_value: String,
     show_servers: bool,
 }
 
@@ -203,6 +209,10 @@ enum Message {
     #[cfg(feature = "singleplayer")]
     Singleplayer,
     Multiplayer,
+    Username(String),
+    Password(String),
+    Server(String),
+    FocusPassword,
 }
 
 impl IcedState {
@@ -215,6 +225,12 @@ impl IcedState {
             multiplayer_button: Default::default(),
             #[cfg(feature = "singleplayer")]
             singleplayer_button: Default::default(),
+            username_input: Default::default(),
+            password_input: Default::default(),
+            server_input: Default::default(),
+            username_value: String::new(),
+            password_value: String::new(),
+            server_value: String::new(),
             show_servers: false,
         }
     }
@@ -226,7 +242,7 @@ impl IcedState {
         const FILL_FRAC_ONE: f32 = 0.77;
         const FILL_FRAC_TWO: f32 = 0.53;
 
-        use iced::{Align, Column, Container, Length, Row, Space};
+        use iced::{Align, Column, Container, Length, Row, Space, TextInput};
         use ui::ice::{
             widget::{
                 compound_graphic::{CompoundGraphic, Graphic},
@@ -283,19 +299,45 @@ impl IcedState {
                 BackgroundContainer::new(
                     CompoundGraphic::padded_image(self.imgs.input_bg, [169, 25], [0, 0, 0, 1])
                         .fix_aspect_ratio(),
-                    Space::new(Length::Fill, Length::Fill),
+                    TextInput::new(
+                        &mut self.username_input,
+                        "Username",
+                        &self.username_value,
+                        Message::Username,
+                    )
+                    // TODO: wrap in fill text thing to auto adjust the size
+                    .size(22)
+                    .padding(25)
+                    .on_submit(Message::FocusPassword),
                 )
                 .into(),
                 BackgroundContainer::new(
                     CompoundGraphic::padded_image(self.imgs.input_bg, [169, 25], [0, 1, 0, 1])
                         .fix_aspect_ratio(),
-                    Space::new(Length::Fill, Length::Fill),
+                    TextInput::new(
+                        &mut self.password_input,
+                        "Password",
+                        &self.password_value,
+                        Message::Password,
+                    )
+                    .size(22)
+                    .padding(25)
+                    .password()
+                    .on_submit(Message::Multiplayer),
                 )
                 .into(),
                 BackgroundContainer::new(
                     CompoundGraphic::padded_image(self.imgs.input_bg, [169, 25], [0, 1, 0, 0])
                         .fix_aspect_ratio(),
-                    Space::new(Length::Fill, Length::Fill),
+                    TextInput::new(
+                        &mut self.server_input,
+                        "Server",
+                        &self.server_value,
+                        Message::Server,
+                    )
+                    .size(22)
+                    .padding(25)
+                    .on_submit(Message::Multiplayer),
                 )
                 .into(),
             ])
@@ -363,6 +405,13 @@ impl IcedState {
             #[cfg(feature = "singleplayer")]
             Message::Singleplayer => events.push(Event::StartSingleplayer),
             Message::Multiplayer => (), //TODO
+            Message::Username(new_value) => self.username_value = new_value,
+            Message::Password(new_value) => self.password_value = new_value,
+            Message::Server(new_value) => self.server_value = new_value,
+            Message::FocusPassword => {
+                self.password_input = iced::text_input::State::focused();
+                self.username_input = iced::text_input::State::new();
+            },
         }
     }
 }
@@ -1125,7 +1174,11 @@ impl<'a> MainMenuUi {
         self.connect = false;
     }
 
-    pub fn handle_event(&mut self, event: ui::Event) { self.ui.handle_event(event); }
+    pub fn handle_event(&mut self, event: ui::Event) {
+        if !self.show_iced {
+            self.ui.handle_event(event);
+        }
+    }
 
     pub fn handle_iced_event(&mut self, event: ui::ice::Event) { self.ice_ui.handle_event(event); }
 

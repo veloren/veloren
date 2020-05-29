@@ -142,6 +142,7 @@ impl IcedRenderer {
 
     pub fn resize(&mut self, scaled_dims: Vec2<f32>, renderer: &mut Renderer) {
         self.win_dims = scaled_dims;
+        self.window_scissor = default_scissor(renderer);
 
         self.update_resolution_dependents(renderer.get_resolution());
 
@@ -467,15 +468,17 @@ impl IcedRenderer {
                     vec![(); glyph_count],
                     // Since we already passed in `bounds` to position the glyphs some of this
                     // seems redundant...
+                    // Note: we can't actually use this because dropping glyphs messeses up the
+                    // counting and there is not a convenient method provided to drop out of bounds
+                    // glyphs while positioning them
                     glyph_brush::ab_glyph::Rect {
                         min: glyph_brush::ab_glyph::point(
-                             bounds.x * self.p_scale,
-                             //(self.win_dims.y - bounds.y) * self.p_scale,
-                             bounds.y * self.p_scale,
+                            -10000.0, //bounds.x * self.p_scale,
+                            -10000.0, //bounds.y * self.p_scale,
                         ),
                         max: glyph_brush::ab_glyph::point(
-                            (bounds.x + bounds.width) * self.p_scale,
-                            (bounds.y + bounds.height) * self.p_scale,
+                            10000.0, //(bounds.x + bounds.width) * self.p_scale,
+                            10000.0, //(bounds.y + bounds.height) * self.p_scale,
                         ),
                     },
                 );
@@ -501,21 +504,17 @@ impl IcedRenderer {
                 }
             },
             Primitive::Clip { bounds, content } => {
-                // Check for a change in the scissor.
                 let new_scissor = {
-                    // Calculate minimum x and y coordinates while
-                    // flipping y axis (from +down to +uo) and
-                    // moving origin from top-left corner to bottom-left
                     let min_x = bounds.x;
-                    let min_y = self.win_dims.y - bounds.y;
+                    let min_y = bounds.y;
                     let intersection = Aabr {
                         min: Vec2 {
-                            x: (min_x * self.p_scale) as u16,
-                            y: (min_y * self.p_scale) as u16,
+                            x: (bounds.x * self.p_scale) as u16,
+                            y: (bounds.y * self.p_scale) as u16,
                         },
                         max: Vec2 {
-                            x: ((min_x + bounds.width) * self.p_scale) as u16,
-                            y: ((min_y + bounds.height) * self.p_scale) as u16,
+                            x: ((bounds.x + bounds.width) * self.p_scale) as u16,
+                            y: ((bounds.y + bounds.height) * self.p_scale) as u16,
                         },
                     }
                     .intersection(self.window_scissor);
