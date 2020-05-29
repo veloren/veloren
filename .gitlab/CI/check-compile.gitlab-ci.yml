@@ -4,6 +4,7 @@ check:
   tags:
     - veloren-docker
   script:
+    - ln -s /dockercache/cache-all target
     - RUSTFLAGS="-D warnings" cargo check --locked
 
 code-quality:
@@ -12,6 +13,7 @@ code-quality:
   tags:
     - veloren-docker
   script:
+    - ln -s /dockercache/cache-all target
     - cargo clippy -- --warn clippy::all
     - cargo fmt --all -- --check
 
@@ -22,4 +24,5 @@ security:
   tags:
     - veloren-docker
   script:
+    - ln -s /dockercache/cache-all target
     - cargo audit
