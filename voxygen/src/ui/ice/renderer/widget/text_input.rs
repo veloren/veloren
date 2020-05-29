@@ -6,9 +6,9 @@ use iced::{
     Color, Point, Rectangle,
 };
 
-const CURSOR_WIDTH: f32 = 1.0;
+const CURSOR_WIDTH: f32 = 2.0;
 // Extra scroll offset past the cursor
-const EXTRA_OFFSET: f32 = 5.0;
+const EXTRA_OFFSET: f32 = 10.0;
 
 impl text_input::Renderer for IcedRenderer {
     type Font = FontId;
@@ -116,7 +116,7 @@ impl text_input::Renderer for IcedRenderer {
 
         // Allocation :(
         let text = value.to_string();
-        let text = if text.is_empty() { Some(&*text) } else { None };
+        let text = if !text.is_empty() { Some(&*text) } else { None };
 
         // TODO: background from style, image?
 
@@ -124,7 +124,7 @@ impl text_input::Renderer for IcedRenderer {
         let color = if text.is_some() {
             Color::WHITE
         } else {
-            Color::from_rgba(1.0, 1.0, 1.0, 0.4)
+            Color::from_rgba(1.0, 1.0, 1.0, 0.3)
         };
         let linear_color = color.into_linear().into();
 
@@ -141,7 +141,7 @@ impl text_input::Renderer for IcedRenderer {
                     (
                         Primitive::Rectangle {
                             bounds: Rectangle {
-                                x: text_bounds.x + position,
+                                x: text_bounds.x + position - offset,
                                 y: text_bounds.y,
                                 width: CURSOR_WIDTH / p_scale,
                                 height: text_bounds.height,
@@ -158,12 +158,17 @@ impl text_input::Renderer for IcedRenderer {
                     let (left_position, left_offset) = cursor_and_scroll_offset(left);
                     let (right_position, right_offset) = cursor_and_scroll_offset(right);
 
+                    let offset = if end == right {
+                        right_offset
+                    } else {
+                        left_offset
+                    };
                     let width = right_position - left_position;
 
                     (
                         Primitive::Rectangle {
                             bounds: Rectangle {
-                                x: text_bounds.x + left_position,
+                                x: text_bounds.x + left_position - left_offset,
                                 y: text_bounds.y,
                                 width,
                                 height: text_bounds.height,
@@ -171,11 +176,7 @@ impl text_input::Renderer for IcedRenderer {
                             // TODO: selection color from stlye
                             linear_color: Color::from_rgba(1.0, 0.0, 1.0, 0.2).into_linear().into(),
                         },
-                        if end == right {
-                            right_offset
-                        } else {
-                            left_offset
-                        },
+                        offset,
                     )
                 },
             };
@@ -185,9 +186,10 @@ impl text_input::Renderer for IcedRenderer {
             (None, 0.0)
         };
 
+        let display_text = text.unwrap_or(if state.is_focused() { "" } else { placeholder });
         let section = glyph_brush::Section {
             screen_position: (
-                text_bounds.x * p_scale + scroll_offset,
+                text_bounds.x * p_scale - scroll_offset,
                 text_bounds.center_y() * p_scale,
             ),
             bounds: (text_bounds.width * p_scale, text_bounds.height * p_scale),
@@ -197,7 +199,7 @@ impl text_input::Renderer for IcedRenderer {
                 v_align: glyph_brush::VerticalAlign::Center,
             },
             text: vec![glyph_brush::Text {
-                text: text.unwrap_or(placeholder),
+                text: display_text,
                 scale: (size as f32 * p_scale).into(),
                 font_id: font.0,
                 extra: (),
@@ -229,7 +231,7 @@ impl text_input::Renderer for IcedRenderer {
         };
 
         // Probably already computed this somewhere
-        let text_width = self.measure_value(text.unwrap_or(placeholder), size, font);
+        let text_width = self.measure_value(display_text, size, font);
 
         let primitive = if text_width > text_bounds.width {
             Primitive::Clip {
