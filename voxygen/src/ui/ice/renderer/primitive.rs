@@ -1,0 +1,31 @@
+use crate::ui::{graphic, ice::widget::image};
+
+pub enum Primitive {
+    // Allocation :(
+    Group {
+        primitives: Vec<Primitive>,
+    },
+    Image {
+        handle: (image::Handle, graphic::Rotation),
+        bounds: iced::Rectangle,
+        color: vek::Rgba<u8>,
+    },
+    Rectangle {
+        bounds: iced::Rectangle,
+        linear_color: vek::Rgba<f32>,
+    },
+    Text {
+        glyphs: Vec<glyph_brush::SectionGlyph>,
+        //size: f32,
+        bounds: iced::Rectangle,
+        linear_color: vek::Rgba<f32>,
+        /*font: iced::Font,
+         *horizontal_alignment: iced::HorizontalAlignment,
+         *vertical_alignment: iced::VerticalAlignment, */
+    },
+    Clip {
+        bounds: iced::Rectangle,
+        content: Box<Primitive>,
+    },
+    Nothing,
+}

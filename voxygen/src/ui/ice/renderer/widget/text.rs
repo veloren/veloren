@@ -13,11 +13,15 @@ impl text::Renderer for IcedRenderer {
         let p_scale = self.p_scale;
         // TODO: would be nice if the method was mut
         let section = glyph_brush::Section {
-            text: content,
-            scale: glyph_brush::rusttype::Scale::uniform(size as f32 * p_scale),
-            font_id: font.0,
+            screen_position: (0.0, 0.0),
             bounds: (bounds.width * p_scale, bounds.height * p_scale),
-            ..Default::default()
+            layout: Default::default(),
+            text: vec![glyph_brush::Text {
+                text: content,
+                scale: (size as f32 * p_scale).into(),
+                font_id: font.0,
+                extra: (),
+            }],
         };
 
         let maybe_rect = self.cache.glyph_calculator().glyph_bounds(section);
@@ -57,30 +61,26 @@ impl text::Renderer for IcedRenderer {
         let p_scale = self.p_scale;
 
         let section = glyph_brush::Section {
-            text: content,
             screen_position: (x * p_scale, y * p_scale),
             bounds: (bounds.width * p_scale, bounds.height * p_scale),
-            scale: glyph_brush::rusttype::Scale::uniform(size as f32 * p_scale),
             layout: glyph_brush::Layout::Wrap {
                 line_breaker: Default::default(),
                 h_align,
                 v_align,
             },
-            font_id: font.0,
-            ..Default::default()
+            text: vec![glyph_brush::Text {
+                text: content,
+                scale: (size as f32 * p_scale).into(),
+                font_id: font.0,
+                extra: (),
+            }],
         };
 
         let glyphs = self
             .cache
             .glyph_cache_mut()
             .glyphs(section)
-            .map(|positioned_glyph| {
-                (
-                    positioned_glyph.clone(), // :/
-                    [0.0, 0.0, 0.0, 1.0],     // Color
-                    font.0,
-                )
-            })
+            .cloned()
             .collect::<Vec<_>>();
 
         (

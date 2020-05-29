@@ -10,12 +10,12 @@ use vek::*;
 // Multiplied by current window size
 const GLYPH_CACHE_SIZE: u16 = 1;
 // Glyph cache tolerances
-const SCALE_TOLERANCE: f32 = 0.1;
+const SCALE_TOLERANCE: f32 = 0.5; // Note: Changed from 0.1 change back if not decent
 const POSITION_TOLERANCE: f32 = 0.1;
 
-type GlyphBrush = glyph_brush::GlyphBrush<'static, (Aabr<f32>, Aabr<f32>)>;
+type GlyphBrush = glyph_brush::GlyphBrush<(Aabr<f32>, Aabr<f32>), ()>;
 
-pub type Font = glyph_brush::rusttype::Font<'static>;
+pub type Font = glyph_brush::ab_glyph::FontArc;
 
 pub struct Cache {
     glyph_brush: RefCell<GlyphBrush>,
@@ -35,8 +35,8 @@ impl Cache {
 
         let glyph_brush = GlyphBrushBuilder::using_font(default_font)
             .initial_cache_size((glyph_cache_dims.x as u32, glyph_cache_dims.y as u32))
-            .gpu_cache_scale_tolerance(SCALE_TOLERANCE)
-            .gpu_cache_position_tolerance(POSITION_TOLERANCE)
+            .draw_cache_scale_tolerance(SCALE_TOLERANCE)
+            .draw_cache_position_tolerance(POSITION_TOLERANCE)
             .build();
 
         Ok(Self {

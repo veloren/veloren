@@ -1,4 +1,4 @@
-use super::super::widget::image;
+use super::super::super::widget::image;
 use iced::Color;
 
 #[derive(Clone, Copy)]
