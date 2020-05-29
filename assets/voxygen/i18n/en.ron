@@ -77,12 +77,12 @@ Did the server restart?
 Is the client up to date?"#,
 
 
-        "common.races.orc": "Orc",
-        "common.races.human": "Human",
-        "common.races.dwarf": "Dwarf",
-        "common.races.elf": "Elf",
-        "common.races.undead": "Undead",
-        "common.races.danari": "Danari",
+        "common.species.orc": "Orc",
+        "common.species.human": "Human",
+        "common.species.dwarf": "Dwarf",
+        "common.species.elf": "Elf",
+        "common.species.undead": "Undead",
+        "common.species.danari": "Danari",
 
         "common.weapons.axe": "Axe",
         "common.weapons.sword": "Sword",
@@ -356,11 +356,10 @@ Enjoy your stay in the World of Veloren."#,
         "char_selection.plains_of_uncertainty": "Plains of Uncertainty",
         "char_selection.beard": "Beard",
         "char_selection.hair_style": "Hair Style",
-        "char_selection.hair_color": "Hair Color",
-        "char_selection.chest_color": "Chest color",
-        "char_selection.eye_color": "Eye color",
+        "char_selection.hair_color": "Hair Color",        
+        "char_selection.eye_color": "Eye Color",
         "char_selection.skin": "Skin",
-        "char_selection.eyebrows": "Eyebrows",
+        "char_selection.eyeshape": "Eye Details",
         "char_selection.accessories": "Accessories",
         "char_selection.create_info_name": "Your Character needs a name!",
 
@@ -422,6 +421,7 @@ Willpower
             "They're coming for me!",
             "Help! Help! I'm being repressed",
             "Ah, now we see the violence inherent in the system.",
+            "Tis but a scratch!"
         ],
     }
 )

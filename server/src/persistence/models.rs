@@ -44,11 +44,11 @@ impl From<&Character> for CharacterData {
 #[table_name = "body"]
 pub struct Body {
     pub character_id: i32,
-    pub race: i16,
+    pub species: i16,
     pub body_type: i16,
     pub hair_style: i16,
     pub beard: i16,
-    pub eyebrows: i16,
+    pub eyes: i16,
     pub accessory: i16,
     pub hair_color: i16,
     pub skin: i16,
@@ -58,11 +58,11 @@ pub struct Body {
 impl From<&Body> for comp::Body {
     fn from(body: &Body) -> comp::Body {
         comp::Body::Humanoid(comp::humanoid::Body {
-            race: comp::humanoid::ALL_RACES[body.race as usize],
+            species: comp::humanoid::ALL_SPECIES[body.species as usize],
             body_type: comp::humanoid::ALL_BODY_TYPES[body.body_type as usize],
             hair_style: body.hair_style as u8,
             beard: body.beard as u8,
-            eyebrows: body.eyebrows as u8,
+            eyes: body.eyes as u8,
             accessory: body.accessory as u8,
             hair_color: body.hair_color as u8,
             skin: body.skin as u8,
@@ -166,11 +166,11 @@ mod tests {
             alias: "test",
             body: &comp::Body::from(&Body {
                 character_id: 0,
-                race: 0,
+                species: 0,
                 body_type: comp::humanoid::BodyType::Female as i16,
                 hair_style: 0,
                 beard: 0,
-                eyebrows: 0,
+                eyes: 0,
                 accessory: 0,
                 hair_color: 0,
                 skin: 0,

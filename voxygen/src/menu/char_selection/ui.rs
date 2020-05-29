@@ -56,7 +56,7 @@ widget_ids! {
         v_logo,
         version,
         divider,
-        bodyrace_text,
+        bodyspecies_text,
         facialfeatures_text,
         info_bg,
         info_frame,
@@ -139,12 +139,12 @@ widget_ids! {
         create_button,
         name_input,
         name_field,
-        race_1,
-        race_2,
-        race_3,
-        race_4,
-        race_5,
-        race_6,
+        species_1,
+        species_2,
+        species_3,
+        species_4,
+        species_5,
+        species_6,
         body_type_1,
         body_type_2,
 
@@ -162,7 +162,7 @@ widget_ids! {
         staff,
         staff_button,
         // Char Creation
-        // Race Icons
+        // Species Icons
         male,
         female,
         human,
@@ -205,7 +205,7 @@ image_ids! {
         bow: "voxygen.element.icons.bow",
         staff: "voxygen.element.icons.staff",
 
-        // Race Icons
+        // Species Icons
         male: "voxygen.element.icons.male",
         female: "voxygen.element.icons.female",
         human_m: "voxygen.element.icons.human_m",
@@ -299,6 +299,7 @@ pub struct CharSelectionUi {
     fonts: ConrodVoxygenFonts,
     info_content: InfoContent,
     voxygen_i18n: Arc<VoxygenLocalization>,
+    enter: bool,
     pub mode: Mode,
     pub selected_character: usize,
 }
@@ -333,6 +334,7 @@ impl CharSelectionUi {
             selected_character: 0,
             voxygen_i18n,
             mode: Mode::Select(None),
+            enter: false,
         }
     }
 
@@ -702,7 +704,10 @@ impl CharSelectionUi {
                         .set(self.ids.enter_world_button, ui_widgets)
                         .was_clicked()
                     {
-                        events.push(Event::Play);
+                        self.enter = !self.enter;
+                        if self.enter {
+                            events.push(Event::Play)
+                        };
                     }
                 } else {
                     &enter_button
@@ -864,6 +869,9 @@ impl CharSelectionUi {
                         };
                     }
                 }
+
+                // LOADING SCREEN HERE
+                if self.enter { /*stuff*/ };
             },
             // Character_Creation
             // //////////////////////////////////////////////////////////////////////
@@ -996,13 +1004,13 @@ impl CharSelectionUi {
                     .rgba(0.33, 0.33, 0.33, 1.0)
                     .set(self.ids.selection_scrollbar, ui_widgets);
 
-                // Male/Female/Race Icons
+                // Male/Female/Species Icons
                 Text::new(&self.voxygen_i18n.get("char_selection.character_creation"))
                     .mid_top_with_margin_on(self.ids.creation_alignment, 10.0)
                     .font_size(self.fonts.cyri.scale(24))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
-                    .set(self.ids.bodyrace_text, ui_widgets);
+                    .set(self.ids.bodyspecies_text, ui_widgets);
                 // Alignment
                 Rectangle::fill_with([140.0, 72.0], color::TRANSPARENT)
                     .mid_top_with_margin_on(self.ids.creation_alignment, 60.0)
@@ -1046,7 +1054,7 @@ impl CharSelectionUi {
                     body.validate();
                 }
 
-                // Alignment for Races and Tools
+                // Alignment for Species and Tools
                 Rectangle::fill_with([214.0, 304.0], color::TRANSPARENT)
                     .mid_bottom_with_margin_on(self.ids.creation_buttons_alignment_1, -324.0)
                     .set(self.ids.creation_buttons_alignment_2, ui_widgets);
@@ -1075,7 +1083,7 @@ impl CharSelectionUi {
                     .w_h(70.0, 70.0)
                     .top_left_with_margins_on(self.ids.creation_buttons_alignment_2, 0.0, 0.0)
                     .set(self.ids.human, ui_widgets);
-                if Button::image(if let humanoid::Race::Human = body.race {
+                if Button::image(if let humanoid::Species::Human = body.species {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
@@ -1085,14 +1093,14 @@ impl CharSelectionUi {
                 .press_image(self.imgs.icon_border_press)
                 .with_tooltip(
                     tooltip_manager,
-                    &self.voxygen_i18n.get("common.races.human"),
+                    &self.voxygen_i18n.get("common.species.human"),
                     "",
                     &tooltip_human,
                 )
-                .set(self.ids.race_1, ui_widgets)
+                .set(self.ids.species_1, ui_widgets)
                 .was_clicked()
                 {
-                    body.race = humanoid::Race::Human;
+                    body.species = humanoid::Species::Human;
                     body.validate();
                 }
 
@@ -1101,7 +1109,7 @@ impl CharSelectionUi {
                     .w_h(70.0, 70.0)
                     .right_from(self.ids.human, 2.0)
                     .set(self.ids.orc, ui_widgets);
-                if Button::image(if let humanoid::Race::Orc = body.race {
+                if Button::image(if let humanoid::Species::Orc = body.species {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
@@ -1111,14 +1119,14 @@ impl CharSelectionUi {
                 .press_image(self.imgs.icon_border_press)
                 .with_tooltip(
                     tooltip_manager,
-                    &self.voxygen_i18n.get("common.races.orc"),
+                    &self.voxygen_i18n.get("common.species.orc"),
                     "",
                     &tooltip_human,
                 )
-                .set(self.ids.race_2, ui_widgets)
+                .set(self.ids.species_2, ui_widgets)
                 .was_clicked()
                 {
-                    body.race = humanoid::Race::Orc;
+                    body.species = humanoid::Species::Orc;
                     body.validate();
                 }
                 // Dwarf
@@ -1126,7 +1134,7 @@ impl CharSelectionUi {
                     .w_h(70.0, 70.0)
                     .right_from(self.ids.orc, 2.0)
                     .set(self.ids.dwarf, ui_widgets);
-                if Button::image(if let humanoid::Race::Dwarf = body.race {
+                if Button::image(if let humanoid::Species::Dwarf = body.species {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
@@ -1136,14 +1144,14 @@ impl CharSelectionUi {
                 .press_image(self.imgs.icon_border_press)
                 .with_tooltip(
                     tooltip_manager,
-                    &self.voxygen_i18n.get("common.races.dwarf"),
+                    &self.voxygen_i18n.get("common.species.dwarf"),
                     "",
                     &tooltip_human,
                 )
-                .set(self.ids.race_3, ui_widgets)
+                .set(self.ids.species_3, ui_widgets)
                 .was_clicked()
                 {
-                    body.race = humanoid::Race::Dwarf;
+                    body.species = humanoid::Species::Dwarf;
                     body.validate();
                 }
                 // Elf
@@ -1151,7 +1159,7 @@ impl CharSelectionUi {
                     .w_h(70.0, 70.0)
                     .down_from(self.ids.human, 2.0)
                     .set(self.ids.elf, ui_widgets);
-                if Button::image(if let humanoid::Race::Elf = body.race {
+                if Button::image(if let humanoid::Species::Elf = body.species {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
@@ -1161,14 +1169,14 @@ impl CharSelectionUi {
                 .press_image(self.imgs.icon_border_press)
                 .with_tooltip(
                     tooltip_manager,
-                    &self.voxygen_i18n.get("common.races.elf"),
+                    &self.voxygen_i18n.get("common.species.elf"),
                     "",
                     &tooltip_human,
                 )
-                .set(self.ids.race_4, ui_widgets)
+                .set(self.ids.species_4, ui_widgets)
                 .was_clicked()
                 {
-                    body.race = humanoid::Race::Elf;
+                    body.species = humanoid::Species::Elf;
                     body.validate();
                 }
 
@@ -1177,7 +1185,7 @@ impl CharSelectionUi {
                     .w_h(70.0, 70.0)
                     .right_from(self.ids.elf, 2.0)
                     .set(self.ids.undead, ui_widgets);
-                if Button::image(if let humanoid::Race::Undead = body.race {
+                if Button::image(if let humanoid::Species::Undead = body.species {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
@@ -1187,14 +1195,14 @@ impl CharSelectionUi {
                 .press_image(self.imgs.icon_border_press)
                 .with_tooltip(
                     tooltip_manager,
-                    &self.voxygen_i18n.get("common.races.undead"),
+                    &self.voxygen_i18n.get("common.species.undead"),
                     "",
                     &tooltip_human,
                 )
-                .set(self.ids.race_5, ui_widgets)
+                .set(self.ids.species_5, ui_widgets)
                 .was_clicked()
                 {
-                    body.race = humanoid::Race::Undead;
+                    body.species = humanoid::Species::Undead;
                     body.validate();
                 }
                 // Danari
@@ -1202,7 +1210,7 @@ impl CharSelectionUi {
                     .w_h(70.0, 70.0)
                     .right_from(self.ids.undead, 2.0)
                     .set(self.ids.danari, ui_widgets);
-                if Button::image(if let humanoid::Race::Danari = body.race {
+                if Button::image(if let humanoid::Species::Danari = body.species {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
@@ -1212,14 +1220,14 @@ impl CharSelectionUi {
                 .press_image(self.imgs.icon_border_press)
                 .with_tooltip(
                     tooltip_manager,
-                    &self.voxygen_i18n.get("common.races.danari"),
+                    &self.voxygen_i18n.get("common.species.danari"),
                     "",
                     &tooltip_human,
                 )
-                .set(self.ids.race_6, ui_widgets)
+                .set(self.ids.species_6, ui_widgets)
                 .was_clicked()
                 {
-                    body.race = humanoid::Race::Danari;
+                    body.species = humanoid::Species::Danari;
                     body.validate();
                 }
 
@@ -1403,7 +1411,7 @@ impl CharSelectionUi {
                     self.ids.creation_buttons_alignment_2,
                     self.voxygen_i18n.get("char_selection.hair_style"),
                     self.ids.hairstyle_text,
-                    body.race.num_hair_styles(body.body_type) as usize - 1,
+                    body.species.num_hair_styles(body.body_type) as usize - 1,
                     body.hair_style as usize,
                     self.ids.hairstyle_slider,
                     ui_widgets,
@@ -1415,7 +1423,7 @@ impl CharSelectionUi {
                     self.ids.hairstyle_slider,
                     self.voxygen_i18n.get("char_selection.hair_color"),
                     self.ids.haircolor_text,
-                    body.race.num_hair_colors() as usize - 1,
+                    body.species.num_hair_colors() as usize - 1,
                     body.hair_color as usize,
                     self.ids.haircolor_slider,
                     ui_widgets,
@@ -1427,7 +1435,7 @@ impl CharSelectionUi {
                     self.ids.haircolor_slider,
                     self.voxygen_i18n.get("char_selection.skin"),
                     self.ids.skin_text,
-                    body.race.num_skin_colors() as usize - 1,
+                    body.species.num_skin_colors() as usize - 1,
                     body.skin as usize,
                     self.ids.skin_slider,
                     ui_widgets,
@@ -1437,21 +1445,21 @@ impl CharSelectionUi {
                 // Eyebrows
                 if let Some(new_val) = char_slider(
                     self.ids.skin_slider,
-                    self.voxygen_i18n.get("char_selection.eyebrows"),
+                    self.voxygen_i18n.get("char_selection.eyeshape"),
                     self.ids.eyebrows_text,
-                    body.race.num_eyebrows(body.body_type) as usize - 1,
-                    body.eyebrows as usize,
+                    body.species.num_eyes(body.body_type) as usize - 1,
+                    body.eyes as usize,
                     self.ids.eyebrows_slider,
                     ui_widgets,
                 ) {
-                    body.eyebrows = new_val as u8;
+                    body.eyes = new_val as u8;
                 }
                 // EyeColor
                 if let Some(new_val) = char_slider(
                     self.ids.eyebrows_slider,
                     self.voxygen_i18n.get("char_selection.eye_color"),
                     self.ids.eyecolor_text,
-                    body.race.num_eye_colors() as usize - 1,
+                    body.species.num_eye_colors() as usize - 1,
                     body.eye_color as usize,
                     self.ids.eyecolor_slider,
                     ui_widgets,
@@ -1464,7 +1472,7 @@ impl CharSelectionUi {
                     self.ids.eyecolor_slider,
                     self.voxygen_i18n.get("char_selection.accessories"),
                     self.ids.accessories_text,
-                    body.race.num_accessories(body.body_type) as usize - 1,
+                    body.species.num_accessories(body.body_type) as usize - 1,
                     body.accessory as usize,
                     self.ids.accessories_slider,
                     ui_widgets,
@@ -1472,12 +1480,12 @@ impl CharSelectionUi {
                     body.accessory = new_val as u8;
                 }
                 // Beard
-                if body.race.num_beards(body.body_type) > 1 {
+                if body.species.num_beards(body.body_type) > 1 {
                     if let Some(new_val) = char_slider(
                         self.ids.accessories_slider,
                         self.voxygen_i18n.get("char_selection.beard"),
                         self.ids.beard_text,
-                        body.race.num_beards(body.body_type) as usize - 1,
+                        body.species.num_beards(body.body_type) as usize - 1,
                         body.beard as usize,
                         self.ids.beard_slider,
                         ui_widgets,

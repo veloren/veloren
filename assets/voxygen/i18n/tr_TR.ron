@@ -75,12 +75,12 @@ Sunucu yeniden mi başladı?
 İstemci güncel mi?"#,
 
 
-        "common.races.orc": "Ork",
-        "common.races.human": "İnsan",
-        "common.races.dwarf": "Cüce",
-        "common.races.elf": "Elf",
-        "common.races.undead": "Hortlak",
-        "common.races.danari": "Danari",
+        "common.species.orc": "Ork",
+        "common.species.human": "İnsan",
+        "common.species.dwarf": "Cüce",
+        "common.species.elf": "Elf",
+        "common.species.undead": "Hortlak",
+        "common.species.danari": "Danari",
 
         "common.weapons.axe": "Balta",
         "common.weapons.sword": "Kılıç",

@@ -183,8 +183,8 @@ impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
 
 impl SkeletonAttr {
     pub fn calculate_scale(body: &comp::humanoid::Body) -> f32 {
-        use comp::humanoid::{BodyType::*, Race::*};
-        match (body.race, body.body_type) {
+        use comp::humanoid::{BodyType::*, Species::*};
+        match (body.species, body.body_type) {
             (Orc, Male) => 1.14,
             (Orc, Female) => 1.02,
             (Human, Male) => 1.02,
@@ -203,10 +203,10 @@ impl SkeletonAttr {
 
 impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
     fn from(body: &'a comp::humanoid::Body) -> Self {
-        use comp::humanoid::{BodyType::*, Race::*};
+        use comp::humanoid::{BodyType::*, Species::*};
         Self {
             scaler: SkeletonAttr::calculate_scale(body),
-            head_scale: match (body.race, body.body_type) {
+            head_scale: match (body.species, body.body_type) {
                 (Orc, Male) => 0.9,
                 (Orc, Female) => 1.0,
                 (Human, Male) => 0.9,
@@ -220,7 +220,7 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 (Danari, Male) => 1.15,
                 (Danari, Female) => 1.15,
             },
-            head: match (body.race, body.body_type) {
+            head: match (body.species, body.body_type) {
                 (Orc, Male) => (0.0, 13.5),
                 (Orc, Female) => (0.0, 13.0),
                 (Human, Male) => (0.3, 13.0),
@@ -234,28 +234,28 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 (Danari, Male) => (0.5, 12.5),
                 (Danari, Female) => (0.5, 13.5),
             },
-            chest: match (body.race, body.body_type) {
+            chest: match (body.species, body.body_type) {
                 (_, _) => (0.0, 7.0),
             },
-            belt: match (body.race, body.body_type) {
+            belt: match (body.species, body.body_type) {
                 (_, _) => (0.0, -2.0),
             },
-            back: match (body.race, body.body_type) {
+            back: match (body.species, body.body_type) {
                 (_, _) => (-3.1, 7.25),
             },
-            shorts: match (body.race, body.body_type) {
+            shorts: match (body.species, body.body_type) {
                 (_, _) => (0.0, -5.0),
             },
-            hand: match (body.race, body.body_type) {
+            hand: match (body.species, body.body_type) {
                 (_, _) => (7.0, -0.25, 0.5),
             },
-            foot: match (body.race, body.body_type) {
+            foot: match (body.species, body.body_type) {
                 (_, _) => (3.4, 0.5, 1.0),
             },
-            shoulder: match (body.race, body.body_type) {
+            shoulder: match (body.species, body.body_type) {
                 (_, _) => (5.0, 0.0, 5.0),
             },
-            lantern: match (body.race, body.body_type) {
+            lantern: match (body.species, body.body_type) {
                 (_, _) => (5.0, 2.5, 5.5),
             },
         }

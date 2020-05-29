@@ -63,12 +63,12 @@ VoxygenLocalization(
 Клиент обновлен до последней версии?"#,
 
 
-        "common.races.orc": "Орк",
-        "common.races.human": "Человек",
-        "common.races.dwarf": "Дварф",
-        "common.races.elf": "Эльф",
-        "common.races.undead": "Нежить",
-        "common.races.danari": "Данари",
+        "common.species.orc": "Орк",
+        "common.species.human": "Человек",
+        "common.species.dwarf": "Дварф",
+        "common.species.elf": "Эльф",
+        "common.species.undead": "Нежить",
+        "common.species.danari": "Данари",
 
         "common.weapons.axe": "Топор",
         "common.weapons.sword": "Меч",
