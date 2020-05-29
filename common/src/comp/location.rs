@@ -1,16 +1,21 @@
+use crate::state::Time;
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 use vek::*;
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Waypoint {
     pos: Vec3<f32>,
+    last_save: Time,
 }
 
 impl Waypoint {
-    pub fn new(pos: Vec3<f32>) -> Self { Self { pos } }
+    pub fn new(pos: Vec3<f32>, last_save: Time) -> Self { Self { pos, last_save } }
 
     pub fn get_pos(&self) -> Vec3<f32> { self.pos }
+
+    /// Time in seconds since this waypoint was saved
+    pub fn elapsed(&self, time: Time) -> f64 { time.0 - self.last_save.0 }
 }
 
 impl Component for Waypoint {
