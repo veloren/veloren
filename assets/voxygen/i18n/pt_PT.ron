@@ -63,12 +63,12 @@ Será que o server reiniciou?
 O cliente está atualizado?"#,
 
 
-        "common.races.orc": "Ogre",
-        "common.races.human": "Humano",
-        "common.races.dwarf": "Anão",
-        "common.races.elf": "Elfo",
-        "common.races.undead": "Morto-vivo",
-        "common.races.danari": "Danari",
+        "common.species.orc": "Ogre",
+        "common.species.human": "Humano",
+        "common.species.dwarf": "Anão",
+        "common.species.elf": "Elfo",
+        "common.species.undead": "Morto-vivo",
+        "common.species.danari": "Danari",
 
         "common.weapons.axe": "Machado",
         "common.weapons.sword": "Espada",

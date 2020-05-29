@@ -30,6 +30,154 @@
         "voxel.weapon.sword.wood_2h",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.3,
     ),
+    Tool(Sword(LongFine3)): VoxTrans(
+        "voxel.weapon.sword.long_2h_fine-3",
+        (0.0, 9.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
+    ),
+    Tool(Sword(GreatswordDam0)): VoxTrans(
+        "voxel.weapon.sword.greatsword_2h_dam-0",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(GreatswordDam1)): VoxTrans(
+        "voxel.weapon.sword.greatsword_2h_dam-1",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(GreatswordDam2)): VoxTrans(
+        "voxel.weapon.sword.greatsword_2h_dam-2",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(GreatswordSimple0)): VoxTrans(
+        "voxel.weapon.sword.greatsword_2h_simple-0",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(GreatswordSimple1)): VoxTrans(
+        "voxel.weapon.sword.greatsword_2h_simple-1",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(GreatswordSimple2)): VoxTrans(
+        "voxel.weapon.sword.greatsword_2h_simple-2",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(GreatswordOrn0)): VoxTrans(
+        "voxel.weapon.sword.greatsword_2h_orn-0",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(GreatswordOrn1)): VoxTrans(
+        "voxel.weapon.sword.greatsword_2h_orn-1",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(GreatswordOrn2)): VoxTrans(
+        "voxel.weapon.sword.greatsword_2h_orn-2",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(GreatswordFine0)): VoxTrans(
+        "voxel.weapon.sword.greatsword_2h_fine-0",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(GreatswordFine1)): VoxTrans(
+        "voxel.weapon.sword.greatsword_2h_fine-1",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(GreatswordFine2)): VoxTrans(
+        "voxel.weapon.sword.greatsword_2h_fine-2",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongDam0)): VoxTrans(
+        "voxel.weapon.sword.long_2h_dam-0",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongDam1)): VoxTrans(
+        "voxel.weapon.sword.long_2h_dam-1",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongDam2)): VoxTrans(
+        "voxel.weapon.sword.long_2h_dam-2",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongDam3)): VoxTrans(
+        "voxel.weapon.sword.long_2h_dam-3",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongDam4)): VoxTrans(
+        "voxel.weapon.sword.long_2h_dam-4",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongDam5)): VoxTrans(
+        "voxel.weapon.sword.long_2h_dam-5",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongSimple0)): VoxTrans(
+        "voxel.weapon.sword.long_2h_simple-0",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongSimple1)): VoxTrans(
+        "voxel.weapon.sword.long_2h_simple-1",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongSimple2)): VoxTrans(
+        "voxel.weapon.sword.long_2h_simple-2",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongSimple3)): VoxTrans(
+        "voxel.weapon.sword.long_2h_simple-3",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongSimple4)): VoxTrans(
+        "voxel.weapon.sword.long_2h_simple-4",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongSimple5)): VoxTrans(
+        "voxel.weapon.sword.long_2h_simple-5",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongOrn0)): VoxTrans(
+        "voxel.weapon.sword.long_2h_orn-0",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongOrn1)): VoxTrans(
+        "voxel.weapon.sword.long_2h_orn-1",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongOrn2)): VoxTrans(
+        "voxel.weapon.sword.long_2h_orn-2",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongOrn3)): VoxTrans(
+        "voxel.weapon.sword.long_2h_orn-3",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongOrn4)): VoxTrans(
+        "voxel.weapon.sword.long_2h_orn-4",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongOrn5)): VoxTrans(
+        "voxel.weapon.sword.long_2h_orn-5",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongFine0)): VoxTrans(
+        "voxel.weapon.sword.long_2h_fine-0",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongFine1)): VoxTrans(
+        "voxel.weapon.sword.long_2h_fine-1",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongFine2)): VoxTrans(
+        "voxel.weapon.sword.long_2h_fine-2",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongFine3)): VoxTrans(
+        "voxel.weapon.sword.long_2h_fine-3",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongFine4)): VoxTrans(
+        "voxel.weapon.sword.long_2h_fine-4",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    Tool(Sword(LongFine5)): VoxTrans(
+        "voxel.weapon.sword.long_2h_fine-5",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
     // Axes
     Tool(Axe(BasicAxe)): VoxTrans(
         "voxel.weapon.axe.rusty_2h",
@@ -500,11 +648,7 @@
     ),
     // Debug Items
     Tool(Debug(Boost)): VoxTrans(
-        "voxel.weapon.debug_wand-0",
-        (0.0, -7.0, 0.0), (90.0, 90.0, 0.0), 1.6,
-    ),
-    Tool(Debug(Possess)): VoxTrans(
-        "voxel.weapon.debug_wand-1",
-        (0.0, -7.0, 0.0), (90.0, 90.0, 0.0), 1.6,
-    ),
+        "voxel.weapon.tool.broom_belzeshrub_purple",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),    
 })

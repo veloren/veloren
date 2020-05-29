@@ -14,6 +14,42 @@ pub enum SwordKind {
     Zweihander0,
     WoodTraining,
     Short0,
+    GreatswordDam0,
+    GreatswordDam1,
+    GreatswordDam2,
+    GreatswordSimple0,
+    GreatswordSimple1,
+    GreatswordSimple2,
+    GreatswordOrn0,
+    GreatswordOrn1,
+    GreatswordOrn2,
+    GreatswordFine0,
+    GreatswordFine1,
+    GreatswordFine2,
+    LongDam0,
+    LongDam1,
+    LongDam2,
+    LongDam3,
+    LongDam4,
+    LongDam5,
+    LongSimple0,
+    LongSimple1,
+    LongSimple2,
+    LongSimple3,
+    LongSimple4,
+    LongSimple5,
+    LongOrn0,
+    LongOrn1,
+    LongOrn2,
+    LongOrn3,
+    LongOrn4,
+    LongOrn5,
+    LongFine0,
+    LongFine1,
+    LongFine2,
+    LongFine3,
+    LongFine4,
+    LongFine5,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum AxeKind {
@@ -61,7 +97,6 @@ pub enum FarmKind {
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum DebugKind {
     Boost,
-    Possess,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -98,7 +133,7 @@ impl Tool {
 
     pub fn get_abilities(&self) -> Vec<CharacterAbility> {
         use CharacterAbility::*;
-        use DebugKind::*;
+        //use DebugKind::*;
         use ToolKind::*;
 
         match self.kind {
@@ -178,23 +213,23 @@ impl Tool {
             Staff(StaffKind::BasicStaff) => vec![
                 BasicMelee {
                     energy_cost: 0,
-                    buildup_duration: Duration::from_millis(0),
+                    buildup_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(300),
-                    base_healthchange: -1,
+                    base_healthchange: -3,
                     range: 10.0,
                     max_angle: 45.0,
                 },
                 BasicRanged {
                     energy_cost: 0,
                     holdable: false,
-                    prepare_duration: Duration::from_millis(0),
+                    prepare_duration: Duration::from_millis(250),
                     recover_duration: Duration::from_millis(200),
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Vanish],
                         hit_entity: vec![
                             projectile::Effect::Damage(HealthChange {
                                 // TODO: This should not be fixed (?)
-                                amount: -1,
+                                amount: -2,
                                 cause: HealthSource::Projectile { owner: None },
                             }),
                             projectile::Effect::RewardEnergy(100),
@@ -266,22 +301,28 @@ impl Tool {
                         duration: Duration::from_millis(50),
                         only_up: true,
                     },
-                ],
-                Possess => vec![BasicRanged {
-                    energy_cost: 0,
-                    holdable: false,
-                    prepare_duration: Duration::from_millis(0),
-                    recover_duration: Duration::from_millis(300),
-                    projectile: Projectile {
-                        hit_solid: vec![projectile::Effect::Stick],
-                        hit_entity: vec![projectile::Effect::Stick, projectile::Effect::Possess],
-                        time_left: Duration::from_secs(10),
-                        owner: None,
+                    BasicRanged {
+                        energy_cost: 0,
+                        holdable: false,
+                        prepare_duration: Duration::from_millis(0),
+                        recover_duration: Duration::from_millis(10),
+                        projectile: Projectile {
+                            hit_solid: vec![projectile::Effect::Stick],
+                            hit_entity: vec![
+                                projectile::Effect::Stick,
+                                projectile::Effect::Possess,
+                            ],
+                            time_left: Duration::from_secs(10),
+                            owner: None,
+                        },
+                        projectile_body: Body::Object(object::Body::ArrowSnake),
+                        projectile_light: Some(LightEmitter {
+                            col: (0.0, 1.0, 0.33).into(),
+                            ..Default::default()
+                        }),
+                        projectile_gravity: None,
                     },
-                    projectile_body: Body::Object(object::Body::ArrowSnake),
-                    projectile_light: None,
-                    projectile_gravity: None,
-                }],
+                ],
             },
             Empty => vec![BasicMelee {
                 energy_cost: 0,

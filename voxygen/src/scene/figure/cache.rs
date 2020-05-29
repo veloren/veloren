@@ -109,18 +109,9 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
 
                 [
                     match camera_mode {
-                        CameraMode::ThirdPerson => Some(humanoid_head_spec.mesh_head(
-                            body.race,
-                            body.body_type,
-                            body.hair_color,
-                            body.hair_style,
-                            body.beard,
-                            body.eye_color,
-                            body.skin,
-                            body.eyebrows,
-                            body.accessory,
-                            generate_mesh,
-                        )),
+                        CameraMode::ThirdPerson => {
+                            Some(humanoid_head_spec.mesh_head(&body, generate_mesh))
+                        },
                         CameraMode::FirstPerson => None,
                     },
                     match camera_mode {

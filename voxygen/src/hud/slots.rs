@@ -4,7 +4,13 @@ use super::{
     item_imgs::{ItemImgs, ItemKey},
 };
 use crate::ui::slot::{self, SlotKey, SumSlot};
-use common::comp::{item::ItemKind, Energy, Inventory, Loadout};
+use common::comp::{
+    item::{
+        tool::{DebugKind, Tool, ToolKind},
+        ItemKind,
+    },
+    Energy, Inventory, Loadout,
+};
 use conrod_core::{image, Color};
 
 pub use common::comp::slot::{ArmorSlot, EquipSlot};
@@ -80,7 +86,8 @@ impl SlotKey<Loadout, ItemImgs> for EquipSlot {
 #[derive(Clone, PartialEq)]
 pub enum HotbarImage {
     Item(ItemKey),
-    Ability3,
+    Fireball,
+    SnakeArrow,
 }
 
 type HotbarSource<'a> = (&'a hotbar::State, &'a Inventory, &'a Loadout, &'a Energy);
@@ -103,19 +110,20 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                 .as_ref()
                 .map(|i| &i.item.kind)
                 .and_then(|kind| {
-                    use common::comp::item::tool::{StaffKind, Tool, ToolKind};
-                    matches!(
-                        kind,
-                        ItemKind::Tool(Tool {
-                            kind: ToolKind::Staff(StaffKind::BasicStaff),
-                            ..
-                        })
-                    )
-                    .then_some((
-                        HotbarImage::Ability3,
-                        // Darken if not enough energy to use attack
-                        (energy.current() < 500).then_some(Color::Rgba(0.3, 0.3, 0.3, 0.8)),
-                    ))
+                    match kind {
+                        ItemKind::Tool(Tool { kind, .. }) => match kind {
+                            ToolKind::Staff(_) => Some(HotbarImage::Fireball),
+                            ToolKind::Debug(DebugKind::Boost) => Some(HotbarImage::SnakeArrow),
+                            _ => None,
+                        },
+                        _ => None,
+                    }
+                    .map(|image_key| {
+                        (
+                            image_key,
+                            (energy.current() < 500).then_some(Color::Rgba(0.3, 0.3, 0.3, 0.8)),
+                        )
+                    })
                 }),
         })
     }
@@ -139,7 +147,8 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
     fn image_id(key: &Self::ImageKey, (item_imgs, imgs): &HotbarImageSource<'a>) -> image::Id {
         match key {
             HotbarImage::Item(key) => item_imgs.img_id_or_not_found_img(key.clone()),
-            HotbarImage::Ability3 => imgs.fire_spell_1,
+            HotbarImage::SnakeArrow => imgs.snake_arrow_0,
+            HotbarImage::Fireball => imgs.fire_spell_1,
         }
     }
 }

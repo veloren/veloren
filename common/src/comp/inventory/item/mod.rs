@@ -156,6 +156,9 @@ impl Item {
             BlockKind::Apple => Some(assets::load_expect_cloned("common.items.apple")),
             BlockKind::Mushroom => Some(assets::load_expect_cloned("common.items.mushroom")),
             BlockKind::Velorite => Some(assets::load_expect_cloned("common.items.velorite")),
+            BlockKind::VeloriteFrag => {
+                Some(assets::load_expect_cloned("common.items.veloritefrag"))
+            },
             BlockKind::BlueFlower => Some(assets::load_expect_cloned("common.items.flowers.blue")),
             BlockKind::PinkFlower => Some(assets::load_expect_cloned("common.items.flowers.pink")),
             BlockKind::PurpleFlower => {
