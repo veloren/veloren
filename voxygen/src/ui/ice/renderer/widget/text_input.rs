@@ -42,16 +42,44 @@ impl text_input::Renderer for IcedRenderer {
             .map_or(0.0, |rect| rect.width() / p_scale);
 
         // glyph_brush ignores the exterior spaces
+        // or does it!!!
         // TODO: need better layout lib
-        let exterior_spaces = value.len() - value.trim().len();
+        /*let exterior_spaces = value.len() - value.trim().len();
 
         if exterior_spaces > 0 {
             use glyph_brush::ab_glyph::{Font, ScaleFont};
             // Could cache this if it is slow
+            let sur = format!("x{}x", value);
+            let section = glyph_brush::Section {
+                screen_position: (0.0, 0.0),
+                bounds: (f32::INFINITY, f32::INFINITY),
+                layout: Default::default(),
+                text: vec![glyph_brush::Text {
+                    text: &sur,
+                    scale: (size as f32 * p_scale).into(),
+                    font_id: font.0,
+                    extra: (),
+                }],
+            };
             let font = glyph_calculator.fonts()[font.0].as_scaled(size as f32);
-            let space_width = font.h_advance(font.glyph_id(' '));
+            let space_id = font.glyph_id(' ');
+            let x_id = font.glyph_id('x');
+            let space_width = font.h_advance(space_id);
+            let x_width = font.h_advance(x_id);
+            let kern1 = font.kern(x_id, space_id);
+            let kern2 = font.kern(space_id, x_id);
+            dbg!(font.kern(x_id, x_id));
+            let sur_width = glyph_calculator
+                .glyph_bounds(section)
+                .map_or(0.0, |rect| rect.width() / p_scale);
+            dbg!(space_width);
+            dbg!(width);
+            dbg!(sur_width);
+            let extra = x_width * 2.0 + dbg!(kern1) + dbg!(kern2);
+            dbg!(extra);
+            dbg!(sur_width - extra);
             width += exterior_spaces as f32 * space_width;
-        }
+        }*/
 
         width
     }
@@ -141,7 +169,7 @@ impl text_input::Renderer for IcedRenderer {
                     (
                         Primitive::Rectangle {
                             bounds: Rectangle {
-                                x: text_bounds.x + position - offset,
+                                x: text_bounds.x + position - offset - CURSOR_WIDTH / p_scale / 2.0,
                                 y: text_bounds.y,
                                 width: CURSOR_WIDTH / p_scale,
                                 height: text_bounds.height,
@@ -192,7 +220,10 @@ impl text_input::Renderer for IcedRenderer {
                 text_bounds.x * p_scale - scroll_offset,
                 text_bounds.center_y() * p_scale,
             ),
-            bounds: (text_bounds.width * p_scale, text_bounds.height * p_scale),
+            bounds: (
+                10000.0, /* text_bounds.width * p_scale */
+                text_bounds.height * p_scale,
+            ),
             layout: glyph_brush::Layout::SingleLine {
                 line_breaker: Default::default(),
                 h_align: glyph_brush::HorizontalAlign::Left,
@@ -210,6 +241,18 @@ impl text_input::Renderer for IcedRenderer {
             .cache
             .glyph_cache_mut()
             .glyphs(section)
+            // We would still have to generate vertices for these even if they have no pixels
+            // Note: this is somewhat hacky and could fail if there is a non-whitespace character
+            // that is not visible (to solve this we could use the extra values in
+            // queue_pre_positioned to keep track of which glyphs are actually returned by
+            // proccess_queued)
+            .filter(|g| {
+                !display_text[g.byte_index..]
+                    .chars()
+                    .next()
+                    .unwrap()
+                    .is_whitespace()
+            })
             .cloned()
             .collect::<Vec<_>>();
 
