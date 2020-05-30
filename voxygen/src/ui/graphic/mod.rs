@@ -58,6 +58,7 @@ pub struct Id(u32);
 pub struct TexId(usize);
 
 type Parameters = (Id, Vec2<u16>);
+// TODO replace with slab/slotmap
 type GraphicMap = HashMap<Id, Graphic>;
 
 enum CachedDetails {
