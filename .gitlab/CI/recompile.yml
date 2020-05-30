@@ -2,8 +2,9 @@
 .recompile:
   rules:
     - if: $CI_COMMIT_REF_NAME !~ /^master$/
-    - changes:
+      # No '-' here is *very* important: https://docs.gitlab.com/ee/ci/yaml/#complex-rule-clauses
+      changes:
         - "**/*.{rs,ron,toml,vox,png}"
         - "rust-toolchain"
         - ".gitlab-ci.yml"
-        - "**/*.gitlab-ci.yml"
+        - "**/*.yml"
