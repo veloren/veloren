@@ -288,7 +288,8 @@ impl IcedState {
             .height(Length::Fill)
             .align_y(Align::End)
             .padding(20);
-
+        const INPUT_WIDTH: u16 = 250;
+        const INPUT_TEXT_SIZE: u16 = 24;
         let banner_content = Column::with_children(vec![
             Image::new(self.imgs.v_logo)
                 .fix_aspect_ratio()
@@ -297,7 +298,8 @@ impl IcedState {
             Space::new(Length::Fill, Length::FillPortion(5)).into(),
             Column::with_children(vec![
                 BackgroundContainer::new(
-                    CompoundGraphic::padded_image(self.imgs.input_bg, [169, 25], [0, 0, 0, 1])
+                    Image::new(self.imgs.input_bg)
+                        .width(Length::Units(INPUT_WIDTH))
                         .fix_aspect_ratio(),
                     TextInput::new(
                         &mut self.username_input,
@@ -305,14 +307,14 @@ impl IcedState {
                         &self.username_value,
                         Message::Username,
                     )
-                    // TODO: wrap in fill text thing to auto adjust the size
-                    .size(22)
-                    .padding(25)
+                    .size(INPUT_TEXT_SIZE)
                     .on_submit(Message::FocusPassword),
                 )
+                .padding(Padding::new().horizontal(10).top(10))
                 .into(),
                 BackgroundContainer::new(
-                    CompoundGraphic::padded_image(self.imgs.input_bg, [169, 25], [0, 1, 0, 1])
+                    Image::new(self.imgs.input_bg)
+                        .width(Length::Units(INPUT_WIDTH))
                         .fix_aspect_ratio(),
                     TextInput::new(
                         &mut self.password_input,
@@ -320,14 +322,15 @@ impl IcedState {
                         &self.password_value,
                         Message::Password,
                     )
-                    .size(22)
-                    .padding(25)
+                    .size(INPUT_TEXT_SIZE)
                     .password()
                     .on_submit(Message::Multiplayer),
                 )
+                .padding(Padding::new().horizontal(10).top(8))
                 .into(),
                 BackgroundContainer::new(
-                    CompoundGraphic::padded_image(self.imgs.input_bg, [169, 25], [0, 1, 0, 0])
+                    Image::new(self.imgs.input_bg)
+                        .width(Length::Units(INPUT_WIDTH))
                         .fix_aspect_ratio(),
                     TextInput::new(
                         &mut self.server_input,
@@ -335,12 +338,13 @@ impl IcedState {
                         &self.server_value,
                         Message::Server,
                     )
-                    .size(22)
-                    .padding(25)
+                    .size(INPUT_TEXT_SIZE)
                     .on_submit(Message::Multiplayer),
                 )
+                .padding(Padding::new().horizontal(10).top(8))
                 .into(),
             ])
+            .spacing(2)
             .height(Length::FillPortion(50))
             .into(),
             Column::with_children(vec![
@@ -360,7 +364,6 @@ impl IcedState {
             ])
             .max_width(240)
             .spacing(8) // TODO scale with available window size, awkward because both width and height can become limiting factors, might need custom column, could also just use fill portion
-            .height(Length::FillPortion(25))
             .into(),
         ])
         .width(Length::Fill)
