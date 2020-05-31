@@ -358,12 +358,16 @@ fn handle_alias(
                 player.alias.clone(),
             ));
             server.state.notify_registered_clients(msg);
-            server
-                .state
-                .notify_registered_clients(ServerMsg::broadcast(format!(
-                    "{} is now known as {}.",
-                    old_alias, player.alias
-                )));
+
+            // Announce alias change if target has a Body.
+            if ecs.read_storage::<comp::Body>().get(target).is_some() {
+                server
+                    .state
+                    .notify_registered_clients(ServerMsg::broadcast(format!(
+                        "{} is now known as {}.",
+                        old_alias, player.alias
+                    )));
+            }
         }
     } else {
         server.notify_client(
