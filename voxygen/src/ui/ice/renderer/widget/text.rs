@@ -80,6 +80,13 @@ impl text::Renderer for IcedRenderer {
             .cache
             .glyph_cache_mut()
             .glyphs(section)
+            .filter(|g| {
+                !content[g.byte_index..]
+                    .chars()
+                    .next()
+                    .unwrap()
+                    .is_whitespace()
+            })
             .cloned()
             .collect::<Vec<_>>();
 
