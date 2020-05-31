@@ -37,7 +37,7 @@ impl text_input::Renderer for IcedRenderer {
         };
 
         let mut glyph_calculator = self.cache.glyph_calculator();
-        let mut width = glyph_calculator
+        let width = glyph_calculator
             .glyph_bounds(section)
             .map_or(0.0, |rect| rect.width() / p_scale);
 

@@ -446,7 +446,7 @@ impl IcedRenderer {
             },
             Primitive::Text {
                 glyphs,
-                bounds, // iced::Rectangle
+                bounds: _bounds, // iced::Rectangle
                 linear_color,
                 /*font,
                  *horizontal_alignment,
@@ -505,8 +505,6 @@ impl IcedRenderer {
             },
             Primitive::Clip { bounds, content } => {
                 let new_scissor = {
-                    let min_x = bounds.x;
-                    let min_y = bounds.y;
                     let intersection = Aabr {
                         min: Vec2 {
                             x: (bounds.x * self.p_scale) as u16,

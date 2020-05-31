@@ -1,3 +1,6 @@
+mod connecting;
+mod login;
+
 use crate::{
     i18n::{i18n_asset_key, Localization},
     render::Renderer,
@@ -22,12 +25,201 @@ use conrod_core::{
 use image::DynamicImage;
 use rand::{seq::SliceRandom, thread_rng, Rng};
 use std::time::Duration;
+use ui::ice::widget;
 
 const COL1: Color = Color::Rgba(0.07, 0.1, 0.1, 0.9);
 
 // UI Color-Theme
 /*const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
 const UI_HIGHLIGHT_0: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0);*/
+
+use iced::text_input;
+image_ids_ice! {
+    struct IcedImgs {
+        <VoxelGraphic>
+        v_logo: "voxygen.element.v_logo",
+
+        info_frame: "voxygen.element.frames.info_frame_2",
+
+        //banner: "voxygen.element.frames.banner",
+        <ImageGraphic>
+        bg: "voxygen.background.bg_main",
+        banner: "voxygen.element.frames.banner_png",
+        banner_bottom: "voxygen.element.frames.banner_bottom_png",
+        banner_top: "voxygen.element.frames.banner_top",
+        button: "voxygen.element.buttons.button",
+        button_hover: "voxygen.element.buttons.button_hover",
+        button_press: "voxygen.element.buttons.button_press",
+        input_bg: "voxygen.element.misc_bg.textbox",
+        disclaimer: "voxygen.element.frames.disclaimer",
+        loading_art: "voxygen.element.frames.loading_screen.loading_bg",
+        loading_art_l: "voxygen.element.frames.loading_screen.loading_bg_l",
+        loading_art_r: "voxygen.element.frames.loading_screen.loading_bg_r",
+
+        <BlankGraphic>
+        nothing: (),
+    }
+}
+
+// Randomly loaded background images
+const BG_IMGS: [&str; 16] = [
+    "voxygen.background.bg_1",
+    "voxygen.background.bg_2",
+    "voxygen.background.bg_3",
+    "voxygen.background.bg_4",
+    "voxygen.background.bg_5",
+    "voxygen.background.bg_6",
+    "voxygen.background.bg_7",
+    "voxygen.background.bg_8",
+    "voxygen.background.bg_9",
+    //"voxygen.background.bg_10",
+    "voxygen.background.bg_11",
+    //"voxygen.background.bg_12",
+    "voxygen.background.bg_13",
+    //"voxygen.background.bg_14",
+    "voxygen.background.bg_15",
+    "voxygen.background.bg_16",
+];
+
+pub enum Event {
+    LoginAttempt {
+        username: String,
+        password: String,
+        server_address: String,
+    },
+    CancelLoginAttempt,
+    #[cfg(feature = "singleplayer")]
+    StartSingleplayer,
+    Quit,
+    Settings,
+    //DisclaimerClosed,
+    AuthServerTrust(String, bool),
+}
+
+pub enum PopupType {
+    Error,
+    ConnectionInfo,
+    AuthTrustPrompt(String),
+}
+
+pub struct PopupData {
+    msg: String,
+    popup_type: PopupType,
+}
+
+pub struct LoginInfo {
+    pub username: String,
+    pub password: String,
+    pub server: String,
+}
+
+enum Screen {
+    Login {
+        screen: login::Screen,
+    },
+    Connecting {
+        screen: connecting::Screen,
+        // TODO: why instant?
+        start: std::time::Instant,
+    },
+}
+
+// TODO: use i18n font scale thing
+struct IcedState {
+    imgs: IcedImgs,
+    bg_img: widget::image::Handle,
+    i18n: std::sync::Arc<Localization>,
+
+    // TODO: not sure if this should be used for connecting
+    popup: Option<PopupData>,
+    show_servers: bool,
+    show_disclaimer: bool,
+    login_info: LoginInfo,
+
+    screen: Screen,
+}
+
+#[derive(Clone)]
+enum Message {
+    Quit,
+    ShowServers,
+    #[cfg(feature = "singleplayer")]
+    Singleplayer,
+    Multiplayer,
+    Username(String),
+    Password(String),
+    Server(String),
+    FocusPassword,
+}
+
+impl IcedState {
+    fn new(
+        imgs: IcedImgs,
+        bg_img: widget::image::Handle,
+        i18n: std::sync::Arc<Localization>,
+    ) -> Self {
+        Self {
+            imgs,
+            bg_img,
+            i18n,
+            popup: None,
+            show_servers: false,
+            show_disclaimer: false,
+            login_info: LoginInfo {
+                username: String::new(),
+                password: String::new(),
+                server: String::new(),
+            },
+
+            screen: Screen::Login {
+                screen: login::Screen::new(),
+            },
+        }
+    }
+
+    fn view(&mut self) -> Element<Message> {
+        match &mut self.screen {
+            Screen::Login { screen } => screen.view(&self.imgs, &self.login_info, &self.i18n),
+            Screen::Connecting { screen, start } => {
+                screen.view(&self.imgs, self.bg_img, &start, &self.i18n)
+            },
+        }
+    }
+
+    fn update(&mut self, message: Message, events: &mut Vec<Event>) {
+        match message {
+            Message::Quit => events.push(Event::Quit),
+            Message::ShowServers => self.show_servers = true,
+            #[cfg(feature = "singleplayer")]
+            Message::Singleplayer => events.push(Event::StartSingleplayer),
+            Message::Multiplayer => {
+                self.screen = Screen::Connecting {
+                    screen: connecting::Screen::new(),
+                    start: std::time::Instant::now(),
+                };
+                self.popup = Some(PopupData {
+                    msg: [self.i18n.get("main.connecting"), "..."].concat(),
+                    popup_type: PopupType::ConnectionInfo,
+                });
+
+                events.push(Event::LoginAttempt {
+                    username: self.login_info.username.clone(),
+                    password: self.login_info.password.clone(),
+                    server_address: self.login_info.server.clone(),
+                });
+            },
+            Message::Username(new_value) => self.login_info.username = new_value,
+            Message::Password(new_value) => self.login_info.password = new_value,
+            Message::Server(new_value) => self.login_info.server = new_value,
+            Message::FocusPassword => {
+                if let Screen::Login { screen } = &mut self.screen {
+                    screen.banner.password = text_input::State::focused();
+                    screen.banner.username = text_input::State::new();
+                }
+            },
+        }
+    }
+}
 
 widget_ids! {
     struct Ids {
@@ -38,7 +230,6 @@ widget_ids! {
         alpha_text,
         banner,
         banner_top,
-        gears,
         // Disclaimer
         //disc_window,
         //disc_text_1,
@@ -82,13 +273,6 @@ widget_ids! {
         info_bottom,
         // Auth Trust Prompt
         button_add_auth_trust,
-        // Loading Screen Tips
-        tip_txt_bg,
-        tip_txt,
-        // Loading Screen Artwork
-        mid,
-        left,
-        right,
     }
 }
 
@@ -109,39 +293,7 @@ image_ids! {
         button_press: "voxygen.element.buttons.button_press",
         input_bg: "voxygen.element.misc_bg.textbox",
         //disclaimer: "voxygen.element.frames.disclaimer",
-        loading_art: "voxygen.element.frames.loading_screen.loading_bg",
-        loading_art_l: "voxygen.element.frames.loading_screen.loading_bg_l",
-        loading_art_r: "voxygen.element.frames.loading_screen.loading_bg_r",
-        // Animation
-        f1: "voxygen.element.animation.gears.1",
-        f2: "voxygen.element.animation.gears.2",
-        f3: "voxygen.element.animation.gears.3",
-        f4: "voxygen.element.animation.gears.4",
-        f5: "voxygen.element.animation.gears.5",
 
-        <BlankGraphic>
-        nothing: (),
-    }
-}
-
-image_ids_ice! {
-    struct IcedImgs {
-        <VoxelGraphic>
-        v_logo: "voxygen.element.v_logo",
-
-        info_frame: "voxygen.element.frames.info_frame_2",
-
-        //banner: "voxygen.element.frames.banner",
-        <ImageGraphic>
-        bg: "voxygen.background.bg_main",
-        banner: "voxygen.element.frames.banner_png",
-        banner_bottom: "voxygen.element.frames.banner_bottom_png",
-        banner_top: "voxygen.element.frames.banner_top",
-        button: "voxygen.element.buttons.button",
-        button_hover: "voxygen.element.buttons.button_hover",
-        button_press: "voxygen.element.buttons.button_press",
-        input_bg: "voxygen.element.misc_bg.textbox",
-        disclaimer: "voxygen.element.frames.disclaimer",
 
         <BlankGraphic>
         nothing: (),
@@ -150,272 +302,11 @@ image_ids_ice! {
 
 rotation_image_ids! {
     pub struct ImgsRot {
-        <ImageGraphic>
+        <VoxelGraphic>
 
         // Tooltip Test
         tt_side: "voxygen/element/frames/tt_test_edge",
         tt_corner: "voxygen/element/frames/tt_test_corner_tr",
-    }
-}
-
-pub enum Event {
-    LoginAttempt {
-        username: String,
-        password: String,
-        server_address: String,
-    },
-    CancelLoginAttempt,
-    #[cfg(feature = "singleplayer")]
-    StartSingleplayer,
-    Quit,
-    Settings,
-    //DisclaimerClosed,
-    AuthServerTrust(String, bool),
-}
-
-pub enum PopupType {
-    Error,
-    ConnectionInfo,
-    AuthTrustPrompt(String),
-}
-
-pub struct PopupData {
-    msg: String,
-    popup_type: PopupType,
-}
-
-use ui::ice::component::neat_button;
-struct IcedState {
-    imgs: IcedImgs,
-    quit_button: neat_button::State,
-    settings_button: neat_button::State,
-    servers_button: neat_button::State,
-    multiplayer_button: neat_button::State,
-    #[cfg(feature = "singleplayer")]
-    singleplayer_button: neat_button::State,
-    username_input: iced::text_input::State,
-    password_input: iced::text_input::State,
-    server_input: iced::text_input::State,
-    username_value: String,
-    password_value: String,
-    server_value: String,
-    show_servers: bool,
-}
-
-#[derive(Clone)] // TODO: why does iced require Clone?
-enum Message {
-    Quit,
-    ShowServers,
-    #[cfg(feature = "singleplayer")]
-    Singleplayer,
-    Multiplayer,
-    Username(String),
-    Password(String),
-    Server(String),
-    FocusPassword,
-}
-
-impl IcedState {
-    pub fn new(imgs: IcedImgs) -> Self {
-        Self {
-            imgs,
-            servers_button: Default::default(),
-            settings_button: Default::default(),
-            quit_button: Default::default(),
-            multiplayer_button: Default::default(),
-            #[cfg(feature = "singleplayer")]
-            singleplayer_button: Default::default(),
-            username_input: Default::default(),
-            password_input: Default::default(),
-            server_input: Default::default(),
-            username_value: String::new(),
-            password_value: String::new(),
-            server_value: String::new(),
-            show_servers: false,
-        }
-    }
-
-    pub fn view(&mut self, i18n: &Localization) -> Element<Message> {
-        //let button_font_size = 30;
-        const TEXT_COLOR: iced::Color = iced::Color::from_rgb(1.0, 1.0, 1.0);
-        const DISABLED_TEXT_COLOR: iced::Color = iced::Color::from_rgba(1.0, 1.0, 1.0, 0.2);
-        const FILL_FRAC_ONE: f32 = 0.77;
-        const FILL_FRAC_TWO: f32 = 0.53;
-
-        use iced::{Align, Column, Container, Length, Row, Space, TextInput};
-        use ui::ice::{
-            widget::{
-                compound_graphic::{CompoundGraphic, Graphic},
-                BackgroundContainer, Image, Padding,
-            },
-            ButtonStyle,
-        };
-        use vek::*;
-
-        let button_style = ButtonStyle::new(self.imgs.button)
-            .hover_image(self.imgs.button_hover)
-            .press_image(self.imgs.button_press)
-            .text_color(TEXT_COLOR)
-            .disabled_text_color(DISABLED_TEXT_COLOR);
-
-        let buttons = Column::with_children(vec![
-            self.servers_button.view(
-                i18n.get("common.servers"),
-                FILL_FRAC_ONE,
-                button_style,
-                Some(Message::ShowServers),
-            ),
-            self.settings_button.view(
-                i18n.get("common.settings"),
-                FILL_FRAC_ONE,
-                button_style,
-                None,
-            ),
-            self.quit_button.view(
-                i18n.get("common.quit"),
-                FILL_FRAC_ONE,
-                button_style,
-                Some(Message::Quit),
-            ),
-        ])
-        .width(Length::Fill)
-        .max_width(200)
-        .spacing(5)
-        .padding(10);
-
-        let buttons = Container::new(buttons)
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .align_y(Align::End)
-            .padding(20);
-        const INPUT_WIDTH: u16 = 250;
-        const INPUT_TEXT_SIZE: u16 = 24;
-        let banner_content = Column::with_children(vec![
-            Image::new(self.imgs.v_logo)
-                .fix_aspect_ratio()
-                .height(Length::FillPortion(20))
-                .into(),
-            Space::new(Length::Fill, Length::FillPortion(5)).into(),
-            Column::with_children(vec![
-                BackgroundContainer::new(
-                    Image::new(self.imgs.input_bg)
-                        .width(Length::Units(INPUT_WIDTH))
-                        .fix_aspect_ratio(),
-                    TextInput::new(
-                        &mut self.username_input,
-                        "Username",
-                        &self.username_value,
-                        Message::Username,
-                    )
-                    .size(INPUT_TEXT_SIZE)
-                    .on_submit(Message::FocusPassword),
-                )
-                .padding(Padding::new().horizontal(10).top(10))
-                .into(),
-                BackgroundContainer::new(
-                    Image::new(self.imgs.input_bg)
-                        .width(Length::Units(INPUT_WIDTH))
-                        .fix_aspect_ratio(),
-                    TextInput::new(
-                        &mut self.password_input,
-                        "Password",
-                        &self.password_value,
-                        Message::Password,
-                    )
-                    .size(INPUT_TEXT_SIZE)
-                    .password()
-                    .on_submit(Message::Multiplayer),
-                )
-                .padding(Padding::new().horizontal(10).top(8))
-                .into(),
-                BackgroundContainer::new(
-                    Image::new(self.imgs.input_bg)
-                        .width(Length::Units(INPUT_WIDTH))
-                        .fix_aspect_ratio(),
-                    TextInput::new(
-                        &mut self.server_input,
-                        "Server",
-                        &self.server_value,
-                        Message::Server,
-                    )
-                    .size(INPUT_TEXT_SIZE)
-                    .on_submit(Message::Multiplayer),
-                )
-                .padding(Padding::new().horizontal(10).top(8))
-                .into(),
-            ])
-            .spacing(2)
-            .height(Length::FillPortion(50))
-            .into(),
-            Column::with_children(vec![
-                self.multiplayer_button.view(
-                    i18n.get("common.multiplayer"),
-                    FILL_FRAC_TWO,
-                    button_style,
-                    Some(Message::Multiplayer),
-                ),
-                #[cfg(feature = "singleplayer")]
-                self.singleplayer_button.view(
-                    i18n.get("common.singleplayer"),
-                    FILL_FRAC_TWO,
-                    button_style,
-                    Some(Message::Singleplayer),
-                ),
-            ])
-            .max_width(240)
-            .spacing(8) // TODO scale with available window size, awkward because both width and height can become limiting factors, might need custom column, could also just use fill portion
-            .into(),
-        ])
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .align_items(Align::Center);
-
-        let banner = BackgroundContainer::new(
-            CompoundGraphic::from_graphics(vec![
-                Graphic::image(self.imgs.banner_top, [138, 17], [0, 0]),
-                Graphic::rect(Rgba::new(0, 0, 0, 230), [130, 195], [4, 17]),
-                Graphic::image(self.imgs.banner, [130, 15], [4, 212])
-                    .color(Rgba::new(255, 255, 255, 230)),
-            ])
-            .fix_aspect_ratio()
-            .height(Length::Fill),
-            banner_content,
-        )
-        .padding(Padding::new().horizontal(16).vertical(20))
-        .max_width(330);
-
-        let central_column = Container::new(banner)
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .align_x(Align::Center)
-            .align_y(Align::Center);
-
-        let image3 = Image::new(self.imgs.banner_bottom).fix_aspect_ratio();
-
-        let content =
-            Row::with_children(vec![buttons.into(), central_column.into(), image3.into()])
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .spacing(10);
-
-        BackgroundContainer::new(Image::new(self.imgs.bg), content).into()
-    }
-
-    pub fn update(&mut self, message: Message, events: &mut Vec<Event>) {
-        match message {
-            Message::Quit => events.push(Event::Quit),
-            Message::ShowServers => self.show_servers = true,
-            #[cfg(feature = "singleplayer")]
-            Message::Singleplayer => events.push(Event::StartSingleplayer),
-            Message::Multiplayer => (), //TODO
-            Message::Username(new_value) => self.username_value = new_value,
-            Message::Password(new_value) => self.password_value = new_value,
-            Message::Server(new_value) => self.server_value = new_value,
-            Message::FocusPassword => {
-                self.password_input = iced::text_input::State::focused();
-                self.username_input = iced::text_input::State::new();
-            },
-        }
     }
 }
 
@@ -448,26 +339,6 @@ impl<'a> MainMenuUi {
         let window = &mut global_state.window;
         let networking = &global_state.settings.networking;
         let gameplay = &global_state.settings.gameplay;
-        // Randomly loaded background images
-        let bg_imgs = [
-            "voxygen.background.bg_1",
-            "voxygen.background.bg_2",
-            "voxygen.background.bg_3",
-            "voxygen.background.bg_4",
-            "voxygen.background.bg_5",
-            "voxygen.background.bg_6",
-            "voxygen.background.bg_7",
-            "voxygen.background.bg_8",
-            "voxygen.background.bg_9",
-            //"voxygen.background.bg_10",
-            "voxygen.background.bg_11",
-            //"voxygen.background.bg_12",
-            "voxygen.background.bg_13",
-            //"voxygen.background.bg_14",
-            "voxygen.background.bg_15",
-            "voxygen.background.bg_16",
-        ];
-        let mut rng = thread_rng();
 
         let mut ui = Ui::new(window).unwrap();
         ui.set_scaling_mode(gameplay.ui_scale);
@@ -476,11 +347,8 @@ impl<'a> MainMenuUi {
         // Load images
         let imgs = Imgs::load(&mut ui).expect("Failed to load images");
         let rot_imgs = ImgsRot::load(&mut ui).expect("Failed to load images!");
-        let bg_img_id = ui.add_graphic(Graphic::Image(
-            DynamicImage::load_expect(bg_imgs.choose(&mut rng).unwrap()),
-            None,
-        ));
-        //let chosen_tip = *tips.choose(&mut rng).unwrap();
+        let bg_img_spec = BG_IMGS.choose(&mut thread_rng()).unwrap();
+        let bg_img_id = ui.add_graphic(Graphic::Image(DynamicImage::load_expect(bg_img_spec)));
         // Load language
         let i18n = Localization::load_expect(&i18n_asset_key(
             &global_state.settings.language.selected_language,
@@ -502,7 +370,11 @@ impl<'a> MainMenuUi {
         };
 
         let mut ice_ui = IcedUi::new(window, ice_font).unwrap();
-        let ice_state = IcedState::new(IcedImgs::load(&mut ice_ui).expect("Failed to load images"));
+        let ice_state = IcedState::new(
+            IcedImgs::load(&mut ice_ui).expect("Failed to load images"),
+            ice_ui.add_graphic(Graphic::Image(load_expect(bg_img_spec))),
+            i18n.clone(),
+        );
 
         Self {
             ui,
@@ -1188,10 +1060,9 @@ impl<'a> MainMenuUi {
     pub fn maintain(&mut self, global_state: &mut GlobalState, dt: Duration) -> Vec<Event> {
         let mut events = self.update_layout(global_state, dt);
         self.ui.maintain(global_state.window.renderer_mut(), None);
-        let (messages, _) = self.ice_ui.maintain(
-            self.ice_state.view(&self.i18n),
-            global_state.window.renderer_mut(),
-        );
+        let (messages, _) = self
+            .ice_ui
+            .maintain(self.ice_state.view(), global_state.window.renderer_mut());
         messages
             .into_iter()
             .for_each(|message| self.ice_state.update(message, &mut events));
