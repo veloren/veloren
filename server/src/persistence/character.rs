@@ -144,7 +144,12 @@ pub fn create_character(
 pub fn delete_character(uuid: &str, character_id: i32, db_dir: &str) -> CharacterListResult {
     use schema::character::dsl::*;
 
-    diesel::delete(character.filter(id.eq(character_id))).execute(&establish_connection(db_dir))?;
+    diesel::delete(
+        character
+            .filter(id.eq(character_id))
+            .filter(player_uuid.eq(uuid)),
+    )
+    .execute(&establish_connection(db_dir))?;
 
     load_character_list(uuid, db_dir)
 }
