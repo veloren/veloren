@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved camera aiming
 - Made civsim, sites, etc. deterministic from the same seed.
 - Improved animations by adding orientation variation
+- new tail bone for quad_small body
+- slim the game size through lossless asset optimization
 
 ### Removed
 
