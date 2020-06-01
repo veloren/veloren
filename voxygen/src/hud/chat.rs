@@ -1,6 +1,6 @@
 use super::{
     img_ids::Imgs, BROADCAST_COLOR, FACTION_COLOR, GAME_UPDATE_COLOR, GROUP_COLOR, KILL_COLOR,
-    META_COLOR, PRIVATE_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR,
+    META_COLOR, PRIVATE_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR,
 };
 use crate::{ui::fonts::ConrodVoxygenFonts, GlobalState};
 use client::{cmd, Client, Event as ClientEvent};
@@ -324,6 +324,7 @@ impl<'a> Widget for Chat<'a> {
                             ChatType::Say => SAY_COLOR,
                             ChatType::Group => GROUP_COLOR,
                             ChatType::Faction => FACTION_COLOR,
+                            ChatType::Region => REGION_COLOR,
                             ChatType::Kill => KILL_COLOR,
                         };
                         let text = Text::new(&message)

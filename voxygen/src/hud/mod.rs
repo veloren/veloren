@@ -82,6 +82,7 @@ const GAME_UPDATE_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
 const SAY_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const GROUP_COLOR: Color = Color::Rgba(0.47, 0.84, 1.0, 1.0);
 const FACTION_COLOR: Color = Color::Rgba(0.24, 1.0, 0.48, 1.0);
+const REGION_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
 const KILL_COLOR: Color = Color::Rgba(1.0, 0.17, 0.17, 1.0);
 
 // UI Color-Theme

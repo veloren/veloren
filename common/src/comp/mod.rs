@@ -3,6 +3,7 @@ mod admin;
 pub mod agent;
 mod body;
 mod character_state;
+mod chat;
 mod controller;
 mod energy;
 mod inputs;
@@ -24,6 +25,7 @@ pub use body::{
     humanoid, object, quadruped_medium, quadruped_small, AllBodies, Body, BodyData,
 };
 pub use character_state::{Attacking, CharacterState, StateUpdate};
+pub use chat::{ChatMode, Faction, Group};
 pub use controller::{
     Climb, ControlAction, ControlEvent, Controller, ControllerInputs, Input, InventoryManip,
     MountState, Mounting,

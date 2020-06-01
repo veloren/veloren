@@ -9,13 +9,16 @@ pub struct ChatCommandData {
     pub args: Vec<ArgumentSpec>,
     /// A one-line message that explains what the command does
     pub description: &'static str,
-    /// A boolean that is used to check whether the command requires
-    /// administrator permissions or not.
-    pub needs_admin: bool,
+    /// Whether the command requires administrator permissions.
+    pub needs_admin: IsAdminOnly,
 }
 
 impl ChatCommandData {
-    pub fn new(args: Vec<ArgumentSpec>, description: &'static str, needs_admin: bool) -> Self {
+    pub fn new(
+        args: Vec<ArgumentSpec>,
+        description: &'static str,
+        needs_admin: IsAdminOnly,
+    ) -> Self {
         Self {
             args,
             description,
@@ -33,9 +36,11 @@ pub enum ChatCommand {
     Debug,
     DebugColumn,
     Explosion,
+    Faction,
     GiveExp,
     GiveItem,
     Goto,
+    Group,
     Health,
     Help,
     Jump,
@@ -46,7 +51,9 @@ pub enum ChatCommand {
     Motd,
     Object,
     Players,
+    Region,
     RemoveLights,
+    Say,
     SetLevel,
     SetMotd,
     Spawn,
@@ -56,6 +63,7 @@ pub enum ChatCommand {
     Tp,
     Version,
     Waypoint,
+    World,
 }
 
 // Thank you for keeping this sorted alphabetically :-)
@@ -66,9 +74,11 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Debug,
     ChatCommand::DebugColumn,
     ChatCommand::Explosion,
+    ChatCommand::Faction,
     ChatCommand::GiveExp,
     ChatCommand::GiveItem,
     ChatCommand::Goto,
+    ChatCommand::Group,
     ChatCommand::Health,
     ChatCommand::Help,
     ChatCommand::Jump,
@@ -79,7 +89,9 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Motd,
     ChatCommand::Object,
     ChatCommand::Players,
+    ChatCommand::Region,
     ChatCommand::RemoveLights,
+    ChatCommand::Say,
     ChatCommand::SetLevel,
     ChatCommand::SetMotd,
     ChatCommand::Spawn,
@@ -89,6 +101,7 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Tp,
     ChatCommand::Version,
     ChatCommand::Waypoint,
+    ChatCommand::World,
 ];
 
 lazy_static! {
@@ -141,31 +154,37 @@ lazy_static! {
 impl ChatCommand {
     pub fn data(&self) -> ChatCommandData {
         use ArgumentSpec::*;
+        use IsAdminOnly::*;
         use Requirement::*;
         let cmd = ChatCommandData::new;
         match self {
             ChatCommand::Adminify => cmd(
                 vec![PlayerName(Required)],
                 "Temporarily gives a player admin permissions or removes them",
-                true,
+                Admin,
             ),
-            ChatCommand::Alias => cmd(vec![Any("name", Required)], "Change your alias", false),
-            ChatCommand::Build => cmd(vec![], "Toggles build mode on and off", true),
-            ChatCommand::Debug => cmd(vec![], "Place all debug items into your pack.", true),
+            ChatCommand::Alias => cmd(vec![Any("name", Required)], "Change your alias", NoAdmin),
+            ChatCommand::Build => cmd(vec![], "Toggles build mode on and off", Admin),
+            ChatCommand::Debug => cmd(vec![], "Place all debug items into your pack.", Admin),
             ChatCommand::DebugColumn => cmd(
                 vec![Integer("x", 15000, Required), Integer("y", 15000, Required)],
                 "Prints some debug information about a column",
-                false,
+                NoAdmin,
             ),
             ChatCommand::Explosion => cmd(
                 vec![Float("radius", 5.0, Required)],
                 "Explodes the ground around you",
-                true,
+                Admin,
+            ),
+            ChatCommand::Faction => cmd(
+                vec![Message(Optional)],
+                "Send messages to your faction",
+                NoAdmin,
             ),
             ChatCommand::GiveExp => cmd(
                 vec![Integer("amount", 50, Required)],
                 "Give experience to yourself",
-                true,
+                Admin,
             ),
             ChatCommand::GiveItem => cmd(
                 vec![
@@ -173,7 +192,7 @@ impl ChatCommand {
                     Integer("num", 1, Optional),
                 ],
                 "Give yourself some items",
-                true,
+                Admin,
             ),
             ChatCommand::Goto => cmd(
                 vec![
@@ -182,17 +201,22 @@ impl ChatCommand {
                     Float("z", 0.0, Required),
                 ],
                 "Teleport to a position",
-                true,
+                Admin,
+            ),
+            ChatCommand::Group => cmd(
+                vec![Message(Optional)],
+                "Send messages to your group",
+                NoAdmin,
             ),
             ChatCommand::Health => cmd(
                 vec![Integer("hp", 100, Required)],
                 "Set your current health",
-                true,
+                Admin,
             ),
             ChatCommand::Help => ChatCommandData::new(
                 vec![Command(Optional)],
                 "Display information about commands",
-                false,
+                NoAdmin,
             ),
             ChatCommand::Jump => cmd(
                 vec![
@@ -201,10 +225,10 @@ impl ChatCommand {
                     Float("z", 0.0, Required),
                 ],
                 "Offset your current position",
-                true,
+                Admin,
             ),
-            ChatCommand::Kill => cmd(vec![], "Kill yourself", false),
-            ChatCommand::KillNpcs => cmd(vec![], "Kill the NPCs", true),
+            ChatCommand::Kill => cmd(vec![], "Kill yourself", NoAdmin),
+            ChatCommand::KillNpcs => cmd(vec![], "Kill the NPCs", Admin),
             ChatCommand::Lantern => cmd(
                 vec![
                     Float("strength", 5.0, Required),
@@ -213,7 +237,7 @@ impl ChatCommand {
                     Float("b", 1.0, Optional),
                 ],
                 "Change your lantern's strength and color",
-                true,
+                Admin,
             ),
             ChatCommand::Light => cmd(
                 vec![
@@ -226,24 +250,34 @@ impl ChatCommand {
                     Float("strength", 5.0, Optional),
                 ],
                 "Spawn entity with light",
-                true,
+                Admin,
             ),
             ChatCommand::Motd => cmd(vec![Message], "View the server description", false),
             ChatCommand::Object => cmd(
                 vec![Enum("object", OBJECTS.clone(), Required)],
                 "Spawn an object",
-                true,
+                Admin,
             ),
-            ChatCommand::Players => cmd(vec![], "Lists players currently online", false),
+            ChatCommand::Players => cmd(vec![], "Lists players currently online", NoAdmin),
             ChatCommand::RemoveLights => cmd(
                 vec![Float("radius", 20.0, Optional)],
                 "Removes all lights spawned by players",
-                true,
+                Admin,
+            ),
+            ChatCommand::Region => cmd(
+                vec![Message(Optional)],
+                "Send messages to everyone in your region of the world",
+                NoAdmin,
+            ),
+            ChatCommand::Say => cmd(
+                vec![Message(Optional)],
+                "Send messages to everyone within shouting distance",
+                NoAdmin,
             ),
             ChatCommand::SetLevel => cmd(
                 vec![Integer("level", 10, Required)],
                 "Set player Level",
-                true,
+                Admin,
             ),
             ChatCommand::SetMotd => cmd(vec![Message], "Set the server description", true),
             ChatCommand::Spawn => cmd(
@@ -253,32 +287,37 @@ impl ChatCommand {
                     Integer("amount", 1, Optional),
                 ],
                 "Spawn a test entity",
-                true,
+                Admin,
             ),
             ChatCommand::Sudo => cmd(
                 vec![PlayerName(Required), SubCommand],
                 "Run command as if you were another player",
-                true,
+                Admin,
             ),
             ChatCommand::Tell => cmd(
-                vec![PlayerName(Required), Message],
+                vec![PlayerName(Required), Message(Optional)],
                 "Send a message to another player",
-                false,
+                NoAdmin,
             ),
             ChatCommand::Time => cmd(
                 vec![Enum("time", TIMES.clone(), Optional)],
                 "Set the time of day",
-                true,
+                Admin,
             ),
             ChatCommand::Tp => cmd(
                 vec![PlayerName(Optional)],
                 "Teleport to another player",
-                true,
+                Admin,
             ),
-            ChatCommand::Version => cmd(vec![], "Prints server version", false),
+            ChatCommand::Version => cmd(vec![], "Prints server version", NoAdmin),
             ChatCommand::Waypoint => {
-                cmd(vec![], "Set your waypoint to your current position", true)
+                cmd(vec![], "Set your waypoint to your current position", Admin)
             },
+            ChatCommand::World => cmd(
+                vec![Message(Optional)],
+                "Send messages to everyone on the server",
+                NoAdmin,
+            ),
         }
     }
 
@@ -291,9 +330,11 @@ impl ChatCommand {
             ChatCommand::Debug => "debug",
             ChatCommand::DebugColumn => "debug_column",
             ChatCommand::Explosion => "explosion",
+            ChatCommand::Faction => "faction",
             ChatCommand::GiveExp => "give_exp",
             ChatCommand::GiveItem => "give_item",
             ChatCommand::Goto => "goto",
+            ChatCommand::Group => "group",
             ChatCommand::Health => "health",
             ChatCommand::Help => "help",
             ChatCommand::Jump => "jump",
@@ -304,7 +345,9 @@ impl ChatCommand {
             ChatCommand::Motd => "motd",
             ChatCommand::Object => "object",
             ChatCommand::Players => "players",
+            ChatCommand::Region => "region",
             ChatCommand::RemoveLights => "remove_lights",
+            ChatCommand::Say => "say",
             ChatCommand::SetLevel => "set_level",
             ChatCommand::SetMotd => "set_motd",
             ChatCommand::Spawn => "spawn",
@@ -314,6 +357,7 @@ impl ChatCommand {
             ChatCommand::Tp => "tp",
             ChatCommand::Version => "version",
             ChatCommand::Waypoint => "waypoint",
+            ChatCommand::World => "world",
         }
     }
 
@@ -329,7 +373,7 @@ impl ChatCommand {
 
     /// A boolean that is used to check whether the command requires
     /// administrator permissions or not.
-    pub fn needs_admin(&self) -> bool { self.data().needs_admin }
+    pub fn needs_admin(&self) -> bool { *self.data().needs_admin }
 
     /// Returns a format string for parsing arguments with scan_fmt
     pub fn arg_fmt(&self) -> String {
@@ -342,7 +386,7 @@ impl ChatCommand {
                 ArgumentSpec::Integer(_, _, _) => "{d}",
                 ArgumentSpec::Any(_, _) => "{}",
                 ArgumentSpec::Command(_) => "{}",
-                ArgumentSpec::Message => "{/.*/}",
+                ArgumentSpec::Message(_) => "{/.*/}",
                 ArgumentSpec::SubCommand => "{} {/.*/}",
                 ArgumentSpec::Enum(_, _, _) => "{}", // TODO
             })
@@ -369,6 +413,20 @@ impl FromStr for ChatCommand {
     }
 }
 
+pub enum IsAdminOnly {
+    Admin,
+    NoAdmin,
+}
+impl Deref for IsAdminOnly {
+    type Target = bool;
+
+    fn deref(&self) -> &bool {
+        match self {
+            IsAdminOnly::Admin => &true,
+            IsAdminOnly::NoAdmin => &false,
+        }
+    }
+}
 pub enum Requirement {
     Required,
     Optional,
@@ -404,7 +462,7 @@ pub enum ArgumentSpec {
     Command(Requirement),
     /// This is the final argument, consuming all characters until the end of
     /// input.
-    Message,
+    Message(Requirement),
     /// This command is followed by another command (such as in /sudo)
     SubCommand,
     /// The argument is likely an enum. The associated values are
@@ -452,7 +510,13 @@ impl ArgumentSpec {
                     "[[/]command]".to_string()
                 }
             },
-            ArgumentSpec::Message => "<message>".to_string(),
+            ArgumentSpec::Message(req) => {
+                if **req {
+                    "<message>".to_string()
+                } else {
+                    "<message>".to_string()
+                }
+            },
             ArgumentSpec::SubCommand => "<[/]command> [args...]".to_string(),
             ArgumentSpec::Enum(label, _, req) => {
                 if **req {

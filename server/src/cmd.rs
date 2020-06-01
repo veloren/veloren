@@ -32,7 +32,7 @@ impl ChatCommandExt for ChatCommand {
     #[allow(clippy::needless_return)] // TODO: Pending review in #587
     fn execute(&self, server: &mut Server, entity: EcsEntity, args: String) {
         let cmd_data = self.data();
-        if cmd_data.needs_admin && !server.entity_is_admin(entity) {
+        if *cmd_data.needs_admin && !server.entity_is_admin(entity) {
             server.notify_client(
                 entity,
                 ServerMsg::private(format!(
@@ -68,9 +68,11 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Debug => handle_debug,
         ChatCommand::DebugColumn => handle_debug_column,
         ChatCommand::Explosion => handle_explosion,
+        ChatCommand::Faction => handle_faction,
         ChatCommand::GiveExp => handle_give_exp,
         ChatCommand::GiveItem => handle_give_item,
         ChatCommand::Goto => handle_goto,
+        ChatCommand::Group => handle_group,
         ChatCommand::Health => handle_health,
         ChatCommand::Help => handle_help,
         ChatCommand::Jump => handle_jump,
@@ -81,7 +83,9 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Motd => handle_motd,
         ChatCommand::Object => handle_object,
         ChatCommand::Players => handle_players,
+        ChatCommand::Region => handle_region,
         ChatCommand::RemoveLights => handle_remove_lights,
+        ChatCommand::Say => handle_say,
         ChatCommand::SetLevel => handle_set_level,
         ChatCommand::SetMotd => handle_set_motd,
         ChatCommand::Spawn => handle_spawn,
@@ -91,6 +95,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Tp => handle_tp,
         ChatCommand::Version => handle_version,
         ChatCommand::Waypoint => handle_waypoint,
+        ChatCommand::World => handle_world,
     }
 }
 
@@ -967,6 +972,7 @@ fn handle_tell(
     action: &ChatCommand,
 ) {
     if client != target {
+        // This happens when [ab]using /sudo
         server.notify_client(
             client,
             ServerMsg::tell(String::from("It's rude to impersonate people")),
@@ -981,37 +987,31 @@ fn handle_tell(
             .find(|(_, player)| player.alias == alias)
             .map(|(entity, _)| entity)
         {
-            if player != target {
-                if msg.len() > 1 {
-                    if let Some(name) = ecs
-                        .read_storage::<comp::Player>()
-                        .get(target)
-                        .map(|s| s.alias.clone())
-                    {
-                        server.notify_client(
-                            player,
-                            ServerMsg::tell(format!("[{}] tells:{}", name, msg)),
-                        );
-                        server.notify_client(
-                            client,
-                            ServerMsg::tell(format!("To [{}]:{}", alias, msg)),
-                        );
-                    } else {
-                        server.notify_client(
-                            client,
-                            ServerMsg::private(String::from("Failed to send message.")),
-                        );
-                    }
-                } else {
-                    server.notify_client(
-                        client,
-                        ServerMsg::private(format!("[{}] wants to talk to you.", alias)),
-                    );
-                }
-            } else {
+            if player == client {
                 server.notify_client(
                     client,
                     ServerMsg::private(format!("You can't /tell yourself.")),
+                );
+                return;
+            }
+            if msg.is_empty() {
+                server.notify_client(
+                    client,
+                    ServerMsg::private(format!("[{}] wants to talk to you.", alias)),
+                );
+                return;
+            }
+            if let Some(name) = ecs
+                .read_storage::<comp::Player>()
+                .get(client)
+                .map(|s| s.alias.clone())
+            {
+                server.notify_client(player, ServerMsg::tell(format!("[{}] tells:{}", name, msg)));
+                server.notify_client(client, ServerMsg::tell(format!("To [{}]:{}", alias, msg)));
+            } else {
+                server.notify_client(
+                    client,
+                    ServerMsg::private(String::from("Failed to send message.")),
                 );
             }
         } else {
@@ -1025,6 +1025,141 @@ fn handle_tell(
             client,
             ServerMsg::private(String::from(action.help_string())),
         );
+    }
+}
+
+fn handle_faction(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    msg: String,
+    _action: &ChatCommand,
+) {
+    if client != target {
+        // This happens when [ab]using /sudo
+        server.notify_client(
+            client,
+            ServerMsg::tell(String::from("It's rude to impersonate people")),
+        );
+        return;
+    }
+    let _ = server
+        .state
+        .ecs()
+        .write_storage()
+        .insert(client, comp::ChatMode::Faction);
+    if !msg.is_empty() {
+        server
+            .state
+            .notify_registered_clients(ServerMsg::faction(msg.to_string()));
+    }
+}
+
+fn handle_group(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    msg: String,
+    _action: &ChatCommand,
+) {
+    if client != target {
+        // This happens when [ab]using /sudo
+        server.notify_client(
+            client,
+            ServerMsg::tell(String::from("It's rude to impersonate people")),
+        );
+        return;
+    }
+    let _ = server
+        .state
+        .ecs()
+        .write_storage()
+        .insert(client, comp::ChatMode::Group);
+    if !msg.is_empty() {
+        server
+            .state
+            .notify_registered_clients(ServerMsg::group(msg.to_string()));
+    }
+}
+
+fn handle_region(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    msg: String,
+    _action: &ChatCommand,
+) {
+    if client != target {
+        // This happens when [ab]using /sudo
+        server.notify_client(
+            client,
+            ServerMsg::tell(String::from("It's rude to impersonate people")),
+        );
+        return;
+    }
+    let _ = server
+        .state
+        .ecs()
+        .write_storage()
+        .insert(client, comp::ChatMode::Region);
+    if !msg.is_empty() {
+        server
+            .state
+            .notify_registered_clients(ServerMsg::region(msg.to_string()));
+    }
+}
+
+fn handle_say(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    msg: String,
+    _action: &ChatCommand,
+) {
+    if client != target {
+        // This happens when [ab]using /sudo
+        server.notify_client(
+            client,
+            ServerMsg::tell(String::from("It's rude to impersonate people")),
+        );
+        return;
+    }
+    let _ = server
+        .state
+        .ecs()
+        .write_storage()
+        .insert(client, comp::ChatMode::Say);
+    if !msg.is_empty() {
+        server
+            .state
+            .notify_registered_clients(ServerMsg::say(msg.to_string()));
+    }
+}
+
+fn handle_world(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    msg: String,
+    _action: &ChatCommand,
+) {
+    if client != target {
+        // This happens when [ab]using /sudo
+        server.notify_client(
+            client,
+            ServerMsg::tell(String::from("It's rude to impersonate people")),
+        );
+        return;
+    }
+    let _ = server
+        .state
+        .ecs()
+        .write_storage()
+        .insert(client, comp::ChatMode::World);
+    if !msg.is_empty() {
+        server
+            .state
+            .notify_registered_clients(ServerMsg::world(msg.to_string()));
     }
 }
 
