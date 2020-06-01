@@ -14,6 +14,7 @@ use crate::{
     GlobalState,
 };
 //ImageFrame, Tooltip,
+use crate::settings::Settings;
 use common::assets::Asset;
 use conrod_core::{
     color,
@@ -113,6 +114,11 @@ pub struct LoginInfo {
     pub server: String,
 }
 
+enum Info {
+    Disclaimer,
+    Intro,
+}
+
 enum Screen {
     Login {
         screen: login::Screen,
@@ -121,6 +127,7 @@ enum Screen {
         screen: connecting::Screen,
         // TODO: why instant?
         start: std::time::Instant,
+        status_text: String,
     },
 }
 
@@ -129,12 +136,16 @@ struct IcedState {
     imgs: IcedImgs,
     bg_img: widget::image::Handle,
     i18n: std::sync::Arc<Localization>,
+    // Voxygen version
+    version: String,
+
+    login_info: LoginInfo,
 
     // TODO: not sure if this should be used for connecting
     popup: Option<PopupData>,
     show_servers: bool,
-    show_disclaimer: bool,
-    login_info: LoginInfo,
+    info: Info,
+    time: f32,
 
     screen: Screen,
 }
@@ -150,6 +161,7 @@ enum Message {
     Password(String),
     Server(String),
     FocusPassword,
+    CancelConnect,
 }
 
 impl IcedState {
@@ -157,19 +169,36 @@ impl IcedState {
         imgs: IcedImgs,
         bg_img: widget::image::Handle,
         i18n: std::sync::Arc<Localization>,
+        settings: &Settings,
     ) -> Self {
+        let version = format!(
+            "{}-{}",
+            env!("CARGO_PKG_VERSION"),
+            common::util::GIT_VERSION.to_string()
+        );
+
+        let info = if settings.show_disclaimer {
+            Info::Disclaimer
+        } else {
+            Info::Intro
+        };
+
         Self {
             imgs,
             bg_img,
             i18n,
-            popup: None,
-            show_servers: false,
-            show_disclaimer: false,
+            version,
+
             login_info: LoginInfo {
                 username: String::new(),
                 password: String::new(),
                 server: String::new(),
             },
+
+            popup: None,
+            show_servers: false,
+            info,
+            time: 0.0,
 
             screen: Screen::Login {
                 screen: login::Screen::new(),
@@ -177,12 +206,31 @@ impl IcedState {
         }
     }
 
-    fn view(&mut self) -> Element<Message> {
+    fn view(&mut self, dt: f32) -> Element<Message> {
+        self.time = self.time + dt;
+
         match &mut self.screen {
-            Screen::Login { screen } => screen.view(&self.imgs, &self.login_info, &self.i18n),
-            Screen::Connecting { screen, start } => {
-                screen.view(&self.imgs, self.bg_img, &start, &self.i18n)
-            },
+            Screen::Login { screen } => screen.view(
+                &self.imgs,
+                &self.login_info,
+                &self.info,
+                &self.version,
+                self.show_servers,
+                &self.i18n,
+            ),
+            Screen::Connecting {
+                screen,
+                start,
+                status_text,
+            } => screen.view(
+                &self.imgs,
+                self.bg_img,
+                &start,
+                &status_text,
+                &self.version,
+                self.time,
+                &self.i18n,
+            ),
         }
     }
 
@@ -191,16 +239,21 @@ impl IcedState {
             Message::Quit => events.push(Event::Quit),
             Message::ShowServers => self.show_servers = true,
             #[cfg(feature = "singleplayer")]
-            Message::Singleplayer => events.push(Event::StartSingleplayer),
+            Message::Singleplayer => {
+                self.screen = Screen::Connecting {
+                    screen: connecting::Screen::new(),
+                    start: std::time::Instant::now(),
+                    status_text: [self.i18n.get("main.creating_world"), "..."].concat(),
+                };
+
+                events.push(Event::StartSingleplayer);
+            },
             Message::Multiplayer => {
                 self.screen = Screen::Connecting {
                     screen: connecting::Screen::new(),
                     start: std::time::Instant::now(),
+                    status_text: [self.i18n.get("main.connecting"), "..."].concat(),
                 };
-                self.popup = Some(PopupData {
-                    msg: [self.i18n.get("main.connecting"), "..."].concat(),
-                    popup_type: PopupType::ConnectionInfo,
-                });
 
                 events.push(Event::LoginAttempt {
                     username: self.login_info.username.clone(),
@@ -212,11 +265,23 @@ impl IcedState {
             Message::Password(new_value) => self.login_info.password = new_value,
             Message::Server(new_value) => self.login_info.server = new_value,
             Message::FocusPassword => {
-                if let Screen::Login { screen } = &mut self.screen {
+                if let Screen::Login { screen, .. } = &mut self.screen {
                     screen.banner.password = text_input::State::focused();
                     screen.banner.username = text_input::State::new();
                 }
             },
+            Message::CancelConnect => {
+                self.cancel_connection();
+                events.push(Event::CancelLoginAttempt);
+            },
+        }
+    }
+
+    fn cancel_connection(&mut self) {
+        if matches!(&self.screen, Screen::Connecting {..}) {
+            self.screen = Screen::Login {
+                screen: login::Screen::new(),
+            }
         }
     }
 }
@@ -300,23 +365,12 @@ image_ids! {
     }
 }
 
-rotation_image_ids! {
-    pub struct ImgsRot {
-        <VoxelGraphic>
-
-        // Tooltip Test
-        tt_side: "voxygen/element/frames/tt_test_edge",
-        tt_corner: "voxygen/element/frames/tt_test_corner_tr",
-    }
-}
-
 pub struct MainMenuUi {
     ui: Ui,
     ice_ui: IcedUi,
     ice_state: IcedState,
     ids: Ids,
     imgs: Imgs,
-    rot_imgs: ImgsRot,
     username: String,
     password: String,
     server_address: String,
@@ -346,7 +400,6 @@ impl<'a> MainMenuUi {
         let ids = Ids::new(ui.id_generator());
         // Load images
         let imgs = Imgs::load(&mut ui).expect("Failed to load images");
-        let rot_imgs = ImgsRot::load(&mut ui).expect("Failed to load images!");
         let bg_img_spec = BG_IMGS.choose(&mut thread_rng()).unwrap();
         let bg_img_id = ui.add_graphic(Graphic::Image(DynamicImage::load_expect(bg_img_spec)));
         // Load language
@@ -372,8 +425,9 @@ impl<'a> MainMenuUi {
         let mut ice_ui = IcedUi::new(window, ice_font).unwrap();
         let ice_state = IcedState::new(
             IcedImgs::load(&mut ice_ui).expect("Failed to load images"),
-            ice_ui.add_graphic(Graphic::Image(load_expect(bg_img_spec))),
+            ice_ui.add_graphic(Graphic::Image(DynamicImage::load_expect(bg_img_spec))),
             i18n.clone(),
+            &global_state.settings,
         );
 
         Self {
@@ -382,7 +436,6 @@ impl<'a> MainMenuUi {
             ice_state,
             ids,
             imgs,
-            rot_imgs,
             username: networking.username.clone(),
             password: "".to_owned(),
             server_address: networking
@@ -428,24 +481,6 @@ impl<'a> MainMenuUi {
         //const INACTIVE: Color = Color::Rgba(0.47, 0.47, 0.47, 0.47);
 
         let intro_text = &self.i18n.get("main.login_process");
-
-        // Tooltip
-        /*let _tooltip = Tooltip::new({
-            // Edge images [t, b, r, l]
-            // Corner images [tr, tl, br, bl]
-            let edge = &self.rot_imgs.tt_side;
-            let corner = &self.rot_imgs.tt_corner;
-            ImageFrame::new(
-                [edge.cw180, edge.none, edge.cw270, edge.cw90],
-                [corner.none, corner.cw270, corner.cw90, corner.cw180],
-                Color::Rgba(0.08, 0.07, 0.04, 1.0),
-                5.0,
-            )
-        })
-        .title_font_size(self.fonts.cyri.scale(15))
-        .desc_font_size(self.fonts.cyri.scale(10))
-        .font_id(self.fonts.cyri.conrod_id)
-        .desc_text_color(TEXT_COLOR_2);*/
 
         // Background image, Veloren logo, Alpha-Version Label
         Image::new(if self.connect {
@@ -1047,6 +1082,7 @@ impl<'a> MainMenuUi {
         self.popup = None;
         self.connecting = None;
         self.connect = false;
+        self.ice_state.cancel_connection();
     }
 
     pub fn handle_event(&mut self, event: ui::Event) {
@@ -1055,17 +1091,24 @@ impl<'a> MainMenuUi {
         }
     }
 
-    pub fn handle_iced_event(&mut self, event: ui::ice::Event) { self.ice_ui.handle_event(event); }
+    pub fn handle_iced_event(&mut self, event: ui::ice::Event) {
+        if self.show_iced {
+            self.ice_ui.handle_event(event);
+        }
+    }
 
     pub fn maintain(&mut self, global_state: &mut GlobalState, dt: Duration) -> Vec<Event> {
         let mut events = self.update_layout(global_state, dt);
         self.ui.maintain(global_state.window.renderer_mut(), None);
-        let (messages, _) = self
-            .ice_ui
-            .maintain(self.ice_state.view(), global_state.window.renderer_mut());
-        messages
-            .into_iter()
-            .for_each(|message| self.ice_state.update(message, &mut events));
+        if self.show_iced {
+            let (messages, _) = self.ice_ui.maintain(
+                self.ice_state.view(dt.as_secs_f32()),
+                global_state.window.renderer_mut(),
+            );
+            messages
+                .into_iter()
+                .for_each(|message| self.ice_state.update(message, &mut events));
+        }
 
         events
     }
