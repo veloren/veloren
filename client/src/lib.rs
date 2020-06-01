@@ -773,6 +773,8 @@ impl Client {
                                          uid {}, but this player's character is None.",
                                         next_level, uid
                                     );
+
+                                    None
                                 },
                             };
                         }
