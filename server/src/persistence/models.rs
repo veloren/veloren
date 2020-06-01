@@ -1,6 +1,10 @@
-use super::schema::{body, character, stats};
+extern crate serde_json;
+
+use super::schema::{body, character, inventory, stats};
 use crate::comp;
 use common::character::Character as CharacterData;
+use diesel::sql_types::Text;
+use serde::{Deserialize, Serialize};
 
 /// The required elements to build comp::Stats from database data
 pub struct StatsJoinData<'a> {
@@ -129,6 +133,84 @@ impl From<&comp::Stats> for StatsUpdate {
             fitness: stats.fitness as i32,
             willpower: stats.willpower as i32,
         }
+    }
+}
+
+#[derive(Associations, AsChangeset, Identifiable, Queryable, Debug, Insertable)]
+#[belongs_to(Character)]
+#[primary_key(character_id)]
+#[table_name = "inventory"]
+pub struct Inventory {
+    character_id: i32,
+    items: InventoryData,
+}
+
+impl From<(i32, comp::Inventory)> for Inventory {
+    fn from(data: (i32, comp::Inventory)) -> Inventory {
+        let (character_id, inventory) = data;
+
+        Inventory {
+            character_id,
+            items: InventoryData(inventory),
+        }
+    }
+}
+
+impl From<Inventory> for comp::Inventory {
+    fn from(inventory: Inventory) -> comp::Inventory { inventory.items.0 }
+}
+
+#[derive(AsChangeset, Debug, PartialEq)]
+#[primary_key(character_id)]
+#[table_name = "inventory"]
+pub struct InventoryUpdate {
+    pub items: InventoryData,
+}
+
+impl From<&comp::Inventory> for InventoryUpdate {
+    fn from(inventory: &comp::Inventory) -> InventoryUpdate {
+        InventoryUpdate {
+            items: InventoryData(inventory.clone()),
+        }
+    }
+}
+
+/// Type handling for a character's inventory, which is stored as JSON strings
+#[derive(SqlType, AsExpression, Debug, Deserialize, Serialize, FromSqlRow, PartialEq)]
+#[sql_type = "Text"]
+pub struct InventoryData(comp::Inventory);
+
+impl<DB> diesel::deserialize::FromSql<Text, DB> for InventoryData
+where
+    DB: diesel::backend::Backend,
+    String: diesel::deserialize::FromSql<Text, DB>,
+{
+    fn from_sql(
+        bytes: Option<&<DB as diesel::backend::Backend>::RawValue>,
+    ) -> diesel::deserialize::Result<Self> {
+        let t = String::from_sql(bytes)?;
+
+        match serde_json::from_str(&t) {
+            Ok(data) => Ok(Self(data)),
+            Err(error) => {
+                log::warn!("Failed to deserialise inventory data: {}", error);
+
+                Ok(Self(comp::Inventory::default()))
+            },
+        }
+    }
+}
+
+impl<DB> diesel::serialize::ToSql<Text, DB> for InventoryData
+where
+    DB: diesel::backend::Backend,
+{
+    fn to_sql<W: std::io::Write>(
+        &self,
+        out: &mut diesel::serialize::Output<W, DB>,
+    ) -> diesel::serialize::Result {
+        let s = serde_json::to_string(&self.0)?;
+        <String as diesel::serialize::ToSql<Text, DB>>::to_sql(&s, out)
     }
 }
 

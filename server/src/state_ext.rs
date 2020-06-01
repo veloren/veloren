@@ -169,7 +169,10 @@ impl StateExt for State {
             character_id,
             &server_settings.persistence_db_dir,
         ) {
-            Ok(stats) => self.write_component(entity, stats),
+            Ok((stats, inventory)) => {
+                self.write_component(entity, stats);
+                self.write_component(entity, inventory);
+            },
             Err(error) => {
                 log::warn!(
                     "{}",
@@ -206,7 +209,6 @@ impl StateExt for State {
         self.write_component(entity, comp::Gravity(1.0));
         self.write_component(entity, comp::CharacterState::default());
         self.write_component(entity, comp::Alignment::Owned(entity));
-        self.write_component(entity, comp::Inventory::default());
         self.write_component(
             entity,
             comp::InventoryUpdate::new(comp::InventoryUpdateEvent::default()),
