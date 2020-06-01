@@ -750,18 +750,35 @@ impl Client {
                         uid,
                         char_info,
                     )) => {
-                        warn!(
-                            "ServerMsg::PlayerListUpdate PlayerListUpdate::LevelChange not \
-                             implemented: {} {:?}",
-                            uid, char_info
-                        );
+                        if let Some(player_info) = self.player_list.get_mut(&uid) {
+                            player_info.character = Some(char_info);
+                        } else {
+                            warn!(
+                                "Received msg to update character info for uid {}, but they were \
+                                 not in the list.",
+                                uid
+                            );
+                        }
                     },
                     ServerMsg::PlayerListUpdate(PlayerListUpdate::LevelChange(uid, next_level)) => {
-                        warn!(
-                            "ServerMsg::PlayerListUpdate PlayerListUpdate::LevelChange not \
-                             implemented: {} {}",
-                            uid, next_level
-                        );
+                        if let Some(player_info) = self.player_list.get_mut(&uid) {
+                            if let Some(character) = &player_info.character {
+                                // TODO: assign next value
+                                // &character.level = next_level;
+                            } else {
+                                warn!(
+                                    "Received msg to update character level info to {} for uid \
+                                     {}, but this player's character is None.",
+                                    next_level, uid
+                                );
+                            }
+                        } else {
+                            warn!(
+                                "Received msg to update character level info to {} for uid {}, \
+                                 but they were not in the list.",
+                                next_level, uid
+                            );
+                        }
                     },
                     ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(uid)) => {
                         if self.player_list.remove(&uid).is_none() {
