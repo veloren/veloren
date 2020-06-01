@@ -68,6 +68,9 @@ impl Animation for RunAnimation {
         next.leg_rb.ori = Quaternion::rotation_x(fast * 0.3);
         next.leg_rb.scale = Vec3::one() / 11.0;
 
+        next.tail.offset = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1);
+        next.tail.ori = Quaternion::rotation_z(0.0);
+        next.tail.scale = Vec3::one();
         next
     }
 }

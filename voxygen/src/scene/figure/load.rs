@@ -972,6 +972,7 @@ pub struct QuadrupedSmallCentralSpec(HashMap<(QSSpecies, QSBodyType), SidedQSCen
 struct SidedQSCentralVoxSpec {
     head: QuadrupedSmallCentralSubSpec,
     chest: QuadrupedSmallCentralSubSpec,
+    tail: QuadrupedSmallCentralSubSpec,
 }
 #[derive(Serialize, Deserialize)]
 struct QuadrupedSmallCentralSubSpec {
@@ -1057,6 +1058,27 @@ impl QuadrupedSmallCentralSpec {
         let central = graceful_load_segment(&spec.chest.central.0);
 
         generate_mesh(&central, Vec3::from(spec.chest.offset))
+    }
+
+    pub fn mesh_tail(
+        &self,
+        species: QSSpecies,
+        body_type: QSBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No tail specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let central = graceful_load_segment(&spec.tail.central.0);
+
+        generate_mesh(&central, Vec3::from(spec.tail.offset))
     }
 }
 
