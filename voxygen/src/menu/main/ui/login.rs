@@ -1,4 +1,4 @@
-use super::{IcedImgs as Imgs, LoginInfo, Message};
+use super::{IcedImgs as Imgs, Info, LoginInfo, Message};
 use crate::{
     i18n::Localization,
     ui::ice::{
@@ -10,7 +10,10 @@ use crate::{
         ButtonStyle, Element,
     },
 };
-use iced::{button, text_input, Align, Column, Container, Length, Row, Space, TextInput};
+use iced::{
+    button, text_input, Align, Column, Container, HorizontalAlignment, Length, Row, Space, Text,
+    TextInput,
+};
 use vek::*;
 
 const TEXT_COLOR: iced::Color = iced::Color::from_rgb(1.0, 1.0, 1.0);
@@ -44,6 +47,9 @@ impl Screen {
         &mut self,
         imgs: &Imgs,
         login_info: &LoginInfo,
+        info: &Info,
+        version: &str,
+        show_servers: bool,
         i18n: &Localization,
     ) -> Element<Message> {
         let button_style = ButtonStyle::new(imgs.button)
@@ -77,14 +83,39 @@ impl Screen {
         ])
         .width(Length::Fill)
         .max_width(200)
-        .spacing(5)
-        .padding(10);
+        .spacing(5);
 
         let buttons = Container::new(buttons)
             .width(Length::Fill)
             .height(Length::Fill)
-            .align_y(Align::End)
-            .padding(20);
+            .align_y(Align::End);
+
+        let left_column = if matches!(info, Info::Intro) {
+            let intro_text = i18n.get("main.login_process");
+
+            let info_window = BackgroundContainer::new(
+                CompoundGraphic::from_graphics(vec![
+                    Graphic::rect(Rgba::new(0, 0, 0, 240), [500, 300], [0, 0]),
+                    // Note: a way to tell it to keep the height of this one piece constant and
+                    // unstreched would be nice, I suppose we could just break this out into a
+                    // column and use Length::Units
+                    Graphic::image(imgs.banner_bottom, [500, 30], [0, 300])
+                        .color(Rgba::new(255, 255, 255, 240)),
+                ])
+                .height(Length::Shrink),
+                Text::new(intro_text).size(21),
+            )
+            .max_width(450)
+            .padding(Padding::new().horizontal(20).top(10).bottom(60));
+
+            Column::with_children(vec![info_window.into(), buttons.into()])
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .padding(27)
+                .into()
+        } else {
+            buttons.into()
+        };
 
         let banner = self.banner.view(imgs, login_info, i18n, button_style);
 
@@ -94,13 +125,20 @@ impl Screen {
             .align_x(Align::Center)
             .align_y(Align::Center);
 
-        let image3 = Image::new(imgs.banner_bottom).fix_aspect_ratio();
+        let right_column = Text::new(version)
+            .size(15)
+            .width(Length::Fill)
+            .horizontal_alignment(HorizontalAlignment::Right);
 
-        let content =
-            Row::with_children(vec![buttons.into(), central_column.into(), image3.into()])
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .spacing(10);
+        let content = Row::with_children(vec![
+            left_column,
+            central_column.into(),
+            right_column.into(),
+        ])
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .spacing(10)
+        .padding(3);
 
         BackgroundContainer::new(Image::new(imgs.bg), content).into()
     }

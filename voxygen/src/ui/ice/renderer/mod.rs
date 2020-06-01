@@ -541,6 +541,7 @@ impl IcedRenderer {
                 // TODO: support nested clips?
                 // TODO: if last command is a clip changing back to the default replace it with
                 // this
+                // TODO: cull primitives outside the current scissor
 
                 // Renderer child
                 self.draw_primitive(*content, renderer);
