@@ -3,11 +3,15 @@ extern crate diesel;
 use super::{
     error::Error,
     establish_connection,
-    models::{Body, Character, NewCharacter, Stats, StatsJoinData},
+    models::{
+        Body, Character, Inventory, InventoryUpdate, NewCharacter, Stats, StatsJoinData,
+        StatsUpdate,
+    },
     schema,
 };
 use crate::comp;
 use common::character::{Character as CharacterData, CharacterItem, MAX_CHARACTERS_PER_PLAYER};
+use crossbeam::channel;
 use diesel::prelude::*;
 
 type CharacterListResult = Result<Vec<CharacterItem>, Error>;
@@ -16,18 +20,47 @@ type CharacterListResult = Result<Vec<CharacterItem>, Error>;
 ///
 /// After first logging in, and after a character is selected, we fetch this
 /// data for the purpose of inserting their persisted data for the entity.
-pub fn load_character_data(character_id: i32, db_dir: &str) -> Result<comp::Stats, Error> {
-    let (character_data, body_data, stats_data) = schema::character::dsl::character
-        .filter(schema::character::id.eq(character_id))
-        .inner_join(schema::body::table)
-        .inner_join(schema::stats::table)
-        .first::<(Character, Body, Stats)>(&establish_connection(db_dir))?;
+pub fn load_character_data(
+    character_id: i32,
+    db_dir: &str,
+) -> Result<(comp::Stats, comp::Inventory), Error> {
+    let connection = establish_connection(db_dir);
 
-    Ok(comp::Stats::from(StatsJoinData {
-        alias: &character_data.alias,
-        body: &comp::Body::from(&body_data),
-        stats: &stats_data,
-    }))
+    let (character_data, body_data, stats_data, maybe_inventory) =
+        schema::character::dsl::character
+            .filter(schema::character::id.eq(character_id))
+            .inner_join(schema::body::table)
+            .inner_join(schema::stats::table)
+            .left_join(schema::inventory::table)
+            .first::<(Character, Body, Stats, Option<Inventory>)>(&connection)?;
+
+    Ok((
+        comp::Stats::from(StatsJoinData {
+            alias: &character_data.alias,
+            body: &comp::Body::from(&body_data),
+            stats: &stats_data,
+        }),
+        maybe_inventory.map_or_else(
+            || {
+                // If no inventory record was found for the character, create it now
+                let row = Inventory::from((character_data.id, comp::Inventory::default()));
+
+                if let Err(error) = diesel::insert_into(schema::inventory::table)
+                    .values(&row)
+                    .execute(&connection)
+                {
+                    log::warn!(
+                        "Failed to create an inventory record for character {}: {}",
+                        &character_data.id,
+                        error
+                    )
+                }
+
+                comp::Inventory::default()
+            },
+            |inv| comp::Inventory::from(inv),
+        ),
+    ))
 }
 
 /// Loads a list of characters belonging to the player. This data is a small
@@ -79,7 +112,7 @@ pub fn create_character(
     let connection = establish_connection(db_dir);
 
     connection.transaction::<_, diesel::result::Error, _>(|| {
-        use schema::{body, character, character::dsl::*, stats};
+        use schema::{body, character, character::dsl::*, inventory, stats};
 
         match body {
             comp::Body::Humanoid(body_data) => {
@@ -130,6 +163,14 @@ pub fn create_character(
                 diesel::insert_into(stats::table)
                     .values(&new_stats)
                     .execute(&connection)?;
+
+                // Default inventory
+                let inventory =
+                    Inventory::from((inserted_character.id, comp::Inventory::default()));
+
+                diesel::insert_into(inventory::table)
+                    .values(&inventory)
+                    .execute(&connection)?;
             },
             _ => log::warn!("Creating non-humanoid characters is not supported."),
         };
@@ -172,5 +213,105 @@ fn check_character_limit(uuid: &str, db_dir: &str) -> Result<(), Error> {
             }
         },
         _ => Ok(()),
+    }
+}
+
+pub type CharacterUpdateData = (StatsUpdate, InventoryUpdate);
+
+pub struct CharacterUpdater {
+    update_tx: Option<channel::Sender<Vec<(i32, CharacterUpdateData)>>>,
+    handle: Option<std::thread::JoinHandle<()>>,
+}
+
+impl CharacterUpdater {
+    pub fn new(db_dir: String) -> Self {
+        let (update_tx, update_rx) = channel::unbounded::<Vec<(i32, CharacterUpdateData)>>();
+        let handle = std::thread::spawn(move || {
+            while let Ok(updates) = update_rx.recv() {
+                batch_update(updates.into_iter(), &db_dir);
+            }
+        });
+
+        Self {
+            update_tx: Some(update_tx),
+            handle: Some(handle),
+        }
+    }
+
+    pub fn batch_update<'a>(
+        &self,
+        updates: impl Iterator<Item = (i32, &'a comp::Stats, &'a comp::Inventory)>,
+    ) {
+        let updates = updates
+            .map(|(id, stats, inventory)| {
+                (
+                    id,
+                    (StatsUpdate::from(stats), InventoryUpdate::from(inventory)),
+                )
+            })
+            .collect();
+
+        if let Err(err) = self.update_tx.as_ref().unwrap().send(updates) {
+            log::error!("Could not send stats updates: {:?}", err);
+        }
+    }
+
+    pub fn update(&self, character_id: i32, stats: &comp::Stats, inventory: &comp::Inventory) {
+        self.batch_update(std::iter::once((character_id, stats, inventory)));
+    }
+}
+
+fn batch_update(updates: impl Iterator<Item = (i32, CharacterUpdateData)>, db_dir: &str) {
+    let connection = establish_connection(db_dir);
+
+    if let Err(err) = connection.transaction::<_, diesel::result::Error, _>(|| {
+        updates.for_each(|(character_id, (stats_update, inventory_update))| {
+            update(character_id, &stats_update, &inventory_update, &connection)
+        });
+
+        Ok(())
+    }) {
+        log::error!("Error during stats batch update transaction: {:?}", err);
+    }
+}
+
+fn update(
+    character_id: i32,
+    stats: &StatsUpdate,
+    inventory: &InventoryUpdate,
+    connection: &SqliteConnection,
+) {
+    if let Err(error) =
+        diesel::update(schema::stats::table.filter(schema::stats::character_id.eq(character_id)))
+            .set(stats)
+            .execute(connection)
+    {
+        log::warn!(
+            "Failed to update stats for character: {:?}: {:?}",
+            character_id,
+            error
+        )
+    }
+
+    if let Err(error) = diesel::update(
+        schema::inventory::table.filter(schema::inventory::character_id.eq(character_id)),
+    )
+    .set(inventory)
+    .execute(connection)
+    {
+        log::warn!(
+            "Failed to update inventory for character: {:?}: {:?}",
+            character_id,
+            error
+        )
+    }
+}
+
+impl Drop for CharacterUpdater {
+    fn drop(&mut self) {
+        drop(self.update_tx.take());
+        if let Err(err) = self.handle.take().unwrap().join() {
+            log::error!("Error from joining character update thread: {:?}", err);
+        }
     }
 }

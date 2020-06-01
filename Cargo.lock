@@ -5039,6 +5039,7 @@ dependencies = [
  "scan_fmt",
  "serde",
  "serde_derive",
+ "serde_json",
  "specs",
  "specs-idvs",
  "uvth",
