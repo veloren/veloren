@@ -1125,14 +1125,31 @@ fn handle_set_level(
     let (a_lvl, a_alias) = scan_fmt_some!(&args, &action.arg_fmt(), u32, String);
 
     if let Some(lvl) = a_lvl {
-        let ecs = server.state.ecs_mut();
-        let target = find_target(&ecs, a_alias, target);
+        let target = find_target(&server.state.ecs(), a_alias, target);
 
         let mut error_msg = None;
 
         match target {
             Ok(player) => {
-                if let Some(stats) = ecs.write_storage::<comp::Stats>().get_mut(player) {
+                let uid = server
+                    .state
+                    .ecs()
+                    .read_storage::<Uid>()
+                    .get(player)
+                    .expect("Failed to get uid for player")
+                    .0;
+                server
+                    .state
+                    .notify_registered_clients(ServerMsg::PlayerListUpdate(
+                        PlayerListUpdate::LevelChange(uid, lvl),
+                    ));
+
+                if let Some(stats) = server
+                    .state
+                    .ecs_mut()
+                    .write_storage::<comp::Stats>()
+                    .get_mut(player)
+                {
                     stats.level.set_level(lvl);
 
                     stats.update_max_hp();
