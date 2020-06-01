@@ -94,9 +94,11 @@ impl Server {
             .insert(AuthProvider::new(settings.auth_server_address.clone()));
         state.ecs_mut().insert(Tick(0));
         state.ecs_mut().insert(ChunkGenerator::new());
-        state.ecs_mut().insert(persistence::stats::Updater::new(
-            settings.persistence_db_dir.clone(),
-        ));
+        state
+            .ecs_mut()
+            .insert(persistence::character::CharacterUpdater::new(
+                settings.persistence_db_dir.clone(),
+            ));
         state.ecs_mut().insert(crate::settings::PersistenceDBDir(
             settings.persistence_db_dir.clone(),
         ));
@@ -110,16 +112,12 @@ impl Server {
         state.ecs_mut().insert(sys::TerrainTimer::default());
         state.ecs_mut().insert(sys::WaypointTimer::default());
         state.ecs_mut().insert(sys::SpeechBubbleTimer::default());
-        state
-            .ecs_mut()
-            .insert(sys::StatsPersistenceTimer::default());
+        state.ecs_mut().insert(sys::PersistenceTimer::default());
 
         // System schedulers to control execution of systems
         state
             .ecs_mut()
-            .insert(sys::StatsPersistenceScheduler::every(Duration::from_secs(
-                10,
-            )));
+            .insert(sys::PersistenceScheduler::every(Duration::from_secs(10)));
 
         // Server-only components
         state.ecs_mut().register::<RegionSubscription>();
@@ -398,7 +396,7 @@ impl Server {
         let stats_persistence_nanos = self
             .state
             .ecs()
-            .read_resource::<sys::StatsPersistenceTimer>()
+            .read_resource::<sys::PersistenceTimer>()
             .nanos as i64;
         let total_sys_ran_in_dispatcher_nanos = terrain_nanos + waypoint_nanos;
 

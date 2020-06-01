@@ -72,13 +72,16 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
     }
 
     // Sync the player's character data to the database
-    if let (Some(player), Some(stats), updater) = (
+    if let (Some(player), Some(stats), Some(inventory), updater) = (
         state.read_storage::<Player>().get(entity),
         state.read_storage::<comp::Stats>().get(entity),
-        state.ecs().read_resource::<persistence::stats::Updater>(),
+        state.read_storage::<comp::Inventory>().get(entity),
+        state
+            .ecs()
+            .read_resource::<persistence::character::CharacterUpdater>(),
     ) {
         if let Some(character_id) = player.character_id {
-            updater.update(character_id, stats);
+            updater.update(character_id, stats, inventory);
         }
     }
 
