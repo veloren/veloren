@@ -25,7 +25,7 @@ impl TabComplete for ArgumentSpec {
             },
             ArgumentSpec::Any(_, _) => vec![],
             ArgumentSpec::Command(_) => complete_command(part),
-            ArgumentSpec::Message => complete_player(part, &client),
+            ArgumentSpec::Message(_) => complete_player(part, &client),
             ArgumentSpec::SubCommand => complete_command(part),
             ArgumentSpec::Enum(_, strings, _) => strings
                 .iter()
@@ -92,10 +92,25 @@ pub fn complete(line: &str, client: &Client) -> Vec<String> {
         if i == 0 {
             // Completing chat command name
             complete_command(word)
-        } else if let Ok(cmd) = cmd.parse::<ChatCommand>() {
-            if let Some(arg) = cmd.data().args.get(i - 1) {
-                // Complete ith argument
-                arg.complete(word, &client)
+        } else {
+            if let Ok(cmd) = cmd.parse::<ChatCommand>() {
+                if let Some(arg) = cmd.data().args.get(i - 1) {
+                    // Complete ith argument
+                    arg.complete(word, &client)
+                } else {
+                    // Complete past the last argument
+                    match cmd.data().args.last() {
+                        Some(ArgumentSpec::SubCommand) => {
+                            if let Some(index) = nth_word(line, cmd.data().args.len()) {
+                                complete(&line[index..], &client)
+                            } else {
+                                vec![]
+                            }
+                        },
+                        Some(ArgumentSpec::Message(_)) => complete_player(word, &client),
+                        _ => vec![], // End of command. Nothing to complete
+                    }
+                }
             } else {
                 // Complete past the last argument
                 match cmd.data().args.last() {

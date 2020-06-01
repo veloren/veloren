@@ -113,6 +113,7 @@ impl From<AuthClientError> for RegisterError {
 }
 
 impl ServerMsg {
+    // TODO is this needed?
     pub fn chat(message: String) -> ServerMsg {
         ServerMsg::ChatMsg {
             chat_type: ChatType::Chat,
@@ -141,9 +142,45 @@ impl ServerMsg {
         }
     }
 
+    // TODO is this needed?
     pub fn private(message: String) -> ServerMsg {
         ServerMsg::ChatMsg {
             chat_type: ChatType::Private,
+            message,
+        }
+    }
+
+    pub fn group(message: String) -> ServerMsg {
+        ServerMsg::ChatMsg {
+            chat_type: ChatType::Group,
+            message,
+        }
+    }
+
+    pub fn region(message: String) -> ServerMsg {
+        ServerMsg::ChatMsg {
+            chat_type: ChatType::Region,
+            message,
+        }
+    }
+
+    pub fn say(message: String) -> ServerMsg {
+        ServerMsg::ChatMsg {
+            chat_type: ChatType::Say,
+            message,
+        }
+    }
+
+    pub fn faction(message: String) -> ServerMsg {
+        ServerMsg::ChatMsg {
+            chat_type: ChatType::Faction,
+            message,
+        }
+    }
+
+    pub fn world(message: String) -> ServerMsg {
+        ServerMsg::ChatMsg {
+            chat_type: ChatType::Chat,
             message,
         }
     }
