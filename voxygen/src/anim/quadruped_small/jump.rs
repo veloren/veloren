@@ -56,6 +56,9 @@ impl Animation for JumpAnimation {
         next.leg_rb.ori = Quaternion::rotation_x(0.0);
         next.leg_rb.scale = Vec3::one() / 11.0;
 
+        next.tail.offset = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1);
+        next.tail.ori = Quaternion::rotation_x(-0.3);
+        next.tail.scale = Vec3::one();
         next
     }
 }
