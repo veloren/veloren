@@ -66,6 +66,7 @@ impl<'a> System<'a> for Sys {
                     stat.exp.change_by(-(stat.exp.maximum() as i64));
                     stat.level.change_by(1);
                     stat.exp.update_maximum(stat.level.level());
+                    server_event_emitter.emit(ServerEvent::LevelUp(entity, stat.level.level()));
                 }
 
                 stat.update_max_hp();

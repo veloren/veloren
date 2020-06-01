@@ -6,7 +6,9 @@ use common::{
     assets,
     comp::{self, item},
     effect::Effect,
-    msg::{ClientState, RegisterError, RequestStateError, ServerMsg},
+    msg::{
+        CharacterInfo, ClientState, PlayerListUpdate, RegisterError, RequestStateError, ServerMsg,
+    },
     state::State,
     sync::{Uid, WorldSyncExt},
     util::Dir,
@@ -278,6 +280,24 @@ impl StateExt for State {
         ) {
             self.write_component(entity, comp::Admin);
         }
+
+        let uids = &self.ecs().read_storage::<Uid>();
+        let uid = uids
+            .get(entity)
+            .expect("Failed to fetch uid component for entity.")
+            .0;
+
+        let stats = &self.ecs().read_storage::<comp::Stats>();
+        let stat = stats
+            .get(entity)
+            .expect("Failed to fetch stats component for entity.");
+
+        self.notify_registered_clients(ServerMsg::PlayerListUpdate(
+            PlayerListUpdate::SelectedCharacter(uid, CharacterInfo {
+                name: stat.name.to_string(),
+                level: stat.level.level(),
+            }),
+        ));
 
         // Tell the client its request was successful.
         if let Some(client) = self.ecs().write_storage::<Client>().get_mut(entity) {

@@ -514,26 +514,28 @@ fn handle_players(
     _action: &ChatCommand,
 ) {
     let ecs = server.state.ecs();
-    let players = ecs.read_storage::<comp::Player>();
-    let count = players.join().count();
-    let header_message: String = format!("{} online players: \n", count);
-    if count > 0 {
-        let mut player_iter = players.join();
-        let first = player_iter
-            .next()
-            .expect("Player iterator returned none.")
-            .alias
-            .to_owned();
-        let player_list = player_iter.fold(first, |mut s, p| {
-            s += ",\n";
-            s += &p.alias;
-            s
-        });
 
-        server.notify_client(client, ServerMsg::private(header_message + &player_list));
-    } else {
-        server.notify_client(client, ServerMsg::private(header_message));
-    }
+    let entity_tuples = (
+        &ecs.entities(),
+        &ecs.read_storage::<comp::Player>(),
+        &ecs.read_storage::<comp::Stats>(),
+    );
+
+    server.notify_client(
+        client,
+        ServerMsg::private(entity_tuples.join().fold(
+            format!("{} online players:", entity_tuples.join().count()),
+            |s, (_, player, stat)| {
+                format!(
+                    "{}\n[{}]{} Lvl {}",
+                    s,
+                    player.alias,
+                    stat.name,
+                    stat.level.level()
+                )
+            },
+        )),
+    );
 }
 
 fn handle_build(
@@ -1125,14 +1127,31 @@ fn handle_set_level(
     let (a_lvl, a_alias) = scan_fmt_some!(&args, &action.arg_fmt(), u32, String);
 
     if let Some(lvl) = a_lvl {
-        let ecs = server.state.ecs_mut();
-        let target = find_target(&ecs, a_alias, target);
+        let target = find_target(&server.state.ecs(), a_alias, target);
 
         let mut error_msg = None;
 
         match target {
             Ok(player) => {
-                if let Some(stats) = ecs.write_storage::<comp::Stats>().get_mut(player) {
+                let uid = server
+                    .state
+                    .ecs()
+                    .read_storage::<Uid>()
+                    .get(player)
+                    .expect("Failed to get uid for player")
+                    .0;
+                server
+                    .state
+                    .notify_registered_clients(ServerMsg::PlayerListUpdate(
+                        PlayerListUpdate::LevelChange(uid, lvl),
+                    ));
+
+                if let Some(stats) = server
+                    .state
+                    .ecs_mut()
+                    .write_storage::<comp::Stats>()
+                    .get_mut(player)
+                {
                     stats.level.set_level(lvl);
 
                     stats.update_max_hp();

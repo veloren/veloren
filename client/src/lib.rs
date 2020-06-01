@@ -23,7 +23,7 @@ use common::{
     event::{EventBus, SfxEvent, SfxEventItem},
     msg::{
         validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, Notification,
-        PlayerListUpdate, RegisterError, RequestStateError, ServerInfo, ServerMsg,
+        PlayerInfo, PlayerListUpdate, RegisterError, RequestStateError, ServerInfo, ServerMsg,
         MAX_BYTES_CHAT_MSG,
     },
     net::PostBox,
@@ -68,7 +68,7 @@ pub struct Client {
     thread_pool: ThreadPool,
     pub server_info: ServerInfo,
     pub world_map: (Arc<DynamicImage>, Vec2<u32>),
-    pub player_list: HashMap<u64, String>,
+    pub player_list: HashMap<u64, PlayerInfo>,
     pub character_list: CharacterList,
 
     postbox: PostBox<ClientMsg, ServerMsg>,
@@ -734,14 +734,49 @@ impl Client {
                     ServerMsg::PlayerListUpdate(PlayerListUpdate::Init(list)) => {
                         self.player_list = list
                     },
-                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Add(uid, name)) => {
-                        if let Some(old_name) = self.player_list.insert(uid, name.clone()) {
+                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Add(uid, player_info)) => {
+                        if let Some(old_player_info) =
+                            self.player_list.insert(uid, player_info.clone())
+                        {
                             warn!(
                                 "Received msg to insert {} with uid {} into the player list but \
                                  there was already an entry for {} with the same uid that was \
                                  overwritten!",
-                                name, uid, old_name
+                                player_info.player_alias, uid, old_player_info.player_alias
                             );
+                        }
+                    },
+                    ServerMsg::PlayerListUpdate(PlayerListUpdate::SelectedCharacter(
+                        uid,
+                        char_info,
+                    )) => {
+                        if let Some(player_info) = self.player_list.get_mut(&uid) {
+                            player_info.character = Some(char_info);
+                        } else {
+                            warn!(
+                                "Received msg to update character info for uid {}, but they were \
+                                 not in the list.",
+                                uid
+                            );
+                        }
+                    },
+                    ServerMsg::PlayerListUpdate(PlayerListUpdate::LevelChange(uid, next_level)) => {
+                        if let Some(player_info) = self.player_list.get_mut(&uid) {
+                            player_info.character = match &player_info.character {
+                                Some(character) => Some(common::msg::CharacterInfo {
+                                    name: character.name.to_string(),
+                                    level: next_level,
+                                }),
+                                None => {
+                                    warn!(
+                                        "Received msg to update character level info to {} for \
+                                         uid {}, but this player's character is None.",
+                                        next_level, uid
+                                    );
+
+                                    None
+                                },
+                            };
                         }
                     },
                     ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(uid)) => {
@@ -754,8 +789,8 @@ impl Client {
                         }
                     },
                     ServerMsg::PlayerListUpdate(PlayerListUpdate::Alias(uid, new_name)) => {
-                        if let Some(name) = self.player_list.get_mut(&uid) {
-                            *name = new_name;
+                        if let Some(player_info) = self.player_list.get_mut(&uid) {
+                            player_info.player_alias = new_name;
                         } else {
                             warn!(
                                 "Received msg to alias player with uid {} to {} but this uid is \
