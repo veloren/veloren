@@ -1,0 +1,62 @@
+({
+    (Crocodile, Male): (
+        upper: (
+            offset: (-7.0, -9.0, -5.5),
+            central: ("npc.crocodile.male.head_upper"),
+        ),
+        lower: (
+            offset: (-7.0, -4.5, -5.0),
+            central: ("npc.crocodile.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-3.0, -3.0, -2.5),
+            central: ("npc.crocodile.male.jaw"),
+        ),
+        chest_rear: (
+            offset: (-8.0, -5.5, -6.0),
+            central: ("npc.crocodile.male.chest_front"),
+        ),
+        chest_front: (
+            offset: (-8.0, -5.5, -6.0),
+            central: ("npc.crocodile.male.chest_front"),
+        ),
+        tail_rear: (
+            offset: (-2.0, -9.5, -5.0),
+            central: ("npc.crocodile.male.tail"),
+        ),
+		tail_front: (
+            offset: (-2.0, -9.5, -5.0),
+            central: ("npc.crocodile.male.tail"),
+        ),
+    ),
+    (Crocodile, Female): (
+        upper: (
+            offset: (-7.0, -9.0, -5.5),
+            central: ("npc.crocodile.female.head_upper"),
+        ),
+        lower: (
+            offset: (-7.0, -4.5, -5.0),
+            central: ("npc.crocodile.female.head_lower"),
+        ),
+        jaw: (
+            offset: (-3.0, -3.0, -2.5),
+            central: ("npc.crocodile.female.jaw"),
+        ),
+        chest_rear: (
+            offset: (-8.0, -5.5, -6.0),
+            central: ("npc.crocodile.female.chest_rear"),
+        ),
+        chest_front: (
+            offset: (-8.0, -5.5, -6.0),
+            central: ("npc.crocodile.female.chest_front"),
+        ),
+        tail_rear: (
+            offset: (-2.0, -9.5, -5.0),
+            central: ("npc.crocodile.female.tail"),
+        ),
+		tail_front: (
+            offset: (-2.0, -9.5, -5.0),
+            central: ("npc.crocodile.female.tail"),
+        ),
+    ),
+})

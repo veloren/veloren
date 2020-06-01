@@ -5,6 +5,13 @@ pub use cache::FigureModelCache;
 pub use load::load_mesh; // TODO: Don't make this public.
 
 use crate::{
+    anim::{
+        self, biped_large::BipedLargeSkeleton, bird_medium::BirdMediumSkeleton,
+        bird_small::BirdSmallSkeleton, character::CharacterSkeleton, critter::CritterSkeleton,
+        dragon::DragonSkeleton, fish_medium::FishMediumSkeleton, fish_small::FishSmallSkeleton,
+        golem::GolemSkeleton, object::ObjectSkeleton, quadruped_medium::QuadrupedMediumSkeleton,
+        quadruped_small::QuadrupedSmallSkeleton, quadruped_low::QuadrupedLowSkeleton, Animation, Skeleton,
+    },
     ecs::comp::Interpolated,
     render::{Consts, FigureBoneData, FigureLocals, Globals, Light, Renderer, Shadow},
     scene::{
@@ -44,6 +51,7 @@ pub struct FigureMgr {
     critter_model_cache: FigureModelCache<CritterSkeleton>,
     quadruped_small_model_cache: FigureModelCache<QuadrupedSmallSkeleton>,
     quadruped_medium_model_cache: FigureModelCache<QuadrupedMediumSkeleton>,
+    quadruped_low_model_cache: FigureModelCache<QuadrupedLowSkeleton>,
     bird_medium_model_cache: FigureModelCache<BirdMediumSkeleton>,
     bird_small_model_cache: FigureModelCache<BirdSmallSkeleton>,
     dragon_model_cache: FigureModelCache<DragonSkeleton>,
@@ -54,6 +62,7 @@ pub struct FigureMgr {
     character_states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
     quadruped_small_states: HashMap<EcsEntity, FigureState<QuadrupedSmallSkeleton>>,
     quadruped_medium_states: HashMap<EcsEntity, FigureState<QuadrupedMediumSkeleton>>,
+    quadruped_low_states: HashMap<EcsEntity, FigureState<QuadrupedLowSkeleton>>,
     bird_medium_states: HashMap<EcsEntity, FigureState<BirdMediumSkeleton>>,
     fish_medium_states: HashMap<EcsEntity, FigureState<FishMediumSkeleton>>,
     critter_states: HashMap<EcsEntity, FigureState<CritterSkeleton>>,
@@ -73,6 +82,7 @@ impl FigureMgr {
             critter_model_cache: FigureModelCache::new(),
             quadruped_small_model_cache: FigureModelCache::new(),
             quadruped_medium_model_cache: FigureModelCache::new(),
+            quadruped_low_model_cache: FigureModelCache::new(),
             bird_medium_model_cache: FigureModelCache::new(),
             bird_small_model_cache: FigureModelCache::new(),
             dragon_model_cache: FigureModelCache::new(),
@@ -83,6 +93,7 @@ impl FigureMgr {
             character_states: HashMap::new(),
             quadruped_small_states: HashMap::new(),
             quadruped_medium_states: HashMap::new(),
+            quadruped_low_states: HashMap::new(),
             bird_medium_states: HashMap::new(),
             fish_medium_states: HashMap::new(),
             critter_states: HashMap::new(),
@@ -100,6 +111,7 @@ impl FigureMgr {
         self.critter_model_cache.clean(tick);
         self.quadruped_small_model_cache.clean(tick);
         self.quadruped_medium_model_cache.clean(tick);
+        self.quadruped_low_model_cache.clean(tick);
         self.bird_medium_model_cache.clean(tick);
         self.bird_small_model_cache.clean(tick);
         self.dragon_model_cache.clean(tick);
@@ -261,6 +273,9 @@ impl FigureMgr {
                     Body::QuadrupedMedium(_) => {
                         self.quadruped_medium_states.remove(&entity);
                     },
+                    Body::QuadrupedLow(_) => {
+                        self.quadruped_low_states.remove(&entity);
+                    },
                     Body::BirdMedium(_) => {
                         self.bird_medium_states.remove(&entity);
                     },
@@ -304,6 +319,11 @@ impl FigureMgr {
                     },
                     Body::QuadrupedMedium(_) => {
                         self.quadruped_medium_states
+                            .get_mut(&entity)
+                            .map(|state| state.visible = false);
+                    },
+                    Body::QuadrupedLow(_) => {
+                        self.quadruped_low_states
                             .get_mut(&entity)
                             .map(|state| state.visible = false);
                     },
@@ -374,6 +394,10 @@ impl FigureMgr {
                                 .quadruped_medium_states
                                 .get(&entity)
                                 .map(|state| state.lpindex),
+                                Body::QuadrupedLow(_) => self
+                                .quadruped_low_states
+                                .get(&entity)
+                                .map(|state| state.lpindex),
                             Body::BirdMedium(_) => self
                                 .bird_medium_states
                                 .get(&entity)
@@ -426,6 +450,12 @@ impl FigureMgr {
                     },
                     Body::QuadrupedMedium(_) => {
                         self.quadruped_medium_states.get_mut(&entity).map(|state| {
+                            state.lpindex = lpindex;
+                            state.visible = false
+                        });
+                    },
+                    Body::QuadrupedLow(_) => {
+                        self.quadruped_low_states.get_mut(&entity).map(|state| {
                             state.lpindex = lpindex;
                             state.visible = false
                         });
@@ -964,6 +994,89 @@ impl FigureMgr {
                         (false, _, false) => {
                             anim::quadruped_medium::JumpAnimation::update_skeleton(
                                 &QuadrupedMediumSkeleton::new(),
+                                (vel.0.magnitude(), time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+
+                        // TODO!
+                        _ => state.skeleton_mut().clone(),
+                    };
+
+                    state.skeleton.interpolate(&target_base, dt);
+                    state.update(
+                        renderer,
+                        pos.0,
+                        ori,
+                        scale,
+                        col,
+                        dt,
+                        state_animation_rate,
+                        lpindex,
+                        true,
+                        is_player,
+                    );
+                },
+                Body::QuadrupedLow(_) => {
+                    let skeleton_attr = &self
+                        .quadruped_low_model_cache
+                        .get_or_create_model(
+                            renderer,
+                            *body,
+                            loadout,
+                            tick,
+                            CameraMode::default(),
+                            None,
+                        )
+                        .1;
+
+                    let state = self
+                        .quadruped_low_states
+                        .entry(entity)
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, QuadrupedLowSkeleton::new())
+                        });
+
+                    let (character, last_character) = match (character, last_character) {
+                        (Some(c), Some(l)) => (c, l),
+                        _ => continue,
+                    };
+
+                    if !character.same_variant(&last_character.0) {
+                        state.state_time = 0.0;
+                    }
+
+                    let target_base = match (
+                        physics.on_ground,
+                        vel.0.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                        physics.in_fluid,                                 // In water
+                    ) {
+                        // Standing
+                        (true, false, false) => {
+                            anim::quadruped_low::IdleAnimation::update_skeleton(
+                                &QuadrupedLowSkeleton::new(),
+                                time,
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        // Running
+                        (true, true, false) => {
+                            anim::quadruped_low::RunAnimation::update_skeleton(
+                                &QuadrupedLowSkeleton::new(),
+                                (vel.0.magnitude(), time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        // In air
+                        (false, _, false) => {
+                            anim::quadruped_low::JumpAnimation::update_skeleton(
+                                &QuadrupedLowSkeleton::new(),
                                 (vel.0.magnitude(), time),
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -1622,6 +1735,8 @@ impl FigureMgr {
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.quadruped_medium_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
+        self.quadruped_low_states
+            .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.bird_medium_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.fish_medium_states
@@ -1774,6 +1889,7 @@ impl FigureMgr {
             critter_model_cache,
             quadruped_small_model_cache,
             quadruped_medium_model_cache,
+            quadruped_low_model_cache,
             bird_medium_model_cache,
             bird_small_model_cache,
             dragon_model_cache,
@@ -1784,6 +1900,7 @@ impl FigureMgr {
             character_states,
             quadruped_small_states,
             quadruped_medium_states,
+            quadruped_low_states,
             bird_medium_states,
             fish_medium_states,
             critter_states,
@@ -1835,6 +1952,22 @@ impl FigureMgr {
                     state.locals(),
                     state.bone_consts(),
                     &quadruped_medium_model_cache
+                        .get_or_create_model(
+                            renderer,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        )
+                        .0,
+                )
+            }),
+            Body::QuadrupedLow(_) => quadruped_low_states.get(&entity).map(|state| {
+                (
+                    state.locals(),
+                    state.bone_consts(),
+                    &quadruped_low_model_cache
                         .get_or_create_model(
                             renderer,
                             *body,
@@ -2022,6 +2155,7 @@ impl FigureMgr {
             + self.quadruped_small_states.len()
             + self.character_states.len()
             + self.quadruped_medium_states.len()
+            + self.quadruped_low_states.len()
             + self.bird_medium_states.len()
             + self.fish_medium_states.len()
             + self.critter_states.len()
@@ -2045,6 +2179,11 @@ impl FigureMgr {
                 .count()
             + self
                 .quadruped_medium_states
+                .iter()
+                .filter(|(_, c)| c.visible)
+                .count()
+                + self
+                .quadruped_low_states
                 .iter()
                 .filter(|(_, c)| c.visible)
                 .count()
