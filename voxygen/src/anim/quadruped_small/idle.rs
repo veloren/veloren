@@ -18,6 +18,8 @@ impl Animation for IdleAnimation {
         let mut next = (*skeleton).clone();
 
         let slow = (anim_time as f32 * 3.5).sin();
+        let slowa = (anim_time as f32 * 3.5 + PI / 2.0).sin();
+
         let slow_alt = (anim_time as f32 * 3.5 + PI).sin();
 
         let head_look = Vec2::new(
@@ -42,7 +44,7 @@ impl Animation for IdleAnimation {
         next.chest.offset = Vec3::new(
             slow * 0.05,
             skeleton_attr.chest.0,
-            skeleton_attr.chest.1 + slow_alt * 0.2,
+            skeleton_attr.chest.1 + slowa * 0.2,
         ) / 11.0;
         next.chest.ori = Quaternion::rotation_y(slow * 0.05);
         next.chest.scale = Vec3::one() / 11.0;
@@ -78,6 +80,10 @@ impl Animation for IdleAnimation {
         ) / 11.0;
         next.leg_rb.ori = Quaternion::rotation_x(slow * 0.08);
         next.leg_rb.scale = Vec3::one() / 11.0;
+
+        next.tail.offset = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1);
+        next.tail.ori = Quaternion::rotation_z(slow * 0.4);
+        next.tail.scale = Vec3::one();
 
         next
     }

@@ -18,6 +18,7 @@ pub struct QuadrupedSmallSkeleton {
     leg_rf: Bone,
     leg_lb: Bone,
     leg_rb: Bone,
+    tail: Bone,
 }
 
 impl QuadrupedSmallSkeleton {
@@ -27,18 +28,19 @@ impl QuadrupedSmallSkeleton {
 impl Skeleton for QuadrupedSmallSkeleton {
     type Attr = SkeletonAttr;
 
-    fn bone_count(&self) -> usize { 6 }
+    fn bone_count(&self) -> usize { 7 }
 
     fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
+        let chest_mat = self.chest.compute_base_matrix();
         (
             [
                 FigureBoneData::new(self.head.compute_base_matrix()),
-                FigureBoneData::new(self.chest.compute_base_matrix()),
+                FigureBoneData::new(chest_mat),
                 FigureBoneData::new(self.leg_lf.compute_base_matrix()),
                 FigureBoneData::new(self.leg_rf.compute_base_matrix()),
                 FigureBoneData::new(self.leg_lb.compute_base_matrix()),
                 FigureBoneData::new(self.leg_rb.compute_base_matrix()),
-                FigureBoneData::default(),
+                FigureBoneData::new(chest_mat * self.tail.compute_base_matrix()),
                 FigureBoneData::default(),
                 FigureBoneData::default(),
                 FigureBoneData::default(),
@@ -60,6 +62,7 @@ impl Skeleton for QuadrupedSmallSkeleton {
         self.leg_rf.interpolate(&target.leg_rf, dt);
         self.leg_lb.interpolate(&target.leg_lb, dt);
         self.leg_rb.interpolate(&target.leg_rb, dt);
+        self.tail.interpolate(&target.tail, dt);
     }
 }
 
@@ -68,6 +71,7 @@ pub struct SkeletonAttr {
     chest: (f32, f32),
     feet_f: (f32, f32, f32),
     feet_b: (f32, f32, f32),
+    tail: (f32, f32),
 }
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
     type Error = ();
@@ -87,6 +91,7 @@ impl Default for SkeletonAttr {
             chest: (0.0, 0.0),
             feet_f: (0.0, 0.0, 0.0),
             feet_b: (0.0, 0.0, 0.0),
+            tail: (0.0, 0.0),
         }
     }
 }
@@ -112,14 +117,14 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
             },
             chest: match (body.species, body.body_type) {
                 (Pig, _) => (0.0, 8.0),
-                (Fox, _) => (-2.0, 5.0),
-                (Sheep, _) => (-2.0, 6.0),
-                (Boar, _) => (-2.0, 7.0),
+                (Fox, _) => (1.0, 5.0),
+                (Sheep, _) => (-1.0, 6.0),
+                (Boar, _) => (0.0, 7.0),
                 (Jackalope, _) => (-2.0, 6.0),
-                (Skunk, _) => (-5.0, 6.0),
-                (Cat, _) => (-2.0, 6.0),
+                (Skunk, _) => (0.0, 6.0),
+                (Cat, _) => (0.0, 6.0),
                 (Batfox, _) => (-2.0, 6.0),
-                (Raccoon, _) => (-2.0, 6.0),
+                (Raccoon, _) => (0.0, 6.0),
                 (Quokka, _) => (2.0, 8.0),
                 (Dodarock, _) => (-2.0, 8.0),
                 (Holladon, _) => (-2.0, 6.0),
@@ -154,6 +159,21 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Dodarock, _) => (4.5, -3.0, 4.0),
                 (Holladon, _) => (4.0, -4.0, 3.0),
                 (Hyena, _) => (2.5, -7.0, 6.0),
+            },
+            tail: match (body.species, body.body_type) {
+                (Pig, _) => (-4.0, 3.0),
+                (Fox, _) => (-3.5, 1.0),
+                (Sheep, _) => (-5.0, 0.0),
+                (Boar, _) => (-8.5, 2.0),
+                (Jackalope, _) => (0.0, 5.0),
+                (Skunk, _) => (-3.0, 1.5),
+                (Cat, _) => (-3.0, 2.0),
+                (Batfox, _) => (0.0, 5.0),
+                (Raccoon, _) => (-4.0, 1.0),
+                (Quokka, _) => (0.0, 6.0),
+                (Dodarock, _) => (0.0, 5.0),
+                (Holladon, _) => (0.0, 4.0),
+                (Hyena, _) => (-8.0, 1.0),
             },
         }
     }

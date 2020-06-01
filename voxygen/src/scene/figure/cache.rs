@@ -221,7 +221,11 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         body.body_type,
                         generate_mesh,
                     )),
-                    None,
+                    Some(quadruped_small_central_spec.mesh_tail(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
                     None,
                     None,
                     None,
