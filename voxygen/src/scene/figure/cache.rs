@@ -678,6 +678,75 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                     None,
                 ]
             },
+            Body::QuadrupedLow(body) => {
+                let quadruped_low_central_spec =
+                    QuadrupedLowCentralSpec::load_watched(manifest_indicator);
+                let quadruped_low_lateral_spec =
+                    QuadrupedLowLateralSpec::load_watched(manifest_indicator);
+
+                [
+                    Some(quadruped_low_central_spec.mesh_head_upper(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(quadruped_low_central_spec.mesh_head_lower(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(quadruped_low_central_spec.mesh_jaw(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(quadruped_low_central_spec.mesh_tail_front(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(quadruped_low_central_spec.mesh_tail_rear(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(quadruped_low_central_spec.mesh_chest_front(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(quadruped_low_central_spec.mesh_chest_rear(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(quadruped_low_lateral_spec.mesh_foot_fl(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(quadruped_low_lateral_spec.mesh_foot_fr(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(quadruped_low_lateral_spec.mesh_foot_bl(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(quadruped_low_lateral_spec.mesh_foot_br(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                ]
+            },
             Body::Object(object) => [
                 Some(mesh_object(object, generate_mesh)),
                 None,

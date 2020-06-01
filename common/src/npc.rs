@@ -16,9 +16,10 @@ pub enum NpcKind {
     Rat,
     StoneGolem,
     Reddragon,
+    Crocodile,
 }
 
-pub const ALL_NPCS: [NpcKind; 8] = [
+pub const ALL_NPCS: [NpcKind; 9] = [
     NpcKind::Humanoid,
     NpcKind::Wolf,
     NpcKind::Pig,
@@ -27,6 +28,7 @@ pub const ALL_NPCS: [NpcKind; 8] = [
     NpcKind::Rat,
     NpcKind::StoneGolem,
     NpcKind::Reddragon,
+    NpcKind::Crocodile,
 ];
 
 /// Body-specific NPC name metadata.
@@ -94,6 +96,7 @@ pub fn kind_to_body(kind: NpcKind) -> Body {
         NpcKind::Rat => comp::critter::Body::random().into(),
         NpcKind::StoneGolem => comp::golem::Body::random().into(),
         NpcKind::Reddragon => comp::dragon::Body::random().into(),
+        NpcKind::Crocodile => comp::quadruped_low::Body::random().into(),
     }
 }
 
@@ -221,6 +224,14 @@ impl NpcBody {
                     NpcKind::Reddragon,
                     &npc_names.dragon,
                     comp::dragon::Body::random_with,
+                )
+            })
+            .or_else(|| {
+                parse(
+                    s,
+                    NpcKind::Crocodile,
+                    &npc_names.quadruped_low,
+                    comp::quadruped_low::Body::random_with,
                 )
             })
             .ok_or(())

@@ -561,5 +561,19 @@
                 "generic": "Reddragon"
             }
         }
+    },
+    "quadruped_low": {
+        "body": {
+            "keyword": "quadruped_low",
+            "names": [
+                "Sobek"
+            ]
+        },
+        "species": {
+            "crocodile": {
+                "keyword": "crocodile",
+                "generic": "Crocodile"
+            }
+        }
     }
 }

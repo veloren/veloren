@@ -1,0 +1,38 @@
+({
+    (Crocodile, Male): (
+        front_left: (
+            offset: (-2.5, -4.0, -1.5),
+            lateral: ("npc.crocodile.male.foot_fl"),
+        ),
+        front_right: (
+            offset: (-2.5, -4.0, -1.5),
+            lateral: ("npc.crocodile.male.foot_fr"),
+        ),
+        back_left: (
+            offset: (-2.5, -4.0, -3.0),
+            lateral: ("npc.crocodile.male.foot_bl"),
+        ),
+        back_right: (
+            offset: (-2.5, -4.0, -3.0),
+            lateral: ("npc.crocodile.male.foot_br"),
+        ),
+    ),
+    (Crocodile, Female): (
+        front_left: (
+            offset: (-2.5, -4.0, -1.5),
+            lateral: ("npc.crocodile.female.foot_fl"),
+        ),
+        front_right: (
+            offset: (-2.5, -4.0, -1.5),
+            lateral: ("npc.crocodile.female.foot_fr"),
+        ),
+        back_left: (
+            offset: (-2.5, -4.0, -3.0),
+            lateral: ("npc.crocodile.female.foot_bl"),
+        ),
+        back_right: (
+            offset: (-2.5, -4.0, -3.0),
+            lateral: ("npc.crocodile.female.foot_br"),
+        ),
+    ),
+})

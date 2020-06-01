@@ -10,6 +10,7 @@ pub mod humanoid;
 pub mod object;
 pub mod quadruped_medium;
 pub mod quadruped_small;
+pub mod quadruped_low;
 
 use crate::{
     assets::{self, Asset},
@@ -34,6 +35,7 @@ pub enum Body {
     Object(object::Body) = 9,
     Golem(golem::Body) = 10,
     Critter(critter::Body) = 11,
+    QuadrupedLow(quadruped_low::Body) = 12,
 }
 
 /// Data representing data generic to the body together with per-species data.
@@ -61,6 +63,7 @@ pub struct AllBodies<BodyMeta, SpeciesMeta> {
     pub golem: BodyData<BodyMeta, golem::AllSpecies<SpeciesMeta>>,
     pub critter: BodyData<BodyMeta, critter::AllSpecies<SpeciesMeta>>,
     pub dragon: BodyData<BodyMeta, dragon::AllSpecies<SpeciesMeta>>,
+    pub quadruped_low: BodyData<BodyMeta, quadruped_low::AllSpecies<SpeciesMeta>>,
 }
 
 /// Can only retrieve body metadata by direct index.
@@ -78,6 +81,7 @@ impl<BodyMeta, SpeciesMeta> core::ops::Index<NpcKind> for AllBodies<BodyMeta, Sp
             NpcKind::StoneGolem => &self.golem.body,
             NpcKind::Rat => &self.critter.body,
             NpcKind::Reddragon => &self.dragon.body,
+            NpcKind::Crocodile => &self.quadruped_low.body,
         }
     }
 }
@@ -118,6 +122,7 @@ impl Body {
             Body::FishSmall(_) => 0.2,
             Body::BipedLarge(_) => 2.0,
             Body::Golem(_) => 2.5,
+            Body::QuadrupedLow(_) => 1.0,
             Body::Object(_) => 0.3,
         }
     }
