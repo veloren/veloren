@@ -10,8 +10,8 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     msg::{
-        validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, PlayerListUpdate,
-        RequestStateError, ServerMsg, MAX_BYTES_CHAT_MSG,
+        validate_chat_msg, CharacterInfo, ChatMsgValidationError, ClientMsg, ClientState,
+        PlayerInfo, PlayerListUpdate, RequestStateError, ServerMsg, MAX_BYTES_CHAT_MSG,
     },
     state::{BlockChange, Time},
     sync::Uid,
@@ -83,9 +83,18 @@ impl<'a> System<'a> for Sys {
         let mut new_chat_msgs = Vec::new();
 
         // Player list to send new players.
-        let player_list = (&uids, &players)
+        let player_list = (&uids, &players, &stats)
             .join()
-            .map(|(uid, player)| ((*uid).into(), player.alias.clone()))
+            .map(|(uid, player, stats)| {
+                ((*uid).into(), PlayerInfo {
+                    player_alias: player.alias.clone(),
+                    // TODO: player might not have a character selected
+                    character: Some(CharacterInfo {
+                        name: stats.name.clone(),
+                        level: stats.level.level(),
+                    }),
+                })
+            })
             .collect::<HashMap<_, _>>();
         // List of new players to update player lists of all clients.
         let mut new_players = Vec::new();
@@ -383,10 +392,11 @@ impl<'a> System<'a> for Sys {
         // Tell all clients to add them to the player list.
         for entity in new_players {
             if let (Some(uid), Some(player)) = (uids.get(entity), players.get(entity)) {
-                let msg = ServerMsg::PlayerListUpdate(PlayerListUpdate::Add(
-                    (*uid).into(),
-                    player.alias.clone(),
-                ));
+                let msg =
+                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Add((*uid).into(), PlayerInfo {
+                        player_alias: player.alias.clone(),
+                        character: None, // new players will be on character select.
+                    }));
                 for client in (&mut clients).join().filter(|c| c.is_registered()) {
                     client.notify(msg.clone())
                 }
@@ -406,16 +416,22 @@ impl<'a> System<'a> for Sys {
                         } else {
                             let bubble = SpeechBubble::player_new(message.clone(), *time);
                             let _ = speech_bubbles.insert(entity, bubble);
-                            match players.get(entity) {
-                                Some(player) => {
-                                    if admins.get(entity).is_some() {
-                                        format!("[ADMIN][{}] {}", &player.alias, message)
-                                    } else {
-                                        format!("[{}] {}", &player.alias, message)
-                                    }
+                            format!(
+                                "{}[{}] {}: {}",
+                                match admins.get(entity) {
+                                    Some(_) => "[ADMIN]",
+                                    None => "",
                                 },
-                                None => format!("[<Unknown>] {}", message),
-                            }
+                                match players.get(entity) {
+                                    Some(player) => &player.alias,
+                                    None => "<Unknown>",
+                                },
+                                match stats.get(entity) {
+                                    Some(stat) => &stat.name,
+                                    None => "<Unknown>",
+                                },
+                                message
+                            )
                         }
                     } else {
                         message

@@ -40,6 +40,7 @@ fn complete_player(part: &str, client: &Client) -> Vec<String> {
     client
         .player_list
         .values()
+        .map(|player_info| &player_info.player_alias)
         .filter(|alias| alias.starts_with(part))
         .cloned()
         .collect()
