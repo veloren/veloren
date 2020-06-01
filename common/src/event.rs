@@ -90,6 +90,7 @@ pub enum ServerEvent {
     Mount(EcsEntity, EcsEntity),
     Unmount(EcsEntity),
     Possess(Uid, Uid),
+    LevelUp(EcsEntity, u32),
     SelectCharacter {
         entity: EcsEntity,
         character_id: i32,

@@ -2,7 +2,7 @@ use crate::{client::Client, Server, SpawnPoint, StateExt};
 use common::{
     assets,
     comp::{self, object, Body, HealthChange, HealthSource, Item, Player, Stats},
-    msg::ServerMsg,
+    msg::{PlayerListUpdate, ServerMsg},
     state::BlockChange,
     sync::{Uid, WorldSyncExt},
     sys::combat::{BLOCK_ANGLE, BLOCK_EFFICIENCY},
@@ -294,4 +294,18 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Opti
             .for_each(|pos| block_change.set(pos, Block::empty()))
             .cast();
     }
+}
+
+pub fn handle_level_up(server: &mut Server, entity: EcsEntity, new_level: u32) {
+    let uids = server.state.ecs().read_storage::<Uid>();
+    let uid = uids
+        .get(entity)
+        .expect("Failed to fetch uid component for entity.")
+        .0;
+
+    server
+        .state
+        .notify_registered_clients(ServerMsg::PlayerListUpdate(PlayerListUpdate::LevelChange(
+            uid, new_level,
+        )));
 }

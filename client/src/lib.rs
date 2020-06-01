@@ -762,22 +762,19 @@ impl Client {
                     },
                     ServerMsg::PlayerListUpdate(PlayerListUpdate::LevelChange(uid, next_level)) => {
                         if let Some(player_info) = self.player_list.get_mut(&uid) {
-                            if let Some(character) = &player_info.character {
-                                // TODO: assign next value
-                                // &character.level = next_level;
-                            } else {
-                                warn!(
-                                    "Received msg to update character level info to {} for uid \
-                                     {}, but this player's character is None.",
-                                    next_level, uid
-                                );
-                            }
-                        } else {
-                            warn!(
-                                "Received msg to update character level info to {} for uid {}, \
-                                 but they were not in the list.",
-                                next_level, uid
-                            );
+                            player_info.character = match &player_info.character {
+                                Some(character) => Some(common::msg::CharacterInfo {
+                                    name: character.name.to_string(),
+                                    level: next_level,
+                                }),
+                                None => {
+                                    warn!(
+                                        "Received msg to update character level info to {} for \
+                                         uid {}, but this player's character is None.",
+                                        next_level, uid
+                                    );
+                                },
+                            };
                         }
                     },
                     ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(uid)) => {

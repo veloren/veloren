@@ -4,7 +4,8 @@ use entity_creation::{
     handle_create_character, handle_create_npc, handle_create_waypoint, handle_shoot,
 };
 use entity_manipulation::{
-    handle_damage, handle_destroy, handle_explosion, handle_land_on_ground, handle_respawn,
+    handle_damage, handle_destroy, handle_explosion, handle_land_on_ground, handle_level_up,
+    handle_respawn,
 };
 use interaction::{handle_lantern, handle_mount, handle_possess, handle_unmount};
 use inventory_manip::handle_inventory;
@@ -75,6 +76,7 @@ impl Server {
                     body,
                     main,
                 } => handle_create_character(self, entity, character_id, body, main),
+                ServerEvent::LevelUp(entity, new_level) => handle_level_up(self, entity, new_level),
                 ServerEvent::ExitIngame { entity } => handle_exit_ingame(self, entity),
                 ServerEvent::CreateNpc {
                     pos,
