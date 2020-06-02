@@ -5,7 +5,8 @@ use crate::{
 };
 use common::{
     comp::{
-        CanBuild, ChatMode, ControlEvent, Controller, ForceUpdate, Ori, Player, Pos, Stats, Vel,
+        Admin, CanBuild, ChatMode, ControlEvent, Controller, ForceUpdate, Ori, Player, Pos, Stats,
+        Vel,
     },
     event::{EventBus, ServerEvent},
     msg::{
@@ -33,6 +34,7 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, CharacterLoader>,
         ReadExpect<'a, TerrainGrid>,
         Write<'a, SysTimer<Self>>,
+        ReadStorage<'a, Admin>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, CanBuild>,
         ReadStorage<'a, ForceUpdate>,
@@ -62,6 +64,7 @@ impl<'a> System<'a> for Sys {
             character_loader,
             terrain,
             mut timer,
+            admins,
             uids,
             can_build,
             force_updates,
@@ -86,13 +89,13 @@ impl<'a> System<'a> for Sys {
         let mut new_chat_msgs = Vec::new();
 
         // Player list to send new players.
-        let player_list = (&uids, &players, &stats)
+        let player_list = (&uids, &players, stats.maybe(), admins.maybe())
             .join()
-            .map(|(uid, player, stats)| {
+            .map(|(uid, player, stats, admin)| {
                 ((*uid).into(), PlayerInfo {
+                    is_admin: admin.is_some(),
                     player_alias: player.alias.clone(),
-                    // TODO: player might not have a character selected
-                    character: Some(CharacterInfo {
+                    character: stats.map(|stats| CharacterInfo {
                         name: stats.name.clone(),
                         level: stats.level.level(),
                     }),
@@ -441,6 +444,7 @@ impl<'a> System<'a> for Sys {
                 let msg =
                     ServerMsg::PlayerListUpdate(PlayerListUpdate::Add((*uid).into(), PlayerInfo {
                         player_alias: player.alias.clone(),
+                        is_admin: admins.get(entity).is_some(),
                         character: None, // new players will be on character select.
                     }));
                 for client in (&mut clients).join().filter(|c| c.is_registered()) {

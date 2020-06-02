@@ -388,7 +388,20 @@ fn handle_alias(
     args: String,
     action: &ChatCommand,
 ) {
+    if client != target {
+        // Prevent people abusing /sudo
+        server.notify_client(
+            client,
+            ServerMsg::private(String::from("Don't call people names. It's mean.")),
+        );
+        return;
+    }
     if let Ok(alias) = scan_fmt!(&args, &action.arg_fmt(), String) {
+        if !comp::Player::alias_is_valid(&alias) {
+            // Prevent silly aliases
+            server.notify_client(client, ServerMsg::private(String::from("Invalid alias.")));
+            return;
+        }
         let old_alias_optional = server
             .state
             .ecs_mut()
@@ -932,25 +945,29 @@ fn handle_adminify(
         let ecs = server.state.ecs();
         let opt_player = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
             .join()
-            .find(|(_, player)| player.alias == alias)
+            .find(|(_, player)| alias == player.alias)
             .map(|(entity, _)| entity);
         match opt_player {
-            Some(player) => match server.state.read_component_cloned::<comp::Admin>(player) {
-                Some(_admin) => {
+            Some(player) => {
+                let is_admin = if server.state.read_component_cloned::<comp::Admin>(player).is_some() {
                     ecs.write_storage::<comp::Admin>().remove(player);
-                },
-                None => {
-                    server.state.write_component(player, comp::Admin);
-                },
+                    false
+                } else {
+                    ecs.write_storage().insert(player, comp::Admin).is_ok()
+                };
+                // Update player list so the player shows up as admin in client chat.
+                let msg = ServerMsg::PlayerListUpdate(PlayerListUpdate::Admin(
+                    *ecs.read_storage::<Uid>()
+                        .get(player)
+                        .expect("Player should have uid"),
+                    is_admin,
+                ));
+                server.state.notify_registered_clients(msg);
             },
             None => {
                 server.notify_client(
                     client,
                     ServerMsg::private(format!("Player '{}' not found!", alias)),
-                );
-                server.notify_client(
-                    client,
-                    ServerMsg::private(String::from(action.help_string())),
                 );
             },
         }
@@ -1319,13 +1336,12 @@ fn handle_set_level(
 
         match target {
             Ok(player) => {
-                let uid = server
+                let uid = *server
                     .state
                     .ecs()
                     .read_storage::<Uid>()
                     .get(player)
-                    .expect("Failed to get uid for player")
-                    .0;
+                    .expect("Failed to get uid for player");
                 server
                     .state
                     .notify_registered_clients(ServerMsg::PlayerListUpdate(
