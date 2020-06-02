@@ -32,7 +32,6 @@ use common::{
     sync::{Uid, UidAllocator, WorldSyncExt},
     terrain::{block::Block, TerrainChunk, TerrainChunkSize},
     vol::RectVolSize,
-    ChatType,
 };
 use hashbrown::HashMap;
 use image::DynamicImage;
@@ -55,10 +54,7 @@ const SERVER_TIMEOUT: f64 = 20.0;
 const SERVER_TIMEOUT_GRACE_PERIOD: f64 = 14.0;
 
 pub enum Event {
-    Chat {
-        chat_type: ChatType,
-        message: String,
-    },
+    Chat(comp::ChatMsg),
     Disconnect,
     DisconnectionNotification(u64),
     Notification(Notification),
@@ -465,8 +461,8 @@ impl Client {
     /// Send a chat message to the server.
     pub fn send_chat(&mut self, message: String) {
         match validate_chat_msg(&message) {
-            Ok(()) => self.postbox.send_message(ClientMsg::ChatMsg { message }),
-            Err(ChatMsgValidationError::TooLong) => warn!(
+            Ok(()) => self.postbox.send_message(ClientMsg::ChatMsg(message)),
+            Err(ChatMsgValidationError::TooLong) => tracing::warn!(
                 "Attempted to send a message that's too long (Over {} bytes)",
                 MAX_BYTES_CHAT_MSG
             ),
@@ -824,9 +820,7 @@ impl Client {
                         self.last_ping_delta =
                             (self.state.get_time() - self.last_server_ping).round();
                     },
-                    ServerMsg::ChatMsg { message, chat_type } => {
-                        frontend_events.push(Event::Chat { message, chat_type })
-                    },
+                    ServerMsg::ChatMsg(m) => frontend_events.push(Event::Chat(m)),
                     ServerMsg::SetPlayerEntity(uid) => {
                         if let Some(entity) = self.state.ecs().entity_from_uid(uid) {
                             self.entity = entity;
@@ -869,12 +863,13 @@ impl Client {
                     ServerMsg::InventoryUpdate(inventory, event) => {
                         match event {
                             InventoryUpdateEvent::CollectFailed => {
-                                frontend_events.push(Event::Chat {
+                                // TODO This might not be the best way to show an error
+                                frontend_events.push(Event::Chat(comp::ChatMsg {
                                     message: String::from(
                                         "Failed to collect item. Your inventory may be full!",
                                     ),
-                                    chat_type: ChatType::Meta,
-                                })
+                                    chat_type: comp::ChatType::Private,
+                                }))
                             },
                             _ => {
                                 self.state.write_component(self.entity, inventory);

@@ -9,17 +9,16 @@ use crate::{
     window::{AnalogGameInput, Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
-use client::{self, Client, Event::Chat};
+use client::{self, Client};
 use common::{
     assets::{load_watched, watch},
     clock::Clock,
     comp,
     comp::{Pos, Vel, MAX_PICKUP_RANGE_SQR},
-    msg::{ClientState, Notification},
+    msg::ClientState,
     terrain::{Block, BlockKind},
     util::Dir,
     vol::ReadVol,
-    ChatType,
 };
 use specs::{Join, WorldExt};
 use std::{cell::RefCell, rc::Rc, time::Duration};
@@ -84,12 +83,8 @@ impl SessionState {
             crate::ecs::sys::add_local_systems,
         )? {
             match event {
-                Chat {
-                    chat_type: _,
-                    ref message,
-                } => {
-                    info!("[CHAT] {}", message);
-                    self.hud.new_message(event);
+                client::Event::Chat(m) => {
+                    self.hud.new_message(m);
                 },
                 client::Event::Disconnect => return Ok(TickAction::Disconnect),
                 client::Event::DisconnectionNotification(time) => {
@@ -98,14 +93,13 @@ impl SessionState {
                         _ => format!("Connection lost. Kicking in {} seconds", time),
                     };
 
-                    self.hud.new_message(Chat {
-                        chat_type: ChatType::Meta,
+                    self.hud.new_message(comp::ChatMsg {
+                        chat_type: comp::ChatType::Private,
                         message,
                     });
                 },
-                client::Event::Notification(Notification::WaypointSaved) => {
-                    self.hud
-                        .new_message(client::Event::Notification(Notification::WaypointSaved));
+                client::Event::Notification(n) => {
+                    self.hud.new_notification(n);
                 },
                 client::Event::SetViewDistance(vd) => {
                     global_state.settings.graphics.view_distance = vd;
@@ -507,10 +501,12 @@ impl PlayState for SessionState {
                             self.scene.handle_input_event(Event::AnalogGameInput(other));
                         },
                     },
-                    Event::ScreenshotMessage(screenshot_message) => self.hud.new_message(Chat {
-                        chat_type: ChatType::Meta,
-                        message: screenshot_message,
-                    }),
+                    Event::ScreenshotMessage(screenshot_message) => {
+                        self.hud.new_message(comp::ChatMsg {
+                            chat_type: comp::ChatType::Private,
+                            message: screenshot_message,
+                        })
+                    },
 
                     // Pass all other events to the scene
                     event => {

@@ -975,7 +975,7 @@ fn handle_tell(
         // This happens when [ab]using /sudo
         server.notify_client(
             client,
-            ServerMsg::tell(String::from("It's rude to impersonate people")),
+            ServerMsg::private(String::from("It's rude to impersonate people")),
         );
         return;
     }
@@ -994,26 +994,23 @@ fn handle_tell(
                 );
                 return;
             }
-            if msg.is_empty() {
-                server.notify_client(
-                    client,
-                    ServerMsg::private(format!("[{}] wants to talk to you.", alias)),
-                );
-                return;
-            }
-            if let Some(name) = ecs
-                .read_storage::<comp::Player>()
+            let client_uid = *ecs
+                .read_storage()
                 .get(client)
-                .map(|s| s.alias.clone())
-            {
-                server.notify_client(player, ServerMsg::tell(format!("[{}] tells:{}", name, msg)));
-                server.notify_client(client, ServerMsg::tell(format!("To [{}]:{}", alias, msg)));
+                .expect("Player must have uid");
+            let player_uid = *ecs
+                .read_storage()
+                .get(player)
+                .expect("Player must have uid");
+            let mode = comp::ChatMode::Tell(player_uid);
+            let _ = server.state.ecs().write_storage().insert(client, mode);
+            let msg = if msg.is_empty() {
+                format!("{} wants to talk to you.", alias)
             } else {
-                server.notify_client(
-                    client,
-                    ServerMsg::private(String::from("Failed to send message.")),
-                );
-            }
+                msg.to_string()
+            };
+            server.notify_client(player, ServerMsg::chat(mode, client_uid, msg.clone()));
+            server.notify_client(client, ServerMsg::chat(mode, client_uid, msg));
         } else {
             server.notify_client(
                 client,
@@ -1039,19 +1036,18 @@ fn handle_faction(
         // This happens when [ab]using /sudo
         server.notify_client(
             client,
-            ServerMsg::tell(String::from("It's rude to impersonate people")),
+            ServerMsg::private(String::from("It's rude to impersonate people")),
         );
         return;
     }
-    let _ = server
-        .state
-        .ecs()
-        .write_storage()
-        .insert(client, comp::ChatMode::Faction);
+    let mode = comp::ChatMode::Faction;
+    let _ = server.state.ecs().write_storage().insert(client, mode);
     if !msg.is_empty() {
-        server
-            .state
-            .notify_registered_clients(ServerMsg::faction(msg.to_string()));
+        if let Some(uid) = server.state.ecs().read_storage().get(client) {
+            server
+                .state
+                .notify_registered_clients(ServerMsg::chat(mode, *uid, msg.to_string()));
+        }
     }
 }
 
@@ -1066,19 +1062,18 @@ fn handle_group(
         // This happens when [ab]using /sudo
         server.notify_client(
             client,
-            ServerMsg::tell(String::from("It's rude to impersonate people")),
+            ServerMsg::private(String::from("It's rude to impersonate people")),
         );
         return;
     }
-    let _ = server
-        .state
-        .ecs()
-        .write_storage()
-        .insert(client, comp::ChatMode::Group);
+    let mode = comp::ChatMode::Group;
+    let _ = server.state.ecs().write_storage().insert(client, mode);
     if !msg.is_empty() {
-        server
-            .state
-            .notify_registered_clients(ServerMsg::group(msg.to_string()));
+        if let Some(uid) = server.state.ecs().read_storage().get(client) {
+            server
+                .state
+                .notify_registered_clients(ServerMsg::chat(mode, *uid, msg.to_string()));
+        }
     }
 }
 
@@ -1093,19 +1088,18 @@ fn handle_region(
         // This happens when [ab]using /sudo
         server.notify_client(
             client,
-            ServerMsg::tell(String::from("It's rude to impersonate people")),
+            ServerMsg::private(String::from("It's rude to impersonate people")),
         );
         return;
     }
-    let _ = server
-        .state
-        .ecs()
-        .write_storage()
-        .insert(client, comp::ChatMode::Region);
+    let mode = comp::ChatMode::Region;
+    let _ = server.state.ecs().write_storage().insert(client, mode);
     if !msg.is_empty() {
-        server
-            .state
-            .notify_registered_clients(ServerMsg::region(msg.to_string()));
+        if let Some(uid) = server.state.ecs().read_storage().get(client) {
+            server
+                .state
+                .notify_registered_clients(ServerMsg::chat(mode, *uid, msg.to_string()));
+        }
     }
 }
 
@@ -1120,19 +1114,18 @@ fn handle_say(
         // This happens when [ab]using /sudo
         server.notify_client(
             client,
-            ServerMsg::tell(String::from("It's rude to impersonate people")),
+            ServerMsg::private(String::from("It's rude to impersonate people")),
         );
         return;
     }
-    let _ = server
-        .state
-        .ecs()
-        .write_storage()
-        .insert(client, comp::ChatMode::Say);
+    let mode = comp::ChatMode::Say;
+    let _ = server.state.ecs().write_storage().insert(client, mode);
     if !msg.is_empty() {
-        server
-            .state
-            .notify_registered_clients(ServerMsg::say(msg.to_string()));
+        if let Some(uid) = server.state.ecs().read_storage().get(client) {
+            server
+                .state
+                .notify_registered_clients(ServerMsg::chat(mode, *uid, msg.to_string()));
+        }
     }
 }
 
@@ -1147,19 +1140,18 @@ fn handle_world(
         // This happens when [ab]using /sudo
         server.notify_client(
             client,
-            ServerMsg::tell(String::from("It's rude to impersonate people")),
+            ServerMsg::private(String::from("It's rude to impersonate people")),
         );
         return;
     }
-    let _ = server
-        .state
-        .ecs()
-        .write_storage()
-        .insert(client, comp::ChatMode::World);
+    let mode = comp::ChatMode::World;
+    let _ = server.state.ecs().write_storage().insert(client, mode);
     if !msg.is_empty() {
-        server
-            .state
-            .notify_registered_clients(ServerMsg::world(msg.to_string()));
+        if let Some(uid) = server.state.ecs().read_storage().get(client) {
+            server
+                .state
+                .notify_registered_clients(ServerMsg::chat(mode, *uid, msg.to_string()));
+        }
     }
 }
 

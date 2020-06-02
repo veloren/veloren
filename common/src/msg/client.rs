@@ -1,6 +1,7 @@
 use crate::{comp, terrain::block::Block};
 use vek::*;
 
+/// Messages sent from the client to the server
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ClientMsg {
     Register {
@@ -27,9 +28,8 @@ pub enum ClientMsg {
     PlaceBlock(Vec3<i32>, Block),
     Ping,
     Pong,
-    ChatMsg {
-        message: String,
-    },
+    /// Send the chat message or command to be processed by the server
+    ChatMsg(String),
     PlayerPhysics {
         pos: comp::Pos,
         vel: comp::Vel,

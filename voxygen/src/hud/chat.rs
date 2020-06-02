@@ -1,10 +1,13 @@
 use super::{
-    img_ids::Imgs, BROADCAST_COLOR, FACTION_COLOR, GAME_UPDATE_COLOR, GROUP_COLOR, KILL_COLOR,
-    META_COLOR, PRIVATE_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR,
+    img_ids::Imgs, BROADCAST_COLOR, FACTION_COLOR, GROUP_COLOR, KILL_COLOR, PRIVATE_COLOR,
+    REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR, WORLD_COLOR,
 };
 use crate::{ui::fonts::ConrodVoxygenFonts, GlobalState};
-use client::{cmd, Client, Event as ClientEvent};
-use common::{msg::validate_chat_msg, ChatType};
+use client::{cmd, Client};
+use common::{
+    comp::{ChatMsg, ChatType},
+    msg::validate_chat_msg,
+};
 use conrod_core::{
     input::Key,
     position::Dimension,
@@ -32,7 +35,7 @@ const MAX_MESSAGES: usize = 100;
 
 #[derive(WidgetCommon)]
 pub struct Chat<'a> {
-    new_messages: &'a mut VecDeque<ClientEvent>,
+    new_messages: &'a mut VecDeque<ChatMsg>,
     force_input: Option<String>,
     force_cursor: Option<Index>,
     force_completions: Option<Vec<String>>,
@@ -50,7 +53,7 @@ pub struct Chat<'a> {
 
 impl<'a> Chat<'a> {
     pub fn new(
-        new_messages: &'a mut VecDeque<ClientEvent>,
+        new_messages: &'a mut VecDeque<ChatMsg>,
         global_state: &'a GlobalState,
         imgs: &'a Imgs,
         fonts: &'a ConrodVoxygenFonts,
@@ -105,7 +108,7 @@ impl<'a> Chat<'a> {
 }
 
 pub struct State {
-    messages: VecDeque<ClientEvent>,
+    messages: VecDeque<ChatMsg>,
     input: String,
     ids: Ids,
     history: VecDeque<String>,
@@ -153,7 +156,17 @@ impl<'a> Widget for Chat<'a> {
         let transp = self.global_state.settings.gameplay.chat_transp;
         // Maintain scrolling.
         if !self.new_messages.is_empty() {
-            state.update(|s| s.messages.extend(self.new_messages.drain(..)));
+            state.update(|s| {
+                s.messages.extend(
+                    self.new_messages
+                        .drain(..)
+                        .map(|msg| {
+                            // TODO format!([{}] {}, name, msg)
+                            msg
+                        })
+                        .collect::<Vec<_>>(),
+                )
+            });
             ui.scroll_widget(state.ids.message_box, [0.0, std::f64::MAX]);
         }
 
@@ -312,36 +325,29 @@ impl<'a> Widget for Chat<'a> {
             // This would be easier if conrod used the v-metrics from rusttype.
             let widget = if item.i < state.messages.len() {
                 let msg = &state.messages[item.i];
-                match msg {
-                    ClientEvent::Chat { chat_type, message } => {
-                        let color = match chat_type {
-                            ChatType::Meta => META_COLOR,
-                            ChatType::Tell => TELL_COLOR,
-                            ChatType::Chat => TEXT_COLOR,
-                            ChatType::Private => PRIVATE_COLOR,
-                            ChatType::Broadcast => BROADCAST_COLOR,
-                            ChatType::GameUpdate => GAME_UPDATE_COLOR,
-                            ChatType::Say => SAY_COLOR,
-                            ChatType::Group => GROUP_COLOR,
-                            ChatType::Faction => FACTION_COLOR,
-                            ChatType::Region => REGION_COLOR,
-                            ChatType::Kill => KILL_COLOR,
-                        };
-                        let text = Text::new(&message)
-                            .font_size(self.fonts.opensans.scale(15))
-                            .font_id(self.fonts.opensans.conrod_id)
-                            .w(470.0)
-                            .color(color)
-                            .line_spacing(2.0);
-                        // Add space between messages.
-                        let y = match text.get_y_dimension(ui) {
-                            Dimension::Absolute(y) => y + 2.0,
-                            _ => 0.0,
-                        };
-                        Some(text.h(y))
-                    },
-                    _ => None,
-                }
+                let color = match msg.chat_type {
+                    ChatType::Tell(_, _) => TELL_COLOR,
+                    ChatType::Private => PRIVATE_COLOR,
+                    ChatType::Broadcast => BROADCAST_COLOR,
+                    ChatType::Say(_) => SAY_COLOR,
+                    ChatType::Group(_) => GROUP_COLOR,
+                    ChatType::Faction(_) => FACTION_COLOR,
+                    ChatType::Region(_) => REGION_COLOR,
+                    ChatType::Kill => KILL_COLOR,
+                    ChatType::World(_) => WORLD_COLOR,
+                };
+                let text = Text::new(&msg.message)
+                    .font_size(self.fonts.opensans.scale(15))
+                    .font_id(self.fonts.opensans.conrod_id)
+                    .w(470.0)
+                    .color(color)
+                    .line_spacing(2.0);
+                // Add space between messages.
+                let y = match text.get_y_dimension(ui) {
+                    Dimension::Absolute(y) => y + 2.0,
+                    _ => 0.0,
+                };
+                Some(text.h(y))
             } else {
                 // Spacer at bottom of the last message so that it is not cut off.
                 // Needs to be larger than the space above.

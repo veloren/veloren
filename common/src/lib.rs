@@ -66,25 +66,3 @@ pub use loadout_builder::LoadoutBuilder;
 /// assert_eq!("bar", scon.next_message().unwrap());
 /// ```
 pub mod net;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ChatType {
-    /// Tell all players something (such as players connecting or alias changes)
-    Broadcast,
-    Chat,       // TODO Is this still needed?
-    GameUpdate, // TODO What is this?
-    Private,    // TODO What is this?
-    /// One-on-one chat
-    Tell,
-    /// Chat with nearby players
-    Say,
-    /// Group chat
-    Group,
-    /// Factional chat
-    Faction,
-    Meta, // TODO What is this?
-    /// Inform players that someone died
-    Kill,
-    /// Regional chat
-    Region,
-}

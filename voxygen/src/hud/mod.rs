@@ -46,7 +46,7 @@ use crate::{
     window::{Event as WinEvent, GameInput},
     GlobalState,
 };
-use client::{Client, Event as ClientEvent};
+use client::Client;
 use common::{assets::load_expect, comp, terrain::TerrainChunk, vol::RectRasterableVol};
 use conrod_core::{
     text::cursor::Index,
@@ -74,16 +74,24 @@ const MANA_COLOR: Color = Color::Rgba(0.29, 0.62, 0.75, 0.9);
 //const RAGE_COLOR: Color = Color::Rgba(0.5, 0.04, 0.13, 1.0);
 
 // Chat Colors
-const META_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
+/// Color for a private message from another player
 const TELL_COLOR: Color = Color::Rgba(0.98, 0.71, 1.0, 1.0);
-const PRIVATE_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0); // Difference between private and tell?
+/// Color for private messages from the server (such as /cmd)
+const PRIVATE_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
+/// Color for public messages from the server
 const BROADCAST_COLOR: Color = Color::Rgba(0.28, 0.83, 0.71, 1.0);
-const GAME_UPDATE_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
-const SAY_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+/// Color for local chat
+const SAY_COLOR: Color = Color::Rgba(0.9, 0.2, 0.2, 1.0);
+/// Color for group chat
 const GROUP_COLOR: Color = Color::Rgba(0.47, 0.84, 1.0, 1.0);
+/// Color for factional chat
 const FACTION_COLOR: Color = Color::Rgba(0.24, 1.0, 0.48, 1.0);
-const REGION_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
+/// Color for regional chat
+const REGION_COLOR: Color = Color::Rgba(0.2, 0.2, 1.0, 1.0);
+/// Color for death messages
 const KILL_COLOR: Color = Color::Rgba(1.0, 0.17, 0.17, 1.0);
+/// Color for global messages
+const WORLD_COLOR: Color = Color::Rgba(0.9, 1.0, 0.9, 1.0);
 
 // UI Color-Theme
 const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
@@ -455,7 +463,8 @@ pub struct Hud {
     item_imgs: ItemImgs,
     fonts: ConrodVoxygenFonts,
     rot_imgs: ImgsRot,
-    new_messages: VecDeque<ClientEvent>,
+    new_messages: VecDeque<comp::ChatMsg>,
+    new_notifications: VecDeque<common::msg::Notification>,
     show: Show,
     //never_show: bool,
     //intro: bool,
@@ -523,6 +532,7 @@ impl Hud {
             new_messages: VecDeque::new(),
             //intro: false,
             //intro_2: false,
+            new_notifications: VecDeque::new(),
             show: Show {
                 help: false,
                 intro: true,
@@ -1441,11 +1451,11 @@ impl Hud {
             }
         }
 
-        // Popup
+        // Popup (waypoint saved and similar notifications)
         Popup::new(
             &self.voxygen_i18n,
             client,
-            &self.new_messages,
+            &self.new_notifications,
             &self.fonts,
             &self.show,
         )
@@ -1541,16 +1551,6 @@ impl Hud {
             .set(self.ids.skillbar, ui_widgets);
         }
 
-        // The chat box breaks if it has non-chat messages left in the queue, so take
-        // them out.
-        self.new_messages.retain(|msg| {
-            if let ClientEvent::Chat { .. } = &msg {
-                true
-            } else {
-                false
-            }
-        });
-
         // Chat box
         match Chat::new(
             &mut self.new_messages,
@@ -1578,6 +1578,7 @@ impl Hud {
         }
 
         self.new_messages = VecDeque::new();
+        self.new_notifications = VecDeque::new();
 
         // Windows
 
@@ -1904,7 +1905,11 @@ impl Hud {
         events
     }
 
-    pub fn new_message(&mut self, msg: ClientEvent) { self.new_messages.push_back(msg); }
+    pub fn new_message(&mut self, msg: comp::ChatMsg) { self.new_messages.push_back(msg); }
+
+    pub fn new_notification(&mut self, msg: common::msg::Notification) {
+        self.new_notifications.push_back(msg);
+    }
 
     pub fn scale_change(&mut self, scale_change: ScaleChange) -> ScaleMode {
         let scale_mode = match scale_change {
