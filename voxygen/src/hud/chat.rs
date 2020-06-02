@@ -18,6 +18,7 @@ use conrod_core::{
     widget::{self, Button, Id, List, Rectangle, Text, TextEdit},
     widget_ids, Colorable, Positionable, Sizeable, Ui, UiCell, Widget, WidgetCommon,
 };
+use specs::world::WorldExt;
 use std::collections::VecDeque;
 
 widget_ids! {
@@ -36,6 +37,7 @@ const MAX_MESSAGES: usize = 100;
 #[derive(WidgetCommon)]
 pub struct Chat<'a> {
     new_messages: &'a mut VecDeque<ChatMsg>,
+    client: &'a Client,
     force_input: Option<String>,
     force_cursor: Option<Index>,
     force_completions: Option<Vec<String>>,
@@ -54,12 +56,14 @@ pub struct Chat<'a> {
 impl<'a> Chat<'a> {
     pub fn new(
         new_messages: &'a mut VecDeque<ChatMsg>,
+        client: &'a Client,
         global_state: &'a GlobalState,
         imgs: &'a Imgs,
         fonts: &'a ConrodVoxygenFonts,
     ) -> Self {
         Self {
             new_messages,
+            client,
             force_input: None,
             force_cursor: None,
             force_completions: None,
@@ -71,9 +75,9 @@ impl<'a> Chat<'a> {
         }
     }
 
-    pub fn prepare_tab_completion(mut self, input: String, client: &Client) -> Self {
+    pub fn prepare_tab_completion(mut self, input: String) -> Self {
         if let Some(index) = input.find('\t') {
-            self.force_completions = Some(cmd::complete(&input[..index], &client));
+            self.force_completions = Some(cmd::complete(&input[..index], &self.client));
         } else {
             self.force_completions = None;
         }
@@ -305,6 +309,19 @@ impl<'a> Widget for Chat<'a> {
             }
         }
 
+        let alias_of_uid = |uid| {
+            self.client
+                .player_list
+                .get(uid)
+                .map_or("<?>".to_string(), |player_info| {
+                    if player_info.is_admin {
+                        format!("ADMIN - {}", player_info.player_alias)
+                    } else {
+                        player_info.player_alias.to_string()
+                    }
+                })
+        };
+        let message_format = |uid, message| format!("[{}]: {}", alias_of_uid(uid), message);
         // Message box
         Rectangle::fill([470.0, 174.0])
             .rgba(0.0, 0.0, 0.0, transp)
@@ -323,20 +340,35 @@ impl<'a> Widget for Chat<'a> {
             .set(state.ids.message_box, ui);
         while let Some(item) = items.next(ui) {
             // This would be easier if conrod used the v-metrics from rusttype.
-            let widget = if item.i < state.messages.len() {
-                let msg = &state.messages[item.i];
-                let color = match msg.chat_type {
-                    ChatType::Tell(_, _) => TELL_COLOR,
-                    ChatType::Private => PRIVATE_COLOR,
-                    ChatType::Broadcast => BROADCAST_COLOR,
-                    ChatType::Say(_) => SAY_COLOR,
-                    ChatType::Group(_) => GROUP_COLOR,
-                    ChatType::Faction(_) => FACTION_COLOR,
-                    ChatType::Region(_) => REGION_COLOR,
-                    ChatType::Kill => KILL_COLOR,
-                    ChatType::World(_) => WORLD_COLOR,
+            if item.i < state.messages.len() {
+                let ChatMsg { chat_type, message } = &state.messages[item.i];
+                let (color, msg) = match chat_type {
+                    ChatType::Private => (PRIVATE_COLOR, message.to_string()),
+                    ChatType::Broadcast => (BROADCAST_COLOR, message.to_string()),
+                    ChatType::Kill => (KILL_COLOR, message.to_string()),
+                    ChatType::Tell(from, to) => {
+                        let from_alias = alias_of_uid(&from);
+                        let to_alias = alias_of_uid(&to);
+                        if Some(from)
+                            == self
+                                .client
+                                .state()
+                                .ecs()
+                                .read_storage()
+                                .get(self.client.entity())
+                        {
+                            (TELL_COLOR, format!("To [{}]: {}", to_alias, message))
+                        } else {
+                            (TELL_COLOR, format!("From [{}]: {}", from_alias, message))
+                        }
+                    },
+                    ChatType::Say(uid) => (SAY_COLOR, message_format(uid, message)),
+                    ChatType::Group(uid) => (GROUP_COLOR, message_format(uid, message)),
+                    ChatType::Faction(uid) => (FACTION_COLOR, message_format(uid, message)),
+                    ChatType::Region(uid) => (REGION_COLOR, message_format(uid, message)),
+                    ChatType::World(uid) => (WORLD_COLOR, message_format(uid, message)),
                 };
-                let text = Text::new(&msg.message)
+                let text = Text::new(&msg)
                     .font_size(self.fonts.opensans.scale(15))
                     .font_id(self.fonts.opensans.conrod_id)
                     .w(470.0)
@@ -347,23 +379,17 @@ impl<'a> Widget for Chat<'a> {
                     Dimension::Absolute(y) => y + 2.0,
                     _ => 0.0,
                 };
-                Some(text.h(y))
+                let widget = text.h(y);
+                item.set(widget, ui);
             } else {
                 // Spacer at bottom of the last message so that it is not cut off.
                 // Needs to be larger than the space above.
-                Some(
-                    Text::new("")
-                        .font_size(self.fonts.opensans.scale(6))
-                        .font_id(self.fonts.opensans.conrod_id)
-                        .w(470.0),
-                )
+                let widget = Text::new("")
+                    .font_size(self.fonts.opensans.scale(6))
+                    .font_id(self.fonts.opensans.conrod_id)
+                    .w(470.0);
+                item.set(widget, ui);
             };
-            match widget {
-                Some(widget) => {
-                    item.set(widget, ui);
-                },
-                None => {},
-            }
         }
 
         // Chat Arrow

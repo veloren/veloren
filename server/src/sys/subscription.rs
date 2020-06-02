@@ -169,7 +169,7 @@ impl<'a> System<'a> for Sys {
                         .iter()
                         .flat_map(|v| v.iter())
                     {
-                        client.notify(ServerMsg::DeleteEntity(*uid));
+                        client.notify(ServerMsg::DeleteEntity(Uid(*uid)));
                     }
                 }
 

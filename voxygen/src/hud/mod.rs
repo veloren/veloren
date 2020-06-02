@@ -81,7 +81,7 @@ const PRIVATE_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
 /// Color for public messages from the server
 const BROADCAST_COLOR: Color = Color::Rgba(0.28, 0.83, 0.71, 1.0);
 /// Color for local chat
-const SAY_COLOR: Color = Color::Rgba(0.9, 0.2, 0.2, 1.0);
+const SAY_COLOR: Color = Color::Rgba(1.0, 0.8, 0.8, 1.0);
 /// Color for group chat
 const GROUP_COLOR: Color = Color::Rgba(0.47, 0.84, 1.0, 1.0);
 /// Color for factional chat
@@ -1554,13 +1554,14 @@ impl Hud {
         // Chat box
         match Chat::new(
             &mut self.new_messages,
+            &client,
             global_state,
             &self.imgs,
             &self.fonts,
         )
         .and_then(self.force_chat_input.take(), |c, input| c.input(input))
         .and_then(self.tab_complete.take(), |c, input| {
-            c.prepare_tab_completion(input, &client)
+            c.prepare_tab_completion(input)
         })
         .and_then(self.force_chat_cursor.take(), |c, pos| c.cursor_pos(pos))
         .set(self.ids.chat, ui_widgets)

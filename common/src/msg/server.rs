@@ -2,6 +2,7 @@ use super::{ClientState, EcsCompPacket};
 use crate::{
     character::CharacterItem,
     comp, state, sync,
+    sync::Uid,
     terrain::{Block, TerrainChunk},
 };
 use authc::AuthClientError;
@@ -17,18 +18,21 @@ pub struct ServerInfo {
     pub auth_provider: Option<String>,
 }
 
+/// Inform the client of updates to the player list.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum PlayerListUpdate {
-    Init(HashMap<u64, PlayerInfo>),
-    Add(u64, PlayerInfo),
-    SelectedCharacter(u64, CharacterInfo),
-    LevelChange(u64, u32),
-    Remove(u64),
-    Alias(u64, String),
+    Init(HashMap<Uid, PlayerInfo>),
+    Add(Uid, PlayerInfo),
+    SelectedCharacter(Uid, CharacterInfo),
+    LevelChange(Uid, u32),
+    Admin(Uid, bool),
+    Remove(Uid),
+    Alias(Uid, String),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerInfo {
+    pub is_admin: bool,
     pub player_alias: String,
     pub character: Option<CharacterInfo>,
 }
@@ -69,12 +73,12 @@ pub enum ServerMsg {
     /// A message to go into the client chat box. The client is responsible for
     /// formatting the message.
     ChatMsg(comp::ChatMsg),
-    SetPlayerEntity(u64),
+    SetPlayerEntity(Uid),
     TimeOfDay(state::TimeOfDay),
     EntitySync(sync::EntitySyncPackage),
     CompSync(sync::CompSyncPackage<EcsCompPacket>),
     CreateEntity(sync::EntityPackage<EcsCompPacket>),
-    DeleteEntity(u64),
+    DeleteEntity(Uid),
     InventoryUpdate(comp::Inventory, comp::InventoryUpdateEvent),
     TerrainChunkUpdate {
         key: Vec2<i32>,
@@ -112,7 +116,8 @@ impl From<AuthClientError> for RegisterError {
 }
 
 impl ServerMsg {
-    /// Sends either say, world, group, etc. based on the player's current chat mode.
+    /// Sends either say, world, group, etc. based on the player's current chat
+    /// mode.
     pub fn chat(mode: comp::ChatMode, uid: sync::Uid, message: String) -> ServerMsg {
         ServerMsg::ChatMsg(mode.msg_from(uid, message))
     }

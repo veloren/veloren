@@ -301,7 +301,7 @@ impl<'a> System<'a> for Sys {
                     })
             {
                 for uid in &deleted {
-                    client.notify(ServerMsg::DeleteEntity(*uid));
+                    client.notify(ServerMsg::DeleteEntity(Uid(*uid)));
                 }
             }
         }

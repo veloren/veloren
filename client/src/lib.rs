@@ -66,7 +66,7 @@ pub struct Client {
     thread_pool: ThreadPool,
     pub server_info: ServerInfo,
     pub world_map: (Arc<DynamicImage>, Vec2<u32>),
-    pub player_list: HashMap<u64, PlayerInfo>,
+    pub player_list: HashMap<Uid, PlayerInfo>,
     pub character_list: CharacterList,
     pub active_character_id: Option<i32>,
 
@@ -759,6 +759,16 @@ impl Client {
                             );
                         }
                     },
+                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Admin(uid, admin)) => {
+                        if let Some(player_info) = self.player_list.get_mut(&uid) {
+                            player_info.is_admin = admin;
+                        } else {
+                            warn!(
+                                "Received msg to update admin status of uid {}, but they were not in the list.",
+                                uid
+                            );
+                        }
+                    },
                     ServerMsg::PlayerListUpdate(PlayerListUpdate::SelectedCharacter(
                         uid,
                         char_info,
@@ -822,7 +832,7 @@ impl Client {
                     },
                     ServerMsg::ChatMsg(m) => frontend_events.push(Event::Chat(m)),
                     ServerMsg::SetPlayerEntity(uid) => {
-                        if let Some(entity) = self.state.ecs().entity_from_uid(uid) {
+                        if let Some(entity) = self.state.ecs().entity_from_uid(uid.0) {
                             self.entity = entity;
                         } else {
                             return Err(Error::Other("Failed to find entity from uid.".to_owned()));
@@ -853,7 +863,7 @@ impl Client {
                         {
                             self.state
                                 .ecs_mut()
-                                .delete_entity_and_clear_from_uid_allocator(entity);
+                                .delete_entity_and_clear_from_uid_allocator(entity.0);
                         }
                     },
                     // Cleanup for when the client goes back to the `Registered` state
