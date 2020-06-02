@@ -1,3 +1,5 @@
+//! Consolidates Diesel and validation errors under a common error type
+
 extern crate diesel;
 
 use std::fmt;
