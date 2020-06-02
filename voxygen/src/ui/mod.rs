@@ -47,12 +47,7 @@ use conrod_core::{
 use core::{convert::TryInto, f32, f64, ops::Range};
 use graphic::TexId;
 use hashbrown::hash_map::Entry;
-use std::{
-    fs::File,
-    io::{BufReader, Read},
-    sync::Arc,
-    time::Duration,
-};
+use std::{sync::Arc, time::Duration};
 use tracing::{error, warn};
 use vek::*;
 
@@ -99,17 +94,6 @@ impl DrawCommand {
                     .try_into()
                     .expect("Vertex count for UI rendering does not fit in a u32!"),
         }
-    }
-}
-
-pub struct Font(text::Font);
-impl assets::Asset for Font {
-    const ENDINGS: &'static [&'static str] = &["ttf"];
-
-    fn parse(mut buf_reader: BufReader<File>, _specifier: &str) -> Result<Self, assets::Error> {
-        let mut buf = Vec::new();
-        buf_reader.read_to_end(&mut buf)?;
-        Ok(Font(text::Font::from_bytes(buf).unwrap()))
     }
 }
 
@@ -224,8 +208,9 @@ impl Ui {
         self.image_map.replace(id, (graphic_id, Rotation::None));
     }
 
-    pub fn new_font(&mut self, font: Arc<Font>) -> font::Id {
-        self.ui.fonts.insert(font.as_ref().0.clone())
+    pub fn new_font(&mut self, font: Arc<crate::ui::ice::RawFont>) -> font::Id {
+        let font = text::Font::from_bytes(font.0.clone()).unwrap();
+        self.ui.fonts.insert(font)
     }
 
     pub fn id_generator(&mut self) -> Generator { self.ui.widget_id_generator() }

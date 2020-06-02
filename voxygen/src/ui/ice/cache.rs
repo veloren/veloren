@@ -15,7 +15,11 @@ const POSITION_TOLERANCE: f32 = 0.1;
 
 type GlyphBrush = glyph_brush::GlyphBrush<(Aabr<f32>, Aabr<f32>), ()>;
 
+// TODO: might not need pub
 pub type Font = glyph_brush::ab_glyph::FontArc;
+
+#[derive(Clone, Copy, Default)]
+pub struct FontId(pub(super) glyph_brush::FontId);
 
 pub struct Cache {
     glyph_brush: RefCell<GlyphBrush>,
@@ -56,7 +60,12 @@ impl Cache {
 
     pub fn glyph_calculator(&self) -> RefMut<GlyphBrush> { self.glyph_brush.borrow_mut() }
 
-    // TODO: add font fn
+    // TODO: consider not re-adding default font
+    pub fn add_font(&mut self, font: RawFont) -> FontId {
+        let font = Font::try_from_vec(font.0).unwrap();
+        let id = self.glyph_brush.get_mut().add_font(font);
+        FontId(id)
+    }
 
     pub fn graphic_cache(&self) -> &GraphicCache { &self.graphic_cache }
 
@@ -89,5 +98,21 @@ impl Cache {
 
         self.glyph_cache_tex = renderer.create_dynamic_texture(cache_dims.map(|e| e as u16))?;
         Ok(())
+    }
+}
+
+// TODO: use font type instead of raw vec once we convert to full iced
+#[derive(Clone)]
+pub struct RawFont(pub Vec<u8>);
+impl common::assets::Asset for RawFont {
+    const ENDINGS: &'static [&'static str] = &["ttf"];
+
+    fn parse(
+        mut buf_reader: std::io::BufReader<std::fs::File>,
+    ) -> Result<Self, common::assets::Error> {
+        use std::io::Read;
+        let mut buf = Vec::new();
+        buf_reader.read_to_end(&mut buf)?;
+        Ok(Self(buf))
     }
 }

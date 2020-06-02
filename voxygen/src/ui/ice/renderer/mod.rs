@@ -12,7 +12,7 @@ use super::{
     super::graphic::{self, Graphic, TexId},
     cache::Cache,
     widget::image,
-    Font, Rotation,
+    Font, FontId, RawFont, Rotation,
 };
 use crate::{
     render::{
@@ -126,6 +126,8 @@ impl IcedRenderer {
             //current_scissor: default_scissor(renderer),
         })
     }
+
+    pub fn add_font(&mut self, font: RawFont) -> FontId { self.cache.add_font(font) }
 
     pub fn add_graphic(&mut self, graphic: Graphic) -> graphic::Id {
         self.cache.add_graphic(graphic)
