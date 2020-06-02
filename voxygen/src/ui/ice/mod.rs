@@ -6,7 +6,7 @@ mod renderer;
 pub mod widget;
 mod winit_conversion;
 
-pub use cache::Font;
+pub use cache::{Font, FontId, RawFont};
 pub use graphic::{Id, Rotation};
 pub use iced::Event;
 pub use renderer::{ButtonStyle, IcedRenderer};
@@ -22,9 +22,6 @@ use iced::{mouse, Cache, Size, UserInterface};
 use vek::*;
 
 pub type Element<'a, M> = iced::Element<'a, M, IcedRenderer>;
-
-#[derive(Clone, Copy, Default)]
-pub struct FontId(glyph_brush::FontId);
 
 pub struct IcedUi {
     renderer: IcedRenderer,
@@ -54,7 +51,10 @@ impl IcedUi {
         })
     }
 
-    // Add an new graphic that is referencable via the returned Id
+    /// Add a new font that is referncable via the returned Id
+    pub fn add_font(&mut self, font: RawFont) -> FontId { self.renderer.add_font(font) }
+
+    /// Add a new graphic that is referencable via the returned Id
     pub fn add_graphic(&mut self, graphic: Graphic) -> graphic::Id {
         self.renderer.add_graphic(graphic)
     }

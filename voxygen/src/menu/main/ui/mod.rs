@@ -6,7 +6,7 @@ use crate::{
     render::Renderer,
     ui::{
         self,
-        fonts::Fonts,
+        fonts::{Fonts, IcedFonts},
         ice::{Element, IcedUi},
         img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic},
         Graphic, Ui,
@@ -133,6 +133,7 @@ enum Screen {
 
 // TODO: use i18n font scale thing
 struct IcedState {
+    fonts: IcedFonts,
     imgs: IcedImgs,
     bg_img: widget::image::Handle,
     i18n: std::sync::Arc<Localization>,
@@ -166,6 +167,7 @@ enum Message {
 
 impl IcedState {
     fn new(
+        fonts: IcedFonts,
         imgs: IcedImgs,
         bg_img: widget::image::Handle,
         i18n: std::sync::Arc<Localization>,
@@ -184,6 +186,7 @@ impl IcedState {
         };
 
         Self {
+            fonts,
             imgs,
             bg_img,
             i18n,
@@ -211,6 +214,7 @@ impl IcedState {
 
         match &mut self.screen {
             Screen::Login { screen } => screen.view(
+                &self.fonts,
                 &self.imgs,
                 &self.login_info,
                 &self.info,
@@ -223,6 +227,7 @@ impl IcedState {
                 start,
                 status_text,
             } => screen.view(
+                &self.fonts,
                 &self.imgs,
                 self.bg_img,
                 &start,
@@ -409,7 +414,7 @@ impl<'a> MainMenuUi {
         // Load fonts.
         let fonts = Fonts::load(&i18n.fonts, &mut ui).expect("Impossible to load fonts!");
 
-        // TODO: newtype Font
+        // TODO: don't add default font twice
         let ice_font = {
             use std::io::Read;
             let mut buf = Vec::new();
@@ -423,7 +428,12 @@ impl<'a> MainMenuUi {
         };
 
         let mut ice_ui = IcedUi::new(window, ice_font).unwrap();
+
+        let ice_fonts =
+            IcedFonts::load(&i18n.fonts, &mut ice_ui).expect("Impossible to load fonts");
+
         let ice_state = IcedState::new(
+            ice_fonts,
             IcedImgs::load(&mut ice_ui).expect("Failed to load images"),
             ice_ui.add_graphic(Graphic::Image(DynamicImage::load_expect(bg_img_spec))),
             i18n.clone(),

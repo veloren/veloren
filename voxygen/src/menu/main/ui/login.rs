@@ -1,13 +1,16 @@
 use super::{IcedImgs as Imgs, Info, LoginInfo, Message};
 use crate::{
     i18n::Localization,
-    ui::ice::{
-        component::neat_button,
-        widget::{
-            compound_graphic::{CompoundGraphic, Graphic},
-            BackgroundContainer, Image, Padding,
+    ui::{
+        fonts::IcedFonts as Fonts,
+        ice::{
+            component::neat_button,
+            widget::{
+                compound_graphic::{CompoundGraphic, Graphic},
+                BackgroundContainer, Image, Padding,
+            },
+            ButtonStyle, Element,
         },
-        ButtonStyle, Element,
     },
 };
 use iced::{
@@ -45,6 +48,7 @@ impl Screen {
 
     pub(super) fn view(
         &mut self,
+        fonts: &Fonts,
         imgs: &Imgs,
         login_info: &LoginInfo,
         info: &Info,
@@ -103,7 +107,7 @@ impl Screen {
                         .color(Rgba::new(255, 255, 255, 240)),
                 ])
                 .height(Length::Shrink),
-                Text::new(intro_text).size(21),
+                Text::new(intro_text).size(fonts.cyri.scale(21)),
             )
             .max_width(450)
             .padding(Padding::new().horizontal(20).top(10).bottom(60));
@@ -117,7 +121,9 @@ impl Screen {
             buttons.into()
         };
 
-        let banner = self.banner.view(imgs, login_info, i18n, button_style);
+        let banner = self
+            .banner
+            .view(fonts, imgs, login_info, i18n, button_style);
 
         let central_column = Container::new(banner)
             .width(Length::Fill)
@@ -126,7 +132,7 @@ impl Screen {
             .align_y(Align::Center);
 
         let right_column = Text::new(version)
-            .size(15)
+            .size(fonts.cyri.scale(15))
             .width(Length::Fill)
             .horizontal_alignment(HorizontalAlignment::Right);
 
@@ -169,11 +175,14 @@ impl Banner {
 
     fn view(
         &mut self,
+        fonts: &Fonts,
         imgs: &Imgs,
         login_info: &LoginInfo,
         i18n: &Localization,
         button_style: ButtonStyle,
     ) -> Element<Message> {
+        let input_text_size = fonts.cyri.scale(INPUT_TEXT_SIZE);
+
         let banner_content = Column::with_children(vec![
             Image::new(imgs.v_logo)
                 .fix_aspect_ratio()
@@ -191,7 +200,7 @@ impl Banner {
                         &login_info.username,
                         Message::Username,
                     )
-                    .size(INPUT_TEXT_SIZE)
+                    .size(input_text_size)
                     .on_submit(Message::FocusPassword),
                 )
                 .padding(Padding::new().horizontal(10).top(10))
@@ -206,7 +215,7 @@ impl Banner {
                         &login_info.password,
                         Message::Password,
                     )
-                    .size(INPUT_TEXT_SIZE)
+                    .size(input_text_size)
                     .password()
                     .on_submit(Message::Multiplayer),
                 )
@@ -222,7 +231,7 @@ impl Banner {
                         &login_info.server,
                         Message::Server,
                     )
-                    .size(INPUT_TEXT_SIZE)
+                    .size(input_text_size)
                     .on_submit(Message::Multiplayer),
                 )
                 .padding(Padding::new().horizontal(10).top(8))

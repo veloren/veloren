@@ -1,10 +1,13 @@
 use super::{IcedImgs as Imgs, Message};
 use crate::{
     i18n::Localization,
-    ui::ice::{
-        component::neat_button,
-        widget::{image, BackgroundContainer, Image},
-        ButtonStyle, Element,
+    ui::{
+        fonts::IcedFonts as Fonts,
+        ice::{
+            component::neat_button,
+            widget::{image, BackgroundContainer, Image},
+            ButtonStyle, Element,
+        },
     },
 };
 use iced::{button, Color, Column, Container, HorizontalAlignment, Length, Row, Space, Text};
@@ -27,6 +30,7 @@ impl Screen {
 
     pub(super) fn view(
         &mut self,
+        fonts: &Fonts,
         imgs: &Imgs,
         bg_img: image::Handle,
         start: &std::time::Instant,
@@ -43,13 +47,14 @@ impl Screen {
             .disabled_text_color(DISABLED_TEXT_COLOR);
 
         let version = Text::new(version)
-            .size(15) // move version text size to const
+            .size(fonts.cyri.scale(15)) // move version text size to const
             .width(Length::Fill)
             .height(Length::Fill)
             .horizontal_alignment(HorizontalAlignment::Right);
 
         let status = Text::new(status_text)
-            .size(80)
+            .size(fonts.alkhemi.scale(80))
+            .font(fonts.alkhemi.id)
             .color(Color::from_rgba(1.0, 1.0, 1.0, fade_msg))
             .width(Length::Fill);
 
@@ -68,7 +73,7 @@ impl Screen {
 
         let cancel = Container::new(cancel)
             .width(Length::Fill)
-            .height(Length::Units(50))
+            .height(Length::Units(fonts.cyri.scale(50)))
             .center_x()
             .padding(3);
 
