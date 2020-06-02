@@ -112,22 +112,9 @@ pub fn complete(line: &str, client: &Client) -> Vec<String> {
                     }
                 }
             } else {
-                // Complete past the last argument
-                match cmd.data().args.last() {
-                    Some(ArgumentSpec::SubCommand) => {
-                        if let Some(index) = nth_word(line, cmd.data().args.len()) {
-                            complete(&line[index..], &client)
-                        } else {
-                            vec![]
-                        }
-                    },
-                    Some(ArgumentSpec::Message) => complete_player(word, &client),
-                    _ => vec![], // End of command. Nothing to complete
-                }
+                // Completing for unknown chat command
+                complete_player(word, &client)
             }
-        } else {
-            // Completing for unknown chat command
-            complete_player(word, &client)
         }
     } else {
         // Not completing a command

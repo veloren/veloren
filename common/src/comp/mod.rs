@@ -25,7 +25,7 @@ pub use body::{
     humanoid, object, quadruped_medium, quadruped_small, AllBodies, Body, BodyData,
 };
 pub use character_state::{Attacking, CharacterState, StateUpdate};
-pub use chat::{ChatMode, Faction, Group};
+pub use chat::{ChatMode, ChatMsg, ChatType, Faction, Group};
 pub use controller::{
     Climb, ControlAction, ControlEvent, Controller, ControllerInputs, Input, InventoryManip,
     MountState, Mounting,

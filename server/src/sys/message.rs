@@ -5,8 +5,7 @@ use crate::{
 };
 use common::{
     comp::{
-        Admin, CanBuild, ControlEvent, Controller, ForceUpdate, Ori, Player, Pos, SpeechBubble,
-        Stats, Vel,
+        CanBuild, ChatMode, ControlEvent, Controller, ForceUpdate, Ori, Player, Pos, Stats, Vel,
     },
     event::{EventBus, ServerEvent},
     msg::{
@@ -22,7 +21,6 @@ use hashbrown::HashMap;
 use specs::{
     Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteExpect, WriteStorage,
 };
-use tracing::warn;
 
 /// This system will handle new messages from clients
 pub struct Sys;
@@ -37,9 +35,9 @@ impl<'a> System<'a> for Sys {
         Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, CanBuild>,
-        ReadStorage<'a, Admin>,
         ReadStorage<'a, ForceUpdate>,
         ReadStorage<'a, Stats>,
+        ReadStorage<'a, ChatMode>,
         WriteExpect<'a, AuthProvider>,
         Write<'a, BlockChange>,
         WriteStorage<'a, Pos>,
@@ -66,9 +64,9 @@ impl<'a> System<'a> for Sys {
             mut timer,
             uids,
             can_build,
-            admins,
             force_updates,
             stats,
+            chat_modes,
             mut accounts,
             mut block_changes,
             mut positions,
@@ -320,16 +318,24 @@ impl<'a> System<'a> for Sys {
                         },
                         ClientState::Pending => {},
                     },
-                    ClientMsg::ChatMsg { message } => match client.client_state {
+                    ClientMsg::ChatMsg(message) => match client.client_state {
                         ClientState::Connected => client.error_state(RequestStateError::Impossible),
                         ClientState::Registered
                         | ClientState::Spectator
                         | ClientState::Character => match validate_chat_msg(&message) {
-                            Ok(()) => new_chat_msgs.push((Some(entity), ServerMsg::chat(message))),
+                            Ok(()) => {
+                                if let Some(from) = uids.get(entity) {
+                                    let mode = chat_modes.get(entity).unwrap_or(&ChatMode::World);
+                                    let msg = ServerMsg::chat(*mode, *from, message);
+                                    new_chat_msgs.push((Some(entity), msg));
+                                } else {
+                                    tracing::error!("Could not send message. Missing player uid");
+                                }
+                            },
                             Err(ChatMsgValidationError::TooLong) => {
                                 let max = MAX_BYTES_CHAT_MSG;
                                 let len = message.len();
-                                warn!(?len, ?max, "Recieved a chat message that's too long")
+                                tracing::warn!(?len, ?max, "Recieved a chat message that's too long")
                             },
                         },
                         ClientState::Pending => {},
@@ -446,39 +452,18 @@ impl<'a> System<'a> for Sys {
         // Handle new chat messages.
         for (entity, msg) in new_chat_msgs {
             match msg {
-                ServerMsg::ChatMsg { chat_type, message } => {
-                    let message = if let Some(entity) = entity {
-                        // Handle chat commands.
-                        if message.starts_with("/") && message.len() > 1 {
-                            let argv = String::from(&message[1..]);
+                ServerMsg::ChatMsg(msg) => {
+                    // Handle chat commands.
+                    if msg.message.starts_with("/") {
+                        if let (Some(entity), true) = (entity, msg.message.len() > 1) {
+                            let argv = String::from(&msg.message[1..]);
                             server_emitter.emit(ServerEvent::ChatCmd(entity, argv));
-                            continue;
-                        } else {
-                            let bubble = SpeechBubble::player_new(message.clone(), *time);
-                            let _ = speech_bubbles.insert(entity, bubble);
-                            format!(
-                                "{}[{}] {}: {}",
-                                match admins.get(entity) {
-                                    Some(_) => "[ADMIN]",
-                                    None => "",
-                                },
-                                match players.get(entity) {
-                                    Some(player) => &player.alias,
-                                    None => "<Unknown>",
-                                },
-                                match stats.get(entity) {
-                                    Some(stat) => &stat.name,
-                                    None => "<Unknown>",
-                                },
-                                message
-                            )
                         }
                     } else {
-                        message
-                    };
-                    let msg = ServerMsg::ChatMsg { chat_type, message };
-                    for client in (&mut clients).join().filter(|c| c.is_registered()) {
-                        client.notify(msg.clone());
+                        // TODO FIXME speech bubbles and prefixes are handled by the client now
+                        for client in (&mut clients).join().filter(|c| c.is_registered()) {
+                            client.notify(ServerMsg::ChatMsg(msg.clone()));
+                        }
                     }
                 },
                 _ => {

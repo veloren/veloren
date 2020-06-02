@@ -3,7 +3,6 @@ use crate::{
     character::CharacterItem,
     comp, state, sync,
     terrain::{Block, TerrainChunk},
-    ChatType,
 };
 use authc::AuthClientError;
 use hashbrown::HashMap;
@@ -45,6 +44,7 @@ pub enum Notification {
     WaypointSaved,
 }
 
+/// Messages sent from the server to the client
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ServerMsg {
     InitialSync {
@@ -66,10 +66,9 @@ pub enum ServerMsg {
     ExitIngameCleanup,
     Ping,
     Pong,
-    ChatMsg {
-        chat_type: ChatType,
-        message: String,
-    },
+    /// A message to go into the client chat box. The client is responsible for
+    /// formatting the message.
+    ChatMsg(comp::ChatMsg),
     SetPlayerEntity(u64),
     TimeOfDay(state::TimeOfDay),
     EntitySync(sync::EntitySyncPackage),
@@ -113,82 +112,29 @@ impl From<AuthClientError> for RegisterError {
 }
 
 impl ServerMsg {
-    // TODO is this needed?
-    pub fn chat(message: String) -> ServerMsg {
-        ServerMsg::ChatMsg {
-            chat_type: ChatType::Chat,
-            message,
-        }
-    }
-
-    pub fn tell(message: String) -> ServerMsg {
-        ServerMsg::ChatMsg {
-            chat_type: ChatType::Tell,
-            message,
-        }
-    }
-
-    pub fn game(message: String) -> ServerMsg {
-        ServerMsg::ChatMsg {
-            chat_type: ChatType::GameUpdate,
-            message,
-        }
+    /// Sends either say, world, group, etc. based on the player's current chat mode.
+    pub fn chat(mode: comp::ChatMode, uid: sync::Uid, message: String) -> ServerMsg {
+        ServerMsg::ChatMsg(mode.msg_from(uid, message))
     }
 
     pub fn broadcast(message: String) -> ServerMsg {
-        ServerMsg::ChatMsg {
-            chat_type: ChatType::Broadcast,
+        ServerMsg::ChatMsg(comp::ChatMsg {
+            chat_type: comp::ChatType::Broadcast,
             message,
-        }
+        })
     }
 
-    // TODO is this needed?
     pub fn private(message: String) -> ServerMsg {
-        ServerMsg::ChatMsg {
-            chat_type: ChatType::Private,
+        ServerMsg::ChatMsg(comp::ChatMsg {
+            chat_type: comp::ChatType::Private,
             message,
-        }
-    }
-
-    pub fn group(message: String) -> ServerMsg {
-        ServerMsg::ChatMsg {
-            chat_type: ChatType::Group,
-            message,
-        }
-    }
-
-    pub fn region(message: String) -> ServerMsg {
-        ServerMsg::ChatMsg {
-            chat_type: ChatType::Region,
-            message,
-        }
-    }
-
-    pub fn say(message: String) -> ServerMsg {
-        ServerMsg::ChatMsg {
-            chat_type: ChatType::Say,
-            message,
-        }
-    }
-
-    pub fn faction(message: String) -> ServerMsg {
-        ServerMsg::ChatMsg {
-            chat_type: ChatType::Faction,
-            message,
-        }
-    }
-
-    pub fn world(message: String) -> ServerMsg {
-        ServerMsg::ChatMsg {
-            chat_type: ChatType::Chat,
-            message,
-        }
+        })
     }
 
     pub fn kill(message: String) -> ServerMsg {
-        ServerMsg::ChatMsg {
-            chat_type: ChatType::Kill,
+        ServerMsg::ChatMsg(comp::ChatMsg {
+            chat_type: comp::ChatType::Kill,
             message,
-        }
+        })
     }
 }
