@@ -251,21 +251,9 @@
                 "keyword": "sabertooth",
                 "generic": "Sabertooth Tiger"
             },
-            "viper": {
-                "keyword": "viper",
-                "generic": "Lizard"
-            },
             "tuskram": {
                 "keyword": "tuskram",
                 "generic": "Tusk Ram"
-            },
-            "alligator": {
-                "keyword": "alligator",
-                "generic": "Alligator"
-            },
-            "monitor": {
-                "keyword": "monitor",
-                "generic": "Monitor Lizard"
             },
             "lion": {
                 "keyword": "lion",

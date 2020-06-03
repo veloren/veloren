@@ -29,10 +29,7 @@ impl From<Body> for super::Body {
 pub enum Species {
     Grolgar = 0,
     Saber = 1,
-    Viper = 2,
     Tuskram = 3,
-    Alligator = 4,
-    Monitor = 5,
     Lion = 6,
     Tarasque = 7,
 }
@@ -44,10 +41,7 @@ pub enum Species {
 pub struct AllSpecies<SpeciesMeta> {
     pub grolgar: SpeciesMeta,
     pub saber: SpeciesMeta,
-    pub viper: SpeciesMeta,
     pub tuskram: SpeciesMeta,
-    pub alligator: SpeciesMeta,
-    pub monitor: SpeciesMeta,
     pub lion: SpeciesMeta,
     pub tarasque: SpeciesMeta,
 }
@@ -60,23 +54,17 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
         match index {
             Species::Grolgar => &self.grolgar,
             Species::Saber => &self.saber,
-            Species::Viper => &self.viper,
             Species::Tuskram => &self.tuskram,
-            Species::Alligator => &self.alligator,
-            Species::Monitor => &self.monitor,
             Species::Lion => &self.lion,
             Species::Tarasque => &self.tarasque,
         }
     }
 }
 
-pub const ALL_SPECIES: [Species; 8] = [
+pub const ALL_SPECIES: [Species; 5] = [
     Species::Grolgar,
     Species::Saber,
-    Species::Viper,
     Species::Tuskram,
-    Species::Alligator,
-    Species::Monitor,
     Species::Lion,
     Species::Tarasque,
 ];
