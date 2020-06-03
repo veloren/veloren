@@ -46,6 +46,23 @@ fn close_stream() {
     );
 }
 
+///THIS is actually a bug which currently luckily doesn't trigger, but with new
+/// async-std WE must make sure, if a stream is `drop`ed inside a `block_on`,
+/// that no panic is thrown.
+#[test]
+fn close_streams_in_block_on() {
+    let (_, _) = helper::setup(false, 0);
+    let (_n_a, _p_a, s1_a, _n_b, _p_b, s1_b) = block_on(network_participant_stream(tcp()));
+    block_on(async {
+        //make it locally so that they are dropped later
+        let mut s1_a = s1_a;
+        let mut s1_b = s1_b;
+        s1_a.send("ping").unwrap();
+        assert_eq!(s1_b.recv().await, Ok("ping".to_string()));
+        drop(s1_a);
+    });
+}
+
 #[test]
 fn stream_simple_3msg_then_close() {
     let (_, _) = helper::setup(false, 0);
@@ -77,6 +94,19 @@ fn stream_send_first_then_receive() {
     assert_eq!(block_on(s1_b.recv()), Ok(42));
     assert_eq!(block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
     assert_eq!(s1_b.send("Hello World"), Err(StreamError::StreamClosed));
+}
+
+#[test]
+fn stream_send_1_then_close_stream() {
+    let (_, _) = helper::setup(false, 0);
+    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(tcp()));
+    s1_a.send("this message must be received, even if stream is closed already!")
+        .unwrap();
+    drop(s1_a);
+    std::thread::sleep(std::time::Duration::from_millis(500));
+    let exp = Ok("this message must be received, even if stream is closed already!".to_string());
+    assert_eq!(block_on(s1_b.recv()), exp);
+    println!("all received and done");
 }
 
 #[test]

@@ -3,7 +3,7 @@
 //!
 //! (cd network/examples/async_recv && RUST_BACKTRACE=1 cargo run)
 use crate::{
-    message::{self, InCommingMessage, MessageBuffer, OutGoingMessage},
+    message::{self, IncomingMessage, MessageBuffer, OutgoingMessage},
     scheduler::Scheduler,
     types::{Mid, Pid, Prio, Promises, Sid},
 };
@@ -76,8 +76,8 @@ pub struct Stream {
     mid: Mid,
     prio: Prio,
     promises: Promises,
-    a2b_msg_s: std::sync::mpsc::Sender<(Prio, Sid, OutGoingMessage)>,
-    b2a_msg_recv_r: mpsc::UnboundedReceiver<InCommingMessage>,
+    a2b_msg_s: std::sync::mpsc::Sender<(Prio, Sid, OutgoingMessage)>,
+    b2a_msg_recv_r: mpsc::UnboundedReceiver<IncomingMessage>,
     closed: Arc<AtomicBool>,
     a2b_close_stream_s: Option<mpsc::UnboundedSender<Sid>>,
 }
@@ -586,8 +586,8 @@ impl Stream {
         sid: Sid,
         prio: Prio,
         promises: Promises,
-        a2b_msg_s: std::sync::mpsc::Sender<(Prio, Sid, OutGoingMessage)>,
-        b2a_msg_recv_r: mpsc::UnboundedReceiver<InCommingMessage>,
+        a2b_msg_s: std::sync::mpsc::Sender<(Prio, Sid, OutgoingMessage)>,
+        b2a_msg_recv_r: mpsc::UnboundedReceiver<IncomingMessage>,
         closed: Arc<AtomicBool>,
         a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
     ) -> Self {
@@ -629,56 +629,27 @@ impl Stream {
     /// are also dropped.
     ///
     /// # Example
-    /// ```rust
+    /// ```
     /// use veloren_network::{Network, Address, Pid};
     /// # use veloren_network::{PROMISES_ORDERED, PROMISES_CONSISTENCY};
     /// use uvth::ThreadPoolBuilder;
     /// use futures::executor::block_on;
-    /// use tracing::*;
-    /// use tracing_subscriber::EnvFilter;
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
-    ///
-    /// std::thread::spawn(|| {
-    /// let filter = EnvFilter::from_default_env()
-    ///             .add_directive("trace".parse().unwrap())
-    ///             .add_directive("async_std::task::block_on=warn".parse().unwrap())
-    ///             .add_directive("veloren_network::tests=trace".parse().unwrap())
-    ///             .add_directive("veloren_network::controller=trace".parse().unwrap())
-    ///             .add_directive("veloren_network::channel=trace".parse().unwrap())
-    ///             .add_directive("veloren_network::message=trace".parse().unwrap())
-    ///             .add_directive("veloren_network::metrics=trace".parse().unwrap())
-    ///             .add_directive("veloren_network::types=trace".parse().unwrap());
-    /// let _sub = tracing_subscriber::FmtSubscriber::builder()
-    ///             // all spans/events with a level higher than TRACE (e.g, info, warn, etc.)
-    ///             // will be written to stdout.
-    ///             .with_max_level(Level::TRACE)
-    ///             .with_env_filter(filter)
-    ///             // sets this to be the default, global subscriber for this application.
-    ///             .try_init();
-    ///
     /// // Create a Network, listen on Port `2200` and wait for a Stream to be opened, then answer `Hello World`
     /// let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     /// # let remote = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     /// block_on(async {
-    ///     network.listen(Address::Tcp("127.0.0.1:2200".parse().unwrap())).await.unwrap();
-    ///     # let remote_p = remote.connect(Address::Tcp("127.0.0.1:2200".parse().unwrap())).await.unwrap();
-    ///     # remote_p.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await.unwrap();
-    ///     let participant_a = network.connected().await.unwrap();
-    ///     let mut stream_a = participant_a.opened().await.unwrap();
+    ///     network.listen(Address::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
+    ///     # let remote_p = remote.connect(Address::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
+    ///     # // keep it alive
+    ///     # let _stream_p = remote_p.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
+    ///     let participant_a = network.connected().await?;
+    ///     let mut stream_a = participant_a.opened().await?;
     ///     //Send  Message
-    ///     stream_a.send("Hello World").unwrap();
+    ///     stream_a.send("Hello World")?;
+    ///     # Ok(())
     /// })
-    /// });
-    ///
-    ///     std::thread::sleep(std::time::Duration::from_secs(70));
-    ///     println!("Sleep another 10s");
-    ///     std::thread::sleep(std::time::Duration::from_secs(10));
-    ///     println!("TRACING THE DEADLOCK");
-    ///     assert!(false);
-    ///
-    /// std::thread::sleep(std::time::Duration::from_secs(150));
-    /// Ok(())
     /// # }
     /// ```
     ///
@@ -740,7 +711,7 @@ impl Stream {
             return Err(StreamError::StreamClosed);
         }
         //debug!(?messagebuffer, "sending a message");
-        self.a2b_msg_s.send((self.prio, self.sid, OutGoingMessage {
+        self.a2b_msg_s.send((self.prio, self.sid, OutgoingMessage {
             buffer: messagebuffer,
             cursor: 0,
             mid: self.mid,
@@ -760,7 +731,7 @@ impl Stream {
     /// `Stream` got closed already.
     ///
     /// # Example
-    /// ```rust
+    /// ```
     /// use veloren_network::{Network, Address, Pid};
     /// # use veloren_network::{PROMISES_ORDERED, PROMISES_CONSISTENCY};
     /// use uvth::ThreadPoolBuilder;

@@ -18,26 +18,21 @@ use tracing::*;
 
 pub(crate) struct Channel {
     cid: Cid,
-    remote_pid: Pid,
-    to_wire_receiver: Option<mpsc::UnboundedReceiver<Frame>>,
+    c2w_frame_r: Option<mpsc::UnboundedReceiver<Frame>>,
     read_stop_receiver: Option<oneshot::Receiver<()>>,
 }
 
 impl Channel {
-    pub fn new(
-        cid: u64,
-        remote_pid: Pid,
-    ) -> (Self, mpsc::UnboundedSender<Frame>, oneshot::Sender<()>) {
-        let (to_wire_sender, to_wire_receiver) = mpsc::unbounded::<Frame>();
+    pub fn new(cid: u64) -> (Self, mpsc::UnboundedSender<Frame>, oneshot::Sender<()>) {
+        let (c2w_frame_s, c2w_frame_r) = mpsc::unbounded::<Frame>();
         let (read_stop_sender, read_stop_receiver) = oneshot::channel();
         (
             Self {
                 cid,
-                remote_pid,
-                to_wire_receiver: Some(to_wire_receiver),
+                c2w_frame_r: Some(c2w_frame_r),
                 read_stop_receiver: Some(read_stop_receiver),
             },
-            to_wire_sender,
+            c2w_frame_s,
             read_stop_sender,
         )
     }
@@ -45,28 +40,37 @@ impl Channel {
     pub async fn run(
         mut self,
         protocol: Protocols,
-        from_wire_sender: mpsc::UnboundedSender<(Cid, Frame)>,
+        mut w2c_cid_frame_s: mpsc::UnboundedSender<(Cid, Frame)>,
+        mut leftover_cid_frame: Vec<(Cid, Frame)>,
     ) {
-        let to_wire_receiver = self.to_wire_receiver.take().unwrap();
+        let c2w_frame_r = self.c2w_frame_r.take().unwrap();
         let read_stop_receiver = self.read_stop_receiver.take().unwrap();
 
-        trace!(?self.remote_pid, "start up channel");
+        //reapply leftovers from handshake
+        let cnt = leftover_cid_frame.len();
+        trace!(?self.cid, ?cnt, "reapplying leftovers");
+        for cid_frame in leftover_cid_frame.drain(..) {
+            w2c_cid_frame_s.send(cid_frame).await.unwrap();
+        }
+        trace!(?self.cid, ?cnt, "all leftovers reapplied");
+
+        trace!(?self.cid, "start up channel");
         match protocol {
             Protocols::Tcp(tcp) => {
                 futures::join!(
-                    tcp.read(self.cid, from_wire_sender, read_stop_receiver),
-                    tcp.write(self.cid, to_wire_receiver),
+                    tcp.read_from_wire(self.cid, &mut w2c_cid_frame_s, read_stop_receiver),
+                    tcp.write_to_wire(self.cid, c2w_frame_r),
                 );
             },
             Protocols::Udp(udp) => {
                 futures::join!(
-                    udp.read(self.cid, from_wire_sender, read_stop_receiver),
-                    udp.write(self.cid, to_wire_receiver),
+                    udp.read_from_wire(self.cid, &mut w2c_cid_frame_s, read_stop_receiver),
+                    udp.write_to_wire(self.cid, c2w_frame_r),
                 );
             },
         }
 
-        trace!(?self.remote_pid, "shut down channel");
+        trace!(?self.cid, "shut down channel");
     }
 }
 
@@ -106,37 +110,55 @@ impl Handshake {
         }
     }
 
-    pub async fn setup(self, protocol: &Protocols) -> Result<(Pid, Sid, u128), ()> {
-        let (to_wire_sender, to_wire_receiver) = mpsc::unbounded::<Frame>();
-        let (from_wire_sender, from_wire_receiver) = mpsc::unbounded::<(Cid, Frame)>();
-        let (read_stop_sender, read_stop_receiver) = oneshot::channel();
+    pub async fn setup(
+        self,
+        protocol: &Protocols,
+    ) -> Result<(Pid, Sid, u128, Vec<(Cid, Frame)>), ()> {
+        let (c2w_frame_s, c2w_frame_r) = mpsc::unbounded::<Frame>();
+        let (mut w2c_cid_frame_s, mut w2c_cid_frame_r) = mpsc::unbounded::<(Cid, Frame)>();
 
+        let (read_stop_sender, read_stop_receiver) = oneshot::channel();
         let handler_future =
-            self.frame_handler(from_wire_receiver, to_wire_sender, read_stop_sender);
-        match protocol {
+            self.frame_handler(&mut w2c_cid_frame_r, c2w_frame_s, read_stop_sender);
+        let res = match protocol {
             Protocols::Tcp(tcp) => {
                 (join! {
-                    tcp.read(self.cid, from_wire_sender, read_stop_receiver),
-                    tcp.write(self.cid, to_wire_receiver).fuse(),
+                    tcp.read_from_wire(self.cid, &mut w2c_cid_frame_s, read_stop_receiver),
+                    tcp.write_to_wire(self.cid, c2w_frame_r).fuse(),
                     handler_future,
                 })
                 .2
             },
             Protocols::Udp(udp) => {
                 (join! {
-                    udp.read(self.cid, from_wire_sender, read_stop_receiver),
-                    udp.write(self.cid, to_wire_receiver),
+                    udp.read_from_wire(self.cid, &mut w2c_cid_frame_s, read_stop_receiver),
+                    udp.write_to_wire(self.cid, c2w_frame_r),
                     handler_future,
                 })
                 .2
             },
+        };
+
+        match res {
+            Ok(res) => {
+                let mut leftover_frames = vec![];
+                while let Ok(Some(cid_frame)) = w2c_cid_frame_r.try_next() {
+                    leftover_frames.push(cid_frame);
+                }
+                let cnt = leftover_frames.len();
+                if cnt > 0 {
+                    debug!(?self.cid, ?cnt, "Some additional frames got already transfered, piping them to the bparticipant as leftover_frames");
+                }
+                Ok((res.0, res.1, res.2, leftover_frames))
+            },
+            Err(e) => Err(e),
         }
     }
 
     async fn frame_handler(
         &self,
-        mut from_wire_receiver: mpsc::UnboundedReceiver<(Cid, Frame)>,
-        mut to_wire_sender: mpsc::UnboundedSender<Frame>,
+        w2c_cid_frame_r: &mut mpsc::UnboundedReceiver<(Cid, Frame)>,
+        mut c2w_frame_s: mpsc::UnboundedSender<Frame>,
         _read_stop_sender: oneshot::Sender<()>,
     ) -> Result<(Pid, Sid, u128), ()> {
         const ERR_S: &str = "Got A Raw Message, these are usually Debug Messages indicating that \
@@ -145,10 +167,10 @@ impl Handshake {
         let cid_string = self.cid.to_string();
 
         if self.init_handshake {
-            self.send_handshake(&mut to_wire_sender).await;
+            self.send_handshake(&mut c2w_frame_s).await;
         }
 
-        match from_wire_receiver.next().await {
+        match w2c_cid_frame_r.next().await {
             Some((
                 _,
                 Frame::Handshake {
@@ -170,11 +192,11 @@ impl Handshake {
                             .with_label_values(&["", &cid_string, "Raw"])
                             .inc();
                         debug!("sending client instructions before killing");
-                        to_wire_sender
+                        c2w_frame_s
                             .send(Frame::Raw(Self::WRONG_NUMBER.to_vec()))
                             .await
                             .unwrap();
-                        to_wire_sender.send(Frame::Shutdown).await.unwrap();
+                        c2w_frame_s.send(Frame::Shutdown).await.unwrap();
                     }
                     return Err(());
                 }
@@ -187,7 +209,7 @@ impl Handshake {
                             .frames_out_total
                             .with_label_values(&["", &cid_string, "Raw"])
                             .inc();
-                        to_wire_sender
+                        c2w_frame_s
                             .send(Frame::Raw(
                                 format!(
                                     "{} Our Version: {:?}\nYour Version: {:?}\nClosing the \
@@ -201,15 +223,15 @@ impl Handshake {
                             ))
                             .await
                             .unwrap();
-                        to_wire_sender.send(Frame::Shutdown {}).await.unwrap();
+                        c2w_frame_s.send(Frame::Shutdown {}).await.unwrap();
                     }
                     return Err(());
                 }
                 debug!("handshake completed");
                 if self.init_handshake {
-                    self.send_init(&mut to_wire_sender, &pid_string).await;
+                    self.send_init(&mut c2w_frame_s, &pid_string).await;
                 } else {
-                    self.send_handshake(&mut to_wire_sender).await;
+                    self.send_handshake(&mut c2w_frame_s).await;
                 }
             },
             Some((_, Frame::Shutdown)) => {
@@ -241,7 +263,7 @@ impl Handshake {
             None => return Err(()),
         };
 
-        match from_wire_receiver.next().await {
+        match w2c_cid_frame_r.next().await {
             Some((_, Frame::Init { pid, secret })) => {
                 debug!(?pid, "Participant send their ID");
                 pid_string = pid.to_string();
@@ -252,7 +274,7 @@ impl Handshake {
                 let stream_id_offset = if self.init_handshake {
                     STREAM_ID_OFFSET1
                 } else {
-                    self.send_init(&mut to_wire_sender, &pid_string).await;
+                    self.send_init(&mut c2w_frame_s, &pid_string).await;
                     STREAM_ID_OFFSET2
                 };
                 info!(?pid, "this Handshake is now configured!");
@@ -288,12 +310,12 @@ impl Handshake {
         };
     }
 
-    async fn send_handshake(&self, to_wire_sender: &mut mpsc::UnboundedSender<Frame>) {
+    async fn send_handshake(&self, c2w_frame_s: &mut mpsc::UnboundedSender<Frame>) {
         self.metrics
             .frames_out_total
             .with_label_values(&["", &self.cid.to_string(), "Handshake"])
             .inc();
-        to_wire_sender
+        c2w_frame_s
             .send(Frame::Handshake {
                 magic_number: VELOREN_MAGIC_NUMBER,
                 version: VELOREN_NETWORK_VERSION,
@@ -302,12 +324,12 @@ impl Handshake {
             .unwrap();
     }
 
-    async fn send_init(&self, to_wire_sender: &mut mpsc::UnboundedSender<Frame>, pid_string: &str) {
+    async fn send_init(&self, c2w_frame_s: &mut mpsc::UnboundedSender<Frame>, pid_string: &str) {
         self.metrics
             .frames_out_total
             .with_label_values(&[pid_string, &self.cid.to_string(), "ParticipantId"])
             .inc();
-        to_wire_sender
+        c2w_frame_s
             .send(Frame::Init {
                 pid: self.local_pid,
                 secret: self.secret,

@@ -4,7 +4,7 @@ use crate::{
     metrics::NetworkMetrics,
     participant::BParticipant,
     protocols::{Protocols, TcpProtocol, UdpProtocol},
-    types::{Cid, Pid, Sid},
+    types::{Cid, Frame, Pid, Sid},
 };
 use async_std::{
     io, net,
@@ -33,7 +33,8 @@ use tracing_futures::Instrument;
 #[derive(Debug)]
 struct ParticipantInfo {
     secret: u128,
-    s2b_create_channel_s: mpsc::UnboundedSender<(Cid, Sid, Protocols, oneshot::Sender<()>)>,
+    s2b_create_channel_s:
+        mpsc::UnboundedSender<(Cid, Sid, Protocols, Vec<(Cid, Frame)>, oneshot::Sender<()>)>,
     s2b_shutdown_bparticipant_s:
         Option<oneshot::Sender<oneshot::Sender<async_std::io::Result<()>>>>,
 }
@@ -45,6 +46,7 @@ struct ParticipantInfo {
 ///  - p: prios
 ///  - r: protocol
 ///  - w: wire
+///  - c: channel/handshake
 #[derive(Debug)]
 struct ControlChannels {
     a2s_listen_r: mpsc::UnboundedReceiver<(Address, oneshot::Sender<io::Result<()>>)>,
@@ -205,8 +207,10 @@ impl Scheduler {
                         },
                     };
                     info!("Connecting Tcp to: {}", stream.peer_addr().unwrap());
-                    let protocol = Protocols::Tcp(TcpProtocol::new(stream, self.metrics.clone()));
-                    (protocol, false)
+                    (
+                        Protocols::Tcp(TcpProtocol::new(stream, self.metrics.clone())),
+                        false,
+                    )
                 },
                 Address::Udp(addr) => {
                     self.metrics
@@ -226,17 +230,17 @@ impl Scheduler {
                     };
                     info!("Connecting Udp to: {}", addr);
                     let (udp_data_sender, udp_data_receiver) = mpsc::unbounded::<Vec<u8>>();
-                    let protocol = Protocols::Udp(UdpProtocol::new(
+                    let protocol = UdpProtocol::new(
                         socket.clone(),
                         addr,
                         self.metrics.clone(),
                         udp_data_receiver,
-                    ));
+                    );
                     self.pool.spawn_ok(
                         Self::udp_single_channel_connect(socket.clone(), udp_data_sender)
                             .instrument(tracing::info_span!("udp", ?addr)),
                     );
-                    (protocol, true)
+                    (Protocols::Udp(protocol), true)
                 },
                 _ => unimplemented!(),
             };
@@ -360,12 +364,9 @@ impl Scheduler {
                 } {
                     let stream = stream.unwrap();
                     info!("Accepting Tcp from: {}", stream.peer_addr().unwrap());
-                    self.init_protocol(
-                        Protocols::Tcp(TcpProtocol::new(stream, self.metrics.clone())),
-                        None,
-                        true,
-                    )
-                    .await;
+                    let protocol = TcpProtocol::new(stream, self.metrics.clone());
+                    self.init_protocol(Protocols::Tcp(protocol), None, true)
+                        .await;
                 }
             },
             Address::Udp(addr) => {
@@ -400,13 +401,14 @@ impl Scheduler {
                         info!("Accepting Udp from: {}", &remote_addr);
                         let (udp_data_sender, udp_data_receiver) = mpsc::unbounded::<Vec<u8>>();
                         listeners.insert(remote_addr.clone(), udp_data_sender);
-                        let protocol = Protocols::Udp(UdpProtocol::new(
+                        let protocol = UdpProtocol::new(
                             socket.clone(),
                             remote_addr.clone(),
                             self.metrics.clone(),
                             udp_data_receiver,
-                        ));
-                        self.init_protocol(protocol, None, false).await;
+                        );
+                        self.init_protocol(Protocols::Udp(protocol), None, false)
+                            .await;
                     }
                     let udp_data_sender = listeners.get_mut(&remote_addr).unwrap();
                     udp_data_sender.send(datavec).await.unwrap();
@@ -476,7 +478,7 @@ impl Scheduler {
                     send_handshake,
                 );
                 match handshake.setup(&protocol).await {
-                    Ok((pid, sid, secret)) => {
+                    Ok((pid, sid, secret, leftover_cid_frame)) => {
                         trace!(
                             ?cid,
                             ?pid,
@@ -515,13 +517,20 @@ impl Scheduler {
                             //create a new channel within BParticipant and wait for it to run
                             let (b2s_create_channel_done_s, b2s_create_channel_done_r) =
                                 oneshot::channel();
+                            //From now on wire connects directly with bparticipant!
                             s2b_create_channel_s
-                                .send((cid, sid, protocol, b2s_create_channel_done_s))
+                                .send((
+                                    cid,
+                                    sid,
+                                    protocol,
+                                    leftover_cid_frame,
+                                    b2s_create_channel_done_s,
+                                ))
                                 .await
                                 .unwrap();
                             b2s_create_channel_done_r.await.unwrap();
                             if let Some(pid_oneshot) = s2a_return_pid_s {
-                                // someone is waiting with connect, so give them their PID
+                                // someone is waiting with `connect`, so give them their PID
                                 pid_oneshot.send(Ok(participant)).unwrap();
                             } else {
                                 // noone is waiting on this Participant, return in to Network
@@ -543,7 +552,7 @@ impl Scheduler {
                                 error!("just dropping here, TODO handle this correctly!");
                                 //TODO
                                 if let Some(pid_oneshot) = s2a_return_pid_s {
-                                    // someone is waiting with connect, so give them their Error
+                                    // someone is waiting with `connect`, so give them their Error
                                     pid_oneshot
                                         .send(Err(std::io::Error::new(
                                             std::io::ErrorKind::PermissionDenied,
@@ -561,7 +570,17 @@ impl Scheduler {
                         //From now on this CHANNEL can receiver other frames!
                         // move directly to participant!
                     },
-                    Err(()) => {},
+                    Err(()) => {
+                        if let Some(pid_oneshot) = s2a_return_pid_s {
+                            // someone is waiting with `connect`, so give them their Error
+                            pid_oneshot
+                                .send(Err(std::io::Error::new(
+                                    std::io::ErrorKind::PermissionDenied,
+                                    "handshake failed, denying connection",
+                                )))
+                                .unwrap();
+                        }
+                    },
                 }
             }
             .instrument(tracing::trace_span!("")),

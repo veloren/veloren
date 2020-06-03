@@ -19,7 +19,7 @@ pub struct MessageBuffer {
 }
 
 #[derive(Debug)]
-pub(crate) struct OutGoingMessage {
+pub(crate) struct OutgoingMessage {
     pub buffer: Arc<MessageBuffer>,
     pub cursor: u64,
     pub mid: Mid,
@@ -27,7 +27,7 @@ pub(crate) struct OutGoingMessage {
 }
 
 #[derive(Debug)]
-pub(crate) struct InCommingMessage {
+pub(crate) struct IncomingMessage {
     pub buffer: MessageBuffer,
     pub length: u64,
     pub mid: Mid,
@@ -35,13 +35,20 @@ pub(crate) struct InCommingMessage {
 }
 
 pub(crate) fn serialize<M: Serialize>(message: &M) -> MessageBuffer {
+    //this will never fail: https://docs.rs/bincode/0.8.0/bincode/fn.serialize.html
     let writer = bincode::serialize(message).unwrap();
     MessageBuffer { data: writer }
 }
 
 pub(crate) fn deserialize<M: DeserializeOwned>(buffer: MessageBuffer) -> M {
     let span = buffer.data;
-    let decoded: M = bincode::deserialize(span.as_slice()).unwrap();
+    //this might fail if you choose the wrong type for M. in that case probably X
+    // got transfered while you assume Y. probably this means your application
+    // logic is wrong. E.g. You expect a String, but just get a u8.
+    let decoded: M = bincode::deserialize(span.as_slice()).expect(
+        "deserialisation failed, this is probably due to a programming error on YOUR side, \
+         probably the type send by remote isn't what you are expecting. change the type of `M`",
+    );
     decoded
 }
 

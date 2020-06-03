@@ -6,7 +6,7 @@
 //! immeadiatly when found!
 
 use crate::{
-    message::OutGoingMessage,
+    message::OutgoingMessage,
     metrics::NetworkMetrics,
     types::{Frame, Prio, Sid},
 };
@@ -30,8 +30,8 @@ struct PidSidInfo {
 
 pub(crate) struct PrioManager {
     points: [u32; PRIO_MAX],
-    messages: [VecDeque<(Sid, OutGoingMessage)>; PRIO_MAX],
-    messages_rx: Receiver<(Prio, Sid, OutGoingMessage)>,
+    messages: [VecDeque<(Sid, OutgoingMessage)>; PRIO_MAX],
+    messages_rx: Receiver<(Prio, Sid, OutgoingMessage)>,
     sid_owned: HashMap<Sid, PidSidInfo>,
     //you can register to be notified if a pid_sid combination is flushed completly here
     sid_flushed_rx: Receiver<(Sid, oneshot::Sender<()>)>,
@@ -55,7 +55,7 @@ impl PrioManager {
         pid: String,
     ) -> (
         Self,
-        Sender<(Prio, Sid, OutGoingMessage)>,
+        Sender<(Prio, Sid, OutgoingMessage)>,
         Sender<(Sid, oneshot::Sender<()>)>,
     ) {
         // (a2p_msg_s, a2p_msg_r)
@@ -205,7 +205,7 @@ impl PrioManager {
 
     /// returns if msg is empty
     fn tick_msg<E: Extend<(Sid, Frame)>>(
-        msg: &mut OutGoingMessage,
+        msg: &mut OutgoingMessage,
         msg_sid: Sid,
         frames: &mut E,
     ) -> bool {
@@ -311,7 +311,7 @@ impl std::fmt::Debug for PrioManager {
 #[cfg(test)]
 mod tests {
     use crate::{
-        message::{MessageBuffer, OutGoingMessage},
+        message::{MessageBuffer, OutgoingMessage},
         metrics::NetworkMetrics,
         prios::*,
         types::{Frame, Pid, Prio, Sid},
@@ -327,7 +327,7 @@ mod tests {
 
     fn mock_new() -> (
         PrioManager,
-        Sender<(Prio, Sid, OutGoingMessage)>,
+        Sender<(Prio, Sid, OutgoingMessage)>,
         Sender<(Sid, oneshot::Sender<()>)>,
     ) {
         let pid = Pid::fake(1);
@@ -337,9 +337,9 @@ mod tests {
         )
     }
 
-    fn mock_out(prio: Prio, sid: u64) -> (Prio, Sid, OutGoingMessage) {
+    fn mock_out(prio: Prio, sid: u64) -> (Prio, Sid, OutgoingMessage) {
         let sid = Sid::new(sid);
-        (prio, sid, OutGoingMessage {
+        (prio, sid, OutgoingMessage {
             buffer: Arc::new(MessageBuffer {
                 data: vec![48, 49, 50],
             }),
@@ -349,12 +349,12 @@ mod tests {
         })
     }
 
-    fn mock_out_large(prio: Prio, sid: u64) -> (Prio, Sid, OutGoingMessage) {
+    fn mock_out_large(prio: Prio, sid: u64) -> (Prio, Sid, OutgoingMessage) {
         let sid = Sid::new(sid);
         let mut data = vec![48; USIZE];
         data.append(&mut vec![49; USIZE]);
         data.append(&mut vec![50; 20]);
-        (prio, sid, OutGoingMessage {
+        (prio, sid, OutgoingMessage {
             buffer: Arc::new(MessageBuffer { data }),
             cursor: 0,
             mid: 1,
