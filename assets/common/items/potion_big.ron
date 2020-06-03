@@ -7,6 +7,6 @@ Item(
             amount: 100,
             cause: Item,
         )),
-        amount: 10,
+        ,
     ),
 )
