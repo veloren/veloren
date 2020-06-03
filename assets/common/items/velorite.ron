@@ -5,4 +5,5 @@ Item(
         kind: Velorite,
         effect: Xp(20),
     ),
+    amount: 10,
 )

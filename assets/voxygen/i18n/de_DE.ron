@@ -194,6 +194,18 @@ um dieses Fenster zu schließen? Drückt 'TAB'!
 
 Viel Spaß in der Welt von Veloren, Abenteurer!"#,
 
+"hud.temp_quest_headline": r#"Please, help us Traveler!"#,
+"hud.temp_quest_text": r#"Dungeons filled with evil cultists 
+have emerged all around our peaceful towns!
+
+
+Gather some company, stack up on food 
+and defeat their vile leaders and acolytes.
+
+
+Maybe you can even obtain one of their  
+magically infused items?"#,
+
         // Inventory
         "hud.bag.inventory": "{playername}s Inventar",
         "hud.bag.stats_title": "{playername}s Werte",
@@ -336,6 +348,7 @@ Viel Spaß in der Welt von Veloren, Abenteurer!"#,
         "gameinput.togglewield": "Waffe ziehen/wegstecken",
         "gameinput.interact": "Interagieren",
         "gameinput.freelook": "Freie Sicht",
+        "gameinput.dance": "Tanzen",
 
         /// End GameInput section
 

@@ -52,7 +52,7 @@
         color: None
     ),
     Sword(GreatswordOrn2): (
-        vox_spec: ("weapon.sword.greatsword_2h_orn-2", (-1.0, -4.5, -7.5    )),
+        vox_spec: ("weapon.sword.greatsword_2h_orn-2", (-1.0, -4.5, -7.5)),
         color: None
     ),
     Sword(GreatswordFine0): (
@@ -161,6 +161,10 @@
     ),
     Sword(LongFine5): (
         vox_spec: ("weapon.sword.long_2h_fine-5", (-2.0, -4.5, -6.0)),
+        color: None
+    ),
+     Sword(CultPurp0): (
+        vox_spec: ("weapon.sword.cultist_purp_2h-0", (-2.0, -4.5, -7.5)),
         color: None
     ),
     Axe(BasicAxe): (

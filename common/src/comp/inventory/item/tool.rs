@@ -50,6 +50,7 @@ pub enum SwordKind {
     LongFine3,
     LongFine4,
     LongFine5,
+    CultPurp0,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum AxeKind {
@@ -137,6 +138,17 @@ impl Tool {
         use ToolKind::*;
 
         match self.kind {
+            Sword(SwordKind::CultPurp0) => vec![
+                TripleStrike {
+                    base_damage: 10,
+                    needs_timing: false,
+                },
+                DashMelee {
+                    buildup_duration: Duration::from_millis(500),
+                    recover_duration: Duration::from_millis(500),
+                    base_damage: 20,
+                },
+            ],
             Sword(_) => vec![
                 TripleStrike {
                     base_damage: 5,

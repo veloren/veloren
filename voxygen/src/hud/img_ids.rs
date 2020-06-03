@@ -94,6 +94,9 @@ image_ids! {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
         <ImageGraphic>
+
+        quest_bg: "voxygen.element.misc_bg.temp_quest_bg",
+
         // Buttons
 
         settings: "voxygen.element.buttons.settings",

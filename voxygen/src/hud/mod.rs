@@ -47,9 +47,8 @@ use crate::{
 use client::{Client, Event as ClientEvent};
 use common::{assets::load_expect, comp, terrain::TerrainChunk, vol::RectRasterableVol};
 use conrod_core::{
-    position::Relative,
     text::cursor::Index,
-    widget::{self, Button, Image, Rectangle, Text},
+    widget::{self, Button, Image, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 use specs::{Join, WorldExt};
@@ -184,6 +183,14 @@ widget_ids! {
         // Free look indicator
         free_look_txt,
         free_look_bg,
+
+        // Example Quest
+        quest_bg,
+        q_headline_bg,
+        q_headline,
+        q_text_bg,
+        q_text,
+        accept_button,
     }
 }
 
@@ -439,9 +446,9 @@ pub struct Hud {
     rot_imgs: ImgsRot,
     new_messages: VecDeque<ClientEvent>,
     show: Show,
-    never_show: bool,
-    intro: bool,
-    intro_2: bool,
+    //never_show: bool,
+    //intro: bool,
+    //intro_2: bool,
     to_focus: Option<Option<widget::Id>>,
     force_ungrab: bool,
     force_chat_input: Option<String>,
@@ -495,8 +502,8 @@ impl Hud {
             fonts,
             ids,
             new_messages: VecDeque::new(),
-            intro: false,
-            intro_2: false,
+            //intro: false,
+            //intro_2: false,
             show: Show {
                 help: false,
                 intro: true,
@@ -517,7 +524,7 @@ impl Hud {
                 free_look: false,
             },
             to_focus: None,
-            never_show: false,
+            //never_show: false,
             force_ungrab: false,
             force_chat_input: None,
             force_chat_cursor: None,
@@ -1100,144 +1107,66 @@ impl Hud {
             }
         }
 
-        // Introduction Text
-        let intro_text = &self.voxygen_i18n.get("hud.welcome");
-        if self.show.intro && !self.show.esc_menu && !self.intro_2 {
+        // Temporary Example Quest
+        if self.show.intro && !self.show.esc_menu {
             match global_state.settings.gameplay.intro_show {
                 Intro::Show => {
-                    Rectangle::fill_with(
-                        [800.0 * 0.8, 850.0 * 0.8],
-                        Color::Rgba(0.0, 0.0, 0.0, 0.80),
-                    )
-                    .top_left_with_margins_on(ui_widgets.window, 180.0 * 0.8, 10.0 * 0.8)
-                    .floating(true)
-                    .set(self.ids.intro_bg, ui_widgets);
-                    Text::new(intro_text)
-                        .top_left_with_margins_on(self.ids.intro_bg, 10.0, 10.0)
-                        .font_size(self.fonts.cyri.scale(16))
-                        .font_id(self.fonts.cyri.conrod_id)
-                        .color(TEXT_COLOR)
-                        .set(self.ids.intro_text, ui_widgets);
-                    if Button::image(self.imgs.button)
-                        .w_h(90.0, 35.0)
-                        .mid_bottom_with_margin_on(self.ids.intro_bg, 10.0)
-                        .label(&self.voxygen_i18n.get("common.close"))
-                        .label_font_size(self.fonts.cyri.scale(16))
-                        .label_font_id(self.fonts.cyri.conrod_id)
-                        .label_color(TEXT_COLOR)
-                        .label_y(Relative::Scalar(4.0))
-                        .hover_image(self.imgs.button_hover)
-                        .press_image(self.imgs.button_press)
-                        .set(self.ids.intro_close, ui_widgets)
-                        .was_clicked()
-                    {
-                        if self.never_show {
-                            events.push(Event::Intro(Intro::Never));
-                            self.never_show = !self.never_show;
-                            self.intro = false;
-                            self.intro_2 = false;
-                        } else {
+                    if self.pulse > 20.0 {
+                        self.show.want_grab = false;
+                        let quest_headline = &self.voxygen_i18n.get("hud.temp_quest_headline");
+                        let quest_text = &self.voxygen_i18n.get("hud.temp_quest_text");
+                        Image::new(self.imgs.quest_bg)
+                            .w_h(404.0, 858.0)
+                            .middle_of(ui_widgets.window)
+                            .set(self.ids.quest_bg, ui_widgets);
+
+                        Text::new(quest_headline)
+                            .mid_top_with_margin_on(self.ids.quest_bg, 310.0)
+                            .font_size(self.fonts.cyri.scale(30))
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(TEXT_BG)
+                            .set(self.ids.q_headline_bg, ui_widgets);
+                        Text::new(quest_headline)
+                            .bottom_left_with_margins_on(self.ids.q_headline_bg, 1.0, 1.0)
+                            .font_size(self.fonts.cyri.scale(30))
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(TEXT_COLOR)
+                            .set(self.ids.q_headline, ui_widgets);
+
+                        Text::new(quest_text)
+                            .down_from(self.ids.q_headline_bg, 40.0)
+                            .font_size(self.fonts.cyri.scale(17))
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(TEXT_BG)
+                            .set(self.ids.q_text_bg, ui_widgets);
+                        Text::new(quest_text)
+                            .bottom_left_with_margins_on(self.ids.q_text_bg, 1.0, 1.0)
+                            .font_size(self.fonts.cyri.scale(17))
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(TEXT_COLOR)
+                            .set(self.ids.q_text, ui_widgets);
+
+                        if Button::image(self.imgs.button)
+                            .w_h(212.0, 52.0)
+                            .hover_image(self.imgs.button_hover)
+                            .press_image(self.imgs.button_press)
+                            .mid_bottom_with_margin_on(self.ids.q_text_bg, -120.0)
+                            .label(&self.voxygen_i18n.get("common.accept"))
+                            .label_font_id(self.fonts.cyri.conrod_id)
+                            .label_font_size(self.fonts.cyri.scale(22))
+                            .label_color(TEXT_COLOR)
+                            .label_y(conrod_core::position::Relative::Scalar(1.0))
+                            .set(self.ids.accept_button, ui_widgets)
+                            .was_clicked()
+                        {
                             self.show.intro = !self.show.intro;
-                            self.intro = false;
-                            self.intro_2 = false;
+                            events.push(Event::Intro(Intro::Never));
+                            self.show.want_grab = true;
                         }
                     }
-                    if Button::image(if self.never_show {
-                        self.imgs.checkbox_checked
-                    } else {
-                        self.imgs.checkbox
-                    })
-                    .w_h(20.0, 20.0)
-                    .right_from(self.ids.intro_close, 10.0)
-                    .hover_image(if self.never_show {
-                        self.imgs.checkbox_checked_mo
-                    } else {
-                        self.imgs.checkbox_mo
-                    })
-                    .press_image(self.imgs.checkbox_press)
-                    .set(self.ids.intro_check, ui_widgets)
-                    .was_clicked()
-                    {
-                        self.never_show = !self.never_show
-                    };
-                    Text::new(&self.voxygen_i18n.get("hud.do_not_show_on_startup"))
-                        .right_from(self.ids.intro_check, 10.0)
-                        .font_size(self.fonts.cyri.scale(10))
-                        .font_id(self.fonts.cyri.conrod_id)
-                        .color(TEXT_COLOR)
-                        .set(self.ids.intro_check_text, ui_widgets);
-                    // X-button
-                    if Button::image(self.imgs.close_button)
-                        .w_h(40.0, 40.0)
-                        .hover_image(self.imgs.close_button_hover)
-                        .press_image(self.imgs.close_button_press)
-                        .top_right_with_margins_on(self.ids.intro_bg, 0.0, 0.0)
-                        .color(Color::Rgba(1.0, 1.0, 1.0, 0.8))
-                        .set(self.ids.intro_close_4, ui_widgets)
-                        .was_clicked()
-                    {
-                        if self.never_show {
-                            events.push(Event::Intro(Intro::Never));
-                            self.never_show = !self.never_show;
-                            self.intro = false;
-                            self.intro_2 = false;
-                        } else {
-                            self.show.intro = !self.show.intro;
-                            self.intro = false;
-                            self.intro_2 = false;
-                        }
-                    };
                 },
                 Intro::Never => {},
             }
-        }
-
-        if self.intro_2 && !self.show.esc_menu {
-            Rectangle::fill_with([800.0, 850.0], Color::Rgba(0.0, 0.0, 0.0, 0.80))
-                .top_left_with_margins_on(ui_widgets.window, 180.0, 10.0)
-                .floating(true)
-                .set(self.ids.intro_bg, ui_widgets);
-            Text::new(intro_text)
-                .top_left_with_margins_on(self.ids.intro_bg, 10.0, 10.0)
-                .font_size(self.fonts.cyri.scale(20))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(self.ids.intro_text, ui_widgets);
-            if Button::image(self.imgs.button)
-                .w_h(100.0, 50.0)
-                .mid_bottom_with_margin_on(self.ids.intro_bg, 10.0)
-                .label(&self.voxygen_i18n.get("common.close"))
-                .label_font_size(self.fonts.cyri.scale(20))
-                .label_font_id(self.fonts.cyri.conrod_id)
-                .label_color(TEXT_COLOR)
-                .hover_image(self.imgs.button_hover)
-                .press_image(self.imgs.button_press)
-                .set(self.ids.intro_close_3, ui_widgets)
-                .was_clicked()
-            {
-                self.intro_2 = false;
-            }
-            // X-button
-            if Button::image(self.imgs.close_button)
-                .w_h(40.0, 40.0)
-                .hover_image(self.imgs.close_button_hover)
-                .press_image(self.imgs.close_button_press)
-                .top_right_with_margins_on(self.ids.intro_bg, 0.0, 0.0)
-                .color(Color::Rgba(1.0, 1.0, 1.0, 0.8))
-                .set(self.ids.intro_close_4, ui_widgets)
-                .was_clicked()
-            {
-                if self.never_show {
-                    events.push(Event::Intro(Intro::Never));
-                    self.never_show = !self.never_show;
-                    self.intro = false;
-                    self.intro_2 = false;
-                } else {
-                    self.show.intro = !self.show.intro;
-                    self.intro = false;
-                    self.intro_2 = false;
-                }
-            };
         }
 
         // Display debug window.
@@ -1481,8 +1410,14 @@ impl Hud {
         }
 
         // Popup
-        Popup::new(&self.voxygen_i18n, client, &self.new_messages, &self.fonts)
-            .set(self.ids.popup, ui_widgets);
+        Popup::new(
+            &self.voxygen_i18n,
+            client,
+            &self.new_messages,
+            &self.fonts,
+            &self.show,
+        )
+        .set(self.ids.popup, ui_widgets);
 
         // MiniMap
         match MiniMap::new(
@@ -1569,6 +1504,7 @@ impl Hud {
                 tooltip_manager,
                 &mut self.slot_manager,
                 &self.voxygen_i18n,
+                &self.show,
             )
             .set(self.ids.skillbar, ui_widgets);
         }
@@ -1681,9 +1617,6 @@ impl Hud {
                     },
                     settings_window::Event::CrosshairTransp(crosshair_transp) => {
                         events.push(Event::CrosshairTransp(crosshair_transp));
-                    },
-                    settings_window::Event::Intro(intro_show) => {
-                        events.push(Event::Intro(intro_show));
                     },
                     settings_window::Event::AdjustMusicVolume(music_volume) => {
                         events.push(Event::AdjustMusicVolume(music_volume));

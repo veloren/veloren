@@ -5,4 +5,5 @@ Item(
         kind: VeloriteFrag,
         effect: Xp(10),
     ),
+    amount: 20,
 )
