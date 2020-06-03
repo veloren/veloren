@@ -4,4 +4,5 @@ Item(
     kind: Utility(
         kind: Collar,
     ),
+    amount: 1,
 )

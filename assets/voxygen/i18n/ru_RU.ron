@@ -179,6 +179,18 @@ https://account.veloren.net."#,
 
 Наслаждайтесь миром Veloren."#,
 
+"hud.temp_quest_headline": r#"Please, help us Traveler!"#,
+"hud.temp_quest_text": r#"Dungeons filled with evil cultists 
+have emerged all around our peaceful towns!
+
+
+Gather some company, stack up on food 
+and defeat their vile leaders and acolytes.
+
+
+Maybe you can even obtain one of their  
+magically infused items?"#,
+
 
         // Inventory
         "hud.bag.inventory": "Инвентарь",
