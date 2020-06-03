@@ -1,6 +1,6 @@
 use super::{
-    img_ids::Imgs, BarNumbers, CrosshairType, Intro, PressBehavior, ShortcutNumbers, Show, XpBar,
-    MENU_BG, TEXT_COLOR,
+    img_ids::Imgs, BarNumbers, CrosshairType, PressBehavior, ShortcutNumbers, Show, XpBar, MENU_BG,
+    TEXT_COLOR,
 };
 use crate::{
     i18n::{list_localizations, LanguageMetadata, VoxygenLocalization},
@@ -210,7 +210,6 @@ pub enum Event {
     ToggleShortcutNumbers(ShortcutNumbers),
     ChangeTab(SettingsTab),
     Close,
-    Intro(Intro),
     AdjustMousePan(u32),
     AdjustMouseZoom(u32),
     ToggleZoomInvert(bool),
@@ -407,37 +406,10 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .graphics_for(state.ids.debug_button)
                 .color(TEXT_COLOR)
                 .set(state.ids.debug_button_label, ui);
-            // Tips
-            if Button::image(match self.global_state.settings.gameplay.intro_show {
-                Intro::Show => self.imgs.checkbox_checked,
-                Intro::Never => self.imgs.checkbox,
-            })
-            .w_h(20.0, 20.0)
-            .down_from(state.ids.debug_button, 8.0)
-            .hover_image(match self.global_state.settings.gameplay.intro_show {
-                Intro::Show => self.imgs.checkbox_checked_mo,
-                Intro::Never => self.imgs.checkbox_mo,
-            })
-            .press_image(self.imgs.checkbox_press)
-            .set(state.ids.tips_button, ui)
-            .was_clicked()
-            {
-                match self.global_state.settings.gameplay.intro_show {
-                    Intro::Show => events.push(Event::Intro(Intro::Never)),
-                    Intro::Never => events.push(Event::Intro(Intro::Show)),
-                }
-            };
-            Text::new(&self.localized_strings.get("hud.settings.tips_on_startup"))
-                .right_from(state.ids.tips_button, 10.0)
-                .font_size(self.fonts.cyri.scale(14))
-                .font_id(self.fonts.cyri.conrod_id)
-                .graphics_for(state.ids.button_help)
-                .color(TEXT_COLOR)
-                .set(state.ids.tips_button_label, ui);
 
             // Ui Scale
             Text::new(&self.localized_strings.get("hud.settings.ui_scale"))
-                .down_from(state.ids.tips_button, 20.0)
+                .down_from(state.ids.debug_button, 20.0)
                 .font_size(self.fonts.cyri.scale(18))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)

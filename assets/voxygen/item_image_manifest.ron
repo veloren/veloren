@@ -178,6 +178,10 @@
         "voxel.weapon.sword.long_2h_fine-5",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
     ),
+    Tool(Sword(CultPurp0)): VoxTrans(
+        "voxel.weapon.sword.cultist_purp_2h-0",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
     // Axes
     Tool(Axe(BasicAxe)): VoxTrans(
         "voxel.weapon.axe.rusty_2h",
@@ -615,6 +619,10 @@
     ),
     Consumable(PotionMinor): VoxTrans(
         "voxel.object.potion_red",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Consumable(PotionExp): VoxTrans(
+        "voxel.object.potion_turq",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
     Consumable(Cheese): VoxTrans(
