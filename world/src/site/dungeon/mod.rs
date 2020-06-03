@@ -486,23 +486,50 @@ impl Floor {
                                     npc::get_npc_name(npc::NpcKind::Humanoid)
                                 ))
                                 .with_main_tool(assets::load_expect_cloned(
-                                    match rng.gen_range(0, 5) {
-                                        0 => "common.items.weapons.sword.starter_sword",
-                                        1 => "common.items.weapons.sword.short_sword_0",
-                                        2 => "common.items.weapons.sword.wood_sword",
-                                        3 => "common.items.weapons.sword.zweihander_sword_0",
-                                        _ => "common.items.weapons.hammer.hammer_1",
+                                    match rng.gen_range(0, 1) {
+                                        //Add more possible cult leader weapons here
+                                        _ => "common.items.weapons.sword.cultist_purp_2h-0",
                                     },
                                 ))
-                                .with_loot_drop(match rng.gen_range(0, 3) {
+                                .with_loot_drop(match rng.gen_range(0, 20) {
                                     0 => comp::Item::expect_from_asset(
                                         "common.items.boss_drops.lantern",
                                     ),
                                     1 => comp::Item::expect_from_asset(
                                         "common.items.boss_drops.potions",
                                     ),
+                                    2 => comp::Item::expect_from_asset(
+                                        "common.items.armor.belt.cultist_belt",
+                                    ),
+                                    3 => comp::Item::expect_from_asset(
+                                        "common.items.armor.chest.cultist_chest_purple",
+                                    ),
+                                    4 => comp::Item::expect_from_asset(
+                                        "common.items.armor.foot.cultist_boots",
+                                    ),
+                                    5 => comp::Item::expect_from_asset(
+                                        "common.items.armor.hand.cultist_hands_purple",
+                                    ),
+                                    6 => comp::Item::expect_from_asset(
+                                        "common.items.armor.pants.cultist_legs_purple",
+                                    ),
+                                    7 => comp::Item::expect_from_asset(
+                                        "common.items.armor.shoulder.cultist_shoulder_purple",
+                                    ),
+                                    8 => comp::Item::expect_from_asset(
+                                        "common.items.weapons.sword.greatsword_2h_fine-0",
+                                    ),
+                                    9 => comp::Item::expect_from_asset(
+                                        "common.items.weapons.sword.greatsword_2h_fine-1",
+                                    ),
+                                    10 => comp::Item::expect_from_asset(
+                                        "common.items.weapons.sword.greatsword_2h_fine-2",
+                                    ),
+                                    11 => comp::Item::expect_from_asset(
+                                        "common.items.weapons.sword.cultist_purp_2h-0",
+                                    ),
                                     _ => comp::Item::expect_from_asset(
-                                        "common.items.boss_drops.xp_potion",
+                                        "common.items.boss_drops.exp_flask",
                                     ),
                                 });
 

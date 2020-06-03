@@ -153,6 +153,18 @@ Vous souhaitez libérer votre souris pour fermer cette fenêtre? Tapez sur TAB!
 
 Profitez de votre séjour dans le monde de Veloren."#,
 
+"hud.temp_quest_headline": r#"Please, help us Traveler!"#,
+"hud.temp_quest_text": r#"Dungeons filled with evil cultists 
+have emerged all around our peaceful towns!
+
+
+Gather some company, stack up on food 
+and defeat their vile leaders and acolytes.
+
+
+Maybe you can even obtain one of their  
+magically infused items?"#,
+
         "hud.settings.general": "Général",
         "hud.settings.help_window": "Fenêtre d'aide",
         "hud.settings.debug_info": "Information de débogage",

@@ -299,7 +299,7 @@ impl Inventory {
 impl Default for Inventory {
     fn default() -> Inventory {
         let mut inventory = Inventory {
-            slots: vec![None; 18],
+            slots: vec![None; 36],
             amount: 0,
         };
         inventory.push(assets::load_expect_cloned("common.items.cheese"));

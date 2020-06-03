@@ -1,3 +1,4 @@
+use super::Show;
 use crate::{i18n::VoxygenLocalization, ui::fonts::ConrodVoxygenFonts};
 use client::{self, Client, Event as ClientEvent};
 use common::msg::Notification;
@@ -26,6 +27,7 @@ pub struct Popup<'a> {
     fonts: &'a ConrodVoxygenFonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
+    show: &'a Show,
 }
 
 /// Popup notifications for messages such as <Chunk Name>, Waypoint Saved,
@@ -36,6 +38,7 @@ impl<'a> Popup<'a> {
         client: &'a Client,
         new_messages: &'a VecDeque<ClientEvent>,
         fonts: &'a ConrodVoxygenFonts,
+        show: &'a Show,
     ) -> Self {
         Self {
             voxygen_i18n,
@@ -43,6 +46,7 @@ impl<'a> Popup<'a> {
             new_messages,
             fonts,
             common: widget::CommonBuilder::default(),
+            show,
         }
     }
 }
@@ -173,27 +177,30 @@ impl<'a> Widget for Popup<'a> {
         }
 
         // Display info as popup
-        if let Some(info) = state.infos.front() {
-            let seconds = state.last_info_update.elapsed().as_secs_f32();
-            let fade = if seconds < FADE_IN {
-                seconds / FADE_IN
-            } else if seconds < FADE_IN + FADE_HOLD {
-                1.0
-            } else {
-                (1.0 - (seconds - FADE_IN - FADE_HOLD) / FADE_OUT).max(0.0)
-            };
-            Text::new(info)
-                .mid_top_with_margin_on(ui.window, 100.0)
-                .font_size(self.fonts.cyri.scale(20))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(bg_color(fade))
-                .set(state.ids.info_bg, ui);
-            Text::new(info)
-                .top_left_with_margins_on(state.ids.info_bg, -1.0, -1.0)
-                .font_size(self.fonts.cyri.scale(20))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(info_color(fade))
-                .set(state.ids.info_text, ui);
+        if !self.show.intro {
+            if let Some(info) = state.infos.front() {
+                let seconds = state.last_info_update.elapsed().as_secs_f32();
+                let fade = if seconds < FADE_IN {
+                    seconds / FADE_IN
+                } else if seconds < FADE_IN + FADE_HOLD {
+                    1.0
+                } else {
+                    (1.0 - (seconds - FADE_IN - FADE_HOLD) / FADE_OUT).max(0.0)
+                };
+
+                Text::new(info)
+                    .mid_top_with_margin_on(ui.window, 100.0)
+                    .font_size(self.fonts.cyri.scale(20))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(bg_color(fade))
+                    .set(state.ids.info_bg, ui);
+                Text::new(info)
+                    .top_left_with_margins_on(state.ids.info_bg, -1.0, -1.0)
+                    .font_size(self.fonts.cyri.scale(20))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(info_color(fade))
+                    .set(state.ids.info_text, ui);
+            }
         }
 
         // Get next message from queue
@@ -207,27 +214,29 @@ impl<'a> Widget for Popup<'a> {
         }
 
         // Display message as popup
-        if let Some(message) = state.messages.front() {
-            let seconds = state.last_message_update.elapsed().as_secs_f32();
-            let fade = if seconds < FADE_IN {
-                seconds / FADE_IN
-            } else if seconds < FADE_IN + FADE_HOLD {
-                1.0
-            } else {
-                (1.0 - (seconds - FADE_IN - FADE_HOLD) / FADE_OUT).max(0.0)
-            };
-            Text::new(message)
-                .mid_top_with_margin_on(ui.window, 200.0)
-                .font_size(self.fonts.alkhemi.scale(70))
-                .font_id(self.fonts.alkhemi.conrod_id)
-                .color(bg_color(fade))
-                .set(state.ids.message_bg, ui);
-            Text::new(message)
-                .top_left_with_margins_on(state.ids.message_bg, -2.5, -2.5)
-                .font_size(self.fonts.alkhemi.scale(70))
-                .font_id(self.fonts.alkhemi.conrod_id)
-                .color(message_color(fade))
-                .set(state.ids.message_text, ui);
+        if !self.show.intro {
+            if let Some(message) = state.messages.front() {
+                let seconds = state.last_message_update.elapsed().as_secs_f32();
+                let fade = if seconds < FADE_IN {
+                    seconds / FADE_IN
+                } else if seconds < FADE_IN + FADE_HOLD {
+                    1.0
+                } else {
+                    (1.0 - (seconds - FADE_IN - FADE_HOLD) / FADE_OUT).max(0.0)
+                };
+                Text::new(message)
+                    .mid_top_with_margin_on(ui.window, 200.0)
+                    .font_size(self.fonts.alkhemi.scale(70))
+                    .font_id(self.fonts.alkhemi.conrod_id)
+                    .color(bg_color(fade))
+                    .set(state.ids.message_bg, ui);
+                Text::new(message)
+                    .top_left_with_margins_on(state.ids.message_bg, -2.5, -2.5)
+                    .font_size(self.fonts.alkhemi.scale(70))
+                    .font_id(self.fonts.alkhemi.conrod_id)
+                    .color(message_color(fade))
+                    .set(state.ids.message_text, ui);
+            }
         }
     }
 }

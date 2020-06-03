@@ -1,0 +1,58 @@
+-- This migration updates the capacity of existing player inventories from 18 to 36
+UPDATE
+    inventory
+SET
+    items = json_object(
+        'amount',
+        (
+            SELECT
+                json_extract(items, '$.amount')
+            from
+                inventory
+        ),
+        'slots',
+        json_insert(
+            (
+                SELECT
+                    json_extract(items, '$.slots')
+                from
+                    inventory
+            ),
+            '$[18]',
+            json("null"),
+            '$[19]',
+            json("null"),
+            '$[20]',
+            json("null"),
+            '$[21]',
+            json("null"),
+            '$[22]',
+            json("null"),
+            '$[23]',
+            json("null"),
+            '$[24]',
+            json("null"),
+            '$[25]',
+            json("null"),
+            '$[26]',
+            json("null"),
+            '$[27]',
+            json("null"),
+            '$[28]',
+            json("null"),
+            '$[29]',
+            json("null"),
+            '$[30]',
+            json("null"),
+            '$[31]',
+            json("null"),
+            '$[32]',
+            json("null"),
+            '$[33]',
+            json("null"),
+            '$[34]',
+            json("null"),
+            '$[35]',
+            json("null")
+        )
+    );

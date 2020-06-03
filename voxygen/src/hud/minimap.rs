@@ -22,8 +22,6 @@ widget_ids! {
         mmap_button,
         mmap_plus,
         mmap_minus,
-        zone_display_bg,
-        zone_display,
         grid,
         indicator
     }
