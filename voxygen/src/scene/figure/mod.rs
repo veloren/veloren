@@ -394,7 +394,7 @@ impl FigureMgr {
                                 .quadruped_medium_states
                                 .get(&entity)
                                 .map(|state| state.lpindex),
-                                Body::QuadrupedLow(_) => self
+                            Body::QuadrupedLow(_) => self
                                 .quadruped_low_states
                                 .get(&entity)
                                 .map(|state| state.lpindex),

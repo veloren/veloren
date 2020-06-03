@@ -295,6 +295,26 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         body.body_type,
                         generate_mesh,
                     )),
+                    Some(quadruped_medium_lateral_spec.mesh_leg_lf(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(quadruped_medium_lateral_spec.mesh_leg_rf(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(quadruped_medium_lateral_spec.mesh_leg_lb(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
+                    Some(quadruped_medium_lateral_spec.mesh_leg_rb(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
                     Some(quadruped_medium_lateral_spec.mesh_foot_lf(
                         body.species,
                         body.body_type,
@@ -315,10 +335,6 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         body.body_type,
                         generate_mesh,
                     )),
-                    None,
-                    None,
-                    None,
-                    None,
                     None,
                 ]
             },

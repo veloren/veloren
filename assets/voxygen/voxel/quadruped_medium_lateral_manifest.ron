@@ -1,288 +1,544 @@
 ({
     (Grolgar, Male): (
-        left_front: (
+        leg_lf: (
+            offset: (-2.5, -4.0, -1.5),
+            lateral: ("npc.grolgar.male.leg_lf"),
+        ),
+        leg_rf: (
+            offset: (-2.5, -4.0, -1.5),
+            lateral: ("npc.grolgar.male.leg_rf"),
+        ),
+        leg_lb: (
+            offset: (-2.5, -4.0, -3.0),
+            lateral: ("npc.grolgar.male.leg_lb"),
+        ),
+        leg_rb: (
+            offset: (-2.5, -4.0, -3.0),
+            lateral: ("npc.grolgar.male.leg_rb"),
+        ),
+        foot_lf: (
             offset: (-2.5, -4.0, -1.5),
             lateral: ("npc.grolgar.male.foot_lf"),
         ),
-        right_front: (
+        foot_rf: (
             offset: (-2.5, -4.0, -1.5),
             lateral: ("npc.grolgar.male.foot_rf"),
         ),
-        left_back: (
+        foot_lb: (
             offset: (-2.5, -4.0, -3.0),
             lateral: ("npc.grolgar.male.foot_lb"),
         ),
-        right_back: (
+        foot_rb: (
             offset: (-2.5, -4.0, -3.0),
             lateral: ("npc.grolgar.male.foot_rb"),
         ),
     ),
     (Grolgar, Female): (
-        left_front: (
+        leg_lf: (
+            offset: (-2.5, -4.0, -1.5),
+            lateral: ("npc.grolgar.female.leg_lf"),
+        ),
+        leg_rf: (
+            offset: (-2.5, -4.0, -1.5),
+            lateral: ("npc.grolgar.female.leg_rf"),
+        ),
+        leg_lb: (
+            offset: (-2.5, -4.0, -3.0),
+            lateral: ("npc.grolgar.female.leg_lb"),
+        ),
+        leg_rb: (
+            offset: (-2.5, -4.0, -3.0),
+            lateral: ("npc.grolgar.female.leg_rb"),
+        ),
+        foot_lf: (
             offset: (-2.5, -4.0, -1.5),
             lateral: ("npc.grolgar.female.foot_lf"),
         ),
-        right_front: (
+        foot_rf: (
             offset: (-2.5, -4.0, -1.5),
             lateral: ("npc.grolgar.female.foot_rf"),
         ),
-        left_back: (
+        foot_lb: (
             offset: (-2.5, -4.0, -3.0),
             lateral: ("npc.grolgar.female.foot_lb"),
         ),
-        right_back: (
+        foot_rb: (
             offset: (-2.5, -4.0, -3.0),
             lateral: ("npc.grolgar.female.foot_rb"),
         ),
     ),
     (Saber, Male): (
-        left_front: (
+        leg_lf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.saber.male.leg_lf"),
+        ),
+        leg_rf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.saber.male.leg_rf"),
+        ),
+        leg_lb: (
+            offset: (-1.5, -4.0, -3.5),
+            lateral: ("npc.saber.male.leg_lb"),
+        ),
+        leg_rb: (
+            offset: (-1.5, -4.0, -3.5),
+            lateral: ("npc.saber.male.leg_rb"),
+        ),
+        foot_lf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.saber.male.foot_lf"),
         ),
-        right_front: (
+        foot_rf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.saber.male.foot_rf"),
         ),
-        left_back: (
+        foot_lb: (
             offset: (-1.5, -4.0, -3.5),
             lateral: ("npc.saber.male.foot_lb"),
         ),
-        right_back: (
+        foot_rb: (
             offset: (-1.5, -4.0, -3.5),
             lateral: ("npc.saber.male.foot_rb"),
         ),
     ),
     (Saber, Female): (
-        left_front: (
+        leg_lf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.saber.female.leg_lf"),
+        ),
+        leg_rf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.saber.female.leg_rf"),
+        ),
+        leg_lb: (
+            offset: (-1.5, -4.0, -3.5),
+            lateral: ("npc.saber.female.leg_lb"),
+        ),
+        leg_rb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.saber.female.leg_rb"),
+        ),
+        foot_lf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.saber.female.foot_lf"),
         ),
-        right_front: (
+        foot_rf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.saber.female.foot_rf"),
         ),
-        left_back: (
+        foot_lb: (
             offset: (-1.5, -4.0, -3.5),
             lateral: ("npc.saber.female.foot_lb"),
         ),
-        right_back: (
+        foot_rb: (
             offset: (-1.5, -2.0, -3.5),
             lateral: ("npc.saber.female.foot_rb"),
         ),
     ),
     (Viper, Male): (
-        left_front: (
+        leg_lf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.viper.male.leg_lf"),
+        ),
+        leg_rf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.viper.male.leg_rf"),
+        ),
+        leg_lb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.viper.male.leg_lb"),
+        ),
+        leg_rb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.viper.male.leg_rb"),
+        ),
+        foot_lf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.viper.male.foot_lf"),
         ),
-        right_front: (
+        foot_rf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.viper.male.foot_rf"),
         ),
-        left_back: (
+        foot_lb: (
             offset: (-1.5, -2.0, -3.5),
             lateral: ("npc.viper.male.foot_lb"),
         ),
-        right_back: (
+        foot_rb: (
             offset: (-1.5, -2.0, -3.5),
             lateral: ("npc.viper.male.foot_rb"),
         ),
     ),
     (Viper, Female): (
-        left_front: (
+        leg_lf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.viper.female.leg_lf"),
+        ),
+        leg_rf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.viper.female.leg_rf"),
+        ),
+        leg_lb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.viper.female.leg_lb"),
+        ),
+        leg_rb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.viper.female.leg_rb"),
+        ),
+        foot_lf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.viper.female.foot_lf"),
         ),
-        right_front: (
+        foot_rf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.viper.female.foot_rf"),
         ),
-        left_back: (
+        foot_lb: (
             offset: (-1.5, -2.0, -3.5),
             lateral: ("npc.viper.female.foot_lb"),
         ),
-        right_back: (
+        foot_rb: (
             offset: (-1.5, -2.0, -3.5),
             lateral: ("npc.viper.female.foot_rb"),
         ),
     ),
     (Tuskram, Male): (
-        left_front: (
+        leg_lf: (
+            offset: (-1.5, -1.5, -4.5),
+            lateral: ("npc.tuskram.male.leg_lf"),
+        ),
+        leg_rf: (
+            offset: (-1.5, -1.5, -4.5),
+            lateral: ("npc.tuskram.male.leg_rf"),
+        ),
+        leg_lb: (
+            offset: (-1.5, -4.0, -5.5),
+            lateral: ("npc.tuskram.male.leg_lb"),
+        ),
+        leg_rb: (
+            offset: (-1.5, -4.0, -5.5),
+            lateral: ("npc.tuskram.male.leg_rb"),
+        ),
+        foot_lf: (
             offset: (-1.5, -1.5, -4.5),
             lateral: ("npc.tuskram.male.foot_lf"),
         ),
-        right_front: (
+        foot_rf: (
             offset: (-1.5, -1.5, -4.5),
             lateral: ("npc.tuskram.male.foot_rf"),
         ),
-        left_back: (
+        foot_lb: (
             offset: (-1.5, -4.0, -5.5),
             lateral: ("npc.tuskram.male.foot_lb"),
         ),
-        right_back: (
+        foot_rb: (
             offset: (-1.5, -4.0, -5.5),
             lateral: ("npc.tuskram.male.foot_rb"),
         ),
     ),
     (Tuskram, Female): (
-        left_front: (
+        leg_lf: (
+            offset: (-1.5, -1.5, -4.5),
+            lateral: ("npc.tuskram.female.leg_lf"),
+        ),
+        leg_rf: (
+            offset: (-1.5, -1.5, -4.5),
+            lateral: ("npc.tuskram.female.leg_rf"),
+        ),
+        leg_lb: (
+            offset: (-1.5, -4.0, -5.5),
+            lateral: ("npc.tuskram.female.leg_lb"),
+        ),
+        leg_rb: (
+            offset: (-1.5, -4.0, -5.5),
+            lateral: ("npc.tuskram.female.leg_rb"),
+        ),
+        foot_lf: (
             offset: (-1.5, -1.5, -4.5),
             lateral: ("npc.tuskram.female.foot_lf"),
         ),
-        right_front: (
+        foot_rf: (
             offset: (-1.5, -1.5, -4.5),
             lateral: ("npc.tuskram.female.foot_rf"),
         ),
-        left_back: (
+        foot_lb: (
             offset: (-1.5, -4.0, -5.5),
             lateral: ("npc.tuskram.female.foot_lb"),
         ),
-        right_back: (
+        foot_rb: (
             offset: (-1.5, -4.0, -5.5),
             lateral: ("npc.tuskram.female.foot_rb"),
         ),
     ),
     (Alligator, Male): (
-        left_front: (
+        leg_lf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.alligator.male.leg_lf"),
+        ),
+        leg_rf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.alligator.male.leg_rf"),
+        ),
+        leg_lb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.alligator.male.leg_lb"),
+        ),
+        leg_rb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.alligator.male.leg_rb"),
+        ),
+        foot_lf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.alligator.male.foot_lf"),
         ),
-        right_front: (
+        foot_rf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.alligator.male.foot_rf"),
         ),
-        left_back: (
+        foot_lb: (
             offset: (-1.5, -2.0, -3.5),
             lateral: ("npc.alligator.male.foot_lb"),
         ),
-        right_back: (
+        foot_rb: (
             offset: (-1.5, -2.0, -3.5),
             lateral: ("npc.alligator.male.foot_rb"),
         ),
     ),
     (Alligator, Female): (
-        left_front: (
+        leg_lf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.alligator.female.leg_lf"),
+        ),
+        leg_rf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.alligator.female.leg_rf"),
+        ),
+        leg_lb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.alligator.female.leg_lb"),
+        ),
+        leg_rb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.alligator.female.leg_rb"),
+        ),
+        foot_lf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.alligator.female.foot_lf"),
         ),
-        right_front: (
+        foot_rf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.alligator.female.foot_rf"),
         ),
-        left_back: (
+        foot_lb: (
             offset: (-1.5, -2.0, -3.5),
             lateral: ("npc.alligator.female.foot_lb"),
         ),
-        right_back: (
+        foot_rb: (
             offset: (-1.5, -2.0, -3.5),
             lateral: ("npc.alligator.female.foot_rb"),
         ),
     ),
     (Monitor, Male): (
-        left_front: (
+        leg_lf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.monitor.male.leg_lf"),
+        ),
+        leg_rf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.monitor.male.leg_rf"),
+        ),
+        leg_lb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.monitor.male.leg_lb"),
+        ),
+        leg_rb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.monitor.male.leg_rb"),
+        ),
+        foot_lf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.monitor.male.foot_lf"),
         ),
-        right_front: (
+        foot_rf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.monitor.male.foot_rf"),
         ),
-        left_back: (
+        foot_lb: (
             offset: (-1.5, -2.0, -3.5),
             lateral: ("npc.monitor.male.foot_lb"),
         ),
-        right_back: (
+        foot_rb: (
             offset: (-1.5, -2.0, -3.5),
             lateral: ("npc.monitor.male.foot_rb"),
         ),
     ),
     (Monitor, Female): (
-        left_front: (
+        leg_lf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.monitor.female.leg_lf"),
+        ),
+        leg_rf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.monitor.female.leg_rf"),
+        ),
+        leg_lb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.monitor.female.leg_lb"),
+        ),
+        leg_rb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.monitor.female.leg_rb"),
+        ),
+        foot_lf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.monitor.female.foot_lf"),
         ),
-        right_front: (
+        foot_rf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.monitor.female.foot_rf"),
         ),
-        left_back: (
+        foot_lb: (
             offset: (-1.5, -2.0, -3.5),
             lateral: ("npc.monitor.female.foot_lb"),
         ),
-        right_back: (
+        foot_rb: (
             offset: (-1.5, -2.0, -3.5),
             lateral: ("npc.monitor.female.foot_rb"),
         ),
     ),
     (Lion, Male): (
-        left_front: (
+        leg_lf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.lion.male.leg_lf"),
+        ),
+        leg_rf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.lion.male.leg_rf"),
+        ),
+        leg_lb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.lion.male.leg_lb"),
+        ),
+        leg_rb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.lion.male.leg_rb"),
+        ),
+        foot_lf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.lion.male.foot_lf"),
         ),
-        right_front: (
+        foot_rf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.lion.male.foot_rf"),
         ),
-        left_back: (
+        foot_lb: (
             offset: (-1.5, -2.0, -3.5),
             lateral: ("npc.lion.male.foot_lb"),
         ),
-        right_back: (
+        foot_rb: (
             offset: (-1.5, -2.0, -3.5),
             lateral: ("npc.lion.male.foot_rb"),
         ),
     ),
     (Lion, Female): (
-        left_front: (
+        leg_lf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.lion.female.leg_lf"),
+        ),
+        leg_rf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.lion.female.leg_rf"),
+        ),
+        leg_lb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.lion.female.leg_lb"),
+        ),
+        leg_rb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.lion.female.leg_rb"),
+        ),
+        foot_lf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.lion.female.foot_lf"),
         ),
-        right_front: (
+        foot_rf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.lion.female.foot_rf"),
         ),
-        left_back: (
+        foot_lb: (
             offset: (-1.5, -2.0, -3.5),
             lateral: ("npc.lion.female.foot_lb"),
         ),
-        right_back: (
+        foot_rb: (
             offset: (-1.5, -2.0, -3.5),
             lateral: ("npc.lion.female.foot_rb"),
         ),
     ),
     (Tarasque, Male): (
-        left_front: (
+        leg_lf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.tarasque.male.leg_lf"),
+        ),
+        leg_rf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.tarasque.male.leg_rf"),
+        ),
+        leg_lb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.tarasque.male.leg_lb"),
+        ),
+        leg_rb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.tarasque.male.leg_rb"),
+        ),
+        foot_lf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.tarasque.male.foot_lf"),
         ),
-        right_front: (
+        foot_rf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.tarasque.male.foot_rf"),
         ),
-        left_back: (
+        foot_lb: (
             offset: (-1.5, -2.0, -3.5),
             lateral: ("npc.tarasque.male.foot_lb"),
         ),
-        right_back: (
+        foot_rb: (
             offset: (-1.5, -2.0, -3.5),
             lateral: ("npc.tarasque.male.foot_rb"),
         ),
     ),
     (Tarasque, Female): (
-        left_front: (
+        leg_lf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.tarasque.female.leg_lf"),
+        ),
+        leg_rf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.tarasque.female.leg_rf"),
+        ),
+        leg_lb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.tarasque.female.leg_lb"),
+        ),
+        leg_rb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.tarasque.female.leg_rb"),
+        ),
+        foot_lf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.tarasque.female.foot_lf"),
         ),
-        right_front: (
+        foot_rf: (
             offset: (-1.5, -1.5, -2.5),
             lateral: ("npc.tarasque.female.foot_rf"),
         ),
-        left_back: (
+        foot_lb: (
             offset: (-1.5, -2.0, -3.5),
             lateral: ("npc.tarasque.female.foot_lb"),
         ),
-        right_back: (
+        foot_rb: (
             offset: (-1.5, -2.0, -3.5),
             lateral: ("npc.tarasque.female.foot_rb"),
         ),
