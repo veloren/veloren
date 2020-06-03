@@ -6,7 +6,6 @@ Item(
         effect: Health((
             amount: 20,
             cause: Item,
-        )),
-        amount: 20,
+        )),        
     ),
 )

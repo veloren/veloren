@@ -194,17 +194,17 @@ um dieses Fenster zu schließen? Drückt 'TAB'!
 
 Viel Spaß in der Welt von Veloren, Abenteurer!"#,
 
-"hud.temp_quest_headline": r#"Please, help us Traveler!"#,
-"hud.temp_quest_text": r#"Dungeons filled with evil cultists 
-have emerged all around our peaceful towns!
+"hud.temp_quest_headline": r#"Bitte helft uns, Reisender!"#,
+"hud.temp_quest_text": r#"Höhlen voller böser Kultisten sind  überall
+um unsere Dörfer herum aufgetaucht!
 
 
-Gather some company, stack up on food 
-and defeat their vile leaders and acolytes.
+Versammelt einige Kämpfer, sucht etwas 
+Nahrung und besiegt ihre abscheulichen 
+Anführer und Akolyten.
 
-
-Maybe you can even obtain one of their  
-magically infused items?"#,
+Vielleicht könnt ihr sogar einen ihrer 
+magischen Gegenstände ergattern?"#,
 
         // Inventory
         "hud.bag.inventory": "{playername}s Inventar",
