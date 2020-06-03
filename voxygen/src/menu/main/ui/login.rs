@@ -5,11 +5,12 @@ use crate::{
         fonts::IcedFonts as Fonts,
         ice::{
             component::neat_button,
+            style,
             widget::{
                 compound_graphic::{CompoundGraphic, Graphic},
                 BackgroundContainer, Image, Padding,
             },
-            ButtonStyle, Element,
+            Element,
         },
     },
 };
@@ -52,11 +53,12 @@ impl Screen {
         imgs: &Imgs,
         login_info: &LoginInfo,
         info: &Info,
+        error: Option<&str>,
         version: &str,
         show_servers: bool,
         i18n: &Localization,
     ) -> Element<Message> {
-        let button_style = ButtonStyle::new(imgs.button)
+        let button_style = style::button::Style::new(imgs.button)
             .hover_image(imgs.button_hover)
             .press_image(imgs.button_press)
             .text_color(TEXT_COLOR)
@@ -146,7 +148,9 @@ impl Screen {
         .spacing(10)
         .padding(3);
 
-        BackgroundContainer::new(Image::new(imgs.bg), content).into()
+        Container::new(content)
+            .style(style::container::Style::image(imgs.bg))
+            .into()
     }
 }
 
@@ -179,7 +183,7 @@ impl Banner {
         imgs: &Imgs,
         login_info: &LoginInfo,
         i18n: &Localization,
-        button_style: ButtonStyle,
+        button_style: style::button::Style,
     ) -> Element<Message> {
         let input_text_size = fonts.cyri.scale(INPUT_TEXT_SIZE);
 

@@ -119,15 +119,35 @@ enum Info {
     Intro,
 }
 
+enum ConnectionState {
+    InProgress {
+        status: String,
+    },
+    AuthTrustPrompt {
+        auth_server: String,
+        msg: String,
+        // To remember when we switch back
+        status: String,
+    },
+}
+impl ConnectionState {
+    fn take_status_string(&mut self) -> String {
+        std::mem::take(match self {
+            Self::InProgress { status } => status,
+            Self::AuthTrustPrompt { status, .. } => status,
+        })
+    }
+}
+
 enum Screen {
     Login {
         screen: login::Screen,
+        // Error to display in a box
+        error: Option<String>,
     },
     Connecting {
         screen: connecting::Screen,
-        // TODO: why instant?
-        start: std::time::Instant,
-        status_text: String,
+        connection_state: ConnectionState,
     },
 }
 
@@ -142,8 +162,6 @@ struct IcedState {
 
     login_info: LoginInfo,
 
-    // TODO: not sure if this should be used for connecting
-    popup: Option<PopupData>,
     show_servers: bool,
     info: Info,
     time: f32,
@@ -163,6 +181,10 @@ enum Message {
     Server(String),
     FocusPassword,
     CancelConnect,
+    TrustPromptAdd,
+    TrustPromptCancel,
+    CloseError,
+    CloseDisclaimer,
 }
 
 impl IcedState {
@@ -198,13 +220,13 @@ impl IcedState {
                 server: String::new(),
             },
 
-            popup: None,
             show_servers: false,
             info,
             time: 0.0,
 
             screen: Screen::Login {
                 screen: login::Screen::new(),
+                error: None,
             },
         }
     }
@@ -212,12 +234,14 @@ impl IcedState {
     fn view(&mut self, dt: f32) -> Element<Message> {
         self.time = self.time + dt;
 
+        // TODO: make disclaimer it's own screen?
         match &mut self.screen {
-            Screen::Login { screen } => screen.view(
+            Screen::Login { screen, error } => screen.view(
                 &self.fonts,
                 &self.imgs,
                 &self.login_info,
                 &self.info,
+                error.as_deref(),
                 &self.version,
                 self.show_servers,
                 &self.i18n,
@@ -225,13 +249,13 @@ impl IcedState {
             Screen::Connecting {
                 screen,
                 start,
-                status_text,
+                connection_state,
             } => screen.view(
                 &self.fonts,
                 &self.imgs,
                 self.bg_img,
                 &start,
-                &status_text,
+                &connection_state,
                 &self.version,
                 self.time,
                 &self.i18n,
@@ -248,7 +272,9 @@ impl IcedState {
                 self.screen = Screen::Connecting {
                     screen: connecting::Screen::new(),
                     start: std::time::Instant::now(),
-                    status_text: [self.i18n.get("main.creating_world"), "..."].concat(),
+                    connection_state: ConnectionState::InProgress {
+                        status: [self.i18n.get("main.creating_world"), "..."].concat(),
+                    },
                 };
 
                 events.push(Event::StartSingleplayer);
@@ -257,7 +283,9 @@ impl IcedState {
                 self.screen = Screen::Connecting {
                     screen: connecting::Screen::new(),
                     start: std::time::Instant::now(),
-                    status_text: [self.i18n.get("main.connecting"), "..."].concat(),
+                    connection_state: ConnectionState::InProgress {
+                        status: [self.i18n.get("main.connecting"), "..."].concat(),
+                    },
                 };
 
                 events.push(Event::LoginAttempt {
@@ -279,6 +307,34 @@ impl IcedState {
                 self.cancel_connection();
                 events.push(Event::CancelLoginAttempt);
             },
+            msg @ Message::TrustPromptAdd | msg @ Message::TrustPromptCancel => {
+                if let Screen::Connecting {
+                    connection_state, ..
+                } = &mut self.screen
+                {
+                    if let ConnectionState::AuthTrustPrompt {
+                        auth_server,
+                        status,
+                        ..
+                    } = connection_state
+                    {
+                        let auth_server = std::mem::take(auth_server);
+                        let status = std::mem::take(status);
+                        let added = matches!(msg, Message::TrustPromptAdd);
+
+                        *connection_state = ConnectionState::InProgress { status };
+                        events.push(Event::AuthServerTrust(auth_server, added));
+                    }
+                }
+            },
+            Message::CloseError => {
+                if let Screen::Login { error, .. } = &mut self.screen {
+                    *error = None;
+                }
+            },
+            Message::CloseDisclaimer => {
+                events.push(Event::DisclaimerClosed);
+            },
         }
     }
 
@@ -286,6 +342,37 @@ impl IcedState {
         if matches!(&self.screen, Screen::Connecting {..}) {
             self.screen = Screen::Login {
                 screen: login::Screen::new(),
+                error: None,
+            }
+        }
+    }
+
+    fn auth_trust_prompt(&mut self, auth_server: String) {
+        if let Screen::Connecting {
+            connection_state, ..
+        } = &mut self.screen
+        {
+            let msg = format!(
+                "Warning: The server you are trying to connect to has provided this \
+                 authentication server address:\n\n{}\n\nbut it is not in your list of trusted \
+                 authentication servers.\n\nMake sure that you trust this site and owner to not \
+                 try and bruteforce your password!",
+                &auth_server
+            );
+
+            *connection_state = ConnectionState::AuthTrustPrompt {
+                auth_server,
+                msg,
+                status: connection_state.take_status_string(),
+            };
+        }
+    }
+
+    fn connection_error(&mut self, error: String) {
+        if matches!(&self.screen, Screen::Connecting {..}) {
+            self.screen = Screen::Login {
+                screen: login::Screen::new(),
+                error: Some(error),
             }
         }
     }
@@ -1061,6 +1148,7 @@ impl<'a> MainMenuUi {
     }
 
     pub fn auth_trust_prompt(&mut self, auth_server: String) {
+        self.ice_state.auth_trust_prompt(auth_server.clone());
         self.popup = Some(PopupData {
             msg: format!(
                 "Warning: The server you are trying to connect to has provided this \
@@ -1074,6 +1162,8 @@ impl<'a> MainMenuUi {
     }
 
     pub fn show_info(&mut self, msg: String) {
+        self.ice_state.connection_error(msg.clone());
+
         self.popup = Some(PopupData {
             msg,
             popup_type: PopupType::Error,

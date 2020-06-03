@@ -1,10 +1,10 @@
-use super::super::{super::Rotation, Defaults, IcedRenderer, Primitive};
+use super::super::{super::Rotation, style, Defaults, IcedRenderer, Primitive};
 use iced::{button, mouse, Element, Layout, Point, Rectangle};
 use vek::Rgba;
 
 impl button::Renderer for IcedRenderer {
     // TODO: what if this gets large enough to not be copied around?
-    type Style = super::super::style::ButtonStyle;
+    type Style = style::button::Style;
 
     const DEFAULT_PADDING: u16 = 0;
 

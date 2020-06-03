@@ -9,7 +9,7 @@ mod winit_conversion;
 pub use cache::{Font, FontId, RawFont};
 pub use graphic::{Id, Rotation};
 pub use iced::Event;
-pub use renderer::{ButtonStyle, IcedRenderer};
+pub use renderer::{style, IcedRenderer};
 pub use winit_conversion::window_event;
 
 use super::{

@@ -1,15 +1,15 @@
 use crate::ui::ice as ui;
 use iced::{button::State, Button, Element, Length};
 use ui::{
+    style::button::Style,
     widget::{AspectRatioContainer, FillText},
-    ButtonStyle,
 };
 
 pub fn neat_button<M: Clone + 'static>(
     state: &mut State,
     label: impl Into<String>,
     fill_fraction: f32,
-    button_style: ButtonStyle,
+    button_style: Style,
     message: Option<M>,
 ) -> Element<M, ui::IcedRenderer> {
     let button = Button::new(state, FillText::new(label).fill_fraction(fill_fraction))

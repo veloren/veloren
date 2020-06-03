@@ -1,10 +1,9 @@
 mod defaults;
 mod primitive;
-mod style;
+pub mod style;
 mod widget;
 
 pub use defaults::Defaults;
-pub use style::ButtonStyle;
 
 pub(self) use primitive::Primitive;
 
