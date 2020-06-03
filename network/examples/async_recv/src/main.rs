@@ -21,7 +21,7 @@ enum Msg {
     Pong(u64),
 }
 
-/// This utility checks if async functionatily of veloren-network works
+/// This utility checks if async functionality of veloren-network works
 /// correctly and outputs it at the end
 fn main() {
     let matches = App::new("Veloren Async Prove Utility")

@@ -62,7 +62,7 @@ fn stream_simple_udp_3msg() {
 #[test]
 #[ignore]
 fn tcp_and_udp_2_connections() -> std::result::Result<(), Box<dyn std::error::Error>> {
-    let (_, _) = helper::setup(true, 0);
+    let (_, _) = helper::setup(false, 0);
     let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     let remote = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     block_on(async {
@@ -110,23 +110,24 @@ fn failed_listen_on_used_ports() -> std::result::Result<(), Box<dyn std::error::
 /// There is a bug an impris-desktop-1 which fails the DOC tests,
 /// it fails exactly `api_stream_send_main` and `api_stream_recv_main` by
 /// deadlocking at different times!
-/// So i rather put the same test into a unit test, as my gues is that it's
-/// compiler related
+/// So i rather put the same test into a unit test, these are now duplicate to
+/// the api, but are left here, just to be save!
 #[test]
 fn api_stream_send_main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let (_, _) = helper::setup(false, 0);
-    // Create a Network, listen on Port `2200` and wait for a Stream to be opened,
+    // Create a Network, listen on Port `1200` and wait for a Stream to be opened,
     // then answer `Hello World`
     let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     let remote = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     block_on(async {
         network
-            .listen(Address::Tcp("127.0.0.1:2200".parse().unwrap()))
+            .listen(Address::Tcp("127.0.0.1:1200".parse().unwrap()))
             .await?;
         let remote_p = remote
-            .connect(Address::Tcp("127.0.0.1:2200".parse().unwrap()))
+            .connect(Address::Tcp("127.0.0.1:1200".parse().unwrap()))
             .await?;
-        remote_p
+        // keep it alive
+        let _stream_p = remote_p
             .open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY)
             .await?;
         let participant_a = network.connected().await?;
@@ -140,16 +141,16 @@ fn api_stream_send_main() -> std::result::Result<(), Box<dyn std::error::Error>>
 #[test]
 fn api_stream_recv_main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let (_, _) = helper::setup(false, 0);
-    // Create a Network, listen on Port `2220` and wait for a Stream to be opened,
+    // Create a Network, listen on Port `1220` and wait for a Stream to be opened,
     // then listen on it
     let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     let remote = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
     block_on(async {
         network
-            .listen(Address::Tcp("127.0.0.1:2220".parse().unwrap()))
+            .listen(Address::Tcp("127.0.0.1:1220".parse().unwrap()))
             .await?;
         let remote_p = remote
-            .connect(Address::Tcp("127.0.0.1:2220".parse().unwrap()))
+            .connect(Address::Tcp("127.0.0.1:1220".parse().unwrap()))
             .await?;
         let mut stream_p = remote_p
             .open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY)
@@ -158,7 +159,17 @@ fn api_stream_recv_main() -> std::result::Result<(), Box<dyn std::error::Error>>
         let participant_a = network.connected().await?;
         let mut stream_a = participant_a.opened().await?;
         //Send  Message
-        println!("{}", stream_a.recv::<String>().await?);
+        assert_eq!("Hello World".to_string(), stream_a.recv::<String>().await?);
         Ok(())
     })
+}
+
+#[test]
+#[should_panic]
+fn wrong_parse() {
+    let (_, _) = helper::setup(false, 0);
+    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(tcp()));
+
+    s1_a.send(1337).unwrap();
+    assert_eq!(block_on(s1_b.recv()), Ok("Hello World".to_string()));
 }

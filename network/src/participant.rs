@@ -1,7 +1,7 @@
 use crate::{
     api::Stream,
     channel::Channel,
-    message::{InCommingMessage, MessageBuffer, OutGoingMessage},
+    message::{IncomingMessage, MessageBuffer, OutgoingMessage},
     metrics::{NetworkMetrics, PidCidFrameCache},
     prios::PrioManager,
     protocols::Protocols,
@@ -37,7 +37,7 @@ struct ChannelInfo {
 struct StreamInfo {
     prio: Prio,
     promises: Promises,
-    b2a_msg_recv_s: mpsc::UnboundedSender<InCommingMessage>,
+    b2a_msg_recv_s: mpsc::UnboundedSender<IncomingMessage>,
     closed: Arc<AtomicBool>,
 }
 
@@ -45,7 +45,8 @@ struct StreamInfo {
 struct ControlChannels {
     a2b_steam_open_r: mpsc::UnboundedReceiver<(Prio, Promises, oneshot::Sender<Stream>)>,
     b2a_stream_opened_s: mpsc::UnboundedSender<Stream>,
-    s2b_create_channel_r: mpsc::UnboundedReceiver<(Cid, Sid, Protocols, oneshot::Sender<()>)>,
+    s2b_create_channel_r:
+        mpsc::UnboundedReceiver<(Cid, Sid, Protocols, Vec<(Cid, Frame)>, oneshot::Sender<()>)>,
     a2b_close_stream_r: mpsc::UnboundedReceiver<Sid>,
     a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
     s2b_shutdown_bparticipant_r: oneshot::Receiver<oneshot::Sender<async_std::io::Result<()>>>, /* own */
@@ -72,7 +73,7 @@ impl BParticipant {
         Self,
         mpsc::UnboundedSender<(Prio, Promises, oneshot::Sender<Stream>)>,
         mpsc::UnboundedReceiver<Stream>,
-        mpsc::UnboundedSender<(Cid, Sid, Protocols, oneshot::Sender<()>)>,
+        mpsc::UnboundedSender<(Cid, Sid, Protocols, Vec<(Cid, Frame)>, oneshot::Sender<()>)>,
         oneshot::Sender<oneshot::Sender<async_std::io::Result<()>>>,
     ) {
         let (a2b_steam_open_s, a2b_steam_open_r) =
@@ -80,8 +81,7 @@ impl BParticipant {
         let (b2a_stream_opened_s, b2a_stream_opened_r) = mpsc::unbounded::<Stream>();
         let (a2b_close_stream_s, a2b_close_stream_r) = mpsc::unbounded();
         let (s2b_shutdown_bparticipant_s, s2b_shutdown_bparticipant_r) = oneshot::channel();
-        let (s2b_create_channel_s, s2b_create_channel_r) =
-            mpsc::unbounded::<(Cid, Sid, Protocols, oneshot::Sender<()>)>();
+        let (s2b_create_channel_s, s2b_create_channel_r) = mpsc::unbounded();
 
         let run_channels = Some(ControlChannels {
             a2b_steam_open_r,
@@ -136,7 +136,7 @@ impl BParticipant {
                 run_channels.a2b_close_stream_s,
                 a2p_msg_s.clone(),
             ),
-            self.create_channel_mgr(run_channels.s2b_create_channel_r, w2b_frames_s,),
+            self.create_channel_mgr(run_channels.s2b_create_channel_r, w2b_frames_s),
             self.send_mgr(
                 prios,
                 shutdown_send_mgr_receiver,
@@ -243,7 +243,7 @@ impl BParticipant {
         mut w2b_frames_r: mpsc::UnboundedReceiver<(Cid, Frame)>,
         mut b2a_stream_opened_s: mpsc::UnboundedSender<Stream>,
         a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
-        a2p_msg_s: std::sync::mpsc::Sender<(Prio, Sid, OutGoingMessage)>,
+        a2p_msg_s: std::sync::mpsc::Sender<(Prio, Sid, OutgoingMessage)>,
     ) {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
         trace!("start handle_frames_mgr");
@@ -300,7 +300,7 @@ impl BParticipant {
                     }
                 },
                 Frame::DataHeader { mid, sid, length } => {
-                    let imsg = InCommingMessage {
+                    let imsg = IncomingMessage {
                         buffer: MessageBuffer { data: Vec::new() },
                         length,
                         mid,
@@ -367,40 +367,50 @@ impl BParticipant {
 
     async fn create_channel_mgr(
         &self,
-        s2b_create_channel_r: mpsc::UnboundedReceiver<(Cid, Sid, Protocols, oneshot::Sender<()>)>,
+        s2b_create_channel_r: mpsc::UnboundedReceiver<(
+            Cid,
+            Sid,
+            Protocols,
+            Vec<(Cid, Frame)>,
+            oneshot::Sender<()>,
+        )>,
         w2b_frames_s: mpsc::UnboundedSender<(Cid, Frame)>,
     ) {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
         trace!("start create_channel_mgr");
         s2b_create_channel_r
-            .for_each_concurrent(None, |(cid, _, protocol, b2s_create_channel_done_s)| {
-                // This channel is now configured, and we are running it in scope of the
-                // participant.
-                let w2b_frames_s = w2b_frames_s.clone();
-                let channels = self.channels.clone();
-                async move {
-                    let (channel, b2w_frame_s, b2r_read_shutdown) =
-                        Channel::new(cid, self.remote_pid);
-                    channels.write().await.push(ChannelInfo {
-                        cid,
-                        cid_string: cid.to_string(),
-                        b2w_frame_s,
-                        b2r_read_shutdown,
-                    });
-                    b2s_create_channel_done_s.send(()).unwrap();
-                    self.metrics
-                        .channels_connected_total
-                        .with_label_values(&[&self.remote_pid_string])
-                        .inc();
-                    trace!(?cid, "running channel in participant");
-                    channel.run(protocol, w2b_frames_s).await;
-                    self.metrics
-                        .channels_disconnected_total
-                        .with_label_values(&[&self.remote_pid_string])
-                        .inc();
-                    trace!(?cid, "channel got closed");
-                }
-            })
+            .for_each_concurrent(
+                None,
+                |(cid, _, protocol, leftover_cid_frame, b2s_create_channel_done_s)| {
+                    // This channel is now configured, and we are running it in scope of the
+                    // participant.
+                    let w2b_frames_s = w2b_frames_s.clone();
+                    let channels = self.channels.clone();
+                    async move {
+                        let (channel, b2w_frame_s, b2r_read_shutdown) = Channel::new(cid);
+                        channels.write().await.push(ChannelInfo {
+                            cid,
+                            cid_string: cid.to_string(),
+                            b2w_frame_s,
+                            b2r_read_shutdown,
+                        });
+                        b2s_create_channel_done_s.send(()).unwrap();
+                        self.metrics
+                            .channels_connected_total
+                            .with_label_values(&[&self.remote_pid_string])
+                            .inc();
+                        trace!(?cid, "running channel in participant");
+                        channel
+                            .run(protocol, w2b_frames_s, leftover_cid_frame)
+                            .await;
+                        self.metrics
+                            .channels_disconnected_total
+                            .with_label_values(&[&self.remote_pid_string])
+                            .inc();
+                        trace!(?cid, "channel got closed");
+                    }
+                },
+            )
             .await;
         trace!("stop create_channel_mgr");
         self.running_mgr.fetch_sub(1, Ordering::Relaxed);
@@ -410,7 +420,7 @@ impl BParticipant {
         &self,
         mut a2b_steam_open_r: mpsc::UnboundedReceiver<(Prio, Promises, oneshot::Sender<Stream>)>,
         a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
-        a2p_msg_s: std::sync::mpsc::Sender<(Prio, Sid, OutGoingMessage)>,
+        a2p_msg_s: std::sync::mpsc::Sender<(Prio, Sid, OutgoingMessage)>,
         shutdown_open_mgr_receiver: oneshot::Receiver<()>,
     ) {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
@@ -562,10 +572,10 @@ impl BParticipant {
         sid: Sid,
         prio: Prio,
         promises: Promises,
-        a2p_msg_s: std::sync::mpsc::Sender<(Prio, Sid, OutGoingMessage)>,
+        a2p_msg_s: std::sync::mpsc::Sender<(Prio, Sid, OutgoingMessage)>,
         a2b_close_stream_s: &mpsc::UnboundedSender<Sid>,
     ) -> Stream {
-        let (b2a_msg_recv_s, b2a_msg_recv_r) = mpsc::unbounded::<InCommingMessage>();
+        let (b2a_msg_recv_s, b2a_msg_recv_r) = mpsc::unbounded::<IncomingMessage>();
         let closed = Arc::new(AtomicBool::new(false));
         self.streams.write().await.insert(sid, StreamInfo {
             prio,

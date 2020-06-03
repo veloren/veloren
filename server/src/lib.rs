@@ -79,7 +79,7 @@ pub struct Server {
     thread_pool: ThreadPool,
 
     server_info: ServerInfo,
-    _metrics: ServerMetrics,
+    metrics: ServerMetrics,
     tick_metrics: TickMetrics,
 
     server_settings: ServerSettings,
@@ -242,7 +242,7 @@ impl Server {
                 git_date: common::util::GIT_DATE.to_string(),
                 auth_provider: settings.auth_server_address.clone(),
             },
-            _metrics: metrics,
+            metrics,
             tick_metrics,
             server_settings: settings.clone(),
         };
@@ -494,6 +494,7 @@ impl Server {
             .tick_time
             .with_label_values(&["metrics"])
             .set(end_of_server_tick.elapsed().as_nanos() as i64);
+        self.metrics.tick();
 
         // 8) Finish the tick, pass control back to the frontend.
 
