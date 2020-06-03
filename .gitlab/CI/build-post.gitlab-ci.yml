@@ -1,5 +1,5 @@
 .tests: &tests
-  extends: .recompile
+  extends: .recompile-branch
   stage: build-post
   tags:
     - veloren-docker
@@ -13,8 +13,12 @@ unittests:
     max: 2
 
 coverage:
-  <<: *tests
+  # Run on master and branches
+  extends: .recompile
   allow_failure: true
+  stage: build-post
+  tags:
+    - veloren-docker
   script:
     - ln -s /dockercache/cache-tarpaulin target
     - cargo tarpaulin -v
