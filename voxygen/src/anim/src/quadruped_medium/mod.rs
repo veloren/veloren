@@ -18,6 +18,10 @@ pub struct QuadrupedMediumSkeleton {
     torso_back: Bone,
     torso_mid: Bone,
     ears: Bone,
+    leg_lf: Bone,
+    leg_rf: Bone,
+    leg_lb: Bone,
+    leg_rb: Bone,
     foot_lf: Bone,
     foot_rf: Bone,
     foot_lb: Bone,
@@ -31,10 +35,7 @@ impl QuadrupedMediumSkeleton {
 impl Skeleton for QuadrupedMediumSkeleton {
     type Attr = SkeletonAttr;
 
-    #[cfg(feature = "use-dyn-lib")]
-    const COMPUTE_FN: &'static [u8] = b"quadruped_medium_compute_mats\0";
-
-    fn bone_count(&self) -> usize { 11 }
+    fn bone_count(&self) -> usize { 15 }
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_medium_compute_mats")]
     fn compute_matrices_inner(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
@@ -51,14 +52,14 @@ impl Skeleton for QuadrupedMediumSkeleton {
                 FigureBoneData::new(self.torso_back.compute_base_matrix()),
                 FigureBoneData::new(torso_mid_mat),
                 FigureBoneData::new(head_upper_mat * ears_mat),
+                FigureBoneData::new(self.leg_lf.compute_base_matrix()),
+                FigureBoneData::new(self.leg_rf.compute_base_matrix()),
+                FigureBoneData::new(self.leg_lb.compute_base_matrix()),
+                FigureBoneData::new(self.leg_rb.compute_base_matrix()),
                 FigureBoneData::new(self.foot_lf.compute_base_matrix()),
                 FigureBoneData::new(self.foot_rf.compute_base_matrix()),
                 FigureBoneData::new(self.foot_lb.compute_base_matrix()),
                 FigureBoneData::new(self.foot_rb.compute_base_matrix()),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
                 FigureBoneData::default(),
             ],
             Vec3::default(),
@@ -73,6 +74,10 @@ impl Skeleton for QuadrupedMediumSkeleton {
         self.torso_back.interpolate(&target.torso_back, dt);
         self.torso_mid.interpolate(&target.torso_mid, dt);
         self.ears.interpolate(&target.ears, dt);
+        self.leg_lf.interpolate(&target.leg_lf, dt);
+        self.leg_rf.interpolate(&target.leg_rf, dt);
+        self.leg_lb.interpolate(&target.leg_lb, dt);
+        self.leg_rb.interpolate(&target.leg_rb, dt);
         self.foot_lf.interpolate(&target.foot_lf, dt);
         self.foot_rf.interpolate(&target.foot_rf, dt);
         self.foot_lb.interpolate(&target.foot_lb, dt);
@@ -88,6 +93,8 @@ pub struct SkeletonAttr {
     torso_back: (f32, f32),
     torso_mid: (f32, f32),
     ears: (f32, f32),
+    leg_f: (f32, f32, f32),
+    leg_b: (f32, f32, f32),
     feet_f: (f32, f32, f32),
     feet_b: (f32, f32, f32),
     height: f32,
@@ -114,6 +121,8 @@ impl Default for SkeletonAttr {
             torso_back: (0.0, 0.0),
             torso_mid: (0.0, 0.0),
             ears: (0.0, 0.0),
+            leg_f: (0.0, 0.0, 0.0),
+            leg_b: (0.0, 0.0, 0.0),
             feet_f: (0.0, 0.0, 0.0),
             feet_b: (0.0, 0.0, 0.0),
             height: (0.0),
@@ -194,6 +203,26 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Monitor, _) => (10.0, 2.0),
                 (Lion, _) => (-2.0, 4.0),
                 (Tarasque, _) => (1.5, -2.0),
+            },
+            leg_f: match (body.species, body.body_type) {
+                (Grolgar, _) => (5.0, 6.0, 2.0),
+                (Saber, _) => (4.0, 6.0, 3.0),
+                (Viper, _) => (4.0, 6.0, 3.0),
+                (Tuskram, _) => (4.0, 6.0, 4.5),
+                (Alligator, _) => (4.0, 6.0, 3.0),
+                (Monitor, _) => (4.0, 6.0, 3.0),
+                (Lion, _) => (5.0, 6.0, 3.0),
+                (Tarasque, _) => (4.0, 6.0, 3.0),
+            },
+            leg_b: match (body.species, body.body_type) {
+                (Grolgar, _) => (5.0, -4.0, 3.0),
+                (Saber, _) => (4.0, -6.0, 3.5),
+                (Viper, _) => (4.0, -4.0, 3.5),
+                (Tuskram, _) => (4.0, -8.0, 5.5),
+                (Alligator, _) => (4.0, -4.0, 3.5),
+                (Monitor, _) => (4.0, -6.0, 3.5),
+                (Lion, _) => (5.5, -8.0, 3.5),
+                (Tarasque, _) => (4.0, -8.0, 3.5),
             },
             feet_f: match (body.species, body.body_type) {
                 (Grolgar, _) => (5.0, 6.0, 2.0),
