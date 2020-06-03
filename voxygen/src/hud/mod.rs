@@ -1155,7 +1155,7 @@ impl Hud {
                             .label_font_id(self.fonts.cyri.conrod_id)
                             .label_font_size(self.fonts.cyri.scale(22))
                             .label_color(TEXT_COLOR)
-                            .label_y(conrod_core::position::Relative::Scalar(1.0))
+                            .label_y(conrod_core::position::Relative::Scalar(2.0))
                             .set(self.ids.accept_button, ui_widgets)
                             .was_clicked()
                         {
@@ -1165,7 +1165,9 @@ impl Hud {
                         }
                     }
                 },
-                Intro::Never => {},
+                Intro::Never => {
+                    self.show.intro = false;
+                },
             }
         }
 
