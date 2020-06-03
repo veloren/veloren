@@ -33,7 +33,6 @@ impl Screen {
         fonts: &Fonts,
         imgs: &Imgs,
         bg_img: image::Handle,
-        start: &std::time::Instant,
         connection_state: &ConnectionState,
         version: &str,
         time: f32,
