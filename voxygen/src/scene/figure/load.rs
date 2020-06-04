@@ -1579,7 +1579,7 @@ impl QuadrupedMediumLateralSpec {
             Some(spec) => spec,
             None => {
                 error!(
-                    "No foot specification exists for the combination of {:?} and {:?}",
+                    "No leg specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
@@ -3051,8 +3051,7 @@ struct SidedQLCentralVoxSpec {
     upper: QuadrupedLowCentralSubSpec,
     lower: QuadrupedLowCentralSubSpec,
     jaw: QuadrupedLowCentralSubSpec,
-    chest_front: QuadrupedLowCentralSubSpec,
-    chest_rear: QuadrupedLowCentralSubSpec,
+    chest: QuadrupedLowCentralSubSpec,
     tail_front: QuadrupedLowCentralSubSpec,
     tail_rear: QuadrupedLowCentralSubSpec,
 }
@@ -3162,7 +3161,7 @@ impl QuadrupedLowCentralSpec {
         generate_mesh(&central, Vec3::from(spec.jaw.offset))
     }
 
-    pub fn mesh_chest_front(
+    pub fn mesh_chest(
         &self,
         species: QLSpecies,
         body_type: QLBodyType,
@@ -3172,36 +3171,15 @@ impl QuadrupedLowCentralSpec {
             Some(spec) => spec,
             None => {
                 error!(
-                    "No chest_front specification exists for the combination of {:?} and {:?}",
+                    "No chest specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
             },
         };
-        let central = graceful_load_segment(&spec.chest_front.central.0);
+        let central = graceful_load_segment(&spec.chest.central.0);
 
-        generate_mesh(&central, Vec3::from(spec.chest_front.offset))
-    }
-
-    pub fn mesh_chest_rear(
-        &self,
-        species: QLSpecies,
-        body_type: QLBodyType,
-        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
-    ) -> Mesh<FigurePipeline> {
-        let spec = match self.0.get(&(species, body_type)) {
-            Some(spec) => spec,
-            None => {
-                error!(
-                    "No chest_rear specification exists for the combination of {:?} and {:?}",
-                    species, body_type
-                );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
-            },
-        };
-        let central = graceful_load_segment(&spec.chest_rear.central.0);
-
-        generate_mesh(&central, Vec3::from(spec.chest_rear.offset))
+        generate_mesh(&central, Vec3::from(spec.chest.offset))
     }
 
     pub fn mesh_tail_rear(

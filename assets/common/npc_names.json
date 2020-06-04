@@ -561,6 +561,18 @@
             "crocodile": {
                 "keyword": "crocodile",
                 "generic": "Crocodile"
+            },
+            "alligator": {
+                "keyword": "alligator",
+                "generic": "Alligator"
+            },
+            "salamander": {
+                "keyword": "salamander",
+                "generic": "Salamander"
+            },
+            "monitor": {
+                "keyword": "monitor",
+                "generic": "Monitor"
             }
         }
     }
