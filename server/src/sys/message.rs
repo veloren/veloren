@@ -190,11 +190,7 @@ impl<'a> System<'a> for Sys {
                         },
                         _ => {},
                     },
-                    ClientMsg::Character {
-                        character_id,
-                        body,
-                        main,
-                    } => match client.client_state {
+                    ClientMsg::Character { character_id, body } => match client.client_state {
                         // Become Registered first.
                         ClientState::Connected => client.error_state(RequestStateError::Impossible),
                         ClientState::Registered | ClientState::Spectator => {
@@ -218,7 +214,6 @@ impl<'a> System<'a> for Sys {
                                 entity,
                                 character_id,
                                 body,
-                                main,
                             });
                         },
                         ClientState::Character => client.error_state(RequestStateError::Already),

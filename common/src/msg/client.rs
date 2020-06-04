@@ -17,7 +17,6 @@ pub enum ClientMsg {
     Character {
         character_id: i32,
         body: comp::Body,
-        main: Option<String>, // Specifier for the weapon
     },
     /// Request `ClientState::Registered` from an ingame state
     ExitIngame,

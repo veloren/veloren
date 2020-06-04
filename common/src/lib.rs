@@ -22,6 +22,7 @@ pub mod effect;
 pub mod event;
 pub mod figure;
 pub mod generation;
+pub mod loadout_builder;
 pub mod msg;
 pub mod npc;
 pub mod path;
@@ -37,6 +38,8 @@ pub mod terrain;
 pub mod util;
 pub mod vol;
 pub mod volumes;
+
+pub use loadout_builder::LoadoutBuilder;
 
 /// The networking module containing high-level wrappers of `TcpListener` and
 /// `TcpStream` (`PostOffice` and `PostBox` respectively) and data types used by

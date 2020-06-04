@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - NPCs call for help when attacked
 - Eyebrows and shapes can now be selected
 - Character name and level information to chat, social tab and `/players` command.
-- Added inventory saving
+- Added inventory, armour and weapon saving
 
 ### Changed
 
