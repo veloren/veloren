@@ -464,7 +464,8 @@ impl<'a> System<'a> for Sys {
                             server_emitter.emit(ServerEvent::ChatCmd(entity, argv));
                         }
                     } else {
-                        // TODO FIXME speech bubbles and prefixes are handled by the client now
+                        // Send speech bubble and chat message
+                        // TODO filter group, faction, say, and bubble distance.
                         for client in (&mut clients).join().filter(|c| c.is_registered()) {
                             client.notify(ServerMsg::ChatMsg(msg.clone()));
                         }

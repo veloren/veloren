@@ -1,5 +1,8 @@
-use crate::Server;
-use common::event::{EventBus, ServerEvent};
+use crate::{state_ext::StateExt, Server};
+use common::{
+    event::{EventBus, ServerEvent},
+    msg::ServerMsg,
+};
 use entity_creation::{
     handle_create_npc, handle_create_waypoint, handle_initialize_character,
     handle_loaded_character_data, handle_shoot,
@@ -102,6 +105,10 @@ impl Server {
                 },
                 ServerEvent::ChatCmd(entity, cmd) => {
                     chat_commands.push((entity, cmd));
+                },
+                ServerEvent::Chat(msg) => {
+                    self.state
+                        .notify_registered_clients(ServerMsg::ChatMsg(msg));
                 },
             }
         }

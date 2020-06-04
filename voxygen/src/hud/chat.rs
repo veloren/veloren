@@ -367,6 +367,7 @@ impl<'a> Widget for Chat<'a> {
                     ChatType::Faction(uid) => (FACTION_COLOR, message_format(uid, message)),
                     ChatType::Region(uid) => (REGION_COLOR, message_format(uid, message)),
                     ChatType::World(uid) => (WORLD_COLOR, message_format(uid, message)),
+                    ChatType::Npc(_uid, _r) => continue, // Should be filtered by hud/mod.rs
                 };
                 let text = Text::new(&msg)
                     .font_size(self.fonts.opensans.scale(15))

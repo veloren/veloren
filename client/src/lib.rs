@@ -802,7 +802,11 @@ impl Client {
                             };
                         }
                     },
-                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(uid)) => {
+                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(_uid)) => {
+                        // Don't remove players because we need to remember the
+                        // names of disconnected players in chat.
+
+                        /*
                         if self.player_list.remove(&uid).is_none() {
                             warn!(
                                 "Received msg to remove uid {} from the player list by they \
@@ -810,6 +814,7 @@ impl Client {
                                 uid
                             );
                         }
+                        */
                     },
                     ServerMsg::PlayerListUpdate(PlayerListUpdate::Alias(uid, new_name)) => {
                         if let Some(player_info) = self.player_list.get_mut(&uid) {

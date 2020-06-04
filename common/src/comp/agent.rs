@@ -1,5 +1,5 @@
-use crate::{path::Chaser, state::Time};
-use specs::{Component, Entity as EcsEntity, FlaggedStorage, HashMapStorage};
+use crate::path::Chaser;
+use specs::{Component, Entity as EcsEntity};
 use specs_idvs::IDVStorage;
 use vek::*;
 
