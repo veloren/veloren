@@ -12,9 +12,10 @@ use crate::{
 use client::Client;
 use common::{
     assets,
-    assets::{load, load_expect},
+    assets::load_expect,
     character::{Character, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
     comp::{self, humanoid},
+    LoadoutBuilder,
 };
 use conrod_core::{
     color,
@@ -25,7 +26,6 @@ use conrod_core::{
     widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Scrollbar, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget,
 };
-use log::error;
 use std::sync::Arc;
 
 const STARTER_HAMMER: &str = "common.items.weapons.hammer.starter_hammer";
@@ -354,6 +354,10 @@ impl CharSelectionUi {
                     },
                     body,
                     level: 1,
+                    loadout: LoadoutBuilder::new()
+                        .defaults()
+                        .active_item(LoadoutBuilder::default_item_config_from_str(*tool))
+                        .build(),
                 }])
             },
         }
@@ -363,50 +367,7 @@ impl CharSelectionUi {
         match &mut self.mode {
             Mode::Select(character_list) => {
                 if let Some(data) = character_list {
-                    if let Some(character_item) = data.get(self.selected_character) {
-                        let loadout = comp::Loadout {
-                            active_item: character_item.character.tool.as_ref().map(|tool| {
-                                comp::ItemConfig {
-                                    item: (*load::<comp::Item>(&tool).unwrap_or_else(|err| {
-                                        error!(
-                                            "Could not load item {} maybe it no longer exists: \
-                                             {:?}",
-                                            &tool, err
-                                        );
-                                        load_expect("common.items.weapons.sword.starter_sword")
-                                    }))
-                                    .clone(),
-                                    ability1: None,
-                                    ability2: None,
-                                    ability3: None,
-                                    block_ability: None,
-                                    dodge_ability: None,
-                                }
-                            }),
-                            second_item: None,
-                            shoulder: None,
-                            chest: Some(assets::load_expect_cloned(
-                                "common.items.armor.starter.rugged_chest",
-                            )),
-                            belt: None,
-                            hand: None,
-                            pants: Some(assets::load_expect_cloned(
-                                "common.items.armor.starter.rugged_pants",
-                            )),
-                            foot: Some(assets::load_expect_cloned(
-                                "common.items.armor.starter.sandals_0",
-                            )),
-                            back: None,
-                            ring: None,
-                            neck: None,
-                            lantern: None,
-                            head: None,
-                            tabard: None,
-                        };
-                        Some(loadout)
-                    } else {
-                        None
-                    }
+                    data.get(self.selected_character).map(|c| c.loadout.clone())
                 } else {
                     None
                 }

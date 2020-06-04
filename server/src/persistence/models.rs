@@ -1,8 +1,8 @@
 extern crate serde_json;
 
-use super::schema::{body, character, inventory, stats};
+use super::schema::{body, character, inventory, loadout, stats};
 use crate::comp;
-use common::character::Character as CharacterData;
+use common::{character::Character as CharacterData, LoadoutBuilder};
 use diesel::sql_types::Text;
 use serde::{Deserialize, Serialize};
 
@@ -41,7 +41,10 @@ impl From<&Character> for CharacterData {
     }
 }
 
-/// `Body` represents the body variety for a character
+/// `Body` represents the body variety for a character, which has a one-to-one
+/// relationship with Characters. This data is set during player creation, and
+/// while there is currently no in-game functionality to modify it, it will
+/// likely be added in the future.
 #[derive(Associations, Identifiable, Queryable, Debug, Insertable)]
 #[belongs_to(Character)]
 #[primary_key(character_id)]
@@ -75,7 +78,8 @@ impl From<&Body> for comp::Body {
     }
 }
 
-/// `Stats` represents the stats for a character
+/// `Stats` represents the stats for a character, which has a one-to-one
+/// relationship with Characters.
 #[derive(Associations, AsChangeset, Identifiable, Queryable, Debug, Insertable)]
 #[belongs_to(Character)]
 #[primary_key(character_id)]
@@ -136,6 +140,11 @@ impl From<&comp::Stats> for StatsUpdate {
     }
 }
 
+/// Inventory storage and conversion. Inventories have a one-to-one relationship
+/// with characters.
+///
+/// We store the players inventory as a single TEXT column which is serialised
+/// JSON representation of the Inventory component.
 #[derive(Associations, AsChangeset, Identifiable, Queryable, Debug, Insertable)]
 #[belongs_to(Character)]
 #[primary_key(character_id)]
@@ -143,6 +152,45 @@ impl From<&comp::Stats> for StatsUpdate {
 pub struct Inventory {
     character_id: i32,
     items: InventoryData,
+}
+
+/// A wrapper type for Inventory components used to serialise to and from JSON
+/// If the column contains malformed JSON, a default inventory is returned
+#[derive(SqlType, AsExpression, Debug, Deserialize, Serialize, FromSqlRow, PartialEq)]
+#[sql_type = "Text"]
+pub struct InventoryData(comp::Inventory);
+
+impl<DB> diesel::deserialize::FromSql<Text, DB> for InventoryData
+where
+    DB: diesel::backend::Backend,
+    String: diesel::deserialize::FromSql<Text, DB>,
+{
+    fn from_sql(
+        bytes: Option<&<DB as diesel::backend::Backend>::RawValue>,
+    ) -> diesel::deserialize::Result<Self> {
+        let t = String::from_sql(bytes)?;
+
+        match serde_json::from_str(&t) {
+            Ok(data) => Ok(Self(data)),
+            Err(error) => {
+                log::warn!("Failed to deserialise inventory data: {}", error);
+                Ok(Self(comp::Inventory::default()))
+            },
+        }
+    }
+}
+
+impl<DB> diesel::serialize::ToSql<Text, DB> for InventoryData
+where
+    DB: diesel::backend::Backend,
+{
+    fn to_sql<W: std::io::Write>(
+        &self,
+        out: &mut diesel::serialize::Output<W, DB>,
+    ) -> diesel::serialize::Result {
+        let s = serde_json::to_string(&self.0)?;
+        <String as diesel::serialize::ToSql<Text, DB>>::to_sql(&s, out)
+    }
 }
 
 impl From<(i32, comp::Inventory)> for Inventory {
@@ -175,12 +223,30 @@ impl From<&comp::Inventory> for InventoryUpdate {
     }
 }
 
-/// Type handling for a character's inventory, which is stored as JSON strings
+/// Loadout holds the armor and weapons owned by a character. This data is
+/// seperate from the inventory. At the moment, characters have a single Loadout
+/// which is loaded with their character data, however there are plans for each
+/// character to have multiple Loadouts which they can switch between during
+/// gameplay. Due to this Loadouts have a many to one relationship with
+/// characetrs, and a distinct `id`.
+#[derive(Associations, Queryable, Debug, Identifiable)]
+#[belongs_to(Character)]
+#[primary_key(id)]
+#[table_name = "loadout"]
+pub struct Loadout {
+    pub id: i32,
+    pub character_id: i32,
+    pub items: LoadoutData,
+}
+
+/// A wrapper type for Loadout components used to serialise to and from JSON
+/// If the column contains malformed JSON, a default loadout is returned, with
+/// the starter sword set as the main weapon
 #[derive(SqlType, AsExpression, Debug, Deserialize, Serialize, FromSqlRow, PartialEq)]
 #[sql_type = "Text"]
-pub struct InventoryData(comp::Inventory);
+pub struct LoadoutData(comp::Loadout);
 
-impl<DB> diesel::deserialize::FromSql<Text, DB> for InventoryData
+impl<DB> diesel::deserialize::FromSql<Text, DB> for LoadoutData
 where
     DB: diesel::backend::Backend,
     String: diesel::deserialize::FromSql<Text, DB>,
@@ -193,15 +259,23 @@ where
         match serde_json::from_str(&t) {
             Ok(data) => Ok(Self(data)),
             Err(error) => {
-                log::warn!("Failed to deserialise inventory data: {}", error);
+                log::warn!("Failed to deserialise loadout data: {}", error);
 
-                Ok(Self(comp::Inventory::default()))
+                // We don't have a weapon reference here, so we default to sword
+                let loadout = LoadoutBuilder::new()
+                    .defaults()
+                    .active_item(LoadoutBuilder::default_item_config_from_str(Some(
+                        "common.items.weapons.sword.starter_sword",
+                    )))
+                    .build();
+
+                Ok(Self(loadout))
             },
         }
     }
 }
 
-impl<DB> diesel::serialize::ToSql<Text, DB> for InventoryData
+impl<DB> diesel::serialize::ToSql<Text, DB> for LoadoutData
 where
     DB: diesel::backend::Backend,
 {
@@ -211,6 +285,46 @@ where
     ) -> diesel::serialize::Result {
         let s = serde_json::to_string(&self.0)?;
         <String as diesel::serialize::ToSql<Text, DB>>::to_sql(&s, out)
+    }
+}
+
+impl From<&Loadout> for comp::Loadout {
+    fn from(loadout: &Loadout) -> comp::Loadout { loadout.items.0.clone() }
+}
+
+#[derive(Insertable, PartialEq, Debug)]
+#[table_name = "loadout"]
+pub struct NewLoadout {
+    pub character_id: i32,
+    pub items: LoadoutData,
+}
+
+impl From<(i32, &comp::Loadout)> for NewLoadout {
+    fn from(data: (i32, &comp::Loadout)) -> NewLoadout {
+        let (character_id, loadout) = data;
+
+        NewLoadout {
+            character_id,
+            items: LoadoutData(loadout.clone()),
+        }
+    }
+}
+
+#[derive(Insertable, PartialEq, Debug, AsChangeset)]
+#[table_name = "loadout"]
+pub struct LoadoutUpdate {
+    pub character_id: i32,
+    pub items: LoadoutData,
+}
+
+impl From<(i32, &comp::Loadout)> for LoadoutUpdate {
+    fn from(data: (i32, &comp::Loadout)) -> LoadoutUpdate {
+        let (character_id, loadout) = data;
+
+        LoadoutUpdate {
+            character_id,
+            items: LoadoutData(loadout.clone()),
+        }
     }
 }
 
