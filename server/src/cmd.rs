@@ -8,6 +8,7 @@ use common::{
     assets,
     cmd::{ChatCommand, CHAT_COMMANDS},
     comp,
+    comp::Item,
     event::{EventBus, ServerEvent},
     msg::{Notification, PlayerListUpdate, ServerMsg},
     npc::{self, get_npc_name},
@@ -75,6 +76,8 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Group => handle_group,
         ChatCommand::Health => handle_health,
         ChatCommand::Help => handle_help,
+        ChatCommand::JoinFaction => handle_join_faction,
+        ChatCommand::JoinGroup => handle_join_group,
         ChatCommand::Jump => handle_jump,
         ChatCommand::Kill => handle_kill,
         ChatCommand::KillNpcs => handle_kill_npcs,
@@ -1020,13 +1023,20 @@ fn handle_tell(
                 .get(player)
                 .expect("Player must have uid");
             let mode = comp::ChatMode::Tell(player_uid);
-            let _ = server.state.ecs().write_storage().insert(client, mode);
+            let _ = server
+                .state
+                .ecs()
+                .write_storage()
+                .insert(client, mode.clone());
             let msg = if msg.is_empty() {
                 format!("{} wants to talk to you.", alias)
             } else {
                 msg.to_string()
             };
-            server.notify_client(player, ServerMsg::chat(mode, client_uid, msg.clone()));
+            server.notify_client(
+                player,
+                ServerMsg::chat(mode.clone(), client_uid, msg.clone()),
+            );
             server.notify_client(client, ServerMsg::chat(mode, client_uid, msg));
         } else {
             server.notify_client(
@@ -1057,14 +1067,24 @@ fn handle_faction(
         );
         return;
     }
-    let mode = comp::ChatMode::Faction;
-    let _ = server.state.ecs().write_storage().insert(client, mode);
-    if !msg.is_empty() {
-        if let Some(uid) = server.state.ecs().read_storage().get(client) {
-            server
-                .state
-                .notify_registered_clients(ServerMsg::chat(mode, *uid, msg.to_string()));
+    let ecs = server.state.ecs();
+    if let Some(comp::Faction(faction)) = ecs.read_storage().get(client) {
+        let mode = comp::ChatMode::Faction(faction.to_string());
+        let _ = ecs.write_storage().insert(client, mode.clone());
+        if !msg.is_empty() {
+            if let Some(uid) = ecs.read_storage().get(client) {
+                server.state.notify_registered_clients(ServerMsg::chat(
+                    mode,
+                    *uid,
+                    msg.to_string(),
+                ));
+            }
         }
+    } else {
+        server.notify_client(
+            client,
+            ServerMsg::private(String::from("Please join a faction with /join_faction")),
+        );
     }
 }
 
@@ -1083,14 +1103,24 @@ fn handle_group(
         );
         return;
     }
-    let mode = comp::ChatMode::Group;
-    let _ = server.state.ecs().write_storage().insert(client, mode);
-    if !msg.is_empty() {
-        if let Some(uid) = server.state.ecs().read_storage().get(client) {
-            server
-                .state
-                .notify_registered_clients(ServerMsg::chat(mode, *uid, msg.to_string()));
+    let ecs = server.state.ecs();
+    if let Some(comp::Group(group)) = ecs.read_storage().get(client) {
+        let mode = comp::ChatMode::Group(group.to_string());
+        let _ = ecs.write_storage().insert(client, mode.clone());
+        if !msg.is_empty() {
+            if let Some(uid) = ecs.read_storage().get(client) {
+                server.state.notify_registered_clients(ServerMsg::chat(
+                    mode,
+                    *uid,
+                    msg.to_string(),
+                ));
+            }
         }
+    } else {
+        server.notify_client(
+            client,
+            ServerMsg::private(String::from("Please join a group with /join_group")),
+        );
     }
 }
 
@@ -1110,7 +1140,11 @@ fn handle_region(
         return;
     }
     let mode = comp::ChatMode::Region;
-    let _ = server.state.ecs().write_storage().insert(client, mode);
+    let _ = server
+        .state
+        .ecs()
+        .write_storage()
+        .insert(client, mode.clone());
     if !msg.is_empty() {
         if let Some(uid) = server.state.ecs().read_storage().get(client) {
             server
@@ -1136,7 +1170,11 @@ fn handle_say(
         return;
     }
     let mode = comp::ChatMode::Say;
-    let _ = server.state.ecs().write_storage().insert(client, mode);
+    let _ = server
+        .state
+        .ecs()
+        .write_storage()
+        .insert(client, mode.clone());
     if !msg.is_empty() {
         if let Some(uid) = server.state.ecs().read_storage().get(client) {
             server
@@ -1162,12 +1200,98 @@ fn handle_world(
         return;
     }
     let mode = comp::ChatMode::World;
-    let _ = server.state.ecs().write_storage().insert(client, mode);
+    let _ = server
+        .state
+        .ecs()
+        .write_storage()
+        .insert(client, mode.clone());
     if !msg.is_empty() {
         if let Some(uid) = server.state.ecs().read_storage().get(client) {
             server
                 .state
                 .notify_registered_clients(ServerMsg::chat(mode, *uid, msg.to_string()));
+        }
+    }
+}
+
+fn handle_join_faction(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) {
+    if client != target {
+        // This happens when [ab]using /sudo
+        server.notify_client(
+            client,
+            ServerMsg::private(String::from("It's rude to impersonate people")),
+        );
+        return;
+    }
+    if let Ok(faction) = scan_fmt!(&args, &action.arg_fmt(), String) {
+        let mode = comp::ChatMode::Faction(faction.clone());
+        let _ = server.state.ecs().write_storage().insert(client, mode);
+        let _ = server
+            .state
+            .ecs()
+            .write_storage()
+            .insert(client, comp::Faction(faction.clone()));
+        // TODO notify faction
+        server.notify_client(
+            client,
+            ServerMsg::private(format!("Joined faction {{{}}}", faction)),
+        );
+    } else {
+        let mode = comp::ChatMode::default();
+        let _ = server.state.ecs().write_storage().insert(client, mode);
+        if let Some(comp::Faction(faction)) = server.state.ecs().write_storage().remove(client) {
+            // TODO notify faction
+            server.notify_client(
+                client,
+                ServerMsg::private(format!("Left faction {{{}}}", faction)),
+            );
+        }
+    }
+}
+
+fn handle_join_group(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) {
+    if client != target {
+        // This happens when [ab]using /sudo
+        server.notify_client(
+            client,
+            ServerMsg::private(String::from("It's rude to impersonate people")),
+        );
+        return;
+    }
+    if let Ok(group) = scan_fmt!(&args, &action.arg_fmt(), String) {
+        let mode = comp::ChatMode::Group(group.clone());
+        let _ = server.state.ecs().write_storage().insert(client, mode);
+        let _ = server
+            .state
+            .ecs()
+            .write_storage()
+            .insert(client, comp::Group(group.clone()));
+        // TODO notify group
+        server.notify_client(
+            client,
+            ServerMsg::private(format!("Joined group {{{}}}", group)),
+        );
+    } else {
+        let mode = comp::ChatMode::default();
+        let _ = server.state.ecs().write_storage().insert(client, mode);
+        if let Some(comp::Group(group)) = server.state.ecs().write_storage().remove(client) {
+            // TODO notify group
+            server.notify_client(
+                client,
+                ServerMsg::private(format!("Left group {{{}}}", group)),
+            );
         }
     }
 }
@@ -1375,7 +1499,6 @@ fn handle_set_level(
     }
 }
 
-use common::comp::Item;
 fn handle_debug(
     server: &mut Server,
     client: EcsEntity,
