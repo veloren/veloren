@@ -4,7 +4,7 @@ use specs_idvs::IDVStorage;
 use std::time::{Duration, Instant};
 
 /// A player's current chat mode.
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub enum ChatMode {
     /// Private message to another player (by uuid)
     Tell(Uid),
@@ -13,9 +13,9 @@ pub enum ChatMode {
     /// Talk to players in your region of the world
     Region,
     /// Talk to your current group of players
-    Group,
+    Group(String),
     /// Talk to your faction
-    Faction,
+    Faction(String),
     /// Talk to every player on the server
     World,
 }
@@ -31,18 +31,22 @@ impl ChatMode {
             ChatMode::Tell(to) => ChatType::Tell(from, *to),
             ChatMode::Say => ChatType::Say(from),
             ChatMode::Region => ChatType::Region(from),
-            ChatMode::Group => ChatType::Group(from),
-            ChatMode::Faction => ChatType::Faction(from),
+            ChatMode::Group(name) => ChatType::Group(from, name.to_string()),
+            ChatMode::Faction(name) => ChatType::Faction(from, name.to_string()),
             ChatMode::World => ChatType::World(from),
         };
         ChatMsg { chat_type, message }
     }
 }
 
+impl Default for ChatMode {
+    fn default() -> Self { Self::World }
+}
+
 /// List of chat types. Note that this is a superset of `ChatMode`; this is
 /// because `ChatType::Kill`, `ChatType::Broadcast`, and `ChatType::Private`
 /// cannot be sent by players.
-#[derive(Copy, Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ChatType {
     /// Tell all players something (such as players connecting or alias changes)
     Broadcast,
@@ -55,9 +59,9 @@ pub enum ChatType {
     /// Chat with nearby players
     Say(Uid),
     /// Group chat
-    Group(Uid),
+    Group(Uid, String),
     /// Factional chat
-    Faction(Uid),
+    Faction(Uid, String),
     /// Regional chat
     Region(Uid),
     /// World chat
@@ -81,23 +85,23 @@ impl ChatMsg {
     }
 
     pub fn to_bubble(&self) -> Option<(SpeechBubble, Uid)> {
-        let tuple = match self.chat_type {
+        let tuple = match &self.chat_type {
             ChatType::Broadcast => None,
             ChatType::Private => None,
             ChatType::Kill => None,
             ChatType::Tell(u, _) => Some((SpeechBubbleIcon::Tell, u, None)),
             ChatType::Say(u) => Some((SpeechBubbleIcon::Say, u, None)),
-            ChatType::Group(u) => Some((SpeechBubbleIcon::Group, u, None)),
-            ChatType::Faction(u) => Some((SpeechBubbleIcon::Faction, u, None)),
+            ChatType::Group(u, _s) => Some((SpeechBubbleIcon::Group, u, None)),
+            ChatType::Faction(u, _s) => Some((SpeechBubbleIcon::Faction, u, None)),
             ChatType::Region(u) => Some((SpeechBubbleIcon::Region, u, None)),
             ChatType::World(u) => Some((SpeechBubbleIcon::World, u, None)),
             ChatType::Npc(u, r) => Some((SpeechBubbleIcon::None, u, Some(r))),
         };
         tuple.map(|(icon, from, npc_rand)| {
             if let Some(r) = npc_rand {
-                (SpeechBubble::npc_new(self.message.clone(), r, icon), from)
+                (SpeechBubble::npc_new(self.message.clone(), *r, icon), *from)
             } else {
-                (SpeechBubble::player_new(self.message.clone(), icon), from)
+                (SpeechBubble::player_new(self.message.clone(), icon), *from)
             }
         })
     }
@@ -107,18 +111,26 @@ impl ChatMsg {
 /// gameplay.
 ///
 /// Groups are currently just an associated String (the group's name)
-pub struct Group(String);
+#[derive(Clone, Debug)]
+pub struct Group(pub String);
 impl Component for Group {
     type Storage = IDVStorage<Self>;
+}
+impl From<String> for Group {
+    fn from(s: String) -> Self { Group(s) }
 }
 
 /// Player factions are used to coordinate pvp vs hostile factions or segment
 /// chat from the world
 ///
 /// Factions are currently just an associated String (the faction's name)
-pub struct Faction(String);
+#[derive(Clone, Debug)]
+pub struct Faction(pub String);
 impl Component for Faction {
     type Storage = IDVStorage<Self>;
+}
+impl From<String> for Faction {
+    fn from(s: String) -> Self { Faction(s) }
 }
 
 /// The contents of a speech bubble

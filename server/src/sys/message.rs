@@ -328,8 +328,11 @@ impl<'a> System<'a> for Sys {
                         | ClientState::Character => match validate_chat_msg(&message) {
                             Ok(()) => {
                                 if let Some(from) = uids.get(entity) {
-                                    let mode = chat_modes.get(entity).unwrap_or(&ChatMode::World);
-                                    let msg = ServerMsg::chat(*mode, *from, message);
+                                    let mode = chat_modes
+                                        .get(entity)
+                                        .map(Clone::clone)
+                                        .unwrap_or(ChatMode::default());
+                                    let msg = ServerMsg::chat(mode, *from, message);
                                     new_chat_msgs.push((Some(entity), msg));
                                 } else {
                                     tracing::error!("Could not send message. Missing player uid");

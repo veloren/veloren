@@ -321,7 +321,13 @@ impl<'a> Widget for Chat<'a> {
                     }
                 })
         };
-        let message_format = |uid, message| format!("[{}]: {}", alias_of_uid(uid), message);
+        let message_format = |uid, message, group| {
+            if let Some(group) = group {
+                format!("{{{}}} [{}]: {}", group, alias_of_uid(uid), message)
+            } else {
+                format!("[{}]: {}", alias_of_uid(uid), message)
+            }
+        };
         // Message box
         Rectangle::fill([470.0, 174.0])
             .rgba(0.0, 0.0, 0.0, transp)
@@ -362,11 +368,13 @@ impl<'a> Widget for Chat<'a> {
                             (TELL_COLOR, format!("From [{}]: {}", from_alias, message))
                         }
                     },
-                    ChatType::Say(uid) => (SAY_COLOR, message_format(uid, message)),
-                    ChatType::Group(uid) => (GROUP_COLOR, message_format(uid, message)),
-                    ChatType::Faction(uid) => (FACTION_COLOR, message_format(uid, message)),
-                    ChatType::Region(uid) => (REGION_COLOR, message_format(uid, message)),
-                    ChatType::World(uid) => (WORLD_COLOR, message_format(uid, message)),
+                    ChatType::Say(uid) => (SAY_COLOR, message_format(uid, message, None)),
+                    ChatType::Group(uid, s) => (GROUP_COLOR, message_format(uid, message, Some(s))),
+                    ChatType::Faction(uid, s) => {
+                        (FACTION_COLOR, message_format(uid, message, Some(s)))
+                    },
+                    ChatType::Region(uid) => (REGION_COLOR, message_format(uid, message, None)),
+                    ChatType::World(uid) => (WORLD_COLOR, message_format(uid, message, None)),
                     ChatType::Npc(_uid, _r) => continue, // Should be filtered by hud/mod.rs
                 };
                 let text = Text::new(&msg)

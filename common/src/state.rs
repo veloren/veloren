@@ -155,6 +155,8 @@ impl State {
         ecs.register::<comp::Attacking>();
         ecs.register::<comp::ItemDrop>();
         ecs.register::<comp::ChatMode>();
+        ecs.register::<comp::Group>();
+        ecs.register::<comp::Faction>();
 
         // Register synced resources used by the ECS.
         ecs.insert(TimeOfDay(0.0));
