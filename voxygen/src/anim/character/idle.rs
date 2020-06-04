@@ -85,7 +85,7 @@ impl Animation for IdleAnimation {
 
         next.l_shoulder.offset = Vec3::new(
             -skeleton_attr.shoulder.0,
-            skeleton_attr.shoulder.0,
+            skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );
         next.l_shoulder.ori = Quaternion::rotation_x(0.0);
@@ -93,7 +93,7 @@ impl Animation for IdleAnimation {
 
         next.r_shoulder.offset = Vec3::new(
             skeleton_attr.shoulder.0,
-            skeleton_attr.shoulder.0,
+            skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );
         next.r_shoulder.ori = Quaternion::rotation_x(0.0);
