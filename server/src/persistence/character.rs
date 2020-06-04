@@ -4,13 +4,16 @@ use super::{
     error::Error,
     establish_connection,
     models::{
-        Body, Character, Inventory, InventoryUpdate, NewCharacter, Stats, StatsJoinData,
-        StatsUpdate,
+        Body, Character, Inventory, InventoryUpdate, Loadout, LoadoutUpdate, NewCharacter,
+        NewLoadout, Stats, StatsJoinData, StatsUpdate,
     },
     schema,
 };
 use crate::comp;
-use common::character::{Character as CharacterData, CharacterItem, MAX_CHARACTERS_PER_PLAYER};
+use common::{
+    character::{Character as CharacterData, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
+    LoadoutBuilder,
+};
 use crossbeam::channel;
 use diesel::prelude::*;
 
@@ -23,16 +26,17 @@ type CharacterListResult = Result<Vec<CharacterItem>, Error>;
 pub fn load_character_data(
     character_id: i32,
     db_dir: &str,
-) -> Result<(comp::Stats, comp::Inventory), Error> {
+) -> Result<(comp::Stats, comp::Inventory, comp::Loadout), Error> {
     let connection = establish_connection(db_dir);
 
-    let (character_data, body_data, stats_data, maybe_inventory) =
+    let (character_data, body_data, stats_data, maybe_inventory, maybe_loadout) =
         schema::character::dsl::character
             .filter(schema::character::id.eq(character_id))
             .inner_join(schema::body::table)
             .inner_join(schema::stats::table)
             .left_join(schema::inventory::table)
-            .first::<(Character, Body, Stats, Option<Inventory>)>(&connection)?;
+            .left_join(schema::loadout::table)
+            .first::<(Character, Body, Stats, Option<Inventory>, Option<Loadout>)>(&connection)?;
 
     Ok((
         comp::Stats::from(StatsJoinData {
@@ -60,6 +64,33 @@ pub fn load_character_data(
             },
             |inv| comp::Inventory::from(inv),
         ),
+        maybe_loadout.map_or_else(
+            || {
+                // Create if no record was found
+                let default_loadout = LoadoutBuilder::new()
+                    .defaults()
+                    .active_item(LoadoutBuilder::default_item_config_from_str(
+                        character_data.tool.as_deref(),
+                    ))
+                    .build();
+
+                let row = NewLoadout::from((character_data.id, &default_loadout));
+
+                if let Err(error) = diesel::insert_into(schema::loadout::table)
+                    .values(&row)
+                    .execute(&connection)
+                {
+                    log::warn!(
+                        "Failed to create an loadout record for character {}: {}",
+                        &character_data.id,
+                        error
+                    )
+                }
+
+                default_loadout
+            },
+            |data| comp::Loadout::from(&data),
+        ),
     ))
 }
 
@@ -71,24 +102,37 @@ pub fn load_character_data(
 /// stats, body, etc...) the character is skipped, and no entry will be
 /// returned.
 pub fn load_character_list(player_uuid: &str, db_dir: &str) -> CharacterListResult {
-    let data: Vec<(Character, Body, Stats)> = schema::character::dsl::character
+    let data = schema::character::dsl::character
         .filter(schema::character::player_uuid.eq(player_uuid))
         .order(schema::character::id.desc())
         .inner_join(schema::body::table)
         .inner_join(schema::stats::table)
-        .load::<(Character, Body, Stats)>(&establish_connection(db_dir))?;
+        .left_join(schema::loadout::table)
+        .load::<(Character, Body, Stats, Option<Loadout>)>(&establish_connection(db_dir))?;
 
     Ok(data
         .iter()
-        .map(|(character_data, body_data, stats_data)| {
+        .map(|(character_data, body_data, stats_data, maybe_loadout)| {
             let character = CharacterData::from(character_data);
             let body = comp::Body::from(body_data);
             let level = stats_data.level as usize;
+            let loadout = maybe_loadout.as_ref().map_or_else(
+                || {
+                    LoadoutBuilder::new()
+                        .defaults()
+                        .active_item(LoadoutBuilder::default_item_config_from_str(
+                            character.tool.as_deref(),
+                        ))
+                        .build()
+                },
+                |data| comp::Loadout::from(data),
+            );
 
             CharacterItem {
                 character,
                 body,
                 level,
+                loadout,
             }
         })
         .collect())
@@ -112,7 +156,7 @@ pub fn create_character(
     let connection = establish_connection(db_dir);
 
     connection.transaction::<_, diesel::result::Error, _>(|| {
-        use schema::{body, character, character::dsl::*, inventory, stats};
+        use schema::{body, character, character::dsl::*, inventory, loadout, stats};
 
         match body {
             comp::Body::Humanoid(body_data) => {
@@ -171,6 +215,20 @@ pub fn create_character(
                 diesel::insert_into(inventory::table)
                     .values(&inventory)
                     .execute(&connection)?;
+
+                // Insert a loadout with defaults and the chosen active weapon
+                let loadout = LoadoutBuilder::new()
+                    .defaults()
+                    .active_item(LoadoutBuilder::default_item_config_from_str(
+                        character_tool.as_deref(),
+                    ))
+                    .build();
+
+                let new_loadout = NewLoadout::from((inserted_character.id, &loadout));
+
+                diesel::insert_into(loadout::table)
+                    .values(&new_loadout)
+                    .execute(&connection)?;
             },
             _ => log::warn!("Creating non-humanoid characters is not supported."),
         };
@@ -216,7 +274,7 @@ fn check_character_limit(uuid: &str, db_dir: &str) -> Result<(), Error> {
     }
 }
 
-pub type CharacterUpdateData = (StatsUpdate, InventoryUpdate);
+pub type CharacterUpdateData = (StatsUpdate, InventoryUpdate, LoadoutUpdate);
 
 pub struct CharacterUpdater {
     update_tx: Option<channel::Sender<Vec<(i32, CharacterUpdateData)>>>,
@@ -240,13 +298,17 @@ impl CharacterUpdater {
 
     pub fn batch_update<'a>(
         &self,
-        updates: impl Iterator<Item = (i32, &'a comp::Stats, &'a comp::Inventory)>,
+        updates: impl Iterator<Item = (i32, &'a comp::Stats, &'a comp::Inventory, &'a comp::Loadout)>,
     ) {
         let updates = updates
-            .map(|(id, stats, inventory)| {
+            .map(|(id, stats, inventory, loadout)| {
                 (
                     id,
-                    (StatsUpdate::from(stats), InventoryUpdate::from(inventory)),
+                    (
+                        StatsUpdate::from(stats),
+                        InventoryUpdate::from(inventory),
+                        LoadoutUpdate::from((id, loadout)),
+                    ),
                 )
             })
             .collect();
@@ -256,8 +318,14 @@ impl CharacterUpdater {
         }
     }
 
-    pub fn update(&self, character_id: i32, stats: &comp::Stats, inventory: &comp::Inventory) {
-        self.batch_update(std::iter::once((character_id, stats, inventory)));
+    pub fn update(
+        &self,
+        character_id: i32,
+        stats: &comp::Stats,
+        inventory: &comp::Inventory,
+        loadout: &comp::Loadout,
+    ) {
+        self.batch_update(std::iter::once((character_id, stats, inventory, loadout)));
     }
 }
 
@@ -265,9 +333,17 @@ fn batch_update(updates: impl Iterator<Item = (i32, CharacterUpdateData)>, db_di
     let connection = establish_connection(db_dir);
 
     if let Err(err) = connection.transaction::<_, diesel::result::Error, _>(|| {
-        updates.for_each(|(character_id, (stats_update, inventory_update))| {
-            update(character_id, &stats_update, &inventory_update, &connection)
-        });
+        updates.for_each(
+            |(character_id, (stats_update, inventory_update, loadout_update))| {
+                update(
+                    character_id,
+                    &stats_update,
+                    &inventory_update,
+                    &loadout_update,
+                    &connection,
+                )
+            },
+        );
 
         Ok(())
     }) {
@@ -279,6 +355,7 @@ fn update(
     character_id: i32,
     stats: &StatsUpdate,
     inventory: &InventoryUpdate,
+    loadout: &LoadoutUpdate,
     connection: &SqliteConnection,
 ) {
     if let Err(error) =
@@ -301,6 +378,19 @@ fn update(
     {
         log::warn!(
             "Failed to update inventory for character: {:?}: {:?}",
+            character_id,
+            error
+        )
+    }
+
+    if let Err(error) = diesel::update(
+        schema::loadout::table.filter(schema::loadout::character_id.eq(character_id)),
+    )
+    .set(loadout)
+    .execute(connection)
+    {
+        log::warn!(
+            "Failed to update loadout for character: {:?}: {:?}",
             character_id,
             error
         )

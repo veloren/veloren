@@ -3,8 +3,7 @@ use crate::{
     SpawnPoint,
 };
 use common::{
-    assets,
-    comp::{self, item},
+    comp,
     effect::Effect,
     msg::{
         CharacterInfo, ClientState, PlayerListUpdate, RegisterError, RequestStateError, ServerMsg,
@@ -40,7 +39,6 @@ pub trait StateExt {
         entity: EcsEntity,
         character_id: i32,
         body: comp::Body,
-        main: Option<String>,
         server_settings: &ServerSettings,
     );
     fn notify_registered_clients(&self, msg: ServerMsg);
@@ -159,7 +157,6 @@ impl StateExt for State {
         entity: EcsEntity,
         character_id: i32,
         body: comp::Body,
-        main: Option<String>,
         server_settings: &ServerSettings,
     ) {
         // Grab persisted character data from the db and insert their associated
@@ -169,9 +166,10 @@ impl StateExt for State {
             character_id,
             &server_settings.persistence_db_dir,
         ) {
-            Ok((stats, inventory)) => {
+            Ok((stats, inventory, loadout)) => {
                 self.write_component(entity, stats);
                 self.write_component(entity, inventory);
+                self.write_component(entity, loadout);
             },
             Err(error) => {
                 log::warn!(
@@ -189,9 +187,6 @@ impl StateExt for State {
                 }
             },
         }
-
-        // Give no item when an invalid specifier is given
-        let main = main.and_then(|specifier| assets::load_cloned::<comp::Item>(&specifier).ok());
 
         let spawn_point = self.ecs().read_resource::<SpawnPoint>().0;
 
@@ -212,47 +207,6 @@ impl StateExt for State {
         self.write_component(
             entity,
             comp::InventoryUpdate::new(comp::InventoryUpdateEvent::default()),
-        );
-
-        self.write_component(
-            entity,
-            if let Some(item::ItemKind::Tool(tool)) = main.as_ref().map(|i| &i.kind) {
-                let mut abilities = tool.get_abilities();
-                let mut ability_drain = abilities.drain(..);
-                comp::Loadout {
-                    active_item: main.map(|item| comp::ItemConfig {
-                        item,
-                        ability1: ability_drain.next(),
-                        ability2: ability_drain.next(),
-                        ability3: ability_drain.next(),
-                        block_ability: Some(comp::CharacterAbility::BasicBlock),
-                        dodge_ability: Some(comp::CharacterAbility::Roll),
-                    }),
-                    second_item: None,
-                    shoulder: None,
-                    chest: Some(assets::load_expect_cloned(
-                        "common.items.armor.starter.rugged_chest",
-                    )),
-                    belt: None,
-                    hand: None,
-                    pants: Some(assets::load_expect_cloned(
-                        "common.items.armor.starter.rugged_pants",
-                    )),
-                    foot: Some(assets::load_expect_cloned(
-                        "common.items.armor.starter.sandals_0",
-                    )),
-                    back: None,
-                    ring: None,
-                    neck: None,
-                    lantern: Some(assets::load_expect_cloned(
-                        "common.items.armor.starter.lantern",
-                    )),
-                    head: None,
-                    tabard: None,
-                }
-            } else {
-                comp::Loadout::default()
-            },
         );
 
         // Set the character id for the player
