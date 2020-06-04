@@ -71,18 +71,13 @@ impl Animation for JumpAnimation {
         next.tail_rear.ori = Quaternion::rotation_x(center * 0.03);
         next.tail_rear.scale = Vec3::one() * 0.98;
 
-        next.chest_front.offset = Vec3::new(
+        next.chest.offset = Vec3::new(
             0.0,
-            skeleton_attr.chest_front.0,
-            skeleton_attr.chest_front.1,
+            skeleton_attr.chest.0,
+            skeleton_attr.chest.1,
         );
-        next.chest_front.ori = Quaternion::rotation_y(center * 0.05);
-        next.chest_front.scale = Vec3::one();
-
-        next.chest_rear.offset =
-            Vec3::new(0.0, skeleton_attr.chest_rear.0, skeleton_attr.chest_rear.1);
-        next.chest_rear.ori = Quaternion::rotation_y(center * 0.05);
-        next.chest_rear.scale = Vec3::one();
+        next.chest.ori = Quaternion::rotation_y(center * 0.05);
+        next.chest.scale = Vec3::one();
 
         next.foot_fl.offset = Vec3::new(
             -skeleton_attr.feet_f.0,

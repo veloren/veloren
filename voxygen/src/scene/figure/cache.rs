@@ -726,12 +726,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         body.body_type,
                         generate_mesh,
                     )),
-                    Some(quadruped_low_central_spec.mesh_chest_front(
-                        body.species,
-                        body.body_type,
-                        generate_mesh,
-                    )),
-                    Some(quadruped_low_central_spec.mesh_chest_rear(
+                    Some(quadruped_low_central_spec.mesh_chest(
                         body.species,
                         body.body_type,
                         generate_mesh,
@@ -756,6 +751,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         body.body_type,
                         generate_mesh,
                     )),
+                    None,
                     None,
                     None,
                     None,
