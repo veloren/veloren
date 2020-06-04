@@ -119,6 +119,8 @@ pub enum ServerEvent {
     ClientDisconnect(EcsEntity),
     ChunkRequest(EcsEntity, Vec2<i32>),
     ChatCmd(EcsEntity, String),
+    /// Send a chat message from an npc to the player
+    Chat(comp::ChatMsg),
 }
 
 pub struct EventBus<E> {

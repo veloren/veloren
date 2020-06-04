@@ -47,14 +47,17 @@ use crate::{
     GlobalState,
 };
 use client::Client;
-use common::{assets::load_expect, comp, terrain::TerrainChunk, vol::RectRasterableVol};
+use common::{assets::load_expect, comp, sync::Uid, terrain::TerrainChunk, vol::RectRasterableVol};
 use conrod_core::{
     text::cursor::Index,
     widget::{self, Button, Image, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 use specs::{Join, WorldExt};
-use std::collections::VecDeque;
+use std::{
+    collections::{HashMap, VecDeque},
+    time::Instant,
+};
 use vek::*;
 
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
@@ -465,6 +468,7 @@ pub struct Hud {
     rot_imgs: ImgsRot,
     new_messages: VecDeque<comp::ChatMsg>,
     new_notifications: VecDeque<common::msg::Notification>,
+    speech_bubbles: HashMap<Uid, comp::SpeechBubble>,
     show: Show,
     //never_show: bool,
     //intro: bool,
@@ -530,9 +534,10 @@ impl Hud {
             fonts,
             ids,
             new_messages: VecDeque::new(),
+            new_notifications: VecDeque::new(),
+            speech_bubbles: HashMap::new(),
             //intro: false,
             //intro_2: false,
-            new_notifications: VecDeque::new(),
             show: Show {
                 help: false,
                 intro: true,
@@ -606,7 +611,7 @@ impl Hud {
             let stats = ecs.read_storage::<comp::Stats>();
             let energy = ecs.read_storage::<comp::Energy>();
             let hp_floater_lists = ecs.read_storage::<vcomp::HpFloaterList>();
-            let speech_bubbles = ecs.read_storage::<comp::SpeechBubble>();
+            let uids = ecs.read_storage::<common::sync::Uid>();
             let interpolated = ecs.read_storage::<vcomp::Interpolated>();
             let players = ecs.read_storage::<comp::Player>();
             let scales = ecs.read_storage::<comp::Scale>();
@@ -934,12 +939,23 @@ impl Hud {
                 }
             }
 
+            // Pop speech bubbles
+            self.speech_bubbles
+                .retain(|_uid, bubble| bubble.timeout > Instant::now());
+
+            // Push speech bubbles
+            for msg in self.new_messages.iter() {
+                if let Some((bubble, uid)) = msg.to_bubble() {
+                    self.speech_bubbles.insert(uid, bubble);
+                }
+            }
+
             let mut overhead_walker = self.ids.overheads.walk();
             let mut sct_walker = self.ids.scts.walk();
             let mut sct_bg_walker = self.ids.sct_bgs.walk();
 
             // Render overhead name tags and health bars
-            for (pos, name, stats, energy, height_offset, hpfl, bubble) in (
+            for (pos, name, stats, energy, height_offset, hpfl, uid) in (
                 &entities,
                 &pos,
                 interpolated.maybe(),
@@ -949,7 +965,7 @@ impl Hud {
                 scales.maybe(),
                 &bodies,
                 &hp_floater_lists,
-                speech_bubbles.maybe(),
+                &uids,
             )
                 .join()
                 .filter(|(entity, _, _, stats, _, _, _, _, _, _)| *entity != me && !stats.is_dead)
@@ -966,7 +982,7 @@ impl Hud {
                         })
                         .powi(2)
                 })
-                .map(|(_, pos, interpolated, stats, energy, player, scale, body, hpfl, bubble)| {
+                .map(|(_, pos, interpolated, stats, energy, player, scale, body, hpfl, uid)| {
                     // TODO: This is temporary
                     // If the player used the default character name display their name instead
                     let name = if stats.name == "Character Name" {
@@ -982,10 +998,12 @@ impl Hud {
                         // TODO: when body.height() is more accurate remove the 2.0
                         body.height() * 2.0 * scale.map_or(1.0, |s| s.0),
                         hpfl,
-                        bubble,
+                        uid,
                     )
                 })
             {
+                let bubble = self.speech_bubbles.get(uid);
+
                 let overhead_id = overhead_walker.next(
                     &mut self.ids.overheads,
                     &mut ui_widgets.widget_id_generator(),
@@ -1550,6 +1568,15 @@ impl Hud {
             )
             .set(self.ids.skillbar, ui_widgets);
         }
+
+        // Don't put NPC messages in chat box.
+        self.new_messages.retain(|m| {
+            if let comp::ChatType::Npc(_, _) = m.chat_type {
+                false
+            } else {
+                true
+            }
+        });
 
         // Chat box
         match Chat::new(

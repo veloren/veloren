@@ -77,11 +77,8 @@ impl SessionState {
     fn tick(&mut self, dt: Duration, global_state: &mut GlobalState) -> Result<TickAction, Error> {
         self.inputs.tick(dt);
 
-        for event in self.client.borrow_mut().tick(
-            self.inputs.clone(),
-            dt,
-            crate::ecs::sys::add_local_systems,
-        )? {
+        let mut client = self.client.borrow_mut();
+        for event in client.tick(self.inputs.clone(), dt, crate::ecs::sys::add_local_systems)? {
             match event {
                 client::Event::Chat(m) => {
                     self.hud.new_message(m);

@@ -71,7 +71,7 @@ pub enum ServerMsg {
     Ping,
     Pong,
     /// A message to go into the client chat box. The client is responsible for
-    /// formatting the message.
+    /// formatting the message and turning it into a speech bubble.
     ChatMsg(comp::ChatMsg),
     SetPlayerEntity(Uid),
     TimeOfDay(state::TimeOfDay),

@@ -2,7 +2,6 @@ pub mod entity_sync;
 pub mod message;
 pub mod persistence;
 pub mod sentinel;
-pub mod speech_bubble;
 pub mod subscription;
 pub mod terrain;
 pub mod terrain_sync;
@@ -21,9 +20,10 @@ pub type SubscriptionTimer = SysTimer<subscription::Sys>;
 pub type TerrainTimer = SysTimer<terrain::Sys>;
 pub type TerrainSyncTimer = SysTimer<terrain_sync::Sys>;
 pub type WaypointTimer = SysTimer<waypoint::Sys>;
-pub type SpeechBubbleTimer = SysTimer<speech_bubble::Sys>;
 pub type PersistenceTimer = SysTimer<persistence::Sys>;
 pub type PersistenceScheduler = SysScheduler<persistence::Sys>;
+//pub type StatsPersistenceTimer = SysTimer<persistence::stats::Sys>;
+//pub type StatsPersistenceScheduler = SysScheduler<persistence::stats::Sys>;
 
 // System names
 // Note: commented names may be useful in the future
@@ -33,14 +33,14 @@ pub type PersistenceScheduler = SysScheduler<persistence::Sys>;
 //const TERRAIN_SYNC_SYS: &str = "server_terrain_sync_sys";
 const TERRAIN_SYS: &str = "server_terrain_sys";
 const WAYPOINT_SYS: &str = "waypoint_sys";
-const SPEECH_BUBBLE_SYS: &str = "speech_bubble_sys";
 const PERSISTENCE_SYS: &str = "persistence_sys";
+//const STATS_PERSISTENCE_SYS: &str = "stats_persistence_sys";
 
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(terrain::Sys, TERRAIN_SYS, &[]);
     dispatch_builder.add(waypoint::Sys, WAYPOINT_SYS, &[]);
-    dispatch_builder.add(speech_bubble::Sys, SPEECH_BUBBLE_SYS, &[]);
     dispatch_builder.add(persistence::Sys, PERSISTENCE_SYS, &[]);
+    //dispatch_builder.add(persistence::stats::Sys, STATS_PERSISTENCE_SYS, &[]);
 }
 
 pub fn run_sync_systems(ecs: &mut specs::World) {
