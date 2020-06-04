@@ -74,8 +74,7 @@ impl Server {
                     entity,
                     character_id,
                     body,
-                    main,
-                } => handle_create_character(self, entity, character_id, body, main),
+                } => handle_create_character(self, entity, character_id, body),
                 ServerEvent::LevelUp(entity, new_level) => handle_level_up(self, entity, new_level),
                 ServerEvent::ExitIngame { entity } => handle_exit_ingame(self, entity),
                 ServerEvent::CreateNpc {

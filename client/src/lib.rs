@@ -237,12 +237,9 @@ impl Client {
     }
 
     /// Request a state transition to `ClientState::Character`.
-    pub fn request_character(&mut self, character_id: i32, body: comp::Body, main: Option<String>) {
-        self.postbox.send_message(ClientMsg::Character {
-            character_id,
-            body,
-            main,
-        });
+    pub fn request_character(&mut self, character_id: i32, body: comp::Body) {
+        self.postbox
+            .send_message(ClientMsg::Character { character_id, body });
 
         self.client_state = ClientState::Pending;
     }

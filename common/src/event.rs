@@ -95,7 +95,6 @@ pub enum ServerEvent {
         entity: EcsEntity,
         character_id: i32,
         body: comp::Body,
-        main: Option<String>,
     },
     ExitIngame {
         entity: EcsEntity,
