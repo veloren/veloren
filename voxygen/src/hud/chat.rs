@@ -15,8 +15,8 @@ use conrod_core::{
         self,
         cursor::{self, Index},
     },
-    widget::{self, Button, Id, List, Rectangle, Text, TextEdit},
-    widget_ids, Colorable, Positionable, Sizeable, Ui, UiCell, Widget, WidgetCommon,
+    widget::{self, Button, Id, Image, List, Rectangle, Text, TextEdit},
+    widget_ids, Color, Colorable, Positionable, Sizeable, Ui, UiCell, Widget, WidgetCommon,
 };
 use specs::world::WorldExt;
 use std::collections::VecDeque;
@@ -28,11 +28,14 @@ widget_ids! {
         chat_input,
         chat_input_bg,
         chat_arrow,
-        completion_box,
+        chat_icons[],
     }
 }
 
 const MAX_MESSAGES: usize = 100;
+
+const CHAT_BOX_WIDTH: f64 = 470.0;
+const CHAT_BOX_HEIGHT: f64 = 174.0;
 
 #[derive(WidgetCommon)]
 pub struct Chat<'a> {
@@ -291,10 +294,10 @@ impl<'a> Widget for Chat<'a> {
                 Dimension::Absolute(y) => y + 6.0,
                 _ => 0.0,
             };
-            Rectangle::fill([470.0, y])
+            Rectangle::fill([CHAT_BOX_WIDTH, y])
                 .rgba(0.0, 0.0, 0.0, transp + 0.1)
                 .bottom_left_with_margins_on(ui.window, 10.0, 10.0)
-                .w(470.0)
+                .w(CHAT_BOX_WIDTH)
                 .set(state.ids.chat_input_bg, ui);
 
             if let Some(str) = text_edit
@@ -309,27 +312,8 @@ impl<'a> Widget for Chat<'a> {
             }
         }
 
-        let alias_of_uid = |uid| {
-            self.client
-                .player_list
-                .get(uid)
-                .map_or("<?>".to_string(), |player_info| {
-                    if player_info.is_admin {
-                        format!("ADMIN - {}", player_info.player_alias)
-                    } else {
-                        player_info.player_alias.to_string()
-                    }
-                })
-        };
-        let message_format = |uid, message, group| {
-            if let Some(group) = group {
-                format!("{{{}}} [{}]: {}", group, alias_of_uid(uid), message)
-            } else {
-                format!("[{}]: {}", alias_of_uid(uid), message)
-            }
-        };
         // Message box
-        Rectangle::fill([470.0, 174.0])
+        Rectangle::fill([CHAT_BOX_WIDTH, CHAT_BOX_HEIGHT])
             .rgba(0.0, 0.0, 0.0, transp)
             .and(|r| {
                 if input_focused {
@@ -338,49 +322,30 @@ impl<'a> Widget for Chat<'a> {
                     r.bottom_left_with_margins_on(ui.window, 10.0, 10.0)
                 }
             })
+            .crop_kids()
             .set(state.ids.message_box_bg, ui);
         let (mut items, _) = List::flow_down(state.messages.len() + 1)
-            .top_left_of(state.ids.message_box_bg)
-            .w_h(470.0, 174.0)
+            .top_left_with_margins_on(state.ids.message_box_bg, 0.0, 16.0)
+            .w_h(CHAT_BOX_WIDTH, CHAT_BOX_HEIGHT)
             .scroll_kids_vertically()
             .set(state.ids.message_box, ui);
+        if state.ids.chat_icons.len() < state.messages.len() {
+            state.update(|s| {
+                s.ids
+                    .chat_icons
+                    .resize(s.messages.len(), &mut ui.widget_id_generator())
+            });
+        }
+
         while let Some(item) = items.next(ui) {
             // This would be easier if conrod used the v-metrics from rusttype.
             if item.i < state.messages.len() {
-                let ChatMsg { chat_type, message } = &state.messages[item.i];
-                let (color, msg) = match chat_type {
-                    ChatType::Private => (PRIVATE_COLOR, message.to_string()),
-                    ChatType::Broadcast => (BROADCAST_COLOR, message.to_string()),
-                    ChatType::Kill => (KILL_COLOR, message.to_string()),
-                    ChatType::Tell(from, to) => {
-                        let from_alias = alias_of_uid(&from);
-                        let to_alias = alias_of_uid(&to);
-                        if Some(from)
-                            == self
-                                .client
-                                .state()
-                                .ecs()
-                                .read_storage()
-                                .get(self.client.entity())
-                        {
-                            (TELL_COLOR, format!("To [{}]: {}", to_alias, message))
-                        } else {
-                            (TELL_COLOR, format!("From [{}]: {}", from_alias, message))
-                        }
-                    },
-                    ChatType::Say(uid) => (SAY_COLOR, message_format(uid, message, None)),
-                    ChatType::Group(uid, s) => (GROUP_COLOR, message_format(uid, message, Some(s))),
-                    ChatType::Faction(uid, s) => {
-                        (FACTION_COLOR, message_format(uid, message, Some(s)))
-                    },
-                    ChatType::Region(uid) => (REGION_COLOR, message_format(uid, message, None)),
-                    ChatType::World(uid) => (WORLD_COLOR, message_format(uid, message, None)),
-                    ChatType::Npc(_uid, _r) => continue, // Should be filtered by hud/mod.rs
-                };
+                let (color, msg, icon) =
+                    render_chat_line(&state.messages[item.i], &self.imgs, &self.client);
                 let text = Text::new(&msg)
                     .font_size(self.fonts.opensans.scale(15))
                     .font_id(self.fonts.opensans.conrod_id)
-                    .w(470.0)
+                    .w(CHAT_BOX_WIDTH - 16.0)
                     .color(color)
                     .line_spacing(2.0);
                 // Add space between messages.
@@ -390,13 +355,19 @@ impl<'a> Widget for Chat<'a> {
                 };
                 let widget = text.h(y);
                 item.set(widget, ui);
+                let icon_id = state.ids.chat_icons[item.i];
+                Image::new(icon)
+                    .w_h(16.0, 16.0)
+                    .top_left_with_margins_on(item.widget_id, 2.0, -16.0)
+                    .parent(state.ids.message_box_bg)
+                    .set(icon_id, ui);
             } else {
                 // Spacer at bottom of the last message so that it is not cut off.
                 // Needs to be larger than the space above.
                 let widget = Text::new("")
                     .font_size(self.fonts.opensans.scale(6))
                     .font_id(self.fonts.opensans.conrod_id)
-                    .w(470.0);
+                    .w(CHAT_BOX_WIDTH);
                 item.set(widget, ui);
             };
         }
@@ -409,6 +380,7 @@ impl<'a> Widget for Chat<'a> {
                 .hover_image(self.imgs.chat_arrow_mo)
                 .press_image(self.imgs.chat_arrow_press)
                 .bottom_right_with_margins_on(state.ids.message_box_bg, 0.0, -22.0)
+                .parent(id)
                 .set(state.ids.chat_arrow, ui)
                 .was_clicked()
         {
@@ -510,4 +482,88 @@ fn cursor_offset_to_index(
     let infos = text::line::infos(&text, &font, font_size).wrap_by_whitespace(width);
 
     cursor::index_before_char(infos, offset)
+}
+
+fn render_chat_line(
+    ChatMsg { chat_type, message }: &ChatMsg,
+    imgs: &Imgs,
+    client: &Client,
+) -> (Color, String, conrod_core::image::Id) {
+    let alias_of_uid = |uid| {
+        client
+            .player_list
+            .get(uid)
+            .map_or("<?>".to_string(), |player_info| {
+                if player_info.is_admin {
+                    format!("ADMIN - {}", player_info.player_alias)
+                } else {
+                    player_info.player_alias.to_string()
+                }
+            })
+    };
+    let message_format = |uid, message, group| {
+        if let Some(group) = group {
+            format!("{{{}}} [{}]: {}", group, alias_of_uid(uid), message)
+        } else {
+            format!("[{}]: {}", alias_of_uid(uid), message)
+        }
+    };
+    match chat_type {
+        ChatType::Private => (PRIVATE_COLOR, message.to_string(), imgs.chat_private_small),
+        ChatType::Broadcast => (
+            BROADCAST_COLOR,
+            message.to_string(),
+            imgs.chat_broadcast_small,
+        ),
+        ChatType::Kill => (KILL_COLOR, message.to_string(), imgs.chat_kill_small),
+        ChatType::Tell(from, to) => {
+            let from_alias = alias_of_uid(&from);
+            let to_alias = alias_of_uid(&to);
+            if Some(from)
+                == client
+                    .state()
+                    .ecs()
+                    .read_storage::<common::sync::Uid>()
+                    .get(client.entity())
+            {
+                (
+                    TELL_COLOR,
+                    format!("To [{}]: {}", to_alias, message),
+                    imgs.chat_tell_small,
+                )
+            } else {
+                (
+                    TELL_COLOR,
+                    format!("From [{}]: {}", from_alias, message),
+                    imgs.chat_tell_small,
+                )
+            }
+        },
+        ChatType::Say(uid) => (
+            SAY_COLOR,
+            message_format(uid, message, None),
+            imgs.chat_say_small,
+        ),
+        ChatType::Group(uid, s) => (
+            GROUP_COLOR,
+            message_format(uid, message, Some(s)),
+            imgs.chat_group_small,
+        ),
+        ChatType::Faction(uid, s) => (
+            FACTION_COLOR,
+            message_format(uid, message, Some(s)),
+            imgs.chat_faction_small,
+        ),
+        ChatType::Region(uid) => (
+            REGION_COLOR,
+            message_format(uid, message, None),
+            imgs.chat_region_small,
+        ),
+        ChatType::World(uid) => (
+            WORLD_COLOR,
+            message_format(uid, message, None),
+            imgs.chat_world_small,
+        ),
+        ChatType::Npc(_uid, _r) => panic!("NPCs can't talk"), // Should be filtered by hud/mod.rs
+    }
 }

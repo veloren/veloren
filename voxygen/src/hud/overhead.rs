@@ -26,6 +26,7 @@ widget_ids! {
         speech_bubble_bottom,
         speech_bubble_bottom_right,
         speech_bubble_tail,
+        speech_bubble_icon,
 
         // Name
         name_bg,
