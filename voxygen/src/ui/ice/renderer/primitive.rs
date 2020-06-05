@@ -25,6 +25,7 @@ pub enum Primitive {
     },
     Clip {
         bounds: iced::Rectangle,
+        offset: vek::Vec2<u32>,
         content: Box<Primitive>,
     },
     Nothing,

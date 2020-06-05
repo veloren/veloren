@@ -63,6 +63,8 @@ impl IcedUi {
         use iced::window;
         match event {
             // Intercept resizing events
+            // TODO: examine if we are handling dpi properly here
+            // ideally these values should be the logical ones
             Event::Window(window::Event::Resized { width, height }) => {
                 self.window_resized = Some(Vec2::new(width, height));
             },

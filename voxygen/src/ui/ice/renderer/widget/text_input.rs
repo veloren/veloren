@@ -169,7 +169,7 @@ impl text_input::Renderer for IcedRenderer {
                     (
                         Primitive::Rectangle {
                             bounds: Rectangle {
-                                x: text_bounds.x + position - offset - CURSOR_WIDTH / p_scale / 2.0,
+                                x: text_bounds.x + position - CURSOR_WIDTH / p_scale / 2.0,
                                 y: text_bounds.y,
                                 width: CURSOR_WIDTH / p_scale,
                                 height: text_bounds.height,
@@ -196,7 +196,7 @@ impl text_input::Renderer for IcedRenderer {
                     (
                         Primitive::Rectangle {
                             bounds: Rectangle {
-                                x: text_bounds.x + left_position - left_offset,
+                                x: text_bounds.x + left_position,
                                 y: text_bounds.y,
                                 width,
                                 height: text_bounds.height,
@@ -216,10 +216,9 @@ impl text_input::Renderer for IcedRenderer {
 
         let display_text = text.unwrap_or(if state.is_focused() { "" } else { placeholder });
         let section = glyph_brush::Section {
-            screen_position: (
-                text_bounds.x * p_scale - scroll_offset,
-                text_bounds.center_y() * p_scale,
-            ),
+            // Note: clip offset is an integer so we don't have to worry about not accounting for
+            // that here where the alignment of the glyphs with pixels affects rasterization
+            screen_position: (text_bounds.x * p_scale, text_bounds.center_y() * p_scale),
             bounds: (
                 10000.0, /* text_bounds.width * p_scale */
                 text_bounds.height * p_scale,
@@ -279,9 +278,8 @@ impl text_input::Renderer for IcedRenderer {
         let primitive = if text_width > text_bounds.width {
             Primitive::Clip {
                 bounds: text_bounds,
+                offset: (scroll_offset as u32, 0).into(),
                 content: Box::new(primitive),
-                /* Note: iced_wgpu uses offset here but we can't do that since we pass the text
-                 * to the glyph_brush here */
             }
         } else {
             primitive

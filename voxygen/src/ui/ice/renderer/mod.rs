@@ -86,7 +86,7 @@ pub struct IcedRenderer {
     // Per-frame/update
     current_state: State,
     mesh: Mesh<UiPipeline>,
-    glyphs: Vec<(usize, usize, Rgba<f32>)>,
+    glyphs: Vec<(usize, usize, Rgba<f32>, Vec2<u32>)>,
     // Output from glyph_brush in the previous frame
     // It can sometimes ask you to redraw with these instead (idk if that is done with
     // pre-positioned glyphs)
@@ -164,7 +164,7 @@ impl IcedRenderer {
 
         //self.current_scissor = default_scissor(renderer);
 
-        self.draw_primitive(primitive, renderer);
+        self.draw_primitive(primitive, Vec2::zero(), renderer);
 
         // Enter the final command.
         self.draw_commands.push(match self.current_state {
@@ -240,19 +240,29 @@ impl IcedRenderer {
 
                 let glyphs = &self.glyphs;
                 let mesh = &mut self.mesh;
+                let p_scale = self.p_scale;
+                let half_res = self.half_res;
 
                 glyphs
                     .iter()
-                    .flat_map(|(mesh_index, glyph_count, linear_color)| {
+                    .flat_map(|(mesh_index, glyph_count, linear_color, offset)| {
                         let mesh_index = *mesh_index;
                         let linear_color = *linear_color;
-                        (0..*glyph_count).map(move |i| (mesh_index + i * 6, linear_color))
+                        // Could potentially pass this in as part of the extras
+                        let offset = offset.map(|e| e as f32 * p_scale) / half_res;
+                        (0..*glyph_count).map(move |i| (mesh_index + i * 6, linear_color, offset))
                     })
                     .zip(self.last_glyph_verts.iter())
-                    .for_each(|((mesh_index, linear_color), (uv, rect))| {
+                    .for_each(|((mesh_index, linear_color, offset), (uv, rect))| {
+                        // TODO: add function to vek for this
+                        let rect = Aabr {
+                            min: rect.min + offset,
+                            max: rect.max + offset,
+                        };
+
                         mesh.replace_quad(
                             mesh_index,
-                            create_ui_quad(*rect, *uv, linear_color, UiMode::Text),
+                            create_ui_quad(rect, *uv, linear_color, UiMode::Text),
                         )
                     });
             },
@@ -344,12 +354,12 @@ impl IcedRenderer {
         Aabr { min, max }
     }
 
-    fn draw_primitive(&mut self, primitive: Primitive, renderer: &mut Renderer) {
+    fn draw_primitive(&mut self, primitive: Primitive, offset: Vec2<u32>, renderer: &mut Renderer) {
         match primitive {
             Primitive::Group { primitives } => {
                 primitives
                     .into_iter()
-                    .for_each(|p| self.draw_primitive(p, renderer));
+                    .for_each(|p| self.draw_primitive(p, offset, renderer));
             },
             Primitive::Image {
                 handle,
@@ -363,7 +373,11 @@ impl IcedRenderer {
                 }
 
                 let (graphic_id, rotation) = handle;
-                let gl_aabr = self.gl_aabr(bounds);
+                let gl_aabr = self.gl_aabr(iced::Rectangle {
+                    x: bounds.x + offset.x as f32,
+                    y: bounds.y + offset.y as f32,
+                    ..bounds
+                });
 
                 let graphic_cache = self.cache.graphic_cache_mut();
 
@@ -435,8 +449,14 @@ impl IcedRenderer {
 
                 self.switch_state(State::Plain);
 
+                let gl_aabr = self.gl_aabr(iced::Rectangle {
+                    x: bounds.x + offset.x as f32,
+                    y: bounds.y + offset.y as f32,
+                    ..bounds
+                });
+
                 self.mesh.push_quad(create_ui_quad(
-                    self.gl_aabr(bounds),
+                    gl_aabr,
                     Aabr {
                         min: Vec2::zero(),
                         max: Vec2::zero(),
@@ -470,7 +490,7 @@ impl IcedRenderer {
                     // Since we already passed in `bounds` to position the glyphs some of this
                     // seems redundant...
                     // Note: we can't actually use this because dropping glyphs messeses up the
-                    // counting and there is not a convenient method provided to drop out of bounds
+                    // counting and there is not a method provided to drop out of bounds
                     // glyphs while positioning them
                     glyph_brush::ab_glyph::Rect {
                         min: glyph_brush::ab_glyph::point(
@@ -489,8 +509,12 @@ impl IcedRenderer {
                     min: Vec2::broadcast(0.0),
                     max: Vec2::broadcast(0.0),
                 };
-                self.glyphs
-                    .push((self.mesh.vertices().len(), glyph_count, linear_color));
+                self.glyphs.push((
+                    self.mesh.vertices().len(),
+                    glyph_count,
+                    linear_color,
+                    offset,
+                ));
                 for _ in 0..glyph_count {
                     // Push placeholder quad
                     // Note: moving to some sort of layering / z based system would be an
@@ -504,8 +528,13 @@ impl IcedRenderer {
                     ));
                 }
             },
-            Primitive::Clip { bounds, content } => {
+            Primitive::Clip {
+                bounds,
+                offset: clip_offset,
+                content,
+            } => {
                 let new_scissor = {
+                    // TODO: incorporate current offset for nested Clips
                     let intersection = Aabr {
                         min: Vec2 {
                             x: (bounds.x * self.p_scale) as u16,
@@ -545,7 +574,7 @@ impl IcedRenderer {
                 // TODO: cull primitives outside the current scissor
 
                 // Renderer child
-                self.draw_primitive(*content, renderer);
+                self.draw_primitive(*content, offset + clip_offset, renderer);
 
                 // Reset scissor
                 self.draw_commands.push(match self.current_state {
