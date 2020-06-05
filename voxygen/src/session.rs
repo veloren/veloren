@@ -453,7 +453,7 @@ impl PlayState for SessionState {
                             self.scene.handle_input_event(Event::AnalogGameInput(other));
                         },
                     },
-                    Event::ScreenshotSaved(screenshot_message) => self.hud.new_message(Chat {
+                    Event::ScreenshotMessage(screenshot_message) => self.hud.new_message(Chat {
                         chat_type: ChatType::Meta,
                         message: screenshot_message,
                     }),

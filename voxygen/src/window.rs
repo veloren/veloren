@@ -188,7 +188,7 @@ pub enum Event {
     /// Update of the analog inputs recognized by the game
     AnalogGameInput(AnalogGameInput),
     /// We tried to save a screenshot
-    ScreenshotSaved(String),
+    ScreenshotMessage(String),
 }
 
 pub type MouseButton = winit::MouseButton;
@@ -394,8 +394,9 @@ pub struct Window {
     controller_settings: ControllerSettings,
     cursor_position: winit::dpi::LogicalPosition,
     mouse_emulation_vec: Vec2<f32>,
-    message_channel_sender: channel::Sender<String>,
-    message_channel_receiver: channel::Receiver<String>,
+    // Currently used to send and receive screenshot result messages
+    message_sender: channel::Sender<String>,
+    message_receiver: channel::Receiver<String>,
 }
 
 impl Window {
@@ -482,8 +483,9 @@ impl Window {
             controller_settings,
             cursor_position: winit::dpi::LogicalPosition::new(0.0, 0.0),
             mouse_emulation_vec: Vec2::zero(),
-            message_channel_sender: message_sender,
-            message_channel_receiver: message_receiver,
+            // Currently used to send and receive screenshot result messages
+            message_sender,
+            message_receiver,
         };
 
         this.fullscreen(settings.graphics.fullscreen);
@@ -505,10 +507,9 @@ impl Window {
         }
 
         // Receive any messages sent through the message channel
-        match self.message_channel_receiver.try_recv() {
-            Ok(message_string) => events.push(Event::ScreenshotSaved(message_string)),
-            Err(_x) => {},
-        }
+        self.message_receiver
+            .try_iter()
+            .for_each(|message| events.push(Event::ScreenshotMessage(message)));
 
         // Copy data that is needed by the events closure to avoid lifetime errors.
         // TODO: Remove this if/when the compiler permits it.
@@ -946,7 +947,7 @@ impl Window {
         match self.renderer.create_screenshot() {
             Ok(img) => {
                 let mut path = settings.screenshots_path.clone();
-                let sender = self.message_channel_sender.clone();
+                let sender = self.message_sender.clone();
 
                 std::thread::spawn(move || {
                     use std::time::SystemTime;
