@@ -5,8 +5,8 @@ use crate::{
 };
 use common::{
     comp::{
-        Admin, CanBuild, ChatMode, ControlEvent, Controller, ForceUpdate, Ori, Player, Pos, Stats,
-        Vel,
+        Admin, CanBuild, ChatMode, ChatMsg, ControlEvent, Controller, ForceUpdate, Ori, Player,
+        Pos, Stats, Vel,
     },
     event::{EventBus, ServerEvent},
     msg::{
@@ -230,7 +230,11 @@ impl<'a> System<'a> for Sys {
                         // Become Registered first.
                         ClientState::Connected => client.error_state(RequestStateError::Impossible),
                         ClientState::Registered | ClientState::Spectator => {
-                            if let Some(player) = players.get(entity) {
+                            // Only send login message if it wasn't already
+                            // sent previously
+                            if let (Some(player), false) =
+                                (players.get(entity), client.login_msg_sent)
+                            {
                                 // Send a request to load the character's component data from the
                                 // DB. Once loaded, persisted components such as stats and inventory
                                 // will be inserted for the entity
@@ -239,6 +243,10 @@ impl<'a> System<'a> for Sys {
                                     player.uuid().to_string(),
                                     character_id,
                                 );
+
+                                server_emitter.emit(ServerEvent::Chat(ChatMsg::broadcast(
+                                    format!("[{}] is now online.", &player.alias),
+                                )));
 
                                 // Start inserting non-persisted/default components for the entity
                                 // while we load the DB data
@@ -332,7 +340,7 @@ impl<'a> System<'a> for Sys {
                                         .get(entity)
                                         .map(Clone::clone)
                                         .unwrap_or(ChatMode::default());
-                                    let msg = ServerMsg::chat(mode, *from, message);
+                                    let msg = mode.new_message(*from, message);
                                     new_chat_msgs.push((Some(entity), msg));
                                 } else {
                                     tracing::error!("Could not send message. Missing player uid");
@@ -458,25 +466,15 @@ impl<'a> System<'a> for Sys {
 
         // Handle new chat messages.
         for (entity, msg) in new_chat_msgs {
-            match msg {
-                ServerMsg::ChatMsg(msg) => {
-                    // Handle chat commands.
-                    if msg.message.starts_with("/") {
-                        if let (Some(entity), true) = (entity, msg.message.len() > 1) {
-                            let argv = String::from(&msg.message[1..]);
-                            server_emitter.emit(ServerEvent::ChatCmd(entity, argv));
-                        }
-                    } else {
-                        // Send speech bubble and chat message
-                        // TODO filter group, faction, say, and bubble distance.
-                        for client in (&mut clients).join().filter(|c| c.is_registered()) {
-                            client.notify(ServerMsg::ChatMsg(msg.clone()));
-                        }
-                    }
-                },
-                _ => {
-                    panic!("Invalid message type.");
-                },
+            // Handle chat commands.
+            if msg.message.starts_with("/") {
+                if let (Some(entity), true) = (entity, msg.message.len() > 1) {
+                    let argv = String::from(&msg.message[1..]);
+                    server_emitter.emit(ServerEvent::ChatCmd(entity, argv));
+                }
+            } else {
+                // Send chat message
+                server_emitter.emit(ServerEvent::Chat(msg));
             }
         }
 

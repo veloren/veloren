@@ -116,12 +116,6 @@ impl From<AuthClientError> for RegisterError {
 }
 
 impl ServerMsg {
-    /// Sends either say, world, group, etc. based on the player's current chat
-    /// mode.
-    pub fn chat(mode: comp::ChatMode, uid: sync::Uid, message: String) -> ServerMsg {
-        ServerMsg::ChatMsg(mode.msg_from(uid, message))
-    }
-
     pub fn broadcast(message: String) -> ServerMsg {
         ServerMsg::ChatMsg(comp::ChatMsg {
             chat_type: comp::ChatType::Broadcast,

@@ -1,4 +1,4 @@
-use crate::path::Chaser;
+use crate::{path::Chaser, state::Time};
 use specs::{Component, Entity as EcsEntity};
 use specs_idvs::IDVStorage;
 use vek::*;
@@ -127,9 +127,6 @@ pub struct SpeechBubble {
     pub message: SpeechBubbleMessage,
     pub timeout: Option<Time>,
     // TODO add icon enum for player chat type / npc quest+trade
-}
-impl Component for SpeechBubble {
-    type Storage = FlaggedStorage<Self, HashMapStorage<Self>>;
 }
 impl SpeechBubble {
     pub fn npc_new(i18n_key: String, now: Time) -> Self {

@@ -26,7 +26,7 @@ impl Component for ChatMode {
 
 impl ChatMode {
     /// Create a message from your current chat mode and uuid.
-    pub fn msg_from(&self, from: Uid, message: String) -> ChatMsg {
+    pub fn new_message(&self, from: Uid, message: String) -> ChatMsg {
         let chat_type = match self {
             ChatMode::Tell(to) => ChatType::Tell(from, *to),
             ChatMode::Say => ChatType::Say(from),
@@ -79,6 +79,15 @@ pub struct ChatMsg {
 }
 
 impl ChatMsg {
+    pub const NPC_DISTANCE: f32 = 100.0;
+    pub const REGION_DISTANCE: f32 = 1000.0;
+    pub const SAY_DISTANCE: f32 = 100.0;
+
+    pub fn broadcast(message: String) -> Self {
+        let chat_type = ChatType::Broadcast;
+        Self { chat_type, message }
+    }
+
     pub fn npc(uid: Uid, message: String) -> Self {
         let chat_type = ChatType::Npc(uid, rand::random());
         Self { chat_type, message }
@@ -104,6 +113,21 @@ impl ChatMsg {
                 (SpeechBubble::player_new(self.message.clone(), icon), *from)
             }
         })
+    }
+
+    pub fn uid(&self) -> Option<Uid> {
+        match &self.chat_type {
+            ChatType::Broadcast => None,
+            ChatType::Private => None,
+            ChatType::Kill => None,
+            ChatType::Tell(u, _t) => Some(*u),
+            ChatType::Say(u) => Some(*u),
+            ChatType::Group(u, _s) => Some(*u),
+            ChatType::Faction(u, _s) => Some(*u),
+            ChatType::Region(u) => Some(*u),
+            ChatType::World(u) => Some(*u),
+            ChatType::Npc(u, _r) => Some(*u),
+        }
     }
 }
 

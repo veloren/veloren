@@ -8,7 +8,7 @@ use common::{
     msg::{ClientState, PlayerListUpdate, ServerMsg},
     sync::{Uid, UidAllocator},
 };
-use specs::{saveload::MarkerAllocator, Builder, Entity as EcsEntity, Join, WorldExt};
+use specs::{saveload::MarkerAllocator, Builder, Entity as EcsEntity, WorldExt};
 use tracing::error;
 
 pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
@@ -60,19 +60,12 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
 
     // Make sure to remove the player from the logged in list. (See AuthProvider)
     // And send a disconnected message
-    {
-        let players = state.ecs().read_storage::<Player>();
+    if let Some(player) = state.ecs().read_storage::<Player>().get(entity) {
         let mut accounts = state.ecs().write_resource::<AuthProvider>();
-        let mut clients = state.ecs().write_storage::<Client>();
+        accounts.logout(player.uuid());
 
-        if let Some(player) = players.get(entity) {
-            accounts.logout(player.uuid());
-
-            let msg = ServerMsg::broadcast(format!("{} went offline.", &player.alias));
-            for client in (&mut clients).join().filter(|c| c.is_registered()) {
-                client.notify(msg.clone());
-            }
-        }
+        let msg = ServerMsg::broadcast(format!("{} went offline.", &player.alias));
+        state.notify_registered_clients(msg);
     }
 
     // Sync the player's character data to the database

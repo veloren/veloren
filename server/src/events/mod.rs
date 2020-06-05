@@ -1,8 +1,5 @@
 use crate::{state_ext::StateExt, Server};
-use common::{
-    event::{EventBus, ServerEvent},
-    msg::ServerMsg,
-};
+use common::event::{EventBus, ServerEvent};
 use entity_creation::{
     handle_create_npc, handle_create_waypoint, handle_initialize_character,
     handle_loaded_character_data, handle_shoot,
@@ -23,16 +20,9 @@ mod inventory_manip;
 mod player;
 
 pub enum Event {
-    ClientConnected {
-        entity: EcsEntity,
-    },
-    ClientDisconnected {
-        entity: EcsEntity,
-    },
-    Chat {
-        entity: Option<EcsEntity>,
-        msg: String,
-    },
+    ClientConnected { entity: EcsEntity },
+    ClientDisconnected { entity: EcsEntity },
+    Chat { entity: Option<EcsEntity>, msg: String },
 }
 
 impl Server {
@@ -41,6 +31,7 @@ impl Server {
 
         let mut requested_chunks = Vec::new();
         let mut chat_commands = Vec::new();
+        let mut chat_messages = Vec::new();
 
         let events = self
             .state
@@ -107,8 +98,7 @@ impl Server {
                     chat_commands.push((entity, cmd));
                 },
                 ServerEvent::Chat(msg) => {
-                    self.state
-                        .notify_registered_clients(ServerMsg::ChatMsg(msg));
+                    chat_messages.push(msg);
                 },
             }
         }
@@ -120,6 +110,10 @@ impl Server {
 
         for (entity, cmd) in chat_commands {
             self.process_chat_cmd(entity, cmd);
+        }
+
+        for msg in chat_messages {
+            self.state.send_chat(msg);
         }
 
         frontend_events
