@@ -47,9 +47,10 @@ fn complete_player(part: &str, client: &Client) -> Vec<String> {
 }
 
 fn complete_command(part: &str) -> Vec<String> {
-    CHAT_COMMANDS
-        .iter()
-        .map(|com| com.keyword())
+    CHAT_SHORTCUTS
+        .keys()
+        .map(ToString::to_string)
+        .chain(CHAT_COMMANDS.iter().map(ToString::to_string))
         .filter(|kwd| kwd.starts_with(part) || format!("/{}", kwd).starts_with(part))
         .map(|c| format!("/{}", c))
         .collect()
