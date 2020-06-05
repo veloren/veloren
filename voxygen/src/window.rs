@@ -7,6 +7,7 @@ use crate::{
 use gilrs::{EventType, Gilrs};
 use hashbrown::HashMap;
 
+use crossbeam::channel;
 use log::{error, warn};
 use serde_derive::{Deserialize, Serialize};
 use std::fmt;
@@ -186,6 +187,8 @@ pub enum Event {
     AnalogMenuInput(AnalogMenuInput),
     /// Update of the analog inputs recognized by the game
     AnalogGameInput(AnalogGameInput),
+    /// We tried to save a screenshot
+    ScreenshotMessage(String),
 }
 
 pub type MouseButton = winit::MouseButton;
@@ -391,6 +394,9 @@ pub struct Window {
     controller_settings: ControllerSettings,
     cursor_position: winit::dpi::LogicalPosition,
     mouse_emulation_vec: Vec2<f32>,
+    // Currently used to send and receive screenshot result messages
+    message_sender: channel::Sender<String>,
+    message_receiver: channel::Receiver<String>,
 }
 
 impl Window {
@@ -445,6 +451,11 @@ impl Window {
 
         let controller_settings = ControllerSettings::from(&settings.controller);
 
+        let (message_sender, message_receiver): (
+            channel::Sender<String>,
+            channel::Receiver<String>,
+        ) = channel::unbounded::<String>();
+
         let mut this = Self {
             events_loop,
             renderer: Renderer::new(
@@ -472,6 +483,9 @@ impl Window {
             controller_settings,
             cursor_position: winit::dpi::LogicalPosition::new(0.0, 0.0),
             mouse_emulation_vec: Vec2::zero(),
+            // Currently used to send and receive screenshot result messages
+            message_sender,
+            message_receiver,
         };
 
         this.fullscreen(settings.graphics.fullscreen);
@@ -491,6 +505,11 @@ impl Window {
             events.push(Event::Ui(ui::Event::new_resize(self.logical_size())));
             self.needs_refresh_resize = false;
         }
+
+        // Receive any messages sent through the message channel
+        self.message_receiver
+            .try_iter()
+            .for_each(|message| events.push(Event::ScreenshotMessage(message)));
 
         // Copy data that is needed by the events closure to avoid lifetime errors.
         // TODO: Remove this if/when the compiler permits it.
@@ -928,6 +947,7 @@ impl Window {
         match self.renderer.create_screenshot() {
             Ok(img) => {
                 let mut path = settings.screenshots_path.clone();
+                let sender = self.message_sender.clone();
 
                 std::thread::spawn(move || {
                     use std::time::SystemTime;
@@ -935,6 +955,8 @@ impl Window {
                     if !path.exists() {
                         if let Err(err) = std::fs::create_dir_all(&path) {
                             warn!("Couldn't create folder for screenshot: {:?}", err);
+                            let _result =
+                                sender.send(String::from("Couldn't create folder for screenshot"));
                         }
                     }
                     path.push(format!(
@@ -946,6 +968,10 @@ impl Window {
                     ));
                     if let Err(err) = img.save(&path) {
                         warn!("Couldn't save screenshot: {:?}", err);
+                        let _result = sender.send(String::from("Couldn't save screenshot"));
+                    } else {
+                        let _result =
+                            sender.send(format!("Screenshot saved to {}", path.to_string_lossy()));
                     }
                 });
             },
