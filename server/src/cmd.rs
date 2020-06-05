@@ -6,7 +6,7 @@ use crate::{Server, StateExt};
 use chrono::{NaiveTime, Timelike};
 use common::{
     assets,
-    cmd::{ChatCommand, CHAT_COMMANDS},
+    cmd::{ChatCommand, CHAT_COMMANDS, CHAT_SHORTCUTS},
     comp,
     comp::Item,
     event::{EventBus, ServerEvent},
@@ -657,6 +657,11 @@ fn handle_help(
                 server.notify_client(client, ServerMsg::private(String::from(cmd.help_string())));
             }
         }
+        let shortcuts = CHAT_SHORTCUTS.iter().fold(
+            "Aditionally, you can use the following shortcuts:".to_string(),
+            |s, (k, v)| format!("{}\n/{} => /{}", s, k, v.keyword()),
+        );
+        server.notify_client(client, ServerMsg::private(shortcuts.to_string()));
     }
 }
 
@@ -1591,19 +1596,14 @@ fn handle_sudo(
         scan_fmt_some!(&args, &action.arg_fmt(), String, String, String)
     {
         let cmd_args = cmd_args.unwrap_or(String::from(""));
-        let cmd = if cmd.chars().next() == Some('/') {
-            cmd.chars().skip(1).collect()
-        } else {
-            cmd
-        };
-        if let Some(action) = CHAT_COMMANDS.iter().find(|c| c.keyword() == cmd) {
+        if let Ok(action) = cmd.parse() {
             let ecs = server.state.ecs();
             let entity_opt = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
                 .join()
                 .find(|(_, player)| player.alias == player_alias)
                 .map(|(entity, _)| entity);
             if let Some(entity) = entity_opt {
-                get_handler(action)(server, client, entity, cmd_args, action);
+                get_handler(&action)(server, client, entity, cmd_args, &action);
             } else {
                 server.notify_client(
                     client,

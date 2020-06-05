@@ -1,7 +1,13 @@
 use crate::{assets, comp, npc};
 use lazy_static::lazy_static;
-use std::{ops::Deref, path::Path, str::FromStr};
 use tracing::warn;
+use std::{
+    collections::HashMap,
+    fmt::{self, Display},
+    ops::Deref,
+    path::Path,
+    str::FromStr,
+};
 
 /// Struct representing a command that a user can run from server chat.
 pub struct ChatCommandData {
@@ -109,6 +115,15 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
 ];
 
 lazy_static! {
+    pub static ref CHAT_SHORTCUTS: HashMap<char, ChatCommand> = [
+        ('f', ChatCommand::Faction),
+        ('g', ChatCommand::Group),
+        ('r', ChatCommand::Region),
+        ('s', ChatCommand::Say),
+        ('t', ChatCommand::Tell),
+        ('w', ChatCommand::World),
+    ].iter().cloned().collect();
+
     static ref ALIGNMENTS: Vec<String> = vec!["wild", "enemy", "npc", "pet"]
         .iter()
         .map(|s| s.to_string())
@@ -404,10 +419,16 @@ impl ChatCommand {
                 ArgumentSpec::Command(_) => "{}",
                 ArgumentSpec::Message(_) => "{/.*/}",
                 ArgumentSpec::SubCommand => "{} {/.*/}",
-                ArgumentSpec::Enum(_, _, _) => "{}", // TODO
+                ArgumentSpec::Enum(_, _, _) => "{}",
             })
             .collect::<Vec<_>>()
             .join(" ")
+    }
+}
+
+impl Display for ChatCommand {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        write!(f, "{}", self.keyword())
     }
 }
 
@@ -420,9 +441,20 @@ impl FromStr for ChatCommand {
         } else {
             &keyword[..]
         };
-        for c in CHAT_COMMANDS {
-            if kwd == c.keyword() {
+        if keyword.len() == 1 {
+            if let Some(c) = keyword
+                .chars()
+                .nth(0)
+                .as_ref()
+                .and_then(|k| CHAT_SHORTCUTS.get(k))
+            {
                 return Ok(*c);
+            }
+        } else {
+            for c in CHAT_COMMANDS {
+                if kwd == c.keyword() {
+                    return Ok(*c);
+                }
             }
         }
         Err(())

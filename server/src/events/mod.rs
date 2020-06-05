@@ -20,9 +20,16 @@ mod inventory_manip;
 mod player;
 
 pub enum Event {
-    ClientConnected { entity: EcsEntity },
-    ClientDisconnected { entity: EcsEntity },
-    Chat { entity: Option<EcsEntity>, msg: String },
+    ClientConnected {
+        entity: EcsEntity,
+    },
+    ClientDisconnected {
+        entity: EcsEntity,
+    },
+    Chat {
+        entity: Option<EcsEntity>,
+        msg: String,
+    },
 }
 
 impl Server {
