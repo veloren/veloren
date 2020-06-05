@@ -7,11 +7,14 @@ use common::{
     effect::Effect,
     msg::{CharacterInfo, ClientState, PlayerListUpdate, ServerMsg},
     state::State,
-    sync::{Uid, WorldSyncExt},
+    sync::{Uid, UidAllocator, WorldSyncExt},
     util::Dir,
 };
-use specs::{Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder, Join, WorldExt};
 use tracing::warn;
+use specs::{
+    saveload::MarkerAllocator, Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder,
+    Join, WorldExt,
+};
 use vek::*;
 
 pub trait StateExt {
@@ -43,6 +46,14 @@ pub trait StateExt {
     /// Performed after loading component data from the database
     fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents);
     /// Iterates over registered clients and send each `ServerMsg`
+    fn create_player_character(
+        &mut self,
+        entity: EcsEntity,
+        character_id: i32,
+        body: comp::Body,
+        server_settings: &ServerSettings,
+    );
+    fn send_chat(&self, msg: comp::ChatMsg);
     fn notify_registered_clients(&self, msg: ServerMsg);
     /// Delete an entity, recording the deletion in [`DeletedEntities`]
     fn delete_entity_recorded(
@@ -229,6 +240,117 @@ impl StateExt for State {
         self.write_component(entity, comp::ForceUpdate);
     }
 
+    /// Send the chat message to the proper players. Say and region are limited
+    /// by location. Faction and group are limited by component.
+    fn send_chat(&self, msg: comp::ChatMsg) {
+        let ecs = self.ecs();
+        let is_within = |target, a: &comp::Pos, b_opt: Option<&comp::Pos>| {
+            if let Some(b) = b_opt {
+                a.0.distance(b.0) < target
+            } else {
+                false
+            }
+        };
+        match &msg.chat_type {
+            comp::ChatType::Broadcast
+            | comp::ChatType::Kill
+            | comp::ChatType::Private
+            | comp::ChatType::World(_) => {
+                self.notify_registered_clients(ServerMsg::ChatMsg(msg.clone()))
+            },
+            comp::ChatType::Tell(u, t) => {
+                for (client, uid) in (
+                    &mut ecs.write_storage::<Client>(),
+                    &ecs.read_storage::<Uid>(),
+                )
+                    .join()
+                {
+                    if uid == u || uid == t {
+                        client.notify(ServerMsg::ChatMsg(msg.clone()));
+                    }
+                }
+            },
+
+            comp::ChatType::Say(_u) => {
+                for (client, pos) in (
+                    &mut ecs.write_storage::<Client>(),
+                    &ecs.read_storage::<comp::Pos>(),
+                )
+                    .join()
+                {
+                    let entity_opt = msg.uid().and_then(|uid| {
+                        (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0)
+                    });
+                    let positions = ecs.read_storage::<comp::Pos>();
+                    let pos_opt = entity_opt.and_then(|e| positions.get(e));
+                    if is_within(comp::ChatMsg::SAY_DISTANCE, pos, pos_opt) {
+                        client.notify(ServerMsg::ChatMsg(msg.clone()));
+                    }
+                }
+            },
+            comp::ChatType::Region(_u) => {
+                for (client, pos) in (
+                    &mut ecs.write_storage::<Client>(),
+                    &ecs.read_storage::<comp::Pos>(),
+                )
+                    .join()
+                {
+                    let entity_opt = msg.uid().and_then(|uid| {
+                        (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0)
+                    });
+                    let positions = ecs.read_storage::<comp::Pos>();
+                    let pos_opt = entity_opt.and_then(|e| positions.get(e));
+                    if is_within(comp::ChatMsg::REGION_DISTANCE, pos, pos_opt) {
+                        client.notify(ServerMsg::ChatMsg(msg.clone()));
+                    }
+                }
+            },
+            comp::ChatType::Npc(_u, _r) => {
+                for (client, pos) in (
+                    &mut ecs.write_storage::<Client>(),
+                    &ecs.read_storage::<comp::Pos>(),
+                )
+                    .join()
+                {
+                    let entity_opt = msg.uid().and_then(|uid| {
+                        (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0)
+                    });
+                    let positions = ecs.read_storage::<comp::Pos>();
+                    let pos_opt = entity_opt.and_then(|e| positions.get(e));
+                    if is_within(comp::ChatMsg::NPC_DISTANCE, pos, pos_opt) {
+                        client.notify(ServerMsg::ChatMsg(msg.clone()));
+                    }
+                }
+            },
+
+            comp::ChatType::Faction(_u, s) => {
+                for (client, faction) in (
+                    &mut ecs.write_storage::<Client>(),
+                    &ecs.read_storage::<comp::Faction>(),
+                )
+                    .join()
+                {
+                    if s == &faction.0 {
+                        client.notify(ServerMsg::ChatMsg(msg.clone()));
+                    }
+                }
+            },
+            comp::ChatType::Group(_u, s) => {
+                for (client, group) in (
+                    &mut ecs.write_storage::<Client>(),
+                    &ecs.read_storage::<comp::Group>(),
+                )
+                    .join()
+                {
+                    if s == &group.0 {
+                        client.notify(ServerMsg::ChatMsg(msg.clone()));
+                    }
+                }
+            },
+        }
+    }
+
+    /// Sends the message to all connected clients
     fn notify_registered_clients(&self, msg: ServerMsg) {
         for client in (&mut self.ecs().write_storage::<Client>())
             .join()
