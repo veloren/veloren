@@ -652,16 +652,18 @@ fn handle_help(
     if let Some(cmd) = scan_fmt_some!(&args, &action.arg_fmt(), ChatCommand) {
         server.notify_client(client, ServerMsg::private(String::from(cmd.help_string())));
     } else {
+        let mut message = String::new();
         for cmd in CHAT_COMMANDS.iter() {
             if !cmd.needs_admin() || server.entity_is_admin(client) {
-                server.notify_client(client, ServerMsg::private(String::from(cmd.help_string())));
+                message += &cmd.help_string();
+                message += "\n";
             }
         }
-        let shortcuts = CHAT_SHORTCUTS.iter().fold(
-            "Aditionally, you can use the following shortcuts:".to_string(),
-            |s, (k, v)| format!("{}\n/{} => /{}", s, k, v.keyword()),
-        );
-        server.notify_client(client, ServerMsg::private(shortcuts.to_string()));
+        message += "Additionally, you can use the following shortcuts:";
+        for (k, v) in CHAT_SHORTCUTS.iter() {
+            message += &format!(" /{} => /{}", k, v.keyword());
+        }
+        server.notify_client(client, ServerMsg::private(message));
     }
 }
 

@@ -94,25 +94,28 @@ impl ChatMsg {
     }
 
     pub fn to_bubble(&self) -> Option<(SpeechBubble, Uid)> {
-        let tuple = match &self.chat_type {
-            ChatType::Broadcast => None,
-            ChatType::Private => None,
-            ChatType::Kill => None,
-            ChatType::Tell(u, _) => Some((SpeechBubbleIcon::Tell, u, None)),
-            ChatType::Say(u) => Some((SpeechBubbleIcon::Say, u, None)),
-            ChatType::Group(u, _s) => Some((SpeechBubbleIcon::Group, u, None)),
-            ChatType::Faction(u, _s) => Some((SpeechBubbleIcon::Faction, u, None)),
-            ChatType::Region(u) => Some((SpeechBubbleIcon::Region, u, None)),
-            ChatType::World(u) => Some((SpeechBubbleIcon::World, u, None)),
-            ChatType::Npc(u, r) => Some((SpeechBubbleIcon::None, u, Some(r))),
-        };
-        tuple.map(|(icon, from, npc_rand)| {
-            if let Some(r) = npc_rand {
-                (SpeechBubble::npc_new(self.message.clone(), *r, icon), *from)
-            } else {
-                (SpeechBubble::player_new(self.message.clone(), icon), *from)
-            }
-        })
+        let icon = self.icon();
+        if let ChatType::Npc(from, r) = self.chat_type {
+            Some((SpeechBubble::npc_new(self.message.clone(), r, icon), from))
+        } else {
+            self.uid()
+                .map(|from| (SpeechBubble::player_new(self.message.clone(), icon), from))
+        }
+    }
+
+    pub fn icon(&self) -> SpeechBubbleIcon {
+        match &self.chat_type {
+            ChatType::Broadcast => SpeechBubbleIcon::Broadcast,
+            ChatType::Private => SpeechBubbleIcon::Private,
+            ChatType::Kill => SpeechBubbleIcon::Kill,
+            ChatType::Tell(_u, _) => SpeechBubbleIcon::Tell,
+            ChatType::Say(_u) => SpeechBubbleIcon::Say,
+            ChatType::Group(_u, _s) => SpeechBubbleIcon::Group,
+            ChatType::Faction(_u, _s) => SpeechBubbleIcon::Faction,
+            ChatType::Region(_u) => SpeechBubbleIcon::Region,
+            ChatType::World(_u) => SpeechBubbleIcon::World,
+            ChatType::Npc(_u, _r) => SpeechBubbleIcon::None,
+        }
     }
 
     pub fn uid(&self) -> Option<Uid> {
@@ -174,6 +177,10 @@ pub enum SpeechBubbleIcon {
     Group,
     Faction,
     World,
+    // Server chat types
+    Broadcast,
+    Private,
+    Kill,
     // For NPCs
     Quest, // TODO not implemented
     Trade, // TODO not implemented
