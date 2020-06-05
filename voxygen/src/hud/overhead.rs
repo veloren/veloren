@@ -4,7 +4,7 @@ use crate::{
     settings::GameplaySettings,
     ui::{fonts::ConrodVoxygenFonts, Ingameable},
 };
-use common::comp::{Energy, SpeechBubble, Stats};
+use common::comp::{Energy, SpeechBubble, SpeechBubbleIcon, Stats};
 use conrod_core::{
     position::Align,
     widget::{self, Image, Rectangle, Text},
@@ -103,8 +103,9 @@ impl<'a> Ingameable for Overhead<'a> {
         // - 4 for HP + mana + fg + bg
         // If there's a speech bubble
         // - 1 Text::new for speech bubble
+        // - 1 Image::new for icon
         // - 10 Image::new for speech bubble (9-slice + tail)
-        7 + if self.bubble.is_some() { 11 } else { 0 }
+        7 + if self.bubble.is_some() { 12 } else { 0 }
     }
 }
 
@@ -263,6 +264,10 @@ impl<'a> Widget for Overhead<'a> {
             tail.set(state.ids.speech_bubble_tail, ui);
             text.depth(tail.get_depth() - 1.0)
                 .set(state.ids.speech_bubble_text, ui);
+            Image::new(bubble_icon(&bubble, &self.imgs))
+                .w_h(16.0, 16.0)
+                .top_left_with_margin_on(state.ids.speech_bubble_text, -16.0)
+                .set(state.ids.speech_bubble_icon, ui);
         }
 
         let hp_percentage =
@@ -360,5 +365,20 @@ impl<'a> Widget for Overhead<'a> {
                 .parent(id)
                 .set(state.ids.level, ui);
         }
+    }
+}
+
+fn bubble_icon(sb: &SpeechBubble, imgs: &Imgs) -> conrod_core::image::Id {
+    match sb.icon {
+        // One for each chat mode
+        SpeechBubbleIcon::Tell => imgs.chat_tell_small,
+        SpeechBubbleIcon::Say => imgs.chat_say_small,
+        SpeechBubbleIcon::Region => imgs.chat_region_small,
+        SpeechBubbleIcon::Group => imgs.chat_group_small,
+        SpeechBubbleIcon::Faction => imgs.chat_faction_small,
+        SpeechBubbleIcon::World => imgs.chat_world_small,
+        SpeechBubbleIcon::Quest => imgs.nothing, // TODO not implemented
+        SpeechBubbleIcon::Trade => imgs.nothing, // TODO not implemented
+        SpeechBubbleIcon::None => imgs.nothing,  // No icon (default for npcs)
     }
 }

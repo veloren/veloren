@@ -105,9 +105,9 @@ impl ChatMsg {
 
     pub fn icon(&self) -> SpeechBubbleIcon {
         match &self.chat_type {
-            ChatType::Broadcast => SpeechBubbleIcon::Broadcast,
-            ChatType::Private => SpeechBubbleIcon::Private,
-            ChatType::Kill => SpeechBubbleIcon::Kill,
+            ChatType::Broadcast => SpeechBubbleIcon::None,
+            ChatType::Private => SpeechBubbleIcon::None,
+            ChatType::Kill => SpeechBubbleIcon::None,
             ChatType::Tell(_u, _) => SpeechBubbleIcon::Tell,
             ChatType::Say(_u) => SpeechBubbleIcon::Say,
             ChatType::Group(_u, _s) => SpeechBubbleIcon::Group,
@@ -177,10 +177,6 @@ pub enum SpeechBubbleIcon {
     Group,
     Faction,
     World,
-    // Server chat types
-    Broadcast,
-    Private,
-    Kill,
     // For NPCs
     Quest, // TODO not implemented
     Trade, // TODO not implemented

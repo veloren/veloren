@@ -308,6 +308,13 @@ image_ids! {
         chat_tell_small: "voxygen.element.icons.chat.tell_small",
         chat_world_small: "voxygen.element.icons.chat.world_small",
 
+        chat_faction: "voxygen.element.icons.chat.faction",
+        chat_group: "voxygen.element.icons.chat.group",
+        chat_region: "voxygen.element.icons.chat.region",
+        chat_say: "voxygen.element.icons.chat.say",
+        chat_tell: "voxygen.element.icons.chat.tell",
+        chat_world: "voxygen.element.icons.chat.world",
+
         <BlankGraphic>
         nothing: (),
     }
