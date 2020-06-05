@@ -7,11 +7,11 @@ use crate::{
     window::Event as WinEvent,
     Direction, GlobalState, PlayState, PlayStateResult,
 };
-use client::{self, Client};
+use client::{self, Client, Event as ClientEvent};
 use common::{assets, clock::Clock, comp, msg::ClientState, state::DeltaTime};
 use log::error;
 use specs::WorldExt;
-use std::{cell::RefCell, rc::Rc, time::Duration};
+use std::{cell::RefCell, rc::Rc, time::Duration, sync::mpsc};
 use ui::CharSelectionUi;
 
 pub struct CharSelectionState {
@@ -42,10 +42,12 @@ impl PlayState for CharSelectionState {
         // Load the player's character list
         self.client.borrow_mut().load_character_list();
 
+        let (message_sender, _message_receiver): (mpsc::Sender<ClientEvent>, mpsc::Receiver<ClientEvent>) = mpsc::channel();
+
         let mut current_client_state = self.client.borrow().get_client_state();
         while let ClientState::Pending | ClientState::Registered = current_client_state {
             // Handle window events
-            for event in global_state.window.fetch_events(&mut global_state.settings) {
+            for event in global_state.window.fetch_events(&mut global_state.settings, &message_sender) {
                 if self.char_selection_ui.handle_event(event.clone()) {
                     continue;
                 }

@@ -10,6 +10,11 @@ use hashbrown::HashMap;
 use log::{error, warn};
 use serde_derive::{Deserialize, Serialize};
 use std::fmt;
+use std::sync::mpsc::Sender;
+use client::{self, Event as ClientEvent};
+use common::{
+    ChatType,
+};
 use vek::*;
 
 /// Represents a key that the game recognises after input mapping.
@@ -483,7 +488,7 @@ impl Window {
 
     pub fn renderer_mut(&mut self) -> &mut Renderer { &mut self.renderer }
 
-    pub fn fetch_events(&mut self, settings: &mut Settings) -> Vec<Event> {
+    pub fn fetch_events(&mut self, settings: &mut Settings, message_sender: &Sender<ClientEvent>) -> Vec<Event> {
         let mut events = vec![];
         events.append(&mut self.supplement_events);
         // Refresh ui size (used when changing playstates)
@@ -651,7 +656,7 @@ impl Window {
         }
 
         if take_screenshot {
-            self.take_screenshot(&settings);
+            self.take_screenshot(&settings, &message_sender);
         }
 
         if toggle_fullscreen {
@@ -924,10 +929,11 @@ impl Window {
 
     pub fn send_supplement_event(&mut self, event: Event) { self.supplement_events.push(event) }
 
-    pub fn take_screenshot(&mut self, settings: &Settings) {
+    pub fn take_screenshot(&mut self, settings: &Settings, message_sender: &Sender<ClientEvent>) {
         match self.renderer.create_screenshot() {
             Ok(img) => {
                 let mut path = settings.screenshots_path.clone();
+                let sender = message_sender.clone();
 
                 std::thread::spawn(move || {
                     use std::time::SystemTime;
@@ -935,6 +941,10 @@ impl Window {
                     if !path.exists() {
                         if let Err(err) = std::fs::create_dir_all(&path) {
                             warn!("Couldn't create folder for screenshot: {:?}", err);
+                            let _result = sender.send(ClientEvent::Chat {
+                              chat_type: ChatType::Meta,
+                              message: String::from("Couldn't create folder for screenshot"),
+                            });
                         }
                     }
                     path.push(format!(
@@ -946,6 +956,20 @@ impl Window {
                     ));
                     if let Err(err) = img.save(&path) {
                         warn!("Couldn't save screenshot: {:?}", err);
+                        let _result = sender.send(ClientEvent::Chat {
+                          chat_type: ChatType::Meta,
+                          message: String::from("Couldn't save screenshot"),
+                        });
+                    } else {
+                        match path.to_str() {
+                          Some(x) => {
+                            let _result = sender.send(ClientEvent::Chat {
+                              chat_type: ChatType::Meta,
+                              message: format!("Screenshot saved to {}", x),
+                            });
+                          },
+                          None => {}
+                        }
                     }
                 });
             },
