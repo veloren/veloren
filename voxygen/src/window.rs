@@ -7,14 +7,10 @@ use crate::{
 use gilrs::{EventType, Gilrs};
 use hashbrown::HashMap;
 
+use crossbeam::channel;
 use log::{error, warn};
 use serde_derive::{Deserialize, Serialize};
 use std::fmt;
-use std::sync::mpsc::Sender;
-use client::{self, Event as ClientEvent};
-use common::{
-    ChatType,
-};
 use vek::*;
 
 /// Represents a key that the game recognises after input mapping.
@@ -191,6 +187,8 @@ pub enum Event {
     AnalogMenuInput(AnalogMenuInput),
     /// Update of the analog inputs recognized by the game
     AnalogGameInput(AnalogGameInput),
+    /// We tried to save a screenshot
+    ScreenshotSaved(String),
 }
 
 pub type MouseButton = winit::MouseButton;
@@ -396,6 +394,8 @@ pub struct Window {
     controller_settings: ControllerSettings,
     cursor_position: winit::dpi::LogicalPosition,
     mouse_emulation_vec: Vec2<f32>,
+    message_channel_sender: channel::Sender<String>,
+    message_channel_receiver: channel::Receiver<String>,
 }
 
 impl Window {
@@ -450,6 +450,11 @@ impl Window {
 
         let controller_settings = ControllerSettings::from(&settings.controller);
 
+        let (message_sender, message_receiver): (
+            channel::Sender<String>,
+            channel::Receiver<String>,
+        ) = channel::unbounded::<String>();
+
         let mut this = Self {
             events_loop,
             renderer: Renderer::new(
@@ -477,6 +482,8 @@ impl Window {
             controller_settings,
             cursor_position: winit::dpi::LogicalPosition::new(0.0, 0.0),
             mouse_emulation_vec: Vec2::zero(),
+            message_channel_sender: message_sender,
+            message_channel_receiver: message_receiver,
         };
 
         this.fullscreen(settings.graphics.fullscreen);
@@ -488,13 +495,19 @@ impl Window {
 
     pub fn renderer_mut(&mut self) -> &mut Renderer { &mut self.renderer }
 
-    pub fn fetch_events(&mut self, settings: &mut Settings, message_sender: &Sender<ClientEvent>) -> Vec<Event> {
+    pub fn fetch_events(&mut self, settings: &mut Settings) -> Vec<Event> {
         let mut events = vec![];
         events.append(&mut self.supplement_events);
         // Refresh ui size (used when changing playstates)
         if self.needs_refresh_resize {
             events.push(Event::Ui(ui::Event::new_resize(self.logical_size())));
             self.needs_refresh_resize = false;
+        }
+
+        // Receive any messages sent through the message channel
+        match self.message_channel_receiver.try_recv() {
+            Ok(message_string) => events.push(Event::ScreenshotSaved(message_string)),
+            Err(_x) => {},
         }
 
         // Copy data that is needed by the events closure to avoid lifetime errors.
@@ -656,7 +669,7 @@ impl Window {
         }
 
         if take_screenshot {
-            self.take_screenshot(&settings, &message_sender);
+            self.take_screenshot(&settings);
         }
 
         if toggle_fullscreen {
@@ -929,11 +942,11 @@ impl Window {
 
     pub fn send_supplement_event(&mut self, event: Event) { self.supplement_events.push(event) }
 
-    pub fn take_screenshot(&mut self, settings: &Settings, message_sender: &Sender<ClientEvent>) {
+    pub fn take_screenshot(&mut self, settings: &Settings) {
         match self.renderer.create_screenshot() {
             Ok(img) => {
                 let mut path = settings.screenshots_path.clone();
-                let sender = message_sender.clone();
+                let sender = self.message_channel_sender.clone();
 
                 std::thread::spawn(move || {
                     use std::time::SystemTime;
@@ -941,10 +954,8 @@ impl Window {
                     if !path.exists() {
                         if let Err(err) = std::fs::create_dir_all(&path) {
                             warn!("Couldn't create folder for screenshot: {:?}", err);
-                            let _result = sender.send(ClientEvent::Chat {
-                              chat_type: ChatType::Meta,
-                              message: String::from("Couldn't create folder for screenshot"),
-                            });
+                            let _result =
+                                sender.send(String::from("Couldn't create folder for screenshot"));
                         }
                     }
                     path.push(format!(
@@ -956,20 +967,10 @@ impl Window {
                     ));
                     if let Err(err) = img.save(&path) {
                         warn!("Couldn't save screenshot: {:?}", err);
-                        let _result = sender.send(ClientEvent::Chat {
-                          chat_type: ChatType::Meta,
-                          message: String::from("Couldn't save screenshot"),
-                        });
+                        let _result = sender.send(String::from("Couldn't save screenshot"));
                     } else {
-                        match path.to_str() {
-                          Some(x) => {
-                            let _result = sender.send(ClientEvent::Chat {
-                              chat_type: ChatType::Meta,
-                              message: format!("Screenshot saved to {}", x),
-                            });
-                          },
-                          None => {}
-                        }
+                        let _result =
+                            sender.send(format!("Screenshot saved to {}", path.to_string_lossy()));
                     }
                 });
             },

@@ -11,8 +11,6 @@ use log::{error, warn};
 #[cfg(feature = "singleplayer")]
 use std::time::Duration;
 use ui::{Event as MainMenuEvent, MainMenuUi};
-use std::sync::mpsc;
-use client::{self, Event as ClientEvent};
 
 pub struct MainMenuState {
     main_menu_ui: MainMenuUi,
@@ -49,11 +47,9 @@ impl PlayState for MainMenuState {
             &crate::i18n::i18n_asset_key(&global_state.settings.language.selected_language),
         );
 
-        let (message_sender, _message_receiver): (mpsc::Sender<ClientEvent>, mpsc::Receiver<ClientEvent>) = mpsc::channel();
-
         loop {
             // Handle window events.
-            for event in global_state.window.fetch_events(&mut global_state.settings, &message_sender) {
+            for event in global_state.window.fetch_events(&mut global_state.settings) {
                 match event {
                     Event::Close => return PlayStateResult::Shutdown,
                     // Pass events to ui.

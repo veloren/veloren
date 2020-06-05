@@ -9,7 +9,7 @@ use crate::{
     window::{AnalogGameInput, Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
-use client::{self, Client, Event::Chat, Event as ClientEvent};
+use client::{self, Client, Event::Chat};
 use common::{
     assets::{load_watched, watch},
     clock::Clock,
@@ -23,7 +23,7 @@ use common::{
 };
 use log::error;
 use specs::{Join, WorldExt};
-use std::{cell::RefCell, rc::Rc, time::Duration, sync::mpsc};
+use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
 
 /// The action to perform after a tick
@@ -143,8 +143,6 @@ impl PlayState for SessionState {
         let mut ori = self.scene.camera().get_orientation();
         let mut free_look = false;
 
-        let (message_sender, message_receiver): (mpsc::Sender<ClientEvent>, mpsc::Receiver<ClientEvent>) = mpsc::channel();
-
         // Game loop
         let mut current_client_state = self.client.borrow().get_client_state();
         while let ClientState::Pending | ClientState::Character = current_client_state {
@@ -226,14 +224,8 @@ impl PlayState for SessionState {
                     .unwrap_or(false)
             }));
 
-            // Receive any ClientEvents sent through the message channel
-            match message_receiver.try_recv() {
-                Ok(message_event) => self.hud.new_message(message_event),
-                Err(_x) => {},
-            };
-
             // Handle window events.
-            for event in global_state.window.fetch_events(&mut global_state.settings, &message_sender) {
+            for event in global_state.window.fetch_events(&mut global_state.settings) {
                 // Pass all events to the ui first.
                 if self.hud.handle_event(event.clone(), global_state) {
                     continue;
@@ -461,6 +453,10 @@ impl PlayState for SessionState {
                             self.scene.handle_input_event(Event::AnalogGameInput(other));
                         },
                     },
+                    Event::ScreenshotSaved(screenshot_message) => self.hud.new_message(Chat {
+                        chat_type: ChatType::Meta,
+                        message: screenshot_message,
+                    }),
 
                     // Pass all other events to the scene
                     event => {
