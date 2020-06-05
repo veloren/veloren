@@ -15,9 +15,9 @@ pub struct QuadrupedLowSkeleton {
     head_upper: Bone,
     head_lower: Bone,
     jaw: Bone,
+    chest: Bone,
     tail_front: Bone,
     tail_rear: Bone,
-    chest: Bone,
     foot_fl: Bone,
     foot_fr: Bone,
     foot_bl: Bone,
@@ -37,7 +37,6 @@ impl Skeleton for QuadrupedLowSkeleton {
         let head_upper_mat = self.head_upper.compute_base_matrix();
         let head_lower_mat = self.head_lower.compute_base_matrix();
         let chest_mat = self.chest.compute_base_matrix();
-        let chest_mat = self.chest.compute_base_matrix();
         (
             [
                 FigureBoneData::new(chest_mat * head_lower_mat * head_upper_mat),
@@ -52,14 +51,13 @@ impl Skeleton for QuadrupedLowSkeleton {
                 FigureBoneData::new(chest_mat * self.tail_front.compute_base_matrix()),
                 FigureBoneData::new(
                     chest_mat
-                        * chest_mat
                         * self.tail_front.compute_base_matrix()
                         * self.tail_rear.compute_base_matrix(),
                 ),
-                FigureBoneData::new(self.foot_fl.compute_base_matrix()),
-                FigureBoneData::new(self.foot_fr.compute_base_matrix()),
-                FigureBoneData::new(self.foot_bl.compute_base_matrix()),
-                FigureBoneData::new(self.foot_br.compute_base_matrix()),
+                FigureBoneData::new(chest_mat*self.foot_fl.compute_base_matrix()),
+                FigureBoneData::new(chest_mat*self.foot_fr.compute_base_matrix()),
+                FigureBoneData::new(chest_mat*self.foot_bl.compute_base_matrix()),
+                FigureBoneData::new(chest_mat*self.foot_br.compute_base_matrix()),
                 FigureBoneData::default(),
                 FigureBoneData::default(),
                 FigureBoneData::default(),
@@ -75,9 +73,9 @@ impl Skeleton for QuadrupedLowSkeleton {
         self.head_upper.interpolate(&target.head_upper, dt);
         self.head_lower.interpolate(&target.head_lower, dt);
         self.jaw.interpolate(&target.jaw, dt);
+        self.chest.interpolate(&target.chest, dt);
         self.tail_front.interpolate(&target.tail_front, dt);
         self.tail_rear.interpolate(&target.tail_rear, dt);
-        self.chest.interpolate(&target.chest, dt);
         self.foot_fl.interpolate(&target.foot_fl, dt);
         self.foot_fr.interpolate(&target.foot_fr, dt);
         self.foot_bl.interpolate(&target.foot_bl, dt);
@@ -89,9 +87,9 @@ pub struct SkeletonAttr {
     head_upper: (f32, f32),
     head_lower: (f32, f32),
     jaw: (f32, f32),
+    chest: (f32, f32),
     tail_front: (f32, f32),
     tail_rear: (f32, f32),
-    chest: (f32, f32),
     feet_f: (f32, f32, f32),
     feet_b: (f32, f32, f32),
     height: f32,
@@ -114,9 +112,9 @@ impl Default for SkeletonAttr {
             head_upper: (0.0, 0.0),
             head_lower: (0.0, 0.0),
             jaw: (0.0, 0.0),
+            chest: (0.0, 0.0),
             tail_front: (0.0, 0.0),
             tail_rear: (0.0, 0.0),
-            chest: (0.0, 0.0),
             feet_f: (0.0, 0.0, 0.0),
             feet_b: (0.0, 0.0, 0.0),
             height: (0.0),
@@ -129,58 +127,58 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
         use comp::quadruped_low::Species::*;
         Self {
             head_upper: match (body.species, body.body_type) {
-                (Crocodile, _) => (12.0, 16.0),
-                (Alligator, _) => (12.0, 16.0),
-                (Salamander, _) => (12.0, 16.0),
-                (Monitor, _) => (12.0, 16.0),
+                (Crocodile, _) => (8.0, 4.0),
+                (Alligator, _) => (7.0, 4.0),
+                (Salamander, _) => (3.0, 3.0),
+                (Monitor, _) => (4.0, 2.0),
             },
             head_lower: match (body.species, body.body_type) {
-                (Crocodile, _) => (-4.0, -7.0),
-                (Alligator, _) => (-4.0, -7.0),
-                (Salamander, _) => (-4.0, -7.0),
-                (Monitor, _) => (-4.0, -7.0),
+                (Crocodile, _) => (8.0, 0.0),
+                (Alligator, _) => (7.0, 0.0),
+                (Salamander, _) => (10.0, 2.0),
+                (Monitor, _) => (10.0, 3.0),
             },
             jaw: match (body.species, body.body_type) {
-                (Crocodile, _) => (3.0, -5.0),
-                (Alligator, _) => (3.0, -5.0),
-                (Salamander, _) => (3.0, -5.0),
-                (Monitor, _) => (3.0, -5.0),
-            },
-            tail_rear: match (body.species, body.body_type) {
-                (Crocodile, _) => (-6.0, -2.0),
-                (Alligator, _) => (-6.0, -2.0),
-                (Salamander, _) => (-6.0, -2.0),
-                (Monitor, _) => (-6.0, -2.0),
-            },
-            tail_front: match (body.species, body.body_type) {
-                (Crocodile, _) => (-6.0, -2.0),
-                (Alligator, _) => (-6.0, -2.0),
-                (Salamander, _) => (-6.0, -2.0),
-                (Monitor, _) => (-6.0, -2.0),
+                (Crocodile, _) => (0.0, -3.0),
+                (Alligator, _) => (0.0, -2.0),
+                (Salamander, _) => (2.0, -3.0),
+                (Monitor, _) => (0.0, -1.0),
             },
             chest: match (body.species, body.body_type) {
-                (Crocodile, _) => (4.0, 11.0),
-                (Alligator, _) => (4.0, 11.0),
-                (Salamander, _) => (4.0, 11.0),
-                (Monitor, _) => (4.0, 11.0),
+                (Crocodile, _) => (0.0, 5.0),
+                (Alligator, _) => (0.0, 5.0),
+                (Salamander, _) => (0.0, 5.0),
+                (Monitor, _) => (0.0, 5.0),
+            },
+            tail_rear: match (body.species, body.body_type) {
+                (Crocodile, _) => (-14.0, -1.0),
+                (Alligator, _) => (-13.0, -1.0),
+                (Salamander, _) => (-7.0, 0.0),
+                (Monitor, _) => (-5.0, 0.0),
+            },
+            tail_front: match (body.species, body.body_type) {
+                (Crocodile, _) => (-6.0, 0.0),
+                (Alligator, _) => (-5.0, 0.0),
+                (Salamander, _) => (-5.0, 0.0),
+                (Monitor, _) => (-5.0, 0.0),
             },
             feet_f: match (body.species, body.body_type) {
-                (Crocodile, _) => (5.0, 6.0, 2.0),
-                (Alligator, _) => (5.0, 6.0, 2.0),
-                (Salamander, _) => (5.0, 6.0, 2.0),
-                (Monitor, _) => (5.0, 6.0, 2.0),
+                (Crocodile, _) => (6.0, 6.0, 0.0),
+                (Alligator, _) => (6.0, 6.0, 0.0),
+                (Salamander, _) => (6.0, 6.0, -2.0),
+                (Monitor, _) => (6.0, 6.0, 0.0),
             },
             feet_b: match (body.species, body.body_type) {
-                (Crocodile, _) => (5.0, -4.0, 3.0),
-                (Alligator, _) => (5.0, -4.0, 3.0),
-                (Salamander, _) => (5.0, -4.0, 3.0),
-                (Monitor, _) => (5.0, -4.0, 3.0),
+                (Crocodile, _) => (6.0, -6.0, 0.0),
+                (Alligator, _) => (6.0, -6.0, 0.0),
+                (Salamander, _) => (6.0, -6.0, -2.0),
+                (Monitor, _) => (6.0, -6.0, 0.0),
             },
             height: match (body.species, body.body_type) {
-                (Crocodile, _) => (1.2),
-                (Alligator, _) => (1.2),
-                (Salamander, _) => (1.2),
-                (Monitor, _) => (1.2),
+                (Crocodile, _) => (1.0),
+                (Alligator, _) => (1.0),
+                (Salamander, _) => (1.0),
+                (Monitor, _) => (1.0),
             },
         }
     }

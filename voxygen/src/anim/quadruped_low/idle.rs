@@ -17,9 +17,9 @@ impl Animation for IdleAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let ultra_slow = (anim_time as f32 * 1.0).sin();
-        let slow = (anim_time as f32 * 2.5).sin();
-        let slowalt = (anim_time as f32 * 2.5 + PI / 2.0).sin();
+        let ultra_slow = 0.0*(anim_time as f32 * 1.0).sin();
+        let slow = 0.0*(anim_time as f32 * 2.5).sin();
+        let slowalt = 0.0*(anim_time as f32 * 2.5 + PI / 2.0).sin();
 
         let dragon_look = Vec2::new(
             ((global_time + anim_time) as f32 / 8.0)
@@ -49,30 +49,30 @@ impl Animation for IdleAnimation {
             skeleton_attr.head_lower.1 + ultra_slow * 0.20,
         );
         next.head_lower.ori = Quaternion::rotation_z(0.8 * dragon_look.x)
-            * Quaternion::rotation_x(-0.2 + 0.8 * dragon_look.y);
-        next.head_lower.scale = Vec3::one() * 1.05;
+            * Quaternion::rotation_x( 0.8 * dragon_look.y);
+        next.head_lower.scale = Vec3::one();
 
         next.jaw.offset = Vec3::new(0.0, skeleton_attr.jaw.0, skeleton_attr.jaw.1);
         next.jaw.ori = Quaternion::rotation_x(slow * 0.04);
-        next.jaw.scale = Vec3::one() * 1.05;
+        next.jaw.scale = Vec3::one()*0.98;
 
         next.chest.offset = Vec3::new(
             0.0,
             skeleton_attr.chest.0,
             skeleton_attr.chest.1,
-        );
+        )/6.0;
         next.chest.ori = Quaternion::rotation_y(slow * 0.01);
-        next.chest.scale = Vec3::one() * 1.05;
+        next.chest.scale = Vec3::one() /6.0;
 
         next.tail_front.offset =
             Vec3::new(0.0, skeleton_attr.tail_front.0, skeleton_attr.tail_front.1);
-        next.tail_front.ori = Quaternion::rotation_z(slowalt * 0.10) * Quaternion::rotation_x(0.1);
-        next.tail_front.scale = Vec3::one() * 0.98;
+        next.tail_front.ori = Quaternion::rotation_z(0.0);
+        next.tail_front.scale = Vec3::one()*0.98;
 
         next.tail_rear.offset =
             Vec3::new(0.0, skeleton_attr.tail_rear.0, skeleton_attr.tail_rear.1);
-        next.tail_rear.ori = Quaternion::rotation_z(slowalt * 0.12) * Quaternion::rotation_x(0.05);
-        next.tail_rear.scale = Vec3::one() * 0.98;
+        next.tail_rear.ori = Quaternion::rotation_z(slowalt * 0.12);
+        next.tail_rear.scale = Vec3::one()*0.98;
 
         next.foot_fl.offset = Vec3::new(
             -skeleton_attr.feet_f.0,
