@@ -1,4 +1,5 @@
 mod connecting;
+//mod disclaimer;
 mod login;
 
 use crate::{
@@ -34,7 +35,8 @@ const COL1: Color = Color::Rgba(0.07, 0.1, 0.1, 0.9);
 /*const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
 const UI_HIGHLIGHT_0: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0);*/
 
-use iced::text_input;
+use iced::{text_input, Column, Container, HorizontalAlignment, Length};
+use ui::ice::style;
 image_ids_ice! {
     struct IcedImgs {
         <VoxelGraphic>
@@ -94,6 +96,7 @@ pub enum Event {
     Quit,
     Settings,
     //DisclaimerClosed, TODO: remove all traces?
+    //DisclaimerAccepted,
     AuthServerTrust(String, bool),
 }
 
@@ -112,11 +115,6 @@ pub struct LoginInfo {
     pub username: String,
     pub password: String,
     pub server: String,
-}
-
-enum Info {
-    //Disclaimer,
-    Intro,
 }
 
 enum ConnectionState {
@@ -140,6 +138,9 @@ impl ConnectionState {
 }
 
 enum Screen {
+    /*Disclaimer {
+        screen: disclaimer::Screen,
+    },*/
     Login {
         screen: login::Screen,
         // Error to display in a box
@@ -162,7 +163,6 @@ struct IcedState {
     login_info: LoginInfo,
 
     show_servers: bool,
-    info: Info,
     time: f32,
 
     screen: Screen,
@@ -183,7 +183,8 @@ enum Message {
     TrustPromptAdd,
     TrustPromptCancel,
     CloseError,
-    //CloseDisclaimer,
+    /*CloseDisclaimer,
+     *AcceptDisclaimer, */
 }
 
 impl IcedState {
@@ -200,10 +201,15 @@ impl IcedState {
             common::util::GIT_VERSION.to_string()
         );
 
-        let info = Info::Intro; // if settings.show_disclaimer {
-        //Info::Disclaimer
-        //} else {
-        //Info::Intro
+        let screen = /* if settings.show_disclaimer {
+            Screen::Disclaimer {
+                screen: disclaimer::Screen::new(),
+            }
+        } else { */
+            Screen::Login {
+                screen: login::Screen::new(),
+                error: None,
+            };
         //};
 
         Self {
@@ -220,30 +226,47 @@ impl IcedState {
             },
 
             show_servers: false,
-            info,
             time: 0.0,
 
-            screen: Screen::Login {
-                screen: login::Screen::new(),
-                error: None,
-            },
+            screen,
         }
     }
 
     fn view(&mut self, dt: f32) -> Element<Message> {
         self.time = self.time + dt;
 
-        // TODO: make disclaimer it's own screen?
-        match &mut self.screen {
+        // TODO: consider setting this as the default in the renderer
+        let button_style = style::button::Style::new(self.imgs.button)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)
+            .text_color(login::TEXT_COLOR)
+            .disabled_text_color(login::DISABLED_TEXT_COLOR);
+
+        let version = iced::Text::new(&self.version)
+            .size(self.fonts.cyri.scale(15))
+            .width(Length::Fill)
+            .horizontal_alignment(HorizontalAlignment::Right);
+
+        let bg_img = if matches!(&self.screen, Screen::Connecting {..}) {
+            self.bg_img
+        } else {
+            self.imgs.bg
+        };
+
+        // TODO: make any large text blocks scrollable so that if the area is to
+        // small they can still be read
+        let content = match &mut self.screen {
+            /*Screen::Disclaimer { screen } => {
+                screen.view(&self.fonts, &self.imgs, &self.i18n, button_style)
+            },*/
             Screen::Login { screen, error } => screen.view(
                 &self.fonts,
                 &self.imgs,
                 &self.login_info,
-                &self.info,
                 error.as_deref(),
-                &self.version,
                 self.show_servers,
                 &self.i18n,
+                button_style,
             ),
             Screen::Connecting {
                 screen,
@@ -251,13 +274,22 @@ impl IcedState {
             } => screen.view(
                 &self.fonts,
                 &self.imgs,
-                self.bg_img,
                 &connection_state,
-                &self.version,
                 self.time,
                 &self.i18n,
+                button_style,
             ),
-        }
+        };
+
+        Container::new(
+            Column::with_children(vec![version.into(), content])
+                .spacing(3)
+                .width(Length::Fill)
+                .height(Length::Fill),
+        )
+        .style(style::container::Style::image(bg_img))
+        .padding(3)
+        .into()
     }
 
     fn update(&mut self, message: Message, events: &mut Vec<Event>) {
@@ -330,6 +362,15 @@ impl IcedState {
             //Message::CloseDisclaimer => {
             //   events.push(Event::DisclaimerClosed);
             //},
+            /*Message::AcceptDisclaimer => {
+                if let Screen::Disclaimer { .. } = &self.screen {
+                    events.push(Event::DisclaimerAccepted);
+                    self.screen = Screen::Login {
+                        screen: login::Screen::new(),
+                        error: None,
+                    };
+                }
+            },*/
         }
     }
 
@@ -816,7 +857,7 @@ impl<'a> MainMenuUi {
                     .was_clicked()
                 {
                     self.show_disclaimer = false;
-                    events.push(Event::DisclaimerClosed);
+                    events.push(Event::DisclaimerAccepted);
                 }
             } else {*/
             // TODO: Don't use macros for this?

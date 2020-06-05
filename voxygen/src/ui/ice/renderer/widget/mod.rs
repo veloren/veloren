@@ -6,6 +6,7 @@ mod compound_graphic;
 mod container;
 mod image;
 mod row;
+mod scrollable;
 mod space;
 mod text;
 mod text_input;

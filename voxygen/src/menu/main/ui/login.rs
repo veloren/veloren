@@ -1,4 +1,4 @@
-use super::{IcedImgs as Imgs, Info, LoginInfo, Message};
+use super::{IcedImgs as Imgs, LoginInfo, Message};
 use crate::{
     i18n::Localization,
     ui::{
@@ -14,14 +14,11 @@ use crate::{
         },
     },
 };
-use iced::{
-    button, text_input, Align, Column, Container, HorizontalAlignment, Length, Row, Space, Text,
-    TextInput,
-};
+use iced::{button, text_input, Align, Column, Container, Length, Row, Space, Text, TextInput};
 use vek::*;
 
-const TEXT_COLOR: iced::Color = iced::Color::from_rgb(1.0, 1.0, 1.0);
-const DISABLED_TEXT_COLOR: iced::Color = iced::Color::from_rgba(1.0, 1.0, 1.0, 0.2);
+pub const TEXT_COLOR: iced::Color = iced::Color::from_rgb(1.0, 1.0, 1.0);
+pub const DISABLED_TEXT_COLOR: iced::Color = iced::Color::from_rgba(1.0, 1.0, 1.0, 0.2);
 const FILL_FRAC_ONE: f32 = 0.77;
 const FILL_FRAC_TWO: f32 = 0.53;
 const INPUT_WIDTH: u16 = 250;
@@ -52,18 +49,11 @@ impl Screen {
         fonts: &Fonts,
         imgs: &Imgs,
         login_info: &LoginInfo,
-        info: &Info,
         error: Option<&str>,
-        version: &str,
         show_servers: bool,
         i18n: &Localization,
+        button_style: style::button::Style,
     ) -> Element<Message> {
-        let button_style = style::button::Style::new(imgs.button)
-            .hover_image(imgs.button_hover)
-            .press_image(imgs.button_press)
-            .text_color(TEXT_COLOR)
-            .disabled_text_color(DISABLED_TEXT_COLOR);
-
         let buttons = Column::with_children(vec![
             neat_button(
                 &mut self.servers_button,
@@ -96,32 +86,28 @@ impl Screen {
             .height(Length::Fill)
             .align_y(Align::End);
 
-        let left_column = if matches!(info, Info::Intro) {
-            let intro_text = i18n.get("main.login_process");
+        let intro_text = i18n.get("main.login_process");
 
-            let info_window = BackgroundContainer::new(
-                CompoundGraphic::from_graphics(vec![
-                    Graphic::rect(Rgba::new(0, 0, 0, 240), [500, 300], [0, 0]),
-                    // Note: a way to tell it to keep the height of this one piece constant and
-                    // unstreched would be nice, I suppose we could just break this out into a
-                    // column and use Length::Units
-                    Graphic::image(imgs.banner_bottom, [500, 30], [0, 300])
-                        .color(Rgba::new(255, 255, 255, 240)),
-                ])
-                .height(Length::Shrink),
-                Text::new(intro_text).size(fonts.cyri.scale(21)),
-            )
-            .max_width(450)
-            .padding(Padding::new().horizontal(20).top(10).bottom(60));
+        let info_window = BackgroundContainer::new(
+            CompoundGraphic::from_graphics(vec![
+                Graphic::rect(Rgba::new(0, 0, 0, 240), [500, 300], [0, 0]),
+                // Note: a way to tell it to keep the height of this one piece constant and
+                // unstreched would be nice, I suppose we could just break this out into a
+                // column and use Length::Units
+                Graphic::image(imgs.banner_bottom, [500, 30], [0, 300])
+                    .color(Rgba::new(255, 255, 255, 240)),
+            ])
+            .height(Length::Shrink),
+            Text::new(intro_text).size(fonts.cyri.scale(21)),
+        )
+        .max_width(450)
+        .padding(Padding::new().horizontal(20).top(10).bottom(60));
 
-            Column::with_children(vec![info_window.into(), buttons.into()])
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .padding(27)
-                .into()
-        } else {
-            buttons.into()
-        };
+        let left_column = Column::with_children(vec![info_window.into(), buttons.into()])
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .padding(27)
+            .into();
 
         let banner = self
             .banner
@@ -133,12 +119,9 @@ impl Screen {
             .align_x(Align::Center)
             .align_y(Align::Center);
 
-        let right_column = Text::new(version)
-            .size(fonts.cyri.scale(15))
-            .width(Length::Fill)
-            .horizontal_alignment(HorizontalAlignment::Right);
+        let right_column = Space::new(Length::Fill, Length::Fill);
 
-        let content = Row::with_children(vec![
+        Row::with_children(vec![
             left_column,
             central_column.into(),
             right_column.into(),
@@ -146,11 +129,7 @@ impl Screen {
         .width(Length::Fill)
         .height(Length::Fill)
         .spacing(10)
-        .padding(3);
-
-        Container::new(content)
-            .style(style::container::Style::image(imgs.bg))
-            .into()
+        .into()
     }
 }
 

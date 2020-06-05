@@ -3,22 +3,16 @@ use crate::{
     i18n::Localization,
     ui::{
         fonts::IcedFonts as Fonts,
-        ice::{component::neat_button, style, widget::image, Element},
+        ice::{component::neat_button, style, Element},
     },
 };
-use iced::{
-    button, Align, Color, Column, Container, HorizontalAlignment, Length, Row, Space, Text,
-};
+use iced::{button, Align, Color, Column, Container, Length, Row, Space, Text, VerticalAlignment};
 
 /// Connecting screen for the main menu
 pub struct Screen {
     cancel_button: button::State,
     add_button: button::State,
 }
-
-// TODO: move to super and unify with identical login consts
-const TEXT_COLOR: iced::Color = iced::Color::from_rgb(1.0, 1.0, 1.0);
-const DISABLED_TEXT_COLOR: iced::Color = iced::Color::from_rgba(1.0, 1.0, 1.0, 0.2);
 
 impl Screen {
     pub fn new() -> Self {
@@ -32,32 +26,22 @@ impl Screen {
         &mut self,
         fonts: &Fonts,
         imgs: &Imgs,
-        bg_img: image::Handle,
         connection_state: &ConnectionState,
-        version: &str,
         time: f32,
         i18n: &Localization,
+        button_style: style::button::Style,
     ) -> Element<Message> {
         let fade_msg = (time * 2.0).sin() * 0.5 + 0.51;
-        let button_style = style::button::Style::new(imgs.button)
-            .hover_image(imgs.button_hover)
-            .press_image(imgs.button_press)
-            .text_color(TEXT_COLOR)
-            .disabled_text_color(DISABLED_TEXT_COLOR);
 
-        let version = Text::new(version)
-            .size(fonts.cyri.scale(15)) // move version text size to const
-            .width(Length::Fill)
-            .height(if matches!(connection_state, ConnectionState::InProgress {..}){Length::Fill}else{Length::Shrink})
-            .horizontal_alignment(HorizontalAlignment::Right);
-
-        let (middle, bottom) = match connection_state {
+        let children = match connection_state {
             ConnectionState::InProgress { status } => {
                 let status = Text::new(status)
                     .size(fonts.alkhemi.scale(80))
                     .font(fonts.alkhemi.id)
                     .color(Color::from_rgba(1.0, 1.0, 1.0, fade_msg))
-                    .width(Length::Fill);
+                    .vertical_alignment(VerticalAlignment::Bottom)
+                    .width(Length::Fill)
+                    .height(Length::Fill);
 
                 let status = Row::with_children(vec![
                     Space::new(Length::Units(80), Length::Shrink).into(),
@@ -78,7 +62,7 @@ impl Screen {
                     .center_x()
                     .padding(3);
 
-                (status.into(), cancel.into())
+                vec![status.into(), cancel.into()]
             },
             ConnectionState::AuthTrustPrompt { msg, .. } => {
                 let text = Text::new(msg).size(fonts.cyri.scale(25));
@@ -125,22 +109,16 @@ impl Screen {
                     .center_x()
                     .center_y();
 
-                (
+                vec![
                     container.into(),
                     Space::new(Length::Fill, Length::Units(fonts.cyri.scale(15))).into(),
-                )
+                ]
             },
         };
 
-        let content = Column::with_children(vec![version.into(), middle, bottom])
+        Column::with_children(children)
             .width(Length::Fill)
             .height(Length::Fill)
-            .padding(3);
-
-        // Note: could replace this with styling on iced's container since we aren't
-        // using fixed aspect ratio
-        Container::new(content)
-            .style(style::container::Style::image(bg_img))
             .into()
     }
 }
