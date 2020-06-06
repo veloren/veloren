@@ -105,7 +105,7 @@ impl Animation for IdleAnimation {
 
         next.glider.scale = Vec3::one() * 0.0;
 
-        next.main.offset = Vec3::new(-7.0, -5.0, 18.0);
+        next.main.offset = Vec3::new(-7.0, -5.0, 15.0);
         next.main.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
         next.main.scale = Vec3::one() + head_abs * -0.05;
 
