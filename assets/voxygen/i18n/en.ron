@@ -264,6 +264,8 @@ magically infused items?"#,
         "hud.settings.invert_mouse_y_axis": "Invert Mouse Y Axis",
         "hud.settings.enable_mouse_smoothing": "Camera Smoothing",
         "hud.settings.free_look_behavior": "Free look behavior",
+        "hud.settings.auto_walk_behavior": "Auto walk behavior",
+        "hud.settings.stop_auto_walk_on_input": "Stop auto walk on movement",
 
         "hud.settings.view_distance": "View Distance",
         "hud.settings.sprites_view_distance": "Sprites View Distance",
@@ -296,6 +298,7 @@ magically infused items?"#,
         "hud.spell": "Spells",
 
         "hud.free_look_indicator": "Free look active",       
+        "hud.auto_walk_indicator": "Auto walk active",
 
         /// End HUD section
 
@@ -348,6 +351,8 @@ magically infused items?"#,
         "gameinput.togglewield": "Toggle Wield",
         "gameinput.interact": "Interact",
         "gameinput.freelook": "Free Look",
+        "gameinput.autowalk": "Auto Walk",
+        "gameinput.dance": "Dance",
         
         /// End GameInput section
 
