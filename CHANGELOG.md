@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved animations by adding orientation variation
 - new tail bone for quad_small body
 - slim the game size through lossless asset optimization
+- Lanterns now stop glowing if you throw a lit one out of your inventory
 
 ### Removed
 
