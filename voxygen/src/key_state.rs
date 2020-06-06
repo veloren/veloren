@@ -10,6 +10,7 @@ pub struct KeyState {
     pub toggle_wield: bool,
     pub toggle_sit: bool,
     pub toggle_dance: bool,
+    pub auto_walk: bool,
     pub swap_loadout: bool,
     pub respawn: bool,
     pub analog_matrix: Vec2<f32>,
@@ -27,6 +28,7 @@ impl KeyState {
             toggle_wield: false,
             toggle_sit: false,
             toggle_dance: false,
+            auto_walk: false,
             swap_loadout: false,
             respawn: false,
             analog_matrix: Vec2::zero(),
@@ -37,7 +39,8 @@ impl KeyState {
         let dir = if self.analog_matrix == Vec2::zero() {
             Vec2::<f32>::new(
                 if self.right { 1.0 } else { 0.0 } + if self.left { -1.0 } else { 0.0 },
-                if self.up { 1.0 } else { 0.0 } + if self.down { -1.0 } else { 0.0 },
+                if self.up || self.auto_walk { 1.0 } else { 0.0 }
+                    + if self.down { -1.0 } else { 0.0 },
             )
         } else {
             self.analog_matrix

@@ -140,6 +140,7 @@ impl ControlSettings {
             GameInput::ToggleWield => KeyMouse::Key(VirtualKeyCode::T),
             //GameInput::Charge => KeyMouse::Key(VirtualKeyCode::Key1),
             GameInput::FreeLook => KeyMouse::Key(VirtualKeyCode::L),
+            GameInput::AutoWalk => KeyMouse::Key(VirtualKeyCode::Period),
             GameInput::Slot1 => KeyMouse::Key(VirtualKeyCode::Key1),
             GameInput::Slot2 => KeyMouse::Key(VirtualKeyCode::Key2),
             GameInput::Slot3 => KeyMouse::Key(VirtualKeyCode::Key3),
@@ -200,6 +201,7 @@ impl Default for ControlSettings {
             GameInput::ToggleWield,
             //GameInput::Charge,
             GameInput::FreeLook,
+            GameInput::AutoWalk,
             GameInput::Slot1,
             GameInput::Slot2,
             GameInput::Slot3,
@@ -467,6 +469,8 @@ pub struct GameplaySettings {
     pub bar_numbers: BarNumbers,
     pub ui_scale: ScaleMode,
     pub free_look_behavior: PressBehavior,
+    pub auto_walk_behavior: PressBehavior,
+    pub stop_auto_walk_on_input: bool,
 }
 
 impl Default for GameplaySettings {
@@ -491,6 +495,8 @@ impl Default for GameplaySettings {
             bar_numbers: BarNumbers::Off,
             ui_scale: ScaleMode::RelativeToWindow([1920.0, 1080.0].into()),
             free_look_behavior: PressBehavior::Toggle,
+            auto_walk_behavior: PressBehavior::Toggle,
+            stop_auto_walk_on_input: true,
         }
     }
 }

@@ -184,6 +184,10 @@ widget_ids! {
         free_look_txt,
         free_look_bg,
 
+        // Auto walk indicator
+        auto_walk_txt,
+        auto_walk_bg,
+
         // Example Quest
         quest_bg,
         q_headline_bg,
@@ -255,6 +259,8 @@ pub enum Event {
     ChangeLanguage(LanguageMetadata),
     ChangeBinding(GameInput),
     ChangeFreeLookBehavior(PressBehavior),
+    ChangeAutoWalkBehavior(PressBehavior),
+    ChangeStopAutoWalkOnInput(bool),
 }
 
 // TODO: Are these the possible layouts we want?
@@ -319,6 +325,7 @@ pub struct Show {
     want_grab: bool,
     stats: bool,
     free_look: bool,
+    auto_walk: bool,
 }
 impl Show {
     fn bag(&mut self, open: bool) {
@@ -522,6 +529,7 @@ impl Hud {
                 ingame: true,
                 stats: false,
                 free_look: false,
+                auto_walk: false,
             },
             to_focus: None,
             //never_show: false,
@@ -1677,6 +1685,12 @@ impl Hud {
                     settings_window::Event::ChangeFreeLookBehavior(behavior) => {
                         events.push(Event::ChangeFreeLookBehavior(behavior));
                     },
+                    settings_window::Event::ChangeAutoWalkBehavior(behavior) => {
+                        events.push(Event::ChangeAutoWalkBehavior(behavior));
+                    },
+                    settings_window::Event::ChangeStopAutoWalkOnInput(state) => {
+                        events.push(Event::ChangeStopAutoWalkOnInput(state));
+                    },
                 }
             }
         }
@@ -1793,6 +1807,25 @@ impl Hud {
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(20))
                 .set(self.ids.free_look_txt, ui_widgets);
+        }
+
+        // Auto walk indicator
+        if self.show.auto_walk {
+            Text::new(&self.voxygen_i18n.get("hud.auto_walk_indicator"))
+                .color(TEXT_BG)
+                .mid_top_with_margin_on(
+                    ui_widgets.window,
+                    if self.show.free_look { 128.0 } else { 100.0 },
+                )
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(20))
+                .set(self.ids.auto_walk_bg, ui_widgets);
+            Text::new(&self.voxygen_i18n.get("hud.auto_walk_indicator"))
+                .color(KILL_COLOR)
+                .top_left_with_margins_on(self.ids.auto_walk_bg, -1.0, -1.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(20))
+                .set(self.ids.auto_walk_txt, ui_widgets);
         }
 
         // Maintain slot manager
@@ -2155,4 +2188,6 @@ impl Hud {
     }
 
     pub fn free_look(&mut self, free_look: bool) { self.show.free_look = free_look; }
+
+    pub fn auto_walk(&mut self, auto_walk: bool) { self.show.auto_walk = auto_walk; }
 }

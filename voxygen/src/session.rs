@@ -142,6 +142,13 @@ impl PlayState for SessionState {
 
         let mut ori = self.scene.camera().get_orientation();
         let mut free_look = false;
+        let mut auto_walk = false;
+
+        fn stop_auto_walk(auto_walk: &mut bool, key_state: &mut KeyState, hud: &mut Hud) {
+            *auto_walk = false;
+            hud.auto_walk(false);
+            key_state.auto_walk = false;
+        }
 
         // Game loop
         let mut current_client_state = self.client.borrow().get_client_state();
@@ -309,6 +316,7 @@ impl PlayState for SessionState {
                     {
                         self.key_state.toggle_sit = state;
                         if state {
+                            stop_auto_walk(&mut auto_walk, &mut self.key_state, &mut self.hud);
                             self.client.borrow_mut().toggle_sit();
                         }
                     }
@@ -317,13 +325,34 @@ impl PlayState for SessionState {
                     {
                         self.key_state.toggle_dance = state;
                         if state {
+                            stop_auto_walk(&mut auto_walk, &mut self.key_state, &mut self.hud);
                             self.client.borrow_mut().toggle_dance();
                         }
                     }
-                    Event::InputUpdate(GameInput::MoveForward, state) => self.key_state.up = state,
-                    Event::InputUpdate(GameInput::MoveBack, state) => self.key_state.down = state,
-                    Event::InputUpdate(GameInput::MoveLeft, state) => self.key_state.left = state,
-                    Event::InputUpdate(GameInput::MoveRight, state) => self.key_state.right = state,
+                    Event::InputUpdate(GameInput::MoveForward, state) => {
+                        if state && global_state.settings.gameplay.stop_auto_walk_on_input {
+                            stop_auto_walk(&mut auto_walk, &mut self.key_state, &mut self.hud);
+                        }
+                        self.key_state.up = state
+                    },
+                    Event::InputUpdate(GameInput::MoveBack, state) => {
+                        if state && global_state.settings.gameplay.stop_auto_walk_on_input {
+                            stop_auto_walk(&mut auto_walk, &mut self.key_state, &mut self.hud);
+                        }
+                        self.key_state.down = state
+                    },
+                    Event::InputUpdate(GameInput::MoveLeft, state) => {
+                        if state && global_state.settings.gameplay.stop_auto_walk_on_input {
+                            stop_auto_walk(&mut auto_walk, &mut self.key_state, &mut self.hud);
+                        }
+                        self.key_state.left = state
+                    },
+                    Event::InputUpdate(GameInput::MoveRight, state) => {
+                        if state && global_state.settings.gameplay.stop_auto_walk_on_input {
+                            stop_auto_walk(&mut auto_walk, &mut self.key_state, &mut self.hud);
+                        }
+                        self.key_state.right = state
+                    },
                     Event::InputUpdate(GameInput::Glide, state) => {
                         self.inputs.glide.set_state(state);
                     },
@@ -441,6 +470,21 @@ impl PlayState for SessionState {
                             },
                             _ => {},
                         };
+                    },
+                    Event::InputUpdate(GameInput::AutoWalk, state) => {
+                        match (global_state.settings.gameplay.auto_walk_behavior, state) {
+                            (PressBehavior::Toggle, true) => {
+                                auto_walk = !auto_walk;
+                                self.key_state.auto_walk = auto_walk;
+                                self.hud.auto_walk(auto_walk);
+                            },
+                            (PressBehavior::Hold, state) => {
+                                auto_walk = state;
+                                self.key_state.auto_walk = auto_walk;
+                                self.hud.auto_walk(auto_walk);
+                            },
+                            _ => {},
+                        }
                     },
                     Event::AnalogGameInput(input) => match input {
                         AnalogGameInput::MovementX(v) => {
@@ -766,6 +810,12 @@ impl PlayState for SessionState {
                     },
                     HudEvent::ChangeFreeLookBehavior(behavior) => {
                         global_state.settings.gameplay.free_look_behavior = behavior;
+                    },
+                    HudEvent::ChangeAutoWalkBehavior(behavior) => {
+                        global_state.settings.gameplay.auto_walk_behavior = behavior;
+                    },
+                    HudEvent::ChangeStopAutoWalkOnInput(state) => {
+                        global_state.settings.gameplay.stop_auto_walk_on_input = state;
                     },
                 }
             }
