@@ -1,0 +1,439 @@
+/// Translation document instructions
+///
+/// In order to keep localization documents readible please follow the following
+/// rules:
+/// - separate the string map sections using a commentary describing the purpose
+///   of the next section
+/// - prepend multi-line strings with a commentary
+/// - append one blank lines after a multi-line strings and two after sections
+///
+/// To add a new language in Veloren, just write an additional `.ron` file in
+/// `assets/voxygen/i18n` and that's it!
+///
+/// Localization for Spanish (Spain)
+
+VoxygenLocalization(
+    metadata: (
+        language_name: "Español de España",
+        language_identifier: "es_ES",
+    ),
+    convert_utf8_to_ascii: false,
+    fonts: {
+        "opensans": Font (
+            asset_key: "voxygen.font.OpenSans-Regular",
+            scale_ratio: 1.0,
+        ),
+        "metamorph": Font (
+            asset_key: "voxygen.font.Metamorphous-Regular",
+            scale_ratio: 1.0,
+        ),
+        "alkhemi": Font (
+            asset_key: "voxygen.font.Alkhemikal",
+            scale_ratio: 1.0,
+        ),
+        "wizard": Font (
+            asset_key: "voxygen.font.wizard",
+            scale_ratio: 1.0,
+        ),
+        "cyri": Font (
+            asset_key: "voxygen.font.haxrcorp_4089_cyrillic_altgr_extended",
+            scale_ratio: 1.0,
+        ),
+    },
+    string_map: {
+        /// Start Common section
+        // Texts used in multiple locations with the same formatting
+        "common.username": "Usuario",
+        "common.singleplayer": "Solo",
+        "common.multiplayer": "Multijugador",
+        "common.servers": "Servidores",
+        "common.quit": "Salir",
+        "common.settings": "Opciones",
+        "common.languages": "Idiomas",
+        "common.interface": "Interfaz",
+        "common.gameplay": "Juego",
+        "common.controls": "Controles",
+        "common.video": "Gráficos",
+        "common.sound": "Sonido",
+        "common.resume": "Continuar",
+        "common.characters": "Personajes",
+        "common.close": "Cerrar",
+        "common.yes": "Sí",
+        "common.no": "No",
+        "common.back": "Atrás",
+        "common.create": "Crear",
+        "common.okay": "Okay",
+        "common.accept": "Aceptar",
+        "common.disclaimer": "Atención",
+        "common.cancel": "Cancelar",
+        "common.none": "Ninguno",
+        "common.error": "Error",
+        "common.fatal_error": "Error Fatal",
+
+        // Message when connection to the server is lost
+        "common.connection_lost": r#"¡Conexión perdida!
+¿Se reinició el servidor?
+¿Está el cliente actualizado?"#,
+
+
+        "common.species.orc": "Orco",
+        "common.species.human": "Humano",
+        "common.species.dwarf": "Enano",
+        "common.species.elf": "Elfo",
+        "common.species.undead": "No muerto",
+        "common.species.danari": "Danari",
+
+        "common.weapons.axe": "Hacha",
+        "common.weapons.sword": "Espada",
+        "common.weapons.staff": "Bastón",
+        "common.weapons.bow": "Arco",
+        "common.weapons.hammer": "Martillo",
+        /// End Common section
+
+
+        /// Start Main screen section
+        "main.connecting": "Conectando",
+        "main.creating_world": "Creando mundo",
+
+        // Welcome notice that appears the first time Veloren is started
+        "main.notice": r#"¡Bienvenido a la versión alfa de Veloren!
+
+Antes de que te adentres en la diversión, por favor ten en cuenta un par de cosas:
+
+- Esto es una alfa muy temprana. Espera errores, mecánicas de juego extremadamente sin terminar, mecánicas sin pulir, y características que faltan.
+
+- Si tienes feedback constructivo o reportes de error, puedes contactar con nosotros vía Reddit, GitLab, o nuestro servidor de Discord comunitario.
+
+- Veloren se licencia bajo la licencia de código abierto GPL 3. Esto quiere decir que eres libre para jugar, modificar y redistribuir el juego tal y como desees (siempre y cuando tal trabajo se licencie también bajo la GPL 3).
+
+- Veloren es un proyecto comunitario sin ánimo de lucro, y todo aquel que trabaja en él es un voluntario.
+Si te gusta lo que ves, ¡eres bienvenido de unirte a los equipos de desarrollo o arte!
+
+Gracias por tomarte el tiempo de leer esta noticia, ¡esperamos que disfrutes del juego!
+
+~ Los desarrolladores de Veloren"#,
+
+        // Login process description
+        "main.login_process": r#"Información sobre el proceso de login:
+
+Si estás experimentando problemas para autenticarte:
+
+Por favor, ten en cuenta que ahora necesitas una cuenta
+para jugar en servidores con autenticación activada.
+
+Puedes crear una cuenta en
+
+https://account.veloren.net."#,
+        "main.login.server_not_found": "Servidor no encontrado",
+        "main.login.authentication_error": "Error de autenticación al servidor",
+        "main.login.server_full": "El servidor está lleno",
+        "main.login.untrusted_auth_server": "Servidor con autenticación sin confianza",
+        "main.login.outdated_client_or_server": "ServerEnloquecido: Probablemente las versiones son incompatibles, revisa si hay actualizaciones.",
+        "main.login.timeout": "Timeout: El servidor no respondió a tiempo. (Sobrecargado o con problemas de red).",
+        "main.login.server_shut_down": "Servidor apagado",
+        "main.login.already_logged_in": "Ya estás accediendo al servidor.",
+        "main.login.network_error": "Error de red",
+        "main.login.failed_sending_request": "Petición al servidor de autenticación fallida",
+        "main.login.invalid_character": "El personaje seleccionado no es válido",
+        "main.login.client_crashed": "El cliente se cerró inesperadamente",
+
+        /// End Main screen section
+
+
+        /// Start HUD Section
+        "hud.do_not_show_on_startup": "No muestres esto al inicio",
+        "hud.show_tips": "Mostrar ayuda",
+        "hud.quests": "Misiones",
+        "hud.you_died": "Has muerto",
+        "hud.waypoint_saved": "Punto de ruta guardado",
+
+        "hud.press_key_to_show_keybindings_fmt": "Pulsa {key} para mostrar atajos de teclado",
+        "hud.press_key_to_show_debug_info_fmt": "Pulsa {key} para mostrar información de depuración",
+        "hud.press_key_to_toggle_keybindings_fmt": "Pulsa {key} para alternar los atajos de teclado",
+        "hud.press_key_to_toggle_debug_info_fmt": "Pulsa {key} para alternar la información de depuración",
+
+        // Respawn message
+        "hud.press_key_to_respawn": r#"Pulsa {key} para reaparecer en el último campamento que visitaste."#,
+
+        // Welcome message
+        "hud.welcome": r#"¡Bienvenido a la alfa de Veloren!
+
+
+Algunos consejos antes de empezar:
+
+
+Pulsa F1 para ver los comandos disponibles.
+
+Escribe /help en el chat para ver los comandos de chat
+
+
+¡Cofres y otros objetos aparecen aleatoriamente en el mundo!
+
+Click derecho para recogerlos.
+
+Para utilizar lo que recojas de esos cofres, abre tu inventario con 'B'.
+
+Haz doble click sobre los objetos en tu inventario para usarlos o equipártelos.
+
+Deshazte de ellos haciendo click una vez sobre ellos y haciendo click fuera del inventario
+
+
+Las noches pueden ser muy oscuras en Veloren.
+
+Enciende tu linterna pulsando 'G'
+
+
+¿Quieres liberar tu cursor para cerrar esta ventana? ¡Pulsa TAB!
+
+
+Disfruta de tu estancia en el mundo de Veloren."#,
+
+"hud.temp_quest_headline": r#"¡Por favor, ayúdanos Viajero!"#,
+"hud.temp_quest_text": r#"¡Mazmorras llenas de fanáticos 
+han emergido en cada rincón de nuestras pacíficas ciudades!
+
+
+Encuentra algo de compañía, acumula comida
+y derrota a sus viles líderes y acólitos.
+
+
+¿Quizás podrías obtener incluso uno de sus
+objetos imbuidos de magia?"#,
+
+
+
+        // Inventory
+        "hud.bag.inventory": "Inventario de {playername}",
+        "hud.bag.stats_title": "Atributos de {playername}",
+        "hud.bag.exp": "Exp",
+        "hud.bag.armor": "Armadura",
+        "hud.bag.stats": "Atributos",
+        "hud.bag.head": "Cabeza",
+        "hud.bag.neck": "Cuello",
+        "hud.bag.tabard": "Tabardo",
+        "hud.bag.shoulders": "Hombros",
+        "hud.bag.chest": "Pecho",
+        "hud.bag.hands": "Manos",
+        "hud.bag.lantern": "Linterna",
+        "hud.bag.belt": "Cinturón",
+        "hud.bag.ring": "Anillo",
+        "hud.bag.back": "Espalda",
+        "hud.bag.legs": "Piernas",
+        "hud.bag.feet": "Pies",
+        "hud.bag.mainhand": "Mano principal",
+        "hud.bag.offhand": "Mano secundaria",    
+
+
+        // Map and Questlog
+        "hud.map.map_title": "Mapa",
+        "hud.map.qlog_title": "Misiones",
+
+        // Settings
+        "hud.settings.general": "General",
+        "hud.settings.none": "Ninguno",
+        "hud.settings.press_behavior.toggle": "Alternar",
+        "hud.settings.press_behavior.hold": "Mantener",
+        "hud.settings.help_window": "Ventana de ayuda",
+        "hud.settings.debug_info": "Información de depuración",
+        "hud.settings.tips_on_startup": "Consejos-Al-Iniciar",
+        "hud.settings.ui_scale": "Escala-IU",
+        "hud.settings.relative_scaling": "Escala relativa",
+        "hud.settings.custom_scaling": "Escala personalizada",
+        "hud.settings.crosshair": "Punto de mira",
+        "hud.settings.transparency": "Transparencia",
+        "hud.settings.hotbar": "Barra rápida",        
+        "hud.settings.toggle_shortcuts": "Alternar atajos",
+        "hud.settings.toggle_bar_experience": "Alternar barra de experiencia",
+        "hud.settings.scrolling_combat_text": "Texto de combate deslizante",
+        "hud.settings.single_damage_number": "Números de daño único",
+        "hud.settings.cumulated_damage": "Daño acumulado",
+        "hud.settings.incoming_damage": "Daño inminente",
+        "hud.settings.cumulated_incoming_damage": "Daño inminente acumulado",
+        "hud.settings.speech_bubble_dark_mode": "Modo oscuro de burbuja de diálogo",
+        "hud.settings.energybar_numbers": "Números de barra de energía",
+        "hud.settings.values": "Valores",
+        "hud.settings.percentages": "Porcentaje",
+        "hud.settings.chat": "Chat",
+        "hud.settings.background_transparency": "Transparencia del fondo",        
+
+        "hud.settings.pan_sensitivity": "Sensibilidad de paneo",
+        "hud.settings.zoom_sensitivity": "Sensibilidad de zoom",
+        "hud.settings.invert_scroll_zoom": "Invertir el deslizamiento del zoom",
+        "hud.settings.invert_mouse_y_axis": "Invertir eje Y del ratón",
+        "hud.settings.enable_mouse_smoothing": "Suavizado de cámara",
+        "hud.settings.free_look_behavior": "Comportamiento de vista libre",
+
+        "hud.settings.view_distance": "Ver distancia",
+        "hud.settings.sprites_view_distance": "Distancia de visión de sprites",
+        "hud.settings.figures_view_distance": "Distancia de visión de entidades",
+        "hud.settings.maximum_fps": "FPS máximos",
+        "hud.settings.fov": "Campo de visión (grados)",
+        "hud.settings.gamma": "Gamma",
+        "hud.settings.antialiasing_mode": "Modo AntiAliasing",
+        "hud.settings.cloud_rendering_mode": "Modo renderizado de nubes",
+        "hud.settings.fluid_rendering_mode": "Modo de renderizado fluido",
+        "hud.settings.fluid_rendering_mode.cheap": "Barato",
+        "hud.settings.fluid_rendering_mode.shiny": "Brillante",
+        "hud.settings.cloud_rendering_mode.regular": "Regular",
+        "hud.settings.fullscreen": "Pantalla completa",
+        "hud.settings.save_window_size": "Guardar tamaño de ventana",
+
+        "hud.settings.music_volume": "Volumen de música",
+        "hud.settings.sound_effect_volume": "Volumen de efectos de sonido",
+        "hud.settings.audio_device": "Dispositivo de audio",
+
+        "hud.settings.awaitingkey": "Pulsa una tecla...",
+
+        "hud.social": "Social",
+        "hud.social.online": "Conectado",
+        "hud.social.friends": "Amigos",
+        "hud.social.not_yet_available": "No disponible todavía",
+        "hud.social.faction": "Facción",
+        "hud.social.play_online_fmt": "{nb_player} jugador(es) conectados",
+
+        "hud.spell": "Hechizos",
+
+        "hud.free_look_indicator": "Vista libre activa",       
+
+        /// End HUD section
+
+
+        /// Start GameInput section
+
+        "gameinput.primary": "Ataque básico",
+        "gameinput.secondary": "Ataque secundario/Bloquear/Apuntar",
+       "gameinput.slot1": "Ranura 1 de barra rápida",        
+        "gameinput.slot2": "Ranura 2 de barra rápida",
+        "gameinput.slot3": "Ranura 3 de barra rápida",
+        "gameinput.slot4": "Ranura 4 de barra rápida",
+        "gameinput.slot5": "Ranura 5 de barra rápida",
+        "gameinput.slot6": "Ranura 6 de barra rápida",
+        "gameinput.slot7": "Ranura 7 de barra rápida",
+        "gameinput.slot8": "Ranura 8 de barra rápida",
+        "gameinput.slot9": "Ranura 9 de barra rápida",
+        "gameinput.slot10": "Ranura 10 de barra rápida",
+        "gameinput.swaploadout": "Intercambiar armamento",
+        "gameinput.togglecursor": "Alternar cursor",
+        "gameinput.help": "Alternar ventana de ayuda",
+        "gameinput.toggleinterface": "Alternar interfaz",
+        "gameinput.toggledebug": "Alternar FPS e información de depuración",
+        "gameinput.screenshot": "Tomar captura de pantalla",
+        "gameinput.toggleingameui": "Alternar nombres de usuario",
+        "gameinput.fullscreen": "Alternar pantalla completa",
+        "gameinput.moveforward": "Moverse hacia delante",
+        "gameinput.moveleft": "Moverse a la izquierda",
+        "gameinput.moveright": "Moverse a la derecha",
+        "gameinput.moveback": "Moverse hacia atrás",
+        "gameinput.jump": "Saltar",
+        "gameinput.glide": "Planear",
+        "gameinput.roll": "Rodar",
+        "gameinput.climb": "Trepar",
+        "gameinput.climbdown": "Trepar hacia abajo",
+        "gameinput.wallleap": "Salto en muro",
+        "gameinput.togglelantern": "Alternar linterna",
+        "gameinput.mount": "Montar",
+        "gameinput.enter": "Entrar",
+        "gameinput.command": "Comando",
+        "gameinput.escape": "Escapar",
+        "gameinput.map": "Mapa",
+        "gameinput.bag": "Inventario",
+        "gameinput.social": "Social",
+        "gameinput.sit": "Sentarse",
+        "gameinput.spellbook": "Hechizos",
+        "gameinput.settings": "Opciones",
+        "gameinput.respawn": "Revivir",
+        "gameinput.charge": "Cargar",
+        "gameinput.togglewield": "Alternar empuñadura",
+        "gameinput.interact": "Interactuar",
+        "gameinput.freelook": "Vista libre",
+        "gameinput.autowalk": "Auto Correr",
+        
+        /// End GameInput section
+
+
+        /// Start chracter selection section
+        "char_selection.loading_characters": "Cargando personajes...",
+        "char_selection.delete_permanently": "¿Borrar permanentemente este personaje?",
+        "char_selection.deleting_character": "Borrando personaje...",
+        "char_selection.change_server": "Cambiar de servidor",
+        "char_selection.enter_world": "Entrar al mundo",
+        "char_selection.logout": "Salir",
+        "char_selection.create_new_charater": "Crear nuevo personaje",
+        "char_selection.creating_character": "Creando personaje...",
+        "char_selection.character_creation": "Creación de personaje",
+
+        "char_selection.human_default": "Humano Predeterminado",
+        "char_selection.level_fmt": "Nivel {level_nb}",
+        "char_selection.uncanny_valley": "Tierra salvaje",
+        "char_selection.plains_of_uncertainty": "Llanuras de la incertidumbre",
+        "char_selection.beard": "Barba",
+        "char_selection.hair_style": "Estilo de pelo",
+        "char_selection.hair_color": "Color de pelo",        
+        "char_selection.eye_color": "Color de ojos",
+        "char_selection.skin": "Piel",
+        "char_selection.eyeshape": "Detalle de los ojos",
+        "char_selection.accessories": "Accesorios",
+        "char_selection.create_info_name": "¡Tu personaje necesita un nombre!",
+
+        /// End chracter selection section
+
+
+        /// Start character window section
+        "character_window.character_name": "Nombre del personaje",
+        // Charater stats
+        "character_window.character_stats": r#"Resistencia
+
+Aptitud
+
+Fuerza de voluntad
+"#,
+        /// End character window section
+
+
+        /// Start Escape Menu Section
+        "esc_menu.logout": "Salir",
+        "esc_menu.quit_game": "Salir del juego",
+        /// End Escape Menu Section
+    },
+
+    vector_map: {
+        "npc.speech.villager_under_attack": [
+            "Ayuda, ¡me atacan!",
+            "¡Ayuda! ¡Me atacan!",
+            "¡Auch! ¡Me atacan!",
+            "¡Auch! ¡Me atacan! ¡Ayuda!",
+            "¡Ayúdame! ¡Me atacan!",
+            "¡Me atacan! ¡Ayuda!",
+            "¡Me atacan! ¡Ayúdame!",
+            "¡Ayuda!",
+            "¡Ayuda! ¡Ayuda!",
+            "¡Ayuda! ¡Ayuda! ¡Ayuda!",
+            "¡Me atacan!",
+            "¡AAAHHH! ¡Me atacan!",
+            "¡AAAHHH! ¡Me atacan! ¡Ayuda!",
+            "¡Ayuda! ¡Nos están atacando!",
+            "¡Ayuda! ¡Asesino!",
+            "¡Ayuda! ¡Hay un asesino suelto!",
+            "¡Ayuda! ¡Me están intentando matar!",
+            "Guardias, ¡me están atacando!",
+            "Guardias, ¡me están atacando!",
+            "¡Me están atacando! ¡Guardias!",
+            "¡Ayuda! ¡Guardias! ¡Me están atacando!",
+            "¡Guardias! ¡Venid rápido!",
+            "¡Guardias! ¡Guardias!",
+            "¡Guardias! ¡Un villano me ataca!",
+            "Guardias, ¡acabad con este infame villano!",
+            "¡Guardias! ¡Hay un asesino!",
+            "¡Guardias! ¡Ayudadme!",
+            "¡No te saldrás con la tuya! ¡Guardias!",
+            "¡Desalmado!",
+            "¡Ayúdame!",
+            "¡Ayuda! ¡Por favor!",
+            "¡Auch! ¡Guardias! ¡Ayuda!",
+            "¡Vienen a por mí!",
+            "¡Ayuda! ¡Ayuda! Me están reprimiendo",
+            "Ah, ahora vemos la violencia inherente al sistema.",
+            "¡No es más que un rasguño!"
+        ],
+    }
+)
