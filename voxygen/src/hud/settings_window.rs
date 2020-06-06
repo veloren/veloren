@@ -156,7 +156,11 @@ widget_ids! {
         speech_bubble_dark_mode_text,
         speech_bubble_dark_mode_button,
         free_look_behavior_text,
-        free_look_behavior_list
+        free_look_behavior_list,
+        auto_walk_behavior_text,
+        auto_walk_behavior_list,
+        stop_auto_walk_on_input_button,
+        stop_auto_walk_on_input_label,
     }
 }
 
@@ -240,6 +244,8 @@ pub enum Event {
     ChangeLanguage(LanguageMetadata),
     ChangeBinding(GameInput),
     ChangeFreeLookBehavior(PressBehavior),
+    ChangeAutoWalkBehavior(PressBehavior),
+    ChangeStopAutoWalkOnInput(bool),
 }
 
 pub enum ScaleChange {
@@ -1344,6 +1350,69 @@ impl<'a> Widget for SettingsWindow<'a> {
                     _ => unreachable!(),
                 }
             }
+
+            // Auto walk behavior
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.auto_walk_behavior"),
+            )
+            .down_from(state.ids.mouse_zoom_invert_button, 10.0)
+            .right_from(state.ids.free_look_behavior_text, 150.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.auto_walk_behavior_text, ui);
+
+            let auto_walk_selected =
+                self.global_state.settings.gameplay.auto_walk_behavior as usize;
+
+            if let Some(clicked) = DropDownList::new(&mode_label_list, Some(auto_walk_selected))
+                .w_h(200.0, 30.0)
+                .color(MENU_BG)
+                .label_color(TEXT_COLOR)
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .down_from(state.ids.auto_walk_behavior_text, 8.0)
+                .set(state.ids.auto_walk_behavior_list, ui)
+            {
+                match clicked {
+                    0 => events.push(Event::ChangeAutoWalkBehavior(PressBehavior::Toggle)),
+                    1 => events.push(Event::ChangeAutoWalkBehavior(PressBehavior::Hold)),
+                    _ => unreachable!(),
+                }
+            }
+
+            // Stop autowalk on input toggle
+            let stop_auto_walk_on_input_toggle = ToggleButton::new(
+                self.global_state.settings.gameplay.stop_auto_walk_on_input,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
+            )
+            .w_h(18.0, 18.0)
+            .right_from(state.ids.auto_walk_behavior_text, 80.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.stop_auto_walk_on_input_button, ui);
+
+            if self.global_state.settings.gameplay.stop_auto_walk_on_input
+                != stop_auto_walk_on_input_toggle
+            {
+                events.push(Event::ChangeStopAutoWalkOnInput(
+                    !self.global_state.settings.gameplay.stop_auto_walk_on_input,
+                ));
+            }
+
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.stop_auto_walk_on_input"),
+            )
+            .right_from(state.ids.stop_auto_walk_on_input_button, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.stop_auto_walk_on_input_button)
+            .color(TEXT_COLOR)
+            .set(state.ids.stop_auto_walk_on_input_label, ui);
         }
 
         // 3) Controls Tab --------------------------------

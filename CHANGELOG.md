@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Character name and level information to chat, social tab and `/players` command.
 - Added inventory, armour and weapon saving
 - Show where screenshots are saved to in the chat
+- Added basic auto walk
 
 ### Changed
 
