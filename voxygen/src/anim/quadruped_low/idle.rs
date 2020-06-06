@@ -19,19 +19,19 @@ impl Animation for IdleAnimation {
 
         let ultra_slow = 0.0*(anim_time as f32 * 1.0).sin();
         let slow = 0.0*(anim_time as f32 * 2.5).sin();
-        let slowalt = 0.0*(anim_time as f32 * 2.5 + PI / 2.0).sin();
+        let slowalt = (anim_time as f32 * 2.5 + PI / 2.0).sin();
 
         let dragon_look = Vec2::new(
             ((global_time + anim_time) as f32 / 8.0)
                 .floor()
                 .mul(7331.0)
                 .sin()
-                * 0.5,
+                * 0.2,
             ((global_time + anim_time) as f32 / 8.0)
                 .floor()
                 .mul(1337.0)
                 .sin()
-                * 0.25,
+                * 0.1,
         );
 
         next.head_upper.offset = Vec3::new(
@@ -66,12 +66,12 @@ impl Animation for IdleAnimation {
 
         next.tail_front.offset =
             Vec3::new(0.0, skeleton_attr.tail_front.0, skeleton_attr.tail_front.1);
-        next.tail_front.ori = Quaternion::rotation_z(0.0);
+        next.tail_front.ori = Quaternion::rotation_x(0.15)*Quaternion::rotation_z(slowalt * 0.12);
         next.tail_front.scale = Vec3::one()*0.98;
 
         next.tail_rear.offset =
             Vec3::new(0.0, skeleton_attr.tail_rear.0, skeleton_attr.tail_rear.1);
-        next.tail_rear.ori = Quaternion::rotation_z(slowalt * 0.12);
+        next.tail_rear.ori = Quaternion::rotation_z(slowalt * 0.12)*Quaternion::rotation_x(-0.12);
         next.tail_rear.scale = Vec3::one()*0.98;
 
         next.foot_fl.offset = Vec3::new(
