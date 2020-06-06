@@ -38,15 +38,15 @@ impl Screen {
                 let status = Text::new(status)
                     .size(fonts.alkhemi.scale(80))
                     .font(fonts.alkhemi.id)
-                    .color(Color::from_rgba(1.0, 1.0, 1.0, fade_msg))
-                    .vertical_alignment(VerticalAlignment::Bottom)
-                    .width(Length::Fill)
-                    .height(Length::Fill);
+                    .color(Color::from_rgba(1.0, 1.0, 1.0, fade_msg));
 
-                let status = Row::with_children(vec![
+                let status = Container::new(Row::with_children(vec![
                     Space::new(Length::Units(80), Length::Shrink).into(),
                     status.into(),
-                ]);
+                ]))
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .align_y(Align::End);
 
                 let cancel = neat_button(
                     &mut self.cancel_button,
