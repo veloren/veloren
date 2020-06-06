@@ -69,8 +69,8 @@ impl Animation for RunAnimation {
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin());
 ///
-        let foothorilb = (anim_time as f32 * 16.0 * lab as f32 + PI * 1.25).sin();
-        let foothorirb = (anim_time as f32 * 16.0 * lab as f32 + PI * (0.25)).sin();
+        let foothorilb = (anim_time as f32 * 16.0 * lab as f32 + PI * 1.45).sin();
+        let foothorirb = (anim_time as f32 * 16.0 * lab as f32 + PI * (0.45)).sin();
 
         let footvertlb = (anim_time as f32 * 16.0 * lab as f32).sin();
         let footvertrb = (anim_time as f32 * 16.0 * lab as f32 + PI*1.0).sin();
@@ -78,10 +78,10 @@ impl Animation for RunAnimation {
         let footrotlb = (((5.0)
             / (2.5
                 + (2.5)
-                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.6).sin())
+                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin())
                         .powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.6).sin());
+            * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin());
 
         let footrotrb = (((5.0)
             / (1.0
@@ -135,7 +135,7 @@ impl Animation for RunAnimation {
             skeleton_attr.tail_front.0,
             skeleton_attr.tail_front.1,
         );
-        next.tail_front.ori = Quaternion::rotation_z(short*0.2)*Quaternion::rotation_y(short*0.15);
+        next.tail_front.ori = Quaternion::rotation_z(short*0.2)*Quaternion::rotation_y(short*0.15)*Quaternion::rotation_x(0.06);
         next.tail_front.scale = Vec3::one();
 
         next.tail_rear.offset = Vec3::new(
@@ -143,7 +143,7 @@ impl Animation for RunAnimation {
             skeleton_attr.tail_rear.0,
             skeleton_attr.tail_rear.1 + centeroffset * 0.6,
         );
-        next.tail_rear.ori = Quaternion::rotation_z(short*0.3)*Quaternion::rotation_y(short*0.1);
+        next.tail_rear.ori = Quaternion::rotation_z(short*0.3)*Quaternion::rotation_y(short*0.1)*Quaternion::rotation_x(-0.04);
         next.tail_rear.scale = Vec3::one();
 
         next.chest.offset =

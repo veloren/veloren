@@ -127,10 +127,10 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
         use comp::quadruped_low::Species::*;
         Self {
             head_upper: match (body.species, body.body_type) {
-                (Crocodile, _) => (8.0, 4.0),
-                (Alligator, _) => (-0.5, 3.0),
-                (Salamander, _) => (3.0, 3.0),
-                (Monitor, _) => (4.0, 2.0),
+                (Crocodile, _) => (10.0, 2.0),
+                (Alligator, _) => (0.5, 3.0),
+                (Salamander, _) => (3.0, 1.0),
+                (Monitor, _) => (3.5, 2.0),
             },
             head_lower: match (body.species, body.body_type) {
                 (Crocodile, _) => (8.0, 0.0),
@@ -153,23 +153,23 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
             tail_rear: match (body.species, body.body_type) {
                 (Crocodile, _) => (-12.5, -1.0),
                 (Alligator, _) => (-13.0, -1.0),
-                (Salamander, _) => (-7.0, 0.0),
-                (Monitor, _) => (-10.0, 0.0),
+                (Salamander, _) => (-9.0, 0.0),
+                (Monitor, _) => (-12.0, 0.0),
             },
             tail_front: match (body.species, body.body_type) {
                 (Crocodile, _) => (-6.0, 0.0),
                 (Alligator, _) => (-5.0, 0.0),
-                (Salamander, _) => (-6.5, 0.0),
+                (Salamander, _) => (-7.5, 0.0),
                 (Monitor, _) => (-6.5, 0.0),
             },
             feet_f: match (body.species, body.body_type) {
-                (Crocodile, _) => (6.0, 6.0, 0.0),
+                (Crocodile, _) => (6.0, 6.0, -1.0),
                 (Alligator, _) => (6.0, 6.0, 0.0),
                 (Salamander, _) => (6.0, 6.0, -2.0),
                 (Monitor, _) => (6.0, 6.0, 0.0),
             },
             feet_b: match (body.species, body.body_type) {
-                (Crocodile, _) => (6.0, -6.0, 0.0),
+                (Crocodile, _) => (6.0, -6.0, -1.0),
                 (Alligator, _) => (6.0, -6.0, 0.0),
                 (Salamander, _) => (6.0, -6.0, -2.0),
                 (Monitor, _) => (6.0, -6.0, 0.0),
