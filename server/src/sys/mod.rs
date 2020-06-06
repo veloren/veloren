@@ -40,7 +40,8 @@ pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(terrain::Sys, TERRAIN_SYS, &[]);
     dispatch_builder.add(waypoint::Sys, WAYPOINT_SYS, &[]);
     dispatch_builder.add(persistence::Sys, PERSISTENCE_SYS, &[]);
-    //dispatch_builder.add(persistence::stats::Sys, STATS_PERSISTENCE_SYS, &[]);
+    //dispatch_builder.add(persistence::stats::Sys, STATS_PERSISTENCE_SYS,
+    // &[]);
 }
 
 pub fn run_sync_systems(ecs: &mut specs::World) {

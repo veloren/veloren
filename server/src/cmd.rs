@@ -959,7 +959,11 @@ fn handle_adminify(
             .map(|(entity, _)| entity);
         match opt_player {
             Some(player) => {
-                let is_admin = if server.state.read_component_cloned::<comp::Admin>(player).is_some() {
+                let is_admin = if server
+                    .state
+                    .read_component_cloned::<comp::Admin>(player)
+                    .is_some()
+                {
                     ecs.write_storage::<comp::Admin>().remove(player);
                     false
                 } else {
