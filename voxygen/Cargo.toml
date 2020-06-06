@@ -25,8 +25,8 @@ gfx_device_gl = { version = "0.16.2", optional = true }
 gfx_window_glutin = "0.31.0"
 glutin = "0.21.1"
 winit = { version = "0.19.4", features = ["serde"] }
-conrod_core = { git = "https://gitlab.com/veloren/conrod.git", branch = "capucho/hide_text_cursor_fix" }
-conrod_winit = { git = "https://gitlab.com/veloren/conrod.git", branch = "capucho/hide_text_cursor_fix" }
+conrod_core = { git = "https://gitlab.com/veloren/conrod.git", branch = "pre-winit-20" }
+conrod_winit = { git = "https://gitlab.com/veloren/conrod.git", branch = "pre-winit-20" }
 euc = "0.3.0"
 
 # ECS
