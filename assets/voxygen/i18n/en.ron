@@ -352,6 +352,7 @@ magically infused items?"#,
         "gameinput.interact": "Interact",
         "gameinput.freelook": "Free Look",
         "gameinput.autowalk": "Auto Walk",
+        "gameinput.dance": "Dance",
         
         /// End GameInput section
 
