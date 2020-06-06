@@ -367,7 +367,7 @@ impl IcedState {
                 }
             },
             Message::CancelConnect => {
-                self.cancel_connection();
+                self.exit_connect_screen();
                 events.push(Event::CancelLoginAttempt);
             },
             msg @ Message::TrustPromptAdd | msg @ Message::TrustPromptCancel => {
@@ -410,7 +410,8 @@ impl IcedState {
         }
     }
 
-    fn cancel_connection(&mut self) {
+    // Connection successful of failed
+    fn exit_connect_screen(&mut self) {
         if matches!(&self.screen, Screen::Connecting {..}) {
             self.screen = Screen::Login {
                 screen: login::Screen::new(),
@@ -1244,13 +1245,14 @@ impl<'a> MainMenuUi {
         self.popup = None;
         self.connecting = None;
         self.connect = false;
+        self.ice_state.exit_connect_screen();
     }
 
     pub fn cancel_connection(&mut self) {
         self.popup = None;
         self.connecting = None;
         self.connect = false;
-        self.ice_state.cancel_connection();
+        self.ice_state.exit_connect_screen();
     }
 
     pub fn handle_event(&mut self, event: ui::Event) {
