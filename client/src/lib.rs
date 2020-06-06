@@ -764,7 +764,8 @@ impl Client {
                             player_info.is_admin = admin;
                         } else {
                             warn!(
-                                "Received msg to update admin status of uid {}, but they were not in the list.",
+                                "Received msg to update admin status of uid {}, but they were not \
+                                 in the list.",
                                 uid
                             );
                         }
