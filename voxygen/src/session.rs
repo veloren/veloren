@@ -688,7 +688,15 @@ impl PlayState for SessionState {
                     },
                     HudEvent::UseSlot(x) => self.client.borrow_mut().use_slot(x),
                     HudEvent::SwapSlots(a, b) => self.client.borrow_mut().swap_slots(a, b),
-                    HudEvent::DropSlot(x) => self.client.borrow_mut().drop_slot(x),
+                    HudEvent::DropSlot(x) => {
+                        let mut client = self.client.borrow_mut();
+                        client.drop_slot(x);
+                        if let comp::slot::Slot::Equip(equip_slot) = x {
+                            if let comp::slot::EquipSlot::Lantern = equip_slot {
+                                client.toggle_lantern();
+                            }
+                        }
+                    },
                     HudEvent::Ability3(state) => self.inputs.ability3.set_state(state),
                     HudEvent::ChangeFOV(new_fov) => {
                         global_state.settings.graphics.fov = new_fov;
