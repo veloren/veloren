@@ -63,6 +63,7 @@ pub enum GameInput {
     //Charge,
     SwapLoadout,
     FreeLook,
+    AutoWalk,
 }
 
 impl GameInput {
@@ -104,6 +105,7 @@ impl GameInput {
             GameInput::ToggleWield => "gameinput.togglewield",
             //GameInput::Charge => "gameinput.charge",
             GameInput::FreeLook => "gameinput.freelook",
+            GameInput::AutoWalk => "gameinput.autowalk",
             GameInput::Slot1 => "gameinput.slot1",
             GameInput::Slot2 => "gameinput.slot2",
             GameInput::Slot3 => "gameinput.slot3",

@@ -347,7 +347,8 @@ magischen Gegenstände ergattern?"#,
         "gameinput.charge": "Anstürmen",
         "gameinput.togglewield": "Waffe ziehen/wegstecken",
         "gameinput.interact": "Interagieren",
-        "gameinput.freelook": "Freie Sicht",
+        "gameinput.freelook": "Freie Sicht",        
+        "gameinput.autowalk": "Automatisch Laufen",
         "gameinput.dance": "Tanzen",
 
         /// End GameInput section
