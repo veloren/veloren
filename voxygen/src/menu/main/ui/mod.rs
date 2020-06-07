@@ -1,6 +1,7 @@
 mod connecting;
 //mod disclaimer;
 mod login;
+mod servers;
 
 use crate::{
     i18n::{i18n_asset_key, Localization},
@@ -146,6 +147,9 @@ enum Screen {
         // Error to display in a box
         error: Option<String>,
     },
+    Servers {
+        screen: servers::Screen,
+    },
     Connecting {
         screen: connecting::Screen,
         connection_state: ConnectionState,
@@ -160,9 +164,10 @@ struct IcedState {
     // Voxygen version
     version: String,
 
+    servers: Vec<String>,
+    selected_server_index: Option<usize>,
     login_info: LoginInfo,
 
-    show_servers: bool,
     time: f32,
 
     screen: Screen,
@@ -171,6 +176,7 @@ struct IcedState {
 #[derive(Clone)]
 enum Message {
     Quit,
+    Back,
     ShowServers,
     #[cfg(feature = "singleplayer")]
     Singleplayer,
@@ -178,6 +184,7 @@ enum Message {
     Username(String),
     Password(String),
     Server(String),
+    ServerChanged(usize),
     FocusPassword,
     CancelConnect,
     TrustPromptAdd,
@@ -212,6 +219,14 @@ impl IcedState {
             };
         //};
 
+        let servers = settings.networking.servers.clone();
+        let login_info = LoginInfo {
+            username: settings.networking.username.clone(),
+            password: String::new(),
+            server: settings.networking.default_server.clone(),
+        };
+        let selected_server_index = servers.iter().position(|f| f == &login_info.server);
+
         Self {
             fonts,
             imgs,
@@ -219,13 +234,10 @@ impl IcedState {
             i18n,
             version,
 
-            login_info: LoginInfo {
-                username: settings.networking.username.clone(),
-                password: String::new(),
-                server: settings.networking.default_server.clone(),
-            },
+            servers,
+            selected_server_index,
+            login_info,
 
-            show_servers: false,
             time: 0.0,
 
             screen,
@@ -264,7 +276,14 @@ impl IcedState {
                 &self.imgs,
                 &self.login_info,
                 error.as_deref(),
-                self.show_servers,
+                &self.i18n,
+                button_style,
+            ),
+            Screen::Servers { screen } => screen.view(
+                &self.fonts,
+                &self.imgs,
+                &self.servers,
+                self.selected_server_index,
                 &self.i18n,
                 button_style,
             ),
@@ -295,7 +314,17 @@ impl IcedState {
     fn update(&mut self, message: Message, events: &mut Vec<Event>) {
         match message {
             Message::Quit => events.push(Event::Quit),
-            Message::ShowServers => self.show_servers = true,
+            Message::Back => {
+                self.screen = Screen::Login {
+                    screen: login::Screen::new(),
+                    error: None,
+                };
+            },
+            Message::ShowServers => {
+                self.screen = Screen::Servers {
+                    screen: servers::Screen::new(),
+                };
+            },
             #[cfg(feature = "singleplayer")]
             Message::Singleplayer => {
                 self.screen = Screen::Connecting {
@@ -323,7 +352,14 @@ impl IcedState {
             },
             Message::Username(new_value) => self.login_info.username = new_value,
             Message::Password(new_value) => self.login_info.password = new_value,
-            Message::Server(new_value) => self.login_info.server = new_value,
+            Message::Server(new_value) => {
+                self.selected_server_index = self.servers.iter().position(|f| f == &new_value);
+                self.login_info.server = new_value;
+            },
+            Message::ServerChanged(new_value) => {
+                self.login_info.server = self.servers[new_value].clone();
+                self.selected_server_index = Some(new_value);
+            },
             Message::FocusPassword => {
                 if let Screen::Login { screen, .. } = &mut self.screen {
                     screen.banner.password = text_input::State::focused();
