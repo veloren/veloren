@@ -239,7 +239,10 @@ impl AudioFrontend {
 /// Returns the default audio device.
 /// Does not return rodio Device struct in case our audio backend changes.
 pub fn get_default_device() -> Option<String> {
-    rodio::default_output_device().map(|dev| dev.name().expect("Unable to get device name"))
+    match rodio::default_output_device() {
+        Some(x) => Some(x.name().ok()?),
+        None => None,
+    }
 }
 
 /// Returns a vec of the audio devices available.
@@ -247,19 +250,26 @@ pub fn get_default_device() -> Option<String> {
 pub fn list_devices() -> Vec<String> {
     list_devices_raw()
         .iter()
-        .map(|x| x.name().expect("Unable to get device name"))
+        .map(|x| x.name().unwrap())
         .collect()
 }
 
 /// Returns vec of devices
 fn list_devices_raw() -> Vec<Device> {
-    rodio::output_devices()
-        .expect("Unable to get output devices")
-        .collect()
+    match rodio::output_devices() {
+        Ok(devices) => {
+            // Filter out any devices that the name isn't available for
+            devices.filter(|d| d.name().is_ok()).collect()
+        },
+        Err(_) => {
+            log::warn!("Failed to enumerate audio output devices, audio will not be available");
+            Vec::new()
+        },
+    }
 }
 
 fn get_device_raw(device: &str) -> Option<Device> {
-    rodio::output_devices()
-        .expect("Unable to get output devices")
-        .find(|d| d.name().expect("Unable to get device name") == device)
+    list_devices_raw()
+        .into_iter()
+        .find(|d| d.name().unwrap() == device)
 }
