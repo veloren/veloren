@@ -6,7 +6,7 @@ mod schema;
 
 extern crate diesel;
 
-use diesel::prelude::*;
+use diesel::{connection::SimpleConnection, prelude::*};
 use diesel_migrations::embed_migrations;
 use std::{env, fs, path::PathBuf};
 
@@ -24,8 +24,26 @@ pub fn run_migrations(db_dir: &str) -> Result<(), diesel_migrations::RunMigratio
 fn establish_connection(db_dir: &str) -> SqliteConnection {
     let db_dir = &apply_saves_dir_override(db_dir);
     let database_url = format!("{}/db.sqlite", db_dir);
-    SqliteConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
+
+    let connection = SqliteConnection::establish(&database_url)
+        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
+
+    // Use Write-Ahead-Logging for improved concurrency: https://sqlite.org/wal.html
+    // Set a busy timeout (in ms): https://sqlite.org/c3ref/busy_timeout.html
+    if let Err(error) = connection.batch_execute(
+        "
+        PRAGMA journal_mode = WAL;
+        PRAGMA busy_timeout = 250; 
+        ",
+    ) {
+        log::warn!(
+            "Failed adding PRAGMA statements while establishing sqlite connection, this will \
+             result in a higher likelihood of locking errors: {}",
+            error
+        );
+    }
+
+    connection
 }
 
 fn apply_saves_dir_override(db_dir: &str) -> String {
