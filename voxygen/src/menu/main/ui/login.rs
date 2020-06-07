@@ -50,7 +50,6 @@ impl Screen {
         imgs: &Imgs,
         login_info: &LoginInfo,
         error: Option<&str>,
-        show_servers: bool,
         i18n: &Localization,
         button_style: style::button::Style,
     ) -> Element<Message> {
