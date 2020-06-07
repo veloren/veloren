@@ -36,6 +36,8 @@ todo.txt
 # Game data
 *.sqlite
 *.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
 
 # direnv
 /.envrc
