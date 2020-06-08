@@ -98,7 +98,7 @@ fn maps_basic_melee() {
 }
 
 #[test]
-fn maps_triple_strike() {
+fn matches_ability_stage() {
     let mut loadout = Loadout::default();
 
     loadout.active_item = Some(ItemConfig {
@@ -131,6 +131,50 @@ fn maps_triple_strike() {
 
     assert_eq!(
         result,
-        SfxEvent::Attack(CharacterAbilityType::TripleStrike, ToolCategory::Sword)
+        SfxEvent::Attack(
+            CharacterAbilityType::TripleStrike(states::triple_strike::Stage::First),
+            ToolCategory::Sword
+        )
+    );
+}
+
+#[test]
+fn ignores_different_ability_stage() {
+    let mut loadout = Loadout::default();
+
+    loadout.active_item = Some(ItemConfig {
+        item: assets::load_expect_cloned("common.items.weapons.sword.starter_sword"),
+        ability1: None,
+        ability2: None,
+        ability3: None,
+        block_ability: None,
+        dodge_ability: None,
+    });
+
+    let result = CombatEventMapper::map_event(
+        &CharacterState::TripleStrike(states::triple_strike::Data {
+            base_damage: 10,
+            stage: states::triple_strike::Stage::Second,
+            stage_time_active: Duration::default(),
+            stage_exhausted: false,
+            initialized: true,
+            transition_style: states::triple_strike::TransitionStyle::Hold(
+                states::triple_strike::HoldingState::Released,
+            ),
+        }),
+        &PreviousEntityState {
+            event: SfxEvent::Idle,
+            time: Instant::now(),
+            weapon_drawn: true,
+        },
+        Some(&loadout),
+    );
+
+    assert_ne!(
+        result,
+        SfxEvent::Attack(
+            CharacterAbilityType::TripleStrike(states::triple_strike::Stage::First),
+            ToolCategory::Sword
+        )
     );
 }

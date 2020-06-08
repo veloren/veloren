@@ -23,64 +23,6 @@
             ],
             threshold: 0.5,
         ),
-        Attack(DashMelee, Sword): (
-            files: [
-                "voxygen.audio.sfx.weapon.whoosh_normal_01",
-                "voxygen.audio.sfx.weapon.whoosh_normal_02",
-                "voxygen.audio.sfx.weapon.whoosh_normal_03",
-                "voxygen.audio.sfx.weapon.whoosh_normal_04",
-            ],
-            threshold: 1.2,
-        ),
-        Attack(TripleStrike(First), Sword): (
-            files: [
-                "voxygen.audio.sfx.weapon.whoosh_normal_01",
-                "voxygen.audio.sfx.weapon.whoosh_normal_02",
-                "voxygen.audio.sfx.weapon.whoosh_normal_03",
-                "voxygen.audio.sfx.weapon.whoosh_normal_04",
-            ],
-            threshold: 0.5,
-        ),
-        Attack(TripleStrike(Second), Sword): (
-            files: [
-                "voxygen.audio.sfx.weapon.whoosh_low_01",
-                "voxygen.audio.sfx.weapon.whoosh_low_02",
-                "voxygen.audio.sfx.weapon.whoosh_low_03",
-            ],
-            threshold: 0.5,
-        ),
-        Attack(TripleStrike(Third), Sword): (
-            files: [
-                "voxygen.audio.sfx.weapon.whoosh_low_01",
-                "voxygen.audio.sfx.weapon.whoosh_low_02",
-                "voxygen.audio.sfx.weapon.whoosh_low_03",
-            ],
-            threshold: 0.5,
-        ),
-        Attack(BasicRanged, Bow): (
-            files: [
-                "voxygen.audio.sfx.weapon.bow_attack_01",
-                "voxygen.audio.sfx.weapon.bow_attack_02",
-            ],
-            threshold: 0.5,
-        ),
-        Attack(BasicMelee, Hammer): (
-            files: [
-                "voxygen.audio.sfx.weapon.whoosh_low_01",
-                "voxygen.audio.sfx.weapon.whoosh_low_02",
-                "voxygen.audio.sfx.weapon.whoosh_low_03",
-            ],
-            threshold: 0.5,
-        ),
-        Attack(BasicMelee, Staff): (
-            files: [
-                "voxygen.audio.sfx.weapon.whoosh_normal_01",
-                "voxygen.audio.sfx.weapon.whoosh_normal_02",
-                "voxygen.audio.sfx.weapon.whoosh_normal_03",
-                "voxygen.audio.sfx.weapon.whoosh_normal_04",
-            ],
-            threshold: 0.5,
-        ),
         Wield(Sword): (
             files: [
                 "voxygen.audio.sfx.weapon.sword_out",

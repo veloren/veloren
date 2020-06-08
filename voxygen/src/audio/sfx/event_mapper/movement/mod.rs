@@ -1,8 +1,9 @@
-/// event_mapper::movement watches all local entities movements and determines
-/// which sfx to emit, and the position at which the sound should be emitted
-/// from
-use crate::audio::sfx::{SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR};
+/// EventMapper::Movement watches the movement states of surrounding entities,
+/// and triggers sfx related to running, climbing and gliding, at a volume
+/// proportionate to the extity's size
+use super::EventMapper;
 
+use crate::audio::sfx::{SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR};
 use common::{
     comp::{Body, CharacterState, PhysicsState, Pos, Vel},
     event::{EventBus, SfxEvent, SfxEventItem},
@@ -34,14 +35,8 @@ pub struct MovementEventMapper {
     event_history: HashMap<EcsEntity, PreviousEntityState>,
 }
 
-impl MovementEventMapper {
-    pub fn new() -> Self {
-        Self {
-            event_history: HashMap::new(),
-        }
-    }
-
-    pub fn maintain(&mut self, state: &State, player_entity: EcsEntity, triggers: &SfxTriggers) {
+impl EventMapper for MovementEventMapper {
+    fn maintain(&mut self, state: &State, player_entity: EcsEntity, triggers: &SfxTriggers) {
         let ecs = state.ecs();
 
         let sfx_event_bus = ecs.read_resource::<EventBus<SfxEventItem>>();
@@ -100,6 +95,14 @@ impl MovementEventMapper {
         }
 
         self.cleanup(player_entity);
+    }
+}
+
+impl MovementEventMapper {
+    pub fn new() -> Self {
+        Self {
+            event_history: HashMap::new(),
+        }
     }
 
     /// As the player explores the world, we track the last event of the nearby

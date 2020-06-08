@@ -1,6 +1,8 @@
-/// event_mapper::combat watches the combat state of entities and emits
-/// associated sfx events
+/// EventMapper::Combat watches the combat states of surrounding entities' and
+/// emits sfx related to weapons and attacks/abilities
 use crate::audio::sfx::{SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR};
+
+use super::EventMapper;
 
 use common::{
     comp::{
@@ -36,14 +38,8 @@ pub struct CombatEventMapper {
     event_history: HashMap<EcsEntity, PreviousEntityState>,
 }
 
-impl CombatEventMapper {
-    pub fn new() -> Self {
-        Self {
-            event_history: HashMap::new(),
-        }
-    }
-
-    pub fn maintain(&mut self, state: &State, player_entity: EcsEntity, triggers: &SfxTriggers) {
+impl EventMapper for CombatEventMapper {
+    fn maintain(&mut self, state: &State, player_entity: EcsEntity, triggers: &SfxTriggers) {
         let ecs = state.ecs();
 
         let sfx_event_bus = ecs.read_resource::<EventBus<SfxEventItem>>();
@@ -89,6 +85,14 @@ impl CombatEventMapper {
 
         self.cleanup(player_entity);
     }
+}
+
+impl CombatEventMapper {
+    pub fn new() -> Self {
+        Self {
+            event_history: HashMap::new(),
+        }
+    }
 
     /// As the player explores the world, we track the last event of the nearby
     /// entities to determine the correct SFX item to play next based on
@@ -105,11 +109,10 @@ impl CombatEventMapper {
         });
     }
 
-    /// When specific entity movements are detected, the associated sound (if
-    /// any) needs to satisfy two conditions to be allowed to play:
-    /// 1. An sfx.ron entry exists for the movement (we need to know which sound
-    /// file(s) to play) 2. The sfx has not been played since it's timeout
-    /// threshold has elapsed, which prevents firing every tick
+    /// Ensures that:
+    /// 1. An sfx.ron entry exists for an SFX event
+    /// 2. The sfx has not been played since it's timeout threshold has elapsed,
+    /// which prevents firing every tick
     fn should_emit(
         previous_state: &PreviousEntityState,
         sfx_trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
