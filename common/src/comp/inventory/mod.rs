@@ -164,7 +164,7 @@ impl Inventory {
             }
         }
         self.recount_items();
-        if leftovers.len() > 0 {
+        if !leftovers.is_empty() {
             Err(Error::Full(leftovers))
         } else {
             Ok(())
@@ -187,7 +187,7 @@ impl Inventory {
                 self.push(item).map(|overflow| leftovers.push(overflow));
             } // else drop item if it was already in
         }
-        if leftovers.len() > 0 {
+        if !leftovers.is_empty() {
             Err(Error::Full(leftovers))
         } else {
             Ok(())

@@ -88,13 +88,7 @@ impl<'a> System<'a> for Sys {
         {
             // Skip mounted entities
             if mount_state
-                .map(|ms| {
-                    if let MountState::Unmounted = ms {
-                        false
-                    } else {
-                        true
-                    }
-                })
+                .map(|ms| *ms != MountState::Unmounted)
                 .unwrap_or(false)
             {
                 continue;

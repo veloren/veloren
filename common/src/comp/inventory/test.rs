@@ -31,7 +31,7 @@ fn push_all_full() {
         amount: 0,
     };
     let Error::Full(leftovers) = inv
-        .push_all(TEST_ITEMS.iter().map(|a| a.clone()))
+        .push_all(TEST_ITEMS.iter().cloned())
         .expect_err("Pushing into a full inventory somehow worked!");
     assert_eq!(leftovers, TEST_ITEMS.clone())
 }
@@ -44,7 +44,7 @@ fn push_unique_all_full() {
         slots: TEST_ITEMS.iter().map(|a| Some(a.clone())).collect(),
         amount: 0,
     };
-    inv.push_all_unique(TEST_ITEMS.iter().map(|a| a.clone()))
+    inv.push_all_unique(TEST_ITEMS.iter().cloned())
         .expect("Pushing unique items into an inventory that already contains them didn't work!");
 }
 
@@ -56,7 +56,7 @@ fn push_all_empty() {
         slots: vec![None, None],
         amount: 0,
     };
-    inv.push_all(TEST_ITEMS.iter().map(|a| a.clone()))
+    inv.push_all(TEST_ITEMS.iter().cloned())
         .expect("Pushing items into an empty inventory didn't work!");
 }
 
@@ -68,8 +68,7 @@ fn push_all_unique_empty() {
         slots: vec![None, None],
         amount: 0,
     };
-    inv.push_all_unique(TEST_ITEMS.iter().map(|a| a.clone()))
-        .expect(
-            "Pushing unique items into an empty inventory that didn't contain them didn't work!",
-        );
+    inv.push_all_unique(TEST_ITEMS.iter().cloned()).expect(
+        "Pushing unique items into an empty inventory that didn't contain them didn't work!",
+    );
 }

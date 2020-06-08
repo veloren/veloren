@@ -24,7 +24,7 @@ impl CharacterBehavior for Data {
         }
 
         // If there is a wall in front of character go to climb
-        if let Some(_) = data.physics.on_wall {
+        if data.physics.on_wall.is_some() {
             update.character = CharacterState::Climb;
             return update;
         }

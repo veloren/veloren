@@ -56,7 +56,7 @@ pub enum ChatCommand {
 }
 
 // Thank you for keeping this sorted alphabetically :-)
-pub static CHAT_COMMANDS: &'static [ChatCommand] = &[
+pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Adminify,
     ChatCommand::Alias,
     ChatCommand::Build,
@@ -118,11 +118,9 @@ lazy_static! {
                 let path = entry?.path();
                 if path.is_dir(){
                     list_items(&path, &base, &mut items)?;
-                } else {
-                    if let Ok(path) = path.strip_prefix(base) {
-                        let path = path.to_string_lossy().trim_end_matches(".ron").replace('/', ".");
-                        items.push(path);
-                    }
+                } else if let Ok(path) = path.strip_prefix(base) {
+                    let path = path.to_string_lossy().trim_end_matches(".ron").replace('/', ".");
+                    items.push(path);
                 }
             }
             Ok(())
@@ -348,7 +346,7 @@ impl FromStr for ChatCommand {
     type Err = ();
 
     fn from_str(keyword: &str) -> Result<ChatCommand, ()> {
-        let kwd = if keyword.chars().next() == Some('/') {
+        let kwd = if keyword.starts_with('/') {
             &keyword[1..]
         } else {
             &keyword[..]
@@ -358,7 +356,7 @@ impl FromStr for ChatCommand {
                 return Ok(*c);
             }
         }
-        return Err(());
+        Err(())
     }
 }
 

@@ -269,6 +269,6 @@ impl<'a, T: ReadVol> Iterator for DefaultVolIterator<'a, T> {
                 return Some((pos, vox));
             }
         }
-        return None;
+        None
     }
 }
