@@ -10,7 +10,6 @@ use std::{
 };
 use tracing::*;
 use tracing_subscriber::EnvFilter;
-use uvth::ThreadPoolBuilder;
 use veloren_network::{Address, Network, Participant, Pid, Stream, PROMISES_NONE};
 
 #[allow(dead_code)]
@@ -60,9 +59,10 @@ pub async fn network_participant_stream(
     Arc<Participant>,
     Stream,
 ) {
-    let pool = ThreadPoolBuilder::new().num_threads(2).build();
-    let n_a = Network::new(Pid::fake(1), &pool, None);
-    let n_b = Network::new(Pid::fake(2), &pool, None);
+    let (n_a, f_a) = Network::new(Pid::fake(1), None);
+    std::thread::spawn(f_a);
+    let (n_b, f_b) = Network::new(Pid::fake(2), None);
+    std::thread::spawn(f_b);
 
     n_a.listen(addr.clone()).await.unwrap();
     let p1_b = n_b.connect(addr).await.unwrap();

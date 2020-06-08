@@ -8,8 +8,6 @@ edition = "2018"
 
 [dependencies]
 
-#threadpool
-uvth = "3.1"
 #serialisation
 bincode = "1.2"
 serde = { version = "1.0" }
@@ -18,7 +16,7 @@ async-std = { version = "~1.5", features = ["std"] }
 #tracing and metrics
 tracing = { version = "0.1", default-features = false }
 tracing-futures = "0.2"
-prometheus = "0.7"
+prometheus = { version = "0.7", default-features = false }
 #async
 futures = { version = "0.3", features = ["thread-pool"] }
 #mpsc channel registry
@@ -27,3 +25,4 @@ rand = { version = "0.7" }
 
 [dev-dependencies]
 tracing-subscriber = { version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec"] }
+uvth = { version = "3.1", default-features = false }

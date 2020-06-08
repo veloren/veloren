@@ -31,6 +31,7 @@ use tracing::*;
 use tracing_futures::Instrument;
 
 #[derive(Debug)]
+#[allow(clippy::type_complexity)]
 struct ParticipantInfo {
     secret: u128,
     s2b_create_channel_s:
@@ -78,6 +79,7 @@ pub struct Scheduler {
 }
 
 impl Scheduler {
+    #[allow(clippy::type_complexity)]
     pub fn new(
         local_pid: Pid,
         registry: Option<&Registry>,
@@ -159,7 +161,7 @@ impl Scheduler {
         trace!("start listen_mgr");
         a2s_listen_r
             .for_each_concurrent(None, |(address, s2a_listen_result_s)| {
-                let address = address.clone();
+                let address = address;
 
                 async move {
                     debug!(?address, "got request to open a channel_creator");
@@ -397,13 +399,16 @@ impl Scheduler {
                 } {
                     let mut datavec = Vec::with_capacity(size);
                     datavec.extend_from_slice(&data[0..size]);
+                    //Due to the async nature i cannot make of .entry() as it would lead to a still
+                    // borrowed in another branch situation
+                    #[allow(clippy::map_entry)]
                     if !listeners.contains_key(&remote_addr) {
                         info!("Accepting Udp from: {}", &remote_addr);
                         let (udp_data_sender, udp_data_receiver) = mpsc::unbounded::<Vec<u8>>();
-                        listeners.insert(remote_addr.clone(), udp_data_sender);
+                        listeners.insert(remote_addr, udp_data_sender);
                         let protocol = UdpProtocol::new(
                             socket.clone(),
-                            remote_addr.clone(),
+                            remote_addr,
                             self.metrics.clone(),
                             udp_data_receiver,
                         );

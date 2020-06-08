@@ -139,6 +139,7 @@ impl Handshake {
             },
         };
 
+        #[allow(clippy::unit_arg)]
         match res {
             Ok(res) => {
                 let mut leftover_frames = vec![];
@@ -278,7 +279,7 @@ impl Handshake {
                     STREAM_ID_OFFSET2
                 };
                 info!(?pid, "this Handshake is now configured!");
-                return Ok((pid, stream_id_offset, secret));
+                Ok((pid, stream_id_offset, secret))
             },
             Some((_, Frame::Shutdown)) => {
                 info!("shutdown signal received");
@@ -286,7 +287,7 @@ impl Handshake {
                     .frames_in_total
                     .with_label_values(&[&pid_string, &cid_string, "Shutdown"])
                     .inc();
-                return Err(());
+                Err(())
             },
             Some((_, Frame::Raw(bytes))) => {
                 self.metrics
@@ -297,17 +298,17 @@ impl Handshake {
                     Ok(string) => error!(?string, ERR_S),
                     _ => error!(?bytes, ERR_S),
                 }
-                return Err(());
+                Err(())
             },
             Some((_, frame)) => {
                 self.metrics
                     .frames_in_total
                     .with_label_values(&[&pid_string, &cid_string, frame.get_string()])
                     .inc();
-                return Err(());
+                Err(())
             },
-            None => return Err(()),
-        };
+            None => Err(()),
+        }
     }
 
     async fn send_handshake(&self, c2w_frame_s: &mut mpsc::UnboundedSender<Frame>) {

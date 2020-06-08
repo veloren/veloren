@@ -50,6 +50,7 @@ impl PrioManager {
         310419, 356578, 409600, 470507, 540470, 620838,
     ];
 
+    #[allow(clippy::type_complexity)]
     pub fn new(
         metrics: Arc<NetworkMetrics>,
         pid: String,
@@ -275,8 +276,9 @@ impl PrioManager {
                                 cnt.len -= 1;
                                 if cnt.len == 0 {
                                     let cnt = self.sid_owned.remove(&sid).unwrap();
-                                    cnt.empty_notify
-                                        .map(|empty_notify| empty_notify.send(()).unwrap());
+                                    if let Some(empty_notify) = cnt.empty_notify {
+                                        empty_notify.send(()).unwrap();
+                                    }
                                 }
                             } else {
                                 error!(?msg.mid, "repush message");

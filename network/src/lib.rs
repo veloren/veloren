@@ -1,4 +1,6 @@
 #![deny(unsafe_code)]
+#![cfg_attr(test, deny(rust_2018_idioms))]
+#![cfg_attr(test, deny(warnings))]
 #![feature(try_trait, const_if_match)]
 
 //! Crate to handle high level networking of messages with different
@@ -38,13 +40,13 @@
 //! ```rust
 //! use async_std::task::sleep;
 //! use futures::{executor::block_on, join};
-//! use uvth::ThreadPoolBuilder;
 //! use veloren_network::{Address, Network, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
 //!
 //! // Client
 //! async fn client() -> std::result::Result<(), Box<dyn std::error::Error>> {
 //!     sleep(std::time::Duration::from_secs(1)).await; // `connect` MUST be after `listen`
-//!     let client_network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+//!     let (client_network, f) = Network::new(Pid::new(), None);
+//!     std::thread::spawn(f);
 //!     let server = client_network
 //!         .connect(Address::Tcp("127.0.0.1:12345".parse().unwrap()))
 //!         .await?;
@@ -57,7 +59,8 @@
 //!
 //! // Server
 //! async fn server() -> std::result::Result<(), Box<dyn std::error::Error>> {
-//!     let server_network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+//!     let (server_network, f) = Network::new(Pid::new(), None);
+//!     std::thread::spawn(f);
 //!     server_network
 //!         .listen(Address::Tcp("127.0.0.1:12345".parse().unwrap()))
 //!         .await?;

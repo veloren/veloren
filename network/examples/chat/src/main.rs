@@ -10,10 +10,9 @@ use network::{Address, Network, Participant, Pid, PROMISES_CONSISTENCY, PROMISES
 use std::{sync::Arc, thread, time::Duration};
 use tracing::*;
 use tracing_subscriber::EnvFilter;
-use uvth::ThreadPoolBuilder;
 
 ///This example contains a simple chatserver, that allows to send messages
-/// between participants
+/// between participants, it's neither pretty nor perfect, but it should show how to integrate network
 fn main() {
     let matches = App::new("Chat example")
         .version("0.1.0")
@@ -100,8 +99,9 @@ fn main() {
 }
 
 fn server(address: Address) {
-    let thread_pool = ThreadPoolBuilder::new().build();
-    let server = Arc::new(Network::new(Pid::new(), &thread_pool, None));
+    let (server, f) = Network::new(Pid::new(), None);
+    let server = Arc::new(server);
+    std::thread::spawn(f);
     let pool = ThreadPool::new().unwrap();
     block_on(async {
         server.listen(address).await.unwrap();
@@ -124,13 +124,17 @@ async fn client_connection(network: Arc<Network>, participant: Arc<Participant>)
             },
             Ok(msg) => {
                 println!("[{}]: {}", username, msg);
-                let parts = network.participants().await;
-                for p in parts.values() {
-                    let mut s = p
+                let mut parts = network.participants().await;
+                for (_, p) in parts.drain() {
+                    match p
                         .open(32, PROMISES_ORDERED | PROMISES_CONSISTENCY)
-                        .await
-                        .unwrap();
-                    s.send((username.clone(), msg.clone())).unwrap();
+                        .await {
+                        Err(_) => {
+                            //probably disconnected, remove it
+                            network.disconnect(p).await.unwrap();
+                        },
+                        Ok(mut s) => s.send((username.clone(), msg.clone())).unwrap(),
+                    };
                 }
             },
         }
@@ -139,8 +143,8 @@ async fn client_connection(network: Arc<Network>, participant: Arc<Participant>)
 }
 
 fn client(address: Address) {
-    let thread_pool = ThreadPoolBuilder::new().build();
-    let client = Network::new(Pid::new(), &thread_pool, None);
+    let (client, f) = Network::new(Pid::new(), None);
+    std::thread::spawn(f);
     let pool = ThreadPool::new().unwrap();
 
     block_on(async {
