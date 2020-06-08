@@ -10,18 +10,22 @@ use progression::ProgressionEventMapper;
 
 use super::SfxTriggers;
 
+trait EventMapper {
+    fn maintain(&mut self, state: &State, player_entity: specs::Entity, triggers: &SfxTriggers);
+}
+
 pub struct SfxEventMapper {
-    progression: ProgressionEventMapper,
-    movement: MovementEventMapper,
-    combat: CombatEventMapper,
+    mappers: Vec<Box<dyn EventMapper>>,
 }
 
 impl SfxEventMapper {
     pub fn new() -> Self {
         Self {
-            progression: ProgressionEventMapper::new(),
-            combat: CombatEventMapper::new(),
-            movement: MovementEventMapper::new(),
+            mappers: vec![
+                Box::new(CombatEventMapper::new()),
+                Box::new(MovementEventMapper::new()),
+                Box::new(ProgressionEventMapper::new()),
+            ],
         }
     }
 
@@ -31,8 +35,8 @@ impl SfxEventMapper {
         player_entity: specs::Entity,
         triggers: &SfxTriggers,
     ) {
-        self.progression.maintain(state, player_entity, triggers);
-        self.movement.maintain(state, player_entity, triggers);
-        self.combat.maintain(state, player_entity, triggers);
+        for mapper in &mut self.mappers {
+            mapper.maintain(state, player_entity, triggers);
+        }
     }
 }

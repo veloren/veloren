@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added inventory, armour and weapon saving
 - Show where screenshots are saved to in the chat
 - Added basic auto walk
+- Added weapon/attack sound effects
 
 ### Changed
 
