@@ -306,10 +306,8 @@ impl State {
     // Apply terrain changes
     pub fn apply_terrain_changes(&self) {
         let mut terrain = self.ecs.write_resource::<TerrainGrid>();
-        let mut modified_blocks = std::mem::replace(
-            &mut self.ecs.write_resource::<BlockChange>().blocks,
-            Default::default(),
-        );
+        let mut modified_blocks =
+            std::mem::take(&mut self.ecs.write_resource::<BlockChange>().blocks);
         // Apply block modifications
         // Only include in `TerrainChanges` if successful
         modified_blocks.retain(|pos, block| terrain.set(*pos, *block).is_ok());

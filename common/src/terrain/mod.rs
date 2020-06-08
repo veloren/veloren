@@ -41,12 +41,7 @@ impl TerrainChunkMeta {
         }
     }
 
-    pub fn name(&self) -> &str {
-        self.name
-            .as_ref()
-            .map(|s| s.as_str())
-            .unwrap_or("Wilderness")
-    }
+    pub fn name(&self) -> &str { self.name.as_deref().unwrap_or("Wilderness") }
 
     pub fn biome(&self) -> BiomeKind { self.biome }
 }

@@ -281,7 +281,7 @@ lazy_static! {
 
         // VELOREN_ASSETS environment variable
         if let Ok(var) = std::env::var("VELOREN_ASSETS") {
-            paths.push(var.to_owned().into());
+            paths.push(var.into());
         }
 
         // Executable path

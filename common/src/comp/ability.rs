@@ -203,9 +203,10 @@ impl From<&CharacterAbility> for CharacterState {
                 stage_exhausted: false,
                 stage_time_active: Duration::default(),
                 initialized: false,
-                transition_style: match *needs_timing {
-                    true => TransitionStyle::Timed(TimingState::NotPressed),
-                    false => TransitionStyle::Hold(HoldingState::Holding),
+                transition_style: if *needs_timing {
+                    TransitionStyle::Timed(TimingState::NotPressed)
+                } else {
+                    TransitionStyle::Hold(HoldingState::Holding)
                 },
             }),
         }

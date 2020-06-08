@@ -128,13 +128,12 @@ impl CharacterBehavior for Data {
 
             // Move player forward while in first third of each stage
             if update.vel.0.magnitude_squared() < BASE_SPEED.powf(2.0) {
-                update.vel.0 = update.vel.0
-                    + data.dt.0
-                        * (if data.physics.on_ground {
-                            Vec3::new(0.0, 0.0, 500.0) // Jump upwards if on ground
-                        } else {
-                            Vec3::one()
-                        } + adjusted_accel * Vec3::from(data.ori.0.xy()));
+                update.vel.0 += data.dt.0
+                    * (if data.physics.on_ground {
+                        Vec3::new(0.0, 0.0, 500.0) // Jump upwards if on ground
+                    } else {
+                        Vec3::one()
+                    } + adjusted_accel * Vec3::from(data.ori.0.xy()));
                 let mag2 = update.vel.0.magnitude_squared();
                 if mag2 > BASE_SPEED.powf(2.0) {
                     update.vel.0 = update.vel.0.normalized() * BASE_SPEED;

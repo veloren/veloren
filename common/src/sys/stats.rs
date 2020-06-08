@@ -77,10 +77,12 @@ impl<'a> System<'a> for Sys {
             // Accelerate recharging energy if not wielding.
             match character_state {
                 CharacterState::Idle { .. } | CharacterState::Sit { .. } => {
-                    if {
+                    let res = {
                         let energy = energy.get_unchecked();
                         energy.current() < energy.maximum()
-                    } {
+                    };
+
+                    if res {
                         let mut energy = energy.get_mut_unchecked();
                         // Have to account for Calc I differential equations due to acceleration
                         energy.change_by(
