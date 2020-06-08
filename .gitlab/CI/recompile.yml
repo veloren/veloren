@@ -13,7 +13,7 @@
 .recompile:
   rules:
     - changes:
-        - "**/*.{rs,ron,toml,vox,png}"
+        - "**/*.{rs,ron,toml,vox,png,wav}"
         - "rust-toolchain"
         - ".gitlab-ci.yml"
         - "**/*.yml"
