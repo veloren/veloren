@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        item::Item, Body, CharacterState, EnergySource, Gravity, LightEmitter, Projectile,
-        StateUpdate,
+        ability::Stage, item::Item, Body, CharacterState, EnergySource, Gravity, LightEmitter,
+        Projectile, StateUpdate,
     },
     states::{triple_strike::*, *},
     sys::character_behavior::JoinData,
@@ -9,6 +9,30 @@ use crate::{
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 use std::time::Duration;
+
+#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
+pub enum CharacterAbilityType {
+    BasicMelee,
+    BasicRanged,
+    Boost,
+    DashMelee,
+    BasicBlock,
+    TripleStrike(Stage),
+}
+
+impl From<&CharacterState> for CharacterAbilityType {
+    fn from(state: &CharacterState) -> Self {
+        match state {
+            CharacterState::BasicMelee(_) => Self::BasicMelee,
+            CharacterState::BasicRanged(_) => Self::BasicRanged,
+            CharacterState::Boost(_) => Self::Boost,
+            CharacterState::DashMelee(_) => Self::DashMelee,
+            CharacterState::BasicBlock => Self::BasicBlock,
+            CharacterState::TripleStrike(data) => Self::TripleStrike(data.stage),
+            _ => Self::BasicMelee,
+        }
+    }
+}
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum CharacterAbility {
