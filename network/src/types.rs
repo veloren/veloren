@@ -142,11 +142,10 @@ impl Pid {
     ///
     /// # Example
     /// ```rust
-    /// use uvth::ThreadPoolBuilder;
     /// use veloren_network::{Network, Pid};
     ///
     /// let pid = Pid::new();
-    /// let _network = Network::new(pid, &ThreadPoolBuilder::new().build(), None);
+    /// let _ = Network::new(pid, None);
     /// ```
     pub fn new() -> Self {
         Self {
@@ -196,28 +195,20 @@ impl std::fmt::Debug for Pid {
             write!(
                 f,
                 "{}",
-                sixlet_to_str((self.internal >> i * BITS_PER_SIXLET) & 0x3F)
+                sixlet_to_str((self.internal >> (i * BITS_PER_SIXLET)) & 0x3F)
             )?;
         }
         Ok(())
     }
 }
 
+impl Default for Pid {
+    fn default() -> Self { Pid::new() }
+}
+
 impl std::fmt::Display for Pid {
     #[inline]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        const BITS_PER_SIXLET: usize = 6;
-        //only print last 6 chars of number as full u128 logs are unreadable
-        const CHAR_COUNT: usize = 6;
-        for i in 0..CHAR_COUNT {
-            write!(
-                f,
-                "{}",
-                sixlet_to_str((self.internal >> i * BITS_PER_SIXLET) & 0x3F)
-            )?;
-        }
-        Ok(())
-    }
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { write!(f, "{:?}", self) }
 }
 
 impl std::ops::AddAssign for Sid {

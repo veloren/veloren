@@ -8,7 +8,6 @@ use futures::{channel::mpsc, future::FutureExt, stream::StreamExt};
 use network::{Address, Network, Participant, Pid, Stream, PROMISES_CONSISTENCY, PROMISES_ORDERED};
 use std::{collections::HashMap, sync::Arc};
 use tracing::*;
-use uvth::ThreadPoolBuilder;
 
 #[derive(Debug)]
 struct ControlChannels {
@@ -27,8 +26,8 @@ impl Server {
     pub fn new() -> (Self, mpsc::UnboundedSender<LocalCommand>) {
         let (command_sender, command_receiver) = mpsc::unbounded();
 
-        let thread_pool = ThreadPoolBuilder::new().build();
-        let network = Network::new(Pid::new(), &thread_pool, None);
+        let (network, f) = Network::new(Pid::new(), None);
+        std::thread::spawn(f);
 
         let run_channels = Some(ControlChannels { command_receiver });
         (

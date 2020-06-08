@@ -3,7 +3,7 @@
 //!
 //! (cd network/examples/async_recv && RUST_BACKTRACE=1 cargo run)
 use crate::{
-    message::{self, IncomingMessage, MessageBuffer, OutgoingMessage},
+    message::{self, partial_eq_bincode, IncomingMessage, MessageBuffer, OutgoingMessage},
     scheduler::Scheduler,
     types::{Mid, Pid, Prio, Promises, Sid},
 };
@@ -25,7 +25,6 @@ use std::{
 };
 use tracing::*;
 use tracing_futures::Instrument;
-use uvth::ThreadPool;
 
 /// Represents a Tcp or Udp or Mpsc address
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
@@ -96,9 +95,10 @@ pub enum ParticipantError {
 }
 
 /// Error type thrown by [`Streams`](Stream) methods
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub enum StreamError {
     StreamClosed,
+    DeserializeError(Box<bincode::ErrorKind>),
 }
 
 /// Use the `Network` to create connections to other [`Participants`]
@@ -115,15 +115,16 @@ pub enum StreamError {
 /// # Examples
 /// ```rust
 /// use veloren_network::{Network, Address, Pid};
-/// use uvth::ThreadPoolBuilder;
 /// use futures::executor::block_on;
 ///
 /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
 /// // Create a Network, listen on port `2999` to accept connections and connect to port `8080` to connect to a (pseudo) database Application
-/// let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+/// let (network, f) = Network::new(Pid::new(), None);
+/// std::thread::spawn(f);
 /// block_on(async{
 ///     # //setup pseudo database!
-///     # let database = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+///     # let (database, fd) = Network::new(Pid::new(), None);
+///     # std::thread::spawn(fd);
 ///     # database.listen(Address::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
 ///     network.listen(Address::Tcp("127.0.0.1:2999".parse().unwrap())).await?;
 ///     let database = network.connect(Address::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
@@ -152,49 +153,75 @@ impl Network {
     /// # Arguments
     /// * `participant_id` - provide it by calling [`Pid::new()`], usually you
     ///   don't want to reuse a Pid for 2 `Networks`
-    /// * `thread_pool` - you need to provide a [`ThreadPool`] where exactly 1
-    ///   thread will be created to handle all `Network` internals. Additional
-    ///   threads will be allocated on an internal async-aware threadpool
     /// * `registry` - Provide a Registy in order to collect Prometheus metrics
     ///   by this `Network`, `None` will deactivate Tracing. Tracing is done via
     ///   [`prometheus`]
     ///
+    /// # Result
+    /// * `Self` - returns a `Network` which can be `Send` to multiple areas of
+    ///   your code, including multiple threads. This is the base strct of this
+    ///   crate.
+    /// * `FnOnce` - you need to run the returning FnOnce exactly once, probably
+    ///   in it's own thread. this is NOT done internally, so that you are free
+    ///   to choose the threadpool implementation of your choice. We recommend
+    ///   using [`ThreadPool`] from [`uvth`] crate. This fn will runn the
+    ///   Scheduler to handle all `Network` internals. Additional threads will
+    ///   be allocated on an internal async-aware threadpool
+    ///
     /// # Examples
     /// ```rust
+    /// //Example with uvth
     /// use uvth::ThreadPoolBuilder;
     /// use veloren_network::{Address, Network, Pid};
     ///
-    /// let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+    /// let pool = ThreadPoolBuilder::new().build();
+    /// let (network, f) = Network::new(Pid::new(), None);
+    /// pool.execute(f);
     /// ```
     ///
-    /// Usually you only create a single `Network` for an application, except
-    /// when client and server are in the same application, then you will want
-    /// 2. However there are no technical limitations from creating more.
+    /// ```rust
+    /// //Example with std::thread
+    /// use veloren_network::{Address, Network, Pid};
+    ///
+    /// let (network, f) = Network::new(Pid::new(), None);
+    /// std::thread::spawn(f);
+    /// ```
+    ///
+    /// Usually you only create a single `Network` for an appliregistrycation,
+    /// except when client and server are in the same application, then you
+    /// will want 2. However there are no technical limitations from
+    /// creating more.
     ///
     /// [`Pid::new()`]: crate::types::Pid::new
-    /// [`ThreadPool`]: uvth::ThreadPool
-    pub fn new(participant_id: Pid, thread_pool: &ThreadPool, registry: Option<&Registry>) -> Self {
+    /// [`ThreadPool`]: https://docs.rs/uvth/newest/uvth/struct.ThreadPool.html
+    /// [`uvth`]: https://docs.rs/uvth
+    pub fn new(
+        participant_id: Pid,
+        registry: Option<&Registry>,
+    ) -> (Self, impl std::ops::FnOnce()) {
         let p = participant_id;
         debug!(?p, "starting Network");
         let (scheduler, listen_sender, connect_sender, connected_receiver, shutdown_sender) =
             Scheduler::new(participant_id, registry);
-        thread_pool.execute(move || {
-            trace!(?p, "starting sheduler in own thread");
-            let _handle = task::block_on(
-                scheduler
-                    .run()
-                    .instrument(tracing::info_span!("scheduler", ?p)),
-            );
-            trace!(?p, "stopping sheduler and his own thread");
-        });
-        Self {
-            local_pid: participant_id,
-            participants: RwLock::new(HashMap::new()),
-            listen_sender: RwLock::new(listen_sender),
-            connect_sender: RwLock::new(connect_sender),
-            connected_receiver: RwLock::new(connected_receiver),
-            shutdown_sender: Some(shutdown_sender),
-        }
+        (
+            Self {
+                local_pid: participant_id,
+                participants: RwLock::new(HashMap::new()),
+                listen_sender: RwLock::new(listen_sender),
+                connect_sender: RwLock::new(connect_sender),
+                connected_receiver: RwLock::new(connected_receiver),
+                shutdown_sender: Some(shutdown_sender),
+            },
+            move || {
+                trace!(?p, "starting sheduler in own thread");
+                let _handle = task::block_on(
+                    scheduler
+                        .run()
+                        .instrument(tracing::info_span!("scheduler", ?p)),
+                );
+                trace!(?p, "stopping sheduler and his own thread");
+            },
+        )
     }
 
     /// starts listening on an [`Address`].
@@ -207,12 +234,12 @@ impl Network {
     /// # Examples
     /// ```rust
     /// use futures::executor::block_on;
-    /// use uvth::ThreadPoolBuilder;
     /// use veloren_network::{Address, Network, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2000` TCP on all NICs and `2001` UDP locally
-    /// let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+    /// let (network, f) = Network::new(Pid::new(), None);
+    /// std::thread::spawn(f);
     /// block_on(async {
     ///     network
     ///         .listen(Address::Tcp("0.0.0.0:2000".parse().unwrap()))
@@ -248,13 +275,14 @@ impl Network {
     /// can't connect, or invalid Handshake) # Examples
     /// ```rust
     /// use futures::executor::block_on;
-    /// use uvth::ThreadPoolBuilder;
     /// use veloren_network::{Address, Network, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port `2010` TCP and `2011` UDP like listening above
-    /// let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
-    /// # let remote = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+    /// let (network, f) = Network::new(Pid::new(), None);
+    /// std::thread::spawn(f);
+    /// # let (remote, fr) = Network::new(Pid::new(), None);
+    /// # std::thread::spawn(fr);
     /// block_on(async {
     ///     # remote.listen(Address::Tcp("0.0.0.0:2010".parse().unwrap())).await?;
     ///     # remote.listen(Address::Udp("0.0.0.0:2011".parse().unwrap())).await?;
@@ -311,13 +339,14 @@ impl Network {
     /// # Examples
     /// ```rust
     /// use futures::executor::block_on;
-    /// use uvth::ThreadPoolBuilder;
     /// use veloren_network::{Address, Network, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2020` TCP and opens returns their Pid
-    /// let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
-    /// # let remote = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+    /// let (network, f) = Network::new(Pid::new(), None);
+    /// std::thread::spawn(f);
+    /// # let (remote, fr) = Network::new(Pid::new(), None);
+    /// # std::thread::spawn(fr);
     /// block_on(async {
     ///     network
     ///         .listen(Address::Tcp("0.0.0.0:2020".parse().unwrap()))
@@ -358,16 +387,22 @@ impl Network {
     /// Except if the remote side already dropped the [`Participant`]
     /// simultaneously, then messages won't be sended
     ///
+    /// There is NO `disconnected` function in `Network`, if a [`Participant`]
+    /// is no longer reachable (e.g. as the network cable was unplugged) the
+    /// [`Participant`] will fail all action, but needs to be manually
+    /// disconected, using this function.
+    ///
     /// # Examples
     /// ```rust
     /// use futures::executor::block_on;
-    /// use uvth::ThreadPoolBuilder;
     /// use veloren_network::{Address, Network, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2030` TCP and opens returns their Pid and close connection.
-    /// let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
-    /// # let remote = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+    /// let (network, f) = Network::new(Pid::new(), None);
+    /// std::thread::spawn(f);
+    /// # let (remote, fr) = Network::new(Pid::new(), None);
+    /// # std::thread::spawn(fr);
     /// block_on(async {
     ///     network
     ///         .listen(Address::Tcp("0.0.0.0:2030".parse().unwrap()))
@@ -425,9 +460,12 @@ impl Network {
         Ok(())
     }
 
-    /// returns a copy of all current connected [`Participants`]
+    /// returns a copy of all current connected [`Participants`],
+    /// including ones, which can't send data anymore as the underlying sockets
+    /// are closed already but haven't been [`disconnected`] yet.
     ///
     /// [`Participants`]: crate::api::Participant
+    /// [`disconnected`]: Network::disconnect
     pub async fn participants(&self) -> HashMap<Pid, Arc<Participant>> {
         self.participants.read().await.clone()
     }
@@ -471,13 +509,14 @@ impl Participant {
     /// # Examples
     /// ```rust
     /// use futures::executor::block_on;
-    /// use uvth::ThreadPoolBuilder;
     /// use veloren_network::{Address, Network, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2100 and open a stream
-    /// let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
-    /// # let remote = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+    /// let (network, f) = Network::new(Pid::new(), None);
+    /// std::thread::spawn(f);
+    /// # let (remote, fr) = Network::new(Pid::new(), None);
+    /// # std::thread::spawn(fr);
     /// block_on(async {
     ///     # remote.listen(Address::Tcp("0.0.0.0:2100".parse().unwrap())).await?;
     ///     let p1 = network
@@ -532,14 +571,15 @@ impl Participant {
     /// # Examples
     /// ```rust
     /// use veloren_network::{Network, Pid, Address, PROMISES_ORDERED, PROMISES_CONSISTENCY};
-    /// use uvth::ThreadPoolBuilder;
     /// use futures::executor::block_on;
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2110 and wait for the other side to open a stream
     /// // Note: It's quite unusal to activly connect, but then wait on a stream to be connected, usually the Appication taking initiative want's to also create the first Stream.
-    /// let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
-    /// # let remote = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+    /// let (network, f) = Network::new(Pid::new(), None);
+    /// std::thread::spawn(f);
+    /// # let (remote, fr) = Network::new(Pid::new(), None);
+    /// # std::thread::spawn(fr);
     /// block_on(async {
     ///     # remote.listen(Address::Tcp("0.0.0.0:2110".parse().unwrap())).await?;
     ///     let p1 = network.connect(Address::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
@@ -581,6 +621,7 @@ impl Participant {
 }
 
 impl Stream {
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn new(
         pid: Pid,
         sid: Sid,
@@ -632,13 +673,14 @@ impl Stream {
     /// ```
     /// use veloren_network::{Network, Address, Pid};
     /// # use veloren_network::{PROMISES_ORDERED, PROMISES_CONSISTENCY};
-    /// use uvth::ThreadPoolBuilder;
     /// use futures::executor::block_on;
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2200` and wait for a Stream to be opened, then answer `Hello World`
-    /// let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
-    /// # let remote = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+    /// let (network, f) = Network::new(Pid::new(), None);
+    /// std::thread::spawn(f);
+    /// # let (remote, fr) = Network::new(Pid::new(), None);
+    /// # std::thread::spawn(fr);
     /// block_on(async {
     ///     network.listen(Address::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(Address::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
@@ -671,14 +713,16 @@ impl Stream {
     /// use veloren_network::{Network, Address, Pid, MessageBuffer};
     /// # use veloren_network::{PROMISES_ORDERED, PROMISES_CONSISTENCY};
     /// use futures::executor::block_on;
-    /// use uvth::ThreadPoolBuilder;
     /// use bincode;
     /// use std::sync::Arc;
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
-    /// let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
-    /// # let remote1 = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
-    /// # let remote2 = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+    /// let (network, f) = Network::new(Pid::new(), None);
+    /// std::thread::spawn(f);
+    /// # let (remote1, fr1) = Network::new(Pid::new(), None);
+    /// # std::thread::spawn(fr1);
+    /// # let (remote2, fr2) = Network::new(Pid::new(), None);
+    /// # std::thread::spawn(fr2);
     /// block_on(async {
     ///     network.listen(Address::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
     ///     # let remote1_p = remote1.connect(Address::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
@@ -734,13 +778,14 @@ impl Stream {
     /// ```
     /// use veloren_network::{Network, Address, Pid};
     /// # use veloren_network::{PROMISES_ORDERED, PROMISES_CONSISTENCY};
-    /// use uvth::ThreadPoolBuilder;
     /// use futures::executor::block_on;
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2220` and wait for a Stream to be opened, then listen on it
-    /// let network = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
-    /// # let remote = Network::new(Pid::new(), &ThreadPoolBuilder::new().build(), None);
+    /// let (network, f) = Network::new(Pid::new(), None);
+    /// std::thread::spawn(f);
+    /// # let (remote, fr) = Network::new(Pid::new(), None);
+    /// # std::thread::spawn(fr);
     /// block_on(async {
     ///     network.listen(Address::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(Address::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
@@ -756,7 +801,7 @@ impl Stream {
     /// ```
     #[inline]
     pub async fn recv<M: DeserializeOwned>(&mut self) -> Result<M, StreamError> {
-        Ok(message::deserialize(self.recv_raw().await?))
+        Ok(message::deserialize(self.recv_raw().await?)?)
     }
 
     /// the equivalent like [`send_raw`] but for [`recv`], no [`bincode`] is
@@ -788,15 +833,12 @@ impl Drop for Network {
             // `self.participants` as the `disconnect` fn needs it.
             let mut participant_clone = self.participants().await;
             for (_, p) in participant_clone.drain() {
-                match self.disconnect(p).await {
-                    Err(e) => {
-                        error!(
-                            ?e,
-                            "error while dropping network, the error occured when dropping a \
-                             participant but can't be notified to the user any more"
-                        );
-                    },
-                    _ => (),
+                if let Err(e) = self.disconnect(p).await {
+                    error!(
+                        ?e,
+                        "error while dropping network, the error occured when dropping a \
+                         participant but can't be notified to the user any more"
+                    );
                 }
             }
             self.participants.write().await.clear();
@@ -936,16 +978,23 @@ impl From<oneshot::Canceled> for NetworkError {
     fn from(_err: oneshot::Canceled) -> Self { NetworkError::NetworkClosed }
 }
 
+impl From<Box<bincode::ErrorKind>> for StreamError {
+    fn from(err: Box<bincode::ErrorKind>) -> Self { StreamError::DeserializeError(err) }
+}
+
 impl core::fmt::Display for StreamError {
-    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             StreamError::StreamClosed => write!(f, "stream closed"),
+            StreamError::DeserializeError(err) => {
+                write!(f, "deserialize error on message: {}", err)
+            },
         }
     }
 }
 
 impl core::fmt::Display for ParticipantError {
-    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             ParticipantError::ParticipantClosed => write!(f, "participant closed"),
         }
@@ -953,10 +1002,26 @@ impl core::fmt::Display for ParticipantError {
 }
 
 impl core::fmt::Display for NetworkError {
-    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             NetworkError::NetworkClosed => write!(f, "network closed"),
             NetworkError::ListenFailed(_) => write!(f, "listening failed"),
+        }
+    }
+}
+
+/// implementing PartialEq as it's super convenient in tests
+impl core::cmp::PartialEq for StreamError {
+    fn eq(&self, other: &Self) -> bool {
+        match self {
+            StreamError::StreamClosed => match other {
+                StreamError::StreamClosed => true,
+                StreamError::DeserializeError(_) => false,
+            },
+            StreamError::DeserializeError(err) => match other {
+                StreamError::StreamClosed => false,
+                StreamError::DeserializeError(other_err) => partial_eq_bincode(err, other_err),
+            },
         }
     }
 }

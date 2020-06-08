@@ -16,7 +16,6 @@ use std::{
 };
 use tracing::*;
 use tracing_subscriber::EnvFilter;
-use uvth::ThreadPoolBuilder;
 
 #[derive(Serialize, Deserialize, Debug)]
 enum Msg {
@@ -120,9 +119,9 @@ fn main() {
 }
 
 fn server(address: Address) {
-    let thread_pool = ThreadPoolBuilder::new().num_threads(1).build();
     let mut metrics = metrics::SimpleMetrics::new();
-    let server = Network::new(Pid::new(), &thread_pool, Some(metrics.registry()));
+    let (server, f) = Network::new(Pid::new(), Some(metrics.registry()));
+    std::thread::spawn(f);
     metrics.run("0.0.0.0:59112".parse().unwrap()).unwrap();
     block_on(server.listen(address)).unwrap();
 
@@ -148,9 +147,9 @@ fn server(address: Address) {
 }
 
 fn client(address: Address) {
-    let thread_pool = ThreadPoolBuilder::new().num_threads(1).build();
     let mut metrics = metrics::SimpleMetrics::new();
-    let client = Network::new(Pid::new(), &thread_pool, Some(metrics.registry()));
+    let (client, f) = Network::new(Pid::new(), Some(metrics.registry()));
+    std::thread::spawn(f);
     metrics.run("0.0.0.0:59111".parse().unwrap()).unwrap();
 
     let p1 = block_on(client.connect(address.clone())).unwrap(); //remote representation of p1

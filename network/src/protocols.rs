@@ -104,7 +104,7 @@ impl TcpProtocol {
             let frame = match frame_no {
                 FRAME_HANDSHAKE => {
                     let mut bytes = [0u8; 19];
-                    Self::read_except_or_close(cid, &mut stream, &mut bytes, w2c_cid_frame_s).await;
+                    Self::read_except_or_close(cid, &stream, &mut bytes, w2c_cid_frame_s).await;
                     let magic_number = [
                         bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6],
                     ];
@@ -119,7 +119,7 @@ impl TcpProtocol {
                 },
                 FRAME_INIT => {
                     let mut bytes = [0u8; 16];
-                    Self::read_except_or_close(cid, &mut stream, &mut bytes, w2c_cid_frame_s).await;
+                    Self::read_except_or_close(cid, &stream, &mut bytes, w2c_cid_frame_s).await;
                     let pid = Pid::from_le_bytes(bytes);
                     stream.read_exact(&mut bytes).await.unwrap();
                     let secret = u128::from_le_bytes(bytes);
@@ -128,7 +128,7 @@ impl TcpProtocol {
                 FRAME_SHUTDOWN => Frame::Shutdown,
                 FRAME_OPEN_STREAM => {
                     let mut bytes = [0u8; 10];
-                    Self::read_except_or_close(cid, &mut stream, &mut bytes, w2c_cid_frame_s).await;
+                    Self::read_except_or_close(cid, &stream, &mut bytes, w2c_cid_frame_s).await;
                     let sid = Sid::from_le_bytes([
                         bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6],
                         bytes[7],
@@ -143,7 +143,7 @@ impl TcpProtocol {
                 },
                 FRAME_CLOSE_STREAM => {
                     let mut bytes = [0u8; 8];
-                    Self::read_except_or_close(cid, &mut stream, &mut bytes, w2c_cid_frame_s).await;
+                    Self::read_except_or_close(cid, &stream, &mut bytes, w2c_cid_frame_s).await;
                     let sid = Sid::from_le_bytes([
                         bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6],
                         bytes[7],
@@ -152,7 +152,7 @@ impl TcpProtocol {
                 },
                 FRAME_DATA_HEADER => {
                     let mut bytes = [0u8; 24];
-                    Self::read_except_or_close(cid, &mut stream, &mut bytes, w2c_cid_frame_s).await;
+                    Self::read_except_or_close(cid, &stream, &mut bytes, w2c_cid_frame_s).await;
                     let mid = Mid::from_le_bytes([
                         bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6],
                         bytes[7],
@@ -169,7 +169,7 @@ impl TcpProtocol {
                 },
                 FRAME_DATA => {
                     let mut bytes = [0u8; 18];
-                    Self::read_except_or_close(cid, &mut stream, &mut bytes, w2c_cid_frame_s).await;
+                    Self::read_except_or_close(cid, &stream, &mut bytes, w2c_cid_frame_s).await;
                     let mid = Mid::from_le_bytes([
                         bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6],
                         bytes[7],
@@ -181,22 +181,22 @@ impl TcpProtocol {
                     let length = u16::from_le_bytes([bytes[16], bytes[17]]);
                     let mut data = vec![0; length as usize];
                     throughput_cache.inc_by(length as i64);
-                    Self::read_except_or_close(cid, &mut stream, &mut data, w2c_cid_frame_s).await;
+                    Self::read_except_or_close(cid, &stream, &mut data, w2c_cid_frame_s).await;
                     Frame::Data { mid, start, data }
                 },
                 FRAME_RAW => {
                     let mut bytes = [0u8; 2];
-                    Self::read_except_or_close(cid, &mut stream, &mut bytes, w2c_cid_frame_s).await;
+                    Self::read_except_or_close(cid, &stream, &mut bytes, w2c_cid_frame_s).await;
                     let length = u16::from_le_bytes([bytes[0], bytes[1]]);
                     let mut data = vec![0; length as usize];
-                    Self::read_except_or_close(cid, &mut stream, &mut data, w2c_cid_frame_s).await;
+                    Self::read_except_or_close(cid, &stream, &mut data, w2c_cid_frame_s).await;
                     Frame::Raw(data)
                 },
                 _ => {
                     // report a RAW frame, but cannot rely on the next 2 bytes to be a size.
                     // guessing 256 bytes, which might help to sort down issues
                     let mut data = vec![0; 256];
-                    Self::read_except_or_close(cid, &mut stream, &mut data, w2c_cid_frame_s).await;
+                    Self::read_except_or_close(cid, &stream, &mut data, w2c_cid_frame_s).await;
                     Frame::Raw(data)
                 },
             };
@@ -683,9 +683,7 @@ impl UdpProtocol {
                     let x = (data.len() as u16).to_le_bytes();
                     buffer[17] = x[0];
                     buffer[18] = x[1];
-                    for i in 0..data.len() {
-                        buffer[19 + i] = data[i];
-                    }
+                    buffer[19..(data.len() + 19)].clone_from_slice(&data[..]);
                     throughput_cache.inc_by(data.len() as i64);
                     19 + data.len()
                 },
@@ -695,9 +693,7 @@ impl UdpProtocol {
                     let x = (data.len() as u16).to_le_bytes();
                     buffer[1] = x[0];
                     buffer[2] = x[1];
-                    for i in 0..data.len() {
-                        buffer[3 + i] = data[i];
-                    }
+                    buffer[3..(data.len() + 3)].clone_from_slice(&data[..]);
                     3 + data.len()
                 },
             };

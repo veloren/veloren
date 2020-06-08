@@ -42,6 +42,7 @@ struct StreamInfo {
 }
 
 #[derive(Debug)]
+#[allow(clippy::type_complexity)]
 struct ControlChannels {
     a2b_steam_open_r: mpsc::UnboundedReceiver<(Prio, Promises, oneshot::Sender<Stream>)>,
     b2a_stream_opened_s: mpsc::UnboundedSender<Stream>,
@@ -65,6 +66,7 @@ pub struct BParticipant {
 }
 
 impl BParticipant {
+    #[allow(clippy::type_complexity)]
     pub(crate) fn new(
         remote_pid: Pid,
         offset_sid: Sid,
@@ -208,7 +210,14 @@ impl BParticipant {
         self.running_mgr.fetch_sub(1, Ordering::Relaxed);
     }
 
-    async fn send_frame(&self, frame: Frame, frames_out_total_cache: &mut PidCidFrameCache) {
+    //retruns false if sending isn't possible. In that case we have to render the
+    // Participant `closed`
+    #[must_use = "You need to check if the send was successful and report to client!"]
+    async fn send_frame(
+        &self,
+        frame: Frame,
+        frames_out_total_cache: &mut PidCidFrameCache,
+    ) -> bool {
         // find out ideal channel here
         //TODO: just take first
         let mut lock = self.channels.write().await;
@@ -232,9 +241,18 @@ impl BParticipant {
                          longer work in the first place"
                     );
                 };
+                //TODO
+                warn!(
+                    "FIXME: the frame is actually drop. which is fine for now as the participant \
+                     will be closed, but not if we do channel-takeover"
+                );
+                false
+            } else {
+                true
             }
         } else {
             error!("participant has no channel to communicate on");
+            false
         }
     }
 
@@ -365,6 +383,7 @@ impl BParticipant {
         self.running_mgr.fetch_sub(1, Ordering::Relaxed);
     }
 
+    #[allow(clippy::type_complexity)]
     async fn create_channel_mgr(
         &self,
         s2b_create_channel_r: mpsc::UnboundedReceiver<(
@@ -440,17 +459,22 @@ impl BParticipant {
             let stream = self
                 .create_stream(sid, prio, promises, a2p_msg_s, &a2b_close_stream_s)
                 .await;
-            self.send_frame(
-                Frame::OpenStream {
-                    sid,
-                    prio,
-                    promises,
-                },
-                &mut send_cache,
-            )
-            .await;
-            p2a_return_stream.send(stream).unwrap();
-            stream_ids += Sid::from(1);
+            if self
+                .send_frame(
+                    Frame::OpenStream {
+                        sid,
+                        prio,
+                        promises,
+                    },
+                    &mut send_cache,
+                )
+                .await
+            {
+                //On error, we drop this, so it gets closed and client will handle this as an
+                // Err any way (:
+                p2a_return_stream.send(stream).unwrap();
+                stream_ids += Sid::from(1);
+            }
         }
         trace!("stop open_mgr");
         self.running_mgr.fetch_sub(1, Ordering::Relaxed);
