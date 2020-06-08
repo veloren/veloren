@@ -23,19 +23,18 @@
             ],
             threshold: 0.5,
         ),
-        Wield(Sword(BasicSword)): (
+        Wield(Sword): (
             files: [
                 "voxygen.audio.sfx.weapon.sword_out",
             ],
             threshold: 0.5,
         ),
-        Unwield(Sword(BasicSword)): (
+        Unwield(Sword): (
             files: [
                 "voxygen.audio.sfx.weapon.sword_in",
             ],
             threshold: 0.5,
         ),
-        
 		Inventory(Collected): (
             files: [
                 "voxygen.audio.sfx.inventory.add_item",

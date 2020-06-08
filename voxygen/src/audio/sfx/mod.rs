@@ -1,6 +1,85 @@
-/// The Sfx Manager manages individual sfx event system, listens for
-/// SFX events and plays the sound at the requested position, or the current
-/// player position
+//! Manages individual sfx event system, listens for sfx events, and requests
+//! playback at the requested position and volume
+//!
+//! Veloren's sfx are managed through a configuration which lives in the
+//! codebase under `/assets/voxygen/audio/sfx.ron`.
+//!
+//! Each entry in the configuration consists of an
+//! [SfxEvent](../../../veloren_common/event/enum.SfxEvent.html) item, with some
+//! additional information to allow playback:
+//! - `files` - the paths to the `.wav` files to be played for the sfx. minus
+//!   the file extension. This can be a single item if the same sound can be
+//!   played each time, or a list of files from which one is chosen at random to
+//!   be played.
+//! - `threshold` - the time that the system should wait between successive
+//!   plays.
+//!
+//! The following snippet details some entries in the configuration and how they
+//! map to the sound files:
+//! ```ignore
+//! Run: (
+//!    files: [
+//!        "voxygen.audio.sfx.footsteps.stepgrass_1",
+//!        "voxygen.audio.sfx.footsteps.stepgrass_2",
+//!        "voxygen.audio.sfx.footsteps.stepgrass_3",
+//!        "voxygen.audio.sfx.footsteps.stepgrass_4",
+//!        "voxygen.audio.sfx.footsteps.stepgrass_5",
+//!        "voxygen.audio.sfx.footsteps.stepgrass_6",
+//!    ],
+//!    threshold: 0.25, // wait 0.25s between plays
+//! ),
+//! Wield(Sword): ( // depends on the player's weapon
+//!    files: [
+//!        "voxygen.audio.sfx.weapon.sword_out",
+//!    ],
+//!    threshold: 0.5,
+//! ),
+//! ...
+//! ```
+//!
+//! These items (for example, the `Wield(Sword)` occasionally depend on some
+//! property which varies in game. The
+//! [SfxEvent](../../../veloren_common/event/enum.SfxEvent.html) documentation
+//! provides links to those variables, some examples are provided her for longer
+//! items:
+//!
+//! ```ignore
+//! // An inventory action
+//! Inventory(Dropped): (
+//!     files: [
+//!        "voxygen.audio.sfx.footsteps.stepgrass_4",
+//!    ],
+//!    threshold: 0.5,
+//! ),
+//! // An inventory action which depends upon the item
+//! Inventory(Consumed(Apple)): (
+//!    files: [
+//!        "voxygen.audio.sfx.inventory.consumable.apple",
+//!    ],
+//!    threshold: 0.5
+//! ),
+//! // An attack ability which depends on the weapon
+//! Attack(DashMelee, Sword): (
+//!     files: [
+//!         "voxygen.audio.sfx.weapon.whoosh_normal_01",
+//!         "voxygen.audio.sfx.weapon.whoosh_normal_02",
+//!         "voxygen.audio.sfx.weapon.whoosh_normal_03",
+//!         "voxygen.audio.sfx.weapon.whoosh_normal_04",
+//!     ],
+//!     threshold: 1.2,
+//! ),
+//! // A multi-stage attack ability which depends on the weapon
+//! Attack(TripleStrike(First), Sword): (
+//!     files: [
+//!         "voxygen.audio.sfx.weapon.whoosh_normal_01",
+//!         "voxygen.audio.sfx.weapon.whoosh_normal_02",
+//!         "voxygen.audio.sfx.weapon.whoosh_normal_03",
+//!         "voxygen.audio.sfx.weapon.whoosh_normal_04",
+//!     ],
+//!     threshold: 0.5,
+//! ),
+//! ```
+
 mod event_mapper;
 
 use crate::audio::AudioFrontend;
@@ -16,18 +95,21 @@ use serde::Deserialize;
 use specs::WorldExt;
 use vek::*;
 
+/// We watch the states of nearby entities in order to emit SFX at their
+/// position based on their state. This constant limits the radius that we
+/// observe to prevent tracking distant entities. It approximates the distance
+/// at which the volume of the sfx emitted is too quiet to be meaningful for the
+/// player.
+const SFX_DIST_LIMIT_SQR: f32 = 20000.0;
+
 #[derive(Deserialize)]
 pub struct SfxTriggerItem {
     pub files: Vec<String>,
     pub threshold: f64,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 pub struct SfxTriggers(HashMap<SfxEvent, SfxTriggerItem>);
-
-impl Default for SfxTriggers {
-    fn default() -> Self { Self(HashMap::new()) }
-}
 
 impl SfxTriggers {
     pub fn get_trigger(&self, trigger: &SfxEvent) -> Option<&SfxTriggerItem> { self.0.get(trigger) }
