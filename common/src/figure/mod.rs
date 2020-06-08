@@ -36,7 +36,7 @@ impl From<&DotVoxData> for Segment {
                 if let Some(&color) = palette.get(voxel.i as usize) {
                     segment
                         .set(
-                            Vec3::new(voxel.x, voxel.y, voxel.z).map(|e| i32::from(e)),
+                            Vec3::new(voxel.x, voxel.y, voxel.z).map(i32::from),
                             Cell::new(color),
                         )
                         .unwrap();
@@ -195,7 +195,7 @@ impl MatSegment {
                         voxel.y,
                         voxel.z,
                     )
-                    .map(|e| i32::from(e)),
+                    .map(i32::from),
                     block,
                 )
                 .unwrap();

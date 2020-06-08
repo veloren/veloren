@@ -374,7 +374,7 @@ mod tests {
         let mut server = postoffice.new_postboxes().next().unwrap();
 
         for msg in &test_msgs {
-            client.send_message(msg.clone());
+            client.send_message(*msg);
         }
 
         let mut recv_msgs = Vec::new();

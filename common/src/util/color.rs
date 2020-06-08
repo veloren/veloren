@@ -1,6 +1,7 @@
 use vek::{Mat3, Rgb, Rgba, Vec3};
 
 #[inline(always)]
+#[allow(clippy::excessive_precision)]
 pub fn srgb_to_linear(col: Rgb<f32>) -> Rgb<f32> {
     col.map(|c| {
         if c <= 0.104 {
@@ -12,6 +13,7 @@ pub fn srgb_to_linear(col: Rgb<f32>) -> Rgb<f32> {
 }
 
 #[inline(always)]
+#[allow(clippy::excessive_precision)]
 pub fn linear_to_srgb(col: Rgb<f32>) -> Rgb<f32> {
     col.map(|c| {
         if c <= 0.0060 {
@@ -37,6 +39,7 @@ pub fn linear_to_srgba(col: Rgba<f32>) -> Rgba<f32> {
 
 /// Convert rgb to hsv. Expects rgb to be [0, 1].
 #[inline(always)]
+#[allow(clippy::many_single_char_names)]
 pub fn rgb_to_hsv(rgb: Rgb<f32>) -> Vec3<f32> {
     let (r, g, b) = rgb.into_tuple();
     let (max, min, diff, add) = {
@@ -69,6 +72,7 @@ pub fn rgb_to_hsv(rgb: Rgb<f32>) -> Vec3<f32> {
 
 /// Convert hsv to rgb. Expects h [0, 360], s [0, 1], v [0, 1]
 #[inline(always)]
+#[allow(clippy::many_single_char_names)]
 pub fn hsv_to_rgb(hsv: Vec3<f32>) -> Rgb<f32> {
     let (h, s, v) = hsv.into_tuple();
     let c = s * v;
