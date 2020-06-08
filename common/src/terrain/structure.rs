@@ -53,8 +53,7 @@ pub struct Structure {
 impl Structure {
     pub fn load_group(specifier: &str) -> Vec<Arc<Structure>> {
         let spec = assets::load::<StructuresSpec>(&["world.manifests.", specifier].concat());
-        return spec
-            .unwrap()
+        spec.unwrap()
             .0
             .iter()
             .map(|sp| {
@@ -63,7 +62,7 @@ impl Structure {
                 })
                 .unwrap()
             })
-            .collect();
+            .collect()
     }
 
     pub fn with_center(mut self, center: Vec3<i32>) -> Self {
@@ -145,10 +144,7 @@ impl Asset for Structure {
                     },
                 };
 
-                let _ = vol.set(
-                    Vec3::new(voxel.x, voxel.y, voxel.z).map(|e| i32::from(e)),
-                    block,
-                );
+                let _ = vol.set(Vec3::new(voxel.x, voxel.y, voxel.z).map(i32::from), block);
             }
 
             Ok(Structure {

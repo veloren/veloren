@@ -54,9 +54,11 @@ impl CharacterBehavior for Data {
             Climb::Up | Climb::Down => 8,
             Climb::Hold => 1,
         };
-        if let Err(_) = update
+
+        if update
             .energy
             .try_change_by(-energy_use, EnergySource::Climb)
+            .is_err()
         {
             update.character = CharacterState::Idle {};
         }

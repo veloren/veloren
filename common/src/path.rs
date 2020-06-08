@@ -268,12 +268,7 @@ where
     let satisfied = |pos: &Vec3<i32>| pos == &end;
 
     let mut new_astar = match astar.take() {
-        None => Astar::new(
-            20_000,
-            start,
-            heuristic.clone(),
-            DefaultHashBuilder::default(),
-        ),
+        None => Astar::new(20_000, start, heuristic, DefaultHashBuilder::default()),
         Some(astar) => astar,
     };
 
