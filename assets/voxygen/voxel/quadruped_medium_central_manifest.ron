@@ -12,11 +12,11 @@
             offset: (-3.0, -3.0, -2.5),
             central: ("npc.grolgar.male.jaw"),
         ),
-        torso_f: (
+        torso_front: (
             offset: (-8.0, -5.5, -6.0),
             central: ("npc.grolgar.male.torso_front"),
         ),
-        torso_b: (
+        torso_back: (
             offset: (-7.0, -6.0, -6.0),
             central: ("npc.grolgar.male.torso_back"),
         ),
@@ -42,11 +42,11 @@
             offset: (-3.0, -3.0, -2.5),
             central: ("npc.grolgar.male.jaw"),
         ),
-        torso_f: (
+        torso_front: (
             offset: (-8.0, -5.5, -6.0),
             central: ("npc.grolgar.female.torso_front"),
         ),
-        torso_b: (
+        torso_back: (
             offset: (-7.0, -6.0, -6.0),
             central: ("npc.grolgar.female.torso_back"),
         ),
@@ -73,11 +73,11 @@
             offset: (-2.0, -2.5, -1.0),
             central: ("npc.saber.male.jaw"),
         ),
-        torso_f: (
+        torso_front: (
             offset: (-6.0, -6.0, -5.5),
             central: ("npc.saber.male.torso_front"),
         ),
-        torso_b: (
+        torso_back: (
             offset: (-6.0, -6.0, -5.0),
             central: ("npc.saber.male.torso_back"),
         ),
@@ -103,11 +103,11 @@
             offset: (-2.0, -2.5, -1.0),
             central: ("npc.saber.female.jaw"),
         ),
-        torso_f: (
+        torso_front: (
             offset: (-6.0, -6.0, -5.5),
             central: ("npc.saber.female.torso_front"),
         ),
-        torso_b: (
+        torso_back: (
             offset: (-6.0, -6.0, -5.0),
             central: ("npc.saber.female.torso_back"),
         ),
@@ -133,11 +133,11 @@
             offset: (-2.0, -1.0, -1.0),
             central: ("npc.tuskram.male.jaw"),
         ),
-        torso_f: (
+        torso_front: (
             offset: (-5.0, -6.0, -4.0),
             central: ("npc.tuskram.male.torso_front"),
         ),
-        torso_b: (
+        torso_back: (
             offset: (-5.0, -6.0, -4.0),
             central: ("npc.tuskram.male.torso_back"),
         ),
@@ -163,11 +163,11 @@
             offset: (-2.0, -1.0, -1.0),
             central: ("npc.tuskram.male.jaw"),
         ),
-        torso_f: (
+        torso_front: (
             offset: (-5.0, -6.0, -4.0),
             central: ("npc.tuskram.female.torso_front"),
         ),
-        torso_b: (
+        torso_back: (
             offset: (-5.0, -6.0, -4.0),
             central: ("npc.tuskram.female.torso_back"),
         ),
@@ -193,11 +193,11 @@
             offset: (-2.5, -2.5, -0.5),
             central: ("npc.lion.male.jaw"),
         ),
-        torso_f: (
+        torso_front: (
             offset: (-5.5, -7.5, -5.5),
             central: ("npc.lion.male.torso_front"),
         ),
-        torso_b: (
+        torso_back: (
             offset: (-6.5, -6.0, -5.0),
             central: ("npc.lion.male.torso_back"),
         ),
@@ -223,11 +223,11 @@
             offset: (-2.5, -2.5, -0.5),
             central: ("npc.lion.male.jaw"),
         ),
-        torso_f: (
+        torso_front: (
             offset: (-5.5, -7.5, -5.5),
             central: ("npc.lion.female.torso_front"),
         ),
-        torso_b: (
+        torso_back: (
             offset: (-6.5, -6.0, -5.0),
             central: ("npc.lion.female.torso_back"),
         ),
@@ -253,11 +253,11 @@
             offset: (-2.0, -2.5, -1.0),
             central: ("npc.tarasque.male.jaw"),
         ),
-        torso_f: (
+        torso_front: (
             offset: (-5.0, -7.0, -6.5),
             central: ("npc.tarasque.male.torso_front"),
         ),
-        torso_b: (
+        torso_back: (
             offset: (-5.0, -6.0, -5.5),
             central: ("npc.tarasque.male.torso_back"),
         ),
@@ -283,11 +283,11 @@
             offset: (-2.0, -2.5, -1.0),
             central: ("npc.tarasque.male.jaw"),
         ),
-        torso_f: (
+        torso_front: (
             offset: (-5.0, -7.0, -6.5),
             central: ("npc.tarasque.female.torso_front"),
         ),
-        torso_b: (
+        torso_back: (
             offset: (-5.0, -6.0, -5.5),
             central: ("npc.tarasque.female.torso_back"),
         ),
@@ -313,11 +313,11 @@
             offset: (-2.0, -2.5, -1.0),
             central: ("npc.tiger.male.jaw"),
         ),
-        torso_f: (
+        torso_front: (
             offset: (-6.0, -6.0, -5.5),
             central: ("npc.tiger.male.torso_front"),
         ),
-        torso_b: (
+        torso_back: (
             offset: (-6.0, -6.0, -5.0),
             central: ("npc.tiger.male.torso_back"),
         ),
@@ -343,11 +343,11 @@
             offset: (-2.0, -2.5, -1.0),
             central: ("npc.tiger.female.jaw"),
         ),
-        torso_f: (
+        torso_front: (
             offset: (-6.0, -6.0, -5.5),
             central: ("npc.tiger.female.torso_front"),
         ),
-        torso_b: (
+        torso_back: (
             offset: (-6.0, -6.0, -5.0),
             central: ("npc.tiger.female.torso_back"),
         ),

@@ -217,22 +217,22 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         body.body_type,
                         generate_mesh,
                     )),
-                    Some(quadruped_small_lateral_spec.mesh_foot_lf(
+                    Some(quadruped_small_lateral_spec.mesh_foot_fl(
                         body.species,
                         body.body_type,
                         generate_mesh,
                     )),
-                    Some(quadruped_small_lateral_spec.mesh_foot_rf(
+                    Some(quadruped_small_lateral_spec.mesh_foot_fr(
                         body.species,
                         body.body_type,
                         generate_mesh,
                     )),
-                    Some(quadruped_small_lateral_spec.mesh_foot_lb(
+                    Some(quadruped_small_lateral_spec.mesh_foot_bl(
                         body.species,
                         body.body_type,
                         generate_mesh,
                     )),
-                    Some(quadruped_small_lateral_spec.mesh_foot_rb(
+                    Some(quadruped_small_lateral_spec.mesh_foot_br(
                         body.species,
                         body.body_type,
                         generate_mesh,
@@ -280,12 +280,12 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         body.body_type,
                         generate_mesh,
                     )),
-                    Some(quadruped_medium_central_spec.mesh_torso_f(
+                    Some(quadruped_medium_central_spec.mesh_torso_front(
                         body.species,
                         body.body_type,
                         generate_mesh,
                     )),
-                    Some(quadruped_medium_central_spec.mesh_torso_b(
+                    Some(quadruped_medium_central_spec.mesh_torso_back(
                         body.species,
                         body.body_type,
                         generate_mesh,
@@ -295,42 +295,42 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         body.body_type,
                         generate_mesh,
                     )),
-                    Some(quadruped_medium_lateral_spec.mesh_leg_lf(
+                    Some(quadruped_medium_lateral_spec.mesh_leg_fl(
                         body.species,
                         body.body_type,
                         generate_mesh,
                     )),
-                    Some(quadruped_medium_lateral_spec.mesh_leg_rf(
+                    Some(quadruped_medium_lateral_spec.mesh_leg_fr(
                         body.species,
                         body.body_type,
                         generate_mesh,
                     )),
-                    Some(quadruped_medium_lateral_spec.mesh_leg_lb(
+                    Some(quadruped_medium_lateral_spec.mesh_leg_bl(
                         body.species,
                         body.body_type,
                         generate_mesh,
                     )),
-                    Some(quadruped_medium_lateral_spec.mesh_leg_rb(
+                    Some(quadruped_medium_lateral_spec.mesh_leg_br(
                         body.species,
                         body.body_type,
                         generate_mesh,
                     )),
-                    Some(quadruped_medium_lateral_spec.mesh_foot_lf(
+                    Some(quadruped_medium_lateral_spec.mesh_foot_fl(
                         body.species,
                         body.body_type,
                         generate_mesh,
                     )),
-                    Some(quadruped_medium_lateral_spec.mesh_foot_rf(
+                    Some(quadruped_medium_lateral_spec.mesh_foot_fr(
                         body.species,
                         body.body_type,
                         generate_mesh,
                     )),
-                    Some(quadruped_medium_lateral_spec.mesh_foot_lb(
+                    Some(quadruped_medium_lateral_spec.mesh_foot_bl(
                         body.species,
                         body.body_type,
                         generate_mesh,
                     )),
-                    Some(quadruped_medium_lateral_spec.mesh_foot_rb(
+                    Some(quadruped_medium_lateral_spec.mesh_foot_br(
                         body.species,
                         body.body_type,
                         generate_mesh,
