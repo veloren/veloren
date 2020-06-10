@@ -1,4 +1,4 @@
-use super::{ConnectionState, IcedImgs as Imgs, Message};
+use super::{ConnectionState, Message};
 use crate::{
     i18n::Localization,
     ui::{
@@ -93,7 +93,7 @@ impl Screen {
                     .into(),
                 ])
                 .spacing(4)
-                .max_width(500)
+                .max_width(520)
                 .width(Length::Fill)
                 .height(Length::Fill);
 
@@ -103,7 +103,7 @@ impl Screen {
                         (11, 11, 11, 255).into(),
                         (54, 46, 38, 255).into(),
                     ))
-                    .padding(10);
+                    .padding(20);
 
                 let container = Container::new(prompt_window)
                     .width(Length::Fill)
