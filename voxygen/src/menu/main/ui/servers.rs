@@ -3,16 +3,7 @@ use crate::{
     i18n::Localization,
     ui::{
         fonts::IcedFonts as Fonts,
-        ice::{
-            component::neat_button,
-            style,
-            widget::{
-                background_container::Padding,
-                compound_graphic::{CompoundGraphic, Graphic},
-                BackgroundContainer,
-            },
-            Element,
-        },
+        ice::{component::neat_button, style, Element},
     },
 };
 use iced::{button, scrollable, Align, Button, Column, Container, Length, Scrollable, Text};
@@ -35,8 +26,7 @@ impl Screen {
     pub(super) fn view(
         &mut self,
         fonts: &Fonts,
-        imgs: &Imgs,
-        servers: &Vec<String>,
+        servers: &[impl AsRef<str>],
         selected_server_index: Option<usize>,
         i18n: &Localization,
         button_style: style::button::Style,
@@ -56,38 +46,46 @@ impl Screen {
         let mut list = Scrollable::new(&mut self.servers_list)
             .align_items(Align::Start)
             .width(Length::Fill)
-            .height(Length::Fill)
-            .spacing(10);
+            .height(Length::Fill);
 
         if self.server_buttons.len() != servers.len() {
             self.server_buttons = vec![Default::default(); servers.len()];
         }
 
-        for (i, state) in self.server_buttons.iter_mut().enumerate() {
-            let server = servers.get(i).unwrap();
+        for (i, (state, server)) in self.server_buttons.iter_mut().zip(servers).enumerate() {
             let text = format!(
                 "{}{}",
-                if i == selected_server_index.unwrap_or(std::usize::MAX) {
+                if Some(i) == selected_server_index {
                     "-> "
                 } else {
                     "  "
                 },
-                server
+                server.as_ref(),
             );
-            let button = Button::new(state, Text::new(text).size(fonts.cyri.scale(25)))
-                .on_press(Message::ServerChanged(i));
+            let button = Button::new(
+                state,
+                Container::new(Text::new(text).size(fonts.cyri.scale(25)))
+                    .padding(5)
+                    .center_y(),
+            )
+            .width(Length::Fill)
+            .on_press(Message::ServerChanged(i));
             list = list.push(button);
         }
 
         Container::new(
-            BackgroundContainer::new(
-                CompoundGraphic::padded_image(imgs.info_frame, [500, 300], [0; 4]),
+            Container::new(
                 Column::with_children(vec![list.into(), button.into()])
                     .width(Length::Fill)
                     .height(Length::Fill)
                     .spacing(10)
                     .padding(20),
             )
+            .style(style::container::Style::color_double_cornerless_border(
+                (22, 18, 16, 255).into(),
+                (11, 11, 11, 255).into(),
+                (54, 46, 38, 255).into(),
+            ))
             .max_width(500),
         )
         .width(Length::Fill)

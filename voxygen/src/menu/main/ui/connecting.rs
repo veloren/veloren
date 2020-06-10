@@ -6,7 +6,7 @@ use crate::{
         ice::{component::neat_button, style, Element},
     },
 };
-use iced::{button, Align, Color, Column, Container, Length, Row, Space, Text, VerticalAlignment};
+use iced::{button, Align, Color, Column, Container, Length, Row, Space, Text};
 
 /// Connecting screen for the main menu
 pub struct Screen {
@@ -25,7 +25,6 @@ impl Screen {
     pub(super) fn view(
         &mut self,
         fonts: &Fonts,
-        imgs: &Imgs,
         connection_state: &ConnectionState,
         time: f32,
         i18n: &Localization,
@@ -99,8 +98,11 @@ impl Screen {
                 .height(Length::Fill);
 
                 let prompt_window = Container::new(content)
-                    // TODO: add borders
-                    .style(style::container::Style::Color((10, 10, 0, 255).into()))
+                    .style(style::container::Style::color_double_cornerless_border(
+                        (22, 18, 16, 255).into(),
+                        (11, 11, 11, 255).into(),
+                        (54, 46, 38, 255).into(),
+                    ))
                     .padding(10);
 
                 let container = Container::new(prompt_window)

@@ -164,7 +164,6 @@ struct IcedState {
     // Voxygen version
     version: String,
 
-    servers: Vec<String>,
     selected_server_index: Option<usize>,
     login_info: LoginInfo,
 
@@ -219,13 +218,16 @@ impl IcedState {
             };
         //};
 
-        let servers = settings.networking.servers.clone();
         let login_info = LoginInfo {
             username: settings.networking.username.clone(),
             password: String::new(),
             server: settings.networking.default_server.clone(),
         };
-        let selected_server_index = servers.iter().position(|f| f == &login_info.server);
+        let selected_server_index = settings
+            .networking
+            .servers
+            .iter()
+            .position(|f| f == &login_info.server);
 
         Self {
             fonts,
@@ -234,7 +236,6 @@ impl IcedState {
             i18n,
             version,
 
-            servers,
             selected_server_index,
             login_info,
 
@@ -244,7 +245,7 @@ impl IcedState {
         }
     }
 
-    fn view(&mut self, dt: f32) -> Element<Message> {
+    fn view(&mut self, settings: &Settings, dt: f32) -> Element<Message> {
         self.time = self.time + dt;
 
         // TODO: consider setting this as the default in the renderer
@@ -268,9 +269,7 @@ impl IcedState {
         // TODO: make any large text blocks scrollable so that if the area is to
         // small they can still be read
         let content = match &mut self.screen {
-            /*Screen::Disclaimer { screen } => {
-                screen.view(&self.fonts, &self.imgs, &self.i18n, button_style)
-            },*/
+            //Screen::Disclaimer { screen } => screen.view(&self.fonts, &self.i18n, button_style),
             Screen::Login { screen, error } => screen.view(
                 &self.fonts,
                 &self.imgs,
@@ -281,8 +280,7 @@ impl IcedState {
             ),
             Screen::Servers { screen } => screen.view(
                 &self.fonts,
-                &self.imgs,
-                &self.servers,
+                &settings.networking.servers,
                 self.selected_server_index,
                 &self.i18n,
                 button_style,
@@ -292,7 +290,6 @@ impl IcedState {
                 connection_state,
             } => screen.view(
                 &self.fonts,
-                &self.imgs,
                 &connection_state,
                 self.time,
                 &self.i18n,
@@ -311,7 +308,9 @@ impl IcedState {
         .into()
     }
 
-    fn update(&mut self, message: Message, events: &mut Vec<Event>) {
+    fn update(&mut self, message: Message, events: &mut Vec<Event>, settings: &Settings) {
+        let servers = &settings.networking.servers;
+
         match message {
             Message::Quit => events.push(Event::Quit),
             Message::Back => {
@@ -321,6 +320,8 @@ impl IcedState {
                 };
             },
             Message::ShowServers => {
+                self.selected_server_index =
+                    servers.iter().position(|f| f == &self.login_info.server);
                 self.screen = Screen::Servers {
                     screen: servers::Screen::new(),
                 };
@@ -353,12 +354,11 @@ impl IcedState {
             Message::Username(new_value) => self.login_info.username = new_value,
             Message::Password(new_value) => self.login_info.password = new_value,
             Message::Server(new_value) => {
-                self.selected_server_index = self.servers.iter().position(|f| f == &new_value);
                 self.login_info.server = new_value;
             },
             Message::ServerChanged(new_value) => {
-                self.login_info.server = self.servers[new_value].clone();
                 self.selected_server_index = Some(new_value);
+                self.login_info.server = servers[new_value].clone();
             },
             Message::FocusPassword => {
                 if let Screen::Login { screen, .. } = &mut self.screen {
@@ -1272,12 +1272,14 @@ impl<'a> MainMenuUi {
         self.ui.maintain(global_state.window.renderer_mut(), None);
         if self.show_iced {
             let (messages, _) = self.ice_ui.maintain(
-                self.ice_state.view(dt.as_secs_f32()),
+                self.ice_state
+                    .view(&global_state.settings, dt.as_secs_f32()),
                 global_state.window.renderer_mut(),
             );
-            messages
-                .into_iter()
-                .for_each(|message| self.ice_state.update(message, &mut events));
+            messages.into_iter().for_each(|message| {
+                self.ice_state
+                    .update(message, &mut events, &global_state.settings)
+            });
         }
 
         events
