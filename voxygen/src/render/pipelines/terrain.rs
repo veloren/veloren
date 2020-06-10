@@ -37,6 +37,7 @@ gfx_defines! {
 }
 
 impl Vertex {
+    #[allow(clippy::identity_op)] // TODO: Pending review in #587
     pub fn new(norm_bits: u32, light: u32, ao: u32, pos: Vec3<f32>, col: Rgb<f32>) -> Self {
         const EXTRA_NEG_Z: f32 = 65536.0;
 

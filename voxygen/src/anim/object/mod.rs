@@ -7,6 +7,7 @@ pub struct ObjectSkeleton;
 pub struct SkeletonAttr;
 
 impl ObjectSkeleton {
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self { Self {} }
 }
 

@@ -38,6 +38,7 @@ fn integrate_forces(dt: f32, mut lv: Vec3<f32>, grav: f32, damp: f32) -> Vec3<f3
 /// This system applies forces and calculates new positions and velocities.
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         ReadStorage<'a, Uid>,
@@ -56,6 +57,8 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Mounting>,
     );
 
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
+    #[allow(clippy::block_in_if_condition_stmt)] // TODO: Pending review in #587
     fn run(
         &mut self,
         (

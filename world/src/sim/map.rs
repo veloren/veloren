@@ -108,6 +108,9 @@ impl MapConfig {
     /// with 4 1-byte color components provided as (r, g, b, a).  It is up
     /// to the caller to provide a function that translates this information
     /// into the correct format for a buffer and writes to it.
+    #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
+    #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+    #[allow(clippy::many_single_char_names)]
     pub fn generate(
         &self,
         sampler: &WorldSim,

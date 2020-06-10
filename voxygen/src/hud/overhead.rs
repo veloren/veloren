@@ -60,6 +60,7 @@ pub struct Overhead<'a> {
 }
 
 impl<'a> Overhead<'a> {
+    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn new(
         name: &'a str,
         bubble: Option<&'a SpeechBubble>,
@@ -117,6 +118,7 @@ impl<'a> Widget for Overhead<'a> {
         }
     }
 
+    #[allow(clippy::unused_unit)] // TODO: Pending review in #587
     fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {

@@ -46,6 +46,7 @@ pub struct Map<'a> {
     localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
 }
 impl<'a> Map<'a> {
+    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn new(
         show: &'a Show,
         client: &'a Client,
@@ -89,8 +90,10 @@ impl<'a> Widget for Map<'a> {
         }
     }
 
+    #[allow(clippy::unused_unit)] // TODO: Pending review in #587
     fn style(&self) -> Self::Style { () }
 
+    #[allow(clippy::useless_format)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
 

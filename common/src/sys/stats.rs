@@ -10,6 +10,7 @@ const ENERGY_REGEN_ACCEL: f32 = 10.0;
 /// This system kills players, levels them up, and regenerates energy.
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         Read<'a, DeltaTime>,

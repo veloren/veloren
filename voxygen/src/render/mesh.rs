@@ -18,6 +18,7 @@ where
 
 impl<P: Pipeline> Mesh<P> {
     /// Create a new `Mesh`.
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self { Self { verts: vec![] } }
 
     /// Clear vertices, allows reusing allocated memory of the underlying Vec.

@@ -39,6 +39,7 @@ pub struct CombatEventMapper {
 }
 
 impl EventMapper for CombatEventMapper {
+    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
     fn maintain(&mut self, state: &State, player_entity: EcsEntity, triggers: &SfxTriggers) {
         let ecs = state.ecs();
 
@@ -128,6 +129,7 @@ impl CombatEventMapper {
         }
     }
 
+    #[allow(clippy::collapsible_if)] // TODO: Pending review in #587
     fn map_event(
         character_state: &CharacterState,
         previous_state: &PreviousEntityState,

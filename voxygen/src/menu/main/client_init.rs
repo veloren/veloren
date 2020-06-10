@@ -22,6 +22,7 @@ pub enum Error {
     ClientCrashed,
 }
 
+#[allow(clippy::large_enum_variant)] // TODO: Pending review in #587
 pub enum Msg {
     IsAuthTrusted(String),
     Done(Result<Client, Error>),
@@ -38,6 +39,8 @@ pub struct ClientInit {
     cancel: Arc<AtomicBool>,
 }
 impl ClientInit {
+    #[allow(clippy::op_ref)] // TODO: Pending review in #587
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn new(
         connection_args: (String, u16, bool),
         username: String,

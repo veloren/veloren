@@ -35,6 +35,7 @@ impl CharSelectionState {
 }
 
 impl PlayState for CharSelectionState {
+    #[allow(clippy::clone_on_copy)] // TODO: Pending review in #587
     fn play(&mut self, _: Direction, global_state: &mut GlobalState) -> PlayStateResult {
         // Set up an fps clock.
         let mut clock = Clock::start();

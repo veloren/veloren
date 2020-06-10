@@ -48,6 +48,7 @@ pub fn handle_lantern(server: &mut Server, entity: EcsEntity) {
     }
 }
 
+#[allow(clippy::identity_conversion)] // TODO: Pending review in #587
 pub fn handle_mount(server: &mut Server, mounter: EcsEntity, mountee: EcsEntity) {
     let state = server.state_mut();
 
@@ -80,6 +81,7 @@ pub fn handle_mount(server: &mut Server, mounter: EcsEntity, mountee: EcsEntity)
     }
 }
 
+#[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
 pub fn handle_unmount(server: &mut Server, mounter: EcsEntity) {
     let state = server.state_mut();
     let mountee_entity = state
@@ -97,6 +99,8 @@ pub fn handle_unmount(server: &mut Server, mounter: EcsEntity) {
     state.delete_component::<comp::Mounting>(mounter);
 }
 
+#[allow(clippy::nonminimal_bool)] // TODO: Pending review in #587
+#[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
 pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
     let state = &server.state;
     let ecs = state.ecs();

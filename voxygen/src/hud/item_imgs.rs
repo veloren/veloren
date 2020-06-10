@@ -28,6 +28,7 @@ pub enum ItemKey {
     Empty,
 }
 impl From<&Item> for ItemKey {
+    #[allow(clippy::clone_on_copy)] // TODO: Pending review in #587
     fn from(item: &Item) -> Self {
         match &item.kind {
             ItemKind::Tool(Tool { kind, .. }) => ItemKey::Tool(kind.clone()),

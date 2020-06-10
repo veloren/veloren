@@ -5,6 +5,7 @@ use veloren_world::site::Settlement;
 const W: usize = 640;
 const H: usize = 480;
 
+#[allow(clippy::or_fun_call)] // TODO: Pending review in #587
 fn main() {
     let mut win =
         minifb::Window::new("Settlement Viewer", W, H, minifb::WindowOptions::default()).unwrap();

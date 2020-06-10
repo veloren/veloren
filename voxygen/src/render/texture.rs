@@ -26,6 +26,7 @@ where
     F::Channel: gfx::format::TextureChannel,
     <F::Surface as gfx::format::SurfaceTyped>::DataType: Copy,
 {
+    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
     pub fn new(
         factory: &mut gfx_backend::Factory,
         image: &DynamicImage,
@@ -88,6 +89,7 @@ where
 
     /// Update a texture with the given data (used for updating the glyph cache
     /// texture).
+    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
     pub fn update(
         &self,
         encoder: &mut gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,

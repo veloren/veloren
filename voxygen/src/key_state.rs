@@ -17,6 +17,7 @@ pub struct KeyState {
 }
 
 impl KeyState {
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> KeyState {
         KeyState {
             right: false,

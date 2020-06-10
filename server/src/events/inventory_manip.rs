@@ -29,6 +29,9 @@ pub fn snuff_lantern(storage: &mut WriteStorage<comp::LightEmitter>, entity: Ecs
     storage.remove(entity);
 }
 
+#[allow(clippy::block_in_if_condition_stmt)] // TODO: Pending review in #587
+#[allow(clippy::collapsible_if)] // TODO: Pending review in #587
+#[allow(clippy::let_and_return)] // TODO: Pending review in #587
 pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::InventoryManip) {
     let state = server.state_mut();
     let mut dropped_items = Vec::new();

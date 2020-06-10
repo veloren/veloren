@@ -305,7 +305,7 @@ lazy_static! {
             }
 
             if let Ok(result) = std::env::var("XDG_DATA_DIRS") {
-                result.split(":").for_each(|x| paths.push(format!("{}/veloren/assets", x).into()));
+                result.split(':').for_each(|x| paths.push(format!("{}/veloren/assets", x).into()));
             } else {
                 // Fallback
                 let fallback_paths = vec!["/usr/local/share", "/usr/share"];

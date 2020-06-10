@@ -109,6 +109,7 @@ impl<'a> JoinData<'a> {
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         Read<'a, UidAllocator>,
@@ -131,6 +132,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Mounting>,
     );
 
+    #[allow(clippy::while_let_on_iterator)] // TODO: Pending review in #587
     fn run(
         &mut self,
         (
