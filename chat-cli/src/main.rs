@@ -84,8 +84,7 @@ fn main() {
 
         for event in events {
             match event {
-                // TODO client is now responsible for formatting the `[{player_name}] {}`
-                Event::Chat(m) => println!("{}", m.message),
+                Event::Chat(m) => println!("{}", client.format_message(&m)),
                 Event::Disconnect => {}, // TODO
                 Event::DisconnectionNotification(time) => {
                     let message = match time {

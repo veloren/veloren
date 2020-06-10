@@ -24,6 +24,7 @@ fn main() {
 
     // Load settings
     let settings = ServerSettings::load();
+    let server_port = &settings.gameserver_address.port();
     let metrics_port = &settings.metrics_address.port();
 
     // Create server
@@ -31,6 +32,7 @@ fn main() {
 
     info!("Server is ready to accept connections.");
     info!(?metrics_port, "starting metrics at port");
+    info!(?server_port, "starting server at port");
 
     loop {
         let events = server
