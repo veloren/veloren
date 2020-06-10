@@ -51,46 +51,46 @@ impl Animation for JumpAnimation {
             * Quaternion::rotation_x(0.2);
         next.torso_back.scale = Vec3::one() / 11.0;
 
-        next.torso_mid.offset =
-            Vec3::new(0.0, skeleton_attr.torso_mid.0, skeleton_attr.torso_mid.1) / 11.0;
-        next.torso_mid.ori = Quaternion::rotation_x(-0.4);
-        next.torso_mid.scale = Vec3::one() / 10.98;
+        next.torso_front.offset =
+            Vec3::new(0.0, skeleton_attr.torso_front.0, skeleton_attr.torso_front.1) / 11.0;
+        next.torso_front.ori = Quaternion::rotation_x(-0.4);
+        next.torso_front.scale = Vec3::one() / 10.98;
 
         next.ears.offset = Vec3::new(0.0, skeleton_attr.ears.0, skeleton_attr.ears.1);
         next.ears.ori = Quaternion::rotation_x(0.0);
         next.ears.scale = Vec3::one() / 1.02;
 
-        next.foot_lf.offset = Vec3::new(
+        next.foot_fl.offset = Vec3::new(
             -skeleton_attr.feet_f.0,
             skeleton_attr.feet_f.1,
             skeleton_attr.feet_f.2,
         ) / 11.0;
-        next.foot_lf.ori = Quaternion::rotation_x(0.0);
-        next.foot_lf.scale = Vec3::one() / 11.0;
+        next.foot_fl.ori = Quaternion::rotation_x(0.0);
+        next.foot_fl.scale = Vec3::one() / 11.0;
 
-        next.foot_rf.offset = Vec3::new(
+        next.foot_fr.offset = Vec3::new(
             skeleton_attr.feet_f.0,
             skeleton_attr.feet_f.1,
             skeleton_attr.feet_f.2,
         ) / 11.0;
-        next.foot_rf.ori = Quaternion::rotation_x(0.0);
-        next.foot_rf.scale = Vec3::one() / 11.0;
+        next.foot_fr.ori = Quaternion::rotation_x(0.0);
+        next.foot_fr.scale = Vec3::one() / 11.0;
 
-        next.foot_lb.offset = Vec3::new(
+        next.foot_bl.offset = Vec3::new(
             -skeleton_attr.feet_b.0,
             skeleton_attr.feet_b.1,
             skeleton_attr.feet_b.2,
         ) / 11.0;
-        next.foot_lb.ori = Quaternion::rotation_x(0.0);
-        next.foot_lb.scale = Vec3::one() / 11.0;
+        next.foot_bl.ori = Quaternion::rotation_x(0.0);
+        next.foot_bl.scale = Vec3::one() / 11.0;
 
-        next.foot_rb.offset = Vec3::new(
+        next.foot_br.offset = Vec3::new(
             skeleton_attr.feet_b.0,
             skeleton_attr.feet_b.1,
             skeleton_attr.feet_b.2,
         ) / 11.0;
-        next.foot_rb.ori = Quaternion::rotation_x(0.0);
-        next.foot_rb.scale = Vec3::one() / 11.0;
+        next.foot_br.ori = Quaternion::rotation_x(0.0);
+        next.foot_br.scale = Vec3::one() / 11.0;
 
         next
     }

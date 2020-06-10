@@ -16,16 +16,16 @@ pub struct QuadrupedMediumSkeleton {
     jaw: Bone,
     tail: Bone,
     torso_back: Bone,
-    torso_mid: Bone,
+    torso_front: Bone,
     ears: Bone,
-    leg_lf: Bone,
-    leg_rf: Bone,
-    leg_lb: Bone,
-    leg_rb: Bone,
-    foot_lf: Bone,
-    foot_rf: Bone,
-    foot_lb: Bone,
-    foot_rb: Bone,
+    leg_fl: Bone,
+    leg_fr: Bone,
+    leg_bl: Bone,
+    leg_br: Bone,
+    foot_fl: Bone,
+    foot_fr: Bone,
+    foot_bl: Bone,
+    foot_br: Bone,
 }
 
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
@@ -96,24 +96,24 @@ impl Skeleton for QuadrupedMediumSkeleton {
         let ears_mat = self.ears.compute_base_matrix();
         let head_upper_mat = self.head_upper.compute_base_matrix();
         let head_lower_mat = self.head_lower.compute_base_matrix();
-        let torso_mid_mat = self.torso_mid.compute_base_matrix();
+        let torso_front_mat = self.torso_front.compute_base_matrix();
         (
             [
                 FigureBoneData::new(head_upper_mat),
                 FigureBoneData::new(head_upper_mat * head_lower_mat),
                 FigureBoneData::new(head_upper_mat * self.jaw.compute_base_matrix()),
-                FigureBoneData::new(torso_mid_mat * self.tail.compute_base_matrix()),
+                FigureBoneData::new(torso_front_mat * self.tail.compute_base_matrix()),
                 FigureBoneData::new(self.torso_back.compute_base_matrix()),
-                FigureBoneData::new(torso_mid_mat),
+                FigureBoneData::new(torso_front_mat),
                 FigureBoneData::new(head_upper_mat * ears_mat),
-                FigureBoneData::new(self.leg_lf.compute_base_matrix()),
-                FigureBoneData::new(self.leg_rf.compute_base_matrix()),
-                FigureBoneData::new(self.leg_lb.compute_base_matrix()),
-                FigureBoneData::new(self.leg_rb.compute_base_matrix()),
-                FigureBoneData::new(self.leg_lf.compute_base_matrix() * self.foot_lf.compute_base_matrix()),
-                FigureBoneData::new(self.leg_rf.compute_base_matrix() * self.foot_rf.compute_base_matrix()),
-                FigureBoneData::new(self.leg_lb.compute_base_matrix() * self.foot_lb.compute_base_matrix()),
-                FigureBoneData::new(self.leg_rb.compute_base_matrix() * self.foot_rb.compute_base_matrix()),
+                FigureBoneData::new(self.leg_fl.compute_base_matrix()),
+                FigureBoneData::new(self.leg_fr.compute_base_matrix()),
+                FigureBoneData::new(self.leg_bl.compute_base_matrix()),
+                FigureBoneData::new(self.leg_br.compute_base_matrix()),
+                FigureBoneData::new(self.leg_fl.compute_base_matrix() * self.foot_fl.compute_base_matrix()),
+                FigureBoneData::new(self.leg_fr.compute_base_matrix() * self.foot_fr.compute_base_matrix()),
+                FigureBoneData::new(self.leg_bl.compute_base_matrix() * self.foot_bl.compute_base_matrix()),
+                FigureBoneData::new(self.leg_br.compute_base_matrix() * self.foot_br.compute_base_matrix()),
                 FigureBoneData::default(),
             ],
             Vec3::default(),
@@ -126,16 +126,16 @@ impl Skeleton for QuadrupedMediumSkeleton {
         self.jaw.interpolate(&target.jaw, dt);
         self.tail.interpolate(&target.tail, dt);
         self.torso_back.interpolate(&target.torso_back, dt);
-        self.torso_mid.interpolate(&target.torso_mid, dt);
+        self.torso_front.interpolate(&target.torso_front, dt);
         self.ears.interpolate(&target.ears, dt);
-        self.leg_lf.interpolate(&target.leg_lf, dt);
-        self.leg_rf.interpolate(&target.leg_rf, dt);
-        self.leg_lb.interpolate(&target.leg_lb, dt);
-        self.leg_rb.interpolate(&target.leg_rb, dt);
-        self.foot_lf.interpolate(&target.foot_lf, dt);
-        self.foot_rf.interpolate(&target.foot_rf, dt);
-        self.foot_lb.interpolate(&target.foot_lb, dt);
-        self.foot_rb.interpolate(&target.foot_rb, dt);
+        self.leg_fl.interpolate(&target.leg_fl, dt);
+        self.leg_fr.interpolate(&target.leg_fr, dt);
+        self.leg_bl.interpolate(&target.leg_bl, dt);
+        self.leg_br.interpolate(&target.leg_br, dt);
+        self.foot_fl.interpolate(&target.foot_fl, dt);
+        self.foot_fr.interpolate(&target.foot_fr, dt);
+        self.foot_bl.interpolate(&target.foot_bl, dt);
+        self.foot_br.interpolate(&target.foot_br, dt);
     }
 }
 
@@ -145,7 +145,7 @@ pub struct SkeletonAttr {
     jaw: (f32, f32),
     tail: (f32, f32),
     torso_back: (f32, f32),
-    torso_mid: (f32, f32),
+    torso_front: (f32, f32),
     ears: (f32, f32),
     leg_f: (f32, f32, f32),
     leg_b: (f32, f32, f32),
@@ -173,7 +173,7 @@ impl Default for SkeletonAttr {
             jaw: (0.0, 0.0),
             tail: (0.0, 0.0),
             torso_back: (0.0, 0.0),
-            torso_mid: (0.0, 0.0),
+            torso_front: (0.0, 0.0),
             ears: (0.0, 0.0),
             leg_f: (0.0, 0.0, 0.0),
             leg_b: (0.0, 0.0, 0.0),
@@ -220,6 +220,14 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tarasque, _) => (-7.0, -2.0),
                 (Tiger, _) => (*TAIL_X, *TAIL_Z),
             },
+            torso_front: match (body.species, body.body_type) {
+                (Grolgar, _) => (-7.0, 10.5),
+                (Saber, _) => (-7.0, 9.5),
+                (Tuskram, _) => (-7.0, 9.0),
+                (Lion, _) => (-9.0, 9.0),
+                (Tarasque, _) => (-7.0, 8.0),
+                (Tiger, _) => (*TORSO_MID_X, *TORSO_MID_Z),
+            },
             torso_back: match (body.species, body.body_type) {
                 (Grolgar, _) => (4.0, 11.0),
                 (Saber, _) => (4.0, 9.0),
@@ -227,14 +235,6 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Lion, _) => (4.0, 10.0),
                 (Tarasque, _) => (4.0, 9.0),
                 (Tiger, _) => (*TORSO_BACK_X, *TORSO_BACK_Z),
-            },
-            torso_mid: match (body.species, body.body_type) {
-                (Grolgar, _) => (-7.0, 10.5),
-                (Saber, _) => (-7.0, 9.5),
-                (Tuskram, _) => (-7.0, 9.0),
-                (Lion, _) => (-9.0, 9.0),
-                (Tarasque, _) => (-7.0, 8.0),
-                (Tiger, _) => (*TORSO_MID_X, *TORSO_MID_Z),
             },
             ears: match (body.species, body.body_type) {
                 (Grolgar, _) => (-1.0, 5.0),

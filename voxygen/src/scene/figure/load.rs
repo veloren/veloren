@@ -1122,7 +1122,7 @@ impl QuadrupedSmallLateralSpec {
             .unwrap()
     }
 
-    pub fn mesh_foot_lf(
+    pub fn mesh_foot_fl(
         &self,
         species: QSSpecies,
         body_type: QSBodyType,
@@ -1143,7 +1143,7 @@ impl QuadrupedSmallLateralSpec {
         generate_mesh(&lateral, Vec3::from(spec.left_front.offset))
     }
 
-    pub fn mesh_foot_rf(
+    pub fn mesh_foot_fr(
         &self,
         species: QSSpecies,
         body_type: QSBodyType,
@@ -1164,7 +1164,7 @@ impl QuadrupedSmallLateralSpec {
         generate_mesh(&lateral, Vec3::from(spec.right_front.offset))
     }
 
-    pub fn mesh_foot_lb(
+    pub fn mesh_foot_bl(
         &self,
         species: QSSpecies,
         body_type: QSBodyType,
@@ -1185,7 +1185,7 @@ impl QuadrupedSmallLateralSpec {
         generate_mesh(&lateral, Vec3::from(spec.left_back.offset))
     }
 
-    pub fn mesh_foot_rb(
+    pub fn mesh_foot_br(
         &self,
         species: QSSpecies,
         body_type: QSBodyType,
@@ -1217,8 +1217,8 @@ struct SidedQMCentralVoxSpec {
     lower: QuadrupedMediumCentralSubSpec,
     jaw: QuadrupedMediumCentralSubSpec,
     ears: QuadrupedMediumCentralSubSpec,
-    torso_f: QuadrupedMediumCentralSubSpec,
-    torso_b: QuadrupedMediumCentralSubSpec,
+    torso_front: QuadrupedMediumCentralSubSpec,
+    torso_back: QuadrupedMediumCentralSubSpec,
     tail: QuadrupedMediumCentralSubSpec,
 }
 #[derive(Serialize, Deserialize)]
@@ -1231,14 +1231,14 @@ struct QuadrupedMediumCentralSubSpec {
 pub struct QuadrupedMediumLateralSpec(HashMap<(QMSpecies, QMBodyType), SidedQMLateralVoxSpec>);
 #[derive(Serialize, Deserialize)]
 struct SidedQMLateralVoxSpec {
-    leg_lf: QuadrupedMediumLateralSubSpec,
-    leg_rf: QuadrupedMediumLateralSubSpec,
-    leg_lb: QuadrupedMediumLateralSubSpec,
-    leg_rb: QuadrupedMediumLateralSubSpec,
-    foot_lf: QuadrupedMediumLateralSubSpec,
-    foot_rf: QuadrupedMediumLateralSubSpec,
-    foot_lb: QuadrupedMediumLateralSubSpec,
-    foot_rb: QuadrupedMediumLateralSubSpec,
+    leg_fl: QuadrupedMediumLateralSubSpec,
+    leg_fr: QuadrupedMediumLateralSubSpec,
+    leg_bl: QuadrupedMediumLateralSubSpec,
+    leg_br: QuadrupedMediumLateralSubSpec,
+    foot_fl: QuadrupedMediumLateralSubSpec,
+    foot_fr: QuadrupedMediumLateralSubSpec,
+    foot_bl: QuadrupedMediumLateralSubSpec,
+    foot_br: QuadrupedMediumLateralSubSpec,
 }
 #[derive(Serialize, Deserialize)]
 struct QuadrupedMediumLateralSubSpec {
@@ -1352,7 +1352,7 @@ impl QuadrupedMediumCentralSpec {
         generate_mesh(&central, Vec3::from(spec.ears.offset))
     }
 
-    pub fn mesh_torso_f(
+    pub fn mesh_torso_front(
         &self,
         species: QMSpecies,
         body_type: QMBodyType,
@@ -1368,12 +1368,12 @@ impl QuadrupedMediumCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
             },
         };
-        let central = graceful_load_segment(&spec.torso_f.central.0);
+        let central = graceful_load_segment(&spec.torso_front.central.0);
 
-        generate_mesh(&central, Vec3::from(spec.torso_f.offset))
+        generate_mesh(&central, Vec3::from(spec.torso_front.offset))
     }
 
-    pub fn mesh_torso_b(
+    pub fn mesh_torso_back(
         &self,
         species: QMSpecies,
         body_type: QMBodyType,
@@ -1389,9 +1389,9 @@ impl QuadrupedMediumCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
             },
         };
-        let central = graceful_load_segment(&spec.torso_b.central.0);
+        let central = graceful_load_segment(&spec.torso_back.central.0);
 
-        generate_mesh(&central, Vec3::from(spec.torso_b.offset))
+        generate_mesh(&central, Vec3::from(spec.torso_back.offset))
     }
 
     pub fn mesh_tail(
@@ -1422,7 +1422,7 @@ impl QuadrupedMediumLateralSpec {
             .unwrap()
     }
 
-    pub fn mesh_leg_lf(
+    pub fn mesh_leg_fl(
         &self,
         species: QMSpecies,
         body_type: QMBodyType,
@@ -1438,12 +1438,12 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_lf.lateral.0);
+        let lateral = graceful_load_segment(&spec.leg_fl.lateral.0);
 
-        generate_mesh(&lateral, Vec3::from(spec.leg_lf.offset))
+        generate_mesh(&lateral, Vec3::from(spec.leg_fl.offset))
     }
 
-    pub fn mesh_leg_rf(
+    pub fn mesh_leg_fr(
         &self,
         species: QMSpecies,
         body_type: QMBodyType,
@@ -1459,12 +1459,12 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_rf.lateral.0);
+        let lateral = graceful_load_segment(&spec.leg_fr.lateral.0);
 
-        generate_mesh(&lateral, Vec3::from(spec.leg_rf.offset))
+        generate_mesh(&lateral, Vec3::from(spec.leg_fr.offset))
     }
 
-    pub fn mesh_leg_lb(
+    pub fn mesh_leg_bl(
         &self,
         species: QMSpecies,
         body_type: QMBodyType,
@@ -1480,12 +1480,12 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_lb.lateral.0);
+        let lateral = graceful_load_segment(&spec.leg_bl.lateral.0);
 
-        generate_mesh(&lateral, Vec3::from(spec.leg_lb.offset))
+        generate_mesh(&lateral, Vec3::from(spec.leg_bl.offset))
     }
 
-    pub fn mesh_leg_rb(
+    pub fn mesh_leg_br(
         &self,
         species: QMSpecies,
         body_type: QMBodyType,
@@ -1501,12 +1501,12 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_rb.lateral.0);
+        let lateral = graceful_load_segment(&spec.leg_br.lateral.0);
 
-        generate_mesh(&lateral, Vec3::from(spec.leg_rb.offset))
+        generate_mesh(&lateral, Vec3::from(spec.leg_br.offset))
     }
 
-    pub fn mesh_foot_lf(
+    pub fn mesh_foot_fl(
         &self,
         species: QMSpecies,
         body_type: QMBodyType,
@@ -1522,12 +1522,12 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_lf.lateral.0);
+        let lateral = graceful_load_segment(&spec.foot_fl.lateral.0);
 
-        generate_mesh(&lateral, Vec3::from(spec.foot_lf.offset))
+        generate_mesh(&lateral, Vec3::from(spec.foot_fl.offset))
     }
 
-    pub fn mesh_foot_rf(
+    pub fn mesh_foot_fr(
         &self,
         species: QMSpecies,
         body_type: QMBodyType,
@@ -1543,12 +1543,12 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_rf.lateral.0);
+        let lateral = graceful_load_segment(&spec.foot_fr.lateral.0);
 
-        generate_mesh(&lateral, Vec3::from(spec.foot_rf.offset))
+        generate_mesh(&lateral, Vec3::from(spec.foot_fr.offset))
     }
 
-    pub fn mesh_foot_lb(
+    pub fn mesh_foot_bl(
         &self,
         species: QMSpecies,
         body_type: QMBodyType,
@@ -1564,12 +1564,12 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_lb.lateral.0);
+        let lateral = graceful_load_segment(&spec.foot_bl.lateral.0);
 
-        generate_mesh(&lateral, Vec3::from(spec.foot_lb.offset))
+        generate_mesh(&lateral, Vec3::from(spec.foot_bl.offset))
     }
 
-    pub fn mesh_foot_rb(
+    pub fn mesh_foot_br(
         &self,
         species: QMSpecies,
         body_type: QMBodyType,
@@ -1585,9 +1585,9 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_rb.lateral.0);
+        let lateral = graceful_load_segment(&spec.foot_br.lateral.0);
 
-        generate_mesh(&lateral, Vec3::from(spec.foot_rb.offset))
+        generate_mesh(&lateral, Vec3::from(spec.foot_br.offset))
     }
 }
 
