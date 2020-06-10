@@ -936,7 +936,7 @@ impl FigureMgr {
                         is_player,
                     );
                 },
-                Body::QuadrupedMedium(_) => {
+                Body::QuadrupedMedium(quadruped_body) => {
                     let skeleton_attr = &self
                         .quadruped_medium_model_cache
                         .get_or_create_model(
@@ -948,6 +948,7 @@ impl FigureMgr {
                             None,
                         )
                         .1;
+                        let ref skeleton_attr = quadruped_body.into();
 
                     let state = self
                         .quadruped_medium_states

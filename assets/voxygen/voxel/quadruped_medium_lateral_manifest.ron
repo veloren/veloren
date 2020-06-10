@@ -339,4 +339,72 @@
             lateral: ("npc.tarasque.female.foot_rb"),
         ),
     ),
+    (Tiger, Male): (
+        leg_lf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.tiger.male.leg_lf"),
+        ),
+        leg_rf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.tiger.male.leg_rf"),
+        ),
+        leg_lb: (
+            offset: (-1.5, -4.0, -3.5),
+            lateral: ("npc.tiger.male.leg_lb"),
+        ),
+        leg_rb: (
+            offset: (-1.5, -4.0, -3.5),
+            lateral: ("npc.tiger.male.leg_rb"),
+        ),
+        foot_lf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.tiger.male.foot_lf"),
+        ),
+        foot_rf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.tiger.male.foot_rf"),
+        ),
+        foot_lb: (
+            offset: (-1.5, -4.0, -3.5),
+            lateral: ("npc.tiger.male.foot_lb"),
+        ),
+        foot_rb: (
+            offset: (-1.5, -4.0, -3.5),
+            lateral: ("npc.tiger.male.foot_rb"),
+        ),
+    ),
+    (Tiger, Female): (
+        leg_lf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.tiger.female.leg_lf"),
+        ),
+        leg_rf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.tiger.female.leg_rf"),
+        ),
+        leg_lb: (
+            offset: (-1.5, -4.0, -3.5),
+            lateral: ("npc.tiger.female.leg_lb"),
+        ),
+        leg_rb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.tiger.female.leg_rb"),
+        ),
+        foot_lf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.tiger.female.foot_lf"),
+        ),
+        foot_rf: (
+            offset: (-1.5, -1.5, -2.5),
+            lateral: ("npc.tiger.female.foot_rf"),
+        ),
+        foot_lb: (
+            offset: (-1.5, -4.0, -3.5),
+            lateral: ("npc.tiger.female.foot_lb"),
+        ),
+        foot_rb: (
+            offset: (-1.5, -2.0, -3.5),
+            lateral: ("npc.tiger.female.foot_rb"),
+        ),
+    ),
 })
