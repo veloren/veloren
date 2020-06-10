@@ -18,7 +18,6 @@ use conrod_core::{
     widget::{self, Button, Id, Image, List, Rectangle, Text, TextEdit},
     widget_ids, Color, Colorable, Positionable, Sizeable, Ui, UiCell, Widget, WidgetCommon,
 };
-use specs::world::WorldExt;
 use std::collections::VecDeque;
 
 widget_ids! {
@@ -35,6 +34,7 @@ widget_ids! {
 const MAX_MESSAGES: usize = 100;
 
 const CHAT_BOX_WIDTH: f64 = 470.0;
+const CHAT_BOX_INPUT_WIDTH: f64 = 460.0;
 const CHAT_BOX_HEIGHT: f64 = 174.0;
 
 #[derive(WidgetCommon)]
@@ -279,7 +279,7 @@ impl<'a> Widget for Chat<'a> {
             // Any changes to this TextEdit's width and font size must be reflected in
             // `cursor_offset_to_index` below.
             let mut text_edit = TextEdit::new(&state.input)
-                .w(460.0)
+                .w(CHAT_BOX_INPUT_WIDTH)
                 .restrict_to_height(false)
                 .color(TEXT_COLOR)
                 .line_spacing(2.0)
@@ -340,8 +340,9 @@ impl<'a> Widget for Chat<'a> {
         while let Some(item) = items.next(ui) {
             // This would be easier if conrod used the v-metrics from rusttype.
             if item.i < state.messages.len() {
-                let (color, msg, icon) =
-                    render_chat_line(&state.messages[item.i], &self.imgs, &self.client);
+                let message = &state.messages[item.i];
+                let (color, icon) = render_chat_line(&message.chat_type, &self.imgs);
+                let msg = self.client.format_message(message);
                 let text = Text::new(&msg)
                     .font_size(self.fonts.opensans.scale(15))
                     .font_id(self.fonts.opensans.conrod_id)
@@ -471,99 +472,27 @@ fn cursor_offset_to_index(
     fonts: &ConrodVoxygenFonts,
 ) -> Option<Index> {
     // This moves the cursor to the given offset. Conrod is a pain.
-    //let iter = cursor::xys_per_line_from_text(&text, &[], &font, font_size,
-    // Justify::Left, Align::Start, 2.0, Rect{x: Range{start: 0.0, end: width}, y:
-    // Range{start: 0.0, end: 12.345}});
-    // cursor::closest_cursor_index_and_xy([f64::MAX, f64::MAX], iter).map(|(i, _)|
-    // i) Width and font must match that of the chat TextEdit
-    let width = 460.0;
+    //
+    // Width and font must match that of the chat TextEdit
     let font = ui.fonts.get(fonts.opensans.conrod_id)?;
     let font_size = fonts.opensans.scale(15);
-    let infos = text::line::infos(&text, &font, font_size).wrap_by_whitespace(width);
+    let infos = text::line::infos(&text, &font, font_size).wrap_by_whitespace(CHAT_BOX_INPUT_WIDTH);
 
     cursor::index_before_char(infos, offset)
 }
 
-fn render_chat_line(
-    ChatMsg { chat_type, message }: &ChatMsg,
-    imgs: &Imgs,
-    client: &Client,
-) -> (Color, String, conrod_core::image::Id) {
-    let alias_of_uid = |uid| {
-        client
-            .player_list
-            .get(uid)
-            .map_or("<?>".to_string(), |player_info| {
-                if player_info.is_admin {
-                    format!("ADMIN - {}", player_info.player_alias)
-                } else {
-                    player_info.player_alias.to_string()
-                }
-            })
-    };
-    let message_format = |uid, message, group| {
-        if let Some(group) = group {
-            format!("{{{}}} [{}]: {}", group, alias_of_uid(uid), message)
-        } else {
-            format!("[{}]: {}", alias_of_uid(uid), message)
-        }
-    };
+/// Get the color and icon for the current line in the chat box
+fn render_chat_line(chat_type: &ChatType, imgs: &Imgs) -> (Color, conrod_core::image::Id) {
     match chat_type {
-        ChatType::Private => (PRIVATE_COLOR, message.to_string(), imgs.chat_private_small),
-        ChatType::Broadcast => (
-            BROADCAST_COLOR,
-            message.to_string(),
-            imgs.chat_broadcast_small,
-        ),
-        ChatType::Kill => (KILL_COLOR, message.to_string(), imgs.chat_kill_small),
-        ChatType::Tell(from, to) => {
-            let from_alias = alias_of_uid(&from);
-            let to_alias = alias_of_uid(&to);
-            if Some(from)
-                == client
-                    .state()
-                    .ecs()
-                    .read_storage::<common::sync::Uid>()
-                    .get(client.entity())
-            {
-                (
-                    TELL_COLOR,
-                    format!("To [{}]: {}", to_alias, message),
-                    imgs.chat_tell_small,
-                )
-            } else {
-                (
-                    TELL_COLOR,
-                    format!("From [{}]: {}", from_alias, message),
-                    imgs.chat_tell_small,
-                )
-            }
-        },
-        ChatType::Say(uid) => (
-            SAY_COLOR,
-            message_format(uid, message, None),
-            imgs.chat_say_small,
-        ),
-        ChatType::Group(uid, s) => (
-            GROUP_COLOR,
-            message_format(uid, message, Some(s)),
-            imgs.chat_group_small,
-        ),
-        ChatType::Faction(uid, s) => (
-            FACTION_COLOR,
-            message_format(uid, message, Some(s)),
-            imgs.chat_faction_small,
-        ),
-        ChatType::Region(uid) => (
-            REGION_COLOR,
-            message_format(uid, message, None),
-            imgs.chat_region_small,
-        ),
-        ChatType::World(uid) => (
-            WORLD_COLOR,
-            message_format(uid, message, None),
-            imgs.chat_world_small,
-        ),
+        ChatType::Private => (PRIVATE_COLOR, imgs.chat_private_small),
+        ChatType::Broadcast => (BROADCAST_COLOR, imgs.chat_broadcast_small),
+        ChatType::Kill => (KILL_COLOR, imgs.chat_kill_small),
+        ChatType::Tell(_from, _to) => (TELL_COLOR, imgs.chat_tell_small),
+        ChatType::Say(_uid) => (SAY_COLOR, imgs.chat_say_small),
+        ChatType::Group(_uid, _s) => (GROUP_COLOR, imgs.chat_group_small),
+        ChatType::Faction(_uid, _s) => (FACTION_COLOR, imgs.chat_faction_small),
+        ChatType::Region(_uid) => (REGION_COLOR, imgs.chat_region_small),
+        ChatType::World(_uid) => (WORLD_COLOR, imgs.chat_world_small),
         ChatType::Npc(_uid, _r) => panic!("NPCs can't talk"), // Should be filtered by hud/mod.rs
     }
 }

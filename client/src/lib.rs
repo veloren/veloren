@@ -1007,6 +1007,50 @@ impl Client {
 
         self.entity = entity_builder.with(uid).build();
     }
+    
+    /// Format a message for the client (voxygen chat box or chat-cli)
+    pub fn format_message(&self, comp::ChatMsg { chat_type, message }: &comp::ChatMsg) -> String {
+        let alias_of_uid = |uid| {
+            self.player_list
+                .get(uid)
+                .map_or("<?>".to_string(), |player_info| {
+                    if player_info.is_admin {
+                        format!("ADMIN - {}", player_info.player_alias)
+                    } else {
+                        player_info.player_alias.to_string()
+                    }
+                })
+        };
+        let message_format = |uid, message, group| {
+            if let Some(group) = group {
+                format!("{{{}}} [{}]: {}", group, alias_of_uid(uid), message)
+            } else {
+                format!("[{}]: {}", alias_of_uid(uid), message)
+            }
+        };
+        match chat_type {
+            comp::ChatType::Private => message.to_string(),
+            comp::ChatType::Broadcast => message.to_string(),
+            comp::ChatType::Kill => message.to_string(),
+            comp::ChatType::Tell(from, to) => {
+                let from_alias = alias_of_uid(from);
+                let to_alias = alias_of_uid(to);
+                if Some(from) == self.state.ecs().read_storage::<Uid>().get(self.entity) {
+                    format!("To [{}]: {}", to_alias, message)
+                } else {
+                    format!("From [{}]: {}", from_alias, message)
+                }
+            },
+            comp::ChatType::Say(uid) => message_format(uid, message, None),
+            comp::ChatType::Group(uid, s) => message_format(uid, message, Some(s)),
+            comp::ChatType::Faction(uid, s) => message_format(uid, message, Some(s)),
+            comp::ChatType::Region(uid) => message_format(uid, message, None),
+            comp::ChatType::World(uid) => message_format(uid, message, None),
+            // NPCs can't talk. Should be filtered by hud/mod.rs for voxygen and should be filtered
+            // by server for chat-cli
+            comp::ChatType::Npc(_uid, _r) => "".to_string(),
+        }
+    }
 }
 
 impl Drop for Client {
