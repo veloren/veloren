@@ -1,0 +1,21 @@
+[workspace]
+
+[package]
+name = "fileshare"
+version = "0.1.0"
+authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+network = { package = "veloren_network", path = "../../../network" }
+clap = { version = "2.33", default-features = false }
+async-std = { version = "1.5", default-features = false }
+futures = { version = "0.3", default-features = false }
+tracing = { version = "0.1", default-features = false }
+tracing-subscriber = { version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec"] }
+bincode = "1.2"
+serde = { version = "1.0", features = ["derive"] }
+rand = "0.7.3"
+shellexpand = "2.0.0"

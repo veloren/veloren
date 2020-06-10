@@ -1,0 +1,20 @@
+[workspace]
+
+[package]
+name = "network-speed"
+version = "0.1.0"
+authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+network = { package = "veloren_network", path = "../../../network" }
+clap = { version = "2.33", default-features = false }
+futures = { version = "0.3", default-features = false }
+tracing = { version = "0.1", default-features = false }
+tracing-subscriber = { version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec"] }
+bincode = "1.2"
+prometheus = "0.7"
+tiny_http = "0.7.0"
+serde = { version = "1.0", features = ["derive"] }
