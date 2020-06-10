@@ -110,7 +110,7 @@ impl LoadoutBuilder {
     }
 
     pub fn second_item(mut self, item: Option<ItemConfig>) -> Self {
-        self.0.active_item = item;
+        self.0.second_item = item;
 
         self
     }

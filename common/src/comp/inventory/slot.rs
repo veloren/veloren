@@ -249,9 +249,71 @@ pub fn equip(slot: usize, inventory: &mut Inventory, loadout: &mut Loadout) {
     }
 }
 
+/// Unequip an item from slot and place into inventory. Will fail if if
+/// inventory has no slots available.
+///
+/// ```
+/// use veloren_common::{
+///     comp::{
+///         slot::{unequip, EquipSlot},
+///         Inventory,
+///     },
+///     LoadoutBuilder,
+/// };
+///
+/// let mut inv = Inventory {
+///     slots: vec![None],
+///     amount: 0,
+/// };
+///
+/// let mut loadout = LoadoutBuilder::new()
+///     .defaults()
+///     .active_item(LoadoutBuilder::default_item_config_from_str(Some(
+///         "common.items.weapons.sword.zweihander_sword_0",
+///     )))
+///     .build();
+///
+/// let slot = EquipSlot::Mainhand;
+///
+/// unequip(slot, &mut inv, &mut loadout);
+/// assert_eq!(None, loadout.active_item);
+/// ```
 pub fn unequip(slot: EquipSlot, inventory: &mut Inventory, loadout: &mut Loadout) {
     loadout_remove(slot, loadout) // Remove item from loadout
         .and_then(|i| inventory.push(i)) // Insert into inventory
         .and_then(|i| loadout_insert(slot, i, loadout)) // If that fails put back in loadout
         .unwrap_none(); // Never fails
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::LoadoutBuilder;
+
+    #[test]
+    fn test_unequip() {
+        let mut inv = Inventory {
+            slots: vec![None],
+            amount: 0,
+        };
+
+        let sword = LoadoutBuilder::default_item_config_from_str(Some(
+            "common.items.weapons.sword.zweihander_sword_0",
+        ));
+
+        let mut loadout = LoadoutBuilder::new()
+            .defaults()
+            .active_item(sword.clone())
+            .second_item(sword.clone())
+            .build();
+
+        assert_eq!(sword, loadout.active_item);
+        unequip(EquipSlot::Mainhand, &mut inv, &mut loadout);
+        // We have space in the inventory, so this should have unequipped
+        assert_eq!(None, loadout.active_item);
+
+        unequip(EquipSlot::Offhand, &mut inv, &mut loadout);
+        // There is no more space in the inventory, so this should still be equipped
+        assert_eq!(sword, loadout.second_item);
+    }
 }
