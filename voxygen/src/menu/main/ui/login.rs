@@ -30,6 +30,8 @@ pub struct Screen {
     settings_button: button::State,
     servers_button: button::State,
 
+    error_okay_button: button::State,
+
     pub banner: Banner,
 }
 
@@ -39,6 +41,8 @@ impl Screen {
             servers_button: Default::default(),
             settings_button: Default::default(),
             quit_button: Default::default(),
+
+            error_okay_button: Default::default(),
 
             banner: Banner::new(),
         }
@@ -108,15 +112,44 @@ impl Screen {
             .padding(27)
             .into();
 
-        let banner = self
-            .banner
-            .view(fonts, imgs, login_info, i18n, button_style);
+        let central_content = if let Some(error) = error {
+            Container::new(
+                Column::with_children(vec![
+                    Container::new(Text::new(error)).height(Length::Fill).into(),
+                    Container::new(neat_button(
+                        &mut self.error_okay_button,
+                        i18n.get("common.okay"),
+                        FILL_FRAC_ONE,
+                        button_style,
+                        Some(Message::CloseError),
+                    ))
+                    .width(Length::Fill)
+                    .height(Length::Units(30))
+                    .center_x()
+                    .into(),
+                ])
+                .height(Length::Fill)
+                .width(Length::Fill),
+            )
+            .style(style::container::Style::color_double_cornerless_border(
+                (22, 18, 16, 255).into(),
+                (11, 11, 11, 255).into(),
+                (54, 46, 38, 255).into(),
+            ))
+            .width(Length::Units(400))
+            .height(Length::Units(180))
+            .padding(20)
+            .into()
+        } else {
+            self.banner
+                .view(fonts, imgs, login_info, i18n, button_style)
+        };
 
-        let central_column = Container::new(banner)
+        let central_column = Container::new(central_content)
             .width(Length::Fill)
             .height(Length::Fill)
-            .align_x(Align::Center)
-            .align_y(Align::Center);
+            .center_x()
+            .center_y();
 
         let right_column = Space::new(Length::Fill, Length::Fill);
 
