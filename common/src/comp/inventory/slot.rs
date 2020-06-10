@@ -216,6 +216,34 @@ pub fn swap(
     }
 }
 
+/// Equip an item from a slot in inventory. The currently equipped item will go
+/// into inventory. If the item is going to mainhand, put mainhand in
+/// offhand and place offhand into inventory.
+///
+/// ```
+/// use veloren_common::{
+///     assets,
+///     comp::{
+///         slot::{equip, EquipSlot},
+///         Inventory, Item,
+///     },
+///     LoadoutBuilder,
+/// };
+///
+/// let boots: Option<Item> = Some(assets::load_expect_cloned(
+///     "common.items.testing.test_boots",
+/// ));
+///
+/// let mut inv = Inventory {
+///     slots: vec![boots.clone()],
+///     amount: 1,
+/// };
+///
+/// let mut loadout = LoadoutBuilder::new().defaults().build();
+///
+/// equip(0, &mut inv, &mut loadout);
+/// assert_eq!(boots, loadout.foot);
+/// ```
 pub fn equip(slot: usize, inventory: &mut Inventory, loadout: &mut Loadout) {
     use item::{armor::Armor, ItemKind};
 
@@ -249,8 +277,8 @@ pub fn equip(slot: usize, inventory: &mut Inventory, loadout: &mut Loadout) {
     }
 }
 
-/// Unequip an item from slot and place into inventory. Will fail if if
-/// inventory has no slots available.
+/// Unequip an item from slot and place into inventory. Will leave the item
+/// equipped if inventory has no slots available.
 ///
 /// ```
 /// use veloren_common::{
@@ -288,7 +316,7 @@ pub fn unequip(slot: EquipSlot, inventory: &mut Inventory, loadout: &mut Loadout
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::LoadoutBuilder;
+    use crate::{assets, LoadoutBuilder};
 
     #[test]
     fn test_unequip() {
@@ -315,5 +343,32 @@ mod tests {
         unequip(EquipSlot::Offhand, &mut inv, &mut loadout);
         // There is no more space in the inventory, so this should still be equipped
         assert_eq!(sword, loadout.second_item);
+    }
+
+    #[test]
+    fn test_equip() {
+        let boots: Option<comp::Item> = Some(assets::load_expect_cloned(
+            "common.items.testing.test_boots",
+        ));
+
+        let starting_sandles: Option<comp::Item> = Some(assets::load_expect_cloned(
+            "common.items.armor.starter.sandals_0",
+        ));
+
+        let mut inv = Inventory {
+            slots: vec![boots.clone()],
+            amount: 1,
+        };
+
+        let mut loadout = LoadoutBuilder::new().defaults().build();
+
+        // We should start with the starting sandles
+        assert_eq!(starting_sandles, loadout.foot);
+        equip(0, &mut inv, &mut loadout);
+
+        // We should now have the testing boots equiped
+        assert_eq!(boots, loadout.foot);
+        // The starting sandles should now be in the inventory
+        assert_eq!(starting_sandles, inv.slots[0]);
     }
 }
