@@ -38,7 +38,7 @@ use common::{
     vol::{ReadVol, RectVolSize},
 };
 use log::{debug, error};
-use metrics::ServerMetrics;
+use metrics::{ServerMetrics, TickMetrics};
 use specs::{join::Join, Builder, Entity as EcsEntity, RunNow, SystemData, WorldExt};
 use std::{
     i32,
@@ -80,6 +80,7 @@ pub struct Server {
 
     server_info: ServerInfo,
     metrics: ServerMetrics,
+    tick_metrics: TickMetrics,
 
     server_settings: ServerSettings,
 }
@@ -215,6 +216,14 @@ impl Server {
 
         state.ecs_mut().insert(DeletedEntities::default());
 
+        let mut metrics = ServerMetrics::new();
+        // register all metrics submodules here
+        let tick_metrics = TickMetrics::new(metrics.registry(), metrics.tick_clone())
+            .expect("Failed to initialize server tick metrics submodule.");
+        metrics
+            .run(settings.metrics_address)
+            .expect("Failed to initialize server metrics submodule.");
+
         let this = Self {
             state,
             world: Arc::new(world),
@@ -233,8 +242,8 @@ impl Server {
                 git_date: common::util::GIT_DATE.to_string(),
                 auth_provider: settings.auth_server_address.clone(),
             },
-            metrics: ServerMetrics::new(settings.metrics_address)
-                .expect("Failed to initialize server metrics submodule."),
+            metrics,
+            tick_metrics,
             server_settings: settings.clone(),
         };
 
@@ -401,90 +410,91 @@ impl Server {
         let total_sys_ran_in_dispatcher_nanos = terrain_nanos + waypoint_nanos;
 
         // Report timing info
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["new connections"])
             .set((before_message_system - before_new_connections).as_nanos() as i64);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["state tick"])
             .set(
                 (before_handle_events - before_state_tick).as_nanos() as i64
                     - total_sys_ran_in_dispatcher_nanos,
             );
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["handle server events"])
             .set((before_update_terrain_and_regions - before_handle_events).as_nanos() as i64);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["update terrain and region map"])
             .set((before_sync - before_update_terrain_and_regions).as_nanos() as i64);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["world tick"])
             .set((before_entity_cleanup - before_world_tick).as_nanos() as i64);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["entity cleanup"])
             .set((end_of_server_tick - before_entity_cleanup).as_nanos() as i64);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["entity sync"])
             .set(entity_sync_nanos);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["message"])
             .set(message_nanos);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["sentinel"])
             .set(sentinel_nanos);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["subscription"])
             .set(subscription_nanos);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["terrain sync"])
             .set(terrain_sync_nanos);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["terrain"])
             .set(terrain_nanos);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["waypoint"])
             .set(waypoint_nanos);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["persistence:stats"])
             .set(stats_persistence_nanos);
 
         // Report other info
-        self.metrics
+        self.tick_metrics
             .player_online
             .set(self.state.ecs().read_storage::<Client>().join().count() as i64);
-        self.metrics
+        self.tick_metrics
             .time_of_day
             .set(self.state.ecs().read_resource::<TimeOfDay>().0);
-        if self.metrics.is_100th_tick() {
+        if self.tick_metrics.is_100th_tick() {
             let mut chonk_cnt = 0;
             let chunk_cnt = self.state.terrain().iter().fold(0, |a, (_, c)| {
                 chonk_cnt += 1;
                 a + c.sub_chunks_len()
             });
-            self.metrics.chonks_count.set(chonk_cnt as i64);
-            self.metrics.chunks_count.set(chunk_cnt as i64);
+            self.tick_metrics.chonks_count.set(chonk_cnt as i64);
+            self.tick_metrics.chunks_count.set(chunk_cnt as i64);
 
             let entity_count = self.state.ecs().entities().join().count();
-            self.metrics.entity_count.set(entity_count as i64);
+            self.tick_metrics.entity_count.set(entity_count as i64);
         }
         //self.metrics.entity_count.set(self.state.);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["metrics"])
             .set(end_of_server_tick.elapsed().as_nanos() as i64);
+        self.metrics.tick();
 
         // 8) Finish the tick, pass control back to the frontend.
 
@@ -588,7 +598,7 @@ impl Server {
             .is_some()
     }
 
-    pub fn number_of_players(&self) -> i64 { self.metrics.player_online.get() }
+    pub fn number_of_players(&self) -> i64 { self.tick_metrics.player_online.get() }
 }
 
 impl Drop for Server {
