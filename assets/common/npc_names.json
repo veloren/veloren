@@ -262,6 +262,10 @@
             "tarasque": {
                 "keyword": "tarasque",
                 "generic": "Tarasque"
+            },
+            "tiger": {
+                "keyword": "tiger",
+                "generic": "Tiger"
             }
         }
     },
