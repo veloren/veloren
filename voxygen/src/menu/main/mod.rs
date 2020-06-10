@@ -84,15 +84,8 @@ impl PlayState for MainMenuState {
             match event {
                 Event::Close => return PlayStateResult::Shutdown,
                 // Pass events to ui.
-                Event::Ui(event) => {
-                    self.main_menu_ui.handle_event(event);
-                },
-                // Pass events to iced ui.
                 Event::IcedUi(event) => {
                     self.main_menu_ui.handle_iced_event(event);
-                },
-                Event::InputUpdate(crate::window::GameInput::Jump, true) => {
-                    self.main_menu_ui.show_iced ^= true;
                 },
                 // Ignore all other events.
                 _ => {},
@@ -262,7 +255,6 @@ impl PlayState for MainMenuState {
 
                     global_state.singleplayer = Some(singleplayer);
                 },
-                MainMenuEvent::Settings => {}, // TODO
                 MainMenuEvent::Quit => return PlayStateResult::Shutdown,
                 /*MainMenuEvent::DisclaimerAccepted => {
                     global_state.settings.show_disclaimer = false

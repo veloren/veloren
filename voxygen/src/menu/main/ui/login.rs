@@ -1,4 +1,4 @@
-use super::{IcedImgs as Imgs, LoginInfo, Message};
+use super::{Imgs, LoginInfo, Message};
 use crate::{
     i18n::Localization,
     ui::{

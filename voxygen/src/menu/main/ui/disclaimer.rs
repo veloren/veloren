@@ -1,4 +1,4 @@
-use super::{IcedImgs as Imgs, Message};
+use super::Message;
 use crate::{
     i18n::Localization,
     ui::{
