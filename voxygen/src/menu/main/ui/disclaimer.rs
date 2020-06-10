@@ -7,7 +7,6 @@ use crate::{
     },
 };
 use iced::{button, scrollable, Column, Container, Length, Scrollable, Space};
-use vek::Rgba;
 
 /// Connecting screen for the main menu
 pub struct Screen {
@@ -26,7 +25,6 @@ impl Screen {
     pub(super) fn view(
         &mut self,
         fonts: &Fonts,
-        imgs: &Imgs,
         i18n: &Localization,
         button_style: style::button::Style,
     ) -> Element<Message> {
@@ -66,7 +64,11 @@ impl Screen {
                 .width(Length::Fill)
                 .height(Length::Fill),
             )
-            .style(style::container::Style::Color(Rgba::new(22, 19, 17, 255))),
+            .style(style::container::Style::color_double_cornerless_border(
+                (22, 19, 17, 255).into(),
+                (11, 11, 11, 255).into(),
+                (54, 46, 38, 255).into(),
+            )),
         )
         .center_x()
         .center_y()
