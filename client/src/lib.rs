@@ -99,6 +99,8 @@ pub struct CharacterList {
 
 impl Client {
     /// Create a new `Client`.
+    #[allow(clippy::cmp_owned)] // TODO: Pending review in #587
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn new<A: Into<SocketAddr>>(addr: A, view_distance: Option<u32>) -> Result<Self, Error> {
         let client_state = ClientState::Connected;
         let mut postbox = PostBox::to(addr)?;
@@ -480,6 +482,7 @@ impl Client {
 
     /// Execute a single client tick, handle input and update the game state by
     /// the given duration.
+    #[allow(clippy::manual_saturating_arithmetic)] // TODO: Pending review in #587
     pub fn tick(
         &mut self,
         inputs: ControllerInputs,
@@ -699,6 +702,7 @@ impl Client {
     }
 
     /// Handle new server messages.
+    #[allow(clippy::collapsible_if)] // TODO: Pending review in #587
     fn handle_new_messages(&mut self) -> Result<Vec<Event>, Error> {
         let mut frontend_events = Vec::new();
 

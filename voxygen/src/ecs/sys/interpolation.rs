@@ -11,6 +11,7 @@ use vek::*;
 /// This system will allow NPCs to modify their controller
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     type SystemData = (
         Entities<'a>,
         Read<'a, DeltaTime>,
@@ -20,6 +21,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Interpolated>,
     );
 
+    #[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
     fn run(
         &mut self,
         (entities, dt, positions, orientations, velocities, mut interpolated): Self::SystemData,

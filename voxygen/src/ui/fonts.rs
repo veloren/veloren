@@ -6,6 +6,7 @@ pub struct ConrodVoxygenFont {
 }
 
 impl ConrodVoxygenFont {
+    #[allow(clippy::needless_return)] // TODO: Pending review in #587
     pub fn new(font: &Font, ui: &mut crate::ui::Ui) -> ConrodVoxygenFont {
         return Self {
             metadata: font.clone(),

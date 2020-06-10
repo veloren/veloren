@@ -13,6 +13,7 @@ pub struct StructureGen2d {
 pub type StructureField = (Vec2<i32>, u32);
 
 impl StructureGen2d {
+    #[allow(clippy::identity_op)] // TODO: Pending review in #587
     pub fn new(seed: u32, freq: u32, spread: u32) -> Self {
         Self {
             freq,
@@ -40,6 +41,7 @@ impl StructureGen2d {
     fn spread_mul(spread: u32) -> u32 { spread * 2 }
 
     #[inline]
+    #[allow(clippy::too_many_arguments)]
     fn index_to_sample_internal(
         freq: i32,
         freq_offset: i32,

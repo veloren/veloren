@@ -33,6 +33,7 @@ const EPSILON: f32 = 0.0001;
 // we can now calculate the combined alpha value
 // and E6 can then be solved for c3
 //     E9: c3 = (A1 * c1 * a1 + A2 * c2 * a2) / a3
+#[allow(clippy::manual_saturating_arithmetic)] // TODO: Pending review in #587
 pub fn resize_pixel_art(image: &RgbaImage, new_width: u32, new_height: u32) -> RgbaImage {
     let (width, height) = image.dimensions();
     let mut new_image = RgbaImage::new(new_width, new_height);

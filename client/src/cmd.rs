@@ -78,6 +78,8 @@ fn nth_word(line: &str, n: usize) -> Option<usize> {
     None
 }
 
+#[allow(clippy::chars_next_cmp)] // TODO: Pending review in #587
+#[allow(clippy::collapsible_if)] // TODO: Pending review in #587
 pub fn complete(line: &str, client: &Client) -> Vec<String> {
     let word = if line.chars().last().map_or(true, char::is_whitespace) {
         ""

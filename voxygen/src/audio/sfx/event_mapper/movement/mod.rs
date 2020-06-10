@@ -36,6 +36,7 @@ pub struct MovementEventMapper {
 }
 
 impl EventMapper for MovementEventMapper {
+    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
     fn maintain(&mut self, state: &State, player_entity: EcsEntity, triggers: &SfxTriggers) {
         let ecs = state.ecs();
 
@@ -145,6 +146,7 @@ impl MovementEventMapper {
     /// as opening or closing the glider. These methods translate those
     /// entity states with some additional data into more specific
     /// `SfxEvent`'s which we attach sounds to
+    #[allow(clippy::nonminimal_bool)] // TODO: Pending review in #587
     fn map_movement_event(
         character_state: &CharacterState,
         physics_state: &PhysicsState,

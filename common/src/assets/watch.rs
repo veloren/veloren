@@ -104,6 +104,9 @@ impl Watcher {
         }
     }
 
+    #[allow(clippy::drop_copy)] // TODO: Pending review in #587
+    #[allow(clippy::single_match)] // TODO: Pending review in #587
+    #[allow(clippy::zero_ptr)] // TODO: Pending review in #587
     fn run(mut self) -> Sender<(PathBuf, Handler, Weak<AtomicBool>)> {
         let (watch_tx, watch_rx) = unbounded();
 
@@ -136,6 +139,7 @@ pub struct ReloadIndicator {
     paths: Vec<PathBuf>,
 }
 impl ReloadIndicator {
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {
         Self {
             reloaded: Arc::new(AtomicBool::new(false)),

@@ -11,6 +11,7 @@ use vek::*;
 /// This system is responsible for controlling mounts
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Read<'a, UidAllocator>,
         Entities<'a>,
@@ -22,6 +23,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Ori>,
     );
 
+    #[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
     fn run(
         &mut self,
         (

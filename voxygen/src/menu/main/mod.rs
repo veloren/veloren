@@ -28,6 +28,8 @@ impl MainMenuState {
 const DEFAULT_PORT: u16 = 14004;
 
 impl PlayState for MainMenuState {
+    #[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
+    #[allow(clippy::useless_format)] // TODO: Pending review in #587
     fn play(&mut self, _: Direction, global_state: &mut GlobalState) -> PlayStateResult {
         // Set up an fps clock.
         let mut clock = Clock::start();

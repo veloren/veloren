@@ -162,6 +162,7 @@ pub struct MainMenuUi {
 }
 
 impl MainMenuUi {
+    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
     pub fn new(global_state: &mut GlobalState) -> Self {
         let window = &mut global_state.window;
         let networking = &global_state.settings.networking;
@@ -228,6 +229,9 @@ impl MainMenuUi {
         }
     }
 
+    #[allow(clippy::assign_op_pattern)] // TODO: Pending review in #587
+    #[allow(clippy::op_ref)] // TODO: Pending review in #587
+    #[allow(clippy::toplevel_ref_arg)] // TODO: Pending review in #587
     fn update_layout(&mut self, global_state: &mut GlobalState, dt: Duration) -> Vec<Event> {
         let mut events = Vec::new();
         self.time = self.time + dt.as_secs_f32();

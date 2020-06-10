@@ -66,6 +66,7 @@ pub struct FigureMgr {
 }
 
 impl FigureMgr {
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {
         Self {
             model_cache: FigureModelCache::new(),
@@ -108,6 +109,7 @@ impl FigureMgr {
         self.golem_model_cache.clean(tick);
     }
 
+    #[allow(clippy::redundant_pattern_matching)] // TODO: Pending review in #587
     pub fn update_lighting(&mut self, scene_data: &SceneData) {
         let ecs = scene_data.state.ecs();
         for (entity, light_emitter) in (&ecs.entities(), &ecs.read_storage::<LightEmitter>()).join()
@@ -170,6 +172,8 @@ impl FigureMgr {
         }
     }
 
+    #[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn maintain(&mut self, renderer: &mut Renderer, scene_data: &SceneData, camera: &Camera) {
         let state = scene_data.state;
         let time = state.get_time();
@@ -1570,6 +1574,7 @@ impl FigureMgr {
             .retain(|entity, _| ecs.entities().is_alive(*entity));
     }
 
+    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn render(
         &mut self,
         renderer: &mut Renderer,
@@ -1622,6 +1627,7 @@ impl FigureMgr {
         }
     }
 
+    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn render_player(
         &mut self,
         renderer: &mut Renderer,
@@ -1671,6 +1677,7 @@ impl FigureMgr {
         }
     }
 
+    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     fn render_figure(
         &mut self,
         renderer: &mut Renderer,
@@ -2035,6 +2042,7 @@ impl<S: Skeleton> FigureState<S> {
         }
     }
 
+    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn update(
         &mut self,
         renderer: &mut Renderer,

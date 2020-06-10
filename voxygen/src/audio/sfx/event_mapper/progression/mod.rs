@@ -26,6 +26,7 @@ pub struct ProgressionEventMapper {
 }
 
 impl EventMapper for ProgressionEventMapper {
+    #[allow(clippy::op_ref)] // TODO: Pending review in #587
     fn maintain(&mut self, state: &State, player_entity: specs::Entity, triggers: &SfxTriggers) {
         let ecs = state.ecs();
 
@@ -59,6 +60,7 @@ impl ProgressionEventMapper {
         }
     }
 
+    #[allow(clippy::let_and_return)] // TODO: Pending review in #587
     fn map_event(&mut self, next_state: &ProgressionState) -> Option<SfxEvent> {
         let sfx_event = if next_state.level > self.state.level {
             Some(SfxEvent::LevelUp)

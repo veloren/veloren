@@ -25,6 +25,7 @@ impl<'a> BlockGen<'a> {
         }
     }
 
+    #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
     pub fn sample_column<'b>(
         column_gen: &ColumnGen<'a>,
         cache: &'b mut SmallCache<Option<ColumnSample<'a>>>,
@@ -35,6 +36,7 @@ impl<'a> BlockGen<'a> {
             .as_ref()
     }
 
+    #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
     fn get_cliff_height(
         column_gen: &ColumnGen<'a>,
         cache: &mut SmallCache<Option<ColumnSample<'a>>>,
@@ -89,6 +91,7 @@ impl<'a> BlockGen<'a> {
         )
     }
 
+    #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
     pub fn get_z_cache(&mut self, wpos: Vec2<i32>) -> Option<ZCache<'a>> {
         let BlockGen {
             column_cache,
@@ -138,6 +141,8 @@ impl<'a> BlockGen<'a> {
         })
     }
 
+    #[allow(clippy::identity_op)] // TODO: Pending review in #587
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn get_with_z_cache(
         &mut self,
         wpos: Vec3<i32>,
@@ -418,6 +423,7 @@ pub struct ZCache<'a> {
 }
 
 impl<'a> ZCache<'a> {
+    #[allow(clippy::unnecessary_mut_passed)] // TODO: Pending review in #587
     pub fn get_z_limits(&self, block_gen: &mut BlockGen) -> (f32, f32, f32) {
         let cave_depth =
             if self.sample.cave_xy.abs() > 0.9 && self.sample.water_level <= self.sample.alt {
@@ -549,6 +555,7 @@ impl StructureInfo {
     }
 }
 
+#[allow(clippy::identity_op)] // TODO: Pending review in #587
 pub fn block_from_structure(
     sblock: StructureBlock,
     pos: Vec3<i32>,

@@ -44,6 +44,8 @@ gfx_defines! {
 
 impl Globals {
     /// Create global consts from the provided parameters.
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
+    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn new(
         view_mat: Mat4<f32>,
         proj_mat: Mat4<f32>,

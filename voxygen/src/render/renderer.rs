@@ -445,6 +445,7 @@ impl Renderer {
 
     /// Creates a download buffer, downloads the win_color_view, and converts to
     /// a image::DynamicImage.
+    #[allow(clippy::map_clone)] // TODO: Pending review in #587
     pub fn create_screenshot(&mut self) -> Result<image::DynamicImage, RenderError> {
         let (width, height) = self.get_resolution().into_tuple();
         use gfx::{
@@ -781,6 +782,7 @@ struct GfxPipeline<P: gfx::pso::PipelineInit> {
 }
 
 /// Creates all the pipelines used to render.
+#[allow(clippy::type_complexity)] // TODO: Pending review in #587
 fn create_pipelines(
     factory: &mut gfx_backend::Factory,
     aa_mode: AaMode,
@@ -983,6 +985,7 @@ fn create_pipelines(
 }
 
 /// Create a new pipeline from the provided vertex shader and fragment shader.
+#[allow(clippy::extra_unused_lifetimes)] // TODO: Pending review in #587
 fn create_pipeline<'a, P: gfx::pso::PipelineInit>(
     factory: &mut gfx_backend::Factory,
     pipe: P,

@@ -370,6 +370,7 @@ where
         self
     }
 
+    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     fn new(
         slot_key: K,
         empty_slot: image::Id,
@@ -421,6 +422,7 @@ where
         }
     }
 
+    #[allow(clippy::unused_unit)] // TODO: Pending review in #587
     fn style(&self) -> Self::Style { () }
 
     /// Update the state of the Slider.

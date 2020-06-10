@@ -80,6 +80,7 @@ impl<'a> std::convert::TryFrom<&'a comp::Body> for CritterAttr {
 }
 
 impl CritterAttr {
+    #[allow(clippy::match_single_binding)] // TODO: Pending review in #587
     pub fn calculate_scale(body: &comp::critter::Body) -> f32 {
         match (body.species, body.body_type) {
             (_, _) => 0.0,

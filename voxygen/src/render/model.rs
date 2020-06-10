@@ -30,6 +30,7 @@ pub struct DynamicModel<P: Pipeline> {
 }
 
 impl<P: Pipeline> DynamicModel<P> {
+    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
     pub fn new(factory: &mut gfx_backend::Factory, size: usize) -> Result<Self, RenderError> {
         Ok(Self {
             vbuf: factory
@@ -47,6 +48,7 @@ impl<P: Pipeline> DynamicModel<P> {
         }
     }
 
+    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
     pub fn update(
         &self,
         encoder: &mut gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,

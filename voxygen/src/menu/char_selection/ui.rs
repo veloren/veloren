@@ -281,6 +281,7 @@ impl InfoContent {
     }
 }
 
+#[allow(clippy::large_enum_variant)] // TODO: Pending review in #587
 pub enum Mode {
     Select(Option<Vec<CharacterItem>>),
     Create {
@@ -338,6 +339,7 @@ impl CharSelectionUi {
         }
     }
 
+    #[allow(clippy::clone_on_copy)] // TODO: Pending review in #587
     pub fn get_character_list(&self) -> Option<Vec<CharacterItem>> {
         match &self.mode {
             Mode::Select(data) => data.clone(),
@@ -396,6 +398,10 @@ impl CharSelectionUi {
     }
 
     // TODO: Split this into multiple modules or functions.
+    #[allow(clippy::clone_on_copy)] // TODO: Pending review in #587
+    #[allow(clippy::collapsible_if)] // TODO: Pending review in #587
+    #[allow(clippy::useless_let_if_seq)] // TODO: Pending review in #587
+    #[allow(clippy::unnecessary_operation)] // TODO: Pending review in #587
     fn update_layout(&mut self, client: &mut Client) -> Vec<Event> {
         let mut events = Vec::new();
 

@@ -3,6 +3,7 @@ use gfx_window_glutin::init_headless;
 use vek::*;
 use veloren_voxygen::{render, scene::simple as scene};
 
+#[allow(clippy::clone_on_copy)] // TODO: Pending review in #587
 fn main() {
     // Setup renderer
     let dim = (200u16, 300u16, 1, gfx::texture::AaMode::Single);

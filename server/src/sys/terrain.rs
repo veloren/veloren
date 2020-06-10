@@ -23,6 +23,7 @@ use vek::*;
 ///     4. Removes chunks outside the range of players
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     type SystemData = (
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, Tick>,
@@ -35,6 +36,9 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Client>,
     );
 
+    #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+    #[allow(clippy::manual_saturating_arithmetic)] // TODO: Pending review in #587
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn run(
         &mut self,
         (
@@ -394,6 +398,8 @@ impl<'a> System<'a> for Sys {
     }
 }
 
+#[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+#[allow(clippy::manual_saturating_arithmetic)] // TODO: Pending review in #587
 pub fn chunk_in_vd(
     player_pos: Vec3<f32>,
     chunk_pos: Vec2<i32>,

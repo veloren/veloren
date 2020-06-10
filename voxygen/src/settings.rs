@@ -539,6 +539,7 @@ pub struct Log {
 }
 
 impl Default for Log {
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn default() -> Self {
         let proj_dirs = ProjectDirs::from("net", "veloren", "voxygen")
             .expect("System's $HOME directory path not found!");
@@ -674,6 +675,8 @@ pub struct Settings {
 }
 
 impl Default for Settings {
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
+    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
     fn default() -> Self {
         let user_dirs = UserDirs::new().expect("System's $HOME directory path not found!");
 

@@ -208,6 +208,7 @@ impl<V: Vox, S: VolSize, M> ReadVol for Chunk<V, S, M> {
 
 impl<V: Vox, S: VolSize, M> WriteVol for Chunk<V, S, M> {
     #[inline(always)]
+    #[allow(clippy::unit_arg)] // TODO: Pending review in #587
     fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), Self::Error> {
         if !pos
             .map2(S::SIZE, |e, s| 0 <= e && e < s as i32)

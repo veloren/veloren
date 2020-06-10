@@ -16,6 +16,7 @@ pub const MY_EXP_SHOWTIME: f32 = 4.0;
 
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     type SystemData = (
         Entities<'a>,
         ReadExpect<'a, MyEntity>,
@@ -27,6 +28,8 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, HpFloaterList>,
     );
 
+    #[allow(clippy::block_in_if_condition_stmt)] // TODO: Pending review in #587
+    #[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
     fn run(
         &mut self,
         (entities, my_entity, dt, mut my_exp_floater_list, uids, pos, stats, mut hp_floater_lists): Self::SystemData,

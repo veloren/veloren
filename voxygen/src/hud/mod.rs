@@ -553,6 +553,9 @@ impl Hud {
             .expect("Impossible to load fonts!");
     }
 
+    #[allow(clippy::assign_op_pattern)] // TODO: Pending review in #587
+    #[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
+    #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update_layout(
         &mut self,
         client: &Client,
@@ -1906,6 +1909,7 @@ impl Hud {
         }
     }
 
+    #[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
     pub fn handle_event(&mut self, event: WinEvent, global_state: &mut GlobalState) -> bool {
         // Helper
         fn handle_slot(
@@ -2132,6 +2136,7 @@ impl Hud {
         handled
     }
 
+    #[allow(clippy::block_in_if_condition_stmt)] // TODO: Pending review in #587
     pub fn maintain(
         &mut self,
         client: &Client,

@@ -9,6 +9,8 @@ impl Animation for ChargeAnimation {
     type Dependency = (Option<ToolKind>, f32, Vec3<f32>, Vec3<f32>, f64);
     type Skeleton = CharacterSkeleton;
 
+    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
+    #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
     fn update_skeleton(
         skeleton: &Self::Skeleton,
         (active_tool_kind, velocity, orientation, last_ori, _global_time): Self::Dependency,

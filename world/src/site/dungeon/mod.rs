@@ -55,6 +55,7 @@ const ALT_OFFSET: i32 = -2;
 const LEVELS: usize = 5;
 
 impl Dungeon {
+    #[allow(clippy::let_and_return)] // TODO: Pending review in #587
     pub fn generate(wpos: Vec2<i32>, sim: Option<&WorldSim>, rng: &mut impl Rng) -> Self {
         let mut ctx = GenCtx { sim, rng };
         let this = Self {
@@ -82,6 +83,7 @@ impl Dungeon {
 
     pub fn radius(&self) -> f32 { 1200.0 }
 
+    #[allow(clippy::needless_update)] // TODO: Pending review in #587
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
             trees: wpos.distance_squared(self.origin) > 64i32.pow(2),
@@ -148,6 +150,7 @@ impl Dungeon {
         }
     }
 
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn apply_supplement<'a>(
         &'a self,
         rng: &mut impl Rng,
@@ -411,6 +414,7 @@ impl Floor {
         }
     }
 
+    #[allow(clippy::match_single_binding)] // TODO: Pending review in #587
     pub fn apply_supplement(
         &self,
         rng: &mut impl Rng,
