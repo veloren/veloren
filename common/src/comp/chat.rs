@@ -103,18 +103,18 @@ impl ChatMsg {
         }
     }
 
-    pub fn icon(&self) -> SpeechBubbleIcon {
+    pub fn icon(&self) -> SpeechBubbleType {
         match &self.chat_type {
-            ChatType::Broadcast => SpeechBubbleIcon::None,
-            ChatType::Private => SpeechBubbleIcon::None,
-            ChatType::Kill => SpeechBubbleIcon::None,
-            ChatType::Tell(_u, _) => SpeechBubbleIcon::Tell,
-            ChatType::Say(_u) => SpeechBubbleIcon::Say,
-            ChatType::Group(_u, _s) => SpeechBubbleIcon::Group,
-            ChatType::Faction(_u, _s) => SpeechBubbleIcon::Faction,
-            ChatType::Region(_u) => SpeechBubbleIcon::Region,
-            ChatType::World(_u) => SpeechBubbleIcon::World,
-            ChatType::Npc(_u, _r) => SpeechBubbleIcon::None,
+            ChatType::Broadcast => SpeechBubbleType::None,
+            ChatType::Private => SpeechBubbleType::None,
+            ChatType::Kill => SpeechBubbleType::None,
+            ChatType::Tell(_u, _) => SpeechBubbleType::None,
+            ChatType::Say(_u) => SpeechBubbleType::None,
+            ChatType::Group(_u, _s) => SpeechBubbleType::None,
+            ChatType::Faction(_u, _s) => SpeechBubbleType::None,
+            ChatType::Region(_u) => SpeechBubbleType::None,
+            ChatType::World(_u) => SpeechBubbleType::None,
+            ChatType::Npc(_u, _r) => SpeechBubbleType::None,
         }
     }
 
@@ -169,7 +169,7 @@ pub enum SpeechBubbleMessage {
     Localized(String, u16),
 }
 
-pub enum SpeechBubbleIcon {
+pub enum SpeechBubbleType {
     // One for each chat mode
     Tell,
     Say,
@@ -186,7 +186,7 @@ pub enum SpeechBubbleIcon {
 /// Adds a speech bubble above the character
 pub struct SpeechBubble {
     pub message: SpeechBubbleMessage,
-    pub icon: SpeechBubbleIcon,
+    pub icon: SpeechBubbleType,
     pub timeout: Instant,
 }
 
@@ -194,7 +194,7 @@ impl SpeechBubble {
     /// Default duration in seconds of speech bubbles
     pub const DEFAULT_DURATION: f64 = 5.0;
 
-    pub fn npc_new(i18n_key: &str, r: u16, icon: SpeechBubbleIcon) -> Self {
+    pub fn npc_new(i18n_key: &str, r: u16, icon: SpeechBubbleType) -> Self {
         let message = SpeechBubbleMessage::Localized(i18n_key.to_string(), r);
         let timeout = Instant::now() + Duration::from_secs_f64(SpeechBubble::DEFAULT_DURATION);
         Self {
@@ -204,7 +204,7 @@ impl SpeechBubble {
         }
     }
 
-    pub fn player_new(message: &str, icon: SpeechBubbleIcon) -> Self {
+    pub fn player_new(message: &str, icon: SpeechBubbleType) -> Self {
         let message = SpeechBubbleMessage::Plain(message.to_string());
         let timeout = Instant::now() + Duration::from_secs_f64(SpeechBubble::DEFAULT_DURATION);
         Self {

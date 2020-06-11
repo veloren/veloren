@@ -47,7 +47,10 @@ use crate::{
     GlobalState,
 };
 use client::Client;
-use common::{assets::load_expect, comp, sync::Uid, terrain::TerrainChunk, vol::RectRasterableVol};
+use common::{
+    assets::load_expect, comp, comp::SpeechBubbleType, sync::Uid, terrain::TerrainChunk,
+    vol::RectRasterableVol,
+};
 use conrod_core::{
     text::cursor::Index,
     widget::{self, Button, Image, Text},
@@ -469,6 +472,7 @@ pub struct Hud {
     new_messages: VecDeque<comp::ChatMsg>,
     new_notifications: VecDeque<common::msg::Notification>,
     speech_bubbles: HashMap<Uid, comp::SpeechBubble>,
+    bubble_type: SpeechBubbleType,
     show: Show,
     //never_show: bool,
     //intro: bool,
@@ -536,6 +540,7 @@ impl Hud {
             new_messages: VecDeque::new(),
             new_notifications: VecDeque::new(),
             speech_bubbles: HashMap::new(),
+            bubble_type: SpeechBubbleType::None,
             //intro: false,
             //intro_2: false,
             show: Show {
@@ -1015,6 +1020,7 @@ impl Hud {
                 overhead::Overhead::new(
                     &name,
                     bubble,
+                    &self.bubble_type,
                     stats,
                     energy,
                     own_level,
