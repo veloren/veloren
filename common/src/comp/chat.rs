@@ -96,10 +96,10 @@ impl ChatMsg {
     pub fn to_bubble(&self) -> Option<(SpeechBubble, Uid)> {
         let icon = self.icon();
         if let ChatType::Npc(from, r) = self.chat_type {
-            Some((SpeechBubble::npc_new(self.message.clone(), r, icon), from))
+            Some((SpeechBubble::npc_new(&self.message, r, icon), from))
         } else {
             self.uid()
-                .map(|from| (SpeechBubble::player_new(self.message.clone(), icon), from))
+                .map(|from| (SpeechBubble::player_new(&self.message, icon), from))
         }
     }
 
@@ -194,8 +194,8 @@ impl SpeechBubble {
     /// Default duration in seconds of speech bubbles
     pub const DEFAULT_DURATION: f64 = 5.0;
 
-    pub fn npc_new(i18n_key: String, r: u16, icon: SpeechBubbleIcon) -> Self {
-        let message = SpeechBubbleMessage::Localized(i18n_key, r);
+    pub fn npc_new(i18n_key: &str, r: u16, icon: SpeechBubbleIcon) -> Self {
+        let message = SpeechBubbleMessage::Localized(i18n_key.to_string(), r);
         let timeout = Instant::now() + Duration::from_secs_f64(SpeechBubble::DEFAULT_DURATION);
         Self {
             message,
@@ -204,8 +204,8 @@ impl SpeechBubble {
         }
     }
 
-    pub fn player_new(message: String, icon: SpeechBubbleIcon) -> Self {
-        let message = SpeechBubbleMessage::Plain(message);
+    pub fn player_new(message: &str, icon: SpeechBubbleIcon) -> Self {
+        let message = SpeechBubbleMessage::Plain(message.to_string());
         let timeout = Instant::now() + Duration::from_secs_f64(SpeechBubble::DEFAULT_DURATION);
         Self {
             message,
@@ -216,11 +216,11 @@ impl SpeechBubble {
 
     pub fn message<F>(&self, i18n_variation: F) -> String
     where
-        F: Fn(String, u16) -> String,
+        F: Fn(&str, u16) -> String,
     {
         match &self.message {
             SpeechBubbleMessage::Plain(m) => m.to_string(),
-            SpeechBubbleMessage::Localized(k, i) => i18n_variation(k.to_string(), *i).to_string(),
+            SpeechBubbleMessage::Localized(k, i) => i18n_variation(&k, *i).to_string(),
         }
     }
 }

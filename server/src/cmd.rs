@@ -392,12 +392,11 @@ fn handle_alias(
     action: &ChatCommand,
 ) {
     if client != target {
-        // Prevent people abusing /sudo
+        // Notify target that an admin changed the alias due to /sudo
         server.notify_client(
-            client,
-            ServerMsg::private(String::from("Don't call people names. It's mean.")),
+            target,
+            ServerMsg::private(String::from("An admin changed your alias.")),
         );
-        return;
     }
     if let Ok(alias) = scan_fmt!(&args, &action.arg_fmt(), String) {
         if !comp::Player::alias_is_valid(&alias) {
@@ -1284,7 +1283,7 @@ fn handle_join_group(
         // TODO notify group
         server.notify_client(
             client,
-            ServerMsg::private(format!("Joined group {{{}}}", group)),
+            ServerMsg::private(format!("Joined group ({})", group)),
         );
     } else {
         let mode = comp::ChatMode::default();
@@ -1293,7 +1292,7 @@ fn handle_join_group(
             // TODO notify group
             server.notify_client(
                 client,
-                ServerMsg::private(format!("Left group {{{}}}", group)),
+                ServerMsg::private(format!("Left group ({})", group)),
             );
         }
     }

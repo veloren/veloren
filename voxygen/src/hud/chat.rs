@@ -163,17 +163,7 @@ impl<'a> Widget for Chat<'a> {
         let transp = self.global_state.settings.gameplay.chat_transp;
         // Maintain scrolling.
         if !self.new_messages.is_empty() {
-            state.update(|s| {
-                s.messages.extend(
-                    self.new_messages
-                        .drain(..)
-                        .map(|msg| {
-                            // TODO format!([{}] {}, name, msg)
-                            msg
-                        })
-                        .collect::<Vec<_>>(),
-                )
-            });
+            state.update(|s| s.messages.extend(self.new_messages.drain(..)));
             ui.scroll_widget(state.ids.message_box, [0.0, std::f64::MAX]);
         }
 
@@ -354,8 +344,7 @@ impl<'a> Widget for Chat<'a> {
                     Dimension::Absolute(y) => y + 2.0,
                     _ => 0.0,
                 };
-                let widget = text.h(y);
-                item.set(widget, ui);
+                item.set(text.h(y), ui);
                 let icon_id = state.ids.chat_icons[item.i];
                 Image::new(icon)
                     .w_h(16.0, 16.0)
@@ -365,11 +354,13 @@ impl<'a> Widget for Chat<'a> {
             } else {
                 // Spacer at bottom of the last message so that it is not cut off.
                 // Needs to be larger than the space above.
-                let widget = Text::new("")
-                    .font_size(self.fonts.opensans.scale(6))
-                    .font_id(self.fonts.opensans.conrod_id)
-                    .w(CHAT_BOX_WIDTH);
-                item.set(widget, ui);
+                item.set(
+                    Text::new("")
+                        .font_size(self.fonts.opensans.scale(6))
+                        .font_id(self.fonts.opensans.conrod_id)
+                        .w(CHAT_BOX_WIDTH),
+                    ui,
+                );
             };
         }
 
@@ -432,7 +423,6 @@ fn do_tab_completion(cursor: usize, input: &str, word: &str) -> (String, usize) 
             if char_i < cursor {
                 pre_ws = Some(byte_i);
             } else {
-                assert_eq!(post_ws, None); // TODO debug
                 post_ws = Some(byte_i);
                 break;
             }
