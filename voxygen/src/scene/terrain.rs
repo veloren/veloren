@@ -248,7 +248,7 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
 
 /// Function executed by worker threads dedicated to chunk meshing.
 #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
-#[allow(clippy::redundant_closure)] // TODO: Pending review in #587
+
 fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
     pos: Vec2<i32>,
     z_bounds: (f32, f32),
@@ -292,7 +292,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
 
                             instances
                                 .entry((block.kind(), seed as usize % cfg.variations))
-                                .or_insert_with(|| Vec::new())
+                                .or_insert_with(Vec::new)
                                 .push(instance);
                         }
                     }

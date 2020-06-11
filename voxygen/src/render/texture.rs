@@ -26,7 +26,6 @@ where
     F::Channel: gfx::format::TextureChannel,
     <F::Surface as gfx::format::SurfaceTyped>::DataType: Copy,
 {
-    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
     pub fn new(
         factory: &mut gfx_backend::Factory,
         image: &DynamicImage,
@@ -43,7 +42,7 @@ where
                 gfx::texture::Mipmap::Provided,
                 &[&image.raw_pixels()],
             )
-            .map_err(|err| RenderError::CombinedError(err))?;
+            .map_err(RenderError::CombinedError)?;
 
         Ok(Self {
             tex,
@@ -89,7 +88,7 @@ where
 
     /// Update a texture with the given data (used for updating the glyph cache
     /// texture).
-    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
+
     pub fn update(
         &self,
         encoder: &mut gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
@@ -111,7 +110,7 @@ where
             .update_texture::<<F as gfx::format::Formatted>::Surface, F>(
                 &self.tex, None, info, data,
             )
-            .map_err(|err| RenderError::TexUpdateError(err))
+            .map_err(RenderError::TexUpdateError)
     }
 
     /// Get dimensions of the represented image.

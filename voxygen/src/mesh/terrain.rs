@@ -211,7 +211,7 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
     #[allow(clippy::needless_range_loop)] // TODO: Pending review in #587
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     #[allow(clippy::panic_params)] // TODO: Pending review in #587
-    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
+
     fn generate_mesh(
         &'a self,
         range: Self::Supplement,
@@ -343,7 +343,7 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
                     maybe_block
                         .filter(|vox| vox.is_opaque() && (!neighbour || vox.is_blended()))
                         .and_then(|vox| vox.get_color())
-                        .map(|col| Rgba::from_opaque(col))
+                        .map(Rgba::from_opaque)
                         .unwrap_or(Rgba::zero())
                 };
 

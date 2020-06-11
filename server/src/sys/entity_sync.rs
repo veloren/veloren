@@ -44,7 +44,6 @@ impl<'a> System<'a> for Sys {
         ReadTrackers<'a>,
     );
 
-    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
     fn run(
         &mut self,
         (
@@ -163,7 +162,7 @@ impl<'a> System<'a> for Sys {
                 region.entities(),
                 deleted_entities
                     .take_deleted_in_region(key)
-                    .unwrap_or_else(|| Vec::new()),
+                    .unwrap_or_default(),
             );
             let entity_sync_msg = ServerMsg::EntitySync(entity_sync_package);
             let comp_sync_msg = ServerMsg::CompSync(comp_sync_package);
