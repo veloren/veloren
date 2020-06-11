@@ -90,6 +90,7 @@ pub struct Font(text::Font);
 impl assets::Asset for Font {
     const ENDINGS: &'static [&'static str] = &["ttf"];
 
+    #[allow(clippy::redundant_clone)] // TODO: Pending review in #587
     fn parse(mut buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         let mut buf = Vec::new();
         buf_reader.read_to_end(&mut buf)?;
@@ -266,6 +267,7 @@ impl Ui {
 
     pub fn widget_input(&self, id: widget::Id) -> Widget { self.ui.widget_input(id) }
 
+    #[allow(clippy::float_cmp)] // TODO: Pending review in #587
     pub fn maintain(&mut self, renderer: &mut Renderer, view_projection_mat: Option<Mat4<f32>>) {
         // Maintain tooltip manager
         self.tooltip_manager

@@ -116,6 +116,7 @@ pub struct CompSyncPackage<P: CompPacket> {
 }
 
 impl<P: CompPacket> CompSyncPackage<P> {
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {
         Self {
             comp_updates: Vec::new(),

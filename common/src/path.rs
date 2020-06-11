@@ -31,6 +31,7 @@ impl<T> FromIterator<T> for Path<T> {
     }
 }
 
+#[allow(clippy::len_without_is_empty)] // TODO: Pending review in #587
 impl<T> Path<T> {
     pub fn len(&self) -> usize { self.nodes.len() }
 
@@ -151,6 +152,7 @@ impl Chaser {
     }
 }
 
+#[allow(clippy::float_cmp)] // TODO: Pending review in #587
 fn find_path<V>(
     astar: &mut Option<Astar<Vec3<i32>, DefaultHashBuilder>>,
     vol: &V,

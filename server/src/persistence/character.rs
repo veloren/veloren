@@ -23,6 +23,7 @@ type CharacterListResult = Result<Vec<CharacterItem>, Error>;
 ///
 /// After first logging in, and after a character is selected, we fetch this
 /// data for the purpose of inserting their persisted data for the entity.
+#[allow(clippy::redundant_closure)] // TODO: Pending review in #587
 pub fn load_character_data(
     character_id: i32,
     db_dir: &str,
@@ -101,6 +102,7 @@ pub fn load_character_data(
 /// In the event that a join fails, for a character (i.e. they lack an entry for
 /// stats, body, etc...) the character is skipped, and no entry will be
 /// returned.
+#[allow(clippy::redundant_closure)] // TODO: Pending review in #587
 pub fn load_character_list(player_uuid: &str, db_dir: &str) -> CharacterListResult {
     let data = schema::character::dsl::character
         .filter(schema::character::player_uuid.eq(player_uuid))

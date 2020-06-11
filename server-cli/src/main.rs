@@ -7,6 +7,7 @@ use std::time::Duration;
 
 const TPS: u64 = 30;
 
+#[allow(clippy::redundant_pattern_matching)] // TODO: Pending review in #587
 fn main() {
     // Init logging
     if let Err(_) = std::env::var("RUST_LOG") {

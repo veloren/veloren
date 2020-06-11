@@ -17,6 +17,7 @@ pub struct FishSmallSkeleton {
 }
 
 impl FishSmallSkeleton {
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {
         Self {
             torso: Bone::default(),

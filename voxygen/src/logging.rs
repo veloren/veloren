@@ -3,6 +3,7 @@ use std::fs;
 
 use crate::settings::Settings;
 
+#[allow(clippy::or_fun_call)] // TODO: Pending review in #587
 pub fn init(
     settings: &Settings,
     term_log_level: log::LevelFilter,

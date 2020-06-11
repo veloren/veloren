@@ -26,6 +26,7 @@ pub type Computex8 = [Compute; 8];
 
 /// Compute the water flux at all chunks, given a list of chunk indices sorted
 /// by increasing height.
+#[allow(clippy::into_iter_on_ref)] // TODO: Pending review in #587
 pub fn get_drainage(newh: &[u32], downhill: &[isize], _boundary_len: usize) -> Box<[f32]> {
     // FIXME: Make the below work.  For now, we just use constant flux.
     // Initially, flux is determined by rainfall.  We currently treat this as the
@@ -50,6 +51,7 @@ pub fn get_drainage(newh: &[u32], downhill: &[isize], _boundary_len: usize) -> B
 
 /// Compute the water flux at all chunks for multiple receivers, given a list of
 /// chunk indices sorted by increasing height and weights for each receiver.
+#[allow(clippy::into_iter_on_ref)] // TODO: Pending review in #587
 pub fn get_multi_drainage(
     mstack: &[u32],
     mrec: &[u8],
@@ -216,6 +218,7 @@ impl RiverData {
             .unwrap_or(false)
     }
 
+    #[allow(clippy::len_zero)] // TODO: Pending review in #587
     pub fn near_river(&self) -> bool { self.is_river() || self.neighbor_rivers.len() > 0 }
 
     pub fn near_water(&self) -> bool { self.near_river() || self.is_lake() || self.is_ocean() }
@@ -224,6 +227,7 @@ impl RiverData {
 /// Draw rivers and assign them heights, widths, and velocities.  Take some
 /// liberties with the constant factors etc. in order to make it more likely
 /// that we draw rivers at all.
+#[allow(clippy::into_iter_on_ref)] // TODO: Pending review in #587
 pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
     newh: &[u32],
     water_alt: &[F],
@@ -547,6 +551,7 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
 /// Precompute the maximum slope at all points.
 ///
 /// TODO: See if allocating in advance is worthwhile.
+#[allow(clippy::let_and_return)] // TODO: Pending review in #587
 fn get_max_slope(
     h: &[Alt],
     rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync),
@@ -681,6 +686,10 @@ fn get_max_slope(
 ///     Prediction in Geomorphology, Geophysical Monograph 135.
 ///     Copyright 2003 by the American Geophysical Union
 ///     10.1029/135GM09
+#[allow(clippy::assign_op_pattern)] // TODO: Pending review in #587
+#[allow(clippy::collapsible_if)] // TODO: Pending review in #587
+#[allow(clippy::many_single_char_names)]
+#[allow(clippy::too_many_arguments)]
 fn erode(
     // Height above sea level of topsoil
     h: &mut [Alt],
@@ -1793,6 +1802,8 @@ pub fn fill_sinks<F: Float + Send + Sync>(
 ///   adjacency list).
 /// - The adjacency list (stored in a single vector), indexed by the second
 ///   indirection vector.
+#[allow(clippy::filter_next)] // TODO: Pending review in #587
+#[allow(clippy::into_iter_on_ref)] // TODO: Pending review in #587
 pub fn get_lakes<F: Float>(
     h: impl Fn(usize) -> F,
     downhill: &mut [isize],
@@ -2297,6 +2308,9 @@ pub fn mrec_downhill<'a>(
 /// * A bitmask representing which neighbors are downhill.
 /// * Stack order for multiple receivers (from top to bottom).
 /// * The weight for each receiver, for each node.
+#[allow(clippy::into_iter_on_ref)] // TODO: Pending review in #587
+#[allow(clippy::too_many_arguments)]
+#[allow(clippy::type_complexity)] // TODO: Pending review in #587
 pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
     h: impl Fn(usize) -> F + Sync,
     downhill: &[isize],
@@ -2488,6 +2502,8 @@ pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
 }
 
 /// Perform erosion n times.
+#[allow(clippy::many_single_char_names)]
+#[allow(clippy::too_many_arguments)]
 pub fn do_erosion(
     _max_uplift: f32,
     n_steps: usize,

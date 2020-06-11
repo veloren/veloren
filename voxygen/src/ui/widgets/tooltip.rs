@@ -91,6 +91,7 @@ impl TooltipManager {
         }
     }
 
+    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     fn set_tooltip(
         &mut self,
         tooltip: &Tooltip,
@@ -367,6 +368,7 @@ impl<'a> Widget for Tooltip<'a> {
 
     fn style(&self) -> Self::Style { self.style.clone() }
 
+    #[allow(clippy::collapsible_if)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) {
         let widget::UpdateArgs {
             id,

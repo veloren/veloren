@@ -21,6 +21,7 @@ use std::{
 };
 use vek::*;
 
+#[allow(clippy::large_enum_variant)] // TODO: Pending review in #587
 #[derive(PartialEq, Eq, Hash, Clone)]
 enum FigureKey {
     Simple(Body),
@@ -64,6 +65,7 @@ impl CharacterCacheKey {
     }
 }
 
+#[allow(clippy::type_complexity)] // TODO: Pending review in #587
 pub struct FigureModelCache<Skel = anim::character::CharacterSkeleton>
 where
     Skel: Skeleton,
@@ -73,6 +75,7 @@ where
 }
 
 impl<Skel: Skeleton> FigureModelCache<Skel> {
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {
         Self {
             models: HashMap::new(),

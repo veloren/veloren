@@ -14,6 +14,7 @@ const NOTIFY_TIME: f64 = 10.0;
 /// TODO: Make this faster by only considering local waypoints
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     type SystemData = (
         Entities<'a>,
         ReadStorage<'a, Pos>,

@@ -7,6 +7,7 @@ impl Animation for JumpAnimation {
     type Dependency = (Option<ToolKind>, Vec3<f32>, Vec3<f32>, f64);
     type Skeleton = CharacterSkeleton;
 
+    #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
     fn update_skeleton(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, orientation, last_ori, global_time): Self::Dependency,

@@ -36,6 +36,7 @@ pub struct AudioFrontend {
 
 impl AudioFrontend {
     /// Construct with given device
+    #[allow(clippy::redundant_clone)] // TODO: Pending review in #587
     pub fn new(device: String, max_sfx_channels: usize) -> Self {
         let mut sfx_channels = Vec::with_capacity(max_sfx_channels);
         let audio_device = get_device_raw(&device);
@@ -165,6 +166,7 @@ impl AudioFrontend {
         }
     }
 
+    #[allow(clippy::clone_on_copy)] // TODO: Pending review in #587
     pub fn set_listener_pos(&mut self, pos: &Vec3<f32>, ori: &Vec3<f32>) {
         self.listener_pos = pos.clone();
         self.listener_ori = ori.normalized();

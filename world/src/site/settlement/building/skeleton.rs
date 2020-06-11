@@ -72,6 +72,8 @@ impl<T> Skeleton<T> {
         bounds
     }
 
+    #[allow(clippy::logic_bug)] // TODO: Pending review in #587
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn sample_closest(
         &self,
         pos: Vec2<i32>,

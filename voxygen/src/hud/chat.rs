@@ -143,8 +143,12 @@ impl<'a> Widget for Chat<'a> {
         }
     }
 
+    #[allow(clippy::unused_unit)] // TODO: Pending review in #587
     fn style(&self) -> Self::Style { () }
 
+    #[allow(clippy::collapsible_if)] // TODO: Pending review in #587
+    #[allow(clippy::redundant_clone)] // TODO: Pending review in #587
+    #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { id, state, ui, .. } = args;
         let transp = self.global_state.settings.gameplay.chat_transp;

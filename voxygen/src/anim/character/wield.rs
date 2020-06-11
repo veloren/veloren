@@ -9,6 +9,7 @@ impl Animation for WieldAnimation {
     type Dependency = (Option<ToolKind>, f32, f64);
     type Skeleton = CharacterSkeleton;
 
+    #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton(
         skeleton: &Self::Skeleton,
         (active_tool_kind, velocity, global_time): Self::Dependency,

@@ -18,6 +18,7 @@ impl<T: Copy + gfx::traits::Pod> Consts<T> {
     }
 
     /// Update the GPU-side value represented by this constant handle.
+    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
     pub fn update(
         &mut self,
         encoder: &mut gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,

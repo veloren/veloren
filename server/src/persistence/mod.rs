@@ -46,6 +46,7 @@ fn establish_connection(db_dir: &str) -> SqliteConnection {
     connection
 }
 
+#[allow(clippy::single_match)] // TODO: Pending review in #587
 fn apply_saves_dir_override(db_dir: &str) -> String {
     if let Some(val) = env::var_os("VELOREN_SAVES_DIR") {
         let path = PathBuf::from(val);

@@ -59,6 +59,7 @@ pub enum LocalEvent {
     Boost { entity: EcsEntity, vel: Vec3<f32> },
 }
 
+#[allow(clippy::large_enum_variant)] // TODO: Pending review in #587
 pub enum ServerEvent {
     Explosion {
         pos: Vec3<f32>,

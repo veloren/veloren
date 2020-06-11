@@ -69,6 +69,7 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
+        #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
         let stage_time_active = self
             .stage_time_active
             .checked_add(Duration::from_secs_f32(data.dt.0))

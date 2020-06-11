@@ -6,6 +6,7 @@ use sum_type::sum_type;
 // Automatically derive From<T> for EcsCompPacket
 // for each variant EcsCompPacket::T(T.)
 sum_type! {
+    #[allow(clippy::large_enum_variant)] // TODO: Pending review in #587
     #[derive(Clone, Debug, Serialize, Deserialize)]
     pub enum EcsCompPacket {
         Body(comp::Body),

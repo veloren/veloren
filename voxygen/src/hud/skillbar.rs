@@ -139,6 +139,7 @@ pub struct Skillbar<'a> {
 }
 
 impl<'a> Skillbar<'a> {
+    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn new(
         global_state: &'a GlobalState,
         imgs: &'a Imgs,
@@ -207,6 +208,7 @@ impl<'a> Widget for Skillbar<'a> {
         }
     }
 
+    #[allow(clippy::unused_unit)] // TODO: Pending review in #587
     fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {

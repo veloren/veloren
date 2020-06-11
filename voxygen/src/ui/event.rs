@@ -4,6 +4,7 @@ use vek::*;
 #[derive(Clone)]
 pub struct Event(pub Input);
 impl Event {
+    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
     pub fn try_from(
         event: glutin::Event,
         window: &glutin::ContextWrapper<glutin::PossiblyCurrent, winit::Window>,

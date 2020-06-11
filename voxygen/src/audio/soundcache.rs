@@ -1,6 +1,5 @@
 use common::assets;
 use hashbrown::HashMap;
-use rodio;
 use std::{convert::AsRef, io, io::Read, sync::Arc};
 
 // Implementation of sound taken from this github issue:
@@ -31,6 +30,7 @@ pub struct SoundCache {
 }
 
 impl SoundCache {
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {
         Self {
             sounds: HashMap::new(),

@@ -139,6 +139,7 @@ pub fn loadout_remove(equip_slot: EquipSlot, loadout: &mut Loadout) -> Option<it
     loadout_replace(equip_slot, None, loadout)
 }
 
+#[allow(clippy::redundant_closure)] // TODO: Pending review in #587
 fn swap_inventory_loadout(
     inventory_slot: usize,
     equip_slot: EquipSlot,
@@ -195,6 +196,7 @@ fn swap_loadout(slot_a: EquipSlot, slot_b: EquipSlot, loadout: &mut Loadout) {
 
 // Should this report if a change actually occurred? (might be useful when
 // minimizing network use)
+#[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
 pub fn swap(
     slot_a: Slot,
     slot_b: Slot,

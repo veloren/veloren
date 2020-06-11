@@ -202,6 +202,7 @@ impl SkeletonAttr {
 }
 
 impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
+    #[allow(clippy::match_single_binding)] // TODO: Pending review in #587
     fn from(body: &'a comp::humanoid::Body) -> Self {
         use comp::humanoid::{BodyType::*, Species::*};
         Self {

@@ -29,6 +29,7 @@ use vek::*;
 
 const INITIAL_CIV_COUNT: usize = (crate::sim::WORLD_SIZE.x * crate::sim::WORLD_SIZE.y * 3) / 65536; //48 at default scale
 
+#[allow(clippy::type_complexity)] // TODO: Pending review in #587
 #[derive(Default)]
 pub struct Civs {
     civs: Store<Civ>,
@@ -68,6 +69,8 @@ impl<'a, R: Rng> GenCtx<'a, R> {
 }
 
 impl Civs {
+    #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+    #[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
     pub fn generate(seed: u32, sim: &mut WorldSim) -> Self {
         let mut this = Self::default();
         let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
@@ -197,6 +200,7 @@ impl Civs {
     pub fn sites(&self) -> impl Iterator<Item = &Site> + '_ { self.sites.iter() }
 
     #[allow(dead_code)]
+    #[allow(clippy::print_literal)] // TODO: Pending review in #587
     fn display_info(&self) {
         for (id, civ) in self.civs.iter_ids() {
             println!("# Civilisation {:?}", id);
@@ -594,6 +598,8 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>) -> bool {
 }
 
 /// Attempt to search for a location that's suitable for site construction
+#[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+#[allow(clippy::or_fun_call)] // TODO: Pending review in #587
 fn find_site_loc(ctx: &mut GenCtx<impl Rng>, near: Option<(Vec2<i32>, f32)>) -> Option<Vec2<i32>> {
     const MAX_ATTEMPTS: usize = 100;
     let mut loc = None;
@@ -762,6 +768,7 @@ pub enum SiteKind {
 }
 
 impl Site {
+    #[allow(clippy::let_and_return)] // TODO: Pending review in #587
     pub fn simulate(&mut self, years: f32, nat_res: &NaturalResources) {
         // Insert natural resources into the economy
         if self.stocks[Fish] < nat_res.river {
@@ -1035,6 +1042,7 @@ impl<K: Copy + Eq + Hash, T: Clone> MapVec<K, T> {
 
     pub fn get(&self, entry: K) -> &T { self.entries.get(&entry).unwrap_or(&self.default) }
 
+    #[allow(clippy::clone_on_copy)] // TODO: Pending review in #587
     pub fn map<U: Default>(self, mut f: impl FnMut(K, T) -> U) -> MapVec<K, U> {
         MapVec {
             entries: self

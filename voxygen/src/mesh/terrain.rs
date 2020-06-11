@@ -18,6 +18,7 @@ trait Blendable {
 }
 
 impl Blendable for BlockKind {
+    #[allow(clippy::match_single_binding)] // TODO: Pending review in #587
     fn is_blended(&self) -> bool {
         match self {
             _ => false,
@@ -205,6 +206,12 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
     type Supplement = Aabb<i32>;
     type TranslucentPipeline = FluidPipeline;
 
+    #[allow(clippy::collapsible_if)] // TODO: Pending review in #587
+    #[allow(clippy::many_single_char_names)] // TODO: Pending review in #587
+    #[allow(clippy::needless_range_loop)] // TODO: Pending review in #587
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
+    #[allow(clippy::panic_params)] // TODO: Pending review in #587
+    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
     fn generate_mesh(
         &'a self,
         range: Self::Supplement,

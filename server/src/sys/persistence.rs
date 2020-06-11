@@ -8,6 +8,7 @@ use specs::{Join, ReadExpect, ReadStorage, System, Write};
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     type SystemData = (
         ReadStorage<'a, Player>,
         ReadStorage<'a, Stats>,

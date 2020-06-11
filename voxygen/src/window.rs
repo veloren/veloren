@@ -499,6 +499,7 @@ impl Window {
 
     pub fn renderer_mut(&mut self) -> &mut Renderer { &mut self.renderer }
 
+    #[allow(clippy::match_bool)] // TODO: Pending review in #587
     pub fn fetch_events(&mut self, settings: &mut Settings) -> Vec<Event> {
         let mut events = vec![];
         events.append(&mut self.supplement_events);
@@ -924,6 +925,7 @@ impl Window {
 
     pub fn needs_refresh_resize(&mut self) { self.needs_refresh_resize = true; }
 
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn logical_size(&self) -> Vec2<f64> {
         let (w, h) = self
             .window

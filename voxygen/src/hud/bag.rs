@@ -99,6 +99,7 @@ pub struct Bag<'a> {
 }
 
 impl<'a> Bag<'a> {
+    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn new(
         client: &'a Client,
         imgs: &'a Imgs,
@@ -149,8 +150,10 @@ impl<'a> Widget for Bag<'a> {
         }
     }
 
+    #[allow(clippy::unused_unit)] // TODO: Pending review in #587
     fn style(&self) -> Self::Style { () }
 
+    #[allow(clippy::useless_format)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
 

@@ -87,6 +87,7 @@ impl Mode {
     }
 }
 
+#[allow(clippy::many_single_char_names)] // TODO: Pending review in #587
 pub fn create_quad(
     rect: Aabr<f32>,
     uv_rect: Aabr<f32>,

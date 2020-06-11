@@ -145,6 +145,7 @@ impl Asset for VoxygenLocalization {
 
     /// Load the translations located in the input buffer and convert them
     /// into a `VoxygenLocalization` object.
+    #[allow(clippy::into_iter_on_ref)] // TODO: Pending review in #587
     fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         let mut asked_localization: VoxygenLocalization =
             from_reader(buf_reader).map_err(assets::Error::parse_error)?;

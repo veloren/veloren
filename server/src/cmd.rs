@@ -29,6 +29,7 @@ pub trait ChatCommandExt {
     fn execute(&self, server: &mut Server, entity: EcsEntity, args: String);
 }
 impl ChatCommandExt for ChatCommand {
+    #[allow(clippy::needless_return)] // TODO: Pending review in #587
     fn execute(&self, server: &mut Server, entity: EcsEntity, args: String) {
         let cmd_data = self.data();
         if cmd_data.needs_admin && !server.entity_is_admin(entity) {
@@ -91,6 +92,8 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
     }
 }
 
+#[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+#[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
 fn handle_give_item(
     server: &mut Server,
     client: EcsEntity,
@@ -189,6 +192,7 @@ fn handle_jump(
     }
 }
 
+#[allow(clippy::identity_conversion)] // TODO: Pending review in #587
 fn handle_goto(
     server: &mut Server,
     client: EcsEntity,
@@ -220,6 +224,8 @@ fn handle_goto(
     }
 }
 
+#[allow(clippy::collapsible_if)] // TODO: Pending review in #587
+#[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
 fn handle_kill(
     server: &mut Server,
     client: EcsEntity,
@@ -244,6 +250,7 @@ fn handle_kill(
         .map(|s| s.health.set_to(0, reason));
 }
 
+#[allow(clippy::option_as_ref_deref)] // TODO: Pending review in #587
 fn handle_time(
     server: &mut Server,
     client: EcsEntity,
@@ -331,6 +338,7 @@ fn handle_health(
     }
 }
 
+#[allow(clippy::identity_conversion)] // TODO: Pending review in #587
 fn handle_alias(
     server: &mut Server,
     client: EcsEntity,
@@ -377,6 +385,9 @@ fn handle_alias(
     }
 }
 
+#[allow(clippy::collapsible_if)] // TODO: Pending review in #587
+#[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+#[allow(clippy::useless_format)] // TODO: Pending review in #587
 fn handle_tp(
     server: &mut Server,
     client: EcsEntity,
@@ -428,6 +439,8 @@ fn handle_tp(
     }
 }
 
+#[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+#[allow(clippy::redundant_clone)] // TODO: Pending review in #587
 fn handle_spawn(
     server: &mut Server,
     client: EcsEntity,
@@ -573,6 +586,7 @@ fn handle_build(
     }
 }
 
+#[allow(clippy::identity_conversion)] // TODO: Pending review in #587
 fn handle_help(
     server: &mut Server,
     client: EcsEntity,
@@ -624,6 +638,9 @@ fn handle_kill_npcs(
     server.notify_client(client, ServerMsg::private(text));
 }
 
+#[allow(clippy::float_cmp)] // TODO: Pending review in #587
+#[allow(clippy::needless_return)] // TODO: Pending review in #587
+#[allow(clippy::useless_format)] // TODO: Pending review in #587
 fn handle_object(
     server: &mut Server,
     client: EcsEntity,
@@ -688,6 +705,7 @@ fn handle_object(
     }
 }
 
+#[allow(clippy::useless_format)] // TODO: Pending review in #587
 fn handle_light(
     server: &mut Server,
     client: EcsEntity,
@@ -750,6 +768,7 @@ fn handle_light(
     }
 }
 
+#[allow(clippy::identity_conversion)] // TODO: Pending review in #587
 fn handle_lantern(
     server: &mut Server,
     client: EcsEntity,
@@ -862,6 +881,7 @@ fn handle_waypoint(
     }
 }
 
+#[allow(clippy::identity_conversion)] // TODO: Pending review in #587
 fn handle_adminify(
     server: &mut Server,
     client: EcsEntity,
@@ -903,6 +923,8 @@ fn handle_adminify(
     }
 }
 
+#[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+#[allow(clippy::useless_format)] // TODO: Pending review in #587
 fn handle_tell(
     server: &mut Server,
     client: EcsEntity,
@@ -987,6 +1009,8 @@ fn handle_debug_column(
 }
 
 #[cfg(feature = "worldgen")]
+#[allow(clippy::blacklisted_name)] // TODO: Pending review in #587
+#[allow(clippy::identity_conversion)] // TODO: Pending review in #587
 fn handle_debug_column(
     server: &mut Server,
     client: EcsEntity,
@@ -1067,6 +1091,7 @@ spawn_rate {:?} "#,
     }
 }
 
+#[allow(clippy::or_fun_call)] // TODO: Pending review in #587
 fn find_target(
     ecs: &specs::World,
     opt_alias: Option<String>,
@@ -1207,6 +1232,7 @@ fn handle_debug(
     }
 }
 
+#[allow(clippy::identity_conversion)] // TODO: Pending review in #587
 fn handle_remove_lights(
     server: &mut Server,
     client: EcsEntity,
@@ -1258,6 +1284,10 @@ fn handle_remove_lights(
     );
 }
 
+#[allow(clippy::chars_next_cmp)] // TODO: Pending review in #587
+#[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+#[allow(clippy::or_fun_call)] // TODO: Pending review in #587
+#[allow(clippy::useless_format)] // TODO: Pending review in #587
 fn handle_sudo(
     server: &mut Server,
     client: EcsEntity,
