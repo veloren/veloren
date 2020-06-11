@@ -33,6 +33,7 @@ pub enum PlayerListUpdate {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerInfo {
     pub is_admin: bool,
+    pub is_online: bool,
     pub player_alias: String,
     pub character: Option<CharacterInfo>,
 }

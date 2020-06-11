@@ -803,19 +803,30 @@ impl Client {
                             };
                         }
                     },
-                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(_uid)) => {
-                        // Don't remove players because we need to remember the
-                        // names of disconnected players in chat.
+                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(uid)) => {
+                        // Instead of removing players, mark them as offline because we need to
+                        // remember the names of disconnected players in chat.
+                        //
+                        // TODO the server should re-use uids of players that log out and log back
+                        // in.
 
-                        /*
-                        if self.player_list.remove(&uid).is_none() {
+                        if let Some(player_info) = self.player_list.get_mut(&uid) {
+                            if player_info.is_online {
+                                player_info.is_online = false;
+                            } else {
+                                warn!(
+                                    "Received msg to remove uid {} from the player list by they \
+                                     were already marked offline",
+                                    uid
+                                );
+                            }
+                        } else {
                             warn!(
                                 "Received msg to remove uid {} from the player list by they \
                                  weren't in the list!",
                                 uid
                             );
                         }
-                        */
                     },
                     ServerMsg::PlayerListUpdate(PlayerListUpdate::Alias(uid, new_name)) => {
                         if let Some(player_info) = self.player_list.get_mut(&uid) {
