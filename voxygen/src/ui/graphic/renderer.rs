@@ -67,7 +67,7 @@ impl euc::Interpolate for VsOut {
     }
 
     #[inline(always)]
-    #[allow(clippy::many_single_char_names)] // TODO: Pending review in #587
+    #[allow(clippy::many_single_char_names)]
     fn lerp3(a: Self, b: Self, c: Self, x: f32, y: f32, z: f32) -> Self {
         //a * x + b * y + c * z
         Self(
