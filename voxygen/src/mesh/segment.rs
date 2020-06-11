@@ -23,6 +23,8 @@ where
     type Supplement = (Vec3<f32>, Vec3<f32>);
     type TranslucentPipeline = FigurePipeline;
 
+    #[allow(clippy::needless_range_loop)] // TODO: Pending review in #587
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn generate_mesh(
         &'a self,
         (offs, scale): Self::Supplement,
@@ -89,6 +91,8 @@ where
     type Supplement = (Vec3<f32>, Vec3<f32>);
     type TranslucentPipeline = SpritePipeline;
 
+    #[allow(clippy::needless_range_loop)] // TODO: Pending review in #587
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn generate_mesh(
         &'a self,
         (offs, scale): Self::Supplement,

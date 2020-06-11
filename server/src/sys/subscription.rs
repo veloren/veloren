@@ -21,6 +21,7 @@ use vek::*;
 /// This system will update region subscriptions based on client positions
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     type SystemData = (
         Entities<'a>,
         ReadExpect<'a, RegionMap>,
@@ -36,6 +37,8 @@ impl<'a> System<'a> for Sys {
         TrackedComps<'a>,
     );
 
+    #[allow(clippy::block_in_if_condition_stmt)] // TODO: Pending review in #587
+    #[allow(clippy::clone_on_copy)] // TODO: Pending review in #587
     fn run(
         &mut self,
         (

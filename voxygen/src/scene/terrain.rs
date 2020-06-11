@@ -247,6 +247,8 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
 }
 
 /// Function executed by worker threads dedicated to chunk meshing.
+#[allow(clippy::or_fun_call)] // TODO: Pending review in #587
+#[allow(clippy::redundant_closure)] // TODO: Pending review in #587
 fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
     pos: Vec2<i32>,
     z_bounds: (f32, f32),
@@ -321,6 +323,7 @@ pub struct Terrain<V: RectRasterableVol> {
 }
 
 impl<V: RectRasterableVol> Terrain<V> {
+    #[allow(clippy::float_cmp)] // TODO: Pending review in #587
     pub fn new(renderer: &mut Renderer) -> Self {
         // Create a new mpsc (Multiple Produced, Single Consumer) pair for communicating
         // with worker threads that are meshing chunks.
@@ -1878,6 +1881,8 @@ impl<V: RectRasterableVol> Terrain<V> {
     }
 
     /// Maintain terrain data. To be called once per tick.
+    #[allow(clippy::for_loop_over_option)] // TODO: Pending review in #587
+    #[allow(clippy::len_zero)] // TODO: Pending review in #587
     pub fn maintain(
         &mut self,
         renderer: &mut Renderer,

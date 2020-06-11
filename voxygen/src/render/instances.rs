@@ -12,6 +12,7 @@ pub struct Instances<T: Copy + gfx::traits::Pod> {
 }
 
 impl<T: Copy + gfx::traits::Pod> Instances<T> {
+    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
     pub fn new(factory: &mut gfx_backend::Factory, len: usize) -> Result<Self, RenderError> {
         Ok(Self {
             ibuf: factory
@@ -22,6 +23,7 @@ impl<T: Copy + gfx::traits::Pod> Instances<T> {
 
     pub fn count(&self) -> usize { self.ibuf.len() }
 
+    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
     pub fn update(
         &mut self,
         encoder: &mut gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,

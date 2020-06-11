@@ -80,8 +80,10 @@ impl<'a> Widget for Popup<'a> {
         }
     }
 
+    #[allow(clippy::unused_unit)] // TODO: Pending review in #587
     fn style(&self) -> Self::Style { () }
 
+    #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
 

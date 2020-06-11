@@ -33,6 +33,8 @@ gfx_defines! {
 }
 
 impl Vertex {
+    #[allow(clippy::identity_op)] // TODO: Pending review in #587
+    #[allow(clippy::into_iter_on_ref)] // TODO: Pending review in #587
     pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, col: Rgb<f32>, light: f32, _opac: f32) -> Self {
         let (norm_axis, norm_dir) = norm
             .as_slice()

@@ -89,6 +89,7 @@ pub struct RegionMap {
     tick: u64,
 }
 impl RegionMap {
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {
         Self {
             regions: IndexMap::default(),
@@ -222,6 +223,7 @@ impl RegionMap {
 
     /// Finds the region where a given entity is located using a given position
     /// to speed up the search
+    #[allow(clippy::needless_range_loop)] // TODO: Pending review in #587
     pub fn find_region(&self, entity: specs::Entity, pos: Vec3<f32>) -> Option<Vec2<i32>> {
         let id = entity.id();
         // Compute key for most likely region
@@ -306,6 +308,7 @@ impl RegionMap {
     }
 
     /// Add a region using its key
+    #[allow(clippy::needless_range_loop)] // TODO: Pending review in #587
     fn remove_index(&mut self, index: usize) {
         // Remap neighbor indices for neighbors of the region that will be moved from
         // the end of the index map

@@ -48,6 +48,7 @@ impl LocalizationEntryState {
 }
 
 /// Returns the Git blob associated with the given reference and path
+#[allow(clippy::expect_fun_call)] // TODO: Pending review in #587
 fn read_file_from_path<'a>(
     repo: &'a git2::Repository,
     reference: &git2::Reference,
@@ -136,6 +137,9 @@ fn generate_key_version<'a>(
 
 #[test]
 #[ignore]
+#[allow(clippy::expect_fun_call)] // TODO: Pending review in #587
+#[allow(clippy::extra_unused_lifetimes)] // TODO: Pending review in #587
+#[allow(clippy::or_fun_call)] // TODO: Pending review in #587
 fn test_all_localizations<'a>() {
     // Generate paths
     let i18n_asset_path = Path::new("assets/voxygen/i18n/");

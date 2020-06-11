@@ -20,6 +20,7 @@ use specs::{
 /// This system will send physics updates to the client
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     type SystemData = (
         Entities<'a>,
         Read<'a, Tick>,
@@ -43,6 +44,7 @@ impl<'a> System<'a> for Sys {
         ReadTrackers<'a>,
     );
 
+    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
     fn run(
         &mut self,
         (

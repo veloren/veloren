@@ -87,6 +87,8 @@ pub struct Server {
 
 impl Server {
     /// Create a new `Server`
+    #[allow(clippy::expect_fun_call)] // TODO: Pending review in #587
+    #[allow(clippy::needless_update)] // TODO: Pending review in #587
     pub fn new(settings: ServerSettings) -> Result<Self, Error> {
         let mut state = State::default();
         state.ecs_mut().insert(EventBus::<ServerEvent>::default());

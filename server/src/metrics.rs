@@ -34,6 +34,7 @@ pub struct ServerMetrics {
 }
 
 impl TickMetrics {
+    #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
     pub fn new(registry: &Registry, tick: Arc<AtomicU64>) -> Result<Self, Box<dyn Error>> {
         let player_online = IntGauge::with_opts(Opts::new(
             "player_online",
@@ -102,6 +103,7 @@ impl TickMetrics {
 }
 
 impl ServerMetrics {
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {
         let running = Arc::new(AtomicBool::new(false));
         let tick = Arc::new(AtomicU64::new(0));

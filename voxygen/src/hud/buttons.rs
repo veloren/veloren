@@ -56,6 +56,7 @@ pub struct Buttons<'a> {
 }
 
 impl<'a> Buttons<'a> {
+    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn new(
         client: &'a Client,
         show_bag: bool,
@@ -105,6 +106,7 @@ impl<'a> Widget for Buttons<'a> {
         }
     }
 
+    #[allow(clippy::unused_unit)] // TODO: Pending review in #587
     fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {

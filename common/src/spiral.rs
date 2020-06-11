@@ -9,12 +9,15 @@ pub struct Spiral2d {
 }
 
 impl Spiral2d {
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self { Self { layer: 0, i: 0 } }
 }
 
 impl Iterator for Spiral2d {
     type Item = Vec2<i32>;
 
+    #[allow(clippy::erasing_op)] // TODO: Pending review in #587
+    #[allow(clippy::identity_op)] // TODO: Pending review in #587
     fn next(&mut self) -> Option<Self::Item> {
         let layer_size = (self.layer * 8 + 4 * self.layer.min(1) - 4).max(1);
         if self.i >= layer_size {

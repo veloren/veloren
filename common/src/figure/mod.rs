@@ -73,6 +73,7 @@ impl Segment {
 pub struct DynaUnionizer<V: Vox>(Vec<(Dyna<V, ()>, Vec3<i32>)>);
 
 impl<V: Vox + Copy> DynaUnionizer<V> {
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self { DynaUnionizer(Vec::new()) }
 
     pub fn add(mut self, dyna: Dyna<V, ()>, offset: Vec3<i32>) -> Self {
@@ -87,6 +88,7 @@ impl<V: Vox + Copy> DynaUnionizer<V> {
         }
     }
 
+    #[allow(clippy::neg_multiply)] // TODO: Pending review in #587
     pub fn unify(self) -> (Dyna<V, ()>, Vec3<i32>) {
         if self.0.is_empty() {
             return (Dyna::filled(Vec3::zero(), V::empty(), ()), Vec3::zero());

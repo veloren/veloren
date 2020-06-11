@@ -24,6 +24,7 @@ use crate::{
 pub struct LoadoutBuilder(Loadout);
 
 impl LoadoutBuilder {
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {
         Self(Loadout {
             active_item: None,

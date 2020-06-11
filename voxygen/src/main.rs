@@ -16,6 +16,7 @@ use common::assets::{load, load_expect};
 use log::{debug, error};
 use std::{mem, panic, str::FromStr};
 
+#[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
 fn main() {
     #[cfg(feature = "tweak")]
     const_tweaker::run().expect("Could not run server");

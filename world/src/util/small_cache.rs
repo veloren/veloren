@@ -27,6 +27,7 @@ impl<V: Default> Default for SmallCache<V> {
     }
 }
 impl<V: Default> SmallCache<V> {
+    #[allow(clippy::clone_on_copy)] // TODO: Pending review in #587
     pub fn get<F: FnOnce(Vec2<i32>) -> V>(&mut self, key: Vec2<i32>, f: F) -> &V {
         let idx = calc_idx(key) % CACHE_LEN;
 

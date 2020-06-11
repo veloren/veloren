@@ -16,6 +16,7 @@ pub const BLOCK_ANGLE: f32 = 180.0;
 /// attacking
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,

@@ -11,6 +11,7 @@ impl Animation for DashAnimation {
     type Dependency = (Option<ToolKind>, f64);
     type Skeleton = CharacterSkeleton;
 
+    #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update_skeleton(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _global_time): Self::Dependency,

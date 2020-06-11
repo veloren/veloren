@@ -24,6 +24,8 @@ pub fn handle_damage(server: &Server, uid: Uid, change: HealthChange) {
     }
 }
 
+#[allow(clippy::collapsible_if)] // TODO: Pending review in #587
+#[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
 pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSource) {
     let state = server.state_mut();
 
@@ -333,6 +335,7 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
     }
 }
 
+#[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
 pub fn handle_respawn(server: &Server, entity: EcsEntity) {
     let state = &server.state;
 

@@ -63,6 +63,7 @@ impl Default for ServerSettings {
 }
 
 impl ServerSettings {
+    #[allow(clippy::single_match)] // TODO: Pending review in #587
     pub fn load() -> Self {
         let path = ServerSettings::get_settings_path();
 

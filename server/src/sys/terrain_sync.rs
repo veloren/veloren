@@ -12,6 +12,7 @@ use specs::{Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
 /// chunks
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     type SystemData = (
         ReadExpect<'a, TerrainGrid>,
         Read<'a, TerrainChanges>,

@@ -113,8 +113,10 @@ impl<'a, T> Widget for RadioList<'a, T> {
         }
     }
 
+    #[allow(clippy::unused_unit)] // TODO: Pending review in #587
     fn style(&self) -> Self::Style { () }
 
+    #[allow(clippy::needless_range_loop)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs {
             id,

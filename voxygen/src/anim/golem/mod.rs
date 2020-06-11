@@ -26,6 +26,7 @@ pub struct GolemSkeleton {
 }
 
 impl GolemSkeleton {
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {
         Self {
             head: Bone::default(),

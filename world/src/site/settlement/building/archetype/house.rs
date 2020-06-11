@@ -161,6 +161,8 @@ impl Archetype for House {
         (this, skel)
     }
 
+    #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
+    #[allow(clippy::int_plus_one)] // TODO: Pending review in #587
     fn draw(
         &self,
         dist: i32,

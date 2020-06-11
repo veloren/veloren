@@ -22,6 +22,7 @@ pub fn handle_create_character(
     sys::subscription::initialize_region_subscription(state.ecs(), entity);
 }
 
+#[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
 pub fn handle_create_npc(
     server: &mut Server,
     pos: Pos,
