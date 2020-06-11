@@ -27,14 +27,14 @@ glutin = "0.21.1"
 winit = { version = "0.19.4", features = ["serde"] }
 conrod_core = { git = "https://gitlab.com/veloren/conrod.git", branch = "pre-winit-20" }
 conrod_winit = { git = "https://gitlab.com/veloren/conrod.git", branch = "pre-winit-20" }
-euc = "0.3.0"
+euc = { git = "https://github.com/zesterer/euc.git" }
 
 # ECS
 specs = "0.15.1"
 specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git" }
 
 # Mathematics
-vek = { version = "0.10.0", features = ["serde"] }
+vek = { version = "0.11.0", features = ["serde"] }
 
 # Controller
 gilrs = { version = "0.7", features = ["serde"] }
@@ -46,28 +46,28 @@ server = { package = "veloren-server", path = "../server", optional = true }
 glsl-include = "0.3.1"
 failure = "0.1.6"
 log = "0.4.8"
-dot_vox = "4.0.0"
-image = "0.22.3"
-serde = "1.0.102"
-serde_derive = "1.0.102"
-ron = "0.5.1"
+dot_vox = "4.0"
+image = { version = "0.22.5", default-features = false, features = ["ico", "png"] }
+serde = "1.0"
+serde_derive = "1.0"
+ron = { version = "0.6", default-features = false }
 guillotiere = { git = "https://github.com/Imberflur/guillotiere" }
 fern = { version = "0.5.8", features = ["colored"] }
-msgbox = { git = "https://github.com/bekker/msgbox-rs.git", rev = "68fe39a", optional = true }
+msgbox = { git = "https://github.com/bekker/msgbox-rs.git", default-features = false, rev = "68fe39a", optional = true }
 directories = "2.0.2"
 num = "0.2.0"
 backtrace = "0.3.40"
-rand = "0.7.2"
+rand = "0.7"
 treeculler = { git = "https://gitlab.com/yusdacra/treeculler.git" }
 rodio = { version = "0.10", default-features = false, features = ["wav", "vorbis"] }
 cpal = "0.10"
 crossbeam = "=0.7.2"
-hashbrown = { version = "0.6.2", features = ["rayon", "serde", "nightly"] }
+hashbrown = { version = "0.6", features = ["rayon", "serde", "nightly"] }
 chrono = "0.4.9"
 bincode = "1.2"
 deunicode = "1.0"
 uvth = "3.1.1"
-authc = { git = "https://gitlab.com/veloren/auth.git", rev = "65571ade0d954a0e0bd995fdb314854ff146ab97" }
+authc = { git = "https://gitlab.com/veloren/auth.git", rev = "223a4097f7ebc8d451936dccb5e6517194bbf086" }
 const-tweaker = { version = "0.2.5", optional = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]

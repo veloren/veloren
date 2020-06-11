@@ -92,10 +92,10 @@ impl<'a> Pipeline for Voxel {
             //norm: _,
             ao_level,
         }: &Self::Vertex,
-    ) -> ([f32; 3], Self::VsOut) {
+    ) -> ([f32; 4], Self::VsOut) {
         let light = Rgba::from_opaque(Rgb::from(*ao_level as f32 / 4.0 + 0.25));
         let color = light * srgba_to_linear(Rgba::from_opaque(*col));
-        let position = (self.mvp * Vec4::from_point(*pos)).xyz().into_array();
+        let position = (self.mvp * Vec4::from_point(*pos)).into_array();
         (position, VsOut(color))
     }
 
@@ -175,7 +175,7 @@ pub fn draw_vox(
     Voxel { mvp }.draw::<rasterizer::Triangles<_>, _>(
         &generate_mesh(segment, Vec3::from(0.0)),
         &mut color,
-        &mut depth,
+        Some(&mut depth),
     );
 
     let rgba_img = RgbaImage::from_vec(

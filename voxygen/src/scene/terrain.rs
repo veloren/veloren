@@ -2023,6 +2023,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             })
             .min_by_key(|todo| todo.active_worker.unwrap_or(todo.started_tick))
         {
+            // TODO: find a alternative!
             if scene_data.thread_pool.queued_jobs() > 0 {
                 break;
             }

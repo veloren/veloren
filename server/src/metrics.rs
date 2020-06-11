@@ -1,6 +1,5 @@
-use log::info;
+use log::{debug, error};
 use prometheus::{Encoder, Gauge, IntGauge, IntGaugeVec, Opts, Registry, TextEncoder};
-use rouille::{router, Server};
 use std::{
     convert::TryInto,
     error::Error,
@@ -135,25 +134,35 @@ impl ServerMetrics {
 
         //TODO: make this a job
         self.handle = Some(thread::spawn(move || {
-            let server = Server::new(addr, move |request| {
-                router!(request,
-                        (GET) (/metrics) => {
-                        let encoder = TextEncoder::new();
-                        let mut buffer = vec![];
-                        let mf = registry.gather();
-                        encoder.encode(&mf, &mut buffer).expect("Failed to encoder metrics text.");
-                        rouille::Response::text(String::from_utf8(buffer).expect("Failed to parse bytes as a string."))
-                },
-                _ => rouille::Response::empty_404()
-                )
-            })
-                .expect("Failed to start server");
-            info!("Started server metrics: {}", addr);
+            let server = tiny_http::Server::http(addr).unwrap();
+            const TIMEOUT: Duration = Duration::from_secs(1);
+            debug!("starting tiny_http server to serve metrics");
             while running2.load(Ordering::Relaxed) {
-                server.poll();
-                // Poll at 10Hz
-                thread::sleep(Duration::from_millis(100));
+                let request = match server.recv_timeout(TIMEOUT) {
+                    Ok(Some(rq)) => rq,
+                    Ok(None) => continue,
+                    Err(e) => {
+                        println!("error: {}", e);
+                        break;
+                    },
+                };
+                let mf = registry.gather();
+                let encoder = TextEncoder::new();
+                let mut buffer = vec![];
+                encoder
+                    .encode(&mf, &mut buffer)
+                    .expect("Failed to encoder metrics text.");
+                let response = tiny_http::Response::from_string(
+                    String::from_utf8(buffer).expect("Failed to parse bytes as a string."),
+                );
+                if let Err(e) = request.respond(response) {
+                    error!(
+                        "The metrics HTTP server had encountered and error with answering, {}",
+                        e
+                    );
+                }
             }
+            debug!("stopping tiny_http server to serve metrics");
         }));
         Ok(())
     }
