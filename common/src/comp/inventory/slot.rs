@@ -80,6 +80,8 @@ impl ArmorSlot {
 // TODO: There are plans to save the selected abilities for each tool even
 // when they are not equipped, when that is implemented this helper function
 // should no longer be needed
+
+/// Create an ItemConfig for an item. Apply abilties to item.
 fn item_config(item: item::Item) -> comp::ItemConfig {
     let mut abilities = if let item::ItemKind::Tool(tool) = &item.kind {
         tool.get_abilities()
@@ -98,6 +100,8 @@ fn item_config(item: item::Item) -> comp::ItemConfig {
     }
 }
 
+/// Replace an equiptment slot with an item. Return the item that was in the
+/// slot, if any. Doesn't update the inventory.
 fn loadout_replace(
     equip_slot: EquipSlot,
     item: Option<item::Item>,
@@ -126,6 +130,7 @@ fn loadout_replace(
     }
 }
 
+/// Insert an item into a loadout
 #[must_use]
 fn loadout_insert(
     equip_slot: EquipSlot,
@@ -135,10 +140,39 @@ fn loadout_insert(
     loadout_replace(equip_slot, Some(item), loadout)
 }
 
+/// Remove an item from a loadout.
+///
+/// ```
+/// use veloren_common::{
+///     comp::{
+///         slot::{loadout_remove, EquipSlot},
+///         Inventory,
+///     },
+///     LoadoutBuilder,
+/// };
+///
+/// let mut inv = Inventory {
+///     slots: vec![None],
+///     amount: 0,
+/// };
+///
+/// let mut loadout = LoadoutBuilder::new()
+///     .defaults()
+///     .active_item(LoadoutBuilder::default_item_config_from_str(Some(
+///         "common.items.weapons.sword.zweihander_sword_0",
+///     )))
+///     .build();
+///
+/// let slot = EquipSlot::Mainhand;
+///
+/// loadout_remove(slot, &mut loadout);
+/// assert_eq!(None, loadout.active_item);
+/// ```
 pub fn loadout_remove(equip_slot: EquipSlot, loadout: &mut Loadout) -> Option<item::Item> {
     loadout_replace(equip_slot, None, loadout)
 }
 
+/// Swap item in an inventory slot with one in a loadout slot.
 fn swap_inventory_loadout(
     inventory_slot: usize,
     equip_slot: EquipSlot,
@@ -167,6 +201,7 @@ fn swap_inventory_loadout(
     }
 }
 
+/// Swap items in loadout.
 fn swap_loadout(slot_a: EquipSlot, slot_b: EquipSlot, loadout: &mut Loadout) {
     // Ensure that the slots are not the same
     if slot_a == slot_b {
@@ -191,8 +226,10 @@ fn swap_loadout(slot_a: EquipSlot, slot_b: EquipSlot, loadout: &mut Loadout) {
     }
 }
 
-// Should this report if a change actually occurred? (might be useful when
+// TODO: Should this report if a change actually occurred? (might be useful when
 // minimizing network use)
+
+/// Swap items from two slots, regardless of if either is inventory or loadout.
 pub fn swap(
     slot_a: Slot,
     slot_b: Slot,
@@ -319,7 +356,7 @@ mod tests {
     use crate::{assets, LoadoutBuilder};
 
     #[test]
-    fn test_unequip() {
+    fn test_unequip_items_both_hands() {
         let mut inv = Inventory {
             slots: vec![None],
             amount: 0,
@@ -343,10 +380,14 @@ mod tests {
         unequip(EquipSlot::Offhand, &mut inv, &mut loadout);
         // There is no more space in the inventory, so this should still be equipped
         assert_eq!(sword, loadout.second_item);
+
+        // Verify inventory
+        assert_eq!(inv.slots[0], Some(sword.clone().unwrap().item));
+        assert_eq!(inv.slots.len(), 1);
     }
 
     #[test]
-    fn test_equip() {
+    fn test_equip_item() {
         let boots: Option<comp::Item> = Some(assets::load_expect_cloned(
             "common.items.testing.test_boots",
         ));
@@ -368,7 +409,59 @@ mod tests {
 
         // We should now have the testing boots equiped
         assert_eq!(boots, loadout.foot);
-        // The starting sandles should now be in the inventory
-        assert_eq!(starting_sandles, inv.slots[0]);
+
+        // Verify inventory
+        assert_eq!(inv.slots[0], starting_sandles);
+        assert_eq!(inv.slots.len(), 1);
+    }
+
+    #[test]
+    fn test_loadout_replace() {
+        let boots: Option<comp::Item> = Some(assets::load_expect_cloned(
+            "common.items.testing.test_boots",
+        ));
+
+        let starting_sandles: Option<comp::Item> = Some(assets::load_expect_cloned(
+            "common.items.armor.starter.sandals_0",
+        ));
+
+        let mut loadout = LoadoutBuilder::new().defaults().build();
+
+        // We should start with the starting sandles
+        assert_eq!(starting_sandles, loadout.foot);
+
+        // The swap should return the sandles
+        assert_eq!(
+            starting_sandles,
+            loadout_replace(
+                EquipSlot::Armor(ArmorSlot::Feet),
+                boots.clone(),
+                &mut loadout,
+            )
+        );
+
+        // We should now have the testing boots equiped
+        assert_eq!(boots, loadout.foot);
+    }
+
+    #[test]
+    fn test_loadout_remove() {
+        let sword = LoadoutBuilder::default_item_config_from_str(Some(
+            "common.items.weapons.sword.zweihander_sword_0",
+        ));
+
+        let mut loadout = LoadoutBuilder::new()
+            .defaults()
+            .active_item(sword.clone())
+            .build();
+
+        // The swap should return the sword
+        assert_eq!(
+            Some(sword.clone().unwrap().item),
+            loadout_remove(EquipSlot::Mainhand, &mut loadout,)
+        );
+
+        // We should now have nothing equiped
+        assert_eq!(None, loadout.active_item);
     }
 }
