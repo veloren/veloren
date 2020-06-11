@@ -108,12 +108,12 @@ impl ChatMsg {
             ChatType::Broadcast => SpeechBubbleType::None,
             ChatType::Private => SpeechBubbleType::None,
             ChatType::Kill => SpeechBubbleType::None,
-            ChatType::Tell(_u, _) => SpeechBubbleType::None,
-            ChatType::Say(_u) => SpeechBubbleType::None,
-            ChatType::Group(_u, _s) => SpeechBubbleType::None,
-            ChatType::Faction(_u, _s) => SpeechBubbleType::None,
-            ChatType::Region(_u) => SpeechBubbleType::None,
-            ChatType::World(_u) => SpeechBubbleType::None,
+            ChatType::Tell(_u, _) => SpeechBubbleType::Tell,
+            ChatType::Say(_u) => SpeechBubbleType::Say,
+            ChatType::Group(_u, _s) => SpeechBubbleType::Group,
+            ChatType::Faction(_u, _s) => SpeechBubbleType::Faction,
+            ChatType::Region(_u) => SpeechBubbleType::Region,
+            ChatType::World(_u) => SpeechBubbleType::World,
             ChatType::Npc(_u, _r) => SpeechBubbleType::None,
         }
     }
