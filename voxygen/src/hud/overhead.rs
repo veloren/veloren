@@ -1,10 +1,13 @@
-use super::{img_ids::Imgs, HP_COLOR, LOW_HP_COLOR, MANA_COLOR};
+use super::{
+    img_ids::Imgs, FACTION_COLOR, GROUP_COLOR, HP_COLOR, LOW_HP_COLOR, MANA_COLOR, SAY_COLOR,
+    TELL_COLOR, TEXT_BG, TEXT_COLOR,
+};
 use crate::{
     i18n::VoxygenLocalization,
     settings::GameplaySettings,
     ui::{fonts::ConrodVoxygenFonts, Ingameable},
 };
-use common::comp::{Energy, SpeechBubble, SpeechBubbleIcon, Stats};
+use common::comp::{Energy, SpeechBubble, SpeechBubbleType, Stats};
 use conrod_core::{
     position::Align,
     widget::{self, Image, Rectangle, Text},
@@ -56,6 +59,7 @@ pub struct Overhead<'a> {
     voxygen_i18n: &'a std::sync::Arc<VoxygenLocalization>,
     imgs: &'a Imgs,
     fonts: &'a ConrodVoxygenFonts,
+    bubble_type: &SpeechBubbleType,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
@@ -65,6 +69,7 @@ impl<'a> Overhead<'a> {
     pub fn new(
         name: &'a str,
         bubble: Option<&'a SpeechBubble>,
+        bubble_type: &'a SpeechBubbleType,
         stats: &'a Stats,
         energy: &'a Energy,
         own_level: u32,
@@ -77,6 +82,7 @@ impl<'a> Overhead<'a> {
         Self {
             name,
             bubble,
+            bubble_type,
             stats,
             energy,
             own_level,
@@ -150,17 +156,25 @@ impl<'a> Widget for Overhead<'a> {
             let localizer =
                 |s: &str, i| -> String { self.voxygen_i18n.get_variation(&s, i).to_string() };
             let bubble_contents: String = bubble.message(localizer);
-
             let mut text = Text::new(&bubble_contents)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(18)
                 .up_from(state.ids.name, 20.0)
                 .x_align_to(state.ids.name, Align::Middle)
                 .parent(id);
-            text = if dark_mode {
-                text.color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
-            } else {
-                text.color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+
+            text = match self.bubble_type {
+                SpeechBubbleType::Tell => text.color(TELL_COLOR),
+                SpeechBubbleType::Say => text.color(SAY_COLOR),
+                SpeechBubbleType::Group => text.color(GROUP_COLOR),
+                SpeechBubbleType::Faction => text.color(FACTION_COLOR),
+                _ => {
+                    if dark_mode {
+                        text.color(TEXT_COLOR)
+                    } else {
+                        text.color(TEXT_BG)
+                    }
+                },
             };
             if let Some(w) = text.get_w(ui) {
                 if w > 250.0 {
@@ -371,14 +385,14 @@ impl<'a> Widget for Overhead<'a> {
 fn bubble_icon(sb: &SpeechBubble, imgs: &Imgs) -> conrod_core::image::Id {
     match sb.icon {
         // One for each chat mode
-        SpeechBubbleIcon::Tell => imgs.chat_tell_small,
-        SpeechBubbleIcon::Say => imgs.chat_say_small,
-        SpeechBubbleIcon::Region => imgs.chat_region_small,
-        SpeechBubbleIcon::Group => imgs.chat_group_small,
-        SpeechBubbleIcon::Faction => imgs.chat_faction_small,
-        SpeechBubbleIcon::World => imgs.chat_world_small,
-        SpeechBubbleIcon::Quest => imgs.nothing, // TODO not implemented
-        SpeechBubbleIcon::Trade => imgs.nothing, // TODO not implemented
-        SpeechBubbleIcon::None => imgs.nothing,  // No icon (default for npcs)
+        SpeechBubbleType::Tell => imgs.chat_tell_small,
+        SpeechBubbleType::Say => imgs.chat_say_small,
+        SpeechBubbleType::Region => imgs.chat_region_small,
+        SpeechBubbleType::Group => imgs.chat_group_small,
+        SpeechBubbleType::Faction => imgs.chat_faction_small,
+        SpeechBubbleType::World => imgs.chat_world_small,
+        SpeechBubbleType::Quest => imgs.nothing, // TODO not implemented
+        SpeechBubbleType::Trade => imgs.nothing, // TODO not implemented
+        SpeechBubbleType::None => imgs.nothing,  // No icon (default for npcs)
     }
 }
