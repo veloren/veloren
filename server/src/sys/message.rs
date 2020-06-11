@@ -93,6 +93,7 @@ impl<'a> System<'a> for Sys {
             .join()
             .map(|(uid, player, stats, admin)| {
                 ((*uid).into(), PlayerInfo {
+                    is_online: true,
                     is_admin: admin.is_some(),
                     player_alias: player.alias.clone(),
                     character: stats.map(|stats| CharacterInfo {
@@ -455,6 +456,7 @@ impl<'a> System<'a> for Sys {
                 let msg =
                     ServerMsg::PlayerListUpdate(PlayerListUpdate::Add((*uid).into(), PlayerInfo {
                         player_alias: player.alias.clone(),
+                        is_online: true,
                         is_admin: admins.get(entity).is_some(),
                         character: None, // new players will be on character select.
                     }));
