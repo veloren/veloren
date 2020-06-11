@@ -12,7 +12,7 @@ edition = "2018"
 bincode = "1.2"
 serde = { version = "1.0" }
 #sending
-async-std = { version = "~1.5", features = ["std"] }
+async-std = { version = "~1.5", default-features = false, features = ["std", "async-task", "default"] }
 #tracing and metrics
 tracing = { version = "0.1", default-features = false }
 tracing-futures = "0.2"
@@ -25,4 +25,4 @@ rand = { version = "0.7" }
 
 [dev-dependencies]
 tracing-subscriber = { version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec"] }
-uvth = { version = "3.1", default-features = false }
+uvth = { version = ">= 3.0, <= 4.0", default-features = false }

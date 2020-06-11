@@ -121,10 +121,9 @@ impl PlayState for MainMenuState {
                                         localized_strings.get("common.fatal_error"),
                                         e
                                     ),
-                                    client::AuthClientError::RequestError(_) => format!(
-                                        "{}: {}",
-                                        localized_strings.get("main.login.failed_sending_request"),
-                                        e
+                                    client::AuthClientError::RequestError() => format!(
+                                        "{}",
+                                        localized_strings.get("main.login.failed_sending_request")
                                     ),
                                     client::AuthClientError::ServerError(_, e) => format!("{}", e),
                                 },
