@@ -59,7 +59,7 @@ pub struct Overhead<'a> {
     voxygen_i18n: &'a std::sync::Arc<VoxygenLocalization>,
     imgs: &'a Imgs,
     fonts: &'a ConrodVoxygenFonts,
-    bubble_type: &SpeechBubbleType,
+    bubble_type: &'a SpeechBubbleType,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
