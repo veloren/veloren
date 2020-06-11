@@ -168,7 +168,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
     type Index = Vec2<i32>;
     type Sample = Option<ColumnSample<'a>>;
 
-    #[allow(clippy::collapsible_if)] // TODO: Pending review in #587
     #[allow(clippy::float_cmp)] // TODO: Pending review in #587
     #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
     #[allow(clippy::nonminimal_bool)] // TODO: Pending review in #587
@@ -679,36 +678,33 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                         let (_, dist, _, (river_t, _, downhill_river_chunk)) =
                                             if let Some(dist) = max_border_river_dist {
                                                 dist
-                                            } else {
-                                                if lake_dist
-                                                    <= TerrainChunkSize::RECT_SIZE.x as f64 * 1.0
-                                                    || in_bounds
-                                                {
-                                                    let gouge_factor = 0.0;
-                                                    return Some((
-                                                        in_bounds
-                                                            || downhill_water_alt
-                                                                .max(river_chunk.water_alt)
-                                                                > alt_for_river,
-                                                        Some(lake_dist as f32),
-                                                        alt_for_river,
-                                                        (downhill_water_alt
+                                            } else if lake_dist
+                                                <= TerrainChunkSize::RECT_SIZE.x as f64 * 1.0
+                                                || in_bounds
+                                            {
+                                                let gouge_factor = 0.0;
+                                                return Some((
+                                                    in_bounds
+                                                        || downhill_water_alt
                                                             .max(river_chunk.water_alt)
-                                                            - river_gouge),
-                                                        alt_for_river,
-                                                        river_scale_factor as f32
-                                                            * (1.0 - gouge_factor),
-                                                    ));
-                                                } else {
-                                                    return Some((
-                                                        false,
-                                                        Some(lake_dist as f32),
-                                                        alt_for_river,
-                                                        downhill_water_alt,
-                                                        alt_for_river,
-                                                        river_scale_factor as f32,
-                                                    ));
-                                                }
+                                                            > alt_for_river,
+                                                    Some(lake_dist as f32),
+                                                    alt_for_river,
+                                                    (downhill_water_alt.max(river_chunk.water_alt)
+                                                        - river_gouge),
+                                                    alt_for_river,
+                                                    river_scale_factor as f32
+                                                        * (1.0 - gouge_factor),
+                                                ));
+                                            } else {
+                                                return Some((
+                                                    false,
+                                                    Some(lake_dist as f32),
+                                                    alt_for_river,
+                                                    downhill_water_alt,
+                                                    alt_for_river,
+                                                    river_scale_factor as f32,
+                                                ));
                                             };
 
                                         let lake_dist = dist.y;

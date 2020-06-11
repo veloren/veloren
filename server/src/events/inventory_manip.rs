@@ -30,7 +30,6 @@ pub fn snuff_lantern(storage: &mut WriteStorage<comp::LightEmitter>, entity: Ecs
 }
 
 #[allow(clippy::block_in_if_condition_stmt)] // TODO: Pending review in #587
-#[allow(clippy::collapsible_if)] // TODO: Pending review in #587
 #[allow(clippy::let_and_return)] // TODO: Pending review in #587
 pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::InventoryManip) {
     let state = server.state_mut();
@@ -95,12 +94,11 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         entity,
                         comp::InventoryUpdate::new(comp::InventoryUpdateEvent::CollectFailed),
                     );
-                } else {
-                    if block.is_collectible() && state.try_set_block(pos, Block::empty()).is_some()
-                    {
-                        comp::Item::try_reclaim_from_block(block)
-                            .map(|item| state.give_item(entity, item));
-                    }
+                } else if block.is_collectible()
+                    && state.try_set_block(pos, Block::empty()).is_some()
+                {
+                    comp::Item::try_reclaim_from_block(block)
+                        .map(|item| state.give_item(entity, item));
                 }
             }
         },

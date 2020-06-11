@@ -206,7 +206,7 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
     type Supplement = Aabb<i32>;
     type TranslucentPipeline = FluidPipeline;
 
-    #[allow(clippy::collapsible_if)] // TODO: Pending review in #587
+    #[allow(clippy::collapsible_if)]
     #[allow(clippy::many_single_char_names)]
     #[allow(clippy::needless_range_loop)] // TODO: Pending review in #587
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
