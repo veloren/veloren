@@ -33,6 +33,7 @@ before_script:
   - export DISABLE_GIT_LFS_CHECK=true
   - export VELOREN_ASSETS="$(pwd)/assets"
   - echo "VELOREN_ASSETS=$VELOREN_ASSETS"
+  - rm -rf target || echo "some quickfix, idk why needed"
 
 workflow:
   rules:
