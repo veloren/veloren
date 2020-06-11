@@ -9,7 +9,6 @@ use veloren_world::{
 const W: usize = 1024;
 const H: usize = 1024;
 
-#[allow(clippy::collapsible_if)] // TODO: Pending review in #587
 #[allow(clippy::needless_update)] // TODO: Pending review in #587
 #[allow(clippy::unused_io_amount)] // TODO: Pending review in #587
 fn main() {

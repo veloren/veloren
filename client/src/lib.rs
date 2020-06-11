@@ -702,7 +702,7 @@ impl Client {
     }
 
     /// Handle new server messages.
-    #[allow(clippy::collapsible_if)] // TODO: Pending review in #587
+
     fn handle_new_messages(&mut self) -> Result<Vec<Event>, Error> {
         let mut frontend_events = Vec::new();
 
@@ -713,12 +713,12 @@ impl Client {
             let duration_since_last_pong = self.state.get_time() - self.last_server_pong;
 
             // Dispatch a notification to the HUD warning they will be kicked in {n} seconds
-            if duration_since_last_pong >= SERVER_TIMEOUT_GRACE_PERIOD {
-                if self.state.get_time() - duration_since_last_pong > 0. {
-                    frontend_events.push(Event::DisconnectionNotification(
-                        (self.state.get_time() - duration_since_last_pong).round() as u64,
-                    ));
-                }
+            if duration_since_last_pong >= SERVER_TIMEOUT_GRACE_PERIOD
+                && self.state.get_time() - duration_since_last_pong > 0.
+            {
+                frontend_events.push(Event::DisconnectionNotification(
+                    (self.state.get_time() - duration_since_last_pong).round() as u64,
+                ));
             }
         }
 

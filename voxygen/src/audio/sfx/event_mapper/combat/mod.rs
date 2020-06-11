@@ -129,7 +129,6 @@ impl CombatEventMapper {
         }
     }
 
-    #[allow(clippy::collapsible_if)] // TODO: Pending review in #587
     fn map_event(
         character_state: &CharacterState,
         previous_state: &PreviousEntityState,
@@ -151,22 +150,16 @@ impl CombatEventMapper {
                         CharacterAbilityType::from(character_state),
                         ToolCategory::from(data.kind),
                     );
-                } else {
-                    if let Some(wield_event) = match (
-                        previous_state.weapon_drawn,
-                        character_state.is_dodge(),
-                        Self::weapon_drawn(character_state),
-                    ) {
-                        (false, false, true) => {
-                            Some(SfxEvent::Wield(ToolCategory::from(data.kind)))
-                        },
-                        (true, false, false) => {
-                            Some(SfxEvent::Unwield(ToolCategory::from(data.kind)))
-                        },
-                        _ => None,
-                    } {
-                        return wield_event;
-                    }
+                } else if let Some(wield_event) = match (
+                    previous_state.weapon_drawn,
+                    character_state.is_dodge(),
+                    Self::weapon_drawn(character_state),
+                ) {
+                    (false, false, true) => Some(SfxEvent::Wield(ToolCategory::from(data.kind))),
+                    (true, false, false) => Some(SfxEvent::Unwield(ToolCategory::from(data.kind))),
+                    _ => None,
+                } {
+                    return wield_event;
                 }
             }
         }

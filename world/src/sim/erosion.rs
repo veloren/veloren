@@ -687,7 +687,6 @@ fn get_max_slope(
 ///     Copyright 2003 by the American Geophysical Union
 ///     10.1029/135GM09
 #[allow(clippy::assign_op_pattern)] // TODO: Pending review in #587
-#[allow(clippy::collapsible_if)] // TODO: Pending review in #587
 #[allow(clippy::many_single_char_names)]
 #[allow(clippy::too_many_arguments)]
 fn erode(
@@ -1388,19 +1387,17 @@ fn erode(
                             // NOTE: If we want erosion to proceed underwater, use h_j here instead
                             // of wh_j.
                             new_h_i = wh_j;
-                        } else {
-                            if compute_stats && new_h_i > 0.0 {
-                                let dxy = (uniform_idx_as_vec2(posi) - uniform_idx_as_vec2(posj))
-                                    .map(|e| e as f64);
-                                let neighbor_distance = (neighbor_coef * dxy).magnitude();
-                                let dz = (new_h_i - wh_j).max(0.0);
-                                let mag_slope = dz / neighbor_distance;
+                        } else if compute_stats && new_h_i > 0.0 {
+                            let dxy = (uniform_idx_as_vec2(posi) - uniform_idx_as_vec2(posj))
+                                .map(|e| e as f64);
+                            let neighbor_distance = (neighbor_coef * dxy).magnitude();
+                            let dz = (new_h_i - wh_j).max(0.0);
+                            let mag_slope = dz / neighbor_distance;
 
-                                nland += 1;
-                                sumsed_land += sed;
-                                sumh += new_h_i;
-                                sums += mag_slope;
-                            }
+                            nland += 1;
+                            sumsed_land += sed;
+                            sumh += new_h_i;
+                            sums += mag_slope;
                         }
                     } else {
                         new_h_i = old_elev_i;
@@ -1628,15 +1625,13 @@ fn erode(
                         if compute_stats {
                             ncorr += 1;
                         }
-                    } else {
-                        if compute_stats && new_h_i > 0.0 {
-                            let dz = (new_h_i - h_j).max(0.0);
-                            let slope = dz / neighbor_distance;
-                            sums += slope;
-                            nland += 1;
-                            sumh += new_h_i;
-                            sumsed_land += sed;
-                        }
+                    } else if compute_stats && new_h_i > 0.0 {
+                        let dz = (new_h_i - h_j).max(0.0);
+                        let slope = dz / neighbor_distance;
+                        sums += slope;
+                        nland += 1;
+                        sumh += new_h_i;
+                        sumsed_land += sed;
                     }
                     if compute_stats {
                         ntherm += 1;
