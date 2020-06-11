@@ -128,13 +128,13 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
         Self {
             head_upper: match (body.species, body.body_type) {
                 (Crocodile, _) => (10.0, 2.0),
-                (Alligator, _) => (0.5, 3.0),
+                (Alligator, _) => (0.5, 3.25),
                 (Salamander, _) => (3.0, 1.0),
                 (Monitor, _) => (3.5, 2.0),
             },
             head_lower: match (body.species, body.body_type) {
                 (Crocodile, _) => (8.0, 0.0),
-                (Alligator, _) => (9.0, 0.0),
+                (Alligator, _) => (9.0, 0.25),
                 (Salamander, _) => (10.0, 2.0),
                 (Monitor, _) => (10.0, 3.0),
             },
@@ -164,13 +164,13 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
             },
             feet_f: match (body.species, body.body_type) {
                 (Crocodile, _) => (6.0, 6.0, -1.0),
-                (Alligator, _) => (6.0, 6.0, 0.0),
+                (Alligator, _) => (6.75, 6.25, -1.0),
                 (Salamander, _) => (6.0, 6.0, -2.0),
                 (Monitor, _) => (6.0, 6.0, 0.0),
             },
             feet_b: match (body.species, body.body_type) {
                 (Crocodile, _) => (6.0, -6.0, -1.0),
-                (Alligator, _) => (6.0, -6.0, 0.0),
+                (Alligator, _) => (6.5, -4.5, -1.0),
                 (Salamander, _) => (6.0, -6.0, -2.0),
                 (Monitor, _) => (6.0, -6.0, 0.0),
             },
