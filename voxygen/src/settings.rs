@@ -676,7 +676,7 @@ pub struct Settings {
 
 impl Default for Settings {
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
-    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
+
     fn default() -> Self {
         let user_dirs = UserDirs::new().expect("System's $HOME directory path not found!");
 
@@ -690,7 +690,7 @@ impl Default for Settings {
             .or(user_dirs.picture_dir().map(|dir| dir.join("veloren")))
             .or(std::env::current_exe()
                 .ok()
-                .and_then(|dir| dir.parent().map(|val| PathBuf::from(val))))
+                .and_then(|dir| dir.parent().map(PathBuf::from)))
             .expect("Couldn't choose a place to store the screenshots");
 
         Settings {

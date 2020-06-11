@@ -30,12 +30,11 @@ pub struct DynamicModel<P: Pipeline> {
 }
 
 impl<P: Pipeline> DynamicModel<P> {
-    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
     pub fn new(factory: &mut gfx_backend::Factory, size: usize) -> Result<Self, RenderError> {
         Ok(Self {
             vbuf: factory
                 .create_buffer(size, Role::Vertex, Usage::Dynamic, Bind::empty())
-                .map_err(|err| RenderError::BufferCreationError(err))?,
+                .map_err(RenderError::BufferCreationError)?,
         })
     }
 
@@ -48,7 +47,6 @@ impl<P: Pipeline> DynamicModel<P> {
         }
     }
 
-    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
     pub fn update(
         &self,
         encoder: &mut gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
@@ -57,6 +55,6 @@ impl<P: Pipeline> DynamicModel<P> {
     ) -> Result<(), RenderError> {
         encoder
             .update_buffer(&self.vbuf, mesh.vertices(), offset)
-            .map_err(|err| RenderError::UpdateError(err))
+            .map_err(RenderError::UpdateError)
     }
 }

@@ -305,7 +305,7 @@ pub struct WorldSim {
 impl WorldSim {
     #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
     #[allow(clippy::let_and_return)] // TODO: Pending review in #587
-    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
+
     pub fn generate(seed: u32, opts: WorldOpts) -> Self {
         let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
         // NOTE: Change 1.0 to 4.0, while multiplying grid_size by 4, for a 4x
@@ -976,22 +976,22 @@ impl WorldSim {
                 // varying conditions
                 &rock_strength_nz,
                 // initial conditions
-                |posi| alt_func(posi),
+                alt_func,
                 |posi| alt_func(posi) - if is_ocean_fn(posi) { 0.0 } else { 0.0 },
                 is_ocean_fn,
                 // empirical constants
                 uplift_fn,
-                |posi| n_func(posi),
-                |posi| theta_func(posi),
-                |posi| kf_func(posi),
-                |posi| kd_func(posi),
-                |posi| g_func(posi),
-                |posi| epsilon_0_func(posi),
-                |posi| alpha_func(posi),
+                n_func,
+                theta_func,
+                kf_func,
+                kd_func,
+                g_func,
+                epsilon_0_func,
+                alpha_func,
                 // scaling factors
-                |n| height_scale(n),
+                height_scale,
                 k_d_scale(n_approx),
-                |q| k_da_scale(q),
+                k_da_scale,
             );
 
             // Quick "small scale" erosion cycle in order to lower extreme angles.
@@ -1004,16 +1004,16 @@ impl WorldSim {
                 |posi| basement[posi] as f32,
                 is_ocean_fn,
                 |posi| uplift_fn(posi) * (1.0 / max_erosion_per_delta_t),
-                |posi| n_func(posi),
-                |posi| theta_func(posi),
-                |posi| kf_func(posi),
-                |posi| kd_func(posi),
-                |posi| g_func(posi),
-                |posi| epsilon_0_func(posi),
-                |posi| alpha_func(posi),
-                |n| height_scale(n),
+                n_func,
+                theta_func,
+                kf_func,
+                kd_func,
+                g_func,
+                epsilon_0_func,
+                alpha_func,
+                height_scale,
                 k_d_scale(n_approx),
-                |q| k_da_scale(q),
+                k_da_scale,
             )
         };
 
@@ -1071,16 +1071,16 @@ impl WorldSim {
                 |posi| basement[posi] as f32,
                 is_ocean_fn,
                 |posi| uplift_fn(posi) * (1.0 / max_erosion_per_delta_t),
-                |posi| n_func(posi),
-                |posi| theta_func(posi),
-                |posi| kf_func(posi),
-                |posi| kd_func(posi),
-                |posi| g_func(posi),
-                |posi| epsilon_0_func(posi),
-                |posi| alpha_func(posi),
-                |n| height_scale(n),
+                n_func,
+                theta_func,
+                kf_func,
+                kd_func,
+                g_func,
+                epsilon_0_func,
+                alpha_func,
+                height_scale,
                 k_d_scale(n_approx),
-                |q| k_da_scale(q),
+                k_da_scale,
             )
         };
 
