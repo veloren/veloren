@@ -115,7 +115,6 @@ impl Server {
         state.ecs_mut().insert(sys::TerrainTimer::default());
         state.ecs_mut().insert(sys::WaypointTimer::default());
         state.ecs_mut().insert(sys::PersistenceTimer::default());
-        //state.ecs_mut().insert(sys::StatsPersistenceTimer::default());
 
         // System schedulers to control execution of systems
         state

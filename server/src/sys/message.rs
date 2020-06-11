@@ -337,10 +337,7 @@ impl<'a> System<'a> for Sys {
                         | ClientState::Character => match validate_chat_msg(&message) {
                             Ok(()) => {
                                 if let Some(from) = uids.get(entity) {
-                                    let mode = chat_modes
-                                        .get(entity)
-                                        .map(Clone::clone)
-                                        .unwrap_or(ChatMode::default());
+                                    let mode = chat_modes.get(entity).cloned().unwrap_or_default();
                                     let msg = mode.new_message(*from, message);
                                     new_chat_msgs.push((Some(entity), msg));
                                 } else {

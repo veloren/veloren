@@ -1034,7 +1034,7 @@ impl Client {
         };
         let message_format = |uid, message, group| {
             if let Some(group) = group {
-                format!("{{{}}} [{}]: {}", group, alias_of_uid(uid), message)
+                format!("({}) [{}]: {}", group, alias_of_uid(uid), message)
             } else {
                 format!("[{}]: {}", alias_of_uid(uid), message)
             }

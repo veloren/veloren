@@ -244,13 +244,8 @@ impl StateExt for State {
     /// by location. Faction and group are limited by component.
     fn send_chat(&self, msg: comp::ChatMsg) {
         let ecs = self.ecs();
-        let is_within = |target, a: &comp::Pos, b_opt: Option<&comp::Pos>| {
-            if let Some(b) = b_opt {
-                a.0.distance(b.0) < target
-            } else {
-                false
-            }
-        };
+        let is_within =
+            |target, a: &comp::Pos, b: &comp::Pos| a.0.distance_squared(b.0) < target * target;
         match &msg.chat_type {
             comp::ChatType::Broadcast
             | comp::ChatType::Kill
@@ -271,54 +266,39 @@ impl StateExt for State {
                 }
             },
 
-            comp::ChatType::Say(_u) => {
-                for (client, pos) in (
-                    &mut ecs.write_storage::<Client>(),
-                    &ecs.read_storage::<comp::Pos>(),
-                )
-                    .join()
-                {
-                    let entity_opt = msg.uid().and_then(|uid| {
-                        (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0)
-                    });
-                    let positions = ecs.read_storage::<comp::Pos>();
-                    let pos_opt = entity_opt.and_then(|e| positions.get(e));
-                    if is_within(comp::ChatMsg::SAY_DISTANCE, pos, pos_opt) {
-                        client.notify(ServerMsg::ChatMsg(msg.clone()));
+            comp::ChatType::Say(uid) => {
+                let entity_opt =
+                    (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
+                let positions = ecs.read_storage::<comp::Pos>();
+                if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
+                    for (client, pos) in (&mut ecs.write_storage::<Client>(), &positions).join() {
+                        if is_within(comp::ChatMsg::SAY_DISTANCE, pos, speaker_pos) {
+                            client.notify(ServerMsg::ChatMsg(msg.clone()));
+                        }
                     }
                 }
             },
-            comp::ChatType::Region(_u) => {
-                for (client, pos) in (
-                    &mut ecs.write_storage::<Client>(),
-                    &ecs.read_storage::<comp::Pos>(),
-                )
-                    .join()
-                {
-                    let entity_opt = msg.uid().and_then(|uid| {
-                        (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0)
-                    });
-                    let positions = ecs.read_storage::<comp::Pos>();
-                    let pos_opt = entity_opt.and_then(|e| positions.get(e));
-                    if is_within(comp::ChatMsg::REGION_DISTANCE, pos, pos_opt) {
-                        client.notify(ServerMsg::ChatMsg(msg.clone()));
+            comp::ChatType::Region(uid) => {
+                let entity_opt =
+                    (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
+                let positions = ecs.read_storage::<comp::Pos>();
+                if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
+                    for (client, pos) in (&mut ecs.write_storage::<Client>(), &positions).join() {
+                        if is_within(comp::ChatMsg::REGION_DISTANCE, pos, speaker_pos) {
+                            client.notify(ServerMsg::ChatMsg(msg.clone()));
+                        }
                     }
                 }
             },
-            comp::ChatType::Npc(_u, _r) => {
-                for (client, pos) in (
-                    &mut ecs.write_storage::<Client>(),
-                    &ecs.read_storage::<comp::Pos>(),
-                )
-                    .join()
-                {
-                    let entity_opt = msg.uid().and_then(|uid| {
-                        (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0)
-                    });
-                    let positions = ecs.read_storage::<comp::Pos>();
-                    let pos_opt = entity_opt.and_then(|e| positions.get(e));
-                    if is_within(comp::ChatMsg::NPC_DISTANCE, pos, pos_opt) {
-                        client.notify(ServerMsg::ChatMsg(msg.clone()));
+            comp::ChatType::Npc(uid, _r) => {
+                let entity_opt =
+                    (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
+                let positions = ecs.read_storage::<comp::Pos>();
+                if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
+                    for (client, pos) in (&mut ecs.write_storage::<Client>(), &positions).join() {
+                        if is_within(comp::ChatMsg::NPC_DISTANCE, pos, speaker_pos) {
+                            client.notify(ServerMsg::ChatMsg(msg.clone()));
+                        }
                     }
                 }
             },

@@ -148,7 +148,7 @@ impl<'a> Widget for Overhead<'a> {
         if let Some(bubble) = self.bubble {
             let dark_mode = self.settings.speech_bubble_dark_mode;
             let localizer =
-                |s: String, i| -> String { self.voxygen_i18n.get_variation(&s, i).to_string() };
+                |s: &str, i| -> String { self.voxygen_i18n.get_variation(&s, i).to_string() };
             let bubble_contents: String = bubble.message(localizer);
 
             let mut text = Text::new(&bubble_contents)

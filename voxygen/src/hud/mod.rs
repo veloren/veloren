@@ -940,8 +940,9 @@ impl Hud {
             }
 
             // Pop speech bubbles
+            let now = Instant::now();
             self.speech_bubbles
-                .retain(|_uid, bubble| bubble.timeout > Instant::now());
+                .retain(|_uid, bubble| bubble.timeout > now);
 
             // Push speech bubbles
             for msg in self.new_messages.iter() {
@@ -1570,13 +1571,8 @@ impl Hud {
         }
 
         // Don't put NPC messages in chat box.
-        self.new_messages.retain(|m| {
-            if let comp::ChatType::Npc(_, _) = m.chat_type {
-                false
-            } else {
-                true
-            }
-        });
+        self.new_messages
+            .retain(|m| !matches!(m.chat_type, comp::ChatType::Npc(_, _)));
 
         // Chat box
         match Chat::new(
