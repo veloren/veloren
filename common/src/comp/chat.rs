@@ -60,9 +60,9 @@ pub enum ChatType {
     /// Inform players that someone died
     Kill,
     /// Server notifications to a group, such as player join/leave
-    GroupMeta,
+    GroupMeta(String),
     /// Server notifications to a faction, such as player join/leave
-    FactionMeta,
+    FactionMeta(String),
     /// One-on-one chat (from, to)
     Tell(Uid, Uid),
     /// Chat with nearby players
@@ -82,15 +82,21 @@ pub enum ChatType {
 }
 
 impl ChatType {
-    pub fn message<S>(self, msg: S) -> ServerMsg
+    pub fn chat_msg<S>(self, msg: S) -> ChatMsg
     where
         S: Into<String>,
     {
-        let msg = ChatMsg {
+        ChatMsg {
             chat_type: self,
             message: msg.into(),
-        };
-        ServerMsg::ChatMsg(msg)
+        }
+    }
+
+    pub fn server_msg<S>(self, msg: S) -> ServerMsg
+    where
+        S: Into<String>,
+    {
+        ServerMsg::ChatMsg(self.chat_msg(msg))
     }
 }
 
@@ -126,8 +132,8 @@ impl ChatMsg {
             ChatType::Offline => SpeechBubbleType::None,
             ChatType::CommandInfo => SpeechBubbleType::None,
             ChatType::CommandError => SpeechBubbleType::None,
-            ChatType::FactionMeta => SpeechBubbleType::None,
-            ChatType::GroupMeta => SpeechBubbleType::None,
+            ChatType::FactionMeta(_) => SpeechBubbleType::None,
+            ChatType::GroupMeta(_) => SpeechBubbleType::None,
             ChatType::Kill => SpeechBubbleType::None,
             ChatType::Tell(_u, _) => SpeechBubbleType::Tell,
             ChatType::Say(_u) => SpeechBubbleType::Say,
@@ -145,8 +151,8 @@ impl ChatMsg {
             ChatType::Offline => None,
             ChatType::CommandInfo => None,
             ChatType::CommandError => None,
-            ChatType::FactionMeta => None,
-            ChatType::GroupMeta => None,
+            ChatType::FactionMeta(_) => None,
+            ChatType::GroupMeta(_) => None,
             ChatType::Kill => None,
             ChatType::Tell(u, _t) => Some(*u),
             ChatType::Say(u) => Some(*u),

@@ -31,11 +31,10 @@ pub trait ChatCommandExt {
 impl ChatCommandExt for ChatCommand {
     #[allow(clippy::needless_return)] // TODO: Pending review in #587
     fn execute(&self, server: &mut Server, entity: EcsEntity, args: String) {
-        let cmd_data = self.data();
-        if *cmd_data.needs_admin && !server.entity_is_admin(entity) {
+        if self.needs_admin() && !server.entity_is_admin(entity) {
             server.notify_client(
                 entity,
-                ChatType::CommandError.message(format!(
+                ChatType::CommandError.server_msg(format!(
                     "You don't have permission to use '/{}'.",
                     self.keyword()
                 )),
@@ -125,7 +124,7 @@ fn handle_give_item(
                         if inv.push(item).is_some() {
                             server.notify_client(
                                 client,
-                                ChatType::CommandError.message(format!(
+                                ChatType::CommandError.server_msg(format!(
                                     "Player inventory full. Gave 0 of {} items.",
                                     give_amount
                                 )),
@@ -144,7 +143,7 @@ fn handle_give_item(
                             if inv.push(item.clone()).is_some() {
                                 server.notify_client(
                                     client,
-                                    ChatType::CommandError.message(format!(
+                                    ChatType::CommandError.server_msg(format!(
                                         "Player inventory full. Gave {} of {} items.",
                                         i, give_amount
                                     )),
@@ -166,11 +165,14 @@ fn handle_give_item(
         } else {
             server.notify_client(
                 client,
-                ChatType::CommandError.message(format!("Invalid item: {}", item_name)),
+                ChatType::CommandError.server_msg(format!("Invalid item: {}", item_name)),
             );
         }
     } else {
-        server.notify_client(client, ChatType::CommandError.message(action.help_string()));
+        server.notify_client(
+            client,
+            ChatType::CommandError.server_msg(action.help_string()),
+        );
     }
 }
 
@@ -231,7 +233,7 @@ fn handle_jump(
             },
             None => server.notify_client(
                 client,
-                ChatType::CommandError.message("You have no position."),
+                ChatType::CommandError.server_msg("You have no position."),
             ),
         }
     }
@@ -258,11 +260,14 @@ fn handle_goto(
         } else {
             server.notify_client(
                 client,
-                ChatType::CommandError.message("You have no position."),
+                ChatType::CommandError.server_msg("You have no position."),
             );
         }
     } else {
-        server.notify_client(client, ChatType::CommandError.message(action.help_string()));
+        server.notify_client(
+            client,
+            ChatType::CommandError.server_msg(action.help_string()),
+        );
     }
 }
 
@@ -312,7 +317,7 @@ fn handle_time(
                 Err(_) => {
                     server.notify_client(
                         client,
-                        ChatType::CommandError.message(format!("'{}' is not a valid time.", n)),
+                        ChatType::CommandError.server_msg(format!("'{}' is not a valid time.", n)),
                     );
                     return;
                 },
@@ -330,7 +335,7 @@ fn handle_time(
                 Some(time) => format!("It is {}", time.format("%H:%M").to_string()),
                 None => String::from("Unknown Time"),
             };
-            server.notify_client(client, ChatType::CommandInfo.message(msg));
+            server.notify_client(client, ChatType::CommandInfo.server_msg(msg));
             return;
         },
     };
@@ -340,7 +345,7 @@ fn handle_time(
 
     server.notify_client(
         client,
-        ChatType::CommandInfo.message(format!(
+        ChatType::CommandInfo.server_msg(format!(
             "Time changed to: {}",
             new_time.format("%H:%M").to_string()
         )),
@@ -365,13 +370,13 @@ fn handle_health(
         } else {
             server.notify_client(
                 client,
-                ChatType::CommandError.message("You have no health."),
+                ChatType::CommandError.server_msg("You have no health."),
             );
         }
     } else {
         server.notify_client(
             client,
-            ChatType::CommandError.message("You must specify health amount!"),
+            ChatType::CommandError.server_msg("You must specify health amount!"),
         );
     }
 }
@@ -388,14 +393,14 @@ fn handle_alias(
         // Notify target that an admin changed the alias due to /sudo
         server.notify_client(
             target,
-            ChatType::CommandInfo.message("An admin changed your alias."),
+            ChatType::CommandInfo.server_msg("An admin changed your alias."),
         );
         return;
     }
     if let Ok(alias) = scan_fmt!(&args, &action.arg_fmt(), String) {
         if !comp::Player::alias_is_valid(&alias) {
             // Prevent silly aliases
-            server.notify_client(client, ChatType::CommandError.message("Invalid alias."));
+            server.notify_client(client, ChatType::CommandError.server_msg("Invalid alias."));
             return;
         }
         let old_alias_optional = server
@@ -422,12 +427,15 @@ fn handle_alias(
             if ecs.read_storage::<comp::Body>().get(target).is_some() {
                 server.state.notify_registered_clients(
                     ChatType::CommandInfo
-                        .message(format!("{} is now known as {}.", old_alias, player.alias)),
+                        .server_msg(format!("{} is now known as {}.", old_alias, player.alias)),
                 );
             }
         }
     } else {
-        server.notify_client(client, ChatType::CommandError.message(action.help_string()));
+        server.notify_client(
+            client,
+            ChatType::CommandError.server_msg(action.help_string()),
+        );
     }
 }
 
@@ -454,9 +462,12 @@ fn handle_tp(
         } else {
             server.notify_client(
                 client,
-                ChatType::CommandError.message("You must specify a player name".to_string()),
+                ChatType::CommandError.server_msg("You must specify a player name"),
             );
-            server.notify_client(client, ChatType::CommandError.message(action.help_string()));
+            server.notify_client(
+                client,
+                ChatType::CommandError.server_msg(action.help_string()),
+            );
             return;
         }
     };
@@ -468,20 +479,23 @@ fn handle_tp(
             } else {
                 server.notify_client(
                     client,
-                    ChatType::CommandError.message(format!("Unable to teleport to player!")),
+                    ChatType::CommandError.server_msg("Unable to teleport to player!"),
                 );
             }
         } else {
             server.notify_client(
                 client,
-                ChatType::CommandError.message(format!("Player not found!")),
+                ChatType::CommandError.server_msg("Player not found!"),
             );
-            server.notify_client(client, ChatType::CommandError.message(action.help_string()));
+            server.notify_client(
+                client,
+                ChatType::CommandError.server_msg(action.help_string()),
+            );
         }
     } else {
         server.notify_client(
             client,
-            ChatType::CommandError.message(format!("You have no position!")),
+            ChatType::CommandError.server_msg("You have no position!"),
         );
     }
 }
@@ -539,27 +553,29 @@ fn handle_spawn(
                             if let Some(uid) = server.state.ecs().uid_from_entity(new_entity) {
                                 server.notify_client(
                                     client,
-                                    ChatType::CommandInfo.message(
-                                        format!("Spawned entity with ID: {}", uid).to_owned(),
-                                    ),
+                                    ChatType::CommandInfo
+                                        .server_msg(format!("Spawned entity with ID: {}", uid)),
                                 );
                             }
                         }
                         server.notify_client(
                             client,
                             ChatType::CommandInfo
-                                .message(format!("Spawned {} entities", amount).to_owned()),
+                                .server_msg(format!("Spawned {} entities", amount)),
                         );
                     },
                     None => server.notify_client(
                         client,
-                        ChatType::CommandError.message("You have no position!".to_owned()),
+                        ChatType::CommandError.server_msg("You have no position!"),
                     ),
                 }
             }
         },
         _ => {
-            server.notify_client(client, ChatType::CommandError.message(action.help_string()));
+            server.notify_client(
+                client,
+                ChatType::CommandError.server_msg(action.help_string()),
+            );
         },
     }
 }
@@ -581,7 +597,7 @@ fn handle_players(
 
     server.notify_client(
         client,
-        ChatType::CommandInfo.message(entity_tuples.join().fold(
+        ChatType::CommandInfo.server_msg(entity_tuples.join().fold(
             format!("{} online players:", entity_tuples.join().count()),
             |s, (_, player, stat)| {
                 format!(
@@ -616,7 +632,7 @@ fn handle_build(
             .remove(target);
         server.notify_client(
             client,
-            ChatType::CommandInfo.message("Toggled off build mode!"),
+            ChatType::CommandInfo.server_msg("Toggled off build mode!"),
         );
     } else {
         let _ = server
@@ -626,7 +642,7 @@ fn handle_build(
             .insert(target, comp::CanBuild);
         server.notify_client(
             client,
-            ChatType::CommandInfo.message("Toggled on build mode!"),
+            ChatType::CommandInfo.server_msg("Toggled on build mode!"),
         );
     }
 }
@@ -640,7 +656,7 @@ fn handle_help(
     action: &ChatCommand,
 ) {
     if let Some(cmd) = scan_fmt_some!(&args, &action.arg_fmt(), ChatCommand) {
-        server.notify_client(client, ChatType::CommandInfo.message(cmd.help_string()));
+        server.notify_client(client, ChatType::CommandInfo.server_msg(cmd.help_string()));
     } else {
         let mut message = String::new();
         for cmd in CHAT_COMMANDS.iter() {
@@ -653,7 +669,7 @@ fn handle_help(
         for (k, v) in CHAT_SHORTCUTS.iter() {
             message += &format!(" /{} => /{}", k, v.keyword());
         }
-        server.notify_client(client, ChatType::CommandInfo.message(message));
+        server.notify_client(client, ChatType::CommandInfo.server_msg(message));
     }
 }
 
@@ -687,7 +703,7 @@ fn handle_kill_npcs(
     } else {
         "No NPCs on server.".to_string()
     };
-    server.notify_client(client, ChatType::CommandInfo.message(text));
+    server.notify_client(client, ChatType::CommandInfo.server_msg(text));
 }
 
 #[allow(clippy::float_cmp)] // TODO: Pending review in #587
@@ -741,19 +757,21 @@ fn handle_object(
                 .build();
             server.notify_client(
                 client,
-                ChatType::CommandInfo.message(format!(
+                ChatType::CommandInfo.server_msg(format!(
                     "Spawned: {}",
                     obj_str_res.unwrap_or("<Unknown object>")
                 )),
             );
         } else {
-            return server
-                .notify_client(client, ChatType::CommandError.message("Object not found!"));
+            return server.notify_client(
+                client,
+                ChatType::CommandError.server_msg("Object not found!"),
+            );
         }
     } else {
         server.notify_client(
             client,
-            ChatType::CommandError.message(format!("You have no position!")),
+            ChatType::CommandError.server_msg("You have no position!"),
         );
     }
 }
@@ -776,7 +794,7 @@ fn handle_light(
         if r < 0.0 || g < 0.0 || b < 0.0 {
             server.notify_client(
                 client,
-                ChatType::CommandError.message("cr, cg and cb values mustn't be negative."),
+                ChatType::CommandError.server_msg("cr, cg and cb values mustn't be negative."),
             );
             return;
         }
@@ -815,14 +833,11 @@ fn handle_light(
         } else {
             builder.build();
         }
-        server.notify_client(
-            client,
-            ChatType::CommandInfo.message(format!("Spawned object.")),
-        );
+        server.notify_client(client, ChatType::CommandInfo.server_msg("Spawned object."));
     } else {
         server.notify_client(
             client,
-            ChatType::CommandError.message(format!("You have no position!")),
+            ChatType::CommandError.server_msg("You have no position!"),
         );
     }
 }
@@ -852,22 +867,25 @@ fn handle_lantern(
                     .into();
                 server.notify_client(
                     client,
-                    ChatType::CommandInfo.message("You adjusted flame strength and color."),
+                    ChatType::CommandInfo.server_msg("You adjusted flame strength and color."),
                 );
             } else {
                 server.notify_client(
                     client,
-                    ChatType::CommandInfo.message("You adjusted flame strength."),
+                    ChatType::CommandInfo.server_msg("You adjusted flame strength."),
                 );
             }
         } else {
             server.notify_client(
                 client,
-                ChatType::CommandError.message("Please equip a lantern first"),
+                ChatType::CommandError.server_msg("Please equip a lantern first"),
             );
         }
     } else {
-        server.notify_client(client, ChatType::CommandError.message(action.help_string()));
+        server.notify_client(
+            client,
+            ChatType::CommandError.server_msg(action.help_string()),
+        );
     }
 }
 
@@ -883,13 +901,13 @@ fn handle_explosion(
     if power > 512.0 {
         server.notify_client(
             client,
-            ChatType::CommandError.message("Explosion power mustn't be more than 512."),
+            ChatType::CommandError.server_msg("Explosion power mustn't be more than 512."),
         );
         return;
     } else if power <= 0.0 {
         server.notify_client(
             client,
-            ChatType::CommandError.message("Explosion power must be more than 0."),
+            ChatType::CommandError.server_msg("Explosion power must be more than 0."),
         );
         return;
     }
@@ -907,7 +925,7 @@ fn handle_explosion(
         },
         None => server.notify_client(
             client,
-            ChatType::CommandError.message("You have no position!"),
+            ChatType::CommandError.server_msg("You have no position!"),
         ),
     }
 }
@@ -927,12 +945,12 @@ fn handle_waypoint(
                 .ecs()
                 .write_storage::<comp::Waypoint>()
                 .insert(target, comp::Waypoint::new(pos.0, *time));
-            server.notify_client(client, ChatType::CommandInfo.message("Waypoint saved!"));
+            server.notify_client(client, ChatType::CommandInfo.server_msg("Waypoint saved!"));
             server.notify_client(client, ServerMsg::Notification(Notification::WaypointSaved));
         },
         None => server.notify_client(
             client,
-            ChatType::CommandError.message("You have no position!"),
+            ChatType::CommandError.server_msg("You have no position!"),
         ),
     }
 }
@@ -975,12 +993,15 @@ fn handle_adminify(
             None => {
                 server.notify_client(
                     client,
-                    ChatType::CommandError.message(format!("Player '{}' not found!", alias)),
+                    ChatType::CommandError.server_msg(format!("Player '{}' not found!", alias)),
                 );
             },
         }
     } else {
-        server.notify_client(client, ChatType::CommandError.message(action.help_string()));
+        server.notify_client(
+            client,
+            ChatType::CommandError.server_msg(action.help_string()),
+        );
     }
 }
 
@@ -997,7 +1018,7 @@ fn handle_tell(
         // This happens when [ab]using /sudo
         server.notify_client(
             client,
-            ChatType::CommandError.message("It's rude to impersonate people"),
+            ChatType::CommandError.server_msg("It's rude to impersonate people"),
         );
         return;
     }
@@ -1011,7 +1032,7 @@ fn handle_tell(
             if player == client {
                 server.notify_client(
                     client,
-                    ChatType::CommandError.message(format!("You can't /tell yourself.")),
+                    ChatType::CommandError.server_msg("You can't /tell yourself."),
                 );
                 return;
             }
@@ -1034,11 +1055,14 @@ fn handle_tell(
         } else {
             server.notify_client(
                 client,
-                ChatType::CommandError.message(format!("Player '{}' not found!", alias)),
+                ChatType::CommandError.server_msg(format!("Player '{}' not found!", alias)),
             );
         }
     } else {
-        server.notify_client(client, ChatType::CommandError.message(action.help_string()));
+        server.notify_client(
+            client,
+            ChatType::CommandError.server_msg(action.help_string()),
+        );
     }
 }
 
@@ -1053,7 +1077,7 @@ fn handle_faction(
         // This happens when [ab]using /sudo
         server.notify_client(
             client,
-            ChatType::CommandError.message("It's rude to impersonate people"),
+            ChatType::CommandError.server_msg("It's rude to impersonate people"),
         );
         return;
     }
@@ -1071,7 +1095,7 @@ fn handle_faction(
     } else {
         server.notify_client(
             client,
-            ChatType::CommandError.message("Please join a faction with /join_faction"),
+            ChatType::CommandError.server_msg("Please join a faction with /join_faction"),
         );
     }
 }
@@ -1087,7 +1111,7 @@ fn handle_group(
         // This happens when [ab]using /sudo
         server.notify_client(
             client,
-            ChatType::CommandError.message("It's rude to impersonate people"),
+            ChatType::CommandError.server_msg("It's rude to impersonate people"),
         );
         return;
     }
@@ -1105,7 +1129,7 @@ fn handle_group(
     } else {
         server.notify_client(
             client,
-            ChatType::CommandError.message("Please join a group with /join_group"),
+            ChatType::CommandError.server_msg("Please join a group with /join_group"),
         );
     }
 }
@@ -1121,7 +1145,7 @@ fn handle_region(
         // This happens when [ab]using /sudo
         server.notify_client(
             client,
-            ChatType::CommandError.message("It's rude to impersonate people"),
+            ChatType::CommandError.server_msg("It's rude to impersonate people"),
         );
         return;
     }
@@ -1151,7 +1175,7 @@ fn handle_say(
         // This happens when [ab]using /sudo
         server.notify_client(
             client,
-            ChatType::CommandError.message("It's rude to impersonate people"),
+            ChatType::CommandError.server_msg("It's rude to impersonate people"),
         );
         return;
     }
@@ -1181,7 +1205,7 @@ fn handle_world(
         // This happens when [ab]using /sudo
         server.notify_client(
             client,
-            ChatType::CommandError.message("It's rude to impersonate people"),
+            ChatType::CommandError.server_msg("It's rude to impersonate people"),
         );
         return;
     }
@@ -1211,7 +1235,7 @@ fn handle_join_faction(
         // This happens when [ab]using /sudo
         server.notify_client(
             client,
-            ChatType::CommandError.message("It's rude to impersonate people"),
+            ChatType::CommandError.server_msg("It's rude to impersonate people"),
         );
         return;
     }
@@ -1230,26 +1254,25 @@ fn handle_join_faction(
                 .ecs()
                 .write_storage()
                 .insert(client, comp::Faction(faction.clone()));
-            server.notify_client(
-                client,
-                ChatType::FactionMeta.message(format!("[{}] joined faction ({})", alias, faction)),
+            server.state.send_chat(
+                ChatType::FactionMeta(faction.clone())
+                    .chat_msg(format!("[{}] joined faction ({})", alias, faction)),
             );
         } else {
             let mode = comp::ChatMode::default();
             let _ = server.state.ecs().write_storage().insert(client, mode);
             if let Some(comp::Faction(faction)) = server.state.ecs().write_storage().remove(client)
             {
-                server.notify_client(
-                    client,
-                    ChatType::FactionMeta
-                        .message(format!("[{}] left faction ({})", alias, faction)),
+                server.state.send_chat(
+                    ChatType::FactionMeta(faction.clone())
+                        .chat_msg(format!("[{}] left faction ({})", alias, faction)),
                 );
             }
         }
     } else {
         server.notify_client(
             client,
-            ChatType::CommandError.message("Could not find your player alias"),
+            ChatType::CommandError.server_msg("Could not find your player alias"),
         );
     }
 }
@@ -1265,7 +1288,7 @@ fn handle_join_group(
         // This happens when [ab]using /sudo
         server.notify_client(
             client,
-            ChatType::CommandError.message("It's rude to impersonate people"),
+            ChatType::CommandError.server_msg("It's rude to impersonate people"),
         );
         return;
     }
@@ -1284,24 +1307,24 @@ fn handle_join_group(
                 .ecs()
                 .write_storage()
                 .insert(client, comp::Group(group.clone()));
-            server.notify_client(
-                client,
-                ChatType::GroupMeta.message(format!("[{}] joined group ({})", alias, group)),
+            server.state.send_chat(
+                ChatType::GroupMeta(group.clone())
+                    .chat_msg(format!("[{}] joined group ({})", alias, group)),
             );
         } else {
             let mode = comp::ChatMode::default();
             let _ = server.state.ecs().write_storage().insert(client, mode);
             if let Some(comp::Group(group)) = server.state.ecs().write_storage().remove(client) {
-                server.notify_client(
-                    client,
-                    ChatType::GroupMeta.message(format!("[{}] left group ({})", alias, group)),
+                server.state.send_chat(
+                    ChatType::GroupMeta(group.clone())
+                        .chat_msg(format!("[{}] left group ({})", alias, group)),
                 );
             }
         }
     } else {
         server.notify_client(
             client,
-            ChatType::CommandError.message("Could not find your player alias"),
+            ChatType::CommandError.server_msg("Could not find your player alias"),
         );
     }
 }
@@ -1316,7 +1339,7 @@ fn handle_debug_column(
 ) {
     server.notify_client(
         client,
-        ChatType::CommandError.message("Unsupported without worldgen enabled"),
+        ChatType::CommandError.server_msg("Unsupported without worldgen enabled"),
     );
 }
 
@@ -1388,15 +1411,18 @@ spawn_rate {:?} "#,
             ))
         };
         if let Some(s) = foo() {
-            server.notify_client(client, ChatType::CommandInfo.message(s));
+            server.notify_client(client, ChatType::CommandInfo.server_msg(s));
         } else {
             server.notify_client(
                 client,
-                ChatType::CommandError.message("Not a pregenerated chunk."),
+                ChatType::CommandError.server_msg("Not a pregenerated chunk."),
             );
         }
     } else {
-        server.notify_client(client, ChatType::CommandError.message(action.help_string()));
+        server.notify_client(
+            client,
+            ChatType::CommandError.server_msg(action.help_string()),
+        );
     }
 }
 
@@ -1411,7 +1437,7 @@ fn find_target(
             .join()
             .find(|(_, player)| player.alias == alias)
             .map(|(entity, _)| entity)
-            .ok_or(ChatType::CommandError.message(format!("Player '{}' not found!", alias)))
+            .ok_or(ChatType::CommandError.server_msg(format!("Player '{}' not found!", alias)))
     } else {
         Ok(fallback)
     }
@@ -1437,7 +1463,7 @@ fn handle_give_exp(
                 if let Some(stats) = ecs.write_storage::<comp::Stats>().get_mut(player) {
                     stats.exp.change_by(exp);
                 } else {
-                    error_msg = Some(ChatType::CommandError.message("Player has no stats!"));
+                    error_msg = Some(ChatType::CommandError.server_msg("Player has no stats!"));
                 }
             },
             Err(e) => {
@@ -1492,7 +1518,7 @@ fn handle_set_level(
                         .health
                         .set_to(stats.health.maximum(), comp::HealthSource::LevelUp);
                 } else {
-                    error_msg = Some(ChatType::CommandError.message("Player has no stats!"));
+                    error_msg = Some(ChatType::CommandError.server_msg("Player has no stats!"));
                 }
             },
             Err(e) => {
@@ -1532,7 +1558,7 @@ fn handle_debug(
     } else {
         server.notify_client(
             client,
-            ChatType::CommandError.message("Debug items not found? Something is very broken."),
+            ChatType::CommandError.server_msg("Debug items not found? Something is very broken."),
         );
     }
 }
@@ -1571,7 +1597,7 @@ fn handle_remove_lights(
         },
         None => server.notify_client(
             client,
-            ChatType::CommandError.message("You have no position."),
+            ChatType::CommandError.server_msg("You have no position."),
         ),
     }
 
@@ -1585,7 +1611,7 @@ fn handle_remove_lights(
 
     server.notify_client(
         client,
-        ChatType::CommandError.message(format!("Removed {} lights!", size)),
+        ChatType::CommandError.server_msg(format!("Removed {} lights!", size)),
     );
 }
 
@@ -1615,17 +1641,20 @@ fn handle_sudo(
             } else {
                 server.notify_client(
                     client,
-                    ChatType::CommandError.message(format!("Could not find that player")),
+                    ChatType::CommandError.server_msg("Could not find that player"),
                 );
             }
         } else {
             server.notify_client(
                 client,
-                ChatType::CommandError.message(format!("Unknown command: /{}", cmd)),
+                ChatType::CommandError.server_msg(format!("Unknown command: /{}", cmd)),
             );
         }
     } else {
-        server.notify_client(client, ChatType::CommandError.message(action.help_string()));
+        server.notify_client(
+            client,
+            ChatType::CommandError.server_msg(action.help_string()),
+        );
     }
 }
 
@@ -1638,7 +1667,7 @@ fn handle_version(
 ) {
     server.notify_client(
         client,
-        ChatType::CommandInfo.message(format!(
+        ChatType::CommandInfo.server_msg(format!(
             "Server is running {}[{}]",
             common::util::GIT_HASH.to_string(),
             common::util::GIT_DATE.to_string(),
