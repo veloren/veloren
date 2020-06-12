@@ -1821,7 +1821,6 @@ pub struct RegionInfo {
 }
 
 impl SimChunk {
-    #[allow(clippy::collapsible_if)] // TODO: Pending review in #587
     #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
     fn generate(posi: usize, gen_ctx: &GenCtx, gen_cdf: &GenCdf) -> Self {
         let pos = uniform_idx_as_vec2(posi);
@@ -2012,23 +2011,21 @@ impl SimChunk {
                     } else {
                         ForestKind::Savannah
                     }
+                } else if humidity > CONFIG.jungle_hum {
+                    // Temperate climate with jungle humidity...
+                    // https://en.wikipedia.org/wiki/Humid_subtropical_climates are often
+                    // densely wooded and full of water.  Semitropical rainforests, basically.
+                    // For now we just treet them like other rainforests.
+                    ForestKind::Oak
+                } else if humidity > CONFIG.forest_hum {
+                    // Moderate climate, moderate humidity.
+                    ForestKind::Oak
+                } else if humidity > CONFIG.desert_hum {
+                    // With moderate temperature and low humidity, we should probably see
+                    // something different from savannah, but oh well...
+                    ForestKind::Savannah
                 } else {
-                    if humidity > CONFIG.jungle_hum {
-                        // Temperate climate with jungle humidity...
-                        // https://en.wikipedia.org/wiki/Humid_subtropical_climates are often
-                        // densely wooded and full of water.  Semitropical rainforests, basically.
-                        // For now we just treet them like other rainforests.
-                        ForestKind::Oak
-                    } else if humidity > CONFIG.forest_hum {
-                        // Moderate climate, moderate humidity.
-                        ForestKind::Oak
-                    } else if humidity > CONFIG.desert_hum {
-                        // With moderate temperature and low humidity, we should probably see
-                        // something different from savannah, but oh well...
-                        ForestKind::Savannah
-                    } else {
-                        ForestKind::Savannah
-                    }
+                    ForestKind::Savannah
                 }
             } else {
                 // For now we don't take humidity into account for cold climates (but we really

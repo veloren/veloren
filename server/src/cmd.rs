@@ -224,7 +224,6 @@ fn handle_goto(
     }
 }
 
-#[allow(clippy::collapsible_if)] // TODO: Pending review in #587
 #[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
 fn handle_kill(
     server: &mut Server,
@@ -235,12 +234,10 @@ fn handle_kill(
 ) {
     let reason = if client == target {
         comp::HealthSource::Suicide
+    } else if let Some(uid) = server.state.read_storage::<Uid>().get(client) {
+        comp::HealthSource::Attack { by: *uid }
     } else {
-        if let Some(uid) = server.state.read_storage::<Uid>().get(client) {
-            comp::HealthSource::Attack { by: *uid }
-        } else {
-            comp::HealthSource::Command
-        }
+        comp::HealthSource::Command
     };
     server
         .state
@@ -385,7 +382,6 @@ fn handle_alias(
     }
 }
 
-#[allow(clippy::collapsible_if)] // TODO: Pending review in #587
 #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
 #[allow(clippy::useless_format)] // TODO: Pending review in #587
 fn handle_tp(
@@ -401,20 +397,18 @@ fn handle_tp(
             .join()
             .find(|(_, player)| player.alias == alias)
             .map(|(entity, _)| entity)
+    } else if client != target {
+        Some(client)
     } else {
-        if client != target {
-            Some(client)
-        } else {
-            server.notify_client(
-                client,
-                ServerMsg::private("You must specify a player name".to_string()),
-            );
-            server.notify_client(
-                client,
-                ServerMsg::private(String::from(action.help_string())),
-            );
-            return;
-        }
+        server.notify_client(
+            client,
+            ServerMsg::private("You must specify a player name".to_string()),
+        );
+        server.notify_client(
+            client,
+            ServerMsg::private(String::from(action.help_string())),
+        );
+        return;
     };
     if let Some(_pos) = server.state.read_component_cloned::<comp::Pos>(target) {
         if let Some(player) = opt_player {
