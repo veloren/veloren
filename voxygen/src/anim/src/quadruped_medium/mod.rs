@@ -29,31 +29,31 @@ pub struct QuadrupedMediumSkeleton {
 }
 
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const HEAD_UPPER_X: f32 = 7.0;
+const HEAD_UPPER_Y: f32 = 0.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
 const HEAD_UPPER_Z: f32 = 0.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const HEAD_LOWER_X: f32 = 5.5;
+const HEAD_LOWER_Y: f32 = 0.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
 const HEAD_LOWER_Z: f32 = 0.5;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const JAW_X: f32 = 2.0;
+const JAW_Y: f32 = 0.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
 const JAW_Z: f32 = -4.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const TAIL_X: f32 = -7.5;
+const TAIL_Y: f32 = 0.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
 const TAIL_Z: f32 = -7.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const TORSO_BACK_X: f32 = -12.5;
+const TORSO_BACK_Y: f32 = 0.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
 const TORSO_BACK_Z: f32 = 0.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const TORSO_MID_X: f32 = 0.0;
+const TORSO_FRONT_Y: f32 = 0.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const TORSO_MID_Z: f32 = 13.0;
+const TORSO_FRONT_Z: f32 = 0.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const EARS_X: f32 = -2.5;
+const EARS_Y: f32 = 0.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
 const EARS_Z: f32 = 5.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
@@ -199,16 +199,17 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Saber, _) => (14.0, 12.0),
                 (Tuskram, _) => (9.0, 12.0),
                 (Lion, _) => (12.5, 14.0),
-                (Tarasque, _) => (12.0, 19.0),
-                (Tiger, _) => (*HEAD_UPPER_X, *HEAD_UPPER_Z),
+                (Tarasque, _) => (*HEAD_UPPER_Y+14.0, *HEAD_UPPER_Z+2.5),
+                (Tiger, _) => (12.0, 19.0),
             },
             head_lower: match (body.species, body.body_type) {
                 (Grolgar, _) => (-4.0, -7.0),
                 (Saber, _) => (-6.0, 0.0),
                 (Tuskram, _) => (-3.0, -1.0),
                 (Lion, _) => (-5.0, -1.0),
-                (Tarasque, _) => (-5.0, -6.0),
                 (Tiger, _) => (*HEAD_LOWER_X, *HEAD_LOWER_Z),
+                (Tarasque, _) => (*HEAD_LOWER_Y+0.5, *HEAD_LOWER_Z-3.0),
+                (Tiger, _) => (-5.0, -6.0),
             },
             jaw: match (body.species, body.body_type) {
                 (Grolgar, _) => (3.0, -5.0),
@@ -216,55 +217,56 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tuskram, _) => (2.0, -2.0),
                 (Lion, _) => (2.0, -3.0),
                 (Tarasque, _) => (4.0, -9.0),
-                (Tiger, _) => (*JAW_X, *JAW_Z),
+                (Tarasque, _) => (*JAW_Y+0.5, *JAW_Z-11.0),
+                (Tiger, _) => (4.0, -9.0),
             },
             tail: match (body.species, body.body_type) {
                 (Grolgar, _) => (-6.0, -2.0),
                 (Saber, _) => (-4.0, -2.0),
                 (Tuskram, _) => (-6.0, -2.0),
                 (Lion, _) => (-8.0, -6.0),
-                (Tarasque, _) => (-7.0, -2.0),
-                (Tiger, _) => (*TAIL_X, *TAIL_Z),
+                (Tarasque, _) => (*TAIL_Y-4.5, *TAIL_Z+0.0),
+                (Tiger, _) => (-7.0, -2.0),
             },
             torso_front: match (body.species, body.body_type) {
                 (Grolgar, _) => (-7.0, 10.5),
                 (Saber, _) => (-7.0, 9.5),
                 (Tuskram, _) => (-7.0, 9.0),
                 (Lion, _) => (-9.0, 9.0),
-                (Tarasque, _) => (-7.0, 8.0),
-                (Tiger, _) => (*TORSO_MID_X, *TORSO_MID_Z),
+                (Tarasque, _) => (*TORSO_FRONT_Y+11.5, *TORSO_FRONT_Z+18.5),
+                (Tiger, _) => (-7.0, 8.0),
             },
             torso_back: match (body.species, body.body_type) {
                 (Grolgar, _) => (4.0, 11.0),
                 (Saber, _) => (4.0, 9.0),
                 (Tuskram, _) => (4.0, 9.0),
                 (Lion, _) => (4.0, 10.0),
-                (Tarasque, _) => (4.0, 9.0),
-                (Tiger, _) => (*TORSO_BACK_X, *TORSO_BACK_Z),
+                (Tarasque, _) => (*TORSO_BACK_Y-20.0, *TORSO_BACK_Z-1.0),
+                (Tiger, _) => (4.0, 9.0),
             },
             ears: match (body.species, body.body_type) {
                 (Grolgar, _) => (-1.0, 5.0),
                 (Saber, _) => (-1.0, 6.0),
                 (Tuskram, _) => (10.0, 2.0),
                 (Lion, _) => (-2.0, 4.0),
-                (Tarasque, _) => (1.5, -2.0),
-                (Tiger, _) => (*EARS_X, *EARS_Z),
+                (Tarasque, _) => (*EARS_Y-5.0, *EARS_Z+0.5),
+                (Tiger, _) => (1.5, -2.0),
             },
             leg_f: match (body.species, body.body_type) {
                 (Grolgar, _) => (5.0, 6.0, 2.0),
                 (Saber, _) => (4.0, 6.0, 3.0),
                 (Tuskram, _) => (4.0, 6.0, 4.5),
                 (Lion, _) => (5.0, 6.0, 3.0),
-                (Tarasque, _) => (4.0, 6.0, 3.0),
-                (Tiger, _) => (*LEG_FRONT_X, *LEG_FRONT_Y, *LEG_FRONT_Z),
+                (Tarasque, _) => (*LEG_FRONT_X+8.0, *LEG_FRONT_Y+4.5, *LEG_FRONT_Z+12.5),
+                (Tiger, _) => (4.0, 6.0, 3.0),
             },
             leg_b: match (body.species, body.body_type) {
                 (Grolgar, _) => (5.0, -4.0, 3.0),
                 (Saber, _) => (4.0, -6.0, 3.5),
                 (Tuskram, _) => (4.0, -8.0, 5.5),
                 (Lion, _) => (5.5, -8.0, 3.5),
-                (Tarasque, _) => (4.0, -8.0, 3.5),
-                (Tiger, _) => (*LEG_BACK_X, *LEG_BACK_Y, *LEG_BACK_Z),
+                (Tarasque, _) => (*LEG_BACK_X+6.0, *LEG_BACK_Y-12.0, *LEG_BACK_Z+10.5),
+                (Tiger, _) => (4.0, -8.0, 3.5),
             },
             feet_f: match (body.species, body.body_type) {
                 (Grolgar, _) => (5.0, 6.0, 2.0),
@@ -272,15 +274,16 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tuskram, _) => (4.0, 6.0, 4.5),
                 (Lion, _) => (5.0, 6.0, 3.0),
                 (Tarasque, _) => (4.0, 6.0, 3.0),
-                (Tiger, _) => (*FEET_FRONT_X, *FEET_FRONT_Y, *FEET_FRONT_Z),
+                (Tarasque, _) => (*FEET_FRONT_X+2.0, *FEET_FRONT_Y+3.5, *FEET_FRONT_Z-3.5),
+                (Tiger, _) => (4.0, 6.0, 3.0),
             },
             feet_b: match (body.species, body.body_type) {
                 (Grolgar, _) => (5.0, -4.0, 3.0),
                 (Saber, _) => (4.0, -6.0, 3.5),
                 (Tuskram, _) => (4.0, -8.0, 5.5),
                 (Lion, _) => (5.5, -8.0, 3.5),
-                (Tarasque, _) => (4.0, -8.0, 3.5),
-                (Tiger, _) => (*FEET_BACK_X, *FEET_BACK_Y, *FEET_BACK_Z),
+                (Tarasque, _) => (*FEET_BACK_X+1.5, *FEET_BACK_Y+1.5, *FEET_BACK_Z-2.5),
+                (Tiger, _) => (4.0, -8.0, 3.5),
             },
             height: match (body.species, body.body_type) {
                 (Grolgar, _) => (1.2),
