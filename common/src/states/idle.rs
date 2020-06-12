@@ -12,7 +12,7 @@ impl CharacterBehavior for Data {
 
         handle_move(data, &mut update, 1.0);
         handle_jump(data, &mut update);
-        handle_primary_wield(data, &mut update);
+        handle_wield(data, &mut update);
         handle_climb(data, &mut update);
         handle_glide(data, &mut update);
         handle_dodge_input(data, &mut update);
