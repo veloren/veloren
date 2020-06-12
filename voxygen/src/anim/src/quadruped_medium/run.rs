@@ -21,7 +21,103 @@ impl Animation for RunAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let lab = 14;
+        let lab = 0.1;
+
+
+
+
+        let short = (((5.0)
+            / (3.6
+                + 1.4 * ((anim_time as f32 *16.0* lab as f32+ PI * 1.0).sin()).powf(2.0 as f32)))
+        .sqrt())
+            * ((anim_time as f32 *16.0* lab as f32+ PI * 1.0).sin());
+
+
+
+
+        let foothoril = (((5.0)
+            / (1.0
+                + (4.0)
+                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.45).sin())
+                        .powf(2.0 as f32)))
+        .sqrt())
+            * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.45).sin());
+        let foothorir = (((5.0)
+            / (1.0
+                + (4.0)
+                    * ((anim_time as f32 * 16.0 * lab as f32 + PI *0.45).sin())
+                        .powf(2.0 as f32)))
+        .sqrt())
+            * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.45).sin());
+        let footvertl = (anim_time as f32 * 16.0 * lab as f32+PI*0.0).sin();
+        let footvertr = (anim_time as f32 * 16.0 * lab as f32 + PI).sin();
+
+        let footrotl = (((5.0)
+            / (2.5
+                + (2.5)
+                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin())
+                        .powf(2.0 as f32)))
+        .sqrt())
+            * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin());
+
+        let footrotr = (((5.0)
+            / (2.5
+                + (2.5)
+                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin())
+                        .powf(2.0 as f32)))
+        .sqrt())
+            * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin());
+///
+        let foothorilb = (((5.0)
+            / (1.0
+                + (4.0)
+                    * ((anim_time as f32 * 16.0 * lab as f32 + PI *1.05).sin())
+                        .powf(2.0 as f32)))
+        .sqrt())
+            * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.05).sin());        
+        let foothorirb = (((5.0)
+            / (1.0
+                + (4.0)
+                    * ((anim_time as f32 * 16.0 * lab as f32 + PI *0.05).sin())
+                        .powf(2.0 as f32)))
+        .sqrt())
+            * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.05).sin());   
+        let footvertlb = (anim_time as f32 * 16.0 * lab as f32+PI*(-0.4)).sin();
+        let footvertrb = (anim_time as f32 * 16.0 * lab as f32 + PI*0.6).sin();
+
+        let footrotlb = (((5.0)
+            / (2.5
+                + (2.5)
+                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.0).sin())
+                        .powf(2.0 as f32)))
+        .sqrt())
+            * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.0).sin());
+
+        let footrotrb = (((5.0)
+            / (2.5
+                + (2.5)
+                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.0).sin())
+                        .powf(2.0 as f32)))
+        .sqrt())
+            * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.0).sin());
+
+
+
+
+
+
+        let shortalt = (anim_time as f32 *16.0* lab as f32 + PI * 0.5).sin();
+
+
+
+
+
+
+
+
+
+
+
         let vertlf = (anim_time as f32 * lab as f32 + PI * 1.8).sin().max(0.15);
         let vertrfoffset = (anim_time as f32 * lab as f32 + PI * 0.80).sin().max(0.15);
         let vertlboffset = (anim_time as f32 * lab as f32).sin().max(0.15);
@@ -66,23 +162,11 @@ impl Animation for RunAnimation {
                 .sin()
                 * 0.25,
         );
-        let tailmove = Vec2::new(
-            ((global_time + anim_time) as f32 / 2.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.25,
-            ((global_time + anim_time) as f32 / 2.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.125,
-        );
 
         next.head_upper.offset = Vec3::new(
             0.0,
-            skeleton_attr.head_upper.0 + horichest * 1.8,
-            skeleton_attr.head_upper.1 + verthead * -1.8,
+            skeleton_attr.head_upper.0,
+            skeleton_attr.head_upper.1,
         );
         next.head_upper.ori =
             Quaternion::rotation_x(wolf_look.y) * Quaternion::rotation_z(wolf_look.x);
@@ -91,7 +175,7 @@ impl Animation for RunAnimation {
         next.head_lower.offset = Vec3::new(
             0.0,
             skeleton_attr.head_lower.0 + horichest * 0.8,
-            skeleton_attr.head_lower.1 + vertchest * -0.8 + verthead * 1.8,
+            skeleton_attr.head_lower.1 + vertchest * -0.8,
         );
         next.head_lower.ori = Quaternion::rotation_z(0.0);
         next.head_lower.scale = Vec3::one() * 1.02;
@@ -106,18 +190,18 @@ impl Animation for RunAnimation {
 
         next.torso_front.offset = Vec3::new(
             0.0,
-            skeleton_attr.torso_front.0 + horichest * 2.5,
-            skeleton_attr.torso_front.1 + vertchest * -3.2 + 1.0,
+            skeleton_attr.torso_front.0,
+            skeleton_attr.torso_front.1+shortalt*1.0,
         ) / 8.0;
-        next.torso_front.ori = Quaternion::rotation_y(horichest * -0.09);
+        next.torso_front.ori = Quaternion::rotation_x(short * -0.05);
         next.torso_front.scale = Vec3::one() / 8.0;
         
         next.torso_back.offset = Vec3::new(
             0.0,
-            skeleton_attr.torso_back.0 + horichest * 2.9,
-            skeleton_attr.torso_back.1 + vertchest * -3.6 + 1.0,
+            skeleton_attr.torso_back.0,
+            skeleton_attr.torso_back.1,
         );
-        next.torso_back.ori = Quaternion::rotation_y(horichest * -0.12);
+        next.torso_back.ori = Quaternion::rotation_y(0.0);
         next.torso_back.scale = Vec3::one();
 
         next.ears.offset = Vec3::new(0.0, skeleton_attr.ears.0, skeleton_attr.ears.1);
@@ -126,85 +210,69 @@ impl Animation for RunAnimation {
 
         next.leg_fl.offset = Vec3::new(
             -skeleton_attr.leg_f.0,
-            skeleton_attr.leg_f.1,
-            skeleton_attr.leg_f.2,
+            skeleton_attr.leg_f.1 + foothoril * -3.5,
+            skeleton_attr.leg_f.2 +1.0+ ((footvertl * -1.0).max(-1.0)),
         ) / 8.0;
-        next.leg_fl.ori = Quaternion::rotation_x(horilf * 0.4);
-        next.leg_fl.scale = Vec3::one()/8.0;
+        next.leg_fl.ori = Quaternion::rotation_x(footrotl * -0.4);
+        next.leg_fl.scale = Vec3::one()/8.0*0.99;
 
 
         next.leg_fr.offset = Vec3::new(
             skeleton_attr.leg_f.0,
-            skeleton_attr.leg_f.1,
-            skeleton_attr.leg_f.2,
+            skeleton_attr.leg_f.1 + foothorir * -3.5,
+            skeleton_attr.leg_f.2 +1.0+ ((footvertr * -1.0).max(-1.0)),
         ) / 8.0;
-        next.leg_fr.ori = Quaternion::rotation_x(horilf * 0.4);
-        next.leg_fr.scale = Vec3::one();
-
-        ) / 8.0;
-        next.leg_fr.ori = Quaternion::rotation_x(0.0);
-        next.leg_fr.scale = Vec3::one() / 8.0;
+        next.leg_fr.ori = Quaternion::rotation_x(footrotr * -0.4);
+        next.leg_fr.scale = Vec3::one()/8.0*0.99;
 
         next.leg_bl.offset = Vec3::new(
             -skeleton_attr.leg_b.0,
-            skeleton_attr.leg_b.1,
-            skeleton_attr.leg_b.2,
+            skeleton_attr.leg_b.1 + foothorilb * -3.5,
+            skeleton_attr.leg_b.2 +1.0+ ((footvertlb * -1.2).max(-1.0)),
 
         ) / 8.0;
-        next.leg_bl.ori = Quaternion::rotation_x(horirb * 0.55);
-        next.leg_bl.scale = Vec3::one() / 11.0;
+        next.leg_bl.ori = Quaternion::rotation_x(footrotlb * -0.4);
+        next.leg_bl.scale = Vec3::one() / 8.0*0.99;
 
         next.leg_br.offset = Vec3::new(
             skeleton_attr.leg_b.0,
-            skeleton_attr.leg_b.1 + horirb * 3.0,
-            skeleton_attr.leg_b.2,
+            skeleton_attr.leg_b.1 + foothorirb * -3.5,
+            skeleton_attr.leg_b.2 +1.0+ ((footvertrb * -1.2).max(-1.0)),
         ) / 8.0;
-        next.leg_br.ori = Quaternion::rotation_x(horirb * 0.55);
-        next.leg_br.scale = Vec3::one() / 8.0;
-
-        next.leg_bl.ori = Quaternion::rotation_x(0.0);
-        next.leg_bl.scale = Vec3::one() / 8.0;
-
-        next.leg_br.offset = Vec3::new(
-            skeleton_attr.leg_b.0,
-            skeleton_attr.leg_b.1,
-            skeleton_attr.leg_b.2,
-        ) / 8.0;
-        next.leg_br.ori = Quaternion::rotation_x(0.0);
-        next.leg_br.scale = Vec3::one() / 8.0;
+        next.leg_br.ori = Quaternion::rotation_x(footrotrb * -0.4);
+        next.leg_br.scale = Vec3::one() / 8.0*0.99;
 
         next.foot_fl.offset = Vec3::new(
             -skeleton_attr.feet_f.0,
             skeleton_attr.feet_f.1,
             skeleton_attr.feet_f.2,
         );
-        next.foot_fl.ori = Quaternion::rotation_x(horilf * 0.6);
-        next.foot_fl.ori = Quaternion::rotation_x(0.0);
-        next.foot_fl.scale = Vec3::one();
+        next.foot_fl.ori = Quaternion::rotation_x(footrotl * -0.7);
+        next.foot_fl.scale = Vec3::one()*0.98;
 
         next.foot_fr.offset = Vec3::new(
             skeleton_attr.feet_f.0,
             skeleton_attr.feet_f.1,
             skeleton_attr.feet_f.2,
         );
-        next.foot_fr.ori = Quaternion::rotation_x(horilf * 0.6);
-        next.foot_fr.scale = Vec3::one();
+        next.foot_fr.ori = Quaternion::rotation_x(footrotr * -0.7);
+        next.foot_fr.scale = Vec3::one()*0.98;
 
         next.foot_bl.offset = Vec3::new(
             -skeleton_attr.feet_b.0,
             skeleton_attr.feet_b.1,
             skeleton_attr.feet_b.2,
         );
-        next.foot_bl.ori = Quaternion::rotation_x(horirb * 0.35);
-        next.foot_bl.scale = Vec3::one();
+        next.foot_bl.ori = Quaternion::rotation_x(footrotlb * -0.7);
+        next.foot_bl.scale = Vec3::one()*0.98;
 
         next.foot_br.offset = Vec3::new(
             skeleton_attr.feet_b.0,
             skeleton_attr.feet_b.1,
             skeleton_attr.feet_b.2,
         );
-        next.foot_br.ori = Quaternion::rotation_x(horirb * 0.35);
-        next.foot_br.scale = Vec3::one();
+        next.foot_br.ori = Quaternion::rotation_x(footrotrb * -0.7);
+        next.foot_br.scale = Vec3::one()*0.98;
 
         next
     }
