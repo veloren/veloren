@@ -1246,28 +1246,37 @@ fn handle_join_faction(
         .get(target)
         .map(|player| player.alias.clone())
     {
-        if let Ok(faction) = scan_fmt!(&args, &action.arg_fmt(), String) {
+        let faction_leave = if let Ok(faction) = scan_fmt!(&args, &action.arg_fmt(), String) {
             let mode = comp::ChatMode::Faction(faction.clone());
             let _ = server.state.ecs().write_storage().insert(client, mode);
-            let _ = server
+            let faction_leave = server
                 .state
                 .ecs()
                 .write_storage()
-                .insert(client, comp::Faction(faction.clone()));
+                .insert(client, comp::Faction(faction.clone()))
+                .ok()
+                .flatten()
+                .map(|f| f.0);
             server.state.send_chat(
                 ChatType::FactionMeta(faction.clone())
                     .chat_msg(format!("[{}] joined faction ({})", alias, faction)),
             );
+            faction_leave
         } else {
             let mode = comp::ChatMode::default();
             let _ = server.state.ecs().write_storage().insert(client, mode);
-            if let Some(comp::Faction(faction)) = server.state.ecs().write_storage().remove(client)
-            {
-                server.state.send_chat(
-                    ChatType::FactionMeta(faction.clone())
-                        .chat_msg(format!("[{}] left faction ({})", alias, faction)),
-                );
-            }
+            server
+                .state
+                .ecs()
+                .write_storage()
+                .remove(client)
+                .map(|comp::Faction(f)| f)
+        };
+        if let Some(faction) = faction_leave {
+            server.state.send_chat(
+                ChatType::FactionMeta(faction.clone())
+                    .chat_msg(format!("[{}] left faction ({})", alias, faction)),
+            );
         }
     } else {
         server.notify_client(
@@ -1299,27 +1308,37 @@ fn handle_join_group(
         .get(target)
         .map(|player| player.alias.clone())
     {
-        if let Ok(group) = scan_fmt!(&args, &action.arg_fmt(), String) {
+        let group_leave = if let Ok(group) = scan_fmt!(&args, &action.arg_fmt(), String) {
             let mode = comp::ChatMode::Group(group.clone());
             let _ = server.state.ecs().write_storage().insert(client, mode);
-            let _ = server
+            let group_leave = server
                 .state
                 .ecs()
                 .write_storage()
-                .insert(client, comp::Group(group.clone()));
+                .insert(client, comp::Group(group.clone()))
+                .ok()
+                .flatten()
+                .map(|f| f.0);
             server.state.send_chat(
                 ChatType::GroupMeta(group.clone())
                     .chat_msg(format!("[{}] joined group ({})", alias, group)),
             );
+            group_leave
         } else {
             let mode = comp::ChatMode::default();
             let _ = server.state.ecs().write_storage().insert(client, mode);
-            if let Some(comp::Group(group)) = server.state.ecs().write_storage().remove(client) {
-                server.state.send_chat(
-                    ChatType::GroupMeta(group.clone())
-                        .chat_msg(format!("[{}] left group ({})", alias, group)),
-                );
-            }
+            server
+                .state
+                .ecs()
+                .write_storage()
+                .remove(client)
+                .map(|comp::Group(f)| f)
+        };
+        if let Some(group) = group_leave {
+            server.state.send_chat(
+                ChatType::GroupMeta(group.clone())
+                    .chat_msg(format!("[{}] left group ({})", alias, group)),
+            );
         }
     } else {
         server.notify_client(
