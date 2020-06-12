@@ -258,7 +258,7 @@
             central: ("npc.tarasque.male.torso_front"),
         ),
         torso_back: (
-            offset: (-6.0, -6.5, -6.0),
+            offset: (-6.0, 0.0, -6.0),
             central: ("npc.tarasque.male.torso_back"),
         ),
         ears: (
@@ -288,7 +288,7 @@
             central: ("npc.tarasque.female.torso_front"),
         ),
         torso_back: (
-            offset: (-6.0, -6.5, -6.0),
+            offset: (-6.0, 0.0, -6.0),
             central: ("npc.tarasque.female.torso_back"),
         ),
         ears: (
@@ -302,7 +302,7 @@
     ),
     (Tiger, Male): (
         upper: (
-            offset: (-5.5, -5.0, -5.0),
+            offset: (-5.5, 0.0, -5.0),
             central: ("npc.tiger.male.head_upper"),
         ),
         lower: (
@@ -314,11 +314,11 @@
             central: ("npc.tiger.male.jaw"),
         ),
         torso_front: (
-            offset: (-5.5, -6.5, -6.5),
+            offset: (-5.5, -13.0, -6.5),
             central: ("npc.tiger.male.torso_front"),
         ),
         torso_back: (
-            offset: (-5.5, -6.5, -5.0),
+            offset: (-5.5, -6.5, -5.0),///needs adjust
             central: ("npc.tiger.male.torso_back"),
         ),
         ears: (
@@ -332,7 +332,7 @@
     ),
     (Tiger, Female): (
         upper: (
-            offset: (-5.5, -5.0, -5.0),
+            offset: (-5.5, 0.0, -5.0),
             central: ("npc.tiger.female.head_upper"),
         ),
         lower: (
@@ -344,11 +344,11 @@
             central: ("npc.tiger.female.jaw"),
         ),
         torso_front: (
-            offset: (-5.5, -6.5, -6.5),
+            offset: (-5.5, -13.0, -6.5),
             central: ("npc.tiger.female.torso_front"),
         ),
         torso_back: (
-            offset: (-5.5, -6.5, -5.0),
+            offset: (-5.5, -6.5, -5.0),///needs adjust
             central: ("npc.tiger.female.torso_back"),
         ),
         ears: (
