@@ -64,7 +64,7 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
         let mut accounts = state.ecs().write_resource::<AuthProvider>();
         accounts.logout(player.uuid());
 
-        let msg = comp::ChatType::Offline.server_msg(format!("{} went offline.", &player.alias));
+        let msg = comp::ChatType::Offline.server_msg(format!("[{}] went offline.", &player.alias));
         state.notify_registered_clients(msg);
     }
 

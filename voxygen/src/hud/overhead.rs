@@ -14,11 +14,13 @@ use conrod_core::{
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
+const MAX_BUBBLE_WIDTH: f64 = 250.0;
+
 widget_ids! {
     struct Ids {
         // Speech bubble
         speech_bubble_text,
-        speech_bubble_text2,
+        speech_bubble_shadow,
         speech_bubble_top_left,
         speech_bubble_top,
         speech_bubble_top_right,
@@ -105,10 +107,10 @@ impl<'a> Ingameable for Overhead<'a> {
         // - 1 for level: either Text or Image
         // - 4 for HP + mana + fg + bg
         // If there's a speech bubble
-        // - 1 Text::new for speech bubble
+        // - 2 Text::new for speech bubble
         // - 1 Image::new for icon
         // - 10 Image::new for speech bubble (9-slice + tail)
-        7 + if self.bubble.is_some() { 12 } else { 0 }
+        7 + if self.bubble.is_some() { 13 } else { 0 }
     }
 }
 
@@ -153,8 +155,9 @@ impl<'a> Widget for Overhead<'a> {
             let localizer =
                 |s: &str, i| -> String { self.voxygen_i18n.get_variation(&s, i).to_string() };
             let bubble_contents: String = bubble.message(localizer);
+            let (text_color, shadow_color) = bubble_color(&bubble, dark_mode);
             let mut text = Text::new(&bubble_contents)
-                .color(bubble_color(&bubble, dark_mode))
+                .color(text_color)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(18)
                 .up_from(state.ids.name, 20.0)
@@ -162,8 +165,8 @@ impl<'a> Widget for Overhead<'a> {
                 .parent(id);
 
             if let Some(w) = text.get_w(ui) {
-                if w > 250.0 {
-                    text = text.w(250.0);
+                if w > MAX_BUBBLE_WIDTH {
+                    text = text.w(MAX_BUBBLE_WIDTH);
                 }
             }
             Image::new(if dark_mode {
@@ -251,18 +254,31 @@ impl<'a> Widget for Overhead<'a> {
             .bottom_right_with_margin_on(state.ids.speech_bubble_text, -20.0)
             .parent(id)
             .set(state.ids.speech_bubble_bottom_right, ui);
-            let tail = Image::new(if dark_mode {
+            Image::new(if dark_mode {
                 self.imgs.dark_bubble_tail
             } else {
                 self.imgs.speech_bubble_tail
             })
             .w_h(22.0, 28.0)
             .mid_bottom_with_margin_on(state.ids.speech_bubble_text, -32.0)
-            .parent(id);
+            .parent(id)
+            .set(state.ids.speech_bubble_tail, ui);
+            let mut text_shadow = Text::new(&bubble_contents)
+                .color(shadow_color)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(18)
+                .x_relative_to(state.ids.speech_bubble_text, 1.0)
+                .y_relative_to(state.ids.speech_bubble_text, -1.0)
+                .parent(id);
             // Move text to front (conrod depth is lowest first; not a z-index)
-            tail.set(state.ids.speech_bubble_tail, ui);
-            text.depth(tail.get_depth() - 1.0)
+            text.depth(text_shadow.get_depth() - 1.0)
                 .set(state.ids.speech_bubble_text, ui);
+            if let Some(w) = text_shadow.get_w(ui) {
+                if w > MAX_BUBBLE_WIDTH {
+                    text_shadow = text_shadow.w(MAX_BUBBLE_WIDTH);
+                }
+            }
+            text_shadow.set(state.ids.speech_bubble_shadow, ui);
             Image::new(bubble_icon(&bubble, &self.imgs))
                 .w_h(16.0, 16.0)
                 .top_left_with_margin_on(state.ids.speech_bubble_text, -16.0)
@@ -367,8 +383,8 @@ impl<'a> Widget for Overhead<'a> {
     }
 }
 
-fn bubble_color(bubble: &SpeechBubble, dark_mode: bool) -> Color {
-    match bubble.icon {
+fn bubble_color(bubble: &SpeechBubble, dark_mode: bool) -> (Color, Color) {
+    let light_color = match bubble.icon {
         SpeechBubbleType::Tell => TELL_COLOR,
         SpeechBubbleType::Say => SAY_COLOR,
         SpeechBubbleType::Region => REGION_COLOR,
@@ -377,13 +393,12 @@ fn bubble_color(bubble: &SpeechBubble, dark_mode: bool) -> Color {
         SpeechBubbleType::World
         | SpeechBubbleType::Quest
         | SpeechBubbleType::Trade
-        | SpeechBubbleType::None => {
-            if dark_mode {
-                TEXT_COLOR
-            } else {
-                TEXT_BG
-            }
-        },
+        | SpeechBubbleType::None => TEXT_COLOR,
+    };
+    if dark_mode {
+        (light_color, TEXT_BG)
+    } else {
+        (TEXT_BG, light_color)
     }
 }
 
