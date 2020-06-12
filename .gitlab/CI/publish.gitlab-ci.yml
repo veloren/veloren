@@ -1,8 +1,16 @@
 # Publishes veloren-server-cli to the gitlab container registry
 # https://gitlab.com/veloren/veloren/container_registry
-docker:
+.publish:
   stage: publish
-  extends: .release
+  tags:
+    - veloren-docker
+  rules:
+    - when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: always
+
+docker:
+  extends: .publish
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
@@ -10,15 +18,12 @@ docker:
     - linux
   before_script:
     - ls "$CI_PROJECT_DIR/server-cli/"
-  tags:
-    - veloren-docker
   script:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/server-cli/Dockerfile --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}-server"
 
 pages:
-  extends: .release
-  stage: publish
+  extends: .publish
   artifacts:
     paths:
     - public
