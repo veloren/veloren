@@ -29,7 +29,7 @@ use crate::{
 };
 use common::{
     cmd::ChatCommand,
-    comp,
+    comp::{self, ChatType},
     event::{EventBus, ServerEvent},
     msg::{ClientMsg, ClientState, ServerInfo, ServerMsg},
     net::PostOffice,
@@ -622,9 +622,12 @@ impl Server {
         Ok(frontend_events)
     }
 
-    pub fn notify_client(&self, entity: EcsEntity, msg: ServerMsg) {
+    pub fn notify_client<S>(&self, entity: EcsEntity, msg: S)
+    where
+        S: Into<ServerMsg>,
+    {
         if let Some(client) = self.state.ecs().write_storage::<Client>().get_mut(entity) {
-            client.notify(msg)
+            client.notify(msg.into())
         }
     }
 
@@ -649,7 +652,7 @@ impl Server {
         } else {
             self.notify_client(
                 entity,
-                ServerMsg::private(format!(
+                ChatType::CommandError.message(format!(
                     "Unknown command '/{}'.\nType '/help' for available commands",
                     kwd
                 )),

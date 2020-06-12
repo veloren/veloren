@@ -895,7 +895,7 @@ impl Client {
                                     message: String::from(
                                         "Failed to collect item. Your inventory may be full!",
                                     ),
-                                    chat_type: comp::ChatType::Private,
+                                    chat_type: comp::ChatType::CommandError,
                                 }))
                             },
                             _ => {
@@ -1040,8 +1040,12 @@ impl Client {
             }
         };
         match chat_type {
-            comp::ChatType::Private => message.to_string(),
-            comp::ChatType::Broadcast => message.to_string(),
+            comp::ChatType::Online => message.to_string(),
+            comp::ChatType::Offline => message.to_string(),
+            comp::ChatType::CommandError => message.to_string(),
+            comp::ChatType::CommandInfo => message.to_string(),
+            comp::ChatType::FactionMeta => message.to_string(),
+            comp::ChatType::GroupMeta => message.to_string(),
             comp::ChatType::Kill => message.to_string(),
             comp::ChatType::Tell(from, to) => {
                 let from_alias = alias_of_uid(from);
@@ -1058,7 +1062,7 @@ impl Client {
             comp::ChatType::Region(uid) => message_format(uid, message, None),
             comp::ChatType::World(uid) => message_format(uid, message, None),
             // NPCs can't talk. Should be filtered by hud/mod.rs for voxygen and should be filtered
-            // by server for chat-cli
+            // by server (due to not having a Pos) for chat-cli
             comp::ChatType::Npc(_uid, _r) => "".to_string(),
         }
     }

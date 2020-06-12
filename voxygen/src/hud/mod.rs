@@ -47,10 +47,7 @@ use crate::{
     GlobalState,
 };
 use client::Client;
-use common::{
-    assets::load_expect, comp, comp::SpeechBubbleType, sync::Uid, terrain::TerrainChunk,
-    vol::RectRasterableVol,
-};
+use common::{assets::load_expect, comp, sync::Uid, terrain::TerrainChunk, vol::RectRasterableVol};
 use conrod_core::{
     text::cursor::Index,
     widget::{self, Button, Image, Text},
@@ -80,12 +77,16 @@ const MANA_COLOR: Color = Color::Rgba(0.29, 0.62, 0.75, 0.9);
 //const RAGE_COLOR: Color = Color::Rgba(0.5, 0.04, 0.13, 1.0);
 
 // Chat Colors
+/// Color for chat command errors (yellow !)
+const ERROR_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
+/// Color for chat command info (blue i)
+const INFO_COLOR: Color = Color::Rgba(0.28, 0.83, 0.71, 1.0);
+/// Online color
+const ONLINE_COLOR: Color = Color::Rgba(0.3, 1.0, 0.3, 1.0);
+/// Offline color
+const OFFLINE_COLOR: Color = Color::Rgba(1.0, 0.3, 0.3, 1.0);
 /// Color for a private message from another player
 const TELL_COLOR: Color = Color::Rgba(0.98, 0.71, 1.0, 1.0);
-/// Color for private messages from the server (such as /cmd)
-const PRIVATE_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
-/// Color for public messages from the server
-const BROADCAST_COLOR: Color = Color::Rgba(0.28, 0.83, 0.71, 1.0);
 /// Color for local chat
 const SAY_COLOR: Color = Color::Rgba(1.0, 0.8, 0.8, 1.0);
 /// Color for group chat
@@ -93,11 +94,11 @@ const GROUP_COLOR: Color = Color::Rgba(0.47, 0.84, 1.0, 1.0);
 /// Color for factional chat
 const FACTION_COLOR: Color = Color::Rgba(0.24, 1.0, 0.48, 1.0);
 /// Color for regional chat
-const REGION_COLOR: Color = Color::Rgba(0.2, 0.2, 1.0, 1.0);
+const REGION_COLOR: Color = Color::Rgba(0.8, 1.0, 0.8, 1.0);
 /// Color for death messages
 const KILL_COLOR: Color = Color::Rgba(1.0, 0.17, 0.17, 1.0);
 /// Color for global messages
-const WORLD_COLOR: Color = Color::Rgba(0.9, 1.0, 0.9, 1.0);
+const WORLD_COLOR: Color = Color::Rgba(0.95, 1.0, 0.95, 1.0);
 
 // UI Color-Theme
 const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
@@ -472,7 +473,6 @@ pub struct Hud {
     new_messages: VecDeque<comp::ChatMsg>,
     new_notifications: VecDeque<common::msg::Notification>,
     speech_bubbles: HashMap<Uid, comp::SpeechBubble>,
-    bubble_type: SpeechBubbleType,
     show: Show,
     //never_show: bool,
     //intro: bool,
@@ -540,7 +540,6 @@ impl Hud {
             new_messages: VecDeque::new(),
             new_notifications: VecDeque::new(),
             speech_bubbles: HashMap::new(),
-            bubble_type: SpeechBubbleType::None,
             //intro: false,
             //intro_2: false,
             show: Show {
@@ -1020,7 +1019,6 @@ impl Hud {
                 overhead::Overhead::new(
                     &name,
                     bubble,
-                    &self.bubble_type,
                     stats,
                     energy,
                     own_level,

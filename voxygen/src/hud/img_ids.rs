@@ -298,15 +298,17 @@ image_ids! {
         dark_bubble_tail: "voxygen.element.frames.bubble_dark.tail",
 
         // Chat icons
-        chat_broadcast_small: "voxygen.element.icons.chat.broadcast_small",
         chat_faction_small: "voxygen.element.icons.chat.faction_small",
         chat_group_small: "voxygen.element.icons.chat.group_small",
         chat_kill_small: "voxygen.element.icons.chat.kill_small",
-        chat_private_small: "voxygen.element.icons.chat.private_small",
         chat_region_small: "voxygen.element.icons.chat.region_small",
         chat_say_small: "voxygen.element.icons.chat.say_small",
         chat_tell_small: "voxygen.element.icons.chat.tell_small",
         chat_world_small: "voxygen.element.icons.chat.world_small",
+        chat_command_error_small: "voxygen.element.icons.chat.command_error_small",
+        chat_command_info_small: "voxygen.element.icons.chat.command_info_small",
+        chat_online_small: "voxygen.element.icons.chat.online_small",
+        chat_offline_small: "voxygen.element.icons.chat.offline_small",
 
         chat_faction: "voxygen.element.icons.chat.faction",
         chat_group: "voxygen.element.icons.chat.group",

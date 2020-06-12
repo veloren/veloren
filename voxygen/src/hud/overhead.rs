@@ -1,6 +1,6 @@
 use super::{
-    img_ids::Imgs, FACTION_COLOR, GROUP_COLOR, HP_COLOR, LOW_HP_COLOR, MANA_COLOR, SAY_COLOR,
-    TELL_COLOR, TEXT_BG, TEXT_COLOR,
+    img_ids::Imgs, FACTION_COLOR, GROUP_COLOR, HP_COLOR, LOW_HP_COLOR, MANA_COLOR, REGION_COLOR,
+    SAY_COLOR, TELL_COLOR, TEXT_BG, TEXT_COLOR,
 };
 use crate::{
     i18n::VoxygenLocalization,
@@ -59,7 +59,6 @@ pub struct Overhead<'a> {
     voxygen_i18n: &'a std::sync::Arc<VoxygenLocalization>,
     imgs: &'a Imgs,
     fonts: &'a ConrodVoxygenFonts,
-    bubble_type: &'a SpeechBubbleType,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
@@ -69,7 +68,6 @@ impl<'a> Overhead<'a> {
     pub fn new(
         name: &'a str,
         bubble: Option<&'a SpeechBubble>,
-        bubble_type: &'a SpeechBubbleType,
         stats: &'a Stats,
         energy: &'a Energy,
         own_level: u32,
@@ -82,7 +80,6 @@ impl<'a> Overhead<'a> {
         Self {
             name,
             bubble,
-            bubble_type,
             stats,
             energy,
             own_level,
@@ -157,25 +154,13 @@ impl<'a> Widget for Overhead<'a> {
                 |s: &str, i| -> String { self.voxygen_i18n.get_variation(&s, i).to_string() };
             let bubble_contents: String = bubble.message(localizer);
             let mut text = Text::new(&bubble_contents)
+                .color(bubble_color(&bubble, dark_mode))
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(18)
                 .up_from(state.ids.name, 20.0)
                 .x_align_to(state.ids.name, Align::Middle)
                 .parent(id);
 
-            text = match self.bubble_type {
-                SpeechBubbleType::Tell => text.color(TELL_COLOR),
-                SpeechBubbleType::Say => text.color(SAY_COLOR),
-                SpeechBubbleType::Group => text.color(GROUP_COLOR),
-                SpeechBubbleType::Faction => text.color(FACTION_COLOR),
-                _ => {
-                    if dark_mode {
-                        text.color(TEXT_COLOR)
-                    } else {
-                        text.color(TEXT_BG)
-                    }
-                },
-            };
             if let Some(w) = text.get_w(ui) {
                 if w > 250.0 {
                     text = text.w(250.0);
@@ -379,6 +364,26 @@ impl<'a> Widget for Overhead<'a> {
                 .parent(id)
                 .set(state.ids.level, ui);
         }
+    }
+}
+
+fn bubble_color(bubble: &SpeechBubble, dark_mode: bool) -> Color {
+    match bubble.icon {
+        SpeechBubbleType::Tell => TELL_COLOR,
+        SpeechBubbleType::Say => SAY_COLOR,
+        SpeechBubbleType::Region => REGION_COLOR,
+        SpeechBubbleType::Group => GROUP_COLOR,
+        SpeechBubbleType::Faction => FACTION_COLOR,
+        SpeechBubbleType::World
+        | SpeechBubbleType::Quest
+        | SpeechBubbleType::Trade
+        | SpeechBubbleType::None => {
+            if dark_mode {
+                TEXT_COLOR
+            } else {
+                TEXT_BG
+            }
+        },
     }
 }
 
