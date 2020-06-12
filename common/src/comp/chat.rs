@@ -1,9 +1,10 @@
-use crate::sync::Uid;
+use crate::{msg::ServerMsg, sync::Uid};
 use specs::Component;
 use specs_idvs::IDVStorage;
 use std::time::{Duration, Instant};
 
-/// A player's current chat mode.
+/// A player's current chat mode. These are chat types that can only be sent by
+/// the player.
 #[derive(Clone, Debug)]
 pub enum ChatMode {
     /// Private message to another player (by uuid)
@@ -43,17 +44,25 @@ impl Default for ChatMode {
     fn default() -> Self { Self::World }
 }
 
-/// List of chat types. Note that this is a superset of `ChatMode`; this is
-/// because `ChatType::Kill`, `ChatType::Broadcast`, and `ChatType::Private`
-/// cannot be sent by players.
+/// List of chat types. Each one is colored differently and has its own icon.
+///
+/// This is a superset of `SpeechBubbleType`, which is a superset of `ChatMode`
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ChatType {
-    /// Tell all players something (such as players connecting or alias changes)
-    Broadcast,
-    /// Private messages from the server (such as results of chat commands)
-    Private,
+    /// A player came online
+    Online,
+    /// A player went offline
+    Offline,
+    /// The result of chat commands
+    CommandInfo,
+    /// A chat command failed
+    CommandError,
     /// Inform players that someone died
     Kill,
+    /// Server notifications to a group, such as player join/leave
+    GroupMeta,
+    /// Server notifications to a faction, such as player join/leave
+    FactionMeta,
     /// One-on-one chat (from, to)
     Tell(Uid, Uid),
     /// Chat with nearby players
@@ -72,6 +81,19 @@ pub enum ChatType {
     Npc(Uid, u16),
 }
 
+impl ChatType {
+    pub fn message<S>(self, msg: S) -> ServerMsg
+    where
+        S: Into<String>,
+    {
+        let msg = ChatMsg {
+            chat_type: self,
+            message: msg.into(),
+        };
+        ServerMsg::ChatMsg(msg)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatMsg {
     pub chat_type: ChatType,
@@ -82,11 +104,6 @@ impl ChatMsg {
     pub const NPC_DISTANCE: f32 = 100.0;
     pub const REGION_DISTANCE: f32 = 1000.0;
     pub const SAY_DISTANCE: f32 = 100.0;
-
-    pub fn broadcast(message: String) -> Self {
-        let chat_type = ChatType::Broadcast;
-        Self { chat_type, message }
-    }
 
     pub fn npc(uid: Uid, message: String) -> Self {
         let chat_type = ChatType::Npc(uid, rand::random());
@@ -105,8 +122,12 @@ impl ChatMsg {
 
     pub fn icon(&self) -> SpeechBubbleType {
         match &self.chat_type {
-            ChatType::Broadcast => SpeechBubbleType::None,
-            ChatType::Private => SpeechBubbleType::None,
+            ChatType::Online => SpeechBubbleType::None,
+            ChatType::Offline => SpeechBubbleType::None,
+            ChatType::CommandInfo => SpeechBubbleType::None,
+            ChatType::CommandError => SpeechBubbleType::None,
+            ChatType::FactionMeta => SpeechBubbleType::None,
+            ChatType::GroupMeta => SpeechBubbleType::None,
             ChatType::Kill => SpeechBubbleType::None,
             ChatType::Tell(_u, _) => SpeechBubbleType::Tell,
             ChatType::Say(_u) => SpeechBubbleType::Say,
@@ -120,8 +141,12 @@ impl ChatMsg {
 
     pub fn uid(&self) -> Option<Uid> {
         match &self.chat_type {
-            ChatType::Broadcast => None,
-            ChatType::Private => None,
+            ChatType::Online => None,
+            ChatType::Offline => None,
+            ChatType::CommandInfo => None,
+            ChatType::CommandError => None,
+            ChatType::FactionMeta => None,
+            ChatType::GroupMeta => None,
             ChatType::Kill => None,
             ChatType::Tell(u, _t) => Some(*u),
             ChatType::Say(u) => Some(*u),
@@ -169,6 +194,9 @@ pub enum SpeechBubbleMessage {
     Localized(String, u16),
 }
 
+/// List of chat types for players and NPCs. Each one has its own icon.
+///
+/// This is a subset of `ChatType`, and a superset of `ChatMode`
 pub enum SpeechBubbleType {
     // One for each chat mode
     Tell,

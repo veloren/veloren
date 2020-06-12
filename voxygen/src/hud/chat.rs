@@ -1,6 +1,6 @@
 use super::{
-    img_ids::Imgs, BROADCAST_COLOR, FACTION_COLOR, GROUP_COLOR, KILL_COLOR, PRIVATE_COLOR,
-    REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR, WORLD_COLOR,
+    img_ids::Imgs, ERROR_COLOR, FACTION_COLOR, GROUP_COLOR, INFO_COLOR, KILL_COLOR, OFFLINE_COLOR,
+    ONLINE_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR, WORLD_COLOR,
 };
 use crate::{ui::fonts::ConrodVoxygenFonts, GlobalState};
 use client::{cmd, Client};
@@ -474,8 +474,12 @@ fn cursor_offset_to_index(
 /// Get the color and icon for the current line in the chat box
 fn render_chat_line(chat_type: &ChatType, imgs: &Imgs) -> (Color, conrod_core::image::Id) {
     match chat_type {
-        ChatType::Private => (PRIVATE_COLOR, imgs.chat_private_small),
-        ChatType::Broadcast => (BROADCAST_COLOR, imgs.chat_broadcast_small),
+        ChatType::Online => (ONLINE_COLOR, imgs.chat_online_small),
+        ChatType::Offline => (OFFLINE_COLOR, imgs.chat_offline_small),
+        ChatType::CommandError => (ERROR_COLOR, imgs.chat_command_error_small),
+        ChatType::CommandInfo => (INFO_COLOR, imgs.chat_command_info_small),
+        ChatType::GroupMeta => (GROUP_COLOR, imgs.chat_group_small),
+        ChatType::FactionMeta => (FACTION_COLOR, imgs.chat_faction_small),
         ChatType::Kill => (KILL_COLOR, imgs.chat_kill_small),
         ChatType::Tell(_from, _to) => (TELL_COLOR, imgs.chat_tell_small),
         ChatType::Say(_uid) => (SAY_COLOR, imgs.chat_say_small),

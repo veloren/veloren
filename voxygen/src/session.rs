@@ -91,7 +91,7 @@ impl SessionState {
                     };
 
                     self.hud.new_message(comp::ChatMsg {
-                        chat_type: comp::ChatType::Private,
+                        chat_type: comp::ChatType::CommandError,
                         message,
                     });
                 },
@@ -500,7 +500,7 @@ impl PlayState for SessionState {
                     },
                     Event::ScreenshotMessage(screenshot_message) => {
                         self.hud.new_message(comp::ChatMsg {
-                            chat_type: comp::ChatType::Private,
+                            chat_type: comp::ChatType::CommandInfo,
                             message: screenshot_message,
                         })
                     },

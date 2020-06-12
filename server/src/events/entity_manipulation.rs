@@ -46,7 +46,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         }
         .unwrap_or(format!("{} died", &player.alias));
 
-        state.notify_registered_clients(ServerMsg::kill(msg));
+        state.notify_registered_clients(comp::ChatType::Kill.message(msg));
     }
 
     {

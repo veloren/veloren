@@ -247,9 +247,13 @@ impl StateExt for State {
         let is_within =
             |target, a: &comp::Pos, b: &comp::Pos| a.0.distance_squared(b.0) < target * target;
         match &msg.chat_type {
-            comp::ChatType::Broadcast
+            comp::ChatType::Online
+            | comp::ChatType::Offline
+            | comp::ChatType::CommandInfo
+            | comp::ChatType::CommandError
             | comp::ChatType::Kill
-            | comp::ChatType::Private
+            | comp::ChatType::GroupMeta
+            | comp::ChatType::FactionMeta
             | comp::ChatType::World(_) => {
                 self.notify_registered_clients(ServerMsg::ChatMsg(msg.clone()))
             },
