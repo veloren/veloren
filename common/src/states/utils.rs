@@ -96,10 +96,13 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     }
 }
 
-/// First checks whether `primary` input is pressed, then
-/// attempts to go into Equipping state, otherwise Idle
-pub fn handle_primary_wield(data: &JoinData, update: &mut StateUpdate) {
-    if data.inputs.primary.is_pressed() {
+/// First checks whether `primary`, `secondary` or `ability3` input is pressed,
+/// then attempts to go into Equipping state, otherwise Idle
+pub fn handle_wield(data: &JoinData, update: &mut StateUpdate) {
+    if data.inputs.primary.is_pressed()
+        || data.inputs.secondary.is_pressed()
+        || data.inputs.ability3.is_pressed()
+    {
         attempt_wield(data, update);
     }
 }
