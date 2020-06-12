@@ -146,7 +146,6 @@ impl<'a> Widget for Chat<'a> {
     #[allow(clippy::unused_unit)] // TODO: Pending review in #587
     fn style(&self) -> Self::Style { () }
 
-    #[allow(clippy::collapsible_if)] // TODO: Pending review in #587
     #[allow(clippy::redundant_clone)] // TODO: Pending review in #587
     #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
@@ -200,24 +199,20 @@ impl<'a> Widget for Chat<'a> {
                 state.update(|s| s.input.retain(|c| c != '\t'));
                 //tab_dir + 1
             }
-            if !state.completions.is_empty() {
-                if tab_dir != 0 || state.completions_index.is_none() {
-                    state.update(|s| {
-                        let len = s.completions.len();
-                        s.completions_index = Some(
-                            (s.completions_index.unwrap_or(0) + (tab_dir + len as isize) as usize)
-                                % len,
-                        );
-                        if let Some(replacement) = &s.completions.get(s.completions_index.unwrap())
-                        {
-                            let (completed, offset) =
-                                do_tab_completion(cursor, &s.input, replacement);
-                            force_cursor =
-                                cursor_offset_to_index(offset, &completed, &ui, &self.fonts);
-                            s.input = completed;
-                        }
-                    });
-                }
+            if !state.completions.is_empty() && (tab_dir != 0 || state.completions_index.is_none())
+            {
+                state.update(|s| {
+                    let len = s.completions.len();
+                    s.completions_index = Some(
+                        (s.completions_index.unwrap_or(0) + (tab_dir + len as isize) as usize)
+                            % len,
+                    );
+                    if let Some(replacement) = &s.completions.get(s.completions_index.unwrap()) {
+                        let (completed, offset) = do_tab_completion(cursor, &s.input, replacement);
+                        force_cursor = cursor_offset_to_index(offset, &completed, &ui, &self.fonts);
+                        s.input = completed;
+                    }
+                });
             }
             false
         } else if let Some(cursor) = state.input.find('\t') {
@@ -236,10 +231,8 @@ impl<'a> Widget for Chat<'a> {
                     if s.history_pos < s.history.len() {
                         s.history_pos += 1;
                     }
-                } else {
-                    if s.history_pos > 0 {
-                        s.history_pos -= 1;
-                    }
+                } else if s.history_pos > 0 {
+                    s.history_pos -= 1;
                 }
                 if s.history_pos > 0 {
                     s.input = s.history.get(s.history_pos - 1).unwrap().to_owned();
@@ -368,17 +361,16 @@ impl<'a> Widget for Chat<'a> {
 
         // Chat Arrow
         // Check if already at bottom.
-        if !Self::scrolled_to_bottom(state, ui) {
-            if Button::image(self.imgs.chat_arrow)
+        if !Self::scrolled_to_bottom(state, ui)
+            && Button::image(self.imgs.chat_arrow)
                 .w_h(20.0, 20.0)
                 .hover_image(self.imgs.chat_arrow_mo)
                 .press_image(self.imgs.chat_arrow_press)
                 .bottom_right_with_margins_on(state.ids.message_box_bg, 0.0, -22.0)
                 .set(state.ids.chat_arrow, ui)
                 .was_clicked()
-            {
-                ui.scroll_widget(state.ids.message_box, [0.0, std::f64::MAX]);
-            }
+        {
+            ui.scroll_widget(state.ids.message_box, [0.0, std::f64::MAX]);
         }
 
         // We've started a new tab completion. Populate tab completion suggestions.

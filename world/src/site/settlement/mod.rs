@@ -481,7 +481,6 @@ impl Settlement {
         }
     }
 
-    #[allow(clippy::collapsible_if)] // TODO: Pending review in #587
     #[allow(clippy::identity_op)] // TODO: Pending review in #587
     #[allow(clippy::modulo_one)] // TODO: Pending review in #587
     pub fn apply_to<'a>(
@@ -645,14 +644,12 @@ impl Settlement {
                                     })
                                     .map(|kind| Block::new(kind, Rgb::white()));
                                 }
-                            } else {
-                                if roll(0, 20) == 0 {
-                                    surface_block =
-                                        Some(Block::new(BlockKind::ShortGrass, Rgb::white()));
-                                } else if roll(1, 30) == 0 {
-                                    surface_block =
-                                        Some(Block::new(BlockKind::MediumGrass, Rgb::white()));
-                                }
+                            } else if roll(0, 20) == 0 {
+                                surface_block =
+                                    Some(Block::new(BlockKind::ShortGrass, Rgb::white()));
+                            } else if roll(1, 30) == 0 {
+                                surface_block =
+                                    Some(Block::new(BlockKind::MediumGrass, Rgb::white()));
                             }
 
                             Some(if in_furrow { dirt } else { mound })

@@ -399,7 +399,6 @@ impl CharSelectionUi {
 
     // TODO: Split this into multiple modules or functions.
     #[allow(clippy::clone_on_copy)] // TODO: Pending review in #587
-    #[allow(clippy::collapsible_if)] // TODO: Pending review in #587
     #[allow(clippy::useless_let_if_seq)] // TODO: Pending review in #587
     #[allow(clippy::unnecessary_operation)] // TODO: Pending review in #587
     fn update_layout(&mut self, client: &mut Client) -> Vec<Event> {
@@ -826,15 +825,14 @@ impl CharSelectionUi {
                     .image_color(color)
                     .set(self.ids.character_box_2, ui_widgets)
                     .was_clicked()
+                    && !character_limit_reached
                 {
-                    if !character_limit_reached {
-                        self.mode = Mode::Create {
-                            name: "Character Name".to_string(),
-                            body: humanoid::Body::random(),
-                            loadout: comp::Loadout::default(),
-                            tool: Some(STARTER_SWORD),
-                        };
-                    }
+                    self.mode = Mode::Create {
+                        name: "Character Name".to_string(),
+                        body: humanoid::Body::random(),
+                        loadout: comp::Loadout::default(),
+                        tool: Some(STARTER_SWORD),
+                    };
                 }
 
                 // LOADING SCREEN HERE
@@ -903,21 +901,19 @@ impl CharSelectionUi {
                         .set(self.ids.create_button, ui_widgets)
                         .was_clicked()
                     {}
-                } else {
-                    if create_button
-                        .set(self.ids.create_button, ui_widgets)
-                        .was_clicked()
-                    {
-                        self.info_content = InfoContent::CreatingCharacter;
+                } else if create_button
+                    .set(self.ids.create_button, ui_widgets)
+                    .was_clicked()
+                {
+                    self.info_content = InfoContent::CreatingCharacter;
 
-                        events.push(Event::AddCharacter {
-                            alias: name.clone(),
-                            tool: tool.map(|tool| tool.to_string()),
-                            body: comp::Body::Humanoid(body.clone()),
-                        });
+                    events.push(Event::AddCharacter {
+                        alias: name.clone(),
+                        tool: tool.map(|tool| tool.to_string()),
+                        body: comp::Body::Humanoid(body.clone()),
+                    });
 
-                        to_select = true;
-                    }
+                    to_select = true;
                 }
                 // Character Name Input
                 Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))

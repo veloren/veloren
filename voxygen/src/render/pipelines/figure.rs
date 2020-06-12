@@ -46,7 +46,7 @@ gfx_defines! {
 }
 
 impl Vertex {
-    #[allow(clippy::collapsible_if)] // TODO: Pending review in #587
+    #[allow(clippy::collapsible_if)]
     pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, col: Rgb<f32>, ao: f32, bone_idx: u8) -> Self {
         let norm_bits = if norm.x != 0.0 {
             if norm.x < 0.0 { 0 } else { 1 }
