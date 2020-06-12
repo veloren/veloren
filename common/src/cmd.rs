@@ -4,7 +4,6 @@ use tracing::warn;
 use std::{
     collections::HashMap,
     fmt::{self, Display},
-    ops::Deref,
     path::Path,
     str::FromStr,
 };
@@ -404,7 +403,7 @@ impl ChatCommand {
 
     /// A boolean that is used to check whether the command requires
     /// administrator permissions or not.
-    pub fn needs_admin(&self) -> bool { *self.data().needs_admin }
+    pub fn needs_admin(&self) -> bool { IsAdminOnly::Admin == self.data().needs_admin }
 
     /// Returns a format string for parsing arguments with scan_fmt
     pub fn arg_fmt(&self) -> String {
@@ -461,33 +460,16 @@ impl FromStr for ChatCommand {
     }
 }
 
+#[derive(Eq, PartialEq, Debug)]
 pub enum IsAdminOnly {
     Admin,
     NoAdmin,
 }
-impl Deref for IsAdminOnly {
-    type Target = bool;
 
-    fn deref(&self) -> &bool {
-        match self {
-            IsAdminOnly::Admin => &true,
-            IsAdminOnly::NoAdmin => &false,
-        }
-    }
-}
+#[derive(Eq, PartialEq, Debug)]
 pub enum Requirement {
     Required,
     Optional,
-}
-impl Deref for Requirement {
-    type Target = bool;
-
-    fn deref(&self) -> &bool {
-        match self {
-            Requirement::Required => &true,
-            Requirement::Optional => &false,
-        }
-    }
 }
 
 /// Representation for chat command arguments
@@ -524,50 +506,50 @@ impl ArgumentSpec {
     pub fn usage_string(&self) -> String {
         match self {
             ArgumentSpec::PlayerName(req) => {
-                if **req {
+                if &Requirement::Required == req {
                     "<player>".to_string()
                 } else {
                     "[player]".to_string()
                 }
             },
             ArgumentSpec::Float(label, _, req) => {
-                if **req {
+                if &Requirement::Required == req {
                     format!("<{}>", label)
                 } else {
                     format!("[{}]", label)
                 }
             },
             ArgumentSpec::Integer(label, _, req) => {
-                if **req {
+                if &Requirement::Required == req {
                     format!("<{}>", label)
                 } else {
                     format!("[{}]", label)
                 }
             },
             ArgumentSpec::Any(label, req) => {
-                if **req {
+                if &Requirement::Required == req {
                     format!("<{}>", label)
                 } else {
                     format!("[{}]", label)
                 }
             },
             ArgumentSpec::Command(req) => {
-                if **req {
+                if &Requirement::Required == req {
                     "<[/]command>".to_string()
                 } else {
                     "[[/]command]".to_string()
                 }
             },
             ArgumentSpec::Message(req) => {
-                if **req {
+                if &Requirement::Required == req {
                     "<message>".to_string()
                 } else {
-                    "<message>".to_string()
+                    "[message]".to_string()
                 }
             },
             ArgumentSpec::SubCommand => "<[/]command> [args...]".to_string(),
             ArgumentSpec::Enum(label, _, req) => {
-                if **req {
+                if &Requirement::Required == req {
                     format! {"<{}>", label}
                 } else {
                     format! {"[{}]", label}

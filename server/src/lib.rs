@@ -652,7 +652,7 @@ impl Server {
         } else {
             self.notify_client(
                 entity,
-                ChatType::CommandError.message(format!(
+                ChatType::CommandError.server_msg(format!(
                     "Unknown command '/{}'.\nType '/help' for available commands",
                     kwd
                 )),

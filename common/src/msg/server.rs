@@ -119,27 +119,3 @@ impl From<AuthClientError> for RegisterError {
 impl From<comp::ChatMsg> for ServerMsg {
     fn from(v: comp::ChatMsg) -> Self { ServerMsg::ChatMsg(v) }
 }
-
-impl ServerMsg {
-    // TODO remove unneeded
-    // pub fn broadcast(message: String) -> ServerMsg {
-    //     ServerMsg::ChatMsg(comp::ChatMsg {
-    //         chat_type: comp::ChatType::Broadcast,
-    //         message,
-    //     })
-    // }
-
-    // pub fn private(message: String) -> ServerMsg {
-    //     ServerMsg::ChatMsg(comp::ChatMsg {
-    //         chat_type: comp::ChatType::Private,
-    //         message,
-    //     })
-    // }
-
-    // pub fn kill(message: String) -> ServerMsg {
-    //     ServerMsg::ChatMsg(comp::ChatMsg {
-    //         chat_type: comp::ChatType::Kill,
-    //         message,
-    //     })
-    // }
-}

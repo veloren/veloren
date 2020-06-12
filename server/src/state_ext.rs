@@ -252,8 +252,6 @@ impl StateExt for State {
             | comp::ChatType::CommandInfo
             | comp::ChatType::CommandError
             | comp::ChatType::Kill
-            | comp::ChatType::GroupMeta
-            | comp::ChatType::FactionMeta
             | comp::ChatType::World(_) => {
                 self.notify_registered_clients(ServerMsg::ChatMsg(msg.clone()))
             },
@@ -307,7 +305,7 @@ impl StateExt for State {
                 }
             },
 
-            comp::ChatType::Faction(_u, s) => {
+            comp::ChatType::FactionMeta(s) | comp::ChatType::Faction(_, s) => {
                 for (client, faction) in (
                     &mut ecs.write_storage::<Client>(),
                     &ecs.read_storage::<comp::Faction>(),
@@ -319,7 +317,7 @@ impl StateExt for State {
                     }
                 }
             },
-            comp::ChatType::Group(_u, s) => {
+            comp::ChatType::GroupMeta(s) | comp::ChatType::Group(_, s) => {
                 for (client, group) in (
                     &mut ecs.write_storage::<Client>(),
                     &ecs.read_storage::<comp::Group>(),

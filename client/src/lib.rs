@@ -1044,8 +1044,8 @@ impl Client {
             comp::ChatType::Offline => message.to_string(),
             comp::ChatType::CommandError => message.to_string(),
             comp::ChatType::CommandInfo => message.to_string(),
-            comp::ChatType::FactionMeta => message.to_string(),
-            comp::ChatType::GroupMeta => message.to_string(),
+            comp::ChatType::FactionMeta(_) => message.to_string(),
+            comp::ChatType::GroupMeta(_) => message.to_string(),
             comp::ChatType::Kill => message.to_string(),
             comp::ChatType::Tell(from, to) => {
                 let from_alias = alias_of_uid(from);
