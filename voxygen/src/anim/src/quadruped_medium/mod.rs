@@ -51,7 +51,7 @@ const TORSO_BACK_Z: f32 = 0.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
 const TORSO_MID_X: f32 = 0.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const TORSO_MID_Z: f32 = 12.5;
+const TORSO_MID_Z: f32 = 13.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
 const EARS_X: f32 = -2.5;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
@@ -59,27 +59,27 @@ const EARS_Z: f32 = 5.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
 const LEG_FRONT_X: f32 = 6.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const LEG_FRONT_Y: f32 = 1.0;
+const LEG_FRONT_Y: f32 = -0.5;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const LEG_FRONT_Z: f32 = 7.0;
+const LEG_FRONT_Z: f32 = 14.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
 const LEG_BACK_X: f32 = 5.5;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
 const LEG_BACK_Y: f32 = -14.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const LEG_BACK_Z: f32 = 8.5;
+const LEG_BACK_Z: f32 = 13.5;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
 const FEET_FRONT_X: f32 = 0.5;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
 const FEET_FRONT_Y: f32 = 0.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const FEET_FRONT_Z: f32 = -4.5;
+const FEET_FRONT_Z: f32 = -8.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
 const FEET_BACK_X: f32 = 0.5;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
 const FEET_BACK_Y: f32 = 0.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const FEET_BACK_Z: f32 = -5.0;
+const FEET_BACK_Z: f32 = -7.5;
 
 
 impl QuadrupedMediumSkeleton {
