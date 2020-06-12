@@ -114,33 +114,33 @@ impl Animation for IdleAnimation {
             -skeleton_attr.leg_f.0,
             skeleton_attr.leg_f.1,
             skeleton_attr.leg_f.2,
-        ) / 8.0;
+        );
         next.leg_fl.ori = Quaternion::rotation_x(0.0);
-        next.leg_fl.scale = Vec3::one() / 8.0;
+        next.leg_fl.scale = Vec3::one();
 
         next.leg_fr.offset = Vec3::new(
             skeleton_attr.leg_f.0,
             skeleton_attr.leg_f.1,
             skeleton_attr.leg_f.2,
-        ) / 8.0;
+        );
         next.leg_fr.ori = Quaternion::rotation_x(0.0);
-        next.leg_fr.scale = Vec3::one() / 8.0;
+        next.leg_fr.scale = Vec3::one();
 
         next.leg_bl.offset = Vec3::new(
             -skeleton_attr.leg_b.0,
             skeleton_attr.leg_b.1,
             skeleton_attr.leg_b.2,
-        ) / 8.0;
+        );
         next.leg_bl.ori = Quaternion::rotation_x(0.0);
-        next.leg_bl.scale = Vec3::one() / 8.0;
+        next.leg_bl.scale = Vec3::one();
 
         next.leg_br.offset = Vec3::new(
             skeleton_attr.leg_b.0,
             skeleton_attr.leg_b.1,
             skeleton_attr.leg_b.2,
-        ) / 8.0;
+        );
         next.leg_br.ori = Quaternion::rotation_x(0.0);
-        next.leg_br.scale = Vec3::one() / 8.0;
+        next.leg_br.scale = Vec3::one();
 
         next.foot_fl.offset = Vec3::new(
             -skeleton_attr.feet_f.0,
