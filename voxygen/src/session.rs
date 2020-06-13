@@ -21,7 +21,7 @@ use common::{
     vol::ReadVol,
     ChatType,
 };
-use log::error;
+use log::{error, info};
 use specs::{Join, WorldExt};
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
@@ -86,8 +86,9 @@ impl SessionState {
             match event {
                 Chat {
                     chat_type: _,
-                    message: _,
+                    ref message,
                 } => {
+                    info!("[CHAT] {}", message);
                     self.hud.new_message(event);
                 },
                 client::Event::Disconnect => return Ok(TickAction::Disconnect),
