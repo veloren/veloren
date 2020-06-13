@@ -285,6 +285,7 @@ image_ids! {
         speech_bubble_bottom: "voxygen.element.frames.bubble.bottom",
         speech_bubble_bottom_right: "voxygen.element.frames.bubble.bottom_right",
         speech_bubble_tail: "voxygen.element.frames.bubble.tail",
+        speech_bubble_icon_frame: "voxygen.element.frames.bubble_dark.icon_frame",
 
         dark_bubble_top_left: "voxygen.element.frames.bubble_dark.top_left",
         dark_bubble_top: "voxygen.element.frames.bubble_dark.top",
@@ -296,6 +297,8 @@ image_ids! {
         dark_bubble_bottom: "voxygen.element.frames.bubble_dark.bottom",
         dark_bubble_bottom_right: "voxygen.element.frames.bubble_dark.bottom_right",
         dark_bubble_tail: "voxygen.element.frames.bubble_dark.tail",
+        dark_bubble_icon_frame: "voxygen.element.frames.bubble_dark.icon_frame",
+
 
         // Chat icons
         chat_faction_small: "voxygen.element.icons.chat.faction_small",
