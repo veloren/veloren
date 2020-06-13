@@ -259,7 +259,7 @@ impl<'a> Widget for Overhead<'a> {
             } else {
                 self.imgs.speech_bubble_tail
             })
-            .w_h(22.0, 28.0)
+            .w_h(22.0, 13.0)
             .mid_bottom_with_margin_on(state.ids.speech_bubble_text, -32.0)
             .parent(id)
             .set(state.ids.speech_bubble_tail, ui);
