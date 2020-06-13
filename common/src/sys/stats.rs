@@ -77,7 +77,13 @@ impl<'a> System<'a> for Sys {
 
             // Accelerate recharging energy if not wielding.
             match character_state {
-                CharacterState::Idle { .. } | CharacterState::Sit { .. } => {
+                CharacterState::Idle { .. }
+                | CharacterState::Sit { .. }
+                | CharacterState::Dance { .. }
+                | CharacterState::Glide { .. }
+                | CharacterState::Wielding { .. }
+                | CharacterState::Equipping { .. }
+                | CharacterState::Boost { .. } => {
                     let res = {
                         let energy = energy.get_unchecked();
                         energy.current() < energy.maximum()
@@ -95,13 +101,18 @@ impl<'a> System<'a> for Sys {
                             (energy.regen_rate + ENERGY_REGEN_ACCEL * dt.0).min(100.0);
                     }
                 },
-                // Wield does not regen and sets the rate back to zero.
-                CharacterState::Wielding { .. } => {
+                // Ability use does not regen and sets the rate back to zero.
+                CharacterState::Roll { .. }
+                | CharacterState::BasicBlock { .. }
+                | CharacterState::Climb { .. }
+                | CharacterState::BasicMelee { .. }
+                | CharacterState::DashMelee { .. }
+                | CharacterState::TripleStrike { .. }
+                | CharacterState::BasicRanged { .. } => {
                     if energy.get_unchecked().regen_rate != 0.0 {
                         energy.get_mut_unchecked().regen_rate = 0.0
                     }
                 },
-                _ => {},
             }
         }
     }
