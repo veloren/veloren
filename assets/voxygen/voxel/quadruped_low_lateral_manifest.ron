@@ -143,4 +143,40 @@
             lateral: ("npc.monitor.female.foot_br"),
         ),
     ),
+    (Asp, Male): (
+        front_left: (
+            offset: (-5.5, -3.5, -7.0),
+            lateral: ("npc.asp.male.foot_fl"),
+        ),
+        front_right: (
+            offset: (-5.5, -3.5, -7.0),
+            lateral: ("npc.asp.male.foot_fr"),
+        ),
+        back_left: (
+            offset: (-4.5, -2.5, -7.0),
+            lateral: ("npc.asp.male.foot_bl"),
+        ),
+        back_right: (
+            offset: (-4.5, -2.5, -7.0),
+            lateral: ("npc.asp.male.foot_br"),
+        ),
+    ),
+    (Asp, Female): (
+        front_left: (
+            offset: (-5.5, -3.5, -7.0),
+            lateral: ("npc.asp.female.foot_fl"),
+        ),
+        front_right: (
+            offset: (-5.5, -3.5, -7.0),
+            lateral: ("npc.asp.female.foot_fr"),
+        ),
+        back_left: (
+            offset: (-4.5, -2.5, -7.0),
+            lateral: ("npc.asp.female.foot_bl"),
+        ),
+        back_right: (
+            offset: (-4.5, -2.5, -7.0),
+            lateral: ("npc.asp.female.foot_br"),
+        ),
+    ),
 })
