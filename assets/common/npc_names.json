@@ -577,6 +577,10 @@
             "monitor": {
                 "keyword": "monitor",
                 "generic": "Monitor"
+            },
+            "asp": {
+                "keyword": "asp",
+                "generic": "Asp"
             }
         }
     }

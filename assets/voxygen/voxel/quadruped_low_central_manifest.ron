@@ -208,4 +208,56 @@
             central: ("npc.monitor.female.tail_front"),
         ),
     ),
+    (Asp, Male): (
+        upper: (
+            offset: (-5.0, -5.0, -5.0),
+            central: ("npc.asp.male.head_upper"),
+        ),
+        lower: (
+            offset: (-6.0, -3.0, -7.5),
+            central: ("npc.asp.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-2.0, -4.0, -1.0),
+            central: ("npc.asp.male.jaw"),
+        ),
+        chest: (
+            offset: (-5.0, -7.5, -5.0),
+            central: ("npc.asp.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-1.0, -14.0, -2.0),
+            central: ("npc.asp.male.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-3.0, -14.0, -4.0),
+            central: ("npc.asp.male.tail_front"),
+        ),
+    ),
+    (Asp, Female): (
+        upper: (
+            offset: (-5.0, -5.0, -5.0),
+            central: ("npc.asp.female.head_upper"),
+        ),
+        lower: (
+            offset: (-6.0, -3.0, -7.5),
+            central: ("npc.asp.female.head_lower"),
+        ),
+        jaw: (
+            offset: (-2.0, -4.0, -1.0),
+            central: ("npc.asp.female.jaw"),
+        ),
+        chest: (
+            offset: (-5.0, -7.5, -5.0),
+            central: ("npc.asp.female.chest"),
+        ),
+        tail_rear: (
+            offset: (-1.0, -14.0, -2.0),
+            central: ("npc.asp.female.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-3.0, -14.0, -4.0),
+            central: ("npc.asp.female.tail_front"),
+        ),
+    ),
 })
