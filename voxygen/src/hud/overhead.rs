@@ -254,15 +254,20 @@ impl<'a> Widget for Overhead<'a> {
             .bottom_right_with_margin_on(state.ids.speech_bubble_text, -20.0)
             .parent(id)
             .set(state.ids.speech_bubble_bottom_right, ui);
-            Image::new(if dark_mode {
+            let tail = Image::new(if dark_mode {
                 self.imgs.dark_bubble_tail
             } else {
                 self.imgs.speech_bubble_tail
             })
-            .w_h(22.0, 13.0)
-            .mid_bottom_with_margin_on(state.ids.speech_bubble_text, -32.0)
             .parent(id)
-            .set(state.ids.speech_bubble_tail, ui);
+            .mid_bottom_with_margin_on(state.ids.speech_bubble_text, -32.0);
+
+            if dark_mode {
+                tail.w_h(22.0, 13.0).set(state.ids.speech_bubble_tail, ui)
+            } else {
+                tail.w_h(22.0, 28.0).set(state.ids.speech_bubble_tail, ui)
+            };
+
             let mut text_shadow = Text::new(&bubble_contents)
                 .color(shadow_color)
                 .font_id(self.fonts.cyri.conrod_id)
