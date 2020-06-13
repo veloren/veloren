@@ -75,8 +75,8 @@ impl<'a> System<'a> for Sys {
                     .set_to(stat.health.maximum(), HealthSource::LevelUp);
             }
 
-            // Accelerate recharging energy if not wielding.
             match character_state {
+                // Accelerate recharging energy.
                 CharacterState::Idle { .. }
                 | CharacterState::Sit { .. }
                 | CharacterState::Dance { .. }
@@ -102,17 +102,18 @@ impl<'a> System<'a> for Sys {
                     }
                 },
                 // Ability use does not regen and sets the rate back to zero.
-                CharacterState::Roll { .. }
-                | CharacterState::BasicBlock { .. }
-                | CharacterState::Climb { .. }
-                | CharacterState::BasicMelee { .. }
+                CharacterState::BasicMelee { .. }
                 | CharacterState::DashMelee { .. }
                 | CharacterState::TripleStrike { .. }
-                | CharacterState::BasicRanged { .. } => {
+                | CharacterState::BasicRanged { .. }
+                | CharacterState::BasicBlock { .. } => {
                     if energy.get_unchecked().regen_rate != 0.0 {
                         energy.get_mut_unchecked().regen_rate = 0.0
                     }
                 },
+                // Non-combat abilities that consume energy;
+                // temporarily stall energy gain, but preserve regen_rate.
+                CharacterState::Roll { .. } | CharacterState::Climb { .. } => {},
             }
         }
     }
