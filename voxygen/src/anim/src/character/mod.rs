@@ -158,32 +158,12 @@ impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
     }
 }
 
-impl SkeletonAttr {
-    pub fn calculate_scale(body: &Body) -> f32 {
-        use comp::humanoid::{BodyType::*, Species::*};
-        match (body.species, body.body_type) {
-            (Orc, Male) => 1.14,
-            (Orc, Female) => 1.02,
-            (Human, Male) => 1.02,
-            (Human, Female) => 0.96,
-            (Elf, Male) => 1.02,
-            (Elf, Female) => 0.96,
-            (Dwarf, Male) => 0.84,
-            (Dwarf, Female) => 0.78,
-            (Undead, Male) => 0.96,
-            (Undead, Female) => 0.9,
-            (Danari, Male) => 0.696,
-            (Danari, Female) => 0.696,
-        }
-    }
-}
-
 impl<'a> From<&'a Body> for SkeletonAttr {
     #[allow(clippy::match_single_binding)] // TODO: Pending review in #587
     fn from(body: &'a Body) -> Self {
         use comp::humanoid::{BodyType::*, Species::*};
         Self {
-            scaler: SkeletonAttr::calculate_scale(body),
+            scaler: body.scale(),
             head_scale: match (body.species, body.body_type) {
                 (Orc, Male) => 0.9,
                 (Orc, Female) => 0.9,

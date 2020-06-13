@@ -2,8 +2,8 @@ use crate::{sys, Server, StateExt};
 use common::{
     character::CharacterId,
     comp::{
-        self, Agent, Alignment, Body, Gravity, Item, ItemDrop, LightEmitter, Loadout, Pos,
-        Projectile, Scale, Stats, Vel, WaypointArea,
+        self, humanoid::DEFAULT_HUMANOID_EYE_HEIGHT, Agent, Alignment, Body, Gravity, Item,
+        ItemDrop, LightEmitter, Loadout, Pos, Projectile, Scale, Stats, Vel, WaypointArea,
     },
     outcome::Outcome,
     util::Dir,
@@ -105,8 +105,12 @@ pub fn handle_shoot(
         .write_resource::<Vec<Outcome>>()
         .push(Outcome::ProjectileShot { pos, body, vel });
 
-    // TODO: Player height
-    pos.z += 1.2;
+    let eye_height = match state.ecs().read_storage::<comp::Body>().get(entity) {
+        Some(comp::Body::Humanoid(body)) => body.eye_height(),
+        _ => DEFAULT_HUMANOID_EYE_HEIGHT,
+    };
+
+    pos.z += eye_height;
 
     let mut builder = state.create_projectile(Pos(pos), Vel(vel), body, projectile);
     if let Some(light) = light {
