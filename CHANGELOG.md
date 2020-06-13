@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Overhauled world colours
 - Improved projectile physics
 - Improved overhead aiming
+- Improved first person aiming
 - Figure meshing no longer blocks the main thread.
 - Overhauled persistence layer including no longer storing serialized JSON items in the database
 
