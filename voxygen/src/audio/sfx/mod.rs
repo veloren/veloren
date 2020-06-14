@@ -4,6 +4,9 @@
 //! Veloren's sfx are managed through a configuration which lives in the
 //! codebase under `/assets/voxygen/audio/sfx.ron`.
 //!
+//! If there are errors while reading or deserialising the configuration file, a
+//! warning is logged and sfx will be disabled.
+//!
 //! Each entry in the configuration consists of an
 //! [SfxEvent](../../../veloren_common/event/enum.SfxEvent.html) item, with some
 //! additional information to allow playback:
@@ -12,7 +15,9 @@
 //!   played each time, or a list of files from which one is chosen at random to
 //!   be played.
 //! - `threshold` - the time that the system should wait between successive
-//!   plays.
+//!   plays. This avoids playing the sound with very fast successive repetition
+//!   when the character can maintain a state over a long period, such as
+//!   running or climbing.
 //!
 //! The following snippet details some entries in the configuration and how they
 //! map to the sound files:
@@ -61,20 +66,16 @@
 //! // An attack ability which depends on the weapon
 //! Attack(DashMelee, Sword): (
 //!     files: [
-//!         "voxygen.audio.sfx.weapon.whoosh_normal_01",
-//!         "voxygen.audio.sfx.weapon.whoosh_normal_02",
-//!         "voxygen.audio.sfx.weapon.whoosh_normal_03",
-//!         "voxygen.audio.sfx.weapon.whoosh_normal_04",
+//!         "voxygen.audio.sfx.weapon.sword_dash_01",
+//!         "voxygen.audio.sfx.weapon.sword_dash_02",
 //!     ],
 //!     threshold: 1.2,
 //! ),
 //! // A multi-stage attack ability which depends on the weapon
 //! Attack(TripleStrike(First), Sword): (
 //!     files: [
-//!         "voxygen.audio.sfx.weapon.whoosh_normal_01",
-//!         "voxygen.audio.sfx.weapon.whoosh_normal_02",
-//!         "voxygen.audio.sfx.weapon.whoosh_normal_03",
-//!         "voxygen.audio.sfx.weapon.whoosh_normal_04",
+//!         "voxygen.audio.sfx.weapon.sword_03",
+//!         "voxygen.audio.sfx.weapon.sword_04",
 //!     ],
 //!     threshold: 0.5,
 //! ),
@@ -188,15 +189,22 @@ impl SfxMgr {
     }
 
     fn load_sfx_items() -> SfxTriggers {
-        let file = assets::load_file("voxygen.audio.sfx", &["ron"])
-            .expect("Failed to load the sfx config file");
+        match assets::load_file("voxygen.audio.sfx", &["ron"]) {
+            Ok(file) => match ron::de::from_reader(file) {
+                Ok(config) => config,
+                Err(error) => {
+                    log::warn!(
+                        "Error parsing sfx config file, sfx will not be available: {}",
+                        format!("{:#?}", error)
+                    );
 
-        match ron::de::from_reader(file) {
-            Ok(config) => config,
-            Err(e) => {
+                    SfxTriggers::default()
+                },
+            },
+            Err(error) => {
                 log::warn!(
-                    "Error parsing sfx config file, sfx will not be available: {}",
-                    format!("{:#?}", e)
+                    "Error reading sfx config file, sfx will not be available: {}",
+                    format!("{:#?}", error)
                 );
 
                 SfxTriggers::default()
