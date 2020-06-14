@@ -1,5 +1,6 @@
 #![deny(unsafe_code)]
 #![allow(incomplete_features)]
+#![allow(clippy::option_map_unit_fn)]
 #![feature(arbitrary_enum_discriminant, const_generics, label_break_value)]
 
 mod all;

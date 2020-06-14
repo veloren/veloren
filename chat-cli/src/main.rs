@@ -1,4 +1,5 @@
 #![deny(unsafe_code)]
+#![allow(clippy::option_map_unit_fn)]
 
 use client::{Client, Event};
 use common::{clock::Clock, comp};

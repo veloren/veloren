@@ -51,7 +51,6 @@ impl<'a> System<'a> for Sys {
     );
 
     #[allow(clippy::match_ref_pats)] // TODO: Pending review in #587
-    #[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
     #[allow(clippy::single_char_pattern)] // TODO: Pending review in #587
     #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn run(

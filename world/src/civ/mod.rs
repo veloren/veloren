@@ -70,7 +70,6 @@ impl<'a, R: Rng> GenCtx<'a, R> {
 
 impl Civs {
     #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
-    #[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
     pub fn generate(seed: u32, sim: &mut WorldSim) -> Self {
         let mut this = Self::default();
         let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
