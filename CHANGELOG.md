@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lanterns now stop glowing if you throw a lit one out of your inventory
 - Fixed a crash caused by certain audio devices on OSX
 - Bow animations now show held arrows
+- Fixed a bug where walk/run sfx played while a character rolled/dodged
 
 ### Removed
 

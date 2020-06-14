@@ -149,16 +149,19 @@ impl MovementEventMapper {
         previous_state: &PreviousEntityState,
         vel: Vec3<f32>,
     ) -> SfxEvent {
-        // Match run state
+        // Match run / roll state
         if physics_state.on_ground && vel.magnitude() > 0.1
             || !previous_state.on_ground && physics_state.on_ground
         {
-            return SfxEvent::Run;
+            return if character_state.is_dodge() {
+                SfxEvent::Roll
+            } else {
+                SfxEvent::Run
+            };
         }
 
         // Match all other Movemement and Action states
         match (previous_state.event, character_state) {
-            (_, CharacterState::Roll { .. }) => SfxEvent::Roll,
             (_, CharacterState::Climb { .. }) => SfxEvent::Climb,
             (SfxEvent::Glide, CharacterState::Idle { .. }) => SfxEvent::GliderClose,
             (previous_event, CharacterState::Glide { .. }) => {
