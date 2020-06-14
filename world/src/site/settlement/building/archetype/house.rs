@@ -165,6 +165,7 @@ impl Archetype for House {
     #[allow(clippy::int_plus_one)] // TODO: Pending review in #587
     fn draw(
         &self,
+        pos: Vec3<i32>,
         dist: i32,
         bound_offset: Vec2<i32>,
         center_offset: Vec2<i32>,
