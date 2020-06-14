@@ -65,7 +65,7 @@ rustPlatform.buildRustPackage rec {
   #preConfigure = "export HOME=`mktemp -d`";
   postInstall = "cp -R $src/assets $out/bin/assets";
   # If veloren-vendor build fails with hash mismatch, change this hash with `got:` hash
-  cargoSha256 = "0715pic4fsbacpv5pz67hyp1sqqw3z41rxn4y5hgjdqaw8a4blq2";
+  cargoSha256 = "13aa2jypqhg4y7bpkxqdchd0sw85hq6galafswbg1d4bjwphnq70";
 
   meta = {
     platforms = stdenv.lib.platforms.linux;

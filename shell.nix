@@ -27,6 +27,8 @@ import ./default.nix {
       "voxygen/src/main.rs"
       "world/Cargo.toml"
       "world/src/lib.rs"
+      "network/Cargo.toml"
+      "network/src/lib.rs"
     ]
   );
 }
