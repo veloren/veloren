@@ -511,13 +511,19 @@ impl Ui {
                         )
                     };
 
-                    let color =
-                        srgba_to_linear(color.unwrap_or(conrod_core::color::WHITE).to_fsa().into());
-
                     let resolution = Vec2::new(
                         (gl_size.w * half_res.x).round() as u16,
                         (gl_size.h * half_res.y).round() as u16,
                     );
+
+                    // Don't do anything if resolution is zero
+                    if resolution.map(|e| e == 0).reduce_or() {
+                        continue;
+                        // TODO: consider logging uneeded elements
+                    }
+
+                    let color =
+                        srgba_to_linear(color.unwrap_or(conrod_core::color::WHITE).to_fsa().into());
 
                     // Cache graphic at particular resolution.
                     let (uv_aabr, tex_id) = match graphic_cache.cache_res(
