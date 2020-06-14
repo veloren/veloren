@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show where screenshots are saved to in the chat
 - Added basic auto walk
 - Added weapon/attack sound effects
+- M2 attack for bow
 
 ### Changed
 
@@ -30,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - slim the game size through lossless asset optimization
 - Lanterns now stop glowing if you throw a lit one out of your inventory
 - Fixed a crash caused by certain audio devices on OSX
+- Bow animations now show held arrows
 
 ### Removed
 

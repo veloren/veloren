@@ -964,6 +964,16 @@ pub fn mesh_glider(
     )
 }
 
+pub fn mesh_hold(
+    generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+) -> Mesh<FigurePipeline> {
+    load_mesh(
+        "weapon.projectile.simple-arrow",
+        Vec3::new(-0.5, -6.0, -1.5),
+        generate_mesh,
+    )
+}
+
 /////////
 #[derive(Serialize, Deserialize)]
 pub struct QuadrupedSmallCentralSpec(HashMap<(QSSpecies, QSBodyType), SidedQSCentralVoxSpec>);
