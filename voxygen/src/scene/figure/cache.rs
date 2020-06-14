@@ -184,7 +184,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                     },
                     None,
                     Some(humanoid_armor_lantern_spec.mesh_lantern(&body, loadout, generate_mesh)),
-                    None,
+                    Some(mesh_hold(generate_mesh)),
                 ]
             },
             Body::QuadrupedSmall(body) => {

@@ -20,7 +20,6 @@ impl Animation for EquipAnimation {
     ) -> Self::Skeleton {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
-
         let lab = 1.0;
 
         let short = (((5.0)
@@ -125,12 +124,12 @@ impl Animation for EquipAnimation {
                 next.main.scale = Vec3::one();
             },
             Some(ToolKind::Bow(_)) => {
-                next.l_hand.offset = Vec3::new(1.0, -4.0, -1.0);
+                next.l_hand.offset = Vec3::new(2.0, 1.5, 0.0);
                 next.l_hand.ori = Quaternion::rotation_x(1.20)
                     * Quaternion::rotation_y(-0.6)
                     * Quaternion::rotation_z(-0.3);
                 next.l_hand.scale = Vec3::one() * 1.05;
-                next.r_hand.offset = Vec3::new(3.0, -1.0, -5.0);
+                next.r_hand.offset = Vec3::new(5.9, 4.5, -5.0);
                 next.r_hand.ori = Quaternion::rotation_x(1.20)
                     * Quaternion::rotation_y(-0.6)
                     * Quaternion::rotation_z(-0.3);
@@ -196,7 +195,7 @@ impl Animation for EquipAnimation {
             next.head.offset = Vec3::new(
                 0.0,
                 -3.0 + skeleton_attr.head.0,
-                -1.0 + skeleton_attr.head.1 + short * 0.2,
+                skeleton_attr.head.1 + short * 0.2,
             );
             next.head.ori =
                 Quaternion::rotation_z(head_look.x) * Quaternion::rotation_x(head_look.y);
@@ -221,7 +220,7 @@ impl Animation for EquipAnimation {
 
             next.shorts.offset = Vec3::new(0.0, skeleton_attr.shorts.0, skeleton_attr.shorts.1);
 
-            next.torso.offset = Vec3::new(0.0, 0.0, 0.1) * skeleton_attr.scaler;
+            next.torso.offset = Vec3::new(0.0, 0.0, 0.0) * skeleton_attr.scaler;
         }
         next
     }
