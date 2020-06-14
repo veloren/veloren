@@ -221,30 +221,56 @@ impl Tool {
                 range: 3.0,
                 max_angle: 60.0,
             }],
-            Bow(_) => vec![BasicRanged {
-                energy_cost: 0,
-                holdable: true,
-                prepare_duration: Duration::from_millis(100),
-                recover_duration: Duration::from_millis(500),
-                projectile: Projectile {
-                    hit_solid: vec![projectile::Effect::Stick],
-                    hit_entity: vec![
-                        projectile::Effect::Damage(HealthChange {
-                            // TODO: This should not be fixed (?)
-                            amount: -5,
-                            cause: HealthSource::Projectile { owner: None },
-                        }),
-                        projectile::Effect::Knockback(10.0),
-                        projectile::Effect::RewardEnergy(100),
-                        projectile::Effect::Vanish,
-                    ],
-                    time_left: Duration::from_secs(15),
-                    owner: None,
+            Bow(_) => vec![
+                BasicRanged {
+                    energy_cost: 0,
+                    holdable: true,
+                    prepare_duration: Duration::from_millis(100),
+                    recover_duration: Duration::from_millis(500),
+                    projectile: Projectile {
+                        hit_solid: vec![projectile::Effect::Stick],
+                        hit_entity: vec![
+                            projectile::Effect::Damage(HealthChange {
+                                // TODO: This should not be fixed (?)
+                                amount: -3,
+                                cause: HealthSource::Projectile { owner: None },
+                            }),
+                            projectile::Effect::Knockback(10.0),
+                            projectile::Effect::RewardEnergy(100),
+                            projectile::Effect::Vanish,
+                        ],
+                        time_left: Duration::from_secs(15),
+                        owner: None,
+                    },
+                    projectile_body: Body::Object(object::Body::Arrow),
+                    projectile_light: None,
+                    projectile_gravity: Some(Gravity(0.2)),
                 },
-                projectile_body: Body::Object(object::Body::Arrow),
-                projectile_light: None,
-                projectile_gravity: Some(Gravity(0.1)),
-            }],
+                BasicRanged {
+                    energy_cost: 350,
+                    holdable: true,
+                    prepare_duration: Duration::from_millis(250),
+                    recover_duration: Duration::from_millis(700),
+                    projectile: Projectile {
+                        hit_solid: vec![projectile::Effect::Stick],
+                        hit_entity: vec![
+                            projectile::Effect::Damage(HealthChange {
+                                // TODO: This should not be fixed (?)
+                                amount: -9,
+                                cause: HealthSource::Projectile { owner: None },
+                            }),
+                            projectile::Effect::Knockback(15.0),
+                            projectile::Effect::RewardEnergy(50),
+                            projectile::Effect::Vanish,
+                        ],
+                        time_left: Duration::from_secs(15),
+                        owner: None,
+                    },
+                    projectile_body: Body::Object(object::Body::Arrow),
+                    projectile_light: None,
+                    projectile_gravity: Some(Gravity(0.05)),
+                },
+            ],
             Dagger(_) => vec![BasicMelee {
                 energy_cost: 0,
                 buildup_duration: Duration::from_millis(100),
@@ -264,7 +290,7 @@ impl Tool {
                 },
                 BasicRanged {
                     energy_cost: 0,
-                    holdable: false,
+                    holdable: true,
                     prepare_duration: Duration::from_millis(250),
                     recover_duration: Duration::from_millis(200),
                     projectile: Projectile {
@@ -291,7 +317,7 @@ impl Tool {
                 },
                 BasicRanged {
                     energy_cost: 400,
-                    holdable: false,
+                    holdable: true,
                     prepare_duration: Duration::from_millis(800),
                     recover_duration: Duration::from_millis(50),
                     projectile: Projectile {

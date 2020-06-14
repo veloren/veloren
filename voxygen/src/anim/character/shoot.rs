@@ -21,7 +21,6 @@ impl Animation for ShootAnimation {
         let mut next = (*skeleton).clone();
 
         let lab = 1.0;
-
         let foot = (((5.0)
             / (0.2 + 4.8 * ((anim_time as f32 * lab as f32 * 8.0).sin()).powf(2.0 as f32)))
         .sqrt())
@@ -81,12 +80,12 @@ impl Animation for ShootAnimation {
                 next.control.scale = Vec3::one();
             },
             Some(ToolKind::Bow(_)) => {
-                next.l_hand.offset = Vec3::new(1.0 - exp * 2.0, -4.0 - exp * 7.0, -1.0 + exp * 6.0);
+                next.l_hand.offset = Vec3::new(1.0 - exp * 2.0, -4.0 - exp * 4.0, -1.0 + exp * 6.0);
                 next.l_hand.ori = Quaternion::rotation_x(1.20)
                     * Quaternion::rotation_y(-0.6 + exp * 0.8)
                     * Quaternion::rotation_z(-0.3 + exp * 0.9);
                 next.l_hand.scale = Vec3::one() * 1.05;
-                next.r_hand.offset = Vec3::new(3.0, -1.0, -5.0);
+                next.r_hand.offset = Vec3::new(4.9, 3.0, -4.0);
                 next.r_hand.ori = Quaternion::rotation_x(1.20)
                     * Quaternion::rotation_y(-0.6)
                     * Quaternion::rotation_z(-0.3);
@@ -167,6 +166,12 @@ impl Animation for ShootAnimation {
         next.lantern.ori =
             Quaternion::rotation_x(exp * -0.7 + 0.4) * Quaternion::rotation_y(exp * 0.4);
         next.lantern.scale = Vec3::one() * 0.65;
+
+        next.hold.offset = Vec3::new(17.4, -24.8, -10.5);
+        next.hold.ori = Quaternion::rotation_x(-1.6)
+            * Quaternion::rotation_y(-0.1)
+            * Quaternion::rotation_z(0.0);
+        next.hold.scale = Vec3::one() * 0.0;
 
         next.l_control.offset = Vec3::new(0.0, 0.0, 0.0);
         next.l_control.ori = Quaternion::rotation_x(0.0);

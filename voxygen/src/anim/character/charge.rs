@@ -64,8 +64,8 @@ impl Animation for ChargeAnimation {
         } * 1.3;
 
         next.head.offset = Vec3::new(
-            0.0 + stop * -2.0,
-            -2.0 + stop * 2.5 + skeleton_attr.head.0,
+            stop * -2.0,
+            -3.5 + stop * 2.5 + skeleton_attr.head.0,
             skeleton_attr.head.1,
         );
         next.head.ori =
@@ -107,25 +107,31 @@ impl Animation for ChargeAnimation {
                 next.control.scale = Vec3::one();
             },
             Some(ToolKind::Bow(_)) => {
-                next.l_hand.offset = Vec3::new(1.0, -4.0 + stop * -1.0, 0.0);
+                next.l_hand.offset = Vec3::new(1.0, -2.0 + stop * -1.0, 0.0);
                 next.l_hand.ori = Quaternion::rotation_x(1.20)
                     * Quaternion::rotation_y(-0.6)
                     * Quaternion::rotation_z(-0.3);
                 next.l_hand.scale = Vec3::one() * 1.05;
-                next.r_hand.offset = Vec3::new(3.0, -1.0, -5.0);
+                next.r_hand.offset = Vec3::new(4.9, 1.0, -5.0);
                 next.r_hand.ori = Quaternion::rotation_x(1.20)
                     * Quaternion::rotation_y(-0.6)
                     * Quaternion::rotation_z(-0.3);
                 next.r_hand.scale = Vec3::one() * 1.05;
-                next.main.offset = Vec3::new(3.0, 2.0, -13.0);
+                next.main.offset = Vec3::new(3.0, -1.0, -14.0);
                 next.main.ori = Quaternion::rotation_x(-0.3)
                     * Quaternion::rotation_y(0.3)
                     * Quaternion::rotation_z(-0.6);
 
-                next.control.offset = Vec3::new(-9.0 + stop * 13.0, 6.0 + stop * 4.0, 8.0);
+                next.hold.offset = Vec3::new(0.4, -0.3, -5.8);
+                next.hold.ori = Quaternion::rotation_x(-1.6)
+                    * Quaternion::rotation_y(-0.1)
+                    * Quaternion::rotation_z(0.0);
+                next.hold.scale = Vec3::one() * 1.0;
+
+                next.control.offset = Vec3::new(-10.0 + stop * 13.0, 6.0 + stop * 4.0, 8.0);
                 next.control.ori = Quaternion::rotation_x(0.0)
-                    * Quaternion::rotation_y(stop * -0.5)
-                    * Quaternion::rotation_z(stop * -0.9);
+                    * Quaternion::rotation_y(stop * -0.4)
+                    * Quaternion::rotation_z(stop * -0.6);
                 next.control.scale = Vec3::one();
             },
             _ => {},

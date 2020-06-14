@@ -693,7 +693,7 @@ impl<'a> Widget for Skillbar<'a> {
                     ToolKind::Sword(_) => self.imgs.charge,
                     ToolKind::Hammer(_) => self.imgs.nothing,
                     ToolKind::Axe(_) => self.imgs.nothing,
-                    ToolKind::Bow(_) => self.imgs.nothing,
+                    ToolKind::Bow(_) => self.imgs.bow_m2,
                     ToolKind::Staff(StaffKind::Sceptre) => self.imgs.heal_0,
                     ToolKind::Staff(_) => self.imgs.staff_m2,
                     ToolKind::Debug(DebugKind::Boost) => self.imgs.flyingrod_m2,
@@ -706,6 +706,7 @@ impl<'a> Widget for Skillbar<'a> {
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
                 Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
                     ToolKind::Staff(_) => 30.0 * scale,
+                    ToolKind::Bow(_) => 30.0 * scale,
                     _ => 38.0 * scale,
                 },
                 _ => 38.0 * scale,
@@ -715,6 +716,7 @@ impl<'a> Widget for Skillbar<'a> {
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
                 Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
                     ToolKind::Staff(_) => 30.0 * scale,
+                    ToolKind::Bow(_) => 30.0 * scale,
                     _ => 38.0 * scale,
                 },
                 _ => 38.0 * scale,
