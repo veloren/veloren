@@ -10,6 +10,8 @@ use rand::prelude::*;
 use vek::*;
 
 pub type HouseBuilding = Building<archetype::house::House>;
+pub type KeepBuilding = Building<archetype::keep::Keep>;
+
 
 pub struct Building<A: Archetype> {
     skel: Skeleton<A::Attr>,
@@ -50,10 +52,10 @@ impl<A: Archetype> Building<A> {
         let rpos = pos - self.origin;
         self.skel
             .sample_closest(
-                rpos.into(),
-                |dist, bound_offset, center_offset, ori, branch| {
+                rpos,
+                |pos, dist, bound_offset, center_offset, ori, branch| {
                     self.archetype
-                        .draw(dist, bound_offset, center_offset, rpos.z, ori, branch)
+                        .draw(pos, dist, bound_offset, center_offset, rpos.z, ori, branch)
                 },
             )
             .finish()

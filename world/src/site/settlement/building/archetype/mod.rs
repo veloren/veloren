@@ -14,6 +14,7 @@ pub trait Archetype {
         Self: Sized;
     fn draw(
         &self,
+        pos: Vec3<i32>,
         dist: i32,
         bound_offset: Vec2<i32>,
         center_offset: Vec2<i32>,

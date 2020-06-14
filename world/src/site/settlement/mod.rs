@@ -1,6 +1,6 @@
 mod building;
 
-use self::building::HouseBuilding;
+use self::building::{HouseBuilding, KeepBuilding};
 use super::SpawnRules;
 use crate::{
     column::ColumnSample,
@@ -83,6 +83,8 @@ fn to_tile(e: i32) -> i32 { ((e as f32).div_euclid(AREA_SIZE as f32)).floor() as
 
 pub enum StructureKind {
     House(HouseBuilding),
+    Keep(KeepBuilding),
+
 }
 
 pub struct Structure {
@@ -93,6 +95,24 @@ impl Structure {
     pub fn bounds_2d(&self) -> Aabr<i32> {
         match &self.kind {
             StructureKind::House(house) => house.bounds_2d(),
+            StructureKind::Keep(keep) => keep.bounds_2d(),
+
+        }
+    }
+    
+    pub fn bounds(&self) -> Aabb<i32> {
+        match &self.kind {
+            StructureKind::House(house) => house.bounds(),
+            StructureKind::Keep(keep) => keep.bounds(),
+
+        }
+    }
+    
+    pub fn sample(&self, rpos: Vec3<i32>) -> Option<Block> {
+        match &self.kind {
+            StructureKind::House(house) => house.sample(rpos),
+            StructureKind::Keep(keep) => keep.sample(rpos),
+
         }
     }
 }
@@ -326,9 +346,10 @@ impl Settlement {
             return;
         };
 
-        for tile in Spiral2d::new()
+        for (i, tile) in Spiral2d::new()
             .map(|offs| town_center + offs)
             .take(16usize.pow(2))
+            .enumerate()
         {
             // This is a stupid way to decide how to place buildings
             for _ in 0..ctx.rng.gen_range(2, 5) {
@@ -356,17 +377,31 @@ impl Settlement {
                     }
 
                     let structure = Structure {
-                        kind: StructureKind::House(HouseBuilding::generate(
-                            ctx.rng,
-                            Vec3::new(
-                                house_pos.x,
-                                house_pos.y,
-                                ctx.sim
-                                    .and_then(|sim| sim.get_alt_approx(self.origin + house_pos))
-                                    .unwrap_or(0.0)
-                                    .ceil() as i32,
-                            ),
-                        )),
+                        kind: if i == 0 {
+                            StructureKind::Keep(KeepBuilding::generate(
+                                ctx.rng,
+                                Vec3::new(
+                                    house_pos.x,
+                                    house_pos.y,
+                                    ctx.sim
+                                        .and_then(|sim| sim.get_alt_approx(self.origin + house_pos))
+                                        .unwrap_or(0.0)
+                                        .ceil() as i32,
+                                ),
+                            ))
+                        } else {
+                            StructureKind::House(HouseBuilding::generate(
+                                ctx.rng,
+                                Vec3::new(
+                                    house_pos.x,
+                                    house_pos.y,
+                                    ctx.sim
+                                        .and_then(|sim| sim.get_alt_approx(self.origin + house_pos))
+                                        .unwrap_or(0.0)
+                                        .ceil() as i32,
+                                ),
+                            ))
+                        },
                     };
 
                     let bounds = structure.bounds_2d();
@@ -728,33 +763,26 @@ impl Settlement {
                 continue;
             }
 
-            match &structure.kind {
-                StructureKind::House(b) => {
-                    let bounds = b.bounds();
+            let bounds = structure.bounds();
 
-                    for x in bounds.min.x..bounds.max.x + 1 {
-                        for y in bounds.min.y..bounds.max.y + 1 {
-                            let col = if let Some(col) =
-                                get_column(self.origin + Vec2::new(x, y) - wpos2d)
-                            {
-                                col
-                            } else {
-                                continue;
-                            };
+            for x in bounds.min.x..bounds.max.x + 1 {
+                for y in bounds.min.y..bounds.max.y + 1 {
+                    let col = if let Some(col) = get_column(self.origin + Vec2::new(x, y) - wpos2d) {
+                        col
+                    } else {
+                        continue;
+                    };
 
-                            for z in bounds.min.z.min(col.alt.floor() as i32 - 1)..bounds.max.z + 1
-                            {
-                                let rpos = Vec3::new(x, y, z);
-                                let wpos = Vec3::from(self.origin) + rpos;
-                                let coffs = wpos - Vec3::from(wpos2d);
+                    for z in bounds.min.z.min(col.alt.floor() as i32 - 1)..bounds.max.z + 1 {
+                        let rpos = Vec3::new(x, y, z);
+                        let wpos = Vec3::from(self.origin) + rpos;
+                        let coffs = wpos - Vec3::from(wpos2d);
 
-                                if let Some(block) = b.sample(rpos) {
-                                    let _ = vol.set(coffs, block);
-                                }
-                            }
+                        if let Some(block) = structure.sample(rpos) {
+                            let _ = vol.set(coffs, block);
                         }
                     }
-                },
+                }
             }
         }
     }
