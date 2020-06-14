@@ -18,7 +18,7 @@ docker:
 
 pages:
   extends: .release
-  stage: check-compile
+  stage: publish
   artifacts:
     paths:
     - public
