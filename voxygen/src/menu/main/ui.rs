@@ -20,6 +20,8 @@ use conrod_core::{
 use rand::{seq::SliceRandom, thread_rng};
 use std::time::Duration;
 
+const COL1: Color = Color::Rgba(0.07, 0.1, 0.1, 0.9);
+
 // UI Color-Theme
 /*const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
 const UI_HIGHLIGHT_0: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0);*/
@@ -84,19 +86,19 @@ image_ids! {
         v_logo: "voxygen.element.v_logo",
 
         info_frame: "voxygen.element.frames.info_frame_2",
-        banner: "voxygen.element.frames.banner",
 
-        banner_bottom: "voxygen.element.frames.banner_bottom",
+
+
 
         <ImageGraphic>
         bg: "voxygen.background.bg_main",
         banner_top: "voxygen.element.frames.banner_top",
+        banner: "voxygen.element.frames.banner",
+        banner_bottom: "voxygen.element.frames.banner_bottom",
         button: "voxygen.element.buttons.button",
         button_hover: "voxygen.element.buttons.button_hover",
         button_press: "voxygen.element.buttons.button_press",
-        input_bg_top: "voxygen.element.misc_bg.textbox_top",
-        input_bg_mid: "voxygen.element.misc_bg.textbox_mid",
-        input_bg_bot: "voxygen.element.misc_bg.textbox_bot",
+        input_bg: "voxygen.element.misc_bg.textbox_mid",
         disclaimer: "voxygen.element.frames.disclaimer",
 
 
@@ -406,7 +408,7 @@ impl MainMenuUi {
             Image::new(self.imgs.banner)
                 .w_h(65.0 * 6.0, 100.0 * 6.0)
                 .middle_of(self.ids.bg)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.9)))
+                .color(Some(Color::Rgba(0.0, 0.0, 0.0, 0.9)))
                 .set(self.ids.banner, ui_widgets);
 
             Image::new(self.imgs.banner_top)
@@ -478,7 +480,7 @@ impl MainMenuUi {
                     };
                 }
                 // Info Window
-                Rectangle::fill_with([550.0, 250.0], color::BLACK)
+                Rectangle::fill_with([550.0, 250.0], COL1)
                     .top_left_with_margins_on(ui_widgets.window, 40.0, 40.0)
                     .color(Color::Rgba(0.0, 0.0, 0.0, 0.95))
                     .set(self.ids.info_frame, ui_widgets);
@@ -510,16 +512,16 @@ impl MainMenuUi {
                 }
 
                 // Username
-                Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
-                    .mid_top_with_margin_on(self.ids.banner_top, 160.0)
+                Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.0))
+                    .mid_top_with_margin_on(self.ids.banner_top, 150.0)
                     .set(self.ids.usrnm_bg, ui_widgets);
-                Image::new(self.imgs.input_bg_top)
-                    .w_h(337.0, 67.0)
+                Image::new(self.imgs.input_bg)
+                    .w_h(338.0, 50.0)
                     .middle_of(self.ids.usrnm_bg)
                     .set(self.ids.username_bg, ui_widgets);
                 for event in TextBox::new(&self.username)
                     .w_h(290.0, 30.0)
-                    .mid_bottom_with_margin_on(self.ids.username_bg, 38.0 / 2.0)
+                    .mid_bottom_with_margin_on(self.ids.username_bg, 14.0)
                     .font_size(self.fonts.cyri.scale(22))
                     .font_id(self.fonts.cyri.conrod_id)
                     .text_color(TEXT_COLOR)
@@ -539,16 +541,16 @@ impl MainMenuUi {
                     }
                 }
                 // Password
-                Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
-                    .down_from(self.ids.usrnm_bg, 30.0)
+                Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.0))
+                    .down_from(self.ids.usrnm_bg, 10.0)
                     .set(self.ids.passwd_bg, ui_widgets);
-                Image::new(self.imgs.input_bg_mid)
-                    .w_h(337.0, 67.0)
+                Image::new(self.imgs.input_bg)
+                    .w_h(338.0, 50.0)
                     .middle_of(self.ids.passwd_bg)
                     .set(self.ids.password_bg, ui_widgets);
                 for event in TextBox::new(&self.password)
                     .w_h(290.0, 30.0)
-                    .mid_bottom_with_margin_on(self.ids.password_bg, 17.0)
+                    .mid_bottom_with_margin_on(self.ids.password_bg, 10.0)
                     // the text is smaller to allow longer passwords, conrod limits text length
                     // this allows 35 characters but can be increased, approximate formula: 420 / scale = length
                     .font_size(self.fonts.cyri.scale(12))
@@ -636,16 +638,16 @@ impl MainMenuUi {
                     };
                 }
                 // Server address
-                Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
-                    .down_from(self.ids.passwd_bg, 30.0)
+                Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.0))
+                    .down_from(self.ids.passwd_bg, 8.0)
                     .set(self.ids.srvr_bg, ui_widgets);
-                Image::new(self.imgs.input_bg_bot)
-                    .w_h(337.0, 67.0)
+                Image::new(self.imgs.input_bg)
+                    .w_h(338.0, 50.0)
                     .middle_of(self.ids.srvr_bg)
                     .set(self.ids.address_bg, ui_widgets);
                 for event in TextBox::new(&self.server_address)
                     .w_h(290.0, 30.0)
-                    .mid_top_with_margin_on(self.ids.address_bg, 28.0 / 2.0)
+                    .mid_top_with_margin_on(self.ids.address_bg, 8.0)
                     .font_size(self.fonts.cyri.scale(22))
                     .font_id(self.fonts.cyri.conrod_id)
                     .text_color(TEXT_COLOR)
