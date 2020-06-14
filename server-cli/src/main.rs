@@ -1,4 +1,5 @@
 #![deny(unsafe_code)]
+#![allow(clippy::option_map_unit_fn)]
 
 use common::clock::Clock;
 use log::info;

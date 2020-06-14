@@ -1327,7 +1327,6 @@ impl WorldSim {
 
     /// Prepare the world for simulation
     #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
-    #[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
     pub fn seed_elements(&mut self) {
         let mut rng = self.rng.clone();
 

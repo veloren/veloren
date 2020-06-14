@@ -93,7 +93,6 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
 }
 
 #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
-#[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
 fn handle_give_item(
     server: &mut Server,
     client: EcsEntity,
@@ -224,7 +223,6 @@ fn handle_goto(
     }
 }
 
-#[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
 fn handle_kill(
     server: &mut Server,
     client: EcsEntity,

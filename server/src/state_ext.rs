@@ -65,7 +65,6 @@ impl StateExt for State {
         success
     }
 
-    #[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
     fn apply_effect(&mut self, entity: EcsEntity, effect: Effect) {
         match effect {
             Effect::Health(change) => {

@@ -1,4 +1,5 @@
 #![deny(unsafe_code)]
+#![allow(clippy::option_map_unit_fn)]
 #![feature(bool_to_option)]
 #![recursion_limit = "2048"]
 
@@ -16,7 +17,6 @@ use common::assets::{load, load_expect};
 use log::{debug, error};
 use std::{mem, panic, str::FromStr};
 
-#[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
 fn main() {
     #[cfg(feature = "tweak")]
     const_tweaker::run().expect("Could not run server");

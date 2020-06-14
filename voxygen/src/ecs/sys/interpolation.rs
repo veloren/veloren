@@ -21,7 +21,6 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Interpolated>,
     );
 
-    #[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
     fn run(
         &mut self,
         (entities, dt, positions, orientations, velocities, mut interpolated): Self::SystemData,

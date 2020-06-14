@@ -23,7 +23,6 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Ori>,
     );
 
-    #[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
     fn run(
         &mut self,
         (

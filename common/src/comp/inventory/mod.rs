@@ -181,7 +181,6 @@ impl Inventory {
     /// the proper structure wouldn't need to iterate at all, but because
     /// this should be fairly cold code, clarity has been favored over
     /// efficiency.
-    #[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
     pub fn push_all_unique<I: Iterator<Item = Item>>(&mut self, mut items: I) -> Result<(), Error> {
         let mut leftovers = Vec::new();
         for item in &mut items {
