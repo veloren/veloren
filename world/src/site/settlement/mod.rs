@@ -249,7 +249,6 @@ impl Settlement {
         }
     }
 
-    #[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
     pub fn place_town(&mut self, ctx: &mut GenCtx<impl Rng>) {
         const PLOT_COUNT: usize = 3;
 
@@ -1166,7 +1165,6 @@ impl Land {
         closed.into_iter().chain(open.into_iter()).collect()
     }
 
-    #[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
     fn write_path(
         &mut self,
         tiles: &[Vec2<i32>],

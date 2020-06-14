@@ -172,7 +172,6 @@ impl FigureMgr {
         }
     }
 
-    #[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn maintain(&mut self, renderer: &mut Renderer, scene_data: &SceneData, camera: &Camera) {
         let state = scene_data.state;

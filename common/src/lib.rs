@@ -1,4 +1,5 @@
 #![deny(unsafe_code)]
+#![allow(clippy::option_map_unit_fn)]
 #![type_length_limit = "1664759"]
 #![feature(
     arbitrary_enum_discriminant,

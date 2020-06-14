@@ -57,7 +57,6 @@ pub struct TrackedComps<'a> {
     pub speech_bubble: ReadStorage<'a, SpeechBubble>,
 }
 impl<'a> TrackedComps<'a> {
-    #[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
     pub fn create_entity_package(
         &self,
         entity: EcsEntity,

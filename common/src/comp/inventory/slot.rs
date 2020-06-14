@@ -193,7 +193,6 @@ fn swap_loadout(slot_a: EquipSlot, slot_b: EquipSlot, loadout: &mut Loadout) {
 
 // Should this report if a change actually occurred? (might be useful when
 // minimizing network use)
-#[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
 pub fn swap(
     slot_a: Slot,
     slot_b: Slot,
