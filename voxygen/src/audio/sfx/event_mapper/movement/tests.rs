@@ -183,7 +183,7 @@ fn maps_roll() {
             time: Instant::now(),
             on_ground: true,
         },
-        Vec3::zero(),
+        Vec3::new(0.5, 0.5, 0.0),
     );
 
     assert_eq!(result, SfxEvent::Roll);
