@@ -1,3 +1,21 @@
+//! Distinct audio playback channels for music and sound effects
+//!
+//! Voxygen's audio system uses a limited number of channels to play multiple
+//! sounds simultaneously. Each additional channel used decreases performance
+//! in-game, so the amount of channels utilized should be kept to a minimum.
+//!
+//! When constructing a new [`AudioFrontend`](../struct.AudioFrontend.html), two
+//! music channels are created internally (to achieve crossover fades) while the
+//! number of sfx channels are determined by the `max_sfx_channels` value
+//! defined in the client
+//! [`AudioSettings`](../../settings/struct.AudioSettings.html)
+//!
+//! When the AudioFrontend's
+//! [`play_sfx`](../struct.AudioFrontend.html#method.play_sfx)
+//! methods is called, it attempts to retrieve an SfxChannel for playback. If
+//! the channel capacity has been reached and all channels are occupied, a
+//! warning is logged, and no sound is played.
+
 use crate::audio::fader::{FadeDirection, Fader};
 use rodio::{Device, Sample, Sink, Source, SpatialSink};
 use vek::*;
@@ -9,8 +27,11 @@ enum ChannelState {
     Stopped,
 }
 
-/// Each MusicChannel has a MusicChannelTag which help us determine how we
-/// should transition between music types
+/// Each `MusicChannel` has a `MusicChannelTag` which help us determine when we
+/// should transition between two types of in-game music. For example, we
+/// transition between `TitleMusic` and `Exploration` when a player enters the
+/// world by crossfading over a slow duration. In the future, transitions in the
+/// world such as `Exploration` -> `BossBattle` would transition more rapidly.
 #[derive(PartialEq, Clone, Copy)]
 pub enum MusicChannelTag {
     TitleMusic,
@@ -18,7 +39,9 @@ pub enum MusicChannelTag {
 }
 
 /// A MusicChannel uses a non-positional audio sink designed to play music which
-/// is always heard at the player's position
+/// is always heard at the player's position.
+///
+/// See also: [`Rodio::Sink`](https://docs.rs/rodio/0.11.0/rodio/struct.Sink.html)
 pub struct MusicChannel {
     tag: MusicChannelTag,
     sink: Sink,
@@ -111,6 +134,8 @@ impl MusicChannel {
 /// An SfxChannel uses a positional audio sink, and is designed for short-lived
 /// audio which can be spatially controlled, but does not need control over
 /// playback or fading/transitions
+///
+/// See also: [`Rodio::SpatialSink`](https://docs.rs/rodio/0.11.0/rodio/struct.SpatialSink.html)
 pub struct SfxChannel {
     sink: SpatialSink,
     pub pos: Vec3<f32>,

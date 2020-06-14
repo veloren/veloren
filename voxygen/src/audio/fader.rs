@@ -1,3 +1,7 @@
+//! Controls volume transitions for Audio Channels
+
+/// Faders are attached to channels with initial and target volumes as well as a
+/// transition time.
 #[derive(PartialEq, Clone, Copy)]
 pub struct Fader {
     length: f32,
@@ -6,6 +10,8 @@ pub struct Fader {
     volume_to: f32,
     is_running: bool,
 }
+/// Enables quick lookup of whether a fader is increasing or decreasing the
+/// channel volume
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum FadeDirection {
     In,
@@ -29,6 +35,11 @@ impl Fader {
 
     pub fn fade_out(time: f32, volume_from: f32) -> Self { Self::fade(time, volume_from, 0.0) }
 
+    /// Used to update the `target` volume of the fader when the max or min
+    /// volume changes. This occurs when the player changes their in-game
+    /// volume setting during a fade. Updating the target in this case prevents
+    /// the final fade volume from falling outside of the newly configured
+    /// volume range.
     pub fn update_target_volume(&mut self, volume: f32) {
         match self.direction() {
             FadeDirection::In => {
@@ -50,10 +61,10 @@ impl Fader {
         }
     }
 
-    #[allow(clippy::assign_op_pattern)] // TODO: Pending review in #587
+    /// Called each tick to update the volume and state
     pub fn update(&mut self, dt: f32) {
         if self.is_running {
-            self.running_time = self.running_time + dt;
+            self.running_time += dt;
             if self.running_time >= self.length {
                 self.running_time = self.length;
                 self.is_running = false;
