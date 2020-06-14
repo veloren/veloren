@@ -15,3 +15,15 @@ docker:
   script:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/server-cli/Dockerfile --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}-server"
+
+pages:
+  extends: .release
+  stage: check-compile
+  artifacts:
+    paths:
+    - public
+  script:
+    - rm -rf public
+    - mkdir -p public
+    - cargo doc --no-deps --all-features --document-private-items
+    - mv target/doc/* public
