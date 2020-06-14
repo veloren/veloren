@@ -164,7 +164,6 @@ pub struct MainMenuUi {
 }
 
 impl MainMenuUi {
-    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
     pub fn new(global_state: &mut GlobalState) -> Self {
         let window = &mut global_state.window;
         let networking = &global_state.settings.networking;
@@ -218,7 +217,8 @@ impl MainMenuUi {
             server_address: networking
                 .servers
                 .get(networking.default_server)
-                .map_or_else(|| String::new(), |address| address.clone()),
+                .cloned()
+                .unwrap_or_default(),
             popup: None,
             connecting: None,
             show_servers: false,

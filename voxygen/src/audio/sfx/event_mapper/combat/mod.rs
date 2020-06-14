@@ -39,7 +39,6 @@ pub struct CombatEventMapper {
 }
 
 impl EventMapper for CombatEventMapper {
-    #[allow(clippy::redundant_closure)] // TODO: Pending review in #587
     fn maintain(&mut self, state: &State, player_entity: EcsEntity, triggers: &SfxTriggers) {
         let ecs = state.ecs();
 
@@ -63,10 +62,7 @@ impl EventMapper for CombatEventMapper {
             })
         {
             if let Some(character) = character {
-                let state = self
-                    .event_history
-                    .entry(entity)
-                    .or_insert_with(|| PreviousEntityState::default());
+                let state = self.event_history.entry(entity).or_default();
 
                 let mapped_event = Self::map_event(character, state, loadout);
 
