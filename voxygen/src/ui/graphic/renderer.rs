@@ -120,7 +120,7 @@ pub fn draw_vox(
         .xyz()
         .map(|e| e.abs());
 
-    let dims = match sample_strat {
+    let mut dims = match sample_strat {
         SampleStrat::None => output_size,
         SampleStrat::SuperSampling(min_samples) => {
             output_size * (min_samples as f32).sqrt().ceil() as usize
@@ -136,6 +136,16 @@ pub fn draw_vox(
         ),
     }
     .into_array();
+
+    // TODO: Imbris please fix
+    if dims[0] == 0 {
+        log::warn!("Tried to render an image with a width of 0. Defaulting to 1.");
+        dims[0] = 1;
+    }
+    if dims[1] == 0 {
+        log::warn!("Tried to render an image with a height of 0. Defaulting to 1.");
+        dims[1] = 1;
+    }
 
     // Rendering buffers
     let mut color = Buffer2d::new(dims, [0; 4]);
