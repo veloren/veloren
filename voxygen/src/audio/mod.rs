@@ -1,3 +1,5 @@
+//! Handles audio device detection and playback of sound effects and music
+
 pub mod channel;
 pub mod fader;
 pub mod music;
@@ -15,6 +17,10 @@ use vek::*;
 
 const FALLOFF: f32 = 0.13;
 
+/// Holds information about the system audio devices and internal channels used
+/// for sfx and music playback. An instance of `AudioFrontend` is used by
+/// Voxygen's [`GlobalState`](../struct.GlobalState.html#structfield.audio) to
+/// provide access to devices and playback control in-game
 pub struct AudioFrontend {
     pub device: String,
     pub device_list: Vec<String>,
@@ -136,6 +142,7 @@ impl AudioFrontend {
         self.music_channels.last_mut()
     }
 
+    /// Play (once) an sfx file by file path at the give position and volume
     pub fn play_sfx(&mut self, sound: &str, pos: Vec3<f32>, vol: Option<f32>) {
         if self.audio_device.is_some() {
             let calc_pos = ((pos - self.listener_pos) * FALLOFF).into_array();
@@ -192,6 +199,8 @@ impl AudioFrontend {
         }
     }
 
+    /// Switches the playing music to the title music, which is pinned to a
+    /// specific sound file (veloren_title_tune.ogg)
     pub fn play_title_music(&mut self) {
         if self.music_enabled() {
             self.play_music(
