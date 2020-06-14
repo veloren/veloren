@@ -265,6 +265,7 @@ pub enum Event {
     SctPlayerBatch(bool),
     SctDamageBatch(bool),
     SpeechBubbleDarkMode(bool),
+    SpeechBubbleIcon(bool),
     ToggleDebug(bool),
     UiScale(ScaleChange),
     CharacterSelection,
@@ -1628,6 +1629,9 @@ impl Hud {
                 match event {
                     settings_window::Event::SpeechBubbleDarkMode(sbdm) => {
                         events.push(Event::SpeechBubbleDarkMode(sbdm));
+                    },
+                    settings_window::Event::SpeechBubbleIcon(sbi) => {
+                        events.push(Event::SpeechBubbleIcon(sbi));
                     },
                     settings_window::Event::Sct(sct) => {
                         events.push(Event::Sct(sct));
