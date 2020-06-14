@@ -65,7 +65,7 @@ impl CharacterSkeleton {
 impl Skeleton for CharacterSkeleton {
     type Attr = SkeletonAttr;
 
-    fn bone_count(&self) -> usize { 15 }
+    fn bone_count(&self) -> usize { 16 }
 
     fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
         let chest_mat = self.chest.compute_base_matrix();
@@ -107,7 +107,11 @@ impl Skeleton for CharacterSkeleton {
                 ),
                 FigureBoneData::new(lantern_final_mat),
                 FigureBoneData::new(
-                    torso_mat * chest_mat * l_hand_mat * self.hold.compute_base_matrix(),
+                    torso_mat
+                        * chest_mat
+                        * control_mat
+                        * l_hand_mat
+                        * self.hold.compute_base_matrix(),
                 ),
             ],
             (lantern_final_mat * Vec4::new(0.0, 0.0, 0.0, 1.0)).xyz(),
@@ -236,7 +240,7 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 (Danari, Female) => (0.5, 13.5),
             },
             chest: match (body.species, body.body_type) {
-                (_, _) => (0.0, 7.0),
+                (_, _) => (0.0, 8.0),
             },
             belt: match (body.species, body.body_type) {
                 (_, _) => (0.0, -2.0),
@@ -251,7 +255,7 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 (_, _) => (7.0, -0.25, 0.5),
             },
             foot: match (body.species, body.body_type) {
-                (_, _) => (3.4, 0.5, 1.0),
+                (_, _) => (3.4, 0.5, 2.0),
             },
             shoulder: match (body.species, body.body_type) {
                 (_, _) => (5.0, 0.0, 5.0),
