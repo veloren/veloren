@@ -139,7 +139,6 @@ pub fn loadout_remove(equip_slot: EquipSlot, loadout: &mut Loadout) -> Option<it
     loadout_replace(equip_slot, None, loadout)
 }
 
-#[allow(clippy::redundant_closure)] // TODO: Pending review in #587
 fn swap_inventory_loadout(
     inventory_slot: usize,
     equip_slot: EquipSlot,
@@ -157,9 +156,7 @@ fn swap_inventory_loadout(
         let from_inv = if let Some(item) = from_equip {
             // If this fails and we get item back as an err it will just be put back in the
             // loadout
-            inventory
-                .insert(inventory_slot, item)
-                .unwrap_or_else(|i| Some(i))
+            inventory.insert(inventory_slot, item).unwrap_or_else(Some)
         } else {
             inventory.remove(inventory_slot)
         };
