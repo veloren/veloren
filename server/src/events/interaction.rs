@@ -81,7 +81,6 @@ pub fn handle_mount(server: &mut Server, mounter: EcsEntity, mountee: EcsEntity)
     }
 }
 
-#[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
 pub fn handle_unmount(server: &mut Server, mounter: EcsEntity) {
     let state = server.state_mut();
     let mountee_entity = state
@@ -100,7 +99,6 @@ pub fn handle_unmount(server: &mut Server, mounter: EcsEntity) {
 }
 
 #[allow(clippy::nonminimal_bool)] // TODO: Pending review in #587
-#[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
 pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
     let state = &server.state;
     let ecs = state.ecs();

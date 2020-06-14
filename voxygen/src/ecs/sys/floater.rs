@@ -29,7 +29,6 @@ impl<'a> System<'a> for Sys {
     );
 
     #[allow(clippy::block_in_if_condition_stmt)] // TODO: Pending review in #587
-    #[allow(clippy::option_map_unit_fn)] // TODO: Pending review in #587
     fn run(
         &mut self,
         (entities, my_entity, dt, mut my_exp_floater_list, uids, pos, stats, mut hp_floater_lists): Self::SystemData,
