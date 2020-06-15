@@ -33,6 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a crash caused by certain audio devices on OSX
 - Bow animations now show held arrows
 - Fixed a bug where walk/run sfx played while a character rolled/dodged
+- Energy regen resets on last ability use instead of on wield
+- Fixed unable to use ability; Secondary and ability3 (fire rod) will now automatically wield
 
 ### Removed
 
