@@ -82,7 +82,7 @@
             central: ("npc.saber.male.torso_back"),
         ),
         ears: (
-            offset: (-5.0, -1.0, 3.0),
+            offset: (-5.5, -1.0, -1.5),
             central: ("npc.saber.male.ears"),
         ),
         tail: (
@@ -112,7 +112,7 @@
             central: ("npc.saber.female.torso_back"),
         ),
         ears: (
-            offset: (-5.0, -0.5, -1.5),
+            offset: (-5.5, -1.0, -1.5),
             central: ("npc.saber.female.ears"),
         ),
         tail: (
@@ -182,61 +182,61 @@
     ),
     (Lion, Male): (
         upper: (
-            offset: (-4.5, -5.0, -4.0),
+            offset: (-4.5, -10.0, -4.5),
             central: ("npc.lion.male.head_upper"),
         ),
         lower: (
-            offset: (-6.5, -5.0, -7.0),
+            offset: (-7.5, -5.5, -8.5),
             central: ("npc.lion.male.head_lower"),
         ),
         jaw: (
-            offset: (-2.5, -2.5, -0.5),
+            offset: (-2.5, -6.0, -1.0),
             central: ("npc.lion.male.jaw"),
         ),
         torso_front: (
-            offset: (-5.5, -7.5, -5.5),
+            offset: (-5.5, -13.0, -6.0),
             central: ("npc.lion.male.torso_front"),
         ),
         torso_back: (
-            offset: (-6.5, -6.0, -5.0),
+            offset: (-5.5, -6.0, -5.0),
             central: ("npc.lion.male.torso_back"),
         ),
         ears: (
-            offset: (-3.5, -1.0, -1.0),
+            offset: (-4.5, -1.0, -1.0),
             central: ("npc.lion.male.ears"),
         ),
         tail: (
-            offset: (-0.5, -1.0, -1.0),
+            offset: (-1.5, -15.0, -10.0),
             central: ("npc.lion.male.tail"),
         ),
     ),
     (Lion, Female): (
         upper: (
-            offset: (-4.5, -5.0, -4.0),
+            offset: (-4.5, -10.0, -4.5),
             central: ("npc.lion.female.head_upper"),
         ),
         lower: (
-            offset: (-6.5, -5.0, -7.0),
+            offset: (-7.5, -5.5, -8.5),
             central: ("npc.lion.female.head_lower"),
         ),
         jaw: (
-            offset: (-2.5, -2.5, -0.5),
-            central: ("npc.lion.male.jaw"),
+            offset: (-2.5, -6.0, -1.0),
+            central: ("npc.lion.female.jaw"),
         ),
         torso_front: (
-            offset: (-5.5, -7.5, -5.5),
+            offset: (-5.5, -13.0, -6.0),
             central: ("npc.lion.female.torso_front"),
         ),
         torso_back: (
-            offset: (-6.5, -6.0, -5.0),
+            offset: (-5.5, -6.0, -5.0),
             central: ("npc.lion.female.torso_back"),
         ),
         ears: (
-            offset: (-3.5, -1.0, -1.0),
+            offset: (-4.5, -1.0, -1.0),
             central: ("npc.lion.female.ears"),
         ),
         tail: (
-            offset: (-0.5, -12.0, -1.0),
+            offset: (-1.5, -15.0, -10.0),
             central: ("npc.lion.female.tail"),
         ),
     ),
