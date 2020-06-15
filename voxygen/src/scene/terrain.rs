@@ -101,23 +101,27 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
         }),
 
         BlockKind::BlueFlower => Some(SpriteConfig {
-            variations: 7,
+            variations: 10,
             wind_sway: 0.1,
         }),
         BlockKind::PinkFlower => Some(SpriteConfig {
             variations: 4,
             wind_sway: 0.1,
         }),
+        BlockKind::PurpleFlower => Some(SpriteConfig {
+            variations: 4,
+            wind_sway: 0.1,
+        }),
         BlockKind::RedFlower => Some(SpriteConfig {
-            variations: 3,
+            variations: 4,
             wind_sway: 0.1,
         }),
         BlockKind::WhiteFlower => Some(SpriteConfig {
-            variations: 2,
+            variations: 5,
             wind_sway: 0.1,
         }),
         BlockKind::YellowFlower => Some(SpriteConfig {
-            variations: 1,
+            variations: 2,
             wind_sway: 0.1,
         }),
         BlockKind::Sunflower => Some(SpriteConfig {
@@ -179,7 +183,7 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             wind_sway: 0.4,
         }),
         BlockKind::Fern => Some(SpriteConfig {
-            variations: 12,
+            variations: 13,
             wind_sway: 0.4,
         }),
         BlockKind::DeadBush => Some(SpriteConfig {
@@ -518,6 +522,30 @@ impl<V: RectRasterableVol> Terrain<V> {
                     ),
                 ),
                 (
+                    (BlockKind::BlueFlower, 7),
+                    make_models(
+                        "voxygen.voxel.sprite.flowers.flower_blue-8",
+                        Vec3::new(-5.5, -4.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::BlueFlower, 8),
+                    make_models(
+                        "voxygen.voxel.sprite.flowers.flower_blue-9",
+                        Vec3::new(-4.0, -3.0, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::BlueFlower, 9),
+                    make_models(
+                        "voxygen.voxel.sprite.flowers.flower_blue-10",
+                        Vec3::new(-1.5, -1.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
                     (BlockKind::PinkFlower, 0),
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_pink_1",
@@ -558,6 +586,30 @@ impl<V: RectRasterableVol> Terrain<V> {
                     ),
                 ),
                 (
+                    (BlockKind::PurpleFlower, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.flowers.flower_purple-2",
+                        Vec3::new(-5.0, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::PurpleFlower, 2),
+                    make_models(
+                        "voxygen.voxel.sprite.flowers.flower_purple-3",
+                        Vec3::new(-3.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::PurpleFlower, 3),
+                    make_models(
+                        "voxygen.voxel.sprite.flowers.flower_purple-4",
+                        Vec3::new(-5.0, -4.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
                     (BlockKind::RedFlower, 0),
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_red_1",
@@ -582,6 +634,14 @@ impl<V: RectRasterableVol> Terrain<V> {
                     ),
                 ),
                 (
+                    (BlockKind::RedFlower, 3),
+                    make_models(
+                        "voxygen.voxel.sprite.flowers.flower_red-4",
+                        Vec3::new(-6.5, -6.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
                     (BlockKind::WhiteFlower, 0),
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_white_1",
@@ -598,10 +658,42 @@ impl<V: RectRasterableVol> Terrain<V> {
                     ),
                 ),
                 (
+                    (BlockKind::WhiteFlower, 2),
+                    make_models(
+                        "voxygen.voxel.sprite.flowers.flower_white-3",
+                        Vec3::new(-1.5, -1.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::WhiteFlower, 3),
+                    make_models(
+                        "voxygen.voxel.sprite.flowers.flower_white-4",
+                        Vec3::new(-5.0, -4.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::WhiteFlower, 4),
+                    make_models(
+                        "voxygen.voxel.sprite.flowers.flower_white-5",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
                     (BlockKind::YellowFlower, 0),
                     make_models(
-                        "voxygen.voxel.sprite.flowers.flower_purple_1",
+                        "voxygen.voxel.sprite.flowers.flower_yellow-1",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::YellowFlower, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.flowers.flower_yellow-0",
+                        Vec3::new(-5.5, -5.5, 0.0),
                         Vec3::one(),
                     ),
                 ),
@@ -1249,6 +1341,14 @@ impl<V: RectRasterableVol> Terrain<V> {
                         "voxygen.voxel.sprite.ferns.12",
                         Vec3::new(-6.0, -6.0, -0.0),
                         Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::Fern, 12),
+                    make_models(
+                        "voxygen.voxel.sprite.ferns.fern-0",
+                        Vec3::new(-6.5, -11.5, 0.0),
+                        Vec3::unit_z(),
                     ),
                 ),
                 // Dead Bush
