@@ -7,6 +7,7 @@ pub mod climb;
 pub mod dance;
 pub mod dash;
 pub mod equip;
+pub mod glidewield;
 pub mod gliding;
 pub mod idle;
 pub mod jump;
@@ -23,10 +24,11 @@ pub mod wield;
 pub use self::{
     alpha::AlphaAnimation, beta::BetaAnimation, block::BlockAnimation,
     blockidle::BlockIdleAnimation, charge::ChargeAnimation, climb::ClimbAnimation,
-    dance::DanceAnimation, dash::DashAnimation, equip::EquipAnimation, gliding::GlidingAnimation,
-    idle::IdleAnimation, jump::JumpAnimation, roll::RollAnimation, run::RunAnimation,
-    shoot::ShootAnimation, sit::SitAnimation, spin::SpinAnimation, stand::StandAnimation,
-    swim::SwimAnimation, wield::WieldAnimation,
+    dance::DanceAnimation, dash::DashAnimation, equip::EquipAnimation,
+    glidewield::GlideWieldAnimation, gliding::GlidingAnimation, idle::IdleAnimation,
+    jump::JumpAnimation, roll::RollAnimation, run::RunAnimation, shoot::ShootAnimation,
+    sit::SitAnimation, spin::SpinAnimation, stand::StandAnimation, swim::SwimAnimation,
+    wield::WieldAnimation,
 };
 
 use super::{Bone, Skeleton};
@@ -100,7 +102,7 @@ impl Skeleton for CharacterSkeleton {
                 FigureBoneData::new(torso_mat * self.r_foot.compute_base_matrix()),
                 FigureBoneData::new(torso_mat * chest_mat * self.l_shoulder.compute_base_matrix()),
                 FigureBoneData::new(torso_mat * chest_mat * self.r_shoulder.compute_base_matrix()),
-                FigureBoneData::new(torso_mat * self.glider.compute_base_matrix()),
+                FigureBoneData::new(torso_mat * chest_mat * self.glider.compute_base_matrix()),
                 FigureBoneData::new(torso_mat * chest_mat * control_mat * l_control_mat * main_mat),
                 FigureBoneData::new(
                     torso_mat * chest_mat * control_mat * r_control_mat * second_mat,

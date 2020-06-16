@@ -413,6 +413,26 @@ impl Client {
         }
     }
 
+    pub fn toggle_glide(&mut self) {
+        let is_gliding = self
+            .state
+            .ecs()
+            .read_storage::<comp::CharacterState>()
+            .get(self.entity)
+            .map(|cs| {
+                matches!(
+                    cs,
+                    comp::CharacterState::GlideWield | comp::CharacterState::Glide
+                )
+            });
+
+        match is_gliding {
+            Some(true) => self.control_action(ControlAction::Unwield),
+            Some(false) => self.control_action(ControlAction::GlideWield),
+            None => warn!("Can't toggle glide, client entity doesn't have a `CharacterState`"),
+        }
+    }
+
     fn control_action(&mut self, control_action: ControlAction) {
         if let Some(controller) = self
             .state

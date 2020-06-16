@@ -167,7 +167,7 @@ impl Animation for ShootAnimation {
             Quaternion::rotation_x(exp * -0.7 + 0.4) * Quaternion::rotation_y(exp * 0.4);
         next.lantern.scale = Vec3::one() * 0.65;
 
-        next.hold.offset = Vec3::new(17.4, -24.8, -10.5);
+        next.hold.offset = Vec3::new(17.5, -25.0, -10.5);
         next.hold.ori = Quaternion::rotation_x(-1.6)
             * Quaternion::rotation_y(-0.1)
             * Quaternion::rotation_z(0.0);

@@ -81,6 +81,7 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::Sit { .. }
                 | CharacterState::Dance { .. }
                 | CharacterState::Glide { .. }
+                | CharacterState::GlideWield { .. }
                 | CharacterState::Wielding { .. }
                 | CharacterState::Equipping { .. }
                 | CharacterState::Boost { .. } => {

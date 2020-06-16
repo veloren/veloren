@@ -4,27 +4,20 @@ use crate::{
     sys::character_behavior::{CharacterBehavior, JoinData},
 };
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct Data;
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_wield(data, &mut update);
+        handle_move(&data, &mut update, 1.0);
         handle_jump(&data, &mut update);
 
-        // Try to Fall/Stand up/Move
-        if !data.physics.on_ground || data.inputs.move_dir.magnitude_squared() > 0.0 {
-            update.character = CharacterState::Idle;
+        // If not on the ground while wielding glider enter gliding state
+        if !data.physics.on_ground && !data.physics.in_fluid {
+            update.character = CharacterState::Glide;
         }
 
-        update
-    }
-
-    fn wield(&self, data: &JoinData) -> StateUpdate {
-        let mut update = StateUpdate::from(data);
-        attempt_wield(data, &mut update);
         update
     }
 
@@ -34,9 +27,14 @@ impl CharacterBehavior for Data {
         update
     }
 
-    fn stand(&self, data: &JoinData) -> StateUpdate {
+    fn dance(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        // Try to Fall/Stand up/Move
+        attempt_dance(data, &mut update);
+        update
+    }
+
+    fn unwield(&self, data: &JoinData) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
         update.character = CharacterState::Idle;
         update
     }

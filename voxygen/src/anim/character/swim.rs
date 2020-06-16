@@ -151,7 +151,7 @@ impl Animation for SwimAnimation {
         next.lantern.ori = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
         next.lantern.scale = Vec3::one() * 0.65;
 
-        next.torso.offset = Vec3::new(0.0, -0.3 + shortalt * -0.065, 0.4) * skeleton_attr.scaler;
+        next.torso.offset = Vec3::new(0.0, -1.2 + shortalt * -0.065, 0.4) * skeleton_attr.scaler;
         next.torso.ori = Quaternion::rotation_x(speed * -0.190 * wave_stop * 1.05)
             * Quaternion::rotation_z(tilt * 12.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;

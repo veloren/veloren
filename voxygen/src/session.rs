@@ -354,9 +354,14 @@ impl PlayState for SessionState {
                         }
                         self.key_state.right = state
                     },
-                    Event::InputUpdate(GameInput::Glide, state) => {
-                        self.inputs.glide.set_state(state);
-                    },
+                    Event::InputUpdate(GameInput::Glide, state)
+                        if state != self.key_state.toggle_glide =>
+                    {
+                        self.key_state.toggle_glide = state;
+                        if state {
+                            self.client.borrow_mut().toggle_glide();
+                        }
+                    }
                     Event::InputUpdate(GameInput::Climb, state) => {
                         self.key_state.climb_up = state;
                     },
