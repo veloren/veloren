@@ -16,6 +16,8 @@ mod social;
 mod spell;
 
 use crate::{ecs::comp::HpFloaterList, hud::img_ids::ImgsRot, ui::img_ids::Rotations};
+pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
+
 pub use settings_window::ScaleChange;
 use std::time::Duration;
 
@@ -253,6 +255,7 @@ pub enum Event {
     UseSlot(comp::slot::Slot),
     SwapSlots(comp::slot::Slot, comp::slot::Slot),
     DropSlot(comp::slot::Slot),
+    ChangeHotbarState(HotbarState),
     Ability3(bool),
     Logout,
     Quit,
@@ -490,13 +493,21 @@ impl Hud {
         let rot_imgs = ImgsRot::load(&mut ui).expect("Failed to load rot images!");
         // Load item images.
         let item_imgs = ItemImgs::new(&mut ui, imgs.not_found);
-        // Load language
+        // Load language.
         let voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
             &global_state.settings.language.selected_language,
         ));
         // Load fonts.
         let fonts = ConrodVoxygenFonts::load(&voxygen_i18n.fonts, &mut ui)
             .expect("Impossible to load fonts!");
+        // Get the server name.
+        let server = &client.server_info.name;
+        // Get the id, unwrap is safe because this CANNOT be None at this
+        // point.
+        let character_id = client.active_character_id.unwrap();
+        // Create a new HotbarState from the persisted slots.
+        let hotbar_state =
+            HotbarState::new(global_state.profile.get_hotbar_slots(server, character_id));
 
         let slot_manager = slots::SlotManager::new(ui.id_generator(), Vec2::broadcast(40.0));
 
@@ -541,7 +552,7 @@ impl Hud {
             velocity: 0.0,
             voxygen_i18n,
             slot_manager,
-            hotbar: hotbar::State::new(),
+            hotbar: hotbar_state,
             events: Vec::new(),
             crosshair_opacity: 0.0,
         }
@@ -1846,8 +1857,10 @@ impl Hud {
                         events.push(Event::SwapSlots(a, b));
                     } else if let (Inventory(i), Hotbar(h)) = (a, b) {
                         self.hotbar.add_inventory_link(h, i.0);
+                        events.push(Event::ChangeHotbarState(self.hotbar.to_owned()));
                     } else if let (Hotbar(a), Hotbar(b)) = (a, b) {
                         self.hotbar.swap(a, b);
+                        events.push(Event::ChangeHotbarState(self.hotbar.to_owned()));
                     }
                 },
                 slot::Event::Dropped(from) => {
@@ -1856,6 +1869,7 @@ impl Hud {
                         events.push(Event::DropSlot(from));
                     } else if let Hotbar(h) = from {
                         self.hotbar.clear_slot(h);
+                        events.push(Event::ChangeHotbarState(self.hotbar.to_owned()));
                     }
                 },
                 slot::Event::Used(from) => {
