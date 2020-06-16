@@ -179,4 +179,40 @@
             lateral: ("npc.asp.female.foot_br"),
         ),
     ),
+    (Tortoise, Male): (
+        front_left: (
+            offset: (-3.5, -4.0, -8.0),
+            lateral: ("npc.tortoise.male.foot_fl"),
+        ),
+        front_right: (
+            offset: (-3.5, -4.0, -8.0),
+            lateral: ("npc.tortoise.male.foot_fr"),
+        ),
+        back_left: (
+            offset: (-3.5, -3.0, -8.0),
+            lateral: ("npc.tortoise.male.foot_bl"),
+        ),
+        back_right: (
+            offset: (-3.5, -3.0, -8.0),
+            lateral: ("npc.tortoise.male.foot_br"),
+        ),
+    ),
+    (Tortoise, Female): (
+        front_left: (
+            offset: (-3.5, -4.0, -8.0),
+            lateral: ("npc.tortoise.female.foot_fl"),
+        ),
+        front_right: (
+            offset: (-3.5, -4.0, -8.0),
+            lateral: ("npc.tortoise.female.foot_fr"),
+        ),
+        back_left: (
+            offset: (-3.5, -3.0, -8.0),
+            lateral: ("npc.tortoise.female.foot_bl"),
+        ),
+        back_right: (
+            offset: (-3.5, -3.0, -8.0),
+            lateral: ("npc.tortoise.female.foot_br"),
+        ),
+    ),
 })

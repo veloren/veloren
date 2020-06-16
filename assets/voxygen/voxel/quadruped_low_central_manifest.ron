@@ -260,4 +260,56 @@
             central: ("npc.asp.female.tail_front"),
         ),
     ),
+    (Tortoise, Male): (
+        upper: (
+            offset: (-2.5, -4.0, -3.0),
+            central: ("npc.tortoise.male.head_upper"),
+        ),
+        lower: (
+            offset: (-2.5, -3.5, -2.0),
+            central: ("npc.tortoise.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-1.5, -3.5, -1.0),
+            central: ("npc.tortoise.male.jaw"),
+        ),
+        chest: (
+            offset: (-10.5, -12.5, -7.0),
+            central: ("npc.tortoise.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-0.5, -0.5, -0.5),
+            central: ("npc.tortoise.male.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-1.5, -3.5, -1.5),
+            central: ("npc.tortoise.male.tail_front"),
+        ),
+    ),
+    (Tortoise, Female): (
+        upper: (
+            offset: (-2.5, -4.0, -3.0),
+            central: ("npc.tortoise.female.head_upper"),
+        ),
+        lower: (
+            offset: (-2.5, -3.5, -2.0),
+            central: ("npc.tortoise.female.head_lower"),
+        ),
+        jaw: (
+            offset: (-1.5, -3.5, -1.0),
+            central: ("npc.tortoise.female.jaw"),
+        ),
+        chest: (
+            offset: (-10.5, -12.5, -7.0),
+            central: ("npc.tortoise.female.chest"),
+        ),
+        tail_rear: (
+            offset: (-0.5, -0.5, -0.5),
+            central: ("npc.tortoise.female.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-1.5, -7.0, -1.5),
+            central: ("npc.tortoise.female.tail_front"),
+        ),
+    ),
 })
