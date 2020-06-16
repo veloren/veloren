@@ -93,10 +93,14 @@ pub enum ServerEvent {
     Unmount(EcsEntity),
     Possess(Uid, Uid),
     LevelUp(EcsEntity, u32),
-    SelectCharacter {
+    /// Inserts default components for a character when loading into the game
+    InitCharacterData {
         entity: EcsEntity,
         character_id: i32,
-        body: comp::Body,
+    },
+    UpdateCharacterData {
+        entity: EcsEntity,
+        components: (comp::Body, comp::Stats, comp::Inventory, comp::Loadout),
     },
     ExitIngame {
         entity: EcsEntity,

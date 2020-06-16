@@ -1,7 +1,8 @@
 use crate::Server;
 use common::event::{EventBus, ServerEvent};
 use entity_creation::{
-    handle_create_character, handle_create_npc, handle_create_waypoint, handle_shoot,
+    handle_create_npc, handle_create_waypoint, handle_initialize_character,
+    handle_loaded_character_data, handle_shoot,
 };
 use entity_manipulation::{
     handle_damage, handle_destroy, handle_explosion, handle_land_on_ground, handle_level_up,
@@ -70,11 +71,13 @@ impl Server {
                 ServerEvent::Possess(possessor_uid, possesse_uid) => {
                     handle_possess(&self, possessor_uid, possesse_uid)
                 },
-                ServerEvent::SelectCharacter {
+                ServerEvent::InitCharacterData {
                     entity,
                     character_id,
-                    body,
-                } => handle_create_character(self, entity, character_id, body),
+                } => handle_initialize_character(self, entity, character_id),
+                ServerEvent::UpdateCharacterData { entity, components } => {
+                    handle_loaded_character_data(self, entity, components);
+                },
                 ServerEvent::LevelUp(entity, new_level) => handle_level_up(self, entity, new_level),
                 ServerEvent::ExitIngame { entity } => handle_exit_ingame(self, entity),
                 ServerEvent::CreateNpc {

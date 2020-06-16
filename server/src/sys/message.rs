@@ -1,6 +1,6 @@
 use super::SysTimer;
 use crate::{
-    auth_provider::AuthProvider, client::Client, persistence::character::CharacterListUpdater,
+    auth_provider::AuthProvider, client::Client, persistence::character::CharacterLoader,
     CLIENT_TIMEOUT,
 };
 use common::{
@@ -32,7 +32,7 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, Time>,
-        ReadExpect<'a, CharacterListUpdater>,
+        ReadExpect<'a, CharacterLoader>,
         ReadExpect<'a, TerrainGrid>,
         Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
@@ -60,7 +60,7 @@ impl<'a> System<'a> for Sys {
             entities,
             server_event_bus,
             time,
-            char_list,
+            character_loader,
             terrain,
             mut timer,
             uids,
@@ -193,31 +193,45 @@ impl<'a> System<'a> for Sys {
                         },
                         _ => {},
                     },
-                    ClientMsg::Character { character_id, body } => match client.client_state {
+                    ClientMsg::Character(character_id) => match client.client_state {
                         // Become Registered first.
                         ClientState::Connected => client.error_state(RequestStateError::Impossible),
                         ClientState::Registered | ClientState::Spectator => {
-                            // Only send login message if it wasn't already
-                            // sent previously
-                            if let (Some(player), false) =
-                                (players.get(entity), client.login_msg_sent)
-                            {
-                                new_chat_msgs.push((
-                                    None,
-                                    ServerMsg::broadcast(format!(
-                                        "[{}] is now online.",
-                                        &player.alias
-                                    )),
-                                ));
+                            if let Some(player) = players.get(entity) {
+                                // Send a request to load the character's component data from the
+                                // DB. Once loaded, persisted components such as stats and inventory
+                                // will be inserted for the entity
+                                character_loader.load_character_data(
+                                    entity,
+                                    player.uuid().to_string(),
+                                    character_id,
+                                );
 
-                                client.login_msg_sent = true;
+                                // Start inserting non-persisted/default components for the entity
+                                // while we load the DB data
+                                server_emitter.emit(ServerEvent::InitCharacterData {
+                                    entity,
+                                    character_id,
+                                });
+
+                                // Only send login message if it wasn't already
+                                // sent previously
+                                if !client.login_msg_sent {
+                                    new_chat_msgs.push((
+                                        None,
+                                        ServerMsg::broadcast(format!(
+                                            "[{}] is now online.",
+                                            &player.alias
+                                        )),
+                                    ));
+
+                                    client.login_msg_sent = true;
+                                }
+                            } else {
+                                client.notify(ServerMsg::CharacterDataLoadError(String::from(
+                                    "Failed to fetch player entity",
+                                )))
                             }
-
-                            server_emitter.emit(ServerEvent::SelectCharacter {
-                                entity,
-                                character_id,
-                                body,
-                            });
                         },
                         ClientState::Character => client.error_state(RequestStateError::Already),
                         ClientState::Pending => {},
@@ -332,12 +346,12 @@ impl<'a> System<'a> for Sys {
                     },
                     ClientMsg::RequestCharacterList => {
                         if let Some(player) = players.get(entity) {
-                            char_list.load_character_list(entity, player.uuid().to_string())
+                            character_loader.load_character_list(entity, player.uuid().to_string())
                         }
                     },
                     ClientMsg::CreateCharacter { alias, tool, body } => {
                         if let Some(player) = players.get(entity) {
-                            char_list.create_character(
+                            character_loader.create_character(
                                 entity,
                                 player.uuid().to_string(),
                                 alias,
@@ -348,7 +362,7 @@ impl<'a> System<'a> for Sys {
                     },
                     ClientMsg::DeleteCharacter(character_id) => {
                         if let Some(player) = players.get(entity) {
-                            char_list.delete_character(
+                            character_loader.delete_character(
                                 entity,
                                 player.uuid().to_string(),
                                 character_id,
