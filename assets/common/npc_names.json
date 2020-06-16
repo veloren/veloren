@@ -581,6 +581,10 @@
             "asp": {
                 "keyword": "asp",
                 "generic": "Asp"
+            },
+            "tortoise": {
+                "keyword": "tortoise",
+                "generic": "Tortoise"
             }
         }
     }
