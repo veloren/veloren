@@ -242,9 +242,10 @@ impl Client {
     }
 
     /// Request a state transition to `ClientState::Character`.
-    pub fn request_character(&mut self, character_id: i32, body: comp::Body) {
+    pub fn request_character(&mut self, character_id: i32) {
         self.postbox
-            .send_message(ClientMsg::Character { character_id, body });
+            .send_message(ClientMsg::Character(character_id));
+
         self.active_character_id = Some(character_id);
         self.client_state = ClientState::Pending;
     }
@@ -861,23 +862,7 @@ impl Client {
                     },
                     // Cleanup for when the client goes back to the `Registered` state
                     ServerMsg::ExitIngameCleanup => {
-                        // Get client entity Uid
-                        let client_uid = self
-                            .state
-                            .read_component_cloned::<Uid>(self.entity)
-                            .map(|u| u.into())
-                            .expect("Client doesn't have a Uid!!!");
-                        // Clear ecs of all entities
-                        self.state.ecs_mut().delete_all();
-                        self.state.ecs_mut().maintain();
-                        self.state.ecs_mut().insert(UidAllocator::default());
-                        // Recreate client entity with Uid
-                        let entity_builder = self.state.ecs_mut().create_entity();
-                        let uid = entity_builder
-                            .world
-                            .write_resource::<UidAllocator>()
-                            .allocate(entity_builder.entity, Some(client_uid));
-                        self.entity = entity_builder.with(uid).build();
+                        self.clean_state();
                     },
                     ServerMsg::InventoryUpdate(inventory, event) => {
                         match event {
@@ -934,6 +919,10 @@ impl Client {
                     ServerMsg::Notification(n) => {
                         frontend_events.push(Event::Notification(n));
                     },
+                    ServerMsg::CharacterDataLoadError(error) => {
+                        self.clean_state();
+                        self.character_list.error = Some(error);
+                    },
                 }
             }
         } else if let Some(err) = self.postbox.error() {
@@ -977,6 +966,29 @@ impl Client {
             .join()
             .cloned()
             .collect()
+    }
+
+    /// Clean client ECS state
+    fn clean_state(&mut self) {
+        let client_uid = self
+            .state
+            .read_component_cloned::<Uid>(self.entity)
+            .map(|u| u.into())
+            .expect("Client doesn't have a Uid!!!");
+
+        // Clear ecs of all entities
+        self.state.ecs_mut().delete_all();
+        self.state.ecs_mut().maintain();
+        self.state.ecs_mut().insert(UidAllocator::default());
+
+        // Recreate client entity with Uid
+        let entity_builder = self.state.ecs_mut().create_entity();
+        let uid = entity_builder
+            .world
+            .write_resource::<UidAllocator>()
+            .allocate(entity_builder.entity, Some(client_uid));
+
+        self.entity = entity_builder.with(uid).build();
     }
 }
 

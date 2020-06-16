@@ -14,10 +14,7 @@ pub enum ClientMsg {
         body: comp::Body,
     },
     DeleteCharacter(i32),
-    Character {
-        character_id: i32,
-        body: comp::Body,
-    },
+    Character(i32),
     /// Request `ClientState::Registered` from an ingame state
     ExitIngame,
     /// Request `ClientState::Spectator` from a registered or ingame state

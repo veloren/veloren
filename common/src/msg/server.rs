@@ -53,6 +53,8 @@ pub enum ServerMsg {
         time_of_day: state::TimeOfDay,
         world_map: (Vec2<u32>, Vec<u32>),
     },
+    /// An error occurred while loading character data
+    CharacterDataLoadError(String),
     /// A list of characters belonging to the a authenticated player was sent
     CharacterListUpdate(Vec<CharacterItem>),
     /// An error occured while creating or deleting a character
