@@ -154,16 +154,10 @@ pub fn attempt_swap_loadout(_data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
-/// Checks that player can glide and updates `CharacterState` if so
-pub fn handle_glide(data: &JoinData, update: &mut StateUpdate) {
-    if let CharacterState::Idle { .. } | CharacterState::Wielding { .. } = update.character {
-        if data.inputs.glide.is_pressed()
-            && !data.physics.on_ground
-            && !data.physics.in_fluid
-            && data.body.is_humanoid()
-        {
-            update.character = CharacterState::Glide;
-        }
+/// Checks that player can wield the glider and updates `CharacterState` if so
+pub fn attempt_glide_wield(data: &JoinData, update: &mut StateUpdate) {
+    if data.physics.on_ground && !data.physics.in_fluid && data.body.is_humanoid() {
+        update.character = CharacterState::GlideWield;
     }
 }
 
