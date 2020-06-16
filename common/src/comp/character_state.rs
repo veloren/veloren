@@ -41,6 +41,7 @@ pub enum CharacterState {
     Sit,
     Dance,
     Glide,
+    GlideWield,
     /// A basic blocking state
     BasicBlock,
     /// Player is busy equipping or unequipping weapons
