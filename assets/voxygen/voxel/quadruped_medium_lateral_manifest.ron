@@ -1,69 +1,69 @@
 ({
     (Grolgar, Male): (
         leg_fl: (
-            offset: (-2.5, -4.0, -1.5),
+            offset: (-2.5, -6.0, -3.0),
             lateral: ("npc.grolgar.male.leg_fl"),
         ),
         leg_fr: (
-            offset: (-2.5, -4.0, -1.5),
+            offset: (-2.5, -6.0, -3.0),
             lateral: ("npc.grolgar.male.leg_fr"),
         ),
         leg_bl: (
-            offset: (-2.5, -4.0, -3.0),
+            offset: (-2.0, -3.5, -5.0),
             lateral: ("npc.grolgar.male.leg_bl"),
         ),
         leg_br: (
-            offset: (-2.5, -4.0, -3.0),
+            offset: (-2.0, -3.5, -5.0),
             lateral: ("npc.grolgar.male.leg_br"),
         ),
         foot_fl: (
-            offset: (-2.5, -4.0, -1.5),
+            offset: (-2.5, -6.0, -3.0),
             lateral: ("npc.grolgar.male.foot_fl"),
         ),
         foot_fr: (
-            offset: (-2.5, -4.0, -1.5),
+            offset: (-2.5, -6.0, -3.0),
             lateral: ("npc.grolgar.male.foot_fr"),
         ),
         foot_bl: (
-            offset: (-2.5, -4.0, -3.0),
+            offset: (-2.5, -3.5, -2.0),
             lateral: ("npc.grolgar.male.foot_bl"),
         ),
         foot_br: (
-            offset: (-2.5, -4.0, -3.0),
+            offset: (-2.5, -3.5, -2.0),
             lateral: ("npc.grolgar.male.foot_br"),
         ),
     ),
     (Grolgar, Female): (
         leg_fl: (
-            offset: (-2.5, -4.0, -1.5),
+            offset: (-2.5, -6.0, -3.0),
             lateral: ("npc.grolgar.female.leg_fl"),
         ),
         leg_fr: (
-            offset: (-2.5, -4.0, -1.5),
+            offset: (-2.5, -6.0, -3.0),
             lateral: ("npc.grolgar.female.leg_fr"),
         ),
         leg_bl: (
-            offset: (-2.5, -4.0, -3.0),
+            offset: (-2.0, -3.5, -5.0),
             lateral: ("npc.grolgar.female.leg_bl"),
         ),
         leg_br: (
-            offset: (-2.5, -4.0, -3.0),
+            offset: (-2.0, -3.5, -5.0),
             lateral: ("npc.grolgar.female.leg_br"),
         ),
         foot_fl: (
-            offset: (-2.5, -4.0, -1.5),
+            offset: (-2.5, -6.0, -3.0),
             lateral: ("npc.grolgar.female.foot_fl"),
         ),
         foot_fr: (
-            offset: (-2.5, -4.0, -1.5),
+            offset: (-2.5, -6.0, -3.0),
             lateral: ("npc.grolgar.female.foot_fr"),
         ),
         foot_bl: (
-            offset: (-2.5, -4.0, -3.0),
+            offset: (-2.5, -3.5, -2.0),
             lateral: ("npc.grolgar.female.foot_bl"),
         ),
         foot_br: (
-            offset: (-2.5, -4.0, -3.0),
+            offset: (-2.5, -3.5, -2.0),
             lateral: ("npc.grolgar.female.foot_br"),
         ),
     ),

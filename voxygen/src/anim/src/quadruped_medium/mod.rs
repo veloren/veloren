@@ -29,53 +29,53 @@ pub struct QuadrupedMediumSkeleton {
 }
 
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const HEAD_UPPER_Y: f32 = 7.0;
+const HEAD_UPPER_Y: f32 = -8.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const HEAD_UPPER_Z: f32 = 0.0;
+const HEAD_UPPER_Z: f32 = 1.5;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const HEAD_LOWER_Y: f32 = 5.5;
+const HEAD_LOWER_Y: f32 = 3.5;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const HEAD_LOWER_Z: f32 = 0.5;
+const HEAD_LOWER_Z: f32 = -3.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const JAW_Y: f32 = 2.0;
+const JAW_Y: f32 = -2.5;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const JAW_Z: f32 = -4.0;
+const JAW_Z: f32 = 0.5;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const TAIL_Y: f32 = -7.5;
+const TAIL_Y: f32 = -5.5;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const TAIL_Z: f32 = -7.0;
+const TAIL_Z: f32 = -0.5;
+#[const_tweaker::tweak(min = -25.0, max = 20.0, step = 0.5)]
+const TORSO_BACK_Y: f32 = -20.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const TORSO_BACK_Y: f32 = -12.5;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const TORSO_BACK_Z: f32 = 0.0;
+const TORSO_BACK_Z: f32 = 1.5;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
 const TORSO_FRONT_Y: f32 = 0.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const TORSO_FRONT_Z: f32 = 12.5;
+const TORSO_FRONT_Z: f32 = 11.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const EARS_Y: f32 = -2.5;
+const EARS_Y: f32 = 5.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const EARS_Z: f32 = 5.0;
+const EARS_Z: f32 = 9.5;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const LEG_FRONT_X: f32 = 6.0;
+const LEG_FRONT_X: f32 = -7.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const LEG_FRONT_Y: f32 = 1.0;
+const LEG_FRONT_Y: f32 = -5.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const LEG_FRONT_Z: f32 = 7.0;
+const LEG_FRONT_Z: f32 = -2.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const LEG_BACK_X: f32 = 5.5;
+const LEG_BACK_X: f32 = 6.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const LEG_BACK_Y: f32 = -14.0;
+const LEG_BACK_Y: f32 = -0.5;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const LEG_BACK_Z: f32 = 8.5;
+const LEG_BACK_Z: f32 = -5.5;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const FEET_FRONT_X: f32 = 0.5;
+const FEET_FRONT_X: f32 = 0.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const FEET_FRONT_Y: f32 = 0.0;
+const FEET_FRONT_Y: f32 = 1.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const FEET_FRONT_Z: f32 = -4.5;
+const FEET_FRONT_Z: f32 = -6.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const FEET_BACK_X: f32 = 0.5;
+const FEET_BACK_X: f32 = 0.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
 const FEET_BACK_Y: f32 = 0.0;
 #[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
@@ -195,7 +195,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
         use comp::quadruped_medium::Species::*;
         Self {
             head_upper: match (body.species, body.body_type) {
-                (Grolgar, _) => (12.0, 16.0),
+                (Grolgar, _) => (*HEAD_UPPER_Y, *HEAD_UPPER_Z),
                 (Saber, _) => (-11.0, -3.0),
                 (Tuskram, _) => (9.0, 12.0),
                 (Lion, _) => (12.0, 2.0),
@@ -203,7 +203,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tiger, _) => (2.0, 1.0),
             },
             head_lower: match (body.species, body.body_type) {
-                (Grolgar, _) => (-4.0, -7.0),
+                (Grolgar, _) => (*HEAD_LOWER_Y, *HEAD_LOWER_Z),
                 (Saber, _) => (1.0, 0.0),
                 (Tuskram, _) => (-3.0, -1.0),
                 (Lion, _) => (0.5, 1.0),
@@ -212,7 +212,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tiger, _) => (-5.0, -6.0),
             },
             jaw: match (body.species, body.body_type) {
-                (Grolgar, _) => (3.0, -5.0),
+                (Grolgar, _) => (*JAW_Y, *JAW_Z),
                 (Saber, _) => (18.0, -1.0),
                 (Tuskram, _) => (2.0, -2.0),
                 (Lion, _) => (0.0, -4.5),
@@ -220,7 +220,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tiger, _) => (7.0, -4.0),
             },
             tail: match (body.species, body.body_type) {
-                (Grolgar, _) => (-6.0, -2.0),
+                (Grolgar, _) => (*TAIL_Y, *TAIL_Z),
                 (Saber, _) => (-6.0, 1.0),
                 (Tuskram, _) => (-6.0, -2.0),
                 (Lion, _) => (-6.0, 1.0),
@@ -228,7 +228,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tiger, _) => (-6.5, -7.0),
             },
             torso_front: match (body.species, body.body_type) {
-                (Grolgar, _) => (-7.0, 10.5),
+                (Grolgar, _) => (*TORSO_FRONT_Y, *TORSO_FRONT_Z),
                 (Saber, _) => (14.0, 13.0),
                 (Tuskram, _) => (-7.0, 9.0),
                 (Lion, _) => (0.0, 13.0),
@@ -236,7 +236,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tiger, _) => (10.0, 12.0),
             },
             torso_back: match (body.species, body.body_type) {
-                (Grolgar, _) => (4.0, 11.0),
+                (Grolgar, _) => (*TORSO_BACK_Y, *TORSO_BACK_Z),
                 (Saber, _) => (-19.5, 0.0),
                 (Tuskram, _) => (4.0, 9.0),
                 (Lion, _) => (-19.0, -1.0),
@@ -244,7 +244,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tiger, _) => (-19.0, 0.0),
             },
             ears: match (body.species, body.body_type) {
-                (Grolgar, _) => (-1.0, 5.0),
+                (Grolgar, _) => (*EARS_Y, *EARS_Z),
                 (Saber, _) => (13.0, 7.0),
                 (Tuskram, _) => (10.0, 2.0),
                 (Lion, _) => (-8.0, 4.5),
@@ -252,7 +252,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tiger, _) => (2.5, 5.0),
             },
             leg_f: match (body.species, body.body_type) {
-                (Grolgar, _) => (5.0, 6.0, 2.0),
+                (Grolgar, _) => (*LEG_FRONT_X, *LEG_FRONT_Y, *LEG_FRONT_Z),
                 (Saber, _) => (7.0, -7.5, -3.5),
                 (Tuskram, _) => (4.0, 6.0, 4.5),
                 (Lion, _) => (7.5, -4.5, -6.0),
@@ -260,7 +260,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tiger, _) => (7.0, -2.0, -1.0),
             },
             leg_b: match (body.species, body.body_type) {
-                (Grolgar, _) => (5.0, -4.0, 3.0),
+                (Grolgar, _) => (*LEG_BACK_X, *LEG_BACK_Y, *LEG_BACK_Z),
                 (Saber, _) => (6.0, -1.0, -4.0),
                 (Tuskram, _) => (4.0, -8.0, 5.5),
                 (Lion, _) => (6.0, 0.0, -2.0),
@@ -268,7 +268,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tiger, _) => (7.0, -2.0, -1.0),
             },
             feet_f: match (body.species, body.body_type) {
-                (Grolgar, _) => (5.0, 6.0, 2.0),
+                (Grolgar, _) => (*FEET_FRONT_X, *FEET_FRONT_Y, *FEET_FRONT_Z),
                 (Saber, _) => (1.0, 3.0, -1.0),
                 (Tuskram, _) => (4.0, 6.0, 4.5),
                 (Lion, _) => (0.0, 2.0, -4.5),
@@ -276,7 +276,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tiger, _) => (1.0, 0.0, -5.0),
             },
             feet_b: match (body.species, body.body_type) {
-                (Grolgar, _) => (5.0, -4.0, 3.0),
+                (Grolgar, _) => (*FEET_BACK_X, *FEET_BACK_Y, *FEET_BACK_Z),
                 (Saber, _) => (1.0, 0.0, 0.0),
                 (Tuskram, _) => (4.0, -8.0, 5.5),
                 (Lion, _) => (0.5, 0.5, -4.0),

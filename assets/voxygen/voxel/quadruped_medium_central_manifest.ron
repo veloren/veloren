@@ -1,23 +1,23 @@
 ({
     (Grolgar, Male): (
         upper: (
-            offset: (-7.0, -9.0, -5.5),
-            central: ("npc.grolgar.male.head_upper"),
+            offset: (-7.0, 0.0, -9.0),
+            central: ("npc.grolgar.female.head_upper"),
         ),
         lower: (
-            offset: (-7.0, -4.5, -5.0),
+            offset: (-6.0, -4.5, -4.0),
             central: ("npc.grolgar.male.head_lower"),
         ),
         jaw: (
-            offset: (-3.0, -3.0, -2.5),
+            offset: (-2.0, -7.0, -1.5),
             central: ("npc.grolgar.male.jaw"),
         ),
         torso_front: (
-            offset: (-8.0, -5.5, -6.0),
+            offset: (-7.0, -14.0, -8.0),
             central: ("npc.grolgar.male.torso_front"),
         ),
         torso_back: (
-            offset: (-7.0, -6.0, -6.0),
+            offset: (-5.0, -6.0, -5.5),
             central: ("npc.grolgar.male.torso_back"),
         ),
         ears: (
@@ -25,29 +25,29 @@
             central: ("npc.grolgar.male.ears"),
         ),
         tail: (
-            offset: (-2.0, -9.5, -5.0),
+            offset: (-2.0, -11.0, -10.0),
             central: ("npc.grolgar.male.tail"),
         ),
     ),
     (Grolgar, Female): (
         upper: (
-            offset: (-7.0, -9.0, -5.5),
+            offset: (-7.0, 0.0, -9.0),
             central: ("npc.grolgar.female.head_upper"),
         ),
         lower: (
-            offset: (-7.0, -4.5, -5.0),
+            offset: (-6.0, -4.5, -4.0),
             central: ("npc.grolgar.female.head_lower"),
         ),
         jaw: (
-            offset: (-3.0, -3.0, -2.5),
-            central: ("npc.grolgar.male.jaw"),
+            offset: (-2.0, -7.0, -1.5),
+            central: ("npc.grolgar.female.jaw"),
         ),
         torso_front: (
-            offset: (-8.0, -5.5, -6.0),
+            offset: (-7.0, -14.0, -8.0),
             central: ("npc.grolgar.female.torso_front"),
         ),
         torso_back: (
-            offset: (-7.0, -6.0, -6.0),
+            offset: (-5.0, -6.0, -5.5),
             central: ("npc.grolgar.female.torso_back"),
         ),
         ears: (
@@ -55,11 +55,10 @@
             central: ("npc.grolgar.female.ears"),
         ),
         tail: (
-            offset: (-2.0, -9.5, -5.0),
+            offset: (-2.0, -11.0, -10.0),
             central: ("npc.grolgar.female.tail"),
         ),
     ),
-
     (Saber, Male): (
         upper: (
             offset: (-5.5, 11.0, -6.5),
@@ -281,7 +280,7 @@
         ),
         jaw: (
             offset: (-5.0, -9.0, -0.0),
-            central: ("npc.tarasque.male.jaw"),
+            central: ("npc.tarasque.female.jaw"),
         ),
         torso_front: (
             offset: (-10.0, -17.0, -9.0),
