@@ -7,6 +7,7 @@ pub mod dance;
 pub mod dash_melee;
 pub mod equipping;
 pub mod glide;
+pub mod glide_wield;
 pub mod idle;
 pub mod roll;
 pub mod sit;

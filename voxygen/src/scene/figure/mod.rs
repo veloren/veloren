@@ -730,6 +730,15 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::GlideWield { .. } => {
+                            anim::character::GlideWieldAnimation::update_skeleton(
+                                &CharacterSkeleton::new(),
+                                (active_tool_kind, vel.0, ori, state.last_ori, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         CharacterState::Dance { .. } => {
                             anim::character::DanceAnimation::update_skeleton(
                                 &CharacterSkeleton::new(),

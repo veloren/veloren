@@ -55,43 +55,49 @@ impl Animation for GlidingAnimation {
             0.0
         };
 
+        let tiltcancel = if anim_time > 1.0 {
+            1.0
+        } else {
+            anim_time as f32
+        };
+
         next.head.offset = Vec3::new(0.0, -2.0 + skeleton_attr.head.0, skeleton_attr.head.1);
         next.head.ori = Quaternion::rotation_x(0.35 - slow * 0.10 + head_look.y)
             * Quaternion::rotation_z(head_look.x + slowa * 0.15);
 
-        next.chest.offset = Vec3::new(0.0, 0.0, -2.0);
-        next.chest.ori = Quaternion::rotation_z(slowa * 0.2);
+        next.chest.offset = Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1);
+        next.chest.ori = Quaternion::rotation_z(slowa * 0.02);
 
         next.belt.offset = Vec3::new(0.0, 0.0, -2.0);
-        next.belt.ori = Quaternion::rotation_z(slowa * 0.25);
+        next.belt.ori = Quaternion::rotation_z(slowa * 0.1 + tilt * tiltcancel * 12.0);
 
         next.shorts.offset = Vec3::new(0.0, skeleton_attr.shorts.0, skeleton_attr.shorts.1);
-        next.shorts.ori = Quaternion::rotation_z(slowa * 0.35);
+        next.shorts.ori = Quaternion::rotation_z(slowa * 0.12 + tilt * tiltcancel * 16.0);
 
-        next.l_hand.offset = Vec3::new(-9.5 + slowa * -1.5, -3.0 + slowa * 1.5, 10.0);
+        next.l_hand.offset = Vec3::new(-9.5, -3.0, 10.0);
         next.l_hand.ori = Quaternion::rotation_x(-2.7 + slowa * -0.1);
 
-        next.r_hand.offset = Vec3::new(9.5 + slowa * -1.5, -3.0 + slowa * -1.5, 10.0);
+        next.r_hand.offset = Vec3::new(9.5, -3.0, 10.0);
         next.r_hand.ori = Quaternion::rotation_x(-2.7 + slowa * -0.10);
 
         next.l_foot.offset = Vec3::new(
             -skeleton_attr.foot.0,
-            skeleton_attr.foot.1,
-            -9.0 + skeleton_attr.foot.2,
+            skeleton_attr.foot.1 + slowa * -1.0 + tilt * tiltcancel * -35.0,
+            -1.0 + skeleton_attr.foot.2,
         );
         next.l_foot.ori = Quaternion::rotation_x(
             (wave_stop * -0.7 - quicka * -0.21 + slow * 0.19) * speed * 0.04,
-        );
+        ) * Quaternion::rotation_z(tilt * tiltcancel * 20.0);
         next.l_foot.scale = Vec3::one();
 
         next.r_foot.offset = Vec3::new(
             skeleton_attr.foot.0,
-            skeleton_attr.foot.1,
-            -9.0 + skeleton_attr.foot.2,
+            skeleton_attr.foot.1 + slowa * 1.0 + tilt * tiltcancel * 35.0,
+            -1.0 + skeleton_attr.foot.2,
         );
         next.r_foot.ori = Quaternion::rotation_x(
             (wave_stop * -0.8 + quick * -0.25 + slowb * 0.13) * speed * 0.04,
-        );
+        ) * Quaternion::rotation_z(tilt * tiltcancel * 20.0);
         next.r_foot.scale = Vec3::one();
 
         next.l_shoulder.offset = Vec3::new(
@@ -125,9 +131,9 @@ impl Animation for GlidingAnimation {
         );
         next.lantern.scale = Vec3::one() * 0.65;
 
-        next.torso.offset = Vec3::new(0.0, 6.0, 15.0) / 11.0 * skeleton_attr.scaler;
-        next.torso.ori = Quaternion::rotation_x(-0.05 * speed.max(12.0) + slow * 0.06)
-            * Quaternion::rotation_y(tilt * 32.0);
+        next.torso.offset = Vec3::new(0.0, -4.0, 0.0) / 11.0 * skeleton_attr.scaler;
+        next.torso.ori = Quaternion::rotation_x(-0.06 * speed.max(12.0) + slow * 0.04)
+            * Quaternion::rotation_y(tilt * tiltcancel * 32.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
         next.control.scale = Vec3::one();

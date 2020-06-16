@@ -1,3 +1,4 @@
+use super::utils::handle_climb;
 use crate::{
     comp::{CharacterState, StateUpdate},
     sys::character_behavior::{CharacterBehavior, JoinData},
@@ -17,17 +18,15 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        // If glide button isn't held or player is on ground, end glide
-        if !data.inputs.glide.is_pressed() || data.physics.on_ground {
-            update.character = CharacterState::Idle;
+        // If player is on ground, end glide
+        if data.physics.on_ground {
+            update.character = CharacterState::GlideWield;
             return update;
         }
 
-        // If there is a wall in front of character go to climb
-        if data.physics.on_wall.is_some() {
-            update.character = CharacterState::Climb;
-            return update;
-        }
+        // If there is a wall in front of character and they are trying to climb go to
+        // climb
+        handle_climb(&data, &mut update);
 
         // Move player according to movement direction vector
         update.vel.0 += Vec2::broadcast(data.dt.0)
@@ -54,6 +53,12 @@ impl CharacterBehavior for Data {
                     .max(0.2);
         }
 
+        update
+    }
+
+    fn unwield(&self, data: &JoinData) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        update.character = CharacterState::Idle;
         update
     }
 }
