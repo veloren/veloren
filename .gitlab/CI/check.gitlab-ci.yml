@@ -1,17 +1,13 @@
 check:
   extends: .recompile-branch
-  stage: check-compile
-  tags:
-    - veloren-docker
+  stage: check
   script:
     - ln -s /dockercache/cache-all target
     - RUSTFLAGS="-D warnings" cargo check --locked
 
 code-quality:
   extends: .recompile-branch
-  stage: check-compile
-  tags:
-    - veloren-docker
+  stage: check
   script:
     - ln -s /dockercache/cache-all target
     - cargo clippy -- -D warnings
@@ -19,10 +15,8 @@ code-quality:
 
 security:
   extends: .recompile-branch
-  stage: check-compile
+  stage: check
   allow_failure: true
-  tags:
-    - veloren-docker
   script:
     - ln -s /dockercache/cache-all target
     - cargo audit
