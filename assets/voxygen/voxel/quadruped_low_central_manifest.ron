@@ -312,4 +312,56 @@
             central: ("npc.tortoise.female.tail_front"),
         ),
     ),
+    (Rocksnapper, Male): (
+        upper: (
+            offset: (-3.5, -4.5, -3.0),
+            central: ("npc.rocksnapper.male.head_upper"),
+        ),
+        lower: (
+            offset: (-3.5, -5.0, -3.5),
+            central: ("npc.rocksnapper.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-6.5, -6.0, -2.5),
+            central: ("npc.rocksnapper.male.jaw"),
+        ),
+        chest: (
+            offset: (-15.5, -18.5, -13.5),
+            central: ("npc.rocksnapper.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-1.5, -11.0, -2.5),
+            central: ("npc.rocksnapper.male.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-2.5, -15.0, -4.5),
+            central: ("npc.rocksnapper.male.tail_front"),
+        ),
+    ),
+    (Rocksnapper, Female): (
+        upper: (
+            offset: (-3.5, -4.5, -3.0),
+            central: ("npc.rocksnapper.female.head_upper"),
+        ),
+        lower: (
+            offset: (-3.5, -5.0, -3.5),
+            central: ("npc.rocksnapper.female.head_lower"),
+        ),
+        jaw: (
+            offset: (-6.5, -6.0, -2.5),
+            central: ("npc.rocksnapper.female.jaw"),
+        ),
+        chest: (
+            offset: (-15.5, -18.5, -13.5),
+            central: ("npc.rocksnapper.female.chest"),
+        ),
+        tail_rear: (
+            offset: (-1.5, -11.0, -2.5),
+            central: ("npc.rocksnapper.female.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-2.5, -15.0, -4.5),
+            central: ("npc.rocksnapper.female.tail_front"),
+        ),
+    ),
 })
