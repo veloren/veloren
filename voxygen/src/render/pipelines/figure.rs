@@ -1,5 +1,5 @@
 use super::{
-    super::{util::arr_to_mat, Pipeline, TgtColorFmt, TgtDepthStencilFmt},
+    super::{Pipeline, TgtColorFmt, TgtDepthStencilFmt},
     Globals, Light, Shadow,
 };
 use gfx::{
@@ -81,7 +81,7 @@ impl Locals {
         flags |= is_player as u32;
 
         Self {
-            model_mat: arr_to_mat(model_mat.into_col_array()),
+            model_mat: model_mat.into_col_arrays(),
             model_col: col.into_array(),
             flags,
         }
@@ -95,7 +95,7 @@ impl Default for Locals {
 impl BoneData {
     pub fn new(bone_mat: Mat4<f32>) -> Self {
         Self {
-            bone_mat: arr_to_mat(bone_mat.into_col_array()),
+            bone_mat: bone_mat.into_col_arrays(),
         }
     }
 

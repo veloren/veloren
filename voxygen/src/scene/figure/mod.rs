@@ -5,19 +5,19 @@ pub use cache::FigureModelCache;
 pub use load::load_mesh; // TODO: Don't make this public.
 
 use crate::{
-    anim::{
-        self, biped_large::BipedLargeSkeleton, bird_medium::BirdMediumSkeleton,
-        bird_small::BirdSmallSkeleton, character::CharacterSkeleton, critter::CritterSkeleton,
-        dragon::DragonSkeleton, fish_medium::FishMediumSkeleton, fish_small::FishSmallSkeleton,
-        golem::GolemSkeleton, object::ObjectSkeleton, quadruped_medium::QuadrupedMediumSkeleton,
-        quadruped_small::QuadrupedSmallSkeleton, Animation, Skeleton,
-    },
     ecs::comp::Interpolated,
     render::{Consts, FigureBoneData, FigureLocals, Globals, Light, Renderer, Shadow},
     scene::{
         camera::{Camera, CameraMode},
         SceneData,
     },
+};
+use anim::{
+    biped_large::BipedLargeSkeleton, bird_medium::BirdMediumSkeleton,
+    bird_small::BirdSmallSkeleton, character::CharacterSkeleton, critter::CritterSkeleton,
+    dragon::DragonSkeleton, fish_medium::FishMediumSkeleton, fish_small::FishSmallSkeleton,
+    golem::GolemSkeleton, object::ObjectSkeleton, quadruped_medium::QuadrupedMediumSkeleton,
+    quadruped_small::QuadrupedSmallSkeleton, Animation, Skeleton,
 };
 use common::{
     comp::{
@@ -2037,7 +2037,8 @@ pub struct FigureState<S: Skeleton> {
 
 impl<S: Skeleton> FigureState<S> {
     pub fn new(renderer: &mut Renderer, skeleton: S) -> Self {
-        let (bone_consts, lantern_offset) = skeleton.compute_matrices();
+        let (bone_mats, lantern_offset) = skeleton.compute_matrices();
+        let bone_consts = figure_bone_data_from_anim(bone_mats);
         Self {
             bone_consts: renderer.create_consts(&bone_consts).unwrap(),
             locals: renderer.create_consts(&[FigureLocals::default()]).unwrap(),
@@ -2081,7 +2082,9 @@ impl<S: Skeleton> FigureState<S> {
         let locals = FigureLocals::new(mat, col, is_player);
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();
 
-        let (new_bone_consts, lantern_offset) = self.skeleton.compute_matrices();
+        let (new_bone_mats, lantern_offset) = self.skeleton.compute_matrices();
+        let new_bone_consts = figure_bone_data_from_anim(new_bone_mats);
+
         renderer
             .update_consts(
                 &mut self.bone_consts,
@@ -2096,4 +2099,25 @@ impl<S: Skeleton> FigureState<S> {
     pub fn bone_consts(&self) -> &Consts<FigureBoneData> { &self.bone_consts }
 
     pub fn skeleton_mut(&mut self) -> &mut S { &mut self.skeleton }
+}
+
+fn figure_bone_data_from_anim(mats: [anim::FigureBoneData; 16]) -> [FigureBoneData; 16] {
+    [
+       FigureBoneData::new(mats[0].0),
+       FigureBoneData::new(mats[1].0),
+       FigureBoneData::new(mats[2].0),
+       FigureBoneData::new(mats[3].0),
+       FigureBoneData::new(mats[4].0),
+       FigureBoneData::new(mats[5].0),
+       FigureBoneData::new(mats[6].0),
+       FigureBoneData::new(mats[7].0),
+       FigureBoneData::new(mats[8].0),
+       FigureBoneData::new(mats[9].0),
+       FigureBoneData::new(mats[10].0),
+       FigureBoneData::new(mats[11].0),
+       FigureBoneData::new(mats[12].0),
+       FigureBoneData::new(mats[13].0),
+       FigureBoneData::new(mats[14].0),
+       FigureBoneData::new(mats[15].0),
+    ]
 }
