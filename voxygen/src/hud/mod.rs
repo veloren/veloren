@@ -2123,6 +2123,12 @@ impl Hud {
                 self.force_ungrab = !state;
                 true
             },
+            WinEvent::Moved(_) => {
+                // Prevent the cursor from being grabbed while the window is being moved as this
+                // causes the window to move erratically
+                self.show.want_grab = false;
+                true
+            },
 
             _ => false,
         };

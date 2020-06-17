@@ -162,6 +162,8 @@ pub enum Event {
     Close,
     /// The window has been resized.
     Resize(Vec2<u32>),
+    /// The window has been moved.
+    Moved(Vec2<u32>),
     /// A key has been typed that corresponds to a specific character.
     Char(char),
     /// The cursor has been panned across the screen while grabbed.
@@ -551,6 +553,9 @@ impl Window {
                         gfx_window_glutin::update_views(window, &mut color_view, &mut depth_view);
                         renderer.on_resize().unwrap();
                         events.push(Event::Resize(Vec2::new(width as u32, height as u32)));
+                    },
+                    glutin::WindowEvent::Moved(glutin::dpi::LogicalPosition { x, y }) => {
+                        events.push(Event::Moved(Vec2::new(x as u32, y as u32)))
                     },
                     glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
                     glutin::WindowEvent::MouseInput { button, state, .. } => {
