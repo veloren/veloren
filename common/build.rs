@@ -7,6 +7,13 @@ use std::{
 };
 
 fn main() {
+    // If the env variable exists then we are building on nix, use it as hash and
+    // return. `git-lfs` check is handled by nix itself.
+    if let Some(hash) = option_env!("NIX_GIT_HASH") {
+        create_hash_file(hash);
+        return;
+    }
+
     // Get the current githash
     // Note: It will compare commits. As long as the commits do not diverge from the
     // server no version change will be detected.
@@ -23,16 +30,7 @@ fn main() {
     {
         Ok(output) => match String::from_utf8(output.stdout) {
             Ok(hash) => {
-                let mut target = File::create(
-                    Path::new(
-                        &env::var("OUT_DIR").expect("failed to query OUT_DIR environment variable"),
-                    )
-                    .join("githash"),
-                )
-                .expect("failed to create git hash file!");
-                target
-                    .write_all(hash.trim().as_bytes())
-                    .expect("failed to write to file!");
+                create_hash_file(&hash);
             },
             Err(e) => panic!("failed to convert git output to UTF-8: {}", e),
         },
@@ -69,4 +67,15 @@ fn main() {
             );
         }
     }
+}
+
+fn create_hash_file(hash: &str) {
+    let mut target = File::create(
+        Path::new(&env::var("OUT_DIR").expect("failed to query OUT_DIR environment variable"))
+            .join("githash"),
+    )
+    .expect("failed to create git hash file!");
+    target
+        .write_all(hash.trim().as_bytes())
+        .expect("failed to write to file!");
 }

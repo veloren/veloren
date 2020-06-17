@@ -45,3 +45,6 @@ todo.txt
 
 # Mac
 .DS_Store
+
+# Nix
+nix/result
