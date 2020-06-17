@@ -40,6 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Wield requirement to swap loadout; fixes issue with unable swap loadout outside of combat.
+
 ## [0.6.0] - 2020-05-16
 
 ### Added
