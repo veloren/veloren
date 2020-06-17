@@ -585,6 +585,10 @@
             "tortoise": {
                 "keyword": "tortoise",
                 "generic": "Tortoise"
+            },
+            "rocksnapper": {
+                "keyword": "rocksnapper",
+                "generic": "Rock Snapper"
             }
         }
     }

@@ -215,4 +215,40 @@
             lateral: ("npc.tortoise.female.foot_br"),
         ),
     ),
+    (Rocksnapper, Male): (
+        front_left: (
+            offset: (-6.0, -6.5, -10.0),
+            lateral: ("npc.rocksnapper.male.foot_fl"),
+        ),
+        front_right: (
+            offset: (-6.0, -6.5, -10.0),
+            lateral: ("npc.rocksnapper.male.foot_fr"),
+        ),
+        back_left: (
+            offset: (-5.5, -4.5, -9.0),
+            lateral: ("npc.rocksnapper.male.foot_bl"),
+        ),
+        back_right: (
+            offset: (-5.5, -4.5, -9.0),
+            lateral: ("npc.rocksnapper.male.foot_br"),
+        ),
+    ),
+    (Rocksnapper, Female): (
+        front_left: (
+            offset: (-6.0, -6.5, -10.0),
+            lateral: ("npc.rocksnapper.female.foot_fl"),
+        ),
+        front_right: (
+            offset: (-6.0, -6.5, -10.0),
+            lateral: ("npc.rocksnapper.female.foot_fr"),
+        ),
+        back_left: (
+            offset: (-5.5, -4.5, -9.0),
+            lateral: ("npc.rocksnapper.female.foot_bl"),
+        ),
+        back_right: (
+            offset: (-5.5, -4.5, -9.0),
+            lateral: ("npc.rocksnapper.female.foot_br"),
+        ),
+    ),
 })
