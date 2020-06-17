@@ -3,7 +3,7 @@ use crate::{
     block::StructureMeta,
     sim::{local_cells, uniform_idx_as_vec2, vec2_as_uniform_idx, RiverKind, SimChunk, WorldSim},
     util::Sampler,
-    CONFIG,
+    Index, CONFIG,
 };
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 use noise::NoiseFn;
@@ -165,8 +165,11 @@ pub fn quadratic_nearest_point(
     min_root
 }
 
-impl<'a> Sampler<'a> for ColumnGen<'a> {
-    type Index = Vec2<i32>;
+impl<'a, 'b> Sampler<'b> for ColumnGen<'a>
+where
+    'a: 'b,
+{
+    type Index = (Vec2<i32>, &'b Index);
     type Sample = Option<ColumnSample<'a>>;
 
     #[allow(clippy::float_cmp)] // TODO: Pending review in #587
@@ -174,7 +177,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
     #[allow(clippy::nonminimal_bool)] // TODO: Pending review in #587
     #[allow(clippy::single_match)] // TODO: Pending review in #587
     #[allow(clippy::bind_instead_of_map)] // TODO: Pending review in #587
-    fn get(&self, wpos: Vec2<i32>) -> Option<ColumnSample<'a>> {
+    fn get(&self, (wpos, index): Self::Index) -> Option<ColumnSample<'a>> {
         let wposf = wpos.map(|e| e as f64);
         let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
 
@@ -1098,7 +1101,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             tree_density: if sim_chunk
                 .sites
                 .iter()
-                .all(|site| site.spawn_rules(wpos).trees)
+                .all(|site| index.sites[*site].spawn_rules(wpos).trees)
             {
                 Lerp::lerp(0.0, tree_density, alt.sub(2.0).sub(basement).mul(0.5))
             } else {

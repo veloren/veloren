@@ -12,7 +12,6 @@ use vek::*;
 pub type HouseBuilding = Building<archetype::house::House>;
 pub type KeepBuilding = Building<archetype::keep::Keep>;
 
-
 pub struct Building<A: Archetype> {
     skel: Skeleton<A::Attr>,
     archetype: A,
@@ -44,7 +43,7 @@ impl<A: Archetype> Building<A> {
         let aabr = self.bounds_2d();
         Aabb {
             min: Vec3::from(aabr.min) + Vec3::unit_z() * (self.origin.z - 8),
-            max: Vec3::from(aabr.max) + Vec3::unit_z() * (self.origin.z + 32),
+            max: Vec3::from(aabr.max) + Vec3::unit_z() * (self.origin.z + 48),
         }
     }
 

@@ -6,7 +6,8 @@ use self::{Occupation::*, Stock::*};
 use crate::{
     sim::WorldSim,
     site::{Dungeon, Settlement, Site as WorldSite},
-    util::{attempt, seed_expan, CARDINALS, NEIGHBORS},
+    util::{attempt, seed_expan, MapVec, CARDINALS, NEIGHBORS},
+    Index,
 };
 use common::{
     astar::Astar,
@@ -70,7 +71,7 @@ impl<'a, R: Rng> GenCtx<'a, R> {
 }
 
 impl Civs {
-    pub fn generate(seed: u32, sim: &mut WorldSim) -> Self {
+    pub fn generate(seed: u32, sim: &mut WorldSim, index: &mut Index) -> Self {
         let mut this = Self::default();
         let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
         let mut ctx = GenCtx { sim, rng };
@@ -103,7 +104,7 @@ impl Civs {
 
                     last_exports: Stocks::from_default(0.0),
                     export_targets: Stocks::from_default(0.0),
-                    trade_states: Stocks::default(),
+                    //trade_states: Stocks::default(),
                     coin: 1000.0,
                 })
             });
@@ -116,13 +117,13 @@ impl Civs {
         }
 
         // Flatten ground around sites
-        for site in this.sites.iter() {
+        for site in this.sites.values() {
             let radius = 48i32;
 
             let wpos = site.center * TerrainChunkSize::RECT_SIZE.map(|e: u32| e as i32);
 
             let flatten_radius = match &site.kind {
-                SiteKind::Settlement => 10.0,
+                SiteKind::Settlement => 8.0,
                 SiteKind::Dungeon => 2.0,
             };
 
@@ -143,7 +144,7 @@ impl Civs {
                     let pos = site.center + offs;
                     let factor = (1.0
                         - (site.center - pos).map(|e| e as f32).magnitude() / flatten_radius)
-                        * 1.15;
+                        * 0.8;
                     ctx.sim
                         .get_mut(pos)
                         // Don't disrupt chunks that are near water
@@ -161,33 +162,32 @@ impl Civs {
 
         // Place sites in world
         let mut cnt = 0;
-        for site in this.sites.iter() {
+        for sim_site in this.sites.values() {
             cnt += 1;
-            let wpos = site.center.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
+            let wpos = sim_site.center.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
                 e * sz as i32 + sz as i32 / 2
             });
 
             let mut rng = ctx.reseed().rng;
-            let world_site = match &site.kind {
+            let site = index.sites.insert(match &sim_site.kind {
                 SiteKind::Settlement => {
-                    WorldSite::from(Settlement::generate(wpos, Some(ctx.sim), &mut rng))
+                    WorldSite::settlement(Settlement::generate(wpos, Some(ctx.sim), &mut rng))
                 },
                 SiteKind::Dungeon => {
-                    WorldSite::from(Dungeon::generate(wpos, Some(ctx.sim), &mut rng))
+                    WorldSite::dungeon(Dungeon::generate(wpos, Some(ctx.sim), &mut rng))
                 },
-            };
+            });
+            let site_ref = &index.sites[site];
 
             let radius_chunks =
-                (world_site.radius() / TerrainChunkSize::RECT_SIZE.x as f32).ceil() as usize;
+                (site_ref.radius() / TerrainChunkSize::RECT_SIZE.x as f32).ceil() as usize;
             for pos in Spiral2d::new()
-                .map(|offs| site.center + offs)
+                .map(|offs| sim_site.center + offs)
                 .take((radius_chunks * 2).pow(2))
             {
-                ctx.sim
-                    .get_mut(pos)
-                    .map(|chunk| chunk.sites.push(world_site.clone()));
+                ctx.sim.get_mut(pos).map(|chunk| chunk.sites.push(site));
             }
-            debug!(?site.center, "Placed site at location");
+            debug!(?sim_site.center, "Placed site at location");
         }
         info!(?cnt, "all sites placed");
 
@@ -198,18 +198,18 @@ impl Civs {
 
     pub fn place(&self, id: Id<Place>) -> &Place { self.places.get(id) }
 
-    pub fn sites(&self) -> impl Iterator<Item = &Site> + '_ { self.sites.iter() }
+    pub fn sites(&self) -> impl Iterator<Item = &Site> + '_ { self.sites.values() }
 
     #[allow(dead_code)]
     #[allow(clippy::print_literal)] // TODO: Pending review in #587
     fn display_info(&self) {
-        for (id, civ) in self.civs.iter_ids() {
+        for (id, civ) in self.civs.iter() {
             println!("# Civilisation {:?}", id);
             println!("Name: {}", "<unnamed>");
             println!("Homeland: {:#?}", self.places.get(civ.homeland));
         }
 
-        for (id, site) in self.sites.iter_ids() {
+        for (id, site) in self.sites.iter() {
             println!("# Site {:?}", id);
             println!("{:#?}", site);
         }
@@ -290,7 +290,7 @@ impl Civs {
 
                 last_exports: Stocks::from_default(0.0),
                 export_targets: Stocks::from_default(0.0),
-                trade_states: Stocks::default(),
+                //trade_states: Stocks::default(),
                 coin: 1000.0,
             })
         })?;
@@ -380,7 +380,7 @@ impl Civs {
         const MAX_NEIGHBOR_DISTANCE: f32 = 500.0;
         let mut nearby = self
             .sites
-            .iter_ids()
+            .iter()
             .map(|(id, p)| (id, (p.center.distance_squared(loc) as f32).sqrt()))
             .filter(|(_, dist)| *dist < MAX_NEIGHBOR_DISTANCE)
             .collect::<Vec<_>>();
@@ -440,7 +440,7 @@ impl Civs {
     }
 
     fn tick(&mut self, _ctx: &mut GenCtx<impl Rng>, years: f32) {
-        for site in self.sites.iter_mut() {
+        for site in self.sites.values_mut() {
             site.simulate(years, &self.places.get(site.place).nat_res);
         }
 
@@ -717,7 +717,7 @@ pub struct Site {
 
     last_exports: Stocks<f32>,
     export_targets: Stocks<f32>,
-    trade_states: Stocks<TradeState>,
+    //trade_states: Stocks<TradeState>,
     coin: f32,
 }
 
@@ -996,79 +996,3 @@ impl Default for TradeState {
 }
 
 pub type Stocks<T> = MapVec<Stock, T>;
-
-#[derive(Clone, Debug)]
-pub struct MapVec<K, T> {
-    /// We use this hasher (FxHasher32) because
-    /// (1) we don't care about DDOS attacks (ruling out SipHash);
-    /// (2) we care about determinism across computers (ruling out AAHash);
-    /// (3) we have 1-byte keys (for which FxHash is supposedly fastest).
-    entries: HashMap<K, T, BuildHasherDefault<FxHasher32>>,
-    default: T,
-}
-
-/// Need manual implementation of Default since K doesn't need that bound.
-impl<K, T: Default> Default for MapVec<K, T> {
-    fn default() -> Self {
-        Self {
-            entries: Default::default(),
-            default: Default::default(),
-        }
-    }
-}
-
-impl<K: Copy + Eq + Hash, T: Clone> MapVec<K, T> {
-    pub fn from_list<'a>(i: impl IntoIterator<Item = &'a (K, T)>, default: T) -> Self
-    where
-        K: 'a,
-        T: 'a,
-    {
-        Self {
-            entries: i.into_iter().cloned().collect(),
-            default,
-        }
-    }
-
-    pub fn from_default(default: T) -> Self {
-        Self {
-            entries: HashMap::default(),
-            default,
-        }
-    }
-
-    pub fn get_mut(&mut self, entry: K) -> &mut T {
-        let default = &self.default;
-        self.entries.entry(entry).or_insert_with(|| default.clone())
-    }
-
-    pub fn get(&self, entry: K) -> &T { self.entries.get(&entry).unwrap_or(&self.default) }
-
-    pub fn map<U: Default>(self, mut f: impl FnMut(K, T) -> U) -> MapVec<K, U> {
-        MapVec {
-            entries: self
-                .entries
-                .into_iter()
-                .map(|(s, v)| (s, f(s, v)))
-                .collect(),
-            default: U::default(),
-        }
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = (K, &T)> + '_ {
-        self.entries.iter().map(|(s, v)| (*s, v))
-    }
-
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = (K, &mut T)> + '_ {
-        self.entries.iter_mut().map(|(s, v)| (*s, v))
-    }
-}
-
-impl<K: Copy + Eq + Hash, T: Clone> std::ops::Index<K> for MapVec<K, T> {
-    type Output = T;
-
-    fn index(&self, entry: K) -> &Self::Output { self.get(entry) }
-}
-
-impl<K: Copy + Eq + Hash, T: Clone> std::ops::IndexMut<K> for MapVec<K, T> {
-    fn index_mut(&mut self, entry: K) -> &mut Self::Output { self.get_mut(entry) }
-}

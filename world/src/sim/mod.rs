@@ -28,7 +28,7 @@ use crate::{
     civ::Place,
     site::Site,
     util::{seed_expan, FastNoise, RandomField, StructureGen2d, LOCALITY, NEIGHBORS},
-    CONFIG,
+    Index, CONFIG,
 };
 use common::{
     assets,
@@ -1305,14 +1305,14 @@ impl WorldSim {
 
     /// Draw a map of the world based on chunk information.  Returns a buffer of
     /// u32s.
-    pub fn get_map(&self) -> Vec<u32> {
+    pub fn get_map(&self, index: &Index) -> Vec<u32> {
         let mut v = vec![0u32; WORLD_SIZE.x * WORLD_SIZE.y];
         // TODO: Parallelize again.
         MapConfig {
             gain: self.max_height,
             ..MapConfig::default()
         }
-        .generate(&self, |pos, (r, g, b, a)| {
+        .generate(&self, index, |pos, (r, g, b, a)| {
             v[pos.y * WORLD_SIZE.x + pos.x] = u32::from_le_bytes([r, g, b, a]);
         });
         v
@@ -1788,7 +1788,7 @@ pub struct SimChunk {
     pub river: RiverData,
     pub warp_factor: f32,
 
-    pub sites: Vec<Site>,
+    pub sites: Vec<Id<Site>>,
     pub place: Option<Id<Place>>,
     pub path: PathData,
     pub contains_waypoint: bool,

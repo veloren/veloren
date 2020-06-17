@@ -1,5 +1,6 @@
 pub mod fast_noise;
 pub mod grid;
+pub mod map_vec;
 pub mod random;
 pub mod sampler;
 pub mod seed_expan;
@@ -11,6 +12,7 @@ pub mod unit_chooser;
 pub use self::{
     fast_noise::FastNoise,
     grid::Grid,
+    map_vec::MapVec,
     random::{RandomField, RandomPerm},
     sampler::{Sampler, SamplerMut},
     small_cache::SmallCache,
@@ -18,7 +20,14 @@ pub use self::{
     unit_chooser::UnitChooser,
 };
 
+use fxhash::{FxHasher32, FxHasher64};
+use hashbrown::{HashMap, HashSet};
+use std::hash::BuildHasherDefault;
 use vek::*;
+
+// Deterministic HashMap and HashSet
+pub type DHashMap<K, V> = HashMap<K, V, BuildHasherDefault<FxHasher32>>;
+pub type DHashSet<T> = HashSet<T, BuildHasherDefault<FxHasher32>>;
 
 pub fn attempt<T>(max_iters: usize, mut f: impl FnMut() -> Option<T>) -> Option<T> {
     (0..max_iters).find_map(|_| f())
