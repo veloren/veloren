@@ -9,7 +9,6 @@ use self::{
     terrain::Terrain,
 };
 use crate::{
-    anim::character::SkeletonAttr,
     audio::{music::MusicMgr, sfx::SfxMgr, AudioFrontend},
     render::{
         create_pp_mesh, create_skybox_mesh, Consts, Globals, Light, Model, PostProcessLocals,
@@ -17,6 +16,7 @@ use crate::{
     },
     window::{AnalogGameInput, Event},
 };
+use anim::character::SkeletonAttr;
 use common::{
     comp,
     state::State,

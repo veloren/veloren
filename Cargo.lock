@@ -4594,9 +4594,21 @@ dependencies = [
  "veloren-client",
  "veloren-common",
  "veloren-server",
+ "veloren-voxygen-anim",
  "veloren-world",
  "winit",
  "winres",
+]
+
+[[package]]
+name = "veloren-voxygen-anim"
+version = "0.6.0"
+dependencies = [
+ "lazy_static",
+ "libloading 0.6.2",
+ "notify",
+ "vek",
+ "veloren-common",
 ]
 
 [[package]]

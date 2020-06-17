@@ -1,10 +1,10 @@
 use super::load::*;
 use crate::{
-    anim::{self, Skeleton},
     mesh::Meshable,
     render::{FigurePipeline, Mesh, Model, Renderer},
     scene::camera::CameraMode,
 };
+use anim::{Skeleton};
 use common::{
     assets::watch::ReloadIndicator,
     comp::{
