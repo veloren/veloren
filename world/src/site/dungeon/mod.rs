@@ -305,7 +305,7 @@ impl Floor {
 
         this.create_rooms(ctx, level, 7);
         // Create routes between all rooms
-        let room_areas = this.rooms.iter().map(|r| r.area).collect::<Vec<_>>();
+        let room_areas = this.rooms.values().map(|r| r.area).collect::<Vec<_>>();
         for a in room_areas.iter() {
             for b in room_areas.iter() {
                 this.create_route(ctx, a.center(), b.center());
@@ -342,7 +342,7 @@ impl Floor {
                 // Ensure no overlap
                 if self
                     .rooms
-                    .iter()
+                    .values()
                     .any(|r| r.area.collides_with_rect(area_border))
                 {
                     return None;

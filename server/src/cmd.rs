@@ -1437,7 +1437,7 @@ fn handle_debug_column(
             let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
             let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
             let chunk = sim.get(chunk_pos)?;
-            let col = sampler.get(wpos)?;
+            let col = sampler.get((wpos, server.world.index()))?;
             let downhill = chunk.downhill;
             let river = &chunk.river;
             let flux = chunk.flux;

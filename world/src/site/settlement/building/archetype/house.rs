@@ -12,7 +12,7 @@ use common::{
 use rand::prelude::*;
 use vek::*;
 
-const COLOR_THEMES: [Rgb<u8>; 11] = [
+const COLOR_THEMES: [Rgb<u8>; 17] = [
     Rgb::new(0x1D, 0x4D, 0x45),
     Rgb::new(0xB3, 0x7D, 0x60),
     Rgb::new(0xAC, 0x5D, 0x26),
@@ -24,6 +24,12 @@ const COLOR_THEMES: [Rgb<u8>; 11] = [
     Rgb::new(0x2F, 0x32, 0x47),
     Rgb::new(0x8F, 0x35, 0x43),
     Rgb::new(0x6D, 0x1E, 0x3A),
+    Rgb::new(0x6D, 0xA7, 0x80),
+    Rgb::new(0x4F, 0xA0, 0x95),
+    Rgb::new(0xE2, 0xB9, 0x99),
+    Rgb::new(0x7A, 0x30, 0x22),
+    Rgb::new(0x4A, 0x06, 0x08),
+    Rgb::new(0x8E, 0xB4, 0x57),
 ];
 
 pub struct House {
@@ -149,10 +155,7 @@ impl Archetype for House {
         };
 
         let this = Self {
-            roof_color: COLOR_THEMES
-                .choose(rng)
-                .unwrap()
-                .map(|e| e.saturating_add(rng.gen_range(0, 20)) - 10),
+            roof_color: *COLOR_THEMES.choose(rng).unwrap(),
             noise: RandomField::new(rng.gen()),
             roof_ribbing: rng.gen(),
             roof_ribbing_diagonal: rng.gen(),

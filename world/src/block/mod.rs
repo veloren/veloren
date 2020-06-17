@@ -3,7 +3,7 @@ mod natural;
 use crate::{
     column::{ColumnGen, ColumnSample},
     util::{RandomField, Sampler, SmallCache},
-    CONFIG,
+    Index, CONFIG,
 };
 use common::{
     terrain::{structure::StructureBlock, Block, BlockKind, Structure},
@@ -29,8 +29,9 @@ impl<'a> BlockGen<'a> {
         column_gen: &ColumnGen<'a>,
         cache: &'b mut SmallCache<Option<ColumnSample<'a>>>,
         wpos: Vec2<i32>,
+        index: &Index,
     ) -> Option<&'b ColumnSample<'a>> {
-        cache.get(wpos, |wpos| column_gen.get(wpos)).as_ref()
+        cache.get(wpos, |wpos| column_gen.get((wpos, index))).as_ref()
     }
 
     fn get_cliff_height(
@@ -40,11 +41,16 @@ impl<'a> BlockGen<'a> {
         close_cliffs: &[(Vec2<i32>, u32); 9],
         cliff_hill: f32,
         tolerance: f32,
+        index: &Index,
     ) -> f32 {
         close_cliffs.iter().fold(
             0.0f32,
-            |max_height, (cliff_pos, seed)| match Self::sample_column(column_gen, cache, *cliff_pos)
-            {
+            |max_height, (cliff_pos, seed)| match Self::sample_column(
+                column_gen,
+                cache,
+                Vec2::from(*cliff_pos),
+                index,
+            ) {
                 Some(cliff_sample) if cliff_sample.is_cliffs && cliff_sample.spawn_rate > 0.5 => {
                     let cliff_pos3d = Vec3::from(*cliff_pos);
 
@@ -84,14 +90,14 @@ impl<'a> BlockGen<'a> {
         )
     }
 
-    pub fn get_z_cache(&mut self, wpos: Vec2<i32>) -> Option<ZCache<'a>> {
+    pub fn get_z_cache(&mut self, wpos: Vec2<i32>, index: &'a Index) -> Option<ZCache<'a>> {
         let BlockGen {
             column_cache,
             column_gen,
         } = self;
 
         // Main sample
-        let sample = column_gen.get(wpos)?;
+        let sample = column_gen.get((wpos, index))?;
 
         // Tree samples
         let mut structures = [None, None, None, None, None, None, None, None, None];
@@ -101,7 +107,7 @@ impl<'a> BlockGen<'a> {
             .zip(structures.iter_mut())
             .for_each(|(close_structure, structure)| {
                 if let Some(st) = *close_structure {
-                    let st_sample = Self::sample_column(column_gen, column_cache, st.pos);
+                    let st_sample = Self::sample_column(column_gen, column_cache, st.pos, index);
                     if let Some(st_sample) = st_sample {
                         let st_sample = st_sample.clone();
                         let st_info = match st.meta {
@@ -111,6 +117,7 @@ impl<'a> BlockGen<'a> {
                                 st.pos,
                                 st.seed,
                                 &st_sample,
+                                index,
                             ),
                             Some(meta) => Some(StructureInfo {
                                 pos: Vec3::from(st.pos) + Vec3::unit_z() * st_sample.alt as i32,
@@ -137,6 +144,7 @@ impl<'a> BlockGen<'a> {
         wpos: Vec3<i32>,
         z_cache: Option<&ZCache>,
         only_structures: bool,
+        index: &Index,
     ) -> Option<Block> {
         let BlockGen {
             column_cache,
@@ -208,6 +216,7 @@ impl<'a> BlockGen<'a> {
                             &close_cliffs,
                             cliff_hill,
                             0.0,
+                            index,
                         );
 
                         (
@@ -412,7 +421,7 @@ pub struct ZCache<'a> {
 }
 
 impl<'a> ZCache<'a> {
-    pub fn get_z_limits(&self, block_gen: &mut BlockGen) -> (f32, f32, f32) {
+    pub fn get_z_limits(&self, block_gen: &mut BlockGen, index: &Index) -> (f32, f32, f32) {
         let cave_depth =
             if self.sample.cave_xy.abs() > 0.9 && self.sample.water_level <= self.sample.alt {
                 (self.sample.alt - self.sample.cave_alt + 8.0).max(0.0)
@@ -430,6 +439,7 @@ impl<'a> ZCache<'a> {
             &self.sample.close_cliffs,
             self.sample.cliff_hill,
             32.0,
+            index,
         );
 
         let rocks = if self.sample.rock > 0.0 { 12.0 } else { 0.0 };
