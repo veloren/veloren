@@ -1,32 +1,15 @@
-.tests: &tests
-  extends: .recompile-branch
-  stage: build-post
-  tags:
-    - veloren-docker
-
 unittests:
-  <<: *tests
+  extends: .recompile-branch
+  stage: build
   script:
     - ln -s /dockercache/cache-all target
     - cargo test
   retry:
     max: 2
 
-coverage:
-  # Run on master and branches
-  extends: .recompile
-  allow_failure: true
-  stage: build-post
-  tags:
-    - veloren-docker
-  script:
-    - ln -s /dockercache/cache-tarpaulin target
-    - cargo tarpaulin -v
-  retry:
-    max: 2
-
 benchmarks:
-  <<: *tests
+  extends: .recompile-branch
+  stage: build
   script:
     - unset DISABLE_GIT_LFS_CHECK
     - ln -s /dockercache/cache-all target
@@ -35,23 +18,27 @@ benchmarks:
     max: 2
 
 localization-status:
-  <<: *tests
+  extends: .recompile-branch
+  stage: build
   variables:
     GIT_DEPTH: 0
   allow_failure: true
   script:
     - ln -s /dockercache/cache-all target
-    - cargo test -q test_all_localizations -- --nocapture --ignored
+    - cargo test test_all_localizations -- --nocapture --ignored
 
-# Artifacts
-.artifact: &artifact
-  extends: .release
-  stage: build-post
-  tags:
-    - veloren-docker
+# Coverage is needed on master for the README.md badge to work
+coverage:
+  extends: .recompile
+  stage: build
+  script:
+    - ln -s /dockercache/cache-tarpaulin target
+    - cargo tarpaulin -v
+  retry:
+    max: 2
 
-linux:
-  <<: *artifact
+#linux, windows, macos builds here as template
+.tlinux:
   script:
     - ln -s /dockercache/cache-release-linux target
     - cargo build --release
@@ -67,8 +54,7 @@ linux:
       - LICENSE
     expire_in: 1 week
 
-windows:
-  <<: *artifact
+.twindows:
   script:
     - ln -s /dockercache/cache-release-windows target
     - cargo build --target=x86_64-pc-windows-gnu --release
@@ -82,8 +68,7 @@ windows:
       - LICENSE
     expire_in: 1 week
 
-macos:
-  <<: *artifact
+.tmacos:
   script:
     - ln -s /dockercache/cache-release-macos target
     - PATH="/dockercache/osxcross/target/bin:$PATH" COREAUDIO_SDK_PATH=/dockercache/osxcross/target/SDK/MacOSX10.13.sdk CC=o64-clang CXX=o64-clang++ cargo build --target x86_64-apple-darwin --release
@@ -96,4 +81,35 @@ macos:
       - assets/
       - LICENSE
     expire_in: 1 week
-  allow_failure: true
+
+# build on release or master
+linux:
+  extends:
+    - .tlinux
+    - .release
+
+windows:
+  extends:
+    - .twindows
+    - .release
+
+macos:
+  extends:
+    - .tmacos
+    - .release
+
+# if NOT release or master, allow optional builds
+opt-linux:
+  extends:
+    - .tlinux
+    - .optional-release
+
+opt-windows:
+  extends:
+    - .twindows
+    - .optional-release
+
+opt-macos:
+  extends:
+    - .tmacos
+    - .optional-release
