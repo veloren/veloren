@@ -39,8 +39,7 @@ impl Widget for GhostImage {
         }
     }
 
-    #[allow(clippy::clone_on_copy)] // TODO: Pending review in #587
-    fn style(&self) -> Self::Style { self.style.clone() }
+    fn style(&self) -> Self::Style { self.style }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, .. } = args;

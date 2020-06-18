@@ -38,7 +38,6 @@ impl<'a> System<'a> for Sys {
     );
 
     #[allow(clippy::block_in_if_condition_stmt)] // TODO: Pending review in #587
-    #[allow(clippy::clone_on_copy)] // TODO: Pending review in #587
     fn run(
         &mut self,
         (
@@ -181,7 +180,7 @@ impl<'a> System<'a> for Sys {
                 ) {
                     // Send client intial info about the entities in this region if it was not
                     // already within the set of subscribed regions
-                    if subscription.regions.insert(key.clone()) {
+                    if subscription.regions.insert(key) {
                         if let Some(region) = region_map.get(key) {
                             for (pos, vel, ori, _, entity) in (
                                 &positions,
