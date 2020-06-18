@@ -354,19 +354,7 @@ impl Client {
 
     /// Checks whether a player can swap their weapon+ability `Loadout` settings
     /// and sends the `ControlAction` event that signals to do the swap.
-    pub fn swap_loadout(&mut self) {
-        let can_swap = self
-            .state
-            .ecs()
-            .read_storage::<comp::CharacterState>()
-            .get(self.entity)
-            .map(|cs| cs.can_swap());
-        match can_swap {
-            Some(true) => self.control_action(ControlAction::SwapLoadout),
-            Some(false) => {},
-            None => warn!("Can't swap, client entity doesn't have a `CharacterState`"),
-        }
-    }
+    pub fn swap_loadout(&mut self) { self.control_action(ControlAction::SwapLoadout) }
 
     pub fn toggle_wield(&mut self) {
         let is_wielding = self
