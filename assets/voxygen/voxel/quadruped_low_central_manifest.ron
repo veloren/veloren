@@ -278,8 +278,8 @@
             central: ("npc.tortoise.male.chest"),
         ),
         tail_rear: (
-            offset: (-0.5, -0.5, -0.5),
-            central: ("npc.tortoise.male.tail_rear"),
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         ),
 		tail_front: (
             offset: (-1.5, -3.5, -1.5),
@@ -304,8 +304,8 @@
             central: ("npc.tortoise.female.chest"),
         ),
         tail_rear: (
-            offset: (-0.5, -0.5, -0.5),
-            central: ("npc.tortoise.female.tail_rear"),
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         ),
 		tail_front: (
             offset: (-1.5, -7.0, -1.5),
