@@ -177,7 +177,7 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
                 (Salamander, _) => (-7.5, 0.0),
                 (Monitor, _) => (-6.5, 0.0),
                 (Asp, _) => (-6.0, -2.0),
-                (Tortoise, _) => (-13.5, -3.0),
+                (Tortoise, _) => (-10.0, -3.5),
                 (Rocksnapper, _) => (-13.5, -6.5),
             },
             feet_f: match (body.species, body.body_type) {

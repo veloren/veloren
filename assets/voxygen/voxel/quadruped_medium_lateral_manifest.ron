@@ -137,69 +137,69 @@
     ),
     (Tuskram, Male): (
         leg_fl: (
-            offset: (-1.5, -1.5, -4.5),
+            offset: (-2.0, -2.5, -5.0),
             lateral: ("npc.tuskram.male.leg_fl"),
         ),
         leg_fr: (
-            offset: (-1.5, -1.5, -4.5),
+            offset: (-2.0, -2.5, -5.0),
             lateral: ("npc.tuskram.male.leg_fr"),
         ),
         leg_bl: (
-            offset: (-1.5, -4.0, -5.5),
+            offset: (-2.0, -2.5, -4.0),
             lateral: ("npc.tuskram.male.leg_bl"),
         ),
         leg_br: (
-            offset: (-1.5, -4.0, -5.5),
+            offset: (-2.0, -2.5, -4.0),
             lateral: ("npc.tuskram.male.leg_br"),
         ),
         foot_fl: (
-            offset: (-1.5, -1.5, -4.5),
+            offset: (-2.5, -3.5, -5.0),
             lateral: ("npc.tuskram.male.foot_fl"),
         ),
         foot_fr: (
-            offset: (-1.5, -1.5, -4.5),
+            offset: (-2.5, -3.5, -5.0),
             lateral: ("npc.tuskram.male.foot_fr"),
         ),
         foot_bl: (
-            offset: (-1.5, -4.0, -5.5),
+            offset: (-1.5, -2.5, -6.0),
             lateral: ("npc.tuskram.male.foot_bl"),
         ),
         foot_br: (
-            offset: (-1.5, -4.0, -5.5),
+            offset: (-1.5, -2.5, -6.0),
             lateral: ("npc.tuskram.male.foot_br"),
         ),
     ),
     (Tuskram, Female): (
         leg_fl: (
-            offset: (-1.5, -1.5, -4.5),
+            offset: (-2.0, -2.5, -5.0),
             lateral: ("npc.tuskram.female.leg_fl"),
         ),
         leg_fr: (
-            offset: (-1.5, -1.5, -4.5),
+            offset: (-2.0, -2.5, -5.0),
             lateral: ("npc.tuskram.female.leg_fr"),
         ),
         leg_bl: (
-            offset: (-1.5, -4.0, -5.5),
+            offset: (-2.0, -2.5, -4.0),
             lateral: ("npc.tuskram.female.leg_bl"),
         ),
         leg_br: (
-            offset: (-1.5, -4.0, -5.5),
+            offset: (-2.0, -2.5, -4.0),
             lateral: ("npc.tuskram.female.leg_br"),
         ),
         foot_fl: (
-            offset: (-1.5, -1.5, -4.5),
+            offset: (-2.5, -3.5, -5.0),
             lateral: ("npc.tuskram.female.foot_fl"),
         ),
         foot_fr: (
-            offset: (-1.5, -1.5, -4.5),
+            offset: (-2.5, -3.5, -5.0),
             lateral: ("npc.tuskram.female.foot_fr"),
         ),
         foot_bl: (
-            offset: (-1.5, -4.0, -5.5),
+            offset: (-1.5, -2.5, -6.0),
             lateral: ("npc.tuskram.female.foot_bl"),
         ),
         foot_br: (
-            offset: (-1.5, -4.0, -5.5),
+            offset: (-1.5, -2.5, -6.0),
             lateral: ("npc.tuskram.female.foot_br"),
         ),
     ),
