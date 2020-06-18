@@ -24,7 +24,6 @@ impl LoadedLib {
             .stderr(Stdio::inherit())
             .stdout(Stdio::inherit())
             .arg("build")
-            .arg("--release")
             .arg("--package")
             .arg("veloren-voxygen-anim")
             .output()
@@ -35,9 +34,9 @@ impl LoadedLib {
 
     fn load() -> Self {
         #[cfg(target_os = "windows")]
-        let lib = Library::new("../target/release/libvoxygen_anim.dll").unwrap();
+        let lib = Library::new("../target/debug/voxygen_anim.dll").unwrap();
         #[cfg(not(target_os = "windows"))]
-        let lib = Library::new("../target/release/libvoxygen_anim.so").unwrap();
+        let lib = Library::new("../target/debug/libvoxygen_anim.so").unwrap();
 
         Self { lib }
     }
@@ -83,7 +82,6 @@ fn reload() {
         .stderr(Stdio::inherit())
         .stdout(Stdio::inherit())
         .arg("build")
-        .arg("--release")
         .arg("--package")
         .arg("veloren-voxygen-anim")
         .output()
