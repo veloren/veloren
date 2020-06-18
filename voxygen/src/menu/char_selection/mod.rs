@@ -35,7 +35,6 @@ impl CharSelectionState {
 }
 
 impl PlayState for CharSelectionState {
-    #[allow(clippy::clone_on_copy)] // TODO: Pending review in #587
     fn play(&mut self, _: Direction, global_state: &mut GlobalState) -> PlayStateResult {
         // Set up an fps clock.
         let mut clock = Clock::start();
@@ -127,7 +126,7 @@ impl PlayState for CharSelectionState {
                     time: client.state().get_time(),
                     delta_time: client.state().ecs().read_resource::<DeltaTime>().0,
                     tick: client.get_tick(),
-                    body: humanoid_body.clone(),
+                    body: humanoid_body,
                     gamma: global_state.settings.graphics.gamma,
                     mouse_smoothing: global_state.settings.gameplay.smooth_pan_enable,
                     figure_lod_render_distance: global_state
@@ -145,7 +144,7 @@ impl PlayState for CharSelectionState {
             self.scene.render(
                 global_state.window.renderer_mut(),
                 self.client.borrow().get_tick(),
-                humanoid_body.clone(),
+                humanoid_body,
                 loadout.as_ref(),
             );
 

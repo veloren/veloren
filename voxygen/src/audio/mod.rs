@@ -173,15 +173,14 @@ impl AudioFrontend {
         }
     }
 
-    #[allow(clippy::clone_on_copy)] // TODO: Pending review in #587
     pub fn set_listener_pos(&mut self, pos: &Vec3<f32>, ori: &Vec3<f32>) {
-        self.listener_pos = pos.clone();
+        self.listener_pos = *pos;
         self.listener_ori = ori.normalized();
 
         let up = Vec3::new(0.0, 0.0, 1.0);
 
-        let pos_left = up.cross(self.listener_ori.clone()).normalized();
-        let pos_right = self.listener_ori.cross(up.clone()).normalized();
+        let pos_left = up.cross(self.listener_ori).normalized();
+        let pos_right = self.listener_ori.cross(up).normalized();
 
         self.listener_ear_left = pos_left;
         self.listener_ear_right = pos_right;

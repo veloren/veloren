@@ -1041,13 +1041,12 @@ impl<K: Copy + Eq + Hash, T: Clone> MapVec<K, T> {
 
     pub fn get(&self, entry: K) -> &T { self.entries.get(&entry).unwrap_or(&self.default) }
 
-    #[allow(clippy::clone_on_copy)] // TODO: Pending review in #587
     pub fn map<U: Default>(self, mut f: impl FnMut(K, T) -> U) -> MapVec<K, U> {
         MapVec {
             entries: self
                 .entries
                 .into_iter()
-                .map(|(s, v)| (s.clone(), f(s, v)))
+                .map(|(s, v)| (s, f(s, v)))
                 .collect(),
             default: U::default(),
         }
