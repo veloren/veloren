@@ -104,7 +104,9 @@ impl Exp {
     }
 
     pub fn update_maximum(&mut self, level: u32) {
-        self.maximum = Self::EXP_INCREASE_FACTOR + (level * Self::EXP_INCREASE_FACTOR);
+        self.maximum = level
+            .saturating_mul(Self::EXP_INCREASE_FACTOR)
+            .saturating_add(Self::EXP_INCREASE_FACTOR);
     }
 }
 
