@@ -3,7 +3,9 @@ use libloading::Library;
 use notify::{immediate_watcher, EventKind, RecursiveMode, Watcher};
 use std::{
     process::{Command, Stdio},
-    sync::Mutex,
+    sync::{mpsc, Mutex},
+    thread,
+    time::Duration,
 };
 
 lazy_static! {
@@ -17,21 +19,17 @@ pub struct LoadedLib {
 impl LoadedLib {
     fn compile_load() -> Self {
         // Compile
-        let _output = Command::new("cargo")
-            .stderr(Stdio::inherit())
-            .stdout(Stdio::inherit())
-            .arg("build")
-            .arg("--package")
-            .arg("veloren-voxygen-anim")
-            .output()
-            .unwrap();
+        compile();
+
+        #[cfg(target_os = "windows")]
+        copy();
 
         Self::load()
     }
 
     fn load() -> Self {
         #[cfg(target_os = "windows")]
-        let lib = Library::new("../target/debug/voxygen_anim.dll").unwrap();
+        let lib = Library::new("../target/debug/voxygen_anim_active.dll").unwrap();
         #[cfg(not(target_os = "windows"))]
         let lib = Library::new("../target/debug/libvoxygen_anim.so").unwrap();
 
@@ -41,8 +39,11 @@ impl LoadedLib {
 
 // Starts up watcher
 pub fn init() {
+    // Make sure first compile is done
+    drop(LIB.lock());
+
     // TODO: use crossbeam
-    let (reload_send, reload_recv) = std::sync::mpsc::channel();
+    let (reload_send, reload_recv) = mpsc::channel();
 
     // Start watcher
     let mut watcher = immediate_watcher(move |res| event_fn(res, &reload_send)).unwrap();
@@ -51,10 +52,24 @@ pub fn init() {
     // Start reloader that watcher signals
     // "Debounces" events since I can't find the option to do this in the latest
     // `notify`
-    std::thread::spawn(move || {
-        while let Ok(()) = reload_recv.recv() {
-            // Wait for another modify event before reloading
-            while let Ok(()) = reload_recv.recv_timeout(std::time::Duration::from_millis(300)) {}
+    thread::spawn(move || {
+        let mut modified_paths = std::collections::HashSet::new();
+
+        while let Ok(path) = reload_recv.recv() {
+            modified_paths.insert(path);
+            // Wait for to see if there are more modify events before reloading
+            while let Ok(path) = reload_recv.recv_timeout(Duration::from_millis(300)) {
+                modified_paths.insert(path);
+            }
+
+            let mut info = "Hot reloading animations because these files were modified:".to_owned();
+            for path in std::mem::take(&mut modified_paths) {
+                info.push('\n');
+                info.push('\"');
+                info.push_str(&path);
+                info.push('\"');
+            }
+            log::warn!("{}", info);
 
             // Reload
             reload();
@@ -67,32 +82,48 @@ pub fn init() {
 
 // Recompiles and hotreloads the lib if the source is changed
 // Note: designed with voxygen dir as working dir, could be made more flexible
-fn event_fn(res: notify::Result<notify::Event>, sender: &std::sync::mpsc::Sender<()>) {
+fn event_fn(res: notify::Result<notify::Event>, sender: &mpsc::Sender<String>) {
     match res {
         Ok(event) => match event.kind {
             EventKind::Modify(_) => {
-                if event
+                event
                     .paths
                     .iter()
-                    .any(|p| p.extension().map(|e| e == "rs").unwrap_or(false))
-                {
-                    println!(
-                        "Hot reloading animations because these files were modified:\n{:?}",
-                        event.paths
-                    );
-
+                    .filter(|p| p.extension().map(|e| e == "rs").unwrap_or(false))
+                    .map(|p| p.to_string_lossy().into_owned())
                     // Signal reloader
-                    let _ = sender.send(());
-                }
+                    .for_each(|p| { let _ = sender.send(p); });
             },
             _ => {},
         },
-        Err(e) => println!("watch error: {:?}", e),
+        Err(e) => log::error!("Animation hotreload watch error: {:?}", e),
     }
 }
 
 fn reload() {
-    // Compile
+    // Stop if recompile failed
+    if !compile() {
+        return;
+    }
+
+    let mut lock = LIB.lock().unwrap();
+
+    // Close lib
+    lock.take().unwrap().lib.close().unwrap();
+
+    // Rename lib file on windows
+    // Called after closing lib so file will be unlocked
+    #[cfg(target_os = "windows")]
+    copy();
+
+    // Open new lib
+    *lock = Some(LoadedLib::load());
+
+    log::warn!("Updated animations");
+}
+
+// Returns false if compile failed
+fn compile() -> bool {
     let output = Command::new("cargo")
         .stderr(Stdio::inherit())
         .stdout(Stdio::inherit())
@@ -102,21 +133,23 @@ fn reload() {
         .output()
         .unwrap();
 
-    // Stop if recompile failed
+    // If compile failed
     if !output.status.success() {
-        println!("Failed to compile anim crate");
-        return;
+        log::error!("Failed to compile anim crate");
+        false
+    } else {
+        log::warn!("Animation recompile success!!");
+        true
     }
+}
 
-    println!("Compile Success!!");
-
-    let mut lock = LIB.lock().unwrap();
-
-    // Close lib
-    lock.take().unwrap().lib.close().unwrap();
-
-    // Open new lib
-    *lock = Some(LoadedLib::load());
-
-    println!("Updated");
+// Copy lib file if on windows since loading the lib locks the file blocking
+// future compilation
+#[cfg(target_os = "windows")]
+fn copy() {
+    std::fs::copy(
+        "../target/debug/voxygen_anim.dll",
+        "../target/debug/voxygen_anim_active.dll",
+    )
+    .expect("Failed to rename animations dll");
 }

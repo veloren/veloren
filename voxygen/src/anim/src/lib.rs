@@ -20,6 +20,8 @@ pub mod quadruped_small;
 #[cfg(feature = "use-dyn-lib")]
 pub use dyn_lib::init;
 
+#[cfg(feature = "use-dyn-lib")]
+use std::ffi::CStr;
 use vek::*;
 
 // TODO: replace with inner type everywhere
@@ -83,7 +85,16 @@ pub trait Skeleton: Send + Sync + 'static {
             let lib = &lock.as_ref().unwrap().lib;
 
             let compute_fn: libloading::Symbol<fn(&Self) -> ([FigureBoneData; 16], Vec3<f32>)> =
-                unsafe { lib.get(Self::COMPUTE_FN).unwrap() };
+                unsafe { lib.get(Self::COMPUTE_FN) }.unwrap_or_else(|err| {
+                    panic!(
+                        "Trying to use: {} but had error: {:?}",
+                        CStr::from_bytes_with_nul(Self::COMPUTE_FN)
+                            .map(CStr::to_str)
+                            .unwrap()
+                            .unwrap(),
+                        err
+                    )
+                });
 
             compute_fn(self)
         }
@@ -135,10 +146,20 @@ pub trait Animation {
             > = unsafe {
                 //let start = std::time::Instant::now();
                 // Overhead of 0.5-5 us (could use hashmap to mitigate if this is an issue)
-                let f = lib.get(Self::UPDATE_FN).unwrap();
+                let f = lib.get(Self::UPDATE_FN);
                 //println!("{}", start.elapsed().as_nanos());
                 f
-            };
+            }
+            .unwrap_or_else(|err| {
+                panic!(
+                    "Trying to use: {} but had error: {:?}",
+                    CStr::from_bytes_with_nul(Self::UPDATE_FN)
+                        .map(CStr::to_str)
+                        .unwrap()
+                        .unwrap(),
+                    err
+                )
+            });
 
             update_fn(skeleton, dependency, anim_time, rate, skeleton_attr)
         }

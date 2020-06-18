@@ -4,7 +4,7 @@ use crate::{
     render::{FigurePipeline, Mesh, Model, Renderer},
     scene::camera::CameraMode,
 };
-use anim::{Skeleton};
+use anim::Skeleton;
 use common::{
     assets::watch::ReloadIndicator,
     comp::{

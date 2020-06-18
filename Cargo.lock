@@ -4606,6 +4606,7 @@ version = "0.6.0"
 dependencies = [
  "lazy_static",
  "libloading 0.6.2",
+ "log",
  "notify",
  "vek",
  "veloren-common",
