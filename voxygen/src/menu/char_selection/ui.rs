@@ -339,14 +339,13 @@ impl CharSelectionUi {
         }
     }
 
-    #[allow(clippy::clone_on_copy)] // TODO: Pending review in #587
     pub fn get_character_list(&self) -> Option<Vec<CharacterItem>> {
         match &self.mode {
             Mode::Select(data) => data.clone(),
             Mode::Create {
                 name, body, tool, ..
             } => {
-                let body = comp::Body::Humanoid(body.clone());
+                let body = comp::Body::Humanoid(*body);
 
                 Some(vec![CharacterItem {
                     character: Character {
@@ -398,7 +397,6 @@ impl CharSelectionUi {
     }
 
     // TODO: Split this into multiple modules or functions.
-    #[allow(clippy::clone_on_copy)] // TODO: Pending review in #587
     #[allow(clippy::useless_let_if_seq)] // TODO: Pending review in #587
     #[allow(clippy::unnecessary_operation)] // TODO: Pending review in #587
     fn update_layout(&mut self, client: &mut Client) -> Vec<Event> {
@@ -910,7 +908,7 @@ impl CharSelectionUi {
                     events.push(Event::AddCharacter {
                         alias: name.clone(),
                         tool: tool.map(|tool| tool.to_string()),
-                        body: comp::Body::Humanoid(body.clone()),
+                        body: comp::Body::Humanoid(*body),
                     });
 
                     to_select = true;

@@ -28,15 +28,14 @@ pub enum ItemKey {
     Empty,
 }
 impl From<&Item> for ItemKey {
-    #[allow(clippy::clone_on_copy)] // TODO: Pending review in #587
     fn from(item: &Item) -> Self {
         match &item.kind {
-            ItemKind::Tool(Tool { kind, .. }) => ItemKey::Tool(kind.clone()),
-            ItemKind::Lantern(Lantern { kind, .. }) => ItemKey::Lantern(kind.clone()),
-            ItemKind::Armor { kind, .. } => ItemKey::Armor(kind.clone()),
-            ItemKind::Utility { kind, .. } => ItemKey::Utility(kind.clone()),
-            ItemKind::Consumable { kind, .. } => ItemKey::Consumable(kind.clone()),
-            ItemKind::Ingredient { kind, .. } => ItemKey::Ingredient(kind.clone()),
+            ItemKind::Tool(Tool { kind, .. }) => ItemKey::Tool(*kind),
+            ItemKind::Lantern(Lantern { kind, .. }) => ItemKey::Lantern(*kind),
+            ItemKind::Armor { kind, .. } => ItemKey::Armor(*kind),
+            ItemKind::Utility { kind, .. } => ItemKey::Utility(*kind),
+            ItemKind::Consumable { kind, .. } => ItemKey::Consumable(*kind),
+            ItemKind::Ingredient { kind, .. } => ItemKey::Ingredient(*kind),
         }
     }
 }
