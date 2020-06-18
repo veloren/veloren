@@ -1,9 +1,6 @@
 use lazy_static::lazy_static;
 use libloading::Library;
-use notify::{
-    event::{AccessKind, AccessMode},
-    immediate_watcher, EventKind, RecursiveMode, Watcher,
-};
+use notify::{immediate_watcher, EventKind, RecursiveMode, Watcher};
 use std::{
     process::{Command, Stdio},
     sync::Mutex,
@@ -42,11 +39,27 @@ impl LoadedLib {
     }
 }
 
-// Starts up watcher test test2 test3 test4 test5
+// Starts up watcher
 pub fn init() {
+    // TODO: use crossbeam
+    let (reload_send, reload_recv) = std::sync::mpsc::channel();
+
     // Start watcher
-    let mut watcher = immediate_watcher(event_fn).unwrap();
+    let mut watcher = immediate_watcher(move |res| event_fn(res, &reload_send)).unwrap();
     watcher.watch("src/anim", RecursiveMode::Recursive).unwrap();
+
+    // Start reloader that watcher signals
+    // "Debounces" events since I can't find the option to do this in the latest
+    // `notify`
+    std::thread::spawn(move || {
+        while let Ok(()) = reload_recv.recv() {
+            // Wait for another modify event before reloading
+            while let Ok(()) = reload_recv.recv_timeout(std::time::Duration::from_millis(300)) {}
+
+            // Reload
+            reload();
+        }
+    });
 
     // Let the watcher live forever
     std::mem::forget(watcher);
@@ -54,10 +67,10 @@ pub fn init() {
 
 // Recompiles and hotreloads the lib if the source is changed
 // Note: designed with voxygen dir as working dir, could be made more flexible
-fn event_fn(res: notify::Result<notify::Event>) {
+fn event_fn(res: notify::Result<notify::Event>, sender: &std::sync::mpsc::Sender<()>) {
     match res {
         Ok(event) => match event.kind {
-            EventKind::Access(AccessKind::Close(AccessMode::Write)) => {
+            EventKind::Modify(_) => {
                 if event
                     .paths
                     .iter()
@@ -67,7 +80,9 @@ fn event_fn(res: notify::Result<notify::Event>) {
                         "Hot reloading animations because these files were modified:\n{:?}",
                         event.paths
                     );
-                    reload();
+
+                    // Signal reloader
+                    let _ = sender.send(());
                 }
             },
             _ => {},
