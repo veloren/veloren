@@ -122,7 +122,7 @@ pub trait Animation {
     ) -> Self::Skeleton;
 
     /// Calls `update_skeleton_inner` either directly or via `libloading` to
-    /// produce generate the new skeleton.
+    /// generate the new skeleton.
     fn update_skeleton(
         skeleton: &Self::Skeleton,
         dependency: Self::Dependency,

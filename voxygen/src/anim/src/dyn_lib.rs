@@ -57,7 +57,7 @@ pub fn init() {
 
         while let Ok(path) = reload_recv.recv() {
             modified_paths.insert(path);
-            // Wait for to see if there are more modify events before reloading
+            // Wait for any additional modify events before reloading
             while let Ok(path) = reload_recv.recv_timeout(Duration::from_millis(300)) {
                 modified_paths.insert(path);
             }
@@ -80,7 +80,7 @@ pub fn init() {
     std::mem::forget(watcher);
 }
 
-// Recompiles and hotreloads the lib if the source is changed
+// Recompiles and hotreloads the lib if the source has been changed
 // Note: designed with voxygen dir as working dir, could be made more flexible
 fn event_fn(res: notify::Result<notify::Event>, sender: &mpsc::Sender<String>) {
     match res {
@@ -96,7 +96,7 @@ fn event_fn(res: notify::Result<notify::Event>, sender: &mpsc::Sender<String>) {
             },
             _ => {},
         },
-        Err(e) => log::error!("Animation hotreload watch error: {:?}", e),
+        Err(e) => log::error!("Animation hotreload watcher error: {:?}", e),
     }
 }
 
