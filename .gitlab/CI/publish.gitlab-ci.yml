@@ -26,9 +26,9 @@ pages:
   extends: .publish
   artifacts:
     paths:
-    - public
+      - public
   script:
     - rm -rf public
     - mkdir -p public
-    - cargo doc --no-deps --all-features --document-private-items
+    - cargo doc --no-deps --document-private-items
     - mv target/doc/* public
