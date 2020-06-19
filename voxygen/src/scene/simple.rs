@@ -1,9 +1,4 @@
 use crate::{
-    anim::{
-        character::{CharacterSkeleton, IdleAnimation, SkeletonAttr},
-        fixture::FixtureSkeleton,
-        Animation, Skeleton,
-    },
     mesh::Meshable,
     render::{
         create_pp_mesh, create_skybox_mesh, Consts, FigurePipeline, Globals, Light, Mesh, Model,
@@ -14,6 +9,11 @@ use crate::{
         figure::{load_mesh, FigureModelCache, FigureState},
     },
     window::{Event, PressState},
+};
+use anim::{
+    character::{CharacterSkeleton, IdleAnimation, SkeletonAttr},
+    fixture::FixtureSkeleton,
+    Animation, Skeleton,
 };
 use common::{
     comp::{humanoid, Body, Loadout},
