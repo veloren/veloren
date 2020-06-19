@@ -8,6 +8,7 @@ use veloren_voxygen::{
     i18n::{self, i18n_asset_key, VoxygenLocalization},
     logging,
     menu::main::MainMenuState,
+    profile::Profile,
     settings::{AudioOutput, Settings},
     window::Window,
     Direction, GlobalState, PlayState, PlayStateResult,
@@ -37,6 +38,8 @@ fn main() {
     // whether we create a log file or not.
     let settings = Settings::load();
 
+    let profile = Profile::load();
+
     logging::init(&settings, term_log_level, file_log_level);
 
     // Save settings to add new fields or create the file if it is not already there
@@ -57,6 +60,7 @@ fn main() {
 
     let mut global_state = GlobalState {
         audio,
+        profile,
         window: Window::new(&settings).expect("Failed to create window!"),
         settings,
         info_message: None,
@@ -217,6 +221,8 @@ fn main() {
         }
     }
 
-    // Save any unsaved changes to settings
+    // Save any unsaved changes to profile.
+    global_state.profile.save_to_file_warn();
+    // Save any unsaved changes to settings.
     global_state.settings.save_to_file_warn();
 }

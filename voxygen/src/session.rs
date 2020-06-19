@@ -747,6 +747,22 @@ impl PlayState for SessionState {
                             }
                         }
                     },
+                    HudEvent::ChangeHotbarState(state) => {
+                        let client = self.client.borrow();
+
+                        let server = &client.server_info.name;
+                        // If we are changing the hotbar state this CANNOT be None.
+                        let character_id = client.active_character_id.unwrap();
+
+                        // Get or update the ServerProfile.
+                        global_state
+                            .profile
+                            .set_hotbar_slots(server, character_id, state.slots);
+
+                        global_state.profile.save_to_file_warn();
+
+                        log::info!("Event! -> ChangedHotbarState")
+                    },
                     HudEvent::Ability3(state) => self.inputs.ability3.set_state(state),
                     HudEvent::ChangeFOV(new_fov) => {
                         global_state.settings.graphics.fov = new_fov;

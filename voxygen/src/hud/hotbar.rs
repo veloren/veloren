@@ -1,3 +1,5 @@
+use serde_derive::{Deserialize, Serialize};
+
 #[derive(Clone, Copy, PartialEq)]
 pub enum Slot {
     One = 0,
@@ -12,21 +14,31 @@ pub enum Slot {
     Ten = 9,
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 pub enum SlotContents {
     Inventory(usize),
     Ability3,
 }
 
+#[derive(Clone, Debug)]
 pub struct State {
-    slots: [Option<SlotContents>; 10],
+    pub slots: [Option<SlotContents>; 10],
     inputs: [bool; 10],
 }
 
-impl State {
-    pub fn new() -> Self {
+impl Default for State {
+    fn default() -> Self {
         Self {
             slots: [None; 10],
+            inputs: [false; 10],
+        }
+    }
+}
+
+impl State {
+    pub fn new(slots: [Option<SlotContents>; 10]) -> Self {
+        Self {
+            slots,
             inputs: [false; 10],
         }
     }

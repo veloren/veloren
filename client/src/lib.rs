@@ -71,6 +71,7 @@ pub struct Client {
     pub world_map: (Arc<DynamicImage>, Vec2<u32>),
     pub player_list: HashMap<u64, PlayerInfo>,
     pub character_list: CharacterList,
+    pub active_character_id: Option<i32>,
 
     postbox: PostBox<ClientMsg, ServerMsg>,
 
@@ -176,6 +177,7 @@ impl Client {
             world_map,
             player_list: HashMap::new(),
             character_list: CharacterList::default(),
+            active_character_id: None,
 
             postbox,
 
@@ -243,7 +245,7 @@ impl Client {
     pub fn request_character(&mut self, character_id: i32, body: comp::Body) {
         self.postbox
             .send_message(ClientMsg::Character { character_id, body });
-
+        self.active_character_id = Some(character_id);
         self.client_state = ClientState::Pending;
     }
 
