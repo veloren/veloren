@@ -36,9 +36,13 @@ impl FishMediumSkeleton {
 impl Skeleton for FishMediumSkeleton {
     type Attr = SkeletonAttr;
 
+    #[cfg(feature = "use-dyn-lib")]
+    const COMPUTE_FN: &'static [u8] = b"fish_medium_compute_mats\0";
+
     fn bone_count(&self) -> usize { 6 }
 
-    fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "fish_medium_compute_mats")]
+    fn compute_matrices_inner(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
         let torso_mat = self.torso.compute_base_matrix();
         let rear_mat = self.rear.compute_base_matrix();
 

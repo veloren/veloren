@@ -8,7 +8,11 @@ impl Animation for IdleAnimation {
     type Dependency = f64;
     type Skeleton = FishMediumSkeleton;
 
-    fn update_skeleton(
+    #[cfg(feature = "use-dyn-lib")]
+    const UPDATE_FN: &'static [u8] = b"fish_medium_idle\0";
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "fish_medium_idle")]
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         _global_time: Self::Dependency,
         _anim_time: f64,

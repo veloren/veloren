@@ -8,7 +8,12 @@ impl Animation for RunAnimation {
     type Dependency = (f32, f64);
     type Skeleton = GolemSkeleton;
 
-    fn update_skeleton(
+    #[cfg(feature = "use-dyn-lib")]
+    const UPDATE_FN: &'static [u8] = b"golem_run\0";
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "golem_run")]
+
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_velocity, _global_time): Self::Dependency,
         anim_time: f64,

@@ -8,7 +8,12 @@ impl Animation for IdleAnimation {
     type Dependency = f64;
     type Skeleton = BirdMediumSkeleton;
 
-    fn update_skeleton(
+    #[cfg(feature = "use-dyn-lib")]
+    const UPDATE_FN: &'static [u8] = b"bird_medium_idle\0";
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_medium_idle")]
+
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         global_time: Self::Dependency,
         anim_time: f64,

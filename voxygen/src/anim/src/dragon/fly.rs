@@ -8,7 +8,11 @@ impl Animation for FlyAnimation {
     type Dependency = (f32, f64);
     type Skeleton = DragonSkeleton;
 
-    fn update_skeleton(
+    #[cfg(feature = "use-dyn-lib")]
+    const UPDATE_FN: &'static [u8] = b"dragon_fly\0";
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "dragon_fly")]
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         _global_time: Self::Dependency,
         anim_time: f64,

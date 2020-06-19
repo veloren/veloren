@@ -14,9 +14,14 @@ impl FixtureSkeleton {
 impl Skeleton for FixtureSkeleton {
     type Attr = SkeletonAttr;
 
+    #[cfg(feature = "use-dyn-lib")]
+    const COMPUTE_FN: &'static [u8] = b"fixture_compute_mats\0";
+
     fn bone_count(&self) -> usize { 1 }
 
-    fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "fixture_compute_mats")]
+
+    fn compute_matrices_inner(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
         (
             [
                 FigureBoneData::new(vek::Mat4::identity()), // <-- This is actually a bone!

@@ -7,8 +7,12 @@ impl Animation for JumpAnimation {
     type Dependency = (Option<ToolKind>, Vec3<f32>, Vec3<f32>, f64);
     type Skeleton = CharacterSkeleton;
 
+    #[cfg(feature = "use-dyn-lib")]
+    const UPDATE_FN: &'static [u8] = b"character_jump\0";
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "character_jump")]
     #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
-    fn update_skeleton(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, orientation, last_ori, global_time): Self::Dependency,
         anim_time: f64,

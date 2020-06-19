@@ -9,7 +9,11 @@ impl Animation for DanceAnimation {
     type Dependency = (Option<ToolKind>, f64);
     type Skeleton = CharacterSkeleton;
 
-    fn update_skeleton(
+    #[cfg(feature = "use-dyn-lib")]
+    const UPDATE_FN: &'static [u8] = b"character_dance\0";
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "character_dance")]
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, global_time): Self::Dependency,
         anim_time: f64,

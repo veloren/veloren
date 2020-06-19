@@ -32,9 +32,14 @@ impl BirdSmallSkeleton {
 impl Skeleton for BirdSmallSkeleton {
     type Attr = SkeletonAttr;
 
+    #[cfg(feature = "use-dyn-lib")]
+    const COMPUTE_FN: &'static [u8] = b"bird_small_compute_mats\0";
+
     fn bone_count(&self) -> usize { 4 }
 
-    fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_small_compute_mats")]
+
+    fn compute_matrices_inner(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
         let torso_mat = self.torso.compute_base_matrix();
 
         (

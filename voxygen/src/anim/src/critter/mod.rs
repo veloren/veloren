@@ -32,9 +32,14 @@ impl CritterSkeleton {
 impl Skeleton for CritterSkeleton {
     type Attr = CritterAttr;
 
+    #[cfg(feature = "use-dyn-lib")]
+    const COMPUTE_FN: &'static [u8] = b"critter_compute_mats\0";
+
     fn bone_count(&self) -> usize { 5 }
 
-    fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "critter_compute_mats")]
+
+    fn compute_matrices_inner(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
         (
             [
                 FigureBoneData::new(self.head.compute_base_matrix()),

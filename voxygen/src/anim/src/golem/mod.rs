@@ -9,7 +9,7 @@ use super::{Bone, FigureBoneData, Skeleton};
 use common::comp::{self};
 use vek::Vec3;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct GolemSkeleton {
     head: Bone,
     upper_torso: Bone,
@@ -25,28 +25,19 @@ pub struct GolemSkeleton {
 }
 
 impl GolemSkeleton {
-    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
-    pub fn new() -> Self {
-        Self {
-            head: Bone::default(),
-            upper_torso: Bone::default(),
-            shoulder_l: Bone::default(),
-            shoulder_r: Bone::default(),
-            hand_l: Bone::default(),
-            hand_r: Bone::default(),
-            leg_l: Bone::default(),
-            leg_r: Bone::default(),
-            foot_l: Bone::default(),
-            foot_r: Bone::default(),
-            torso: Bone::default(),
-        }
-    }
+    pub fn new() -> Self { Self::default() }
 }
 
 impl Skeleton for GolemSkeleton {
     type Attr = SkeletonAttr;
 
-    fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
+    #[cfg(feature = "use-dyn-lib")]
+    const COMPUTE_FN: &'static [u8] = b"golem_compute_mats\0";
+
+    fn bone_count(&self) -> usize { 15 }
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "golem_compute_mats")]
+    fn compute_matrices_inner(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
         let upper_torso_mat = self.upper_torso.compute_base_matrix();
         let shoulder_l_mat = self.shoulder_l.compute_base_matrix();
         let shoulder_r_mat = self.shoulder_r.compute_base_matrix();

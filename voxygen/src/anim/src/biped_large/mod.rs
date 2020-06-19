@@ -32,9 +32,13 @@ impl BipedLargeSkeleton {
 impl Skeleton for BipedLargeSkeleton {
     type Attr = SkeletonAttr;
 
+    #[cfg(feature = "use-dyn-lib")]
+    const COMPUTE_FN: &'static [u8] = b"biped_large_compute_mats\0";
+
     fn bone_count(&self) -> usize { 11 }
 
-    fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_compute_mats")]
+    fn compute_matrices_inner(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
         let upper_torso_mat = self.upper_torso.compute_base_matrix();
         let shoulder_l_mat = self.shoulder_l.compute_base_matrix();
         let shoulder_r_mat = self.shoulder_r.compute_base_matrix();
