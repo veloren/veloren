@@ -35,9 +35,14 @@ impl DragonSkeleton {
 impl Skeleton for DragonSkeleton {
     type Attr = SkeletonAttr;
 
+    #[cfg(feature = "use-dyn-lib")]
+    const COMPUTE_FN: &'static [u8] = b"dragon_compute_mats\0";
+
     fn bone_count(&self) -> usize { 15 }
 
-    fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "dragon_compute_mats")]
+
+    fn compute_matrices_inner(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
         let head_upper_mat = self.head_upper.compute_base_matrix();
         let head_lower_mat = self.head_lower.compute_base_matrix();
         let chest_front_mat = self.chest_front.compute_base_matrix();

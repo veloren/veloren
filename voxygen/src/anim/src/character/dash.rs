@@ -11,8 +11,12 @@ impl Animation for DashAnimation {
     type Dependency = (Option<ToolKind>, f64);
     type Skeleton = CharacterSkeleton;
 
+    #[cfg(feature = "use-dyn-lib")]
+    const UPDATE_FN: &'static [u8] = b"character_dash\0";
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "character_dash")]
     #[allow(clippy::single_match)] // TODO: Pending review in #587
-    fn update_skeleton(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _global_time): Self::Dependency,
         anim_time: f64,

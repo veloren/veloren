@@ -9,7 +9,11 @@ impl Animation for ClimbAnimation {
     type Dependency = (Option<ToolKind>, Vec3<f32>, Vec3<f32>, f64);
     type Skeleton = CharacterSkeleton;
 
-    fn update_skeleton(
+    #[cfg(feature = "use-dyn-lib")]
+    const UPDATE_FN: &'static [u8] = b"character_climb\0";
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "character_climb")]
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, velocity, _orientation, _global_time): Self::Dependency,
         anim_time: f64,

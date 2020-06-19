@@ -9,8 +9,12 @@ impl Animation for AlphaAnimation {
     type Dependency = (Option<ToolKind>, f32, f64);
     type Skeleton = CharacterSkeleton;
 
+    #[cfg(feature = "use-dyn-lib")]
+    const UPDATE_FN: &'static [u8] = b"character_alpha\0";
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "character_alpha")]
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
-    fn update_skeleton(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, velocity, _global_time): Self::Dependency,
         anim_time: f64,

@@ -8,7 +8,11 @@ impl Animation for BetaAnimation {
     type Dependency = (Option<ToolKind>, f32, f64);
     type Skeleton = CharacterSkeleton;
 
-    fn update_skeleton(
+    #[cfg(feature = "use-dyn-lib")]
+    const UPDATE_FN: &'static [u8] = b"character_beta\0";
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "character_beta")]
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _velocity, _global_time): Self::Dependency,
         anim_time: f64,

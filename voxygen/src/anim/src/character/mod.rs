@@ -66,9 +66,14 @@ impl CharacterSkeleton {
 impl Skeleton for CharacterSkeleton {
     type Attr = SkeletonAttr;
 
+    #[cfg(feature = "use-dyn-lib")]
+    const COMPUTE_FN: &'static [u8] = b"character_compute_mats\0";
+
     fn bone_count(&self) -> usize { 16 }
 
-    fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "character_compute_mats")]
+
+    fn compute_matrices_inner(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
         let chest_mat = self.chest.compute_base_matrix();
         let torso_mat = self.torso.compute_base_matrix();
         let l_hand_mat = self.l_hand.compute_base_matrix();

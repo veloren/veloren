@@ -10,8 +10,12 @@ impl Animation for EquipAnimation {
     type Dependency = (Option<ToolKind>, f32, f64);
     type Skeleton = CharacterSkeleton;
 
+    #[cfg(feature = "use-dyn-lib")]
+    const UPDATE_FN: &'static [u8] = b"character_equip\0";
+
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "character_equip")]
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
-    fn update_skeleton(
+    fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, velocity, global_time): Self::Dependency,
         anim_time: f64,
