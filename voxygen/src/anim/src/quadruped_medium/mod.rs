@@ -28,66 +28,15 @@ pub struct QuadrupedMediumSkeleton {
     foot_br: Bone,
 }
 
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const HEAD_UPPER_Y: f32 = 6.0;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const HEAD_UPPER_Z: f32 = 1.0;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const HEAD_LOWER_Y: f32 = 1.0;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const HEAD_LOWER_Z: f32 = -3.0;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const JAW_Y: f32 = -2.5;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const JAW_Z: f32 = 0.5;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const TAIL_Y: f32 = -5.5;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const TAIL_Z: f32 = -0.5;
-#[const_tweaker::tweak(min = -25.0, max = 20.0, step = 0.5)]
-const TORSO_BACK_Y: f32 = -20.0;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const TORSO_BACK_Z: f32 = 1.5;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const TORSO_FRONT_Y: f32 = 0.0;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const TORSO_FRONT_Z: f32 = 11.0;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const EARS_Y: f32 = 5.0;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const EARS_Z: f32 = 9.5;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const LEG_FRONT_X: f32 = -7.0;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const LEG_FRONT_Y: f32 = -5.0;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const LEG_FRONT_Z: f32 = -2.0;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const LEG_BACK_X: f32 = 6.0;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const LEG_BACK_Y: f32 = -0.5;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const LEG_BACK_Z: f32 = -5.5;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const FEET_FRONT_X: f32 = 0.0;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const FEET_FRONT_Y: f32 = 1.0;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const FEET_FRONT_Z: f32 = -6.0;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const FEET_BACK_X: f32 = 0.0;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const FEET_BACK_Y: f32 = 0.0;
-#[const_tweaker::tweak(min = -20.0, max = 20.0, step = 0.5)]
-const FEET_BACK_Z: f32 = -5.0;
-
-
 impl QuadrupedMediumSkeleton {
     pub fn new() -> Self { Self::default() }
 }
 
 impl Skeleton for QuadrupedMediumSkeleton {
     type Attr = SkeletonAttr;
+
+    #[cfg(feature = "use-dyn-lib")]
+    const COMPUTE_FN: &'static [u8] = b"quadruped_medium_compute_mats\0";
 
     fn bone_count(&self) -> usize { 15 }
 
@@ -207,7 +156,6 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Saber, _) => (1.0, 0.0),
                 (Tuskram, _) => (1.0, 1.0),
                 (Lion, _) => (0.5, 1.0),
-                (Tiger, _) => (0.0, 0.0),
                 (Tarasque, _) => (0.5, -2.0),
                 (Tiger, _) => (-5.0, -6.0),
             },

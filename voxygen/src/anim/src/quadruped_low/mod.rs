@@ -5,8 +5,7 @@ pub mod run;
 // Reexports
 pub use self::{idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
 
-use super::{Bone, Skeleton};
-use crate::render::FigureBoneData;
+use super::{Bone, FigureBoneData, Skeleton};
 use common::comp::{self};
 use vek::Vec3;
 
@@ -31,9 +30,13 @@ impl QuadrupedLowSkeleton {
 impl Skeleton for QuadrupedLowSkeleton {
     type Attr = SkeletonAttr;
 
+    #[cfg(feature = "use-dyn-lib")]
+    const COMPUTE_FN: &'static [u8] = b"quadruped_low_compute_mats\0";
+
     fn bone_count(&self) -> usize { 10 }
 
-    fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_low_compute_mats")]
+    fn compute_matrices_inner(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
         let head_upper_mat = self.head_upper.compute_base_matrix();
         let head_lower_mat = self.head_lower.compute_base_matrix();
         let chest_mat = self.chest.compute_base_matrix();
