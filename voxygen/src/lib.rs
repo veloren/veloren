@@ -16,6 +16,7 @@ pub mod key_state;
 pub mod logging;
 pub mod menu;
 pub mod mesh;
+pub mod profile;
 pub mod render;
 pub mod scene;
 pub mod session;
@@ -27,11 +28,15 @@ pub mod window;
 // Reexports
 pub use crate::error::Error;
 
-use crate::{audio::AudioFrontend, settings::Settings, singleplayer::Singleplayer, window::Window};
+use crate::{
+    audio::AudioFrontend, profile::Profile, settings::Settings, singleplayer::Singleplayer,
+    window::Window,
+};
 
 /// A type used to store state that is shared between all play states.
 pub struct GlobalState {
     pub settings: Settings,
+    pub profile: Profile,
     pub window: Window,
     pub audio: AudioFrontend,
     pub info_message: Option<String>,
