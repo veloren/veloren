@@ -5,7 +5,6 @@
 
 #[macro_use]
 pub mod ui;
-pub mod anim;
 pub mod audio;
 pub mod controller;
 mod ecs;

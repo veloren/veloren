@@ -10,6 +10,7 @@ members = [
 	"voxygen",
 	"world",
 	"network",
+    "voxygen/src/anim"
 ]
 
 # default profile for devs, fast to compile, okay enough to run, no debug information

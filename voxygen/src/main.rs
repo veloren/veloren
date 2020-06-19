@@ -162,6 +162,10 @@ fn main() {
         default_hook(panic_info);
     }));
 
+    // Initialise watcher for animation hotreloading
+    #[cfg(feature = "hot-anim")]
+    anim::init();
+
     // Set up the initial play state.
     let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];
     states

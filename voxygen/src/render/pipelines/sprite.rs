@@ -1,5 +1,5 @@
 use super::{
-    super::{util::arr_to_mat, Pipeline, TgtColorFmt, TgtDepthStencilFmt},
+    super::{Pipeline, TgtColorFmt, TgtDepthStencilFmt},
     Globals, Light, Shadow,
 };
 use gfx::{
@@ -67,7 +67,7 @@ impl Vertex {
 
 impl Instance {
     pub fn new(mat: Mat4<f32>, col: Rgb<f32>, wind_sway: f32) -> Self {
-        let mat_arr = arr_to_mat(mat.into_col_array());
+        let mat_arr = mat.into_col_arrays();
         Self {
             inst_mat0: mat_arr[0],
             inst_mat1: mat_arr[1],

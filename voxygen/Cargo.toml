@@ -12,12 +12,15 @@ default-run = "veloren-voxygen"
 gl = ["gfx_device_gl"]
 singleplayer = ["server"]
 tweak = ["const-tweaker"]
+hot-anim = ["anim/use-dyn-lib"]
 
 default = ["gl", "singleplayer", "msgbox"]
 
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
 client = { package = "veloren-client", path = "../client" }
+
+anim = { package = "veloren-voxygen-anim", path = "src/anim", default-features = false }
 
 # Graphics
 gfx = "0.18.2"

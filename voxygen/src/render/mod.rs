@@ -7,7 +7,6 @@ pub mod model;
 pub mod pipelines;
 pub mod renderer;
 pub mod texture;
-mod util;
 
 // Reexports
 pub use self::{
