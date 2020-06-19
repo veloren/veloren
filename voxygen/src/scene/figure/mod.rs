@@ -5,13 +5,6 @@ pub use cache::FigureModelCache;
 pub use load::load_mesh; // TODO: Don't make this public.
 
 use crate::{
-    anim::{
-        self, biped_large::BipedLargeSkeleton, bird_medium::BirdMediumSkeleton,
-        bird_small::BirdSmallSkeleton, character::CharacterSkeleton, critter::CritterSkeleton,
-        dragon::DragonSkeleton, fish_medium::FishMediumSkeleton, fish_small::FishSmallSkeleton,
-        golem::GolemSkeleton, object::ObjectSkeleton, quadruped_medium::QuadrupedMediumSkeleton,
-        quadruped_small::QuadrupedSmallSkeleton, quadruped_low::QuadrupedLowSkeleton, Animation, Skeleton,
-    },
     ecs::comp::Interpolated,
     render::{Consts, FigureBoneData, FigureLocals, Globals, Light, Renderer, Shadow},
     scene::{
@@ -24,7 +17,7 @@ use anim::{
     bird_small::BirdSmallSkeleton, character::CharacterSkeleton, critter::CritterSkeleton,
     dragon::DragonSkeleton, fish_medium::FishMediumSkeleton, fish_small::FishSmallSkeleton,
     golem::GolemSkeleton, object::ObjectSkeleton, quadruped_medium::QuadrupedMediumSkeleton,
-    quadruped_small::QuadrupedSmallSkeleton, Animation, Skeleton,
+    quadruped_small::QuadrupedSmallSkeleton, quadruped_low::QuadrupedLowSkeleton, Animation, Skeleton,
 };
 use common::{
     comp::{
@@ -1020,7 +1013,7 @@ impl FigureMgr {
                         is_player,
                     );
                 },
-                Body::QuadrupedLow(_) => {
+                Body::QuadrupedLow(quadruped_body) => {
                     let skeleton_attr = &self
                         .quadruped_low_model_cache
                         .get_or_create_model(
@@ -1032,6 +1025,7 @@ impl FigureMgr {
                             None,
                         )
                         .1;
+                        let ref skeleton_attr = quadruped_body.into();
 
                     let state = self
                         .quadruped_low_states
