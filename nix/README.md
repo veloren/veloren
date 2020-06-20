@@ -6,7 +6,7 @@ To build Voxygen, run:
 To build another binary, run:
 `nix build --arg crateName "<binary name here>"`
 
-To enter the development shell, run:
+To enter the development shell (which includes all tools mentioned in this readme), run:
 `nix-shell shell.nix`
 
 ### Managing Cargo.nix
@@ -25,3 +25,10 @@ Enter the development shell in repository root:
 
 To update the dependencies, run:
 `niv update`
+
+### Formatting
+
+Use [nixfmt](https://github.com/serokell/nixfmt) to format files.
+
+To format every file:
+`nixfmt *.nix`

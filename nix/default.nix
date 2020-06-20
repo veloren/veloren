@@ -1,6 +1,6 @@
 { crateName ? "veloren-voxygen",
 # `crate2nix` doesn't support profiles in `Cargo.toml`, so default to release. Otherwise bad performance (non-release is built with opt level 0)
-release ? true, sources, nixpkgsSrc }:
+release ? true, sources ? import ./sources.nix { }, nixpkgsSrc ? <nixpkgs> }:
 
 let
   # Check if git-lfs is working.
