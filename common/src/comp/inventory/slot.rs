@@ -130,7 +130,8 @@ fn loadout_replace(
     }
 }
 
-/// Insert an item into a loadout
+/// Insert an item into a loadout. If the specified slot is already occupied
+/// the old item is returned.
 #[must_use]
 fn loadout_insert(
     equip_slot: EquipSlot,
@@ -201,7 +202,8 @@ fn swap_inventory_loadout(
     }
 }
 
-/// Swap items in loadout.
+/// Swap items in loadout. Does nothing if items are not compatible with their
+/// new slots.
 fn swap_loadout(slot_a: EquipSlot, slot_b: EquipSlot, loadout: &mut Loadout) {
     // Ensure that the slots are not the same
     if slot_a == slot_b {
