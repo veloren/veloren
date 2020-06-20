@@ -9,6 +9,7 @@ in pkgs.mkShell {
     git
     git-lfs
     niv
+    nixfmt
     crate2nix
     rustup
   ];
