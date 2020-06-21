@@ -62,14 +62,10 @@ pub fn init() {
                 modified_paths.insert(path);
             }
 
-            let mut info = "Hot reloading animations because these files were modified:".to_owned();
-            for path in std::mem::take(&mut modified_paths) {
-                info.push('\n');
-                info.push('\"');
-                info.push_str(&path);
-                info.push('\"');
-            }
-            warn!("{}", info);
+            warn!(
+                ?modified_paths,
+                "Hot reloading animations because these files were modified"
+            );
 
             // Reload
             reload();

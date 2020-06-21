@@ -214,7 +214,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             } else {
                 match kind {
                     RiverKind::River { .. } => {
-                        error!("What? River: {:?}, Pos: {:?}", river, posj);
+                        error!(?river, ?posj, "What?");
                         panic!("How can a river have no downhill?");
                     },
                     RiverKind::Lake { .. } => {
@@ -619,8 +619,10 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                             dist
                                         } else {
                                             error!(
-                                                "Ocean: {:?} Here: {:?}, Ocean: {:?}",
-                                                max_border_river, chunk_pos, max_border_river_pos
+                                                ?max_border_river,
+                                                ?chunk_pos,
+                                                ?max_border_river_pos,
+                                                "downhill error details"
                                             );
                                             panic!(
                                                 "Oceans should definitely have a downhill! \

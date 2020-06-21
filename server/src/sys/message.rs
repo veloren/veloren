@@ -275,11 +275,11 @@ impl<'a> System<'a> for Sys {
                         | ClientState::Spectator
                         | ClientState::Character => match validate_chat_msg(&message) {
                             Ok(()) => new_chat_msgs.push((Some(entity), ServerMsg::chat(message))),
-                            Err(ChatMsgValidationError::TooLong) => warn!(
-                                "Recieved a chat message that's too long (max:{} len:{})",
-                                MAX_BYTES_CHAT_MSG,
-                                message.len()
-                            ),
+                            Err(ChatMsgValidationError::TooLong) => {
+                                let max = MAX_BYTES_CHAT_MSG;
+                                let len = message.len();
+                                warn!(?len, ?max, "Recieved a chat message that's too long")
+                            },
                         },
                         ClientState::Pending => {},
                     },

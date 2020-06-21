@@ -66,13 +66,14 @@ impl Profile {
                 Ok(profile) => return profile,
                 Err(e) => {
                     warn!(
-                        "Failed to parse profile file! Falling back to default. {}",
-                        e
+                        ?e,
+                        ?path,
+                        "Failed to parse profile file! Falling back to default."
                     );
                     // Rename the corrupted profile file.
                     let new_path = path.with_extension("invalid.ron");
-                    if let Err(err) = std::fs::rename(path, new_path) {
-                        warn!("Failed to rename profile file. {}", err);
+                    if let Err(e) = std::fs::rename(path.clone(), new_path.clone()) {
+                        warn!(?e, ?path, ?new_path, "Failed to rename profile file.");
                     }
                 },
             }
@@ -87,8 +88,8 @@ impl Profile {
 
     /// Save the current profile to disk, warn on failure.
     pub fn save_to_file_warn(&self) {
-        if let Err(err) = self.save_to_file() {
-            warn!("Failed to save profile: {:?}", err);
+        if let Err(e) = self.save_to_file() {
+            warn!(?e, "Failed to save profile");
         }
     }
 
@@ -156,12 +157,12 @@ impl Profile {
     }
 
     fn get_path() -> PathBuf {
-        if let Some(val) = std::env::var_os("VOXYGEN_CONFIG") {
-            let profile = PathBuf::from(val).join("profile.ron");
+        if let Some(path) = std::env::var_os("VOXYGEN_CONFIG") {
+            let profile = PathBuf::from(path.clone()).join("profile.ron");
             if profile.exists() || profile.parent().map(|x| x.exists()).unwrap_or(false) {
                 return profile;
             }
-            warn!("VOXYGEN_CONFIG points to invalid path.");
+            warn!(?path, "VOXYGEN_CONFIG points to invalid path.");
         }
 
         let proj_dirs = ProjectDirs::from("net", "veloren", "voxygen")

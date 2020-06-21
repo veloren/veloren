@@ -47,13 +47,13 @@ impl Meta {
                     }
                 },
                 Err(e) => {
-                    warn!("Failed to parse meta file! Fallback to default. {}", e);
+                    warn!(?e, ?file, "Failed to parse meta file! Fallback to default");
                     // Rename the corrupted settings file
                     let mut new_path = path.to_owned();
                     new_path.pop();
                     new_path.push("meta.invalid.ron");
-                    if let Err(err) = std::fs::rename(path, new_path) {
-                        warn!("Failed to rename meta file. {}", err);
+                    if let Err(e) = std::fs::rename(path.clone(), new_path.clone()) {
+                        warn!(?e, ?path, ?new_path, "Failed to rename meta file");
                     }
                 },
             }
@@ -68,7 +68,7 @@ impl Meta {
 
     pub fn save_to_file_warn(&self) {
         if let Err(err) = self.save_to_file() {
-            warn!("Failed to save settings: {:?}", err);
+            warn!(?e, "Failed to save settings");
         }
     }
 
@@ -85,12 +85,12 @@ impl Meta {
     }
 
     pub fn get_meta_path() -> PathBuf {
-        if let Some(val) = std::env::var_os("VOXYGEN_CONFIG") {
-            let meta = PathBuf::from(val).join("meta.ron");
+        if let Some(path) = std::env::var_os("VOXYGEN_CONFIG") {
+            let meta = PathBuf::from(path).join("meta.ron");
             if meta.exists() || meta.parent().map(|x| x.exists()).unwrap_or(false) {
                 return meta;
             }
-            warn!("VOXYGEN_CONFIG points to invalid path.");
+            warn!(?path, "VOXYGEN_CONFIG points to invalid path.");
         }
 
         let proj_dirs = ProjectDirs::from("net", "veloren", "voxygen")

@@ -2,7 +2,7 @@ use std::fs;
 
 use crate::settings::Settings;
 
-use tracing::{error, info, instrument};
+use tracing::{error, info};
 use tracing_subscriber::{filter::LevelFilter, prelude::*, registry, EnvFilter};
 
 const VOXYGEN_LOG_ENV: &str = "VOXYGEN_LOG";
@@ -20,7 +20,6 @@ const VOXYGEN_LOG_ENV: &str = "VOXYGEN_LOG";
 /// following in your environment.
 ///
 /// `VOXYGEN_LOG="veloren_voxygen=trace"`
-#[instrument]
 pub fn init(settings: &Settings) -> Vec<impl Drop> {
     // To hold the guards that we create, they will cause the logs to be
     // flushed when they're dropped.
@@ -44,13 +43,14 @@ pub fn init(settings: &Settings) -> Vec<impl Drop> {
 
     // Try to create the log file's parent folders.
     let log_folders_created = fs::create_dir_all(&settings.log.logs_path);
+    const LOG_FILENAME: &str = "voxygen.log";
 
     match log_folders_created {
         // If the parent folders were created then attach both a terminal and a
         // file writer to the registry and init it.
         Ok(_) => {
             let file_appender =
-                tracing_appender::rolling::daily(&settings.log.logs_path, "voxygen.log");
+                tracing_appender::rolling::daily(&settings.log.logs_path, LOG_FILENAME);
             let (non_blocking_file, _file_guard) = tracing_appender::non_blocking(file_appender);
             _guards.push(_file_guard);
             registry()
@@ -58,13 +58,14 @@ pub fn init(settings: &Settings) -> Vec<impl Drop> {
                 .with(tracing_subscriber::fmt::layer().with_writer(non_blocking_file))
                 .with(filter)
                 .init();
-            info!("Setup terminal and file logging.");
+            let logdir = &settings.log.logs_path;
+            info!(?logdir, "Setup terminal and file logging.");
         },
         // Otherwise just add a terminal writer and init it.
         Err(e) => {
             error!(
-                "Failed to create log file! {}. Falling back to terminal logging only.",
-                e
+                ?e,
+                "Failed to create log file!. Falling back to terminal logging only.",
             );
             registry()
                 .with(tracing_subscriber::fmt::layer().with_writer(non_blocking))

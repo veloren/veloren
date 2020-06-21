@@ -75,10 +75,10 @@ impl PlayState for MainMenuState {
                         std::rc::Rc::new(std::cell::RefCell::new(client)),
                     )));
                 },
-                Some(InitMsg::Done(Err(err))) => {
+                Some(InitMsg::Done(Err(e))) => {
                     client_init = None;
                     global_state.info_message = Some({
-                        let err = match err {
+                        let err = match e {
                             InitError::BadAddress(_) | InitError::NoAddress => {
                                 localized_strings.get("main.login.server_not_found").into()
                             },
@@ -262,8 +262,8 @@ fn attempt_login(
     if !net_settings.servers.contains(&server_address) {
         net_settings.servers.push(server_address.clone());
     }
-    if let Err(err) = global_state.settings.save_to_file() {
-        warn!("Failed to save settings: {:?}", err);
+    if let Err(e) = global_state.settings.save_to_file() {
+        warn!(?e, "Failed to save settings");
     }
 
     if comp::Player::alias_is_valid(&username) {

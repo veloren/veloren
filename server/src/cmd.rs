@@ -1265,8 +1265,8 @@ fn handle_remove_lights(
     let size = to_delete.len();
 
     for entity in to_delete {
-        if let Err(err) = server.state.delete_entity_recorded(entity) {
-            error!("Failed to delete light: {:?}", err);
+        if let Err(e) = server.state.delete_entity_recorded(entity) {
+            error!(?e, "Failed to delete light: {:?}", e);
         }
     }
 

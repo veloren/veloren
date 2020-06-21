@@ -142,7 +142,7 @@ impl ServerMetrics {
                     Ok(Some(rq)) => rq,
                     Ok(None) => continue,
                     Err(e) => {
-                        println!("error: {}", e);
+                        error!(?e, "metrics http server error");
                         break;
                     },
                 };
@@ -157,8 +157,8 @@ impl ServerMetrics {
                 );
                 if let Err(e) = request.respond(response) {
                     error!(
-                        "The metrics HTTP server had encountered and error with answering, {}",
-                        e
+                        ?e,
+                        "The metrics HTTP server had encountered and error with answering",
                     );
                 }
             }
