@@ -1,8 +1,8 @@
 use authc::{AuthClient, AuthToken, Uuid};
 use common::msg::RegisterError;
 use hashbrown::HashMap;
-use log::error;
 use std::str::FromStr;
+use tracing::{error, info};
 
 fn derive_uuid(username: &str) -> Uuid {
     let mut state = 144066263297769815596495629667062367629;
@@ -45,7 +45,7 @@ impl AuthProvider {
         match &self.auth_server {
             // Token from auth server expected
             Some(srv) => {
-                log::info!("Validating '{}' token.", &username_or_token);
+                info!("Validating '{}' token.", &username_or_token);
                 // Parse token
                 let token = AuthToken::from_str(&username_or_token)
                     .map_err(|e| RegisterError::AuthError(e.to_string()))?;
@@ -66,7 +66,7 @@ impl AuthProvider {
                 let username = username_or_token;
                 let uuid = derive_uuid(&username);
                 if !self.accounts.contains_key(&uuid) {
-                    log::info!("New User '{}'", username);
+                    info!("New User '{}'", username);
                     self.accounts.insert(uuid, username.clone());
                     Ok((username, uuid))
                 } else {

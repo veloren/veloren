@@ -71,10 +71,7 @@ uvth = "3.1.1"
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "223a4097f7ebc8d451936dccb5e6517194bbf086" }
 const-tweaker = { version = "0.2.5", optional = true }
 
-# # Logging
-# log = "0.4.8"
-# fern = { version = "0.5.8", features = ["colored"] }
-# Logging (new)
+# Logging
 tracing = { version = "0.1", default-features = false , features = ["attributes"] }
 tracing-subscriber = { version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec", "registry", "tracing-log"] }
 tracing-log = "0.1.1"

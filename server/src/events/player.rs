@@ -8,8 +8,8 @@ use common::{
     msg::{ClientState, PlayerListUpdate, ServerMsg},
     sync::{Uid, UidAllocator},
 };
-use log::error;
 use specs::{saveload::MarkerAllocator, Builder, Entity as EcsEntity, Join, WorldExt};
+use tracing::error;
 
 pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
     let state = server.state_mut();

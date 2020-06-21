@@ -60,10 +60,12 @@ impl ChunkPath {
             }
         }
 
-        //let neighbors: Vec<Vec2<i32>> = directions.into_iter().map(|dir| dir + pos).collect();
+        //let neighbors: Vec<Vec2<i32>> = directions.into_iter().map(|dir| dir +
+        // pos).collect();
 
         neighbors.into_iter()
     }
+
     pub fn worldpath_get_neighbors<V: RectRasterableVol + ReadVol + Debug>(
         &mut self,
         vol: &VolGrid2d<V>,
@@ -95,6 +97,7 @@ impl ChunkPath {
             .collect();
         neighbors.into_iter()
     }
+
     pub fn is_valid_space<V: RectRasterableVol + ReadVol + Debug>(
         &mut self,
         vol: &VolGrid2d<V>,
@@ -107,13 +110,14 @@ impl ChunkPath {
                 is_within_chunk = chunk_path
                     .iter()
                     .any(|new_pos| new_pos.cmpeq(&vol.pos_key(pos)).iter().all(|e| *e));
-            }
+            },
             _ => {
                 //println!("No chunk path");
-            }
+            },
         }
         return is_walkable_position && is_within_chunk;
     }
+
     pub fn get_worldpath<V: RectRasterableVol + ReadVol + Debug>(
         &mut self,
         vol: &VolGrid2d<V>,
@@ -132,6 +136,4 @@ pub fn chunk_euclidean_distance(start: &Vec2<i32>, end: &Vec2<i32>) -> f32 {
     istart.distance(iend)
 }
 
-pub fn chunk_transition_cost(_start: &Vec2<i32>, _end: &Vec2<i32>) -> f32 {
-    1.0f32
-}
+pub fn chunk_transition_cost(_start: &Vec2<i32>, _end: &Vec2<i32>) -> f32 { 1.0f32 }

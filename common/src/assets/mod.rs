@@ -5,7 +5,6 @@ use dot_vox::DotVoxData;
 use hashbrown::HashMap;
 use image::DynamicImage;
 use lazy_static::lazy_static;
-use log::error;
 use serde_json::Value;
 use std::{
     any::Any,
@@ -15,6 +14,7 @@ use std::{
     path::PathBuf,
     sync::{Arc, RwLock},
 };
+use tracing::{debug, error, trace};
 
 /// The error returned by asset loading functions
 #[derive(Debug, Clone)]

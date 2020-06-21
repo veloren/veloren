@@ -9,9 +9,9 @@ use common::{
     terrain::{Block, TerrainGrid},
     vol::{ReadVol, Vox},
 };
-use log::error;
 use rand::seq::SliceRandom;
 use specs::{join::Join, Entity as EcsEntity, WorldExt};
+use tracing::error;
 use vek::Vec3;
 
 pub fn handle_damage(server: &Server, uid: Uid, change: HealthChange) {

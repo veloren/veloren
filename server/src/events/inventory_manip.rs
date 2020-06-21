@@ -9,9 +9,9 @@ use common::{
     terrain::block::Block,
     vol::{ReadVol, Vox},
 };
-use log::error;
 use rand::Rng;
 use specs::{join::Join, world::WorldExt, Builder, Entity as EcsEntity, WriteStorage};
+use tracing::error;
 use vek::Vec3;
 
 pub fn swap_lantern(

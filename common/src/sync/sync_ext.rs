@@ -5,12 +5,12 @@ use super::{
     track::UpdateTracker,
     uid::{Uid, UidAllocator},
 };
-use log::error;
 use specs::{
     saveload::{MarkedBuilder, MarkerAllocator},
     world::Builder,
     WorldExt,
 };
+use tracing::error;
 
 pub trait WorldSyncExt {
     fn register_sync_marker(&mut self);

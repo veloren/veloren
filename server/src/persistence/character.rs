@@ -16,6 +16,7 @@ use common::{
 };
 use crossbeam::channel;
 use diesel::prelude::*;
+use tracing::{error, warn};
 
 type CharacterListResult = Result<Vec<CharacterItem>, Error>;
 
@@ -54,10 +55,9 @@ pub fn load_character_data(
                     .values(&row)
                     .execute(&connection)
                 {
-                    log::warn!(
+                    warn!(
                         "Failed to create an inventory record for character {}: {}",
-                        &character_data.id,
-                        error
+                        &character_data.id, error
                     )
                 }
 
@@ -81,10 +81,9 @@ pub fn load_character_data(
                     .values(&row)
                     .execute(&connection)
                 {
-                    log::warn!(
+                    warn!(
                         "Failed to create an loadout record for character {}: {}",
-                        &character_data.id,
-                        error
+                        &character_data.id, error
                     )
                 }
 
@@ -232,7 +231,7 @@ pub fn create_character(
                     .values(&new_loadout)
                     .execute(&connection)?;
             },
-            _ => log::warn!("Creating non-humanoid characters is not supported."),
+            _ => warn!("Creating non-humanoid characters is not supported."),
         };
 
         Ok(())
@@ -316,7 +315,7 @@ impl CharacterUpdater {
             .collect();
 
         if let Err(err) = self.update_tx.as_ref().unwrap().send(updates) {
-            log::error!("Could not send stats updates: {:?}", err);
+            error!("Could not send stats updates: {:?}", err);
         }
     }
 
@@ -349,7 +348,7 @@ fn batch_update(updates: impl Iterator<Item = (i32, CharacterUpdateData)>, db_di
 
         Ok(())
     }) {
-        log::error!("Error during stats batch update transaction: {:?}", err);
+        error!("Error during stats batch update transaction: {:?}", err);
     }
 }
 
@@ -365,10 +364,9 @@ fn update(
             .set(stats)
             .execute(connection)
     {
-        log::warn!(
+        warn!(
             "Failed to update stats for character: {:?}: {:?}",
-            character_id,
-            error
+            character_id, error
         )
     }
 
@@ -378,10 +376,9 @@ fn update(
     .set(inventory)
     .execute(connection)
     {
-        log::warn!(
+        warn!(
             "Failed to update inventory for character: {:?}: {:?}",
-            character_id,
-            error
+            character_id, error
         )
     }
 
@@ -391,10 +388,9 @@ fn update(
     .set(loadout)
     .execute(connection)
     {
-        log::warn!(
+        warn!(
             "Failed to update loadout for character: {:?}: {:?}",
-            character_id,
-            error
+            character_id, error
         )
     }
 }
@@ -403,7 +399,7 @@ impl Drop for CharacterUpdater {
     fn drop(&mut self) {
         drop(self.update_tx.take());
         if let Err(err) = self.handle.take().unwrap().join() {
-            log::error!("Error from joining character update thread: {:?}", err);
+            error!("Error from joining character update thread: {:?}", err);
         }
     }
 }

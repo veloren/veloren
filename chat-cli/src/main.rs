@@ -3,8 +3,8 @@
 
 use client::{Client, Event};
 use common::{clock::Clock, comp};
-use log::{error, info};
 use std::{io, net::ToSocketAddrs, sync::mpsc, thread, time::Duration};
+use tracing::{error, info};
 
 const TPS: u64 = 10; // Low value is okay, just reading messages.
 
@@ -20,7 +20,7 @@ fn read_input() -> String {
 
 fn main() {
     // Initialize logging.
-    pretty_env_logger::init();
+    tracing_subscriber::fmt::init();
 
     info!("Starting chat-cli...");
 
