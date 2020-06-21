@@ -12,9 +12,9 @@ use conrod_core::image::Id;
 use dot_vox::DotVoxData;
 use hashbrown::HashMap;
 use image::DynamicImage;
-use log::{error, warn};
 use serde_derive::{Deserialize, Serialize};
 use std::{fs::File, io::BufReader, sync::Arc};
+use tracing::{error, warn};
 use vek::*;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]

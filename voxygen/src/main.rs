@@ -15,34 +15,25 @@ use veloren_voxygen::{
 };
 
 use common::assets::{load, load_expect};
-use log::{debug, error};
-use std::{mem, panic, str::FromStr};
+use std::{mem, panic};
+use tracing::{debug, error, instrument, warn};
 
+#[instrument]
 fn main() {
     #[cfg(feature = "tweak")]
     const_tweaker::run().expect("Could not run server");
-    // Initialize logging.
-    let term_log_level = std::env::var_os("VOXYGEN_LOG")
-        .and_then(|env| env.to_str().map(|s| s.to_owned()))
-        .and_then(|s| log::LevelFilter::from_str(&s).ok())
-        .unwrap_or(log::LevelFilter::Warn);
-
-    let file_log_level = std::env::var_os("VOXYGEN_FILE_LOG")
-        .and_then(|env| env.to_str().map(|s| s.to_owned()))
-        .and_then(|s| log::LevelFilter::from_str(&s).ok())
-        .unwrap_or(log::LevelFilter::Debug);
 
     // Load the settings
     // Note: This won't log anything due to it being called before
-    // ``logging::init``.       The issue is we need to read a setting to decide
+    // `logging::init`. The issue is we need to read a setting to decide
     // whether we create a log file or not.
     let settings = Settings::load();
 
-    let profile = Profile::load();
+    // Init logging and hold the guards.
+    let _guards = logging::init(&settings);
 
-    logging::init(&settings, term_log_level, file_log_level);
-
-    // Save settings to add new fields or create the file if it is not already there
+    // Save settings to add new fields or create the file if it is not already
+    // there.
     if let Err(err) = settings.save_to_file() {
         panic!("Failed to save settings: {:?}", err);
     }
@@ -58,6 +49,9 @@ fn main() {
     audio.set_music_volume(settings.audio.music_volume);
     audio.set_sfx_volume(settings.audio.sfx_volume);
 
+    // Load the profile.
+    let profile = Profile::load();
+
     let mut global_state = GlobalState {
         audio,
         profile,
@@ -72,11 +66,10 @@ fn main() {
         &global_state.settings.language.selected_language,
     ))
     .unwrap_or_else(|error| {
-        log::warn!(
+        warn!(
             "Impossible to load {} language: change to the default language (English) instead. \
              Source error: {:?}",
-            &global_state.settings.language.selected_language,
-            error
+            &global_state.settings.language.selected_language, error
         );
         global_state.settings.language.selected_language = i18n::REFERENCE_LANG.to_owned();
         load_expect::<VoxygenLocalization>(&i18n_asset_key(

@@ -1,8 +1,8 @@
 use common::comp;
 use directories::ProjectDirs;
-use log::warn;
 use serde_derive::{Deserialize, Serialize};
 use std::{fs, io::Write, path::PathBuf};
+use tracing::warn;
 
 const VALID_VERSION: u32 = 0; // Change this if you broke charsaves 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -47,13 +47,13 @@ impl Meta {
                     }
                 },
                 Err(e) => {
-                    log::warn!("Failed to parse meta file! Fallback to default. {}", e);
+                    warn!("Failed to parse meta file! Fallback to default. {}", e);
                     // Rename the corrupted settings file
                     let mut new_path = path.to_owned();
                     new_path.pop();
                     new_path.push("meta.invalid.ron");
                     if let Err(err) = std::fs::rename(path, new_path) {
-                        log::warn!("Failed to rename meta file. {}", err);
+                        warn!("Failed to rename meta file. {}", err);
                     }
                 },
             }
@@ -90,7 +90,7 @@ impl Meta {
             if meta.exists() || meta.parent().map(|x| x.exists()).unwrap_or(false) {
                 return meta;
             }
-            log::warn!("VOXYGEN_CONFIG points to invalid path.");
+            warn!("VOXYGEN_CONFIG points to invalid path.");
         }
 
         let proj_dirs = ProjectDirs::from("net", "veloren", "voxygen")

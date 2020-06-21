@@ -1,9 +1,9 @@
 use crate::hud;
 use directories::ProjectDirs;
 use hashbrown::HashMap;
-use log::warn;
 use serde_derive::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, path::PathBuf};
+use tracing::warn;
 
 /// Represents a character in the profile.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -65,14 +65,14 @@ impl Profile {
             match ron::de::from_reader(file) {
                 Ok(profile) => return profile,
                 Err(e) => {
-                    log::warn!(
+                    warn!(
                         "Failed to parse profile file! Falling back to default. {}",
                         e
                     );
                     // Rename the corrupted profile file.
                     let new_path = path.with_extension("invalid.ron");
                     if let Err(err) = std::fs::rename(path, new_path) {
-                        log::warn!("Failed to rename profile file. {}", err);
+                        warn!("Failed to rename profile file. {}", err);
                     }
                 },
             }
@@ -161,7 +161,7 @@ impl Profile {
             if profile.exists() || profile.parent().map(|x| x.exists()).unwrap_or(false) {
                 return profile;
             }
-            log::warn!("VOXYGEN_CONFIG points to invalid path.");
+            warn!("VOXYGEN_CONFIG points to invalid path.");
         }
 
         let proj_dirs = ProjectDirs::from("net", "veloren", "voxygen")

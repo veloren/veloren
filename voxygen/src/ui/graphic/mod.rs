@@ -8,9 +8,9 @@ use common::figure::Segment;
 use guillotiere::{size2, SimpleAtlasAllocator};
 use hashbrown::{hash_map::Entry, HashMap};
 use image::{DynamicImage, RgbaImage};
-use log::warn;
 use pixel_art::resize_pixel_art;
 use std::sync::Arc;
+use tracing::warn;
 use vek::*;
 
 #[derive(Clone)]

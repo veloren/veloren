@@ -8,9 +8,9 @@ use gilrs::{EventType, Gilrs};
 use hashbrown::HashMap;
 
 use crossbeam::channel;
-use log::{error, warn};
 use serde_derive::{Deserialize, Serialize};
 use std::fmt;
+use tracing::{error, warn};
 use vek::*;
 
 /// Represents a key that the game recognises after input mapping.

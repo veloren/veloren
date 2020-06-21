@@ -21,9 +21,9 @@ use common::{
     vol::ReadVol,
     ChatType,
 };
-use log::{error, info};
 use specs::{Join, WorldExt};
 use std::{cell::RefCell, rc::Rc, time::Duration};
+use tracing::{error, info};
 use vek::*;
 
 /// The action to perform after a tick
@@ -761,7 +761,7 @@ impl PlayState for SessionState {
 
                         global_state.profile.save_to_file_warn();
 
-                        log::info!("Event! -> ChangedHotbarState")
+                        info!("Event! -> ChangedHotbarState")
                     },
                     HudEvent::Ability3(state) => self.inputs.ability3.set_state(state),
                     HudEvent::ChangeFOV(new_fov) => {

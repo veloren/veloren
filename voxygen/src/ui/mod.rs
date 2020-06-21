@@ -44,7 +44,6 @@ use conrod_core::{
     Rect, UiBuilder, UiCell,
 };
 use graphic::{Rotation, TexId};
-use log::{error, warn};
 use std::{
     f32, f64,
     fs::File,
@@ -53,6 +52,7 @@ use std::{
     sync::Arc,
     time::Duration,
 };
+use tracing::{error, warn};
 use vek::*;
 
 #[derive(Debug)]

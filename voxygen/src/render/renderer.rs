@@ -16,7 +16,7 @@ use gfx::{
     traits::{Device, Factory, FactoryExt},
 };
 use glsl_include::Context as IncludeContext;
-use log::error;
+use tracing::error;
 use vek::*;
 
 /// Represents the format of the pre-processed color target.

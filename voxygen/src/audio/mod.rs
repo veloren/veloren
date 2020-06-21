@@ -9,6 +9,7 @@ pub mod soundcache;
 use channel::{MusicChannel, MusicChannelTag, SfxChannel};
 use fader::Fader;
 use soundcache::SoundCache;
+use tracing::warn;
 
 use common::assets;
 use cpal::traits::DeviceTrait;
@@ -272,7 +273,7 @@ fn list_devices_raw() -> Vec<Device> {
             devices.filter(|d| d.name().is_ok()).collect()
         },
         Err(_) => {
-            log::warn!("Failed to enumerate audio output devices, audio will not be available");
+            warn!("Failed to enumerate audio output devices, audio will not be available");
             Vec::new()
         },
     }

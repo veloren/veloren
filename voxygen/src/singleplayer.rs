@@ -1,7 +1,6 @@
 use client::Client;
 use common::clock::Clock;
 use crossbeam::channel::{unbounded, Receiver, Sender, TryRecvError};
-use log::info;
 use server::{Event, Input, Server, ServerSettings};
 use std::{
     sync::{
@@ -11,6 +10,7 @@ use std::{
     thread::{self, JoinHandle},
     time::Duration,
 };
+use tracing::info;
 
 const TPS: u64 = 30;
 

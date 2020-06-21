@@ -3,6 +3,7 @@
 use common::assets;
 use hashbrown::HashMap;
 use std::{convert::AsRef, io, io::Read, sync::Arc};
+use tracing::warn;
 
 // Implementation of sound taken from this github issue:
 // https://github.com/RustAudio/rodio/issues/141
@@ -52,7 +53,7 @@ impl SoundCache {
             .entry(name.to_string())
             .or_insert_with(|| {
                 Sound::load(name).unwrap_or_else(|_| {
-                    log::warn!("SoundCache: Failed to load sound: {}", name);
+                    warn!("SoundCache: Failed to load sound: {}", name);
 
                     Sound::empty()
                 })

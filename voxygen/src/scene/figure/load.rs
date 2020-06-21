@@ -24,9 +24,9 @@ use common::{
 };
 use dot_vox::DotVoxData;
 use hashbrown::HashMap;
-use log::{error, warn};
 use serde_derive::{Deserialize, Serialize};
 use std::{fs::File, io::BufReader, sync::Arc};
+use tracing::{error, warn};
 use vek::*;
 
 fn load_segment(mesh_name: &str) -> Segment {

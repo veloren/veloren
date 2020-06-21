@@ -69,7 +69,7 @@ pub fn init() {
                 info.push_str(&path);
                 info.push('\"');
             }
-            log::warn!("{}", info);
+            warn!("{}", info);
 
             // Reload
             reload();
@@ -96,7 +96,7 @@ fn event_fn(res: notify::Result<notify::Event>, sender: &mpsc::Sender<String>) {
             },
             _ => {},
         },
-        Err(e) => log::error!("Animation hotreload watcher error: {:?}", e),
+        Err(e) => error!("Animation hotreload watcher error: {:?}", e),
     }
 }
 
@@ -119,7 +119,7 @@ fn reload() {
     // Open new lib
     *lock = Some(LoadedLib::load());
 
-    log::warn!("Updated animations");
+    warn!("Updated animations");
 }
 
 // Returns false if compile failed
@@ -135,10 +135,10 @@ fn compile() -> bool {
 
     // If compile failed
     if !output.status.success() {
-        log::error!("Failed to compile anim crate");
+        error!("Failed to compile anim crate");
         false
     } else {
-        log::warn!("Animation recompile success!!");
+        warn!("Animation recompile success!!");
         true
     }
 }
