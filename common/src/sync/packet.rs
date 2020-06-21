@@ -1,5 +1,4 @@
 use super::{track::UpdateTracker, uid::Uid};
-use log::error;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use specs::{Component, Entity, Join, ReadStorage, World, WorldExt};
 use std::{
@@ -7,6 +6,7 @@ use std::{
     fmt::Debug,
     marker::PhantomData,
 };
+use tracing::error;
 
 /// Implemented by type that carries component data for insertion and
 /// modification The assocatied `Phantom` type only carries information about

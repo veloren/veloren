@@ -38,7 +38,6 @@ use common::{
     terrain::TerrainChunkSize,
     vol::{ReadVol, RectVolSize},
 };
-use log::{debug, error};
 use metrics::{ServerMetrics, TickMetrics};
 use specs::{join::Join, Builder, Entity as EcsEntity, RunNow, SystemData, WorldExt};
 use std::{
@@ -48,6 +47,7 @@ use std::{
 };
 #[cfg(not(feature = "worldgen"))]
 use test_world::{World, WORLD_SIZE};
+use tracing::{debug, error, info};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 #[cfg(feature = "worldgen")]
@@ -256,12 +256,12 @@ impl Server {
         if let Some(error) =
             persistence::run_migrations(&this.server_settings.persistence_db_dir).err()
         {
-            log::info!("Migration error: {}", format!("{:#?}", error));
+            info!("Migration error: {}", format!("{:#?}", error));
         }
 
         debug!("created veloren server with: {:?}", &settings);
 
-        log::info!(
+        info!(
             "Server version: {}[{}]",
             *common::util::GIT_HASH,
             *common::util::GIT_DATE
@@ -536,7 +536,7 @@ impl Server {
                     .build();
                 // Send client all the tracked components currently attached to its entity as
                 // well as synced resources (currently only `TimeOfDay`)
-                log::debug!("Starting initial sync with client.");
+                debug!("Starting initial sync with client.");
                 self.state
                     .ecs()
                     .write_storage::<Client>()
@@ -550,7 +550,7 @@ impl Server {
                         time_of_day: *self.state.ecs().read_resource(),
                         world_map: (WORLD_SIZE.map(|e| e as u32), self.map.clone()),
                     });
-                log::debug!("Done initial sync with client.");
+                debug!("Done initial sync with client.");
 
                 frontend_events.push(Event::ClientConnected { entity });
             }

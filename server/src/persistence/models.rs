@@ -5,6 +5,7 @@ use crate::comp;
 use common::{character::Character as CharacterData, LoadoutBuilder};
 use diesel::sql_types::Text;
 use serde::{Deserialize, Serialize};
+use tracing::warn;
 
 /// The required elements to build comp::Stats from database data
 pub struct StatsJoinData<'a> {
@@ -173,7 +174,7 @@ where
         match serde_json::from_str(&t) {
             Ok(data) => Ok(Self(data)),
             Err(error) => {
-                log::warn!("Failed to deserialise inventory data: {}", error);
+                warn!("Failed to deserialise inventory data: {}", error);
                 Ok(Self(comp::Inventory::default()))
             },
         }
@@ -259,7 +260,7 @@ where
         match serde_json::from_str(&t) {
             Ok(data) => Ok(Self(data)),
             Err(error) => {
-                log::warn!("Failed to deserialise loadout data: {}", error);
+                warn!("Failed to deserialise loadout data: {}", error);
 
                 // We don't have a weapon reference here, so we default to sword
                 let loadout = LoadoutBuilder::new()

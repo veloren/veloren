@@ -1,3 +1,4 @@
+use tracing::warn;
 use vek::*;
 
 /// Type representing a direction using Vec3 that is normalized and NaN free

@@ -1,4 +1,3 @@
-use log::{debug, error};
 use prometheus::{Encoder, Gauge, IntGauge, IntGaugeVec, Opts, Registry, TextEncoder};
 use std::{
     convert::TryInto,
@@ -11,6 +10,7 @@ use std::{
     thread,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
+use tracing::{debug, error};
 
 pub struct TickMetrics {
     pub chonks_count: IntGauge,

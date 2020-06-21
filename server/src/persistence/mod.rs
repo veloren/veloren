@@ -9,6 +9,7 @@ extern crate diesel;
 use diesel::{connection::SimpleConnection, prelude::*};
 use diesel_migrations::embed_migrations;
 use std::{env, fs, path::PathBuf};
+use tracing::warn;
 
 // See: https://docs.rs/diesel_migrations/1.4.0/diesel_migrations/macro.embed_migrations.html
 // This macro is called at build-time, and produces the necessary migration info
@@ -36,7 +37,7 @@ fn establish_connection(db_dir: &str) -> SqliteConnection {
         PRAGMA busy_timeout = 250; 
         ",
     ) {
-        log::warn!(
+        warn!(
             "Failed adding PRAGMA statements while establishing sqlite connection, this will \
              result in a higher likelihood of locking errors: {}",
             error
@@ -57,7 +58,7 @@ fn apply_saves_dir_override(db_dir: &str) -> String {
                 None => {},
             }
         }
-        log::warn!("VELOREN_SAVES_DIR points to an invalid path.");
+        warn!("VELOREN_SAVES_DIR points to an invalid path.");
     }
     db_dir.to_string()
 }

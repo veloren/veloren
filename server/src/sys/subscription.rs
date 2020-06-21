@@ -11,11 +11,11 @@ use common::{
     terrain::TerrainChunkSize,
     vol::RectVolSize,
 };
-use log::{debug, error};
 use specs::{
     Entities, Join, ReadExpect, ReadStorage, System, SystemData, World, WorldExt, Write,
     WriteStorage,
 };
+use tracing::{debug, error};
 use vek::*;
 
 /// This system will update region subscriptions based on client positions

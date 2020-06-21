@@ -1,6 +1,5 @@
 use crossbeam::channel::{select, unbounded, Receiver, Sender};
 use lazy_static::lazy_static;
-use log::warn;
 use notify::{Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher as _};
 use std::{
     collections::HashMap,
@@ -11,6 +10,7 @@ use std::{
     },
     thread,
 };
+use tracing::{error, warn};
 
 type Handler = Box<dyn Fn() + Send>;
 

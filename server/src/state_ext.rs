@@ -12,8 +12,8 @@ use common::{
     sync::{Uid, WorldSyncExt},
     util::Dir,
 };
-use log::warn;
 use specs::{Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder, Join, WorldExt};
+use tracing::warn;
 use vek::*;
 
 pub trait StateExt {
@@ -173,7 +173,7 @@ impl StateExt for State {
                 self.write_component(entity, loadout);
             },
             Err(error) => {
-                log::warn!(
+                warn!(
                     "{}",
                     format!(
                         "Failed to load character data for character_id {}: {}",

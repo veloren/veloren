@@ -8,8 +8,8 @@ use common::{
     msg::ServerMsg,
     sync::{Uid, WorldSyncExt},
 };
-use log::error;
 use specs::{world::WorldExt, Entity as EcsEntity};
+use tracing::error;
 
 pub fn handle_lantern(server: &mut Server, entity: EcsEntity) {
     let ecs = server.state_mut().ecs();

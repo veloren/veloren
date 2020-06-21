@@ -1,29 +1,21 @@
-use std::{
-    fmt,
-    thread,
-    net::{SocketAddr, Shutdown},
-    sync::mpsc::TryRecvError,
-    io::{self, Read, Write},
-    collections::VecDeque,
-    time::Duration,
-    convert::TryFrom,
-};
-use serde;
-use mio::{
-    net::{TcpListener, TcpStream},
-    Events,
-    Poll,
-    PollOpt,
-    Ready,
-    Token,
-};
-use mio_extras::channel::{
-    channel,
-    Receiver,
-    Sender,
-};
 use bincode;
 use middleman::Middleman;
+use mio::{
+    net::{TcpListener, TcpStream},
+    Events, Poll, PollOpt, Ready, Token,
+};
+use mio_extras::channel::{channel, Receiver, Sender};
+use serde;
+use std::{
+    collections::VecDeque,
+    convert::TryFrom,
+    fmt,
+    io::{self, Read, Write},
+    net::{Shutdown, SocketAddr},
+    sync::mpsc::TryRecvError,
+    thread,
+    time::Duration,
+};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Error {
@@ -34,37 +26,29 @@ pub enum Error {
 }
 
 impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Self {
-        Error::Network
-    }
+    fn from(err: io::Error) -> Self { Error::Network }
 }
 
 impl From<TryRecvError> for Error {
-    fn from(err: TryRecvError) -> Self {
-        Error::Internal
-    }
+    fn from(err: TryRecvError) -> Self { Error::Internal }
 }
 
 impl From<bincode::ErrorKind> for Error {
-    fn from(err: bincode::ErrorKind) -> Self {
-        Error::InvalidMsg
-    }
+    fn from(err: bincode::ErrorKind) -> Self { Error::InvalidMsg }
 }
 
 impl<T> From<mio_extras::channel::SendError<T>> for Error {
-    fn from(err: mio_extras::channel::SendError<T>) -> Self {
-        Error::Internal
-    }
+    fn from(err: mio_extras::channel::SendError<T>) -> Self { Error::Internal }
 }
 
 pub trait PostSend = 'static + serde::Serialize + Send + middleman::Message;
 pub trait PostRecv = 'static + serde::de::DeserializeOwned + Send + middleman::Message;
 
-const TCP_TOK:       Token = Token(0);
-const CTRL_TOK:      Token = Token(1);
-const POSTBOX_TOK:   Token = Token(2);
-const SEND_TOK:      Token = Token(3);
-const RECV_TOK:      Token = Token(4);
+const TCP_TOK: Token = Token(0);
+const CTRL_TOK: Token = Token(1);
+const POSTBOX_TOK: Token = Token(2);
+const SEND_TOK: Token = Token(3);
+const RECV_TOK: Token = Token(4);
 const MIDDLEMAN_TOK: Token = Token(5);
 
 const MAX_MSG_BYTES: usize = 1 << 28;
@@ -95,12 +79,8 @@ impl<S: PostSend, R: PostRecv> PostOffice<S, R> {
         let office_poll = Poll::new()?;
         office_poll.register(&postbox_rx, POSTBOX_TOK, Ready::readable(), PollOpt::edge())?;
 
-        let worker = thread::spawn(move || office_worker(
-            worker_poll,
-            tcp_listener,
-            ctrl_rx,
-            postbox_tx,
-        ));
+        let worker =
+            thread::spawn(move || office_worker(worker_poll, tcp_listener, ctrl_rx, postbox_tx));
 
         Ok(Self {
             worker: Some(worker),
@@ -111,11 +91,9 @@ impl<S: PostSend, R: PostRecv> PostOffice<S, R> {
         })
     }
 
-    pub fn error(&self) -> Option<Error> {
-        self.err.clone()
-    }
+    pub fn error(&self) -> Option<Error> { self.err.clone() }
 
-    pub fn new_connections(&mut self) -> impl ExactSizeIterator<Item=PostBox<S, R>> {
+    pub fn new_connections(&mut self) -> impl ExactSizeIterator<Item = PostBox<S, R>> {
         let mut conns = VecDeque::new();
 
         if self.err.is_some() {
@@ -123,10 +101,7 @@ impl<S: PostSend, R: PostRecv> PostOffice<S, R> {
         }
 
         let mut events = Events::with_capacity(64);
-        if let Err(err) = self.poll.poll(
-            &mut events,
-            Some(Duration::new(0, 0)),
-        ) {
+        if let Err(err) = self.poll.poll(&mut events, Some(Duration::new(0, 0))) {
             self.err = Some(err.into());
             return conns.into_iter();
         }
@@ -188,12 +163,10 @@ fn office_worker<S: PostSend, R: PostRecv>(
                         },
                     }
                 },
-                TCP_TOK => postbox_tx.send(
-                    match tcp_listener.accept() {
-                        Ok((stream, _)) => PostBox::from_tcpstream(stream),
-                        Err(err) => Err(err.into()),
-                    }
-                )?,
+                TCP_TOK => postbox_tx.send(match tcp_listener.accept() {
+                    Ok((stream, _)) => PostBox::from_tcpstream(stream),
+                    Err(err) => Err(err.into()),
+                })?,
                 tok => panic!("Unexpected event token '{:?}'", tok),
             }
         }
@@ -211,7 +184,9 @@ pub struct PostBox<S: PostSend, R: PostRecv> {
 
 impl<S: PostSend, R: PostRecv> PostBox<S, R> {
     pub fn to_server<A: Into<SocketAddr>>(addr: A) -> Result<Self, Error> {
-        Self::from_tcpstream(TcpStream::from_stream(std::net::TcpStream::connect(&addr.into())?)?)
+        Self::from_tcpstream(TcpStream::from_stream(std::net::TcpStream::connect(
+            &addr.into(),
+        )?)?)
     }
 
     fn from_tcpstream(tcp_stream: TcpStream) -> Result<Self, Error> {
@@ -220,20 +195,21 @@ impl<S: PostSend, R: PostRecv> PostBox<S, R> {
         let (recv_tx, recv_rx) = channel();
 
         let worker_poll = Poll::new()?;
-        worker_poll.register(&tcp_stream, TCP_TOK, Ready::readable() | Ready::writable(), PollOpt::edge())?;
+        worker_poll.register(
+            &tcp_stream,
+            TCP_TOK,
+            Ready::readable() | Ready::writable(),
+            PollOpt::edge(),
+        )?;
         worker_poll.register(&ctrl_rx, CTRL_TOK, Ready::readable(), PollOpt::edge())?;
         worker_poll.register(&send_rx, SEND_TOK, Ready::readable(), PollOpt::edge())?;
 
         let postbox_poll = Poll::new()?;
         postbox_poll.register(&recv_rx, RECV_TOK, Ready::readable(), PollOpt::edge())?;
 
-        let worker = thread::spawn(move || postbox_worker(
-            worker_poll,
-            tcp_stream,
-            ctrl_rx,
-            send_rx,
-            recv_tx,
-        ));
+        let worker = thread::spawn(move || {
+            postbox_worker(worker_poll, tcp_stream, ctrl_rx, send_rx, recv_tx)
+        });
 
         Ok(Self {
             worker: Some(worker),
@@ -245,13 +221,9 @@ impl<S: PostSend, R: PostRecv> PostBox<S, R> {
         })
     }
 
-    pub fn error(&self) -> Option<Error> {
-        self.err.clone()
-    }
+    pub fn error(&self) -> Option<Error> { self.err.clone() }
 
-    pub fn send(&mut self, data: S) {
-        let _ = self.send_tx.send(data);
-    }
+    pub fn send(&mut self, data: S) { let _ = self.send_tx.send(data); }
 
     // TODO: This method is super messy.
     pub fn next_message(&mut self) -> Option<R> {
@@ -261,10 +233,7 @@ impl<S: PostSend, R: PostRecv> PostBox<S, R> {
 
         loop {
             let mut events = Events::with_capacity(10);
-            if let Err(err) = self.poll.poll(
-                &mut events,
-                Some(Duration::new(0, 0)),
-            ) {
+            if let Err(err) = self.poll.poll(&mut events, Some(Duration::new(0, 0))) {
                 self.err = Some(err.into());
                 return None;
             }
@@ -292,7 +261,7 @@ impl<S: PostSend, R: PostRecv> PostBox<S, R> {
         }
     }
 
-    pub fn new_messages(&mut self) -> impl ExactSizeIterator<Item=R> {
+    pub fn new_messages(&mut self) -> impl ExactSizeIterator<Item = R> {
         let mut msgs = VecDeque::new();
 
         if self.err.is_some() {
@@ -300,10 +269,7 @@ impl<S: PostSend, R: PostRecv> PostBox<S, R> {
         }
 
         let mut events = Events::with_capacity(64);
-        if let Err(err) = self.poll.poll(
-            &mut events,
-            Some(Duration::new(0, 0)),
-        ) {
+        if let Err(err) = self.poll.poll(&mut events, Some(Duration::new(0, 0))) {
             self.err = Some(err.into());
             return msgs.into_iter();
         }
@@ -347,7 +313,10 @@ fn postbox_worker<S: PostSend, R: PostRecv>(
     send_rx: Receiver<S>,
     recv_tx: Sender<Result<R, Error>>,
 ) -> Result<(), Error> {
-    fn try_tcp_send(tcp_stream: &mut TcpStream, chunks: &mut VecDeque<Vec<u8>>) -> Result<(), Error> {
+    fn try_tcp_send(
+        tcp_stream: &mut TcpStream,
+        chunks: &mut VecDeque<Vec<u8>>,
+    ) -> Result<(), Error> {
         loop {
             let chunk = match chunks.pop_front() {
                 Some(chunk) => chunk,
@@ -389,16 +358,15 @@ fn postbox_worker<S: PostSend, R: PostRecv>(
 
         for event in &events {
             match event.token() {
-                CTRL_TOK =>
-                    match ctrl_rx.try_recv() {
-                        Ok(CtrlMsg::Shutdown) => {
-                            break 'work;
-                        },
-                        Err(TryRecvError::Empty) => (),
-                        Err(err) => {
-                            recv_tx.send(Err(err.into()))?;
-                            break 'work;
-                        },
+                CTRL_TOK => match ctrl_rx.try_recv() {
+                    Ok(CtrlMsg::Shutdown) => {
+                        break 'work;
+                    },
+                    Err(TryRecvError::Empty) => (),
+                    Err(err) => {
+                        recv_tx.send(Err(err.into()))?;
+                        break 'work;
+                    },
                 },
                 SEND_TOK => loop {
                     match send_rx.try_recv() {
@@ -411,11 +379,7 @@ fn postbox_worker<S: PostSend, R: PostRecv>(
                                 },
                             };
 
-                            let mut bytes = msg_bytes
-                                .len()
-                                .to_le_bytes()
-                                .as_ref()
-                                .to_vec();
+                            let mut bytes = msg_bytes.len().to_le_bytes().as_ref().to_vec();
                             bytes.append(&mut msg_bytes);
 
                             bytes
@@ -450,49 +414,52 @@ fn postbox_worker<S: PostSend, R: PostRecv>(
                             },
                         }
                         match &mut recv_state {
-                            RecvState::ReadHead(head) => if head.len() == 8 {
-                                let len = usize::from_le_bytes(<[u8; 8]>::try_from(head.as_slice()).unwrap());
-                                if len > MAX_MSG_BYTES {
-                                    println!("TOO BIG! {:x}", len);
-                                    recv_tx.send(Err(Error::InvalidMsg))?;
-                                    break 'work;
-                                } else if len == 0 {
-                                    recv_state = RecvState::ReadHead(Vec::with_capacity(8));
-                                    break;
-                                } else {
-                                    recv_state = RecvState::ReadBody(
-                                        len,
-                                        Vec::new(),
+                            RecvState::ReadHead(head) => {
+                                if head.len() == 8 {
+                                    let len = usize::from_le_bytes(
+                                        <[u8; 8]>::try_from(head.as_slice()).unwrap(),
                                     );
-                                }
-                            } else {
-                                let mut b = [0; 1];
-                                match tcp_stream.read(&mut b) {
-                                    Ok(0) => {},
-                                    Ok(_) => head.push(b[0]),
-                                    Err(_) => break,
+                                    if len > MAX_MSG_BYTES {
+                                        println!("TOO BIG! {:x}", len);
+                                        recv_tx.send(Err(Error::InvalidMsg))?;
+                                        break 'work;
+                                    } else if len == 0 {
+                                        recv_state = RecvState::ReadHead(Vec::with_capacity(8));
+                                        break;
+                                    } else {
+                                        recv_state = RecvState::ReadBody(len, Vec::new());
+                                    }
+                                } else {
+                                    let mut b = [0; 1];
+                                    match tcp_stream.read(&mut b) {
+                                        Ok(0) => {},
+                                        Ok(_) => head.push(b[0]),
+                                        Err(_) => break,
+                                    }
                                 }
                             },
-                            RecvState::ReadBody(len, body) => if body.len() == *len {
-                                match bincode::deserialize(&body) {
-                                    Ok(msg) => {
-                                        recv_tx.send(Ok(msg))?;
-                                        recv_state = RecvState::ReadHead(Vec::with_capacity(8));
-                                    },
-                                    Err(err) => {
-                                        recv_tx.send(Err((*err).into()))?;
-                                        break 'work;
-                                    },
-                                }
-                            } else {
-                                let left = *len - body.len();
-                                let mut buf = vec![0; left];
-                                match tcp_stream.read(&mut buf) {
-                                    Ok(_) => body.append(&mut buf),
-                                    Err(err) => {
-                                        recv_tx.send(Err(err.into()))?;
-                                        break 'work;
-                                    },
+                            RecvState::ReadBody(len, body) => {
+                                if body.len() == *len {
+                                    match bincode::deserialize(&body) {
+                                        Ok(msg) => {
+                                            recv_tx.send(Ok(msg))?;
+                                            recv_state = RecvState::ReadHead(Vec::with_capacity(8));
+                                        },
+                                        Err(err) => {
+                                            recv_tx.send(Err((*err).into()))?;
+                                            break 'work;
+                                        },
+                                    }
+                                } else {
+                                    let left = *len - body.len();
+                                    let mut buf = vec![0; left];
+                                    match tcp_stream.read(&mut buf) {
+                                        Ok(_) => body.append(&mut buf),
+                                        Err(err) => {
+                                            recv_tx.send(Err(err.into()))?;
+                                            break 'work;
+                                        },
+                                    }
                                 }
                             },
                         }

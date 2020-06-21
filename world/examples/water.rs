@@ -1,5 +1,7 @@
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 use std::{f64, io::Write, path::PathBuf, time::SystemTime};
+use tracing::warn;
+use tracing_subscriber;
 use vek::*;
 use veloren_world::{
     sim::{self, MapConfig, MapDebug, WorldOpts, WORLD_SIZE},
@@ -12,7 +14,7 @@ const H: usize = 1024;
 #[allow(clippy::needless_update)] // TODO: Pending review in #587
 #[allow(clippy::unused_io_amount)] // TODO: Pending review in #587
 fn main() {
-    pretty_env_logger::init();
+    tracing_subscriber::fmt::init();
 
     // To load a map file of your choice, replace map_file with the name of your map
     // (stored locally in the map directory of your Veloren root), and swap the
@@ -113,7 +115,7 @@ fn main() {
                 let mut path = PathBuf::from("./screenshots");
                 if !path.exists() {
                     if let Err(err) = std::fs::create_dir(&path) {
-                        log::warn!("Couldn't create folder for screenshot: {:?}", err);
+                        warn!("Couldn't create folder for screenshot: {:?}", err);
                     }
                 }
                 path.push(format!(
@@ -124,7 +126,7 @@ fn main() {
                         .unwrap_or(0)
                 ));
                 if let Err(err) = world_map.save(&path) {
-                    log::warn!("Couldn't save screenshot: {:?}", err);
+                    warn!("Couldn't save screenshot: {:?}", err);
                 }
             }
         }

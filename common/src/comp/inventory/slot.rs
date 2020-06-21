@@ -1,6 +1,6 @@
 use crate::{comp, comp::item};
 use comp::{Inventory, Loadout};
-use log::warn;
+use tracing::warn;
 
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 pub enum Slot {
