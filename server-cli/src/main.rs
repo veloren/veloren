@@ -30,7 +30,7 @@ fn main() {
     let mut server = Server::new(settings).expect("Failed to create server instance!");
 
     info!("Server is ready to accept connections.");
-    info!("Metrics port: {}", metrics_port);
+    info!(?metrics_port, "starting metrics at port");
 
     loop {
         let events = server

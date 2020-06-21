@@ -19,10 +19,16 @@ impl From<SerdeDir> for Dir {
     fn from(dir: SerdeDir) -> Self {
         let dir = dir.0;
         if dir.map(f32::is_nan).reduce_or() {
-            warn!("Deserialized dir containing NaNs, replacing with default");
+            warn!(
+                ?dir,
+                "Deserialized dir containing NaNs, replacing with default"
+            );
             Default::default()
         } else if !dir.is_normalized() {
-            warn!("Deserialized unnormalized dir, replacing with default");
+            warn!(
+                ?dir,
+                "Deserialized unnormalized dir, replacing with default"
+            );
             Default::default()
         } else {
             Self(dir)
@@ -109,7 +115,7 @@ fn slerp_normalized(from: vek::Vec3<f32>, to: vek::Vec3<f32>, factor: f32) -> ve
         };
 
         if unnormalized {
-            panic!("Called slerp_normalized with unnormalized from: {:?}", from);
+            panic!("Called slerp_normalized with unnormalized `from`: {}", from);
         }
     }
 
@@ -122,7 +128,7 @@ fn slerp_normalized(from: vek::Vec3<f32>, to: vek::Vec3<f32>, factor: f32) -> ve
         };
 
         if unnormalized {
-            panic!("Called slerp_normalized with unnormalized to: {:?}", to);
+            panic!("Called slerp_normalized with unnormalized `to`: {}", to);
         }
     }
 

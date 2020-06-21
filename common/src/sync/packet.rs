@@ -21,8 +21,8 @@ pub trait CompPacket: Clone + Debug + Send + 'static {
 
 /// Useful for implementing CompPacket trait
 pub fn handle_insert<C: Component>(comp: C, entity: Entity, world: &World) {
-    if let Err(err) = world.write_storage::<C>().insert(entity, comp) {
-        error!("Error inserting : {:?}", err);
+    if let Err(e) = world.write_storage::<C>().insert(entity, comp) {
+        error!(?e, "Error inserting");
     }
 }
 /// Useful for implementing CompPacket trait
@@ -31,8 +31,8 @@ pub fn handle_modify<C: Component + Debug>(comp: C, entity: Entity, world: &Worl
         *c = comp
     } else {
         error!(
-            "Error modifying synced component: {:?}, it doesn't seem to exist",
-            comp
+            ?comp,
+            "Error modifying synced component, it doesn't seem to exist"
         );
     }
 }

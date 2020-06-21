@@ -77,13 +77,15 @@ pub fn load_character_data(
 
                 let row = NewLoadout::from((character_data.id, &default_loadout));
 
-                if let Err(error) = diesel::insert_into(schema::loadout::table)
+                if let Err(e) = diesel::insert_into(schema::loadout::table)
                     .values(&row)
                     .execute(&connection)
                 {
+                    let char_id = character_data.id;
                     warn!(
-                        "Failed to create an loadout record for character {}: {}",
-                        &character_data.id, error
+                        ?e,
+                        ?char_id,
+                        "Failed to create an loadout record for character",
                     )
                 }
 
@@ -314,8 +316,8 @@ impl CharacterUpdater {
             })
             .collect();
 
-        if let Err(err) = self.update_tx.as_ref().unwrap().send(updates) {
-            error!("Could not send stats updates: {:?}", err);
+        if let Err(e) = self.update_tx.as_ref().unwrap().send(updates) {
+            error!(?e, "Could not send stats updates");
         }
     }
 
@@ -333,7 +335,7 @@ impl CharacterUpdater {
 fn batch_update(updates: impl Iterator<Item = (i32, CharacterUpdateData)>, db_dir: &str) {
     let connection = establish_connection(db_dir);
 
-    if let Err(err) = connection.transaction::<_, diesel::result::Error, _>(|| {
+    if let Err(e) = connection.transaction::<_, diesel::result::Error, _>(|| {
         updates.for_each(
             |(character_id, (stats_update, inventory_update, loadout_update))| {
                 update(
@@ -348,7 +350,7 @@ fn batch_update(updates: impl Iterator<Item = (i32, CharacterUpdateData)>, db_di
 
         Ok(())
     }) {
-        error!("Error during stats batch update transaction: {:?}", err);
+        error!(?e, "Error during stats batch update transaction");
     }
 }
 
@@ -359,47 +361,42 @@ fn update(
     loadout: &LoadoutUpdate,
     connection: &SqliteConnection,
 ) {
-    if let Err(error) =
+    if let Err(e) =
         diesel::update(schema::stats::table.filter(schema::stats::character_id.eq(character_id)))
             .set(stats)
             .execute(connection)
     {
-        warn!(
-            "Failed to update stats for character: {:?}: {:?}",
-            character_id, error
-        )
+        warn!(?e, ?character_id, "Failed to update stats for character",)
     }
 
-    if let Err(error) = diesel::update(
+    if let Err(e) = diesel::update(
         schema::inventory::table.filter(schema::inventory::character_id.eq(character_id)),
     )
     .set(inventory)
     .execute(connection)
     {
         warn!(
-            "Failed to update inventory for character: {:?}: {:?}",
-            character_id, error
+            ?e,
+            ?character_id,
+            "Failed to update inventory for character",
         )
     }
 
-    if let Err(error) = diesel::update(
+    if let Err(e) = diesel::update(
         schema::loadout::table.filter(schema::loadout::character_id.eq(character_id)),
     )
     .set(loadout)
     .execute(connection)
     {
-        warn!(
-            "Failed to update loadout for character: {:?}: {:?}",
-            character_id, error
-        )
+        warn!(?e, ?character_id, "Failed to update loadout for character",)
     }
 }
 
 impl Drop for CharacterUpdater {
     fn drop(&mut self) {
         drop(self.update_tx.take());
-        if let Err(err) = self.handle.take().unwrap().join() {
-            error!("Error from joining character update thread: {:?}", err);
+        if let Err(e) = self.handle.take().unwrap().join() {
+            error!(?e, "Error from joining character update thread");
         }
     }
 }

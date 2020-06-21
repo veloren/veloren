@@ -53,7 +53,7 @@ impl SoundCache {
             .entry(name.to_string())
             .or_insert_with(|| {
                 Sound::load(name).unwrap_or_else(|_| {
-                    warn!("SoundCache: Failed to load sound: {}", name);
+                    warn!(?name, "SoundCache: Failed to load sound");
 
                     Sound::empty()
                 })

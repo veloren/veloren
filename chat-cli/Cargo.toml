@@ -8,5 +8,5 @@ edition = "2018"
 client = { package = "veloren-client", path = "../client" }
 common = { package = "veloren-common", path = "../common" }
 
-tracing = { version = "0.1", default-features = false , features = ["attributes"] }
+tracing = { version = "0.1", default-features = false }
 tracing-subscriber = { version = "0.2.3", default-features = false, features = ["fmt", "chrono", "ansi", "smallvec"] }

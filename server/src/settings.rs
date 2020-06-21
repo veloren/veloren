@@ -72,7 +72,7 @@ impl ServerSettings {
             match ron::de::from_reader(file) {
                 Ok(x) => x,
                 Err(e) => {
-                    warn!("Failed to parse setting file! Fallback to default. {}", e);
+                    warn!(?e, "Failed to parse setting file! Fallback to default");
                     Self::default()
                 },
             }
@@ -80,7 +80,7 @@ impl ServerSettings {
             let default_settings = Self::default();
 
             match default_settings.save_to_file() {
-                Err(e) => error!("Failed to create default setting file! {}", e),
+                Err(e) => error!(?e, "Failed to create default setting file!"),
                 _ => {},
             }
             default_settings

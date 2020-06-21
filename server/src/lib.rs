@@ -253,19 +253,16 @@ impl Server {
         // Run pending DB migrations (if any)
         debug!("Running DB migrations...");
 
-        if let Some(error) =
-            persistence::run_migrations(&this.server_settings.persistence_db_dir).err()
+        if let Some(e) = persistence::run_migrations(&this.server_settings.persistence_db_dir).err()
         {
-            info!("Migration error: {}", format!("{:#?}", error));
+            info!(?e, "Migration error");
         }
 
-        debug!("created veloren server with: {:?}", &settings);
+        debug!(?settings, "created veloren server with");
 
-        info!(
-            "Server version: {}[{}]",
-            *common::util::GIT_HASH,
-            *common::util::GIT_DATE
-        );
+        let git_hash = *common::util::GIT_HASH;
+        let git_date = *common::util::GIT_DATE;
+        info!(?git_hash, ?git_date, "Server version",);
 
         Ok(this)
     }
@@ -378,8 +375,8 @@ impl Server {
                 .collect::<Vec<_>>()
         };
         for entity in to_delete {
-            if let Err(err) = self.state.delete_entity_recorded(entity) {
-                error!("Failed to delete agent outside the terrain: {:?}", err);
+            if let Err(e) = self.state.delete_entity_recorded(entity) {
+                error!(?e, "Failed to delete agent outside the terrain");
             }
         }
 

@@ -46,7 +46,7 @@ impl<'a> System<'a> for Sys {
             interpolated
                 .insert(entity, Interpolated { pos, ori })
                 .err()
-                .map(|err| warn!("Error inserting Interpolated component: {}", err));
+                .map(|e| warn!(?e, "Error inserting Interpolated component"));
         }
         // Remove Interpolated component from entities which don't have a position or an
         // orientation or a velocity

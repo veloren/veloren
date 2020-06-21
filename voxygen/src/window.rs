@@ -443,11 +443,11 @@ impl Window {
                 );
                 None
             },
-            Err(gilrs::Error::Other(err)) => {
+            Err(gilrs::Error::Other(e)) => {
                 error!(
-                    "Platform-specific error when creating a Gilrs instance: `{}`. Falling back \
-                     to no controller support.",
-                    err
+                    ?e,
+                    "Platform-specific error when creating a Gilrs instance. Falling back to no \
+                     controller support."
                 );
                 None
             },
@@ -962,8 +962,8 @@ impl Window {
                     use std::time::SystemTime;
                     // Check if folder exists and create it if it does not
                     if !path.exists() {
-                        if let Err(err) = std::fs::create_dir_all(&path) {
-                            warn!("Couldn't create folder for screenshot: {:?}", err);
+                        if let Err(e) = std::fs::create_dir_all(&path) {
+                            warn!(?e, "Couldn't create folder for screenshot");
                             let _result =
                                 sender.send(String::from("Couldn't create folder for screenshot"));
                         }
@@ -975,8 +975,8 @@ impl Window {
                             .map(|d| d.as_millis())
                             .unwrap_or(0)
                     ));
-                    if let Err(err) = img.save(&path) {
-                        warn!("Couldn't save screenshot: {:?}", err);
+                    if let Err(e) = img.save(&path) {
+                        warn!(?e, "Couldn't save screenshot");
                         let _result = sender.send(String::from("Couldn't save screenshot"));
                     } else {
                         let _result =
@@ -984,10 +984,7 @@ impl Window {
                     }
                 });
             },
-            Err(err) => error!(
-                "Couldn't create screenshot due to renderer error: {:?}",
-                err
-            ),
+            Err(e) => error!(?e, "Couldn't create screenshot due to renderer error"),
         }
     }
 

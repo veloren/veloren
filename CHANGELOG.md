@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Energy regen resets on last ability use instead of on wield
 - Fixed unable to use ability; Secondary and ability3 (fire rod) will now automatically wield
 - Gliding is now a toggle that can be triggered from the ground
+- Replaced `log` with `tracing` in all crates
 
 
 ### Removed

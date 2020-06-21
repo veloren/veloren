@@ -522,7 +522,7 @@ impl Client {
         // 1) Handle input from frontend.
         // Pass character actions from frontend input to the player's entity.
         if let ClientState::Character = self.client_state {
-            if let Err(err) = self
+            if let Err(e) = self
                 .state
                 .ecs()
                 .write_storage::<Controller>()
@@ -537,9 +537,11 @@ impl Client {
                         .inputs = inputs.clone();
                 })
             {
+                let entry = self.entity;
                 error!(
-                    "Couldn't access controller component on client entity: {:?}",
-                    err
+                    ?e,
+                    ?entry,
+                    "Couldn't access controller component on client entity"
                 );
             }
             self.postbox

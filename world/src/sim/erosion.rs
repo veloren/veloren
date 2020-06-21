@@ -724,7 +724,7 @@ fn erode(
     // NOTE: The value being divided by here sets the effective maximum uplift rate,
     // as everything is scaled to it!
     let dt = max_uplift as f64 / 1e-3;
-    debug!("dt={:?}", dt);
+    debug!(?dt, "");
     // Minimum sediment thickness before we treat erosion as sediment based.
     let sediment_thickness = |_n| /*6.25e-5*/1.0e-4 * dt;
     let neighbor_coef = TerrainChunkSize::RECT_SIZE.map(|e| e as f64);

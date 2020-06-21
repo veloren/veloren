@@ -114,8 +114,8 @@ fn main() {
                     .expect("Image dimensions must be valid");
                 let mut path = PathBuf::from("./screenshots");
                 if !path.exists() {
-                    if let Err(err) = std::fs::create_dir(&path) {
-                        warn!("Couldn't create folder for screenshot: {:?}", err);
+                    if let Err(e) = std::fs::create_dir(&path) {
+                        warn!(?e, ?path, "Couldn't create folder for screenshot");
                     }
                 }
                 path.push(format!(
@@ -125,8 +125,8 @@ fn main() {
                         .map(|d| d.as_millis())
                         .unwrap_or(0)
                 ));
-                if let Err(err) = world_map.save(&path) {
-                    warn!("Couldn't save screenshot: {:?}", err);
+                if let Err(e) = world_map.save(&path) {
+                    warn!(?e, ?path, "Couldn't save screenshot");
                 }
             }
         }

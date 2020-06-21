@@ -169,7 +169,7 @@ impl Scene {
         } = self.camera.dependents();
         const VD: f32 = 115.0; // View Distance
         const TIME: f64 = 43200.0; // 12 hours*3600 seconds
-        if let Err(err) = renderer.update_consts(&mut self.globals, &[Globals::new(
+        if let Err(e) = renderer.update_consts(&mut self.globals, &[Globals::new(
             view_mat,
             proj_mat,
             cam_pos,
@@ -186,7 +186,7 @@ impl Scene {
             self.camera.get_mode(),
             250.0,
         )]) {
-            error!("Renderer failed to update: {:?}", err);
+            error!(?e, "Renderer failed to update");
         }
 
         self.figure_model_cache.clean(scene_data.tick);

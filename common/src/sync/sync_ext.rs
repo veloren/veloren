@@ -90,8 +90,8 @@ impl WorldSyncExt for specs::World {
         // Clear from uid allocator
         let maybe_entity = self.write_resource::<UidAllocator>().remove_entity(uid);
         if let Some(entity) = maybe_entity {
-            if let Err(err) = self.delete_entity(entity) {
-                error!("Failed to delete entity: {:?}", err);
+            if let Err(e) = self.delete_entity(entity) {
+                error!(?e, "Failed to delete entity");
             }
         }
     }

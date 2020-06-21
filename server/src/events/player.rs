@@ -36,8 +36,12 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
         entity_builder.with(uid).build();
     }
     // Delete old entity
-    if let Err(err) = state.delete_entity_recorded(entity) {
-        error!("Failed to delete entity when removing character: {:?}", err);
+    if let Err(e) = state.delete_entity_recorded(entity) {
+        error!(
+            ?e,
+            ?entity,
+            "Failed to delete entity when removing character"
+        );
     }
 }
 
@@ -87,8 +91,8 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
     }
 
     // Delete client entity
-    if let Err(err) = state.delete_entity_recorded(entity) {
-        error!("Failed to delete disconnected client: {:?}", err);
+    if let Err(e) = state.delete_entity_recorded(entity) {
+        error!(?e, ?entity, "Failed to delete disconnected client");
     }
 
     Event::ClientDisconnected { entity }

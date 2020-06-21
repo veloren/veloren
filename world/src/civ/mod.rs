@@ -187,7 +187,7 @@ impl Civs {
                     .get_mut(pos)
                     .map(|chunk| chunk.sites.push(world_site.clone()));
             }
-            info!("Placed site at {:?}", site.center);
+            info!(?site.center, "Placed site at location");
         }
 
         //this.display_info();

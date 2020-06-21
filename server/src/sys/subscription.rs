@@ -259,14 +259,15 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
             }
         }
 
-        if let Err(err) = world.write_storage().insert(entity, RegionSubscription {
+        if let Err(e) = world.write_storage().insert(entity, RegionSubscription {
             fuzzy_chunk,
             regions,
         }) {
-            error!("Failed to insert region subscription component: {:?}", err);
+            error!(?e, "Failed to insert region subscription component");
         }
     } else {
         debug!(
+            ?entity,
             "Failed to initialize region subcription. Couldn't retrieve all the neccesary \
              components on the provided entity"
         );
