@@ -30,8 +30,8 @@ use common::{
     vol::RectRasterableVol,
 };
 use hashbrown::HashMap;
-use log::trace;
 use specs::{Entity as EcsEntity, Join, WorldExt};
+use tracing::trace;
 use treeculler::{BVol, BoundingSphere};
 use vek::*;
 

@@ -7,9 +7,9 @@ use crate::{
 };
 use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
 use common::{assets::load_expect, clock::Clock, comp};
-use log::{error, warn};
 #[cfg(feature = "singleplayer")]
 use std::time::Duration;
+use tracing::{error, warn};
 use ui::{Event as MainMenuEvent, MainMenuUi};
 
 pub struct MainMenuState {

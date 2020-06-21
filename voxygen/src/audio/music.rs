@@ -37,12 +37,12 @@
 //!   tracks
 //! - If you are not the author of the track, ensure that the song's licensing
 //!   permits usage of the track for non-commercial use
-
 use crate::audio::AudioFrontend;
 use common::{assets, state::State};
 use rand::{seq::IteratorRandom, thread_rng};
 use serde::Deserialize;
 use std::time::Instant;
+use tracing::warn;
 
 const DAY_START_SECONDS: u32 = 28800; // 8:00
 const DAY_END_SECONDS: u32 = 70200; // 19:30
@@ -146,7 +146,7 @@ impl MusicMgr {
             Ok(file) => match ron::de::from_reader(file) {
                 Ok(config) => config,
                 Err(error) => {
-                    log::warn!(
+                    warn!(
                         "Error parsing music config file, music will not be available: {}",
                         format!("{:#?}", error)
                     );
@@ -155,7 +155,7 @@ impl MusicMgr {
                 },
             },
             Err(error) => {
-                log::warn!(
+                warn!(
                     "Error reading music config file, music will not be available: {}",
                     format!("{:#?}", error)
                 );

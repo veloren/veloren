@@ -9,9 +9,9 @@ use crate::{
 };
 use client::{self, Client};
 use common::{assets, clock::Clock, comp, msg::ClientState, state::DeltaTime};
-use log::error;
 use specs::WorldExt;
 use std::{cell::RefCell, rc::Rc, time::Duration};
+use tracing::error;
 use ui::CharSelectionUi;
 
 pub struct CharSelectionState {

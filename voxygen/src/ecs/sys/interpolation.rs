@@ -4,8 +4,8 @@ use common::{
     state::DeltaTime,
     util::Dir,
 };
-use log::warn;
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
+use tracing::warn;
 use vek::*;
 
 /// This system will allow NPCs to modify their controller

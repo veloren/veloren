@@ -21,7 +21,7 @@ use common::{
     terrain::BlockKind,
     vol::{BaseVol, ReadVol, Vox},
 };
-use log::error;
+use tracing::error;
 use vek::*;
 
 #[derive(PartialEq, Eq, Copy, Clone)]
