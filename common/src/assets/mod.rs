@@ -14,7 +14,7 @@ use std::{
     path::PathBuf,
     sync::{Arc, RwLock},
 };
-use tracing::{trace, error};
+use tracing::{error, trace};
 
 /// The error returned by asset loading functions
 #[derive(Debug, Clone)]
