@@ -86,14 +86,14 @@ pub trait Skeleton: Send + Sync + 'static {
             let lib = &lock.as_ref().unwrap().lib;
 
             let compute_fn: libloading::Symbol<fn(&Self) -> ([FigureBoneData; 16], Vec3<f32>)> =
-                unsafe { lib.get(Self::COMPUTE_FN) }.unwrap_or_else(|err| {
+                unsafe { lib.get(Self::COMPUTE_FN) }.unwrap_or_else(|e| {
                     panic!(
                         "Trying to use: {} but had error: {:?}",
                         CStr::from_bytes_with_nul(Self::COMPUTE_FN)
                             .map(CStr::to_str)
                             .unwrap()
                             .unwrap(),
-                        err
+                        e
                     )
                 });
 
@@ -154,14 +154,14 @@ pub trait Animation {
                 //println!("{}", start.elapsed().as_nanos());
                 f
             }
-            .unwrap_or_else(|err| {
+            .unwrap_or_else(|e| {
                 panic!(
                     "Trying to use: {} but had error: {:?}",
                     CStr::from_bytes_with_nul(Self::UPDATE_FN)
                         .map(CStr::to_str)
                         .unwrap()
                         .unwrap(),
-                    err
+                    e
                 )
             });
 

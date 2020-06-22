@@ -8,9 +8,9 @@ use crate::{
 use directories::{ProjectDirs, UserDirs};
 use glutin::{MouseButton, VirtualKeyCode};
 use hashbrown::{HashMap, HashSet};
-use log::warn;
 use serde_derive::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, path::PathBuf};
+use tracing::warn;
 
 // ControlSetting-like struct used by Serde, to handle not serializing/building
 // post-deserializing the inverse_keybindings hashmap
@@ -718,13 +718,13 @@ impl Settings {
             match ron::de::from_reader(file) {
                 Ok(s) => return s,
                 Err(e) => {
-                    log::warn!("Failed to parse setting file! Fallback to default. {}", e);
+                    warn!(?e, "Failed to parse setting file! Fallback to default.");
                     // Rename the corrupted settings file
                     let mut new_path = path.to_owned();
                     new_path.pop();
                     new_path.push("settings.invalid.ron");
-                    if let Err(err) = std::fs::rename(path, new_path) {
-                        log::warn!("Failed to rename settings file. {}", err);
+                    if let Err(e) = std::fs::rename(path.clone(), new_path.clone()) {
+                        warn!(?e, ?path, ?new_path, "Failed to rename settings file.");
                     }
                 },
             }
@@ -738,8 +738,8 @@ impl Settings {
     }
 
     pub fn save_to_file_warn(&self) {
-        if let Err(err) = self.save_to_file() {
-            warn!("Failed to save settings: {:?}", err);
+        if let Err(e) = self.save_to_file() {
+            warn!(?e, "Failed to save settings");
         }
     }
 
@@ -756,12 +756,12 @@ impl Settings {
     }
 
     pub fn get_settings_path() -> PathBuf {
-        if let Some(val) = std::env::var_os("VOXYGEN_CONFIG") {
-            let settings = PathBuf::from(val).join("settings.ron");
+        if let Some(path) = std::env::var_os("VOXYGEN_CONFIG") {
+            let settings = PathBuf::from(path.clone()).join("settings.ron");
             if settings.exists() || settings.parent().map(|x| x.exists()).unwrap_or(false) {
                 return settings;
             }
-            log::warn!("VOXYGEN_CONFIG points to invalid path.");
+            warn!(?path, "VOXYGEN_CONFIG points to invalid path.");
         }
 
         let proj_dirs = ProjectDirs::from("net", "veloren", "voxygen")

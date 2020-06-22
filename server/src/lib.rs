@@ -38,7 +38,6 @@ use common::{
     terrain::TerrainChunkSize,
     vol::{ReadVol, RectVolSize},
 };
-use log::{debug, error};
 use metrics::{ServerMetrics, TickMetrics};
 use specs::{join::Join, Builder, Entity as EcsEntity, RunNow, SystemData, WorldExt};
 use std::{
@@ -48,6 +47,7 @@ use std::{
 };
 #[cfg(not(feature = "worldgen"))]
 use test_world::{World, WORLD_SIZE};
+use tracing::{debug, error, info};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 #[cfg(feature = "worldgen")]
@@ -253,19 +253,16 @@ impl Server {
         // Run pending DB migrations (if any)
         debug!("Running DB migrations...");
 
-        if let Some(error) =
-            persistence::run_migrations(&this.server_settings.persistence_db_dir).err()
+        if let Some(e) = persistence::run_migrations(&this.server_settings.persistence_db_dir).err()
         {
-            log::info!("Migration error: {}", format!("{:#?}", error));
+            info!(?e, "Migration error");
         }
 
-        debug!("created veloren server with: {:?}", &settings);
+        debug!(?settings, "created veloren server with");
 
-        log::info!(
-            "Server version: {}[{}]",
-            *common::util::GIT_HASH,
-            *common::util::GIT_DATE
-        );
+        let git_hash = *common::util::GIT_HASH;
+        let git_date = *common::util::GIT_DATE;
+        info!(?git_hash, ?git_date, "Server version",);
 
         Ok(this)
     }
@@ -378,8 +375,8 @@ impl Server {
                 .collect::<Vec<_>>()
         };
         for entity in to_delete {
-            if let Err(err) = self.state.delete_entity_recorded(entity) {
-                error!("Failed to delete agent outside the terrain: {:?}", err);
+            if let Err(e) = self.state.delete_entity_recorded(entity) {
+                error!(?e, "Failed to delete agent outside the terrain");
             }
         }
 
@@ -536,7 +533,7 @@ impl Server {
                     .build();
                 // Send client all the tracked components currently attached to its entity as
                 // well as synced resources (currently only `TimeOfDay`)
-                log::debug!("Starting initial sync with client.");
+                debug!("Starting initial sync with client.");
                 self.state
                     .ecs()
                     .write_storage::<Client>()
@@ -550,7 +547,7 @@ impl Server {
                         time_of_day: *self.state.ecs().read_resource(),
                         world_map: (WORLD_SIZE.map(|e| e as u32), self.map.clone()),
                     });
-                log::debug!("Done initial sync with client.");
+                debug!("Done initial sync with client.");
 
                 frontend_events.push(Event::ClientConnected { entity });
             }

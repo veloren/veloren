@@ -25,6 +25,7 @@ use fxhash::{FxHasher32, FxHasher64};
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
+use tracing::{debug, info, warn};
 use vek::*;
 
 const INITIAL_CIV_COUNT: usize = (crate::sim::WORLD_SIZE.x * crate::sim::WORLD_SIZE.y * 3) / 65536; //48 at default scale
@@ -76,11 +77,12 @@ impl Civs {
         let mut ctx = GenCtx { sim, rng };
 
         for _ in 0..INITIAL_CIV_COUNT {
-            log::info!("Creating civilisation...");
+            debug!("Creating civilisation...");
             if this.birth_civ(&mut ctx.reseed()).is_none() {
-                log::warn!("Failed to find starting site for civilisation.");
+                warn!("Failed to find starting site for civilisation.");
             }
         }
+        info!(?INITIAL_CIV_COUNT, "all civilisations created");
 
         for _ in 0..INITIAL_CIV_COUNT * 3 {
             attempt(5, || {
@@ -159,7 +161,9 @@ impl Civs {
         }
 
         // Place sites in world
+        let mut cnt = 0;
         for site in this.sites.iter() {
+            cnt += 1;
             let wpos = site
                 .center
                 .map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
@@ -186,8 +190,9 @@ impl Civs {
                     .get_mut(pos)
                     .map(|chunk| chunk.sites.push(world_site.clone()));
             }
-            log::info!("Placed site at {:?}", site.center);
+            debug!(?site.center, "Placed site at location");
         }
+        info!(?cnt, "all sites placed");
 
         //this.display_info();
 

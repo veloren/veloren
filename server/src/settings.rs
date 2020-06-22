@@ -1,6 +1,7 @@
 use portpicker::pick_unused_port;
 use serde_derive::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, net::SocketAddr, path::PathBuf};
+use tracing::{error, warn};
 use world::sim::FileOpts;
 
 const DEFAULT_WORLD_SEED: u32 = 59686;
@@ -71,7 +72,7 @@ impl ServerSettings {
             match ron::de::from_reader(file) {
                 Ok(x) => x,
                 Err(e) => {
-                    log::warn!("Failed to parse setting file! Fallback to default. {}", e);
+                    warn!(?e, "Failed to parse setting file! Fallback to default");
                     Self::default()
                 },
             }
@@ -79,7 +80,7 @@ impl ServerSettings {
             let default_settings = Self::default();
 
             match default_settings.save_to_file() {
-                Err(e) => log::error!("Failed to create default setting file! {}", e),
+                Err(e) => error!(?e, "Failed to create default setting file!"),
                 _ => {},
             }
             default_settings

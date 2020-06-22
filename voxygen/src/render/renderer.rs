@@ -16,7 +16,7 @@ use gfx::{
     traits::{Device, Factory, FactoryExt},
 };
 use glsl_include::Context as IncludeContext;
-use log::error;
+use tracing::error;
 use vek::*;
 
 /// Represents the format of the pre-processed color target.
@@ -354,10 +354,7 @@ impl Renderer {
                 self.postprocess_pipeline = postprocess_pipeline;
                 self.player_shadow_pipeline = player_shadow_pipeline;
             },
-            Err(e) => error!(
-                "Could not recreate shaders from assets due to an error: {:#?}",
-                e
-            ),
+            Err(e) => error!(?e, "Could not recreate shaders from assets due to an error",),
         }
     }
 

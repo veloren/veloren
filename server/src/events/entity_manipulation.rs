@@ -9,9 +9,9 @@ use common::{
     terrain::{Block, TerrainGrid},
     vol::{ReadVol, Vox},
 };
-use log::error;
 use rand::seq::SliceRandom;
 use specs::{join::Join, Entity as EcsEntity, WorldExt};
+use tracing::error;
 use vek::Vec3;
 
 pub fn handle_damage(server: &Server, uid: Uid, change: HealthChange) {
@@ -80,13 +80,13 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             .write_storage()
             .insert(entity, comp::Vel(Vec3::zero()))
             .err()
-            .map(|err| error!("Failed to set zero vel on dead client: {:?}", err));
+            .map(|e| error!(?e, ?entity, "Failed to set zero vel on dead client"));
         state
             .ecs()
             .write_storage()
             .insert(entity, comp::ForceUpdate)
             .err()
-            .map(|err| error!("Failed to insert ForceUpdate on dead client: {:?}", err));
+            .map(|e| error!(?e, ?entity, "Failed to insert ForceUpdate on dead client"));
         state
             .ecs()
             .write_storage::<comp::LightEmitter>()
@@ -306,14 +306,14 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
     } else {
         let _ = state
             .delete_entity_recorded(entity)
-            .map_err(|err| error!("Failed to delete destroyed entity: {:?}", err));
+            .map_err(|e| error!(?e, ?entity, "Failed to delete destroyed entity"));
     }
 
     // TODO: Add Delete(time_left: Duration) component
     /*
     // If not a player delete the entity
     if let Err(err) = state.delete_entity_recorded(entity) {
-        error!("Failed to delete destroyed entity: {:?}", err);
+        error!(?e, "Failed to delete destroyed entity");
     }
     */
 }
@@ -361,10 +361,10 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
             .write_storage()
             .insert(entity, comp::ForceUpdate)
             .err()
-            .map(|err| {
+            .map(|e| {
                 error!(
-                    "Error inserting ForceUpdate component when respawning client: {:?}",
-                    err
+                    ?e,
+                    "Error inserting ForceUpdate component when respawning client"
                 )
             });
     }

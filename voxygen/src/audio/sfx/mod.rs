@@ -94,6 +94,7 @@ use event_mapper::SfxEventMapper;
 use hashbrown::HashMap;
 use serde::Deserialize;
 use specs::WorldExt;
+use tracing::warn;
 use vek::*;
 
 /// We watch the states of nearby entities in order to emit SFX at their
@@ -193,7 +194,7 @@ impl SfxMgr {
             Ok(file) => match ron::de::from_reader(file) {
                 Ok(config) => config,
                 Err(error) => {
-                    log::warn!(
+                    warn!(
                         "Error parsing sfx config file, sfx will not be available: {}",
                         format!("{:#?}", error)
                     );
@@ -202,7 +203,7 @@ impl SfxMgr {
                 },
             },
             Err(error) => {
-                log::warn!(
+                warn!(
                     "Error reading sfx config file, sfx will not be available: {}",
                     format!("{:#?}", error)
                 );

@@ -22,8 +22,8 @@ use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
 use vek::*;
 use world::util::Sampler;
 
-use log::error;
 use scan_fmt::{scan_fmt, scan_fmt_some};
+use tracing::error;
 
 pub trait ChatCommandExt {
     fn execute(&self, server: &mut Server, entity: EcsEntity, args: String);
@@ -1265,8 +1265,8 @@ fn handle_remove_lights(
     let size = to_delete.len();
 
     for entity in to_delete {
-        if let Err(err) = server.state.delete_entity_recorded(entity) {
-            error!("Failed to delete light: {:?}", err);
+        if let Err(e) = server.state.delete_entity_recorded(entity) {
+            error!(?e, "Failed to delete light: {:?}", e);
         }
     }
 

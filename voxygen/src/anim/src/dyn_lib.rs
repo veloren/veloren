@@ -62,14 +62,10 @@ pub fn init() {
                 modified_paths.insert(path);
             }
 
-            let mut info = "Hot reloading animations because these files were modified:".to_owned();
-            for path in std::mem::take(&mut modified_paths) {
-                info.push('\n');
-                info.push('\"');
-                info.push_str(&path);
-                info.push('\"');
-            }
-            log::warn!("{}", info);
+            warn!(
+                ?modified_paths,
+                "Hot reloading animations because these files were modified"
+            );
 
             // Reload
             reload();
@@ -96,7 +92,7 @@ fn event_fn(res: notify::Result<notify::Event>, sender: &mpsc::Sender<String>) {
             },
             _ => {},
         },
-        Err(e) => log::error!("Animation hotreload watcher error: {:?}", e),
+        Err(e) => error!("Animation hotreload watcher error: {:?}", e),
     }
 }
 
@@ -119,7 +115,7 @@ fn reload() {
     // Open new lib
     *lock = Some(LoadedLib::load());
 
-    log::warn!("Updated animations");
+    warn!("Updated animations");
 }
 
 // Returns false if compile failed
@@ -135,10 +131,10 @@ fn compile() -> bool {
 
     // If compile failed
     if !output.status.success() {
-        log::error!("Failed to compile anim crate");
+        error!("Failed to compile anim crate");
         false
     } else {
-        log::warn!("Animation recompile success!!");
+        warn!("Animation recompile success!!");
         true
     }
 }

@@ -9,6 +9,7 @@ extern crate diesel;
 use diesel::{connection::SimpleConnection, prelude::*};
 use diesel_migrations::embed_migrations;
 use std::{env, fs, path::PathBuf};
+use tracing::warn;
 
 // See: https://docs.rs/diesel_migrations/1.4.0/diesel_migrations/macro.embed_migrations.html
 // This macro is called at build-time, and produces the necessary migration info
@@ -30,16 +31,16 @@ fn establish_connection(db_dir: &str) -> SqliteConnection {
 
     // Use Write-Ahead-Logging for improved concurrency: https://sqlite.org/wal.html
     // Set a busy timeout (in ms): https://sqlite.org/c3ref/busy_timeout.html
-    if let Err(error) = connection.batch_execute(
+    if let Err(e) = connection.batch_execute(
         "
         PRAGMA journal_mode = WAL;
         PRAGMA busy_timeout = 250; 
         ",
     ) {
-        log::warn!(
+        warn!(
+            ?e,
             "Failed adding PRAGMA statements while establishing sqlite connection, this will \
-             result in a higher likelihood of locking errors: {}",
-            error
+             result in a higher likelihood of locking errors"
         );
     }
 
@@ -48,8 +49,8 @@ fn establish_connection(db_dir: &str) -> SqliteConnection {
 
 #[allow(clippy::single_match)] // TODO: Pending review in #587
 fn apply_saves_dir_override(db_dir: &str) -> String {
-    if let Some(val) = env::var_os("VELOREN_SAVES_DIR") {
-        let path = PathBuf::from(val);
+    if let Some(saves_dir) = env::var_os("VELOREN_SAVES_DIR") {
+        let path = PathBuf::from(saves_dir.clone());
         if path.exists() || path.parent().map(|x| x.exists()).unwrap_or(false) {
             // Only allow paths with valid unicode characters
             match path.to_str() {
@@ -57,7 +58,7 @@ fn apply_saves_dir_override(db_dir: &str) -> String {
                 None => {},
             }
         }
-        log::warn!("VELOREN_SAVES_DIR points to an invalid path.");
+        warn!(?saves_dir, "VELOREN_SAVES_DIR points to an invalid path.");
     }
     db_dir.to_string()
 }

@@ -5,7 +5,6 @@ use dot_vox::DotVoxData;
 use hashbrown::HashMap;
 use image::DynamicImage;
 use lazy_static::lazy_static;
-use log::error;
 use serde_json::Value;
 use std::{
     any::Any,
@@ -15,6 +14,7 @@ use std::{
     path::PathBuf,
     sync::{Arc, RwLock},
 };
+use tracing::{error, trace};
 
 /// The error returned by asset loading functions
 #[derive(Debug, Clone)]
@@ -120,8 +120,8 @@ pub fn load_glob<A: Asset + 'static>(specifier: &str) -> Result<Arc<Vec<Arc<A>>>
                         load(&specifier.replace("*", &name))
                             .map_err(|e| {
                                 error!(
-                                    "Failed to load \"{}\" as part of glob \"{}\" with error: {:?}",
-                                    name, specifier, e
+                                    ?e,
+                                    "Failed to load \"{}\" as part of glob \"{}\"", name, specifier
                                 )
                             })
                             .ok()
@@ -204,8 +204,8 @@ pub fn load_watched<A: Asset + 'static>(
     indicator.add(
         path_with_extension.ok_or_else(|| Error::NotFound(path.to_string_lossy().into_owned()))?,
         move || {
-            if let Err(err) = reload::<A>(&owned_specifier) {
-                error!("Error reloading {}: {:#?}", &owned_specifier, err);
+            if let Err(e) = reload::<A>(&owned_specifier) {
+                error!(?e, ?owned_specifier, "Error reloading owned_specifier");
             }
         },
     );
@@ -351,7 +351,7 @@ pub fn load_file(specifier: &str, endings: &[&str]) -> Result<BufReader<File>, E
         let mut path = path.clone();
         path.set_extension(ending);
 
-        trace!("Trying to access \"{:?}\"", path);
+        trace!(?path, "Trying to access");
         if let Ok(file) = File::open(path) {
             return Ok(BufReader::new(file));
         }
@@ -367,7 +367,7 @@ pub fn load_file_glob(specifier: &str, endings: &[&str]) -> Result<BufReader<Fil
         let mut path = path.clone();
         path.set_extension(ending);
 
-        debug!("Trying to access \"{:?}\"", path);
+        trace!(?path, "Trying to access");
         if let Ok(file) = File::open(path) {
             return Ok(BufReader::new(file));
         }

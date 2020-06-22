@@ -1,5 +1,4 @@
 use crossbeam::channel;
-use log::warn;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     collections::VecDeque,
@@ -14,6 +13,7 @@ use std::{
     thread,
     time::Duration,
 };
+use tracing::warn;
 
 #[derive(Clone, Debug)]
 pub enum Error {

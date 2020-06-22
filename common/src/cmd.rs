@@ -1,6 +1,7 @@
 use crate::{assets, comp, npc};
 use lazy_static::lazy_static;
 use std::{ops::Deref, path::Path, str::FromStr};
+use tracing::warn;
 
 /// Struct representing a command that a user can run from server chat.
 pub struct ChatCommandData {

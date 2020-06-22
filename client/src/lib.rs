@@ -36,12 +36,12 @@ use common::{
 };
 use hashbrown::HashMap;
 use image::DynamicImage;
-use log::{error, warn};
 use std::{
     net::SocketAddr,
     sync::Arc,
     time::{Duration, Instant},
 };
+use tracing::{debug, error, warn};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 
@@ -117,7 +117,7 @@ impl Client {
             } => {
                 // TODO: Display that versions don't match in Voxygen
                 if server_info.git_hash != common::util::GIT_HASH.to_string() {
-                    log::warn!(
+                    warn!(
                         "Server is running {}[{}], you are running {}[{}], versions might be \
                          incompatible!",
                         server_info.git_hash,
@@ -127,7 +127,7 @@ impl Client {
                     );
                 }
 
-                log::debug!("Auth Server: {:?}", server_info.auth_provider);
+                debug!("Auth Server: {:?}", server_info.auth_provider);
 
                 // Initialize `State`
                 let mut state = State::default();
@@ -142,7 +142,7 @@ impl Client {
                 assert_eq!(world_map.len(), (map_size.x * map_size.y) as usize);
                 let mut world_map_raw = vec![0u8; 4 * world_map.len()/*map_size.x * map_size.y*/];
                 LittleEndian::write_u32_into(&world_map, &mut world_map_raw);
-                log::debug!("Preparing image...");
+                debug!("Preparing image...");
                 let world_map = Arc::new(
                     image::DynamicImage::ImageRgba8({
                         // Should not fail if the dimensions are correct.
@@ -154,7 +154,7 @@ impl Client {
                     // positive x axis to positive y axis is counterclockwise around the z axis.
                     .flipv(),
                 );
-                log::debug!("Done preparing image...");
+                debug!("Done preparing image...");
 
                 (state, entity, server_info, (world_map, map_size))
             },
@@ -463,7 +463,7 @@ impl Client {
     pub fn send_chat(&mut self, message: String) {
         match validate_chat_msg(&message) {
             Ok(()) => self.postbox.send_message(ClientMsg::ChatMsg { message }),
-            Err(ChatMsgValidationError::TooLong) => log::warn!(
+            Err(ChatMsgValidationError::TooLong) => warn!(
                 "Attempted to send a message that's too long (Over {} bytes)",
                 MAX_BYTES_CHAT_MSG
             ),
@@ -522,7 +522,7 @@ impl Client {
         // 1) Handle input from frontend.
         // Pass character actions from frontend input to the player's entity.
         if let ClientState::Character = self.client_state {
-            if let Err(err) = self
+            if let Err(e) = self
                 .state
                 .ecs()
                 .write_storage::<Controller>()
@@ -537,9 +537,11 @@ impl Client {
                         .inputs = inputs.clone();
                 })
             {
+                let entry = self.entity;
                 error!(
-                    "Couldn't access controller component on client entity: {:?}",
-                    err
+                    ?e,
+                    ?entry,
+                    "Couldn't access controller component on client entity"
                 );
             }
             self.postbox
@@ -691,7 +693,7 @@ impl Client {
 
         /*
         // Output debug metrics
-        if log_enabled!(log::Level::Info) && self.tick % 600 == 0 {
+        if log_enabled!(Level::Info) && self.tick % 600 == 0 {
             let metrics = self
                 .state
                 .terrain()
