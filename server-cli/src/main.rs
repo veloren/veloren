@@ -2,9 +2,9 @@
 #![allow(clippy::option_map_unit_fn)]
 
 use common::clock::Clock;
-use log::info;
 use server::{Event, Input, Server, ServerSettings};
 use std::time::Duration;
+use tracing::info;
 
 const TPS: u64 = 30;
 
@@ -14,7 +14,8 @@ fn main() {
     if let Err(_) = std::env::var("RUST_LOG") {
         std::env::set_var("RUST_LOG", "info");
     }
-    pretty_env_logger::init();
+
+    tracing_subscriber::fmt::init();
 
     info!("Starting server...");
 
@@ -29,7 +30,7 @@ fn main() {
     let mut server = Server::new(settings).expect("Failed to create server instance!");
 
     info!("Server is ready to accept connections.");
-    info!("Metrics port: {}", metrics_port);
+    info!(?metrics_port, "starting metrics at port");
 
     loop {
         let events = server

@@ -1,8 +1,8 @@
 use authc::{AuthClient, AuthToken, Uuid};
 use common::msg::RegisterError;
 use hashbrown::HashMap;
-use log::error;
 use std::str::FromStr;
+use tracing::{error, info};
 
 fn derive_uuid(username: &str) -> Uuid {
     let mut state = 144066263297769815596495629667062367629;
@@ -35,7 +35,7 @@ impl AuthProvider {
 
     pub fn logout(&mut self, uuid: Uuid) {
         if self.accounts.remove(&uuid).is_none() {
-            error!("Attempted to logout user that is not logged in.");
+            error!(?uuid, "Attempted to logout user that is not logged in.");
         };
     }
 
@@ -45,7 +45,7 @@ impl AuthProvider {
         match &self.auth_server {
             // Token from auth server expected
             Some(srv) => {
-                log::info!("Validating '{}' token.", &username_or_token);
+                info!(?username_or_token, "Validating token");
                 // Parse token
                 let token = AuthToken::from_str(&username_or_token)
                     .map_err(|e| RegisterError::AuthError(e.to_string()))?;
@@ -66,7 +66,7 @@ impl AuthProvider {
                 let username = username_or_token;
                 let uuid = derive_uuid(&username);
                 if !self.accounts.contains_key(&uuid) {
-                    log::info!("New User '{}'", username);
+                    info!(?username, "New User");
                     self.accounts.insert(uuid, username.clone());
                     Ok((username, uuid))
                 } else {

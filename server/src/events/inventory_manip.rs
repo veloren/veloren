@@ -9,9 +9,9 @@ use common::{
     terrain::block::Block,
     vol::{ReadVol, Vox},
 };
-use log::error;
 use rand::Rng;
 use specs::{join::Join, world::WorldExt, Builder, Entity as EcsEntity, WriteStorage};
+use tracing::error;
 use vek::Vec3;
 
 pub fn swap_lantern(
@@ -108,7 +108,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             let inventory = if let Some(inventory) = inventories.get_mut(entity) {
                 inventory
             } else {
-                error!("Can't manipulate inventory, entity doesn't have one");
+                error!(
+                    ?entity,
+                    "Can't manipulate inventory, entity doesn't have one"
+                );
                 return;
             };
 
@@ -220,7 +223,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         slot::unequip(slot, inventory, loadout);
                         Some(comp::InventoryUpdateEvent::Used)
                     } else {
-                        error!("Entity doesn't have a loadout, can't unequip...");
+                        error!(?entity, "Entity doesn't have a loadout, can't unequip...");
                         None
                     }
                 },

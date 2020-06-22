@@ -52,6 +52,7 @@ use std::{
     ops::{Add, Div, Mul, Neg, Sub},
     path::PathBuf,
 };
+use tracing::{debug, warn};
 use vek::*;
 
 // NOTE: I suspect this is too small (1024 * 16 * 1024 * 16 * 8 doesn't fit in
@@ -876,8 +877,8 @@ impl WorldSim {
                 FileOpts::LoadLegacy(ref path) => {
                     let file = match File::open(path) {
                         Ok(file) => file,
-                        Err(err) => {
-                            log::warn!("Couldn't read path for maps: {:?}", err);
+                        Err(e) => {
+                            warn!(?e, ?path, "Couldn't read path for maps");
                             return None;
                         },
                     };
@@ -885,11 +886,11 @@ impl WorldSim {
                     let reader = BufReader::new(file);
                     let map: WorldFileLegacy = match bincode::deserialize_from(reader) {
                         Ok(map) => map,
-                        Err(err) => {
-                            log::warn!(
-                                "Couldn't parse legacy map: {:?}).  Maybe you meant to try a \
-                                 regular load?",
-                                err
+                        Err(e) => {
+                            warn!(
+                                ?e,
+                                "Couldn't parse legacy map.  Maybe you meant to try a regular \
+                                 load?"
                             );
                             return None;
                         },
@@ -900,8 +901,8 @@ impl WorldSim {
                 FileOpts::Load(ref path) => {
                     let file = match File::open(path) {
                         Ok(file) => file,
-                        Err(err) => {
-                            log::warn!("Couldn't read path for maps: {:?}", err);
+                        Err(e) => {
+                            warn!(?e, ?path, "Couldn't read path for maps");
                             return None;
                         },
                     };
@@ -909,11 +910,10 @@ impl WorldSim {
                     let reader = BufReader::new(file);
                     let map: WorldFile = match bincode::deserialize_from(reader) {
                         Ok(map) => map,
-                        Err(err) => {
-                            log::warn!(
-                                "Couldn't parse modern map: {:?}).  Maybe you meant to try a \
-                                 legacy load?",
-                                err
+                        Err(e) => {
+                            warn!(
+                                ?e,
+                                "Couldn't parse modern map.  Maybe you meant to try a legacy load?"
                             );
                             return None;
                         },
@@ -924,23 +924,18 @@ impl WorldSim {
                 FileOpts::LoadAsset(ref specifier) => {
                     let reader = match assets::load_file(specifier, &["bin"]) {
                         Ok(reader) => reader,
-                        Err(err) => {
-                            log::warn!(
-                                "Couldn't read asset specifier {:?} for maps: {:?}",
-                                specifier,
-                                err
-                            );
+                        Err(e) => {
+                            warn!(?e, ?specifier, "Couldn't read asset specifier for maps",);
                             return None;
                         },
                     };
 
                     let map: WorldFile = match bincode::deserialize_from(reader) {
                         Ok(map) => map,
-                        Err(err) => {
-                            log::warn!(
-                                "Couldn't parse modern map: {:?}).  Maybe you meant to try a \
-                                 legacy load?",
-                                err
+                        Err(e) => {
+                            warn!(
+                                ?e,
+                                "Couldn't parse modern map.  Maybe you meant to try a legacy load?"
                             );
                             return None;
                         },
@@ -956,7 +951,7 @@ impl WorldSim {
                 Err(e) => {
                     match e {
                         WorldFileError::WorldSizeInvalid => {
-                            log::warn!("World size of map is invalid.");
+                            warn!("World size of map is invalid.");
                         },
                     }
                     None
@@ -1026,8 +1021,8 @@ impl WorldSim {
                 // Check if folder exists and create it if it does not
                 let mut path = PathBuf::from("./maps");
                 if !path.exists() {
-                    if let Err(err) = std::fs::create_dir(&path) {
-                        log::warn!("Couldn't create folder for map: {:?}", err);
+                    if let Err(e) = std::fs::create_dir(&path) {
+                        warn!(?e, ?path, "Couldn't create folder for map");
                         return;
                     }
                 }
@@ -1039,17 +1034,17 @@ impl WorldSim {
                         .map(|d| d.as_millis())
                         .unwrap_or(0)
                 ));
-                let file = match File::create(path) {
+                let file = match File::create(path.clone()) {
                     Ok(file) => file,
-                    Err(err) => {
-                        log::warn!("Couldn't create file for maps: {:?}", err);
+                    Err(e) => {
+                        warn!(?e, ?path, "Couldn't create file for maps");
                         return;
                     },
                 };
 
                 let writer = BufWriter::new(file);
-                if let Err(err) = bincode::serialize_into(writer, &map) {
-                    log::warn!("Couldn't write map: {:?}", err);
+                if let Err(e) = bincode::serialize_into(writer, &map) {
+                    warn!(?e, "Couldn't write map");
                 }
             }
         })();
@@ -1088,7 +1083,7 @@ impl WorldSim {
         let is_ocean_fn = |posi: usize| is_ocean[posi];
         let mut dh = downhill(|posi| alt[posi], is_ocean_fn);
         let (boundary_len, indirection, water_alt_pos, maxh) = get_lakes(|posi| alt[posi], &mut dh);
-        log::debug!("Max height: {:?}", maxh);
+        debug!(?maxh, "Max height");
         let (mrec, mstack, mwrec) = {
             let mut wh = vec![0.0; WORLD_SIZE.x * WORLD_SIZE.y];
             get_multi_rec(
@@ -1911,12 +1906,9 @@ impl SimChunk {
                     ); */
                 }
                 if river_slope.abs() >= 0.25 && cross_section.x >= 1.0 {
-                    log::debug!(
-                        "Big waterfall! Pos area: {:?}, River data: {:?}, slope: {:?}",
-                        wposf,
-                        river,
-                        river_slope
-                    );
+                    let pos_area = wposf;
+                    let river_data = &river;
+                    debug!(?pos_area, ?river_data, ?river_slope, "Big waterfall!",);
                 }
             },
             Some(RiverKind::Lake { .. }) => {

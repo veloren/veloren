@@ -10,6 +10,7 @@ use std::{
     fs::File,
     io::BufReader,
 };
+use tracing::warn;
 
 /// The reference language, aka the more up-to-date localization data.
 /// Also the default language at first startup.
@@ -124,17 +125,15 @@ impl VoxygenLocalization {
     pub fn log_missing_entries(&self) {
         let (missing_strings, missing_vectors) = self.list_missing_entries();
         for missing_key in missing_strings {
-            log::warn!(
+            warn!(
                 "[{:?}] Missing string key {:?}",
-                self.metadata.language_identifier,
-                missing_key
+                self.metadata.language_identifier, missing_key
             );
         }
         for missing_key in missing_vectors {
-            log::warn!(
+            warn!(
                 "[{:?}] Missing vector key {:?}",
-                self.metadata.language_identifier,
-                missing_key
+                self.metadata.language_identifier, missing_key
             );
         }
     }

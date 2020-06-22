@@ -9,9 +9,9 @@ use crate::{
 };
 use client::{self, Client};
 use common::{assets, clock::Clock, comp, msg::ClientState, state::DeltaTime};
-use log::error;
 use specs::WorldExt;
 use std::{cell::RefCell, rc::Rc, time::Duration};
+use tracing::error;
 use ui::CharSelectionUi;
 
 pub struct CharSelectionState {
@@ -156,14 +156,14 @@ impl PlayState for CharSelectionState {
             let localized_strings = assets::load_expect::<VoxygenLocalization>(&i18n_asset_key(
                 &global_state.settings.language.selected_language,
             ));
-            if let Err(err) = self.client.borrow_mut().tick(
+            if let Err(e) = self.client.borrow_mut().tick(
                 comp::ControllerInputs::default(),
                 clock.get_last_delta(),
                 |_| {},
             ) {
                 global_state.info_message =
                     Some(localized_strings.get("common.connection_lost").to_owned());
-                error!("[char_selection] Failed to tick the scene: {:?}", err);
+                error!(?e, "[char_selection] Failed to tick the scene");
 
                 return PlayStateResult::Pop;
             }

@@ -1,4 +1,3 @@
-use log::{debug, error};
 use prometheus::{Encoder, Gauge, IntGauge, IntGaugeVec, Opts, Registry, TextEncoder};
 use std::{
     convert::TryInto,
@@ -11,6 +10,7 @@ use std::{
     thread,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
+use tracing::{debug, error};
 
 pub struct TickMetrics {
     pub chonks_count: IntGauge,
@@ -142,7 +142,7 @@ impl ServerMetrics {
                     Ok(Some(rq)) => rq,
                     Ok(None) => continue,
                     Err(e) => {
-                        println!("error: {}", e);
+                        error!(?e, "metrics http server error");
                         break;
                     },
                 };
@@ -157,8 +157,8 @@ impl ServerMetrics {
                 );
                 if let Err(e) = request.respond(response) {
                     error!(
-                        "The metrics HTTP server had encountered and error with answering, {}",
-                        e
+                        ?e,
+                        "The metrics HTTP server had encountered and error with answering",
                     );
                 }
             }

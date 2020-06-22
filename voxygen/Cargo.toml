@@ -48,14 +48,12 @@ server = { package = "veloren-server", path = "../server", optional = true }
 # Utility
 glsl-include = "0.3.1"
 failure = "0.1.6"
-log = "0.4.8"
 dot_vox = "4.0"
 image = { version = "0.22.5", default-features = false, features = ["ico", "png"] }
 serde = "1.0"
 serde_derive = "1.0"
 ron = { version = "0.6", default-features = false }
 guillotiere = { git = "https://github.com/Imberflur/guillotiere" }
-fern = { version = "0.5.8", features = ["colored"] }
 msgbox = { git = "https://github.com/bekker/msgbox-rs.git", default-features = false, rev = "68fe39a", optional = true }
 directories = "2.0.2"
 num = "0.2.0"
@@ -72,6 +70,12 @@ deunicode = "1.0"
 uvth = "3.1.1"
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "223a4097f7ebc8d451936dccb5e6517194bbf086" }
 const-tweaker = { version = "0.2.5", optional = true }
+
+# Logging
+tracing = { version = "0.1", default-features = false }
+tracing-subscriber = { version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec" , "tracing-log"] }
+tracing-log = "0.1.1"
+tracing-appender = "0.1"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 dispatch = "0.1.4"

@@ -13,6 +13,7 @@ use std::{
     f32, f64,
     ops::{Add, Div, Mul, Neg, Sub},
 };
+use tracing::error;
 use vek::*;
 
 pub struct ColumnGen<'a> {
@@ -213,7 +214,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             } else {
                 match kind {
                     RiverKind::River { .. } => {
-                        log::error!("What? River: {:?}, Pos: {:?}", river, posj);
+                        error!(?river, ?posj, "What?");
                         panic!("How can a river have no downhill?");
                     },
                     RiverKind::Lake { .. } => {
@@ -617,11 +618,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                         ) = if let Some(dist) = max_border_river_dist {
                                             dist
                                         } else {
-                                            log::error!(
-                                                "Ocean: {:?} Here: {:?}, Ocean: {:?}",
-                                                max_border_river,
-                                                chunk_pos,
-                                                max_border_river_pos
+                                            error!(
+                                                ?max_border_river,
+                                                ?chunk_pos,
+                                                ?max_border_river_pos,
+                                                "downhill error details"
                                             );
                                             panic!(
                                                 "Oceans should definitely have a downhill! \

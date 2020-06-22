@@ -12,8 +12,8 @@ use common::{
     sync::{Uid, WorldSyncExt},
     util::Dir,
 };
-use log::warn;
 use specs::{Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder, Join, WorldExt};
+use tracing::warn;
 use vek::*;
 
 pub trait StateExt {
@@ -172,13 +172,11 @@ impl StateExt for State {
                 self.write_component(entity, inventory);
                 self.write_component(entity, loadout);
             },
-            Err(error) => {
-                log::warn!(
-                    "{}",
-                    format!(
-                        "Failed to load character data for character_id {}: {}",
-                        character_id, error
-                    )
+            Err(e) => {
+                warn!(
+                    ?e,
+                    ?character_id,
+                    "Failed to load character data for character_id"
                 );
 
                 if let Some(client) = self.ecs().write_storage::<Client>().get_mut(entity) {
@@ -295,6 +293,8 @@ impl StateExt for State {
                     // and then deleted before the region manager had a chance to assign it a
                     // region
                     warn!(
+                        ?uid,
+                        ?pos,
                         "Failed to find region containing entity during entity deletion, assuming \
                          it wasn't sent to any clients and so deletion doesn't need to be \
                          recorded for sync purposes"

@@ -15,34 +15,24 @@ use veloren_voxygen::{
 };
 
 use common::assets::{load, load_expect};
-use log::{debug, error};
-use std::{mem, panic, str::FromStr};
+use std::{mem, panic};
+use tracing::{debug, error, warn};
 
 fn main() {
     #[cfg(feature = "tweak")]
     const_tweaker::run().expect("Could not run server");
-    // Initialize logging.
-    let term_log_level = std::env::var_os("VOXYGEN_LOG")
-        .and_then(|env| env.to_str().map(|s| s.to_owned()))
-        .and_then(|s| log::LevelFilter::from_str(&s).ok())
-        .unwrap_or(log::LevelFilter::Warn);
-
-    let file_log_level = std::env::var_os("VOXYGEN_FILE_LOG")
-        .and_then(|env| env.to_str().map(|s| s.to_owned()))
-        .and_then(|s| log::LevelFilter::from_str(&s).ok())
-        .unwrap_or(log::LevelFilter::Debug);
 
     // Load the settings
     // Note: This won't log anything due to it being called before
-    // ``logging::init``.       The issue is we need to read a setting to decide
+    // `logging::init`. The issue is we need to read a setting to decide
     // whether we create a log file or not.
     let settings = Settings::load();
 
-    let profile = Profile::load();
+    // Init logging and hold the guards.
+    let _guards = logging::init(&settings);
 
-    logging::init(&settings, term_log_level, file_log_level);
-
-    // Save settings to add new fields or create the file if it is not already there
+    // Save settings to add new fields or create the file if it is not already
+    // there.
     if let Err(err) = settings.save_to_file() {
         panic!("Failed to save settings: {:?}", err);
     }
@@ -58,6 +48,9 @@ fn main() {
     audio.set_music_volume(settings.audio.music_volume);
     audio.set_sfx_volume(settings.audio.sfx_volume);
 
+    // Load the profile.
+    let profile = Profile::load();
+
     let mut global_state = GlobalState {
         audio,
         profile,
@@ -71,12 +64,12 @@ fn main() {
     let localized_strings = load::<VoxygenLocalization>(&i18n_asset_key(
         &global_state.settings.language.selected_language,
     ))
-    .unwrap_or_else(|error| {
-        log::warn!(
-            "Impossible to load {} language: change to the default language (English) instead. \
-             Source error: {:?}",
-            &global_state.settings.language.selected_language,
-            error
+    .unwrap_or_else(|e| {
+        let preferred_language = &global_state.settings.language.selected_language;
+        warn!(
+            ?e,
+            ?preferred_language,
+            "Impossible to load language: change to the default language (English) instead.",
         );
         global_state.settings.language.selected_language = i18n::REFERENCE_LANG.to_owned();
         load_expect::<VoxygenLocalization>(&i18n_asset_key(
@@ -168,9 +161,10 @@ fn main() {
 
     // Set up the initial play state.
     let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];
-    states
-        .last()
-        .map(|current_state| debug!("Started game with state '{}'", current_state.name()));
+    states.last().map(|current_state| {
+        let current_state = current_state.name();
+        debug!(?current_state, "Started game with state")
+    });
 
     // What's going on here?
     // ---------------------
@@ -192,7 +186,8 @@ fn main() {
                 debug!("Shutting down all states...");
                 while states.last().is_some() {
                     states.pop().map(|old_state| {
-                        debug!("Popped state '{}'.", old_state.name());
+                        let old_state = old_state.name();
+                        debug!(?old_state, "Popped state");
                         global_state.on_play_state_changed();
                     });
                 }
@@ -200,7 +195,8 @@ fn main() {
             PlayStateResult::Pop => {
                 direction = Direction::Backwards;
                 states.pop().map(|old_state| {
-                    debug!("Popped state '{}'.", old_state.name());
+                    let old_state = old_state.name();
+                    debug!(?old_state, "Popped state");
                     global_state.on_play_state_changed();
                 });
             },
@@ -210,15 +206,13 @@ fn main() {
                 states.push(new_state);
                 global_state.on_play_state_changed();
             },
-            PlayStateResult::Switch(mut new_state) => {
+            PlayStateResult::Switch(mut new_state_box) => {
                 direction = Direction::Forwards;
-                states.last_mut().map(|old_state| {
-                    debug!(
-                        "Switching to state '{}' from state '{}'.",
-                        new_state.name(),
-                        old_state.name()
-                    );
-                    mem::swap(old_state, &mut new_state);
+                states.last_mut().map(|old_state_box| {
+                    let old_state = old_state_box.name();
+                    let new_state = new_state_box.name();
+                    debug!(?old_state, ?new_state, "Switching to states",);
+                    mem::swap(old_state_box, &mut new_state_box);
                     global_state.on_play_state_changed();
                 });
             },

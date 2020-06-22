@@ -17,7 +17,7 @@ num = "0.2.0"
 ordered-float = "1.0"
 hashbrown = { version = "0.6", features = ["rayon", "serde", "nightly"] }
 lazy_static = "1.4.0"
-log = "0.4.8"
+tracing = { version = "0.1", default-features = false }
 rand = "0.7"
 rand_chacha = "0.2.1"
 arr_macro = "0.1.2"
@@ -29,5 +29,5 @@ serde_derive = "1.0"
 ron = { version = "0.6", default-features = false }
 
 [dev-dependencies]
-pretty_env_logger = "0.3.0"
+tracing-subscriber = { version = "0.2.3", default-features = false, features = ["fmt", "chrono", "ansi", "smallvec"] }
 minifb = "0.14.0"

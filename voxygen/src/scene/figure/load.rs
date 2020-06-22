@@ -24,9 +24,9 @@ use common::{
 };
 use dot_vox::DotVoxData;
 use hashbrown::HashMap;
-use log::{error, warn};
 use serde_derive::{Deserialize, Serialize};
 use std::{fs::File, io::BufReader, sync::Arc};
+use tracing::{error, warn};
 use vek::*;
 
 fn load_segment(mesh_name: &str) -> Segment {
@@ -38,7 +38,7 @@ fn graceful_load_vox(mesh_name: &str) -> Arc<DotVoxData> {
     match assets::load::<DotVoxData>(full_specifier.as_str()) {
         Ok(dot_vox) => dot_vox,
         Err(_) => {
-            error!("Could not load vox file for figure: {}", full_specifier);
+            error!(?full_specifier, "Could not load vox file for figure");
             assets::load_expect::<DotVoxData>("voxygen.voxel.not_found")
         },
     }
@@ -157,8 +157,9 @@ impl HumHeadSpec {
             Some(spec) => spec,
             None => {
                 error!(
-                    "No head specification exists for the combination of {:?} and {:?}",
-                    body.species, body.body_type
+                    ?body.species,
+                    ?body.body_type,
+                    "No head specification exists for the combination of species and body"
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
             },
@@ -368,7 +369,7 @@ impl HumArmorShoulderSpec {
             match self.0.map.get(&shoulder) {
                 Some(spec) => spec,
                 None => {
-                    error!("No shoulder specification exists for {:?}", shoulder);
+                    error!(?shoulder, "No shoulder specification exists");
                     return load_mesh("not_found", Vec3::new(-3.0, -3.5, 0.1), generate_mesh);
                 },
             }
@@ -450,7 +451,7 @@ impl HumArmorChestSpec {
             match self.0.map.get(&chest) {
                 Some(spec) => spec,
                 None => {
-                    error!("No chest specification exists for {:?}", loadout.chest);
+                    error!(?loadout.chest, "No chest specification exists");
                     return load_mesh("not_found", Vec3::new(-7.0, -3.5, 2.0), generate_mesh);
                 },
             }
@@ -507,7 +508,7 @@ impl HumArmorHandSpec {
             match self.0.map.get(&hand) {
                 Some(spec) => spec,
                 None => {
-                    error!("No hand specification exists for {:?}", hand);
+                    error!(?hand, "No hand specification exists");
                     return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0), generate_mesh);
                 },
             }
@@ -583,7 +584,7 @@ impl HumArmorBeltSpec {
             match self.0.map.get(&belt) {
                 Some(spec) => spec,
                 None => {
-                    error!("No belt specification exists for {:?}", belt);
+                    error!(?belt, "No belt specification exists");
                     return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0), generate_mesh);
                 },
             }
@@ -627,7 +628,7 @@ impl HumArmorBackSpec {
             match self.0.map.get(&back) {
                 Some(spec) => spec,
                 None => {
-                    error!("No back specification exists for {:?}", back);
+                    error!(?back, "No back specification exists");
                     return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0), generate_mesh);
                 },
             }
@@ -670,7 +671,7 @@ impl HumArmorPantsSpec {
             match self.0.map.get(&pants) {
                 Some(spec) => spec,
                 None => {
-                    error!("No pants specification exists for {:?}", pants);
+                    error!(?pants, "No pants specification exists");
                     return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0), generate_mesh);
                 },
             }
@@ -727,7 +728,7 @@ impl HumArmorFootSpec {
             match self.0.map.get(&foot) {
                 Some(spec) => spec,
                 None => {
-                    error!("No foot specification exists for {:?}", foot);
+                    error!(?foot, "No foot specification exists");
                     return load_mesh("not_found", Vec3::new(-2.5, -3.5, -9.0), generate_mesh);
                 },
             }
@@ -793,7 +794,7 @@ impl HumMainWeaponSpec {
         let spec = match self.0.get(tool_kind) {
             Some(spec) => spec,
             None => {
-                error!("No tool/weapon specification exists for {:?}", tool_kind);
+                error!(?tool_kind, "No tool/weapon specification exists");
                 return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0), generate_mesh);
             },
         };
@@ -820,7 +821,7 @@ impl HumArmorLanternSpec {
             match self.0.map.get(&kind) {
                 Some(spec) => spec,
                 None => {
-                    error!("No lantern specification exists for {:?}", kind);
+                    error!(?kind, "No lantern specification exists");
                     return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0), generate_mesh);
                 },
             }
@@ -863,7 +864,7 @@ impl HumArmorHeadSpec {
             match self.0.map.get(&head) {
                 Some(spec) => spec,
                 None => {
-                    error!("No head specification exists for {:?}", head);
+                    error!(?head, "No head specification exists");
                     return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0), generate_mesh);
                 },
             }
@@ -918,7 +919,7 @@ impl HumArmorTabardSpec {
             match self.0.map.get(&tabard) {
                 Some(spec) => spec,
                 None => {
-                    error!("No tabard specification exists for {:?}", tabard);
+                    error!(?tabard, "No tabard specification exists");
                     return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0), generate_mesh);
                 },
             }

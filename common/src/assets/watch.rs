@@ -1,6 +1,5 @@
 use crossbeam::channel::{select, unbounded, Receiver, Sender};
 use lazy_static::lazy_static;
-use log::warn;
 use notify::{Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher as _};
 use std::{
     collections::HashMap,
@@ -11,6 +10,7 @@ use std::{
     },
     thread,
 };
+use tracing::{error, warn};
 
 type Handler = Box<dyn Fn() + Send>;
 
@@ -50,8 +50,8 @@ impl Watcher {
                 }
             },
             None => {
-                if let Err(err) = self.watcher.watch(path.clone(), RecursiveMode::Recursive) {
-                    warn!("Could not start watching {:#?} due to: {}", &path, err);
+                if let Err(e) = self.watcher.watch(path.clone(), RecursiveMode::Recursive) {
+                    warn!(?e, ?path, "Could not start watching file");
                     return;
                 }
                 self.watching.insert(path, (handler, vec![signal]));
@@ -121,7 +121,7 @@ impl Watcher {
                     recv(self.event_rx) -> res => match res {
                         Ok(Ok(event)) => self.handle_event(event),
                         // Notify Error
-                        Ok(Err(err)) => error!("Notify error: {}", err),
+                        Ok(Err(e)) => error!(?e, "Notify error"),
                         // Disconnected
                         Err(_) => (),
                     },
