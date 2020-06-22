@@ -10,7 +10,7 @@ use hashbrown::HashMap;
 use crossbeam::channel;
 use serde_derive::{Deserialize, Serialize};
 use std::fmt;
-use tracing::{error, warn};
+use tracing::{error, info, warn};
 use vek::*;
 
 /// Represents a key that the game recognises after input mapping.
@@ -428,6 +428,18 @@ impl Window {
                 &events_loop,
             )
             .map_err(|err| Error::BackendError(Box::new(err)))?;
+
+        let vendor = device.get_info().platform_name.vendor;
+        let renderer = device.get_info().platform_name.renderer;
+        let opengl_version = device.get_info().version;
+        let glsl_version = device.get_info().shading_language;
+        info!(
+            ?vendor,
+            ?renderer,
+            ?opengl_version,
+            ?glsl_version,
+            "selected graphics device"
+        );
 
         let keypress_map = HashMap::new();
 
