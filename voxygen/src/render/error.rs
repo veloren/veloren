@@ -17,7 +17,7 @@ impl From<gfx::PipelineStateError<String>> for RenderError {
 }
 
 impl From<gfx::PipelineStateError<&str>> for RenderError {
-    #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     fn from(err: gfx::PipelineStateError<&str>) -> Self {
         match err {
             gfx::PipelineStateError::DescriptorInit(err) => {

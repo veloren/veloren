@@ -25,7 +25,7 @@ impl<'a> BlockGen<'a> {
         }
     }
 
-    #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     pub fn sample_column<'b>(
         column_gen: &ColumnGen<'a>,
         cache: &'b mut SmallCache<Option<ColumnSample<'a>>>,
@@ -36,7 +36,7 @@ impl<'a> BlockGen<'a> {
             .as_ref()
     }
 
-    #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     fn get_cliff_height(
         column_gen: &ColumnGen<'a>,
         cache: &mut SmallCache<Option<ColumnSample<'a>>>,
@@ -91,7 +91,7 @@ impl<'a> BlockGen<'a> {
         )
     }
 
-    #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     pub fn get_z_cache(&mut self, wpos: Vec2<i32>) -> Option<ZCache<'a>> {
         let BlockGen {
             column_cache,

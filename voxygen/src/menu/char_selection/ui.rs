@@ -399,6 +399,7 @@ impl CharSelectionUi {
     // TODO: Split this into multiple modules or functions.
     #[allow(clippy::useless_let_if_seq)] // TODO: Pending review in #587
     #[allow(clippy::unnecessary_operation)] // TODO: Pending review in #587
+    #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
     fn update_layout(&mut self, client: &mut Client) -> Vec<Event> {
         let mut events = Vec::new();
 
