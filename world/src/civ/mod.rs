@@ -70,7 +70,7 @@ impl<'a, R: Rng> GenCtx<'a, R> {
 }
 
 impl Civs {
-    #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     pub fn generate(seed: u32, sim: &mut WorldSim) -> Self {
         let mut this = Self::default();
         let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
@@ -602,7 +602,7 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>) -> bool {
 }
 
 /// Attempt to search for a location that's suitable for site construction
-#[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+#[allow(clippy::useless_conversion)] // TODO: Pending review in #587
 #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
 fn find_site_loc(ctx: &mut GenCtx<impl Rng>, near: Option<(Vec2<i32>, f32)>) -> Option<Vec2<i32>> {
     const MAX_ATTEMPTS: usize = 100;

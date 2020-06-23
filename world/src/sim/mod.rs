@@ -306,6 +306,7 @@ pub struct WorldSim {
 impl WorldSim {
     #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
     #[allow(clippy::let_and_return)] // TODO: Pending review in #587
+    #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
 
     pub fn generate(seed: u32, opts: WorldOpts) -> Self {
         let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
@@ -1321,7 +1322,7 @@ impl WorldSim {
     }
 
     /// Prepare the world for simulation
-    #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     pub fn seed_elements(&mut self) {
         let mut rng = self.rng.clone();
 
@@ -1490,7 +1491,7 @@ impl WorldSim {
         }
     }
 
-    #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     pub fn get_gradient_approx(&self, chunk_pos: Vec2<i32>) -> Option<f32> {
         let a = self.get(chunk_pos)?;
         if let Some(downhill) = a.downhill {
@@ -1509,7 +1510,7 @@ impl WorldSim {
         self.get_interpolated(wpos, |chunk| chunk.alt)
     }
 
-    #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     pub fn get_wpos(&self, wpos: Vec2<i32>) -> Option<&SimChunk> {
         self.get(
             wpos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
@@ -1710,7 +1711,7 @@ impl WorldSim {
         Some(z0 + z1 + z2 + z3)
     }
 
-    #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     pub fn get_nearest_path(&self, wpos: Vec2<i32>) -> Option<(f32, Vec2<f32>)> {
         let chunk_pos = wpos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
             e.div_euclid(sz as i32)
@@ -1816,6 +1817,7 @@ pub struct RegionInfo {
 
 impl SimChunk {
     #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
+    #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
     fn generate(posi: usize, gen_ctx: &GenCtx, gen_cdf: &GenCdf) -> Self {
         let pos = uniform_idx_as_vec2(posi);
         let wposf = (pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32)).map(|e| e as f64);
