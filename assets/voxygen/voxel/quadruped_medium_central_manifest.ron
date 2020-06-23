@@ -2,7 +2,7 @@
     (Grolgar, Male): (
         upper: (
             offset: (-7.0, 0.0, -9.0),
-            central: ("npc.grolgar.female.head_upper"),
+            central: ("npc.grolgar.male.head_upper"),
         ),
         lower: (
             offset: (-6.0, -4.5, -4.0),
@@ -241,7 +241,7 @@
     ),
     (Tarasque, Male): (
         upper: (
-            offset: (-9.0, -13.0, -10.5),
+            offset: (-10.0, -9.0, -10.0),
             central: ("npc.tarasque.male.head_upper"),
         ),
         lower: (
@@ -271,7 +271,7 @@
     ),
     (Tarasque, Female): (
         upper: (
-            offset: (-9.0, -13.0, -10.5),
+            offset: (-10.0, -9.0, -10.0),
             central: ("npc.tarasque.female.head_upper"),
         ),
         lower: (
@@ -296,7 +296,7 @@
         ),
         tail: (
             offset: (-5.0, -19.0, -10.0),
-            central: ("npc.tarasque.male.tail"),
+            central: ("npc.tarasque.female.tail"),
         ),
     ),
     (Tiger, Male): (
