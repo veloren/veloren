@@ -929,7 +929,7 @@ impl FigureMgr {
                         is_player,
                     );
                 },
-                Body::QuadrupedMedium(quadruped_body) => {
+                Body::QuadrupedMedium(_) => {
                     let skeleton_attr = &self
                         .quadruped_medium_model_cache
                         .get_or_create_model(
@@ -941,7 +941,6 @@ impl FigureMgr {
                             None,
                         )
                         .1;
-                        let ref skeleton_attr = quadruped_body.into();
 
                     let state = self
                         .quadruped_medium_states
@@ -1013,7 +1012,7 @@ impl FigureMgr {
                         is_player,
                     );
                 },
-                Body::QuadrupedLow(quadruped_body) => {
+                Body::QuadrupedLow(_) => {
                     let skeleton_attr = &self
                         .quadruped_low_model_cache
                         .get_or_create_model(
@@ -1025,7 +1024,6 @@ impl FigureMgr {
                             None,
                         )
                         .1;
-                        let ref skeleton_attr = quadruped_body.into();
 
                     let state = self
                         .quadruped_low_states
