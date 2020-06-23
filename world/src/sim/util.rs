@@ -217,7 +217,7 @@ pub fn uniform_noise<F: Float + Send>(
 /// guarantees that for any point between the given chunk (on the top left) and
 /// its top-right/down-right/down neighbors, the twelve chunks surrounding this
 /// box (its "perimeter") are also inspected.
-#[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+#[allow(clippy::useless_conversion)] // TODO: Pending review in #587
 pub fn local_cells(posi: usize) -> impl Clone + Iterator<Item = usize> {
     let pos = uniform_idx_as_vec2(posi);
     // NOTE: want to keep this such that the chunk index is in ascending order!

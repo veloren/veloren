@@ -36,7 +36,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Client>,
     );
 
-    #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     #[allow(clippy::manual_saturating_arithmetic)] // TODO: Pending review in #587
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn run(
@@ -398,7 +398,7 @@ impl<'a> System<'a> for Sys {
     }
 }
 
-#[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+#[allow(clippy::useless_conversion)] // TODO: Pending review in #587
 #[allow(clippy::manual_saturating_arithmetic)] // TODO: Pending review in #587
 pub fn chunk_in_vd(
     player_pos: Vec3<f32>,
