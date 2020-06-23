@@ -16,6 +16,7 @@ impl Animation for SpinAnimation {
     const UPDATE_FN: &'static [u8] = b"character_spin\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_spin")]
+    #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _global_time): Self::Dependency,

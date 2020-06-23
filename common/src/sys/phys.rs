@@ -58,7 +58,7 @@ impl<'a> System<'a> for Sys {
     );
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
-    #[allow(clippy::block_in_if_condition_stmt)] // TODO: Pending review in #587
+    #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
     fn run(
         &mut self,
         (

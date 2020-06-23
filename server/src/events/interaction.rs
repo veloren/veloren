@@ -48,7 +48,7 @@ pub fn handle_lantern(server: &mut Server, entity: EcsEntity) {
     }
 }
 
-#[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+#[allow(clippy::useless_conversion)] // TODO: Pending review in #587
 pub fn handle_mount(server: &mut Server, mounter: EcsEntity, mountee: EcsEntity) {
     let state = server.state_mut();
 

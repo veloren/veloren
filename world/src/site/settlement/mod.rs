@@ -151,7 +151,7 @@ impl Settlement {
     pub fn get_origin(&self) -> Vec2<i32> { self.origin }
 
     /// Designate hazardous terrain based on world data
-    #[allow(clippy::block_in_if_condition_stmt)] // TODO: Pending review in #587
+    #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
     pub fn designate_from_world(&mut self, sim: &WorldSim, rng: &mut impl Rng) {
         let tile_radius = self.radius() as i32 / AREA_SIZE as i32;
         let hazard = self.land.hazard;

@@ -14,7 +14,7 @@ impl Animation for ChargeAnimation {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_charge")]
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
-    #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, velocity, orientation, last_ori, _global_time): Self::Dependency,

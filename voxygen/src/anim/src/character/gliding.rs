@@ -13,7 +13,7 @@ impl Animation for GlidingAnimation {
     const UPDATE_FN: &'static [u8] = b"character_gliding\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_gliding")]
-    #[allow(clippy::identity_conversion)] // TODO: Pending review in #587
+    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, velocity, orientation, last_ori, global_time): Self::Dependency,

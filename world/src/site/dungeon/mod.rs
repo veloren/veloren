@@ -370,6 +370,7 @@ impl Floor {
         }
     }
 
+    #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
     fn create_route(&mut self, _ctx: &mut GenCtx<impl Rng>, a: Vec2<i32>, b: Vec2<i32>) {
         let heuristic = move |l: &Vec2<i32>| (l - b).map(|e| e.abs()).reduce_max() as f32;
         let neighbors = |l: &Vec2<i32>| {
@@ -567,6 +568,7 @@ impl Floor {
             .min_by_key(|nearest| rpos.distance_squared(*nearest))
     }
 
+    #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
     pub fn col_sampler(&self, pos: Vec2<i32>, floor_z: i32) -> impl FnMut(i32) -> BlockMask + '_ {
         let rpos = pos - self.tile_offset * TILE_SIZE;
         let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));

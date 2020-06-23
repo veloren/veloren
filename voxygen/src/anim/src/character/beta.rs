@@ -12,6 +12,7 @@ impl Animation for BetaAnimation {
     const UPDATE_FN: &'static [u8] = b"character_beta\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_beta")]
+    #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _velocity, _global_time): Self::Dependency,
