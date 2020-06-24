@@ -1151,12 +1151,16 @@ impl<'a> Widget for SettingsWindow<'a> {
                     !self.global_state.settings.gameplay.chat_character_name,
                 ));
             }
-            Text::new(&self.localized_strings.get("hud.settings.chat_character_name"))
-                .right_from(state.ids.chat_char_name_button, 20.0)
-                .font_size(self.fonts.cyri.scale(14))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.chat_char_name_text, ui);
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.chat_character_name"),
+            )
+            .right_from(state.ids.chat_char_name_button, 20.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.chat_char_name_text, ui);
 
             // Language select drop down
             Text::new(&self.localized_strings.get("common.languages"))

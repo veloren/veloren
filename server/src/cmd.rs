@@ -1083,9 +1083,7 @@ fn handle_faction(
         let _ = ecs.write_storage().insert(client, mode.clone());
         if !msg.is_empty() {
             if let Some(uid) = ecs.read_storage().get(client) {
-                server
-                    .state
-                    .send_chat(mode.new_message(*uid, msg));
+                server.state.send_chat(mode.new_message(*uid, msg));
             }
         }
     } else {
@@ -1117,9 +1115,7 @@ fn handle_group(
         let _ = ecs.write_storage().insert(client, mode.clone());
         if !msg.is_empty() {
             if let Some(uid) = ecs.read_storage().get(client) {
-                server
-                    .state
-                    .send_chat(mode.new_message(*uid, msg));
+                server.state.send_chat(mode.new_message(*uid, msg));
             }
         }
     } else {
@@ -1153,9 +1149,7 @@ fn handle_region(
         .insert(client, mode.clone());
     if !msg.is_empty() {
         if let Some(uid) = server.state.ecs().read_storage().get(client) {
-            server
-                .state
-                .send_chat(mode.new_message(*uid, msg));
+            server.state.send_chat(mode.new_message(*uid, msg));
         }
     }
 }
@@ -1183,9 +1177,7 @@ fn handle_say(
         .insert(client, mode.clone());
     if !msg.is_empty() {
         if let Some(uid) = server.state.ecs().read_storage().get(client) {
-            server
-                .state
-                .send_chat(mode.new_message(*uid, msg));
+            server.state.send_chat(mode.new_message(*uid, msg));
         }
     }
 }
@@ -1213,9 +1205,7 @@ fn handle_world(
         .insert(client, mode.clone());
     if !msg.is_empty() {
         if let Some(uid) = server.state.ecs().read_storage().get(client) {
-            server
-                .state
-                .send_chat(mode.new_message(*uid, msg));
+            server.state.send_chat(mode.new_message(*uid, msg));
         }
     }
 }
