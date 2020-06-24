@@ -10,11 +10,11 @@ use common::{
     sync::{Uid, UidAllocator, WorldSyncExt},
     util::Dir,
 };
-use tracing::warn;
 use specs::{
     saveload::MarkerAllocator, Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder,
     Join, WorldExt,
 };
+use tracing::warn;
 use vek::*;
 
 pub trait StateExt {
@@ -212,6 +212,8 @@ impl StateExt for State {
 
     fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents) {
         let (body, stats, inventory, loadout) = components;
+        // Make sure physics are accepted.
+        self.write_component(entity, comp::ForceUpdate);
 
         // Notify clients of a player list update
         let client_uid = self

@@ -950,11 +950,11 @@ impl<'a> Widget for SettingsWindow<'a> {
                 self.imgs.checkbox,
                 self.imgs.checkbox_checked,
             )
-                .down_from(state.ids.speech_bubble_text, 10.0)
-                .w_h(18.0, 18.0)
-                .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
-                .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
-                .set(state.ids.speech_bubble_dark_mode_button, ui);
+            .down_from(state.ids.speech_bubble_text, 10.0)
+            .w_h(18.0, 18.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.speech_bubble_dark_mode_button, ui);
             if self.global_state.settings.gameplay.speech_bubble_dark_mode
                 != speech_bubble_dark_mode
             {
@@ -962,14 +962,14 @@ impl<'a> Widget for SettingsWindow<'a> {
             }
             Text::new(
                 &self
-                .localized_strings
-                .get("hud.settings.speech_bubble_dark_mode"),
+                    .localized_strings
+                    .get("hud.settings.speech_bubble_dark_mode"),
             )
-                .right_from(state.ids.speech_bubble_dark_mode_button, 10.0)
-                .font_size(self.fonts.cyri.scale(15))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.speech_bubble_dark_mode_text, ui);
+            .right_from(state.ids.speech_bubble_dark_mode_button, 10.0)
+            .font_size(self.fonts.cyri.scale(15))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.speech_bubble_dark_mode_text, ui);
             // Speech bubble icon
             let speech_bubble_icon = ToggleButton::new(
                 self.global_state.settings.gameplay.speech_bubble_icon,
@@ -981,8 +981,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
             .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
             .set(state.ids.speech_bubble_icon_button, ui);
-            if self.global_state.settings.gameplay.speech_bubble_icon != speech_bubble_icon
-            {
+            if self.global_state.settings.gameplay.speech_bubble_icon != speech_bubble_icon {
                 events.push(Event::SpeechBubbleIcon(speech_bubble_icon));
             }
             Text::new(
