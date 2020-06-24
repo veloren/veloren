@@ -18,10 +18,11 @@ fn derive_uuid(username: &str) -> Uuid {
 pub struct AuthProvider {
     accounts: HashMap<Uuid, String>,
     auth_server: Option<AuthClient>,
+    whitelist: Vec<String>,
 }
 
 impl AuthProvider {
-    pub fn new(auth_addr: Option<String>) -> Self {
+    pub fn new(auth_addr: Option<String>, whitelist: Vec<String>) -> Self {
         let auth_server = match auth_addr {
             Some(addr) => Some(AuthClient::new(addr)),
             None => None,
@@ -30,6 +31,7 @@ impl AuthProvider {
         AuthProvider {
             accounts: HashMap::new(),
             auth_server,
+            whitelist,
         }
     }
 
@@ -55,8 +57,13 @@ impl AuthProvider {
                 if self.accounts.contains_key(&uuid) {
                     return Err(RegisterError::AlreadyLoggedIn);
                 }
-                // Log in
                 let username = srv.uuid_to_username(uuid)?;
+                // Check if player is in whitelist
+                if self.whitelist.len() > 0 && !self.whitelist.contains(&username) {
+                    return Err(RegisterError::NotOnWhitelist);
+                }
+
+                // Log in
                 self.accounts.insert(uuid, username.clone());
                 Ok((username, uuid))
             },
