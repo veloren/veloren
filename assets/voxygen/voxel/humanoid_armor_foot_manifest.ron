@@ -52,5 +52,9 @@
             vox_spec: ("armor.foot.leather-2", (-2.5, -3.5, -2.0)),
             color: None
         ),
+        JackalopeSlips:(
+            vox_spec: ("armor.foot.jackalope_slippers", (-2.5, -3.5, -2.0)),
+            color: None
+        ),
     },
 ))

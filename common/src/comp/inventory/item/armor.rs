@@ -186,9 +186,10 @@ pub enum Foot {
     Cultist = 10,
     Steel0 = 11,
     Leather2 = 12,
+    JackalopeSlips = 13,
 }
 
-pub const ALL_FEET: [Foot; 12] = [
+pub const ALL_FEET: [Foot; 13] = [
     Foot::Dark,
     Foot::Sandal0,
     Foot::Jester,
@@ -201,6 +202,7 @@ pub const ALL_FEET: [Foot; 12] = [
     Foot::Cultist,
     Foot::Steel0,
     Foot::Leather2,
+    Foot::JackalopeSlips,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
