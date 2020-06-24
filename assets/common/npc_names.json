@@ -266,6 +266,18 @@
             "tiger": {
                 "keyword": "tiger",
                 "generic": "Tiger"
+            },
+            "wolf": {
+                "keyword": "wolf",
+                "generic": "Wolf"
+            },
+            "frostfang": {
+                "keyword": "frostfang",
+                "generic": "Frost Fang"
+            },
+            "mouflon": {
+                "keyword": "mouflon",
+                "generic": "Mouflon"
             }
         }
     },
