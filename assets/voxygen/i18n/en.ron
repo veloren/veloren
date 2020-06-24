@@ -138,6 +138,7 @@ https://account.veloren.net."#,
         "main.login.failed_sending_request": "Request to Auth server failed",
         "main.login.invalid_character": "The selected character is invalid",
         "main.login.client_crashed": "Client crashed",
+        "main.login.not_on_whitelist": "You are not on the whitelist. Contact Server Owner if you want to join.",
 
         /// End Main screen section
 

@@ -101,6 +101,7 @@ pub enum RegisterError {
     AlreadyLoggedIn,
     AuthError(String),
     InvalidCharacter,
+    NotOnWhitelist,
     //TODO: InvalidAlias,
 }
 

@@ -8,6 +8,7 @@ pub enum Error {
     ServerTimeout,
     ServerShutdown,
     TooManyPlayers,
+    NotOnWhitelist,
     AlreadyLoggedIn,
     AuthErr(String),
     AuthClientError(AuthClientError),

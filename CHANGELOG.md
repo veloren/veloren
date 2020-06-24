@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - M2 attack for bow
 - Hotbar persistence.
 - Alpha version Disclaimer
+- Server whitelist
 
 ### Changed
 
@@ -39,7 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed unable to use ability; Secondary and ability3 (fire rod) will now automatically wield
 - Gliding is now a toggle that can be triggered from the ground
 - Replaced `log` with `tracing` in all crates
-
 
 ### Removed
 
@@ -117,7 +117,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added dungeon arenas
 - Added dungeon bosses and rare boss loot
 - Added 2 sets of armour. One Steel and one Leather.
-
 
 ### Changed
 

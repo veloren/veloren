@@ -19,6 +19,7 @@ pub struct ServerSettings {
     pub server_description: String,
     pub start_time: f64,
     pub admins: Vec<String>,
+    pub whitelist: Vec<String>,
     /// When set to None, loads the default map file (if available); otherwise,
     /// uses the value of the file options to decide how to proceed.
     pub map_file: Option<FileOpts>,
@@ -58,6 +59,7 @@ impl Default for ServerSettings {
             .iter()
             .map(|n| n.to_string())
             .collect(),
+            whitelist: Vec::new(),
             persistence_db_dir: "saves".to_owned(),
         }
     }
