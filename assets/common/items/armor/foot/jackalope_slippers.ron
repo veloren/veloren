@@ -1,0 +1,8 @@
+Item(
+    name: "Fluffy Jackalope Slippers",
+    description: "So warm and cozy!\n\n<Right-Click to use>",
+    kind: Armor(
+        kind: Foot(JackalopeSlips),
+        stats: (20),
+    ),
+)
