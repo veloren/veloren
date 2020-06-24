@@ -258,7 +258,6 @@ fn attempt_login(
 ) {
     let mut net_settings = &mut global_state.settings.networking;
     net_settings.username = username.clone();
-    net_settings.password = password.clone();
     if !net_settings.servers.contains(&server_address) {
         net_settings.servers.push(server_address.clone());
     }
