@@ -205,9 +205,9 @@ impl PlayState for MainMenuState {
                     },
                     MainMenuEvent::Settings => {}, // TODO
                     MainMenuEvent::Quit => return PlayStateResult::Shutdown,
-                    MainMenuEvent::DisclaimerClosed => {
+                    /*MainMenuEvent::DisclaimerClosed => {
                         global_state.settings.show_disclaimer = false
-                    },
+                    },*/
                     MainMenuEvent::AuthServerTrust(auth_server, trust) => {
                         if trust {
                             global_state

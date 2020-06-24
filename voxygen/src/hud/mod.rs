@@ -129,8 +129,8 @@ widget_ids! {
         intro_check,
         intro_check_text,
 
-        // Test
-        bag_space_add,
+        // Alpha Disclaimer
+        alpha_text,
 
         // Debug
         debug_bg,
@@ -622,6 +622,14 @@ impl Hud {
                         .color(Some(Color::Rgba(1.0, 1.0, 1.0, hurt_fade)))
                         .set(self.ids.hurt_bg, ui_widgets);
                 }
+                // Alpha Disclaimer
+                Text::new(&format!("Veloren Pre-Alpha {}", env!("CARGO_PKG_VERSION")))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(self.fonts.cyri.scale(10))
+                    .color(TEXT_COLOR)
+                    .mid_top_with_margin_on(ui_widgets.window, 2.0)
+                    .set(self.ids.alpha_text, ui_widgets);
+
                 // Death Frame
                 if stats.is_dead {
                     Image::new(self.imgs.death_bg)

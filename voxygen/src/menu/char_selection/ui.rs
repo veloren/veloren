@@ -70,6 +70,9 @@ widget_ids! {
         deleting_character_text,
         character_error_message,
 
+        //Alpha Disclaimer
+        alpha_text,
+
         // REMOVE THIS AFTER IMPLEMENTATION
         daggers_grey,
         axe_grey,
@@ -704,6 +707,13 @@ impl CharSelectionUi {
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(TEXT_COLOR)
                     .set(self.ids.version, ui_widgets);
+                // Alpha Disclaimer
+                Text::new(&format!("Veloren Pre-Alpha {}", env!("CARGO_PKG_VERSION")))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(self.fonts.cyri.scale(10))
+                    .color(TEXT_COLOR)
+                    .mid_top_with_margin_on(ui_widgets.window, 2.0)
+                    .set(self.ids.alpha_text, ui_widgets);
 
                 // Resize character selection widgets
                 self.ids

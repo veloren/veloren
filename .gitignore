@@ -1,7 +1,5 @@
 # Rust
-
-/target/
-/*/target/
+target
 
 # Vim
 
