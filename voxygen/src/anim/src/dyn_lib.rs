@@ -7,6 +7,7 @@ use std::{
     thread,
     time::Duration,
 };
+use tracing::{error, warn};
 
 lazy_static! {
     pub static ref LIB: Mutex<Option<LoadedLib>> = Mutex::new(Some(LoadedLib::compile_load()));
@@ -29,9 +30,15 @@ impl LoadedLib {
 
     fn load() -> Self {
         #[cfg(target_os = "windows")]
-        let lib = Library::new("../target/debug/voxygen_anim_active.dll").unwrap();
+        let lib = Library::new("../target/debug/voxygen_anim_active.dll").expect(
+            "To use hot animation reloading you need to uncomment a line in \
+             `voxygen/src/anim/Cargo.toml`.",
+        );
         #[cfg(not(target_os = "windows"))]
-        let lib = Library::new("../target/debug/libvoxygen_anim.so").unwrap();
+        let lib = Library::new("../target/debug/libvoxygen_anim.so").expect(
+            "To use hot animation reloading you need to uncomment a line in \
+             `voxygen/src/anim/Cargo.toml`.",
+        );
 
         Self { lib }
     }
