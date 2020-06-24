@@ -872,11 +872,7 @@ impl Client {
                         self.state.ecs_mut().apply_entity_package(entity_package);
                     },
                     ServerMsg::DeleteEntity(entity) => {
-                        if self
-                            .state
-                            .read_component_cloned::<Uid>(self.entity)
-                            != Some(entity)
-                        {
+                        if self.state.read_component_cloned::<Uid>(self.entity) != Some(entity) {
                             self.state
                                 .ecs_mut()
                                 .delete_entity_and_clear_from_uid_allocator(entity.0);
@@ -1034,16 +1030,27 @@ impl Client {
         };
         let name_of_uid = |uid| {
             let ecs = self.state.ecs();
-            (&ecs.read_storage::<comp::Stats>(), &ecs.read_storage::<Uid>())
-                .join().find(|(_, u)| u == &uid).map(|(c, _)| c.name.clone())
+            (
+                &ecs.read_storage::<comp::Stats>(),
+                &ecs.read_storage::<Uid>(),
+            )
+                .join()
+                .find(|(_, u)| u == &uid)
+                .map(|(c, _)| c.name.clone())
         };
         let message_format = |uid, message, group| {
             let alias = alias_of_uid(uid);
-            let name = if character_name { name_of_uid(uid) } else { None };
+            let name = if character_name {
+                name_of_uid(uid)
+            } else {
+                None
+            };
             match (group, name) {
                 (Some(group), None) => format!("({}) [{}]: {}", group, alias, message),
                 (None, None) => format!("[{}]: {}", alias, message),
-                (Some(group), Some(name)) => format!("({}) [{}] {}: {}", group, alias, name, message),
+                (Some(group), Some(name)) => {
+                    format!("({}) [{}] {}: {}", group, alias, name, message)
+                },
                 (None, Some(name)) => format!("[{}] {}: {}", alias, name, message),
             }
         };
