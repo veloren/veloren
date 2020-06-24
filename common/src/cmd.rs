@@ -1,12 +1,12 @@
 use crate::{assets, comp, npc};
 use lazy_static::lazy_static;
-use tracing::warn;
 use std::{
     collections::HashMap,
     fmt::{self, Display},
     path::Path,
     str::FromStr,
 };
+use tracing::warn;
 
 /// Struct representing a command that a user can run from server chat.
 pub struct ChatCommandData {

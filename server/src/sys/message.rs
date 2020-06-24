@@ -5,8 +5,8 @@ use crate::{
 };
 use common::{
     comp::{
-        Admin, CanBuild, ChatMode, ChatMsg, ChatType, ControlEvent, Controller, ForceUpdate, Ori,
-        Player, Pos, Stats, Vel,
+        Admin, AdminList, CanBuild, ChatMode, ChatMsg, ChatType, ControlEvent, Controller,
+        ForceUpdate, Ori, Player, Pos, Stats, Vel,
     },
     event::{EventBus, ServerEvent},
     msg::{
@@ -34,7 +34,6 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, CharacterLoader>,
         ReadExpect<'a, TerrainGrid>,
         Write<'a, SysTimer<Self>>,
-        ReadStorage<'a, Admin>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, CanBuild>,
         ReadStorage<'a, ForceUpdate>,
@@ -42,6 +41,8 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, ChatMode>,
         WriteExpect<'a, AuthProvider>,
         Write<'a, BlockChange>,
+        ReadExpect<'a, AdminList>,
+        WriteStorage<'a, Admin>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
@@ -64,7 +65,6 @@ impl<'a> System<'a> for Sys {
             character_loader,
             terrain,
             mut timer,
-            admins,
             uids,
             can_build,
             force_updates,
@@ -72,6 +72,8 @@ impl<'a> System<'a> for Sys {
             chat_modes,
             mut accounts,
             mut block_changes,
+            admin_list,
+            mut admins,
             mut positions,
             mut velocities,
             mut orientations,
@@ -163,6 +165,7 @@ impl<'a> System<'a> for Sys {
                         let vd = view_distance
                             .map(|vd| vd.min(settings.max_view_distance.unwrap_or(vd)));
                         let player = Player::new(username, None, vd, uuid);
+                        let is_admin = admin_list.contains(&username);
 
                         if !player.is_valid() {
                             // Invalid player
@@ -174,6 +177,12 @@ impl<'a> System<'a> for Sys {
                             ClientState::Connected => {
                                 // Add Player component to this client
                                 let _ = players.insert(entity, player);
+
+                                // Give the Admin component to the player if their name exists in
+                                // admin list
+                                if is_admin {
+                                    let _ = admins.insert(entity, Admin);
+                                }
 
                                 // Tell the client its request was successful.
                                 client.allow_state(ClientState::Registered);
@@ -348,7 +357,11 @@ impl<'a> System<'a> for Sys {
                             Err(ChatMsgValidationError::TooLong) => {
                                 let max = MAX_BYTES_CHAT_MSG;
                                 let len = message.len();
-                                tracing::warn!(?len, ?max, "Recieved a chat message that's too long")
+                                tracing::warn!(
+                                    ?len,
+                                    ?max,
+                                    "Recieved a chat message that's too long"
+                                )
                             },
                         },
                         ClientState::Pending => {},

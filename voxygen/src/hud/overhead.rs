@@ -284,7 +284,11 @@ impl<'a> Widget for Overhead<'a> {
                 }
             }
             text_shadow.set(state.ids.speech_bubble_shadow, ui);
-            let icon = if self.settings.speech_bubble_icon { bubble_icon(&bubble, &self.imgs) } else { self.imgs.nothing };
+            let icon = if self.settings.speech_bubble_icon {
+                bubble_icon(&bubble, &self.imgs)
+            } else {
+                self.imgs.nothing
+            };
             Image::new(icon)
                 .w_h(16.0, 16.0)
                 .top_left_with_margin_on(state.ids.speech_bubble_text, -16.0)
