@@ -457,19 +457,15 @@ fn handle_tp(
     } else if client != target {
         Some(client)
     } else {
-        if client != target {
-            Some(client)
-        } else {
-            server.notify_client(
-                client,
-                ChatType::CommandError.server_msg("You must specify a player name"),
-            );
-            server.notify_client(
-                client,
-                ChatType::CommandError.server_msg(action.help_string()),
-            );
-            return;
-        }
+        server.notify_client(
+            client,
+            ChatType::CommandError.server_msg("You must specify a player name"),
+        );
+        server.notify_client(
+            client,
+            ChatType::CommandError.server_msg(action.help_string()),
+        );
+        return;
     };
     if let Some(_pos) = server.state.read_component_cloned::<comp::Pos>(target) {
         if let Some(player) = opt_player {
@@ -1089,7 +1085,7 @@ fn handle_faction(
             if let Some(uid) = ecs.read_storage().get(client) {
                 server
                     .state
-                    .send_chat(mode.new_message(*uid, msg.to_string()));
+                    .send_chat(mode.new_message(*uid, msg));
             }
         }
     } else {
@@ -1123,7 +1119,7 @@ fn handle_group(
             if let Some(uid) = ecs.read_storage().get(client) {
                 server
                     .state
-                    .send_chat(mode.new_message(*uid, msg.to_string()));
+                    .send_chat(mode.new_message(*uid, msg));
             }
         }
     } else {
@@ -1159,7 +1155,7 @@ fn handle_region(
         if let Some(uid) = server.state.ecs().read_storage().get(client) {
             server
                 .state
-                .send_chat(mode.new_message(*uid, msg.to_string()));
+                .send_chat(mode.new_message(*uid, msg));
         }
     }
 }
@@ -1189,7 +1185,7 @@ fn handle_say(
         if let Some(uid) = server.state.ecs().read_storage().get(client) {
             server
                 .state
-                .send_chat(mode.new_message(*uid, msg.to_string()));
+                .send_chat(mode.new_message(*uid, msg));
         }
     }
 }
@@ -1219,7 +1215,7 @@ fn handle_world(
         if let Some(uid) = server.state.ecs().read_storage().get(client) {
             server
                 .state
-                .send_chat(mode.new_message(*uid, msg.to_string()));
+                .send_chat(mode.new_message(*uid, msg));
         }
     }
 }

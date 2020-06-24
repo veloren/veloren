@@ -82,9 +82,10 @@ fn main() {
             },
         };
 
+        const SHOW_NAME: bool = false;
         for event in events {
             match event {
-                Event::Chat(m) => println!("{}", client.format_message(&m)),
+                Event::Chat(m) => println!("{}", client.format_message(&m, SHOW_NAME)),
                 Event::Disconnect => {}, // TODO
                 Event::DisconnectionNotification(time) => {
                     let message = match time {

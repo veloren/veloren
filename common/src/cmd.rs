@@ -443,7 +443,7 @@ impl FromStr for ChatCommand {
         if keyword.len() == 1 {
             if let Some(c) = keyword
                 .chars()
-                .nth(0)
+                .next()
                 .as_ref()
                 .and_then(|k| CHAT_SHORTCUTS.get(k))
             {

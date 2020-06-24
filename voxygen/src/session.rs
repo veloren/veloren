@@ -690,6 +690,10 @@ impl PlayState for SessionState {
                         global_state.settings.gameplay.chat_transp = chat_transp;
                         global_state.settings.save_to_file_warn();
                     },
+                    HudEvent::ChatCharName(chat_char_name) => {
+                        global_state.settings.gameplay.chat_character_name = chat_char_name;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::CrosshairType(crosshair_type) => {
                         global_state.settings.gameplay.crosshair_type = crosshair_type;
                         global_state.settings.save_to_file_warn();

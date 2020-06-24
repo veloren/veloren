@@ -327,12 +327,13 @@ impl<'a> Widget for Chat<'a> {
             });
         }
 
+        let show_char_name = self.global_state.settings.gameplay.chat_character_name;
         while let Some(item) = items.next(ui) {
             // This would be easier if conrod used the v-metrics from rusttype.
             if item.i < state.messages.len() {
                 let message = &state.messages[item.i];
                 let (color, icon) = render_chat_line(&message.chat_type, &self.imgs);
-                let msg = self.client.format_message(message);
+                let msg = self.client.format_message(message, show_char_name);
                 let text = Text::new(&msg)
                     .font_size(self.fonts.opensans.scale(15))
                     .font_id(self.fonts.opensans.conrod_id)

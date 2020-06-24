@@ -254,7 +254,7 @@ impl SpeechBubble {
     {
         match &self.message {
             SpeechBubbleMessage::Plain(m) => m.to_string(),
-            SpeechBubbleMessage::Localized(k, i) => i18n_variation(&k, *i).to_string(),
+            SpeechBubbleMessage::Localized(k, i) => i18n_variation(&k, *i),
         }
     }
 }

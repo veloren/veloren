@@ -120,7 +120,7 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
         let mut clients = ecs.write_storage::<Client>();
         if clients.get_mut(possesse).is_none() {
             if let Some(mut client) = clients.remove(possessor) {
-                client.notify(ServerMsg::SetPlayerEntity(possesse_uid.into()));
+                client.notify(ServerMsg::SetPlayerEntity(possesse_uid));
                 clients
                     .insert(possesse, client)
                     .err()
