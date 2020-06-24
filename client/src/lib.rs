@@ -233,6 +233,7 @@ impl Client {
                         RegisterError::AlreadyLoggedIn => Error::AlreadyLoggedIn,
                         RegisterError::AuthError(err) => Error::AuthErr(err),
                         RegisterError::InvalidCharacter => Error::InvalidCharacter,
+                        RegisterError::NotOnWhitelist => Error::NotOnWhitelist,
                     });
                 },
                 ServerMsg::StateAnswer(Ok(ClientState::Registered)) => break Ok(()),
