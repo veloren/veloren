@@ -256,6 +256,7 @@ pub enum Event {
     ChangeFluidMode(FluidMode),
     CrosshairTransp(f32),
     ChatTransp(f32),
+    ChatCharName(bool),
     CrosshairType(CrosshairType),
     ToggleXpBar(XpBar),
     Intro(Intro),
@@ -1661,6 +1662,9 @@ impl Hud {
                     },
                     settings_window::Event::ChatTransp(chat_transp) => {
                         events.push(Event::ChatTransp(chat_transp));
+                    },
+                    settings_window::Event::ChatCharName(chat_char_name) => {
+                        events.push(Event::ChatCharName(chat_char_name));
                     },
                     settings_window::Event::ToggleZoomInvert(zoom_inverted) => {
                         events.push(Event::ToggleZoomInvert(zoom_inverted));

@@ -875,7 +875,6 @@ impl Client {
                         if self
                             .state
                             .read_component_cloned::<Uid>(self.entity)
-                            .map(|u| u.into())
                             != Some(entity)
                         {
                             self.state
@@ -1020,7 +1019,8 @@ impl Client {
     }
     
     /// Format a message for the client (voxygen chat box or chat-cli)
-    pub fn format_message(&self, comp::ChatMsg { chat_type, message }: &comp::ChatMsg) -> String {
+    pub fn format_message(&self, msg: &comp::ChatMsg, character_name: bool) -> String {
+        let comp::ChatMsg { chat_type, message } = &msg;
         let alias_of_uid = |uid| {
             self.player_list
                 .get(uid)
@@ -1032,11 +1032,19 @@ impl Client {
                     }
                 })
         };
+        let name_of_uid = |uid| {
+            let ecs = self.state.ecs();
+            (&ecs.read_storage::<comp::Stats>(), &ecs.read_storage::<Uid>())
+                .join().find(|(_, u)| u == &uid).map(|(c, _)| c.name.clone())
+        };
         let message_format = |uid, message, group| {
-            if let Some(group) = group {
-                format!("({}) [{}]: {}", group, alias_of_uid(uid), message)
-            } else {
-                format!("[{}]: {}", alias_of_uid(uid), message)
+            let alias = alias_of_uid(uid);
+            let name = if character_name { name_of_uid(uid) } else { None };
+            match (group, name) {
+                (Some(group), None) => format!("({}) [{}]: {}", group, alias, message),
+                (None, None) => format!("[{}]: {}", alias, message),
+                (Some(group), Some(name)) => format!("({}) [{}] {}: {}", group, alias, name, message),
+                (None, Some(name)) => format!("[{}] {}: {}", alias, name, message),
             }
         };
         match chat_type {

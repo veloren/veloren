@@ -147,7 +147,7 @@ impl<'a> System<'a> for Sys {
                                     .map(|key| !regions.contains(key))
                                     .unwrap_or(true)
                                 {
-                                    client.notify(ServerMsg::DeleteEntity(uid.into()));
+                                    client.notify(ServerMsg::DeleteEntity(uid));
                                 }
                             }
                         }

@@ -53,9 +53,7 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
         state.read_storage::<Uid>().get(entity),
         state.read_storage::<comp::Player>().get(entity),
     ) {
-        state.notify_registered_clients(ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(
-            (*uid).into(),
-        )))
+        state.notify_registered_clients(ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(*uid)))
     }
 
     // Make sure to remove the player from the logged in list. (See AuthProvider)

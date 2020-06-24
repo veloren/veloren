@@ -137,6 +137,8 @@ widget_ids! {
         chat_transp_title,
         chat_transp_text,
         chat_transp_slider,
+        chat_char_name_text,
+        chat_char_name_button,
         sct_title,
         sct_show_text,
         sct_show_radio,
@@ -240,6 +242,7 @@ pub enum Event {
     CrosshairType(CrosshairType),
     UiScale(ScaleChange),
     ChatTransp(f32),
+    ChatCharName(bool),
     Sct(bool),
     SctPlayerBatch(bool),
     SctDamageBatch(bool),
@@ -1132,8 +1135,32 @@ impl<'a> Widget for SettingsWindow<'a> {
                 events.push(Event::ChatTransp(new_val));
             }
 
+            // "Show character names in chat" toggle button
+            let chat_char_name = ToggleButton::new(
+                self.global_state.settings.gameplay.chat_character_name,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
+            )
+            .w_h(18.0, 18.0)
+            .down_from(state.ids.chat_transp_slider, 20.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.chat_char_name_button, ui);
+            if self.global_state.settings.gameplay.chat_character_name != chat_char_name {
+                events.push(Event::ChatCharName(
+                    !self.global_state.settings.gameplay.chat_character_name,
+                ));
+            }
+            Text::new(&self.localized_strings.get("hud.settings.chat_character_name"))
+                .right_from(state.ids.chat_char_name_button, 20.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.chat_char_name_text, ui);
+
+            // Language select drop down
             Text::new(&self.localized_strings.get("common.languages"))
-                .down_from(state.ids.chat_transp_slider, 20.0)
+                .down_from(state.ids.chat_char_name_button, 20.0)
                 .font_size(self.fonts.cyri.scale(18))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)

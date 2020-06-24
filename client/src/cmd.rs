@@ -79,43 +79,40 @@ fn nth_word(line: &str, n: usize) -> Option<usize> {
     None
 }
 
-#[allow(clippy::chars_next_cmp)] // TODO: Pending review in #587
 pub fn complete(line: &str, client: &Client) -> Vec<String> {
     let word = if line.chars().last().map_or(true, char::is_whitespace) {
         ""
     } else {
         line.split_whitespace().last().unwrap_or("")
     };
-    if line.chars().next() == Some('/') {
+    if line.starts_with('/') {
         let mut iter = line.split_whitespace();
         let cmd = iter.next().unwrap();
         let i = iter.count() + if word.is_empty() { 1 } else { 0 };
         if i == 0 {
             // Completing chat command name
             complete_command(word)
-        } else {
-            if let Ok(cmd) = cmd.parse::<ChatCommand>() {
-                if let Some(arg) = cmd.data().args.get(i - 1) {
-                    // Complete ith argument
-                    arg.complete(word, &client)
-                } else {
-                    // Complete past the last argument
-                    match cmd.data().args.last() {
-                        Some(ArgumentSpec::SubCommand) => {
-                            if let Some(index) = nth_word(line, cmd.data().args.len()) {
-                                complete(&line[index..], &client)
-                            } else {
-                                vec![]
-                            }
-                        },
-                        Some(ArgumentSpec::Message(_)) => complete_player(word, &client),
-                        _ => vec![], // End of command. Nothing to complete
-                    }
-                }
+        } else if let Ok(cmd) = cmd.parse::<ChatCommand>() {
+            if let Some(arg) = cmd.data().args.get(i - 1) {
+                // Complete ith argument
+                arg.complete(word, &client)
             } else {
-                // Completing for unknown chat command
-                complete_player(word, &client)
+                // Complete past the last argument
+                match cmd.data().args.last() {
+                    Some(ArgumentSpec::SubCommand) => {
+                        if let Some(index) = nth_word(line, cmd.data().args.len()) {
+                            complete(&line[index..], &client)
+                        } else {
+                            vec![]
+                        }
+                    },
+                    Some(ArgumentSpec::Message(_)) => complete_player(word, &client),
+                    _ => vec![], // End of command. Nothing to complete
+                }
             }
+        } else {
+            // Completing for unknown chat command
+            complete_player(word, &client)
         }
     } else {
         // Not completing a command
