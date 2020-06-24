@@ -32,14 +32,15 @@ widget_ids! {
         bg,
         v_logo,
         alpha_version,
+        alpha_text,
         banner,
         banner_top,
         // Disclaimer
-        disc_window,
-        disc_text_1,
-        disc_text_2,
-        disc_button,
-        disc_scrollbar,
+        //disc_window,
+        //disc_text_1,
+        //disc_text_2,
+        //disc_button,
+        //disc_scrollbar,
         // Login, Singleplayer
         login_button,
         login_text,
@@ -87,9 +88,6 @@ image_ids! {
 
         info_frame: "voxygen.element.frames.info_frame_2",
 
-
-
-
         <ImageGraphic>
         bg: "voxygen.background.bg_main",
         banner_top: "voxygen.element.frames.banner_top",
@@ -99,8 +97,7 @@ image_ids! {
         button_hover: "voxygen.element.buttons.button_hover",
         button_press: "voxygen.element.buttons.button_press",
         input_bg: "voxygen.element.misc_bg.textbox_mid",
-        disclaimer: "voxygen.element.frames.disclaimer",
-
+        //disclaimer: "voxygen.element.frames.disclaimer",
 
 
         <BlankGraphic>
@@ -129,7 +126,7 @@ pub enum Event {
     StartSingleplayer,
     Quit,
     Settings,
-    DisclaimerClosed,
+    //DisclaimerClosed,
     AuthServerTrust(String, bool),
 }
 
@@ -156,7 +153,7 @@ pub struct MainMenuUi {
     connecting: Option<std::time::Instant>,
     connect: bool,
     show_servers: bool,
-    show_disclaimer: bool,
+    //show_disclaimer: bool,
     time: f32,
     bg_img_id: conrod_core::image::Id,
     voxygen_i18n: std::sync::Arc<VoxygenLocalization>,
@@ -224,7 +221,7 @@ impl MainMenuUi {
             show_servers: false,
             connect: false,
             time: 0.0,
-            show_disclaimer: global_state.settings.show_disclaimer,
+            //show_disclaimer: global_state.settings.show_disclaimer,
             bg_img_id,
             voxygen_i18n,
             fonts,
@@ -285,7 +282,13 @@ impl MainMenuUi {
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.version, ui_widgets);
-
+        // Alpha Disclaimer
+        Text::new(&format!("Veloren Pre-Alpha {}", env!("CARGO_PKG_VERSION")))
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(10))
+            .color(TEXT_COLOR)
+            .mid_top_with_margin_on(ui_widgets.window, 2.0)
+            .set(self.ids.alpha_text, ui_widgets);
         // Popup (Error/Info/AuthTrustPrompt)
         let mut change_popup = None;
         if let Some(PopupData { msg, popup_type }) = &self.popup {
@@ -423,7 +426,7 @@ impl MainMenuUi {
                 .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.95)))
                 .set(self.ids.v_logo, ui_widgets);
 
-            if self.show_disclaimer {
+            /*if self.show_disclaimer {
                 Image::new(self.imgs.disclaimer)
                     .w_h(1800.0, 800.0)
                     .middle_of(ui_widgets.window)
@@ -459,67 +462,67 @@ impl MainMenuUi {
                     self.show_disclaimer = false;
                     events.push(Event::DisclaimerClosed);
                 }
-            } else {
-                // TODO: Don't use macros for this?
-                // Input fields
-                // Used when the login button is pressed, or enter is pressed within input field
-                macro_rules! login {
-                    () => {
-                        self.connect = true;
-                        self.connecting = Some(std::time::Instant::now());
-                        self.popup = Some(PopupData {
-                            msg: [self.voxygen_i18n.get("main.connecting"), "..."].concat(),
-                            popup_type: PopupType::ConnectionInfo,
-                        });
+            } else {*/
+            // TODO: Don't use macros for this?
+            // Input fields
+            // Used when the login button is pressed, or enter is pressed within input field
+            macro_rules! login {
+                () => {
+                    self.connect = true;
+                    self.connecting = Some(std::time::Instant::now());
+                    self.popup = Some(PopupData {
+                        msg: [self.voxygen_i18n.get("main.connecting"), "..."].concat(),
+                        popup_type: PopupType::ConnectionInfo,
+                    });
 
-                        events.push(Event::LoginAttempt {
-                            username: self.username.clone(),
-                            password: self.password.clone(),
-                            server_address: self.server_address.clone(),
-                        });
-                    };
-                }
-                // Info Window
-                Rectangle::fill_with([550.0, 250.0], COL1)
-                    .top_left_with_margins_on(ui_widgets.window, 40.0, 40.0)
-                    .color(Color::Rgba(0.0, 0.0, 0.0, 0.95))
-                    .set(self.ids.info_frame, ui_widgets);
-                Image::new(self.imgs.banner_bottom)
-                    .mid_bottom_with_margin_on(self.ids.info_frame, -50.0)
-                    .w_h(550.0, 50.0)
-                    .color(Some(Color::Rgba(0.0, 0.0, 0.0, 0.95)))
-                    .set(self.ids.info_bottom, ui_widgets);
-                Text::new(intro_text)
-                    .top_left_with_margins_on(self.ids.info_frame, 15.0, 15.0)
-                    .font_size(self.fonts.cyri.scale(20))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(self.ids.info_text, ui_widgets);
+                    events.push(Event::LoginAttempt {
+                        username: self.username.clone(),
+                        password: self.password.clone(),
+                        server_address: self.server_address.clone(),
+                    });
+                };
+            }
+            // Info Window
+            Rectangle::fill_with([550.0, 250.0], COL1)
+                .top_left_with_margins_on(ui_widgets.window, 40.0, 40.0)
+                .color(Color::Rgba(0.0, 0.0, 0.0, 0.95))
+                .set(self.ids.info_frame, ui_widgets);
+            Image::new(self.imgs.banner_bottom)
+                .mid_bottom_with_margin_on(self.ids.info_frame, -50.0)
+                .w_h(550.0, 50.0)
+                .color(Some(Color::Rgba(0.0, 0.0, 0.0, 0.95)))
+                .set(self.ids.info_bottom, ui_widgets);
+            Text::new(intro_text)
+                .top_left_with_margins_on(self.ids.info_frame, 15.0, 15.0)
+                .font_size(self.fonts.cyri.scale(20))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(self.ids.info_text, ui_widgets);
 
-                // Singleplayer
-                // Used when the singleplayer button is pressed
-                #[cfg(feature = "singleplayer")]
-                macro_rules! singleplayer {
-                    () => {
-                        events.push(Event::StartSingleplayer);
-                        self.connect = true;
-                        self.connecting = Some(std::time::Instant::now());
-                        self.popup = Some(PopupData {
-                            msg: [self.voxygen_i18n.get("main.creating_world"), "..."].concat(),
-                            popup_type: PopupType::ConnectionInfo,
-                        });
-                    };
-                }
+            // Singleplayer
+            // Used when the singleplayer button is pressed
+            #[cfg(feature = "singleplayer")]
+            macro_rules! singleplayer {
+                () => {
+                    events.push(Event::StartSingleplayer);
+                    self.connect = true;
+                    self.connecting = Some(std::time::Instant::now());
+                    self.popup = Some(PopupData {
+                        msg: [self.voxygen_i18n.get("main.creating_world"), "..."].concat(),
+                        popup_type: PopupType::ConnectionInfo,
+                    });
+                };
+            }
 
-                // Username
-                Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.0))
-                    .mid_top_with_margin_on(self.ids.banner_top, 150.0)
-                    .set(self.ids.usrnm_bg, ui_widgets);
-                Image::new(self.imgs.input_bg)
-                    .w_h(338.0, 50.0)
-                    .middle_of(self.ids.usrnm_bg)
-                    .set(self.ids.username_bg, ui_widgets);
-                for event in TextBox::new(&self.username)
+            // Username
+            Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.0))
+                .mid_top_with_margin_on(self.ids.banner_top, 150.0)
+                .set(self.ids.usrnm_bg, ui_widgets);
+            Image::new(self.imgs.input_bg)
+                .w_h(338.0, 50.0)
+                .middle_of(self.ids.usrnm_bg)
+                .set(self.ids.username_bg, ui_widgets);
+            for event in TextBox::new(&self.username)
                     .w_h(290.0, 30.0)
                     .mid_bottom_with_margin_on(self.ids.username_bg, 14.0)
                     .font_size(self.fonts.cyri.scale(22))
@@ -529,26 +532,26 @@ impl MainMenuUi {
                     .color(TRANSPARENT)
                     .border_color(TRANSPARENT)
                     .set(self.ids.username_field, ui_widgets)
-                {
-                    match event {
-                        TextBoxEvent::Update(username) => {
-                            // Note: TextBox limits the input string length to what fits in it
-                            self.username = username.to_string();
-                        },
-                        TextBoxEvent::Enter => {
-                            login!();
-                        },
-                    }
+            {
+                match event {
+                    TextBoxEvent::Update(username) => {
+                        // Note: TextBox limits the input string length to what fits in it
+                        self.username = username.to_string();
+                    },
+                    TextBoxEvent::Enter => {
+                        login!();
+                    },
                 }
-                // Password
-                Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.0))
-                    .down_from(self.ids.usrnm_bg, 10.0)
-                    .set(self.ids.passwd_bg, ui_widgets);
-                Image::new(self.imgs.input_bg)
-                    .w_h(338.0, 50.0)
-                    .middle_of(self.ids.passwd_bg)
-                    .set(self.ids.password_bg, ui_widgets);
-                for event in TextBox::new(&self.password)
+            }
+            // Password
+            Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.0))
+                .down_from(self.ids.usrnm_bg, 10.0)
+                .set(self.ids.passwd_bg, ui_widgets);
+            Image::new(self.imgs.input_bg)
+                .w_h(338.0, 50.0)
+                .middle_of(self.ids.passwd_bg)
+                .set(self.ids.password_bg, ui_widgets);
+            for event in TextBox::new(&self.password)
                     .w_h(290.0, 30.0)
                     .mid_bottom_with_margin_on(self.ids.password_bg, 10.0)
                     // the text is smaller to allow longer passwords, conrod limits text length
@@ -561,48 +564,48 @@ impl MainMenuUi {
                     .border_color(TRANSPARENT)
                     .hide_text("*")
                     .set(self.ids.password_field, ui_widgets)
-                {
-                    match event {
-                        TextBoxEvent::Update(password) => {
-                            // Note: TextBox limits the input string length to what fits in it
-                            self.password = password;
-                        },
-                        TextBoxEvent::Enter => {
-                            self.password.pop();
-                            login!();
-                        },
-                    }
+            {
+                match event {
+                    TextBoxEvent::Update(password) => {
+                        // Note: TextBox limits the input string length to what fits in it
+                        self.password = password;
+                    },
+                    TextBoxEvent::Enter => {
+                        self.password.pop();
+                        login!();
+                    },
                 }
+            }
 
-                if self.show_servers {
-                    Image::new(self.imgs.info_frame)
-                        .mid_top_with_margin_on(self.ids.username_bg, -320.0)
-                        .w_h(400.0, 300.0)
-                        .set(self.ids.servers_frame, ui_widgets);
+            if self.show_servers {
+                Image::new(self.imgs.info_frame)
+                    .mid_top_with_margin_on(self.ids.username_bg, -320.0)
+                    .w_h(400.0, 300.0)
+                    .set(self.ids.servers_frame, ui_widgets);
 
-                    let ref mut net_settings = global_state.settings.networking;
+                let ref mut net_settings = global_state.settings.networking;
 
-                    // TODO: Draw scroll bar or remove it.
-                    let (mut items, _scrollbar) = List::flow_down(net_settings.servers.len())
-                        .top_left_with_margins_on(self.ids.servers_frame, 0.0, 5.0)
-                        .w_h(400.0, 300.0)
-                        .scrollbar_next_to()
-                        .scrollbar_thickness(18.0)
-                        .scrollbar_color(TEXT_COLOR)
-                        .set(self.ids.servers_text, ui_widgets);
+                // TODO: Draw scroll bar or remove it.
+                let (mut items, _scrollbar) = List::flow_down(net_settings.servers.len())
+                    .top_left_with_margins_on(self.ids.servers_frame, 0.0, 5.0)
+                    .w_h(400.0, 300.0)
+                    .scrollbar_next_to()
+                    .scrollbar_thickness(18.0)
+                    .scrollbar_color(TEXT_COLOR)
+                    .set(self.ids.servers_text, ui_widgets);
 
-                    while let Some(item) = items.next(ui_widgets) {
-                        let mut text = "".to_string();
-                        if &net_settings.servers[item.i] == &self.server_address {
-                            text.push_str("-> ")
-                        } else {
-                            text.push_str("  ")
-                        }
-                        text.push_str(&net_settings.servers[item.i]);
+                while let Some(item) = items.next(ui_widgets) {
+                    let mut text = "".to_string();
+                    if &net_settings.servers[item.i] == &self.server_address {
+                        text.push_str("-> ")
+                    } else {
+                        text.push_str("  ")
+                    }
+                    text.push_str(&net_settings.servers[item.i]);
 
-                        if item
-                            .set(
-                                Button::image(self.imgs.nothing)
+                    if item
+                        .set(
+                            Button::image(self.imgs.nothing)
                                     .w_h(100.0, 50.0)
                                     .mid_top_with_margin_on(self.ids.servers_frame, 10.0)
                                     //.hover_image(self.imgs.button_hover)
@@ -612,40 +615,40 @@ impl MainMenuUi {
                                     .label_font_size(self.fonts.cyri.scale(20))
                                     .label_font_id(self.fonts.cyri.conrod_id)
                                     .label_color(TEXT_COLOR),
-                                ui_widgets,
-                            )
-                            .was_clicked()
-                        {
-                            self.server_address = net_settings.servers[item.i].clone();
-                            net_settings.default_server = item.i;
-                        }
-                    }
-
-                    if Button::image(self.imgs.button)
-                        .w_h(200.0, 53.0)
-                        .mid_bottom_with_margin_on(self.ids.servers_frame, 5.0)
-                        .hover_image(self.imgs.button_hover)
-                        .press_image(self.imgs.button_press)
-                        .label_y(Relative::Scalar(2.0))
-                        .label(&self.voxygen_i18n.get("common.close"))
-                        .label_font_size(self.fonts.cyri.scale(20))
-                        .label_font_id(self.fonts.cyri.conrod_id)
-                        .label_color(TEXT_COLOR)
-                        .set(self.ids.servers_close, ui_widgets)
+                            ui_widgets,
+                        )
                         .was_clicked()
                     {
-                        self.show_servers = false
-                    };
+                        self.server_address = net_settings.servers[item.i].clone();
+                        net_settings.default_server = item.i;
+                    }
                 }
-                // Server address
-                Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.0))
-                    .down_from(self.ids.passwd_bg, 8.0)
-                    .set(self.ids.srvr_bg, ui_widgets);
-                Image::new(self.imgs.input_bg)
-                    .w_h(338.0, 50.0)
-                    .middle_of(self.ids.srvr_bg)
-                    .set(self.ids.address_bg, ui_widgets);
-                for event in TextBox::new(&self.server_address)
+
+                if Button::image(self.imgs.button)
+                    .w_h(200.0, 53.0)
+                    .mid_bottom_with_margin_on(self.ids.servers_frame, 5.0)
+                    .hover_image(self.imgs.button_hover)
+                    .press_image(self.imgs.button_press)
+                    .label_y(Relative::Scalar(2.0))
+                    .label(&self.voxygen_i18n.get("common.close"))
+                    .label_font_size(self.fonts.cyri.scale(20))
+                    .label_font_id(self.fonts.cyri.conrod_id)
+                    .label_color(TEXT_COLOR)
+                    .set(self.ids.servers_close, ui_widgets)
+                    .was_clicked()
+                {
+                    self.show_servers = false
+                };
+            }
+            // Server address
+            Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.0))
+                .down_from(self.ids.passwd_bg, 8.0)
+                .set(self.ids.srvr_bg, ui_widgets);
+            Image::new(self.imgs.input_bg)
+                .w_h(338.0, 50.0)
+                .middle_of(self.ids.srvr_bg)
+                .set(self.ids.address_bg, ui_widgets);
+            for event in TextBox::new(&self.server_address)
                     .w_h(290.0, 30.0)
                     .mid_top_with_margin_on(self.ids.address_bg, 8.0)
                     .font_size(self.fonts.cyri.scale(22))
@@ -655,19 +658,19 @@ impl MainMenuUi {
                     .color(TRANSPARENT)
                     .border_color(TRANSPARENT)
                     .set(self.ids.address_field, ui_widgets)
-                {
-                    match event {
-                        TextBoxEvent::Update(server_address) => {
-                            self.server_address = server_address.to_string();
-                        },
-                        TextBoxEvent::Enter => {
-                            login!();
-                        },
-                    }
+            {
+                match event {
+                    TextBoxEvent::Update(server_address) => {
+                        self.server_address = server_address.to_string();
+                    },
+                    TextBoxEvent::Enter => {
+                        login!();
+                    },
                 }
+            }
 
-                // Login button
-                if Button::image(self.imgs.button)
+            // Login button
+            if Button::image(self.imgs.button)
                     .hover_image(self.imgs.button_hover)
                     .press_image(self.imgs.button_press)
                     .w_h(258.0, 55.0)
@@ -687,50 +690,50 @@ impl MainMenuUi {
                     .tooltip_image(self.imgs.v_logo)*/
                     .set(self.ids.login_button, ui_widgets)
                     .was_clicked()
-                {
-                    login!();
-                }
+            {
+                login!();
+            }
 
-                // Singleplayer button
-                #[cfg(feature = "singleplayer")]
-                {
-                    if Button::image(self.imgs.button)
-                        .hover_image(self.imgs.button_hover)
-                        .press_image(self.imgs.button_press)
-                        .w_h(258.0, 55.0)
-                        .down_from(self.ids.login_button, 20.0)
-                        .align_middle_x_of(self.ids.address_bg)
-                        .label(&self.voxygen_i18n.get("common.singleplayer"))
-                        .label_font_id(self.fonts.cyri.conrod_id)
-                        .label_color(TEXT_COLOR)
-                        .label_font_size(self.fonts.cyri.scale(22))
-                        .label_y(Relative::Scalar(5.0))
-                        .label_x(Relative::Scalar(2.0))
-                        .set(self.ids.singleplayer_button, ui_widgets)
-                        .was_clicked()
-                    {
-                        singleplayer!();
-                    }
-                }
-                // Quit
+            // Singleplayer button
+            #[cfg(feature = "singleplayer")]
+            {
                 if Button::image(self.imgs.button)
-                    .w_h(190.0, 40.0)
-                    .bottom_left_with_margins_on(ui_widgets.window, 60.0, 30.0)
                     .hover_image(self.imgs.button_hover)
                     .press_image(self.imgs.button_press)
-                    .label(&self.voxygen_i18n.get("common.quit"))
+                    .w_h(258.0, 55.0)
+                    .down_from(self.ids.login_button, 20.0)
+                    .align_middle_x_of(self.ids.address_bg)
+                    .label(&self.voxygen_i18n.get("common.singleplayer"))
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(20))
-                    .label_y(Relative::Scalar(3.0))
-                    .set(self.ids.quit_button, ui_widgets)
+                    .label_font_size(self.fonts.cyri.scale(22))
+                    .label_y(Relative::Scalar(5.0))
+                    .label_x(Relative::Scalar(2.0))
+                    .set(self.ids.singleplayer_button, ui_widgets)
                     .was_clicked()
                 {
-                    events.push(Event::Quit);
+                    singleplayer!();
                 }
+            }
+            // Quit
+            if Button::image(self.imgs.button)
+                .w_h(190.0, 40.0)
+                .bottom_left_with_margins_on(ui_widgets.window, 60.0, 30.0)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
+                .label(&self.voxygen_i18n.get("common.quit"))
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .label_color(TEXT_COLOR)
+                .label_font_size(self.fonts.cyri.scale(20))
+                .label_y(Relative::Scalar(3.0))
+                .set(self.ids.quit_button, ui_widgets)
+                .was_clicked()
+            {
+                events.push(Event::Quit);
+            }
 
-                // Settings
-                if Button::image(self.imgs.button)
+            // Settings
+            if Button::image(self.imgs.button)
                     .w_h(190.0, 40.0)
                     .up_from(self.ids.quit_button, 8.0)
                     //.hover_image(self.imgs.button_hover)
@@ -742,27 +745,26 @@ impl MainMenuUi {
                     .label_y(Relative::Scalar(3.0))
                     .set(self.ids.settings_button, ui_widgets)
                     .was_clicked()
-                {
-                    events.push(Event::Settings);
-                }
-
-                // Servers
-                if Button::image(self.imgs.button)
-                    .w_h(190.0, 40.0)
-                    .up_from(self.ids.settings_button, 8.0)
-                    .hover_image(self.imgs.button_hover)
-                    .press_image(self.imgs.button_press)
-                    .label(&self.voxygen_i18n.get("common.servers"))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(20))
-                    .label_y(Relative::Scalar(3.0))
-                    .set(self.ids.servers_button, ui_widgets)
-                    .was_clicked()
-                {
-                    self.show_servers = !self.show_servers;
-                };
+            {
+                events.push(Event::Settings);
             }
+
+            // Servers
+            if Button::image(self.imgs.button)
+                .w_h(190.0, 40.0)
+                .up_from(self.ids.settings_button, 8.0)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
+                .label(&self.voxygen_i18n.get("common.servers"))
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .label_color(TEXT_COLOR)
+                .label_font_size(self.fonts.cyri.scale(20))
+                .label_y(Relative::Scalar(3.0))
+                .set(self.ids.servers_button, ui_widgets)
+                .was_clicked()
+            {
+                self.show_servers = !self.show_servers;
+            };
         }
 
         events
