@@ -72,7 +72,7 @@ authc = { git = "https://gitlab.com/veloren/auth.git", rev = "223a4097f7ebc8d451
 const-tweaker = { version = "0.2.5", optional = true }
 
 # Logging
-tracing = { version = "0.1", default-features = false }
+tracing = "0.1" 
 tracing-subscriber = { version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec" , "tracing-log"] }
 tracing-log = "0.1.1"
 tracing-appender = "0.1"
