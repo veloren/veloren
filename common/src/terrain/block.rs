@@ -74,6 +74,7 @@ pub enum BlockKind {
     TableLarge,
     TableSmall,
     Wardrobe,
+    LargeGrass,
 }
 
 impl BlockKind {
@@ -230,6 +231,7 @@ impl BlockKind {
             BlockKind::TableLarge => false,
             BlockKind::TableSmall => false,
             BlockKind::Wardrobe => false,
+            BlockKind::LargeGrass => false,
             _ => true,
         }
     }
