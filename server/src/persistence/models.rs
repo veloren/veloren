@@ -79,8 +79,8 @@ impl From<&Body> for comp::Body {
     }
 }
 
-/// `Stats` represents the stats for a character, which has a one-to-one
-/// relationship with Characters.
+/// `Stats` represents the stats for a character, and have a one-to-one
+/// relationship with `Character`.
 #[derive(Associations, AsChangeset, Identifiable, Queryable, Debug, Insertable)]
 #[belongs_to(Character)]
 #[primary_key(character_id)]
@@ -144,8 +144,8 @@ impl From<&comp::Stats> for StatsUpdate {
 /// Inventory storage and conversion. Inventories have a one-to-one relationship
 /// with characters.
 ///
-/// We store the players inventory as a single TEXT column which is serialised
-/// JSON representation of the Inventory component.
+/// We store inventory rows as a (character_id, json) tuples, where the json is
+/// a serialised Inventory component.
 #[derive(Associations, AsChangeset, Identifiable, Queryable, Debug, Insertable)]
 #[belongs_to(Character)]
 #[primary_key(character_id)]

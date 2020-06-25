@@ -1,3 +1,11 @@
+//! DB operations and schema migrations
+//!
+//! This code uses several [`Diesel ORM`](http://diesel.rs/) tools for DB operations:
+//! - [`diesel-migrations`](https://docs.rs/diesel_migrations/1.4.0/diesel_migrations/)
+//!   for managing table migrations
+//! - [`diesel-cli`](https://github.com/diesel-rs/diesel/tree/master/diesel_cli/)
+//!   for generating and testing migrations
+
 pub mod character;
 
 mod error;
@@ -16,6 +24,7 @@ use tracing::warn;
 // for the `embedded_migrations` call below.
 embed_migrations!();
 
+/// Runs any pending database migrations. This is executed during server startup
 pub fn run_migrations(db_dir: &str) -> Result<(), diesel_migrations::RunMigrationsError> {
     let db_dir = &apply_saves_dir_override(db_dir);
     let _ = fs::create_dir(format!("{}/", db_dir));
@@ -47,15 +56,13 @@ fn establish_connection(db_dir: &str) -> SqliteConnection {
     connection
 }
 
-#[allow(clippy::single_match)] // TODO: Pending review in #587
 fn apply_saves_dir_override(db_dir: &str) -> String {
     if let Some(saves_dir) = env::var_os("VELOREN_SAVES_DIR") {
         let path = PathBuf::from(saves_dir.clone());
         if path.exists() || path.parent().map(|x| x.exists()).unwrap_or(false) {
             // Only allow paths with valid unicode characters
-            match path.to_str() {
-                Some(path) => return path.to_owned(),
-                None => {},
+            if let Some(path) = path.to_str() {
+                return path.to_owned();
             }
         }
         warn!(?saves_dir, "VELOREN_SAVES_DIR points to an invalid path.");
