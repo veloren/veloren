@@ -14,7 +14,7 @@ world = { package = "veloren-world", path = "../world" }
 
 specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git" }
 
-tracing = { version = "0.1", default-features = false }
+tracing = { version = "0.1", default-features = true }
 specs = { version = "0.15.1", features = ["shred-derive"] }
 vek = "0.11.0"
 uvth = "3.1.1"
