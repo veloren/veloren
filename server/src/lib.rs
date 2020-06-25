@@ -43,9 +43,9 @@ use persistence::character::{CharacterLoader, CharacterLoaderResponseType, Chara
 use specs::{join::Join, Builder, Entity as EcsEntity, RunNow, SystemData, WorldExt};
 use std::{
     i32,
+    ops::{Deref, DerefMut},
     sync::Arc,
     time::{Duration, Instant},
-    ops::{Deref, DerefMut},
 };
 #[cfg(not(feature = "worldgen"))]
 use test_world::{World, WORLD_SIZE};
@@ -274,12 +274,12 @@ impl Server {
     }
 
     /// Get a reference to the server's settings
-    pub fn settings(&self) -> impl Deref<Target=ServerSettings> + '_ {
+    pub fn settings(&self) -> impl Deref<Target = ServerSettings> + '_ {
         self.state.ecs().fetch::<ServerSettings>()
     }
 
     /// Get a mutable reference to the server's settings
-    pub fn settings_mut(&mut self) -> impl DerefMut<Target=ServerSettings> + '_ {
+    pub fn settings_mut(&mut self) -> impl DerefMut<Target = ServerSettings> + '_ {
         self.state.ecs_mut().fetch_mut::<ServerSettings>()
     }
 
@@ -586,7 +586,7 @@ impl Server {
                 login_msg_sent: false,
             };
 
-            if self.state.ecs().fetch::<ServerSettings>().max_players
+            if self.settings().max_players
                 <= self.state.ecs().read_storage::<Client>().join().count()
             {
                 // Note: in this case the client is dropped

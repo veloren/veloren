@@ -1,8 +1,7 @@
 use super::SysTimer;
 use crate::{
     auth_provider::AuthProvider, client::Client, persistence::character::CharacterLoader,
-    ServerSettings,
-    CLIENT_TIMEOUT,
+    ServerSettings, CLIENT_TIMEOUT,
 };
 use common::{
     comp::{
@@ -249,10 +248,9 @@ impl<'a> System<'a> for Sys {
 
                                 // Give the player a welcome message
                                 if settings.server_description.len() > 0 {
-                                    client.notify(ServerMsg::broadcast(format!(
-                                        "{}",
-                                        settings.server_description
-                                    )));
+                                    client.notify(ServerMsg::broadcast(
+                                        settings.server_description.clone(),
+                                    ));
                                 }
 
                                 // Only send login message if it wasn't already

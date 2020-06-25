@@ -38,11 +38,7 @@ pub trait StateExt {
         projectile: comp::Projectile,
     ) -> EcsEntityBuilder;
     /// Insert common/default components for a new character joining the server
-    fn initialize_character_data(
-        &mut self,
-        entity: EcsEntity,
-        character_id: i32,
-    );
+    fn initialize_character_data(&mut self, entity: EcsEntity, character_id: i32);
     /// Update the components associated with the entity's current character.
     /// Performed after loading component data from the database
     fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents);
@@ -156,11 +152,7 @@ impl StateExt for State {
             .with(comp::Sticky)
     }
 
-    fn initialize_character_data(
-        &mut self,
-        entity: EcsEntity,
-        character_id: i32,
-    ) {
+    fn initialize_character_data(&mut self, entity: EcsEntity, character_id: i32) {
         let spawn_point = self.ecs().read_resource::<SpawnPoint>().0;
 
         self.write_component(entity, comp::Energy::new(1000));
