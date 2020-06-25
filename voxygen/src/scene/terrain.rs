@@ -109,11 +109,11 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             wind_sway: 0.1,
         }),
         BlockKind::PurpleFlower => Some(SpriteConfig {
-            variations: 4,
+            variations: 8,
             wind_sway: 0.1,
         }),
         BlockKind::RedFlower => Some(SpriteConfig {
-            variations: 4,
+            variations: 5,
             wind_sway: 0.1,
         }),
         BlockKind::WhiteFlower => Some(SpriteConfig {
@@ -141,13 +141,17 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             variations: 5,
             wind_sway: 0.1,
         }),
+        BlockKind::LargeGrass => Some(SpriteConfig {
+            variations: 3,
+            wind_sway: 0.5,
+        }),
 
         BlockKind::Apple => Some(SpriteConfig {
             variations: 1,
             wind_sway: 0.0,
         }),
         BlockKind::Mushroom => Some(SpriteConfig {
-            variations: 11,
+            variations: 17,
             wind_sway: 0.0,
         }),
         BlockKind::Liana => Some(SpriteConfig {
@@ -610,6 +614,38 @@ impl<V: RectRasterableVol> Terrain<V> {
                     ),
                 ),
                 (
+                    (BlockKind::PurpleFlower, 4),
+                    make_models(
+                        "voxygen.voxel.sprite.flowers.flower_purple-5",
+                        Vec3::new(-2.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::PurpleFlower, 5),
+                    make_models(
+                        "voxygen.voxel.sprite.flowers.flower_purple-6",
+                        Vec3::new(-4.5, -4.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::PurpleFlower, 6),
+                    make_models(
+                        "voxygen.voxel.sprite.flowers.flower_purple-7",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::PurpleFlower, 7),
+                    make_models(
+                        "voxygen.voxel.sprite.flowers.flower_purple-8",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
                     (BlockKind::RedFlower, 0),
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_red_1",
@@ -638,6 +674,14 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.flowers.flower_red-4",
                         Vec3::new(-6.5, -6.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::RedFlower, 4),
+                    make_models(
+                        "voxygen.voxel.sprite.flowers.flower_red-5",
+                        Vec3::new(-3.5, -3.5, 0.0),
                         Vec3::one(),
                     ),
                 ),
@@ -714,6 +758,30 @@ impl<V: RectRasterableVol> Terrain<V> {
                     ),
                 ),
                 // Grass
+                (
+                    (BlockKind::LargeGrass, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_large-0",
+                        Vec3::new(-2.0, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::LongGrass, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_large-1",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::LongGrass, 2),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_large-2",
+                        Vec3::new(-5.5, -5.0, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
                 (
                     (BlockKind::LongGrass, 0),
                     make_models(
@@ -935,6 +1003,54 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.mushrooms.mushroom-10",
                         Vec3::new(-6.0, -6.0, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::Mushroom, 11),
+                    make_models(
+                        "voxygen.voxel.sprite.mushrooms.mushroom-11",
+                        Vec3::new(-8.0, -8.0, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::Mushroom, 12),
+                    make_models(
+                        "voxygen.voxel.sprite.mushrooms.mushroom-12",
+                        Vec3::new(-5.0, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::Mushroom, 13),
+                    make_models(
+                        "voxygen.voxel.sprite.mushrooms.mushroom-13",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::Mushroom, 14),
+                    make_models(
+                        "voxygen.voxel.sprite.mushrooms.mushroom-14",
+                        Vec3::new(-2.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::Mushroom, 15),
+                    make_models(
+                        "voxygen.voxel.sprite.mushrooms.mushroom-15",
+                        Vec3::new(-1.5, -1.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::Mushroom, 16),
+                    make_models(
+                        "voxygen.voxel.sprite.mushrooms.mushroom-16",
+                        Vec3::new(-5.5, -5.5, 0.0),
                         Vec3::one(),
                     ),
                 ),
