@@ -16,8 +16,8 @@ use common::{
     },
     state::{BlockChange, Time},
     sync::Uid,
-    terrain::{Block, TerrainGrid, TerrainChunkSize},
-    vol::{Vox, RectVolSize},
+    terrain::{Block, TerrainChunkSize, TerrainGrid},
+    vol::{RectVolSize, Vox},
 };
 use hashbrown::HashMap;
 use specs::{
@@ -159,7 +159,8 @@ impl<'a> System<'a> for Sys {
                             Ok((username, uuid)) => (username, uuid),
                         };
 
-                        let vd = view_distance.map(|vd| vd.min(settings.max_view_distance.unwrap_or(vd)));
+                        let vd = view_distance
+                            .map(|vd| vd.min(settings.max_view_distance.unwrap_or(vd)));
                         let player = Player::new(username, None, vd, uuid);
 
                         if !player.is_valid() {
@@ -191,22 +192,36 @@ impl<'a> System<'a> for Sys {
 
                         // Limit view distance if it's too high
                         // This comes after state registration so that the client actually hears it
-                        if settings.max_view_distance.zip(view_distance).map(|(vd, max)| vd > max).unwrap_or(false) {
-                            client.notify(ServerMsg::SetViewDistance(settings.max_view_distance.unwrap_or(0)));
+                        if settings
+                            .max_view_distance
+                            .zip(view_distance)
+                            .map(|(vd, max)| vd > max)
+                            .unwrap_or(false)
+                        {
+                            client.notify(ServerMsg::SetViewDistance(
+                                settings.max_view_distance.unwrap_or(0),
+                            ));
                         };
                     },
                     ClientMsg::SetViewDistance(view_distance) => match client.client_state {
                         ClientState::Character { .. } => {
-                            if settings.max_view_distance.map(|max| view_distance <= max).unwrap_or(true) {
-                                players
-                                    .get_mut(entity)
-                                    .map(|player| player.view_distance = Some(
-                                        settings.max_view_distance
+                            if settings
+                                .max_view_distance
+                                .map(|max| view_distance <= max)
+                                .unwrap_or(true)
+                            {
+                                players.get_mut(entity).map(|player| {
+                                    player.view_distance = Some(
+                                        settings
+                                            .max_view_distance
                                             .map(|max| view_distance.min(max))
-                                            .unwrap_or(view_distance)
-                                    ));
+                                            .unwrap_or(view_distance),
+                                    )
+                                });
                             } else {
-                                client.notify(ServerMsg::SetViewDistance(settings.max_view_distance.unwrap_or(0)));
+                                client.notify(ServerMsg::SetViewDistance(
+                                    settings.max_view_distance.unwrap_or(0),
+                                ));
                             }
                         },
                         _ => {},
@@ -231,6 +246,14 @@ impl<'a> System<'a> for Sys {
                                     entity,
                                     character_id,
                                 });
+
+                                // Give the player a welcome message
+                                if settings.server_description.len() > 0 {
+                                    client.notify(ServerMsg::broadcast(format!(
+                                        "{}",
+                                        settings.server_description
+                                    )));
+                                }
 
                                 // Only send login message if it wasn't already
                                 // sent previously
@@ -345,7 +368,11 @@ impl<'a> System<'a> for Sys {
                                 players.get(entity).and_then(|p| p.view_distance),
                                 positions.get(entity),
                             ) {
-                                pos.0.xy().map(|e| e as f64).distance(key.map(|e| e as f64 + 0.5) * TerrainChunkSize::RECT_SIZE.map(|e| e as f64)) < (view_distance as f64 + 1.0) * TerrainChunkSize::RECT_SIZE.x as f64
+                                pos.0.xy().map(|e| e as f64).distance(
+                                    key.map(|e| e as f64 + 0.5)
+                                        * TerrainChunkSize::RECT_SIZE.map(|e| e as f64),
+                                ) < (view_distance as f64 + 1.5)
+                                    * TerrainChunkSize::RECT_SIZE.x as f64
                             } else {
                                 true
                             };
@@ -357,10 +384,10 @@ impl<'a> System<'a> for Sys {
                                             chunk: Ok(Box::new(chunk.clone())),
                                         })
                                     },
-                                    None => server_emitter.emit(ServerEvent::ChunkRequest(entity, key)),
+                                    None => {
+                                        server_emitter.emit(ServerEvent::ChunkRequest(entity, key))
+                                    },
                                 }
-                            } else {
-                                warn!("Not in VD!");
                             }
                         },
                         ClientState::Pending => {},

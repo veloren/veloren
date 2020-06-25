@@ -2,7 +2,7 @@
 //! To implement a new command, add an instance of `ChatCommand` to
 //! `CHAT_COMMANDS` and provide a handler function.
 
-use crate::{Server, StateExt};
+use crate::{Server, ServerSettings, StateExt};
 use chrono::{NaiveTime, Timelike};
 use common::{
     assets,
@@ -78,6 +78,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::KillNpcs => handle_kill_npcs,
         ChatCommand::Lantern => handle_lantern,
         ChatCommand::Light => handle_light,
+        ChatCommand::Motd => handle_motd,
         ChatCommand::Object => handle_object,
         ChatCommand::Players => handle_players,
         ChatCommand::RemoveLights => handle_remove_lights,
@@ -165,6 +166,33 @@ fn handle_give_item(
             client,
             ServerMsg::private(String::from(action.help_string())),
         );
+    }
+}
+
+fn handle_motd(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) {
+    match scan_fmt!(&args, &action.arg_fmt(), String) {
+        Ok(msg) => {
+            server
+                .state_mut()
+                .ecs_mut()
+                .fetch_mut::<ServerSettings>()
+                .server_description = msg.clone();
+            server.server_info.description = msg.clone();
+            server.notify_client(
+                client,
+                ServerMsg::private(format!("Server description set to \"{}\"", msg)),
+            );
+        },
+        Err(_) => server.notify_client(
+            client,
+            ServerMsg::broadcast(format!("{}", server.server_info.description)),
+        ),
     }
 }
 
