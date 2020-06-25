@@ -1,6 +1,6 @@
 #![deny(unsafe_code)]
 #![allow(clippy::option_map_unit_fn)]
-#![feature(drain_filter)]
+#![feature(drain_filter, option_zip)]
 
 pub mod auth_provider;
 pub mod chunk_generator;
@@ -83,8 +83,6 @@ pub struct Server {
     server_info: ServerInfo,
     metrics: ServerMetrics,
     tick_metrics: TickMetrics,
-
-    server_settings: ServerSettings,
 }
 
 impl Server {
@@ -93,6 +91,7 @@ impl Server {
     #[allow(clippy::needless_update)] // TODO: Pending review in #587
     pub fn new(settings: ServerSettings) -> Result<Self, Error> {
         let mut state = State::default();
+        state.ecs_mut().insert(settings.clone());
         state.ecs_mut().insert(EventBus::<ServerEvent>::default());
         state.ecs_mut().insert(AuthProvider::new(
             settings.auth_server_address.clone(),
@@ -247,13 +246,12 @@ impl Server {
             },
             metrics,
             tick_metrics,
-            server_settings: settings.clone(),
         };
 
         // Run pending DB migrations (if any)
         debug!("Running DB migrations...");
 
-        if let Some(e) = persistence::run_migrations(&this.server_settings.persistence_db_dir).err()
+        if let Some(e) = persistence::run_migrations(&settings.persistence_db_dir).err()
         {
             info!(?e, "Migration error");
         }
@@ -575,7 +573,7 @@ impl Server {
                 login_msg_sent: false,
             };
 
-            if self.server_settings.max_players
+            if self.state.ecs().fetch::<ServerSettings>().max_players
                 <= self.state.ecs().read_storage::<Client>().join().count()
             {
                 // Note: in this case the client is dropped

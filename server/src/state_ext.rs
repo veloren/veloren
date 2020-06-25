@@ -42,7 +42,6 @@ pub trait StateExt {
         &mut self,
         entity: EcsEntity,
         character_id: i32,
-        server_settings: &ServerSettings,
     );
     /// Update the components associated with the entity's current character.
     /// Performed after loading component data from the database
@@ -161,7 +160,6 @@ impl StateExt for State {
         &mut self,
         entity: EcsEntity,
         character_id: i32,
-        server_settings: &ServerSettings,
     ) {
         let spawn_point = self.ecs().read_resource::<SpawnPoint>().0;
 
@@ -192,7 +190,7 @@ impl StateExt for State {
             });
 
         // Give the Admin component to the player if their name exists in admin list
-        if server_settings.admins.contains(
+        if self.ecs().fetch::<ServerSettings>().admins.contains(
             &self
                 .ecs()
                 .read_storage::<comp::Player>()

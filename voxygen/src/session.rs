@@ -75,7 +75,7 @@ impl SessionState {
 
 impl SessionState {
     /// Tick the session (and the client attached to it).
-    fn tick(&mut self, dt: Duration) -> Result<TickAction, Error> {
+    fn tick(&mut self, dt: Duration, global_state: &mut GlobalState) -> Result<TickAction, Error> {
         self.inputs.tick(dt);
 
         for event in self.client.borrow_mut().tick(
@@ -106,6 +106,10 @@ impl SessionState {
                 client::Event::Notification(Notification::WaypointSaved) => {
                     self.hud
                         .new_message(client::Event::Notification(Notification::WaypointSaved));
+                },
+                client::Event::SetViewDistance(vd) => {
+                    global_state.settings.graphics.view_distance = vd;
+                    global_state.settings.save_to_file_warn();
                 },
             }
         }
@@ -535,7 +539,7 @@ impl PlayState for SessionState {
                 || !global_state.singleplayer.as_ref().unwrap().is_paused()
             {
                 // Perform an in-game tick.
-                match self.tick(clock.get_avg_delta()) {
+                match self.tick(clock.get_avg_delta(), global_state) {
                     Ok(TickAction::Continue) => {}, // Do nothing
                     Ok(TickAction::Disconnect) => return PlayStateResult::Pop, // Go to main menu
                     Err(err) => {

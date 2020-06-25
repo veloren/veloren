@@ -24,6 +24,7 @@ pub struct ServerSettings {
     /// uses the value of the file options to decide how to proceed.
     pub map_file: Option<FileOpts>,
     pub persistence_db_dir: String,
+    pub max_view_distance: Option<u32>,
 }
 
 impl Default for ServerSettings {
@@ -61,6 +62,7 @@ impl Default for ServerSettings {
             .collect(),
             whitelist: Vec::new(),
             persistence_db_dir: "saves".to_owned(),
+            max_view_distance: Some(30),
         }
     }
 }
