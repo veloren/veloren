@@ -251,8 +251,7 @@ impl Server {
         // Run pending DB migrations (if any)
         debug!("Running DB migrations...");
 
-        if let Some(e) = persistence::run_migrations(&settings.persistence_db_dir).err()
-        {
+        if let Some(e) = persistence::run_migrations(&settings.persistence_db_dir).err() {
             info!(?e, "Migration error");
         }
 
