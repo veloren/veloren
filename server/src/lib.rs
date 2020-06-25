@@ -45,6 +45,7 @@ use std::{
     i32,
     sync::Arc,
     time::{Duration, Instant},
+    ops::{Deref, DerefMut},
 };
 #[cfg(not(feature = "worldgen"))]
 use test_world::{World, WORLD_SIZE};
@@ -80,7 +81,6 @@ pub struct Server {
 
     thread_pool: ThreadPool,
 
-    server_info: ServerInfo,
     metrics: ServerMetrics,
     tick_metrics: TickMetrics,
 }
@@ -237,13 +237,6 @@ impl Server {
                 .name("veloren-worker".into())
                 .build(),
 
-            server_info: ServerInfo {
-                name: settings.server_name.clone(),
-                description: settings.server_description.clone(),
-                git_hash: common::util::GIT_HASH.to_string(),
-                git_date: common::util::GIT_DATE.to_string(),
-                auth_provider: settings.auth_server_address.clone(),
-            },
             metrics,
             tick_metrics,
         };
@@ -264,9 +257,30 @@ impl Server {
         Ok(this)
     }
 
+    pub fn get_server_info(&self) -> ServerInfo {
+        let settings = self.state.ecs().fetch::<ServerSettings>();
+        ServerInfo {
+            name: settings.server_name.clone(),
+            description: settings.server_description.clone(),
+            git_hash: common::util::GIT_HASH.to_string(),
+            git_date: common::util::GIT_DATE.to_string(),
+            auth_provider: settings.auth_server_address.clone(),
+        }
+    }
+
     pub fn with_thread_pool(mut self, thread_pool: ThreadPool) -> Self {
         self.thread_pool = thread_pool;
         self
+    }
+
+    /// Get a reference to the server's settings
+    pub fn settings(&self) -> impl Deref<Target=ServerSettings> + '_ {
+        self.state.ecs().fetch::<ServerSettings>()
+    }
+
+    /// Get a mutable reference to the server's settings
+    pub fn settings_mut(&mut self) -> impl DerefMut<Target=ServerSettings> + '_ {
+        self.state.ecs_mut().fetch_mut::<ServerSettings>()
     }
 
     /// Get a reference to the server's game state.
@@ -596,7 +610,7 @@ impl Server {
                         // Send client their entity
                         entity_package: TrackedComps::fetch(&self.state.ecs())
                             .create_entity_package(entity, None, None, None),
-                        server_info: self.server_info.clone(),
+                        server_info: self.get_server_info(),
                         time_of_day: *self.state.ecs().read_resource(),
                         world_map: (WORLD_SIZE.map(|e| e as u32), self.map.clone()),
                     });

@@ -98,8 +98,7 @@ impl ServerSettings {
         let s: &str = &ron::ser::to_string_pretty(self, ron::ser::PrettyConfig::default())
             .expect("Failed serialize settings.");
         config_file
-            .write_all(s.as_bytes())
-            .expect("Failed to write to config file.");
+            .write_all(s.as_bytes())?;
         Ok(())
     }
 
@@ -135,4 +134,12 @@ impl ServerSettings {
     }
 
     fn get_settings_path() -> PathBuf { PathBuf::from(r"server_settings.ron") }
+
+    pub fn edit<R>(&mut self, f: impl FnOnce(&mut Self) -> R) -> R {
+        let r = f(self);
+        self
+            .save_to_file()
+            .unwrap_or_else(|err| warn!("Failed to save settings: {:?}", err));
+        r
+    }
 }
