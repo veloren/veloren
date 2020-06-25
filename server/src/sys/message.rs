@@ -1,7 +1,7 @@
 use super::SysTimer;
 use crate::{
     auth_provider::AuthProvider, client::Client, persistence::character::CharacterLoader,
-    CLIENT_TIMEOUT,
+    ServerSettings, CLIENT_TIMEOUT,
 };
 use common::{
     comp::{
@@ -15,8 +15,8 @@ use common::{
     },
     state::{BlockChange, Time},
     sync::Uid,
-    terrain::{Block, TerrainGrid},
-    vol::Vox,
+    terrain::{Block, TerrainChunkSize, TerrainGrid},
+    vol::{RectVolSize, Vox},
 };
 use hashbrown::HashMap;
 use specs::{
@@ -49,6 +49,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Client>,
         WriteStorage<'a, Controller>,
         WriteStorage<'a, SpeechBubble>,
+        Read<'a, ServerSettings>,
     );
 
     #[allow(clippy::match_ref_pats)] // TODO: Pending review in #587
@@ -77,6 +78,7 @@ impl<'a> System<'a> for Sys {
             mut clients,
             mut controllers,
             mut speech_bubbles,
+            settings,
         ): Self::SystemData,
     ) {
         timer.start();
@@ -156,7 +158,9 @@ impl<'a> System<'a> for Sys {
                             Ok((username, uuid)) => (username, uuid),
                         };
 
-                        let player = Player::new(username, None, view_distance, uuid);
+                        let vd = view_distance
+                            .map(|vd| vd.min(settings.max_view_distance.unwrap_or(vd)));
+                        let player = Player::new(username, None, vd, uuid);
 
                         if !player.is_valid() {
                             // Invalid player
@@ -184,12 +188,40 @@ impl<'a> System<'a> for Sys {
                             _ => client.error_state(RequestStateError::Impossible),
                         }
                         //client.allow_state(ClientState::Registered);
+
+                        // Limit view distance if it's too high
+                        // This comes after state registration so that the client actually hears it
+                        if settings
+                            .max_view_distance
+                            .zip(view_distance)
+                            .map(|(vd, max)| vd > max)
+                            .unwrap_or(false)
+                        {
+                            client.notify(ServerMsg::SetViewDistance(
+                                settings.max_view_distance.unwrap_or(0),
+                            ));
+                        };
                     },
                     ClientMsg::SetViewDistance(view_distance) => match client.client_state {
                         ClientState::Character { .. } => {
-                            players
-                                .get_mut(entity)
-                                .map(|player| player.view_distance = Some(view_distance));
+                            if settings
+                                .max_view_distance
+                                .map(|max| view_distance <= max)
+                                .unwrap_or(true)
+                            {
+                                players.get_mut(entity).map(|player| {
+                                    player.view_distance = Some(
+                                        settings
+                                            .max_view_distance
+                                            .map(|max| view_distance.min(max))
+                                            .unwrap_or(view_distance),
+                                    )
+                                });
+                            } else {
+                                client.notify(ServerMsg::SetViewDistance(
+                                    settings.max_view_distance.unwrap_or(0),
+                                ));
+                            }
                         },
                         _ => {},
                     },
@@ -213,6 +245,13 @@ impl<'a> System<'a> for Sys {
                                     entity,
                                     character_id,
                                 });
+
+                                // Give the player a welcome message
+                                if settings.server_description.len() > 0 {
+                                    client.notify(ServerMsg::broadcast(
+                                        settings.server_description.clone(),
+                                    ));
+                                }
 
                                 // Only send login message if it wasn't already
                                 // sent previously
@@ -323,14 +362,30 @@ impl<'a> System<'a> for Sys {
                             client.error_state(RequestStateError::Impossible);
                         },
                         ClientState::Spectator | ClientState::Character => {
-                            match terrain.get_key(key) {
-                                Some(chunk) => {
-                                    client.postbox.send_message(ServerMsg::TerrainChunkUpdate {
-                                        key,
-                                        chunk: Ok(Box::new(chunk.clone())),
-                                    })
-                                },
-                                None => server_emitter.emit(ServerEvent::ChunkRequest(entity, key)),
+                            let in_vd = if let (Some(view_distance), Some(pos)) = (
+                                players.get(entity).and_then(|p| p.view_distance),
+                                positions.get(entity),
+                            ) {
+                                pos.0.xy().map(|e| e as f64).distance(
+                                    key.map(|e| e as f64 + 0.5)
+                                        * TerrainChunkSize::RECT_SIZE.map(|e| e as f64),
+                                ) < (view_distance as f64 + 1.5)
+                                    * TerrainChunkSize::RECT_SIZE.x as f64
+                            } else {
+                                true
+                            };
+                            if in_vd {
+                                match terrain.get_key(key) {
+                                    Some(chunk) => {
+                                        client.postbox.send_message(ServerMsg::TerrainChunkUpdate {
+                                            key,
+                                            chunk: Ok(Box::new(chunk.clone())),
+                                        })
+                                    },
+                                    None => {
+                                        server_emitter.emit(ServerEvent::ChunkRequest(entity, key))
+                                    },
+                                }
                             }
                         },
                         ClientState::Pending => {},

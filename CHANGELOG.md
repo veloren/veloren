@@ -10,25 +10,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added context-sensitive crosshair
-- Announce alias changes to all clients.
+- Announce alias changes to all clients
 - Dance animation
 - Speech bubbles appear when nearby players talk
 - NPCs call for help when attacked
 - Eyebrows and shapes can now be selected
-- Character name and level information to chat, social tab and `/players` command.
+- Character name and level information to chat, social tab and `/players` command
 - Added inventory, armour and weapon saving
 - Show where screenshots are saved to in the chat
 - Added basic auto walk
 - Added weapon/attack sound effects
 - M2 attack for bow
-- Hotbar persistence.
+- Hotbar persistence
 - Alpha version Disclaimer
 - Server whitelist
+- Optional server-side maximum view distance
+- MOTD on login
 
 ### Changed
 
 - Improved camera aiming
-- Made civsim, sites, etc. deterministic from the same seed.
+- Made civsim, sites, etc. deterministic from the same seed
 - Improved animations by adding orientation variation
 - new tail bone for quad_small body
 - slim the game size through lossless asset optimization
@@ -43,7 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- Wield requirement to swap loadout; fixes issue with unable swap loadout outside of combat.
+- Wield requirement to swap loadout; fixes issue with unable swap loadout outside of combat
 - Disclaimer wall of text on first startup
 
 ## [0.6.0] - 2020-05-16

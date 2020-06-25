@@ -78,10 +78,12 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::KillNpcs => handle_kill_npcs,
         ChatCommand::Lantern => handle_lantern,
         ChatCommand::Light => handle_light,
+        ChatCommand::Motd => handle_motd,
         ChatCommand::Object => handle_object,
         ChatCommand::Players => handle_players,
         ChatCommand::RemoveLights => handle_remove_lights,
         ChatCommand::SetLevel => handle_set_level,
+        ChatCommand::SetMotd => handle_set_motd,
         ChatCommand::Spawn => handle_spawn,
         ChatCommand::Sudo => handle_sudo,
         ChatCommand::Tell => handle_tell,
@@ -165,6 +167,46 @@ fn handle_give_item(
             client,
             ServerMsg::private(String::from(action.help_string())),
         );
+    }
+}
+
+fn handle_motd(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    _args: String,
+    _action: &ChatCommand,
+) {
+    server.notify_client(
+        client,
+        ServerMsg::broadcast(server.settings().server_description.clone()),
+    );
+}
+
+fn handle_set_motd(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) {
+    match scan_fmt!(&args, &action.arg_fmt(), String) {
+        Ok(msg) => {
+            server
+                .settings_mut()
+                .edit(|s| s.server_description = msg.clone());
+            server.notify_client(
+                client,
+                ServerMsg::private(format!("Server description set to \"{}\"", msg)),
+            );
+        },
+        Err(_) => {
+            server.settings_mut().edit(|s| s.server_description.clear());
+            server.notify_client(
+                client,
+                ServerMsg::private("Removed server description".to_string()),
+            );
+        },
     }
 }
 
