@@ -174,12 +174,12 @@ fn handle_motd(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    args: String,
-    action: &ChatCommand,
+    _args: String,
+    _action: &ChatCommand,
 ) {
     server.notify_client(
         client,
-        ServerMsg::broadcast(format!("{}", server.settings().server_description)),
+        ServerMsg::broadcast(server.settings().server_description.clone()),
     );
 }
 
@@ -201,12 +201,10 @@ fn handle_set_motd(
             );
         },
         Err(_) => {
-            server
-                .settings_mut()
-                .edit(|s| s.server_description.clear());
+            server.settings_mut().edit(|s| s.server_description.clear());
             server.notify_client(
                 client,
-                ServerMsg::broadcast("Removed server description".to_string()),
+                ServerMsg::private("Removed server description".to_string()),
             );
         },
     }

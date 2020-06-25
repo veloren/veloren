@@ -1,8 +1,4 @@
-use crate::{
-    sys,
-    Server,
-    StateExt,
-};
+use crate::{sys, Server, StateExt};
 use common::{
     comp::{
         self, Agent, Alignment, Body, Gravity, Item, ItemDrop, LightEmitter, Loadout, Pos,
@@ -22,7 +18,9 @@ pub fn handle_loaded_character_data(
     entity: EcsEntity,
     loaded_components: (comp::Body, comp::Stats, comp::Inventory, comp::Loadout),
 ) {
-    server.state.update_character_data(entity, loaded_components);
+    server
+        .state
+        .update_character_data(entity, loaded_components);
     sys::subscription::initialize_region_subscription(server.state.ecs(), entity);
 }
 

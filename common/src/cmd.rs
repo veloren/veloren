@@ -245,11 +245,7 @@ impl ChatCommand {
                 "Set player Level",
                 true,
             ),
-            ChatCommand::SetMotd => cmd(
-                vec![Message],
-                "Set the server description",
-                true,
-            ),
+            ChatCommand::SetMotd => cmd(vec![Message], "Set the server description", true),
             ChatCommand::Spawn => cmd(
                 vec![
                     Enum("alignment", ALIGNMENTS.clone(), Required),
