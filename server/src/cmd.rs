@@ -2,7 +2,7 @@
 //! To implement a new command, add an instance of `ChatCommand` to
 //! `CHAT_COMMANDS` and provide a handler function.
 
-use crate::{Server, ServerSettings, StateExt};
+use crate::{Server, StateExt};
 use chrono::{NaiveTime, Timelike};
 use common::{
     assets,
@@ -83,6 +83,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Players => handle_players,
         ChatCommand::RemoveLights => handle_remove_lights,
         ChatCommand::SetLevel => handle_set_level,
+        ChatCommand::SetMotd => handle_set_motd,
         ChatCommand::Spawn => handle_spawn,
         ChatCommand::Sudo => handle_sudo,
         ChatCommand::Tell => handle_tell,
@@ -176,23 +177,38 @@ fn handle_motd(
     args: String,
     action: &ChatCommand,
 ) {
+    server.notify_client(
+        client,
+        ServerMsg::broadcast(format!("{}", server.settings().server_description)),
+    );
+}
+
+fn handle_set_motd(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) {
     match scan_fmt!(&args, &action.arg_fmt(), String) {
         Ok(msg) => {
             server
-                .state_mut()
-                .ecs_mut()
-                .fetch_mut::<ServerSettings>()
-                .server_description = msg.clone();
-            server.server_info.description = msg.clone();
+                .settings_mut()
+                .edit(|s| s.server_description = msg.clone());
             server.notify_client(
                 client,
                 ServerMsg::private(format!("Server description set to \"{}\"", msg)),
             );
         },
-        Err(_) => server.notify_client(
-            client,
-            ServerMsg::broadcast(format!("{}", server.server_info.description)),
-        ),
+        Err(_) => {
+            server
+                .settings_mut()
+                .edit(|s| s.server_description.clear());
+            server.notify_client(
+                client,
+                ServerMsg::broadcast("Removed server description".to_string()),
+            );
+        },
     }
 }
 

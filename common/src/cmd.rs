@@ -48,6 +48,7 @@ pub enum ChatCommand {
     Players,
     RemoveLights,
     SetLevel,
+    SetMotd,
     Spawn,
     Sudo,
     Tell,
@@ -80,6 +81,7 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Players,
     ChatCommand::RemoveLights,
     ChatCommand::SetLevel,
+    ChatCommand::SetMotd,
     ChatCommand::Spawn,
     ChatCommand::Sudo,
     ChatCommand::Tell,
@@ -226,7 +228,7 @@ impl ChatCommand {
                 "Spawn entity with light",
                 true,
             ),
-            ChatCommand::Motd => cmd(vec![Message], "Set the server description", true),
+            ChatCommand::Motd => cmd(vec![Message], "View the server description", false),
             ChatCommand::Object => cmd(
                 vec![Enum("object", OBJECTS.clone(), Required)],
                 "Spawn an object",
@@ -241,6 +243,11 @@ impl ChatCommand {
             ChatCommand::SetLevel => cmd(
                 vec![Integer("level", 10, Required)],
                 "Set player Level",
+                true,
+            ),
+            ChatCommand::SetMotd => cmd(
+                vec![Message],
+                "Set the server description",
                 true,
             ),
             ChatCommand::Spawn => cmd(
@@ -303,6 +310,7 @@ impl ChatCommand {
             ChatCommand::Players => "players",
             ChatCommand::RemoveLights => "remove_lights",
             ChatCommand::SetLevel => "set_level",
+            ChatCommand::SetMotd => "set_motd",
             ChatCommand::Spawn => "spawn",
             ChatCommand::Sudo => "sudo",
             ChatCommand::Tell => "tell",
