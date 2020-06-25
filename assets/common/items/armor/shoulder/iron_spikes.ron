@@ -1,0 +1,8 @@
+Item(
+    name: "Iron Spiked Pauldrons",
+    description: "Iron shoulder pads with spikes attached.\n\n<Right-click to use>",
+    kind: Armor(
+        kind: Shoulder(IronSpikes),
+        stats: (20),
+    ),
+)

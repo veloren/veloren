@@ -571,11 +571,35 @@
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
     Armor(Shoulder(ClothPurple0)): VoxTrans(
-        "voxel.armor.shoulder.cloth_purple_right-1",
+        "voxel.armor.shoulder.cloth_purple_right-0",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
-     Armor(Shoulder(ClothPurple0)): VoxTrans(
-        "voxel.armor.shoulder.cloth_purple_right-0",
+     Armor(Shoulder(ClothBlue1)): VoxTrans(
+        "voxel.armor.shoulder.cloth_blue_right-1",
+        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
+    ),
+     Armor(Shoulder(IronSpikes)): VoxTrans(
+        "voxel.armor.shoulder.iron_spikes_right",
+        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
+    ),
+     Armor(Shoulder(IronLeather3)): VoxTrans(
+        "voxel.armor.shoulder.leather_iron_right-3",
+        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
+    ),
+     Armor(Shoulder(IronLeather2)): VoxTrans(
+        "voxel.armor.shoulder.leather_iron_right-2",
+        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
+    ),
+     Armor(Shoulder(IronLeather1)): VoxTrans(
+        "voxel.armor.shoulder.leather_iron_right-1",
+        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
+    ),
+     Armor(Shoulder(IronLeather0)): VoxTrans(
+        "voxel.armor.shoulder.leather_iron_right-0",
+        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
+    ),
+     Armor(Shoulder(LeatherStrips)): VoxTrans(
+        "voxel.armor.shoulder.leather_strips_right",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
     // Backs
