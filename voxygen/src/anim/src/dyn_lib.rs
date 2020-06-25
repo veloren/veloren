@@ -8,6 +8,7 @@ use std::{
     time::Duration,
 };
 
+use find_folder::Search;
 use std::{env, path::PathBuf};
 use tracing::{debug, error, info};
 
@@ -16,23 +17,23 @@ const COMPILED_FILE: &str = "voxygen_anim.dll";
 #[cfg(target_os = "windows")]
 const ACTIVE_FILE: &str = "voxygen_anim_active.dll";
 
-#[cfg(target_os = "macos")]
-const COMPILED_FILE: &str = "libvoxygen_anim.dylib";
-#[cfg(target_os = "macos")]
-const ACTIVE_FILE: &str = "libvoxygen_anim_active.dylib";
-
-#[cfg(all(not(target_os = "macos"), not(target_os = "windows")))]
+#[cfg(not(target_os = "windows"))]
 const COMPILED_FILE: &str = "libvoxygen_anim.so";
-#[cfg(all(not(target_os = "macos"), not(target_os = "windows")))]
+#[cfg(not(target_os = "windows"))]
 const ACTIVE_FILE: &str = "libvoxygen_anim_active.so";
 
 // This option is required as `hotreload()` moves the `LoadedLib`.
 lazy_static! {
-    pub static ref LIB: Mutex<Option<LoadedLib>> = Mutex::new(Some(LoadedLib::new()));
+    pub static ref LIB: Mutex<Option<LoadedLib>> = Mutex::new(Some(LoadedLib::compile_load()));
 }
 
-/// LoadedLib holds a loaded dynamic libary and the location of library file
-/// with the appropriate OS specific name i.e. `.dylib`, `.so` and `.dll`
+/// LoadedLib holds a loaded dynamic library and the location of library file
+/// with the appropriate OS specific name and extension i.e.
+/// `libvoxygen_anim_active.dylib`, `voxygen_anim_active.dll`.
+///
+/// # NOTE
+/// DOES NOT WORK ON MACOS, due to some limitations with hot-reloading the
+/// `.dylib`.
 pub struct LoadedLib {
     /// Loaded library.
     pub lib: Library,
@@ -40,13 +41,15 @@ pub struct LoadedLib {
     pub lib_path: PathBuf,
 }
 
-/// LoadedLib stored a loaded library and the path to it.
 impl LoadedLib {
-    /// Created a new LoadedLib
+    /// Compile and load the dynamic library
     ///
     /// This is necessary because the very first time you use hot reloading you
     /// wont have the library, so you can't load it until you have compiled it!
-    fn new() -> Self {
+    fn compile_load() -> Self {
+        #[cfg(target_os = "macos")]
+        error!("The hot reloading feature does not work on macos.");
+
         // Compile
         if !compile() {
             panic!("Animation compile failed.");
@@ -56,12 +59,10 @@ impl LoadedLib {
 
         copy(&LoadedLib::determine_path());
 
-        let lib = Self::load();
-
-        lib
+        Self::load()
     }
 
-    /// Load a LoadedLib.
+    /// Load a library from disk.
     ///
     /// Currently this is pretty fragile, it gets the path of where it thinks
     /// the dynamic library should be and tries to load it. It will panic if it
@@ -89,28 +90,33 @@ impl LoadedLib {
     fn determine_path() -> PathBuf {
         let current_exe = env::current_exe();
 
-        // If we got the current_exe, get it's parent. This is the target dir.
+        // If we got the current_exe, we need to go up a level and then down
+        // in to debug (in case we were in release or another build dir).
         let mut lib_path = match current_exe {
-            Ok(path) => {
-                let dir = path.parent().unwrap().parent().unwrap().to_path_buf();
-                debug!(
-                    ?dir,
-                    "Found the build directory above this executable to determine the dynamic \
-                     library's location."
-                );
+            Ok(mut path) => {
+                // Remove the filename to get the directory.
+                path.pop();
+
+                // Search for the debug directory.
+                let dir = Search::ParentsThenKids(1, 1)
+                    .of(path)
+                    .for_folder("debug")
+                    .expect(
+                        "Could not find the debug build directory relative to the current \
+                         executable.",
+                    );
+
+                debug!(?dir, "Found the debug build directory.");
                 dir
             },
             Err(e) => {
                 panic!(
                     "Could not determine the path of the current executable, this is needed to \
-                     hotreload the dynamic library that is located in the same path. {:?}",
+                     hotreload the dynamic library. {:?}",
                     e
                 );
             },
         };
-
-        // We are always looking for the debug build dir.
-        lib_path.push("debug");
 
         // Determine the platform specific path and push it onto our already
         // established target/debug dir.
@@ -126,6 +132,10 @@ impl LoadedLib {
 /// as it will watch the relative path `src/anim` for any changes to `.rs`
 /// files. Upon noticing changes it will wait a moment and then recompile.
 pub fn init() {
+    // Make sure first compile is done by accessing the lazy_static and then
+    // immediately dropping (because we don't actually need it).
+    drop(LIB.lock());
+
     // TODO: use crossbeam
     let (reload_send, reload_recv) = mpsc::channel();
 
@@ -148,7 +158,7 @@ pub fn init() {
 
             info!(
                 ?modified_paths,
-                "Hot reloading animations because src/anim files were modified."
+                "Hot reloading animations because files in `src/anim` modified."
             );
 
             hotreload();
@@ -177,7 +187,7 @@ fn event_fn(res: notify::Result<notify::Event>, sender: &mpsc::Sender<String>) {
             },
             _ => {},
         },
-        Err(e) => error!(?e, "Animation hotreload watcher error"),
+        Err(e) => error!(?e, "Animation hotreload watcher error."),
     }
 }
 
@@ -186,15 +196,14 @@ fn event_fn(res: notify::Result<notify::Event>, sender: &mpsc::Sender<String>) {
 /// This will reload the dynamic library by first internally calling compile
 /// and then reloading the library.
 fn hotreload() {
-    // Stop if recompile failed.
+    // Do nothing if recompile failed.
     if compile() {
         let mut lock = LIB.lock().unwrap();
 
         // Close lib.
-        lock.take().map(|loaded_lib| {
-            loaded_lib.lib.close().unwrap();
-            copy(&loaded_lib.lib_path);
-        });
+        let loaded_lib = lock.take().unwrap();
+        loaded_lib.lib.close().unwrap();
+        copy(&loaded_lib.lib_path);
 
         // Open new lib.
         *lock = Some(LoadedLib::load());
@@ -224,11 +233,13 @@ fn compile() -> bool {
 /// We do this for all OS's although it is only strictly necessary for windows.
 /// The reason we do this is to make the code easier to understand and debug.
 fn copy(lib_path: &PathBuf) {
+    // Use the platform specific names.
     let lib_compiled_path = lib_path.with_file_name(COMPILED_FILE);
     let lib_output_path = lib_path.with_file_name(ACTIVE_FILE);
 
     // Get the path to where the lib was compiled to.
     debug!(?lib_compiled_path, ?lib_output_path, "Moving.");
+
     // Copy the library file from where it is output, to where we are going to
     // load it from i.e. lib_path.
     std::fs::copy(lib_compiled_path, lib_output_path).expect("Failed to rename dynamic library.");
