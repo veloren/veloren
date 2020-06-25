@@ -1,0 +1,8 @@
+Item(
+    name: "Iron and Leather Spaulders",
+    description: "Robust spaulders made from iron and leather.\n\n<Right-click to use>",
+    kind: Armor(
+        kind: Shoulder(IronLeather1),
+        stats: (20),
+    ),
+)
