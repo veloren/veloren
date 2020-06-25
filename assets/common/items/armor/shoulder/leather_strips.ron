@@ -1,0 +1,8 @@
+Item(
+    name: "Leather Strips",
+    description: "Shoulder wraps made from leather strips.\n\n<Right-click to use.>",
+    kind: Armor(
+        kind: Shoulder(LeatherStrips),
+        stats: (20),
+    ),
+)
