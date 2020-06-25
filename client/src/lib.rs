@@ -62,6 +62,7 @@ pub enum Event {
     Disconnect,
     DisconnectionNotification(u64),
     Notification(Notification),
+    SetViewDistance(u32),
 }
 
 pub struct Client {
@@ -923,6 +924,10 @@ impl Client {
                     ServerMsg::CharacterDataLoadError(error) => {
                         self.clean_state();
                         self.character_list.error = Some(error);
+                    },
+                    ServerMsg::SetViewDistance(vd) => {
+                        self.view_distance = Some(vd);
+                        frontend_events.push(Event::SetViewDistance(vd));
                     },
                 }
             }

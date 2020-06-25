@@ -87,6 +87,7 @@ pub enum ServerMsg {
     TooManyPlayers,
     /// Send a popup notification such as "Waypoint Saved"
     Notification(Notification),
+    SetViewDistance(u32),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
