@@ -7,48 +7,125 @@ use std::{
     thread,
     time::Duration,
 };
-use tracing::{error, warn};
 
+use std::{env, path::PathBuf};
+use tracing::{debug, error, info};
+
+#[cfg(target_os = "windows")]
+const COMPILED_FILE: &str = "voxygen_anim.dll";
+#[cfg(target_os = "windows")]
+const ACTIVE_FILE: &str = "voxygen_anim_active.dll";
+
+#[cfg(target_os = "macos")]
+const COMPILED_FILE: &str = "libvoxygen_anim.dylib";
+#[cfg(target_os = "macos")]
+const ACTIVE_FILE: &str = "libvoxygen_anim_active.dylib";
+
+#[cfg(all(not(target_os = "macos"), not(target_os = "windows")))]
+const COMPILED_FILE: &str = "libvoxygen_anim.so";
+#[cfg(all(not(target_os = "macos"), not(target_os = "windows")))]
+const ACTIVE_FILE: &str = "libvoxygen_anim_active.so";
+
+// This option is required as `hotreload()` moves the `LoadedLib`.
 lazy_static! {
-    pub static ref LIB: Mutex<Option<LoadedLib>> = Mutex::new(Some(LoadedLib::compile_load()));
+    pub static ref LIB: Mutex<Option<LoadedLib>> = Mutex::new(Some(LoadedLib::new()));
 }
 
+/// LoadedLib holds a loaded dynamic libary and the location of library file
+/// with the appropriate OS specific name i.e. `.dylib`, `.so` and `.dll`
 pub struct LoadedLib {
+    /// Loaded library.
     pub lib: Library,
+    /// Path to the library.
+    pub lib_path: PathBuf,
 }
 
+/// LoadedLib stored a loaded library and the path to it.
 impl LoadedLib {
-    fn compile_load() -> Self {
+    /// Created a new LoadedLib
+    ///
+    /// This is necessary because the very first time you use hot reloading you
+    /// wont have the library, so you can't load it until you have compiled it!
+    fn new() -> Self {
         // Compile
-        compile();
+        if !compile() {
+            panic!("Animation compile failed.");
+        } else {
+            info!("Animation compile succeeded.");
+        }
 
-        #[cfg(target_os = "windows")]
-        copy();
+        copy(&LoadedLib::determine_path());
 
-        Self::load()
+        let lib = Self::load();
+
+        lib
     }
 
+    /// Load a LoadedLib.
+    ///
+    /// Currently this is pretty fragile, it gets the path of where it thinks
+    /// the dynamic library should be and tries to load it. It will panic if it
+    /// is missing.
     fn load() -> Self {
-        #[cfg(target_os = "windows")]
-        let lib = Library::new("../target/debug/voxygen_anim_active.dll").expect(
-            "To use hot animation reloading you need to uncomment a line in \
-             `voxygen/src/anim/Cargo.toml`.",
-        );
-        #[cfg(not(target_os = "windows"))]
-        let lib = Library::new("../target/debug/libvoxygen_anim.so").expect(
-            "To use hot animation reloading you need to uncomment a line in \
-             `voxygen/src/anim/Cargo.toml`.",
-        );
+        let lib_path = LoadedLib::determine_path();
 
-        Self { lib }
+        // Try to load the library.
+        let lib = match Library::new(lib_path.clone()) {
+            Ok(lib) => lib,
+            Err(e) => panic!(
+                "Tried to load dynamic library from {:?}, but it could not be found. The first \
+                 reason might be that you need to uncomment a line in \
+                 `voxygen/src/anim/Cargo.toml` to build the library required for hot reloading. \
+                 The second is we may require a special case for your OS so we can find it. {:?}",
+                lib_path, e
+            ),
+        };
+
+        Self { lib, lib_path }
+    }
+
+    /// Determine the path to the dynamic library based on the path of the
+    /// current executable.
+    fn determine_path() -> PathBuf {
+        let current_exe = env::current_exe();
+
+        // If we got the current_exe, get it's parent. This is the target dir.
+        let mut lib_path = match current_exe {
+            Ok(path) => {
+                let dir = path.parent().unwrap().parent().unwrap().to_path_buf();
+                debug!(
+                    ?dir,
+                    "Found the build directory above this executable to determine the dynamic \
+                     library's location."
+                );
+                dir
+            },
+            Err(e) => {
+                panic!(
+                    "Could not determine the path of the current executable, this is needed to \
+                     hotreload the dynamic library that is located in the same path. {:?}",
+                    e
+                );
+            },
+        };
+
+        // We are always looking for the debug build dir.
+        lib_path.push("debug");
+
+        // Determine the platform specific path and push it onto our already
+        // established target/debug dir.
+        lib_path.push(ACTIVE_FILE);
+
+        lib_path
     }
 }
 
-// Starts up watcher
+/// Initialise a watcher.
+///
+/// The assumption is that this is run from the voxygen crate's root directory
+/// as it will watch the relative path `src/anim` for any changes to `.rs`
+/// files. Upon noticing changes it will wait a moment and then recompile.
 pub fn init() {
-    // Make sure first compile is done
-    drop(LIB.lock());
-
     // TODO: use crossbeam
     let (reload_send, reload_recv) = mpsc::channel();
 
@@ -69,13 +146,12 @@ pub fn init() {
                 modified_paths.insert(path);
             }
 
-            warn!(
+            info!(
                 ?modified_paths,
-                "Hot reloading animations because these files were modified"
+                "Hot reloading animations because src/anim files were modified."
             );
 
-            // Reload
-            reload();
+            hotreload();
         }
     });
 
@@ -83,8 +159,10 @@ pub fn init() {
     std::mem::forget(watcher);
 }
 
-// Recompiles and hotreloads the lib if the source has been changed
-// Note: designed with voxygen dir as working dir, could be made more flexible
+/// Event function to hotreload the dynamic library
+///
+/// This is called by the watcher to filter for modify events on `.rs` files
+/// before sending them back.
 fn event_fn(res: notify::Result<notify::Event>, sender: &mpsc::Sender<String>) {
     match res {
         Ok(event) => match event.kind {
@@ -99,33 +177,35 @@ fn event_fn(res: notify::Result<notify::Event>, sender: &mpsc::Sender<String>) {
             },
             _ => {},
         },
-        Err(e) => error!("Animation hotreload watcher error: {:?}", e),
+        Err(e) => error!(?e, "Animation hotreload watcher error"),
     }
 }
 
-fn reload() {
-    // Stop if recompile failed
-    if !compile() {
-        return;
+/// Hotreload the dynamic library
+///
+/// This will reload the dynamic library by first internally calling compile
+/// and then reloading the library.
+fn hotreload() {
+    // Stop if recompile failed.
+    if compile() {
+        let mut lock = LIB.lock().unwrap();
+
+        // Close lib.
+        lock.take().map(|loaded_lib| {
+            loaded_lib.lib.close().unwrap();
+            copy(&loaded_lib.lib_path);
+        });
+
+        // Open new lib.
+        *lock = Some(LoadedLib::load());
+
+        info!("Updated animations.");
     }
-
-    let mut lock = LIB.lock().unwrap();
-
-    // Close lib
-    lock.take().unwrap().lib.close().unwrap();
-
-    // Rename lib file on windows
-    // Called after closing lib so file will be unlocked
-    #[cfg(target_os = "windows")]
-    copy();
-
-    // Open new lib
-    *lock = Some(LoadedLib::load());
-
-    warn!("Updated animations");
 }
 
-// Returns false if compile failed
+/// Recompile the anim package
+///
+/// Returns `false` if the compile failed.
 fn compile() -> bool {
     let output = Command::new("cargo")
         .stderr(Stdio::inherit())
@@ -136,23 +216,20 @@ fn compile() -> bool {
         .output()
         .unwrap();
 
-    // If compile failed
-    if !output.status.success() {
-        error!("Failed to compile anim crate");
-        false
-    } else {
-        warn!("Animation recompile success!!");
-        true
-    }
+    output.status.success()
 }
 
-// Copy lib file if on windows since loading the lib locks the file blocking
-// future compilation
-#[cfg(target_os = "windows")]
-fn copy() {
-    std::fs::copy(
-        "../target/debug/voxygen_anim.dll",
-        "../target/debug/voxygen_anim_active.dll",
-    )
-    .expect("Failed to rename animations dll");
+/// Copy the lib file, so we have an `_active` copy.
+///
+/// We do this for all OS's although it is only strictly necessary for windows.
+/// The reason we do this is to make the code easier to understand and debug.
+fn copy(lib_path: &PathBuf) {
+    let lib_compiled_path = lib_path.with_file_name(COMPILED_FILE);
+    let lib_output_path = lib_path.with_file_name(ACTIVE_FILE);
+
+    // Get the path to where the lib was compiled to.
+    debug!(?lib_compiled_path, ?lib_output_path, "Moving.");
+    // Copy the library file from where it is output, to where we are going to
+    // load it from i.e. lib_path.
+    std::fs::copy(lib_compiled_path, lib_output_path).expect("Failed to rename dynamic library.");
 }
