@@ -1,3 +1,10 @@
+//! Database operations related to character data
+//!
+//! Methods in this module should remain private - database updates and loading
+//! are communicated via requests to the [`CharacterLoader`] and
+//! [`CharacterUpdater`] while results/responses are polled and handled each
+//! server tick.
+
 extern crate diesel;
 
 use super::{
@@ -14,26 +21,225 @@ use common::{
     character::{Character as CharacterData, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
     LoadoutBuilder,
 };
-use crossbeam::channel;
+use crossbeam::{channel, channel::TryIter};
 use diesel::prelude::*;
 use tracing::{error, warn};
 
+type CharacterLoaderRequest = (specs::Entity, CharacterLoaderRequestKind);
+
+/// Available database operations when modifying a player's characetr list
+enum CharacterLoaderRequestKind {
+    CreateCharacter {
+        player_uuid: String,
+        character_alias: String,
+        character_tool: Option<String>,
+        body: comp::Body,
+    },
+    DeleteCharacter {
+        player_uuid: String,
+        character_id: i32,
+    },
+    LoadCharacterList {
+        player_uuid: String,
+    },
+    LoadCharacterData {
+        player_uuid: String,
+        character_id: i32,
+    },
+}
+
+/// A tuple of the components that are persisted to the DB for each character
+pub type PersistedComponents = (comp::Body, comp::Stats, comp::Inventory, comp::Loadout);
+
 type CharacterListResult = Result<Vec<CharacterItem>, Error>;
+type CharacterDataResult = Result<PersistedComponents, Error>;
+
+/// Wrapper for results for character actions. Can be a list of
+/// characters, or component data belonging to an individual character
+#[derive(Debug)]
+pub enum CharacterLoaderResponseType {
+    CharacterList(CharacterListResult),
+    CharacterData(Box<CharacterDataResult>),
+}
+
+/// Common message format dispatched in response to an update request
+#[derive(Debug)]
+pub struct CharacterLoaderResponse {
+    pub entity: specs::Entity,
+    pub result: CharacterLoaderResponseType,
+}
+
+/// A bi-directional messaging resource for making requests to modify or load
+/// character data in a background thread.
+///
+/// This is used on the character selection screen, and after character
+/// selection when loading the components associated with a character.
+///
+/// Requests messages are sent in the form of
+/// [`CharacterLoaderRequestKind`] and are dispatched at the character select
+/// screen.
+///
+/// Responses are polled on each server tick in the format
+/// [`CharacterLoaderResponse`]
+pub struct CharacterLoader {
+    update_rx: Option<channel::Receiver<CharacterLoaderResponse>>,
+    update_tx: Option<channel::Sender<CharacterLoaderRequest>>,
+    handle: Option<std::thread::JoinHandle<()>>,
+}
+
+impl CharacterLoader {
+    pub fn new(db_dir: String) -> Self {
+        let (update_tx, internal_rx) = channel::unbounded::<CharacterLoaderRequest>();
+        let (internal_tx, update_rx) = channel::unbounded::<CharacterLoaderResponse>();
+
+        let handle = std::thread::spawn(move || {
+            while let Ok(request) = internal_rx.recv() {
+                let (entity, kind) = request;
+
+                if let Err(e) = internal_tx.send(CharacterLoaderResponse {
+                    entity,
+                    result: match kind {
+                        CharacterLoaderRequestKind::CreateCharacter {
+                            player_uuid,
+                            character_alias,
+                            character_tool,
+                            body,
+                        } => CharacterLoaderResponseType::CharacterList(create_character(
+                            &player_uuid,
+                            &character_alias,
+                            character_tool,
+                            &body,
+                            &db_dir,
+                        )),
+                        CharacterLoaderRequestKind::DeleteCharacter {
+                            player_uuid,
+                            character_id,
+                        } => CharacterLoaderResponseType::CharacterList(delete_character(
+                            &player_uuid,
+                            character_id,
+                            &db_dir,
+                        )),
+                        CharacterLoaderRequestKind::LoadCharacterList { player_uuid } => {
+                            CharacterLoaderResponseType::CharacterList(load_character_list(
+                                &player_uuid,
+                                &db_dir,
+                            ))
+                        },
+                        CharacterLoaderRequestKind::LoadCharacterData {
+                            player_uuid,
+                            character_id,
+                        } => CharacterLoaderResponseType::CharacterData(Box::new(
+                            load_character_data(&player_uuid, character_id, &db_dir),
+                        )),
+                    },
+                }) {
+                    error!(?e, "Could not send send persistence request");
+                }
+            }
+        });
+
+        Self {
+            update_tx: Some(update_tx),
+            update_rx: Some(update_rx),
+            handle: Some(handle),
+        }
+    }
+
+    /// Create a new character belonging to the player identified by
+    /// `player_uuid`
+    pub fn create_character(
+        &self,
+        entity: specs::Entity,
+        player_uuid: String,
+        character_alias: String,
+        character_tool: Option<String>,
+        body: comp::Body,
+    ) {
+        if let Err(e) = self.update_tx.as_ref().unwrap().send((
+            entity,
+            CharacterLoaderRequestKind::CreateCharacter {
+                player_uuid,
+                character_alias,
+                character_tool,
+                body,
+            },
+        )) {
+            error!(?e, "Could not send character creation request");
+        }
+    }
+
+    /// Delete a character by `id` and `player_uuid`
+    pub fn delete_character(&self, entity: specs::Entity, player_uuid: String, character_id: i32) {
+        if let Err(e) = self.update_tx.as_ref().unwrap().send((
+            entity,
+            CharacterLoaderRequestKind::DeleteCharacter {
+                player_uuid,
+                character_id,
+            },
+        )) {
+            error!(?e, "Could not send character deletion request");
+        }
+    }
+
+    /// Loads a list of characters belonging to the player identified by
+    /// `player_uuid`
+    pub fn load_character_list(&self, entity: specs::Entity, player_uuid: String) {
+        if let Err(e) = self
+            .update_tx
+            .as_ref()
+            .unwrap()
+            .send((entity, CharacterLoaderRequestKind::LoadCharacterList {
+                player_uuid,
+            }))
+        {
+            error!(?e, "Could not send character list load request");
+        }
+    }
+
+    /// Loads components associated with a character
+    pub fn load_character_data(
+        &self,
+        entity: specs::Entity,
+        player_uuid: String,
+        character_id: i32,
+    ) {
+        if let Err(e) = self.update_tx.as_ref().unwrap().send((
+            entity,
+            CharacterLoaderRequestKind::LoadCharacterData {
+                player_uuid,
+                character_id,
+            },
+        )) {
+            error!(?e, "Could not send character data load request");
+        }
+    }
+
+    /// Returns a non-blocking iterator over CharacterLoaderResponse messages
+    pub fn messages(&self) -> TryIter<CharacterLoaderResponse> {
+        self.update_rx.as_ref().unwrap().try_iter()
+    }
+}
+
+impl Drop for CharacterLoader {
+    fn drop(&mut self) {
+        drop(self.update_tx.take());
+        if let Err(e) = self.handle.take().unwrap().join() {
+            error!(?e, "Error from joining character loader thread");
+        }
+    }
+}
 
 /// Load stored data for a character.
 ///
 /// After first logging in, and after a character is selected, we fetch this
 /// data for the purpose of inserting their persisted data for the entity.
-
-pub fn load_character_data(
-    character_id: i32,
-    db_dir: &str,
-) -> Result<(comp::Stats, comp::Inventory, comp::Loadout), Error> {
+fn load_character_data(player_uuid: &str, character_id: i32, db_dir: &str) -> CharacterDataResult {
     let connection = establish_connection(db_dir);
 
     let (character_data, body_data, stats_data, maybe_inventory, maybe_loadout) =
         schema::character::dsl::character
             .filter(schema::character::id.eq(character_id))
+            .filter(schema::character::player_uuid.eq(player_uuid))
             .inner_join(schema::body::table)
             .inner_join(schema::stats::table)
             .left_join(schema::inventory::table)
@@ -41,6 +247,7 @@ pub fn load_character_data(
             .first::<(Character, Body, Stats, Option<Inventory>, Option<Loadout>)>(&connection)?;
 
     Ok((
+        comp::Body::from(&body_data),
         comp::Stats::from(StatsJoinData {
             alias: &character_data.alias,
             body: &comp::Body::from(&body_data),
@@ -103,8 +310,7 @@ pub fn load_character_data(
 /// In the event that a join fails, for a character (i.e. they lack an entry for
 /// stats, body, etc...) the character is skipped, and no entry will be
 /// returned.
-
-pub fn load_character_list(player_uuid: &str, db_dir: &str) -> CharacterListResult {
+fn load_character_list(player_uuid: &str, db_dir: &str) -> CharacterListResult {
     let data = schema::character::dsl::character
         .filter(schema::character::player_uuid.eq(player_uuid))
         .order(schema::character::id.desc())
@@ -146,10 +352,10 @@ pub fn load_character_list(player_uuid: &str, db_dir: &str) -> CharacterListResu
 /// Note that sqlite does not support returning the inserted data after a
 /// successful insert. To workaround, we wrap this in a transaction which
 /// inserts, queries for the newly created chaacter id, then uses the character
-/// id for insertion of the `body` table entry
-pub fn create_character(
+/// id for subsequent insertions
+fn create_character(
     uuid: &str,
-    character_alias: String,
+    character_alias: &str,
     character_tool: Option<String>,
     body: &comp::Body,
     db_dir: &str,
@@ -243,7 +449,7 @@ pub fn create_character(
 }
 
 /// Delete a character. Returns the updated character list.
-pub fn delete_character(uuid: &str, character_id: i32, db_dir: &str) -> CharacterListResult {
+fn delete_character(uuid: &str, character_id: i32, db_dir: &str) -> CharacterListResult {
     use schema::character::dsl::*;
 
     diesel::delete(
@@ -256,6 +462,8 @@ pub fn delete_character(uuid: &str, character_id: i32, db_dir: &str) -> Characte
     load_character_list(uuid, db_dir)
 }
 
+/// Before creating a character, we ensure that the limit on the number of
+/// characters has not been exceeded
 fn check_character_limit(uuid: &str, db_dir: &str) -> Result<(), Error> {
     use diesel::dsl::count_star;
     use schema::character::dsl::*;
@@ -277,8 +485,13 @@ fn check_character_limit(uuid: &str, db_dir: &str) -> Result<(), Error> {
     }
 }
 
-pub type CharacterUpdateData = (StatsUpdate, InventoryUpdate, LoadoutUpdate);
+type CharacterUpdateData = (StatsUpdate, InventoryUpdate, LoadoutUpdate);
 
+/// A unidirectional messaging resource for saving characters in a
+/// background thread.
+///
+/// This is used to make updates to a character and their persisted components,
+/// such as inventory, loadout, etc...
 pub struct CharacterUpdater {
     update_tx: Option<channel::Sender<Vec<(i32, CharacterUpdateData)>>>,
     handle: Option<std::thread::JoinHandle<()>>,
@@ -299,6 +512,7 @@ impl CharacterUpdater {
         }
     }
 
+    /// Updates a collection of characters based on their id and components
     pub fn batch_update<'a>(
         &self,
         updates: impl Iterator<Item = (i32, &'a comp::Stats, &'a comp::Inventory, &'a comp::Loadout)>,
@@ -321,6 +535,7 @@ impl CharacterUpdater {
         }
     }
 
+    /// Updates a single character based on their id and components
     pub fn update(
         &self,
         character_id: i32,

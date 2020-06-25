@@ -1,3 +1,5 @@
+//! Structs representing a playable Character
+
 use crate::comp;
 use serde_derive::{Deserialize, Serialize};
 
@@ -13,28 +15,23 @@ pub const MAX_CHARACTERS_PER_PLAYER: usize = 8;
 // Once we are happy that all characters have a loadout, or we manually
 // update/delete those that don't, it's no longer necessary and we can
 // remove this from here, as well as in the DB schema and persistence code.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+
+/// The minimum character data we need to create a new character on the server.
+/// The `tool` field was historically used to persist the character's weapon
+/// before Loadouts were persisted, and will be removed in the future.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Character {
     pub id: Option<i32>,
     pub alias: String,
     pub tool: Option<String>,
 }
 
-/// Represents a single character item in the character list presented during
-/// character selection. This is a subset of the full character data used for
-/// presentation purposes.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+/// Data needed to render a single character item in the character list
+/// presented during character selection.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct CharacterItem {
     pub character: Character,
     pub body: comp::Body,
     pub level: usize,
     pub loadout: comp::Loadout,
-}
-
-/// The full representation of the data we store in the database for each
-/// character
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CharacterData {
-    pub body: comp::Body,
-    pub stats: comp::Stats,
 }

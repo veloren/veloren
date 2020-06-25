@@ -88,9 +88,7 @@ impl PlayState for CharSelectionState {
                             char_data.get(self.char_selection_ui.selected_character)
                         {
                             if let Some(character_id) = selected_character.character.id {
-                                self.client
-                                    .borrow_mut()
-                                    .request_character(character_id, selected_character.body);
+                                self.client.borrow_mut().request_character(character_id);
                             }
                         }
 

@@ -134,5 +134,3 @@ impl ServerSettings {
 
     fn get_settings_path() -> PathBuf { PathBuf::from(r"server_settings.ron") }
 }
-
-pub struct PersistenceDBDir(pub String);

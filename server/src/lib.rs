@@ -39,6 +39,7 @@ use common::{
     vol::{ReadVol, RectVolSize},
 };
 use metrics::{ServerMetrics, TickMetrics};
+use persistence::character::{CharacterLoader, CharacterLoaderResponseType, CharacterUpdater};
 use specs::{join::Join, Builder, Entity as EcsEntity, RunNow, SystemData, WorldExt};
 use std::{
     i32,
@@ -101,12 +102,10 @@ impl Server {
         state.ecs_mut().insert(ChunkGenerator::new());
         state
             .ecs_mut()
-            .insert(persistence::character::CharacterUpdater::new(
-                settings.persistence_db_dir.clone(),
-            ));
-        state.ecs_mut().insert(crate::settings::PersistenceDBDir(
-            settings.persistence_db_dir.clone(),
-        ));
+            .insert(CharacterUpdater::new(settings.persistence_db_dir.clone()));
+        state
+            .ecs_mut()
+            .insert(CharacterLoader::new(settings.persistence_db_dir.clone()));
 
         // System timers for performance monitoring
         state.ecs_mut().insert(sys::EntitySyncTimer::default());
@@ -303,8 +302,10 @@ impl Server {
         // 5) Go through the terrain update queue and apply all changes to
         //    the terrain
         // 6) Send relevant state updates to all clients
-        // 7) Update Metrics with current data
-        // 8) Finish the tick, passing control of the main thread back
+        // 7) Check for persistence updates related to character data, and message the
+        //    relevant entities
+        // 8) Update Metrics with current data
+        // 9) Finish the tick, passing control of the main thread back
         //    to the frontend
 
         // 1) Build up a list of events for this frame, to be passed to the frontend.
@@ -375,14 +376,64 @@ impl Server {
                 .map(|(entity, _, _)| entity)
                 .collect::<Vec<_>>()
         };
+
         for entity in to_delete {
             if let Err(e) = self.state.delete_entity_recorded(entity) {
                 error!(?e, "Failed to delete agent outside the terrain");
             }
         }
 
+        // 7 Persistence updates
+        let before_persistence_updates = Instant::now();
+
+        // Get character-related database responses and notify the requesting client
+        self.state
+            .ecs()
+            .read_resource::<persistence::character::CharacterLoader>()
+            .messages()
+            .for_each(|query_result| match query_result.result {
+                CharacterLoaderResponseType::CharacterList(result) => match result {
+                    Ok(character_list_data) => self.notify_client(
+                        query_result.entity,
+                        ServerMsg::CharacterListUpdate(character_list_data),
+                    ),
+                    Err(error) => self.notify_client(
+                        query_result.entity,
+                        ServerMsg::CharacterActionError(error.to_string()),
+                    ),
+                },
+                CharacterLoaderResponseType::CharacterData(result) => {
+                    let message = match *result {
+                        Ok(character_data) => ServerEvent::UpdateCharacterData {
+                            entity: query_result.entity,
+                            components: character_data,
+                        },
+                        Err(error) => {
+                            // We failed to load data for the character from the DB. Notify the
+                            // client to push the state back to character selection, with the error
+                            // to display
+                            self.notify_client(
+                                query_result.entity,
+                                ServerMsg::CharacterDataLoadError(error.to_string()),
+                            );
+
+                            // Clean up the entity data on the server
+                            ServerEvent::ExitIngame {
+                                entity: query_result.entity,
+                            }
+                        },
+                    };
+
+                    self.state
+                        .ecs()
+                        .read_resource::<EventBus<ServerEvent>>()
+                        .emit_now(message);
+                },
+            });
+
         let end_of_server_tick = Instant::now();
-        // 7) Update Metrics
+
+        // 8) Update Metrics
         // Get system timing info
         let entity_sync_nanos = self
             .state
@@ -437,7 +488,11 @@ impl Server {
         self.tick_metrics
             .tick_time
             .with_label_values(&["entity cleanup"])
-            .set((end_of_server_tick - before_entity_cleanup).as_nanos() as i64);
+            .set((before_persistence_updates - before_entity_cleanup).as_nanos() as i64);
+        self.tick_metrics
+            .tick_time
+            .with_label_values(&["persistence_updates"])
+            .set((end_of_server_tick - before_persistence_updates).as_nanos() as i64);
         self.tick_metrics
             .tick_time
             .with_label_values(&["entity sync"])
@@ -497,7 +552,7 @@ impl Server {
             .set(end_of_server_tick.elapsed().as_nanos() as i64);
         self.metrics.tick();
 
-        // 8) Finish the tick, pass control back to the frontend.
+        // 9) Finish the tick, pass control back to the frontend.
 
         Ok(frontend_events)
     }

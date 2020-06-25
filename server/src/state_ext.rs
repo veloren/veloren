@@ -1,13 +1,11 @@
 use crate::{
-    client::Client, persistence, settings::ServerSettings, sys::sentinel::DeletedEntities,
-    SpawnPoint,
+    client::Client, persistence::character::PersistedComponents, settings::ServerSettings,
+    sys::sentinel::DeletedEntities, SpawnPoint,
 };
 use common::{
     comp,
     effect::Effect,
-    msg::{
-        CharacterInfo, ClientState, PlayerListUpdate, RegisterError, RequestStateError, ServerMsg,
-    },
+    msg::{CharacterInfo, ClientState, PlayerListUpdate, ServerMsg},
     state::State,
     sync::{Uid, WorldSyncExt},
     util::Dir,
@@ -17,8 +15,11 @@ use tracing::warn;
 use vek::*;
 
 pub trait StateExt {
+    /// Push an item into the provided entity's inventory
     fn give_item(&mut self, entity: EcsEntity, item: comp::Item) -> bool;
+    /// Updates a component associated with the entity based on the `Effect`
     fn apply_effect(&mut self, entity: EcsEntity, effect: Effect);
+    /// Build a non-player character
     fn create_npc(
         &mut self,
         pos: comp::Pos,
@@ -26,7 +27,9 @@ pub trait StateExt {
         loadout: comp::Loadout,
         body: comp::Body,
     ) -> EcsEntityBuilder;
+    /// Build a static object entity
     fn create_object(&mut self, pos: comp::Pos, object: comp::object::Body) -> EcsEntityBuilder;
+    /// Build a projectile
     fn create_projectile(
         &mut self,
         pos: comp::Pos,
@@ -34,14 +37,19 @@ pub trait StateExt {
         body: comp::Body,
         projectile: comp::Projectile,
     ) -> EcsEntityBuilder;
-    fn create_player_character(
+    /// Insert common/default components for a new character joining the server
+    fn initialize_character_data(
         &mut self,
         entity: EcsEntity,
         character_id: i32,
-        body: comp::Body,
         server_settings: &ServerSettings,
     );
+    /// Update the components associated with the entity's current character.
+    /// Performed after loading component data from the database
+    fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents);
+    /// Iterates over registered clients and send each `ServerMsg`
     fn notify_registered_clients(&self, msg: ServerMsg);
+    /// Delete an entity, recording the deletion in [`DeletedEntities`]
     fn delete_entity_recorded(
         &mut self,
         entity: EcsEntity,
@@ -82,7 +90,6 @@ impl StateExt for State {
         }
     }
 
-    /// Build a non-player character.
     fn create_npc(
         &mut self,
         pos: comp::Pos,
@@ -115,7 +122,6 @@ impl StateExt for State {
             .with(loadout)
     }
 
-    /// Build a static object entity
     fn create_object(&mut self, pos: comp::Pos, object: comp::object::Body) -> EcsEntityBuilder {
         self.ecs_mut()
             .create_entity_synced()
@@ -132,7 +138,6 @@ impl StateExt for State {
             .with(comp::Gravity(1.0))
     }
 
-    /// Build a projectile
     fn create_projectile(
         &mut self,
         pos: comp::Pos,
@@ -152,44 +157,14 @@ impl StateExt for State {
             .with(comp::Sticky)
     }
 
-    #[allow(clippy::unnecessary_operation)] // TODO: Pending review in #587
-    fn create_player_character(
+    fn initialize_character_data(
         &mut self,
         entity: EcsEntity,
         character_id: i32,
-        body: comp::Body,
         server_settings: &ServerSettings,
     ) {
-        // Grab persisted character data from the db and insert their associated
-        // components. If for some reason the data can't be returned (missing
-        // data, DB error), kick the client back to the character select screen.
-        match persistence::character::load_character_data(
-            character_id,
-            &server_settings.persistence_db_dir,
-        ) {
-            Ok((stats, inventory, loadout)) => {
-                self.write_component(entity, stats);
-                self.write_component(entity, inventory);
-                self.write_component(entity, loadout);
-            },
-            Err(e) => {
-                warn!(
-                    ?e,
-                    ?character_id,
-                    "Failed to load character data for character_id"
-                );
-
-                if let Some(client) = self.ecs().write_storage::<Client>().get_mut(entity) {
-                    client.error_state(RequestStateError::RegisterDenied(
-                        RegisterError::InvalidCharacter,
-                    ))
-                }
-            },
-        }
-
         let spawn_point = self.ecs().read_resource::<SpawnPoint>().0;
 
-        self.write_component(entity, body);
         self.write_component(entity, comp::Energy::new(1000));
         self.write_component(entity, comp::Controller::default());
         self.write_component(entity, comp::Pos(spawn_point));
@@ -203,26 +178,18 @@ impl StateExt for State {
         self.write_component(entity, comp::Gravity(1.0));
         self.write_component(entity, comp::CharacterState::default());
         self.write_component(entity, comp::Alignment::Owned(entity));
-        self.write_component(
-            entity,
-            comp::InventoryUpdate::new(comp::InventoryUpdateEvent::default()),
-        );
 
         // Set the character id for the player
         // TODO this results in a warning in the console: "Error modifying synced
         // component, it doesn't seem to exist"
         // It appears to be caused by the player not yet existing on the client at this
         // point, despite being able to write the data on the server
-        &self
-            .ecs()
+        self.ecs()
             .write_storage::<comp::Player>()
             .get_mut(entity)
             .map(|player| {
                 player.character_id = Some(character_id);
             });
-
-        // Make sure physics are accepted.
-        self.write_component(entity, comp::ForceUpdate);
 
         // Give the Admin component to the player if their name exists in admin list
         if server_settings.admins.contains(
@@ -236,28 +203,40 @@ impl StateExt for State {
             self.write_component(entity, comp::Admin);
         }
 
-        let uids = &self.ecs().read_storage::<Uid>();
-        let uid = uids
-            .get(entity)
-            .expect("Failed to fetch uid component for entity.")
-            .0;
-
-        let stats = &self.ecs().read_storage::<comp::Stats>();
-        let stat = stats
-            .get(entity)
-            .expect("Failed to fetch stats component for entity.");
-
-        self.notify_registered_clients(ServerMsg::PlayerListUpdate(
-            PlayerListUpdate::SelectedCharacter(uid, CharacterInfo {
-                name: stat.name.to_string(),
-                level: stat.level.level(),
-            }),
-        ));
-
         // Tell the client its request was successful.
         if let Some(client) = self.ecs().write_storage::<Client>().get_mut(entity) {
             client.allow_state(ClientState::Character);
         }
+    }
+
+    fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents) {
+        let (body, stats, inventory, loadout) = components;
+
+        // Notify clients of a player list update
+        let client_uid = self
+            .read_component_cloned::<Uid>(entity)
+            .map(|u| u.into())
+            .expect("Client doesn't have a Uid!!!");
+
+        self.notify_registered_clients(ServerMsg::PlayerListUpdate(
+            PlayerListUpdate::SelectedCharacter(client_uid, CharacterInfo {
+                name: String::from(&stats.name),
+                level: stats.level.level(),
+            }),
+        ));
+
+        self.write_component(entity, body);
+        self.write_component(entity, stats);
+        self.write_component(entity, inventory);
+        self.write_component(entity, loadout);
+
+        self.write_component(
+            entity,
+            comp::InventoryUpdate::new(comp::InventoryUpdateEvent::default()),
+        );
+
+        // Make sure physics are accepted.
+        self.write_component(entity, comp::ForceUpdate);
     }
 
     fn notify_registered_clients(&self, msg: ServerMsg) {
