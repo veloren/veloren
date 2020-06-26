@@ -120,5 +120,45 @@
                 color: None
             )
         ),
+        Druid: (
+            left: (
+                vox_spec: ("armor.hand.druid_left", (-1.5, -1.5, -2.5)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.hand.druid_right", (-1.5, -1.5, -2.5)),
+                color: None
+            )
+        ),
+        Twig: (
+            left: (
+                vox_spec: ("armor.hand.twigs_glove_left", (-1.5, -1.5, -2.5)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.hand.twigs_glove_right", (-1.5, -1.5, -2.5)),
+                color: None
+            )
+        ),
+        Twigsleaves: (
+            left: (
+                vox_spec: ("armor.hand.twigsleaves_glove_left", (-1.5, -1.5, -2.5)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.hand.twigsleaves_glove_right", (-1.5, -1.5, -2.5)),
+                color: None
+            )
+        ),
+        Twigsflowers: (
+            left: (
+                vox_spec: ("armor.hand.twigsflowers_glove_left", (-1.5, -1.5, -2.5)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.hand.twigsflowers_glove_right", (-1.5, -1.5, -2.5)),
+                color: None
+            )
+        ),
     },
 ))
