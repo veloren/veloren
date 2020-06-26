@@ -76,7 +76,7 @@ impl EventMapper for MovementEventMapper {
                 // Check for SFX config entry for this movement
                 if Self::should_emit(state, triggers.get_key_value(&mapped_event)) {
                     sfx_emitter.emit(SfxEventItem::new(
-                        mapped_event,
+                        mapped_event.clone(),
                         Some(pos.0),
                         Some(Self::get_volume_for_body_type(body)),
                     ));
@@ -161,7 +161,7 @@ impl MovementEventMapper {
         }
 
         // Match all other Movemement and Action states
-        match (previous_state.event, character_state) {
+        match (previous_state.event.clone(), character_state) {
             (_, CharacterState::Climb { .. }) => SfxEvent::Climb,
             (SfxEvent::Glide, CharacterState::Idle { .. }) => SfxEvent::GliderClose,
             (previous_event, CharacterState::Glide { .. }) => {

@@ -57,12 +57,12 @@ impl StateExt for State {
             .ecs()
             .write_storage::<comp::Inventory>()
             .get_mut(entity)
-            .map(|inv| inv.push(item).is_none())
+            .map(|inv| inv.push(item.clone()).is_none())
             .unwrap_or(false);
         if success {
             self.write_component(
                 entity,
-                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Collected),
+                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Collected(item)),
             );
         }
         success
