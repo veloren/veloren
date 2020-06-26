@@ -56,5 +56,21 @@
             vox_spec: ("armor.foot.jackalope_slippers", (-2.5, -3.5, -2.0)),
             color: None
         ),
+        Druid:(
+            vox_spec: ("armor.foot.druid", (-2.5, -3.5, -2.0)),
+            color: None
+        ),
+        Twig:(
+            vox_spec: ("armor.foot.twigs_foot", (-2.5, -3.5, -2.0)),
+            color: None
+        ),
+        Twigsleaves:(
+            vox_spec: ("armor.foot.twigsleaves_foot", (-2.5, -3.5, -2.0)),
+            color: None
+        ),
+        Twigsflowers:(
+            vox_spec: ("armor.foot.twigsflowers_foot", (-2.5, -3.5, -2.0)),
+            color: None
+        ),
     },
 ))

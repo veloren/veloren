@@ -1,0 +1,8 @@
+Item(
+    name: "Flowery Pants",
+    description: "Pants woven from twigs and flowers. Fragrant!\n\n<Right-Click to use>",
+    kind: Armor(
+        kind: Pants(Twigsflowers),
+        stats: (20),
+    ),
+)

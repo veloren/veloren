@@ -16,7 +16,7 @@
             vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
             color: Some((24, 19, 17))
         ),
-        Green: (
+        Hunting: (
             vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
             color: Some((49, 95, 59))
         ),
@@ -74,6 +74,22 @@
         ),
         Leather2:(
             vox_spec: ("armor.pants.leather-2", (-5.0, -3.5, 1.0)),
+            color: None
+        ),
+        Druid:(
+            vox_spec: ("armor.pants.druid", (-5.0, -3.5, -1.0)),
+            color: None
+        ),
+        Twig:(
+            vox_spec: ("armor.pants.twigs_pants", (-5.0, -3.5, 0.0)),
+            color: None
+        ),
+        Twigsleaves:(
+            vox_spec: ("armor.pants.twigsleaves_pants", (-5.0, -3.5, 0.0)),
+            color: None
+        ),
+        Twigsflowers:(
+            vox_spec: ("armor.pants.twigsflowers_pants", (-6.0, -3.5, 0.0)),
             color: None
         ),
     },
