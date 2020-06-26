@@ -1,0 +1,8 @@
+Item(
+    name: "Twig Boots",
+    description: "Boots woven from twigs.\n\n<Right-Click to use>",
+    kind: Armor(
+        kind: Foot(Twig),
+        stats: (20),
+    ),
+)

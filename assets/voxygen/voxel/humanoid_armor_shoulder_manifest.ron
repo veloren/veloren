@@ -150,7 +150,38 @@
                 vox_spec: ("armor.shoulder.leather_right-2", (-1.0, -3.8, -0.9)),
                 color: None
             )
-        ),
+            ),
+        TwiggyShoulder: (
+            left: (
+                vox_spec: ("armor.shoulder.twigs_left", (-5.0, -4.5 , -1.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.shoulder.twigs_right", (-1.0, -4.5, -1.0)),
+                color: None
+            )
+            ),
+        LeafyShoulder: (
+            left: (
+                vox_spec: ("armor.shoulder.twigsleaves_shoulder_left", (-5.5, -5.0 , 0.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.shoulder.twigsleaves_shoulder_right", (-1.5, -5.0, 0.0)),
+                color: None
+            )
+            ),
+        FlowerShoulder: (
+            left: (
+                vox_spec: ("armor.shoulder.twigsflowers_shoulder_left", (-5.5, -5.0 , 0.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.shoulder.twigsflowers_shoulder_right", (-1.5, -5.0, 0.0)),
+                color: None
+            ),
+            
+        ),        
         ClothBlue1: (
             left: (
                 vox_spec: ("armor.shoulder.cloth_blue_left-1", (-4.0, -2.5, -0.5)),
@@ -220,6 +251,16 @@
                 vox_spec: ("armor.shoulder.leather_strips_right", (-2.0, -2.5, -2.0)),
                 color: None
             )
-        ),
+        ),      
+        DruidShoulder: (
+            left: (
+                vox_spec: ("armor.shoulder.druid_left", (-4.0, -4.5 , -3.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.shoulder.druid_right", (-2.0, -4.5, -3.0)),
+                color: None
+            ),            
+        ),  
     },
 ))
