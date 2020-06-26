@@ -120,7 +120,7 @@ impl Animation for RunAnimation {
         let vertchest = (anim_time as f32 * lab as f32 + PI * 0.3).sin().max(0.2);
         let horichest = (anim_time as f32 * lab as f32 + PI * 0.8).sin();
 
-if speed < 8.0{
+if speed < 8.0{//Trot
         next.head_upper.offset = Vec3::new(
             0.0,
             skeleton_attr.head_upper.0,
@@ -173,7 +173,7 @@ if speed < 8.0{
             skeleton_attr.leg_f.1 + foothoril * -1.0,
             skeleton_attr.leg_f.2 +1.0+ footvertl * -0.06,
         );
-        next.leg_fl.ori = Quaternion::rotation_x(footrotl * -0.15);
+        next.leg_fl.ori = Quaternion::rotation_x(footrotl * -0.09);
         next.leg_fl.scale = Vec3::one()*0.99;
 
 
@@ -182,7 +182,7 @@ if speed < 8.0{
             skeleton_attr.leg_f.1 + foothorir * -1.0,
             skeleton_attr.leg_f.2 +1.0+ footvertr * -0.6,
         );
-        next.leg_fr.ori = Quaternion::rotation_x(footrotr * -0.15);
+        next.leg_fr.ori = Quaternion::rotation_x(footrotr * -0.09);
         next.leg_fr.scale = Vec3::one()*0.99;
 
         next.leg_bl.offset = Vec3::new(
@@ -191,7 +191,7 @@ if speed < 8.0{
             skeleton_attr.leg_b.2 +1.0+ footvertlb * -0.8,
 
         );
-        next.leg_bl.ori = Quaternion::rotation_x(footrotlb * -0.15);
+        next.leg_bl.ori = Quaternion::rotation_x(footrotlb * -0.09);
         next.leg_bl.scale = Vec3::one() *0.99;
 
         next.leg_br.offset = Vec3::new(
@@ -199,7 +199,7 @@ if speed < 8.0{
             skeleton_attr.leg_b.1 + foothorirb * -1.0,
             skeleton_attr.leg_b.2 +1.0+ footvertrb * -0.8,
         );
-        next.leg_br.ori = Quaternion::rotation_x(footrotrb * -0.15);
+        next.leg_br.ori = Quaternion::rotation_x(footrotrb * -0.09);
         next.leg_br.scale = Vec3::one() *0.99;
 
         next.foot_fl.offset = Vec3::new(
@@ -207,7 +207,7 @@ if speed < 8.0{
             skeleton_attr.feet_f.1,
             skeleton_attr.feet_f.2+ ((footvertl * -1.5).max(-1.0)),
         );
-        next.foot_fl.ori = Quaternion::rotation_x(footrotl * -0.3);
+        next.foot_fl.ori = Quaternion::rotation_x(footrotl * -0.6);
         next.foot_fl.scale = Vec3::one()*0.97;
 
         next.foot_fr.offset = Vec3::new(
@@ -215,7 +215,7 @@ if speed < 8.0{
             skeleton_attr.feet_f.1,
             skeleton_attr.feet_f.2+ ((footvertr * -1.5).max(-1.0)),
         );
-        next.foot_fr.ori = Quaternion::rotation_x(footrotr * -0.3);
+        next.foot_fr.ori = Quaternion::rotation_x(footrotr * -0.6);
         next.foot_fr.scale = Vec3::one()*0.98;
 
         next.foot_bl.offset = Vec3::new(
@@ -223,7 +223,7 @@ if speed < 8.0{
             skeleton_attr.feet_b.1,
             skeleton_attr.feet_b.2+ ((footvertlb * -1.5).max(-1.0)),
         );
-        next.foot_bl.ori = Quaternion::rotation_x(footrotlb * -0.3);
+        next.foot_bl.ori = Quaternion::rotation_x(footrotlb * -0.6);
         next.foot_bl.scale = Vec3::one()*0.98;
 
         next.foot_br.offset = Vec3::new(
@@ -231,10 +231,10 @@ if speed < 8.0{
             skeleton_attr.feet_b.1,
             skeleton_attr.feet_b.2 + ((footvertrb * -1.5).max(-1.0)),
         );
-        next.foot_br.ori = Quaternion::rotation_x(footrotrb * -0.3);
+        next.foot_br.ori = Quaternion::rotation_x(footrotrb * -0.6);
         next.foot_br.scale = Vec3::one()*0.98;
 }
-        else {
+        else {//Gallop
         next.head_upper.offset = Vec3::new(
             0.0,
             skeleton_attr.head_upper.0,
