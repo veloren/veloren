@@ -17,19 +17,19 @@
             lateral: ("npc.grolgar.male.leg_br"),
         ),
         foot_fl: (
-            offset: (-2.5, -6.0, -3.0),
+            offset: (-2.5, -3.0, -6.0),//y pivot should be -3/4 of the y dimension of the model
             lateral: ("npc.grolgar.male.foot_fl"),
         ),
         foot_fr: (
-            offset: (-2.5, -6.0, -3.0),
+            offset: (-2.5, -3.0, -6.0),//y pivot should be -3/4 of the y dimension of the model
             lateral: ("npc.grolgar.male.foot_fr"),
         ),
         foot_bl: (
-            offset: (-2.5, -3.5, -2.0),
+            offset: (-2.5, -2.0, -4.0),//y pivot should be -3/4 of the y dimension of the model
             lateral: ("npc.grolgar.male.foot_bl"),
         ),
         foot_br: (
-            offset: (-2.5, -3.5, -2.0),
+            offset: (-2.5, -2.0, -4.0),//y pivot should be -3/4 of the y dimension of the model
             lateral: ("npc.grolgar.male.foot_br"),
         ),
     ),
@@ -51,19 +51,19 @@
             lateral: ("npc.grolgar.female.leg_br"),
         ),
         foot_fl: (
-            offset: (-2.5, -6.0, -3.0),
+            offset: (-2.5, -3.0, -6.0),
             lateral: ("npc.grolgar.female.foot_fl"),
         ),
         foot_fr: (
-            offset: (-2.5, -6.0, -3.0),
+            offset: (-2.5, -3.0, -6.0),
             lateral: ("npc.grolgar.female.foot_fr"),
         ),
         foot_bl: (
-            offset: (-2.5, -3.5, -2.0),
+            offset: (-2.5, -2.0, -4.0),
             lateral: ("npc.grolgar.female.foot_bl"),
         ),
         foot_br: (
-            offset: (-2.5, -3.5, -2.0),
+            offset: (-2.5, -2.0, -4.0),
             lateral: ("npc.grolgar.female.foot_br"),
         ),
     ),
@@ -221,19 +221,19 @@
             lateral: ("npc.lion.male.leg_br"),
         ),
         foot_fl: (
-            offset: (-2.5, -3.5, -2.5),
+            offset: (-2.5, -2.0, -2.5),
             lateral: ("npc.lion.male.foot_fl"),
         ),
         foot_fr: (
-            offset: (-2.5, -3.5, -2.5),
+            offset: (-2.5, -2.0, -2.5),
             lateral: ("npc.lion.male.foot_fr"),
         ),
         foot_bl: (
-            offset: (-2.5, -3.5, -6.0),
+            offset: (-2.5, -2.0, -6.0),
             lateral: ("npc.lion.male.foot_bl"),
         ),
         foot_br: (
-            offset: (-2.5, -3.5, -6.0),
+            offset: (-2.5, -2.0, -6.0),
             lateral: ("npc.lion.male.foot_br"),
         ),
     ),
@@ -255,19 +255,19 @@
             lateral: ("npc.lion.female.leg_br"),
         ),
         foot_fl: (
-            offset: (-2.5, -3.5, -2.5),
+            offset: (-2.5, -2.0, -2.5),
             lateral: ("npc.lion.female.foot_fl"),
         ),
         foot_fr: (
-            offset: (-2.5, -3.5, -2.5),
+            offset: (-2.5, -2.0, -2.5),
             lateral: ("npc.lion.female.foot_fr"),
         ),
         foot_bl: (
-            offset: (-2.5, -3.5, -6.0),
+            offset: (-2.5, -2.0, -6.0),
             lateral: ("npc.lion.female.foot_bl"),
         ),
         foot_br: (
-            offset: (-2.5, -3.5, -6.0),
+            offset: (-2.5, -2.0, -6.0),
             lateral: ("npc.lion.female.foot_br"),
         ),
     ),

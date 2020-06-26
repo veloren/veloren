@@ -106,7 +106,6 @@ pub struct SkeletonAttr {
     leg_b: (f32, f32, f32),
     feet_f: (f32, f32, f32),
     feet_b: (f32, f32, f32),
-    height: f32,
 }
 
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -134,7 +133,6 @@ impl Default for SkeletonAttr {
             leg_b: (0.0, 0.0, 0.0),
             feet_f: (0.0, 0.0, 0.0),
             feet_b: (0.0, 0.0, 0.0),
-            height: (0.0),
         }
     }
 }
@@ -232,7 +230,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Mouflon, _) => (3.5, -5.5, -5.0),
             },
             leg_b: match (body.species, body.body_type) {
-                (Grolgar, _) => (6.0, -0.5, -5.5),
+                (Grolgar, _) => (6.0, -0.5, -3.5),
                 (Saber, _) => (6.0, -1.0, -4.0),
                 (Tuskram, _) => (5.0, 0.5, -3.5),
                 (Lion, _) => (6.0, 0.0, -2.0),
@@ -243,7 +241,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Mouflon, _) => (3.5, -2.0, -4.5),
             },
             feet_f: match (body.species, body.body_type) {
-                (Grolgar, _) => (0.0, 1.0, -6.0),
+                (Grolgar, _) => (0.0, -2.0, -4.0),
                 (Saber, _) => (1.0, 3.0, -1.0),
                 (Tuskram, _) => (0.5, 2.0, -5.0),
                 (Lion, _) => (0.0, 2.0, -4.5),
@@ -258,22 +256,11 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Saber, _) => (1.0, 0.0, 0.0),
                 (Tuskram, _) => (0.5, 0.0, -4.0),
                 (Lion, _) => (0.5, 0.5, -4.0),
-                (Tarasque, _) => (1.5, -2.5, -2.5),
+                (Tarasque, _) => (1.5, -1.0, -2.5),
                 (Tiger, _) => (1.0, 0.5, -4.0),
                 (Wolf, _) => (0.0, -0.5, -2.5),
                 (Frostfang, _) => (0.0, -0.5, -3.5),
                 (Mouflon, _) => (-1.0, -2.5, -2.5),
-            },
-            height: match (body.species, body.body_type) {
-                (Grolgar, _) => (1.2),
-                (Saber, _) => (1.0),
-                (Tuskram, _) => (1.0),
-                (Lion, _) => (1.4),
-                (Tarasque, _) => (1.1),
-                (Tiger, _) => (1.0),
-                (Wolf, _) => (1.0),
-                (Frostfang, _) => (1.0),
-                (Mouflon, _) => (1.0),
             },
         }
     }

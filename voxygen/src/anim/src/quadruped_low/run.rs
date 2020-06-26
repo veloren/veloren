@@ -14,7 +14,7 @@ impl Animation for RunAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_low_run")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_velocity, global_time): Self::Dependency,
+        (_velocity, _global_time): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -23,21 +23,7 @@ impl Animation for RunAnimation {
 
         let lab = 0.5;
 
-        let wave_ultra_slow_cos = (anim_time as f32 * 3.0 + PI).cos();
-        let wave_slow = (anim_time as f32 * 4.5).sin();
 
-        let vertlf = (anim_time as f32 * lab as f32 + PI * 1.8).sin().max(0.15);
-        let vertrfoffset = (anim_time as f32 * lab as f32 + PI * 0.80).sin().max(0.15);
-        let vertlboffset = (anim_time as f32 * lab as f32).sin().max(0.15);
-        let vertrb = (anim_time as f32 * lab as f32 + PI).sin().max(0.15);
-
-        let horilf = (anim_time as f32 * lab as f32 + PI * 1.2).sin();
-        let horirfoffset = (anim_time as f32 * lab as f32 + PI * 0.20).sin();
-        let horilboffset = (anim_time as f32 * lab as f32 + PI * 1.4).sin();
-        let horirb = (anim_time as f32 * lab as f32 + PI * 0.4).sin();
-
-        let vertchest = (anim_time as f32 * lab as f32 + PI * 0.3).sin().max(0.2);
-        let horichest = (anim_time as f32 * lab as f32 + PI * 0.8).sin();
 
         let center = (anim_time as f32 * lab as f32 + PI / 2.0).sin();
         let centeroffset = (anim_time as f32 * lab as f32 + PI * 1.5).sin();
@@ -85,7 +71,7 @@ impl Animation for RunAnimation {
                         .powf(2.0 as f32)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin());
-///
+//
         let foothorilb = (((5.0)
             / (1.0
                 + (4.0)
@@ -124,20 +110,6 @@ impl Animation for RunAnimation {
 
 
 
-
-
-        let dragon_look = Vec2::new(
-            ((global_time + anim_time) as f32 / 4.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.25,
-            ((global_time + anim_time) as f32 / 4.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.125,
-        );
 
         next.head_upper.offset =
             Vec3::new(0.0, skeleton_attr.head_upper.0, skeleton_attr.head_upper.1);
