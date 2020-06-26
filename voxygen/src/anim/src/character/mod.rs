@@ -235,7 +235,7 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 (Orc, Male) => (0.0, 13.5),
                 (Orc, Female) => (0.0, 13.0),
                 (Human, Male) => (0.3, 13.0),
-                (Human, Female) => (0.0, 13.5),
+                (Human, Female) => (0.0, 13.0),
                 (Elf, Male) => (0.5, 13.0),
                 (Elf, Female) => (1.0, 13.0),
                 (Dwarf, Male) => (0.0, 14.0),
