@@ -63,6 +63,7 @@ pub struct BParticipant {
     running_mgr: AtomicUsize,
     run_channels: Option<ControlChannels>,
     metrics: Arc<NetworkMetrics>,
+    no_channel_error_info: RwLock<(Instant, u64)>,
 }
 
 impl BParticipant {
@@ -104,6 +105,7 @@ impl BParticipant {
                 running_mgr: AtomicUsize::new(0),
                 run_channels,
                 metrics,
+                no_channel_error_info: RwLock::new((Instant::now(), 0)),
             },
             a2b_steam_open_s,
             b2a_stream_opened_r,
@@ -251,7 +253,16 @@ impl BParticipant {
                 true
             }
         } else {
-            error!("participant has no channel to communicate on");
+            let mut guard = self.no_channel_error_info.write().await;
+            let now = Instant::now();
+            if now.duration_since(guard.0) > Duration::from_secs(1) {
+                guard.0 = now;
+                let occurrences = guard.1 + 1;
+                guard.1 = 0;
+                error!(?occurrences, "participant has no channel to communicate on");
+            } else {
+                guard.1 += 1;
+            }
             false
         }
     }
