@@ -3,6 +3,7 @@ pub mod background_container;
 pub mod compound_graphic;
 pub mod fill_text;
 pub mod image;
+pub mod overlay;
 pub mod stack;
 
 pub use self::{
@@ -10,4 +11,5 @@ pub use self::{
     background_container::{BackgroundContainer, Padding},
     fill_text::FillText,
     image::Image,
+    overlay::Overlay,
 };

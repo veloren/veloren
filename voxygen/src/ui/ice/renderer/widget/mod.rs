@@ -5,6 +5,7 @@ mod column;
 mod compound_graphic;
 mod container;
 mod image;
+mod overlay;
 mod row;
 mod scrollable;
 mod slider;
