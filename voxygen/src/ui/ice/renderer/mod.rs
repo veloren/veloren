@@ -15,7 +15,8 @@ use super::{
 };
 use crate::{
     render::{
-        create_ui_quad, Consts, DynamicModel, Globals, Mesh, Renderer, UiLocals, UiMode, UiPipeline,
+        create_ui_quad, create_ui_quad_vert_gradient, Consts, DynamicModel, Globals, Mesh,
+        Renderer, UiLocals, UiMode, UiPipeline,
     },
     Error,
 };
@@ -454,6 +455,36 @@ impl IcedRenderer {
                 self.mesh
                     .push_quad(create_ui_quad(gl_aabr, uv_aabr, color, UiMode::Image));
             },
+            Primitive::Gradient {
+                bounds,
+                top_linear_color,
+                bottom_linear_color,
+            } => {
+                // Don't draw a transparent rectangle.
+                if top_linear_color[3] == 0.0 && bottom_linear_color[3] == 0.0 {
+                    return;
+                }
+
+                self.switch_state(State::Plain);
+
+                let gl_aabr = self.gl_aabr(iced::Rectangle {
+                    x: bounds.x + offset.x as f32,
+                    y: bounds.y + offset.y as f32,
+                    ..bounds
+                });
+
+                self.mesh.push_quad(create_ui_quad_vert_gradient(
+                    gl_aabr,
+                    Aabr {
+                        min: Vec2::zero(),
+                        max: Vec2::zero(),
+                    },
+                    top_linear_color,
+                    bottom_linear_color,
+                    UiMode::Geometry,
+                ));
+            },
+
             Primitive::Rectangle {
                 bounds,
                 linear_color,

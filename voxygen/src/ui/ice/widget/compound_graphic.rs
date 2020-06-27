@@ -11,9 +11,10 @@ use vek::{Aabr, Rgba, Vec2};
 // TODO: design trait to interface with background container
 #[derive(Copy, Clone)]
 pub enum GraphicKind {
-    // TODO: if there is a use case, allow coloring individual images
     Image(Handle, Rgba<u8>),
     Color(Rgba<u8>),
+    /// Vertical gradient
+    Gradient(Rgba<u8>, Rgba<u8>),
 }
 
 // TODO: consider faculties for composing compound graphics (if a use case pops
@@ -48,11 +49,21 @@ impl Graphic {
         match &mut self.kind {
             GraphicKind::Image(_, c) => *c = color,
             GraphicKind::Color(c) => *c = color,
+            // Not relevant here
+            GraphicKind::Gradient(_, _) => (),
         }
         self
     }
 
-    // TODO: consider removing color here
+    pub fn gradient(
+        top_color: Rgba<u8>,
+        bottom_color: Rgba<u8>,
+        size: [u16; 2],
+        offset: [u16; 2],
+    ) -> Self {
+        Self::new(GraphicKind::Gradient(top_color, bottom_color), size, offset)
+    }
+
     pub fn rect(color: Rgba<u8>, size: [u16; 2], offset: [u16; 2]) -> Self {
         Self::new(GraphicKind::Color(color), size, offset)
     }

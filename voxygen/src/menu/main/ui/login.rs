@@ -19,7 +19,7 @@ use vek::*;
 
 const FILL_FRAC_ONE: f32 = 0.77;
 const FILL_FRAC_TWO: f32 = 0.53;
-const INPUT_WIDTH: u16 = 250;
+const INPUT_WIDTH: u16 = 280;
 const INPUT_TEXT_SIZE: u16 = 24;
 
 /// Login screen for the main menu
@@ -95,8 +95,7 @@ impl Screen {
                 // Note: a way to tell it to keep the height of this one piece constant and
                 // unstreched would be nice, I suppose we could just break this out into a
                 // column and use Length::Units
-                Graphic::image(imgs.banner_bottom, [500, 30], [0, 300])
-                    .color(Rgba::new(255, 255, 255, 240)),
+                Graphic::gradient(Rgba::new(0, 0, 0, 240), Rgba::zero(), [500, 30], [0, 300]),
             ])
             .height(Length::Shrink),
             Text::new(intro_text).size(fonts.cyri.scale(21)),
@@ -197,11 +196,10 @@ impl Banner {
         let input_text_size = fonts.cyri.scale(INPUT_TEXT_SIZE);
 
         let banner_content = Column::with_children(vec![
-            Image::new(imgs.v_logo)
-                .fix_aspect_ratio()
-                .height(Length::FillPortion(20))
+            Container::new(Image::new(imgs.v_logo).fix_aspect_ratio())
+                .padding(10)
+                .height(Length::FillPortion(25))
                 .into(),
-            Space::new(Length::Fill, Length::FillPortion(5)).into(),
             Column::with_children(vec![
                 BackgroundContainer::new(
                     Image::new(imgs.input_bg)
@@ -216,7 +214,7 @@ impl Banner {
                     .size(input_text_size)
                     .on_submit(Message::FocusPassword),
                 )
-                .padding(Padding::new().horizontal(10).top(10))
+                .padding(Padding::new().horizontal(7).top(5))
                 .into(),
                 BackgroundContainer::new(
                     Image::new(imgs.input_bg)
@@ -232,7 +230,7 @@ impl Banner {
                     .password()
                     .on_submit(Message::Multiplayer),
                 )
-                .padding(Padding::new().horizontal(10).top(8))
+                .padding(Padding::new().horizontal(7).top(5))
                 .into(),
                 BackgroundContainer::new(
                     Image::new(imgs.input_bg)
@@ -247,12 +245,13 @@ impl Banner {
                     .size(input_text_size)
                     .on_submit(Message::Multiplayer),
                 )
-                .padding(Padding::new().horizontal(10).top(8))
+                .padding(Padding::new().horizontal(7).top(5))
                 .into(),
             ])
-            .spacing(2)
-            .height(Length::FillPortion(50))
+            .spacing(10)
+            .height(Length::FillPortion(35))
             .into(),
+            Space::new(Length::Fill, Length::FillPortion(2)).into(),
             Column::with_children(vec![
                 neat_button(
                     &mut self.multiplayer_button,
@@ -270,7 +269,8 @@ impl Banner {
                     Some(Message::Singleplayer),
                 ),
             ])
-            .max_width(240)
+            .max_width(200)
+            .height(Length::FillPortion(38))
             .spacing(8)
             .into(),
         ])
@@ -281,16 +281,16 @@ impl Banner {
         let banner = BackgroundContainer::new(
             CompoundGraphic::from_graphics(vec![
                 Graphic::image(imgs.banner_top, [138, 17], [0, 0]),
-                Graphic::rect(Rgba::new(0, 0, 0, 230), [130, 195], [4, 17]),
-                Graphic::image(imgs.banner, [130, 15], [4, 212])
-                    .color(Rgba::new(255, 255, 255, 230)),
+                Graphic::rect(Rgba::new(0, 0, 0, 230), [130, 165], [4, 17]),
+                // TODO: use non image gradient
+                Graphic::gradient(Rgba::new(0, 0, 0, 230), Rgba::zero(), [130, 50], [4, 182]),
             ])
             .fix_aspect_ratio()
             .height(Length::Fill),
             banner_content,
         )
-        .padding(Padding::new().horizontal(16).vertical(20))
-        .max_width(330);
+        .padding(Padding::new().horizontal(8).vertical(15))
+        .max_width(350);
 
         banner.into()
     }
