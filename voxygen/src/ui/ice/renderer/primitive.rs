@@ -10,6 +10,13 @@ pub enum Primitive {
         bounds: iced::Rectangle,
         color: vek::Rgba<u8>,
     },
+    // A vertical gradient
+    // TODO: could be combined with rectangle
+    Gradient {
+        bounds: iced::Rectangle,
+        top_linear_color: vek::Rgba<f32>,
+        bottom_linear_color: vek::Rgba<f32>,
+    },
     Rectangle {
         bounds: iced::Rectangle,
         linear_color: vek::Rgba<f32>,

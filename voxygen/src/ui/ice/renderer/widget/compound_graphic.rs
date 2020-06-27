@@ -29,6 +29,13 @@ impl compound_graphic::Renderer for IcedRenderer {
                             bounds,
                             linear_color: srgba_to_linear(color.map(|e| e as f32 / 255.0)),
                         },
+                        GraphicKind::Gradient(top_color, bottom_color) => Primitive::Gradient {
+                            bounds,
+                            top_linear_color: srgba_to_linear(top_color.map(|e| e as f32 / 255.0)),
+                            bottom_linear_color: srgba_to_linear(
+                                bottom_color.map(|e| e as f32 / 255.0),
+                            ),
+                        },
                     })
                     .collect(),
             },

@@ -87,24 +87,37 @@ impl Mode {
     }
 }
 
-#[allow(clippy::many_single_char_names)]
 pub fn create_quad(
     rect: Aabr<f32>,
     uv_rect: Aabr<f32>,
     color: Rgba<f32>,
     mode: Mode,
 ) -> Quad<UiPipeline> {
+    create_quad_vert_gradient(rect, uv_rect, color, color, mode)
+}
+
+#[allow(clippy::many_single_char_names)]
+pub fn create_quad_vert_gradient(
+    rect: Aabr<f32>,
+    uv_rect: Aabr<f32>,
+    top_color: Rgba<f32>,
+    bottom_color: Rgba<f32>,
+    mode: Mode,
+) -> Quad<UiPipeline> {
+    let top_color = top_color.into_array();
+    let bottom_color = bottom_color.into_array();
+
     let center = if let Mode::ImageSourceNorth = mode {
         uv_rect.center().into_array()
     } else {
         rect.center().into_array()
     };
     let mode_val = mode.value();
-    let v = |pos, uv| Vertex {
+    let v = |pos, uv, color| Vertex {
         pos,
         uv,
         center,
-        color: color.into_array(),
+        color,
         mode: mode_val,
     };
     let aabr_to_lbrt = |aabr: Aabr<f32>| (aabr.min.x, aabr.min.y, aabr.max.x, aabr.max.y);
@@ -114,22 +127,22 @@ pub fn create_quad(
 
     match (uv_b > uv_t, uv_l > uv_r) {
         (true, true) => Quad::new(
-            v([r, t], [uv_l, uv_b]),
-            v([l, t], [uv_l, uv_t]),
-            v([l, b], [uv_r, uv_t]),
-            v([r, b], [uv_r, uv_b]),
+            v([r, t], [uv_l, uv_b], top_color),
+            v([l, t], [uv_l, uv_t], top_color),
+            v([l, b], [uv_r, uv_t], bottom_color),
+            v([r, b], [uv_r, uv_b], bottom_color),
         ),
         (false, false) => Quad::new(
-            v([r, t], [uv_l, uv_b]),
-            v([l, t], [uv_l, uv_t]),
-            v([l, b], [uv_r, uv_t]),
-            v([r, b], [uv_r, uv_b]),
+            v([r, t], [uv_l, uv_b], top_color),
+            v([l, t], [uv_l, uv_t], top_color),
+            v([l, b], [uv_r, uv_t], bottom_color),
+            v([r, b], [uv_r, uv_b], bottom_color),
         ),
         _ => Quad::new(
-            v([r, t], [uv_r, uv_t]),
-            v([l, t], [uv_l, uv_t]),
-            v([l, b], [uv_l, uv_b]),
-            v([r, b], [uv_r, uv_b]),
+            v([r, t], [uv_r, uv_t], top_color),
+            v([l, t], [uv_l, uv_t], top_color),
+            v([l, b], [uv_l, uv_b], bottom_color),
+            v([r, b], [uv_r, uv_b], bottom_color),
         ),
     }
 }
