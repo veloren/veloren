@@ -246,8 +246,96 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             variations: 1,
             wind_sway: 0.0,
         }),
+        BlockKind::StreetLampTall => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
         BlockKind::Door => Some(SpriteConfig {
             variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Bed => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Bench => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::ChairSingle => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::ChairDouble => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::CoatRack => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Crate => Some(SpriteConfig {
+            variations: 7,
+            wind_sway: 0.0,
+        }),
+        BlockKind::DrawerLarge => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::DrawerMedium => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::DrawerSmall => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::DungeonWallDecor => Some(SpriteConfig {
+            variations: 10,
+            wind_sway: 0.0,
+        }),
+        BlockKind::HangingBasket => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::HangingSign => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::WallLamp => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Planter => Some(SpriteConfig {
+            variations: 7,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Shelf => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::TableSide => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::TableDining => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::TableDouble => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::WardrobeDouble => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::WardrobeSingle => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Pot => Some(SpriteConfig {
+            variations: 2,
             wind_sway: 0.0,
         }),
         _ => None,
@@ -2073,12 +2161,488 @@ impl<V: RectRasterableVol> Terrain<V> {
                         Vec3::unit_z(),
                     ),
                 ),
+                (
+                    (BlockKind::StreetLampTall, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.street_lamp-0",
+                        Vec3::new(-10.5, -10.5, 0.0),
+                        Vec3::unit_z(),
+                    ),
+                ),
                 // Door
                 (
                     (BlockKind::Door, 0),
                     make_models(
                         "voxygen.voxel.sprite.door.door-0",
                         Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                // Bed
+                (
+                    (BlockKind::Bed, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.bed-0",
+                        Vec3::new(-9.5, -6.0, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                // Bench
+                (
+                    (BlockKind::Bench, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.bench-0",
+                        Vec3::new(-14.0, -4.0, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                // Chair
+                (
+                    (BlockKind::ChairSingle, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.chair_single-0",
+                        Vec3::new(-5.5, -4.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::ChairSingle, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.chair_single-1",
+                        Vec3::new(-5.5, -4.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::ChairDouble, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.chair_double-0",
+                        Vec3::new(-9.5, -4.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::ChairDouble, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.chair_double-1",
+                        Vec3::new(-9.5, -4.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                // CoatRack
+                (
+                    (BlockKind::CoatRack, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.coatrack-0",
+                        Vec3::new(-6.5, -6.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::CoatRack, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.coatrack-1",
+                        Vec3::new(-6.5, -6.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                // Crate
+                (
+                    (BlockKind::Crate, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.crate-0",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::Crate, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.crate-1",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::Crate, 2),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.crate-2",
+                        Vec3::new(-3.0, -3.0, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::Crate, 3),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.crate-3",
+                        Vec3::new(-6.0, -3.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::Crate, 4),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.crate-4",
+                        Vec3::new(-6.0, -3.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::Crate, 5),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.crate-5",
+                        Vec3::new(-5.5, -3.0, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::Crate, 6),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.crate-6",
+                        Vec3::new(-4.5, -3.0, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                // DrawerLarge
+                (
+                    (BlockKind::DrawerLarge, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.drawer_large-0",
+                        Vec3::new(-11.5, -5.0, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::DrawerLarge, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.drawer_large-1",
+                        Vec3::new(-11.5, -5.0, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                // DrawerMedium
+                (
+                    (BlockKind::DrawerMedium, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.drawer_medium-0",
+                        Vec3::new(-11.0, -5.0, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::DrawerMedium, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.drawer_medium-1",
+                        Vec3::new(-11.0, -5.0, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                // DrawerSmall
+                (
+                    (BlockKind::DrawerSmall, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.drawer_small-0",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::DrawerSmall, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.drawer_small-1",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                // DungeonWallDecor
+                (
+                    (BlockKind::DungeonWallDecor, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.dungeon_wall-0",
+                        Vec3::new(-5.5, -1.0, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::DungeonWallDecor, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.dungeon_wall-1",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::DungeonWallDecor, 2),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.dungeon_wall-2",
+                        Vec3::new(-5.5, -3.0, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::DungeonWallDecor, 3),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.dungeon_wall-3",
+                        Vec3::new(-1.5, -3.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::DungeonWallDecor, 4),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.dungeon_wall-4",
+                        Vec3::new(-5.5, -4.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::DungeonWallDecor, 5),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.dungeon_wall-5",
+                        Vec3::new(-5.5, -0.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::DungeonWallDecor, 6),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.dungeon_wall-6",
+                        Vec3::new(-5.5, -1.0, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::DungeonWallDecor, 7),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.dungeon_wall-7",
+                        Vec3::new(-5.5, -1.0, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::DungeonWallDecor, 8),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.dungeon_wall-8",
+                        Vec3::new(-5.5, -1.0, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::DungeonWallDecor, 9),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.dungeon_wall-9",
+                        Vec3::new(-1.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                // HangingBasket
+                (
+                    (BlockKind::HangingBasket, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.hanging_basket-0",
+                        Vec3::new(-6.5, -4.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::HangingBasket, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.hanging_basket-1",
+                        Vec3::new(-9.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                // HangingSign
+                (
+                    (BlockKind::HangingSign, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.hanging_sign-0",
+                        Vec3::new(-3.5, -17.0, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                // WallLamp
+                (
+                    (BlockKind::WallLamp, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.lamp_wall-0",
+                        Vec3::new(-5.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::WallLamp, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.lamp_wall-1",
+                        Vec3::new(-9.0, -10.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                // Planter
+                (
+                    (BlockKind::Planter, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.planter-0",
+                        Vec3::new(-6.0, -3.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::Planter, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.planter-1",
+                        Vec3::new(-13.0, -3.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::Planter, 2),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.planter-2",
+                        Vec3::new(-6.0, -3.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::Planter, 3),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.planter-3",
+                        Vec3::new(-6.0, -3.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::Planter, 4),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.planter-4",
+                        Vec3::new(-6.0, -3.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::Planter, 5),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.planter-5",
+                        Vec3::new(-6.0, -3.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::Planter, 6),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.planter-6",
+                        Vec3::new(-7.5, -3.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                //Pot
+                (
+                    (BlockKind::Pot, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.pot-0",
+                        Vec3::new(-3.5, -3.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::Pot, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.pot-1",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                // Shelf
+                (
+                    (BlockKind::Shelf, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.shelf-0",
+                        Vec3::new(-14.5, -3.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::Shelf, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.shelf-1",
+                        Vec3::new(-13.5, -3.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                // TableSide
+                (
+                    (BlockKind::TableSide, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.table_side-0",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::TableSide, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.table_side-1",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                // TableDining
+                (
+                    (BlockKind::TableDining, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.table_dining-0",
+                        Vec3::new(-13.5, -13.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::TableDining, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.table_dining-1",
+                        Vec3::new(-13.5, -13.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                // TableDouble
+                (
+                    (BlockKind::TableDouble, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.table_double-0",
+                        Vec3::new(-18.5, -11.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                // WardrobeSingle
+                (
+                    (BlockKind::WardrobeSingle, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.wardrobe_single-0",
+                        Vec3::new(-6.0, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::WardrobeSingle, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.wardrobe_single-1",
+                        Vec3::new(-6.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                //WardrobeDouble
+                (
+                    (BlockKind::WardrobeDouble, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.wardrobe_double-0",
+                        Vec3::new(-6.5, -10.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::WardrobeDouble, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.furniture.wardrobe_double-1",
+                        Vec3::new(-6.0, -10.5, 0.0),
                         Vec3::one(),
                     ),
                 ),
