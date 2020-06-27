@@ -11,13 +11,13 @@ use crate::{
 };
 use client::Client;
 use common::{
-    character::{CharacterItem, MAX_CHARACTERS_PER_PLAYER},
+    assets::Asset,
+    character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
     comp,
     comp::humanoid,
 };
 //ImageFrame, Tooltip,
 use crate::settings::Settings;
-use common::assets::load_expect;
 //use std::time::Duration;
 //use ui::ice::widget;
 use iced::{
@@ -49,7 +49,7 @@ image_ids_ice! {
         delete_button_press: "voxygen.element.buttons.x_red_press",
 
 
-        name_input: "voxygen.element.misc_bg.textbox_mid",
+        name_input: "voxygen.element.misc_bg.textbox",
 
         // Tool Icons
         daggers: "voxygen.element.icons.daggers",
@@ -106,7 +106,7 @@ pub enum Event {
         tool: Option<String>,
         body: comp::Body,
     },
-    DeleteCharacter(i32),
+    DeleteCharacter(CharacterId),
 }
 
 struct CharacterList {
@@ -165,6 +165,8 @@ struct Controls {
     i18n: std::sync::Arc<Localization>,
     // Voxygen version
     version: String,
+    // Alpha disclaimer
+    alpha: String,
 
     info_content: Option<InfoContent>,
     // enter: bool,
@@ -190,12 +192,14 @@ impl Controls {
             env!("CARGO_PKG_VERSION"),
             common::util::GIT_VERSION.to_string()
         );
+        let alpha = format!("Veloren Pre-Alpha {}", env!("CARGO_PKG_VERSION"),);
 
         Self {
             fonts,
             imgs,
             i18n,
             version,
+            alpha,
 
             info_content: None,
             mode: Mode::Select {
@@ -226,6 +230,18 @@ impl Controls {
             .size(self.fonts.cyri.scale(15))
             .width(Length::Fill)
             .horizontal_alignment(HorizontalAlignment::Right);
+
+        let alpha = iced::Text::new(&self.alpha)
+            .size(self.fonts.cyri.scale(15))
+            .width(Length::Fill)
+            .horizontal_alignment(HorizontalAlignment::Center);
+
+        let top_text = Row::with_children(vec![
+            Space::new(Length::Fill, Length::Shrink).into(),
+            alpha.into(),
+            version.into(),
+        ])
+        .width(Length::Fill);
 
         let content = match &mut self.mode {
             Mode::Select {
@@ -375,7 +391,7 @@ impl Controls {
         };
 
         Container::new(
-            Column::with_children(vec![version.into(), content.into()])
+            Column::with_children(vec![top_text.into(), content.into()])
                 .spacing(3)
                 .width(Length::Fill)
                 .height(Length::Fill),
@@ -408,7 +424,7 @@ pub struct CharSelectionUi {
 impl CharSelectionUi {
     pub fn new(global_state: &mut GlobalState) -> Self {
         // Load language
-        let i18n = load_expect::<Localization>(&i18n_asset_key(
+        let i18n = Localization::load_expect(&i18n_asset_key(
             &global_state.settings.language.selected_language,
         ));
 

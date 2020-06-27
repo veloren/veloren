@@ -2,7 +2,7 @@ use super::{
     img_ids::Imgs, ERROR_COLOR, FACTION_COLOR, GROUP_COLOR, INFO_COLOR, KILL_COLOR, LOOT_COLOR,
     OFFLINE_COLOR, ONLINE_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR, WORLD_COLOR,
 };
-use crate::{ui::fonts::Fonts, GlobalState, Localization};
+use crate::{i18n::Localization, ui::fonts::Fonts, GlobalState};
 use client::{cmd, Client};
 use common::{
     comp::{

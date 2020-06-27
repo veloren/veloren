@@ -499,6 +499,7 @@ pub struct Window {
     pub mouse_y_inversion: bool,
     fullscreen: FullScreenSettings,
     modifiers: winit::event::ModifiersState,
+    scale_factor: f64,
     needs_refresh_resize: bool,
     keypress_map: HashMap<GameInput, winit::event::ElementState>,
     pub remapping_keybindings: Option<GameInput>,
@@ -587,6 +588,8 @@ impl Window {
             channel::Receiver<String>,
         ) = channel::unbounded::<String>();
 
+        let scale_factor = window.window().scale_factor();
+
         let mut this = Self {
             renderer: Renderer::new(
                 device,
@@ -603,6 +606,7 @@ impl Window {
             mouse_y_inversion: settings.gameplay.mouse_y_inversion,
             fullscreen: FullScreenSettings::default(),
             modifiers: Default::default(),
+            scale_factor,
             needs_refresh_resize: false,
             keypress_map,
             remapping_keybindings: None,
@@ -922,8 +926,8 @@ impl Window {
                 self.events
                     .push(Event::Resize(Vec2::new(width as u32, height as u32)));
             },
-            WindowEvent::ScaleFactorChanged { .. } => {
-                // TODO: Handle properly!
+            WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
+                self.scale_factor = scale_factor
             },
             WindowEvent::ReceivedCharacter(c) => self.events.push(Event::Char(c)),
             WindowEvent::MouseInput { button, state, .. } => {
@@ -1374,7 +1378,11 @@ impl Window {
         self.remapping_keybindings = Some(game_input);
     }
 
-    pub fn window(&self) -> &winit::Window { self.window.window() }
+    pub fn window(&self) -> &winit::window::Window { self.window.window() }
+
+    pub fn modifiers(&self) -> winit::event::ModifiersState { self.modifiers }
+
+    pub fn scale_factor(&self) -> f64 { self.scale_factor }
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
