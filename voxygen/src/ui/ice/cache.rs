@@ -109,6 +109,7 @@ impl common::assets::Asset for RawFont {
 
     fn parse(
         mut buf_reader: std::io::BufReader<std::fs::File>,
+        _specifier: &str,
     ) -> Result<Self, common::assets::Error> {
         use std::io::Read;
         let mut buf = Vec::new();

@@ -5,7 +5,8 @@ use iced::{mouse, text, Color, HorizontalAlignment, Rectangle, Size, VerticalAli
 impl text::Renderer for IcedRenderer {
     type Font = FontId;
 
-    const DEFAULT_SIZE: u16 = 20;
+    // TODO: expose as setting
+    fn default_size(&self) -> u16 { 20 }
 
     fn measure(&self, content: &str, size: u16, font: Self::Font, bounds: Size) -> (f32, f32) {
         // Using the physical scale might make these cached info usable below?

@@ -6,7 +6,7 @@ pub struct Event(pub Input);
 impl Event {
     pub fn try_from(
         event: &winit::event::Event<()>,
-        window: &glutin::ContextWrapper<glutin::PossiblyCurrent, winit::window::Window>,
+        window: &winit::window::Window,
     ) -> Option<Self> {
         use conrod_winit::*;
         // A wrapper around the winit window that allows us to implement the trait
@@ -26,7 +26,7 @@ impl Event {
 
             fn hidpi_factor(&self) -> f64 { winit::window::Window::scale_factor(&self.0) }
         }
-        convert_event!(event, &WindowRef(window.window())).map(Self)
+        convert_event!(event, &WindowRef(window)).map(Self)
     }
 
     pub fn is_keyboard_or_mouse(&self) -> bool {

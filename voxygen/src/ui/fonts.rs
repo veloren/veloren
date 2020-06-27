@@ -11,7 +11,7 @@ impl Font {
     pub fn new(font: &i18n::Font, ui: &mut crate::ui::Ui) -> Self {
         Self {
             metadata: font.clone(),
-            conrod_id: ui.new_font(crate::ui::Font::load_expect(&font.asset_key)),
+            conrod_id: ui.new_font(crate::ui::ice::RawFont::load_expect(&font.asset_key)),
         }
     }
 

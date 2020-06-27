@@ -36,9 +36,12 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
         }
         // iced ui events
         // TODO: no clone
-        if let winit::Event::WindowEvent { event, .. } = event.clone() {
-            if let Some(event) = ui::ice::window_event(event) {
-                global_state.window.send_event(Event::IcedUi(event));
+        if let winit::event::Event::WindowEvent { event, .. } = &event {
+            let window = &mut global_state.window;
+            if let Some(event) =
+                ui::ice::window_event(event, window.scale_factor(), window.modifiers())
+            {
+                window.send_event(Event::IcedUi(event));
             }
         }
 

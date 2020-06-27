@@ -85,7 +85,7 @@ impl PlayState for MainMenuState {
                 Event::Close => return PlayStateResult::Shutdown,
                 // Pass events to ui.
                 Event::IcedUi(event) => {
-                    self.main_menu_ui.handle_iced_event(event);
+                    self.main_menu_ui.handle_event(event);
                 },
                 // Ignore all other events.
                 _ => {},

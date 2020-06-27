@@ -197,7 +197,6 @@ impl PlayState for CharSelectionState {
         );
 
         // Draw the UI to the screen.
-        self.char_selection_ui
-            .render(global_state.window.renderer_mut());
+        self.char_selection_ui.render(renderer);
     }
 }

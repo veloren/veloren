@@ -192,7 +192,7 @@ impl GraphicCache {
         use image::GenericImageView;
         self.get_graphic(id)
             .and_then(|graphic| match graphic {
-                Graphic::Image(image) => Some(image.dimensions()),
+                Graphic::Image(image, _) => Some(image.dimensions()),
                 Graphic::Voxel(segment, _, _) => {
                     use common::vol::SizedVol;
                     let size = segment.size();
