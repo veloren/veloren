@@ -13,15 +13,16 @@ use common::{
     npc::{self, get_npc_name},
     state::TimeOfDay,
     sync::{Uid, WorldSyncExt},
-    terrain::TerrainChunkSize,
+    terrain::{TerrainChunkSize, Block, BlockKind},
     util::Dir,
-    vol::RectVolSize,
+    vol::{RectVolSize, WriteVol},
     LoadoutBuilder,
 };
 use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
 use vek::*;
 use world::util::Sampler;
+use std::convert::TryFrom;
 
 use scan_fmt::{scan_fmt, scan_fmt_some};
 use tracing::error;
@@ -83,6 +84,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::KillNpcs => handle_kill_npcs,
         ChatCommand::Lantern => handle_lantern,
         ChatCommand::Light => handle_light,
+        ChatCommand::MakeBlock => handle_make_block,
         ChatCommand::Motd => handle_motd,
         ChatCommand::Object => handle_object,
         ChatCommand::Players => handle_players,
@@ -175,6 +177,39 @@ fn handle_give_item(
         server.notify_client(
             client,
             ChatType::CommandError.server_msg(action.help_string()),
+        );
+    }
+}
+
+fn handle_make_block(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) {
+    if let Some(block_name) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
+        if let Ok(bk) = BlockKind::try_from(block_name.as_str()) {
+            match server.state.read_component_cloned::<comp::Pos>(target) {
+                Some(pos) => server.state.set_block(
+                    pos.0.map(|e| e.floor() as i32),
+                    Block::new(bk, Rgb::broadcast(255)),
+                ),
+                None => server.notify_client(
+                    client,
+                    ChatType::CommandError.server_msg(String::from("You have no position.")),
+                ),
+            }
+        } else {
+            server.notify_client(
+                client,
+                ChatType::CommandError.server_msg(format!("Invalid block kind: {}", block_name)),
+            );
+        }
+    } else {
+        server.notify_client(
+            client,
+            ChatType::CommandError.server_msg(String::from(action.help_string())),
         );
     }
 }
