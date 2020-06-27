@@ -437,7 +437,7 @@
             central: ("npc.frostfang.male.torso_front"),
         ),
         torso_back: (
-            offset: (-3.0, -4.0, -4.5),
+            offset: (-3.0, -8.0, -4.5),
             central: ("npc.frostfang.male.torso_back"),
         ),
         ears: (
@@ -467,7 +467,7 @@
             central: ("npc.frostfang.female.torso_front"),
         ),
         torso_back: (
-            offset: (-3.0, -4.0, -4.5),
+            offset: (-3.0, -8.0, -4.5),
             central: ("npc.frostfang.female.torso_back"),
         ),
         ears: (

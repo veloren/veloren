@@ -16,8 +16,9 @@ use anim::{
     biped_large::BipedLargeSkeleton, bird_medium::BirdMediumSkeleton,
     bird_small::BirdSmallSkeleton, character::CharacterSkeleton, critter::CritterSkeleton,
     dragon::DragonSkeleton, fish_medium::FishMediumSkeleton, fish_small::FishSmallSkeleton,
-    golem::GolemSkeleton, object::ObjectSkeleton, quadruped_medium::QuadrupedMediumSkeleton,
-    quadruped_small::QuadrupedSmallSkeleton, quadruped_low::QuadrupedLowSkeleton, Animation, Skeleton,
+    golem::GolemSkeleton, object::ObjectSkeleton, quadruped_low::QuadrupedLowSkeleton,
+    quadruped_medium::QuadrupedMediumSkeleton, quadruped_small::QuadrupedSmallSkeleton, Animation,
+    Skeleton,
 };
 use common::{
     comp::{
@@ -1028,9 +1029,7 @@ impl FigureMgr {
                     let state = self
                         .quadruped_low_states
                         .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, QuadrupedLowSkeleton::new())
-                        });
+                        .or_insert_with(|| FigureState::new(renderer, QuadrupedLowSkeleton::new()));
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -1057,25 +1056,21 @@ impl FigureMgr {
                             )
                         },
                         // Running
-                        (true, true, false) => {
-                            anim::quadruped_low::RunAnimation::update_skeleton(
-                                &QuadrupedLowSkeleton::new(),
-                                (vel.0.magnitude(), time),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
+                        (true, true, false) => anim::quadruped_low::RunAnimation::update_skeleton(
+                            &QuadrupedLowSkeleton::new(),
+                            (vel.0.magnitude(), time),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
                         // In air
-                        (false, _, false) => {
-                            anim::quadruped_low::JumpAnimation::update_skeleton(
-                                &QuadrupedLowSkeleton::new(),
-                                (vel.0.magnitude(), time),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
+                        (false, _, false) => anim::quadruped_low::JumpAnimation::update_skeleton(
+                            &QuadrupedLowSkeleton::new(),
+                            (vel.0.magnitude(), time),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
 
                         // TODO!
                         _ => state.skeleton_mut().clone(),
@@ -2175,7 +2170,7 @@ impl FigureMgr {
                 .iter()
                 .filter(|(_, c)| c.visible)
                 .count()
-                + self
+            + self
                 .quadruped_low_states
                 .iter()
                 .filter(|(_, c)| c.visible)

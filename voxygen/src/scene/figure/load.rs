@@ -16,9 +16,9 @@ use common::{
             ItemKind, Lantern, LanternKind,
         },
         object,
+        quadruped_low::{BodyType as QLBodyType, Species as QLSpecies},
         quadruped_medium::{BodyType as QMBodyType, Species as QMSpecies},
         quadruped_small::{BodyType as QSBodyType, Species as QSSpecies},
-        quadruped_low::{BodyType as QLBodyType, Species as QLSpecies},
         Loadout,
     },
     figure::{DynaUnionizer, MatSegment, Material, Segment},
@@ -3316,7 +3316,7 @@ impl QuadrupedLowLateralSpec {
     }
 }
 
-/// 
+///
 
 pub fn mesh_object(
     obj: object::Body,

@@ -46,7 +46,7 @@ impl Skeleton for QuadrupedMediumSkeleton {
         let head_upper_mat = self.head_upper.compute_base_matrix();
         let head_lower_mat = self.head_lower.compute_base_matrix();
         let torso_front_mat = self.torso_front.compute_base_matrix();
-		let torso_back_mat = self.torso_back.compute_base_matrix();
+        let torso_back_mat = self.torso_back.compute_base_matrix();
         let leg_fl_mat = self.leg_fl.compute_base_matrix();
         let leg_fr_mat = self.leg_fr.compute_base_matrix();
         let leg_bl_mat = self.leg_bl.compute_base_matrix();
@@ -56,19 +56,40 @@ impl Skeleton for QuadrupedMediumSkeleton {
             [
                 FigureBoneData::new(torso_front_mat * head_lower_mat * head_upper_mat),
                 FigureBoneData::new(torso_front_mat * head_lower_mat),
-                FigureBoneData::new(torso_front_mat *head_lower_mat * head_upper_mat * self.jaw.compute_base_matrix()),
-                FigureBoneData::new(torso_front_mat * torso_back_mat * self.tail.compute_base_matrix()),
+                FigureBoneData::new(
+                    torso_front_mat
+                        * head_lower_mat
+                        * head_upper_mat
+                        * self.jaw.compute_base_matrix(),
+                ),
+                FigureBoneData::new(
+                    torso_front_mat * torso_back_mat * self.tail.compute_base_matrix(),
+                ),
                 FigureBoneData::new(torso_front_mat),
                 FigureBoneData::new(torso_front_mat * torso_back_mat),
-                FigureBoneData::new(torso_front_mat *head_lower_mat*head_upper_mat * ears_mat),
-                FigureBoneData::new(torso_front_mat *leg_fl_mat),
-                FigureBoneData::new(torso_front_mat *leg_fr_mat),
-                FigureBoneData::new(torso_front_mat *torso_back_mat *leg_bl_mat),
-                FigureBoneData::new(torso_front_mat *torso_back_mat *leg_br_mat),
-                FigureBoneData::new(torso_front_mat *leg_fl_mat * self.foot_fl.compute_base_matrix()),
-                FigureBoneData::new(torso_front_mat *leg_fr_mat * self.foot_fr.compute_base_matrix()),
-                FigureBoneData::new(torso_front_mat *torso_back_mat *leg_bl_mat * self.foot_bl.compute_base_matrix()),
-                FigureBoneData::new(torso_front_mat *torso_back_mat *leg_br_mat * self.foot_br.compute_base_matrix()),
+                FigureBoneData::new(torso_front_mat * head_lower_mat * head_upper_mat * ears_mat),
+                FigureBoneData::new(torso_front_mat * leg_fl_mat),
+                FigureBoneData::new(torso_front_mat * leg_fr_mat),
+                FigureBoneData::new(torso_front_mat * torso_back_mat * leg_bl_mat),
+                FigureBoneData::new(torso_front_mat * torso_back_mat * leg_br_mat),
+                FigureBoneData::new(
+                    torso_front_mat * leg_fl_mat * self.foot_fl.compute_base_matrix(),
+                ),
+                FigureBoneData::new(
+                    torso_front_mat * leg_fr_mat * self.foot_fr.compute_base_matrix(),
+                ),
+                FigureBoneData::new(
+                    torso_front_mat
+                        * torso_back_mat
+                        * leg_bl_mat
+                        * self.foot_bl.compute_base_matrix(),
+                ),
+                FigureBoneData::new(
+                    torso_front_mat
+                        * torso_back_mat
+                        * leg_br_mat
+                        * self.foot_br.compute_base_matrix(),
+                ),
                 FigureBoneData::default(),
             ],
             Vec3::default(),
@@ -177,12 +198,12 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
             tail: match (body.species, body.body_type) {
                 (Grolgar, _) => (-11.5, -0.5),
                 (Saber, _) => (-11.0, 1.0),
-                (Tuskram, _) => (-10.0, 2.0),
+                (Tuskram, _) => (-9.0, 2.0),
                 (Lion, _) => (-11.0, 1.0),
                 (Tarasque, _) => (-11.0, 0.0),
                 (Tiger, _) => (-12.5, -7.0),
                 (Wolf, _) => (-11.0, 0.0),
-                (Frostfang, _) => (-10.0, -3.5),
+                (Frostfang, _) => (-7.0, -3.5),
                 (Mouflon, _) => (-12.0, 1.5),
             },
             torso_front: match (body.species, body.body_type) {
@@ -241,26 +262,26 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Mouflon, _) => (3.5, -5.0, -4.5),
             },
             feet_f: match (body.species, body.body_type) {
-                (Grolgar, _) => (0.0, -2.0, -4.0),
-                (Saber, _) => (1.0, 3.0, -1.0),
-                (Tuskram, _) => (0.5, 2.0, -5.0),
-                (Lion, _) => (0.0, 2.0, -4.5),
+                (Grolgar, _) => (0.0, -3.0, -3.0),
+                (Saber, _) => (1.0, 0.0, -1.0),
+                (Tuskram, _) => (0.5, 0.5, -5.0),
+                (Lion, _) => (0.0, 0.0, -1.5),
                 (Tarasque, _) => (1.0, 0.0, -3.0),
-                (Tiger, _) => (1.0, 0.0, -5.0),
-                (Wolf, _) => (0.5, 0.5, -3.0),
-                (Frostfang, _) => (0.5, 2.5, -3.5),
-                (Mouflon, _) => (-0.5, 0.5, -1.5),
+                (Tiger, _) => (0.5, 0.0, -5.0),
+                (Wolf, _) => (0.5, 1.5, -3.5),
+                (Frostfang, _) => (0.5, 1.5, -3.5),
+                (Mouflon, _) => (-0.5, -0.5, -1.5),
             },
             feet_b: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.0, 0.0, -5.0),
-                (Saber, _) => (1.0, 0.0, 0.0),
+                (Saber, _) => (1.0, -2.0, 0.0),
                 (Tuskram, _) => (0.5, 0.0, -4.0),
                 (Lion, _) => (0.5, 0.5, -4.0),
                 (Tarasque, _) => (1.5, -1.0, -2.5),
                 (Tiger, _) => (1.0, 0.5, -4.0),
-                (Wolf, _) => (0.0, -0.5, -2.5),
-                (Frostfang, _) => (0.0, -0.5, -3.5),
-                (Mouflon, _) => (-1.0, -0.5, -2.5),
+                (Wolf, _) => (0.0, -1.5, -3.0),
+                (Frostfang, _) => (0.0, -1.5, -3.5),
+                (Mouflon, _) => (-1.0, -1.5, -2.5),
             },
         }
     }

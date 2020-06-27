@@ -13,9 +13,9 @@ pub mod fish_small;
 pub mod fixture;
 pub mod golem;
 pub mod object;
+pub mod quadruped_low;
 pub mod quadruped_medium;
 pub mod quadruped_small;
-pub mod quadruped_low;
 
 #[cfg(feature = "use-dyn-lib")]
 pub use dyn_lib::init;
