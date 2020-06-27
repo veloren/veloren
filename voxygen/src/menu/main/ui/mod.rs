@@ -441,6 +441,25 @@ impl Controls {
             }
         }
     }
+
+    fn tab(&mut self) {
+        if let Screen::Login { screen, .. } = &mut self.screen {
+            // TODO: add select all function in iced
+            if screen.banner.username.is_focused() {
+                screen.banner.username = iced::text_input::State::new();
+                screen.banner.password = iced::text_input::State::focused();
+                screen.banner.password.move_cursor_to_end();
+            } else if screen.banner.password.is_focused() {
+                screen.banner.password = iced::text_input::State::new();
+                screen.banner.server = iced::text_input::State::focused();
+                screen.banner.server.move_cursor_to_end();
+            } else if screen.banner.server.is_focused() {
+                screen.banner.server = iced::text_input::State::new();
+                screen.banner.username = iced::text_input::State::focused();
+                screen.banner.username.move_cursor_to_end();
+            }
+        }
+    }
 }
 
 pub struct MainMenuUi {
@@ -497,7 +516,21 @@ impl<'a> MainMenuUi {
 
     pub fn cancel_connection(&mut self) { self.controls.exit_connect_screen(); }
 
-    pub fn handle_event(&mut self, event: ui::ice::Event) { self.ui.handle_event(event); }
+    pub fn handle_event(&mut self, event: ui::ice::Event) {
+        // Tab for input fields
+        use iced::keyboard;
+        if matches!(
+            &event,
+            iced::Event::Keyboard(keyboard::Event::KeyPressed {
+                key_code: keyboard::KeyCode::Tab,
+                ..
+            })
+        ) {
+            self.controls.tab();
+        }
+
+        self.ui.handle_event(event);
+    }
 
     pub fn maintain(&mut self, global_state: &mut GlobalState, dt: Duration) -> Vec<Event> {
         let mut events = Vec::new();
