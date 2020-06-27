@@ -251,4 +251,40 @@
             lateral: ("npc.rocksnapper.female.foot_br"),
         ),
     ),
+    (Pangolin, Male): (
+        front_left: (
+            offset: (-1.5, 0.0, -6.0),//unique
+            lateral: ("npc.pangolin.male.foot_fl"),
+        ),
+        front_right: (
+            offset: (-1.5, 0.0, -6.0),
+            lateral: ("npc.pangolin.male.foot_fr"),
+        ),
+        back_left: (
+            offset: (-1.5, 0.0, -6.0),
+            lateral: ("npc.pangolin.male.foot_bl"),
+        ),
+        back_right: (
+            offset: (-1.5, 0.0, -6.0),
+            lateral: ("npc.pangolin.male.foot_br"),
+        ),
+    ),
+    (Pangolin, Female): (
+        front_left: (
+            offset: (-1.5, 0.0, -6.0),
+            lateral: ("npc.pangolin.female.foot_fl"),
+        ),
+        front_right: (
+            offset: (-1.5, 0.0, -6.0),
+            lateral: ("npc.pangolin.female.foot_fr"),
+        ),
+        back_left: (
+            offset: (-1.5, 0.0, -6.0),//special case
+            lateral: ("npc.pangolin.female.foot_bl"),
+        ),
+        back_right: (
+            offset: (-1.5, 0.0, -6.0),
+            lateral: ("npc.pangolin.female.foot_br"),
+        ),
+    ),
 })
