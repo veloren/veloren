@@ -1,4 +1,4 @@
-mod building;
+pub mod building;
 mod town;
 
 use self::{

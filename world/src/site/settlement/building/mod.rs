@@ -1,10 +1,10 @@
-mod archetype;
-mod skeleton;
+pub mod archetype;
+pub mod skeleton;
 
 // Reexports
 pub use self::archetype::Archetype;
+pub use self::skeleton::*;
 
-use self::skeleton::*;
 use common::terrain::Block;
 use rand::prelude::*;
 use vek::*;

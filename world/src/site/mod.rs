@@ -1,10 +1,17 @@
 mod block_mask;
 mod dungeon;
+mod castle;
 pub mod economy;
 mod settlement;
 
 // Reexports
-pub use self::{block_mask::BlockMask, dungeon::Dungeon, economy::Economy, settlement::Settlement};
+pub use self::{
+    block_mask::BlockMask,
+    dungeon::Dungeon,
+    economy::Economy,
+    settlement::Settlement,
+    castle::Castle,
+};
 
 use crate::column::ColumnSample;
 use common::{
@@ -32,6 +39,7 @@ pub struct Site {
 pub enum SiteKind {
     Settlement(Settlement),
     Dungeon(Dungeon),
+    Castle(Castle),
 }
 
 impl Site {
@@ -49,10 +57,18 @@ impl Site {
         }
     }
 
+    pub fn castle(c: Castle) -> Self {
+        Self {
+            kind: SiteKind::Castle(c),
+            economy: Economy::default(),
+        }
+    }
+
     pub fn radius(&self) -> f32 {
         match &self.kind {
-            SiteKind::Settlement(settlement) => settlement.radius(),
-            SiteKind::Dungeon(dungeon) => dungeon.radius(),
+            SiteKind::Settlement(s) => s.radius(),
+            SiteKind::Dungeon(d) => d.radius(),
+            SiteKind::Castle(c) => c.radius(),
         }
     }
 
@@ -60,6 +76,7 @@ impl Site {
         match &self.kind {
             SiteKind::Settlement(s) => s.get_origin(),
             SiteKind::Dungeon(d) => d.get_origin(),
+            SiteKind::Castle(c) => c.get_origin(),
         }
     }
 
@@ -67,6 +84,7 @@ impl Site {
         match &self.kind {
             SiteKind::Settlement(s) => s.spawn_rules(wpos),
             SiteKind::Dungeon(d) => d.spawn_rules(wpos),
+            SiteKind::Castle(c) => c.spawn_rules(wpos),
         }
     }
 
@@ -77,8 +95,9 @@ impl Site {
         vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
     ) {
         match &self.kind {
-            SiteKind::Settlement(settlement) => settlement.apply_to(wpos2d, get_column, vol),
-            SiteKind::Dungeon(dungeon) => dungeon.apply_to(wpos2d, get_column, vol),
+            SiteKind::Settlement(s) => s.apply_to(wpos2d, get_column, vol),
+            SiteKind::Dungeon(d) => d.apply_to(wpos2d, get_column, vol),
+            SiteKind::Castle(c) => c.apply_to(wpos2d, get_column, vol),
         }
     }
 
@@ -90,12 +109,9 @@ impl Site {
         supplement: &mut ChunkSupplement,
     ) {
         match &self.kind {
-            SiteKind::Settlement(settlement) => {
-                settlement.apply_supplement(rng, wpos2d, get_column, supplement)
-            },
-            SiteKind::Dungeon(dungeon) => {
-                dungeon.apply_supplement(rng, wpos2d, get_column, supplement)
-            },
+            SiteKind::Settlement(s) => s.apply_supplement(rng, wpos2d, get_column, supplement),
+            SiteKind::Dungeon(d) => d.apply_supplement(rng, wpos2d, get_column, supplement),
+            SiteKind::Castle(c) => c.apply_supplement(rng, wpos2d, get_column, supplement),
         }
     }
 }

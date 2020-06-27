@@ -1,13 +1,8 @@
 use crate::vol::Vox;
-use serde::{Deserialize, Serialize};
-use std::{
-    ops::Deref,
-    convert::TryFrom,
-    collections::HashMap,
-    fmt,
-};
-use lazy_static::lazy_static;
 use enum_iterator::IntoEnumIterator;
+use lazy_static::lazy_static;
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, convert::TryFrom, fmt, ops::Deref};
 use vek::*;
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize, IntoEnumIterator)]
@@ -96,9 +91,7 @@ pub enum BlockKind {
 }
 
 impl fmt::Display for BlockKind {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
-    }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{:?}", self) }
 }
 
 lazy_static! {
@@ -110,9 +103,7 @@ lazy_static! {
 impl<'a> TryFrom<&'a str> for BlockKind {
     type Error = ();
 
-    fn try_from(s: &'a str) -> Result<Self, Self::Error> {
-        BLOCK_KINDS.get(s).copied().ok_or(())
-    }
+    fn try_from(s: &'a str) -> Result<Self, Self::Error> { BLOCK_KINDS.get(s).copied().ok_or(()) }
 }
 
 impl BlockKind {

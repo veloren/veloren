@@ -298,6 +298,11 @@ impl ChatCommand {
                 "View the server description",
                 NoAdmin,
             ),
+            ChatCommand::MakeBlock => cmd(
+                vec![Enum("block", BLOCK_KINDS.clone(), Required)],
+                "Make a block",
+                Admin,
+            ),
             ChatCommand::Object => cmd(
                 vec![Enum("object", OBJECTS.clone(), Required)],
                 "Spawn an object",

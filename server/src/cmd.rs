@@ -13,16 +13,16 @@ use common::{
     npc::{self, get_npc_name},
     state::TimeOfDay,
     sync::{Uid, WorldSyncExt},
-    terrain::{TerrainChunkSize, Block, BlockKind},
+    terrain::{Block, BlockKind, TerrainChunkSize},
     util::Dir,
     vol::{RectVolSize, WriteVol},
     LoadoutBuilder,
 };
 use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
+use std::convert::TryFrom;
 use vek::*;
 use world::util::Sampler;
-use std::convert::TryFrom;
 
 use scan_fmt::{scan_fmt, scan_fmt_some};
 use tracing::error;
