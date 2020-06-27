@@ -601,6 +601,10 @@
             "rocksnapper": {
                 "keyword": "rocksnapper",
                 "generic": "Rock Snapper"
+            },
+            "pangolin": {
+                "keyword": "pangolin",
+                "generic": "Pangolin"
             }
         }
     }
