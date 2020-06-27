@@ -280,7 +280,11 @@ impl ChatCommand {
                 "Spawn entity with light",
                 Admin,
             ),
-            ChatCommand::Motd => cmd(vec![Message], "View the server description", false),
+            ChatCommand::Motd => cmd(
+                vec![Message(Optional)],
+                "View the server description",
+                NoAdmin,
+            ),
             ChatCommand::Object => cmd(
                 vec![Enum("object", OBJECTS.clone(), Required)],
                 "Spawn an object",
@@ -307,7 +311,9 @@ impl ChatCommand {
                 "Set player Level",
                 Admin,
             ),
-            ChatCommand::SetMotd => cmd(vec![Message], "Set the server description", true),
+            ChatCommand::SetMotd => {
+                cmd(vec![Message(Optional)], "Set the server description", Admin)
+            },
             ChatCommand::Spawn => cmd(
                 vec![
                     Enum("alignment", ALIGNMENTS.clone(), Required),

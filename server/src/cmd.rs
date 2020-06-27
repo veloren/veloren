@@ -185,7 +185,7 @@ fn handle_motd(
 ) {
     server.notify_client(
         client,
-        ServerMsg::broadcast(server.settings().server_description.clone()),
+        ChatType::CommandError.server_msg(server.settings().server_description.clone()),
     );
 }
 
@@ -203,14 +203,14 @@ fn handle_set_motd(
                 .edit(|s| s.server_description = msg.clone());
             server.notify_client(
                 client,
-                ServerMsg::private(format!("Server description set to \"{}\"", msg)),
+                ChatType::CommandError.server_msg(format!("Server description set to \"{}\"", msg)),
             );
         },
         Err(_) => {
             server.settings_mut().edit(|s| s.server_description.clear());
             server.notify_client(
                 client,
-                ServerMsg::private("Removed server description".to_string()),
+                ChatType::CommandError.server_msg("Removed server description".to_string()),
             );
         },
     }

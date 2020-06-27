@@ -49,7 +49,6 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Player>,
         WriteStorage<'a, Client>,
         WriteStorage<'a, Controller>,
-        WriteStorage<'a, SpeechBubble>,
         Read<'a, ServerSettings>,
     );
 
@@ -80,7 +79,6 @@ impl<'a> System<'a> for Sys {
             mut players,
             mut clients,
             mut controllers,
-            mut speech_bubbles,
             settings,
         ): Self::SystemData,
     ) {
@@ -88,13 +86,13 @@ impl<'a> System<'a> for Sys {
 
         let mut server_emitter = server_event_bus.emitter();
 
-        let mut new_chat_msgs = Vec::new();
+        let mut new_chat_msgs: Vec<(Option<specs::Entity>, ChatMsg)> = Vec::new();
 
         // Player list to send new players.
         let player_list = (&uids, &players, stats.maybe(), admins.maybe())
             .join()
             .map(|(uid, player, stats, admin)| {
-                (*uid, PlayerInfo {
+                ((*uid).into(), PlayerInfo {
                     is_online: true,
                     is_admin: admin.is_some(),
                     player_alias: player.alias.clone(),
@@ -164,7 +162,7 @@ impl<'a> System<'a> for Sys {
 
                         let vd = view_distance
                             .map(|vd| vd.min(settings.max_view_distance.unwrap_or(vd)));
-                        let player = Player::new(username, None, vd, uuid);
+                        let player = Player::new(username.clone(), None, vd, uuid);
                         let is_admin = admin_list.contains(&username);
 
                         if !player.is_valid() {
@@ -268,21 +266,19 @@ impl<'a> System<'a> for Sys {
 
                                 // Give the player a welcome message
                                 if settings.server_description.len() > 0 {
-                                    client.notify(ServerMsg::broadcast(
-                                        settings.server_description.clone(),
-                                    ));
+                                    client.notify(
+                                        ChatType::Online
+                                            .server_msg(settings.server_description.clone()),
+                                    );
                                 }
 
                                 // Only send login message if it wasn't already
                                 // sent previously
                                 if !client.login_msg_sent {
-                                    new_chat_msgs.push((
-                                        None,
-                                        ServerMsg::broadcast(format!(
-                                            "[{}] is now online.",
-                                            &player.alias
-                                        )),
-                                    ));
+                                    new_chat_msgs.push((None, ChatMsg {
+                                        chat_type: ChatType::Online,
+                                        message: format!("[{}] is now online.", &player.alias),
+                                    }));
 
                                     client.login_msg_sent = true;
                                 }
@@ -464,12 +460,13 @@ impl<'a> System<'a> for Sys {
         // Tell all clients to add them to the player list.
         for entity in new_players {
             if let (Some(uid), Some(player)) = (uids.get(entity), players.get(entity)) {
-                let msg = ServerMsg::PlayerListUpdate(PlayerListUpdate::Add(*uid, PlayerInfo {
-                    player_alias: player.alias.clone(),
-                    is_online: true,
-                    is_admin: admins.get(entity).is_some(),
-                    character: None, // new players will be on character select.
-                }));
+                let msg =
+                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Add((*uid).into(), PlayerInfo {
+                        player_alias: player.alias.clone(),
+                        is_online: true,
+                        is_admin: admins.get(entity).is_some(),
+                        character: None, // new players will be on character select.
+                    }));
                 for client in (&mut clients).join().filter(|c| c.is_registered()) {
                     client.notify(msg.clone())
                 }
