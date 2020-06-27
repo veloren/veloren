@@ -46,13 +46,6 @@ pub trait StateExt {
     /// Performed after loading component data from the database
     fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents);
     /// Iterates over registered clients and send each `ServerMsg`
-    fn create_player_character(
-        &mut self,
-        entity: EcsEntity,
-        character_id: i32,
-        body: comp::Body,
-        server_settings: &ServerSettings,
-    );
     fn send_chat(&self, msg: comp::ChatMsg);
     fn notify_registered_clients(&self, msg: ServerMsg);
     /// Delete an entity, recording the deletion in [`DeletedEntities`]

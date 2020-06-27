@@ -1013,7 +1013,7 @@ impl Client {
 
         self.entity = entity_builder.with(uid).build();
     }
-    
+
     /// Format a message for the client (voxygen chat box or chat-cli)
     pub fn format_message(&self, msg: &comp::ChatMsg, character_name: bool) -> String {
         let comp::ChatMsg { chat_type, message } = &msg;

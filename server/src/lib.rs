@@ -110,9 +110,6 @@ impl Server {
             .insert(persistence::character::CharacterUpdater::new(
                 settings.persistence_db_dir.clone(),
             ));
-        state.ecs_mut().insert(crate::settings::PersistenceDBDir(
-            settings.persistence_db_dir.clone(),
-        ));
         state
             .ecs_mut()
             .insert(comp::AdminList(settings.admins.clone()));
