@@ -10,8 +10,8 @@ use vek::*;
 pub struct Keep;
 
 pub struct Attr {
-    height: i32,
-    is_tower: bool,
+    pub height: i32,
+    pub is_tower: bool,
 }
 
 impl Archetype for Keep {
@@ -91,9 +91,9 @@ impl Archetype for Keep {
         let ceil_height = branch.attr.height;
         let door_height = 6;
         let edge_pos = if (bound_offset.x == rampart_width) ^ (ori == Ori::East) {
-            pos.y
+            pos.y + pos.x
         } else {
-            pos.x
+            pos.x + pos.y
         };
         let rampart_height = ceil_height + if edge_pos % 2 == 0 { 3 } else { 4 };
         let inner = Clamp::clamp(
@@ -143,7 +143,7 @@ impl Archetype for Keep {
                 if profile.y < rampart_height {
                     wall
                 } else {
-                    internal
+                    empty
                 }
             } else {
                 empty

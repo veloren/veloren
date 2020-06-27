@@ -23,19 +23,6 @@ use rand::prelude::*;
 use std::sync::Arc;
 use vek::*;
 
-impl WorldSim {
-    #[allow(dead_code)]
-    fn can_host_dungeon(&self, pos: Vec2<i32>) -> bool {
-        self.get(pos)
-            .map(|chunk| !chunk.near_cliffs && !chunk.river.is_river() && !chunk.river.is_lake())
-            .unwrap_or(false)
-            && self
-                .get_gradient_approx(pos)
-                .map(|grad| grad > 0.25 && grad < 1.5)
-                .unwrap_or(false)
-    }
-}
-
 pub struct Dungeon {
     origin: Vec2<i32>,
     alt: i32,

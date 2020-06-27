@@ -5,7 +5,7 @@ mod econ;
 use self::{Occupation::*, Stock::*};
 use crate::{
     sim::WorldSim,
-    site::{Dungeon, Settlement, Site as WorldSite},
+    site::{Dungeon, Settlement, Castle, Site as WorldSite},
     util::{attempt, seed_expan, MapVec, CARDINALS, NEIGHBORS},
     Index,
 };
@@ -86,9 +86,13 @@ impl Civs {
 
         for _ in 0..INITIAL_CIV_COUNT * 3 {
             attempt(5, || {
-                let loc = find_site_loc(&mut ctx, None)?;
+                let (kind, size) = match ctx.rng.gen_range(0, 2) {
+                    0 => (SiteKind::Dungeon, 0),
+                    _ => (SiteKind::Castle, 3),
+                };
+                let loc = find_site_loc(&mut ctx, None, size)?;
                 this.establish_site(&mut ctx.reseed(), loc, |place| Site {
-                    kind: SiteKind::Dungeon,
+                    kind,
                     center: loc,
                     place,
 
@@ -125,10 +129,12 @@ impl Civs {
             let flatten_radius = match &site.kind {
                 SiteKind::Settlement => 8.0,
                 SiteKind::Dungeon => 2.0,
+                SiteKind::Castle => 5.0,
             };
 
             let (raise, raise_dist): (f32, i32) = match &site.kind {
                 SiteKind::Settlement => (10.0, 6),
+                SiteKind::Castle => (0.0, 6),
                 _ => (0.0, 0),
             };
 
@@ -175,6 +181,9 @@ impl Civs {
                 },
                 SiteKind::Dungeon => {
                     WorldSite::dungeon(Dungeon::generate(wpos, Some(ctx.sim), &mut rng))
+                },
+                SiteKind::Castle => {
+                    WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
                 },
             });
             let site_ref = &index.sites[site];
@@ -272,7 +281,7 @@ impl Civs {
 
     fn birth_civ(&mut self, ctx: &mut GenCtx<impl Rng>) -> Option<Id<Civ>> {
         let site = attempt(5, || {
-            let loc = find_site_loc(ctx, None)?;
+            let loc = find_site_loc(ctx, None, 1)?;
             self.establish_site(ctx, loc, |place| Site {
                 kind: SiteKind::Settlement,
                 center: loc,
@@ -367,7 +376,7 @@ impl Civs {
         loc: Vec2<i32>,
         site_fn: impl FnOnce(Id<Place>) -> Site,
     ) -> Option<Id<Site>> {
-        const SITE_AREA: Range<usize> = 64..256;
+        const SITE_AREA: Range<usize> = 1..4;//64..256;
 
         let place = match ctx.sim.get(loc).and_then(|site| site.place) {
             Some(place) => place,
@@ -381,12 +390,13 @@ impl Civs {
         let mut nearby = self
             .sites
             .iter()
+            .filter(|(_, p)| matches!(p.kind, SiteKind::Settlement | SiteKind::Castle))
             .map(|(id, p)| (id, (p.center.distance_squared(loc) as f32).sqrt()))
             .filter(|(_, dist)| *dist < MAX_NEIGHBOR_DISTANCE)
             .collect::<Vec<_>>();
         nearby.sort_by_key(|(_, dist)| *dist as i32);
 
-        if let SiteKind::Settlement = self.sites[site].kind {
+        if let SiteKind::Settlement | SiteKind::Castle = self.sites[site].kind {
             for (nearby, _) in nearby.into_iter().take(5) {
                 // Find a novel path
                 if let Some((path, cost)) = find_path(ctx, loc, self.sites.get(nearby).center) {
@@ -589,6 +599,7 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>) -> bool {
     if let Some(chunk) = sim.get(loc) {
         !chunk.river.is_ocean()
             && !chunk.river.is_lake()
+            && !chunk.river.is_river()
             && sim
                 .get_gradient_approx(loc)
                 .map(|grad| grad < 1.0)
@@ -601,7 +612,7 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>) -> bool {
 /// Attempt to search for a location that's suitable for site construction
 #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
 #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
-fn find_site_loc(ctx: &mut GenCtx<impl Rng>, near: Option<(Vec2<i32>, f32)>) -> Option<Vec2<i32>> {
+fn find_site_loc(ctx: &mut GenCtx<impl Rng>, near: Option<(Vec2<i32>, f32)>, size: i32) -> Option<Vec2<i32>> {
     const MAX_ATTEMPTS: usize = 100;
     let mut loc = None;
     for _ in 0..MAX_ATTEMPTS {
@@ -621,8 +632,10 @@ fn find_site_loc(ctx: &mut GenCtx<impl Rng>, near: Option<(Vec2<i32>, f32)>) -> 
             ),
         });
 
-        if loc_suitable_for_site(&ctx.sim, test_loc) {
-            return Some(test_loc);
+        for offset in Spiral2d::new().take((size * 2 + 1).pow(2) as usize) {
+            if loc_suitable_for_site(&ctx.sim, test_loc + offset) {
+                return Some(test_loc);
+            }
         }
 
         loc = ctx.sim.get(test_loc).and_then(|c| {
@@ -723,10 +736,7 @@ pub struct Site {
 
 impl fmt::Display for Site {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self.kind {
-            SiteKind::Settlement => writeln!(f, "Settlement")?,
-            SiteKind::Dungeon => writeln!(f, "Dungeon")?,
-        }
+        writeln!(f, "{:?}", self.kind)?;
         writeln!(f, "- population: {}", self.population.floor() as u32)?;
         writeln!(f, "- coin: {}", self.coin.floor() as u32)?;
         writeln!(f, "Stocks")?;
@@ -766,6 +776,7 @@ impl fmt::Display for Site {
 pub enum SiteKind {
     Settlement,
     Dungeon,
+    Castle,
 }
 
 impl Site {
