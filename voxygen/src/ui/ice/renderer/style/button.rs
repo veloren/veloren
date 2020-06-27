@@ -6,6 +6,7 @@ struct Background {
     default: image::Handle,
     hover: image::Handle,
     press: image::Handle,
+    color: Color,
 }
 
 impl Background {
@@ -14,6 +15,7 @@ impl Background {
             default: image,
             hover: image,
             press: image,
+            color: Color::WHITE,
         }
     }
 }
@@ -55,6 +57,15 @@ impl Style {
             },
             None => Background::new(image),
         });
+        self
+    }
+
+    // TODO: this needs to be refactored since the color isn't used if there is no
+    // background
+    pub fn image_color(mut self, color: Color) -> Self {
+        if let Some(background) = &mut self.background {
+            background.color = color;
+        }
         self
     }
 
