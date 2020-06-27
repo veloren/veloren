@@ -45,10 +45,7 @@ impl Skeleton for QuadrupedLowSkeleton {
                 FigureBoneData::new(chest_mat * head_lower_mat * head_upper_mat),
                 FigureBoneData::new(chest_mat * head_lower_mat),
                 FigureBoneData::new(
-                    chest_mat
-                        * head_lower_mat
-                        * head_upper_mat
-                        * self.jaw.compute_base_matrix(),
+                    chest_mat * head_lower_mat * head_upper_mat * self.jaw.compute_base_matrix(),
                 ),
                 FigureBoneData::new(chest_mat),
                 FigureBoneData::new(chest_mat * self.tail_front.compute_base_matrix()),
@@ -57,10 +54,10 @@ impl Skeleton for QuadrupedLowSkeleton {
                         * self.tail_front.compute_base_matrix()
                         * self.tail_rear.compute_base_matrix(),
                 ),
-                FigureBoneData::new(chest_mat*self.foot_fl.compute_base_matrix()),
-                FigureBoneData::new(chest_mat*self.foot_fr.compute_base_matrix()),
-                FigureBoneData::new(chest_mat*self.foot_bl.compute_base_matrix()),
-                FigureBoneData::new(chest_mat*self.foot_br.compute_base_matrix()),
+                FigureBoneData::new(chest_mat * self.foot_fl.compute_base_matrix()),
+                FigureBoneData::new(chest_mat * self.foot_fr.compute_base_matrix()),
+                FigureBoneData::new(chest_mat * self.foot_bl.compute_base_matrix()),
+                FigureBoneData::new(chest_mat * self.foot_br.compute_base_matrix()),
                 FigureBoneData::default(),
                 FigureBoneData::default(),
                 FigureBoneData::default(),
@@ -161,7 +158,7 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
                 (Monitor, _) => (0.0, 5.0),
                 (Asp, _) => (0.0, 8.0),
                 (Tortoise, _) => (0.0, 11.0),
-                (Rocksnapper, _) => (0.0, 16.5),
+                (Rocksnapper, _) => (0.0, 18.5),
             },
             tail_rear: match (body.species, body.body_type) {
                 (Crocodile, _) => (-12.5, -1.0),
@@ -182,22 +179,22 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
                 (Rocksnapper, _) => (-13.5, -6.5),
             },
             feet_f: match (body.species, body.body_type) {
-                (Crocodile, _) => (6.0, 6.0, -1.0),
-                (Alligator, _) => (6.75, 6.25, -1.0),
-                (Salamander, _) => (6.0, 6.0, -2.0),
-                (Monitor, _) => (6.0, 6.0, 0.0),
-                (Asp, _) => (6.5, 6.0, -1.0),
-                (Tortoise, _) => (8.5, 9.5, -3.0),
-                (Rocksnapper, _) => (12.5, 10.0, -6.5),
+                (Crocodile, _) => (3.5, 6.0, -1.0),
+                (Alligator, _) => (5.5, 4.25, -1.0),
+                (Salamander, _) => (5.0, 5.0, -2.0),
+                (Monitor, _) => (4.0, 5.0, 0.0),
+                (Asp, _) => (1.5, 4.0, -1.0),
+                (Tortoise, _) => (5.5, 9.5, -3.0),
+                (Rocksnapper, _) => (7.5, 5.0, -8.5),
             },
             feet_b: match (body.species, body.body_type) {
-                (Crocodile, _) => (6.0, -6.0, -1.0),
-                (Alligator, _) => (6.5, -4.5, -1.0),
-                (Salamander, _) => (6.0, -6.0, -2.0),
-                (Monitor, _) => (6.0, -6.0, 0.0),
-                (Asp, _) => (6.5, -3.5, -1.0),
-                (Tortoise, _) => (8.0, -8.5, -3.0),
-                (Rocksnapper, _) => (12.0, -12.0, -7.5),
+                (Crocodile, _) => (3.5, -6.0, -1.0),
+                (Alligator, _) => (5.5, -5.5, -1.0),
+                (Salamander, _) => (4.0, -6.0, -2.0),
+                (Monitor, _) => (4.0, -6.0, 0.0),
+                (Asp, _) => (2.5, -5.5, -1.0),
+                (Tortoise, _) => (7.0, -9.5, -3.0),
+                (Rocksnapper, _) => (9.0, -14.0, -9.5),
             },
         }
     }

@@ -8,9 +8,9 @@ pub mod fish_small;
 pub mod golem;
 pub mod humanoid;
 pub mod object;
+pub mod quadruped_low;
 pub mod quadruped_medium;
 pub mod quadruped_small;
-pub mod quadruped_low;
 
 use crate::{
     assets::{self, Asset},

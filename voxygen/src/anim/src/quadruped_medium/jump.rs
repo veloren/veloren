@@ -51,8 +51,11 @@ impl Animation for JumpAnimation {
             * Quaternion::rotation_x(0.2);
         next.torso_back.scale = Vec3::one() / 11.0;
 
-        next.torso_front.offset =
-            Vec3::new(0.0, skeleton_attr.torso_front.0, skeleton_attr.torso_front.1) / 11.0;
+        next.torso_front.offset = Vec3::new(
+            0.0,
+            skeleton_attr.torso_front.0,
+            skeleton_attr.torso_front.1,
+        ) / 11.0;
         next.torso_front.ori = Quaternion::rotation_x(-0.4);
         next.torso_front.scale = Vec3::one() / 10.98;
 
