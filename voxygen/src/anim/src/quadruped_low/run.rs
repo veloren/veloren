@@ -21,7 +21,7 @@ impl Animation for RunAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let lab = 0.7;
+        let lab = 0.5;
 
         let center = (anim_time as f32 * lab as f32 + PI / 2.0).sin();
         let centeroffset = (anim_time as f32 * lab as f32 + PI * 1.5).sin();
@@ -136,37 +136,37 @@ impl Animation for RunAnimation {
         next.foot_fl.offset = Vec3::new(
             -skeleton_attr.feet_f.0,
             skeleton_attr.feet_f.1 + foothoril * -1.0,
-            skeleton_attr.feet_f.2 + ((footvertl * -0.8).max(-0.0)),
+            skeleton_attr.feet_f.2 + 1.0 + ((footvertl * -0.8).max(-0.0)),
         );
         next.foot_fl.ori =
-            Quaternion::rotation_x(footrotl * -0.25) * Quaternion::rotation_z(footrotl * 0.35);
+            Quaternion::rotation_x(footrotl * -0.25) * Quaternion::rotation_z(footrotl * 0.4);
         next.foot_fl.scale = Vec3::one();
 
         next.foot_fr.offset = Vec3::new(
             skeleton_attr.feet_f.0,
             skeleton_attr.feet_f.1 + foothorir * -1.0,
-            skeleton_attr.feet_f.2 + ((footvertr * -0.8).max(-0.0)),
+            skeleton_attr.feet_f.2 + 1.0 + ((footvertr * -0.8).max(-0.0)),
         );
         next.foot_fr.ori =
-            Quaternion::rotation_x(footrotr * -0.25) * Quaternion::rotation_z(footrotr * -0.35);
+            Quaternion::rotation_x(footrotr * -0.25) * Quaternion::rotation_z(footrotr * -0.4);
         next.foot_fr.scale = Vec3::one();
 
         next.foot_bl.offset = Vec3::new(
             -skeleton_attr.feet_b.0,
             skeleton_attr.feet_b.1 + foothorilb * -1.0,
-            skeleton_attr.feet_b.2 + ((footvertlb * -0.6).max(-0.0)),
+            skeleton_attr.feet_b.2 + 1.0 + ((footvertlb * -0.6).max(-0.0)),
         );
         next.foot_bl.ori =
-            Quaternion::rotation_x(footrotlb * -0.25) * Quaternion::rotation_z(footrotlb * 0.35);
+            Quaternion::rotation_x(footrotlb * -0.25) * Quaternion::rotation_z(footrotlb * 0.4);
         next.foot_bl.scale = Vec3::one();
 
         next.foot_br.offset = Vec3::new(
             skeleton_attr.feet_b.0,
             skeleton_attr.feet_b.1 + foothorirb * -1.0,
-            skeleton_attr.feet_b.2 + ((footvertrb * -0.6).max(-0.0)),
+            skeleton_attr.feet_b.2 + 1.0 + ((footvertrb * -0.6).max(-0.0)),
         );
         next.foot_br.ori =
-            Quaternion::rotation_x(footrotrb * -0.25) * Quaternion::rotation_z(footrotrb * -0.35);
+            Quaternion::rotation_x(footrotrb * -0.25) * Quaternion::rotation_z(footrotrb * -0.4);
         next.foot_br.scale = Vec3::one();
 
         next

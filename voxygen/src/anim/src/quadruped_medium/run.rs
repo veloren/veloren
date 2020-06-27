@@ -116,7 +116,7 @@ impl Animation for RunAnimation {
 
             next.head_lower.offset = Vec3::new(
                 0.0,
-                skeleton_attr.head_lower.0 + horichest * 0.8,
+                skeleton_attr.head_lower.0 + horichest * 0.4,
                 skeleton_attr.head_lower.1 + vertchest * -0.8,
             );
             next.head_lower.ori = Quaternion::rotation_z(0.0);
@@ -220,7 +220,7 @@ impl Animation for RunAnimation {
 
             next.head_lower.offset = Vec3::new(
                 0.0,
-                skeleton_attr.head_lower.0 + horichest * 0.8,
+                skeleton_attr.head_lower.0 + horichest * 0.4,
                 skeleton_attr.head_lower.1 + vertchest * -0.8,
             );
             next.head_lower.ori = Quaternion::rotation_z(0.0);
