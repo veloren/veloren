@@ -1,9 +1,16 @@
 use crate::vol::Vox;
 use serde::{Deserialize, Serialize};
-use std::ops::Deref;
+use std::{
+    ops::Deref,
+    convert::TryFrom,
+    collections::HashMap,
+    fmt,
+};
+use lazy_static::lazy_static;
+use enum_iterator::IntoEnumIterator;
 use vek::*;
 
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize, IntoEnumIterator)]
 #[repr(u8)]
 pub enum BlockKind {
     Air,
@@ -86,6 +93,26 @@ pub enum BlockKind {
     Stones,
     Twigs,
     ShinyGem,
+}
+
+impl fmt::Display for BlockKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+lazy_static! {
+    pub static ref BLOCK_KINDS: HashMap<String, BlockKind> = BlockKind::into_enum_iter()
+        .map(|bk| (bk.to_string(), bk))
+        .collect();
+}
+
+impl<'a> TryFrom<&'a str> for BlockKind {
+    type Error = ();
+
+    fn try_from(s: &'a str) -> Result<Self, Self::Error> {
+        BLOCK_KINDS.get(s).copied().ok_or(())
+    }
 }
 
 impl BlockKind {
