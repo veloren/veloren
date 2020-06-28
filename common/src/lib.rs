@@ -66,17 +66,3 @@ pub use loadout_builder::LoadoutBuilder;
 /// assert_eq!("bar", scon.next_message().unwrap());
 /// ```
 pub mod net;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ChatType {
-    Broadcast,
-    Chat,
-    GameUpdate,
-    Private,
-    Tell,
-    Say,
-    Group,
-    Faction,
-    Meta,
-    Kill,
-}

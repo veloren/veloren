@@ -175,7 +175,8 @@ impl<'a> Widget for Social<'a> {
             // Players list
             // TODO: this list changes infrequently enough that it should not have to be
             // recreated every frame
-            let count = self.client.player_list.len();
+            let players = self.client.player_list.values().filter(|p| p.is_online);
+            let count = players.clone().count();
             if ids.player_names.len() < count {
                 ids.update(|ids| {
                     ids.player_names
@@ -193,7 +194,7 @@ impl<'a> Widget for Social<'a> {
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(ids.online_title, ui);
-            for (i, (_, player_info)) in self.client.player_list.iter().enumerate() {
+            for (i, player_info) in players.enumerate() {
                 Text::new(&format!(
                     "[{}] {}",
                     player_info.player_alias,

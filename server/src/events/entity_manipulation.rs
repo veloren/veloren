@@ -46,7 +46,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         }
         .unwrap_or(format!("{} died", &player.alias));
 
-        state.notify_registered_clients(ServerMsg::kill(msg));
+        state.notify_registered_clients(comp::ChatType::Kill.server_msg(msg));
     }
 
     {
@@ -471,12 +471,11 @@ pub fn handle_level_up(server: &mut Server, entity: EcsEntity, new_level: u32) {
     let uids = server.state.ecs().read_storage::<Uid>();
     let uid = uids
         .get(entity)
-        .expect("Failed to fetch uid component for entity.")
-        .0;
+        .expect("Failed to fetch uid component for entity.");
 
     server
         .state
         .notify_registered_clients(ServerMsg::PlayerListUpdate(PlayerListUpdate::LevelChange(
-            uid, new_level,
+            *uid, new_level,
         )));
 }

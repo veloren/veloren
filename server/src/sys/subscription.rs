@@ -151,7 +151,7 @@ impl<'a> System<'a> for Sys {
                                             .map(|key| subscription.regions.contains(key))
                                             .unwrap_or(false)
                                         {
-                                            client.notify(ServerMsg::DeleteEntity(uid.into()));
+                                            client.notify(ServerMsg::DeleteEntity(uid));
                                         }
                                     }
                                 },
@@ -159,7 +159,7 @@ impl<'a> System<'a> for Sys {
                         }
                         // Tell client to delete entities in the region
                         for (&uid, _) in (&uids, region.entities()).join() {
-                            client.notify(ServerMsg::DeleteEntity(uid.into()));
+                            client.notify(ServerMsg::DeleteEntity(uid));
                         }
                     }
                     // Send deleted entities since they won't be processed for this client in entity
@@ -169,7 +169,7 @@ impl<'a> System<'a> for Sys {
                         .iter()
                         .flat_map(|v| v.iter())
                     {
-                        client.notify(ServerMsg::DeleteEntity(*uid));
+                        client.notify(ServerMsg::DeleteEntity(Uid(*uid)));
                     }
                 }
 

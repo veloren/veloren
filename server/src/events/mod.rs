@@ -1,4 +1,4 @@
-use crate::Server;
+use crate::{state_ext::StateExt, Server};
 use common::event::{EventBus, ServerEvent};
 use entity_creation::{
     handle_create_npc, handle_create_waypoint, handle_initialize_character,
@@ -38,6 +38,7 @@ impl Server {
 
         let mut requested_chunks = Vec::new();
         let mut chat_commands = Vec::new();
+        let mut chat_messages = Vec::new();
 
         let events = self
             .state
@@ -103,6 +104,9 @@ impl Server {
                 ServerEvent::ChatCmd(entity, cmd) => {
                     chat_commands.push((entity, cmd));
                 },
+                ServerEvent::Chat(msg) => {
+                    chat_messages.push(msg);
+                },
             }
         }
 
@@ -113,6 +117,10 @@ impl Server {
 
         for (entity, cmd) in chat_commands {
             self.process_chat_cmd(entity, cmd);
+        }
+
+        for msg in chat_messages {
+            self.state.send_chat(msg);
         }
 
         frontend_events

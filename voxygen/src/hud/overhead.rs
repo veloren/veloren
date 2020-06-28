@@ -1,21 +1,26 @@
-use super::{img_ids::Imgs, HP_COLOR, LOW_HP_COLOR, MANA_COLOR};
+use super::{
+    img_ids::Imgs, FACTION_COLOR, GROUP_COLOR, HP_COLOR, LOW_HP_COLOR, MANA_COLOR, REGION_COLOR,
+    SAY_COLOR, TELL_COLOR, TEXT_BG, TEXT_COLOR,
+};
 use crate::{
     i18n::VoxygenLocalization,
     settings::GameplaySettings,
     ui::{fonts::ConrodVoxygenFonts, Ingameable},
 };
-use common::comp::{Energy, SpeechBubble, Stats};
+use common::comp::{Energy, SpeechBubble, SpeechBubbleType, Stats};
 use conrod_core::{
     position::Align,
     widget::{self, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
+const MAX_BUBBLE_WIDTH: f64 = 250.0;
+
 widget_ids! {
     struct Ids {
         // Speech bubble
         speech_bubble_text,
-        speech_bubble_text2,
+        speech_bubble_shadow,
         speech_bubble_top_left,
         speech_bubble_top,
         speech_bubble_top_right,
@@ -26,6 +31,7 @@ widget_ids! {
         speech_bubble_bottom,
         speech_bubble_bottom_right,
         speech_bubble_tail,
+        speech_bubble_icon,
 
         // Name
         name_bg,
@@ -101,9 +107,10 @@ impl<'a> Ingameable for Overhead<'a> {
         // - 1 for level: either Text or Image
         // - 4 for HP + mana + fg + bg
         // If there's a speech bubble
-        // - 1 Text::new for speech bubble
+        // - 2 Text::new for speech bubble
+        // - 1 Image::new for icon
         // - 10 Image::new for speech bubble (9-slice + tail)
-        7 + if self.bubble.is_some() { 11 } else { 0 }
+        7 + if self.bubble.is_some() { 13 } else { 0 }
     }
 }
 
@@ -146,23 +153,20 @@ impl<'a> Widget for Overhead<'a> {
         if let Some(bubble) = self.bubble {
             let dark_mode = self.settings.speech_bubble_dark_mode;
             let localizer =
-                |s: String, i| -> String { self.voxygen_i18n.get_variation(&s, i).to_string() };
+                |s: &str, i| -> String { self.voxygen_i18n.get_variation(&s, i).to_string() };
             let bubble_contents: String = bubble.message(localizer);
-
+            let (text_color, shadow_color) = bubble_color(&bubble, dark_mode);
             let mut text = Text::new(&bubble_contents)
+                .color(text_color)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(18)
                 .up_from(state.ids.name, 20.0)
                 .x_align_to(state.ids.name, Align::Middle)
                 .parent(id);
-            text = if dark_mode {
-                text.color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
-            } else {
-                text.color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-            };
+
             if let Some(w) = text.get_w(ui) {
-                if w > 250.0 {
-                    text = text.w(250.0);
+                if w > MAX_BUBBLE_WIDTH {
+                    text = text.w(MAX_BUBBLE_WIDTH);
                 }
             }
             Image::new(if dark_mode {
@@ -255,13 +259,40 @@ impl<'a> Widget for Overhead<'a> {
             } else {
                 self.imgs.speech_bubble_tail
             })
-            .w_h(22.0, 28.0)
-            .mid_bottom_with_margin_on(state.ids.speech_bubble_text, -32.0)
-            .parent(id);
+            .parent(id)
+            .mid_bottom_with_margin_on(state.ids.speech_bubble_text, -32.0);
+
+            if dark_mode {
+                tail.w_h(22.0, 13.0).set(state.ids.speech_bubble_tail, ui)
+            } else {
+                tail.w_h(22.0, 28.0).set(state.ids.speech_bubble_tail, ui)
+            };
+
+            let mut text_shadow = Text::new(&bubble_contents)
+                .color(shadow_color)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(18)
+                .x_relative_to(state.ids.speech_bubble_text, 1.0)
+                .y_relative_to(state.ids.speech_bubble_text, -1.0)
+                .parent(id);
             // Move text to front (conrod depth is lowest first; not a z-index)
-            tail.set(state.ids.speech_bubble_tail, ui);
-            text.depth(tail.get_depth() - 1.0)
+            text.depth(text_shadow.get_depth() - 1.0)
                 .set(state.ids.speech_bubble_text, ui);
+            if let Some(w) = text_shadow.get_w(ui) {
+                if w > MAX_BUBBLE_WIDTH {
+                    text_shadow = text_shadow.w(MAX_BUBBLE_WIDTH);
+                }
+            }
+            text_shadow.set(state.ids.speech_bubble_shadow, ui);
+            let icon = if self.settings.speech_bubble_icon {
+                bubble_icon(&bubble, &self.imgs)
+            } else {
+                self.imgs.nothing
+            };
+            Image::new(icon)
+                .w_h(16.0, 16.0)
+                .top_left_with_margin_on(state.ids.speech_bubble_text, -16.0)
+                .set(state.ids.speech_bubble_icon, ui);
         }
 
         let hp_percentage =
@@ -359,5 +390,39 @@ impl<'a> Widget for Overhead<'a> {
                 .parent(id)
                 .set(state.ids.level, ui);
         }
+    }
+}
+
+fn bubble_color(bubble: &SpeechBubble, dark_mode: bool) -> (Color, Color) {
+    let light_color = match bubble.icon {
+        SpeechBubbleType::Tell => TELL_COLOR,
+        SpeechBubbleType::Say => SAY_COLOR,
+        SpeechBubbleType::Region => REGION_COLOR,
+        SpeechBubbleType::Group => GROUP_COLOR,
+        SpeechBubbleType::Faction => FACTION_COLOR,
+        SpeechBubbleType::World
+        | SpeechBubbleType::Quest
+        | SpeechBubbleType::Trade
+        | SpeechBubbleType::None => TEXT_COLOR,
+    };
+    if dark_mode {
+        (light_color, TEXT_BG)
+    } else {
+        (TEXT_BG, light_color)
+    }
+}
+
+fn bubble_icon(sb: &SpeechBubble, imgs: &Imgs) -> conrod_core::image::Id {
+    match sb.icon {
+        // One for each chat mode
+        SpeechBubbleType::Tell => imgs.chat_tell_small,
+        SpeechBubbleType::Say => imgs.chat_say_small,
+        SpeechBubbleType::Region => imgs.chat_region_small,
+        SpeechBubbleType::Group => imgs.chat_group_small,
+        SpeechBubbleType::Faction => imgs.chat_faction_small,
+        SpeechBubbleType::World => imgs.chat_world_small,
+        SpeechBubbleType::Quest => imgs.nothing, // TODO not implemented
+        SpeechBubbleType::Trade => imgs.nothing, // TODO not implemented
+        SpeechBubbleType::None => imgs.nothing,  // No icon (default for npcs)
     }
 }

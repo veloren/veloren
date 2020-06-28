@@ -54,7 +54,6 @@ image_ids! {
         chat_arrow_press: "voxygen.element.buttons.arrow_down_press",
 
 
-
 ////////////////////////////////////////////////////////////////////////
         <VoxelPixArtGraphic>
 
@@ -286,6 +285,7 @@ image_ids! {
         speech_bubble_bottom: "voxygen.element.frames.bubble.bottom",
         speech_bubble_bottom_right: "voxygen.element.frames.bubble.bottom_right",
         speech_bubble_tail: "voxygen.element.frames.bubble.tail",
+        speech_bubble_icon_frame: "voxygen.element.frames.bubble_dark.icon_frame",
 
         dark_bubble_top_left: "voxygen.element.frames.bubble_dark.top_left",
         dark_bubble_top: "voxygen.element.frames.bubble_dark.top",
@@ -297,6 +297,28 @@ image_ids! {
         dark_bubble_bottom: "voxygen.element.frames.bubble_dark.bottom",
         dark_bubble_bottom_right: "voxygen.element.frames.bubble_dark.bottom_right",
         dark_bubble_tail: "voxygen.element.frames.bubble_dark.tail",
+        dark_bubble_icon_frame: "voxygen.element.frames.bubble_dark.icon_frame",
+
+
+        // Chat icons
+        chat_faction_small: "voxygen.element.icons.chat.faction_small",
+        chat_group_small: "voxygen.element.icons.chat.group_small",
+        chat_kill_small: "voxygen.element.icons.chat.kill_small",
+        chat_region_small: "voxygen.element.icons.chat.region_small",
+        chat_say_small: "voxygen.element.icons.chat.say_small",
+        chat_tell_small: "voxygen.element.icons.chat.tell_small",
+        chat_world_small: "voxygen.element.icons.chat.world_small",
+        chat_command_error_small: "voxygen.element.icons.chat.command_error_small",
+        chat_command_info_small: "voxygen.element.icons.chat.command_info_small",
+        chat_online_small: "voxygen.element.icons.chat.online_small",
+        chat_offline_small: "voxygen.element.icons.chat.offline_small",
+
+        chat_faction: "voxygen.element.icons.chat.faction",
+        chat_group: "voxygen.element.icons.chat.group",
+        chat_region: "voxygen.element.icons.chat.region",
+        chat_say: "voxygen.element.icons.chat.say",
+        chat_tell: "voxygen.element.icons.chat.tell",
+        chat_world: "voxygen.element.icons.chat.world",
 
         <BlankGraphic>
         nothing: (),

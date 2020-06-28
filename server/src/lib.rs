@@ -29,7 +29,7 @@ use crate::{
 };
 use common::{
     cmd::ChatCommand,
-    comp,
+    comp::{self, ChatType},
     event::{EventBus, ServerEvent},
     msg::{ClientMsg, ClientState, ServerInfo, ServerMsg},
     net::PostOffice,
@@ -105,6 +105,14 @@ impl Server {
         state
             .ecs_mut()
             .insert(CharacterLoader::new(settings.persistence_db_dir.clone()));
+        state
+            .ecs_mut()
+            .insert(persistence::character::CharacterUpdater::new(
+                settings.persistence_db_dir.clone(),
+            ));
+        state
+            .ecs_mut()
+            .insert(comp::AdminList(settings.admins.clone()));
 
         // System timers for performance monitoring
         state.ecs_mut().insert(sys::EntitySyncTimer::default());
@@ -114,7 +122,6 @@ impl Server {
         state.ecs_mut().insert(sys::TerrainSyncTimer::default());
         state.ecs_mut().insert(sys::TerrainTimer::default());
         state.ecs_mut().insert(sys::WaypointTimer::default());
-        state.ecs_mut().insert(sys::SpeechBubbleTimer::default());
         state.ecs_mut().insert(sys::PersistenceTimer::default());
 
         // System schedulers to control execution of systems
@@ -623,9 +630,12 @@ impl Server {
         Ok(frontend_events)
     }
 
-    pub fn notify_client(&self, entity: EcsEntity, msg: ServerMsg) {
+    pub fn notify_client<S>(&self, entity: EcsEntity, msg: S)
+    where
+        S: Into<ServerMsg>,
+    {
         if let Some(client) = self.state.ecs().write_storage::<Client>().get_mut(entity) {
-            client.notify(msg)
+            client.notify(msg.into())
         }
     }
 
@@ -650,7 +660,7 @@ impl Server {
         } else {
             self.notify_client(
                 entity,
-                ServerMsg::private(format!(
+                ChatType::CommandError.server_msg(format!(
                     "Unknown command '/{}'.\nType '/help' for available commands",
                     kwd
                 )),

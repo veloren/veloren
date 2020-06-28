@@ -3,12 +3,13 @@ use crate::{
         self,
         agent::Activity,
         item::{tool::ToolKind, ItemKind},
-        Agent, Alignment, CharacterState, ControlAction, Controller, Loadout, MountState, Ori, Pos,
-        Scale, SpeechBubble, Stats,
+        Agent, Alignment, CharacterState, ChatMsg, ControlAction, Controller, Loadout, MountState,
+        Ori, Pos, Scale, Stats,
     },
+    event::{EventBus, ServerEvent},
     path::Chaser,
     state::{DeltaTime, Time},
-    sync::UidAllocator,
+    sync::{Uid, UidAllocator},
     terrain::TerrainGrid,
     util::Dir,
     vol::ReadVol,
@@ -16,7 +17,7 @@ use crate::{
 use rand::{thread_rng, Rng};
 use specs::{
     saveload::{Marker, MarkerAllocator},
-    Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage,
+    Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage,
 };
 use vek::*;
 
@@ -28,6 +29,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, UidAllocator>,
         Read<'a, Time>,
         Read<'a, DeltaTime>,
+        Write<'a, EventBus<ServerEvent>>,
         Entities<'a>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Ori>,
@@ -35,11 +37,11 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Stats>,
         ReadStorage<'a, Loadout>,
         ReadStorage<'a, CharacterState>,
+        ReadStorage<'a, Uid>,
         ReadExpect<'a, TerrainGrid>,
         ReadStorage<'a, Alignment>,
         WriteStorage<'a, Agent>,
         WriteStorage<'a, Controller>,
-        WriteStorage<'a, SpeechBubble>,
         ReadStorage<'a, MountState>,
     );
 
@@ -50,6 +52,7 @@ impl<'a> System<'a> for Sys {
             uid_allocator,
             time,
             dt,
+            event_bus,
             entities,
             positions,
             orientations,
@@ -57,11 +60,11 @@ impl<'a> System<'a> for Sys {
             stats,
             loadouts,
             character_states,
+            uids,
             terrain,
             alignments,
             mut agents,
             mut controllers,
-            mut speech_bubbles,
             mount_states,
         ): Self::SystemData,
     ) {
@@ -72,6 +75,7 @@ impl<'a> System<'a> for Sys {
             alignment,
             loadout,
             character_state,
+            uid,
             agent,
             controller,
             mount_state,
@@ -82,6 +86,7 @@ impl<'a> System<'a> for Sys {
             alignments.maybe(),
             &loadouts,
             &character_states,
+            &uids,
             &mut agents,
             &mut controllers,
             mount_states.maybe(),
@@ -386,10 +391,9 @@ impl<'a> System<'a> for Sys {
                             {
                                 if stats.get(attacker).map_or(false, |a| !a.is_dead) {
                                     if agent.can_speak {
-                                        let message =
-                                            "npc.speech.villager_under_attack".to_string();
-                                        let bubble = SpeechBubble::npc_new(message, *time);
-                                        let _ = speech_bubbles.insert(entity, bubble);
+                                        let msg = "npc.speech.villager_under_attack".to_string();
+                                        event_bus
+                                            .emit_now(ServerEvent::Chat(ChatMsg::npc(*uid, msg)));
                                     }
 
                                     agent.activity = Activity::Attack {

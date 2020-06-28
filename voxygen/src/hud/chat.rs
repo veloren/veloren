@@ -1,10 +1,13 @@
 use super::{
-    img_ids::Imgs, BROADCAST_COLOR, FACTION_COLOR, GAME_UPDATE_COLOR, GROUP_COLOR, KILL_COLOR,
-    META_COLOR, PRIVATE_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR,
+    img_ids::Imgs, ERROR_COLOR, FACTION_COLOR, GROUP_COLOR, INFO_COLOR, KILL_COLOR, OFFLINE_COLOR,
+    ONLINE_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR, WORLD_COLOR,
 };
 use crate::{ui::fonts::ConrodVoxygenFonts, GlobalState};
-use client::{cmd, Client, Event as ClientEvent};
-use common::{msg::validate_chat_msg, ChatType};
+use client::{cmd, Client};
+use common::{
+    comp::{ChatMsg, ChatType},
+    msg::validate_chat_msg,
+};
 use conrod_core::{
     input::Key,
     position::Dimension,
@@ -12,8 +15,8 @@ use conrod_core::{
         self,
         cursor::{self, Index},
     },
-    widget::{self, Button, Id, List, Rectangle, Text, TextEdit},
-    widget_ids, Colorable, Positionable, Sizeable, Ui, UiCell, Widget, WidgetCommon,
+    widget::{self, Button, Id, Image, List, Rectangle, Text, TextEdit},
+    widget_ids, Color, Colorable, Positionable, Sizeable, Ui, UiCell, Widget, WidgetCommon,
 };
 use std::collections::VecDeque;
 
@@ -24,15 +27,20 @@ widget_ids! {
         chat_input,
         chat_input_bg,
         chat_arrow,
-        completion_box,
+        chat_icons[],
     }
 }
 
 const MAX_MESSAGES: usize = 100;
 
+const CHAT_BOX_WIDTH: f64 = 470.0;
+const CHAT_BOX_INPUT_WIDTH: f64 = 460.0;
+const CHAT_BOX_HEIGHT: f64 = 174.0;
+
 #[derive(WidgetCommon)]
 pub struct Chat<'a> {
-    new_messages: &'a mut VecDeque<ClientEvent>,
+    new_messages: &'a mut VecDeque<ChatMsg>,
+    client: &'a Client,
     force_input: Option<String>,
     force_cursor: Option<Index>,
     force_completions: Option<Vec<String>>,
@@ -50,13 +58,15 @@ pub struct Chat<'a> {
 
 impl<'a> Chat<'a> {
     pub fn new(
-        new_messages: &'a mut VecDeque<ClientEvent>,
+        new_messages: &'a mut VecDeque<ChatMsg>,
+        client: &'a Client,
         global_state: &'a GlobalState,
         imgs: &'a Imgs,
         fonts: &'a ConrodVoxygenFonts,
     ) -> Self {
         Self {
             new_messages,
+            client,
             force_input: None,
             force_cursor: None,
             force_completions: None,
@@ -68,9 +78,9 @@ impl<'a> Chat<'a> {
         }
     }
 
-    pub fn prepare_tab_completion(mut self, input: String, client: &Client) -> Self {
+    pub fn prepare_tab_completion(mut self, input: String) -> Self {
         if let Some(index) = input.find('\t') {
-            self.force_completions = Some(cmd::complete(&input[..index], &client));
+            self.force_completions = Some(cmd::complete(&input[..index], &self.client));
         } else {
             self.force_completions = None;
         }
@@ -105,7 +115,7 @@ impl<'a> Chat<'a> {
 }
 
 pub struct State {
-    messages: VecDeque<ClientEvent>,
+    messages: VecDeque<ChatMsg>,
     input: String,
     ids: Ids,
     history: VecDeque<String>,
@@ -259,7 +269,7 @@ impl<'a> Widget for Chat<'a> {
             // Any changes to this TextEdit's width and font size must be reflected in
             // `cursor_offset_to_index` below.
             let mut text_edit = TextEdit::new(&state.input)
-                .w(460.0)
+                .w(CHAT_BOX_INPUT_WIDTH)
                 .restrict_to_height(false)
                 .color(TEXT_COLOR)
                 .line_spacing(2.0)
@@ -274,10 +284,10 @@ impl<'a> Widget for Chat<'a> {
                 Dimension::Absolute(y) => y + 6.0,
                 _ => 0.0,
             };
-            Rectangle::fill([470.0, y])
+            Rectangle::fill([CHAT_BOX_WIDTH, y])
                 .rgba(0.0, 0.0, 0.0, transp + 0.1)
                 .bottom_left_with_margins_on(ui.window, 10.0, 10.0)
-                .w(470.0)
+                .w(CHAT_BOX_WIDTH)
                 .set(state.ids.chat_input_bg, ui);
 
             if let Some(str) = text_edit
@@ -293,7 +303,7 @@ impl<'a> Widget for Chat<'a> {
         }
 
         // Message box
-        Rectangle::fill([470.0, 174.0])
+        Rectangle::fill([CHAT_BOX_WIDTH, CHAT_BOX_HEIGHT])
             .rgba(0.0, 0.0, 0.0, transp)
             .and(|r| {
                 if input_focused {
@@ -302,61 +312,57 @@ impl<'a> Widget for Chat<'a> {
                     r.bottom_left_with_margins_on(ui.window, 10.0, 10.0)
                 }
             })
+            .crop_kids()
             .set(state.ids.message_box_bg, ui);
         let (mut items, _) = List::flow_down(state.messages.len() + 1)
-            .top_left_of(state.ids.message_box_bg)
-            .w_h(470.0, 174.0)
+            .top_left_with_margins_on(state.ids.message_box_bg, 0.0, 16.0)
+            .w_h(CHAT_BOX_WIDTH, CHAT_BOX_HEIGHT)
             .scroll_kids_vertically()
             .set(state.ids.message_box, ui);
+        if state.ids.chat_icons.len() < state.messages.len() {
+            state.update(|s| {
+                s.ids
+                    .chat_icons
+                    .resize(s.messages.len(), &mut ui.widget_id_generator())
+            });
+        }
+
+        let show_char_name = self.global_state.settings.gameplay.chat_character_name;
         while let Some(item) = items.next(ui) {
             // This would be easier if conrod used the v-metrics from rusttype.
-            let widget = if item.i < state.messages.len() {
-                let msg = &state.messages[item.i];
-                match msg {
-                    ClientEvent::Chat { chat_type, message } => {
-                        let color = match chat_type {
-                            ChatType::Meta => META_COLOR,
-                            ChatType::Tell => TELL_COLOR,
-                            ChatType::Chat => TEXT_COLOR,
-                            ChatType::Private => PRIVATE_COLOR,
-                            ChatType::Broadcast => BROADCAST_COLOR,
-                            ChatType::GameUpdate => GAME_UPDATE_COLOR,
-                            ChatType::Say => SAY_COLOR,
-                            ChatType::Group => GROUP_COLOR,
-                            ChatType::Faction => FACTION_COLOR,
-                            ChatType::Kill => KILL_COLOR,
-                        };
-                        let text = Text::new(&message)
-                            .font_size(self.fonts.opensans.scale(15))
-                            .font_id(self.fonts.opensans.conrod_id)
-                            .w(470.0)
-                            .color(color)
-                            .line_spacing(2.0);
-                        // Add space between messages.
-                        let y = match text.get_y_dimension(ui) {
-                            Dimension::Absolute(y) => y + 2.0,
-                            _ => 0.0,
-                        };
-                        Some(text.h(y))
-                    },
-                    _ => None,
-                }
+            if item.i < state.messages.len() {
+                let message = &state.messages[item.i];
+                let (color, icon) = render_chat_line(&message.chat_type, &self.imgs);
+                let msg = self.client.format_message(message, show_char_name);
+                let text = Text::new(&msg)
+                    .font_size(self.fonts.opensans.scale(15))
+                    .font_id(self.fonts.opensans.conrod_id)
+                    .w(CHAT_BOX_WIDTH - 16.0)
+                    .color(color)
+                    .line_spacing(2.0);
+                // Add space between messages.
+                let y = match text.get_y_dimension(ui) {
+                    Dimension::Absolute(y) => y + 2.0,
+                    _ => 0.0,
+                };
+                item.set(text.h(y), ui);
+                let icon_id = state.ids.chat_icons[item.i];
+                Image::new(icon)
+                    .w_h(16.0, 16.0)
+                    .top_left_with_margins_on(item.widget_id, 2.0, -16.0)
+                    .parent(state.ids.message_box_bg)
+                    .set(icon_id, ui);
             } else {
                 // Spacer at bottom of the last message so that it is not cut off.
                 // Needs to be larger than the space above.
-                Some(
+                item.set(
                     Text::new("")
                         .font_size(self.fonts.opensans.scale(6))
                         .font_id(self.fonts.opensans.conrod_id)
-                        .w(470.0),
-                )
+                        .w(CHAT_BOX_WIDTH),
+                    ui,
+                );
             };
-            match widget {
-                Some(widget) => {
-                    item.set(widget, ui);
-                },
-                None => {},
-            }
         }
 
         // Chat Arrow
@@ -367,6 +373,7 @@ impl<'a> Widget for Chat<'a> {
                 .hover_image(self.imgs.chat_arrow_mo)
                 .press_image(self.imgs.chat_arrow_press)
                 .bottom_right_with_margins_on(state.ids.message_box_bg, 0.0, -22.0)
+                .parent(id)
                 .set(state.ids.chat_arrow, ui)
                 .was_clicked()
         {
@@ -417,7 +424,6 @@ fn do_tab_completion(cursor: usize, input: &str, word: &str) -> (String, usize) 
             if char_i < cursor {
                 pre_ws = Some(byte_i);
             } else {
-                assert_eq!(post_ws, None); // TODO debug
                 post_ws = Some(byte_i);
                 break;
             }
@@ -457,15 +463,31 @@ fn cursor_offset_to_index(
     fonts: &ConrodVoxygenFonts,
 ) -> Option<Index> {
     // This moves the cursor to the given offset. Conrod is a pain.
-    //let iter = cursor::xys_per_line_from_text(&text, &[], &font, font_size,
-    // Justify::Left, Align::Start, 2.0, Rect{x: Range{start: 0.0, end: width}, y:
-    // Range{start: 0.0, end: 12.345}});
-    // cursor::closest_cursor_index_and_xy([f64::MAX, f64::MAX], iter).map(|(i, _)|
-    // i) Width and font must match that of the chat TextEdit
-    let width = 460.0;
+    //
+    // Width and font must match that of the chat TextEdit
     let font = ui.fonts.get(fonts.opensans.conrod_id)?;
     let font_size = fonts.opensans.scale(15);
-    let infos = text::line::infos(&text, &font, font_size).wrap_by_whitespace(width);
+    let infos = text::line::infos(&text, &font, font_size).wrap_by_whitespace(CHAT_BOX_INPUT_WIDTH);
 
     cursor::index_before_char(infos, offset)
+}
+
+/// Get the color and icon for the current line in the chat box
+fn render_chat_line(chat_type: &ChatType, imgs: &Imgs) -> (Color, conrod_core::image::Id) {
+    match chat_type {
+        ChatType::Online => (ONLINE_COLOR, imgs.chat_online_small),
+        ChatType::Offline => (OFFLINE_COLOR, imgs.chat_offline_small),
+        ChatType::CommandError => (ERROR_COLOR, imgs.chat_command_error_small),
+        ChatType::CommandInfo => (INFO_COLOR, imgs.chat_command_info_small),
+        ChatType::GroupMeta(_) => (GROUP_COLOR, imgs.chat_group_small),
+        ChatType::FactionMeta(_) => (FACTION_COLOR, imgs.chat_faction_small),
+        ChatType::Kill => (KILL_COLOR, imgs.chat_kill_small),
+        ChatType::Tell(_from, _to) => (TELL_COLOR, imgs.chat_tell_small),
+        ChatType::Say(_uid) => (SAY_COLOR, imgs.chat_say_small),
+        ChatType::Group(_uid, _s) => (GROUP_COLOR, imgs.chat_group_small),
+        ChatType::Faction(_uid, _s) => (FACTION_COLOR, imgs.chat_faction_small),
+        ChatType::Region(_uid) => (REGION_COLOR, imgs.chat_region_small),
+        ChatType::World(_uid) => (WORLD_COLOR, imgs.chat_world_small),
+        ChatType::Npc(_uid, _r) => panic!("NPCs can't talk"), // Should be filtered by hud/mod.rs
+    }
 }
