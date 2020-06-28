@@ -370,11 +370,12 @@ impl fmt::Display for KeyMouse {
             Key(Copy) => "Copy",
             Key(Paste) => "Paste",
             Key(Cut) => "Cut",
-            Mouse(MouseButton::Left) => "Mouse Left",
-            Mouse(MouseButton::Right) => "Mouse Right",
-            Mouse(MouseButton::Middle) => "Middle-Click",
+            Mouse(MouseButton::Left) => "M1",
+            Mouse(MouseButton::Right) => "M2",
+            Mouse(MouseButton::Middle) => "M3",
             Mouse(MouseButton::Other(button)) =>
-                return write!(f, "Unknown Mouse Button: {:?}", button),
+            // Additional mouse buttons after middle click start at 1
+                return write!(f, "M{}", button + 3),
         })
     }
 }
