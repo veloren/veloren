@@ -89,7 +89,7 @@ nie korzystasz z aktualnej wersji gry."#,
 
         // Welcome notice that appears the first time Veloren is started
         // Wiadomość powitalna, która pokazuje się, kiedy gra jest uruchomiona poraz pierwszy
-        "main.notice": r#"Witaj w wersji alfa gry Valoren!
+        "main.notice": r#"Witaj w wersji alfa gry Veloren!
 
 Zanim zaczniesz, pamiętaj, że:
 
