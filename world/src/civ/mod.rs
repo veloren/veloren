@@ -5,7 +5,7 @@ mod econ;
 use self::{Occupation::*, Stock::*};
 use crate::{
     sim::WorldSim,
-    site::{Dungeon, Settlement, Castle, Site as WorldSite},
+    site::{Castle, Dungeon, Settlement, Site as WorldSite},
     util::{attempt, seed_expan, MapVec, CARDINALS, NEIGHBORS},
     Index,
 };
@@ -376,7 +376,7 @@ impl Civs {
         loc: Vec2<i32>,
         site_fn: impl FnOnce(Id<Place>) -> Site,
     ) -> Option<Id<Site>> {
-        const SITE_AREA: Range<usize> = 1..4;//64..256;
+        const SITE_AREA: Range<usize> = 1..4; //64..256;
 
         let place = match ctx.sim.get(loc).and_then(|site| site.place) {
             Some(place) => place,
@@ -612,7 +612,11 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>) -> bool {
 /// Attempt to search for a location that's suitable for site construction
 #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
 #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
-fn find_site_loc(ctx: &mut GenCtx<impl Rng>, near: Option<(Vec2<i32>, f32)>, size: i32) -> Option<Vec2<i32>> {
+fn find_site_loc(
+    ctx: &mut GenCtx<impl Rng>,
+    near: Option<(Vec2<i32>, f32)>,
+    size: i32,
+) -> Option<Vec2<i32>> {
     const MAX_ATTEMPTS: usize = 100;
     let mut loc = None;
     for _ in 0..MAX_ATTEMPTS {

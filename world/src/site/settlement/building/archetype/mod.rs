@@ -20,6 +20,8 @@ pub trait Archetype {
         center_offset: Vec2<i32>,
         z: i32,
         ori: Ori,
-        branch: &Branch<Self::Attr>,
+        locus: i32,
+        len: i32,
+        attr: &Self::Attr,
     ) -> BlockMask;
 }

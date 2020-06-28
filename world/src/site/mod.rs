@@ -1,16 +1,13 @@
 mod block_mask;
-mod dungeon;
 mod castle;
+mod dungeon;
 pub mod economy;
 mod settlement;
 
 // Reexports
 pub use self::{
-    block_mask::BlockMask,
-    dungeon::Dungeon,
-    economy::Economy,
+    block_mask::BlockMask, castle::Castle, dungeon::Dungeon, economy::Economy,
     settlement::Settlement,
-    castle::Castle,
 };
 
 use crate::column::ColumnSample;
