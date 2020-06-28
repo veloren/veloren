@@ -81,11 +81,13 @@ impl Screen {
                     .spacing(10)
                     .padding(20),
             )
-            .style(style::container::Style::color_double_cornerless_border(
-                (22, 18, 16, 255).into(),
-                (11, 11, 11, 255).into(),
-                (54, 46, 38, 255).into(),
-            ))
+            .style(
+                style::container::Style::color_with_double_cornerless_border(
+                    (22, 18, 16, 255).into(),
+                    (11, 11, 11, 255).into(),
+                    (54, 46, 38, 255).into(),
+                ),
+            )
             .max_width(500),
         )
         .width(Length::Fill)

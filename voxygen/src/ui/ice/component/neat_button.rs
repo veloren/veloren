@@ -24,7 +24,7 @@ pub fn neat_button<M: Clone + 'static>(
 
     let container = AspectRatioContainer::new(button);
     let container = match button_style.active().0 {
-        Some(img) => container.ratio_of_image(img),
+        Some((img, _)) => container.ratio_of_image(img),
         None => container,
     };
 

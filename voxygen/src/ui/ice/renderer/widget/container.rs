@@ -2,7 +2,9 @@ use super::super::{super::Rotation, style, IcedRenderer, Primitive};
 use common::util::srgba_to_linear;
 use iced::{container, Element, Layout, Point, Rectangle};
 use style::container::Border;
+use vek::Rgba;
 
+// TODO: move to style
 const BORDER_SIZE: u16 = 8;
 
 impl container::Renderer for IcedRenderer {
@@ -145,6 +147,125 @@ impl container::Renderer for IcedRenderer {
                             bottom_inner,
                             left_inner,
                             right_inner,
+                            content,
+                        ]
+                    },
+                    Border::Image { corner, edge } => {
+                        let border_size = f32::from(BORDER_SIZE)
+                            .min(bounds.width / 4.0)
+                            .min(bounds.height / 4.0);
+
+                        let center = Primitive::Rectangle {
+                            bounds: Rectangle {
+                                x: bounds.x + border_size,
+                                y: bounds.y + border_size,
+                                width: bounds.width - border_size * 2.0,
+                                height: bounds.height - border_size * 2.0,
+                            },
+                            linear_color,
+                        };
+
+                        let color = Rgba::white();
+
+                        let tl_corner = Primitive::Image {
+                            handle: (*corner, Rotation::None),
+                            bounds: Rectangle {
+                                x: bounds.x,
+                                y: bounds.y,
+                                width: border_size,
+                                height: border_size,
+                            },
+                            color,
+                        };
+
+                        let tr_corner = Primitive::Image {
+                            handle: (*corner, Rotation::Cw90),
+                            bounds: Rectangle {
+                                x: bounds.x + bounds.width - border_size,
+                                y: bounds.y,
+                                width: border_size,
+                                height: border_size,
+                            },
+                            color,
+                        };
+
+                        let bl_corner = Primitive::Image {
+                            handle: (*corner, Rotation::Cw270),
+                            bounds: Rectangle {
+                                x: bounds.x,
+                                y: bounds.y + bounds.height - border_size,
+                                width: border_size,
+                                height: border_size,
+                            },
+                            color,
+                        };
+
+                        let br_corner = Primitive::Image {
+                            handle: (*corner, Rotation::Cw180),
+                            bounds: Rectangle {
+                                x: bounds.x + bounds.width - border_size,
+                                y: bounds.y + bounds.height - border_size,
+                                width: border_size,
+                                height: border_size,
+                            },
+                            color,
+                        };
+
+                        let top_edge = Primitive::Image {
+                            handle: (*edge, Rotation::None),
+                            bounds: Rectangle {
+                                x: bounds.x + border_size,
+                                y: bounds.y,
+                                width: bounds.width - 2.0 * border_size,
+                                height: border_size,
+                            },
+                            color,
+                        };
+
+                        let bottom_edge = Primitive::Image {
+                            handle: (*edge, Rotation::Cw180),
+                            bounds: Rectangle {
+                                x: bounds.x + border_size,
+                                y: bounds.y + bounds.height - border_size,
+                                width: bounds.width - 2.0 * border_size,
+                                height: border_size,
+                            },
+                            color,
+                        };
+
+                        let left_edge = Primitive::Image {
+                            handle: (*edge, Rotation::Cw270),
+                            bounds: Rectangle {
+                                x: bounds.x,
+                                y: bounds.y + border_size,
+                                width: border_size,
+                                height: bounds.height - 2.0 * border_size,
+                            },
+                            color,
+                        };
+
+                        let right_edge = Primitive::Image {
+                            handle: (*edge, Rotation::Cw90),
+                            bounds: Rectangle {
+                                x: bounds.x + bounds.width - border_size,
+                                y: bounds.y + border_size,
+                                width: border_size,
+                                height: bounds.height - 2.0 * border_size,
+                            },
+                            color,
+                        };
+
+                        // Is this worth it as opposed to using a giant image? (Probably)
+                        vec![
+                            center,
+                            tl_corner,
+                            tr_corner,
+                            bl_corner,
+                            br_corner,
+                            top_edge,
+                            bottom_edge,
+                            left_edge,
+                            right_edge,
                             content,
                         ]
                     },

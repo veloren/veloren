@@ -95,7 +95,7 @@ impl Screen {
                 // Note: a way to tell it to keep the height of this one piece constant and
                 // unstreched would be nice, I suppose we could just break this out into a
                 // column and use Length::Units
-                Graphic::gradient(Rgba::new(0, 0, 0, 240), Rgba::zero(), [500, 30], [0, 300]),
+                Graphic::gradient(Rgba::new(0, 0, 0, 240), Rgba::zero(), [500, 50], [0, 300]),
             ])
             .height(Length::Shrink),
             Text::new(intro_text).size(fonts.cyri.scale(21)),
@@ -128,11 +128,13 @@ impl Screen {
                 .height(Length::Fill)
                 .width(Length::Fill),
             )
-            .style(style::container::Style::color_double_cornerless_border(
-                (22, 18, 16, 255).into(),
-                (11, 11, 11, 255).into(),
-                (54, 46, 38, 255).into(),
-            ))
+            .style(
+                style::container::Style::color_with_double_cornerless_border(
+                    (22, 18, 16, 255).into(),
+                    (11, 11, 11, 255).into(),
+                    (54, 46, 38, 255).into(),
+                ),
+            )
             .width(Length::Units(400))
             .height(Length::Units(180))
             .padding(20)

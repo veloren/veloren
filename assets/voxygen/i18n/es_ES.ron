@@ -358,7 +358,7 @@ objetos imbuidos de magia?"#,
         "char_selection.change_server": "Cambiar de servidor",
         "char_selection.enter_world": "Entrar al mundo",
         "char_selection.logout": "Salir",
-        "char_selection.create_new_charater": "Crear nuevo personaje",
+        "char_selection.create_new_character": "Crear nuevo personaje",
         "char_selection.creating_character": "Creando personaje...",
         "char_selection.character_creation": "Creación de personaje",
 

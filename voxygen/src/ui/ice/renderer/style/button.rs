@@ -1,12 +1,13 @@
 use super::super::super::widget::image;
 use iced::Color;
+use vek::Rgba;
 
 #[derive(Clone, Copy)]
 struct Background {
     default: image::Handle,
     hover: image::Handle,
     press: image::Handle,
-    color: Color,
+    color: Rgba<u8>,
 }
 
 impl Background {
@@ -15,7 +16,7 @@ impl Background {
             default: image,
             hover: image,
             press: image,
-            color: Color::WHITE,
+            color: Rgba::white(),
         }
     }
 }
@@ -62,7 +63,7 @@ impl Style {
 
     // TODO: this needs to be refactored since the color isn't used if there is no
     // background
-    pub fn image_color(mut self, color: Color) -> Self {
+    pub fn image_color(mut self, color: Rgba<u8>) -> Self {
         if let Some(background) = &mut self.background {
             background.color = color;
         }
@@ -79,24 +80,30 @@ impl Style {
         self
     }
 
-    pub fn disabled(&self) -> (Option<image::Handle>, Color) {
+    pub fn disabled(&self) -> (Option<(image::Handle, Rgba<u8>)>, Color) {
         (
-            self.background.as_ref().map(|b| b.default),
+            self.background.as_ref().map(|b| (b.default, b.color)),
             self.disabled_text,
         )
     }
 
-    pub fn pressed(&self) -> (Option<image::Handle>, Color) {
-        (self.background.as_ref().map(|b| b.press), self.enabled_text)
-    }
-
-    pub fn hovered(&self) -> (Option<image::Handle>, Color) {
-        (self.background.as_ref().map(|b| b.hover), self.enabled_text)
-    }
-
-    pub fn active(&self) -> (Option<image::Handle>, Color) {
+    pub fn pressed(&self) -> (Option<(image::Handle, Rgba<u8>)>, Color) {
         (
-            self.background.as_ref().map(|b| b.default),
+            self.background.as_ref().map(|b| (b.press, b.color)),
+            self.enabled_text,
+        )
+    }
+
+    pub fn hovered(&self) -> (Option<(image::Handle, Rgba<u8>)>, Color) {
+        (
+            self.background.as_ref().map(|b| (b.hover, b.color)),
+            self.enabled_text,
+        )
+    }
+
+    pub fn active(&self) -> (Option<(image::Handle, Rgba<u8>)>, Color) {
+        (
+            self.background.as_ref().map(|b| (b.default, b.color)),
             self.enabled_text,
         )
     }
