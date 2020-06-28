@@ -1,94 +1,9 @@
-use crate::{
-    comp,
-    comp::item::{Consumable, ItemKind},
-    sync::Uid,
-    util::Dir,
-};
-use comp::{item::ToolCategory, CharacterAbilityType, InventoryUpdateEvent, Item};
+use crate::{comp, sync::Uid, util::Dir};
+use comp::item::Item;
 use parking_lot::Mutex;
-use serde::Deserialize;
 use specs::Entity as EcsEntity;
-use std::{collections::VecDeque, convert::TryFrom, ops::DerefMut};
+use std::{collections::VecDeque, ops::DerefMut};
 use vek::*;
-
-pub struct SfxEventItem {
-    pub sfx: SfxEvent,
-    pub pos: Option<Vec3<f32>>,
-    pub vol: Option<f32>,
-}
-
-impl SfxEventItem {
-    pub fn new(sfx: SfxEvent, pos: Option<Vec3<f32>>, vol: Option<f32>) -> Self {
-        Self { sfx, pos, vol }
-    }
-
-    pub fn at_player_position(sfx: SfxEvent) -> Self {
-        Self {
-            sfx,
-            pos: None,
-            vol: None,
-        }
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
-pub enum SfxEvent {
-    Idle,
-    Run,
-    Roll,
-    Climb,
-    GliderOpen,
-    Glide,
-    GliderClose,
-    Jump,
-    Fall,
-    ExperienceGained,
-    LevelUp,
-    Attack(CharacterAbilityType, ToolCategory),
-    Wield(ToolCategory),
-    Unwield(ToolCategory),
-    Inventory(SfxInventoryEvent),
-}
-
-#[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
-pub enum SfxInventoryEvent {
-    Collected,
-    CollectedTool(ToolCategory),
-    CollectFailed,
-    Consumed(Consumable),
-    Debug,
-    Dropped,
-    Given,
-    Swapped,
-}
-
-impl From<&InventoryUpdateEvent> for SfxEvent {
-    fn from(value: &InventoryUpdateEvent) -> Self {
-        match value {
-            InventoryUpdateEvent::Collected(item) => {
-                // Handle sound effects for types of collected items, falling back to the
-                // default Collected event
-                match item.kind {
-                    ItemKind::Tool(tool) => SfxEvent::Inventory(SfxInventoryEvent::CollectedTool(
-                        ToolCategory::try_from(tool.kind).unwrap(),
-                    )),
-                    _ => SfxEvent::Inventory(SfxInventoryEvent::Collected),
-                }
-            },
-            InventoryUpdateEvent::CollectFailed => {
-                SfxEvent::Inventory(SfxInventoryEvent::CollectFailed)
-            },
-            InventoryUpdateEvent::Consumed(consumable) => {
-                SfxEvent::Inventory(SfxInventoryEvent::Consumed(*consumable))
-            },
-            InventoryUpdateEvent::Debug => SfxEvent::Inventory(SfxInventoryEvent::Debug),
-            InventoryUpdateEvent::Dropped => SfxEvent::Inventory(SfxInventoryEvent::Dropped),
-            InventoryUpdateEvent::Given => SfxEvent::Inventory(SfxInventoryEvent::Given),
-            InventoryUpdateEvent::Swapped => SfxEvent::Inventory(SfxInventoryEvent::Swapped),
-            _ => SfxEvent::Inventory(SfxInventoryEvent::Swapped),
-        }
-    }
-}
 
 pub enum LocalEvent {
     /// Applies upward force to entity's `Vel`

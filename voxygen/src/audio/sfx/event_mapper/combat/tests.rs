@@ -1,8 +1,8 @@
 use super::*;
+use crate::audio::sfx::SfxEvent;
 use common::{
     assets,
     comp::{item::tool::ToolCategory, CharacterAbilityType, CharacterState, ItemConfig, Loadout},
-    event::SfxEvent,
     states,
 };
 use std::time::{Duration, Instant};

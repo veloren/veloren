@@ -1,5 +1,5 @@
 use super::*;
-use common::event::SfxEvent;
+use crate::audio::sfx::SfxEvent;
 
 #[test]
 fn no_change_returns_none() {
