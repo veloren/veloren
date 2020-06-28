@@ -381,9 +381,9 @@ impl BlockKind {
             BlockKind::Radish => 0.18,
             BlockKind::Door => 3.0,
             BlockKind::Bed => 1.54,
-            BlockKind::Bench => 1.45,
-            BlockKind::ChairSingle => 1.36,
-            BlockKind::ChairDouble => 1.36,
+            BlockKind::Bench => 0.5,
+            BlockKind::ChairSingle => 0.5,
+            BlockKind::ChairDouble => 0.5,
             BlockKind::CoatRack => 2.36,
             BlockKind::Crate => 0.90,
             BlockKind::DrawerSmall => 1.0,
@@ -456,6 +456,27 @@ impl Block {
             | BlockKind::Window2
             | BlockKind::Window3
             | BlockKind::Window4
+            | BlockKind::Bed
+            | BlockKind::Bench
+            | BlockKind::ChairSingle
+            | BlockKind::ChairDouble
+            | BlockKind::CoatRack
+            | BlockKind::Crate
+            | BlockKind::DrawerLarge
+            | BlockKind::DrawerMedium
+            | BlockKind::DrawerSmall
+            | BlockKind::DungeonWallDecor
+            | BlockKind::HangingBasket
+            | BlockKind::HangingSign
+            | BlockKind::WallLamp
+            | BlockKind::Planter
+            | BlockKind::Shelf
+            | BlockKind::TableSide
+            | BlockKind::TableDining
+            | BlockKind::TableDouble
+            | BlockKind::WardrobeSingle
+            | BlockKind::WardrobeDouble
+            | BlockKind::Pot
             | BlockKind::Door => Some(self.color[0] & 0b111),
             _ => None,
         }
