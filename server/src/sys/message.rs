@@ -92,7 +92,7 @@ impl<'a> System<'a> for Sys {
         let player_list = (&uids, &players, stats.maybe(), admins.maybe())
             .join()
             .map(|(uid, player, stats, admin)| {
-                ((*uid).into(), PlayerInfo {
+                (*uid, PlayerInfo {
                     is_online: true,
                     is_admin: admin.is_some(),
                     player_alias: player.alias.clone(),
@@ -460,13 +460,12 @@ impl<'a> System<'a> for Sys {
         // Tell all clients to add them to the player list.
         for entity in new_players {
             if let (Some(uid), Some(player)) = (uids.get(entity), players.get(entity)) {
-                let msg =
-                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Add((*uid).into(), PlayerInfo {
-                        player_alias: player.alias.clone(),
-                        is_online: true,
-                        is_admin: admins.get(entity).is_some(),
-                        character: None, // new players will be on character select.
-                    }));
+                let msg = ServerMsg::PlayerListUpdate(PlayerListUpdate::Add(*uid, PlayerInfo {
+                    player_alias: player.alias.clone(),
+                    is_online: true,
+                    is_admin: admins.get(entity).is_some(),
+                    character: None, // new players will be on character select.
+                }));
                 for client in (&mut clients).join().filter(|c| c.is_registered()) {
                     client.notify(msg.clone())
                 }
