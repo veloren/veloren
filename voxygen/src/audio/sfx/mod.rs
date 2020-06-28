@@ -84,16 +84,21 @@
 mod event_mapper;
 
 use crate::audio::AudioFrontend;
+
 use common::{
     assets,
-    comp::{Ori, Pos},
-    event::{EventBus, SfxEvent, SfxEventItem},
+    comp::{
+        item::{Consumable, ItemKind, ToolCategory},
+        CharacterAbilityType, InventoryUpdateEvent, Ori, Pos,
+    },
+    event::EventBus,
     state::State,
 };
 use event_mapper::SfxEventMapper;
 use hashbrown::HashMap;
 use serde::Deserialize;
 use specs::WorldExt;
+use std::convert::TryFrom;
 use tracing::warn;
 use vek::*;
 
@@ -103,6 +108,85 @@ use vek::*;
 /// at which the volume of the sfx emitted is too quiet to be meaningful for the
 /// player.
 const SFX_DIST_LIMIT_SQR: f32 = 20000.0;
+
+pub struct SfxEventItem {
+    pub sfx: SfxEvent,
+    pub pos: Option<Vec3<f32>>,
+    pub vol: Option<f32>,
+}
+
+impl SfxEventItem {
+    pub fn new(sfx: SfxEvent, pos: Option<Vec3<f32>>, vol: Option<f32>) -> Self {
+        Self { sfx, pos, vol }
+    }
+
+    pub fn at_player_position(sfx: SfxEvent) -> Self {
+        Self {
+            sfx,
+            pos: None,
+            vol: None,
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
+pub enum SfxEvent {
+    Idle,
+    Run,
+    Roll,
+    Climb,
+    GliderOpen,
+    Glide,
+    GliderClose,
+    Jump,
+    Fall,
+    ExperienceGained,
+    LevelUp,
+    Attack(CharacterAbilityType, ToolCategory),
+    Wield(ToolCategory),
+    Unwield(ToolCategory),
+    Inventory(SfxInventoryEvent),
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
+pub enum SfxInventoryEvent {
+    Collected,
+    CollectedTool(ToolCategory),
+    CollectFailed,
+    Consumed(Consumable),
+    Debug,
+    Dropped,
+    Given,
+    Swapped,
+}
+
+impl From<&InventoryUpdateEvent> for SfxEvent {
+    fn from(value: &InventoryUpdateEvent) -> Self {
+        match value {
+            InventoryUpdateEvent::Collected(item) => {
+                // Handle sound effects for types of collected items, falling back to the
+                // default Collected event
+                match item.kind {
+                    ItemKind::Tool(tool) => SfxEvent::Inventory(SfxInventoryEvent::CollectedTool(
+                        ToolCategory::try_from(tool.kind).unwrap(),
+                    )),
+                    _ => SfxEvent::Inventory(SfxInventoryEvent::Collected),
+                }
+            },
+            InventoryUpdateEvent::CollectFailed => {
+                SfxEvent::Inventory(SfxInventoryEvent::CollectFailed)
+            },
+            InventoryUpdateEvent::Consumed(consumable) => {
+                SfxEvent::Inventory(SfxInventoryEvent::Consumed(*consumable))
+            },
+            InventoryUpdateEvent::Debug => SfxEvent::Inventory(SfxInventoryEvent::Debug),
+            InventoryUpdateEvent::Dropped => SfxEvent::Inventory(SfxInventoryEvent::Dropped),
+            InventoryUpdateEvent::Given => SfxEvent::Inventory(SfxInventoryEvent::Given),
+            InventoryUpdateEvent::Swapped => SfxEvent::Inventory(SfxInventoryEvent::Swapped),
+            _ => SfxEvent::Inventory(SfxInventoryEvent::Swapped),
+        }
+    }
+}
 
 #[derive(Deserialize)]
 pub struct SfxTriggerItem {

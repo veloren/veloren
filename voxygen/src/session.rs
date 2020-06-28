@@ -1,4 +1,5 @@
 use crate::{
+    audio::sfx::{SfxEvent, SfxEventItem},
     ecs::MyEntity,
     hud::{DebugInfo, Event as HudEvent, Hud, HudInfo, PressBehavior},
     i18n::{i18n_asset_key, VoxygenLocalization},
@@ -14,7 +15,8 @@ use common::{
     assets::{load_watched, watch},
     clock::Clock,
     comp,
-    comp::{Pos, Vel, MAX_PICKUP_RANGE_SQR},
+    comp::{ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel, MAX_PICKUP_RANGE_SQR},
+    event::EventBus,
     msg::ClientState,
     terrain::{Block, BlockKind},
     util::Dir,
@@ -83,6 +85,32 @@ impl SessionState {
                 client::Event::Chat(m) => {
                     self.hud.new_message(m);
                 },
+                client::Event::InventoryUpdated(inv_event) => {
+                    let sfx_event = SfxEvent::from(&inv_event);
+                    client
+                        .state()
+                        .ecs()
+                        .read_resource::<EventBus<SfxEventItem>>()
+                        .emit_now(SfxEventItem::at_player_position(sfx_event));
+
+                    match inv_event {
+                        InventoryUpdateEvent::CollectFailed => {
+                            self.hud.new_message(ChatMsg {
+                                message: String::from(
+                                    "Failed to collect item. Your inventory may be full!",
+                                ),
+                                chat_type: ChatType::CommandError,
+                            });
+                        },
+                        InventoryUpdateEvent::Collected(item) => {
+                            self.hud.new_message(ChatMsg {
+                                message: format!("Picked up {}", item.name()),
+                                chat_type: ChatType::CommandInfo,
+                            });
+                        },
+                        _ => {},
+                    };
+                },
                 client::Event::Disconnect => return Ok(TickAction::Disconnect),
                 client::Event::DisconnectionNotification(time) => {
                     let message = match time {
@@ -90,8 +118,8 @@ impl SessionState {
                         _ => format!("Connection lost. Kicking in {} seconds", time),
                     };
 
-                    self.hud.new_message(comp::ChatMsg {
-                        chat_type: comp::ChatType::CommandError,
+                    self.hud.new_message(ChatMsg {
+                        chat_type: ChatType::CommandError,
                         message,
                     });
                 },

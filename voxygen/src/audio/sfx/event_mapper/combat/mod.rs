@@ -1,6 +1,6 @@
 /// EventMapper::Combat watches the combat states of surrounding entities' and
 /// emits sfx related to weapons and attacks/abilities
-use crate::audio::sfx::{SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR};
+use crate::audio::sfx::{SfxEvent, SfxEventItem, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR};
 
 use super::EventMapper;
 
@@ -9,7 +9,7 @@ use common::{
         item::{Item, ItemKind, ToolCategory},
         CharacterAbilityType, CharacterState, ItemConfig, Loadout, Pos,
     },
-    event::{EventBus, SfxEvent, SfxEventItem},
+    event::EventBus,
     state::State,
 };
 use hashbrown::HashMap;

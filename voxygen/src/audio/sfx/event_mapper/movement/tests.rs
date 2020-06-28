@@ -1,9 +1,9 @@
 use super::*;
+use crate::audio::sfx::SfxEvent;
 use common::{
     comp::{
         bird_small, humanoid, quadruped_medium, quadruped_small, Body, CharacterState, PhysicsState,
     },
-    event::SfxEvent,
     states,
 };
 use std::time::{Duration, Instant};

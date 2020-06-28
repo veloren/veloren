@@ -2,11 +2,10 @@
 /// and triggers sfx related to running, climbing and gliding, at a volume
 /// proportionate to the extity's size
 use super::EventMapper;
-
-use crate::audio::sfx::{SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR};
+use crate::audio::sfx::{SfxEvent, SfxEventItem, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR};
 use common::{
     comp::{Body, CharacterState, PhysicsState, Pos, Vel},
-    event::{EventBus, SfxEvent, SfxEventItem},
+    event::EventBus,
     state::State,
 };
 use hashbrown::HashMap;
