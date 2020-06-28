@@ -2195,7 +2195,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::Bed, 0),
                     make_models(
                         "voxygen.voxel.sprite.furniture.bed-0",
-                        Vec3::new(-9.5, -6.0, 0.0),
+                        Vec3::new(-9.5, -14.5, 0.0),
                         Vec3::one(),
                     ),
                 ),
@@ -2452,7 +2452,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::HangingBasket, 0),
                     make_models(
                         "voxygen.voxel.sprite.furniture.hanging_basket-0",
-                        Vec3::new(-6.5, -4.5, 0.0),
+                        Vec3::new(-6.5, -3.5, 0.0),
                         Vec3::one(),
                     ),
                 ),
@@ -2486,7 +2486,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::WallLamp, 1),
                     make_models(
                         "voxygen.voxel.sprite.furniture.lamp_wall-1",
-                        Vec3::new(-9.0, -10.5, 0.0),
+                        Vec3::new(-10.5, -9.0, 0.0),
                         Vec3::one(),
                     ),
                 ),
@@ -2603,7 +2603,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::TableDining, 0),
                     make_models(
                         "voxygen.voxel.sprite.furniture.table_dining-0",
-                        Vec3::new(-13.5, -13.5, 0.0),
+                        Vec3::new(-8.5, -8.5, 0.0),
                         Vec3::one(),
                     ),
                 ),
@@ -2611,7 +2611,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::TableDining, 1),
                     make_models(
                         "voxygen.voxel.sprite.furniture.table_dining-1",
-                        Vec3::new(-13.5, -13.5, 0.0),
+                        Vec3::new(-8.5, -8.5, 0.0),
                         Vec3::one(),
                     ),
                 ),
@@ -2629,7 +2629,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::WardrobeSingle, 0),
                     make_models(
                         "voxygen.voxel.sprite.furniture.wardrobe_single-0",
-                        Vec3::new(-6.0, -5.5, 0.0),
+                        Vec3::new(-5.5, -6.0, 0.0),
                         Vec3::one(),
                     ),
                 ),
@@ -2637,7 +2637,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::WardrobeSingle, 1),
                     make_models(
                         "voxygen.voxel.sprite.furniture.wardrobe_single-1",
-                        Vec3::new(-6.5, -5.5, 0.0),
+                        Vec3::new(-5.5, -6.5, 0.0),
                         Vec3::one(),
                     ),
                 ),
@@ -2646,7 +2646,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::WardrobeDouble, 0),
                     make_models(
                         "voxygen.voxel.sprite.furniture.wardrobe_double-0",
-                        Vec3::new(-6.5, -10.5, 0.0),
+                        Vec3::new(-10.5, -6.5, 0.0),
                         Vec3::one(),
                     ),
                 ),
@@ -2654,7 +2654,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::WardrobeDouble, 1),
                     make_models(
                         "voxygen.voxel.sprite.furniture.wardrobe_double-1",
-                        Vec3::new(-6.0, -10.5, 0.0),
+                        Vec3::new(-10.5, -6.0, 0.0),
                         Vec3::one(),
                     ),
                 ),
