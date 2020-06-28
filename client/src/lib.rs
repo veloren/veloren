@@ -867,6 +867,13 @@ impl Client {
                         self.clean_state();
                     },
                     ServerMsg::InventoryUpdate(inventory, event) => {
+                        // TODO: Move this SFX code to Voxygen
+                        let sfx_event = SfxEvent::from(&event);
+                        self.state
+                            .ecs()
+                            .read_resource::<EventBus<SfxEventItem>>()
+                            .emit_now(SfxEventItem::at_player_position(sfx_event));
+
                         match event {
                             InventoryUpdateEvent::CollectFailed => {
                                 frontend_events.push(Event::Chat {
@@ -877,14 +884,16 @@ impl Client {
                                 })
                             },
                             _ => {
+                                if let InventoryUpdateEvent::Collected(item) = event {
+                                    frontend_events.push(Event::Chat {
+                                        message: format!("Picked up {}", item.name()),
+                                        chat_type: ChatType::Meta,
+                                    });
+                                }
+
                                 self.state.write_component(self.entity, inventory);
                             },
                         }
-
-                        self.state
-                            .ecs()
-                            .read_resource::<EventBus<SfxEventItem>>()
-                            .emit_now(SfxEventItem::at_player_position(SfxEvent::Inventory(event)));
                     },
                     ServerMsg::TerrainChunkUpdate { key, chunk } => {
                         if let Ok(chunk) = chunk {

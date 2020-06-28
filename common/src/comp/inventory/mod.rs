@@ -313,7 +313,7 @@ impl Component for Inventory {
     type Storage = HashMapStorage<Self>;
 }
 
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
 pub enum InventoryUpdateEvent {
     Init,
     Used,
@@ -322,7 +322,7 @@ pub enum InventoryUpdateEvent {
     Given,
     Swapped,
     Dropped,
-    Collected,
+    Collected(Item),
     CollectFailed,
     Possession,
     Debug,
@@ -332,7 +332,7 @@ impl Default for InventoryUpdateEvent {
     fn default() -> Self { Self::Init }
 }
 
-#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct InventoryUpdate {
     event: InventoryUpdateEvent,
 }
@@ -340,7 +340,7 @@ pub struct InventoryUpdate {
 impl InventoryUpdate {
     pub fn new(event: InventoryUpdateEvent) -> Self { Self { event } }
 
-    pub fn event(&self) -> InventoryUpdateEvent { self.event }
+    pub fn event(&self) -> InventoryUpdateEvent { self.event.clone() }
 }
 
 impl Component for InventoryUpdate {
