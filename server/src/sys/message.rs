@@ -262,7 +262,7 @@ impl<'a> System<'a> for Sys {
                                 // Give the player a welcome message
                                 if settings.server_description.len() > 0 {
                                     client.notify(
-                                        ChatType::Online
+                                        ChatType::CommandInfo
                                             .server_msg(settings.server_description.clone()),
                                     );
                                 }
