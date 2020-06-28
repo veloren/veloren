@@ -32,7 +32,6 @@ use common::{
     sync::{Uid, UidAllocator, WorldSyncExt},
     terrain::{block::Block, TerrainChunk, TerrainChunkSize},
     vol::RectVolSize,
-    ChatType,
 };
 use hashbrown::HashMap;
 use image::DynamicImage;
@@ -55,10 +54,7 @@ const SERVER_TIMEOUT: f64 = 20.0;
 const SERVER_TIMEOUT_GRACE_PERIOD: f64 = 14.0;
 
 pub enum Event {
-    Chat {
-        chat_type: ChatType,
-        message: String,
-    },
+    Chat(comp::ChatMsg),
     Disconnect,
     DisconnectionNotification(u64),
     Notification(Notification),
@@ -70,7 +66,7 @@ pub struct Client {
     thread_pool: ThreadPool,
     pub server_info: ServerInfo,
     pub world_map: (Arc<DynamicImage>, Vec2<u32>),
-    pub player_list: HashMap<u64, PlayerInfo>,
+    pub player_list: HashMap<Uid, PlayerInfo>,
     pub character_list: CharacterList,
     pub active_character_id: Option<i32>,
 
@@ -465,8 +461,8 @@ impl Client {
     /// Send a chat message to the server.
     pub fn send_chat(&mut self, message: String) {
         match validate_chat_msg(&message) {
-            Ok(()) => self.postbox.send_message(ClientMsg::ChatMsg { message }),
-            Err(ChatMsgValidationError::TooLong) => warn!(
+            Ok(()) => self.postbox.send_message(ClientMsg::ChatMsg(message)),
+            Err(ChatMsgValidationError::TooLong) => tracing::warn!(
                 "Attempted to send a message that's too long (Over {} bytes)",
                 MAX_BYTES_CHAT_MSG
             ),
@@ -763,6 +759,17 @@ impl Client {
                             );
                         }
                     },
+                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Admin(uid, admin)) => {
+                        if let Some(player_info) = self.player_list.get_mut(&uid) {
+                            player_info.is_admin = admin;
+                        } else {
+                            warn!(
+                                "Received msg to update admin status of uid {}, but they were not \
+                                 in the list.",
+                                uid
+                            );
+                        }
+                    },
                     ServerMsg::PlayerListUpdate(PlayerListUpdate::SelectedCharacter(
                         uid,
                         char_info,
@@ -797,7 +804,23 @@ impl Client {
                         }
                     },
                     ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(uid)) => {
-                        if self.player_list.remove(&uid).is_none() {
+                        // Instead of removing players, mark them as offline because we need to
+                        // remember the names of disconnected players in chat.
+                        //
+                        // TODO the server should re-use uids of players that log out and log back
+                        // in.
+
+                        if let Some(player_info) = self.player_list.get_mut(&uid) {
+                            if player_info.is_online {
+                                player_info.is_online = false;
+                            } else {
+                                warn!(
+                                    "Received msg to remove uid {} from the player list by they \
+                                     were already marked offline",
+                                    uid
+                                );
+                            }
+                        } else {
                             warn!(
                                 "Received msg to remove uid {} from the player list by they \
                                  weren't in the list!",
@@ -824,11 +847,9 @@ impl Client {
                         self.last_ping_delta =
                             (self.state.get_time() - self.last_server_ping).round();
                     },
-                    ServerMsg::ChatMsg { message, chat_type } => {
-                        frontend_events.push(Event::Chat { message, chat_type })
-                    },
+                    ServerMsg::ChatMsg(m) => frontend_events.push(Event::Chat(m)),
                     ServerMsg::SetPlayerEntity(uid) => {
-                        if let Some(entity) = self.state.ecs().entity_from_uid(uid) {
+                        if let Some(entity) = self.state.ecs().entity_from_uid(uid.0) {
                             self.entity = entity;
                         } else {
                             return Err(Error::Other("Failed to find entity from uid.".to_owned()));
@@ -851,15 +872,10 @@ impl Client {
                         self.state.ecs_mut().apply_entity_package(entity_package);
                     },
                     ServerMsg::DeleteEntity(entity) => {
-                        if self
-                            .state
-                            .read_component_cloned::<Uid>(self.entity)
-                            .map(|u| u.into())
-                            != Some(entity)
-                        {
+                        if self.state.read_component_cloned::<Uid>(self.entity) != Some(entity) {
                             self.state
                                 .ecs_mut()
-                                .delete_entity_and_clear_from_uid_allocator(entity);
+                                .delete_entity_and_clear_from_uid_allocator(entity.0);
                         }
                     },
                     // Cleanup for when the client goes back to the `Registered` state
@@ -876,12 +892,13 @@ impl Client {
 
                         match event {
                             InventoryUpdateEvent::CollectFailed => {
-                                frontend_events.push(Event::Chat {
+                                // TODO This might not be the best way to show an error
+                                frontend_events.push(Event::Chat(comp::ChatMsg {
                                     message: String::from(
                                         "Failed to collect item. Your inventory may be full!",
                                     ),
-                                    chat_type: ChatType::Meta,
-                                })
+                                    chat_type: comp::ChatType::CommandError,
+                                }))
                             },
                             _ => {
                                 if let InventoryUpdateEvent::Collected(item) = event {
@@ -1004,6 +1021,74 @@ impl Client {
             .allocate(entity_builder.entity, Some(client_uid));
 
         self.entity = entity_builder.with(uid).build();
+    }
+
+    /// Format a message for the client (voxygen chat box or chat-cli)
+    pub fn format_message(&self, msg: &comp::ChatMsg, character_name: bool) -> String {
+        let comp::ChatMsg { chat_type, message } = &msg;
+        let alias_of_uid = |uid| {
+            self.player_list
+                .get(uid)
+                .map_or("<?>".to_string(), |player_info| {
+                    if player_info.is_admin {
+                        format!("ADMIN - {}", player_info.player_alias)
+                    } else {
+                        player_info.player_alias.to_string()
+                    }
+                })
+        };
+        let name_of_uid = |uid| {
+            let ecs = self.state.ecs();
+            (
+                &ecs.read_storage::<comp::Stats>(),
+                &ecs.read_storage::<Uid>(),
+            )
+                .join()
+                .find(|(_, u)| u == &uid)
+                .map(|(c, _)| c.name.clone())
+        };
+        let message_format = |uid, message, group| {
+            let alias = alias_of_uid(uid);
+            let name = if character_name {
+                name_of_uid(uid)
+            } else {
+                None
+            };
+            match (group, name) {
+                (Some(group), None) => format!("({}) [{}]: {}", group, alias, message),
+                (None, None) => format!("[{}]: {}", alias, message),
+                (Some(group), Some(name)) => {
+                    format!("({}) [{}] {}: {}", group, alias, name, message)
+                },
+                (None, Some(name)) => format!("[{}] {}: {}", alias, name, message),
+            }
+        };
+        match chat_type {
+            comp::ChatType::Online => message.to_string(),
+            comp::ChatType::Offline => message.to_string(),
+            comp::ChatType::CommandError => message.to_string(),
+            comp::ChatType::CommandInfo => message.to_string(),
+            comp::ChatType::FactionMeta(_) => message.to_string(),
+            comp::ChatType::GroupMeta(_) => message.to_string(),
+            comp::ChatType::Kill => message.to_string(),
+            comp::ChatType::Tell(from, to) => {
+                let from_alias = alias_of_uid(from);
+                let to_alias = alias_of_uid(to);
+                if Some(from) == self.state.ecs().read_storage::<Uid>().get(self.entity) {
+                    format!("To [{}]: {}", to_alias, message)
+                } else {
+                    format!("From [{}]: {}", from_alias, message)
+                }
+            },
+            comp::ChatType::Say(uid) => message_format(uid, message, None),
+            comp::ChatType::Group(uid, s) => message_format(uid, message, Some(s)),
+            comp::ChatType::Faction(uid, s) => message_format(uid, message, Some(s)),
+            comp::ChatType::Region(uid) => message_format(uid, message, None),
+            comp::ChatType::World(uid) => message_format(uid, message, None),
+            // NPCs can't talk. Should be filtered by hud/mod.rs for voxygen and should be filtered
+            // by server (due to not having a Pos) for chat-cli
+            comp::ChatType::Npc(_uid, _r) => "".to_string(),
+        }
     }
 }
 

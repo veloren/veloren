@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Eyebrows and shapes can now be selected
 - Character name and level information to chat, social tab and `/players` command
 - Added inventory, armour and weapon saving
-- Show where screenshots are saved to in the chat
+- Show where screenshots are saved in the chat
 - Added basic auto walk
 - Added weapon/attack sound effects
 - M2 attack for bow
@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Server whitelist
 - Optional server-side maximum view distance
 - MOTD on login
+- Added group chat `/join_group` `/group`
+- Added faction chat `/join_faction` `/faction`
+- Added regional, local, and global chat (`/region`, `/say`, and `/world`, respectively)
+- Added command shortcuts for each of the above chat modes (`/g`, `/f`, `/r`, `/s`, and `/w`, respectively and `/t` for `/tell`)
 
 ### Changed
 

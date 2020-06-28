@@ -25,7 +25,7 @@ impl TabComplete for ArgumentSpec {
             },
             ArgumentSpec::Any(_, _) => vec![],
             ArgumentSpec::Command(_) => complete_command(part),
-            ArgumentSpec::Message => complete_player(part, &client),
+            ArgumentSpec::Message(_) => complete_player(part, &client),
             ArgumentSpec::SubCommand => complete_command(part),
             ArgumentSpec::Enum(_, strings, _) => strings
                 .iter()
@@ -47,9 +47,10 @@ fn complete_player(part: &str, client: &Client) -> Vec<String> {
 }
 
 fn complete_command(part: &str) -> Vec<String> {
-    CHAT_COMMANDS
-        .iter()
-        .map(|com| com.keyword())
+    CHAT_SHORTCUTS
+        .keys()
+        .map(ToString::to_string)
+        .chain(CHAT_COMMANDS.iter().map(ToString::to_string))
         .filter(|kwd| kwd.starts_with(part) || format!("/{}", kwd).starts_with(part))
         .map(|c| format!("/{}", c))
         .collect()
@@ -78,14 +79,13 @@ fn nth_word(line: &str, n: usize) -> Option<usize> {
     None
 }
 
-#[allow(clippy::chars_next_cmp)] // TODO: Pending review in #587
 pub fn complete(line: &str, client: &Client) -> Vec<String> {
     let word = if line.chars().last().map_or(true, char::is_whitespace) {
         ""
     } else {
         line.split_whitespace().last().unwrap_or("")
     };
-    if line.chars().next() == Some('/') {
+    if line.starts_with('/') {
         let mut iter = line.split_whitespace();
         let cmd = iter.next().unwrap();
         let i = iter.count() + if word.is_empty() { 1 } else { 0 };
@@ -106,7 +106,7 @@ pub fn complete(line: &str, client: &Client) -> Vec<String> {
                             vec![]
                         }
                     },
-                    Some(ArgumentSpec::Message) => complete_player(word, &client),
+                    Some(ArgumentSpec::Message(_)) => complete_player(word, &client),
                     _ => vec![], // End of command. Nothing to complete
                 }
             }

@@ -5,8 +5,8 @@ use crate::{
 };
 use common::{
     comp::{
-        Admin, CanBuild, ControlEvent, Controller, ForceUpdate, Ori, Player, Pos, SpeechBubble,
-        Stats, Vel,
+        Admin, AdminList, CanBuild, ChatMode, ChatMsg, ChatType, ControlEvent, Controller,
+        ForceUpdate, Ori, Player, Pos, Stats, Vel,
     },
     event::{EventBus, ServerEvent},
     msg::{
@@ -22,7 +22,6 @@ use hashbrown::HashMap;
 use specs::{
     Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteExpect, WriteStorage,
 };
-use tracing::warn;
 
 /// This system will handle new messages from clients
 pub struct Sys;
@@ -37,18 +36,19 @@ impl<'a> System<'a> for Sys {
         Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, CanBuild>,
-        ReadStorage<'a, Admin>,
         ReadStorage<'a, ForceUpdate>,
         ReadStorage<'a, Stats>,
+        ReadStorage<'a, ChatMode>,
         WriteExpect<'a, AuthProvider>,
         Write<'a, BlockChange>,
+        ReadExpect<'a, AdminList>,
+        WriteStorage<'a, Admin>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Player>,
         WriteStorage<'a, Client>,
         WriteStorage<'a, Controller>,
-        WriteStorage<'a, SpeechBubble>,
         Read<'a, ServerSettings>,
     );
 
@@ -66,18 +66,19 @@ impl<'a> System<'a> for Sys {
             mut timer,
             uids,
             can_build,
-            admins,
             force_updates,
             stats,
+            chat_modes,
             mut accounts,
             mut block_changes,
+            admin_list,
+            mut admins,
             mut positions,
             mut velocities,
             mut orientations,
             mut players,
             mut clients,
             mut controllers,
-            mut speech_bubbles,
             settings,
         ): Self::SystemData,
     ) {
@@ -85,16 +86,17 @@ impl<'a> System<'a> for Sys {
 
         let mut server_emitter = server_event_bus.emitter();
 
-        let mut new_chat_msgs = Vec::new();
+        let mut new_chat_msgs: Vec<(Option<specs::Entity>, ChatMsg)> = Vec::new();
 
         // Player list to send new players.
-        let player_list = (&uids, &players, &stats)
+        let player_list = (&uids, &players, stats.maybe(), admins.maybe())
             .join()
-            .map(|(uid, player, stats)| {
-                ((*uid).into(), PlayerInfo {
+            .map(|(uid, player, stats, admin)| {
+                (*uid, PlayerInfo {
+                    is_online: true,
+                    is_admin: admin.is_some(),
                     player_alias: player.alias.clone(),
-                    // TODO: player might not have a character selected
-                    character: Some(CharacterInfo {
+                    character: stats.map(|stats| CharacterInfo {
                         name: stats.name.clone(),
                         level: stats.level.level(),
                     }),
@@ -160,7 +162,8 @@ impl<'a> System<'a> for Sys {
 
                         let vd = view_distance
                             .map(|vd| vd.min(settings.max_view_distance.unwrap_or(vd)));
-                        let player = Player::new(username, None, vd, uuid);
+                        let player = Player::new(username.clone(), None, vd, uuid);
+                        let is_admin = admin_list.contains(&username);
 
                         if !player.is_valid() {
                             // Invalid player
@@ -172,6 +175,12 @@ impl<'a> System<'a> for Sys {
                             ClientState::Connected => {
                                 // Add Player component to this client
                                 let _ = players.insert(entity, player);
+
+                                // Give the Admin component to the player if their name exists in
+                                // admin list
+                                if is_admin {
+                                    let _ = admins.insert(entity, Admin);
+                                }
 
                                 // Tell the client its request was successful.
                                 client.allow_state(ClientState::Registered);
@@ -229,7 +238,11 @@ impl<'a> System<'a> for Sys {
                         // Become Registered first.
                         ClientState::Connected => client.error_state(RequestStateError::Impossible),
                         ClientState::Registered | ClientState::Spectator => {
-                            if let Some(player) = players.get(entity) {
+                            // Only send login message if it wasn't already
+                            // sent previously
+                            if let (Some(player), false) =
+                                (players.get(entity), client.login_msg_sent)
+                            {
                                 // Send a request to load the character's component data from the
                                 // DB. Once loaded, persisted components such as stats and inventory
                                 // will be inserted for the entity
@@ -248,21 +261,19 @@ impl<'a> System<'a> for Sys {
 
                                 // Give the player a welcome message
                                 if settings.server_description.len() > 0 {
-                                    client.notify(ServerMsg::broadcast(
-                                        settings.server_description.clone(),
-                                    ));
+                                    client.notify(
+                                        ChatType::CommandInfo
+                                            .server_msg(settings.server_description.clone()),
+                                    );
                                 }
 
                                 // Only send login message if it wasn't already
                                 // sent previously
                                 if !client.login_msg_sent {
-                                    new_chat_msgs.push((
-                                        None,
-                                        ServerMsg::broadcast(format!(
-                                            "[{}] is now online.",
-                                            &player.alias
-                                        )),
-                                    ));
+                                    new_chat_msgs.push((None, ChatMsg {
+                                        chat_type: ChatType::Online,
+                                        message: format!("[{}] is now online.", &player.alias),
+                                    }));
 
                                     client.login_msg_sent = true;
                                 }
@@ -320,16 +331,28 @@ impl<'a> System<'a> for Sys {
                         },
                         ClientState::Pending => {},
                     },
-                    ClientMsg::ChatMsg { message } => match client.client_state {
+                    ClientMsg::ChatMsg(message) => match client.client_state {
                         ClientState::Connected => client.error_state(RequestStateError::Impossible),
                         ClientState::Registered
                         | ClientState::Spectator
                         | ClientState::Character => match validate_chat_msg(&message) {
-                            Ok(()) => new_chat_msgs.push((Some(entity), ServerMsg::chat(message))),
+                            Ok(()) => {
+                                if let Some(from) = uids.get(entity) {
+                                    let mode = chat_modes.get(entity).cloned().unwrap_or_default();
+                                    let msg = mode.new_message(*from, message);
+                                    new_chat_msgs.push((Some(entity), msg));
+                                } else {
+                                    tracing::error!("Could not send message. Missing player uid");
+                                }
+                            },
                             Err(ChatMsgValidationError::TooLong) => {
                                 let max = MAX_BYTES_CHAT_MSG;
                                 let len = message.len();
-                                warn!(?len, ?max, "Recieved a chat message that's too long")
+                                tracing::warn!(
+                                    ?len,
+                                    ?max,
+                                    "Recieved a chat message that's too long"
+                                )
                             },
                         },
                         ClientState::Pending => {},
@@ -432,11 +455,12 @@ impl<'a> System<'a> for Sys {
         // Tell all clients to add them to the player list.
         for entity in new_players {
             if let (Some(uid), Some(player)) = (uids.get(entity), players.get(entity)) {
-                let msg =
-                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Add((*uid).into(), PlayerInfo {
-                        player_alias: player.alias.clone(),
-                        character: None, // new players will be on character select.
-                    }));
+                let msg = ServerMsg::PlayerListUpdate(PlayerListUpdate::Add(*uid, PlayerInfo {
+                    player_alias: player.alias.clone(),
+                    is_online: true,
+                    is_admin: admins.get(entity).is_some(),
+                    character: None, // new players will be on character select.
+                }));
                 for client in (&mut clients).join().filter(|c| c.is_registered()) {
                     client.notify(msg.clone())
                 }
@@ -445,45 +469,15 @@ impl<'a> System<'a> for Sys {
 
         // Handle new chat messages.
         for (entity, msg) in new_chat_msgs {
-            match msg {
-                ServerMsg::ChatMsg { chat_type, message } => {
-                    let message = if let Some(entity) = entity {
-                        // Handle chat commands.
-                        if message.starts_with("/") && message.len() > 1 {
-                            let argv = String::from(&message[1..]);
-                            server_emitter.emit(ServerEvent::ChatCmd(entity, argv));
-                            continue;
-                        } else {
-                            let bubble = SpeechBubble::player_new(message.clone(), *time);
-                            let _ = speech_bubbles.insert(entity, bubble);
-                            format!(
-                                "{}[{}] {}: {}",
-                                match admins.get(entity) {
-                                    Some(_) => "[ADMIN]",
-                                    None => "",
-                                },
-                                match players.get(entity) {
-                                    Some(player) => &player.alias,
-                                    None => "<Unknown>",
-                                },
-                                match stats.get(entity) {
-                                    Some(stat) => &stat.name,
-                                    None => "<Unknown>",
-                                },
-                                message
-                            )
-                        }
-                    } else {
-                        message
-                    };
-                    let msg = ServerMsg::ChatMsg { chat_type, message };
-                    for client in (&mut clients).join().filter(|c| c.is_registered()) {
-                        client.notify(msg.clone());
-                    }
-                },
-                _ => {
-                    panic!("Invalid message type.");
-                },
+            // Handle chat commands.
+            if msg.message.starts_with("/") {
+                if let (Some(entity), true) = (entity, msg.message.len() > 1) {
+                    let argv = String::from(&msg.message[1..]);
+                    server_emitter.emit(ServerEvent::ChatCmd(entity, argv));
+                }
+            } else {
+                // Send chat message
+                server_emitter.emit(ServerEvent::Chat(msg));
             }
         }
 

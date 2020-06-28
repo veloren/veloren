@@ -11,7 +11,7 @@ use crate::{
 };
 use conrod_core::{
     color,
-    position::Relative,
+    position::{Align, Relative},
     widget::{self, Button, DropDownList, Image, Rectangle, Scrollbar, Text},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
     WidgetCommon,
@@ -137,6 +137,8 @@ widget_ids! {
         chat_transp_title,
         chat_transp_text,
         chat_transp_slider,
+        chat_char_name_text,
+        chat_char_name_button,
         sct_title,
         sct_show_text,
         sct_show_radio,
@@ -153,8 +155,11 @@ widget_ids! {
         sct_num_dur_text,
         sct_num_dur_slider,
         sct_num_dur_value,
+        speech_bubble_text,
         speech_bubble_dark_mode_text,
         speech_bubble_dark_mode_button,
+        speech_bubble_icon_text,
+        speech_bubble_icon_button,
         free_look_behavior_text,
         free_look_behavior_list,
         auto_walk_behavior_text,
@@ -237,10 +242,12 @@ pub enum Event {
     CrosshairType(CrosshairType),
     UiScale(ScaleChange),
     ChatTransp(f32),
+    ChatCharName(bool),
     Sct(bool),
     SctPlayerBatch(bool),
     SctDamageBatch(bool),
     SpeechBubbleDarkMode(bool),
+    SpeechBubbleIcon(bool),
     ChangeLanguage(LanguageMetadata),
     ChangeBinding(GameInput),
     ChangeFreeLookBehavior(PressBehavior),
@@ -926,20 +933,27 @@ impl<'a> Widget for SettingsWindow<'a> {
             }
 
             // Speech bubble dark mode
+            Text::new(&self.localized_strings.get("hud.settings.speech_bubble"))
+                .down_from(
+                    if self.global_state.settings.gameplay.sct {
+                        state.ids.sct_batch_inc_radio
+                    } else {
+                        state.ids.sct_show_radio
+                    },
+                    20.0,
+                )
+                .x_align(Align::Start)
+                .x_relative_to(state.ids.sct_show_text, -40.0)
+                .font_size(self.fonts.cyri.scale(18))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.speech_bubble_text, ui);
             let speech_bubble_dark_mode = ToggleButton::new(
                 self.global_state.settings.gameplay.speech_bubble_dark_mode,
                 self.imgs.checkbox,
                 self.imgs.checkbox_checked,
             )
-            .down_from(
-                if self.global_state.settings.gameplay.sct {
-                    state.ids.sct_batch_inc_radio
-                } else {
-                    state.ids.sct_show_radio
-                },
-                20.0,
-            )
-            .x(0.0)
+            .down_from(state.ids.speech_bubble_text, 10.0)
             .w_h(18.0, 18.0)
             .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
             .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
@@ -955,15 +969,39 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .get("hud.settings.speech_bubble_dark_mode"),
             )
             .right_from(state.ids.speech_bubble_dark_mode_button, 10.0)
-            .font_size(self.fonts.cyri.scale(18))
+            .font_size(self.fonts.cyri.scale(15))
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(state.ids.speech_bubble_dark_mode_text, ui);
+            // Speech bubble icon
+            let speech_bubble_icon = ToggleButton::new(
+                self.global_state.settings.gameplay.speech_bubble_icon,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
+            )
+            .down_from(state.ids.speech_bubble_dark_mode_button, 10.0)
+            .w_h(18.0, 18.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.speech_bubble_icon_button, ui);
+            if self.global_state.settings.gameplay.speech_bubble_icon != speech_bubble_icon {
+                events.push(Event::SpeechBubbleIcon(speech_bubble_icon));
+            }
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.speech_bubble_icon"),
+            )
+            .right_from(state.ids.speech_bubble_icon_button, 10.0)
+            .font_size(self.fonts.cyri.scale(15))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.speech_bubble_icon_text, ui);
 
             // Energybars Numbers
             // Hotbar text
             Text::new(&self.localized_strings.get("hud.settings.energybar_numbers"))
-                .down_from(state.ids.speech_bubble_dark_mode_button, 20.0)
+                .down_from(state.ids.speech_bubble_icon_button, 20.0)
                 .font_size(self.fonts.cyri.scale(18))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
@@ -1097,8 +1135,36 @@ impl<'a> Widget for SettingsWindow<'a> {
                 events.push(Event::ChatTransp(new_val));
             }
 
+            // "Show character names in chat" toggle button
+            let chat_char_name = ToggleButton::new(
+                self.global_state.settings.gameplay.chat_character_name,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
+            )
+            .w_h(18.0, 18.0)
+            .down_from(state.ids.chat_transp_slider, 20.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.chat_char_name_button, ui);
+            if self.global_state.settings.gameplay.chat_character_name != chat_char_name {
+                events.push(Event::ChatCharName(
+                    !self.global_state.settings.gameplay.chat_character_name,
+                ));
+            }
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.chat_character_name"),
+            )
+            .right_from(state.ids.chat_char_name_button, 20.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.chat_char_name_text, ui);
+
+            // Language select drop down
             Text::new(&self.localized_strings.get("common.languages"))
-                .down_from(state.ids.chat_transp_slider, 20.0)
+                .down_from(state.ids.chat_char_name_button, 20.0)
                 .font_size(self.fonts.cyri.scale(18))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)

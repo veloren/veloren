@@ -46,15 +46,18 @@ use crate::{
     window::{Event as WinEvent, GameInput},
     GlobalState,
 };
-use client::{Client, Event as ClientEvent};
-use common::{assets::load_expect, comp, terrain::TerrainChunk, vol::RectRasterableVol};
+use client::Client;
+use common::{assets::load_expect, comp, sync::Uid, terrain::TerrainChunk, vol::RectRasterableVol};
 use conrod_core::{
     text::cursor::Index,
     widget::{self, Button, Image, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 use specs::{Join, WorldExt};
-use std::collections::VecDeque;
+use std::{
+    collections::{HashMap, VecDeque},
+    time::Instant,
+};
 use vek::*;
 
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
@@ -74,15 +77,28 @@ const MANA_COLOR: Color = Color::Rgba(0.29, 0.62, 0.75, 0.9);
 //const RAGE_COLOR: Color = Color::Rgba(0.5, 0.04, 0.13, 1.0);
 
 // Chat Colors
-const META_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
+/// Color for chat command errors (yellow !)
+const ERROR_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
+/// Color for chat command info (blue i)
+const INFO_COLOR: Color = Color::Rgba(0.28, 0.83, 0.71, 1.0);
+/// Online color
+const ONLINE_COLOR: Color = Color::Rgba(0.3, 1.0, 0.3, 1.0);
+/// Offline color
+const OFFLINE_COLOR: Color = Color::Rgba(1.0, 0.3, 0.3, 1.0);
+/// Color for a private message from another player
 const TELL_COLOR: Color = Color::Rgba(0.98, 0.71, 1.0, 1.0);
-const PRIVATE_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0); // Difference between private and tell?
-const BROADCAST_COLOR: Color = Color::Rgba(0.28, 0.83, 0.71, 1.0);
-const GAME_UPDATE_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
-const SAY_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+/// Color for local chat
+const SAY_COLOR: Color = Color::Rgba(1.0, 0.8, 0.8, 1.0);
+/// Color for group chat
 const GROUP_COLOR: Color = Color::Rgba(0.47, 0.84, 1.0, 1.0);
+/// Color for factional chat
 const FACTION_COLOR: Color = Color::Rgba(0.24, 1.0, 0.48, 1.0);
+/// Color for regional chat
+const REGION_COLOR: Color = Color::Rgba(0.8, 1.0, 0.8, 1.0);
+/// Color for death messages
 const KILL_COLOR: Color = Color::Rgba(1.0, 0.17, 0.17, 1.0);
+/// Color for global messages
+const WORLD_COLOR: Color = Color::Rgba(0.95, 1.0, 0.95, 1.0);
 
 // UI Color-Theme
 const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
@@ -240,6 +256,7 @@ pub enum Event {
     ChangeFluidMode(FluidMode),
     CrosshairTransp(f32),
     ChatTransp(f32),
+    ChatCharName(bool),
     CrosshairType(CrosshairType),
     ToggleXpBar(XpBar),
     Intro(Intro),
@@ -249,6 +266,7 @@ pub enum Event {
     SctPlayerBatch(bool),
     SctDamageBatch(bool),
     SpeechBubbleDarkMode(bool),
+    SpeechBubbleIcon(bool),
     ToggleDebug(bool),
     UiScale(ScaleChange),
     CharacterSelection,
@@ -454,7 +472,9 @@ pub struct Hud {
     item_imgs: ItemImgs,
     fonts: ConrodVoxygenFonts,
     rot_imgs: ImgsRot,
-    new_messages: VecDeque<ClientEvent>,
+    new_messages: VecDeque<comp::ChatMsg>,
+    new_notifications: VecDeque<common::msg::Notification>,
+    speech_bubbles: HashMap<Uid, comp::SpeechBubble>,
     show: Show,
     //never_show: bool,
     //intro: bool,
@@ -520,6 +540,8 @@ impl Hud {
             fonts,
             ids,
             new_messages: VecDeque::new(),
+            new_notifications: VecDeque::new(),
+            speech_bubbles: HashMap::new(),
             //intro: false,
             //intro_2: false,
             show: Show {
@@ -595,7 +617,7 @@ impl Hud {
             let stats = ecs.read_storage::<comp::Stats>();
             let energy = ecs.read_storage::<comp::Energy>();
             let hp_floater_lists = ecs.read_storage::<vcomp::HpFloaterList>();
-            let speech_bubbles = ecs.read_storage::<comp::SpeechBubble>();
+            let uids = ecs.read_storage::<common::sync::Uid>();
             let interpolated = ecs.read_storage::<vcomp::Interpolated>();
             let players = ecs.read_storage::<comp::Player>();
             let scales = ecs.read_storage::<comp::Scale>();
@@ -923,12 +945,24 @@ impl Hud {
                 }
             }
 
+            // Pop speech bubbles
+            let now = Instant::now();
+            self.speech_bubbles
+                .retain(|_uid, bubble| bubble.timeout > now);
+
+            // Push speech bubbles
+            for msg in self.new_messages.iter() {
+                if let Some((bubble, uid)) = msg.to_bubble() {
+                    self.speech_bubbles.insert(uid, bubble);
+                }
+            }
+
             let mut overhead_walker = self.ids.overheads.walk();
             let mut sct_walker = self.ids.scts.walk();
             let mut sct_bg_walker = self.ids.sct_bgs.walk();
 
             // Render overhead name tags and health bars
-            for (pos, name, stats, energy, height_offset, hpfl, bubble) in (
+            for (pos, name, stats, energy, height_offset, hpfl, uid) in (
                 &entities,
                 &pos,
                 interpolated.maybe(),
@@ -938,7 +972,7 @@ impl Hud {
                 scales.maybe(),
                 &bodies,
                 &hp_floater_lists,
-                speech_bubbles.maybe(),
+                &uids,
             )
                 .join()
                 .filter(|(entity, _, _, stats, _, _, _, _, _, _)| *entity != me && !stats.is_dead)
@@ -955,7 +989,7 @@ impl Hud {
                         })
                         .powi(2)
                 })
-                .map(|(_, pos, interpolated, stats, energy, player, scale, body, hpfl, bubble)| {
+                .map(|(_, pos, interpolated, stats, energy, player, scale, body, hpfl, uid)| {
                     // TODO: This is temporary
                     // If the player used the default character name display their name instead
                     let name = if stats.name == "Character Name" {
@@ -971,10 +1005,12 @@ impl Hud {
                         // TODO: when body.height() is more accurate remove the 2.0
                         body.height() * 2.0 * scale.map_or(1.0, |s| s.0),
                         hpfl,
-                        bubble,
+                        uid,
                     )
                 })
             {
+                let bubble = self.speech_bubbles.get(uid);
+
                 let overhead_id = overhead_walker.next(
                     &mut self.ids.overheads,
                     &mut ui_widgets.widget_id_generator(),
@@ -1440,11 +1476,11 @@ impl Hud {
             }
         }
 
-        // Popup
+        // Popup (waypoint saved and similar notifications)
         Popup::new(
             &self.voxygen_i18n,
             client,
-            &self.new_messages,
+            &self.new_notifications,
             &self.fonts,
             &self.show,
         )
@@ -1540,26 +1576,21 @@ impl Hud {
             .set(self.ids.skillbar, ui_widgets);
         }
 
-        // The chat box breaks if it has non-chat messages left in the queue, so take
-        // them out.
-        self.new_messages.retain(|msg| {
-            if let ClientEvent::Chat { .. } = &msg {
-                true
-            } else {
-                false
-            }
-        });
+        // Don't put NPC messages in chat box.
+        self.new_messages
+            .retain(|m| !matches!(m.chat_type, comp::ChatType::Npc(_, _)));
 
         // Chat box
         match Chat::new(
             &mut self.new_messages,
+            &client,
             global_state,
             &self.imgs,
             &self.fonts,
         )
         .and_then(self.force_chat_input.take(), |c, input| c.input(input))
         .and_then(self.tab_complete.take(), |c, input| {
-            c.prepare_tab_completion(input, &client)
+            c.prepare_tab_completion(input)
         })
         .and_then(self.force_chat_cursor.take(), |c, pos| c.cursor_pos(pos))
         .set(self.ids.chat, ui_widgets)
@@ -1577,6 +1608,7 @@ impl Hud {
         }
 
         self.new_messages = VecDeque::new();
+        self.new_notifications = VecDeque::new();
 
         // Windows
 
@@ -1598,6 +1630,9 @@ impl Hud {
                 match event {
                     settings_window::Event::SpeechBubbleDarkMode(sbdm) => {
                         events.push(Event::SpeechBubbleDarkMode(sbdm));
+                    },
+                    settings_window::Event::SpeechBubbleIcon(sbi) => {
+                        events.push(Event::SpeechBubbleIcon(sbi));
                     },
                     settings_window::Event::Sct(sct) => {
                         events.push(Event::Sct(sct));
@@ -1627,6 +1662,9 @@ impl Hud {
                     },
                     settings_window::Event::ChatTransp(chat_transp) => {
                         events.push(Event::ChatTransp(chat_transp));
+                    },
+                    settings_window::Event::ChatCharName(chat_char_name) => {
+                        events.push(Event::ChatCharName(chat_char_name));
                     },
                     settings_window::Event::ToggleZoomInvert(zoom_inverted) => {
                         events.push(Event::ToggleZoomInvert(zoom_inverted));
@@ -1903,7 +1941,11 @@ impl Hud {
         events
     }
 
-    pub fn new_message(&mut self, msg: ClientEvent) { self.new_messages.push_back(msg); }
+    pub fn new_message(&mut self, msg: comp::ChatMsg) { self.new_messages.push_back(msg); }
+
+    pub fn new_notification(&mut self, msg: common::msg::Notification) {
+        self.new_notifications.push_back(msg);
+    }
 
     pub fn scale_change(&mut self, scale_change: ScaleChange) -> ScaleMode {
         let scale_mode = match scale_change {

@@ -1,6 +1,6 @@
 use super::Show;
 use crate::{i18n::VoxygenLocalization, ui::fonts::ConrodVoxygenFonts};
-use client::{self, Client, Event as ClientEvent};
+use client::{self, Client};
 use common::msg::Notification;
 use conrod_core::{
     widget::{self, Text},
@@ -23,7 +23,7 @@ widget_ids! {
 pub struct Popup<'a> {
     voxygen_i18n: &'a std::sync::Arc<VoxygenLocalization>,
     client: &'a Client,
-    new_messages: &'a VecDeque<ClientEvent>,
+    new_notifications: &'a VecDeque<Notification>,
     fonts: &'a ConrodVoxygenFonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -36,14 +36,14 @@ impl<'a> Popup<'a> {
     pub fn new(
         voxygen_i18n: &'a std::sync::Arc<VoxygenLocalization>,
         client: &'a Client,
-        new_messages: &'a VecDeque<ClientEvent>,
+        new_notifications: &'a VecDeque<Notification>,
         fonts: &'a ConrodVoxygenFonts,
         show: &'a Show,
     ) -> Self {
         Self {
             voxygen_i18n,
             client,
-            new_messages,
+            new_notifications,
             fonts,
             common: widget::CommonBuilder::default(),
             show,
@@ -119,9 +119,9 @@ impl<'a> Widget for Popup<'a> {
         }
 
         // Push waypoint to message queue
-        for notification in self.new_messages {
+        for notification in self.new_notifications {
             match notification {
-                ClientEvent::Notification(Notification::WaypointSaved) => {
+                Notification::WaypointSaved => {
                     state.update(|s| {
                         if s.infos.is_empty() {
                             s.last_info_update = Instant::now();
@@ -130,7 +130,6 @@ impl<'a> Widget for Popup<'a> {
                         s.infos.push_back(text.to_string());
                     });
                 },
-                _ => {},
             }
         }
 
