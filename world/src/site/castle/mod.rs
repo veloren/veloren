@@ -4,8 +4,11 @@ use crate::{
     column::ColumnSample,
     sim::WorldSim,
     site::{
+        settlement::building::{
+            archetype::keep::{Attr, Keep},
+            Archetype, Branch, Ori,
+        },
         BlockMask,
-        settlement::building::{Archetype, Ori, Branch, archetype::keep::{Keep, Attr}},
     },
     util::{attempt, Grid, RandomField, Sampler, CARDINALS, DIRS},
 };
@@ -42,6 +45,7 @@ pub struct Castle {
     origin: Vec2<i32>,
     alt: i32,
     seed: u32,
+    radius: i32,
     towers: Vec<Tower>,
     segments: Vec<Segment>,
 }
@@ -57,6 +61,9 @@ impl Castle {
         let mut ctx = GenCtx { sim, rng };
 
         let boundary_towers = ctx.rng.gen_range(5, 10);
+        let boundary_noise = ctx.rng.gen_range(-2i32, 8).max(1) as f32;
+
+        let radius = 150;
 
         let this = Self {
             origin: wpos,
@@ -66,43 +73,53 @@ impl Castle {
                 .unwrap_or(0.0) as i32
                 + 6,
             seed: ctx.rng.gen(),
+            radius,
 
             towers: (0..boundary_towers)
                 .map(|i| {
                     let angle = (i as f32 / boundary_towers as f32) * f32::consts::PI * 2.0;
-                    let dir = Vec2::new(
-                        angle.cos(),
-                        angle.sin(),
-                    );
-                    let dist = ctx.rng.gen_range(45.0, 190.0).clamped(75.0, 135.0);
+                    let dir = Vec2::new(angle.cos(), angle.sin());
+                    let dist = radius as f32 + ((angle * boundary_noise).sin() - 1.0) * 40.0;
 
-                    let offset = (dir * dist).map(|e| e as i32);
+                    let mut offset = (dir * dist).map(|e| e as i32);
+                    // Try to move the tower around until it's not intersecting a path
+                    for i in (1..80).step_by(5) {
+                        if ctx
+                            .sim
+                            .and_then(|sim| sim.get_nearest_path(wpos + offset))
+                            .map(|(dist, _)| dist > 24.0)
+                            .unwrap_or(true)
+                        {
+                            break;
+                        }
+                        offset = (dir * dist)
+                            .map(|e| (e + ctx.rng.gen_range(-1.0, 1.0) * i as f32) as i32);
+                    }
 
                     Tower {
                         offset,
                         alt: ctx
                             .sim
                             .and_then(|sim| sim.get_alt_approx(wpos + offset))
-                            .unwrap_or(0.0) as i32 + 2,
+                            .unwrap_or(0.0) as i32
+                            + 2,
                     }
                 })
                 .collect(),
 
-            segments: (0..0)//rng.gen_range(18, 24))
+            segments: (0..0) //rng.gen_range(18, 24))
                 .map(|_| {
-                    let dir = Vec2::new(
-                        rng.gen_range(-1.0, 1.0),
-                        rng.gen_range(-1.0, 1.0),
-                    ).normalized();
-                    let dist = 16.0 + rng.gen_range(0.0f32, 1.0).powf(0.5) * 64.0;
+                    let dir = Vec2::new(ctx.rng.gen_range(-1.0, 1.0), ctx.rng.gen_range(-1.0, 1.0))
+                        .normalized();
+                    let dist = 16.0 + ctx.rng.gen_range(0.0f32, 1.0).powf(0.5) * 64.0;
                     let height = 48.0 - (dist / 64.0).powf(2.0) * 32.0;
 
                     Segment {
-                       offset: (dir * dist).map(|e| e as i32),
-                       locus: rng.gen_range(6, 26),
-                       height: height as i32,
-                       is_tower: height > 36.0,
-                   }
+                        offset: (dir * dist).map(|e| e as i32),
+                        locus: ctx.rng.gen_range(6, 26),
+                        height: height as i32,
+                        is_tower: height > 36.0,
+                    }
                 })
                 .collect(),
         };
@@ -117,7 +134,7 @@ impl Castle {
     #[allow(clippy::needless_update)] // TODO: Pending review in #587
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
-            trees: wpos.distance_squared(self.origin) > 64i32.pow(2),
+            trees: wpos.distance_squared(self.origin) > self.radius.pow(2),
             ..SpawnRules::default()
         }
     }
@@ -142,7 +159,7 @@ impl Castle {
                     continue;
                 };
 
-                let (wall_dist, wall_pos, wall_alt) = (0..self.towers.len())
+                let (wall_dist, wall_pos, wall_alt, wall_ori) = (0..self.towers.len())
                     .map(|i| {
                         let tower0 = &self.towers[i];
                         let tower1 = &self.towers[(i + 1) % self.towers.len()];
@@ -152,47 +169,64 @@ impl Castle {
                             end: tower1.offset.map(|e| e as f32),
                         };
 
-                        let projected = wall.projected_point(rpos.map(|e| e as f32)).map(|e| e as i32);
+                        let projected = wall
+                            .projected_point(rpos.map(|e| e as f32))
+                            .map(|e| e as i32);
 
-                        let tower0_dist = tower0.offset.map(|e| e as f32).distance(projected.map(|e| e as f32));
-                        let tower1_dist = tower1.offset.map(|e| e as f32).distance(projected.map(|e| e as f32));
+                        let tower0_dist = tower0
+                            .offset
+                            .map(|e| e as f32)
+                            .distance(projected.map(|e| e as f32));
+                        let tower1_dist = tower1
+                            .offset
+                            .map(|e| e as f32)
+                            .distance(projected.map(|e| e as f32));
                         let tower_lerp = tower0_dist / (tower0_dist + tower1_dist);
+                        let wall_ori = if (tower0.offset.x - tower1.offset.x).abs()
+                            < (tower0.offset.y - tower1.offset.y).abs()
+                        {
+                            Ori::East
+                        } else {
+                            Ori::North
+                        };
 
                         (
                             wall.distance_to_point(rpos.map(|e| e as f32)) as i32,
                             projected,
                             Lerp::lerp(tower0.alt as f32, tower1.alt as f32, tower_lerp) as i32,
+                            wall_ori,
                         )
                     })
                     .min_by_key(|x| x.0)
                     .unwrap();
 
                 for z in -10..64 {
-                    let wpos = Vec3::new(
-                        wpos2d.x,
-                        wpos2d.y,
-                        col_sample.alt as i32 + z,
-                    );
+                    let wpos = Vec3::new(wpos2d.x, wpos2d.y, col_sample.alt as i32 + z);
+
+                    let keep = Keep {
+                        flag_color: Rgb::new(200, 80, 40),
+                    };
 
                     // Boundary
                     let border_pos = (wall_pos - rpos).map(|e| e.abs());
-                    let mut mask = Keep.draw(
-                        Vec3::from(rpos) + Vec3::unit_z() * wpos.z - wall_alt,
+                    let wall_rpos = if wall_ori == Ori::East {
+                        rpos
+                    } else {
+                        rpos.yx()
+                    };
+                    let mut mask = keep.draw(
+                        Vec3::from(wall_rpos) + Vec3::unit_z() * wpos.z - wall_alt,
                         wall_dist,
                         Vec2::new(border_pos.reduce_max(), border_pos.reduce_min()),
                         rpos - wall_pos,
                         wpos.z - wall_alt,
-                        Ori::North,
-                        &Branch {
-                            len: 0,
-                            attr: Attr {
-                                height: 16,
-                                is_tower: false,
-                            },
-                            locus: 4,
-                            border: 0,
-                            children: Vec::new(),
-                        }
+                        wall_ori,
+                        4,
+                        0,
+                        &Attr {
+                            height: 16,
+                            is_tower: false,
+                        },
                     );
                     for tower in &self.towers {
                         let tower_wpos = Vec3::new(
@@ -203,23 +237,27 @@ impl Castle {
                         let tower_locus = 10;
 
                         let border_pos = (tower_wpos - wpos).xy().map(|e| e.abs());
-                        mask = mask.resolve_with(Keep.draw(
-                            wpos - tower_wpos,
+                        mask = mask.resolve_with(keep.draw(
+                            if (tower_wpos.x - wpos.x).abs() < (tower_wpos.y - wpos.y).abs() {
+                                wpos - tower_wpos
+                            } else {
+                                Vec3::new(
+                                    wpos.y - tower_wpos.y,
+                                    wpos.x - tower_wpos.x,
+                                    wpos.z - tower_wpos.z,
+                                )
+                            },
                             border_pos.reduce_max() - tower_locus,
                             Vec2::new(border_pos.reduce_max(), border_pos.reduce_min()),
                             (wpos - tower_wpos).xy(),
                             wpos.z - tower.alt,
-                            Ori::North,
-                            &Branch {
-                                len: 0,
-                                attr: Attr {
-                                    height: 28,
-                                    is_tower: true,
-                                },
-                                locus: tower_locus,
-                                border: 0,
-                                children: Vec::new(),
-                            }
+                            Ori::East,
+                            tower_locus,
+                            0,
+                            &Attr {
+                                height: 28,
+                                is_tower: true,
+                            },
                         ));
                     }
 

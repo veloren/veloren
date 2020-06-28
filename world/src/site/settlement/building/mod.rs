@@ -2,8 +2,7 @@ pub mod archetype;
 pub mod skeleton;
 
 // Reexports
-pub use self::archetype::Archetype;
-pub use self::skeleton::*;
+pub use self::{archetype::Archetype, skeleton::*};
 
 use common::terrain::Block;
 use rand::prelude::*;
@@ -53,8 +52,17 @@ impl<A: Archetype> Building<A> {
             .sample_closest(
                 rpos,
                 |pos, dist, bound_offset, center_offset, ori, branch| {
-                    self.archetype
-                        .draw(pos, dist, bound_offset, center_offset, rpos.z, ori, branch)
+                    self.archetype.draw(
+                        pos,
+                        dist,
+                        bound_offset,
+                        center_offset,
+                        rpos.z,
+                        ori,
+                        branch.locus,
+                        branch.len,
+                        &branch.attr,
+                    )
                 },
             )
             .finish()

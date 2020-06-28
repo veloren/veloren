@@ -7,7 +7,9 @@ use common::{
 use rand::prelude::*;
 use vek::*;
 
-pub struct Keep;
+pub struct Keep {
+    pub flag_color: Rgb<u8>,
+}
 
 pub struct Attr {
     pub height: i32,
@@ -50,7 +52,12 @@ impl Archetype for Keep {
             },
         };
 
-        (Self, skel)
+        (
+            Self {
+                flag_color: Rgb::new(200, 80, 40),
+            },
+            skel,
+        )
     }
 
     #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
@@ -62,7 +69,9 @@ impl Archetype for Keep {
         center_offset: Vec2<i32>,
         z: i32,
         ori: Ori,
-        branch: &Branch<Self::Attr>,
+        locus: i32,
+        len: i32,
+        attr: &Self::Attr,
     ) -> BlockMask {
         let profile = Vec2::new(bound_offset.x, z);
 
@@ -82,24 +91,25 @@ impl Archetype for Keep {
         let wall = make_block(100, 100, 110);
         let floor = make_block(120, 80, 50).with_priority(important_layer);
         let pole = make_block(90, 70, 50).with_priority(important_layer);
-        let flag = make_block(50, 170, 100).with_priority(important_layer);
+        let flag = make_block(self.flag_color.r, self.flag_color.g, self.flag_color.b)
+            .with_priority(important_layer);
         let internal = BlockMask::new(Block::empty(), internal_layer);
         let empty = BlockMask::nothing();
 
-        let width = branch.locus;
-        let rampart_width = 2 + branch.locus;
-        let ceil_height = branch.attr.height;
+        let width = locus;
+        let rampart_width = 2 + locus;
+        let ceil_height = attr.height;
         let door_height = 6;
         let edge_pos = if (bound_offset.x == rampart_width) ^ (ori == Ori::East) {
-            pos.y + pos.x
+            pos.y
         } else {
-            pos.x + pos.y
+            pos.x
         };
         let rampart_height = ceil_height + if edge_pos % 2 == 0 { 3 } else { 4 };
         let inner = Clamp::clamp(
             center_offset,
-            Vec2::new(-5, -branch.len / 2 - 5),
-            Vec2::new(5, branch.len / 2 + 5),
+            Vec2::new(-5, -len / 2 - 5),
+            Vec2::new(5, len / 2 + 5),
         );
         let min_dist = bound_offset.map(|e| e.pow(2) as f32).sum().powf(0.5) as i32; //(bound_offset.distance_squared(inner) as f32).sqrt() as i32 + 5;//bound_offset.reduce_max();
 
@@ -108,7 +118,7 @@ impl Archetype for Keep {
             foundation
         } else if profile.y == ceil_height && min_dist < rampart_width {
             if min_dist < width { floor } else { wall }
-        } else if !branch.attr.is_tower
+        } else if !attr.is_tower
             && bound_offset.x.abs() == 4
             && min_dist == width + 1
             && profile.y < ceil_height
@@ -123,12 +133,9 @@ impl Archetype for Keep {
             wall
         } else if profile.y >= ceil_height {
             if profile.y > ceil_height && min_dist < rampart_width {
-                if branch.attr.is_tower
-                    && center_offset == Vec2::zero()
-                    && profile.y < ceil_height + 16
-                {
+                if attr.is_tower && center_offset == Vec2::zero() && profile.y < ceil_height + 16 {
                     pole
-                } else if branch.attr.is_tower
+                } else if attr.is_tower
                     && center_offset.x == 0
                     && center_offset.y > 0
                     && center_offset.y < 8

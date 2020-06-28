@@ -33,25 +33,28 @@ const COLOR_THEMES: [Rgb<u8>; 17] = [
 ];
 
 pub struct House {
-    roof_color: Rgb<u8>,
-    noise: RandomField,
-    roof_ribbing: bool,
-    roof_ribbing_diagonal: bool,
+    pub roof_color: Rgb<u8>,
+    pub noise: RandomField,
+    pub roof_ribbing: bool,
+    pub roof_ribbing_diagonal: bool,
 }
 
-enum Pillar {
+#[derive(Copy, Clone)]
+pub enum Pillar {
     None,
     Chimney(i32),
     Tower(i32),
 }
 
-enum RoofStyle {
+#[derive(Copy, Clone)]
+pub enum RoofStyle {
     Hip,
     Gable,
     Rounded,
 }
 
-enum StoreyFill {
+#[derive(Copy, Clone)]
+pub enum StoreyFill {
     None,
     Upper,
     All,
@@ -75,16 +78,17 @@ impl StoreyFill {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct Attr {
-    central_supports: bool,
-    storey_fill: StoreyFill,
-    roof_style: RoofStyle,
-    mansard: i32,
-    pillar: Pillar,
+    pub central_supports: bool,
+    pub storey_fill: StoreyFill,
+    pub roof_style: RoofStyle,
+    pub mansard: i32,
+    pub pillar: Pillar,
 }
 
 impl Attr {
-    fn generate<R: Rng>(rng: &mut R, locus: i32) -> Self {
+    pub fn generate<R: Rng>(rng: &mut R, locus: i32) -> Self {
         Self {
             central_supports: rng.gen(),
             storey_fill: match rng.gen_range(0, 2) {
@@ -174,7 +178,9 @@ impl Archetype for House {
         center_offset: Vec2<i32>,
         z: i32,
         ori: Ori,
-        branch: &Branch<Self::Attr>,
+        locus: i32,
+        len: i32,
+        attr: &Self::Attr,
     ) -> BlockMask {
         let profile = Vec2::new(bound_offset.x, z);
 
@@ -224,8 +230,8 @@ impl Archetype for House {
         let fire = BlockMask::new(Block::new(BlockKind::Ember, Rgb::white()), foundation_layer);
 
         let ceil_height = 6;
-        let lower_width = branch.locus - 1;
-        let upper_width = branch.locus;
+        let lower_width = locus - 1;
+        let upper_width = locus;
         let width = if profile.y >= ceil_height {
             upper_width
         } else {
@@ -234,7 +240,7 @@ impl Archetype for House {
         let foundation_height = 0 - (dist - width - 1).max(0);
         let roof_top = 8 + width;
 
-        if let Pillar::Chimney(chimney_top) = branch.attr.pillar {
+        if let Pillar::Chimney(chimney_top) = attr.pillar {
             // Chimney shaft
             if center_offset.map(|e| e.abs()).reduce_max() == 0
                 && profile.y >= foundation_height + 1
@@ -262,7 +268,7 @@ impl Archetype for House {
 
         if profile.y <= foundation_height && dist < width + 3 {
             // Foundations
-            if branch.attr.storey_fill.has_lower() {
+            if attr.storey_fill.has_lower() {
                 if dist == width - 1 {
                     // Floor lining
                     return log.with_priority(floor_layer);
@@ -285,7 +291,7 @@ impl Archetype for House {
             |profile: Vec2<i32>, width, dist, bound_offset: Vec2<i32>, roof_top, mansard| {
                 // Roof
 
-                let (roof_profile, roof_dist) = match &branch.attr.roof_style {
+                let (roof_profile, roof_dist) = match &attr.roof_style {
                     RoofStyle::Hip => (Vec2::new(dist, profile.y), dist),
                     RoofStyle::Gable => (profile, dist),
                     RoofStyle::Rounded => {
@@ -324,7 +330,7 @@ impl Archetype for House {
                         && bound_offset.x > 0
                         && bound_offset.x < width
                         && profile.y < ceil_height
-                        && branch.attr.storey_fill.has_lower()
+                        && attr.storey_fill.has_lower()
                     {
                         return Some(
                             if (bound_offset.x == (width - 1) / 2
@@ -355,9 +361,9 @@ impl Archetype for House {
                     if bound_offset.x == bound_offset.y || profile.y == ceil_height {
                         // Support beams
                         return Some(log);
-                    } else if !branch.attr.storey_fill.has_lower() && profile.y < ceil_height {
+                    } else if !attr.storey_fill.has_lower() && profile.y < ceil_height {
                         return Some(empty);
-                    } else if !branch.attr.storey_fill.has_upper() {
+                    } else if !attr.storey_fill.has_upper() {
                         return Some(empty);
                     } else {
                         let (frame_bounds, frame_borders) = if profile.y >= ceil_height {
@@ -396,7 +402,7 @@ impl Archetype for House {
                         }
 
                         // Wall
-                        return Some(if branch.attr.central_supports && profile.x == 0 {
+                        return Some(if attr.central_supports && profile.x == 0 {
                             // Support beams
                             log.with_priority(structural_layer)
                         } else {
@@ -411,12 +417,12 @@ impl Archetype for House {
                         if profile.x == 0 {
                             // Rafters
                             return Some(log);
-                        } else if branch.attr.storey_fill.has_upper() {
+                        } else if attr.storey_fill.has_upper() {
                             // Ceiling
                             return Some(floor);
                         }
-                    } else if (!branch.attr.storey_fill.has_lower() && profile.y < ceil_height)
-                        || (!branch.attr.storey_fill.has_upper() && profile.y >= ceil_height)
+                    } else if (!attr.storey_fill.has_lower() && profile.y < ceil_height)
+                        || (!attr.storey_fill.has_upper() && profile.y >= ceil_height)
                     {
                         return Some(empty);
                     } else {
@@ -429,18 +435,13 @@ impl Archetype for House {
 
         let mut cblock = empty;
 
-        if let Some(block) = do_roof_wall(
-            profile,
-            width,
-            dist,
-            bound_offset,
-            roof_top,
-            branch.attr.mansard,
-        ) {
+        if let Some(block) =
+            do_roof_wall(profile, width, dist, bound_offset, roof_top, attr.mansard)
+        {
             cblock = cblock.resolve_with(block);
         }
 
-        if let Pillar::Tower(tower_top) = branch.attr.pillar {
+        if let Pillar::Tower(tower_top) = attr.pillar {
             let profile = Vec2::new(center_offset.x.abs(), profile.y);
             let dist = center_offset.map(|e| e.abs()).reduce_max();
 
@@ -450,7 +451,7 @@ impl Archetype for House {
                 dist,
                 center_offset.map(|e| e.abs()),
                 tower_top,
-                branch.attr.mansard,
+                attr.mansard,
             ) {
                 cblock = cblock.resolve_with(block);
             }
