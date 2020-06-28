@@ -252,11 +252,6 @@ impl<'a> System<'a> for Sys {
                                     character_id,
                                 );
 
-                                server_emitter.emit(ServerEvent::Chat(ChatMsg {
-                                    chat_type: ChatType::Online,
-                                    message: format!("[{}] is now online.", &player.alias),
-                                }));
-
                                 // Start inserting non-persisted/default components for the entity
                                 // while we load the DB data
                                 server_emitter.emit(ServerEvent::InitCharacterData {
