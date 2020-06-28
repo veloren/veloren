@@ -68,7 +68,7 @@ impl EventMapper for CombatEventMapper {
 
                 // Check for SFX config entry for this movement
                 if Self::should_emit(state, triggers.get_key_value(&mapped_event)) {
-                    sfx_emitter.emit(SfxEventItem::new(mapped_event, Some(pos.0), None));
+                    sfx_emitter.emit(SfxEventItem::new(mapped_event.clone(), Some(pos.0), None));
 
                     state.time = Instant::now();
                 }
