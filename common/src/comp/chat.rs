@@ -79,6 +79,8 @@ pub enum ChatType {
     ///
     /// The u16 field is a random number for selecting localization variants.
     Npc(Uid, u16),
+    /// Anything else
+    Meta,
 }
 
 impl ChatType {
@@ -142,6 +144,7 @@ impl ChatMsg {
             ChatType::Region(_u) => SpeechBubbleType::Region,
             ChatType::World(_u) => SpeechBubbleType::World,
             ChatType::Npc(_u, _r) => SpeechBubbleType::None,
+            ChatType::Meta => SpeechBubbleType::None,
         }
     }
 
@@ -161,6 +164,7 @@ impl ChatMsg {
             ChatType::Region(u) => Some(*u),
             ChatType::World(u) => Some(*u),
             ChatType::Npc(u, _r) => Some(*u),
+            ChatType::Meta => None,
         }
     }
 }

@@ -902,10 +902,10 @@ impl Client {
                             },
                             _ => {
                                 if let InventoryUpdateEvent::Collected(item) = event {
-                                    frontend_events.push(Event::Chat {
+                                    frontend_events.push(Event::Chat(comp::ChatMsg {
                                         message: format!("Picked up {}", item.name()),
-                                        chat_type: ChatType::Meta,
-                                    });
+                                        chat_type: comp::ChatType::Meta,
+                                    }));
                                 }
 
                                 self.state.write_component(self.entity, inventory);
@@ -1088,6 +1088,7 @@ impl Client {
             // NPCs can't talk. Should be filtered by hud/mod.rs for voxygen and should be filtered
             // by server (due to not having a Pos) for chat-cli
             comp::ChatType::Npc(_uid, _r) => "".to_string(),
+            comp::ChatType::Meta => message.to_string(),
         }
     }
 }

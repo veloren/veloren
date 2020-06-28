@@ -247,6 +247,7 @@ impl StateExt for State {
             | comp::ChatType::CommandInfo
             | comp::ChatType::CommandError
             | comp::ChatType::Kill
+            | comp::ChatType::Meta
             | comp::ChatType::World(_) => {
                 self.notify_registered_clients(ServerMsg::ChatMsg(msg.clone()))
             },
