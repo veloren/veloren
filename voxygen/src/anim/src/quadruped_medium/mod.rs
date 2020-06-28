@@ -127,6 +127,7 @@ pub struct SkeletonAttr {
     leg_b: (f32, f32, f32),
     feet_f: (f32, f32, f32),
     feet_b: (f32, f32, f32),
+    scaler: f32,
 }
 
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -154,6 +155,7 @@ impl Default for SkeletonAttr {
             leg_b: (0.0, 0.0, 0.0),
             feet_f: (0.0, 0.0, 0.0),
             feet_b: (0.0, 0.0, 0.0),
+            scaler: 0.0,
         }
     }
 }
@@ -282,6 +284,17 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Wolf, _) => (0.0, -2.0, -3.0),
                 (Frostfang, _) => (0.0, -1.5, -3.5),
                 (Mouflon, _) => (-1.0, -1.5, -2.5),
+            },
+            scaler: match (body.species, body.body_type) {
+                (Grolgar, _) => (1.3),
+                (Saber, _) => (1.1),
+                (Tuskram, _) => (1.2),
+                (Lion, _) => (1.3),
+                (Tarasque, _) => (1.3),
+                (Tiger, _) => (1.2),
+                (Wolf, _) => (1.0),
+                (Frostfang, _) => (1.0),
+                (Mouflon, _) => (1.0),
             },
         }
     }

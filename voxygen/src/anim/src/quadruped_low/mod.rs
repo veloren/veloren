@@ -93,6 +93,7 @@ pub struct SkeletonAttr {
     feet_f: (f32, f32, f32),
     feet_b: (f32, f32, f32),
     lean: (f32, f32),
+    scaler: f32,
 }
 
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -118,6 +119,7 @@ impl Default for SkeletonAttr {
             feet_f: (0.0, 0.0, 0.0),
             feet_b: (0.0, 0.0, 0.0),
             lean: (0.0, 0.0),
+            scaler: 0.0,
         }
     }
 }
@@ -209,6 +211,16 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
             lean: match (body.species, body.body_type) {
                 (Pangolin, _) => (0.4, 0.0),
                 _ => (0.0, 1.0),
+            },
+            scaler: match (body.species, body.body_type) {
+                (Crocodile, _) => (1.3),
+                (Alligator, _) => (1.5),
+                (Salamander, _) => (1.4),
+                (Monitor, _) => (1.1),
+                (Asp, _) => (1.2),
+                (Tortoise, _) => (1.0),
+                (Rocksnapper, _) => (1.2),
+                (Pangolin, _) => (1.3),
             },
         }
     }
