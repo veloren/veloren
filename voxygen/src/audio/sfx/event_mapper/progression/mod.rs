@@ -2,13 +2,9 @@
 /// and triggers sfx for gaining experience and levelling up
 use super::EventMapper;
 
-use crate::audio::sfx::SfxTriggers;
+use crate::audio::sfx::{SfxEvent, SfxEventItem, SfxTriggers};
 
-use common::{
-    comp::Stats,
-    event::{EventBus, SfxEvent, SfxEventItem},
-    state::State,
-};
+use common::{comp::Stats, event::EventBus, state::State};
 use specs::WorldExt;
 
 #[derive(Clone, PartialEq)]

@@ -21,7 +21,6 @@ use common::{
         self, ControlAction, ControlEvent, Controller, ControllerInputs, InventoryManip,
         InventoryUpdateEvent,
     },
-    event::{EventBus, SfxEvent, SfxEventItem},
     msg::{
         validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, Notification,
         PlayerInfo, PlayerListUpdate, RegisterError, RequestStateError, ServerInfo, ServerMsg,
@@ -57,6 +56,7 @@ pub enum Event {
     Chat(comp::ChatMsg),
     Disconnect,
     DisconnectionNotification(u64),
+    InventoryUpdated(InventoryUpdateEvent),
     Notification(Notification),
     SetViewDistance(u32),
 }
@@ -883,34 +883,15 @@ impl Client {
                         self.clean_state();
                     },
                     ServerMsg::InventoryUpdate(inventory, event) => {
-                        // TODO: Move this SFX code to Voxygen
-                        let sfx_event = SfxEvent::from(&event);
-                        self.state
-                            .ecs()
-                            .read_resource::<EventBus<SfxEventItem>>()
-                            .emit_now(SfxEventItem::at_player_position(sfx_event));
-
                         match event {
-                            InventoryUpdateEvent::CollectFailed => {
-                                // TODO This might not be the best way to show an error
-                                frontend_events.push(Event::Chat(comp::ChatMsg {
-                                    message: String::from(
-                                        "Failed to collect item. Your inventory may be full!",
-                                    ),
-                                    chat_type: comp::ChatType::CommandError,
-                                }))
-                            },
+                            InventoryUpdateEvent::CollectFailed => {},
                             _ => {
-                                if let InventoryUpdateEvent::Collected(item) = event {
-                                    frontend_events.push(Event::Chat(comp::ChatMsg {
-                                        message: format!("Picked up {}", item.name()),
-                                        chat_type: comp::ChatType::Meta,
-                                    }));
-                                }
-
+                                // Push the updated inventory component to the client
                                 self.state.write_component(self.entity, inventory);
                             },
                         }
+
+                        frontend_events.push(Event::InventoryUpdated(event));
                     },
                     ServerMsg::TerrainChunkUpdate { key, chunk } => {
                         if let Ok(chunk) = chunk {

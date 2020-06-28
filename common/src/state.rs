@@ -1,6 +1,6 @@
 use crate::{
     comp,
-    event::{EventBus, LocalEvent, ServerEvent, SfxEventItem},
+    event::{EventBus, LocalEvent, ServerEvent},
     region::RegionMap,
     sync::WorldSyncExt,
     sys,
@@ -170,7 +170,6 @@ impl State {
         // TODO: only register on the server
         ecs.insert(EventBus::<ServerEvent>::default());
         ecs.insert(EventBus::<LocalEvent>::default());
-        ecs.insert(EventBus::<SfxEventItem>::default());
         ecs.insert(RegionMap::new());
 
         ecs
