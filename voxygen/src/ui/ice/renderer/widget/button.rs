@@ -1,6 +1,5 @@
 use super::super::{super::Rotation, style, Defaults, IcedRenderer, Primitive};
 use iced::{button, mouse, Element, Layout, Point, Rectangle};
-use vek::Rgba;
 
 impl button::Renderer for IcedRenderer {
     // TODO: what if this gets large enough to not be copied around?
@@ -40,11 +39,11 @@ impl button::Renderer for IcedRenderer {
             cursor_position,
         );
 
-        let primitive = if let Some(handle) = maybe_image {
+        let primitive = if let Some((handle, color)) = maybe_image {
             let background = Primitive::Image {
                 handle: (handle, Rotation::None),
                 bounds,
-                color: Rgba::broadcast(255),
+                color,
             };
 
             Primitive::Group {

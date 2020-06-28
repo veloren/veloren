@@ -477,7 +477,7 @@ magically infused items?"#,
         "char_selection.change_server": "Change Server",
         "char_selection.enter_world": "Enter World",
         "char_selection.logout": "Logout",
-        "char_selection.create_new_charater": "Create New Character",
+        "char_selection.create_new_character": "Create New Character",
         "char_selection.creating_character": "Creating Character...",
         "char_selection.character_creation": "Character Creation",
 

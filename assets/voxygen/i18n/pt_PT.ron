@@ -343,7 +343,7 @@ Comandos de chat:
         "char_selection.change_server": "Mudar de servidor",
         "char_selection.enter_world": "Entrar no mundo",
         "char_selection.logout": "Desconectar",
-        "char_selection.create_new_charater": "Criar nova personagem",
+        "char_selection.create_new_character": "Criar nova personagem",
         "char_selection.character_creation": "Criação de personagem",
 
         "char_selection.human_default": "Humano padrão",

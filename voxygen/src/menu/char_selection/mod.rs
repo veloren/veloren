@@ -37,9 +37,9 @@ impl CharSelectionState {
         }
     }
 
-    fn get_humanoid_body(&self) -> Option<comp::humanoid::Body> {
+    fn get_humanoid_body(&self, client: &Client) -> Option<comp::humanoid::Body> {
         self.char_selection_ui
-            .selected_character()
+            .display_character(&client.character_list.characters)
             .and_then(|character| match character.body {
                 comp::Body::Humanoid(body) => Some(body),
                 _ => None,
@@ -92,11 +92,8 @@ impl PlayState for CharSelectionState {
                     ui::Event::DeleteCharacter(character_id) => {
                         self.client.borrow_mut().delete_character(character_id);
                     },
-                    ui::Event::Play(character) => {
-                        // TODO: eliminate option in character id
-                        if let Some(character_id) = character.character.id {
-                            self.client.borrow_mut().request_character(character_id);
-                        }
+                    ui::Event::Play(character_id) => {
+                        self.client.borrow_mut().request_character(character_id);
 
                         return PlayStateResult::Switch(Box::new(SessionState::new(
                             global_state,
@@ -106,12 +103,15 @@ impl PlayState for CharSelectionState {
                 }
             }
 
-            let humanoid_body = self.get_humanoid_body();
             let loadout = self.char_selection_ui.get_loadout();
 
             // Maintain the scene.
             {
                 let client = self.client.borrow();
+                let humanoid_body = self.get_humanoid_body(&client);
+                let loadout = self.char_selection_ui.get_loadout();
+
+                // Maintain the scene.
                 let scene_data = scene::SceneData {
                     time: client.state().get_time(),
                     delta_time: client.state().ecs().read_resource::<DeltaTime>().0,
@@ -127,6 +127,7 @@ impl PlayState for CharSelectionState {
                         .figure_lod_render_distance
                         as f32,
                 };
+
                 self.scene.maintain(
                     global_state.window.renderer_mut(),
                     scene_data,
@@ -185,16 +186,13 @@ impl PlayState for CharSelectionState {
     fn name(&self) -> &'static str { "Title" }
 
     fn render(&mut self, renderer: &mut Renderer, _: &Settings) {
-        let humanoid_body = self.get_humanoid_body();
+        let client = self.client.borrow();
+        let humanoid_body = self.get_humanoid_body(&client);
         let loadout = self.char_selection_ui.get_loadout();
 
         // Render the scene.
-        self.scene.render(
-            renderer,
-            self.client.borrow().get_tick(),
-            humanoid_body,
-            loadout.as_ref(),
-        );
+        self.scene
+            .render(renderer, client.get_tick(), humanoid_body, loadout.as_ref());
 
         // Draw the UI to the screen.
         self.char_selection_ui.render(renderer);

@@ -239,7 +239,7 @@ impl Controls {
             .horizontal_alignment(HorizontalAlignment::Right);
 
         let alpha = iced::Text::new(&self.alpha)
-            .size(self.fonts.cyri.scale(15))
+            .size(self.fonts.cyri.scale(12))
             .width(Length::Fill)
             .horizontal_alignment(HorizontalAlignment::Center);
 

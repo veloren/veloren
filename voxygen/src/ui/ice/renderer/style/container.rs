@@ -3,7 +3,14 @@ use vek::Rgba;
 
 /// Container Border
 pub enum Border {
-    DoubleCornerless { inner: Rgba<u8>, outer: Rgba<u8> },
+    DoubleCornerless {
+        inner: Rgba<u8>,
+        outer: Rgba<u8>,
+    },
+    Image {
+        corner: image::Handle,
+        edge: image::Handle,
+    },
     None,
 }
 
@@ -22,12 +29,22 @@ impl Style {
     pub fn color(color: Rgba<u8>) -> Self { Self::Color(color, Border::None) }
 
     /// Shorthand for a color background with a cornerless border
-    pub fn color_double_cornerless_border(
+    pub fn color_with_double_cornerless_border(
         color: Rgba<u8>,
         inner: Rgba<u8>,
         outer: Rgba<u8>,
     ) -> Self {
         Self::Color(color, Border::DoubleCornerless { inner, outer })
+    }
+
+    /// Shorthand for a color background with image borders where the corners
+    /// are inset
+    pub fn color_with_image_border(
+        color: Rgba<u8>,
+        corner: image::Handle,
+        edge: image::Handle,
+    ) -> Self {
+        Self::Color(color, Border::Image { corner, edge })
     }
 }
 

@@ -98,11 +98,13 @@ impl Screen {
                 .height(Length::Fill);
 
                 let prompt_window = Container::new(content)
-                    .style(style::container::Style::color_double_cornerless_border(
-                        (22, 18, 16, 255).into(),
-                        (11, 11, 11, 255).into(),
-                        (54, 46, 38, 255).into(),
-                    ))
+                    .style(
+                        style::container::Style::color_with_double_cornerless_border(
+                            (22, 18, 16, 255).into(),
+                            (11, 11, 11, 255).into(),
+                            (54, 46, 38, 255).into(),
+                        ),
+                    )
                     .padding(20);
 
                 let container = Container::new(prompt_window)

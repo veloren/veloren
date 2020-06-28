@@ -112,12 +112,12 @@ where
         let under_size = under.size();
 
         let limits = limits.pad(padding);
-        let mut over = self.under.layout(renderer, &limits.loose());
+        let mut over = self.over.layout(renderer, &limits.loose());
         let over_size = over.size();
 
         let size = limits.resolve(Size {
             width: under_size.width.max(over_size.width),
-            height: under_size.width.max(over_size.width),
+            height: under_size.height.max(over_size.height),
         });
 
         over.move_to(Point::new(padding, padding));
