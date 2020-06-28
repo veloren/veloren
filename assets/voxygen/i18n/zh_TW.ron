@@ -1,0 +1,381 @@
+/// Localization for Traditional Chinese
+VoxygenLocalization(
+    metadata: (
+        language_name: "繁體中文",
+        language_identifier: "zh_TW",
+    ),
+    convert_utf8_to_ascii: false,
+    fonts: {
+        "opensans": Font (
+            asset_key: "voxygen.font.bdfUMplus-outline",
+            scale_ratio: 0.75,
+        ),
+        "metamorph": Font (
+            asset_key: "voxygen.font.bdfUMplus-outline",
+            scale_ratio: 0.75,
+        ),
+        "alkhemi": Font (
+            asset_key: "voxygen.font.bdfUMplus-outline",
+            scale_ratio: 0.75,
+        ),
+        "wizard": Font (
+            asset_key: "voxygen.font.bdfUMplus-outline",
+            scale_ratio: 0.75,
+        ),
+        "cyri": Font (
+            asset_key: "voxygen.font.bdfUMplus-outline",
+            scale_ratio: 0.75,
+        ),
+    },
+    string_map: {
+        /// Start Common section
+        // Texts used in multiple locations with the same formatting
+        "common.username": "帳號名稱",
+        "common.singleplayer": "單人模式",
+        "common.multiplayer": "多人模式",
+        "common.servers": "伺服器",
+        "common.quit": "退出",
+        "common.settings": "設定",
+        "common.languages": "語言",
+        "common.interface": "界面",
+        "common.gameplay": "遊戲",
+        "common.controls": "控制",
+        "common.video": "畫面",
+        "common.sound": "聲音",
+        "common.resume": "繼續",
+        "common.characters": "角色",
+        "common.close": "關閉",
+        "common.yes": "是",
+        "common.no": "否",
+        "common.back": "返回",
+        "common.create": "建立",
+        "common.okay": "好",
+        "common.accept": "接受",
+        "common.disclaimer": "免責聲明",
+        "common.cancel": "取消",
+        "common.none": "無",
+        "common.error": "錯誤",
+        "common.fatal_error": "致命錯誤",
+
+        // Message when connection to the server is lost
+        "common.connection_lost": r#"連線中斷！
+檢查看看伺服器重啟了嗎？
+客戶端有更新了嗎？"#,
+
+
+        "common.races.orc": "獸人",
+        "common.races.human": "人類",
+        "common.races.dwarf": "矮人",
+        "common.races.elf": "精靈",
+        "common.races.undead": "不死族",
+        "common.races.danari": "丹那利",
+
+        "common.weapons.axe": "斧",
+        "common.weapons.sword": "劍",
+        "common.weapons.staff": "杖",
+        "common.weapons.bow": "弓",
+        "common.weapons.hammer": "鎚",
+        /// End Common section
+
+
+        /// Start Main screen section
+        "main.connecting": "連線中",
+        "main.creating_world": "生成世界中",
+
+        // Welcome notice that appears the first time Veloren is started
+        "main.notice": r#"歡迎加入 Veloren alpha 版！
+
+在您開始享受遊戲之前，請注意一些事情：
+
+- 這是非常前期的 alpha 版本，您會遇到不少錯誤、未完成遊戲模式、未完善的遊戲機制以及缺失的功能。 
+- 如鬼有建設性的意見回饋或是錯誤回報，可以上 Reddit、GitLab 或者我們的 Discord 伺服器。
+- Veloren 的授權條款是 GPL 3 open-source licence，也就是任何人都可以任意的遊玩、更改並重新發布遊戲（其衍生的專案也都是 GPL 3）。
+- Veloren 是個非營利的社群專案，任何人都是自願參預開發的。如果喜歡的話，歡迎加入開發與美術設計團隊。
+- 「Voxel RPG」是個專屬的類別，就像任何的第一人稱射擊遊戲以前都稱作 Doom 的複製品。
+
+就像他們一樣，我們想要打造完美的作品，這不是款複製品遊戲，而此遊戲的開發將會讓未來的遊戲更加多元化。
+
+感謝您的閱讀，我們祝您能享受遊戲！
+
+~ Veloren 開發人員"#,
+
+        // Login process description
+        "main.login_process": r#"Information on the Login Process:
+
+If you are having issues signing in:
+
+Please note that you now need an account
+to play on auth-enabled servers.
+
+You can create an account over at
+
+https://account.veloren.net."#,
+        "main.login.server_not_found": "找不到伺服器",
+        "main.login.authentication_error": "伺服器認證錯誤",
+        "main.login.server_full": "伺服器已滿",
+        "main.login.untrusted_auth_server": "認證伺服器不可信",
+        "main.login.outdated_client_or_server": "伺服器錯誤：版本可能不相容，請檢查更新。",
+        "main.login.timeout": "逾時：伺服器無法即時回應（也許試過載或者網路問題）。",
+        "main.login.server_shut_down": "伺服器已關閉",
+        "main.login.already_logged_in": "您已登入伺服器。",
+        "main.login.network_error": "網路錯誤",
+        "main.login.failed_sending_request": "認證伺服器請求失敗",
+        "main.login.client_crashed": "客戶端崩潰",
+
+        /// End Main screen section
+
+
+        /// Start HUD Section
+        "hud.do_not_show_on_startup": "開啟時不顯示這個",
+        "hud.show_tips": "顯示提示",
+        "hud.quests": "任務",
+        "hud.you_died": "死亡",
+        
+        "hud.press_key_to_show_keybindings_fmt": "按 {key} 以顯示按鍵設置",
+        "hud.press_key_to_show_debug_info_fmt": "按 {key} 以顯示除錯資訊",
+        "hud.press_key_to_toggle_keybindings_fmt": "按 {key} 以切換按鍵設置",
+        "hud.press_key_to_toggle_debug_info_fmt": "按 {key} 以切換除錯資訊",
+
+        // Respawn message
+        "hud.press_key_to_respawn": r#"按 {key} 以重生在上一個營火堆。"#,
+
+        // Welcome message
+        "hud.welcome": r#"歡迎來到 Veloren Alpha 版，
+
+
+以下是些開始前的提示：
+
+
+最重要的提示：想設置重生點請在聊天欄輸入 /waypoint 。
+
+就算死了也可以作！
+
+
+按 F1 可以查看按鍵設置。
+
+在聊天欄輸入 /help 可以查看聊天指令
+
+
+寶箱和物品會隨機重生在世界中！
+
+點擊右鍵能收集它們。
+
+要真的使用收集到的物品，請按「B」開啟物品欄。
+
+在背包中雙擊物品來使用或裝備它們。
+
+要拋棄它們的話，可以按它們一次然後再點背包外面一次
+
+
+Veloren 半夜會特別暗。
+
+在聊天欄輸入 /lantern 可以點亮提燈
+
+
+想要用滑鼠關閉這個視窗？請按 TAB！
+
+
+祝您的 Veloren 旅途愉快。"#,
+        // Inventory
+        "hud.bag.inventory": "的物品欄",
+        "hud.bag.stats_title": "的狀態",
+        "hud.bag.exp": "經驗",
+        "hud.bag.armor": "護甲",
+        "hud.bag.stats": "狀態",
+
+        // Map and Questlog
+        "hud.map.map_title": "地圖",
+        "hud.map.qlog_title": "任務",
+
+        // Settings
+        "hud.settings.general": "一般",
+        "hud.settings.none": "無",
+        "hud.settings.press_behavior.toggle": "切換",
+        "hud.settings.press_behavior.hold": "按住",
+        "hud.settings.help_window": "協助視窗",
+        "hud.settings.debug_info": "除錯資訊",
+        "hud.settings.tips_on_startup": "開啟時顯示提示",
+        "hud.settings.ui_scale": "界面大小",
+        "hud.settings.relative_scaling": "相對大小",
+        "hud.settings.custom_scaling": "自訂大小",
+        "hud.settings.crosshair": "準星",
+        "hud.settings.transparency": "透明度",
+        "hud.settings.hotbar": "角色資訊",        
+        "hud.settings.toggle_shortcuts": "顯示快捷鍵",
+        "hud.settings.toggle_bar_experience": "顯示經驗條",
+        "hud.settings.scrolling_combat_text": "戰鬥訊息",
+        "hud.settings.single_damage_number": "單一傷害",
+        "hud.settings.cumulated_damage": "累積傷害",
+        "hud.settings.incoming_damage": "所受傷害",
+        "hud.settings.cumulated_incoming_damage": "累積所受傷害",
+        "hud.settings.energybar_numbers": "能量條",
+        "hud.settings.values": "數字",
+        "hud.settings.percentages": "百分比",
+        "hud.settings.chat": "聊天欄",
+        "hud.settings.background_transparency": "背景透明度",
+        "hud.settings.none": "無",
+
+        "hud.settings.pan_sensitivity": "滑鼠靈敏度",
+        "hud.settings.zoom_sensitivity": "縮放靈敏度",
+        "hud.settings.invert_scroll_zoom": "反轉滾輪縮放",
+        "hud.settings.invert_mouse_y_axis": "反轉 Y 軸",
+        "hud.settings.free_look_behavior": "自由視角",
+
+        "hud.settings.view_distance": "視野距離",
+        "hud.settings.maximum_fps": "最高 FPS",
+        "hud.settings.fov": "視野",
+        "hud.settings.gamma": "Gamma",
+        "hud.settings.antialiasing_mode": "反鋸齒模式",
+        "hud.settings.cloud_rendering_mode": "雲朵渲染模式",
+        "hud.settings.fluid_rendering_mode": "流體渲染模式",
+        "hud.settings.fluid_rendering_mode.cheap": "簡單",
+        "hud.settings.fluid_rendering_mode.shiny": "閃爍",
+        "hud.settings.cloud_rendering_mode.regular": "一般",
+        "hud.settings.fullscreen": "全螢幕",
+        "hud.settings.save_window_size": "儲存螢幕大小",
+
+        "hud.settings.music_volume": "音樂音量",
+        "hud.settings.sound_effect_volume": "音效音量",
+        "hud.settings.audio_device": "音訊設備",
+
+        // Control list
+        "hud.settings.control_names": r#"顯示滑鼠
+切換協助視窗
+切換界面
+切換 FPS 與除錯資訊
+拍照
+切換名稱標籤
+切換全螢幕
+
+
+往前移動
+往左移動
+往右移動
+往後移動
+
+跳躍
+
+滑翔翼
+
+閃避
+
+翻滾
+
+攀爬
+
+往下攀爬
+
+自動行走
+
+收刀/拔出武器
+
+戴上/卸下頭盔
+
+坐下
+
+騎乘
+
+互動
+
+
+基本攻擊
+附屬攻擊/格檔/瞄準
+
+
+技能條欄位 1
+技能條欄位 2
+技能條欄位 3
+技能條欄位 4
+技能條欄位 5
+技能條欄位 6
+技能條欄位 7
+技能條欄位 8
+技能條欄位 9
+技能條欄位 10
+
+
+暫停選單
+設定
+社交
+地圖
+法術書
+角色
+任務日誌
+背包
+
+
+
+傳送聊天訊息
+滾動聊天欄
+
+
+自由視角
+
+聊天指令：
+
+/alias [Name] - 變更的聊天名稱
+/tp [Name] - 傳送到其他玩家
+/jump <dx> <dy> <dz> - 偏移自己的位置
+/goto <x> <y> <z> - 傳送到指定位置
+/kill - 自殺
+/pig - 生成一隻豬 NPC    
+/wolf - 生成一隻狼 NPC  
+/help - 顯示聊天指令"#,
+
+        "hud.social": "社交",
+        "hud.social.online": "線上",
+        "hud.social.friends": "朋友",
+        "hud.social.not_yet_available": "尚未開放",
+        "hud.social.faction": "陣營",
+        "hud.social.play_online_fmt": "{nb_player} 位朋友在線",
+
+        "hud.spell": "法術",
+
+        "hud.free_look_indicator": "進入自由視角中",
+        /// End HUD section
+
+
+        /// Start chracter selection section
+        "char_selection.delete_permanently": "永久刪除這個角色嗎？",
+        "char_selection.change_server": "變更伺服器",
+        "char_selection.enter_world": "進入世界",
+        "char_selection.logout": "登出",
+        "char_selection.create_new_charater": "建立心角色",
+        "char_selection.character_creation": "角色建立",
+
+        "char_selection.human_default": "預設人類",
+        "char_selection.level_fmt": "等級 {level_nb}",
+        "char_selection.uncanny_valley": "怪異峽谷",
+        "char_selection.plains_of_uncertainty": "疑惑平原",
+        "char_selection.beard": "鬍鬚",
+        "char_selection.hair_style": "頭髮造型",
+        "char_selection.hair_color": "頭髮顏色",
+        "char_selection.chest_color": "上半身顏色",
+        "char_selection.eye_color": "眼睛顏色",
+        "char_selection.skin": "膚色",
+        "char_selection.eyebrows": "眉毛",
+        "char_selection.accessories": "飾品",
+
+        /// End chracter selection section
+
+
+        /// Start character window section
+        "character_window.character_name": "角色名稱",
+        // Charater stats
+        "character_window.character_stats": r#"耐力
+
+敏捷
+
+法力
+"#,
+
+
+        /// Start character window section
+        
+
+        /// Start Escape Menu Section
+        "esc_menu.logout": "登出",
+        "esc_menu.quit_game": "退出遊戲",
+        /// End Escape Menu Section
+    }
+)
