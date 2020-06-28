@@ -132,11 +132,11 @@ impl Animation for RunAnimation {
             * Quaternion::rotation_x(-0.04);
         next.tail_rear.scale = Vec3::one();
 
-        next.chest.offset = Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1) / 6.0;
+        next.chest.offset = Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1) *skeleton_attr.scaler/11.0;
         next.chest.ori = Quaternion::rotation_z(short * 0.12)
             * Quaternion::rotation_y(shortalt * 0.12)
             * Quaternion::rotation_x(skeleton_attr.lean.0);
-        next.chest.scale = Vec3::one() / 6.0;
+        next.chest.scale = Vec3::one() *skeleton_attr.scaler/11.0;
 
         next.foot_fl.offset = Vec3::new(
             -skeleton_attr.feet_f.0,
