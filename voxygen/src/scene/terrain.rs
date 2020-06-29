@@ -2820,26 +2820,6 @@ impl<V: RectRasterableVol> Terrain<V> {
             .iter()
             .map(|(p, _)| *p)
         {
-            let chunk_pos = scene_data.state.terrain().pos_key(pos);
-            // Only mesh if this chunk has all its neighbors
-            let mut neighbours = true;
-            for i in -1..2 {
-                for j in -1..2 {
-                    neighbours &= scene_data
-                        .state
-                        .terrain()
-                        .get_key(chunk_pos + Vec2::new(i, j))
-                        .is_some();
-                }
-            }
-            if neighbours {
-                self.mesh_todo.insert(chunk_pos, ChunkMeshState {
-                    pos: chunk_pos,
-                    started_tick: current_tick,
-                    active_worker: None,
-                });
-            }
-
             // Handle block changes on chunk borders
             // Remesh all neighbours because we have complex lighting now
             // TODO: if lighting is on the server this can be updated to only remesh when
@@ -2850,25 +2830,23 @@ impl<V: RectRasterableVol> Terrain<V> {
                     let neighbour_pos = pos + Vec3::new(x, y, 0);
                     let neighbour_chunk_pos = scene_data.state.terrain().pos_key(neighbour_pos);
 
-                    if neighbour_chunk_pos != chunk_pos {
-                        // Only remesh if this chunk has all its neighbors
-                        let mut neighbours = true;
-                        for i in -1..2 {
-                            for j in -1..2 {
-                                neighbours &= scene_data
-                                    .state
-                                    .terrain()
-                                    .get_key(neighbour_chunk_pos + Vec2::new(i, j))
-                                    .is_some();
-                            }
+                    // Only remesh if this chunk has all its neighbors
+                    let mut neighbours = true;
+                    for i in -1..2 {
+                        for j in -1..2 {
+                            neighbours &= scene_data
+                                .state
+                                .terrain()
+                                .get_key(neighbour_chunk_pos + Vec2::new(i, j))
+                                .is_some();
                         }
-                        if neighbours {
-                            self.mesh_todo.insert(neighbour_chunk_pos, ChunkMeshState {
-                                pos: neighbour_chunk_pos,
-                                started_tick: current_tick,
-                                active_worker: None,
-                            });
-                        }
+                    }
+                    if neighbours {
+                        self.mesh_todo.insert(neighbour_chunk_pos, ChunkMeshState {
+                            pos: neighbour_chunk_pos,
+                            started_tick: current_tick,
+                            active_worker: None,
+                        });
                     }
                 }
             }

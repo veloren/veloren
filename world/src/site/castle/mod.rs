@@ -48,6 +48,7 @@ pub struct Castle {
     radius: i32,
     towers: Vec<Tower>,
     segments: Vec<Segment>,
+    rounded_towers: bool,
 }
 
 pub struct GenCtx<'a, R: Rng> {
@@ -106,6 +107,7 @@ impl Castle {
                     }
                 })
                 .collect(),
+            rounded_towers: ctx.rng.gen(),
 
             segments: (0..0) //rng.gen_range(18, 24))
                 .map(|_| {
@@ -159,7 +161,7 @@ impl Castle {
                     continue;
                 };
 
-                let (wall_dist, wall_pos, wall_alt, wall_ori) = (0..self.towers.len())
+                let (wall_dist, wall_pos, wall_alt, wall_ori, towers) = (0..self.towers.len())
                     .map(|i| {
                         let tower0 = &self.towers[i];
                         let tower1 = &self.towers[(i + 1) % self.towers.len()];
@@ -171,7 +173,7 @@ impl Castle {
 
                         let projected = wall
                             .projected_point(rpos.map(|e| e as f32))
-                            .map(|e| e as i32);
+                            .map(|e| e.floor() as i32);
 
                         let tower0_dist = tower0
                             .offset
@@ -195,10 +197,18 @@ impl Castle {
                             projected,
                             Lerp::lerp(tower0.alt as f32, tower1.alt as f32, tower_lerp) as i32,
                             wall_ori,
+                            [tower0, tower1],
                         )
                     })
                     .min_by_key(|x| x.0)
                     .unwrap();
+
+                // Apply the dungeon entrance
+                let wall_sample = if let Some(col) = get_column(offs + wall_pos - rpos) {
+                    col
+                } else {
+                    col_sample
+                };
 
                 for z in -10..64 {
                     let wpos = Vec3::new(wpos2d.x, wpos2d.y, col_sample.alt as i32 + z);
@@ -226,6 +236,7 @@ impl Castle {
                         &Attr {
                             height: 16,
                             is_tower: false,
+                            rounded: true,
                         },
                     );
                     for tower in &self.towers {
@@ -257,6 +268,7 @@ impl Castle {
                             &Attr {
                                 height: 28,
                                 is_tower: true,
+                                rounded: self.rounded_towers,
                             },
                         ));
                     }

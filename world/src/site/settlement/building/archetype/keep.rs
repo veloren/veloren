@@ -14,6 +14,7 @@ pub struct Keep {
 pub struct Attr {
     pub height: i32,
     pub is_tower: bool,
+    pub rounded: bool,
 }
 
 impl Archetype for Keep {
@@ -29,6 +30,7 @@ impl Archetype for Keep {
                 attr: Attr {
                     height: rng.gen_range(12, 16),
                     is_tower: false,
+                    rounded: true,
                 },
                 locus: 10 + rng.gen_range(0, 5),
                 border: 3,
@@ -41,6 +43,7 @@ impl Archetype for Keep {
                                 attr: Attr {
                                     height: rng.gen_range(20, 28),
                                     is_tower: true,
+                                    rounded: true,
                                 },
                                 locus: 4 + rng.gen_range(0, 5),
                                 border: 3,
@@ -89,7 +92,12 @@ impl Archetype for Keep {
 
         let foundation = make_block(100, 100, 100);
         let wall = make_block(100, 100, 110);
-        let floor = make_block(120, 80, 50).with_priority(important_layer);
+        let floor = make_block(
+            80 + (pos.y.abs() % 2) as u8 * 15,
+            60 + (pos.y.abs() % 2) as u8 * 15,
+            10 + (pos.y.abs() % 2) as u8 * 15,
+        )
+        .with_priority(important_layer);
         let pole = make_block(90, 70, 50).with_priority(important_layer);
         let flag = make_block(self.flag_color.r, self.flag_color.g, self.flag_color.b)
             .with_priority(important_layer);
@@ -106,12 +114,11 @@ impl Archetype for Keep {
             pos.x
         };
         let rampart_height = ceil_height + if edge_pos % 2 == 0 { 3 } else { 4 };
-        let inner = Clamp::clamp(
-            center_offset,
-            Vec2::new(-5, -len / 2 - 5),
-            Vec2::new(5, len / 2 + 5),
-        );
-        let min_dist = bound_offset.map(|e| e.pow(2) as f32).sum().powf(0.5) as i32; //(bound_offset.distance_squared(inner) as f32).sqrt() as i32 + 5;//bound_offset.reduce_max();
+        let min_dist = if attr.rounded {
+            bound_offset.map(|e| e.pow(2) as f32).sum().powf(0.5) as i32
+        } else {
+            bound_offset.map(|e| e.abs()).reduce_max()
+        };
 
         if profile.y <= 0 - (min_dist - width - 1).max(0) && min_dist < width + 3 {
             // Foundations
