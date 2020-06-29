@@ -74,6 +74,10 @@ pub enum StatChangeError {
     Overflow,
 }
 use std::{error::Error, fmt};
+use std::collections::HashMap;
+use crate::comp::stats::Skill::{TestT1Skill2, TestT1Skill1};
+use crate::comp::stats;
+
 impl fmt::Display for StatChangeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", match self {
@@ -118,12 +122,95 @@ impl Level {
     pub fn change_by(&mut self, level: u32) { self.amount += level; }
 }
 
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Skill {
+    TestT1Skill1,
+    TestT1Skill2,
+    TestT1Skill3,
+    TestT1Skill4,
+    TestT1Skill5,
+    TestSwordSkill1,
+    TestSwordSkill2,
+    TestSwordSkill3,
+    TestAxeSkill1,
+    TestAxeSkill2,
+    TestAxeSkill3,
+}
+
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+pub enum SkillGroupType {
+    T1,
+    Swords,
+    Axes
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SkillGroup {
+    pub skills: Vec<Skill>,
+    pub exp: u32,
+    pub available_sp: u8
+}
+
+impl Default for SkillGroup {
+    fn default() -> Self {
+        Self {
+            skills: Vec::new(),
+            exp: 0,
+            available_sp: 0
+        }
+    }
+}
+
+// TODO: Better way to store this static data that doesn't create a new HashMap each time
+pub fn skill_group_definitions() -> HashMap<SkillGroupType, Vec<Skill>> {
+    let mut skill_group_definitions = HashMap::new();
+    skill_group_definitions.insert(SkillGroupType::T1, vec![
+        Skill::TestT1Skill1,
+        Skill::TestT1Skill2,
+        Skill::TestT1Skill3,
+        Skill::TestT1Skill4,
+        Skill::TestT1Skill5]);
+
+    skill_group_definitions.insert(SkillGroupType::Swords, vec![
+        Skill::TestSwordSkill1,
+        Skill::TestSwordSkill2,
+        Skill::TestSwordSkill3]);
+
+    skill_group_definitions.insert(SkillGroupType::Axes, vec![
+        Skill::TestAxeSkill1,
+        Skill::TestAxeSkill2,
+        Skill::TestAxeSkill3]);
+
+    skill_group_definitions
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SkillSet
+{
+    pub skill_groups: HashMap<SkillGroupType, SkillGroup>
+}
+
+impl SkillSet {
+    /// Instantiate a new skill set with the default skill groups with no unlocked skills in them -
+    /// used when adding a skill set to a new player
+    fn new() -> Self {
+        let mut skill_groups = HashMap::new();
+        skill_groups.insert(SkillGroupType::T1, SkillGroup::default());
+        skill_groups.insert(SkillGroupType::Swords, SkillGroup::default());
+        skill_groups.insert(SkillGroupType::Axes, SkillGroup::default());
+        Self {
+            skill_groups
+        }
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Stats {
     pub name: String,
     pub health: Health,
     pub level: Level,
     pub exp: Exp,
+    pub skill_set: SkillSet,
     pub endurance: u32,
     pub fitness: u32,
     pub willpower: u32,
@@ -141,6 +228,39 @@ impl Stats {
 
     // TODO: Delete this once stat points will be a thing
     pub fn update_max_hp(&mut self) { self.health.set_maximum(52 + 3 * self.level.amount); }
+
+    pub fn refund_skill(&mut self, skill: Skill) {
+        // TODO: check player has skill, remove skill and increase SP in skill group by 1
+    }
+
+    pub fn unlock_skill(&mut self, skill: Skill) {
+        // Find the skill group type for the skill from the static skill definitions
+        let skill_group_type = skill_group_definitions()
+            .iter()
+            .find_map(|(key, val)| if val.contains(&skill)  {Some(key) } else { None }  );
+
+        // Find the skill group for the skill on the player, check that the skill is not
+        // already unlocked and that they have available SP in that group, and then allocate the
+        // skill and reduce the player's SP in that skill group by 1.
+        if let Some(skill_group_type) = skill_group_type {
+            if let Some(skill_group) = self.skill_set.skill_groups.get_mut(skill_group_type) {
+                if !skill_group.skills.contains(&skill) {
+                    if skill_group.available_sp > 0 {
+                        skill_group.skills.push(skill);
+                        skill_group.available_sp -= 1;
+                    } else {
+                        warn!("Tried to unlock skill for skill group with no available SP");
+                    }
+                } else {
+                    warn!("Tried to unlock already unlocked skill");
+                }
+            } else {
+                warn!("Tried to unlock skill for a skill group that player does not have");
+            }
+        } else {
+            warn!("Tried to unlock skill that does not exist in any skill group!");
+        }
+    }
 }
 
 impl Stats {
@@ -179,6 +299,7 @@ impl Stats {
                 current: 0,
                 maximum: 50,
             },
+            skill_set: SkillSet::default(),
             endurance,
             fitness,
             willpower,
