@@ -4,7 +4,7 @@ use crate::{
 };
 use common::{
     terrain::{Block, BlockKind},
-    vol::{ReadVol, RectRasterableVol, Vox},
+    vol::{DefaultVolIterator, ReadVol, RectRasterableVol, Vox},
     volumes::vol_grid_2d::{CachedVolGrid2d, VolGrid2d},
 };
 use std::{collections::VecDeque, fmt::Debug};
@@ -26,13 +26,16 @@ impl Blendable for BlockKind {
     }
 }
 
+const SUNLIGHT: u8 = 24;
+const MAX_LIGHT_DIST: i32 = SUNLIGHT as i32;
+
 fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     bounds: Aabb<i32>,
     vol: &VolGrid2d<V>,
+    lit_blocks: impl Iterator<Item = (Vec3<i32>, u8)>,
 ) -> impl FnMut(Vec3<i32>) -> f32 + '_ {
     const UNKNOWN: u8 = 255;
     const OPAQUE: u8 = 254;
-    const SUNLIGHT: u8 = 24;
 
     let outer = Aabb {
         min: bounds.min - Vec3::new(SUNLIGHT as i32 - 1, SUNLIGHT as i32 - 1, 1),
@@ -47,7 +50,13 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
         move |x, y, z| (z * h * w + x * h + y) as usize
     };
     // Light propagation queue
-    let mut prop_que = VecDeque::new();
+    let mut prop_que = lit_blocks
+        .map(|(pos, light)| {
+            let rpos = pos - outer.min;
+            light_map[lm_idx(rpos.x, rpos.y, rpos.z)] = light;
+            (rpos.x as u8, rpos.y as u8, rpos.z as u16)
+        })
+        .collect::<VecDeque<_>>();
     // Start sun rays
     for x in 0..outer.size().w {
         for y in 0..outer.size().h {
@@ -216,7 +225,13 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
         &'a self,
         range: Self::Supplement,
     ) -> (Mesh<Self::Pipeline>, Mesh<Self::TranslucentPipeline>) {
-        let mut light = calc_light(range, self);
+        // Find blocks that should glow
+        let lit_blocks =
+            DefaultVolIterator::new(self, range.min - MAX_LIGHT_DIST, range.max + MAX_LIGHT_DIST)
+                .filter_map(|(pos, block)| block.get_glow().map(|glow| (pos, glow)));
+
+        // Calculate chunk lighting
+        let mut light = calc_light(range, self, lit_blocks);
 
         let mut lowest_opaque = range.size().d;
         let mut highest_opaque = 0;

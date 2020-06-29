@@ -85,6 +85,8 @@ pub struct Attr {
     pub roof_style: RoofStyle,
     pub mansard: i32,
     pub pillar: Pillar,
+    pub levels: i32,
+    pub window: BlockKind,
 }
 
 impl Attr {
@@ -103,8 +105,15 @@ impl Attr {
             },
             mansard: rng.gen_range(-7, 4).max(0),
             pillar: match rng.gen_range(0, 4) {
-                0 => Pillar::Chimney(9 + locus + rng.gen_range(0, 4)),
+                0 => Pillar::Chimney(rng.gen_range(1, 5)),
                 _ => Pillar::None,
+            },
+            levels: rng.gen_range(1, 3),
+            window: match rng.gen_range(0, 4) {
+                0 => BlockKind::Window1,
+                1 => BlockKind::Window2,
+                2 => BlockKind::Window3,
+                _ => BlockKind::Window4,
             },
         }
     }
@@ -126,10 +135,11 @@ impl Archetype for House {
                     storey_fill: StoreyFill::All,
                     mansard: 0,
                     pillar: match rng.gen_range(0, 3) {
-                        0 => Pillar::Chimney(10 + locus + rng.gen_range(0, 4)),
-                        1 => Pillar::Tower(15 + locus + rng.gen_range(0, 4)),
+                        0 => Pillar::Chimney(rng.gen_range(1, 5)),
+                        1 => Pillar::Tower(5 + rng.gen_range(1, 5)),
                         _ => Pillar::None,
                     },
+                    levels: rng.gen_range(1, 4),
                     ..Attr::generate(rng, locus)
                 },
                 locus,
@@ -224,12 +234,15 @@ impl Archetype for House {
         let empty = BlockMask::nothing();
         let internal = BlockMask::new(Block::empty(), internal_layer);
         let end_window = BlockMask::new(
-            Block::new(BlockKind::Window1, make_meta(ori.flip())),
+            Block::new(attr.window, make_meta(ori.flip())),
             structural_layer,
         );
         let fire = BlockMask::new(Block::new(BlockKind::Ember, Rgb::white()), foundation_layer);
 
-        let ceil_height = 6;
+        let storey_height = 6;
+        let storey = ((z - 1) / storey_height).min(attr.levels - 1);
+        let floor_height = storey_height * storey;
+        let ceil_height = storey_height * (storey + 1);
         let lower_width = locus - 1;
         let upper_width = locus;
         let width = if profile.y >= ceil_height {
@@ -238,9 +251,10 @@ impl Archetype for House {
             lower_width
         };
         let foundation_height = 0 - (dist - width - 1).max(0);
-        let roof_top = 8 + width;
+        let roof_top = storey_height * attr.levels + 2 + width;
 
-        if let Pillar::Chimney(chimney_top) = attr.pillar {
+        if let Pillar::Chimney(chimney_height) = attr.pillar {
+            let chimney_top = roof_top + chimney_height;
             // Chimney shaft
             if center_offset.map(|e| e.abs()).reduce_max() == 0
                 && profile.y >= foundation_height + 1
@@ -331,12 +345,14 @@ impl Archetype for House {
                         && bound_offset.x < width
                         && profile.y < ceil_height
                         && attr.storey_fill.has_lower()
+                        && storey == 0
                     {
                         return Some(
                             if (bound_offset.x == (width - 1) / 2
                                 || bound_offset.x == (width - 1) / 2 + 1)
                                 && profile.y <= foundation_height + 3
                             {
+                                // Doors on first floor only
                                 if profile.y == foundation_height + 1 {
                                     BlockMask::new(
                                         Block::new(
@@ -377,7 +393,7 @@ impl Archetype for House {
                         } else {
                             (
                                 Aabr {
-                                    min: Vec2::new(2, foundation_height + 2),
+                                    min: Vec2::new(2, floor_height + 2),
                                     max: Vec2::new(width - 2, ceil_height - 2),
                                 },
                                 Vec2::new(1, 0),
@@ -393,7 +409,7 @@ impl Archetype for House {
                         // Window
                         if (frame_bounds.size() + 1).reduce_min() > 2 {
                             // Window frame is large enough for a window
-                            let surface_pos = Vec2::new(bound_offset.x, profile.y);
+                            let surface_pos = Vec2::new(bound_offset.x, profile.y - floor_height);
                             if window_bounds.contains_point(surface_pos) {
                                 return Some(end_window);
                             } else if frame_bounds.contains_point(surface_pos) {
@@ -441,7 +457,8 @@ impl Archetype for House {
             cblock = cblock.resolve_with(block);
         }
 
-        if let Pillar::Tower(tower_top) = attr.pillar {
+        if let Pillar::Tower(tower_height) = attr.pillar {
+            let tower_top = roof_top + tower_height;
             let profile = Vec2::new(center_offset.x.abs(), profile.y);
             let dist = center_offset.map(|e| e.abs()).reduce_max();
 

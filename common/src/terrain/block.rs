@@ -202,6 +202,14 @@ impl BlockKind {
         }
     }
 
+    pub fn get_glow(&self) -> Option<u8> {
+        match self {
+            BlockKind::StreetLamp | BlockKind::StreetLampTall => Some(20),
+            BlockKind::Velorite | BlockKind::VeloriteFrag => Some(10),
+            _ => None,
+        }
+    }
+
     pub fn is_opaque(&self) -> bool {
         match self {
             BlockKind::Air => false,

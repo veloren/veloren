@@ -390,6 +390,7 @@ impl Settlement {
                         district
                             .and_then(|d| self.town.as_ref().map(|t| t.districts().get(d)))
                             .map(|d| d.alt)
+                            .filter(|_| false) // Temporary
                             .unwrap_or_else(|| {
                                 ctx.sim
                                     .and_then(|sim| sim.get_alt_approx(self.origin + house_pos))
@@ -563,8 +564,10 @@ impl Settlement {
 
                 // District alt
                 if let Some(Plot::Town { district }) = sample.plot {
-                    if let Some(d) =
-                        district.and_then(|d| self.town.as_ref().map(|t| t.districts().get(d)))
+                    if let Some(d) = district
+                        .and_then(|d| self.town.as_ref().map(|t| t.districts().get(d)))
+                        .filter(|_| false)
+                    // Temporary
                     {
                         let other = self
                             .land
@@ -576,6 +579,7 @@ impl Settlement {
                             .and_then(|d| {
                                 self.town.as_ref().map(|t| t.districts().get(d).alt as f32)
                             })
+                            .filter(|_| false)
                             .unwrap_or(surface_z as f32);
                         surface_z = Lerp::lerp(
                             (other + d.alt as f32) / 2.0,
@@ -640,14 +644,15 @@ impl Settlement {
                                     .rotated_z(f32::consts::PI / 2.0)
                                     .normalized();
                                 let is_lamp = if path_dir.x.abs() > path_dir.y.abs() {
-                                    wpos2d.x as f32 % 20.0 / path_dir.dot(Vec2::unit_y()).abs()
+                                    wpos2d.x as f32 % 30.0 / path_dir.dot(Vec2::unit_y()).abs()
                                         <= 1.0
                                 } else {
-                                    wpos2d.y as f32 % 20.0 / path_dir.dot(Vec2::unit_x()).abs()
+                                    (wpos2d.y as f32 + 10.0) % 30.0
+                                        / path_dir.dot(Vec2::unit_x()).abs()
                                         <= 1.0
                                 };
                                 if (col_sample.path.map(|(dist, _)| dist > 6.0 && dist < 7.0).unwrap_or(false) && is_lamp) //roll(0, 50) == 0)
-                                    || roll(0, 2000) == 0
+                                    || (roll(0, 2000) == 0 && col_sample.path.map(|(dist, _)| dist > 20.0).unwrap_or(true))
                                 {
                                     surface_block =
                                         Some(Block::new(BlockKind::StreetLamp, Rgb::white()));
