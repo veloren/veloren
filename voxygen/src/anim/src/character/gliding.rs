@@ -135,7 +135,7 @@ impl Animation for GlidingAnimation {
         );
         next.lantern.scale = Vec3::one() * 0.65;
 
-        next.torso.offset = Vec3::new(0.0, -4.0, 0.0) / 11.0 * skeleton_attr.scaler;
+        next.torso.offset = Vec3::new(0.0, -4.0, 10.0) / 11.0 * skeleton_attr.scaler;
         next.torso.ori = Quaternion::rotation_x(-0.06 * speed.max(12.0) + slow * 0.04)
             * Quaternion::rotation_y(tilt * tiltcancel * 32.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
