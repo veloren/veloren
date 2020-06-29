@@ -23,7 +23,7 @@ This will be needed to play on auth-enabled servers, including the official serv
 
 [The Book](https://book.veloren.net) - A collection of all important information relating to Veloren. It includes information on how to compile Veloren and how to contribute.
 
-[Future Plans](https://gitlab.com/veloren/veloren/milestones) - Go here for information about Veloren's development roadmap and what we're currently working on.
+[Future Plans](https://gitlab.com/veloren/veloren/-/milestones) - Go here for information about Veloren's development roadmap and what we're currently working on.
 
 #### Official social media and websites
 
