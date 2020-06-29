@@ -1,8 +1,8 @@
 use crate::{sys, Server, StateExt};
 use common::{
     comp::{
-        self, group, Agent, Alignment, Body, Gravity, Item, ItemDrop, LightEmitter, Loadout, Pos,
-        Projectile, Scale, Stats, Vel, WaypointArea,
+        self, Agent, Alignment, Body, Gravity, Item, ItemDrop, LightEmitter, Loadout,
+        ParticleEmitter, Pos, Projectile, Scale, Stats, Vel, WaypointArea,
     },
     util::Dir,
 };
@@ -77,6 +77,7 @@ pub fn handle_shoot(
     dir: Dir,
     body: Body,
     light: Option<LightEmitter>,
+    particles: Option<ParticleEmitter>,
     projectile: Projectile,
     gravity: Option<Gravity>,
 ) {
@@ -96,6 +97,9 @@ pub fn handle_shoot(
     if let Some(light) = light {
         builder = builder.with(light)
     }
+    if let Some(particles) = particles {
+        builder = builder.with(particles)
+    }
     if let Some(gravity) = gravity {
         builder = builder.with(gravity)
     }
@@ -113,6 +117,7 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
             flicker: 1.0,
             animated: true,
         })
+        .with(ParticleEmitter { mode: 0 })
         .with(WaypointArea::default())
         .build();
 }

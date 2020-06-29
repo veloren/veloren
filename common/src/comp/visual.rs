@@ -46,3 +46,37 @@ impl Default for LightAnimation {
 impl Component for LightAnimation {
     type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
+
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ParticleEmitter {
+
+    /// Mode 1: sprinkler (inital_velocity, lifespan)
+    /// Mode 2: smoke (initial_position, boyancy_const, wind, lifespan)
+    pub mode: u8, // enum?
+
+    // pub vertices: Vec<i8>,
+    // pub texture: RasterFooBar,
+
+    // // mode 1 -- sprinkler.
+    // pub initial_position: [i8; 3],
+    // pub initial_velocity: [i8; 3],
+    // pub lifespan: u32, // in ticks?
+    
+    // // mode 2 -- smoke
+    // pub initial_position: [i8; 3],
+    // pub boyancy_const: [i8; 3],
+    // pub wind_sway: [i8; 3],
+}
+
+impl Default for ParticleEmitter {
+    fn default() -> Self {
+        Self {
+            mode: 0,
+        }
+    }
+}
+
+impl Component for ParticleEmitter {
+    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+}

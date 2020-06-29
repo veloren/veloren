@@ -2,7 +2,8 @@ use crate::{
     comp::{
         ability::Stage,
         item::{armor::Protection, Item, ItemKind},
-        Body, CharacterState, EnergySource, Gravity, LightEmitter, Projectile, StateUpdate,
+        Body, CharacterState, EnergySource, Gravity, LightEmitter, ParticleEmitter, Projectile,
+        StateUpdate,
     },
     states::{triple_strike::*, *},
     sys::character_behavior::JoinData,
@@ -61,6 +62,7 @@ pub enum CharacterAbility {
         projectile: Projectile,
         projectile_body: Body,
         projectile_light: Option<LightEmitter>,
+        projectile_particles: Option<ParticleEmitter>,
         projectile_gravity: Option<Gravity>,
     },
     Boost {
@@ -247,6 +249,7 @@ impl From<&CharacterAbility> for CharacterState {
                 projectile,
                 projectile_body,
                 projectile_light,
+                projectile_particles,
                 projectile_gravity,
                 energy_cost: _,
             } => CharacterState::BasicRanged(basic_ranged::Data {
@@ -258,6 +261,7 @@ impl From<&CharacterAbility> for CharacterState {
                 projectile: projectile.clone(),
                 projectile_body: *projectile_body,
                 projectile_light: *projectile_light,
+                projectile_particles: *projectile_particles,
                 projectile_gravity: *projectile_gravity,
             }),
             CharacterAbility::Boost { duration, only_up } => CharacterState::Boost(boost::Data {
