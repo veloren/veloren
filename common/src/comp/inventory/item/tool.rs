@@ -2,7 +2,8 @@
 // version in voxygen\src\meta.rs in order to reset save files to being empty
 
 use crate::comp::{
-    body::object, projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile,
+    body::object, projectile, Body, CharacterAbility, Gravity, HealthChange, HealthSource,
+    LightEmitter, Projectile, ParticleEmitter,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -179,6 +180,7 @@ impl Tool {
                     },
                     projectile_body: Body::Object(object::Body::Arrow),
                     projectile_light: None,
+                    projectile_particles: None,
                     projectile_gravity: Some(Gravity(0.2)),
                 },
                 ChargedRanged {
@@ -193,6 +195,8 @@ impl Tool {
                     recover_duration: Duration::from_millis(500),
                     projectile_body: Body::Object(object::Body::Arrow),
                     projectile_light: None,
+                    projectile_particles: None,
+                    projectile_gravity: Some(Gravity(0.05)),
                 },
             ],
             Dagger(_) => vec![
@@ -261,40 +265,68 @@ impl Tool {
                                 col: (0.85, 0.5, 0.11).into(),
                                 ..Default::default()
                             }),
-                            projectile_gravity: None,
-                        },
-                        BasicRanged {
-                            energy_cost: 400,
-                            holdable: true,
-                            prepare_duration: Duration::from_millis(800),
-                            recover_duration: Duration::from_millis(50),
-                            projectile: Projectile {
-                                hit_solid: vec![
-                                    projectile::Effect::Explode {
-                                        power: 1.4 * self.base_power(),
-                                    },
-                                    projectile::Effect::Vanish,
-                                ],
-                                hit_entity: vec![
-                                    projectile::Effect::Explode {
-                                        power: 1.4 * self.base_power(),
-                                    },
-                                    projectile::Effect::Vanish,
-                                ],
-                                time_left: Duration::from_secs(20),
-                                owner: None,
-                            },
-                            projectile_body: Body::Object(object::Body::BoltFireBig),
-                            projectile_light: Some(LightEmitter {
-                                col: (1.0, 0.75, 0.11).into(),
-                                ..Default::default()
-                            }),
-
-                            projectile_gravity: None,
-                        },
-                    ]
-                }
-            },
+                            projectile::Effect::RewardEnergy(150),
+                            projectile::Effect::Vanish,
+                        ],
+                        time_left: Duration::from_secs(20),
+                        owner: None,
+                    },
+                    projectile_body: Body::Object(object::Body::BoltFire),
+                    projectile_light: Some(LightEmitter {
+                        col: (0.85, 0.5, 0.11).into(),
+                        ..Default::default()
+                    }),
+                    projectile_particles: Some(ParticleEmitter {
+                        mode: 0,
+                    }),
+                    projectile_gravity: None,
+                },
+                BasicRanged {
+                    energy_cost: 400,
+                    holdable: true,
+                    prepare_duration: Duration::from_millis(800),
+                    recover_duration: Duration::from_millis(50),
+                    projectile: Projectile {
+                        hit_solid: vec![
+                            projectile::Effect::Explode { power: 1.4 },
+                            projectile::Effect::Vanish,
+                        ],
+                        hit_entity: vec![
+                            projectile::Effect::Explode { power: 1.4 },
+                            projectile::Effect::Vanish,
+                        ],
+                        time_left: Duration::from_secs(20),
+                        owner: None,
+                    },
+                    projectile_body: Body::Object(object::Body::BoltFireBig),
+                    projectile_light: Some(LightEmitter {
+                        col: (1.0, 0.75, 0.11).into(),
+                        ..Default::default()
+                    }),
+                    projectile_particles: Some(ParticleEmitter {
+                        mode: 0,
+                    }),
+                    projectile_gravity: None,
+                },
+            ],
+            Staff(StaffKind::Sceptre) => vec![
+                BasicMelee {
+                    energy_cost: 0,
+                    buildup_duration: Duration::from_millis(0),
+                    recover_duration: Duration::from_millis(300),
+                    base_healthchange: -1,
+                    range: 10.0,
+                    max_angle: 45.0,
+                },
+                BasicMelee {
+                    energy_cost: 350,
+                    buildup_duration: Duration::from_millis(0),
+                    recover_duration: Duration::from_millis(1000),
+                    base_healthchange: 15,
+                    range: 10.0,
+                    max_angle: 45.0,
+                },
+            ],
             Shield(_) => vec![
                 BasicMelee {
                     energy_cost: 0,
@@ -313,35 +345,15 @@ impl Tool {
                             duration: Duration::from_millis(50),
                             only_up: false,
                         },
-                        CharacterAbility::Boost {
-                            duration: Duration::from_millis(50),
-                            only_up: true,
-                        },
-                        BasicRanged {
-                            energy_cost: 0,
-                            holdable: false,
-                            prepare_duration: Duration::from_millis(0),
-                            recover_duration: Duration::from_millis(10),
-                            projectile: Projectile {
-                                hit_solid: vec![projectile::Effect::Stick],
-                                hit_entity: vec![
-                                    projectile::Effect::Stick,
-                                    projectile::Effect::Possess,
-                                ],
-                                time_left: Duration::from_secs(10),
-                                owner: None,
-                            },
-                            projectile_body: Body::Object(object::Body::ArrowSnake),
-                            projectile_light: Some(LightEmitter {
-                                col: (0.0, 1.0, 0.33).into(),
-                                ..Default::default()
-                            }),
-                            projectile_gravity: None,
-                        },
-                    ]
-                } else {
-                    vec![]
-                }
+                        projectile_body: Body::Object(object::Body::ArrowSnake),
+                        projectile_light: Some(LightEmitter {
+                            col: (0.0, 1.0, 0.33).into(),
+                            ..Default::default()
+                        }),
+                        projectile_particles: None,
+                        projectile_gravity: None,
+                    },
+                ],
             },
             Empty => vec![BasicMelee {
                 energy_cost: 0,
