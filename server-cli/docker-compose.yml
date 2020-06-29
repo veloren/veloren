@@ -10,6 +10,8 @@ services:
     restart: on-failure:0
     volumes:
         - "./saves:/opt/saves"
+    environment:
+        - RUST_LOG=debug,common::net=info
   watchtower:
     image: containrrr/watchtower
     volumes:

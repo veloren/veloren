@@ -13,4 +13,4 @@ server = { package = "veloren-server", path = "../server", default-features = fa
 common = { package = "veloren-common", path = "../common" }
 
 tracing = { version = "0.1", default-features = false }
-tracing-subscriber = { version = "0.2.3", default-features = false, features = ["fmt", "chrono", "ansi", "smallvec"] }
+tracing-subscriber = { version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec"] }
