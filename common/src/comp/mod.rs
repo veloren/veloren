@@ -13,6 +13,7 @@ mod location;
 mod phys;
 mod player;
 pub mod projectile;
+mod skills;
 mod stats;
 mod visual;
 
