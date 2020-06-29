@@ -11,7 +11,7 @@ use common::{
 };
 use rand::Rng;
 use specs::{join::Join, world::WorldExt, Builder, Entity as EcsEntity, WriteStorage};
-use tracing::{debug, error, warn};
+use tracing::{debug, error};
 use vek::Vec3;
 
 pub fn swap_lantern(
@@ -36,7 +36,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
     match manip {
         comp::InventoryManip::Pickup(uid) => {
-            let mut picked_up_item: Option<comp::Item> = None;
+            let picked_up_item: Option<comp::Item>;
             let item_entity = if let (Some((item, item_entity)), Some(inv)) = (
                 state
                     .ecs()
@@ -68,8 +68,11 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     Some(_) => None, // Inventory was full
                 }
             } else {
-                warn!("Failed to get entity/component for item Uid: {}", uid);
-                None
+                // Item entity/component could not be found - most likely because the player
+                // attempted to pick up the same item very quickly before its deletion of the
+                // world from the first pickup attempt was processed.
+                debug!("Failed to get entity/component for item Uid: {}", uid);
+                return;
             };
 
             let event = if let Some(item_entity) = item_entity {
