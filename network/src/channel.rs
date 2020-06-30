@@ -139,7 +139,6 @@ impl Handshake {
             },
         };
 
-        #[allow(clippy::unit_arg)]
         match res {
             Ok(res) => {
                 let mut leftover_frames = vec![];
@@ -152,7 +151,7 @@ impl Handshake {
                 }
                 Ok((res.0, res.1, res.2, leftover_frames))
             },
-            Err(e) => Err(e),
+            Err(()) => Err(()),
         }
     }
 
