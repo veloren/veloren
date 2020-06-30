@@ -911,7 +911,6 @@ impl FigureMgr {
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
-
                         // TODO!
                         _ => state.skeleton_mut().clone(),
                     };
@@ -975,15 +974,13 @@ impl FigureMgr {
                             )
                         },
                         // Running
-                        (true, true, false) => {
-                            anim::quadruped_medium::RunAnimation::update_skeleton(
-                                &QuadrupedMediumSkeleton::new(),
-                                (vel.0.magnitude(), ori, state.last_ori, time),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
+                        (true, true, _) => anim::quadruped_medium::RunAnimation::update_skeleton(
+                            &QuadrupedMediumSkeleton::new(),
+                            (vel.0.magnitude(), ori, state.last_ori, time),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
                         // In air
                         (false, _, false) => {
                             anim::quadruped_medium::JumpAnimation::update_skeleton(
@@ -994,12 +991,29 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-
+                        _ => anim::quadruped_medium::IdleAnimation::update_skeleton(
+                            &QuadrupedMediumSkeleton::new(),
+                            time,
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                    };
+                    let target_bones = match &character {
+                        CharacterState::BasicMelee(_) => {
+                            anim::quadruped_medium::AlphaAnimation::update_skeleton(
+                                &target_base,
+                                time,
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         // TODO!
-                        _ => state.skeleton_mut().clone(),
+                        _ => target_base,
                     };
 
-                    state.skeleton.interpolate(&target_base, dt);
+                    state.skeleton.interpolate(&target_bones, dt);
                     state.update(
                         renderer,
                         pos.0,

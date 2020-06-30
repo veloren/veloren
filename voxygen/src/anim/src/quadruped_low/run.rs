@@ -21,7 +21,7 @@ impl Animation for RunAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let lab = 0.7 * (skeleton_attr.lean.0 + 1.0)*(1.0/skeleton_attr.scaler);
+        let lab = 0.7 * (skeleton_attr.lean.0 + 1.0) * (1.0 / skeleton_attr.scaler);
 
         let center = (anim_time as f32 * lab as f32 + PI / 2.0).sin();
         let centeroffset = (anim_time as f32 * lab as f32 + PI * 1.5).sin();
@@ -109,16 +109,17 @@ impl Animation for RunAnimation {
         } else {
             0.0
         } * 1.3;
-//let tilt = 0.0;
+        //let tilt = 0.0;
         next.head_upper.offset =
             Vec3::new(0.0, skeleton_attr.head_upper.0, skeleton_attr.head_upper.1);
-        next.head_upper.ori =
-            Quaternion::rotation_x(-skeleton_attr.lean.0) * Quaternion::rotation_z(short * -0.06 + tilt * -1.5);
+        next.head_upper.ori = Quaternion::rotation_x(-skeleton_attr.lean.0)
+            * Quaternion::rotation_z(short * -0.06 + tilt * -1.5);
         next.head_upper.scale = Vec3::one();
 
         next.head_lower.offset =
             Vec3::new(0.0, skeleton_attr.head_lower.0, skeleton_attr.head_lower.1);
-        next.head_lower.ori = Quaternion::rotation_x(0.0) * Quaternion::rotation_z(short * -0.15 + tilt * -0.8);
+        next.head_lower.ori =
+            Quaternion::rotation_x(0.0) * Quaternion::rotation_z(short * -0.15 + tilt * -0.8);
         next.head_lower.scale = Vec3::one();
 
         next.jaw.offset = Vec3::new(0.0, skeleton_attr.jaw.0, skeleton_attr.jaw.1);
@@ -145,11 +146,13 @@ impl Animation for RunAnimation {
             * Quaternion::rotation_x(-0.04);
         next.tail_rear.scale = Vec3::one();
 
-        next.chest.offset = Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1) *skeleton_attr.scaler/11.0;
+        next.chest.offset = Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1)
+            * skeleton_attr.scaler
+            / 11.0;
         next.chest.ori = Quaternion::rotation_z(short * 0.13 + tilt * -1.9)
             * Quaternion::rotation_y(shortalt * 0.12)
             * Quaternion::rotation_x(skeleton_attr.lean.0);
-        next.chest.scale = Vec3::one() *skeleton_attr.scaler/11.0;
+        next.chest.scale = Vec3::one() * skeleton_attr.scaler / 11.0;
 
         next.foot_fl.offset = Vec3::new(
             -skeleton_attr.feet_f.0,
