@@ -175,13 +175,13 @@ impl World {
 
         let mut rng = rand::thread_rng();
 
+        // Apply paths
+        layer::apply_paths_to(chunk_wpos2d, sample_get, &mut chunk);
+
         // Apply site generation
         sim_chunk.sites.iter().for_each(|site| {
             self.index.sites[*site].apply_to(chunk_wpos2d, sample_get, &mut chunk)
         });
-
-        // Apply paths
-        layer::apply_paths_to(chunk_wpos2d, sample_get, &mut chunk);
 
         let gen_entity_pos = || {
             let lpos2d = TerrainChunkSize::RECT_SIZE

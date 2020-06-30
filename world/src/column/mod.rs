@@ -1,7 +1,7 @@
 use crate::{
     all::ForestKind,
     block::StructureMeta,
-    sim::{local_cells, uniform_idx_as_vec2, vec2_as_uniform_idx, RiverKind, SimChunk, WorldSim},
+    sim::{local_cells, uniform_idx_as_vec2, vec2_as_uniform_idx, RiverKind, SimChunk, WorldSim, Path},
     util::Sampler,
     Index, CONFIG,
 };
@@ -1157,7 +1157,7 @@ pub struct ColumnSample<'a> {
     pub spawn_rate: f32,
     pub stone_col: Rgb<u8>,
     pub water_dist: Option<f32>,
-    pub path: Option<(f32, Vec2<f32>)>,
+    pub path: Option<(f32, Vec2<f32>, Path, Vec2<f32>)>,
 
     pub chunk: &'a SimChunk,
 }

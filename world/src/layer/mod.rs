@@ -37,7 +37,7 @@ pub fn apply_paths_to<'a>(
                 })
             };
 
-            if let Some((path_dist, path_nearest)) = col_sample.path.filter(|(dist, _)| *dist < 5.0)
+            if let Some((path_dist, path_nearest, path, _)) = col_sample.path.filter(|(dist, _, path, _)| *dist < path.width)
             {
                 let inset = 0;
 
@@ -82,7 +82,7 @@ pub fn apply_paths_to<'a>(
                         },
                     );
                 }
-                let head_space = (8 - (path_dist * 0.25).powf(6.0).round() as i32).max(1);
+                let head_space = path.head_space(path_dist);
                 for z in inset..inset + head_space {
                     let pos = Vec3::new(offs.x, offs.y, surface_z + z);
                     if vol.get(pos).unwrap().kind() != BlockKind::Water {

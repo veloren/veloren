@@ -88,7 +88,7 @@ impl Castle {
                         if ctx
                             .sim
                             .and_then(|sim| sim.get_nearest_path(wpos + offset))
-                            .map(|(dist, _)| dist > 24.0)
+                            .map(|(dist, _, _, _)| dist > 24.0)
                             .unwrap_or(true)
                         {
                             break;
@@ -202,6 +202,16 @@ impl Castle {
                     })
                     .min_by_key(|x| x.0)
                     .unwrap();
+                let border_pos = (wall_pos - rpos).map(|e| e.abs());
+                let wall_normal = (rpos - wall_pos).map(|e| e as f32);
+                let wall_rpos = if wall_ori == Ori::East {
+                    rpos
+                } else {
+                    rpos.yx()
+                };
+                let head_space = col_sample.path
+                    .map(|(dist, _, path, _)| path.head_space(dist))
+                    .unwrap_or(0);
 
                 // Apply the dungeon entrance
                 let wall_sample = if let Some(col) = get_column(offs + wall_pos - rpos) {
@@ -218,27 +228,26 @@ impl Castle {
                     };
 
                     // Boundary
-                    let border_pos = (wall_pos - rpos).map(|e| e.abs());
-                    let wall_rpos = if wall_ori == Ori::East {
-                        rpos
+                    let wall_z = wpos.z - wall_alt;
+                    let mut mask = if z < head_space {
+                        BlockMask::nothing()
                     } else {
-                        rpos.yx()
+                        keep.draw(
+                            Vec3::from(wall_rpos) + Vec3::unit_z() * wpos.z - wall_alt,
+                            wall_dist,
+                            Vec2::new(border_pos.reduce_max(), border_pos.reduce_min()),
+                            rpos - wall_pos,
+                            wall_z,
+                            wall_ori,
+                            4,
+                            0,
+                            &Attr {
+                                height: 16,
+                                is_tower: false,
+                                rounded: true,
+                            },
+                        )
                     };
-                    let mut mask = keep.draw(
-                        Vec3::from(wall_rpos) + Vec3::unit_z() * wpos.z - wall_alt,
-                        wall_dist,
-                        Vec2::new(border_pos.reduce_max(), border_pos.reduce_min()),
-                        rpos - wall_pos,
-                        wpos.z - wall_alt,
-                        wall_ori,
-                        4,
-                        0,
-                        &Attr {
-                            height: 16,
-                            is_tower: false,
-                            rounded: true,
-                        },
-                    );
                     for tower in &self.towers {
                         let tower_wpos = Vec3::new(
                             self.origin.x + tower.offset.x,
