@@ -978,7 +978,7 @@ impl FigureMgr {
                         (true, true, false) => {
                             anim::quadruped_medium::RunAnimation::update_skeleton(
                                 &QuadrupedMediumSkeleton::new(),
-                                (vel.0.magnitude(), time),
+                                (vel.0.magnitude(), ori, state.last_ori, time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1058,7 +1058,7 @@ impl FigureMgr {
                         // Running
                         (true, true, false) => anim::quadruped_low::RunAnimation::update_skeleton(
                             &QuadrupedLowSkeleton::new(),
-                            (vel.0.magnitude(), time),
+                            (vel.0.magnitude(), ori, state.last_ori, time),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
