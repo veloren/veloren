@@ -380,7 +380,7 @@ impl Settlement {
                         || ctx
                             .sim
                             .and_then(|sim| sim.get_nearest_path(self.origin + house_pos))
-                            .map(|(dist, _)| dist < 28.0)
+                            .map(|(dist, _, _, _)| dist < 28.0)
                             .unwrap_or(false)
                     {
                         continue;
@@ -590,45 +590,46 @@ impl Settlement {
                 }
 
                 // Paths
-                if let Some((WayKind::Path, dist, nearest)) = sample.way {
-                    let inset = -1;
+                // if let Some((WayKind::Path, dist, nearest)) = sample.way {
+                //     let inset = -1;
 
-                    // Try to use the column at the centre of the path for sampling to make them
-                    // flatter
-                    let col = get_column(offs + (nearest.floor().map(|e| e as i32) - rpos))
-                        .unwrap_or(col_sample);
-                    let (bridge_offset, depth) = if let Some(water_dist) = col.water_dist {
-                        (
-                            ((water_dist.max(0.0) * 0.2).min(f32::consts::PI).cos() + 1.0) * 5.0,
-                            ((1.0 - ((water_dist + 2.0) * 0.3).min(0.0).cos().abs())
-                                * (col.riverless_alt + 5.0 - col.alt).max(0.0)
-                                * 1.75
-                                + 3.0) as i32,
-                        )
-                    } else {
-                        (0.0, 3)
-                    };
-                    let surface_z = (col.riverless_alt + bridge_offset).floor() as i32;
+                //     // Try to use the column at the centre of the path for sampling to make them
+                //     // flatter
+                //     let col = get_column(offs + (nearest.floor().map(|e| e as i32) - rpos))
+                //         .unwrap_or(col_sample);
+                //     let (bridge_offset, depth) = if let Some(water_dist) = col.water_dist {
+                //         (
+                //             ((water_dist.max(0.0) * 0.2).min(f32::consts::PI).cos() + 1.0) * 5.0,
+                //             ((1.0 - ((water_dist + 2.0) * 0.3).min(0.0).cos().abs())
+                //                 * (col.riverless_alt + 5.0 - col.alt).max(0.0)
+                //                 * 1.75
+                //                 + 3.0) as i32,
+                //         )
+                //     } else {
+                //         (0.0, 3)
+                //     };
+                //     let surface_z = (col.riverless_alt + bridge_offset).floor() as i32;
 
-                    for z in inset - depth..inset {
-                        let _ = vol.set(
-                            Vec3::new(offs.x, offs.y, surface_z + z),
-                            if bridge_offset >= 2.0 && dist >= 3.0 || z < inset - 1 {
-                                Block::new(BlockKind::Normal, noisy_color(Rgb::new(80, 80, 100), 8))
-                            } else {
-                                Block::new(BlockKind::Normal, noisy_color(Rgb::new(80, 50, 30), 8))
-                            },
-                        );
-                    }
-                    let head_space = (8 - (dist * 0.25).powf(6.0).round() as i32).max(1);
-                    for z in inset..inset + head_space {
-                        let pos = Vec3::new(offs.x, offs.y, surface_z + z);
-                        if vol.get(pos).unwrap().kind() != BlockKind::Water {
-                            let _ = vol.set(pos, Block::empty());
-                        }
-                    }
-                // Ground colour
-                } else {
+                //     for z in inset - depth..inset {
+                //         let _ = vol.set(
+                //             Vec3::new(offs.x, offs.y, surface_z + z),
+                //             if bridge_offset >= 2.0 && dist >= 3.0 || z < inset - 1 {
+                //                 Block::new(BlockKind::Normal, noisy_color(Rgb::new(80, 80, 100), 8))
+                //             } else {
+                //                 Block::new(BlockKind::Normal, noisy_color(Rgb::new(80, 50, 30), 8))
+                //             },
+                //         );
+                //     }
+                //     let head_space = (8 - (dist * 0.25).powf(6.0).round() as i32).max(1);
+                //     for z in inset..inset + head_space {
+                //         let pos = Vec3::new(offs.x, offs.y, surface_z + z);
+                //         if vol.get(pos).unwrap().kind() != BlockKind::Water {
+                //             let _ = vol.set(pos, Block::empty());
+                //         }
+                //     }
+                // // Ground colour
+                // } else
+                {
                     let mut surface_block = None;
 
                     let roll =
@@ -639,7 +640,7 @@ impl Settlement {
                         Some(Plot::Grass) => Some(Rgb::new(100, 200, 0)),
                         Some(Plot::Water) => Some(Rgb::new(100, 150, 250)),
                         Some(Plot::Town { district }) => {
-                            if let Some((_, path_nearest)) = col_sample.path {
+                            if let Some((_, path_nearest, _, _)) = col_sample.path {
                                 let path_dir = (path_nearest - wpos2d.map(|e| e as f32))
                                     .rotated_z(f32::consts::PI / 2.0)
                                     .normalized();
@@ -651,8 +652,8 @@ impl Settlement {
                                         / path_dir.dot(Vec2::unit_x()).abs()
                                         <= 1.0
                                 };
-                                if (col_sample.path.map(|(dist, _)| dist > 6.0 && dist < 7.0).unwrap_or(false) && is_lamp) //roll(0, 50) == 0)
-                                    || (roll(0, 2000) == 0 && col_sample.path.map(|(dist, _)| dist > 20.0).unwrap_or(true))
+                                if (col_sample.path.map(|(dist, _, _, _)| dist > 6.0 && dist < 7.0).unwrap_or(false) && is_lamp) //roll(0, 50) == 0)
+                                    || (roll(0, 2000) == 0 && col_sample.path.map(|(dist, _, _, _)| dist > 20.0).unwrap_or(true))
                                 {
                                     surface_block =
                                         Some(Block::new(BlockKind::StreetLamp, Rgb::white()));

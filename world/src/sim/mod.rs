@@ -15,7 +15,7 @@ pub use self::{
     },
     location::Location,
     map::{MapConfig, MapDebug},
-    path::PathData,
+    path::{Path, PathData},
     util::{
         cdf_irwin_hall, downhill, get_oceans, local_cells, map_edge_factor, neighbors,
         uniform_idx_as_vec2, uniform_noise, uphill, vec2_as_uniform_idx, InverseCdf, ScaleBias,
@@ -1699,7 +1699,9 @@ impl WorldSim {
         Some(z0 + z1 + z2 + z3)
     }
 
-    pub fn get_nearest_path(&self, wpos: Vec2<i32>) -> Option<(f32, Vec2<f32>)> {
+    /// Return the distance to the nearest path in blocks, along with the closest point on the path
+    /// and the tangent vector of that path.
+    pub fn get_nearest_path(&self, wpos: Vec2<i32>) -> Option<(f32, Vec2<f32>, Path, Vec2<f32>)> {
         let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
             e.div_euclid(sz as i32)
         });
@@ -1759,13 +1761,13 @@ impl WorldSim {
                                 .clamped(0.0, 1.0);
                             let pos = bez.evaluate(nearest_interval);
                             let dist_sqrd = pos.distance_squared(wpos.map(|e| e as f32));
-                            Some((dist_sqrd, pos))
+                            Some((dist_sqrd, pos, chunk.path.path, move || bez.evaluate_derivative(nearest_interval).normalized()))
                         }),
                 )
             })
             .flatten()
-            .min_by_key(|(dist_sqrd, _)| (dist_sqrd * 1024.0) as i32)
-            .map(|(dist, pos)| (dist.sqrt(), pos))
+            .min_by_key(|(dist_sqrd, _, _, _)| (dist_sqrd * 1024.0) as i32)
+            .map(|(dist, pos, path, calc_tangent)| (dist.sqrt(), pos, path, calc_tangent()))
     }
 }
 
