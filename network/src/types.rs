@@ -322,7 +322,7 @@ mod tests {
 
     #[test]
     fn frame_get_int() {
-        assert_eq!(Frame::get_int(&Frame::Raw("Foo".as_bytes().to_vec())), 7);
+        assert_eq!(Frame::get_int(&Frame::Raw(b"Foo".to_vec())), 7);
         assert_eq!(Frame::get_int(&Frame::Shutdown), 2);
     }
 

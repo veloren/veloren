@@ -81,15 +81,12 @@ fn generate_key_version<'a>(
         .map(|k| (k.to_owned(), LocalizationEntryState::new()))
         .collect();
     let mut to_process: HashSet<&String> = localization.string_map.keys().map(|k| k).collect();
-    let mut line_nb = 0;
-
     // Find key start lines
-    for line in std::str::from_utf8(file_blob.content())
+    for (line_nb, line) in std::str::from_utf8(file_blob.content())
         .expect("UTF-8 file")
         .split('\n')
+        .enumerate()
     {
-        line_nb += 1;
-
         let mut found_key = None;
 
         for key in to_process.iter() {

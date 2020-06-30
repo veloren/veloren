@@ -384,7 +384,7 @@ mod tests {
         assert_eq!(sword, loadout.second_item);
 
         // Verify inventory
-        assert_eq!(inv.slots[0], Some(sword.clone().unwrap().item));
+        assert_eq!(inv.slots[0], Some(sword.unwrap().item));
         assert_eq!(inv.slots.len(), 1);
     }
 
@@ -459,7 +459,7 @@ mod tests {
 
         // The swap should return the sword
         assert_eq!(
-            Some(sword.clone().unwrap().item),
+            Some(sword.unwrap().item),
             loadout_remove(EquipSlot::Mainhand, &mut loadout,)
         );
 

@@ -11,6 +11,7 @@ code-quality:
   script:
     - ln -s /dockercache/cache-all target
     - cargo clippy -- -D warnings
+    - cargo clippy --tests -- -D warnings
     - cargo fmt --all -- --check
 
 security:
