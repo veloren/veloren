@@ -1,9 +1,12 @@
+pub mod alpha;
 pub mod idle;
 pub mod jump;
 pub mod run;
 
 // Reexports
-pub use self::{idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
+pub use self::{
+    alpha::AlphaAnimation, idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation,
+};
 
 use super::{Bone, FigureBoneData, Skeleton};
 use common::comp::{self};
@@ -166,10 +169,10 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
         Self {
             head_upper: match (body.species, body.body_type) {
                 (Grolgar, _) => (-8.0, 1.5),
-                (Saber, _) => (-11.0, -3.0),
-                (Tuskram, _) => (6.0, 1.0),
-                (Lion, _) => (12.0, 2.0),
-                (Tarasque, _) => (5.5, 3.5),
+                (Saber, _) => (0.0, -3.0),
+                (Tuskram, _) => (2.0, 1.0),
+                (Lion, _) => (2.5, 2.0),
+                (Tarasque, _) => (-5.5, 3.5),
                 (Tiger, _) => (2.0, 1.0),
                 (Wolf, _) => (-0.5, 3.0),
                 (Frostfang, _) => (1.0, -2.0),
@@ -188,10 +191,10 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
             },
             jaw: match (body.species, body.body_type) {
                 (Grolgar, _) => (-2.5, 0.5),
-                (Saber, _) => (18.0, -1.0),
-                (Tuskram, _) => (4.0, -4.0),
-                (Lion, _) => (0.0, -4.5),
-                (Tarasque, _) => (9.0, -10.0),
+                (Saber, _) => (12.0, -2.0),
+                (Tuskram, _) => (10.0, -4.0),
+                (Lion, _) => (9.0, -4.5),
+                (Tarasque, _) => (17.5, -10.0),
                 (Tiger, _) => (7.0, -4.0),
                 (Wolf, _) => (5.0, -3.0),
                 (Frostfang, _) => (5.0, -3.0),
@@ -232,10 +235,10 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
             },
             ears: match (body.species, body.body_type) {
                 (Grolgar, _) => (5.0, 9.5),
-                (Saber, _) => (13.0, 7.0),
-                (Tuskram, _) => (1.5, 9.5),
-                (Lion, _) => (-8.0, 4.5),
-                (Tarasque, _) => (3.0, 1.0),
+                (Saber, _) => (12.0, 7.0),
+                (Tuskram, _) => (5.5, 12.5),
+                (Lion, _) => (2.0, 4.5),
+                (Tarasque, _) => (11.0, 1.0),
                 (Tiger, _) => (2.5, 5.0),
                 (Wolf, _) => (3.0, 5.0),
                 (Frostfang, _) => (2.0, 5.0),
