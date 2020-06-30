@@ -27,7 +27,6 @@ pub type Computex8 = [Compute; 8];
 
 /// Compute the water flux at all chunks, given a list of chunk indices sorted
 /// by increasing height.
-#[allow(clippy::into_iter_on_ref)] // TODO: Pending review in #587
 pub fn get_drainage(newh: &[u32], downhill: &[isize], _boundary_len: usize) -> Box<[f32]> {
     // FIXME: Make the below work.  For now, we just use constant flux.
     // Initially, flux is determined by rainfall.  We currently treat this as the
@@ -40,7 +39,7 @@ pub fn get_drainage(newh: &[u32], downhill: &[isize], _boundary_len: usize) -> B
     // WORLD_SIZE.y) as f32);
     let base_flux = 1.0;
     let mut flux = vec![base_flux; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
-    newh.into_iter().rev().for_each(|&chunk_idx| {
+    newh.iter().rev().for_each(|&chunk_idx| {
         let chunk_idx = chunk_idx as usize;
         let downhill_idx = downhill[chunk_idx];
         if downhill_idx >= 0 {
@@ -52,7 +51,6 @@ pub fn get_drainage(newh: &[u32], downhill: &[isize], _boundary_len: usize) -> B
 
 /// Compute the water flux at all chunks for multiple receivers, given a list of
 /// chunk indices sorted by increasing height and weights for each receiver.
-#[allow(clippy::into_iter_on_ref)] // TODO: Pending review in #587
 pub fn get_multi_drainage(
     mstack: &[u32],
     mrec: &[u8],
@@ -69,7 +67,7 @@ pub fn get_multi_drainage(
     // there's no erosion anyway.
     let base_area = 1.0;
     let mut area = vec![base_area; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
-    mstack.into_iter().for_each(|&ij| {
+    mstack.iter().for_each(|&ij| {
         let ij = ij as usize;
         let wrec_ij = &mwrec[ij];
         let area_ij = area[ij];
@@ -219,8 +217,7 @@ impl RiverData {
             .unwrap_or(false)
     }
 
-    #[allow(clippy::len_zero)] // TODO: Pending review in #587
-    pub fn near_river(&self) -> bool { self.is_river() || self.neighbor_rivers.len() > 0 }
+    pub fn near_river(&self) -> bool { self.is_river() || !self.neighbor_rivers.is_empty() }
 
     pub fn near_water(&self) -> bool { self.near_river() || self.is_lake() || self.is_ocean() }
 }
@@ -228,7 +225,6 @@ impl RiverData {
 /// Draw rivers and assign them heights, widths, and velocities.  Take some
 /// liberties with the constant factors etc. in order to make it more likely
 /// that we draw rivers at all.
-#[allow(clippy::into_iter_on_ref)] // TODO: Pending review in #587
 pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
     newh: &[u32],
     water_alt: &[F],
@@ -256,7 +252,7 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
     // NOTE: This technically makes us discontinuous, so we should be cautious about
     // using this.
     let derivative_divisor = 1.0;
-    newh.into_iter().rev().for_each(|&chunk_idx| {
+    newh.iter().rev().for_each(|&chunk_idx| {
         let chunk_idx = chunk_idx as usize;
         let downhill_idx = downhill[chunk_idx];
         if downhill_idx < 0 {
@@ -601,10 +597,9 @@ fn get_max_slope(
                                 .max(dmin),
                         ),
             );
-            let max_slope = rock_strength * max_angle_range + min_max_angle;
             // NOTE: If you want to disable varying rock strength entirely, uncomment  this
             // line. let max_slope = 3.0.sqrt() / 3.0;
-            max_slope
+            rock_strength * max_angle_range + min_max_angle //max_slope
         })
         .collect::<Vec<_>>()
         .into_boxed_slice()
@@ -687,7 +682,6 @@ fn get_max_slope(
 ///     Prediction in Geomorphology, Geophysical Monograph 135.
 ///     Copyright 2003 by the American Geophysical Union
 ///     10.1029/135GM09
-#[allow(clippy::assign_op_pattern)] // TODO: Pending review in #587
 #[allow(clippy::many_single_char_names)]
 #[allow(clippy::too_many_arguments)]
 fn erode(
@@ -1620,7 +1614,7 @@ fn erode(
                 let mag_slope = dz / neighbor_distance;
                 if mag_slope >= max_slope {
                     let dtherm = 0.0;
-                    new_h_i = new_h_i - dtherm;
+                    new_h_i -= dtherm;
                     if new_h_i <= wh_j {
                         if compute_stats {
                             ncorr += 1;
@@ -1798,7 +1792,6 @@ pub fn fill_sinks<F: Float + Send + Sync>(
 /// - The adjacency list (stored in a single vector), indexed by the second
 ///   indirection vector.
 #[allow(clippy::filter_next)] // TODO: Pending review in #587
-#[allow(clippy::into_iter_on_ref)] // TODO: Pending review in #587
 pub fn get_lakes<F: Float>(
     h: impl Fn(usize) -> F,
     downhill: &mut [isize],
@@ -1839,7 +1832,7 @@ pub fn get_lakes<F: Float>(
     // First, find all the lakes.
     let mut lake_roots = Vec::with_capacity(downhill.len()); // Test
     (&*downhill)
-        .into_iter()
+        .iter()
         .enumerate()
         .filter(|(_, &dh_idx)| dh_idx < 0)
         .for_each(|(chunk_idx, &dh)| {
@@ -1888,7 +1881,7 @@ pub fn get_lakes<F: Float>(
     // with the starting index, resulting in a vector of slices.  As we go, we
     // replace each lake entry with its index in the new indirection buffer,
     // allowing
-    newh.into_iter().for_each(|&chunk_idx_| {
+    newh.iter().for_each(|&chunk_idx_| {
         let chunk_idx = chunk_idx_ as usize;
         let lake_idx_ = indirection_[chunk_idx];
         let lake_idx = lake_idx_ as usize;
@@ -2303,7 +2296,6 @@ pub fn mrec_downhill<'a>(
 /// * A bitmask representing which neighbors are downhill.
 /// * Stack order for multiple receivers (from top to bottom).
 /// * The weight for each receiver, for each node.
-#[allow(clippy::into_iter_on_ref)] // TODO: Pending review in #587
 #[allow(clippy::too_many_arguments)]
 #[allow(clippy::type_complexity)] // TODO: Pending review in #587
 pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
@@ -2356,7 +2348,7 @@ pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
     // or work out a more precise upper bound (since using nn * 2 * (maxh +
     // epsilon) makes f32 not work very well).
     let deltah = F::epsilon() + F::epsilon();
-    newh.into_iter().for_each(|&ijk| {
+    newh.iter().for_each(|&ijk| {
         let ijk = ijk as usize;
         let h_i = h(ijk);
         let ijr = downhill[ijk];

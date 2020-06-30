@@ -1,5 +1,4 @@
 #![deny(unsafe_code)]
-#![allow(clippy::option_map_unit_fn)]
 
 use common::clock::Clock;
 use server::{Event, Input, Server, ServerSettings};
@@ -10,7 +9,6 @@ use tracing_subscriber::{filter::LevelFilter, EnvFilter, FmtSubscriber};
 const TPS: u64 = 30;
 const RUST_LOG_ENV: &str = "RUST_LOG";
 
-#[allow(clippy::redundant_pattern_matching)] // TODO: Pending review in #587
 fn main() {
     // Init logging
     let filter = match std::env::var_os(RUST_LOG_ENV).map(|s| s.into_string()) {

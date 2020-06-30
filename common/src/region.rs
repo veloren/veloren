@@ -223,7 +223,6 @@ impl RegionMap {
 
     /// Finds the region where a given entity is located using a given position
     /// to speed up the search
-    #[allow(clippy::needless_range_loop)] // TODO: Pending review in #587
     pub fn find_region(&self, entity: specs::Entity, pos: Vec3<f32>) -> Option<Vec2<i32>> {
         let id = entity.id();
         // Compute key for most likely region
@@ -234,9 +233,9 @@ impl RegionMap {
                 return Some(key);
             } else {
                 // Check neighbors
-                for i in 0..8 {
-                    if let Some(idx) = region.neighbors[i] {
-                        let (key, region) = self.regions.get_index(idx).unwrap();
+                for o in region.neighbors.iter() {
+                    if let Some(idx) = o {
+                        let (key, region) = self.regions.get_index(*idx).unwrap();
                         if region.entities().contains(id) {
                             return Some(*key);
                         }
@@ -245,8 +244,8 @@ impl RegionMap {
             }
         } else {
             // Check neighbors
-            for i in 0..8 {
-                let key = key + NEIGHBOR_OFFSETS[i];
+            for o in &NEIGHBOR_OFFSETS {
+                let key = key + o;
                 if let Some(region) = self.regions.get(&key) {
                     if region.entities().contains(id) {
                         return Some(key);

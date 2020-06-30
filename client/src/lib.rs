@@ -1,5 +1,4 @@
 #![deny(unsafe_code)]
-#![allow(clippy::option_map_unit_fn)]
 #![feature(label_break_value)]
 
 pub mod cmd;
@@ -98,8 +97,6 @@ pub struct CharacterList {
 
 impl Client {
     /// Create a new `Client`.
-    #[allow(clippy::cmp_owned)] // TODO: Pending review in #587
-    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn new<A: Into<SocketAddr>>(addr: A, view_distance: Option<u32>) -> Result<Self, Error> {
         let client_state = ClientState::Connected;
         let mut postbox = PostBox::to(addr)?;
@@ -113,7 +110,7 @@ impl Client {
                 world_map: (map_size, world_map),
             } => {
                 // TODO: Display that versions don't match in Voxygen
-                if server_info.git_hash != common::util::GIT_HASH.to_string() {
+                if &server_info.git_hash != *common::util::GIT_HASH {
                     warn!(
                         "Server is running {}[{}], you are running {}[{}], versions might be \
                          incompatible!",
@@ -145,7 +142,7 @@ impl Client {
                         // Should not fail if the dimensions are correct.
                         let world_map =
                             image::ImageBuffer::from_raw(map_size.x, map_size.y, world_map_raw);
-                        world_map.ok_or(Error::Other("Server sent a bad world map image".into()))?
+                        world_map.ok_or_else(|| Error::Other("Server sent a bad world map image".into()))?
                     })
                     // Flip the image, since Voxygen uses an orientation where rotation from
                     // positive x axis to positive y axis is counterclockwise around the z axis.
@@ -492,7 +489,6 @@ impl Client {
 
     /// Execute a single client tick, handle input and update the game state by
     /// the given duration.
-    #[allow(clippy::manual_saturating_arithmetic)] // TODO: Pending review in #587
     pub fn tick(
         &mut self,
         inputs: ControllerInputs,
@@ -596,7 +592,7 @@ impl Client {
                 // 1 as a buffer so that if the player moves back in that direction the chunks
                 //   don't need to be reloaded
                 if (chunk_pos - key)
-                    .map(|e: i32| (e.abs() as u32).checked_sub(2).unwrap_or(0))
+                    .map(|e: i32| (e.abs() as u32).saturating_sub(2))
                     .magnitude_squared()
                     > view_distance.pow(2)
                 {

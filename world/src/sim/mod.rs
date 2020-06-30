@@ -304,8 +304,6 @@ pub struct WorldSim {
 }
 
 impl WorldSim {
-    #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
-    #[allow(clippy::let_and_return)] // TODO: Pending review in #587
     #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
 
     pub fn generate(seed: u32, opts: WorldOpts) -> Self {
@@ -973,7 +971,7 @@ impl WorldSim {
                 &rock_strength_nz,
                 // initial conditions
                 alt_func,
-                |posi| alt_func(posi) - if is_ocean_fn(posi) { 0.0 } else { 0.0 },
+                alt_func,
                 is_ocean_fn,
                 // empirical constants
                 uplift_fn,
@@ -1138,9 +1136,8 @@ impl WorldSim {
                 // Find the height of the pass into which our lake is flowing.
                 let pass_height_j = alt[neighbor_pass_idx as usize];
                 // Find the maximum of these two heights.
-                let pass_height = pass_height_i.max(pass_height_j);
                 // Use the pass height as the initial water altitude.
-                pass_height
+                pass_height_i.max(pass_height_j) /*pass_height*/
             };
             // Use the maximum of the pass height and chunk height as the parameter to
             // fill_sinks.
@@ -1322,7 +1319,6 @@ impl WorldSim {
     }
 
     /// Prepare the world for simulation
-    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     pub fn seed_elements(&mut self) {
         let mut rng = self.rng.clone();
 
@@ -1452,10 +1448,9 @@ impl WorldSim {
                 const MAX_ITERS: usize = 64;
                 for _ in 0..MAX_ITERS {
                     let downhill_pos = match chunk.downhill {
-                        Some(downhill) => downhill
-                            .map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
-                                e / (sz as i32)
-                            }),
+                        Some(downhill) => {
+                            downhill.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / (sz as i32))
+                        },
                         None => return Some(pos),
                     };
 
@@ -1491,15 +1486,11 @@ impl WorldSim {
         }
     }
 
-    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     pub fn get_gradient_approx(&self, chunk_pos: Vec2<i32>) -> Option<f32> {
         let a = self.get(chunk_pos)?;
         if let Some(downhill) = a.downhill {
-            let b = self.get(
-                downhill.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
-                    e / (sz as i32)
-                }),
-            )?;
+            let b =
+                self.get(downhill.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / (sz as i32)))?;
             Some((a.alt - b.alt).abs() / TerrainChunkSize::RECT_SIZE.x as f32)
         } else {
             Some(0.0)
@@ -1510,13 +1501,10 @@ impl WorldSim {
         self.get_interpolated(wpos, |chunk| chunk.alt)
     }
 
-    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     pub fn get_wpos(&self, wpos: Vec2<i32>) -> Option<&SimChunk> {
-        self.get(
-            wpos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
-                e.div_euclid(sz as i32)
-            }),
-        )
+        self.get(wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
+            e.div_euclid(sz as i32)
+        }))
     }
 
     pub fn get_mut(&mut self, chunk_pos: Vec2<i32>) -> Option<&mut SimChunk> {
@@ -1711,13 +1699,12 @@ impl WorldSim {
         Some(z0 + z1 + z2 + z3)
     }
 
-    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     pub fn get_nearest_path(&self, wpos: Vec2<i32>) -> Option<(f32, Vec2<f32>)> {
-        let chunk_pos = wpos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
+        let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
             e.div_euclid(sz as i32)
         });
         let get_chunk_centre = |chunk_pos: Vec2<i32>| {
-            chunk_pos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
+            chunk_pos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
                 e * sz as i32 + sz as i32 / 2
             })
         };
