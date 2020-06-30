@@ -327,6 +327,7 @@ mod tests {
     const SIZE: u64 = PrioManager::FRAME_DATA_SIZE;
     const USIZE: usize = PrioManager::FRAME_DATA_SIZE as usize;
 
+    #[allow(clippy::type_complexity)]
     fn mock_new() -> (
         PrioManager,
         Sender<(Prio, Sid, OutgoingMessage)>,
@@ -605,10 +606,10 @@ mod tests {
     fn gigantic_message() {
         let (mut mgr, msg_tx, _flush_tx) = mock_new();
         let mut data = vec![1; USIZE];
-        data.extend_from_slice(&vec![2; USIZE]);
-        data.extend_from_slice(&vec![3; USIZE]);
-        data.extend_from_slice(&vec![4; USIZE]);
-        data.extend_from_slice(&vec![5; USIZE]);
+        data.extend_from_slice(&[2; USIZE]);
+        data.extend_from_slice(&[3; USIZE]);
+        data.extend_from_slice(&[4; USIZE]);
+        data.extend_from_slice(&[5; USIZE]);
         let sid = Sid::new(2);
         msg_tx
             .send((16, sid, OutgoingMessage {
@@ -634,10 +635,10 @@ mod tests {
     fn gigantic_message_order() {
         let (mut mgr, msg_tx, _flush_tx) = mock_new();
         let mut data = vec![1; USIZE];
-        data.extend_from_slice(&vec![2; USIZE]);
-        data.extend_from_slice(&vec![3; USIZE]);
-        data.extend_from_slice(&vec![4; USIZE]);
-        data.extend_from_slice(&vec![5; USIZE]);
+        data.extend_from_slice(&[2; USIZE]);
+        data.extend_from_slice(&[3; USIZE]);
+        data.extend_from_slice(&[4; USIZE]);
+        data.extend_from_slice(&[5; USIZE]);
         let sid = Sid::new(2);
         msg_tx
             .send((16, sid, OutgoingMessage {
@@ -666,10 +667,10 @@ mod tests {
     fn gigantic_message_order_other_prio() {
         let (mut mgr, msg_tx, _flush_tx) = mock_new();
         let mut data = vec![1; USIZE];
-        data.extend_from_slice(&vec![2; USIZE]);
-        data.extend_from_slice(&vec![3; USIZE]);
-        data.extend_from_slice(&vec![4; USIZE]);
-        data.extend_from_slice(&vec![5; USIZE]);
+        data.extend_from_slice(&[2; USIZE]);
+        data.extend_from_slice(&[3; USIZE]);
+        data.extend_from_slice(&[4; USIZE]);
+        data.extend_from_slice(&[5; USIZE]);
         let sid = Sid::new(2);
         msg_tx
             .send((16, sid, OutgoingMessage {

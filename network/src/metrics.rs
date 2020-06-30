@@ -353,8 +353,8 @@ mod tests {
     #[test]
     fn pid_cid_frame_cache() {
         let pid = Pid::fake(1);
-        let frame1 = Frame::Raw("Foo".as_bytes().to_vec());
-        let frame2 = Frame::Raw("Bar".as_bytes().to_vec());
+        let frame1 = Frame::Raw(b"Foo".to_vec());
+        let frame2 = Frame::Raw(b"Bar".to_vec());
         let metrics = NetworkMetrics::new(&pid).unwrap();
         let mut cache = PidCidFrameCache::new(metrics.frames_in_total, pid);
         let v1 = cache.with_label_values(1, &frame1);
@@ -377,8 +377,8 @@ mod tests {
     #[test]
     fn cid_frame_cache() {
         let pid = Pid::fake(1);
-        let frame1 = Frame::Raw("Foo".as_bytes().to_vec());
-        let frame2 = Frame::Raw("Bar".as_bytes().to_vec());
+        let frame1 = Frame::Raw(b"Foo".to_vec());
+        let frame2 = Frame::Raw(b"Bar".to_vec());
         let metrics = NetworkMetrics::new(&pid).unwrap();
         let mut cache = CidFrameCache::new(metrics.frames_wire_out_total, 1);
         let v1 = cache.with_label_values(&frame1);

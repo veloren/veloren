@@ -101,11 +101,11 @@ fn failed_listen_on_used_ports() -> std::result::Result<(), Box<dyn std::error::
     let e2 = block_on(network2.listen(tcp1));
     match e1 {
         Err(NetworkError::ListenFailed(e)) if e.kind() == ErrorKind::AddrInUse => (),
-        _ => assert!(false),
+        _ => panic!(),
     };
     match e2 {
         Err(NetworkError::ListenFailed(e)) if e.kind() == ErrorKind::AddrInUse => (),
-        _ => assert!(false),
+        _ => panic!(),
     };
     Ok(())
 }
@@ -178,7 +178,7 @@ fn wrong_parse() {
 
     s1_a.send(1337).unwrap();
     match block_on(s1_b.recv::<String>()) {
-        Err(StreamError::DeserializeError(_)) => assert!(true),
-        _ => assert!(false, "this should fail, but it doesnt!"),
+        Err(StreamError::DeserializeError(_)) => (),
+        _ => panic!("this should fail, but it doesnt!"),
     }
 }
