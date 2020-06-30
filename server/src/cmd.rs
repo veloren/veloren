@@ -96,6 +96,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Tp => handle_tp,
         ChatCommand::Version => handle_version,
         ChatCommand::Waypoint => handle_waypoint,
+        ChatCommand::Whitelist => handle_whitelist,
         ChatCommand::World => handle_world,
     }
 }
@@ -1678,4 +1679,44 @@ fn handle_version(
             common::util::GIT_DATE.to_string(),
         )),
     );
+}
+
+fn handle_whitelist(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) {
+    if let Ok((whitelist_action, username)) = scan_fmt!(&args, &action.arg_fmt(), String, String) {
+        if whitelist_action.eq_ignore_ascii_case("add") {
+            server
+                .settings_mut()
+                .edit(|s| s.whitelist.push(username.clone()));
+            server.notify_client(
+                client,
+                ChatType::CommandInfo.server_msg(format!("\"{}\" added to whitelist", username)),
+            );
+        } else if whitelist_action.eq_ignore_ascii_case("remove") {
+            server.settings_mut().edit(|s| {
+                s.whitelist
+                    .retain(|x| !x.eq_ignore_ascii_case(&username.clone()))
+            });
+            server.notify_client(
+                client,
+                ChatType::CommandInfo
+                    .server_msg(format!("\"{}\" removed from whitelist", username)),
+            );
+        } else {
+            server.notify_client(
+                client,
+                ChatType::CommandError.server_msg(action.help_string()),
+            );
+        }
+    } else {
+        server.notify_client(
+            client,
+            ChatType::CommandError.server_msg(action.help_string()),
+        );
+    }
 }

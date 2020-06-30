@@ -70,6 +70,7 @@ pub enum ChatCommand {
     Tp,
     Version,
     Waypoint,
+    Whitelist,
     World,
 }
 
@@ -110,6 +111,7 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Tp,
     ChatCommand::Version,
     ChatCommand::Waypoint,
+    ChatCommand::Whitelist,
     ChatCommand::World,
 ];
 
@@ -347,6 +349,11 @@ impl ChatCommand {
             ChatCommand::Waypoint => {
                 cmd(vec![], "Set your waypoint to your current position", Admin)
             },
+            ChatCommand::Whitelist => cmd(
+                vec![Any("add/remove", Required), Any("username", Required)],
+                "Adds/removes username to whitelist",
+                Admin,
+            ),
             ChatCommand::World => cmd(
                 vec![Message(Optional)],
                 "Send messages to everyone on the server",
@@ -393,6 +400,7 @@ impl ChatCommand {
             ChatCommand::Tp => "tp",
             ChatCommand::Version => "version",
             ChatCommand::Waypoint => "waypoint",
+            ChatCommand::Whitelist => "whitelist",
             ChatCommand::World => "world",
         }
     }
