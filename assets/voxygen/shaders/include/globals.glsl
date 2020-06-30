@@ -17,6 +17,7 @@ uniform u_globals {
 	// 1 - ThirdPerson
 	uint cam_mode;
 	float sprite_render_distance;
+	float particle_render_distance;
 };
 
 // Specifies the pattern used in the player dithering

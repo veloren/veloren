@@ -1845,6 +1845,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.sprite_dist_text, ui);
 
+
             Text::new(&format!(
                 "{}",
                 self.global_state.settings.graphics.sprite_render_distance
@@ -1897,6 +1898,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(state.ids.figure_dist_value, ui);
+
+            // TODO: Particle View Distance slider.
 
             // AaMode
             Text::new(&self.localized_strings.get("hud.settings.antialiasing_mode"))

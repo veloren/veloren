@@ -266,6 +266,7 @@ pub enum Event {
     ToggleSmoothPan(bool),
     AdjustViewDistance(u32),
     AdjustSpriteRenderDistance(u32),
+    AdjustParticleRenderDistance(u32),
     AdjustFigureLoDRenderDistance(u32),
     AdjustMusicVolume(f32),
     AdjustSfxVolume(f32),
