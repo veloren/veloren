@@ -138,6 +138,7 @@ eurer erstellen Charaktere gespeichert."#,
         "main.login.failed_sending_request": "Authentifizierung fehlgeschlagen",
         "main.login.invalid_character": "Ungültiger Charakter",
         "main.login.client_crashed": "Client abgestürzt",
+        "main.login.not_on_whitelist": "Ihr braucht einen Whitelist Eintrag durch den Server Admin",
 
         /// End Main screen section
 
@@ -153,6 +154,18 @@ eurer erstellen Charaktere gespeichert."#,
         "hud.press_key_to_show_debug_info_fmt": "Drückt {key} um die Debug-Info zu zeigen",
         "hud.press_key_to_toggle_keybindings_fmt": "Drückt {key} um die Tastenbelegung zu zeigen",
         "hud.press_key_to_toggle_debug_info_fmt": "Drückt {key} um die Debug-Info zu zeigen",
+
+        // Chat outputs
+        "hud.chat.online_msg": "[{name}] ist jetzt online.", 
+        "hud.chat.offline_msg": "{name} ist jetzt offline.", 
+        "hud.chat.loot_msg": "Ihr erhaltet [{item}]",        
+        "hud.chat.loot_fail": "Euer Inventar ist voll!",
+        "hud.chat.goodbye": "Verbindung getrennt.",
+        "hud.chat.connection_lost": "Verbindung unterbrochen. Trenne Verbindung in {time} sekunden.",
+
+        // SCT outputs
+        "hud.sct.experience": "{amount} Erf",
+        "hud.sct.block": "GEBLOCKT",
 
         /// Respawn message
         "hud.press_key_to_respawn": r#"Drückt {key} um am letzten Lagerfeuer wiederbelebt zu werden."#,
@@ -252,12 +265,15 @@ magischen Gegenstände ergattern?"#,
         "hud.settings.cumulated_damage": "Addierter Schaden",
         "hud.settings.incoming_damage": "Erlittener Schaden",
         "hud.settings.cumulated_incoming_damage": "Addierter erlittener Schaden",
+        "hud.settings.speech_bubble": "Sprechblase",        
         "hud.settings.speech_bubble_dark_mode": "Dunkle Sprechblasen",
+        "hud.settings.speech_bubble_icon": "Sprechblasen Symbole",
         "hud.settings.energybar_numbers": "Zahlen auf Ressourcenanzeige",
         "hud.settings.values": "Werte",
         "hud.settings.percentages": "Prozent",
         "hud.settings.chat": "Chat",
-        "hud.settings.background_transparency": "Hintergrund Kontrast",        
+        "hud.settings.background_transparency": "Hintergrund Kontrast",   
+        "hud.settings.chat_character_name": "Character Namen im Chat",     
 
         "hud.settings.pan_sensitivity": "Schwenk Sensibilität",
         "hud.settings.zoom_sensitivity": "Zoom Sensibilität",
@@ -265,6 +281,8 @@ magischen Gegenstände ergattern?"#,
         "hud.settings.invert_mouse_y_axis": "Maus Y-Achse invertieren",
         "hud.settings.enable_mouse_smoothing": "Kamera Glättung",
         "hud.settings.free_look_behavior": "Freies Umsehen",
+        "hud.settings.auto_walk_behavior": "Automatisches Laufen",
+        "hud.settings.stop_auto_walk_on_input": "Auto-Laufen bei Tastendruck stoppen",
 
         "hud.settings.view_distance": "Gelände Sichtweite",
         "hud.settings.sprites_view_distance": "Objekt Sichtweite",
@@ -297,6 +315,7 @@ magischen Gegenstände ergattern?"#,
         "hud.spell": "Zauber",
 
         "hud.free_look_indicator": "Freie Sicht aktiv",
+        "hud.auto_walk_indicator": "Automatisches Laufen aktiv",
 
        
         /// End HUD section

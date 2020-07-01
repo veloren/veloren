@@ -44,8 +44,6 @@ image_ids! {
         settings_button_pressed: "voxygen.element.buttons.settings_button_pressed",
         settings_button_hover: "voxygen.element.buttons.settings_button_hover",
         settings_button_press: "voxygen.element.buttons.settings_button_press",
-        slider: "voxygen.element.slider.track",
-        slider_indicator: "voxygen.element.slider.indicator",
         esc_frame: "voxygen.element.frames.esc_menu",
 
         // Chat-Arrows
@@ -94,6 +92,11 @@ image_ids! {
         <ImageGraphic>
 
         quest_bg: "voxygen.element.misc_bg.temp_quest_bg",
+
+        // Slider
+        slider: "voxygen.element.slider.track",
+        slider_indicator: "voxygen.element.slider.indicator",
+        slider_indicator_small: "voxygen.element.slider.indicator_round",
 
         // Buttons
 
@@ -316,6 +319,7 @@ image_ids! {
         chat_command_info_small: "voxygen.element.icons.chat.command_info_small",
         chat_online_small: "voxygen.element.icons.chat.online_small",
         chat_offline_small: "voxygen.element.icons.chat.offline_small",
+        chat_loot_small: "voxygen.element.icons.chat.loot_small",
 
         chat_faction: "voxygen.element.icons.chat.faction",
         chat_group: "voxygen.element.icons.chat.group",

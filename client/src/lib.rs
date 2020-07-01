@@ -1045,6 +1045,7 @@ impl Client {
             comp::ChatType::Offline => message.to_string(),
             comp::ChatType::CommandError => message.to_string(),
             comp::ChatType::CommandInfo => message.to_string(),
+            comp::ChatType::Loot => message.to_string(),
             comp::ChatType::FactionMeta(_) => message.to_string(),
             comp::ChatType::GroupMeta(_) => message.to_string(),
             comp::ChatType::Kill => message.to_string(),

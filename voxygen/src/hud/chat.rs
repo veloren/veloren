@@ -1,6 +1,6 @@
 use super::{
-    img_ids::Imgs, ERROR_COLOR, FACTION_COLOR, GROUP_COLOR, INFO_COLOR, KILL_COLOR, OFFLINE_COLOR,
-    ONLINE_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR, WORLD_COLOR,
+    img_ids::Imgs, ERROR_COLOR, FACTION_COLOR, GROUP_COLOR, INFO_COLOR, KILL_COLOR, LOOT_COLOR,
+    OFFLINE_COLOR, ONLINE_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR, WORLD_COLOR,
 };
 use crate::{ui::fonts::ConrodVoxygenFonts, GlobalState};
 use client::{cmd, Client};
@@ -479,6 +479,7 @@ fn render_chat_line(chat_type: &ChatType, imgs: &Imgs) -> (Color, conrod_core::i
         ChatType::Offline => (OFFLINE_COLOR, imgs.chat_offline_small),
         ChatType::CommandError => (ERROR_COLOR, imgs.chat_command_error_small),
         ChatType::CommandInfo => (INFO_COLOR, imgs.chat_command_info_small),
+        ChatType::Loot => (LOOT_COLOR, imgs.chat_loot_small),
         ChatType::GroupMeta(_) => (GROUP_COLOR, imgs.chat_group_small),
         ChatType::FactionMeta(_) => (FACTION_COLOR, imgs.chat_faction_small),
         ChatType::Kill => (KILL_COLOR, imgs.chat_kill_small),
