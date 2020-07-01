@@ -9,7 +9,7 @@
             central: ("npc.grolgar.male.head_lower"),
         ),
         jaw: (
-            offset: (-2.0, -7.0, -1.5),
+            offset: (-2.0, 0.0, -1.5),
             central: ("npc.grolgar.male.jaw"),
         ),
         torso_front: (
@@ -39,7 +39,7 @@
             central: ("npc.grolgar.female.head_lower"),
         ),
         jaw: (
-            offset: (-2.0, -7.0, -1.5),
+            offset: (-2.0, 0.0, -1.5),
             central: ("npc.grolgar.female.jaw"),
         ),
         torso_front: (
@@ -61,7 +61,7 @@
     ),
     (Saber, Male): (
         upper: (
-            offset: (-5.5, 11.0, -6.5),
+            offset: (-5.5, 0.0, -6.5),
             central: ("npc.saber.male.head_upper"),
         ),
         lower: (
@@ -69,7 +69,7 @@
             central: ("npc.saber.male.head_lower"),
         ),
         jaw: (
-            offset: (-2.5, -7.0, -1.5),
+            offset: (-2.5, 0.0, -1.5),
             central: ("npc.saber.male.jaw"),
         ),
         torso_front: (
@@ -91,7 +91,7 @@
     ),
     (Saber, Female): (
         upper: (
-            offset: (-5.5, 11.0, -6.5),
+            offset: (-5.5, 0.0, -6.5),
             central: ("npc.saber.female.head_upper"),
         ),
         lower: (
@@ -99,7 +99,7 @@
             central: ("npc.saber.female.head_lower"),
         ),
         jaw: (
-            offset: (-2.5, -7.0, -1.5),
+            offset: (-2.5, 0.0, -1.5),
             central: ("npc.saber.female.jaw"),
         ),
         torso_front: (
@@ -121,7 +121,7 @@
     ),
     (Tuskram, Male): (
         upper: (
-            offset: (-10.0, -11.0, -6.5),
+            offset: (-10.0, -6.0, -6.5),
             central: ("npc.tuskram.male.head_upper"),
         ),
         lower: (
@@ -129,7 +129,7 @@
             central: ("npc.tuskram.male.head_lower"),
         ),
         jaw: (
-            offset: (-2.0, -3.0, -1.5),
+            offset: (-2.0, 0.0, -1.5),
             central: ("npc.tuskram.male.jaw"),
         ),
         torso_front: (
@@ -151,7 +151,7 @@
     ),
     (Tuskram, Female): (
         upper: (
-            offset: (-10.0, -11.0, -6.5),
+            offset: (-10.0, -6.0, -6.5),
             central: ("npc.tuskram.female.head_upper"),
         ),
         lower: (
@@ -159,7 +159,7 @@
             central: ("npc.tuskram.female.head_lower"),
         ),
         jaw: (
-            offset: (-2.0, -3.0, -1.5),
+            offset: (-2.0, 0.0, -1.5),
             central: ("npc.tuskram.female.jaw"),
         ),
         torso_front: (
@@ -181,7 +181,7 @@
     ),
     (Lion, Male): (
         upper: (
-            offset: (-4.5, -10.0, -4.5),
+            offset: (-4.5, 0.0, -4.5),
             central: ("npc.lion.male.head_upper"),
         ),
         lower: (
@@ -189,7 +189,7 @@
             central: ("npc.lion.male.head_lower"),
         ),
         jaw: (
-            offset: (-2.5, -6.0, -1.0),
+            offset: (-2.5, 0.0, -1.0),
             central: ("npc.lion.male.jaw"),
         ),
         torso_front: (
@@ -211,7 +211,7 @@
     ),
     (Lion, Female): (
         upper: (
-            offset: (-4.5, -10.0, -4.5),
+            offset: (-4.5, 0.0, -4.5),
             central: ("npc.lion.female.head_upper"),
         ),
         lower: (
@@ -219,7 +219,7 @@
             central: ("npc.lion.female.head_lower"),
         ),
         jaw: (
-            offset: (-2.5, -6.0, -1.0),
+            offset: (-2.5, 0.0, -1.0),
             central: ("npc.lion.female.jaw"),
         ),
         torso_front: (
@@ -241,7 +241,7 @@
     ),
     (Tarasque, Male): (
         upper: (
-            offset: (-10.0, -9.0, -10.0),
+            offset: (-10.0, 0.0, -10.0),
             central: ("npc.tarasque.male.head_upper"),
         ),
         lower: (
@@ -249,7 +249,7 @@
             central: ("npc.tarasque.male.head_lower"),
         ),
         jaw: (
-            offset: (-5.0, -9.0, -0.0),
+            offset: (-5.0, 0.0, -0.0),
             central: ("npc.tarasque.male.jaw"),
         ),
         torso_front: (
@@ -271,7 +271,7 @@
     ),
     (Tarasque, Female): (
         upper: (
-            offset: (-10.0, -9.0, -10.0),
+            offset: (-10.0, 0.0, -10.0),
             central: ("npc.tarasque.female.head_upper"),
         ),
         lower: (
@@ -279,7 +279,7 @@
             central: ("npc.tarasque.female.head_lower"),
         ),
         jaw: (
-            offset: (-5.0, -9.0, -0.0),
+            offset: (-5.0, 0.0, -0.0),
             central: ("npc.tarasque.female.jaw"),
         ),
         torso_front: (
@@ -309,7 +309,7 @@
             central: ("npc.tiger.male.head_lower"),
         ),
         jaw: (
-            offset: (-2.5, -3.0, -1.0),
+            offset: (-2.5, 0.0, -1.0),
             central: ("npc.tiger.male.jaw"),
         ),
         torso_front: (
@@ -339,7 +339,7 @@
             central: ("npc.tiger.female.head_lower"),
         ),
         jaw: (
-            offset: (-2.5, -3.0, -1.0),
+            offset: (-2.5, 0.0, -1.0),
             central: ("npc.tiger.female.jaw"),
         ),
         torso_front: (
