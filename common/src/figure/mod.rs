@@ -18,7 +18,11 @@ use vek::*;
 pub type Segment = Dyna<Cell, ()>;
 
 impl From<&DotVoxData> for Segment {
-    fn from(dot_vox_data: &DotVoxData) -> Self {
+    fn from(dot_vox_data: &DotVoxData) -> Self { Segment::from_vox(dot_vox_data, false) }
+}
+
+impl Segment {
+    pub fn from_vox(dot_vox_data: &DotVoxData, flipped: bool) -> Self {
         if let Some(model) = dot_vox_data.models.get(0) {
             let palette = dot_vox_data
                 .palette
@@ -36,11 +40,20 @@ impl From<&DotVoxData> for Segment {
                 if let Some(&color) = palette.get(voxel.i as usize) {
                     segment
                         .set(
-                            Vec3::new(voxel.x, voxel.y, voxel.z).map(i32::from),
+                            Vec3::new(
+                                if flipped {
+                                    model.size.x as u8 - 1 - voxel.x
+                                } else {
+                                    voxel.x
+                                },
+                                voxel.y,
+                                voxel.z,
+                            )
+                            .map(i32::from),
                             Cell::new(color),
                         )
                         .unwrap();
-                }
+                };
             }
 
             segment
@@ -48,9 +61,7 @@ impl From<&DotVoxData> for Segment {
             Segment::filled(Vec3::zero(), Cell::empty(), ())
         }
     }
-}
 
-impl Segment {
     /// Transform cells
     pub fn map(mut self, transform: impl Fn(Cell) -> Option<Cell>) -> Self {
         for pos in self.full_pos_iter() {

@@ -1,5 +1,5 @@
 use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
-use common::comp::item::ToolKind;
+use common::comp::item::{Hands, ToolKind};
 use std::{f32::consts::PI, ops::Mul};
 use vek::*;
 
@@ -9,7 +9,7 @@ pub struct Input {
 pub struct BlockAnimation;
 
 impl Animation for BlockAnimation {
-    type Dependency = (Option<ToolKind>, f64);
+    type Dependency = (Option<ToolKind>, Option<ToolKind>, f64);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -18,7 +18,7 @@ impl Animation for BlockAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_block")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, global_time): Self::Dependency,
+        (active_tool_kind, second_tool_kind, global_time): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -209,6 +209,15 @@ impl Animation for BlockAnimation {
         next.l_control.scale = Vec3::one();
 
         next.r_control.scale = Vec3::one();
+
+        next.second.scale = match (
+            active_tool_kind.map(|tk| tk.into_hands()),
+            second_tool_kind.map(|tk| tk.into_hands()),
+        ) {
+            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
+            (_, _) => Vec3::zero(),
+        };
+
         next
     }
 }
