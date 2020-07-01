@@ -1,5 +1,4 @@
 #![deny(unsafe_code)]
-#![allow(clippy::option_map_unit_fn)]
 #![cfg_attr(test, deny(rust_2018_idioms))]
 #![cfg_attr(test, deny(warnings))]
 #![feature(try_trait, const_if_match)]

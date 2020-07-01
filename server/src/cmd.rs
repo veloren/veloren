@@ -240,7 +240,6 @@ fn handle_jump(
     }
 }
 
-#[allow(clippy::useless_conversion)] // TODO: Pending review in #587
 fn handle_goto(
     server: &mut Server,
     client: EcsEntity,
@@ -294,7 +293,6 @@ fn handle_kill(
         .map(|s| s.health.set_to(0, reason));
 }
 
-#[allow(clippy::option_as_ref_deref)] // TODO: Pending review in #587
 fn handle_time(
     server: &mut Server,
     client: EcsEntity,
@@ -303,7 +301,7 @@ fn handle_time(
     action: &ChatCommand,
 ) {
     let time = scan_fmt_some!(&args, &action.arg_fmt(), String);
-    let new_time = match time.as_ref().map(|s| s.as_str()) {
+    let new_time = match time.as_deref() {
         Some("midnight") => NaiveTime::from_hms(0, 0, 0),
         Some("night") => NaiveTime::from_hms(20, 0, 0),
         Some("dawn") => NaiveTime::from_hms(5, 0, 0),
@@ -382,7 +380,6 @@ fn handle_health(
     }
 }
 
-#[allow(clippy::useless_conversion)] // TODO: Pending review in #587
 fn handle_alias(
     server: &mut Server,
     client: EcsEntity,
@@ -418,10 +415,8 @@ fn handle_alias(
             ecs.read_storage::<comp::Player>().get(target),
             old_alias_optional,
         ) {
-            let msg = ServerMsg::PlayerListUpdate(PlayerListUpdate::Alias(
-                (*uid).into(),
-                player.alias.clone(),
-            ));
+            let msg =
+                ServerMsg::PlayerListUpdate(PlayerListUpdate::Alias(*uid, player.alias.clone()));
             server.state.notify_registered_clients(msg);
 
             // Announce alias change if target has a Body.
@@ -440,8 +435,6 @@ fn handle_alias(
     }
 }
 
-#[allow(clippy::useless_conversion)] // TODO: Pending review in #587
-#[allow(clippy::useless_format)] // TODO: Pending review in #587
 fn handle_tp(
     server: &mut Server,
     client: EcsEntity,
@@ -497,8 +490,6 @@ fn handle_tp(
     }
 }
 
-#[allow(clippy::useless_conversion)] // TODO: Pending review in #587
-#[allow(clippy::redundant_clone)] // TODO: Pending review in #587
 fn handle_spawn(
     server: &mut Server,
     client: EcsEntity,
@@ -644,7 +635,6 @@ fn handle_build(
     }
 }
 
-#[allow(clippy::useless_conversion)] // TODO: Pending review in #587
 fn handle_help(
     server: &mut Server,
     client: EcsEntity,
@@ -1350,8 +1340,6 @@ fn handle_debug_column(
 }
 
 #[cfg(feature = "worldgen")]
-#[allow(clippy::blacklisted_name)] // TODO: Pending review in #587
-#[allow(clippy::useless_conversion)] // TODO: Pending review in #587
 fn handle_debug_column(
     server: &mut Server,
     client: EcsEntity,
@@ -1367,7 +1355,7 @@ fn handle_debug_column(
             e / sz as i32
         }); */
 
-        let foo = || {
+        let msg_generator = || {
             // let sim_chunk = sim.get(chunk_pos)?;
             let alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?;
             let basement = sim.get_interpolated(wpos, |chunk| chunk.basement)?;
@@ -1416,7 +1404,7 @@ spawn_rate {:?} "#,
                 spawn_rate
             ))
         };
-        if let Some(s) = foo() {
+        if let Some(s) = msg_generator() {
             server.notify_client(client, ChatType::CommandInfo.server_msg(s));
         } else {
             server.notify_client(
@@ -1432,7 +1420,6 @@ spawn_rate {:?} "#,
     }
 }
 
-#[allow(clippy::or_fun_call)] // TODO: Pending review in #587
 fn find_target(
     ecs: &specs::World,
     opt_alias: Option<String>,
@@ -1443,7 +1430,9 @@ fn find_target(
             .join()
             .find(|(_, player)| player.alias == alias)
             .map(|(entity, _)| entity)
-            .ok_or(ChatType::CommandError.server_msg(format!("Player '{}' not found!", alias)))
+            .ok_or_else(|| {
+                ChatType::CommandError.server_msg(format!("Player '{}' not found!", alias))
+            })
     } else {
         Ok(fallback)
     }
@@ -1569,7 +1558,6 @@ fn handle_debug(
     }
 }
 
-#[allow(clippy::useless_conversion)] // TODO: Pending review in #587
 fn handle_remove_lights(
     server: &mut Server,
     client: EcsEntity,
@@ -1621,10 +1609,6 @@ fn handle_remove_lights(
     );
 }
 
-#[allow(clippy::chars_next_cmp)] // TODO: Pending review in #587
-#[allow(clippy::useless_conversion)] // TODO: Pending review in #587
-#[allow(clippy::or_fun_call)] // TODO: Pending review in #587
-#[allow(clippy::useless_format)] // TODO: Pending review in #587
 fn handle_sudo(
     server: &mut Server,
     client: EcsEntity,
@@ -1635,7 +1619,7 @@ fn handle_sudo(
     if let (Some(player_alias), Some(cmd), cmd_args) =
         scan_fmt_some!(&args, &action.arg_fmt(), String, String, String)
     {
-        let cmd_args = cmd_args.unwrap_or(String::from(""));
+        let cmd_args = cmd_args.unwrap_or_else(|| String::from(""));
         if let Ok(action) = cmd.parse() {
             let ecs = server.state.ecs();
             let entity_opt = (&ecs.entities(), &ecs.read_storage::<comp::Player>())

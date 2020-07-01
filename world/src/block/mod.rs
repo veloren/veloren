@@ -25,18 +25,14 @@ impl<'a> BlockGen<'a> {
         }
     }
 
-    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     pub fn sample_column<'b>(
         column_gen: &ColumnGen<'a>,
         cache: &'b mut SmallCache<Option<ColumnSample<'a>>>,
         wpos: Vec2<i32>,
     ) -> Option<&'b ColumnSample<'a>> {
-        cache
-            .get(Vec2::from(wpos), |wpos| column_gen.get(wpos))
-            .as_ref()
+        cache.get(wpos, |wpos| column_gen.get(wpos)).as_ref()
     }
 
-    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     fn get_cliff_height(
         column_gen: &ColumnGen<'a>,
         cache: &mut SmallCache<Option<ColumnSample<'a>>>,
@@ -47,11 +43,8 @@ impl<'a> BlockGen<'a> {
     ) -> f32 {
         close_cliffs.iter().fold(
             0.0f32,
-            |max_height, (cliff_pos, seed)| match Self::sample_column(
-                column_gen,
-                cache,
-                Vec2::from(*cliff_pos),
-            ) {
+            |max_height, (cliff_pos, seed)| match Self::sample_column(column_gen, cache, *cliff_pos)
+            {
                 Some(cliff_sample) if cliff_sample.is_cliffs && cliff_sample.spawn_rate > 0.5 => {
                     let cliff_pos3d = Vec3::from(*cliff_pos);
 
@@ -91,7 +84,6 @@ impl<'a> BlockGen<'a> {
         )
     }
 
-    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     pub fn get_z_cache(&mut self, wpos: Vec2<i32>) -> Option<ZCache<'a>> {
         let BlockGen {
             column_cache,
@@ -109,8 +101,7 @@ impl<'a> BlockGen<'a> {
             .zip(structures.iter_mut())
             .for_each(|(close_structure, structure)| {
                 if let Some(st) = *close_structure {
-                    let st_sample =
-                        Self::sample_column(column_gen, column_cache, Vec2::from(st.pos));
+                    let st_sample = Self::sample_column(column_gen, column_cache, st.pos);
                     if let Some(st_sample) = st_sample {
                         let st_sample = st_sample.clone();
                         let st_info = match st.meta {
@@ -141,8 +132,6 @@ impl<'a> BlockGen<'a> {
         })
     }
 
-    #[allow(clippy::identity_op)] // TODO: Pending review in #587
-    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn get_with_z_cache(
         &mut self,
         wpos: Vec3<i32>,
@@ -412,7 +401,7 @@ impl<'a> BlockGen<'a> {
             })
             .or(block);
 
-        Some(block.unwrap_or(Block::empty()))
+        Some(block.unwrap_or_else(Block::empty))
     }
 }
 
@@ -423,7 +412,6 @@ pub struct ZCache<'a> {
 }
 
 impl<'a> ZCache<'a> {
-    #[allow(clippy::unnecessary_mut_passed)] // TODO: Pending review in #587
     pub fn get_z_limits(&self, block_gen: &mut BlockGen) -> (f32, f32, f32) {
         let cave_depth =
             if self.sample.cave_xy.abs() > 0.9 && self.sample.water_level <= self.sample.alt {
@@ -436,7 +424,7 @@ impl<'a> ZCache<'a> {
         let min = min - 4.0;
 
         let cliff = BlockGen::get_cliff_height(
-            &mut block_gen.column_gen,
+            &block_gen.column_gen,
             &mut block_gen.column_cache,
             self.wpos.map(|e| e as f32),
             &self.sample.close_cliffs,
@@ -555,7 +543,6 @@ impl StructureInfo {
     }
 }
 
-#[allow(clippy::identity_op)] // TODO: Pending review in #587
 pub fn block_from_structure(
     sblock: StructureBlock,
     pos: Vec3<i32>,
