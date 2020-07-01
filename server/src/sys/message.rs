@@ -18,16 +18,17 @@ use common::{
     terrain::{Block, TerrainChunkSize, TerrainGrid},
     vol::{RectVolSize, Vox},
 };
+use futures_executor::block_on;
+use futures_timer::Delay;
+use futures_util::{select, FutureExt};
 use hashbrown::HashMap;
 use specs::{
     Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteExpect, WriteStorage,
 };
-use futures_util::{select, FutureExt};
-use futures_executor::block_on;
-use futures_timer::Delay;
 
 impl Sys {
-    ///We need to move this to a async fn, otherwise the compiler generates to much recursive fn, and async closures dont work yet
+    ///We need to move this to a async fn, otherwise the compiler generates to
+    /// much recursive fn, and async closures dont work yet
     #[allow(clippy::too_many_arguments)]
     async fn handle_client_msg(
         server_emitter: &mut common::event::Emitter<'_, ServerEvent>,
@@ -62,9 +63,7 @@ impl Sys {
                 // Go back to registered state (char selection screen)
                 ClientMsg::ExitIngame => match client.client_state {
                     // Use ClientMsg::Register instead.
-                    ClientState::Connected => {
-                        client.error_state(RequestStateError::WrongMessage)
-                    },
+                    ClientState::Connected => client.error_state(RequestStateError::WrongMessage),
                     ClientState::Registered => client.error_state(RequestStateError::Already),
                     ClientState::Spectator | ClientState::Character => {
                         server_emitter.emit(ServerEvent::ExitIngame { entity });
@@ -94,8 +93,8 @@ impl Sys {
                         Ok((username, uuid)) => (username, uuid),
                     };
 
-                    let vd = view_distance
-                        .map(|vd| vd.min(settings.max_view_distance.unwrap_or(vd)));
+                    let vd =
+                        view_distance.map(|vd| vd.min(settings.max_view_distance.unwrap_or(vd)));
                     let player = Player::new(username.clone(), None, vd, uuid);
                     let is_admin = admin_list.contains(&username);
 
@@ -145,7 +144,8 @@ impl Sys {
                         ));
                     };
                 },
-                ClientMsg::SetViewDistance(view_distance) => if let ClientState::Character { .. } = client.client_state {
+                ClientMsg::SetViewDistance(view_distance) => {
+                    if let ClientState::Character { .. } = client.client_state {
                         if settings
                             .max_view_distance
                             .map(|max| view_distance <= max)
@@ -164,6 +164,7 @@ impl Sys {
                                 settings.max_view_distance.unwrap_or(0),
                             ));
                         }
+                    }
                 },
                 ClientMsg::Character(character_id) => match client.client_state {
                     // Become Registered first.
@@ -171,8 +172,7 @@ impl Sys {
                     ClientState::Registered | ClientState::Spectator => {
                         // Only send login message if it wasn't already
                         // sent previously
-                        if let (Some(player), false) =
-                        (players.get(entity), client.login_msg_sent)
+                        if let (Some(player), false) = (players.get(entity), client.login_msg_sent)
                         {
                             // Send a request to load the character's component data from the
                             // DB. Once loaded, persisted components such as stats and inventory
@@ -218,9 +218,7 @@ impl Sys {
                     ClientState::Pending => {},
                 },
                 ClientMsg::ControllerInputs(inputs) => match client.client_state {
-                    ClientState::Connected
-                    | ClientState::Registered
-                    | ClientState::Spectator => {
+                    ClientState::Connected | ClientState::Registered | ClientState::Spectator => {
                         client.error_state(RequestStateError::Impossible)
                     },
                     ClientState::Character => {
@@ -231,9 +229,7 @@ impl Sys {
                     ClientState::Pending => {},
                 },
                 ClientMsg::ControlEvent(event) => match client.client_state {
-                    ClientState::Connected
-                    | ClientState::Registered
-                    | ClientState::Spectator => {
+                    ClientState::Connected | ClientState::Registered | ClientState::Spectator => {
                         client.error_state(RequestStateError::Impossible)
                     },
                     ClientState::Character => {
@@ -250,9 +246,7 @@ impl Sys {
                     ClientState::Pending => {},
                 },
                 ClientMsg::ControlAction(event) => match client.client_state {
-                    ClientState::Connected
-                    | ClientState::Registered
-                    | ClientState::Spectator => {
+                    ClientState::Connected | ClientState::Registered | ClientState::Spectator => {
                         client.error_state(RequestStateError::Impossible)
                     },
                     ClientState::Character => {
@@ -264,27 +258,27 @@ impl Sys {
                 },
                 ClientMsg::ChatMsg(message) => match client.client_state {
                     ClientState::Connected => client.error_state(RequestStateError::Impossible),
-                    ClientState::Registered
-                    | ClientState::Spectator
-                    | ClientState::Character => match validate_chat_msg(&message) {
-                        Ok(()) => {
-                            if let Some(from) = uids.get(entity) {
-                                let mode = chat_modes.get(entity).cloned().unwrap_or_default();
-                                let msg = mode.new_message(*from, message);
-                                new_chat_msgs.push((Some(entity), msg));
-                            } else {
-                                tracing::error!("Could not send message. Missing player uid");
-                            }
-                        },
-                        Err(ChatMsgValidationError::TooLong) => {
-                            let max = MAX_BYTES_CHAT_MSG;
-                            let len = message.len();
-                            tracing::warn!(
+                    ClientState::Registered | ClientState::Spectator | ClientState::Character => {
+                        match validate_chat_msg(&message) {
+                            Ok(()) => {
+                                if let Some(from) = uids.get(entity) {
+                                    let mode = chat_modes.get(entity).cloned().unwrap_or_default();
+                                    let msg = mode.new_message(*from, message);
+                                    new_chat_msgs.push((Some(entity), msg));
+                                } else {
+                                    tracing::error!("Could not send message. Missing player uid");
+                                }
+                            },
+                            Err(ChatMsgValidationError::TooLong) => {
+                                let max = MAX_BYTES_CHAT_MSG;
+                                let len = message.len();
+                                tracing::warn!(
                                     ?len,
                                     ?max,
                                     "Recieved a chat message that's too long"
                                 )
-                        },
+                            },
+                        }
                     },
                     ClientState::Pending => {},
                 },
@@ -323,22 +317,17 @@ impl Sys {
                             pos.0.xy().map(|e| e as f64).distance(
                                 key.map(|e| e as f64 + 0.5)
                                     * TerrainChunkSize::RECT_SIZE.map(|e| e as f64),
-                            ) < (view_distance as f64 + 1.5)
-                                * TerrainChunkSize::RECT_SIZE.x as f64
+                            ) < (view_distance as f64 + 1.5) * TerrainChunkSize::RECT_SIZE.x as f64
                         } else {
                             true
                         };
                         if in_vd {
                             match terrain.get_key(key) {
-                                Some(chunk) => {
-                                    client.notify(ServerMsg::TerrainChunkUpdate {
-                                        key,
-                                        chunk: Ok(Box::new(chunk.clone())),
-                                    })
-                                },
-                                None => {
-                                    server_emitter.emit(ServerEvent::ChunkRequest(entity, key))
-                                },
+                                Some(chunk) => client.notify(ServerMsg::TerrainChunkUpdate {
+                                    key,
+                                    chunk: Ok(Box::new(chunk.clone())),
+                                }),
+                                None => server_emitter.emit(ServerEvent::ChunkRequest(entity, key)),
                             }
                         }
                     },
@@ -469,7 +458,7 @@ impl<'a> System<'a> for Sys {
         for (entity, client) in (&entities, &mut clients).join() {
             let mut cnt = 0;
 
-            let network_err: Result<(), crate::error::Error> = block_on(async{
+            let network_err: Result<(), crate::error::Error> = block_on(async {
                 //TIMEOUT 0.01 ms for msg handling
                 select!(
                     _ = Delay::new(std::time::Duration::from_micros(10)).fuse() => Ok(()),

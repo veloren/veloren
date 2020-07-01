@@ -30,17 +30,17 @@ use common::{
     terrain::{block::Block, TerrainChunk, TerrainChunkSize},
     vol::RectVolSize,
 };
-use network::{Network, Participant, Stream, Address, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
+use futures_executor::block_on;
+use futures_timer::Delay;
+use futures_util::{select, FutureExt};
 use hashbrown::HashMap;
 use image::DynamicImage;
+use network::{Address, Network, Participant, Pid, Stream, PROMISES_CONSISTENCY, PROMISES_ORDERED};
 use std::{
     net::SocketAddr,
     sync::Arc,
     time::{Duration, Instant},
 };
-use futures_util::{select, FutureExt};
-use futures_executor::block_on;
-use futures_timer::Delay;
 use tracing::{debug, error, warn};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
@@ -118,7 +118,7 @@ impl Client {
         let mut stream = block_on(participant.open(10, PROMISES_ORDERED | PROMISES_CONSISTENCY))?;
 
         // Wait for initial sync
-        let (state, entity, server_info, world_map) = block_on(async{
+        let (state, entity, server_info, world_map) = block_on(async {
             loop {
                 match stream.recv().await? {
                     ServerMsg::InitialSync {
@@ -130,13 +130,13 @@ impl Client {
                         // TODO: Display that versions don't match in Voxygen
                         if &server_info.git_hash != *common::util::GIT_HASH {
                             warn!(
-                                "Server is running {}[{}], you are running {}[{}], versions might be \
-                         incompatible!",
-                        server_info.git_hash,
-                        server_info.git_date,
-                        common::util::GIT_HASH.to_string(),
-                        common::util::GIT_DATE.to_string(),
-                    );
+                                "Server is running {}[{}], you are running {}[{}], versions might \
+                                 be incompatible!",
+                                server_info.git_hash,
+                                server_info.git_date,
+                                common::util::GIT_HASH.to_string(),
+                                common::util::GIT_DATE.to_string(),
+                            );
                         }
 
                         debug!("Auth Server: {:?}", server_info.auth_provider);
@@ -152,7 +152,8 @@ impl Client {
                         *state.ecs_mut().write_resource() = time_of_day;
 
                         assert_eq!(world_map.len(), (map_size.x * map_size.y) as usize);
-                        let mut world_map_raw = vec![0u8; 4 * world_map.len()/*map_size.x * map_size.y*/];
+                        let mut world_map_raw =
+                            vec![0u8; 4 * world_map.len()/*map_size.x * map_size.y*/];
                         LittleEndian::write_u32_into(&world_map, &mut world_map_raw);
                         debug!("Preparing image...");
                         let world_map = Arc::new(
@@ -168,13 +169,14 @@ impl Client {
                         );
                         debug!("Done preparing image...");
 
-                        break Ok((state, entity, server_info, (world_map, map_size)))
+                        break Ok((state, entity, server_info, (world_map, map_size)));
                     },
                     ServerMsg::TooManyPlayers => break Err(Error::TooManyPlayers),
                     err => {
                         warn!("whoops, server mad {:?}, ignoring", err);
                     },
-                }}
+                }
+            }
         })?;
 
         stream.send(ClientMsg::Ping)?;
@@ -242,34 +244,39 @@ impl Client {
         })?;
         self.client_state = ClientState::Pending;
 
-        block_on(
-            async {
-                loop {
-                    match self.singleton_stream.recv().await? {
-                        ServerMsg::StateAnswer(Err((RequestStateError::RegisterDenied(err), state))) => {
-                            self.client_state = state;
-                            break Err(match err {
-                                RegisterError::AlreadyLoggedIn => Error::AlreadyLoggedIn,
-                                RegisterError::AuthError(err) => Error::AuthErr(err),
-                                RegisterError::InvalidCharacter => Error::InvalidCharacter,
-                                RegisterError::NotOnWhitelist => Error::NotOnWhitelist,
-                            })
-                        },
-                        ServerMsg::StateAnswer(Ok(ClientState::Registered)) => break Ok(()),
-                        ignore => {
-                            warn!("Ignoring what the server send till registered: {:? }", ignore);
-                            //return Err(Error::ServerWentMad)
-                        },
-                    }
+        block_on(async {
+            loop {
+                match self.singleton_stream.recv().await? {
+                    ServerMsg::StateAnswer(Err((
+                        RequestStateError::RegisterDenied(err),
+                        state,
+                    ))) => {
+                        self.client_state = state;
+                        break Err(match err {
+                            RegisterError::AlreadyLoggedIn => Error::AlreadyLoggedIn,
+                            RegisterError::AuthError(err) => Error::AuthErr(err),
+                            RegisterError::InvalidCharacter => Error::InvalidCharacter,
+                            RegisterError::NotOnWhitelist => Error::NotOnWhitelist,
+                        });
+                    },
+                    ServerMsg::StateAnswer(Ok(ClientState::Registered)) => break Ok(()),
+                    ignore => {
+                        warn!(
+                            "Ignoring what the server send till registered: {:? }",
+                            ignore
+                        );
+                        //return Err(Error::ServerWentMad)
+                    },
                 }
             }
-        )
+        })
     }
 
     /// Request a state transition to `ClientState::Character`.
     pub fn request_character(&mut self, character_id: i32) {
         self.singleton_stream
-            .send(ClientMsg::Character(character_id)).unwrap();
+            .send(ClientMsg::Character(character_id))
+            .unwrap();
 
         self.active_character_id = Some(character_id);
         self.client_state = ClientState::Pending;
@@ -278,27 +285,36 @@ impl Client {
     /// Load the current players character list
     pub fn load_character_list(&mut self) {
         self.character_list.loading = true;
-        self.singleton_stream.send(ClientMsg::RequestCharacterList).unwrap();
+        self.singleton_stream
+            .send(ClientMsg::RequestCharacterList)
+            .unwrap();
     }
 
     /// New character creation
     pub fn create_character(&mut self, alias: String, tool: Option<String>, body: comp::Body) {
         self.character_list.loading = true;
         self.singleton_stream
-            .send(ClientMsg::CreateCharacter { alias, tool, body }).unwrap();
+            .send(ClientMsg::CreateCharacter { alias, tool, body })
+            .unwrap();
     }
 
     /// Character deletion
     pub fn delete_character(&mut self, character_id: i32) {
         self.character_list.loading = true;
         self.singleton_stream
-            .send(ClientMsg::DeleteCharacter(character_id)).unwrap();
+            .send(ClientMsg::DeleteCharacter(character_id))
+            .unwrap();
     }
 
     /// Send disconnect message to the server
-    pub fn request_logout(&mut self) {  if let Err(e) = self.singleton_stream.send(ClientMsg::Disconnect) {
-        error!(?e, "couldn't send disconnect package to server, did server close already?");
-    }}
+    pub fn request_logout(&mut self) {
+        if let Err(e) = self.singleton_stream.send(ClientMsg::Disconnect) {
+            error!(
+                ?e,
+                "couldn't send disconnect package to server, did server close already?"
+            );
+        }
+    }
 
     /// Request a state transition to `ClientState::Registered` from an ingame
     /// state.
@@ -310,7 +326,8 @@ impl Client {
     pub fn set_view_distance(&mut self, view_distance: u32) {
         self.view_distance = Some(view_distance.max(1).min(65));
         self.singleton_stream
-            .send(ClientMsg::SetViewDistance(self.view_distance.unwrap())).unwrap();
+            .send(ClientMsg::SetViewDistance(self.view_distance.unwrap()))
+            .unwrap();
         // Can't fail
     }
 
@@ -318,21 +335,24 @@ impl Client {
         self.singleton_stream
             .send(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
                 InventoryManip::Use(slot),
-            ))).unwrap();
+            )))
+            .unwrap();
     }
 
     pub fn swap_slots(&mut self, a: comp::slot::Slot, b: comp::slot::Slot) {
         self.singleton_stream
             .send(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
                 InventoryManip::Swap(a, b),
-            ))).unwrap();
+            )))
+            .unwrap();
     }
 
     pub fn drop_slot(&mut self, slot: comp::slot::Slot) {
         self.singleton_stream
             .send(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
                 InventoryManip::Drop(slot),
-            ))).unwrap();
+            )))
+            .unwrap();
     }
 
     pub fn pick_up(&mut self, entity: EcsEntity) {
@@ -340,13 +360,15 @@ impl Client {
             self.singleton_stream
                 .send(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
                     InventoryManip::Pickup(uid),
-                ))).unwrap();
+                )))
+                .unwrap();
         }
     }
 
     pub fn toggle_lantern(&mut self) {
         self.singleton_stream
-            .send(ClientMsg::ControlEvent(ControlEvent::ToggleLantern)).unwrap();
+            .send(ClientMsg::ControlEvent(ControlEvent::ToggleLantern))
+            .unwrap();
     }
 
     pub fn is_mounted(&self) -> bool {
@@ -360,12 +382,15 @@ impl Client {
     pub fn mount(&mut self, entity: EcsEntity) {
         if let Some(uid) = self.state.ecs().read_storage::<Uid>().get(entity).copied() {
             self.singleton_stream
-                .send(ClientMsg::ControlEvent(ControlEvent::Mount(uid))).unwrap();
+                .send(ClientMsg::ControlEvent(ControlEvent::Mount(uid)))
+                .unwrap();
         }
     }
 
     pub fn unmount(&mut self) {
-        self.singleton_stream.send(ClientMsg::ControlEvent(ControlEvent::Unmount)).unwrap();
+        self.singleton_stream
+            .send(ClientMsg::ControlEvent(ControlEvent::Unmount))
+            .unwrap();
     }
 
     pub fn respawn(&mut self) {
@@ -377,7 +402,8 @@ impl Client {
             .map_or(false, |s| s.is_dead)
         {
             self.singleton_stream
-                .send(ClientMsg::ControlEvent(ControlEvent::Respawn)).unwrap();
+                .send(ClientMsg::ControlEvent(ControlEvent::Respawn))
+                .unwrap();
         }
     }
 
@@ -460,7 +486,8 @@ impl Client {
             controller.actions.push(control_action);
         }
         self.singleton_stream
-            .send(ClientMsg::ControlAction(control_action)).unwrap();
+            .send(ClientMsg::ControlAction(control_action))
+            .unwrap();
     }
 
     pub fn view_distance(&self) -> Option<u32> { self.view_distance }
@@ -489,7 +516,10 @@ impl Client {
     /// Send a chat message to the server.
     pub fn send_chat(&mut self, message: String) {
         match validate_chat_msg(&message) {
-            Ok(()) => self.singleton_stream.send(ClientMsg::ChatMsg(message)).unwrap(),
+            Ok(()) => self
+                .singleton_stream
+                .send(ClientMsg::ChatMsg(message))
+                .unwrap(),
             Err(ChatMsgValidationError::TooLong) => tracing::warn!(
                 "Attempted to send a message that's too long (Over {} bytes)",
                 MAX_BYTES_CHAT_MSG
@@ -504,18 +534,23 @@ impl Client {
     }
 
     pub fn place_block(&mut self, pos: Vec3<i32>, block: Block) {
-        self.singleton_stream.send(ClientMsg::PlaceBlock(pos, block)).unwrap();
+        self.singleton_stream
+            .send(ClientMsg::PlaceBlock(pos, block))
+            .unwrap();
     }
 
     pub fn remove_block(&mut self, pos: Vec3<i32>) {
-        self.singleton_stream.send(ClientMsg::BreakBlock(pos)).unwrap();
+        self.singleton_stream
+            .send(ClientMsg::BreakBlock(pos))
+            .unwrap();
     }
 
     pub fn collect_block(&mut self, pos: Vec3<i32>) {
         self.singleton_stream
             .send(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
                 InventoryManip::Collect(pos),
-            ))).unwrap();
+            )))
+            .unwrap();
     }
 
     /// Execute a single client tick, handle input and update the game state by
@@ -570,7 +605,9 @@ impl Client {
                     "Couldn't access controller component on client entity"
                 );
             }
-            self.singleton_stream.send(ClientMsg::ControllerInputs(inputs)).unwrap();
+            self.singleton_stream
+                .send(ClientMsg::ControllerInputs(inputs))
+                .unwrap();
         }
 
         // 2) Build up a list of events for this frame, to be passed to the frontend.
@@ -667,7 +704,8 @@ impl Client {
                         if self.state.terrain().get_key(*key).is_none() {
                             if !skip_mode && !self.pending_chunks.contains_key(key) {
                                 if self.pending_chunks.len() < 4 {
-                                    self.singleton_stream.send(ClientMsg::TerrainChunkRequest { key: *key })?;
+                                    self.singleton_stream
+                                        .send(ClientMsg::TerrainChunkRequest { key: *key })?;
                                     self.pending_chunks.insert(*key, Instant::now());
                                 } else {
                                     skip_mode = true;
@@ -710,7 +748,8 @@ impl Client {
                 self.state.read_storage().get(self.entity).cloned(),
                 self.state.read_storage().get(self.entity).cloned(),
             ) {
-                self.singleton_stream.send(ClientMsg::PlayerPhysics { pos, vel, ori })?;
+                self.singleton_stream
+                    .send(ClientMsg::PlayerPhysics { pos, vel, ori })?;
             }
         }
 
@@ -737,9 +776,13 @@ impl Client {
         self.state.cleanup();
     }
 
-    async fn handle_message(&mut self, frontend_events: &mut Vec<Event>, cnt: &mut u64) -> Result<(), Error> {
+    async fn handle_message(
+        &mut self,
+        frontend_events: &mut Vec<Event>,
+        cnt: &mut u64,
+    ) -> Result<(), Error> {
         loop {
-            let msg =  self.singleton_stream.recv().await?;
+            let msg = self.singleton_stream.recv().await?;
             *cnt += 1;
             match msg {
                 ServerMsg::TooManyPlayers => {
@@ -751,13 +794,11 @@ impl Client {
                     self.player_list = list
                 },
                 ServerMsg::PlayerListUpdate(PlayerListUpdate::Add(uid, player_info)) => {
-                    if let Some(old_player_info) =
-                    self.player_list.insert(uid, player_info.clone())
+                    if let Some(old_player_info) = self.player_list.insert(uid, player_info.clone())
                     {
                         warn!(
-                            "Received msg to insert {} with uid {} into the player list but \
-                                 there was already an entry for {} with the same uid that was \
-                                 overwritten!",
+                            "Received msg to insert {} with uid {} into the player list but there \
+                             was already an entry for {} with the same uid that was overwritten!",
                             player_info.player_alias, uid, old_player_info.player_alias
                         );
                     }
@@ -767,22 +808,22 @@ impl Client {
                         player_info.is_admin = admin;
                     } else {
                         warn!(
-                            "Received msg to update admin status of uid {}, but they were not \
-                                 in the list.",
+                            "Received msg to update admin status of uid {}, but they were not in \
+                             the list.",
                             uid
                         );
                     }
                 },
                 ServerMsg::PlayerListUpdate(PlayerListUpdate::SelectedCharacter(
-                                                uid,
-                                                char_info,
-                                            )) => {
+                    uid,
+                    char_info,
+                )) => {
                     if let Some(player_info) = self.player_list.get_mut(&uid) {
                         player_info.character = Some(char_info);
                     } else {
                         warn!(
-                            "Received msg to update character info for uid {}, but they were \
-                                 not in the list.",
+                            "Received msg to update character info for uid {}, but they were not \
+                             in the list.",
                             uid
                         );
                     }
@@ -796,8 +837,8 @@ impl Client {
                             }),
                             None => {
                                 warn!(
-                                    "Received msg to update character level info to {} for \
-                                         uid {}, but this player's character is None.",
+                                    "Received msg to update character level info to {} for uid \
+                                     {}, but this player's character is None.",
                                     next_level, uid
                                 );
 
@@ -818,15 +859,15 @@ impl Client {
                             player_info.is_online = false;
                         } else {
                             warn!(
-                                "Received msg to remove uid {} from the player list by they \
-                                     were already marked offline",
+                                "Received msg to remove uid {} from the player list by they were \
+                                 already marked offline",
                                 uid
                             );
                         }
                     } else {
                         warn!(
-                            "Received msg to remove uid {} from the player list by they \
-                                 weren't in the list!",
+                            "Received msg to remove uid {} from the player list by they weren't \
+                             in the list!",
                             uid
                         );
                     }
@@ -836,19 +877,20 @@ impl Client {
                         player_info.player_alias = new_name;
                     } else {
                         warn!(
-                            "Received msg to alias player with uid {} to {} but this uid is \
-                                 not in the player list",
+                            "Received msg to alias player with uid {} to {} but this uid is not \
+                             in the player list",
                             uid, new_name
                         );
                     }
                 },
 
-                ServerMsg::Ping => {self.singleton_stream.send(ClientMsg::Pong)?;},
+                ServerMsg::Ping => {
+                    self.singleton_stream.send(ClientMsg::Pong)?;
+                },
                 ServerMsg::Pong => {
                     self.last_server_pong = self.state.get_time();
 
-                    self.last_ping_delta =
-                        (self.state.get_time() - self.last_server_ping).round();
+                    self.last_ping_delta = (self.state.get_time() - self.last_server_ping).round();
                 },
                 ServerMsg::ChatMsg(m) => frontend_events.push(Event::Chat(m)),
                 ServerMsg::SetPlayerEntity(uid) => {
@@ -943,7 +985,7 @@ impl Client {
         }
     }
 
-            /// Handle new server messages.
+    /// Handle new server messages.
     fn handle_new_messages(&mut self) -> Result<Vec<Event>, Error> {
         let mut frontend_events = Vec::new();
 
@@ -963,9 +1005,9 @@ impl Client {
             }
         }
 
-                let mut handles_msg = 0;
+        let mut handles_msg = 0;
 
-        block_on(async{
+        block_on(async {
             //TIMEOUT 0.01 ms for msg handling
             select!(
                 _ = Delay::new(std::time::Duration::from_micros(10)).fuse() => Ok(()),
@@ -1109,7 +1151,13 @@ impl Client {
 }
 
 impl Drop for Client {
-    fn drop(&mut self) { if let Err(e) = self.singleton_stream.send(ClientMsg::Disconnect) {
-        warn!("error during drop of client, couldn't send disconnect package, is the connection already closed? : {}", e);
-    } }
+    fn drop(&mut self) {
+        if let Err(e) = self.singleton_stream.send(ClientMsg::Disconnect) {
+            warn!(
+                "error during drop of client, couldn't send disconnect package, is the connection \
+                 already closed? : {}",
+                e
+            );
+        }
+    }
 }
