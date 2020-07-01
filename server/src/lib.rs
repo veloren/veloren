@@ -31,13 +31,13 @@ use common::{
     cmd::ChatCommand,
     comp::{self, ChatType},
     event::{EventBus, ServerEvent},
-    msg::{ClientMsg, ClientState, ServerInfo, ServerMsg},
-    net::PostOffice,
+    msg::{ClientState, ServerInfo, ServerMsg},
     state::{State, TimeOfDay},
     sync::WorldSyncExt,
     terrain::TerrainChunkSize,
     vol::{ReadVol, RectVolSize},
 };
+use network::{Network, Address, Pid};
 use metrics::{ServerMetrics, TickMetrics};
 use persistence::character::{CharacterLoader, CharacterLoaderResponseType, CharacterUpdater};
 use specs::{join::Join, Builder, Entity as EcsEntity, RunNow, SystemData, WorldExt};
@@ -47,6 +47,9 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
+use futures_util::{select, FutureExt};
+use futures_executor::block_on;
+use futures_timer::Delay;
 #[cfg(not(feature = "worldgen"))]
 use test_world::{World, WORLD_SIZE};
 use tracing::{debug, error, info};
@@ -77,7 +80,7 @@ pub struct Server {
     world: Arc<World>,
     map: Vec<u32>,
 
-    postoffice: PostOffice<ServerMsg, ClientMsg>,
+    network: Network,
 
     thread_pool: ThreadPool,
 
@@ -233,16 +236,19 @@ impl Server {
             .run(settings.metrics_address)
             .expect("Failed to initialize server metrics submodule.");
 
+        let thread_pool = ThreadPoolBuilder::new().name("veloren-worker".to_string()).build();
+        let (network, f) = Network::new(Pid::new(), None);
+        thread_pool.execute(f);
+        block_on(network.listen(Address::Tcp(settings.gameserver_address)))?;
+
         let this = Self {
             state,
             world: Arc::new(world),
             map,
 
-            postoffice: PostOffice::bind(settings.gameserver_address)?,
+            network,
 
-            thread_pool: ThreadPoolBuilder::new()
-                .name("veloren-worker".into())
-                .build(),
+            thread_pool,
 
             metrics,
             tick_metrics,
@@ -329,17 +335,18 @@ impl Server {
         // 1) Build up a list of events for this frame, to be passed to the frontend.
         let mut frontend_events = Vec::new();
 
-        // If networking has problems, handle them.
-        if let Some(err) = self.postoffice.error() {
-            return Err(err.into());
-        }
-
         // 2)
 
         let before_new_connections = Instant::now();
 
         // 3) Handle inputs from clients
-        frontend_events.append(&mut self.handle_new_connections()?);
+        block_on(async{
+            //TIMEOUT 0.01 ms for msg handling
+            let x = select!(
+                _ = Delay::new(std::time::Duration::from_micros(10)).fuse() => Ok(()),
+                err = self.handle_new_connections(&mut frontend_events).fuse() => err,
+            );
+        });
 
         let before_message_system = Instant::now();
 
@@ -582,13 +589,14 @@ impl Server {
     }
 
     /// Handle new client connections.
-    fn handle_new_connections(&mut self) -> Result<Vec<Event>, Error> {
-        let mut frontend_events = Vec::new();
+    async fn handle_new_connections(&mut self, frontend_events: &mut Vec<Event>) -> Result<(), Error> {
+        loop {
+            let participant = self.network.connected().await?;
+            let singleton_stream = participant.opened().await?;
 
-        for postbox in self.postoffice.new_postboxes() {
             let mut client = Client {
                 client_state: ClientState::Connected,
-                postbox,
+                singleton_stream: std::sync::Mutex::new(singleton_stream),
                 last_ping: self.state.get_time(),
                 login_msg_sent: false,
             };
@@ -626,8 +634,6 @@ impl Server {
                 frontend_events.push(Event::ClientConnected { entity });
             }
         }
-
-        Ok(frontend_events)
     }
 
     pub fn notify_client<S>(&self, entity: EcsEntity, msg: S)

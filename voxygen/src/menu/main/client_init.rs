@@ -1,5 +1,4 @@
 use client::{error::Error as ClientError, Client};
-use common::net::PostError;
 use crossbeam::channel::{unbounded, Receiver, Sender, TryRecvError};
 use std::{
     net::ToSocketAddrs,
@@ -98,12 +97,10 @@ impl ClientInit {
                                 },
                                 Err(err) => {
                                     match err {
-                                        ClientError::Network(PostError::Bincode(_)) => {
+                                        ClientError::NetworkErr(_) => {
                                             last_err = Some(Error::ClientError(err));
                                             break 'tries;
-                                        },
-                                        // Assume the connection failed and try again soon
-                                        ClientError::Network(_) => {},
+                                        }
                                         // Non-connection error, stop attempts
                                         err => {
                                             last_err = Some(Error::ClientError(err));
