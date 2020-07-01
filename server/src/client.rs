@@ -1,8 +1,6 @@
-use common::{
-    msg::{ClientState, RequestStateError, ServerMsg},
-};
-use network::Stream;
+use common::msg::{ClientState, RequestStateError, ServerMsg};
 use hashbrown::HashSet;
+use network::Stream;
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 use vek::*;
@@ -19,7 +17,9 @@ impl Component for Client {
 }
 
 impl Client {
-    pub fn notify(&mut self, msg: ServerMsg) { let _ = self.singleton_stream.lock().unwrap().send(msg); }
+    pub fn notify(&mut self, msg: ServerMsg) {
+        let _ = self.singleton_stream.lock().unwrap().send(msg);
+    }
 
     pub fn is_registered(&self) -> bool {
         match self.client_state {
@@ -37,13 +37,19 @@ impl Client {
 
     pub fn allow_state(&mut self, new_state: ClientState) {
         self.client_state = new_state;
-        let _ = self.singleton_stream
-            .lock().unwrap().send(ServerMsg::StateAnswer(Ok(new_state)));
+        let _ = self
+            .singleton_stream
+            .lock()
+            .unwrap()
+            .send(ServerMsg::StateAnswer(Ok(new_state)));
     }
 
     pub fn error_state(&mut self, error: RequestStateError) {
-        let _ = self.singleton_stream
-            .lock().unwrap().send(ServerMsg::StateAnswer(Err((error, self.client_state))));
+        let _ = self
+            .singleton_stream
+            .lock()
+            .unwrap()
+            .send(ServerMsg::StateAnswer(Err((error, self.client_state))));
     }
 }
 

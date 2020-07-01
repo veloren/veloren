@@ -37,8 +37,11 @@ use common::{
     terrain::TerrainChunkSize,
     vol::{ReadVol, RectVolSize},
 };
-use network::{Network, Address, Pid};
+use futures_executor::block_on;
+use futures_timer::Delay;
+use futures_util::{select, FutureExt};
 use metrics::{ServerMetrics, TickMetrics};
+use network::{Address, Network, Pid};
 use persistence::character::{CharacterLoader, CharacterLoaderResponseType, CharacterUpdater};
 use specs::{join::Join, Builder, Entity as EcsEntity, RunNow, SystemData, WorldExt};
 use std::{
@@ -47,9 +50,6 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
-use futures_util::{select, FutureExt};
-use futures_executor::block_on;
-use futures_timer::Delay;
 #[cfg(not(feature = "worldgen"))]
 use test_world::{World, WORLD_SIZE};
 use tracing::{debug, error, info};
@@ -236,7 +236,9 @@ impl Server {
             .run(settings.metrics_address)
             .expect("Failed to initialize server metrics submodule.");
 
-        let thread_pool = ThreadPoolBuilder::new().name("veloren-worker".to_string()).build();
+        let thread_pool = ThreadPoolBuilder::new()
+            .name("veloren-worker".to_string())
+            .build();
         let (network, f) = Network::new(Pid::new(), None);
         thread_pool.execute(f);
         block_on(network.listen(Address::Tcp(settings.gameserver_address)))?;
@@ -340,7 +342,7 @@ impl Server {
         let before_new_connections = Instant::now();
 
         // 3) Handle inputs from clients
-        block_on(async{
+        block_on(async {
             //TIMEOUT 0.01 ms for msg handling
             select!(
                 _ = Delay::new(std::time::Duration::from_micros(10)).fuse() => Ok(()),
@@ -589,7 +591,10 @@ impl Server {
     }
 
     /// Handle new client connections.
-    async fn handle_new_connections(&mut self, frontend_events: &mut Vec<Event>) -> Result<(), Error> {
+    async fn handle_new_connections(
+        &mut self,
+        frontend_events: &mut Vec<Event>,
+    ) -> Result<(), Error> {
         loop {
             let participant = self.network.connected().await?;
             let singleton_stream = participant.opened().await?;
