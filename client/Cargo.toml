@@ -6,9 +6,13 @@ edition = "2018"
 
 [dependencies]
 common = { package = "veloren-common", path = "../common", features = ["no-assets"] }
+network = { package = "veloren_network", path = "../network", default-features = false }
 
 byteorder = "1.3.2"
 uvth = "3.1.1"
+futures-util = "0.3"
+futures-executor = "0.3"
+futures-timer = "3.0"
 image = { version = "0.22.3", default-features = false, features = ["png"] }
 num_cpus = "1.10.1"
 tracing = { version = "0.1", default-features = false }

@@ -11,6 +11,7 @@ default = ["worldgen"]
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
 world = { package = "veloren-world", path = "../world" }
+network = { package = "veloren_network", path = "../network", default-features = false }
 
 specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git" }
 
@@ -18,6 +19,9 @@ tracing = "0.1"
 specs = { version = "0.15.1", features = ["shred-derive"] }
 vek = "0.11.0"
 uvth = "3.1.1"
+futures-util = "0.3"
+futures-executor = "0.3"
+futures-timer = "3.0"
 lazy_static = "1.4.0"
 scan_fmt = "0.2.4"
 ron = { version = "0.6", default-features = false }

@@ -41,8 +41,7 @@ impl<'a> System<'a> for Sys {
                     {
                         if wp_old.map_or(true, |w| w.elapsed(*time) > NOTIFY_TIME) {
                             client
-                                .postbox
-                                .send_message(ServerMsg::Notification(Notification::WaypointSaved));
+                                .notify(ServerMsg::Notification(Notification::WaypointSaved));
                         }
                     }
                 }
