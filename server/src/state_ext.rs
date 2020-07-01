@@ -246,6 +246,7 @@ impl StateExt for State {
             | comp::ChatType::Offline
             | comp::ChatType::CommandInfo
             | comp::ChatType::CommandError
+            | comp::ChatType::Loot
             | comp::ChatType::Kill
             | comp::ChatType::Meta
             | comp::ChatType::World(_) => {

@@ -138,7 +138,7 @@ https://account.veloren.net."#,
         "main.login.failed_sending_request": "Request to Auth server failed",
         "main.login.invalid_character": "The selected character is invalid",
         "main.login.client_crashed": "Client crashed",
-        "main.login.not_on_whitelist": "You are not on the whitelist. Contact Server Owner if you want to join.",
+        "main.login.not_on_whitelist": "You need a Whitelist entry by an Admin to join",
 
         /// End Main screen section
 
@@ -154,6 +154,18 @@ https://account.veloren.net."#,
         "hud.press_key_to_show_debug_info_fmt": "Press {key} to show debug info",
         "hud.press_key_to_toggle_keybindings_fmt": "Press {key} to toggle keybindings",
         "hud.press_key_to_toggle_debug_info_fmt": "Press {key} to toggle debug info",
+
+        // Chat outputs
+        "hud.chat.online_msg": "[{name}] is now online.", 
+        "hud.chat.offline_msg": "{name} went offline.", 
+        "hud.chat.loot_msg": "You picked up [{item}]",
+        "hud.chat.loot_fail": "Your Inventory is full!",
+        "hud.chat.goodbye": "Goodbye!",
+        "hud.chat.connection_lost": "Connection lost. Kicking in {time} seconds.",
+
+        // SCT outputs
+        "hud.sct.experience": "{amount} Exp",
+        "hud.sct.block": "BLOCKED",
 
         // Respawn message
         "hud.press_key_to_respawn": r#"Press {key} to respawn at the last campfire you visited."#,
@@ -260,7 +272,7 @@ magically infused items?"#,
         "hud.settings.percentages": "Percentages",
         "hud.settings.chat": "Chat",
         "hud.settings.background_transparency": "Background Transparency",
-        "hud.settings.chat_character_name": "Show Character Names",
+        "hud.settings.chat_character_name": "Character Names in chat",
 
         "hud.settings.pan_sensitivity": "Pan Sensitivity",
         "hud.settings.zoom_sensitivity": "Zoom Sensitivity",

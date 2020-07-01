@@ -4,12 +4,13 @@ use super::{
 };
 use crate::{
     i18n::VoxygenLocalization,
-    ui::{fonts::ConrodVoxygenFonts, img_ids},
+    ui::{fonts::ConrodVoxygenFonts, img_ids, ImageSlider},
+    GlobalState,
 };
 use client::{self, Client};
 use common::{comp, terrain::TerrainChunkSize, vol::RectVolSize};
 use conrod_core::{
-    color,
+    color, position,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
@@ -29,6 +30,7 @@ widget_ids! {
         grid,
         map_title,
         qlog_title,
+        zoom_slider,
     }
 }
 
@@ -44,6 +46,7 @@ pub struct Map<'a> {
     common: widget::CommonBuilder,
     _pulse: f32,
     localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+    global_state: &'a GlobalState,
 }
 impl<'a> Map<'a> {
     #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
@@ -56,6 +59,7 @@ impl<'a> Map<'a> {
         fonts: &'a ConrodVoxygenFonts,
         pulse: f32,
         localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+        global_state: &'a GlobalState,
     ) -> Self {
         Self {
             _show: show,
@@ -67,6 +71,7 @@ impl<'a> Map<'a> {
             common: widget::CommonBuilder::default(),
             _pulse: pulse,
             localized_strings,
+            global_state,
         }
     }
 }
@@ -76,11 +81,12 @@ pub struct State {
 }
 
 pub enum Event {
+    MapZoom(f64),
     Close,
 }
 
 impl<'a> Widget for Map<'a> {
-    type Event = Option<Event>;
+    type Event = Vec<Event>;
     type State = State;
     type Style = ();
 
@@ -96,7 +102,8 @@ impl<'a> Widget for Map<'a> {
     #[allow(clippy::useless_format)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
-
+        let zoom = self.global_state.settings.gameplay.map_zoom * 0.8;
+        let mut events = Vec::new();
         // Frame
         Image::new(self.imgs.map_bg)
             .w_h(1052.0, 886.0)
@@ -154,7 +161,7 @@ impl<'a> Widget for Map<'a> {
             .set(state.ids.close, ui)
             .was_clicked()
         {
-            return Some(Event::Close);
+            events.push(Event::Close);
         }
 
         // Location Name
@@ -182,11 +189,6 @@ impl<'a> Widget for Map<'a> {
         let (world_map, worldsize) = self.world_map;
         let worldsize = worldsize.map2(TerrainChunkSize::RECT_SIZE, |e, f| e as f64 * f as f64);
 
-        Image::new(world_map.none)
-            .mid_top_with_margin_on(state.ids.map_align, 10.0)
-            .w_h(760.0, 760.0)
-            .parent(state.ids.bg)
-            .set(state.ids.grid, ui);
         // Coordinates
         let player_pos = self
             .client
@@ -195,27 +197,56 @@ impl<'a> Widget for Map<'a> {
             .read_storage::<comp::Pos>()
             .get(self.client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
+        let w_src = worldsize.x / TerrainChunkSize::RECT_SIZE.x as f64 / zoom;
+        let h_src = worldsize.y / TerrainChunkSize::RECT_SIZE.y as f64 / zoom;
+        let rect_src = position::Rect::from_xy_dim(
+            [
+                player_pos.x as f64 / TerrainChunkSize::RECT_SIZE.x as f64,
+                (worldsize.y - player_pos.y as f64) / TerrainChunkSize::RECT_SIZE.y as f64,
+            ],
+            [w_src, h_src],
+        );
+        Image::new(world_map.none)
+            .mid_top_with_margin_on(state.ids.map_align, 10.0)
+            .w_h(760.0, 760.0)
+            .parent(state.ids.bg)
+            .source_rectangle(rect_src)
+            .set(state.ids.grid, ui);
+
+        if let Some(new_val) = ImageSlider::discrete(
+            self.global_state.settings.gameplay.map_zoom as i32,
+            1,
+            30,
+            self.imgs.slider_indicator_small,
+            self.imgs.slider,
+        )
+        .w_h(600.0, 22.0 * 2.0)
+        .mid_bottom_with_margin_on(state.ids.grid, -55.0)
+        .track_breadth(12.0 * 2.0)
+        .slider_length(22.0 * 2.0)
+        .pad_track((12.0, 12.0))
+        .set(state.ids.zoom_slider, ui)
+        {
+            events.push(Event::MapZoom(new_val as f64));
+        }
         // Cursor pos relative to playerpos and widget size
         // Cursor stops moving on an axis as soon as it's position exceeds the maximum
-        // size of the widget
-        let rel = Vec2::from(player_pos).map2(worldsize, |e: f32, sz: f64| {
+        // // size of the widget
+
+        /*let rel = Vec2::from(player_pos).map2(worldsize, |e: f32, sz: f64| {
             (e as f64 / sz).clamped(0.0, 1.0)
-        });
-        let xy = rel * 760.0;
+        });*/
+        //let xy = rel * 760.0;
         let scale = 0.6;
         let arrow_sz = Vec2::new(32.0, 37.0) * scale;
         Image::new(self.rot_imgs.indicator_mmap_small.target_north)
-            .bottom_left_with_margins_on(
-                state.ids.grid,
-                xy.y - arrow_sz.y / 2.0,
-                xy.x - arrow_sz.x / 2.0,
-            )
+            .middle_of(state.ids.grid)
             .w_h(arrow_sz.x, arrow_sz.y)
             .color(Some(UI_HIGHLIGHT_0))
             .floating(true)
             .parent(ui.window)
             .set(state.ids.indicator, ui);
 
-        None
+        events
     }
 }
