@@ -272,7 +272,7 @@ impl<'a> System<'a> for Sys {
                                 if !client.login_msg_sent {
                                     new_chat_msgs.push((None, ChatMsg {
                                         chat_type: ChatType::Online,
-                                        message: format!("[{}] is now online.", &player.alias),
+                                        message: format!("[{}] is now online.", &player.alias), // TODO: Localize this
                                     }));
 
                                     client.login_msg_sent = true;

@@ -12,7 +12,7 @@ use crate::{
 };
 use client::{self, Client};
 use common::{
-    assets::{load_watched, watch},
+    assets::{load_expect, load_watched, watch},
     clock::Clock,
     comp,
     comp::{ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel, MAX_PICKUP_RANGE_SQR},
@@ -42,6 +42,7 @@ pub struct SessionState {
     key_state: KeyState,
     inputs: comp::ControllerInputs,
     selected_block: Block,
+    voxygen_i18n: std::sync::Arc<VoxygenLocalization>,
 }
 
 /// Represents an active game session (i.e., the one being played).
@@ -63,6 +64,9 @@ impl SessionState {
                 .ecs_mut()
                 .insert(MyEntity(my_entity));
         }
+        let voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+            &global_state.settings.language.selected_language,
+        ));
         Self {
             scene,
             client,
@@ -70,6 +74,7 @@ impl SessionState {
             inputs: comp::ControllerInputs::default(),
             hud,
             selected_block: Block::new(BlockKind::Normal, Rgb::broadcast(255)),
+            voxygen_i18n,
         }
     }
 }
@@ -81,6 +86,9 @@ impl SessionState {
 
         let mut client = self.client.borrow_mut();
         for event in client.tick(self.inputs.clone(), dt, crate::ecs::sys::add_local_systems)? {
+            self.voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+                &global_state.settings.language.selected_language,
+            ));
             match event {
                 client::Event::Chat(m) => {
                     self.hud.new_message(m);
@@ -96,16 +104,17 @@ impl SessionState {
                     match inv_event {
                         InventoryUpdateEvent::CollectFailed => {
                             self.hud.new_message(ChatMsg {
-                                message: String::from(
-                                    "Failed to collect item. Your inventory may be full!",
-                                ),
+                                message: self.voxygen_i18n.get("hud.chat.loot_fail").to_string(),
                                 chat_type: ChatType::CommandError,
                             });
                         },
                         InventoryUpdateEvent::Collected(item) => {
                             self.hud.new_message(ChatMsg {
-                                message: format!("Picked up {}", item.name()),
-                                chat_type: ChatType::CommandInfo,
+                                message: self
+                                    .voxygen_i18n
+                                    .get("hud.chat.loot_msg")
+                                    .replace("{item}", item.name().to_string().as_str()),
+                                chat_type: ChatType::Loot,
                             });
                         },
                         _ => {},
@@ -114,8 +123,11 @@ impl SessionState {
                 client::Event::Disconnect => return Ok(TickAction::Disconnect),
                 client::Event::DisconnectionNotification(time) => {
                     let message = match time {
-                        0 => String::from("Goodbye!"),
-                        _ => format!("Connection lost. Kicking in {} seconds", time),
+                        0 => String::from(self.voxygen_i18n.get("hud.chat.goodbye")),
+                        _ => self
+                            .voxygen_i18n
+                            .get("hud.chat.connection_lost")
+                            .replace("{time}", time.to_string().as_str()),
                     };
 
                     self.hud.new_message(ChatMsg {
@@ -804,6 +816,10 @@ impl PlayState for SessionState {
                         self.scene
                             .camera_mut()
                             .compute_dependents(&*self.client.borrow().state().terrain());
+                    },
+                    HudEvent::MapZoom(map_zoom) => {
+                        global_state.settings.gameplay.map_zoom = map_zoom;
+                        global_state.settings.save_to_file_warn();
                     },
                     HudEvent::ChangeGamma(new_gamma) => {
                         global_state.settings.graphics.gamma = new_gamma;

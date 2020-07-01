@@ -99,6 +99,8 @@ const REGION_COLOR: Color = Color::Rgba(0.8, 1.0, 0.8, 1.0);
 const KILL_COLOR: Color = Color::Rgba(1.0, 0.17, 0.17, 1.0);
 /// Color for global messages
 const WORLD_COLOR: Color = Color::Rgba(0.95, 1.0, 0.95, 1.0);
+/// Color for collected loot messages
+const LOOT_COLOR: Color = Color::Rgba(0.69, 0.57, 1.0, 1.0);
 
 // UI Color-Theme
 const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
@@ -249,6 +251,7 @@ pub enum Event {
     ChangeMaxFPS(u32),
     ChangeFOV(u16),
     ChangeGamma(f32),
+    MapZoom(f64),
     AdjustWindowSize([u16; 2]),
     ToggleFullscreen,
     ChangeAaMode(AaMode),
@@ -360,7 +363,7 @@ impl Show {
     fn map(&mut self, open: bool) {
         self.map = open;
         self.bag = false;
-        self.want_grab = true;
+        self.want_grab = !open;
     }
 
     fn social(&mut self, open: bool) {
@@ -1794,7 +1797,7 @@ impl Hud {
         }
         // Map
         if self.show.map {
-            match Map::new(
+            for event in Map::new(
                 &self.show,
                 client,
                 &self.imgs,
@@ -1803,14 +1806,19 @@ impl Hud {
                 &self.fonts,
                 self.pulse,
                 &self.voxygen_i18n,
+                &global_state,
             )
             .set(self.ids.map, ui_widgets)
             {
-                Some(map::Event::Close) => {
-                    self.show.map(false);
-                    self.force_ungrab = true;
-                },
-                None => {},
+                match event {
+                    map::Event::Close => {
+                        self.show.map(false);
+                        self.force_ungrab = true;
+                    },
+                    map::Event::MapZoom(map_zoom) => {
+                        events.push(Event::MapZoom(map_zoom));
+                    },
+                }
             }
         }
 

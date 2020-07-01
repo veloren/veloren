@@ -185,8 +185,6 @@ image_ids! {
         selection: "voxygen.element.frames.selection",
         selection_hover: "voxygen.element.frames.selection_hover",
         selection_press: "voxygen.element.frames.selection_press",
-        slider_range: "voxygen.element.slider.track",
-        slider_indicator: "voxygen.element.slider.indicator",
 
         // Info Window
         info_frame: "voxygen.element.frames.info_frame",
@@ -199,6 +197,9 @@ image_ids! {
         <ImageGraphic>
 
         name_input: "voxygen.element.misc_bg.textbox_mid",
+
+        slider_range: "voxygen.element.slider.track",
+        slider_indicator: "voxygen.element.slider.indicator",
 
         // Tool Icons
         daggers: "voxygen.element.icons.daggers",

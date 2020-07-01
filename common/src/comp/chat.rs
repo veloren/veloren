@@ -81,6 +81,8 @@ pub enum ChatType {
     Npc(Uid, u16),
     /// Anything else
     Meta,
+    // Looted items
+    Loot,
 }
 
 impl ChatType {
@@ -134,6 +136,7 @@ impl ChatMsg {
             ChatType::Offline => SpeechBubbleType::None,
             ChatType::CommandInfo => SpeechBubbleType::None,
             ChatType::CommandError => SpeechBubbleType::None,
+            ChatType::Loot => SpeechBubbleType::None,
             ChatType::FactionMeta(_) => SpeechBubbleType::None,
             ChatType::GroupMeta(_) => SpeechBubbleType::None,
             ChatType::Kill => SpeechBubbleType::None,
@@ -154,6 +157,7 @@ impl ChatMsg {
             ChatType::Offline => None,
             ChatType::CommandInfo => None,
             ChatType::CommandError => None,
+            ChatType::Loot => None,
             ChatType::FactionMeta(_) => None,
             ChatType::GroupMeta(_) => None,
             ChatType::Kill => None,
