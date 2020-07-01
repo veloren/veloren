@@ -1,5 +1,5 @@
 use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
-use common::comp::item::ToolKind;
+use common::comp::item::{Hands, ToolKind};
 use vek::*;
 
 pub struct Input {
@@ -8,7 +8,7 @@ pub struct Input {
 pub struct DashAnimation;
 
 impl Animation for DashAnimation {
-    type Dependency = (Option<ToolKind>, f64);
+    type Dependency = (Option<ToolKind>, Option<ToolKind>, f64);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -18,7 +18,7 @@ impl Animation for DashAnimation {
     #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _global_time): Self::Dependency,
+        (active_tool_kind, second_tool_kind, _global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -79,6 +79,101 @@ impl Animation for DashAnimation {
                 next.r_foot.offset = Vec3::new(5.4, foot * -3.0 - 1.0, skeleton_attr.foot.2);
                 next.r_foot.ori = Quaternion::rotation_x(foot * 0.4 - 0.8);
             },
+            Some(ToolKind::Dagger(_)) => {
+                next.head.offset = Vec3::new(
+                    0.0,
+                    -2.0 + skeleton_attr.head.0,
+                    -2.0 + skeleton_attr.head.1,
+                );
+                next.head.ori = Quaternion::rotation_z(0.0)
+                    * Quaternion::rotation_x(0.0)
+                    * Quaternion::rotation_y(0.0);
+                next.head.scale = Vec3::one() * skeleton_attr.head_scale;
+
+                next.chest.offset = Vec3::new(0.0, 0.0, 7.0 + slow * 2.0);
+                next.chest.ori = Quaternion::rotation_x(-0.5) * Quaternion::rotation_z(-0.7);
+
+                next.belt.offset = Vec3::new(0.0, 1.0, -1.0);
+                next.belt.ori = Quaternion::rotation_x(0.2) * Quaternion::rotation_z(0.2);
+
+                next.shorts.offset = Vec3::new(0.0, 3.0, -3.0);
+                next.shorts.ori = Quaternion::rotation_x(0.4) * Quaternion::rotation_z(0.3);
+
+                next.l_hand.offset = Vec3::new(-0.75, -1.0, -2.5);
+                next.l_hand.ori = Quaternion::rotation_x(1.27);
+                next.l_hand.scale = Vec3::one() * 1.04;
+                next.r_hand.offset = Vec3::new(0.75, -1.5, -5.5);
+                next.r_hand.ori = Quaternion::rotation_x(1.27);
+                next.r_hand.scale = Vec3::one() * 1.05;
+                next.main.offset = Vec3::new(0.0, 6.0, -1.0);
+                next.main.ori = Quaternion::rotation_x(-0.3);
+                next.main.scale = Vec3::one();
+
+                next.control.offset = Vec3::new(-8.0 - slow * 0.5, 3.0 - foot * 0.6, 3.0);
+                next.control.ori =
+                    Quaternion::rotation_x(-0.3) * Quaternion::rotation_z(1.1 + slow * 0.2);
+                next.control.scale = Vec3::one();
+                next.l_foot.offset = Vec3::new(-1.4, foot * 3.0 + 2.0, skeleton_attr.foot.2);
+                next.l_foot.ori = Quaternion::rotation_x(foot * -0.4 - 0.8);
+
+                next.r_foot.offset = Vec3::new(5.4, foot * -3.0 - 1.0, skeleton_attr.foot.2);
+                next.r_foot.ori = Quaternion::rotation_x(foot * 0.4 - 0.8);
+            },
+            _ => {},
+        }
+
+        match second_tool_kind {
+            //TODO: Inventory
+            Some(ToolKind::Dagger(_)) => {
+                next.head.offset = Vec3::new(
+                    0.0,
+                    -2.0 + skeleton_attr.head.0,
+                    -2.0 + skeleton_attr.head.1,
+                );
+                next.head.ori = Quaternion::rotation_z(0.0)
+                    * Quaternion::rotation_x(0.0)
+                    * Quaternion::rotation_y(0.0);
+                next.head.scale = Vec3::one() * skeleton_attr.head_scale;
+
+                next.chest.offset = Vec3::new(0.0, 0.0, 7.0 + slow * 2.0);
+                next.chest.ori = Quaternion::rotation_x(0.0);
+
+                next.belt.offset = Vec3::new(0.0, 1.0, -1.0);
+                next.belt.ori = Quaternion::rotation_x(0.0);
+
+                next.shorts.offset = Vec3::new(0.0, 3.0, -3.0);
+                next.shorts.ori = Quaternion::rotation_x(0.0);
+
+                next.control.offset = Vec3::new(0.0, 0.0, 0.0);
+                next.control.ori = Quaternion::rotation_x(0.0);
+                next.control.scale = Vec3::one();
+
+                next.l_control.offset = Vec3::new(-8.0, -10.0, 0.0);
+
+                next.l_hand.offset = Vec3::new(0.0, 0.0, 0.0);
+                next.l_hand.ori = Quaternion::rotation_x(0.0);
+                next.l_hand.scale = Vec3::one() * 1.04;
+
+                next.main.offset = Vec3::new(0.0, 0.0, 0.0);
+                next.main.ori = Quaternion::rotation_x(0.0);
+                next.main.scale = Vec3::one();
+
+                next.r_control.offset = Vec3::new(8.0, 10.0, 0.0);
+
+                next.r_hand.offset = Vec3::new(0.0, 0.0, 0.0);
+                next.r_hand.ori = Quaternion::rotation_x(0.0);
+                next.r_hand.scale = Vec3::one() * 1.05;
+
+                next.second.offset = Vec3::new(0.0, 6.0, -1.0);
+                next.second.ori = Quaternion::rotation_x(-0.3);
+                next.second.scale = Vec3::one();
+
+                next.l_foot.offset = Vec3::new(-1.4, foot * 3.0 + 2.0, skeleton_attr.foot.2);
+                next.l_foot.ori = Quaternion::rotation_x(foot * -0.4 - 0.8);
+
+                next.r_foot.offset = Vec3::new(5.4, foot * -3.0 - 1.0, skeleton_attr.foot.2);
+                next.r_foot.ori = Quaternion::rotation_x(foot * 0.4 - 0.8);
+            },
             _ => {},
         }
 
@@ -98,6 +193,15 @@ impl Animation for DashAnimation {
         next.l_control.scale = Vec3::one();
 
         next.r_control.scale = Vec3::one();
+
+        next.second.scale = match (
+            active_tool_kind.map(|tk| tk.into_hands()),
+            second_tool_kind.map(|tk| tk.into_hands()),
+        ) {
+            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
+            (_, _) => Vec3::zero(),
+        };
+
         next
     }
 }

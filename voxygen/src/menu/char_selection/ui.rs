@@ -1318,7 +1318,7 @@ impl CharSelectionUi {
                 .set(self.ids.daggers_button, ui_widgets)
                 .was_clicked()
                 {
-                    // self.character_tool = Some(STARTER_DAGGER);
+                    // *tool = Some(STARTER_DAGGER);
                 } // REMOVE THIS AFTER IMPLEMENTATION
                 Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
                     .middle_of(self.ids.daggers)

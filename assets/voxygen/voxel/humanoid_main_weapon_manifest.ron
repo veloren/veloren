@@ -178,12 +178,12 @@
     ),
     // Daggers
     Dagger(BasicDagger): (
-        vox_spec: ("weapon.hammer.rusty_2h", (-2.5, -5.5, -4.0)), // TODO
+        vox_spec: ("weapon.dagger.dagger_rusty", (-1.5, -3.0, -3.0)),
         color: None
     ),
     // Shields
     Shield(BasicShield): (
-        vox_spec: ("weapon.shield.wood-0", (-2.5, -6.5, -2.0)),
+        vox_spec: ("weapon.shield.wood-0", (-2.5, -5.5, -5.5)),
         color: None
     ),
     // Bows

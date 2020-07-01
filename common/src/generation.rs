@@ -16,6 +16,7 @@ pub struct EntityInfo {
     pub body: Body,
     pub name: Option<String>,
     pub main_tool: Option<Item>,
+    pub second_tool: Option<Item>,
     pub scale: f32,
     pub level: Option<u32>,
     pub loot_drop: Option<Item>,
@@ -31,6 +32,7 @@ impl EntityInfo {
             body: Body::Humanoid(humanoid::Body::random()),
             name: None,
             main_tool: Some(Item::empty()),
+            second_tool: Some(Item::empty()),
             scale: 1.0,
             level: None,
             loot_drop: None,
@@ -71,6 +73,11 @@ impl EntityInfo {
 
     pub fn with_main_tool(mut self, main_tool: Item) -> Self {
         self.main_tool = Some(main_tool);
+        self
+    }
+
+    pub fn with_second_tool(mut self, second_tool: Item) -> Self {
+        self.second_tool = Some(second_tool);
         self
     }
 

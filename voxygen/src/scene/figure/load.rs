@@ -46,6 +46,9 @@ fn graceful_load_vox(mesh_name: &str) -> Arc<DotVoxData> {
 fn graceful_load_segment(mesh_name: &str) -> Segment {
     Segment::from(graceful_load_vox(mesh_name).as_ref())
 }
+fn graceful_load_segment_flipped(mesh_name: &str) -> Segment {
+    Segment::from_vox(graceful_load_vox(mesh_name).as_ref(), true)
+}
 fn graceful_load_mat_segment(mesh_name: &str) -> MatSegment {
     MatSegment::from(graceful_load_vox(mesh_name).as_ref())
 }
@@ -783,6 +786,7 @@ impl HumMainWeaponSpec {
     pub fn mesh_main_weapon(
         &self,
         item_kind: Option<&ItemKind>,
+        flipped: bool,
         generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
     ) -> Mesh<FigurePipeline> {
         let tool_kind = if let Some(ItemKind::Tool(Tool { kind, .. })) = item_kind {
@@ -799,10 +803,28 @@ impl HumMainWeaponSpec {
             },
         };
 
-        let tool_kind_segment = graceful_load_segment(&spec.vox_spec.0);
-        generate_mesh(&tool_kind_segment, Vec3::from(spec.vox_spec.1))
+        let tool_kind_segment = if flipped {
+            graceful_load_segment_flipped(&spec.vox_spec.0)
+        } else {
+            graceful_load_segment(&spec.vox_spec.0)
+        };
+
+        let offset = Vec3::new(
+            if flipped {
+                //log::warn!("tool kind segment {:?}", );
+                //tool_kind_segment.;
+                0.0 - spec.vox_spec.1[0] - (tool_kind_segment.sz.x as f32)
+            } else {
+                spec.vox_spec.1[0]
+            },
+            spec.vox_spec.1[1],
+            spec.vox_spec.1[2],
+        );
+
+        generate_mesh(&tool_kind_segment, offset)
     }
 }
+
 // Lantern
 impl HumArmorLanternSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {

@@ -115,6 +115,28 @@ pub enum ToolKind {
     Empty,
 }
 
+impl ToolKind {
+    pub fn into_hands(self) -> Hands {
+        match self {
+            ToolKind::Sword(_) => Hands::TwoHand,
+            ToolKind::Axe(_) => Hands::TwoHand,
+            ToolKind::Hammer(_) => Hands::TwoHand,
+            ToolKind::Bow(_) => Hands::TwoHand,
+            ToolKind::Dagger(_) => Hands::OneHand,
+            ToolKind::Staff(_) => Hands::TwoHand,
+            ToolKind::Shield(_) => Hands::OneHand,
+            ToolKind::Debug(_) => Hands::TwoHand,
+            ToolKind::Farming(_) => Hands::TwoHand,
+            ToolKind::Empty => Hands::OneHand,
+        }
+    }
+}
+
+pub enum Hands {
+    OneHand,
+    TwoHand,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ToolCategory {
     Sword,
@@ -271,14 +293,21 @@ impl Tool {
                     projectile_gravity: Some(Gravity(0.05)),
                 },
             ],
-            Dagger(_) => vec![BasicMelee {
-                energy_cost: 0,
-                buildup_duration: Duration::from_millis(100),
-                recover_duration: Duration::from_millis(400),
-                base_healthchange: -5,
-                range: 3.5,
-                max_angle: 60.0,
-            }],
+            Dagger(_) => vec![
+                BasicMelee {
+                    energy_cost: 0,
+                    buildup_duration: Duration::from_millis(100),
+                    recover_duration: Duration::from_millis(400),
+                    base_healthchange: -5,
+                    range: 3.5,
+                    max_angle: 60.0,
+                },
+                DashMelee {
+                    buildup_duration: Duration::from_millis(500),
+                    recover_duration: Duration::from_millis(500),
+                    base_damage: 20,
+                },
+            ],
             Staff(StaffKind::BasicStaff) => vec![
                 BasicMelee {
                     energy_cost: 0,
@@ -359,7 +388,17 @@ impl Tool {
                     max_angle: 45.0,
                 },
             ],
-            Shield(_) => vec![BasicBlock],
+            Shield(_) => vec![
+                BasicMelee {
+                    energy_cost: 0,
+                    buildup_duration: Duration::from_millis(100),
+                    recover_duration: Duration::from_millis(400),
+                    base_healthchange: -4,
+                    range: 3.0,
+                    max_angle: 120.0,
+                },
+                BasicBlock,
+            ],
             Debug(kind) => match kind {
                 DebugKind::Boost => vec![
                     CharacterAbility::Boost {

@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        item::{ItemKind, Tool},
+        item::{Hands, ItemKind, Tool},
         CharacterState, StateUpdate,
     },
     event::LocalEvent,
@@ -188,15 +188,44 @@ pub fn handle_ability1_input(data: &JoinData, update: &mut StateUpdate) {
 /// Will attempt to go into `loadout.active_item.ability2`
 pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.secondary.is_pressed() {
-        if let Some(ability) = data
-            .loadout
-            .active_item
-            .as_ref()
-            .and_then(|i| i.ability2.as_ref())
-            .filter(|ability| ability.requirements_paid(data, update))
-        {
-            update.character = ability.into();
-        }
+        let active_tool_kind = match data.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+            Some(ItemKind::Tool(Tool { kind, .. })) => Some(kind),
+            _ => None,
+        };
+
+        let second_tool_kind = match data.loadout.second_item.as_ref().map(|i| &i.item.kind) {
+            Some(ItemKind::Tool(Tool { kind, .. })) => Some(kind),
+            _ => None,
+        };
+
+        match (
+            active_tool_kind.map(|tk| tk.into_hands()),
+            second_tool_kind.map(|tk| tk.into_hands()),
+        ) {
+            (Some(Hands::TwoHand), _) => {
+                if let Some(ability) = data
+                    .loadout
+                    .active_item
+                    .as_ref()
+                    .and_then(|i| i.ability2.as_ref())
+                    .filter(|ability| ability.requirements_paid(data, update))
+                {
+                    update.character = ability.into();
+                }
+            },
+            (_, Some(Hands::OneHand)) => {
+                if let Some(ability) = data
+                    .loadout
+                    .second_item
+                    .as_ref()
+                    .and_then(|i| i.ability2.as_ref())
+                    .filter(|ability| ability.requirements_paid(data, update))
+                {
+                    update.character = ability.into();
+                }
+            },
+            (_, _) => {},
+        };
     }
 }
 

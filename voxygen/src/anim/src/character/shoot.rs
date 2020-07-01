@@ -1,11 +1,11 @@
 use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
-use common::comp::item::ToolKind;
+use common::comp::item::{Hands, ToolKind};
 use vek::*;
 
 pub struct ShootAnimation;
 
 impl Animation for ShootAnimation {
-    type Dependency = (Option<ToolKind>, f32, f64);
+    type Dependency = (Option<ToolKind>, Option<ToolKind>, f32, f64);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -15,7 +15,7 @@ impl Animation for ShootAnimation {
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, velocity, _global_time): Self::Dependency,
+        (active_tool_kind, second_tool_kind, velocity, _global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -184,6 +184,15 @@ impl Animation for ShootAnimation {
         next.r_control.offset = Vec3::new(0.0, 0.0, 0.0);
         next.r_control.ori = Quaternion::rotation_x(0.0);
         next.r_control.scale = Vec3::one();
+
+        next.second.scale = match (
+            active_tool_kind.map(|tk| tk.into_hands()),
+            second_tool_kind.map(|tk| tk.into_hands()),
+        ) {
+            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
+            (_, _) => Vec3::zero(),
+        };
+
         next
     }
 }
