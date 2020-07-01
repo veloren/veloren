@@ -1,5 +1,6 @@
 use authc::AuthClientError;
-use network::{NetworkError, ParticipantError, StreamError};
+use network::{ParticipantError, StreamError};
+pub use network::NetworkError;
 
 #[derive(Debug)]
 pub enum Error {
