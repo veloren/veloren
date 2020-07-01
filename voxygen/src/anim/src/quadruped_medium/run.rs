@@ -66,10 +66,10 @@ impl Animation for RunAnimation {
         let footrotr = (((1.0)
             / (0.5
                 + (0.5)
-                    * ((anim_time as f32 * 16.0 * lab as f32 * speedmult + PI * 0.4).sin())
+                    * ((anim_time as f32 * 16.0 * lab as f32 * speedmult + PI * 1.8).sin())
                         .powf(2.0 as f32)))
         .sqrt())
-            * ((anim_time as f32 * 16.0 * lab as f32 * speedmult + PI * 0.4).sin());
+            * ((anim_time as f32 * 16.0 * lab as f32 * speedmult + PI * 1.8).sin());
         //
         let foothorilb = (((5.0)
             / (1.0
@@ -91,18 +91,18 @@ impl Animation for RunAnimation {
         let footrotlb = (((1.0)
             / (0.5
                 + (0.5)
-                    * ((anim_time as f32 * 16.0 * lab as f32 * speedmult + PI * 1.0).sin())
-                        .powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * 16.0 * lab as f32 * speedmult + PI * 1.0).sin());
-
-        let footrotrb = (((1.0)
-            / (0.5
-                + (0.5)
                     * ((anim_time as f32 * 16.0 * lab as f32 * speedmult + PI * 0.0).sin())
                         .powf(2.0 as f32)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 * speedmult + PI * 0.0).sin());
+
+        let footrotrb = (((1.0)
+            / (0.5
+                + (0.5)
+                    * ((anim_time as f32 * 16.0 * lab as f32 * speedmult + PI * 0.4).sin())
+                        .powf(2.0 as f32)))
+        .sqrt())
+            * ((anim_time as f32 * 16.0 * lab as f32 * speedmult + PI * 0.4).sin());
 
         let shortalt = (anim_time as f32 * 16.0 * lab as f32 * speedmult + PI * 0.5).sin();
 
@@ -160,13 +160,13 @@ impl Animation for RunAnimation {
             next.torso_front.scale = Vec3::one() * skeleton_attr.scaler / 11.0;
 
             next.torso_back.offset =
-                Vec3::new(0.0, skeleton_attr.torso_back.0, skeleton_attr.torso_back.1);
+                Vec3::new(0.0, skeleton_attr.torso_back.0, skeleton_attr.torso_back.1 + shortalt * 0.2 - 0.2);
             next.torso_back.ori =
                 Quaternion::rotation_x(short * -0.03) * Quaternion::rotation_z(tilt * 1.8);
             next.torso_back.scale = Vec3::one();
 
             next.ears.offset = Vec3::new(0.0, skeleton_attr.ears.0, skeleton_attr.ears.1);
-            next.ears.ori = Quaternion::rotation_x(0.0);
+            next.ears.ori = Quaternion::rotation_x(shortalt * 0.2 + 0.2);
             next.ears.scale = Vec3::one() * 1.02;
 
             ////left and right functions currently swapped on some bones to change gait
@@ -273,13 +273,13 @@ impl Animation for RunAnimation {
             next.torso_front.scale = Vec3::one() * skeleton_attr.scaler / 11.0;
 
             next.torso_back.offset =
-                Vec3::new(0.0, skeleton_attr.torso_back.0, skeleton_attr.torso_back.1);
+                Vec3::new(0.0, skeleton_attr.torso_back.0, skeleton_attr.torso_back.1 + shortalt * 0.2 - 0.2);
             next.torso_back.ori =
                 Quaternion::rotation_x(short * 0.1) * Quaternion::rotation_z(tilt * 1.8);
             next.torso_back.scale = Vec3::one();
 
             next.ears.offset = Vec3::new(0.0, skeleton_attr.ears.0, skeleton_attr.ears.1);
-            next.ears.ori = Quaternion::rotation_x(0.0);
+            next.ears.ori = Quaternion::rotation_x(shortalt * 0.2 + 0.2);
             next.ears.scale = Vec3::one() * 1.02;
 
             ////left and right functions currently swapped on some bones to change gait
@@ -298,7 +298,7 @@ impl Animation for RunAnimation {
                 skeleton_attr.leg_f.2 + 1.0 + footvertl * -1.0,
             );
             next.leg_fr.ori =
-                Quaternion::rotation_x(footrotl * -0.6) * Quaternion::rotation_z(tilt * -0.5);
+                Quaternion::rotation_x(footrotr * -0.6) * Quaternion::rotation_z(tilt * -0.5);
             next.leg_fr.scale = Vec3::one() * 0.99;
 
             next.leg_bl.offset = Vec3::new(
@@ -307,7 +307,7 @@ impl Animation for RunAnimation {
                 skeleton_attr.leg_b.2 + 1.0 + footvertrb * -1.2,
             );
             next.leg_bl.ori =
-                Quaternion::rotation_x(footrotrb * -0.6) * Quaternion::rotation_z(tilt * -1.5);
+                Quaternion::rotation_x(footrotlb * -0.6) * Quaternion::rotation_z(tilt * -1.5);
             next.leg_bl.scale = Vec3::one() * 0.99;
 
             next.leg_br.offset = Vec3::new(
@@ -332,7 +332,7 @@ impl Animation for RunAnimation {
                 skeleton_attr.feet_f.1,
                 skeleton_attr.feet_f.2 + 2.0 + ((footvertl * -2.0).max(-1.0)),
             );
-            next.foot_fr.ori = Quaternion::rotation_x(footrotl * -0.7);
+            next.foot_fr.ori = Quaternion::rotation_x(footrotr * -0.7);
             next.foot_fr.scale = Vec3::one() * 0.98;
 
             next.foot_bl.offset = Vec3::new(
@@ -340,7 +340,7 @@ impl Animation for RunAnimation {
                 skeleton_attr.feet_b.1,
                 skeleton_attr.feet_b.2 + 2.0 + ((footvertrb * -2.0).max(-1.0)),
             );
-            next.foot_bl.ori = Quaternion::rotation_x(footrotrb * -0.7);
+            next.foot_bl.ori = Quaternion::rotation_x(footrotlb * -0.7);
             next.foot_bl.scale = Vec3::one() * 0.98;
 
             next.foot_br.offset = Vec3::new(
