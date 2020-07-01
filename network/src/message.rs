@@ -138,9 +138,9 @@ mod tests {
         assert_eq!(mb.data[0], 3);
         assert_eq!(mb.data[1], 0);
         assert_eq!(mb.data[7], 0);
-        assert_eq!(mb.data[8], 'a' as u8);
+        assert_eq!(mb.data[8], b'a');
         assert_eq!(mb.data[8], 97);
-        assert_eq!(mb.data[9], 'b' as u8);
-        assert_eq!(mb.data[10], 'c' as u8);
+        assert_eq!(mb.data[9], b'b');
+        assert_eq!(mb.data[10], b'c');
     }
 }
