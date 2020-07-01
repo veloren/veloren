@@ -425,19 +425,19 @@
             lateral: ("npc.wolf.male.leg_br"),
         ),
         foot_fl: (
-            offset: (-1.5, -1.5, -9.0),
+            offset: (-1.5, -2.5, -10.0),
             lateral: ("npc.wolf.male.foot_fl"),
         ),
         foot_fr: (
-            offset: (-1.5, -1.5, -9.0),
+            offset: (-1.5, -2.5, -10.0),
             lateral: ("npc.wolf.male.foot_fr"),
         ),
         foot_bl: (
-            offset: (-1.5, -1.5, -9.0),
+            offset: (-1.5, -2.5, -10.0),
             lateral: ("npc.wolf.male.foot_bl"),
         ),
         foot_br: (
-            offset: (-1.5, -1.5, -9.0),
+            offset: (-1.5, -2.5, -10.0),
             lateral: ("npc.wolf.male.foot_br"),
         ),
     ),
@@ -459,19 +459,19 @@
             lateral: ("npc.wolf.female.leg_br"),
         ),
         foot_fl: (
-            offset: (-1.5, -1.5, -9.0),
+            offset: (-1.5, -2.5, -10.0),
             lateral: ("npc.wolf.female.foot_fl"),
         ),
         foot_fr: (
-            offset: (-1.5, -1.5, -9.0),
+            offset: (-1.5, -2.5, -10.0),
             lateral: ("npc.wolf.female.foot_fr"),
         ),
         foot_bl: (
-            offset: (-1.5, -1.5, -9.0),
+            offset: (-1.5, -2.5, -10.0),
             lateral: ("npc.wolf.female.foot_bl"),
         ),
         foot_br: (
-            offset: (-1.5, -1.5, -9.0),
+            offset: (-1.5, -2.5, -10.0),
             lateral: ("npc.wolf.female.foot_br"),
         ),
     ),
