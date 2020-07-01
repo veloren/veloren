@@ -6,13 +6,13 @@ use vek::*;
 pub struct GlideWieldAnimation;
 
 impl Animation for GlideWieldAnimation {
-    type Dependency = (Option<ToolKind>, Vec3<f32>, Vec3<f32>, Vec3<f32>, f64);
+    type Dependency = (Option<ToolKind>, Option<ToolKind>, Vec3<f32>, Vec3<f32>, Vec3<f32>, f64);
     type Skeleton = CharacterSkeleton;
 
     #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     fn update_skeleton(
         skeleton: &Self::Skeleton,
-        (_active_tool_kind, velocity, orientation, last_ori, global_time): Self::Dependency,
+        (_active_tool_kind, _second_tool_kind, velocity, orientation, last_ori, global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -191,7 +191,7 @@ impl Animation for GlideWieldAnimation {
                 Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57 + short * 0.25);
             next.main.scale = Vec3::one();
 
-            next.second.scale = Vec3::one() * 0.0;
+            next.second.scale = Vec3::one();
 
             next.lantern.offset = Vec3::new(
                 skeleton_attr.lantern.0,
@@ -279,7 +279,7 @@ impl Animation for GlideWieldAnimation {
             next.main.scale = Vec3::one();
 
             next.second.offset = Vec3::new(0.0, 0.0, 0.0);
-            next.second.scale = Vec3::one() * 0.0;
+            next.second.scale = Vec3::one();
 
             next.lantern.offset = Vec3::new(
                 skeleton_attr.lantern.0,

@@ -2,7 +2,7 @@ pub mod armor;
 pub mod tool;
 
 // Reexports
-pub use tool::{DebugKind, SwordKind, Tool, ToolCategory, ToolKind};
+pub use tool::{DebugKind, Hands, SwordKind, Tool, ToolCategory, ToolKind};
 
 use crate::{
     assets::{self, Asset},

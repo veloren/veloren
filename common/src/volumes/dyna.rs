@@ -18,7 +18,7 @@ pub enum DynaError {
 pub struct Dyna<V: Vox, M, A: Access = ColumnAccess> {
     vox: Vec<V>,
     meta: M,
-    sz: Vec3<u32>,
+    pub sz: Vec3<u32>,
     _phantom: std::marker::PhantomData<A>,
 }
 

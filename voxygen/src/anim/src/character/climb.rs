@@ -1,12 +1,18 @@
 use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
-use common::comp::item::ToolKind;
+use common::comp::item::{Hands, ToolKind};
 use std::f32::consts::PI;
 use vek::*;
 
 pub struct ClimbAnimation;
 
 impl Animation for ClimbAnimation {
-    type Dependency = (Option<ToolKind>, Vec3<f32>, Vec3<f32>, f64);
+    type Dependency = (
+        Option<ToolKind>,
+        Option<ToolKind>,
+        Vec3<f32>,
+        Vec3<f32>,
+        f64,
+    );
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -15,7 +21,7 @@ impl Animation for ClimbAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_climb")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_active_tool_kind, velocity, _orientation, _global_time): Self::Dependency,
+        (active_tool_kind, second_tool_kind, velocity, _orientation, _global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -126,13 +132,41 @@ impl Animation for ClimbAnimation {
         next.glider.offset = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;
 
-        next.main.offset = Vec3::new(-7.0, -5.0, 18.0);
-        next.main.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57 + smootha * 0.25);
+        match active_tool_kind {
+            Some(ToolKind::Dagger(_)) => {
+                next.main.offset = Vec3::new(-4.0, -5.0, 7.0);
+                next.main.ori =
+                    Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(1.5 * PI);
+            },
+            Some(ToolKind::Shield(_)) => {
+                next.main.offset = Vec3::new(-0.0, -5.0, 3.0);
+                next.main.ori =
+                    Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(-1.5 * PI);
+            },
+            _ => {
+                next.main.offset = Vec3::new(-7.0, -5.0, 15.0);
+                next.main.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+            },
+        }
         next.main.scale = Vec3::one();
 
-        next.second.offset = Vec3::new(0.0, 0.0, 0.0);
-        next.second.ori = Quaternion::rotation_y(0.0);
-        next.second.scale = Vec3::one() * 0.0;
+        match second_tool_kind {
+            Some(ToolKind::Dagger(_)) => {
+                next.second.offset = Vec3::new(4.0, -6.0, 7.0);
+                next.second.ori =
+                    Quaternion::rotation_y(-0.25 * PI) * Quaternion::rotation_z(-1.5 * PI);
+            },
+            Some(ToolKind::Shield(_)) => {
+                next.second.offset = Vec3::new(0.0, -4.0, 3.0);
+                next.second.ori =
+                    Quaternion::rotation_y(-0.25 * PI) * Quaternion::rotation_z(1.5 * PI);
+            },
+            _ => {
+                next.second.offset = Vec3::new(-7.0, -5.0, 15.0);
+                next.second.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+            },
+        }
+        next.second.scale = Vec3::one();
 
         next.lantern.offset = Vec3::new(
             skeleton_attr.lantern.0,
@@ -152,6 +186,15 @@ impl Animation for ClimbAnimation {
         next.l_control.scale = Vec3::one();
 
         next.r_control.scale = Vec3::one();
+
+        next.second.scale = match (
+            active_tool_kind.map(|tk| tk.into_hands()),
+            second_tool_kind.map(|tk| tk.into_hands()),
+        ) {
+            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
+            (_, _) => Vec3::zero(),
+        };
+
         next
     }
 }
