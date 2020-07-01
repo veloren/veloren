@@ -21,7 +21,7 @@
             central: ("npc.grolgar.male.torso_back"),
         ),
         ears: (
-            offset: (-4.0, -1.0, -1.5),
+            offset: (-4.0, -1.0, 0.0),
             central: ("npc.grolgar.male.ears"),
         ),
         tail: (
@@ -51,7 +51,7 @@
             central: ("npc.grolgar.female.torso_back"),
         ),
         ears: (
-            offset: (-4.0, -1.0, -1.5),
+            offset: (-4.0, -1.0, 0.0),
             central: ("npc.grolgar.female.ears"),
         ),
         tail: (
@@ -69,7 +69,7 @@
             central: ("npc.saber.male.head_lower"),
         ),
         jaw: (
-            offset: (-2.0, -7.0, -1.5),
+            offset: (-2.5, -7.0, -1.5),
             central: ("npc.saber.male.jaw"),
         ),
         torso_front: (
@@ -81,7 +81,7 @@
             central: ("npc.saber.male.torso_back"),
         ),
         ears: (
-            offset: (-5.5, -1.0, -1.5),
+            offset: (-5.5, -1.0, 0.0),
             central: ("npc.saber.male.ears"),
         ),
         tail: (
@@ -99,7 +99,7 @@
             central: ("npc.saber.female.head_lower"),
         ),
         jaw: (
-            offset: (-2.0, -7.0, -1.5),
+            offset: (-2.5, -7.0, -1.5),
             central: ("npc.saber.female.jaw"),
         ),
         torso_front: (
@@ -111,7 +111,7 @@
             central: ("npc.saber.female.torso_back"),
         ),
         ears: (
-            offset: (-5.5, -1.0, -1.5),
+            offset: (-5.5, -1.0, 0.0),
             central: ("npc.saber.female.ears"),
         ),
         tail: (
@@ -141,7 +141,7 @@
             central: ("npc.tuskram.male.torso_back"),
         ),
         ears: (
-            offset: (-0.5, -0.5, -0.5),
+            offset: (-0.5, -0.5, 0.0),
             central: ("armor.empty"),
         ),
         tail: (
@@ -171,7 +171,7 @@
             central: ("npc.tuskram.female.torso_back"),
         ),
         ears: (
-            offset: (-0.5, -0.5, -0.5),
+            offset: (-0.5, -0.5, -0.0),
             central: ("armor.empty"),
         ),
         tail: (
@@ -201,7 +201,7 @@
             central: ("npc.lion.male.torso_back"),
         ),
         ears: (
-            offset: (-4.5, -1.0, -1.0),
+            offset: (-4.5, -1.0, 0.0),
             central: ("npc.lion.male.ears"),
         ),
         tail: (
@@ -231,7 +231,7 @@
             central: ("npc.lion.female.torso_back"),
         ),
         ears: (
-            offset: (-4.5, -1.0, -1.0),
+            offset: (-4.5, -1.0, 0.0),
             central: ("npc.lion.female.ears"),
         ),
         tail: (
@@ -261,7 +261,7 @@
             central: ("npc.tarasque.male.torso_back"),
         ),
         ears: (
-            offset: (-6.0, -1.0, -4.0),
+            offset: (-6.0, -1.0, 0.0),
             central: ("npc.tarasque.male.ears"),
         ),
         tail: (
@@ -291,7 +291,7 @@
             central: ("npc.tarasque.female.torso_back"),
         ),
         ears: (
-            offset: (-6.0, -1.0, -4.0),
+            offset: (-6.0, -1.0, 0.0),
             central: ("npc.tarasque.female.ears"),
         ),
         tail: (
@@ -321,7 +321,7 @@
             central: ("npc.tiger.male.torso_back"),
         ),
         ears: (
-            offset: (-4.5, -1.0, -1.0),
+            offset: (-4.5, -1.0, 0.0),
             central: ("npc.tiger.male.ears"),
         ),
         tail: (
@@ -351,7 +351,7 @@
             central: ("npc.tiger.female.torso_back"),
         ),
         ears: (
-            offset: (-4.5, -1.0, -1.0),
+            offset: (-4.5, -1.0, 0.0),
             central: ("npc.tiger.female.ears"),
         ),
         tail: (
@@ -381,7 +381,7 @@
             central: ("npc.wolf.male.torso_back"),
         ),
         ears: (
-            offset: (-5.0, -1.0, -2.5),
+            offset: (-5.0, -1.0, 0.0),
             central: ("npc.wolf.male.ears"),
         ),
         tail: (
@@ -411,7 +411,7 @@
             central: ("npc.wolf.female.torso_back"),
         ),
         ears: (
-            offset: (-5.0, -1.0, -2.5),
+            offset: (-5.0, -1.0, 0.0),
             central: ("npc.wolf.female.ears"),
         ),
         tail: (
@@ -441,7 +441,7 @@
             central: ("npc.frostfang.male.torso_back"),
         ),
         ears: (
-            offset: (-4.0, -1.0, -1.5),
+            offset: (-4.0, -1.0, 0.0),
             central: ("npc.frostfang.male.ears"),
         ),
         tail: (
@@ -471,7 +471,7 @@
             central: ("npc.frostfang.female.torso_back"),
         ),
         ears: (
-            offset: (-4.0, -1.0, -1.5),
+            offset: (-4.0, -1.0, 0.0),
             central: ("npc.frostfang.female.ears"),
         ),
         tail: (
