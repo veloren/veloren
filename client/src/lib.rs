@@ -252,6 +252,7 @@ impl Client {
                                 RegisterError::AlreadyLoggedIn => Error::AlreadyLoggedIn,
                                 RegisterError::AuthError(err) => Error::AuthErr(err),
                                 RegisterError::InvalidCharacter => Error::InvalidCharacter,
+                                RegisterError::NotOnWhitelist => Error::NotOnWhitelist,
                             })
                         },
                         ServerMsg::StateAnswer(Ok(ClientState::Registered)) => break Ok(()),
@@ -364,8 +365,7 @@ impl Client {
     }
 
     pub fn unmount(&mut self) {
-        self.postbox
-            .send_message(ClientMsg::ControlEvent(ControlEvent::Unmount));
+        self.singleton_stream.send(ClientMsg::ControlEvent(ControlEvent::Unmount)).unwrap();
     }
 
     pub fn respawn(&mut self) {
@@ -489,7 +489,7 @@ impl Client {
     /// Send a chat message to the server.
     pub fn send_chat(&mut self, message: String) {
         match validate_chat_msg(&message) {
-            Ok(()) => self.postbox.send_message(ClientMsg::ChatMsg(message)),
+            Ok(()) => self.singleton_stream.send(ClientMsg::ChatMsg(message)).unwrap(),
             Err(ChatMsgValidationError::TooLong) => tracing::warn!(
                 "Attempted to send a message that's too long (Over {} bytes)",
                 MAX_BYTES_CHAT_MSG
@@ -737,8 +737,213 @@ impl Client {
         self.state.cleanup();
     }
 
-    /// Handle new server messages.
+    async fn handle_message(&mut self, frontend_events: &mut Vec<Event>, cnt: &mut u64) -> Result<(), Error> {
+        loop {
+            let msg =  self.singleton_stream.recv().await?;
+            *cnt += 1;
+            match msg {
+                ServerMsg::TooManyPlayers => {
+                    return Err(Error::ServerWentMad);
+                },
+                ServerMsg::Shutdown => return Err(Error::ServerShutdown),
+                ServerMsg::InitialSync { .. } => return Err(Error::ServerWentMad),
+                ServerMsg::PlayerListUpdate(PlayerListUpdate::Init(list)) => {
+                    self.player_list = list
+                },
+                ServerMsg::PlayerListUpdate(PlayerListUpdate::Add(uid, player_info)) => {
+                    if let Some(old_player_info) =
+                    self.player_list.insert(uid, player_info.clone())
+                    {
+                        warn!(
+                            "Received msg to insert {} with uid {} into the player list but \
+                                 there was already an entry for {} with the same uid that was \
+                                 overwritten!",
+                            player_info.player_alias, uid, old_player_info.player_alias
+                        );
+                    }
+                },
+                ServerMsg::PlayerListUpdate(PlayerListUpdate::Admin(uid, admin)) => {
+                    if let Some(player_info) = self.player_list.get_mut(&uid) {
+                        player_info.is_admin = admin;
+                    } else {
+                        warn!(
+                            "Received msg to update admin status of uid {}, but they were not \
+                                 in the list.",
+                            uid
+                        );
+                    }
+                },
+                ServerMsg::PlayerListUpdate(PlayerListUpdate::SelectedCharacter(
+                                                uid,
+                                                char_info,
+                                            )) => {
+                    if let Some(player_info) = self.player_list.get_mut(&uid) {
+                        player_info.character = Some(char_info);
+                    } else {
+                        warn!(
+                            "Received msg to update character info for uid {}, but they were \
+                                 not in the list.",
+                            uid
+                        );
+                    }
+                },
+                ServerMsg::PlayerListUpdate(PlayerListUpdate::LevelChange(uid, next_level)) => {
+                    if let Some(player_info) = self.player_list.get_mut(&uid) {
+                        player_info.character = match &player_info.character {
+                            Some(character) => Some(common::msg::CharacterInfo {
+                                name: character.name.to_string(),
+                                level: next_level,
+                            }),
+                            None => {
+                                warn!(
+                                    "Received msg to update character level info to {} for \
+                                         uid {}, but this player's character is None.",
+                                    next_level, uid
+                                );
 
+                                None
+                            },
+                        };
+                    }
+                },
+                ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(uid)) => {
+                    // Instead of removing players, mark them as offline because we need to
+                    // remember the names of disconnected players in chat.
+                    //
+                    // TODO the server should re-use uids of players that log out and log back
+                    // in.
+
+                    if let Some(player_info) = self.player_list.get_mut(&uid) {
+                        if player_info.is_online {
+                            player_info.is_online = false;
+                        } else {
+                            warn!(
+                                "Received msg to remove uid {} from the player list by they \
+                                     were already marked offline",
+                                uid
+                            );
+                        }
+                    } else {
+                        warn!(
+                            "Received msg to remove uid {} from the player list by they \
+                                 weren't in the list!",
+                            uid
+                        );
+                    }
+                },
+                ServerMsg::PlayerListUpdate(PlayerListUpdate::Alias(uid, new_name)) => {
+                    if let Some(player_info) = self.player_list.get_mut(&uid) {
+                        player_info.player_alias = new_name;
+                    } else {
+                        warn!(
+                            "Received msg to alias player with uid {} to {} but this uid is \
+                                 not in the player list",
+                            uid, new_name
+                        );
+                    }
+                },
+
+                ServerMsg::Ping => {self.singleton_stream.send(ClientMsg::Pong)?;},
+                ServerMsg::Pong => {
+                    self.last_server_pong = self.state.get_time();
+
+                    self.last_ping_delta =
+                        (self.state.get_time() - self.last_server_ping).round();
+                },
+                ServerMsg::ChatMsg(m) => frontend_events.push(Event::Chat(m)),
+                ServerMsg::SetPlayerEntity(uid) => {
+                    if let Some(entity) = self.state.ecs().entity_from_uid(uid.0) {
+                        self.entity = entity;
+                    } else {
+                        return Err(Error::Other("Failed to find entity from uid.".to_owned()));
+                    }
+                },
+                ServerMsg::TimeOfDay(time_of_day) => {
+                    *self.state.ecs_mut().write_resource() = time_of_day;
+                },
+                ServerMsg::EntitySync(entity_sync_package) => {
+                    self.state
+                        .ecs_mut()
+                        .apply_entity_sync_package(entity_sync_package);
+                },
+                ServerMsg::CompSync(comp_sync_package) => {
+                    self.state
+                        .ecs_mut()
+                        .apply_comp_sync_package(comp_sync_package);
+                },
+                ServerMsg::CreateEntity(entity_package) => {
+                    self.state.ecs_mut().apply_entity_package(entity_package);
+                },
+                ServerMsg::DeleteEntity(entity) => {
+                    if self.state.read_component_cloned::<Uid>(self.entity) != Some(entity) {
+                        self.state
+                            .ecs_mut()
+                            .delete_entity_and_clear_from_uid_allocator(entity.0);
+                    }
+                },
+                // Cleanup for when the client goes back to the `Registered` state
+                ServerMsg::ExitIngameCleanup => {
+                    self.clean_state();
+                },
+                ServerMsg::InventoryUpdate(inventory, event) => {
+                    match event {
+                        InventoryUpdateEvent::CollectFailed => {},
+                        _ => {
+                            // Push the updated inventory component to the client
+                            self.state.write_component(self.entity, inventory);
+                        },
+                    }
+
+                    frontend_events.push(Event::InventoryUpdated(event));
+                },
+                ServerMsg::TerrainChunkUpdate { key, chunk } => {
+                    if let Ok(chunk) = chunk {
+                        self.state.insert_chunk(key, *chunk);
+                    }
+                    self.pending_chunks.remove(&key);
+                },
+                ServerMsg::TerrainBlockUpdates(mut blocks) => {
+                    blocks.drain().for_each(|(pos, block)| {
+                        self.state.set_block(pos, block);
+                    });
+                },
+                ServerMsg::StateAnswer(Ok(state)) => {
+                    self.client_state = state;
+                },
+                ServerMsg::StateAnswer(Err((error, state))) => {
+                    warn!(
+                        "StateAnswer: {:?}. Server thinks client is in state {:?}.",
+                        error, state
+                    );
+                },
+                ServerMsg::Disconnect => {
+                    frontend_events.push(Event::Disconnect);
+                    self.singleton_stream.send(ClientMsg::Terminate)?;
+                },
+                ServerMsg::CharacterListUpdate(character_list) => {
+                    self.character_list.characters = character_list;
+                    self.character_list.loading = false;
+                },
+                ServerMsg::CharacterActionError(error) => {
+                    warn!("CharacterActionError: {:?}.", error);
+                    self.character_list.error = Some(error);
+                },
+                ServerMsg::Notification(n) => {
+                    frontend_events.push(Event::Notification(n));
+                },
+                ServerMsg::CharacterDataLoadError(error) => {
+                    self.clean_state();
+                    self.character_list.error = Some(error);
+                },
+                ServerMsg::SetViewDistance(vd) => {
+                    self.view_distance = Some(vd);
+                    frontend_events.push(Event::SetViewDistance(vd));
+                },
+            }
+        }
+    }
+
+            /// Handle new server messages.
     fn handle_new_messages(&mut self) -> Result<Vec<Event>, Error> {
         let mut frontend_events = Vec::new();
 
@@ -758,216 +963,20 @@ impl Client {
             }
         }
 
-        let new_msgs = self.postbox.new_messages();
+                let mut handles_msg = 0;
 
-        if new_msgs.len() > 0 {
-            for msg in new_msgs {
-                match msg {
-                    ServerMsg::TooManyPlayers => {
-                        return Err(Error::ServerWentMad);
-                    },
-                    ServerMsg::Shutdown => return Err(Error::ServerShutdown),
-                    ServerMsg::InitialSync { .. } => return Err(Error::ServerWentMad),
-                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Init(list)) => {
-                        self.player_list = list
-                    },
-                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Add(uid, player_info)) => {
-                        if let Some(old_player_info) =
-                            self.player_list.insert(uid, player_info.clone())
-                        {
-                            warn!(
-                                "Received msg to insert {} with uid {} into the player list but \
-                                 there was already an entry for {} with the same uid that was \
-                                 overwritten!",
-                                player_info.player_alias, uid, old_player_info.player_alias
-                            );
-                        }
-                    },
-                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Admin(uid, admin)) => {
-                        if let Some(player_info) = self.player_list.get_mut(&uid) {
-                            player_info.is_admin = admin;
-                        } else {
-                            warn!(
-                                "Received msg to update admin status of uid {}, but they were not \
-                                 in the list.",
-                                uid
-                            );
-                        }
-                    },
-                    ServerMsg::PlayerListUpdate(PlayerListUpdate::SelectedCharacter(
-                        uid,
-                        char_info,
-                    )) => {
-                        if let Some(player_info) = self.player_list.get_mut(&uid) {
-                            player_info.character = Some(char_info);
-                        } else {
-                            warn!(
-                                "Received msg to update character info for uid {}, but they were \
-                                 not in the list.",
-                                uid
-                            );
-                        }
-                    },
-                    ServerMsg::PlayerListUpdate(PlayerListUpdate::LevelChange(uid, next_level)) => {
-                        if let Some(player_info) = self.player_list.get_mut(&uid) {
-                            player_info.character = match &player_info.character {
-                                Some(character) => Some(common::msg::CharacterInfo {
-                                    name: character.name.to_string(),
-                                    level: next_level,
-                                }),
-                                None => {
-                                    warn!(
-                                        "Received msg to update character level info to {} for \
-                                         uid {}, but this player's character is None.",
-                                        next_level, uid
-                                    );
+        block_on(async{
+            //TIMEOUT 0.01 ms for msg handling
+            select!(
+                _ = Delay::new(std::time::Duration::from_micros(10)).fuse() => Ok(()),
+                err = self.handle_message(&mut frontend_events, &mut handles_msg).fuse() => err,
+            )
+        })?;
 
-                                    None
-                                },
-                            };
-                        }
-                    },
-                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(uid)) => {
-                        // Instead of removing players, mark them as offline because we need to
-                        // remember the names of disconnected players in chat.
-                        //
-                        // TODO the server should re-use uids of players that log out and log back
-                        // in.
-
-                        if let Some(player_info) = self.player_list.get_mut(&uid) {
-                            if player_info.is_online {
-                                player_info.is_online = false;
-                            } else {
-                                warn!(
-                                    "Received msg to remove uid {} from the player list by they \
-                                     were already marked offline",
-                                    uid
-                                );
-                            }
-                        } else {
-                            warn!(
-                                "Received msg to remove uid {} from the player list by they \
-                                 weren't in the list!",
-                                uid
-                            );
-                        }
-                    },
-                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Alias(uid, new_name)) => {
-                        if let Some(player_info) = self.player_list.get_mut(&uid) {
-                            player_info.player_alias = new_name;
-                        } else {
-                            warn!(
-                                "Received msg to alias player with uid {} to {} but this uid is \
-                                 not in the player list",
-                                uid, new_name
-                            );
-                        }
-                    },
-
-                    ServerMsg::Ping => self.postbox.send_message(ClientMsg::Pong),
-                    ServerMsg::Pong => {
-                        self.last_server_pong = self.state.get_time();
-
-                        self.last_ping_delta =
-                            (self.state.get_time() - self.last_server_ping).round();
-                    },
-                    ServerMsg::ChatMsg(m) => frontend_events.push(Event::Chat(m)),
-                    ServerMsg::SetPlayerEntity(uid) => {
-                        if let Some(entity) = self.state.ecs().entity_from_uid(uid.0) {
-                            self.entity = entity;
-                        } else {
-                            return Err(Error::Other("Failed to find entity from uid.".to_owned()));
-                        }
-                    },
-                    ServerMsg::TimeOfDay(time_of_day) => {
-                        *self.state.ecs_mut().write_resource() = time_of_day;
-                    },
-                    ServerMsg::EntitySync(entity_sync_package) => {
-                        self.state
-                            .ecs_mut()
-                            .apply_entity_sync_package(entity_sync_package);
-                    },
-                    ServerMsg::CompSync(comp_sync_package) => {
-                        self.state
-                            .ecs_mut()
-                            .apply_comp_sync_package(comp_sync_package);
-                    },
-                    ServerMsg::CreateEntity(entity_package) => {
-                        self.state.ecs_mut().apply_entity_package(entity_package);
-                    },
-                    ServerMsg::DeleteEntity(entity) => {
-                        if self.state.read_component_cloned::<Uid>(self.entity) != Some(entity) {
-                            self.state
-                                .ecs_mut()
-                                .delete_entity_and_clear_from_uid_allocator(entity.0);
-                        }
-                    },
-                    // Cleanup for when the client goes back to the `Registered` state
-                    ServerMsg::ExitIngameCleanup => {
-                        self.clean_state();
-                    },
-                    ServerMsg::InventoryUpdate(inventory, event) => {
-                        match event {
-                            InventoryUpdateEvent::CollectFailed => {},
-                            _ => {
-                                // Push the updated inventory component to the client
-                                self.state.write_component(self.entity, inventory);
-                            },
-                        }
-
-                        frontend_events.push(Event::InventoryUpdated(event));
-                    },
-                    ServerMsg::TerrainChunkUpdate { key, chunk } => {
-                        if let Ok(chunk) = chunk {
-                            self.state.insert_chunk(key, *chunk);
-                        }
-                        self.pending_chunks.remove(&key);
-                    },
-                    ServerMsg::TerrainBlockUpdates(mut blocks) => {
-                        blocks.drain().for_each(|(pos, block)| {
-                            self.state.set_block(pos, block);
-                        });
-                    },
-                    ServerMsg::StateAnswer(Ok(state)) => {
-                        self.client_state = state;
-                    },
-                    ServerMsg::StateAnswer(Err((error, state))) => {
-                        warn!(
-                            "StateAnswer: {:?}. Server thinks client is in state {:?}.",
-                            error, state
-                        );
-                    },
-                    ServerMsg::Disconnect => {
-                        frontend_events.push(Event::Disconnect);
-                        self.postbox.send_message(ClientMsg::Terminate);
-                    },
-                    ServerMsg::CharacterListUpdate(character_list) => {
-                        self.character_list.characters = character_list;
-                        self.character_list.loading = false;
-                    },
-                    ServerMsg::CharacterActionError(error) => {
-                        warn!("CharacterActionError: {:?}.", error);
-                        self.character_list.error = Some(error);
-                    },
-                    ServerMsg::Notification(n) => {
-                        frontend_events.push(Event::Notification(n));
-                    },
-                    ServerMsg::CharacterDataLoadError(error) => {
-                        self.clean_state();
-                        self.character_list.error = Some(error);
-                    },
-                    ServerMsg::SetViewDistance(vd) => {
-                        self.view_distance = Some(vd);
-                        frontend_events.push(Event::SetViewDistance(vd));
-                    },
-                }
-            }
-        } else if let Some(err) = self.postbox.error() {
-            return Err(err.into());
-        // We regularily ping in the tick method
-        } else if self.state.get_time() - self.last_server_pong > SERVER_TIMEOUT {
+        if handles_msg == 0 && self.state.get_time() - self.last_server_pong > SERVER_TIMEOUT {
             return Err(Error::ServerTimeout);
         }
+
         Ok(frontend_events)
     }
 

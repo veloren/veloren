@@ -19,7 +19,7 @@ impl Component for Client {
 }
 
 impl Client {
-    pub fn notify(&mut self, msg: ServerMsg) { self.singleton_stream.lock().unwrap().send(msg); }
+    pub fn notify(&mut self, msg: ServerMsg) { let _ = self.singleton_stream.lock().unwrap().send(msg); }
 
     pub fn is_registered(&self) -> bool {
         match self.client_state {
@@ -37,12 +37,12 @@ impl Client {
 
     pub fn allow_state(&mut self, new_state: ClientState) {
         self.client_state = new_state;
-        self.singleton_stream
+        let _ = self.singleton_stream
             .lock().unwrap().send(ServerMsg::StateAnswer(Ok(new_state)));
     }
 
     pub fn error_state(&mut self, error: RequestStateError) {
-        self.singleton_stream
+        let _ = self.singleton_stream
             .lock().unwrap().send(ServerMsg::StateAnswer(Err((error, self.client_state))));
     }
 }

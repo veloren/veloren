@@ -342,11 +342,11 @@ impl Server {
         // 3) Handle inputs from clients
         block_on(async{
             //TIMEOUT 0.01 ms for msg handling
-            let x = select!(
+            select!(
                 _ = Delay::new(std::time::Duration::from_micros(10)).fuse() => Ok(()),
                 err = self.handle_new_connections(&mut frontend_events).fuse() => err,
-            );
-        });
+            )
+        })?;
 
         let before_message_system = Instant::now();
 
