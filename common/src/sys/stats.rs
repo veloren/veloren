@@ -106,10 +106,23 @@ impl<'a> System<'a> for Sys {
                 CharacterState::BasicMelee { .. }
                 | CharacterState::DashMelee { .. }
                 | CharacterState::TripleStrike { .. }
-                | CharacterState::BasicRanged { .. }
-                | CharacterState::BasicBlock { .. } => {
+                | CharacterState::BasicRanged { .. } => {
                     if energy.get_unchecked().regen_rate != 0.0 {
                         energy.get_mut_unchecked().regen_rate = 0.0
+                    }
+                },
+                // recover small amount of pasive energy from blocking, and bonus energy from
+                // blocking attacks?
+                CharacterState::BasicBlock => {
+                    let res = {
+                        let energy = energy.get_unchecked();
+                        energy.current() < energy.maximum()
+                    };
+
+                    if res {
+                        energy
+                            .get_mut_unchecked()
+                            .change_by(-3, EnergySource::Regen);
                     }
                 },
                 // Non-combat abilities that consume energy;

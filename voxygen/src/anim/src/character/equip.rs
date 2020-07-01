@@ -1,5 +1,5 @@
 use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
-use common::comp::item::ToolKind;
+use common::comp::item::{Hands, ToolKind};
 use std::{f32::consts::PI, ops::Mul};
 
 use vek::*;
@@ -7,7 +7,7 @@ use vek::*;
 pub struct EquipAnimation;
 
 impl Animation for EquipAnimation {
-    type Dependency = (Option<ToolKind>, f32, f64);
+    type Dependency = (Option<ToolKind>, Option<ToolKind>, f32, f64);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,7 +17,7 @@ impl Animation for EquipAnimation {
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, velocity, global_time): Self::Dependency,
+        (active_tool_kind, second_tool_kind, velocity, global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -151,15 +151,18 @@ impl Animation for EquipAnimation {
                 next.control.scale = Vec3::one();
             },
             Some(ToolKind::Dagger(_)) => {
-                next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
-                next.l_hand.ori = Quaternion::rotation_x(-0.3);
-                next.l_hand.scale = Vec3::one() * 1.01;
-                next.r_hand.offset = Vec3::new(-6.0, 3.0, -2.0);
-                next.r_hand.ori = Quaternion::rotation_x(-0.3);
-                next.r_hand.scale = Vec3::one() * 1.01;
-                next.main.offset = Vec3::new(-6.0, 4.5, 0.0);
-                next.main.ori = Quaternion::rotation_x(-0.3);
+                // TODO: Fix animation
+                // next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
+                // next.l_hand.ori = Quaternion::rotation_x(-0.3);
+                // next.l_hand.scale = Vec3::one() * 1.01;
+
+                // next.main.offset = Vec3::new(-6.0, 4.5, 0.0);
+                // next.main.ori = Quaternion::rotation_x(-0.3);
                 next.main.scale = Vec3::one();
+
+                // next.r_hand.offset = Vec3::new(-6.0, 3.0, -2.0);
+                // next.r_hand.ori = Quaternion::rotation_x(-0.3);
+                // next.r_hand.scale = Vec3::one() * 1.01;
             },
             Some(ToolKind::Debug(_)) => {
                 next.l_hand.offset = Vec3::new(-7.0, 4.0, 3.0);
@@ -226,6 +229,15 @@ impl Animation for EquipAnimation {
 
             next.torso.offset = Vec3::new(0.0, 0.0, 0.0) * skeleton_attr.scaler;
         }
+
+        next.second.scale = match (
+            active_tool_kind.map(|tk| tk.into_hands()),
+            second_tool_kind.map(|tk| tk.into_hands()),
+        ) {
+            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
+            (_, _) => Vec3::zero(),
+        };
+
         next
     }
 }

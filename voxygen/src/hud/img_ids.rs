@@ -135,6 +135,10 @@ image_ids! {
         // Skill Icons
         twohsword_m1: "voxygen.element.icons.2hsword_m1",
         twohsword_m2: "voxygen.element.icons.2hsword_m2",
+        onehdagger_m1: "voxygen.element.icons.daggers",
+        onehdagger_m2: "voxygen.element.icons.skill_slice_2",
+        onehshield_m1: "voxygen.element.icons.swordshield",
+        onehshield_m2: "voxygen.element.icons.character",
         twohhammer_m1: "voxygen.element.icons.2hhammer_m1",
         twohhammer_m2: "voxygen.element.icons.2hhammer_m2",
         twohaxe_m1: "voxygen.element.icons.2haxe_m1",

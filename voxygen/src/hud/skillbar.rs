@@ -18,7 +18,7 @@ use crate::{
 use common::comp::{
     item::{
         tool::{DebugKind, StaffKind, Tool, ToolKind},
-        ItemKind,
+        Hands, ItemKind,
     },
     CharacterState, ControllerInputs, Energy, Inventory, Loadout, Stats,
 };
@@ -611,6 +611,8 @@ impl<'a> Widget for Skillbar<'a> {
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
                 Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
                     ToolKind::Sword(_) => self.imgs.twohsword_m1,
+                    ToolKind::Dagger(_) => self.imgs.onehdagger_m1,
+                    ToolKind::Shield(_) => self.imgs.onehshield_m1,
                     ToolKind::Hammer(_) => self.imgs.twohhammer_m1,
                     ToolKind::Axe(_) => self.imgs.twohaxe_m1,
                     ToolKind::Bow(_) => self.imgs.bow_m1,
@@ -673,78 +675,74 @@ impl<'a> Widget for Skillbar<'a> {
             },
         }
 
+        let active_tool_kind = match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+            Some(ItemKind::Tool(Tool { kind, .. })) => Some(kind),
+            _ => None,
+        };
+
+        let second_tool_kind = match self.loadout.second_item.as_ref().map(|i| &i.item.kind) {
+            Some(ItemKind::Tool(Tool { kind, .. })) => Some(kind),
+            _ => None,
+        };
+
+        let tool_kind = match (
+            active_tool_kind.map(|tk| tk.into_hands()),
+            second_tool_kind.map(|tk| tk.into_hands()),
+        ) {
+            (Some(Hands::TwoHand), _) => active_tool_kind,
+            (_, Some(Hands::OneHand)) => second_tool_kind,
+            (_, _) => None,
+        };
+
         Image::new(self.imgs.skillbar_slot_big_bg)
             .w_h(38.0 * scale, 38.0 * scale)
-            .color(
-                match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                    Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
-                        ToolKind::Bow(_) => Some(BG_COLOR_2),
-                        ToolKind::Staff(_) => Some(BG_COLOR_2),
-                        _ => Some(BG_COLOR_2),
-                    },
-                    _ => Some(BG_COLOR_2),
-                },
-            )
+            .color(match tool_kind {
+                Some(ToolKind::Bow(_)) => Some(BG_COLOR_2),
+                Some(ToolKind::Staff(_)) => Some(BG_COLOR_2),
+                _ => Some(BG_COLOR_2),
+            })
             .middle_of(state.ids.m2_slot)
             .set(state.ids.m2_slot_bg, ui);
-        Button::image(
-            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
-                    ToolKind::Sword(_) => self.imgs.charge,
-                    ToolKind::Hammer(_) => self.imgs.nothing,
-                    ToolKind::Axe(_) => self.imgs.nothing,
-                    ToolKind::Bow(_) => self.imgs.bow_m2,
-                    ToolKind::Staff(StaffKind::Sceptre) => self.imgs.heal_0,
-                    ToolKind::Staff(_) => self.imgs.staff_m2,
-                    ToolKind::Debug(DebugKind::Boost) => self.imgs.flyingrod_m2,
-                    _ => self.imgs.nothing,
-                },
-                _ => self.imgs.nothing,
-            },
-        ) // Insert Icon here
-        .w(
-            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
-                    ToolKind::Staff(_) => 30.0 * scale,
-                    ToolKind::Bow(_) => 30.0 * scale,
-                    _ => 38.0 * scale,
-                },
-                _ => 38.0 * scale,
-            },
-        )
-        .h(
-            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
-                    ToolKind::Staff(_) => 30.0 * scale,
-                    ToolKind::Bow(_) => 30.0 * scale,
-                    _ => 38.0 * scale,
-                },
-                _ => 38.0 * scale,
-            },
-        )
+        Button::image(match tool_kind {
+            Some(ToolKind::Sword(_)) => self.imgs.charge,
+            Some(ToolKind::Dagger(_)) => self.imgs.onehdagger_m2,
+            Some(ToolKind::Shield(_)) => self.imgs.onehshield_m2,
+            Some(ToolKind::Hammer(_)) => self.imgs.nothing,
+            Some(ToolKind::Axe(_)) => self.imgs.nothing,
+            Some(ToolKind::Bow(_)) => self.imgs.bow_m2,
+            Some(ToolKind::Staff(StaffKind::Sceptre)) => self.imgs.heal_0,
+            Some(ToolKind::Staff(_)) => self.imgs.staff_m2,
+            Some(ToolKind::Debug(DebugKind::Boost)) => self.imgs.flyingrod_m2,
+            _ => self.imgs.nothing,
+        }) // Insert Icon here
+        .w(match tool_kind {
+            Some(ToolKind::Staff(_)) => 30.0 * scale,
+            Some(ToolKind::Bow(_)) => 30.0 * scale,
+            _ => 38.0 * scale,
+        })
+        .h(match tool_kind {
+            Some(ToolKind::Staff(_)) => 30.0 * scale,
+            Some(ToolKind::Bow(_)) => 30.0 * scale,
+            _ => 38.0 * scale,
+        })
         .middle_of(state.ids.m2_slot_bg)
-        .image_color(
-            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
-                    ToolKind::Sword(_) => {
-                        if self.energy.current() as f64 >= 200.0 {
-                            Color::Rgba(1.0, 1.0, 1.0, 1.0)
-                        } else {
-                            Color::Rgba(0.3, 0.3, 0.3, 0.8)
-                        }
-                    },
-                    ToolKind::Staff(StaffKind::Sceptre) => {
-                        if self.energy.current() as f64 >= 400.0 {
-                            Color::Rgba(1.0, 1.0, 1.0, 1.0)
-                        } else {
-                            Color::Rgba(0.3, 0.3, 0.3, 0.8)
-                        }
-                    },
-                    _ => Color::Rgba(1.0, 1.0, 1.0, 1.0),
-                },
-                _ => Color::Rgba(1.0, 1.0, 1.0, 1.0),
+        .image_color(match tool_kind {
+            Some(ToolKind::Sword(_)) => {
+                if self.energy.current() as f64 >= 200.0 {
+                    Color::Rgba(1.0, 1.0, 1.0, 1.0)
+                } else {
+                    Color::Rgba(0.3, 0.3, 0.3, 0.8)
+                }
             },
-        )
+            Some(ToolKind::Staff(StaffKind::Sceptre)) => {
+                if self.energy.current() as f64 >= 400.0 {
+                    Color::Rgba(1.0, 1.0, 1.0, 1.0)
+                } else {
+                    Color::Rgba(0.3, 0.3, 0.3, 0.8)
+                }
+            },
+            _ => Color::Rgba(1.0, 1.0, 1.0, 1.0),
+        })
         .set(state.ids.m2_content, ui);
         // Slots
         let content_source = (self.hotbar, self.inventory, self.loadout, self.energy); // TODO: avoid this

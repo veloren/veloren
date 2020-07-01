@@ -1,5 +1,5 @@
 use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
-use common::comp::item::ToolKind;
+use common::comp::item::{Hands, ToolKind};
 use std::f32::consts::PI;
 use vek::*;
 
@@ -9,7 +9,7 @@ pub struct Input {
 pub struct SpinAnimation;
 
 impl Animation for SpinAnimation {
-    type Dependency = (Option<ToolKind>, f64);
+    type Dependency = (Option<ToolKind>, Option<ToolKind>, f64);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -19,7 +19,7 @@ impl Animation for SpinAnimation {
     #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _global_time): Self::Dependency,
+        (active_tool_kind, second_tool_kind, _global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -41,7 +41,10 @@ impl Animation for SpinAnimation {
 
         match active_tool_kind {
             //TODO: Inventory
-            Some(ToolKind::Axe(_)) | Some(ToolKind::Hammer(_)) | Some(ToolKind::Sword(_)) => {
+            Some(ToolKind::Axe(_))
+            | Some(ToolKind::Hammer(_))
+            | Some(ToolKind::Sword(_))
+            | Some(ToolKind::Dagger(_)) => {
                 //INTENTION: SWORD
                 next.l_hand.offset = Vec3::new(-0.75, -1.0, -2.5);
                 next.l_hand.ori = Quaternion::rotation_x(1.27);
@@ -126,6 +129,15 @@ impl Animation for SpinAnimation {
         next.r_control.offset = Vec3::new(0.0, 0.0, 0.0);
         next.r_control.ori = Quaternion::rotation_x(0.0);
         next.r_control.scale = Vec3::one();
+
+        next.second.scale = match (
+            active_tool_kind.map(|tk| tk.into_hands()),
+            second_tool_kind.map(|tk| tk.into_hands()),
+        ) {
+            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
+            (_, _) => Vec3::zero(),
+        };
+
         next
     }
 }

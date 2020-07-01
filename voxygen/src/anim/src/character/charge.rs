@@ -1,12 +1,19 @@
 use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
-use common::comp::item::ToolKind;
+use common::comp::item::{Hands, ToolKind};
 use std::f32::consts::PI;
 use vek::*;
 
 pub struct ChargeAnimation;
 
 impl Animation for ChargeAnimation {
-    type Dependency = (Option<ToolKind>, f32, Vec3<f32>, Vec3<f32>, f64);
+    type Dependency = (
+        Option<ToolKind>,
+        Option<ToolKind>,
+        f32,
+        Vec3<f32>,
+        Vec3<f32>,
+        f64,
+    );
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,7 +24,7 @@ impl Animation for ChargeAnimation {
     #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, velocity, orientation, last_ori, _global_time): Self::Dependency,
+        (active_tool_kind, second_tool_kind, velocity, orientation, last_ori, _global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -217,6 +224,15 @@ impl Animation for ChargeAnimation {
         next.l_control.scale = Vec3::one();
 
         next.r_control.scale = Vec3::one();
+
+        next.second.scale = match (
+            active_tool_kind.map(|tk| tk.into_hands()),
+            second_tool_kind.map(|tk| tk.into_hands()),
+        ) {
+            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
+            (_, _) => Vec3::zero(),
+        };
+
         next
     }
 }

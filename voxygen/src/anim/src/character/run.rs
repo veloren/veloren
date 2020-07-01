@@ -1,12 +1,21 @@
 use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
-use common::comp::item::ToolKind;
+use common::comp::item::{Hands, ToolKind};
 use std::{f32::consts::PI, ops::Mul};
 use vek::*;
 
 pub struct RunAnimation;
 
+type RunAnimationDependency = (
+    Option<ToolKind>,
+    Option<ToolKind>,
+    Vec3<f32>,
+    Vec3<f32>,
+    Vec3<f32>,
+    f64,
+);
+
 impl Animation for RunAnimation {
-    type Dependency = (Option<ToolKind>, Vec3<f32>, Vec3<f32>, Vec3<f32>, f64);
+    type Dependency = RunAnimationDependency;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -16,7 +25,7 @@ impl Animation for RunAnimation {
     #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_active_tool_kind, velocity, orientation, last_ori, global_time): Self::Dependency,
+        (active_tool_kind, second_tool_kind, velocity, orientation, last_ori, global_time): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -187,11 +196,41 @@ impl Animation for RunAnimation {
         next.glider.offset = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;
 
-        next.main.offset = Vec3::new(-7.0, -6.5, 15.0);
-        next.main.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57 + short * 0.25);
+        match active_tool_kind {
+            Some(ToolKind::Dagger(_)) => {
+                next.main.offset = Vec3::new(-4.0, -5.0, 7.0);
+                next.main.ori =
+                    Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(1.5 * PI);
+            },
+            Some(ToolKind::Shield(_)) => {
+                next.main.offset = Vec3::new(-0.0, -5.0, 3.0);
+                next.main.ori =
+                    Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(-1.5 * PI);
+            },
+            _ => {
+                next.main.offset = Vec3::new(-7.0, -5.0, 15.0);
+                next.main.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+            },
+        }
         next.main.scale = Vec3::one();
 
-        next.second.scale = Vec3::one() * 0.0;
+        match second_tool_kind {
+            Some(ToolKind::Dagger(_)) => {
+                next.second.offset = Vec3::new(4.0, -6.0, 7.0);
+                next.second.ori =
+                    Quaternion::rotation_y(-0.25 * PI) * Quaternion::rotation_z(-1.5 * PI);
+            },
+            Some(ToolKind::Shield(_)) => {
+                next.second.offset = Vec3::new(0.0, -4.0, 3.0);
+                next.second.ori =
+                    Quaternion::rotation_y(-0.25 * PI) * Quaternion::rotation_z(1.5 * PI);
+            },
+            _ => {
+                next.second.offset = Vec3::new(-7.0, -5.0, 15.0);
+                next.second.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+            },
+        }
+        next.second.scale = Vec3::one();
 
         next.lantern.offset = Vec3::new(
             skeleton_attr.lantern.0,
@@ -213,6 +252,14 @@ impl Animation for RunAnimation {
         next.l_control.scale = Vec3::one();
 
         next.r_control.scale = Vec3::one();
+
+        next.second.scale = match (
+            active_tool_kind.map(|tk| tk.into_hands()),
+            second_tool_kind.map(|tk| tk.into_hands()),
+        ) {
+            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
+            (_, _) => Vec3::zero(),
+        };
 
         next
     }

@@ -177,12 +177,25 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                     {
                         Some(humanoid_main_weapon_spec.mesh_main_weapon(
                             loadout.active_item.as_ref().map(|i| &i.item.kind),
+                            false,
                             generate_mesh,
                         ))
                     } else {
                         None
                     },
-                    None,
+                    if camera_mode != CameraMode::FirstPerson
+                        || character_state
+                            .map(|cs| cs.is_attack() || cs.is_block() || cs.is_wield())
+                            .unwrap_or_default()
+                    {
+                        Some(humanoid_main_weapon_spec.mesh_main_weapon(
+                            loadout.second_item.as_ref().map(|i| &i.item.kind),
+                            true,
+                            generate_mesh,
+                        ))
+                    } else {
+                        None
+                    },
                     Some(humanoid_armor_lantern_spec.mesh_lantern(&body, loadout, generate_mesh)),
                     Some(mesh_hold(generate_mesh)),
                 ]
