@@ -171,7 +171,7 @@ impl Tool {
                         hit_entity: vec![
                             projectile::Effect::Damage((-40.0 * self.base_power()) as i32),
                             projectile::Effect::Knockback(10.0),
-                            projectile::Effect::RewardEnergy(100),
+                            projectile::Effect::RewardEnergy(50),
                             projectile::Effect::Vanish,
                         ],
                         time_left: Duration::from_secs(15),
@@ -261,7 +261,6 @@ impl Tool {
                                 col: (0.85, 0.5, 0.11).into(),
                                 ..Default::default()
                             }),
-
                             projectile_gravity: None,
                         },
                         BasicRanged {
