@@ -109,16 +109,6 @@ impl CharacterBehavior for Data {
             },
         };
 
-        // Handle hit applied
-        if let Some(attack) = data.attacking {
-            if attack.applied && attack.hit_count > 0 {
-                // Take energy on successful hit
-                update.energy.change_by(100, EnergySource::HitEnemy);
-                // Always remove component
-                data.updater.remove::<Attacking>(data.entity);
-            }
-        }
-
         // Handling movement
         if stage_time_active < Duration::from_millis(STAGE_DURATION / 3) {
             let adjusted_accel = match (self.stage, data.physics.touch_entity.is_none()) {
@@ -220,7 +210,7 @@ impl CharacterBehavior for Data {
         if let Some(attack) = data.attacking {
             if attack.applied && attack.hit_count > 0 {
                 data.updater.remove::<Attacking>(data.entity);
-                update.energy.change_by(100, EnergySource::HitEnemy);
+                update.energy.change_by(50, EnergySource::HitEnemy);
             }
         }
 
