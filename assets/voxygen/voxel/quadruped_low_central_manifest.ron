@@ -109,11 +109,11 @@
             central: ("npc.salamander.male.head_upper"),
         ),
         lower: (
-            offset: (-6.5, -3.5, -2.0),
+            offset: (-4.5, -1.5, -3.0),
             central: ("npc.salamander.male.head_lower"),
         ),
         jaw: (
-            offset: (-5.5, -4.0, -2.0),
+            offset: (-6.5, -6.0, -3.0),
             central: ("npc.salamander.male.jaw"),
         ),
         chest: (
@@ -135,11 +135,11 @@
             central: ("npc.salamander.female.head_upper"),
         ),
         lower: (
-            offset: (-6.5, -3.5, -2.0),
+            offset: (-4.5, -1.5, -3.0),
             central: ("npc.salamander.female.head_lower"),
         ),
         jaw: (
-            offset: (-5.5, -4.0, -2.0),
+            offset: (-6.5, -6.0, -3.0),
             central: ("npc.salamander.female.jaw"),
         ),
         chest: (
