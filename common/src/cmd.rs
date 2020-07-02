@@ -40,6 +40,7 @@ pub enum ChatCommand {
     Build,
     Debug,
     DebugColumn,
+    Dummy,
     Explosion,
     Faction,
     GiveExp,
@@ -81,6 +82,7 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Build,
     ChatCommand::Debug,
     ChatCommand::DebugColumn,
+    ChatCommand::Dummy,
     ChatCommand::Explosion,
     ChatCommand::Faction,
     ChatCommand::GiveExp,
@@ -191,6 +193,7 @@ impl ChatCommand {
                 "Prints some debug information about a column",
                 NoAdmin,
             ),
+            ChatCommand::Dummy => cmd(vec![], "Spawns a training dummy", NoAdmin),
             ChatCommand::Explosion => cmd(
                 vec![Float("radius", 5.0, Required)],
                 "Explodes the ground around you",
@@ -321,6 +324,7 @@ impl ChatCommand {
                     Enum("alignment", ALIGNMENTS.clone(), Required),
                     Enum("entity", ENTITIES.clone(), Required),
                     Integer("amount", 1, Optional),
+                    Boolean("ai", "true".to_string(), Optional),
                 ],
                 "Spawn a test entity",
                 Admin,
@@ -370,6 +374,7 @@ impl ChatCommand {
             ChatCommand::Build => "build",
             ChatCommand::Debug => "debug",
             ChatCommand::DebugColumn => "debug_column",
+            ChatCommand::Dummy => "dummy",
             ChatCommand::Explosion => "explosion",
             ChatCommand::Faction => "faction",
             ChatCommand::GiveExp => "give_exp",
@@ -433,6 +438,7 @@ impl ChatCommand {
                 ArgumentSpec::Message(_) => "{/.*/}",
                 ArgumentSpec::SubCommand => "{} {/.*/}",
                 ArgumentSpec::Enum(_, _, _) => "{}",
+                ArgumentSpec::Boolean(_, _, _) => "{}",
             })
             .collect::<Vec<_>>()
             .join(" ")
@@ -514,6 +520,11 @@ pub enum ArgumentSpec {
     /// * Predefined string completions
     /// * whether it's optional
     Enum(&'static str, Vec<String>, Requirement),
+    /// The argument is likely a boolean. The associated values are
+    /// * label
+    /// * suggested tab-completion
+    /// * whether it's optional
+    Boolean(&'static str, String, Requirement),
 }
 
 impl ArgumentSpec {
@@ -567,6 +578,13 @@ impl ArgumentSpec {
                     format! {"<{}>", label}
                 } else {
                     format! {"[{}]", label}
+                }
+            },
+            ArgumentSpec::Boolean(label, _, req) => {
+                if &Requirement::Required == req {
+                    format!("<{}>", label)
+                } else {
+                    format!("[{}]", label)
                 }
             },
         }
