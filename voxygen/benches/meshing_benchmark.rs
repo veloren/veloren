@@ -131,7 +131,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             c.bench(
                 "meshing",
                 Benchmark::new(&format!("Terrain mesh {}, {}", x, y), move |b| {
-                    b.iter(|| volume.generate_mesh(black_box(range)))
+                    b.iter(|| volume.generate_mesh(black_box((range, Vec2::new(8192, 8192)))))
                 })
                 // Lower sample size to save time
                 .sample_size(15),

@@ -14,7 +14,7 @@ use common::terrain::BlockKind;
 use gfx::{self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta};
 use vek::*;
 
-pub const MAX_POINT_LIGHT_COUNT: usize = 32;
+pub const MAX_POINT_LIGHT_COUNT: usize = 31;
 pub const MAX_FIGURE_SHADOW_COUNT: usize = 24;
 pub const MAX_DIRECTED_LIGHT_COUNT: usize = 6;
 
@@ -24,6 +24,7 @@ gfx_defines! {
         proj_mat: [[f32; 4]; 4] = "proj_mat",
         all_mat: [[f32; 4]; 4] = "all_mat",
         cam_pos: [f32; 4] = "cam_pos",
+        focus_off: [f32; 4] = "focus_off",
         focus_pos: [f32; 4] = "focus_pos",
         /// NOTE: max_intensity is computed as the ratio between the brightest and least bright
         /// intensities among all lights in the scene.
@@ -36,6 +37,8 @@ gfx_defines! {
         /// TODO: Fix whatever alignment issue requires these uniforms to be aligned.
         view_distance: [f32; 4] = "view_distance",
         time_of_day: [f32; 4] = "time_of_day", // TODO: Make this f64.
+        sun_dir: [f32; 4] = "sun_dir",
+        moon_dir: [f32; 4] = "moon_dir",
         tick: [f32; 4] = "tick",
         /// x, y represent the resolution of the screen;
         /// w, z represent the near and far planes of the shadow map.
@@ -83,14 +86,24 @@ impl Globals {
         cam_mode: CameraMode,
         sprite_render_distance: f32,
     ) -> Self {
+        // Transform to left-handed homogeneous coordinates.
+        let proj_mat_lh = proj_mat;
+        // proj_mat_lh[(2, 2)] = -proj_mat[(2, 2)];
+        // proj_mat_lh[(3, 2)] = -proj_mat[(3, 2)];
         Self {
             view_mat: arr_to_mat(view_mat.into_col_array()),
             proj_mat: arr_to_mat(proj_mat.into_col_array()),
-            all_mat: arr_to_mat((proj_mat * view_mat).into_col_array()),
+            all_mat: arr_to_mat(
+                ((proj_mat_lh * view_mat)/* .scaled_3d(Vec3::new(0.0, 0.0, -1.0)) */)
+                    .into_col_array(),
+            ),
             cam_pos: Vec4::from(cam_pos).into_array(),
-            focus_pos: Vec4::from(focus_pos).into_array(),
+            focus_off: Vec4::from(focus_pos).map(|e: f32| e.trunc()).into_array(),
+            focus_pos: Vec4::from(focus_pos).map(|e: f32| e.fract()).into_array(),
             view_distance: [view_distance, tgt_detail, map_bounds.x, map_bounds.y],
             time_of_day: [time_of_day as f32; 4],
+            sun_dir: Vec4::from_direction(Self::get_sun_dir(time_of_day)).into_array(),
+            moon_dir: Vec4::from_direction(Self::get_moon_dir(time_of_day)).into_array(),
             tick: [tick as f32; 4],
             // Provide the shadow map far plane as well.
             screen_res: [
@@ -100,9 +113,9 @@ impl Globals {
                 shadow_planes.y,
             ],
             light_shadow_count: [
-                (light_count % MAX_POINT_LIGHT_COUNT) as u32,
-                (shadow_count % MAX_FIGURE_SHADOW_COUNT) as u32,
-                (directed_light_count % MAX_DIRECTED_LIGHT_COUNT) as u32,
+                (light_count % (MAX_POINT_LIGHT_COUNT + 1)) as u32,
+                (shadow_count % (MAX_FIGURE_SHADOW_COUNT + 1)) as u32,
+                (directed_light_count % (MAX_DIRECTED_LIGHT_COUNT + 1)) as u32,
                 0,
             ],
             shadow_proj_factors: [
@@ -120,6 +133,21 @@ impl Globals {
             cam_mode: cam_mode as u32,
             sprite_render_distance,
         }
+    }
+
+    fn get_angle_rad(time_of_day: f64) -> f32 {
+        const TIME_FACTOR: f32 = (std::f32::consts::PI * 2.0) / (3600.0 * 24.0);
+        time_of_day as f32 * TIME_FACTOR
+    }
+
+    pub fn get_sun_dir(time_of_day: f64) -> Vec3<f32> {
+        let angle_rad = Self::get_angle_rad(time_of_day);
+        Vec3::new(angle_rad.sin(), 0.0, angle_rad.cos())
+    }
+
+    pub fn get_moon_dir(time_of_day: f64) -> Vec3<f32> {
+        let angle_rad = Self::get_angle_rad(time_of_day);
+        -Vec3::new(angle_rad.sin(), 0.0, angle_rad.cos() - 0.5)
     }
 }
 

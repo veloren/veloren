@@ -16,52 +16,97 @@
 
 #define LIGHTING_DISTRIBUTION LIGHTING_DISTRIBUTION_BECKMANN
 
+// #define HAS_SHADOW_MAPS
+
 #include <globals.glsl>
 #include <srgb.glsl>
 #include <lod.glsl>
+#include <shadows.glsl>
+
 
 in uint v_pos_norm;
-in uint v_col_light;
+// in uint v_col_light;
+in uint v_atlas_pos;
 
 layout (std140)
 uniform u_locals {
 	vec3 model_offs;
 	float load_time;
+    ivec4 atlas_offs;
 };
 
+//struct ShadowLocals {
+//	mat4 shadowMatrices;
+//    mat4 texture_mat;
+//};
+//
+//layout (std140)
+//uniform u_light_shadows {
+//    ShadowLocals shadowMats[/*MAX_LAYER_FACES*/192];
+//};
+
 out vec3 f_pos;
-out vec3 f_chunk_pos;
+// #ifdef FLUID_MODE_SHINY
 flat out uint f_pos_norm;
+
+// #if (SHADOW_MODE == SHADOW_MODE_MAP)
+// out vec4 sun_pos;
+// #endif
+
+// #endif
 // out float f_alt;
 // out vec4 f_shadow;
-out vec3 f_col;
-out float f_light;
-out float f_ao;
+// out vec3 f_col;
+// out vec3 f_chunk_pos;
+// out float f_ao;
+/*centroid */out vec2 f_uv_pos;
+// out vec3 light_pos[2];
+// out float f_light;
+
+// uniform sampler2DRect t_col_light;
 
 const int EXTRA_NEG_Z = 32768;
 
 void main() {
     // over it (if this vertex to see if it intersects.
-	f_chunk_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0xFFFFu)) - ivec3(0, 0, EXTRA_NEG_Z));
-	f_pos = f_chunk_pos + model_offs;
+	// f_chunk_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0xFFFFu)) - ivec3(0, 0, EXTRA_NEG_Z));
+	vec3 f_chunk_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0xFFFFu)) - ivec3(0, 0, EXTRA_NEG_Z));
+	f_pos = f_chunk_pos + model_offs - focus_off.xyz;
 
 	// f_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));
 	// f_pos.z -= min(32.0, 25.0 * pow(distance(focus_pos.xy, f_pos.xy) / view_distance.x, 20.0));
 
     // vec3 light_col = vec3(
-    //          hash(floor(vec4(f_pos.x, 0, 0, 0))),
-    //          hash(floor(vec4(0, f_pos.y, 0, 1))),
-    //          hash(floor(vec4(0, 0, f_pos.z, 2)))
+    //          hash(floor(vec4(f_chunk_pos.x, 0, 0, 0))),
+    //          hash(floor(vec4(0, f_chunk_pos.y, 0, 1))),
+    //          hash(floor(vec4(0, 0, f_chunk_pos.z, 2)))
     //     );
 
 	// f_col = light_col;// f_col = vec3((uvec3(v_col_light) >> uvec3(8, 16, 24)) & uvec3(0xFFu)) / 255.0;
 	// f_light = 1.0;//float(v_col_light & 0x3Fu) / 64.0;
 	// f_ao = 1.0;//float((v_col_light >> 6u) & 3u) / 4.0;
-	f_col = f_col = vec3((uvec3(v_col_light) >> uvec3(8, 16, 24)) & uvec3(0xFFu)) / 255.0;
-	f_light = float(v_col_light & 0x3Fu) / 64.0;
-	f_ao = float((v_col_light >> 6u) & 3u) / 4.0;
+	// f_col = f_col = vec3((uvec3(v_col_light) >> uvec3(8, 16, 24)) & uvec3(0xFFu)) / 255.0;
+	// f_light = float(v_col_light & 0x3Fu) / 64.0;
+	// f_ao = float((v_col_light >> 6u) & 3u) / 4.0;
 
+    // for (uint i = 0u; i < 1u/*light_shadow_count.z*/; ++i) {
+    //     light_pos[i] = vec3(shadowMats[i].texture_mat * vec4(f_pos, 1.0));
+    // }
+    // vec2 texSize = textureSize(t_col_light, 0);
+    f_uv_pos = vec2((uvec2(v_atlas_pos) >> uvec2(0, 16)) & uvec2(0xFFFFu, 0xFFFFu));
+
+// #if (SHADOW_MODE == SHADOW_MODE_MAP)
+//     // for (uint i = 0u; i < light_shadow_count.z; ++i) {
+//     //     light_pos[i] = /*vec3(*/shadowMats[i].texture_mat * vec4(f_pos, 1.0)/*)*/;
+//     // }
+//     sun_pos = /*vec3(*/shadowMats[0].texture_mat * vec4(f_pos, 1.0)/*)*/;
+// // #elif (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_NONE)
+// //    vec4 sun_pos = vec4(0.0);
+// #endif
+
+// #ifdef FLUID_MODE_SHINY
 	f_pos_norm = v_pos_norm;
+// #endif
 
     // Also precalculate shadow texture and estimated terrain altitude.
     // f_alt = alt_at(f_pos.xy);
@@ -104,11 +149,23 @@ void main() {
     // // wPoint -= wRayDir3 * wRayLength * n2 / n1;
     // vec3 newRay = dot(wRayDir, wRayNormal) < 0.0 && wIntersectsSurface ? wPoint - wRayDir3 * wRayLength * n2 / n1 : f_pos;// - (wRayfinal - wPoint) * n2 / n1; // wPoint + n2 * (wRayfinal - wPoint) - n2 / n1 * wRayLength * wRayDir3;
 
+#ifdef HAS_SHADOW_MAPS
 	gl_Position =
-		all_mat *
+		/*all_mat*/shadowMats[0].shadowMatrices/*texture_mat*/ *
 		vec4(f_pos/*newRay*/, 1);
+    gl_Position.z = clamp(gl_Position.z, -abs(gl_Position.w), abs(gl_Position.w));
+#else
+	gl_Position = all_mat * vec4(f_pos/*newRay*/, 1);
+#endif
+    // gl_Position.y /= gl_Position.w;
+    // gl_Position.w = 1.0;
+    // gl_Position.z = -gl_Position.z;
 	// gl_Position.z = -gl_Position.z / gl_Position.w;
+	// gl_Position.z = -gl_Position.z / gl_Position.w;
+	// gl_Position.z = -gl_Position.z *gl_Position.w;
+	// gl_Position.z = gl_Position.z / 100.0;
+	// gl_Position.z = gl_Position.z / 10000.0;
 	// gl_Position.z = -gl_Position.z / 100.0;
-	// gl_Position.z = -gl_Position.z / 100.0;
-	gl_Position.z = -1000.0 / (gl_Position.z + 10000.0);
+	// gl_Position.z = -1000.0 / (gl_Position.z + 10000.0);
+	// gl_Position.z = -1000.0 / (gl_Position.z + 10000.0);
 }

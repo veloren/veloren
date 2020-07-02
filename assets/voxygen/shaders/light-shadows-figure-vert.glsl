@@ -17,8 +17,12 @@
 
 #define LIGHTING_DISTRIBUTION LIGHTING_DISTRIBUTION_BECKMANN
 
+#define HAS_SHADOW_MAPS
+
 // Currently, we only need globals for focus_off.
 #include <globals.glsl>
+// For shadow locals.
+#include <shadows.glsl>
 
 /* Accurate packed shadow maps for many lights at once!
  *
@@ -27,29 +31,44 @@
  * */
 
 in uint v_pos_norm;
+in uint v_atlas_pos;
 // in uint v_col_light;
 // in vec4 v_pos;
 
-// Light projection matrices.
 layout (std140)
 uniform u_locals {
-    vec3 model_offs;
-	float load_time;
+	mat4 model_mat;
+	vec4 model_col;
     ivec4 atlas_offs;
+    vec3 model_pos;
+	// bit 0 - is player
+	// bit 1-31 - unused
+	int flags;
+};
+
+struct BoneData {
+	mat4 bone_mat;
+    mat4 normals_mat;
+};
+
+layout (std140)
+uniform u_bones {
+	// Warning: might not actually be 16 elements long. Don't index out of bounds!
+	BoneData bones[16];
 };
 
 // out vec4 shadowMapCoord;
 
-const int EXTRA_NEG_Z = 32768;
-
 void main() {
-	vec3 f_chunk_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0xFFFFu)) - ivec3(0, 0, EXTRA_NEG_Z));
-	vec3 f_pos = f_chunk_pos + model_offs - focus_off.xyz;
-	// f_pos = v_pos;
-	// vec3 f_pos = f_chunk_pos + model_offs;
+#if (SHADOW_MODE == SHADOW_MODE_MAP)
+	uint bone_idx = (v_pos_norm >> 27) & 0xFu;
+	vec3 pos = (vec3((uvec3(v_pos_norm) >> uvec3(0, 9, 18)) & uvec3(0x1FFu)) - 256.0) / 2.0;
 
-	// gl_Position = v_pos + vec4(model_offs, 0.0);
-	gl_Position = /*all_mat * */vec4(f_pos/*, 1.0*/, /*float(((f_pos_norm >> 29) & 0x7u) ^ 0x1)*//*uintBitsToFloat(v_pos_norm)*/1.0);
-    // shadowMapCoord = lights[gl_InstanceID].light_pos * gl_Vertex;
-    // vec4(v_pos, 0.0, 1.0);
+	vec3 f_pos = (
+        bones[bone_idx].bone_mat *
+        vec4(pos, 1.0)
+    ).xyz + (model_pos - focus_off.xyz/* + vec3(0.0, 0.0, 0.0001)*/);
+
+	gl_Position = shadowMats[/*layer_face*/0].shadowMatrices * vec4(f_pos, 1.0);
+#endif
 }

@@ -31,7 +31,7 @@ pub use self::{
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
 use common::comp;
-use vek::{Vec3, Vec4};
+use vek::{Mat4, Vec3, Vec4};
 
 #[derive(Clone, Default)]
 pub struct CharacterSkeleton {
@@ -65,7 +65,10 @@ impl Skeleton for CharacterSkeleton {
 
     fn bone_count(&self) -> usize { 15 }
 
-    fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
+    fn compute_matrices<F: FnMut(Mat4<f32>) -> FigureBoneData>(
+        &self,
+        mut make_bone: F,
+    ) -> ([FigureBoneData; 16], Vec3<f32>) {
         let chest_mat = self.chest.compute_base_matrix();
         let torso_mat = self.torso.compute_base_matrix();
         let l_hand_mat = self.l_hand.compute_base_matrix();
@@ -83,27 +86,21 @@ impl Skeleton for CharacterSkeleton {
 
         (
             [
-                FigureBoneData::new(torso_mat * chest_mat * head_mat),
-                FigureBoneData::new(torso_mat * chest_mat),
-                FigureBoneData::new(torso_mat * chest_mat * self.belt.compute_base_matrix()),
-                FigureBoneData::new(torso_mat * chest_mat * self.back.compute_base_matrix()),
-                FigureBoneData::new(torso_mat * chest_mat * shorts_mat),
-                FigureBoneData::new(
-                    torso_mat * chest_mat * control_mat * l_control_mat * l_hand_mat,
-                ),
-                FigureBoneData::new(
-                    torso_mat * chest_mat * control_mat * r_control_mat * r_hand_mat,
-                ),
-                FigureBoneData::new(torso_mat * self.l_foot.compute_base_matrix()),
-                FigureBoneData::new(torso_mat * self.r_foot.compute_base_matrix()),
-                FigureBoneData::new(torso_mat * chest_mat * self.l_shoulder.compute_base_matrix()),
-                FigureBoneData::new(torso_mat * chest_mat * self.r_shoulder.compute_base_matrix()),
-                FigureBoneData::new(torso_mat * self.glider.compute_base_matrix()),
-                FigureBoneData::new(torso_mat * chest_mat * control_mat * l_control_mat * main_mat),
-                FigureBoneData::new(
-                    torso_mat * chest_mat * control_mat * r_control_mat * second_mat,
-                ),
-                FigureBoneData::new(lantern_final_mat),
+                make_bone(torso_mat * chest_mat * head_mat),
+                make_bone(torso_mat * chest_mat),
+                make_bone(torso_mat * chest_mat * self.belt.compute_base_matrix()),
+                make_bone(torso_mat * chest_mat * self.back.compute_base_matrix()),
+                make_bone(torso_mat * chest_mat * shorts_mat),
+                make_bone(torso_mat * chest_mat * control_mat * l_control_mat * l_hand_mat),
+                make_bone(torso_mat * chest_mat * control_mat * r_control_mat * r_hand_mat),
+                make_bone(torso_mat * self.l_foot.compute_base_matrix()),
+                make_bone(torso_mat * self.r_foot.compute_base_matrix()),
+                make_bone(torso_mat * chest_mat * self.l_shoulder.compute_base_matrix()),
+                make_bone(torso_mat * chest_mat * self.r_shoulder.compute_base_matrix()),
+                make_bone(torso_mat * self.glider.compute_base_matrix()),
+                make_bone(torso_mat * chest_mat * control_mat * l_control_mat * main_mat),
+                make_bone(torso_mat * chest_mat * control_mat * r_control_mat * second_mat),
+                make_bone(lantern_final_mat),
                 FigureBoneData::default(),
             ],
             (lantern_final_mat * Vec4::new(0.0, 0.0, 0.0, 1.0)).xyz(),

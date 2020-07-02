@@ -19,6 +19,79 @@ use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 use std::{fs::File, io::BufReader};
 
+/* pub trait PerBody {
+    type Humanoid;
+    type QuadrupedSmall;
+    type QuadrupedMedium;
+    type BirdMedium;
+    type FishMedium;
+    type Dragon;
+    type BirdSmall;
+    type FishSmall;
+    type BipedLarge;
+    type Object;
+    type Golem;
+    type Critter;
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
+pub enum Body<Meta = BodyType, BodyMeta = ()>
+    where Meta: PerBody,
+{
+    Humanoid(Meta::Humanoid) = 0,
+    QuadrupedSmall(Meta::QuadrupedSmall) = 1,
+    QuadrupedMedium(Meta::QuadrupedMedium) = 2,
+    BirdMedium(Meta::BirdMedium) = 3,
+    FishMedium(Meta::FishMedium) = 4,
+    Dragon(Meta::Dragon) = 5,
+    BirdSmall(Meta::BirdSmall) = 6,
+    FishSmall(Meta::FishSmall) = 7,
+    BipedLarge(Meta::BipedLarge) = 8,
+    Object(Meta::Object) = 9,
+    Golem(Meta::Golem) = 10,
+    Critter(Meta::Critter) = 11,
+}
+
+/// Metadata intended to be stored per-body, together with data intended to be
+/// stored for each species for each body.
+///
+/// NOTE: Deliberately don't (yet?) implement serialize.
+#[derive(Clone, Debug, Deserialize)]
+pub struct AllBodies<BodyMeta, PerBodyMeta: Meta> {
+    pub humanoid: BodyData<BodyMeta, humanoid::AllSpecies<SpeciesMeta>>,
+    pub quadruped_small: BodyData<BodyMeta, quadruped_small::AllSpecies<SpeciesMeta>>,
+    pub quadruped_medium: BodyData<BodyMeta, quadruped_medium::AllSpecies<SpeciesMeta>>,
+    pub bird_medium: BodyData<BodyMeta, bird_medium::AllSpecies<SpeciesMeta>>,
+    pub fish_medium: BodyData<BodyMeta, ()>,
+    pub dragon: BodyData<BodyMeta, dragon::AllSpecies<SpeciesMeta>>,
+    pub bird_small: BodyData<BodyMeta, ()>,
+    pub fish_small: BodyData<BodyMeta, ()>
+    pub biped_large: BodyData<BodyMeta, biped_large::AllSpecies<SpeciesMeta>>,
+    pub object: BodyData<BodyMeta, ()>,
+    pub golem: BodyData<BodyMeta, golem::AllSpecies<SpeciesMeta>>,
+    pub critter: BodyData<BodyMeta, critter::AllSpecies<SpeciesMeta>>,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct BodyType;
+
+impl PerBody for BodyType {
+    type Humanoid = humanoid::Body;
+    type QuadrupedSmall = quadruped_small::Body;
+    type QuadrupedMedium = quadruped_medium::Body;
+    type BirdMedium = bird_medium::Body;
+    type FishMedium = fish_medium::Body;
+    type Dragon = dragon::Body;
+    type BirdSmall = bird_small::Body;
+    type FishSmall = fish_small::Body;
+    type BipedLarge = biped_large::Body;
+    type Object = object::Body;
+    type Golem = golem::Body;
+    type Critter = critter::Body;
+}
+*/
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
 pub enum Body {
@@ -57,10 +130,14 @@ pub struct AllBodies<BodyMeta, SpeciesMeta> {
     pub quadruped_small: BodyData<BodyMeta, quadruped_small::AllSpecies<SpeciesMeta>>,
     pub quadruped_medium: BodyData<BodyMeta, quadruped_medium::AllSpecies<SpeciesMeta>>,
     pub bird_medium: BodyData<BodyMeta, bird_medium::AllSpecies<SpeciesMeta>>,
+    pub fish_medium: BodyData<BodyMeta, ()>,
+    pub dragon: BodyData<BodyMeta, dragon::AllSpecies<SpeciesMeta>>,
+    pub bird_small: BodyData<BodyMeta, ()>,
+    pub fish_small: BodyData<BodyMeta, ()>,
     pub biped_large: BodyData<BodyMeta, biped_large::AllSpecies<SpeciesMeta>>,
+    pub object: BodyData<BodyMeta, ()>,
     pub golem: BodyData<BodyMeta, golem::AllSpecies<SpeciesMeta>>,
     pub critter: BodyData<BodyMeta, critter::AllSpecies<SpeciesMeta>>,
-    pub dragon: BodyData<BodyMeta, dragon::AllSpecies<SpeciesMeta>>,
 }
 
 /// Can only retrieve body metadata by direct index.
@@ -78,6 +155,29 @@ impl<BodyMeta, SpeciesMeta> core::ops::Index<NpcKind> for AllBodies<BodyMeta, Sp
             NpcKind::StoneGolem => &self.golem.body,
             NpcKind::Rat => &self.critter.body,
             NpcKind::Reddragon => &self.dragon.body,
+        }
+    }
+}
+
+/// Can only retrieve body metadata by direct index.
+impl<'a, BodyMeta, SpeciesMeta> core::ops::Index<&'a Body> for AllBodies<BodyMeta, SpeciesMeta> {
+    type Output = BodyMeta;
+
+    #[inline]
+    fn index(&self, index: &Body) -> &Self::Output {
+        match index {
+            Body::Humanoid(_) => &self.humanoid.body,
+            Body::QuadrupedSmall(_) => &self.quadruped_small.body,
+            Body::QuadrupedMedium(_) => &self.quadruped_medium.body,
+            Body::BirdMedium(_) => &self.bird_medium.body,
+            Body::FishMedium(_) => &self.fish_medium.body,
+            Body::Dragon(_) => &self.dragon.body,
+            Body::BirdSmall(_) => &self.bird_small.body,
+            Body::FishSmall(_) => &self.fish_small.body,
+            Body::BipedLarge(_) => &self.biped_large.body,
+            Body::Object(_) => &self.object.body,
+            Body::Golem(_) => &self.golem.body,
+            Body::Critter(_) => &self.critter.body,
         }
     }
 }

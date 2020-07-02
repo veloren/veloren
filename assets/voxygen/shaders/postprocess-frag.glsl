@@ -144,9 +144,9 @@ vec3 illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitted
 void main() {
 	vec2 uv = (f_pos + 1.0) * 0.5;
 
-	if (medium.x == 1u) {
+	/* if (medium.x == 1u) {
 		uv = clamp(uv + vec2(sin(uv.y * 16.0 + tick.x), sin(uv.x * 24.0 + tick.x)) * 0.005, 0, 1);
-	}
+	} */
 
     vec2 c_uv = vec2(0.5);//uv;//vec2(0.5);//uv;
     vec2 delta = /*sqrt*//*sqrt(2.0) / 2.0*//*sqrt(2.0) / 2.0*//*0.5 - */min(uv, 1.0 - uv);//min(uv * (1.0 - uv), 0.25) * 2.0;
@@ -186,9 +186,11 @@ void main() {
 
 	vec4 final_color = pow(aa_color, gamma);
 
-	/* if (medium.x == 1u) {
+#if (FLUID_MODE == FLUID_MODE_CHEAP)
+	if (medium.x == 1u) {
 		final_color *= vec4(0.2, 0.2, 0.8, 1.0);
-	} */
+	}
+#endif
 
 	tgt_color = vec4(final_color.rgb, 1);
 }

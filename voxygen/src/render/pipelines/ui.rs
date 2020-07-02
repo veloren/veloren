@@ -130,6 +130,18 @@ pub fn create_quad(
             v([l, b], [uv_l, uv_b]),
             v([r, b], [uv_r, uv_b]),
         ),
+        /* (true, true) | (false, false) => Quad::new(
+            v([l, t], [uv_l, uv_t]),
+            v([r, t], [uv_l, uv_b]),
+            v([r, b], [uv_r, uv_b]),
+            v([l, b], [uv_r, uv_t]),
+        ),
+        _ => Quad::new(
+            v([l, t], [uv_l, uv_t]),
+            v([l, b], [uv_l, uv_b]),
+            v([r, b], [uv_r, uv_b]),
+            v([r, t], [uv_r, uv_t]),
+        ) */
     }
 }
 

@@ -3,8 +3,8 @@ use std::f32::consts::PI;
 use treeculler::Frustum;
 use vek::*;
 
-const NEAR_PLANE: f32 = 0.5;
-const FAR_PLANE: f32 = 100000.0;
+pub const NEAR_PLANE: f32 = 0.5;
+pub const FAR_PLANE: f32 = 100000.0;
 
 const FIRST_PERSON_INTERP_TIME: f32 = 0.1;
 const THIRD_PERSON_INTERP_TIME: f32 = 0.1;
@@ -43,6 +43,7 @@ pub struct Camera {
     last_time: Option<f64>,
 
     dependents: Dependents,
+    frustum: Frustum<f32>,
 }
 
 impl Camera {
@@ -66,6 +67,7 @@ impl Camera {
                 proj_mat: Mat4::identity(),
                 cam_pos: Vec3::zero(),
             },
+            frustum: Frustum::from_modelview_projection(Mat4::identity().into_col_arrays()),
         }
     }
 
@@ -95,6 +97,7 @@ impl Camera {
                 (_, Err(_)) => self.dist,
             }
             .max(0.0)
+            // .max(NEAR_PLANE)
             // self.dist.max(0.0)
         };
 
@@ -104,20 +107,22 @@ impl Camera {
             * Mat4::rotation_x(self.ori.y)
             * Mat4::rotation_y(self.ori.x)
             * Mat4::rotation_3d(PI / 2.0, -Vec4::unit_x())
-            * Mat4::translation_3d(-self.focus);
+            * Mat4::translation_3d(-self.focus.map(|e| e.fract()));
 
         self.dependents.proj_mat =
             Mat4::perspective_rh_no(self.fov, self.aspect, NEAR_PLANE, FAR_PLANE);
 
         // TODO: Make this more efficient.
         self.dependents.cam_pos = Vec3::from(self.dependents.view_mat.inverted() * Vec4::unit_w());
+        self.frustum = Frustum::from_modelview_projection(
+            (self.dependents.proj_mat
+                * self.dependents.view_mat
+                * Mat4::translation_3d(-self.focus.map(|e| e.trunc())))
+            .into_col_arrays(),
+        );
     }
 
-    pub fn frustum(&self) -> Frustum<f32> {
-        Frustum::from_modelview_projection(
-            (self.dependents.proj_mat * self.dependents.view_mat).into_col_arrays(),
-        )
-    }
+    pub fn frustum(&self) -> &Frustum<f32> { &self.frustum }
 
     pub fn dependents(&self) -> Dependents { self.dependents.clone() }
 

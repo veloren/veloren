@@ -1,7 +1,7 @@
 use crate::{
     hud::{BarNumbers, CrosshairType, Intro, PressBehavior, ShortcutNumbers, XpBar},
     i18n,
-    render::{AaMode, CloudMode, FluidMode, LightingMode},
+    render::RenderMode,
     ui::ScaleMode,
     window::{GameInput, KeyMouse},
 };
@@ -548,7 +548,7 @@ impl Default for Log {
 
 /// `GraphicsSettings` contains settings related to framerate and in-game
 /// visuals.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(default)]
 pub struct GraphicsSettings {
     pub view_distance: u32,
@@ -557,34 +557,12 @@ pub struct GraphicsSettings {
     pub max_fps: u32,
     pub fov: u16,
     pub gamma: f32,
-    pub aa_mode: AaMode,
-    pub cloud_mode: CloudMode,
-    pub fluid_mode: FluidMode,
-    pub lighting_mode: LightingMode,
+    pub render_mode: RenderMode,
     pub window_size: [u16; 2],
     pub fullscreen: bool,
     pub lod_detail: u32,
 }
 
-impl Default for GraphicsSettings {
-    fn default() -> Self {
-        Self {
-            view_distance: 10,
-            sprite_render_distance: 250,
-            figure_lod_render_distance: 250,
-            max_fps: 60,
-            fov: 50,
-            gamma: 1.0,
-            aa_mode: AaMode::Fxaa,
-            cloud_mode: CloudMode::Regular,
-            fluid_mode: FluidMode::Shiny,
-            lighting_mode: LightingMode::Ashikmin,
-            window_size: [1920, 1080],
-            fullscreen: false,
-            lod_detail: 500,
-        }
-    }
-}
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum AudioOutput {
     /// Veloren's audio system wont work on some systems,

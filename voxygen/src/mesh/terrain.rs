@@ -1,6 +1,9 @@
 use crate::{
-    mesh::{vol, Meshable},
-    render::{self, mesh::Quad, FluidPipeline, Mesh, ShadowPipeline, TerrainPipeline},
+    mesh::{
+        greedy::{self, GreedyMesh},
+        Meshable,
+    },
+    render::{self, ColLightInfo, FluidPipeline, Mesh, ShadowPipeline, TerrainPipeline},
 };
 use common::{
     terrain::{Block, BlockKind},
@@ -12,7 +15,16 @@ use vek::*;
 
 type TerrainVertex = <TerrainPipeline as render::Pipeline>::Vertex;
 type FluidVertex = <FluidPipeline as render::Pipeline>::Vertex;
-type ShadowVertex = <ShadowPipeline as render::Pipeline>::Vertex;
+
+#[derive(Clone, Copy, PartialEq)]
+enum FaceKind {
+    /// Opaque face that is facing something non-opaque; either
+    /// water (Opaque(true)) or something else (Opaque(false)).
+    Opaque(bool),
+    /// Fluid face that is facing something non-opaque, non-tangible,
+    /// and non-fluid (most likely air).
+    Fluid,
+}
 
 trait Blendable {
     fn is_blended(&self) -> bool;
@@ -200,20 +212,22 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
 }
 
 impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
-    Meshable<'a, TerrainPipeline, FluidPipeline> for VolGrid2d<V>
+    Meshable<TerrainPipeline, FluidPipeline> for &'a VolGrid2d<V>
 {
     type Pipeline = TerrainPipeline;
+    type Result = (Aabb<f32>, ColLightInfo);
     type ShadowPipeline = ShadowPipeline;
-    type Supplement = Aabb<i32>;
+    type Supplement = (Aabb<i32>, Vec2<u16>);
     type TranslucentPipeline = FluidPipeline;
 
     fn generate_mesh(
-        &'a self,
-        range: Self::Supplement,
+        self,
+        (range, max_texture_size): Self::Supplement,
     ) -> (
         Mesh<Self::Pipeline>,
         Mesh<Self::TranslucentPipeline>,
         Mesh<Self::ShadowPipeline>,
+        Self::Result,
     ) {
         let mut light = calc_light(range, self);
 
@@ -262,7 +276,7 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
                 let z = z + 1;
                 match flat.get((x * h * d + y * d + z) as usize).copied() {
                     Some(b) => b,
-                    None => panic!("x {} y {} z {} d {} h {}"),
+                    None => panic!("x {} y {} z {} d {} h {}", x, y, z, d, h),
                 }
             }
         };
@@ -298,10 +312,10 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
         // similar z // levels together (better rendering performance)
         // let mut opaque_meshes = vec![Mesh::new(); ((z_end + 1 - z_start).clamped(1,
         // 60) as usize / 10).max(1)];
-        let mut opaque_mesh = Mesh::new();
-        let mut fluid_mesh = Mesh::new();
+        // let mut opaque_mesh = Mesh::new();
+        // let mut fluid_mesh = Mesh::new();
 
-        for x in 1..range.size().w - 1 {
+        /* for x in 1..range.size().w - 1 {
             for y in 1..range.size().w - 1 {
                 let mut blocks = [[[None; 3]; 3]; 3];
                 for i in 0..3 {
@@ -398,7 +412,7 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
                     // + 1 - z_start).max(1)) as usize; let selected_opaque_mesh
                     // = &mut opaque_meshes[opaque_mesh_index]; Create mesh
                     // polygons
-                    if block.map_or(false, |vox| vox.is_opaque()) {
+                    /* if block.map_or(false, |vox| vox.is_opaque()) {
                         vol::push_vox_verts(
                             &mut opaque_mesh, //selected_opaque_mesh,
                             faces_to_make(&blocks, None, |vox| {
@@ -425,7 +439,7 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
                             },
                             &lights,
                         );
-                    } else if block.map_or(false, |vox| vox.is_fluid()) {
+                    } else */if block.map_or(false, |vox| vox.is_fluid()) {
                         vol::push_vox_verts(
                             &mut fluid_mesh,
                             // NOTE: want to skip blocks that aren't either next to air, or next to
@@ -455,7 +469,7 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
                     }
                 }
             }
-        }
+        }*/
 
         // let opaque_mesh = opaque_meshes
         //     .into_iter()
@@ -468,286 +482,121 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
         //         });
         //         opaque_mesh
         //     });
-
-        let mut shadow_mesh = Mesh::new();
-
-        let x_size = (range.size().w - 2) as usize;
-        let y_size = (range.size().h - 2) as usize;
-        let z_size = (z_end - z_start + 1) as usize;
+        let max_size =
+            guillotiere::Size::new(i32::from(max_texture_size.x), i32::from(max_texture_size.y));
+        let greedy_size = Vec3::new(
+            (range.size().w - 2) as usize,
+            (range.size().h - 2) as usize,
+            (z_end - z_start + 1) as usize,
+        );
+        let greedy_size_cross = Vec3::new(greedy_size.x - 1, greedy_size.y - 1, greedy_size.z);
         let draw_delta = Vec3::new(1, 1, z_start);
-        let mesh_delta = Vec3::new(0, 0, z_start + range.min.z);
 
-        // x (u = y, v = z)
-        greedy_mesh_cross_section(
-            Vec3::new(y_size, z_size, x_size - 1),
-            |pos| {
-                should_draw_greedy(
-                    Vec3::new(pos.z, pos.x, pos.y),
-                    draw_delta,
-                    Vec3::unit_x(), /* , pos.z, 0, x_size */
-                    |pos| flat_get(pos),
-                )
-            },
-            |pos, dim, faces_forward| {
-                shadow_mesh.push_quad(create_quad_greedy(
-                    Vec3::new(pos.z, pos.x, pos.y),
-                    mesh_delta,
-                    dim,
-                    Vec2::new(Vec3::unit_y(), Vec3::unit_z()),
-                    Vec3::unit_x(),
-                    faces_forward,
-                ));
+        let get_light = |_: &mut (), pos: Vec3<i32>| light(pos + range.min);
+        let get_color =
+            |_: &mut (), pos: Vec3<i32>| flat_get(pos).get_color().unwrap_or(Rgb::zero());
+        let get_opacity = |_: &mut (), pos: Vec3<i32>| !flat_get(pos).is_opaque();
+        let should_draw = |_: &mut (), pos: Vec3<i32>, delta: Vec3<i32>, _uv| {
+            should_draw_greedy(pos, delta, |pos| flat_get(pos))
+        };
+        // NOTE: Conversion to f32 is fine since this i32 is actually in bounds for u16.
+        // let create_shadow = |pos, norm, meta| ShadowVertex::new(pos + Vec3::new(0.0,
+        // 0.0, (z_start + range.min.z) as f32), norm, meta);
+        let mesh_delta = Vec3::new(0.0, 0.0, (z_start + range.min.z) as f32);
+        let create_opaque = |atlas_pos, pos, norm, meta| {
+            TerrainVertex::new(atlas_pos, pos + mesh_delta, norm, meta)
+        };
+        let create_transparent =
+            |_atlas_pos, pos, norm, _meta| FluidVertex::new(pos + mesh_delta, norm);
+
+        let mut greedy = GreedyMesh::new(max_size);
+        let mut opaque_mesh = Mesh::new();
+        let mut fluid_mesh = Mesh::new();
+        let bounds = greedy.push(
+            (),
+            draw_delta,
+            greedy_size,
+            greedy_size_cross,
+            get_light,
+            get_color,
+            get_opacity,
+            should_draw,
+            |atlas_origin, dim, origin, draw_dim, norm, meta| match meta {
+                FaceKind::Opaque(meta) => {
+                    opaque_mesh.push_quad(greedy::create_quad(
+                        atlas_origin,
+                        dim,
+                        origin,
+                        draw_dim,
+                        norm,
+                        meta,
+                        |atlas_pos, pos, norm, &meta| create_opaque(atlas_pos, pos, norm, meta),
+                    ));
+                },
+                FaceKind::Fluid => {
+                    fluid_mesh.push_quad(greedy::create_quad(
+                        atlas_origin,
+                        dim,
+                        origin,
+                        draw_dim,
+                        norm,
+                        &(),
+                        |atlas_pos, pos, norm, &meta| {
+                            create_transparent(atlas_pos, pos, norm, meta)
+                        },
+                    ));
+                },
             },
         );
 
-        // y (u = z, v = x)
-        greedy_mesh_cross_section(
-            Vec3::new(z_size, x_size, y_size - 1),
-            |pos| {
-                should_draw_greedy(
-                    Vec3::new(pos.y, pos.z, pos.x),
-                    draw_delta,
-                    Vec3::unit_y(),
-                    |pos| flat_get(pos),
-                )
-            },
-            |pos, dim, faces_forward| {
-                shadow_mesh.push_quad(create_quad_greedy(
-                    Vec3::new(pos.y, pos.z, pos.x),
-                    mesh_delta,
-                    dim,
-                    Vec2::new(Vec3::unit_z(), Vec3::unit_x()),
-                    Vec3::unit_y(),
-                    faces_forward,
-                ));
-            },
-        );
+        let bounds = bounds.map(f32::from);
+        let bounds = Aabb {
+            min: bounds.min + mesh_delta,
+            max: bounds.max + mesh_delta,
+        };
+        let (col_lights, col_lights_size) = greedy.finalize();
+        // println!("z_bounds{:?}, bounds: {:?}", (mesh_delta.z, mesh_delta.z +
 
-        // z (u = x, v = y)
-        greedy_mesh_cross_section(
-            Vec3::new(x_size, y_size, z_size),
-            |pos| {
-                if pos.z == 0 {
-                    let pos = pos.map(|e| e as i32) + draw_delta; // - delta;
-                    let to = flat_get(pos).is_opaque(); //map(|v| v.is_opaque()).unwrap_or(false);
-                    if to { Some(false) } else { None }
-                } else {
-                    should_draw_greedy(
-                        Vec3::new(pos.x, pos.y, pos.z),
-                        draw_delta,
-                        Vec3::unit_z(),
-                        |pos| flat_get(pos),
-                    )
-                }
-            },
-            |pos, dim, faces_forward| {
-                shadow_mesh.push_quad(create_quad_greedy(
-                    Vec3::new(pos.x, pos.y, pos.z),
-                    mesh_delta,
-                    dim,
-                    Vec2::new(Vec3::unit_x(), Vec3::unit_y()),
-                    Vec3::unit_z(),
-                    faces_forward,
-                ));
-            },
-        );
-
-        (opaque_mesh, fluid_mesh, shadow_mesh)
+        (
+            opaque_mesh,
+            fluid_mesh,
+            Mesh::new(),
+            (bounds, (col_lights, col_lights_size)),
+        )
     }
-}
-
-/// Use the 6 voxels/blocks surrounding the center
-/// to detemine which faces should be drawn
-/// Unlike the one in segments.rs this uses a provided array of blocks instead
-/// of retrieving from a volume
-/// blocks[z][y][x]
-fn faces_to_make<M: Clone>(
-    blocks: &[[[Option<Block>; 3]; 3]; 3],
-    error_makes_face: Option<M>,
-    should_add: impl Fn(Block) -> Option<M>,
-) -> [Option<M>; 6] {
-    // Faces to draw
-    let make_face = |opt_v: Option<Block>| {
-        opt_v
-            .map(|v| should_add(v))
-            .unwrap_or(error_makes_face.clone())
-    };
-    [
-        make_face(blocks[1][1][0]),
-        make_face(blocks[1][1][2]),
-        make_face(blocks[1][0][1]),
-        make_face(blocks[1][2][1]),
-        make_face(blocks[0][1][1]),
-        make_face(blocks[2][1][1]),
-    ]
-}
-
-// Greedy meshing.
-fn greedy_mesh_cross_section(
-    /* mask: &mut [bool], */
-    dims: Vec3<usize>,
-    // Should we draw a face here (below this vertex)?  If so, is it front or back facing?
-    draw_face: impl Fn(Vec3<usize>) -> Option<bool>,
-    // Vertex, width and height, and whether it's front facing (face is implicit from the cross
-    // section).
-    mut push_quads: impl FnMut(Vec3<usize>, Vec2<usize>, bool),
-) {
-    // mask represents which faces are either set while the other is unset, or unset
-    // while the other is set.
-    let mut mask = vec![None; dims.y * dims.x];
-    (0..dims.z + 1).for_each(|d| {
-        // Compute mask
-        mask.iter_mut().enumerate().for_each(|(posi, mask)| {
-            let i = posi % dims.x;
-            let j = posi / dims.x;
-            *mask = draw_face(Vec3::new(i, j, d));
-        });
-
-        (0..dims.y).for_each(|j| {
-            let mut i = 0;
-            while i < dims.x {
-                // Compute width (number of set x bits for this row and layer, starting at the
-                // current minimum column).
-                if let Some(ori) = mask[j * dims.x + i] {
-                    let width = 1 + mask[j * dims.x + i + 1..j * dims.x + dims.x]
-                        .iter()
-                        .take_while(move |&&mask| mask == Some(ori))
-                        .count();
-                    let max_x = i + width;
-                    // Compute height (number of rows having w set x bits for this layer, starting
-                    // at the current minimum column and row).
-                    let height = 1
-                        + (j + 1..dims.y)
-                            .take_while(|h| {
-                                mask[h * dims.x + i..h * dims.x + max_x]
-                                    .iter()
-                                    .all(|&mask| mask == Some(ori))
-                            })
-                            .count();
-                    let max_y = j + height;
-                    // Add quad.
-                    push_quads(Vec3::new(i, j, d /* + 1 */), Vec2::new(width, height), ori);
-                    // Unset mask bits in drawn region, so we don't try to re-draw them.
-                    (j..max_y).for_each(|l| {
-                        mask[l * dims.x + i..l * dims.x + max_x]
-                            .iter_mut()
-                            .for_each(|mask| {
-                                *mask = None;
-                            });
-                    });
-                    // Update x value.
-                    i = max_x;
-                } else {
-                    i += 1;
-                }
-            }
-        });
-    });
-}
-
-fn create_quad_greedy(
-    origin: Vec3<usize>,
-    mesh_delta: Vec3<i32>,
-    dim: Vec2<usize>,
-    uv: Vec2<Vec3<f32>>,
-    norm: Vec3<f32>,
-    faces_forward: bool,
-) -> Quad<ShadowPipeline> {
-    let origin = (origin.map(|e| e as i32) + mesh_delta).map(|e| e as f32);
-    let dim = uv.map2(dim.map(|e| e as f32), |e, f| e * f);
-    let (dim, norm) = if faces_forward {
-        (dim, norm)
-    } else {
-        (Vec2::new(dim.y, dim.x), -norm)
-    };
-    Quad::new(
-        ShadowVertex::new(origin, norm),
-        ShadowVertex::new(origin + dim.x, norm),
-        ShadowVertex::new(origin + dim.x + dim.y, norm),
-        ShadowVertex::new(origin + dim.y, norm),
-    )
 }
 
 fn should_draw_greedy(
-    pos: Vec3<usize>,
-    draw_delta: Vec3<i32>,
+    pos: Vec3<i32>,
     delta: Vec3<i32>,
     flat_get: impl Fn(Vec3<i32>) -> Block,
-) -> Option<bool> {
-    let pos = pos.map(|e| e as i32) + draw_delta; // - delta;
-    let from = flat_get(pos - delta).is_opaque(); // map(|v| v.is_opaque()).unwrap_or(false);
-    let to = flat_get(pos).is_opaque(); //map(|v| v.is_opaque()).unwrap_or(false);
-    if from == to {
-        None
-    } else {
-        // If going from transparent to opaque, forward facing; otherwise, backward
-        // facing.
-        Some(from)
-    }
-}
-
-/*
-impl<V: BaseVol<Vox = Block> + ReadVol + Debug> Meshable for VolGrid3d<V> {
-    type Pipeline = TerrainPipeline;
-    type Supplement = Aabb<i32>;
-
-    fn generate_mesh(&self, range: Self::Supplement) -> Mesh<Self::Pipeline> {
-        let mut mesh = Mesh::new();
-
-        let mut last_chunk_pos = self.pos_key(range.min);
-        let mut last_chunk = self.get_key(last_chunk_pos);
-
-        let size = range.max - range.min;
-        for x in 1..size.x - 1 {
-            for y in 1..size.y - 1 {
-                for z in 1..size.z - 1 {
-                    let pos = Vec3::new(x, y, z);
-
-                    let new_chunk_pos = self.pos_key(range.min + pos);
-                    if last_chunk_pos != new_chunk_pos {
-                        last_chunk = self.get_key(new_chunk_pos);
-                        last_chunk_pos = new_chunk_pos;
-                    }
-                    let offs = pos.map(|e| e as f32 - 1.0);
-                    if let Some(chunk) = last_chunk {
-                        let chunk_pos = Self::chunk_offs(range.min + pos);
-                        if let Some(col) = chunk.get(chunk_pos).ok().and_then(|vox| vox.get_color())
-                        {
-                            let col = col.map(|e| e as f32 / 255.0);
-
-                            vol::push_vox_verts(
-                                &mut mesh,
-                                self,
-                                range.min + pos,
-                                offs,
-                                col,
-                                TerrainVertex::new,
-                                false,
-                            );
-                        }
-                    } else {
-                        if let Some(col) = self
-                            .get(range.min + pos)
-                            .ok()
-                            .and_then(|vox| vox.get_color())
-                        {
-                            let col = col.map(|e| e as f32 / 255.0);
-
-                            vol::push_vox_verts(
-                                &mut mesh,
-                                self,
-                                range.min + pos,
-                                offs,
-                                col,
-                                TerrainVertex::new,
-                                false,
-                            );
-                        }
-                    }
-                }
-            }
+) -> Option<(bool, FaceKind)> {
+    // TODO: Verify conversion.
+    // let pos = pos.map(|e| e as i32) + draw_delta; // - delta;
+    let from = flat_get(pos - delta); // map(|v| v.is_opaque()).unwrap_or(false);
+    let to = flat_get(pos); //map(|v| v.is_opaque()).unwrap_or(false);
+    let from_opaque = from.is_opaque();
+    if from_opaque == to.is_opaque() {
+        // Check the interface of fluid and non-tangible non-fluids (e.g. air).
+        let from_fluid = from.is_fluid();
+        if from_fluid == to.is_fluid() || from.is_tangible() || to.is_tangible() {
+            None
+        } else {
+            // While fluid is not culled, we still try to keep a consistent orientation as
+            // we do for land; if going from fluid to non-fluid,
+            // forwards-facing; otherwise, backwards-facing.
+            Some((from_fluid, FaceKind::Fluid))
         }
-        mesh
+    } else {
+        // If going from transparent to opaque, backward facing; otherwise, forward
+        // facing.  Also, if either from or to is fluid, set the meta accordingly.
+        Some((
+            from_opaque,
+            FaceKind::Opaque(if from_opaque {
+                to.is_fluid()
+            } else {
+                from.is_fluid()
+            }),
+        ))
     }
 }
-*/

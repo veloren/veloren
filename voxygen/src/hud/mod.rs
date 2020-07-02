@@ -37,7 +37,7 @@ use spell::Spell;
 use crate::{
     ecs::comp as vcomp,
     i18n::{i18n_asset_key, LanguageMetadata, VoxygenLocalization},
-    render::{AaMode, CloudMode, Consts, FluidMode, Globals, LightingMode, Renderer},
+    render::{Consts, Globals, RenderMode, Renderer},
     scene::camera::{self, Camera},
     ui::{fonts::ConrodVoxygenFonts, slot, Graphic, Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, GameInput},
@@ -231,9 +231,6 @@ pub enum Event {
     ChangeGamma(f32),
     AdjustWindowSize([u16; 2]),
     ToggleFullscreen,
-    ChangeAaMode(AaMode),
-    ChangeCloudMode(CloudMode),
-    ChangeFluidMode(FluidMode),
     CrosshairTransp(f32),
     ChatTransp(f32),
     CrosshairType(CrosshairType),
@@ -256,7 +253,7 @@ pub enum Event {
     ChangeLanguage(LanguageMetadata),
     ChangeBinding(GameInput),
     ChangeFreeLookBehavior(PressBehavior),
-    ChangeLightingMode(LightingMode),
+    ChangeRenderMode(RenderMode),
 }
 
 // TODO: Are these the possible layouts we want?
@@ -1897,20 +1894,11 @@ impl Hud {
                     settings_window::Event::AdjustGamma(new_gamma) => {
                         events.push(Event::ChangeGamma(new_gamma));
                     },
-                    settings_window::Event::ChangeAaMode(new_aa_mode) => {
-                        events.push(Event::ChangeAaMode(new_aa_mode));
-                    },
-                    settings_window::Event::ChangeCloudMode(new_cloud_mode) => {
-                        events.push(Event::ChangeCloudMode(new_cloud_mode));
-                    },
-                    settings_window::Event::ChangeFluidMode(new_fluid_mode) => {
-                        events.push(Event::ChangeFluidMode(new_fluid_mode));
-                    },
                     settings_window::Event::ChangeLanguage(language) => {
                         events.push(Event::ChangeLanguage(language));
                     },
-                    settings_window::Event::ChangeLightingMode(new_lighting_mode) => {
-                        events.push(Event::ChangeLightingMode(new_lighting_mode));
+                    settings_window::Event::ChangeRenderMode(new_render_mode) => {
+                        events.push(Event::ChangeRenderMode(new_render_mode));
                     },
                     settings_window::Event::ToggleFullscreen => {
                         events.push(Event::ToggleFullscreen);

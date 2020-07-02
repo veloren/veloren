@@ -2,6 +2,23 @@
 // See https://en.wikipedia.org/wiki/Electromagnetic_absorption_by_water
 const vec3 MU_WATER = vec3(0.6, 0.04, 0.01);
 
+// // NOTE: Automatic in v4.0
+// float
+// mip_map_level(in vec2 texture_coordinate)
+// {
+//     // The OpenGL Graphics System: A Specification 4.2
+//     //  - chapter 3.9.11, equation 3.21
+//
+//
+//     vec2  dx_vtc        = dFdx(texture_coordinate);
+//     vec2  dy_vtc        = dFdy(texture_coordinate);
+//     float delta_max_sqr = max(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));
+//
+//
+//     //return max(0.0, 0.5 * log2(delta_max_sqr) - 1.0); // == log2(sqrt(delta_max_sqr));
+//     return 0.5 * log2(delta_max_sqr); // == log2(sqrt(delta_max_sqr));
+// }
+
 //https://gamedev.stackexchange.com/questions/92015/optimized-linear-to-srgb-glsl
 vec3 srgb_to_linear(vec3 srgb) {
     bvec3 cutoff = lessThan(srgb, vec3(0.04045));
@@ -53,8 +70,8 @@ float BeckmannDistribution_D(float NdotH, float alpha) {
 }
 
 // Voxel Distribution
-float BeckmannDistribution_D_Voxel(vec3 wh, vec3 norm, float alpha) {
-    vec3 sides = sign(norm);
+float BeckmannDistribution_D_Voxel(vec3 wh, vec3 voxel_norm, float alpha) {
+    vec3 sides = sign(voxel_norm);
     // vec3 cos_sides_i = /*sides * */sides * norm;
     // vec3 cos_sides_o = max(sides * view_dir, 0.0);
 
@@ -64,7 +81,7 @@ float BeckmannDistribution_D_Voxel(vec3 wh, vec3 norm, float alpha) {
     vec3 NdotH2 = NdotH * NdotH;
     vec3 NdotH2m2 = NdotH2 * alpha * alpha;
     vec3 k_spec = exp((NdotH2 - 1) / NdotH2m2) / (PI * NdotH2m2 * NdotH2);
-    return dot(mix(k_spec, /*cos_sides_o*/vec3(0.0), equal(NdotH, vec3(0.0))), /*cos_sides_i*/abs(norm));
+    return dot(mix(k_spec, /*cos_sides_o*/vec3(0.0), equal(NdotH, vec3(0.0))), /*cos_sides_i*/abs(voxel_norm));
     // // const float PI = 3.1415926535897932384626433832795;
     // const vec3 normals[6] = vec3[](vec3(1,0,0), vec3(0,1,0), vec3(0,0,1), vec3(-1,0,0), vec3(0,-1,0), vec3(0,0,-1));
 
@@ -100,8 +117,8 @@ float BeckmannDistribution_D_Voxel(vec3 wh, vec3 norm, float alpha) {
     // return voxel_norm;
 }
 
-float TrowbridgeReitzDistribution_D_Voxel(vec3 wh, vec3 norm, float alpha) {
-    vec3 sides = sign(norm);
+float TrowbridgeReitzDistribution_D_Voxel(vec3 wh, vec3 voxel_norm, float alpha) {
+    vec3 sides = sign(voxel_norm);
     // vec3 cos_sides_i = /*sides * */sides * norm;
     // vec3 cos_sides_o = max(sides * view_dir, 0.0);
 
@@ -118,7 +135,7 @@ float TrowbridgeReitzDistribution_D_Voxel(vec3 wh, vec3 norm, float alpha) {
     vec3 e = (1 - NdotH2) / NdotH2m2;
     vec3 k_spec = 1.0 / (PI * NdotH2m2 * NdotH2 * (1 + e) * (1 + e));
     // vec3 k_spec = exp((NdotH2 - 1) / NdotH2m2) / (PI * NdotH2m2 * NdotH2);
-    return dot(mix(k_spec, /*cos_sides_o*/vec3(0.0), equal(NdotH, vec3(0.0))), /*cos_sides_i*/abs(norm));
+    return dot(mix(k_spec, /*cos_sides_o*/vec3(0.0), equal(NdotH, vec3(0.0))), /*cos_sides_i*/abs(voxel_norm));
 }
 
 float BeckmannDistribution_Lambda(vec3 norm, vec3 dir, float alpha) {
@@ -223,7 +240,7 @@ vec3 FresnelBlend_f(vec3 norm, vec3 dir, vec3 light_dir, vec3 R_d, vec3 R_s, flo
 // http://www.pbr-book.org/3ed-2018/Reflection_Models/Microfacet_Models.html#fragment-MicrofacetDistributionPublicMethods-2
 // and
 // http://www.pbr-book.org/3ed-2018/Reflection_Models/Fresnel_Incidence_Effects.html
-vec3 FresnelBlend_Voxel_f(vec3 norm, vec3 dir, vec3 light_dir, vec3 R_d, vec3 R_s, float alpha, float dist) {
+vec3 FresnelBlend_Voxel_f(vec3 norm, vec3 dir, vec3 light_dir, vec3 R_d, vec3 R_s, float alpha, vec3 voxel_norm, float dist) {
     const float PI = 3.1415926535897932384626433832795;
     alpha = alpha * sqrt(2.0);
     float cos_wi = /*max(*/dot(-light_dir, norm)/*, 0.0)*/;
@@ -233,7 +250,7 @@ vec3 FresnelBlend_Voxel_f(vec3 norm, vec3 dir, vec3 light_dir, vec3 R_d, vec3 R_
     vec4 AbsNdotL = abs(vec4(light_dir, cos_wi));
     vec4 AbsNdotV = abs(vec4(dir, cos_wo));
 #else
-    vec3 sides = sign(norm);
+    vec3 sides = sign(voxel_norm);
     vec4 AbsNdotL = vec4(max(-light_dir * sides, 0.0), abs(cos_wi));
     vec4 AbsNdotV = vec4(max(dir * sides, 0.0), abs(cos_wo));
 #endif
@@ -288,8 +305,8 @@ vec3 FresnelBlend_Voxel_f(vec3 norm, vec3 dir, vec3 light_dir, vec3 R_d, vec3 R_
     }
     wh = normalize(wh);//mix(normalize(wh), vec3(0.0), equal(light_dir, dir));
     float dot_wi_wh = dot(-light_dir, wh);
-    // float distr = TrowbridgeReitzDistribution_D_Voxel(wh, norm, alpha);
-    float distr = BeckmannDistribution_D_Voxel(wh, norm, alpha);
+    // float distr = TrowbridgeReitzDistribution_D_Voxel(wh, voxel_norm, alpha);
+    float distr = BeckmannDistribution_D_Voxel(wh, voxel_norm, alpha);
     // float distr = BeckmannDistribution_D(dot(wh, norm), alpha);
     vec3 specular = distr /
         (4 * abs(dot_wi_wh) *
@@ -365,67 +382,67 @@ vec3 light_reflection_factor2(vec3 norm, vec3 dir, vec3 light_dir, vec3 k_d, vec
     // // return vec3(0.0);
 }
 
-vec3 light_reflection_factor(vec3 norm, vec3 dir, vec3 light_dir, vec3 k_d, vec3 k_s, float alpha, float voxel_lighting) {
+vec3 light_reflection_factor(vec3 norm, vec3 dir, vec3 light_dir, vec3 k_d, vec3 k_s, float alpha, vec3 voxel_norm, float voxel_lighting) {
 #if (LIGHTING_ALGORITHM == LIGHTING_ALGORITHM_LAMBERTIAN)
     const float PI = 3.141592;
-#if (LIGHTING_DISTRIBUTION_SCHEME == LIGHTING_DISTRIBUTION_SCHEME_VOXEL)
-#if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
+    #if (LIGHTING_DISTRIBUTION_SCHEME == LIGHTING_DISTRIBUTION_SCHEME_VOXEL)
+        #if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
     vec4 AbsNdotL = abs(vec4(light_dir, dot(norm, light_dir)));
-#else
-    vec3 sides = sign(norm);
+        #else
+    vec3 sides = sign(voxel_norm);
     vec4 AbsNdotL = max(vec4(-light_dir * sides, dot(norm, -light_dir)), 0.0);
-#endif
-    float diffuse = dot(AbsNdotL, vec4(abs(norm) * (1.0 - voxel_lighting), voxel_lighting));
-#elif (LIGHTING_DISTRIBUTION_SCHEME == LIGHTING_DISTRIBUTION_SCHEME_MICROFACET)
-#if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
+        #endif
+    float diffuse = dot(AbsNdotL, vec4(abs(voxel_norm) * (1.0 - voxel_lighting), voxel_lighting));
+    #elif (LIGHTING_DISTRIBUTION_SCHEME == LIGHTING_DISTRIBUTION_SCHEME_MICROFACET)
+        #if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
     float diffuse = abs(dot(norm, light_dir));
-#else
+        #else
     float diffuse = max(dot(norm, -light_dir), 0.0);
-#endif
-#endif
+        #endif
+    #endif
     return k_d / PI * diffuse;
 #elif (LIGHTING_ALGORITHM == LIGHTING_ALGORITHM_BLINN_PHONG)
     const float PI = 3.141592;
     alpha = alpha * sqrt(2.0);
-#if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
+    #if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
     float ndotL = abs(dot(norm, light_dir));
-#else
+    #else
     float ndotL = max(dot(norm, -light_dir), 0.0);
-#endif
+    #endif
 
     if (ndotL > 0.0) {
-#if (LIGHTING_DISTRIBUTION_SCHEME == LIGHTING_DISTRIBUTION_SCHEME_VOXEL)
-#if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
+    #if (LIGHTING_DISTRIBUTION_SCHEME == LIGHTING_DISTRIBUTION_SCHEME_VOXEL)
+        #if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
         vec4 AbsNdotL = abs(vec4(light_dir, ndotL));
-#else
-        vec3 sides = sign(norm);
+        #else
+        vec3 sides = sign(voxel_norm);
         vec4 AbsNdotL = max(vec4(-light_dir * sides, ndotL), 0.0);
-#endif
-        float diffuse = dot(AbsNdotL, vec4(abs(norm) * (1.0 - voxel_lighting), voxel_lighting));
-#elif (LIGHTING_DISTRIBUTION_SCHEME == LIGHTING_DISTRIBUTION_SCHEME_MICROFACET)
+        #endif
+        float diffuse = dot(AbsNdotL, vec4(abs(voxel_norm) * (1.0 - voxel_lighting), voxel_lighting));
+    #elif (LIGHTING_DISTRIBUTION_SCHEME == LIGHTING_DISTRIBUTION_SCHEME_MICROFACET)
         float diffuse = ndotL;
-#endif
+    #endif
         vec3 H = normalize(-light_dir + dir);
 
-#if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
+    #if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
         float NdotH = abs(dot(norm, H));
-#else
+    #else
         float NdotH = max(dot(norm, H), 0.0);
-#endif
+    #endif
         return (1.0 - k_s) / PI * k_d * diffuse + k_s * pow(NdotH, alpha/* * 4.0*/);
     }
 
     return vec3(0.0);
 #elif (LIGHTING_ALGORITHM == LIGHTING_ALGORITHM_ASHIKHMIN)
-#if (LIGHTING_DISTRIBUTION_SCHEME == LIGHTING_DISTRIBUTION_SCHEME_VOXEL)
-        return FresnelBlend_Voxel_f(norm, dir, light_dir, k_d/* * max(dot(norm, -light_dir), 0.0)*/, k_s, alpha, voxel_lighting);
-#elif (LIGHTING_DISTRIBUTION_SCHEME == LIGHTING_DISTRIBUTION_SCHEME_MICROFACET)
+    #if (LIGHTING_DISTRIBUTION_SCHEME == LIGHTING_DISTRIBUTION_SCHEME_VOXEL)
+        return FresnelBlend_Voxel_f(norm, dir, light_dir, k_d/* * max(dot(norm, -light_dir), 0.0)*/, k_s, alpha, voxel_norm, voxel_lighting);
+    #elif (LIGHTING_DISTRIBUTION_SCHEME == LIGHTING_DISTRIBUTION_SCHEME_MICROFACET)
     //if (voxel_lighting < 1.0) {
         return FresnelBlend_f(norm, dir, light_dir, k_d/* * max(dot(norm, -light_dir), 0.0)*/, k_s, alpha);
     //} else {
     //    return FresnelBlend_f(norm, dir, light_dir, k_d/* * max(dot(norm, -light_dir), 0.0)*/, k_s, alpha);
     //}
-#endif
+    #endif
 #endif
 }
 
@@ -530,3 +547,68 @@ vec3 compute_attenuation_point(vec3 wpos, vec3 ray_dir, vec3 mu, float surface_a
     return exp(-mu * sqrt(depth2));
 #endif
 }
+
+//#ifdef HAS_SHADOW_MAPS
+//    #if (SHADOW_MODE == SHADOW_MODE_MAP)
+//uniform sampler2DShadow t_directed_shadow_maps;
+//// uniform sampler2DArrayShadow t_directed_shadow_maps;
+//
+//float ShadowCalculationDirected(in vec4 /*light_pos[2]*/sun_pos, uint lightIndex)
+//{
+//    float bias = 0.0;//-0.0001;// 0.05 / (2.0 * view_distance.x);
+//    // const vec3 sampleOffsetDirections[20] = vec3[]
+//    // (
+//    //    vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
+//    //    vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
+//    //    vec3( 1,  1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1,  1,  0),
+//    //    vec3( 1,  0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1,  0, -1),
+//    //    vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
+//    //    // vec3(0, 0, 0)
+//    // );
+//    /* if (lightIndex >= light_shadow_count.z) {
+//        return 1.0;
+//    } */
+//    // vec3 fragPos = sun_pos.xyz;// / sun_pos.w;//light_pos[lightIndex].xyz;
+//    float visibility = textureProj(t_directed_shadow_maps, sun_pos);
+//    // float visibility = textureProj(t_directed_shadow_maps, vec4(fragPos.xy, /*lightIndex, */fragPos.z + bias, sun_pos.w));
+//    return visibility;
+//    // return mix(visibility, 0.0, sun_pos.z < -1.0);
+//    // return mix(mix(0.0, 1.0, visibility == 1.0), 1.0, sign(sun_pos.w) * sun_pos.z > /*1.0*/abs(sun_pos.w));
+//    // return visibility == 1.0 ? 1.0 : 0.0;
+//    /* if (visibility == 1.0) {
+//        return 1.0;
+//    } */
+//    // return visibility;
+//    /* if (fragPos.z > 1.0) {
+//        return 1.0;
+//    } */
+//    // if (visibility <= 0.75) {
+//    //     return 0.0;
+//    // }
+//    // int samples  = 20;
+//    // float shadow = 0.0;
+//    // // float bias   = 0.0001;
+//    // float viewDistance = length(cam_pos.xyz - fragPos);
+//    // // float diskRadius = 0.2 * (1.0 + (viewDistance / screen_res.w)) / 25.0;
+//    // float diskRadius = 0.0008;//0.005;// / (2.0 * view_distance.x);//(1.0 + (viewDistance / screen_res.w)) / 25.0;
+//    // for(int i = 0; i < samples; ++i)
+//    // {
+//    //     vec3 currentDepth = fragPos + vec3(sampleOffsetDirections[i].xyz) * diskRadius + bias;
+//    //     visibility = texture(t_directed_shadow_maps, vec4(currentDepth.xy, lightIndex, currentDepth.z)/*, -2.5*/);
+//    //     shadow += mix(visibility, 1.0, visibility >= 0.5);
+//    // }
+//    // shadow /= float(samples);
+//    // return shadow;
+//}
+//    #elif (SHADOW_MODE == SHADOW_MODE_NONE || SHADOW_MODE == SHADOW_MODE_CHEAP)
+//float ShadowCalculationDirected(in vec4 light_pos[2], uint lightIndex)
+//{
+//    return 1.0;
+//}
+//    #endif
+//#else
+//float ShadowCalculationDirected(in vec4 light_pos[2], uint lightIndex)
+//{
+//    return 1.0;
+//}
+//#endif

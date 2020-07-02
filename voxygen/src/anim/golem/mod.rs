@@ -8,7 +8,7 @@ pub use self::{idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
 use common::comp::{self};
-use vek::Vec3;
+use vek::{Mat4, Vec3};
 
 #[derive(Clone)]
 pub struct GolemSkeleton {
@@ -46,7 +46,10 @@ impl GolemSkeleton {
 impl Skeleton for GolemSkeleton {
     type Attr = SkeletonAttr;
 
-    fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
+    fn compute_matrices<F: FnMut(Mat4<f32>) -> FigureBoneData>(
+        &self,
+        mut make_bone: F,
+    ) -> ([FigureBoneData; 16], Vec3<f32>) {
         let upper_torso_mat = self.upper_torso.compute_base_matrix();
         let shoulder_l_mat = self.shoulder_l.compute_base_matrix();
         let shoulder_r_mat = self.shoulder_r.compute_base_matrix();
@@ -57,20 +60,16 @@ impl Skeleton for GolemSkeleton {
         let foot_r_mat = self.foot_r.compute_base_matrix();
         (
             [
-                FigureBoneData::new(torso_mat * upper_torso_mat * self.head.compute_base_matrix()),
-                FigureBoneData::new(torso_mat * upper_torso_mat),
-                FigureBoneData::new(torso_mat * upper_torso_mat * shoulder_l_mat),
-                FigureBoneData::new(torso_mat * upper_torso_mat * shoulder_r_mat),
-                FigureBoneData::new(
-                    torso_mat * upper_torso_mat * self.hand_l.compute_base_matrix(),
-                ),
-                FigureBoneData::new(
-                    torso_mat * upper_torso_mat * self.hand_r.compute_base_matrix(),
-                ),
-                FigureBoneData::new(foot_l_mat * leg_l_mat),
-                FigureBoneData::new(foot_r_mat * leg_r_mat),
-                FigureBoneData::new(foot_l_mat),
-                FigureBoneData::new(foot_r_mat),
+                make_bone(torso_mat * upper_torso_mat * self.head.compute_base_matrix()),
+                make_bone(torso_mat * upper_torso_mat),
+                make_bone(torso_mat * upper_torso_mat * shoulder_l_mat),
+                make_bone(torso_mat * upper_torso_mat * shoulder_r_mat),
+                make_bone(torso_mat * upper_torso_mat * self.hand_l.compute_base_matrix()),
+                make_bone(torso_mat * upper_torso_mat * self.hand_r.compute_base_matrix()),
+                make_bone(foot_l_mat * leg_l_mat),
+                make_bone(foot_r_mat * leg_r_mat),
+                make_bone(foot_l_mat),
+                make_bone(foot_r_mat),
                 FigureBoneData::default(),
                 FigureBoneData::default(),
                 FigureBoneData::default(),

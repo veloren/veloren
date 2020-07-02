@@ -25,13 +25,25 @@
 
 in vec3 f_pos;
 flat in uint f_pos_norm;
-in vec3 f_col;
-in float f_light;
+// in vec3 f_col;
+// in float f_light;
+// in vec3 light_pos[2];
+
+//struct ShadowLocals {
+//	mat4 shadowMatrices;
+//    mat4 texture_mat;
+//};
+//
+//layout (std140)
+//uniform u_light_shadows {
+//    ShadowLocals shadowMats[/*MAX_LAYER_FACES*/192];
+//};
 
 layout (std140)
 uniform u_locals {
-    vec3 model_offs;
+	vec3 model_offs;
 	float load_time;
+    ivec4 atlas_offs;
 };
 
 uniform sampler2D t_waves;
@@ -89,6 +101,16 @@ void main() {
 	// Use an array to avoid conditional branching
 	vec3 f_norm = normals[norm_axis + norm_dir];
 
+    // vec4 light_pos[2];
+//#if (SHADOW_MODE == SHADOW_MODE_MAP)
+//    // for (uint i = 0u; i < light_shadow_count.z; ++i) {
+//    //     light_pos[i] = /*vec3(*/shadowMats[i].texture_mat * vec4(f_pos, 1.0)/*)*/;
+//    // }
+//    vec4 sun_pos = /*vec3(*/shadowMats[0].texture_mat * vec4(f_pos, 1.0)/*)*/;
+//#elif (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_NONE)
+//    vec4 sun_pos = vec4(0.0);
+//#endif
+
 	vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
     // vec4 vert_pos4 = view_mat * vec4(f_pos, 1.0);
     // vec3 view_dir = normalize(-vec3(vert_pos4)/* / vert_pos4.w*/);
@@ -121,7 +143,11 @@ void main() {
 	vec3 norm = vec3(0, 0, 1) * nmap.z + b_norm * nmap.x + c_norm * nmap.y;
     // vec3 norm = f_norm;
 
+#if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE == FLUID_MODE_SHINY)
     float f_alt = alt_at(f_pos.xy);
+#elif (SHADOW_MODE == SHADOW_MODE_NONE || FLUID_MODE == FLUID_MODE_CHEAP)
+    float f_alt = f_pos.z;
+#endif
 
     float fluid_alt = max(ceil(f_pos.z), floor(f_alt));// f_alt;//max(f_alt - f_pos.z, 0.0);
     const float alpha = 0.255/*/ / 4.0*//* / 4.0 / sqrt(2.0)*/;
@@ -144,7 +170,7 @@ void main() {
     reflect_ray_dir = normalize(vec3(reflect_ray_dir4) / reflect_ray_dir4.w); */
 	// vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
     // Squared to account for prior saturation.
-    float f_light = pow(f_light, 1.5);
+    float f_light = 1.0;// pow(f_light, 1.5);
 	vec3 reflect_color = get_sky_color(/*reflect_ray_dir*/beam_view_dir, time_of_day.x, f_pos, vec3(-100000), 0.25, false, _clouds) * f_light;
     // /*const */vec3 water_color = srgb_to_linear(vec3(0.2, 0.5, 1.0));
     // /*const */vec3 water_color = srgb_to_linear(vec3(0.8, 0.9, 1.0));
@@ -153,14 +179,23 @@ void main() {
     // /*const */vec3 water_attenuation = MU_WATER;// vec3(0.8, 0.05, 0.01);
     // /*const */vec3 water_color = vec3(0.2, 0.95, 0.99);
 
-    vec3 sun_dir = get_sun_dir(time_of_day.x);
-    vec3 moon_dir = get_moon_dir(time_of_day.x);
+    /* vec3 sun_dir = get_sun_dir(time_of_day.x);
+    vec3 moon_dir = get_moon_dir(time_of_day.x); */
+#if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP)
     vec4 f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
     float sun_shade_frac = horizon_at2(f_shadow, f_alt, f_pos, sun_dir);
-    float moon_shade_frac = horizon_at2(f_shadow, f_alt, f_pos, moon_dir);
+#elif (SHADOW_MODE == SHADOW_MODE_NONE)
+    float sun_shade_frac = 1.0;//horizon_at2(f_shadow, f_alt, f_pos, sun_dir);
+#endif
+    float moon_shade_frac = 1.0;// horizon_at2(f_shadow, f_alt, f_pos, moon_dir);
     // float sun_shade_frac = horizon_at(/*f_shadow, f_pos.z, */f_pos, sun_dir);
     // float moon_shade_frac = horizon_at(/*f_shadow, f_pos.z, */f_pos, moon_dir);
-    float shade_frac = /*1.0;*/sun_shade_frac + moon_shade_frac;
+    // float shade_frac = /*1.0;*/sun_shade_frac + moon_shade_frac;
+
+    // DirectionalLight sun_info = get_sun_info(sun_dir, sun_shade_frac, light_pos);
+    float point_shadow = shadow_at(f_pos, f_norm);
+    DirectionalLight sun_info = get_sun_info(sun_dir, point_shadow * sun_shade_frac, /*sun_pos*/f_pos);
+    DirectionalLight moon_info = get_moon_info(moon_dir, point_shadow * moon_shade_frac/*, light_pos*/);
 
     // Hack to determine water depth: color goes down with distance through water, so
     // we assume water color absorption from this point a to some other point b is the distance
@@ -206,16 +241,18 @@ void main() {
 
 	vec3 emitted_light, reflected_light;
 	// vec3 light, diffuse_light, ambient_light;
-	float point_shadow = shadow_at(f_pos, f_norm);
     // vec3 light_frac = /*vec3(1.0);*/light_reflection_factor(f_norm/*vec3(0, 0, 1.0)*/, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(R_s), alpha);
     // 0 = 100% reflection, 1 = translucent water
     float passthrough = /*pow(*/dot(faceforward(norm, norm, cam_to_frag/*view_dir*/), -cam_to_frag/*view_dir*/)/*, 0.5)*/;
 
     float max_light = 0.0;
-    max_light += get_sun_diffuse2(norm, /*time_of_day.x*/sun_dir, moon_dir, sun_view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, vec3(k_d), /*vec3(f_light * point_shadow)*//*reflect_color*/k_s, alpha, 1.0, emitted_light, reflected_light);
-    reflected_light *= /*water_color_direct * */reflect_color * f_light * point_shadow * shade_frac;
-    emitted_light *= /*water_color_direct*//*ambient_attenuation * */f_light * point_shadow * max(shade_frac, MIN_SHADOW);
-    max_light *= f_light * point_shadow * shade_frac;
+    max_light += get_sun_diffuse2(sun_info, moon_info, norm, /*time_of_day.x*/sun_view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, vec3(k_d), /*vec3(f_light * point_shadow)*//*reflect_color*/k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+    // reflected_light *= /*water_color_direct * */reflect_color * f_light * point_shadow * shade_frac;
+    // emitted_light *= /*water_color_direct*//*ambient_attenuation * */f_light * point_shadow * max(shade_frac, MIN_SHADOW);
+    // max_light *= f_light * point_shadow * shade_frac;
+    // reflected_light *= /*water_color_direct * */reflect_color * f_light * point_shadow;
+    // emitted_light *= /*water_color_direct*//*ambient_attenuation * */f_light * point_shadow;
+    // max_light *= f_light * point_shadow;
 
     // vec3 diffuse_light_point = vec3(0.0);
     // max_light += lights_at(f_pos, cam_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, vec3(1.0), /*vec3(0.0)*/k_s, alpha, emitted_light, diffuse_light_point);
@@ -226,7 +263,7 @@ void main() {
     // diffuse_light_point -= specular_light_point;
     // max_light += lights_at(f_pos, cam_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, /*k_d*/vec3(0.0), /*vec3(0.0)*/k_s, alpha, emitted_light, /*diffuse_light*/reflected_light);
 
-    max_light += lights_at(f_pos, cam_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, /*k_d*//*vec3(0.0)*/k_d, /*vec3(0.0)*/k_s, alpha, 1.0, emitted_light, /*diffuse_light*/reflected_light);
+    max_light += lights_at(f_pos, cam_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, /*k_d*//*vec3(0.0)*/k_d, /*vec3(0.0)*/k_s, alpha, f_norm, 1.0, emitted_light, /*diffuse_light*/reflected_light);
 
     float reflected_light_point = length(reflected_light);///*length*/(diffuse_light_point.r) + f_light * point_shadow;
     // TODO: See if we can be smarter about this using point light distances.
@@ -245,10 +282,6 @@ void main() {
     // reflected_light += point_light;
 	// vec3 surf_color = srgb_to_linear(vec3(0.2, 0.5, 1.0)) * light * diffuse_light * ambient_light;
     vec3 surf_color = illuminate(max_light, view_dir, emitted_light/* * log(1.0 - MU_WATER)*/, /*cam_attenuation * *//*water_color * */reflected_light/* * log(1.0 - MU_WATER)*/);
-
-	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
-	vec4 clouds;
-    vec3 fog_color = get_sky_color(cam_to_frag/*-view_dir*/, time_of_day.x, cam_pos.xyz, f_pos, 0.25, true, clouds);
 
     // passthrough = pow(passthrough, 1.0 / (1.0 + water_depth_to_camera));
     /* surf_color = cam_attenuation.g < 0.5 ?
@@ -284,5 +317,13 @@ void main() {
 
 	vec4 color = mix(vec4(reflect_color, 1.0), vec4(vec3(0), 1.0 / (1.0 + diffuse_light * 0.25)), passthrough); */
 
-    tgt_color = mix(mix(color, vec4(fog_color, 0.0), fog_level), vec4(clouds.rgb, 0.0), clouds.a);
+#if (CLOUD_MODE == CLOUD_MODE_REGULAR)
+    float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
+	vec4 clouds;
+    vec3 fog_color = get_sky_color(cam_to_frag/*-view_dir*/, time_of_day.x, cam_pos.xyz, f_pos, 0.25, false, clouds);
+    vec4 final_color = mix(mix(color, vec4(fog_color, 0.0), fog_level), vec4(clouds.rgb, 0.0), clouds.a);
+#elif (CLOUD_MODE == CLOUD_MODE_NONE)
+    vec4 final_color = color;
+#endif
+    tgt_color = final_color;
 }

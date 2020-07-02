@@ -1,22 +1,24 @@
+pub mod greedy;
 pub mod segment;
 pub mod terrain;
-mod vol;
 
 use crate::render::{self, Mesh};
 
-pub trait Meshable<'a, P: render::Pipeline, T: render::Pipeline> {
+pub trait Meshable<P: render::Pipeline, T> {
     type Pipeline: render::Pipeline;
     type TranslucentPipeline: render::Pipeline;
     type ShadowPipeline: render::Pipeline;
     type Supplement;
+    type Result;
 
     // Generate meshes - one opaque, one translucent, one shadow
     fn generate_mesh(
-        &'a self,
+        self,
         supp: Self::Supplement,
     ) -> (
         Mesh<Self::Pipeline>,
         Mesh<Self::TranslucentPipeline>,
         Mesh<Self::ShadowPipeline>,
+        Self::Result,
     );
 }

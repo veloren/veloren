@@ -157,6 +157,9 @@ impl PlayState for SessionState {
             let camera::Dependents {
                 view_mat, cam_pos, ..
             } = self.scene.camera().dependents();
+            let focus_pos = self.scene.camera().get_focus_pos();
+            let focus_off = focus_pos.map(|e| e.trunc());
+            let cam_pos = cam_pos + focus_off;
 
             // Choose a spot above the player's head for item distance checks
             let player_pos = match self
@@ -189,7 +192,9 @@ impl PlayState for SessionState {
                 )
             };
 
-            let cam_dir: Vec3<f32> = Vec3::from(view_mat.inverted() * -Vec4::unit_z());
+            let cam_dir: Vec3<f32> = Vec3::from(
+                (view_mat/* * Mat4::translation_3d(-focus_off */).inverted() * -Vec4::unit_z(),
+            );
 
             // Check to see whether we're aiming at anything
             let (build_pos, select_pos) = {
@@ -695,34 +700,15 @@ impl PlayState for SessionState {
                         global_state.settings.graphics.gamma = new_gamma;
                         global_state.settings.save_to_file_warn();
                     },
-                    HudEvent::ChangeAaMode(new_aa_mode) => {
+                    HudEvent::ChangeRenderMode(new_render_mode) => {
                         // Do this first so if it crashes the setting isn't saved :)
+                        println!("Changing render mode: {:?}", new_render_mode);
                         global_state
                             .window
                             .renderer_mut()
-                            .set_aa_mode(new_aa_mode)
+                            .set_render_mode(new_render_mode)
                             .unwrap();
-                        global_state.settings.graphics.aa_mode = new_aa_mode;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ChangeCloudMode(new_cloud_mode) => {
-                        // Do this first so if it crashes the setting isn't saved :)
-                        global_state
-                            .window
-                            .renderer_mut()
-                            .set_cloud_mode(new_cloud_mode)
-                            .unwrap();
-                        global_state.settings.graphics.cloud_mode = new_cloud_mode;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ChangeFluidMode(new_fluid_mode) => {
-                        // Do this first so if it crashes the setting isn't saved :)
-                        global_state
-                            .window
-                            .renderer_mut()
-                            .set_fluid_mode(new_fluid_mode)
-                            .unwrap();
-                        global_state.settings.graphics.fluid_mode = new_fluid_mode;
+                        global_state.settings.graphics.render_mode = new_render_mode;
                         global_state.settings.save_to_file_warn();
                     },
                     HudEvent::ChangeLanguage(new_language) => {
@@ -735,16 +721,6 @@ impl PlayState for SessionState {
                         .unwrap();
                         localized_strings.log_missing_entries();
                         self.hud.update_language(localized_strings.clone());
-                    },
-                    HudEvent::ChangeLightingMode(new_lighting_mode) => {
-                        // Do this first so if it crashes the setting isn't saved :)
-                        global_state
-                            .window
-                            .renderer_mut()
-                            .set_lighting_mode(new_lighting_mode)
-                            .unwrap();
-                        global_state.settings.graphics.lighting_mode = new_lighting_mode;
-                        global_state.settings.save_to_file_warn();
                     },
                     HudEvent::ToggleFullscreen => {
                         global_state
@@ -799,9 +775,8 @@ impl PlayState for SessionState {
 
                 let renderer = global_state.window.renderer_mut();
 
-                // Flush renderer to synchronize commands sent on the main encoder with the
-                // start of the shadow encoder.
-                renderer.flush();
+                // Clear the shadow maps.
+                renderer.clear_shadows();
                 // Clear the screen
                 renderer.clear();
                 // Render the screen using the global renderer
@@ -823,6 +798,12 @@ impl PlayState for SessionState {
                 .window
                 .swap_buffers()
                 .expect("Failed to swap window buffers!");
+
+            /* let renderer = global_state.window.renderer_mut();
+            // Clear the shadow maps.
+            renderer.clear_shadows();
+            // Clear the screen
+            renderer.clear(); */
 
             // Wait for the next tick.
             clock.tick(Duration::from_millis(

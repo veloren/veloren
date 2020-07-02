@@ -664,6 +664,13 @@ impl Ui {
                         } else {
                             [p2.into_array(), p1.into_array(), p3.into_array()]
                         };
+                        /* // If triangle is counter-clockwise, reverse it.
+                        let (v1, v2): (Vec3<f32>, Vec3<f32>) = ((p2 - p1).into(), (p3 - p1).into());
+                        let triangle = if v1.cross(v2).z > 0.0 {
+                            [p2.into_array(), p1.into_array(), p3.into_array()]
+                        } else {
+                            [p1.into_array(), p2.into_array(), p3.into_array()]
+                        }; */
                         mesh.push_tri(create_ui_tri(
                             triangle,
                             [[0.0; 2]; 3],

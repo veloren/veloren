@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     i18n::{list_localizations, LanguageMetadata, VoxygenLocalization},
-    render::{AaMode, CloudMode, FluidMode, LightingMode},
+    render::{AaMode, CloudMode, FluidMode, LightingMode, RenderMode, ShadowMode},
     ui::{fonts::ConrodVoxygenFonts, ImageSlider, ScaleMode, ToggleButton},
     window::GameInput,
     GlobalState,
@@ -117,6 +117,8 @@ widget_ids! {
         fullscreen_label,
         lighting_mode_text,
         lighting_mode_list,
+        shadow_mode_text,
+        shadow_mode_list,
         save_window_size_button,
         audio_volume_slider,
         audio_volume_text,
@@ -227,10 +229,7 @@ pub enum Event {
     AdjustGamma(f32),
     AdjustWindowSize([u16; 2]),
     ToggleFullscreen,
-    ChangeAaMode(AaMode),
-    ChangeCloudMode(CloudMode),
-    ChangeFluidMode(FluidMode),
-    ChangeLightingMode(LightingMode),
+    ChangeRenderMode(RenderMode),
     AdjustMusicVolume(f32),
     AdjustSfxVolume(f32),
     ChangeAudioDevice(String),
@@ -1774,7 +1773,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             // Get which AA mode is currently active
             let selected = mode_list
                 .iter()
-                .position(|x| *x == self.global_state.settings.graphics.aa_mode);
+                .position(|x| *x == self.global_state.settings.graphics.render_mode.aa);
 
             if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
                 .w_h(400.0, 22.0)
@@ -1784,7 +1783,10 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .down_from(state.ids.aa_mode_text, 8.0)
                 .set(state.ids.aa_mode_list, ui)
             {
-                events.push(Event::ChangeAaMode(mode_list[clicked]));
+                events.push(Event::ChangeRenderMode(RenderMode {
+                    aa: mode_list[clicked],
+                    ..self.global_state.settings.graphics.render_mode
+                }));
             }
 
             // CloudMode
@@ -1810,7 +1812,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             // Get which cloud rendering mode is currently active
             let selected = mode_list
                 .iter()
-                .position(|x| *x == self.global_state.settings.graphics.cloud_mode);
+                .position(|x| *x == self.global_state.settings.graphics.render_mode.cloud);
 
             if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
                 .w_h(400.0, 22.0)
@@ -1820,7 +1822,10 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .down_from(state.ids.cloud_mode_text, 8.0)
                 .set(state.ids.cloud_mode_list, ui)
             {
-                events.push(Event::ChangeCloudMode(mode_list[clicked]));
+                events.push(Event::ChangeRenderMode(RenderMode {
+                    cloud: mode_list[clicked],
+                    ..self.global_state.settings.graphics.render_mode
+                }));
             }
 
             // FluidMode
@@ -1848,7 +1853,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             // Get which fluid rendering mode is currently active
             let selected = mode_list
                 .iter()
-                .position(|x| *x == self.global_state.settings.graphics.fluid_mode);
+                .position(|x| *x == self.global_state.settings.graphics.render_mode.fluid);
 
             if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
                 .w_h(400.0, 22.0)
@@ -1858,7 +1863,10 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .down_from(state.ids.fluid_mode_text, 8.0)
                 .set(state.ids.fluid_mode_list, ui)
             {
-                events.push(Event::ChangeFluidMode(mode_list[clicked]));
+                events.push(Event::ChangeRenderMode(RenderMode {
+                    fluid: mode_list[clicked],
+                    ..self.global_state.settings.graphics.render_mode
+                }));
             }
 
             // LightingMode
@@ -1893,7 +1901,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             // Get which lighting rendering mode is currently active
             let selected = mode_list
                 .iter()
-                .position(|x| *x == self.global_state.settings.graphics.lighting_mode);
+                .position(|x| *x == self.global_state.settings.graphics.render_mode.lighting);
 
             if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
                 .w_h(400.0, 22.0)
@@ -1903,14 +1911,61 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .down_from(state.ids.lighting_mode_text, 8.0)
                 .set(state.ids.lighting_mode_list, ui)
             {
-                events.push(Event::ChangeLightingMode(mode_list[clicked]));
+                events.push(Event::ChangeRenderMode(RenderMode {
+                    lighting: mode_list[clicked],
+                    ..self.global_state.settings.graphics.render_mode
+                }));
+            }
+
+            // ShadowMode
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.shadow_rendering_mode"),
+            )
+            .down_from(state.ids.lighting_mode_list, 8.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.shadow_mode_text, ui);
+
+            let mode_list = [ShadowMode::None, ShadowMode::Cheap, ShadowMode::Map];
+            let mode_label_list = [
+                &self
+                    .localized_strings
+                    .get("hud.settings.shadow_rendering_mode.none"),
+                &self
+                    .localized_strings
+                    .get("hud.settings.shadow_rendering_mode.cheap"),
+                &self
+                    .localized_strings
+                    .get("hud.settings.shadow_rendering_mode.map"),
+            ];
+
+            // Get which shadow rendering mode is currently active
+            let selected = mode_list
+                .iter()
+                .position(|x| *x == self.global_state.settings.graphics.render_mode.shadow);
+
+            if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
+                .w_h(400.0, 22.0)
+                .color(MENU_BG)
+                .label_color(TEXT_COLOR)
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .down_from(state.ids.shadow_mode_text, 8.0)
+                .set(state.ids.shadow_mode_list, ui)
+            {
+                events.push(Event::ChangeRenderMode(RenderMode {
+                    shadow: mode_list[clicked],
+                    ..self.global_state.settings.graphics.render_mode
+                }));
             }
 
             // Fullscreen
             Text::new(&self.localized_strings.get("hud.settings.fullscreen"))
                 .font_size(self.fonts.cyri.scale(14))
                 .font_id(self.fonts.cyri.conrod_id)
-                .down_from(state.ids.lighting_mode_list, 8.0)
+                .down_from(state.ids.shadow_mode_list, 8.0)
                 .color(TEXT_COLOR)
                 .set(state.ids.fullscreen_label, ui);
 

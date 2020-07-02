@@ -61,7 +61,9 @@ impl PlayState for CharSelectionState {
                 }
             }
 
-            global_state.window.renderer_mut().clear();
+            let renderer = global_state.window.renderer_mut();
+            renderer.clear();
+            renderer.clear_shadows();
 
             // Maintain the UI.
             let events = self
@@ -123,6 +125,7 @@ impl PlayState for CharSelectionState {
                 });
 
             // Maintain the scene.
+            let loadout = self.char_selection_ui.get_loadout();
             {
                 let client = self.client.borrow();
                 let scene_data = scene::SceneData {
@@ -138,12 +141,14 @@ impl PlayState for CharSelectionState {
                         .figure_lod_render_distance
                         as f32,
                 };
-                self.scene
-                    .maintain(global_state.window.renderer_mut(), scene_data);
+                self.scene.maintain(
+                    global_state.window.renderer_mut(),
+                    scene_data,
+                    loadout.as_ref(),
+                );
             }
 
             // Render the scene.
-            let loadout = self.char_selection_ui.get_loadout();
             self.scene.render(
                 global_state.window.renderer_mut(),
                 self.client.borrow().get_tick(),

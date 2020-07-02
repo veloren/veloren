@@ -8,7 +8,7 @@ pub use self::{idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
 use common::comp::{self};
-use vek::Vec3;
+use vek::{Mat4, Vec3};
 
 #[derive(Clone)]
 pub struct FishMediumSkeleton {
@@ -38,18 +38,21 @@ impl Skeleton for FishMediumSkeleton {
 
     fn bone_count(&self) -> usize { 6 }
 
-    fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
+    fn compute_matrices<F: FnMut(Mat4<f32>) -> FigureBoneData>(
+        &self,
+        mut make_bone: F,
+    ) -> ([FigureBoneData; 16], Vec3<f32>) {
         let torso_mat = self.torso.compute_base_matrix();
         let rear_mat = self.rear.compute_base_matrix();
 
         (
             [
-                FigureBoneData::new(self.head.compute_base_matrix() * torso_mat),
-                FigureBoneData::new(torso_mat),
-                FigureBoneData::new(rear_mat * torso_mat),
-                FigureBoneData::new(self.tail.compute_base_matrix() * rear_mat),
-                FigureBoneData::new(self.fin_l.compute_base_matrix() * rear_mat),
-                FigureBoneData::new(self.fin_r.compute_base_matrix() * rear_mat),
+                make_bone(self.head.compute_base_matrix() * torso_mat),
+                make_bone(torso_mat),
+                make_bone(rear_mat * torso_mat),
+                make_bone(self.tail.compute_base_matrix() * rear_mat),
+                make_bone(self.fin_l.compute_base_matrix() * rear_mat),
+                make_bone(self.fin_r.compute_base_matrix() * rear_mat),
                 FigureBoneData::default(),
                 FigureBoneData::default(),
                 FigureBoneData::default(),

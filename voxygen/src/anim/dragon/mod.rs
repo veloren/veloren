@@ -8,7 +8,7 @@ pub use self::{fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation};
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
 use common::comp::{self};
-use vek::Vec3;
+use vek::{Mat4, Vec3};
 
 #[derive(Clone, Default)]
 pub struct DragonSkeleton {
@@ -38,7 +38,10 @@ impl Skeleton for DragonSkeleton {
 
     fn bone_count(&self) -> usize { 15 }
 
-    fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
+    fn compute_matrices<F: FnMut(Mat4<f32>) -> FigureBoneData>(
+        &self,
+        mut make_bone: F,
+    ) -> ([FigureBoneData; 16], Vec3<f32>) {
         let head_upper_mat = self.head_upper.compute_base_matrix();
         let head_lower_mat = self.head_lower.compute_base_matrix();
         let chest_front_mat = self.chest_front.compute_base_matrix();
@@ -48,35 +51,31 @@ impl Skeleton for DragonSkeleton {
         let tail_front_mat = self.tail_front.compute_base_matrix();
         (
             [
-                FigureBoneData::new(chest_front_mat * head_lower_mat * head_upper_mat),
-                FigureBoneData::new(chest_front_mat * head_lower_mat),
-                FigureBoneData::new(
+                make_bone(chest_front_mat * head_lower_mat * head_upper_mat),
+                make_bone(chest_front_mat * head_lower_mat),
+                make_bone(
                     chest_front_mat
                         * head_lower_mat
                         * head_upper_mat
                         * self.jaw.compute_base_matrix(),
                 ),
-                FigureBoneData::new(chest_front_mat),
-                FigureBoneData::new(chest_front_mat * self.chest_rear.compute_base_matrix()),
-                FigureBoneData::new(chest_front_mat * chest_rear_mat * tail_front_mat),
-                FigureBoneData::new(
+                make_bone(chest_front_mat),
+                make_bone(chest_front_mat * self.chest_rear.compute_base_matrix()),
+                make_bone(chest_front_mat * chest_rear_mat * tail_front_mat),
+                make_bone(
                     chest_front_mat
                         * chest_rear_mat
                         * tail_front_mat
                         * self.tail_rear.compute_base_matrix(),
                 ),
-                FigureBoneData::new(chest_front_mat * self.wing_in_l.compute_base_matrix()),
-                FigureBoneData::new(chest_front_mat * self.wing_in_r.compute_base_matrix()),
-                FigureBoneData::new(
-                    chest_front_mat * wing_in_l_mat * self.wing_out_l.compute_base_matrix(),
-                ),
-                FigureBoneData::new(
-                    chest_front_mat * wing_in_r_mat * self.wing_out_r.compute_base_matrix(),
-                ),
-                FigureBoneData::new(self.foot_fl.compute_base_matrix()),
-                FigureBoneData::new(self.foot_fr.compute_base_matrix()),
-                FigureBoneData::new(self.foot_bl.compute_base_matrix()),
-                FigureBoneData::new(self.foot_br.compute_base_matrix()),
+                make_bone(chest_front_mat * self.wing_in_l.compute_base_matrix()),
+                make_bone(chest_front_mat * self.wing_in_r.compute_base_matrix()),
+                make_bone(chest_front_mat * wing_in_l_mat * self.wing_out_l.compute_base_matrix()),
+                make_bone(chest_front_mat * wing_in_r_mat * self.wing_out_r.compute_base_matrix()),
+                make_bone(self.foot_fl.compute_base_matrix()),
+                make_bone(self.foot_fr.compute_base_matrix()),
+                make_bone(self.foot_bl.compute_base_matrix()),
+                make_bone(self.foot_br.compute_base_matrix()),
                 FigureBoneData::default(),
             ],
             Vec3::default(),

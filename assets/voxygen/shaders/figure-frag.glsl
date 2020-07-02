@@ -17,16 +17,40 @@
 #include <globals.glsl>
 
 in vec3 f_pos;
-in vec3 f_col;
-in float f_ao;
+// in float dummy;
+// in vec3 f_col;
+// in float f_ao;
+// flat in uint f_pos_norm;
 flat in vec3 f_norm;
+/*centroid */in vec2 f_uv_pos;
 // in float f_alt;
 // in vec4 f_shadow;
+// in vec3 light_pos[2];
+
+// #if (SHADOW_MODE == SHADOW_MODE_MAP)
+// in vec4 sun_pos;
+// #elif (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_NONE)
+// const vec4 sun_pos = vec4(0.0);
+// #endif
+
+uniform sampler2D t_col_light;
+
+//struct ShadowLocals {
+//	mat4 shadowMatrices;
+//    mat4 texture_mat;
+//};
+//
+//layout (std140)
+//uniform u_light_shadows {
+//    ShadowLocals shadowMats[/*MAX_LAYER_FACES*/192];
+//};
 
 layout (std140)
 uniform u_locals {
 	mat4 model_mat;
 	vec4 model_col;
+    ivec4 atlas_offs;
+    vec3 model_pos;
 	// bit 0 - is player
 	// bit 1-31 - unused
 	int flags;
@@ -34,6 +58,7 @@ uniform u_locals {
 
 struct BoneData {
 	mat4 bone_mat;
+    mat4 normals_mat;
 };
 
 layout (std140)
@@ -48,28 +73,81 @@ uniform u_bones {
 out vec4 tgt_color;
 
 void main() {
+    // vec2 texSize = textureSize(t_col_light, 0);
+    // vec4 col_light = texture(t_col_light, (f_uv_pos + 0.5) / texSize);
+    // vec3 f_col = col_light.rgb;
+    // float f_ao = col_light.a;
+
+    // vec4 f_col_light = texture(t_col_light, (f_uv_pos + 0.5) / textureSize(t_col_light, 0));
+    // vec3 f_col = f_col_light.rgb;
+    // float f_ao = f_col_light.a;
+
+    // vec2 f_uv_pos = f_uv_pos + atlas_offs.xy;
+    vec4 f_col_light = texelFetch(t_col_light, ivec2(f_uv_pos)/* + uv_delta*//* - f_norm * 0.00001*/, 0);
+    // vec4 f_col_light = texelFetch(t_col_light, ivec2(int(f_uv_pos.x), int(f_uv_pos.y)/* + uv_delta*//* - f_norm * 0.00001*/), 0);
+    vec3 f_col = /*linear_to_srgb*//*srgb_to_linear*/(f_col_light.rgb);
+	// vec3 f_col = vec3(1.0);
+    // vec2 texSize = textureSize(t_col_light, 0);
+    float f_ao = texture(t_col_light, (f_uv_pos + 0.5) / textureSize(t_col_light, 0)).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
+    // float /*f_light*/f_ao = textureProj(t_col_light, vec3(f_uv_pos, texSize)).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
+
+    // vec3 my_chunk_pos = (vec3((uvec3(f_pos_norm) >> uvec3(0, 9, 18)) & uvec3(0x1FFu)) - 256.0) / 2.0;
+    // tgt_color = vec4(hash(floor(vec4(my_chunk_pos.x, 0, 0, 0))), hash(floor(vec4(0, my_chunk_pos.y, 0, 1))), hash(floor(vec4(0, 0, my_chunk_pos.z, 2))), 1.0);
+    // float f_ao = 0;
+	// tgt_color = vec4(vec3(f_ao), 1.0);
+	// tgt_color = vec4(f_col, 1.0);
+    // return;
+
+    // vec3 du = dFdx(f_pos);
+    // vec3 dv = dFdy(f_pos);
+    // vec3 f_norm = normalize(cross(du, dv));
+
+    // vec4 light_pos[2];
+//#if (SHADOW_MODE == SHADOW_MODE_MAP)
+//    // for (uint i = 0u; i < light_shadow_count.z; ++i) {
+//    //     light_pos[i] = /*vec3(*/shadowMats[i].texture_mat * vec4(f_pos, 1.0)/*)*/;
+//    // }
+//    vec4 sun_pos = /*vec3(*/shadowMats[0].texture_mat * vec4(f_pos, 1.0)/*)*/;
+//#elif (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_NONE)
+//    vec4 sun_pos = vec4(0.0);
+//#endif
+
     vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
     // vec4 vert_pos4 = view_mat * vec4(f_pos, 1.0);
     // vec3 view_dir = normalize(-vec3(vert_pos4)/* / vert_pos4.w*/);
     vec3 view_dir = -cam_to_frag;
 
-    vec3 sun_dir = get_sun_dir(time_of_day.x);
-    vec3 moon_dir = get_moon_dir(time_of_day.x);
+    /* vec3 sun_dir = get_sun_dir(time_of_day.x);
+    vec3 moon_dir = get_moon_dir(time_of_day.x); */
     // float sun_light = get_sun_brightness(sun_dir);
 	// float moon_light = get_moon_brightness(moon_dir);
     /* float sun_shade_frac = horizon_at(f_pos, sun_dir);
     float moon_shade_frac = horizon_at(f_pos, moon_dir); */
+#if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE == FLUID_MODE_SHINY)
     float f_alt = alt_at(f_pos.xy);
+#elif (SHADOW_MODE == SHADOW_MODE_NONE || FLUID_MODE == FLUID_MODE_CHEAP)
+    float f_alt = f_pos.z;
+#endif
+
+#if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP)
     vec4 f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
     float sun_shade_frac = horizon_at2(f_shadow, f_alt, f_pos, sun_dir);
-    float moon_shade_frac = horizon_at2(f_shadow, f_alt, f_pos, moon_dir);
+#elif (SHADOW_MODE == SHADOW_MODE_NONE)
+    float sun_shade_frac = 1.0;//horizon_at2(f_shadow, f_alt, f_pos, sun_dir);
+#endif
+    float moon_shade_frac = 1.0;// horizon_at2(f_shadow, f_alt, f_pos, moon_dir);
     // Globbal illumination "estimate" used to light the faces of voxels which are parallel to the sun or moon (which is a very common occurrence).
     // Will be attenuated by k_d, which is assumed to carry any additional ambient occlusion information (e.g. about shadowing).
     // float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-f_norm, sun_dir)) * 10000.0), 0.0, 0.5);
     // NOTE: current assumption is that moon and sun shouldn't be out at the sae time.
     // This assumption is (or can at least easily be) wrong, but if we pretend it's true we avoids having to explicitly pass in a separate shadow
     // for the sun and moon (since they have different brightnesses / colors so the shadows shouldn't attenuate equally).
-    float shade_frac = /*1.0;*/sun_shade_frac + moon_shade_frac;
+    // float shade_frac = /*1.0;*/sun_shade_frac + moon_shade_frac;
+
+    // DirectionalLight sun_info = get_sun_info(sun_dir, sun_shade_frac, light_pos);
+    float point_shadow = shadow_at(f_pos, f_norm);
+    DirectionalLight sun_info = get_sun_info(sun_dir, point_shadow * sun_shade_frac, /*sun_pos*/f_pos);
+    DirectionalLight moon_info = get_moon_info(moon_dir, point_shadow * moon_shade_frac/*, light_pos*/);
 
 	vec3 surf_color = /*srgb_to_linear*/(model_col.rgb * f_col);
     float alpha = 1.0;
@@ -86,20 +164,22 @@ void main() {
 
     vec3 emitted_light, reflected_light;
 
-	float point_shadow = shadow_at(f_pos, f_norm);
     // vec3 light_frac = /*vec3(1.0);*//*vec3(max(dot(f_norm, -sun_dir) * 0.5 + 0.5, 0.0));*/light_reflection_factor(f_norm, view_dir, vec3(0, 0, -1.0), vec3(1.0), vec3(R_s), alpha);
 	// vec3 point_light = light_at(f_pos, f_norm);
 	// vec3 light, diffuse_light, ambient_light;
     //get_sun_diffuse(f_norm, time_of_day.x, view_dir, k_a * point_shadow * (shade_frac * 0.5 + light_frac * 0.5), k_d * point_shadow * shade_frac, k_s * point_shadow * shade_frac, alpha, emitted_light, reflected_light);
     float max_light = 0.0;
-    max_light += get_sun_diffuse2(f_norm, sun_dir, moon_dir, view_dir, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, emitted_light, reflected_light);
-    reflected_light *= point_shadow * shade_frac;
-    emitted_light *= point_shadow * max(shade_frac, MIN_SHADOW);
-    max_light *= point_shadow * shade_frac;
+    max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, view_dir, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, emitted_light, reflected_light);
+    // reflected_light *= point_shadow * shade_frac;
+    // emitted_light *= point_shadow * max(shade_frac, MIN_SHADOW);
+    // max_light *= point_shadow * shade_frac;
+    // reflected_light *= point_shadow;
+    // emitted_light *= point_shadow;
+    // max_light *= point_shadow;
 
     max_light += lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
 
-	float ao = /*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
+	float ao = f_ao;//0.25 + f_ao * 0.75; ///*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
 
 	reflected_light *= ao;
 	emitted_light *= ao;
@@ -118,21 +198,25 @@ void main() {
 	// vec3 surf_color = illuminate(srgb_to_linear(model_col.rgb * f_col), light, diffuse_light, ambient_light);
 	surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
 
+#if (CLOUD_MODE == CLOUD_MODE_REGULAR)
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 	vec4 clouds;
-	vec3 fog_color = get_sky_color(cam_to_frag/*view_dir*/, time_of_day.x, cam_pos.xyz, f_pos, 0.5, true, clouds);
+	vec3 fog_color = get_sky_color(cam_to_frag/*view_dir*/, time_of_day.x, cam_pos.xyz, f_pos, 0.5, false, clouds);
 	vec3 color = mix(mix(surf_color, fog_color, fog_level), clouds.rgb, clouds.a);
+#elif (CLOUD_MODE == CLOUD_MODE_NONE)
+    vec3 color = surf_color;
+#endif
 
-	if ((flags & 1) == 1 && int(cam_mode) == 1) {
-		float distance = distance(vec3(cam_pos), focus_pos.xyz) - 2;
+	// if ((flags & 1) == 1 && int(cam_mode) == 1) {
+	// 	float distance = distance(vec3(cam_pos), focus_pos.xyz) - 2;
 
-		float opacity = clamp(distance / distance_divider, 0, 1);
+	// 	float opacity = clamp(distance / distance_divider, 0, 1);
 
-		if(threshold_matrix[int(gl_FragCoord.x) % 4][int(gl_FragCoord.y) % 4] > opacity) {
-            discard;
-            return;
-		}
-	}
+	// 	// if(threshold_matrix[int(gl_FragCoord.x) % 4][int(gl_FragCoord.y) % 4] > opacity) {
+    //     //     discard;
+    //     //     return;
+	// 	// }
+	// }
 
 	tgt_color = vec4(color, 1.0);
 }

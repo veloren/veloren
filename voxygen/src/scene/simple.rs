@@ -4,14 +4,15 @@ use crate::{
         fixture::FixtureSkeleton,
         Animation, Skeleton,
     },
-    mesh::Meshable,
+    mesh::{greedy::GreedyMesh, Meshable},
     render::{
-        create_pp_mesh, create_skybox_mesh, Consts, FigurePipeline, Globals, Light, Mesh, Model,
-        PostProcessLocals, PostProcessPipeline, Renderer, Shadow, SkyboxLocals, SkyboxPipeline,
+        create_pp_mesh, create_skybox_mesh, BoneMeshes, Consts, FigureModel, FigurePipeline,
+        Globals, Light, Model, PostProcessLocals, PostProcessPipeline, Renderer, Shadow,
+        ShadowLocals, SkyboxLocals, SkyboxPipeline,
     },
     scene::{
         camera::{self, Camera, CameraMode},
-        figure::{load_mesh, FigureModelCache, FigureState},
+        figure::{load_mesh, FigureColLights, FigureModelCache, FigureState},
         LodData,
     },
     window::{Event, PressState},
@@ -43,8 +44,17 @@ impl ReadVol for VoidVol {
     fn get<'a>(&'a self, _pos: Vec3<i32>) -> Result<&'a Self::Vox, Self::Error> { Ok(&VoidVox) }
 }
 
-fn generate_mesh(segment: &Segment, offset: Vec3<f32>) -> Mesh<FigurePipeline> {
-    Meshable::<FigurePipeline, FigurePipeline>::generate_mesh(segment, (offset, Vec3::one())).0
+fn generate_mesh<'a>(
+    greedy: &mut GreedyMesh<'a>,
+    segment: Segment,
+    offset: Vec3<f32>,
+) -> BoneMeshes {
+    let (opaque, _, /* shadow */ _, bounds) =
+        Meshable::<FigurePipeline, &mut GreedyMesh>::generate_mesh(
+            segment,
+            (greedy, offset, Vec3::one()),
+        );
+    (opaque /* , shadow */, bounds)
 }
 
 struct Skybox {
@@ -61,14 +71,16 @@ pub struct Scene {
     globals: Consts<Globals>,
     lights: Consts<Light>,
     shadows: Consts<Shadow>,
+    shadow_mats: Consts<ShadowLocals>,
     camera: Camera,
 
     skybox: Skybox,
     postprocess: PostProcess,
     lod: LodData,
     map_bounds: Vec2<f32>,
-    backdrop: Option<(Model<FigurePipeline>, FigureState<FixtureSkeleton>)>,
 
+    col_lights: FigureColLights,
+    backdrop: Option<(FigureModel, FigureState<FixtureSkeleton>)>,
     figure_model_cache: FigureModelCache,
     figure_state: FigureState<CharacterSkeleton>,
 
@@ -109,11 +121,13 @@ impl Scene {
         camera.set_distance(3.4);
         camera.set_orientation(Vec3::new(start_angle, 0.0, 0.0));
 
+        let mut col_lights = FigureColLights::new(renderer);
+
         Self {
             globals: renderer.create_consts(&[Globals::default()]).unwrap(),
             lights: renderer.create_consts(&[Light::default(); 32]).unwrap(),
             shadows: renderer.create_consts(&[Shadow::default(); 32]).unwrap(),
-            camera,
+            shadow_mats: renderer.create_consts(&[ShadowLocals::default(); 6]).unwrap(),
 
             skybox: Skybox {
                 model: renderer.create_model(&create_skybox_mesh()).unwrap(),
@@ -133,6 +147,13 @@ impl Scene {
 
             backdrop: backdrop.map(|specifier| {
                 let mut state = FigureState::new(renderer, FixtureSkeleton::new());
+                let mut greedy = FigureModel::make_greedy();
+                let mesh = load_mesh(
+                    specifier,
+                    Vec3::new(-55.0, -49.5, -2.0),
+                    |segment, offset| generate_mesh(&mut greedy, segment, offset),
+                );
+                let model = col_lights.create_figure(renderer, greedy, mesh).unwrap();
                 state.update(
                     renderer,
                     Vec3::zero(),
@@ -141,21 +162,20 @@ impl Scene {
                     Rgba::broadcast(1.0),
                     15.0, // Want to get there immediately.
                     1.0,
+                    &model,
                     0,
                     true,
                     false,
+                    &camera,
                 );
                 (
-                    renderer
-                        .create_model(&load_mesh(
-                            specifier,
-                            Vec3::new(-55.0, -49.5, -2.0),
-                            generate_mesh,
-                        ))
-                        .unwrap(),
-                    state
+                    model,
+                    state,
                 )
             }),
+            col_lights,
+
+            camera,
 
             turning: false,
             char_ori: /*0.0*/-start_angle,
@@ -190,7 +210,12 @@ impl Scene {
         }
     }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer, scene_data: SceneData) {
+    pub fn maintain(
+        &mut self,
+        renderer: &mut Renderer,
+        scene_data: SceneData,
+        loadout: Option<&Loadout>,
+    ) {
         self.camera.update(
             scene_data.time,
             /* 1.0 / 60.0 */ scene_data.delta_time,
@@ -233,7 +258,8 @@ impl Scene {
             error!("Renderer failed to update: {:?}", err);
         }
 
-        self.figure_model_cache.clean(scene_data.tick);
+        self.figure_model_cache
+            .clean(&mut self.col_lights, scene_data.tick);
 
         if let Some(body) = scene_data.body {
             let tgt_skeleton = IdleAnimation::update_skeleton(
@@ -246,20 +272,34 @@ impl Scene {
             self.figure_state
                 .skeleton_mut()
                 .interpolate(&tgt_skeleton, scene_data.delta_time);
-        }
 
-        self.figure_state.update(
-            renderer,
-            Vec3::zero(),
-            Vec3::new(self.char_ori.sin(), -self.char_ori.cos(), 0.0),
-            1.0,
-            Rgba::broadcast(1.0),
-            scene_data.delta_time,
-            1.0,
-            0,
-            true,
-            false,
-        );
+            let model = &self
+                .figure_model_cache
+                .get_or_create_model(
+                    renderer,
+                    &mut self.col_lights,
+                    Body::Humanoid(body),
+                    loadout,
+                    scene_data.tick,
+                    CameraMode::default(),
+                    None,
+                )
+                .0;
+            self.figure_state.update(
+                renderer,
+                Vec3::zero(),
+                Vec3::new(self.char_ori.sin(), -self.char_ori.cos(), 0.0),
+                1.0,
+                Rgba::broadcast(1.0),
+                scene_data.delta_time,
+                1.0,
+                &model[0],
+                0,
+                true,
+                false,
+                &self.camera,
+            );
+        }
     }
 
     pub fn render(
@@ -282,6 +322,7 @@ impl Scene {
                 .figure_model_cache
                 .get_or_create_model(
                     renderer,
+                    &mut self.col_lights,
                     Body::Humanoid(body),
                     loadout,
                     tick,
@@ -292,11 +333,13 @@ impl Scene {
 
             renderer.render_figure(
                 &model[0],
+                &self.col_lights.texture(),
                 &self.globals,
                 self.figure_state.locals(),
                 self.figure_state.bone_consts(),
                 &self.lights,
                 &self.shadows,
+                &self.shadow_mats,
                 &self.lod.map,
                 &self.lod.horizon,
             );
@@ -305,11 +348,13 @@ impl Scene {
         if let Some((model, state)) = &self.backdrop {
             renderer.render_figure(
                 model,
+                &self.col_lights.texture(),
                 &self.globals,
                 state.locals(),
                 state.bone_consts(),
                 &self.lights,
                 &self.shadows,
+                &self.shadow_mats,
                 &self.lod.map,
                 &self.lod.horizon,
             );

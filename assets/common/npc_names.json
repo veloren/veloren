@@ -561,5 +561,33 @@
                 "generic": "Reddragon"
             }
         }
+    },
+    "object": {
+        "body": {
+            "keyword": "object",
+            "names": []
+        },
+        "species": null
+    },
+    "fish_small": {
+        "body": {
+            "keyword": "fish_small",
+            "names": []
+        },
+        "species": null
+    },
+    "fish_medium": {
+        "body": {
+            "keyword": "fish_medium",
+            "names": []
+        },
+        "species": null
+    },
+    "bird_small": {
+        "body": {
+            "keyword": "bird_small",
+            "names": []
+        },
+        "species": null
     }
 }

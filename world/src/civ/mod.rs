@@ -72,6 +72,8 @@ impl Civs {
     pub fn generate(seed: u32, sim: &mut WorldSim) -> Self {
         let mut this = Self::default();
         let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
+        // let path_rng = RandomField::new(rng.gen());
+
         let mut ctx = GenCtx { sim, rng };
 
         for _ in 0..INITIAL_CIV_COUNT {
@@ -80,6 +82,30 @@ impl Civs {
                 log::warn!("Failed to find starting site for civilisation.");
             }
         }
+
+        /* {
+            let v = (0..sim.chunks.len() as i32).collect::<Vec<_>>();
+            // Find edge wewghts.
+            let e = (0..sim.chunks.len() as i32)
+                .into_par_iter()
+                .flat_map(|posi| {
+                    let pos = uniform_idx_as_vec2(posi);
+                    NEIGHBORS
+                        .iter()
+                        .enumerate()
+                        .filter_map(|(idx, dir)| walk_in_dir(sim, pos, dir).map(|w| (w, (posi * NEIGHBORS.len() + idx) as i32)))
+                })
+                .collect::<Vec<_>>();
+            // Connect all civiizations with paths simultaneously using a minimum spanning tree.
+            let mst = par_boruvka(
+                v, e,
+                |u, v| vec2_as_uniform_idx(u, v) as i32,
+                |posi| uniform_idx_as_vec2(posi).x,
+                |posi| uniform_idx_as_vec2(posi).y,
+            );
+            // Add path connections for all edges.
+            G
+        } */
 
         for _ in 0..INITIAL_CIV_COUNT * 3 {
             attempt(5, || {
@@ -439,6 +465,62 @@ impl Civs {
 
         Some(site)
     }
+
+    /* fn write_paths(&mut self, ctx: &mut GenCtx<impl Rng>, path_rng: &Vec2<RandomField>, paths: impl Iterator<(i32, i32, usize)>) {
+        paths.for_each(|(i, j, neighbor)| {
+            let neighbor = neighbor & 7;
+            let to_neighbor_dir = NEIGHBORS[neighbor];
+            let from_neighbor_dir = NEIGHBORS[7 - neighbor];
+            let from_idx = Vec2::new(i, j);
+            let to_idx = from_idx + to_neighbor_dir;
+            let from_chunk = ctx.sim.get_mut(from_idx).unwrap();
+            from_chunk.path.neighbors |= 1 << to_neighbor_dir;
+            from_chunk.path.offset = path_rng.map(|rng| (rng.get(from_idx) & 31) as f32);
+            let to_chunk = ctx.sim.get_mut(to_idx).unwrap();
+            to_chunk.path.neighbors |= 1 << from_neighbor_dir;
+            to_chunk.path.offset = path_rng.map(|rng| (rng.get(to_idx) & 31) as f32);
+
+            // from_idx.path.neighbors |= 1 << ((to_prev_idx as u8 + 4) % 8);
+            // ctx.sim.get_mut(locs[2]).unwrap().path.neighbors |=
+            //     1 << ((to_next_idx as u8 + 4) % 8);
+            // let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
+            // TODO: Split out so we don't run these repeatedly on the same chunk.
+            // to_idx.path.offset = path_rng.map(|rng| (rng.get(to_idx) & 31) as f32);
+        });
+        /* for locs in path.nodes().windows(3) {
+            let to_prev_idx = NEIGHBORS
+                .iter()
+                .enumerate()
+                .find(|(_, dir)| **dir == locs[0] - locs[1])
+                .expect("Track locations must be neighbors")
+                .0;
+            let to_next_idx = NEIGHBORS
+                .iter()
+                .enumerate()
+                .find(|(_, dir)| **dir == locs[2] - locs[1])
+                .expect("Track locations must be neighbors")
+                .0;
+
+            ctx.sim.get_mut(locs[0]).unwrap().path.neighbors |=
+                1 << ((to_prev_idx as u8 + 4) % 8);
+            ctx.sim.get_mut(locs[2]).unwrap().path.neighbors |=
+                1 << ((to_next_idx as u8 + 4) % 8);
+            let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
+            chunk.path.neighbors |=
+                (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
+            chunk.path.offset = Vec2::new(
+                ctx.rng.gen_range(-16.0, 16.0),
+                ctx.rng.gen_range(-16.0, 16.0),
+            );
+        } */
+
+        /* // Take note of the track
+        let track = self.tracks.insert(Track { cost, path });
+        self.track_map
+            .entry(site)
+            .or_default()
+            .insert(nearby, track); */
+    } */
 
     fn tick(&mut self, _ctx: &mut GenCtx<impl Rng>, years: f32) {
         for site in self.sites.iter_mut() {

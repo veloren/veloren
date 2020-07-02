@@ -1,6 +1,6 @@
 use super::Skeleton;
 use crate::render::FigureBoneData;
-use vek::Vec3;
+use vek::{Mat4, Vec3};
 
 #[derive(Clone)]
 pub struct FixtureSkeleton;
@@ -16,25 +16,28 @@ impl Skeleton for FixtureSkeleton {
 
     fn bone_count(&self) -> usize { 1 }
 
-    fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
+    fn compute_matrices<F: FnMut(Mat4<f32>) -> FigureBoneData>(
+        &self,
+        _make_bone: F,
+    ) -> ([FigureBoneData; 16], Vec3<f32>) {
         (
             [
-                FigureBoneData::new(vek::Mat4::identity()), // <-- This is actually a bone!
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
+                FigureBoneData::default(), // <-- This is actually a bone!
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
+                FigureBoneData::default(),
             ],
             Vec3::default(),
         )

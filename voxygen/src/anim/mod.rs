@@ -54,7 +54,10 @@ pub trait Skeleton: Send + Sync + 'static {
 
     fn bone_count(&self) -> usize { 16 }
 
-    fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>);
+    fn compute_matrices<F: FnMut(Mat4<f32>) -> FigureBoneData>(
+        &self,
+        make_bone: F,
+    ) -> ([FigureBoneData; 16], Vec3<f32>);
 
     /// Change the current skeleton to be more like `target`.
     fn interpolate(&mut self, target: &Self, dt: f32);

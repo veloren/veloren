@@ -14,17 +14,8 @@ fn main() {
 
     let (_context, device, factory, color_view, depth_view) = init_headless(context, dim);
 
-    let mut renderer = render::Renderer::new(
-        device,
-        factory,
-        color_view,
-        depth_view,
-        render::AaMode::SsaaX4,
-        render::CloudMode::Regular,
-        render::FluidMode::Shiny,
-        render::LightingMode::Ashikmin,
-    )
-    .unwrap();
+    let mut renderer =
+        render::Renderer::new(device, factory, color_view, depth_view, Default::default()).unwrap();
 
     // Create character
     let body = comp::humanoid::Body::random();
@@ -62,7 +53,7 @@ fn main() {
     scene
         .camera_mut()
         .update(0.0, 1.0 / 60.0, scene_data.mouse_smoothing);
-    scene.maintain(&mut renderer, scene_data);
+    scene.maintain(&mut renderer, scene_data, None);
 
     // Render
     renderer.clear();

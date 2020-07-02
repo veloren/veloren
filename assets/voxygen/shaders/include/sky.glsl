@@ -2,6 +2,15 @@
 #include <srgb.glsl>
 #include <cloud.glsl>
 #include <srgb.glsl>
+#include <shadows.glsl>
+
+// Information about an approximately directional light, like the sun or moon.
+struct DirectionalLight {
+    // vec3 dir;
+    float shadow;
+    // vec3 color;
+    // float brightness;
+};
 
 const float PI = 3.141592;
 
@@ -32,52 +41,81 @@ const float SUN_COLOR_FACTOR = 6.0;//6.0;// * 1.5;//1.8;
 
 const float UNDERWATER_MIST_DIST = 100.0;
 
-vec3 get_sun_dir(float time_of_day) {
-	const float TIME_FACTOR = (PI * 2.0) / (3600.0 * 24.0);
-
-	float sun_angle_rad = time_of_day * TIME_FACTOR;
-	// return vec3(sin(sun_angle_rad), 0.0, cos(sun_angle_rad));
-	return vec3(sin(sun_angle_rad), 0.0, cos(sun_angle_rad));
-}
-
-vec3 get_moon_dir(float time_of_day) {
-	const float TIME_FACTOR = (PI * 2.0) / (3600.0 * 24.0);
-
-	float moon_angle_rad = time_of_day * TIME_FACTOR;
-    // -cos((60+60*4)/360*2*pi)-0.5 = 0
-    // -cos((60+60*5)/360*2*pi)-0.5 = -0.5
-    // -cos((60+60*6)/360*2*pi)-0.5 = 0
-    //
-    // i.e. moon out from (60*5)/360*24 = 20:00 to (60*7/360*24) = 28:00 = 04:00.
-    //
-    // Then sun out from 04:00 to 20:00.
-	return normalize(-vec3(sin(moon_angle_rad), 0.0, cos(moon_angle_rad) - 0.5));
-}
-
 const float PERSISTENT_AMBIANCE = 1.0 / 512;// 1.0 / 512; // 0.00125 // 0.1;// 0.025; // 0.1;
 
-float get_sun_brightness(vec3 sun_dir) {
-	return max(-sun_dir.z + 0.6, 0.0) * 0.9;
+//vec3 get_sun_dir(float time_of_day) {
+//    const float TIME_FACTOR = (PI * 2.0) / (3600.0 * 24.0);
+//
+//    float sun_angle_rad = time_of_day * TIME_FACTOR;
+//    // return vec3(sin(sun_angle_rad), 0.0, cos(sun_angle_rad));
+//    return vec3(sin(sun_angle_rad), 0.0, cos(sun_angle_rad));
+//}
+//
+//vec3 get_moon_dir(float time_of_day) {
+//    const float TIME_FACTOR = (PI * 2.0) / (3600.0 * 24.0);
+//
+//    float moon_angle_rad = time_of_day * TIME_FACTOR;
+//    // -cos((60+60*4)/360*2*pi)-0.5 = 0
+//    // -cos((60+60*5)/360*2*pi)-0.5 = -0.5
+//    // -cos((60+60*6)/360*2*pi)-0.5 = 0
+//    //
+//    // i.e. moon out from (60*5)/360*24 = 20:00 to (60*7/360*24) = 28:00 = 04:00.
+//    //
+//    // Then sun out from 04:00 to 20:00.
+//    return normalize(-vec3(sin(moon_angle_rad), 0.0, cos(moon_angle_rad) - 0.5));
+//}
+
+float get_sun_brightness(/*vec3 sun_dir*/) {
+    return max(-sun_dir.z + 0.6, 0.0) * 0.9;
 }
 
-float get_moon_brightness(vec3 moon_dir) {
-	return max(-moon_dir.z + 0.6, 0.0) * 0.007;
+float get_moon_brightness(/*vec3 moon_dir*/) {
+    return max(-moon_dir.z + 0.6, 0.0) * 0.007;
 }
 
-vec3 get_sun_color(vec3 sun_dir) {
-	return mix(
-		mix(
-			DUSK_LIGHT,
-			NIGHT_LIGHT,
-			max(sun_dir.z, 0)
-		),
-		DAY_LIGHT,
-		max(-sun_dir.z, 0)
-	);
+vec3 get_sun_color(/*vec3 sun_dir*/) {
+    return mix(
+        mix(
+            DUSK_LIGHT,
+            NIGHT_LIGHT,
+            max(sun_dir.z, 0)
+        ),
+        DAY_LIGHT,
+        max(-sun_dir.z, 0)
+    );
 }
 
-vec3 get_moon_color(vec3 moon_dir) {
-	return vec3(0.05, 0.05, 0.6);
+vec3 get_moon_color(/*vec3 moon_dir*/) {
+    return vec3(0.05, 0.05, 0.6);
+}
+
+DirectionalLight get_sun_info(vec4 _dir, float shade_frac/*, vec4 light_pos[2]*/, /*vec4 sun_pos*/vec3 f_pos) {
+    float shadow = shade_frac;
+#ifdef HAS_SHADOW_MAPS
+#if (SHADOW_MODE == SHADOW_MODE_MAP)
+    if (sun_dir.z < /*0.6*/0.0) {
+        /* ShadowLocals sun_shadow = shadowMats[0];
+        vec4 sun_pos = sun_shadow.texture_mat * vec4(f_pos, 1.0); */
+// #if (SHADOW_MODE == SHADOW_MODE_MAP)
+//     // for (uint i = 0u; i < light_shadow_count.z; ++i) {
+//     //     light_pos[i] = /*vec3(*/shadowMats[i].texture_mat * vec4(f_pos, 1.0)/*)*/;
+//     // }
+// #elif (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_NONE)
+//     vec4 sun_pos = vec4(0.0);
+// #endif
+        shadow = min(shadow, ShadowCalculationDirected(/*sun_pos, *//*0u*/f_pos));
+    }
+#endif
+#endif
+    return DirectionalLight(/*dir, */shade_frac * shadow/*, get_sun_color(dir), get_sun_brightness(dir)*/);
+}
+
+DirectionalLight get_moon_info(vec4 _dir, float shade_frac/*, vec4 light_pos[2]*/) {
+    float shadow = shade_frac;
+// #ifdef HAS_SHADOW_MAPS
+//     shadow = min(shade_frac, ShadowCalculationDirected(light_pos, 1u));
+// #endif
+    return DirectionalLight(/*dir, */shadow/*, get_moon_color(dir), get_moon_brightness(dir)*/);
 }
 
 // // Calculates extra emission and reflectance (due to sunlight / moonlight).
@@ -92,19 +130,19 @@ vec3 get_moon_color(vec3 moon_dir) {
 // // anything interesting here.
 // // void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diffuse_light, out vec3 ambient_light, float diffusion
 // void get_sun_diffuse(vec3 norm, float time_of_day, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, out vec3 emitted_light, out vec3 reflected_light) {
-// 	const float SUN_AMBIANCE = 0.1 / 2.0;// 0.1 / 3.0;
+//     const float SUN_AMBIANCE = 0.1 / 2.0;// 0.1 / 3.0;
 //
-// 	vec3 sun_dir = get_sun_dir(time_of_day);
-// 	vec3 moon_dir = get_moon_dir(time_of_day);
+//     vec3 sun_dir = get_sun_dir(time_of_day);
+//     vec3 moon_dir = get_moon_dir(time_of_day);
 //
-// 	float sun_light = get_sun_brightness(sun_dir);
-// 	float moon_light = get_moon_brightness(moon_dir);
+//     float sun_light = get_sun_brightness(sun_dir);
+//     float moon_light = get_moon_brightness(moon_dir);
 //
-// 	vec3 sun_color = get_sun_color(sun_dir);
-// 	vec3 moon_color = get_moon_color(moon_dir);
+//     vec3 sun_color = get_sun_color(sun_dir);
+//     vec3 moon_color = get_moon_color(moon_dir);
 //
-// 	vec3 sun_chroma = sun_color * sun_light;
-// 	vec3 moon_chroma = moon_color * moon_light;
+//     vec3 sun_chroma = sun_color * sun_light;
+//     vec3 moon_chroma = moon_color * moon_light;
 //
 //     /* float NLsun = max(dot(-norm, sun_dir), 0);
 //     float NLmoon = max(dot(-norm, moon_dir), 0);
@@ -121,12 +159,12 @@ vec3 get_moon_color(vec3 moon_dir) {
 //         sun_chroma * light_reflection_factor(norm, dir, sun_dir, k_d, k_s, alpha) +
 //         moon_chroma * 1.0 * /*4.0 * */light_reflection_factor(norm, dir, moon_dir, k_d, k_s, alpha);
 //
-// 	/* light = sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
-// 	diffuse_light =
-// 		sun_chroma * mix(1.0, max(dot(-norm, sun_dir) * 0.5 + 0.5, 0.0), diffusion) +
-// 		moon_chroma * mix(1.0, pow(dot(-norm, moon_dir) * 2.0, 2.0), diffusion) +
-// 		PERSISTENT_AMBIANCE;
-// 	ambient_light = vec3(SUN_AMBIANCE * sun_light + moon_light); */
+//     /* light = sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
+//     diffuse_light =
+//         sun_chroma * mix(1.0, max(dot(-norm, sun_dir) * 0.5 + 0.5, 0.0), diffusion) +
+//         moon_chroma * mix(1.0, pow(dot(-norm, moon_dir) * 2.0, 2.0), diffusion) +
+//         PERSISTENT_AMBIANCE;
+//     ambient_light = vec3(SUN_AMBIANCE * sun_light + moon_light); */
 // }
 
 // Returns computed maximum intensity.
@@ -135,22 +173,38 @@ vec3 get_moon_color(vec3 moon_dir) {
 // mu is the attenuation coefficient for any substance on a horizontal plane.
 // cam_attenuation is the total light attenuation due to the substance for beams between the point and the camera.
 // surface_alt is the altitude of the attenuating surface.
-float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 wpos, vec3 mu, vec3 cam_attenuation, float surface_alt, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, float voxel_lighting, out vec3 emitted_light, out vec3 reflected_light) {
-	const vec3 SUN_AMBIANCE = MU_SCATTER;//0.23;/* / 1.8*/;// 0.1 / 3.0;
-	const vec3 MOON_AMBIANCE = MU_SCATTER;//0.23;//0.1;
+float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, vec3 norm, vec3 dir, vec3 wpos, vec3 mu, vec3 cam_attenuation, float surface_alt, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 voxel_norm, float voxel_lighting, out vec3 emitted_light, out vec3 reflected_light) {
+    const float MIN_SHADOW = 0.15;
+    const vec3 SUN_AMBIANCE = MU_SCATTER;//0.23;/* / 1.8*/;// 0.1 / 3.0;
+    const vec3 MOON_AMBIANCE = MU_SCATTER;//0.23;//0.1;
 
-	float sun_light = get_sun_brightness(sun_dir);
-	float moon_light = get_moon_brightness(moon_dir);
+    /* vec3 sun_dir = sun_info.dir;
+    vec3 moon_dir = moon_info.dir; */
+    vec3 sun_dir = sun_dir.xyz;
+    vec3 moon_dir = moon_dir.xyz;
 
-	vec3 sun_color = get_sun_color(sun_dir) * SUN_COLOR_FACTOR;
-	vec3 moon_color = get_moon_color(moon_dir);
+    float sun_light = get_sun_brightness(/*sun_dir*/);//sun_info.brightness;;
+    float moon_light = get_moon_brightness(/*moon_dir*/);//moon_info.brightness;
+
+    vec3 sun_color = get_sun_color(/*sun_dir*/) * SUN_COLOR_FACTOR;//sun_info.color * SUN_COLOR_FACTOR;
+    vec3 moon_color = get_moon_color(/*moon_dir*/);//moon_info.color;
 
     // If the sun is facing the wrong way, we currently just want zero light, hence default point is wpos.
     vec3 sun_attenuation = compute_attenuation(wpos, -sun_dir, mu, surface_alt, wpos);
     vec3 moon_attenuation = compute_attenuation(wpos, -moon_dir, mu, surface_alt, wpos);
 
-	vec3 sun_chroma = sun_color * sun_light * cam_attenuation * sun_attenuation;
-	vec3 moon_chroma = moon_color * moon_light * cam_attenuation * moon_attenuation;
+    vec3 sun_chroma = sun_color * sun_light * cam_attenuation * sun_attenuation;
+    vec3 moon_chroma = moon_color * moon_light * cam_attenuation * moon_attenuation;
+
+// #ifdef HAS_SHADOW_MAPS
+//     float sun_shadow = ShadowCalculationDirected(light_pos, 0u);
+//     float moon_shadow = ShadowCalculationDirected(light_pos, 1u);
+// #else
+//     float sun_shadow = 1.0;
+//     float moon_shadow = 1.0;
+// #endif
+    float sun_shadow = sun_info.shadow;
+    float moon_shadow = moon_info.shadow;
 
     // https://en.m.wikipedia.org/wiki/Diffuse_sky_radiation
     //
@@ -239,7 +293,7 @@ float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 wp
     vec3 R_t_r = R_d + R_r;
 
     // vec3 half_vec = normalize(-norm + dir);
-    vec3 light_frac = R_t_b * (sun_chroma * SUN_AMBIANCE + moon_chroma * MOON_AMBIANCE) * light_reflection_factor(norm, /*norm*//*dir*/dir, /*-norm*/-dir, /*k_d*/k_d/* * (1.0 - k_s)*/, /*k_s*/vec3(0.0), alpha, voxel_lighting);
+    vec3 light_frac = R_t_b * (sun_chroma * SUN_AMBIANCE + moon_chroma * MOON_AMBIANCE) * light_reflection_factor(norm, /*norm*//*dir*/dir, /*-norm*/-/*dir*/norm, /*k_d*/k_d/* * (1.0 - k_s)*/, /*k_s*/vec3(0.0), alpha, voxel_norm, voxel_lighting);
     // vec3 light_frac = /*vec3(1.0)*//*H_d * */
     //     SUN_AMBIANCE * /*sun_light*/sun_chroma * light_reflection_factor(norm, dir, /*vec3(0, 0, -1.0)*/-norm, vec3((1.0 + cos_sun) * 0.5), vec3(k_s * (1.0 - cos_sun) * 0.5), alpha) +
     //     MOON_AMBIANCE * /*sun_light*/moon_chroma * light_reflection_factor(norm, dir, /*vec3(0, 0, -1.0)*/-norm, vec3((1.0 + cos_moon) * 0.5), vec3(k_s * (1.0 - cos_moon) * 0.5), alpha);
@@ -254,145 +308,160 @@ float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 wp
     // float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
     // float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
 
-    emitted_light = k_a * light_frac + PERSISTENT_AMBIANCE;
+    emitted_light = light_frac + k_a * PERSISTENT_AMBIANCE;
     // emitted_light = k_a * light_frac * (/*ambient_sides + */SUN_AMBIANCE * /*sun_light*/sun_chroma + /*vec3(moon_light)*/MOON_AMBIANCE * moon_chroma) + PERSISTENT_AMBIANCE;
 
-    // TODO: Add shadows.
     reflected_light = R_t_r * (
-        (1.0 - SUN_AMBIANCE) * sun_chroma * (light_reflection_factor(norm, dir, sun_dir, k_d, k_s, alpha, voxel_lighting) /*+
+        (1.0 - SUN_AMBIANCE) * sun_chroma * sun_shadow * (light_reflection_factor(norm, dir, sun_dir, k_d, k_s, alpha, voxel_norm, voxel_lighting) /*+
                       light_reflection_factor(norm, dir, normalize(sun_dir + vec3(0.0, 0.1, 0.0)), k_d, k_s, alpha) +
                       light_reflection_factor(norm, dir, normalize(sun_dir - vec3(0.0, 0.1, 0.0)), k_d, k_s, alpha)*/) +
-        (1.0 - MOON_AMBIANCE) * moon_chroma * 1.0 * /*4.0 * */light_reflection_factor(norm, dir, moon_dir, k_d, k_s, alpha, voxel_lighting)
+        (1.0 - MOON_AMBIANCE) * moon_chroma * moon_shadow * 1.0 * /*4.0 * */light_reflection_factor(norm, dir, moon_dir, k_d, k_s, alpha, voxel_norm, voxel_lighting)
     );
 
-	/* light = sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
-	diffuse_light =
-		sun_chroma * mix(1.0, max(dot(-norm, sun_dir) * 0.5 + 0.5, 0.0), diffusion) +
-		moon_chroma * mix(1.0, pow(dot(-norm, moon_dir) * 2.0, 2.0), diffusion) +
-		PERSISTENT_AMBIANCE;
-	ambient_light = vec3(SUN_AMBIANCE * sun_light + moon_light); */
+    /* light = sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
+    diffuse_light =
+        sun_chroma * mix(1.0, max(dot(-norm, sun_dir) * 0.5 + 0.5, 0.0), diffusion) +
+        moon_chroma * mix(1.0, pow(dot(-norm, moon_dir) * 2.0, 2.0), diffusion) +
+        PERSISTENT_AMBIANCE;
+    ambient_light = vec3(SUN_AMBIANCE * sun_light + moon_light); */
     return rel_luminance(emitted_light + reflected_light);//rel_luminance(emitted_light + reflected_light);//sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
 }
 
-float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, float voxel_lighting, out vec3 emitted_light, out vec3 reflected_light) {
-    return get_sun_diffuse2(norm, sun_dir, moon_dir, dir, vec3(0.0), vec3(0.0), vec3(1.0), 0.0, k_a, k_d, k_s, alpha, voxel_lighting, emitted_light, reflected_light);
+float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, vec3 norm, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 voxel_norm, float voxel_lighting, out vec3 emitted_light, out vec3 reflected_light) {
+    return get_sun_diffuse2(sun_info, moon_info, norm, dir, vec3(0.0), vec3(0.0), vec3(1.0), 0.0, k_a, k_d, k_s, alpha, voxel_norm, voxel_lighting, emitted_light, reflected_light);
 }
 
-float get_sun_diffuse2(vec3 norm, vec3 sun_dir, vec3 moon_dir, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, out vec3 emitted_light, out vec3 reflected_light) {
-    return get_sun_diffuse2(norm, sun_dir, moon_dir, dir, vec3(0.0), vec3(0.0), vec3(1.0), 0.0, k_a, k_d, k_s, alpha, 1.0, emitted_light, reflected_light);
+float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, vec3 norm, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, out vec3 emitted_light, out vec3 reflected_light) {
+    return get_sun_diffuse2(sun_info, moon_info, norm, dir, vec3(0.0), vec3(0.0), vec3(1.0), 0.0, k_a, k_d, k_s, alpha, norm, 1.0, emitted_light, reflected_light);
 }
 
 // This has been extracted into a function to allow quick exit when detecting a star.
 float is_star_at(vec3 dir) {
-	float star_scale = 80.0;
+    float star_scale = 80.0;
 
-	// Star positions
-	vec3 pos = (floor(dir * star_scale) - 0.5) / star_scale;
+    // Star positions
+    vec3 pos = (floor(dir * star_scale) - 0.5) / star_scale;
 
-	// Noisy offsets
-	pos += (3.0 / star_scale) * /*rand_perm_3*/hash(vec4(pos, 1.0));
+    // Noisy offsets
+    pos += (3.0 / star_scale) * /*rand_perm_3*/hash(vec4(pos, 1.0));
 
-	// Find distance to fragment
-	float dist = length(normalize(pos) - dir);
+    // Find distance to fragment
+    float dist = length(normalize(pos) - dir);
 
-	// Star threshold
-	if (dist < 0.0015) {
-		return 1.0;
-	}
+    // Star threshold
+    if (dist < 0.0015) {
+        return 1.0;
+    }
 
-	return 0.0;
+    return 0.0;
 }
 
 vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float quality, bool with_stars, float refractionIndex, out vec4 clouds) {
-	// Sky color
-	vec3 sun_dir = get_sun_dir(time_of_day);
-	vec3 moon_dir = get_moon_dir(time_of_day);
+#if (CLOUD_MODE == CLOUD_MODE_NONE)
+    const bool has_clouds = false;
+#elif (CLOUD_MODE == CLOUD_MODE_REGULAR)
+    const bool has_clouds = true;
+#endif
 
-    // sun_dir = sun_dir.z <= 0 ? refract(sun_dir/*-view_dir*/, vec3(0.0, 0.0, 1.0), refractionIndex) : sun_dir;
-    // moon_dir = moon_dir.z <= 0 ? refract(moon_dir/*-view_dir*/, vec3(0.0, 0.0, 1.0), refractionIndex) : moon_dir;
+    if (with_stars || has_clouds) {
+        // Sky color
+        /* vec3 sun_dir = get_sun_dir(time_of_day);
+        vec3 moon_dir = get_moon_dir(time_of_day); */
+        vec3 sun_dir = sun_dir.xyz;
+        vec3 moon_dir = moon_dir.xyz;
 
-	// Add white dots for stars. Note these flicker and jump due to FXAA
-	float star = 0.0;
-	if (with_stars) {
-		vec3 star_dir = normalize(sun_dir * dir.z + cross(sun_dir, vec3(0, 1, 0)) * dir.x + vec3(0, 1, 0) * dir.y);
-		star = is_star_at(star_dir);
-	}
+        // sun_dir = sun_dir.z <= 0 ? refract(sun_dir/*-view_dir*/, vec3(0.0, 0.0, 1.0), refractionIndex) : sun_dir;
+        // moon_dir = moon_dir.z <= 0 ? refract(moon_dir/*-view_dir*/, vec3(0.0, 0.0, 1.0), refractionIndex) : moon_dir;
 
-	// Sun
-	const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 200.0;
+        // Add white dots for stars. Note these flicker and jump due to FXAA
+        float star = 0.0;
+        if (with_stars || has_clouds) {
+            vec3 star_dir = normalize(sun_dir * dir.z + cross(sun_dir, vec3(0, 1, 0)) * dir.x + vec3(0, 1, 0) * dir.y);
+            star = is_star_at(star_dir);
+        }
 
-	vec3 sun_halo_color = mix(
-		SUN_HALO_DUSK,
-		SUN_HALO_DAY,
-		max(-sun_dir.z, 0)
-	);
+        // Sun
+        const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 200.0;
 
-	vec3 sun_halo = pow(max(dot(dir, -sun_dir) + 0.1, 0.0), 8.0) * sun_halo_color;
-	vec3 sun_surf = pow(max(dot(dir, -sun_dir) - 0.001, 0.0), 3000.0) * SUN_SURF_COLOR * SUN_COLOR_FACTOR;
-	vec3 sun_light = (sun_halo + sun_surf) * clamp(dir.z * 10.0, 0, 1);
+        vec3 sun_halo_color = mix(
+            SUN_HALO_DUSK,
+            SUN_HALO_DAY,
+            max(-sun_dir.z, 0)
+        );
 
-	// Moon
-	const vec3 MOON_SURF_COLOR = vec3(0.7, 1.0, 1.5) * 500.0;
-	const vec3 MOON_HALO_COLOR = vec3(0.015, 0.015, 0.05);
+        vec3 sun_halo = pow(max(dot(dir, -sun_dir) + 0.1, 0.0), 8.0) * sun_halo_color;
+        vec3 sun_surf = pow(max(dot(dir, -sun_dir) - 0.001, 0.0), 3000.0) * SUN_SURF_COLOR * SUN_COLOR_FACTOR;
+        vec3 sun_light = (sun_halo + sun_surf) * clamp(dir.z * 10.0, 0, 1);
 
-	vec3 moon_halo = pow(max(dot(dir, -moon_dir) + 0.1, 0.0), 8.0) * MOON_HALO_COLOR;
-	vec3 moon_surf = pow(max(dot(dir, -moon_dir) - 0.001, 0.0), 3000.0) * MOON_SURF_COLOR;
-	vec3 moon_light = clamp(moon_halo + moon_surf, vec3(0), vec3(max(dir.z * 3.0, 0)));
+        // Moon
+        const vec3 MOON_SURF_COLOR = vec3(0.7, 1.0, 1.5) * 500.0;
+        const vec3 MOON_HALO_COLOR = vec3(0.015, 0.015, 0.05);
 
-	// Replaced all clamp(sun_dir, 0, 1) with max(sun_dir, 0) because sun_dir is calculated from sin and cos, which are never > 1
+        vec3 moon_halo = pow(max(dot(dir, -moon_dir) + 0.1, 0.0), 8.0) * MOON_HALO_COLOR;
+        vec3 moon_surf = pow(max(dot(dir, -moon_dir) - 0.001, 0.0), 3000.0) * MOON_SURF_COLOR;
+        vec3 moon_light = clamp(moon_halo + moon_surf, vec3(0), vec3(max(dir.z * 3.0, 0)));
 
-	vec3 sky_top = mix(
-		mix(
-			SKY_DUSK_TOP + star / (1.0 + moon_surf * 100.0),
-			SKY_NIGHT_TOP + star / (1.0 + moon_surf * 100.0),
-			max(pow(sun_dir.z, 0.2), 0)
-		),
-		SKY_DAY_TOP,
-		max(-sun_dir.z, 0)
-	);
+        // Replaced all clamp(sun_dir, 0, 1) with max(sun_dir, 0) because sun_dir is calculated from sin and cos, which are never > 1
 
-	vec3 sky_mid = mix(
-		mix(
-			SKY_DUSK_MID,
-			SKY_NIGHT_MID,
-			max(pow(sun_dir.z, 0.2), 0)
-		),
-		SKY_DAY_MID,
-		max(-sun_dir.z, 0)
-	);
+        vec3 sky_top = mix(
+            mix(
+                SKY_DUSK_TOP + star / (1.0 + moon_surf * 100.0),
+                SKY_NIGHT_TOP + star / (1.0 + moon_surf * 100.0),
+                max(pow(sun_dir.z, 0.2), 0)
+            ),
+            SKY_DAY_TOP,
+            max(-sun_dir.z, 0)
+        );
 
-	vec3 sky_bot = mix(
-		mix(
-			SKY_DUSK_BOT,
-			SKY_NIGHT_BOT,
-			max(pow(sun_dir.z, 0.2), 0)
-		),
-		SKY_DAY_BOT,
-		max(-sun_dir.z, 0)
-	);
+        vec3 sky_mid = mix(
+            mix(
+                SKY_DUSK_MID,
+                SKY_NIGHT_MID,
+                max(pow(sun_dir.z, 0.2), 0)
+            ),
+            SKY_DAY_MID,
+            max(-sun_dir.z, 0)
+        );
 
-	vec3 sky_color = mix(
-		mix(
-			sky_mid,
-			sky_bot,
-			pow(max(-dir.z, 0), 0.4)
-		),
-		sky_top,
-		max(dir.z, 0)
-	);
+        vec3 sky_bot = mix(
+            mix(
+                SKY_DUSK_BOT,
+                SKY_NIGHT_BOT,
+                max(pow(sun_dir.z, 0.2), 0)
+            ),
+            SKY_DAY_BOT,
+            max(-sun_dir.z, 0)
+        );
 
-	// Approximate distance to fragment
-	float f_dist = distance(origin, f_pos);
+        vec3 sky_color = mix(
+            mix(
+                sky_mid,
+                sky_bot,
+                pow(max(-dir.z, 0), 0.4)
+            ),
+            sky_top,
+            max(dir.z, 0)
+        );
 
-	// Clouds
-	clouds = get_cloud_color(dir, origin, time_of_day, f_dist, quality);
-	clouds.rgb *= get_sun_brightness(sun_dir) * (sun_halo * 1.5 + get_sun_color(sun_dir)) + get_moon_brightness(moon_dir) * (moon_halo * 80.0 + get_moon_color(moon_dir) + 0.25);
+        // Approximate distance to fragment
+        float f_dist = distance(origin, f_pos);
 
-	if (f_dist > 5000.0) {
-		sky_color += sun_light + moon_light;
-	}
+    // Clouds
+    #if (CLOUD_MODE == CLOUD_MODE_NONE)
+        clouds = vec4(0.0);
+    #elif (CLOUD_MODE == CLOUD_MODE_REGULAR)
+        clouds = get_cloud_color(dir, origin, time_of_day, f_dist, quality);
+        clouds.rgb *= get_sun_brightness(/*sun_dir*/) * (sun_halo * 1.5 + get_sun_color(/*sun_dir*/)) + get_moon_brightness(/*moon_dir*/) * (moon_halo * 80.0 + get_moon_color(/*moon_dir*/) + 0.25);
+    #endif
 
-	return mix(sky_color, clouds.rgb, clouds.a);
+        if (f_dist > 5000.0) {
+            sky_color += sun_light + moon_light;
+        }
+        return mix(sky_color, clouds.rgb, clouds.a);
+    } else {
+        clouds = vec4(0.0);
+        return vec3(0.0);
+    }
 }
 
 vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float quality, bool with_stars, out vec4 clouds) {
@@ -400,30 +469,31 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
 }
 
 float fog(vec3 f_pos, vec3 focus_pos, uint medium) {
-	return max(1.0 - 5000.0 / (1.0 + distance(f_pos.xy, focus_pos.xy)), 0.0);
+    return max(1.0 - 5000.0 / (1.0 + distance(f_pos.xy, focus_pos.xy)), 0.0);
 
-	float fog_radius = view_distance.x;
-	float mist_radius = 10000000.0;
+    float fog_radius = view_distance.x;
+    float mist_radius = 10000000.0;
 
-	float min_fog = 0.5;
-	float max_fog = 1.0;
+    float min_fog = 0.5;
+    float max_fog = 1.0;
 
-	if (medium == 1u) {
-		mist_radius = UNDERWATER_MIST_DIST;
-		min_fog = 0.0;
-	}
+    if (medium == 1u) {
+        mist_radius = UNDERWATER_MIST_DIST;
+        min_fog = 0.0;
+    }
 
-	float fog = distance(f_pos.xy, focus_pos.xy) / fog_radius;
-	float mist = distance(f_pos, focus_pos) / mist_radius;
+    float fog = distance(f_pos.xy, focus_pos.xy) / fog_radius;
+    float mist = distance(f_pos, focus_pos) / mist_radius;
 
-	return pow(clamp((max(fog, mist) - min_fog) / (max_fog - min_fog), 0.0, 1.0), 1.7);
+    return pow(clamp((max(fog, mist) - min_fog) / (max_fog - min_fog), 0.0, 1.0), 1.7);
 }
 
 /* vec3 illuminate(vec3 color, vec3 light, vec3 diffuse, vec3 ambience) {
-	float avg_col = (color.r + color.g + color.b) / 3.0;
-	return ((color - avg_col) * light + (diffuse + ambience) * avg_col) * (diffuse + ambience);
+    float avg_col = (color.r + color.g + color.b) / 3.0;
+    return ((color - avg_col) * light + (diffuse + ambience) * avg_col) * (diffuse + ambience);
 } */
 vec3 illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitted, vec3 reflected) {
+    return emitted + reflected;
     const float NIGHT_EXPOSURE = 10.0;
     const float DUSK_EXPOSURE = 2.0;//0.8;
     const float DAY_EXPOSURE = 1.0;//0.7;
@@ -446,25 +516,25 @@ vec3 illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitted
     float lum = rel_luminance(color);
     // float lum_sky = lum - max_light;
 
-    vec3 sun_dir = get_sun_dir(time_of_day.x);
-    vec3 moon_dir = get_moon_dir(time_of_day.x);
+    /* vec3 sun_dir = get_sun_dir(time_of_day.x);
+    vec3 moon_dir = get_moon_dir(time_of_day.x); */
     float sky_light = rel_luminance(
-            get_sun_color(sun_dir) * get_sun_brightness(sun_dir) * SUN_COLOR_FACTOR +
-            get_moon_color(moon_dir) * get_moon_brightness(moon_dir));
+            get_sun_color(/*sun_dir*/) * get_sun_brightness(/*sun_dir*/) * SUN_COLOR_FACTOR +
+            get_moon_color(/*moon_dir*/) * get_moon_brightness(/*moon_dir*/));
 
     // Tone mapped value.
     // vec3 T = /*color*//*lum*/color;//normalize(color) * lum / (1.0 + lum);
     // float alpha = 0.5;//2.0;
     float alpha = mix(
-		mix(
-			DUSK_EXPOSURE,
-			NIGHT_EXPOSURE,
-			max(sun_dir.z, 0)
-		),
-		DAY_EXPOSURE,
-		max(-sun_dir.z, 0)
-	);
-    vec3 now_light = moon_dir.z < 0 ? moon_dir : sun_dir;
+        mix(
+            DUSK_EXPOSURE,
+            NIGHT_EXPOSURE,
+            max(sun_dir.z, 0)
+        ),
+        DAY_EXPOSURE,
+        max(-sun_dir.z, 0)
+    );
+    vec3 now_light = moon_dir.z < 0 ? moon_dir.xyz : sun_dir.xyz;
     float cos_view_light = dot(-now_light, view_dir);
     // alpha *= exp(1.0 - cos_view_light);
     // sky_light *= 1.0 - log(1.0 + view_dir.z);
@@ -497,14 +567,14 @@ vec3 illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitted
     // Heuristic desaturation
     // const float s = 0.8;
     float s = mix(
-		mix(
-			DUSK_SATURATION,
-			NIGHT_SATURATION,
-			max(sun_dir.z, 0)
-		),
-		DAY_SATURATION,
-		max(-sun_dir.z, 0)
-	);
+        mix(
+            DUSK_SATURATION,
+            NIGHT_SATURATION,
+            max(sun_dir.z, 0)
+        ),
+        DAY_SATURATION,
+        max(-sun_dir.z, 0)
+    );
     // s = max(s, (max_light) / (1.0 + s));
     s = max(s, max_light / (1.0 + max_light));
 

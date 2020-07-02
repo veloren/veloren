@@ -16,7 +16,10 @@ pub use self::{
     mesh::{Mesh, Quad, Tri},
     model::{DynamicModel, Model},
     pipelines::{
-        figure::{BoneData as FigureBoneData, FigurePipeline, Locals as FigureLocals},
+        figure::{
+            BoneData as FigureBoneData, BoneMeshes, FigureModel, FigurePipeline,
+            Locals as FigureLocals,
+        },
         fluid::FluidPipeline,
         lod_terrain::{Locals as LodTerrainLocals, LodTerrainPipeline},
         postprocess::{
@@ -24,7 +27,7 @@ pub use self::{
         },
         shadow::{Locals as ShadowLocals, ShadowPipeline},
         skybox::{create_mesh as create_skybox_mesh, Locals as SkyboxLocals, SkyboxPipeline},
-        sprite::{Instance as SpriteInstance, SpritePipeline},
+        sprite::{Instance as SpriteInstance, Locals as SpriteLocals, SpritePipeline},
         terrain::{Locals as TerrainLocals, TerrainPipeline},
         ui::{
             create_quad as create_ui_quad, create_tri as create_ui_tri, Locals as UiLocals,
@@ -33,8 +36,8 @@ pub use self::{
         Globals, Light, Shadow,
     },
     renderer::{
-        LodColorFmt, LodTextureFmt, Renderer, ShadowDepthStencilFmt, TgtColorFmt,
-        TgtDepthStencilFmt, WinColorFmt, WinDepthFmt,
+        ColLightFmt, ColLightInfo, LodColorFmt, LodTextureFmt, Renderer, ShadowDepthStencilFmt,
+        TgtColorFmt, TgtDepthStencilFmt, WinColorFmt, WinDepthFmt,
     },
     texture::Texture,
 };
@@ -72,11 +75,19 @@ pub enum AaMode {
     SsaaX4,
 }
 
+impl Default for AaMode {
+    fn default() -> Self { AaMode::Fxaa }
+}
+
 /// Cloud modes
 #[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum CloudMode {
     None,
     Regular,
+}
+
+impl Default for CloudMode {
+    fn default() -> Self { CloudMode::Regular }
 }
 
 /// Fluid modes
@@ -86,10 +97,41 @@ pub enum FluidMode {
     Shiny,
 }
 
+impl Default for FluidMode {
+    fn default() -> Self { FluidMode::Shiny }
+}
+
 /// Lighting modes
 #[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum LightingMode {
     Ashikmin,
     BlinnPhong,
     Lambertian,
+}
+
+impl Default for LightingMode {
+    fn default() -> Self { LightingMode::BlinnPhong }
+}
+
+/// Shadow modes
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum ShadowMode {
+    None,
+    Cheap,
+    /// Multiple of resolution.
+    Map, /* (f32) */
+}
+
+impl Default for ShadowMode {
+    fn default() -> Self { ShadowMode::Cheap }
+}
+
+/// Render modes
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Default, Serialize, Deserialize)]
+pub struct RenderMode {
+    pub aa: AaMode,
+    pub cloud: CloudMode,
+    pub fluid: FluidMode,
+    pub lighting: LightingMode,
+    pub shadow: ShadowMode,
 }

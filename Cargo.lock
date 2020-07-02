@@ -1274,23 +1274,11 @@ dependencies = [
 
 [[package]]
 name = "euclid"
-version = "0.19.9"
+version = "0.20.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "596b99621b9477e7a5f94d2d8dd13a9c5c302ac358b822c67a42b6f1054450e1"
+checksum = "555d51b9a929edb14183fad621e2d5736fc8760707a24246047288d4c142b6bd"
 dependencies = [
- "euclid_macros",
  "num-traits 0.2.11",
-]
-
-[[package]]
-name = "euclid_macros"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fdcb84c18ea5037a1c5a23039b4ff29403abce2e0d6b1daa11cf0bde2b30be15"
-dependencies = [
- "proc-macro2 0.4.30",
- "quote 0.6.13",
- "syn 0.15.44",
 ]
 
 [[package]]
@@ -1952,8 +1940,9 @@ dependencies = [
 
 [[package]]
 name = "guillotiere"
-version = "0.4.2"
-source = "git+https://github.com/Imberflur/guillotiere#42c298f5bcf0f95f1a004360d05e25ca3711e9ed"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "47065d052e2f000066c4ffbea7051e55bff5c1532c400fc1e269492b2474ccc1"
 dependencies = [
  "euclid",
  "svg_fmt",
@@ -4417,9 +4406,9 @@ checksum = "da5b4a0c9f3c7c8e891e445a7c776627e208e8bba23ab680798066dd283e6a15"
 
 [[package]]
 name = "svg_fmt"
-version = "0.2.1"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "20e5f95e89d737f30cd1f98a9af9a85c2a1cc162cfedfba5a0c54cf92d7206fc"
+checksum = "8fb1df15f412ee2e9dfc1c504260fa695c1c3f10fe9f4a6ee2d2184d7d6450e2"
 
 [[package]]
 name = "syn"
@@ -4945,9 +4934,9 @@ dependencies = [
 
 [[package]]
 name = "vek"
-version = "0.10.0"
+version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c98f7e1c1400d5b1704baee82cbc56a3fde406769555ead0f2306e43ebab967"
+checksum = "2657d8704e5e0be82b60157c8dbc71a269273ad766984508fdc54030a0690c4d"
 dependencies = [
  "approx 0.3.2",
  "num-integer",
@@ -4981,7 +4970,7 @@ dependencies = [
  "rayon",
  "specs",
  "uvth",
- "vek 0.10.0",
+ "vek 0.11.2",
  "veloren-common",
  "veloren-world",
 ]
@@ -5016,7 +5005,7 @@ dependencies = [
  "specs",
  "specs-idvs",
  "sum_type",
- "vek 0.10.0",
+ "vek 0.11.2",
 ]
 
 [[package]]
@@ -5045,7 +5034,7 @@ dependencies = [
  "specs",
  "specs-idvs",
  "uvth",
- "vek 0.10.0",
+ "vek 0.11.2",
  "veloren-common",
  "veloren-world",
 ]
@@ -5083,6 +5072,7 @@ dependencies = [
  "fern",
  "gfx",
  "gfx_device_gl",
+ "gfx_gl",
  "gfx_window_glutin",
  "gilrs",
  "git2",
@@ -5103,7 +5093,7 @@ dependencies = [
  "specs-idvs",
  "treeculler",
  "uvth",
- "vek 0.10.0",
+ "vek 0.11.2",
  "veloren-client",
  "veloren-common",
  "veloren-server",
@@ -5119,6 +5109,7 @@ dependencies = [
  "arr_macro",
  "bincode",
  "bitvec",
+ "criterion",
  "fxhash",
  "hashbrown",
  "image",
@@ -5138,7 +5129,7 @@ dependencies = [
  "roots",
  "serde",
  "serde_derive",
- "vek 0.10.0",
+ "vek 0.11.2",
  "veloren-common",
 ]
 

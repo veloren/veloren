@@ -9,7 +9,7 @@ default-run = "veloren-voxygen"
 # autobins = false
 
 [features]
-gl = ["gfx_device_gl"]
+gl = ["gfx_device_gl", "gfx_gl"]
 singleplayer = ["server"]
 tweak = ["const-tweaker"]
 
@@ -22,6 +22,7 @@ client = { package = "veloren-client", path = "../client" }
 # Graphics
 gfx = "0.18.2"
 gfx_device_gl = { version = "0.16.2", optional = true }
+gfx_gl = { version = "0.6.1", optional = true }
 gfx_window_glutin = "0.31.0"
 glutin = "0.21.1"
 winit = { version = "0.19.4", features = ["serde"] }
@@ -34,7 +35,7 @@ specs = "0.15.1"
 specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git" }
 
 # Mathematics
-vek = { version = "0.10.0", features = ["serde"] }
+vek = { version = "0.11.2", features = ["serde"] }
 
 # Controller
 gilrs = { version = "0.7", features = ["serde"] }
@@ -51,7 +52,7 @@ image = "0.22.3"
 serde = "1.0.102"
 serde_derive = "1.0.102"
 ron = "0.5.1"
-guillotiere = { git = "https://github.com/Imberflur/guillotiere" }
+guillotiere = "0.5.2"
 fern = { version = "0.5.8", features = ["colored"] }
 msgbox = { git = "https://github.com/bekker/msgbox-rs.git", rev = "68fe39a", optional = true }
 directories = "2.0.2"

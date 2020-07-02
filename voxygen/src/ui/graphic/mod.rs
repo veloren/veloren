@@ -226,6 +226,7 @@ impl GraphicCache {
             // Fit into an atlas
             let mut loc = None;
             for (atlas_idx, (ref mut atlas, _)) in self.atlases.iter_mut().enumerate() {
+                let dims = dims.map(|e| e.max(1));
                 if let Some(rectangle) = atlas.allocate(size2(i32::from(dims.x), i32::from(dims.y)))
                 {
                     let aabr = aabr_from_alloc_rect(rectangle);
@@ -239,6 +240,7 @@ impl GraphicCache {
                 // Create a new atlas
                 None => {
                     let (mut atlas, texture) = create_atlas_texture(renderer);
+                    let dims = dims.map(|e| e.max(1));
                     let aabr = atlas
                         .allocate(size2(i32::from(dims.x), i32::from(dims.y)))
                         .map(aabr_from_alloc_rect)
@@ -314,7 +316,7 @@ fn create_atlas_texture(renderer: &mut Renderer) -> (SimpleAtlasAllocator, Textu
     let size = Vec2::new(w, h).map(|e| {
         (e * GRAPHIC_CACHE_RELATIVE_SIZE)
             .max(512)
-            .min(max_texture_size as u16)
+            .min(max_texture_size)
     });
 
     let atlas = SimpleAtlasAllocator::new(size2(i32::from(size.x), i32::from(size.y)));

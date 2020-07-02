@@ -21,11 +21,14 @@
 
 #define LIGHTING_DISTRIBUTION LIGHTING_DISTRIBUTION_BECKMANN
 
+#define HAS_SHADOW_MAPS
+
 // Currently, we only need globals for the max light count (light_shadow_count.x)
 // and the far plane (scene_res.z).
 #include <globals.glsl>
-// Currently, we only need lights for the light position
-#include <light.glsl>
+#include <shadows.glsl>
+// // Currently, we only need lights for the light position
+// #include <light.glsl>
 
 // Since our output primitive is a triangle strip, we have to render three vertices
 // each.
@@ -171,14 +174,15 @@ layout (triangles/*, invocations = 6*/) in;
 
 layout (triangle_strip, max_vertices = /*MAX_LAYER_VERTICES_PER_FACE*//*96*/18) out;
 
-struct ShadowLocals {
-	mat4 shadowMatrices;
-};
-
-layout (std140)
-uniform u_light_shadows {
-    ShadowLocals shadowMats[/*MAX_LAYER_FACES*/192];
-};
+//struct ShadowLocals {
+//	mat4 shadowMatrices;
+//    mat4 texture_mat;
+//};
+//
+//layout (std140)
+//uniform u_light_shadows {
+//    ShadowLocals shadowMats[/*MAX_LAYER_FACES*/192];
+//};
 
 // NOTE: We choose not to output FragPos currently to save on space limitations
 // (see extensive documentation above).  However, as these limitations have been
@@ -218,15 +222,17 @@ void main() {
     /* if (light_shadow_count.x == 1) {
         return;
     } */
-    for (int layer = 1; layer <= /*light_shadow_count.x*/1; ++layer)
+#if (SHADOW_MODE == SHADOW_MODE_MAP)
+    for (uint layer = 1u; layer <= min(light_shadow_count.x, 1u); ++layer)
     {
-        int layer_base = layer * FACES_PER_POINT_LIGHT;
+        int layer_base = int(layer) * FACES_PER_POINT_LIGHT;
         // We use instancing here in order to increase the number of emitted vertices.
         // int face = gl_InvocationID;
         for(int face = 0; face < FACES_PER_POINT_LIGHT; ++face)
         {
             // int layer_face = layer * FACES_PER_POINT_LIGHT + face;
             // int layer_face = layer * FACES_PER_POINT_LIGHT + face;
+            // for(int i = VERTICES_PER_FACE - 1; i >= 0; --i) // for each triangle vertex
             for(int i = 0; i < VERTICES_PER_FACE; ++i) // for each triangle vertex
             {
                 // NOTE: See above, we don't make FragPos a uniform.
@@ -256,4 +262,5 @@ void main() {
             EndPrimitive();
          }
     }
+#endif
 }

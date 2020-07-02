@@ -89,6 +89,58 @@ where
         })
     }
 
+    pub fn new_immutable_raw(
+        factory: &mut gfx_backend::Factory,
+        kind: gfx::texture::Kind,
+        mipmap: gfx::texture::Mipmap,
+        data: &[&[<F::Surface as gfx::format::SurfaceTyped>::DataType]],
+        sampler_info: gfx::texture::SamplerInfo,
+    ) -> Result<Self, RenderError> {
+        let (tex, srv) = factory
+            .create_texture_immutable::<F>(kind, mipmap, data)
+            .map_err(|err| RenderError::CombinedError(err))?;
+
+        Ok(Self {
+            tex,
+            srv,
+            sampler: factory.create_sampler(sampler_info),
+        })
+    }
+
+    pub fn new_raw(
+        _device: &mut gfx_backend::Device,
+        factory: &mut gfx_backend::Factory,
+        kind: gfx::texture::Kind,
+        max_levels: u8,
+        bind: gfx::memory::Bind,
+        usage: gfx::memory::Usage,
+        levels: (u8, u8),
+        swizzle: gfx::format::Swizzle,
+        sampler_info: gfx::texture::SamplerInfo,
+    ) -> Result<Self, RenderError> {
+        let tex = factory
+            .create_texture(
+                kind,
+                max_levels as gfx::texture::Level,
+                bind | gfx::memory::Bind::SHADER_RESOURCE,
+                usage,
+                Some(<<F as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped>::get_channel_type())
+            )
+            .map_err(|err| RenderError::CombinedError(gfx::CombinedError::Texture(err)))?;
+
+        // device.cleanup();
+
+        let srv = factory
+            .view_texture_as_shader_resource::<F>(&tex, levels, swizzle)
+            .map_err(|err| RenderError::CombinedError(gfx::CombinedError::Resource(err)))?;
+
+        Ok(Self {
+            tex,
+            srv,
+            sampler: factory.create_sampler(sampler_info),
+        })
+    }
+
     /// Update a texture with the given data (used for updating the glyph cache
     /// texture).
     pub fn update(

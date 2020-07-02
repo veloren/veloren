@@ -10,13 +10,13 @@ const float MIN_SHADOW = 0.33;
 vec2 pos_to_uv(sampler2D sampler, vec2 pos) {
     // Want: (pixel + 0.5) / W
     vec2 texSize = textureSize(sampler, 0);
-	vec2 uv_pos = (pos + 16) / (32.0 * texSize);
+	vec2 uv_pos = (focus_off.xy + pos + 16) / (32.0 * texSize);
 	return vec2(uv_pos.x, 1.0 - uv_pos.y);
 }
 
 vec2 pos_to_tex(vec2 pos) {
     // Want: (pixel + 0.5)
-	vec2 uv_pos = (pos + 16) / 32.0;
+	vec2 uv_pos = (focus_off.xy + pos + 16) / 32.0;
 	return vec2(uv_pos.x, uv_pos.y);
 }
 
@@ -73,7 +73,7 @@ vec4 textureBicubic(sampler2D sampler, vec2 texCoords) {
 }
 
 float alt_at(vec2 pos) {
-	return (texture/*textureBicubic*/(t_map, pos_to_uv(t_map, pos)).a * (/*1300.0*//*1278.7266845703125*/view_distance.w) + /*140.0*/view_distance.z);
+	return (texture/*textureBicubic*/(t_map, pos_to_uv(t_map, pos)).a * (/*1300.0*//*1278.7266845703125*/view_distance.w) + /*140.0*/view_distance.z - focus_off.z);
 		//+ (texture(t_noise, pos * 0.002).x - 0.5) * 64.0;
 
     // return 0.0
@@ -87,7 +87,7 @@ float alt_at_real(vec2 pos) {
 // #if (FLUID_MODE == FLUID_MODE_CHEAP)
 // 	return alt_at(pos);
 // #elif (FLUID_MODE == FLUID_MODE_SHINY)
-	return (textureBicubic(t_map, pos_to_tex(pos)).a * (/*1300.0*//*1278.7266845703125*/view_distance.w) + /*140.0*/view_distance.z);
+	return (textureBicubic(t_map, pos_to_tex(pos)).a * (/*1300.0*//*1278.7266845703125*/view_distance.w) + /*140.0*/view_distance.z - focus_off.z);
 // #endif
 		//+ (texture(t_noise, pos * 0.002).x - 0.5) * 64.0;
 
@@ -98,7 +98,7 @@ float alt_at_real(vec2 pos) {
 }
 
 
-float horizon_at2(vec4 f_horizons, float alt, vec3 pos, /*float time_of_day*/vec3 light_dir) {
+float horizon_at2(vec4 f_horizons, float alt, vec3 pos, /*float time_of_day*/vec4 light_dir) {
     // vec3 sun_dir = get_sun_dir(time_of_day);
     const float PI_2 = 3.1415926535897932384626433832795 / 2.0;
     const float MIN_LIGHT = 0.0;//0.115/*0.0*/;
@@ -133,9 +133,9 @@ float horizon_at2(vec4 f_horizons, float alt, vec3 pos, /*float time_of_day*/vec
                     .unwrap_or(1.0);
 */
     // vec2 f_horizon;
-    if (light_dir.z >= 0) {
+    /* if (light_dir.z >= 0) {
         return 0.0;
-    }
+    } */
     /* if (light_dir.x >= 0) {
         f_horizon = f_horizons.rg;
         // f_horizon = f_horizons.ba;
@@ -159,7 +159,7 @@ float horizon_at2(vec4 f_horizons, float alt, vec3 pos, /*float time_of_day*/vec
     } */
     float height = f_horizon.y * /*1300.0*//*1278.7266845703125*/view_distance.w + view_distance.z;
     const float w = 0.1;
-    float deltah = height - alt;
+    float deltah = height - alt - focus_off.z;
     //if (deltah < 0.0001/* || angle < 0.0001 || abs(light_dir.x) < 0.0001*/) {
     //    return 1.0;
     /*} else */{
@@ -187,12 +187,12 @@ float horizon_at2(vec4 f_horizons, float alt, vec3 pos, /*float time_of_day*/vec
     }
 }
 
-float horizon_at(vec3 pos, /*float time_of_day*/vec3 light_dir) {
-    vec4 f_horizons = textureBicubic(t_horizon, pos_to_tex(pos.xy));
-    f_horizons.xyz = /*linear_to_srgb*/(f_horizons.xyz);
-    float alt = alt_at_real(pos.xy);
-    return horizon_at2(f_horizons, alt, pos, light_dir);
-}
+// float horizon_at(vec3 pos, /*float time_of_day*/vec3 light_dir) {
+//     vec4 f_horizons = textureBicubic(t_horizon, pos_to_tex(pos.xy));
+//     // f_horizons.xyz = /*linear_to_srgb*/(f_horizons.xyz);
+//     float alt = alt_at_real(pos.xy);
+//     return horizon_at2(f_horizons, alt, pos, light_dir);
+// }
 
 vec2 splay(vec2 pos) {
     // const float SPLAY_MULT = 1048576.0;

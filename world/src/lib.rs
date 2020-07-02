@@ -14,9 +14,9 @@ pub mod util;
 
 // Reexports
 pub use crate::config::CONFIG;
+pub use block::BlockGen;
 
 use crate::{
-    block::BlockGen,
     column::{ColumnGen, ColumnSample},
     util::{Grid, Sampler},
 };

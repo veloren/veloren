@@ -16,6 +16,10 @@
 #define LIGHTING_ALGORITHM_BLINN_PHONG 1u
 #define LIGHTING_ALGORITHM_ASHIKHMIN 2u
 
+#define SHADOW_MODE_NONE 0u
+#define SHADOW_MODE_CHEAP 1u
+#define SHADOW_MODE_MAP 2u
+
 /* Unlike the other flags (for now anyway), these are bitmask values */
 #define LIGHTING_TYPE_REFLECTION 0x01u
 #define LIGHTING_TYPE_TRANSMISSION 0x02u
@@ -43,6 +47,7 @@
 #define FLUID_MODE <mode>
 #define CLOUD_MODE <mode>
 #define LIGHTING_ALGORITHM <algorithm>
+#define SHADOW_MODE <mode>
 */
 
 /* Constants expected to be defined by any shader that needs to perform lighting calculations
@@ -55,4 +60,12 @@
 #define LIGHTING_TRANSPORT_MODE <mode>
 #define LIGHTING_DISTRIBUTION_SCHEME <scheme>
 #define LIGHTING_DISTRIBUTION <distribution>
+*/
+
+/* Constants that *may* be defined by any shader.
+ * (and whose values may take automatically defined constants into account): */
+
+/*
+// When sets, shadow maps are used to cast shadows.
+#define HAS_SHADOW_MAPS
 */
