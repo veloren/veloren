@@ -5,7 +5,7 @@ use crate::{
     sim::WorldSim,
     site::{
         settlement::building::{
-            archetype::keep::{Attr, Keep},
+            archetype::keep::{Attr, Keep as KeepArchetype},
             Archetype, Branch, Ori,
         },
         BlockMask,
@@ -18,6 +18,7 @@ use common::{
     comp,
     generation::{ChunkSupplement, EntityInfo},
     npc,
+    spiral::Spiral2d,
     store::{Id, Store},
     terrain::{Block, BlockKind, Structure, TerrainChunkSize},
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, Vox, WriteVol},
@@ -29,11 +30,12 @@ use rand::prelude::*;
 use std::sync::Arc;
 use vek::*;
 
-struct Segment {
+struct Keep {
     offset: Vec2<i32>,
     locus: i32,
     height: i32,
     is_tower: bool,
+    alt: i32,
 }
 
 struct Tower {
@@ -47,29 +49,44 @@ pub struct Castle {
     seed: u32,
     radius: i32,
     towers: Vec<Tower>,
-    segments: Vec<Segment>,
+    keeps: Vec<Keep>,
     rounded_towers: bool,
 }
 
 pub struct GenCtx<'a, R: Rng> {
-    sim: Option<&'a WorldSim>,
+    sim: Option<&'a mut WorldSim>,
     rng: &'a mut R,
 }
 
 impl Castle {
     #[allow(clippy::let_and_return)] // TODO: Pending review in #587
-    pub fn generate(wpos: Vec2<i32>, sim: Option<&WorldSim>, rng: &mut impl Rng) -> Self {
+    pub fn generate(wpos: Vec2<i32>, sim: Option<&mut WorldSim>, rng: &mut impl Rng) -> Self {
         let mut ctx = GenCtx { sim, rng };
 
         let boundary_towers = ctx.rng.gen_range(5, 10);
+        let keep_count = ctx.rng.gen_range(1, 4);
         let boundary_noise = ctx.rng.gen_range(-2i32, 8).max(1) as f32;
 
         let radius = 150;
+
+        // Adjust ground
+        if let Some(sim) = ctx.sim.as_mut() {
+            for rpos in Spiral2d::new()
+                .radius((radius as f32 * 0.7) as i32 / TerrainChunkSize::RECT_SIZE.x as i32)
+            {
+                sim.get_mut(wpos / TerrainChunkSize::RECT_SIZE.map(|e| e as i32) + rpos)
+                    .map(|chunk| {
+                        chunk.surface_veg = 0.0;
+                        chunk.path.clear();
+                    });
+            }
+        }
 
         let this = Self {
             origin: wpos,
             alt: ctx
                 .sim
+                .as_ref()
                 .and_then(|sim| sim.get_alt_approx(wpos))
                 .unwrap_or(0.0) as i32
                 + 6,
@@ -87,6 +104,7 @@ impl Castle {
                     for i in (1..80).step_by(5) {
                         if ctx
                             .sim
+                            .as_ref()
                             .and_then(|sim| sim.get_nearest_path(wpos + offset))
                             .map(|(dist, _, _, _)| dist > 24.0)
                             .unwrap_or(true)
@@ -101,6 +119,7 @@ impl Castle {
                         offset,
                         alt: ctx
                             .sim
+                            .as_ref()
                             .and_then(|sim| sim.get_alt_approx(wpos + offset))
                             .unwrap_or(0.0) as i32
                             + 2,
@@ -108,19 +127,28 @@ impl Castle {
                 })
                 .collect(),
             rounded_towers: ctx.rng.gen(),
+            keeps: (0..keep_count)
+                .map(|i| {
+                    let angle = (i as f32 / keep_count as f32) * f32::consts::PI * 2.0;
+                    let dir = Vec2::new(angle.cos(), angle.sin());
+                    let dist =
+                        (radius as f32 + ((angle * boundary_noise).sin() - 1.0) * 40.0) * 0.3;
 
-            segments: (0..0) //rng.gen_range(18, 24))
-                .map(|_| {
-                    let dir = Vec2::new(ctx.rng.gen_range(-1.0, 1.0), ctx.rng.gen_range(-1.0, 1.0))
-                        .normalized();
-                    let dist = 16.0 + ctx.rng.gen_range(0.0f32, 1.0).powf(0.5) * 64.0;
-                    let height = 48.0 - (dist / 64.0).powf(2.0) * 32.0;
+                    let locus = ctx.rng.gen_range(20, 26);
+                    let offset = (dir * dist).map(|e| e as i32);
+                    let height = ctx.rng.gen_range(25, 70).clamped(30, 48);
 
-                    Segment {
-                        offset: (dir * dist).map(|e| e as i32),
-                        locus: ctx.rng.gen_range(6, 26),
-                        height: height as i32,
-                        is_tower: height > 36.0,
+                    Keep {
+                        offset,
+                        locus,
+                        height,
+                        is_tower: true,
+                        alt: ctx
+                            .sim
+                            .as_ref()
+                            .and_then(|sim| sim.get_alt_approx(wpos + offset))
+                            .unwrap_or(0.0) as i32
+                            + 2,
                     }
                 })
                 .collect(),
@@ -209,7 +237,8 @@ impl Castle {
                 } else {
                     rpos.yx()
                 };
-                let head_space = col_sample.path
+                let head_space = col_sample
+                    .path
                     .map(|(dist, _, path, _)| path.head_space(dist))
                     .unwrap_or(0);
 
@@ -220,34 +249,37 @@ impl Castle {
                     col_sample
                 };
 
+                let keep_archetype = KeepArchetype {
+                    flag_color: Rgb::new(200, 80, 40),
+                };
+
                 for z in -10..64 {
                     let wpos = Vec3::new(wpos2d.x, wpos2d.y, col_sample.alt as i32 + z);
 
-                    let keep = Keep {
-                        flag_color: Rgb::new(200, 80, 40),
-                    };
-
-                    // Boundary
+                    // Boundary wall
                     let wall_z = wpos.z - wall_alt;
-                    let mut mask = if z < head_space {
-                        BlockMask::nothing()
-                    } else {
-                        keep.draw(
-                            Vec3::from(wall_rpos) + Vec3::unit_z() * wpos.z - wall_alt,
-                            wall_dist,
-                            Vec2::new(border_pos.reduce_max(), border_pos.reduce_min()),
-                            rpos - wall_pos,
-                            wall_z,
-                            wall_ori,
-                            4,
-                            0,
-                            &Attr {
-                                height: 16,
-                                is_tower: false,
-                                rounded: true,
-                            },
-                        )
-                    };
+                    if z < head_space {
+                        continue;
+                    }
+
+                    let mut mask = keep_archetype.draw(
+                        Vec3::from(wall_rpos) + Vec3::unit_z() * wpos.z - wall_alt,
+                        wall_dist,
+                        Vec2::new(border_pos.reduce_max(), border_pos.reduce_min()),
+                        rpos - wall_pos,
+                        wall_z,
+                        wall_ori,
+                        4,
+                        0,
+                        &Attr {
+                            height: 16,
+                            is_tower: false,
+                            ridged: false,
+                            rounded: true,
+                        },
+                    );
+
+                    // Boundary towers
                     for tower in &self.towers {
                         let tower_wpos = Vec3::new(
                             self.origin.x + tower.offset.x,
@@ -257,7 +289,7 @@ impl Castle {
                         let tower_locus = 10;
 
                         let border_pos = (tower_wpos - wpos).xy().map(|e| e.abs());
-                        mask = mask.resolve_with(keep.draw(
+                        mask = mask.resolve_with(keep_archetype.draw(
                             if (tower_wpos.x - wpos.x).abs() < (tower_wpos.y - wpos.y).abs() {
                                 wpos - tower_wpos
                             } else {
@@ -277,6 +309,42 @@ impl Castle {
                             &Attr {
                                 height: 28,
                                 is_tower: true,
+                                ridged: false,
+                                rounded: self.rounded_towers,
+                            },
+                        ));
+                    }
+
+                    // Keeps
+                    for keep in &self.keeps {
+                        let keep_wpos = Vec3::new(
+                            self.origin.x + keep.offset.x,
+                            self.origin.y + keep.offset.y,
+                            keep.alt,
+                        );
+
+                        let border_pos = (keep_wpos - wpos).xy().map(|e| e.abs());
+                        mask = mask.resolve_with(keep_archetype.draw(
+                            if (keep_wpos.x - wpos.x).abs() < (keep_wpos.y - wpos.y).abs() {
+                                wpos - keep_wpos
+                            } else {
+                                Vec3::new(
+                                    wpos.y - keep_wpos.y,
+                                    wpos.x - keep_wpos.x,
+                                    wpos.z - keep_wpos.z,
+                                )
+                            },
+                            border_pos.reduce_max() - keep.locus,
+                            Vec2::new(border_pos.reduce_max(), border_pos.reduce_min()),
+                            (wpos - keep_wpos).xy(),
+                            wpos.z - keep.alt,
+                            Ori::East,
+                            keep.locus,
+                            0,
+                            &Attr {
+                                height: keep.height,
+                                is_tower: keep.is_tower,
+                                ridged: true,
                                 rounded: self.rounded_towers,
                             },
                         ));

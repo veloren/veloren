@@ -14,6 +14,7 @@ pub struct Keep {
 pub struct Attr {
     pub height: i32,
     pub is_tower: bool,
+    pub ridged: bool,
     pub rounded: bool,
 }
 
@@ -30,6 +31,7 @@ impl Archetype for Keep {
                 attr: Attr {
                     height: rng.gen_range(12, 16),
                     is_tower: false,
+                    ridged: false,
                     rounded: true,
                 },
                 locus: 10 + rng.gen_range(0, 5),
@@ -43,6 +45,7 @@ impl Archetype for Keep {
                                 attr: Attr {
                                     height: rng.gen_range(20, 28),
                                     is_tower: true,
+                                    ridged: false,
                                     rounded: true,
                                 },
                                 locus: 4 + rng.gen_range(0, 5),
@@ -104,15 +107,21 @@ impl Archetype for Keep {
         let internal = BlockMask::new(Block::empty(), internal_layer);
         let empty = BlockMask::nothing();
 
-        let width = locus;
-        let rampart_width = 2 + locus;
-        let ceil_height = attr.height;
-        let door_height = 6;
-        let edge_pos = if (bound_offset.x == rampart_width) ^ (ori == Ori::East) {
+        let edge_pos = if (bound_offset.x.abs() > bound_offset.y.abs()) ^ (ori == Ori::East) {
             pos.y
         } else {
             pos.x
         };
+
+        let width = locus
+            + if edge_pos % 4 == 0 && attr.ridged && !attr.rounded {
+                1
+            } else {
+                0
+            };
+        let rampart_width = 2 + width;
+        let ceil_height = attr.height;
+        let door_height = 6;
         let rampart_height = ceil_height + if edge_pos % 2 == 0 { 3 } else { 4 };
         let min_dist = if attr.rounded {
             bound_offset.map(|e| e.pow(2) as f32).sum().powf(0.5) as i32

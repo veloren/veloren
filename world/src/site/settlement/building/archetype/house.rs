@@ -105,7 +105,7 @@ impl Attr {
             },
             mansard: rng.gen_range(-7, 4).max(0),
             pillar: match rng.gen_range(0, 4) {
-                0 => Pillar::Chimney(rng.gen_range(1, 5)),
+                0 => Pillar::Chimney(rng.gen_range(2, 6)),
                 _ => Pillar::None,
             },
             levels: rng.gen_range(1, 3),
@@ -135,7 +135,7 @@ impl Archetype for House {
                     storey_fill: StoreyFill::All,
                     mansard: 0,
                     pillar: match rng.gen_range(0, 3) {
-                        0 => Pillar::Chimney(rng.gen_range(1, 5)),
+                        0 => Pillar::Chimney(rng.gen_range(2, 6)),
                         1 => Pillar::Tower(5 + rng.gen_range(1, 5)),
                         _ => Pillar::None,
                     },
@@ -409,7 +409,7 @@ impl Archetype for House {
                         // Window
                         if (frame_bounds.size() + 1).reduce_min() > 2 {
                             // Window frame is large enough for a window
-                            let surface_pos = Vec2::new(bound_offset.x, profile.y - floor_height);
+                            let surface_pos = Vec2::new(bound_offset.x, profile.y);
                             if window_bounds.contains_point(surface_pos) {
                                 return Some(end_window);
                             } else if frame_bounds.contains_point(surface_pos) {
