@@ -514,7 +514,7 @@ fn handle_spawn(
                     .unwrap_or(1)
                     .min(10);
 
-                let ai = opt_ai.unwrap_or("true".to_string());
+                let ai = opt_ai.unwrap_or_else(|| "true".to_string());
 
                 match server.state.read_component_cloned::<comp::Pos>(target) {
                     Some(pos) => {
@@ -546,7 +546,7 @@ fn handle_spawn(
                                 .with(comp::MountState::Unmounted)
                                 .with(alignment);
 
-                            if ai == "true".to_string() {
+                            if ai == "true" {
                                 entity_base = entity_base.with(agent.clone());
                             }
 
@@ -613,7 +613,7 @@ fn handle_spawn_training_dummy(
 
             server.notify_client(
                 client,
-                ChatType::CommandInfo.server_msg(format!("Spawned a training dummy")),
+                ChatType::CommandInfo.server_msg("Spawned a training dummy"),
             );
         },
         None => server.notify_client(
