@@ -141,8 +141,8 @@ impl Tool {
                     buildup_duration: Duration::from_millis(700),
                     recover_duration: Duration::from_millis(300),
                     base_healthchange: (-120.0 * self.base_power()) as i32,
-                    range: 3.0,
-                    max_angle: 15.0,
+                    range: 3.5,
+                    max_angle: 60.0,
                 },
                 LeapMelee {
                     energy_cost: 800,
