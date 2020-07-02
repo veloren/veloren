@@ -11,6 +11,11 @@ pub struct Spiral2d {
 impl Spiral2d {
     #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self { Self { layer: 0, i: 0 } }
+
+    pub fn radius(self, radius: i32) -> impl Iterator<Item = Vec2<i32>> {
+        self.take((radius * 2 + 1).pow(2) as usize)
+            .filter(move |pos| pos.magnitude_squared() < (radius + 1).pow(2))
+    }
 }
 
 impl Iterator for Spiral2d {

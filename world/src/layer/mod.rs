@@ -37,7 +37,9 @@ pub fn apply_paths_to<'a>(
                 })
             };
 
-            if let Some((path_dist, path_nearest, path, _)) = col_sample.path.filter(|(dist, _, path, _)| *dist < path.width)
+            if let Some((path_dist, path_nearest, path, _)) = col_sample
+                .path
+                .filter(|(dist, _, path, _)| *dist < path.width)
             {
                 let inset = 0;
 
@@ -75,9 +77,9 @@ pub fn apply_paths_to<'a>(
                         if bridge_offset >= 2.0 && path_dist >= 3.0 || z < inset - 1 {
                             Block::new(BlockKind::Normal, noisy_color(Rgb::new(80, 80, 100), 8))
                         } else {
-                            let path_color = col_sample
-                                .sub_surface_color
-                                .map(|e| (e * 255.0 * 0.7) as u8);
+                            let path_color = path.surface_color(
+                                col_sample.sub_surface_color.map(|e| (e * 255.0) as u8),
+                            );
                             Block::new(BlockKind::Normal, noisy_color(path_color, 8))
                         },
                     );

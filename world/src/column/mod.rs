@@ -1,7 +1,9 @@
 use crate::{
     all::ForestKind,
     block::StructureMeta,
-    sim::{local_cells, uniform_idx_as_vec2, vec2_as_uniform_idx, RiverKind, SimChunk, WorldSim, Path},
+    sim::{
+        local_cells, uniform_idx_as_vec2, vec2_as_uniform_idx, Path, RiverKind, SimChunk, WorldSim,
+    },
     util::Sampler,
     Index, CONFIG,
 };
@@ -196,6 +198,7 @@ where
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
         let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
         let alt = sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?;
+        let surface_veg = sim.get_interpolated_monotone(wpos, |chunk| chunk.surface_veg)?;
         let chunk_warp_factor = sim.get_interpolated_monotone(wpos, |chunk| chunk.warp_factor)?;
         let sim_chunk = sim.get(chunk_pos)?;
         let neighbor_coef = TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
@@ -860,8 +863,8 @@ where
         let cold_stone = Rgb::new(0.57, 0.67, 0.8);
         let hot_stone = Rgb::new(0.07, 0.07, 0.06);
         let warm_stone = Rgb::new(0.77, 0.77, 0.64);
-        let beach_sand = Rgb::new(0.9, 0.82, 0.6);
-        let desert_sand = Rgb::new(0.95, 0.75, 0.5);
+        let beach_sand = Rgb::new(0.8, 0.75, 0.5);
+        let desert_sand = Rgb::new(0.7, 0.4, 0.25);
         let snow = Rgb::new(0.8, 0.85, 1.0);
 
         let stone_col = Rgb::new(195, 187, 201);
@@ -1088,11 +1091,15 @@ where
             water_level,
             warp_factor,
             surface_color: Rgb::lerp(
-                Rgb::lerp(cliff, sand, alt.sub(basement).mul(0.25)),
-                // Land
-                ground,
-                // Beach
-                ((ocean_level - 1.0) / 2.0).max(0.0),
+                sub_surface_color,
+                Rgb::lerp(
+                    Rgb::lerp(cliff, sand, alt.sub(basement).mul(0.25)),
+                    // Land
+                    ground,
+                    // Beach
+                    ((ocean_level - 1.0) / 2.0).max(0.0),
+                ),
+                surface_veg,
             ),
             sub_surface_color,
             // No growing directly on bedrock.

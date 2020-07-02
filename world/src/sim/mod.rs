@@ -1699,8 +1699,8 @@ impl WorldSim {
         Some(z0 + z1 + z2 + z3)
     }
 
-    /// Return the distance to the nearest path in blocks, along with the closest point on the path
-    /// and the tangent vector of that path.
+    /// Return the distance to the nearest path in blocks, along with the closest point on the
+    /// path, the path metadata, and the tangent vector of that path.
     pub fn get_nearest_path(&self, wpos: Vec2<i32>) -> Option<(f32, Vec2<f32>, Path, Vec2<f32>)> {
         let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
             e.div_euclid(sz as i32)
@@ -1761,7 +1761,9 @@ impl WorldSim {
                                 .clamped(0.0, 1.0);
                             let pos = bez.evaluate(nearest_interval);
                             let dist_sqrd = pos.distance_squared(wpos.map(|e| e as f32));
-                            Some((dist_sqrd, pos, chunk.path.path, move || bez.evaluate_derivative(nearest_interval).normalized()))
+                            Some((dist_sqrd, pos, chunk.path.path, move || {
+                                bez.evaluate_derivative(nearest_interval).normalized()
+                            }))
                         }),
                 )
             })
@@ -1789,6 +1791,7 @@ pub struct SimChunk {
     pub spawn_rate: f32,
     pub river: RiverData,
     pub warp_factor: f32,
+    pub surface_veg: f32,
 
     pub sites: Vec<Id<Site>>,
     pub place: Option<Id<Place>>,
@@ -2024,6 +2027,7 @@ impl SimChunk {
             spawn_rate: 1.0,
             river,
             warp_factor: 1.0,
+            surface_veg: 1.0,
 
             sites: Vec::new(),
             place: None,
