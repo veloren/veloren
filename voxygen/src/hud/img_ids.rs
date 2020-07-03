@@ -20,43 +20,9 @@ rotation_image_ids! {
 image_ids! {
     pub struct Imgs {
         <VoxelGraphic>
-        // Window Parts
-        window_3: "voxygen.element.frames.window_3",
-        tab_bg: "voxygen.element.frames.tab_bg",
-        tab_small_open: "voxygen.element.frames.tab_small_open",
-        tab_small_closed: "voxygen.element.frames.tab_small_closed",
-
         // Missing: Buff Frame Animation .gif ?! we could do animation in ui.maintain, or in shader?
-        window_frame: "voxygen.element.frames.window2",
-
-        // Social Window
-        social_button: "voxygen.element.buttons.social_tab",
-        social_button_pressed: "voxygen.element.buttons.social_tab_pressed",
-        social_button_hover: "voxygen.element.buttons.social_tab_hover",
-        social_button_press: "voxygen.element.buttons.social_tab_press",
-        social_frame: "voxygen.element.frames.social_frame",
-
-
-        // Settings Window
-        settings_frame_r: "voxygen.element.frames.settings_r",
-        settings_frame_l: "voxygen.element.frames.settings_l",
-        settings_button: "voxygen.element.buttons.settings_button",
-        settings_button_pressed: "voxygen.element.buttons.settings_button_pressed",
-        settings_button_hover: "voxygen.element.buttons.settings_button_hover",
-        settings_button_press: "voxygen.element.buttons.settings_button_press",
-        esc_frame: "voxygen.element.frames.esc_menu",
-
-        // Chat-Arrows
-        chat_arrow: "voxygen.element.buttons.arrow_down",
-        chat_arrow_mo: "voxygen.element.buttons.arrow_down_hover",
-        chat_arrow_press: "voxygen.element.buttons.arrow_down_press",
-
-
 ////////////////////////////////////////////////////////////////////////
         <VoxelPixArtGraphic>
-
-        // Skill Icons
-
         // Icons
         flower: "voxygen.element.icons.item_flower",
         grass: "voxygen.element.icons.item_grass",
@@ -73,11 +39,9 @@ image_ids! {
         checkbox_checked: "voxygen.element.buttons.checkbox.active",
         checkbox_checked_mo: "voxygen.element.buttons.checkbox.hover",
 
-
         // Charwindow
         xp_charwindow: "voxygen.element.frames.xp_charwindow",
         divider: "voxygen.element.frames.divider_charwindow",
-
 
         // Items
         potion_red: "voxygen.voxel.object.potion_red",
@@ -90,6 +54,24 @@ image_ids! {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
         <ImageGraphic>
+
+        // Social Window
+        social_button: "voxygen.element.buttons.social_tab",
+        social_button_pressed: "voxygen.element.buttons.social_tab_pressed",
+        social_button_hover: "voxygen.element.buttons.social_tab_hover",
+        social_button_press: "voxygen.element.buttons.social_tab_press",
+        social_frame: "voxygen.element.frames.social_frame",
+
+        // Chat-Arrows
+        chat_arrow: "voxygen.element.buttons.arrow_down",
+        chat_arrow_mo: "voxygen.element.buttons.arrow_down_hover",
+        chat_arrow_press: "voxygen.element.buttons.arrow_down_press",
+
+        // Settings Window
+        settings_button: "voxygen.element.buttons.settings_button",
+        settings_button_pressed: "voxygen.element.buttons.settings_button_pressed",
+        settings_button_hover: "voxygen.element.buttons.settings_button_hover",
+        settings_button_press: "voxygen.element.buttons.settings_button_press",
 
         quest_bg: "voxygen.element.misc_bg.temp_quest_bg",
 
@@ -116,6 +98,25 @@ image_ids! {
         spellbook_hover: "voxygen.element.buttons.spellbook_hover",
         spellbook_press: "voxygen.element.buttons.spellbook_press",
 
+        // Skill Icons
+        twohsword_m1: "voxygen.element.icons.2hsword_m1",
+        twohsword_m2: "voxygen.element.icons.2hsword_m2",
+        onehdagger_m1: "voxygen.element.icons.daggers",
+        onehdagger_m2: "voxygen.element.icons.skill_slice_2",
+        onehshield_m1: "voxygen.element.icons.swordshield",
+        onehshield_m2: "voxygen.element.icons.character",
+        twohhammer_m1: "voxygen.element.icons.2hhammer_m1",
+        twohhammer_m2: "voxygen.element.icons.2hhammer_m2",
+        twohaxe_m1: "voxygen.element.icons.2haxe_m1",
+        twohaxe_m2: "voxygen.element.icons.2haxe_m2",
+        bow_m1: "voxygen.element.icons.bow_m1",
+        bow_m2: "voxygen.element.icons.bow_m2",
+        staff_m1: "voxygen.element.icons.staff_m1",
+        staff_m2: "voxygen.element.icons.staff_m2",
+        flyingrod_m1: "voxygen.element.icons.debug_wand_m1",
+        flyingrod_m2: "voxygen.element.icons.debug_wand_m2",
+        charge: "voxygen.element.icons.skill_charge_3",
+
         // Skillbar
         level_up: "voxygen.element.misc_bg.level_up",
         level_down:"voxygen.element.misc_bg.level_down",
@@ -135,24 +136,6 @@ image_ids! {
         skillbar_slot_l_act: "voxygen.element.skillbar.skillbar_slot_l_active",
         skillbar_slot_r_act: "voxygen.element.skillbar.skillbar_slot_r_active",
 
-        // Skill Icons
-        twohsword_m1: "voxygen.element.icons.2hsword_m1",
-        twohsword_m2: "voxygen.element.icons.2hsword_m2",
-        onehdagger_m1: "voxygen.element.icons.daggers",
-        onehdagger_m2: "voxygen.element.icons.skill_slice_2",
-        onehshield_m1: "voxygen.element.icons.swordshield",
-        onehshield_m2: "voxygen.element.icons.character",
-        twohhammer_m1: "voxygen.element.icons.2hhammer_m1",
-        twohhammer_m2: "voxygen.element.icons.2hhammer_m2",
-        twohaxe_m1: "voxygen.element.icons.2haxe_m1",
-        twohaxe_m2: "voxygen.element.icons.2haxe_m2",
-        bow_m1: "voxygen.element.icons.bow_m1",
-        bow_m2: "voxygen.element.icons.bow_m2",
-        staff_m1: "voxygen.element.icons.staff_m1",
-        staff_m2: "voxygen.element.icons.staff_m2",
-        flyingrod_m1: "voxygen.element.icons.debug_wand_m1",
-        flyingrod_m2: "voxygen.element.icons.debug_wand_m2",
-        charge: "voxygen.element.icons.skill_charge_3",
 
         // Other Icons/Art
         skull: "voxygen.element.icons.skull",
@@ -193,6 +176,13 @@ image_ids! {
         mmap_minus: "voxygen.element.buttons.min_plus.mmap_button-min",
         mmap_minus_hover: "voxygen.element.buttons.min_plus.mmap_button-min_hover",
         mmap_minus_press: "voxygen.element.buttons.min_plus.mmap_button-min_press",
+
+        // Window Parts
+        window_3: "voxygen.element.frames.window_3",
+        esc_frame: "voxygen.element.frames.esc_menu",
+        // Settings
+        settings_frame_r: "voxygen.element.frames.settings_r",
+        settings_frame_l: "voxygen.element.frames.settings_l",
 
         // Close-Button
         close_btn: "voxygen.element.buttons.close_btn",
