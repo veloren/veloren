@@ -32,6 +32,7 @@ impl<'a> System<'a> for Sys {
         Write<'a, EventBus<ServerEvent>>,
         Entities<'a>,
         ReadStorage<'a, Pos>,
+        ReadStorage<'a, Vel>,
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Stats>,
@@ -55,6 +56,7 @@ impl<'a> System<'a> for Sys {
             event_bus,
             entities,
             positions,
+            velocities,
             orientations,
             scales,
             stats,
@@ -71,6 +73,7 @@ impl<'a> System<'a> for Sys {
         for (
             entity,
             pos,
+            vel,
             ori,
             alignment,
             loadout,
@@ -82,6 +85,7 @@ impl<'a> System<'a> for Sys {
         ) in (
             &entities,
             &positions,
+            &velocities,
             &orientations,
             alignments.maybe(),
             &loadouts,
@@ -122,7 +126,7 @@ impl<'a> System<'a> for Sys {
             // and so can afford to be less precise when trying to move around
             // the world (especially since they would otherwise get stuck on
             // obstacles that smaller entities would not).
-            let traversal_tolerance = scale;
+            let traversal_tolerance = scale + vel.0.magnitude() * 0.35;
 
             let mut do_idle = false;
             let mut choose_target = false;

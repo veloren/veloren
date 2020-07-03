@@ -67,7 +67,7 @@ fn basic_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     };
 
     update.vel.0 =
-            update.vel.0 + Vec2::broadcast(data.dt.0) * data.inputs.move_dir * accel * efficiency;
+        update.vel.0 + Vec2::broadcast(data.dt.0) * data.inputs.move_dir * accel * efficiency;
 
     handle_orientation(data, update, 20.0);
 }
