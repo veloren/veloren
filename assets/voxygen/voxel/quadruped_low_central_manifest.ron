@@ -9,7 +9,7 @@
             central: ("npc.crocodile.male.head_lower"),
         ),
         jaw: (
-            offset: (-4.0, -7.0, -1.5),
+            offset: (-4.0, 0.0, -1.5),
             central: ("npc.crocodile.male.jaw"),
         ),
         chest: (
@@ -35,7 +35,7 @@
             central: ("npc.crocodile.female.head_lower"),
         ),
         jaw: (
-            offset: (-4.0, -7.0, -1.5),
+            offset: (-4.0, 0.0, -1.5),
             central: ("npc.crocodile.female.jaw"),
         ),
         chest: (
@@ -61,7 +61,7 @@
             central: ("npc.alligator.male.head_lower"),
         ),
         jaw: (
-            offset: (-4.0, -7.5, -2.5),
+            offset: (-4.0, 0.0, -2.5),
             central: ("npc.alligator.male.jaw"),
         ),
         chest: (
@@ -87,7 +87,7 @@
             central: ("npc.alligator.female.head_lower"),
         ),
         jaw: (
-            offset: (-4.0, -7.5, -2.5),
+            offset: (-4.0, 0.0, -2.5),
             central: ("npc.alligator.female.jaw"),
         ),
         chest: (
@@ -113,7 +113,7 @@
             central: ("npc.salamander.male.head_lower"),
         ),
         jaw: (
-            offset: (-6.5, -6.0, -3.0),
+            offset: (-6.5, 0.0, -3.0),
             central: ("npc.salamander.male.jaw"),
         ),
         chest: (
@@ -139,7 +139,7 @@
             central: ("npc.salamander.female.head_lower"),
         ),
         jaw: (
-            offset: (-6.5, -6.0, -3.0),
+            offset: (-6.5, 0.0, -3.0),
             central: ("npc.salamander.female.jaw"),
         ),
         chest: (
@@ -165,7 +165,7 @@
             central: ("npc.monitor.male.head_lower"),
         ),
         jaw: (
-            offset: (-3.0, -3.5, -1.0),
+            offset: (-3.0, 0.0, -1.0),
             central: ("npc.monitor.male.jaw"),
         ),
         chest: (
@@ -192,7 +192,7 @@
             central: ("npc.monitor.female.head_lower"),
         ),
         jaw: (
-            offset: (-3.0, -3.5, -1.0),
+            offset: (-3.0, 0.0, -1.0),
             central: ("npc.monitor.female.jaw"),
         ),
         chest: (
@@ -218,7 +218,7 @@
             central: ("npc.asp.male.head_lower"),
         ),
         jaw: (
-            offset: (-2.0, -4.0, -1.0),
+            offset: (-2.0, 0.0, -1.0),
             central: ("npc.asp.male.jaw"),
         ),
         chest: (
@@ -244,7 +244,7 @@
             central: ("npc.asp.female.head_lower"),
         ),
         jaw: (
-            offset: (-2.0, -4.0, -1.0),
+            offset: (-2.0, 0.0, -1.0),
             central: ("npc.asp.female.jaw"),
         ),
         chest: (
@@ -270,7 +270,7 @@
             central: ("npc.tortoise.male.head_lower"),
         ),
         jaw: (
-            offset: (-1.5, -3.5, -1.0),
+            offset: (-1.5, 0.0, -1.0),
             central: ("npc.tortoise.male.jaw"),
         ),
         chest: (
@@ -296,7 +296,7 @@
             central: ("npc.tortoise.female.head_lower"),
         ),
         jaw: (
-            offset: (-1.5, -3.5, -1.0),
+            offset: (-1.5, 0.0, -1.0),
             central: ("npc.tortoise.female.jaw"),
         ),
         chest: (
@@ -322,7 +322,7 @@
             central: ("npc.rocksnapper.male.head_lower"),
         ),
         jaw: (
-            offset: (-6.5, -6.0, -2.5),
+            offset: (-6.5, 0.0, -2.5),
             central: ("npc.rocksnapper.male.jaw"),
         ),
         chest: (
@@ -348,7 +348,7 @@
             central: ("npc.rocksnapper.female.head_lower"),
         ),
         jaw: (
-            offset: (-6.5, -6.0, -2.5),
+            offset: (-6.5, 0.0, -2.5),
             central: ("npc.rocksnapper.female.jaw"),
         ),
         chest: (
