@@ -2253,7 +2253,6 @@ impl<S: Skeleton> FigureState<S> {
             visible: false,
             last_pos: None,
             avg_vel: Vec3::zero(),
-
         }
     }
 

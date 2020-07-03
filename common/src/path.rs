@@ -266,7 +266,10 @@ where
                     .map(move |(dir, _)| pos + *dir),
             )
     };
-    let transition = |_: &Vec3<i32>, _: &Vec3<i32>| 1.0;
+    let transition = |a: &Vec3<i32>, b: &Vec3<i32>| {
+        ((*a - *b) * Vec3::new(1, 1, 3)).map(|e| e.abs()).reduce_max() as f32
+        + endf.distance((*b).map(|e| e as f32)) * 0.01
+    };
     let satisfied = |pos: &Vec3<i32>| pos == &end;
 
     let mut new_astar = match astar.take() {
