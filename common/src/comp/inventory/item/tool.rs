@@ -197,6 +197,7 @@ impl Tool {
                     needs_timing: false,
                 },
                 DashMelee {
+                    energy_cost: 700,
                     buildup_duration: Duration::from_millis(500),
                     recover_duration: Duration::from_millis(500),
                     base_damage: 20,
@@ -208,6 +209,7 @@ impl Tool {
                     needs_timing: false,
                 },
                 DashMelee {
+                    energy_cost: 700,
                     buildup_duration: Duration::from_millis(500),
                     recover_duration: Duration::from_millis(500),
                     base_damage: 10,
@@ -227,14 +229,23 @@ impl Tool {
                     max_angle: 30.0,
                 },
             ],
-            Hammer(_) => vec![BasicMelee {
-                energy_cost: 0,
-                buildup_duration: Duration::from_millis(700),
-                recover_duration: Duration::from_millis(300),
-                base_healthchange: -10,
-                range: 3.5,
-                max_angle: 60.0,
-            }],
+            Hammer(_) => vec![
+                BasicMelee {
+                    energy_cost: 0,
+                    buildup_duration: Duration::from_millis(700),
+                    recover_duration: Duration::from_millis(300),
+                    base_healthchange: -10,
+                    range: 3.5,
+                    max_angle: 60.0,
+                },
+                LeapMelee {
+                    energy_cost: 800,
+                    movement_duration: Duration::from_millis(500),
+                    buildup_duration: Duration::from_millis(1000),
+                    recover_duration: Duration::from_millis(100),
+                    base_damage: 20,
+                },
+            ],
             Farming(_) => vec![BasicMelee {
                 energy_cost: 1,
                 buildup_duration: Duration::from_millis(700),
@@ -303,6 +314,7 @@ impl Tool {
                     max_angle: 60.0,
                 },
                 DashMelee {
+                    energy_cost: 700,
                     buildup_duration: Duration::from_millis(500),
                     recover_duration: Duration::from_millis(500),
                     base_damage: 20,

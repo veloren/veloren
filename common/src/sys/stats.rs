@@ -105,6 +105,7 @@ impl<'a> System<'a> for Sys {
                 // Ability use does not regen and sets the rate back to zero.
                 CharacterState::BasicMelee { .. }
                 | CharacterState::DashMelee { .. }
+                | CharacterState::LeapMelee { .. }
                 | CharacterState::TripleStrike { .. }
                 | CharacterState::BasicRanged { .. } => {
                     if energy.get_unchecked().regen_rate != 0.0 {
