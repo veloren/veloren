@@ -1,6 +1,36 @@
 use lazy_static::lazy_static;
-use std::collections::HashMap;
+use std::{
+    collections::{HashMap, HashSet},
+    hash::Hash,
+};
 use tracing::warn;
+
+lazy_static! {
+    // Determines the skills that comprise each skill group - this data is used to determine
+    // which of a player's skill groups a particular skill should be added to when a skill unlock
+    // is requested. TODO: Externalise this data in a RON file for ease of modification
+    pub static ref SKILL_GROUP_DEFS: HashMap<SkillGroupType, HashSet<Skill>> = {
+        let mut defs = HashMap::new();
+        defs.insert(SkillGroupType::T1, [ Skill::TestT1Skill1,
+                                         Skill::TestT1Skill2,
+                                         Skill::TestT1Skill3,
+                                         Skill::TestT1Skill4,
+                                         Skill::TestT1Skill5]
+                                         .iter().cloned().collect::<HashSet<Skill>>());
+
+        defs.insert(SkillGroupType::Swords, [ Skill::TestSwordSkill1,
+                                         Skill::TestSwordSkill2,
+                                         Skill::TestSwordSkill3]
+                                         .iter().cloned().collect::<HashSet<Skill>>());
+
+        defs.insert(SkillGroupType::Axes, [ Skill::TestAxeSkill1,
+                                         Skill::TestAxeSkill2,
+                                         Skill::TestAxeSkill3]
+                                         .iter().cloned().collect::<HashSet<Skill>>());
+
+        defs
+    };
+}
 
 /// Represents a skill that a player can unlock, that either grants them some
 /// kind of active ability, or a passive effect etc. Obviously because this is
@@ -31,56 +61,30 @@ pub enum SkillGroupType {
 /// A group of skills that have been unlocked by a player. Each skill group has
 /// independent exp and skill points which are used to unlock skills in that
 /// skill group.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct SkillGroup {
-    pub skills: Vec<Skill>,
+    pub skill_group_type: SkillGroupType,
     pub exp: u32,
     pub available_sp: u8,
 }
 
-impl Default for SkillGroup {
-    fn default() -> Self {
-        Self {
-            skills: Vec::new(),
+impl SkillGroup {
+    fn new(skill_group_type: SkillGroupType) -> SkillGroup {
+        SkillGroup {
+            skill_group_type,
             exp: 0,
             available_sp: 0,
         }
     }
 }
 
-lazy_static! {
-    // Determines the skills that comprise each skill group - this data is used to determine
-    // which of a player's skill groups a particular skill should be added to when a skill unlock
-    // is requested. TODO: Externalise this data in a RON file for ease of modification
-    static ref SKILL_GROUP_DEFS: HashMap<SkillGroupType, Vec<Skill>> = {
-        let mut defs = HashMap::new();
-        defs.insert(SkillGroupType::T1, vec![
-            Skill::TestT1Skill1,
-            Skill::TestT1Skill2,
-            Skill::TestT1Skill3,
-            Skill::TestT1Skill4,
-            Skill::TestT1Skill5]);
-
-        defs.insert(SkillGroupType::Swords, vec![
-            Skill::TestSwordSkill1,
-            Skill::TestSwordSkill2,
-            Skill::TestSwordSkill3]);
-
-        defs.insert(SkillGroupType::Axes, vec![
-            Skill::TestAxeSkill1,
-            Skill::TestAxeSkill2,
-            Skill::TestAxeSkill3]);
-
-        defs
-    };
-}
-
-/// Contains all of a player's skill groups and provides methods for
-/// manipulating assigned skills including unlocking skills, refunding skills
-/// etc.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+/// Contains all of a player's skill groups and skills. Provides methods for
+/// manipulating assigned skills and skill groups including unlocking skills,
+/// refunding skills etc.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct SkillSet {
-    pub skill_groups: HashMap<SkillGroupType, SkillGroup>,
+    pub skill_groups: Vec<SkillGroup>,
+    pub skills: HashSet<Skill>,
 }
 
 impl Default for SkillSet {
@@ -88,49 +92,99 @@ impl Default for SkillSet {
     /// unlocked skills in them - used when adding a skill set to a new
     /// player
     fn default() -> Self {
-        let mut skill_groups = HashMap::new();
-        skill_groups.insert(SkillGroupType::T1, SkillGroup::default());
-        skill_groups.insert(SkillGroupType::Swords, SkillGroup::default());
-        skill_groups.insert(SkillGroupType::Axes, SkillGroup::default());
-        Self { skill_groups }
+        // TODO: Default skill groups for new players?
+        Self {
+            skill_groups: Vec::new(),
+            skills: HashSet::new(),
+        }
     }
 }
 
 impl SkillSet {
-    pub fn refund_skill(&mut self, _skill: Skill) {
-        // TODO: check player has skill, remove skill and increase SP in skill group by 1
+    pub fn new() -> Self {
+        Self {
+            skill_groups: Vec::new(),
+            skills: HashSet::new(),
+        }
     }
 
-    pub fn unlock_skill(&mut self, skill: Skill) {
-        // Find the skill group type for the skill from the static skill definitions
-        let skill_group_type = SKILL_GROUP_DEFS.iter().find_map(|(key, val)| {
-            if val.contains(&skill) {
-                Some(*key)
-            } else {
-                None
-            }
-        });
+    // TODO: Game design to determine how skill groups are unlocked
+    /// Unlocks a skill group for a player, starting with 0 exp and 0 sp
+    pub fn unlock_skill_group(&mut self, skill_group_type: SkillGroupType) {
+        if !self
+            .skill_groups
+            .iter()
+            .any(|x| x.skill_group_type == skill_group_type)
+        {
+            self.skill_groups.push(SkillGroup::new(skill_group_type));
+        } else {
+            warn!("Tried to unlock already known skill group");
+        }
+    }
 
-        // Find the skill group for the skill on the player, check that the skill is not
-        // already unlocked and that they have available SP in that group, and then
-        // allocate the skill and reduce the player's SP in that skill group by 1.
-        if let Some(skill_group_type) = skill_group_type {
-            if let Some(skill_group) = self.skill_groups.get_mut(&skill_group_type) {
-                if !skill_group.skills.contains(&skill) {
+    /// Unlocks a skill for a player, assuming they have the relevant Skill
+    /// Group unlocked and available SP in that skill group
+    pub fn unlock_skill(&mut self, skill: Skill) {
+        if self.skills.contains(&skill) {
+            if let Some(skill_group_type) = SkillSet::get_skill_group_type_for_skill(&skill) {
+                if let Some(mut skill_group) = self
+                    .skill_groups
+                    .iter_mut()
+                    .find(|x| x.skill_group_type == skill_group_type)
+                {
                     if skill_group.available_sp > 0 {
-                        skill_group.skills.push(skill);
                         skill_group.available_sp -= 1;
                     } else {
                         warn!("Tried to unlock skill for skill group with no available SP");
                     }
                 } else {
-                    warn!("Tried to unlock already unlocked skill");
+                    warn!("Tried to unlock skill for a skill group that player does not have");
                 }
             } else {
-                warn!("Tried to unlock skill for a skill group that player does not have");
+                warn!(
+                    ?skill,
+                    "Tried to unlock skill that does not exist in any skill group!"
+                );
             }
         } else {
-            warn!("Tried to unlock skill that does not exist in any skill group!");
+            warn!("Tried to unlock already unlocked skill");
         }
+    }
+
+    /// Removes a skill for a player and refunds 1 SP in the relevant Skill
+    /// Group
+    pub fn refund_skill(&mut self, skill: Skill) {
+        if !self.skills.contains(&skill) {
+            if let Some(skill_group_type) = SkillSet::get_skill_group_type_for_skill(&skill) {
+                if let Some(mut skill_group) = self
+                    .skill_groups
+                    .iter_mut()
+                    .find(|x| x.skill_group_type == skill_group_type)
+                {
+                    skill_group.available_sp += 1;
+                } else {
+                    warn!("Tried to refund skill for a skill group that player does not have");
+                }
+            } else {
+                warn!(
+                    ?skill,
+                    "Tried to refund skill that does not exist in any skill group"
+                )
+            }
+        } else {
+            warn!("Tried to refund skill that has not been unlocked");
+        }
+    }
+
+    /// Returns the skill group type for a skill from the static skill group
+    /// definitions
+    fn get_skill_group_type_for_skill(skill: &Skill) -> Option<SkillGroupType> {
+        SKILL_GROUP_DEFS.iter().find_map(|(key, val)| {
+            if val.contains(&skill) {
+                Some(*key)
+            } else {
+                None
+            }
+        })
     }
 }

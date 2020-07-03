@@ -43,7 +43,7 @@ impl Sys {
         uids: &ReadStorage<'_, Uid>,
         can_build: &ReadStorage<'_, CanBuild>,
         force_updates: &ReadStorage<'_, ForceUpdate>,
-        stats: &ReadStorage<'_, Stats>,
+        stats: &mut WriteStorage<'_, Stats>,
         chat_modes: &ReadStorage<'_, ChatMode>,
         accounts: &mut WriteExpect<'_, AuthProvider>,
         block_changes: &mut Write<'_, BlockChange>,
@@ -367,6 +367,21 @@ impl Sys {
                         );
                     }
                 },
+                ClientMsg::UnlockSkill(skill) => {
+                    stats
+                        .get_mut(entity)
+                        .map(|s| s.skill_set.unlock_skill(skill));
+                },
+                ClientMsg::RefundSkill(skill) => {
+                    stats
+                        .get_mut(entity)
+                        .map(|s| s.skill_set.refund_skill(skill));
+                },
+                ClientMsg::UnlockSkillGroup(skill_group_type) => {
+                    stats
+                        .get_mut(entity)
+                        .map(|s| s.skill_set.unlock_skill_group(skill_group_type));
+                },
             }
         }
     }
@@ -386,7 +401,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Uid>,
         ReadStorage<'a, CanBuild>,
         ReadStorage<'a, ForceUpdate>,
-        ReadStorage<'a, Stats>,
+        WriteStorage<'a, Stats>,
         ReadStorage<'a, ChatMode>,
         WriteExpect<'a, AuthProvider>,
         Write<'a, BlockChange>,
@@ -416,7 +431,7 @@ impl<'a> System<'a> for Sys {
             uids,
             can_build,
             force_updates,
-            stats,
+            mut stats,
             chat_modes,
             mut accounts,
             mut block_changes,
@@ -476,7 +491,7 @@ impl<'a> System<'a> for Sys {
                     &uids,
                     &can_build,
                     &force_updates,
-                    &stats,
+                    &mut stats,
                     &chat_modes,
                     &mut accounts,
                     &mut block_changes,

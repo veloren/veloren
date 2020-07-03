@@ -1,4 +1,8 @@
-use crate::{comp, terrain::block::Block};
+use crate::{
+    comp,
+    comp::{Skill, SkillGroupType},
+    terrain::block::Block,
+};
 use vek::*;
 
 /// Messages sent from the client to the server
@@ -40,4 +44,7 @@ pub enum ClientMsg {
     },
     Disconnect,
     Terminate,
+    UnlockSkill(Skill),
+    RefundSkill(Skill),
+    UnlockSkillGroup(SkillGroupType),
 }
