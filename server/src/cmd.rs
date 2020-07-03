@@ -599,14 +599,14 @@ fn handle_spawn_training_dummy(
 
             let body = comp::Body::Object(comp::object::Body::Scarecrow);
 
+            let mut stats = comp::Stats::new("Training Dummy".to_string(), body);
+
+            // Level 0 will prevent exp gain from kill
+            stats.level.set_level(0);
+
             server
                 .state
-                .create_npc(
-                    pos,
-                    comp::Stats::new("Training Dummy".to_string(), body),
-                    comp::Loadout::default(),
-                    body,
-                )
+                .create_npc(pos, stats, comp::Loadout::default(), body)
                 .with(comp::Vel(vel))
                 .with(comp::MountState::Unmounted)
                 .build();
