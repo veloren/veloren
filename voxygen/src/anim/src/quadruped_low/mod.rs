@@ -207,7 +207,7 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
                 (Monitor, _) => (2.5, -6.5, 0.0),
                 (Asp, _) => (2.5, -5.5, -1.0),
                 (Tortoise, _) => (6.0, -11.5, -3.0),
-                (Rocksnapper, _) => (8.0, -16.0, -9.5),
+                (Rocksnapper, _) => (8.0, -12.0, -9.5),
                 (Pangolin, _) => (6.0, -4.0, -1.0),
             },
             lean: match (body.species, body.body_type) {
@@ -230,7 +230,7 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
                 (Salamander, _) => (1.0),
                 (Monitor, _) => (1.3),
                 (Asp, _) => (1.0),
-                (Tortoise, _) => (0.7),
+                (Tortoise, _) => (0.9),
                 (Rocksnapper, _) => (0.9),
                 (Pangolin, _) => (1.15),
             },
