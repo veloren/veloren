@@ -181,6 +181,7 @@ impl Item {
             BlockKind::Coconut => Some(assets::load_expect_cloned("common.items.coconut")),
             BlockKind::Chest => Some(assets::load_expect_cloned(
                 [
+                    // TODO: Throw it all out and replace with the loot table (common/items/loot_table.ron)
                     //miscellaneous
                     "common.items.velorite",
                     "common.items.veloritefrag",
