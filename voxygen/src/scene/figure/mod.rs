@@ -985,7 +985,7 @@ impl FigureMgr {
                         (false, _, false) => {
                             anim::quadruped_medium::JumpAnimation::update_skeleton(
                                 &QuadrupedMediumSkeleton::new(),
-                                (time),
+                                time,
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,

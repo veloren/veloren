@@ -1,5 +1,5 @@
 use super::{super::Animation, QuadrupedLowSkeleton, SkeletonAttr};
-use std::{f32::consts::PI, ops::Mul};
+use std::f32::consts::PI;
 use vek::*;
 
 pub struct RunAnimation;

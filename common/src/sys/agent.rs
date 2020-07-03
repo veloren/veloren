@@ -4,7 +4,7 @@ use crate::{
         agent::Activity,
         item::{tool::ToolKind, ItemKind},
         Agent, Alignment, CharacterState, ChatMsg, ControlAction, Controller, Loadout, MountState,
-        Ori, Pos, Scale, Stats,
+        Ori, Pos, Scale, Stats, Vel,
     },
     event::{EventBus, ServerEvent},
     path::Chaser,

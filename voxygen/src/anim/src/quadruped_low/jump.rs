@@ -1,5 +1,4 @@
 use super::{super::Animation, QuadrupedLowSkeleton, SkeletonAttr};
-use std::f32::consts::PI;
 use vek::*;
 
 pub struct JumpAnimation;
