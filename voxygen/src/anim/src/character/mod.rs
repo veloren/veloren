@@ -11,6 +11,7 @@ pub mod glidewield;
 pub mod gliding;
 pub mod idle;
 pub mod jump;
+pub mod leapmelee;
 pub mod roll;
 pub mod run;
 pub mod shoot;
@@ -26,9 +27,9 @@ pub use self::{
     blockidle::BlockIdleAnimation, charge::ChargeAnimation, climb::ClimbAnimation,
     dance::DanceAnimation, dash::DashAnimation, equip::EquipAnimation,
     glidewield::GlideWieldAnimation, gliding::GlidingAnimation, idle::IdleAnimation,
-    jump::JumpAnimation, roll::RollAnimation, run::RunAnimation, shoot::ShootAnimation,
-    sit::SitAnimation, spin::SpinAnimation, stand::StandAnimation, swim::SwimAnimation,
-    wield::WieldAnimation,
+    jump::JumpAnimation, leapmelee::LeapAnimation, roll::RollAnimation, run::RunAnimation,
+    shoot::ShootAnimation, sit::SitAnimation, spin::SpinAnimation, stand::StandAnimation,
+    swim::SwimAnimation, wield::WieldAnimation,
 };
 
 use super::{Bone, FigureBoneData, Skeleton};

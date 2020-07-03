@@ -6,10 +6,12 @@ use crate::{
 use std::time::Duration;
 use vek::Vec3;
 
-const DASH_SPEED: f32 = 19.0;
+const LEAP_SPEED: f32 = 16.0;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct Data {
+    /// How long the state is moving
+    pub movement_duration: Duration,
     /// How long until state should deal damage
     pub buildup_duration: Duration,
     /// How long the state has until exiting
@@ -32,16 +34,31 @@ impl CharacterBehavior for Data {
             }
         }
 
-        if self.buildup_duration != Duration::default() && data.physics.touch_entity.is_none() {
-            // Build up (this will move you forward)
-            update.vel.0 = Vec3::new(0.0, 0.0, update.vel.0.z)
-                + (update.vel.0 * Vec3::new(1.0, 1.0, 0.0)
-                    + 1.5 * data.inputs.move_dir.try_normalized().unwrap_or_default())
+        if self.movement_duration != Duration::default() {
+            // Jumping
+            update.vel.0 = Vec3::new(data.inputs.look_dir.x, data.inputs.look_dir.y, 8.0)
+                * ((self.movement_duration.as_millis() as f32) / 250.0)
+                + (update.vel.0 * Vec3::new(2.0, 2.0, 0.0)
+                    + 0.25 * data.inputs.move_dir.try_normalized().unwrap_or_default())
                 .try_normalized()
                 .unwrap_or_default()
-                    * DASH_SPEED;
+                    * LEAP_SPEED;
 
-            update.character = CharacterState::DashMelee(Data {
+            update.character = CharacterState::LeapMelee(Data {
+                movement_duration: self
+                    .movement_duration
+                    .checked_sub(Duration::from_secs_f32(data.dt.0))
+                    .unwrap_or_default(),
+                buildup_duration: self.buildup_duration,
+                recover_duration: self.recover_duration,
+                base_damage: self.base_damage,
+                exhausted: false,
+                initialize: false,
+            });
+        } else if self.buildup_duration != Duration::default() && !data.physics.on_ground {
+            // Falling
+            update.character = CharacterState::LeapMelee(Data {
+                movement_duration: Duration::default(),
                 buildup_duration: self
                     .buildup_duration
                     .checked_sub(Duration::from_secs_f32(data.dt.0))
@@ -55,14 +72,15 @@ impl CharacterBehavior for Data {
             // Hit attempt
             data.updater.insert(data.entity, Attacking {
                 base_healthchange: -(self.base_damage as i32),
-                range: 3.5,
-                max_angle: 180_f32.to_radians(),
+                range: 4.5,
+                max_angle: 360_f32.to_radians(),
                 applied: false,
                 hit_count: 0,
-                knockback: 0.0,
+                knockback: 25.0,
             });
 
-            update.character = CharacterState::DashMelee(Data {
+            update.character = CharacterState::LeapMelee(Data {
+                movement_duration: self.movement_duration,
                 buildup_duration: Duration::default(),
                 recover_duration: self.recover_duration,
                 base_damage: self.base_damage,
@@ -72,7 +90,8 @@ impl CharacterBehavior for Data {
         } else if self.recover_duration != Duration::default() {
             // Recovery
             handle_move(data, &mut update, 0.7);
-            update.character = CharacterState::DashMelee(Data {
+            update.character = CharacterState::LeapMelee(Data {
+                movement_duration: self.movement_duration,
                 buildup_duration: self.buildup_duration,
                 recover_duration: self
                     .recover_duration

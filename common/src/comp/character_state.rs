@@ -61,6 +61,8 @@ pub enum CharacterState {
     /// A three-stage attack where each attack pushes player forward
     /// and successive attacks increase in damage, while player holds button.
     TripleStrike(triple_strike::Data),
+    /// A leap followed by a small aoe ground attack
+    LeapMelee(leap_melee::Data),
 }
 
 impl CharacterState {
@@ -71,7 +73,8 @@ impl CharacterState {
             | CharacterState::BasicRanged(_)
             | CharacterState::DashMelee(_)
             | CharacterState::TripleStrike(_)
-            | CharacterState::BasicBlock => true,
+            | CharacterState::BasicBlock
+            | CharacterState::LeapMelee(_) => true,
             _ => false,
         }
     }
@@ -81,7 +84,8 @@ impl CharacterState {
             CharacterState::BasicMelee(_)
             | CharacterState::BasicRanged(_)
             | CharacterState::DashMelee(_)
-            | CharacterState::TripleStrike(_) => true,
+            | CharacterState::TripleStrike(_)
+            | CharacterState::LeapMelee(_) => true,
             _ => false,
         }
     }
@@ -92,7 +96,8 @@ impl CharacterState {
             | CharacterState::BasicRanged(_)
             | CharacterState::DashMelee(_)
             | CharacterState::TripleStrike(_)
-            | CharacterState::BasicBlock => true,
+            | CharacterState::BasicBlock
+            | CharacterState::LeapMelee(_) => true,
             _ => false,
         }
     }

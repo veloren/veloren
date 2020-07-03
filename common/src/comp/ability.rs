@@ -18,6 +18,7 @@ pub enum CharacterAbilityType {
     DashMelee,
     BasicBlock,
     TripleStrike(Stage),
+    LeapMelee,
 }
 
 impl From<&CharacterState> for CharacterAbilityType {
@@ -28,6 +29,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::Boost(_) => Self::Boost,
             CharacterState::DashMelee(_) => Self::DashMelee,
             CharacterState::BasicBlock => Self::BasicBlock,
+            CharacterState::LeapMelee(_) => Self::LeapMelee,
             CharacterState::TripleStrike(data) => Self::TripleStrike(data.stage),
             _ => Self::BasicMelee,
         }
@@ -59,6 +61,7 @@ pub enum CharacterAbility {
         only_up: bool,
     },
     DashMelee {
+        energy_cost: u32,
         buildup_duration: Duration,
         recover_duration: Duration,
         base_damage: u32,
@@ -68,6 +71,13 @@ pub enum CharacterAbility {
     TripleStrike {
         base_damage: u32,
         needs_timing: bool,
+    },
+    LeapMelee {
+        energy_cost: u32,
+        movement_duration: Duration,
+        buildup_duration: Duration,
+        recover_duration: Duration,
+        base_damage: u32,
     },
 }
 
@@ -90,15 +100,19 @@ impl CharacterAbility {
                         .try_change_by(-220, EnergySource::Ability)
                         .is_ok()
             },
-            CharacterAbility::DashMelee { .. } => update
+            CharacterAbility::DashMelee { energy_cost, .. } => update
                 .energy
-                .try_change_by(-700, EnergySource::Ability)
+                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
             CharacterAbility::BasicMelee { energy_cost, .. } => update
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
             CharacterAbility::BasicRanged { energy_cost, .. } => update
+                .energy
+                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                .is_ok(),
+            CharacterAbility::LeapMelee { energy_cost, .. } => update
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
@@ -179,6 +193,7 @@ impl From<&CharacterAbility> for CharacterState {
                 only_up: *only_up,
             }),
             CharacterAbility::DashMelee {
+                energy_cost: _,
                 buildup_duration,
                 recover_duration,
                 base_damage,
@@ -208,6 +223,20 @@ impl From<&CharacterAbility> for CharacterState {
                 } else {
                     TransitionStyle::Hold(HoldingState::Holding)
                 },
+            }),
+            CharacterAbility::LeapMelee {
+                energy_cost: _,
+                movement_duration,
+                buildup_duration,
+                recover_duration,
+                base_damage,
+            } => CharacterState::LeapMelee(leap_melee::Data {
+                initialize: true,
+                exhausted: false,
+                movement_duration: *movement_duration,
+                buildup_duration: *buildup_duration,
+                recover_duration: *recover_duration,
+                base_damage: *base_damage,
             }),
         }
     }

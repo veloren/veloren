@@ -116,6 +116,7 @@ image_ids! {
         flyingrod_m1: "voxygen.element.icons.debug_wand_m1",
         flyingrod_m2: "voxygen.element.icons.debug_wand_m2",
         charge: "voxygen.element.icons.skill_charge_3",
+        hammerleap: "voxygen.element.icons.skill_hammerleap",
 
         // Skillbar
         level_up: "voxygen.element.misc_bg.level_up",
@@ -135,7 +136,6 @@ image_ids! {
         skillbar_slot_r: "voxygen.element.skillbar.skillbar_slot_r",
         skillbar_slot_l_act: "voxygen.element.skillbar.skillbar_slot_l_active",
         skillbar_slot_r_act: "voxygen.element.skillbar.skillbar_slot_r_active",
-
 
         // Other Icons/Art
         skull: "voxygen.element.icons.skull",
