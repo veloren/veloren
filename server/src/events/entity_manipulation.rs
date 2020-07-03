@@ -24,6 +24,10 @@ pub fn handle_damage(server: &Server, uid: Uid, change: HealthChange) {
     }
 }
 
+/// Handle an entity dying. If it is a player, it will send a message to all
+/// other players. If the entity that killed it had stats, then give it exp for
+/// the kill. Experience given is equal to the level of the entity that was
+/// killed times 10.
 pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSource) {
     let state = server.state_mut();
 
