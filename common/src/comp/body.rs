@@ -112,7 +112,7 @@ impl Body {
     pub fn radius(&self) -> f32 {
         // TODO: Improve these values (some might be reliant on more info in inner type)
         match self {
-            Body::Humanoid(_) => 0.5,
+            Body::Humanoid(_) => 0.2,
             Body::QuadrupedSmall(_) => 0.3,
             Body::QuadrupedMedium(_) => 0.9,
             Body::Critter(_) => 0.2,
