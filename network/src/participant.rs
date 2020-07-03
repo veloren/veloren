@@ -272,7 +272,7 @@ impl BParticipant {
         mut w2b_frames_r: mpsc::UnboundedReceiver<(Cid, Frame)>,
         mut b2a_stream_opened_s: mpsc::UnboundedSender<Stream>,
         a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
-        a2p_msg_s: std::sync::mpsc::Sender<(Prio, Sid, OutgoingMessage)>,
+        a2p_msg_s: crossbeam_channel::Sender<(Prio, Sid, OutgoingMessage)>,
     ) {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
         trace!("start handle_frames_mgr");
@@ -450,7 +450,7 @@ impl BParticipant {
         &self,
         mut a2b_steam_open_r: mpsc::UnboundedReceiver<(Prio, Promises, oneshot::Sender<Stream>)>,
         a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
-        a2p_msg_s: std::sync::mpsc::Sender<(Prio, Sid, OutgoingMessage)>,
+        a2p_msg_s: crossbeam_channel::Sender<(Prio, Sid, OutgoingMessage)>,
         shutdown_open_mgr_receiver: oneshot::Receiver<()>,
     ) {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
@@ -548,7 +548,7 @@ impl BParticipant {
         &self,
         mut a2b_close_stream_r: mpsc::UnboundedReceiver<Sid>,
         shutdown_stream_close_mgr_receiver: oneshot::Receiver<()>,
-        b2p_notify_empty_stream_s: std::sync::mpsc::Sender<(Sid, oneshot::Sender<()>)>,
+        b2p_notify_empty_stream_s: crossbeam_channel::Sender<(Sid, oneshot::Sender<()>)>,
     ) {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
         trace!("start stream_close_mgr");
@@ -607,7 +607,7 @@ impl BParticipant {
         sid: Sid,
         prio: Prio,
         promises: Promises,
-        a2p_msg_s: std::sync::mpsc::Sender<(Prio, Sid, OutgoingMessage)>,
+        a2p_msg_s: crossbeam_channel::Sender<(Prio, Sid, OutgoingMessage)>,
         a2b_close_stream_s: &mpsc::UnboundedSender<Sid>,
     ) -> Stream {
         let (b2a_msg_recv_s, b2a_msg_recv_r) = mpsc::unbounded::<IncomingMessage>();

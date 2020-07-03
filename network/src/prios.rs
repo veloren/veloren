@@ -10,13 +10,11 @@ use crate::{
     metrics::NetworkMetrics,
     types::{Frame, Prio, Sid},
 };
+use crossbeam_channel::{unbounded, Receiver, Sender};
 use futures::channel::oneshot;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
-    sync::{
-        mpsc::{channel, Receiver, Sender},
-        Arc,
-    },
+    sync::Arc,
 };
 
 use tracing::*;
@@ -60,8 +58,8 @@ impl PrioManager {
         Sender<(Sid, oneshot::Sender<()>)>,
     ) {
         // (a2p_msg_s, a2p_msg_r)
-        let (messages_tx, messages_rx) = channel();
-        let (sid_flushed_tx, sid_flushed_rx) = channel();
+        let (messages_tx, messages_rx) = unbounded();
+        let (sid_flushed_tx, sid_flushed_rx) = unbounded();
         (
             Self {
                 points: [0; PRIO_MAX],
@@ -318,11 +316,9 @@ mod tests {
         prios::*,
         types::{Frame, Pid, Prio, Sid},
     };
+    use crossbeam_channel::Sender;
     use futures::{channel::oneshot, executor::block_on};
-    use std::{
-        collections::VecDeque,
-        sync::{mpsc::Sender, Arc},
-    };
+    use std::{collections::VecDeque, sync::Arc};
 
     const SIZE: u64 = PrioManager::FRAME_DATA_SIZE;
     const USIZE: usize = PrioManager::FRAME_DATA_SIZE as usize;
