@@ -13,7 +13,7 @@ mod location;
 mod phys;
 mod player;
 pub mod projectile;
-mod skills;
+pub mod skills;
 mod stats;
 mod visual;
 
@@ -43,5 +43,6 @@ pub use location::{Waypoint, WaypointArea};
 pub use phys::{Collider, ForceUpdate, Gravity, Mass, Ori, PhysicsState, Pos, Scale, Sticky, Vel};
 pub use player::Player;
 pub use projectile::Projectile;
+pub use skills::{Skill, SkillGroup, SkillGroupType, SkillSet};
 pub use stats::{Exp, HealthChange, HealthSource, Level, Stats};
 pub use visual::{LightAnimation, LightEmitter};
