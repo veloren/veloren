@@ -976,7 +976,7 @@ impl FigureMgr {
                         // Running
                         (true, true, _) => anim::quadruped_medium::RunAnimation::update_skeleton(
                             &QuadrupedMediumSkeleton::new(),
-                            (vel.0.magnitude(), ori, state.last_ori, time),
+                            (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -2234,6 +2234,8 @@ pub struct FigureState<S: Skeleton> {
     last_ori: Vec3<f32>,
     lpindex: u8,
     visible: bool,
+    last_pos: Option<Vec3<f32>>,
+    avg_vel: Vec3<f32>,
 }
 
 impl<S: Skeleton> FigureState<S> {
@@ -2249,6 +2251,9 @@ impl<S: Skeleton> FigureState<S> {
             last_ori: Vec3::zero(),
             lpindex: 0,
             visible: false,
+            last_pos: None,
+            avg_vel: Vec3::zero(),
+
         }
     }
 
@@ -2293,6 +2298,12 @@ impl<S: Skeleton> FigureState<S> {
             )
             .unwrap();
         self.lantern_offset = lantern_offset;
+
+        let smoothing = (5.0 * dt).min(1.0);
+        if let Some(last_pos) = self.last_pos {
+            self.avg_vel = (1.0 - smoothing) * self.avg_vel + smoothing * (pos - last_pos) * dt;
+        }
+        self.last_pos = Some(pos);
     }
 
     pub fn locals(&self) -> &Consts<FigureLocals> { &self.locals }
