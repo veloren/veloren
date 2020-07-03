@@ -9,6 +9,7 @@ pub mod equipping;
 pub mod glide;
 pub mod glide_wield;
 pub mod idle;
+pub mod leap_melee;
 pub mod roll;
 pub mod sit;
 pub mod triple_strike;
