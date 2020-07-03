@@ -597,7 +597,7 @@ fn handle_spawn_training_dummy(
                 10.0,
             );
 
-            let body = comp::Body::Object(comp::object::Body::Scarecrow);
+            let body = comp::Body::Object(comp::object::Body::TrainingDummy);
 
             let mut stats = comp::Stats::new("Training Dummy".to_string(), body);
 
