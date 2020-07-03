@@ -121,11 +121,7 @@ impl CharacterBehavior for Data {
             // Move player forward while in first third of each stage
             if update.vel.0.magnitude_squared() < BASE_SPEED.powf(2.0) {
                 update.vel.0 += data.dt.0
-                    * (if data.physics.on_ground {
-                        Vec3::new(0.0, 0.0, 500.0) // Jump upwards if on ground
-                    } else {
-                        Vec3::one()
-                    } + adjusted_accel * Vec3::from(data.ori.0.xy()));
+                    * ( adjusted_accel * Vec3::from(data.ori.0.xy())); 
                 let mag2 = update.vel.0.magnitude_squared();
                 if mag2 > BASE_SPEED.powf(2.0) {
                     update.vel.0 = update.vel.0.normalized() * BASE_SPEED;
@@ -149,10 +145,10 @@ impl CharacterBehavior for Data {
             data.updater.insert(data.entity, Attacking {
                 base_healthchange: -(dmg as i32),
                 range: 3.5,
-                max_angle: 180_f32.to_radians(),
+                max_angle: 45_f32.to_radians(),
                 applied: false,
                 hit_count: 0,
-                knockback: 16.0,
+                knockback: 10.0,
             });
 
             CharacterState::TripleStrike(Data {

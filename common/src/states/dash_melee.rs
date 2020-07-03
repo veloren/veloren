@@ -57,7 +57,7 @@ impl CharacterBehavior for Data {
             data.updater.insert(data.entity, Attacking {
                 base_healthchange: -(self.base_damage as i32),
                 range: 3.5,
-                max_angle: 180_f32.to_radians(),
+                max_angle: 45_f32.to_radians(),
                 applied: false,
                 hit_count: 0,
                 knockback: 0.0,
