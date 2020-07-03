@@ -75,7 +75,7 @@ pub struct Stream {
     mid: Mid,
     prio: Prio,
     promises: Promises,
-    a2b_msg_s: std::sync::mpsc::Sender<(Prio, Sid, OutgoingMessage)>,
+    a2b_msg_s: crossbeam_channel::Sender<(Prio, Sid, OutgoingMessage)>,
     b2a_msg_recv_r: mpsc::UnboundedReceiver<IncomingMessage>,
     closed: Arc<AtomicBool>,
     a2b_close_stream_s: Option<mpsc::UnboundedSender<Sid>>,
@@ -627,7 +627,7 @@ impl Stream {
         sid: Sid,
         prio: Prio,
         promises: Promises,
-        a2b_msg_s: std::sync::mpsc::Sender<(Prio, Sid, OutgoingMessage)>,
+        a2b_msg_s: crossbeam_channel::Sender<(Prio, Sid, OutgoingMessage)>,
         b2a_msg_recv_r: mpsc::UnboundedReceiver<IncomingMessage>,
         closed: Arc<AtomicBool>,
         a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
@@ -934,16 +934,16 @@ impl std::fmt::Debug for Participant {
     }
 }
 
-impl<T> From<std::sync::mpsc::SendError<T>> for StreamError {
-    fn from(_err: std::sync::mpsc::SendError<T>) -> Self { StreamError::StreamClosed }
+impl<T> From<crossbeam_channel::SendError<T>> for StreamError {
+    fn from(_err: crossbeam_channel::SendError<T>) -> Self { StreamError::StreamClosed }
 }
 
-impl<T> From<std::sync::mpsc::SendError<T>> for ParticipantError {
-    fn from(_err: std::sync::mpsc::SendError<T>) -> Self { ParticipantError::ParticipantClosed }
+impl<T> From<crossbeam_channel::SendError<T>> for ParticipantError {
+    fn from(_err: crossbeam_channel::SendError<T>) -> Self { ParticipantError::ParticipantClosed }
 }
 
-impl<T> From<std::sync::mpsc::SendError<T>> for NetworkError {
-    fn from(_err: std::sync::mpsc::SendError<T>) -> Self { NetworkError::NetworkClosed }
+impl<T> From<crossbeam_channel::SendError<T>> for NetworkError {
+    fn from(_err: crossbeam_channel::SendError<T>) -> Self { NetworkError::NetworkClosed }
 }
 
 impl From<async_std::io::Error> for NetworkError {

@@ -12,6 +12,7 @@ edition = "2018"
 bincode = "1.2"
 serde = { version = "1.0" }
 #sending
+crossbeam-channel = "0.4.2"
 async-std = { version = "~1.5", default-features = false, features = ["std", "async-task", "default"] }
 #tracing and metrics
 tracing = { version = "0.1", default-features = false }

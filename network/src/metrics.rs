@@ -263,7 +263,7 @@ pub(crate) struct PidCidFrameCache {
 }
 
 impl PidCidFrameCache {
-    const CACHE_SIZE: usize = 16;
+    const CACHE_SIZE: usize = 512;
 
     pub fn new(metric: IntCounterVec, pid: Pid) -> Self {
         Self {
@@ -275,6 +275,12 @@ impl PidCidFrameCache {
 
     fn populate(&mut self, cid: Cid) {
         let start_cid = self.cache.len();
+        if cid >= start_cid as u64 && cid > (Self::CACHE_SIZE as Cid) {
+            warn!(
+                ?cid,
+                "cid, getting quite high, is this a attack on the cache?"
+            );
+        }
         for i in start_cid..=cid as usize {
             let cid = (i as Cid).to_string();
             let entry = [
@@ -300,12 +306,6 @@ impl PidCidFrameCache {
     }
 
     pub fn with_label_values(&mut self, cid: Cid, frame: &Frame) -> &GenericCounter<AtomicI64> {
-        if cid > (Self::CACHE_SIZE as Cid) {
-            warn!(
-                ?cid,
-                "cid, getting quite high, is this a attack on the cache?"
-            );
-        }
         self.populate(cid);
         &self.cache[cid as usize][frame.get_int() as usize]
     }
