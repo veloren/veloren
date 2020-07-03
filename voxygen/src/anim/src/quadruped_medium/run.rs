@@ -5,7 +5,7 @@ use vek::*;
 pub struct RunAnimation;
 
 impl Animation for RunAnimation {
-    type Dependency = (f32, Vec3<f32>, Vec3<f32>, f64);
+    type Dependency = (f32, Vec3<f32>, Vec3<f32>, f64, Vec3<f32>);
     type Skeleton = QuadrupedMediumSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -14,7 +14,7 @@ impl Animation for RunAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_medium_run")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (velocity, orientation, last_ori, _global_time): Self::Dependency,
+        (velocity, orientation, last_ori, _global_time, avg_vel): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -191,6 +191,8 @@ impl Animation for RunAnimation {
             next.foot_br.ori = Quaternion::rotation_x(footverttfslow * 0.5 - 0.2);
             next.foot_br.scale = Vec3::one() * 0.96;
         } else {
+            let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude());
+
             //Gallop
             next.head_upper.offset =
                 Vec3::new(0.0, skeleton_attr.head_upper.0, skeleton_attr.head_upper.1);
@@ -219,7 +221,7 @@ impl Animation for RunAnimation {
                 skeleton_attr.torso_front.1 + shortalt * 2.5,
             ) * skeleton_attr.scaler
                 / 11.0;
-            next.torso_front.ori =
+            next.torso_front.ori = Quaternion::rotation_x(x_tilt) *
                 Quaternion::rotation_x(short * 0.13) * Quaternion::rotation_z(tilt * -1.5);
             next.torso_front.scale = Vec3::one() * skeleton_attr.scaler / 11.0;
 
