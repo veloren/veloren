@@ -1,11 +1,11 @@
 ({
     (Grolgar, Male): (
         leg_fl: (
-            offset: (-2.5, -6.0, -3.0),
+            offset: (-2.5, -12.0, -7.5),//these are done very case by case
             lateral: ("npc.grolgar.male.leg_fl"),
         ),
         leg_fr: (
-            offset: (-2.5, -6.0, -3.0),
+            offset: (-2.5, -12.0, -7.5),
             lateral: ("npc.grolgar.male.leg_fr"),
         ),
         leg_bl: (
@@ -35,11 +35,11 @@
     ),
     (Grolgar, Female): (
         leg_fl: (
-            offset: (-2.5, -6.0, -3.0),
+            offset: (-2.5, -12.0, -7.5),
             lateral: ("npc.grolgar.female.leg_fl"),
         ),
         leg_fr: (
-            offset: (-2.5, -6.0, -3.0),
+            offset: (-2.5, -12.0, -7.5),
             lateral: ("npc.grolgar.female.leg_fr"),
         ),
         leg_bl: (
@@ -69,11 +69,11 @@
     ),
     (Saber, Male): (
         leg_fl: (
-            offset: (-2.0, -3.5, -4.5),
+            offset: (-2.0, -6.0, -4.5),
             lateral: ("npc.saber.male.leg_fl"),
         ),
         leg_fr: (
-            offset: (-2.0, -3.5, -4.5),
+            offset: (-2.0, -6.0, -4.5),
             lateral: ("npc.saber.male.leg_fr"),
         ),
         leg_bl: (
@@ -103,11 +103,11 @@
     ),
     (Saber, Female): (
         leg_fl: (
-            offset: (-2.0, -3.5, -4.5),
+            offset: (-2.0, -6.0, -4.5),
             lateral: ("npc.saber.female.leg_fl"),
         ),
         leg_fr: (
-            offset: (-2.0, -3.5, -4.5),
+            offset: (-2.0, -6.0, -4.5),
             lateral: ("npc.saber.female.leg_fr"),
         ),
         leg_bl: (
@@ -137,11 +137,11 @@
     ),
     (Tuskram, Male): (
         leg_fl: (
-            offset: (-2.0, -2.5, -5.0),
+            offset: (-2.0, -2.5, -10.0),
             lateral: ("npc.tuskram.male.leg_fl"),
         ),
         leg_fr: (
-            offset: (-2.0, -2.5, -5.0),
+            offset: (-2.0, -2.5, -10.0),
             lateral: ("npc.tuskram.male.leg_fr"),
         ),
         leg_bl: (
@@ -171,11 +171,11 @@
     ),
     (Tuskram, Female): (
         leg_fl: (
-            offset: (-2.0, -2.5, -5.0),
+            offset: (-2.0, -2.5, -10.0),
             lateral: ("npc.tuskram.female.leg_fl"),
         ),
         leg_fr: (
-            offset: (-2.0, -2.5, -5.0),
+            offset: (-2.0, -2.5, -10.0),
             lateral: ("npc.tuskram.female.leg_fr"),
         ),
         leg_bl: (
@@ -205,19 +205,19 @@
     ),
     (Lion, Male): (
         leg_fl: (
-            offset: (-2.0, -2.5, -2.5),
+            offset: (-2.0, -2.5, -7.5),
             lateral: ("npc.lion.male.leg_fl"),
         ),
         leg_fr: (
-            offset: (-2.0, -2.5, -2.5),
+            offset: (-2.0, -2.5, -7.5),
             lateral: ("npc.lion.male.leg_fr"),
         ),
         leg_bl: (
-            offset: (-2.0, -3.0, -4.0),
+            offset: (-2.0, -3.0, -6.0),
             lateral: ("npc.lion.male.leg_bl"),
         ),
         leg_br: (
-            offset: (-2.0, -3.0, -4.0),
+            offset: (-2.0, -3.0, -6.0),
             lateral: ("npc.lion.male.leg_br"),
         ),
         foot_fl: (
@@ -239,19 +239,19 @@
     ),
     (Lion, Female): (
         leg_fl: (
-            offset: (-2.0, -2.5, -2.5),
+            offset: (-2.0, -2.5, -7.5),
             lateral: ("npc.lion.female.leg_fl"),
         ),
         leg_fr: (
-            offset: (-2.0, -2.5, -2.5),
+            offset: (-2.0, -2.5, -7.5),
             lateral: ("npc.lion.female.leg_fr"),
         ),
         leg_bl: (
-            offset: (-2.0, -3.0, -4.0),
+            offset: (-2.0, -3.0, -6.0),
             lateral: ("npc.lion.female.leg_bl"),
         ),
         leg_br: (
-            offset: (-2.0, -3.0, -4.0),
+            offset: (-2.0, -3.0, -6.0),
             lateral: ("npc.lion.female.leg_br"),
         ),
         foot_fl: (

@@ -1,5 +1,5 @@
 use super::{super::Animation, QuadrupedMediumSkeleton, SkeletonAttr};
-use std::{f32::consts::PI, ops::Mul};
+use std::f32::consts::PI;
 use vek::*;
 
 pub struct AlphaAnimation;
@@ -21,40 +21,11 @@ impl Animation for AlphaAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let slower = (anim_time as f32 * 1.0 + PI).sin();
-        let wave_ultra_slow_cos = (anim_time as f32 * 1.0 + PI).cos();
-        let slow = (anim_time as f32 * 3.5 + PI).sin();
-        let wave_slow_cos = (anim_time as f32 * 3.5 + PI).cos();
-
         let short = (((1.0)
             / (0.5 + 0.5 * ((anim_time as f32 * 2.0 + PI * 1.0).sin()).powf(2.0 as f32)))
         .sqrt())
             * ((anim_time as f32 * 2.0 + PI * 1.0).sin());
 
-        let look = Vec2::new(
-            ((global_time + anim_time) as f32 / 8.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.5,
-            ((global_time + anim_time) as f32 / 8.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.25,
-        );
-        let tailmove = Vec2::new(
-            ((global_time + anim_time) as f32 / 2.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.25,
-            ((global_time + anim_time) as f32 / 2.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.125,
-        );
         let random = ((((2.0
             * ((global_time as f32 - anim_time as f32)
                 - ((global_time as f32 - anim_time as f32).round())))

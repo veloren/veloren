@@ -5,7 +5,7 @@
             central: ("npc.grolgar.male.head_upper"),
         ),
         lower: (
-            offset: (-6.0, -4.5, -4.0),
+            offset: (-6.0, -2.0, -8.0),
             central: ("npc.grolgar.male.head_lower"),
         ),
         jaw: (
@@ -13,7 +13,7 @@
             central: ("npc.grolgar.male.jaw"),
         ),
         torso_front: (
-            offset: (-7.0, -14.0, -8.0),//value in y dimension is full length of model
+            offset: (-7.0, -11.0, -8.0),//value in y dimension is full length of model
             central: ("npc.grolgar.male.torso_front"),
         ),
         torso_back: (
@@ -35,7 +35,7 @@
             central: ("npc.grolgar.female.head_upper"),
         ),
         lower: (
-            offset: (-6.0, -4.5, -4.0),
+            offset: (-6.0, -2.0, -8.0),
             central: ("npc.grolgar.female.head_lower"),
         ),
         jaw: (
@@ -43,7 +43,7 @@
             central: ("npc.grolgar.female.jaw"),
         ),
         torso_front: (
-            offset: (-7.0, -14.0, -8.0),
+            offset: (-7.0, -11.0, -8.0),
             central: ("npc.grolgar.female.torso_front"),
         ),
         torso_back: (
