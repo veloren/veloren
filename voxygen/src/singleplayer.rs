@@ -47,14 +47,14 @@ impl Singleplayer {
         let paused = Arc::new(AtomicBool::new(false));
         let paused1 = paused.clone();
 
+        let server = Server::new(settings2).expect("Failed to create server instance!");
+
+        let server = match thread_pool {
+            Some(pool) => server.with_thread_pool(pool),
+            None => server,
+        };
+
         let thread = thread::spawn(move || {
-            let server = Server::new(settings2).expect("Failed to create server instance!");
-
-            let server = match thread_pool {
-                Some(pool) => server.with_thread_pool(pool),
-                None => server,
-            };
-
             run_server(server, receiver, paused1);
         });
 

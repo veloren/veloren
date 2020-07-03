@@ -109,7 +109,17 @@ impl PlayState for MainMenuState {
                                 client::Error::NotOnWhitelist => {
                                     localized_strings.get("main.login.not_on_whitelist").into()
                                 },
-                                client::Error::Network(e) => format!(
+                                client::Error::NetworkErr(e) => format!(
+                                    "{}: {:?}",
+                                    localized_strings.get("main.login.network_error"),
+                                    e
+                                ),
+                                client::Error::ParticipantErr(e) => format!(
+                                    "{}: {:?}",
+                                    localized_strings.get("main.login.network_error"),
+                                    e
+                                ),
+                                client::Error::StreamErr(e) => format!(
                                     "{}: {:?}",
                                     localized_strings.get("main.login.network_error"),
                                     e

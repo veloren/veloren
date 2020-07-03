@@ -40,29 +40,3 @@ pub mod vol;
 pub mod volumes;
 
 pub use loadout_builder::LoadoutBuilder;
-
-/// The networking module containing high-level wrappers of `TcpListener` and
-/// `TcpStream` (`PostOffice` and `PostBox` respectively) and data types used by
-/// both the server and client. # Examples
-/// ```
-/// use std::net::SocketAddr;
-/// use veloren_common::net::{PostBox, PostOffice};
-///
-/// let listen_addr = SocketAddr::from(([0, 0, 0, 0], 12345u16));
-/// let conn_addr = SocketAddr::from(([127, 0, 0, 1], 12345u16));
-///
-/// let mut server: PostOffice<String, String> = PostOffice::bind(listen_addr).unwrap();
-/// let mut client: PostBox<String, String> = PostBox::to(conn_addr).unwrap();
-/// std::thread::sleep(std::time::Duration::from_millis(100));
-///
-/// let mut scon = server.new_postboxes().next().unwrap();
-/// std::thread::sleep(std::time::Duration::from_millis(100));
-///
-/// scon.send_message(String::from("foo"));
-/// client.send_message(String::from("bar"));
-/// std::thread::sleep(std::time::Duration::from_millis(100));
-///
-/// assert_eq!("foo", client.next_message().unwrap());
-/// assert_eq!("bar", scon.next_message().unwrap());
-/// ```
-pub mod net;

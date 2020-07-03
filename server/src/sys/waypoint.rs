@@ -40,9 +40,7 @@ impl<'a> System<'a> for Sys {
                     if let Ok(wp_old) = waypoints.insert(entity, Waypoint::new(player_pos.0, *time))
                     {
                         if wp_old.map_or(true, |w| w.elapsed(*time) > NOTIFY_TIME) {
-                            client
-                                .postbox
-                                .send_message(ServerMsg::Notification(Notification::WaypointSaved));
+                            client.notify(ServerMsg::Notification(Notification::WaypointSaved));
                         }
                     }
                 }
