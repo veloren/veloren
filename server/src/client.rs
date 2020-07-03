@@ -1,15 +1,13 @@
-use common::{
-    msg::{ClientMsg, ClientState, RequestStateError, ServerMsg},
-    net::PostBox,
-};
+use common::msg::{ClientState, RequestStateError, ServerMsg};
 use hashbrown::HashSet;
+use network::Stream;
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 use vek::*;
 
 pub struct Client {
     pub client_state: ClientState,
-    pub postbox: PostBox<ServerMsg, ClientMsg>,
+    pub singleton_stream: std::sync::Mutex<Stream>,
     pub last_ping: f64,
     pub login_msg_sent: bool,
 }
@@ -19,7 +17,9 @@ impl Component for Client {
 }
 
 impl Client {
-    pub fn notify(&mut self, msg: ServerMsg) { self.postbox.send_message(msg); }
+    pub fn notify(&mut self, msg: ServerMsg) {
+        let _ = self.singleton_stream.lock().unwrap().send(msg);
+    }
 
     pub fn is_registered(&self) -> bool {
         match self.client_state {
@@ -37,13 +37,19 @@ impl Client {
 
     pub fn allow_state(&mut self, new_state: ClientState) {
         self.client_state = new_state;
-        self.postbox
-            .send_message(ServerMsg::StateAnswer(Ok(new_state)));
+        let _ = self
+            .singleton_stream
+            .lock()
+            .unwrap()
+            .send(ServerMsg::StateAnswer(Ok(new_state)));
     }
 
     pub fn error_state(&mut self, error: RequestStateError) {
-        self.postbox
-            .send_message(ServerMsg::StateAnswer(Err((error, self.client_state))));
+        let _ = self
+            .singleton_stream
+            .lock()
+            .unwrap()
+            .send(ServerMsg::StateAnswer(Err((error, self.client_state))));
     }
 }
 

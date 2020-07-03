@@ -1,11 +1,21 @@
-use common::net::PostError;
+use network::{NetworkError, ParticipantError, StreamError};
 
 #[derive(Debug)]
 pub enum Error {
-    Network(PostError),
+    NetworkErr(NetworkError),
+    ParticipantErr(ParticipantError),
+    StreamErr(StreamError),
     Other(String),
 }
 
-impl From<PostError> for Error {
-    fn from(err: PostError) -> Self { Error::Network(err) }
+impl From<NetworkError> for Error {
+    fn from(err: NetworkError) -> Self { Error::NetworkErr(err) }
+}
+
+impl From<ParticipantError> for Error {
+    fn from(err: ParticipantError) -> Self { Error::ParticipantErr(err) }
+}
+
+impl From<StreamError> for Error {
+    fn from(err: StreamError) -> Self { Error::StreamErr(err) }
 }
