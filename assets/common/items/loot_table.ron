@@ -1,0 +1,5 @@
+Lottery(
+    items : Vec(
+        // All loot rates go here
+    )
+)
