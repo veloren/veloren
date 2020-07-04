@@ -1,4 +1,5 @@
 pub mod armor;
+pub mod lottery;
 pub mod tool;
 
 // Reexports
@@ -9,7 +10,6 @@ use crate::{
     effect::Effect,
     terrain::{Block, BlockKind},
 };
-use rand::seq::SliceRandom;
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 use std::{fs::File, io::BufReader};
@@ -179,118 +179,12 @@ impl Item {
             },
             BlockKind::ShortGrass => Some(assets::load_expect_cloned("common.items.grasses.short")),
             BlockKind::Coconut => Some(assets::load_expect_cloned("common.items.coconut")),
-            BlockKind::Chest => Some(assets::load_expect_cloned(
-                [
-                    //miscellaneous
-                    "common.items.velorite",
-                    "common.items.veloritefrag",
-                    "common.items.potion_minor",
-                    "common.items.collar",
-                    //swords
-                    "common.items.weapons.sword.starter_sword",
-                    "common.items.weapons.sword.wood_sword",
-                    "common.items.weapons.sword.short_sword_0",
-                    "common.items.weapons.sword.greatsword_2h_simple-0",
-                    "common.items.weapons.sword.greatsword_2h_simple-1",
-                    "common.items.weapons.sword.greatsword_2h_simple-2",
-                    "common.items.weapons.sword.long_2h_simple-0",
-                    "common.items.weapons.sword.long_2h_simple-1",
-                    "common.items.weapons.sword.long_2h_simple-2",
-                    "common.items.weapons.sword.long_2h_simple-3",
-                    "common.items.weapons.sword.long_2h_simple-4",
-                    "common.items.weapons.sword.long_2h_simple-5",
-                    "common.items.weapons.sword.greatsword_2h_dam-0",
-                    "common.items.weapons.sword.greatsword_2h_dam-1",
-                    "common.items.weapons.sword.greatsword_2h_dam-2",
-                    "common.items.weapons.sword.greatsword_2h_orn-0",
-                    "common.items.weapons.sword.greatsword_2h_orn-1",
-                    "common.items.weapons.sword.greatsword_2h_orn-2",
-                    "common.items.weapons.sword.long_2h_dam-0",
-                    "common.items.weapons.sword.long_2h_dam-1",
-                    "common.items.weapons.sword.long_2h_dam-2",
-                    "common.items.weapons.sword.long_2h_dam-3",
-                    "common.items.weapons.sword.long_2h_dam-4",
-                    "common.items.weapons.sword.long_2h_dam-5",
-                    "common.items.weapons.sword.long_2h_orn-0",
-                    "common.items.weapons.sword.long_2h_orn-1",
-                    "common.items.weapons.sword.long_2h_orn-2",
-                    "common.items.weapons.sword.long_2h_orn-3",
-                    "common.items.weapons.sword.long_2h_orn-4",
-                    "common.items.weapons.sword.long_2h_orn-5",
-                    "common.items.weapons.sword.long_2h_simple-0",
-                    "common.items.weapons.sword.long_2h_simple-1",
-                    "common.items.weapons.sword.long_2h_simple-2",
-                    "common.items.weapons.sword.long_2h_simple-3",
-                    "common.items.weapons.sword.long_2h_simple-4",
-                    "common.items.weapons.sword.long_2h_simple-5",
-                    //axes
-                    "common.items.weapons.axe.starter_axe",
-                    //staves
-                    "common.items.weapons.staff.staff_nature",
-                    "common.items.weapons.staff.starter_staff",
-                    //hammers
-                    "common.items.weapons.hammer.starter_hammer",
-                    //bows
-                    "common.items.weapons.bow.starter_bow",
-                    //belts
-                    "common.items.armor.belt.plate_0",
-                    "common.items.armor.belt.steel_0",
-                    "common.items.armor.belt.leather_0",
-                    "common.items.armor.belt.leather_2",
-                    "common.items.armor.belt.cloth_blue_0",
-                    "common.items.armor.belt.cloth_green_0",
-                    "common.items.armor.belt.cloth_purple_0",
-                    //chests
-                    "common.items.armor.chest.plate_green_0",
-                    "common.items.armor.chest.leather_0",
-                    "common.items.armor.chest.steel_0",
-                    "common.items.armor.chest.leather_2",
-                    "common.items.armor.chest.cloth_blue_0",
-                    "common.items.armor.chest.cloth_green_0",
-                    "common.items.armor.chest.cloth_purple_0",
-                    //shoes
-                    "common.items.armor.foot.plate_0",
-                    "common.items.armor.foot.steel_0",
-                    "common.items.armor.foot.leather_0",
-                    "common.items.armor.foot.leather_2",
-                    "common.items.armor.foot.cloth_blue_0",
-                    "common.items.armor.foot.cloth_green_0",
-                    "common.items.armor.foot.cloth_purple_0",
-                    //pants
-                    "common.items.armor.pants.plate_green_0",
-                    "common.items.armor.pants.green_0",
-                    "common.items.armor.pants.leather_0",
-                    "common.items.armor.pants.steel_0",
-                    "common.items.armor.pants.cloth_blue_0",
-                    "common.items.armor.pants.cloth_green_0",
-                    "common.items.armor.pants.cloth_purple_0",
-                    //shoulders
-                    "common.items.armor.shoulder.plate_0",
-                    "common.items.armor.shoulder.steel_0",
-                    "common.items.armor.shoulder.leather_1",
-                    "common.items.armor.shoulder.leather_0",
-                    "common.items.armor.shoulder.leather_2",
-                    "common.items.armor.shoulder.cloth_blue_0",
-                    "common.items.armor.shoulder.cloth_green_0",
-                    "common.items.armor.shoulder.cloth_purple_0",
-                    //gloves
-                    "common.items.armor.hand.leather_0",
-                    "common.items.armor.hand.leather_2",
-                    "common.items.armor.hand.steel_0",
-                    "common.items.armor.hand.plate_0",
-                    "common.items.armor.hand.cloth_blue_0",
-                    "common.items.armor.hand.cloth_green_0",
-                    "common.items.armor.hand.cloth_purple_0",
-                    //rings
-                    "common.items.armor.ring.ring_0",
-                    //capes
-                    "common.items.armor.back.short_0",
-                    //necks
-                    "common.items.armor.neck.neck_0",
-                ]
-                .choose(&mut rand::thread_rng())
-                .unwrap(), // Can't fail
-            )),
+            BlockKind::Chest => {
+                let chosen = assets::load_expect::<lottery::Lottery<_>>("common.items.loot_table");
+                let chosen = chosen.choose();
+
+                Some(assets::load_expect_cloned(chosen))
+            },
             _ => None,
         }
     }
