@@ -260,7 +260,7 @@ impl Scheduler {
         )>,
     ) {
         trace!("start disconnect_mgr");
-        while let Some((pid, return_once_successfull_shutdown)) = a2s_disconnect_r.next().await {
+        while let Some((pid, return_once_successful_shutdown)) = a2s_disconnect_r.next().await {
             //Closing Participants is done the following way:
             // 1. We drop our senders and receivers
             // 2. we need to close BParticipant, this will drop its senderns and receivers
@@ -276,10 +276,10 @@ impl Scheduler {
                     .unwrap();
                 drop(pi);
                 let e = finished_receiver.await.unwrap();
-                return_once_successfull_shutdown.send(e).unwrap();
+                return_once_successful_shutdown.send(e).unwrap();
             } else {
                 debug!(?pid, "looks like participant is already dropped");
-                return_once_successfull_shutdown.send(Ok(())).unwrap();
+                return_once_successful_shutdown.send(Ok(())).unwrap();
             }
             trace!(?pid, "closed participant");
         }
@@ -304,17 +304,19 @@ impl Scheduler {
         self.closed.store(true, Ordering::Relaxed);
         debug!("shutting down all BParticipants gracefully");
         let mut participants = self.participants.write().await;
-        let mut waitings = vec![];
-        for (pid, mut pi) in participants.drain() {
-            trace!(?pid, "shutting down BParticipants");
-            let (finished_sender, finished_receiver) = oneshot::channel();
-            waitings.push((pid, finished_receiver));
-            pi.s2b_shutdown_bparticipant_s
-                .take()
-                .unwrap()
-                .send(finished_sender)
-                .unwrap();
-        }
+        let waitings = participants
+            .drain()
+            .map(|(pid, mut pi)| {
+                trace!(?pid, "shutting down BParticipants");
+                let (finished_sender, finished_receiver) = oneshot::channel();
+                pi.s2b_shutdown_bparticipant_s
+                    .take()
+                    .unwrap()
+                    .send(finished_sender)
+                    .unwrap();
+                (pid, finished_receiver)
+            })
+            .collect::<Vec<_>>();
         debug!("wait for partiticipants to be shut down");
         for (pid, recv) in waitings {
             if let Err(e) = recv.await {
@@ -392,7 +394,8 @@ impl Scheduler {
                 // have any state
                 let mut listeners = HashMap::new();
                 let mut end_receiver = s2s_stop_listening_r.fuse();
-                let mut data = [0u8; 9216];
+                const UDP_MAXIMUM_SINGLE_PACKET_SIZE_EVER: usize = 9216;
+                let mut data = [0u8; UDP_MAXIMUM_SINGLE_PACKET_SIZE_EVER];
                 while let Ok((size, remote_addr)) = select! {
                     next = socket.recv_from(&mut data).fuse() => next,
                     _ = end_receiver => Err(std::io::Error::new(std::io::ErrorKind::Other, "")),

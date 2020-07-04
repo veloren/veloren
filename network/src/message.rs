@@ -112,7 +112,7 @@ impl std::fmt::Debug for MessageBuffer {
         if len > 20 {
             write!(
                 f,
-                "MessageBuffer(len: {}, {}, {}, {}, {:?}..{:?})",
+                "MessageBuffer(len: {}, {}, {}, {}, {:X?}..{:X?})",
                 len,
                 u32::from_le_bytes([self.data[0], self.data[1], self.data[2], self.data[3]]),
                 u32::from_le_bytes([self.data[4], self.data[5], self.data[6], self.data[7]]),
