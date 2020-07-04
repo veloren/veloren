@@ -60,14 +60,10 @@ pub struct Participant {
 ///
 /// Unlike [`Network`] and [`Participant`], `Streams` don't implement interior
 /// mutability, as multiple threads don't need access to the same `Stream`.
-/// [`Sync`] is not supported! In that case multiple `Streams` should be used
-/// instead. However it's still possible to [`Send`] `Streams`.
 ///
 /// [`Networks`]: crate::api::Network
 /// [`open`]: Participant::open
 /// [`opened`]: Participant::opened
-/// [`Send`]: std::marker::Send
-/// [`Sync`]: std::marker::Sync
 #[derive(Debug)]
 pub struct Stream {
     pid: Pid,

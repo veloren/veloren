@@ -877,6 +877,7 @@ version = "0.1.0"
 dependencies = [
  "async-std",
  "bincode",
+ "crossbeam-channel",
  "futures",
  "lazy_static",
  "prometheus",
