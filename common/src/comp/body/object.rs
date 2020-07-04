@@ -56,6 +56,7 @@ pub enum Body {
     ArrowSnake = 50,
     CampfireLit = 51,
     BoltFireBig = 52,
+    TrainingDummy = 53,
 }
 
 impl Body {
@@ -65,7 +66,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 53] = [
+pub const ALL_OBJECTS: [Body; 54] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -119,6 +120,7 @@ pub const ALL_OBJECTS: [Body; 53] = [
     Body::BoltFire,
     Body::BoltFireBig,
     Body::ArrowSnake,
+    Body::TrainingDummy,
 ];
 
 impl Body {
@@ -177,6 +179,7 @@ impl Body {
             Body::BoltFire => "bolt_fire",
             Body::BoltFireBig => "bolt_fire_big",
             Body::ArrowSnake => "arrow_snake",
+            Body::TrainingDummy => "training_dummy",
         }
     }
 }
