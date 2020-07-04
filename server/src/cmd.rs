@@ -66,6 +66,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Build => handle_build,
         ChatCommand::Debug => handle_debug,
         ChatCommand::DebugColumn => handle_debug_column,
+        ChatCommand::Dummy => handle_spawn_training_dummy,
         ChatCommand::Explosion => handle_explosion,
         ChatCommand::Faction => handle_faction,
         ChatCommand::GiveExp => handle_give_exp,
@@ -497,14 +498,23 @@ fn handle_spawn(
     args: String,
     action: &ChatCommand,
 ) {
-    match scan_fmt_some!(&args, &action.arg_fmt(), String, npc::NpcBody, String) {
-        (Some(opt_align), Some(npc::NpcBody(id, mut body)), opt_amount) => {
+    match scan_fmt_some!(
+        &args,
+        &action.arg_fmt(),
+        String,
+        npc::NpcBody,
+        String,
+        String
+    ) {
+        (Some(opt_align), Some(npc::NpcBody(id, mut body)), opt_amount, opt_ai) => {
             if let Some(alignment) = parse_alignment(target, &opt_align) {
                 let amount = opt_amount
                     .and_then(|a| a.parse().ok())
                     .filter(|x| *x > 0)
                     .unwrap_or(1)
                     .min(10);
+
+                let ai = opt_ai.unwrap_or_else(|| "true".to_string());
 
                 match server.state.read_component_cloned::<comp::Pos>(target) {
                     Some(pos) => {
@@ -524,7 +534,7 @@ fn handle_spawn(
 
                             let body = body();
 
-                            let new_entity = server
+                            let mut entity_base = server
                                 .state
                                 .create_npc(
                                     pos,
@@ -534,9 +544,13 @@ fn handle_spawn(
                                 )
                                 .with(comp::Vel(vel))
                                 .with(comp::MountState::Unmounted)
-                                .with(agent.clone())
-                                .with(alignment)
-                                .build();
+                                .with(alignment);
+
+                            if ai == "true" {
+                                entity_base = entity_base.with(agent.clone());
+                            }
+
+                            let new_entity = entity_base.build();
 
                             if let Some(uid) = server.state.ecs().uid_from_entity(new_entity) {
                                 server.notify_client(
@@ -565,6 +579,47 @@ fn handle_spawn(
                 ChatType::CommandError.server_msg(action.help_string()),
             );
         },
+    }
+}
+
+fn handle_spawn_training_dummy(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    _args: String,
+    _action: &ChatCommand,
+) {
+    match server.state.read_component_cloned::<comp::Pos>(target) {
+        Some(pos) => {
+            let vel = Vec3::new(
+                rand::thread_rng().gen_range(-2.0, 3.0),
+                rand::thread_rng().gen_range(-2.0, 3.0),
+                10.0,
+            );
+
+            let body = comp::Body::Object(comp::object::Body::TrainingDummy);
+
+            let mut stats = comp::Stats::new("Training Dummy".to_string(), body);
+
+            // Level 0 will prevent exp gain from kill
+            stats.level.set_level(0);
+
+            server
+                .state
+                .create_npc(pos, stats, comp::Loadout::default(), body)
+                .with(comp::Vel(vel))
+                .with(comp::MountState::Unmounted)
+                .build();
+
+            server.notify_client(
+                client,
+                ChatType::CommandInfo.server_msg("Spawned a training dummy"),
+            );
+        },
+        None => server.notify_client(
+            client,
+            ChatType::CommandError.server_msg("You have no position!"),
+        ),
     }
 }
 
