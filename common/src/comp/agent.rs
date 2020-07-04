@@ -81,7 +81,6 @@ pub enum Activity {
     Follow {
         target: EcsEntity,
         chaser: Chaser,
-        move_dir: Vec2<f32>,
     },
     Attack {
         target: EcsEntity,

@@ -126,7 +126,7 @@ impl<'a> System<'a> for Sys {
             // and so can afford to be less precise when trying to move around
             // the world (especially since they would otherwise get stuck on
             // obstacles that smaller entities would not).
-            let traversal_tolerance = scale + vel.0.magnitude() * 0.25;
+            let traversal_tolerance = scale + vel.0.magnitude() * 0.3;
 
             let mut do_idle = false;
             let mut choose_target = false;
@@ -187,30 +187,24 @@ impl<'a> System<'a> for Sys {
                             choose_target = true;
                         }
                     },
-                    Activity::Follow {
-                        target,
-                        chaser,
-                        move_dir,
-                    } => {
+                    Activity::Follow { target, chaser } => {
                         if let (Some(tgt_pos), _tgt_stats) =
                             (positions.get(*target), stats.get(*target))
                         {
                             let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
                             // Follow, or return to idle
                             if dist_sqrd > AVG_FOLLOW_DIST.powf(2.0) {
-                                if let Some(bearing) = chaser.chase(
+                                if let Some((bearing, speed)) = chaser.chase(
                                     &*terrain,
                                     pos.0,
+                                    vel.0,
                                     tgt_pos.0,
                                     AVG_FOLLOW_DIST,
                                     traversal_tolerance,
                                 ) {
-                                    *move_dir = 0.9f32 * *move_dir
-                                        + 0.1f32
-                                            * Vec2::from(bearing)
-                                                .try_normalized()
-                                                .unwrap_or(Vec2::zero());
-                                    inputs.move_dir = *move_dir;
+                                    inputs.move_dir =
+                                        bearing.xy().try_normalized().unwrap_or(Vec2::zero())
+                                            * speed;
                                     inputs.jump.set_state(bearing.z > 1.5);
                                 }
                             } else {
@@ -314,16 +308,18 @@ impl<'a> System<'a> for Sys {
                                 }
 
                                 // Long-range chase
-                                if let Some(bearing) = chaser.chase(
+                                if let Some((bearing, speed)) = chaser.chase(
                                     &*terrain,
                                     pos.0,
+                                    vel.0,
                                     tgt_pos.0,
                                     1.25,
                                     traversal_tolerance,
                                 ) {
                                     inputs.move_dir = Vec2::from(bearing)
                                         .try_normalized()
-                                        .unwrap_or(Vec2::zero());
+                                        .unwrap_or(Vec2::zero())
+                                        * speed;
                                     inputs.jump.set_state(bearing.z > 1.5);
                                 }
 
@@ -429,7 +425,6 @@ impl<'a> System<'a> for Sys {
                         agent.activity = Activity::Follow {
                             target: owner,
                             chaser: Chaser::default(),
-                            move_dir: Vec2::zero(),
                         };
                     }
 
