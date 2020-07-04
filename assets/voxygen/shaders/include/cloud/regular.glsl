@@ -45,6 +45,7 @@ vec2 cloud_at(vec3 pos) {
 vec4 get_cloud_color(vec3 dir, vec3 origin, float time_of_day, float max_dist, float quality) {
 	const int ITERS = 12;
 	const float INCR = 1.0 / ITERS;
+    origin = origin + focus_off.xyz;
 
     vec3 max_heights = get_cloud_heights();
 	float mind = (max_heights.y - origin.z) / dir.z;

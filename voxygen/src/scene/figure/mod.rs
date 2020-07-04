@@ -440,32 +440,6 @@ impl FigureMgr {
                 .map(|i| (Pos(i.pos), *i.ori))
                 .unwrap_or((*pos, Vec3::unit_y()));
 
-            // Don't display figures outside the frustum spectrum (this is important to do
-            // for any figure that potentially casts a shadow, since we use this
-            // to estimate bounds for shadow maps).  The reason we do this
-            // before the udpate cull is to make sure infrequently updated
-            // figures are not clipped when they're visible; the vd_frac part is
-            // delayed until after that test to limit program pauses from too many
-            // figures being removed at once (rather than their being removed based on their
-            // update rates).
-            let radius = scale.unwrap_or(&Scale(1.0)).0 * 2.0;
-            let (in_frustum, lpindex) = if let Some(mut meta) = self.states.get_mut(body, &entity) {
-                let (in_frustum, lpindex) = BoundingSphere::new(pos.0.into_array(), radius)
-                    .coherent_test_against_frustum(frustum, meta.lpindex);
-                meta.visible = in_frustum;
-                meta.lpindex = lpindex;
-                (in_frustum, lpindex)
-            } else {
-                (true, 0)
-            };
-            if in_frustum {
-                // Update visible bounds.
-                visible_aabb.expand_to_contain(Aabb {
-                    min: pos.0 - radius,
-                    max: pos.0 + radius,
-                });
-            }
-
             // Maintaining figure data and sending new figure data to the GPU turns out to
             // be a very expensive operation. We want to avoid doing it as much
             // as possible, so we make the assumption that players don't care so
@@ -500,6 +474,29 @@ impl FigureMgr {
                     .get_mut(body, &entity)
                     .map(|state| state.visible = false);
                 continue;
+            }
+
+            // Don't display figures outside the frustum spectrum (this is important to do
+            // for any figure that potentially casts a shadow, since we use this
+            // to estimate bounds for shadow maps).  Currently, we don't do this before the update
+            // cull, so it's possible that faraway figures will not shadow correctly until their
+            // next update.  For now, we treat this as an acceptable tradeoff.
+            let radius = scale.unwrap_or(&Scale(1.0)).0 * 2.0;
+            let (in_frustum, lpindex) = if let Some(mut meta) = self.states.get_mut(body, &entity) {
+                let (in_frustum, lpindex) = BoundingSphere::new(pos.0.into_array(), radius)
+                    .coherent_test_against_frustum(frustum, meta.lpindex);
+                meta.visible = in_frustum;
+                meta.lpindex = lpindex;
+                (in_frustum, lpindex)
+            } else {
+                (true, 0)
+            };
+            if in_frustum {
+                // Update visible bounds.
+                visible_aabb.expand_to_contain(Aabb {
+                    min: pos.0 - radius,
+                    max: pos.0 + radius,
+                });
             }
 
             // Change in health as color!
