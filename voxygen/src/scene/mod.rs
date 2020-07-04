@@ -1553,7 +1553,7 @@ impl Scene {
                 // let z_1 = z_0 + d;
                 // Vague idea: project d from the light view back to the camera view (undoing the
                 // tilt by γ).
-                let z_1 = /*z_n*/z_0 + d * sin_gamma;
+                let z_1 = /*z_n*/z_0 + d/* * sin_gamma*/;
                 let w_l_y = /* z_f - z_n */d;/*/*f64::from(camera::FAR_PLANE - camera::NEAR_PLANE)*//*(z_f - z_n)*/d * scalar_fov.cos();*/
                 // let z_f = z_n + d;
                 // let near_dist = directed_near;
