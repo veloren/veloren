@@ -109,7 +109,17 @@ impl SkillSet {
     }
 
     // TODO: Game design to determine how skill groups are unlocked
-    /// Unlocks a skill group for a player, starting with 0 exp and 0 sp
+    ///  Unlocks a skill group for a player. It starts with 0 exp and 0 skill
+    ///  points.
+    ///
+    /// ```
+    /// use veloren_common::comp::skills::{SkillGroupType, SkillSet};
+    ///
+    /// let mut skillset = SkillSet::new();
+    /// skillset.unlock_skill_group(SkillGroupType::Axes);
+    ///
+    /// assert_eq!(skillset.skill_groups.len(), 1);
+    /// ```
     pub fn unlock_skill_group(&mut self, skill_group_type: SkillGroupType) {
         if !self
             .skill_groups
@@ -122,10 +132,22 @@ impl SkillSet {
         }
     }
 
-    /// Unlocks a skill for a player, assuming they have the relevant Skill
-    /// Group unlocked and available SP in that skill group
+    /// Unlocks a skill for a player, assuming they have the relevant skill
+    /// group unlocked and available SP in that skill group.
+    ///
+    /// ```
+    /// use veloren_common::comp::skills::{Skill, SkillGroupType, SkillSet};
+    ///
+    /// let mut skillset = SkillSet::new();
+    /// skillset.unlock_skill_group(SkillGroupType::Axes);
+    /// skillset.add_skill_points(SkillGroupType::Axes, 1);
+    ///
+    /// skillset.unlock_skill(Skill::TestAxeSkill2);
+    ///
+    /// assert_eq!(skillset.skills.len(), 1);
+    /// ```
     pub fn unlock_skill(&mut self, skill: Skill) {
-        if self.skills.contains(&skill) {
+        if !self.skills.contains(&skill) {
             if let Some(skill_group_type) = SkillSet::get_skill_group_type_for_skill(&skill) {
                 if let Some(mut skill_group) = self
                     .skill_groups
@@ -134,6 +156,7 @@ impl SkillSet {
                 {
                     if skill_group.available_sp > 0 {
                         skill_group.available_sp -= 1;
+                        self.skills.insert(skill);
                     } else {
                         warn!("Tried to unlock skill for skill group with no available SP");
                     }
@@ -151,10 +174,23 @@ impl SkillSet {
         }
     }
 
-    /// Removes a skill for a player and refunds 1 SP in the relevant Skill
-    /// Group
+    /// Removes a skill from a player and refunds 1 skill point in the relevant
+    /// skill group.
+    ///
+    /// ```
+    /// use veloren_common::comp::skills::{Skill, SkillGroupType, SkillSet};
+    ///
+    /// let mut skillset = SkillSet::new();
+    /// skillset.unlock_skill_group(SkillGroupType::Axes);
+    /// skillset.add_skill_points(SkillGroupType::Axes, 1);
+    /// skillset.unlock_skill(Skill::TestAxeSkill2);
+    ///
+    /// skillset.refund_skill(Skill::TestAxeSkill2);
+    ///
+    /// assert_eq!(skillset.skills.len(), 0);
+    /// ```
     pub fn refund_skill(&mut self, skill: Skill) {
-        if !self.skills.contains(&skill) {
+        if self.skills.contains(&skill) {
             if let Some(skill_group_type) = SkillSet::get_skill_group_type_for_skill(&skill) {
                 if let Some(mut skill_group) = self
                     .skill_groups
@@ -162,6 +198,7 @@ impl SkillSet {
                     .find(|x| x.skill_group_type == skill_group_type)
                 {
                     skill_group.available_sp += 1;
+                    self.skills.remove(&skill);
                 } else {
                     warn!("Tried to refund skill for a skill group that player does not have");
                 }
@@ -177,7 +214,7 @@ impl SkillSet {
     }
 
     /// Returns the skill group type for a skill from the static skill group
-    /// definitions
+    /// definitions.
     fn get_skill_group_type_for_skill(skill: &Skill) -> Option<SkillGroupType> {
         SKILL_GROUP_DEFS.iter().find_map(|(key, val)| {
             if val.contains(&skill) {
@@ -186,5 +223,106 @@ impl SkillSet {
                 None
             }
         })
+    }
+
+    /// Adds skill points to a skill group as long as the player has that skill
+    /// group type.
+    ///
+    /// ```
+    /// use veloren_common::comp::skills::{SkillGroupType, SkillSet};
+    ///
+    /// let mut skillset = SkillSet::new();
+    /// skillset.unlock_skill_group(SkillGroupType::Axes);
+    /// skillset.add_skill_points(SkillGroupType::Axes, 1);
+    ///
+    /// assert_eq!(skillset.skill_groups[0].available_sp, 1);
+    /// ```
+    pub fn add_skill_points(
+        &mut self,
+        skill_group_type: SkillGroupType,
+        number_of_skill_points: u8,
+    ) {
+        if let Some(mut skill_group) = self
+            .skill_groups
+            .iter_mut()
+            .find(|x| x.skill_group_type == skill_group_type)
+        {
+            skill_group.available_sp += number_of_skill_points;
+        } else {
+            warn!("Tried to add skill points to a skill group that player does not have");
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_refund_skill() {
+        let mut skillset = SkillSet::new();
+        skillset.unlock_skill_group(SkillGroupType::Axes);
+        skillset.add_skill_points(SkillGroupType::Axes, 1);
+        skillset.unlock_skill(Skill::TestAxeSkill2);
+
+        assert_eq!(skillset.skill_groups[0].available_sp, 0);
+        assert_eq!(skillset.skills.len(), 1);
+        assert_eq!(
+            skillset.skills.get(&Skill::TestAxeSkill2),
+            Some(&Skill::TestAxeSkill2)
+        );
+
+        skillset.refund_skill(Skill::TestAxeSkill2);
+
+        assert_eq!(skillset.skill_groups[0].available_sp, 1);
+        assert_eq!(skillset.skills.get(&Skill::TestAxeSkill2), None);
+    }
+
+    #[test]
+    fn test_unlock_skillgroup() {
+        let mut skillset = SkillSet::new();
+        skillset.unlock_skill_group(SkillGroupType::Axes);
+
+        assert_eq!(skillset.skill_groups.len(), 1);
+        assert_eq!(
+            skillset.skill_groups[0],
+            SkillGroup::new(SkillGroupType::Axes)
+        );
+    }
+
+    #[test]
+    fn test_unlock_skill() {
+        let mut skillset = SkillSet::new();
+
+        skillset.unlock_skill_group(SkillGroupType::Axes);
+        skillset.add_skill_points(SkillGroupType::Axes, 1);
+
+        assert_eq!(skillset.skill_groups[0].available_sp, 1);
+        assert_eq!(skillset.skills.len(), 0);
+
+        // Try unlocking a skill with enough skill points
+        skillset.unlock_skill(Skill::TestAxeSkill2);
+
+        assert_eq!(skillset.skill_groups[0].available_sp, 0);
+        assert_eq!(skillset.skills.len(), 1);
+        assert_eq!(
+            skillset.skills.get(&Skill::TestAxeSkill2),
+            Some(&Skill::TestAxeSkill2)
+        );
+
+        // Try unlocking a skill without enough skill points
+        skillset.unlock_skill(Skill::TestAxeSkill1);
+
+        assert_eq!(skillset.skills.len(), 1);
+        assert_eq!(skillset.skills.get(&Skill::TestAxeSkill1), None);
+    }
+
+    #[test]
+    fn test_add_skill_points() {
+        let mut skillset = SkillSet::new();
+        skillset.unlock_skill_group(SkillGroupType::Axes);
+        skillset.add_skill_points(SkillGroupType::Axes, 1);
+
+        assert_eq!(skillset.skill_groups[0].available_sp, 1);
     }
 }
