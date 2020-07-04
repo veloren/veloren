@@ -380,6 +380,10 @@ impl BParticipant {
                         }
                     }
                 },
+                Frame::Shutdown => error!(
+                    "Somehow this Shutdown signal got here, i should probably handle it. To not \
+                     crash let me just put this message here"
+                ),
                 f => unreachable!("never reaches frame!: {:?}", f),
             }
         }
