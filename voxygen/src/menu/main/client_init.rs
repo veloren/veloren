@@ -100,8 +100,9 @@ impl ClientInit {
                                 },
                                 Err(err) => {
                                     match err {
-                                        ClientError::NetworkErr(NetworkError::ListenFailed(..)) => {
-                                        },
+                                        ClientError::NetworkErr(NetworkError::ConnectFailed(
+                                            ..,
+                                        )) => {},
                                         // Non-connection error, stop attempts
                                         err => {
                                             last_err = Some(Error::ClientError(err));
