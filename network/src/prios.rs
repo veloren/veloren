@@ -21,6 +21,7 @@ use tracing::*;
 
 const PRIO_MAX: usize = 64;
 
+#[derive(Default)]
 struct PidSidInfo {
     len: u64,
     empty_notify: Option<oneshot::Sender<()>>,
@@ -148,25 +149,19 @@ impl PrioManager {
         for (prio, sid, msg) in self.messages_rx.try_iter() {
             debug_assert!(prio as usize <= PRIO_MAX);
             messages += 1;
+            let sid_string = sid.to_string();
             self.metrics
                 .message_out_total
-                .with_label_values(&[&self.pid, &sid.to_string()])
+                .with_label_values(&[&self.pid, &sid_string])
                 .inc();
             self.metrics
                 .message_out_throughput
-                .with_label_values(&[&self.pid, &sid.to_string()])
+                .with_label_values(&[&self.pid, &sid_string])
                 .inc_by(msg.buffer.data.len() as i64);
-            //trace!(?prio, ?sid, "tick");
+            //trace!(?prio, ?sid_string, "tick");
             self.queued.insert(prio);
             self.messages[prio as usize].push_back((sid, msg));
-            if let Some(cnt) = self.sid_owned.get_mut(&sid) {
-                cnt.len += 1;
-            } else {
-                self.sid_owned.insert(sid, PidSidInfo {
-                    len: 1,
-                    empty_notify: None,
-                });
-            }
+            self.sid_owned.entry(sid).or_default().len += 1;
         }
         //this must be AFTER messages
         for (sid, return_sender) in self.sid_flushed_rx.try_iter() {
@@ -200,6 +195,10 @@ impl PrioManager {
             }
         }
         lowest_id
+        /*
+        self.queued
+            .iter()
+            .min_by_key(|&n| self.points[*n as usize]).cloned()*/
     }
 
     /// returns if msg is empty
@@ -223,8 +222,7 @@ impl PrioManager {
             frames.extend(std::iter::once((msg_sid, Frame::Data {
                 mid: msg.mid,
                 start: msg.cursor,
-                data: msg.buffer.data[msg.cursor as usize..(msg.cursor + to_send) as usize]
-                    .to_vec(),
+                data: msg.buffer.data[msg.cursor as usize..][..to_send as usize].to_vec(),
             })));
         };
         msg.cursor += to_send;
@@ -258,32 +256,28 @@ impl PrioManager {
                     //pop message from front of VecDeque, handle it and push it back, so that all
                     // => messages with same prio get a fair chance :)
                     //TODO: evalaute not poping every time
-                    match self.messages[prio as usize].pop_front() {
-                        Some((sid, mut msg)) => {
-                            if Self::tick_msg(&mut msg, sid, frames) {
-                                //debug!(?m.mid, "finish message");
-                                //check if prio is empty
-                                if self.messages[prio as usize].is_empty() {
-                                    self.queued.remove(&prio);
-                                }
-                                //decrease pid_sid counter by 1 again
-                                let cnt = self.sid_owned.get_mut(&sid).expect(
-                                    "the pid_sid_owned counter works wrong, more pid,sid removed \
-                                     than inserted",
-                                );
-                                cnt.len -= 1;
-                                if cnt.len == 0 {
-                                    let cnt = self.sid_owned.remove(&sid).unwrap();
-                                    if let Some(empty_notify) = cnt.empty_notify {
-                                        empty_notify.send(()).unwrap();
-                                    }
-                                }
-                            } else {
-                                trace!(?msg.mid, "repush message");
-                                self.messages[prio as usize].push_front((sid, msg));
+                    let (sid, mut msg) = self.messages[prio as usize].pop_front().unwrap();
+                    if Self::tick_msg(&mut msg, sid, frames) {
+                        //trace!(?m.mid, "finish message");
+                        //check if prio is empty
+                        if self.messages[prio as usize].is_empty() {
+                            self.queued.remove(&prio);
+                        }
+                        //decrease pid_sid counter by 1 again
+                        let cnt = self.sid_owned.get_mut(&sid).expect(
+                            "the pid_sid_owned counter works wrong, more pid,sid removed than \
+                             inserted",
+                        );
+                        cnt.len -= 1;
+                        if cnt.len == 0 {
+                            let cnt = self.sid_owned.remove(&sid).unwrap();
+                            if let Some(empty_notify) = cnt.empty_notify {
+                                empty_notify.send(()).unwrap();
                             }
-                        },
-                        None => unreachable!("msg not in VecDeque, but queued"),
+                        }
+                    } else {
+                        trace!(?msg.mid, "repush message");
+                        self.messages[prio as usize].push_front((sid, msg));
                     }
                 },
                 None => {
