@@ -180,7 +180,7 @@ impl Item {
             BlockKind::ShortGrass => Some(assets::load_expect_cloned("common.items.grasses.short")),
             BlockKind::Coconut => Some(assets::load_expect_cloned("common.items.coconut")),
             BlockKind::Chest => {
-                let chosen = assets::load_expect::<lottery::Lottery<_>>("common.items.loot_table");
+                let chosen = assets::load_expect::<lottery::Lottery<_>>("common.loot_table");
                 let chosen = chosen.choose();
 
                 Some(assets::load_expect_cloned(chosen))
