@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New quadruped_low body for reptile-likes
 - Added new animals
 - Better pathfinding
+- Bombs
 
 ### Changed
 
@@ -57,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Switch to a new network backend that will allow several improvements in the future
 - Connection screen fails after 4 minutes if it can't connect to the server instead of 80 minutes
 - Rebuilt quadruped_medium animation and assets
+- Disabled destruction of most blocks by explosions
 
 ### Removed
 

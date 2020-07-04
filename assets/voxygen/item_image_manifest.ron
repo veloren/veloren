@@ -200,7 +200,7 @@
     Tool(Staff(Sceptre)): VoxTrans(
         "voxel.weapon.staff.wood-nature",
         (1.0, -1.0, 0.0), (-310., 90.0, 0.0), 1.2,
-    ),    
+    ),
     // Shields
     Tool(Shield(BasicShield)): VoxTrans(
         "voxel.weapon.shield.wood-0",
@@ -219,11 +219,11 @@
     Lantern(Red0): Png(
         "element.icons.lantern_red-0",
     ),
-    // Farming Equipment    
+    // Farming Equipment
     Tool(Farming(Broom)): VoxTrans(
         "voxel.weapon.tool.broom-0",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
-    ),   
+    ),
     Tool(Farming(Hoe0)): VoxTrans(
         "voxel.weapon.tool.hoe_green",
         (0.0, 0.0, 0.0), (130.0, 35.0, 180.0), 1.0,
@@ -231,7 +231,7 @@
     Tool(Farming(Hoe1)): VoxTrans(
         "voxel.weapon.tool.hoe_blue",
         (0.0, 0.0, 0.0), (130.0, 35.0, 180.0), 1.0,
-    ),  
+    ),
     Tool(Farming(Pitchfork)): VoxTrans(
         "voxel.weapon.tool.pitchfork-0",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
@@ -255,7 +255,7 @@
     Tool(Farming(Shovel0)): VoxTrans(
         "voxel.weapon.tool.shovel_green",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
-    ), 
+    ),
     Tool(Farming(Shovel1)): VoxTrans(
         "voxel.weapon.tool.shovel_gold",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
@@ -264,7 +264,7 @@
     // Other
     Utility(Collar): Png(
         "element.icons.collar",
-    ),    
+    ),
     // Armor
     // Starter Parts
     Armor(Foot(Sandal0)): VoxTrans(
@@ -311,7 +311,7 @@
     Armor(Pants(CultistBlue)): VoxTrans(
         "voxel.armor.pants.cultist",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
-    ),   
+    ),
     Armor(Hand(CultistBlue)): VoxTrans(
         "voxel.armor.hand.cultist_right",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
@@ -680,7 +680,7 @@
      Armor(Shoulder(LeafyShoulder)): VoxTrans(
         "voxel.armor.shoulder.twigsleaves_shoulder_right",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
-    ),    
+    ),
     //TwigsFlowers Set
     Armor(Chest(Twigsflowers)): VoxTrans(
         "voxel.armor.chest.twigsflowers_chest",
@@ -710,7 +710,7 @@
      Armor(Pants(Hunting)): VoxTrans(
         "voxel.armor.pants.grayscale",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
-    ),    
+    ),
     // Backs
     Armor(Back(Short0)): VoxTrans(
         "voxel.armor.back.short-0",
@@ -722,15 +722,15 @@
     ),
     // Rings
     Armor(Ring(Ring0)): Png(
-        "element.icons.ring-0",        
+        "element.icons.ring-0",
     ),
     // Necks
     Armor(Neck(Neck0)): Png(
-        "element.icons.neck-0",        
+        "element.icons.neck-0",
     ),
     // Tabards
     Armor(Tabard(Admin)): Png(
-        "element.icons.tabard_admin",        
+        "element.icons.tabard_admin",
     ),
     // Heads
     Armor(Head(Leather0)): VoxTrans(
@@ -746,7 +746,7 @@
     VoxTrans(
         "element.icons.item_apple",
         (0.0, 0.0, 0.0), (-90.0, 90.0, 0.0), 1.0,
-    ),    
+    ),
     Consumable(Coconut): Png(
         "element.icons.item_coconut",
     ),
@@ -761,7 +761,7 @@
     Consumable(Cheese): VoxTrans(
         "element.icons.item_cheese",
         (0.0, 0.0, 0.0), (-90.0, 90.0, 0.0), 0.9,
-    ),    
+    ),
     Consumable(Potion): VoxTrans(
         "voxel.object.potion_red",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.0,
@@ -778,6 +778,11 @@
         "voxel.sprite.velorite.velorite_1",
         (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
+	// Throwables
+    Throwable(Bomb): VoxTrans(
+        "voxel.object.bomb",
+        (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
+    ),
     // Ingredients
     Ingredient(Flower): VoxTrans(
         "voxel.sprite.flowers.flower_red_2",
@@ -791,5 +796,5 @@
     Tool(Debug(Boost)): VoxTrans(
         "voxel.weapon.tool.broom_belzeshrub_purple",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
-    ),    
+    ),
 })

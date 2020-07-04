@@ -102,6 +102,37 @@ impl Inventory {
                 // It didn't work
                 self.add_to_first_empty(item)
             },
+            ItemKind::Throwable {
+                kind: item_kind,
+                amount: new_amount,
+                ..
+            } => {
+                for slot in &mut self.slots {
+                    if slot
+                        .as_ref()
+                        .map(|s| s.name() == item.name())
+                        .unwrap_or(false)
+                        && slot
+                            .as_ref()
+                            .map(|s| s.description() == item.description())
+                            .unwrap_or(false)
+                    {
+                        if let Some(Item {
+                            kind: ItemKind::Throwable { kind, amount, .. },
+                            ..
+                        }) = slot
+                        {
+                            if item_kind == *kind {
+                                *amount += new_amount;
+                                self.recount_items();
+                                return None;
+                            }
+                        }
+                    }
+                }
+                // It didn't work
+                self.add_to_first_empty(item)
+            },
             ItemKind::Ingredient {
                 kind: item_kind,
                 amount: new_amount,
@@ -271,6 +302,19 @@ impl Inventory {
                         return_item.kind = ItemKind::Consumable {
                             kind: *kind,
                             effect: *effect,
+                            amount: 1,
+                        };
+                        self.recount_items();
+                        Some(return_item)
+                    }
+                },
+                ItemKind::Throwable { kind, amount } => {
+                    if *amount <= 1 {
+                        self.remove(cell)
+                    } else {
+                        *amount -= 1;
+                        return_item.kind = ItemKind::Throwable {
+                            kind: *kind,
                             amount: 1,
                         };
                         self.recount_items();
