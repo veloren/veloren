@@ -10,6 +10,7 @@ const ENERGY_REGEN_ACCEL: f32 = 10.0;
 /// This system kills players, levels them up, and regenerates energy.
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         Read<'a, DeltaTime>,
@@ -66,6 +67,7 @@ impl<'a> System<'a> for Sys {
                     stat.exp.change_by(-(stat.exp.maximum() as i64));
                     stat.level.change_by(1);
                     stat.exp.update_maximum(stat.level.level());
+                    server_event_emitter.emit(ServerEvent::LevelUp(entity, stat.level.level()));
                 }
 
                 stat.update_max_hp();
@@ -73,13 +75,22 @@ impl<'a> System<'a> for Sys {
                     .set_to(stat.health.maximum(), HealthSource::LevelUp);
             }
 
-            // Accelerate recharging energy if not wielding.
             match character_state {
-                CharacterState::Idle { .. } | CharacterState::Sit { .. } => {
-                    if {
+                // Accelerate recharging energy.
+                CharacterState::Idle { .. }
+                | CharacterState::Sit { .. }
+                | CharacterState::Dance { .. }
+                | CharacterState::Glide { .. }
+                | CharacterState::GlideWield { .. }
+                | CharacterState::Wielding { .. }
+                | CharacterState::Equipping { .. }
+                | CharacterState::Boost { .. } => {
+                    let res = {
                         let energy = energy.get_unchecked();
                         energy.current() < energy.maximum()
-                    } {
+                    };
+
+                    if res {
                         let mut energy = energy.get_mut_unchecked();
                         // Have to account for Calc I differential equations due to acceleration
                         energy.change_by(
@@ -91,13 +102,33 @@ impl<'a> System<'a> for Sys {
                             (energy.regen_rate + ENERGY_REGEN_ACCEL * dt.0).min(100.0);
                     }
                 },
-                // Wield does not regen and sets the rate back to zero.
-                CharacterState::Wielding { .. } => {
+                // Ability use does not regen and sets the rate back to zero.
+                CharacterState::BasicMelee { .. }
+                | CharacterState::DashMelee { .. }
+                | CharacterState::LeapMelee { .. }
+                | CharacterState::TripleStrike { .. }
+                | CharacterState::BasicRanged { .. } => {
                     if energy.get_unchecked().regen_rate != 0.0 {
                         energy.get_mut_unchecked().regen_rate = 0.0
                     }
                 },
-                _ => {},
+                // recover small amount of pasive energy from blocking, and bonus energy from
+                // blocking attacks?
+                CharacterState::BasicBlock => {
+                    let res = {
+                        let energy = energy.get_unchecked();
+                        energy.current() < energy.maximum()
+                    };
+
+                    if res {
+                        energy
+                            .get_mut_unchecked()
+                            .change_by(-3, EnergySource::Regen);
+                    }
+                },
+                // Non-combat abilities that consume energy;
+                // temporarily stall energy gain, but preserve regen_rate.
+                CharacterState::Roll { .. } | CharacterState::Climb { .. } => {},
             }
         }
     }

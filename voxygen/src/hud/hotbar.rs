@@ -1,3 +1,5 @@
+use serde_derive::{Deserialize, Serialize};
+
 #[derive(Clone, Copy, PartialEq)]
 pub enum Slot {
     One = 0,
@@ -12,21 +14,31 @@ pub enum Slot {
     Ten = 9,
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 pub enum SlotContents {
     Inventory(usize),
     Ability3,
 }
 
+#[derive(Clone, Debug)]
 pub struct State {
-    slots: [Option<SlotContents>; 10],
+    pub slots: [Option<SlotContents>; 10],
     inputs: [bool; 10],
 }
 
-impl State {
-    pub fn new() -> Self {
+impl Default for State {
+    fn default() -> Self {
         Self {
             slots: [None; 10],
+            inputs: [false; 10],
+        }
+    }
+}
+
+impl State {
+    pub fn new(slots: [Option<SlotContents>; 10]) -> Self {
+        Self {
+            slots,
             inputs: [false; 10],
         }
     }
@@ -52,6 +64,7 @@ impl State {
     // TODO: remove
     // Adds ability3 slot if it is missing and should be present
     // Removes if it is there and shouldn't be present
+    #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
     pub fn maintain_ability3(&mut self, client: &client::Client) {
         use specs::WorldExt;
         let loadouts = client.state().ecs().read_storage::<common::comp::Loadout>();
@@ -63,13 +76,16 @@ impl State {
                 .map(|i| &i.item.kind)
                 .filter(|kind| {
                     use common::comp::item::{
-                        tool::{StaffKind, Tool, ToolKind},
+                        tool::{DebugKind, StaffKind, Tool, ToolKind},
                         ItemKind,
                     };
                     matches!(
                         kind,
                         ItemKind::Tool(Tool {
                             kind: ToolKind::Staff(StaffKind::BasicStaff),
+                            ..
+                        }) | ItemKind::Tool(Tool {
+                            kind: ToolKind::Debug(DebugKind::Boost),
                             ..
                         })
                     )

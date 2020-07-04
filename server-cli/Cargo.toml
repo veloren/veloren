@@ -12,5 +12,5 @@ default = ["worldgen"]
 server = { package = "veloren-server", path = "../server", default-features = false }
 common = { package = "veloren-common", path = "../common" }
 
-log = "0.4.8"
-pretty_env_logger = "0.3.1"
+tracing = { version = "0.1", default-features = false }
+tracing-subscriber = { version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec"] }

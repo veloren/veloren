@@ -16,6 +16,7 @@ pub struct EntityInfo {
     pub body: Body,
     pub name: Option<String>,
     pub main_tool: Option<Item>,
+    pub second_tool: Option<Item>,
     pub scale: f32,
     pub level: Option<u32>,
     pub loot_drop: Option<Item>,
@@ -31,6 +32,7 @@ impl EntityInfo {
             body: Body::Humanoid(humanoid::Body::random()),
             name: None,
             main_tool: Some(Item::empty()),
+            second_tool: Some(Item::empty()),
             scale: 1.0,
             level: None,
             loot_drop: None,
@@ -74,6 +76,11 @@ impl EntityInfo {
         self
     }
 
+    pub fn with_second_tool(mut self, second_tool: Item) -> Self {
+        self.second_tool = Some(second_tool);
+        self
+    }
+
     pub fn with_loot_drop(mut self, loot_drop: Item) -> Self {
         self.loot_drop = Some(loot_drop);
         self
@@ -91,7 +98,7 @@ impl EntityInfo {
 
     pub fn with_automatic_name(mut self) -> Self {
         self.name = match &self.body {
-            Body::Humanoid(body) => Some(get_npc_name(&NPC_NAMES.humanoid, body.race)),
+            Body::Humanoid(body) => Some(get_npc_name(&NPC_NAMES.humanoid, body.species)),
             Body::QuadrupedMedium(body) => {
                 Some(get_npc_name(&NPC_NAMES.quadruped_medium, body.species))
             },

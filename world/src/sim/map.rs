@@ -416,6 +416,10 @@ impl<'a> MapConfig<'a> {
     /// sample_wpos is a simple function that, given a *column* position,
     /// returns the approximate altitude at that column.  When in doubt, try
     /// using `MapConfig::sample_wpos` for this.
+    #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
+    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
+    #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
+    #[allow(clippy::many_single_char_names)]
     pub fn generate(
         &self,
         sample_pos: impl Fn(Vec2<i32>) -> MapSample,

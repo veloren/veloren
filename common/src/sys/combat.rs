@@ -16,6 +16,7 @@ pub const BLOCK_ANGLE: f32 = 180.0;
 /// attacking
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
@@ -124,14 +125,14 @@ impl<'a> System<'a> for Sys {
                     }
 
                     if rand::random() {
-                        healthchange = healthchange * 1.2;
+                        healthchange *= 1.2;
                     }
 
                     // Block
                     if character_b.is_block()
                         && ori_b.0.angle_between(pos.0 - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0
                     {
-                        healthchange = healthchange * (1.0 - BLOCK_EFFICIENCY)
+                        healthchange *= 1.0 - BLOCK_EFFICIENCY
                     }
 
                     server_emitter.emit(ServerEvent::Damage {

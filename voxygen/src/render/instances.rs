@@ -16,7 +16,7 @@ impl<T: Copy + gfx::traits::Pod> Instances<T> {
         Ok(Self {
             ibuf: factory
                 .create_buffer(len, Role::Vertex, Usage::Dynamic, Bind::TRANSFER_DST)
-                .map_err(|err| RenderError::BufferCreationError(err))?,
+                .map_err(RenderError::BufferCreationError)?,
         })
     }
 
@@ -29,6 +29,6 @@ impl<T: Copy + gfx::traits::Pod> Instances<T> {
     ) -> Result<(), RenderError> {
         encoder
             .update_buffer(&self.ibuf, instances, 0)
-            .map_err(|err| RenderError::UpdateError(err))
+            .map_err(RenderError::UpdateError)
     }
 }

@@ -20,22 +20,22 @@ use common::{
         self, ControlAction, ControlEvent, Controller, ControllerInputs, InventoryManip,
         InventoryUpdateEvent,
     },
-    event::{EventBus, SfxEvent, SfxEventItem},
     msg::{
         validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, Notification,
-        PlayerListUpdate, RegisterError, RequestStateError, ServerInfo, ServerMsg,
+        PlayerInfo, PlayerListUpdate, RegisterError, RequestStateError, ServerInfo, ServerMsg,
         MAX_BYTES_CHAT_MSG,
     },
-    net::PostBox,
     state::State,
     sync::{Uid, UidAllocator, WorldSyncExt},
     terrain::{block::Block, TerrainChunk, TerrainChunkSize},
     vol::RectVolSize,
-    ChatType,
 };
+use futures_executor::block_on;
+use futures_timer::Delay;
+use futures_util::{select, FutureExt};
 use hashbrown::HashMap;
 use image::DynamicImage;
-use log::{error, warn};
+use network::{Address, Network, Participant, Pid, Stream, PROMISES_CONSISTENCY, PROMISES_ORDERED};
 use num::traits::FloatConst;
 use rayon::prelude::*;
 use std::{
@@ -43,6 +43,7 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
+use tracing::{debug, error, warn};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 // TODO: remove world dependencies.  We should see if we
@@ -59,13 +60,12 @@ const SERVER_TIMEOUT: f64 = 20.0;
 const SERVER_TIMEOUT_GRACE_PERIOD: f64 = 14.0;
 
 pub enum Event {
-    Chat {
-        chat_type: ChatType,
-        message: String,
-    },
+    Chat(comp::ChatMsg),
     Disconnect,
     DisconnectionNotification(u64),
+    InventoryUpdated(InventoryUpdateEvent),
     Notification(Notification),
+    SetViewDistance(u32),
 }
 
 pub struct Client {
@@ -91,10 +91,13 @@ pub struct Client {
     /// chunk (i.e. the sea level) in its x coordinate, and the maximum land
     /// height above this height (i.e. the max height) in its y coordinate.
     pub world_map: (Arc<DynamicImage>, Vec2<u32>, Vec2<f32>),
-    pub player_list: HashMap<u64, String>,
+    pub player_list: HashMap<Uid, PlayerInfo>,
     pub character_list: CharacterList,
+    pub active_character_id: Option<i32>,
 
-    postbox: PostBox<ClientMsg, ServerMsg>,
+    _network: Network,
+    _participant: Arc<Participant>,
+    singleton_stream: Stream,
 
     last_server_ping: f64,
     last_server_pong: f64,
@@ -124,178 +127,198 @@ impl Client {
     /// Create a new `Client`.
     pub fn new<A: Into<SocketAddr>>(addr: A, view_distance: Option<u32>) -> Result<Self, Error> {
         let client_state = ClientState::Connected;
-        let mut postbox = PostBox::to(addr)?;
+
+        let mut thread_pool = ThreadPoolBuilder::new()
+            .name("veloren-worker".into())
+            .build();
+        // We reduce the thread count by 1 to keep rendering smooth
+        thread_pool.set_num_threads((num_cpus::get() - 1).max(1));
+
+        let (network, f) = Network::new(Pid::new(), None);
+        thread_pool.execute(f);
+
+        let participant = block_on(network.connect(Address::Tcp(addr.into())))?;
+        let mut stream = block_on(participant.open(10, PROMISES_ORDERED | PROMISES_CONSISTENCY))?;
 
         // Wait for initial sync
-        let (state, entity, server_info, lod_base, lod_horizon, world_map) =
-            match postbox.next_message()? {
-                ServerMsg::InitialSync {
-                    entity_package,
-                    server_info,
-                    time_of_day,
-                    world_map,
-                } => {
-                    // TODO: Display that versions don't match in Voxygen
-                    if server_info.git_hash != common::util::GIT_HASH.to_string() {
-                        log::warn!(
-                            "Server is running {}[{}], you are running {}[{}], versions might be \
-                             incompatible!",
-                            server_info.git_hash,
-                            server_info.git_date,
-                            common::util::GIT_HASH.to_string(),
-                            common::util::GIT_DATE.to_string(),
-                        );
-                    }
-
-                    log::debug!("Auth Server: {:?}", server_info.auth_provider);
-
-                    // Initialize `State`
-                    let mut state = State::default();
-                    // Client-only components
-                    state
-                        .ecs_mut()
-                        .register::<comp::Last<comp::CharacterState>>();
-
-                    let entity = state.ecs_mut().apply_entity_package(entity_package);
-                    *state.ecs_mut().write_resource() = time_of_day;
-
-                    let map_size = world_map.dimensions;
-                    let max_height = world_map.max_height;
-                    let rgba = world_map.rgba;
-                    assert_eq!(rgba.len(), (map_size.x * map_size.y) as usize);
-                    let [west, east] = world_map.horizons;
-                    let scale_angle =
-                        |a: u8| (a as Alt / 255.0 * <Alt as FloatConst>::FRAC_PI_2()).tan();
-                    let scale_height = |h: u8| h as Alt / 255.0 * max_height as Alt;
-
-                    log::debug!("Preparing image...");
-                    let unzip_horizons = |(angles, heights): &(Vec<_>, Vec<_>)| {
-                        (
-                            angles.iter().copied().map(scale_angle).collect::<Vec<_>>(),
-                            heights
-                                .iter()
-                                .copied()
-                                .map(scale_height)
-                                .collect::<Vec<_>>(),
-                        )
-                    };
-                    let horizons = [unzip_horizons(&west), unzip_horizons(&east)];
-
-                    // Redraw map (with shadows this time).
-                    let mut world_map = vec![0u32; rgba.len()];
-                    let mut map_config = world::sim::MapConfig::default();
-                    map_config.lgain = 1.0;
-                    map_config.gain = max_height;
-                    map_config.horizons = Some(&horizons);
-                    // map_config.light_direction = Vec3::new(1.0, -1.0, 0.0);
-                    map_config.focus.z = 0.0;
-                    let rescale_height = |h: Alt| (h / max_height as Alt) as f32;
-                    let bounds_check = |pos: Vec2<i32>| {
-                        pos.reduce_partial_min() >= 0
-                            && pos.x < map_size.x as i32
-                            && pos.y < map_size.y as i32
-                    };
-                    map_config.generate(
-                        |pos| {
-                            let (rgba, downhill_wpos) = if bounds_check(pos) {
-                                let posi = pos.y as usize * map_size.x as usize + pos.x as usize;
-                                let [r, g, b, a] = rgba[posi].to_le_bytes();
-                                // Compute downhill.
-                                let downhill = {
-                                    let mut best = -1;
-                                    let mut besth = a;
-                                    // TODO: Fix to work for dynamic WORLD_SIZE (i.e. map_size).
-                                    for nposi in neighbors(posi) {
-                                        let nbh = rgba[nposi].to_le_bytes()[3];
-                                        if nbh < besth {
-                                            besth = nbh;
-                                            best = nposi as isize;
-                                        }
-                                    }
-                                    best
-                                };
-                                let downhill_wpos = if downhill < 0 {
-                                    None
-                                } else {
-                                    Some(
-                                        Vec2::new(
-                                            (downhill as usize % map_size.x as usize) as i32,
-                                            (downhill as usize / map_size.x as usize) as i32,
-                                        ) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
-                                    )
-                                };
-                                (Rgba::new(r, g, b, a), downhill_wpos)
-                            } else {
-                                (Rgba::zero(), None)
-                            };
-                            let wpos = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
-                            let downhill_wpos = downhill_wpos
-                                .unwrap_or(wpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32));
-                            let alt = rescale_height(scale_height(rgba.a));
-                            world::sim::MapSample {
-                                rgb: Rgb::from(rgba),
-                                alt: alt as Alt,
-                                downhill_wpos,
-                                connections: None,
-                            }
-                        },
-                        |wpos| {
-                            let pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as i32);
-                            rescale_height(if bounds_check(pos) {
-                                let posi = pos.y as usize * map_size.x as usize + pos.x as usize;
-                                scale_height(rgba[posi].to_le_bytes()[3])
-                            } else {
-                                0.0
-                            })
-                        },
-                        |pos, (r, g, b, a)| {
-                            world_map[pos.y * map_size.x as usize + pos.x] =
-                                u32::from_le_bytes([r, g, b, a]);
-                        },
-                    );
-                    let make_raw = |rgba| -> Result<_, Error> {
-                        let mut raw = vec![0u8; 4 * world_map.len()/*map_size.x * map_size.y*/];
-                        LittleEndian::write_u32_into(rgba, &mut raw);
-                        Ok(Arc::new(
-                            image::DynamicImage::ImageRgba8({
-                            // Should not fail if the dimensions are correct.
-                            let map =
-                                image::ImageBuffer::from_raw(map_size.x, map_size.y, raw);
-                            map.ok_or(Error::Other("Server sent a bad world map image".into()))?
-                        })
-                        // Flip the image, since Voxygen uses an orientation where rotation from
-                        // positive x axis to positive y axis is counterclockwise around the z axis.
-                        .flipv(),
-                        ))
-                    };
-                    let lod_base = make_raw(&rgba)?;
-                    let world_map = make_raw(&world_map)?;
-                    let horizons = (west.0, west.1, east.0, east.1)
-                        .into_par_iter()
-                        .map(|(wa, wh, ea, eh)| u32::from_le_bytes([wa, wh, ea, eh]))
-                        .collect::<Vec<_>>();
-                    let lod_horizon = make_raw(&horizons)?;
-                    // TODO: Get sea_level from server.
-                    let map_bounds = Vec2::new(
-                        /* map_config.focus.z */ world::CONFIG.sea_level,
-                        /* map_config.gain */ max_height,
-                    );
-                    log::debug!("Done preparing image...");
-
-                    (
-                        state,
-                        entity,
+        let (state, entity, server_info, lod_base, lod_horizon, world_map) = block_on(async {
+            loop {
+                match stream.recv().await? {
+                    ServerMsg::InitialSync {
+                        entity_package,
                         server_info,
-                        lod_base,
-                        lod_horizon,
-                        (world_map, map_size, map_bounds),
-                    )
-                },
-                ServerMsg::TooManyPlayers => return Err(Error::TooManyPlayers),
-                _ => return Err(Error::ServerWentMad),
-            };
+                        time_of_day,
+                        world_map,
+                    } => {
+                        // TODO: Display that versions don't match in Voxygen
+                        if &server_info.git_hash != *common::util::GIT_HASH {
+                            warn!(
+                                "Server is running {}[{}], you are running {}[{}], versions might \
+                                 be incompatible!",
+                                server_info.git_hash,
+                                server_info.git_date,
+                                common::util::GIT_HASH.to_string(),
+                                common::util::GIT_DATE.to_string(),
+                            );
+                        }
 
-        postbox.send_message(ClientMsg::Ping);
+                        debug!("Auth Server: {:?}", server_info.auth_provider);
+
+                        // Initialize `State`
+                        let mut state = State::default();
+                        // Client-only components
+                        state
+                            .ecs_mut()
+                            .register::<comp::Last<comp::CharacterState>>();
+
+                        let entity = state.ecs_mut().apply_entity_package(entity_package);
+                        *state.ecs_mut().write_resource() = time_of_day;
+
+                        let map_size = world_map.dimensions;
+                        let max_height = world_map.max_height;
+                        let rgba = world_map.rgba;
+                        assert_eq!(rgba.len(), (map_size.x * map_size.y) as usize);
+                        let [west, east] = world_map.horizons;
+                        let scale_angle =
+                            |a: u8| (a as Alt / 255.0 * <Alt as FloatConst>::FRAC_PI_2()).tan();
+                        let scale_height = |h: u8| h as Alt / 255.0 * max_height as Alt;
+
+                        debug!("Preparing image...");
+                        let unzip_horizons = |(angles, heights): &(Vec<_>, Vec<_>)| {
+                            (
+                                angles.iter().copied().map(scale_angle).collect::<Vec<_>>(),
+                                heights
+                                    .iter()
+                                    .copied()
+                                    .map(scale_height)
+                                    .collect::<Vec<_>>(),
+                            )
+                        };
+                        let horizons = [unzip_horizons(&west), unzip_horizons(&east)];
+
+                        // Redraw map (with shadows this time).
+                        let mut world_map = vec![0u32; rgba.len()];
+                        let mut map_config = world::sim::MapConfig::default();
+                        map_config.lgain = 1.0;
+                        map_config.gain = max_height;
+                        map_config.horizons = Some(&horizons);
+                        // map_config.light_direction = Vec3::new(1.0, -1.0, 0.0);
+                        map_config.focus.z = 0.0;
+                        let rescale_height = |h: Alt| (h / max_height as Alt) as f32;
+                        let bounds_check = |pos: Vec2<i32>| {
+                            pos.reduce_partial_min() >= 0
+                                && pos.x < map_size.x as i32
+                                && pos.y < map_size.y as i32
+                        };
+                        map_config.generate(
+                            |pos| {
+                                let (rgba, downhill_wpos) = if bounds_check(pos) {
+                                    let posi =
+                                        pos.y as usize * map_size.x as usize + pos.x as usize;
+                                    let [r, g, b, a] = rgba[posi].to_le_bytes();
+                                    // Compute downhill.
+                                    let downhill = {
+                                        let mut best = -1;
+                                        let mut besth = a;
+                                        // TODO: Fix to work for dynamic WORLD_SIZE (i.e. map_size).
+                                        for nposi in neighbors(posi) {
+                                            let nbh = rgba[nposi].to_le_bytes()[3];
+                                            if nbh < besth {
+                                                besth = nbh;
+                                                best = nposi as isize;
+                                            }
+                                        }
+                                        best
+                                    };
+                                    let downhill_wpos = if downhill < 0 {
+                                        None
+                                    } else {
+                                        Some(
+                                            Vec2::new(
+                                                (downhill as usize % map_size.x as usize) as i32,
+                                                (downhill as usize / map_size.x as usize) as i32,
+                                            ) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                                        )
+                                    };
+                                    (Rgba::new(r, g, b, a), downhill_wpos)
+                                } else {
+                                    (Rgba::zero(), None)
+                                };
+                                let wpos = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
+                                let downhill_wpos = downhill_wpos.unwrap_or(
+                                    wpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                                );
+                                let alt = rescale_height(scale_height(rgba.a));
+                                world::sim::MapSample {
+                                    rgb: Rgb::from(rgba),
+                                    alt: alt as Alt,
+                                    downhill_wpos,
+                                    connections: None,
+                                }
+                            },
+                            |wpos| {
+                                let pos =
+                                    wpos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as i32);
+                                rescale_height(if bounds_check(pos) {
+                                    let posi =
+                                        pos.y as usize * map_size.x as usize + pos.x as usize;
+                                    scale_height(rgba[posi].to_le_bytes()[3])
+                                } else {
+                                    0.0
+                                })
+                            },
+                            |pos, (r, g, b, a)| {
+                                world_map[pos.y * map_size.x as usize + pos.x] =
+                                    u32::from_le_bytes([r, g, b, a]);
+                            },
+                        );
+                        let make_raw = |rgba| -> Result<_, Error> {
+                            let mut raw = vec![0u8; 4 * world_map.len()/*map_size.x * map_size.y*/];
+                            LittleEndian::write_u32_into(rgba, &mut raw);
+                            Ok(Arc::new(
+                                image::DynamicImage::ImageRgba8({
+                                // Should not fail if the dimensions are correct.
+                                let map =
+                                    image::ImageBuffer::from_raw(map_size.x, map_size.y, raw);
+                                map.ok_or(Error::Other("Server sent a bad world map image".into()))?
+                            })
+                            // Flip the image, since Voxygen uses an orientation where rotation from
+                            // positive x axis to positive y axis is counterclockwise around the z axis.
+                            .flipv(),
+                            ))
+                        };
+                        let lod_base = make_raw(&rgba)?;
+                        let world_map = make_raw(&world_map)?;
+                        let horizons = (west.0, west.1, east.0, east.1)
+                            .into_par_iter()
+                            .map(|(wa, wh, ea, eh)| u32::from_le_bytes([wa, wh, ea, eh]))
+                            .collect::<Vec<_>>();
+                        let lod_horizon = make_raw(&horizons)?;
+                        // TODO: Get sea_level from server.
+                        let map_bounds = Vec2::new(
+                            /* map_config.focus.z */ world::CONFIG.sea_level,
+                            /* map_config.gain */ max_height,
+                        );
+                        debug!("Done preparing image...");
+
+                        break Ok((
+                            state,
+                            entity,
+                            server_info,
+                            lod_base,
+                            lod_horizon,
+                            (world_map, map_size, map_bounds),
+                        ));
+                    },
+                    ServerMsg::TooManyPlayers => break Err(Error::TooManyPlayers),
+                    err => {
+                        warn!("whoops, server mad {:?}, ignoring", err);
+                    },
+                }
+            }
+        })?;
+
+        stream.send(ClientMsg::Ping)?;
 
         let mut thread_pool = ThreadPoolBuilder::new()
             .name("veloren-worker".into())
@@ -312,8 +335,11 @@ impl Client {
             lod_horizon,
             player_list: HashMap::new(),
             character_list: CharacterList::default(),
+            active_character_id: None,
 
-            postbox,
+            _network: network,
+            _participant: participant,
+            singleton_stream: stream,
 
             last_server_ping: 0.0,
             last_server_pong: 0.0,
@@ -353,109 +379,137 @@ impl Client {
                 }
         ).unwrap_or(Ok(username))?;
 
-        self.postbox.send_message(ClientMsg::Register {
+        self.singleton_stream.send(ClientMsg::Register {
             view_distance: self.view_distance,
             token_or_username,
-        });
+        })?;
         self.client_state = ClientState::Pending;
 
-        loop {
-            match self.postbox.next_message()? {
-                ServerMsg::StateAnswer(Err((RequestStateError::RegisterDenied(err), state))) => {
-                    self.client_state = state;
-                    break Err(match err {
-                        RegisterError::AlreadyLoggedIn => Error::AlreadyLoggedIn,
-                        RegisterError::AuthError(err) => Error::AuthErr(err),
-                        RegisterError::InvalidCharacter => Error::InvalidCharacter,
-                    });
-                },
-                ServerMsg::StateAnswer(Ok(ClientState::Registered)) => break Ok(()),
-                _ => {},
+        block_on(async {
+            loop {
+                match self.singleton_stream.recv().await? {
+                    ServerMsg::StateAnswer(Err((
+                        RequestStateError::RegisterDenied(err),
+                        state,
+                    ))) => {
+                        self.client_state = state;
+                        break Err(match err {
+                            RegisterError::AlreadyLoggedIn => Error::AlreadyLoggedIn,
+                            RegisterError::AuthError(err) => Error::AuthErr(err),
+                            RegisterError::InvalidCharacter => Error::InvalidCharacter,
+                            RegisterError::NotOnWhitelist => Error::NotOnWhitelist,
+                        });
+                    },
+                    ServerMsg::StateAnswer(Ok(ClientState::Registered)) => break Ok(()),
+                    ignore => {
+                        warn!(
+                            "Ignoring what the server send till registered: {:? }",
+                            ignore
+                        );
+                        //return Err(Error::ServerWentMad)
+                    },
+                }
             }
-        }
+        })
     }
 
     /// Request a state transition to `ClientState::Character`.
-    pub fn request_character(&mut self, character_id: i32, body: comp::Body, main: Option<String>) {
-        self.postbox.send_message(ClientMsg::Character {
-            character_id,
-            body,
-            main,
-        });
+    pub fn request_character(&mut self, character_id: i32) {
+        self.singleton_stream
+            .send(ClientMsg::Character(character_id))
+            .unwrap();
 
+        self.active_character_id = Some(character_id);
         self.client_state = ClientState::Pending;
     }
 
     /// Load the current players character list
     pub fn load_character_list(&mut self) {
         self.character_list.loading = true;
-        self.postbox.send_message(ClientMsg::RequestCharacterList);
+        self.singleton_stream
+            .send(ClientMsg::RequestCharacterList)
+            .unwrap();
     }
 
     /// New character creation
     pub fn create_character(&mut self, alias: String, tool: Option<String>, body: comp::Body) {
         self.character_list.loading = true;
-        self.postbox
-            .send_message(ClientMsg::CreateCharacter { alias, tool, body });
+        self.singleton_stream
+            .send(ClientMsg::CreateCharacter { alias, tool, body })
+            .unwrap();
     }
 
     /// Character deletion
     pub fn delete_character(&mut self, character_id: i32) {
         self.character_list.loading = true;
-        self.postbox
-            .send_message(ClientMsg::DeleteCharacter(character_id));
+        self.singleton_stream
+            .send(ClientMsg::DeleteCharacter(character_id))
+            .unwrap();
     }
 
     /// Send disconnect message to the server
-    pub fn request_logout(&mut self) { self.postbox.send_message(ClientMsg::Disconnect); }
+    pub fn request_logout(&mut self) {
+        if let Err(e) = self.singleton_stream.send(ClientMsg::Disconnect) {
+            error!(
+                ?e,
+                "couldn't send disconnect package to server, did server close already?"
+            );
+        }
+    }
 
     /// Request a state transition to `ClientState::Registered` from an ingame
     /// state.
     pub fn request_remove_character(&mut self) {
-        self.postbox.send_message(ClientMsg::ExitIngame);
+        self.singleton_stream.send(ClientMsg::ExitIngame).unwrap();
         self.client_state = ClientState::Pending;
     }
 
     pub fn set_view_distance(&mut self, view_distance: u32) {
         self.view_distance = Some(view_distance.max(1).min(65));
-        self.postbox
-            .send_message(ClientMsg::SetViewDistance(self.view_distance.unwrap()));
+        self.singleton_stream
+            .send(ClientMsg::SetViewDistance(self.view_distance.unwrap()))
+            .unwrap();
         // Can't fail
     }
 
     pub fn use_slot(&mut self, slot: comp::slot::Slot) {
-        self.postbox
-            .send_message(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
+        self.singleton_stream
+            .send(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
                 InventoryManip::Use(slot),
-            )));
+            )))
+            .unwrap();
     }
 
     pub fn swap_slots(&mut self, a: comp::slot::Slot, b: comp::slot::Slot) {
-        self.postbox
-            .send_message(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
+        self.singleton_stream
+            .send(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
                 InventoryManip::Swap(a, b),
-            )));
+            )))
+            .unwrap();
     }
 
     pub fn drop_slot(&mut self, slot: comp::slot::Slot) {
-        self.postbox
-            .send_message(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
+        self.singleton_stream
+            .send(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
                 InventoryManip::Drop(slot),
-            )));
+            )))
+            .unwrap();
     }
 
     pub fn pick_up(&mut self, entity: EcsEntity) {
         if let Some(uid) = self.state.ecs().read_storage::<Uid>().get(entity).copied() {
-            self.postbox
-                .send_message(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
+            self.singleton_stream
+                .send(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
                     InventoryManip::Pickup(uid),
-                )));
+                )))
+                .unwrap();
         }
     }
 
     pub fn toggle_lantern(&mut self) {
-        self.postbox
-            .send_message(ClientMsg::ControlEvent(ControlEvent::ToggleLantern));
+        self.singleton_stream
+            .send(ClientMsg::ControlEvent(ControlEvent::ToggleLantern))
+            .unwrap();
     }
 
     pub fn is_mounted(&self) -> bool {
@@ -468,14 +522,16 @@ impl Client {
 
     pub fn mount(&mut self, entity: EcsEntity) {
         if let Some(uid) = self.state.ecs().read_storage::<Uid>().get(entity).copied() {
-            self.postbox
-                .send_message(ClientMsg::ControlEvent(ControlEvent::Mount(uid)));
+            self.singleton_stream
+                .send(ClientMsg::ControlEvent(ControlEvent::Mount(uid)))
+                .unwrap();
         }
     }
 
     pub fn unmount(&mut self) {
-        self.postbox
-            .send_message(ClientMsg::ControlEvent(ControlEvent::Unmount));
+        self.singleton_stream
+            .send(ClientMsg::ControlEvent(ControlEvent::Unmount))
+            .unwrap();
     }
 
     pub fn respawn(&mut self) {
@@ -486,26 +542,15 @@ impl Client {
             .get(self.entity)
             .map_or(false, |s| s.is_dead)
         {
-            self.postbox
-                .send_message(ClientMsg::ControlEvent(ControlEvent::Respawn));
+            self.singleton_stream
+                .send(ClientMsg::ControlEvent(ControlEvent::Respawn))
+                .unwrap();
         }
     }
 
     /// Checks whether a player can swap their weapon+ability `Loadout` settings
     /// and sends the `ControlAction` event that signals to do the swap.
-    pub fn swap_loadout(&mut self) {
-        let can_swap = self
-            .state
-            .ecs()
-            .read_storage::<comp::CharacterState>()
-            .get(self.entity)
-            .map(|cs| cs.can_swap());
-        match can_swap {
-            Some(true) => self.control_action(ControlAction::SwapLoadout),
-            Some(false) => {},
-            None => warn!("Can't swap, client entity doesn't have a `CharacterState`"),
-        }
-    }
+    pub fn swap_loadout(&mut self) { self.control_action(ControlAction::SwapLoadout) }
 
     pub fn toggle_wield(&mut self) {
         let is_wielding = self
@@ -537,6 +582,41 @@ impl Client {
         }
     }
 
+    pub fn toggle_dance(&mut self) {
+        let is_dancing = self
+            .state
+            .ecs()
+            .read_storage::<comp::CharacterState>()
+            .get(self.entity)
+            .map(|cs| matches!(cs, comp::CharacterState::Dance));
+
+        match is_dancing {
+            Some(true) => self.control_action(ControlAction::Stand),
+            Some(false) => self.control_action(ControlAction::Dance),
+            None => warn!("Can't toggle dance, client entity doesn't have a `CharacterState`"),
+        }
+    }
+
+    pub fn toggle_glide(&mut self) {
+        let is_gliding = self
+            .state
+            .ecs()
+            .read_storage::<comp::CharacterState>()
+            .get(self.entity)
+            .map(|cs| {
+                matches!(
+                    cs,
+                    comp::CharacterState::GlideWield | comp::CharacterState::Glide
+                )
+            });
+
+        match is_gliding {
+            Some(true) => self.control_action(ControlAction::Unwield),
+            Some(false) => self.control_action(ControlAction::GlideWield),
+            None => warn!("Can't toggle glide, client entity doesn't have a `CharacterState`"),
+        }
+    }
+
     fn control_action(&mut self, control_action: ControlAction) {
         if let Some(controller) = self
             .state
@@ -546,8 +626,9 @@ impl Client {
         {
             controller.actions.push(control_action);
         }
-        self.postbox
-            .send_message(ClientMsg::ControlAction(control_action));
+        self.singleton_stream
+            .send(ClientMsg::ControlAction(control_action))
+            .unwrap();
     }
 
     pub fn view_distance(&self) -> Option<u32> { self.view_distance }
@@ -576,8 +657,11 @@ impl Client {
     /// Send a chat message to the server.
     pub fn send_chat(&mut self, message: String) {
         match validate_chat_msg(&message) {
-            Ok(()) => self.postbox.send_message(ClientMsg::ChatMsg { message }),
-            Err(ChatMsgValidationError::TooLong) => log::warn!(
+            Ok(()) => self
+                .singleton_stream
+                .send(ClientMsg::ChatMsg(message))
+                .unwrap(),
+            Err(ChatMsgValidationError::TooLong) => tracing::warn!(
                 "Attempted to send a message that's too long (Over {} bytes)",
                 MAX_BYTES_CHAT_MSG
             ),
@@ -591,18 +675,23 @@ impl Client {
     }
 
     pub fn place_block(&mut self, pos: Vec3<i32>, block: Block) {
-        self.postbox.send_message(ClientMsg::PlaceBlock(pos, block));
+        self.singleton_stream
+            .send(ClientMsg::PlaceBlock(pos, block))
+            .unwrap();
     }
 
     pub fn remove_block(&mut self, pos: Vec3<i32>) {
-        self.postbox.send_message(ClientMsg::BreakBlock(pos));
+        self.singleton_stream
+            .send(ClientMsg::BreakBlock(pos))
+            .unwrap();
     }
 
     pub fn collect_block(&mut self, pos: Vec3<i32>) {
-        self.postbox
-            .send_message(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
+        self.singleton_stream
+            .send(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
                 InventoryManip::Collect(pos),
-            )));
+            )))
+            .unwrap();
     }
 
     /// Execute a single client tick, handle input and update the game state by
@@ -635,7 +724,7 @@ impl Client {
         // 1) Handle input from frontend.
         // Pass character actions from frontend input to the player's entity.
         if let ClientState::Character = self.client_state {
-            if let Err(err) = self
+            if let Err(e) = self
                 .state
                 .ecs()
                 .write_storage::<Controller>()
@@ -650,13 +739,16 @@ impl Client {
                         .inputs = inputs.clone();
                 })
             {
+                let entry = self.entity;
                 error!(
-                    "Couldn't access controller component on client entity: {:?}",
-                    err
+                    ?e,
+                    ?entry,
+                    "Couldn't access controller component on client entity"
                 );
             }
-            self.postbox
-                .send_message(ClientMsg::ControllerInputs(inputs));
+            self.singleton_stream
+                .send(ClientMsg::ControllerInputs(inputs))
+                .unwrap();
         }
 
         // 2) Build up a list of events for this frame, to be passed to the frontend.
@@ -708,7 +800,7 @@ impl Client {
                 // 1 as a buffer so that if the player moves back in that direction the chunks
                 //   don't need to be reloaded
                 if (chunk_pos - key)
-                    .map(|e: i32| (e.abs() as u32).checked_sub(2).unwrap_or(0))
+                    .map(|e: i32| (e.abs() as u32).saturating_sub(2))
                     .magnitude_squared()
                     > view_distance.pow(2)
                 {
@@ -753,8 +845,8 @@ impl Client {
                         if self.state.terrain().get_key(*key).is_none() {
                             if !skip_mode && !self.pending_chunks.contains_key(key) {
                                 if self.pending_chunks.len() < 4 {
-                                    self.postbox
-                                        .send_message(ClientMsg::TerrainChunkRequest { key: *key });
+                                    self.singleton_stream
+                                        .send(ClientMsg::TerrainChunkRequest { key: *key })?;
                                     self.pending_chunks.insert(*key, Instant::now());
                                 } else {
                                     skip_mode = true;
@@ -786,7 +878,7 @@ impl Client {
 
         // Send a ping to the server once every second
         if self.state.get_time() - self.last_server_ping > 1. {
-            self.postbox.send_message(ClientMsg::Ping);
+            self.singleton_stream.send(ClientMsg::Ping)?;
             self.last_server_ping = self.state.get_time();
         }
 
@@ -797,14 +889,14 @@ impl Client {
                 self.state.read_storage().get(self.entity).cloned(),
                 self.state.read_storage().get(self.entity).cloned(),
             ) {
-                self.postbox
-                    .send_message(ClientMsg::PlayerPhysics { pos, vel, ori });
+                self.singleton_stream
+                    .send(ClientMsg::PlayerPhysics { pos, vel, ori })?;
             }
         }
 
         /*
         // Output debug metrics
-        if log_enabled!(log::Level::Info) && self.tick % 600 == 0 {
+        if log_enabled!(Level::Info) && self.tick % 600 == 0 {
             let metrics = self
                 .state
                 .terrain()
@@ -825,6 +917,215 @@ impl Client {
         self.state.cleanup();
     }
 
+    async fn handle_message(
+        &mut self,
+        frontend_events: &mut Vec<Event>,
+        cnt: &mut u64,
+    ) -> Result<(), Error> {
+        loop {
+            let msg = self.singleton_stream.recv().await?;
+            *cnt += 1;
+            match msg {
+                ServerMsg::TooManyPlayers => {
+                    return Err(Error::ServerWentMad);
+                },
+                ServerMsg::Shutdown => return Err(Error::ServerShutdown),
+                ServerMsg::InitialSync { .. } => return Err(Error::ServerWentMad),
+                ServerMsg::PlayerListUpdate(PlayerListUpdate::Init(list)) => {
+                    self.player_list = list
+                },
+                ServerMsg::PlayerListUpdate(PlayerListUpdate::Add(uid, player_info)) => {
+                    if let Some(old_player_info) = self.player_list.insert(uid, player_info.clone())
+                    {
+                        warn!(
+                            "Received msg to insert {} with uid {} into the player list but there \
+                             was already an entry for {} with the same uid that was overwritten!",
+                            player_info.player_alias, uid, old_player_info.player_alias
+                        );
+                    }
+                },
+                ServerMsg::PlayerListUpdate(PlayerListUpdate::Admin(uid, admin)) => {
+                    if let Some(player_info) = self.player_list.get_mut(&uid) {
+                        player_info.is_admin = admin;
+                    } else {
+                        warn!(
+                            "Received msg to update admin status of uid {}, but they were not in \
+                             the list.",
+                            uid
+                        );
+                    }
+                },
+                ServerMsg::PlayerListUpdate(PlayerListUpdate::SelectedCharacter(
+                    uid,
+                    char_info,
+                )) => {
+                    if let Some(player_info) = self.player_list.get_mut(&uid) {
+                        player_info.character = Some(char_info);
+                    } else {
+                        warn!(
+                            "Received msg to update character info for uid {}, but they were not \
+                             in the list.",
+                            uid
+                        );
+                    }
+                },
+                ServerMsg::PlayerListUpdate(PlayerListUpdate::LevelChange(uid, next_level)) => {
+                    if let Some(player_info) = self.player_list.get_mut(&uid) {
+                        player_info.character = match &player_info.character {
+                            Some(character) => Some(common::msg::CharacterInfo {
+                                name: character.name.to_string(),
+                                level: next_level,
+                            }),
+                            None => {
+                                warn!(
+                                    "Received msg to update character level info to {} for uid \
+                                     {}, but this player's character is None.",
+                                    next_level, uid
+                                );
+
+                                None
+                            },
+                        };
+                    }
+                },
+                ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(uid)) => {
+                    // Instead of removing players, mark them as offline because we need to
+                    // remember the names of disconnected players in chat.
+                    //
+                    // TODO the server should re-use uids of players that log out and log back
+                    // in.
+
+                    if let Some(player_info) = self.player_list.get_mut(&uid) {
+                        if player_info.is_online {
+                            player_info.is_online = false;
+                        } else {
+                            warn!(
+                                "Received msg to remove uid {} from the player list by they were \
+                                 already marked offline",
+                                uid
+                            );
+                        }
+                    } else {
+                        warn!(
+                            "Received msg to remove uid {} from the player list by they weren't \
+                             in the list!",
+                            uid
+                        );
+                    }
+                },
+                ServerMsg::PlayerListUpdate(PlayerListUpdate::Alias(uid, new_name)) => {
+                    if let Some(player_info) = self.player_list.get_mut(&uid) {
+                        player_info.player_alias = new_name;
+                    } else {
+                        warn!(
+                            "Received msg to alias player with uid {} to {} but this uid is not \
+                             in the player list",
+                            uid, new_name
+                        );
+                    }
+                },
+
+                ServerMsg::Ping => {
+                    self.singleton_stream.send(ClientMsg::Pong)?;
+                },
+                ServerMsg::Pong => {
+                    self.last_server_pong = self.state.get_time();
+
+                    self.last_ping_delta = (self.state.get_time() - self.last_server_ping).round();
+                },
+                ServerMsg::ChatMsg(m) => frontend_events.push(Event::Chat(m)),
+                ServerMsg::SetPlayerEntity(uid) => {
+                    if let Some(entity) = self.state.ecs().entity_from_uid(uid.0) {
+                        self.entity = entity;
+                    } else {
+                        return Err(Error::Other("Failed to find entity from uid.".to_owned()));
+                    }
+                },
+                ServerMsg::TimeOfDay(time_of_day) => {
+                    *self.state.ecs_mut().write_resource() = time_of_day;
+                },
+                ServerMsg::EntitySync(entity_sync_package) => {
+                    self.state
+                        .ecs_mut()
+                        .apply_entity_sync_package(entity_sync_package);
+                },
+                ServerMsg::CompSync(comp_sync_package) => {
+                    self.state
+                        .ecs_mut()
+                        .apply_comp_sync_package(comp_sync_package);
+                },
+                ServerMsg::CreateEntity(entity_package) => {
+                    self.state.ecs_mut().apply_entity_package(entity_package);
+                },
+                ServerMsg::DeleteEntity(entity) => {
+                    if self.state.read_component_cloned::<Uid>(self.entity) != Some(entity) {
+                        self.state
+                            .ecs_mut()
+                            .delete_entity_and_clear_from_uid_allocator(entity.0);
+                    }
+                },
+                // Cleanup for when the client goes back to the `Registered` state
+                ServerMsg::ExitIngameCleanup => {
+                    self.clean_state();
+                },
+                ServerMsg::InventoryUpdate(inventory, event) => {
+                    match event {
+                        InventoryUpdateEvent::CollectFailed => {},
+                        _ => {
+                            // Push the updated inventory component to the client
+                            self.state.write_component(self.entity, inventory);
+                        },
+                    }
+
+                    frontend_events.push(Event::InventoryUpdated(event));
+                },
+                ServerMsg::TerrainChunkUpdate { key, chunk } => {
+                    if let Ok(chunk) = chunk {
+                        self.state.insert_chunk(key, *chunk);
+                    }
+                    self.pending_chunks.remove(&key);
+                },
+                ServerMsg::TerrainBlockUpdates(mut blocks) => {
+                    blocks.drain().for_each(|(pos, block)| {
+                        self.state.set_block(pos, block);
+                    });
+                },
+                ServerMsg::StateAnswer(Ok(state)) => {
+                    self.client_state = state;
+                },
+                ServerMsg::StateAnswer(Err((error, state))) => {
+                    warn!(
+                        "StateAnswer: {:?}. Server thinks client is in state {:?}.",
+                        error, state
+                    );
+                },
+                ServerMsg::Disconnect => {
+                    frontend_events.push(Event::Disconnect);
+                    self.singleton_stream.send(ClientMsg::Terminate)?;
+                },
+                ServerMsg::CharacterListUpdate(character_list) => {
+                    self.character_list.characters = character_list;
+                    self.character_list.loading = false;
+                },
+                ServerMsg::CharacterActionError(error) => {
+                    warn!("CharacterActionError: {:?}.", error);
+                    self.character_list.error = Some(error);
+                },
+                ServerMsg::Notification(n) => {
+                    frontend_events.push(Event::Notification(n));
+                },
+                ServerMsg::CharacterDataLoadError(error) => {
+                    self.clean_state();
+                    self.character_list.error = Some(error);
+                },
+                ServerMsg::SetViewDistance(vd) => {
+                    self.view_distance = Some(vd);
+                    frontend_events.push(Event::SetViewDistance(vd));
+                },
+            }
+        }
+    }
+
     /// Handle new server messages.
     fn handle_new_messages(&mut self) -> Result<Vec<Event>, Error> {
         let mut frontend_events = Vec::new();
@@ -836,187 +1137,29 @@ impl Client {
             let duration_since_last_pong = self.state.get_time() - self.last_server_pong;
 
             // Dispatch a notification to the HUD warning they will be kicked in {n} seconds
-            if duration_since_last_pong >= SERVER_TIMEOUT_GRACE_PERIOD {
-                if self.state.get_time() - duration_since_last_pong > 0. {
-                    frontend_events.push(Event::DisconnectionNotification(
-                        (self.state.get_time() - duration_since_last_pong).round() as u64,
-                    ));
-                }
+            if duration_since_last_pong >= SERVER_TIMEOUT_GRACE_PERIOD
+                && self.state.get_time() - duration_since_last_pong > 0.
+            {
+                frontend_events.push(Event::DisconnectionNotification(
+                    (self.state.get_time() - duration_since_last_pong).round() as u64,
+                ));
             }
         }
 
-        let new_msgs = self.postbox.new_messages();
+        let mut handles_msg = 0;
 
-        if new_msgs.len() > 0 {
-            for msg in new_msgs {
-                match msg {
-                    ServerMsg::TooManyPlayers => {
-                        return Err(Error::ServerWentMad);
-                    },
-                    ServerMsg::Shutdown => return Err(Error::ServerShutdown),
-                    ServerMsg::InitialSync { .. } => return Err(Error::ServerWentMad),
-                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Init(list)) => {
-                        self.player_list = list
-                    },
-                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Add(uid, name)) => {
-                        if let Some(old_name) = self.player_list.insert(uid, name.clone()) {
-                            warn!(
-                                "Received msg to insert {} with uid {} into the player list but \
-                                 there was already an entry for {} with the same uid that was \
-                                 overwritten!",
-                                name, uid, old_name
-                            );
-                        }
-                    },
-                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(uid)) => {
-                        if self.player_list.remove(&uid).is_none() {
-                            warn!(
-                                "Received msg to remove uid {} from the player list by they \
-                                 weren't in the list!",
-                                uid
-                            );
-                        }
-                    },
-                    ServerMsg::PlayerListUpdate(PlayerListUpdate::Alias(uid, new_name)) => {
-                        if let Some(name) = self.player_list.get_mut(&uid) {
-                            *name = new_name;
-                        } else {
-                            warn!(
-                                "Received msg to alias player with uid {} to {} but this uid is \
-                                 not in the player list",
-                                uid, new_name
-                            );
-                        }
-                    },
+        block_on(async {
+            //TIMEOUT 0.01 ms for msg handling
+            select!(
+                _ = Delay::new(std::time::Duration::from_micros(10)).fuse() => Ok(()),
+                err = self.handle_message(&mut frontend_events, &mut handles_msg).fuse() => err,
+            )
+        })?;
 
-                    ServerMsg::Ping => self.postbox.send_message(ClientMsg::Pong),
-                    ServerMsg::Pong => {
-                        self.last_server_pong = self.state.get_time();
-
-                        self.last_ping_delta =
-                            (self.state.get_time() - self.last_server_ping).round();
-                    },
-                    ServerMsg::ChatMsg { message, chat_type } => {
-                        frontend_events.push(Event::Chat { message, chat_type })
-                    },
-                    ServerMsg::SetPlayerEntity(uid) => {
-                        if let Some(entity) = self.state.ecs().entity_from_uid(uid) {
-                            self.entity = entity;
-                        } else {
-                            return Err(Error::Other("Failed to find entity from uid.".to_owned()));
-                        }
-                    },
-                    ServerMsg::TimeOfDay(time_of_day) => {
-                        *self.state.ecs_mut().write_resource() = time_of_day;
-                    },
-                    ServerMsg::EntitySync(entity_sync_package) => {
-                        self.state
-                            .ecs_mut()
-                            .apply_entity_sync_package(entity_sync_package);
-                    },
-                    ServerMsg::CompSync(comp_sync_package) => {
-                        self.state
-                            .ecs_mut()
-                            .apply_comp_sync_package(comp_sync_package);
-                    },
-                    ServerMsg::CreateEntity(entity_package) => {
-                        self.state.ecs_mut().apply_entity_package(entity_package);
-                    },
-                    ServerMsg::DeleteEntity(entity) => {
-                        if self
-                            .state
-                            .read_component_cloned::<Uid>(self.entity)
-                            .map(|u| u.into())
-                            != Some(entity)
-                        {
-                            self.state
-                                .ecs_mut()
-                                .delete_entity_and_clear_from_uid_allocator(entity);
-                        }
-                    },
-                    // Cleanup for when the client goes back to the `Registered` state
-                    ServerMsg::ExitIngameCleanup => {
-                        // Get client entity Uid
-                        let client_uid = self
-                            .state
-                            .read_component_cloned::<Uid>(self.entity)
-                            .map(|u| u.into())
-                            .expect("Client doesn't have a Uid!!!");
-                        // Clear ecs of all entities
-                        self.state.ecs_mut().delete_all();
-                        self.state.ecs_mut().maintain();
-                        self.state.ecs_mut().insert(UidAllocator::default());
-                        // Recreate client entity with Uid
-                        let entity_builder = self.state.ecs_mut().create_entity();
-                        let uid = entity_builder
-                            .world
-                            .write_resource::<UidAllocator>()
-                            .allocate(entity_builder.entity, Some(client_uid));
-                        self.entity = entity_builder.with(uid).build();
-                    },
-                    ServerMsg::InventoryUpdate(inventory, event) => {
-                        match event {
-                            InventoryUpdateEvent::CollectFailed => {
-                                frontend_events.push(Event::Chat {
-                                    message: String::from(
-                                        "Failed to collect item. Your inventory may be full!",
-                                    ),
-                                    chat_type: ChatType::Meta,
-                                })
-                            },
-                            _ => {
-                                self.state.write_component(self.entity, inventory);
-                            },
-                        }
-
-                        self.state
-                            .ecs()
-                            .read_resource::<EventBus<SfxEventItem>>()
-                            .emit_now(SfxEventItem::at_player_position(SfxEvent::Inventory(event)));
-                    },
-                    ServerMsg::TerrainChunkUpdate { key, chunk } => {
-                        if let Ok(chunk) = chunk {
-                            self.state.insert_chunk(key, *chunk);
-                        }
-                        self.pending_chunks.remove(&key);
-                    },
-                    ServerMsg::TerrainBlockUpdates(mut blocks) => {
-                        blocks.drain().for_each(|(pos, block)| {
-                            self.state.set_block(pos, block);
-                        });
-                    },
-                    ServerMsg::StateAnswer(Ok(state)) => {
-                        self.client_state = state;
-                    },
-                    ServerMsg::StateAnswer(Err((error, state))) => {
-                        warn!(
-                            "StateAnswer: {:?}. Server thinks client is in state {:?}.",
-                            error, state
-                        );
-                    },
-                    ServerMsg::Disconnect => {
-                        frontend_events.push(Event::Disconnect);
-                        self.postbox.send_message(ClientMsg::Terminate);
-                    },
-                    ServerMsg::CharacterListUpdate(character_list) => {
-                        self.character_list.characters = character_list;
-                        self.character_list.loading = false;
-                    },
-                    ServerMsg::CharacterActionError(error) => {
-                        warn!("CharacterActionError: {:?}.", error);
-                        self.character_list.error = Some(error);
-                    },
-                    ServerMsg::Notification(n) => {
-                        frontend_events.push(Event::Notification(n));
-                    },
-                }
-            }
-        } else if let Some(err) = self.postbox.error() {
-            return Err(err.into());
-        // We regularily ping in the tick method
-        } else if self.state.get_time() - self.last_server_pong > SERVER_TIMEOUT {
+        if handles_msg == 0 && self.state.get_time() - self.last_server_pong > SERVER_TIMEOUT {
             return Err(Error::ServerTimeout);
         }
+
         Ok(frontend_events)
     }
 
@@ -1053,8 +1196,109 @@ impl Client {
             .cloned()
             .collect()
     }
+
+    /// Clean client ECS state
+    fn clean_state(&mut self) {
+        let client_uid = self
+            .state
+            .read_component_cloned::<Uid>(self.entity)
+            .map(|u| u.into())
+            .expect("Client doesn't have a Uid!!!");
+
+        // Clear ecs of all entities
+        self.state.ecs_mut().delete_all();
+        self.state.ecs_mut().maintain();
+        self.state.ecs_mut().insert(UidAllocator::default());
+
+        // Recreate client entity with Uid
+        let entity_builder = self.state.ecs_mut().create_entity();
+        let uid = entity_builder
+            .world
+            .write_resource::<UidAllocator>()
+            .allocate(entity_builder.entity, Some(client_uid));
+
+        self.entity = entity_builder.with(uid).build();
+    }
+
+    /// Format a message for the client (voxygen chat box or chat-cli)
+    pub fn format_message(&self, msg: &comp::ChatMsg, character_name: bool) -> String {
+        let comp::ChatMsg { chat_type, message } = &msg;
+        let alias_of_uid = |uid| {
+            self.player_list
+                .get(uid)
+                .map_or("<?>".to_string(), |player_info| {
+                    if player_info.is_admin {
+                        format!("ADMIN - {}", player_info.player_alias)
+                    } else {
+                        player_info.player_alias.to_string()
+                    }
+                })
+        };
+        let name_of_uid = |uid| {
+            let ecs = self.state.ecs();
+            (
+                &ecs.read_storage::<comp::Stats>(),
+                &ecs.read_storage::<Uid>(),
+            )
+                .join()
+                .find(|(_, u)| u == &uid)
+                .map(|(c, _)| c.name.clone())
+        };
+        let message_format = |uid, message, group| {
+            let alias = alias_of_uid(uid);
+            let name = if character_name {
+                name_of_uid(uid)
+            } else {
+                None
+            };
+            match (group, name) {
+                (Some(group), None) => format!("({}) [{}]: {}", group, alias, message),
+                (None, None) => format!("[{}]: {}", alias, message),
+                (Some(group), Some(name)) => {
+                    format!("({}) [{}] {}: {}", group, alias, name, message)
+                },
+                (None, Some(name)) => format!("[{}] {}: {}", alias, name, message),
+            }
+        };
+        match chat_type {
+            comp::ChatType::Online => message.to_string(),
+            comp::ChatType::Offline => message.to_string(),
+            comp::ChatType::CommandError => message.to_string(),
+            comp::ChatType::CommandInfo => message.to_string(),
+            comp::ChatType::Loot => message.to_string(),
+            comp::ChatType::FactionMeta(_) => message.to_string(),
+            comp::ChatType::GroupMeta(_) => message.to_string(),
+            comp::ChatType::Kill => message.to_string(),
+            comp::ChatType::Tell(from, to) => {
+                let from_alias = alias_of_uid(from);
+                let to_alias = alias_of_uid(to);
+                if Some(from) == self.state.ecs().read_storage::<Uid>().get(self.entity) {
+                    format!("To [{}]: {}", to_alias, message)
+                } else {
+                    format!("From [{}]: {}", from_alias, message)
+                }
+            },
+            comp::ChatType::Say(uid) => message_format(uid, message, None),
+            comp::ChatType::Group(uid, s) => message_format(uid, message, Some(s)),
+            comp::ChatType::Faction(uid, s) => message_format(uid, message, Some(s)),
+            comp::ChatType::Region(uid) => message_format(uid, message, None),
+            comp::ChatType::World(uid) => message_format(uid, message, None),
+            // NPCs can't talk. Should be filtered by hud/mod.rs for voxygen and should be filtered
+            // by server (due to not having a Pos) for chat-cli
+            comp::ChatType::Npc(_uid, _r) => "".to_string(),
+            comp::ChatType::Meta => message.to_string(),
+        }
+    }
 }
 
 impl Drop for Client {
-    fn drop(&mut self) { self.postbox.send_message(ClientMsg::Disconnect); }
+    fn drop(&mut self) {
+        if let Err(e) = self.singleton_stream.send(ClientMsg::Disconnect) {
+            warn!(
+                "error during drop of client, couldn't send disconnect package, is the connection \
+                 already closed? : {}",
+                e
+            );
+        }
+    }
 }

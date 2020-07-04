@@ -1,11 +1,11 @@
 table! {
     body (character_id) {
         character_id -> Integer,
-        race -> SmallInt,
+        species -> SmallInt,
         body_type -> SmallInt,
         hair_style -> SmallInt,
         beard -> SmallInt,
-        eyebrows -> SmallInt,
+        eyes -> SmallInt,
         accessory -> SmallInt,
         hair_color -> SmallInt,
         skin -> SmallInt,
@@ -23,6 +23,21 @@ table! {
 }
 
 table! {
+    inventory (character_id) {
+        character_id -> Integer,
+        items -> Text,
+    }
+}
+
+table! {
+    loadout (id) {
+        id -> Integer,
+        character_id -> Integer,
+        items -> Text,
+    }
+}
+
+table! {
     stats (character_id) {
         character_id -> Integer,
         level -> Integer,
@@ -34,6 +49,8 @@ table! {
 }
 
 joinable!(body -> character (character_id));
+joinable!(inventory -> character (character_id));
+joinable!(loadout -> character (character_id));
 joinable!(stats -> character (character_id));
 
-allow_tables_to_appear_in_same_query!(body, character, stats,);
+allow_tables_to_appear_in_same_query!(body, character, inventory, loadout, stats,);

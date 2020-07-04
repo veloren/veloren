@@ -20,6 +20,7 @@ use specs::{
 /// This system will send physics updates to the client
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     type SystemData = (
         Entities<'a>,
         Read<'a, Tick>,
@@ -146,7 +147,7 @@ impl<'a> System<'a> for Sys {
                                     .map(|key| !regions.contains(key))
                                     .unwrap_or(true)
                                 {
-                                    client.notify(ServerMsg::DeleteEntity(uid.into()));
+                                    client.notify(ServerMsg::DeleteEntity(uid));
                                 }
                             }
                         }
@@ -161,7 +162,7 @@ impl<'a> System<'a> for Sys {
                 region.entities(),
                 deleted_entities
                     .take_deleted_in_region(key)
-                    .unwrap_or_else(|| Vec::new()),
+                    .unwrap_or_default(),
             );
             let entity_sync_msg = ServerMsg::EntitySync(entity_sync_package);
             let comp_sync_msg = ServerMsg::CompSync(comp_sync_package);
@@ -300,7 +301,7 @@ impl<'a> System<'a> for Sys {
                     })
             {
                 for uid in &deleted {
-                    client.notify(ServerMsg::DeleteEntity(*uid));
+                    client.notify(ServerMsg::DeleteEntity(Uid(*uid)));
                 }
             }
         }

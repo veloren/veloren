@@ -1,4 +1,5 @@
 use crate::{
+    audio::sfx::{SfxEvent, SfxEventItem},
     ecs::MyEntity,
     hud::{DebugInfo, Event as HudEvent, Hud, HudInfo, PressBehavior},
     i18n::{i18n_asset_key, VoxygenLocalization},
@@ -9,21 +10,21 @@ use crate::{
     window::{AnalogGameInput, Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
-use client::{self, Client, Event::Chat};
+use client::{self, Client};
 use common::{
-    assets::{load_watched, watch},
+    assets::{load_expect, load_watched, watch},
     clock::Clock,
     comp,
-    comp::{Pos, Vel, MAX_PICKUP_RANGE_SQR},
-    msg::{ClientState, Notification},
+    comp::{ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel, MAX_PICKUP_RANGE_SQR},
+    event::EventBus,
+    msg::ClientState,
     terrain::{Block, BlockKind},
     util::Dir,
     vol::ReadVol,
-    ChatType,
 };
-use log::error;
 use specs::{Join, WorldExt};
 use std::{cell::RefCell, rc::Rc, time::Duration};
+use tracing::{error, info};
 use vek::*;
 
 /// The action to perform after a tick
@@ -41,6 +42,7 @@ pub struct SessionState {
     key_state: KeyState,
     inputs: comp::ControllerInputs,
     selected_block: Block,
+    voxygen_i18n: std::sync::Arc<VoxygenLocalization>,
 }
 
 /// Represents an active game session (i.e., the one being played).
@@ -66,6 +68,9 @@ impl SessionState {
                 .ecs_mut()
                 .insert(MyEntity(my_entity));
         }
+        let voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+            &global_state.settings.language.selected_language,
+        ));
         Self {
             scene,
             client,
@@ -73,42 +78,73 @@ impl SessionState {
             inputs: comp::ControllerInputs::default(),
             hud,
             selected_block: Block::new(BlockKind::Normal, Rgb::broadcast(255)),
+            voxygen_i18n,
         }
     }
 }
 
 impl SessionState {
     /// Tick the session (and the client attached to it).
-    fn tick(&mut self, dt: Duration) -> Result<TickAction, Error> {
+    fn tick(&mut self, dt: Duration, global_state: &mut GlobalState) -> Result<TickAction, Error> {
         self.inputs.tick(dt);
 
-        for event in self.client.borrow_mut().tick(
-            self.inputs.clone(),
-            dt,
-            crate::ecs::sys::add_local_systems,
-        )? {
+        let mut client = self.client.borrow_mut();
+        for event in client.tick(self.inputs.clone(), dt, crate::ecs::sys::add_local_systems)? {
+            self.voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+                &global_state.settings.language.selected_language,
+            ));
             match event {
-                Chat {
-                    chat_type: _,
-                    message: _,
-                } => {
-                    self.hud.new_message(event);
+                client::Event::Chat(m) => {
+                    self.hud.new_message(m);
+                },
+                client::Event::InventoryUpdated(inv_event) => {
+                    let sfx_event = SfxEvent::from(&inv_event);
+                    client
+                        .state()
+                        .ecs()
+                        .read_resource::<EventBus<SfxEventItem>>()
+                        .emit_now(SfxEventItem::at_player_position(sfx_event));
+
+                    match inv_event {
+                        InventoryUpdateEvent::CollectFailed => {
+                            self.hud.new_message(ChatMsg {
+                                message: self.voxygen_i18n.get("hud.chat.loot_fail").to_string(),
+                                chat_type: ChatType::CommandError,
+                            });
+                        },
+                        InventoryUpdateEvent::Collected(item) => {
+                            self.hud.new_message(ChatMsg {
+                                message: self
+                                    .voxygen_i18n
+                                    .get("hud.chat.loot_msg")
+                                    .replace("{item}", item.name().to_string().as_str()),
+                                chat_type: ChatType::Loot,
+                            });
+                        },
+                        _ => {},
+                    };
                 },
                 client::Event::Disconnect => return Ok(TickAction::Disconnect),
                 client::Event::DisconnectionNotification(time) => {
                     let message = match time {
-                        0 => String::from("Goodbye!"),
-                        _ => format!("Connection lost. Kicking in {} seconds", time),
+                        0 => String::from(self.voxygen_i18n.get("hud.chat.goodbye")),
+                        _ => self
+                            .voxygen_i18n
+                            .get("hud.chat.connection_lost")
+                            .replace("{time}", time.to_string().as_str()),
                     };
 
-                    self.hud.new_message(Chat {
-                        chat_type: ChatType::Meta,
+                    self.hud.new_message(ChatMsg {
+                        chat_type: ChatType::CommandError,
                         message,
                     });
                 },
-                client::Event::Notification(Notification::WaypointSaved) => {
-                    self.hud
-                        .new_message(client::Event::Notification(Notification::WaypointSaved));
+                client::Event::Notification(n) => {
+                    self.hud.new_notification(n);
+                },
+                client::Event::SetViewDistance(vd) => {
+                    global_state.settings.graphics.view_distance = vd;
+                    global_state.settings.save_to_file_warn();
                 },
             }
         }
@@ -146,6 +182,13 @@ impl PlayState for SessionState {
 
         let mut ori = self.scene.camera().get_orientation();
         let mut free_look = false;
+        let mut auto_walk = false;
+
+        fn stop_auto_walk(auto_walk: &mut bool, key_state: &mut KeyState, hud: &mut Hud) {
+            *auto_walk = false;
+            hud.auto_walk(false);
+            key_state.auto_walk = false;
+        }
 
         // Game loop
         let mut current_client_state = self.client.borrow().get_client_state();
@@ -280,11 +323,6 @@ impl PlayState for SessionState {
                             }
                         } else {
                             self.inputs.secondary.set_state(state);
-
-                            // Check for select_block that is highlighted
-                            if let Some(select_pos) = self.scene.select_pos() {
-                                client.collect_block(select_pos);
-                            }
                         }
                     },
 
@@ -323,16 +361,51 @@ impl PlayState for SessionState {
                     {
                         self.key_state.toggle_sit = state;
                         if state {
+                            stop_auto_walk(&mut auto_walk, &mut self.key_state, &mut self.hud);
                             self.client.borrow_mut().toggle_sit();
                         }
                     }
-                    Event::InputUpdate(GameInput::MoveForward, state) => self.key_state.up = state,
-                    Event::InputUpdate(GameInput::MoveBack, state) => self.key_state.down = state,
-                    Event::InputUpdate(GameInput::MoveLeft, state) => self.key_state.left = state,
-                    Event::InputUpdate(GameInput::MoveRight, state) => self.key_state.right = state,
-                    Event::InputUpdate(GameInput::Glide, state) => {
-                        self.inputs.glide.set_state(state);
+                    Event::InputUpdate(GameInput::Dance, state)
+                        if state != self.key_state.toggle_dance =>
+                    {
+                        self.key_state.toggle_dance = state;
+                        if state {
+                            stop_auto_walk(&mut auto_walk, &mut self.key_state, &mut self.hud);
+                            self.client.borrow_mut().toggle_dance();
+                        }
+                    }
+                    Event::InputUpdate(GameInput::MoveForward, state) => {
+                        if state && global_state.settings.gameplay.stop_auto_walk_on_input {
+                            stop_auto_walk(&mut auto_walk, &mut self.key_state, &mut self.hud);
+                        }
+                        self.key_state.up = state
                     },
+                    Event::InputUpdate(GameInput::MoveBack, state) => {
+                        if state && global_state.settings.gameplay.stop_auto_walk_on_input {
+                            stop_auto_walk(&mut auto_walk, &mut self.key_state, &mut self.hud);
+                        }
+                        self.key_state.down = state
+                    },
+                    Event::InputUpdate(GameInput::MoveLeft, state) => {
+                        if state && global_state.settings.gameplay.stop_auto_walk_on_input {
+                            stop_auto_walk(&mut auto_walk, &mut self.key_state, &mut self.hud);
+                        }
+                        self.key_state.left = state
+                    },
+                    Event::InputUpdate(GameInput::MoveRight, state) => {
+                        if state && global_state.settings.gameplay.stop_auto_walk_on_input {
+                            stop_auto_walk(&mut auto_walk, &mut self.key_state, &mut self.hud);
+                        }
+                        self.key_state.right = state
+                    },
+                    Event::InputUpdate(GameInput::Glide, state)
+                        if state != self.key_state.toggle_glide =>
+                    {
+                        self.key_state.toggle_glide = state;
+                        if state {
+                            self.client.borrow_mut().toggle_glide();
+                        }
+                    }
                     Event::InputUpdate(GameInput::Climb, state) => {
                         self.key_state.climb_up = state;
                     },
@@ -400,6 +473,12 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::Interact, state) => {
                         let mut client = self.client.borrow_mut();
 
+                        // Collect terrain sprites
+                        if let Some(select_pos) = self.scene.select_pos() {
+                            client.collect_block(select_pos);
+                        }
+
+                        // Collect lootable entities
                         let player_pos = client
                             .state()
                             .read_storage::<comp::Pos>()
@@ -442,6 +521,21 @@ impl PlayState for SessionState {
                             _ => {},
                         };
                     },
+                    Event::InputUpdate(GameInput::AutoWalk, state) => {
+                        match (global_state.settings.gameplay.auto_walk_behavior, state) {
+                            (PressBehavior::Toggle, true) => {
+                                auto_walk = !auto_walk;
+                                self.key_state.auto_walk = auto_walk;
+                                self.hud.auto_walk(auto_walk);
+                            },
+                            (PressBehavior::Hold, state) => {
+                                auto_walk = state;
+                                self.key_state.auto_walk = auto_walk;
+                                self.hud.auto_walk(auto_walk);
+                            },
+                            _ => {},
+                        }
+                    },
                     Event::AnalogGameInput(input) => match input {
                         AnalogGameInput::MovementX(v) => {
                             self.key_state.analog_matrix.x = v;
@@ -452,6 +546,12 @@ impl PlayState for SessionState {
                         other => {
                             self.scene.handle_input_event(Event::AnalogGameInput(other));
                         },
+                    },
+                    Event::ScreenshotMessage(screenshot_message) => {
+                        self.hud.new_message(comp::ChatMsg {
+                            chat_type: comp::ChatType::CommandInfo,
+                            message: screenshot_message,
+                        })
                     },
 
                     // Pass all other events to the scene
@@ -481,7 +581,7 @@ impl PlayState for SessionState {
                 || !global_state.singleplayer.as_ref().unwrap().is_paused()
             {
                 // Perform an in-game tick.
-                match self.tick(clock.get_avg_delta()) {
+                match self.tick(clock.get_avg_delta(), global_state) {
                     Ok(TickAction::Continue) => {}, // Do nothing
                     Ok(TickAction::Disconnect) => return PlayStateResult::Pop, // Go to main menu
                     Err(err) => {
@@ -594,6 +694,14 @@ impl PlayState for SessionState {
                         global_state.settings.gameplay.sct_damage_batch = sct_damage_batch;
                         global_state.settings.save_to_file_warn();
                     },
+                    HudEvent::SpeechBubbleDarkMode(sbdm) => {
+                        global_state.settings.gameplay.speech_bubble_dark_mode = sbdm;
+                        global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::SpeechBubbleIcon(sbi) => {
+                        global_state.settings.gameplay.speech_bubble_icon = sbi;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::ToggleDebug(toggle_debug) => {
                         global_state.settings.gameplay.toggle_debug = toggle_debug;
                         global_state.settings.save_to_file_warn();
@@ -635,6 +743,10 @@ impl PlayState for SessionState {
                     },
                     HudEvent::ChatTransp(chat_transp) => {
                         global_state.settings.gameplay.chat_transp = chat_transp;
+                        global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::ChatCharName(chat_char_name) => {
+                        global_state.settings.gameplay.chat_character_name = chat_char_name;
                         global_state.settings.save_to_file_warn();
                     },
                     HudEvent::CrosshairType(crosshair_type) => {
@@ -686,7 +798,31 @@ impl PlayState for SessionState {
                     },
                     HudEvent::UseSlot(x) => self.client.borrow_mut().use_slot(x),
                     HudEvent::SwapSlots(a, b) => self.client.borrow_mut().swap_slots(a, b),
-                    HudEvent::DropSlot(x) => self.client.borrow_mut().drop_slot(x),
+                    HudEvent::DropSlot(x) => {
+                        let mut client = self.client.borrow_mut();
+                        client.drop_slot(x);
+                        if let comp::slot::Slot::Equip(equip_slot) = x {
+                            if let comp::slot::EquipSlot::Lantern = equip_slot {
+                                client.toggle_lantern();
+                            }
+                        }
+                    },
+                    HudEvent::ChangeHotbarState(state) => {
+                        let client = self.client.borrow();
+
+                        let server = &client.server_info.name;
+                        // If we are changing the hotbar state this CANNOT be None.
+                        let character_id = client.active_character_id.unwrap();
+
+                        // Get or update the ServerProfile.
+                        global_state
+                            .profile
+                            .set_hotbar_slots(server, character_id, state.slots);
+
+                        global_state.profile.save_to_file_warn();
+
+                        info!("Event! -> ChangedHotbarState")
+                    },
                     HudEvent::Ability3(state) => self.inputs.ability3.set_state(state),
                     HudEvent::ChangeFOV(new_fov) => {
                         global_state.settings.graphics.fov = new_fov;
@@ -695,6 +831,10 @@ impl PlayState for SessionState {
                         self.scene
                             .camera_mut()
                             .compute_dependents(&*self.client.borrow().state().terrain());
+                    },
+                    HudEvent::MapZoom(map_zoom) => {
+                        global_state.settings.gameplay.map_zoom = map_zoom;
+                        global_state.settings.save_to_file_warn();
                     },
                     HudEvent::ChangeGamma(new_gamma) => {
                         global_state.settings.graphics.gamma = new_gamma;
@@ -737,6 +877,12 @@ impl PlayState for SessionState {
                     },
                     HudEvent::ChangeFreeLookBehavior(behavior) => {
                         global_state.settings.gameplay.free_look_behavior = behavior;
+                    },
+                    HudEvent::ChangeAutoWalkBehavior(behavior) => {
+                        global_state.settings.gameplay.auto_walk_behavior = behavior;
+                    },
+                    HudEvent::ChangeStopAutoWalkOnInput(state) => {
+                        global_state.settings.gameplay.stop_auto_walk_on_input = state;
                     },
                 }
             }

@@ -220,14 +220,8 @@ impl Camera {
                     },
             );
 
-            // Snap when close enough in x/y, but lerp otherwise
-            if (self.focus.xy() - self.tgt_focus.xy()).magnitude_squared() > 2.0f32.powf(2.0) {
-                self.focus.x = lerped_focus.x;
-                self.focus.y = lerped_focus.y;
-            } else {
-                self.focus.x = self.tgt_focus.x;
-                self.focus.y = self.tgt_focus.y;
-            }
+            self.focus.x = lerped_focus.x;
+            self.focus.y = lerped_focus.y;
 
             // Always lerp in z
             self.focus.z = lerped_focus.z;

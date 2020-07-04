@@ -22,7 +22,7 @@ impl Event {
 
             fn hidpi_factor(&self) -> f32 { winit::Window::get_hidpi_factor(&self.0) as _ }
         }
-        convert_event!(event, &WindowRef(window.window())).map(|input| Self(input))
+        convert_event!(event, &WindowRef(window.window())).map(Self)
     }
 
     pub fn is_keyboard_or_mouse(&self) -> bool {

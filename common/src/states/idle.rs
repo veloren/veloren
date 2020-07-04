@@ -12,9 +12,8 @@ impl CharacterBehavior for Data {
 
         handle_move(data, &mut update, 1.0);
         handle_jump(data, &mut update);
-        handle_primary_wield(data, &mut update);
+        handle_wield(data, &mut update);
         handle_climb(data, &mut update);
-        handle_glide(data, &mut update);
         handle_dodge_input(data, &mut update);
 
         update
@@ -29,6 +28,18 @@ impl CharacterBehavior for Data {
     fn sit(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         attempt_sit(data, &mut update);
+        update
+    }
+
+    fn dance(&self, data: &JoinData) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        attempt_dance(data, &mut update);
+        update
+    }
+
+    fn glide_wield(&self, data: &JoinData) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        attempt_glide_wield(data, &mut update);
         update
     }
 

@@ -11,16 +11,17 @@ use common::{
     terrain::TerrainChunkSize,
     vol::RectVolSize,
 };
-use log::{debug, error};
 use specs::{
     Entities, Join, ReadExpect, ReadStorage, System, SystemData, World, WorldExt, Write,
     WriteStorage,
 };
+use tracing::{debug, error};
 use vek::*;
 
 /// This system will update region subscriptions based on client positions
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     type SystemData = (
         Entities<'a>,
         ReadExpect<'a, RegionMap>,
@@ -36,6 +37,7 @@ impl<'a> System<'a> for Sys {
         TrackedComps<'a>,
     );
 
+    #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
     fn run(
         &mut self,
         (
@@ -149,7 +151,7 @@ impl<'a> System<'a> for Sys {
                                             .map(|key| subscription.regions.contains(key))
                                             .unwrap_or(false)
                                         {
-                                            client.notify(ServerMsg::DeleteEntity(uid.into()));
+                                            client.notify(ServerMsg::DeleteEntity(uid));
                                         }
                                     }
                                 },
@@ -157,7 +159,7 @@ impl<'a> System<'a> for Sys {
                         }
                         // Tell client to delete entities in the region
                         for (&uid, _) in (&uids, region.entities()).join() {
-                            client.notify(ServerMsg::DeleteEntity(uid.into()));
+                            client.notify(ServerMsg::DeleteEntity(uid));
                         }
                     }
                     // Send deleted entities since they won't be processed for this client in entity
@@ -167,7 +169,7 @@ impl<'a> System<'a> for Sys {
                         .iter()
                         .flat_map(|v| v.iter())
                     {
-                        client.notify(ServerMsg::DeleteEntity(*uid));
+                        client.notify(ServerMsg::DeleteEntity(Uid(*uid)));
                     }
                 }
 
@@ -178,7 +180,7 @@ impl<'a> System<'a> for Sys {
                 ) {
                     // Send client intial info about the entities in this region if it was not
                     // already within the set of subscribed regions
-                    if subscription.regions.insert(key.clone()) {
+                    if subscription.regions.insert(key) {
                         if let Some(region) = region_map.get(key) {
                             for (pos, vel, ori, _, entity) in (
                                 &positions,
@@ -257,14 +259,15 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
             }
         }
 
-        if let Err(err) = world.write_storage().insert(entity, RegionSubscription {
+        if let Err(e) = world.write_storage().insert(entity, RegionSubscription {
             fuzzy_chunk,
             regions,
         }) {
-            error!("Failed to insert region subscription component: {:?}", err);
+            error!(?e, "Failed to insert region subscription component");
         }
     } else {
         debug!(
+            ?entity,
             "Failed to initialize region subcription. Couldn't retrieve all the neccesary \
              components on the provided entity"
         );

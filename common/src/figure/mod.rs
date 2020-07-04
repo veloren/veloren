@@ -18,7 +18,11 @@ use vek::*;
 pub type Segment = Dyna<Cell, ()>;
 
 impl From<&DotVoxData> for Segment {
-    fn from(dot_vox_data: &DotVoxData) -> Self {
+    fn from(dot_vox_data: &DotVoxData) -> Self { Segment::from_vox(dot_vox_data, false) }
+}
+
+impl Segment {
+    pub fn from_vox(dot_vox_data: &DotVoxData, flipped: bool) -> Self {
         if let Some(model) = dot_vox_data.models.get(0) {
             let palette = dot_vox_data
                 .palette
@@ -36,11 +40,20 @@ impl From<&DotVoxData> for Segment {
                 if let Some(&color) = palette.get(voxel.i as usize) {
                     segment
                         .set(
-                            Vec3::new(voxel.x, voxel.y, voxel.z).map(|e| i32::from(e)),
+                            Vec3::new(
+                                if flipped {
+                                    model.size.x as u8 - 1 - voxel.x
+                                } else {
+                                    voxel.x
+                                },
+                                voxel.y,
+                                voxel.z,
+                            )
+                            .map(i32::from),
                             Cell::new(color),
                         )
                         .unwrap();
-                }
+                };
             }
 
             segment
@@ -48,9 +61,7 @@ impl From<&DotVoxData> for Segment {
             Segment::filled(Vec3::zero(), Cell::empty(), ())
         }
     }
-}
 
-impl Segment {
     /// Transform cells
     pub fn map(mut self, transform: impl Fn(Cell) -> Option<Cell>) -> Self {
         for pos in self.full_pos_iter() {
@@ -73,6 +84,7 @@ impl Segment {
 pub struct DynaUnionizer<V: Vox>(Vec<(Dyna<V, ()>, Vec3<i32>)>);
 
 impl<V: Vox + Copy> DynaUnionizer<V> {
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self { DynaUnionizer(Vec::new()) }
 
     pub fn add(mut self, dyna: Dyna<V, ()>, offset: Vec3<i32>) -> Self {
@@ -87,6 +99,7 @@ impl<V: Vox + Copy> DynaUnionizer<V> {
         }
     }
 
+    #[allow(clippy::neg_multiply)] // TODO: Pending review in #587
     pub fn unify(self) -> (Dyna<V, ()>, Vec3<i32>) {
         if self.0.is_empty() {
             return (Dyna::filled(Vec3::zero(), V::empty(), ()), Vec3::zero());
@@ -195,7 +208,7 @@ impl MatSegment {
                         voxel.y,
                         voxel.z,
                     )
-                    .map(|e| i32::from(e)),
+                    .map(i32::from),
                     block,
                 )
                 .unwrap();

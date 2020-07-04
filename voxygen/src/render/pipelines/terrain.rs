@@ -50,6 +50,7 @@ gfx_defines! {
 }
 
 impl Vertex {
+    #[allow(clippy::identity_op)] // TODO: Pending review in #587
     pub fn new(atlas_pos: Vec2<u16>, pos: Vec3<f32>, norm: Vec3<f32>, meta: bool) -> Self {
         const EXTRA_NEG_Z: f32 = 32768.0;
 

@@ -22,35 +22,37 @@ use core::{
     hash::{BuildHasherDefault, Hash},
     ops::Range,
 };
-use fxhash::FxHasher32;
+use fxhash::{FxHasher32, FxHasher64};
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
+use tracing::{debug, info, warn};
 use vek::*;
 
 const INITIAL_CIV_COUNT: usize = (crate::sim::WORLD_SIZE.x * crate::sim::WORLD_SIZE.y * 3) / 65536; //48 at default scale
 
+#[allow(clippy::type_complexity)] // TODO: Pending review in #587
 #[derive(Default)]
 pub struct Civs {
     civs: Store<Civ>,
     places: Store<Place>,
 
     tracks: Store<Track>,
-    /// We use this hasher (FxHasher32) because
+    /// We use this hasher (FxHasher64) because
     /// (1) we don't care about DDOS attacks (ruling out SipHash);
     /// (2) we care about determinism across computers (ruling out AAHash);
     /// (3) we have 8-byte keys (for which FxHash is fastest).
     track_map: HashMap<
         Id<Site>,
-        HashMap<Id<Site>, Id<Track>, BuildHasherDefault<FxHasher32>>,
-        BuildHasherDefault<FxHasher32>,
+        HashMap<Id<Site>, Id<Track>, BuildHasherDefault<FxHasher64>>,
+        BuildHasherDefault<FxHasher64>,
     >,
 
     sites: Store<Site>,
 }
 
 // Change this to get rid of particularly horrid seeds
-const SEED_SKIP: u8 = 1;
+const SEED_SKIP: u8 = 0;
 
 pub struct GenCtx<'a, R: Rng> {
     sim: &'a mut WorldSim,
@@ -69,43 +71,19 @@ impl<'a, R: Rng> GenCtx<'a, R> {
 }
 
 impl Civs {
+    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     pub fn generate(seed: u32, sim: &mut WorldSim) -> Self {
         let mut this = Self::default();
         let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
-        // let path_rng = RandomField::new(rng.gen());
-
         let mut ctx = GenCtx { sim, rng };
 
         for _ in 0..INITIAL_CIV_COUNT {
-            log::info!("Creating civilisation...");
+            debug!("Creating civilisation...");
             if this.birth_civ(&mut ctx.reseed()).is_none() {
-                log::warn!("Failed to find starting site for civilisation.");
+                warn!("Failed to find starting site for civilisation.");
             }
         }
-
-        /* {
-            let v = (0..sim.chunks.len() as i32).collect::<Vec<_>>();
-            // Find edge wewghts.
-            let e = (0..sim.chunks.len() as i32)
-                .into_par_iter()
-                .flat_map(|posi| {
-                    let pos = uniform_idx_as_vec2(posi);
-                    NEIGHBORS
-                        .iter()
-                        .enumerate()
-                        .filter_map(|(idx, dir)| walk_in_dir(sim, pos, dir).map(|w| (w, (posi * NEIGHBORS.len() + idx) as i32)))
-                })
-                .collect::<Vec<_>>();
-            // Connect all civiizations with paths simultaneously using a minimum spanning tree.
-            let mst = par_boruvka(
-                v, e,
-                |u, v| vec2_as_uniform_idx(u, v) as i32,
-                |posi| uniform_idx_as_vec2(posi).x,
-                |posi| uniform_idx_as_vec2(posi).y,
-            );
-            // Add path connections for all edges.
-            G
-        } */
+        info!(?INITIAL_CIV_COUNT, "all civilisations created");
 
         for _ in 0..INITIAL_CIV_COUNT * 3 {
             attempt(5, || {
@@ -189,7 +167,9 @@ impl Civs {
         }
 
         // Place sites in world
+        let mut cnt = 0;
         for site in this.sites.iter() {
+            cnt += 1;
             let wpos = site
                 .center
                 .map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
@@ -216,8 +196,9 @@ impl Civs {
                     .get_mut(pos)
                     .map(|chunk| chunk.sites.push(world_site.clone()));
             }
-            log::info!("Placed site at {:?}", site.center);
+            debug!(?site.center, "Placed site at location");
         }
+        info!(?cnt, "all sites placed");
 
         //this.display_info();
 
@@ -229,6 +210,7 @@ impl Civs {
     pub fn sites(&self) -> impl Iterator<Item = &Site> + '_ { self.sites.iter() }
 
     #[allow(dead_code)]
+    #[allow(clippy::print_literal)] // TODO: Pending review in #587
     fn display_info(&self) {
         for (id, civ) in self.civs.iter_ids() {
             println!("# Civilisation {:?}", id);
@@ -281,7 +263,7 @@ impl Civs {
         let transition =
             |a: &Id<Site>, b: &Id<Site>| self.tracks.get(self.track_between(*a, *b).unwrap()).cost;
         let satisfied = |p: &Id<Site>| *p == b;
-        // We use this hasher (FxHasher32) because
+        // We use this hasher (FxHasher64) because
         // (1) we don't care about DDOS attacks (ruling out SipHash);
         // (2) we care about determinism across computers (ruling out AAHash);
         // (3) we have 8-byte keys (for which FxHash is fastest).
@@ -289,7 +271,7 @@ impl Civs {
             100,
             a,
             heuristic,
-            BuildHasherDefault::<FxHasher32>::default(),
+            BuildHasherDefault::<FxHasher64>::default(),
         );
         astar
             .poll(100, heuristic, neighbors, transition, satisfied)
@@ -336,12 +318,12 @@ impl Civs {
         loc: Vec2<i32>,
         area: Range<usize>,
     ) -> Option<Id<Place>> {
-        // We use this hasher (FxHasher32) because
+        // We use this hasher (FxHasher64) because
         // (1) we don't care about DDOS attacks (ruling out SipHash);
         // (2) we care about determinism across computers (ruling out AAHash);
         // (3) we have 8-byte keys (for which FxHash is fastest).
-        let mut dead = HashSet::with_hasher(BuildHasherDefault::<FxHasher32>::default());
-        let mut alive = HashSet::with_hasher(BuildHasherDefault::<FxHasher32>::default());
+        let mut dead = HashSet::with_hasher(BuildHasherDefault::<FxHasher64>::default());
+        let mut alive = HashSet::with_hasher(BuildHasherDefault::<FxHasher64>::default());
         alive.insert(loc);
 
         // Fill the surrounding area
@@ -466,62 +448,6 @@ impl Civs {
         Some(site)
     }
 
-    /* fn write_paths(&mut self, ctx: &mut GenCtx<impl Rng>, path_rng: &Vec2<RandomField>, paths: impl Iterator<(i32, i32, usize)>) {
-        paths.for_each(|(i, j, neighbor)| {
-            let neighbor = neighbor & 7;
-            let to_neighbor_dir = NEIGHBORS[neighbor];
-            let from_neighbor_dir = NEIGHBORS[7 - neighbor];
-            let from_idx = Vec2::new(i, j);
-            let to_idx = from_idx + to_neighbor_dir;
-            let from_chunk = ctx.sim.get_mut(from_idx).unwrap();
-            from_chunk.path.neighbors |= 1 << to_neighbor_dir;
-            from_chunk.path.offset = path_rng.map(|rng| (rng.get(from_idx) & 31) as f32);
-            let to_chunk = ctx.sim.get_mut(to_idx).unwrap();
-            to_chunk.path.neighbors |= 1 << from_neighbor_dir;
-            to_chunk.path.offset = path_rng.map(|rng| (rng.get(to_idx) & 31) as f32);
-
-            // from_idx.path.neighbors |= 1 << ((to_prev_idx as u8 + 4) % 8);
-            // ctx.sim.get_mut(locs[2]).unwrap().path.neighbors |=
-            //     1 << ((to_next_idx as u8 + 4) % 8);
-            // let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
-            // TODO: Split out so we don't run these repeatedly on the same chunk.
-            // to_idx.path.offset = path_rng.map(|rng| (rng.get(to_idx) & 31) as f32);
-        });
-        /* for locs in path.nodes().windows(3) {
-            let to_prev_idx = NEIGHBORS
-                .iter()
-                .enumerate()
-                .find(|(_, dir)| **dir == locs[0] - locs[1])
-                .expect("Track locations must be neighbors")
-                .0;
-            let to_next_idx = NEIGHBORS
-                .iter()
-                .enumerate()
-                .find(|(_, dir)| **dir == locs[2] - locs[1])
-                .expect("Track locations must be neighbors")
-                .0;
-
-            ctx.sim.get_mut(locs[0]).unwrap().path.neighbors |=
-                1 << ((to_prev_idx as u8 + 4) % 8);
-            ctx.sim.get_mut(locs[2]).unwrap().path.neighbors |=
-                1 << ((to_next_idx as u8 + 4) % 8);
-            let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
-            chunk.path.neighbors |=
-                (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
-            chunk.path.offset = Vec2::new(
-                ctx.rng.gen_range(-16.0, 16.0),
-                ctx.rng.gen_range(-16.0, 16.0),
-            );
-        } */
-
-        /* // Take note of the track
-        let track = self.tracks.insert(Track { cost, path });
-        self.track_map
-            .entry(site)
-            .or_default()
-            .insert(nearby, track); */
-    } */
-
     fn tick(&mut self, _ctx: &mut GenCtx<impl Rng>, years: f32) {
         for site in self.sites.iter_mut() {
             site.simulate(years, &self.places.get(site.place).nat_res);
@@ -610,7 +536,7 @@ fn find_path(
     let transition =
         |a: &Vec2<i32>, b: &Vec2<i32>| 1.0 + walk_in_dir(sim, *a, *b - *a).unwrap_or(10000.0);
     let satisfied = |l: &Vec2<i32>| *l == b;
-    // We use this hasher (FxHasher32) because
+    // We use this hasher (FxHasher64) because
     // (1) we don't care about DDOS attacks (ruling out SipHash);
     // (2) we care about determinism across computers (ruling out AAHash);
     // (3) we have 8-byte keys (for which FxHash is fastest).
@@ -618,7 +544,7 @@ fn find_path(
         20000,
         a,
         heuristic,
-        BuildHasherDefault::<FxHasher32>::default(),
+        BuildHasherDefault::<FxHasher64>::default(),
     );
     astar
         .poll(20000, heuristic, neighbors, transition, satisfied)
@@ -682,6 +608,8 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>) -> bool {
 }
 
 /// Attempt to search for a location that's suitable for site construction
+#[allow(clippy::useless_conversion)] // TODO: Pending review in #587
+#[allow(clippy::or_fun_call)] // TODO: Pending review in #587
 fn find_site_loc(ctx: &mut GenCtx<impl Rng>, near: Option<(Vec2<i32>, f32)>) -> Option<Vec2<i32>> {
     const MAX_ATTEMPTS: usize = 100;
     let mut loc = None;
@@ -850,6 +778,7 @@ pub enum SiteKind {
 }
 
 impl Site {
+    #[allow(clippy::let_and_return)] // TODO: Pending review in #587
     pub fn simulate(&mut self, years: f32, nat_res: &NaturalResources) {
         // Insert natural resources into the economy
         if self.stocks[Fish] < nat_res.river {
@@ -1128,7 +1057,7 @@ impl<K: Copy + Eq + Hash, T: Clone> MapVec<K, T> {
             entries: self
                 .entries
                 .into_iter()
-                .map(|(s, v)| (s.clone(), f(s, v)))
+                .map(|(s, v)| (s, f(s, v)))
                 .collect(),
             default: U::default(),
         }

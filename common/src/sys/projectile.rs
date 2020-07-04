@@ -14,6 +14,7 @@ use vek::*;
 /// This system is responsible for handling projectile effect triggers
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         Read<'a, DeltaTime>,
@@ -119,20 +120,18 @@ impl<'a> System<'a> for Sys {
                         projectile::Effect::Possess => {
                             if other != projectile.owner.unwrap() {
                                 if let Some(owner) = projectile.owner {
-                                    server_emitter.emit(ServerEvent::Possess(owner.into(), other));
+                                    server_emitter.emit(ServerEvent::Possess(owner, other));
                                 }
                             }
                         },
                         _ => {},
                     }
                 }
-            } else {
-                if let Some(dir) = velocities
-                    .get(entity)
-                    .and_then(|vel| vel.0.try_normalized())
-                {
-                    ori.0 = dir.into();
-                }
+            } else if let Some(dir) = velocities
+                .get(entity)
+                .and_then(|vel| vel.0.try_normalized())
+            {
+                ori.0 = dir.into();
             }
 
             if projectile.time_left == Duration::default() {

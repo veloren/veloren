@@ -1,236 +1,48 @@
-image: registry.gitlab.com/veloren/veloren-docker-ci:latest
+stages:
+  - check
+  - build
+  - publish
 
 variables:
-    GIT_STRATEGY: fetch
-    GIT_DEPTH: 3
-    GIT_CLEAN_FLAGS: -f
+  # Note: this is deprecated!
+  # https://docs.gitlab.com/ee/ci/yaml/#git-strategy
+  # However in gitlab web ui it's set to fetch so it should be fine ¯\_(ツ)_/¯
+  GIT_STRATEGY: fetch
+  # Note: this is deprecated!
+  # ttps://docs.gitlab.com/ee/ci/yaml/#shallow-cloning
+  GIT_DEPTH: 3
+  GIT_CLEAN_FLAGS: -f
 
-stages:
-    - optional-builds
-    - check-compile
-    - build-post
-    - publish
+default:
+  image: registry.gitlab.com/veloren/veloren-docker-ci:latest
+  # https://docs.gitlab.com/ee/ci/pipelines/settings.html#auto-cancel-pending-pipelines
+  interruptible: true
+  # Retry automatically incase the runner times out or there's a runner failure
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
 
 before_script:
-    - source $HOME/.cargo/env
-    - df -h /
-    - free -h
-    - cargo --version
-    - export DISABLE_GIT_LFS_CHECK=true
-    - export VELOREN_ASSETS="$(pwd)/assets"
-    - echo "VELOREN_ASSETS=$VELOREN_ASSETS"
-    - rm -r target || echo "target doesnt exist, which is fine"
-    - ln -s /dockercache/veloren/target target
+  - source $HOME/.cargo/env
+  - df -h /
+  - free -h
+  - cargo --version
+  - export DISABLE_GIT_LFS_CHECK=true
+  - export VELOREN_ASSETS="$(pwd)/assets"
+  - echo "VELOREN_ASSETS=$VELOREN_ASSETS"
+  - rm -rf target || echo "some quickfix, idk why needed"
 
-# -- optional build
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_IID
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-.optional-release: &optional-release
-    stage: optional-builds
-    tags:
-        - veloren-docker
-    except:
-        - schedules
-    when: manual
-
-optional-release:linux:
-    <<: *optional-release
-    script:
-        - cargo build --verbose --release
-        - cp target/release/veloren-server-cli $CI_PROJECT_DIR
-        - cp target/release/veloren-voxygen $CI_PROJECT_DIR
-        - strip --strip-all veloren-server-cli
-        - strip --strip-all veloren-voxygen
-    artifacts:
-        paths:
-            - veloren-server-cli
-            - veloren-voxygen
-            - assets/
-            - LICENSE
-        expire_in: 1 week
-
-optional-release:windows:
-    <<: *optional-release
-    script:
-        - cargo build --verbose --target=x86_64-pc-windows-gnu --release
-        - cp target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
-        - cp target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
-    artifacts:
-        paths:
-            - veloren-server-cli.exe
-            - veloren-voxygen.exe
-            - assets/
-            - LICENSE
-        expire_in: 1 week
-
-# --
-
-# -- check
-
-check:
-    stage: check-compile
-    tags:
-        - veloren-docker
-    script:
-        - RUSTFLAGS="-D warnings" cargo check --locked
-
-code-quality:
-    stage: check-compile
-    tags:
-        - veloren-docker
-    script:
-        - cargo clippy -- --warn clippy::all
-        - cargo fmt --all -- --check
-
-security:
-    stage: check-compile
-    allow_failure: true
-    tags:
-        - veloren-docker
-    script:
-        - cargo audit
-
-# --
-
-# -- build-post
-
-unittests:
-    stage: build-post
-    when: delayed
-    start_in: 5 seconds
-    tags:
-        - veloren-docker
-    script:
-        - echo "Workaround, cargo tests fails due some rust files are already deleted, so we just stack cargo test. if its the os error, it wont appear on them all, if its a real error, it will retry and then fail"
-        - cargo test || ( sleep 10 && cargo test ) || ( sleep 10 && cargo test ) || cargo test || cargo test || cargo test || cargo test || cargo test || cargo test || cargo test || cargo test || cargo test || cargo test
-
-coverage:
-    stage: build-post
-    allow_failure: true
-    when: delayed
-    start_in: 5 seconds
-    tags:
-        - veloren-docker
-    script:
-        - echo "Workaround, tarpaulin fails due some rust files are already deleted, so we just stack tarpaulin. if its the os error, it wont appear on them all, if its a real error, it will retry and then fail"
-        - cargo tarpaulin -v || ( sleep 10 && cargo tarpaulin -v ) || ( sleep 10 && cargo tarpaulin -v ) || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v || cargo tarpaulin -v
-
-benchmarks:
-    stage: build-post
-    when: delayed
-    start_in: 5 seconds
-    tags:
-        - veloren-docker
-    script:
-        - unset DISABLE_GIT_LFS_CHECK
-        - cargo bench
-
-localization-status:
-    variables:
-        GIT_DEPTH: 0
-    stage: build-post
-    when: delayed
-    start_in: 5 seconds
-    allow_failure: true
-    tags:
-        - veloren-docker
-    script:
-        - cargo test -q test_all_localizations -- --nocapture --ignored
-
-linux:
-    stage: build-post
-    when: delayed
-    start_in: 5 seconds
-    only:
-        refs:
-            - /^r[0-9]+\.[0-9]+\.[0-9]+/
-            - /^v[0-9]+\.[0-9]+/
-            - /^master$/
-    tags:
-        - veloren-docker
-    script:
-        - cargo build --release
-        - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
-        - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
-        - strip --strip-all veloren-server-cli
-        - strip --strip-all veloren-voxygen
-    artifacts:
-        paths:
-            - veloren-server-cli
-            - veloren-voxygen
-            - assets/
-            - LICENSE
-        expire_in: 1 week
-
-windows:
-    stage: build-post
-    when: delayed
-    start_in: 5 seconds
-    only:
-        refs:
-            - /^r[0-9]+\.[0-9]+\.[0-9]+/
-            - /^v[0-9]+\.[0-9]+/
-            - /^master$/
-    tags:
-        - veloren-docker
-    script:
-        - cargo build --target=x86_64-pc-windows-gnu --release
-        - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
-        - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
-    artifacts:
-        paths:
-            - veloren-server-cli.exe
-            - veloren-voxygen.exe
-            - assets/
-            - LICENSE
-        expire_in: 1 week
-
-macos:
-    stage: build-post
-    when: delayed
-    start_in: 5 seconds
-    only:
-        refs:
-            - /^r[0-9]+\.[0-9]+\.[0-9]+/
-            - /^v[0-9]+\.[0-9]+/
-            - /^master$/
-    tags:
-        - veloren-docker
-    script:
-        - PATH="/dockercache/osxcross/target/bin:$PATH" COREAUDIO_SDK_PATH=/dockercache/osxcross/target/SDK/MacOSX10.13.sdk CC=o64-clang CXX=o64-clang++ cargo build --target x86_64-apple-darwin --release
-        - cp -r target/x86_64-apple-darwin/release/veloren-server-cli $CI_PROJECT_DIR
-        - cp -r target/x86_64-apple-darwin/release/veloren-voxygen $CI_PROJECT_DIR
-    artifacts:
-        paths:
-            - veloren-server-cli
-            - veloren-voxygen
-            - assets/
-            - LICENSE
-        expire_in: 1 week
-    allow_failure: true
-# --
-
-# -- publish
-
-docker:
-    stage: publish
-    when: delayed
-    start_in: 5 seconds
-    image:
-      name: gcr.io/kaniko-project/executor:debug
-      entrypoint: [""]
-    dependencies:
-        - linux
-    before_script:
-        - ls "$CI_PROJECT_DIR/server-cli/"
-    only:
-      refs:
-          - /^r[0-9]+\.[0-9]+\.[0-9]+/
-          - /^v[0-9]+\.[0-9]+/
-          - /^master$/
-    tags:
-        - veloren-docker
-    script:
-        - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-        - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/server-cli/Dockerfile --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}-server"
-
-# --
+include:
+  - local: .gitlab/CI/recompile.yml
+  - local: .gitlab/CI/release.yml
+  - local: .gitlab/CI/check.gitlab-ci.yml
+  - local: .gitlab/CI/build.gitlab-ci.yml
+  - local: .gitlab/CI/publish.gitlab-ci.yml

@@ -2,8 +2,8 @@ use super::{
     hotbar,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
-    slots, BarNumbers, ShortcutNumbers, XpBar, BLACK, CRITICAL_HP_COLOR, HP_COLOR, LOW_HP_COLOR,
-    MANA_COLOR, TEXT_COLOR, XP_COLOR,
+    slots, BarNumbers, ShortcutNumbers, Show, XpBar, BLACK, CRITICAL_HP_COLOR, HP_COLOR,
+    LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
 };
 use crate::{
     i18n::VoxygenLocalization,
@@ -18,7 +18,7 @@ use crate::{
 use common::comp::{
     item::{
         tool::{DebugKind, StaffKind, Tool, ToolKind},
-        ItemKind,
+        Hands, ItemKind,
     },
     CharacterState, ControllerInputs, Energy, Inventory, Loadout, Stats,
 };
@@ -135,9 +135,11 @@ pub struct Skillbar<'a> {
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     current_resource: ResourceType,
+    show: &'a Show,
 }
 
 impl<'a> Skillbar<'a> {
+    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn new(
         global_state: &'a GlobalState,
         imgs: &'a Imgs,
@@ -155,6 +157,7 @@ impl<'a> Skillbar<'a> {
         tooltip_manager: &'a mut TooltipManager,
         slot_manager: &'a mut slots::SlotManager,
         localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
+        show: &'a Show,
     ) -> Self {
         Self {
             global_state,
@@ -175,6 +178,7 @@ impl<'a> Skillbar<'a> {
             tooltip_manager,
             slot_manager,
             localized_strings,
+            show,
         }
     }
 }
@@ -204,6 +208,7 @@ impl<'a> Widget for Skillbar<'a> {
         }
     }
 
+    #[allow(clippy::unused_unit)] // TODO: Pending review in #587
     fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
@@ -230,63 +235,64 @@ impl<'a> Widget for Skillbar<'a> {
         let localized_strings = self.localized_strings;
 
         // Level Up Message
+        if !self.show.intro {
+            let current_level = self.stats.level.level();
+            const FADE_IN_LVL: f32 = 1.0;
+            const FADE_HOLD_LVL: f32 = 3.0;
+            const FADE_OUT_LVL: f32 = 2.0;
+            // Fade
+            // Check if no other popup is displayed and a new one is needed
+            if state.last_update_level.elapsed()
+                > Duration::from_secs_f32(FADE_IN_LVL + FADE_HOLD_LVL + FADE_OUT_LVL)
+                && state.last_level != current_level
+            {
+                // Update last_value
+                state.update(|s| s.last_level = current_level);
+                state.update(|s| s.last_update_level = Instant::now());
+            };
 
-        let current_level = self.stats.level.level();
-        const FADE_IN_LVL: f32 = 1.0;
-        const FADE_HOLD_LVL: f32 = 3.0;
-        const FADE_OUT_LVL: f32 = 2.0;
-        // Fade
-        // Check if no other popup is displayed and a new one is needed
-        if state.last_update_level.elapsed()
-            > Duration::from_secs_f32(FADE_IN_LVL + FADE_HOLD_LVL + FADE_OUT_LVL)
-            && state.last_level != current_level
-        {
-            // Update last_value
-            state.update(|s| s.last_level = current_level);
-            state.update(|s| s.last_update_level = Instant::now());
-        };
-
-        let seconds_level = state.last_update_level.elapsed().as_secs_f32();
-        let fade_level = if current_level == 1 {
-            0.0
-        } else if seconds_level < FADE_IN_LVL {
-            seconds_level / FADE_IN_LVL
-        } else if seconds_level < FADE_IN_LVL + FADE_HOLD_LVL {
-            1.0
-        } else {
-            (1.0 - (seconds_level - FADE_IN_LVL - FADE_HOLD_LVL) / FADE_OUT_LVL).max(0.0)
-        };
-        // Contents
-        Rectangle::fill_with([82.0 * 4.0, 40.0 * 4.0], color::TRANSPARENT)
-            .mid_top_with_margin_on(ui.window, 300.0)
-            .set(state.ids.level_align, ui);
-        let level_up_text = &localized_strings
-            .get("char_selection.level_fmt")
-            .replace("{level_nb}", &self.stats.level.level().to_string());
-        Text::new(&level_up_text)
-            .middle_of(state.ids.level_align)
-            .font_size(self.fonts.cyri.scale(30))
-            .font_id(self.fonts.cyri.conrod_id)
-            .color(Color::Rgba(0.0, 0.0, 0.0, fade_level))
-            .set(state.ids.level_message_bg, ui);
-        Text::new(&level_up_text)
-            .bottom_left_with_margins_on(state.ids.level_message_bg, 2.0, 2.0)
-            .font_size(self.fonts.cyri.scale(30))
-            .font_id(self.fonts.cyri.conrod_id)
-            .color(Color::Rgba(1.0, 1.0, 1.0, fade_level))
-            .set(state.ids.level_message, ui);
-        Image::new(self.imgs.level_up)
-            .w_h(82.0 * 4.0, 9.0 * 4.0)
-            .mid_top_with_margin_on(state.ids.level_align, 0.0)
-            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade_level)))
-            .graphics_for(state.ids.level_align)
-            .set(state.ids.level_up, ui);
-        Image::new(self.imgs.level_down)
-            .w_h(82.0 * 4.0, 9.0 * 4.0)
-            .mid_bottom_with_margin_on(state.ids.level_align, 0.0)
-            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade_level)))
-            .graphics_for(state.ids.level_align)
-            .set(state.ids.level_down, ui);
+            let seconds_level = state.last_update_level.elapsed().as_secs_f32();
+            let fade_level = if current_level == 1 {
+                0.0
+            } else if seconds_level < FADE_IN_LVL {
+                seconds_level / FADE_IN_LVL
+            } else if seconds_level < FADE_IN_LVL + FADE_HOLD_LVL {
+                1.0
+            } else {
+                (1.0 - (seconds_level - FADE_IN_LVL - FADE_HOLD_LVL) / FADE_OUT_LVL).max(0.0)
+            };
+            // Contents
+            Rectangle::fill_with([82.0 * 4.0, 40.0 * 4.0], color::TRANSPARENT)
+                .mid_top_with_margin_on(ui.window, 300.0)
+                .set(state.ids.level_align, ui);
+            let level_up_text = &localized_strings
+                .get("char_selection.level_fmt")
+                .replace("{level_nb}", &self.stats.level.level().to_string());
+            Text::new(&level_up_text)
+                .middle_of(state.ids.level_align)
+                .font_size(self.fonts.cyri.scale(30))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(Color::Rgba(0.0, 0.0, 0.0, fade_level))
+                .set(state.ids.level_message_bg, ui);
+            Text::new(&level_up_text)
+                .bottom_left_with_margins_on(state.ids.level_message_bg, 2.0, 2.0)
+                .font_size(self.fonts.cyri.scale(30))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(Color::Rgba(1.0, 1.0, 1.0, fade_level))
+                .set(state.ids.level_message, ui);
+            Image::new(self.imgs.level_up)
+                .w_h(82.0 * 4.0, 9.0 * 4.0)
+                .mid_top_with_margin_on(state.ids.level_align, 0.0)
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade_level)))
+                .graphics_for(state.ids.level_align)
+                .set(state.ids.level_up, ui);
+            Image::new(self.imgs.level_down)
+                .w_h(82.0 * 4.0, 9.0 * 4.0)
+                .mid_bottom_with_margin_on(state.ids.level_align, 0.0)
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade_level)))
+                .graphics_for(state.ids.level_align)
+                .set(state.ids.level_down, ui);
+        }
         // Death message
         if self.stats.is_dead {
             if let Some(key) = self
@@ -605,6 +611,8 @@ impl<'a> Widget for Skillbar<'a> {
             match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
                 Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
                     ToolKind::Sword(_) => self.imgs.twohsword_m1,
+                    ToolKind::Dagger(_) => self.imgs.onehdagger_m1,
+                    ToolKind::Shield(_) => self.imgs.onehshield_m1,
                     ToolKind::Hammer(_) => self.imgs.twohhammer_m1,
                     ToolKind::Axe(_) => self.imgs.twohaxe_m1,
                     ToolKind::Bow(_) => self.imgs.bow_m1,
@@ -667,76 +675,74 @@ impl<'a> Widget for Skillbar<'a> {
             },
         }
 
+        let active_tool_kind = match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+            Some(ItemKind::Tool(Tool { kind, .. })) => Some(kind),
+            _ => None,
+        };
+
+        let second_tool_kind = match self.loadout.second_item.as_ref().map(|i| &i.item.kind) {
+            Some(ItemKind::Tool(Tool { kind, .. })) => Some(kind),
+            _ => None,
+        };
+
+        let tool_kind = match (
+            active_tool_kind.map(|tk| tk.into_hands()),
+            second_tool_kind.map(|tk| tk.into_hands()),
+        ) {
+            (Some(Hands::TwoHand), _) => active_tool_kind,
+            (_, Some(Hands::OneHand)) => second_tool_kind,
+            (_, _) => None,
+        };
+
         Image::new(self.imgs.skillbar_slot_big_bg)
             .w_h(38.0 * scale, 38.0 * scale)
-            .color(
-                match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                    Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
-                        ToolKind::Bow(_) => Some(BG_COLOR_2),
-                        ToolKind::Staff(_) => Some(BG_COLOR_2),
-                        _ => Some(BG_COLOR_2),
-                    },
-                    _ => Some(BG_COLOR_2),
-                },
-            )
+            .color(match tool_kind {
+                Some(ToolKind::Bow(_)) => Some(BG_COLOR_2),
+                Some(ToolKind::Staff(_)) => Some(BG_COLOR_2),
+                _ => Some(BG_COLOR_2),
+            })
             .middle_of(state.ids.m2_slot)
             .set(state.ids.m2_slot_bg, ui);
-        Button::image(
-            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
-                    ToolKind::Sword(_) => self.imgs.charge,
-                    ToolKind::Hammer(_) => self.imgs.nothing,
-                    ToolKind::Axe(_) => self.imgs.nothing,
-                    ToolKind::Bow(_) => self.imgs.nothing,
-                    ToolKind::Staff(StaffKind::Sceptre) => self.imgs.heal_0,
-                    ToolKind::Staff(_) => self.imgs.staff_m2,
-                    ToolKind::Debug(DebugKind::Boost) => self.imgs.flyingrod_m2,
-                    _ => self.imgs.nothing,
-                },
-                _ => self.imgs.nothing,
-            },
-        ) // Insert Icon here
-        .w(
-            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
-                    ToolKind::Staff(_) => 30.0 * scale,
-                    _ => 38.0 * scale,
-                },
-                _ => 38.0 * scale,
-            },
-        )
-        .h(
-            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
-                    ToolKind::Staff(_) => 30.0 * scale,
-                    _ => 38.0 * scale,
-                },
-                _ => 38.0 * scale,
-            },
-        )
+        Button::image(match tool_kind {
+            Some(ToolKind::Sword(_)) => self.imgs.charge,
+            Some(ToolKind::Dagger(_)) => self.imgs.onehdagger_m2,
+            Some(ToolKind::Shield(_)) => self.imgs.onehshield_m2,
+            Some(ToolKind::Hammer(_)) => self.imgs.hammerleap,
+            Some(ToolKind::Axe(_)) => self.imgs.nothing,
+            Some(ToolKind::Bow(_)) => self.imgs.bow_m2,
+            Some(ToolKind::Staff(StaffKind::Sceptre)) => self.imgs.heal_0,
+            Some(ToolKind::Staff(_)) => self.imgs.staff_m2,
+            Some(ToolKind::Debug(DebugKind::Boost)) => self.imgs.flyingrod_m2,
+            _ => self.imgs.nothing,
+        }) // Insert Icon here
+        .w(match tool_kind {
+            Some(ToolKind::Staff(_)) => 30.0 * scale,
+            Some(ToolKind::Bow(_)) => 30.0 * scale,
+            _ => 38.0 * scale,
+        })
+        .h(match tool_kind {
+            Some(ToolKind::Staff(_)) => 30.0 * scale,
+            Some(ToolKind::Bow(_)) => 30.0 * scale,
+            _ => 38.0 * scale,
+        })
         .middle_of(state.ids.m2_slot_bg)
-        .image_color(
-            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
-                    ToolKind::Sword(_) => {
-                        if self.energy.current() as f64 >= 200.0 {
-                            Color::Rgba(1.0, 1.0, 1.0, 1.0)
-                        } else {
-                            Color::Rgba(0.3, 0.3, 0.3, 0.8)
-                        }
-                    },
-                    ToolKind::Staff(StaffKind::Sceptre) => {
-                        if self.energy.current() as f64 >= 400.0 {
-                            Color::Rgba(1.0, 1.0, 1.0, 1.0)
-                        } else {
-                            Color::Rgba(0.3, 0.3, 0.3, 0.8)
-                        }
-                    },
-                    _ => Color::Rgba(1.0, 1.0, 1.0, 1.0),
-                },
-                _ => Color::Rgba(1.0, 1.0, 1.0, 1.0),
+        .image_color(match tool_kind {
+            Some(ToolKind::Sword(_)) => {
+                if self.energy.current() as f64 >= 200.0 {
+                    Color::Rgba(1.0, 1.0, 1.0, 1.0)
+                } else {
+                    Color::Rgba(0.3, 0.3, 0.3, 0.8)
+                }
             },
-        )
+            Some(ToolKind::Staff(StaffKind::Sceptre)) => {
+                if self.energy.current() as f64 >= 400.0 {
+                    Color::Rgba(1.0, 1.0, 1.0, 1.0)
+                } else {
+                    Color::Rgba(0.3, 0.3, 0.3, 0.8)
+                }
+            },
+            _ => Color::Rgba(1.0, 1.0, 1.0, 1.0),
+        })
         .set(state.ids.m2_content, ui);
         // Slots
         let content_source = (self.hotbar, self.inventory, self.loadout, self.energy); // TODO: avoid this
@@ -790,13 +796,29 @@ impl<'a> Widget for Skillbar<'a> {
                         .1
                         .get(i)
                         .map(|item| (item.name(), item.description())),
-                    hotbar::SlotContents::Ability3 => Some((
-                        "Firebomb",
-                        "\nWhirls a big fireball into the air. \nExplodes the ground and does\na \
-                         big amount of damage",
-                    )),
+                    hotbar::SlotContents::Ability3 => content_source
+                        .2
+                        .active_item
+                        .as_ref()
+                        .map(|i| &i.item.kind)
+                        .and_then(|kind| match kind {
+                            ItemKind::Tool(Tool { kind, .. }) => match kind {
+                                ToolKind::Staff(_) => Some((
+                                    "Firebomb",
+                                    "\nWhirls a big fireball into the air. \nExplodes the ground \
+                                     and does\na big amount of damage",
+                                )),
+                                ToolKind::Debug(DebugKind::Boost) => Some((
+                                    "Possessing Arrow",
+                                    "\nShoots a poisonous arrow.\nLets you control your target.",
+                                )),
+                                _ => None,
+                            },
+                            _ => None,
+                        }),
                 })
         };
+
         const SLOT_TOOLTIP_UPSHIFT: f64 = 70.0;
         //Slot 5
         let slot = slot_maker

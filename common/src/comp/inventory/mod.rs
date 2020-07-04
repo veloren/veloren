@@ -24,6 +24,7 @@ pub enum Error {
     Full(Vec<Item>),
 }
 
+#[allow(clippy::len_without_is_empty)] // TODO: Pending review in #587
 impl Inventory {
     pub fn slots(&self) -> &[Option<Item>] { &self.slots }
 
@@ -164,7 +165,7 @@ impl Inventory {
             }
         }
         self.recount_items();
-        if leftovers.len() > 0 {
+        if !leftovers.is_empty() {
             Err(Error::Full(leftovers))
         } else {
             Ok(())
@@ -187,7 +188,7 @@ impl Inventory {
                 self.push(item).map(|overflow| leftovers.push(overflow));
             } // else drop item if it was already in
         }
-        if leftovers.len() > 0 {
+        if !leftovers.is_empty() {
             Err(Error::Full(leftovers))
         } else {
             Ok(())
@@ -299,7 +300,7 @@ impl Inventory {
 impl Default for Inventory {
     fn default() -> Inventory {
         let mut inventory = Inventory {
-            slots: vec![None; 18],
+            slots: vec![None; 36],
             amount: 0,
         };
         inventory.push(assets::load_expect_cloned("common.items.cheese"));
@@ -312,7 +313,7 @@ impl Component for Inventory {
     type Storage = HashMapStorage<Self>;
 }
 
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
 pub enum InventoryUpdateEvent {
     Init,
     Used,
@@ -321,7 +322,7 @@ pub enum InventoryUpdateEvent {
     Given,
     Swapped,
     Dropped,
-    Collected,
+    Collected(Item),
     CollectFailed,
     Possession,
     Debug,
@@ -331,7 +332,7 @@ impl Default for InventoryUpdateEvent {
     fn default() -> Self { Self::Init }
 }
 
-#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct InventoryUpdate {
     event: InventoryUpdateEvent,
 }
@@ -339,7 +340,7 @@ pub struct InventoryUpdate {
 impl InventoryUpdate {
     pub fn new(event: InventoryUpdateEvent) -> Self { Self { event } }
 
-    pub fn event(&self) -> InventoryUpdateEvent { self.event }
+    pub fn event(&self) -> InventoryUpdateEvent { self.event.clone() }
 }
 
 impl Component for InventoryUpdate {

@@ -1,3 +1,4 @@
+#[allow(clippy::single_component_path_imports)] // TODO: Pending review in #587
 pub mod consts;
 mod error;
 pub mod instances;
@@ -6,7 +7,6 @@ pub mod model;
 pub mod pipelines;
 pub mod renderer;
 pub mod texture;
-mod util;
 
 // Reexports
 pub use self::{
@@ -45,8 +45,6 @@ pub use gfx::texture::{FilterMethod, WrapMode};
 
 #[cfg(feature = "gl")]
 use gfx_device_gl as gfx_backend;
-
-use gfx;
 
 /// Used to represent a specific rendering configuration.
 ///

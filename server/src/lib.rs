@@ -1,5 +1,6 @@
 #![deny(unsafe_code)]
-#![feature(drain_filter)]
+#![allow(clippy::option_map_unit_fn)]
+#![feature(drain_filter, option_zip)]
 
 pub mod auth_provider;
 pub mod chunk_generator;
@@ -28,25 +29,30 @@ use crate::{
 };
 use common::{
     cmd::ChatCommand,
-    comp,
+    comp::{self, ChatType},
     event::{EventBus, ServerEvent},
-    msg::{server::WorldMapMsg, ClientMsg, ClientState, ServerInfo, ServerMsg},
-    net::PostOffice,
+    msg::{server::WorldMapMsg, ClientState, ServerInfo, ServerMsg},
     state::{State, TimeOfDay},
     sync::WorldSyncExt,
     terrain::TerrainChunkSize,
     vol::{ReadVol, RectVolSize},
 };
-use log::{debug, error};
-use metrics::ServerMetrics;
+use futures_executor::block_on;
+use futures_timer::Delay;
+use futures_util::{select, FutureExt};
+use metrics::{ServerMetrics, TickMetrics};
+use network::{Address, Network, Pid};
+use persistence::character::{CharacterLoader, CharacterLoaderResponseType, CharacterUpdater};
 use specs::{join::Join, Builder, Entity as EcsEntity, RunNow, SystemData, WorldExt};
 use std::{
     i32,
+    ops::{Deref, DerefMut},
     sync::Arc,
     time::{Duration, Instant},
 };
 #[cfg(not(feature = "worldgen"))]
 use test_world::{World, WORLD_SIZE};
+use tracing::{debug, error, info};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 #[cfg(feature = "worldgen")]
@@ -74,32 +80,42 @@ pub struct Server {
     world: Arc<World>,
     map: WorldMapMsg,
 
-    postoffice: PostOffice<ServerMsg, ClientMsg>,
+    network: Network,
 
     thread_pool: ThreadPool,
 
-    server_info: ServerInfo,
     metrics: ServerMetrics,
-
-    server_settings: ServerSettings,
+    tick_metrics: TickMetrics,
 }
 
 impl Server {
     /// Create a new `Server`
+    #[allow(clippy::expect_fun_call)] // TODO: Pending review in #587
+    #[allow(clippy::needless_update)] // TODO: Pending review in #587
     pub fn new(settings: ServerSettings) -> Result<Self, Error> {
         let mut state = State::default();
+        state.ecs_mut().insert(settings.clone());
         state.ecs_mut().insert(EventBus::<ServerEvent>::default());
-        state
-            .ecs_mut()
-            .insert(AuthProvider::new(settings.auth_server_address.clone()));
+        state.ecs_mut().insert(AuthProvider::new(
+            settings.auth_server_address.clone(),
+            settings.whitelist.clone(),
+        ));
         state.ecs_mut().insert(Tick(0));
         state.ecs_mut().insert(ChunkGenerator::new());
-        state.ecs_mut().insert(persistence::stats::Updater::new(
-            settings.persistence_db_dir.clone(),
-        ));
-        state.ecs_mut().insert(crate::settings::PersistenceDBDir(
-            settings.persistence_db_dir.clone(),
-        ));
+        state
+            .ecs_mut()
+            .insert(CharacterUpdater::new(settings.persistence_db_dir.clone()));
+        state
+            .ecs_mut()
+            .insert(CharacterLoader::new(settings.persistence_db_dir.clone()));
+        state
+            .ecs_mut()
+            .insert(persistence::character::CharacterUpdater::new(
+                settings.persistence_db_dir.clone(),
+            ));
+        state
+            .ecs_mut()
+            .insert(comp::AdminList(settings.admins.clone()));
 
         // System timers for performance monitoring
         state.ecs_mut().insert(sys::EntitySyncTimer::default());
@@ -109,16 +125,12 @@ impl Server {
         state.ecs_mut().insert(sys::TerrainSyncTimer::default());
         state.ecs_mut().insert(sys::TerrainTimer::default());
         state.ecs_mut().insert(sys::WaypointTimer::default());
-        state
-            .ecs_mut()
-            .insert(sys::StatsPersistenceTimer::default());
+        state.ecs_mut().insert(sys::PersistenceTimer::default());
 
         // System schedulers to control execution of systems
         state
             .ecs_mut()
-            .insert(sys::StatsPersistenceScheduler::every(Duration::from_secs(
-                10,
-            )));
+            .insert(sys::PersistenceScheduler::every(Duration::from_secs(10)));
 
         // Server-only components
         state.ecs_mut().register::<RegionSubscription>();
@@ -221,52 +233,74 @@ impl Server {
 
         state.ecs_mut().insert(DeletedEntities::default());
 
+        let mut metrics = ServerMetrics::new();
+        // register all metrics submodules here
+        let tick_metrics = TickMetrics::new(metrics.registry(), metrics.tick_clone())
+            .expect("Failed to initialize server tick metrics submodule.");
+        metrics
+            .run(settings.metrics_address)
+            .expect("Failed to initialize server metrics submodule.");
+
+        let thread_pool = ThreadPoolBuilder::new()
+            .name("veloren-worker".to_string())
+            .build();
+        let (network, f) = Network::new(Pid::new(), None);
+        thread_pool.execute(f);
+        block_on(network.listen(Address::Tcp(settings.gameserver_address)))?;
+
         let this = Self {
             state,
             world: Arc::new(world),
             map,
 
-            postoffice: PostOffice::bind(settings.gameserver_address)?,
+            network,
 
-            thread_pool: ThreadPoolBuilder::new()
-                .name("veloren-worker".into())
-                .build(),
+            thread_pool,
 
-            server_info: ServerInfo {
-                name: settings.server_name.clone(),
-                description: settings.server_description.clone(),
-                git_hash: common::util::GIT_HASH.to_string(),
-                git_date: common::util::GIT_DATE.to_string(),
-                auth_provider: settings.auth_server_address.clone(),
-            },
-            metrics: ServerMetrics::new(settings.metrics_address)
-                .expect("Failed to initialize server metrics submodule."),
-            server_settings: settings.clone(),
+            metrics,
+            tick_metrics,
         };
 
         // Run pending DB migrations (if any)
         debug!("Running DB migrations...");
 
-        if let Some(error) =
-            persistence::run_migrations(&this.server_settings.persistence_db_dir).err()
-        {
-            log::info!("Migration error: {}", format!("{:#?}", error));
+        if let Some(e) = persistence::run_migrations(&settings.persistence_db_dir).err() {
+            info!(?e, "Migration error");
         }
 
-        debug!("created veloren server with: {:?}", &settings);
+        debug!(?settings, "created veloren server with");
 
-        log::info!(
-            "Server version: {}[{}]",
-            *common::util::GIT_HASH,
-            *common::util::GIT_DATE
-        );
+        let git_hash = *common::util::GIT_HASH;
+        let git_date = *common::util::GIT_DATE;
+        info!(?git_hash, ?git_date, "Server version",);
 
         Ok(this)
+    }
+
+    pub fn get_server_info(&self) -> ServerInfo {
+        let settings = self.state.ecs().fetch::<ServerSettings>();
+        ServerInfo {
+            name: settings.server_name.clone(),
+            description: settings.server_description.clone(),
+            git_hash: common::util::GIT_HASH.to_string(),
+            git_date: common::util::GIT_DATE.to_string(),
+            auth_provider: settings.auth_server_address.clone(),
+        }
     }
 
     pub fn with_thread_pool(mut self, thread_pool: ThreadPool) -> Self {
         self.thread_pool = thread_pool;
         self
+    }
+
+    /// Get a reference to the server's settings
+    pub fn settings(&self) -> impl Deref<Target = ServerSettings> + '_ {
+        self.state.ecs().fetch::<ServerSettings>()
+    }
+
+    /// Get a mutable reference to the server's settings
+    pub fn settings_mut(&mut self) -> impl DerefMut<Target = ServerSettings> + '_ {
+        self.state.ecs_mut().fetch_mut::<ServerSettings>()
     }
 
     /// Get a reference to the server's game state.
@@ -299,24 +333,27 @@ impl Server {
         // 5) Go through the terrain update queue and apply all changes to
         //    the terrain
         // 6) Send relevant state updates to all clients
-        // 7) Update Metrics with current data
-        // 8) Finish the tick, passing control of the main thread back
+        // 7) Check for persistence updates related to character data, and message the
+        //    relevant entities
+        // 8) Update Metrics with current data
+        // 9) Finish the tick, passing control of the main thread back
         //    to the frontend
 
         // 1) Build up a list of events for this frame, to be passed to the frontend.
         let mut frontend_events = Vec::new();
-
-        // If networking has problems, handle them.
-        if let Some(err) = self.postoffice.error() {
-            return Err(err.into());
-        }
 
         // 2)
 
         let before_new_connections = Instant::now();
 
         // 3) Handle inputs from clients
-        frontend_events.append(&mut self.handle_new_connections()?);
+        block_on(async {
+            //TIMEOUT 0.01 ms for msg handling
+            select!(
+                _ = Delay::new(std::time::Duration::from_micros(10)).fuse() => Ok(()),
+                err = self.handle_new_connections(&mut frontend_events).fuse() => err,
+            )
+        })?;
 
         let before_message_system = Instant::now();
 
@@ -371,14 +408,64 @@ impl Server {
                 .map(|(entity, _, _)| entity)
                 .collect::<Vec<_>>()
         };
+
         for entity in to_delete {
-            if let Err(err) = self.state.delete_entity_recorded(entity) {
-                error!("Failed to delete agent outside the terrain: {:?}", err);
+            if let Err(e) = self.state.delete_entity_recorded(entity) {
+                error!(?e, "Failed to delete agent outside the terrain");
             }
         }
 
+        // 7 Persistence updates
+        let before_persistence_updates = Instant::now();
+
+        // Get character-related database responses and notify the requesting client
+        self.state
+            .ecs()
+            .read_resource::<persistence::character::CharacterLoader>()
+            .messages()
+            .for_each(|query_result| match query_result.result {
+                CharacterLoaderResponseType::CharacterList(result) => match result {
+                    Ok(character_list_data) => self.notify_client(
+                        query_result.entity,
+                        ServerMsg::CharacterListUpdate(character_list_data),
+                    ),
+                    Err(error) => self.notify_client(
+                        query_result.entity,
+                        ServerMsg::CharacterActionError(error.to_string()),
+                    ),
+                },
+                CharacterLoaderResponseType::CharacterData(result) => {
+                    let message = match *result {
+                        Ok(character_data) => ServerEvent::UpdateCharacterData {
+                            entity: query_result.entity,
+                            components: character_data,
+                        },
+                        Err(error) => {
+                            // We failed to load data for the character from the DB. Notify the
+                            // client to push the state back to character selection, with the error
+                            // to display
+                            self.notify_client(
+                                query_result.entity,
+                                ServerMsg::CharacterDataLoadError(error.to_string()),
+                            );
+
+                            // Clean up the entity data on the server
+                            ServerEvent::ExitIngame {
+                                entity: query_result.entity,
+                            }
+                        },
+                    };
+
+                    self.state
+                        .ecs()
+                        .read_resource::<EventBus<ServerEvent>>()
+                        .emit_now(message);
+                },
+            });
+
         let end_of_server_tick = Instant::now();
-        // 7) Update Metrics
+
+        // 8) Update Metrics
         // Get system timing info
         let entity_sync_nanos = self
             .state
@@ -402,97 +489,102 @@ impl Server {
         let stats_persistence_nanos = self
             .state
             .ecs()
-            .read_resource::<sys::StatsPersistenceTimer>()
+            .read_resource::<sys::PersistenceTimer>()
             .nanos as i64;
         let total_sys_ran_in_dispatcher_nanos = terrain_nanos + waypoint_nanos;
 
         // Report timing info
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["new connections"])
             .set((before_message_system - before_new_connections).as_nanos() as i64);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["state tick"])
             .set(
                 (before_handle_events - before_state_tick).as_nanos() as i64
                     - total_sys_ran_in_dispatcher_nanos,
             );
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["handle server events"])
             .set((before_update_terrain_and_regions - before_handle_events).as_nanos() as i64);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["update terrain and region map"])
             .set((before_sync - before_update_terrain_and_regions).as_nanos() as i64);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["world tick"])
             .set((before_entity_cleanup - before_world_tick).as_nanos() as i64);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["entity cleanup"])
-            .set((end_of_server_tick - before_entity_cleanup).as_nanos() as i64);
-        self.metrics
+            .set((before_persistence_updates - before_entity_cleanup).as_nanos() as i64);
+        self.tick_metrics
+            .tick_time
+            .with_label_values(&["persistence_updates"])
+            .set((end_of_server_tick - before_persistence_updates).as_nanos() as i64);
+        self.tick_metrics
             .tick_time
             .with_label_values(&["entity sync"])
             .set(entity_sync_nanos);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["message"])
             .set(message_nanos);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["sentinel"])
             .set(sentinel_nanos);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["subscription"])
             .set(subscription_nanos);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["terrain sync"])
             .set(terrain_sync_nanos);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["terrain"])
             .set(terrain_nanos);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["waypoint"])
             .set(waypoint_nanos);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["persistence:stats"])
             .set(stats_persistence_nanos);
 
         // Report other info
-        self.metrics
+        self.tick_metrics
             .player_online
             .set(self.state.ecs().read_storage::<Client>().join().count() as i64);
-        self.metrics
+        self.tick_metrics
             .time_of_day
             .set(self.state.ecs().read_resource::<TimeOfDay>().0);
-        if self.metrics.is_100th_tick() {
+        if self.tick_metrics.is_100th_tick() {
             let mut chonk_cnt = 0;
             let chunk_cnt = self.state.terrain().iter().fold(0, |a, (_, c)| {
                 chonk_cnt += 1;
                 a + c.sub_chunks_len()
             });
-            self.metrics.chonks_count.set(chonk_cnt as i64);
-            self.metrics.chunks_count.set(chunk_cnt as i64);
+            self.tick_metrics.chonks_count.set(chonk_cnt as i64);
+            self.tick_metrics.chunks_count.set(chunk_cnt as i64);
 
             let entity_count = self.state.ecs().entities().join().count();
-            self.metrics.entity_count.set(entity_count as i64);
+            self.tick_metrics.entity_count.set(entity_count as i64);
         }
         //self.metrics.entity_count.set(self.state.);
-        self.metrics
+        self.tick_metrics
             .tick_time
             .with_label_values(&["metrics"])
             .set(end_of_server_tick.elapsed().as_nanos() as i64);
+        self.metrics.tick();
 
-        // 8) Finish the tick, pass control back to the frontend.
+        // 9) Finish the tick, pass control back to the frontend.
 
         Ok(frontend_events)
     }
@@ -504,18 +596,22 @@ impl Server {
     }
 
     /// Handle new client connections.
-    fn handle_new_connections(&mut self) -> Result<Vec<Event>, Error> {
-        let mut frontend_events = Vec::new();
+    async fn handle_new_connections(
+        &mut self,
+        frontend_events: &mut Vec<Event>,
+    ) -> Result<(), Error> {
+        loop {
+            let participant = self.network.connected().await?;
+            let singleton_stream = participant.opened().await?;
 
-        for postbox in self.postoffice.new_postboxes() {
             let mut client = Client {
                 client_state: ClientState::Connected,
-                postbox,
+                singleton_stream: std::sync::Mutex::new(singleton_stream),
                 last_ping: self.state.get_time(),
                 login_msg_sent: false,
             };
 
-            if self.server_settings.max_players
+            if self.settings().max_players
                 <= self.state.ecs().read_storage::<Client>().join().count()
             {
                 // Note: in this case the client is dropped
@@ -529,7 +625,7 @@ impl Server {
                     .build();
                 // Send client all the tracked components currently attached to its entity as
                 // well as synced resources (currently only `TimeOfDay`)
-                log::debug!("Starting initial sync with client.");
+                debug!("Starting initial sync with client.");
                 self.state
                     .ecs()
                     .write_storage::<Client>()
@@ -539,22 +635,23 @@ impl Server {
                         // Send client their entity
                         entity_package: TrackedComps::fetch(&self.state.ecs())
                             .create_entity_package(entity, None, None, None),
-                        server_info: self.server_info.clone(),
+                        server_info: self.get_server_info(),
                         time_of_day: *self.state.ecs().read_resource(),
                         world_map: self.map.clone(),
                     });
-                log::debug!("Done initial sync with client.");
+                debug!("Done initial sync with client.");
 
                 frontend_events.push(Event::ClientConnected { entity });
             }
         }
-
-        Ok(frontend_events)
     }
 
-    pub fn notify_client(&self, entity: EcsEntity, msg: ServerMsg) {
+    pub fn notify_client<S>(&self, entity: EcsEntity, msg: S)
+    where
+        S: Into<ServerMsg>,
+    {
         if let Some(client) = self.state.ecs().write_storage::<Client>().get_mut(entity) {
-            client.notify(msg)
+            client.notify(msg.into())
         }
     }
 
@@ -579,7 +676,7 @@ impl Server {
         } else {
             self.notify_client(
                 entity,
-                ServerMsg::private(format!(
+                ChatType::CommandError.server_msg(format!(
                     "Unknown command '/{}'.\nType '/help' for available commands",
                     kwd
                 )),
@@ -594,7 +691,7 @@ impl Server {
             .is_some()
     }
 
-    pub fn number_of_players(&self) -> i64 { self.metrics.player_online.get() }
+    pub fn number_of_players(&self) -> i64 { self.tick_metrics.player_online.get() }
 }
 
 impl Drop for Server {

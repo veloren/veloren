@@ -1,3 +1,4 @@
+use tracing::warn;
 use vek::*;
 
 /// Type representing a direction using Vec3 that is normalized and NaN free
@@ -18,10 +19,16 @@ impl From<SerdeDir> for Dir {
     fn from(dir: SerdeDir) -> Self {
         let dir = dir.0;
         if dir.map(f32::is_nan).reduce_or() {
-            warn!("Deserialized dir containing NaNs, replacing with default");
+            warn!(
+                ?dir,
+                "Deserialized dir containing NaNs, replacing with default"
+            );
             Default::default()
         } else if !dir.is_normalized() {
-            warn!("Deserialized unnormalized dir, replacing with default");
+            warn!(
+                ?dir,
+                "Deserialized unnormalized dir, replacing with default"
+            );
             Default::default()
         } else {
             Self(dir)
@@ -88,7 +95,7 @@ impl std::ops::Deref for Dir {
 }
 
 impl From<Vec3<f32>> for Dir {
-    fn from(dir: Vec3<f32>) -> Self { Dir::new(dir.into()) }
+    fn from(dir: Vec3<f32>) -> Self { Dir::new(dir) }
 }
 /// Begone ye NaN's
 /// Slerp two `Vec3`s skipping the slerp if their directions are very close
@@ -102,21 +109,26 @@ fn slerp_normalized(from: vek::Vec3<f32>, to: vek::Vec3<f32>, factor: f32) -> ve
     // Ensure from is normalized
     #[cfg(debug_assertions)]
     {
-        if {
+        let unnormalized = {
             let len_sq = from.magnitude_squared();
             len_sq < 0.999 || len_sq > 1.001
-        } {
-            panic!("Called slerp_normalized with unnormalized from: {:?}", from);
+        };
+
+        if unnormalized {
+            panic!("Called slerp_normalized with unnormalized `from`: {}", from);
         }
     }
+
     // Ensure to is normalized
     #[cfg(debug_assertions)]
     {
-        if {
+        let unnormalized = {
             let len_sq = from.magnitude_squared();
             len_sq < 0.999 || len_sq > 1.001
-        } {
-            panic!("Called slerp_normalized with unnormalized to: {:?}", to);
+        };
+
+        if unnormalized {
+            panic!("Called slerp_normalized with unnormalized `to`: {}", to);
         }
     }
 

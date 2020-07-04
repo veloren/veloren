@@ -97,6 +97,7 @@ pub trait ReadVol: BaseVol {
     /// Get a reference to the voxel at the provided position in the volume.
     fn get<'a>(&'a self, pos: Vec3<i32>) -> Result<&'a Self::Vox, Self::Error>;
 
+    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     fn ray<'a>(
         &'a self,
         from: Vec3<f32>,
@@ -269,6 +270,6 @@ impl<'a, T: ReadVol> Iterator for DefaultVolIterator<'a, T> {
                 return Some((pos, vox));
             }
         }
-        return None;
+        None
     }
 }

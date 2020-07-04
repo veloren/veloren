@@ -12,9 +12,9 @@ use conrod_core::image::Id;
 use dot_vox::DotVoxData;
 use hashbrown::HashMap;
 use image::DynamicImage;
-use log::{error, warn};
 use serde_derive::{Deserialize, Serialize};
 use std::{fs::File, io::BufReader, sync::Arc};
+use tracing::{error, warn};
 use vek::*;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -30,12 +30,12 @@ pub enum ItemKey {
 impl From<&Item> for ItemKey {
     fn from(item: &Item) -> Self {
         match &item.kind {
-            ItemKind::Tool(Tool { kind, .. }) => ItemKey::Tool(kind.clone()),
-            ItemKind::Lantern(Lantern { kind, .. }) => ItemKey::Lantern(kind.clone()),
-            ItemKind::Armor { kind, .. } => ItemKey::Armor(kind.clone()),
-            ItemKind::Utility { kind, .. } => ItemKey::Utility(kind.clone()),
-            ItemKind::Consumable { kind, .. } => ItemKey::Consumable(kind.clone()),
-            ItemKind::Ingredient { kind, .. } => ItemKey::Ingredient(kind.clone()),
+            ItemKind::Tool(Tool { kind, .. }) => ItemKey::Tool(*kind),
+            ItemKind::Lantern(Lantern { kind, .. }) => ItemKey::Lantern(*kind),
+            ItemKind::Armor { kind, .. } => ItemKey::Armor(*kind),
+            ItemKind::Utility { kind, .. } => ItemKey::Utility(*kind),
+            ItemKind::Consumable { kind, .. } => ItemKey::Consumable(*kind),
+            ItemKind::Ingredient { kind, .. } => ItemKey::Ingredient(*kind),
         }
     }
 }
@@ -141,8 +141,8 @@ impl ItemImgs {
             // There was no specification in the ron
             None => {
                 warn!(
-                    "{:?} has no specified image file (note: hot-reloading won't work here)",
-                    item_kind
+                    ?item_kind,
+                    "missing specified image file (note: hot-reloading won't work here)",
                 );
                 None
             },
@@ -161,10 +161,7 @@ fn graceful_load_vox(specifier: &str) -> Arc<DotVoxData> {
     match assets::load::<DotVoxData>(full_specifier.as_str()) {
         Ok(dot_vox) => dot_vox,
         Err(_) => {
-            error!(
-                "Could not load vox file for item images: {}",
-                full_specifier
-            );
+            error!(?full_specifier, "Could not load vox file for item images",);
             assets::load_expect::<DotVoxData>("voxygen.voxel.not_found")
         },
     }
@@ -174,10 +171,7 @@ fn graceful_load_img(specifier: &str) -> Arc<DynamicImage> {
     match assets::load::<DynamicImage>(full_specifier.as_str()) {
         Ok(img) => img,
         Err(_) => {
-            error!(
-                "Could not load image file for item images: {}",
-                full_specifier
-            );
+            error!(?full_specifier, "Could not load image file for item images");
             assets::load_expect::<DynamicImage>("voxygen.element.not_found")
         },
     }

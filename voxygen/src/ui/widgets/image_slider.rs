@@ -178,6 +178,7 @@ where
         }
     }
 
+    #[allow(clippy::unused_unit)] // TODO: Pending review in #587
     fn style(&self) -> Self::Style { () }
 
     /// Update the state of the Slider.

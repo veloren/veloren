@@ -5,13 +5,6 @@ pub use cache::FigureModelCache;
 pub use load::load_mesh; // TODO: Don't make this public.
 
 use crate::{
-    anim::{
-        self, biped_large::BipedLargeSkeleton, bird_medium::BirdMediumSkeleton,
-        bird_small::BirdSmallSkeleton, character::CharacterSkeleton, critter::CritterSkeleton,
-        dragon::DragonSkeleton, fish_medium::FishMediumSkeleton, fish_small::FishSmallSkeleton,
-        golem::GolemSkeleton, object::ObjectSkeleton, quadruped_medium::QuadrupedMediumSkeleton,
-        quadruped_small::QuadrupedSmallSkeleton, Animation, Skeleton,
-    },
     ecs::comp::Interpolated,
     mesh::greedy::GreedyMesh,
     render::{
@@ -22,6 +15,13 @@ use crate::{
         camera::{Camera, CameraMode},
         LodData, SceneData,
     },
+};
+use anim::{
+    biped_large::BipedLargeSkeleton, bird_medium::BirdMediumSkeleton,
+    bird_small::BirdSmallSkeleton, character::CharacterSkeleton, critter::CritterSkeleton,
+    dragon::DragonSkeleton, fish_medium::FishMediumSkeleton, fish_small::FishSmallSkeleton,
+    golem::GolemSkeleton, object::ObjectSkeleton, quadruped_medium::QuadrupedMediumSkeleton,
+    quadruped_small::QuadrupedSmallSkeleton, Animation, Skeleton,
 };
 use common::{
     comp::{
@@ -40,7 +40,6 @@ use core::{
 };
 use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
-
 use specs::{Entity as EcsEntity, Join, WorldExt};
 use treeculler::{BVol, BoundingSphere};
 use vek::*;
@@ -65,7 +64,7 @@ struct FigureMgrStates {
 }
 
 impl FigureMgrStates {
-    fn new() -> Self {
+    pub fn default() -> Self {
         Self {
             character_states: HashMap::new(),
             quadruped_small_states: HashMap::new(),
@@ -291,7 +290,7 @@ impl FigureMgr {
             fish_small_model_cache: FigureModelCache::new(),
             biped_large_model_cache: FigureModelCache::new(),
             golem_model_cache: FigureModelCache::new(),
-            states: FigureMgrStates::new(),
+            states: FigureMgrStates::default(),
         }
     }
 
@@ -318,6 +317,7 @@ impl FigureMgr {
         self.golem_model_cache.clean(&mut self.col_lights, tick);
     }
 
+    #[allow(clippy::redundant_pattern_matching)] // TODO: Pending review in #587
     pub fn update_lighting(&mut self, scene_data: &SceneData) {
         let ecs = scene_data.state.ecs();
         for (entity, light_emitter) in (&ecs.entities(), &ecs.read_storage::<LightEmitter>()).join()
@@ -380,6 +380,7 @@ impl FigureMgr {
         }
     }
 
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn maintain(
         &mut self,
         renderer: &mut Renderer,
@@ -524,6 +525,16 @@ impl FigureMgr {
                 None
             };
 
+            let second_item_kind = loadout
+                .and_then(|l| l.second_item.as_ref())
+                .map(|i| &i.item.kind);
+
+            let second_tool_kind = if let Some(ItemKind::Tool(tool)) = second_item_kind {
+                Some(tool.kind)
+            } else {
+                None
+            };
+
             match body {
                 Body::Humanoid(_) => {
                     let (model, skeleton_attr) = self.model_cache.get_or_create_model(
@@ -558,7 +569,7 @@ impl FigureMgr {
                         // Standing
                         (true, false, _) => anim::character::StandAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
-                            (active_tool_kind, time),
+                            (active_tool_kind, second_tool_kind, time),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -566,7 +577,14 @@ impl FigureMgr {
                         // Running
                         (true, true, _) => anim::character::RunAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
-                            (active_tool_kind, vel.0, ori, state.last_ori, time),
+                            (
+                                active_tool_kind,
+                                second_tool_kind,
+                                vel.0,
+                                ori,
+                                state.last_ori,
+                                time,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -574,7 +592,13 @@ impl FigureMgr {
                         // In air
                         (false, _, false) => anim::character::JumpAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
-                            (active_tool_kind, time),
+                            (
+                                active_tool_kind,
+                                second_tool_kind,
+                                ori,
+                                state.last_ori,
+                                time,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -582,7 +606,14 @@ impl FigureMgr {
                         // Swim
                         (false, _, true) => anim::character::SwimAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
-                            (active_tool_kind, vel.0, ori.magnitude(), time),
+                            (
+                                active_tool_kind,
+                                second_tool_kind,
+                                vel.0,
+                                ori,
+                                state.last_ori,
+                                time,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -592,7 +623,13 @@ impl FigureMgr {
                         CharacterState::Roll { .. } => {
                             anim::character::RollAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, ori, state.last_ori, time),
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    ori,
+                                    state.last_ori,
+                                    time,
+                                ),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -601,7 +638,7 @@ impl FigureMgr {
                         CharacterState::BasicMelee(_) => {
                             anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, vel.0.magnitude(), time),
+                                (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -611,7 +648,7 @@ impl FigureMgr {
                             if data.exhausted {
                                 anim::character::ShootAnimation::update_skeleton(
                                     &target_base,
-                                    (active_tool_kind, vel.0.magnitude(), time),
+                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
                                     state.state_time,
                                     &mut state_animation_rate,
                                     skeleton_attr,
@@ -619,7 +656,14 @@ impl FigureMgr {
                             } else {
                                 anim::character::ChargeAnimation::update_skeleton(
                                     &target_base,
-                                    (active_tool_kind, vel.0.magnitude(), time),
+                                    (
+                                        active_tool_kind,
+                                        second_tool_kind,
+                                        vel.0.magnitude(),
+                                        ori,
+                                        state.last_ori,
+                                        time,
+                                    ),
                                     state.state_time,
                                     &mut state_animation_rate,
                                     skeleton_attr,
@@ -629,7 +673,7 @@ impl FigureMgr {
                         CharacterState::Boost(_) => {
                             anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, vel.0.magnitude(), time),
+                                (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -638,7 +682,16 @@ impl FigureMgr {
                         CharacterState::DashMelee(_) => {
                             anim::character::DashAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, time),
+                                (active_tool_kind, second_tool_kind, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::LeapMelee(_) => {
+                            anim::character::LeapAnimation::update_skeleton(
+                                &target_base,
+                                (active_tool_kind, second_tool_kind, vel.0, time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -648,7 +701,7 @@ impl FigureMgr {
                             triple_strike::Stage::First => {
                                 anim::character::AlphaAnimation::update_skeleton(
                                     &target_base,
-                                    (active_tool_kind, vel.0.magnitude(), time),
+                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
                                     state.state_time,
                                     &mut state_animation_rate,
                                     skeleton_attr,
@@ -657,7 +710,7 @@ impl FigureMgr {
                             triple_strike::Stage::Second => {
                                 anim::character::SpinAnimation::update_skeleton(
                                     &target_base,
-                                    (active_tool_kind, time),
+                                    (active_tool_kind, second_tool_kind, time),
                                     state.state_time,
                                     &mut state_animation_rate,
                                     skeleton_attr,
@@ -666,7 +719,7 @@ impl FigureMgr {
                             triple_strike::Stage::Third => {
                                 anim::character::BetaAnimation::update_skeleton(
                                     &target_base,
-                                    (active_tool_kind, vel.0.magnitude(), time),
+                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
                                     state.state_time,
                                     &mut state_animation_rate,
                                     skeleton_attr,
@@ -676,7 +729,7 @@ impl FigureMgr {
                         CharacterState::BasicBlock { .. } => {
                             anim::character::BlockIdleAnimation::update_skeleton(
                                 &CharacterSkeleton::new(),
-                                (active_tool_kind, time),
+                                (active_tool_kind, second_tool_kind, time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -695,7 +748,7 @@ impl FigureMgr {
                         CharacterState::Equipping { .. } => {
                             anim::character::EquipAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, vel.0.magnitude(), time),
+                                (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -704,7 +757,7 @@ impl FigureMgr {
                         CharacterState::Wielding { .. } => {
                             anim::character::WieldAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, vel.0.magnitude(), time),
+                                (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -713,7 +766,14 @@ impl FigureMgr {
                         CharacterState::Glide { .. } => {
                             anim::character::GlidingAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, vel.0, ori, state.last_ori, time),
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    vel.0,
+                                    ori,
+                                    state.last_ori,
+                                    time,
+                                ),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -722,7 +782,7 @@ impl FigureMgr {
                         CharacterState::Climb { .. } => {
                             anim::character::ClimbAnimation::update_skeleton(
                                 &CharacterSkeleton::new(),
-                                (active_tool_kind, vel.0, ori, time),
+                                (active_tool_kind, second_tool_kind, vel.0, ori, time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -731,7 +791,32 @@ impl FigureMgr {
                         CharacterState::Sit { .. } => {
                             anim::character::SitAnimation::update_skeleton(
                                 &CharacterSkeleton::new(),
-                                (active_tool_kind, time),
+                                (active_tool_kind, second_tool_kind, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::GlideWield { .. } => {
+                            anim::character::GlideWieldAnimation::update_skeleton(
+                                &CharacterSkeleton::new(),
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    vel.0,
+                                    ori,
+                                    state.last_ori,
+                                    time,
+                                ),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::Dance { .. } => {
+                            anim::character::DanceAnimation::update_skeleton(
+                                &CharacterSkeleton::new(),
+                                (active_tool_kind, second_tool_kind, time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1631,6 +1716,7 @@ impl FigureMgr {
         }
     }
 
+    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn render(
         &mut self,
         renderer: &mut Renderer,
@@ -1696,6 +1782,7 @@ impl FigureMgr {
         }
     }
 
+    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn render_player(
         &mut self,
         renderer: &mut Renderer,
@@ -1793,6 +1880,7 @@ impl FigureMgr {
             });
     } */
 
+    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     fn get_model_for_render(
         &mut self,
         renderer: &mut Renderer,
@@ -2263,8 +2351,10 @@ impl<S> DerefMut for FigureState<S> {
 
 impl<S: Skeleton> FigureState<S> {
     pub fn new(renderer: &mut Renderer, skeleton: S) -> Self {
-        let (bone_consts, lantern_offset) = skeleton
-            .compute_matrices(|mat| FigureBoneData::new(mat, mat.map_cols(|c| c.normalized())));
+        let (bone_mats, lantern_offset) = skeleton.compute_matrices();
+        let bone_consts = figure_bone_data_from_anim(bone_mats, |mat| {
+            FigureBoneData::new(mat, mat.map_cols(|c| c.normalized()))
+        });
         Self {
             meta: FigureStateMeta {
                 bone_consts: renderer.create_consts(&bone_consts).unwrap(),
@@ -2279,6 +2369,7 @@ impl<S: Skeleton> FigureState<S> {
         }
     }
 
+    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn update(
         &mut self,
         renderer: &mut Renderer,
@@ -2334,10 +2425,13 @@ impl<S: Skeleton> FigureState<S> {
         );
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();
 
-        let (new_bone_consts, lantern_offset) = self.skeleton.compute_matrices(|bone_mat| {
+        let (new_bone_mats, lantern_offset) = self.skeleton.compute_matrices();
+
+        let new_bone_consts = figure_bone_data_from_anim(new_bone_mats, |bone_mat| {
             let model_mat = mat * bone_mat;
             FigureBoneData::new(model_mat, model_mat.map_cols(|c| c.normalized()))
         });
+
         renderer
             .update_consts(
                 &mut self.meta.bone_consts,
@@ -2352,4 +2446,28 @@ impl<S: Skeleton> FigureState<S> {
     pub fn bone_consts(&self) -> &Consts<FigureBoneData> { &self.bone_consts }
 
     pub fn skeleton_mut(&mut self) -> &mut S { &mut self.skeleton }
+}
+
+fn figure_bone_data_from_anim(
+    mats: [anim::FigureBoneData; 16],
+    mut make_bone: impl FnMut(Mat4<f32>) -> FigureBoneData,
+) -> [FigureBoneData; 16] {
+    [
+        make_bone(mats[0].0),
+        make_bone(mats[1].0),
+        make_bone(mats[2].0),
+        make_bone(mats[3].0),
+        make_bone(mats[4].0),
+        make_bone(mats[5].0),
+        make_bone(mats[6].0),
+        make_bone(mats[7].0),
+        make_bone(mats[8].0),
+        make_bone(mats[9].0),
+        make_bone(mats[10].0),
+        make_bone(mats[11].0),
+        make_bone(mats[12].0),
+        make_bone(mats[13].0),
+        make_bone(mats[14].0),
+        make_bone(mats[15].0),
+    ]
 }

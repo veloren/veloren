@@ -1,20 +1,192 @@
-/// The Sfx Manager manages individual sfx event system, listens for
-/// SFX events and plays the sound at the requested position, or the current
-/// player position
+//! Manages individual sfx event system, listens for sfx events, and requests
+//! playback at the requested position and volume
+//!
+//! Veloren's sfx are managed through a configuration which lives in the
+//! codebase under `/assets/voxygen/audio/sfx.ron`.
+//!
+//! If there are errors while reading or deserialising the configuration file, a
+//! warning is logged and sfx will be disabled.
+//!
+//! Each entry in the configuration consists of an
+//! [SfxEvent](../../../veloren_common/event/enum.SfxEvent.html) item, with some
+//! additional information to allow playback:
+//! - `files` - the paths to the `.wav` files to be played for the sfx. minus
+//!   the file extension. This can be a single item if the same sound can be
+//!   played each time, or a list of files from which one is chosen at random to
+//!   be played.
+//! - `threshold` - the time that the system should wait between successive
+//!   plays. This avoids playing the sound with very fast successive repetition
+//!   when the character can maintain a state over a long period, such as
+//!   running or climbing.
+//!
+//! The following snippet details some entries in the configuration and how they
+//! map to the sound files:
+//! ```ignore
+//! Run: (
+//!    files: [
+//!        "voxygen.audio.sfx.footsteps.stepgrass_1",
+//!        "voxygen.audio.sfx.footsteps.stepgrass_2",
+//!        "voxygen.audio.sfx.footsteps.stepgrass_3",
+//!        "voxygen.audio.sfx.footsteps.stepgrass_4",
+//!        "voxygen.audio.sfx.footsteps.stepgrass_5",
+//!        "voxygen.audio.sfx.footsteps.stepgrass_6",
+//!    ],
+//!    threshold: 0.25, // wait 0.25s between plays
+//! ),
+//! Wield(Sword): ( // depends on the player's weapon
+//!    files: [
+//!        "voxygen.audio.sfx.weapon.sword_out",
+//!    ],
+//!    threshold: 0.5,
+//! ),
+//! ...
+//! ```
+//!
+//! These items (for example, the `Wield(Sword)` occasionally depend on some
+//! property which varies in game. The
+//! [SfxEvent](../../../veloren_common/event/enum.SfxEvent.html) documentation
+//! provides links to those variables, some examples are provided her for longer
+//! items:
+//!
+//! ```ignore
+//! // An inventory action
+//! Inventory(Dropped): (
+//!     files: [
+//!        "voxygen.audio.sfx.footsteps.stepgrass_4",
+//!    ],
+//!    threshold: 0.5,
+//! ),
+//! // An inventory action which depends upon the item
+//! Inventory(Consumed(Apple)): (
+//!    files: [
+//!        "voxygen.audio.sfx.inventory.consumable.apple",
+//!    ],
+//!    threshold: 0.5
+//! ),
+//! // An attack ability which depends on the weapon
+//! Attack(DashMelee, Sword): (
+//!     files: [
+//!         "voxygen.audio.sfx.weapon.sword_dash_01",
+//!         "voxygen.audio.sfx.weapon.sword_dash_02",
+//!     ],
+//!     threshold: 1.2,
+//! ),
+//! // A multi-stage attack ability which depends on the weapon
+//! Attack(TripleStrike(First), Sword): (
+//!     files: [
+//!         "voxygen.audio.sfx.weapon.sword_03",
+//!         "voxygen.audio.sfx.weapon.sword_04",
+//!     ],
+//!     threshold: 0.5,
+//! ),
+//! ```
+
 mod event_mapper;
 
 use crate::audio::AudioFrontend;
+
 use common::{
     assets,
-    comp::{Ori, Pos},
-    event::{EventBus, SfxEvent, SfxEventItem},
+    comp::{
+        item::{Consumable, ItemKind, ToolCategory},
+        CharacterAbilityType, InventoryUpdateEvent, Ori, Pos,
+    },
+    event::EventBus,
     state::State,
 };
 use event_mapper::SfxEventMapper;
 use hashbrown::HashMap;
 use serde::Deserialize;
 use specs::WorldExt;
+use std::convert::TryFrom;
+use tracing::warn;
 use vek::*;
+
+/// We watch the states of nearby entities in order to emit SFX at their
+/// position based on their state. This constant limits the radius that we
+/// observe to prevent tracking distant entities. It approximates the distance
+/// at which the volume of the sfx emitted is too quiet to be meaningful for the
+/// player.
+const SFX_DIST_LIMIT_SQR: f32 = 20000.0;
+
+pub struct SfxEventItem {
+    pub sfx: SfxEvent,
+    pub pos: Option<Vec3<f32>>,
+    pub vol: Option<f32>,
+}
+
+impl SfxEventItem {
+    pub fn new(sfx: SfxEvent, pos: Option<Vec3<f32>>, vol: Option<f32>) -> Self {
+        Self { sfx, pos, vol }
+    }
+
+    pub fn at_player_position(sfx: SfxEvent) -> Self {
+        Self {
+            sfx,
+            pos: None,
+            vol: None,
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
+pub enum SfxEvent {
+    Idle,
+    Run,
+    Roll,
+    Climb,
+    GliderOpen,
+    Glide,
+    GliderClose,
+    Jump,
+    Fall,
+    ExperienceGained,
+    LevelUp,
+    Attack(CharacterAbilityType, ToolCategory),
+    Wield(ToolCategory),
+    Unwield(ToolCategory),
+    Inventory(SfxInventoryEvent),
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
+pub enum SfxInventoryEvent {
+    Collected,
+    CollectedTool(ToolCategory),
+    CollectFailed,
+    Consumed(Consumable),
+    Debug,
+    Dropped,
+    Given,
+    Swapped,
+}
+
+impl From<&InventoryUpdateEvent> for SfxEvent {
+    fn from(value: &InventoryUpdateEvent) -> Self {
+        match value {
+            InventoryUpdateEvent::Collected(item) => {
+                // Handle sound effects for types of collected items, falling back to the
+                // default Collected event
+                match item.kind {
+                    ItemKind::Tool(tool) => SfxEvent::Inventory(SfxInventoryEvent::CollectedTool(
+                        ToolCategory::try_from(tool.kind).unwrap(),
+                    )),
+                    _ => SfxEvent::Inventory(SfxInventoryEvent::Collected),
+                }
+            },
+            InventoryUpdateEvent::CollectFailed => {
+                SfxEvent::Inventory(SfxInventoryEvent::CollectFailed)
+            },
+            InventoryUpdateEvent::Consumed(consumable) => {
+                SfxEvent::Inventory(SfxInventoryEvent::Consumed(*consumable))
+            },
+            InventoryUpdateEvent::Debug => SfxEvent::Inventory(SfxInventoryEvent::Debug),
+            InventoryUpdateEvent::Dropped => SfxEvent::Inventory(SfxInventoryEvent::Dropped),
+            InventoryUpdateEvent::Given => SfxEvent::Inventory(SfxInventoryEvent::Given),
+            InventoryUpdateEvent::Swapped => SfxEvent::Inventory(SfxInventoryEvent::Swapped),
+            _ => SfxEvent::Inventory(SfxInventoryEvent::Swapped),
+        }
+    }
+}
 
 #[derive(Deserialize)]
 pub struct SfxTriggerItem {
@@ -22,12 +194,8 @@ pub struct SfxTriggerItem {
     pub threshold: f64,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 pub struct SfxTriggers(HashMap<SfxEvent, SfxTriggerItem>);
-
-impl Default for SfxTriggers {
-    fn default() -> Self { Self(HashMap::new()) }
-}
 
 impl SfxTriggers {
     pub fn get_trigger(&self, trigger: &SfxEvent) -> Option<&SfxTriggerItem> { self.0.get(trigger) }
@@ -43,6 +211,7 @@ pub struct SfxMgr {
 }
 
 impl SfxMgr {
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {
         Self {
             triggers: Self::load_sfx_items(),
@@ -105,15 +274,22 @@ impl SfxMgr {
     }
 
     fn load_sfx_items() -> SfxTriggers {
-        let file = assets::load_file("voxygen.audio.sfx", &["ron"])
-            .expect("Failed to load the sfx config file");
+        match assets::load_file("voxygen.audio.sfx", &["ron"]) {
+            Ok(file) => match ron::de::from_reader(file) {
+                Ok(config) => config,
+                Err(error) => {
+                    warn!(
+                        "Error parsing sfx config file, sfx will not be available: {}",
+                        format!("{:#?}", error)
+                    );
 
-        match ron::de::from_reader(file) {
-            Ok(config) => config,
-            Err(e) => {
-                log::warn!(
-                    "Error parsing sfx config file, sfx will not be available: {}",
-                    format!("{:#?}", e)
+                    SfxTriggers::default()
+                },
+            },
+            Err(error) => {
+                warn!(
+                    "Error reading sfx config file, sfx will not be available: {}",
+                    format!("{:#?}", error)
                 );
 
                 SfxTriggers::default()

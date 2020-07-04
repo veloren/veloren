@@ -22,8 +22,6 @@ widget_ids! {
         mmap_button,
         mmap_plus,
         mmap_minus,
-        zone_display_bg,
-        zone_display,
         grid,
         indicator
     }
@@ -94,6 +92,7 @@ impl<'a> Widget for MiniMap<'a> {
         }
     }
 
+    #[allow(clippy::unused_unit)] // TODO: Pending review in #587
     fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {

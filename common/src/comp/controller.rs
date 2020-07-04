@@ -29,8 +29,10 @@ pub enum ControlEvent {
 pub enum ControlAction {
     SwapLoadout,
     Wield,
+    GlideWield,
     Unwield,
     Sit,
+    Dance,
     Stand,
 }
 

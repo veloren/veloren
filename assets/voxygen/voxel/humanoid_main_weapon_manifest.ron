@@ -19,7 +19,154 @@
         vox_spec: ("weapon.sword.short_2h-0", (-1.5, -6.5, -1.0)),
         color: None
     ),
-    // Axes
+    Sword(GreatswordDam0): (
+        vox_spec: ("weapon.sword.greatsword_2h_dam-0", (-1.0, -4.5, -6.5)),
+        color: None
+    ),
+    Sword(GreatswordDam1): (
+        vox_spec: ("weapon.sword.greatsword_2h_dam-1", (-1.0, -4.5, -6.5)),
+        color: None
+    ),
+    Sword(GreatswordDam2): (
+        vox_spec: ("weapon.sword.greatsword_2h_dam-2", (-1.0, -4.5, -6.5)),
+        color: None
+    ),
+    Sword(GreatswordSimple0): (
+        vox_spec: ("weapon.sword.greatsword_2h_simple-0", (-1.0, -4.5, -6.5)),
+        color: None
+    ),
+    Sword(GreatswordSimple1): (
+        vox_spec: ("weapon.sword.greatsword_2h_simple-1", (-1.0, -4.5, -6.5)),
+        color: None
+    ),
+    Sword(GreatswordSimple2): (
+        vox_spec: ("weapon.sword.greatsword_2h_simple-2", (-1.0, -4.5, -6.5)),
+        color: None
+    ),
+    Sword(GreatswordOrn0): (
+        vox_spec: ("weapon.sword.greatsword_2h_orn-0", (-1.0, -4.5, -7.5)),
+        color: None
+    ),
+    Sword(GreatswordOrn1): (
+        vox_spec: ("weapon.sword.greatsword_2h_orn-1", (-1.0, -4.5, -7.5)),
+        color: None
+    ),
+    Sword(GreatswordOrn2): (
+        vox_spec: ("weapon.sword.greatsword_2h_orn-2", (-1.0, -4.5, -7.5)),
+        color: None
+    ),
+    Sword(GreatswordFine0): (
+        vox_spec: ("weapon.sword.greatsword_2h_fine-0", (-2.0, -6.5, -8.0)),
+        color: None
+    ),
+    Sword(GreatswordFine1): (
+        vox_spec: ("weapon.sword.greatsword_2h_fine-1", (-2.0, -6.5, -8.0)),
+        color: None
+    ),
+    Sword(GreatswordFine2): (
+        vox_spec: ("weapon.sword.greatsword_2h_fine-2", (-2.0, -6.5, -8.0)),
+        color: None
+    ),
+    Sword(LongDam0): (
+        vox_spec: ("weapon.sword.long_2h_dam-0", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    Sword(LongDam1): (
+        vox_spec: ("weapon.sword.long_2h_dam-1", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    Sword(LongDam2): (
+        vox_spec: ("weapon.sword.long_2h_dam-2", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    Sword(LongDam3): (
+        vox_spec: ("weapon.sword.long_2h_dam-3", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    Sword(LongDam4): (
+        vox_spec: ("weapon.sword.long_2h_dam-4", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    Sword(LongDam5): (
+        vox_spec: ("weapon.sword.long_2h_dam-5", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    Sword(LongSimple0): (
+        vox_spec: ("weapon.sword.long_2h_simple-0", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    Sword(LongSimple1): (
+        vox_spec: ("weapon.sword.long_2h_simple-1", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    Sword(LongSimple2): (
+        vox_spec: ("weapon.sword.long_2h_simple-2", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    Sword(LongSimple3): (
+        vox_spec: ("weapon.sword.long_2h_simple-3", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    Sword(LongSimple4): (
+        vox_spec: ("weapon.sword.long_2h_simple-4", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    Sword(LongSimple5): (
+        vox_spec: ("weapon.sword.long_2h_simple-5", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    Sword(LongOrn0): (
+        vox_spec: ("weapon.sword.long_2h_orn-0", (-1.0, -3.5, -6.0)),
+        color: None
+    ),
+    Sword(LongOrn1): (
+        vox_spec: ("weapon.sword.long_2h_orn-1", (-1.0, -3.5, -6.0)),
+        color: None
+    ),
+    Sword(LongOrn2): (
+        vox_spec: ("weapon.sword.long_2h_orn-2", (-1.0, -3.5, -6.0)),
+        color: None
+    ),
+    Sword(LongOrn3): (
+        vox_spec: ("weapon.sword.long_2h_orn-3", (-1.0, -3.5, -6.0)),
+        color: None
+    ),
+    Sword(LongOrn4): (
+        vox_spec: ("weapon.sword.long_2h_orn-4", (-1.0, -3.5, -6.0)),
+        color: None
+    ),
+    Sword(LongOrn5): (
+        vox_spec: ("weapon.sword.long_2h_orn-5", (-1.0, -3.5, -6.0)),
+        color: None
+    ),
+    Sword(LongFine0): (
+        vox_spec: ("weapon.sword.long_2h_fine-0", (-2.0, -4.5, -6.0)),
+        color: None
+    ),
+    Sword(LongFine1): (
+        vox_spec: ("weapon.sword.long_2h_fine-1", (-2.0, -4.5, -6.0)),
+        color: None
+    ),
+    Sword(LongFine2): (
+        vox_spec: ("weapon.sword.long_2h_fine-2", (-2.0, -4.5, -6.0)),
+        color: None
+    ),
+    Sword(LongFine3): (
+        vox_spec: ("weapon.sword.long_2h_fine-3", (-2.0, -4.5, -6.0)),
+        color: None
+    ),
+    Sword(LongFine4): (
+        vox_spec: ("weapon.sword.long_2h_fine-4", (-2.0, -4.5, -6.0)),
+        color: None
+    ),
+    Sword(LongFine5): (
+        vox_spec: ("weapon.sword.long_2h_fine-5", (-2.0, -4.5, -6.0)),
+        color: None
+    ),
+     Sword(CultPurp0): (
+        vox_spec: ("weapon.sword.cultist_purp_2h-0", (-2.0, -4.5, -7.5)),
+        color: None
+    ),
     Axe(BasicAxe): (
         vox_spec: ("weapon.axe.rusty_2h", (-1.5, -5.0, -4.0)),
         color: None
@@ -31,12 +178,12 @@
     ),
     // Daggers
     Dagger(BasicDagger): (
-        vox_spec: ("weapon.hammer.rusty_2h", (-2.5, -5.5, -4.0)), // TODO
+        vox_spec: ("weapon.dagger.dagger_rusty", (-1.5, -3.0, -3.0)),
         color: None
     ),
     // Shields
     Shield(BasicShield): (
-        vox_spec: ("weapon.shield.wood-0", (-2.5, -6.5, -2.0)),
+        vox_spec: ("weapon.shield.wood-0", (-2.5, -5.5, -5.5)),
         color: None
     ),
     // Bows
@@ -113,13 +260,10 @@
     ),
     // Misc
     Debug(Boost): (
-        vox_spec: ("weapon.debug_wand", (-1.5, -9.5, -4.0)),
+        vox_spec: ("weapon.tool.broom_belzeshrub_purple", (-3.0, -4.0, -4.0)),
         color: None
-    ),
-    Debug(Possess): (
-        vox_spec: ("weapon.debug_wand", (-1.5, -9.5, -4.0)),
-        color: None
-    ),
+    ),    
+    // Misc
     Empty: (
             vox_spec: ("armor.empty", (-3.0, -3.5, 1.0)),
             color: None

@@ -1,12 +1,11 @@
 Item(
-    name: "Powerful Potion",
-    description: "Restores 100 Health\nA great monster was slain for this item\n\n<Right-Click to use>",
+    name: "Potent Potion",
+    description: "A potent healing potion.\n\nRestores 100 health on use.\n\n<Right-Click to use>",
     kind: Consumable(
         kind: Potion,
         effect: Health((
             amount: 100,
             cause: Item,
         )),
-		amount: 15,
     ),
 )

@@ -29,8 +29,12 @@ pub enum Chest {
     CultistBlue = 26,
     Steel0 = 27,
     Leather2 = 28,
+    Druid = 29,
+    Twig = 30,
+    Twigsleaves = 31,
+    Twigsflowers = 32,
 }
-pub const ALL_CHESTS: [Chest; 28] = [
+pub const ALL_CHESTS: [Chest; 32] = [
     Chest::Blue,
     Chest::Brown,
     Chest::Dark,
@@ -59,6 +63,10 @@ pub const ALL_CHESTS: [Chest; 28] = [
     Chest::CultistBlue,
     Chest::Steel0,
     Chest::Leather2,
+    Chest::Druid,
+    Chest::Twig,
+    Chest::Twigsleaves,
+    Chest::Twigsflowers,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -78,9 +86,13 @@ pub enum Belt {
     Cultist = 11,
     Leather2 = 12,
     Steel0 = 13,
+    Druid = 14,
+    Twig = 15,
+    Twigsleaves = 16,
+    Twigsflowers = 17,
 }
 
-pub const ALL_BELTS: [Belt; 14] = [
+pub const ALL_BELTS: [Belt; 18] = [
     Belt::None,
     Belt::Dark,
     Belt::TurqCloth,
@@ -95,6 +107,10 @@ pub const ALL_BELTS: [Belt; 14] = [
     Belt::Cultist,
     Belt::Leather2,
     Belt::Steel0,
+    Belt::Druid,
+    Belt::Twig,
+    Belt::Twigsleaves,
+    Belt::Twigsflowers,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -104,7 +120,7 @@ pub enum Pants {
     Blue = 1,
     Brown = 2,
     Dark = 3,
-    Green = 4,
+    Hunting = 4,
     Orange = 5,
     Kimono = 6,
     Assassin = 7,
@@ -119,13 +135,17 @@ pub enum Pants {
     CultistBlue = 16,
     Steel0 = 17,
     Leather2 = 18,
+    Druid = 19,
+    Twig = 20,
+    Twigsleaves = 21,
+    Twigsflowers = 22,
 }
-pub const ALL_PANTS: [Pants; 19] = [
+pub const ALL_PANTS: [Pants; 23] = [
     Pants::None,
     Pants::Blue,
     Pants::Brown,
     Pants::Dark,
-    Pants::Green,
+    Pants::Hunting,
     Pants::Orange,
     Pants::Kimono,
     Pants::Assassin,
@@ -140,6 +160,10 @@ pub const ALL_PANTS: [Pants; 19] = [
     Pants::CultistBlue,
     Pants::Steel0,
     Pants::Leather2,
+    Pants::Druid,
+    Pants::Twig,
+    Pants::Twigsleaves,
+    Pants::Twigsflowers,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -156,8 +180,12 @@ pub enum Hand {
     CultistBlue = 9,
     Steel0 = 10,
     Leather2 = 11,
+    Druid = 12,
+    Twig = 13,
+    Twigsleaves = 14,
+    Twigsflowers = 15,
 }
-pub const ALL_HANDS: [Hand; 11] = [
+pub const ALL_HANDS: [Hand; 15] = [
     Hand::Cloth,
     Hand::Assassin,
     Hand::Plate0,
@@ -169,6 +197,10 @@ pub const ALL_HANDS: [Hand; 11] = [
     Hand::CultistBlue,
     Hand::Steel0,
     Hand::Leather2,
+    Hand::Druid,
+    Hand::Twig,
+    Hand::Twigsleaves,
+    Hand::Twigsflowers,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -186,9 +218,14 @@ pub enum Foot {
     Cultist = 10,
     Steel0 = 11,
     Leather2 = 12,
+    JackalopeSlips = 13,
+    Druid = 14,
+    Twig = 15,
+    Twigsleaves = 16,
+    Twigsflowers = 17,
 }
 
-pub const ALL_FEET: [Foot; 12] = [
+pub const ALL_FEET: [Foot; 17] = [
     Foot::Dark,
     Foot::Sandal0,
     Foot::Jester,
@@ -201,6 +238,11 @@ pub const ALL_FEET: [Foot; 12] = [
     Foot::Cultist,
     Foot::Steel0,
     Foot::Leather2,
+    Foot::JackalopeSlips,
+    Foot::Druid,
+    Foot::Twig,
+    Foot::Twigsleaves,
+    Foot::Twigsflowers,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -219,8 +261,19 @@ pub enum Shoulder {
     CultistBlue = 11,
     Steel0 = 12,
     Leather2 = 13,
+    ClothBlue1 = 14,
+    IronSpikes = 15,
+    IronLeather0 = 16,
+    IronLeather1 = 17,
+    IronLeather2 = 18,
+    IronLeather3 = 19,
+    LeatherStrips = 20,
+    LeafyShoulder = 21,
+    TwiggyShoulder = 22,
+    FlowerShoulder = 23,
+    DruidShoulder = 24,
 }
-pub const ALL_SHOULDERS: [Shoulder; 13] = [
+pub const ALL_SHOULDERS: [Shoulder; 24] = [
     Shoulder::Brown1,
     Shoulder::Chain,
     Shoulder::Assassin,
@@ -234,6 +287,17 @@ pub const ALL_SHOULDERS: [Shoulder; 13] = [
     Shoulder::CultistBlue,
     Shoulder::Steel0,
     Shoulder::Leather2,
+    Shoulder::ClothBlue1,
+    Shoulder::IronSpikes,
+    Shoulder::IronLeather0,
+    Shoulder::IronLeather1,
+    Shoulder::IronLeather2,
+    Shoulder::IronLeather3,
+    Shoulder::LeatherStrips,
+    Shoulder::LeafyShoulder,
+    Shoulder::TwiggyShoulder,
+    Shoulder::FlowerShoulder,
+    Shoulder::DruidShoulder,
 ];
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]

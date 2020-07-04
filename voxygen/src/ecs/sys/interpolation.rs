@@ -4,13 +4,14 @@ use common::{
     state::DeltaTime,
     util::Dir,
 };
-use log::warn;
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
+use tracing::warn;
 use vek::*;
 
 /// This system will allow NPCs to modify their controller
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     type SystemData = (
         Entities<'a>,
         Read<'a, DeltaTime>,
@@ -45,7 +46,7 @@ impl<'a> System<'a> for Sys {
             interpolated
                 .insert(entity, Interpolated { pos, ori })
                 .err()
-                .map(|err| warn!("Error inserting Interpolated component: {}", err));
+                .map(|e| warn!(?e, "Error inserting Interpolated component"));
         }
         // Remove Interpolated component from entities which don't have a position or an
         // orientation or a velocity

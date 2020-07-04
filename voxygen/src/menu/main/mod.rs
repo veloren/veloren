@@ -7,9 +7,9 @@ use crate::{
 };
 use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
 use common::{assets::load_expect, clock::Clock, comp};
-use log::{error, warn};
 #[cfg(feature = "singleplayer")]
 use std::time::Duration;
+use tracing::{error, warn};
 use ui::{Event as MainMenuEvent, MainMenuUi};
 
 pub struct MainMenuState {
@@ -28,6 +28,7 @@ impl MainMenuState {
 const DEFAULT_PORT: u16 = 14004;
 
 impl PlayState for MainMenuState {
+    #[allow(clippy::useless_format)] // TODO: Pending review in #587
     fn play(&mut self, _: Direction, global_state: &mut GlobalState) -> PlayStateResult {
         // Set up an fps clock.
         let mut clock = Clock::start();
@@ -74,10 +75,10 @@ impl PlayState for MainMenuState {
                         std::rc::Rc::new(std::cell::RefCell::new(client)),
                     )));
                 },
-                Some(InitMsg::Done(Err(err))) => {
+                Some(InitMsg::Done(Err(e))) => {
                     client_init = None;
                     global_state.info_message = Some({
-                        let err = match err {
+                        let err = match e {
                             InitError::BadAddress(_) | InitError::NoAddress => {
                                 localized_strings.get("main.login.server_not_found").into()
                             },
@@ -105,7 +106,20 @@ impl PlayState for MainMenuState {
                                 client::Error::AlreadyLoggedIn => {
                                     localized_strings.get("main.login.already_logged_in").into()
                                 },
-                                client::Error::Network(e) => format!(
+                                client::Error::NotOnWhitelist => {
+                                    localized_strings.get("main.login.not_on_whitelist").into()
+                                },
+                                client::Error::NetworkErr(e) => format!(
+                                    "{}: {:?}",
+                                    localized_strings.get("main.login.network_error"),
+                                    e
+                                ),
+                                client::Error::ParticipantErr(e) => format!(
+                                    "{}: {:?}",
+                                    localized_strings.get("main.login.network_error"),
+                                    e
+                                ),
+                                client::Error::StreamErr(e) => format!(
                                     "{}: {:?}",
                                     localized_strings.get("main.login.network_error"),
                                     e
@@ -119,10 +133,9 @@ impl PlayState for MainMenuState {
                                         localized_strings.get("common.fatal_error"),
                                         e
                                     ),
-                                    client::AuthClientError::RequestError(_) => format!(
-                                        "{}: {}",
-                                        localized_strings.get("main.login.failed_sending_request"),
-                                        e
+                                    client::AuthClientError::RequestError() => format!(
+                                        "{}",
+                                        localized_strings.get("main.login.failed_sending_request")
                                     ),
                                     client::AuthClientError::ServerError(_, e) => format!("{}", e),
                                 },
@@ -205,9 +218,9 @@ impl PlayState for MainMenuState {
                     },
                     MainMenuEvent::Settings => {}, // TODO
                     MainMenuEvent::Quit => return PlayStateResult::Shutdown,
-                    MainMenuEvent::DisclaimerClosed => {
+                    /*MainMenuEvent::DisclaimerClosed => {
                         global_state.settings.show_disclaimer = false
-                    },
+                    },*/
                     MainMenuEvent::AuthServerTrust(auth_server, trust) => {
                         if trust {
                             global_state
@@ -258,12 +271,11 @@ fn attempt_login(
 ) {
     let mut net_settings = &mut global_state.settings.networking;
     net_settings.username = username.clone();
-    net_settings.password = password.clone();
     if !net_settings.servers.contains(&server_address) {
         net_settings.servers.push(server_address.clone());
     }
-    if let Err(err) = global_state.settings.save_to_file() {
-        warn!("Failed to save settings: {:?}", err);
+    if let Err(e) = global_state.settings.save_to_file() {
+        warn!(?e, "Failed to save settings");
     }
 
     if comp::Player::alias_is_valid(&username) {

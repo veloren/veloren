@@ -8,9 +8,9 @@ use common::figure::Segment;
 use guillotiere::{size2, SimpleAtlasAllocator};
 use hashbrown::{hash_map::Entry, HashMap};
 use image::{DynamicImage, RgbaImage};
-use log::warn;
 use pixel_art::resize_pixel_art;
 use std::sync::Arc;
+use tracing::warn;
 use vek::*;
 
 #[derive(Clone)]
@@ -43,7 +43,7 @@ const ATLAS_CUTTOFF_FRAC: f32 = 0.2;
 /// Multiplied by current window size
 const GRAPHIC_CACHE_RELATIVE_SIZE: u16 = 1;
 
-#[derive(PartialEq, Eq, Hash, Copy, Clone)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug)]
 pub struct Id(u32);
 
 // TODO these can become invalid when clearing the cache
@@ -302,7 +302,10 @@ fn draw_graphic(graphic_map: &GraphicMap, graphic_id: Id, dims: Vec2<u16>) -> Op
             *sample_strat,
         )),
         None => {
-            warn!("A graphic was requested via an id which is not in use");
+            warn!(
+                ?graphic_id,
+                "A graphic was requested via an id which is not in use"
+            );
             None
         },
     }
@@ -335,12 +338,12 @@ fn aabr_from_alloc_rect(rect: guillotiere::Rectangle) -> Aabr<u16> {
 fn upload_image(renderer: &mut Renderer, aabr: Aabr<u16>, tex: &Texture, image: &RgbaImage) {
     let offset = aabr.min.into_array();
     let size = aabr.size().into_array();
-    if let Err(err) = renderer.update_texture(
+    if let Err(e) = renderer.update_texture(
         tex,
         offset,
         size,
         &image.pixels().map(|p| p.0).collect::<Vec<[u8; 4]>>(),
     ) {
-        warn!("Failed to update texture: {:?}", err);
+        warn!(?e, "Failed to update texture");
     }
 }

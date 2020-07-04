@@ -9,6 +9,7 @@ pub struct Spiral2d {
 }
 
 impl Spiral2d {
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self { Self { layer: 0, i: 0 } }
 }
 

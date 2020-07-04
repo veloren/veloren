@@ -21,7 +21,7 @@ use gfx::{
     traits::{Device, Factory, FactoryExt},
 };
 use glsl_include::Context as IncludeContext;
-use log::error;
+use tracing::{error, warn};
 use vek::*;
 
 /// Represents the format of the pre-processed color target.
@@ -155,7 +155,7 @@ impl Renderer {
         let mut shader_reload_indicator = ReloadIndicator::new();
         let shadow_views = Self::create_shadow_views(&mut factory, (dims.0, dims.1))
             .map_err(|err| {
-                log::warn!("Could not create shadow map views: {:?}", err);
+                warn!("Could not create shadow map views: {:?}", err);
             })
             .ok();
 
@@ -339,7 +339,7 @@ impl Renderer {
                         shadow_map.directed_sampler = directed_sampler;
                     },
                     Err(err) => {
-                        log::warn!("Could not create shadow map views: {:?}", err);
+                        warn!("Could not create shadow map views: {:?}", err);
                     },
                 }
             }
@@ -760,10 +760,7 @@ impl Renderer {
                     shadow_map.figure_directed_pipeline = figure_directed_pipeline;
                 }
             },
-            Err(e) => error!(
-                "Could not recreate shaders from assets due to an error: {:#?}",
-                e
-            ),
+            Err(e) => error!(?e, "Could not recreate shaders from assets due to an error",),
         }
     }
 
@@ -961,6 +958,7 @@ impl Renderer {
 
     /// Creates a download buffer, downloads the win_color_view, and converts to
     /// a image::DynamicImage.
+    #[allow(clippy::map_clone)] // TODO: Pending review in #587
     pub fn create_screenshot(&mut self) -> Result<image::DynamicImage, RenderError> {
         let (width, height) = self.get_resolution().into_tuple();
         use gfx::{
@@ -1710,6 +1708,7 @@ struct GfxPipeline<P: gfx::pso::PipelineInit> {
 }
 
 /// Creates all the pipelines used to render.
+#[allow(clippy::type_complexity)] // TODO: Pending review in #587
 fn create_pipelines(
     factory: &mut gfx_backend::Factory,
     mode: &RenderMode,
@@ -2023,7 +2022,7 @@ fn create_pipelines(
     ) {
         Ok(pipe) => Some(pipe),
         Err(err) => {
-            log::warn!("Could not load point shadow map pipeline: {:?}", err);
+            warn!("Could not load point shadow map pipeline: {:?}", err);
             None
         },
     };
@@ -2043,7 +2042,7 @@ fn create_pipelines(
     ) {
         Ok(pipe) => Some(pipe),
         Err(err) => {
-            log::warn!(
+            warn!(
                 "Could not load directed terrain shadow map pipeline: {:?}",
                 err
             );
@@ -2066,7 +2065,7 @@ fn create_pipelines(
     ) {
         Ok(pipe) => Some(pipe),
         Err(err) => {
-            log::warn!(
+            warn!(
                 "Could not load directed figure shadow map pipeline: {:?}",
                 err
             );

@@ -77,6 +77,7 @@ impl<'a> Widget for Social<'a> {
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State { Ids::new(id_gen) }
 
+    #[allow(clippy::unused_unit)] // TODO: Pending review in #587
     fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
@@ -174,7 +175,8 @@ impl<'a> Widget for Social<'a> {
             // Players list
             // TODO: this list changes infrequently enough that it should not have to be
             // recreated every frame
-            let count = self.client.player_list.len();
+            let players = self.client.player_list.values().filter(|p| p.is_online);
+            let count = players.clone().count();
             if ids.player_names.len() < count {
                 ids.update(|ids| {
                     ids.player_names
@@ -192,13 +194,20 @@ impl<'a> Widget for Social<'a> {
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(ids.online_title, ui);
-            for (i, (_, player_alias)) in self.client.player_list.iter().enumerate() {
-                Text::new(player_alias)
-                    .down(3.0)
-                    .font_size(self.fonts.cyri.scale(15))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(ids.player_names[i], ui);
+            for (i, player_info) in players.enumerate() {
+                Text::new(&format!(
+                    "[{}] {}",
+                    player_info.player_alias,
+                    match &player_info.character {
+                        Some(character) => format!("{} Lvl {}", &character.name, &character.level),
+                        None => "<None>".to_string(), // character select or spectating
+                    }
+                ))
+                .down(3.0)
+                .font_size(self.fonts.cyri.scale(15))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(ids.player_names[i], ui);
             }
         }
 

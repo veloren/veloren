@@ -31,6 +31,7 @@ trait Blendable {
 }
 
 impl Blendable for BlockKind {
+    #[allow(clippy::match_single_binding)] // TODO: Pending review in #587
     fn is_blended(&self) -> bool {
         match self {
             _ => false,
@@ -220,6 +221,12 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
     type Supplement = (Aabb<i32>, Vec2<u16>);
     type TranslucentPipeline = FluidPipeline;
 
+    #[allow(clippy::collapsible_if)]
+    #[allow(clippy::many_single_char_names)]
+    #[allow(clippy::needless_range_loop)] // TODO: Pending review in #587
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
+    #[allow(clippy::panic_params)] // TODO: Pending review in #587
+
     fn generate_mesh(
         self,
         (range, max_texture_size): Self::Supplement,
@@ -356,7 +363,7 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
                     maybe_block
                         .filter(|vox| vox.is_opaque() && (!neighbour || vox.is_blended()))
                         .and_then(|vox| vox.get_color())
-                        .map(|col| Rgba::from_opaque(col))
+                        .map(Rgba::from_opaque)
                         .unwrap_or(Rgba::zero())
                 };
 

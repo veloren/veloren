@@ -14,6 +14,43 @@ pub enum SwordKind {
     Zweihander0,
     WoodTraining,
     Short0,
+    GreatswordDam0,
+    GreatswordDam1,
+    GreatswordDam2,
+    GreatswordSimple0,
+    GreatswordSimple1,
+    GreatswordSimple2,
+    GreatswordOrn0,
+    GreatswordOrn1,
+    GreatswordOrn2,
+    GreatswordFine0,
+    GreatswordFine1,
+    GreatswordFine2,
+    LongDam0,
+    LongDam1,
+    LongDam2,
+    LongDam3,
+    LongDam4,
+    LongDam5,
+    LongSimple0,
+    LongSimple1,
+    LongSimple2,
+    LongSimple3,
+    LongSimple4,
+    LongSimple5,
+    LongOrn0,
+    LongOrn1,
+    LongOrn2,
+    LongOrn3,
+    LongOrn4,
+    LongOrn5,
+    LongFine0,
+    LongFine1,
+    LongFine2,
+    LongFine3,
+    LongFine4,
+    LongFine5,
+    CultPurp0,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum AxeKind {
@@ -61,7 +98,6 @@ pub enum FarmKind {
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum DebugKind {
     Boost,
-    Possess,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -77,6 +113,59 @@ pub enum ToolKind {
     Farming(FarmKind),
     /// This is an placeholder item, it is used by non-humanoid npcs to attack
     Empty,
+}
+
+impl ToolKind {
+    pub fn into_hands(self) -> Hands {
+        match self {
+            ToolKind::Sword(_) => Hands::TwoHand,
+            ToolKind::Axe(_) => Hands::TwoHand,
+            ToolKind::Hammer(_) => Hands::TwoHand,
+            ToolKind::Bow(_) => Hands::TwoHand,
+            ToolKind::Dagger(_) => Hands::OneHand,
+            ToolKind::Staff(_) => Hands::TwoHand,
+            ToolKind::Shield(_) => Hands::OneHand,
+            ToolKind::Debug(_) => Hands::TwoHand,
+            ToolKind::Farming(_) => Hands::TwoHand,
+            ToolKind::Empty => Hands::OneHand,
+        }
+    }
+}
+
+pub enum Hands {
+    OneHand,
+    TwoHand,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum ToolCategory {
+    Sword,
+    Axe,
+    Hammer,
+    Bow,
+    Dagger,
+    Staff,
+    Shield,
+    Debug,
+    Farming,
+    Empty,
+}
+
+impl From<ToolKind> for ToolCategory {
+    fn from(kind: ToolKind) -> ToolCategory {
+        match kind {
+            ToolKind::Sword(_) => ToolCategory::Sword,
+            ToolKind::Axe(_) => ToolCategory::Axe,
+            ToolKind::Hammer(_) => ToolCategory::Hammer,
+            ToolKind::Bow(_) => ToolCategory::Bow,
+            ToolKind::Dagger(_) => ToolCategory::Dagger,
+            ToolKind::Staff(_) => ToolCategory::Staff,
+            ToolKind::Shield(_) => ToolCategory::Shield,
+            ToolKind::Debug(_) => ToolCategory::Debug,
+            ToolKind::Farming(_) => ToolCategory::Farming,
+            ToolKind::Empty => ToolCategory::Empty,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -98,16 +187,29 @@ impl Tool {
 
     pub fn get_abilities(&self) -> Vec<CharacterAbility> {
         use CharacterAbility::*;
-        use DebugKind::*;
+        //use DebugKind::*;
         use ToolKind::*;
 
         match self.kind {
+            Sword(SwordKind::CultPurp0) => vec![
+                TripleStrike {
+                    base_damage: 10,
+                    needs_timing: false,
+                },
+                DashMelee {
+                    energy_cost: 700,
+                    buildup_duration: Duration::from_millis(500),
+                    recover_duration: Duration::from_millis(500),
+                    base_damage: 20,
+                },
+            ],
             Sword(_) => vec![
                 TripleStrike {
                     base_damage: 5,
                     needs_timing: false,
                 },
                 DashMelee {
+                    energy_cost: 700,
                     buildup_duration: Duration::from_millis(500),
                     recover_duration: Duration::from_millis(500),
                     base_damage: 10,
@@ -127,14 +229,23 @@ impl Tool {
                     max_angle: 30.0,
                 },
             ],
-            Hammer(_) => vec![BasicMelee {
-                energy_cost: 0,
-                buildup_duration: Duration::from_millis(700),
-                recover_duration: Duration::from_millis(300),
-                base_healthchange: -10,
-                range: 3.5,
-                max_angle: 60.0,
-            }],
+            Hammer(_) => vec![
+                BasicMelee {
+                    energy_cost: 0,
+                    buildup_duration: Duration::from_millis(700),
+                    recover_duration: Duration::from_millis(300),
+                    base_healthchange: -10,
+                    range: 3.5,
+                    max_angle: 60.0,
+                },
+                LeapMelee {
+                    energy_cost: 800,
+                    movement_duration: Duration::from_millis(500),
+                    buildup_duration: Duration::from_millis(1000),
+                    recover_duration: Duration::from_millis(100),
+                    base_damage: 20,
+                },
+            ],
             Farming(_) => vec![BasicMelee {
                 energy_cost: 1,
                 buildup_duration: Duration::from_millis(700),
@@ -143,58 +254,92 @@ impl Tool {
                 range: 3.0,
                 max_angle: 60.0,
             }],
-            Bow(_) => vec![BasicRanged {
-                energy_cost: 0,
-                holdable: true,
-                prepare_duration: Duration::from_millis(100),
-                recover_duration: Duration::from_millis(500),
-                projectile: Projectile {
-                    hit_solid: vec![projectile::Effect::Stick],
-                    hit_entity: vec![
-                        projectile::Effect::Damage(HealthChange {
-                            // TODO: This should not be fixed (?)
-                            amount: -5,
-                            cause: HealthSource::Projectile { owner: None },
-                        }),
-                        projectile::Effect::Knockback(10.0),
-                        projectile::Effect::RewardEnergy(100),
-                        projectile::Effect::Vanish,
-                    ],
-                    time_left: Duration::from_secs(15),
-                    owner: None,
+            Bow(_) => vec![
+                BasicRanged {
+                    energy_cost: 0,
+                    holdable: true,
+                    prepare_duration: Duration::from_millis(100),
+                    recover_duration: Duration::from_millis(500),
+                    projectile: Projectile {
+                        hit_solid: vec![projectile::Effect::Stick],
+                        hit_entity: vec![
+                            projectile::Effect::Damage(HealthChange {
+                                // TODO: This should not be fixed (?)
+                                amount: -3,
+                                cause: HealthSource::Projectile { owner: None },
+                            }),
+                            projectile::Effect::Knockback(10.0),
+                            projectile::Effect::RewardEnergy(100),
+                            projectile::Effect::Vanish,
+                        ],
+                        time_left: Duration::from_secs(15),
+                        owner: None,
+                    },
+                    projectile_body: Body::Object(object::Body::Arrow),
+                    projectile_light: None,
+                    projectile_gravity: Some(Gravity(0.2)),
                 },
-                projectile_body: Body::Object(object::Body::Arrow),
-                projectile_light: None,
-                projectile_gravity: Some(Gravity(0.1)),
-            }],
-            Dagger(_) => vec![BasicMelee {
-                energy_cost: 0,
-                buildup_duration: Duration::from_millis(100),
-                recover_duration: Duration::from_millis(400),
-                base_healthchange: -5,
-                range: 3.5,
-                max_angle: 60.0,
-            }],
+                BasicRanged {
+                    energy_cost: 350,
+                    holdable: true,
+                    prepare_duration: Duration::from_millis(250),
+                    recover_duration: Duration::from_millis(700),
+                    projectile: Projectile {
+                        hit_solid: vec![projectile::Effect::Stick],
+                        hit_entity: vec![
+                            projectile::Effect::Damage(HealthChange {
+                                // TODO: This should not be fixed (?)
+                                amount: -9,
+                                cause: HealthSource::Projectile { owner: None },
+                            }),
+                            projectile::Effect::Knockback(15.0),
+                            projectile::Effect::RewardEnergy(50),
+                            projectile::Effect::Vanish,
+                        ],
+                        time_left: Duration::from_secs(15),
+                        owner: None,
+                    },
+                    projectile_body: Body::Object(object::Body::Arrow),
+                    projectile_light: None,
+                    projectile_gravity: Some(Gravity(0.05)),
+                },
+            ],
+            Dagger(_) => vec![
+                BasicMelee {
+                    energy_cost: 0,
+                    buildup_duration: Duration::from_millis(100),
+                    recover_duration: Duration::from_millis(400),
+                    base_healthchange: -5,
+                    range: 3.5,
+                    max_angle: 60.0,
+                },
+                DashMelee {
+                    energy_cost: 700,
+                    buildup_duration: Duration::from_millis(500),
+                    recover_duration: Duration::from_millis(500),
+                    base_damage: 20,
+                },
+            ],
             Staff(StaffKind::BasicStaff) => vec![
                 BasicMelee {
                     energy_cost: 0,
-                    buildup_duration: Duration::from_millis(0),
+                    buildup_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(300),
-                    base_healthchange: -1,
+                    base_healthchange: -3,
                     range: 10.0,
                     max_angle: 45.0,
                 },
                 BasicRanged {
                     energy_cost: 0,
-                    holdable: false,
-                    prepare_duration: Duration::from_millis(0),
+                    holdable: true,
+                    prepare_duration: Duration::from_millis(250),
                     recover_duration: Duration::from_millis(200),
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Vanish],
                         hit_entity: vec![
                             projectile::Effect::Damage(HealthChange {
                                 // TODO: This should not be fixed (?)
-                                amount: -1,
+                                amount: -2,
                                 cause: HealthSource::Projectile { owner: None },
                             }),
                             projectile::Effect::RewardEnergy(100),
@@ -213,7 +358,7 @@ impl Tool {
                 },
                 BasicRanged {
                     energy_cost: 400,
-                    holdable: false,
+                    holdable: true,
                     prepare_duration: Duration::from_millis(800),
                     recover_duration: Duration::from_millis(50),
                     projectile: Projectile {
@@ -255,7 +400,17 @@ impl Tool {
                     max_angle: 45.0,
                 },
             ],
-            Shield(_) => vec![BasicBlock],
+            Shield(_) => vec![
+                BasicMelee {
+                    energy_cost: 0,
+                    buildup_duration: Duration::from_millis(100),
+                    recover_duration: Duration::from_millis(400),
+                    base_healthchange: -4,
+                    range: 3.0,
+                    max_angle: 120.0,
+                },
+                BasicBlock,
+            ],
             Debug(kind) => match kind {
                 DebugKind::Boost => vec![
                     CharacterAbility::Boost {
@@ -266,22 +421,28 @@ impl Tool {
                         duration: Duration::from_millis(50),
                         only_up: true,
                     },
-                ],
-                Possess => vec![BasicRanged {
-                    energy_cost: 0,
-                    holdable: false,
-                    prepare_duration: Duration::from_millis(0),
-                    recover_duration: Duration::from_millis(300),
-                    projectile: Projectile {
-                        hit_solid: vec![projectile::Effect::Stick],
-                        hit_entity: vec![projectile::Effect::Stick, projectile::Effect::Possess],
-                        time_left: Duration::from_secs(10),
-                        owner: None,
+                    BasicRanged {
+                        energy_cost: 0,
+                        holdable: false,
+                        prepare_duration: Duration::from_millis(0),
+                        recover_duration: Duration::from_millis(10),
+                        projectile: Projectile {
+                            hit_solid: vec![projectile::Effect::Stick],
+                            hit_entity: vec![
+                                projectile::Effect::Stick,
+                                projectile::Effect::Possess,
+                            ],
+                            time_left: Duration::from_secs(10),
+                            owner: None,
+                        },
+                        projectile_body: Body::Object(object::Body::ArrowSnake),
+                        projectile_light: Some(LightEmitter {
+                            col: (0.0, 1.0, 0.33).into(),
+                            ..Default::default()
+                        }),
+                        projectile_gravity: None,
                     },
-                    projectile_body: Body::Object(object::Body::ArrowSnake),
-                    projectile_light: None,
-                    projectile_gravity: None,
-                }],
+                ],
             },
             Empty => vec![BasicMelee {
                 energy_cost: 0,

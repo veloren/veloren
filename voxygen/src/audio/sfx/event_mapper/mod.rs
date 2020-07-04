@@ -1,23 +1,31 @@
+mod combat;
 mod movement;
 mod progression;
 
 use common::state::State;
 
+use combat::CombatEventMapper;
 use movement::MovementEventMapper;
 use progression::ProgressionEventMapper;
 
 use super::SfxTriggers;
 
+trait EventMapper {
+    fn maintain(&mut self, state: &State, player_entity: specs::Entity, triggers: &SfxTriggers);
+}
+
 pub struct SfxEventMapper {
-    progression_event_mapper: ProgressionEventMapper,
-    movement_event_mapper: MovementEventMapper,
+    mappers: Vec<Box<dyn EventMapper>>,
 }
 
 impl SfxEventMapper {
     pub fn new() -> Self {
         Self {
-            progression_event_mapper: ProgressionEventMapper::new(),
-            movement_event_mapper: MovementEventMapper::new(),
+            mappers: vec![
+                Box::new(CombatEventMapper::new()),
+                Box::new(MovementEventMapper::new()),
+                Box::new(ProgressionEventMapper::new()),
+            ],
         }
     }
 
@@ -27,9 +35,8 @@ impl SfxEventMapper {
         player_entity: specs::Entity,
         triggers: &SfxTriggers,
     ) {
-        self.progression_event_mapper
-            .maintain(state, player_entity, triggers);
-        self.movement_event_mapper
-            .maintain(state, player_entity, triggers);
+        for mapper in &mut self.mappers {
+            mapper.maintain(state, player_entity, triggers);
+        }
     }
 }

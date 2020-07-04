@@ -1,7 +1,5 @@
 # Rust
-
-/target/
-/*/target/
+target
 
 # Vim
 
@@ -36,6 +34,8 @@ todo.txt
 # Game data
 *.sqlite
 *.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
 
 # direnv
 /.envrc
@@ -43,3 +43,6 @@ todo.txt
 
 # Mac
 .DS_Store
+
+# Nix
+nix/result

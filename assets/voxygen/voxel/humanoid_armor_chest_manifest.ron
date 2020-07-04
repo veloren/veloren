@@ -100,7 +100,23 @@
         WorkerOrange1:(
             vox_spec: ("armor.chest.shirt_white-0", (-7.0, -3.5, 2.0)),
             color: Some((135, 82, 67))
-        ),       
+        ),      
+        Druid:(
+            vox_spec: ("armor.chest.druid", (-7.0, -3.5, 2.0)),
+            color: None
+        ),
+        Twig:(
+            vox_spec: ("armor.chest.twigs_chest", (-7.0, -3.5, 2.0)),
+            color: None
+        ),
+        Twigsleaves:(
+            vox_spec: ("armor.chest.twigsleaves_chest", (-7.0, -3.5, 2.0)),
+            color: None
+        ),
+        Twigsflowers:(
+            vox_spec: ("armor.chest.twigsflowers_chest", (-7.0, -3.5, 2.0)),
+            color: None
+        ),
         // Cultists
         CultistPurple: (
             vox_spec: ("armor.chest.cultist", (-7.0, -3.5, 2.0)),

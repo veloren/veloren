@@ -34,7 +34,7 @@ impl<P: Pipeline> DynamicModel<P> {
         Ok(Self {
             vbuf: factory
                 .create_buffer(size, Role::Vertex, Usage::Dynamic, Bind::empty())
-                .map_err(|err| RenderError::BufferCreationError(err))?,
+                .map_err(RenderError::BufferCreationError)?,
         })
     }
 
@@ -55,6 +55,6 @@ impl<P: Pipeline> DynamicModel<P> {
     ) -> Result<(), RenderError> {
         encoder
             .update_buffer(&self.vbuf, mesh.vertices(), offset)
-            .map_err(|err| RenderError::UpdateError(err))
+            .map_err(RenderError::UpdateError)
     }
 }

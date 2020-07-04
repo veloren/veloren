@@ -1,10 +1,12 @@
-use crate::Server;
+use crate::{state_ext::StateExt, Server};
 use common::event::{EventBus, ServerEvent};
 use entity_creation::{
-    handle_create_character, handle_create_npc, handle_create_waypoint, handle_shoot,
+    handle_create_npc, handle_create_waypoint, handle_initialize_character,
+    handle_loaded_character_data, handle_shoot,
 };
 use entity_manipulation::{
-    handle_damage, handle_destroy, handle_explosion, handle_land_on_ground, handle_respawn,
+    handle_damage, handle_destroy, handle_explosion, handle_land_on_ground, handle_level_up,
+    handle_respawn,
 };
 use interaction::{handle_lantern, handle_mount, handle_possess, handle_unmount};
 use inventory_manip::handle_inventory;
@@ -36,6 +38,7 @@ impl Server {
 
         let mut requested_chunks = Vec::new();
         let mut chat_commands = Vec::new();
+        let mut chat_messages = Vec::new();
 
         let events = self
             .state
@@ -69,12 +72,14 @@ impl Server {
                 ServerEvent::Possess(possessor_uid, possesse_uid) => {
                     handle_possess(&self, possessor_uid, possesse_uid)
                 },
-                ServerEvent::SelectCharacter {
+                ServerEvent::InitCharacterData {
                     entity,
                     character_id,
-                    body,
-                    main,
-                } => handle_create_character(self, entity, character_id, body, main),
+                } => handle_initialize_character(self, entity, character_id),
+                ServerEvent::UpdateCharacterData { entity, components } => {
+                    handle_loaded_character_data(self, entity, components);
+                },
+                ServerEvent::LevelUp(entity, new_level) => handle_level_up(self, entity, new_level),
                 ServerEvent::ExitIngame { entity } => handle_exit_ingame(self, entity),
                 ServerEvent::CreateNpc {
                     pos,
@@ -99,6 +104,9 @@ impl Server {
                 ServerEvent::ChatCmd(entity, cmd) => {
                     chat_commands.push((entity, cmd));
                 },
+                ServerEvent::Chat(msg) => {
+                    chat_messages.push(msg);
+                },
             }
         }
 
@@ -109,6 +117,10 @@ impl Server {
 
         for (entity, cmd) in chat_commands {
             self.process_chat_cmd(entity, cmd);
+        }
+
+        for msg in chat_messages {
+            self.state.send_chat(msg);
         }
 
         frontend_events

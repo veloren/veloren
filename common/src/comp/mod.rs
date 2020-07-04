@@ -3,6 +3,7 @@ mod admin;
 pub mod agent;
 mod body;
 mod character_state;
+mod chat;
 mod controller;
 mod energy;
 mod inputs;
@@ -16,14 +17,15 @@ mod stats;
 mod visual;
 
 // Reexports
-pub use ability::{CharacterAbility, ItemConfig, Loadout};
-pub use admin::Admin;
+pub use ability::{CharacterAbility, CharacterAbilityType, ItemConfig, Loadout};
+pub use admin::{Admin, AdminList};
 pub use agent::{Agent, Alignment};
 pub use body::{
     biped_large, bird_medium, bird_small, critter, dragon, fish_medium, fish_small, golem,
     humanoid, object, quadruped_medium, quadruped_small, AllBodies, Body, BodyData,
 };
 pub use character_state::{Attacking, CharacterState, StateUpdate};
+pub use chat::{ChatMode, ChatMsg, ChatType, Faction, Group, SpeechBubble, SpeechBubbleType};
 pub use controller::{
     Climb, ControlAction, ControlEvent, Controller, ControllerInputs, Input, InventoryManip,
     MountState, Mounting,

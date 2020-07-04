@@ -18,15 +18,19 @@ pub trait CharacterBehavior {
     // Impl these to provide behavior for these inputs
     fn swap_loadout(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn wield(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
+    fn glide_wield(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn unwield(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn sit(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
+    fn dance(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn stand(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn handle_event(&self, data: &JoinData, event: ControlAction) -> StateUpdate {
         match event {
             ControlAction::SwapLoadout => self.swap_loadout(data),
             ControlAction::Wield => self.wield(data),
+            ControlAction::GlideWield => self.glide_wield(data),
             ControlAction::Unwield => self.unwield(data),
             ControlAction::Sit => self.sit(data),
+            ControlAction::Dance => self.dance(data),
             ControlAction::Stand => self.stand(data),
         }
     }
@@ -107,6 +111,7 @@ impl<'a> JoinData<'a> {
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         Read<'a, UidAllocator>,
@@ -129,6 +134,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Mounting>,
     );
 
+    #[allow(clippy::while_let_on_iterator)] // TODO: Pending review in #587
     fn run(
         &mut self,
         (
@@ -193,8 +199,14 @@ impl<'a> System<'a> for Sys {
                     CharacterState::Idle => states::idle::Data.handle_event(&j, action),
                     CharacterState::Climb => states::climb::Data.handle_event(&j, action),
                     CharacterState::Glide => states::glide::Data.handle_event(&j, action),
+                    CharacterState::GlideWield => {
+                        states::glide_wield::Data.handle_event(&j, action)
+                    },
                     CharacterState::Sit => {
                         states::sit::Data::handle_event(&states::sit::Data, &j, action)
+                    },
+                    CharacterState::Dance => {
+                        states::dance::Data::handle_event(&states::dance::Data, &j, action)
                     },
                     CharacterState::BasicBlock => {
                         states::basic_block::Data.handle_event(&j, action)
@@ -207,6 +219,7 @@ impl<'a> System<'a> for Sys {
                     CharacterState::BasicRanged(data) => data.handle_event(&j, action),
                     CharacterState::Boost(data) => data.handle_event(&j, action),
                     CharacterState::DashMelee(data) => data.handle_event(&j, action),
+                    CharacterState::LeapMelee(data) => data.handle_event(&j, action),
                 };
                 local_emitter.append(&mut state_update.local_events);
                 server_emitter.append(&mut state_update.server_events);
@@ -219,7 +232,9 @@ impl<'a> System<'a> for Sys {
                 CharacterState::Idle => states::idle::Data.behavior(&j),
                 CharacterState::Climb => states::climb::Data.behavior(&j),
                 CharacterState::Glide => states::glide::Data.behavior(&j),
+                CharacterState::GlideWield => states::glide_wield::Data.behavior(&j),
                 CharacterState::Sit => states::sit::Data::behavior(&states::sit::Data, &j),
+                CharacterState::Dance => states::dance::Data::behavior(&states::dance::Data, &j),
                 CharacterState::BasicBlock => states::basic_block::Data.behavior(&j),
                 CharacterState::Roll(data) => data.behavior(&j),
                 CharacterState::Wielding => states::wielding::Data.behavior(&j),
@@ -229,6 +244,7 @@ impl<'a> System<'a> for Sys {
                 CharacterState::BasicRanged(data) => data.behavior(&j),
                 CharacterState::Boost(data) => data.behavior(&j),
                 CharacterState::DashMelee(data) => data.behavior(&j),
+                CharacterState::LeapMelee(data) => data.behavior(&j),
             };
 
             local_emitter.append(&mut state_update.local_events);

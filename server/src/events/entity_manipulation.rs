@@ -2,15 +2,16 @@ use crate::{client::Client, Server, SpawnPoint, StateExt};
 use common::{
     assets,
     comp::{self, object, Body, HealthChange, HealthSource, Item, Player, Stats},
-    msg::ServerMsg,
+    msg::{PlayerListUpdate, ServerMsg},
     state::BlockChange,
     sync::{Uid, WorldSyncExt},
     sys::combat::{BLOCK_ANGLE, BLOCK_EFFICIENCY},
     terrain::{Block, TerrainGrid},
     vol::{ReadVol, Vox},
 };
-use log::error;
+use rand::seq::SliceRandom;
 use specs::{join::Join, Entity as EcsEntity, WorldExt};
+use tracing::error;
 use vek::Vec3;
 
 pub fn handle_damage(server: &Server, uid: Uid, change: HealthChange) {
@@ -45,7 +46,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         }
         .unwrap_or(format!("{} died", &player.alias));
 
-        state.notify_registered_clients(ServerMsg::kill(msg));
+        state.notify_registered_clients(comp::ChatType::Kill.server_msg(msg));
     }
 
     {
@@ -79,13 +80,13 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             .write_storage()
             .insert(entity, comp::Vel(Vec3::zero()))
             .err()
-            .map(|err| error!("Failed to set zero vel on dead client: {:?}", err));
+            .map(|e| error!(?e, ?entity, "Failed to set zero vel on dead client"));
         state
             .ecs()
             .write_storage()
             .insert(entity, comp::ForceUpdate)
             .err()
-            .map(|err| error!("Failed to insert ForceUpdate on dead client: {:?}", err));
+            .map(|e| error!(?e, ?entity, "Failed to insert ForceUpdate on dead client"));
         state
             .ecs()
             .write_storage::<comp::LightEmitter>()
@@ -99,52 +100,222 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             .ecs()
             .write_storage::<comp::CharacterState>()
             .insert(entity, comp::CharacterState::default());
-    } else {
-        if state.ecs().read_storage::<comp::Agent>().contains(entity) {
-            // Replace npc with loot
-            let _ = state
-                .ecs()
-                .write_storage()
-                .insert(entity, Body::Object(object::Body::Pouch));
+    } else if state.ecs().read_storage::<comp::Agent>().contains(entity) {
+        // Replace npc with loot
+        let _ = state
+            .ecs()
+            .write_storage()
+            .insert(entity, Body::Object(object::Body::Pouch));
 
-            let mut item_drops = state.ecs().write_storage::<comp::ItemDrop>();
-            let item = if let Some(item_drop) = item_drops.get(entity).cloned() {
-                item_drops.remove(entity);
-                item_drop.0
-            } else {
-                assets::load_expect_cloned::<Item>("common.items.cheese")
-            };
-
-            let _ = state.ecs().write_storage().insert(entity, item);
-
-            state.ecs().write_storage::<comp::Stats>().remove(entity);
-            state.ecs().write_storage::<comp::Agent>().remove(entity);
-            state
-                .ecs()
-                .write_storage::<comp::LightEmitter>()
-                .remove(entity);
-            state
-                .ecs()
-                .write_storage::<comp::CharacterState>()
-                .remove(entity);
-            state
-                .ecs()
-                .write_storage::<comp::Controller>()
-                .remove(entity);
+        let mut item_drops = state.ecs().write_storage::<comp::ItemDrop>();
+        let item = if let Some(item_drop) = item_drops.get(entity).cloned() {
+            item_drops.remove(entity);
+            item_drop.0
         } else {
-            if let Err(err) = state.delete_entity_recorded(entity) {
-                error!("Failed to delete destroyed entity: {:?}", err);
-            }
-        }
+            assets::load_expect_cloned::<Item>(
+                [
+                    "common.items.cheese",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.collar",
+                    "common.items.cheese",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.collar",
+                    "common.items.cheese",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.collar",
+                    "common.items.veloritefrag",
+                    "common.items.cheese",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.collar",
+                    "common.items.cheese",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.collar",
+                    "common.items.cheese",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.cheese",
+                    "common.items.mushroom",
+                    "common.items.apple",
+                    "common.items.collar",
+                    "common.items.collar",
+                    "common.items.collar",
+                    "common.items.collar",
+                    "common.items.collar",
+                    "common.items.veloritefrag",
+                    "common.items.veloritefrag",
+                    "common.items.veloritefrag",
+                    "common.items.veloritefrag",
+                    "common.items.veloritefrag",
+                    "common.items.veloritefrag",
+                    "common.items.veloritefrag",
+                    "common.items.veloritefrag",
+                    "common.items.velorite",
+                    "common.items.armor.ring.ring_0",
+                    "common.items.armor.neck.neck_0",
+                    "common.items.mushroom",
+                    "common.items.coconut",
+                    "common.items.coconut",
+                    "common.items.coconut",
+                    "common.items.coconut",
+                    "common.items.coconut",
+                    "common.items.potion_minor",
+                    "common.items.potion_minor",
+                    "common.items.potion_minor",
+                    "common.items.potion_minor",
+                    "common.items.potion_minor",
+                    "common.items.potion_minor",
+                    "common.items.weapons.tool.broom",
+                    "common.items.weapons.tool.shovel-1",
+                    "common.items.weapons.staff.staff_nature",
+                    "common.items.flowers.yellow",
+                    "common.items.armor.pants.worker_blue_0",
+                    "common.items.armor.chest.worker_yellow_0",
+                    "common.items.armor.chest.worker_green_0",
+                    "common.items.armor.chest.worker_orange_0",
+                    "common.items.armor.back.short_0",
+                    "common.items.weapons.staff.staff_nature",
+                    "common.items.weapons.sword.starter_sword",
+                    "common.items.weapons.axe.starter_axe",
+                    "common.items.weapons.staff.staff_nature",
+                    "common.items.weapons.hammer.starter_hammer",
+                    "common.items.weapons.bow.starter_bow",
+                    "common.items.weapons.staff.starter_staff",
+                    "common.items.weapons.sword.starter_sword",
+                    "common.items.weapons.axe.starter_axe",
+                    "common.items.weapons.staff.staff_nature",
+                    "common.items.weapons.hammer.starter_hammer",
+                    "common.items.weapons.bow.starter_bow",
+                    "common.items.weapons.staff.starter_staff",
+                    "common.items.weapons.sword.starter_sword",
+                    "common.items.weapons.axe.starter_axe",
+                    "common.items.weapons.staff.staff_nature",
+                    "common.items.weapons.hammer.starter_hammer",
+                    "common.items.weapons.bow.starter_bow",
+                    "common.items.weapons.staff.starter_staff",
+                    "common.items.weapons.sword.greatsword_2h_simple-0",
+                    "common.items.weapons.sword.greatsword_2h_simple-1",
+                    "common.items.weapons.sword.greatsword_2h_simple-2",
+                    "common.items.weapons.sword.long_2h_simple-0",
+                    "common.items.weapons.sword.long_2h_simple-1",
+                    "common.items.weapons.sword.long_2h_simple-2",
+                    "common.items.weapons.sword.long_2h_simple-3",
+                    "common.items.weapons.sword.long_2h_simple-4",
+                    "common.items.weapons.sword.long_2h_simple-5",
+                ]
+                .choose(&mut rand::thread_rng())
+                .unwrap(),
+            )
+        };
 
-        // TODO: Add Delete(time_left: Duration) component
-        /*
-        // If not a player delete the entity
-        if let Err(err) = state.delete_entity_recorded(entity) {
-            error!("Failed to delete destroyed entity: {:?}", err);
-        }
-        */
+        let _ = state.ecs().write_storage().insert(entity, item);
+
+        state.ecs().write_storage::<comp::Stats>().remove(entity);
+        state.ecs().write_storage::<comp::Agent>().remove(entity);
+        state
+            .ecs()
+            .write_storage::<comp::LightEmitter>()
+            .remove(entity);
+        state
+            .ecs()
+            .write_storage::<comp::CharacterState>()
+            .remove(entity);
+        state
+            .ecs()
+            .write_storage::<comp::Controller>()
+            .remove(entity);
+    } else {
+        let _ = state
+            .delete_entity_recorded(entity)
+            .map_err(|e| error!(?e, ?entity, "Failed to delete destroyed entity"));
     }
+
+    // TODO: Add Delete(time_left: Duration) component
+    /*
+    // If not a player delete the entity
+    if let Err(err) = state.delete_entity_recorded(entity) {
+        error!(?e, "Failed to delete destroyed entity");
+    }
+    */
 }
 
 pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>) {
@@ -190,10 +361,10 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
             .write_storage()
             .insert(entity, comp::ForceUpdate)
             .err()
-            .map(|err| {
+            .map(|e| {
                 error!(
-                    "Error inserting ForceUpdate component when respawning client: {:?}",
-                    err
+                    ?e,
+                    "Error inserting ForceUpdate component when respawning client"
                 )
             });
     }
@@ -294,4 +465,17 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Opti
             .for_each(|pos| block_change.set(pos, Block::empty()))
             .cast();
     }
+}
+
+pub fn handle_level_up(server: &mut Server, entity: EcsEntity, new_level: u32) {
+    let uids = server.state.ecs().read_storage::<Uid>();
+    let uid = uids
+        .get(entity)
+        .expect("Failed to fetch uid component for entity.");
+
+    server
+        .state
+        .notify_registered_clients(ServerMsg::PlayerListUpdate(PlayerListUpdate::LevelChange(
+            *uid, new_level,
+        )));
 }

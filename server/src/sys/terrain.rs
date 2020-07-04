@@ -23,6 +23,7 @@ use vek::*;
 ///     4. Removes chunks outside the range of players
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     type SystemData = (
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, Tick>,
@@ -79,8 +80,8 @@ impl<'a> System<'a> for Sys {
                 // Subtract 2 from the offset before computing squared magnitude
                 // 1 since chunks need neighbors to be meshed
                 // 1 to act as a buffer if the player moves in that direction
-                let adjusted_dist_sqr = (Vec2::from(chunk_pos) - Vec2::from(key))
-                    .map(|e: i32| (e.abs() as u32).checked_sub(2).unwrap_or(0))
+                let adjusted_dist_sqr = (chunk_pos - key)
+                    .map(|e: i32| (e.abs() as u32).saturating_sub(2))
                     .magnitude_squared();
 
                 if adjusted_dist_sqr <= view_distance.pow(2) {
@@ -107,7 +108,7 @@ impl<'a> System<'a> for Sys {
                 }
 
                 let mut body = entity.body;
-                let name = entity.name.unwrap_or("Unnamed".to_string());
+                let name = entity.name.unwrap_or_else(|| "Unnamed".to_string());
                 let alignment = entity.alignment;
                 let main_tool = entity.main_tool;
                 let mut stats = comp::Stats::new(name, body);
@@ -269,7 +270,7 @@ impl<'a> System<'a> for Sys {
                             format!(
                                 "{} Giant {}",
                                 adjective,
-                                get_npc_name(&NPC_NAMES.humanoid, body_new.race)
+                                get_npc_name(&NPC_NAMES.humanoid, body_new.species)
                             ),
                             body,
                         );
@@ -329,6 +330,8 @@ impl<'a> System<'a> for Sys {
                     .health
                     .set_to(stats.health.maximum(), comp::HealthSource::Revive);
 
+                let can_speak = alignment == comp::Alignment::Npc;
+
                 // TODO: This code sets an appropriate base_damage for the enemy. This doesn't
                 // work because the damage is now saved in an ability
                 /*
@@ -344,7 +347,7 @@ impl<'a> System<'a> for Sys {
                     loadout,
                     body,
                     alignment,
-                    agent: comp::Agent::default().with_patrol_origin(entity.pos),
+                    agent: comp::Agent::new(entity.pos, can_speak),
                     scale: comp::Scale(scale),
                     drop_item: entity.loot_drop,
                 })
@@ -400,8 +403,8 @@ pub fn chunk_in_vd(
 ) -> bool {
     let player_chunk_pos = terrain.pos_key(player_pos.map(|e| e as i32));
 
-    let adjusted_dist_sqr = Vec2::from(player_chunk_pos - chunk_pos)
-        .map(|e: i32| (e.abs() as u32).checked_sub(2).unwrap_or(0))
+    let adjusted_dist_sqr = (player_chunk_pos - chunk_pos)
+        .map(|e: i32| (e.abs() as u32).saturating_sub(2))
         .magnitude_squared();
 
     adjusted_dist_sqr <= vd.pow(2)

@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        item::Item, Body, CharacterState, EnergySource, Gravity, LightEmitter, Projectile,
-        StateUpdate,
+        ability::Stage, item::Item, Body, CharacterState, EnergySource, Gravity, LightEmitter,
+        Projectile, StateUpdate,
     },
     states::{triple_strike::*, *},
     sys::character_behavior::JoinData,
@@ -9,6 +9,32 @@ use crate::{
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 use std::time::Duration;
+
+#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
+pub enum CharacterAbilityType {
+    BasicMelee,
+    BasicRanged,
+    Boost,
+    DashMelee,
+    BasicBlock,
+    TripleStrike(Stage),
+    LeapMelee,
+}
+
+impl From<&CharacterState> for CharacterAbilityType {
+    fn from(state: &CharacterState) -> Self {
+        match state {
+            CharacterState::BasicMelee(_) => Self::BasicMelee,
+            CharacterState::BasicRanged(_) => Self::BasicRanged,
+            CharacterState::Boost(_) => Self::Boost,
+            CharacterState::DashMelee(_) => Self::DashMelee,
+            CharacterState::BasicBlock => Self::BasicBlock,
+            CharacterState::LeapMelee(_) => Self::LeapMelee,
+            CharacterState::TripleStrike(data) => Self::TripleStrike(data.stage),
+            _ => Self::BasicMelee,
+        }
+    }
+}
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum CharacterAbility {
@@ -35,6 +61,7 @@ pub enum CharacterAbility {
         only_up: bool,
     },
     DashMelee {
+        energy_cost: u32,
         buildup_duration: Duration,
         recover_duration: Duration,
         base_damage: u32,
@@ -44,6 +71,13 @@ pub enum CharacterAbility {
     TripleStrike {
         base_damage: u32,
         needs_timing: bool,
+    },
+    LeapMelee {
+        energy_cost: u32,
+        movement_duration: Duration,
+        buildup_duration: Duration,
+        recover_duration: Duration,
+        base_damage: u32,
     },
 }
 
@@ -66,15 +100,19 @@ impl CharacterAbility {
                         .try_change_by(-220, EnergySource::Ability)
                         .is_ok()
             },
-            CharacterAbility::DashMelee { .. } => update
+            CharacterAbility::DashMelee { energy_cost, .. } => update
                 .energy
-                .try_change_by(-700, EnergySource::Ability)
+                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
             CharacterAbility::BasicMelee { energy_cost, .. } => update
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
             CharacterAbility::BasicRanged { energy_cost, .. } => update
+                .energy
+                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                .is_ok(),
+            CharacterAbility::LeapMelee { energy_cost, .. } => update
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
@@ -155,6 +193,7 @@ impl From<&CharacterAbility> for CharacterState {
                 only_up: *only_up,
             }),
             CharacterAbility::DashMelee {
+                energy_cost: _,
                 buildup_duration,
                 recover_duration,
                 base_damage,
@@ -179,10 +218,25 @@ impl From<&CharacterAbility> for CharacterState {
                 stage_exhausted: false,
                 stage_time_active: Duration::default(),
                 initialized: false,
-                transition_style: match *needs_timing {
-                    true => TransitionStyle::Timed(TimingState::NotPressed),
-                    false => TransitionStyle::Hold(HoldingState::Holding),
+                transition_style: if *needs_timing {
+                    TransitionStyle::Timed(TimingState::NotPressed)
+                } else {
+                    TransitionStyle::Hold(HoldingState::Holding)
                 },
+            }),
+            CharacterAbility::LeapMelee {
+                energy_cost: _,
+                movement_duration,
+                buildup_duration,
+                recover_duration,
+                base_damage,
+            } => CharacterState::LeapMelee(leap_melee::Data {
+                initialize: true,
+                exhausted: false,
+                movement_duration: *movement_duration,
+                buildup_duration: *buildup_duration,
+                recover_duration: *recover_duration,
+                base_damage: *base_damage,
             }),
         }
     }

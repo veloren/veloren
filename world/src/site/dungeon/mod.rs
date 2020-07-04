@@ -17,7 +17,7 @@ use common::{
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, Vox, WriteVol},
 };
 use core::{f32, hash::BuildHasherDefault};
-use fxhash::FxHasher32;
+use fxhash::FxHasher64;
 use lazy_static::lazy_static;
 use rand::prelude::*;
 use std::sync::Arc;
@@ -55,6 +55,7 @@ const ALT_OFFSET: i32 = -2;
 const LEVELS: usize = 5;
 
 impl Dungeon {
+    #[allow(clippy::let_and_return)] // TODO: Pending review in #587
     pub fn generate(wpos: Vec2<i32>, sim: Option<&WorldSim>, rng: &mut impl Rng) -> Self {
         let mut ctx = GenCtx { sim, rng };
         let this = Self {
@@ -82,6 +83,7 @@ impl Dungeon {
 
     pub fn radius(&self) -> f32 { 1200.0 }
 
+    #[allow(clippy::needless_update)] // TODO: Pending review in #587
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
             trees: wpos.distance_squared(self.origin) > 64i32.pow(2),
@@ -148,6 +150,7 @@ impl Dungeon {
         }
     }
 
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn apply_supplement<'a>(
         &'a self,
         rng: &mut impl Rng,
@@ -367,6 +370,7 @@ impl Floor {
         }
     }
 
+    #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
     fn create_route(&mut self, _ctx: &mut GenCtx<impl Rng>, a: Vec2<i32>, b: Vec2<i32>) {
         let heuristic = move |l: &Vec2<i32>| (l - b).map(|e| e.abs()).reduce_max() as f32;
         let neighbors = |l: &Vec2<i32>| {
@@ -383,15 +387,15 @@ impl Floor {
             _ => 100000.0,
         };
         let satisfied = |l: &Vec2<i32>| *l == b;
-        // We use this hasher (FxHasher32) because
+        // We use this hasher (FxHasher64) because
         // (1) we don't care about DDOS attacks (ruling out SipHash);
         // (2) we don't care about determinism across computers (we could use AAHash);
-        // (3) we have 4-byte keys (for which FxHash is fastest).
+        // (3) we have 8-byte keys (for which FxHash is fastest).
         let mut astar = Astar::new(
             20000,
             a,
             heuristic,
-            BuildHasherDefault::<FxHasher32>::default(),
+            BuildHasherDefault::<FxHasher64>::default(),
         );
         let path = astar
             .poll(
@@ -411,6 +415,7 @@ impl Floor {
         }
     }
 
+    #[allow(clippy::match_single_binding)] // TODO: Pending review in #587
     pub fn apply_supplement(
         &self,
         rng: &mut impl Rng,
@@ -486,23 +491,50 @@ impl Floor {
                                     npc::get_npc_name(npc::NpcKind::Humanoid)
                                 ))
                                 .with_main_tool(assets::load_expect_cloned(
-                                    match rng.gen_range(0, 5) {
-                                        0 => "common.items.weapons.sword.starter_sword",
-                                        1 => "common.items.weapons.sword.short_sword_0",
-                                        2 => "common.items.weapons.sword.wood_sword",
-                                        3 => "common.items.weapons.sword.zweihander_sword_0",
-                                        _ => "common.items.weapons.hammer.hammer_1",
+                                    match rng.gen_range(0, 1) {
+                                        //Add more possible cult leader weapons here
+                                        _ => "common.items.weapons.sword.cultist_purp_2h-0",
                                     },
                                 ))
-                                .with_loot_drop(match rng.gen_range(0, 3) {
+                                .with_loot_drop(match rng.gen_range(0, 20) {
                                     0 => comp::Item::expect_from_asset(
                                         "common.items.boss_drops.lantern",
                                     ),
                                     1 => comp::Item::expect_from_asset(
                                         "common.items.boss_drops.potions",
                                     ),
+                                    2 => comp::Item::expect_from_asset(
+                                        "common.items.armor.belt.cultist_belt",
+                                    ),
+                                    3 => comp::Item::expect_from_asset(
+                                        "common.items.armor.chest.cultist_chest_purple",
+                                    ),
+                                    4 => comp::Item::expect_from_asset(
+                                        "common.items.armor.foot.cultist_boots",
+                                    ),
+                                    5 => comp::Item::expect_from_asset(
+                                        "common.items.armor.hand.cultist_hands_purple",
+                                    ),
+                                    6 => comp::Item::expect_from_asset(
+                                        "common.items.armor.pants.cultist_legs_purple",
+                                    ),
+                                    7 => comp::Item::expect_from_asset(
+                                        "common.items.armor.shoulder.cultist_shoulder_purple",
+                                    ),
+                                    8 => comp::Item::expect_from_asset(
+                                        "common.items.weapons.sword.greatsword_2h_fine-0",
+                                    ),
+                                    9 => comp::Item::expect_from_asset(
+                                        "common.items.weapons.sword.greatsword_2h_fine-1",
+                                    ),
+                                    10 => comp::Item::expect_from_asset(
+                                        "common.items.weapons.sword.greatsword_2h_fine-2",
+                                    ),
+                                    11 => comp::Item::expect_from_asset(
+                                        "common.items.weapons.sword.cultist_purp_2h-0",
+                                    ),
                                     _ => comp::Item::expect_from_asset(
-                                        "common.items.boss_drops.xp_potion",
+                                        "common.items.boss_drops.exp_flask",
                                     ),
                                 });
 
@@ -536,6 +568,7 @@ impl Floor {
             .min_by_key(|nearest| rpos.distance_squared(*nearest))
     }
 
+    #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
     pub fn col_sampler(&self, pos: Vec2<i32>, floor_z: i32) -> impl FnMut(i32) -> BlockMask + '_ {
         let rpos = pos - self.tile_offset * TILE_SIZE;
         let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));

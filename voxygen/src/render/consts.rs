@@ -27,6 +27,7 @@ impl<T: Copy + gfx::traits::Pod> Consts<T> {
     } */
 
     /// Update the GPU-side value represented by this constant handle.
+
     pub fn update(
         &mut self,
         encoder: &mut gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
@@ -35,6 +36,6 @@ impl<T: Copy + gfx::traits::Pod> Consts<T> {
     ) -> Result<(), RenderError> {
         encoder
             .update_buffer(&self.buf, vals, offset)
-            .map_err(|err| RenderError::UpdateError(err))
+            .map_err(RenderError::UpdateError)
     }
 }

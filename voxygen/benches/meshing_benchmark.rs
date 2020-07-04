@@ -11,6 +11,7 @@ use world::{sim, World};
 const CENTER: Vec2<i32> = Vec2 { x: 512, y: 512 };
 const GEN_SIZE: i32 = 4;
 
+#[allow(clippy::needless_update)] // TODO: Pending review in #587
 pub fn criterion_benchmark(c: &mut Criterion) {
     // Generate chunks here to test
     let mut terrain = TerrainGrid::new().unwrap();

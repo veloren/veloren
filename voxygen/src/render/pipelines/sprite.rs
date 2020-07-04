@@ -1,5 +1,5 @@
 use super::{
-    super::{util::arr_to_mat, Pipeline, TgtColorFmt, TgtDepthStencilFmt},
+    super::{Pipeline, TgtColorFmt, TgtDepthStencilFmt},
     shadow, terrain, Globals, Light, Shadow,
 };
 use core::fmt;
@@ -94,6 +94,7 @@ impl fmt::Display for Vertex {
 
 impl Vertex {
     // NOTE: Limit to 16 (x) × 16 (y) × 32 (z).
+    #[allow(clippy::collapsible_if)]
     pub fn new(
         atlas_pos: Vec2<u16>,
         pos: Vec3<f32>,
@@ -135,7 +136,7 @@ impl Instance {
     ) -> Self {
         const EXTRA_NEG_Z: i32 = 32768;
 
-        let mat_arr = arr_to_mat(mat.into_col_array());
+        let mat_arr = mat.into_col_arrays();
         Self {
             pos_ori: 0
                 | ((pos.x as u32) & 0x003F) << 0
@@ -172,7 +173,7 @@ impl Default for Locals {
 impl Locals {
     pub fn new(mat: Mat4<f32>, scale: Vec3<f32>, offs: Vec3<f32>, wind_sway: f32) -> Self {
         Self {
-            mat: arr_to_mat(mat.into_col_array()),
+            mat: mat.into_col_arrays(),
             wind_sway: [scale.x, scale.y, scale.z, wind_sway],
             offs: [offs.x, offs.y, offs.z, 0.0],
         }

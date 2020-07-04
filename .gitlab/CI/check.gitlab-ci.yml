@@ -1,0 +1,23 @@
+check:
+  extends: .recompile-branch
+  stage: check
+  script:
+    - ln -s /dockercache/cache-all target
+    - RUSTFLAGS="-D warnings" cargo check --locked
+
+code-quality:
+  extends: .recompile-branch
+  stage: check
+  script:
+    - ln -s /dockercache/cache-all target
+    - cargo clippy -- -D warnings
+    - cargo clippy --tests -- -D warnings
+    - cargo fmt --all -- --check
+
+security:
+  extends: .recompile-branch
+  stage: check
+  allow_failure: true
+  script:
+    - ln -s /dockercache/cache-all target
+    - cargo audit

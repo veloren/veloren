@@ -1,9 +1,10 @@
 #![deny(unsafe_code)]
+#![allow(clippy::option_map_unit_fn)]
 
 use client::{Client, Event};
 use common::{clock::Clock, comp};
-use log::{error, info};
 use std::{io, net::ToSocketAddrs, sync::mpsc, thread, time::Duration};
+use tracing::{error, info};
 
 const TPS: u64 = 10; // Low value is okay, just reading messages.
 
@@ -19,7 +20,7 @@ fn read_input() -> String {
 
 fn main() {
     // Initialize logging.
-    pretty_env_logger::init();
+    tracing_subscriber::fmt::init();
 
     info!("Starting chat-cli...");
 
@@ -81,9 +82,10 @@ fn main() {
             },
         };
 
+        const SHOW_NAME: bool = false;
         for event in events {
             match event {
-                Event::Chat { message, .. } => println!("{}", message),
+                Event::Chat(m) => println!("{}", client.format_message(&m, SHOW_NAME)),
                 Event::Disconnect => {}, // TODO
                 Event::DisconnectionNotification(time) => {
                     let message = match time {
@@ -93,7 +95,7 @@ fn main() {
 
                     println!("{}", message)
                 },
-                Event::Notification(_) => {}, // TODO?
+                _ => {},
             }
         }
 

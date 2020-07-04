@@ -1,5 +1,4 @@
 use super::{track::UpdateTracker, uid::Uid};
-use log::error;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use specs::{Component, Entity, Join, ReadStorage, World, WorldExt};
 use std::{
@@ -7,6 +6,7 @@ use std::{
     fmt::Debug,
     marker::PhantomData,
 };
+use tracing::error;
 
 /// Implemented by type that carries component data for insertion and
 /// modification The assocatied `Phantom` type only carries information about
@@ -21,8 +21,8 @@ pub trait CompPacket: Clone + Debug + Send + 'static {
 
 /// Useful for implementing CompPacket trait
 pub fn handle_insert<C: Component>(comp: C, entity: Entity, world: &World) {
-    if let Err(err) = world.write_storage::<C>().insert(entity, comp) {
-        error!("Error inserting : {:?}", err);
+    if let Err(e) = world.write_storage::<C>().insert(entity, comp) {
+        error!(?e, "Error inserting");
     }
 }
 /// Useful for implementing CompPacket trait
@@ -31,8 +31,8 @@ pub fn handle_modify<C: Component + Debug>(comp: C, entity: Entity, world: &Worl
         *c = comp
     } else {
         error!(
-            "Error modifying synced component: {:?}, it doesn't seem to exist",
-            comp
+            ?comp,
+            "Error modifying synced component, it doesn't seem to exist"
         );
     }
 }
@@ -116,6 +116,7 @@ pub struct CompSyncPackage<P: CompPacket> {
 }
 
 impl<P: CompPacket> CompSyncPackage<P> {
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {
         Self {
             comp_updates: Vec::new(),

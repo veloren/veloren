@@ -1,9 +1,4 @@
 use crate::{
-    anim::{
-        character::{CharacterSkeleton, IdleAnimation, SkeletonAttr},
-        fixture::FixtureSkeleton,
-        Animation, Skeleton,
-    },
     mesh::{greedy::GreedyMesh, Meshable},
     render::{
         create_pp_mesh, create_skybox_mesh, BoneMeshes, Consts, FigureModel, FigurePipeline,
@@ -17,13 +12,18 @@ use crate::{
     },
     window::{Event, PressState},
 };
+use anim::{
+    character::{CharacterSkeleton, IdleAnimation, SkeletonAttr},
+    fixture::FixtureSkeleton,
+    Animation, Skeleton,
+};
 use common::{
     comp::{humanoid, Body, Loadout},
     figure::Segment,
     terrain::BlockKind,
     vol::{BaseVol, ReadVol, Vox},
 };
-use log::error;
+use tracing::error;
 use vek::*;
 
 #[derive(PartialEq, Eq, Copy, Clone)]
@@ -234,7 +234,7 @@ impl Scene {
         const SHADOW_NEAR: f32 = 1.0;
         const SHADOW_FAR: f32 = 25.0;
 
-        if let Err(err) = renderer.update_consts(&mut self.globals, &[Globals::new(
+        if let Err(e) = renderer.update_consts(&mut self.globals, &[Globals::new(
             view_mat,
             proj_mat,
             cam_pos,
@@ -255,7 +255,7 @@ impl Scene {
             self.camera.get_mode(),
             250.0,
         )]) {
-            error!("Renderer failed to update: {:?}", err);
+            error!(?e, "Renderer failed to update");
         }
 
         self.figure_model_cache

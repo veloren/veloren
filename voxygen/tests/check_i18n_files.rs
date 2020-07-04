@@ -48,6 +48,7 @@ impl LocalizationEntryState {
 }
 
 /// Returns the Git blob associated with the given reference and path
+#[allow(clippy::expect_fun_call)] // TODO: Pending review in #587
 fn read_file_from_path<'a>(
     repo: &'a git2::Repository,
     reference: &git2::Reference,
@@ -80,15 +81,12 @@ fn generate_key_version<'a>(
         .map(|k| (k.to_owned(), LocalizationEntryState::new()))
         .collect();
     let mut to_process: HashSet<&String> = localization.string_map.keys().map(|k| k).collect();
-    let mut line_nb = 0;
-
     // Find key start lines
-    for line in std::str::from_utf8(file_blob.content())
+    for (line_nb, line) in std::str::from_utf8(file_blob.content())
         .expect("UTF-8 file")
         .split('\n')
+        .enumerate()
     {
-        line_nb += 1;
-
         let mut found_key = None;
 
         for key in to_process.iter() {
@@ -136,6 +134,9 @@ fn generate_key_version<'a>(
 
 #[test]
 #[ignore]
+#[allow(clippy::expect_fun_call)] // TODO: Pending review in #587
+#[allow(clippy::extra_unused_lifetimes)] // TODO: Pending review in #587
+#[allow(clippy::or_fun_call)] // TODO: Pending review in #587
 fn test_all_localizations<'a>() {
     // Generate paths
     let i18n_asset_path = Path::new("assets/voxygen/i18n/");

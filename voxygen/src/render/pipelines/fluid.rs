@@ -66,6 +66,8 @@ impl Vertex {
             //| ((opac.mul(0.4) as u32) & 0xFF) << 0,
         }
     } */
+    #[allow(clippy::identity_op)] // TODO: Pending review in #587
+    #[allow(clippy::into_iter_on_ref)] // TODO: Pending review in #587
     pub fn new(pos: Vec3<f32>, norm: Vec3<f32>) -> Self {
         let (norm_axis, norm_dir) = norm
             .as_slice()

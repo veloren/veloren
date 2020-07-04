@@ -8,9 +8,9 @@ use crate::{
 use directories::{ProjectDirs, UserDirs};
 use glutin::{MouseButton, VirtualKeyCode};
 use hashbrown::{HashMap, HashSet};
-use log::warn;
 use serde_derive::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, path::PathBuf};
+use tracing::warn;
 
 // ControlSetting-like struct used by Serde, to handle not serializing/building
 // post-deserializing the inverse_keybindings hashmap
@@ -116,6 +116,7 @@ impl ControlSettings {
             GameInput::MoveRight => KeyMouse::Key(VirtualKeyCode::D),
             GameInput::Jump => KeyMouse::Key(VirtualKeyCode::Space),
             GameInput::Sit => KeyMouse::Key(VirtualKeyCode::K),
+            GameInput::Dance => KeyMouse::Key(VirtualKeyCode::J),
             GameInput::Glide => KeyMouse::Key(VirtualKeyCode::LShift),
             GameInput::Climb => KeyMouse::Key(VirtualKeyCode::Space),
             GameInput::ClimbDown => KeyMouse::Key(VirtualKeyCode::LControl),
@@ -135,10 +136,11 @@ impl ControlSettings {
             GameInput::ToggleIngameUi => KeyMouse::Key(VirtualKeyCode::F6),
             GameInput::Roll => MIDDLE_CLICK_KEY,
             GameInput::Respawn => KeyMouse::Key(VirtualKeyCode::Space),
-            GameInput::Interact => KeyMouse::Mouse(MouseButton::Right),
+            GameInput::Interact => KeyMouse::Key(VirtualKeyCode::E),
             GameInput::ToggleWield => KeyMouse::Key(VirtualKeyCode::T),
             //GameInput::Charge => KeyMouse::Key(VirtualKeyCode::Key1),
             GameInput::FreeLook => KeyMouse::Key(VirtualKeyCode::L),
+            GameInput::AutoWalk => KeyMouse::Key(VirtualKeyCode::Period),
             GameInput::Slot1 => KeyMouse::Key(VirtualKeyCode::Key1),
             GameInput::Slot2 => KeyMouse::Key(VirtualKeyCode::Key2),
             GameInput::Slot3 => KeyMouse::Key(VirtualKeyCode::Key3),
@@ -172,6 +174,7 @@ impl Default for ControlSettings {
             GameInput::MoveRight,
             GameInput::Jump,
             GameInput::Sit,
+            GameInput::Dance,
             GameInput::Glide,
             GameInput::Climb,
             GameInput::ClimbDown,
@@ -198,6 +201,7 @@ impl Default for ControlSettings {
             GameInput::ToggleWield,
             //GameInput::Charge,
             GameInput::FreeLook,
+            GameInput::AutoWalk,
             GameInput::Slot1,
             GameInput::Slot2,
             GameInput::Slot3,
@@ -273,6 +277,7 @@ pub mod con_settings {
         pub move_right: Button,
         pub jump: Button,
         pub sit: Button,
+        pub dance: Button,
         pub glide: Button,
         pub climb: Button,
         pub climb_down: Button,
@@ -360,6 +365,7 @@ pub mod con_settings {
                 move_right: Button::Simple(GilButton::Unknown),
                 jump: Button::Simple(GilButton::South),
                 sit: Button::Simple(GilButton::West),
+                dance: Button::Simple(GilButton::Unknown),
                 glide: Button::Simple(GilButton::LeftTrigger),
                 climb: Button::Simple(GilButton::South),
                 climb_down: Button::Simple(GilButton::Unknown),
@@ -451,10 +457,13 @@ pub struct GameplaySettings {
     pub sct: bool,
     pub sct_player_batch: bool,
     pub sct_damage_batch: bool,
+    pub speech_bubble_dark_mode: bool,
+    pub speech_bubble_icon: bool,
     pub mouse_y_inversion: bool,
     pub smooth_pan_enable: bool,
     pub crosshair_transp: f32,
     pub chat_transp: f32,
+    pub chat_character_name: bool,
     pub crosshair_type: CrosshairType,
     pub intro_show: Intro,
     pub xp_bar: XpBar,
@@ -462,6 +471,9 @@ pub struct GameplaySettings {
     pub bar_numbers: BarNumbers,
     pub ui_scale: ScaleMode,
     pub free_look_behavior: PressBehavior,
+    pub auto_walk_behavior: PressBehavior,
+    pub stop_auto_walk_on_input: bool,
+    pub map_zoom: f64,
 }
 
 impl Default for GameplaySettings {
@@ -476,8 +488,11 @@ impl Default for GameplaySettings {
             sct: true,
             sct_player_batch: true,
             sct_damage_batch: false,
+            speech_bubble_dark_mode: false,
+            speech_bubble_icon: true,
             crosshair_transp: 0.6,
             chat_transp: 0.4,
+            chat_character_name: true,
             crosshair_type: CrosshairType::Round,
             intro_show: Intro::Show,
             xp_bar: XpBar::Always,
@@ -485,6 +500,9 @@ impl Default for GameplaySettings {
             bar_numbers: BarNumbers::Off,
             ui_scale: ScaleMode::RelativeToWindow([1920.0, 1080.0].into()),
             free_look_behavior: PressBehavior::Toggle,
+            auto_walk_behavior: PressBehavior::Toggle,
+            stop_auto_walk_on_input: true,
+            map_zoom: 4.0,
         }
     }
 }
@@ -494,7 +512,6 @@ impl Default for GameplaySettings {
 #[serde(default)]
 pub struct NetworkingSettings {
     pub username: String,
-    pub password: String,
     pub servers: Vec<String>,
     pub default_server: usize,
     pub trusted_auth_servers: HashSet<String>,
@@ -504,7 +521,6 @@ impl Default for NetworkingSettings {
     fn default() -> Self {
         Self {
             username: "Username".to_string(),
-            password: String::default(),
             servers: vec!["server.veloren.net".to_string()],
             default_server: 0,
             trusted_auth_servers: ["https://auth.veloren.net"]
@@ -527,6 +543,7 @@ pub struct Log {
 }
 
 impl Default for Log {
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn default() -> Self {
         let proj_dirs = ProjectDirs::from("net", "veloren", "voxygen")
             .expect("System's $HOME directory path not found!");
@@ -548,7 +565,7 @@ impl Default for Log {
 
 /// `GraphicsSettings` contains settings related to framerate and in-game
 /// visuals.
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct GraphicsSettings {
     pub view_distance: u32,
@@ -561,6 +578,23 @@ pub struct GraphicsSettings {
     pub window_size: [u16; 2],
     pub fullscreen: bool,
     pub lod_detail: u32,
+}
+
+impl Default for GraphicsSettings {
+    fn default() -> Self {
+        Self {
+            view_distance: 10,
+            sprite_render_distance: 150,
+            figure_lod_render_distance: 250,
+            max_fps: 60,
+            fov: 50,
+            gamma: 1.0,
+            render_mode: RenderMode::default(),
+            window_size: [1920, 1080],
+            fullscreen: false,
+            lod_detail: 300,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -644,6 +678,8 @@ pub struct Settings {
 }
 
 impl Default for Settings {
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
+
     fn default() -> Self {
         let user_dirs = UserDirs::new().expect("System's $HOME directory path not found!");
 
@@ -657,7 +693,7 @@ impl Default for Settings {
             .or(user_dirs.picture_dir().map(|dir| dir.join("veloren")))
             .or(std::env::current_exe()
                 .ok()
-                .and_then(|dir| dir.parent().map(|val| PathBuf::from(val))))
+                .and_then(|dir| dir.parent().map(PathBuf::from)))
             .expect("Couldn't choose a place to store the screenshots");
 
         Settings {
@@ -685,13 +721,13 @@ impl Settings {
             match ron::de::from_reader(file) {
                 Ok(s) => return s,
                 Err(e) => {
-                    log::warn!("Failed to parse setting file! Fallback to default. {}", e);
+                    warn!(?e, "Failed to parse setting file! Fallback to default.");
                     // Rename the corrupted settings file
                     let mut new_path = path.to_owned();
                     new_path.pop();
                     new_path.push("settings.invalid.ron");
-                    if let Err(err) = std::fs::rename(path, new_path) {
-                        log::warn!("Failed to rename settings file. {}", err);
+                    if let Err(e) = std::fs::rename(path.clone(), new_path.clone()) {
+                        warn!(?e, ?path, ?new_path, "Failed to rename settings file.");
                     }
                 },
             }
@@ -705,8 +741,8 @@ impl Settings {
     }
 
     pub fn save_to_file_warn(&self) {
-        if let Err(err) = self.save_to_file() {
-            warn!("Failed to save settings: {:?}", err);
+        if let Err(e) = self.save_to_file() {
+            warn!(?e, "Failed to save settings");
         }
     }
 
@@ -723,12 +759,12 @@ impl Settings {
     }
 
     pub fn get_settings_path() -> PathBuf {
-        if let Some(val) = std::env::var_os("VOXYGEN_CONFIG") {
-            let settings = PathBuf::from(val).join("settings.ron");
+        if let Some(path) = std::env::var_os("VOXYGEN_CONFIG") {
+            let settings = PathBuf::from(path.clone()).join("settings.ron");
             if settings.exists() || settings.parent().map(|x| x.exists()).unwrap_or(false) {
                 return settings;
             }
-            log::warn!("VOXYGEN_CONFIG points to invalid path.");
+            warn!(?path, "VOXYGEN_CONFIG points to invalid path.");
         }
 
         let proj_dirs = ProjectDirs::from("net", "veloren", "voxygen")

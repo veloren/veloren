@@ -1,3 +1,5 @@
+//! Handles audio device detection and playback of sound effects and music
+
 pub mod channel;
 pub mod fader;
 pub mod music;
@@ -7,6 +9,7 @@ pub mod soundcache;
 use channel::{MusicChannel, MusicChannelTag, SfxChannel};
 use fader::Fader;
 use soundcache::SoundCache;
+use tracing::warn;
 
 use common::assets;
 use cpal::traits::DeviceTrait;
@@ -15,6 +18,10 @@ use vek::*;
 
 const FALLOFF: f32 = 0.13;
 
+/// Holds information about the system audio devices and internal channels used
+/// for sfx and music playback. An instance of `AudioFrontend` is used by
+/// Voxygen's [`GlobalState`](../struct.GlobalState.html#structfield.audio) to
+/// provide access to devices and playback control in-game
 pub struct AudioFrontend {
     pub device: String,
     pub device_list: Vec<String>,
@@ -36,6 +43,7 @@ pub struct AudioFrontend {
 
 impl AudioFrontend {
     /// Construct with given device
+    #[allow(clippy::redundant_clone)] // TODO: Pending review in #587
     pub fn new(device: String, max_sfx_channels: usize) -> Self {
         let mut sfx_channels = Vec::with_capacity(max_sfx_channels);
         let audio_device = get_device_raw(&device);
@@ -50,7 +58,7 @@ impl AudioFrontend {
             device: device.clone(),
             device_list: list_devices(),
             audio_device,
-            sound_cache: SoundCache::new(),
+            sound_cache: SoundCache::default(),
             music_channels: Vec::new(),
             sfx_channels,
             sfx_volume: 1.0,
@@ -68,7 +76,7 @@ impl AudioFrontend {
             device: "none".to_string(),
             device_list: Vec::new(),
             audio_device: None,
-            sound_cache: SoundCache::new(),
+            sound_cache: SoundCache::default(),
             music_channels: Vec::new(),
             sfx_channels: Vec::new(),
             sfx_volume: 1.0,
@@ -135,6 +143,7 @@ impl AudioFrontend {
         self.music_channels.last_mut()
     }
 
+    /// Play (once) an sfx file by file path at the give position and volume
     pub fn play_sfx(&mut self, sound: &str, pos: Vec3<f32>, vol: Option<f32>) {
         if self.audio_device.is_some() {
             let calc_pos = ((pos - self.listener_pos) * FALLOFF).into_array();
@@ -166,13 +175,13 @@ impl AudioFrontend {
     }
 
     pub fn set_listener_pos(&mut self, pos: &Vec3<f32>, ori: &Vec3<f32>) {
-        self.listener_pos = pos.clone();
+        self.listener_pos = *pos;
         self.listener_ori = ori.normalized();
 
         let up = Vec3::new(0.0, 0.0, 1.0);
 
-        let pos_left = up.cross(self.listener_ori.clone()).normalized();
-        let pos_right = self.listener_ori.cross(up.clone()).normalized();
+        let pos_left = up.cross(self.listener_ori).normalized();
+        let pos_right = self.listener_ori.cross(up).normalized();
 
         self.listener_ear_left = pos_left;
         self.listener_ear_right = pos_right;
@@ -190,6 +199,8 @@ impl AudioFrontend {
         }
     }
 
+    /// Switches the playing music to the title music, which is pinned to a
+    /// specific sound file (veloren_title_tune.ogg)
     pub fn play_title_music(&mut self) {
         if self.music_enabled() {
             self.play_music(
@@ -239,7 +250,10 @@ impl AudioFrontend {
 /// Returns the default audio device.
 /// Does not return rodio Device struct in case our audio backend changes.
 pub fn get_default_device() -> Option<String> {
-    rodio::default_output_device().map(|dev| dev.name().expect("Unable to get device name"))
+    match rodio::default_output_device() {
+        Some(x) => Some(x.name().ok()?),
+        None => None,
+    }
 }
 
 /// Returns a vec of the audio devices available.
@@ -247,19 +261,26 @@ pub fn get_default_device() -> Option<String> {
 pub fn list_devices() -> Vec<String> {
     list_devices_raw()
         .iter()
-        .map(|x| x.name().expect("Unable to get device name"))
+        .map(|x| x.name().unwrap())
         .collect()
 }
 
 /// Returns vec of devices
 fn list_devices_raw() -> Vec<Device> {
-    rodio::output_devices()
-        .expect("Unable to get output devices")
-        .collect()
+    match rodio::output_devices() {
+        Ok(devices) => {
+            // Filter out any devices that the name isn't available for
+            devices.filter(|d| d.name().is_ok()).collect()
+        },
+        Err(_) => {
+            warn!("Failed to enumerate audio output devices, audio will not be available");
+            Vec::new()
+        },
+    }
 }
 
 fn get_device_raw(device: &str) -> Option<Device> {
-    rodio::output_devices()
-        .expect("Unable to get output devices")
-        .find(|d| d.name().expect("Unable to get device name") == device)
+    list_devices_raw()
+        .into_iter()
+        .find(|d| d.name().unwrap() == device)
 }

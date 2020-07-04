@@ -9,9 +9,9 @@ use crate::{
 };
 use client::{self, Client};
 use common::{assets, clock::Clock, comp, msg::ClientState, state::DeltaTime};
-use log::error;
 use specs::WorldExt;
 use std::{cell::RefCell, rc::Rc, time::Duration};
+use tracing::error;
 use ui::CharSelectionUi;
 
 pub struct CharSelectionState {
@@ -91,11 +91,7 @@ impl PlayState for CharSelectionState {
                             char_data.get(self.char_selection_ui.selected_character)
                         {
                             if let Some(character_id) = selected_character.character.id {
-                                self.client.borrow_mut().request_character(
-                                    character_id,
-                                    selected_character.body,
-                                    selected_character.character.tool.clone(),
-                                );
+                                self.client.borrow_mut().request_character(character_id);
                             }
                         }
 
@@ -132,7 +128,7 @@ impl PlayState for CharSelectionState {
                     time: client.state().get_time(),
                     delta_time: client.state().ecs().read_resource::<DeltaTime>().0,
                     tick: client.get_tick(),
-                    body: humanoid_body.clone(),
+                    body: humanoid_body,
                     gamma: global_state.settings.graphics.gamma,
                     mouse_smoothing: global_state.settings.gameplay.smooth_pan_enable,
                     figure_lod_render_distance: global_state
@@ -152,7 +148,7 @@ impl PlayState for CharSelectionState {
             self.scene.render(
                 global_state.window.renderer_mut(),
                 self.client.borrow().get_tick(),
-                humanoid_body.clone(),
+                humanoid_body,
                 loadout.as_ref(),
             );
 
@@ -164,14 +160,14 @@ impl PlayState for CharSelectionState {
             let localized_strings = assets::load_expect::<VoxygenLocalization>(&i18n_asset_key(
                 &global_state.settings.language.selected_language,
             ));
-            if let Err(err) = self.client.borrow_mut().tick(
+            if let Err(e) = self.client.borrow_mut().tick(
                 comp::ControllerInputs::default(),
                 clock.get_last_delta(),
                 |_| {},
             ) {
                 global_state.info_message =
                     Some(localized_strings.get("common.connection_lost").to_owned());
-                error!("[char_selection] Failed to tick the scene: {:?}", err);
+                error!(?e, "[char_selection] Failed to tick the scene");
 
                 return PlayStateResult::Pop;
             }

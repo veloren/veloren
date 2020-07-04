@@ -91,6 +91,7 @@ impl TooltipManager {
         }
     }
 
+    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     fn set_tooltip(
         &mut self,
         tooltip: &Tooltip,
@@ -438,13 +439,11 @@ impl<'a> Widget for Tooltip<'a> {
         if !self.title_text.is_empty() {
             desc.down_from(state.ids.title, V_PAD * 0.5 + title_space)
                 .align_left_of(state.ids.title)
+        } else if self.image.is_some() {
+            desc.right_from(state.ids.image, H_PAD)
+                .align_top_of(state.ids.image)
         } else {
-            if self.image.is_some() {
-                desc.right_from(state.ids.image, H_PAD)
-                    .align_top_of(state.ids.image)
-            } else {
-                desc.top_left_with_margins_on(state.ids.image_frame, V_PAD, H_PAD)
-            }
+            desc.top_left_with_margins_on(state.ids.image_frame, V_PAD, H_PAD)
         }
         .set(state.ids.desc, ui);
     }

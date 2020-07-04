@@ -17,6 +17,7 @@ impl From<gfx::PipelineStateError<String>> for RenderError {
 }
 
 impl From<gfx::PipelineStateError<&str>> for RenderError {
+    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     fn from(err: gfx::PipelineStateError<&str>) -> Self {
         // This is horrid. We do it to get rid of the `&str`'s lifetime bound by turning
         // it into a `String`.

@@ -1,5 +1,4 @@
 use crate::render::RenderError;
-use client;
 use std::fmt::Debug;
 
 /// Represents any error that may be triggered by Voxygen.

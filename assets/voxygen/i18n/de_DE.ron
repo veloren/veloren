@@ -74,12 +74,12 @@ VoxygenLocalization(
         "common.connection_lost": r#"Verbindung unterbrochen."#,
 
 
-        "common.races.orc": "Orc",
-        "common.races.human": "Mensch",
-        "common.races.dwarf": "Zwerg",
-        "common.races.elf": "Elf",
-        "common.races.undead": "Untoter",
-        "common.races.danari": "Danari",
+        "common.species.orc": "Orc",
+        "common.species.human": "Mensch",
+        "common.species.dwarf": "Zwerg",
+        "common.species.elf": "Elf",
+        "common.species.undead": "Untoter",
+        "common.species.danari": "Danari",
 
         "common.weapons.axe": "Axt",
         "common.weapons.sword": "Schwert",
@@ -138,6 +138,7 @@ eurer erstellen Charaktere gespeichert."#,
         "main.login.failed_sending_request": "Authentifizierung fehlgeschlagen",
         "main.login.invalid_character": "Ungültiger Charakter",
         "main.login.client_crashed": "Client abgestürzt",
+        "main.login.not_on_whitelist": "Ihr braucht einen Whitelist Eintrag durch den Server Admin",
 
         /// End Main screen section
 
@@ -153,6 +154,18 @@ eurer erstellen Charaktere gespeichert."#,
         "hud.press_key_to_show_debug_info_fmt": "Drückt {key} um die Debug-Info zu zeigen",
         "hud.press_key_to_toggle_keybindings_fmt": "Drückt {key} um die Tastenbelegung zu zeigen",
         "hud.press_key_to_toggle_debug_info_fmt": "Drückt {key} um die Debug-Info zu zeigen",
+
+        // Chat outputs
+        "hud.chat.online_msg": "[{name}] ist jetzt online.", 
+        "hud.chat.offline_msg": "{name} ist jetzt offline.", 
+        "hud.chat.loot_msg": "Ihr erhaltet [{item}]",        
+        "hud.chat.loot_fail": "Euer Inventar ist voll!",
+        "hud.chat.goodbye": "Verbindung getrennt.",
+        "hud.chat.connection_lost": "Verbindung unterbrochen. Trenne Verbindung in {time} sekunden.",
+
+        // SCT outputs
+        "hud.sct.experience": "{amount} Erf",
+        "hud.sct.block": "GEBLOCKT",
 
         /// Respawn message
         "hud.press_key_to_respawn": r#"Drückt {key} um am letzten Lagerfeuer wiederbelebt zu werden."#,
@@ -193,6 +206,18 @@ um dieses Fenster zu schließen? Drückt 'TAB'!
 
 
 Viel Spaß in der Welt von Veloren, Abenteurer!"#,
+
+"hud.temp_quest_headline": r#"Bitte helft uns, Reisender!"#,
+"hud.temp_quest_text": r#"Höhlen voller böser Kultisten sind  überall
+um unsere Dörfer herum aufgetaucht!
+
+
+Versammelt einige Kämpfer, sucht etwas 
+Nahrung und besiegt ihre abscheulichen 
+Anführer und Akolyten.
+
+Vielleicht könnt ihr sogar einen ihrer 
+magischen Gegenstände ergattern?"#,
 
         // Inventory
         "hud.bag.inventory": "{playername}s Inventar",
@@ -240,11 +265,15 @@ Viel Spaß in der Welt von Veloren, Abenteurer!"#,
         "hud.settings.cumulated_damage": "Addierter Schaden",
         "hud.settings.incoming_damage": "Erlittener Schaden",
         "hud.settings.cumulated_incoming_damage": "Addierter erlittener Schaden",
+        "hud.settings.speech_bubble": "Sprechblase",        
+        "hud.settings.speech_bubble_dark_mode": "Dunkle Sprechblasen",
+        "hud.settings.speech_bubble_icon": "Sprechblasen Symbole",
         "hud.settings.energybar_numbers": "Zahlen auf Ressourcenanzeige",
         "hud.settings.values": "Werte",
         "hud.settings.percentages": "Prozent",
         "hud.settings.chat": "Chat",
-        "hud.settings.background_transparency": "Hintergrund Kontrast",        
+        "hud.settings.background_transparency": "Hintergrund Kontrast",   
+        "hud.settings.chat_character_name": "Character Namen im Chat",     
 
         "hud.settings.pan_sensitivity": "Schwenk Sensibilität",
         "hud.settings.zoom_sensitivity": "Zoom Sensibilität",
@@ -252,6 +281,8 @@ Viel Spaß in der Welt von Veloren, Abenteurer!"#,
         "hud.settings.invert_mouse_y_axis": "Maus Y-Achse invertieren",
         "hud.settings.enable_mouse_smoothing": "Kamera Glättung",
         "hud.settings.free_look_behavior": "Freies Umsehen",
+        "hud.settings.auto_walk_behavior": "Automatisches Laufen",
+        "hud.settings.stop_auto_walk_on_input": "Auto-Laufen bei Tastendruck stoppen",
 
         "hud.settings.view_distance": "Gelände Sichtweite",
         "hud.settings.sprites_view_distance": "Objekt Sichtweite",
@@ -284,6 +315,7 @@ Viel Spaß in der Welt von Veloren, Abenteurer!"#,
         "hud.spell": "Zauber",
 
         "hud.free_look_indicator": "Freie Sicht aktiv",
+        "hud.auto_walk_indicator": "Automatisches Laufen aktiv",
 
        
         /// End HUD section
@@ -334,7 +366,9 @@ Viel Spaß in der Welt von Veloren, Abenteurer!"#,
         "gameinput.charge": "Anstürmen",
         "gameinput.togglewield": "Waffe ziehen/wegstecken",
         "gameinput.interact": "Interagieren",
-        "gameinput.freelook": "Freie Sicht",
+        "gameinput.freelook": "Freie Sicht",        
+        "gameinput.autowalk": "Automatisch Laufen",
+        "gameinput.dance": "Tanzen",
 
         /// End GameInput section
 
@@ -360,7 +394,7 @@ Viel Spaß in der Welt von Veloren, Abenteurer!"#,
         "char_selection.chest_color": "Brustrüstung",
         "char_selection.eye_color": "Augenfarbe",
         "char_selection.skin": "Hautton",
-        "char_selection.eyebrows": "Augenbrauen",
+        "char_selection.eyeshape": "Augen Details",
         "char_selection.accessories": "Accessoires",
         "char_selection.create_info_name": "Euer Charakter braucht einen Namen!",
         /// End chracter selection section
@@ -383,5 +417,11 @@ Willenskraft
         "esc_menu.logout": "Ausloggen",
         "esc_menu.quit_game": "Desktop",
         /// End Escape Menu Section
+    },
+
+    vector_map: {
+        "npc.speech.villager_under_attack": [
+            "Hilfe, ich werde angegriffen!",            
+            ],
     }
 )

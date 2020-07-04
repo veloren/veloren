@@ -23,7 +23,7 @@ This will be needed to play on auth-enabled servers, including the official serv
 
 [The Book](https://book.veloren.net) - A collection of all important information relating to Veloren. It includes information on how to compile Veloren and how to contribute.
 
-[Future Plans](https://gitlab.com/veloren/veloren/milestones) - Go here for information about Veloren's development roadmap and what we're currently working on.
+[Future Plans](https://gitlab.com/veloren/veloren/-/milestones) - Go here for information about Veloren's development roadmap and what we're currently working on.
 
 #### Official social media and websites
 
@@ -33,10 +33,8 @@ This will be needed to play on auth-enabled servers, including the official serv
 
 ## Get Veloren
 
-Currently we provide 64-bit builds for Linux and Windows which can be downloaded on the official website:
+We provide 64-bit builds for Linux, Mac, and Windows, which can be downloaded on the official website:
 [https://www.veloren.net](https://veloren.net/welcome)
-
-_Note: Mac and 32-bit systems are supported but you need to [compile the game for them yourself](https://book.veloren.net/compile/index.html)._
 
 Due to rapid developement stable versions become outdated fast and might be **incompatible with the public server**.
 

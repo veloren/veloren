@@ -1,13 +1,17 @@
 use authc::AuthClientError;
-use common::net::PostError;
+pub use network::NetworkError;
+use network::{ParticipantError, StreamError};
 
 #[derive(Debug)]
 pub enum Error {
-    Network(PostError),
+    NetworkErr(NetworkError),
+    ParticipantErr(ParticipantError),
+    StreamErr(StreamError),
     ServerWentMad,
     ServerTimeout,
     ServerShutdown,
     TooManyPlayers,
+    NotOnWhitelist,
     AlreadyLoggedIn,
     AuthErr(String),
     AuthClientError(AuthClientError),
@@ -18,8 +22,16 @@ pub enum Error {
     Other(String),
 }
 
-impl From<PostError> for Error {
-    fn from(err: PostError) -> Self { Self::Network(err) }
+impl From<NetworkError> for Error {
+    fn from(err: NetworkError) -> Self { Self::NetworkErr(err) }
+}
+
+impl From<ParticipantError> for Error {
+    fn from(err: ParticipantError) -> Self { Self::ParticipantErr(err) }
+}
+
+impl From<StreamError> for Error {
+    fn from(err: StreamError) -> Self { Self::StreamErr(err) }
 }
 
 impl From<AuthClientError> for Error {

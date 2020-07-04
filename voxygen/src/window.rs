@@ -7,9 +7,10 @@ use crate::{
 use gilrs::{EventType, Gilrs};
 use hashbrown::HashMap;
 
-use log::{error, warn};
+use crossbeam::channel;
 use serde_derive::{Deserialize, Serialize};
 use std::fmt;
+use tracing::{error, info, warn};
 use vek::*;
 
 /// Represents a key that the game recognises after input mapping.
@@ -34,6 +35,7 @@ pub enum GameInput {
     MoveRight,
     Jump,
     Sit,
+    Dance,
     Glide,
     Climb,
     ClimbDown,
@@ -61,6 +63,7 @@ pub enum GameInput {
     //Charge,
     SwapLoadout,
     FreeLook,
+    AutoWalk,
 }
 
 impl GameInput {
@@ -75,6 +78,7 @@ impl GameInput {
             GameInput::MoveBack => "gameinput.moveback",
             GameInput::Jump => "gameinput.jump",
             GameInput::Sit => "gameinput.sit",
+            GameInput::Dance => "gameinput.dance",
             GameInput::Glide => "gameinput.glide",
             GameInput::Climb => "gameinput.climb",
             GameInput::ClimbDown => "gameinput.climbdown",
@@ -101,6 +105,7 @@ impl GameInput {
             GameInput::ToggleWield => "gameinput.togglewield",
             //GameInput::Charge => "gameinput.charge",
             GameInput::FreeLook => "gameinput.freelook",
+            GameInput::AutoWalk => "gameinput.autowalk",
             GameInput::Slot1 => "gameinput.slot1",
             GameInput::Slot2 => "gameinput.slot2",
             GameInput::Slot3 => "gameinput.slot3",
@@ -157,6 +162,8 @@ pub enum Event {
     Close,
     /// The window has been resized.
     Resize(Vec2<u32>),
+    /// The window has been moved.
+    Moved(Vec2<u32>),
     /// A key has been typed that corresponds to a specific character.
     Char(char),
     /// The cursor has been panned across the screen while grabbed.
@@ -184,6 +191,8 @@ pub enum Event {
     AnalogMenuInput(AnalogMenuInput),
     /// Update of the analog inputs recognized by the game
     AnalogGameInput(AnalogGameInput),
+    /// We tried to save a screenshot
+    ScreenshotMessage(String),
 }
 
 pub type MouseButton = winit::MouseButton;
@@ -361,11 +370,12 @@ impl fmt::Display for KeyMouse {
             Key(Copy) => "Copy",
             Key(Paste) => "Paste",
             Key(Cut) => "Cut",
-            Mouse(MouseButton::Left) => "Mouse Left",
-            Mouse(MouseButton::Right) => "Mouse Right",
-            Mouse(MouseButton::Middle) => "Middle-Click",
+            Mouse(MouseButton::Left) => "M1",
+            Mouse(MouseButton::Right) => "M2",
+            Mouse(MouseButton::Middle) => "M3",
             Mouse(MouseButton::Other(button)) =>
-                return write!(f, "Unknown Mouse Button: {:?}", button),
+            // Additional mouse buttons after middle click start at 1
+                return write!(f, "M{}", button + 3),
         })
     }
 }
@@ -389,6 +399,9 @@ pub struct Window {
     controller_settings: ControllerSettings,
     cursor_position: winit::dpi::LogicalPosition,
     mouse_emulation_vec: Vec2<f32>,
+    // Currently used to send and receive screenshot result messages
+    message_sender: channel::Sender<String>,
+    message_receiver: channel::Receiver<String>,
 }
 
 impl Window {
@@ -417,6 +430,18 @@ impl Window {
             )
             .map_err(|err| Error::BackendError(Box::new(err)))?;
 
+        let vendor = device.get_info().platform_name.vendor;
+        let renderer = device.get_info().platform_name.renderer;
+        let opengl_version = device.get_info().version;
+        let glsl_version = device.get_info().shading_language;
+        info!(
+            ?vendor,
+            ?renderer,
+            ?opengl_version,
+            ?glsl_version,
+            "selected graphics device"
+        );
+
         let keypress_map = HashMap::new();
 
         let gilrs = match Gilrs::new() {
@@ -431,17 +456,22 @@ impl Window {
                 );
                 None
             },
-            Err(gilrs::Error::Other(err)) => {
+            Err(gilrs::Error::Other(e)) => {
                 error!(
-                    "Platform-specific error when creating a Gilrs instance: `{}`. Falling back \
-                     to no controller support.",
-                    err
+                    ?e,
+                    "Platform-specific error when creating a Gilrs instance. Falling back to no \
+                     controller support."
                 );
                 None
             },
         };
 
         let controller_settings = ControllerSettings::from(&settings.controller);
+
+        let (message_sender, message_receiver): (
+            channel::Sender<String>,
+            channel::Receiver<String>,
+        ) = channel::unbounded::<String>();
 
         let mut this = Self {
             events_loop,
@@ -468,6 +498,9 @@ impl Window {
             controller_settings,
             cursor_position: winit::dpi::LogicalPosition::new(0.0, 0.0),
             mouse_emulation_vec: Vec2::zero(),
+            // Currently used to send and receive screenshot result messages
+            message_sender,
+            message_receiver,
         };
 
         this.fullscreen(settings.graphics.fullscreen);
@@ -479,6 +512,7 @@ impl Window {
 
     pub fn renderer_mut(&mut self) -> &mut Renderer { &mut self.renderer }
 
+    #[allow(clippy::match_bool)] // TODO: Pending review in #587
     pub fn fetch_events(&mut self, settings: &mut Settings) -> Vec<Event> {
         let mut events = vec![];
         events.append(&mut self.supplement_events);
@@ -487,6 +521,11 @@ impl Window {
             events.push(Event::Ui(ui::Event::new_resize(self.logical_size())));
             self.needs_refresh_resize = false;
         }
+
+        // Receive any messages sent through the message channel
+        self.message_receiver
+            .try_iter()
+            .for_each(|message| events.push(Event::ScreenshotMessage(message)));
 
         // Copy data that is needed by the events closure to avoid lifetime errors.
         // TODO: Remove this if/when the compiler permits it.
@@ -525,6 +564,9 @@ impl Window {
                         gfx_window_glutin::update_views(window, &mut color_view, &mut depth_view);
                         renderer.on_resize().unwrap();
                         events.push(Event::Resize(Vec2::new(width as u32, height as u32)));
+                    },
+                    glutin::WindowEvent::Moved(glutin::dpi::LogicalPosition { x, y }) => {
+                        events.push(Event::Moved(Vec2::new(x as u32, y as u32)))
                     },
                     glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
                     glutin::WindowEvent::MouseInput { button, state, .. } => {
@@ -618,6 +660,12 @@ impl Window {
                     },
                     glutin::DeviceEvent::MouseWheel { delta, .. } if cursor_grabbed && *focused => {
                         events.push(Event::Zoom({
+                            // Since scrolling apparently acts different depending on platform
+                            #[cfg(target_os = "windows")]
+                            const PLATFORM_FACTOR: f32 = -4.0;
+                            #[cfg(not(target_os = "windows"))]
+                            const PLATFORM_FACTOR: f32 = 1.0;
+
                             let y = match delta {
                                 glutin::MouseScrollDelta::LineDelta(_x, y) => y,
                                 // TODO: Check to see if there is a better way to find the "line
@@ -627,7 +675,7 @@ impl Window {
                                 // across operating systems.
                                 glutin::MouseScrollDelta::PixelDelta(pos) => (pos.y / 16.0) as f32,
                             };
-                            y * (zoom_sensitivity as f32 / 100.0) * zoom_inversion
+                            y * (zoom_sensitivity as f32 / 100.0) * zoom_inversion * PLATFORM_FACTOR
                         }))
                     },
                     _ => {},
@@ -893,6 +941,7 @@ impl Window {
 
     pub fn needs_refresh_resize(&mut self) { self.needs_refresh_resize = true; }
 
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn logical_size(&self) -> Vec2<f64> {
         let (w, h) = self
             .window
@@ -918,13 +967,16 @@ impl Window {
         match self.renderer.create_screenshot() {
             Ok(img) => {
                 let mut path = settings.screenshots_path.clone();
+                let sender = self.message_sender.clone();
 
                 std::thread::spawn(move || {
                     use std::time::SystemTime;
                     // Check if folder exists and create it if it does not
                     if !path.exists() {
-                        if let Err(err) = std::fs::create_dir_all(&path) {
-                            warn!("Couldn't create folder for screenshot: {:?}", err);
+                        if let Err(e) = std::fs::create_dir_all(&path) {
+                            warn!(?e, "Couldn't create folder for screenshot");
+                            let _result =
+                                sender.send(String::from("Couldn't create folder for screenshot"));
                         }
                     }
                     path.push(format!(
@@ -934,15 +986,16 @@ impl Window {
                             .map(|d| d.as_millis())
                             .unwrap_or(0)
                     ));
-                    if let Err(err) = img.save(&path) {
-                        warn!("Couldn't save screenshot: {:?}", err);
+                    if let Err(e) = img.save(&path) {
+                        warn!(?e, "Couldn't save screenshot");
+                        let _result = sender.send(String::from("Couldn't save screenshot"));
+                    } else {
+                        let _result =
+                            sender.send(format!("Screenshot saved to {}", path.to_string_lossy()));
                     }
                 });
             },
-            Err(err) => error!(
-                "Couldn't create screenshot due to renderer error: {:?}",
-                err
-            ),
+            Err(e) => error!(?e, "Couldn't create screenshot due to renderer error"),
         }
     }
 

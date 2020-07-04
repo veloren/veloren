@@ -25,7 +25,7 @@ impl TabComplete for ArgumentSpec {
             },
             ArgumentSpec::Any(_, _) => vec![],
             ArgumentSpec::Command(_) => complete_command(part),
-            ArgumentSpec::Message => complete_player(part, &client),
+            ArgumentSpec::Message(_) => complete_player(part, &client),
             ArgumentSpec::SubCommand => complete_command(part),
             ArgumentSpec::Enum(_, strings, _) => strings
                 .iter()
@@ -40,15 +40,17 @@ fn complete_player(part: &str, client: &Client) -> Vec<String> {
     client
         .player_list
         .values()
+        .map(|player_info| &player_info.player_alias)
         .filter(|alias| alias.starts_with(part))
         .cloned()
         .collect()
 }
 
 fn complete_command(part: &str) -> Vec<String> {
-    CHAT_COMMANDS
-        .iter()
-        .map(|com| com.keyword())
+    CHAT_SHORTCUTS
+        .keys()
+        .map(ToString::to_string)
+        .chain(CHAT_COMMANDS.iter().map(ToString::to_string))
         .filter(|kwd| kwd.starts_with(part) || format!("/{}", kwd).starts_with(part))
         .map(|c| format!("/{}", c))
         .collect()
@@ -83,36 +85,34 @@ pub fn complete(line: &str, client: &Client) -> Vec<String> {
     } else {
         line.split_whitespace().last().unwrap_or("")
     };
-    if line.chars().next() == Some('/') {
+    if line.starts_with('/') {
         let mut iter = line.split_whitespace();
         let cmd = iter.next().unwrap();
         let i = iter.count() + if word.is_empty() { 1 } else { 0 };
         if i == 0 {
             // Completing chat command name
             complete_command(word)
-        } else {
-            if let Ok(cmd) = cmd.parse::<ChatCommand>() {
-                if let Some(arg) = cmd.data().args.get(i - 1) {
-                    // Complete ith argument
-                    arg.complete(word, &client)
-                } else {
-                    // Complete past the last argument
-                    match cmd.data().args.last() {
-                        Some(ArgumentSpec::SubCommand) => {
-                            if let Some(index) = nth_word(line, cmd.data().args.len()) {
-                                complete(&line[index..], &client)
-                            } else {
-                                vec![]
-                            }
-                        },
-                        Some(ArgumentSpec::Message) => complete_player(word, &client),
-                        _ => vec![], // End of command. Nothing to complete
-                    }
-                }
+        } else if let Ok(cmd) = cmd.parse::<ChatCommand>() {
+            if let Some(arg) = cmd.data().args.get(i - 1) {
+                // Complete ith argument
+                arg.complete(word, &client)
             } else {
-                // Completing for unknown chat command
-                complete_player(word, &client)
+                // Complete past the last argument
+                match cmd.data().args.last() {
+                    Some(ArgumentSpec::SubCommand) => {
+                        if let Some(index) = nth_word(line, cmd.data().args.len()) {
+                            complete(&line[index..], &client)
+                        } else {
+                            vec![]
+                        }
+                    },
+                    Some(ArgumentSpec::Message(_)) => complete_player(word, &client),
+                    _ => vec![], // End of command. Nothing to complete
+                }
             }
+        } else {
+            // Completing for unknown chat command
+            complete_player(word, &client)
         }
     } else {
         // Not completing a command

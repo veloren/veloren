@@ -1,10 +1,10 @@
 use super::load::*;
 use crate::{
-    anim::{self, Skeleton},
     mesh::{greedy::GreedyMesh, Meshable},
     render::{BoneMeshes, FigureModel, FigurePipeline, Mesh, Renderer},
     scene::camera::CameraMode,
 };
+use anim::Skeleton;
 use common::{
     assets::watch::ReloadIndicator,
     comp::{
@@ -23,6 +23,7 @@ use vek::*;
 
 pub type FigureModelEntry = [FigureModel; 3];
 
+#[allow(clippy::large_enum_variant)] // TODO: Pending review in #587
 #[derive(PartialEq, Eq, Hash, Clone)]
 enum FigureKey {
     Simple(Body),
@@ -66,6 +67,7 @@ impl CharacterCacheKey {
     }
 }
 
+#[allow(clippy::type_complexity)] // TODO: Pending review in #587
 pub struct FigureModelCache<Skel = anim::character::CharacterSkeleton>
 where
     Skel: Skeleton,
@@ -75,6 +77,7 @@ where
 }
 
 impl<Skel: Skeleton> FigureModelCache<Skel> {
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {
         Self {
             models: HashMap::new(),
@@ -111,18 +114,10 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
 
                 [
                     match camera_mode {
-                        CameraMode::ThirdPerson => Some(humanoid_head_spec.mesh_head(
-                            body.race,
-                            body.body_type,
-                            body.hair_color,
-                            body.hair_style,
-                            body.beard,
-                            body.eye_color,
-                            body.skin,
-                            body.eyebrows,
-                            body.accessory,
-                            |segment, offset| generate_mesh(segment, offset),
-                        )),
+                        CameraMode::ThirdPerson => Some(
+                            humanoid_head_spec
+                                .mesh_head(&body, |segment, offset| generate_mesh(segment, offset)),
+                        ),
                         CameraMode::FirstPerson => None,
                     },
                     match camera_mode {
@@ -157,42 +152,26 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         )),
                         CameraMode::FirstPerson => None,
                     },
-                    if camera_mode == CameraMode::FirstPerson
-                        && character_state.map(|cs| cs.is_dodge()).unwrap_or_default()
-                    {
-                        None
-                    } else {
-                        Some(humanoid_armor_hand_spec.mesh_left_hand(
-                            &body,
-                            loadout,
-                            |segment, offset| generate_mesh(segment, offset),
-                        ))
-                    },
-                    if character_state.map(|cs| cs.is_dodge()).unwrap_or_default() {
-                        None
-                    } else {
-                        Some(humanoid_armor_hand_spec.mesh_right_hand(
-                            &body,
-                            loadout,
-                            |segment, offset| generate_mesh(segment, offset),
-                        ))
-                    },
-                    match camera_mode {
-                        CameraMode::ThirdPerson => Some(humanoid_armor_foot_spec.mesh_left_foot(
-                            &body,
-                            loadout,
-                            |segment, offset| generate_mesh(segment, offset),
-                        )),
-                        CameraMode::FirstPerson => None,
-                    },
-                    match camera_mode {
-                        CameraMode::ThirdPerson => Some(humanoid_armor_foot_spec.mesh_right_foot(
-                            &body,
-                            loadout,
-                            |segment, offset| generate_mesh(segment, offset),
-                        )),
-                        CameraMode::FirstPerson => None,
-                    },
+                    Some(humanoid_armor_hand_spec.mesh_left_hand(
+                        &body,
+                        loadout,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
+                    Some(humanoid_armor_hand_spec.mesh_right_hand(
+                        &body,
+                        loadout,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
+                    Some(humanoid_armor_foot_spec.mesh_left_foot(
+                        &body,
+                        loadout,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
+                    Some(humanoid_armor_foot_spec.mesh_right_foot(
+                        &body,
+                        loadout,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
                     match camera_mode {
                         CameraMode::ThirdPerson => {
                             Some(humanoid_armor_shoulder_spec.mesh_left_shoulder(
@@ -223,14 +202,31 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                     {
                         Some(humanoid_main_weapon_spec.mesh_main_weapon(
                             loadout.active_item.as_ref().map(|i| &i.item.kind),
+                            false,
                             |segment, offset| generate_mesh(segment, offset),
                         ))
                     } else {
                         None
                     },
-                    None,
-                    Some(humanoid_armor_lantern_spec.mesh_lantern(&body, loadout, generate_mesh)),
-                    None,
+                    if camera_mode != CameraMode::FirstPerson
+                        || character_state
+                            .map(|cs| cs.is_attack() || cs.is_block() || cs.is_wield())
+                            .unwrap_or_default()
+                    {
+                        Some(humanoid_main_weapon_spec.mesh_main_weapon(
+                            loadout.second_item.as_ref().map(|i| &i.item.kind),
+                            true,
+                            |segment, offset| generate_mesh(segment, offset),
+                        ))
+                    } else {
+                        None
+                    },
+                    Some(humanoid_armor_lantern_spec.mesh_lantern(
+                        &body,
+                        loadout,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
+                    Some(mesh_hold(|segment, offset| generate_mesh(segment, offset))),
                 ]
             },
             Body::QuadrupedSmall(body) => {
@@ -270,7 +266,11 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         body.body_type,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
-                    None,
+                    Some(quadruped_small_central_spec.mesh_tail(
+                        body.species,
+                        body.body_type,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
                     None,
                     None,
                     None,

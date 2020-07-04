@@ -4,6 +4,7 @@ use super::{
 };
 use crate::{config::CONFIG, util::RandomField};
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
+use tracing::{debug, error, warn};
 // use faster::*;
 use itertools::izip;
 use noise::{NoiseFn, Point3};
@@ -38,7 +39,7 @@ pub fn get_drainage(newh: &[u32], downhill: &[isize], _boundary_len: usize) -> B
     // WORLD_SIZE.y) as f32);
     let base_flux = 1.0;
     let mut flux = vec![base_flux; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
-    newh.into_iter().rev().for_each(|&chunk_idx| {
+    newh.iter().rev().for_each(|&chunk_idx| {
         let chunk_idx = chunk_idx as usize;
         let downhill_idx = downhill[chunk_idx];
         if downhill_idx >= 0 {
@@ -66,7 +67,7 @@ pub fn get_multi_drainage(
     // there's no erosion anyway.
     let base_area = 1.0;
     let mut area = vec![base_area; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
-    mstack.into_iter().for_each(|&ij| {
+    mstack.iter().for_each(|&ij| {
         let ij = ij as usize;
         let wrec_ij = &mwrec[ij];
         let area_ij = area[ij];
@@ -216,7 +217,7 @@ impl RiverData {
             .unwrap_or(false)
     }
 
-    pub fn near_river(&self) -> bool { self.is_river() || self.neighbor_rivers.len() > 0 }
+    pub fn near_river(&self) -> bool { self.is_river() || !self.neighbor_rivers.is_empty() }
 
     pub fn near_water(&self) -> bool { self.near_river() || self.is_lake() || self.is_ocean() }
 }
@@ -251,7 +252,7 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
     // NOTE: This technically makes us discontinuous, so we should be cautious about
     // using this.
     let derivative_divisor = 1.0;
-    newh.into_iter().rev().for_each(|&chunk_idx| {
+    newh.iter().rev().for_each(|&chunk_idx| {
         let chunk_idx = chunk_idx as usize;
         let downhill_idx = downhill[chunk_idx];
         if downhill_idx < 0 {
@@ -423,7 +424,7 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
         if slope == 0.0 {
             // This is not a river--how did this even happen?
             let pass_idx = (-indirection_idx) as usize;
-            log::error!(
+            error!(
                 "Our chunk (and downhill, lake, pass, neighbor_pass): {:?} (to {:?}, in {:?} via \
                  {:?} to {:?}), chunk water alt: {:?}, lake water alt: {:?}",
                 uniform_idx_as_vec2(chunk_idx),
@@ -547,6 +548,7 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
 /// Precompute the maximum slope at all points.
 ///
 /// TODO: See if allocating in advance is worthwhile.
+#[allow(clippy::let_and_return)] // TODO: Pending review in #587
 fn get_max_slope(
     h: &[Alt],
     rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync),
@@ -595,10 +597,9 @@ fn get_max_slope(
                                 .max(dmin),
                         ),
             );
-            let max_slope = rock_strength * max_angle_range + min_max_angle;
             // NOTE: If you want to disable varying rock strength entirely, uncomment  this
             // line. let max_slope = 3.0.sqrt() / 3.0;
-            max_slope
+            rock_strength * max_angle_range + min_max_angle //max_slope
         })
         .collect::<Vec<_>>()
         .into_boxed_slice()
@@ -681,6 +682,8 @@ fn get_max_slope(
 ///     Prediction in Geomorphology, Geophysical Monograph 135.
 ///     Copyright 2003 by the American Geophysical Union
 ///     10.1029/135GM09
+#[allow(clippy::many_single_char_names)]
+#[allow(clippy::too_many_arguments)]
 fn erode(
     // Height above sea level of topsoil
     h: &mut [Alt],
@@ -707,7 +710,7 @@ fn erode(
     k_da_scale: impl Fn(f64) -> f64,
 ) {
     let compute_stats = true;
-    log::debug!("Done draining...");
+    debug!("Done draining...");
     // NOTE: To experimentally allow erosion to proceed below sea level, replace 0.0
     // with -<Alt as Float>::infinity().
     let min_erosion_height = 0.0; // -<Alt as Float>::infinity();
@@ -715,7 +718,7 @@ fn erode(
     // NOTE: The value being divided by here sets the effective maximum uplift rate,
     // as everything is scaled to it!
     let dt = max_uplift as f64 / 1e-3;
-    log::debug!("dt={:?}", dt);
+    debug!(?dt, "");
     // Minimum sediment thickness before we treat erosion as sediment based.
     let sediment_thickness = |_n| /*6.25e-5*/1.0e-4 * dt;
     let neighbor_coef = TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
@@ -793,9 +796,9 @@ fn erode(
     let ((dh, newh, maxh, mrec, mstack, mwrec, area), (mut max_slopes, h_t)) = rayon::join(
         || {
             let mut dh = downhill(|posi| h[posi], |posi| is_ocean(posi) && h[posi] <= 0.0);
-            log::debug!("Computed downhill...");
+            debug!("Computed downhill...");
             let (boundary_len, _indirection, newh, maxh) = get_lakes(|posi| h[posi], &mut dh);
-            log::debug!("Got lakes...");
+            debug!("Got lakes...");
             let (mrec, mstack, mwrec) = get_multi_rec(
                 |posi| h[posi],
                 &dh,
@@ -807,12 +810,12 @@ fn erode(
                 dy as Compute,
                 maxh,
             );
-            log::debug!("Got multiple receivers...");
+            debug!("Got multiple receivers...");
             // TODO: Figure out how to switch between single-receiver and multi-receiver
             // drainage, as the former is much less computationally costly.
             // let area = get_drainage(&newh, &dh, boundary_len);
             let area = get_multi_drainage(&mstack, &mrec, &*mwrec, boundary_len);
-            log::debug!("Got flux...");
+            debug!("Got flux...");
             (dh, newh, maxh, mrec, mstack, mwrec, area)
         },
         || {
@@ -820,7 +823,7 @@ fn erode(
                 || {
                     let max_slope =
                         get_max_slope(h, rock_strength_nz, |posi| height_scale(n_f(posi)));
-                    log::debug!("Got max slopes...");
+                    debug!("Got max slopes...");
                     max_slope
                 },
                 || h.to_vec().into_boxed_slice(),
@@ -979,7 +982,7 @@ fn erode(
         },
     );
 
-    log::debug!("Computed stream power factors...");
+    debug!("Computed stream power factors...");
 
     let mut lake_water_volume =
         vec![0.0 as Compute; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
@@ -1048,7 +1051,7 @@ fn erode(
     });
 
     while err > tol && n_gs_stream_power_law < max_n_gs_stream_power_law {
-        log::debug!("Stream power iteration #{:?}", n_gs_stream_power_law);
+        debug!("Stream power iteration #{:?}", n_gs_stream_power_law);
 
         // Reset statistics in each loop.
         maxh = 0.0;
@@ -1088,7 +1091,7 @@ fn erode(
                     });
             },
         );
-        log::debug!(
+        debug!(
             "(Done precomputation, time={:?}ms).",
             start_time.elapsed().as_millis()
         );
@@ -1123,7 +1126,7 @@ fn erode(
                     });
                 }
             });
-        log::debug!(
+        debug!(
             "(Done sediment transport computation, time={:?}ms).",
             start_time.elapsed().as_millis()
         );
@@ -1198,7 +1201,7 @@ fn erode(
                     }
                 },
             );
-        log::debug!(
+        debug!(
             "(Done elevation estimation, time={:?}ms).",
             start_time.elapsed().as_millis()
         );
@@ -1224,7 +1227,7 @@ fn erode(
                         panic!("Disconnected lake!");
                     }
                     if h_t_i > 0.0 {
-                        log::warn!("Ocean above zero?");
+                        warn!("Ocean above zero?");
                     }
                     // Egress with no outgoing flows.
                     // wh for oceans is always at least min_erosion_height.
@@ -1379,19 +1382,17 @@ fn erode(
                             // NOTE: If we want erosion to proceed underwater, use h_j here instead
                             // of wh_j.
                             new_h_i = wh_j;
-                        } else {
-                            if compute_stats && new_h_i > 0.0 {
-                                let dxy = (uniform_idx_as_vec2(posi) - uniform_idx_as_vec2(posj))
-                                    .map(|e| e as f64);
-                                let neighbor_distance = (neighbor_coef * dxy).magnitude();
-                                let dz = (new_h_i - wh_j).max(0.0);
-                                let mag_slope = dz / neighbor_distance;
+                        } else if compute_stats && new_h_i > 0.0 {
+                            let dxy = (uniform_idx_as_vec2(posi) - uniform_idx_as_vec2(posj))
+                                .map(|e| e as f64);
+                            let neighbor_distance = (neighbor_coef * dxy).magnitude();
+                            let dz = (new_h_i - wh_j).max(0.0);
+                            let mag_slope = dz / neighbor_distance;
 
-                                nland += 1;
-                                sumsed_land += sed;
-                                sumh += new_h_i;
-                                sums += mag_slope;
-                            }
+                            nland += 1;
+                            sumsed_land += sed;
+                            sumh += new_h_i;
+                            sums += mag_slope;
                         }
                     } else {
                         new_h_i = old_elev_i;
@@ -1421,21 +1422,20 @@ fn erode(
                 sum_err +=
                     (iteration_error + h_stack[stacki] as Compute - h_p_i as Compute).powi(2);
             });
-        log::debug!(
+        debug!(
             "(Done erosion computation, time={:?}ms)",
             start_time.elapsed().as_millis()
         );
 
         err = (sum_err / mstack.len() as Compute).sqrt();
-        log::debug!("(RMSE: {:?})", err);
+        debug!("(RMSE: {:?})", err);
         if max_g == 0.0 {
             err = 0.0;
         }
         if n_gs_stream_power_law == max_n_gs_stream_power_law {
-            log::warn!(
+            warn!(
                 "Beware: Gauss-Siedel scheme not convergent: err={:?}, expected={:?}",
-                err,
-                tol
+                err, tol
             );
         }
     }
@@ -1501,7 +1501,7 @@ fn erode(
             new_b_i = new_b_i.min(h_i);
             *b = new_b_i;
         });
-    log::debug!("Done updating basement and applying soil production...");
+    debug!("Done updating basement and applying soil production...");
 
     // update the height to reflect sediment flux.
     if max_g > 0.0 {
@@ -1535,7 +1535,7 @@ fn erode(
     //   endif
     // enddo
 
-    log::debug!(
+    debug!(
         "Done applying stream power (max height: {:?}) (avg height: {:?}) (min height: {:?}) (avg \
          slope: {:?})\n        (above talus angle, geom. mean slope [actual/critical/ratio]: {:?} \
          / {:?} / {:?})\n        (old avg sediment thickness [all/land]: {:?} / {:?})\n        \
@@ -1614,20 +1614,18 @@ fn erode(
                 let mag_slope = dz / neighbor_distance;
                 if mag_slope >= max_slope {
                     let dtherm = 0.0;
-                    new_h_i = new_h_i - dtherm;
+                    new_h_i -= dtherm;
                     if new_h_i <= wh_j {
                         if compute_stats {
                             ncorr += 1;
                         }
-                    } else {
-                        if compute_stats && new_h_i > 0.0 {
-                            let dz = (new_h_i - h_j).max(0.0);
-                            let slope = dz / neighbor_distance;
-                            sums += slope;
-                            nland += 1;
-                            sumh += new_h_i;
-                            sumsed_land += sed;
-                        }
+                    } else if compute_stats && new_h_i > 0.0 {
+                        let dz = (new_h_i - h_j).max(0.0);
+                        let slope = dz / neighbor_distance;
+                        sums += slope;
+                        nland += 1;
+                        sumh += new_h_i;
+                        sumsed_land += sed;
                     }
                     if compute_stats {
                         ntherm += 1;
@@ -1666,7 +1664,7 @@ fn erode(
             maxh = h_i.max(maxh);
         }
     });
-    log::debug!(
+    debug!(
         "Done applying thermal erosion (max height: {:?}) (avg height: {:?}) (min height: {:?}) \
          (avg slope: {:?})\n        (above talus angle, geom. mean slope [actual/critical/ratio]: \
          {:?} / {:?} / {:?})\n        (avg sediment thickness [all/land]: {:?} / {:?})\n        \
@@ -1698,8 +1696,8 @@ fn erode(
         |posi| max_slopes[posi],
         -1.0,
     );
-    log::debug!("Done applying diffusion.");
-    log::debug!("Done eroding.");
+    debug!("Done applying diffusion.");
+    debug!("Done eroding.");
 }
 
 /// The Planchon-Darboux algorithm for extracting drainage networks.
@@ -1793,6 +1791,7 @@ pub fn fill_sinks<F: Float + Send + Sync>(
 ///   adjacency list).
 /// - The adjacency list (stored in a single vector), indexed by the second
 ///   indirection vector.
+#[allow(clippy::filter_next)] // TODO: Pending review in #587
 pub fn get_lakes<F: Float>(
     h: impl Fn(usize) -> F,
     downhill: &mut [isize],
@@ -1833,7 +1832,7 @@ pub fn get_lakes<F: Float>(
     // First, find all the lakes.
     let mut lake_roots = Vec::with_capacity(downhill.len()); // Test
     (&*downhill)
-        .into_iter()
+        .iter()
         .enumerate()
         .filter(|(_, &dh_idx)| dh_idx < 0)
         .for_each(|(chunk_idx, &dh)| {
@@ -1872,7 +1871,7 @@ pub fn get_lakes<F: Float>(
         });
     assert_eq!(newh.len(), downhill.len());
 
-    log::debug!("Old lake roots: {:?}", lake_roots.len());
+    debug!("Old lake roots: {:?}", lake_roots.len());
 
     let newh = newh.into_boxed_slice();
     let mut maxh = -F::infinity();
@@ -1882,7 +1881,7 @@ pub fn get_lakes<F: Float>(
     // with the starting index, resulting in a vector of slices.  As we go, we
     // replace each lake entry with its index in the new indirection buffer,
     // allowing
-    newh.into_iter().for_each(|&chunk_idx_| {
+    newh.iter().for_each(|&chunk_idx_| {
         let chunk_idx = chunk_idx_ as usize;
         let lake_idx_ = indirection_[chunk_idx];
         let lake_idx = lake_idx_ as usize;
@@ -2106,7 +2105,7 @@ pub fn get_lakes<F: Float>(
             )));
         }
     }
-    log::debug!("Total lakes: {:?}", pass_flows_sorted.len());
+    debug!("Total lakes: {:?}", pass_flows_sorted.len());
 
     // Perform the bfs once again.
     #[derive(Clone, Copy, PartialEq)]
@@ -2297,6 +2296,8 @@ pub fn mrec_downhill<'a>(
 /// * A bitmask representing which neighbors are downhill.
 /// * Stack order for multiple receivers (from top to bottom).
 /// * The weight for each receiver, for each node.
+#[allow(clippy::too_many_arguments)]
+#[allow(clippy::type_complexity)] // TODO: Pending review in #587
 pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
     h: impl Fn(usize) -> F + Sync,
     downhill: &[isize],
@@ -2347,7 +2348,7 @@ pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
     // or work out a more precise upper bound (since using nn * 2 * (maxh +
     // epsilon) makes f32 not work very well).
     let deltah = F::epsilon() + F::epsilon();
-    newh.into_iter().for_each(|&ijk| {
+    newh.iter().for_each(|&ijk| {
         let ijk = ijk as usize;
         let h_i = h(ijk);
         let ijr = downhill[ijk];
@@ -2488,6 +2489,8 @@ pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
 }
 
 /// Perform erosion n times.
+#[allow(clippy::many_single_char_names)]
+#[allow(clippy::too_many_arguments)]
 pub fn do_erosion(
     _max_uplift: f32,
     n_steps: usize,
@@ -2509,7 +2512,7 @@ pub fn do_erosion(
     k_d_scale: f64,
     k_da_scale: impl Fn(f64) -> f64,
 ) -> (Box<[Alt]>, Box<[Alt]> /* , Box<[Alt]> */) {
-    log::debug!("Initializing erosion arrays...");
+    debug!("Initializing erosion arrays...");
     let oldh_ = (0..WORLD_SIZE.x * WORLD_SIZE.y)
         .into_par_iter()
         .map(|posi| oldh(posi) as Alt)
@@ -2576,7 +2579,7 @@ pub fn do_erosion(
         .cloned()
         .map(|e| e as f64)
         .sum::<f64>();
-    log::debug!("Sum uplifts: {:?}", sum_uplift);
+    debug!("Sum uplifts: {:?}", sum_uplift);
 
     let max_uplift = uplift
         .into_par_iter()
@@ -2588,8 +2591,8 @@ pub fn do_erosion(
         .cloned()
         .max_by(|a, b| a.partial_cmp(&b).unwrap())
         .unwrap();
-    log::debug!("Max uplift: {:?}", max_uplift);
-    log::debug!("Max g: {:?}", max_g);
+    debug!("Max uplift: {:?}", max_uplift);
+    debug!("Max g: {:?}", max_g);
     // Height of terrain, including sediment.
     let mut h = oldh_;
     // Bedrock transport coefficients (diffusivity) in m^2 / year, for sediment.
@@ -2608,7 +2611,7 @@ pub fn do_erosion(
     let height_scale = |n| height_scale(n);
     let k_da_scale = |q| k_da_scale(q);
     (0..n_steps).for_each(|i| {
-        log::debug!("Erosion iteration #{:?}", i);
+        debug!("Erosion iteration #{:?}", i);
         erode(
             &mut h,
             &mut b,

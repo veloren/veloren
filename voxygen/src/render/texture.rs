@@ -43,7 +43,7 @@ where
                 gfx::texture::Mipmap::Provided,
                 &[&image.raw_pixels()],
             )
-            .map_err(|err| RenderError::CombinedError(err))?;
+            .map_err(RenderError::CombinedError)?;
 
         let mut sampler_info = gfx::texture::SamplerInfo::new(
             filter_method.unwrap_or(gfx::texture::FilterMethod::Scale),
@@ -143,6 +143,7 @@ where
 
     /// Update a texture with the given data (used for updating the glyph cache
     /// texture).
+
     pub fn update(
         &self,
         encoder: &mut gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
@@ -164,7 +165,7 @@ where
             .update_texture::<<F as gfx::format::Formatted>::Surface, F>(
                 &self.tex, None, info, data,
             )
-            .map_err(|err| RenderError::TexUpdateError(err))
+            .map_err(RenderError::TexUpdateError)
     }
 
     /// Get dimensions of the represented image.

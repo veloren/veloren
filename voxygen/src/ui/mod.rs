@@ -44,7 +44,6 @@ use conrod_core::{
     Rect, UiBuilder, UiCell,
 };
 use graphic::{Rotation, TexId};
-use log::{error, warn};
 use std::{
     f32, f64,
     fs::File,
@@ -53,6 +52,7 @@ use std::{
     sync::Arc,
     time::Duration,
 };
+use tracing::{error, warn};
 use vek::*;
 
 #[derive(Debug)]
@@ -90,6 +90,7 @@ pub struct Font(text::Font);
 impl assets::Asset for Font {
     const ENDINGS: &'static [&'static str] = &["ttf"];
 
+    #[allow(clippy::redundant_clone)] // TODO: Pending review in #587
     fn parse(mut buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         let mut buf = Vec::new();
         buf_reader.read_to_end(&mut buf)?;
@@ -266,6 +267,7 @@ impl Ui {
 
     pub fn widget_input(&self, id: widget::Id) -> Widget { self.ui.widget_input(id) }
 
+    #[allow(clippy::float_cmp)] // TODO: Pending review in #587
     pub fn maintain(&mut self, renderer: &mut Renderer, view_projection_mat: Option<Mat4<f32>>) {
         // Maintain tooltip manager
         self.tooltip_manager
@@ -509,13 +511,19 @@ impl Ui {
                         )
                     };
 
-                    let color =
-                        srgba_to_linear(color.unwrap_or(conrod_core::color::WHITE).to_fsa().into());
-
                     let resolution = Vec2::new(
                         (gl_size.w * half_res.x).round() as u16,
                         (gl_size.h * half_res.y).round() as u16,
                     );
+
+                    // Don't do anything if resolution is zero
+                    if resolution.map(|e| e == 0).reduce_or() {
+                        continue;
+                        // TODO: consider logging uneeded elements
+                    }
+
+                    let color =
+                        srgba_to_linear(color.unwrap_or(conrod_core::color::WHITE).to_fsa().into());
 
                     // Cache graphic at particular resolution.
                     let (uv_aabr, tex_id) = match graphic_cache.cache_res(

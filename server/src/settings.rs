@@ -1,6 +1,7 @@
 use portpicker::pick_unused_port;
 use serde_derive::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, net::SocketAddr, path::PathBuf};
+use tracing::{error, warn};
 use world::sim::FileOpts;
 
 const DEFAULT_WORLD_SEED: u32 = 59686;
@@ -18,10 +19,12 @@ pub struct ServerSettings {
     pub server_description: String,
     pub start_time: f64,
     pub admins: Vec<String>,
+    pub whitelist: Vec<String>,
     /// When set to None, loads the default map file (if available); otherwise,
     /// uses the value of the file options to decide how to proceed.
     pub map_file: Option<FileOpts>,
     pub persistence_db_dir: String,
+    pub max_view_distance: Option<u32>,
 }
 
 impl Default for ServerSettings {
@@ -42,7 +45,7 @@ impl Default for ServerSettings {
                 "xMAC94x",
                 "Timo",
                 "Songtronix",
-                "Slipped",
+                "slipped",
                 "Sharp",
                 "Acrimon",
                 "imbris",
@@ -57,12 +60,15 @@ impl Default for ServerSettings {
             .iter()
             .map(|n| n.to_string())
             .collect(),
+            whitelist: Vec::new(),
             persistence_db_dir: "saves".to_owned(),
+            max_view_distance: Some(30),
         }
     }
 }
 
 impl ServerSettings {
+    #[allow(clippy::single_match)] // TODO: Pending review in #587
     pub fn load() -> Self {
         let path = ServerSettings::get_settings_path();
 
@@ -70,7 +76,7 @@ impl ServerSettings {
             match ron::de::from_reader(file) {
                 Ok(x) => x,
                 Err(e) => {
-                    log::warn!("Failed to parse setting file! Fallback to default. {}", e);
+                    warn!(?e, "Failed to parse setting file! Fallback to default");
                     Self::default()
                 },
             }
@@ -78,7 +84,7 @@ impl ServerSettings {
             let default_settings = Self::default();
 
             match default_settings.save_to_file() {
-                Err(e) => log::error!("Failed to create default setting file! {}", e),
+                Err(e) => error!(?e, "Failed to create default setting file!"),
                 _ => {},
             }
             default_settings
@@ -91,9 +97,7 @@ impl ServerSettings {
 
         let s: &str = &ron::ser::to_string_pretty(self, ron::ser::PrettyConfig::default())
             .expect("Failed serialize settings.");
-        config_file
-            .write_all(s.as_bytes())
-            .expect("Failed to write to config file.");
+        config_file.write_all(s.as_bytes())?;
         Ok(())
     }
 
@@ -129,6 +133,11 @@ impl ServerSettings {
     }
 
     fn get_settings_path() -> PathBuf { PathBuf::from(r"server_settings.ron") }
-}
 
-pub struct PersistenceDBDir(pub String);
+    pub fn edit<R>(&mut self, f: impl FnOnce(&mut Self) -> R) -> R {
+        let r = f(self);
+        self.save_to_file()
+            .unwrap_or_else(|err| warn!("Failed to save settings: {:?}", err));
+        r
+    }
+}

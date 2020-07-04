@@ -9,7 +9,7 @@ use common::{
         dragon::{BodyType as DBodyType, Species as DSpecies},
         fish_medium, fish_small,
         golem::{BodyType as GBodyType, Species as GSpecies},
-        humanoid::{Body, BodyType, EyeColor, Race, Skin},
+        humanoid::{Body, BodyType, EyeColor, Skin, Species},
         item::{
             armor::{Armor, Back, Belt, Chest, Foot, Hand, Head, Pants, Shoulder, Tabard},
             tool::{Tool, ToolKind},
@@ -24,9 +24,9 @@ use common::{
 };
 use dot_vox::DotVoxData;
 use hashbrown::HashMap;
-use log::{error, warn};
 use serde_derive::{Deserialize, Serialize};
 use std::{fs::File, io::BufReader, sync::Arc};
+use tracing::{error, warn};
 use vek::*;
 
 fn load_segment(mesh_name: &str) -> Segment {
@@ -38,13 +38,16 @@ fn graceful_load_vox(mesh_name: &str) -> Arc<DotVoxData> {
     match assets::load::<DotVoxData>(full_specifier.as_str()) {
         Ok(dot_vox) => dot_vox,
         Err(_) => {
-            error!("Could not load vox file for figure: {}", full_specifier);
+            error!(?full_specifier, "Could not load vox file for figure");
             assets::load_expect::<DotVoxData>("voxygen.voxel.not_found")
         },
     }
 }
 fn graceful_load_segment(mesh_name: &str) -> Segment {
     Segment::from(graceful_load_vox(mesh_name).as_ref())
+}
+fn graceful_load_segment_flipped(mesh_name: &str) -> Segment {
+    Segment::from_vox(graceful_load_vox(mesh_name).as_ref(), true)
 }
 fn graceful_load_mat_segment(mesh_name: &str) -> MatSegment {
     MatSegment::from(graceful_load_vox(mesh_name).as_ref())
@@ -122,18 +125,18 @@ struct MobSidedVoxSpec {
     right: ArmorVoxSpec,
 }
 
-// All reliant on humanoid::Race and humanoid::BodyType
+// All reliant on humanoid::Species and humanoid::BodyType
 #[derive(Serialize, Deserialize)]
 struct HumHeadSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     head: VoxSpec<i32>,
-    eyes: VoxSpec<i32>,
+    eyes: Vec<Option<VoxSpec<i32>>>,
     hair: Vec<Option<VoxSpec<i32>>>,
     beard: Vec<Option<VoxSpec<i32>>>,
     accessory: Vec<Option<VoxSpec<i32>>>,
 }
 #[derive(Serialize, Deserialize)]
-pub struct HumHeadSpec(HashMap<(Race, BodyType), HumHeadSubSpec>);
+pub struct HumHeadSpec(HashMap<(Species, BodyType), HumHeadSubSpec>);
 
 impl Asset for HumHeadSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
@@ -150,77 +153,81 @@ impl HumHeadSpec {
 
     pub fn mesh_head(
         &self,
-        race: Race,
-        body_type: BodyType,
-        hair_color: u8,
-        hair_style: u8,
-        beard: u8,
-        eye_color: u8,
-        skin: u8,
-        _eyebrows: u8,
-        accessory: u8,
+        body: &Body,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        let spec = match self.0.get(&(race, body_type)) {
+        let spec = match self.0.get(&(body.species, body.body_type)) {
             Some(spec) => spec,
             None => {
                 error!(
-                    "No head specification exists for the combination of {:?} and {:?}",
-                    race, body_type
+                    ?body.species,
+                    ?body.body_type,
+                    "No head specification exists for the combination of species and body"
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
             },
         };
 
-        let hair_rgb = race.hair_color(hair_color);
-        let skin = race.skin_color(skin);
-        let eye_rgb = race.eye_color(eye_color);
+        let hair_rgb = body.species.hair_color(body.hair_color);
+        let skin_rgb = body.species.skin_color(body.skin);
+        let eye_rgb = body.species.eye_color(body.eye_color);
 
         // Load segment pieces
         let bare_head = graceful_load_mat_segment(&spec.head.0);
-        let eyes = color_segment(
-            graceful_load_mat_segment(&spec.eyes.0).map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
-            skin,
-            hair_rgb,
-            eye_rgb,
-        );
-        let hair = match spec.hair.get(hair_style as usize) {
+
+        let eyes = match spec.eyes.get(body.eyes as usize) {
+            Some(Some(spec)) => Some((
+                color_segment(
+                    graceful_load_mat_segment(&spec.0).map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
+                    skin_rgb,
+                    hair_rgb,
+                    eye_rgb,
+                ),
+                Vec3::from(spec.1),
+            )),
+            Some(None) => None,
+            None => {
+                warn!("No specification for these eyes: {:?}", body.eyes);
+                None
+            },
+        };
+        let hair = match spec.hair.get(body.hair_style as usize) {
             Some(Some(spec)) => Some((
                 graceful_load_segment(&spec.0).map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
                 Vec3::from(spec.1),
             )),
             Some(None) => None,
             None => {
-                warn!("No specification for hair style {}", hair_style);
+                warn!("No specification for hair style {}", body.hair_style);
                 None
             },
         };
-        let beard = match spec.beard.get(beard as usize) {
+        let beard = match spec.beard.get(body.beard as usize) {
             Some(Some(spec)) => Some((
                 graceful_load_segment(&spec.0).map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
                 Vec3::from(spec.1),
             )),
             Some(None) => None,
             None => {
-                warn!("No specification for this beard: {:?}", beard);
+                warn!("No specification for this beard: {:?}", body.beard);
                 None
             },
         };
-        let accessory = match spec.accessory.get(accessory as usize) {
+        let accessory = match spec.accessory.get(body.accessory as usize) {
             Some(Some(spec)) => Some((graceful_load_segment(&spec.0), Vec3::from(spec.1))),
             Some(None) => None,
             None => {
-                warn!("No specification for this accessory: {:?}", accessory);
+                warn!("No specification for this accessory: {:?}", body.accessory);
                 None
             },
         };
 
         let (head, origin_offset) = DynaUnionizer::new()
             .add(
-                color_segment(bare_head, skin, hair_rgb, eye_rgb),
+                color_segment(bare_head, skin_rgb, hair_rgb, eye_rgb),
                 spec.head.1.into(),
             )
-            .add(eyes, spec.eyes.1.into())
+            .maybe_add(eyes)
             .maybe_add(hair)
             .maybe_add(beard)
             .maybe_add(accessory)
@@ -365,7 +372,7 @@ impl HumArmorShoulderSpec {
             match self.0.map.get(&shoulder) {
                 Some(spec) => spec,
                 None => {
-                    error!("No shoulder specification exists for {:?}", shoulder);
+                    error!(?shoulder, "No shoulder specification exists");
                     return load_mesh("not_found", Vec3::new(-3.0, -3.5, 0.1), generate_mesh);
                 },
             }
@@ -379,9 +386,9 @@ impl HumArmorShoulderSpec {
             } else {
                 graceful_load_mat_segment(&spec.right.vox_spec.0)
             },
-            body.race.skin_color(body.skin),
-            body.race.hair_color(body.hair_color),
-            body.race.eye_color(body.eye_color),
+            body.species.skin_color(body.skin),
+            body.species.hair_color(body.hair_color),
+            body.species.eye_color(body.eye_color),
         );
 
         // TODO: use this if we can
@@ -447,7 +454,7 @@ impl HumArmorChestSpec {
             match self.0.map.get(&chest) {
                 Some(spec) => spec,
                 None => {
-                    error!("No chest specification exists for {:?}", loadout.chest);
+                    error!(?loadout.chest, "No chest specification exists");
                     return load_mesh("not_found", Vec3::new(-7.0, -3.5, 2.0), generate_mesh);
                 },
             }
@@ -458,9 +465,9 @@ impl HumArmorChestSpec {
         let color = |mat_segment| {
             color_segment(
                 mat_segment,
-                body.race.skin_color(body.skin),
-                body.race.hair_color(body.hair_color),
-                body.race.eye_color(body.eye_color),
+                body.species.skin_color(body.skin),
+                body.species.hair_color(body.hair_color),
+                body.species.eye_color(body.eye_color),
             )
         };
 
@@ -504,7 +511,7 @@ impl HumArmorHandSpec {
             match self.0.map.get(&hand) {
                 Some(spec) => spec,
                 None => {
-                    error!("No hand specification exists for {:?}", hand);
+                    error!(?hand, "No hand specification exists");
                     return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0), generate_mesh);
                 },
             }
@@ -518,9 +525,9 @@ impl HumArmorHandSpec {
             } else {
                 graceful_load_mat_segment(&spec.right.vox_spec.0)
             },
-            body.race.skin_color(body.skin),
-            body.race.hair_color(body.hair_color),
-            body.race.eye_color(body.eye_color),
+            body.species.skin_color(body.skin),
+            body.species.hair_color(body.hair_color),
+            body.species.eye_color(body.eye_color),
         );
 
         let offset = if flipped {
@@ -580,7 +587,7 @@ impl HumArmorBeltSpec {
             match self.0.map.get(&belt) {
                 Some(spec) => spec,
                 None => {
-                    error!("No belt specification exists for {:?}", belt);
+                    error!(?belt, "No belt specification exists");
                     return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0), generate_mesh);
                 },
             }
@@ -590,9 +597,9 @@ impl HumArmorBeltSpec {
 
         let mut belt_segment = color_segment(
             graceful_load_mat_segment(&spec.vox_spec.0),
-            body.race.skin_color(body.skin),
-            body.race.hair_color(body.hair_color),
-            body.race.eye_color(body.eye_color),
+            body.species.skin_color(body.skin),
+            body.species.hair_color(body.hair_color),
+            body.species.eye_color(body.eye_color),
         );
 
         if let Some(color) = spec.color {
@@ -624,7 +631,7 @@ impl HumArmorBackSpec {
             match self.0.map.get(&back) {
                 Some(spec) => spec,
                 None => {
-                    error!("No back specification exists for {:?}", back);
+                    error!(?back, "No back specification exists");
                     return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0), generate_mesh);
                 },
             }
@@ -634,9 +641,9 @@ impl HumArmorBackSpec {
 
         let mut back_segment = color_segment(
             graceful_load_mat_segment(&spec.vox_spec.0),
-            body.race.skin_color(body.skin),
-            body.race.hair_color(body.hair_color),
-            body.race.eye_color(body.eye_color),
+            body.species.skin_color(body.skin),
+            body.species.hair_color(body.hair_color),
+            body.species.eye_color(body.eye_color),
         );
         if let Some(color) = spec.color {
             let back_color = Vec3::from(color);
@@ -667,7 +674,7 @@ impl HumArmorPantsSpec {
             match self.0.map.get(&pants) {
                 Some(spec) => spec,
                 None => {
-                    error!("No pants specification exists for {:?}", pants);
+                    error!(?pants, "No pants specification exists");
                     return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0), generate_mesh);
                 },
             }
@@ -678,9 +685,9 @@ impl HumArmorPantsSpec {
         let color = |mat_segment| {
             color_segment(
                 mat_segment,
-                body.race.skin_color(body.skin),
-                body.race.hair_color(body.hair_color),
-                body.race.eye_color(body.eye_color),
+                body.species.skin_color(body.skin),
+                body.species.hair_color(body.hair_color),
+                body.species.eye_color(body.eye_color),
             )
         };
 
@@ -724,7 +731,7 @@ impl HumArmorFootSpec {
             match self.0.map.get(&foot) {
                 Some(spec) => spec,
                 None => {
-                    error!("No foot specification exists for {:?}", foot);
+                    error!(?foot, "No foot specification exists");
                     return load_mesh("not_found", Vec3::new(-2.5, -3.5, -9.0), generate_mesh);
                 },
             }
@@ -738,9 +745,9 @@ impl HumArmorFootSpec {
             } else {
                 graceful_load_mat_segment(&spec.vox_spec.0)
             },
-            body.race.skin_color(body.skin),
-            body.race.hair_color(body.hair_color),
-            body.race.eye_color(body.eye_color),
+            body.species.skin_color(body.skin),
+            body.species.hair_color(body.hair_color),
+            body.species.eye_color(body.eye_color),
         );
 
         if let Some(color) = spec.color {
@@ -779,6 +786,7 @@ impl HumMainWeaponSpec {
     pub fn mesh_main_weapon(
         &self,
         item_kind: Option<&ItemKind>,
+        flipped: bool,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
         let tool_kind = if let Some(ItemKind::Tool(Tool { kind, .. })) = item_kind {
@@ -790,15 +798,33 @@ impl HumMainWeaponSpec {
         let spec = match self.0.get(tool_kind) {
             Some(spec) => spec,
             None => {
-                error!("No tool/weapon specification exists for {:?}", tool_kind);
+                error!(?tool_kind, "No tool/weapon specification exists");
                 return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0), generate_mesh);
             },
         };
 
-        let tool_kind_segment = graceful_load_segment(&spec.vox_spec.0);
-        generate_mesh(tool_kind_segment, Vec3::from(spec.vox_spec.1))
+        let tool_kind_segment = if flipped {
+            graceful_load_segment_flipped(&spec.vox_spec.0)
+        } else {
+            graceful_load_segment(&spec.vox_spec.0)
+        };
+
+        let offset = Vec3::new(
+            if flipped {
+                //log::warn!("tool kind segment {:?}", );
+                //tool_kind_segment.;
+                0.0 - spec.vox_spec.1[0] - (tool_kind_segment.sz.x as f32)
+            } else {
+                spec.vox_spec.1[0]
+            },
+            spec.vox_spec.1[1],
+            spec.vox_spec.1[2],
+        );
+
+        generate_mesh(tool_kind_segment, offset)
     }
 }
+
 // Lantern
 impl HumArmorLanternSpec {
     pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
@@ -817,7 +843,7 @@ impl HumArmorLanternSpec {
             match self.0.map.get(&kind) {
                 Some(spec) => spec,
                 None => {
-                    error!("No lantern specification exists for {:?}", kind);
+                    error!(?kind, "No lantern specification exists");
                     return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0), generate_mesh);
                 },
             }
@@ -827,9 +853,9 @@ impl HumArmorLanternSpec {
 
         let mut lantern_segment = color_segment(
             graceful_load_mat_segment(&spec.vox_spec.0),
-            body.race.skin_color(body.skin),
-            body.race.hair_color(body.hair_color),
-            body.race.eye_color(body.eye_color),
+            body.species.skin_color(body.skin),
+            body.species.hair_color(body.hair_color),
+            body.species.eye_color(body.eye_color),
         );
         if let Some(color) = spec.color {
             let lantern_color = Vec3::from(color);
@@ -860,7 +886,7 @@ impl HumArmorHeadSpec {
             match self.0.map.get(&head) {
                 Some(spec) => spec,
                 None => {
-                    error!("No head specification exists for {:?}", head);
+                    error!(?head, "No head specification exists");
                     return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0), generate_mesh);
                 },
             }
@@ -871,9 +897,9 @@ impl HumArmorHeadSpec {
         let color = |mat_segment| {
             color_segment(
                 mat_segment,
-                body.race.skin_color(body.skin),
-                body.race.hair_color(body.hair_color),
-                body.race.eye_color(body.eye_color),
+                body.species.skin_color(body.skin),
+                body.species.hair_color(body.hair_color),
+                body.species.eye_color(body.eye_color),
             )
         };
 
@@ -915,7 +941,7 @@ impl HumArmorTabardSpec {
             match self.0.map.get(&tabard) {
                 Some(spec) => spec,
                 None => {
-                    error!("No tabard specification exists for {:?}", tabard);
+                    error!(?tabard, "No tabard specification exists");
                     return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0), generate_mesh);
                 },
             }
@@ -926,9 +952,9 @@ impl HumArmorTabardSpec {
         let color = |mat_segment| {
             color_segment(
                 mat_segment,
-                body.race.skin_color(body.skin),
-                body.race.hair_color(body.hair_color),
-                body.race.eye_color(body.eye_color),
+                body.species.skin_color(body.skin),
+                body.species.hair_color(body.hair_color),
+                body.species.eye_color(body.eye_color),
             )
         };
 
@@ -959,6 +985,14 @@ pub fn mesh_glider(generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes)
     )
 }
 
+pub fn mesh_hold(generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes) -> BoneMeshes {
+    load_mesh(
+        "weapon.projectile.simple-arrow",
+        Vec3::new(-0.5, -6.0, -1.5),
+        generate_mesh,
+    )
+}
+
 /////////
 #[derive(Serialize, Deserialize)]
 pub struct QuadrupedSmallCentralSpec(HashMap<(QSSpecies, QSBodyType), SidedQSCentralVoxSpec>);
@@ -967,6 +1001,7 @@ pub struct QuadrupedSmallCentralSpec(HashMap<(QSSpecies, QSBodyType), SidedQSCen
 struct SidedQSCentralVoxSpec {
     head: QuadrupedSmallCentralSubSpec,
     chest: QuadrupedSmallCentralSubSpec,
+    tail: QuadrupedSmallCentralSubSpec,
 }
 #[derive(Serialize, Deserialize)]
 struct QuadrupedSmallCentralSubSpec {
@@ -1052,6 +1087,27 @@ impl QuadrupedSmallCentralSpec {
         let central = graceful_load_segment(&spec.chest.central.0);
 
         generate_mesh(central, Vec3::from(spec.chest.offset))
+    }
+
+    pub fn mesh_tail(
+        &self,
+        species: QSSpecies,
+        body_type: QSBodyType,
+        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
+    ) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No tail specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let central = graceful_load_segment(&spec.tail.central.0);
+
+        generate_mesh(central, Vec3::from(spec.tail.offset))
     }
 }
 

@@ -27,6 +27,8 @@ where
     type Supplement = (&'b mut GreedyMesh<'a>, Vec3<f32>, Vec3<f32>);
     type TranslucentPipeline = FigurePipeline;
 
+    #[allow(clippy::needless_range_loop)] // TODO: Pending review in #587
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn generate_mesh(
         self,
         (greedy, offs, scale): Self::Supplement,
@@ -125,6 +127,8 @@ where
     type Supplement = (&'b mut GreedyMesh<'a>, bool);
     type TranslucentPipeline = SpritePipeline;
 
+    #[allow(clippy::needless_range_loop)] // TODO: Pending review in #587
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn generate_mesh(
         self,
         (greedy, vertical_stripes): Self::Supplement,

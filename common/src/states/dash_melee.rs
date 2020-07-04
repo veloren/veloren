@@ -27,7 +27,7 @@ impl CharacterBehavior for Data {
 
         if self.initialize {
             update.vel.0 = *data.inputs.look_dir * 20.0;
-            if let Some(dir) = Vec3::from(data.vel.0.xy()).try_normalized() {
+            if let Some(dir) = Vec3::from(data.inputs.look_dir.xy()).try_normalized() {
                 update.ori.0 = dir.into();
             }
         }

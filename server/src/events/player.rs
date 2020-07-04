@@ -8,8 +8,8 @@ use common::{
     msg::{ClientState, PlayerListUpdate, ServerMsg},
     sync::{Uid, UidAllocator},
 };
-use log::error;
-use specs::{saveload::MarkerAllocator, Builder, Entity as EcsEntity, Join, WorldExt};
+use specs::{saveload::MarkerAllocator, Builder, Entity as EcsEntity, WorldExt};
+use tracing::error;
 
 pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
     let state = server.state_mut();
@@ -36,8 +36,12 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
         entity_builder.with(uid).build();
     }
     // Delete old entity
-    if let Err(err) = state.delete_entity_recorded(entity) {
-        error!("Failed to delete entity when removing character: {:?}", err);
+    if let Err(e) = state.delete_entity_recorded(entity) {
+        error!(
+            ?e,
+            ?entity,
+            "Failed to delete entity when removing character"
+        );
     }
 }
 
@@ -49,42 +53,37 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
         state.read_storage::<Uid>().get(entity),
         state.read_storage::<comp::Player>().get(entity),
     ) {
-        state.notify_registered_clients(ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(
-            (*uid).into(),
-        )))
+        state.notify_registered_clients(ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(*uid)))
     }
 
     // Make sure to remove the player from the logged in list. (See AuthProvider)
     // And send a disconnected message
-    {
-        let players = state.ecs().read_storage::<Player>();
+    if let Some(player) = state.ecs().read_storage::<Player>().get(entity) {
         let mut accounts = state.ecs().write_resource::<AuthProvider>();
-        let mut clients = state.ecs().write_storage::<Client>();
+        accounts.logout(player.uuid());
 
-        if let Some(player) = players.get(entity) {
-            accounts.logout(player.uuid());
-
-            let msg = ServerMsg::broadcast(format!("{} went offline.", &player.alias));
-            for client in (&mut clients).join().filter(|c| c.is_registered()) {
-                client.notify(msg.clone());
-            }
-        }
+        let msg = comp::ChatType::Offline.server_msg(format!("[{}] went offline.", &player.alias));
+        state.notify_registered_clients(msg);
     }
 
     // Sync the player's character data to the database
-    if let (Some(player), Some(stats), updater) = (
+    if let (Some(player), Some(stats), Some(inventory), Some(loadout), updater) = (
         state.read_storage::<Player>().get(entity),
         state.read_storage::<comp::Stats>().get(entity),
-        state.ecs().read_resource::<persistence::stats::Updater>(),
+        state.read_storage::<comp::Inventory>().get(entity),
+        state.read_storage::<comp::Loadout>().get(entity),
+        state
+            .ecs()
+            .read_resource::<persistence::character::CharacterUpdater>(),
     ) {
         if let Some(character_id) = player.character_id {
-            updater.update(character_id, stats);
+            updater.update(character_id, stats, inventory, loadout);
         }
     }
 
     // Delete client entity
-    if let Err(err) = state.delete_entity_recorded(entity) {
-        error!("Failed to delete disconnected client: {:?}", err);
+    if let Err(e) = state.delete_entity_recorded(entity) {
+        error!(?e, ?entity, "Failed to delete disconnected client");
     }
 
     Event::ClientDisconnected { entity }

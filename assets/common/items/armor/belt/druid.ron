@@ -1,0 +1,8 @@
+Item(
+    name: "Druid's Belt",
+    description: "Twisted vines to keep everything secure.\n\n<Right-Click to use>",
+    kind: Armor(
+        kind: Belt(Druid),
+        stats: (20),
+    ),
+)

@@ -38,6 +38,7 @@ fn integrate_forces(dt: f32, mut lv: Vec3<f32>, grav: f32, damp: f32) -> Vec3<f3
 /// This system applies forces and calculates new positions and velocities.
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         ReadStorage<'a, Uid>,
@@ -56,6 +57,8 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Mounting>,
     );
 
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
+    #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
     fn run(
         &mut self,
         (
@@ -126,13 +129,14 @@ impl<'a> System<'a> for Sys {
             vel.0 = integrate_forces(dt.0, vel.0, downward_force, friction);
 
             // Don't move if we're not in a loaded chunk
-            let pos_delta = if terrain
+            let mut pos_delta = if terrain
                 .get_key(terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
                 .is_some()
             {
                 // this is an approximation that allows most framerates to
                 // behave in a similar manner.
-                (vel.0 + old_vel.0 * 4.0) * dt.0 * 0.2
+                let dt_lerp = 0.2;
+                (vel.0 * dt_lerp + old_vel.0 * (1.0 - dt_lerp)) * dt.0
             } else {
                 Vec3::zero()
             };
@@ -294,7 +298,7 @@ impl<'a> System<'a> for Sys {
                                     .unwrap_or(false))
                                 // ...and there is a collision with a block beneath our current hitbox...
                                 && collision_with(
-                                    old_pos + resolve_dir - Vec3::unit_z() * 1.05,
+                                    pos.0 + resolve_dir - Vec3::unit_z() * 1.05,
                                     &|block| block.is_solid(),
                                     near_iter.clone(),
                                 )
@@ -309,6 +313,7 @@ impl<'a> System<'a> for Sys {
                                 vel.0 = vel.0.map2(resolve_dir, |e, d| {
                                     if d * e.signum() < 0.0 { 0.0 } else { e }
                                 });
+                                pos_delta *= resolve_dir.map(|e| if e != 0.0 { 0.0 } else { 1.0 });
                             }
 
                             // Resolve the collision normally

@@ -1,0 +1,8 @@
+Item(
+    name: "Blue Cloth Pads",
+    description: "Simple shoulderpads made from blue cloth.\n\n<Right-click to use>",
+    kind: Armor(
+        kind: Shoulder(ClothBlue1),
+        stats: (20),
+    ),
+)

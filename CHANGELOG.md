@@ -10,12 +10,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added context-sensitive crosshair
+- Announce alias changes to all clients
+- Dance animation
+- Speech bubbles appear when nearby players talk
+- NPCs call for help when attacked
+- Eyebrows and shapes can now be selected
+- Character name and level information to chat, social tab and `/players` command
+- Added inventory, armour and weapon saving
+- Show where screenshots are saved in the chat
+- Added basic auto walk
+- Added weapon/attack sound effects
+- M2 attack for bow
+- Hotbar persistence
+- Alpha version Disclaimer
+- Server whitelist
+- Optional server-side maximum view distance
+- MOTD on login
+- Added group chat `/join_group` `/group`
+- Added faction chat `/join_faction` `/faction`
+- Added regional, local, and global chat (`/region`, `/say`, and `/world`, respectively)
+- Added command shortcuts for each of the above chat modes (`/g`, `/f`, `/r`, `/s`, and `/w`, respectively and `/t` for `/tell`)
+- Ability to wield 2 × 1h weapons and shields (Note: 1h weapons & shields are not currently avaliable, see [!1095](https://gitlab.com/veloren/veloren/-/merge_requests/1095) for more info)
+- Zoomable Map
+- M2 attack for hammer
 
 ### Changed
 
 - Improved camera aiming
+- Made civsim, sites, etc. deterministic from the same seed
+- Improved animations by adding orientation variation
+- new tail bone for quad_small body
+- slim the game size through lossless asset optimization
+- Lanterns now stop glowing if you throw a lit one out of your inventory
+- Fixed a crash caused by certain audio devices on OSX
+- Bow animations now show held arrows
+- Fixed a bug where walk/run sfx played while a character rolled/dodged
+- Energy regen resets on last ability use instead of on wield
+- Fixed unable to use ability; Secondary and ability3 (fire rod) will now automatically wield
+- Gliding is now a toggle that can be triggered from the ground
+- Replaced `log` with `tracing` in all crates
 
 ### Removed
+
+- Wield requirement to swap loadout; fixes issue with unable swap loadout outside of combat
+- Disclaimer wall of text on first startup
 
 ## [0.6.0] - 2020-05-16
 
@@ -44,6 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Italian translation
 - Added Portuguese translation
 - Added Turkish translation
+- Added Traditional Chinese translation
 - Complete rewrite of the combat system into a state machine
 - Abilities like Dash and Triplestrike
 - Armor can now be equipped as items
@@ -88,7 +127,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added dungeon arenas
 - Added dungeon bosses and rare boss loot
 - Added 2 sets of armour. One Steel and one Leather.
-
 
 ### Changed
 

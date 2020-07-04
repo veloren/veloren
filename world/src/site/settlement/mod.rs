@@ -18,7 +18,7 @@ use common::{
     terrain::{Block, BlockKind, TerrainChunkSize},
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, Vox, WriteVol},
 };
-use fxhash::FxHasher32;
+use fxhash::FxHasher64;
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
 use std::{collections::VecDeque, f32, hash::BuildHasherDefault};
@@ -151,6 +151,7 @@ impl Settlement {
     pub fn get_origin(&self) -> Vec2<i32> { self.origin }
 
     /// Designate hazardous terrain based on world data
+    #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
     pub fn designate_from_world(&mut self, sim: &WorldSim, rng: &mut impl Rng) {
         let tile_radius = self.radius() as i32 / AREA_SIZE as i32;
         let hazard = self.land.hazard;
@@ -207,6 +208,7 @@ impl Settlement {
         }
     }
 
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn place_paths(&mut self, rng: &mut impl Rng) {
         const PATH_COUNT: usize = 6;
 
@@ -465,6 +467,7 @@ impl Settlement {
 
     pub fn radius(&self) -> f32 { 1200.0 }
 
+    #[allow(clippy::needless_update)] // TODO: Pending review in #587
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
             trees: self
@@ -477,6 +480,8 @@ impl Settlement {
         }
     }
 
+    #[allow(clippy::identity_op)] // TODO: Pending review in #587
+    #[allow(clippy::modulo_one)] // TODO: Pending review in #587
     pub fn apply_to<'a>(
         &'a self,
         wpos2d: Vec2<i32>,
@@ -638,14 +643,12 @@ impl Settlement {
                                     })
                                     .map(|kind| Block::new(kind, Rgb::white()));
                                 }
-                            } else {
-                                if roll(0, 20) == 0 {
-                                    surface_block =
-                                        Some(Block::new(BlockKind::ShortGrass, Rgb::white()));
-                                } else if roll(1, 30) == 0 {
-                                    surface_block =
-                                        Some(Block::new(BlockKind::MediumGrass, Rgb::white()));
-                                }
+                            } else if roll(0, 20) == 0 {
+                                surface_block =
+                                    Some(Block::new(BlockKind::ShortGrass, Rgb::white()));
+                            } else if roll(1, 30) == 0 {
+                                surface_block =
+                                    Some(Block::new(BlockKind::MediumGrass, Rgb::white()));
                             }
 
                             Some(if in_furrow { dirt } else { mound })
@@ -756,6 +759,7 @@ impl Settlement {
         }
     }
 
+    #[allow(clippy::eval_order_dependence)] // TODO: Pending review in #587
     pub fn apply_supplement<'a>(
         &'a self,
         rng: &mut impl Rng,
@@ -784,8 +788,8 @@ impl Settlement {
                 if matches!(sample.plot, Some(Plot::Town))
                     && RandomField::new(self.seed).chance(Vec3::from(wpos2d), 1.0 / (50.0 * 50.0))
                 {
+                    let is_human: bool;
                     let entity = EntityInfo::at(entity_wpos)
-                        .with_alignment(comp::Alignment::Npc)
                         .with_body(match rng.gen_range(0, 4) {
                             0 => {
                                 let species = match rng.gen_range(0, 3) {
@@ -793,7 +797,7 @@ impl Settlement {
                                     1 => quadruped_small::Species::Sheep,
                                     _ => quadruped_small::Species::Cat,
                                 };
-
+                                is_human = false;
                                 comp::Body::QuadrupedSmall(quadruped_small::Body::random_with(
                                     rng, &species,
                                 ))
@@ -805,14 +809,22 @@ impl Settlement {
                                     2 => bird_medium::Species::Goose,
                                     _ => bird_medium::Species::Peacock,
                                 };
-
+                                is_human = false;
                                 comp::Body::BirdMedium(bird_medium::Body::random_with(
                                     rng, &species,
                                 ))
                             },
-                            _ => comp::Body::Humanoid(humanoid::Body::random()),
+                            _ => {
+                                is_human = true;
+                                comp::Body::Humanoid(humanoid::Body::random())
+                            },
                         })
-                        .do_if(rng.gen(), |entity| {
+                        .with_alignment(if is_human {
+                            comp::Alignment::Npc
+                        } else {
+                            comp::Alignment::Tame
+                        })
+                        .do_if(is_human && rng.gen(), |entity| {
                             entity.with_main_tool(assets::load_expect_cloned(
                                 match rng.gen_range(0, 7) {
                                     0 => "common.items.weapons.tool.broom",
@@ -968,11 +980,11 @@ pub struct Sample<'a> {
 }
 
 pub struct Land {
-    /// We use this hasher (FxHasher32) because
+    /// We use this hasher (FxHasher64) because
     /// (1) we need determinism across computers (ruling out AAHash);
     /// (2) we don't care about DDOS attacks (ruling out SipHash);
-    /// (3) we have 4-byte keys (for which FxHash is fastest).
-    tiles: HashMap<Vec2<i32>, Tile, BuildHasherDefault<FxHasher32>>,
+    /// (3) we have 8-byte keys (for which FxHash is fastest).
+    tiles: HashMap<Vec2<i32>, Tile, BuildHasherDefault<FxHasher64>>,
     plots: Store<Plot>,
     sampler_warp: StructureGen2d,
     hazard: Id<Plot>,
@@ -1094,21 +1106,21 @@ impl Land {
             |from: &Vec2<i32>, to: &Vec2<i32>| path_cost_fn(self.tile_at(*from), self.tile_at(*to));
         let satisfied = |pos: &Vec2<i32>| *pos == dest;
 
-        // We use this hasher (FxHasher32) because
+        // We use this hasher (FxHasher64) because
         // (1) we don't care about DDOS attacks (ruling out SipHash);
         // (2) we don't care about determinism across computers (we could use AAHash);
-        // (3) we have 4-byte keys (for which FxHash is fastest).
+        // (3) we have 8-byte keys (for which FxHash is fastest).
         Astar::new(
             250,
             origin,
             heuristic,
-            BuildHasherDefault::<FxHasher32>::default(),
+            BuildHasherDefault::<FxHasher64>::default(),
         )
         .poll(250, heuristic, neighbors, transition, satisfied)
         .into_path()
     }
 
-    /// We use this hasher (FxHasher32) because
+    /// We use this hasher (FxHasher64) because
     /// (1) we don't care about DDOS attacks (ruling out SipHash);
     /// (2) we care about determinism across computers (ruling out AAHash);
     /// (3) we have 8-byte keys (for which FxHash is fastest).
@@ -1118,14 +1130,14 @@ impl Land {
         max_size: usize,
         _rng: &mut impl Rng,
         mut match_fn: impl FnMut(Option<&Plot>) -> bool,
-    ) -> HashSet<Vec2<i32>, BuildHasherDefault<FxHasher32>> {
+    ) -> HashSet<Vec2<i32>, BuildHasherDefault<FxHasher64>> {
         let mut open = VecDeque::new();
         open.push_back(start);
-        // We use this hasher (FxHasher32) because
+        // We use this hasher (FxHasher64) because
         // (1) we don't care about DDOS attacks (ruling out SipHash);
         // (2) we care about determinism across computers (ruling out AAHash);
         // (3) we have 8-byte keys (for which FxHash is fastest).
-        let mut closed = HashSet::with_hasher(BuildHasherDefault::<FxHasher32>::default());
+        let mut closed = HashSet::with_hasher(BuildHasherDefault::<FxHasher64>::default());
 
         while open.len() + closed.len() < max_size {
             let next_pos = if let Some(next_pos) = open.pop_front() {

@@ -1,7 +1,7 @@
 use super::{
     super::{
-        util::arr_to_mat, ColLightFmt, Mesh, Model, Pipeline, TerrainPipeline, Texture,
-        TgtColorFmt, TgtDepthStencilFmt,
+        ColLightFmt, Mesh, Model, Pipeline, TerrainPipeline, Texture, TgtColorFmt,
+        TgtDepthStencilFmt,
     },
     shadow, Globals, Light, Shadow,
 };
@@ -65,6 +65,7 @@ gfx_defines! {
 }
 
 impl Vertex {
+    #[allow(clippy::collapsible_if)]
     pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, col: Rgb<f32>, ao: f32, bone_idx: u8) -> Self {
         let norm_bits = if norm.x != 0.0 {
             if norm.x < 0.0 { 0 } else { 1 }
@@ -105,7 +106,7 @@ impl Locals {
         flags |= is_player as u32;
 
         Self {
-            model_mat: arr_to_mat(model_mat.into_col_array()),
+            model_mat: model_mat.into_col_arrays(),
             model_col: col.into_array(),
             model_pos: pos.into_array(),
             atlas_offs: Vec4::from(atlas_offs).into_array(),
@@ -129,8 +130,8 @@ impl Default for Locals {
 impl BoneData {
     pub fn new(bone_mat: Mat4<f32>, normals_mat: Mat4<f32>) -> Self {
         Self {
-            bone_mat: arr_to_mat(bone_mat.into_col_array()),
-            normals_mat: arr_to_mat(normals_mat.into_col_array()),
+            bone_mat: bone_mat.into_col_arrays(),
+            normals_mat: normals_mat.into_col_arrays(),
         }
     }
 }

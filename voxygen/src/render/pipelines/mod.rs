@@ -8,7 +8,6 @@ pub mod sprite;
 pub mod terrain;
 pub mod ui;
 
-use super::util::arr_to_mat;
 use crate::scene::camera::CameraMode;
 use common::terrain::BlockKind;
 use gfx::{self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta};
@@ -65,6 +64,8 @@ gfx_defines! {
 
 impl Globals {
     /// Create global consts from the provided parameters.
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
+    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn new(
         view_mat: Mat4<f32>,
         proj_mat: Mat4<f32>,
@@ -86,17 +87,10 @@ impl Globals {
         cam_mode: CameraMode,
         sprite_render_distance: f32,
     ) -> Self {
-        // Transform to left-handed homogeneous coordinates.
-        let proj_mat_lh = proj_mat;
-        // proj_mat_lh[(2, 2)] = -proj_mat[(2, 2)];
-        // proj_mat_lh[(3, 2)] = -proj_mat[(3, 2)];
         Self {
-            view_mat: arr_to_mat(view_mat.into_col_array()),
-            proj_mat: arr_to_mat(proj_mat.into_col_array()),
-            all_mat: arr_to_mat(
-                ((proj_mat_lh * view_mat)/* .scaled_3d(Vec3::new(0.0, 0.0, -1.0)) */)
-                    .into_col_array(),
-            ),
+            view_mat: view_mat.into_col_arrays(),
+            proj_mat: proj_mat.into_col_arrays(),
+            all_mat: (proj_mat * view_mat).into_col_arrays(),
             cam_pos: Vec4::from(cam_pos).into_array(),
             focus_off: Vec4::from(focus_pos).map(|e: f32| e.trunc()).into_array(),
             focus_pos: Vec4::from(focus_pos).map(|e: f32| e.fract()).into_array(),

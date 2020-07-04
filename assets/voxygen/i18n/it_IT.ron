@@ -87,12 +87,12 @@ Il client è aggiornato?"#,
 
 
 
-                "common.races.orc": "Orco",
-                "common.races.human": "Umano",
-                "common.races.dwarf": "Nano",
-                "common.races.elf": "Elfo",
-                "common.races.undead": "Non-Morto",
-                "common.races.danari": "Danari",
+                "common.species.orc": "Orco",
+                "common.species.human": "Umano",
+                "common.species.dwarf": "Nano",
+                "common.species.elf": "Elfo",
+                "common.species.undead": "Non-Morto",
+                "common.species.danari": "Danari",
 
 
 
@@ -280,7 +280,17 @@ Vuoi sbloccare il cursore per chiudere questa finestra? Premi TAB!
 
 Goditi il tuo soggiorno nel Mondo di Veloren."#,
 
+"hud.temp_quest_headline": r#"Please, help us Traveller!"#,
+"hud.temp_quest_text": r#"Dungeons filled with evil cultists 
+have emerged all around our peaceful towns!
 
+
+Gather some company, stack up on food 
+and defeat their vile leaders and acolytes.
+
+
+Maybe you can even obtain one of their  
+magically infused items?"#,
 
 
                 "hud.settings.general": "Generale",
@@ -524,5 +534,8 @@ Volontà
                 "esc_menu.logout": "Disconnettiti",
                 "esc_menu.quit_game": "Esci dal Gioco",
                 /// End Escape Menu Section
-            }
+    },
+
+    vector_map: {
+    }
 )

@@ -1,48 +1,9 @@
 use crate::{comp, sync::Uid, util::Dir};
-use comp::{item::ToolKind, InventoryUpdateEvent, Item};
+use comp::item::Item;
 use parking_lot::Mutex;
-use serde::Deserialize;
 use specs::Entity as EcsEntity;
 use std::{collections::VecDeque, ops::DerefMut};
 use vek::*;
-
-pub struct SfxEventItem {
-    pub sfx: SfxEvent,
-    pub pos: Option<Vec3<f32>>,
-    pub vol: Option<f32>,
-}
-
-impl SfxEventItem {
-    pub fn new(sfx: SfxEvent, pos: Option<Vec3<f32>>, vol: Option<f32>) -> Self {
-        Self { sfx, pos, vol }
-    }
-
-    pub fn at_player_position(sfx: SfxEvent) -> Self {
-        Self {
-            sfx,
-            pos: None,
-            vol: None,
-        }
-    }
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
-pub enum SfxEvent {
-    Idle,
-    Run,
-    Roll,
-    Climb,
-    GliderOpen,
-    Glide,
-    GliderClose,
-    Jump,
-    Fall,
-    ExperienceGained,
-    LevelUp,
-    Wield(ToolKind),
-    Unwield(ToolKind),
-    Inventory(InventoryUpdateEvent),
-}
 
 pub enum LocalEvent {
     /// Applies upward force to entity's `Vel`
@@ -58,6 +19,7 @@ pub enum LocalEvent {
     Boost { entity: EcsEntity, vel: Vec3<f32> },
 }
 
+#[allow(clippy::large_enum_variant)] // TODO: Pending review in #587
 pub enum ServerEvent {
     Explosion {
         pos: Vec3<f32>,
@@ -90,11 +52,15 @@ pub enum ServerEvent {
     Mount(EcsEntity, EcsEntity),
     Unmount(EcsEntity),
     Possess(Uid, Uid),
-    SelectCharacter {
+    LevelUp(EcsEntity, u32),
+    /// Inserts default components for a character when loading into the game
+    InitCharacterData {
         entity: EcsEntity,
         character_id: i32,
-        body: comp::Body,
-        main: Option<String>,
+    },
+    UpdateCharacterData {
+        entity: EcsEntity,
+        components: (comp::Body, comp::Stats, comp::Inventory, comp::Loadout),
     },
     ExitIngame {
         entity: EcsEntity,
@@ -113,6 +79,8 @@ pub enum ServerEvent {
     ClientDisconnect(EcsEntity),
     ChunkRequest(EcsEntity, Vec2<i32>),
     ChatCmd(EcsEntity, String),
+    /// Send a chat message to the player from an npc or other player
+    Chat(comp::ChatMsg),
 }
 
 pub struct EventBus<E> {

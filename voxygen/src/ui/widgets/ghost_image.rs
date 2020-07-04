@@ -39,7 +39,7 @@ impl Widget for GhostImage {
         }
     }
 
-    fn style(&self) -> Self::Style { self.style.clone() }
+    fn style(&self) -> Self::Style { self.style }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, .. } = args;

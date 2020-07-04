@@ -1,28 +1,3 @@
-# Defines people who should approve to certain parts of the codebase
-
-/assets/ @assetsandvisualdesign @frontend
-/chat-cli/ @frontend
-/client/ @backend @networking
-/common/ @backend @networking
-/server/ @backend @networking
-/server-cli/ @frontend
-#/voxygen/ @someone
-/voxygen/anim/ @animation
-/voxygen/audio/ @audio 
-#/voxygen/hud/ @someone
-#/voxygen/menu / @someone
-#/voxygen/mesh/ @someone
-/voxygen/render/ @rendering 
-#/voxygen/scene/ @someone
-#/voxygen/ui/ @someone 
-/world/ @worldgen
-
-# All files related to documentation or game unrelated content needs to be approved by the meta group
-*.md @meta
-*.nix @meta
-.gitignore @meta
-.gitattributes @meta
-.gitlab-ci.yml @meta
-rust-toolchain @meta
-LICENSE @meta
-.cargo/ @meta
+*/Cargo.toml @xMAC94x
+Cargo.toml @xMAC94x
+rust-toolchain @xMAC94x

@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        item::{ItemKind, Tool},
+        item::{Hands, ItemKind, Tool},
         CharacterState, StateUpdate,
     },
     event::LocalEvent,
@@ -40,6 +40,7 @@ pub fn handle_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
 }
 
 /// Updates components to move player as if theyre on ground or in air
+#[allow(clippy::assign_op_pattern)] // TODO: Pending review in #587
 fn basic_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     let (accel, speed): (f32, f32) = if data.physics.on_ground {
         (BASE_HUMANOID_ACCEL, BASE_HUMANOID_SPEED)
@@ -95,10 +96,13 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     }
 }
 
-/// First checks whether `primary` input is pressed, then
-/// attempts to go into Equipping state, otherwise Idle
-pub fn handle_primary_wield(data: &JoinData, update: &mut StateUpdate) {
-    if data.inputs.primary.is_pressed() {
+/// First checks whether `primary`, `secondary` or `ability3` input is pressed,
+/// then attempts to go into Equipping state, otherwise Idle
+pub fn handle_wield(data: &JoinData, update: &mut StateUpdate) {
+    if data.inputs.primary.is_pressed()
+        || data.inputs.secondary.is_pressed()
+        || data.inputs.ability3.is_pressed()
+    {
         attempt_wield(data, update);
     }
 }
@@ -118,6 +122,12 @@ pub fn attempt_wield(data: &JoinData, update: &mut StateUpdate) {
 pub fn attempt_sit(data: &JoinData, update: &mut StateUpdate) {
     if data.physics.on_ground && data.body.is_humanoid() {
         update.character = CharacterState::Sit;
+    }
+}
+
+pub fn attempt_dance(data: &JoinData, update: &mut StateUpdate) {
+    if data.physics.on_ground && data.body.is_humanoid() {
+        update.character = CharacterState::Dance;
     }
 }
 
@@ -144,16 +154,10 @@ pub fn attempt_swap_loadout(_data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
-/// Checks that player can glide and updates `CharacterState` if so
-pub fn handle_glide(data: &JoinData, update: &mut StateUpdate) {
-    if let CharacterState::Idle { .. } | CharacterState::Wielding { .. } = update.character {
-        if data.inputs.glide.is_pressed()
-            && !data.physics.on_ground
-            && !data.physics.in_fluid
-            && data.body.is_humanoid()
-        {
-            update.character = CharacterState::Glide;
-        }
+/// Checks that player can wield the glider and updates `CharacterState` if so
+pub fn attempt_glide_wield(data: &JoinData, update: &mut StateUpdate) {
+    if data.physics.on_ground && !data.physics.in_fluid && data.body.is_humanoid() {
+        update.character = CharacterState::GlideWield;
     }
 }
 
@@ -184,15 +188,44 @@ pub fn handle_ability1_input(data: &JoinData, update: &mut StateUpdate) {
 /// Will attempt to go into `loadout.active_item.ability2`
 pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.secondary.is_pressed() {
-        if let Some(ability) = data
-            .loadout
-            .active_item
-            .as_ref()
-            .and_then(|i| i.ability2.as_ref())
-            .filter(|ability| ability.requirements_paid(data, update))
-        {
-            update.character = ability.into();
-        }
+        let active_tool_kind = match data.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+            Some(ItemKind::Tool(Tool { kind, .. })) => Some(kind),
+            _ => None,
+        };
+
+        let second_tool_kind = match data.loadout.second_item.as_ref().map(|i| &i.item.kind) {
+            Some(ItemKind::Tool(Tool { kind, .. })) => Some(kind),
+            _ => None,
+        };
+
+        match (
+            active_tool_kind.map(|tk| tk.into_hands()),
+            second_tool_kind.map(|tk| tk.into_hands()),
+        ) {
+            (Some(Hands::TwoHand), _) => {
+                if let Some(ability) = data
+                    .loadout
+                    .active_item
+                    .as_ref()
+                    .and_then(|i| i.ability2.as_ref())
+                    .filter(|ability| ability.requirements_paid(data, update))
+                {
+                    update.character = ability.into();
+                }
+            },
+            (_, Some(Hands::OneHand)) => {
+                if let Some(ability) = data
+                    .loadout
+                    .second_item
+                    .as_ref()
+                    .and_then(|i| i.ability2.as_ref())
+                    .filter(|ability| ability.requirements_paid(data, update))
+                {
+                    update.character = ability.into();
+                }
+            },
+            (_, _) => {},
+        };
     }
 }
 

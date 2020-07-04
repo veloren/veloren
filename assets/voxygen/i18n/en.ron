@@ -77,12 +77,12 @@ Did the server restart?
 Is the client up to date?"#,
 
 
-        "common.races.orc": "Orc",
-        "common.races.human": "Human",
-        "common.races.dwarf": "Dwarf",
-        "common.races.elf": "Elf",
-        "common.races.undead": "Undead",
-        "common.races.danari": "Danari",
+        "common.species.orc": "Orc",
+        "common.species.human": "Human",
+        "common.species.dwarf": "Dwarf",
+        "common.species.elf": "Elf",
+        "common.species.undead": "Undead",
+        "common.species.danari": "Danari",
 
         "common.weapons.axe": "Axe",
         "common.weapons.sword": "Sword",
@@ -138,6 +138,7 @@ https://account.veloren.net."#,
         "main.login.failed_sending_request": "Request to Auth server failed",
         "main.login.invalid_character": "The selected character is invalid",
         "main.login.client_crashed": "Client crashed",
+        "main.login.not_on_whitelist": "You need a Whitelist entry by an Admin to join",
 
         /// End Main screen section
 
@@ -153,6 +154,18 @@ https://account.veloren.net."#,
         "hud.press_key_to_show_debug_info_fmt": "Press {key} to show debug info",
         "hud.press_key_to_toggle_keybindings_fmt": "Press {key} to toggle keybindings",
         "hud.press_key_to_toggle_debug_info_fmt": "Press {key} to toggle debug info",
+
+        // Chat outputs
+        "hud.chat.online_msg": "[{name}] is now online.", 
+        "hud.chat.offline_msg": "{name} went offline.", 
+        "hud.chat.loot_msg": "You picked up [{item}]",
+        "hud.chat.loot_fail": "Your Inventory is full!",
+        "hud.chat.goodbye": "Goodbye!",
+        "hud.chat.connection_lost": "Connection lost. Kicking in {time} seconds.",
+
+        // SCT outputs
+        "hud.sct.experience": "{amount} Exp",
+        "hud.sct.block": "BLOCKED",
 
         // Respawn message
         "hud.press_key_to_respawn": r#"Press {key} to respawn at the last campfire you visited."#,
@@ -189,6 +202,19 @@ Want to free your cursor to close this window? Press TAB!
 
 
 Enjoy your stay in the World of Veloren."#,
+
+"hud.temp_quest_headline": r#"Please, help us Traveller!"#,
+"hud.temp_quest_text": r#"Dungeons filled with evil cultists 
+have emerged all around our peaceful towns!
+
+
+Gather some company, stack up on food 
+and defeat their vile leaders and acolytes.
+
+
+Maybe you can even obtain one of their  
+magically infused items?"#,
+
 
 
         // Inventory
@@ -238,11 +264,15 @@ Enjoy your stay in the World of Veloren."#,
         "hud.settings.cumulated_damage": "Cumulated Damage",
         "hud.settings.incoming_damage": "Incoming Damage",
         "hud.settings.cumulated_incoming_damage": "Cumulated Incoming Damage",
+        "hud.settings.speech_bubble": "Speech Bubble",
+        "hud.settings.speech_bubble_dark_mode": "Speech Bubble Dark Mode",
+        "hud.settings.speech_bubble_icon": "Speech Bubble Icon",
         "hud.settings.energybar_numbers": "Energybar Numbers",
         "hud.settings.values": "Values",
         "hud.settings.percentages": "Percentages",
         "hud.settings.chat": "Chat",
-        "hud.settings.background_transparency": "Background Transparency",        
+        "hud.settings.background_transparency": "Background Transparency",
+        "hud.settings.chat_character_name": "Character Names in chat",
 
         "hud.settings.pan_sensitivity": "Pan Sensitivity",
         "hud.settings.zoom_sensitivity": "Zoom Sensitivity",
@@ -250,6 +280,8 @@ Enjoy your stay in the World of Veloren."#,
         "hud.settings.invert_mouse_y_axis": "Invert Mouse Y Axis",
         "hud.settings.enable_mouse_smoothing": "Camera Smoothing",
         "hud.settings.free_look_behavior": "Free look behavior",
+        "hud.settings.auto_walk_behavior": "Auto walk behavior",
+        "hud.settings.stop_auto_walk_on_input": "Stop auto walk on movement",
 
         "hud.settings.view_distance": "View Distance",
         "hud.settings.sprites_view_distance": "Sprites View Distance",
@@ -282,6 +314,7 @@ Enjoy your stay in the World of Veloren."#,
         "hud.spell": "Spells",
 
         "hud.free_look_indicator": "Free look active",       
+        "hud.auto_walk_indicator": "Auto walk active",
 
         /// End HUD section
 
@@ -334,6 +367,8 @@ Enjoy your stay in the World of Veloren."#,
         "gameinput.togglewield": "Toggle Wield",
         "gameinput.interact": "Interact",
         "gameinput.freelook": "Free Look",
+        "gameinput.autowalk": "Auto Walk",
+        "gameinput.dance": "Dance",
         
         /// End GameInput section
 
@@ -355,11 +390,10 @@ Enjoy your stay in the World of Veloren."#,
         "char_selection.plains_of_uncertainty": "Plains of Uncertainty",
         "char_selection.beard": "Beard",
         "char_selection.hair_style": "Hair Style",
-        "char_selection.hair_color": "Hair Color",
-        "char_selection.chest_color": "Chest color",
-        "char_selection.eye_color": "Eye color",
+        "char_selection.hair_color": "Hair Color",        
+        "char_selection.eye_color": "Eye Color",
         "char_selection.skin": "Skin",
-        "char_selection.eyebrows": "Eyebrows",
+        "char_selection.eyeshape": "Eye Details",
         "char_selection.accessories": "Accessories",
         "char_selection.create_info_name": "Your Character needs a name!",
 
@@ -375,14 +409,96 @@ Fitness
 
 Willpower
 "#,
-
-
-        /// Start character window section
+        /// End character window section
 
 
         /// Start Escape Menu Section
         "esc_menu.logout": "Logout",
         "esc_menu.quit_game": "Quit Game",
         /// End Escape Menu Section
+    },
+
+    vector_map: {
+        "npc.speech.villager_under_attack": [
+            "Help, I'm under attack!",
+            "Help! I'm under attack!",
+            "Ouch! I'm under attack!",
+            "Ouch! I'm under attack! Help!",
+            "Help me! I'm under attack!",
+            "I'm under attack! Help!",
+            "I'm under attack! Help me!",
+            "Help!",
+            "Help! Help!",
+            "Help! Help! Help!",
+            "I'm under attack!",
+            "AAAHHH! I'm under attack!",
+            "AAAHHH! I'm under attack! Help!",
+            "Help! We're under attack!",
+            "Help! Murderer!",
+            "Help! There's a murderer on the loose!",
+            "Help! They're trying to kill me!",
+            "Guards, I'm under attack!",
+            "Guards! I'm under attack!",
+            "I'm under attack! Guards!",
+            "Help! Guards! I'm under attack!",
+            "Guards! Come quick!",
+            "Guards! Guards!",
+            "Guards! There's a villain attacking me!",
+            "Guards, slay this foul villain!",
+            "Guards! There's a murderer!",
+            "Guards! Help me!",
+            "You won't get away with this! Guards!",
+            "You fiend!",
+            "Help me!",
+            "Help! Please!",
+            "Ouch! Guards! Help!",
+            "They're coming for me!",
+            "Help! Help! I'm being repressed!",
+            "Ah, now we see the violence inherent in the system.",
+            "Tis but a scratch!",
+            "Stop that!",
+            "What did I ever do to you?!",
+            "Please stop attacking me!",
+            "Hey! Watch where you point that thing!",
+            "Heinous wretch, be gone with you!",
+            "Stop it! Go away!",
+            "Now you're making me mad!",
+            "Oi! Who do you think you are?!",
+            "I'll have your head for that!",
+            "Stop, please! I carry nothing of value!",
+            "I'll set my brother on you, he's bigger than I am!",
+            "Nooo, I'm telling mother!",
+            "Curse you!",
+            "Please don't do that.",
+            "That wasn't very nice!",
+            "Your weapon works, you can put it away now!",
+            "Spare me!",
+            "Please, I have a family!",
+            "I'm too young to die!",
+            "Can we talk about this?",
+            "Violence is never the answer!",
+            "Today is turning out to be a very bad day...",
+            "Hey, that hurt!",
+            "Eek!",
+            "How rude!",
+            "Stop, I beg you!",
+            "A pox upon you!",
+            "This isn't fun.",
+            "How dare you?!",
+            "You'll pay for that!",
+            "Keep that up and you'll be sorry!",
+            "Don't make me hurt you!",
+            "There must be some misunderstanding!",
+            "You don't need to do this!",
+            "Be gone, fiend!",
+            "That really hurt!",
+            "Why would you do that?",
+            "By the spirits, cease!",
+            "You must have me confused with someone else!",
+            "I don't deserve this!",
+            "Please don't do that again.",
+            "Guards, throw this monster in the lake!",
+            "I'll set my tarrasque on you!",
+        ],
     }
 )

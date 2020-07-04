@@ -56,7 +56,7 @@ impl<V: Default> SmallCache<V> {
         for i in 0..4 {
             let idx = idx + i * i;
             if self.index[idx].is_none() {
-                self.index[idx] = Some(key.clone());
+                self.index[idx] = Some(key);
                 self.data[idx] = f(key);
                 return &self.data[idx];
             }
@@ -65,7 +65,7 @@ impl<V: Default> SmallCache<V> {
         let step = super::seed_expan::diffuse(self.random) as usize % 4;
         let idx = step * step + idx;
         self.random = self.random.wrapping_add(1);
-        self.index[idx] = Some(key.clone());
+        self.index[idx] = Some(key);
         self.data[idx] = f(key);
         &self.data[idx]
     }

@@ -67,6 +67,7 @@ impl euc::Interpolate for VsOut {
     }
 
     #[inline(always)]
+    #[allow(clippy::many_single_char_names)]
     fn lerp3(a: Self, b: Self, c: Self, x: f32, y: f32, z: f32) -> Self {
         //a * x + b * y + c * z
         Self(
@@ -91,10 +92,10 @@ impl<'a> Pipeline for Voxel {
             //norm: _,
             ao_level,
         }: &Self::Vertex,
-    ) -> ([f32; 3], Self::VsOut) {
+    ) -> ([f32; 4], Self::VsOut) {
         let light = Rgba::from_opaque(Rgb::from(*ao_level as f32 / 4.0 + 0.25));
         let color = light * srgba_to_linear(Rgba::from_opaque(*col));
-        let position = (self.mvp * Vec4::from_point(*pos)).xyz().into_array();
+        let position = (self.mvp * Vec4::from_point(*pos)).into_array();
         (position, VsOut(color))
     }
 
@@ -113,6 +114,7 @@ pub fn draw_vox(
     sample_strat: SampleStrat,
 ) -> RgbaImage {
     let output_size = output_size.map(|e| e as usize);
+    debug_assert!(output_size.map(|e| e != 0).reduce_and());
 
     let ori_mat = Mat4::from(transform.ori);
     let rotated_segment_dims = (ori_mat * Vec4::from_direction(segment.size().map(|e| e as f32)))
@@ -135,6 +137,8 @@ pub fn draw_vox(
         ),
     }
     .into_array();
+
+    debug_assert!(dims[0] != 0 && dims[1] != 0);
 
     // Rendering buffers
     let mut color = Buffer2d::new(dims, [0; 4]);
@@ -174,7 +178,7 @@ pub fn draw_vox(
     Voxel { mvp }.draw::<rasterizer::Triangles<_>, _>(
         &generate_mesh(segment, Vec3::from(0.0)),
         &mut color,
-        &mut depth,
+        Some(&mut depth),
     );
 
     let rgba_img = RgbaImage::from_vec(

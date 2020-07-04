@@ -8,8 +8,8 @@ use common::{
     msg::ServerMsg,
     sync::{Uid, WorldSyncExt},
 };
-use log::error;
 use specs::{world::WorldExt, Entity as EcsEntity};
+use tracing::error;
 
 pub fn handle_lantern(server: &mut Server, entity: EcsEntity) {
     let ecs = server.state_mut().ecs();
@@ -48,6 +48,7 @@ pub fn handle_lantern(server: &mut Server, entity: EcsEntity) {
     }
 }
 
+#[allow(clippy::useless_conversion)] // TODO: Pending review in #587
 pub fn handle_mount(server: &mut Server, mounter: EcsEntity, mountee: EcsEntity) {
     let state = server.state_mut();
 
@@ -97,6 +98,7 @@ pub fn handle_unmount(server: &mut Server, mounter: EcsEntity) {
     state.delete_component::<comp::Mounting>(mounter);
 }
 
+#[allow(clippy::nonminimal_bool)] // TODO: Pending review in #587
 pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
     let state = &server.state;
     let ecs = state.ecs();
@@ -118,13 +120,11 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
         let mut clients = ecs.write_storage::<Client>();
         if clients.get_mut(possesse).is_none() {
             if let Some(mut client) = clients.remove(possessor) {
-                client.notify(ServerMsg::SetPlayerEntity(possesse_uid.into()));
-                clients.insert(possesse, client).err().map(|e| {
-                    error!(
-                        "Error inserting client component during possession: {:?}",
-                        e
-                    )
-                });
+                client.notify(ServerMsg::SetPlayerEntity(possesse_uid));
+                clients
+                    .insert(possesse, client)
+                    .err()
+                    .map(|e| error!(?e, "Error inserting client component during possession"));
                 // Put possess item into loadout
                 let mut loadouts = ecs.write_storage::<comp::Loadout>();
                 let loadout = loadouts
@@ -153,10 +153,7 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
                     let mut players = ecs.write_storage::<comp::Player>();
                     if let Some(player) = players.remove(possessor) {
                         players.insert(possesse, player).err().map(|e| {
-                            error!(
-                                "Error inserting player component during possession: {:?}",
-                                e
-                            )
+                            error!(?e, "Error inserting player component during possession")
                         });
                     }
                 }
@@ -166,8 +163,8 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
                     if let Some(s) = subscriptions.remove(possessor) {
                         subscriptions.insert(possesse, s).err().map(|e| {
                             error!(
-                                "Error inserting subscription component during possession: {:?}",
-                                e
+                                ?e,
+                                "Error inserting subscription component during possession"
                             )
                         });
                     }
@@ -183,7 +180,7 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
                     let mut admins = ecs.write_storage::<comp::Admin>();
                     if let Some(admin) = admins.remove(possessor) {
                         admins.insert(possesse, admin).err().map(|e| {
-                            error!("Error inserting admin component during possession: {:?}", e)
+                            error!(?e, "Error inserting admin component during possession")
                         });
                     }
                 }
@@ -192,10 +189,7 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
                     let mut waypoints = ecs.write_storage::<comp::Waypoint>();
                     if let Some(waypoint) = waypoints.remove(possessor) {
                         waypoints.insert(possesse, waypoint).err().map(|e| {
-                            error!(
-                                "Error inserting waypoint component during possession {:?}",
-                                e
-                            )
+                            error!(?e, "Error inserting waypoint component during possession",)
                         });
                     }
                 }

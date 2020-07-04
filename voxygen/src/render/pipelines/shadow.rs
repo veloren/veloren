@@ -1,7 +1,7 @@
 use super::{
     super::{
-        util::arr_to_mat, ColLightFmt, ColLightInfo, Pipeline, RenderError, Renderer,
-        ShadowDepthStencilFmt, TerrainLocals, Texture,
+        ColLightFmt, ColLightInfo, Pipeline, RenderError, Renderer, ShadowDepthStencilFmt,
+        TerrainLocals, Texture,
     },
     figure, terrain, Globals,
 };
@@ -148,8 +148,8 @@ impl Vertex {
 impl Locals {
     pub fn new(shadow_mat: Mat4<f32>, texture_mat: Mat4<f32>) -> Self {
         Self {
-            shadow_matrices: arr_to_mat(shadow_mat.into_col_array()),
-            texture_mats: arr_to_mat(texture_mat.into_col_array()),
+            shadow_matrices: shadow_mat.into_col_arrays(),
+            texture_mats: texture_mat.into_col_arrays(),
         }
     }
 

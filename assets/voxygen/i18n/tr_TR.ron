@@ -9,6 +9,8 @@
 ///
 /// To add a new language in Veloren, just write an additional `.ron` file in 
 /// `assets/voxygen/i18n` and that's it!
+///
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
 /// Localization for Turkish (Turkey)
 VoxygenLocalization(
@@ -75,12 +77,12 @@ Sunucu yeniden mi başladı?
 İstemci güncel mi?"#,
 
 
-        "common.races.orc": "Ork",
-        "common.races.human": "İnsan",
-        "common.races.dwarf": "Cüce",
-        "common.races.elf": "Elf",
-        "common.races.undead": "Hortlak",
-        "common.races.danari": "Danari",
+        "common.species.orc": "Ork",
+        "common.species.human": "İnsan",
+        "common.species.dwarf": "Cüce",
+        "common.species.elf": "Elf",
+        "common.species.undead": "Hortlak",
+        "common.species.danari": "Danari",
 
         "common.weapons.axe": "Balta",
         "common.weapons.sword": "Kılıç",
@@ -100,14 +102,14 @@ Sunucu yeniden mi başladı?
 Eğlenmeye başlamadan önce, lütfen bir kaç şeyi aklında tut:
 
 - Bu alfa sürümü daha çok yeni. Hatalar, bitmemiş oynanış, elden geçirilmemiş mekanikler ve eksik özellikler bulunuyor.
-- Yapıcı geri bildirim veya hata raporların varsa, bize Reddit, GitLab veya Discord sunucumuzdan ulaşabilirsin.
+
+- Yapıcı geri bildirim veya hata raporların varsa bize Reddit, GitLab veya Discord kullanarak ulaşabilirsin.
+
 - Veloren GPL 3 açık kaynak lisansı ile lisanslıdır. Bunun anlamı, oyunu istediğin gibi oynayabilir, değiştirebilir ve dağıtabilirsin
 (türetilmiş çalışmalarda GPL 3 ile lisanslanmış olduğu sürece)
+
 - Veloren kar gütmeyen bir topluluk projesidir ve üzerinde çalışan herkes birer gönüllüdür.
 Gördüklerini beğendiysen, geliştirme veya sanat takımlarına katılabilirsin!
-- 'Voxel RPG' kendi başına bir tür. Birinci şahıs nişancı oyunları önceden Doom kopyaları olarak adlandırılıyordu.
-
-Bizde onlar gibi bir niş inşa etmeye çalışıyoruz. Bu oyun bir kopya değil ve gelecekte gelişimi mevcut oyunlardan ayrılacak.
 
 Bu bildiriyi okumaya zaman ayırdığın için teşekkür ederiz, umarız ki oyundan memnun kalırsın!
 
@@ -134,6 +136,7 @@ bir hesap oluşturabilirsin."#,
         "main.login.already_logged_in": "Zaten sunucuya giriş yapmışsın.",
         "main.login.network_error": "Ağ hatası",
         "main.login.failed_sending_request": "Kimlik doğrulama sunucusuna istek gönderilemedi",
+		"main.login.invalid_character": "Seçilen karakter geçersiz",
         "main.login.client_crashed": "İstemci çöktü",
 
         /// End Main screen section
@@ -144,6 +147,7 @@ bir hesap oluşturabilirsin."#,
         "hud.show_tips": "Öneriler",
         "hud.quests": "Görevler",
         "hud.you_died": "Öldün",
+		"hud.waypoint_saved": "Yol noktası kaydedildi",
         
         "hud.press_key_to_show_keybindings_fmt": "Kontrolleri göstermek için {key}'e bas",
         "hud.press_key_to_show_debug_info_fmt": "Hata ayıklama bilgilerini göstermek için {key}'e bas",
@@ -174,7 +178,7 @@ Dünyada rastgele oluşan sandıklar ve başka objeler var!
 
 Onları toplamak için Sağ-Tık kullan.
 
-Topladıklarını kullanmak için 'B'ye basarak envanterini aç.
+Topladıklarını kullanmak için 'B' tuşuna basarak envanterini aç.
 
 Envanterindeki eşyaları kullanmak veya kuşanmak için iki kere üzerlerine tıkla.
 
@@ -183,7 +187,7 @@ Envanterindeki eşyaları kullanmak veya kuşanmak için iki kere üzerlerine t�
 
 Veloren'de geceler oldukça karanlık olabiliyor.
 
-Sohbete /lantern yazarak fenerini yak.
+'G' tuşuna basarak fenerini yak.
 
 
 Bu pencereyi kapatmak için imlecini serbest bırakmak mı istiyorsun? TAB'a bas!
@@ -191,14 +195,40 @@ Bu pencereyi kapatmak için imlecini serbest bırakmak mı istiyorsun? TAB'a bas
 
 Veloren'in Dünyasında sana iyi eğlenceler!"#,
 
+"hud.temp_quest_headline": r#"Please, help us Traveller!"#,
+"hud.temp_quest_text": r#"Dungeons filled with evil cultists 
+have emerged all around our peaceful towns!
+
+
+Gather some company, stack up on food 
+and defeat their vile leaders and acolytes.
+
+
+Maybe you can even obtain one of their  
+magically infused items?"#,
+
 
         // Inventory
-        "hud.bag.inventory": "'in Envanteri",
-        "hud.bag.stats_title": "'in Nitelikleri",
+        "hud.bag.inventory": "{playername}'in Envanteri",
+        "hud.bag.stats_title": "{playername}'in Nitelikleri",
         "hud.bag.exp": "Tecrübe",
         "hud.bag.armor": "Zırh",
         "hud.bag.stats": "Nitelikler",
-
+        "hud.bag.head": "Baş",
+        "hud.bag.neck": "Boyun",
+        "hud.bag.tabard": "Cüppe",
+        "hud.bag.shoulders": "Omuzlar",
+        "hud.bag.chest": "Göğüs",
+        "hud.bag.hands": "Eller",
+        "hud.bag.lantern": "Fener",
+        "hud.bag.belt": "Kemer",
+        "hud.bag.ring": "Yüzük",
+        "hud.bag.back": "Arka",
+        "hud.bag.legs": "Bacaklar",
+        "hud.bag.feet": "Ayaklar",
+        "hud.bag.mainhand": "Birincil",
+        "hud.bag.offhand": "İkincil",
+  
         // Map and Questlog
         "hud.map.map_title": "Harita",
         "hud.map.qlog_title": "Görevler",
@@ -213,7 +243,7 @@ Veloren'in Dünyasında sana iyi eğlenceler!"#,
         "hud.settings.tips_on_startup": "Açılışta İpuçlarını Göster",
         "hud.settings.ui_scale": "Arayüz Ölçeği",
         "hud.settings.relative_scaling": "Otomatik Ölçek",
-        "hud.settings.custom_scaling": "Özel Ölçek",
+        "hud.settings.custom_scaling": "Sabit Ölçek",
         "hud.settings.crosshair": "İmleç tipi",
         "hud.settings.transparency": "Şeffaflık",
         "hud.settings.hotbar": "Aksiyon Çubuğu",
@@ -224,6 +254,7 @@ Veloren'in Dünyasında sana iyi eğlenceler!"#,
         "hud.settings.cumulated_damage": "Toplam Verilen Hasarı Göster",
         "hud.settings.incoming_damage": "Alınan Hasarı Tek Tek Göster",
         "hud.settings.cumulated_incoming_damage": "Toplam Alınan Hasarı Göster",
+		"hud.settings.speech_bubble_dark_mode": "Konuşma balonu için karanlık tema kullan",
         "hud.settings.energybar_numbers": "Enerji çubuğu değerleri",
         "hud.settings.values": "Sayılar",
         "hud.settings.percentages": "Yüzdeler",
@@ -235,109 +266,29 @@ Veloren'in Dünyasında sana iyi eğlenceler!"#,
         "hud.settings.zoom_sensitivity": "Büyütme Hassaslığı",
         "hud.settings.invert_scroll_zoom": "Kaydırma Büyütmesini ters çevir",
         "hud.settings.invert_mouse_y_axis": "Fare Y eksenini ters çevir",
+        "hud.settings.enable_mouse_smoothing": "Kamera kontrolünü yumuşat",
         "hud.settings.free_look_behavior": "Serbest bakış davranışı",
 
         "hud.settings.view_distance": "Görüş Mesafesi",
+        "hud.settings.sprites_view_distance": "Sprite Görüş Mesafesi",
+        "hud.settings.figures_view_distance": "Figür Görüş Mesafesi",
         "hud.settings.maximum_fps": "Maksimum FPS",
         "hud.settings.fov": "Görüş alanı (derece)",
         "hud.settings.gamma": "Gama",
         "hud.settings.antialiasing_mode": "Kenar Yumuşatma Modu",
-        "hud.settings.cloud_rendering_mode": "Bulut Render Modu",
-        "hud.settings.fluid_rendering_mode": "Su Render Modu",
-        "hud.settings.fluid_rendering_mode.cheap": "Ucuz",
+        "hud.settings.cloud_rendering_mode": "Bulut Kalitesi",
+        "hud.settings.fluid_rendering_mode": "Su Kalitesi",
+        "hud.settings.fluid_rendering_mode.cheap": "Basit",
         "hud.settings.fluid_rendering_mode.shiny": "Güzel",
         "hud.settings.cloud_rendering_mode.regular": "Normal",
         "hud.settings.fullscreen": "Tam ekran",
         "hud.settings.save_window_size": "Pencere boyutunu kaydet",
 
+        "hud.settings.awaitingkey": "Bir tuşa bas...",
+
         "hud.settings.music_volume": "Müzik Sesi",
         "hud.settings.sound_effect_volume": "Efekt Sesi",
         "hud.settings.audio_device": "Ses Aygıtı",
-
-        // Control list
-        "hud.settings.control_names": r#"İmleci serbest bırak
-Yardım Pencerisini aç/kapa
-Arayüzü aç/kapa
-FPS ve hata ayıklama bilgilerini aç/kapa
-Ekran görüntüsü al
-İsim etiketlerini aç/kapa
-Tam ekranı aç/kapa
-
-
-İleri Git
-Sola Git
-Sağa Git
-Geriye Git
-
-Zıpla
-
-Planör
-
-Sıçra
-
-Yuvarlan
-
-Tırman
-
-İn
-
-Otomatik yürüme
-
-Silahları koy/çıkar
-
-Kaskı kuşan/çıkar
-
-Otur
-
-Bin
-
-Etkileşim
-
-
-Basit Saldırı
-İkincil Saldırı/Blok/Nişan Alma
-
-
-Yetenek çubuğu Slot 1
-Yetenek çubuğu Slot 2
-Yetenek çubuğu Slot 3
-Yetenek çubuğu Slot 4
-Yetenek çubuğu Slot 5
-Yetenek çubuğu Slot 6
-Yetenek çubuğu Slot 7
-Yetenek çubuğu Slot 8
-Yetenek çubuğu Slot 9
-Yetenek çubuğu Slot 10
-
-
-Duraklatma Menüsü
-Ayarlar
-Sosyal
-Harita
-Büyü kitabı
-Karakter
-Görev kaydı
-Çanta
-
-
-
-Sohbet Mesajı Gönder
-Sohbeti Kaydır
-
-
-Serbest bakış
-
-
-Sohbet komutları:  
-
-/alias [İsim] - Sohbet İsmini değiştir   
-/tp [İsim] - Seni başka bir oyuncuya ışınlar    
-/jump <dx> <dy> <dz> - Pozisyonunu kaydır 
-/goto <x> <y> <z> - Bir pozisyona ışınlan
-/kill - Kendini öldür
-/pig - Domuz NPC'si oluştur
-/wolf - Kurt NPC'si oluştur 
-/help - Sohbet komutlarını göster"#,
 
         "hud.social": "Sosyal",
         "hud.social.online": "Çevrimiçi",
@@ -352,15 +303,68 @@ Sohbet komutları:
         /// End HUD section
 
 
-        /// Start chracter selection section
-        // Character delete question
-	"char_selection.delete_permanently": r#"Bu karakteri kalıcı olarak
-silmek istediğinden emin misin?"#,
+        /// Start GameInput section
 
+        "gameinput.primary": "Birincil Saldırı",
+        "gameinput.secondary": "İkincil Saldırı/Savun/Hedef al",
+        "gameinput.slot1": "Eylem çubuğu Slot 1",
+        "gameinput.slot2": "Eylem çubuğu Slot 2",
+        "gameinput.slot3": "Eylem çubuğu Slot 3",
+        "gameinput.slot4": "Eylem çubuğu Slot 4",
+        "gameinput.slot5": "Eylem çubuğu Slot 5",
+        "gameinput.slot6": "Eylem çubuğu Slot 6",
+        "gameinput.slot7": "Eylem çubuğu Slot 7",
+        "gameinput.slot8": "Eylem çubuğu Slot 8",
+        "gameinput.slot9": "Eylem çubuğu Slot 9",
+        "gameinput.slot10": "Eylem çubuğu Slot 10",
+        "gameinput.swaploadout": "Tehçizatı Değiştir",
+        "gameinput.togglecursor": "Fareyi aç/kapa",
+        "gameinput.help": "Yardım penceresini aç/kapa",
+        "gameinput.toggleinterface": "Arayüzü aç/kapa",
+        "gameinput.toggledebug": "FPS ve Hata ayıklama bilgilerini aç/kapa",
+        "gameinput.screenshot": "Ekran görüntüsü al",
+        "gameinput.toggleingameui": "İsim etiketlerini aç/kapa",
+        "gameinput.fullscreen": "Tam ekranı aç/kapa",
+        "gameinput.moveforward": "İleri git",
+        "gameinput.moveleft": "Sola git",
+        "gameinput.moveright": "Sağa git",
+        "gameinput.moveback": "Geri git",
+        "gameinput.jump": "Zıpla",
+        "gameinput.glide": "Planör",
+        "gameinput.roll": "Yuvarlan",
+        "gameinput.climb": "Tırman",
+        "gameinput.climbdown": "İn",
+        "gameinput.wallleap": "Duvar Sıçrayışı",
+		"gameinput.togglelantern": "Feneri yak/söndür",
+        "gameinput.mount": "Bin",
+        "gameinput.enter": "Sohbet",
+        "gameinput.command": "Komut",
+        "gameinput.escape": "Oyunu Duraklat",
+        "gameinput.map": "Harita",
+        "gameinput.bag": "Envanter",
+        "gameinput.social": "Sosyal",
+        "gameinput.sit": "Otur",
+        "gameinput.spellbook": "Büyüler",
+        "gameinput.settings": "Ayarlar",
+        "gameinput.respawn": "Yeniden Canlan",
+        "gameinput.charge": "Hücum",
+        "gameinput.togglewield": "Kuşan/koy",
+        "gameinput.interact": "Etkileşim",
+        "gameinput.freelook": "Serbest Bakış",
+        
+        /// End GameInput section
+
+
+        /// Start chracter selection section
+        "char_selection.loading_characters": "Karakterler yükleniyor...",
+		"char_selection.delete_permanently": r#"Bu karakteri kalıcı olarak
+silmek istediğinden emin misin?"#,
+		"char_selection.deleting_character": "Karakter siliniyor...",
         "char_selection.change_server": "Sunucu Değiştir",
         "char_selection.enter_world": "Dünyaya Gir",
         "char_selection.logout": "Çıkış yap",
         "char_selection.create_new_charater": "Yeni Karakter Oluştur",
+		"char_selection.creating_character": "Karakter oluşturuluyor...",
         "char_selection.character_creation": "Karakter Oluşumu",
 
         "char_selection.human_default": "İnsan Varsayılanı",
@@ -373,8 +377,10 @@ silmek istediğinden emin misin?"#,
         "char_selection.chest_color": "Göğüs Rengi",
         "char_selection.eye_color": "Göz Rengi",
         "char_selection.skin": "Deri",
+		"char_selection.eyeshape": "Göz Detayları",
         "char_selection.eyebrows": "Kaşlar",
         "char_selection.accessories": "Aksesuarlar",
+		"char_selection.create_info_name": "Karakterinin bir isme ihtiyacı var!",
 
         /// End chracter selection section
 
@@ -397,5 +403,46 @@ Hareket gücü
         "esc_menu.logout": "Çıkış yap",
         "esc_menu.quit_game": "Oyundan çık",
         /// End Escape Menu Section
+    },
+
+    vector_map: {
+		"npc.speech.villager_under_attack": [
+    		"Saldırı altındayım, yardım edin!",
+			"Saldırı altındayım! Yardım edin!",
+			"Ahhh! Saldırı altındayım!",
+			"Ahhh! Saldırı altındayım! Yardım edin!",
+			"Saldırı altındayım! Bana yardım edin!",
+			"Yardım edin! Saldırı altındayım!",
+			"Bana yardım edin! Saldırı altındayım!",
+			"Yardım edin!",
+			"Yardım edin! Yardım edin!",
+			"Yardım edin! Yardım edin! Yardım edin!",
+			"Saldırı altındayım!",
+			"AAAHHHH! Saldırı altındayım!",
+			"AAAHHHH! Yardım edin! Saldırı altındayım!",
+			"Saldırı altındayız! Yardım edin!",
+			"Katil! Yardım edin!",
+			"Bir katil serbestçe dolaşıyor! Yardım edin!",
+			"Beni öldürmeye çalışıyorlar! Yardım edin!",
+			"Gardiyanlar, saldırı altındayım!",
+			"Saldırı altındayım! Gardiyanlar!",
+			"Gardiyanlar! Saldırı altındayım!",
+			"Saldırı altındayım! Gardiyanlar! Yardım edin!",
+			"Gardiyanlar! Çabuk gelin!",
+			"Gardiyanlar! Gardiyanlar!",
+			"Bana saldıran bir kötü var! Yardım edin!",
+			"Gardiyanlar, bu pis kötüyü öldürün!",
+			"Gardiyanlar! Burada bir katil var!",
+			"Gardiyanlar! Bana yardım edin!",
+			"Bu yanına kalmayacak! Gardiyanlar!",
+			"Seni şeytan!",
+			"Bana yardım edin!",
+			"Lütfen! Yardım edin!",
+			"Ahhh! Gardiyanlar! Yardım edin!",
+			"Benim için geliyorlar!",
+			"Yardım edin! Yardım edin! Baskı altındayım!",
+			"Ah, artık sistemin doğasında var olan şiddeti görüyoruz.",
+			"Bu benim için bir çizik bile değil!"
+		],
     }
 )

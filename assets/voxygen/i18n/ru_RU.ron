@@ -63,12 +63,12 @@ VoxygenLocalization(
 Клиент обновлен до последней версии?"#,
 
 
-        "common.races.orc": "Орк",
-        "common.races.human": "Человек",
-        "common.races.dwarf": "Дварф",
-        "common.races.elf": "Эльф",
-        "common.races.undead": "Нежить",
-        "common.races.danari": "Данари",
+        "common.species.orc": "Орк",
+        "common.species.human": "Человек",
+        "common.species.dwarf": "Дварф",
+        "common.species.elf": "Эльф",
+        "common.species.undead": "Нежить",
+        "common.species.danari": "Данари",
 
         "common.weapons.axe": "Топор",
         "common.weapons.sword": "Меч",
@@ -91,7 +91,7 @@ VoxygenLocalization(
 - Если у вас есть конструктивный фидбек или сообщение об ошибке, вы можете связаться с нами через Reddit, GitLab или наш Discord-сервер.
 - Veloren лицензирован GPL 3 open-source licence. Это означает, игра бесплатна, ее можно модифицировать и переделывать на свой вкус (при условии, что готовая работа тоже лицензирована GPL 3).
 - Veloren - некоммерческий проект, каждый работает над ним добровольно.
-Если тебе нравится, что ты видишь, милости просим присоедниться к команде разработчиков или худождественной команде!
+Если тебе нравится, что ты видишь, милости просим присоединиться к команде разработчиков или художественной команде!
 - 'Воксельная РПГ' - самобытный жанр. ФПС тоже привыкли называть 'Клонами Дума'. 
 
 Как и они, мы пытаемся построить нишу. Эта игра не клон, ее развитие в будущем будет отличаться от существующих игр.
@@ -162,11 +162,11 @@ https://account.veloren.net."#,
 
 Нажмите ПКМ, чтобы собрать их.
 
-Чтобы использовать то, что мы нашли в сундуках, откройте свой инвентарь 'B'.
+Чтобы использовать то, что вы нашли в сундуках, откройте свой инвентарь 'B'.
 
 Двойной клик на предмет в инвентаре использует или экипирует его.
 
-Чтобы выкинуть их, кликните на предмет, а потом кликите вне инвентаря.
+Чтобы выкинуть его, кликните на предмет, а потом кликните вне инвентаря.
 
 
 Ночи в Veloren могут быть довольно темными.
@@ -178,6 +178,18 @@ https://account.veloren.net."#,
 
 
 Наслаждайтесь миром Veloren."#,
+
+"hud.temp_quest_headline": r#"Пожалуйста, путешественник, помоги нам!"#,
+"hud.temp_quest_text": r#"Dungeons filled with evil cultists 
+have emerged all around our peaceful towns!
+
+
+Gather some company, stack up on food 
+and defeat their vile leaders and acolytes.
+
+
+Maybe you can even obtain one of their  
+magically infused items?"#,
 
 
         // Inventory
@@ -254,7 +266,7 @@ https://account.veloren.net."#,
 
         "hud.settings.music_volume": "Громкость музыки",
         "hud.settings.sound_effect_volume": "Громкость звуковых эффектов",
-        "hud.settings.audio_device": "Устройство аудио",
+        "hud.settings.audio_device": "Аудио устройство",
 
         "hud.settings.awaitingkey": "Нажми клавишу...",
 
@@ -365,5 +377,8 @@ https://account.veloren.net."#,
         "esc_menu.logout": "Выйти в меню",
         "esc_menu.quit_game": "Выйти из игры",
         /// End Escape Menu Section
+    },
+
+    vector_map: {
     }
 )

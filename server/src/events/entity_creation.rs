@@ -9,20 +9,22 @@ use common::{
 use specs::{Builder, Entity as EcsEntity, WorldExt};
 use vek::{Rgb, Vec3};
 
-pub fn handle_create_character(
-    server: &mut Server,
-    entity: EcsEntity,
-    character_id: i32,
-    body: Body,
-    main: Option<String>,
-) {
-    let state = &mut server.state;
-    let server_settings = &server.server_settings;
-
-    state.create_player_character(entity, character_id, body, main, server_settings);
-    sys::subscription::initialize_region_subscription(state.ecs(), entity);
+pub fn handle_initialize_character(server: &mut Server, entity: EcsEntity, character_id: i32) {
+    server.state.initialize_character_data(entity, character_id);
 }
 
+pub fn handle_loaded_character_data(
+    server: &mut Server,
+    entity: EcsEntity,
+    loaded_components: (comp::Body, comp::Stats, comp::Inventory, comp::Loadout),
+) {
+    server
+        .state
+        .update_character_data(entity, loaded_components);
+    sys::subscription::initialize_region_subscription(server.state.ecs(), entity);
+}
+
+#[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
 pub fn handle_create_npc(
     server: &mut Server,
     pos: Pos,

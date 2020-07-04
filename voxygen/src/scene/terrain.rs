@@ -22,6 +22,7 @@ use dot_vox::DotVoxData;
 use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
 use std::sync::Arc;
+use tracing::warn;
 use treeculler::{BVol, Frustum, AABB};
 use vek::*;
 
@@ -122,23 +123,27 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
         }),
 
         BlockKind::BlueFlower => Some(SpriteConfig {
-            variations: 7,
+            variations: 10,
             wind_sway: 0.1,
         }),
         BlockKind::PinkFlower => Some(SpriteConfig {
             variations: 4,
             wind_sway: 0.1,
         }),
+        BlockKind::PurpleFlower => Some(SpriteConfig {
+            variations: 8,
+            wind_sway: 0.1,
+        }),
         BlockKind::RedFlower => Some(SpriteConfig {
-            variations: 3,
+            variations: 5,
             wind_sway: 0.1,
         }),
         BlockKind::WhiteFlower => Some(SpriteConfig {
-            variations: 2,
+            variations: 5,
             wind_sway: 0.1,
         }),
         BlockKind::YellowFlower => Some(SpriteConfig {
-            variations: 1,
+            variations: 2,
             wind_sway: 0.1,
         }),
         BlockKind::Sunflower => Some(SpriteConfig {
@@ -158,13 +163,17 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             variations: 5,
             wind_sway: 0.1,
         }),
+        BlockKind::LargeGrass => Some(SpriteConfig {
+            variations: 3,
+            wind_sway: 0.5,
+        }),
 
         BlockKind::Apple => Some(SpriteConfig {
             variations: 1,
             wind_sway: 0.0,
         }),
         BlockKind::Mushroom => Some(SpriteConfig {
-            variations: 11,
+            variations: 17,
             wind_sway: 0.0,
         }),
         BlockKind::Liana => Some(SpriteConfig {
@@ -200,7 +209,7 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             wind_sway: 0.4,
         }),
         BlockKind::Fern => Some(SpriteConfig {
-            variations: 12,
+            variations: 13,
             wind_sway: 0.4,
         }),
         BlockKind::DeadBush => Some(SpriteConfig {
@@ -259,8 +268,96 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             variations: 1,
             wind_sway: 0.0,
         }),
+        BlockKind::StreetLampTall => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
         BlockKind::Door => Some(SpriteConfig {
             variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Bed => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Bench => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::ChairSingle => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::ChairDouble => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::CoatRack => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Crate => Some(SpriteConfig {
+            variations: 7,
+            wind_sway: 0.0,
+        }),
+        BlockKind::DrawerLarge => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::DrawerMedium => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::DrawerSmall => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::DungeonWallDecor => Some(SpriteConfig {
+            variations: 10,
+            wind_sway: 0.0,
+        }),
+        BlockKind::HangingBasket => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::HangingSign => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::WallLamp => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Planter => Some(SpriteConfig {
+            variations: 7,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Shelf => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::TableSide => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::TableDining => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::TableDouble => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::WardrobeDouble => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::WardrobeSingle => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Pot => Some(SpriteConfig {
+            variations: 2,
             wind_sway: 0.0,
         }),
         _ => None,
@@ -268,6 +365,8 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
 }
 
 /// Function executed by worker threads dedicated to chunk meshing.
+#[allow(clippy::or_fun_call)] // TODO: Pending review in #587
+
 fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
     pos: Vec2<i32>,
     z_bounds: (f32, f32),
@@ -333,10 +432,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
                                 ori,
                             );
 
-                            instances
-                                .entry(key)
-                                .or_insert_with(|| Vec::new())
-                                .push(instance);
+                            instances.entry(key).or_insert(Vec::new()).push(instance);
                         }
                     }
                 }
@@ -389,6 +485,7 @@ impl TerrainChunkData {
 }
 
 impl<V: RectRasterableVol> Terrain<V> {
+    #[allow(clippy::float_cmp)] // TODO: Pending review in #587
     pub fn new(renderer: &mut Renderer) -> Self {
         // Create a new mpsc (Multiple Produced, Single Consumer) pair for communicating
         // with worker threads that are meshing chunks.
@@ -595,6 +692,24 @@ impl<V: RectRasterableVol> Terrain<V> {
                 Vec3::one(),
             ),
             make_models(
+                (BlockKind::BlueFlower, 7),
+                "voxygen.voxel.sprite.flowers.flower_blue-8",
+                Vec3::new(-5.5, -4.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::BlueFlower, 8),
+                "voxygen.voxel.sprite.flowers.flower_blue-9",
+                Vec3::new(-4.0, -3.0, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::BlueFlower, 9),
+                "voxygen.voxel.sprite.flowers.flower_blue-10",
+                Vec3::new(-1.5, -1.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
                 (BlockKind::PinkFlower, 0),
                 "voxygen.voxel.sprite.flowers.flower_pink_1",
                 Vec3::new(-6.0, -6.0, 0.0),
@@ -625,6 +740,48 @@ impl<V: RectRasterableVol> Terrain<V> {
                 Vec3::one(),
             ),
             make_models(
+                (BlockKind::PurpleFlower, 1),
+                "voxygen.voxel.sprite.flowers.flower_purple-2",
+                Vec3::new(-5.0, -2.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::PurpleFlower, 2),
+                "voxygen.voxel.sprite.flowers.flower_purple-3",
+                Vec3::new(-3.5, -2.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::PurpleFlower, 3),
+                "voxygen.voxel.sprite.flowers.flower_purple-4",
+                Vec3::new(-5.0, -4.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::PurpleFlower, 4),
+                "voxygen.voxel.sprite.flowers.flower_purple-5",
+                Vec3::new(-2.5, -2.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::PurpleFlower, 5),
+                "voxygen.voxel.sprite.flowers.flower_purple-6",
+                Vec3::new(-4.5, -4.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::PurpleFlower, 6),
+                "voxygen.voxel.sprite.flowers.flower_purple-7",
+                Vec3::new(-5.5, -5.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::PurpleFlower, 7),
+                "voxygen.voxel.sprite.flowers.flower_purple-8",
+                Vec3::new(-6.0, -6.0, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
                 (BlockKind::RedFlower, 0),
                 "voxygen.voxel.sprite.flowers.flower_red_1",
                 Vec3::new(-6.0, -6.0, 0.0),
@@ -643,6 +800,18 @@ impl<V: RectRasterableVol> Terrain<V> {
                 Vec3::one(),
             ),
             make_models(
+                (BlockKind::RedFlower, 3),
+                "voxygen.voxel.sprite.flowers.flower_red-4",
+                Vec3::new(-6.5, -6.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::RedFlower, 4),
+                "voxygen.voxel.sprite.flowers.flower_red-5",
+                Vec3::new(-3.5, -3.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
                 (BlockKind::WhiteFlower, 0),
                 "voxygen.voxel.sprite.flowers.flower_white_1",
                 Vec3::new(-6.0, -6.0, 0.0),
@@ -655,9 +824,33 @@ impl<V: RectRasterableVol> Terrain<V> {
                 Vec3::one(),
             ),
             make_models(
+                (BlockKind::WhiteFlower, 2),
+                "voxygen.voxel.sprite.flowers.flower_white-3",
+                Vec3::new(-1.5, -1.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::WhiteFlower, 3),
+                "voxygen.voxel.sprite.flowers.flower_white-4",
+                Vec3::new(-5.0, -4.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::WhiteFlower, 4),
+                "voxygen.voxel.sprite.flowers.flower_white-5",
+                Vec3::new(-5.5, -5.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
                 (BlockKind::YellowFlower, 0),
-                "voxygen.voxel.sprite.flowers.flower_purple_1",
+                "voxygen.voxel.sprite.flowers.flower_yellow-1",
                 Vec3::new(-6.0, -6.0, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::YellowFlower, 1),
+                "voxygen.voxel.sprite.flowers.flower_yellow-0",
+                Vec3::new(-5.5, -5.5, 0.0),
                 Vec3::one(),
             ),
             make_models(
@@ -673,6 +866,24 @@ impl<V: RectRasterableVol> Terrain<V> {
                 Vec3::one(),
             ),
             // Grass
+            make_models(
+                (BlockKind::LargeGrass, 0),
+                "voxygen.voxel.sprite.grass.grass_large-0",
+                Vec3::new(-2.0, -2.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::LargeGrass, 1),
+                "voxygen.voxel.sprite.grass.grass_large-1",
+                Vec3::new(-5.5, -5.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::LargeGrass, 2),
+                "voxygen.voxel.sprite.grass.grass_large-2",
+                Vec3::new(-5.5, -5.0, 0.0),
+                Vec3::one(),
+            ),
             make_models(
                 (BlockKind::LongGrass, 0),
                 "voxygen.voxel.sprite.grass.grass_long_1",
@@ -839,6 +1050,42 @@ impl<V: RectRasterableVol> Terrain<V> {
                 (BlockKind::Mushroom, 10),
                 "voxygen.voxel.sprite.mushrooms.mushroom-10",
                 Vec3::new(-6.0, -6.0, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Mushroom, 11),
+                "voxygen.voxel.sprite.mushrooms.mushroom-11",
+                Vec3::new(-8.0, -8.0, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Mushroom, 12),
+                "voxygen.voxel.sprite.mushrooms.mushroom-12",
+                Vec3::new(-5.0, -5.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Mushroom, 13),
+                "voxygen.voxel.sprite.mushrooms.mushroom-13",
+                Vec3::new(-5.5, -5.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Mushroom, 14),
+                "voxygen.voxel.sprite.mushrooms.mushroom-14",
+                Vec3::new(-2.5, -2.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Mushroom, 15),
+                "voxygen.voxel.sprite.mushrooms.mushroom-15",
+                Vec3::new(-1.5, -1.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Mushroom, 16),
+                "voxygen.voxel.sprite.mushrooms.mushroom-16",
+                Vec3::new(-5.5, -5.5, 0.0),
                 Vec3::one(),
             ),
             make_models(
@@ -1145,6 +1392,12 @@ impl<V: RectRasterableVol> Terrain<V> {
                 "voxygen.voxel.sprite.ferns.12",
                 Vec3::new(-6.0, -6.0, -0.0),
                 Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Fern, 12),
+                "voxygen.voxel.sprite.ferns.fern-0",
+                Vec3::new(-6.5, -11.5, 0.0),
+                Vec3::unit_z(),
             ),
             // Dead Bush
             make_models(
@@ -1604,11 +1857,373 @@ impl<V: RectRasterableVol> Terrain<V> {
                 Vec3::new(-4.5, -4.5, 0.0),
                 Vec3::unit_z(),
             ),
+            make_models(
+                (BlockKind::StreetLampTall, 0),
+                "voxygen.voxel.sprite.furniture.street_lamp-0",
+                Vec3::new(-10.5, -10.5, 0.0),
+                Vec3::unit_z(),
+            ),
             // Door
             make_models(
                 (BlockKind::Door, 0),
                 "voxygen.voxel.sprite.door.door-0",
                 Vec3::new(-5.5, -5.5, 0.0),
+                Vec3::one(),
+            ),
+            // Bed
+            make_models(
+                (BlockKind::Bed, 0),
+                "voxygen.voxel.sprite.furniture.bed-0",
+                Vec3::new(-9.5, -6.0, 0.0),
+                Vec3::one(),
+            ),
+            // Bench
+            make_models(
+                (BlockKind::Bench, 0),
+                "voxygen.voxel.sprite.furniture.bench-0",
+                Vec3::new(-14.0, -4.0, 0.0),
+                Vec3::one(),
+            ),
+            // Chair
+            make_models(
+                (BlockKind::ChairSingle, 0),
+                "voxygen.voxel.sprite.furniture.chair_single-0",
+                Vec3::new(-5.5, -4.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::ChairSingle, 1),
+                "voxygen.voxel.sprite.furniture.chair_single-1",
+                Vec3::new(-5.5, -4.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::ChairDouble, 0),
+                "voxygen.voxel.sprite.furniture.chair_double-0",
+                Vec3::new(-9.5, -4.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::ChairDouble, 1),
+                "voxygen.voxel.sprite.furniture.chair_double-1",
+                Vec3::new(-9.5, -4.5, 0.0),
+                Vec3::one(),
+            ),
+            // CoatRack
+            make_models(
+                (BlockKind::CoatRack, 0),
+                "voxygen.voxel.sprite.furniture.coatrack-0",
+                Vec3::new(-6.5, -6.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::CoatRack, 1),
+                "voxygen.voxel.sprite.furniture.coatrack-1",
+                Vec3::new(-6.5, -6.5, 0.0),
+                Vec3::one(),
+            ),
+            // Crate
+            make_models(
+                (BlockKind::Crate, 0),
+                "voxygen.voxel.sprite.furniture.crate-0",
+                Vec3::new(-5.5, -5.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Crate, 1),
+                "voxygen.voxel.sprite.furniture.crate-1",
+                Vec3::new(-5.5, -5.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Crate, 2),
+                "voxygen.voxel.sprite.furniture.crate-2",
+                Vec3::new(-3.0, -3.0, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Crate, 3),
+                "voxygen.voxel.sprite.furniture.crate-3",
+                Vec3::new(-6.0, -3.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Crate, 4),
+                "voxygen.voxel.sprite.furniture.crate-4",
+                Vec3::new(-6.0, -3.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Crate, 5),
+                "voxygen.voxel.sprite.furniture.crate-5",
+                Vec3::new(-5.5, -3.0, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Crate, 6),
+                "voxygen.voxel.sprite.furniture.crate-6",
+                Vec3::new(-4.5, -3.0, 0.0),
+                Vec3::one(),
+            ),
+            // DrawerLarge
+            make_models(
+                (BlockKind::DrawerLarge, 0),
+                "voxygen.voxel.sprite.furniture.drawer_large-0",
+                Vec3::new(-11.5, -5.0, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::DrawerLarge, 1),
+                "voxygen.voxel.sprite.furniture.drawer_large-1",
+                Vec3::new(-11.5, -5.0, 0.0),
+                Vec3::one(),
+            ),
+            // DrawerMedium
+            make_models(
+                (BlockKind::DrawerMedium, 0),
+                "voxygen.voxel.sprite.furniture.drawer_medium-0",
+                Vec3::new(-11.0, -5.0, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::DrawerMedium, 1),
+                "voxygen.voxel.sprite.furniture.drawer_medium-1",
+                Vec3::new(-11.0, -5.0, 0.0),
+                Vec3::one(),
+            ),
+            // DrawerSmall
+            make_models(
+                (BlockKind::DrawerSmall, 0),
+                "voxygen.voxel.sprite.furniture.drawer_small-0",
+                Vec3::new(-5.5, -5.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::DrawerSmall, 1),
+                "voxygen.voxel.sprite.furniture.drawer_small-1",
+                Vec3::new(-5.5, -5.5, 0.0),
+                Vec3::one(),
+            ),
+            // DungeonWallDecor
+            make_models(
+                (BlockKind::DungeonWallDecor, 0),
+                "voxygen.voxel.sprite.furniture.dungeon_wall-0",
+                Vec3::new(-5.5, -1.0, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::DungeonWallDecor, 1),
+                "voxygen.voxel.sprite.furniture.dungeon_wall-1",
+                Vec3::new(-5.5, -5.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::DungeonWallDecor, 2),
+                "voxygen.voxel.sprite.furniture.dungeon_wall-2",
+                Vec3::new(-5.5, -3.0, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::DungeonWallDecor, 3),
+                "voxygen.voxel.sprite.furniture.dungeon_wall-3",
+                Vec3::new(-1.5, -3.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::DungeonWallDecor, 4),
+                "voxygen.voxel.sprite.furniture.dungeon_wall-4",
+                Vec3::new(-5.5, -4.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::DungeonWallDecor, 5),
+                "voxygen.voxel.sprite.furniture.dungeon_wall-5",
+                Vec3::new(-5.5, -0.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::DungeonWallDecor, 6),
+                "voxygen.voxel.sprite.furniture.dungeon_wall-6",
+                Vec3::new(-5.5, -1.0, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::DungeonWallDecor, 7),
+                "voxygen.voxel.sprite.furniture.dungeon_wall-7",
+                Vec3::new(-5.5, -1.0, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::DungeonWallDecor, 8),
+                "voxygen.voxel.sprite.furniture.dungeon_wall-8",
+                Vec3::new(-5.5, -1.0, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::DungeonWallDecor, 9),
+                "voxygen.voxel.sprite.furniture.dungeon_wall-9",
+                Vec3::new(-1.5, -5.5, 0.0),
+                Vec3::one(),
+            ),
+            // HangingBasket
+            make_models(
+                (BlockKind::HangingBasket, 0),
+                "voxygen.voxel.sprite.furniture.hanging_basket-0",
+                Vec3::new(-6.5, -4.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::HangingBasket, 1),
+                "voxygen.voxel.sprite.furniture.hanging_basket-1",
+                Vec3::new(-9.5, -5.5, 0.0),
+                Vec3::one(),
+            ),
+            // HangingSign
+            make_models(
+                (BlockKind::HangingSign, 0),
+                "voxygen.voxel.sprite.furniture.hanging_sign-0",
+                Vec3::new(-3.5, -17.0, 0.0),
+                Vec3::one(),
+            ),
+            // WallLamp
+            make_models(
+                (BlockKind::WallLamp, 0),
+                "voxygen.voxel.sprite.furniture.lamp_wall-0",
+                Vec3::new(-5.5, -2.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::WallLamp, 1),
+                "voxygen.voxel.sprite.furniture.lamp_wall-1",
+                Vec3::new(-9.0, -10.5, 0.0),
+                Vec3::one(),
+            ),
+            // Planter
+            make_models(
+                (BlockKind::Planter, 0),
+                "voxygen.voxel.sprite.furniture.planter-0",
+                Vec3::new(-6.0, -3.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Planter, 1),
+                "voxygen.voxel.sprite.furniture.planter-1",
+                Vec3::new(-13.0, -3.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Planter, 2),
+                "voxygen.voxel.sprite.furniture.planter-2",
+                Vec3::new(-6.0, -3.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Planter, 3),
+                "voxygen.voxel.sprite.furniture.planter-3",
+                Vec3::new(-6.0, -3.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Planter, 4),
+                "voxygen.voxel.sprite.furniture.planter-4",
+                Vec3::new(-6.0, -3.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Planter, 5),
+                "voxygen.voxel.sprite.furniture.planter-5",
+                Vec3::new(-6.0, -3.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Planter, 6),
+                "voxygen.voxel.sprite.furniture.planter-6",
+                Vec3::new(-7.5, -3.5, 0.0),
+                Vec3::one(),
+            ),
+            //Pot
+            make_models(
+                (BlockKind::Pot, 0),
+                "voxygen.voxel.sprite.furniture.pot-0",
+                Vec3::new(-3.5, -3.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Pot, 1),
+                "voxygen.voxel.sprite.furniture.pot-1",
+                Vec3::new(-5.5, -5.5, 0.0),
+                Vec3::one(),
+            ),
+            // Shelf
+            make_models(
+                (BlockKind::Shelf, 0),
+                "voxygen.voxel.sprite.furniture.shelf-0",
+                Vec3::new(-14.5, -3.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Shelf, 1),
+                "voxygen.voxel.sprite.furniture.shelf-1",
+                Vec3::new(-13.5, -3.5, 0.0),
+                Vec3::one(),
+            ),
+            // TableSide
+            make_models(
+                (BlockKind::TableSide, 0),
+                "voxygen.voxel.sprite.furniture.table_side-0",
+                Vec3::new(-5.5, -5.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::TableSide, 1),
+                "voxygen.voxel.sprite.furniture.table_side-1",
+                Vec3::new(-5.5, -5.5, 0.0),
+                Vec3::one(),
+            ),
+            // TableDining
+            make_models(
+                (BlockKind::TableDining, 0),
+                "voxygen.voxel.sprite.furniture.table_dining-0",
+                Vec3::new(-13.5, -13.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::TableDining, 1),
+                "voxygen.voxel.sprite.furniture.table_dining-1",
+                Vec3::new(-13.5, -13.5, 0.0),
+                Vec3::one(),
+            ),
+            // TableDouble
+            make_models(
+                (BlockKind::TableDouble, 0),
+                "voxygen.voxel.sprite.furniture.table_double-0",
+                Vec3::new(-18.5, -11.5, 0.0),
+                Vec3::one(),
+            ),
+            // WardrobeSingle
+            make_models(
+                (BlockKind::WardrobeSingle, 0),
+                "voxygen.voxel.sprite.furniture.wardrobe_single-0",
+                Vec3::new(-6.0, -5.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::WardrobeSingle, 1),
+                "voxygen.voxel.sprite.furniture.wardrobe_single-1",
+                Vec3::new(-6.5, -5.5, 0.0),
+                Vec3::one(),
+            ),
+            //WardrobeDouble
+            make_models(
+                (BlockKind::WardrobeDouble, 0),
+                "voxygen.voxel.sprite.furniture.wardrobe_double-0",
+                Vec3::new(-6.5, -10.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::WardrobeDouble, 1),
+                "voxygen.voxel.sprite.furniture.wardrobe_double-1",
+                Vec3::new(-6.0, -10.5, 0.0),
                 Vec3::one(),
             ),
         ]
@@ -1742,6 +2357,8 @@ impl<V: RectRasterableVol> Terrain<V> {
     }
 
     /// Maintain terrain data. To be called once per tick.
+    #[allow(clippy::for_loops_over_fallibles)] // TODO: Pending review in #587
+    #[allow(clippy::len_zero)] // TODO: Pending review in #587
     pub fn maintain(
         &mut self,
         renderer: &mut Renderer,
@@ -1891,6 +2508,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             })
             .min_by_key(|todo| todo.active_worker.unwrap_or(todo.started_tick))
         {
+            // TODO: find a alternative!
             if scene_data.thread_pool.queued_jobs() > 0 {
                 break;
             }
@@ -1992,7 +2610,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                         &[[0u8; 4]],
                     ) {
                         panic!("Ahhh {:?}", err);
-                        log::warn!("Failed to update texture: {:?}", err);
+                        warn!("Failed to update texture: {:?}", err);
                     }
                     renderer.flush();
                     std::thread::sleep(ten_millis);
@@ -2061,7 +2679,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                         tex_size.into_array(),
                         &tex,
                     ) {
-                        log::warn!("Failed to update texture: {:?}", err);
+                        warn!("Failed to update texture: {:?}", err);
                     }
 
                     self.insert_chunk(response.pos, TerrainChunkData {

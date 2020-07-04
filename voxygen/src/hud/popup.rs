@@ -1,5 +1,6 @@
+use super::Show;
 use crate::{i18n::VoxygenLocalization, ui::fonts::ConrodVoxygenFonts};
-use client::{self, Client, Event as ClientEvent};
+use client::{self, Client};
 use common::msg::Notification;
 use conrod_core::{
     widget::{self, Text},
@@ -22,10 +23,11 @@ widget_ids! {
 pub struct Popup<'a> {
     voxygen_i18n: &'a std::sync::Arc<VoxygenLocalization>,
     client: &'a Client,
-    new_messages: &'a VecDeque<ClientEvent>,
+    new_notifications: &'a VecDeque<Notification>,
     fonts: &'a ConrodVoxygenFonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
+    show: &'a Show,
 }
 
 /// Popup notifications for messages such as <Chunk Name>, Waypoint Saved,
@@ -34,15 +36,17 @@ impl<'a> Popup<'a> {
     pub fn new(
         voxygen_i18n: &'a std::sync::Arc<VoxygenLocalization>,
         client: &'a Client,
-        new_messages: &'a VecDeque<ClientEvent>,
+        new_notifications: &'a VecDeque<Notification>,
         fonts: &'a ConrodVoxygenFonts,
+        show: &'a Show,
     ) -> Self {
         Self {
             voxygen_i18n,
             client,
-            new_messages,
+            new_notifications,
             fonts,
             common: widget::CommonBuilder::default(),
+            show,
         }
     }
 }
@@ -76,8 +80,10 @@ impl<'a> Widget for Popup<'a> {
         }
     }
 
+    #[allow(clippy::unused_unit)] // TODO: Pending review in #587
     fn style(&self) -> Self::Style { () }
 
+    #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
 
@@ -113,9 +119,9 @@ impl<'a> Widget for Popup<'a> {
         }
 
         // Push waypoint to message queue
-        for notification in self.new_messages {
+        for notification in self.new_notifications {
             match notification {
-                ClientEvent::Notification(Notification::WaypointSaved) => {
+                Notification::WaypointSaved => {
                     state.update(|s| {
                         if s.infos.is_empty() {
                             s.last_info_update = Instant::now();
@@ -124,7 +130,6 @@ impl<'a> Widget for Popup<'a> {
                         s.infos.push_back(text.to_string());
                     });
                 },
-                _ => {},
             }
         }
 
@@ -173,27 +178,30 @@ impl<'a> Widget for Popup<'a> {
         }
 
         // Display info as popup
-        if let Some(info) = state.infos.front() {
-            let seconds = state.last_info_update.elapsed().as_secs_f32();
-            let fade = if seconds < FADE_IN {
-                seconds / FADE_IN
-            } else if seconds < FADE_IN + FADE_HOLD {
-                1.0
-            } else {
-                (1.0 - (seconds - FADE_IN - FADE_HOLD) / FADE_OUT).max(0.0)
-            };
-            Text::new(info)
-                .mid_top_with_margin_on(ui.window, 100.0)
-                .font_size(self.fonts.cyri.scale(20))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(bg_color(fade))
-                .set(state.ids.info_bg, ui);
-            Text::new(info)
-                .top_left_with_margins_on(state.ids.info_bg, -1.0, -1.0)
-                .font_size(self.fonts.cyri.scale(20))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(info_color(fade))
-                .set(state.ids.info_text, ui);
+        if !self.show.intro {
+            if let Some(info) = state.infos.front() {
+                let seconds = state.last_info_update.elapsed().as_secs_f32();
+                let fade = if seconds < FADE_IN {
+                    seconds / FADE_IN
+                } else if seconds < FADE_IN + FADE_HOLD {
+                    1.0
+                } else {
+                    (1.0 - (seconds - FADE_IN - FADE_HOLD) / FADE_OUT).max(0.0)
+                };
+
+                Text::new(info)
+                    .mid_top_with_margin_on(ui.window, 100.0)
+                    .font_size(self.fonts.cyri.scale(20))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(bg_color(fade))
+                    .set(state.ids.info_bg, ui);
+                Text::new(info)
+                    .top_left_with_margins_on(state.ids.info_bg, -1.0, -1.0)
+                    .font_size(self.fonts.cyri.scale(20))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(info_color(fade))
+                    .set(state.ids.info_text, ui);
+            }
         }
 
         // Get next message from queue
@@ -207,27 +215,29 @@ impl<'a> Widget for Popup<'a> {
         }
 
         // Display message as popup
-        if let Some(message) = state.messages.front() {
-            let seconds = state.last_message_update.elapsed().as_secs_f32();
-            let fade = if seconds < FADE_IN {
-                seconds / FADE_IN
-            } else if seconds < FADE_IN + FADE_HOLD {
-                1.0
-            } else {
-                (1.0 - (seconds - FADE_IN - FADE_HOLD) / FADE_OUT).max(0.0)
-            };
-            Text::new(message)
-                .mid_top_with_margin_on(ui.window, 200.0)
-                .font_size(self.fonts.alkhemi.scale(70))
-                .font_id(self.fonts.alkhemi.conrod_id)
-                .color(bg_color(fade))
-                .set(state.ids.message_bg, ui);
-            Text::new(message)
-                .top_left_with_margins_on(state.ids.message_bg, -2.5, -2.5)
-                .font_size(self.fonts.alkhemi.scale(70))
-                .font_id(self.fonts.alkhemi.conrod_id)
-                .color(message_color(fade))
-                .set(state.ids.message_text, ui);
+        if !self.show.intro {
+            if let Some(message) = state.messages.front() {
+                let seconds = state.last_message_update.elapsed().as_secs_f32();
+                let fade = if seconds < FADE_IN {
+                    seconds / FADE_IN
+                } else if seconds < FADE_IN + FADE_HOLD {
+                    1.0
+                } else {
+                    (1.0 - (seconds - FADE_IN - FADE_HOLD) / FADE_OUT).max(0.0)
+                };
+                Text::new(message)
+                    .mid_top_with_margin_on(ui.window, 200.0)
+                    .font_size(self.fonts.alkhemi.scale(70))
+                    .font_id(self.fonts.alkhemi.conrod_id)
+                    .color(bg_color(fade))
+                    .set(state.ids.message_bg, ui);
+                Text::new(message)
+                    .top_left_with_margins_on(state.ids.message_bg, -2.5, -2.5)
+                    .font_size(self.fonts.alkhemi.scale(70))
+                    .font_id(self.fonts.alkhemi.conrod_id)
+                    .color(message_color(fade))
+                    .set(state.ids.message_text, ui);
+            }
         }
     }
 }

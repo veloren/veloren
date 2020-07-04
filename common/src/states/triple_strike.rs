@@ -69,6 +69,7 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
+        #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
         let stage_time_active = self
             .stage_time_active
             .checked_add(Duration::from_secs_f32(data.dt.0))
@@ -128,13 +129,12 @@ impl CharacterBehavior for Data {
 
             // Move player forward while in first third of each stage
             if update.vel.0.magnitude_squared() < BASE_SPEED.powf(2.0) {
-                update.vel.0 = update.vel.0
-                    + data.dt.0
-                        * (if data.physics.on_ground {
-                            Vec3::new(0.0, 0.0, 500.0) // Jump upwards if on ground
-                        } else {
-                            Vec3::one()
-                        } + adjusted_accel * Vec3::from(data.ori.0.xy()));
+                update.vel.0 += data.dt.0
+                    * (if data.physics.on_ground {
+                        Vec3::new(0.0, 0.0, 500.0) // Jump upwards if on ground
+                    } else {
+                        Vec3::one()
+                    } + adjusted_accel * Vec3::from(data.ori.0.xy()));
                 let mag2 = update.vel.0.magnitude_squared();
                 if mag2 > BASE_SPEED.powf(2.0) {
                     update.vel.0 = update.vel.0.normalized() * BASE_SPEED;

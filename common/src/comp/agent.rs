@@ -5,9 +5,15 @@ use vek::*;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Alignment {
+    /// Wild animals and gentle giants
     Wild,
+    /// Dungeon cultists and bandits
     Enemy,
+    /// Friendly folk in villages
     Npc,
+    /// Farm animals and pets of villagers
+    Tame,
+    /// Pets you've tamed with a collar
     Owned(EcsEntity),
 }
 
@@ -27,6 +33,10 @@ impl Alignment {
         match (self, other) {
             (Alignment::Enemy, Alignment::Enemy) => true,
             (Alignment::Owned(a), Alignment::Owned(b)) if a == b => true,
+            (Alignment::Npc, Alignment::Npc) => true,
+            (Alignment::Npc, Alignment::Tame) => true,
+            (Alignment::Tame, Alignment::Npc) => true,
+            (Alignment::Tame, Alignment::Tame) => true,
             _ => false,
         }
     }
@@ -40,12 +50,24 @@ impl Component for Alignment {
 pub struct Agent {
     pub patrol_origin: Option<Vec3<f32>>,
     pub activity: Activity,
+    /// Does the agent talk when e.g. hit by the player
+    // TODO move speech patterns into a Behavior component
+    pub can_speak: bool,
 }
 
 impl Agent {
     pub fn with_patrol_origin(mut self, origin: Vec3<f32>) -> Self {
         self.patrol_origin = Some(origin);
         self
+    }
+
+    pub fn new(origin: Vec3<f32>, can_speak: bool) -> Self {
+        let patrol_origin = Some(origin);
+        Agent {
+            patrol_origin,
+            can_speak,
+            ..Default::default()
+        }
     }
 }
 

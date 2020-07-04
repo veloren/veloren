@@ -1,0 +1,13 @@
+{
+  "auth-common 0.1.0 (git+https://gitlab.com/veloren/auth.git?rev=223a4097f7ebc8d451936dccb5e6517194bbf086#223a4097f7ebc8d451936dccb5e6517194bbf086)": "1b0ipil3b7kxss5wi7ij51wncbww9cdr5nydrh1dwd787agykrai",
+  "authc 1.0.0 (git+https://gitlab.com/veloren/auth.git?rev=223a4097f7ebc8d451936dccb5e6517194bbf086#223a4097f7ebc8d451936dccb5e6517194bbf086)": "1b0ipil3b7kxss5wi7ij51wncbww9cdr5nydrh1dwd787agykrai",
+  "conrod_core 0.63.0 (git+https://gitlab.com/veloren/conrod.git?branch=pre-winit-20#46b374edc9537300e5278905ebd14dff45cfd927)": "0lrh3v8dwr9x01qjry7p4wkcvd9r2cvn2865fa5nrbrc77d1qjkn",
+  "conrod_derive 0.63.0 (git+https://gitlab.com/veloren/conrod.git?branch=pre-winit-20#46b374edc9537300e5278905ebd14dff45cfd927)": "0lrh3v8dwr9x01qjry7p4wkcvd9r2cvn2865fa5nrbrc77d1qjkn",
+  "conrod_winit 0.63.0 (git+https://gitlab.com/veloren/conrod.git?branch=pre-winit-20#46b374edc9537300e5278905ebd14dff45cfd927)": "0lrh3v8dwr9x01qjry7p4wkcvd9r2cvn2865fa5nrbrc77d1qjkn",
+  "euc 0.5.1 (git+https://github.com/zesterer/euc.git#c9a7c17a03d45fce00caeeca09afa1e1558cd183)": "0qvk0bx1arkgmdc59sip39zszdw2fwv6jcy5jinv18n5m1nrclw4",
+  "guillotiere 0.4.2 (git+https://github.com/Imberflur/guillotiere#42c298f5bcf0f95f1a004360d05e25ca3711e9ed)": "1knqbn777f3cgzbsaqawzclgrqf3nav6x3gjzc2hsls3acccx1ya",
+  "msgbox 0.4.0 (git+https://github.com/bekker/msgbox-rs.git?rev=68fe39a#68fe39a60019b38a1569ae4e9ed796a0f0542673)": "18h6s50n7mz2ggfishhi91p2298shqhzx5xagpg9q4zb4y90c2wr",
+  "portpicker 0.1.0 (git+https://github.com/xMAC94x/portpicker-rs#9d6df36c53c94684080a64a7212dd6bfc3617ee4)": "00vl2k3xfihxq86kf5rsknjl8dxmrxqhwajwn0hj4gzgnbssr0rx",
+  "specs-idvs 0.1.0 (git+https://gitlab.com/veloren/specs-idvs.git#111548cf44e9bb4c43feb12aa3fc253953ac6e4a)": "1qgbzr4g4iys10hi56l6z7k3gk9qwj9xamfdigqnkhxvcynfhqqv",
+  "treeculler 0.1.0 (git+https://gitlab.com/yusdacra/treeculler.git#efcf5283cf386117a7e654abdaa45ef664a08e42)": "19niwgha0jnvrp22pq0070dfimb2wkda53a3parhga3vhap2g01b"
+}

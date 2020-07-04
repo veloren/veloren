@@ -9,9 +9,9 @@ use common::{
     terrain::block::Block,
     vol::{ReadVol, Vox},
 };
-use log::error;
 use rand::Rng;
 use specs::{join::Join, world::WorldExt, Builder, Entity as EcsEntity, WriteStorage};
+use tracing::{debug, error};
 use vek::Vec3;
 
 pub fn swap_lantern(
@@ -29,12 +29,14 @@ pub fn snuff_lantern(storage: &mut WriteStorage<comp::LightEmitter>, entity: Ecs
     storage.remove(entity);
 }
 
+#[allow(clippy::blocks_in_if_conditions)]
 pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::InventoryManip) {
     let state = server.state_mut();
     let mut dropped_items = Vec::new();
 
     match manip {
         comp::InventoryManip::Pickup(uid) => {
+            let picked_up_item: Option<comp::Item>;
             let item_entity = if let (Some((item, item_entity)), Some(inv)) = (
                 state
                     .ecs()
@@ -51,29 +53,42 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     .write_storage::<comp::Inventory>()
                     .get_mut(entity),
             ) {
-                if within_pickup_range(
+                picked_up_item = Some(item.clone());
+                if !within_pickup_range(
                     state.ecs().read_storage::<comp::Pos>().get(entity),
                     state.ecs().read_storage::<comp::Pos>().get(item_entity),
-                ) && inv.push(item).is_none()
-                {
-                    Some(item_entity)
-                } else {
-                    None
+                ) {
+                    debug!("Failed to pick up item as not within range, Uid: {}", uid);
+                    return;
+                };
+
+                // Attempt to add the item to the player's inventory
+                match inv.push(item) {
+                    None => Some(item_entity),
+                    Some(_) => None, // Inventory was full
                 }
             } else {
-                None
+                // Item entity/component could not be found - most likely because the player
+                // attempted to pick up the same item very quickly before its deletion of the
+                // world from the first pickup attempt was processed.
+                debug!("Failed to get entity/component for item Uid: {}", uid);
+                return;
             };
 
-            if let Some(item_entity) = item_entity {
+            let event = if let Some(item_entity) = item_entity {
                 if let Err(err) = state.delete_entity_recorded(item_entity) {
-                    error!("Failed to delete picked up item entity: {:?}", err);
+                    // If this occurs it means the item was duped as it's been pushed to the
+                    // player's inventory but also left on the ground
+                    panic!("Failed to delete picked up item entity: {:?}", err);
                 }
-            }
+                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Collected(
+                    picked_up_item.unwrap(),
+                ))
+            } else {
+                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::CollectFailed)
+            };
 
-            state.write_component(
-                entity,
-                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Collected),
-            );
+            state.write_component(entity, event);
         },
 
         comp::InventoryManip::Collect(pos) => {
@@ -92,12 +107,11 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         entity,
                         comp::InventoryUpdate::new(comp::InventoryUpdateEvent::CollectFailed),
                     );
-                } else {
-                    if block.is_collectible() && state.try_set_block(pos, Block::empty()).is_some()
-                    {
-                        comp::Item::try_reclaim_from_block(block)
-                            .map(|item| state.give_item(entity, item));
-                    }
+                } else if block.is_collectible()
+                    && state.try_set_block(pos, Block::empty()).is_some()
+                {
+                    comp::Item::try_reclaim_from_block(block)
+                        .map(|item| state.give_item(entity, item));
                 }
             }
         },
@@ -107,7 +121,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             let inventory = if let Some(inventory) = inventories.get_mut(entity) {
                 inventory
             } else {
-                error!("Can't manipulate inventory, entity doesn't have one");
+                error!(
+                    ?entity,
+                    "Can't manipulate inventory, entity doesn't have one"
+                );
                 return;
             };
 
@@ -219,7 +236,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         slot::unequip(slot, inventory, loadout);
                         Some(comp::InventoryUpdateEvent::Used)
                     } else {
-                        error!("Entity doesn't have a loadout, can't unequip...");
+                        error!(?entity, "Entity doesn't have a loadout, can't unequip...");
                         None
                     }
                 },

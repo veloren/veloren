@@ -1,14 +1,11 @@
-/// event_mapper::movement watches all local entities movements and determines
-/// which sfx to emit, and the position at which the sound should be emitted
-/// from
-use crate::audio::sfx::{SfxTriggerItem, SfxTriggers};
-
+/// EventMapper::Movement watches the movement states of surrounding entities,
+/// and triggers sfx related to running, climbing and gliding, at a volume
+/// proportionate to the extity's size
+use super::EventMapper;
+use crate::audio::sfx::{SfxEvent, SfxEventItem, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR};
 use common::{
-    comp::{
-        item::{Item, ItemKind},
-        Body, CharacterState, ItemConfig, Loadout, PhysicsState, Pos, Vel,
-    },
-    event::{EventBus, SfxEvent, SfxEventItem},
+    comp::{Body, CharacterState, PhysicsState, Pos, Vel},
+    event::EventBus,
     state::State,
 };
 use hashbrown::HashMap;
@@ -20,7 +17,6 @@ use vek::*;
 struct PreviousEntityState {
     event: SfxEvent,
     time: Instant,
-    weapon_drawn: bool,
     on_ground: bool,
 }
 
@@ -29,7 +25,6 @@ impl Default for PreviousEntityState {
         Self {
             event: SfxEvent::Idle,
             time: Instant::now(),
-            weapon_drawn: false,
             on_ground: true,
         }
     }
@@ -39,15 +34,8 @@ pub struct MovementEventMapper {
     event_history: HashMap<EcsEntity, PreviousEntityState>,
 }
 
-impl MovementEventMapper {
-    pub fn new() -> Self {
-        Self {
-            event_history: HashMap::new(),
-        }
-    }
-
-    pub fn maintain(&mut self, state: &State, player_entity: EcsEntity, triggers: &SfxTriggers) {
-        const SFX_DIST_LIMIT_SQR: f32 = 20000.0;
+impl EventMapper for MovementEventMapper {
+    fn maintain(&mut self, state: &State, player_entity: EcsEntity, triggers: &SfxTriggers) {
         let ecs = state.ecs();
 
         let sfx_event_bus = ecs.read_resource::<EventBus<SfxEventItem>>();
@@ -58,13 +46,12 @@ impl MovementEventMapper {
             .get(player_entity)
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        for (entity, pos, vel, body, physics, loadout, character) in (
+        for (entity, pos, vel, body, physics, character) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             &ecs.read_storage::<Vel>(),
             &ecs.read_storage::<Body>(),
             &ecs.read_storage::<PhysicsState>(),
-            ecs.read_storage::<Loadout>().maybe(),
             ecs.read_storage::<CharacterState>().maybe(),
         )
             .join()
@@ -73,15 +60,10 @@ impl MovementEventMapper {
             })
         {
             if let Some(character) = character {
-                let state = self
-                    .event_history
-                    .entry(entity)
-                    .or_insert_with(|| PreviousEntityState::default());
+                let state = self.event_history.entry(entity).or_default();
 
                 let mapped_event = match body {
-                    Body::Humanoid(_) => {
-                        Self::map_movement_event(character, physics, state, vel.0, loadout)
-                    },
+                    Body::Humanoid(_) => Self::map_movement_event(character, physics, state, vel.0),
                     Body::QuadrupedMedium(_)
                     | Body::QuadrupedSmall(_)
                     | Body::BirdMedium(_)
@@ -93,7 +75,7 @@ impl MovementEventMapper {
                 // Check for SFX config entry for this movement
                 if Self::should_emit(state, triggers.get_key_value(&mapped_event)) {
                     sfx_emitter.emit(SfxEventItem::new(
-                        mapped_event,
+                        mapped_event.clone(),
                         Some(pos.0),
                         Some(Self::get_volume_for_body_type(body)),
                     ));
@@ -104,12 +86,19 @@ impl MovementEventMapper {
                 // update state to determine the next event. We only record the time (above) if
                 // it was dispatched
                 state.event = mapped_event;
-                state.weapon_drawn = Self::weapon_drawn(character);
                 state.on_ground = physics.on_ground;
             }
         }
 
         self.cleanup(player_entity);
+    }
+}
+
+impl MovementEventMapper {
+    pub fn new() -> Self {
+        Self {
+            event_history: HashMap::new(),
+        }
     }
 
     /// As the player explores the world, we track the last event of the nearby
@@ -152,48 +141,26 @@ impl MovementEventMapper {
     /// as opening or closing the glider. These methods translate those
     /// entity states with some additional data into more specific
     /// `SfxEvent`'s which we attach sounds to
+    #[allow(clippy::nonminimal_bool)] // TODO: Pending review in #587
     fn map_movement_event(
         character_state: &CharacterState,
         physics_state: &PhysicsState,
         previous_state: &PreviousEntityState,
         vel: Vec3<f32>,
-        loadout: Option<&Loadout>,
     ) -> SfxEvent {
-        // Handle wield state changes
-        if let Some(active_loadout) = loadout {
-            if let Some(ItemConfig {
-                item:
-                    Item {
-                        kind: ItemKind::Tool(data),
-                        ..
-                    },
-                ..
-            }) = active_loadout.active_item
-            {
-                if let Some(wield_event) = match (
-                    previous_state.weapon_drawn,
-                    character_state.is_dodge(),
-                    Self::weapon_drawn(character_state),
-                ) {
-                    (false, false, true) => Some(SfxEvent::Wield(data.kind)),
-                    (true, false, false) => Some(SfxEvent::Unwield(data.kind)),
-                    _ => None,
-                } {
-                    return wield_event;
-                }
-            }
-        }
-
-        // Match run state
+        // Match run / roll state
         if physics_state.on_ground && vel.magnitude() > 0.1
             || !previous_state.on_ground && physics_state.on_ground
         {
-            return SfxEvent::Run;
+            return if character_state.is_dodge() {
+                SfxEvent::Roll
+            } else {
+                SfxEvent::Run
+            };
         }
 
         // Match all other Movemement and Action states
-        match (previous_state.event, character_state) {
-            (_, CharacterState::Roll { .. }) => SfxEvent::Roll,
+        match (previous_state.event.clone(), character_state) {
             (_, CharacterState::Climb { .. }) => SfxEvent::Climb,
             (SfxEvent::Glide, CharacterState::Idle { .. }) => SfxEvent::GliderClose,
             (previous_event, CharacterState::Glide { .. }) => {
@@ -214,18 +181,6 @@ impl MovementEventMapper {
         } else {
             SfxEvent::Idle
         }
-    }
-
-    /// This helps us determine whether we should be emitting the Wield/Unwield
-    /// events. For now, consider either CharacterState::Wielding or
-    /// ::Equipping to mean the weapon is drawn. This will need updating if the
-    /// animations change to match the wield_duration associated with the weapon
-    fn weapon_drawn(character: &CharacterState) -> bool {
-        character.is_wield()
-            || match character {
-                CharacterState::Equipping { .. } => true,
-                _ => false,
-            }
     }
 
     /// Returns a relative volume value for a body type. This helps us emit sfx

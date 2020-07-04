@@ -1,5 +1,7 @@
-use client::{error::Error as ClientError, Client};
-use common::net::PostError;
+use client::{
+    error::{Error as ClientError, NetworkError},
+    Client,
+};
 use crossbeam::channel::{unbounded, Receiver, Sender, TryRecvError};
 use std::{
     net::ToSocketAddrs,
@@ -22,6 +24,7 @@ pub enum Error {
     ClientCrashed,
 }
 
+#[allow(clippy::large_enum_variant)] // TODO: Pending review in #587
 pub enum Msg {
     IsAuthTrusted(String),
     Done(Result<Client, Error>),
@@ -38,6 +41,8 @@ pub struct ClientInit {
     cancel: Arc<AtomicBool>,
 }
 impl ClientInit {
+    #[allow(clippy::op_ref)] // TODO: Pending review in #587
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn new(
         connection_args: (String, u16, bool),
         username: String,
@@ -95,12 +100,8 @@ impl ClientInit {
                                 },
                                 Err(err) => {
                                     match err {
-                                        ClientError::Network(PostError::Bincode(_)) => {
-                                            last_err = Some(Error::ClientError(err));
-                                            break 'tries;
+                                        ClientError::NetworkErr(NetworkError::ListenFailed(..)) => {
                                         },
-                                        // Assume the connection failed and try again soon
-                                        ClientError::Network(_) => {},
                                         // Non-connection error, stop attempts
                                         err => {
                                             last_err = Some(Error::ClientError(err));

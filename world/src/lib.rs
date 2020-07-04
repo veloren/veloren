@@ -1,5 +1,6 @@
 #![deny(unsafe_code)]
 #![allow(incomplete_features)]
+#![allow(clippy::option_map_unit_fn)]
 #![feature(arbitrary_enum_discriminant, const_generics, label_break_value)]
 
 mod all;
@@ -63,6 +64,8 @@ impl World {
 
     pub fn sample_blocks(&self) -> BlockGen { BlockGen::new(ColumnGen::new(&self.sim)) }
 
+    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn generate_chunk(
         &self,
         chunk_pos: Vec2<i32>,

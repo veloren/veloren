@@ -55,6 +55,7 @@ use std::{
     ops::{Add, Div, Mul, Neg, Sub},
     path::PathBuf,
 };
+use tracing::{debug, warn};
 use vek::*;
 
 // NOTE: I suspect this is too small (1024 * 16 * 1024 * 16 * 8 doesn't fit in
@@ -65,6 +66,7 @@ use vek::*;
 // signed floats anyway) but I think that is probably less important since I
 // don't think we actually cast a chunk id to float, just coordinates... could
 // be wrong though!
+#[allow(clippy::identity_op)] // TODO: Pending review in #587
 pub const WORLD_SIZE: Vec2<usize> = Vec2 {
     x: 1024 * 1,
     y: 1024 * 1,
@@ -232,6 +234,7 @@ pub type ModernMap = WorldMap_0_5_0;
 /// TODO: Consider using some naming convention to automatically change this
 /// with changing versions, or at least keep it in a constant somewhere that's
 /// easy to change.
+#[allow(clippy::redundant_static_lifetimes)] // TODO: Pending review in #587
 pub const DEFAULT_WORLD_MAP: &'static str = "world.map.veloren_0_6_0_0";
 
 impl WorldFileLegacy {
@@ -304,6 +307,8 @@ pub struct WorldSim {
 }
 
 impl WorldSim {
+    #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
+
     pub fn generate(seed: u32, opts: WorldOpts) -> Self {
         let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
         // NOTE: Change 1.0 to 4.0, while multiplying grid_size by 4, for a 4x
@@ -874,8 +879,8 @@ impl WorldSim {
                 FileOpts::LoadLegacy(ref path) => {
                     let file = match File::open(path) {
                         Ok(file) => file,
-                        Err(err) => {
-                            log::warn!("Couldn't read path for maps: {:?}", err);
+                        Err(e) => {
+                            warn!(?e, ?path, "Couldn't read path for maps");
                             return None;
                         },
                     };
@@ -883,11 +888,11 @@ impl WorldSim {
                     let reader = BufReader::new(file);
                     let map: WorldFileLegacy = match bincode::deserialize_from(reader) {
                         Ok(map) => map,
-                        Err(err) => {
-                            log::warn!(
-                                "Couldn't parse legacy map: {:?}).  Maybe you meant to try a \
-                                 regular load?",
-                                err
+                        Err(e) => {
+                            warn!(
+                                ?e,
+                                "Couldn't parse legacy map.  Maybe you meant to try a regular \
+                                 load?"
                             );
                             return None;
                         },
@@ -898,8 +903,8 @@ impl WorldSim {
                 FileOpts::Load(ref path) => {
                     let file = match File::open(path) {
                         Ok(file) => file,
-                        Err(err) => {
-                            log::warn!("Couldn't read path for maps: {:?}", err);
+                        Err(e) => {
+                            warn!(?e, ?path, "Couldn't read path for maps");
                             return None;
                         },
                     };
@@ -907,11 +912,10 @@ impl WorldSim {
                     let reader = BufReader::new(file);
                     let map: WorldFile = match bincode::deserialize_from(reader) {
                         Ok(map) => map,
-                        Err(err) => {
-                            log::warn!(
-                                "Couldn't parse modern map: {:?}).  Maybe you meant to try a \
-                                 legacy load?",
-                                err
+                        Err(e) => {
+                            warn!(
+                                ?e,
+                                "Couldn't parse modern map.  Maybe you meant to try a legacy load?"
                             );
                             return None;
                         },
@@ -922,23 +926,18 @@ impl WorldSim {
                 FileOpts::LoadAsset(ref specifier) => {
                     let reader = match assets::load_file(specifier, &["bin"]) {
                         Ok(reader) => reader,
-                        Err(err) => {
-                            log::warn!(
-                                "Couldn't read asset specifier {:?} for maps: {:?}",
-                                specifier,
-                                err
-                            );
+                        Err(e) => {
+                            warn!(?e, ?specifier, "Couldn't read asset specifier for maps",);
                             return None;
                         },
                     };
 
                     let map: WorldFile = match bincode::deserialize_from(reader) {
                         Ok(map) => map,
-                        Err(err) => {
-                            log::warn!(
-                                "Couldn't parse modern map: {:?}).  Maybe you meant to try a \
-                                 legacy load?",
-                                err
+                        Err(e) => {
+                            warn!(
+                                ?e,
+                                "Couldn't parse modern map.  Maybe you meant to try a legacy load?"
                             );
                             return None;
                         },
@@ -954,7 +953,7 @@ impl WorldSim {
                 Err(e) => {
                     match e {
                         WorldFileError::WorldSizeInvalid => {
-                            log::warn!("World size of map is invalid.");
+                            warn!("World size of map is invalid.");
                         },
                     }
                     None
@@ -974,22 +973,22 @@ impl WorldSim {
                 // varying conditions
                 &rock_strength_nz,
                 // initial conditions
-                |posi| alt_func(posi),
-                |posi| alt_func(posi) - if is_ocean_fn(posi) { 0.0 } else { 0.0 },
+                alt_func,
+                alt_func,
                 is_ocean_fn,
                 // empirical constants
                 uplift_fn,
-                |posi| n_func(posi),
-                |posi| theta_func(posi),
-                |posi| kf_func(posi),
-                |posi| kd_func(posi),
-                |posi| g_func(posi),
-                |posi| epsilon_0_func(posi),
-                |posi| alpha_func(posi),
+                n_func,
+                theta_func,
+                kf_func,
+                kd_func,
+                g_func,
+                epsilon_0_func,
+                alpha_func,
                 // scaling factors
-                |n| height_scale(n),
+                height_scale,
                 k_d_scale(n_approx),
-                |q| k_da_scale(q),
+                k_da_scale,
             );
 
             // Quick "small scale" erosion cycle in order to lower extreme angles.
@@ -1002,16 +1001,16 @@ impl WorldSim {
                 |posi| basement[posi] as f32,
                 is_ocean_fn,
                 |posi| uplift_fn(posi) * (1.0 / max_erosion_per_delta_t),
-                |posi| n_func(posi),
-                |posi| theta_func(posi),
-                |posi| kf_func(posi),
-                |posi| kd_func(posi),
-                |posi| g_func(posi),
-                |posi| epsilon_0_func(posi),
-                |posi| alpha_func(posi),
-                |n| height_scale(n),
+                n_func,
+                theta_func,
+                kf_func,
+                kd_func,
+                g_func,
+                epsilon_0_func,
+                alpha_func,
+                height_scale,
                 k_d_scale(n_approx),
-                |q| k_da_scale(q),
+                k_da_scale,
             )
         };
 
@@ -1024,8 +1023,8 @@ impl WorldSim {
                 // Check if folder exists and create it if it does not
                 let mut path = PathBuf::from("./maps");
                 if !path.exists() {
-                    if let Err(err) = std::fs::create_dir(&path) {
-                        log::warn!("Couldn't create folder for map: {:?}", err);
+                    if let Err(e) = std::fs::create_dir(&path) {
+                        warn!(?e, ?path, "Couldn't create folder for map");
                         return;
                     }
                 }
@@ -1037,17 +1036,17 @@ impl WorldSim {
                         .map(|d| d.as_millis())
                         .unwrap_or(0)
                 ));
-                let file = match File::create(path) {
+                let file = match File::create(path.clone()) {
                     Ok(file) => file,
-                    Err(err) => {
-                        log::warn!("Couldn't create file for maps: {:?}", err);
+                    Err(e) => {
+                        warn!(?e, ?path, "Couldn't create file for maps");
                         return;
                     },
                 };
 
                 let writer = BufWriter::new(file);
-                if let Err(err) = bincode::serialize_into(writer, &map) {
-                    log::warn!("Couldn't write map: {:?}", err);
+                if let Err(e) = bincode::serialize_into(writer, &map) {
+                    warn!(?e, "Couldn't write map");
                 }
             }
         })();
@@ -1069,16 +1068,16 @@ impl WorldSim {
                 |posi| basement[posi] as f32,
                 is_ocean_fn,
                 |posi| uplift_fn(posi) * (1.0 / max_erosion_per_delta_t),
-                |posi| n_func(posi),
-                |posi| theta_func(posi),
-                |posi| kf_func(posi),
-                |posi| kd_func(posi),
-                |posi| g_func(posi),
-                |posi| epsilon_0_func(posi),
-                |posi| alpha_func(posi),
-                |n| height_scale(n),
+                n_func,
+                theta_func,
+                kf_func,
+                kd_func,
+                g_func,
+                epsilon_0_func,
+                alpha_func,
+                height_scale,
                 k_d_scale(n_approx),
-                |q| k_da_scale(q),
+                k_da_scale,
             )
         };
 
@@ -1086,7 +1085,7 @@ impl WorldSim {
         let is_ocean_fn = |posi: usize| is_ocean[posi];
         let mut dh = downhill(|posi| alt[posi], is_ocean_fn);
         let (boundary_len, indirection, water_alt_pos, maxh) = get_lakes(|posi| alt[posi], &mut dh);
-        log::debug!("Max height: {:?}", maxh);
+        debug!(?maxh, "Max height");
         let (mrec, mstack, mwrec) = {
             let mut wh = vec![0.0; WORLD_SIZE.x * WORLD_SIZE.y];
             get_multi_rec(
@@ -1140,9 +1139,8 @@ impl WorldSim {
                 // Find the height of the pass into which our lake is flowing.
                 let pass_height_j = alt[neighbor_pass_idx as usize];
                 // Find the maximum of these two heights.
-                let pass_height = pass_height_i.max(pass_height_j);
                 // Use the pass height as the initial water altitude.
-                pass_height
+                pass_height_i.max(pass_height_j) /*pass_height*/
             };
             // Use the maximum of the pass height and chunk height as the parameter to
             // fill_sinks.
@@ -1545,10 +1543,9 @@ impl WorldSim {
                 const MAX_ITERS: usize = 64;
                 for _ in 0..MAX_ITERS {
                     let downhill_pos = match chunk.downhill {
-                        Some(downhill) => downhill
-                            .map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
-                                e / (sz as i32)
-                            }),
+                        Some(downhill) => {
+                            downhill.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / (sz as i32))
+                        },
                         None => return Some(pos),
                     };
 
@@ -1587,11 +1584,8 @@ impl WorldSim {
     pub fn get_gradient_approx(&self, chunk_pos: Vec2<i32>) -> Option<f32> {
         let a = self.get(chunk_pos)?;
         if let Some(downhill) = a.downhill {
-            let b = self.get(
-                downhill.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
-                    e / (sz as i32)
-                }),
-            )?;
+            let b =
+                self.get(downhill.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / (sz as i32)))?;
             Some((a.alt - b.alt).abs() / TerrainChunkSize::RECT_SIZE.x as f32)
         } else {
             Some(0.0)
@@ -1603,11 +1597,9 @@ impl WorldSim {
     }
 
     pub fn get_wpos(&self, wpos: Vec2<i32>) -> Option<&SimChunk> {
-        self.get(
-            wpos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
-                e.div_euclid(sz as i32)
-            }),
-        )
+        self.get(wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
+            e.div_euclid(sz as i32)
+        }))
     }
 
     pub fn get_mut(&mut self, chunk_pos: Vec2<i32>) -> Option<&mut SimChunk> {
@@ -1803,11 +1795,11 @@ impl WorldSim {
     }
 
     pub fn get_nearest_path(&self, wpos: Vec2<i32>) -> Option<(f32, Vec2<f32>)> {
-        let chunk_pos = wpos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
+        let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
             e.div_euclid(sz as i32)
         });
         let get_chunk_centre = |chunk_pos: Vec2<i32>| {
-            chunk_pos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
+            chunk_pos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
                 e * sz as i32 + sz as i32 / 2
             })
         };
@@ -1906,6 +1898,8 @@ pub struct RegionInfo {
 }
 
 impl SimChunk {
+    #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
+    #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
     fn generate(posi: usize, gen_ctx: &GenCtx, gen_cdf: &GenCdf) -> Self {
         let pos = uniform_idx_as_vec2(posi);
         let wposf = (pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32)).map(|e| e as f64);
@@ -1996,12 +1990,9 @@ impl SimChunk {
                     ); */
                 }
                 if river_slope.abs() >= 0.25 && cross_section.x >= 1.0 {
-                    log::debug!(
-                        "Big waterfall! Pos area: {:?}, River data: {:?}, slope: {:?}",
-                        wposf,
-                        river,
-                        river_slope
-                    );
+                    let pos_area = wposf;
+                    let river_data = &river;
+                    debug!(?pos_area, ?river_data, ?river_slope, "Big waterfall!",);
                 }
             },
             Some(RiverKind::Lake { .. }) => {
@@ -2095,23 +2086,21 @@ impl SimChunk {
                     } else {
                         ForestKind::Savannah
                     }
+                } else if humidity > CONFIG.jungle_hum {
+                    // Temperate climate with jungle humidity...
+                    // https://en.wikipedia.org/wiki/Humid_subtropical_climates are often
+                    // densely wooded and full of water.  Semitropical rainforests, basically.
+                    // For now we just treet them like other rainforests.
+                    ForestKind::Oak
+                } else if humidity > CONFIG.forest_hum {
+                    // Moderate climate, moderate humidity.
+                    ForestKind::Oak
+                } else if humidity > CONFIG.desert_hum {
+                    // With moderate temperature and low humidity, we should probably see
+                    // something different from savannah, but oh well...
+                    ForestKind::Savannah
                 } else {
-                    if humidity > CONFIG.jungle_hum {
-                        // Temperate climate with jungle humidity...
-                        // https://en.wikipedia.org/wiki/Humid_subtropical_climates are often
-                        // densely wooded and full of water.  Semitropical rainforests, basically.
-                        // For now we just treet them like other rainforests.
-                        ForestKind::Oak
-                    } else if humidity > CONFIG.forest_hum {
-                        // Moderate climate, moderate humidity.
-                        ForestKind::Oak
-                    } else if humidity > CONFIG.desert_hum {
-                        // With moderate temperature and low humidity, we should probably see
-                        // something different from savannah, but oh well...
-                        ForestKind::Savannah
-                    } else {
-                        ForestKind::Savannah
-                    }
+                    ForestKind::Savannah
                 }
             } else {
                 // For now we don't take humidity into account for cold climates (but we really

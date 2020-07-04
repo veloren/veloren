@@ -1,0 +1,8 @@
+Item(
+    name: "Leafy Belt",
+    description: "A belt woven from twigs and leaves.\n\n<Right-Click to use>",
+    kind: Armor(
+        kind: Belt(Twigsleaves),
+        stats: (20),
+    ),
+)

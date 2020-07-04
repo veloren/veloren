@@ -23,22 +23,39 @@
             ],
             threshold: 0.5,
         ),
-        Wield(Sword(BasicSword)): (
+        Wield(Sword): (
             files: [
                 "voxygen.audio.sfx.weapon.sword_out",
             ],
             threshold: 0.5,
         ),
-        Unwield(Sword(BasicSword)): (
+        Unwield(Sword): (
             files: [
                 "voxygen.audio.sfx.weapon.sword_in",
             ],
             threshold: 0.5,
         ),
-        
 		Inventory(Collected): (
+			files: [
+				"voxygen.audio.sfx.inventory.add_item",
+			],
+			threshold: 0.3,
+		),
+		Inventory(CollectedTool(Sword)): (
+			files: [
+				"voxygen.audio.sfx.inventory.pickup_sword",
+			],
+			threshold: 0.3,
+		),
+		Inventory(CollectedTool(Staff)): (
+			files: [
+				"voxygen.audio.sfx.inventory.pickup_staff",
+			],
+			threshold: 0.3,
+		),
+        Inventory(CollectFailed): (
             files: [
-                "voxygen.audio.sfx.inventory.add_item",
+                "voxygen.audio.sfx.inventory.add_failed",
             ],
             threshold: 0.3,
         ),
@@ -87,12 +104,6 @@
         Inventory(Consumed(Cheese)): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-        ),
-        Inventory(CollectFailed): (
-            files: [
-                "voxygen.audio.sfx.inventory.add_failed",
             ],
             threshold: 0.3,
         )

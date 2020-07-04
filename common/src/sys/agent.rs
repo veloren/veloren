@@ -3,12 +3,13 @@ use crate::{
         self,
         agent::Activity,
         item::{tool::ToolKind, ItemKind},
-        Agent, Alignment, CharacterState, ControlAction, Controller, Loadout, MountState, Ori, Pos,
-        Scale, Stats,
+        Agent, Alignment, CharacterState, ChatMsg, ControlAction, Controller, Loadout, MountState,
+        Ori, Pos, Scale, Stats,
     },
+    event::{EventBus, ServerEvent},
     path::Chaser,
     state::{DeltaTime, Time},
-    sync::UidAllocator,
+    sync::{Uid, UidAllocator},
     terrain::TerrainGrid,
     util::Dir,
     vol::ReadVol,
@@ -16,17 +17,19 @@ use crate::{
 use rand::{thread_rng, Rng};
 use specs::{
     saveload::{Marker, MarkerAllocator},
-    Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage,
+    Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage,
 };
 use vek::*;
 
 /// This system will allow NPCs to modify their controller
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Read<'a, UidAllocator>,
         Read<'a, Time>,
         Read<'a, DeltaTime>,
+        Write<'a, EventBus<ServerEvent>>,
         Entities<'a>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Ori>,
@@ -34,6 +37,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Stats>,
         ReadStorage<'a, Loadout>,
         ReadStorage<'a, CharacterState>,
+        ReadStorage<'a, Uid>,
         ReadExpect<'a, TerrainGrid>,
         ReadStorage<'a, Alignment>,
         WriteStorage<'a, Agent>,
@@ -41,12 +45,14 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, MountState>,
     );
 
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn run(
         &mut self,
         (
             uid_allocator,
             time,
             dt,
+            event_bus,
             entities,
             positions,
             orientations,
@@ -54,6 +60,7 @@ impl<'a> System<'a> for Sys {
             stats,
             loadouts,
             character_states,
+            uids,
             terrain,
             alignments,
             mut agents,
@@ -68,6 +75,7 @@ impl<'a> System<'a> for Sys {
             alignment,
             loadout,
             character_state,
+            uid,
             agent,
             controller,
             mount_state,
@@ -78,6 +86,7 @@ impl<'a> System<'a> for Sys {
             alignments.maybe(),
             &loadouts,
             &character_states,
+            &uids,
             &mut agents,
             &mut controllers,
             mount_states.maybe(),
@@ -86,13 +95,7 @@ impl<'a> System<'a> for Sys {
         {
             // Skip mounted entities
             if mount_state
-                .map(|ms| {
-                    if let MountState::Unmounted = ms {
-                        false
-                    } else {
-                        true
-                    }
-                })
+                .map(|ms| *ms != MountState::Unmounted)
                 .unwrap_or(false)
             {
                 continue;
@@ -376,23 +379,31 @@ impl<'a> System<'a> for Sys {
             // last!) ---
 
             // Attack a target that's attacking us
-            if let Some(stats) = stats.get(entity) {
+            if let Some(my_stats) = stats.get(entity) {
                 // Only if the attack was recent
-                if stats.health.last_change.0 < 5.0 {
+                if my_stats.health.last_change.0 < 5.0 {
                     if let comp::HealthSource::Attack { by }
                     | comp::HealthSource::Projectile { owner: Some(by) } =
-                        stats.health.last_change.1.cause
+                        my_stats.health.last_change.1.cause
                     {
                         if !agent.activity.is_attack() {
                             if let Some(attacker) = uid_allocator.retrieve_entity_internal(by.id())
                             {
-                                agent.activity = Activity::Attack {
-                                    target: attacker,
-                                    chaser: Chaser::default(),
-                                    time: time.0,
-                                    been_close: false,
-                                    powerup: 0.0,
-                                };
+                                if stats.get(attacker).map_or(false, |a| !a.is_dead) {
+                                    if agent.can_speak {
+                                        let msg = "npc.speech.villager_under_attack".to_string();
+                                        event_bus
+                                            .emit_now(ServerEvent::Chat(ChatMsg::npc(*uid, msg)));
+                                    }
+
+                                    agent.activity = Activity::Attack {
+                                        target: attacker,
+                                        chaser: Chaser::default(),
+                                        time: time.0,
+                                        been_close: false,
+                                        powerup: 0.0,
+                                    };
+                                }
                             }
                         }
                     }

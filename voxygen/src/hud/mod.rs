@@ -7,6 +7,7 @@ mod img_ids;
 mod item_imgs;
 mod map;
 mod minimap;
+mod overhead;
 mod popup;
 mod settings_window;
 mod skillbar;
@@ -15,6 +16,8 @@ mod social;
 mod spell;
 
 use crate::{ecs::comp::HpFloaterList, hud::img_ids::ImgsRot, ui::img_ids::Rotations};
+pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
+
 pub use settings_window::ScaleChange;
 use std::time::Duration;
 
@@ -43,16 +46,18 @@ use crate::{
     window::{Event as WinEvent, GameInput},
     GlobalState,
 };
-use client::{Client, Event as ClientEvent};
-use common::{assets::load_expect, comp, terrain::TerrainChunk, vol::RectRasterableVol};
+use client::Client;
+use common::{assets::load_expect, comp, sync::Uid, terrain::TerrainChunk, vol::RectRasterableVol};
 use conrod_core::{
-    position::Relative,
     text::cursor::Index,
-    widget::{self, Button, Image, Rectangle, Text},
+    widget::{self, Button, Image, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 use specs::{Join, WorldExt};
-use std::collections::VecDeque;
+use std::{
+    collections::{HashMap, VecDeque},
+    time::Instant,
+};
 use vek::*;
 
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
@@ -72,15 +77,30 @@ const MANA_COLOR: Color = Color::Rgba(0.29, 0.62, 0.75, 0.9);
 //const RAGE_COLOR: Color = Color::Rgba(0.5, 0.04, 0.13, 1.0);
 
 // Chat Colors
-const META_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
+/// Color for chat command errors (yellow !)
+const ERROR_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
+/// Color for chat command info (blue i)
+const INFO_COLOR: Color = Color::Rgba(0.28, 0.83, 0.71, 1.0);
+/// Online color
+const ONLINE_COLOR: Color = Color::Rgba(0.3, 1.0, 0.3, 1.0);
+/// Offline color
+const OFFLINE_COLOR: Color = Color::Rgba(1.0, 0.3, 0.3, 1.0);
+/// Color for a private message from another player
 const TELL_COLOR: Color = Color::Rgba(0.98, 0.71, 1.0, 1.0);
-const PRIVATE_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0); // Difference between private and tell?
-const BROADCAST_COLOR: Color = Color::Rgba(0.28, 0.83, 0.71, 1.0);
-const GAME_UPDATE_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
-const SAY_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+/// Color for local chat
+const SAY_COLOR: Color = Color::Rgba(1.0, 0.8, 0.8, 1.0);
+/// Color for group chat
 const GROUP_COLOR: Color = Color::Rgba(0.47, 0.84, 1.0, 1.0);
+/// Color for factional chat
 const FACTION_COLOR: Color = Color::Rgba(0.24, 1.0, 0.48, 1.0);
+/// Color for regional chat
+const REGION_COLOR: Color = Color::Rgba(0.8, 1.0, 0.8, 1.0);
+/// Color for death messages
 const KILL_COLOR: Color = Color::Rgba(1.0, 0.17, 0.17, 1.0);
+/// Color for global messages
+const WORLD_COLOR: Color = Color::Rgba(0.95, 1.0, 0.95, 1.0);
+/// Color for collected loot messages
+const LOOT_COLOR: Color = Color::Rgba(0.69, 0.57, 1.0, 1.0);
 
 // UI Color-Theme
 const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
@@ -102,17 +122,6 @@ widget_ids! {
         crosshair_inner,
         crosshair_outer,
 
-        // Character Names
-        name_tags[],
-        name_tags_bgs[],
-        levels[],
-        levels_skull[],
-        // Health Bars
-        health_bars[],
-        mana_bars[],
-        health_bar_fronts[],
-        health_bar_backs[],
-
         // SCT
         player_scts[],
         player_sct_bgs[],
@@ -125,6 +134,8 @@ widget_ids! {
         sct_bgs[],
         scts[],
 
+        overheads[],
+
         // Intro Text
         intro_bg,
         intro_text,
@@ -136,8 +147,8 @@ widget_ids! {
         intro_check,
         intro_check_text,
 
-        // Test
-        bag_space_add,
+        // Alpha Disclaimer
+        alpha_text,
 
         // Debug
         debug_bg,
@@ -192,6 +203,18 @@ widget_ids! {
         // Free look indicator
         free_look_txt,
         free_look_bg,
+
+        // Auto walk indicator
+        auto_walk_txt,
+        auto_walk_bg,
+
+        // Example Quest
+        quest_bg,
+        q_headline_bg,
+        q_headline,
+        q_text_bg,
+        q_text,
+        accept_button,
     }
 }
 
@@ -229,10 +252,12 @@ pub enum Event {
     ChangeMaxFPS(u32),
     ChangeFOV(u16),
     ChangeGamma(f32),
+    MapZoom(f64),
     AdjustWindowSize([u16; 2]),
     ToggleFullscreen,
     CrosshairTransp(f32),
     ChatTransp(f32),
+    ChatCharName(bool),
     CrosshairType(CrosshairType),
     ToggleXpBar(XpBar),
     Intro(Intro),
@@ -241,12 +266,15 @@ pub enum Event {
     Sct(bool),
     SctPlayerBatch(bool),
     SctDamageBatch(bool),
+    SpeechBubbleDarkMode(bool),
+    SpeechBubbleIcon(bool),
     ToggleDebug(bool),
     UiScale(ScaleChange),
     CharacterSelection,
     UseSlot(comp::slot::Slot),
     SwapSlots(comp::slot::Slot, comp::slot::Slot),
     DropSlot(comp::slot::Slot),
+    ChangeHotbarState(HotbarState),
     Ability3(bool),
     Logout,
     Quit,
@@ -254,6 +282,8 @@ pub enum Event {
     ChangeBinding(GameInput),
     ChangeFreeLookBehavior(PressBehavior),
     ChangeRenderMode(RenderMode),
+    ChangeAutoWalkBehavior(PressBehavior),
+    ChangeStopAutoWalkOnInput(bool),
 }
 
 // TODO: Are these the possible layouts we want?
@@ -318,6 +348,7 @@ pub struct Show {
     want_grab: bool,
     stats: bool,
     free_look: bool,
+    auto_walk: bool,
 }
 impl Show {
     fn bag(&mut self, open: bool) {
@@ -331,7 +362,7 @@ impl Show {
     fn map(&mut self, open: bool) {
         self.map = open;
         self.bag = false;
-        self.want_grab = true;
+        self.want_grab = !open;
     }
 
     fn social(&mut self, open: bool) {
@@ -443,11 +474,13 @@ pub struct Hud {
     item_imgs: ItemImgs,
     fonts: ConrodVoxygenFonts,
     rot_imgs: ImgsRot,
-    new_messages: VecDeque<ClientEvent>,
+    new_messages: VecDeque<comp::ChatMsg>,
+    new_notifications: VecDeque<common::msg::Notification>,
+    speech_bubbles: HashMap<Uid, comp::SpeechBubble>,
     show: Show,
-    never_show: bool,
-    intro: bool,
-    intro_2: bool,
+    //never_show: bool,
+    //intro: bool,
+    //intro_2: bool,
     to_focus: Option<Option<widget::Id>>,
     force_ungrab: bool,
     force_chat_input: Option<String>,
@@ -482,13 +515,21 @@ impl Hud {
         let rot_imgs = ImgsRot::load(&mut ui).expect("Failed to load rot images!");
         // Load item images.
         let item_imgs = ItemImgs::new(&mut ui, imgs.not_found);
-        // Load language
+        // Load language.
         let voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
             &global_state.settings.language.selected_language,
         ));
         // Load fonts.
         let fonts = ConrodVoxygenFonts::load(&voxygen_i18n.fonts, &mut ui)
             .expect("Impossible to load fonts!");
+        // Get the server name.
+        let server = &client.server_info.name;
+        // Get the id, unwrap is safe because this CANNOT be None at this
+        // point.
+        let character_id = client.active_character_id.unwrap();
+        // Create a new HotbarState from the persisted slots.
+        let hotbar_state =
+            HotbarState::new(global_state.profile.get_hotbar_slots(server, character_id));
 
         let slot_manager = slots::SlotManager::new(ui.id_generator(), Vec2::broadcast(40.0));
 
@@ -501,8 +542,10 @@ impl Hud {
             fonts,
             ids,
             new_messages: VecDeque::new(),
-            intro: false,
-            intro_2: false,
+            new_notifications: VecDeque::new(),
+            speech_bubbles: HashMap::new(),
+            //intro: false,
+            //intro_2: false,
             show: Show {
                 help: false,
                 intro: true,
@@ -521,9 +564,10 @@ impl Hud {
                 ingame: true,
                 stats: false,
                 free_look: false,
+                auto_walk: false,
             },
             to_focus: None,
-            never_show: false,
+            //never_show: false,
             force_ungrab: false,
             force_chat_input: None,
             force_chat_cursor: None,
@@ -532,7 +576,7 @@ impl Hud {
             velocity: 0.0,
             voxygen_i18n,
             slot_manager,
-            hotbar: hotbar::State::new(),
+            hotbar: hotbar_state,
             events: Vec::new(),
             crosshair_opacity: 0.0,
         }
@@ -544,6 +588,8 @@ impl Hud {
             .expect("Impossible to load fonts!");
     }
 
+    #[allow(clippy::assign_op_pattern)] // TODO: Pending review in #587
+    #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update_layout(
         &mut self,
         client: &Client,
@@ -573,6 +619,7 @@ impl Hud {
             let stats = ecs.read_storage::<comp::Stats>();
             let energy = ecs.read_storage::<comp::Energy>();
             let hp_floater_lists = ecs.read_storage::<vcomp::HpFloaterList>();
+            let uids = ecs.read_storage::<common::sync::Uid>();
             let interpolated = ecs.read_storage::<vcomp::Interpolated>();
             let players = ecs.read_storage::<comp::Player>();
             let scales = ecs.read_storage::<comp::Scale>();
@@ -599,6 +646,14 @@ impl Hud {
                         .color(Some(Color::Rgba(1.0, 1.0, 1.0, hurt_fade)))
                         .set(self.ids.hurt_bg, ui_widgets);
                 }
+                // Alpha Disclaimer
+                Text::new(&format!("Veloren Pre-Alpha {}", env!("CARGO_PKG_VERSION")))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(self.fonts.cyri.scale(10))
+                    .color(TEXT_COLOR)
+                    .mid_top_with_margin_on(ui_widgets.window, 2.0)
+                    .set(self.ids.alpha_text, ui_widgets);
+
                 // Death Frame
                 if stats.is_dead {
                     Image::new(self.imgs.death_bg)
@@ -642,13 +697,9 @@ impl Hud {
                 }
             }
 
-            // Nametags and healthbars
-
             // Max amount the sct font size increases when "flashing"
             const FLASH_MAX: f32 = 25.0;
-            const BARSIZE: f64 = 2.0;
-            const MANA_BAR_HEIGHT: f64 = BARSIZE * 1.5;
-            const MANA_BAR_Y: f64 = MANA_BAR_HEIGHT / 2.0;
+
             // Get player position.
             let player_pos = client
                 .state()
@@ -656,265 +707,6 @@ impl Hud {
                 .read_storage::<comp::Pos>()
                 .get(client.entity())
                 .map_or(Vec3::zero(), |pos| pos.0);
-            let mut name_id_walker = self.ids.name_tags.walk();
-            let mut name_id_bg_walker = self.ids.name_tags_bgs.walk();
-            let mut level_id_walker = self.ids.levels.walk();
-            let mut level_skull_id_walker = self.ids.levels_skull.walk();
-            let mut health_id_walker = self.ids.health_bars.walk();
-            let mut mana_id_walker = self.ids.mana_bars.walk();
-            let mut health_back_id_walker = self.ids.health_bar_backs.walk();
-            let mut health_front_id_walker = self.ids.health_bar_fronts.walk();
-            let mut sct_bg_id_walker = self.ids.sct_bgs.walk();
-            let mut sct_id_walker = self.ids.scts.walk();
-
-            // Render Health Bars
-            for (pos, stats, energy, height_offset, hp_floater_list) in (
-                &entities,
-                &pos,
-                interpolated.maybe(),
-                &stats,
-                &energy,
-                scales.maybe(),
-                &bodies,
-                &hp_floater_lists,
-            )
-                .join()
-                .filter(|(entity, _, _, stats, _, _, _, _)| {
-                    *entity != me && !stats.is_dead
-                    //&& stats.health.current() != stats.health.maximum()
-                })
-                // Don't show outside a certain range
-                .filter(|(_, pos, _, _, _, _, _, hpfl)| {
-                    pos.0.distance_squared(player_pos)
-                        < (if hpfl
-                            .time_since_last_dmg_by_me
-                            .map_or(false, |t| t < NAMETAG_DMG_TIME)
-                        {
-                            NAMETAG_DMG_RANGE
-                        } else {
-                            NAMETAG_RANGE
-                        })
-                        .powi(2)
-                })
-                .map(|(_, pos, interpolated, stats, energy, scale, body, f)| {
-                    (
-                        interpolated.map_or(pos.0, |i| i.pos),
-                        stats,
-                        energy,
-                        // TODO: when body.height() is more accurate remove the 2.0
-                        body.height() * 2.0 * scale.map_or(1.0, |s| s.0),
-                        f,
-                    )
-                })
-            {
-                let back_id = health_back_id_walker.next(
-                    &mut self.ids.health_bar_backs,
-                    &mut ui_widgets.widget_id_generator(),
-                );
-                let health_bar_id = health_id_walker.next(
-                    &mut self.ids.health_bars,
-                    &mut ui_widgets.widget_id_generator(),
-                );
-                let mana_bar_id = mana_id_walker.next(
-                    &mut self.ids.mana_bars,
-                    &mut ui_widgets.widget_id_generator(),
-                );
-                let front_id = health_front_id_walker.next(
-                    &mut self.ids.health_bar_fronts,
-                    &mut ui_widgets.widget_id_generator(),
-                );
-                let hp_percentage =
-                    stats.health.current() as f64 / stats.health.maximum() as f64 * 100.0;
-                let energy_percentage = energy.current() as f64 / energy.maximum() as f64 * 100.0;
-                let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 1.0; //Animation timer
-                let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
-
-                let ingame_pos = pos + Vec3::unit_z() * height_offset;
-
-                // Background
-                Image::new(self.imgs.enemy_health_bg)
-                    .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
-                    .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
-                    .color(Some(Color::Rgba(0.1, 0.1, 0.1, 0.8)))
-                    .position_ingame(ingame_pos)
-                    .set(back_id, ui_widgets);
-
-                // % HP Filling
-                Image::new(self.imgs.enemy_bar)
-                    .w_h(73.0 * (hp_percentage / 100.0) * BARSIZE, 6.0 * BARSIZE)
-                    .x_y(
-                        (4.5 + (hp_percentage / 100.0 * 36.45 - 36.45)) * BARSIZE,
-                        MANA_BAR_Y + 7.5,
-                    )
-                    .color(Some(if hp_percentage <= 25.0 {
-                        crit_hp_color
-                    } else if hp_percentage <= 50.0 {
-                        LOW_HP_COLOR
-                    } else {
-                        HP_COLOR
-                    }))
-                    .position_ingame(ingame_pos)
-                    .set(health_bar_id, ui_widgets);
-                // % Mana Filling
-                Rectangle::fill_with(
-                    [
-                        72.0 * (energy.current() as f64 / energy.maximum() as f64) * BARSIZE,
-                        MANA_BAR_HEIGHT,
-                    ],
-                    MANA_COLOR,
-                )
-                .x_y(
-                    ((3.5 + (energy_percentage / 100.0 * 36.5)) - 36.45) * BARSIZE,
-                    MANA_BAR_Y, //-32.0,
-                )
-                .position_ingame(ingame_pos)
-                .set(mana_bar_id, ui_widgets);
-
-                // Foreground
-                Image::new(self.imgs.enemy_health)
-                    .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
-                    .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
-                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.99)))
-                    .position_ingame(ingame_pos)
-                    .set(front_id, ui_widgets);
-
-                // Enemy SCT
-                if let Some(floaters) = Some(hp_floater_list)
-                    .filter(|fl| !fl.floaters.is_empty() && global_state.settings.gameplay.sct)
-                    .map(|l| &l.floaters)
-                {
-                    // Colors
-                    const WHITE: Rgb<f32> = Rgb::new(1.0, 0.9, 0.8);
-                    const LIGHT_OR: Rgb<f32> = Rgb::new(1.0, 0.925, 0.749);
-                    const LIGHT_MED_OR: Rgb<f32> = Rgb::new(1.0, 0.85, 0.498);
-                    const MED_OR: Rgb<f32> = Rgb::new(1.0, 0.776, 0.247);
-                    const DARK_ORANGE: Rgb<f32> = Rgb::new(1.0, 0.7, 0.0);
-                    const RED_ORANGE: Rgb<f32> = Rgb::new(1.0, 0.349, 0.0);
-                    const DAMAGE_COLORS: [Rgb<f32>; 6] = [
-                        WHITE,
-                        LIGHT_OR,
-                        LIGHT_MED_OR,
-                        MED_OR,
-                        DARK_ORANGE,
-                        RED_ORANGE,
-                    ];
-                    // Largest value that select the first color is 40, then it shifts colors
-                    // every 5
-                    let font_col = |font_size: u32| {
-                        DAMAGE_COLORS[(font_size.saturating_sub(36) / 5).min(5) as usize]
-                    };
-
-                    if global_state.settings.gameplay.sct_damage_batch {
-                        let number_speed = 50.0; // Damage number speed
-                        let sct_bg_id = sct_bg_id_walker
-                            .next(&mut self.ids.sct_bgs, &mut ui_widgets.widget_id_generator());
-                        let sct_id = sct_id_walker
-                            .next(&mut self.ids.scts, &mut ui_widgets.widget_id_generator());
-                        // Calculate total change
-                        // Ignores healing
-                        let hp_damage = floaters.iter().fold(0, |acc, f| {
-                            if f.hp_change < 0 {
-                                acc + f.hp_change
-                            } else {
-                                acc
-                            }
-                        });
-                        let max_hp_frac = hp_damage.abs() as f32 / stats.health.maximum() as f32;
-                        let timer = floaters
-                            .last()
-                            .expect("There must be at least one floater")
-                            .timer;
-                        // Increase font size based on fraction of maximum health
-                        // "flashes" by having a larger size in the first 100ms
-                        let font_size = 30
-                            + (max_hp_frac * 30.0) as u32
-                            + if timer < 0.1 {
-                                (FLASH_MAX * (1.0 - timer / 0.1)) as u32
-                            } else {
-                                0
-                            };
-                        let font_col = font_col(font_size);
-                        // Timer sets the widget offset
-                        let y = (timer as f64 / crate::ecs::sys::floater::HP_SHOWTIME as f64
-                            * number_speed)
-                            + 100.0;
-                        // Timer sets text transparency
-                        let fade = ((crate::ecs::sys::floater::HP_SHOWTIME - timer) * 0.25) + 0.2;
-
-                        Text::new(&format!("{}", (hp_damage).abs()))
-                            .font_size(font_size)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
-                            .x_y(0.0, y - 3.0)
-                            .position_ingame(ingame_pos)
-                            .set(sct_bg_id, ui_widgets);
-                        Text::new(&format!("{}", hp_damage.abs()))
-                            .font_size(font_size)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .x_y(0.0, y)
-                            .color(if hp_damage < 0 {
-                                Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
-                            } else {
-                                Color::Rgba(0.1, 1.0, 0.1, fade)
-                            })
-                            .position_ingame(ingame_pos)
-                            .set(sct_id, ui_widgets);
-                    } else {
-                        for floater in floaters {
-                            let number_speed = 250.0; // Single Numbers Speed
-                            let sct_bg_id = sct_bg_id_walker
-                                .next(&mut self.ids.sct_bgs, &mut ui_widgets.widget_id_generator());
-                            let sct_id = sct_id_walker
-                                .next(&mut self.ids.scts, &mut ui_widgets.widget_id_generator());
-                            // Calculate total change
-                            let max_hp_frac =
-                                floater.hp_change.abs() as f32 / stats.health.maximum() as f32;
-                            // Increase font size based on fraction of maximum health
-                            // "flashes" by having a larger size in the first 100ms
-                            let font_size = 30
-                                + (max_hp_frac * 30.0) as u32
-                                + if floater.timer < 0.1 {
-                                    (FLASH_MAX * (1.0 - floater.timer / 0.1)) as u32
-                                } else {
-                                    0
-                                };
-                            let font_col = font_col(font_size);
-                            // Timer sets the widget offset
-                            let y = (floater.timer as f64
-                                / crate::ecs::sys::floater::HP_SHOWTIME as f64
-                                * number_speed)
-                                + 100.0;
-                            // Timer sets text transparency
-                            let fade = ((crate::ecs::sys::floater::HP_SHOWTIME - floater.timer)
-                                * 0.25)
-                                + 0.2;
-
-                            Text::new(&format!("{}", (floater.hp_change).abs()))
-                                .font_size(font_size)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .color(if floater.hp_change < 0 {
-                                    Color::Rgba(0.0, 0.0, 0.0, fade)
-                                } else {
-                                    Color::Rgba(0.0, 0.0, 0.0, 1.0)
-                                })
-                                .x_y(0.0, y - 3.0)
-                                .position_ingame(ingame_pos)
-                                .set(sct_bg_id, ui_widgets);
-                            Text::new(&format!("{}", (floater.hp_change).abs()))
-                                .font_size(font_size)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .x_y(0.0, y)
-                                .color(if floater.hp_change < 0 {
-                                    Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
-                                } else {
-                                    Color::Rgba(0.1, 1.0, 0.1, 1.0)
-                                })
-                                .position_ingame(ingame_pos)
-                                .set(sct_id, ui_widgets);
-                        }
-                    }
-                }
-            }
 
             if global_state.settings.gameplay.sct {
                 // Render Player SCT numbers
@@ -1155,21 +947,39 @@ impl Hud {
                 }
             }
 
-            // Render Name Tags
-            for (pos, name, level, height_offset) in (
+            // Pop speech bubbles
+            let now = Instant::now();
+            self.speech_bubbles
+                .retain(|_uid, bubble| bubble.timeout > now);
+
+            // Push speech bubbles
+            for msg in self.new_messages.iter() {
+                if let Some((bubble, uid)) = msg.to_bubble() {
+                    self.speech_bubbles.insert(uid, bubble);
+                }
+            }
+
+            let mut overhead_walker = self.ids.overheads.walk();
+            let mut sct_walker = self.ids.scts.walk();
+            let mut sct_bg_walker = self.ids.sct_bgs.walk();
+
+            // Render overhead name tags and health bars
+            for (pos, name, stats, energy, height_offset, hpfl, uid) in (
                 &entities,
                 &pos,
                 interpolated.maybe(),
                 &stats,
+                &energy,
                 players.maybe(),
                 scales.maybe(),
                 &bodies,
                 &hp_floater_lists,
+                &uids,
             )
                 .join()
-                .filter(|(entity, _, _, stats, _, _, _, _)| *entity != me && !stats.is_dead)
+                .filter(|(entity, _, _, stats, _, _, _, _, _, _)| *entity != me && !stats.is_dead)
                 // Don't show outside a certain range
-                .filter(|(_, pos, _, _, _, _, _, hpfl)| {
+                .filter(|(_, pos, _, _, _, _, _, _, hpfl, _)| {
                     pos.0.distance_squared(player_pos)
                         < (if hpfl
                             .time_since_last_dmg_by_me
@@ -1181,7 +991,7 @@ impl Hud {
                         })
                         .powi(2)
                 })
-                .map(|(_, pos, interpolated, stats, player, scale, body, _)| {
+                .map(|(_, pos, interpolated, stats, energy, player, scale, body, hpfl, uid)| {
                     // TODO: This is temporary
                     // If the player used the default character name display their name instead
                     let name = if stats.name == "Character Name" {
@@ -1191,229 +1001,241 @@ impl Hud {
                     };
                     (
                         interpolated.map_or(pos.0, |i| i.pos),
-                        format!("{}", name),
-                        stats.level,
+                        name,
+                        stats,
+                        energy,
+                        // TODO: when body.height() is more accurate remove the 2.0
                         body.height() * 2.0 * scale.map_or(1.0, |s| s.0),
+                        hpfl,
+                        uid,
                     )
                 })
             {
-                let name_id = name_id_walker.next(
-                    &mut self.ids.name_tags,
-                    &mut ui_widgets.widget_id_generator(),
-                );
-                let name_bg_id = name_id_bg_walker.next(
-                    &mut self.ids.name_tags_bgs,
-                    &mut ui_widgets.widget_id_generator(),
-                );
-                let level_id = level_id_walker
-                    .next(&mut self.ids.levels, &mut ui_widgets.widget_id_generator());
-                let level_skull_id = level_skull_id_walker.next(
-                    &mut self.ids.levels_skull,
-                    &mut ui_widgets.widget_id_generator(),
-                );
+                let bubble = self.speech_bubbles.get(uid);
 
+                let overhead_id = overhead_walker.next(
+                    &mut self.ids.overheads,
+                    &mut ui_widgets.widget_id_generator(),
+                );
                 let ingame_pos = pos + Vec3::unit_z() * height_offset;
 
-                // Name
-                Text::new(&name)
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(30)
-                    .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-                    .x_y(-1.0, MANA_BAR_Y + 48.0)
-                    .position_ingame(ingame_pos)
-                    .set(name_bg_id, ui_widgets);
-                Text::new(&name)
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(30)
-                    .color(Color::Rgba(0.61, 0.61, 0.89, 1.0))
-                    .x_y(0.0, MANA_BAR_Y + 50.0)
-                    .position_ingame(ingame_pos)
-                    .set(name_id, ui_widgets);
+                // Speech bubble, name, level, and hp bars
+                overhead::Overhead::new(
+                    &name,
+                    bubble,
+                    stats,
+                    energy,
+                    own_level,
+                    &global_state.settings.gameplay,
+                    self.pulse,
+                    &self.voxygen_i18n,
+                    &self.imgs,
+                    &self.fonts,
+                )
+                .x_y(0.0, 100.0)
+                .position_ingame(ingame_pos)
+                .set(overhead_id, ui_widgets);
 
-                // Level
-                const LOW: Color = Color::Rgba(0.54, 0.81, 0.94, 0.4);
-                const HIGH: Color = Color::Rgba(1.0, 0.0, 0.0, 1.0);
-                const EQUAL: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
-                let op_level = level.level();
-                let level_str = format!("{}", op_level);
-                // Change visuals of the level display depending on the player level/opponent
-                // level
-                let level_comp = op_level as i64 - own_level as i64;
-                // + 10 level above player -> skull
-                // + 5-10 levels above player -> high
-                // -5 - +5 levels around player level -> equal
-                // - 5 levels below player -> low
-                Text::new(if level_comp < 10 { &level_str } else { "?" })
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(if op_level > 9 && level_comp < 10 {
-                        14
-                    } else {
-                        15
-                    })
-                    .color(if level_comp > 4 {
-                        HIGH
-                    } else if level_comp < -5 {
-                        LOW
-                    } else {
-                        EQUAL
-                    })
-                    .x_y(-37.0 * BARSIZE, MANA_BAR_Y + 9.0)
-                    .position_ingame(ingame_pos)
-                    .set(level_id, ui_widgets);
-                if level_comp > 9 {
-                    let skull_ani = ((self.pulse * 0.7/* speed factor */).cos() * 0.5 + 0.5) * 10.0; //Animation timer
-                    Image::new(if skull_ani as i32 == 1 && rand::random::<f32>() < 0.9 {
-                        self.imgs.skull_2
-                    } else {
-                        self.imgs.skull
-                    })
-                    .w_h(18.0 * BARSIZE, 18.0 * BARSIZE)
-                    .x_y(-39.0 * BARSIZE, MANA_BAR_Y + 7.0)
-                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-                    .position_ingame(ingame_pos)
-                    .set(level_skull_id, ui_widgets);
-                }
-            }
-        }
+                // Enemy SCT
+                if global_state.settings.gameplay.sct && !hpfl.floaters.is_empty() {
+                    let floaters = &hpfl.floaters;
 
-        // Introduction Text
-        let intro_text = &self.voxygen_i18n.get("hud.welcome");
-        if self.show.intro && !self.show.esc_menu && !self.intro_2 {
-            match global_state.settings.gameplay.intro_show {
-                Intro::Show => {
-                    Rectangle::fill_with(
-                        [800.0 * 0.8, 850.0 * 0.8],
-                        Color::Rgba(0.0, 0.0, 0.0, 0.80),
-                    )
-                    .top_left_with_margins_on(ui_widgets.window, 180.0 * 0.8, 10.0 * 0.8)
-                    .floating(true)
-                    .set(self.ids.intro_bg, ui_widgets);
-                    Text::new(intro_text)
-                        .top_left_with_margins_on(self.ids.intro_bg, 10.0, 10.0)
-                        .font_size(self.fonts.cyri.scale(16))
-                        .font_id(self.fonts.cyri.conrod_id)
-                        .color(TEXT_COLOR)
-                        .set(self.ids.intro_text, ui_widgets);
-                    if Button::image(self.imgs.button)
-                        .w_h(90.0, 35.0)
-                        .mid_bottom_with_margin_on(self.ids.intro_bg, 10.0)
-                        .label(&self.voxygen_i18n.get("common.close"))
-                        .label_font_size(self.fonts.cyri.scale(16))
-                        .label_font_id(self.fonts.cyri.conrod_id)
-                        .label_color(TEXT_COLOR)
-                        .label_y(Relative::Scalar(4.0))
-                        .hover_image(self.imgs.button_hover)
-                        .press_image(self.imgs.button_press)
-                        .set(self.ids.intro_close, ui_widgets)
-                        .was_clicked()
-                    {
-                        if self.never_show {
-                            events.push(Event::Intro(Intro::Never));
-                            self.never_show = !self.never_show;
-                            self.intro = false;
-                            self.intro_2 = false;
-                        } else {
-                            self.show.intro = !self.show.intro;
-                            self.intro = false;
-                            self.intro_2 = false;
+                    // Colors
+                    const WHITE: Rgb<f32> = Rgb::new(1.0, 0.9, 0.8);
+                    const LIGHT_OR: Rgb<f32> = Rgb::new(1.0, 0.925, 0.749);
+                    const LIGHT_MED_OR: Rgb<f32> = Rgb::new(1.0, 0.85, 0.498);
+                    const MED_OR: Rgb<f32> = Rgb::new(1.0, 0.776, 0.247);
+                    const DARK_ORANGE: Rgb<f32> = Rgb::new(1.0, 0.7, 0.0);
+                    const RED_ORANGE: Rgb<f32> = Rgb::new(1.0, 0.349, 0.0);
+                    const DAMAGE_COLORS: [Rgb<f32>; 6] = [
+                        WHITE,
+                        LIGHT_OR,
+                        LIGHT_MED_OR,
+                        MED_OR,
+                        DARK_ORANGE,
+                        RED_ORANGE,
+                    ];
+                    // Largest value that select the first color is 40, then it shifts colors
+                    // every 5
+                    let font_col = |font_size: u32| {
+                        DAMAGE_COLORS[(font_size.saturating_sub(36) / 5).min(5) as usize]
+                    };
+
+                    if global_state.settings.gameplay.sct_damage_batch {
+                        let number_speed = 50.0; // Damage number speed
+                        let sct_id = sct_walker
+                            .next(&mut self.ids.scts, &mut ui_widgets.widget_id_generator());
+                        let sct_bg_id = sct_bg_walker
+                            .next(&mut self.ids.sct_bgs, &mut ui_widgets.widget_id_generator());
+                        // Calculate total change
+                        // Ignores healing
+                        let hp_damage = floaters.iter().fold(0, |acc, f| {
+                            if f.hp_change < 0 {
+                                acc + f.hp_change
+                            } else {
+                                acc
+                            }
+                        });
+                        let max_hp_frac = hp_damage.abs() as f32 / stats.health.maximum() as f32;
+                        let timer = floaters
+                            .last()
+                            .expect("There must be at least one floater")
+                            .timer;
+                        // Increase font size based on fraction of maximum health
+                        // "flashes" by having a larger size in the first 100ms
+                        let font_size = 30
+                            + (max_hp_frac * 30.0) as u32
+                            + if timer < 0.1 {
+                                (FLASH_MAX * (1.0 - timer / 0.1)) as u32
+                            } else {
+                                0
+                            };
+                        let font_col = font_col(font_size);
+                        // Timer sets the widget offset
+                        let y = (timer as f64 / crate::ecs::sys::floater::HP_SHOWTIME as f64
+                            * number_speed)
+                            + 100.0;
+                        // Timer sets text transparency
+                        let fade = ((crate::ecs::sys::floater::HP_SHOWTIME - timer) * 0.25) + 0.2;
+
+                        Text::new(&format!("{}", (hp_damage).abs()))
+                            .font_size(font_size)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                            .x_y(0.0, y - 3.0)
+                            .position_ingame(ingame_pos)
+                            .set(sct_bg_id, ui_widgets);
+                        Text::new(&format!("{}", hp_damage.abs()))
+                            .font_size(font_size)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .x_y(0.0, y)
+                            .color(if hp_damage < 0 {
+                                Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
+                            } else {
+                                Color::Rgba(0.1, 1.0, 0.1, fade)
+                            })
+                            .position_ingame(ingame_pos)
+                            .set(sct_id, ui_widgets);
+                    } else {
+                        for floater in floaters {
+                            let number_speed = 250.0; // Single Numbers Speed
+                            let sct_id = sct_walker
+                                .next(&mut self.ids.scts, &mut ui_widgets.widget_id_generator());
+                            let sct_bg_id = sct_bg_walker
+                                .next(&mut self.ids.sct_bgs, &mut ui_widgets.widget_id_generator());
+                            // Calculate total change
+                            let max_hp_frac =
+                                floater.hp_change.abs() as f32 / stats.health.maximum() as f32;
+                            // Increase font size based on fraction of maximum health
+                            // "flashes" by having a larger size in the first 100ms
+                            let font_size = 30
+                                + (max_hp_frac * 30.0) as u32
+                                + if floater.timer < 0.1 {
+                                    (FLASH_MAX * (1.0 - floater.timer / 0.1)) as u32
+                                } else {
+                                    0
+                                };
+                            let font_col = font_col(font_size);
+                            // Timer sets the widget offset
+                            let y = (floater.timer as f64
+                                / crate::ecs::sys::floater::HP_SHOWTIME as f64
+                                * number_speed)
+                                + 100.0;
+                            // Timer sets text transparency
+                            let fade = ((crate::ecs::sys::floater::HP_SHOWTIME - floater.timer)
+                                * 0.25)
+                                + 0.2;
+
+                            Text::new(&format!("{}", (floater.hp_change).abs()))
+                                .font_size(font_size)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .color(if floater.hp_change < 0 {
+                                    Color::Rgba(0.0, 0.0, 0.0, fade)
+                                } else {
+                                    Color::Rgba(0.0, 0.0, 0.0, 1.0)
+                                })
+                                .x_y(0.0, y - 3.0)
+                                .position_ingame(ingame_pos)
+                                .set(sct_bg_id, ui_widgets);
+                            Text::new(&format!("{}", (floater.hp_change).abs()))
+                                .font_size(font_size)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .x_y(0.0, y)
+                                .color(if floater.hp_change < 0 {
+                                    Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
+                                } else {
+                                    Color::Rgba(0.1, 1.0, 0.1, 1.0)
+                                })
+                                .position_ingame(ingame_pos)
+                                .set(sct_id, ui_widgets);
                         }
                     }
-                    if Button::image(if self.never_show {
-                        self.imgs.checkbox_checked
-                    } else {
-                        self.imgs.checkbox
-                    })
-                    .w_h(20.0, 20.0)
-                    .right_from(self.ids.intro_close, 10.0)
-                    .hover_image(if self.never_show {
-                        self.imgs.checkbox_checked_mo
-                    } else {
-                        self.imgs.checkbox_mo
-                    })
-                    .press_image(self.imgs.checkbox_press)
-                    .set(self.ids.intro_check, ui_widgets)
-                    .was_clicked()
-                    {
-                        self.never_show = !self.never_show
-                    };
-                    Text::new(&self.voxygen_i18n.get("hud.do_not_show_on_startup"))
-                        .right_from(self.ids.intro_check, 10.0)
-                        .font_size(self.fonts.cyri.scale(10))
-                        .font_id(self.fonts.cyri.conrod_id)
-                        .color(TEXT_COLOR)
-                        .set(self.ids.intro_check_text, ui_widgets);
-                    // X-button
-                    if Button::image(self.imgs.close_button)
-                        .w_h(40.0, 40.0)
-                        .hover_image(self.imgs.close_button_hover)
-                        .press_image(self.imgs.close_button_press)
-                        .top_right_with_margins_on(self.ids.intro_bg, 0.0, 0.0)
-                        .color(Color::Rgba(1.0, 1.0, 1.0, 0.8))
-                        .set(self.ids.intro_close_4, ui_widgets)
-                        .was_clicked()
-                    {
-                        if self.never_show {
-                            events.push(Event::Intro(Intro::Never));
-                            self.never_show = !self.never_show;
-                            self.intro = false;
-                            self.intro_2 = false;
-                        } else {
-                            self.show.intro = !self.show.intro;
-                            self.intro = false;
-                            self.intro_2 = false;
-                        }
-                    };
-                },
-                Intro::Never => {},
+                }
             }
         }
 
-        if self.intro_2 && !self.show.esc_menu {
-            Rectangle::fill_with([800.0, 850.0], Color::Rgba(0.0, 0.0, 0.0, 0.80))
-                .top_left_with_margins_on(ui_widgets.window, 180.0, 10.0)
-                .floating(true)
-                .set(self.ids.intro_bg, ui_widgets);
-            Text::new(intro_text)
-                .top_left_with_margins_on(self.ids.intro_bg, 10.0, 10.0)
-                .font_size(self.fonts.cyri.scale(20))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(self.ids.intro_text, ui_widgets);
-            if Button::image(self.imgs.button)
-                .w_h(100.0, 50.0)
-                .mid_bottom_with_margin_on(self.ids.intro_bg, 10.0)
-                .label(&self.voxygen_i18n.get("common.close"))
-                .label_font_size(self.fonts.cyri.scale(20))
-                .label_font_id(self.fonts.cyri.conrod_id)
-                .label_color(TEXT_COLOR)
-                .hover_image(self.imgs.button_hover)
-                .press_image(self.imgs.button_press)
-                .set(self.ids.intro_close_3, ui_widgets)
-                .was_clicked()
-            {
-                self.intro_2 = false;
+        // Temporary Example Quest
+        if self.show.intro && !self.show.esc_menu {
+            match global_state.settings.gameplay.intro_show {
+                Intro::Show => {
+                    if self.pulse > 20.0 {
+                        self.show.want_grab = false;
+                        let quest_headline = &self.voxygen_i18n.get("hud.temp_quest_headline");
+                        let quest_text = &self.voxygen_i18n.get("hud.temp_quest_text");
+                        Image::new(self.imgs.quest_bg)
+                            .w_h(404.0, 858.0)
+                            .middle_of(ui_widgets.window)
+                            .set(self.ids.quest_bg, ui_widgets);
+
+                        Text::new(quest_headline)
+                            .mid_top_with_margin_on(self.ids.quest_bg, 310.0)
+                            .font_size(self.fonts.cyri.scale(30))
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(TEXT_BG)
+                            .set(self.ids.q_headline_bg, ui_widgets);
+                        Text::new(quest_headline)
+                            .bottom_left_with_margins_on(self.ids.q_headline_bg, 1.0, 1.0)
+                            .font_size(self.fonts.cyri.scale(30))
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(TEXT_COLOR)
+                            .set(self.ids.q_headline, ui_widgets);
+
+                        Text::new(quest_text)
+                            .down_from(self.ids.q_headline_bg, 40.0)
+                            .font_size(self.fonts.cyri.scale(17))
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(TEXT_BG)
+                            .set(self.ids.q_text_bg, ui_widgets);
+                        Text::new(quest_text)
+                            .bottom_left_with_margins_on(self.ids.q_text_bg, 1.0, 1.0)
+                            .font_size(self.fonts.cyri.scale(17))
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(TEXT_COLOR)
+                            .set(self.ids.q_text, ui_widgets);
+
+                        if Button::image(self.imgs.button)
+                            .w_h(212.0, 52.0)
+                            .hover_image(self.imgs.button_hover)
+                            .press_image(self.imgs.button_press)
+                            .mid_bottom_with_margin_on(self.ids.q_text_bg, -120.0)
+                            .label(&self.voxygen_i18n.get("common.accept"))
+                            .label_font_id(self.fonts.cyri.conrod_id)
+                            .label_font_size(self.fonts.cyri.scale(22))
+                            .label_color(TEXT_COLOR)
+                            .label_y(conrod_core::position::Relative::Scalar(2.0))
+                            .set(self.ids.accept_button, ui_widgets)
+                            .was_clicked()
+                        {
+                            self.show.intro = !self.show.intro;
+                            events.push(Event::Intro(Intro::Never));
+                            self.show.want_grab = true;
+                        }
+                    }
+                },
+                Intro::Never => {
+                    self.show.intro = false;
+                },
             }
-            // X-button
-            if Button::image(self.imgs.close_button)
-                .w_h(40.0, 40.0)
-                .hover_image(self.imgs.close_button_hover)
-                .press_image(self.imgs.close_button_press)
-                .top_right_with_margins_on(self.ids.intro_bg, 0.0, 0.0)
-                .color(Color::Rgba(1.0, 1.0, 1.0, 0.8))
-                .set(self.ids.intro_close_4, ui_widgets)
-                .was_clicked()
-            {
-                if self.never_show {
-                    events.push(Event::Intro(Intro::Never));
-                    self.never_show = !self.never_show;
-                    self.intro = false;
-                    self.intro_2 = false;
-                } else {
-                    self.show.intro = !self.show.intro;
-                    self.intro = false;
-                    self.intro_2 = false;
-                }
-            };
         }
 
         // Display debug window.
@@ -1656,9 +1478,15 @@ impl Hud {
             }
         }
 
-        // Popup
-        Popup::new(&self.voxygen_i18n, client, &self.new_messages, &self.fonts)
-            .set(self.ids.popup, ui_widgets);
+        // Popup (waypoint saved and similar notifications)
+        Popup::new(
+            &self.voxygen_i18n,
+            client,
+            &self.new_notifications,
+            &self.fonts,
+            &self.show,
+        )
+        .set(self.ids.popup, ui_widgets);
 
         // MiniMap
         match MiniMap::new(
@@ -1745,30 +1573,26 @@ impl Hud {
                 tooltip_manager,
                 &mut self.slot_manager,
                 &self.voxygen_i18n,
+                &self.show,
             )
             .set(self.ids.skillbar, ui_widgets);
         }
 
-        // The chat box breaks if it has non-chat messages left in the queue, so take
-        // them out.
-        self.new_messages.retain(|msg| {
-            if let ClientEvent::Chat { .. } = &msg {
-                true
-            } else {
-                false
-            }
-        });
+        // Don't put NPC messages in chat box.
+        self.new_messages
+            .retain(|m| !matches!(m.chat_type, comp::ChatType::Npc(_, _)));
 
         // Chat box
         match Chat::new(
             &mut self.new_messages,
+            &client,
             global_state,
             &self.imgs,
             &self.fonts,
         )
         .and_then(self.force_chat_input.take(), |c, input| c.input(input))
         .and_then(self.tab_complete.take(), |c, input| {
-            c.prepare_tab_completion(input, &client)
+            c.prepare_tab_completion(input)
         })
         .and_then(self.force_chat_cursor.take(), |c, pos| c.cursor_pos(pos))
         .set(self.ids.chat, ui_widgets)
@@ -1786,6 +1610,7 @@ impl Hud {
         }
 
         self.new_messages = VecDeque::new();
+        self.new_notifications = VecDeque::new();
 
         // Windows
 
@@ -1805,6 +1630,12 @@ impl Hud {
             .set(self.ids.settings_window, ui_widgets)
             {
                 match event {
+                    settings_window::Event::SpeechBubbleDarkMode(sbdm) => {
+                        events.push(Event::SpeechBubbleDarkMode(sbdm));
+                    },
+                    settings_window::Event::SpeechBubbleIcon(sbi) => {
+                        events.push(Event::SpeechBubbleIcon(sbi));
+                    },
                     settings_window::Event::Sct(sct) => {
                         events.push(Event::Sct(sct));
                     },
@@ -1834,6 +1665,9 @@ impl Hud {
                     settings_window::Event::ChatTransp(chat_transp) => {
                         events.push(Event::ChatTransp(chat_transp));
                     },
+                    settings_window::Event::ChatCharName(chat_char_name) => {
+                        events.push(Event::ChatCharName(chat_char_name));
+                    },
                     settings_window::Event::ToggleZoomInvert(zoom_inverted) => {
                         events.push(Event::ToggleZoomInvert(zoom_inverted));
                     },
@@ -1857,9 +1691,6 @@ impl Hud {
                     },
                     settings_window::Event::CrosshairTransp(crosshair_transp) => {
                         events.push(Event::CrosshairTransp(crosshair_transp));
-                    },
-                    settings_window::Event::Intro(intro_show) => {
-                        events.push(Event::Intro(intro_show));
                     },
                     settings_window::Event::AdjustMusicVolume(music_volume) => {
                         events.push(Event::AdjustMusicVolume(music_volume));
@@ -1912,6 +1743,12 @@ impl Hud {
                     settings_window::Event::ChangeFreeLookBehavior(behavior) => {
                         events.push(Event::ChangeFreeLookBehavior(behavior));
                     },
+                    settings_window::Event::ChangeAutoWalkBehavior(behavior) => {
+                        events.push(Event::ChangeAutoWalkBehavior(behavior));
+                    },
+                    settings_window::Event::ChangeStopAutoWalkOnInput(state) => {
+                        events.push(Event::ChangeStopAutoWalkOnInput(state));
+                    },
                 }
             }
         }
@@ -1956,7 +1793,7 @@ impl Hud {
         }
         // Map
         if self.show.map {
-            match Map::new(
+            for event in Map::new(
                 &self.show,
                 client,
                 &self.imgs,
@@ -1965,14 +1802,19 @@ impl Hud {
                 &self.fonts,
                 self.pulse,
                 &self.voxygen_i18n,
+                &global_state,
             )
             .set(self.ids.map, ui_widgets)
             {
-                Some(map::Event::Close) => {
-                    self.show.map(false);
-                    self.force_ungrab = true;
-                },
-                None => {},
+                match event {
+                    map::Event::Close => {
+                        self.show.map(false);
+                        self.force_ungrab = true;
+                    },
+                    map::Event::MapZoom(map_zoom) => {
+                        events.push(Event::MapZoom(map_zoom));
+                    },
+                }
             }
         }
 
@@ -2030,6 +1872,25 @@ impl Hud {
                 .set(self.ids.free_look_txt, ui_widgets);
         }
 
+        // Auto walk indicator
+        if self.show.auto_walk {
+            Text::new(&self.voxygen_i18n.get("hud.auto_walk_indicator"))
+                .color(TEXT_BG)
+                .mid_top_with_margin_on(
+                    ui_widgets.window,
+                    if self.show.free_look { 128.0 } else { 100.0 },
+                )
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(20))
+                .set(self.ids.auto_walk_bg, ui_widgets);
+            Text::new(&self.voxygen_i18n.get("hud.auto_walk_indicator"))
+                .color(KILL_COLOR)
+                .top_left_with_margins_on(self.ids.auto_walk_bg, -1.0, -1.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(20))
+                .set(self.ids.auto_walk_txt, ui_widgets);
+        }
+
         // Maintain slot manager
         for event in self.slot_manager.maintain(ui_widgets) {
             use comp::slot::Slot;
@@ -2046,8 +1907,10 @@ impl Hud {
                         events.push(Event::SwapSlots(a, b));
                     } else if let (Inventory(i), Hotbar(h)) = (a, b) {
                         self.hotbar.add_inventory_link(h, i.0);
+                        events.push(Event::ChangeHotbarState(self.hotbar.to_owned()));
                     } else if let (Hotbar(a), Hotbar(b)) = (a, b) {
                         self.hotbar.swap(a, b);
+                        events.push(Event::ChangeHotbarState(self.hotbar.to_owned()));
                     }
                 },
                 slot::Event::Dropped(from) => {
@@ -2056,6 +1919,7 @@ impl Hud {
                         events.push(Event::DropSlot(from));
                     } else if let Hotbar(h) = from {
                         self.hotbar.clear_slot(h);
+                        events.push(Event::ChangeHotbarState(self.hotbar.to_owned()));
                     }
                 },
                 slot::Event::Used(from) => {
@@ -2081,7 +1945,11 @@ impl Hud {
         events
     }
 
-    pub fn new_message(&mut self, msg: ClientEvent) { self.new_messages.push_back(msg); }
+    pub fn new_message(&mut self, msg: comp::ChatMsg) { self.new_messages.push_back(msg); }
+
+    pub fn new_notification(&mut self, msg: common::msg::Notification) {
+        self.new_notifications.push_back(msg);
+    }
 
     pub fn scale_change(&mut self, scale_change: ScaleChange) -> ScaleMode {
         let scale_mode = match scale_change {
@@ -2323,6 +2191,12 @@ impl Hud {
                 self.force_ungrab = !state;
                 true
             },
+            WinEvent::Moved(_) => {
+                // Prevent the cursor from being grabbed while the window is being moved as this
+                // causes the window to move erratically
+                self.show.want_grab = false;
+                true
+            },
 
             _ => false,
         };
@@ -2334,6 +2208,7 @@ impl Hud {
         handled
     }
 
+    #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
     pub fn maintain(
         &mut self,
         client: &Client,
@@ -2390,4 +2265,6 @@ impl Hud {
     }
 
     pub fn free_look(&mut self, free_look: bool) { self.show.free_look = free_look; }
+
+    pub fn auto_walk(&mut self, auto_walk: bool) { self.show.auto_walk = auto_walk; }
 }

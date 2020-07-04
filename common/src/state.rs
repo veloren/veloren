@@ -1,6 +1,6 @@
 use crate::{
     comp,
-    event::{EventBus, LocalEvent, ServerEvent, SfxEventItem},
+    event::{EventBus, LocalEvent, ServerEvent},
     region::RegionMap,
     sync::WorldSyncExt,
     sys,
@@ -154,6 +154,9 @@ impl State {
         ecs.register::<comp::Projectile>();
         ecs.register::<comp::Attacking>();
         ecs.register::<comp::ItemDrop>();
+        ecs.register::<comp::ChatMode>();
+        ecs.register::<comp::Group>();
+        ecs.register::<comp::Faction>();
 
         // Register synced resources used by the ECS.
         ecs.insert(TimeOfDay(0.0));
@@ -167,7 +170,6 @@ impl State {
         // TODO: only register on the server
         ecs.insert(EventBus::<ServerEvent>::default());
         ecs.insert(EventBus::<LocalEvent>::default());
-        ecs.insert(EventBus::<SfxEventItem>::default());
         ecs.insert(RegionMap::new());
 
         ecs
@@ -305,10 +307,8 @@ impl State {
     // Apply terrain changes
     pub fn apply_terrain_changes(&self) {
         let mut terrain = self.ecs.write_resource::<TerrainGrid>();
-        let mut modified_blocks = std::mem::replace(
-            &mut self.ecs.write_resource::<BlockChange>().blocks,
-            Default::default(),
-        );
+        let mut modified_blocks =
+            std::mem::take(&mut self.ecs.write_resource::<BlockChange>().blocks);
         // Apply block modifications
         // Only include in `TerrainChanges` if successful
         modified_blocks.retain(|pos, block| terrain.set(*pos, *block).is_ok());

@@ -89,6 +89,7 @@ pub struct RegionMap {
     tick: u64,
 }
 impl RegionMap {
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {
         Self {
             regions: IndexMap::default(),
@@ -232,9 +233,9 @@ impl RegionMap {
                 return Some(key);
             } else {
                 // Check neighbors
-                for i in 0..8 {
-                    if let Some(idx) = region.neighbors[i] {
-                        let (key, region) = self.regions.get_index(idx).unwrap();
+                for o in region.neighbors.iter() {
+                    if let Some(idx) = o {
+                        let (key, region) = self.regions.get_index(*idx).unwrap();
                         if region.entities().contains(id) {
                             return Some(*key);
                         }
@@ -243,8 +244,8 @@ impl RegionMap {
             }
         } else {
             // Check neighbors
-            for i in 0..8 {
-                let key = key + NEIGHBOR_OFFSETS[i];
+            for o in &NEIGHBOR_OFFSETS {
+                let key = key + o;
                 if let Some(region) = self.regions.get(&key) {
                     if region.entities().contains(id) {
                         return Some(key);
@@ -306,6 +307,7 @@ impl RegionMap {
     }
 
     /// Add a region using its key
+    #[allow(clippy::needless_range_loop)] // TODO: Pending review in #587
     fn remove_index(&mut self, index: usize) {
         // Remap neighbor indices for neighbors of the region that will be moved from
         // the end of the index map

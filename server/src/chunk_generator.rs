@@ -22,6 +22,7 @@ pub struct ChunkGenerator {
     pending_chunks: HashMap<Vec2<i32>, Arc<AtomicBool>>,
 }
 impl ChunkGenerator {
+    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {
         let (chunk_tx, chunk_rx) = channel::unbounded();
         Self {
