@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New level of detail feature, letting you see all the world's terrain at any view distance.
 - Point and directional lights now cast realistic shadows, using shadow mapping.
 - Added leaf and chimney particles
+- Some more combat sound effects
 
 ### Changed
 
