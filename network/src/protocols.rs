@@ -523,72 +523,20 @@ impl UdpProtocol {
                 } => {
                     let x = FRAME_HANDSHAKE.to_be_bytes();
                     buffer[0] = x[0];
-                    buffer[1] = magic_number[0];
-                    buffer[2] = magic_number[1];
-                    buffer[3] = magic_number[2];
-                    buffer[4] = magic_number[3];
-                    buffer[5] = magic_number[4];
-                    buffer[6] = magic_number[5];
-                    buffer[7] = magic_number[6];
-                    let x = version[0].to_le_bytes();
-                    buffer[8] = x[0];
-                    buffer[9] = x[1];
-                    buffer[10] = x[2];
-                    buffer[11] = x[3];
-                    let x = version[1].to_le_bytes();
-                    buffer[12] = x[0];
-                    buffer[13] = x[1];
-                    buffer[14] = x[2];
-                    buffer[15] = x[3];
-                    let x = version[2].to_le_bytes();
-                    buffer[16] = x[0];
-                    buffer[17] = x[1];
-                    buffer[18] = x[2];
-                    buffer[19] = x[3];
+                    buffer[1..8].copy_from_slice(&magic_number);
+                    buffer[8..12].copy_from_slice(&version[0].to_le_bytes());
+                    buffer[12..16].copy_from_slice(&version[1].to_le_bytes());
+                    buffer[16..20].copy_from_slice(&version[2].to_le_bytes());
                     20
                 },
                 Frame::Init { pid, secret } => {
-                    let x = FRAME_INIT.to_be_bytes();
-                    buffer[0] = x[0];
-                    let x = pid.to_le_bytes();
-                    buffer[1] = x[0];
-                    buffer[2] = x[1];
-                    buffer[3] = x[2];
-                    buffer[4] = x[3];
-                    buffer[5] = x[4];
-                    buffer[6] = x[5];
-                    buffer[7] = x[6];
-                    buffer[8] = x[7];
-                    buffer[9] = x[8];
-                    buffer[10] = x[9];
-                    buffer[11] = x[10];
-                    buffer[12] = x[11];
-                    buffer[13] = x[12];
-                    buffer[14] = x[13];
-                    buffer[15] = x[14];
-                    buffer[16] = x[15];
-                    let x = secret.to_le_bytes();
-                    buffer[17] = x[0];
-                    buffer[18] = x[1];
-                    buffer[19] = x[2];
-                    buffer[20] = x[3];
-                    buffer[21] = x[4];
-                    buffer[22] = x[5];
-                    buffer[23] = x[6];
-                    buffer[24] = x[7];
-                    buffer[25] = x[8];
-                    buffer[26] = x[9];
-                    buffer[27] = x[10];
-                    buffer[28] = x[11];
-                    buffer[29] = x[12];
-                    buffer[30] = x[13];
-                    buffer[31] = x[14];
-                    buffer[32] = x[15];
+                    buffer[0] = FRAME_INIT.to_be_bytes()[0];
+                    buffer[1..17].copy_from_slice(&pid.to_le_bytes());
+                    buffer[17..33].copy_from_slice(&secret.to_le_bytes());
                     33
                 },
                 Frame::Shutdown => {
-                    let x = FRAME_SHUTDOWN.to_be_bytes();
-                    buffer[0] = x[0];
+                    buffer[0] = FRAME_SHUTDOWN.to_be_bytes()[0];
                     1
                 },
                 Frame::OpenStream {
@@ -596,103 +544,36 @@ impl UdpProtocol {
                     prio,
                     promises,
                 } => {
-                    let x = FRAME_OPEN_STREAM.to_be_bytes();
-                    buffer[0] = x[0];
-                    let x = sid.to_le_bytes();
-                    buffer[1] = x[0];
-                    buffer[2] = x[1];
-                    buffer[3] = x[2];
-                    buffer[4] = x[3];
-                    buffer[5] = x[4];
-                    buffer[6] = x[5];
-                    buffer[7] = x[6];
-                    buffer[8] = x[7];
-                    let x = prio.to_le_bytes();
-                    buffer[9] = x[0];
-                    let x = promises.to_le_bytes();
-                    buffer[10] = x[0];
+                    buffer[0] = FRAME_OPEN_STREAM.to_be_bytes()[0];
+                    buffer[1..9].copy_from_slice(&sid.to_le_bytes());
+                    buffer[9] = prio.to_le_bytes()[0];
+                    buffer[10] = promises.to_le_bytes()[0];
                     11
                 },
                 Frame::CloseStream { sid } => {
-                    let x = FRAME_CLOSE_STREAM.to_be_bytes();
-                    buffer[0] = x[0];
-                    let x = sid.to_le_bytes();
-                    buffer[1] = x[0];
-                    buffer[2] = x[1];
-                    buffer[3] = x[2];
-                    buffer[4] = x[3];
-                    buffer[5] = x[4];
-                    buffer[6] = x[5];
-                    buffer[7] = x[6];
-                    buffer[8] = x[7];
+                    buffer[0] = FRAME_CLOSE_STREAM.to_be_bytes()[0];
+                    buffer[1..9].copy_from_slice(&sid.to_le_bytes());
                     9
                 },
                 Frame::DataHeader { mid, sid, length } => {
-                    let x = FRAME_DATA_HEADER.to_be_bytes();
-                    buffer[0] = x[0];
-                    let x = mid.to_le_bytes();
-                    buffer[1] = x[0];
-                    buffer[2] = x[1];
-                    buffer[3] = x[2];
-                    buffer[4] = x[3];
-                    buffer[5] = x[4];
-                    buffer[6] = x[5];
-                    buffer[7] = x[6];
-                    buffer[8] = x[7];
-                    let x = sid.to_le_bytes();
-                    buffer[9] = x[0];
-                    buffer[10] = x[1];
-                    buffer[11] = x[2];
-                    buffer[12] = x[3];
-                    buffer[13] = x[4];
-                    buffer[14] = x[5];
-                    buffer[15] = x[6];
-                    buffer[16] = x[7];
-                    let x = length.to_le_bytes();
-                    buffer[17] = x[0];
-                    buffer[18] = x[1];
-                    buffer[19] = x[2];
-                    buffer[20] = x[3];
-                    buffer[21] = x[4];
-                    buffer[22] = x[5];
-                    buffer[23] = x[6];
-                    buffer[24] = x[7];
+                    buffer[0] = FRAME_DATA_HEADER.to_be_bytes()[0];
+                    buffer[1..9].copy_from_slice(&mid.to_le_bytes());
+                    buffer[9..17].copy_from_slice(&sid.to_le_bytes());
+                    buffer[17..25].copy_from_slice(&length.to_le_bytes());
                     25
                 },
                 Frame::Data { mid, start, data } => {
-                    let x = FRAME_DATA.to_be_bytes();
-                    buffer[0] = x[0];
-                    let x = mid.to_le_bytes();
-                    buffer[1] = x[0];
-                    buffer[2] = x[1];
-                    buffer[3] = x[2];
-                    buffer[4] = x[3];
-                    buffer[5] = x[4];
-                    buffer[6] = x[5];
-                    buffer[7] = x[6];
-                    buffer[8] = x[7];
-                    let x = start.to_le_bytes();
-                    buffer[9] = x[0];
-                    buffer[10] = x[1];
-                    buffer[11] = x[2];
-                    buffer[12] = x[3];
-                    buffer[13] = x[4];
-                    buffer[14] = x[5];
-                    buffer[15] = x[6];
-                    buffer[16] = x[7];
-                    let x = (data.len() as u16).to_le_bytes();
-                    buffer[17] = x[0];
-                    buffer[18] = x[1];
+                    buffer[0] = FRAME_DATA.to_be_bytes()[0];
+                    buffer[1..9].copy_from_slice(&mid.to_le_bytes());
+                    buffer[9..17].copy_from_slice(&start.to_le_bytes());
+                    buffer[17..19].copy_from_slice(&(data.len() as u16).to_le_bytes());
                     buffer[19..(data.len() + 19)].clone_from_slice(&data[..]);
                     throughput_cache.inc_by(data.len() as i64);
                     19 + data.len()
                 },
                 Frame::Raw(data) => {
-                    let x = FRAME_RAW.to_be_bytes();
-                    buffer[0] = x[0];
-                    let x = (data.len() as u16).to_le_bytes();
-                    buffer[1] = x[0];
-                    buffer[2] = x[1];
+                    buffer[0] = FRAME_RAW.to_be_bytes()[0];
+                    buffer[1..3].copy_from_slice(&(data.len() as u16).to_le_bytes());
                     buffer[3..(data.len() + 3)].clone_from_slice(&data[..]);
                     3 + data.len()
                 },
