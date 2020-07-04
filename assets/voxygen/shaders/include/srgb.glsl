@@ -489,6 +489,9 @@ vec3 compute_attenuation(vec3 wpos, vec3 ray_dir, vec3 mu, float surface_alt, ve
 #if (LIGHTING_TRANSPORT_MODE == LIGHTING_TRANSPORT_MODE_IMPORTANCE)
     return vec3(1.0);
 #elif (LIGHTING_TRANSPORT_MODE == LIGHTING_TRANSPORT_MODE_RADIANCE)
+    #if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
+    return vec3(1.0);
+    #else
     // return vec3(1.0);
     /*if (mu == vec3(0.0)) {
         return vec3(1.0);
@@ -497,33 +500,35 @@ vec3 compute_attenuation(vec3 wpos, vec3 ray_dir, vec3 mu, float surface_alt, ve
     }*/
     // return vec3(0.0);
     // vec3 surface_dir = /*surface_alt < wpos.z ? vec3(0.0, 0.0, -1.0) : vec3(0.0, 0.0, 1.0)*/vec3(0.0, 0.0, sign(surface_alt - wpos.z));
+    ray_dir = faceforward(ray_dir, vec3(0.0, 0.0, -1.0), ray_dir);
     vec3 surface_dir = surface_alt < wpos.z ? vec3(0.0, 0.0, -1.0) : vec3(0.0, 0.0, 1.0);
     // vec3 surface_dir = faceforward(vec3(0.0, 0.0, 1.0), ray_dir, vec3(0.0, 0.0, 1.0));
     bool _intersects_surface = IntersectRayPlane(wpos, ray_dir, vec3(0.0, 0.0, surface_alt), surface_dir, defaultpos);
     float depth = length(defaultpos - wpos);
     return exp(-mu * depth);
+    #endif
 #endif
 }
 
-vec3 compute_attenuation2(vec3 wpos, vec3 ray_dir, vec3 mu, float surface_alt, vec3 defaultpos) {
-#if (LIGHTING_TRANSPORT_MODE == LIGHTING_TRANSPORT_MODE_IMPORTANCE)
-    return vec3(1.0);
-#elif (LIGHTING_TRANSPORT_MODE == LIGHTING_TRANSPORT_MODE_RADIANCE)
-    // return vec3(1.0);
-    /*if (mu == vec3(0.0)) {
-        return vec3(1.0);
-    }*//* else {
-        return vec3(0.0);
-    }*/
-    // return vec3(0.0);
-    // vec3 surface_dir = /*surface_alt < wpos.z ? vec3(0.0, 0.0, -1.0) : vec3(0.0, 0.0, 1.0)*/vec3(0.0, 0.0, sign(surface_alt - wpos.z));
-    vec3 surface_dir = surface_alt < wpos.z ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 0.0, -1.0);
-    // vec3 surface_dir = faceforward(vec3(0.0, 0.0, 1.0), ray_dir, vec3(0.0, 0.0, 1.0));
-    bool _intersects_surface = IntersectRayPlane(wpos, ray_dir, vec3(0.0, 0.0, surface_alt), surface_dir, defaultpos);
-    float depth = length(defaultpos - wpos);
-    return exp(-mu * depth);
-#endif
-}
+// vec3 compute_attenuation2(vec3 wpos, vec3 ray_dir, vec3 mu, float surface_alt, vec3 defaultpos) {
+// #if (LIGHTING_TRANSPORT_MODE == LIGHTING_TRANSPORT_MODE_IMPORTANCE)
+//     return vec3(1.0);
+// #elif (LIGHTING_TRANSPORT_MODE == LIGHTING_TRANSPORT_MODE_RADIANCE)
+//     // return vec3(1.0);
+//     /*if (mu == vec3(0.0)) {
+//         return vec3(1.0);
+//     }*//* else {
+//         return vec3(0.0);
+//     }*/
+//     // return vec3(0.0);
+//     // vec3 surface_dir = /*surface_alt < wpos.z ? vec3(0.0, 0.0, -1.0) : vec3(0.0, 0.0, 1.0)*/vec3(0.0, 0.0, sign(surface_alt - wpos.z));
+//     vec3 surface_dir = surface_alt < wpos.z ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 0.0, -1.0);
+//     // vec3 surface_dir = faceforward(vec3(0.0, 0.0, 1.0), ray_dir, vec3(0.0, 0.0, 1.0));
+//     bool _intersects_surface = IntersectRayPlane(wpos, ray_dir, vec3(0.0, 0.0, surface_alt), surface_dir, defaultpos);
+//     float depth = length(defaultpos - wpos);
+//     return exp(-mu * depth);
+// #endif
+// }
 
 // Same as compute_attenuation but since both point are known, set a maximum to make sure we don't exceed the length
 // from the default point.

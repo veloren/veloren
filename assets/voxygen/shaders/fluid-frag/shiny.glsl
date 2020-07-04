@@ -144,6 +144,7 @@ void main() {
 	vec3 norm = vec3(0, 0, 1) * nmap.z + b_norm * nmap.x + c_norm * nmap.y;
     // vec3 norm = f_norm;
 
+    vec3 water_color = (1.0 - MU_WATER) * MU_SCATTER;
 #if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE == FLUID_MODE_SHINY)
     float f_alt = alt_at(f_pos.xy);
 #elif (SHADOW_MODE == SHADOW_MODE_NONE || FLUID_MODE == FLUID_MODE_CHEAP)
@@ -282,7 +283,7 @@ void main() {
 	// diffuse_light += point_light;
     // reflected_light += point_light;
 	// vec3 surf_color = srgb_to_linear(vec3(0.2, 0.5, 1.0)) * light * diffuse_light * ambient_light;
-    vec3 surf_color = illuminate(max_light, view_dir, emitted_light/* * log(1.0 - MU_WATER)*/, /*cam_attenuation * *//*water_color * */reflect_color * reflected_light/* * log(1.0 - MU_WATER)*/);
+    vec3 surf_color = illuminate(max_light, view_dir, water_color * emitted_light/* * log(1.0 - MU_WATER)*/, /*cam_attenuation * *//*water_color * */reflect_color * reflected_light/* * log(1.0 - MU_WATER)*/);
 
     // passthrough = pow(passthrough, 1.0 / (1.0 + water_depth_to_camera));
     /* surf_color = cam_attenuation.g < 0.5 ?

@@ -107,7 +107,7 @@ DirectionalLight get_sun_info(vec4 _dir, float shade_frac/*, vec4 light_pos[2]*/
     }
 #endif
 #endif
-    return DirectionalLight(/*dir, */shade_frac * shadow/*, get_sun_color(dir), get_sun_brightness(dir)*/);
+    return DirectionalLight(/*dir, */shadow/*, get_sun_color(dir), get_sun_brightness(dir)*/);
 }
 
 DirectionalLight get_moon_info(vec4 _dir, float shade_frac/*, vec4 light_pos[2]*/) {
@@ -414,8 +414,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
         );
 
         vec3 sky_mid = mix(
-            mix(
-                SKY_DUSK_MID,
+            mix( SKY_DUSK_MID,
                 SKY_NIGHT_MID,
                 max(pow(sun_dir.z, 0.2), 0)
             ),
