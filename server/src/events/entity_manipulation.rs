@@ -292,11 +292,19 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Opti
         )
         .normalized();
 
-        let _ = ecs
-            .read_resource::<TerrainGrid>()
+        let terrain = ecs.read_resource::<TerrainGrid>();
+        let _ = terrain
             .ray(pos, pos + dir * power)
             .until(|_| rand::random::<f32>() < 0.05)
-            .for_each(|pos| block_change.set(pos, Block::empty()))
+            .for_each(|pos| {
+                if terrain
+                    .get(pos)
+                    .map(|block| block.is_explodable())
+                    .unwrap_or(false)
+                {
+                    block_change.set(pos, Block::empty());
+                }
+            })
             .cast();
     }
 }

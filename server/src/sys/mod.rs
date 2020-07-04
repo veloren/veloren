@@ -1,5 +1,6 @@
 pub mod entity_sync;
 pub mod message;
+pub mod object;
 pub mod persistence;
 pub mod sentinel;
 pub mod subscription;
@@ -32,11 +33,13 @@ pub type PersistenceScheduler = SysScheduler<persistence::Sys>;
 const TERRAIN_SYS: &str = "server_terrain_sys";
 const WAYPOINT_SYS: &str = "waypoint_sys";
 const PERSISTENCE_SYS: &str = "persistence_sys";
+const OBJECT_SYS: &str = "object_sys";
 
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(terrain::Sys, TERRAIN_SYS, &[]);
     dispatch_builder.add(waypoint::Sys, WAYPOINT_SYS, &[]);
     dispatch_builder.add(persistence::Sys, PERSISTENCE_SYS, &[]);
+    dispatch_builder.add(object::Sys, OBJECT_SYS, &[]);
 }
 
 pub fn run_sync_systems(ecs: &mut specs::World) {

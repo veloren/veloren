@@ -5,12 +5,13 @@ use common::{
         slot::{self, Slot},
         Pos, MAX_PICKUP_RANGE_SQR,
     },
-    sync::WorldSyncExt,
+    sync::{Uid, WorldSyncExt},
     terrain::block::Block,
     vol::{ReadVol, Vox},
 };
 use rand::Rng;
 use specs::{join::Join, world::WorldExt, Builder, Entity as EcsEntity, WriteStorage};
+use std::time::Duration;
 use tracing::{debug, error};
 use vek::Vec3;
 
@@ -33,6 +34,7 @@ pub fn snuff_lantern(storage: &mut WriteStorage<comp::LightEmitter>, entity: Ecs
 pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::InventoryManip) {
     let state = server.state_mut();
     let mut dropped_items = Vec::new();
+    let mut thrown_items = Vec::new();
 
     match manip {
         comp::InventoryManip::Pickup(uid) => {
@@ -156,6 +158,29 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             ItemKind::Consumable { kind, effect, .. } => {
                                 maybe_effect = Some(*effect);
                                 Some(comp::InventoryUpdateEvent::Consumed(*kind))
+                            },
+                            ItemKind::Throwable { .. } => {
+                                if let Some(pos) =
+                                    state.ecs().read_storage::<comp::Pos>().get(entity)
+                                {
+                                    thrown_items.push((
+                                        *pos,
+                                        state
+                                            .ecs()
+                                            .read_storage::<comp::Vel>()
+                                            .get(entity)
+                                            .copied()
+                                            .unwrap_or_default(),
+                                        state
+                                            .ecs()
+                                            .read_storage::<comp::Ori>()
+                                            .get(entity)
+                                            .copied()
+                                            .unwrap_or_default(),
+                                        item,
+                                    ));
+                                }
+                                Some(comp::InventoryUpdateEvent::Used)
                             },
                             ItemKind::Utility {
                                 kind: comp::item::Utility::Collar,
@@ -317,6 +342,37 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             .with(item)
             .with(comp::Vel(vel))
             .build();
+    }
+
+    // Drop items
+    for (pos, vel, ori, item) in thrown_items {
+        let vel = vel.0
+            + *ori.0 * 20.0
+            + Vec3::unit_z() * 15.0
+            + Vec3::<f32>::zero().map(|_| rand::thread_rng().gen::<f32>() - 0.5) * 4.0;
+
+        let uid = state.read_component_cloned::<Uid>(entity);
+
+        let mut entity = state
+            .create_object(Default::default(), comp::object::Body::Bomb)
+            .with(comp::Pos(pos.0 + Vec3::unit_z() * 0.25))
+            .with(comp::Vel(vel));
+
+        #[allow(clippy::single-match)]
+        match item.kind {
+            item::ItemKind::Throwable {
+                kind: item::Throwable::Bomb,
+                ..
+            } => {
+                entity = entity.with(comp::Object::Bomb {
+                    timeout: Duration::from_secs_f32(1.0),
+                    owner: uid,
+                })
+            },
+            _ => {},
+        }
+
+        entity.build();
     }
 }
 

@@ -4,7 +4,7 @@ use common::{
     comp::item::{
         armor::Armor,
         tool::{Tool, ToolKind},
-        Consumable, Ingredient, Item, ItemKind, Lantern, LanternKind, Utility,
+        Consumable, Ingredient, Item, ItemKind, Lantern, LanternKind, Throwable, Utility,
     },
     figure::Segment,
 };
@@ -24,6 +24,7 @@ pub enum ItemKey {
     Armor(Armor),
     Utility(Utility),
     Consumable(Consumable),
+    Throwable(Throwable),
     Ingredient(Ingredient),
     Empty,
 }
@@ -35,6 +36,7 @@ impl From<&Item> for ItemKey {
             ItemKind::Armor { kind, .. } => ItemKey::Armor(*kind),
             ItemKind::Utility { kind, .. } => ItemKey::Utility(*kind),
             ItemKind::Consumable { kind, .. } => ItemKey::Consumable(*kind),
+            ItemKind::Throwable { kind, .. } => ItemKey::Throwable(*kind),
             ItemKind::Ingredient { kind, .. } => ItemKey::Ingredient(*kind),
         }
     }
