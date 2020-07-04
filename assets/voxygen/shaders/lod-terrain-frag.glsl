@@ -428,7 +428,8 @@ void main() {
     f_pos.xyz += abs(voxel_norm) * delta_sides;
     voxel_norm = voxel_norm == vec3(0.0) ? f_norm : voxel_norm;
 
-    f_col = /*srgb_to_linear*/(f_col + hash(vec4(floor(f_pos * 3.0 - voxel_norm * 0.5), 0)) * 0.01/* - 0.01*/); // Small-scale noise
+    vec3 hash_pos = f_pos + focus_off.xyz;
+    f_col = /*srgb_to_linear*/(f_col + hash(vec4(floor(hash_pos * 3.0 - voxel_norm * 0.5), 0)) * 0.01/* - 0.01*/); // Small-scale noise
 
     // f_ao = 1.0;
     // f_ao = dot(f_ao_vec, sqrt(1.0 - delta_sides * delta_sides));

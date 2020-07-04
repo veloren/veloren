@@ -478,9 +478,10 @@ impl FigureMgr {
 
             // Don't display figures outside the frustum spectrum (this is important to do
             // for any figure that potentially casts a shadow, since we use this
-            // to estimate bounds for shadow maps).  Currently, we don't do this before the update
-            // cull, so it's possible that faraway figures will not shadow correctly until their
-            // next update.  For now, we treat this as an acceptable tradeoff.
+            // to estimate bounds for shadow maps).  Currently, we don't do this before the
+            // update cull, so it's possible that faraway figures will not
+            // shadow correctly until their next update.  For now, we treat this
+            // as an acceptable tradeoff.
             let radius = scale.unwrap_or(&Scale(1.0)).0 * 2.0;
             let (in_frustum, lpindex) = if let Some(mut meta) = self.states.get_mut(body, &entity) {
                 let (in_frustum, lpindex) = BoundingSphere::new(pos.0.into_array(), radius)

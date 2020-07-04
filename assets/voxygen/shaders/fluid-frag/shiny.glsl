@@ -127,9 +127,10 @@ void main() {
 	}
 	vec3 c_norm = cross(f_norm, b_norm);
 
-	float wave00 = wave_height(f_pos);
-	float wave10 = wave_height(f_pos + vec3(0.1, 0, 0));
-	float wave01 = wave_height(f_pos + vec3(0, 0.1, 0));
+    vec3 wave_pos = f_pos + focus_off.xyz;
+	float wave00 = wave_height(wave_pos);
+	float wave10 = wave_height(wave_pos + vec3(0.1, 0, 0));
+	float wave01 = wave_height(wave_pos + vec3(0, 0.1, 0));
 
 	float slope = abs(wave00 - wave10) * abs(wave00 - wave01);
 	vec3 nmap = vec3(

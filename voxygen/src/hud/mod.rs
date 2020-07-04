@@ -2246,9 +2246,10 @@ impl Hud {
         let camera::Dependents {
             view_mat, proj_mat, ..
         } = camera.dependents();
+        let focus_off = camera.get_focus_pos().map(f32::trunc);
         self.ui.maintain(
             &mut global_state.window.renderer_mut(),
-            Some(proj_mat * view_mat),
+            Some(proj_mat * view_mat * Mat4::translation_3d(-focus_off)),
         );
 
         // Check if item images need to be reloaded
