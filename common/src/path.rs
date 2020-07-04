@@ -77,9 +77,9 @@ impl Route {
             None
         } else {
             let next_tgt = next.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
-            if ((pos - (next_tgt + Vec3::unit_z() * 0.5)) * Vec3::new(1.0, 1.0, 0.3))
-                .magnitude_squared()
-                < (traversal_tolerance * 2.0).powf(2.0)
+            if pos.xy().distance_squared(next_tgt.xy()) < traversal_tolerance.powf(2.0)
+                && next_tgt.z - pos.z < 0.2
+                && next_tgt.z - pos.z > -2.2
             {
                 self.next_idx += 1;
             }
@@ -93,7 +93,7 @@ impl Route {
 #[derive(Default, Clone, Debug)]
 pub struct Chaser {
     last_search_tgt: Option<Vec3<f32>>,
-    route: Route,
+    route: Option<Route>,
     /// We use this hasher (AAHasher) because:
     /// (1) we care about DDOS attacks (ruling out FxHash);
     /// (2) we don't care about determinism across computers (we can use
@@ -115,21 +115,25 @@ impl Chaser {
     {
         let pos_to_tgt = pos.distance(tgt);
 
-        if ((pos - tgt) * Vec3::new(1.0, 1.0, 0.15)).magnitude_squared() < min_dist.powf(2.0) {
+        if ((pos - tgt) * Vec3::new(1.0, 1.0, 2.0)).magnitude_squared() < min_dist.powf(2.0) {
             return None;
         }
 
-        let bearing = if let Some(end) = self.route.path().end().copied() {
+        let bearing = if let Some(end) = self.route.as_ref().and_then(|r| r.path().end().copied()) {
             let end_to_tgt = end.map(|e| e as f32).distance(tgt);
             if end_to_tgt > pos_to_tgt * 0.3 + 5.0 {
                 None
             } else {
                 if thread_rng().gen::<f32>() < 0.005 {
-                    // TODO: Only re-calculate route when we're stuck
-                    self.route = Route::default();
+                    None
+                } else {
+                    self.route
+                        .as_mut()
+                        .and_then(|r| r.traverse(vol, pos, traversal_tolerance))
+                        .filter(|b| {
+                            b.xy().magnitude_squared() < (traversal_tolerance + 1.0).powf(2.0)
+                        })
                 }
-
-                self.route.traverse(vol, pos, traversal_tolerance)
             }
         } else {
             None
@@ -144,7 +148,12 @@ impl Chaser {
                 .map(|last_tgt| last_tgt.distance(tgt) > pos_to_tgt * 0.15 + 5.0)
                 .unwrap_or(true)
             {
-                self.route = find_path(&mut self.astar, vol, pos, tgt).into();
+                let (start_pos, path) = find_path(&mut self.astar, vol, pos, tgt);
+                if start_pos.distance_squared(pos) < 4.0f32.powf(2.0) {
+                    self.route = path.map(Route::from);
+                } else {
+                    self.route = None;
+                }
             }
 
             Some((tgt - pos) * Vec3::new(1.0, 1.0, 0.0))
@@ -158,7 +167,7 @@ fn find_path<V>(
     vol: &V,
     startf: Vec3<f32>,
     endf: Vec3<f32>,
-) -> Path<Vec3<i32>>
+) -> (Vec3<f32>, Option<Path<Vec3<i32>>>)
 where
     V: BaseVol<Vox = Block> + ReadVol,
 {
@@ -192,7 +201,7 @@ where
         get_walkable_z(endf.map(|e| e.floor() as i32)),
     ) {
         (Some(start), Some(end)) => (start, end),
-        _ => return Path::default(),
+        _ => return (startf, None),
     };
 
     let heuristic = |pos: &Vec3<i32>| (pos.distance_squared(end) as f32).sqrt();
@@ -240,6 +249,7 @@ where
             .map(move |dir| (pos, dir))
             .filter(move |(pos, dir)| {
                 is_walkable(pos)
+                    && is_walkable(&(*pos + **dir))
                     && ((dir.z < 1
                         || vol
                             .get(pos + Vec3::unit_z() * 2)
@@ -266,34 +276,32 @@ where
                     .map(move |(dir, _)| pos + *dir),
             )
     };
-    let transition = |a: &Vec3<i32>, b: &Vec3<i32>| {
-        ((*a - *b) * Vec3::new(1, 1, 3)).map(|e| e.abs()).reduce_max() as f32
-        + endf.distance((*b).map(|e| e as f32)) * 0.01
-    };
+    let transition =
+        |a: &Vec3<i32>, b: &Vec3<i32>| 1.0 + endf.distance((*b).map(|e| e as f32 + 0.5)) * 0.02;
     let satisfied = |pos: &Vec3<i32>| pos == &end;
 
     let mut new_astar = match astar.take() {
-        None => Astar::new(20_000, start, heuristic, DefaultHashBuilder::default()),
+        None => Astar::new(25_000, start, heuristic, DefaultHashBuilder::default()),
         Some(astar) => astar,
     };
 
-    let path_result = new_astar.poll(60, heuristic, neighbors, transition, satisfied);
+    let path_result = new_astar.poll(100, heuristic, neighbors, transition, satisfied);
 
     *astar = Some(new_astar);
 
-    match path_result {
+    (startf, match path_result {
         PathResult::Path(path) => {
             *astar = None;
-            path
+            Some(path)
         },
         PathResult::None(path) => {
             *astar = None;
-            path
+            Some(path)
         },
         PathResult::Exhausted(path) => {
             *astar = None;
-            path
+            Some(path)
         },
-        PathResult::Pending => Path::default(),
-    }
+        PathResult::Pending => None,
+    })
 }

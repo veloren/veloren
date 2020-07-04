@@ -1,8 +1,7 @@
 use crate::{
     comp::{
         item::{Hands, ItemKind, Tool},
-        CharacterState, StateUpdate,
-        Body,
+        Body, CharacterState, StateUpdate,
     },
     event::LocalEvent,
     states::*,
