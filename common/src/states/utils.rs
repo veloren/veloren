@@ -100,7 +100,7 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     handle_orientation(data, update, if data.physics.on_ground { 9.0 } else { 2.0 });
 
     // Swim
-    if data.inputs.jump.is_pressed() {
+    if data.inputs.swim.is_pressed() {
         update.vel.0.z =
             (update.vel.0.z + data.dt.0 * GRAVITY * 2.25).min(BASE_HUMANOID_WATER_SPEED);
     }
