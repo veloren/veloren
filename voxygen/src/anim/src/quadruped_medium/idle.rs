@@ -140,7 +140,7 @@ impl Animation for IdleAnimation {
             skeleton_attr.feet_f.2 + slower * -0.2,
         );
         next.foot_fl.ori = Quaternion::rotation_x(0.0);
-        next.foot_fl.scale = Vec3::one() * 0.96;
+        next.foot_fl.scale = Vec3::one() * 0.94;
 
         next.foot_fr.offset = Vec3::new(
             skeleton_attr.feet_f.0,
@@ -148,7 +148,7 @@ impl Animation for IdleAnimation {
             skeleton_attr.feet_f.2 + slower * -0.2,
         );
         next.foot_fr.ori = Quaternion::rotation_x(0.0);
-        next.foot_fr.scale = Vec3::one();
+        next.foot_fr.scale = Vec3::one() * 0.94;
 
         next.foot_bl.offset = Vec3::new(
             -skeleton_attr.feet_b.0,
@@ -156,7 +156,7 @@ impl Animation for IdleAnimation {
             skeleton_attr.feet_b.2 + slower * -0.2,
         );
         next.foot_bl.ori = Quaternion::rotation_x(0.0);
-        next.foot_bl.scale = Vec3::one() * 0.96;
+        next.foot_bl.scale = Vec3::one() * 0.94;
 
         next.foot_br.offset = Vec3::new(
             skeleton_attr.feet_b.0,
@@ -164,7 +164,7 @@ impl Animation for IdleAnimation {
             skeleton_attr.feet_b.2 + slower * -0.2,
         );
         next.foot_br.ori = Quaternion::rotation_x(0.0);
-        next.foot_br.scale = Vec3::one() * 0.96;
+        next.foot_br.scale = Vec3::one() * 0.94;
 
         next
     }

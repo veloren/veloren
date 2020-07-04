@@ -16,15 +16,15 @@
     (Ogre, Female): (
         head: (
             offset: (-8.0, -5.0, -6.0),
-            center: ("npc.ogre.female.head"),
+            center: ("npc.ogre.male.head"),
         ),
         torso_upper: (
             offset: (-8.0, -4.5, -5.0),
-            center: ("npc.ogre.female.torso_upper"),
+            center: ("npc.ogre.male.torso_upper"),
         ),
         torso_lower: (
             offset: (-5.0, -4.5, -4.5),
-            center: ("npc.ogre.female.torso_lower"),
+            center: ("npc.ogre.male.torso_lower"),
         )
     ),
     (Cyclops, Male): (
@@ -44,15 +44,15 @@
     (Cyclops, Female): (
         head: (
             offset: (-7.0, -7.0, -6.5),
-            center: ("npc.cyclops.female.head"),
+            center: ("npc.cyclops.male.head"),
         ),
         torso_upper: (
             offset: (-8.0, -6.0, -6.0),
-            center: ("npc.cyclops.female.torso_upper"),
+            center: ("npc.cyclops.male.torso_upper"),
         ),
         torso_lower: (
             offset: (-6.0, -5.5, -6.0),
-            center: ("npc.cyclops.female.torso_lower"),
+            center: ("npc.cyclops.male.torso_lower"),
         )
     ),
 })

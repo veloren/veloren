@@ -1,9 +1,12 @@
+pub mod alpha;
 pub mod idle;
 pub mod jump;
 pub mod run;
 
 // Reexports
-pub use self::{idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
+pub use self::{
+    alpha::AlphaAnimation, idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation,
+};
 
 use super::{Bone, FigureBoneData, Skeleton};
 use common::comp::{self};
@@ -132,9 +135,9 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
         Self {
             head_upper: match (body.species, body.body_type) {
                 (Crocodile, _) => (10.0, 2.0),
-                (Alligator, _) => (0.5, 3.25),
-                (Salamander, _) => (6.5, 2.0),
-                (Monitor, _) => (3.5, 2.0),
+                (Alligator, _) => (0.5, 2.0),
+                (Salamander, _) => (6.5, 2.5),
+                (Monitor, _) => (4.5, 1.0),
                 (Asp, _) => (6.0, 5.5),
                 (Tortoise, _) => (5.0, 1.0),
                 (Rocksnapper, _) => (6.0, 0.5),
@@ -144,7 +147,7 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
                 (Crocodile, _) => (8.0, 0.0),
                 (Alligator, _) => (9.0, 0.25),
                 (Salamander, _) => (9.0, 0.0),
-                (Monitor, _) => (10.0, 3.0),
+                (Monitor, _) => (10.0, 2.0),
                 (Asp, _) => (9.0, 2.5),
                 (Tortoise, _) => (12.0, -3.5),
                 (Rocksnapper, _) => (12.0, -9.0),
@@ -173,7 +176,7 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
             tail_rear: match (body.species, body.body_type) {
                 (Crocodile, _) => (-12.5, -1.0),
                 (Alligator, _) => (-13.0, -1.0),
-                (Salamander, _) => (-9.0, 0.0),
+                (Salamander, _) => (-8.0, 0.0),
                 (Monitor, _) => (-12.0, 0.0),
                 (Asp, _) => (-14.0, -2.0),
                 (Tortoise, _) => (-10.0, -1.5),
