@@ -24,23 +24,23 @@
     (Rat, Female): (
         head: (
             offset: (-4.5, -4.0, -4.0),
-            center: ("npc.rat.female.head"),
+            center: ("npc.rat.male.head"),
         ),
         chest: (
             offset: (-4.5, -6.0, -4.0),
-            center: ("npc.rat.female.chest"),
+            center: ("npc.rat.male.chest"),
         ),
         feet_f: (
             offset: (-4.0, -1.5, -1.0),
-            center: ("npc.rat.female.feet_f"),
+            center: ("npc.rat.male.feet_f"),
         ),
         feet_b: (
             offset: (-4.0, -1.5, -1.0),
-            center: ("npc.rat.female.feet_b"),
+            center: ("npc.rat.male.feet_b"),
         ),
         tail: (
             offset: (-0.5, -4.0, -1.5),
-            center: ("npc.rat.female.tail"),
+            center: ("npc.rat.male.tail"),
         ),
     ),
     (Axolotl, Male): (
@@ -68,23 +68,23 @@
     (Axolotl, Female): (
         head: (
             offset: (-3.5, -4.0, -2.0),
-            center: ("npc.axolotl.female.head"),
+            center: ("npc.axolotl.male.head"),
         ),
         chest: (
             offset: (-2.5, -4.0, -1.5),
-            center: ("npc.axolotl.female.chest"),
+            center: ("npc.axolotl.male.chest"),
         ),
         feet_f: (
             offset: (-3.0, -0.5, -1.0),
-            center: ("npc.axolotl.female.feet_f"),
+            center: ("npc.axolotl.male.feet_f"),
         ),
         feet_b: (
             offset: (-3.0, -0.5, -1.0),
-            center: ("npc.axolotl.female.feet_b"),
+            center: ("npc.axolotl.male.feet_b"),
         ),
         tail: (
             offset: (-1.5, -2.5, -1.5),
-            center: ("npc.axolotl.female.tail"),
+            center: ("npc.axolotl.male.tail"),
         ),
     ),
     (Gecko, Male): (
@@ -112,23 +112,23 @@
     (Gecko, Female): (
         head: (
             offset: (-2.5, -3.0, -2.0),
-            center: ("npc.gecko.female.head"),
+            center: ("npc.gecko.male.head"),
         ),
         chest: (
             offset: (-1.5, -4.0, -1.5),
-            center: ("npc.gecko.female.chest"),
+            center: ("npc.gecko.male.chest"),
         ),
         feet_f: (
             offset: (-2.0, -0.5, -1.0),
-            center: ("npc.gecko.female.feet_f"),
+            center: ("npc.gecko.male.feet_f"),
         ),
         feet_b: (
             offset: (-2.0, -0.5, -1.0),
-            center: ("npc.gecko.female.feet_b"),
+            center: ("npc.gecko.male.feet_b"),
         ),
         tail: (
             offset: (-0.5, -2.5, -1.0),
-            center: ("npc.gecko.female.tail"),
+            center: ("npc.gecko.male.tail"),
         ),
     ),
     (Turtle, Male): (
@@ -156,23 +156,23 @@
     (Turtle, Female): (
         head: (
             offset: (-2.5, -2.5, -2.5),
-            center: ("npc.turtle.female.head"),
+            center: ("npc.turtle.male.head"),
         ),
         chest: (
             offset: (-6.0, -6.0, -4.0),
-            center: ("npc.turtle.female.chest"),
+            center: ("npc.turtle.male.chest"),
         ),
         feet_f: (
             offset: (-5.0, -0.5, -1.0),
-            center: ("npc.turtle.female.feet_f"),
+            center: ("npc.turtle.male.feet_f"),
         ),
         feet_b: (
             offset: (-5.0, -0.5, -1.0),
-            center: ("npc.turtle.female.feet_b"),
+            center: ("npc.turtle.male.feet_b"),
         ),
         tail: (
             offset: (-0.5, -2.0, -1.0),
-            center: ("npc.turtle.female.tail"),
+            center: ("npc.turtle.male.tail"),
         ),
     ),
     (Squirrel, Male): (
@@ -200,23 +200,23 @@
     (Squirrel, Female): (
         head: (
             offset: (-1.5, -2.0, -2.0),
-            center: ("npc.squirrel.female.head"),
+            center: ("npc.squirrel.male.head"),
         ),
         chest: (
             offset: (-1.5, -3.0, -1.5),
-            center: ("npc.squirrel.female.chest"),
+            center: ("npc.squirrel.male.chest"),
         ),
         feet_f: (
             offset: (-2.0, -0.5, -1.0),
-            center: ("npc.squirrel.female.feet_f"),
+            center: ("npc.squirrel.male.feet_f"),
         ),
         feet_b: (
             offset: (-2.0, -0.5, -1.0),
-            center: ("npc.squirrel.female.feet_b"),
+            center: ("npc.squirrel.male.feet_b"),
         ),
         tail: (
             offset: (-1.5, -1.5, -3.0),
-            center: ("npc.squirrel.female.tail"),
+            center: ("npc.squirrel.male.tail"),
         ),
     ),
     (Fungome, Male): (
@@ -244,23 +244,23 @@
     (Fungome, Female): (
         head: (
             offset: (-2.5, -1.5, -2.0),
-            center: ("npc.fungome.female.head"),
+            center: ("npc.fungome.male.head"),
         ),
         chest: (
             offset: (-6.0, -6.0, -4.0),
-            center: ("npc.fungome.female.chest"),
+            center: ("npc.fungome.male.chest"),
         ),
         feet_f: (
             offset: (-3.0, -0.5, -1.0),
-            center: ("npc.fungome.female.feet_f"),
+            center: ("npc.fungome.male.feet_f"),
         ),
         feet_b: (
             offset: (-3.0, -0.5, -1.0),
-            center: ("npc.fungome.female.feet_b"),
+            center: ("npc.fungome.male.feet_b"),
         ),
         tail: (
             offset: (-1.0, -0.5, -1.0),
-            center: ("npc.fungome.female.tail"),
+            center: ("npc.fungome.male.tail"),
         ),
     ),
 })

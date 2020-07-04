@@ -12,11 +12,11 @@
     (StoneGolem, Female): (
         head: (
             offset: (-5.0, -5.5, -7.5),
-            center: ("npc.stonegolem.female.head"),
+            center: ("npc.stonegolem.male.head"),
         ),
         torso_upper: (
             offset: (-6.0, -3.5, -10.0),
-            center: ("npc.stonegolem.female.torso_upper"),
+            center: ("npc.stonegolem.male.torso_upper"),
         ),
     ),
 })

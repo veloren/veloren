@@ -277,7 +277,7 @@ where
             )
     };
     let transition =
-        |a: &Vec3<i32>, b: &Vec3<i32>| 1.0 + endf.distance((*b).map(|e| e as f32 + 0.5)) * 0.02;
+        |_a: &Vec3<i32>, b: &Vec3<i32>| 1.0 + endf.distance((*b).map(|e| e as f32 + 0.5)) * 0.02;
     let satisfied = |pos: &Vec3<i32>| pos == &end;
 
     let mut new_astar = match astar.take() {

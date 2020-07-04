@@ -5,7 +5,7 @@ use vek::*;
 pub struct RunAnimation;
 
 impl Animation for RunAnimation {
-    type Dependency = (f32, Vec3<f32>, Vec3<f32>, f64);
+    type Dependency = (f32, Vec3<f32>, Vec3<f32>, f64, Vec3<f32>);
     type Skeleton = QuadrupedLowSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -14,7 +14,7 @@ impl Animation for RunAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_low_run")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_velocity, orientation, last_ori, _global_time): Self::Dependency,
+        (_velocity, orientation, last_ori, _global_time, avg_vel): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -22,6 +22,7 @@ impl Animation for RunAnimation {
         let mut next = (*skeleton).clone();
 
         let lab = 0.7 * skeleton_attr.tempo;
+        let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude());
 
         let short = (((1.0)
             / (0.72
@@ -50,7 +51,7 @@ impl Animation for RunAnimation {
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.45).sin());
         let footvertr = (anim_time as f32 * 16.0 * lab as f32 + PI).sin();
 
-        //
+        //back feet
         let foothorilb = (((1.0)
             / (0.4
                 + (0.6)
@@ -124,7 +125,7 @@ impl Animation for RunAnimation {
             / 11.0;
         next.chest.ori = Quaternion::rotation_z(short * 0.13 + tilt * -1.9)
             * Quaternion::rotation_y(short * 0.12)
-            * Quaternion::rotation_x(skeleton_attr.lean.0);
+            * Quaternion::rotation_x(x_tilt + skeleton_attr.lean.0);
         next.chest.scale = Vec3::one() * skeleton_attr.scaler / 11.0;
 
         next.foot_fl.offset = Vec3::new(
