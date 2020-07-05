@@ -259,7 +259,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tiger, _) => (6.0, -5.0, -3.0),
                 (Wolf, _) => (4.5, -6.5, -1.0),
                 (Frostfang, _) => (5.5, -5.5, -2.0),
-                (Mouflon, _) => (5.0, -5.0, -5.0),
+                (Mouflon, _) => (4.0, -5.0, -5.0),
             },
             leg_b: match (body.species, body.body_type) {
                 (Grolgar, _) => (6.0, -6.5, -5.5),
@@ -270,7 +270,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tiger, _) => (6.0, -7.5, -3.0),
                 (Wolf, _) => (5.0, -6.5, -2.5),
                 (Frostfang, _) => (3.5, -4.5, -2.0),
-                (Mouflon, _) => (3.5, -6.0, -4.5),
+                (Mouflon, _) => (3.5, -8.0, -4.5),
             },
             feet_f: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.0, -9.0, -7.0),
@@ -292,7 +292,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Tiger, _) => (1.0, 0.5, -4.0),
                 (Wolf, _) => (0.0, -1.0, -1.5),
                 (Frostfang, _) => (0.0, -1.5, -3.5),
-                (Mouflon, _) => (-1.0, -1.5, -2.5),
+                (Mouflon, _) => (-1.0, 0.0, -2.5),
             },
             scaler: match (body.species, body.body_type) {
                 (Grolgar, _) => (1.3),

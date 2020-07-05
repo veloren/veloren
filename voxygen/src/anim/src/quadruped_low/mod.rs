@@ -209,7 +209,7 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
                 (Salamander, _) => (4.0, -6.0, -2.0),
                 (Monitor, _) => (2.5, -6.5, 0.0),
                 (Asp, _) => (2.5, -5.5, -1.0),
-                (Tortoise, _) => (6.0, -11.5, -3.0),
+                (Tortoise, _) => (5.5, -11.5, -3.0),
                 (Rocksnapper, _) => (8.0, -12.0, -9.5),
                 (Pangolin, _) => (6.0, -4.0, -1.0),
             },

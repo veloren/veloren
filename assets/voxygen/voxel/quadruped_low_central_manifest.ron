@@ -308,7 +308,7 @@
             central: ("armor.empty"),
         ),
 		tail_front: (
-            offset: (-1.5, -7.0, -1.5),
+            offset: (-1.5, -3.5, -1.5),
             central: ("npc.tortoise.male.tail_front"),
         ),
     ),
