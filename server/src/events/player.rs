@@ -8,8 +8,9 @@ use common::{
     msg::{ClientState, PlayerListUpdate, ServerMsg},
     sync::{Uid, UidAllocator},
 };
+use futures_executor::block_on;
 use specs::{saveload::MarkerAllocator, Builder, Entity as EcsEntity, WorldExt};
-use tracing::error;
+use tracing::{debug, error, trace};
 
 pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
     let state = server.state_mut();
@@ -46,6 +47,17 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
 }
 
 pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event {
+    if let Some(client) = server.state().read_storage::<Client>().get(entity) {
+        trace!("closing participant of client");
+        let participant = client.participant.lock().unwrap().take().unwrap();
+        if let Err(e) = block_on(server.network.disconnect(participant)) {
+            debug!(
+                ?e,
+                "Error when disconnecting client, maybe the pipe already broke"
+            );
+        };
+    }
+
     let state = server.state_mut();
 
     // Tell other clients to remove from player list
