@@ -22,7 +22,7 @@ impl Animation for RunAnimation {
         let mut next = (*skeleton).clone();
         let speed = Vec2::<f32>::from(velocity).magnitude();
         *rate = 1.0;
-        let lab = 0.6; //6
+        let lab = 0.1; //6
 
         let speedmult = if speed > 8.0 {
             1.2 * (1.0 * skeleton_attr.tempo)
@@ -71,19 +71,18 @@ impl Animation for RunAnimation {
             0.0
         } * 1.3;
         let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude());
-        //let tilt = 0.0;
         if speed < 8.0 {
             //Trot
             next.head_upper.offset =
                 Vec3::new(0.0, skeleton_attr.head_upper.0, skeleton_attr.head_upper.1);
-            next.head_upper.ori =
-                Quaternion::rotation_x(short * -0.03 - 0.1) * Quaternion::rotation_z(tilt * -1.2);
+            next.head_upper.ori = Quaternion::rotation_x(short * -0.03 - 0.1 + x_tilt * -0.5)
+                * Quaternion::rotation_z(tilt * -1.2);
             next.head_upper.scale = Vec3::one();
 
             next.head_lower.offset =
                 Vec3::new(0.0, skeleton_attr.head_lower.0, skeleton_attr.head_lower.1);
-            next.head_lower.ori =
-                Quaternion::rotation_z(tilt * -0.8) * Quaternion::rotation_x(short * -0.05);
+            next.head_lower.ori = Quaternion::rotation_z(tilt * -0.8)
+                * Quaternion::rotation_x(short * -0.05 + x_tilt * -0.5);
             next.head_lower.scale = Vec3::one() * 1.02;
 
             next.jaw.offset = Vec3::new(0.0, skeleton_attr.jaw.0, skeleton_attr.jaw.1);

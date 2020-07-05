@@ -177,7 +177,7 @@
             central: ("npc.cat.male.head"),
         ),
         chest: (
-            offset: (-0.5, -3.0, -4.0),
+            offset: (-1.5, -3.0, -2.0),
             central: ("npc.cat.male.chest"),
         ),
         tail: (
@@ -191,7 +191,7 @@
             central: ("npc.cat.female.head"),
         ),
         chest: (
-            offset: (-1.5, -4.0, -2.0),
+            offset: (-1.5, -3.0, -2.0),
             central: ("npc.cat.female.chest"),
         ),
         tail: (

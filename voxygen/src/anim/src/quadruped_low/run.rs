@@ -22,7 +22,7 @@ impl Animation for RunAnimation {
         let mut next = (*skeleton).clone();
 
         let lab = 0.7 * skeleton_attr.tempo;
-        let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude());
+        let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude()).max(-0.7);
 
         let short = (((1.0)
             / (0.72
@@ -83,17 +83,18 @@ impl Animation for RunAnimation {
         } else {
             0.0
         } * 1.3;
-        //let tilt = 0.0;
         next.head_upper.offset =
             Vec3::new(0.0, skeleton_attr.head_upper.0, skeleton_attr.head_upper.1);
-        next.head_upper.ori = Quaternion::rotation_x(-skeleton_attr.lean.0)
+        next.head_upper.ori = Quaternion::rotation_x(-skeleton_attr.lean.0 + x_tilt * -1.0)
+            * Quaternion::rotation_y(tilt * 0.3)
             * Quaternion::rotation_z(short * -0.06 + tilt * -1.5);
         next.head_upper.scale = Vec3::one();
 
         next.head_lower.offset =
             Vec3::new(0.0, skeleton_attr.head_lower.0, skeleton_attr.head_lower.1);
-        next.head_lower.ori =
-            Quaternion::rotation_x(0.0) * Quaternion::rotation_z(short * -0.15 + tilt * -0.8);
+        next.head_lower.ori = Quaternion::rotation_y(tilt * 1.0)
+            * Quaternion::rotation_z(short * -0.15 + tilt * -0.8)
+            * Quaternion::rotation_x(x_tilt * 0.4);
         next.head_lower.scale = Vec3::one();
 
         next.jaw.offset = Vec3::new(0.0, skeleton_attr.jaw.0, skeleton_attr.jaw.1);
@@ -107,7 +108,7 @@ impl Animation for RunAnimation {
         );
         next.tail_front.ori = Quaternion::rotation_z(shortalt * 0.18 + tilt * 1.8)
             * Quaternion::rotation_y(shortalt * 0.1)
-            * Quaternion::rotation_x(0.06 - skeleton_attr.lean.0 * 1.2);
+            * Quaternion::rotation_x(0.06 - skeleton_attr.lean.0 * 1.2 + x_tilt * 0.2);
         next.tail_front.scale = Vec3::one();
 
         next.tail_rear.offset = Vec3::new(
@@ -117,14 +118,14 @@ impl Animation for RunAnimation {
         );
         next.tail_rear.ori = Quaternion::rotation_z(shortalt * 0.25 + tilt * 1.6)
             * Quaternion::rotation_y(shortalt * 0.1)
-            * Quaternion::rotation_x(-0.04);
+            * Quaternion::rotation_x(-0.04 + x_tilt * 0.5);
         next.tail_rear.scale = Vec3::one();
 
         next.chest.offset = Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1)
             * skeleton_attr.scaler
             / 11.0;
         next.chest.ori = Quaternion::rotation_z(short * 0.13 + tilt * -1.9)
-            * Quaternion::rotation_y(short * 0.12)
+            * Quaternion::rotation_y(short * 0.12 + tilt * 0.7)
             * Quaternion::rotation_x(x_tilt + skeleton_attr.lean.0);
         next.chest.scale = Vec3::one() * skeleton_attr.scaler / 11.0;
 
@@ -135,7 +136,8 @@ impl Animation for RunAnimation {
         );
         next.foot_fl.ori = Quaternion::rotation_x(
             -0.2 + footvertl * -0.35 * skeleton_attr.lean.1 - skeleton_attr.lean.0,
-        ) * Quaternion::rotation_z(footvertl * 0.4 * skeleton_attr.lean.1);
+        ) * Quaternion::rotation_y(tilt * -1.0)
+            * Quaternion::rotation_z(footvertl * 0.4 * skeleton_attr.lean.1);
         next.foot_fl.scale = Vec3::one();
 
         next.foot_fr.offset = Vec3::new(
@@ -143,10 +145,10 @@ impl Animation for RunAnimation {
             skeleton_attr.feet_f.1 + foothorir * -1.0,
             skeleton_attr.feet_f.2 + 1.0 + ((footvertr * -0.8).max(-0.0)),
         );
-        next.foot_fr.ori =
-            Quaternion::rotation_x(
-                -0.2 + footvertr * -0.25 * skeleton_attr.lean.1 - skeleton_attr.lean.0,
-            ) * Quaternion::rotation_z(footvertr * -0.4 * skeleton_attr.lean.1 + tilt * 3.5);
+        next.foot_fr.ori = Quaternion::rotation_x(
+            -0.2 + footvertr * -0.25 * skeleton_attr.lean.1 - skeleton_attr.lean.0,
+        ) * Quaternion::rotation_y(tilt * -1.0)
+            * Quaternion::rotation_z(footvertr * -0.4 * skeleton_attr.lean.1 + tilt * 3.5);
         next.foot_fr.scale = Vec3::one();
 
         next.foot_bl.offset = Vec3::new(
@@ -155,6 +157,7 @@ impl Animation for RunAnimation {
             skeleton_attr.feet_b.2 + 1.0 + ((footvertlb * -0.6).max(-0.0)),
         );
         next.foot_bl.ori = Quaternion::rotation_x(-0.2 + footvertlb * -0.3 - skeleton_attr.lean.0)
+            * Quaternion::rotation_y(tilt * -1.0)
             * Quaternion::rotation_z(footvertlb * 0.4);
         next.foot_bl.scale = Vec3::one();
 
@@ -164,6 +167,7 @@ impl Animation for RunAnimation {
             skeleton_attr.feet_b.2 + 1.0 + ((footvertrb * -0.6).max(-0.0)),
         );
         next.foot_br.ori = Quaternion::rotation_x(-0.2 + footvertrb * -0.3 - skeleton_attr.lean.0)
+            * Quaternion::rotation_y(tilt * -1.0)
             * Quaternion::rotation_z(footvertrb * -0.4);
         next.foot_br.scale = Vec3::one();
 

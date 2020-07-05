@@ -5,7 +5,7 @@ use vek::*;
 pub struct RunAnimation;
 
 impl Animation for RunAnimation {
-    type Dependency = (f32, f64);
+    type Dependency = (f32, f64, Vec3<f32>);
     type Skeleton = QuadrupedSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -14,7 +14,7 @@ impl Animation for RunAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_small_run")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_velocity, _global_time): Self::Dependency,
+        (_velocity, _global_time, avg_vel): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -25,6 +25,7 @@ impl Animation for RunAnimation {
         let fast = (anim_time as f32 * 20.0).sin();
         let fast_alt = (anim_time as f32 * 20.0 + PI / 2.0).sin();
         let slow_alt = (anim_time as f32 * 14.0 + PI / 2.0).sin();
+        let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude()).max(-0.7);
 
         next.head.offset =
             Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1 + slow * 1.5) / 11.0;
@@ -37,7 +38,7 @@ impl Animation for RunAnimation {
             skeleton_attr.chest.0,
             skeleton_attr.chest.1 + slow_alt * 1.2,
         ) / 11.0;
-        next.chest.ori = Quaternion::rotation_x(slow * 0.1);
+        next.chest.ori = Quaternion::rotation_x(slow * 0.1 + x_tilt);
         next.chest.scale = Vec3::one() / 11.0;
 
         next.leg_fl.offset = Vec3::new(

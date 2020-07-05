@@ -134,9 +134,9 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
         use comp::quadruped_low::Species::*;
         Self {
             head_upper: match (body.species, body.body_type) {
-                (Crocodile, _) => (10.0, 2.0),
+                (Crocodile, _) => (1.5, 2.0),
                 (Alligator, _) => (0.5, 2.0),
-                (Salamander, _) => (6.5, 2.5),
+                (Salamander, _) => (0.5, 2.5),
                 (Monitor, _) => (4.5, 1.0),
                 (Asp, _) => (6.0, 5.5),
                 (Tortoise, _) => (5.0, 1.0),
@@ -154,9 +154,9 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
                 (Pangolin, _) => (8.0, -9.0),
             },
             jaw: match (body.species, body.body_type) {
-                (Crocodile, _) => (-6.0, -3.0),
+                (Crocodile, _) => (2.5, -3.0),
                 (Alligator, _) => (2.5, -2.0),
-                (Salamander, _) => (-6.0, -2.0),
+                (Salamander, _) => (0.0, -2.0),
                 (Monitor, _) => (-2.0, -1.0),
                 (Asp, _) => (-3.0, -2.0),
                 (Tortoise, _) => (-3.5, -2.0),
@@ -201,7 +201,7 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
                 (Asp, _) => (1.5, 4.0, -1.0),
                 (Tortoise, _) => (5.5, 6.5, -3.0),
                 (Rocksnapper, _) => (7.5, 5.0, -8.5),
-                (Pangolin, _) => (5.0, 5.0, -1.0),
+                (Pangolin, _) => (5.5, 5.5, -1.0),
             },
             feet_b: match (body.species, body.body_type) {
                 (Crocodile, _) => (3.5, -6.0, -1.0),
@@ -211,7 +211,7 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
                 (Asp, _) => (2.5, -5.5, -1.0),
                 (Tortoise, _) => (5.5, -11.5, -3.0),
                 (Rocksnapper, _) => (8.0, -12.0, -9.5),
-                (Pangolin, _) => (6.0, -4.0, -1.0),
+                (Pangolin, _) => (6.5, -3.5, -1.0),
             },
             lean: match (body.species, body.body_type) {
                 (Pangolin, _) => (0.4, 0.0),

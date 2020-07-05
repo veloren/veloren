@@ -231,7 +231,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
             torso_back: match (body.species, body.body_type) {
                 (Grolgar, _) => (-10.0, 1.5),
                 (Saber, _) => (-13.5, 0.0),
-                (Tuskram, _) => (-13.0, -2.0),
+                (Tuskram, _) => (-12.5, -2.0),
                 (Lion, _) => (-12.0, -0.5),
                 (Tarasque, _) => (-14.0, -1.0),
                 (Tiger, _) => (-13.0, 0.0),
