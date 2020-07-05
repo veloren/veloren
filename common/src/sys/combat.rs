@@ -85,7 +85,7 @@ impl<'a> System<'a> for Sys {
                 &orientations,
                 scales.maybe(),
                 agents.maybe(),
-                &character_states,
+                character_states.maybe(),
                 &stats,
                 &bodies,
             )
@@ -129,7 +129,7 @@ impl<'a> System<'a> for Sys {
                     }
 
                     // Block
-                    if character_b.is_block()
+                    if character_b.map(|c_b| c_b.is_block()).unwrap_or(false)
                         && ori_b.0.angle_between(pos.0 - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0
                     {
                         healthchange *= 1.0 - BLOCK_EFFICIENCY

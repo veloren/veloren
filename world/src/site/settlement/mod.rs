@@ -10,7 +10,7 @@ use crate::{
 use common::{
     assets,
     astar::Astar,
-    comp::{self, bird_medium, humanoid, quadruped_small},
+    comp::{self, bird_medium, humanoid, object, quadruped_small},
     generation::{ChunkSupplement, EntityInfo},
     path::Path,
     spiral::Spiral2d,
@@ -789,8 +789,14 @@ impl Settlement {
                     && RandomField::new(self.seed).chance(Vec3::from(wpos2d), 1.0 / (50.0 * 50.0))
                 {
                     let is_human: bool;
+                    let is_dummy =
+                        RandomField::new(self.seed + 1).chance(Vec3::from(wpos2d), 1.0 / 15.0);
                     let entity = EntityInfo::at(entity_wpos)
                         .with_body(match rng.gen_range(0, 4) {
+                            _ if is_dummy => {
+                                is_human = false;
+                                object::Body::TrainingDummy.into()
+                            },
                             0 => {
                                 let species = match rng.gen_range(0, 3) {
                                     0 => quadruped_small::Species::Pig,
@@ -819,7 +825,10 @@ impl Settlement {
                                 comp::Body::Humanoid(humanoid::Body::random())
                             },
                         })
-                        .with_alignment(if is_human {
+                        .with_agency(!is_dummy)
+                        .with_alignment(if is_dummy {
+                            comp::Alignment::Wild
+                        } else if is_human {
                             comp::Alignment::Npc
                         } else {
                             comp::Alignment::Tame
@@ -838,7 +847,8 @@ impl Settlement {
                                 },
                             ))
                         })
-                        .with_automatic_name();
+                        .do_if(is_dummy, |e| e.with_name("Training Dummy"))
+                        .do_if(!is_dummy, |e| e.with_automatic_name());
 
                     supplement.add_entity(entity);
                 }

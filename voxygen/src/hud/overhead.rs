@@ -54,7 +54,7 @@ pub struct Overhead<'a> {
     name: &'a str,
     bubble: Option<&'a SpeechBubble>,
     stats: &'a Stats,
-    energy: &'a Energy,
+    energy: Option<&'a Energy>,
     own_level: u32,
     settings: &'a GameplaySettings,
     pulse: f32,
@@ -71,7 +71,7 @@ impl<'a> Overhead<'a> {
         name: &'a str,
         bubble: Option<&'a SpeechBubble>,
         stats: &'a Stats,
-        energy: &'a Energy,
+        energy: Option<&'a Energy>,
         own_level: u32,
         settings: &'a GameplaySettings,
         pulse: f32,
@@ -297,7 +297,6 @@ impl<'a> Widget for Overhead<'a> {
 
         let hp_percentage =
             self.stats.health.current() as f64 / self.stats.health.maximum() as f64 * 100.0;
-        let energy_percentage = self.energy.current() as f64 / self.energy.maximum() as f64 * 100.0;
         let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 1.0; //Animation timer
         let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
 
@@ -325,20 +324,22 @@ impl<'a> Widget for Overhead<'a> {
             }))
             .parent(id)
             .set(state.ids.health_bar, ui);
+
         // % Mana Filling
-        Rectangle::fill_with(
-            [
-                72.0 * (self.energy.current() as f64 / self.energy.maximum() as f64) * BARSIZE,
-                MANA_BAR_HEIGHT,
-            ],
-            MANA_COLOR,
-        )
-        .x_y(
-            ((3.5 + (energy_percentage / 100.0 * 36.5)) - 36.45) * BARSIZE,
-            MANA_BAR_Y, //-32.0,
-        )
-        .parent(id)
-        .set(state.ids.mana_bar, ui);
+        if let Some(energy) = self.energy {
+            let energy_factor = energy.current() as f64 / energy.maximum() as f64;
+
+            Rectangle::fill_with(
+                [72.0 * energy_factor * BARSIZE, MANA_BAR_HEIGHT],
+                MANA_COLOR,
+            )
+            .x_y(
+                ((3.5 + (energy_factor * 36.5)) - 36.45) * BARSIZE,
+                MANA_BAR_Y, //-32.0,
+            )
+            .parent(id)
+            .set(state.ids.mana_bar, ui);
+        }
 
         // Foreground
         Image::new(self.imgs.enemy_health)
