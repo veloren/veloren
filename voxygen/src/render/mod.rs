@@ -22,6 +22,7 @@ pub use self::{
             create_mesh as create_pp_mesh, Locals as PostProcessLocals, PostProcessPipeline,
         },
         skybox::{create_mesh as create_skybox_mesh, Locals as SkyboxLocals, SkyboxPipeline},
+        particle::{Instance as ParticleInstance, ParticlePipeline},
         sprite::{Instance as SpriteInstance, SpritePipeline},
         terrain::{Locals as TerrainLocals, TerrainPipeline},
         ui::{

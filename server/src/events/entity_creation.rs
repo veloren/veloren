@@ -6,6 +6,7 @@ use common::{
     },
     util::Dir,
 };
+use comp::visual::ParticleEmitterMode;
 use specs::{Builder, Entity as EcsEntity, WorldExt};
 use vek::{Rgb, Vec3};
 
@@ -117,7 +118,9 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
             flicker: 1.0,
             animated: true,
         })
-        .with(ParticleEmitter { mode: 0 })
+        .with(ParticleEmitter {
+            mode: ParticleEmitterMode::Sprinkler,
+        })
         .with(WaypointArea::default())
         .build();
 }

@@ -2,8 +2,8 @@
 // version in voxygen\src\meta.rs in order to reset save files to being empty
 
 use crate::comp::{
-    body::object, projectile, Body, CharacterAbility, Gravity, HealthChange, HealthSource,
-    LightEmitter, Projectile, ParticleEmitter,
+    body::object, projectile, visual::ParticleEmitterMode, Body, CharacterAbility, Gravity,
+    HealthChange, HealthSource, LightEmitter, ParticleEmitter, Projectile,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -277,7 +277,7 @@ impl Tool {
                         ..Default::default()
                     }),
                     projectile_particles: Some(ParticleEmitter {
-                        mode: 0,
+                        mode: ParticleEmitterMode::Sprinkler,
                     }),
                     projectile_gravity: None,
                 },
@@ -304,7 +304,7 @@ impl Tool {
                         ..Default::default()
                     }),
                     projectile_particles: Some(ParticleEmitter {
-                        mode: 0,
+                        mode: ParticleEmitterMode::Sprinkler,
                     }),
                     projectile_gravity: None,
                 },

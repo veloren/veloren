@@ -2,6 +2,7 @@ use super::{
     super::{Pipeline, TgtColorFmt, TgtDepthStencilFmt},
     Globals, Light, Shadow,
 };
+use common::comp::visual::ParticleEmitterMode;
 use gfx::{
     self, gfx_defines, gfx_impl_struct_meta, gfx_pipeline, gfx_pipeline_inner,
     gfx_vertex_struct_meta,
@@ -26,7 +27,10 @@ gfx_defines! {
         inst_mat2: [f32; 4] = "inst_mat2",
         inst_mat3: [f32; 4] = "inst_mat3",
         inst_col: [f32; 3] = "inst_col",
+        inst_vel: [f32; 3] = "inst_vel",
+        inst_tick: [f32; 4] = "inst_tick",
         inst_wind_sway: f32 = "inst_wind_sway",
+        mode: u8 = "mode",
     }
 
     pipeline pipe {
@@ -66,7 +70,14 @@ impl Vertex {
 }
 
 impl Instance {
-    pub fn new(mat: Mat4<f32>, col: Rgb<f32>, wind_sway: f32) -> Self {
+    pub fn new(
+        mat: Mat4<f32>,
+        col: Rgb<f32>,
+        vel: Vec3<f32>,
+        tick: u64,
+        wind_sway: f32,
+        mode: ParticleEmitterMode,
+    ) -> Self {
         let mat_arr = mat.into_col_arrays();
         Self {
             inst_mat0: mat_arr[0],
@@ -74,13 +85,27 @@ impl Instance {
             inst_mat2: mat_arr[2],
             inst_mat3: mat_arr[3],
             inst_col: col.into_array(),
+            inst_vel: vel.into_array(),
+            inst_tick: [tick as f32; 4],
+
             inst_wind_sway: wind_sway,
+
+            mode: mode as u8,
         }
     }
 }
 
 impl Default for Instance {
-    fn default() -> Self { Self::new(Mat4::identity(), Rgb::broadcast(1.0), 0.0) }
+    fn default() -> Self {
+        Self::new(
+            Mat4::identity(),
+            Rgb::broadcast(1.0),
+            Vec3::zero(),
+            0,
+            0.0,
+            ParticleEmitterMode::Sprinkler,
+        )
+    }
 }
 
 pub struct ParticlePipeline;

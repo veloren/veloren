@@ -18,7 +18,7 @@ mod player;
 pub mod projectile;
 pub mod skills;
 mod stats;
-mod visual;
+pub mod visual;
 
 // Reexports
 pub use ability::{CharacterAbility, CharacterAbilityType, ItemConfig, Loadout};
