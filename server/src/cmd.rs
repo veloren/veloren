@@ -25,6 +25,7 @@ use world::util::Sampler;
 
 use scan_fmt::{scan_fmt, scan_fmt_some};
 use tracing::error;
+use comp::visual::ParticleEmitterMode;
 
 pub trait ChatCommandExt {
     fn execute(&self, server: &mut Server, entity: EcsEntity, args: String);
@@ -910,7 +911,9 @@ fn handle_light(
             .create_entity_synced()
             .with(pos)
             .with(comp::ForceUpdate)
-            .with(comp::ParticleEmitter { mode: 0 })
+            .with(comp::ParticleEmitter {
+                mode: ParticleEmitterMode::Sprinkler,
+            })
             .with(light_emitter);
         if let Some(light_offset) = light_offset_opt {
             builder.with(light_offset).build();

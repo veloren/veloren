@@ -1,11 +1,13 @@
 pub mod camera;
 pub mod figure;
+pub mod particle;
 pub mod simple;
 pub mod terrain;
 
 use self::{
     camera::{Camera, CameraMode},
     figure::FigureMgr,
+    particle::ParticleMgr,
     terrain::Terrain,
 };
 use crate::{
@@ -62,6 +64,7 @@ pub struct Scene {
     loaded_distance: f32,
     select_pos: Option<Vec3<i32>>,
 
+    particle_mgr: ParticleMgr,
     figure_mgr: FigureMgr,
     sfx_mgr: SfxMgr,
     music_mgr: MusicMgr,
@@ -113,6 +116,7 @@ impl Scene {
             loaded_distance: 0.0,
             select_pos: None,
 
+            particle_mgr: ParticleMgr::new(renderer),
             figure_mgr: FigureMgr::new(),
             sfx_mgr: SfxMgr::new(),
             music_mgr: MusicMgr::new(),
@@ -127,6 +131,9 @@ impl Scene {
 
     /// Get a reference to the scene's terrain.
     pub fn terrain(&self) -> &Terrain<TerrainChunk> { &self.terrain }
+
+    /// Get a reference to the scene's particle manager.
+    pub fn particle_mgr(&self) -> &ParticleMgr { &self.particle_mgr }
 
     /// Get a reference to the scene's figure manager.
     pub fn figure_mgr(&self) -> &FigureMgr { &self.figure_mgr }
@@ -390,6 +397,16 @@ impl Scene {
         // Remove unused figures.
         self.figure_mgr.clean(scene_data.tick);
 
+        // Maintain the particles.
+        self.particle_mgr.maintain(
+            renderer,
+            &scene_data,
+            self.camera.get_focus_pos(),
+            self.loaded_distance,
+            view_mat,
+            proj_mat,
+        );
+
         // Maintain audio
         self.sfx_mgr
             .maintain(audio, scene_data.state, scene_data.player_entity);
@@ -423,6 +440,14 @@ impl Scene {
             &self.shadows,
             &self.camera,
             scene_data.figure_lod_render_distance,
+        );
+
+        self.particle_mgr.render(
+            renderer,
+            &self.globals,
+            &self.lights,
+            &self.shadows,
+            self.camera.get_focus_pos(),
         );
 
         // Render the skybox.
