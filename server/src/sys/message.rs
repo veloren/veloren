@@ -172,8 +172,7 @@ impl Sys {
                     ClientState::Registered | ClientState::Spectator => {
                         // Only send login message if it wasn't already
                         // sent previously
-                        if let (Some(player), false) = (players.get(entity), client.login_msg_sent)
-                        {
+                        if let Some(player) = players.get(entity) {
                             // Send a request to load the character's component data from the
                             // DB. Once loaded, persisted components such as stats and inventory
                             // will be inserted for the entity
@@ -204,7 +203,7 @@ impl Sys {
                                 new_chat_msgs.push((None, ChatMsg {
                                     chat_type: ChatType::Online,
                                     message: format!("[{}] is now online.", &player.alias), // TODO: Localize this
-                            }));
+                                }));
 
                                 client.login_msg_sent = true;
                             }
