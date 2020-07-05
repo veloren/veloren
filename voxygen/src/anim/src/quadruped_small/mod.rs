@@ -13,10 +13,10 @@ use vek::Vec3;
 pub struct QuadrupedSmallSkeleton {
     head: Bone,
     chest: Bone,
-    leg_lf: Bone,
-    leg_rf: Bone,
-    leg_lb: Bone,
-    leg_rb: Bone,
+    leg_fl: Bone,
+    leg_fr: Bone,
+    leg_bl: Bone,
+    leg_br: Bone,
     tail: Bone,
 }
 
@@ -39,10 +39,10 @@ impl Skeleton for QuadrupedSmallSkeleton {
             [
                 FigureBoneData::new(self.head.compute_base_matrix()),
                 FigureBoneData::new(chest_mat),
-                FigureBoneData::new(self.leg_lf.compute_base_matrix()),
-                FigureBoneData::new(self.leg_rf.compute_base_matrix()),
-                FigureBoneData::new(self.leg_lb.compute_base_matrix()),
-                FigureBoneData::new(self.leg_rb.compute_base_matrix()),
+                FigureBoneData::new(self.leg_fl.compute_base_matrix()),
+                FigureBoneData::new(self.leg_fr.compute_base_matrix()),
+                FigureBoneData::new(self.leg_bl.compute_base_matrix()),
+                FigureBoneData::new(self.leg_br.compute_base_matrix()),
                 FigureBoneData::new(chest_mat * self.tail.compute_base_matrix()),
                 FigureBoneData::default(),
                 FigureBoneData::default(),
@@ -61,10 +61,10 @@ impl Skeleton for QuadrupedSmallSkeleton {
     fn interpolate(&mut self, target: &Self, dt: f32) {
         self.head.interpolate(&target.head, dt);
         self.chest.interpolate(&target.chest, dt);
-        self.leg_lf.interpolate(&target.leg_lf, dt);
-        self.leg_rf.interpolate(&target.leg_rf, dt);
-        self.leg_lb.interpolate(&target.leg_lb, dt);
-        self.leg_rb.interpolate(&target.leg_rb, dt);
+        self.leg_fl.interpolate(&target.leg_fl, dt);
+        self.leg_fr.interpolate(&target.leg_fr, dt);
+        self.leg_bl.interpolate(&target.leg_bl, dt);
+        self.leg_br.interpolate(&target.leg_br, dt);
         self.tail.interpolate(&target.tail, dt);
     }
 }

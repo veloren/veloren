@@ -72,15 +72,15 @@
     (Goose, Female): (
         head: (
             offset: (-2.0, -3.5, -2.5),
-            center: ("npc.goose.female.head"),
+            center: ("npc.goose.male.head"),
         ),
         torso: (
             offset: (-3.5, -4.5, -3.0),
-            center: ("npc.goose.female.torso"),
+            center: ("npc.goose.male.torso"),
         ),
         tail: (
             offset: (-2.0, -1.0, -3.5),
-            center: ("npc.goose.female.tail"),
+            center: ("npc.goose.male.tail"),
         )
     ),
     (Peacock, Male): (
@@ -128,15 +128,15 @@
     (Eagle, Female): (
         head: (
             offset: (-2.0, -2.0, -3.5),
-            center: ("npc.eagle.female.head"),
+            center: ("npc.eagle.male.head"),
         ),
         torso: (
             offset: (-3.0, -4.5, -4.5),
-            center: ("npc.eagle.female.torso"),
+            center: ("npc.eagle.male.torso"),
         ),
         tail: (
             offset: (-2.0, -3.5, -3.5),
-            center: ("npc.eagle.female.tail"),
+            center: ("npc.eagle.male.tail"),
         )
     ),
     (Snowyowl, Male): (
@@ -156,15 +156,15 @@
     (Snowyowl, Female): (
         head: (
             offset: (-3.5, -4.5, -4.0),
-            center: ("npc.snowyowl.female.head"),
+            center: ("npc.snowyowl.male.head"),
         ),
         torso: (
             offset: (-3.5, -5.0, -3.0),
-            center: ("npc.snowyowl.female.torso"),
+            center: ("npc.snowyowl.male.torso"),
         ),
         tail: (
             offset: (-2.5, -3.0, -2.0),
-            center: ("npc.snowyowl.female.tail"),
+            center: ("npc.snowyowl.male.tail"),
         )
     ),
     (Parrot, Male): (
@@ -184,15 +184,15 @@
     (Parrot, Female): (
         head: (
             offset: (-1.5, -1.5, -2.5),
-            center: ("npc.parrot.female.head"),
+            center: ("npc.parrot.male.head"),
         ),
         torso: (
             offset: (-1.5, -3.5, -3.5),
-            center: ("npc.parrot.female.torso"),
+            center: ("npc.parrot.male.torso"),
         ),
         tail: (
             offset: (-1.5, -4.5, -1.5),
-            center: ("npc.parrot.female.tail"),
+            center: ("npc.parrot.male.tail"),
         )
     ),
     (Cockatrice, Male): (
@@ -212,15 +212,15 @@
     (Cockatrice, Female): (
         head: (
             offset: (-2.5, -3.5, -8.0),
-            center: ("npc.cockatrice.female.head"),
+            center: ("npc.cockatrice.male.head"),
         ),
         torso: (
             offset: (-3.5, -6.5, -7.5),
-            center: ("npc.cockatrice.female.torso"),
+            center: ("npc.cockatrice.male.torso"),
         ),
         tail: (
             offset: (-1.5, -3.5, -4.0),
-            center: ("npc.cockatrice.female.tail"),
+            center: ("npc.cockatrice.male.tail"),
         )
     ),
 })

@@ -251,21 +251,9 @@
                 "keyword": "sabertooth",
                 "generic": "Sabertooth Tiger"
             },
-            "viper": {
-                "keyword": "viper",
-                "generic": "Lizard"
-            },
             "tuskram": {
                 "keyword": "tuskram",
                 "generic": "Tusk Ram"
-            },
-            "alligator": {
-                "keyword": "alligator",
-                "generic": "Alligator"
-            },
-            "monitor": {
-                "keyword": "monitor",
-                "generic": "Monitor Lizard"
             },
             "lion": {
                 "keyword": "lion",
@@ -274,6 +262,22 @@
             "tarasque": {
                 "keyword": "tarasque",
                 "generic": "Tarasque"
+            },
+            "tiger": {
+                "keyword": "tiger",
+                "generic": "Tiger"
+            },
+            "wolf": {
+                "keyword": "wolf",
+                "generic": "Wolf"
+            },
+            "frostfang": {
+                "keyword": "frostfang",
+                "generic": "Frostfang"
+            },
+            "mouflon": {
+                "keyword": "mouflon",
+                "generic": "Mouflon"
             }
         }
     },
@@ -559,6 +563,48 @@
             "reddragon": {
                 "keyword": "reddragon",
                 "generic": "Reddragon"
+            }
+        }
+    },
+    "quadruped_low": {
+        "body": {
+            "keyword": "quadruped_low",
+            "names": [
+                "Sobek"
+            ]
+        },
+        "species": {
+            "crocodile": {
+                "keyword": "crocodile",
+                "generic": "Crocodile"
+            },
+            "alligator": {
+                "keyword": "alligator",
+                "generic": "Alligator"
+            },
+            "salamander": {
+                "keyword": "salamander",
+                "generic": "Salamander"
+            },
+            "monitor": {
+                "keyword": "monitor",
+                "generic": "Monitor"
+            },
+            "asp": {
+                "keyword": "asp",
+                "generic": "Asp"
+            },
+            "tortoise": {
+                "keyword": "tortoise",
+                "generic": "Tortoise"
+            },
+            "rocksnapper": {
+                "keyword": "rocksnapper",
+                "generic": "Rock Snapper"
+            },
+            "pangolin": {
+                "keyword": "pangolin",
+                "generic": "Pangolin"
             }
         }
     }

@@ -12,6 +12,7 @@ type RunAnimationDependency = (
     Vec3<f32>,
     Vec3<f32>,
     f64,
+    Vec3<f32>,
 );
 
 impl Animation for RunAnimation {
@@ -25,7 +26,7 @@ impl Animation for RunAnimation {
     #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, velocity, orientation, last_ori, global_time): Self::Dependency,
+        (active_tool_kind, second_tool_kind, velocity, orientation, last_ori, global_time, avg_vel): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -34,6 +35,7 @@ impl Animation for RunAnimation {
 
         let speed = Vec2::<f32>::from(velocity).magnitude();
         *rate = 1.0;
+        let impact = (avg_vel.z * 3000.0).max(-8.0);
 
         let walkintensity = if speed > 5.0 { 1.0 } else { 0.45 };
         let walk = if speed > 5.0 { 1.0 } else { 0.5 };
@@ -124,7 +126,9 @@ impl Animation for RunAnimation {
         );
         next.chest.ori = Quaternion::rotation_z(short * 0.18 * walkintensity + tilt * -0.6)
             * Quaternion::rotation_y(tilt * 1.6)
-            * Quaternion::rotation_x(shortalter * 0.035 + wave_stop * speed * -0.07 + (tilt.abs()));
+            * Quaternion::rotation_x(
+                impact * 0.06 + shortalter * 0.035 + wave_stop * speed * -0.07 + (tilt.abs()),
+            );
         next.chest.scale = Vec3::one();
 
         next.belt.offset = Vec3::new(0.0, skeleton_attr.belt.0, skeleton_attr.belt.1);
