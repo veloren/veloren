@@ -31,9 +31,9 @@ pub type PersistenceScheduler = SysScheduler<persistence::Sys>;
 //const SUBSCRIPTION_SYS: &str = "server_subscription_sys";
 //const TERRAIN_SYNC_SYS: &str = "server_terrain_sync_sys";
 const TERRAIN_SYS: &str = "server_terrain_sys";
-const WAYPOINT_SYS: &str = "waypoint_sys";
-const PERSISTENCE_SYS: &str = "persistence_sys";
-const OBJECT_SYS: &str = "object_sys";
+const WAYPOINT_SYS: &str = "server_waypoint_sys";
+const PERSISTENCE_SYS: &str = "server_persistence_sys";
+const OBJECT_SYS: &str = "server_object_sys";
 
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(terrain::Sys, TERRAIN_SYS, &[]);

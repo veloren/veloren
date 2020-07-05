@@ -128,7 +128,7 @@ impl StateExt for State {
             .with(comp::Vel(Vec3::zero()))
             .with(comp::Ori::default())
             .with(comp::Body::Object(object))
-            .with(comp::Mass(100.0))
+            .with(comp::Mass(5.0))
             .with(comp::Collider::Box {
                 radius: 0.4,
                 z_min: 0.0,

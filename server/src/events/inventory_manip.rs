@@ -159,7 +159,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 maybe_effect = Some(*effect);
                                 Some(comp::InventoryUpdateEvent::Consumed(*kind))
                             },
-                            ItemKind::Throwable { .. } => {
+                            ItemKind::Throwable { kind, .. } => {
                                 if let Some(pos) =
                                     state.ecs().read_storage::<comp::Pos>().get(entity)
                                 {
@@ -177,7 +177,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                             .get(entity)
                                             .copied()
                                             .unwrap_or_default(),
-                                        item,
+                                        kind.clone(),
                                     ));
                                 }
                                 Some(comp::InventoryUpdateEvent::Used)
@@ -344,8 +344,8 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             .build();
     }
 
-    // Drop items
-    for (pos, vel, ori, item) in thrown_items {
+    // Throw items
+    for (pos, vel, ori, kind) in thrown_items {
         let vel = vel.0
             + *ori.0 * 20.0
             + Vec3::unit_z() * 15.0
@@ -353,26 +353,31 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
         let uid = state.read_component_cloned::<Uid>(entity);
 
-        let mut entity = state
-            .create_object(Default::default(), comp::object::Body::Bomb)
+        let mut new_entity = state
+            .create_object(Default::default(), match kind {
+                item::Throwable::Bomb => comp::object::Body::Bomb,
+                item::Throwable::TrainingDummy => comp::object::Body::TrainingDummy,
+            })
             .with(comp::Pos(pos.0 + Vec3::unit_z() * 0.25))
             .with(comp::Vel(vel));
 
-        #[allow(clippy::single_match)]
-        match item.kind {
-            item::ItemKind::Throwable {
-                kind: item::Throwable::Bomb,
-                ..
-            } => {
-                entity = entity.with(comp::Object::Bomb {
+        match kind {
+            item::Throwable::Bomb => {
+                new_entity = new_entity.with(comp::Object::Bomb {
                     timeout: Duration::from_secs_f32(1.0),
                     owner: uid,
-                })
+                });
             },
-            _ => {},
-        }
+            item::Throwable::TrainingDummy => {
+                new_entity = new_entity
+                    .with(comp::Stats::new(
+                        "Training Dummy".to_string(),
+                        comp::object::Body::TrainingDummy.into(),
+                    ));
+            },
+        };
 
-        entity.build();
+        new_entity.build();
     }
 }
 

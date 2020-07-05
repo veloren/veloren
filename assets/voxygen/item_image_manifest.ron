@@ -778,9 +778,13 @@
         "voxel.sprite.velorite.velorite_1",
         (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-	// Throwables
+    // Throwables
     Throwable(Bomb): VoxTrans(
         "voxel.object.bomb",
+        (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
+    ),
+    Throwable(TrainingDummy): VoxTrans(
+        "voxel.object.training_dummy",
         (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
     // Ingredients
