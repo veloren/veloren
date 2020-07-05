@@ -4652,6 +4652,7 @@ dependencies = [
  "crossbeam-channel 0.4.2",
  "futures 0.3.5",
  "lazy_static",
+ "lz4-compress",
  "prometheus",
  "rand 0.7.3",
  "serde",
