@@ -71,7 +71,10 @@ impl TcpProtocol {
                 "closing tcp protocol due to read error, sending close frame to gracefully \
                  shutdown"
             );
-            w2c_cid_frame_s.send((cid, Frame::Shutdown)).await.unwrap();
+            w2c_cid_frame_s
+                .send((cid, Frame::Shutdown))
+                .await
+                .expect("Channel or Participant seems no longer to exist to be Shutdown");
         }
     }
 
@@ -201,7 +204,10 @@ impl TcpProtocol {
                 },
             };
             metrics_cache.with_label_values(&frame).inc();
-            w2c_cid_frame_s.send((cid, frame)).await.unwrap();
+            w2c_cid_frame_s
+                .send((cid, frame))
+                .await
+                .expect("Channel or Participant seems no longer to exist");
         }
         trace!("shutting down tcp read()");
     }

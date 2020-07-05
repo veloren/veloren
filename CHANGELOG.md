@@ -51,6 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed unable to use ability; Secondary and ability3 (fire rod) will now automatically wield
 - Gliding is now a toggle that can be triggered from the ground
 - Replaced `log` with `tracing` in all crates
+- Switch to a new network backend that will allow several improvements in the future
+- Connection screen fails after 4 minutes if it can't connect to the server instead of 80 minutes
 
 ### Removed
 

@@ -601,7 +601,7 @@ impl Server {
 
             let mut client = Client {
                 client_state: ClientState::Connected,
-                singleton_stream: std::sync::Mutex::new(singleton_stream),
+                singleton_stream,
                 last_ping: self.state.get_time(),
                 login_msg_sent: false,
             };
