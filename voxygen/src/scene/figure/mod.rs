@@ -898,7 +898,7 @@ impl FigureMgr {
                         (true, true, false) => {
                             anim::quadruped_small::RunAnimation::update_skeleton(
                                 &QuadrupedSmallSkeleton::new(),
-                                (vel.0.magnitude(), time),
+                                (vel.0.magnitude(), time, state.avg_vel),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,

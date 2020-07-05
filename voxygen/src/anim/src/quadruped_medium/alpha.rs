@@ -117,10 +117,10 @@ impl Animation for AlphaAnimation {
         next.foot_fr.offset = Vec3::new(
             skeleton_attr.feet_f.0,
             skeleton_attr.feet_f.1,
-            skeleton_attr.feet_f.2 + short * -1.5,
+            skeleton_attr.feet_f.2,
         );
         next.foot_fr.ori =
-            Quaternion::rotation_x(short * -0.2) * Quaternion::rotation_y(short * 0.15);
+            Quaternion::rotation_x(short * -0.4) * Quaternion::rotation_y(short * 0.15);
         next.foot_fr.scale = Vec3::one();
 
         next.foot_bl.offset = Vec3::new(
@@ -135,7 +135,7 @@ impl Animation for AlphaAnimation {
         next.foot_br.offset = Vec3::new(
             skeleton_attr.feet_b.0,
             skeleton_attr.feet_b.1,
-            skeleton_attr.feet_b.2 + short * -1.5,
+            skeleton_attr.feet_b.2,
         );
         next.foot_br.ori =
             Quaternion::rotation_x(-0.2 + short * 0.2) * Quaternion::rotation_y(short * 0.15);

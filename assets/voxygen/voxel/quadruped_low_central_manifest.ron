@@ -1,7 +1,7 @@
 ({
     (Crocodile, Male): (
         upper: (
-            offset: (-4.0, -8.5, -3.0),
+            offset: (-4.0, 0.0, -3.0),
             central: ("npc.crocodile.male.head_upper"),
         ),
         lower: (
@@ -27,7 +27,7 @@
     ),
     (Crocodile, Female): (
         upper: (
-            offset: (-4.0, -8.5, -3.0),
+            offset: (-4.0, 0.0, -3.0),
             central: ("npc.crocodile.male.head_upper"),
         ),
         lower: (
@@ -105,7 +105,7 @@
     ),
     (Salamander, Male): (
         upper: (
-            offset: (-6.5, -6.0, -2.0),
+            offset: (-6.5, 0.0, -2.0),
             central: ("npc.salamander.male.head_upper"),
         ),
         lower: (
@@ -131,7 +131,7 @@
     ),
     (Salamander, Female): (
         upper: (
-            offset: (-6.5, -6.0, -2.0),
+            offset: (-6.5, 0.0, -2.0),
             central: ("npc.salamander.male.head_upper"),
         ),
         lower: (
