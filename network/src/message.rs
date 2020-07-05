@@ -36,13 +36,16 @@ pub(crate) struct IncomingMessage {
 pub(crate) fn serialize<M: Serialize>(message: &M) -> MessageBuffer {
     //this will never fail: https://docs.rs/bincode/0.8.0/bincode/fn.serialize.html
     let writer = bincode::serialize(message).unwrap();
-    MessageBuffer { data: writer }
+    MessageBuffer {
+        data: lz4_compress::compress(&writer),
+    }
 }
 
 //pub(crate) fn deserialize<M: DeserializeOwned>(buffer: MessageBuffer) ->
 // std::Result<M, std::Box<bincode::error::bincode::ErrorKind>> {
 pub(crate) fn deserialize<M: DeserializeOwned>(buffer: MessageBuffer) -> bincode::Result<M> {
-    let span = buffer.data;
+    let span = lz4_compress::decompress(&buffer.data)
+        .expect("lz4_compression error, failed to deserialze");
     //this might fail if you choose the wrong type for M. in that case probably X
     // got transfered while you assume Y. probably this means your application
     // logic is wrong. E.g. You expect a String, but just get a u8.
@@ -134,13 +137,11 @@ mod tests {
     fn serialize_test() {
         let msg = "abc";
         let mb = serialize(&msg);
-        assert_eq!(mb.data.len(), 11);
-        assert_eq!(mb.data[0], 3);
-        assert_eq!(mb.data[1], 0);
-        assert_eq!(mb.data[7], 0);
-        assert_eq!(mb.data[8], b'a');
-        assert_eq!(mb.data[8], 97);
-        assert_eq!(mb.data[9], b'b');
-        assert_eq!(mb.data[10], b'c');
+        assert_eq!(mb.data.len(), 9);
+        assert_eq!(mb.data[0], 34);
+        assert_eq!(mb.data[1], 3);
+        assert_eq!(mb.data[6], b'a');
+        assert_eq!(mb.data[7], b'b');
+        assert_eq!(mb.data[8], b'c');
     }
 }

@@ -34,7 +34,7 @@ pub const PROMISES_COMPRESSED: Promises = 8;
 pub const PROMISES_ENCRYPTED: Promises = 16;
 
 pub(crate) const VELOREN_MAGIC_NUMBER: [u8; 7] = [86, 69, 76, 79, 82, 69, 78]; //VELOREN
-pub const VELOREN_NETWORK_VERSION: [u32; 3] = [0, 3, 0];
+pub const VELOREN_NETWORK_VERSION: [u32; 3] = [0, 4, 0];
 pub(crate) const STREAM_ID_OFFSET1: Sid = Sid::new(0);
 pub(crate) const STREAM_ID_OFFSET2: Sid = Sid::new(u64::MAX / 2);
 
