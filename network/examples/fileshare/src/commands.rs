@@ -44,7 +44,7 @@ impl FileInfo {
         let mt = match fs::metadata(&path).await {
             Err(e) => {
                 println!(
-                    "cannot get metadata for file: {:?}, does it exist? Error: {:?}",
+                    "Cannot get metadata for file: {:?}, does it exist? Error: {:?}",
                     &path, &e
                 );
                 return None;

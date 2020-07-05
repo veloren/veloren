@@ -68,7 +68,7 @@ impl TcpProtocol {
         if let Err(e) = stream.read_exact(&mut bytes).await {
             warn!(
                 ?e,
-                "closing tcp protocol due to read error, sending close frame to gracefully \
+                "Closing tcp protocol due to read error, sending close frame to gracefully \
                  shutdown"
             );
             w2c_cid_frame_s
@@ -84,7 +84,7 @@ impl TcpProtocol {
         w2c_cid_frame_s: &mut mpsc::UnboundedSender<(Cid, Frame)>,
         end_receiver: oneshot::Receiver<()>,
     ) {
-        trace!("starting up tcp read()");
+        trace!("Starting up tcp read()");
         let mut metrics_cache = CidFrameCache::new(self.metrics.frames_wire_in_total.clone(), cid);
         let throughput_cache = self
             .metrics
@@ -100,7 +100,7 @@ impl TcpProtocol {
                     _ = end_receiver => break,
             };
             if r.is_err() {
-                info!("tcp stream closed, shutting down read");
+                info!("Tcp stream closed, shutting down read");
                 break;
             }
             let frame_no = bytes[0];
@@ -210,7 +210,7 @@ impl TcpProtocol {
                 .await
                 .expect("Channel or Participant seems no longer to exist");
         }
-        trace!("shutting down tcp read()");
+        trace!("Shutting down tcp read()");
     }
 
     /// read_except and if it fails, close the protocol
@@ -223,7 +223,7 @@ impl TcpProtocol {
             Err(e) => {
                 warn!(
                     ?e,
-                    "got an error writing to tcp, going to close this channel"
+                    "Got an error writing to tcp, going to close this channel"
                 );
                 to_wire_receiver.close();
                 true
@@ -236,7 +236,7 @@ impl TcpProtocol {
     // Limites Throughput per single Receiver but stays in same thread (maybe as its
     // in a threadpool) for TCP, UDP and MPSC
     pub async fn write_to_wire(&self, cid: Cid, mut c2w_frame_r: mpsc::UnboundedReceiver<Frame>) {
-        trace!("starting up tcp write()");
+        trace!("Starting up tcp write()");
         let mut stream = self.stream.clone();
         let mut metrics_cache = CidFrameCache::new(self.metrics.frames_wire_out_total.clone(), cid);
         let throughput_cache = self
@@ -404,7 +404,7 @@ impl UdpProtocol {
         w2c_cid_frame_s: &mut mpsc::UnboundedSender<(Cid, Frame)>,
         end_receiver: oneshot::Receiver<()>,
     ) {
-        trace!("starting up udp read()");
+        trace!("Starting up udp read()");
         let mut metrics_cache = CidFrameCache::new(self.metrics.frames_wire_in_total.clone(), cid);
         let throughput_cache = self
             .metrics
@@ -416,7 +416,7 @@ impl UdpProtocol {
             r = data_in.next().fuse() => r,
             _ = end_receiver => None,
         } {
-            trace!("got raw UDP message with len: {}", bytes.len());
+            trace!("Got raw UDP message with len: {}", bytes.len());
             let frame_no = bytes[0];
             let frame = match frame_no {
                 FRAME_HANDSHAKE => {
@@ -511,11 +511,11 @@ impl UdpProtocol {
             metrics_cache.with_label_values(&frame).inc();
             w2c_cid_frame_s.send((cid, frame)).await.unwrap();
         }
-        trace!("shutting down udp read()");
+        trace!("Shutting down udp read()");
     }
 
     pub async fn write_to_wire(&self, cid: Cid, mut c2w_frame_r: mpsc::UnboundedReceiver<Frame>) {
-        trace!("starting up udp write()");
+        trace!("Starting up udp write()");
         let mut buffer = [0u8; 2000];
         let mut metrics_cache = CidFrameCache::new(self.metrics.frames_wire_out_total.clone(), cid);
         let throughput_cache = self
@@ -588,7 +588,7 @@ impl UdpProtocol {
             };
             let mut start = 0;
             while start < len {
-                trace!(?start, ?len, "splitting up udp frame in multiple packages");
+                trace!(?start, ?len, "Splitting up udp frame in multiple packages");
                 match self
                     .socket
                     .send_to(&buffer[start..len], self.remote_addr)
@@ -603,10 +603,10 @@ impl UdpProtocol {
                             );
                         }
                     },
-                    Err(e) => error!(?e, "need to handle that error!"),
+                    Err(e) => error!(?e, "Need to handle that error!"),
                 }
             }
         }
-        trace!("shutting down udp write()");
+        trace!("Shutting down udp write()");
     }
 }

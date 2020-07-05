@@ -187,7 +187,7 @@ impl BParticipant {
         const FRAMES_PER_TICK: usize = 10005;
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
         let mut closing_up = false;
-        trace!("start send_mgr");
+        trace!("Start send_mgr");
         let mut send_cache =
             PidCidFrameCache::new(self.metrics.frames_out_total.clone(), self.remote_pid);
         //while !self.closed.load(Ordering::Relaxed) {
@@ -196,7 +196,7 @@ impl BParticipant {
             prios.fill_frames(FRAMES_PER_TICK, &mut frames).await;
             let len = frames.len();
             if len > 0 {
-                trace!("tick {}", len);
+                trace!("Tick {}", len);
             }
             for (_, frame) in frames {
                 self.send_frame(frame, &mut send_cache).await;
@@ -216,7 +216,7 @@ impl BParticipant {
                 closing_up = true;
             }
         }
-        trace!("stop send_mgr");
+        trace!("Stop send_mgr");
         b2b_prios_flushed_s.send(()).unwrap();
         self.running_mgr.fetch_sub(1, Ordering::Relaxed);
     }
@@ -242,13 +242,13 @@ impl BParticipant {
             if let Err(e) = ci.b2w_frame_s.send(frame).await {
                 warn!(
                     ?e,
-                    "the channel got closed unexpectedly, cleaning it up now."
+                    "The channel got closed unexpectedly, cleaning it up now."
                 );
                 let ci = lock.remove(0);
                 if let Err(e) = ci.b2r_read_shutdown.send(()) {
                     debug!(
                         ?e,
-                        "error shutdowning channel, which is prob fine as we detected it to no \
+                        "Error shutdowning channel, which is prob fine as we detected it to no \
                          longer work in the first place"
                     );
                 };
@@ -270,7 +270,7 @@ impl BParticipant {
                 guard.0 = now;
                 let occurrences = guard.1 + 1;
                 guard.1 = 0;
-                error!(?occurrences, "participant has no channel to communicate on");
+                error!(?occurrences, "Participant has no channel to communicate on");
             } else {
                 guard.1 += 1;
             }
@@ -286,7 +286,7 @@ impl BParticipant {
         a2p_msg_s: crossbeam_channel::Sender<(Prio, Sid, OutgoingMessage)>,
     ) {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
-        trace!("start handle_frames_mgr");
+        trace!("Start handle_frames_mgr");
         let mut messages = HashMap::new();
         let mut dropped_instant = Instant::now();
         let mut dropped_cnt = 0u64;
@@ -310,7 +310,7 @@ impl BParticipant {
                         .create_stream(sid, prio, promises, a2p_msg_s, &a2b_close_stream_s)
                         .await;
                     b2a_stream_opened_s.send(stream).await.unwrap();
-                    trace!("opened frame from remote");
+                    trace!("Opened frame from remote");
                 },
                 Frame::CloseStream { sid } => {
                     // Closing is realised by setting a AtomicBool to true, however we also have a
@@ -320,7 +320,7 @@ impl BParticipant {
                     // be dropped... from remote, notify local
                     trace!(
                         ?sid,
-                        "got remote request to close a stream, without flushing it, local \
+                        "Got remote request to close a stream, without flushing it, local \
                          messages are dropped"
                     );
                     // no wait for flush here, as the remote wouldn't care anyway.
@@ -330,11 +330,11 @@ impl BParticipant {
                             .with_label_values(&[&self.remote_pid_string])
                             .inc();
                         si.closed.store(true, Ordering::Relaxed);
-                        trace!(?sid, "closed stream from remote");
+                        trace!(?sid, "Closed stream from remote");
                     } else {
                         warn!(
                             ?sid,
-                            "couldn't find stream to close, either this is a duplicate message, \
+                            "Couldn't find stream to close, either this is a duplicate message, \
                              or the local copy of the Stream got closed simultaniously"
                         );
                     }
@@ -367,7 +367,7 @@ impl BParticipant {
                                 warn!(
                                     ?e,
                                     ?mid,
-                                    "dropping message, as streams seem to be in act of beeing \
+                                    "Dropping message, as streams seem to be in act of beeing \
                                      dropped right now"
                                 );
                             }
@@ -379,7 +379,7 @@ impl BParticipant {
                             {
                                 warn!(
                                     ?dropped_cnt,
-                                    "dropping multiple messages as stream no longer seems to \
+                                    "Dropping multiple messages as stream no longer seems to \
                                      exist because it was dropped probably."
                                 );
                                 dropped_cnt = 0;
@@ -395,17 +395,17 @@ impl BParticipant {
                     debug!("Shutdown received from remote side");
                     self.close_participant(2).await;
                 },
-                f => unreachable!("never reaches frame!: {:?}", f),
+                f => unreachable!("Frame should never reache participant!: {:?}", f),
             }
         }
         if dropped_cnt > 0 {
             warn!(
                 ?dropped_cnt,
-                "dropping multiple messages as stream no longer seems to exist because it was \
+                "Dropping multiple messages as stream no longer seems to exist because it was \
                  dropped probably."
             );
         }
-        trace!("stop handle_frames_mgr");
+        trace!("Stop handle_frames_mgr");
         self.running_mgr.fetch_sub(1, Ordering::Relaxed);
     }
 
@@ -422,7 +422,7 @@ impl BParticipant {
         w2b_frames_s: mpsc::UnboundedSender<(Cid, Frame)>,
     ) {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
-        trace!("start create_channel_mgr");
+        trace!("Start create_channel_mgr");
         s2b_create_channel_r
             .for_each_concurrent(
                 None,
@@ -444,7 +444,7 @@ impl BParticipant {
                             .channels_connected_total
                             .with_label_values(&[&self.remote_pid_string])
                             .inc();
-                        trace!(?cid, "running channel in participant");
+                        trace!(?cid, "Running channel in participant");
                         channel
                             .run(protocol, w2b_frames_s, leftover_cid_frame)
                             .await;
@@ -452,12 +452,12 @@ impl BParticipant {
                             .channels_disconnected_total
                             .with_label_values(&[&self.remote_pid_string])
                             .inc();
-                        trace!(?cid, "channel got closed");
+                        trace!(?cid, "Channel got closed");
                     }
                 },
             )
             .await;
-        trace!("stop create_channel_mgr");
+        trace!("Stop create_channel_mgr");
         self.running_mgr.fetch_sub(1, Ordering::Relaxed);
     }
 
@@ -469,7 +469,7 @@ impl BParticipant {
         shutdown_open_mgr_receiver: oneshot::Receiver<()>,
     ) {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
-        trace!("start open_mgr");
+        trace!("Start open_mgr");
         let mut stream_ids = self.offset_sid;
         let mut send_cache =
             PidCidFrameCache::new(self.metrics.frames_out_total.clone(), self.remote_pid);
@@ -479,7 +479,7 @@ impl BParticipant {
             next = a2b_steam_open_r.next().fuse() => next,
             _ = shutdown_open_mgr_receiver => None,
         } {
-            debug!(?prio, ?promises, "got request to open a new steam");
+            debug!(?prio, ?promises, "Got request to open a new steam");
             let a2p_msg_s = a2p_msg_s.clone();
             let sid = stream_ids;
             let stream = self
@@ -502,7 +502,7 @@ impl BParticipant {
                 stream_ids += Sid::from(1);
             }
         }
-        trace!("stop open_mgr");
+        trace!("Stop open_mgr");
         self.running_mgr.fetch_sub(1, Ordering::Relaxed);
     }
 
@@ -515,11 +515,11 @@ impl BParticipant {
         s2b_shutdown_bparticipant_r: oneshot::Receiver<oneshot::Sender<async_std::io::Result<()>>>,
     ) {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
-        trace!("start participant_shutdown_mgr");
+        trace!("Start participant_shutdown_mgr");
         let sender = s2b_shutdown_bparticipant_r.await.unwrap();
         self.close_participant(1).await;
         sender.send(Ok(())).unwrap();
-        trace!("stop participant_shutdown_mgr");
+        trace!("Stop participant_shutdown_mgr");
         self.running_mgr.fetch_sub(1, Ordering::Relaxed);
     }
 
@@ -530,7 +530,7 @@ impl BParticipant {
         b2p_notify_empty_stream_s: crossbeam_channel::Sender<(Sid, oneshot::Sender<()>)>,
     ) {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
-        trace!("start stream_close_mgr");
+        trace!("Start stream_close_mgr");
         let mut send_cache =
             PidCidFrameCache::new(self.metrics.frames_out_total.clone(), self.remote_pid);
         let mut shutdown_stream_close_mgr_receiver = shutdown_stream_close_mgr_receiver.fuse();
@@ -542,7 +542,7 @@ impl BParticipant {
         } {
             //TODO: make this concurrent!
             //TODO: Performance, closing is slow!
-            trace!(?sid, "got request from api to close steam");
+            trace!(?sid, "Got request from api to close steam");
             //This needs to first stop clients from sending any more.
             //Then it will wait for all pending messages (in prio) to be send to the
             // protocol After this happened the stream is closed
@@ -550,24 +550,24 @@ impl BParticipant {
             // frame! If we would send it before, all followup messages couldn't
             // be handled at the remote side.
 
-            trace!(?sid, "stopping api to use this stream");
+            trace!(?sid, "Stopping api to use this stream");
             match self.streams.read().await.get(&sid) {
                 Some(si) => {
                     si.closed.store(true, Ordering::Relaxed);
                 },
-                None => warn!("couldn't find the stream, might be simulanious close from remote"),
+                None => warn!("Couldn't find the stream, might be simulanious close from remote"),
             }
 
             //TODO: what happens if RIGHT NOW the remote sends a StreamClose and this
             // streams get closed and removed? RACE CONDITION
-            trace!(?sid, "wait for stream to be flushed");
+            trace!(?sid, "Wait for stream to be flushed");
             let (s2b_stream_finished_closed_s, s2b_stream_finished_closed_r) = oneshot::channel();
             b2p_notify_empty_stream_s
                 .send((sid, s2b_stream_finished_closed_s))
                 .unwrap();
             s2b_stream_finished_closed_r.await.unwrap();
 
-            trace!(?sid, "stream was successfully flushed");
+            trace!(?sid, "Stream was successfully flushed");
             self.metrics
                 .streams_closed_total
                 .with_label_values(&[&self.remote_pid_string])
@@ -577,7 +577,7 @@ impl BParticipant {
             self.send_frame(Frame::CloseStream { sid }, &mut send_cache)
                 .await;
         }
-        trace!("stop stream_close_mgr");
+        trace!("Stop stream_close_mgr");
         self.running_mgr.fetch_sub(1, Ordering::Relaxed);
     }
 
@@ -617,7 +617,7 @@ impl BParticipant {
     /// allowed_managers: the number of open managers to sleep on. Must be 1 for
     /// shutdown_mgr and 2 if it comes from a send error.
     async fn close_participant(&self, allowed_managers: usize) {
-        trace!("participant shutdown triggered");
+        trace!("Participant shutdown triggered");
         let mut info = match self.shutdown_info.lock().await.take() {
             Some(info) => info,
             None => {
@@ -628,23 +628,23 @@ impl BParticipant {
                 return;
             },
         };
-        debug!("closing all managers");
+        debug!("Closing all managers");
         for sender in info.mgr_to_shutdown.drain(..) {
             if let Err(e) = sender.send(()) {
-                warn!(?e, "manager seems to be closed already, weird, maybe a bug");
+                warn!(?e, "Manager seems to be closed already, weird, maybe a bug");
             };
         }
-        debug!("closing all streams");
+        debug!("Closing all streams");
         for (sid, si) in self.streams.write().await.drain() {
-            trace!(?sid, "shutting down Stream");
+            trace!(?sid, "Shutting down Stream");
             si.closed.store(true, Ordering::Relaxed);
         }
-        debug!("waiting for prios to be flushed");
+        debug!("Waiting for prios to be flushed");
         info.b2b_prios_flushed_r.await.unwrap();
-        debug!("closing all channels");
+        debug!("Closing all channels");
         for ci in self.channels.write().await.drain(..) {
             if let Err(e) = ci.b2r_read_shutdown.send(()) {
-                debug!(?e, ?ci.cid, "seems like this read protocol got already dropped by closing the Stream itself, just ignoring the fact");
+                debug!(?e, ?ci.cid, "Seems like this read protocol got already dropped by closing the Stream itself, just ignoring the fact");
             };
         }
         //Wait for other bparticipants mgr to close via AtomicUsize
@@ -656,14 +656,14 @@ impl BParticipant {
             if i.rem_euclid(10) == 1 {
                 trace!(
                     ?allowed_managers,
-                    "waiting for bparticipant mgr to shut down, remaining {}",
+                    "Waiting for bparticipant mgr to shut down, remaining {}",
                     self.running_mgr.load(Ordering::Relaxed) - allowed_managers
                 );
             }
             async_std::task::sleep(SLEEP_TIME * i).await;
         }
-        trace!("all bparticipant mgr (except me) are shut down now");
+        trace!("All BParticipant mgr (except me) are shut down now");
         self.metrics.participants_disconnected_total.inc();
-        debug!("bparticipant close done");
+        debug!("BParticipant close done");
     }
 }

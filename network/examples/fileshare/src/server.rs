@@ -54,12 +54,12 @@ impl Server {
     }
 
     async fn command_manager(&self, command_receiver: mpsc::UnboundedReceiver<LocalCommand>) {
-        trace!("start command_manager");
+        trace!("Start command_manager");
         command_receiver
             .for_each_concurrent(None, async move |cmd| {
                 match cmd {
                     LocalCommand::Shutdown => {
-                        println!("shutting down service");
+                        println!("Shutting down service");
                         return;
                     },
                     LocalCommand::Disconnect => {
@@ -67,21 +67,21 @@ impl Server {
                         for (_, p) in self.network.participants().await.drain() {
                             self.network.disconnect(p).await.unwrap();
                         }
-                        println!("disconnecting all connections");
+                        println!("Disconnecting all connections");
                         return;
                     },
                     LocalCommand::Connect(addr) => {
-                        println!("trying to connect to: {:?}", &addr);
+                        println!("Trying to connect to: {:?}", &addr);
                         match self.network.connect(addr.clone()).await {
                             Ok(p) => self.loop_participant(p).await,
                             Err(e) => {
-                                println!("failled to connect to {:?}, err: {:?}", &addr, e);
+                                println!("Failled to connect to {:?}, err: {:?}", &addr, e);
                             },
                         }
                     },
                     LocalCommand::Serve(fileinfo) => {
                         self.served.write().await.push(fileinfo.clone());
-                        println!("serving file: {:?}", fileinfo.path);
+                        println!("Serving file: {:?}", fileinfo.path);
                     },
                     LocalCommand::List => {
                         let mut total_file_infos = vec![];
@@ -110,11 +110,11 @@ impl Server {
                 }
             })
             .await;
-        trace!("stop command_manager");
+        trace!("Stop command_manager");
     }
 
     async fn connect_manager(&self) {
-        trace!("start connect_manager");
+        trace!("Start connect_manager");
         let iter = futures::stream::unfold((), |_| {
             self.network.connected().map(|r| r.ok().map(|v| (v, ())))
         });
@@ -123,7 +123,7 @@ impl Server {
             self.loop_participant(participant).await;
         })
         .await;
-        trace!("stop connect_manager");
+        trace!("Stop connect_manager");
     }
 
     async fn loop_participant(&self, p: Arc<Participant>) {
@@ -133,7 +133,7 @@ impl Server {
             p.opened().await,
             p.opened().await,
         ) {
-            debug!(?p, "connection successfully initiated");
+            debug!(?p, "Connection successfully initiated");
             let id = p.remote_pid();
             let ri = Arc::new(Mutex::new(RemoteInfo::new(cmd_out, file_out, p)));
             self.remotes.write().await.insert(id, ri.clone());
@@ -146,24 +146,24 @@ impl Server {
 
     async fn handle_remote_cmd(&self, mut stream: Stream, remote_info: Arc<Mutex<RemoteInfo>>) {
         while let Ok(msg) = stream.recv::<Command>().await {
-            println!("got message: {:?}", &msg);
+            println!("Got message: {:?}", &msg);
             match msg {
                 Command::List => {
-                    info!("request to send my list");
+                    info!("Request to send my list");
                     let served = self.served.read().await.clone();
                     stream.send(served).unwrap();
                 },
                 Command::Get(id) => {
                     for file_info in self.served.read().await.iter() {
                         if file_info.id() == id {
-                            info!("request to send file i got, sending it");
+                            info!("Request to send file i got, sending it");
                             if let Ok(data) = file_info.load().await {
                                 match remote_info.lock().await.file_out.send((file_info, data)) {
                                     Ok(_) => debug!("send file"),
                                     Err(e) => error!(?e, "sending file failed"),
                                 }
                             } else {
-                                warn!("cannot send file as loading failed, oes it still exist?");
+                                warn!("Cannot send file as loading failed, oes it still exist?");
                             }
                         }
                     }
@@ -174,18 +174,18 @@ impl Server {
 
     async fn handle_files(&self, mut stream: Stream, _remote_info: Arc<Mutex<RemoteInfo>>) {
         while let Ok((fi, data)) = stream.recv::<(FileInfo, Vec<u8>)>().await {
-            debug!(?fi, "got file");
+            debug!(?fi, "Got file");
             let path = self.receiving_files.lock().await.remove(&fi.id()).flatten();
             let path: PathBuf = match &path {
                 Some(path) => shellexpand::tilde(&path).parse().unwrap(),
                 None => {
                     let mut path = std::env::current_dir().unwrap();
                     path.push(fi.path().file_name().unwrap());
-                    trace!("no path provided, saving down to {:?}", path);
+                    trace!("No path provided, saving down to {:?}", path);
                     PathBuf::from(path)
                 },
             };
-            debug!("received file, going to save it under {:?}", path);
+            debug!("Received file, going to save it under {:?}", path);
             fs::write(path, data).await.unwrap();
         }
     }
