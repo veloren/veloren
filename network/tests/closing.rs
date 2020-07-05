@@ -9,7 +9,7 @@ fn close_network() {
     let (_, _) = helper::setup(false, 0);
     let (_, _p1_a, mut s1_a, _, _p1_b, mut s1_b) = block_on(network_participant_stream(tcp()));
 
-    std::thread::sleep(std::time::Duration::from_millis(400));
+    std::thread::sleep(std::time::Duration::from_millis(1000));
 
     assert_eq!(s1_a.send("Hello World"), Err(StreamError::StreamClosed));
     let msg1: Result<String, _> = block_on(s1_b.recv());
@@ -37,7 +37,7 @@ fn close_stream() {
     let (_n_a, _, mut s1_a, _n_b, _, _) = block_on(network_participant_stream(tcp()));
 
     // s1_b is dropped directly while s1_a isn't
-    std::thread::sleep(std::time::Duration::from_millis(400));
+    std::thread::sleep(std::time::Duration::from_millis(1000));
 
     assert_eq!(s1_a.send("Hello World"), Err(StreamError::StreamClosed));
     assert_eq!(
@@ -75,7 +75,7 @@ fn stream_simple_3msg_then_close() {
     assert_eq!(block_on(s1_b.recv()), Ok(42));
     assert_eq!(block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
     drop(s1_a);
-    std::thread::sleep(std::time::Duration::from_millis(400));
+    std::thread::sleep(std::time::Duration::from_millis(1000));
     assert_eq!(s1_b.send("Hello World"), Err(StreamError::StreamClosed));
 }
 
@@ -89,7 +89,7 @@ fn stream_send_first_then_receive() {
     s1_a.send(42).unwrap();
     s1_a.send("3rdMessage").unwrap();
     drop(s1_a);
-    std::thread::sleep(std::time::Duration::from_millis(500));
+    std::thread::sleep(std::time::Duration::from_millis(1000));
     assert_eq!(block_on(s1_b.recv()), Ok(1u8));
     assert_eq!(block_on(s1_b.recv()), Ok(42));
     assert_eq!(block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
@@ -103,7 +103,7 @@ fn stream_send_1_then_close_stream() {
     s1_a.send("this message must be received, even if stream is closed already!")
         .unwrap();
     drop(s1_a);
-    std::thread::sleep(std::time::Duration::from_millis(500));
+    std::thread::sleep(std::time::Duration::from_millis(1000));
     let exp = Ok("this message must be received, even if stream is closed already!".to_string());
     assert_eq!(block_on(s1_b.recv()), exp);
     println!("all received and done");
@@ -147,7 +147,7 @@ fn stream_send_100000_then_close_stream_remote2() {
         s1_a.send("woop_PARTY_HARD_woop").unwrap();
     }
     drop(_s1_b);
-    std::thread::sleep(std::time::Duration::from_millis(400));
+    std::thread::sleep(std::time::Duration::from_millis(1000));
     drop(s1_a);
     //no receiving
 }
@@ -160,7 +160,7 @@ fn stream_send_100000_then_close_stream_remote3() {
         s1_a.send("woop_PARTY_HARD_woop").unwrap();
     }
     drop(_s1_b);
-    std::thread::sleep(std::time::Duration::from_millis(400));
+    std::thread::sleep(std::time::Duration::from_millis(1000));
     drop(s1_a);
     //no receiving
 }
