@@ -182,10 +182,9 @@ impl TcpProtocol {
                         bytes[15],
                     ]);
                     let length = u16::from_le_bytes([bytes[16], bytes[17]]);
-                    let mut cdata = vec![0; length as usize];
+                    let mut data = vec![0; length as usize];
                     throughput_cache.inc_by(length as i64);
-                    Self::read_except_or_close(cid, &stream, &mut cdata, w2c_cid_frame_s).await;
-                    let data = lz4_compress::decompress(&cdata).unwrap();
+                    Self::read_except_or_close(cid, &stream, &mut data, w2c_cid_frame_s).await;
                     Frame::Data { mid, start, data }
                 },
                 FRAME_RAW => {
@@ -348,7 +347,6 @@ impl TcpProtocol {
                 },
                 Frame::Data { mid, start, data } => {
                     throughput_cache.inc_by(data.len() as i64);
-                    let cdata = lz4_compress::compress(&data);
                     Self::write_or_close(&mut stream, &FRAME_DATA.to_be_bytes(), &mut c2w_frame_r)
                         .await
                         || Self::write_or_close(&mut stream, &mid.to_le_bytes(), &mut c2w_frame_r)
@@ -357,11 +355,11 @@ impl TcpProtocol {
                             .await
                         || Self::write_or_close(
                             &mut stream,
-                            &(cdata.len() as u16).to_le_bytes(),
+                            &(data.len() as u16).to_le_bytes(),
                             &mut c2w_frame_r,
                         )
                         .await
-                        || Self::write_or_close(&mut stream, &cdata, &mut c2w_frame_r).await
+                        || Self::write_or_close(&mut stream, &data, &mut c2w_frame_r).await
                 },
                 Frame::Raw(data) => {
                     Self::write_or_close(&mut stream, &FRAME_RAW.to_be_bytes(), &mut c2w_frame_r)
