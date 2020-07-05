@@ -60,14 +60,10 @@ pub struct Participant {
 ///
 /// Unlike [`Network`] and [`Participant`], `Streams` don't implement interior
 /// mutability, as multiple threads don't need access to the same `Stream`.
-/// [`Sync`] is not supported! In that case multiple `Streams` should be used
-/// instead. However it's still possible to [`Send`] `Streams`.
 ///
 /// [`Networks`]: crate::api::Network
 /// [`open`]: Participant::open
 /// [`opened`]: Participant::opened
-/// [`Send`]: std::marker::Send
-/// [`Sync`]: std::marker::Sync
 #[derive(Debug)]
 pub struct Stream {
     pid: Pid,
@@ -86,6 +82,8 @@ pub struct Stream {
 pub enum NetworkError {
     NetworkClosed,
     ListenFailed(std::io::Error),
+    ConnectFailed(std::io::Error),
+    GracefulDisconnectFailed(std::io::Error),
 }
 
 /// Error type thrown by [`Participants`](Participant) methods
@@ -317,7 +315,10 @@ impl Network {
             .await
             .send((address, pid_sender))
             .await?;
-        let participant = pid_receiver.await??;
+        let participant = match pid_receiver.await? {
+            Ok(p) => p,
+            Err(e) => return Err(NetworkError::ConnectFailed(e)),
+        };
         let pid = participant.remote_pid;
         debug!(
             ?pid,
@@ -437,6 +438,7 @@ impl Network {
                      this is a bad idea. Participant will only be dropped when you drop your last \
                      reference"
                 );
+                Ok(())
             },
             Ok(mut participant) => {
                 trace!("waiting now for participant to close");
@@ -451,13 +453,30 @@ impl Network {
                     .send((pid, finished_sender))
                     .await
                     .expect("something is wrong in internal scheduler coding");
-                let res = finished_receiver.await.unwrap();
-                trace!("participant is now closed");
-                res?;
+                match finished_receiver.await {
+                    Ok(Ok(())) => {
+                        trace!(?pid, "Participant is now closed");
+                        Ok(())
+                    },
+                    Ok(Err(e)) => {
+                        trace!(
+                            ?e,
+                            "Error occured during shutdown of participant and is propagated to \
+                             User"
+                        );
+                        Err(NetworkError::GracefulDisconnectFailed(e))
+                    },
+                    Err(e) => {
+                        error!(
+                            ?pid,
+                            ?e,
+                            "Failed to get a message back from the scheduler, closing the network"
+                        );
+                        Err(NetworkError::NetworkClosed)
+                    },
+                }
             },
-        };
-
-        Ok(())
+        }
     }
 
     /// returns a copy of all current connected [`Participants`],
@@ -946,10 +965,6 @@ impl<T> From<crossbeam_channel::SendError<T>> for NetworkError {
     fn from(_err: crossbeam_channel::SendError<T>) -> Self { NetworkError::NetworkClosed }
 }
 
-impl From<async_std::io::Error> for NetworkError {
-    fn from(err: async_std::io::Error) -> Self { NetworkError::ListenFailed(err) }
-}
-
 impl From<std::option::NoneError> for StreamError {
     fn from(_err: std::option::NoneError) -> Self { StreamError::StreamClosed }
 }
@@ -1006,6 +1021,8 @@ impl core::fmt::Display for NetworkError {
         match self {
             NetworkError::NetworkClosed => write!(f, "network closed"),
             NetworkError::ListenFailed(_) => write!(f, "listening failed"),
+            NetworkError::ConnectFailed(_) => write!(f, "connecting failed"),
+            NetworkError::GracefulDisconnectFailed(_) => write!(f, "graceful disconnect failed"),
         }
     }
 }

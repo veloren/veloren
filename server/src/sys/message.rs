@@ -57,7 +57,7 @@ impl Sys {
         settings: &Read<'_, ServerSettings>,
     ) -> Result<(), crate::error::Error> {
         loop {
-            let msg = client.singleton_stream.lock().unwrap().recv().await?;
+            let msg = client.singleton_stream.recv().await?;
             *cnt += 1;
             match msg {
                 // Go back to registered state (char selection screen)
