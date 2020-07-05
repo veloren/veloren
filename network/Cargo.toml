@@ -8,6 +8,7 @@ edition = "2018"
 
 [dependencies]
 
+lz4-compress = "0.1.1"
 #serialisation
 bincode = "1.2"
 serde = { version = "1.0" }
