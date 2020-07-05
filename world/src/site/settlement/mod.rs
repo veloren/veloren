@@ -10,7 +10,7 @@ use crate::{
 use common::{
     assets,
     astar::Astar,
-    comp::{self, bird_medium, humanoid, quadruped_small, object},
+    comp::{self, bird_medium, humanoid, object, quadruped_small},
     generation::{ChunkSupplement, EntityInfo},
     path::Path,
     spiral::Spiral2d,
@@ -789,7 +789,8 @@ impl Settlement {
                     && RandomField::new(self.seed).chance(Vec3::from(wpos2d), 1.0 / (50.0 * 50.0))
                 {
                     let is_human: bool;
-                    let is_dummy = RandomField::new(self.seed + 1).chance(Vec3::from(wpos2d), 1.0 / 15.0);
+                    let is_dummy =
+                        RandomField::new(self.seed + 1).chance(Vec3::from(wpos2d), 1.0 / 15.0);
                     let entity = EntityInfo::at(entity_wpos)
                         .with_body(match rng.gen_range(0, 4) {
                             _ if is_dummy => {

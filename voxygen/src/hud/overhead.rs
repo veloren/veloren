@@ -330,10 +330,7 @@ impl<'a> Widget for Overhead<'a> {
             let energy_factor = energy.current() as f64 / energy.maximum() as f64;
 
             Rectangle::fill_with(
-                [
-                    72.0 * energy_factor * BARSIZE,
-                    MANA_BAR_HEIGHT,
-                ],
+                [72.0 * energy_factor * BARSIZE, MANA_BAR_HEIGHT],
                 MANA_COLOR,
             )
             .x_y(

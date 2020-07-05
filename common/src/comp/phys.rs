@@ -78,6 +78,15 @@ pub struct PhysicsState {
     pub in_fluid: bool,
 }
 
+impl PhysicsState {
+    pub fn on_surface(&self) -> Option<Vec3<f32>> {
+        self.on_ground
+            .then_some(-Vec3::unit_z())
+            .or_else(|| self.on_ceiling.then_some(Vec3::unit_z()))
+            .or(self.on_wall)
+    }
+}
+
 impl Component for PhysicsState {
     type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }

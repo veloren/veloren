@@ -4,7 +4,6 @@ use common::{
     state::DeltaTime,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
-use std::time::Duration;
 
 /// This system is responsible for handling misc object behaviours
 pub struct Sys;
@@ -21,19 +20,17 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         &mut self,
-        (entities, dt, server_bus, positions, physics_states, mut objects): Self::SystemData,
+        (entities, _dt, server_bus, positions, physics_states, mut objects): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
 
         // Objects
-        for (entity, pos, _physics, object) in
+        for (entity, pos, physics, object) in
             (&entities, &positions, &physics_states, &mut objects).join()
         {
             match object {
-                Object::Bomb { owner, timeout } => {
-                    if let Some(t) = timeout.checked_sub(Duration::from_secs_f32(dt.0)) {
-                        *timeout = t;
-                    } else {
+                Object::Bomb { owner } => {
+                    if physics.on_surface().is_some() {
                         server_emitter.emit(ServerEvent::Destroy {
                             entity,
                             cause: HealthSource::Suicide,
