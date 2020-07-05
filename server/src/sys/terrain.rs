@@ -346,8 +346,12 @@ impl<'a> System<'a> for Sys {
                     stats,
                     loadout,
                     body,
+                    agent: if entity.has_agency {
+                        Some(comp::Agent::new(entity.pos, can_speak))
+                    } else {
+                        None
+                    },
                     alignment,
-                    agent: comp::Agent::new(entity.pos, can_speak),
                     scale: comp::Scale(scale),
                     drop_item: entity.loot_drop,
                 })

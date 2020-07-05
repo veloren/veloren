@@ -6,7 +6,7 @@ use common::{
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
 
-/// This system is responsible for handling projectile effect triggers
+/// This system is responsible for handling misc object behaviours
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
