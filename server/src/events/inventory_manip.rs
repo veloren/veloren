@@ -358,7 +358,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             .with(comp::Pos(pos.0 + Vec3::unit_z() * 0.25))
             .with(comp::Vel(vel));
 
-        #[allow(clippy::single-match)]
+        #[allow(clippy::single_match)]
         match item.kind {
             item::ItemKind::Throwable {
                 kind: item::Throwable::Bomb,
