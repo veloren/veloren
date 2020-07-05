@@ -34,12 +34,7 @@ impl<'a> System<'a> for Sys {
         stats.set_event_emission(true);
 
         // Update stats
-        for (entity, mut stats) in (
-            &entities,
-            &mut stats.restrict_mut(),
-        )
-            .join()
-        {
+        for (entity, mut stats) in (&entities, &mut stats.restrict_mut()).join() {
             let (set_dead, level_up) = {
                 let stat = stats.get_unchecked();
                 (
@@ -74,11 +69,8 @@ impl<'a> System<'a> for Sys {
         }
 
         // Update energies
-        for (character_state, mut energy) in (
-            &character_states,
-            &mut energies.restrict_mut(),
-        )
-            .join()
+        for (character_state, mut energy) in
+            (&character_states, &mut energies.restrict_mut()).join()
         {
             match character_state {
                 // Accelerate recharging energy.

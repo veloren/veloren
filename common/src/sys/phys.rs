@@ -96,11 +96,7 @@ impl<'a> System<'a> for Sys {
         {
             let mut physics_state = physics_states.get(entity).cloned().unwrap_or_default();
 
-            if sticky.is_some()
-                && (physics_state.on_ground
-                    || physics_state.on_ceiling
-                    || physics_state.on_wall.is_some())
-            {
+            if sticky.is_some() && physics_state.on_surface().is_some() {
                 vel.0 = Vec3::zero();
                 continue;
             }

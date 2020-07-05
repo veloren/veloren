@@ -11,7 +11,6 @@ use common::{
 };
 use rand::Rng;
 use specs::{join::Join, world::WorldExt, Builder, Entity as EcsEntity, WriteStorage};
-use std::time::Duration;
 use tracing::{debug, error};
 use vek::Vec3;
 
@@ -177,7 +176,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                             .get(entity)
                                             .copied()
                                             .unwrap_or_default(),
-                                        kind.clone(),
+                                        *kind,
                                     ));
                                 }
                                 Some(comp::InventoryUpdateEvent::Used)
@@ -363,17 +362,13 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
         match kind {
             item::Throwable::Bomb => {
-                new_entity = new_entity.with(comp::Object::Bomb {
-                    timeout: Duration::from_secs_f32(1.0),
-                    owner: uid,
-                });
+                new_entity = new_entity.with(comp::Object::Bomb { owner: uid });
             },
             item::Throwable::TrainingDummy => {
-                new_entity = new_entity
-                    .with(comp::Stats::new(
-                        "Training Dummy".to_string(),
-                        comp::object::Body::TrainingDummy.into(),
-                    ));
+                new_entity = new_entity.with(comp::Stats::new(
+                    "Training Dummy".to_string(),
+                    comp::object::Body::TrainingDummy.into(),
+                ));
             },
         };
 
