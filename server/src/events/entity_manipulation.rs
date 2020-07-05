@@ -295,7 +295,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Opti
         let terrain = ecs.read_resource::<TerrainGrid>();
         let _ = terrain
             .ray(pos, pos + dir * power)
-            .until(|_| rand::random::<f32>() < 0.05)
+            .until(|block| block.is_fluid() || rand::random::<f32>() < 0.05)
             .for_each(|pos| {
                 if terrain
                     .get(pos)
