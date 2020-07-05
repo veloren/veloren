@@ -10,6 +10,7 @@ impl Animation for RunAnimation {
 
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"quadruped_low_run\0";
+
     #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_low_run")]
     fn update_skeleton_inner(

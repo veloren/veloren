@@ -75,7 +75,9 @@ impl Route {
     where
         V: BaseVol<Vox = Block> + ReadVol,
     {
-        let next0 = self.next(0).unwrap_or_else(|| pos.map(|e| e.floor() as i32));
+        let next0 = self
+            .next(0)
+            .unwrap_or_else(|| pos.map(|e| e.floor() as i32));
         let next1 = self.next(1).unwrap_or(next0);
         if vol.get(next0).map(|b| b.is_solid()).unwrap_or(false) {
             None
@@ -129,7 +131,10 @@ impl Route {
 
             let tgt2d = cb.evaluate(0.5);
             let tgt = Vec3::from(tgt2d) + Vec3::unit_z() * next_tgt.z;
-            let tgt_dir = (tgt - pos).xy().try_normalized().unwrap_or_else(Vec2::unit_y);
+            let tgt_dir = (tgt - pos)
+                .xy()
+                .try_normalized()
+                .unwrap_or_else(Vec2::unit_y);
             let next_dir = cb
                 .evaluate_derivative(0.5)
                 .try_normalized()
@@ -187,16 +192,16 @@ impl Chaser {
 
         let bearing = if let Some(end) = self.route.as_ref().and_then(|r| r.path().end().copied()) {
             let end_to_tgt = end.map(|e| e as f32).distance(tgt);
-    if end_to_tgt > pos_to_tgt * 0.3 + 5.0 || thread_rng().gen::<f32>() < 0.005 {
-        None
-    } else {
-            self.route
-                .as_mut()
-                .and_then(|r| r.traverse(vol, pos, vel, traversal_tolerance))
-        }
-} else {
-    None
-};
+            if end_to_tgt > pos_to_tgt * 0.3 + 5.0 || thread_rng().gen::<f32>() < 0.005 {
+                None
+            } else {
+                self.route
+                    .as_mut()
+                    .and_then(|r| r.traverse(vol, pos, vel, traversal_tolerance))
+            }
+        } else {
+            None
+        };
 
         // TODO: What happens when we get stuck?
         if let Some(bearing) = bearing {
