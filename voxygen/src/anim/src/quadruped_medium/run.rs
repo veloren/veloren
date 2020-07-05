@@ -10,6 +10,7 @@ impl Animation for RunAnimation {
 
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"quadruped_medium_run\0";
+
     #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_medium_run")]
     fn update_skeleton_inner(
@@ -22,7 +23,7 @@ impl Animation for RunAnimation {
         let mut next = (*skeleton).clone();
         let speed = Vec2::<f32>::from(velocity).magnitude();
         *rate = 1.0;
-        let lab = 0.1; //6
+        let lab = 0.6; //6
 
         let speedmult = if speed > 8.0 {
             1.2 * (1.0 * skeleton_attr.tempo)
