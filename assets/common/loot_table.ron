@@ -7,6 +7,8 @@
     // miscellaneous
     (0.4, "common.items.velorite"),
     (0.6, "common.items.veloritefrag"),
+    (0.6, "common.items.cheese"),
+    (0.6, "common.items.apple"),
     (1.5, "common.items.potion_minor"),
     (0.5, "common.items.collar"),
     (0.5, "common.items.bomb_pile"),
@@ -79,7 +81,6 @@
     (0.2, "common.items.armor.pants.cloth_blue_0"),
     (0.2, "common.items.armor.pants.cloth_green_0"),
     (0.2, "common.items.armor.pants.cloth_purple_0"),
-    (0.15, "common.items.armor.pants.green_0"),
     (0.15, "common.items.armor.pants.leather_0"),
     (0.1, "common.items.armor.pants.steel_0"),
     (0.05, "common.items.armor.pants.plate_green_0"),
