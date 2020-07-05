@@ -265,7 +265,7 @@ impl PrioManager {
                         }
                         //decrease pid_sid counter by 1 again
                         let cnt = self.sid_owned.get_mut(&sid).expect(
-                            "the pid_sid_owned counter works wrong, more pid,sid removed than \
+                            "The pid_sid_owned counter works wrong, more pid,sid removed than \
                              inserted",
                         );
                         cnt.len -= 1;
@@ -276,7 +276,7 @@ impl PrioManager {
                             }
                         }
                     } else {
-                        trace!(?msg.mid, "repush message");
+                        trace!(?msg.mid, "Repush message");
                         self.messages[prio as usize].push_front((sid, msg));
                     }
                 },
@@ -358,28 +358,28 @@ mod tests {
     fn assert_header(frames: &mut VecDeque<(Sid, Frame)>, f_sid: u64, f_length: u64) {
         let frame = frames
             .pop_front()
-            .expect("frames vecdeque doesn't contain enough frames!")
+            .expect("Frames vecdeque doesn't contain enough frames!")
             .1;
         if let Frame::DataHeader { mid, sid, length } = frame {
             assert_eq!(mid, 1);
             assert_eq!(sid, Sid::new(f_sid));
             assert_eq!(length, f_length);
         } else {
-            panic!("wrong frame type!, expected DataHeader");
+            panic!("Wrong frame type!, expected DataHeader");
         }
     }
 
     fn assert_data(frames: &mut VecDeque<(Sid, Frame)>, f_start: u64, f_data: Vec<u8>) {
         let frame = frames
             .pop_front()
-            .expect("frames vecdeque doesn't contain enough frames!")
+            .expect("Frames vecdeque doesn't contain enough frames!")
             .1;
         if let Frame::Data { mid, start, data } = frame {
             assert_eq!(mid, 1);
             assert_eq!(start, f_start);
             assert_eq!(data, f_data);
         } else {
-            panic!("wrong frame type!, expected Data");
+            panic!("Wrong frame type!, expected Data");
         }
     }
 

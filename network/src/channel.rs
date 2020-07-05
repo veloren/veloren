@@ -48,13 +48,13 @@ impl Channel {
 
         //reapply leftovers from handshake
         let cnt = leftover_cid_frame.len();
-        trace!(?self.cid, ?cnt, "reapplying leftovers");
+        trace!(?self.cid, ?cnt, "Reapplying leftovers");
         for cid_frame in leftover_cid_frame.drain(..) {
             w2c_cid_frame_s.send(cid_frame).await.unwrap();
         }
-        trace!(?self.cid, ?cnt, "all leftovers reapplied");
+        trace!(?self.cid, ?cnt, "All leftovers reapplied");
 
-        trace!(?self.cid, "start up channel");
+        trace!(?self.cid, "Start up channel");
         match protocol {
             Protocols::Tcp(tcp) => {
                 futures::join!(
@@ -70,7 +70,7 @@ impl Channel {
             },
         }
 
-        trace!(?self.cid, "shut down channel");
+        trace!(?self.cid, "Shut down channel");
     }
 }
 
@@ -178,20 +178,20 @@ impl Handshake {
                     version,
                 },
             )) => {
-                trace!(?magic_number, ?version, "recv handshake");
+                trace!(?magic_number, ?version, "Recv handshake");
                 self.metrics
                     .frames_in_total
                     .with_label_values(&["", &cid_string, "Handshake"])
                     .inc();
                 if magic_number != VELOREN_MAGIC_NUMBER {
-                    error!(?magic_number, "connection with invalid magic_number");
+                    error!(?magic_number, "Connection with invalid magic_number");
                     #[cfg(debug_assertions)]
                     {
                         self.metrics
                             .frames_out_total
                             .with_label_values(&["", &cid_string, "Raw"])
                             .inc();
-                        debug!("sending client instructions before killing");
+                        debug!("Sending client instructions before killing");
                         c2w_frame_s
                             .send(Frame::Raw(Self::WRONG_NUMBER.to_vec()))
                             .await
@@ -201,10 +201,10 @@ impl Handshake {
                     return Err(());
                 }
                 if version != VELOREN_NETWORK_VERSION {
-                    error!(?version, "connection with wrong network version");
+                    error!(?version, "Connection with wrong network version");
                     #[cfg(debug_assertions)]
                     {
-                        debug!("sending client instructions before killing");
+                        debug!("Sending client instructions before killing");
                         self.metrics
                             .frames_out_total
                             .with_label_values(&["", &cid_string, "Raw"])
@@ -227,7 +227,7 @@ impl Handshake {
                     }
                     return Err(());
                 }
-                debug!("handshake completed");
+                debug!("Handshake completed");
                 if self.init_handshake {
                     self.send_init(&mut c2w_frame_s, &pid_string).await;
                 } else {
@@ -235,7 +235,7 @@ impl Handshake {
                 }
             },
             Some((_, Frame::Shutdown)) => {
-                info!("shutdown signal received");
+                info!("Shutdown signal received");
                 self.metrics
                     .frames_in_total
                     .with_label_values(&[&pid_string, &cid_string, "Shutdown"])
@@ -277,11 +277,11 @@ impl Handshake {
                     self.send_init(&mut c2w_frame_s, &pid_string).await;
                     STREAM_ID_OFFSET2
                 };
-                info!(?pid, "this Handshake is now configured!");
+                info!(?pid, "This Handshake is now configured!");
                 Ok((pid, stream_id_offset, secret))
             },
             Some((_, Frame::Shutdown)) => {
-                info!("shutdown signal received");
+                info!("Shutdown signal received");
                 self.metrics
                     .frames_in_total
                     .with_label_values(&[&pid_string, &cid_string, "Shutdown"])

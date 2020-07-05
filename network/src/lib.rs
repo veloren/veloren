@@ -67,7 +67,7 @@
 //!     let client = server_network.connected().await?;
 //!     let mut stream = client.opened().await?;
 //!     let msg: String = stream.recv().await?;
-//!     println!("got message: {}", msg);
+//!     println!("Got message: {}", msg);
 //!     assert_eq!(msg, "Hello World");
 //!     Ok(())
 //! }

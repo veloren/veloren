@@ -70,7 +70,7 @@ fn file_exists(file: String) -> Result<(), String> {
     if file.exists() {
         Ok(())
     } else {
-        Err(format!("file does not exist"))
+        Err(format!("File does not exist"))
     }
 }
 
