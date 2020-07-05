@@ -42,7 +42,7 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
-use tracing::{debug, error, warn};
+use tracing::{debug, error, trace, warn};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 
@@ -312,10 +312,11 @@ impl Client {
 
     /// Send disconnect message to the server
     pub fn request_logout(&mut self) {
+        debug!("Requesting logout from server");
         if let Err(e) = self.singleton_stream.send(ClientMsg::Disconnect) {
             error!(
                 ?e,
-                "couldn't send disconnect package to server, did server close already?"
+                "Couldn't send disconnect package to server, did server close already?"
             );
         }
     }
@@ -1191,11 +1192,12 @@ impl Client {
 
 impl Drop for Client {
     fn drop(&mut self) {
+        trace!("Dropping client");
         if let Err(e) = self.singleton_stream.send(ClientMsg::Disconnect) {
             warn!(
-                "error during drop of client, couldn't send disconnect package, is the connection \
-                 already closed? : {}",
-                e
+                ?e,
+                "Error during drop of client, couldn't send disconnect package, is the connection \
+                 already closed?",
             );
         }
     }
