@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         item::{Hands, ItemKind, Tool},
-        CharacterState, StateUpdate,
+        Body, CharacterState, StateUpdate,
     },
     event::LocalEvent,
     states::*,
@@ -11,10 +11,7 @@ use crate::{
 use vek::vec::Vec2;
 
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
-const BASE_HUMANOID_ACCEL: f32 = 100.0;
-const BASE_HUMANOID_SPEED: f32 = 170.0;
 const BASE_HUMANOID_AIR_ACCEL: f32 = 15.0;
-const BASE_HUMANOID_AIR_SPEED: f32 = 8.0;
 const BASE_HUMANOID_WATER_ACCEL: f32 = 150.0;
 const BASE_HUMANOID_WATER_SPEED: f32 = 180.0;
 // const BASE_HUMANOID_CLIMB_ACCEL: f32 = 10.0;
@@ -30,6 +27,26 @@ const BASE_HUMANOID_WATER_SPEED: f32 = 180.0;
 // const CLIMB_SPEED: f32 = 5.0;
 // const CLIMB_COST: i32 = 5;
 
+impl Body {
+    pub fn base_accel(&self) -> f32 {
+        match self {
+            Body::Humanoid(_) => 100.0,
+            Body::QuadrupedSmall(_) => 80.0,
+            Body::QuadrupedMedium(_) => 180.0,
+            Body::BirdMedium(_) => 70.0,
+            Body::FishMedium(_) => 50.0,
+            Body::Dragon(_) => 250.0,
+            Body::BirdSmall(_) => 75.0,
+            Body::FishSmall(_) => 40.0,
+            Body::BipedLarge(_) => 120.0,
+            Body::Object(_) => 40.0,
+            Body::Golem(_) => 130.0,
+            Body::Critter(_) => 65.0,
+            Body::QuadrupedLow(_) => 120.0,
+        }
+    }
+}
+
 /// Handles updating `Components` to move player based on state of `JoinData`
 pub fn handle_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     if data.physics.in_fluid {
@@ -42,21 +59,14 @@ pub fn handle_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
 /// Updates components to move player as if theyre on ground or in air
 #[allow(clippy::assign_op_pattern)] // TODO: Pending review in #587
 fn basic_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
-    let (accel, speed): (f32, f32) = if data.physics.on_ground {
-        (BASE_HUMANOID_ACCEL, BASE_HUMANOID_SPEED)
+    let accel = if data.physics.on_ground {
+        data.body.base_accel()
     } else {
-        (BASE_HUMANOID_AIR_ACCEL, BASE_HUMANOID_AIR_SPEED)
+        BASE_HUMANOID_AIR_ACCEL
     };
 
-    // Move player according to move_dir
-    if update.vel.0.magnitude_squared() < speed.powf(2.0) {
-        update.vel.0 =
-            update.vel.0 + Vec2::broadcast(data.dt.0) * data.inputs.move_dir * accel * efficiency;
-        let mag2 = update.vel.0.magnitude_squared();
-        if mag2 > speed.powf(2.0) {
-            update.vel.0 = update.vel.0.normalized() * speed;
-        }
-    }
+    update.vel.0 =
+        update.vel.0 + Vec2::broadcast(data.dt.0) * data.inputs.move_dir * accel * efficiency;
 
     handle_orientation(data, update, 20.0);
 }
@@ -90,7 +100,7 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     handle_orientation(data, update, if data.physics.on_ground { 9.0 } else { 2.0 });
 
     // Swim
-    if data.inputs.jump.is_pressed() {
+    if data.inputs.swim.is_pressed() {
         update.vel.0.z =
             (update.vel.0.z + data.dt.0 * GRAVITY * 2.25).min(BASE_HUMANOID_WATER_SPEED);
     }

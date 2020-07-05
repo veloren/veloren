@@ -347,6 +347,9 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::Jump, state) => {
                         self.inputs.jump.set_state(state);
                     },
+                    Event::InputUpdate(GameInput::Swim, state) => {
+                        self.inputs.swim.set_state(state);
+                    },
                     Event::InputUpdate(GameInput::Sit, state)
                         if state != self.key_state.toggle_sit =>
                     {

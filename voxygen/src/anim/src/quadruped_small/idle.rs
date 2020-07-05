@@ -53,37 +53,37 @@ impl Animation for IdleAnimation {
         next.chest.ori = Quaternion::rotation_y(slow * 0.05);
         next.chest.scale = Vec3::one() / 11.0;
 
-        next.leg_lf.offset = Vec3::new(
+        next.leg_fl.offset = Vec3::new(
             -skeleton_attr.feet_f.0,
             skeleton_attr.feet_f.1,
             skeleton_attr.feet_f.2,
         ) / 11.0;
-        next.leg_lf.ori = Quaternion::rotation_x(slow * 0.08);
-        next.leg_lf.scale = Vec3::one() / 11.0;
+        next.leg_fl.ori = Quaternion::rotation_x(slow * 0.08);
+        next.leg_fl.scale = Vec3::one() / 11.0;
 
-        next.leg_rf.offset = Vec3::new(
+        next.leg_fr.offset = Vec3::new(
             skeleton_attr.feet_f.0,
             skeleton_attr.feet_f.1,
             skeleton_attr.feet_f.2,
         ) / 11.0;
-        next.leg_rf.ori = Quaternion::rotation_x(slow_alt * 0.08);
-        next.leg_rf.scale = Vec3::one() / 11.0;
+        next.leg_fr.ori = Quaternion::rotation_x(slow_alt * 0.08);
+        next.leg_fr.scale = Vec3::one() / 11.0;
 
-        next.leg_lb.offset = Vec3::new(
+        next.leg_bl.offset = Vec3::new(
             -skeleton_attr.feet_b.0,
             skeleton_attr.feet_b.1,
             skeleton_attr.feet_b.2,
         ) / 11.0;
-        next.leg_lb.ori = Quaternion::rotation_x(slow_alt * 0.08);
-        next.leg_lb.scale = Vec3::one() / 11.0;
+        next.leg_bl.ori = Quaternion::rotation_x(slow_alt * 0.08);
+        next.leg_bl.scale = Vec3::one() / 11.0;
 
-        next.leg_rb.offset = Vec3::new(
+        next.leg_br.offset = Vec3::new(
             skeleton_attr.feet_b.0,
             skeleton_attr.feet_b.1,
             skeleton_attr.feet_b.2,
         ) / 11.0;
-        next.leg_rb.ori = Quaternion::rotation_x(slow * 0.08);
-        next.leg_rb.scale = Vec3::one() / 11.0;
+        next.leg_br.ori = Quaternion::rotation_x(slow * 0.08);
+        next.leg_br.scale = Vec3::one() / 11.0;
 
         next.tail.offset = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1);
         next.tail.ori = Quaternion::rotation_z(slow * 0.4);

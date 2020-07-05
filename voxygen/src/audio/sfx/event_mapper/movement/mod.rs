@@ -66,6 +66,7 @@ impl EventMapper for MovementEventMapper {
                     Body::Humanoid(_) => Self::map_movement_event(character, physics, state, vel.0),
                     Body::QuadrupedMedium(_)
                     | Body::QuadrupedSmall(_)
+                    | Body::QuadrupedLow(_)
                     | Body::BirdMedium(_)
                     | Body::BirdSmall(_)
                     | Body::BipedLarge(_) => Self::map_non_humanoid_movement_event(physics, vel.0),
@@ -190,6 +191,7 @@ impl MovementEventMapper {
             Body::Humanoid(_) => 0.9,
             Body::QuadrupedSmall(_) => 0.3,
             Body::QuadrupedMedium(_) => 0.7,
+            Body::QuadrupedLow(_) => 0.7,
             Body::BirdMedium(_) => 0.3,
             Body::BirdSmall(_) => 0.2,
             Body::BipedLarge(_) => 1.0,

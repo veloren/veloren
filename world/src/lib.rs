@@ -22,7 +22,7 @@ use crate::{
     util::{Grid, Sampler},
 };
 use common::{
-    comp::{self, bird_medium, critter, quadruped_medium, quadruped_small},
+    comp::{self, bird_medium, critter, quadruped_low, quadruped_medium, quadruped_small},
     generation::{ChunkSupplement, EntityInfo},
     terrain::{Block, BlockKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, Vox, WriteVol},
@@ -201,6 +201,7 @@ impl World {
                         0 => comp::Body::QuadrupedMedium(quadruped_medium::Body::random()),
                         1 => comp::Body::BirdMedium(bird_medium::Body::random()),
                         2 => comp::Body::Critter(critter::Body::random()),
+                        3 => comp::Body::QuadrupedLow(quadruped_low::Body::random()),
                         _ => comp::Body::QuadrupedSmall(quadruped_small::Body::random()),
                     })
                     .with_automatic_name();

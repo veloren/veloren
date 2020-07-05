@@ -78,7 +78,10 @@ impl Component for Agent {
 #[derive(Clone, Debug)]
 pub enum Activity {
     Idle(Vec2<f32>),
-    Follow(EcsEntity, Chaser),
+    Follow {
+        target: EcsEntity,
+        chaser: Chaser,
+    },
     Attack {
         target: EcsEntity,
         chaser: Chaser,
@@ -91,7 +94,7 @@ pub enum Activity {
 impl Activity {
     pub fn is_follow(&self) -> bool {
         match self {
-            Activity::Follow(_, _) => true,
+            Activity::Follow { .. } => true,
             _ => false,
         }
     }

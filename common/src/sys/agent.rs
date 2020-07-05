@@ -4,7 +4,7 @@ use crate::{
         agent::Activity,
         item::{tool::ToolKind, ItemKind},
         Agent, Alignment, CharacterState, ChatMsg, ControlAction, Controller, Loadout, MountState,
-        Ori, Pos, Scale, Stats,
+        Ori, Pos, Scale, Stats, Vel,
     },
     event::{EventBus, ServerEvent},
     path::Chaser,
@@ -32,6 +32,7 @@ impl<'a> System<'a> for Sys {
         Write<'a, EventBus<ServerEvent>>,
         Entities<'a>,
         ReadStorage<'a, Pos>,
+        ReadStorage<'a, Vel>,
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Stats>,
@@ -55,6 +56,7 @@ impl<'a> System<'a> for Sys {
             event_bus,
             entities,
             positions,
+            velocities,
             orientations,
             scales,
             stats,
@@ -71,6 +73,7 @@ impl<'a> System<'a> for Sys {
         for (
             entity,
             pos,
+            vel,
             ori,
             alignment,
             loadout,
@@ -82,6 +85,7 @@ impl<'a> System<'a> for Sys {
         ) in (
             &entities,
             &positions,
+            &velocities,
             &orientations,
             alignments.maybe(),
             &loadouts,
@@ -122,7 +126,7 @@ impl<'a> System<'a> for Sys {
             // and so can afford to be less precise when trying to move around
             // the world (especially since they would otherwise get stuck on
             // obstacles that smaller entities would not).
-            let traversal_tolerance = scale;
+            let traversal_tolerance = scale + vel.0.magnitude() * 0.3;
 
             let mut do_idle = false;
             let mut choose_target = false;
@@ -183,24 +187,25 @@ impl<'a> System<'a> for Sys {
                             choose_target = true;
                         }
                     },
-                    Activity::Follow(target, chaser) => {
+                    Activity::Follow { target, chaser } => {
                         if let (Some(tgt_pos), _tgt_stats) =
                             (positions.get(*target), stats.get(*target))
                         {
                             let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
                             // Follow, or return to idle
                             if dist_sqrd > AVG_FOLLOW_DIST.powf(2.0) {
-                                if let Some(bearing) = chaser.chase(
+                                if let Some((bearing, speed)) = chaser.chase(
                                     &*terrain,
                                     pos.0,
+                                    vel.0,
                                     tgt_pos.0,
                                     AVG_FOLLOW_DIST,
                                     traversal_tolerance,
                                 ) {
-                                    inputs.move_dir = Vec2::from(bearing)
-                                        .try_normalized()
-                                        .unwrap_or(Vec2::zero());
-                                    inputs.jump.set_state(bearing.z > 1.0);
+                                    inputs.move_dir =
+                                        bearing.xy().try_normalized().unwrap_or(Vec2::zero())
+                                            * speed;
+                                    inputs.jump.set_state(bearing.z > 1.5);
                                 }
                             } else {
                                 do_idle = true;
@@ -303,17 +308,19 @@ impl<'a> System<'a> for Sys {
                                 }
 
                                 // Long-range chase
-                                if let Some(bearing) = chaser.chase(
+                                if let Some((bearing, speed)) = chaser.chase(
                                     &*terrain,
                                     pos.0,
+                                    vel.0,
                                     tgt_pos.0,
                                     1.25,
                                     traversal_tolerance,
                                 ) {
                                     inputs.move_dir = Vec2::from(bearing)
                                         .try_normalized()
-                                        .unwrap_or(Vec2::zero());
-                                    inputs.jump.set_state(bearing.z > 1.0);
+                                        .unwrap_or(Vec2::zero())
+                                        * speed;
+                                    inputs.jump.set_state(bearing.z > 1.5);
                                 }
 
                                 if dist_sqrd < 16.0f32.powf(2.0)
@@ -415,7 +422,10 @@ impl<'a> System<'a> for Sys {
                 if let Some(owner_pos) = positions.get(owner) {
                     let dist_sqrd = pos.0.distance_squared(owner_pos.0);
                     if dist_sqrd > MAX_FOLLOW_DIST.powf(2.0) && !agent.activity.is_follow() {
-                        agent.activity = Activity::Follow(owner, Chaser::default());
+                        agent.activity = Activity::Follow {
+                            target: owner,
+                            chaser: Chaser::default(),
+                        };
                     }
 
                     // Attack owner's attacker
