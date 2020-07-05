@@ -117,6 +117,8 @@ impl PlayState for CharSelectionState {
                     }
                 });
 
+            let loadout = self.char_selection_ui.get_loadout();
+
             // Maintain the scene.
             {
                 let client = self.client.borrow();
@@ -133,12 +135,13 @@ impl PlayState for CharSelectionState {
                         .figure_lod_render_distance
                         as f32,
                 };
-                self.scene
-                    .maintain(global_state.window.renderer_mut(), scene_data);
+                self.scene.maintain(
+                    global_state.window.renderer_mut(),
+                    scene_data,
+                    loadout.as_ref(),
+                );
             }
-
             // Render the scene.
-            let loadout = self.char_selection_ui.get_loadout();
             self.scene.render(
                 global_state.window.renderer_mut(),
                 self.client.borrow().get_tick(),
