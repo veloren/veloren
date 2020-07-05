@@ -31,7 +31,7 @@ pub fn handle_create_npc(
     stats: Stats,
     loadout: Loadout,
     body: Body,
-    agent: Agent,
+    agent: impl Into<Option<Agent>>,
     alignment: Alignment,
     scale: Scale,
     drop_item: Option<Item>,
@@ -39,9 +39,14 @@ pub fn handle_create_npc(
     let entity = server
         .state
         .create_npc(pos, stats, loadout, body)
-        .with(agent)
         .with(scale)
         .with(alignment);
+
+    let entity = if let Some(agent) = agent.into() {
+        entity.with(agent)
+    } else {
+        entity
+    };
 
     let entity = if let Some(drop_item) = drop_item {
         entity.with(ItemDrop(drop_item))

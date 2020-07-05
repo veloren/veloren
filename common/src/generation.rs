@@ -12,6 +12,7 @@ pub struct EntityInfo {
     pub pos: Vec3<f32>,
     pub is_waypoint: bool, // Edge case, overrides everything else
     pub is_giant: bool,
+    pub has_agency: bool,
     pub alignment: Alignment,
     pub body: Body,
     pub name: Option<String>,
@@ -28,6 +29,7 @@ impl EntityInfo {
             pos,
             is_waypoint: false,
             is_giant: false,
+            has_agency: true,
             alignment: Alignment::Wild,
             body: Body::Humanoid(humanoid::Body::random()),
             name: None,
@@ -66,8 +68,13 @@ impl EntityInfo {
         self
     }
 
-    pub fn with_name(mut self, name: String) -> Self {
-        self.name = Some(name);
+    pub fn with_name(mut self, name: impl Into<String>) -> Self {
+        self.name = Some(name.into());
+        self
+    }
+
+    pub fn with_agency(mut self, agency: bool) -> Self {
+        self.has_agency = agency;
         self
     }
 

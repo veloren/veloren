@@ -33,16 +33,8 @@ impl<'a> System<'a> for Sys {
         }
         stats.set_event_emission(true);
 
-        // Mutates all stats every tick causing the server to resend this component for
-        // every entity every tick
-        for (entity, character_state, mut stats, mut energy) in (
-            &entities,
-            &character_states,
-            &mut stats.restrict_mut(),
-            &mut energies.restrict_mut(),
-        )
-            .join()
-        {
+        // Update stats
+        for (entity, mut stats) in (&entities, &mut stats.restrict_mut()).join() {
             let (set_dead, level_up) = {
                 let stat = stats.get_unchecked();
                 (
@@ -74,7 +66,12 @@ impl<'a> System<'a> for Sys {
                 stat.health
                     .set_to(stat.health.maximum(), HealthSource::LevelUp);
             }
+        }
 
+        // Update energies
+        for (character_state, mut energy) in
+            (&character_states, &mut energies.restrict_mut()).join()
+        {
             match character_state {
                 // Accelerate recharging energy.
                 CharacterState::Idle { .. }

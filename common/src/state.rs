@@ -122,6 +122,7 @@ impl State {
         ecs.register::<comp::Sticky>();
         ecs.register::<comp::Gravity>();
         ecs.register::<comp::CharacterState>();
+        ecs.register::<comp::Object>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();

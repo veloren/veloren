@@ -123,6 +123,10 @@ pub const ALL_OBJECTS: [Body; 54] = [
     Body::TrainingDummy,
 ];
 
+impl From<Body> for super::Body {
+    fn from(body: Body) -> Self { super::Body::Object(body) }
+}
+
 impl Body {
     pub fn to_string(&self) -> &str {
         match self {

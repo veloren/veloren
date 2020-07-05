@@ -29,6 +29,12 @@ pub enum Consumable {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Throwable {
+    Bomb,
+    TrainingDummy,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Utility {
     Collar,
 }
@@ -86,6 +92,11 @@ pub enum ItemKind {
         #[serde(default = "default_amount")]
         amount: u32,
     },
+    Throwable {
+        kind: Throwable,
+        #[serde(default = "default_amount")]
+        amount: u32,
+    },
     Utility {
         kind: Utility,
         #[serde(default = "default_amount")]
@@ -129,15 +140,10 @@ impl Item {
     pub fn set_amount(&mut self, give_amount: u32) -> Result<(), assets::Error> {
         use ItemKind::*;
         match self.kind {
-            Consumable { ref mut amount, .. } => {
-                *amount = give_amount;
-                Ok(())
-            },
-            Utility { ref mut amount, .. } => {
-                *amount = give_amount;
-                Ok(())
-            },
-            Ingredient { ref mut amount, .. } => {
+            Consumable { ref mut amount, .. }
+            | Throwable { ref mut amount, .. }
+            | Utility { ref mut amount, .. }
+            | Ingredient { ref mut amount, .. } => {
                 *amount = give_amount;
                 Ok(())
             },

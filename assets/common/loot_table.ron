@@ -1,10 +1,16 @@
 [
     // All loot rates go here
+    // food
+    (3, "common.items.cheese"),
+    (3, "common.items.apple"),
+    (3, "common.items.mushroom"),
     // miscellaneous
     (0.4, "common.items.velorite"),
     (0.6, "common.items.veloritefrag"),
     (1.5, "common.items.potion_minor"),
-    (1, "common.items.collar"),
+    (0.5, "common.items.collar"),
+    (0.5, "common.items.bomb_pile"),
+    (1, "common.items.bomb"),
     // swords
     (0.1, "common.items.weapons.sword.starter_sword"),
     (0.1, "common.items.weapons.sword.wood_sword"),
