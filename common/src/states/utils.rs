@@ -11,7 +11,7 @@ use crate::{
 use vek::vec::Vec2;
 
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
-const BASE_HUMANOID_AIR_ACCEL: f32 = 15.0;
+const BASE_HUMANOID_AIR_ACCEL: f32 = 8.0;
 const BASE_HUMANOID_WATER_ACCEL: f32 = 150.0;
 const BASE_HUMANOID_WATER_SPEED: f32 = 180.0;
 // const BASE_HUMANOID_CLIMB_ACCEL: f32 = 10.0;
