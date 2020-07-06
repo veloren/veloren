@@ -1,6 +1,6 @@
 use crate::{msg::ServerMsg, sync::Uid};
 use specs::Component;
-use specs_idvs::IDVStorage;
+use specs_idvs::IdvStorage;
 use std::time::{Duration, Instant};
 
 /// A player's current chat mode. These are chat types that can only be sent by
@@ -22,7 +22,7 @@ pub enum ChatMode {
 }
 
 impl Component for ChatMode {
-    type Storage = IDVStorage<Self>;
+    type Storage = IdvStorage<Self>;
 }
 
 impl ChatMode {
@@ -180,7 +180,7 @@ impl ChatMsg {
 #[derive(Clone, Debug)]
 pub struct Group(pub String);
 impl Component for Group {
-    type Storage = IDVStorage<Self>;
+    type Storage = IdvStorage<Self>;
 }
 impl From<String> for Group {
     fn from(s: String) -> Self { Group(s) }
@@ -193,7 +193,7 @@ impl From<String> for Group {
 #[derive(Clone, Debug)]
 pub struct Faction(pub String);
 impl Component for Faction {
-    type Storage = IDVStorage<Self>;
+    type Storage = IdvStorage<Self>;
 }
 impl From<String> for Faction {
     fn from(s: String) -> Self { Faction(s) }

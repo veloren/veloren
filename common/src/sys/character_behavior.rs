@@ -9,7 +9,12 @@ use crate::{
     sync::{Uid, UidAllocator},
 };
 
-use specs::{Entities, Entity, Join, LazyUpdate, Read, ReadStorage, System, WriteStorage};
+use specs::{
+    hibitset,
+    storage::{PairedStorage, SequentialRestriction},
+    Entities, Entity, FlaggedStorage, Join, LazyUpdate, Read, ReadStorage, System, WriteStorage,
+};
+use specs_idvs::IdvStorage;
 
 // use std::collections::VecDeque;
 
@@ -37,7 +42,7 @@ pub trait CharacterBehavior {
     // fn init(data: &JoinData) -> CharacterState;
 }
 
-/// Read-Only Data sent from Character Behavior System to bahvior fn's
+/// Read-Only Data sent from Character Behavior System to behavior fn's
 pub struct JoinData<'a> {
     pub entity: Entity,
     pub uid: &'a Uid,
@@ -57,15 +62,23 @@ pub struct JoinData<'a> {
     pub updater: &'a LazyUpdate,
 }
 
+type RestrictedMut<'a, C> = PairedStorage<
+    'a,
+    'a,
+    C,
+    &'a mut FlaggedStorage<C, IdvStorage<C>>,
+    &'a hibitset::BitSet,
+    SequentialRestriction,
+>;
 pub type JoinTuple<'a> = (
     Entity,
     &'a Uid,
-    &'a mut CharacterState,
+    RestrictedMut<'a, CharacterState>,
     &'a mut Pos,
     &'a mut Vel,
     &'a mut Ori,
-    &'a mut Energy,
-    &'a mut Loadout,
+    RestrictedMut<'a, Energy>,
+    RestrictedMut<'a, Loadout>,
     &'a mut Controller,
     &'a Stats,
     &'a Body,
@@ -74,12 +87,21 @@ pub type JoinTuple<'a> = (
 );
 
 fn incorporate_update(tuple: &mut JoinTuple, state_update: StateUpdate) {
-    *tuple.2 = state_update.character;
+    // TODO: if checking equality is expensive use optional field in StateUpdate
+    if tuple.2.get_unchecked() != &state_update.character {
+        *tuple.2.get_mut_unchecked() = state_update.character
+    };
     *tuple.3 = state_update.pos;
     *tuple.4 = state_update.vel;
     *tuple.5 = state_update.ori;
-    *tuple.6 = state_update.energy;
-    *tuple.7 = state_update.loadout;
+    // Note: might be changed every tick by timer anyway
+    if tuple.6.get_unchecked() != &state_update.energy {
+        *tuple.6.get_mut_unchecked() = state_update.energy
+    };
+    if state_update.swap_loadout {
+        let loadout = tuple.7.get_mut_unchecked();
+        std::mem::swap(&mut loadout.active_item, &mut loadout.second_item);
+    }
 }
 
 impl<'a> JoinData<'a> {
@@ -87,12 +109,12 @@ impl<'a> JoinData<'a> {
         Self {
             entity: j.0,
             uid: j.1,
-            character: j.2,
+            character: j.2.get_unchecked(),
             pos: j.3,
             vel: j.4,
             ori: j.5,
-            energy: j.6,
-            loadout: j.7,
+            energy: j.6.get_unchecked(),
+            loadout: j.7.get_unchecked(),
             controller: j.8,
             inputs: &j.8.inputs,
             stats: j.9,
@@ -162,24 +184,23 @@ impl<'a> System<'a> for Sys {
         let mut server_emitter = server_bus.emitter();
         let mut local_emitter = local_bus.emitter();
 
-        let mut join_iter = (
+        for mut tuple in (
             &entities,
             &uids,
-            &mut character_states,
+            &mut character_states.restrict_mut(),
             &mut positions,
             &mut velocities,
             &mut orientations,
-            &mut energies,
-            &mut loadouts,
+            &mut energies.restrict_mut(),
+            &mut loadouts.restrict_mut(),
             &mut controllers,
             &stats,
             &bodies,
             &physics_states,
             attacking_storage.maybe(),
         )
-            .join();
-
-        while let Some(mut tuple) = join_iter.next() {
+            .join()
+        {
             // Being dead overrides all other states
             if tuple.9.is_dead {
                 // Do nothing
@@ -188,7 +209,10 @@ impl<'a> System<'a> for Sys {
             // If mounted, character state is controlled by mount
             // TODO: Make mounting a state
             if let Some(Mounting(_)) = mountings.get(tuple.0) {
-                *tuple.2 = CharacterState::Sit {};
+                let sit_state = CharacterState::Sit {};
+                if tuple.2.get_unchecked() != &sit_state {
+                    *tuple.2.get_mut_unchecked() = sit_state;
+                }
                 continue;
             }
 

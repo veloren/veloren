@@ -1,11 +1,12 @@
 use crate::{
-    comp::{Energy, Loadout, Ori, Pos, Vel},
+    comp::{Energy, Ori, Pos, Vel},
     event::{LocalEvent, ServerEvent},
     states::*,
     sys::character_behavior::JoinData,
 };
 use serde::{Deserialize, Serialize};
-use specs::{Component, FlaggedStorage, HashMapStorage, VecStorage};
+use specs::{Component, FlaggedStorage, VecStorage};
+use specs_idvs::IdvStorage;
 use std::collections::VecDeque;
 
 /// Data returned from character behavior fn's to Character Behavior System.
@@ -15,7 +16,7 @@ pub struct StateUpdate {
     pub vel: Vel,
     pub ori: Ori,
     pub energy: Energy,
-    pub loadout: Loadout,
+    pub swap_loadout: bool,
     pub local_events: VecDeque<LocalEvent>,
     pub server_events: VecDeque<ServerEvent>,
 }
@@ -27,7 +28,7 @@ impl From<&JoinData<'_>> for StateUpdate {
             vel: *data.vel,
             ori: *data.ori,
             energy: *data.energy,
-            loadout: data.loadout.clone(),
+            swap_loadout: false,
             character: data.character.clone(),
             local_events: VecDeque::new(),
             server_events: VecDeque::new(),
@@ -128,7 +129,7 @@ impl Default for CharacterState {
 }
 
 impl Component for CharacterState {
-    type Storage = FlaggedStorage<Self, HashMapStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
