@@ -236,71 +236,33 @@ impl Drop for CharacterLoader {
 fn load_character_data(player_uuid: &str, character_id: i32, db_dir: &str) -> CharacterDataResult {
     let connection = establish_connection(db_dir);
 
-    let (character_data, body_data, stats_data, maybe_inventory, maybe_loadout) =
-        schema::character::dsl::character
-            .filter(schema::character::id.eq(character_id))
-            .filter(schema::character::player_uuid.eq(player_uuid))
-            .inner_join(schema::body::table)
-            .inner_join(schema::stats::table)
-            .left_join(schema::inventory::table)
-            .left_join(schema::loadout::table)
-            .first::<(Character, Body, Stats, Option<Inventory>, Option<Loadout>)>(&connection)?;
+    let result = schema::character::dsl::character
+        .filter(schema::character::id.eq(character_id))
+        .filter(schema::character::player_uuid.eq(player_uuid))
+        .inner_join(schema::body::table)
+        .inner_join(schema::stats::table)
+        .inner_join(schema::inventory::table)
+        .inner_join(schema::loadout::table)
+        .first::<(Character, Body, Stats, Inventory, Loadout)>(&connection);
 
-    Ok((
-        comp::Body::from(&body_data),
-        comp::Stats::from(StatsJoinData {
-            alias: &character_data.alias,
-            body: &comp::Body::from(&body_data),
-            stats: &stats_data,
-        }),
-        maybe_inventory.map_or_else(
-            || {
-                // If no inventory record was found for the character, create it now
-                let row = Inventory::from((character_data.id, comp::Inventory::default()));
-
-                if let Err(error) = diesel::insert_into(schema::inventory::table)
-                    .values(&row)
-                    .execute(&connection)
-                {
-                    warn!(
-                        "Failed to create an inventory record for character {}: {}",
-                        &character_data.id, error
-                    )
-                }
-
-                comp::Inventory::default()
-            },
-            comp::Inventory::from,
-        ),
-        maybe_loadout.map_or_else(
-            || {
-                // Create if no record was found
-                let default_loadout = LoadoutBuilder::new()
-                    .defaults()
-                    .active_item(LoadoutBuilder::default_item_config_from_str(
-                        character_data.tool.as_deref(),
-                    ))
-                    .build();
-
-                let row = NewLoadout::from((character_data.id, &default_loadout));
-
-                if let Err(e) = diesel::insert_into(schema::loadout::table)
-                    .values(&row)
-                    .execute(&connection)
-                {
-                    let char_id = character_data.id;
-                    warn!(
-                        ?e,
-                        ?char_id,
-                        "Failed to create an loadout record for character",
-                    )
-                }
-
-                default_loadout
-            },
-            |data| comp::Loadout::from(&data),
-        ),
-    ))
+    if let Ok((character_data, body_data, stats_data, inventory, loadout)) = result {
+        Ok((
+            comp::Body::from(&body_data),
+            comp::Stats::from(StatsJoinData {
+                alias: &character_data.alias,
+                body: &comp::Body::from(&body_data),
+                stats: &stats_data,
+            }),
+            comp::Inventory::from(inventory),
+            comp::Loadout::from(&loadout),
+        ))
+    } else {
+        error!(
+            ?result,
+            "Failed to load character data for character id {}", character_id
+        );
+        Err(Error::CharacterDataError)
+    }
 }
 
 /// Loads a list of characters belonging to the player. This data is a small
