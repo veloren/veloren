@@ -16,6 +16,7 @@ use crate::{
     assets::{self, Asset},
     npc::NpcKind,
 };
+use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{fs::File, io::BufReader};

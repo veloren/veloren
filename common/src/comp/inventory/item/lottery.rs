@@ -1,5 +1,6 @@
 use crate::assets::{self, Asset};
 use rand::prelude::*;
+use serde::{Deserialize, Serialize};
 use std::{fs::File, io::BufReader};
 
 // Generate a random float between 0 and 1

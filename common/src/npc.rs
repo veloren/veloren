@@ -4,6 +4,7 @@ use crate::{
 };
 use lazy_static::lazy_static;
 use rand::seq::SliceRandom;
+use serde::Deserialize;
 use std::{str::FromStr, sync::Arc};
 
 #[derive(Clone, Copy, PartialEq)]

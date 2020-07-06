@@ -5,7 +5,7 @@ use crate::{
     },
     volumes::chunk::{Chunk, ChunkError, ChunkPosIter, ChunkVolIter},
 };
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::marker::PhantomData;
 use vek::*;
 

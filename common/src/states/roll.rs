@@ -3,6 +3,7 @@ use crate::{
     sys::character_behavior::{CharacterBehavior, JoinData},
     util::Dir,
 };
+use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use vek::Vec3;
 

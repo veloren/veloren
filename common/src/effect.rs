@@ -1,4 +1,5 @@
 use crate::comp;
+use serde::{Deserialize, Serialize};
 
 /// An effect that may be applied to an entity
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]

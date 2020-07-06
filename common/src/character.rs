@@ -1,7 +1,7 @@
 //! Structs representing a playable Character
 
 use crate::comp;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 /// The limit on how many characters that a player can have
 pub const MAX_CHARACTERS_PER_PLAYER: usize = 8;

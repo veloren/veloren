@@ -1,4 +1,5 @@
 use crate::{comp, sync::Uid};
+use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::time::Duration;

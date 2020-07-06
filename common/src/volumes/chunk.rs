@@ -1,7 +1,7 @@
 use crate::vol::{
     BaseVol, IntoPosIterator, IntoVolIterator, RasterableVol, ReadVol, VolSize, Vox, WriteVol,
 };
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::{iter::Iterator, marker::PhantomData};
 use vek::*;
 
