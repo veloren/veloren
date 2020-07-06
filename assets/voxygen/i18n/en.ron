@@ -156,8 +156,8 @@ https://account.veloren.net."#,
         "hud.press_key_to_toggle_debug_info_fmt": "Press {key} to toggle debug info",
 
         // Chat outputs
-        "hud.chat.online_msg": "[{name}] is now online.", 
-        "hud.chat.offline_msg": "{name} went offline.", 
+        "hud.chat.online_msg": "[{name}] is now online.",
+        "hud.chat.offline_msg": "{name} went offline.",
         "hud.chat.loot_msg": "You picked up [{item}]",
         "hud.chat.loot_fail": "Your Inventory is full!",
         "hud.chat.goodbye": "Goodbye!",
@@ -204,15 +204,15 @@ Want to free your cursor to close this window? Press TAB!
 Enjoy your stay in the World of Veloren."#,
 
 "hud.temp_quest_headline": r#"Please, help us Traveller!"#,
-"hud.temp_quest_text": r#"Dungeons filled with evil cultists 
+"hud.temp_quest_text": r#"Dungeons filled with evil cultists
 have emerged all around our peaceful towns!
 
 
-Gather some company, stack up on food 
+Gather some company, stack up on food
 and defeat their vile leaders and acolytes.
 
 
-Maybe you can even obtain one of their  
+Maybe you can even obtain one of their
 magically infused items?"#,
 
 
@@ -236,7 +236,7 @@ magically infused items?"#,
         "hud.bag.legs": "Legs",
         "hud.bag.feet": "Feet",
         "hud.bag.mainhand": "Mainhand",
-        "hud.bag.offhand": "Offhand",    
+        "hud.bag.offhand": "Offhand",
 
 
         // Map and Questlog
@@ -256,7 +256,7 @@ magically infused items?"#,
         "hud.settings.custom_scaling": "Custom Scaling",
         "hud.settings.crosshair": "Crosshair",
         "hud.settings.transparency": "Transparency",
-        "hud.settings.hotbar": "Hotbar",        
+        "hud.settings.hotbar": "Hotbar",
         "hud.settings.toggle_shortcuts": "Toggle Shortcuts",
         "hud.settings.toggle_bar_experience": "Toggle Experience Bar",
         "hud.settings.scrolling_combat_text": "Scrolling Combat Text",
@@ -313,7 +313,7 @@ magically infused items?"#,
 
         "hud.spell": "Spells",
 
-        "hud.free_look_indicator": "Free look active",       
+        "hud.free_look_indicator": "Free look active",
         "hud.auto_walk_indicator": "Auto walk active",
 
         /// End HUD section
@@ -323,7 +323,7 @@ magically infused items?"#,
 
         "gameinput.primary": "Basic Attack",
         "gameinput.secondary": "Secondary Attack/Block/Aim",
-       "gameinput.slot1": "Hotbar Slot 1",        
+       "gameinput.slot1": "Hotbar Slot 1",
         "gameinput.slot2": "Hotbar Slot 2",
         "gameinput.slot3": "Hotbar Slot 3",
         "gameinput.slot4": "Hotbar Slot 4",
@@ -369,7 +369,7 @@ magically infused items?"#,
         "gameinput.freelook": "Free Look",
         "gameinput.autowalk": "Auto Walk",
         "gameinput.dance": "Dance",
-        
+
         /// End GameInput section
 
 
@@ -390,7 +390,7 @@ magically infused items?"#,
         "char_selection.plains_of_uncertainty": "Plains of Uncertainty",
         "char_selection.beard": "Beard",
         "char_selection.hair_style": "Hair Style",
-        "char_selection.hair_color": "Hair Color",        
+        "char_selection.hair_color": "Hair Color",
         "char_selection.eye_color": "Eye Color",
         "char_selection.skin": "Skin",
         "char_selection.eyeshape": "Eye Details",
