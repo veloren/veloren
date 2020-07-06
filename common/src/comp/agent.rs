@@ -44,9 +44,7 @@ impl Alignment {
     // TODO: Remove this hack
     pub fn is_friendly_to_players(&self) -> bool {
         match self {
-            Alignment::Npc
-            | Alignment::Tame
-            | Alignment::Owned(_) => true,
+            Alignment::Npc | Alignment::Tame | Alignment::Owned(_) => true,
             _ => false,
         }
     }

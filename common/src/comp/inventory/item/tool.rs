@@ -331,18 +331,18 @@ impl Tool {
                 },
                 BasicRanged {
                     energy_cost: 0,
-                    holdable: true,
+                    holdable: false,
                     prepare_duration: Duration::from_millis(250),
-                    recover_duration: Duration::from_millis(200),
+                    recover_duration: Duration::from_millis(600),
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Vanish],
                         hit_entity: vec![
                             projectile::Effect::Damage(HealthChange {
                                 // TODO: This should not be fixed (?)
-                                amount: -2,
+                                amount: -3,
                                 cause: HealthSource::Projectile { owner: None },
                             }),
-                            projectile::Effect::RewardEnergy(100),
+                            projectile::Effect::RewardEnergy(150),
                             projectile::Effect::Vanish,
                         ],
                         time_left: Duration::from_secs(20),
@@ -350,7 +350,7 @@ impl Tool {
                     },
                     projectile_body: Body::Object(object::Body::BoltFire),
                     projectile_light: Some(LightEmitter {
-                        col: (1.0, 0.8, 0.11).into(),
+                        col: (0.85, 0.5, 0.11).into(),
                         ..Default::default()
                     }),
 
@@ -375,7 +375,7 @@ impl Tool {
                     },
                     projectile_body: Body::Object(object::Body::BoltFireBig),
                     projectile_light: Some(LightEmitter {
-                        col: (1.0, 0.8, 0.11).into(),
+                        col: (1.0, 0.75, 0.11).into(),
                         ..Default::default()
                     }),
 

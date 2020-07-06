@@ -1,6 +1,7 @@
 use crate::{
     comp::{
-        Alignment, Attacking, Body, CharacterState, HealthChange, HealthSource, Ori, Pos, Scale, Stats,
+        Alignment, Attacking, Body, CharacterState, HealthChange, HealthSource, Ori, Pos, Scale,
+        Stats,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     sync::Uid,
@@ -120,7 +121,11 @@ impl<'a> System<'a> for Sys {
 
                     // TODO: remove this when there is a better way to target healing
                     // Don't heal npc's hp
-                    if alignment_b_maybe.map(|a| !a.is_friendly_to_players()).unwrap_or(true) && healthchange > 0.0 {
+                    if alignment_b_maybe
+                        .map(|a| !a.is_friendly_to_players())
+                        .unwrap_or(true)
+                        && healthchange > 0.0
+                    {
                         healthchange = 0.0;
                     }
 
