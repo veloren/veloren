@@ -136,7 +136,7 @@ impl Sys {
                     if settings
                         .max_view_distance
                         .zip(view_distance)
-                        .map(|(vd, max)| vd > max)
+                        .map(|(max, vd)| vd > max)
                         .unwrap_or(false)
                     {
                         client.notify(ServerMsg::SetViewDistance(
