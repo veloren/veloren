@@ -132,44 +132,44 @@ impl Animation for RunAnimation {
 
         next.foot_fl.offset = Vec3::new(
             -skeleton_attr.feet_f.0,
-            skeleton_attr.feet_f.1 + foothoril * -1.0,
-            skeleton_attr.feet_f.2 + 1.0 + ((footvertl * -0.8).max(-0.0)),
+            skeleton_attr.feet_f.1 + foothoril * -2.0,
+            skeleton_attr.feet_f.2 + 1.0 + ((footvertl * -1.8).max(-0.0)),
         );
         next.foot_fl.ori = Quaternion::rotation_x(
-            -0.2 + footvertl * -0.35 * skeleton_attr.lean.1 - skeleton_attr.lean.0,
+            -0.2 + footvertl * -0.45 * skeleton_attr.lean.1 - skeleton_attr.lean.0,
         ) * Quaternion::rotation_y(tilt * -1.0)
-            * Quaternion::rotation_z(footvertl * 0.4 * skeleton_attr.lean.1);
+            * Quaternion::rotation_z(foothoril * 0.4 * skeleton_attr.lean.1 + tilt * -2.0);
         next.foot_fl.scale = Vec3::one();
 
         next.foot_fr.offset = Vec3::new(
             skeleton_attr.feet_f.0,
-            skeleton_attr.feet_f.1 + foothorir * -1.0,
-            skeleton_attr.feet_f.2 + 1.0 + ((footvertr * -0.8).max(-0.0)),
+            skeleton_attr.feet_f.1 + foothorir * -2.0,
+            skeleton_attr.feet_f.2 + 1.0 + ((footvertr * -1.8).max(-0.0)),
         );
         next.foot_fr.ori = Quaternion::rotation_x(
-            -0.2 + footvertr * -0.25 * skeleton_attr.lean.1 - skeleton_attr.lean.0,
+            -0.2 + footvertr * -0.45 * skeleton_attr.lean.1 - skeleton_attr.lean.0,
         ) * Quaternion::rotation_y(tilt * -1.0)
-            * Quaternion::rotation_z(footvertr * -0.4 * skeleton_attr.lean.1 + tilt * 3.5);
+            * Quaternion::rotation_z(foothorir * -0.4 * skeleton_attr.lean.1 + tilt * -2.0);
         next.foot_fr.scale = Vec3::one();
 
         next.foot_bl.offset = Vec3::new(
             -skeleton_attr.feet_b.0,
             skeleton_attr.feet_b.1 + foothorilb * -1.0,
-            skeleton_attr.feet_b.2 + 1.0 + ((footvertlb * -0.6).max(-0.0)),
+            skeleton_attr.feet_b.2 + 1.0 + ((footvertlb * -1.2).max(-0.0)),
         );
-        next.foot_bl.ori = Quaternion::rotation_x(-0.2 + footvertlb * -0.3 - skeleton_attr.lean.0)
+        next.foot_bl.ori = Quaternion::rotation_x(-0.2 + footvertlb * -0.5 - skeleton_attr.lean.0)
             * Quaternion::rotation_y(tilt * -1.0)
-            * Quaternion::rotation_z(footvertlb * 0.4);
+            * Quaternion::rotation_z(foothorilb * 0.4 + tilt * -2.0);
         next.foot_bl.scale = Vec3::one();
 
         next.foot_br.offset = Vec3::new(
             skeleton_attr.feet_b.0,
             skeleton_attr.feet_b.1 + foothorirb * -1.0,
-            skeleton_attr.feet_b.2 + 1.0 + ((footvertrb * -0.6).max(-0.0)),
+            skeleton_attr.feet_b.2 + 1.0 + ((footvertrb * -1.2).max(-0.0)),
         );
-        next.foot_br.ori = Quaternion::rotation_x(-0.2 + footvertrb * -0.3 - skeleton_attr.lean.0)
+        next.foot_br.ori = Quaternion::rotation_x(-0.2 + footvertrb * -0.5 - skeleton_attr.lean.0)
             * Quaternion::rotation_y(tilt * -1.0)
-            * Quaternion::rotation_z(footvertrb * -0.4);
+            * Quaternion::rotation_z(foothorirb * -0.4 + tilt * -2.0);
         next.foot_br.scale = Vec3::one();
 
         next
