@@ -1,6 +1,6 @@
 use crate::sync::Uid;
 use specs::Component;
-use specs_idvs::IDVStorage;
+use specs_idvs::IdvStorage;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Object {
@@ -8,5 +8,5 @@ pub enum Object {
 }
 
 impl Component for Object {
-    type Storage = IDVStorage<Self>;
+    type Storage = IdvStorage<Self>;
 }

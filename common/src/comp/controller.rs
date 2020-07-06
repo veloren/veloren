@@ -1,6 +1,6 @@
 use crate::{comp::inventory::slot::Slot, sync::Uid, util::Dir};
 use specs::{Component, FlaggedStorage};
-use specs_idvs::IDVStorage;
+use specs_idvs::IdvStorage;
 use std::time::Duration;
 use vek::*;
 
@@ -227,7 +227,7 @@ impl Controller {
 }
 
 impl Component for Controller {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -237,12 +237,12 @@ pub enum MountState {
 }
 
 impl Component for MountState {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Mounting(pub Uid);
 
 impl Component for Mounting {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }

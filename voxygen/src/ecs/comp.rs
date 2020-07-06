@@ -1,6 +1,6 @@
 use common::util::Dir;
 use specs::Component;
-use specs_idvs::IDVStorage;
+use specs_idvs::IdvStorage;
 use vek::*;
 
 // Floats over entity that has had a health change, rising up over time until it
@@ -25,7 +25,7 @@ pub struct HpFloaterList {
     pub time_since_last_dmg_by_me: Option<f32>,
 }
 impl Component for HpFloaterList {
-    type Storage = IDVStorage<Self>;
+    type Storage = IdvStorage<Self>;
 }
 
 // Used for smooth interpolation of visual elements that are tied to entity
@@ -36,5 +36,5 @@ pub struct Interpolated {
     pub ori: Dir,
 }
 impl Component for Interpolated {
-    type Storage = IDVStorage<Self>;
+    type Storage = IdvStorage<Self>;
 }

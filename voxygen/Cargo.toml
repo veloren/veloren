@@ -33,8 +33,8 @@ conrod_winit = { git = "https://gitlab.com/veloren/conrod.git", branch = "pre-wi
 euc = { git = "https://github.com/zesterer/euc.git" }
 
 # ECS
-specs = "0.15.1"
-specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git" }
+specs = "0.16.1"
+specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", branch = "specs-16" }
 
 # Mathematics
 vek = { version = "0.11.0", features = ["serde"] }
@@ -63,7 +63,7 @@ treeculler = { git = "https://gitlab.com/yusdacra/treeculler.git" }
 rodio = { version = "0.10", default-features = false, features = ["wav", "vorbis"] }
 cpal = "0.10"
 crossbeam = "=0.7.2"
-hashbrown = { version = "0.6", features = ["rayon", "serde", "nightly"] }
+hashbrown = { version = "0.7.2", features = ["rayon", "serde", "nightly"] }
 chrono = "0.4.9"
 bincode = "1.2"
 deunicode = "1.0"

@@ -4,7 +4,7 @@ use crate::{
     sync::Uid,
 };
 use specs::{Component, FlaggedStorage};
-use specs_idvs::IDVStorage;
+use specs_idvs::IdvStorage;
 use std::{error::Error, fmt};
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
@@ -204,7 +204,7 @@ impl Stats {
 }
 
 impl Component for Stats {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
@@ -213,5 +213,5 @@ pub struct Dying {
 }
 
 impl Component for Dying {
-    type Storage = IDVStorage<Self>;
+    type Storage = IdvStorage<Self>;
 }

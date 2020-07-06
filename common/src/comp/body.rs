@@ -17,7 +17,7 @@ use crate::{
     npc::NpcKind,
 };
 use specs::{Component, FlaggedStorage};
-use specs_idvs::IDVStorage;
+use specs_idvs::IdvStorage;
 use std::{fs::File, io::BufReader};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -132,5 +132,5 @@ impl Body {
 }
 
 impl Component for Body {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
