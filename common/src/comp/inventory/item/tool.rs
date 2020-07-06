@@ -350,7 +350,7 @@ impl Tool {
                     },
                     projectile_body: Body::Object(object::Body::BoltFire),
                     projectile_light: Some(LightEmitter {
-                        col: (0.72, 0.11, 0.11).into(),
+                        col: (1.0, 0.8, 0.11).into(),
                         ..Default::default()
                     }),
 
@@ -375,7 +375,7 @@ impl Tool {
                     },
                     projectile_body: Body::Object(object::Body::BoltFireBig),
                     projectile_light: Some(LightEmitter {
-                        col: (0.72, 0.11, 0.11).into(),
+                        col: (1.0, 0.8, 0.11).into(),
                         ..Default::default()
                     }),
 
@@ -448,9 +448,9 @@ impl Tool {
                 energy_cost: 0,
                 buildup_duration: Duration::from_millis(0),
                 recover_duration: Duration::from_millis(1000),
-                base_healthchange: -2,
-                range: 3.5,
-                max_angle: 45.0,
+                base_healthchange: -3,
+                range: 5.0,
+                max_angle: 60.0,
             }],
         }
     }
