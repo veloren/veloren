@@ -249,7 +249,7 @@ impl PlayState for SessionState {
                     {
                         (
                             Some((cam_pos + cam_dir * (cam_dist - 0.01)).map(|e| e.floor() as i32)),
-                            Some((cam_pos + cam_dir * cam_dist).map(|e| e.floor() as i32)),
+                            Some((cam_pos + cam_dir * (cam_dist + 0.01)).map(|e| e.floor() as i32)),
                         )
                     },
                     _ => (None, None),
