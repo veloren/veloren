@@ -1,6 +1,6 @@
 use crate::{sync::Uid, util::Dir};
 use specs::{Component, FlaggedStorage, NullStorage};
-use specs_idvs::IDVStorage;
+use specs_idvs::IdvStorage;
 use vek::*;
 
 // Position
@@ -8,7 +8,7 @@ use vek::*;
 pub struct Pos(pub Vec3<f32>);
 
 impl Component for Pos {
-    type Storage = IDVStorage<Self>;
+    type Storage = IdvStorage<Self>;
 }
 
 // Velocity
@@ -16,7 +16,7 @@ impl Component for Pos {
 pub struct Vel(pub Vec3<f32>);
 
 impl Component for Vel {
-    type Storage = IDVStorage<Self>;
+    type Storage = IdvStorage<Self>;
 }
 
 // Orientation
@@ -24,7 +24,7 @@ impl Component for Vel {
 pub struct Ori(pub Dir);
 
 impl Component for Ori {
-    type Storage = IDVStorage<Self>;
+    type Storage = IdvStorage<Self>;
 }
 
 // Scale
@@ -32,7 +32,7 @@ impl Component for Ori {
 pub struct Scale(pub f32);
 
 impl Component for Scale {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 // Mass
@@ -40,7 +40,7 @@ impl Component for Scale {
 pub struct Mass(pub f32);
 
 impl Component for Mass {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 // Mass
@@ -51,14 +51,14 @@ pub enum Collider {
 }
 
 impl Component for Collider {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Gravity(pub f32);
 
 impl Component for Gravity {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
@@ -88,7 +88,7 @@ impl PhysicsState {
 }
 
 impl Component for PhysicsState {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 // ForceUpdate

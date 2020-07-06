@@ -1,6 +1,6 @@
 use crate::path::Chaser;
 use specs::{Component, Entity as EcsEntity};
-use specs_idvs::IDVStorage;
+use specs_idvs::IdvStorage;
 use vek::*;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -43,7 +43,7 @@ impl Alignment {
 }
 
 impl Component for Alignment {
-    type Storage = IDVStorage<Self>;
+    type Storage = IdvStorage<Self>;
 }
 
 #[derive(Clone, Debug, Default)]
@@ -72,7 +72,7 @@ impl Agent {
 }
 
 impl Component for Agent {
-    type Storage = IDVStorage<Self>;
+    type Storage = IdvStorage<Self>;
 }
 
 #[derive(Clone, Debug)]

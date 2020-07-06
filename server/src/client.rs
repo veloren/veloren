@@ -2,7 +2,7 @@ use common::msg::{ClientState, RequestStateError, ServerMsg};
 use hashbrown::HashSet;
 use network::Stream;
 use specs::{Component, FlaggedStorage};
-use specs_idvs::IDVStorage;
+use specs_idvs::IdvStorage;
 use vek::*;
 
 pub struct Client {
@@ -13,7 +13,7 @@ pub struct Client {
 }
 
 impl Component for Client {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 impl Client {
@@ -59,5 +59,5 @@ pub struct RegionSubscription {
 }
 
 impl Component for RegionSubscription {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }

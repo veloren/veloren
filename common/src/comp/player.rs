@@ -1,6 +1,6 @@
 use authc::Uuid;
 use specs::{Component, FlaggedStorage, NullStorage};
-use specs_idvs::IDVStorage;
+use specs_idvs::IdvStorage;
 
 const MAX_ALIAS_LEN: usize = 32;
 
@@ -38,7 +38,7 @@ impl Player {
 }
 
 impl Component for Player {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
