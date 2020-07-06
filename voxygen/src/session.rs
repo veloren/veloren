@@ -256,6 +256,13 @@ impl PlayState for SessionState {
                 }
             };
 
+            let can_build = self.client
+                .borrow()
+                .state()
+                .read_storage::<comp::CanBuild>()
+                .get(self.client.borrow().entity())
+                .is_some();
+
             // Only highlight collectables
             self.scene.set_select_pos(select_pos.filter(|sp| {
                 self.client
@@ -263,7 +270,7 @@ impl PlayState for SessionState {
                     .state()
                     .terrain()
                     .get(*sp)
-                    .map(|b| b.is_collectible())
+                    .map(|b| b.is_collectible() || can_build)
                     .unwrap_or(false)
             }));
 
@@ -279,16 +286,9 @@ impl PlayState for SessionState {
                         return PlayStateResult::Shutdown;
                     },
                     Event::InputUpdate(GameInput::Primary, state) => {
-                        // Check the existence of CanBuild component. If it's here, use LMB to
-                        // break blocks, if not, use it to attack
+                        // If we can build, use LMB to break blocks, if not, use it to attack
                         let mut client = self.client.borrow_mut();
-                        if state
-                            && client
-                                .state()
-                                .read_storage::<comp::CanBuild>()
-                                .get(client.entity())
-                                .is_some()
-                        {
+                        if state && can_build {
                             if let Some(select_pos) = select_pos {
                                 client.remove_block(select_pos);
                             }
@@ -302,13 +302,7 @@ impl PlayState for SessionState {
 
                         let mut client = self.client.borrow_mut();
 
-                        if state
-                            && client
-                                .state()
-                                .read_storage::<comp::CanBuild>()
-                                .get(client.entity())
-                                .is_some()
-                        {
+                        if state && can_build {
                             if let Some(build_pos) = build_pos {
                                 client.place_block(build_pos, self.selected_block);
                             }
@@ -319,12 +313,7 @@ impl PlayState for SessionState {
 
                     Event::InputUpdate(GameInput::Roll, state) => {
                         let client = self.client.borrow();
-                        if client
-                            .state()
-                            .read_storage::<comp::CanBuild>()
-                            .get(client.entity())
-                            .is_some()
-                        {
+                        if can_build {
                             if state {
                                 if let Some(block) = select_pos
                                     .and_then(|sp| client.state().terrain().get(sp).ok().copied())
