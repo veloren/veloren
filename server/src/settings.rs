@@ -128,6 +128,7 @@ impl ServerSettings {
             admins: vec!["singleplayer".to_string()], /* TODO: Let the player choose if they want
                                                        * to use admin commands or not */
             persistence_db_dir,
+            max_view_distance: None,
             ..load // Fill in remaining fields from server_settings.ron.
         }
     }
