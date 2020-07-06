@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use specs::{Component, VecStorage};
 use std::marker::Send;
 

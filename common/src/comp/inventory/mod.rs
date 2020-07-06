@@ -3,6 +3,7 @@ pub mod slot;
 
 use crate::assets;
 use item::{Consumable, Item, ItemKind};
+use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage, HashMapStorage};
 use specs_idvs::IdvStorage;
 use std::ops::Not;

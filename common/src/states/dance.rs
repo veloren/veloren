@@ -3,6 +3,7 @@ use crate::{
     comp::{CharacterState, StateUpdate},
     sys::character_behavior::{CharacterBehavior, JoinData},
 };
+use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct Data;

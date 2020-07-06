@@ -1,4 +1,5 @@
 use crate::{msg::ServerMsg, sync::Uid};
+use serde::{Deserialize, Serialize};
 use specs::Component;
 use specs_idvs::IdvStorage;
 use std::time::{Duration, Instant};

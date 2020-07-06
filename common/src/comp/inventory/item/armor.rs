@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
 pub enum Chest {

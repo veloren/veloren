@@ -1,4 +1,5 @@
 use crate::{sync::Uid, util::Dir};
+use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage, NullStorage};
 use specs_idvs::IdvStorage;
 use vek::*;
