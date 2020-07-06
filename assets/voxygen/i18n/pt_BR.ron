@@ -146,7 +146,7 @@ https://account.veloren.net."#,
         "hud.chat.loot_msg": "Você pegou [{item}]",
         "hud.chat.loot_fail": "Seu Inventário está cheio!",
         "hud.chat.goodbye": "Tchau!",
-        "hud.chat.connection_lost": "Connection lost. Kicking in {time} seconds.",
+        "hud.chat.connection_lost": "Conexão perdida. Chutando em {time} segundos.",
 
         // SCT outputs
         "hud.sct.experience": "{amount} Exp",
