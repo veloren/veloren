@@ -1,4 +1,5 @@
-[target.x86_64-unknown-linux-gnu]                                                                   
-rustflags = [                                                                                       
+[target.x86_64-unknown-linux-gnu]
+rustflags = [
     "-C", "link-arg=-fuse-ld=gold",
 ]
+
