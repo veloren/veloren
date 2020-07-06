@@ -65,6 +65,7 @@ VoxygenLocalization(
                 "common.back": "Indietro",
                 "common.create": "Crea",
                 "common.okay": "Ok",
+                "common.accept": "Accetta",
                 "common.disclaimer": "Disclaimer",
                 "common.cancel": "Cancella",
                 "common.none": "Nessuno",
@@ -139,11 +140,6 @@ Se ti piace ciò che vedi, sei il benvenuto ad unirti ai team di sviluppo e arti
 
 
 
-Come loro, stiamo cercando di costruire una nicchia. Il gioco non è un clone, e il suo sviluppo divergerà dai giochi esistenti in futuro.
-
-
-
-
 Grazie per aver dedicato del tempo a leggere questo avviso, speriamo che ti divertirai col gioco!
 
 
@@ -176,7 +172,9 @@ https://account.veloren.net."#,
         "main.login.already_logged_in": "Hai già effettuato l'accesso al server",
         "main.login.network_error": "Errore di rete",
         "main.login.failed_sending_request": "Richiesta ai server di autenticazione fallita",
+        "main.login.invalid_character": "Il personaggio selezionato è invalido",
         "main.login.client_crashed": "Il client si è arrestato",
+        "main.login.not_on_whitelist": "Hai bisogno di un permesso di accesso da un admin per entrare",
 
 
 
@@ -200,22 +198,31 @@ https://account.veloren.net."#,
                 "hud.show_tips": "Mostra consigli",
                 "hud.quests": "Missioni",
                 "hud.you_died": "Sei Morto",
+                "hud.waypoint_saved": "Waypoint Salvato",
                 
                 "hud.press_key_to_show_keybindings_fmt": "Premi {key} per mostrare le scorciatoie da tastiera",
                 "hud.press_key_to_show_debug_info_fmt": "Premi {key} per mostrare le informazioni di debug",
                 "hud.press_key_to_toggle_keybindings_fmt": "Premi {key} per attivare/disattivare le scorciatoie da tastiera",
                 "hud.press_key_to_toggle_debug_info_fmt": "Premi {key} per attivare/disattivare le informazioni di debug",
 
+                 // Chat outputs
+                 "hud.chat.online_msg": "[{name}] è ora online.", 
+                 "hud.chat.offline_msg": "{name} è andato offline.", 
+                 "hud.chat.loot_msg": "Hai raccolto [{item}]",
+                 "hud.chat.loot_fail": "Il tuo inventario è pieno!",
+                 "hud.chat.goodbye": "Addio!",
+                 "hud.chat.connection_lost": "Connessione persa. Espulsione in {time} secondi.",
+
+                 // SCT outputs
+                 "hud.sct.experience": "{amount} Esp",
+                 "hud.sct.block": "PARATO",
+
+
 
 
 
                 // Respawn message
-                "hud.press_key_to_respawn": r#"Premi {key} per rinascere al tuo Waypoint.
-
-
-
-
-Premi Invio, scrivi /waypoint e conferma per impostarlo qui."#,
+                "hud.press_key_to_respawn": r#"Premi {key} per rinascere all'ultimo falò visitato."#,
 
 
 
@@ -227,16 +234,6 @@ Premi Invio, scrivi /waypoint e conferma per impostarlo qui."#,
 
 
 Alcuni consigli prima di cominciare:
-
-
-MOLTO IMPORTANTE: Per impostare il tuo punto di rinascita scrivi /waypoint
-
-
-nella chat.
-
-
-Ciò può essere fatto anche se sei già morto!
-
 
 
 
@@ -268,7 +265,7 @@ Gettali via cliccandoci una volta sopra e una volta fuori dall’inventario.
 Le notti possono essere molto buie in Veloren.
 
 
-Accendi la tua lanterna scrivendo /lantern nella chat.
+Accendi la tua lanterna premendo 'G'
 
 
 
@@ -280,19 +277,47 @@ Vuoi sbloccare il cursore per chiudere questa finestra? Premi TAB!
 
 Goditi il tuo soggiorno nel Mondo di Veloren."#,
 
-"hud.temp_quest_headline": r#"Please, help us Traveller!"#,
-"hud.temp_quest_text": r#"Dungeons filled with evil cultists 
-have emerged all around our peaceful towns!
+"hud.temp_quest_headline": r#"Perfavore, aiutaci avventuriero!"#,
+"hud.temp_quest_text": r#"Dungeon pieni di cultisti malvagi 
+sono emersi tutto intorno alle nostre pacifiche cittadine!
 
 
-Gather some company, stack up on food 
-and defeat their vile leaders and acolytes.
+Raduna un equipaggio, rifornisciti di viveri
+e sconfiggi i loro vili leader e accoliti.
 
 
-Maybe you can even obtain one of their  
-magically infused items?"#,
+Forse potresti persino ottenere uno dei loro  
+oggetti infusi di magia?"#,
 
 
+
+        // Inventory
+        "hud.bag.inventory": "Inventario di {playername}",
+        "hud.bag.stats_title": "Statistiche di {playername}",
+        "hud.bag.exp": "Esperienza",
+        "hud.bag.armor": "Armatura",
+        "hud.bag.stats": "Statistiche",
+        "hud.bag.head": "Testa",
+        "hud.bag.neck": "Collo",
+        "hud.bag.tabard": "Cotta di maglia",
+        "hud.bag.shoulders": "Spalle",
+        "hud.bag.chest": "Torace",
+        "hud.bag.hands": "Mani",
+        "hud.bag.lantern": "Lanterna",
+        "hud.bag.belt": "Cintura",
+        "hud.bag.ring": "Anello",
+        "hud.bag.back": "Schiena",
+        "hud.bag.legs": "Gambe",
+        "hud.bag.feet": "Piedi",
+        "hud.bag.mainhand": "Mano Principale",
+        "hud.bag.offhand": "Mano Secondaria",
+
+
+        // Map and Questlog
+        "hud.map.map_title": "Mappa",
+        "hud.map.qlog_title": "Missioni",
+
+                // Settings
                 "hud.settings.general": "Generale",
                 "hud.settings.none": "Nessuno",
                 "hud.settings.press_behavior.toggle": "Attiva/Disattiva",
@@ -313,12 +338,15 @@ magically infused items?"#,
                 "hud.settings.cumulated_damage": "Danno Nemico (Cumulativo)",
                 "hud.settings.incoming_damage": "Danno Giocatore (Singolo)",
                 "hud.settings.cumulated_incoming_damage": "Danno Giocatore (Cumulativo)",
+                "hud.settings.speech_bubble": "Fumetto",
+                "hud.settings.speech_bubble_dark_Spmode": "Fumetto Modalità Scura",
+                "hud.settings.speech_bubble_icon": "Icona Fumetto",
                 "hud.settings.energybar_numbers": "Numeri Barra dell’Energia",
                 "hud.settings.values": "Valori",
                 "hud.settings.percentages": "Percentuali",
                 "hud.settings.chat": "Chat",
                 "hud.settings.background_transparency": "Trasparenza dello Sfondo",
-                "hud.settings.none": "Nessuno",
+                "hud.settings.chat_character_name": "Nome dei personaggi in chat",
 
 
 
@@ -327,12 +355,18 @@ magically infused items?"#,
                 "hud.settings.zoom_sensitivity": "Sensibilità Zoom",
                 "hud.settings.invert_scroll_zoom": "Zoom Invertito",
                 "hud.settings.invert_mouse_y_axis": "Asse Y del Mouse Invertito",
+                "hud.settings.enable_mouse_smoothing": "Camera Smoothing",
                 "hud.settings.free_look_behavior": "Comportamento Visuale Libera",
+                "hud.settings.auto_walk_behavior": "Comportamento Camminata Automatica",
+                "hud.settings.stop_auto_walk_on_input": "Interrompere Camminata Automatica dopo movimento",
+
 
 
 
 
                 "hud.settings.view_distance": "Distanza Oggetto",
+                "hud.settings.sprites_view_distance": "Distanza Sprite",
+                "hud.settings.figures_view_distance": "Distanza Entità",
                 "hud.settings.maximum_fps": "FPS Massimi",
                 "hud.settings.fov": "Campo Visivo (gradi)",
                 "hud.settings.gamma": "Gamma",
@@ -352,145 +386,98 @@ magically infused items?"#,
                 "hud.settings.sound_effect_volume": "Volume Effetti Sonori",
                 "hud.settings.audio_device": "Dispositivo Audio",
 
-
-
-
-                // Control list
-                "hud.settings.control_names": r#"Cursore Libero
-Attiva/Disattiva Finestra di Aiuto
-Attiva/Disattiva Interfaccia
-Attiva/Disattiva FPS e Informazioni di Debug
-Scatta Screenshot
-Attiva/Disattiva Nomi
-Attiva/Disattiva Schermo Intero
-
-
-Movimento in Avanti
-Movimento a Sinistra
-Movimento a Destra
-Movimento all’Indietro
-
-Salto
-
-Aliante
-
-Schivata
-
-Rotolata
-
-Scalata
-
-Discesa
-
-Camminata Automatica
-
-Riporre/Sfoderare Armi
-
-Mettere/Rimuovere Elmo
-
-Sedersi
-
-Cavalcatura
-
-Interagire
-
-
-Attacco Base
-Attacco Secondario/Parata/Mira
-
-
-Slot 1 Barra delle Abilità
-Slot 2 Barra delle Abilità
-Slot 3 Barra delle Abilità
-Slot 4 Barra delle Abilità
-Slot 5 Barra delle Abilità
-Slot 6 Barra delle Abilità
-Slot 7 Barra delle Abilità
-Slot 8 Barra delle Abilità
-Slot 9 Barra delle Abilità
-Slot 10 Barra delle Abilità
-
-
-Menù di Pausa
-Impostazioni
-Social
-Mappa
-Libro degli Incantesimi
-Personaggio
-Diario delle Missioni
-Borsa
-
-
-
-Invia Messaggio nella Chat
-Scorrimento della Chat
-
-Camera Libera
-
-
-
-Comandi della Chat:  
-
-/alias [Name] - Cambia il tuo Nome nella Chat   
-/tp [Name] - Ti teleporta da un altro giocatore    
-/jump <dx> <dy> <dz> - Devia la tua posizione
-/goto <x> <y> <z> - Ti teleporta in una posizione  
-/kill - Suicidati   
-/pig - Fai apparire un maiale PNG    
-/wolf - Fai apparire un lupo PNG  
-/help - Mostra comandi della Chat"#,
-
-
-
-
-                "hud.social": "Social",
+                "hud.settings.awaitingkey": "Premi un tasto...",
+                
+                "hud.social": "Sociale",
                 "hud.social.online": "Online",
                 "hud.social.friends": "Amici",
                 "hud.social.not_yet_available": "Non ancora disponibile",
                 "hud.social.faction": "Fazione",
                 "hud.social.play_online_fmt": "{nb_player} giocatore/i online",
-
-
-
-
-                "hud.spell": "Incantesimo",
                 
-                "hud.free_look_indicator": "Visuale Libera Attiva",
+                "hud.spell": "Incantesimi",
+                
+                "hud.free_look_indicator": "Visuale libera attiva",       
+                "hud.auto_walk_indicator": "Camminata automatica attiva",
+                
                 /// End HUD section
+                
+                /// Start GameInput section
 
-
-
-
-
-
-
-
+        "gameinput.primary": "Attacco Base",
+        "gameinput.secondary": "Attacco Secondario/Parata/Mira",
+        "gameinput.slot1": "Barra delle Abilità 1",        
+        "gameinput.slot2": "Barra delle Abilità 2",
+        "gameinput.slot3": "Barra delle Abilità 3",
+        "gameinput.slot4": "Barra delle Abilità 4",
+        "gameinput.slot5": "Barra delle Abilità 5",
+        "gameinput.slot6": "Barra delle Abilità 6",
+        "gameinput.slot7": "Barra delle Abilità 7",
+        "gameinput.slot8": "Barra delle Abilità 8",
+        "gameinput.slot9": "Barra delle Abilità 9",
+        "gameinput.slot10": "Barra delle Abilità 10",
+        "gameinput.swaploadout": "Scambia Equipaggiamento",
+        "gameinput.togglecursor": "Attiva/Disattiva Cursore",
+        "gameinput.help": "Attiva/Disattiva Finestra d'Aiuto",
+        "gameinput.toggleinterface": "Attiva/Disattiva Interfaccia",
+        "gameinput.toggledebug": "Attiva/Disattiva FPS e Informazioni di Debug",
+        "gameinput.screenshot": "Scatta uno Screenshot",
+        "gameinput.toggleingameui": "Attiva/Disattiva Nomi",
+        "gameinput.fullscreen": "Attiva/Disattiva Fullscreen",
+        "gameinput.moveforward": "Movimento in Avanti",
+        "gameinput.moveleft": "Movimento a Sinistra",
+        "gameinput.moveright": "Movimento a Destra",
+        "gameinput.moveback": "Movimento Indietro",
+        "gameinput.jump": "Salto",
+        "gameinput.glide": "Aliante",
+        "gameinput.roll": "Rotolata",
+        "gameinput.climb": "Scalata",
+        "gameinput.climbdown": "Scalata in Giù",
+        "gameinput.wallleap": "Salto al Muro",
+        "gameinput.togglelantern": "Attiva/Disattiva Lanterna",
+        "gameinput.mount": "Cavalcatura",
+        "gameinput.enter": "Invio",
+        "gameinput.command": "Comando",
+        "gameinput.escape": "Escape",
+        "gameinput.map": "Mappa",
+        "gameinput.bag": "Borsa",
+        "gameinput.social": "Sociale",
+        "gameinput.sit": "Sedersi",
+        "gameinput.spellbook": "Incantesimi",
+        "gameinput.settings": "Opzioni",
+        "gameinput.respawn": "Rinascita",
+        "gameinput.charge": "Carica",
+        "gameinput.togglewield": "Sfodera/Rinfodera Arma",
+        "gameinput.interact": "Interagire",
+        "gameinput.freelook": "Visuale Libera",
+        "gameinput.autowalk": "Camminata Automatica",
+        "gameinput.dance": "Danza",
+        
+        /// End GameInput section
+        
                 /// Start character selection section
+                "char_selection.loading_characters": "Caricamento Personaggio...",
                 "char_selection.delete_permanently": "Eliminare permanente questo Personaggio?",
+                "char_selection.deleting_character": "Cancellazione Personaggio...",
                 "char_selection.change_server": "Cambia Server",
                 "char_selection.enter_world": "Unisciti al Mondo",
                 "char_selection.logout": "Disconnettiti",
                 "char_selection.create_new_charater": "Crea un nuovo Personaggio",
+                "char_selection.creating_character": "Creazione Personaggio...",
                 "char_selection.character_creation": "Creazione Personaggio",
-
-
-
 
                 "char_selection.human_default": "Umano Predefinito",
                 "char_selection.level_fmt": "Livello {level_nb}",
-                "char_selection.uncanny_valley": "Valle Perturbante",
+                "char_selection.uncanny_valley": "Regione Selvaggia",
                 "char_selection.plains_of_uncertainty": "Pianure dell'Incertezza",
                 "char_selection.beard": "Barba",
                 "char_selection.hair_style": "Stile Capelli",
                 "char_selection.hair_color": "Colore Capelli",
-                "char_selection.chest_color": "Colore Torace",
                 "char_selection.eye_color": "Colore Occhi",
                 "char_selection.skin": "Pelle",
-                "char_selection.eyebrows": "Sopracciglia",
+                "char_selection.eyeshape": "Dettagli Occhi",
                 "char_selection.accessories": "Accessori",
-
-
-
+                "char_selection.create_info_name": "Il tuo personaggio necessita di un nome!",
 
                 /// End chracter selection section
 
@@ -516,26 +503,97 @@ Vitalità
 
 Volontà
 "#,
+        /// End character window section
 
 
-
-
-
-
-
-
-                /// Start character window section
-                
-
-
-
-
-                /// Start Escape Menu Section
-                "esc_menu.logout": "Disconnettiti",
-                "esc_menu.quit_game": "Esci dal Gioco",
-                /// End Escape Menu Section
+/// Start Escape Menu Section
+        "esc_menu.logout": "Disconnettiti",
+        "esc_menu.quit_game": "Esci dal Gioco",
+        /// End Escape Menu Section
     },
 
-    vector_map: {
+     vector_map: {
+        "npc.speech.villager_under_attack": [
+            "Aiuto, sono sotto attacco!",
+            "Aiuto! Sono sotto attacco!",
+            "Ouch! Sono sotto attacco!",
+            "Ouch! Sono sotto attacco! Aiuto!",
+            "Aiutatemi! Sono sotto attacco!",
+            "Sono sotto attacco! Aiuto!",
+            "Sono sotto attacco! Aiutatemi!",
+            "Aiuto!",
+            "Aiuto! Aiuto!",
+            "Aiuto! Aiuto! Aiuto!",
+            "Sono sotto attacco!",
+            "AAAHHH! Sono sotto attacco!",
+            "AAAHHH! Sono sotto attacco! Aiuto!",
+            "Aiuto! Siamo sotto attacco!",
+            "Aiuto! Assassino!",
+            "Aiuto! C'è un assassino in circolazione!",
+            "Aiuto! Stanno cercando di uccidermi!",
+            "Guardie, sono sotto attacco!",
+            "Guardie! Sono sotto attacco!",
+            "Sono sotto attacco! Guardie!",
+            "Aiuto! Guardie! Sono sotto attacco!",
+            "Guardie! Venite presto!",
+            "Guardie! Guardie!",
+            "Guardie! C'è un furfante che mi sta attaccando!",
+            "Guardie, ammazzate questa disonesta canaglia!",
+            "Guardie! C'è un assassino!",
+            "Guardie! Aiutatemi!",
+            "Non la farai franca dopo questa! Guardie!",
+            "Mostro!",
+            "Aiutatemi!",
+            "Aiuto! Per favore!",
+            "Ouch! Guardie! Aiuto!",
+            "Stanno venendo per me!",
+            "Aiuto! Aiuto! Sto venendo represso!",
+            "Ah, ora vediamo la violenza insita nel sistema.",
+            "Non è altro che un graffio!",
+            "Smettila!",
+            "Che cosa ti ho mai fatto?!",
+            "Per favore smettila di attaccarmi!",
+            "Hey! Attento a dove punti quella cosa!",
+            "Odioso miserabile, vattene via!",
+            "Smettila! Vai via!",
+            "Adesso mi stai facendo arrabbiare!",
+            "Oi! Chi pensi di essere?!",
+            "Avrò la tua testa per ciò!",
+            "Fermati, ti prego! Non ho con me nulla di valore!",
+            "Ti metterò contro mio fratello, è più grande di me!",
+            "Nooo, glielo dico alla mamma!",
+            "Che tu sia maledetto!",
+            "Ti prego di non farlo.",
+            "Non è stato molto carino!",
+            "La tua arma funziona, puoi metterla via ora!",
+            "Risparmiami!",
+            "Ti prego, ho una famiglia!",
+            "Sono troppo giovane per morire!",
+            "Possiamo parlarne?",
+            "La violenza non è mai la risposta!",
+            "Oggi sta per diventare un giorno molto brutto...",
+            "Hey, ha fatto male!",
+            "Eek!",
+            "Quanto rude!",
+            "Fermati, te ne prego!",
+            "Che ti prenda il vaiolo!",
+            "Non è divertente.",
+            "Come ti permetti?!",
+            "La pagherai per questo!",
+            "Continua così e te ne pentirai!",
+            "Non costringermi a farti del male!",
+            "Ci deve essere un malinteso!",
+            "Non hai bisogno di fare così!",
+            "Vattene via, mostro!",
+            "Quello ha fatto veramente male!",
+            "Perché mai faresti una cosa del genere?",
+            "Per gli spiriti, fermati!",
+            "Mi devi aver confuso con qualcun altro!",
+            "Non mi merito tutto ciò!",
+            "Per favore non lo rifare.",
+            "Guardie, gettate questo mostro nel lago!",
+            "Sguinzaglierò il mio tarrasque su di te!",
+        ],
     }
+
 )
