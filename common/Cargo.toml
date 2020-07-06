@@ -25,7 +25,7 @@ rand = "0.7"
 rayon = "^1.3.0"
 lazy_static = "1.4.0"
 lz4-compress = "0.1.1"
-hashbrown = { version = "0.6", features = ["rayon", "serde", "nightly"] }
+hashbrown = { version = "0.7.2", features = ["rayon", "serde", "nightly"] }
 find_folder = "0.3.0"
 parking_lot = "0.9.0"
 crossbeam = "0.7"

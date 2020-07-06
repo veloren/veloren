@@ -18,5 +18,5 @@ num_cpus = "1.10.1"
 tracing = { version = "0.1", default-features = false }
 specs = "0.16.1"
 vek = { version = "0.11.0", features = ["serde"] }
-hashbrown = { version = "0.6", features = ["rayon", "serde", "nightly"] }
+hashbrown = { version = "0.7.2", features = ["rayon", "serde", "nightly"] }
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "223a4097f7ebc8d451936dccb5e6517194bbf086" }

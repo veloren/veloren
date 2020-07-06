@@ -17,15 +17,6 @@ checksum = "5d2e7343e7fc9de883d1b0341e0b13970f764c14101234857d2ddafa1cb1cac2"
 
 [[package]]
 name = "ahash"
-version = "0.2.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f33b5018f120946c1dcf279194f238a9f146725593ead1c08fa47ff22b0b5d3"
-dependencies = [
- "const-random",
-]
-
-[[package]]
-name = "ahash"
 version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e8fd72866655d1904d6b0997d0b07ba561047d070fbe29de039031c641b61217"
@@ -974,7 +965,7 @@ version = "3.11.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8cfcd41ae02d60edded204341d2798ba519c336c51a37330aa4b98a1128def32"
 dependencies = [
- "ahash 0.3.8",
+ "ahash",
  "cfg-if",
  "num_cpus",
 ]
@@ -1835,24 +1826,14 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.6.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e6073d0ca812575946eb5f35ff68dbe519907b25c42530389ff946dc84c6ead"
-dependencies = [
- "ahash 0.2.18",
- "autocfg 0.1.7",
- "rayon",
- "serde",
-]
-
-[[package]]
-name = "hashbrown"
 version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "96282e96bfcd3da0d3aa9938bedf1e50df3269b6db08b4876d2da0bb1a0841cf"
 dependencies = [
- "ahash 0.3.8",
+ "ahash",
  "autocfg 1.0.0",
+ "rayon",
+ "serde",
 ]
 
 [[package]]
@@ -3702,7 +3683,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c5f08237e667ac94ad20f8878b5943d91a93ccb231428446c57c21c57779016d"
 dependencies = [
  "arrayvec 0.5.1",
- "hashbrown 0.7.2",
+ "hashbrown",
  "mopa",
  "rayon",
  "shred-derive",
@@ -3797,7 +3778,7 @@ version = "0.16.1"
 source = "git+https://github.com/amethyst/specs.git?rev=7a2e348ab2223818bad487695c66c43db88050a5#7a2e348ab2223818bad487695c66c43db88050a5"
 dependencies = [
  "crossbeam-queue 0.2.3",
- "hashbrown 0.7.2",
+ "hashbrown",
  "hibitset",
  "log",
  "rayon",
@@ -4464,7 +4445,7 @@ dependencies = [
  "futures-executor",
  "futures-timer 3.0.2",
  "futures-util",
- "hashbrown 0.6.3",
+ "hashbrown",
  "image",
  "num_cpus",
  "specs",
@@ -4485,7 +4466,7 @@ dependencies = [
  "crossbeam",
  "dot_vox",
  "find_folder",
- "hashbrown 0.6.3",
+ "hashbrown",
  "image",
  "indexmap",
  "lazy_static",
@@ -4519,7 +4500,7 @@ dependencies = [
  "futures-executor",
  "futures-timer 3.0.2",
  "futures-util",
- "hashbrown 0.6.3",
+ "hashbrown",
  "lazy_static",
  "libsqlite3-sys",
  "portpicker",
@@ -4580,7 +4561,7 @@ dependencies = [
  "glsl-include",
  "glutin",
  "guillotiere",
- "hashbrown 0.6.3",
+ "hashbrown",
  "image",
  "msgbox",
  "num 0.2.1",
@@ -4628,7 +4609,7 @@ dependencies = [
  "bincode",
  "bitvec",
  "fxhash",
- "hashbrown 0.6.3",
+ "hashbrown",
  "image",
  "itertools 0.8.2",
  "lazy_static",
