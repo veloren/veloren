@@ -123,12 +123,13 @@ https://account.veloren.net."#,
         "main.login.failed_sending_request": "Requisição ao servidor de autenticação falhou",
         "main.login.invalid_character": "O personagem selecionado é inválido",
         "main.login.client_crashed": "Cliente abortou",
+	"main.login.not_on_whitelist": "Você precisa ser permitido por um Admin para ingressar",
 
         /// End Main screen section
 
 
         /// Start HUD Section
-        "hud.do_not_show_on_startup": "Nâo mostrar no início",
+        "hud.do_not_show_on_startup": "Não mostrar no início",
         "hud.show_tips": "Mostrar dicas",
         "hud.quests": "Missões",
         "hud.you_died": "Você Morreu",
@@ -138,6 +139,18 @@ https://account.veloren.net."#,
         "hud.press_key_to_show_debug_info_fmt": "Pressione {key} para mostrar informações de depuração",
         "hud.press_key_to_toggle_keybindings_fmt": "Pressione {key} para mostrar/ocultar teclas mapeadas",
         "hud.press_key_to_toggle_debug_info_fmt": "Pressione {key} para mostrar/ocultar informações de depuração",
+
+        // Chat outputs
+        "hud.chat.online_msg": "[{name}] está online.", 
+        "hud.chat.offline_msg": "{name} está offline.", 
+        "hud.chat.loot_msg": "Você pegou [{item}]",
+        "hud.chat.loot_fail": "Seu Inventário está cheio!",
+        "hud.chat.goodbye": "Tchau!",
+        "hud.chat.connection_lost": "Connection lost. Kicking in {time} seconds.",
+
+        // SCT outputs
+        "hud.sct.experience": "{amount} Exp",
+        "hud.sct.block": "BLOQUEADO",
 
         // Respawn message
         "hud.press_key_to_respawn": r#"Pressione {key} para renascer na última fogueira visitada."#,
@@ -174,6 +187,19 @@ Quer liberar o cursor do mouse para fechar esta janela? Pressione TAB!
 
 
 Aproveite a sua estadia no Mundo de Veloren."#,
+
+"hud.temp_quest_headline": r#"Por favor, nos ajude Viajante!"#,
+"hud.temp_quest_text": r#"As Cavernas estão repletas de cultistas maus 
+que emergiram para nossos pacíficos vilarejos!
+
+
+Consiga companheiros, junte comida
+e derrote seus líderes vis e acólitos.
+
+
+Talvez você até consiga obter um dos seus
+itens magicamente modificados?"#,
+
 
 
         // Inventory
@@ -223,12 +249,15 @@ Aproveite a sua estadia no Mundo de Veloren."#,
         "hud.settings.cumulated_damage": "Dano Acumulado",
         "hud.settings.incoming_damage": "Dano Recebido",
         "hud.settings.cumulated_incoming_damage": "Dano Recebido Acumulado",
-	"hud.settings.speech_bubble_dark_mode": "Balão de fala no modo escuro",
+        "hud.settings.speech_bubble": "Balão de Fala",
+	"hud.settings.speech_bubble_dark_mode": "Balão de Fala no modo escuro",
+        "hud.settings.speech_bubble_icon": "Ícone do Balão de Fala",
         "hud.settings.energybar_numbers": "Números da Barra de energia",
         "hud.settings.values": "Valores",
         "hud.settings.percentages": "Porgentavens",
         "hud.settings.chat": "Chat",
         "hud.settings.background_transparency": "Transparência de Fundo",        
+        "hud.settings.chat_character_name": "Nomes de Personagem no Chat",
 
         "hud.settings.pan_sensitivity": "Sensibilidade de Rotação",
         "hud.settings.zoom_sensitivity": "Sensibilidade do Zoom",
@@ -236,6 +265,8 @@ Aproveite a sua estadia no Mundo de Veloren."#,
         "hud.settings.invert_mouse_y_axis": "Inverter eixo Y do Mouse",
         "hud.settings.enable_mouse_smoothing": "Suavização da Câmera",
         "hud.settings.free_look_behavior": "Comportamento de Câmera Livre",
+        "hud.settings.auto_walk_behavior": "Comportamento do caminhar automático",
+        "hud.settings.stop_auto_walk_on_input": "Parar caminhar automático em caso de movimento",
 
         "hud.settings.view_distance": "Alcance de visão",
         "hud.settings.sprites_view_distance": "Distância de visão dos Sprites",
@@ -320,6 +351,9 @@ Aproveite a sua estadia no Mundo de Veloren."#,
         "gameinput.togglewield": "Alternar Empunhadura",
         "gameinput.interact": "Interagir",
         "gameinput.freelook": "Câmera Livre",
+        "gameinput.autowalk": "Caminhar Automático",
+        "gameinput.dance": "Dançar",
+
         
         /// End GameInput section
 
@@ -340,7 +374,8 @@ Aproveite a sua estadia no Mundo de Veloren."#,
         "char_selection.uncanny_valley": "Vale Misterioso",
         "char_selection.plains_of_uncertainty": "Planícies da Incerteza",
         "char_selection.beard": "Barba",
-        "char_selection.hair_style": "Estilo do cabelo",
+        "char_selection.hair_style": "Estilo do Cabelo",
+        "char_selection.hair_color": "Cor do Cabelo",        
         "char_selection.eye_color": "Cor de olho",
         "char_selection.skin": "Pele",
         "char_selection.eyeshape": "Detalhe do olho",
@@ -359,8 +394,6 @@ Aptidão
 
 Força de Vontade
 "#,
-
-
         /// Start character window section
 
 
@@ -407,7 +440,50 @@ Força de Vontade
             "Estão atrás de mim!",
             "Ajuda! Ajuda! Estou sendo repreendido",
             "Ah, agora vemos a violência inerente ao sistema.",
-            "Só um arranhão!"
+            "Só um arranhão!",
+            "Pare com isso!",
+            "O que eu fiz para você?!",
+            "Por favor, pare de me atacar!",
+            "Hey! Cuida pra onde você aponta essa coisa!",
+            "Desgraçado hediondo, vou acabar com você!",
+            "Pare com isso! Vá embora!",
+            "Você está me deixando louco!",
+            "Ow! Quem você pensa que é?!",
+            "Arrancarei sua cabeça por isso!",
+            "Pare, por favor! Não levo nada de valor!",
+            "Vou mandar meu irmão em você, ele é maior que eu!",
+            "Nãooo, Vou contar pra minha mãe!",
+            "Te amaldiçoo!",
+            "Por favor não faça isso.",
+            "Isso não foi muito legal!",
+            "Sua arma funciona, pode guardar ela agora!",
+            "Me poupe!",
+            "Por favor, tenho uma família!",
+            "Sou muito jovem para morrer!",
+            "Podemos conversar sobre isso?",
+            "Violência nunca é a resposta!",
+            "Hoje foi um péssimo dia...",
+            "Ei, isso dói!",
+            "Eek!",
+            "Que rude!",
+            "Pare, eu imploro!",
+            "Que você adoeça!",
+            "Isso não é engraçado.",
+            "Como ousa?!",
+            "Você pagará por isso!",
+            "Continue assim e irá se arrepender!",
+            "Não me faça te machucar!",
+            "Deve haver algum engano!",
+            "Não precisa fazer isso!",
+            "Morre, Diabo!",
+            "Isso Dói!",
+            "Porque você faria isso?",
+            "Pelos espíritos, Pare!",
+            "Você deve ter me confundido com alguém!",
+            "Eu não mereço isso!",
+            "Por favor, não faça isso novamente.",
+            "Guardas, joguem este monstro no lago!",
+            "Vou mandar meu tarrasque em você!",
         ],
     }
 )
