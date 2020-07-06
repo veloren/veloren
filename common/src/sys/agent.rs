@@ -191,9 +191,9 @@ impl<'a> System<'a> for Sys {
                         if let (Some(tgt_pos), _tgt_stats) =
                             (positions.get(*target), stats.get(*target))
                         {
-                            let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
+                            let dist = pos.0.distance(tgt_pos.0);
                             // Follow, or return to idle
-                            if dist_sqrd > AVG_FOLLOW_DIST.powf(2.0) {
+                            if dist > AVG_FOLLOW_DIST {
                                 if let Some((bearing, speed)) = chaser.chase(
                                     &*terrain,
                                     pos.0,
@@ -204,7 +204,7 @@ impl<'a> System<'a> for Sys {
                                 ) {
                                     inputs.move_dir =
                                         bearing.xy().try_normalized().unwrap_or(Vec2::zero())
-                                            * speed;
+                                            * speed.min(0.2 + (dist - AVG_FOLLOW_DIST) / 8.0);
                                     inputs.jump.set_state(bearing.z > 1.5);
                                 }
                             } else {
