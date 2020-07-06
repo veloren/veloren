@@ -11,7 +11,7 @@ use crate::{
     terrain::{Block, BlockKind},
 };
 use specs::{Component, FlaggedStorage};
-use specs_idvs::IDVStorage;
+use specs_idvs::IdvStorage;
 use std::{fs::File, io::BufReader};
 use vek::Rgb;
 
@@ -197,12 +197,12 @@ impl Item {
 }
 
 impl Component for Item {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ItemDrop(pub Item);
 
 impl Component for ItemDrop {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }

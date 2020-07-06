@@ -1,6 +1,6 @@
 use crate::{comp, sync::Uid};
 use specs::{Component, FlaggedStorage};
-use specs_idvs::IDVStorage;
+use specs_idvs::IdvStorage;
 use std::time::Duration;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -40,5 +40,5 @@ impl Projectile {
 }
 
 impl Component for Projectile {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }

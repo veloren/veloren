@@ -4,7 +4,7 @@ pub mod slot;
 use crate::assets;
 use item::{Consumable, Item, ItemKind};
 use specs::{Component, FlaggedStorage, HashMapStorage};
-use specs_idvs::IDVStorage;
+use specs_idvs::IdvStorage;
 use std::ops::Not;
 
 // The limit on distance between the entity and a collectible (squared)
@@ -388,7 +388,7 @@ impl InventoryUpdate {
 }
 
 impl Component for InventoryUpdate {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[cfg(test)] mod test;

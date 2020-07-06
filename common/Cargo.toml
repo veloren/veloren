@@ -8,9 +8,9 @@ edition = "2018"
 no-assets = []
 
 [dependencies]
-specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git" }
+specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", branch = "specs-16" }
 
-specs = { version = "0.15.1", features = ["serde", "nightly", "storage-event-control"] }
+specs = { version = "0.16.1", features = ["serde", "storage-event-control"] }
 vek = { version = "0.11.0", features = ["serde"] }
 dot_vox = "4.0"
 image = { version = "0.22.3", default-features = false, features = ["png"] }

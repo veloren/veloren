@@ -72,3 +72,7 @@ debug = false
 [profile.releasedebuginfo]
 inherits =  'release'
 debug = 1
+
+# living on the edge
+[patch.crates-io]
+specs = { git = "https://github.com/amethyst/specs.git", rev = "7a2e348ab2223818bad487695c66c43db88050a5" }

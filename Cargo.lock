@@ -996,17 +996,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "derivative"
-version = "1.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c6d883546668a3e2011b6a716a7330b82eabb0151b138217f632c8243e17135"
-dependencies = [
- "proc-macro2 0.4.30",
- "quote 0.6.13",
- "syn 0.15.44",
-]
-
-[[package]]
 name = "deunicode"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1854,6 +1843,16 @@ dependencies = [
  "autocfg 0.1.7",
  "rayon",
  "serde",
+]
+
+[[package]]
+name = "hashbrown"
+version = "0.7.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "96282e96bfcd3da0d3aa9938bedf1e50df3269b6db08b4876d2da0bb1a0841cf"
+dependencies = [
+ "ahash 0.3.8",
+ "autocfg 1.0.0",
 ]
 
 [[package]]
@@ -3698,16 +3697,17 @@ checksum = "7fdf1b9db47230893d76faad238fd6097fd6d6a9245cd7a4d90dbd639536bbd2"
 
 [[package]]
 name = "shred"
-version = "0.9.4"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92472b9bafafbcba21935c6444d924e5332742f6778c49504a49a97eaeff6ccc"
+checksum = "c5f08237e667ac94ad20f8878b5943d91a93ccb231428446c57c21c57779016d"
 dependencies = [
- "arrayvec 0.4.12",
- "hashbrown",
+ "arrayvec 0.5.1",
+ "hashbrown 0.7.2",
  "mopa",
  "rayon",
  "shred-derive",
- "smallvec 0.6.13",
+ "smallvec 1.4.0",
+ "tynm",
 ]
 
 [[package]]
@@ -3793,13 +3793,11 @@ dependencies = [
 
 [[package]]
 name = "specs"
-version = "0.15.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4943fde8c5d3d14c3d19d2a4c7abbd7b626c270a19e6cd35252294a48feb698c"
+version = "0.16.1"
+source = "git+https://github.com/amethyst/specs.git?rev=7a2e348ab2223818bad487695c66c43db88050a5#7a2e348ab2223818bad487695c66c43db88050a5"
 dependencies = [
- "crossbeam-queue 0.1.2",
- "derivative",
- "hashbrown",
+ "crossbeam-queue 0.2.3",
+ "hashbrown 0.7.2",
  "hibitset",
  "log",
  "rayon",
@@ -3812,7 +3810,7 @@ dependencies = [
 [[package]]
 name = "specs-idvs"
 version = "0.1.0"
-source = "git+https://gitlab.com/veloren/specs-idvs.git#111548cf44e9bb4c43feb12aa3fc253953ac6e4a"
+source = "git+https://gitlab.com/veloren/specs-idvs.git?branch=specs-16#349153d18c19d238523e4eddd5bec179d38c59c5"
 dependencies = [
  "specs",
 ]
@@ -4301,6 +4299,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "44834418e2c5b16f47bedf35c28e148db099187dd5feee6367fb2525863af4f1"
 
 [[package]]
+name = "tynm"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "367fb781963961b4a90a3362c54b1871caaecb081f011005778242230f39d34e"
+dependencies = [
+ "nom 5.1.1",
+]
+
+[[package]]
 name = "unicode-bidi"
 version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4457,7 +4464,7 @@ dependencies = [
  "futures-executor",
  "futures-timer 3.0.2",
  "futures-util",
- "hashbrown",
+ "hashbrown 0.6.3",
  "image",
  "num_cpus",
  "specs",
@@ -4478,7 +4485,7 @@ dependencies = [
  "crossbeam",
  "dot_vox",
  "find_folder",
- "hashbrown",
+ "hashbrown 0.6.3",
  "image",
  "indexmap",
  "lazy_static",
@@ -4512,7 +4519,7 @@ dependencies = [
  "futures-executor",
  "futures-timer 3.0.2",
  "futures-util",
- "hashbrown",
+ "hashbrown 0.6.3",
  "lazy_static",
  "libsqlite3-sys",
  "portpicker",
@@ -4573,7 +4580,7 @@ dependencies = [
  "glsl-include",
  "glutin",
  "guillotiere",
- "hashbrown",
+ "hashbrown 0.6.3",
  "image",
  "msgbox",
  "num 0.2.1",
@@ -4621,7 +4628,7 @@ dependencies = [
  "bincode",
  "bitvec",
  "fxhash",
- "hashbrown",
+ "hashbrown 0.6.3",
  "image",
  "itertools 0.8.2",
  "lazy_static",
