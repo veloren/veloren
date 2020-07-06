@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        Agent, Attacking, Body, CharacterState, HealthChange, HealthSource, Ori, Pos, Scale, Stats,
+        Alignment, Attacking, Body, CharacterState, HealthChange, HealthSource, Ori, Pos, Scale, Stats,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     sync::Uid,
@@ -25,7 +25,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Scale>,
-        ReadStorage<'a, Agent>,
+        ReadStorage<'a, Alignment>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Stats>,
         WriteStorage<'a, Attacking>,
@@ -42,7 +42,7 @@ impl<'a> System<'a> for Sys {
             positions,
             orientations,
             scales,
-            agents,
+            alignments,
             bodies,
             stats,
             mut attacking_storage,
@@ -74,7 +74,7 @@ impl<'a> System<'a> for Sys {
                 pos_b,
                 ori_b,
                 scale_b_maybe,
-                agent_b_maybe,
+                alignment_b_maybe,
                 character_b,
                 stats_b,
                 body_b,
@@ -84,7 +84,7 @@ impl<'a> System<'a> for Sys {
                 &positions,
                 &orientations,
                 scales.maybe(),
-                agents.maybe(),
+                alignments.maybe(),
                 character_states.maybe(),
                 &stats,
                 &bodies,
@@ -120,7 +120,7 @@ impl<'a> System<'a> for Sys {
 
                     // TODO: remove this when there is a better way to target healing
                     // Don't heal npc's hp
-                    if agent_b_maybe.is_some() && healthchange > 0.0 {
+                    if alignment_b_maybe.map(|a| !a.is_friendly_to_players()).unwrap_or(true) && healthchange > 0.0 {
                         healthchange = 0.0;
                     }
 
