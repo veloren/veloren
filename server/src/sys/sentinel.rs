@@ -236,6 +236,38 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     trackers
         .character_state
         .record_changes(&comps.character_state);
+    // Debug how many updates are being sent
+    /*
+    macro_rules! log_counts {
+        ($comp:ident, $name:expr) => {
+            // Note: if this will be used in actual server it would be more efficient to
+            // count during record_changes
+            let tracker = &trackers.$comp;
+            let inserted = tracker.inserted().into_iter().count();
+            let modified = tracker.modified().into_iter().count();
+            let removed = tracker.removed().into_iter().count();
+            tracing::warn!("{:6} insertions detected for    {}", inserted, $name);
+            tracing::warn!("{:6} modifications detected for {}", modified, $name);
+            tracing::warn!("{:6} deletions detected for     {}", removed, $name);
+        };
+    };
+    log_counts!(uid, "Uids");
+    log_counts!(body, "Bodies");
+    log_counts!(player, "Players");
+    log_counts!(stats, "Stats");
+    log_counts!(energy, "Energies");
+    log_counts!(light_emitter, "Light emitters");
+    log_counts!(item, "Items");
+    log_counts!(scale, "Scales");
+    log_counts!(mounting, "Mountings");
+    log_counts!(mount_state, "Mount States");
+    log_counts!(mass, "Masses");
+    log_counts!(collider, "Colliders");
+    log_counts!(sticky, "Stickies");
+    log_counts!(gravity, "Gravitys");
+    log_counts!(loadout, "Loadouts");
+    log_counts!(character_state, "Character States");
+    */
 }
 
 pub fn register_trackers(world: &mut World) {
