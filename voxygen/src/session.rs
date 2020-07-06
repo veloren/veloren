@@ -256,7 +256,8 @@ impl PlayState for SessionState {
                 }
             };
 
-            let can_build = self.client
+            let can_build = self
+                .client
                 .borrow()
                 .state()
                 .read_storage::<comp::CanBuild>()
