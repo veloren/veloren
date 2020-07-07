@@ -1,6 +1,7 @@
 use crate::{
     comp::{
         projectile, Energy, EnergySource, HealthSource, Ori, PhysicsState, Pos, Projectile, Vel,
+        Alignment,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
@@ -27,6 +28,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Projectile>,
         WriteStorage<'a, Energy>,
+        ReadStorage<'a, Alignment>,
     );
 
     fn run(
@@ -43,6 +45,7 @@ impl<'a> System<'a> for Sys {
             mut orientations,
             mut projectiles,
             mut energies,
+            alignments,
         ): Self::SystemData,
     ) {
         let mut local_emitter = local_bus.emitter();
@@ -82,7 +85,17 @@ impl<'a> System<'a> for Sys {
                 for effect in projectile.hit_entity.drain(..) {
                     match effect {
                         projectile::Effect::Damage(change) => {
-                            if other != projectile.owner.unwrap() {
+                            let owner_uid = projectile.owner.unwrap();
+                            // Hacky: remove this when groups get implemented
+                            let passive = uid_allocator
+                                .retrieve_entity_internal(other.into())
+                                .and_then(|other|
+                                    alignments
+                                    .get(other)
+                                    .map(|a| Alignment::Owned(owner_uid)
+                                        .passive_towards(*a)))
+                                .unwrap_or(false);
+                            if other != projectile.owner.unwrap() && !passive {
                                 server_emitter.emit(ServerEvent::Damage { uid: other, change });
                             }
                         },

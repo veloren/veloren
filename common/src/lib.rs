@@ -7,7 +7,8 @@
     bool_to_option,
     label_break_value,
     trait_alias,
-    type_alias_impl_trait
+    type_alias_impl_trait,
+    option_zip,
 )]
 
 #[macro_use] extern crate serde_derive;

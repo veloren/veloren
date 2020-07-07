@@ -57,9 +57,9 @@ impl SessionState {
             .set_fov_deg(global_state.settings.graphics.fov);
         let hud = Hud::new(global_state, &client.borrow());
         {
-            let my_entity = client.borrow().entity();
+            let mut client = client.borrow_mut();
+            let my_entity = client.entity();
             client
-                .borrow_mut()
                 .state_mut()
                 .ecs_mut()
                 .insert(MyEntity(my_entity));

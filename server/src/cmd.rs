@@ -507,7 +507,8 @@ fn handle_spawn(
         String
     ) {
         (Some(opt_align), Some(npc::NpcBody(id, mut body)), opt_amount, opt_ai) => {
-            if let Some(alignment) = parse_alignment(target, &opt_align) {
+            let uid = server.state.read_component_cloned(target).expect("Expected player to have a UID");
+            if let Some(alignment) = parse_alignment(uid, &opt_align) {
                 let amount = opt_amount
                     .and_then(|a| a.parse().ok())
                     .filter(|x| *x > 0)
@@ -715,7 +716,7 @@ fn handle_help(
     }
 }
 
-fn parse_alignment(owner: EcsEntity, alignment: &str) -> Option<comp::Alignment> {
+fn parse_alignment(owner: Uid, alignment: &str) -> Option<comp::Alignment> {
     match alignment {
         "wild" => Some(comp::Alignment::Wild),
         "enemy" => Some(comp::Alignment::Enemy),

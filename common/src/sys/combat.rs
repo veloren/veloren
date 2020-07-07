@@ -119,12 +119,15 @@ impl<'a> System<'a> for Sys {
                     //    healthchange = (healthchange / 1.5).min(-1.0);
                     //}
 
-                    // TODO: remove this when there is a better way to target healing
-                    // Don't heal npc's hp
-                    if alignment_b_maybe
+                    // TODO: remove this when there is a better way to deal with alignment
+                    // Don't heal NPCs
+                    if (healthchange > 0.0 && alignment_b_maybe
                         .map(|a| !a.is_friendly_to_players())
-                        .unwrap_or(true)
-                        && healthchange > 0.0
+                        .unwrap_or(true))
+                        // Don't hurt pets
+                    || (healthchange < 0.0 && alignment_b_maybe
+                        .map(|b| Alignment::Owned(*uid).passive_towards(*b))
+                        .unwrap_or(false))
                     {
                         healthchange = 0.0;
                     }

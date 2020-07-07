@@ -1,9 +1,9 @@
-use crate::path::Chaser;
-use specs::{Component, Entity as EcsEntity};
+use crate::{path::Chaser, sync::Uid};
+use specs::{Component, Entity as EcsEntity, FlaggedStorage};
 use specs_idvs::IdvStorage;
 use vek::*;
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Alignment {
     /// Wild animals and gentle giants
     Wild,
@@ -14,7 +14,7 @@ pub enum Alignment {
     /// Farm animals and pets of villagers
     Tame,
     /// Pets you've tamed with a collar
-    Owned(EcsEntity),
+    Owned(Uid),
 }
 
 impl Alignment {
@@ -51,7 +51,7 @@ impl Alignment {
 }
 
 impl Component for Alignment {
-    type Storage = IdvStorage<Self>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[derive(Clone, Debug, Default)]
