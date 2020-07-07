@@ -9,9 +9,9 @@ pub use self::{
     block::{Block, BlockKind},
     structure::Structure,
 };
+use serde::{Deserialize, Serialize};
 
 use crate::{vol::RectVolSize, volumes::vol_grid_2d::VolGrid2d};
-use serde_derive::{Deserialize, Serialize};
 use vek::*;
 
 // TerrainChunkSize

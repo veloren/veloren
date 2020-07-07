@@ -1,5 +1,5 @@
 use crate::vol::Vox;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::ops::Deref;
 use vek::*;
 

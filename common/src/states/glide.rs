@@ -4,6 +4,7 @@ use crate::{
     sys::character_behavior::{CharacterBehavior, JoinData},
     util::Dir,
 };
+use serde::{Deserialize, Serialize};
 use vek::Vec2;
 
 // Gravity is 9.81 * 4, so this makes gravity equal to .15

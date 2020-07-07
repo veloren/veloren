@@ -5,7 +5,7 @@ use crate::{
     ui::ScaleMode,
     window::{GameInput, KeyMouse},
 };
-use directories::{ProjectDirs, UserDirs};
+use directories_next::{ProjectDirs, UserDirs};
 use glutin::{MouseButton, VirtualKeyCode};
 use hashbrown::{HashMap, HashSet};
 use serde_derive::{Deserialize, Serialize};

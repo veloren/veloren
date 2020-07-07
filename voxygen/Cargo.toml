@@ -55,13 +55,13 @@ serde_derive = "1.0"
 ron = { version = "0.6", default-features = false }
 guillotiere = { git = "https://github.com/Imberflur/guillotiere" }
 msgbox = { git = "https://github.com/bekker/msgbox-rs.git", default-features = false, rev = "68fe39a", optional = true }
-directories = "2.0.2"
-num = "0.2.0"
+directories-next = "1.0.1"
+num = "0.2"
 backtrace = "0.3.40"
 rand = "0.7"
 treeculler = { git = "https://gitlab.com/yusdacra/treeculler.git" }
-rodio = { version = "0.10", default-features = false, features = ["wav", "vorbis"] }
-cpal = "0.10"
+rodio = { version = "0.11", default-features = false, features = ["wav", "vorbis"] }
+cpal = "0.11"
 crossbeam = "=0.7.2"
 hashbrown = { version = "0.7.2", features = ["rayon", "serde", "nightly"] }
 chrono = "0.4.9"
@@ -69,7 +69,7 @@ bincode = "1.2"
 deunicode = "1.0"
 uvth = "3.1.1"
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "223a4097f7ebc8d451936dccb5e6517194bbf086" }
-const-tweaker = { version = "0.2.5", optional = true }
+const-tweaker = { version = "0.3.1", optional = true }
 
 # Logging
 tracing = "0.1" 
@@ -78,14 +78,14 @@ tracing-log = "0.1.1"
 tracing-appender = "0.1"
 
 [target.'cfg(target_os = "macos")'.dependencies]
-dispatch = "0.1.4"
+dispatch = "0.2"
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"
 
 [dev-dependencies]
 criterion = "0.3"
-git2 = "0.10"
+git2 = "0.13"
 world = { package = "veloren-world", path = "../world" }
 gfx_window_glutin = { version = "0.31.0", features = ["headless"] }
 

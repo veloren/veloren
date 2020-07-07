@@ -1,4 +1,5 @@
 use authc::Uuid;
+use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage, NullStorage};
 use specs_idvs::IdvStorage;
 

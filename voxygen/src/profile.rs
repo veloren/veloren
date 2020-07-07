@@ -1,5 +1,5 @@
 use crate::hud;
-use directories::ProjectDirs;
+use directories_next::ProjectDirs;
 use hashbrown::HashMap;
 use serde_derive::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, path::PathBuf};

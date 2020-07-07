@@ -5,6 +5,7 @@ use crate::{
     volumes::dyna::{Dyna, DynaError},
 };
 use dot_vox::DotVoxData;
+use serde::Deserialize;
 use std::{fs::File, io::BufReader, sync::Arc};
 use vek::*;
 
