@@ -3695,6 +3695,14 @@ dependencies = [
 [[package]]
 name = "specs-idvs"
 version = "0.1.0"
+source = "git+https://gitlab.com/veloren/specs-idvs.git#530ebb00b60685d6d1f47a3bc16c5b1f25c5e530"
+dependencies = [
+ "specs",
+]
+
+[[package]]
+name = "specs-idvs"
+version = "0.1.0"
 source = "git+https://gitlab.com/veloren/specs-idvs.git?branch=specs-16#349153d18c19d238523e4eddd5bec179d38c59c5"
 dependencies = [
  "specs",
@@ -4390,7 +4398,7 @@ dependencies = [
  "serde",
  "serde_json",
  "specs",
- "specs-idvs",
+ "specs-idvs 0.1.0 (git+https://gitlab.com/veloren/specs-idvs.git?branch=specs-16)",
  "sum_type",
  "tracing",
  "vek",
@@ -4420,7 +4428,7 @@ dependencies = [
  "serde",
  "serde_json",
  "specs",
- "specs-idvs",
+ "specs-idvs 0.1.0 (git+https://gitlab.com/veloren/specs-idvs.git?branch=specs-16)",
  "tiny_http",
  "tracing",
  "uvth 3.1.1",
@@ -4478,7 +4486,7 @@ dependencies = [
  "serde",
  "serde_derive",
  "specs",
- "specs-idvs",
+ "specs-idvs 0.1.0 (git+https://gitlab.com/veloren/specs-idvs.git)",
  "tracing",
  "tracing-appender",
  "tracing-log",
