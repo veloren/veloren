@@ -1,0 +1,15 @@
+-- This migration was added in conjunction with a change that no longer creates missing inventory/loadout records
+-- for characters that don't have one, to prevent such characters from being unable to log in.
+
+-- Create a default loadout for any characters that don't have one
+INSERT INTO loadout (character_id, items)
+SELECT c."id", "{""active_item"":{""item"":{""name"":""Battered Sword"",""description"":""Two-Hand Sword\n\nPower: 2-10\n\nHeld together by Rust and hope.\n\n<Right-Click to use>"",""kind"":{""Tool"":{""kind"":{""Sword"":""BasicSword""},""equip_time_millis"":300}}},""ability1"":{""TripleStrike"":{""base_damage"":5,""needs_timing"":false}},""ability2"":{""DashMelee"":{""energy_cost"":700,""buildup_duration"":{""secs"":0,""nanos"":500000000},""recover_duration"":{""secs"":0,""nanos"":500000000},""base_damage"":10}},""ability3"":null,""block_ability"":""BasicBlock"",""dodge_ability"":""Roll""},""second_item"":null,""shoulder"":null,""chest"":{""name"":""Rugged Shirt"",""description"":""Chest\n\nArmor: 0\n\nSmells like Adventure.\n\n<Right-Click to use>"",""kind"":{""Armor"":{""kind"":{""Chest"":""Rugged0""},""stats"":20}}},""belt"":null,""hand"":null,""pants"":{""name"":""Rugged Commoner's Pants"",""description"":""Legs\n\nArmor: 0\n\nThey remind you of the old days.\n\n<Right-Click to use>"",""kind"":{""Armor"":{""kind"":{""Pants"":""Rugged0""},""stats"":20}}},""foot"":{""name"":""Worn out Sandals"",""description"":""Feet\n\nArmor: 0\n\nLoyal companions.\n\n<Right-Click to use>"",""kind"":{""Armor"":{""kind"":{""Foot"":""Sandal0""},""stats"":20}}},""back"":null,""ring"":null,""neck"":null,""lantern"":{""name"":""Black Lantern"",""description"":""Used by city guards."",""kind"":{""Lantern"":{""kind"":""Black0"",""color"":{""r"":255,""g"":190,""b"":75},""strength_thousandths"":3000,""flicker_thousandths"":300}}},""head"":null,""tabard"":null}"
+FROM character c
+WHERE (SELECT COUNT(1) FROM loadout WHERE character_id = c.id) = 0;
+
+
+-- Create a default inventory for any characters that don't have one
+INSERT INTO inventory (character_id, items)
+SELECT c."id", "{""slots"":[{""name"":""Dwarven Cheese"",""description"":""Restores 15 Health\n\nAromatic and nutritious\n\n<Right-Click to use>"",""kind"":{""Consumable"":{""kind"":""Cheese"",""effect"":{""Health"":{""amount"":15,""cause"":""Item""}},""amount"":1}}},{""name"":""Apple"",""description"":""Restores 20 Health\n\nRed and juicy\n\n<Right-Click to use>"",""kind"":{""Consumable"":{""kind"":""Apple"",""effect"":{""Health"":{""amount"":20,""cause"":""Item""}},""amount"":1}}},null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],""amount"":2}"
+FROM character c
+WHERE (SELECT COUNT(1) FROM inventory WHERE character_id = c.id) = 0;

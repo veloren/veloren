@@ -1,0 +1,1 @@
+-- Nothing to undo since up.sql only creates missing inventory/loadout records
