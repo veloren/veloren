@@ -188,7 +188,8 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 let reinsert = if let Some(pos) =
                                     state.read_storage::<comp::Pos>().get(entity)
                                 {
-                                    let uid = state.read_component_cloned(entity)
+                                    let uid = state
+                                        .read_component_cloned(entity)
                                         .expect("Expected player to have a UID");
                                     if (
                                         &state.read_storage::<comp::Alignment>(),
@@ -222,10 +223,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                             .map(|(entity, _, _)| entity);
                                         nearest_tameable
                                     } {
-                                        let _ = state.ecs().write_storage().insert(
-                                            tameable_entity,
-                                            comp::Alignment::Owned(uid),
-                                        );
+                                        let _ = state
+                                            .ecs()
+                                            .write_storage()
+                                            .insert(tameable_entity, comp::Alignment::Owned(uid));
                                         let _ = state
                                             .ecs()
                                             .write_storage()

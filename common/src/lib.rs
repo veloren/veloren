@@ -8,7 +8,7 @@
     label_break_value,
     trait_alias,
     type_alias_impl_trait,
-    option_zip,
+    option_zip
 )]
 
 #[macro_use] extern crate serde_derive;

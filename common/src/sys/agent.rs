@@ -242,14 +242,12 @@ impl<'a> System<'a> for Sys {
                         if let (Some(tgt_pos), Some(tgt_stats), tgt_alignment) = (
                             positions.get(*target),
                             stats.get(*target),
-                            alignments
-                                .get(*target)
-                                .copied()
-                                .unwrap_or(uids
-                                    .get(*target)
+                            alignments.get(*target).copied().unwrap_or(
+                                uids.get(*target)
                                     .copied()
                                     .map(Alignment::Owned)
-                                    .unwrap_or(Alignment::Wild)),
+                                    .unwrap_or(Alignment::Wild),
+                            ),
                         ) {
                             if let Some(dir) = Dir::from_unnormalized(tgt_pos.0 - pos.0) {
                                 inputs.look_dir = dir;
