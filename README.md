@@ -38,7 +38,7 @@ We provide 64-bit builds for Linux, Mac, and Windows, which can be downloaded on
 
 Due to rapid developement stable versions become outdated fast and might be **incompatible with the public server**.
 
-If you want to compile Veloren yourself, take a look at the [How to Compile Guide](https://book.veloren.net/compile/index.html) in the book.
+If you want to compile Veloren yourself, follow the instructions in our [Book](https://book.veloren.net/contributors/introduction.html).
 
 ### Packaging status
 
