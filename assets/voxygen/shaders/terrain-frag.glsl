@@ -250,7 +250,8 @@ void main() {
 
     emitted_light = vec3(1.0);
     reflected_light = vec3(1.0);
-    max_light += get_sun_diffuse2(/*time_of_day.x, */sun_info, moon_info, f_norm, view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+    float f_select = (select_pos.w > 0 && select_pos.xyz == floor(f_pos - f_norm * 0.5)) ? 1.0 / PERSISTENT_AMBIANCE : 1.0;
+    max_light += get_sun_diffuse2(/*time_of_day.x, */sun_info, moon_info, f_norm, view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a * f_select/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
 
     // emitted_light *= f_light * point_shadow * max(shade_frac, MIN_SHADOW);
     // reflected_light *= f_light * point_shadow * shade_frac;

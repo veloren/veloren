@@ -1,8 +1,8 @@
 use super::SysTimer;
 use common::{
     comp::{
-        Body, CanBuild, CharacterState, Collider, Energy, Gravity, Item, LightEmitter, Loadout,
-        Mass, MountState, Mounting, Ori, Player, Pos, Scale, Stats, Sticky, Vel,
+        Alignment, Body, CanBuild, CharacterState, Collider, Energy, Gravity, Item, LightEmitter,
+        Loadout, Mass, MountState, Mounting, Ori, Player, Pos, Scale, Stats, Sticky, Vel,
     },
     msg::EcsCompPacket,
     sync::{CompSyncPackage, EntityPackage, EntitySyncPackage, Uid, UpdateTracker, WorldSyncExt},
@@ -48,6 +48,7 @@ pub struct TrackedComps<'a> {
     pub scale: ReadStorage<'a, Scale>,
     pub mounting: ReadStorage<'a, Mounting>,
     pub mount_state: ReadStorage<'a, MountState>,
+    pub alignment: ReadStorage<'a, Alignment>,
     pub mass: ReadStorage<'a, Mass>,
     pub collider: ReadStorage<'a, Collider>,
     pub sticky: ReadStorage<'a, Sticky>,
@@ -104,6 +105,10 @@ impl<'a> TrackedComps<'a> {
             .get(entity)
             .cloned()
             .map(|c| comps.push(c.into()));
+        self.alignment
+            .get(entity)
+            .cloned()
+            .map(|c| comps.push(c.into()));
         self.mass.get(entity).copied().map(|c| comps.push(c.into()));
         self.collider
             .get(entity)
@@ -146,6 +151,7 @@ pub struct ReadTrackers<'a> {
     pub scale: ReadExpect<'a, UpdateTracker<Scale>>,
     pub mounting: ReadExpect<'a, UpdateTracker<Mounting>>,
     pub mount_state: ReadExpect<'a, UpdateTracker<MountState>>,
+    pub alignment: ReadExpect<'a, UpdateTracker<Alignment>>,
     pub mass: ReadExpect<'a, UpdateTracker<Mass>>,
     pub collider: ReadExpect<'a, UpdateTracker<Collider>>,
     pub sticky: ReadExpect<'a, UpdateTracker<Sticky>>,
@@ -178,6 +184,7 @@ impl<'a> ReadTrackers<'a> {
             .with_component(&comps.uid, &*self.scale, &comps.scale, filter)
             .with_component(&comps.uid, &*self.mounting, &comps.mounting, filter)
             .with_component(&comps.uid, &*self.mount_state, &comps.mount_state, filter)
+            .with_component(&comps.uid, &*self.alignment, &comps.alignment, filter)
             .with_component(&comps.uid, &*self.mass, &comps.mass, filter)
             .with_component(&comps.uid, &*self.collider, &comps.collider, filter)
             .with_component(&comps.uid, &*self.sticky, &comps.sticky, filter)
@@ -207,6 +214,7 @@ pub struct WriteTrackers<'a> {
     scale: WriteExpect<'a, UpdateTracker<Scale>>,
     mounting: WriteExpect<'a, UpdateTracker<Mounting>>,
     mount_state: WriteExpect<'a, UpdateTracker<MountState>>,
+    alignment: WriteExpect<'a, UpdateTracker<Alignment>>,
     mass: WriteExpect<'a, UpdateTracker<Mass>>,
     collider: WriteExpect<'a, UpdateTracker<Collider>>,
     sticky: WriteExpect<'a, UpdateTracker<Sticky>>,
@@ -228,6 +236,7 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     trackers.scale.record_changes(&comps.scale);
     trackers.mounting.record_changes(&comps.mounting);
     trackers.mount_state.record_changes(&comps.mount_state);
+    trackers.alignment.record_changes(&comps.alignment);
     trackers.mass.record_changes(&comps.mass);
     trackers.collider.record_changes(&comps.collider);
     trackers.sticky.record_changes(&comps.sticky);
@@ -236,6 +245,38 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     trackers
         .character_state
         .record_changes(&comps.character_state);
+    // Debug how many updates are being sent
+    /*
+    macro_rules! log_counts {
+        ($comp:ident, $name:expr) => {
+            // Note: if this will be used in actual server it would be more efficient to
+            // count during record_changes
+            let tracker = &trackers.$comp;
+            let inserted = tracker.inserted().into_iter().count();
+            let modified = tracker.modified().into_iter().count();
+            let removed = tracker.removed().into_iter().count();
+            tracing::warn!("{:6} insertions detected for    {}", inserted, $name);
+            tracing::warn!("{:6} modifications detected for {}", modified, $name);
+            tracing::warn!("{:6} deletions detected for     {}", removed, $name);
+        };
+    };
+    log_counts!(uid, "Uids");
+    log_counts!(body, "Bodies");
+    log_counts!(player, "Players");
+    log_counts!(stats, "Stats");
+    log_counts!(energy, "Energies");
+    log_counts!(light_emitter, "Light emitters");
+    log_counts!(item, "Items");
+    log_counts!(scale, "Scales");
+    log_counts!(mounting, "Mountings");
+    log_counts!(mount_state, "Mount States");
+    log_counts!(mass, "Masses");
+    log_counts!(collider, "Colliders");
+    log_counts!(sticky, "Stickies");
+    log_counts!(gravity, "Gravitys");
+    log_counts!(loadout, "Loadouts");
+    log_counts!(character_state, "Character States");
+    */
 }
 
 pub fn register_trackers(world: &mut World) {
@@ -250,6 +291,7 @@ pub fn register_trackers(world: &mut World) {
     world.register_tracker::<Scale>();
     world.register_tracker::<Mounting>();
     world.register_tracker::<MountState>();
+    world.register_tracker::<Alignment>();
     world.register_tracker::<Mass>();
     world.register_tracker::<Collider>();
     world.register_tracker::<Sticky>();

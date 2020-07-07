@@ -1,4 +1,5 @@
 use rand::{seq::SliceRandom, thread_rng};
+use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Body {
@@ -29,12 +30,13 @@ impl From<Body> for super::Body {
 pub enum Species {
     Grolgar = 0,
     Saber = 1,
-    Viper = 2,
+    Tiger = 2,
     Tuskram = 3,
-    Alligator = 4,
-    Monitor = 5,
     Lion = 6,
     Tarasque = 7,
+    Wolf = 8,
+    Frostfang = 9,
+    Mouflon = 10,
 }
 
 /// Data representing per-species generic data.
@@ -44,12 +46,13 @@ pub enum Species {
 pub struct AllSpecies<SpeciesMeta> {
     pub grolgar: SpeciesMeta,
     pub saber: SpeciesMeta,
-    pub viper: SpeciesMeta,
+    pub tiger: SpeciesMeta,
     pub tuskram: SpeciesMeta,
-    pub alligator: SpeciesMeta,
-    pub monitor: SpeciesMeta,
     pub lion: SpeciesMeta,
     pub tarasque: SpeciesMeta,
+    pub wolf: SpeciesMeta,
+    pub frostfang: SpeciesMeta,
+    pub mouflon: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -60,25 +63,27 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
         match index {
             Species::Grolgar => &self.grolgar,
             Species::Saber => &self.saber,
-            Species::Viper => &self.viper,
+            Species::Tiger => &self.tiger,
             Species::Tuskram => &self.tuskram,
-            Species::Alligator => &self.alligator,
-            Species::Monitor => &self.monitor,
             Species::Lion => &self.lion,
             Species::Tarasque => &self.tarasque,
+            Species::Wolf => &self.wolf,
+            Species::Frostfang => &self.frostfang,
+            Species::Mouflon => &self.mouflon,
         }
     }
 }
 
-pub const ALL_SPECIES: [Species; 8] = [
+pub const ALL_SPECIES: [Species; 9] = [
     Species::Grolgar,
     Species::Saber,
-    Species::Viper,
+    Species::Tiger,
     Species::Tuskram,
-    Species::Alligator,
-    Species::Monitor,
     Species::Lion,
     Species::Tarasque,
+    Species::Wolf,
+    Species::Frostfang,
+    Species::Mouflon,
 ];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {

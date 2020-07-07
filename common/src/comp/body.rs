@@ -8,6 +8,7 @@ pub mod fish_small;
 pub mod golem;
 pub mod humanoid;
 pub mod object;
+pub mod quadruped_low;
 pub mod quadruped_medium;
 pub mod quadruped_small;
 
@@ -15,8 +16,9 @@ use crate::{
     assets::{self, Asset},
     npc::NpcKind,
 };
+use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
-use specs_idvs::IDVStorage;
+use specs_idvs::IdvStorage;
 use std::{fs::File, io::BufReader};
 
 /* pub trait PerBody {
@@ -107,6 +109,7 @@ pub enum Body {
     Object(object::Body) = 9,
     Golem(golem::Body) = 10,
     Critter(critter::Body) = 11,
+    QuadrupedLow(quadruped_low::Body) = 12,
 }
 
 /// Data representing data generic to the body together with per-species data.
@@ -138,6 +141,7 @@ pub struct AllBodies<BodyMeta, SpeciesMeta> {
     pub object: BodyData<BodyMeta, ()>,
     pub golem: BodyData<BodyMeta, golem::AllSpecies<SpeciesMeta>>,
     pub critter: BodyData<BodyMeta, critter::AllSpecies<SpeciesMeta>>,
+    pub quadruped_low: BodyData<BodyMeta, quadruped_low::AllSpecies<SpeciesMeta>>,
 }
 
 /// Can only retrieve body metadata by direct index.
@@ -155,6 +159,7 @@ impl<BodyMeta, SpeciesMeta> core::ops::Index<NpcKind> for AllBodies<BodyMeta, Sp
             NpcKind::StoneGolem => &self.golem.body,
             NpcKind::Rat => &self.critter.body,
             NpcKind::Reddragon => &self.dragon.body,
+            NpcKind::Crocodile => &self.quadruped_low.body,
         }
     }
 }
@@ -178,6 +183,7 @@ impl<'a, BodyMeta, SpeciesMeta> core::ops::Index<&'a Body> for AllBodies<BodyMet
             Body::Object(_) => &self.object.body,
             Body::Golem(_) => &self.golem.body,
             Body::Critter(_) => &self.critter.body,
+            Body::QuadrupedLow(_) => &self.quadruped_low.body,
         }
     }
 }
@@ -218,6 +224,7 @@ impl Body {
             Body::FishSmall(_) => 0.2,
             Body::BipedLarge(_) => 2.0,
             Body::Golem(_) => 2.5,
+            Body::QuadrupedLow(_) => 1.0,
             Body::Object(_) => 0.3,
         }
     }
@@ -227,5 +234,5 @@ impl Body {
 }
 
 impl Component for Body {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }

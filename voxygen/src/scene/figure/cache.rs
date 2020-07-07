@@ -34,6 +34,7 @@ enum FigureKey {
 struct CharacterCacheKey {
     state: Option<Discriminant<CharacterState>>, // TODO: Can this be simplified?
     active_tool: Option<ToolKind>,
+    second_tool: Option<ToolKind>,
     shoulder: Option<Item>,
     chest: Option<Item>,
     belt: Option<Item>,
@@ -50,6 +51,13 @@ impl CharacterCacheKey {
             state: cs.map(|cs| discriminant(cs)),
             active_tool: if let Some(ItemKind::Tool(tool)) =
                 loadout.active_item.as_ref().map(|i| &i.item.kind)
+            {
+                Some(tool.kind)
+            } else {
+                None
+            },
+            second_tool: if let Some(ItemKind::Tool(tool)) =
+                loadout.second_item.as_ref().map(|i| &i.item.kind)
             {
                 Some(tool.kind)
             } else {
@@ -246,22 +254,22 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         body.body_type,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
-                    Some(quadruped_small_lateral_spec.mesh_foot_lf(
+                    Some(quadruped_small_lateral_spec.mesh_foot_fl(
                         body.species,
                         body.body_type,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
-                    Some(quadruped_small_lateral_spec.mesh_foot_rf(
+                    Some(quadruped_small_lateral_spec.mesh_foot_fr(
                         body.species,
                         body.body_type,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
-                    Some(quadruped_small_lateral_spec.mesh_foot_lb(
+                    Some(quadruped_small_lateral_spec.mesh_foot_bl(
                         body.species,
                         body.body_type,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
-                    Some(quadruped_small_lateral_spec.mesh_foot_rb(
+                    Some(quadruped_small_lateral_spec.mesh_foot_br(
                         body.species,
                         body.body_type,
                         |segment, offset| generate_mesh(segment, offset),
@@ -309,12 +317,12 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         body.body_type,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
-                    Some(quadruped_medium_central_spec.mesh_torso_f(
+                    Some(quadruped_medium_central_spec.mesh_torso_front(
                         body.species,
                         body.body_type,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
-                    Some(quadruped_medium_central_spec.mesh_torso_b(
+                    Some(quadruped_medium_central_spec.mesh_torso_back(
                         body.species,
                         body.body_type,
                         |segment, offset| generate_mesh(segment, offset),
@@ -324,30 +332,46 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         body.body_type,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
-                    Some(quadruped_medium_lateral_spec.mesh_foot_lf(
+                    Some(quadruped_medium_lateral_spec.mesh_leg_fl(
                         body.species,
                         body.body_type,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
-                    Some(quadruped_medium_lateral_spec.mesh_foot_rf(
+                    Some(quadruped_medium_lateral_spec.mesh_leg_fr(
                         body.species,
                         body.body_type,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
-                    Some(quadruped_medium_lateral_spec.mesh_foot_lb(
+                    Some(quadruped_medium_lateral_spec.mesh_leg_bl(
                         body.species,
                         body.body_type,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
-                    Some(quadruped_medium_lateral_spec.mesh_foot_rb(
+                    Some(quadruped_medium_lateral_spec.mesh_leg_br(
                         body.species,
                         body.body_type,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
-                    None,
-                    None,
-                    None,
-                    None,
+                    Some(quadruped_medium_lateral_spec.mesh_foot_fl(
+                        body.species,
+                        body.body_type,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
+                    Some(quadruped_medium_lateral_spec.mesh_foot_fr(
+                        body.species,
+                        body.body_type,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
+                    Some(quadruped_medium_lateral_spec.mesh_foot_bl(
+                        body.species,
+                        body.body_type,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
+                    Some(quadruped_medium_lateral_spec.mesh_foot_br(
+                        body.species,
+                        body.body_type,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
                     None,
                 ]
             },
@@ -731,6 +755,71 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                     None,
                     None,
                     None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                ]
+            },
+            Body::QuadrupedLow(body) => {
+                let quadruped_low_central_spec =
+                    QuadrupedLowCentralSpec::load_watched(manifest_indicator);
+                let quadruped_low_lateral_spec =
+                    QuadrupedLowLateralSpec::load_watched(manifest_indicator);
+
+                [
+                    Some(quadruped_low_central_spec.mesh_head_upper(
+                        body.species,
+                        body.body_type,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
+                    Some(quadruped_low_central_spec.mesh_head_lower(
+                        body.species,
+                        body.body_type,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
+                    Some(quadruped_low_central_spec.mesh_jaw(
+                        body.species,
+                        body.body_type,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
+                    Some(quadruped_low_central_spec.mesh_chest(
+                        body.species,
+                        body.body_type,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
+                    Some(quadruped_low_central_spec.mesh_tail_front(
+                        body.species,
+                        body.body_type,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
+                    Some(quadruped_low_central_spec.mesh_tail_rear(
+                        body.species,
+                        body.body_type,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
+                    Some(quadruped_low_lateral_spec.mesh_foot_fl(
+                        body.species,
+                        body.body_type,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
+                    Some(quadruped_low_lateral_spec.mesh_foot_fr(
+                        body.species,
+                        body.body_type,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
+                    Some(quadruped_low_lateral_spec.mesh_foot_bl(
+                        body.species,
+                        body.body_type,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
+                    Some(quadruped_low_lateral_spec.mesh_foot_br(
+                        body.species,
+                        body.body_type,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
                     None,
                     None,
                     None,

@@ -5,7 +5,7 @@ use common::{
         slot::{self, Slot},
         Pos, MAX_PICKUP_RANGE_SQR,
     },
-    sync::WorldSyncExt,
+    sync::{Uid, WorldSyncExt},
     terrain::block::Block,
     vol::{ReadVol, Vox},
 };
@@ -33,6 +33,7 @@ pub fn snuff_lantern(storage: &mut WriteStorage<comp::LightEmitter>, entity: Ecs
 pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::InventoryManip) {
     let state = server.state_mut();
     let mut dropped_items = Vec::new();
+    let mut thrown_items = Vec::new();
 
     match manip {
         comp::InventoryManip::Pickup(uid) => {
@@ -157,6 +158,29 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 maybe_effect = Some(*effect);
                                 Some(comp::InventoryUpdateEvent::Consumed(*kind))
                             },
+                            ItemKind::Throwable { kind, .. } => {
+                                if let Some(pos) =
+                                    state.ecs().read_storage::<comp::Pos>().get(entity)
+                                {
+                                    thrown_items.push((
+                                        *pos,
+                                        state
+                                            .ecs()
+                                            .read_storage::<comp::Vel>()
+                                            .get(entity)
+                                            .copied()
+                                            .unwrap_or_default(),
+                                        state
+                                            .ecs()
+                                            .read_storage::<comp::Ori>()
+                                            .get(entity)
+                                            .copied()
+                                            .unwrap_or_default(),
+                                        *kind,
+                                    ));
+                                }
+                                Some(comp::InventoryUpdateEvent::Used)
+                            },
                             ItemKind::Utility {
                                 kind: comp::item::Utility::Collar,
                                 ..
@@ -164,13 +188,16 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 let reinsert = if let Some(pos) =
                                     state.read_storage::<comp::Pos>().get(entity)
                                 {
+                                    let uid = state
+                                        .read_component_cloned(entity)
+                                        .expect("Expected player to have a UID");
                                     if (
                                         &state.read_storage::<comp::Alignment>(),
                                         &state.read_storage::<comp::Agent>(),
                                     )
                                         .join()
                                         .filter(|(alignment, _)| {
-                                            alignment == &&comp::Alignment::Owned(entity)
+                                            alignment == &&comp::Alignment::Owned(uid)
                                         })
                                         .count()
                                         >= 3
@@ -196,10 +223,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                             .map(|(entity, _, _)| entity);
                                         nearest_tameable
                                     } {
-                                        let _ = state.ecs().write_storage().insert(
-                                            tameable_entity,
-                                            comp::Alignment::Owned(entity),
-                                        );
+                                        let _ = state
+                                            .ecs()
+                                            .write_storage()
+                                            .insert(tameable_entity, comp::Alignment::Owned(uid));
                                         let _ = state
                                             .ecs()
                                             .write_storage()
@@ -317,6 +344,38 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             .with(item)
             .with(comp::Vel(vel))
             .build();
+    }
+
+    // Throw items
+    for (pos, vel, ori, kind) in thrown_items {
+        let vel = vel.0
+            + *ori.0 * 20.0
+            + Vec3::unit_z() * 15.0
+            + Vec3::<f32>::zero().map(|_| rand::thread_rng().gen::<f32>() - 0.5) * 4.0;
+
+        let uid = state.read_component_cloned::<Uid>(entity);
+
+        let mut new_entity = state
+            .create_object(Default::default(), match kind {
+                item::Throwable::Bomb => comp::object::Body::Bomb,
+                item::Throwable::TrainingDummy => comp::object::Body::TrainingDummy,
+            })
+            .with(comp::Pos(pos.0 + Vec3::unit_z() * 0.25))
+            .with(comp::Vel(vel));
+
+        match kind {
+            item::Throwable::Bomb => {
+                new_entity = new_entity.with(comp::Object::Bomb { owner: uid });
+            },
+            item::Throwable::TrainingDummy => {
+                new_entity = new_entity.with(comp::Stats::new(
+                    "Training Dummy".to_string(),
+                    comp::object::Body::TrainingDummy.into(),
+                ));
+            },
+        };
+
+        new_entity.build();
     }
 }
 

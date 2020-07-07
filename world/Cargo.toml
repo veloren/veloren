@@ -9,13 +9,13 @@ bincode = "1.2.0"
 common = { package = "veloren-common", path = "../common" }
 bitvec = "0.17.4"
 fxhash = "0.2.1"
-image = { version = "0.22.3", default-features = false, features = ["png"] }
-itertools = "0.8.2"
+image = { version = "0.22.5", default-features = false, features = ["png"] }
+itertools = "0.9"
 vek = { version = "0.11.0", features = ["serde"] }
 noise = { version = "0.6.0", default-features = false }
-num = "0.2.0"
+num = "0.2"
 ordered-float = "1.0"
-hashbrown = { version = "0.6", features = ["rayon", "serde", "nightly"] }
+hashbrown = { version = "0.7.2", features = ["rayon", "serde", "nightly"] }
 lazy_static = "1.4.0"
 tracing = { version = "0.1", default-features = false }
 rand = "0.7"
@@ -24,8 +24,7 @@ arr_macro = "0.1.2"
 packed_simd = "0.3.3"
 rayon = "^1.3.0"
 roots = "0.0.5"
-serde = "1.0"
-serde_derive = "1.0"
+serde = { version = "1.0.110", features = ["derive"] }
 ron = { version = "0.6", default-features = false }
 
 [dev-dependencies]

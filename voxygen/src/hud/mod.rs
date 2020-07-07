@@ -969,7 +969,7 @@ impl Hud {
                 &pos,
                 interpolated.maybe(),
                 &stats,
-                &energy,
+                energy.maybe(),
                 players.maybe(),
                 scales.maybe(),
                 &bodies,

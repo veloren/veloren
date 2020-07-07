@@ -92,6 +92,7 @@ pub struct Stats {
     pub endurance: i32,
     pub fitness: i32,
     pub willpower: i32,
+    pub skills: SkillSetData,
 }
 
 impl From<StatsJoinData<'_>> for comp::Stats {
@@ -113,7 +114,7 @@ impl From<StatsJoinData<'_>> for comp::Stats {
         base_stats.endurance = data.stats.endurance as u32;
         base_stats.fitness = data.stats.fitness as u32;
         base_stats.willpower = data.stats.willpower as u32;
-
+        base_stats.skill_set = data.stats.skills.0.clone();
         base_stats
     }
 }
@@ -127,6 +128,7 @@ pub struct StatsUpdate {
     pub endurance: i32,
     pub fitness: i32,
     pub willpower: i32,
+    pub skills: SkillSetData,
 }
 
 impl From<&comp::Stats> for StatsUpdate {
@@ -137,7 +139,47 @@ impl From<&comp::Stats> for StatsUpdate {
             endurance: stats.endurance as i32,
             fitness: stats.fitness as i32,
             willpower: stats.willpower as i32,
+            skills: SkillSetData(stats.skill_set.clone()),
         }
+    }
+}
+
+/// A wrapper type for the SkillSet of a character used to serialise to and from
+/// JSON If the column contains malformed JSON, a default skillset is returned
+#[derive(AsExpression, Debug, Deserialize, Serialize, PartialEq, FromSqlRow)]
+#[sql_type = "Text"]
+pub struct SkillSetData(pub comp::SkillSet);
+
+impl<DB> diesel::deserialize::FromSql<Text, DB> for SkillSetData
+where
+    DB: diesel::backend::Backend,
+    String: diesel::deserialize::FromSql<Text, DB>,
+{
+    fn from_sql(
+        bytes: Option<&<DB as diesel::backend::Backend>::RawValue>,
+    ) -> diesel::deserialize::Result<Self> {
+        let t = String::from_sql(bytes)?;
+
+        match serde_json::from_str(&t) {
+            Ok(data) => Ok(Self(data)),
+            Err(e) => {
+                warn!(?e, "Failed to deserialize skill set data");
+                Ok(Self(comp::SkillSet::default()))
+            },
+        }
+    }
+}
+
+impl<DB> diesel::serialize::ToSql<Text, DB> for SkillSetData
+where
+    DB: diesel::backend::Backend,
+{
+    fn to_sql<W: std::io::Write>(
+        &self,
+        out: &mut diesel::serialize::Output<W, DB>,
+    ) -> diesel::serialize::Result {
+        let s = serde_json::to_string(&self.0)?;
+        <String as diesel::serialize::ToSql<Text, DB>>::to_sql(&s, out)
     }
 }
 
@@ -354,6 +396,7 @@ mod tests {
             endurance: 2,
             fitness: 3,
             willpower: 4,
+            skills: SkillSetData(stats.skill_set)
         })
     }
 
@@ -380,6 +423,7 @@ mod tests {
                 endurance: 0,
                 fitness: 2,
                 willpower: 3,
+                skills: SkillSetData(comp::SkillSet::new()),
             },
         };
 

@@ -15,6 +15,6 @@ futures = { version = "0.3", default-features = false }
 tracing = { version = "0.1", default-features = false }
 tracing-subscriber = { version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec"] }
 bincode = "1.2"
-prometheus = "0.7"
+prometheus = "0.9"
 tiny_http = "0.7.0"
 serde = { version = "1.0", features = ["derive"] }

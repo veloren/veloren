@@ -1,9 +1,10 @@
-use crate::path::Chaser;
-use specs::{Component, Entity as EcsEntity};
-use specs_idvs::IDVStorage;
+use crate::{path::Chaser, sync::Uid};
+use serde::{Deserialize, Serialize};
+use specs::{Component, Entity as EcsEntity, FlaggedStorage};
+use specs_idvs::IdvStorage;
 use vek::*;
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Alignment {
     /// Wild animals and gentle giants
     Wild,
@@ -14,7 +15,7 @@ pub enum Alignment {
     /// Farm animals and pets of villagers
     Tame,
     /// Pets you've tamed with a collar
-    Owned(EcsEntity),
+    Owned(Uid),
 }
 
 impl Alignment {
@@ -40,10 +41,18 @@ impl Alignment {
             _ => false,
         }
     }
+
+    // TODO: Remove this hack
+    pub fn is_friendly_to_players(&self) -> bool {
+        match self {
+            Alignment::Npc | Alignment::Tame | Alignment::Owned(_) => true,
+            _ => false,
+        }
+    }
 }
 
 impl Component for Alignment {
-    type Storage = IDVStorage<Self>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[derive(Clone, Debug, Default)]
@@ -72,13 +81,16 @@ impl Agent {
 }
 
 impl Component for Agent {
-    type Storage = IDVStorage<Self>;
+    type Storage = IdvStorage<Self>;
 }
 
 #[derive(Clone, Debug)]
 pub enum Activity {
     Idle(Vec2<f32>),
-    Follow(EcsEntity, Chaser),
+    Follow {
+        target: EcsEntity,
+        chaser: Chaser,
+    },
     Attack {
         target: EcsEntity,
         chaser: Chaser,
@@ -91,7 +103,7 @@ pub enum Activity {
 impl Activity {
     pub fn is_follow(&self) -> bool {
         match self {
-            Activity::Follow(_, _) => true,
+            Activity::Follow { .. } => true,
             _ => false,
         }
     }

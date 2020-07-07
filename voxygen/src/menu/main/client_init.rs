@@ -12,6 +12,7 @@ use std::{
     thread,
     time::Duration,
 };
+use tracing::debug;
 
 #[derive(Debug)]
 pub enum Error {
@@ -70,8 +71,8 @@ impl ClientInit {
 
                     let mut last_err = None;
 
-                    'tries: for _ in 0..960 + 1 {
-                        // 300 Seconds
+                    const FOUR_MINUTES_RETRIES: u64 = 48;
+                    'tries: for _ in 0..FOUR_MINUTES_RETRIES {
                         if cancel2.load(Ordering::Relaxed) {
                             break;
                         }
@@ -100,7 +101,13 @@ impl ClientInit {
                                 },
                                 Err(err) => {
                                     match err {
-                                        ClientError::NetworkErr(NetworkError::ListenFailed(..)) => {
+                                        ClientError::NetworkErr(NetworkError::ConnectFailed(
+                                            ..,
+                                        )) => {
+                                            debug!(
+                                                "can't reach the server, going to retry in a few \
+                                                 seconds"
+                                            );
                                         },
                                         // Non-connection error, stop attempts
                                         err => {

@@ -10,8 +10,9 @@ use crate::{
     effect::Effect,
     terrain::{Block, BlockKind},
 };
+use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
-use specs_idvs::IDVStorage;
+use specs_idvs::IdvStorage;
 use std::{fs::File, io::BufReader};
 use vek::Rgb;
 
@@ -26,6 +27,12 @@ pub enum Consumable {
     VeloriteFrag,
     PotionMinor,
     PotionExp,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Throwable {
+    Bomb,
+    TrainingDummy,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -86,6 +93,11 @@ pub enum ItemKind {
         #[serde(default = "default_amount")]
         amount: u32,
     },
+    Throwable {
+        kind: Throwable,
+        #[serde(default = "default_amount")]
+        amount: u32,
+    },
     Utility {
         kind: Utility,
         #[serde(default = "default_amount")]
@@ -129,15 +141,10 @@ impl Item {
     pub fn set_amount(&mut self, give_amount: u32) -> Result<(), assets::Error> {
         use ItemKind::*;
         match self.kind {
-            Consumable { ref mut amount, .. } => {
-                *amount = give_amount;
-                Ok(())
-            },
-            Utility { ref mut amount, .. } => {
-                *amount = give_amount;
-                Ok(())
-            },
-            Ingredient { ref mut amount, .. } => {
+            Consumable { ref mut amount, .. }
+            | Throwable { ref mut amount, .. }
+            | Utility { ref mut amount, .. }
+            | Ingredient { ref mut amount, .. } => {
                 *amount = give_amount;
                 Ok(())
             },
@@ -180,7 +187,7 @@ impl Item {
             BlockKind::ShortGrass => Some(assets::load_expect_cloned("common.items.grasses.short")),
             BlockKind::Coconut => Some(assets::load_expect_cloned("common.items.coconut")),
             BlockKind::Chest => {
-                let chosen = assets::load_expect::<lottery::Lottery<_>>("common.items.loot_table");
+                let chosen = assets::load_expect::<lottery::Lottery<_>>("common.loot_table");
                 let chosen = chosen.choose();
 
                 Some(assets::load_expect_cloned(chosen))
@@ -191,12 +198,12 @@ impl Item {
 }
 
 impl Component for Item {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ItemDrop(pub Item);
 
 impl Component for ItemDrop {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }

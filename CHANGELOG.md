@@ -34,6 +34,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ability to wield 2 × 1h weapons and shields (Note: 1h weapons & shields are not currently avaliable, see [!1095](https://gitlab.com/veloren/veloren/-/merge_requests/1095) for more info)
 - Zoomable Map
 - M2 attack for hammer
+- Spawnable training dummies
+- New quadruped_low body for reptile-likes
+- Added new animals
+- Better pathfinding
+- Bombs
+- Training dummy items
 
 ### Changed
 
@@ -50,6 +56,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed unable to use ability; Secondary and ability3 (fire rod) will now automatically wield
 - Gliding is now a toggle that can be triggered from the ground
 - Replaced `log` with `tracing` in all crates
+- Switch to a new network backend that will allow several improvements in the future
+- Connection screen fails after 4 minutes if it can't connect to the server instead of 80 minutes
+- Rebuilt quadruped_medium animation and assets
+- Disabled destruction of most blocks by explosions
+- Disable damage to pets
+- Made pets healable
+- Rebalanced fire staff
+- Animals are more effective in combat
+- Pathfinding is much smoother and pets are cleverer
+- Animals run/turn at different speeds
 
 ### Removed
 

@@ -6,8 +6,9 @@ use crate::{
     states::{triple_strike::*, *},
     sys::character_behavior::JoinData,
 };
+use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
-use specs_idvs::IDVStorage;
+use specs_idvs::IdvStorage;
 use std::time::Duration;
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
@@ -243,5 +244,5 @@ impl From<&CharacterAbility> for CharacterState {
 }
 
 impl Component for Loadout {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }

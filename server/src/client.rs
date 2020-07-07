@@ -2,24 +2,22 @@ use common::msg::{ClientState, RequestStateError, ServerMsg};
 use hashbrown::HashSet;
 use network::Stream;
 use specs::{Component, FlaggedStorage};
-use specs_idvs::IDVStorage;
+use specs_idvs::IdvStorage;
 use vek::*;
 
 pub struct Client {
     pub client_state: ClientState,
-    pub singleton_stream: std::sync::Mutex<Stream>,
+    pub singleton_stream: Stream,
     pub last_ping: f64,
     pub login_msg_sent: bool,
 }
 
 impl Component for Client {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 impl Client {
-    pub fn notify(&mut self, msg: ServerMsg) {
-        let _ = self.singleton_stream.lock().unwrap().send(msg);
-    }
+    pub fn notify(&mut self, msg: ServerMsg) { let _ = self.singleton_stream.send(msg); }
 
     pub fn is_registered(&self) -> bool {
         match self.client_state {
@@ -39,16 +37,12 @@ impl Client {
         self.client_state = new_state;
         let _ = self
             .singleton_stream
-            .lock()
-            .unwrap()
             .send(ServerMsg::StateAnswer(Ok(new_state)));
     }
 
     pub fn error_state(&mut self, error: RequestStateError) {
         let _ = self
             .singleton_stream
-            .lock()
-            .unwrap()
             .send(ServerMsg::StateAnswer(Err((error, self.client_state))));
     }
 }
@@ -65,5 +59,5 @@ pub struct RegionSubscription {
 }
 
 impl Component for RegionSubscription {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }

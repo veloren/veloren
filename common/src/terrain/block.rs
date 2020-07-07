@@ -1,5 +1,5 @@
 use crate::vol::Vox;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::ops::Deref;
 use vek::*;
 
@@ -9,6 +9,9 @@ pub enum BlockKind {
     Air,
     Normal,
     Dense,
+    Rock,
+    Grass,
+    Leaves,
     Water,
     LargeCactus,
     BarrelCactus,
@@ -32,7 +35,6 @@ pub enum BlockKind {
     Velorite,
     VeloriteFrag,
     Chest,
-    Leaves,
     Pumpkin,
     Welwitch,
     LingonBerry,
@@ -322,6 +324,13 @@ impl BlockKind {
             BlockKind::WardrobeDouble => true,
             BlockKind::Pot => true,
             _ => true,
+        }
+    }
+
+    pub fn is_explodable(&self) -> bool {
+        match self {
+            BlockKind::Leaves | BlockKind::Grass | BlockKind::Rock => true,
+            _ => false,
         }
     }
 

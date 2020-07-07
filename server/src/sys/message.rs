@@ -43,7 +43,7 @@ impl Sys {
         uids: &ReadStorage<'_, Uid>,
         can_build: &ReadStorage<'_, CanBuild>,
         force_updates: &ReadStorage<'_, ForceUpdate>,
-        stats: &ReadStorage<'_, Stats>,
+        stats: &mut WriteStorage<'_, Stats>,
         chat_modes: &ReadStorage<'_, ChatMode>,
         accounts: &mut WriteExpect<'_, AuthProvider>,
         block_changes: &mut Write<'_, BlockChange>,
@@ -57,7 +57,7 @@ impl Sys {
         settings: &Read<'_, ServerSettings>,
     ) -> Result<(), crate::error::Error> {
         loop {
-            let msg = client.singleton_stream.lock().unwrap().recv().await?;
+            let msg = client.singleton_stream.recv().await?;
             *cnt += 1;
             match msg {
                 // Go back to registered state (char selection screen)
@@ -136,7 +136,7 @@ impl Sys {
                     if settings
                         .max_view_distance
                         .zip(view_distance)
-                        .map(|(vd, max)| vd > max)
+                        .map(|(max, vd)| vd > max)
                         .unwrap_or(false)
                     {
                         client.notify(ServerMsg::SetViewDistance(
@@ -172,8 +172,7 @@ impl Sys {
                     ClientState::Registered | ClientState::Spectator => {
                         // Only send login message if it wasn't already
                         // sent previously
-                        if let (Some(player), false) = (players.get(entity), client.login_msg_sent)
-                        {
+                        if let Some(player) = players.get(entity) {
                             // Send a request to load the character's component data from the
                             // DB. Once loaded, persisted components such as stats and inventory
                             // will be inserted for the entity
@@ -204,7 +203,7 @@ impl Sys {
                                 new_chat_msgs.push((None, ChatMsg {
                                     chat_type: ChatType::Online,
                                     message: format!("[{}] is now online.", &player.alias), // TODO: Localize this
-                            }));
+                                }));
 
                                 client.login_msg_sent = true;
                             }
@@ -367,6 +366,21 @@ impl Sys {
                         );
                     }
                 },
+                ClientMsg::UnlockSkill(skill) => {
+                    stats
+                        .get_mut(entity)
+                        .map(|s| s.skill_set.unlock_skill(skill));
+                },
+                ClientMsg::RefundSkill(skill) => {
+                    stats
+                        .get_mut(entity)
+                        .map(|s| s.skill_set.refund_skill(skill));
+                },
+                ClientMsg::UnlockSkillGroup(skill_group_type) => {
+                    stats
+                        .get_mut(entity)
+                        .map(|s| s.skill_set.unlock_skill_group(skill_group_type));
+                },
             }
         }
     }
@@ -386,7 +400,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Uid>,
         ReadStorage<'a, CanBuild>,
         ReadStorage<'a, ForceUpdate>,
-        ReadStorage<'a, Stats>,
+        WriteStorage<'a, Stats>,
         ReadStorage<'a, ChatMode>,
         WriteExpect<'a, AuthProvider>,
         Write<'a, BlockChange>,
@@ -416,7 +430,7 @@ impl<'a> System<'a> for Sys {
             uids,
             can_build,
             force_updates,
-            stats,
+            mut stats,
             chat_modes,
             mut accounts,
             mut block_changes,
@@ -476,7 +490,7 @@ impl<'a> System<'a> for Sys {
                     &uids,
                     &can_build,
                     &force_updates,
-                    &stats,
+                    &mut stats,
                     &chat_modes,
                     &mut accounts,
                     &mut block_changes,

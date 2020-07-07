@@ -254,22 +254,19 @@ impl<'a> BlockGen<'a> {
                 .map(|e| (e * 255.0) as u8);
 
                 // Underground
-                if (wposf.z as f32) > alt - 32.0 * chaos {
-                    Some(Block::new(BlockKind::Normal, col))
-                } else {
-                    Some(Block::new(BlockKind::Dense, col))
-                }
+                Some(Block::new(BlockKind::Normal, col))
             } else if (wposf.z as f32) < height {
-                let col = Lerp::lerp(
-                    sub_surface_color,
-                    surface_color,
-                    (wposf.z as f32 - (height - grass_depth))
-                        .div(grass_depth)
-                        .powf(0.5),
-                );
+                let grass_factor = (wposf.z as f32 - (height - grass_depth))
+                    .div(grass_depth)
+                    .powf(0.5);
+                let col = Lerp::lerp(sub_surface_color, surface_color, grass_factor);
                 // Surface
                 Some(Block::new(
-                    BlockKind::Normal,
+                    if grass_factor > 0.7 {
+                        BlockKind::Grass
+                    } else {
+                        BlockKind::Normal
+                    },
                     col.map(|e| (e * 255.0) as u8),
                 ))
             } else if (wposf.z as f32) < height + 0.9
@@ -349,7 +346,7 @@ impl<'a> BlockGen<'a> {
                     let field2 = RandomField::new(world.seed + 2);
 
                     Some(Block::new(
-                        BlockKind::Normal,
+                        BlockKind::Rock,
                         stone_col
                             - Rgb::new(
                                 field0.get(wpos) as u8 % 16,
@@ -624,7 +621,7 @@ pub fn block_from_structure(
             saturate_leaves(Rgb::new(30.0, 126.0, 23.0)).map(|e| e as u8),
         )),
         StructureBlock::Acacia => Some(Block::new(
-            BlockKind::Normal,
+            BlockKind::Leaves,
             Lerp::lerp(
                 Rgb::new(15.0, 126.0, 50.0),
                 Rgb::new(30.0, 180.0, 10.0),
@@ -657,7 +654,7 @@ pub fn block_from_structure(
             .map(|e| e as u8),
         )),
         StructureBlock::Mangrove => Some(Block::new(
-            BlockKind::Normal,
+            BlockKind::Leaves,
             Lerp::lerp(
                 saturate_leaves(Rgb::new(32.0, 56.0, 22.0)),
                 saturate_leaves(Rgb::new(57.0, 69.0, 27.0)),

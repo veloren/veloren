@@ -23,6 +23,10 @@ pub fn handle_damage(server: &Server, uid: Uid, change: HealthChange) {
     }
 }
 
+/// Handle an entity dying. If it is a player, it will send a message to all
+/// other players. If the entity that killed it had stats, then give it exp for
+/// the kill. Experience given is equal to the level of the entity that was
+/// killed times 10.
 pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSource) {
     let state = server.state_mut();
 
@@ -111,7 +115,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             item_drops.remove(entity);
             item_drop.0
         } else {
-            let chosen = assets::load_expect::<Lottery<_>>("common.items.loot_table");
+            let chosen = assets::load_expect::<Lottery<_>>("common.loot_table");
             let chosen = chosen.choose();
 
             assets::load_expect_cloned(chosen)
@@ -207,7 +211,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Opti
     for (pos_b, ori_b, character_b, stats_b) in (
         &ecs.read_storage::<comp::Pos>(),
         &ecs.read_storage::<comp::Ori>(),
-        &ecs.read_storage::<comp::CharacterState>(),
+        ecs.read_storage::<comp::CharacterState>().maybe(),
         &mut ecs.write_storage::<comp::Stats>(),
     )
         .join()
@@ -227,7 +231,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Opti
             }
 
             // Block
-            if character_b.is_block()
+            if character_b.map(|c_b| c_b.is_block()).unwrap_or(false)
                 && ori_b.0.angle_between(pos - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0
             {
                 dmg = (dmg as f32 * (1.0 - BLOCK_EFFICIENCY)) as u32
@@ -257,7 +261,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Opti
             .read_resource::<TerrainGrid>()
             .ray(pos, pos + dir * color_range)
             .until(|_| rand::random::<f32>() < 0.05)
-            .for_each(|pos| touched_blocks.push(pos))
+            .for_each(|_: &Block, pos| touched_blocks.push(pos))
             .cast();
     }
 
@@ -288,11 +292,15 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Opti
         )
         .normalized();
 
-        let _ = ecs
-            .read_resource::<TerrainGrid>()
+        let terrain = ecs.read_resource::<TerrainGrid>();
+        let _ = terrain
             .ray(pos, pos + dir * power)
-            .until(|_| rand::random::<f32>() < 0.05)
-            .for_each(|pos| block_change.set(pos, Block::empty()))
+            .until(|block| block.is_fluid() || rand::random::<f32>() < 0.05)
+            .for_each(|block: &Block, pos| {
+                if block.is_explodable() {
+                    block_change.set(pos, Block::empty());
+                }
+            })
             .cast();
     }
 }

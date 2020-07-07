@@ -3,6 +3,7 @@ use crate::{
     comp::StateUpdate,
     sys::character_behavior::{CharacterBehavior, JoinData},
 };
+use serde::{Deserialize, Serialize};
 
 // const BLOCK_ACCEL: f32 = 30.0;
 // const BLOCK_SPEED: f32 = 75.0;

@@ -1,7 +1,8 @@
+use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
-use specs_idvs::IDVStorage;
+use specs_idvs::IdvStorage;
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Energy {
     current: u32,
     maximum: u32,
@@ -9,7 +10,7 @@ pub struct Energy {
     pub last_change: Option<(i32, f64, EnergySource)>,
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum EnergySource {
     Ability,
     Climb,
@@ -73,5 +74,5 @@ impl Energy {
 }
 
 impl Component for Energy {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }

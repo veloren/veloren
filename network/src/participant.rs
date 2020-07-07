@@ -637,4 +637,10 @@ impl BParticipant {
             a2b_close_stream_s.clone(),
         )
     }
+
+    /*
+    async fn close_participant(&self) {
+
+    }
+     */
 }

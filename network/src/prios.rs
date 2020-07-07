@@ -208,7 +208,7 @@ impl PrioManager {
         frames: &mut E,
     ) -> bool {
         let to_send = std::cmp::min(
-            msg.buffer.data.len() as u64 - msg.cursor,
+            msg.buffer.data[msg.cursor as usize..].len() as u64,
             Self::FRAME_DATA_SIZE,
         );
         if to_send > 0 {

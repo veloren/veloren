@@ -16,7 +16,7 @@ use super::{
     },
     schema,
 };
-use crate::comp;
+use crate::{comp, persistence::models::SkillSetData};
 use common::{
     character::{Character as CharacterData, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
     LoadoutBuilder,
@@ -411,6 +411,7 @@ fn create_character(
                     endurance: default_stats.endurance as i32,
                     fitness: default_stats.fitness as i32,
                     willpower: default_stats.willpower as i32,
+                    skills: SkillSetData(default_stats.skill_set),
                 };
 
                 diesel::insert_into(stats::table)
@@ -576,14 +577,16 @@ fn update(
     loadout: &LoadoutUpdate,
     connection: &SqliteConnection,
 ) {
+    // Update Stats
     if let Err(e) =
         diesel::update(schema::stats::table.filter(schema::stats::character_id.eq(character_id)))
             .set(stats)
             .execute(connection)
     {
-        warn!(?e, ?character_id, "Failed to update stats for character",)
+        error!(?e, ?character_id, "Failed to update stats for character",)
     }
 
+    // Update Inventory
     if let Err(e) = diesel::update(
         schema::inventory::table.filter(schema::inventory::character_id.eq(character_id)),
     )
@@ -597,6 +600,7 @@ fn update(
         )
     }
 
+    // Update Loadout
     if let Err(e) = diesel::update(
         schema::loadout::table.filter(schema::loadout::character_id.eq(character_id)),
     )

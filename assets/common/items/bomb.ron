@@ -1,0 +1,7 @@
+Item(
+    name: "Bomb",
+    description: "Boom!\n\n<Right-Click to use>",
+    kind: Throwable(
+        kind: Bomb,
+    ),
+)

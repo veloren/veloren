@@ -1,4 +1,5 @@
 use rand::{seq::SliceRandom, thread_rng, Rng};
+use serde::{Deserialize, Serialize};
 use vek::Rgb;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]

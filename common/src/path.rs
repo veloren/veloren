@@ -59,31 +59,101 @@ impl From<Path<Vec3<i32>>> for Route {
 impl Route {
     pub fn path(&self) -> &Path<Vec3<i32>> { &self.path }
 
-    pub fn next(&self) -> Option<Vec3<i32>> { self.path.nodes.get(self.next_idx).copied() }
+    pub fn next(&self, i: usize) -> Option<Vec3<i32>> {
+        self.path.nodes.get(self.next_idx + i).copied()
+    }
 
-    pub fn is_finished(&self) -> bool { self.next().is_none() }
+    pub fn is_finished(&self) -> bool { self.next(0).is_none() }
 
     pub fn traverse<V>(
         &mut self,
         vol: &V,
         pos: Vec3<f32>,
+        vel: Vec3<f32>,
         traversal_tolerance: f32,
-    ) -> Option<Vec3<f32>>
+    ) -> Option<(Vec3<f32>, f32)>
     where
         V: BaseVol<Vox = Block> + ReadVol,
     {
-        let next = self.next()?;
-        if vol.get(next).map(|b| b.is_solid()).unwrap_or(false) {
+        let next0 = self
+            .next(0)
+            .unwrap_or_else(|| pos.map(|e| e.floor() as i32));
+        let next1 = self.next(1).unwrap_or(next0);
+        if vol.get(next0).map(|b| b.is_solid()).unwrap_or(false) {
             None
         } else {
-            let next_tgt = next.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
-            if ((pos - (next_tgt + Vec3::unit_z() * 0.5)) * Vec3::new(1.0, 1.0, 0.3))
-                .magnitude_squared()
-                < (traversal_tolerance * 2.0).powf(2.0)
+            let next_tgt = next0.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
+            if pos.xy().distance_squared(next_tgt.xy()) < traversal_tolerance.powf(2.0)
+                && next_tgt.z - pos.z < 0.2
+                && next_tgt.z - pos.z > -2.2
+                && vel.z <= 0.0
+                && vol
+                    .ray(pos + Vec3::unit_z() * 0.5, next_tgt + Vec3::unit_z() * 0.5)
+                    .until(|block| block.is_solid())
+                    .cast()
+                    .0
+                    > pos.distance(next_tgt) * 0.9
             {
                 self.next_idx += 1;
             }
-            Some(next_tgt - pos)
+
+            let line = LineSegment2 {
+                start: pos.xy(),
+                end: pos.xy() + vel.xy() * 100.0,
+            };
+
+            let align = |block_pos: Vec3<i32>| {
+                (0..2)
+                    .map(|i| (0..2).map(move |j| Vec2::new(i, j)))
+                    .flatten()
+                    .map(|rpos| block_pos + rpos)
+                    .map(|block_pos| {
+                        let block_posf = block_pos.xy().map(|e| e as f32);
+                        let proj = line.projected_point(block_posf);
+                        let clamped = proj.clamped(
+                            block_pos.xy().map(|e| e as f32),
+                            block_pos.xy().map(|e| e as f32),
+                        );
+
+                        (proj.distance_squared(clamped), clamped)
+                    })
+                    .min_by_key(|(d2, _)| (d2 * 1000.0) as i32)
+                    .unwrap()
+                    .1
+            };
+
+            let cb = CubicBezier2 {
+                start: pos.xy(),
+                ctrl0: pos.xy() + vel.xy().try_normalized().unwrap_or_else(Vec2::zero),
+                ctrl1: align(next0),
+                end: align(next1),
+            };
+
+            let tgt2d = cb.evaluate(0.5);
+            let tgt = Vec3::from(tgt2d) + Vec3::unit_z() * next_tgt.z;
+            let tgt_dir = (tgt - pos)
+                .xy()
+                .try_normalized()
+                .unwrap_or_else(Vec2::unit_y);
+            let next_dir = cb
+                .evaluate_derivative(0.5)
+                .try_normalized()
+                .unwrap_or(tgt_dir);
+
+            //let vel_dir = vel.xy().try_normalized().unwrap_or(Vec2::zero());
+            //let avg_dir = (tgt_dir * 0.2 + vel_dir *
+            // 0.8).try_normalized().unwrap_or(Vec2::zero()); let bearing =
+            // Vec3::<f32>::from(avg_dir * (tgt - pos).xy().magnitude()) + Vec3::unit_z() *
+            // (tgt.z - pos.z);
+
+            Some((
+                tgt - pos,
+                next_dir
+                    .dot(vel.xy().try_normalized().unwrap_or_else(Vec2::zero))
+                    .max(0.0)
+                    * 0.75
+                    + 0.25,
+            ))
         }
     }
 }
@@ -93,7 +163,7 @@ impl Route {
 #[derive(Default, Clone, Debug)]
 pub struct Chaser {
     last_search_tgt: Option<Vec3<f32>>,
-    route: Route,
+    route: Option<Route>,
     /// We use this hasher (AAHasher) because:
     /// (1) we care about DDOS attacks (ruling out FxHash);
     /// (2) we don't care about determinism across computers (we can use
@@ -106,30 +176,28 @@ impl Chaser {
         &mut self,
         vol: &V,
         pos: Vec3<f32>,
+        vel: Vec3<f32>,
         tgt: Vec3<f32>,
         min_dist: f32,
         traversal_tolerance: f32,
-    ) -> Option<Vec3<f32>>
+    ) -> Option<(Vec3<f32>, f32)>
     where
         V: BaseVol<Vox = Block> + ReadVol,
     {
         let pos_to_tgt = pos.distance(tgt);
 
-        if ((pos - tgt) * Vec3::new(1.0, 1.0, 0.15)).magnitude_squared() < min_dist.powf(2.0) {
+        if ((pos - tgt) * Vec3::new(1.0, 1.0, 2.0)).magnitude_squared() < min_dist.powf(2.0) {
             return None;
         }
 
-        let bearing = if let Some(end) = self.route.path().end().copied() {
+        let bearing = if let Some(end) = self.route.as_ref().and_then(|r| r.path().end().copied()) {
             let end_to_tgt = end.map(|e| e as f32).distance(tgt);
-            if end_to_tgt > pos_to_tgt * 0.3 + 5.0 {
+            if end_to_tgt > pos_to_tgt * 0.3 + 5.0 || thread_rng().gen::<f32>() < 0.005 {
                 None
             } else {
-                if thread_rng().gen::<f32>() < 0.005 {
-                    // TODO: Only re-calculate route when we're stuck
-                    self.route = Route::default();
-                }
-
-                self.route.traverse(vol, pos, traversal_tolerance)
+                self.route
+                    .as_mut()
+                    .and_then(|r| r.traverse(vol, pos, vel, traversal_tolerance))
             }
         } else {
             None
@@ -144,10 +212,15 @@ impl Chaser {
                 .map(|last_tgt| last_tgt.distance(tgt) > pos_to_tgt * 0.15 + 5.0)
                 .unwrap_or(true)
             {
-                self.route = find_path(&mut self.astar, vol, pos, tgt).into();
+                let (start_pos, path) = find_path(&mut self.astar, vol, pos, tgt);
+                if start_pos.distance_squared(pos) < 4.0f32.powf(2.0) {
+                    self.route = path.map(Route::from);
+                } else {
+                    self.route = None;
+                }
             }
 
-            Some((tgt - pos) * Vec3::new(1.0, 1.0, 0.0))
+            Some(((tgt - pos) * Vec3::new(1.0, 1.0, 0.0), 0.75))
         }
     }
 }
@@ -158,7 +231,7 @@ fn find_path<V>(
     vol: &V,
     startf: Vec3<f32>,
     endf: Vec3<f32>,
-) -> Path<Vec3<i32>>
+) -> (Vec3<f32>, Option<Path<Vec3<i32>>>)
 where
     V: BaseVol<Vox = Block> + ReadVol,
 {
@@ -192,7 +265,7 @@ where
         get_walkable_z(endf.map(|e| e.floor() as i32)),
     ) {
         (Some(start), Some(end)) => (start, end),
-        _ => return Path::default(),
+        _ => return (startf, None),
     };
 
     let heuristic = |pos: &Vec3<i32>| (pos.distance_squared(end) as f32).sqrt();
@@ -240,6 +313,7 @@ where
             .map(move |dir| (pos, dir))
             .filter(move |(pos, dir)| {
                 is_walkable(pos)
+                    && is_walkable(&(*pos + **dir))
                     && ((dir.z < 1
                         || vol
                             .get(pos + Vec3::unit_z() * 2)
@@ -266,31 +340,40 @@ where
                     .map(move |(dir, _)| pos + *dir),
             )
     };
-    let transition = |_: &Vec3<i32>, _: &Vec3<i32>| 1.0;
+
+    let crow_line = LineSegment2 {
+        start: startf.xy(),
+        end: endf.xy(),
+    };
+
+    let transition = |a: &Vec3<i32>, b: &Vec3<i32>| {
+        1.0 + crow_line.distance_to_point(b.xy().map(|e| e as f32)) * 0.025
+            + (b.z - a.z - 1).max(0) as f32 * 3.0
+    };
     let satisfied = |pos: &Vec3<i32>| pos == &end;
 
     let mut new_astar = match astar.take() {
-        None => Astar::new(20_000, start, heuristic, DefaultHashBuilder::default()),
+        None => Astar::new(25_000, start, heuristic, DefaultHashBuilder::default()),
         Some(astar) => astar,
     };
 
-    let path_result = new_astar.poll(60, heuristic, neighbors, transition, satisfied);
+    let path_result = new_astar.poll(100, heuristic, neighbors, transition, satisfied);
 
     *astar = Some(new_astar);
 
-    match path_result {
+    (startf, match path_result {
         PathResult::Path(path) => {
             *astar = None;
-            path
+            Some(path)
         },
         PathResult::None(path) => {
             *astar = None;
-            path
+            Some(path)
         },
         PathResult::Exhausted(path) => {
             *astar = None;
-            path
+            Some(path)
         },
-        PathResult::Pending => Path::default(),
-    }
+        PathResult::Pending => None,
+    })
 }

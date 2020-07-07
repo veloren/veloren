@@ -1,4 +1,5 @@
 use rand::{seq::SliceRandom, thread_rng};
+use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
@@ -56,6 +57,7 @@ pub enum Body {
     ArrowSnake = 50,
     CampfireLit = 51,
     BoltFireBig = 52,
+    TrainingDummy = 53,
 }
 
 impl Body {
@@ -65,7 +67,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 53] = [
+pub const ALL_OBJECTS: [Body; 54] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -119,7 +121,12 @@ pub const ALL_OBJECTS: [Body; 53] = [
     Body::BoltFire,
     Body::BoltFireBig,
     Body::ArrowSnake,
+    Body::TrainingDummy,
 ];
+
+impl From<Body> for super::Body {
+    fn from(body: Body) -> Self { super::Body::Object(body) }
+}
 
 impl Body {
     pub fn to_string(&self) -> &str {
@@ -177,6 +184,7 @@ impl Body {
             Body::BoltFire => "bolt_fire",
             Body::BoltFireBig => "bolt_fire_big",
             Body::ArrowSnake => "arrow_snake",
+            Body::TrainingDummy => "training_dummy",
         }
     }
 }

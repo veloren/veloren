@@ -42,6 +42,7 @@ impl SlotKey<Inventory, ItemImgs> for InventorySlot {
                 ItemKind::Tool { .. } | ItemKind::Lantern(_) | ItemKind::Armor { .. } => None,
                 ItemKind::Utility { amount, .. }
                 | ItemKind::Consumable { amount, .. }
+                | ItemKind::Throwable { amount, .. }
                 | ItemKind::Ingredient { amount, .. } => Some(amount),
             })
             .filter(|amount| *amount > 1)
@@ -139,6 +140,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                 ItemKind::Tool { .. } | ItemKind::Lantern(_) | ItemKind::Armor { .. } => None,
                 ItemKind::Utility { amount, .. }
                 | ItemKind::Consumable { amount, .. }
+                | ItemKind::Throwable { amount, .. }
                 | ItemKind::Ingredient { amount, .. } => Some(amount),
             })
             .filter(|amount| *amount > 1)

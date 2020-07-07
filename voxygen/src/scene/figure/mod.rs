@@ -20,8 +20,9 @@ use anim::{
     biped_large::BipedLargeSkeleton, bird_medium::BirdMediumSkeleton,
     bird_small::BirdSmallSkeleton, character::CharacterSkeleton, critter::CritterSkeleton,
     dragon::DragonSkeleton, fish_medium::FishMediumSkeleton, fish_small::FishSmallSkeleton,
-    golem::GolemSkeleton, object::ObjectSkeleton, quadruped_medium::QuadrupedMediumSkeleton,
-    quadruped_small::QuadrupedSmallSkeleton, Animation, Skeleton,
+    golem::GolemSkeleton, object::ObjectSkeleton, quadruped_low::QuadrupedLowSkeleton,
+    quadruped_medium::QuadrupedMediumSkeleton, quadruped_small::QuadrupedSmallSkeleton, Animation,
+    Skeleton,
 };
 use common::{
     comp::{
@@ -52,6 +53,7 @@ struct FigureMgrStates {
     character_states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
     quadruped_small_states: HashMap<EcsEntity, FigureState<QuadrupedSmallSkeleton>>,
     quadruped_medium_states: HashMap<EcsEntity, FigureState<QuadrupedMediumSkeleton>>,
+    quadruped_low_states: HashMap<EcsEntity, FigureState<QuadrupedLowSkeleton>>,
     bird_medium_states: HashMap<EcsEntity, FigureState<BirdMediumSkeleton>>,
     fish_medium_states: HashMap<EcsEntity, FigureState<FishMediumSkeleton>>,
     critter_states: HashMap<EcsEntity, FigureState<CritterSkeleton>>,
@@ -69,6 +71,7 @@ impl FigureMgrStates {
             character_states: HashMap::new(),
             quadruped_small_states: HashMap::new(),
             quadruped_medium_states: HashMap::new(),
+            quadruped_low_states: HashMap::new(),
             bird_medium_states: HashMap::new(),
             fish_medium_states: HashMap::new(),
             critter_states: HashMap::new(),
@@ -124,6 +127,10 @@ impl FigureMgrStates {
                 .quadruped_medium_states
                 .get_mut(&entity)
                 .map(DerefMut::deref_mut),
+            Body::QuadrupedLow(_) => self
+                .quadruped_low_states
+                .get_mut(&entity)
+                .map(DerefMut::deref_mut),
             Body::BirdMedium(_) => self
                 .bird_medium_states
                 .get_mut(&entity)
@@ -165,6 +172,7 @@ impl FigureMgrStates {
             Body::QuadrupedMedium(_) => {
                 self.quadruped_medium_states.remove(&entity).map(|e| e.meta)
             },
+            Body::QuadrupedLow(_) => self.quadruped_low_states.remove(&entity).map(|e| e.meta),
             Body::BirdMedium(_) => self.bird_medium_states.remove(&entity).map(|e| e.meta),
             Body::FishMedium(_) => self.fish_medium_states.remove(&entity).map(|e| e.meta),
             Body::Critter(_) => self.critter_states.remove(&entity).map(|e| e.meta),
@@ -181,6 +189,7 @@ impl FigureMgrStates {
         self.character_states.retain(|k, v| f(k, &mut *v));
         self.quadruped_small_states.retain(|k, v| f(k, &mut *v));
         self.quadruped_medium_states.retain(|k, v| f(k, &mut *v));
+        self.quadruped_low_states.retain(|k, v| f(k, &mut *v));
         self.bird_medium_states.retain(|k, v| f(k, &mut *v));
         self.fish_medium_states.retain(|k, v| f(k, &mut *v));
         self.critter_states.retain(|k, v| f(k, &mut *v));
@@ -197,6 +206,7 @@ impl FigureMgrStates {
             + self.quadruped_small_states.len()
             + self.character_states.len()
             + self.quadruped_medium_states.len()
+            + self.quadruped_low_states.len()
             + self.bird_medium_states.len()
             + self.fish_medium_states.len()
             + self.critter_states.len()
@@ -220,6 +230,11 @@ impl FigureMgrStates {
                 .count()
             + self
                 .quadruped_medium_states
+                .iter()
+                .filter(|(_, c)| c.visible)
+                .count()
+            + self
+                .quadruped_low_states
                 .iter()
                 .filter(|(_, c)| c.visible)
                 .count()
@@ -265,6 +280,7 @@ pub struct FigureMgr {
     critter_model_cache: FigureModelCache<CritterSkeleton>,
     quadruped_small_model_cache: FigureModelCache<QuadrupedSmallSkeleton>,
     quadruped_medium_model_cache: FigureModelCache<QuadrupedMediumSkeleton>,
+    quadruped_low_model_cache: FigureModelCache<QuadrupedLowSkeleton>,
     bird_medium_model_cache: FigureModelCache<BirdMediumSkeleton>,
     bird_small_model_cache: FigureModelCache<BirdSmallSkeleton>,
     dragon_model_cache: FigureModelCache<DragonSkeleton>,
@@ -283,6 +299,7 @@ impl FigureMgr {
             critter_model_cache: FigureModelCache::new(),
             quadruped_small_model_cache: FigureModelCache::new(),
             quadruped_medium_model_cache: FigureModelCache::new(),
+            quadruped_low_model_cache: FigureModelCache::new(),
             bird_medium_model_cache: FigureModelCache::new(),
             bird_small_model_cache: FigureModelCache::new(),
             dragon_model_cache: FigureModelCache::new(),
@@ -302,6 +319,8 @@ impl FigureMgr {
         self.quadruped_small_model_cache
             .clean(&mut self.col_lights, tick);
         self.quadruped_medium_model_cache
+            .clean(&mut self.col_lights, tick);
+        self.quadruped_low_model_cache
             .clean(&mut self.col_lights, tick);
         self.bird_medium_model_cache
             .clean(&mut self.col_lights, tick);
@@ -567,7 +586,7 @@ impl FigureMgr {
                         // Standing
                         (true, false, _) => anim::character::StandAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
-                            (active_tool_kind, second_tool_kind, time),
+                            (active_tool_kind, second_tool_kind, time, state.avg_vel),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -582,6 +601,7 @@ impl FigureMgr {
                                 ori,
                                 state.last_ori,
                                 time,
+                                state.avg_vel,
                             ),
                             state.state_time,
                             &mut state_animation_rate,
@@ -887,7 +907,7 @@ impl FigureMgr {
                         (true, true, false) => {
                             anim::quadruped_small::RunAnimation::update_skeleton(
                                 &QuadrupedSmallSkeleton::new(),
-                                (vel.0.magnitude(), time),
+                                (vel.0.magnitude(), time, state.avg_vel),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -901,7 +921,6 @@ impl FigureMgr {
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
-
                         // TODO!
                         _ => state.skeleton_mut().clone(),
                     };
@@ -967,31 +986,142 @@ impl FigureMgr {
                             )
                         },
                         // Running
-                        (true, true, false) => {
-                            anim::quadruped_medium::RunAnimation::update_skeleton(
-                                &QuadrupedMediumSkeleton::new(),
-                                (vel.0.magnitude(), time),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
+                        (true, true, _) => anim::quadruped_medium::RunAnimation::update_skeleton(
+                            &QuadrupedMediumSkeleton::new(),
+                            (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
                         // In air
                         (false, _, false) => {
                             anim::quadruped_medium::JumpAnimation::update_skeleton(
                                 &QuadrupedMediumSkeleton::new(),
-                                (vel.0.magnitude(), time),
+                                time,
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )
                         },
-
+                        _ => anim::quadruped_medium::IdleAnimation::update_skeleton(
+                            &QuadrupedMediumSkeleton::new(),
+                            time,
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                    };
+                    let target_bones = match &character {
+                        CharacterState::BasicMelee(_) => {
+                            anim::quadruped_medium::AlphaAnimation::update_skeleton(
+                                &target_base,
+                                time,
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         // TODO!
-                        _ => state.skeleton_mut().clone(),
+                        _ => target_base,
                     };
 
-                    state.skeleton.interpolate(&target_base, dt);
+                    state.skeleton.interpolate(&target_bones, dt);
+                    state.update(
+                        renderer,
+                        pos.0,
+                        ori,
+                        scale,
+                        col,
+                        dt,
+                        state_animation_rate,
+                        &model[0],
+                        lpindex,
+                        in_frustum,
+                        is_player,
+                        camera,
+                    );
+                },
+                Body::QuadrupedLow(_) => {
+                    let (model, skeleton_attr) =
+                        self.quadruped_low_model_cache.get_or_create_model(
+                            renderer,
+                            &mut self.col_lights,
+                            *body,
+                            loadout,
+                            tick,
+                            CameraMode::default(),
+                            None,
+                        );
+
+                    let state = self
+                        .states
+                        .quadruped_low_states
+                        .entry(entity)
+                        .or_insert_with(|| FigureState::new(renderer, QuadrupedLowSkeleton::new()));
+
+                    let (character, last_character) = match (character, last_character) {
+                        (Some(c), Some(l)) => (c, l),
+                        _ => continue,
+                    };
+
+                    if !character.same_variant(&last_character.0) {
+                        state.state_time = 0.0;
+                    }
+
+                    let target_base = match (
+                        physics.on_ground,
+                        vel.0.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                        physics.in_fluid,                                 // In water
+                    ) {
+                        // Standing
+                        (true, false, false) => {
+                            anim::quadruped_low::IdleAnimation::update_skeleton(
+                                &QuadrupedLowSkeleton::new(),
+                                time,
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        // Running
+                        (true, true, _) => anim::quadruped_low::RunAnimation::update_skeleton(
+                            &QuadrupedLowSkeleton::new(),
+                            (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                        // In air
+                        (false, _, false) => anim::quadruped_low::JumpAnimation::update_skeleton(
+                            &QuadrupedLowSkeleton::new(),
+                            (vel.0.magnitude(), time),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                        _ => anim::quadruped_low::IdleAnimation::update_skeleton(
+                            &QuadrupedLowSkeleton::new(),
+                            time,
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                    };
+                    let target_bones = match &character {
+                        CharacterState::BasicMelee(_) => {
+                            anim::quadruped_low::AlphaAnimation::update_skeleton(
+                                &target_base,
+                                time,
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        // TODO!
+                        _ => target_base,
+                    };
+
+                    state.skeleton.interpolate(&target_bones, dt);
                     state.update(
                         renderer,
                         pos.0,
@@ -1047,7 +1177,7 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
                         // Running
-                        (true, true, false) => anim::bird_medium::RunAnimation::update_skeleton(
+                        (true, true, _) => anim::bird_medium::RunAnimation::update_skeleton(
                             &BirdMediumSkeleton::new(),
                             (vel.0.magnitude(), time),
                             state.state_time,
@@ -1914,6 +2044,7 @@ impl FigureMgr {
             critter_model_cache,
             quadruped_small_model_cache,
             quadruped_medium_model_cache,
+            quadruped_low_model_cache,
             bird_medium_model_cache,
             bird_small_model_cache,
             dragon_model_cache,
@@ -1926,6 +2057,7 @@ impl FigureMgr {
                     character_states,
                     quadruped_small_states,
                     quadruped_medium_states,
+                    quadruped_low_states,
                     bird_medium_states,
                     fish_medium_states,
                     critter_states,
@@ -1987,6 +2119,26 @@ impl FigureMgr {
                         state.locals(),
                         state.bone_consts(),
                         &quadruped_medium_model_cache
+                            .get_or_create_model(
+                                renderer,
+                                col_lights,
+                                *body,
+                                loadout,
+                                tick,
+                                player_camera_mode,
+                                character_state,
+                            )
+                            .0,
+                    )
+                }),
+            Body::QuadrupedLow(_) => quadruped_low_states
+                .get(&entity)
+                .filter(|state| filter_state(&*state))
+                .map(move |state| {
+                    (
+                        state.locals(),
+                        state.bone_consts(),
+                        &quadruped_low_model_cache
                             .get_or_create_model(
                                 renderer,
                                 col_lights,
@@ -2330,6 +2482,8 @@ pub struct FigureStateMeta {
     last_ori: Vec3<f32>,
     lpindex: u8,
     visible: bool,
+    last_pos: Option<Vec3<f32>>,
+    avg_vel: Vec3<f32>,
 }
 
 pub struct FigureState<S> {
@@ -2362,6 +2516,8 @@ impl<S: Skeleton> FigureState<S> {
                 last_ori: Vec3::zero(),
                 lpindex: 0,
                 visible: false,
+                last_pos: None,
+                avg_vel: Vec3::zero(),
             },
             skeleton,
         }
@@ -2437,6 +2593,12 @@ impl<S: Skeleton> FigureState<S> {
             )
             .unwrap();
         self.lantern_offset = lantern_offset;
+
+        let smoothing = (5.0 * dt).min(1.0);
+        if let Some(last_pos) = self.last_pos {
+            self.avg_vel = (1.0 - smoothing) * self.avg_vel + smoothing * (pos - last_pos) * dt;
+        }
+        self.last_pos = Some(pos);
     }
 
     pub fn locals(&self) -> &Consts<FigureLocals> { &self.locals }

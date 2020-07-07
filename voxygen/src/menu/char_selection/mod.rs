@@ -120,8 +120,9 @@ impl PlayState for CharSelectionState {
                     }
                 });
 
-            // Maintain the scene.
             let loadout = self.char_selection_ui.get_loadout();
+
+            // Maintain the scene.
             {
                 let client = self.client.borrow();
                 let scene_data = scene::SceneData {
@@ -143,7 +144,6 @@ impl PlayState for CharSelectionState {
                     loadout.as_ref(),
                 );
             }
-
             // Render the scene.
             self.scene.render(
                 global_state.window.renderer_mut(),
@@ -160,16 +160,37 @@ impl PlayState for CharSelectionState {
             let localized_strings = assets::load_expect::<VoxygenLocalization>(&i18n_asset_key(
                 &global_state.settings.language.selected_language,
             ));
-            if let Err(e) = self.client.borrow_mut().tick(
+
+            match self.client.borrow_mut().tick(
                 comp::ControllerInputs::default(),
                 clock.get_last_delta(),
                 |_| {},
             ) {
-                global_state.info_message =
-                    Some(localized_strings.get("common.connection_lost").to_owned());
-                error!(?e, "[char_selection] Failed to tick the scene");
-
-                return PlayStateResult::Pop;
+                Ok(events) => {
+                    for event in events {
+                        match event {
+                            client::Event::SetViewDistance(vd) => {
+                                global_state.settings.graphics.view_distance = vd;
+                                global_state.settings.save_to_file_warn();
+                            },
+                            client::Event::Disconnect => {
+                                global_state.info_message = Some(
+                                    localized_strings
+                                        .get("main.login.server_shut_down")
+                                        .to_owned(),
+                                );
+                                return PlayStateResult::Pop;
+                            },
+                            _ => {},
+                        }
+                    }
+                },
+                Err(err) => {
+                    global_state.info_message =
+                        Some(localized_strings.get("common.connection_lost").to_owned());
+                    error!(?err, "[char_selection] Failed to tick the client");
+                    return PlayStateResult::Pop;
+                },
             }
 
             self.client.borrow_mut().cleanup();

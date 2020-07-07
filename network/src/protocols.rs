@@ -71,7 +71,10 @@ impl TcpProtocol {
                 "closing tcp protocol due to read error, sending close frame to gracefully \
                  shutdown"
             );
-            w2c_cid_frame_s.send((cid, Frame::Shutdown)).await.unwrap();
+            w2c_cid_frame_s
+                .send((cid, Frame::Shutdown))
+                .await
+                .expect("Channel or Participant seems no longer to exist to be Shutdown");
         }
     }
 
@@ -179,9 +182,10 @@ impl TcpProtocol {
                         bytes[15],
                     ]);
                     let length = u16::from_le_bytes([bytes[16], bytes[17]]);
-                    let mut data = vec![0; length as usize];
+                    let mut cdata = vec![0; length as usize];
                     throughput_cache.inc_by(length as i64);
-                    Self::read_except_or_close(cid, &stream, &mut data, w2c_cid_frame_s).await;
+                    Self::read_except_or_close(cid, &stream, &mut cdata, w2c_cid_frame_s).await;
+                    let data = lz4_compress::decompress(&cdata).unwrap();
                     Frame::Data { mid, start, data }
                 },
                 FRAME_RAW => {
@@ -201,7 +205,10 @@ impl TcpProtocol {
                 },
             };
             metrics_cache.with_label_values(&frame).inc();
-            w2c_cid_frame_s.send((cid, frame)).await.unwrap();
+            w2c_cid_frame_s
+                .send((cid, frame))
+                .await
+                .expect("Channel or Participant seems no longer to exist");
         }
         trace!("shutting down tcp read()");
     }
@@ -341,6 +348,7 @@ impl TcpProtocol {
                 },
                 Frame::Data { mid, start, data } => {
                     throughput_cache.inc_by(data.len() as i64);
+                    let cdata = lz4_compress::compress(&data);
                     Self::write_or_close(&mut stream, &FRAME_DATA.to_be_bytes(), &mut c2w_frame_r)
                         .await
                         || Self::write_or_close(&mut stream, &mid.to_le_bytes(), &mut c2w_frame_r)
@@ -349,11 +357,11 @@ impl TcpProtocol {
                             .await
                         || Self::write_or_close(
                             &mut stream,
-                            &(data.len() as u16).to_le_bytes(),
+                            &(cdata.len() as u16).to_le_bytes(),
                             &mut c2w_frame_r,
                         )
                         .await
-                        || Self::write_or_close(&mut stream, &data, &mut c2w_frame_r).await
+                        || Self::write_or_close(&mut stream, &cdata, &mut c2w_frame_r).await
                 },
                 Frame::Raw(data) => {
                     Self::write_or_close(&mut stream, &FRAME_RAW.to_be_bytes(), &mut c2w_frame_r)

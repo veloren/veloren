@@ -70,7 +70,7 @@ pub enum ServerEvent {
         stats: comp::Stats,
         loadout: comp::Loadout,
         body: comp::Body,
-        agent: comp::Agent,
+        agent: Option<comp::Agent>,
         alignment: comp::Alignment,
         scale: comp::Scale,
         drop_item: Option<Item>,

@@ -1,6 +1,7 @@
 use crate::{comp::inventory::slot::Slot, sync::Uid, util::Dir};
+use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
-use specs_idvs::IDVStorage;
+use specs_idvs::IdvStorage;
 use std::time::Duration;
 use vek::*;
 
@@ -157,6 +158,7 @@ pub struct ControllerInputs {
     pub wall_leap: Input,
     pub charge: Input,
     pub climb: Option<Climb>,
+    pub swim: Input,
     pub move_dir: Vec2<f32>,
     pub look_dir: Dir,
 }
@@ -180,6 +182,7 @@ impl ControllerInputs {
         self.glide.tick(dt);
         self.wall_leap.tick(dt);
         self.charge.tick(dt);
+        self.swim.tick(dt);
     }
 
     pub fn tick_freshness(&mut self) {
@@ -191,6 +194,7 @@ impl ControllerInputs {
         self.glide.tick_freshness();
         self.wall_leap.tick_freshness();
         self.charge.tick_freshness();
+        self.swim.tick_freshness();
     }
 
     /// Updates Controller inputs with new version received from the client
@@ -204,6 +208,7 @@ impl ControllerInputs {
         self.wall_leap.update_with_new(new.wall_leap);
         self.charge.update_with_new(new.charge);
         self.climb = new.climb;
+        self.swim.update_with_new(new.swim);
         self.move_dir = new.move_dir;
         self.look_dir = new.look_dir;
     }
@@ -223,7 +228,7 @@ impl Controller {
 }
 
 impl Component for Controller {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -233,12 +238,12 @@ pub enum MountState {
 }
 
 impl Component for MountState {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Mounting(pub Uid);
 
 impl Component for Mounting {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }

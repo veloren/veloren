@@ -47,7 +47,7 @@ use num::{traits::FloatConst, Float, Signed};
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
 use rayon::prelude::*;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::{
     f32, f64,
     fs::File,

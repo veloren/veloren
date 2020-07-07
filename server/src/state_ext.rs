@@ -128,7 +128,7 @@ impl StateExt for State {
             .with(comp::Vel(Vec3::zero()))
             .with(comp::Ori::default())
             .with(comp::Body::Object(object))
-            .with(comp::Mass(100.0))
+            .with(comp::Mass(5.0))
             .with(comp::Collider::Box {
                 radius: 0.4,
                 z_min: 0.0,
@@ -171,7 +171,10 @@ impl StateExt for State {
         });
         self.write_component(entity, comp::Gravity(1.0));
         self.write_component(entity, comp::CharacterState::default());
-        self.write_component(entity, comp::Alignment::Owned(entity));
+        self.write_component(
+            entity,
+            comp::Alignment::Owned(self.read_component_cloned(entity).unwrap()),
+        );
 
         // Set the character id for the player
         // TODO this results in a warning in the console: "Error modifying synced

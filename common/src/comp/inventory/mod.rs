@@ -3,8 +3,9 @@ pub mod slot;
 
 use crate::assets;
 use item::{Consumable, Item, ItemKind};
+use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage, HashMapStorage};
-use specs_idvs::IDVStorage;
+use specs_idvs::IdvStorage;
 use std::ops::Not;
 
 // The limit on distance between the entity and a collectible (squared)
@@ -88,6 +89,37 @@ impl Inventory {
                     {
                         if let Some(Item {
                             kind: ItemKind::Consumable { kind, amount, .. },
+                            ..
+                        }) = slot
+                        {
+                            if item_kind == *kind {
+                                *amount += new_amount;
+                                self.recount_items();
+                                return None;
+                            }
+                        }
+                    }
+                }
+                // It didn't work
+                self.add_to_first_empty(item)
+            },
+            ItemKind::Throwable {
+                kind: item_kind,
+                amount: new_amount,
+                ..
+            } => {
+                for slot in &mut self.slots {
+                    if slot
+                        .as_ref()
+                        .map(|s| s.name() == item.name())
+                        .unwrap_or(false)
+                        && slot
+                            .as_ref()
+                            .map(|s| s.description() == item.description())
+                            .unwrap_or(false)
+                    {
+                        if let Some(Item {
+                            kind: ItemKind::Throwable { kind, amount, .. },
                             ..
                         }) = slot
                         {
@@ -277,6 +309,19 @@ impl Inventory {
                         Some(return_item)
                     }
                 },
+                ItemKind::Throwable { kind, amount } => {
+                    if *amount <= 1 {
+                        self.remove(cell)
+                    } else {
+                        *amount -= 1;
+                        return_item.kind = ItemKind::Throwable {
+                            kind: *kind,
+                            amount: 1,
+                        };
+                        self.recount_items();
+                        Some(return_item)
+                    }
+                },
                 ItemKind::Ingredient { kind, amount } => {
                     if *amount <= 1 {
                         self.remove(cell)
@@ -344,7 +389,7 @@ impl InventoryUpdate {
 }
 
 impl Component for InventoryUpdate {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[cfg(test)] mod test;

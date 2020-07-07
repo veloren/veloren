@@ -18,7 +18,7 @@ use anim::{
     Animation, Skeleton,
 };
 use common::{
-    comp::{humanoid, Body, Loadout},
+    comp::{humanoid, item::ItemKind, Body, Loadout},
     figure::Segment,
     terrain::BlockKind,
     vol::{BaseVol, ReadVol, Vox},
@@ -261,10 +261,30 @@ impl Scene {
         self.figure_model_cache
             .clean(&mut self.col_lights, scene_data.tick);
 
+        let active_item_kind = loadout
+            .and_then(|l| l.active_item.as_ref())
+            .map(|i| &i.item.kind);
+
+        let active_tool_kind = if let Some(ItemKind::Tool(tool)) = active_item_kind {
+            Some(tool.kind)
+        } else {
+            None
+        };
+
+        let second_item_kind = loadout
+            .and_then(|l| l.second_item.as_ref())
+            .map(|i| &i.item.kind);
+
+        let second_tool_kind = if let Some(ItemKind::Tool(tool)) = second_item_kind {
+            Some(tool.kind)
+        } else {
+            None
+        };
+
         if let Some(body) = scene_data.body {
             let tgt_skeleton = IdleAnimation::update_skeleton(
                 self.figure_state.skeleton_mut(),
-                scene_data.time,
+                (active_tool_kind, second_tool_kind, scene_data.time),
                 scene_data.time,
                 &mut 0.0,
                 &SkeletonAttr::from(&body),

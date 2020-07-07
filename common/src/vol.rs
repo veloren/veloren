@@ -102,7 +102,7 @@ pub trait ReadVol: BaseVol {
         &'a self,
         from: Vec3<f32>,
         to: Vec3<f32>,
-    ) -> Ray<'a, Self, fn(&Self::Vox) -> bool, fn(Vec3<i32>)>
+    ) -> Ray<'a, Self, fn(&Self::Vox) -> bool, fn(&Self::Vox, Vec3<i32>)>
     where
         Self: Sized,
     {

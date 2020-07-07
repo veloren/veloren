@@ -10,9 +10,11 @@ mod inputs;
 mod inventory;
 mod last;
 mod location;
+mod misc;
 mod phys;
 mod player;
 pub mod projectile;
+pub mod skills;
 mod stats;
 mod visual;
 
@@ -22,7 +24,7 @@ pub use admin::{Admin, AdminList};
 pub use agent::{Agent, Alignment};
 pub use body::{
     biped_large, bird_medium, bird_small, critter, dragon, fish_medium, fish_small, golem,
-    humanoid, object, quadruped_medium, quadruped_small, AllBodies, Body, BodyData,
+    humanoid, object, quadruped_low, quadruped_medium, quadruped_small, AllBodies, Body, BodyData,
 };
 pub use character_state::{Attacking, CharacterState, StateUpdate};
 pub use chat::{ChatMode, ChatMsg, ChatType, Faction, Group, SpeechBubble, SpeechBubbleType};
@@ -39,8 +41,10 @@ pub use inventory::{
 };
 pub use last::Last;
 pub use location::{Waypoint, WaypointArea};
+pub use misc::Object;
 pub use phys::{Collider, ForceUpdate, Gravity, Mass, Ori, PhysicsState, Pos, Scale, Sticky, Vel};
 pub use player::Player;
 pub use projectile::Projectile;
+pub use skills::{Skill, SkillGroup, SkillGroupType, SkillSet};
 pub use stats::{Exp, HealthChange, HealthSource, Level, Stats};
 pub use visual::{LightAnimation, LightEmitter};

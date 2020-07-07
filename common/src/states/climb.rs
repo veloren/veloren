@@ -7,6 +7,7 @@ use crate::{
     },
     util::Dir,
 };
+use serde::{Deserialize, Serialize};
 use vek::{
     vec::{Vec2, Vec3},
     Lerp,

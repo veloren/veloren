@@ -1,10 +1,12 @@
 use crate::{
     comp,
-    comp::{body::humanoid::Species, Body},
+    comp::{body::humanoid::Species, skills::SkillSet, Body},
     sync::Uid,
 };
+use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
-use specs_idvs::IDVStorage;
+use specs_idvs::IdvStorage;
+use std::{error::Error, fmt};
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct HealthChange {
@@ -73,7 +75,7 @@ pub enum StatChangeError {
     Underflow,
     Overflow,
 }
-use std::{error::Error, fmt};
+
 impl fmt::Display for StatChangeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", match self {
@@ -124,6 +126,7 @@ pub struct Stats {
     pub health: Health,
     pub level: Level,
     pub exp: Exp,
+    pub skill_set: SkillSet,
     pub endurance: u32,
     pub fitness: u32,
     pub willpower: u32,
@@ -179,6 +182,7 @@ impl Stats {
                 current: 0,
                 maximum: 50,
             },
+            skill_set: SkillSet::default(),
             endurance,
             fitness,
             willpower,
@@ -201,7 +205,7 @@ impl Stats {
 }
 
 impl Component for Stats {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
@@ -210,5 +214,5 @@ pub struct Dying {
 }
 
 impl Component for Dying {
-    type Storage = IDVStorage<Self>;
+    type Storage = IdvStorage<Self>;
 }

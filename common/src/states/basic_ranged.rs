@@ -4,6 +4,7 @@ use crate::{
     states::utils::*,
     sys::character_behavior::*,
 };
+use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -31,8 +32,12 @@ impl CharacterBehavior for Data {
         handle_move(data, &mut update, 0.3);
         handle_jump(data, &mut update);
 
-        if self.prepare_timer < self.prepare_duration
-            || self.holdable && !self.exhausted && data.inputs.holding_ability_key()
+        if !self.exhausted
+            && if self.holdable {
+                data.inputs.holding_ability_key() || self.prepare_timer < self.prepare_duration
+            } else {
+                self.prepare_timer < self.prepare_duration
+            }
         {
             // Prepare (draw the bow)
             update.character = CharacterState::BasicRanged(Data {

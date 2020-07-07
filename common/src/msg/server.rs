@@ -7,6 +7,7 @@ use crate::{
 };
 use authc::AuthClientError;
 use hashbrown::HashMap;
+use serde::{Deserialize, Serialize};
 use vek::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

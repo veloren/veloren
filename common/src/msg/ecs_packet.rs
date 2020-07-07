@@ -1,5 +1,5 @@
 use crate::{comp, sync};
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::marker::PhantomData;
 use sum_type::sum_type;
 
@@ -17,6 +17,7 @@ sum_type! {
         LightEmitter(comp::LightEmitter),
         Item(comp::Item),
         Scale(comp::Scale),
+        Alignment(comp::Alignment),
         MountState(comp::MountState),
         Mounting(comp::Mounting),
         Mass(comp::Mass),
@@ -43,6 +44,7 @@ sum_type! {
         LightEmitter(PhantomData<comp::LightEmitter>),
         Item(PhantomData<comp::Item>),
         Scale(PhantomData<comp::Scale>),
+        Alignment(PhantomData<comp::Alignment>),
         MountState(PhantomData<comp::MountState>),
         Mounting(PhantomData<comp::Mounting>),
         Mass(PhantomData<comp::Mass>),
@@ -69,6 +71,7 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::LightEmitter(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Item(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Scale(comp) => sync::handle_insert(comp, entity, world),
+            EcsCompPacket::Alignment(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::MountState(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Mounting(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Mass(comp) => sync::handle_insert(comp, entity, world),
@@ -93,6 +96,7 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::LightEmitter(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Item(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Scale(comp) => sync::handle_modify(comp, entity, world),
+            EcsCompPacket::Alignment(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::MountState(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Mounting(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Mass(comp) => sync::handle_modify(comp, entity, world),
@@ -119,6 +123,7 @@ impl sync::CompPacket for EcsCompPacket {
             },
             EcsCompPhantom::Item(_) => sync::handle_remove::<comp::Item>(entity, world),
             EcsCompPhantom::Scale(_) => sync::handle_remove::<comp::Scale>(entity, world),
+            EcsCompPhantom::Alignment(_) => sync::handle_remove::<comp::Alignment>(entity, world),
             EcsCompPhantom::MountState(_) => sync::handle_remove::<comp::MountState>(entity, world),
             EcsCompPhantom::Mounting(_) => sync::handle_remove::<comp::Mounting>(entity, world),
             EcsCompPhantom::Mass(_) => sync::handle_remove::<comp::Mass>(entity, world),

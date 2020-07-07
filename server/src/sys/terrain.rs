@@ -9,6 +9,7 @@ use common::{
     npc::NPC_NAMES,
     state::TerrainChanges,
     terrain::TerrainGrid,
+    LoadoutBuilder,
 };
 use rand::Rng;
 use specs::{Join, Read, ReadStorage, System, Write, WriteExpect, WriteStorage};
@@ -136,9 +137,9 @@ impl<'a> System<'a> for Sys {
                                 energy_cost: 0,
                                 buildup_duration: Duration::from_millis(0),
                                 recover_duration: Duration::from_millis(400),
-                                base_healthchange: -2,
-                                range: 3.5,
-                                max_angle: 60.0,
+                                base_healthchange: -6,
+                                range: 5.0,
+                                max_angle: 80.0,
                             }),
                             ability2: None,
                             ability3: None,
@@ -214,36 +215,7 @@ impl<'a> System<'a> for Sys {
                         head: None,
                         tabard: None,
                     },
-                    _ => comp::Loadout {
-                        active_item: Some(comp::ItemConfig {
-                            item: assets::load_expect_cloned("common.items.weapons.empty"),
-                            ability1: Some(CharacterAbility::BasicMelee {
-                                energy_cost: 10,
-                                buildup_duration: Duration::from_millis(800),
-                                recover_duration: Duration::from_millis(200),
-                                base_healthchange: -2,
-                                range: 3.5,
-                                max_angle: 60.0,
-                            }),
-                            ability2: None,
-                            ability3: None,
-                            block_ability: None,
-                            dodge_ability: None,
-                        }),
-                        second_item: None,
-                        shoulder: None,
-                        chest: None,
-                        belt: None,
-                        hand: None,
-                        pants: None,
-                        foot: None,
-                        back: None,
-                        ring: None,
-                        neck: None,
-                        lantern: None,
-                        head: None,
-                        tabard: None,
-                    },
+                    _ => LoadoutBuilder::animal().build(),
                 };
 
                 let mut scale = entity.scale;
@@ -346,8 +318,12 @@ impl<'a> System<'a> for Sys {
                     stats,
                     loadout,
                     body,
+                    agent: if entity.has_agency {
+                        Some(comp::Agent::new(entity.pos, can_speak))
+                    } else {
+                        None
+                    },
                     alignment,
-                    agent: comp::Agent::new(entity.pos, can_speak),
                     scale: comp::Scale(scale),
                     drop_item: entity.loot_drop,
                 })

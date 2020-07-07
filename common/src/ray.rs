@@ -2,9 +2,9 @@ use crate::vol::{ReadVol, Vox};
 use vek::*;
 
 pub trait RayUntil<V: Vox> = FnMut(&V) -> bool;
-pub trait RayForEach = FnMut(Vec3<i32>);
+pub trait RayForEach<V: Vox> = FnMut(&V, Vec3<i32>);
 
-pub struct Ray<'a, V: ReadVol, F: RayUntil<V::Vox>, G: RayForEach> {
+pub struct Ray<'a, V: ReadVol, F: RayUntil<V::Vox>, G: RayForEach<V::Vox>> {
     vol: &'a V,
     from: Vec3<f32>,
     to: Vec3<f32>,
@@ -14,7 +14,7 @@ pub struct Ray<'a, V: ReadVol, F: RayUntil<V::Vox>, G: RayForEach> {
     ignore_error: bool,
 }
 
-impl<'a, V: ReadVol, F: RayUntil<V::Vox>, G: RayForEach> Ray<'a, V, F, G> {
+impl<'a, V: ReadVol, F: RayUntil<V::Vox>, G: RayForEach<V::Vox>> Ray<'a, V, F, G> {
     pub fn new(vol: &'a V, from: Vec3<f32>, to: Vec3<f32>, until: F) -> Self {
         Self {
             vol,
@@ -29,7 +29,7 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>, G: RayForEach> Ray<'a, V, F, G> {
 
     pub fn until(self, f: F) -> Ray<'a, V, F, G> { Ray { until: f, ..self } }
 
-    pub fn for_each<H: RayForEach>(self, f: H) -> Ray<'a, V, F, H> {
+    pub fn for_each<H: RayForEach<V::Vox>>(self, f: H) -> Ray<'a, V, F, H> {
         Ray {
             for_each: Some(f),
             vol: self.vol,
@@ -69,12 +69,16 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>, G: RayForEach> Ray<'a, V, F, G> {
                 break;
             }
 
+            let vox = self.vol.get(ipos);
+
             // for_each
             if let Some(g) = &mut self.for_each {
-                g(ipos);
+                if let Ok(vox) = vox {
+                    g(vox, ipos);
+                }
             }
 
-            match self.vol.get(ipos).map(|vox| (vox, (self.until)(vox))) {
+            match vox.map(|vox| (vox, (self.until)(vox))) {
                 Ok((vox, true)) => return (dist, Ok(Some(vox))),
                 Err(err) if !self.ignore_error => return (dist, Err(err)),
                 _ => {},
