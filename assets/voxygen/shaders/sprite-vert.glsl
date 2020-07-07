@@ -174,7 +174,7 @@ void main() {
     //     vec3(0.0, 0.0, z_bias, 0.0),
     //     vec3(0.0, 0.0, (1.0 / z_bias), 0.0)
     // );
-    if (wind_sway.w >= 0.4) {
+    /*if (wind_sway.w >= 0.4) */{
         f_pos += /*inst_wind_sway*/wind_sway.w * vec3(
             sin(tick.x * 1.5 + f_pos.y * 0.1) * sin(tick.x * 0.35),
             sin(tick.x * 1.5 + f_pos.x * 0.1) * sin(tick.x * 0.25),
