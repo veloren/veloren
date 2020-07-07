@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use treeculler::Frustum;
 use vek::*;
 
-pub const NEAR_PLANE: f32 = 0.5;
+pub const NEAR_PLANE: f32 = 0.25;
 pub const FAR_PLANE: f32 = 100000.0;
 
 const FIRST_PERSON_INTERP_TIME: f32 = 0.1;

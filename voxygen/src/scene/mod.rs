@@ -740,7 +740,7 @@ impl Scene {
             /* let all_mat = /*proj_mat * */view_mat
                 .scaled_3d(Vec3::new(proj_mat[(0, 0)], proj_mat[(1, 1)], 1.0));
             let focus_off = focus_pos.map(|e| e.trunc()); */
-            let z_n = f64::from(camera::NEAR_PLANE);
+            let z_n = 1.0; //f64::from(camera::NEAR_PLANE);
             let _z_f = f64::from(camera::FAR_PLANE);
             let _scalar_fov = f64::from(fov / 2.0); // compute_scalar_fov(z_n, f64::from(fov), f64::from(aspect_ratio));
             shadow_mats.extend(directed_shadow_mats.iter().map(move |&light_view_mat| {
@@ -935,11 +935,11 @@ impl Scene {
 
                 // Vague idea: project z_n from the camera view to the light view (where it's
                 // tilted by γ).
-                let z_0 = z_n / sin_gamma;// / sin_gamma;
+                let z_0 = z_n;// / sin_gamma;// / sin_gamma;
                 // let z_1 = z_0 + d;
                 // Vague idea: project d from the light view back to the camera view (undoing the
                 // tilt by γ).
-                let z_1 = /*z_n*/z_0 + d/* * sin_gamma*/;
+                let z_1 = /*z_n*/z_0 + d * sin_gamma;
                 let w_l_y = /* z_f - z_n */d;/*/*f64::from(camera::FAR_PLANE - camera::NEAR_PLANE)*//*(z_f - z_n)*/d * scalar_fov.cos();*/
                 // let z_f = z_n + d;
                 // let near_dist = directed_near;
