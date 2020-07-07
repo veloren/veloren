@@ -146,20 +146,20 @@ impl Sys {
                 },
                 ClientMsg::SetViewDistance(view_distance) => {
                     if let ClientState::Character { .. } = client.client_state {
+                        players.get_mut(entity).map(|player| {
+                            player.view_distance = Some(
+                                settings
+                                    .max_view_distance
+                                    .map(|max| view_distance.min(max))
+                                    .unwrap_or(view_distance),
+                            )
+                        });
+
                         if settings
                             .max_view_distance
-                            .map(|max| view_distance <= max)
-                            .unwrap_or(true)
+                            .map(|max| view_distance > max)
+                            .unwrap_or(false)
                         {
-                            players.get_mut(entity).map(|player| {
-                                player.view_distance = Some(
-                                    settings
-                                        .max_view_distance
-                                        .map(|max| view_distance.min(max))
-                                        .unwrap_or(view_distance),
-                                )
-                            });
-                        } else {
                             client.notify(ServerMsg::SetViewDistance(
                                 settings.max_view_distance.unwrap_or(0),
                             ));
