@@ -448,7 +448,7 @@ impl Tool {
                 energy_cost: 0,
                 buildup_duration: Duration::from_millis(0),
                 recover_duration: Duration::from_millis(1000),
-                base_healthchange: -3,
+                base_healthchange: -2,
                 range: 5.0,
                 max_angle: 60.0,
             }],
