@@ -13,7 +13,7 @@ common = { package = "veloren-common", path = "../common" }
 world = { package = "veloren-world", path = "../world" }
 network = { package = "veloren_network", path = "../network", default-features = false }
 
-specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", branch = "specs-16" }
+specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git" }
 
 tracing = "0.1"
 specs = { version = "0.16.1", features = ["shred-derive"] }
