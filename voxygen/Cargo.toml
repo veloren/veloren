@@ -34,7 +34,7 @@ euc = { git = "https://github.com/zesterer/euc.git" }
 
 # ECS
 specs = "0.16.1"
-specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", branch = "specs-16" }
+specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git" }
 
 # Mathematics
 vek = { version = "0.11.0", features = ["serde"] }
