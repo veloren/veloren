@@ -326,6 +326,7 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::Respawn, state)
                         if state != self.key_state.respawn =>
                     {
+                        stop_auto_walk(&mut auto_walk, &mut self.key_state, &mut self.hud);
                         self.key_state.respawn = state;
                         if state {
                             self.client.borrow_mut().respawn();
