@@ -11,8 +11,6 @@
     option_zip
 )]
 
-#[macro_use] extern crate serde_derive;
-
 pub mod assets;
 pub mod astar;
 pub mod character;

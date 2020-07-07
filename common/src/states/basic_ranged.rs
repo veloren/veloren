@@ -4,6 +4,7 @@ use crate::{
     states::utils::*,
     sys::character_behavior::*,
 };
+use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

@@ -1,5 +1,6 @@
 use crate::{comp, comp::item};
 use comp::{Inventory, Loadout};
+use serde::{Deserialize, Serialize};
 use tracing::warn;
 
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]

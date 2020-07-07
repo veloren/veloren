@@ -3,6 +3,7 @@ use crate::{
     comp::{body::humanoid::Species, skills::SkillSet, Body},
     sync::Uid,
 };
+use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{error::Error, fmt};

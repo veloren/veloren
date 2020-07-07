@@ -3,6 +3,7 @@ use crate::{
     states::utils::*,
     sys::character_behavior::{CharacterBehavior, JoinData},
 };
+use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use vek::vec::Vec3;
 use HoldingState::*;

@@ -6,6 +6,7 @@ use crate::{
     states::{triple_strike::*, *},
     sys::character_behavior::JoinData,
 };
+use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::time::Duration;

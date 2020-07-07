@@ -5,6 +5,7 @@ use crate::comp::{
     body::object, projectile, Body, CharacterAbility, Gravity, HealthChange, HealthSource,
     LightEmitter, Projectile,
 };
+use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]

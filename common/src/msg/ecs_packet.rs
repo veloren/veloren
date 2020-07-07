@@ -1,5 +1,5 @@
 use crate::{comp, sync};
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::marker::PhantomData;
 use sum_type::sum_type;
 

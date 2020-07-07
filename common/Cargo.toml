@@ -13,23 +13,19 @@ specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", branch = "spec
 specs = { version = "0.16.1", features = ["serde", "storage-event-control"] }
 vek = { version = "0.11.0", features = ["serde"] }
 dot_vox = "4.0"
-image = { version = "0.22.3", default-features = false, features = ["png"] }
-mio = "0.6"
-serde = "1.0"
-serde_derive = "1.0"
-serde_json = "1.0.41"
+image = { version = "0.22.5", default-features = false, features = ["png"] }
+serde = { version = "1.0.110", features = ["derive"] }
+serde_json = "1.0.50"
 ron = { version = "0.6", default-features = false }
-bincode = "1.2.0"
 tracing = { version = "0.1", default-features = false }
 rand = "0.7"
-rayon = "^1.3.0"
+rayon = "1.3.0"
 lazy_static = "1.4.0"
-lz4-compress = "0.1.1"
 hashbrown = { version = "0.7.2", features = ["rayon", "serde", "nightly"] }
 find_folder = "0.3.0"
 parking_lot = "0.9.0"
 crossbeam = "0.7"
-notify = "5.0.0-pre.2"
+notify = "5.0.0-pre.3"
 indexmap = "1.3.0"
 sum_type = "0.2.0"
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "223a4097f7ebc8d451936dccb5e6517194bbf086" }

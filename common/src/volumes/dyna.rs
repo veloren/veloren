@@ -2,7 +2,7 @@ use crate::vol::{
     BaseVol, DefaultPosIterator, DefaultVolIterator, IntoPosIterator, IntoVolIterator, ReadVol,
     SizedVol, Vox, WriteVol,
 };
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use vek::*;
 
 #[derive(Debug, Clone)]
