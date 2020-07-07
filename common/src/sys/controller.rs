@@ -1,5 +1,8 @@
 use crate::{
-    comp::{CharacterState, ControlEvent, Controller},
+    comp::{
+        slot::{EquipSlot, Slot},
+        CharacterState, ControlEvent, Controller, InventoryManip,
+    },
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
     sync::{Uid, UidAllocator},
@@ -79,7 +82,18 @@ impl<'a> System<'a> for Sys {
                         server_emitter.emit(ServerEvent::ToggleLantern(entity))
                     },
                     ControlEvent::InventoryManip(manip) => {
-                        *character_state = CharacterState::Idle;
+                        // Unwield if a wielded equipment slot is being modified, to avoid entering
+                        // a barehanded wielding state.
+                        if character_state.is_wield() {
+                            match manip {
+                                InventoryManip::Drop(Slot::Equip(EquipSlot::Mainhand))
+                                | InventoryManip::Swap(_, Slot::Equip(EquipSlot::Mainhand))
+                                | InventoryManip::Swap(Slot::Equip(EquipSlot::Mainhand), _) => {
+                                    *character_state = CharacterState::Idle;
+                                },
+                                _ => (),
+                            }
+                        }
                         server_emitter.emit(ServerEvent::InventoryManip(entity, manip))
                     },
                     ControlEvent::Respawn => server_emitter.emit(ServerEvent::Respawn(entity)),
