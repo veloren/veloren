@@ -123,6 +123,7 @@ impl State {
         ecs.register::<comp::Gravity>();
         ecs.register::<comp::CharacterState>();
         ecs.register::<comp::Object>();
+        ecs.register::<comp::Alignment>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();
@@ -146,7 +147,6 @@ impl State {
         ecs.register::<comp::Last<comp::Vel>>();
         ecs.register::<comp::Last<comp::Ori>>();
         ecs.register::<comp::Agent>();
-        ecs.register::<comp::Alignment>();
         ecs.register::<comp::WaypointArea>();
         ecs.register::<comp::ForceUpdate>();
         ecs.register::<comp::InventoryUpdate>();

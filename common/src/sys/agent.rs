@@ -245,7 +245,11 @@ impl<'a> System<'a> for Sys {
                             alignments
                                 .get(*target)
                                 .copied()
-                                .unwrap_or(Alignment::Owned(*target)),
+                                .unwrap_or(uids
+                                    .get(*target)
+                                    .copied()
+                                    .map(Alignment::Owned)
+                                    .unwrap_or(Alignment::Wild)),
                         ) {
                             if let Some(dir) = Dir::from_unnormalized(tgt_pos.0 - pos.0) {
                                 inputs.look_dir = dir;
@@ -419,7 +423,10 @@ impl<'a> System<'a> for Sys {
 
             // Follow owner if we're too far, or if they're under attack
             if let Some(Alignment::Owned(owner)) = alignment.copied() {
-                if let Some(owner_pos) = positions.get(owner) {
+                (|| {
+                    let owner = uid_allocator.retrieve_entity_internal(owner.id())?;
+
+                    let owner_pos = positions.get(owner)?;
                     let dist_sqrd = pos.0.distance_squared(owner_pos.0);
                     if dist_sqrd > MAX_FOLLOW_DIST.powf(2.0) && !agent.activity.is_follow() {
                         agent.activity = Activity::Follow {
@@ -429,28 +436,27 @@ impl<'a> System<'a> for Sys {
                     }
 
                     // Attack owner's attacker
-                    if let Some(owner_stats) = stats.get(owner) {
-                        if owner_stats.health.last_change.0 < 5.0 {
-                            if let comp::HealthSource::Attack { by } =
-                                owner_stats.health.last_change.1.cause
-                            {
-                                if !agent.activity.is_attack() {
-                                    if let Some(attacker) =
-                                        uid_allocator.retrieve_entity_internal(by.id())
-                                    {
-                                        agent.activity = Activity::Attack {
-                                            target: attacker,
-                                            chaser: Chaser::default(),
-                                            time: time.0,
-                                            been_close: false,
-                                            powerup: 0.0,
-                                        };
-                                    }
-                                }
+                    let owner_stats = stats.get(owner)?;
+                    if owner_stats.health.last_change.0 < 5.0 {
+                        if let comp::HealthSource::Attack { by } =
+                            owner_stats.health.last_change.1.cause
+                        {
+                            if !agent.activity.is_attack() {
+                                let attacker = uid_allocator.retrieve_entity_internal(by.id())?;
+
+                                agent.activity = Activity::Attack {
+                                    target: attacker,
+                                    chaser: Chaser::default(),
+                                    time: time.0,
+                                    been_close: false,
+                                    powerup: 0.0,
+                                };
                             }
                         }
                     }
-                }
+
+                    Some(())
+                })();
             }
 
             debug_assert!(inputs.move_dir.map(|e| !e.is_nan()).reduce_and());
