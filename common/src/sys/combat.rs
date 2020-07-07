@@ -111,6 +111,7 @@ impl<'a> System<'a> for Sys {
                 {
                     // Weapon gives base damage
                     let mut healthchange = attack.base_healthchange as f32;
+                    let mut knockback = attack.knockback;
 
                     // TODO: remove this, either it will remain unused or be used as a temporary
                     // gameplay balance
@@ -130,6 +131,7 @@ impl<'a> System<'a> for Sys {
                         .unwrap_or(false))
                     {
                         healthchange = 0.0;
+                        knockback = 0.0;
                     }
 
                     if rand::random() {
@@ -143,14 +145,16 @@ impl<'a> System<'a> for Sys {
                         healthchange *= 1.0 - BLOCK_EFFICIENCY
                     }
 
-                    server_emitter.emit(ServerEvent::Damage {
-                        uid: *uid_b,
-                        change: HealthChange {
-                            amount: healthchange as i32,
-                            cause: HealthSource::Attack { by: *uid },
-                        },
-                    });
-                    if attack.knockback != 0.0 {
+                    if healthchange != 0.0 {
+                        server_emitter.emit(ServerEvent::Damage {
+                            uid: *uid_b,
+                            change: HealthChange {
+                                amount: healthchange as i32,
+                                cause: HealthSource::Attack { by: *uid },
+                            },
+                        });
+                    }
+                    if knockback != 0.0 {
                         local_emitter.emit(LocalEvent::ApplyForce {
                             entity: b,
                             force: attack.knockback

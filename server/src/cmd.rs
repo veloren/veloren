@@ -16,6 +16,7 @@ use common::{
     terrain::TerrainChunkSize,
     util::Dir,
     vol::RectVolSize,
+    LoadoutBuilder,
 };
 use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
@@ -543,7 +544,7 @@ fn handle_spawn(
                                 .create_npc(
                                     pos,
                                     comp::Stats::new(get_npc_name(id).into(), body),
-                                    comp::Loadout::default(),
+                                    LoadoutBuilder::animal().build(),
                                     body,
                                 )
                                 .with(comp::Vel(vel))

@@ -118,7 +118,7 @@ impl<'a> System<'a> for Sys {
             const LISTEN_DIST: f32 = 16.0;
             const SEARCH_DIST: f32 = 48.0;
             const SIGHT_DIST: f32 = 128.0;
-            const MIN_ATTACK_DIST: f32 = 3.25;
+            const MIN_ATTACK_DIST: f32 = 3.5;
 
             let scale = scales.get(entity).map(|s| s.0).unwrap_or(1.0);
 
@@ -266,10 +266,10 @@ impl<'a> System<'a> for Sys {
                             let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
                             if dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0) {
                                 // Close-range attack
-                                /*inputs.move_dir = Vec2::from(tgt_pos.0 - pos.0)
-                                .try_normalized()
-                                .unwrap_or(Vec2::unit_y())
-                                * 0.7;*/
+                                inputs.move_dir = Vec2::from(tgt_pos.0 - pos.0)
+                                    .try_normalized()
+                                    .unwrap_or(Vec2::unit_y())
+                                    * 0.1;
 
                                 match tactic {
                                     Tactic::Melee | Tactic::Staff => inputs.primary.set_state(true),
