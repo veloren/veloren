@@ -21,6 +21,10 @@ out vec4 tgt_color;
 #include <sky.glsl>
 #include <light.glsl>
 
+float vmax(vec3 v) {
+	return max(v.x, max(v.y, v.z));
+}
+
 void main() {
 	// First 3 normals are negative, next 3 are positive
 	vec3 normals[6] = vec3[](vec3(-1,0,0), vec3(1,0,0), vec3(0,-1,0), vec3(0,1,0), vec3(0,0,-1), vec3(0,0,1));
@@ -46,6 +50,14 @@ void main() {
 	diffuse_light += point_light * ao;
 
 	vec3 col = f_col + hash(vec4(floor(f_chunk_pos * 3.0 - f_norm * 0.5), 0)) * 0.02; // Small-scale noise
+
+	// Select glowing
+	if (select_pos.w > 0 && select_pos.xyz == floor(f_pos - f_norm * 0.01)) {
+		if (vmax(abs(mod(f_pos - f_norm * 0.5, 1.0) - 0.5)) > 0.45) {
+			col *= 0.5;
+		}
+	}
+
 	vec3 surf_color = illuminate(srgb_to_linear(col), light, diffuse_light, ambient_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);

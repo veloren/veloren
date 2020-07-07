@@ -60,6 +60,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Connection screen fails after 4 minutes if it can't connect to the server instead of 80 minutes
 - Rebuilt quadruped_medium animation and assets
 - Disabled destruction of most blocks by explosions
+- Disable damage to pets
+- Made pets healable
+- Rebalanced fire staff
+- Animals are more effective in combat
+- Pathfinding is much smoother and pets are cleverer
+- Animals run/turn at different speeds
 
 ### Removed
 

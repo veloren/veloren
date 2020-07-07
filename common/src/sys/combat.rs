@@ -1,6 +1,7 @@
 use crate::{
     comp::{
-        Agent, Attacking, Body, CharacterState, HealthChange, HealthSource, Ori, Pos, Scale, Stats,
+        Alignment, Attacking, Body, CharacterState, HealthChange, HealthSource, Ori, Pos, Scale,
+        Stats,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     sync::Uid,
@@ -25,7 +26,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Scale>,
-        ReadStorage<'a, Agent>,
+        ReadStorage<'a, Alignment>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Stats>,
         WriteStorage<'a, Attacking>,
@@ -42,7 +43,7 @@ impl<'a> System<'a> for Sys {
             positions,
             orientations,
             scales,
-            agents,
+            alignments,
             bodies,
             stats,
             mut attacking_storage,
@@ -74,7 +75,7 @@ impl<'a> System<'a> for Sys {
                 pos_b,
                 ori_b,
                 scale_b_maybe,
-                agent_b_maybe,
+                alignment_b_maybe,
                 character_b,
                 stats_b,
                 body_b,
@@ -84,7 +85,7 @@ impl<'a> System<'a> for Sys {
                 &positions,
                 &orientations,
                 scales.maybe(),
-                agents.maybe(),
+                alignments.maybe(),
                 character_states.maybe(),
                 &stats,
                 &bodies,
@@ -110,6 +111,7 @@ impl<'a> System<'a> for Sys {
                 {
                     // Weapon gives base damage
                     let mut healthchange = attack.base_healthchange as f32;
+                    let mut knockback = attack.knockback;
 
                     // TODO: remove this, either it will remain unused or be used as a temporary
                     // gameplay balance
@@ -118,10 +120,18 @@ impl<'a> System<'a> for Sys {
                     //    healthchange = (healthchange / 1.5).min(-1.0);
                     //}
 
-                    // TODO: remove this when there is a better way to target healing
-                    // Don't heal npc's hp
-                    if agent_b_maybe.is_some() && healthchange > 0.0 {
+                    // TODO: remove this when there is a better way to deal with alignment
+                    // Don't heal NPCs
+                    if (healthchange > 0.0 && alignment_b_maybe
+                        .map(|a| !a.is_friendly_to_players())
+                        .unwrap_or(true))
+                        // Don't hurt pets
+                    || (healthchange < 0.0 && alignment_b_maybe
+                        .map(|b| Alignment::Owned(*uid).passive_towards(*b))
+                        .unwrap_or(false))
+                    {
                         healthchange = 0.0;
+                        knockback = 0.0;
                     }
 
                     if rand::random() {
@@ -135,14 +145,16 @@ impl<'a> System<'a> for Sys {
                         healthchange *= 1.0 - BLOCK_EFFICIENCY
                     }
 
-                    server_emitter.emit(ServerEvent::Damage {
-                        uid: *uid_b,
-                        change: HealthChange {
-                            amount: healthchange as i32,
-                            cause: HealthSource::Attack { by: *uid },
-                        },
-                    });
-                    if attack.knockback != 0.0 {
+                    if healthchange != 0.0 {
+                        server_emitter.emit(ServerEvent::Damage {
+                            uid: *uid_b,
+                            change: HealthChange {
+                                amount: healthchange as i32,
+                                cause: HealthSource::Attack { by: *uid },
+                            },
+                        });
+                    }
+                    if knockback != 0.0 {
                         local_emitter.emit(LocalEvent::ApplyForce {
                             entity: b,
                             force: attack.knockback

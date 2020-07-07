@@ -118,7 +118,7 @@ impl<'a> System<'a> for Sys {
             const LISTEN_DIST: f32 = 16.0;
             const SEARCH_DIST: f32 = 48.0;
             const SIGHT_DIST: f32 = 128.0;
-            const MIN_ATTACK_DIST: f32 = 3.25;
+            const MIN_ATTACK_DIST: f32 = 3.5;
 
             let scale = scales.get(entity).map(|s| s.0).unwrap_or(1.0);
 
@@ -191,9 +191,9 @@ impl<'a> System<'a> for Sys {
                         if let (Some(tgt_pos), _tgt_stats) =
                             (positions.get(*target), stats.get(*target))
                         {
-                            let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
+                            let dist = pos.0.distance(tgt_pos.0);
                             // Follow, or return to idle
-                            if dist_sqrd > AVG_FOLLOW_DIST.powf(2.0) {
+                            if dist > AVG_FOLLOW_DIST {
                                 if let Some((bearing, speed)) = chaser.chase(
                                     &*terrain,
                                     pos.0,
@@ -204,7 +204,7 @@ impl<'a> System<'a> for Sys {
                                 ) {
                                     inputs.move_dir =
                                         bearing.xy().try_normalized().unwrap_or(Vec2::zero())
-                                            * speed;
+                                            * speed.min(0.2 + (dist - AVG_FOLLOW_DIST) / 8.0);
                                     inputs.jump.set_state(bearing.z > 1.5);
                                 }
                             } else {
@@ -242,10 +242,12 @@ impl<'a> System<'a> for Sys {
                         if let (Some(tgt_pos), Some(tgt_stats), tgt_alignment) = (
                             positions.get(*target),
                             stats.get(*target),
-                            alignments
-                                .get(*target)
-                                .copied()
-                                .unwrap_or(Alignment::Owned(*target)),
+                            alignments.get(*target).copied().unwrap_or(
+                                uids.get(*target)
+                                    .copied()
+                                    .map(Alignment::Owned)
+                                    .unwrap_or(Alignment::Wild),
+                            ),
                         ) {
                             if let Some(dir) = Dir::from_unnormalized(tgt_pos.0 - pos.0) {
                                 inputs.look_dir = dir;
@@ -264,10 +266,10 @@ impl<'a> System<'a> for Sys {
                             let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
                             if dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0) {
                                 // Close-range attack
-                                /*inputs.move_dir = Vec2::from(tgt_pos.0 - pos.0)
-                                .try_normalized()
-                                .unwrap_or(Vec2::unit_y())
-                                * 0.7;*/
+                                inputs.move_dir = Vec2::from(tgt_pos.0 - pos.0)
+                                    .try_normalized()
+                                    .unwrap_or(Vec2::unit_y())
+                                    * 0.1;
 
                                 match tactic {
                                     Tactic::Melee | Tactic::Staff => inputs.primary.set_state(true),
@@ -419,7 +421,10 @@ impl<'a> System<'a> for Sys {
 
             // Follow owner if we're too far, or if they're under attack
             if let Some(Alignment::Owned(owner)) = alignment.copied() {
-                if let Some(owner_pos) = positions.get(owner) {
+                (|| {
+                    let owner = uid_allocator.retrieve_entity_internal(owner.id())?;
+
+                    let owner_pos = positions.get(owner)?;
                     let dist_sqrd = pos.0.distance_squared(owner_pos.0);
                     if dist_sqrd > MAX_FOLLOW_DIST.powf(2.0) && !agent.activity.is_follow() {
                         agent.activity = Activity::Follow {
@@ -429,28 +434,27 @@ impl<'a> System<'a> for Sys {
                     }
 
                     // Attack owner's attacker
-                    if let Some(owner_stats) = stats.get(owner) {
-                        if owner_stats.health.last_change.0 < 5.0 {
-                            if let comp::HealthSource::Attack { by } =
-                                owner_stats.health.last_change.1.cause
-                            {
-                                if !agent.activity.is_attack() {
-                                    if let Some(attacker) =
-                                        uid_allocator.retrieve_entity_internal(by.id())
-                                    {
-                                        agent.activity = Activity::Attack {
-                                            target: attacker,
-                                            chaser: Chaser::default(),
-                                            time: time.0,
-                                            been_close: false,
-                                            powerup: 0.0,
-                                        };
-                                    }
-                                }
+                    let owner_stats = stats.get(owner)?;
+                    if owner_stats.health.last_change.0 < 5.0 {
+                        if let comp::HealthSource::Attack { by } =
+                            owner_stats.health.last_change.1.cause
+                        {
+                            if !agent.activity.is_attack() {
+                                let attacker = uid_allocator.retrieve_entity_internal(by.id())?;
+
+                                agent.activity = Activity::Attack {
+                                    target: attacker,
+                                    chaser: Chaser::default(),
+                                    time: time.0,
+                                    been_close: false,
+                                    powerup: 0.0,
+                                };
                             }
                         }
                     }
-                }
+
+                    Some(())
+                })();
             }
 
             debug_assert!(inputs.move_dir.map(|e| !e.is_nan()).reduce_and());
