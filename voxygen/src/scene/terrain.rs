@@ -7,7 +7,7 @@ use crate::{
     },
 };
 
-use super::{LodData, SceneData};
+use super::{math, LodData, SceneData};
 use common::{
     assets,
     figure::Segment,
@@ -2852,7 +2852,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             max: focus_pos + 0.5f32,
         }; */
         let ray_direction = scene_data.get_sun_dir();
-        let collides_with_aabr = |a: Aabr<f32>, b: Aabr<f32>| {
+        let collides_with_aabr = |a: math::Aabr<f32>, b: math::Aabr<f32>| {
             a.min.partial_cmple(&b.max).reduce_and() && a.max.partial_cmpge(&b.min).reduce_and()
         };
         if ray_direction.z < 0.0 && renderer.render_mode().shadow == render::ShadowMode::Map {
@@ -2860,14 +2860,18 @@ impl<V: RectRasterableVol> Terrain<V> {
                 min: visible_bounding_box.min - focus_off,
                 max: visible_bounding_box.max - focus_off,
             };
-            let visible_bounds_fine = Aabb {
-                min: visible_bounding_box.min.map(f64::from),
-                max: visible_bounding_box.max.map(f64::from),
+            let focus_off = math::Vec3::from(focus_off);
+            let visible_bounds_fine = math::Aabb::<f64> {
+                min: math::Vec3::from(visible_bounding_box.min.map(f64::from)),
+                max: math::Vec3::from(visible_bounding_box.max.map(f64::from)),
             };
-            let inv_proj_view = (proj_mat * view_mat/* * Mat4::translation_3d(-focus_off)*/)
-                .map(f64::from)
-                .inverted();
-            let visible_light_volume = super::calc_focused_light_volume_points(
+            let inv_proj_view = math::Mat4::from_col_arrays(
+                (proj_mat * view_mat/* * Mat4::translation_3d(-focus_off)*/).into_col_arrays(),
+            )
+            .map(f64::from)
+            .inverted();
+            let ray_direction = math::Vec3::<f32>::from(ray_direction);
+            let visible_light_volume = math::calc_focused_light_volume_points(
                 inv_proj_view,
                 ray_direction.map(f64::from),
                 visible_bounds_fine,
@@ -2876,8 +2880,8 @@ impl<V: RectRasterableVol> Terrain<V> {
             .map(|v| v.map(|e| e as f32))
             .collect::<Vec<_>>();
 
-            let cam_pos = Vec3::from(view_mat.inverted() * Vec4::unit_w())/* + focus_off*/;
-            let view_dir = (focus_pos.map(f32::fract)) - cam_pos;
+            let cam_pos = math::Vec4::from(view_mat.inverted() * Vec4::unit_w()).xyz()/* + focus_off*/;
+            /* let view_dir = (focus_pos.map(f32::fract)) - cam_pos;
             // let new_dir: Vec3<f32> = light_volume/*visible_light_volume*/.iter().map(|p|
             // p - cam_pos).sum();
             let new_dir = view_dir;
@@ -2889,27 +2893,27 @@ impl<V: RectRasterableVol> Terrain<V> {
                 new_dir
             } else {
                 Vec3::from(view_mat * Vec4::from_direction(Vec3::up())).normalized()
-            };
-            let up: Vec3<f32> = {
+            }; */
+            let up: math::Vec3<f32> = {
                 /* (ray_direction)
                 .cross(new_dir)
                 .cross(ray_direction)
                 .normalized() */
-                Vec3::up()
+                math::Vec3::up()
             };
 
-            let ray_mat = Mat4::look_at_rh(
+            let ray_mat = math::Mat4::look_at_rh(
                 cam_pos,
                 cam_pos + ray_direction,
                 up,
                 // Vec3::up(),
             );
             // println!("old: {:?} new: {:?}", visible_bounding_box, visible_light_volume);
-            let visible_bounds = Aabr::from(super::fit_psr(
+            let visible_bounds = math::Aabr::from(math::fit_psr(
                 ray_mat,
                 /* super::aabb_to_points(visible_bounding_box).iter().copied() */
                 visible_light_volume.into_iter(),
-                |p| Vec3::from(p), /* / p.w */
+                |p| p, //math::Vec3::from(p), /* / p.w */
             ));
             /* let visible_bounds_old = Aabr::from(super::fit_psr(ray_mat, super::aabb_to_points(visible_bounding_box).iter().copied(), |p| Vec3::from(p) / p.w));
             println!("old: {:?} new: {:?}", visible_bounds_old, visible_bounds); */
@@ -2929,12 +2933,16 @@ impl<V: RectRasterableVol> Terrain<V> {
                     chunk_pos.y + chunk_sz,
                     chunk.z_bounds.1,
                 ];
-                let chunk_box = Aabb {
-                    min: Vec3::from(chunk_min) - focus_off,
-                    max: Vec3::from(chunk_max) - focus_off,
+                let chunk_box = math::Aabb {
+                    min: math::Vec3::from(chunk_min) - focus_off,
+                    max: math::Vec3::from(chunk_max) - focus_off,
                 };
 
-                let chunk_from_light = Aabr::from(super::fit_psr(ray_mat, super::aabb_to_points(chunk_box).iter().copied(), |p| Vec3::from(p)/* / p.w*/));
+                let chunk_from_light = math::Aabr::from(math::fit_psr(ray_mat, math::aabb_to_points(chunk_box).iter().copied(), |p| p/*math::Vec3::from(p)/* / p.w*/*/));
+                /* let chunk_from_light = Aabr {
+                    min: (ray_mat * Vec4::from_point(chunk_box.min)).xy(),
+                    max: (ray_mat * Vec4::from_point(chunk_box.max)).xy(),
+                }.made_valid(); */
                 let can_shadow_sun = collides_with_aabr(chunk_from_light, visible_bounds);
                 /* let can_shadow_sun_old = collides_with_aabr(chunk_from_light, visible_bounds_old);
                 if can_shadow_sun != can_shadow_sun_old {
