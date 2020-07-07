@@ -62,7 +62,7 @@ fn main() {
     scene
         .camera_mut()
         .update(0.0, 1.0 / 60.0, scene_data.mouse_smoothing);
-    scene.maintain(&mut renderer, scene_data);
+    scene.maintain(&mut renderer, scene_data, Some(&loadout));
 
     // Render
     renderer.clear();
