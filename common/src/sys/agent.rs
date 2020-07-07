@@ -126,7 +126,7 @@ impl<'a> System<'a> for Sys {
             // and so can afford to be less precise when trying to move around
             // the world (especially since they would otherwise get stuck on
             // obstacles that smaller entities would not).
-            let traversal_tolerance = scale + vel.0.magnitude() * 0.3;
+            let traversal_tolerance = scale + vel.0.magnitude() * 0.25;
 
             let mut do_idle = false;
             let mut choose_target = false;
