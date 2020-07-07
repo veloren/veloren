@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        projectile, Energy, EnergySource, HealthSource, Ori, PhysicsState, Pos, Projectile, Vel,
-        Alignment,
+        projectile, Alignment, Energy, EnergySource, HealthSource, Ori, PhysicsState, Pos,
+        Projectile, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
@@ -89,11 +89,11 @@ impl<'a> System<'a> for Sys {
                             // Hacky: remove this when groups get implemented
                             let passive = uid_allocator
                                 .retrieve_entity_internal(other.into())
-                                .and_then(|other|
+                                .and_then(|other| {
                                     alignments
-                                    .get(other)
-                                    .map(|a| Alignment::Owned(owner_uid)
-                                        .passive_towards(*a)))
+                                        .get(other)
+                                        .map(|a| Alignment::Owned(owner_uid).passive_towards(*a))
+                                })
                                 .unwrap_or(false);
                             if other != projectile.owner.unwrap() && !passive {
                                 server_emitter.emit(ServerEvent::Damage { uid: other, change });

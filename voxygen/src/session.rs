@@ -59,10 +59,7 @@ impl SessionState {
         {
             let mut client = client.borrow_mut();
             let my_entity = client.entity();
-            client
-                .state_mut()
-                .ecs_mut()
-                .insert(MyEntity(my_entity));
+            client.state_mut().ecs_mut().insert(MyEntity(my_entity));
         }
         let voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
             &global_state.settings.language.selected_language,
