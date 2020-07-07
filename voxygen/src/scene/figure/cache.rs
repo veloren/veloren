@@ -32,6 +32,7 @@ enum FigureKey {
 struct CharacterCacheKey {
     state: Option<Discriminant<CharacterState>>, // TODO: Can this be simplified?
     active_tool: Option<ToolKind>,
+    second_tool: Option<ToolKind>,
     shoulder: Option<Item>,
     chest: Option<Item>,
     belt: Option<Item>,
@@ -48,6 +49,13 @@ impl CharacterCacheKey {
             state: cs.map(|cs| discriminant(cs)),
             active_tool: if let Some(ItemKind::Tool(tool)) =
                 loadout.active_item.as_ref().map(|i| &i.item.kind)
+            {
+                Some(tool.kind)
+            } else {
+                None
+            },
+            second_tool: if let Some(ItemKind::Tool(tool)) =
+                loadout.second_item.as_ref().map(|i| &i.item.kind)
             {
                 Some(tool.kind)
             } else {
