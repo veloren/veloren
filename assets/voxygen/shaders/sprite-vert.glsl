@@ -50,7 +50,7 @@ void main() {
 
 	// Select glowing
 	if (select_pos.w > 0 && select_pos.xyz == floor(sprite_pos)) {
-		f_col *= 4.0;
+		f_col *= 8.0;
 	}
 
 	f_light = 1.0;

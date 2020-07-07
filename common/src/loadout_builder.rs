@@ -5,6 +5,7 @@ use crate::{
         CharacterAbility, ItemConfig, Loadout,
     },
 };
+use std::time::Duration;
 
 /// Builder for character Loadouts, containing weapon and armour items belonging
 /// to a character, along with some helper methods for loading Items and
@@ -59,6 +60,40 @@ impl LoadoutBuilder {
         .lantern(Some(assets::load_expect_cloned(
             "common.items.armor.starter.lantern",
         )))
+    }
+
+    /// Default animal configuration
+    pub fn animal() -> Self {
+        Self(Loadout {
+            active_item: Some(ItemConfig {
+                item: assets::load_expect_cloned("common.items.weapons.empty"),
+                ability1: Some(CharacterAbility::BasicMelee {
+                    energy_cost: 10,
+                    buildup_duration: Duration::from_millis(600),
+                    recover_duration: Duration::from_millis(100),
+                    base_healthchange: -6,
+                    range: 5.0,
+                    max_angle: 80.0,
+                }),
+                ability2: None,
+                ability3: None,
+                block_ability: None,
+                dodge_ability: None,
+            }),
+            second_item: None,
+            shoulder: None,
+            chest: None,
+            belt: None,
+            hand: None,
+            pants: None,
+            foot: None,
+            back: None,
+            ring: None,
+            neck: None,
+            lantern: None,
+            head: None,
+            tabard: None,
+        })
     }
 
     /// Get the default [ItemConfig](../comp/struct.ItemConfig.html) for a tool

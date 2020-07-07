@@ -188,13 +188,16 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 let reinsert = if let Some(pos) =
                                     state.read_storage::<comp::Pos>().get(entity)
                                 {
+                                    let uid = state
+                                        .read_component_cloned(entity)
+                                        .expect("Expected player to have a UID");
                                     if (
                                         &state.read_storage::<comp::Alignment>(),
                                         &state.read_storage::<comp::Agent>(),
                                     )
                                         .join()
                                         .filter(|(alignment, _)| {
-                                            alignment == &&comp::Alignment::Owned(entity)
+                                            alignment == &&comp::Alignment::Owned(uid)
                                         })
                                         .count()
                                         >= 3
@@ -220,10 +223,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                             .map(|(entity, _, _)| entity);
                                         nearest_tameable
                                     } {
-                                        let _ = state.ecs().write_storage().insert(
-                                            tameable_entity,
-                                            comp::Alignment::Owned(entity),
-                                        );
+                                        let _ = state
+                                            .ecs()
+                                            .write_storage()
+                                            .insert(tameable_entity, comp::Alignment::Owned(uid));
                                         let _ = state
                                             .ecs()
                                             .write_storage()

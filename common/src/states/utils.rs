@@ -11,7 +11,7 @@ use crate::{
 use vek::vec::Vec2;
 
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
-const BASE_HUMANOID_AIR_ACCEL: f32 = 15.0;
+const BASE_HUMANOID_AIR_ACCEL: f32 = 8.0;
 const BASE_HUMANOID_WATER_ACCEL: f32 = 150.0;
 const BASE_HUMANOID_WATER_SPEED: f32 = 180.0;
 // const BASE_HUMANOID_CLIMB_ACCEL: f32 = 10.0;
@@ -45,6 +45,24 @@ impl Body {
             Body::QuadrupedLow(_) => 120.0,
         }
     }
+
+    pub fn base_ori_rate(&self) -> f32 {
+        match self {
+            Body::Humanoid(_) => 20.0,
+            Body::QuadrupedSmall(_) => 15.0,
+            Body::QuadrupedMedium(_) => 10.0,
+            Body::BirdMedium(_) => 30.0,
+            Body::FishMedium(_) => 5.0,
+            Body::Dragon(_) => 5.0,
+            Body::BirdSmall(_) => 35.0,
+            Body::FishSmall(_) => 10.0,
+            Body::BipedLarge(_) => 12.0,
+            Body::Object(_) => 5.0,
+            Body::Golem(_) => 8.0,
+            Body::Critter(_) => 35.0,
+            Body::QuadrupedLow(_) => 12.0,
+        }
+    }
 }
 
 /// Handles updating `Components` to move player based on state of `JoinData`
@@ -68,10 +86,10 @@ fn basic_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     update.vel.0 =
         update.vel.0 + Vec2::broadcast(data.dt.0) * data.inputs.move_dir * accel * efficiency;
 
-    handle_orientation(data, update, 20.0);
+    handle_orientation(data, update, data.body.base_ori_rate());
 }
 
-pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, strength: f32) {
+pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, rate: f32) {
     // Set direction based on move direction
     let ori_dir = if update.character.is_attack() || update.character.is_block() {
         data.inputs.look_dir.xy()
@@ -82,7 +100,7 @@ pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, strength: f
     };
 
     // Smooth orientation
-    update.ori.0 = Dir::slerp_to_vec3(update.ori.0, ori_dir.into(), strength * data.dt.0);
+    update.ori.0 = Dir::slerp_to_vec3(update.ori.0, ori_dir.into(), rate * data.dt.0);
 }
 
 /// Updates components to move player as if theyre swimming
