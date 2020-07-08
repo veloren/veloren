@@ -117,6 +117,7 @@ image_ids! {
         flyingrod_m2: "voxygen.element.icons.debug_wand_m2",
         charge: "voxygen.element.icons.skill_charge_3",
         hammerleap: "voxygen.element.icons.skill_hammerleap",
+        axespin: "voxygen.element.icons.skill_axespin",
 
         // Skillbar
         level_up: "voxygen.element.misc_bg.level_up",

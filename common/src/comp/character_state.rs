@@ -64,6 +64,8 @@ pub enum CharacterState {
     TripleStrike(triple_strike::Data),
     /// A leap followed by a small aoe ground attack
     LeapMelee(leap_melee::Data),
+    /// Spin around, dealing damage to enemies surrounding you
+    SpinMelee(spin_melee::Data),
 }
 
 impl CharacterState {
@@ -75,7 +77,8 @@ impl CharacterState {
             | CharacterState::DashMelee(_)
             | CharacterState::TripleStrike(_)
             | CharacterState::BasicBlock
-            | CharacterState::LeapMelee(_) => true,
+            | CharacterState::LeapMelee(_)
+            | CharacterState::SpinMelee(_) => true,
             _ => false,
         }
     }
@@ -86,7 +89,8 @@ impl CharacterState {
             | CharacterState::BasicRanged(_)
             | CharacterState::DashMelee(_)
             | CharacterState::TripleStrike(_)
-            | CharacterState::LeapMelee(_) => true,
+            | CharacterState::LeapMelee(_)
+            | CharacterState::SpinMelee(_) => true,
             _ => false,
         }
     }

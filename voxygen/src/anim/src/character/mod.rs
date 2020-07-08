@@ -17,6 +17,7 @@ pub mod run;
 pub mod shoot;
 pub mod sit;
 pub mod spin;
+pub mod spinmelee;
 pub mod stand;
 pub mod swim;
 pub mod wield;
@@ -28,8 +29,8 @@ pub use self::{
     dance::DanceAnimation, dash::DashAnimation, equip::EquipAnimation,
     glidewield::GlideWieldAnimation, gliding::GlidingAnimation, idle::IdleAnimation,
     jump::JumpAnimation, leapmelee::LeapAnimation, roll::RollAnimation, run::RunAnimation,
-    shoot::ShootAnimation, sit::SitAnimation, spin::SpinAnimation, stand::StandAnimation,
-    swim::SwimAnimation, wield::WieldAnimation,
+    shoot::ShootAnimation, sit::SitAnimation, spin::SpinAnimation, spinmelee::SpinMeleeAnimation,
+    stand::StandAnimation, swim::SwimAnimation, wield::WieldAnimation,
 };
 
 use super::{Bone, FigureBoneData, Skeleton};
