@@ -245,8 +245,8 @@ fn load_character_data(player_uuid: &str, character_id: i32, db_dir: &str) -> Ch
         .inner_join(schema::loadout::table)
         .first::<(Character, Body, Stats, Inventory, Loadout)>(&connection);
 
-    if let Ok((character_data, body_data, stats_data, inventory, loadout)) = result {
-        Ok((
+    match result {
+        Ok((character_data, body_data, stats_data, inventory, loadout)) => Ok((
             comp::Body::from(&body_data),
             comp::Stats::from(StatsJoinData {
                 alias: &character_data.alias,
@@ -255,13 +255,15 @@ fn load_character_data(player_uuid: &str, character_id: i32, db_dir: &str) -> Ch
             }),
             comp::Inventory::from(inventory),
             comp::Loadout::from(&loadout),
-        ))
-    } else {
-        error!(
-            ?result,
-            "Failed to load character data for character id {}", character_id
-        );
-        Err(Error::CharacterDataError)
+        )),
+        Err(e) => {
+            error!(
+                ?e,
+                ?character_id,
+                "Failed to load character data for character"
+            );
+            Err(Error::CharacterDataError)
+        },
     }
 }
 
@@ -273,40 +275,36 @@ fn load_character_data(player_uuid: &str, character_id: i32, db_dir: &str) -> Ch
 /// stats, body, etc...) the character is skipped, and no entry will be
 /// returned.
 fn load_character_list(player_uuid: &str, db_dir: &str) -> CharacterListResult {
-    let data = schema::character::dsl::character
+    let result = schema::character::dsl::character
         .filter(schema::character::player_uuid.eq(player_uuid))
         .order(schema::character::id.desc())
         .inner_join(schema::body::table)
         .inner_join(schema::stats::table)
-        .left_join(schema::loadout::table)
-        .load::<(Character, Body, Stats, Option<Loadout>)>(&establish_connection(db_dir))?;
+        .inner_join(schema::loadout::table)
+        .load::<(Character, Body, Stats, Loadout)>(&establish_connection(db_dir));
 
-    Ok(data
-        .iter()
-        .map(|(character_data, body_data, stats_data, maybe_loadout)| {
-            let character = CharacterData::from(character_data);
-            let body = comp::Body::from(body_data);
-            let level = stats_data.level as usize;
-            let loadout = maybe_loadout.as_ref().map_or_else(
-                || {
-                    LoadoutBuilder::new()
-                        .defaults()
-                        .active_item(LoadoutBuilder::default_item_config_from_str(
-                            character.tool.as_deref(),
-                        ))
-                        .build()
-                },
-                comp::Loadout::from,
-            );
+    match result {
+        Ok(data) => Ok(data
+            .iter()
+            .map(|(character_data, body_data, stats_data, loadout)| {
+                let character = CharacterData::from(character_data);
+                let body = comp::Body::from(body_data);
+                let level = stats_data.level as usize;
+                let loadout = comp::Loadout::from(loadout);
 
-            CharacterItem {
-                character,
-                body,
-                level,
-                loadout,
-            }
-        })
-        .collect())
+                CharacterItem {
+                    character,
+                    body,
+                    level,
+                    loadout,
+                }
+            })
+            .collect()),
+        Err(e) => {
+            error!(?e, ?player_uuid, "Failed to load character list for player");
+            Err(Error::CharacterDataError)
+        },
+    }
 }
 
 /// Create a new character with provided comp::Character and comp::Body data.
