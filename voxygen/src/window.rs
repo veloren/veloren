@@ -421,7 +421,7 @@ impl Window {
             .with_maximized(true);
 
         let ctx_builder = glutin::ContextBuilder::new()
-            .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, (3, 2)))
+            .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, (3, 3)))
             .with_vsync(false);
 
         let (window, device, factory, win_color_view, win_depth_view) =
