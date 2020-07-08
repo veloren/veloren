@@ -708,7 +708,7 @@ impl<'a> Widget for Skillbar<'a> {
             Some(ToolKind::Dagger(_)) => self.imgs.onehdagger_m2,
             Some(ToolKind::Shield(_)) => self.imgs.onehshield_m2,
             Some(ToolKind::Hammer(_)) => self.imgs.hammerleap,
-            Some(ToolKind::Axe(_)) => self.imgs.nothing,
+            Some(ToolKind::Axe(_)) => self.imgs.axespin,
             Some(ToolKind::Bow(_)) => self.imgs.bow_m2,
             Some(ToolKind::Staff(StaffKind::Sceptre)) => self.imgs.heal_0,
             Some(ToolKind::Staff(_)) => self.imgs.staff_m2,
