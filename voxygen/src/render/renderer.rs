@@ -854,7 +854,8 @@ impl Renderer {
         /// NOTE: Because Macs lie about their max supported texture size.
         const MAX_TEXTURE_SIZE_MAX: u16 = 8192;
         #[cfg(not(target_os = "macos"))]
-        const MAX_TEXTURE_SIZE_MAX: u16 = u16::MAX;
+        /// NOTE: Apparently Macs aren't the only machines that lie.
+        const MAX_TEXTURE_SIZE_MAX: u16 = 16384;
         // NOTE: Many APIs for textures require coordinates to fit in u16, which is why
         // we perform this conversion.
         u16::try_from(factory.get_capabilities().max_texture_size)
