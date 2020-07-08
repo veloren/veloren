@@ -708,6 +708,15 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::SpinMelee(_) => {
+                            anim::character::SpinMeleeAnimation::update_skeleton(
+                                &target_base,
+                                (active_tool_kind, second_tool_kind, vel.0, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         CharacterState::TripleStrike(s) => match s.stage {
                             triple_strike::Stage::First => {
                                 anim::character::AlphaAnimation::update_skeleton(
