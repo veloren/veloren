@@ -290,7 +290,73 @@ void main() {
 
 	// vec3 surf_color = illuminate(srgb_to_linear(f_col), light, diffuse_light, ambient_light);
     vec3 f_chunk_pos = f_pos - (model_offs - focus_off.xyz);
-	vec3 col = /*srgb_to_linear*/(f_col + hash(vec4(floor(f_chunk_pos * 3.0 - f_norm * 0.5), 0)) * 0.01/* - 0.01*/); // Small-scale noise
+    float noise = hash(vec4(floor(f_chunk_pos * 3.0 - f_norm * 0.5), 0));//0.005/* - 0.01*/;
+
+//vec3 srgb_to_linear(vec3 srgb) {
+//    bvec3 cutoff = lessThan(srgb, vec3(0.04045));
+//    vec3 higher = pow((srgb + vec3(0.055))/vec3(1.055), vec3(2.4));
+//    vec3 lower = srgb/vec3(12.92);
+//
+//    return mix(higher, lower, cutoff);
+//}
+//
+//vec3 linear_to_srgb(vec3 col) {
+//    // bvec3 cutoff = lessThan(col, vec3(0.0060));
+//    // return mix(11.500726 * col, , cutoff);
+//    vec3 s1 = vec3(sqrt(col.r), sqrt(col.g), sqrt(col.b));
+//    vec3 s2 = vec3(sqrt(s1.r), sqrt(s1.g), sqrt(s1.b));
+//    vec3 s3 = vec3(sqrt(s2.r), sqrt(s2.g), sqrt(s2.b));
+//    return vec3(
+//            mix(11.500726 * col.r, (0.585122381 * s1.r + 0.783140355 * s2.r - 0.368262736 * s3.r), clamp((col.r - 0.0060) * 10000.0, 0.0, 1.0)),
+//            mix(11.500726 * col.g, (0.585122381 * s1.g + 0.783140355 * s2.g - 0.368262736 * s3.g), clamp((col.g - 0.0060) * 10000.0, 0.0, 1.0)),
+//            mix(11.500726 * col.b, (0.585122381 * s1.b + 0.783140355 * s2.b - 0.368262736 * s3.b), clamp((col.b - 0.0060) * 10000.0, 0.0, 1.0))
+//    );
+//
+//  11.500726
+//}
+    // vec3 noise_delta = vec3(noise * 0.005);
+    // vec3 noise_delta = noise * 0.02 * (1.0 - vec3(0.2126, 0.7152, 0.0722));
+    // vec3 noise_delta = noise * 0.002 / vec3(0.2126, 0.7152, 0.0722);
+    // vec3 noise_delta = sqrt(f_col) + noise;
+    /* vec3 noise_delta = f_col + noise * 0.02;
+    noise_delta *= noise_delta;
+    noise_delta -= f_col; */
+    // vec3 noise_delta = (1.0 - f_col) * 0.02 * noise * noise;
+    //
+    // a = 0.055
+    //
+    // 1 / (1 + a) = 1 / (1 + 0.055) ~ 0.947867299
+    //
+    // l2s = x^(1/2.4) * (1 / (1 + a)) - a + c
+    // s2l = (l + a)^2.4 * (1 / (1 + a))^2.4
+    //     = ((x^(1/2.4) * (1 / (1 + a)) - a + c) + a)^2.4 * (1 / (1 + a))^2.4
+    //     = (x^(1/2.4) * (1 / (1 + a)) + c)^2.4 * (1 / (1 + a))^2.4
+    //
+    //     ~ (x^(1/2) * 1 / (1 + a) + c)^2 * (1 / (1 + a))^2
+    //
+    //   = ((x + a)^2.4 * (1 / (1 + a))^2.4 + c)^(1/2.4) * (1 / (1 + a))^(1/2.4)
+    //   = (((x + a)^2.4 + c * (1 + a)^2.4) * (1 / (1 + a))^2.4)^(1/2.4) * (1 / (1 + a))^(1/2.4)
+    //   = ((x + a)^2.4 + c * (1 + a)^2.4)^(1/2.4) * ((1 / (1 + a))^2.4)^(1/2.4) * (1 / (1 + a))^(1/2.4)
+    //   = ((x + a)^2.4 + c * (1 + a)^2.4)^(1/2.4) * (1 / (1 + a))^(1/2.4)
+    //
+    //   = ((x + a)^2 + c * (1 + a)^2)^(1/2) * (1 / (1 + a))^(1/2)
+    //   = (x^2 + a^2 + 2xa + c + ca^2 + 2ac)^(1/2) * (1 / (1 + a))^(1/2)
+    //
+    const float A = 0.055;
+    const float W_INV = 1 / (1 + A);
+    const float W_2 = W_INV * W_INV;//pow(W_INV, 2.4);
+    const float NOISE_FACTOR = 0.02;//pow(0.02, 1.2);
+    vec3 noise_delta = (sqrt(f_col) * W_INV + noise * NOISE_FACTOR);
+    // noise_delta = noise_delta * noise_delta * W_2 - f_col;
+    // lum = W ⋅ col
+    // lum + noise = W ⋅ (col + delta)
+    // W ⋅ col + noise = W ⋅ col + W ⋅ delta
+    // noise = W ⋅ delta
+    // delta = noise / W
+    // vec3 col = (f_col + noise_delta);
+    vec3 col = noise_delta * noise_delta * W_2;
+    // vec3 col = srgb_to_linear(linear_to_srgb(f_col) + noise * 0.02);
+	// vec3 col = /*srgb_to_linear*/(f_col + noise); // Small-scale noise
 	// vec3 col = /*srgb_to_linear*/(f_col + hash(vec4(floor(f_pos * 3.0 - f_norm * 0.5), 0)) * 0.01); // Small-scale noise
     vec3 surf_color = illuminate(max_light, view_dir, col * emitted_light, col * reflected_light);
 

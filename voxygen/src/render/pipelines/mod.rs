@@ -141,7 +141,7 @@ impl Globals {
 
     pub fn get_moon_dir(time_of_day: f64) -> Vec3<f32> {
         let angle_rad = Self::get_angle_rad(time_of_day);
-        -Vec3::new(angle_rad.sin(), 0.0, angle_rad.cos() - 0.5)
+        -Vec3::new(angle_rad.sin(), 0.0, angle_rad.cos() - 0.5).normalized()
     }
 }
 

@@ -429,7 +429,23 @@ void main() {
     voxel_norm = voxel_norm == vec3(0.0) ? f_norm : voxel_norm;
 
     vec3 hash_pos = f_pos + focus_off.xyz;
-    f_col = /*srgb_to_linear*/(f_col + hash(vec4(floor(hash_pos * 3.0 - voxel_norm * 0.5), 0)) * 0.01/* - 0.01*/); // Small-scale noise
+    const float A = 0.055;
+    const float W_INV = 1 / (1 + A);
+    const float W_2 = W_INV * W_INV;//pow(W_INV, 2.4);
+    const float NOISE_FACTOR = 0.02;//pow(0.02, 1.2);
+    float noise = hash(vec4(floor(hash_pos * 3.0 - voxel_norm * 0.5), 0));//0.005/* - 0.01*/;
+    vec3 noise_delta = (sqrt(f_col) * W_INV + noise * NOISE_FACTOR);
+    // noise_delta = noise_delta * noise_delta * W_2 - f_col;
+    // lum = W ⋅ col
+    // lum + noise = W ⋅ (col + delta)
+    // W ⋅ col + noise = W ⋅ col + W ⋅ delta
+    // noise = W ⋅ delta
+    // delta = noise / W
+    // vec3 col = (f_col + noise_delta);
+    // vec3 col = noise_delta * noise_delta * W_2;
+
+    f_col = noise_delta * noise_delta * W_2;
+    // f_col = /*srgb_to_linear*/(f_col + hash(vec4(floor(hash_pos * 3.0 - voxel_norm * 0.5), 0)) * 0.01/* - 0.01*/); // Small-scale noise
 
     // f_ao = 1.0;
     // f_ao = dot(f_ao_vec, sqrt(1.0 - delta_sides * delta_sides));

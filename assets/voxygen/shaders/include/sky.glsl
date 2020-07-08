@@ -70,7 +70,7 @@ float get_sun_brightness(/*vec3 sun_dir*/) {
 }
 
 float get_moon_brightness(/*vec3 moon_dir*/) {
-    return max(-moon_dir.z + 0.6, 0.0) * 0.007;
+    return max(-moon_dir.z + 0.6, 0.0) * 0.4;
 }
 
 vec3 get_sun_color(/*vec3 sun_dir*/) {
@@ -375,7 +375,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
 
         // Add white dots for stars. Note these flicker and jump due to FXAA
         float star = 0.0;
-        if (with_stars || has_clouds) {
+        if (with_stars) {
             vec3 star_dir = normalize(sun_dir * dir.z + cross(sun_dir, vec3(0, 1, 0)) * dir.x + vec3(0, 1, 0) * dir.y);
             star = is_star_at(star_dir);
         }
