@@ -14,7 +14,7 @@ use futures::{
     sink::SinkExt,
     stream::StreamExt,
 };
-use std::{net::SocketAddr, sync::Arc};
+use std::{convert::TryFrom, net::SocketAddr, sync::Arc};
 use tracing::*;
 
 // Reserving bytes 0, 10, 13 as i have enough space and want to make it easy to
@@ -108,15 +108,13 @@ impl TcpProtocol {
                 FRAME_HANDSHAKE => {
                     let mut bytes = [0u8; 19];
                     Self::read_except_or_close(cid, &stream, &mut bytes, w2c_cid_frame_s).await;
-                    let magic_number = [
-                        bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6],
-                    ];
+                    let magic_number = *<&[u8; 7]>::try_from(&bytes[0..7]).unwrap();
                     Frame::Handshake {
                         magic_number,
                         version: [
-                            u32::from_le_bytes([bytes[7], bytes[8], bytes[9], bytes[10]]),
-                            u32::from_le_bytes([bytes[11], bytes[12], bytes[13], bytes[14]]),
-                            u32::from_le_bytes([bytes[15], bytes[16], bytes[17], bytes[18]]),
+                            u32::from_le_bytes(*<&[u8; 4]>::try_from(&bytes[7..11]).unwrap()),
+                            u32::from_le_bytes(*<&[u8; 4]>::try_from(&bytes[11..15]).unwrap()),
+                            u32::from_le_bytes(*<&[u8; 4]>::try_from(&bytes[15..19]).unwrap()),
                         ],
                     }
                 },
@@ -124,7 +122,7 @@ impl TcpProtocol {
                     let mut bytes = [0u8; 16];
                     Self::read_except_or_close(cid, &stream, &mut bytes, w2c_cid_frame_s).await;
                     let pid = Pid::from_le_bytes(bytes);
-                    stream.read_exact(&mut bytes).await.unwrap();
+                    Self::read_except_or_close(cid, &stream, &mut bytes, w2c_cid_frame_s).await;
                     let secret = u128::from_le_bytes(bytes);
                     Frame::Init { pid, secret }
                 },
@@ -132,10 +130,7 @@ impl TcpProtocol {
                 FRAME_OPEN_STREAM => {
                     let mut bytes = [0u8; 10];
                     Self::read_except_or_close(cid, &stream, &mut bytes, w2c_cid_frame_s).await;
-                    let sid = Sid::from_le_bytes([
-                        bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6],
-                        bytes[7],
-                    ]);
+                    let sid = Sid::from_le_bytes(*<&[u8; 8]>::try_from(&bytes[0..8]).unwrap());
                     let prio = bytes[8];
                     let promises = bytes[9];
                     Frame::OpenStream {
@@ -147,41 +142,23 @@ impl TcpProtocol {
                 FRAME_CLOSE_STREAM => {
                     let mut bytes = [0u8; 8];
                     Self::read_except_or_close(cid, &stream, &mut bytes, w2c_cid_frame_s).await;
-                    let sid = Sid::from_le_bytes([
-                        bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6],
-                        bytes[7],
-                    ]);
+                    let sid = Sid::from_le_bytes(*<&[u8; 8]>::try_from(&bytes[0..8]).unwrap());
                     Frame::CloseStream { sid }
                 },
                 FRAME_DATA_HEADER => {
                     let mut bytes = [0u8; 24];
                     Self::read_except_or_close(cid, &stream, &mut bytes, w2c_cid_frame_s).await;
-                    let mid = Mid::from_le_bytes([
-                        bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6],
-                        bytes[7],
-                    ]);
-                    let sid = Sid::from_le_bytes([
-                        bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14],
-                        bytes[15],
-                    ]);
-                    let length = u64::from_le_bytes([
-                        bytes[16], bytes[17], bytes[18], bytes[19], bytes[20], bytes[21],
-                        bytes[22], bytes[23],
-                    ]);
+                    let mid = Mid::from_le_bytes(*<&[u8; 8]>::try_from(&bytes[0..8]).unwrap());
+                    let sid = Sid::from_le_bytes(*<&[u8; 8]>::try_from(&bytes[8..16]).unwrap());
+                    let length = u64::from_le_bytes(*<&[u8; 8]>::try_from(&bytes[16..24]).unwrap());
                     Frame::DataHeader { mid, sid, length }
                 },
                 FRAME_DATA => {
                     let mut bytes = [0u8; 18];
                     Self::read_except_or_close(cid, &stream, &mut bytes, w2c_cid_frame_s).await;
-                    let mid = Mid::from_le_bytes([
-                        bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6],
-                        bytes[7],
-                    ]);
-                    let start = u64::from_le_bytes([
-                        bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14],
-                        bytes[15],
-                    ]);
-                    let length = u16::from_le_bytes([bytes[16], bytes[17]]);
+                    let mid = Mid::from_le_bytes(*<&[u8; 8]>::try_from(&bytes[0..8]).unwrap());
+                    let start = u64::from_le_bytes(*<&[u8; 8]>::try_from(&bytes[8..16]).unwrap());
+                    let length = u16::from_le_bytes(*<&[u8; 2]>::try_from(&bytes[16..18]).unwrap());
                     let mut data = vec![0; length as usize];
                     throughput_cache.inc_by(length as i64);
                     Self::read_except_or_close(cid, &stream, &mut data, w2c_cid_frame_s).await;

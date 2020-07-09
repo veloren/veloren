@@ -4,7 +4,7 @@ use veloren_network::{NetworkError, StreamError};
 mod helper;
 use helper::{network_participant_stream, tcp, udp};
 use std::io::ErrorKind;
-use veloren_network::{Address, Network, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
+use veloren_network::{Network, Pid, ProtocolAddr, PROMISES_CONSISTENCY, PROMISES_ORDERED};
 
 #[test]
 #[ignore]
@@ -68,16 +68,16 @@ fn tcp_and_udp_2_connections() -> std::result::Result<(), Box<dyn std::error::Er
     std::thread::spawn(fr);
     block_on(async {
         remote
-            .listen(Address::Tcp("0.0.0.0:2000".parse().unwrap()))
+            .listen(ProtocolAddr::Tcp("0.0.0.0:2000".parse().unwrap()))
             .await?;
         remote
-            .listen(Address::Udp("0.0.0.0:2001".parse().unwrap()))
+            .listen(ProtocolAddr::Udp("0.0.0.0:2001".parse().unwrap()))
             .await?;
         let p1 = network
-            .connect(Address::Tcp("127.0.0.1:2000".parse().unwrap()))
+            .connect(ProtocolAddr::Tcp("127.0.0.1:2000".parse().unwrap()))
             .await?;
         let p2 = network
-            .connect(Address::Udp("127.0.0.1:2001".parse().unwrap()))
+            .connect(ProtocolAddr::Udp("127.0.0.1:2001".parse().unwrap()))
             .await?;
         assert_eq!(&p1, &p2);
         Ok(())
@@ -126,10 +126,10 @@ fn api_stream_send_main() -> std::result::Result<(), Box<dyn std::error::Error>>
     std::thread::spawn(fr);
     block_on(async {
         network
-            .listen(Address::Tcp("127.0.0.1:1200".parse().unwrap()))
+            .listen(ProtocolAddr::Tcp("127.0.0.1:1200".parse().unwrap()))
             .await?;
         let remote_p = remote
-            .connect(Address::Tcp("127.0.0.1:1200".parse().unwrap()))
+            .connect(ProtocolAddr::Tcp("127.0.0.1:1200".parse().unwrap()))
             .await?;
         // keep it alive
         let _stream_p = remote_p
@@ -154,10 +154,10 @@ fn api_stream_recv_main() -> std::result::Result<(), Box<dyn std::error::Error>>
     std::thread::spawn(fr);
     block_on(async {
         network
-            .listen(Address::Tcp("127.0.0.1:1220".parse().unwrap()))
+            .listen(ProtocolAddr::Tcp("127.0.0.1:1220".parse().unwrap()))
             .await?;
         let remote_p = remote
-            .connect(Address::Tcp("127.0.0.1:1220".parse().unwrap()))
+            .connect(ProtocolAddr::Tcp("127.0.0.1:1220".parse().unwrap()))
             .await?;
         let mut stream_p = remote_p
             .open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY)

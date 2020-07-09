@@ -7,7 +7,7 @@ mod metrics;
 
 use clap::{App, Arg};
 use futures::executor::block_on;
-use network::{Address, MessageBuffer, Network, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
+use network::{ProtocolAddr, MessageBuffer, Network, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
 use serde::{Deserialize, Serialize};
 use std::{
     sync::Arc,
@@ -96,8 +96,8 @@ fn main() {
     let port: u16 = matches.value_of("port").unwrap().parse().unwrap();
     let ip: &str = matches.value_of("ip").unwrap();
     let address = match matches.value_of("protocol") {
-        Some("tcp") => Address::Tcp(format!("{}:{}", ip, port).parse().unwrap()),
-        Some("udp") => Address::Udp(format!("{}:{}", ip, port).parse().unwrap()),
+        Some("tcp") => ProtocolAddr::Tcp(format!("{}:{}", ip, port).parse().unwrap()),
+        Some("udp") => ProtocolAddr::Udp(format!("{}:{}", ip, port).parse().unwrap()),
         _ => panic!("Invalid mode, run --help!"),
     };
 
@@ -118,7 +118,7 @@ fn main() {
     }
 }
 
-fn server(address: Address) {
+fn server(address: ProtocolAddr) {
     let mut metrics = metrics::SimpleMetrics::new();
     let (server, f) = Network::new(Pid::new(), Some(metrics.registry()));
     std::thread::spawn(f);
@@ -146,7 +146,7 @@ fn server(address: Address) {
     }
 }
 
-fn client(address: Address) {
+fn client(address: ProtocolAddr) {
     let mut metrics = metrics::SimpleMetrics::new();
     let (client, f) = Network::new(Pid::new(), Some(metrics.registry()));
     std::thread::spawn(f);

@@ -1,6 +1,6 @@
 use serde::{de::DeserializeOwned, Serialize};
 //use std::collections::VecDeque;
-use crate::types::{Mid, Sid};
+use crate::types::{Frame, Mid, Sid};
 use std::{io, sync::Arc};
 
 //Todo: Evaluate switching to VecDeque for quickly adding and removing data
@@ -50,6 +50,38 @@ pub(crate) fn deserialize<M: DeserializeOwned>(buffer: MessageBuffer) -> bincode
     // got transfered while you assume Y. probably this means your application
     // logic is wrong. E.g. You expect a String, but just get a u8.
     bincode::deserialize(span.as_slice())
+}
+
+impl OutgoingMessage {
+    pub(crate) const FRAME_DATA_SIZE: u64 = 1400;
+
+    /// returns if msg is empty
+    pub(crate) fn fill_next<E: Extend<(Sid, Frame)>>(
+        &mut self,
+        msg_sid: Sid,
+        frames: &mut E,
+    ) -> bool {
+        let to_send = std::cmp::min(
+            self.buffer.data[self.cursor as usize..].len() as u64,
+            Self::FRAME_DATA_SIZE,
+        );
+        if to_send > 0 {
+            if self.cursor == 0 {
+                frames.extend(std::iter::once((msg_sid, Frame::DataHeader {
+                    mid: self.mid,
+                    sid: self.sid,
+                    length: self.buffer.data.len() as u64,
+                })));
+            }
+            frames.extend(std::iter::once((msg_sid, Frame::Data {
+                mid: self.mid,
+                start: self.cursor,
+                data: self.buffer.data[self.cursor as usize..][..to_send as usize].to_vec(),
+            })));
+        };
+        self.cursor += to_send;
+        self.cursor >= self.buffer.data.len() as u64
+    }
 }
 
 ///wouldn't trust this aaaassss much, fine for tests

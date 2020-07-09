@@ -2,7 +2,7 @@ use async_std::{
     fs,
     path::{Path, PathBuf},
 };
-use network::{Address, Participant, Stream};
+use network::{ProtocolAddr, Participant, Stream};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
@@ -12,7 +12,7 @@ use std::collections::HashMap;
 pub enum LocalCommand {
     Shutdown,
     Disconnect,
-    Connect(Address),
+    Connect(ProtocolAddr),
     List,
     Serve(FileInfo),
     Get(u32, Option<String>),
