@@ -64,9 +64,6 @@ impl Server {
                     },
                     LocalCommand::Disconnect => {
                         self.remotes.write().await.clear();
-                        for (_, p) in self.network.participants().await.drain() {
-                            self.network.disconnect(p).await.unwrap();
-                        }
                         println!("Disconnecting all connections");
                         return;
                     },
@@ -126,7 +123,7 @@ impl Server {
         trace!("Stop connect_manager");
     }
 
-    async fn loop_participant(&self, p: Arc<Participant>) {
+    async fn loop_participant(&self, p: Participant) {
         if let (Ok(cmd_out), Ok(file_out), Ok(cmd_in), Ok(file_in)) = (
             p.open(15, PROMISES_CONSISTENCY | PROMISES_ORDERED).await,
             p.open(40, PROMISES_CONSISTENCY).await,

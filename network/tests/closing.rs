@@ -19,10 +19,10 @@ fn close_network() {
 #[test]
 fn close_participant() {
     let (_, _) = helper::setup(false, 0);
-    let (n_a, p1_a, mut s1_a, n_b, p1_b, mut s1_b) = block_on(network_participant_stream(tcp()));
+    let (_n_a, p1_a, mut s1_a, _n_b, p1_b, mut s1_b) = block_on(network_participant_stream(tcp()));
 
-    block_on(n_a.disconnect(p1_a)).unwrap();
-    block_on(n_b.disconnect(p1_b)).unwrap();
+    block_on(p1_a.disconnect()).unwrap();
+    block_on(p1_b.disconnect()).unwrap();
 
     assert_eq!(s1_a.send("Hello World"), Err(StreamError::StreamClosed));
     assert_eq!(
@@ -66,7 +66,7 @@ fn close_streams_in_block_on() {
 #[test]
 fn stream_simple_3msg_then_close() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(tcp()));
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(tcp()));
 
     s1_a.send(1u8).unwrap();
     s1_a.send(42).unwrap();
@@ -83,7 +83,7 @@ fn stream_simple_3msg_then_close() {
 fn stream_send_first_then_receive() {
     // recv should still be possible even if stream got closed if they are in queue
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(tcp()));
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(tcp()));
 
     s1_a.send(1u8).unwrap();
     s1_a.send(42).unwrap();
@@ -99,7 +99,7 @@ fn stream_send_first_then_receive() {
 #[test]
 fn stream_send_1_then_close_stream() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(tcp()));
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(tcp()));
     s1_a.send("this message must be received, even if stream is closed already!")
         .unwrap();
     drop(s1_a);
@@ -112,7 +112,7 @@ fn stream_send_1_then_close_stream() {
 #[test]
 fn stream_send_100000_then_close_stream() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(tcp()));
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(tcp()));
     for _ in 0..100000 {
         s1_a.send("woop_PARTY_HARD_woop").unwrap();
     }
@@ -130,7 +130,7 @@ fn stream_send_100000_then_close_stream() {
 #[test]
 fn stream_send_100000_then_close_stream_remote() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _, mut s1_a, _n_b, _, _s1_b) = block_on(network_participant_stream(tcp()));
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, _s1_b) = block_on(network_participant_stream(tcp()));
     for _ in 0..100000 {
         s1_a.send("woop_PARTY_HARD_woop").unwrap();
     }
@@ -142,7 +142,7 @@ fn stream_send_100000_then_close_stream_remote() {
 #[test]
 fn stream_send_100000_then_close_stream_remote2() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _, mut s1_a, _n_b, _, _s1_b) = block_on(network_participant_stream(tcp()));
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, _s1_b) = block_on(network_participant_stream(tcp()));
     for _ in 0..100000 {
         s1_a.send("woop_PARTY_HARD_woop").unwrap();
     }
@@ -155,7 +155,7 @@ fn stream_send_100000_then_close_stream_remote2() {
 #[test]
 fn stream_send_100000_then_close_stream_remote3() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _, mut s1_a, _n_b, _, _s1_b) = block_on(network_participant_stream(tcp()));
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, _s1_b) = block_on(network_participant_stream(tcp()));
     for _ in 0..100000 {
         s1_a.send("woop_PARTY_HARD_woop").unwrap();
     }
@@ -163,4 +163,42 @@ fn stream_send_100000_then_close_stream_remote3() {
     std::thread::sleep(std::time::Duration::from_millis(1000));
     drop(s1_a);
     //no receiving
+}
+
+#[test]
+fn close_part_then_network() {
+    let (_, _) = helper::setup(false, 0);
+    let (n_a, p_a, mut s1_a, _n_b, _p_b, _s1_b) = block_on(network_participant_stream(tcp()));
+    for _ in 0..1000 {
+        s1_a.send("woop_PARTY_HARD_woop").unwrap();
+    }
+    drop(p_a);
+    std::thread::sleep(std::time::Duration::from_millis(1000));
+    drop(n_a);
+    std::thread::sleep(std::time::Duration::from_millis(1000));
+}
+
+#[test]
+fn close_network_then_part() {
+    let (_, _) = helper::setup(false, 0);
+    let (n_a, p_a, mut s1_a, _n_b, _p_b, _s1_b) = block_on(network_participant_stream(tcp()));
+    for _ in 0..1000 {
+        s1_a.send("woop_PARTY_HARD_woop").unwrap();
+    }
+    drop(n_a);
+    std::thread::sleep(std::time::Duration::from_millis(1000));
+    drop(p_a);
+    std::thread::sleep(std::time::Duration::from_millis(1000));
+}
+
+#[test]
+fn close_network_then_disconnect_part() {
+    let (_, _) = helper::setup(false, 0);
+    let (n_a, p_a, mut s1_a, _n_b, _p_b, _s1_b) = block_on(network_participant_stream(tcp()));
+    for _ in 0..1000 {
+        s1_a.send("woop_PARTY_HARD_woop").unwrap();
+    }
+    drop(n_a);
+    assert!(block_on(p_a.disconnect()).is_err());
+    std::thread::sleep(std::time::Duration::from_millis(1000));
 }

@@ -3,12 +3,12 @@ use hashbrown::HashSet;
 use network::{Participant, Stream};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 use vek::*;
 
 pub struct Client {
     pub client_state: ClientState,
-    pub participant: Mutex<Option<Arc<Participant>>>,
+    pub participant: Mutex<Option<Participant>>,
     pub singleton_stream: Stream,
     pub last_ping: f64,
     pub login_msg_sent: bool,

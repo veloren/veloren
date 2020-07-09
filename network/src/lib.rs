@@ -16,7 +16,7 @@
 //!
 //! To connect to another application, you must know it's [`Address`]. One side
 //! will call [`connect`], the other [`connected`]. If successfull both
-//! applications will now get a [`Arc<Participant>`].
+//! applications will now get a [`Participant`].
 //!
 //! This [`Participant`] represents the connection between those 2 applications.
 //! over the respective [`Address`] and with it the choosen network protocol.
@@ -86,7 +86,6 @@
 //! [`Networks`]: crate::api::Network
 //! [`connect`]: crate::api::Network::connect
 //! [`connected`]: crate::api::Network::connected
-//! [`Arc<Participant>`]: crate::api::Participant
 //! [`Participant`]: crate::api::Participant
 //! [`Participants`]: crate::api::Participant
 //! [`open`]: crate::api::Participant::open

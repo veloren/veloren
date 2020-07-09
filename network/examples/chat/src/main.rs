@@ -4,10 +4,11 @@
 //! (cd network/examples/chat && RUST_BACKTRACE=1 cargo run --release -- --trace=info --port 15006 --mode=client)
 //! ```
 use async_std::io;
+use async_std::sync::RwLock;
 use clap::{App, Arg};
 use futures::executor::{block_on, ThreadPool};
 use network::{Address, Network, Participant, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
-use std::{sync::Arc, thread, time::Duration};
+use std::{sync::Arc, thread, time::Duration, collections::HashMap};
 use tracing::*;
 use tracing_subscriber::EnvFilter;
 
@@ -103,17 +104,19 @@ fn server(address: Address) {
     let server = Arc::new(server);
     std::thread::spawn(f);
     let pool = ThreadPool::new().unwrap();
+    let participants = Arc::new(RwLock::new(HashMap::new()));
     block_on(async {
         server.listen(address).await.unwrap();
         loop {
-            let p1 = server.connected().await.unwrap();
+            let p1 = Arc::new(server.connected().await.unwrap());
             let server1 = server.clone();
-            pool.spawn_ok(client_connection(server1, p1));
+            participants.write().await.insert(p1.remote_pid(), p1.clone());
+            pool.spawn_ok(client_connection(server1, p1, participants.clone()));
         }
     });
 }
 
-async fn client_connection(network: Arc<Network>, participant: Arc<Participant>) {
+async fn client_connection(_network: Arc<Network>, participant: Arc<Participant>, participants: Arc<RwLock<HashMap<Pid, Arc<Participant>>>>) {
     let mut s1 = participant.opened().await.unwrap();
     let username = s1.recv::<String>().await.unwrap();
     println!("[{}] connected", username);
@@ -124,14 +127,12 @@ async fn client_connection(network: Arc<Network>, participant: Arc<Participant>)
             },
             Ok(msg) => {
                 println!("[{}]: {}", username, msg);
-                let mut parts = network.participants().await;
-                for (_, p) in parts.drain() {
+                for (_, p) in participants.read().await.iter() {
                     match p
                         .open(32, PROMISES_ORDERED | PROMISES_CONSISTENCY)
                         .await {
                         Err(_) => {
-                            //probably disconnected, remove it
-                            network.disconnect(p).await.unwrap();
+                            info!("error talking to client, //TODO drop it")
                         },
                         Ok(mut s) => s.send((username.clone(), msg.clone())).unwrap(),
                     };
@@ -180,7 +181,7 @@ fn client(address: Address) {
 // receiving i open and close a stream per message. this can be done easier but
 // this allows me to be quite lazy on the server side and just get a list of
 // all participants and send to them...
-async fn read_messages(participant: Arc<Participant>) {
+async fn read_messages(participant: Participant) {
     while let Ok(mut s) = participant.opened().await {
         let (username, message) = s.recv::<(String, String)>().await.unwrap();
         println!("[{}]: {}", username, message);
