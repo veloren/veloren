@@ -69,6 +69,7 @@ impl Route {
         vol: &V,
         pos: Vec3<f32>,
         vel: Vec3<f32>,
+        on_ground: bool,
         traversal_tolerance: f32,
     ) -> Option<(Vec3<f32>, f32)>
     where
@@ -85,42 +86,51 @@ impl Route {
             }
 
             let next1 = self.next(1).unwrap_or(next0);
-            let next0_tgt = next0.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
-            let next1_tgt = next1.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
-
-            // We might be able to skip a node in some cases to avoid doubling-back
-            let closest_tgt = if next0_tgt.distance_squared(pos) < next1_tgt.distance_squared(pos) {
-                next0_tgt
-            } else {
-                next1_tgt
-            };
+            let next_tgt = next0.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
 
             // Determine whether we're close enough to the next to to consider it completed
-            if pos.xy().distance_squared(closest_tgt.xy()) < traversal_tolerance.powf(2.0)
-                && closest_tgt.z - pos.z < 0.2
-                && closest_tgt.z - pos.z > -2.2
+            if pos.xy().distance_squared(next_tgt.xy()) < traversal_tolerance.powf(2.0)
+                && (pos.z - next_tgt.z > 1.2 || (pos.z - next_tgt.z > -0.2 && on_ground))
+                && pos.z - next_tgt.z < 2.2
                 && vel.z <= 0.0
                 // Only consider the node reached if there's nothing solid between us and it
                 && vol
-                    .ray(pos + Vec3::unit_z() * 1.5, closest_tgt + Vec3::unit_z() * 1.5)
+                    .ray(pos + Vec3::unit_z() * 1.5, next_tgt + Vec3::unit_z() * 1.5)
                     .until(|block| block.is_solid())
                     .cast()
                     .0
-                    > pos.distance(closest_tgt) * 0.9
+                    > pos.distance(next_tgt) * 0.9
                 && self.next_idx < self.path.len()
             {
                 // Node completed, move on to the next one
                 self.next_idx += 1;
             } else {
                 // The next node hasn't been reached yet, use it as a target
-                break (next0, next1, next0_tgt);
+                break (next0, next1, next_tgt);
             }
         };
 
-        let line = LineSegment2 {
-            start: pos.xy(),
-            end: pos.xy() + vel.xy() * 100.0,
-        };
+        fn gradient(line: LineSegment2<f32>) -> f32 {
+            let r = (line.start.y - line.end.y) / (line.start.x - line.end.x);
+            if r.is_nan() { 100000.0 } else { r }
+        }
+
+        fn intersect(a: LineSegment2<f32>, b: LineSegment2<f32>) -> Option<Vec2<f32>> {
+            let ma = gradient(a);
+            let mb = gradient(b);
+
+            let ca = a.start.y - ma * a.start.x;
+            let cb = b.start.y - mb * b.start.x;
+
+            if (ma - mb).abs() < 0.0001 || (ca - cb).abs() < 0.0001 {
+                None
+            } else {
+                let x = (cb - ca) / (ma - mb);
+                let y = ma * x + ca;
+
+                Some(Vec2::new(x, y))
+            }
+        }
 
         // We don't always want to aim for the centre of block since this can create
         // jerky zig-zag movement. This function attempts to find a position
@@ -133,65 +143,92 @@ impl Route {
         // 2. We don't have to search diagonals when
         // pathfinding - cartesian positions are enough since this code will
         // make the entity move smoothly along them
-        let align = |block_pos: Vec3<i32>| {
-            (0..2)
-                .map(|i| (0..2).map(move |j| Vec2::new(i, j)))
-                .flatten()
-                .map(|rpos| block_pos + rpos)
-                .map(|block_pos| {
-                    let block_posf = block_pos.xy().map(|e| e as f32);
-                    let proj = line.projected_point(block_posf);
-                    let clamped = proj.clamped(
-                        block_pos.xy().map(|e| e as f32),
-                        block_pos.xy().map(|e| e as f32),
-                    );
+        let corners = [
+            Vec2::new(0, 0),
+            Vec2::new(1, 0),
+            Vec2::new(1, 1),
+            Vec2::new(0, 1),
+            Vec2::new(0, 0), // Repeated start
+        ];
 
-                    (proj.distance_squared(clamped), clamped)
-                })
-                .min_by_key(|(d2, _)| (d2 * 1000.0) as i32)
-                .unwrap()
-                .1
+        let vel_line = LineSegment2 {
+            start: pos.xy(),
+            end: pos.xy() + vel.xy() * 100.0,
         };
 
-        let cb = CubicBezier2 {
+        let align = |block_pos: Vec3<i32>, precision: f32| {
+            let lerp_block = |x, precision| Lerp::lerp(x, block_pos.xy().map(|e| e as f32), precision);
+
+            (0..4)
+                .filter_map(|i| {
+                    let edge_line = LineSegment2 {
+                        start: lerp_block((block_pos.xy() + corners[i]).map(|e| e as f32), precision),
+                        end: lerp_block((block_pos.xy() + corners[i + 1]).map(|e| e as f32), precision),
+                    };
+                    intersect(vel_line, edge_line)
+                        .filter(|intersect| intersect.clamped(
+                            block_pos.xy().map(|e| e as f32),
+                            block_pos.xy().map(|e| e as f32 + 1.0),
+                        ).distance_squared(*intersect) < 0.001)
+                })
+                .min_by_key(|intersect: &Vec2<f32>| (intersect.distance_squared(vel_line.end) * 1000.0) as i32)
+                .unwrap_or_else(|| (0..2)
+                    .map(|i| (0..2).map(move |j| Vec2::new(i, j)))
+                        .flatten()
+                        .map(|rpos| block_pos + rpos)
+                        .map(|block_pos| {
+                            let block_posf = block_pos.xy().map(|e| e as f32);
+                            let proj = vel_line.projected_point(block_posf);
+                            let clamped = lerp_block(proj.clamped(
+                                block_pos.xy().map(|e| e as f32),
+                                block_pos.xy().map(|e| e as f32),
+                            ), precision);
+
+                            (proj.distance_squared(clamped), clamped)
+                        })
+                        .min_by_key(|(d2, _)| (d2 * 1000.0) as i32)
+                        .unwrap()
+                        .1)
+        };
+
+        let bez = CubicBezier2 {
             start: pos.xy(),
-            ctrl0: pos.xy() + vel.xy().try_normalized().unwrap_or_else(Vec2::zero) * 1.25,
-            ctrl1: align(next0),
-            end: align(next1),
+            ctrl0: pos.xy() + vel.xy().try_normalized().unwrap_or(Vec2::zero()) * 1.0,
+            ctrl1: align(next0, 1.0),
+            end: align(next1, 1.0),
         };
 
         // Use a cubic spline of the next few targets to come up with a sensible target
         // position. We want to use a position that gives smooth movement but is
         // also accurate enough to avoid the agent getting stuck under ledges or
         // falling off walls.
-        let tgt2d = cb.evaluate(0.5);
-        let tgt = Vec3::from(tgt2d) + Vec3::unit_z() * next_tgt.z;
-        let tgt_dir = (tgt - pos)
-            .xy()
+        let next_dir = bez
+            .evaluate_derivative(0.85)
             .try_normalized()
-            .unwrap_or_else(Vec2::unit_y);
-        let next_dir = cb
-            .evaluate_derivative(0.5)
-            .try_normalized()
-            .unwrap_or(tgt_dir);
+            .unwrap_or(Vec2::zero());
+        let straight_factor = next_dir
+            .dot(vel.xy().try_normalized().unwrap_or(next_dir))
+            .max(0.0)
+            .powf(2.0);
 
-        //let vel_dir = vel.xy().try_normalized().unwrap_or(Vec2::zero());
-        //let avg_dir = (tgt_dir * 0.2 + vel_dir *
-        // 0.8).try_normalized().unwrap_or(Vec2::zero()); let bearing =
-        // Vec3::<f32>::from(avg_dir * (tgt - pos).xy().magnitude()) + Vec3::unit_z() *
-        // (tgt.z - pos.z);
+        let bez = CubicBezier2 {
+            start: pos.xy(),
+            ctrl0: pos.xy() + vel.xy().try_normalized().unwrap_or(Vec2::zero()) * 1.0,
+            ctrl1: align(next0, (1.0 - straight_factor * if (next0.z as f32 - pos.z).abs() < 0.25 { 1.0 } else { 0.0 }).max(0.1)),
+            end: align(next1, 1.0),
+        };
+
+        let tgt2d = bez.evaluate(if (next0.z as f32 - pos.z).abs() < 0.25 { 0.25 } else { 0.5 });
+        let tgt = Vec3::from(tgt2d) + Vec3::unit_z() * next_tgt.z;
 
         Some((
             tgt - pos,
             // Control the entity's speed to hopefully stop us falling off walls on sharp corners.
             // This code is very imperfect: it does its best but it can still fail for particularly
             // fast entities.
-            next_dir
-                .dot(vel.xy().try_normalized().unwrap_or_else(Vec2::zero))
-                .max(0.0)
-                * 0.75
-                + 0.25,
+            straight_factor * 0.75 + 0.25,
         ))
+            .filter(|(bearing, _)| bearing.z < 2.1)
     }
 }
 
@@ -214,6 +251,7 @@ impl Chaser {
         vol: &V,
         pos: Vec3<f32>,
         vel: Vec3<f32>,
+        on_ground: bool,
         tgt: Vec3<f32>,
         min_dist: f32,
         traversal_tolerance: f32,
@@ -244,7 +282,7 @@ impl Chaser {
             } else {
                 self.route
                     .as_mut()
-                    .and_then(|r| r.traverse(vol, pos, vel, traversal_tolerance))
+                    .and_then(|r| r.traverse(vol, pos, vel, on_ground, traversal_tolerance))
                     // In theory this filter isn't needed, but in practice agents often try to take
                     // stale paths that start elsewhere. This code makes sure that we're only using
                     // paths that start near us, avoiding the agent doubling back to chase a stale
@@ -256,8 +294,8 @@ impl Chaser {
             None
         };
 
-        if let Some(bearing) = bearing {
-            Some(bearing)
+        if let Some((bearing, speed)) = bearing {
+            Some((bearing, speed))
         } else {
             // Only search for a path if the target has moved from their last position. We
             // don't want to be thrashing the pathfinding code for targets that
@@ -266,6 +304,7 @@ impl Chaser {
                 .last_search_tgt
                 .map(|last_tgt| last_tgt.distance(tgt) > pos_to_tgt * 0.15 + 5.0)
                 .unwrap_or(true)
+                || self.astar.is_some()
                 || self.route.is_none()
             {
                 let (start_pos, path) = find_path(&mut self.astar, vol, pos, tgt);
@@ -407,7 +446,7 @@ where
         // Modify the heuristic a little in order to prefer paths that take us on a
         // straight line toward our target. This means we get smoother movement.
         1.0 + crow_line.distance_to_point(b.xy().map(|e| e as f32)) * 0.025
-            + (b.z - a.z - 1).max(0) as f32 * 3.0
+            + (b.z - a.z - 1).max(0) as f32 * 10.0
     };
     let satisfied = |pos: &Vec3<i32>| pos == &end;
 

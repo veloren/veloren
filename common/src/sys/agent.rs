@@ -4,7 +4,7 @@ use crate::{
         agent::Activity,
         item::{tool::ToolKind, ItemKind},
         Agent, Alignment, CharacterState, ChatMsg, ControlAction, Controller, Loadout, MountState,
-        Ori, Pos, Scale, Stats, Vel,
+        Ori, Pos, Scale, Stats, Vel, PhysicsState,
     },
     event::{EventBus, ServerEvent},
     path::Chaser,
@@ -38,6 +38,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Stats>,
         ReadStorage<'a, Loadout>,
         ReadStorage<'a, CharacterState>,
+        ReadStorage<'a, PhysicsState>,
         ReadStorage<'a, Uid>,
         ReadExpect<'a, TerrainGrid>,
         ReadStorage<'a, Alignment>,
@@ -62,6 +63,7 @@ impl<'a> System<'a> for Sys {
             stats,
             loadouts,
             character_states,
+            physics_states,
             uids,
             terrain,
             alignments,
@@ -78,6 +80,7 @@ impl<'a> System<'a> for Sys {
             alignment,
             loadout,
             character_state,
+            physics_state,
             uid,
             agent,
             controller,
@@ -90,6 +93,7 @@ impl<'a> System<'a> for Sys {
             alignments.maybe(),
             &loadouts,
             &character_states,
+            &physics_states,
             &uids,
             &mut agents,
             &mut controllers,
@@ -126,7 +130,7 @@ impl<'a> System<'a> for Sys {
             // and so can afford to be less precise when trying to move around
             // the world (especially since they would otherwise get stuck on
             // obstacles that smaller entities would not).
-            let traversal_tolerance = scale + vel.0.magnitude() * 0.25;
+            let traversal_tolerance = scale + vel.0.xy().magnitude() * 0.2;
 
             let mut do_idle = false;
             let mut choose_target = false;
@@ -198,6 +202,7 @@ impl<'a> System<'a> for Sys {
                                     &*terrain,
                                     pos.0,
                                     vel.0,
+                                    physics_state.on_ground,
                                     tgt_pos.0,
                                     AVG_FOLLOW_DIST,
                                     traversal_tolerance,
@@ -314,6 +319,7 @@ impl<'a> System<'a> for Sys {
                                     &*terrain,
                                     pos.0,
                                     vel.0,
+                                    physics_state.on_ground,
                                     tgt_pos.0,
                                     1.25,
                                     traversal_tolerance,
