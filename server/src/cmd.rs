@@ -544,7 +544,7 @@ fn handle_spawn(
                                 .create_npc(
                                     pos,
                                     comp::Stats::new(get_npc_name(id).into(), body),
-                                    LoadoutBuilder::animal().build(),
+                                    LoadoutBuilder::animal(body).build(),
                                     body,
                                 )
                                 .with(comp::Vel(vel))
@@ -1568,7 +1568,7 @@ fn handle_set_level(
                 {
                     stats.level.set_level(lvl);
 
-                    stats.update_max_hp();
+                    stats.update_max_hp(stats.body_type);
                     stats
                         .health
                         .set_to(stats.health.maximum(), comp::HealthSource::LevelUp);
