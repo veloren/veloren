@@ -8,6 +8,7 @@ const FAR_PLANE: f32 = 100000.0;
 
 const FIRST_PERSON_INTERP_TIME: f32 = 0.1;
 const THIRD_PERSON_INTERP_TIME: f32 = 0.1;
+const FREEFLY_INTERP_TIME: f32 = 0.0;
 const LERP_ORI_RATE: f32 = 15.0;
 pub const MIN_ZOOM: f32 = 0.1;
 
@@ -16,6 +17,7 @@ pub const MIN_ZOOM: f32 = 0.1;
 pub enum CameraMode {
     FirstPerson = 0,
     ThirdPerson = 1,
+    Freefly = 2,
 }
 
 impl Default for CameraMode {
@@ -73,15 +75,7 @@ impl Camera {
     /// and position of the camera.
     pub fn compute_dependents(&mut self, terrain: &impl ReadVol) {
         let dist = {
-            let (start, end) = (
-                self.focus
-                    + (Vec3::new(
-                        -f32::sin(self.ori.x) * f32::cos(self.ori.y),
-                        -f32::cos(self.ori.x) * f32::cos(self.ori.y),
-                        f32::sin(self.ori.y),
-                    ) * self.dist),
-                self.focus,
-            );
+            let (start, end) = (self.focus - self.forward() * self.dist, self.focus);
 
             match terrain
                 .ray(start, end)
@@ -155,13 +149,10 @@ impl Camera {
 
     /// Zoom the camera by the given delta, limiting the input accordingly.
     pub fn zoom_by(&mut self, delta: f32) {
-        match self.mode {
-            CameraMode::ThirdPerson => {
-                // Clamp camera dist to the 2 <= x <= infinity range
-                self.tgt_dist = (self.tgt_dist + delta).max(2.0);
-            },
-            CameraMode::FirstPerson => {},
-        };
+        if self.mode == CameraMode::ThirdPerson {
+            // Clamp camera dist to the 2 <= x <= infinity range
+            self.tgt_dist = (self.tgt_dist + delta).max(2.0);
+        }
     }
 
     /// Zoom with the ability to switch between first and third-person mode.
@@ -181,6 +172,7 @@ impl Camera {
                     self.set_mode(CameraMode::ThirdPerson);
                     self.tgt_dist = MIN_THIRD_PERSON;
                 },
+                _ => {},
             }
         }
     }
@@ -244,6 +236,7 @@ impl Camera {
         match self.mode {
             CameraMode::FirstPerson => FIRST_PERSON_INTERP_TIME,
             CameraMode::ThirdPerson => THIRD_PERSON_INTERP_TIME,
+            CameraMode::Freefly => FREEFLY_INTERP_TIME,
         }
     }
 
@@ -287,6 +280,9 @@ impl Camera {
                 CameraMode::FirstPerson => {
                     self.set_distance(MIN_ZOOM);
                 },
+                CameraMode::Freefly => {
+                    self.zoom_by(0.0);
+                },
             }
         }
     }
@@ -301,4 +297,38 @@ impl Camera {
             mode => mode,
         }
     }
+
+    /// Cycle the camera to its next valid mode
+    pub fn next_mode(&mut self) {
+        self.set_mode(match self.mode {
+            CameraMode::ThirdPerson => CameraMode::FirstPerson,
+            CameraMode::FirstPerson => CameraMode::Freefly,
+            CameraMode::Freefly => CameraMode::ThirdPerson,
+        });
+    }
+
+    /// Return a unit vector in the forward direction for the current camera
+    /// orientation
+    pub fn forward(&self) -> Vec3<f32> {
+        Vec3::new(
+            f32::sin(self.ori.x) * f32::cos(self.ori.y),
+            f32::cos(self.ori.x) * f32::cos(self.ori.y),
+            -f32::sin(self.ori.y),
+        )
+    }
+
+    /// Return a unit vector in the right direction for the current camera
+    /// orientation
+    pub fn right(&self) -> Vec3<f32> {
+        const UP: Vec3<f32> = Vec3::new(0.0, 0.0, 1.0);
+        self.forward().cross(UP).normalized()
+    }
+
+    /// Return a unit vector in the forward direction on the XY plane for
+    /// the current camera orientation
+    pub fn forward_xy(&self) -> Vec2<f32> { Vec2::new(f32::sin(self.ori.x), f32::cos(self.ori.x)) }
+
+    /// Return a unit vector in the right direction on the XY plane for
+    /// the current camera orientation
+    pub fn right_xy(&self) -> Vec2<f32> { Vec2::new(f32::cos(self.ori.x), -f32::sin(self.ori.x)) }
 }
