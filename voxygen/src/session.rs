@@ -520,8 +520,12 @@ impl PlayState for SessionState {
                         }
                     },
                     Event::InputUpdate(GameInput::CycleCamera, true) => {
+                        // Prevent accessing camera modes which aren't available in multiplayer
+                        // unless you are an admin. This is an easily bypassed clientside check.
+                        // The server should do its own filtering of which entities are sent to
+                        // clients to prevent abuse.
                         let camera = self.scene.camera_mut();
-                        camera.next_mode();
+                        camera.next_mode(self.client.borrow().is_admin());
                     },
                     Event::AnalogGameInput(input) => match input {
                         AnalogGameInput::MovementX(v) => {
