@@ -298,11 +298,18 @@ impl Camera {
         }
     }
 
-    /// Cycle the camera to its next valid mode
-    pub fn next_mode(&mut self) {
+    /// Cycle the camera to its next valid mode. If is_admin is false then only
+    /// modes which are accessible without admin access will be cycled to.
+    pub fn next_mode(&mut self, is_admin: bool) {
         self.set_mode(match self.mode {
             CameraMode::ThirdPerson => CameraMode::FirstPerson,
-            CameraMode::FirstPerson => CameraMode::Freefly,
+            CameraMode::FirstPerson => {
+                if is_admin {
+                    CameraMode::Freefly
+                } else {
+                    CameraMode::ThirdPerson
+                }
+            },
             CameraMode::Freefly => CameraMode::ThirdPerson,
         });
     }
