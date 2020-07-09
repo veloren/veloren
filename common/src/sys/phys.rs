@@ -134,6 +134,7 @@ impl<'a> System<'a> for Sys {
                 let dt_lerp = 0.2;
                 (vel.0 * dt_lerp + old_vel.0 * (1.0 - dt_lerp)) * dt.0
             } else {
+                vel.0 = Vec3::zero();
                 Vec3::zero()
             };
 
@@ -319,6 +320,7 @@ impl<'a> System<'a> for Sys {
                         }
 
                         if attempts == MAX_ATTEMPTS {
+                            vel.0 = Vec3::zero();
                             pos.0 = old_pos;
                             break;
                         }
