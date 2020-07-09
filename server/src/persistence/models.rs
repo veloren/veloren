@@ -106,7 +106,7 @@ impl From<StatsJoinData<'_>> for comp::Stats {
 
         base_stats.exp.set_current(data.stats.exp as u32);
 
-        base_stats.update_max_hp();
+        base_stats.update_max_hp(base_stats.body_type);
         base_stats
             .health
             .set_to(base_stats.health.maximum(), comp::HealthSource::Revive);
