@@ -215,7 +215,7 @@ impl<'a> System<'a> for Sys {
                         head: None,
                         tabard: None,
                     },
-                    _ => LoadoutBuilder::animal().build(),
+                    _ => LoadoutBuilder::animal(entity.body).build(),
                 };
 
                 let mut scale = entity.scale;
@@ -296,7 +296,7 @@ impl<'a> System<'a> for Sys {
                     scale = 2.0 + rand::random::<f32>();
                 }
 
-                stats.update_max_hp();
+                stats.update_max_hp(stats.body_type);
 
                 stats
                     .health

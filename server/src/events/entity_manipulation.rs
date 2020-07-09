@@ -63,9 +63,12 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     if let Some(attacker_stats) = stats.get_mut(attacker) {
                         // TODO: Discuss whether we should give EXP by Player
                         // Killing or not.
-                        attacker_stats
-                            .exp
-                            .change_by((entity_stats.level.level() * 10) as i64);
+                        attacker_stats.exp.change_by(
+                            (entity_stats.body_type.base_exp()
+                                + entity_stats.level.level()
+                                    * entity_stats.body_type.base_exp_increase())
+                                as i64,
+                        );
                     }
                 });
             }

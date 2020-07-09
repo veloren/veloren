@@ -131,6 +131,81 @@ pub struct Stats {
     pub fitness: u32,
     pub willpower: u32,
     pub is_dead: bool,
+    pub body_type: Body,
+}
+
+impl Body {
+    pub fn base_health(&self) -> u32 {
+        match self {
+            Body::Humanoid(_) => 52,
+            Body::QuadrupedSmall(_) => 44,
+            Body::QuadrupedMedium(_) => 72,
+            Body::BirdMedium(_) => 36,
+            Body::FishMedium(_) => 32,
+            Body::Dragon(_) => 256,
+            Body::BirdSmall(_) => 24,
+            Body::FishSmall(_) => 20,
+            Body::BipedLarge(_) => 144,
+            Body::Object(_) => 100,
+            Body::Golem(_) => 168,
+            Body::Critter(_) => 32,
+            Body::QuadrupedLow(_) => 64,
+        }
+    }
+
+    pub fn base_health_increase(&self) -> u32 {
+        match self {
+            Body::Humanoid(_) => 5,
+            Body::QuadrupedSmall(_) => 4,
+            Body::QuadrupedMedium(_) => 7,
+            Body::BirdMedium(_) => 4,
+            Body::FishMedium(_) => 3,
+            Body::Dragon(_) => 26,
+            Body::BirdSmall(_) => 2,
+            Body::FishSmall(_) => 2,
+            Body::BipedLarge(_) => 14,
+            Body::Object(_) => 0,
+            Body::Golem(_) => 17,
+            Body::Critter(_) => 3,
+            Body::QuadrupedLow(_) => 6,
+        }
+    }
+
+    pub fn base_exp(&self) -> u32 {
+        match self {
+            Body::Humanoid(_) => 15,
+            Body::QuadrupedSmall(_) => 12,
+            Body::QuadrupedMedium(_) => 28,
+            Body::BirdMedium(_) => 10,
+            Body::FishMedium(_) => 8,
+            Body::Dragon(_) => 160,
+            Body::BirdSmall(_) => 5,
+            Body::FishSmall(_) => 4,
+            Body::BipedLarge(_) => 75,
+            Body::Object(_) => 0,
+            Body::Golem(_) => 75,
+            Body::Critter(_) => 8,
+            Body::QuadrupedLow(_) => 24,
+        }
+    }
+
+    pub fn base_exp_increase(&self) -> u32 {
+        match self {
+            Body::Humanoid(_) => 3,
+            Body::QuadrupedSmall(_) => 2,
+            Body::QuadrupedMedium(_) => 6,
+            Body::BirdMedium(_) => 2,
+            Body::FishMedium(_) => 2,
+            Body::Dragon(_) => 32,
+            Body::BirdSmall(_) => 1,
+            Body::FishSmall(_) => 1,
+            Body::BipedLarge(_) => 15,
+            Body::Object(_) => 0,
+            Body::Golem(_) => 15,
+            Body::Critter(_) => 2,
+            Body::QuadrupedLow(_) => 5,
+        }
+    }
 }
 
 impl Stats {
@@ -143,7 +218,10 @@ impl Stats {
     }
 
     // TODO: Delete this once stat points will be a thing
-    pub fn update_max_hp(&mut self) { self.health.set_maximum(52 + 3 * self.level.amount); }
+    pub fn update_max_hp(&mut self, body: Body) {
+        self.health
+            .set_maximum(body.base_health() + body.base_health_increase() * self.level.amount);
+    }
 }
 
 impl Stats {
@@ -187,9 +265,10 @@ impl Stats {
             fitness,
             willpower,
             is_dead: false,
+            body_type: body,
         };
 
-        stats.update_max_hp();
+        stats.update_max_hp(body);
         stats
             .health
             .set_to(stats.health.maximum(), HealthSource::Revive);
