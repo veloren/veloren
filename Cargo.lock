@@ -3695,7 +3695,7 @@ dependencies = [
 [[package]]
 name = "specs-idvs"
 version = "0.1.0"
-source = "git+https://gitlab.com/veloren/specs-idvs.git#530ebb00b60685d6d1f47a3bc16c5b1f25c5e530"
+source = "git+https://gitlab.com/veloren/specs-idvs.git?branch=specs-git#fcb0b2306b571f62f9f85d89e79e087454d95efd"
 dependencies = [
  "specs",
 ]
