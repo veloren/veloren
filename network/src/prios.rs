@@ -40,7 +40,6 @@ pub(crate) struct PrioManager {
 }
 
 impl PrioManager {
-    const FRAME_DATA_SIZE: u64 = 1400;
     const PRIOS: [u32; PRIO_MAX] = [
         100, 115, 132, 152, 174, 200, 230, 264, 303, 348, 400, 459, 528, 606, 696, 800, 919, 1056,
         1213, 1393, 1600, 1838, 2111, 2425, 2786, 3200, 3676, 4222, 4850, 5572, 6400, 7352, 8445,
@@ -201,34 +200,6 @@ impl PrioManager {
             .min_by_key(|&n| self.points[*n as usize]).cloned()*/
     }
 
-    /// returns if msg is empty
-    fn tick_msg<E: Extend<(Sid, Frame)>>(
-        msg: &mut OutgoingMessage,
-        msg_sid: Sid,
-        frames: &mut E,
-    ) -> bool {
-        let to_send = std::cmp::min(
-            msg.buffer.data[msg.cursor as usize..].len() as u64,
-            Self::FRAME_DATA_SIZE,
-        );
-        if to_send > 0 {
-            if msg.cursor == 0 {
-                frames.extend(std::iter::once((msg_sid, Frame::DataHeader {
-                    mid: msg.mid,
-                    sid: msg.sid,
-                    length: msg.buffer.data.len() as u64,
-                })));
-            }
-            frames.extend(std::iter::once((msg_sid, Frame::Data {
-                mid: msg.mid,
-                start: msg.cursor,
-                data: msg.buffer.data[msg.cursor as usize..][..to_send as usize].to_vec(),
-            })));
-        };
-        msg.cursor += to_send;
-        msg.cursor >= msg.buffer.data.len() as u64
-    }
-
     /// no_of_frames = frames.len()
     /// Your goal is to try to find a realistic no_of_frames!
     /// no_of_frames should be choosen so, that all Frames can be send out till
@@ -257,7 +228,7 @@ impl PrioManager {
                     // => messages with same prio get a fair chance :)
                     //TODO: evalaute not poping every time
                     let (sid, mut msg) = self.messages[prio as usize].pop_front().unwrap();
-                    if Self::tick_msg(&mut msg, sid, frames) {
+                    if msg.fill_next(sid, frames) {
                         //trace!(?m.mid, "finish message");
                         //check if prio is empty
                         if self.messages[prio as usize].is_empty() {
@@ -314,8 +285,8 @@ mod tests {
     use futures::{channel::oneshot, executor::block_on};
     use std::{collections::VecDeque, sync::Arc};
 
-    const SIZE: u64 = PrioManager::FRAME_DATA_SIZE;
-    const USIZE: usize = PrioManager::FRAME_DATA_SIZE as usize;
+    const SIZE: u64 = OutgoingMessage::FRAME_DATA_SIZE;
+    const USIZE: usize = OutgoingMessage::FRAME_DATA_SIZE as usize;
 
     #[allow(clippy::type_complexity)]
     fn mock_new() -> (

@@ -1,5 +1,5 @@
 use crate::{
-    api::{Address, Participant},
+    api::{Participant, ProtocolAddr},
     channel::Handshake,
     metrics::NetworkMetrics,
     participant::BParticipant,
@@ -50,8 +50,9 @@ struct ParticipantInfo {
 ///  - c: channel/handshake
 #[derive(Debug)]
 struct ControlChannels {
-    a2s_listen_r: mpsc::UnboundedReceiver<(Address, oneshot::Sender<io::Result<()>>)>,
-    a2s_connect_r: mpsc::UnboundedReceiver<(Address, oneshot::Sender<io::Result<Participant>>)>,
+    a2s_listen_r: mpsc::UnboundedReceiver<(ProtocolAddr, oneshot::Sender<io::Result<()>>)>,
+    a2s_connect_r:
+        mpsc::UnboundedReceiver<(ProtocolAddr, oneshot::Sender<io::Result<Participant>>)>,
     a2s_scheduler_shutdown_r: oneshot::Receiver<()>,
     a2s_disconnect_r: mpsc::UnboundedReceiver<(Pid, oneshot::Sender<async_std::io::Result<()>>)>,
     b2s_prio_statistic_r: mpsc::UnboundedReceiver<(Pid, u64, u64)>,
@@ -74,7 +75,7 @@ pub struct Scheduler {
     participant_channels: Arc<Mutex<Option<ParticipantChannels>>>,
     participants: Arc<RwLock<HashMap<Pid, ParticipantInfo>>>,
     channel_ids: Arc<AtomicU64>,
-    channel_listener: RwLock<HashMap<Address, oneshot::Sender<()>>>,
+    channel_listener: RwLock<HashMap<ProtocolAddr, oneshot::Sender<()>>>,
     metrics: Arc<NetworkMetrics>,
 }
 
@@ -85,15 +86,15 @@ impl Scheduler {
         registry: Option<&Registry>,
     ) -> (
         Self,
-        mpsc::UnboundedSender<(Address, oneshot::Sender<io::Result<()>>)>,
-        mpsc::UnboundedSender<(Address, oneshot::Sender<io::Result<Participant>>)>,
+        mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<io::Result<()>>)>,
+        mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<io::Result<Participant>>)>,
         mpsc::UnboundedReceiver<Participant>,
         oneshot::Sender<()>,
     ) {
         let (a2s_listen_s, a2s_listen_r) =
-            mpsc::unbounded::<(Address, oneshot::Sender<io::Result<()>>)>();
+            mpsc::unbounded::<(ProtocolAddr, oneshot::Sender<io::Result<()>>)>();
         let (a2s_connect_s, a2s_connect_r) =
-            mpsc::unbounded::<(Address, oneshot::Sender<io::Result<Participant>>)>();
+            mpsc::unbounded::<(ProtocolAddr, oneshot::Sender<io::Result<Participant>>)>();
         let (s2a_connected_s, s2a_connected_r) = mpsc::unbounded::<Participant>();
         let (a2s_scheduler_shutdown_s, a2s_scheduler_shutdown_r) = oneshot::channel::<()>();
         let (a2s_disconnect_s, a2s_disconnect_r) =
@@ -156,7 +157,7 @@ impl Scheduler {
 
     async fn listen_mgr(
         &self,
-        a2s_listen_r: mpsc::UnboundedReceiver<(Address, oneshot::Sender<io::Result<()>>)>,
+        a2s_listen_r: mpsc::UnboundedReceiver<(ProtocolAddr, oneshot::Sender<io::Result<()>>)>,
     ) {
         trace!("Start listen_mgr");
         a2s_listen_r
@@ -168,9 +169,9 @@ impl Scheduler {
                     self.metrics
                         .listen_requests_total
                         .with_label_values(&[match address {
-                            Address::Tcp(_) => "tcp",
-                            Address::Udp(_) => "udp",
-                            Address::Mpsc(_) => "mpsc",
+                            ProtocolAddr::Tcp(_) => "tcp",
+                            ProtocolAddr::Udp(_) => "udp",
+                            ProtocolAddr::Mpsc(_) => "mpsc",
                         }])
                         .inc();
                     let (end_sender, end_receiver) = oneshot::channel::<()>();
@@ -189,14 +190,14 @@ impl Scheduler {
     async fn connect_mgr(
         &self,
         mut a2s_connect_r: mpsc::UnboundedReceiver<(
-            Address,
+            ProtocolAddr,
             oneshot::Sender<io::Result<Participant>>,
         )>,
     ) {
         trace!("Start connect_mgr");
         while let Some((addr, pid_sender)) = a2s_connect_r.next().await {
             let (protocol, handshake) = match addr {
-                Address::Tcp(addr) => {
+                ProtocolAddr::Tcp(addr) => {
                     self.metrics
                         .connect_requests_total
                         .with_label_values(&["tcp"])
@@ -214,7 +215,7 @@ impl Scheduler {
                         false,
                     )
                 },
-                Address::Udp(addr) => {
+                ProtocolAddr::Udp(addr) => {
                     self.metrics
                         .connect_requests_total
                         .with_label_values(&["udp"])
@@ -338,13 +339,13 @@ impl Scheduler {
 
     async fn channel_creator(
         &self,
-        addr: Address,
+        addr: ProtocolAddr,
         s2s_stop_listening_r: oneshot::Receiver<()>,
         s2a_listen_result_s: oneshot::Sender<io::Result<()>>,
     ) {
         trace!(?addr, "Start up channel creator");
         match addr {
-            Address::Tcp(addr) => {
+            ProtocolAddr::Tcp(addr) => {
                 let listener = match net::TcpListener::bind(addr).await {
                     Ok(listener) => {
                         s2a_listen_result_s.send(Ok(())).unwrap();
@@ -374,7 +375,7 @@ impl Scheduler {
                         .await;
                 }
             },
-            Address::Udp(addr) => {
+            ProtocolAddr::Udp(addr) => {
                 let socket = match net::UdpSocket::bind(addr).await {
                     Ok(socket) => {
                         s2a_listen_result_s.send(Ok(())).unwrap();

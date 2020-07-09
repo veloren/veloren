@@ -7,7 +7,7 @@ use async_std::io;
 use async_std::sync::RwLock;
 use clap::{App, Arg};
 use futures::executor::{block_on, ThreadPool};
-use network::{Address, Network, Participant, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
+use network::{ProtocolAddr, Network, Participant, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
 use std::{sync::Arc, thread, time::Duration, collections::HashMap};
 use tracing::*;
 use tracing_subscriber::EnvFilter;
@@ -77,8 +77,8 @@ fn main() {
     let port: u16 = matches.value_of("port").unwrap().parse().unwrap();
     let ip: &str = matches.value_of("ip").unwrap();
     let address = match matches.value_of("protocol") {
-        Some("tcp") => Address::Tcp(format!("{}:{}", ip, port).parse().unwrap()),
-        Some("udp") => Address::Udp(format!("{}:{}", ip, port).parse().unwrap()),
+        Some("tcp") => ProtocolAddr::Tcp(format!("{}:{}", ip, port).parse().unwrap()),
+        Some("udp") => ProtocolAddr::Udp(format!("{}:{}", ip, port).parse().unwrap()),
         _ => panic!("invalid mode, run --help!"),
     };
 
@@ -99,7 +99,7 @@ fn main() {
     }
 }
 
-fn server(address: Address) {
+fn server(address: ProtocolAddr) {
     let (server, f) = Network::new(Pid::new(), None);
     let server = Arc::new(server);
     std::thread::spawn(f);
@@ -143,7 +143,7 @@ async fn client_connection(_network: Arc<Network>, participant: Arc<Participant>
     println!("[{}] disconnected", username);
 }
 
-fn client(address: Address) {
+fn client(address: ProtocolAddr) {
     let (client, f) = Network::new(Pid::new(), None);
     std::thread::spawn(f);
     let pool = ThreadPool::new().unwrap();

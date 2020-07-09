@@ -35,7 +35,9 @@ use futures_timer::Delay;
 use futures_util::{select, FutureExt};
 use hashbrown::HashMap;
 use image::DynamicImage;
-use network::{Address, Network, Participant, Pid, Stream, PROMISES_CONSISTENCY, PROMISES_ORDERED};
+use network::{
+    Network, Participant, Pid, ProtocolAddr, Stream, PROMISES_CONSISTENCY, PROMISES_ORDERED,
+};
 use std::{
     collections::VecDeque,
     net::SocketAddr,
@@ -117,7 +119,7 @@ impl Client {
         let (network, f) = Network::new(Pid::new(), None);
         thread_pool.execute(f);
 
-        let participant = block_on(network.connect(Address::Tcp(addr.into())))?;
+        let participant = block_on(network.connect(ProtocolAddr::Tcp(addr.into())))?;
         let mut stream = block_on(participant.open(10, PROMISES_ORDERED | PROMISES_CONSISTENCY))?;
 
         // Wait for initial sync

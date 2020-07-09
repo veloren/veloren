@@ -10,7 +10,7 @@ use futures::{
     executor::{block_on, ThreadPool},
     sink::SinkExt,
 };
-use network::Address;
+use network::ProtocolAddr;
 use std::{thread, time::Duration};
 use tracing::*;
 use tracing_subscriber::EnvFilter;
@@ -54,7 +54,7 @@ fn main() {
         .init();
 
     let port: u16 = matches.value_of("port").unwrap().parse().unwrap();
-    let address = Address::Tcp(format!("{}:{}", "127.0.0.1", port).parse().unwrap());
+    let address = ProtocolAddr::Tcp(format!("{}:{}", "127.0.0.1", port).parse().unwrap());
 
     let (server, cmd_sender) = Server::new();
     let pool = ThreadPool::new().unwrap();
@@ -157,13 +157,13 @@ async fn client(mut cmd_sender: mpsc::UnboundedSender<LocalCommand>) {
             ("connect", Some(connect_matches)) => {
                 let socketaddr = connect_matches.value_of("ip:port").unwrap().parse().unwrap();
                 cmd_sender
-                    .send(LocalCommand::Connect(Address::Tcp(socketaddr)))
+                    .send(LocalCommand::Connect(ProtocolAddr::Tcp(socketaddr)))
                     .await
                     .unwrap();
             },
             ("t", _) => {
                 cmd_sender
-                    .send(LocalCommand::Connect(Address::Tcp(
+                    .send(LocalCommand::Connect(ProtocolAddr::Tcp(
                         "127.0.0.1:1231".parse().unwrap(),
                     )))
                     .await

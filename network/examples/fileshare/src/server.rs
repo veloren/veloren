@@ -5,7 +5,7 @@ use async_std::{
     sync::{Mutex, RwLock},
 };
 use futures::{channel::mpsc, future::FutureExt, stream::StreamExt};
-use network::{Address, Network, Participant, Pid, Stream, PROMISES_CONSISTENCY, PROMISES_ORDERED};
+use network::{ProtocolAddr, Network, Participant, Pid, Stream, PROMISES_CONSISTENCY, PROMISES_ORDERED};
 use std::{collections::HashMap, sync::Arc};
 use tracing::*;
 
@@ -42,7 +42,7 @@ impl Server {
         )
     }
 
-    pub async fn run(mut self, address: Address) {
+    pub async fn run(mut self, address: ProtocolAddr) {
         let run_channels = self.run_channels.take().unwrap();
 
         self.network.listen(address).await.unwrap();

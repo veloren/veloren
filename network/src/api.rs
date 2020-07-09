@@ -31,7 +31,7 @@ type ParticipantCloseChannel =
 
 /// Represents a Tcp or Udp or Mpsc address
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub enum Address {
+pub enum ProtocolAddr {
     Tcp(SocketAddr),
     Udp(SocketAddr),
     Mpsc(u64),
@@ -111,12 +111,12 @@ pub enum StreamError {
 /// [`Arc`](std::sync::Arc) as all commands have internal mutability.
 ///
 /// The `Network` has methods to [`connect`] to other [`Participants`] actively
-/// via their [`Address`], or [`listen`] passively for [`connected`]
+/// via their [`ProtocolAddr`], or [`listen`] passively for [`connected`]
 /// [`Participants`].
 ///
 /// # Examples
 /// ```rust
-/// use veloren_network::{Network, Address, Pid};
+/// use veloren_network::{Network, ProtocolAddr, Pid};
 /// use futures::executor::block_on;
 ///
 /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
@@ -127,9 +127,9 @@ pub enum StreamError {
 ///     # //setup pseudo database!
 ///     # let (database, fd) = Network::new(Pid::new(), None);
 ///     # std::thread::spawn(fd);
-///     # database.listen(Address::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
-///     network.listen(Address::Tcp("127.0.0.1:2999".parse().unwrap())).await?;
-///     let database = network.connect(Address::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
+///     # database.listen(ProtocolAddr::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
+///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2999".parse().unwrap())).await?;
+///     let database = network.connect(ProtocolAddr::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
 ///     # Ok(())
 /// })
 /// # }
@@ -144,9 +144,9 @@ pub struct Network {
     participant_disconnect_sender:
         RwLock<HashMap<Pid, Arc<std::sync::Mutex<Option<ParticipantCloseChannel>>>>>,
     listen_sender:
-        RwLock<mpsc::UnboundedSender<(Address, oneshot::Sender<async_std::io::Result<()>>)>>,
+        RwLock<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<async_std::io::Result<()>>)>>,
     connect_sender:
-        RwLock<mpsc::UnboundedSender<(Address, oneshot::Sender<io::Result<Participant>>)>>,
+        RwLock<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<io::Result<Participant>>)>>,
     connected_receiver: RwLock<mpsc::UnboundedReceiver<Participant>>,
     shutdown_sender: Option<oneshot::Sender<()>>,
 }
@@ -176,7 +176,7 @@ impl Network {
     /// ```rust
     /// //Example with uvth
     /// use uvth::ThreadPoolBuilder;
-    /// use veloren_network::{Address, Network, Pid};
+    /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// let pool = ThreadPoolBuilder::new().build();
     /// let (network, f) = Network::new(Pid::new(), None);
@@ -185,7 +185,7 @@ impl Network {
     ///
     /// ```rust
     /// //Example with std::thread
-    /// use veloren_network::{Address, Network, Pid};
+    /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// let (network, f) = Network::new(Pid::new(), None);
     /// std::thread::spawn(f);
@@ -228,7 +228,7 @@ impl Network {
         )
     }
 
-    /// starts listening on an [`Address`].
+    /// starts listening on an [`ProtocolAddr`].
     /// When the method returns the `Network` is ready to listen for incoming
     /// connections OR has returned a [`NetworkError`] (e.g. port already used).
     /// You can call [`connected`] to asynchrony wait for a [`Participant`] to
@@ -238,7 +238,7 @@ impl Network {
     /// # Examples
     /// ```rust
     /// use futures::executor::block_on;
-    /// use veloren_network::{Address, Network, Pid};
+    /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2000` TCP on all NICs and `2001` UDP locally
@@ -246,10 +246,10 @@ impl Network {
     /// std::thread::spawn(f);
     /// block_on(async {
     ///     network
-    ///         .listen(Address::Tcp("0.0.0.0:2000".parse().unwrap()))
+    ///         .listen(ProtocolAddr::Tcp("0.0.0.0:2000".parse().unwrap()))
     ///         .await?;
     ///     network
-    ///         .listen(Address::Udp("127.0.0.1:2001".parse().unwrap()))
+    ///         .listen(ProtocolAddr::Udp("127.0.0.1:2001".parse().unwrap()))
     ///         .await?;
     ///     # Ok(())
     /// })
@@ -257,7 +257,7 @@ impl Network {
     /// ```
     ///
     /// [`connected`]: Network::connected
-    pub async fn listen(&self, address: Address) -> Result<(), NetworkError> {
+    pub async fn listen(&self, address: ProtocolAddr) -> Result<(), NetworkError> {
         let (s2a_result_s, s2a_result_r) = oneshot::channel::<async_std::io::Result<()>>();
         debug!(?address, "listening on address");
         self.listen_sender
@@ -273,13 +273,13 @@ impl Network {
         }
     }
 
-    /// starts connectiong to an [`Address`].
+    /// starts connectiong to an [`ProtocolAddr`].
     /// When the method returns the Network either returns a [`Participant`]
     /// ready to open [`Streams`] on OR has returned a [`NetworkError`] (e.g.
     /// can't connect, or invalid Handshake) # Examples
     /// ```rust
     /// use futures::executor::block_on;
-    /// use veloren_network::{Address, Network, Pid};
+    /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port `2010` TCP and `2011` UDP like listening above
@@ -288,16 +288,16 @@ impl Network {
     /// # let (remote, fr) = Network::new(Pid::new(), None);
     /// # std::thread::spawn(fr);
     /// block_on(async {
-    ///     # remote.listen(Address::Tcp("0.0.0.0:2010".parse().unwrap())).await?;
-    ///     # remote.listen(Address::Udp("0.0.0.0:2011".parse().unwrap())).await?;
+    ///     # remote.listen(ProtocolAddr::Tcp("0.0.0.0:2010".parse().unwrap())).await?;
+    ///     # remote.listen(ProtocolAddr::Udp("0.0.0.0:2011".parse().unwrap())).await?;
     ///     let p1 = network
-    ///         .connect(Address::Tcp("127.0.0.1:2010".parse().unwrap()))
+    ///         .connect(ProtocolAddr::Tcp("127.0.0.1:2010".parse().unwrap()))
     ///         .await?;
     ///     # //this doesn't work yet, so skip the test
     ///     # //TODO fixme!
     ///     # return Ok(());
     ///     let p2 = network
-    ///         .connect(Address::Udp("127.0.0.1:2011".parse().unwrap()))
+    ///         .connect(ProtocolAddr::Udp("127.0.0.1:2011".parse().unwrap()))
     ///         .await?;
     ///     assert_eq!(&p1, &p2);
     ///     # Ok(())
@@ -306,14 +306,14 @@ impl Network {
     /// ```
     /// Usually the `Network` guarantees that a operation on a [`Participant`]
     /// succeeds, e.g. by automatic retrying unless it fails completely e.g. by
-    /// disconnecting from the remote. If 2 [`Addresses`] you `connect` to
+    /// disconnecting from the remote. If 2 [`ProtocolAddres`] you `connect` to
     /// belongs to the same [`Participant`], you get the same [`Participant`] as
     /// a result. This is useful e.g. by connecting to the same
     /// [`Participant`] via multiple Protocols.
     ///
     /// [`Streams`]: crate::api::Stream
-    /// [`Addresses`]: crate::api::Address
-    pub async fn connect(&self, address: Address) -> Result<Participant, NetworkError> {
+    /// [`ProtocolAddres`]: crate::api::ProtocolAddr
+    pub async fn connect(&self, address: ProtocolAddr) -> Result<Participant, NetworkError> {
         let (pid_sender, pid_receiver) = oneshot::channel::<io::Result<Participant>>();
         debug!(?address, "Connect to address");
         self.connect_sender
@@ -337,7 +337,7 @@ impl Network {
         Ok(participant)
     }
 
-    /// returns a [`Participant`] created from a [`Address`] you called
+    /// returns a [`Participant`] created from a [`ProtocolAddr`] you called
     /// [`listen`] on before. This function will either return a working
     /// [`Participant`] ready to open [`Streams`] on OR has returned a
     /// [`NetworkError`] (e.g. Network got closed)
@@ -345,7 +345,7 @@ impl Network {
     /// # Examples
     /// ```rust
     /// use futures::executor::block_on;
-    /// use veloren_network::{Address, Network, Pid};
+    /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2020` TCP and opens returns their Pid
@@ -355,9 +355,9 @@ impl Network {
     /// # std::thread::spawn(fr);
     /// block_on(async {
     ///     network
-    ///         .listen(Address::Tcp("0.0.0.0:2020".parse().unwrap()))
+    ///         .listen(ProtocolAddr::Tcp("0.0.0.0:2020".parse().unwrap()))
     ///         .await?;
-    ///     # remote.connect(Address::Tcp("0.0.0.0:2020".parse().unwrap())).await?;
+    ///     # remote.connect(ProtocolAddr::Tcp("0.0.0.0:2020".parse().unwrap())).await?;
     ///     while let Ok(participant) = network.connected().await {
     ///         println!("Participant connected: {}", participant.remote_pid());
     ///         # //skip test here as it would be a endless loop
@@ -418,7 +418,7 @@ impl Participant {
     /// # Examples
     /// ```rust
     /// use futures::executor::block_on;
-    /// use veloren_network::{Address, Network, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
+    /// use veloren_network::{Network, Pid, ProtocolAddr, PROMISES_CONSISTENCY, PROMISES_ORDERED};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2100 and open a stream
@@ -427,9 +427,9 @@ impl Participant {
     /// # let (remote, fr) = Network::new(Pid::new(), None);
     /// # std::thread::spawn(fr);
     /// block_on(async {
-    ///     # remote.listen(Address::Tcp("0.0.0.0:2100".parse().unwrap())).await?;
+    ///     # remote.listen(ProtocolAddr::Tcp("0.0.0.0:2100".parse().unwrap())).await?;
     ///     let p1 = network
-    ///         .connect(Address::Tcp("127.0.0.1:2100".parse().unwrap()))
+    ///         .connect(ProtocolAddr::Tcp("127.0.0.1:2100".parse().unwrap()))
     ///         .await?;
     ///     let _s1 = p1.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
     ///     # Ok(())
@@ -479,7 +479,7 @@ impl Participant {
     ///
     /// # Examples
     /// ```rust
-    /// use veloren_network::{Network, Pid, Address, PROMISES_ORDERED, PROMISES_CONSISTENCY};
+    /// use veloren_network::{Network, Pid, ProtocolAddr, PROMISES_ORDERED, PROMISES_CONSISTENCY};
     /// use futures::executor::block_on;
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
@@ -490,8 +490,8 @@ impl Participant {
     /// # let (remote, fr) = Network::new(Pid::new(), None);
     /// # std::thread::spawn(fr);
     /// block_on(async {
-    ///     # remote.listen(Address::Tcp("0.0.0.0:2110".parse().unwrap())).await?;
-    ///     let p1 = network.connect(Address::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
+    ///     # remote.listen(ProtocolAddr::Tcp("0.0.0.0:2110".parse().unwrap())).await?;
+    ///     let p1 = network.connect(ProtocolAddr::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
     ///     # let p2 = remote.connected().await?;
     ///     # p2.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
     ///     let _s1 = p1.opened().await?;
@@ -543,7 +543,7 @@ impl Participant {
     /// # Examples
     /// ```rust
     /// use futures::executor::block_on;
-    /// use veloren_network::{Address, Network, Pid};
+    /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2030` TCP and opens returns their Pid and close connection.
@@ -553,9 +553,9 @@ impl Participant {
     /// # std::thread::spawn(fr);
     /// block_on(async {
     ///     network
-    ///         .listen(Address::Tcp("0.0.0.0:2030".parse().unwrap()))
+    ///         .listen(ProtocolAddr::Tcp("0.0.0.0:2030".parse().unwrap()))
     ///         .await?;
-    ///     # remote.connect(Address::Tcp("0.0.0.0:2030".parse().unwrap())).await?;
+    ///     # remote.connect(ProtocolAddr::Tcp("0.0.0.0:2030".parse().unwrap())).await?;
     ///     while let Ok(participant) = network.connected().await {
     ///         println!("Participant connected: {}", participant.remote_pid());
     ///         participant.disconnect().await?;
@@ -674,7 +674,7 @@ impl Stream {
     ///
     /// # Example
     /// ```
-    /// use veloren_network::{Network, Address, Pid};
+    /// use veloren_network::{Network, ProtocolAddr, Pid};
     /// # use veloren_network::{PROMISES_ORDERED, PROMISES_CONSISTENCY};
     /// use futures::executor::block_on;
     ///
@@ -685,8 +685,8 @@ impl Stream {
     /// # let (remote, fr) = Network::new(Pid::new(), None);
     /// # std::thread::spawn(fr);
     /// block_on(async {
-    ///     network.listen(Address::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
-    ///     # let remote_p = remote.connect(Address::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
+    ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
+    ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
     ///     # // keep it alive
     ///     # let _stream_p = remote_p.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
     ///     let participant_a = network.connected().await?;
@@ -713,7 +713,7 @@ impl Stream {
     ///
     /// # Example
     /// ```rust
-    /// use veloren_network::{Network, Address, Pid, MessageBuffer};
+    /// use veloren_network::{Network, ProtocolAddr, Pid, MessageBuffer};
     /// # use veloren_network::{PROMISES_ORDERED, PROMISES_CONSISTENCY};
     /// use futures::executor::block_on;
     /// use bincode;
@@ -727,9 +727,9 @@ impl Stream {
     /// # let (remote2, fr2) = Network::new(Pid::new(), None);
     /// # std::thread::spawn(fr2);
     /// block_on(async {
-    ///     network.listen(Address::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
-    ///     # let remote1_p = remote1.connect(Address::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
-    ///     # let remote2_p = remote2.connect(Address::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
+    ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
+    ///     # let remote1_p = remote1.connect(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
+    ///     # let remote2_p = remote2.connect(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
     ///     # assert_eq!(remote1_p.remote_pid(), remote2_p.remote_pid());
     ///     # remote1_p.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
     ///     # remote2_p.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
@@ -779,7 +779,7 @@ impl Stream {
     ///
     /// # Example
     /// ```
-    /// use veloren_network::{Network, Address, Pid};
+    /// use veloren_network::{Network, ProtocolAddr, Pid};
     /// # use veloren_network::{PROMISES_ORDERED, PROMISES_CONSISTENCY};
     /// use futures::executor::block_on;
     ///
@@ -790,8 +790,8 @@ impl Stream {
     /// # let (remote, fr) = Network::new(Pid::new(), None);
     /// # std::thread::spawn(fr);
     /// block_on(async {
-    ///     network.listen(Address::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
-    ///     # let remote_p = remote.connect(Address::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
+    ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
+    ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
     ///     # let mut stream_p = remote_p.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
     ///     # stream_p.send("Hello World");
     ///     let participant_a = network.connected().await?;

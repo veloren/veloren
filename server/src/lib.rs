@@ -41,7 +41,7 @@ use futures_executor::block_on;
 use futures_timer::Delay;
 use futures_util::{select, FutureExt};
 use metrics::{ServerMetrics, TickMetrics};
-use network::{Address, Network, Pid};
+use network::{Network, Pid, ProtocolAddr};
 use persistence::character::{CharacterLoader, CharacterLoaderResponseType, CharacterUpdater};
 use specs::{join::Join, Builder, Entity as EcsEntity, RunNow, SystemData, WorldExt};
 use std::{
@@ -241,7 +241,7 @@ impl Server {
             .build();
         let (network, f) = Network::new(Pid::new(), None);
         thread_pool.execute(f);
-        block_on(network.listen(Address::Tcp(settings.gameserver_address)))?;
+        block_on(network.listen(ProtocolAddr::Tcp(settings.gameserver_address)))?;
 
         let this = Self {
             state,
