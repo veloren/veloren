@@ -75,7 +75,7 @@ pub struct Client {
     pub active_character_id: Option<i32>,
 
     _network: Network,
-    _participant: Arc<Participant>,
+    participant: Option<Participant>,
     singleton_stream: Stream,
 
     last_server_ping: f64,
@@ -200,7 +200,7 @@ impl Client {
             active_character_id: None,
 
             _network: network,
-            _participant: participant,
+            participant: Some(participant),
             singleton_stream: stream,
 
             last_server_ping: 0.0,
@@ -1199,6 +1199,9 @@ impl Drop for Client {
                 "Error during drop of client, couldn't send disconnect package, is the connection \
                  already closed?",
             );
+        }
+        if let Err(e) = block_on(self.participant.take().unwrap().disconnect()) {
+            warn!(?e, "error when disconnecting, couldn't send all data");
         }
     }
 }

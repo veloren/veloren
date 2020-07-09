@@ -181,7 +181,7 @@ fn client(address: Address) {
     drop(s1);
     std::thread::sleep(std::time::Duration::from_millis(5000));
     info!("Closing participant");
-    block_on(client.disconnect(p1)).unwrap();
+    block_on(p1.disconnect()).unwrap();
     std::thread::sleep(std::time::Duration::from_millis(25000));
     info!("DROPPING! client");
     drop(client);

@@ -252,8 +252,8 @@ impl BParticipant {
                          longer work in the first place"
                     );
                 };
-                //TODO
-                warn!(
+                //TODO FIXME tags: takeover channel multiple
+                info!(
                     "FIXME: the frame is actually drop. which is fine for now as the participant \
                      will be closed, but not if we do channel-takeover"
                 );
@@ -621,10 +621,9 @@ impl BParticipant {
         let mut info = match self.shutdown_info.lock().await.take() {
             Some(info) => info,
             None => {
-                error!(
-                    "Close of participant seemed to be called twice, that's bad, ignoring the 2nd \
-                     close"
-                );
+                //This can happen if >=2 different async fn found out the protocol got dropped
+                // but they haven't shut down so far
+                debug!("Close of participant seemed to be called twice, ignoring the 2nd close");
                 return;
             },
         };

@@ -6,7 +6,7 @@ use network::{Address, Participant, Stream};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum LocalCommand {
@@ -34,7 +34,7 @@ pub struct FileInfo {
 
 pub struct RemoteInfo {
     infos: HashMap<u32, FileInfo>,
-    _participant: Arc<Participant>,
+    _participant: Participant,
     pub cmd_out: Stream,
     pub file_out: Stream,
 }
@@ -68,7 +68,7 @@ impl FileInfo {
 }
 
 impl RemoteInfo {
-    pub fn new(cmd_out: Stream, file_out: Stream, participant: Arc<Participant>) -> Self {
+    pub fn new(cmd_out: Stream, file_out: Stream, participant: Participant) -> Self {
         Self {
             infos: HashMap::new(),
             _participant: participant,

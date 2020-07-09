@@ -328,6 +328,7 @@ impl Scheduler {
                 );
             };
         }
+        debug!("Scheduler shut down gracefully");
         //removing the possibility to create new participants, needed to close down
         // some mgr:
         self.participant_channels.lock().await.take();

@@ -17,7 +17,7 @@ fn network_20s() {
 #[test]
 fn stream_simple() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(tcp()));
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(tcp()));
 
     s1_a.send("Hello World").unwrap();
     assert_eq!(block_on(s1_b.recv()), Ok("Hello World".to_string()));
@@ -26,7 +26,7 @@ fn stream_simple() {
 #[test]
 fn stream_simple_3msg() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(tcp()));
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(tcp()));
 
     s1_a.send("Hello World").unwrap();
     s1_a.send(1337).unwrap();
@@ -39,7 +39,7 @@ fn stream_simple_3msg() {
 #[test]
 fn stream_simple_udp() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(udp()));
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(udp()));
 
     s1_a.send("Hello World").unwrap();
     assert_eq!(block_on(s1_b.recv()), Ok("Hello World".to_string()));
@@ -48,7 +48,7 @@ fn stream_simple_udp() {
 #[test]
 fn stream_simple_udp_3msg() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(udp()));
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(udp()));
 
     s1_a.send("Hello World").unwrap();
     s1_a.send(1337).unwrap();
@@ -79,7 +79,7 @@ fn tcp_and_udp_2_connections() -> std::result::Result<(), Box<dyn std::error::Er
         let p2 = network
             .connect(Address::Udp("127.0.0.1:2001".parse().unwrap()))
             .await?;
-        assert!(std::sync::Arc::ptr_eq(&p1, &p2));
+        assert_eq!(&p1, &p2);
         Ok(())
     })
 }
@@ -174,7 +174,7 @@ fn api_stream_recv_main() -> std::result::Result<(), Box<dyn std::error::Error>>
 #[test]
 fn wrong_parse() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(tcp()));
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(tcp()));
 
     s1_a.send(1337).unwrap();
     match block_on(s1_b.recv::<String>()) {
