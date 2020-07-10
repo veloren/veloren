@@ -473,9 +473,9 @@ impl<'a> System<'a> for Sys {
             let mut cnt = 0;
 
             let network_err: Result<(), crate::error::Error> = block_on(async {
-                //TIMEOUT 0.01 ms for msg handling
+                //TIMEOUT 0.02 ms for msg handling
                 select!(
-                    _ = Delay::new(std::time::Duration::from_micros(10)).fuse() => Ok(()),
+                    _ = Delay::new(std::time::Duration::from_micros(20)).fuse() => Ok(()),
                     err = Self::handle_client_msg(
                     &mut server_emitter,
                     &mut new_chat_msgs,

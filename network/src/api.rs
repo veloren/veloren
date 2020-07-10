@@ -7,7 +7,11 @@ use crate::{
     scheduler::Scheduler,
     types::{Mid, Pid, Prio, Promises, Sid},
 };
-use async_std::{io, sync::RwLock, task};
+use async_std::{
+    io,
+    sync::{Mutex, RwLock},
+    task,
+};
 use futures::{
     channel::{mpsc, oneshot},
     sink::SinkExt,
@@ -50,9 +54,7 @@ pub struct Participant {
     a2b_steam_open_s: RwLock<mpsc::UnboundedSender<(Prio, Promises, oneshot::Sender<Stream>)>>,
     b2a_stream_opened_r: RwLock<mpsc::UnboundedReceiver<Stream>>,
     closed: AtomicBool,
-    //We need a std::Mutex here, the async Mutex requeres a block in `Drop` which can `panic!`
-    //It's only okay because `disconnect` is the only `fn` accessing it and it consumes self!
-    a2s_disconnect_s: Arc<std::sync::Mutex<Option<ParticipantCloseChannel>>>,
+    a2s_disconnect_s: Arc<Mutex<Option<ParticipantCloseChannel>>>,
 }
 
 /// `Streams` represents a channel to send `n` messages with a certain priority
@@ -142,7 +144,7 @@ pub enum StreamError {
 pub struct Network {
     local_pid: Pid,
     participant_disconnect_sender:
-        RwLock<HashMap<Pid, Arc<std::sync::Mutex<Option<ParticipantCloseChannel>>>>>,
+        RwLock<HashMap<Pid, Arc<Mutex<Option<ParticipantCloseChannel>>>>>,
     listen_sender:
         RwLock<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<async_std::io::Result<()>>)>>,
     connect_sender:
@@ -394,7 +396,7 @@ impl Participant {
             a2b_steam_open_s: RwLock::new(a2b_steam_open_s),
             b2a_stream_opened_r: RwLock::new(b2a_stream_opened_r),
             closed: AtomicBool::new(false),
-            a2s_disconnect_s: Arc::new(std::sync::Mutex::new(Some(a2s_disconnect_s))),
+            a2s_disconnect_s: Arc::new(Mutex::new(Some(a2s_disconnect_s))),
         }
     }
 
@@ -575,7 +577,7 @@ impl Participant {
         self.closed.store(true, Ordering::Relaxed);
         //Streams will be closed by BParticipant
 
-        match self.a2s_disconnect_s.lock().unwrap().take() {
+        match self.a2s_disconnect_s.lock().await.take() {
             Some(mut a2s_disconnect_s) => {
                 let (finished_sender, finished_receiver) = oneshot::channel();
                 // Participant is connecting to Scheduler here, not as usual
@@ -840,13 +842,12 @@ impl Drop for Network {
         );
         let mut finished_receiver_list = vec![];
         task::block_on(async {
-            // we need to carefully shut down here! as otherwise we might call
-            // Participant::Drop with a2s_disconnect_s here which would open
-            // another task::block, which would panic!
+            // we MUST avoid nested block_on, good that Network::Drop no longer triggers
+            // Participant::Drop directly but just the BParticipant
             for (remote_pid, a2s_disconnect_s) in
                 self.participant_disconnect_sender.write().await.drain()
             {
-                match a2s_disconnect_s.lock().unwrap().take() {
+                match a2s_disconnect_s.lock().await.take() {
                     Some(mut a2s_disconnect_s) => {
                         trace!(?remote_pid, "Participants will be closed");
                         let (finished_sender, finished_receiver) = oneshot::channel();
@@ -893,7 +894,7 @@ impl Drop for Participant {
         let pid = self.remote_pid;
         debug!(?pid, "Shutting down Participant");
 
-        match self.a2s_disconnect_s.lock().unwrap().take() {
+        match task::block_on(self.a2s_disconnect_s.lock()).take() {
             None => trace!(
                 ?pid,
                 "Participant has been shutdown cleanly, no further waiting is requiered!"

@@ -368,8 +368,21 @@ impl Scheduler {
                     next = incoming.next().fuse() => next,
                     _ = end_receiver => None,
                 } {
-                    let stream = stream.unwrap();
-                    info!("Accepting Tcp from: {}", stream.peer_addr().unwrap());
+                    let stream = match stream {
+                        Ok(s) => s,
+                        Err(e) => {
+                            warn!(?e, "TcpStream Error, ignoring connection attempt");
+                            continue;
+                        },
+                    };
+                    let peer_addr = match stream.peer_addr() {
+                        Ok(s) => s,
+                        Err(e) => {
+                            warn!(?e, "TcpStream Error, ignoring connection attempt");
+                            continue;
+                        },
+                    };
+                    info!("Accepting Tcp from: {}", peer_addr);
                     let protocol = TcpProtocol::new(stream, self.metrics.clone());
                     self.init_protocol(Protocols::Tcp(protocol), None, true)
                         .await;
@@ -583,6 +596,7 @@ impl Scheduler {
                     Err(()) => {
                         if let Some(pid_oneshot) = s2a_return_pid_s {
                             // someone is waiting with `connect`, so give them their Error
+                            trace!("returning the Err to api who requested the connect");
                             pid_oneshot
                                 .send(Err(std::io::Error::new(
                                     std::io::ErrorKind::PermissionDenied,
