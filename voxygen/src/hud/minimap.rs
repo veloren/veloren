@@ -8,7 +8,7 @@ use common::{comp, terrain::TerrainChunkSize, vol::RectVolSize};
 use conrod_core::{
     color, position,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use specs::WorldExt;
 use vek::*;
@@ -23,7 +23,11 @@ widget_ids! {
         mmap_plus,
         mmap_minus,
         grid,
-        indicator
+        indicator,
+        mmap_north,
+        mmap_east,
+        mmap_south,
+        mmap_west,
     }
 }
 
@@ -39,6 +43,7 @@ pub struct MiniMap<'a> {
     fonts: &'a ConrodVoxygenFonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
+    ori: Vec3<f32>,
 }
 
 impl<'a> MiniMap<'a> {
@@ -49,6 +54,7 @@ impl<'a> MiniMap<'a> {
         rot_imgs: &'a ImgsRot,
         world_map: &'a (img_ids::Rotations, Vec2<u32>),
         fonts: &'a ConrodVoxygenFonts,
+        ori: Vec3<f32>,
     ) -> Self {
         Self {
             show,
@@ -58,6 +64,7 @@ impl<'a> MiniMap<'a> {
             world_map,
             fonts,
             common: widget::CommonBuilder::default(),
+            ori,
         }
     }
 }
@@ -195,10 +202,12 @@ impl<'a> Widget for MiniMap<'a> {
                 [w_src, h_src],
             );
 
+            let map_size = Vec2::new(170.0, 170.0);
+
             // Map Image
             Image::new(world_map.source_north)
                 .middle_of(state.ids.mmap_frame_bg)
-                .w_h(170.0 * SCALE, 170.0 * SCALE)
+                .w_h(map_size.x * SCALE, map_size.y * SCALE)
                 .parent(state.ids.mmap_frame_bg)
                 .source_rectangle(rect_src)
                 .set(state.ids.grid, ui);
@@ -212,6 +221,37 @@ impl<'a> Widget for MiniMap<'a> {
                 .floating(true)
                 .parent(ui.window)
                 .set(state.ids.indicator, ui);
+
+            // Compass directions
+            let dirs = [
+                (Vec2::new(0.0, 1.0), state.ids.mmap_north, "N", true),
+                (Vec2::new(1.0, 0.0), state.ids.mmap_east, "E", false),
+                (Vec2::new(0.0, -1.0), state.ids.mmap_south, "S", false),
+                (Vec2::new(-1.0, 0.0), state.ids.mmap_west, "W", false),
+            ];
+            for (dir, id, name, bold) in dirs.iter() {
+                let cardinal_dir = Vec2::unit_x().rotated_z(self.ori.x as f64) * dir.x
+                    + Vec2::unit_y().rotated_z(self.ori.x as f64) * dir.y;
+                let clamped = (cardinal_dir * 3.0)
+                    / (cardinal_dir * 3.0).map(|e| e.abs()).reduce_partial_max();
+                let pos = clamped * (map_size * 0.75 - 10.0);
+                Text::new(name)
+                    .x_y_position_relative_to(
+                        state.ids.grid,
+                        position::Relative::Scalar(pos.x),
+                        position::Relative::Scalar(pos.y),
+                    )
+                    .font_size(self.fonts.cyri.scale(18))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(if *bold {
+                        Color::Rgba(0.7, 0.3, 0.3, 1.0)
+                    } else {
+                        TEXT_COLOR
+                    })
+                    .floating(true)
+                    .parent(ui.window)
+                    .set(*id, ui);
+            }
         } else {
             Image::new(self.imgs.mmap_frame_closed)
                 .w_h(174.0 * SCALE, 18.0 * SCALE)
