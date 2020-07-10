@@ -37,6 +37,7 @@ use hashbrown::HashMap;
 use image::DynamicImage;
 use network::{Address, Network, Participant, Pid, Stream, PROMISES_CONSISTENCY, PROMISES_ORDERED};
 use std::{
+    collections::VecDeque,
     net::SocketAddr,
     sync::Arc,
     time::{Duration, Instant},
@@ -53,6 +54,7 @@ const SERVER_TIMEOUT: f64 = 20.0;
 // After this duration has elapsed, the user will begin getting kick warnings in
 // their chat window
 const SERVER_TIMEOUT_GRACE_PERIOD: f64 = 14.0;
+const PING_ROLLING_AVERAGE_SECS: usize = 10;
 
 pub enum Event {
     Chat(comp::ChatMsg),
@@ -79,6 +81,7 @@ pub struct Client {
     last_server_ping: f64,
     last_server_pong: f64,
     last_ping_delta: f64,
+    ping_deltas: VecDeque<f64>,
 
     tick: u64,
     state: State,
@@ -203,6 +206,7 @@ impl Client {
             last_server_ping: 0.0,
             last_server_pong: 0.0,
             last_ping_delta: 0.0,
+            ping_deltas: VecDeque::new(),
 
             tick: 0,
             state,
@@ -889,8 +893,15 @@ impl Client {
                 },
                 ServerMsg::Pong => {
                     self.last_server_pong = self.state.get_time();
+                    self.last_ping_delta = self.state.get_time() - self.last_server_ping;
 
-                    self.last_ping_delta = (self.state.get_time() - self.last_server_ping).round();
+                    // Maintain the correct number of deltas for calculating the rolling average
+                    // ping. The client sends a ping to the server every second so we should be
+                    // receiving a pong reply roughly every second.
+                    while self.ping_deltas.len() > PING_ROLLING_AVERAGE_SECS - 1 {
+                        self.ping_deltas.pop_front();
+                    }
+                    self.ping_deltas.push_back(self.last_ping_delta);
                 },
                 ServerMsg::ChatMsg(m) => frontend_events.push(Event::Chat(m)),
                 ServerMsg::SetPlayerEntity(uid) => {
@@ -1032,6 +1043,22 @@ impl Client {
     pub fn get_tick(&self) -> u64 { self.tick }
 
     pub fn get_ping_ms(&self) -> f64 { self.last_ping_delta * 1000.0 }
+
+    pub fn get_ping_ms_rolling_avg(&self) -> f64 {
+        let mut total_weight = 0.;
+        let pings = self.ping_deltas.len() as f64;
+        (self
+            .ping_deltas
+            .iter()
+            .enumerate()
+            .fold(0., |acc, (i, ping)| {
+                let weight = i as f64 + 1. / pings;
+                total_weight += weight;
+                acc + (weight * ping)
+            })
+            / total_weight)
+            * 1000.0
+    }
 
     /// Get a reference to the client's worker thread pool. This pool should be
     /// used for any computationally expensive operations that run outside
