@@ -1,0 +1,1 @@
+-- Nothing to undo since up.sql only fixes corrupt JSON in loadouts
