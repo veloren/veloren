@@ -588,7 +588,7 @@ impl PlayState for SessionState {
                 global_state,
                 DebugInfo {
                     tps: clock.get_tps(),
-                    ping_ms: self.client.borrow().get_ping_ms(),
+                    ping_ms: self.client.borrow().get_ping_ms_rolling_avg(),
                     coordinates: self
                         .client
                         .borrow()
