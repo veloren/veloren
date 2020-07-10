@@ -159,7 +159,7 @@ impl Handshake {
         &self,
         w2c_cid_frame_r: &mut mpsc::UnboundedReceiver<(Cid, Frame)>,
         mut c2w_frame_s: mpsc::UnboundedSender<Frame>,
-        _read_stop_sender: oneshot::Sender<()>,
+        read_stop_sender: oneshot::Sender<()>,
     ) -> Result<(Pid, Sid, u128), ()> {
         const ERR_S: &str = "Got A Raw Message, these are usually Debug Messages indicating that \
                              something went wrong on network layer and connection will be closed";
@@ -170,7 +170,7 @@ impl Handshake {
             self.send_handshake(&mut c2w_frame_s).await;
         }
 
-        match w2c_cid_frame_r.next().await {
+        let r = match w2c_cid_frame_r.next().await {
             Some((
                 _,
                 Frame::Handshake {
@@ -198,9 +198,8 @@ impl Handshake {
                             .unwrap();
                         c2w_frame_s.send(Frame::Shutdown).await.unwrap();
                     }
-                    return Err(());
-                }
-                if version != VELOREN_NETWORK_VERSION {
+                    Err(())
+                } else if version != VELOREN_NETWORK_VERSION {
                     error!(?version, "Connection with wrong network version");
                     #[cfg(debug_assertions)]
                     {
@@ -225,13 +224,15 @@ impl Handshake {
                             .unwrap();
                         c2w_frame_s.send(Frame::Shutdown {}).await.unwrap();
                     }
-                    return Err(());
-                }
-                debug!("Handshake completed");
-                if self.init_handshake {
-                    self.send_init(&mut c2w_frame_s, &pid_string).await;
+                    Err(())
                 } else {
-                    self.send_handshake(&mut c2w_frame_s).await;
+                    debug!("Handshake completed");
+                    if self.init_handshake {
+                        self.send_init(&mut c2w_frame_s, &pid_string).await;
+                    } else {
+                        self.send_handshake(&mut c2w_frame_s).await;
+                    }
+                    Ok(())
                 }
             },
             Some((_, Frame::Shutdown)) => {
@@ -240,7 +241,7 @@ impl Handshake {
                     .frames_in_total
                     .with_label_values(&[&pid_string, &cid_string, "Shutdown"])
                     .inc();
-                return Err(());
+                Err(())
             },
             Some((_, Frame::Raw(bytes))) => {
                 self.metrics
@@ -251,19 +252,29 @@ impl Handshake {
                     Ok(string) => error!(?string, ERR_S),
                     _ => error!(?bytes, ERR_S),
                 }
-                return Err(());
+                Err(())
             },
             Some((_, frame)) => {
                 self.metrics
                     .frames_in_total
                     .with_label_values(&[&pid_string, &cid_string, frame.get_string()])
                     .inc();
-                return Err(());
+                Err(())
             },
-            None => return Err(()),
+            None => Err(()),
         };
+        if let Err(()) = r {
+            if let Err(e) = read_stop_sender.send(()) {
+                trace!(
+                    ?e,
+                    "couldn't stop protocol, probably it encountered a Protocol Stop and closed \
+                     itself already, which is fine"
+                );
+            }
+            return Err(());
+        }
 
-        match w2c_cid_frame_r.next().await {
+        let r = match w2c_cid_frame_r.next().await {
             Some((_, Frame::Init { pid, secret })) => {
                 debug!(?pid, "Participant send their ID");
                 pid_string = pid.to_string();
@@ -307,7 +318,17 @@ impl Handshake {
                 Err(())
             },
             None => Err(()),
+        };
+        if r.is_err() {
+            if let Err(e) = read_stop_sender.send(()) {
+                trace!(
+                    ?e,
+                    "couldn't stop protocol, probably it encountered a Protocol Stop and closed \
+                     itself already, which is fine"
+                );
+            }
         }
+        r
     }
 
     async fn send_handshake(&self, c2w_frame_s: &mut mpsc::UnboundedSender<Frame>) {

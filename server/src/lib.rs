@@ -343,9 +343,9 @@ impl Server {
 
         // 3) Handle inputs from clients
         block_on(async {
-            //TIMEOUT 0.01 ms for msg handling
+            //TIMEOUT 0.1 ms for msg handling
             select!(
-                _ = Delay::new(std::time::Duration::from_micros(10)).fuse() => Ok(()),
+                _ = Delay::new(std::time::Duration::from_micros(100)).fuse() => Ok(()),
                 err = self.handle_new_connections(&mut frontend_events).fuse() => err,
             )
         })?;
@@ -597,6 +597,7 @@ impl Server {
     ) -> Result<(), Error> {
         loop {
             let participant = self.network.connected().await?;
+            debug!("New Participant connected to the server");
             let singleton_stream = participant.opened().await?;
 
             let mut client = Client {
@@ -635,9 +636,9 @@ impl Server {
                         time_of_day: *self.state.ecs().read_resource(),
                         world_map: (WORLD_SIZE.map(|e| e as u32), self.map.clone()),
                     });
-                debug!("Done initial sync with client.");
 
                 frontend_events.push(Event::ClientConnected { entity });
+                debug!("Done initial sync with client.");
             }
         }
     }
