@@ -3,8 +3,8 @@ use crate::{
         self,
         agent::Activity,
         item::{tool::ToolKind, ItemKind},
-        Agent, Alignment, CharacterState, ChatMsg, ControlAction, Controller, Loadout, MountState,
-        Ori, Pos, Scale, Stats, Vel, PhysicsState,
+        Agent, Alignment, Body, CharacterState, ChatMsg, ControlAction, Controller, Loadout,
+        MountState, Ori, PhysicsState, Pos, Scale, Stats, Vel,
     },
     event::{EventBus, ServerEvent},
     path::Chaser,
@@ -42,6 +42,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Uid>,
         ReadExpect<'a, TerrainGrid>,
         ReadStorage<'a, Alignment>,
+        ReadStorage<'a, Body>,
         WriteStorage<'a, Agent>,
         WriteStorage<'a, Controller>,
         ReadStorage<'a, MountState>,
@@ -67,6 +68,7 @@ impl<'a> System<'a> for Sys {
             uids,
             terrain,
             alignments,
+            bodies,
             mut agents,
             mut controllers,
             mount_states,
@@ -81,6 +83,7 @@ impl<'a> System<'a> for Sys {
             loadout,
             character_state,
             physics_state,
+            body,
             uid,
             agent,
             controller,
@@ -94,6 +97,7 @@ impl<'a> System<'a> for Sys {
             &loadouts,
             &character_states,
             &physics_states,
+            bodies.maybe(),
             &uids,
             &mut agents,
             &mut controllers,
@@ -131,6 +135,7 @@ impl<'a> System<'a> for Sys {
             // the world (especially since they would otherwise get stuck on
             // obstacles that smaller entities would not).
             let traversal_tolerance = scale + vel.0.xy().magnitude() * 0.2;
+            let slow_factor = body.map(|b| b.base_accel() / 250.0).unwrap_or(0.0).min(1.0);
 
             let mut do_idle = false;
             let mut choose_target = false;
@@ -206,6 +211,7 @@ impl<'a> System<'a> for Sys {
                                     tgt_pos.0,
                                     AVG_FOLLOW_DIST,
                                     traversal_tolerance,
+                                    slow_factor,
                                 ) {
                                     inputs.move_dir =
                                         bearing.xy().try_normalized().unwrap_or(Vec2::zero())
@@ -323,6 +329,7 @@ impl<'a> System<'a> for Sys {
                                     tgt_pos.0,
                                     1.25,
                                     traversal_tolerance,
+                                    slow_factor,
                                 ) {
                                     inputs.move_dir = Vec2::from(bearing)
                                         .try_normalized()

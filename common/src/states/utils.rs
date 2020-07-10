@@ -31,9 +31,9 @@ impl Body {
     pub fn base_accel(&self) -> f32 {
         match self {
             Body::Humanoid(_) => 100.0,
-            Body::QuadrupedSmall(_) => 80.0,
+            Body::QuadrupedSmall(_) => 85.0,
             Body::QuadrupedMedium(_) => 180.0,
-            Body::BirdMedium(_) => 70.0,
+            Body::BirdMedium(_) => 80.0,
             Body::FishMedium(_) => 50.0,
             Body::Dragon(_) => 250.0,
             Body::BirdSmall(_) => 75.0,
@@ -41,7 +41,7 @@ impl Body {
             Body::BipedLarge(_) => 120.0,
             Body::Object(_) => 40.0,
             Body::Golem(_) => 130.0,
-            Body::Critter(_) => 65.0,
+            Body::Critter(_) => 85.0,
             Body::QuadrupedLow(_) => 120.0,
         }
     }
