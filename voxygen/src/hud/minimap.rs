@@ -244,7 +244,7 @@ impl<'a> Widget for MiniMap<'a> {
                     .font_size(self.fonts.cyri.scale(18))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(if *bold {
-                        Color::Rgba(0.7, 0.3, 0.3, 1.0)
+                        Color::Rgba(0.75, 0.0, 0.0, 1.0)
                     } else {
                         TEXT_COLOR
                     })
