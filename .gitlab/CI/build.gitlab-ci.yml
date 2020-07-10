@@ -44,8 +44,6 @@ coverage:
     - cargo build --release
     - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
     - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
-    - strip --strip-all veloren-server-cli
-    - strip --strip-all veloren-voxygen
   artifacts:
     paths:
       - veloren-server-cli
