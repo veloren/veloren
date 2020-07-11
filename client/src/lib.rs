@@ -1083,6 +1083,18 @@ impl Client {
             .collect()
     }
 
+    /// Return true if this client is an admin on the server
+    pub fn is_admin(&self) -> bool {
+        let client_uid = self
+            .state
+            .read_component_cloned::<Uid>(self.entity)
+            .expect("Client doesn't have a Uid!!!");
+
+        self.player_list
+            .get(&client_uid)
+            .map_or(false, |info| info.is_admin)
+    }
+
     /// Clean client ECS state
     fn clean_state(&mut self) {
         let client_uid = self
