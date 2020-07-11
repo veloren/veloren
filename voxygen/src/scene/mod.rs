@@ -239,10 +239,17 @@ impl Scene {
             },
             CameraMode::ThirdPerson if scene_data.is_aiming => player_scale * 2.1,
             CameraMode::ThirdPerson => player_scale * 1.65,
+            CameraMode::Freefly => 0.0,
         };
 
-        self.camera
-            .set_focus_pos(player_pos + Vec3::unit_z() * (up - tilt.min(0.0).sin() * dist * 0.6));
+        match self.camera.get_mode() {
+            CameraMode::FirstPerson | CameraMode::ThirdPerson => {
+                self.camera.set_focus_pos(
+                    player_pos + Vec3::unit_z() * (up - tilt.min(0.0).sin() * dist * 0.6),
+                );
+            },
+            CameraMode::Freefly => {},
+        };
 
         // Tick camera for interpolation.
         self.camera.update(

@@ -65,6 +65,7 @@ pub enum GameInput {
     SwapLoadout,
     FreeLook,
     AutoWalk,
+    CycleCamera,
 }
 
 impl GameInput {
@@ -89,6 +90,7 @@ impl GameInput {
             GameInput::Mount => "gameinput.mount",
             GameInput::Enter => "gameinput.enter",
             GameInput::Command => "gameinput.command",
+            GameInput::CycleCamera => "gameinput.cyclecamera",
             GameInput::Escape => "gameinput.escape",
             GameInput::Map => "gameinput.map",
             GameInput::Bag => "gameinput.bag",
