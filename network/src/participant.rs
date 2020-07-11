@@ -1,5 +1,5 @@
 use crate::{
-    api::Stream,
+    api::{ParticipantError, Stream},
     channel::Channel,
     message::{IncomingMessage, MessageBuffer, OutgoingMessage},
     metrics::{NetworkMetrics, PidCidFrameCache},
@@ -11,7 +11,6 @@ use async_std::sync::RwLock;
 use futures::{
     channel::{mpsc, oneshot},
     future::FutureExt,
-    lock::Mutex,
     select,
     sink::SinkExt,
     stream::StreamExt,
@@ -54,12 +53,6 @@ struct ControlChannels {
     s2b_shutdown_bparticipant_r: oneshot::Receiver<oneshot::Sender<async_std::io::Result<()>>>, /* own */
 }
 
-//this is needed in case of a shutdown
-struct BParticipantShutdown {
-    b2b_prios_flushed_r: oneshot::Receiver<()>,
-    mgr_to_shutdown: Vec<oneshot::Sender<()>>,
-}
-
 #[derive(Debug)]
 pub struct BParticipant {
     remote_pid: Pid,
@@ -67,10 +60,10 @@ pub struct BParticipant {
     offset_sid: Sid,
     channels: Arc<RwLock<Vec<ChannelInfo>>>,
     streams: RwLock<HashMap<Sid, StreamInfo>>,
+    api_participant_closed: Arc<RwLock<Result<(), ParticipantError>>>,
     running_mgr: AtomicUsize,
     run_channels: Option<ControlChannels>,
     metrics: Arc<NetworkMetrics>,
-    shutdown_info: Mutex<Option<BParticipantShutdown>>,
     no_channel_error_info: RwLock<(Instant, u64)>,
 }
 
@@ -86,6 +79,7 @@ impl BParticipant {
         mpsc::UnboundedReceiver<Stream>,
         mpsc::UnboundedSender<(Cid, Sid, Protocols, Vec<(Cid, Frame)>, oneshot::Sender<()>)>,
         oneshot::Sender<oneshot::Sender<async_std::io::Result<()>>>,
+        Arc<RwLock<Result<(), ParticipantError>>>,
     ) {
         let (a2b_steam_open_s, a2b_steam_open_r) =
             mpsc::unbounded::<(Prio, Promises, oneshot::Sender<Stream>)>();
@@ -103,6 +97,8 @@ impl BParticipant {
             s2b_shutdown_bparticipant_r,
         });
 
+        let api_participant_closed = Arc::new(RwLock::new(Ok(())));
+
         (
             Self {
                 remote_pid,
@@ -110,16 +106,17 @@ impl BParticipant {
                 offset_sid,
                 channels: Arc::new(RwLock::new(vec![])),
                 streams: RwLock::new(HashMap::new()),
+                api_participant_closed: api_participant_closed.clone(),
                 running_mgr: AtomicUsize::new(0),
                 run_channels,
                 metrics,
                 no_channel_error_info: RwLock::new((Instant::now(), 0)),
-                shutdown_info: Mutex::new(None),
             },
             a2b_steam_open_s,
             b2a_stream_opened_r,
             s2b_create_channel_s,
             s2b_shutdown_bparticipant_s,
+            api_participant_closed,
         )
     }
 
@@ -134,14 +131,6 @@ impl BParticipant {
         let (w2b_frames_s, w2b_frames_r) = mpsc::unbounded::<(Cid, Frame)>();
         let (prios, a2p_msg_s, b2p_notify_empty_stream_s) =
             PrioManager::new(self.metrics.clone(), self.remote_pid_string.clone());
-        *self.shutdown_info.lock().await = Some(BParticipantShutdown {
-            b2b_prios_flushed_r,
-            mgr_to_shutdown: vec![
-                shutdown_send_mgr_sender,
-                shutdown_open_mgr_sender,
-                shutdown_stream_close_mgr_sender,
-            ],
-        });
 
         let run_channels = self.run_channels.take().unwrap();
         futures::join!(
@@ -169,7 +158,15 @@ impl BParticipant {
                 shutdown_stream_close_mgr_receiver,
                 b2p_notify_empty_stream_s,
             ),
-            self.participant_shutdown_mgr(run_channels.s2b_shutdown_bparticipant_r,),
+            self.participant_shutdown_mgr(
+                run_channels.s2b_shutdown_bparticipant_r,
+                b2b_prios_flushed_r,
+                vec![
+                    shutdown_send_mgr_sender,
+                    shutdown_open_mgr_sender,
+                    shutdown_stream_close_mgr_sender,
+                ],
+            ),
         );
     }
 
@@ -190,7 +187,6 @@ impl BParticipant {
         trace!("Start send_mgr");
         let mut send_cache =
             PidCidFrameCache::new(self.metrics.frames_out_total.clone(), self.remote_pid);
-        //while !self.closed.load(Ordering::Relaxed) {
         loop {
             let mut frames = VecDeque::new();
             prios.fill_frames(FRAMES_PER_TICK, &mut frames).await;
@@ -258,7 +254,8 @@ impl BParticipant {
                      will be closed, but not if we do channel-takeover"
                 );
                 //TEMP FIX: as we dont have channel takeover yet drop the whole bParticipant
-                self.close_participant(2).await;
+                self.close_api(ParticipantError::ProtocolFailedUnrecoverable)
+                    .await;
                 false
             } else {
                 true
@@ -393,7 +390,8 @@ impl BParticipant {
                 },
                 Frame::Shutdown => {
                     debug!("Shutdown received from remote side");
-                    self.close_participant(2).await;
+                    self.close_api(ParticipantError::ParticipantDisconnected)
+                        .await;
                 },
                 f => unreachable!("Frame should never reache participant!: {:?}", f),
             }
@@ -510,14 +508,59 @@ impl BParticipant {
     /// wait for everything to go right! Then return 1. Shutting down
     /// Streams for API and End user! 2. Wait for all "prio queued" Messages
     /// to be send. 3. Send Stream
+    /// If BParticipant kills itself managers stay active till this function is
+    /// called by api to get the result status
     async fn participant_shutdown_mgr(
         &self,
         s2b_shutdown_bparticipant_r: oneshot::Receiver<oneshot::Sender<async_std::io::Result<()>>>,
+        b2b_prios_flushed_r: oneshot::Receiver<()>,
+        mut mgr_to_shutdown: Vec<oneshot::Sender<()>>,
     ) {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
         trace!("Start participant_shutdown_mgr");
         let sender = s2b_shutdown_bparticipant_r.await.unwrap();
-        self.close_participant(1).await;
+
+        //Todo: isn't ParticipantDisconnected useless, as api is waiting rn for a
+        // callback?
+        self.close_api(ParticipantError::ParticipantDisconnected)
+            .await;
+
+        debug!("Closing all managers");
+        for sender in mgr_to_shutdown.drain(..) {
+            if let Err(e) = sender.send(()) {
+                warn!(?e, "Manager seems to be closed already, weird, maybe a bug");
+            };
+        }
+
+        b2b_prios_flushed_r.await.unwrap();
+        debug!("Closing all channels, after flushed prios");
+        for ci in self.channels.write().await.drain(..) {
+            if let Err(e) = ci.b2r_read_shutdown.send(()) {
+                debug!(?e, ?ci.cid, "Seems like this read protocol got already dropped by closing the Stream itself, just ignoring the fact");
+            };
+        }
+
+        //Wait for other bparticipants mgr to close via AtomicUsize
+        const SLEEP_TIME: Duration = Duration::from_millis(5);
+        const ALLOWED_MANAGER: usize = 1;
+        async_std::task::sleep(SLEEP_TIME).await;
+        let mut i: u32 = 1;
+        while self.running_mgr.load(Ordering::Relaxed) > ALLOWED_MANAGER {
+            i += 1;
+            if i.rem_euclid(10) == 1 {
+                trace!(
+                    ?ALLOWED_MANAGER,
+                    "Waiting for bparticipant mgr to shut down, remaining {}",
+                    self.running_mgr.load(Ordering::Relaxed) - ALLOWED_MANAGER
+                );
+            }
+            async_std::task::sleep(SLEEP_TIME * i).await;
+        }
+        trace!("All BParticipant mgr (except me) are shut down now");
+
+        self.metrics.participants_disconnected_total.inc();
+        debug!("BParticipant close done");
+
         sender.send(Ok(())).unwrap();
         trace!("Stop participant_shutdown_mgr");
         self.running_mgr.fetch_sub(1, Ordering::Relaxed);
@@ -613,56 +656,13 @@ impl BParticipant {
         )
     }
 
-    /// this will gracefully shut down the bparticipant
-    /// allowed_managers: the number of open managers to sleep on. Must be 1 for
-    /// shutdown_mgr and 2 if it comes from a send error.
-    async fn close_participant(&self, allowed_managers: usize) {
-        trace!("Participant shutdown triggered");
-        let mut info = match self.shutdown_info.lock().await.take() {
-            Some(info) => info,
-            None => {
-                //This can happen if >=2 different async fn found out the protocol got dropped
-                // but they haven't shut down so far
-                debug!("Close of participant seemed to be called twice, ignoring the 2nd close");
-                return;
-            },
-        };
-        debug!("Closing all managers");
-        for sender in info.mgr_to_shutdown.drain(..) {
-            if let Err(e) = sender.send(()) {
-                warn!(?e, "Manager seems to be closed already, weird, maybe a bug");
-            };
-        }
+    /// close streams and set err
+    async fn close_api(&self, err: ParticipantError) {
+        *self.api_participant_closed.write().await = Err(err);
         debug!("Closing all streams");
         for (sid, si) in self.streams.write().await.drain() {
             trace!(?sid, "Shutting down Stream");
             si.closed.store(true, Ordering::Relaxed);
         }
-        debug!("Waiting for prios to be flushed");
-        info.b2b_prios_flushed_r.await.unwrap();
-        debug!("Closing all channels");
-        for ci in self.channels.write().await.drain(..) {
-            if let Err(e) = ci.b2r_read_shutdown.send(()) {
-                debug!(?e, ?ci.cid, "Seems like this read protocol got already dropped by closing the Stream itself, just ignoring the fact");
-            };
-        }
-        //Wait for other bparticipants mgr to close via AtomicUsize
-        const SLEEP_TIME: Duration = Duration::from_millis(5);
-        async_std::task::sleep(SLEEP_TIME).await;
-        let mut i: u32 = 1;
-        while self.running_mgr.load(Ordering::Relaxed) > allowed_managers {
-            i += 1;
-            if i.rem_euclid(10) == 1 {
-                trace!(
-                    ?allowed_managers,
-                    "Waiting for bparticipant mgr to shut down, remaining {}",
-                    self.running_mgr.load(Ordering::Relaxed) - allowed_managers
-                );
-            }
-            async_std::task::sleep(SLEEP_TIME * i).await;
-        }
-        trace!("All BParticipant mgr (except me) are shut down now");
-        self.metrics.participants_disconnected_total.inc();
-        debug!("BParticipant close done");
     }
 }

@@ -22,7 +22,10 @@ fn close_participant() {
     let (_n_a, p1_a, mut s1_a, _n_b, p1_b, mut s1_b) = block_on(network_participant_stream(tcp()));
 
     block_on(p1_a.disconnect()).unwrap();
-    block_on(p1_b.disconnect()).unwrap();
+    //We dont know of if the disconect is done YET, so the next command will either
+    // return already closed or fail a gracefully close as it will discover that the
+    // remote site closed right now
+    assert!(block_on(p1_b.disconnect()).is_err());
 
     assert_eq!(s1_a.send("Hello World"), Err(StreamError::StreamClosed));
     assert_eq!(

@@ -516,6 +516,7 @@ impl Scheduler {
                                 b2a_stream_opened_r,
                                 mut s2b_create_channel_s,
                                 s2b_shutdown_bparticipant_s,
+                                api_participant_closed,
                             ) = BParticipant::new(pid, sid, metrics.clone());
 
                             let participant = Participant::new(
@@ -524,6 +525,7 @@ impl Scheduler {
                                 a2b_steam_open_s,
                                 b2a_stream_opened_r,
                                 participant_channels.a2s_disconnect_s,
+                                api_participant_closed,
                             );
 
                             metrics.participants_connected_total.inc();
