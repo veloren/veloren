@@ -613,8 +613,7 @@ impl Client {
                 );
             }
             self.singleton_stream
-                .send(ClientMsg::ControllerInputs(inputs))
-                .unwrap();
+                .send(ClientMsg::ControllerInputs(inputs))?;
         }
 
         // 2) Build up a list of events for this frame, to be passed to the frontend.
