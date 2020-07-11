@@ -53,7 +53,7 @@ pub struct Participant {
     remote_pid: Pid,
     a2b_steam_open_s: RwLock<mpsc::UnboundedSender<(Prio, Promises, oneshot::Sender<Stream>)>>,
     b2a_stream_opened_r: RwLock<mpsc::UnboundedReceiver<Stream>>,
-    closed: AtomicBool,
+    closed: Arc<RwLock<Result<(), ParticipantError>>>,
     a2s_disconnect_s: Arc<Mutex<Option<ParticipantCloseChannel>>>,
 }
 
@@ -92,11 +92,15 @@ pub enum NetworkError {
 }
 
 /// Error type thrown by [`Participants`](Participant) methods
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ParticipantError {
-    ///Participant was closed too early to complete the action fully
-    ParticipantClosed,
-    GracefulDisconnectFailed(std::io::Error),
+    ///Participant was closed by remote side
+    ParticipantDisconnected,
+    ///Underlying Protocol failed and wasn't able to recover, expect some Data
+    /// loss unfortunately, there is no method to get the exact messages
+    /// that failed. This is also returned when local side tries to do
+    /// something while remote site gracefully disconnects
+    ProtocolFailedUnrecoverable,
 }
 
 /// Error type thrown by [`Streams`](Stream) methods
@@ -389,13 +393,14 @@ impl Participant {
         a2b_steam_open_s: mpsc::UnboundedSender<(Prio, Promises, oneshot::Sender<Stream>)>,
         b2a_stream_opened_r: mpsc::UnboundedReceiver<Stream>,
         a2s_disconnect_s: mpsc::UnboundedSender<(Pid, oneshot::Sender<async_std::io::Result<()>>)>,
+        closed: Arc<RwLock<Result<(), ParticipantError>>>,
     ) -> Self {
         Self {
             local_pid,
             remote_pid,
             a2b_steam_open_s: RwLock::new(a2b_steam_open_s),
             b2a_stream_opened_r: RwLock::new(b2a_stream_opened_r),
-            closed: AtomicBool::new(false),
+            closed,
             a2s_disconnect_s: Arc::new(Mutex::new(Some(a2s_disconnect_s))),
         }
     }
@@ -444,20 +449,12 @@ impl Participant {
         //use this lock for now to make sure that only one open at a time is made,
         // TODO: not sure if we can paralise that, check in future
         let mut a2b_steam_open_s = self.a2b_steam_open_s.write().await;
-        if self.closed.load(Ordering::Relaxed) {
-            warn!(?self.remote_pid, "participant is closed but another open is tried on it");
-            return Err(ParticipantError::ParticipantClosed);
-        }
+        self.closed.read().await.clone()?;
         let (p2a_return_stream_s, p2a_return_stream_r) = oneshot::channel();
-        if a2b_steam_open_s
+        a2b_steam_open_s
             .send((prio, promises, p2a_return_stream_s))
             .await
-            .is_err()
-        {
-            debug!(?self.remote_pid, "stream_open_sender failed, closing participant");
-            self.closed.store(true, Ordering::Relaxed);
-            return Err(ParticipantError::ParticipantClosed);
-        }
+            .unwrap();
         match p2a_return_stream_r.await {
             Ok(stream) => {
                 let sid = stream.sid;
@@ -466,8 +463,8 @@ impl Participant {
             },
             Err(_) => {
                 debug!(?self.remote_pid, "p2a_return_stream_r failed, closing participant");
-                self.closed.store(true, Ordering::Relaxed);
-                Err(ParticipantError::ParticipantClosed)
+                *self.closed.write().await = Err(ParticipantError::ProtocolFailedUnrecoverable);
+                Err(ParticipantError::ProtocolFailedUnrecoverable)
             },
         }
     }
@@ -509,10 +506,7 @@ impl Participant {
         //use this lock for now to make sure that only one open at a time is made,
         // TODO: not sure if we can paralise that, check in future
         let mut stream_opened_receiver = self.b2a_stream_opened_r.write().await;
-        if self.closed.load(Ordering::Relaxed) {
-            warn!(?self.remote_pid, "Participant is closed but another open is tried on it");
-            return Err(ParticipantError::ParticipantClosed);
-        }
+        self.closed.read().await.clone()?;
         match stream_opened_receiver.next().await {
             Some(stream) => {
                 let sid = stream.sid;
@@ -521,8 +515,8 @@ impl Participant {
             },
             None => {
                 debug!(?self.remote_pid, "stream_opened_receiver failed, closing participant");
-                self.closed.store(true, Ordering::Relaxed);
-                Err(ParticipantError::ParticipantClosed)
+                *self.closed.write().await = Err(ParticipantError::ProtocolFailedUnrecoverable);
+                Err(ParticipantError::ProtocolFailedUnrecoverable)
             },
         }
     }
@@ -557,7 +551,7 @@ impl Participant {
     ///     network
     ///         .listen(ProtocolAddr::Tcp("0.0.0.0:2030".parse().unwrap()))
     ///         .await?;
-    ///     # remote.connect(ProtocolAddr::Tcp("0.0.0.0:2030".parse().unwrap())).await?;
+    ///     # let keep_alive = remote.connect(ProtocolAddr::Tcp("0.0.0.0:2030".parse().unwrap())).await?;
     ///     while let Ok(participant) = network.connected().await {
     ///         println!("Participant connected: {}", participant.remote_pid());
     ///         participant.disconnect().await?;
@@ -574,9 +568,13 @@ impl Participant {
         // Remove, Close and try_unwrap error when unwrap fails!
         let pid = self.remote_pid;
         debug!(?pid, "Closing participant from network");
-        self.closed.store(true, Ordering::Relaxed);
-        //Streams will be closed by BParticipant
+        {
+            let mut lock = self.closed.write().await;
+            lock.clone()?;
+            *lock = Err(ParticipantError::ParticipantDisconnected);
+        }
 
+        //Streams will be closed by BParticipant
         match self.a2s_disconnect_s.lock().await.take() {
             Some(mut a2s_disconnect_s) => {
                 let (finished_sender, finished_receiver) = oneshot::channel();
@@ -597,7 +595,7 @@ impl Participant {
                             "Error occured during shutdown of participant and is propagated to \
                              User"
                         );
-                        Err(ParticipantError::GracefulDisconnectFailed(e))
+                        Err(ParticipantError::ProtocolFailedUnrecoverable)
                     },
                     Err(e) => {
                         //this is a bug. but as i am Participant i can't destroy the network
@@ -607,7 +605,7 @@ impl Participant {
                             "Failed to get a message back from the scheduler, seems like the \
                              network is already closed"
                         );
-                        Err(ParticipantError::ParticipantClosed)
+                        Err(ParticipantError::ProtocolFailedUnrecoverable)
                     },
                 }
             },
@@ -616,7 +614,7 @@ impl Participant {
                     "seems like you are trying to disconnecting a participant after the network \
                      was already dropped. It was already dropped with the network!"
                 );
-                Err(ParticipantError::ParticipantClosed)
+                Err(ParticipantError::ParticipantDisconnected)
             },
         }
     }
@@ -907,18 +905,15 @@ impl Drop for Participant {
                         .send((self.remote_pid, finished_sender))
                         .await
                         .expect("Something is wrong in internal scheduler coding");
-                    match finished_receiver.await {
-                        Ok(Err(e)) => error!(
+                    match finished_receiver
+                        .await
+                        .expect("Something is wrong in internal scheduler/participant coding")
+                    {
+                        Err(e) => error!(
                             ?pid,
                             ?e,
                             "Error while dropping the participant, couldn't send all outgoing \
                              messages, dropping remaining"
-                        ),
-                        Err(e) => warn!(
-                            ?e,
-                            "//TODO i dont know why the finish doesnt work, i normally would \
-                             expect to have sended a return message from the participant... \
-                             ignoring to not caue a panic for now, please fix me"
                         ),
                         _ => (),
                     };
@@ -953,25 +948,16 @@ impl Drop for Stream {
 impl std::fmt::Debug for Participant {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let status = if self.closed.load(Ordering::Relaxed) {
-            "[CLOSED]"
-        } else {
-            "[OPEN]"
-        };
         write!(
             f,
-            "Participant {{{} local_pid: {:?}, remote_pid: {:?} }}",
-            status, &self.local_pid, &self.remote_pid,
+            "Participant {{ local_pid: {:?}, remote_pid: {:?} }}",
+            &self.local_pid, &self.remote_pid,
         )
     }
 }
 
 impl<T> From<crossbeam_channel::SendError<T>> for StreamError {
     fn from(_err: crossbeam_channel::SendError<T>) -> Self { StreamError::StreamClosed }
-}
-
-impl<T> From<crossbeam_channel::SendError<T>> for ParticipantError {
-    fn from(_err: crossbeam_channel::SendError<T>) -> Self { ParticipantError::ParticipantClosed }
 }
 
 impl<T> From<crossbeam_channel::SendError<T>> for NetworkError {
@@ -982,24 +968,12 @@ impl From<std::option::NoneError> for StreamError {
     fn from(_err: std::option::NoneError) -> Self { StreamError::StreamClosed }
 }
 
-impl From<std::option::NoneError> for ParticipantError {
-    fn from(_err: std::option::NoneError) -> Self { ParticipantError::ParticipantClosed }
-}
-
 impl From<std::option::NoneError> for NetworkError {
     fn from(_err: std::option::NoneError) -> Self { NetworkError::NetworkClosed }
 }
 
-impl From<mpsc::SendError> for ParticipantError {
-    fn from(_err: mpsc::SendError) -> Self { ParticipantError::ParticipantClosed }
-}
-
 impl From<mpsc::SendError> for NetworkError {
     fn from(_err: mpsc::SendError) -> Self { NetworkError::NetworkClosed }
-}
-
-impl From<oneshot::Canceled> for ParticipantError {
-    fn from(_err: oneshot::Canceled) -> Self { ParticipantError::ParticipantClosed }
 }
 
 impl From<oneshot::Canceled> for NetworkError {
@@ -1024,9 +998,9 @@ impl core::fmt::Display for StreamError {
 impl core::fmt::Display for ParticipantError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            ParticipantError::ParticipantClosed => write!(f, "Participant closed"),
-            ParticipantError::GracefulDisconnectFailed(_) => {
-                write!(f, "Graceful disconnect failed")
+            ParticipantError::ParticipantDisconnected => write!(f, "Participant disconnect"),
+            ParticipantError::ProtocolFailedUnrecoverable => {
+                write!(f, "underlying protocol failed unrecoverable")
             },
         }
     }
