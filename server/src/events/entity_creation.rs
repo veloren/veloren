@@ -118,9 +118,7 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
             flicker: 1.0,
             animated: true,
         })
-        .with(ParticleEmitter {
-            mode: ParticleEmitterMode::Sprinkler,
-        })
+        .with(ParticleEmitter::default())
         .with(WaypointArea::default())
         .build();
 }

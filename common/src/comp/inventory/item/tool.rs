@@ -278,6 +278,16 @@ impl Tool {
                     }),
                     projectile_particles: Some(ParticleEmitter {
                         mode: ParticleEmitterMode::Sprinkler,
+                        // model_key: "voxygen.voxel.not_found",
+                        count: (2, 3),
+                        frequency: Duration::from_millis(50),
+                        initial_lifespan: Duration::from_millis(500),
+                        initial_offset: (vek::Vec3::broadcast(-1.0), vek::Vec3::broadcast(1.0)),
+                        initial_orientation: (
+                            vek::Vec3::broadcast(-1.0),
+                            vek::Vec3::broadcast(1.0),
+                        ),
+                        initial_scale: (0.1, 0.3),
                     }),
                     projectile_gravity: None,
                 },
@@ -303,9 +313,7 @@ impl Tool {
                         col: (1.0, 0.75, 0.11).into(),
                         ..Default::default()
                     }),
-                    projectile_particles: Some(ParticleEmitter {
-                        mode: ParticleEmitterMode::Sprinkler,
-                    }),
+                    projectile_particles: Some(ParticleEmitter::default()),
                     projectile_gravity: None,
                 },
             ],
