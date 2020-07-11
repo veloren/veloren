@@ -604,6 +604,7 @@ impl Server {
                 client_state: ClientState::Connected,
                 participant: std::sync::Mutex::new(Some(participant)),
                 singleton_stream,
+                network_error: std::sync::atomic::AtomicBool::new(false),
                 last_ping: self.state.get_time(),
                 login_msg_sent: false,
             };

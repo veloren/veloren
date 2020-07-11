@@ -45,7 +45,7 @@ pub(crate) fn serialize<M: Serialize>(message: &M) -> MessageBuffer {
 // std::Result<M, std::Box<bincode::error::bincode::ErrorKind>> {
 pub(crate) fn deserialize<M: DeserializeOwned>(buffer: MessageBuffer) -> bincode::Result<M> {
     let span = lz4_compress::decompress(&buffer.data)
-        .expect("lz4_compression error, failed to deserialze");
+        .expect("lz4 decompression failed, failed to deserialze");
     //this might fail if you choose the wrong type for M. in that case probably X
     // got transfered while you assume Y. probably this means your application
     // logic is wrong. E.g. You expect a String, but just get a u8.

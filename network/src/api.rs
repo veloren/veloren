@@ -905,17 +905,16 @@ impl Drop for Participant {
                         .send((self.remote_pid, finished_sender))
                         .await
                         .expect("Something is wrong in internal scheduler coding");
-                    match finished_receiver
+                    if let Err(e) = finished_receiver
                         .await
                         .expect("Something is wrong in internal scheduler/participant coding")
                     {
-                        Err(e) => error!(
+                        error!(
                             ?pid,
                             ?e,
                             "Error while dropping the participant, couldn't send all outgoing \
                              messages, dropping remaining"
-                        ),
-                        _ => (),
+                        );
                     };
                 });
             },

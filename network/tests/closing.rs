@@ -1,3 +1,23 @@
+//! How to read those tests:
+//!  - in the first line we call the helper, this is only debug code. in case
+//!    you want to have tracing for a special test you set set the bool = true
+//!    and the sleep to 10000 and your test will start 10 sec delayed with
+//!    tracing. You need a delay as otherwise the other tests polute your trace
+//!  - the second line is to simulate a client and a server
+//!    `network_participant_stream` will return
+//!      - 2 networks
+//!      - 2 participants
+//!      - 2 streams
+//!    each one `linked` to their counterpart.
+//!    You see a cryptic use of rust `_` this is because we are testing the
+//! `drop` behavior here.
+//!      - A `_` means this is directly dropped after the line executes, thus
+//!        immediately executing its `Drop` impl.
+//!      - A `_p1_a` e.g. means we don't use that Participant yet, but we must
+//!        not `drop` it yet as we might want to use the Streams.
+//!  - You sometimes see sleep(1000ms) this is used when we rely on the
+//!    underlying TCP functionality, as this simulates client and server
+
 use async_std::task;
 use task::block_on;
 use veloren_network::StreamError;
@@ -22,9 +42,13 @@ fn close_participant() {
     let (_n_a, p1_a, mut s1_a, _n_b, p1_b, mut s1_b) = block_on(network_participant_stream(tcp()));
 
     block_on(p1_a.disconnect()).unwrap();
-    //We dont know of if the disconect is done YET, so the next command will either
-    // return already closed or fail a gracefully close as it will discover that the
-    // remote site closed right now
+    // The following will `Err`, but we don't know the exact error message.
+    // Why? because of the TCP layer we have no guarantee if the TCP messages send
+    // one line above already reached `p1_b`. If they reached them it would fail
+    // with a `ParticipantDisconnected` as a clean disconnect was performed.
+    // If they haven't reached them yet but will reach them during the execution it
+    // will return a unclean shutdown was detected. Nevertheless, if it returns
+    // Ok(()) then something is wrong!
     assert!(block_on(p1_b.disconnect()).is_err());
 
     assert_eq!(s1_a.send("Hello World"), Err(StreamError::StreamClosed));
