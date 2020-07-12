@@ -99,6 +99,7 @@ fn generate_key_version<'a>(
         };
     }
 
+    let mut error_check_set: Vec<String> = vec![];
     // Find commit for each keys
     repo.blame_file(path, None)
         .expect("Impossible to generate the Git blame")
@@ -108,10 +109,13 @@ fn generate_key_version<'a>(
                 let line = match state.key_line {
                     Some(l) => l,
                     None => {
-                        eprintln!(
-                            "Key {} does not have a git line in it's state! Skipping key.",
-                            key
-                        );
+                        if !error_check_set.contains(key) {
+                            eprintln!(
+                                "Key {} does not have a git line in it's state! Skipping key.",
+                                key
+                            );
+                            error_check_set.push(key.clone());
+                        }
                         continue;
                     },
                 };
@@ -171,18 +175,16 @@ fn test_all_localizations<'a>() {
         generate_key_version(&repo, &loc, &en_i18n_path, &i18n_en_blob);
 
     // Compare to other reference files
-    let mut overall_uptodate_entry_count = 0;
-    let mut overall_outdated_entry_count = 0;
-    let mut overall_untranslated_entry_count = 0;
-    let mut overall_real_entry_count = 0;
-
     let i18n_files = i18n_files(&i18n_path);
+    let mut i18n_entry_counts: HashMap<PathBuf, (usize, usize, usize, usize)> = HashMap::new();
     for file in &i18n_files {
         let relfile = file.strip_prefix(&root_dir).unwrap();
         if relfile == en_i18n_path {
             continue;
         }
+        println!("\n-----------------------------------");
         println!("{:?}", relfile);
+        println!("-----------------------------------");
 
         // Find the localization entry state
         let current_blob = read_file_from_path(&repo, &head_ref, &relfile);
@@ -254,7 +256,7 @@ fn test_all_localizations<'a>() {
 
         // Display
         println!(
-            "{:10}  {:60}{:40} {:40}",
+            "\n{:10}  | {:60}| {:40} | {:40}\n",
             "State",
             "Key name",
             relfile.to_str().unwrap(),
@@ -283,7 +285,7 @@ fn test_all_localizations<'a>() {
                 };
 
                 println!(
-                    "[{:9}] {:60}{:40} {:40}",
+                    "[{:9}] | {:60}| {:40} | {:40}",
                     format!("{:?}", state.state),
                     key,
                     state
@@ -303,7 +305,7 @@ fn test_all_localizations<'a>() {
         }
 
         println!(
-            "\n{} up-to-date, {} outdated, {} unused, {} not found, {} unknown entries found",
+            "\n{} up-to-date, {} outdated, {} unused, {} not found, {} unknown entries",
             uptodate_entries, outdated_entries, unused_entries, notfound_entries, unknown_entries
         );
 
@@ -316,20 +318,54 @@ fn test_all_localizations<'a>() {
             ((notfound_entries + unknown_entries) as f32 / real_entry_count as f32) * 100_f32;
 
         println!(
-            "{}% up-to-date, {}% outdated, {}% untranslated\n",
+            "{:.2}% up-to-date, {:.2}% outdated, {:.2}% untranslated\n",
             uptodate_percent, outdated_percent, untranslated_percent,
         );
 
-        overall_uptodate_entry_count += uptodate_entries;
-        overall_outdated_entry_count += outdated_entries;
-        overall_untranslated_entry_count += notfound_entries + unknown_entries;
-        overall_real_entry_count += real_entry_count;
+        i18n_entry_counts.insert(
+            file.clone(),
+            (
+                uptodate_entries,
+                outdated_entries,
+                notfound_entries + unknown_entries,
+                real_entry_count,
+            ),
+        );
+    }
+
+    let mut overall_uptodate_entry_count = 0;
+    let mut overall_outdated_entry_count = 0;
+    let mut overall_untranslated_entry_count = 0;
+    let mut overall_real_entry_count = 0;
+
+    println!("--------------------------------------------------------------------------------");
+    println!("Overall Translation Status");
+    println!("--------------------------------------------------------------------------------");
+    println!(
+        "{:12}| {:8} | {:8} | {:8}",
+        "", "up-to-date", "outdated", "untranslated"
+    );
+
+    for (path, (uptodate, outdated, untranslated, real)) in i18n_entry_counts {
+        overall_uptodate_entry_count += uptodate;
+        overall_outdated_entry_count += outdated;
+        overall_untranslated_entry_count += untranslated;
+        overall_real_entry_count += real;
+
+        println!(
+            "{:12}|{:8}    |{:6}    |{:8}",
+            path.file_name().unwrap().to_string_lossy(),
+            uptodate,
+            outdated,
+            untranslated
+        );
     }
 
     println!(
-        "Overall translation status: {}% up-to-date, {}% outdated, {}% untranslated\n",
+        "\n{:.2}% up-to-date, {:.2}% outdated, {:.2}% untranslated",
         (overall_uptodate_entry_count as f32 / overall_real_entry_count as f32) * 100_f32,
         (overall_outdated_entry_count as f32 / overall_real_entry_count as f32) * 100_f32,
         (overall_untranslated_entry_count as f32 / overall_real_entry_count as f32) * 100_f32,
     );
+    println!("--------------------------------------------------------------------------------\n");
 }
