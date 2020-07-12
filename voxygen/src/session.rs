@@ -6,7 +6,7 @@ use crate::{
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
     scene::{camera, Scene, SceneData},
-    settings::AudioOutput,
+    settings::{AudioOutput, ControlSettings},
     window::{AnalogGameInput, Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
@@ -921,6 +921,10 @@ impl PlayState for SessionState {
                     },
                     HudEvent::ChangeBinding(game_input) => {
                         global_state.window.set_keybinding_mode(game_input);
+                    },
+                    HudEvent::ResetBindings => {
+                        global_state.settings.controls = ControlSettings::default();
+                        global_state.settings.save_to_file_warn();
                     },
                     HudEvent::ChangeFreeLookBehavior(behavior) => {
                         global_state.settings.gameplay.free_look_behavior = behavior;
