@@ -117,6 +117,8 @@ const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
 const UI_HIGHLIGHT_0: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0);
 //const UI_DARK_0: Color = Color::Rgba(0.25, 0.37, 0.37, 1.0);
 
+/// Distance at which nametags are visible for group members
+const NAMETAG_GROUP_RANGE: f32 = 300.0;
 /// Distance at which nametags are visible
 const NAMETAG_RANGE: f32 = 40.0;
 /// Time nametags stay visible after doing damage even if they are out of range
@@ -1052,7 +1054,7 @@ impl Hud {
             }
 
             // Render overhead name tags and health bars
-            for (pos, name, stats, energy, height_offset, hpfl, uid) in (
+            for (pos, name, stats, energy, height_offset, hpfl, uid, in_group) in (
                 &entities,
                 &pos,
                 interpolated.maybe(),
@@ -1065,15 +1067,34 @@ impl Hud {
                 &uids,
             )
                 .join()
-                .filter(|(entity, _, _, stats, _, _, _, _, _, _)| *entity != me && !stats.is_dead
+                .map(|(a, b, c, d, e, f, g, h, i, uid)| {
+                    (
+                        a,
+                        b,
+                        c,
+                        d,
+                        e,
+                        f,
+                        g,
+                        h,
+                        i,
+                        uid,
+                        client.group_members.contains(uid),
+                    )
+                })
+                .filter(|(entity, pos, _, stats, _, _, _, _, hpfl, uid, in_group)| {
+                    *entity != me && !stats.is_dead
                     && (stats.health.current() != stats.health.maximum()
                          || info.target_entity.map_or(false, |e| e == *entity)
                          || info.selected_entity.map_or(false, |s| s.0 == *entity)
-                    ))
-                // Don't show outside a certain range
-                .filter(|(_, pos, _, _, _, _, _, _, hpfl, _)| {
-                    pos.0.distance_squared(player_pos)
-                        < (if hpfl
+                         || *in_group
+                    )
+                    // Don't show outside a certain range
+                     && pos.0.distance_squared(player_pos)
+                        < (if *in_group
+                        {
+                            NAMETAG_GROUP_RANGE
+                        } else if hpfl
                             .time_since_last_dmg_by_me
                             .map_or(false, |t| t < NAMETAG_DMG_TIME)
                         {
@@ -1083,25 +1104,40 @@ impl Hud {
                         })
                         .powi(2)
                 })
-                .map(|(_, pos, interpolated, stats, energy, player, scale, body, hpfl, uid)| {
-                    // TODO: This is temporary
-                    // If the player used the default character name display their name instead
-                    let name = if stats.name == "Character Name" {
-                        player.map_or(&stats.name, |p| &p.alias)
-                    } else {
-                        &stats.name
-                    };
-                    (
-                        interpolated.map_or(pos.0, |i| i.pos),
-                        name,
+                .map(
+                    |(
+                        _,
+                        pos,
+                        interpolated,
                         stats,
                         energy,
-                        // TODO: when body.height() is more accurate remove the 2.0
-                        body.height() * 2.0 * scale.map_or(1.0, |s| s.0),
+                        player,
+                        scale,
+                        body,
                         hpfl,
                         uid,
-                    )
-                })
+                        in_group,
+                    )| {
+                        // TODO: This is temporary
+                        // If the player used the default character name display their name instead
+                        let name = if stats.name == "Character Name" {
+                            player.map_or(&stats.name, |p| &p.alias)
+                        } else {
+                            &stats.name
+                        };
+                        (
+                            interpolated.map_or(pos.0, |i| i.pos),
+                            name,
+                            stats,
+                            energy,
+                            // TODO: when body.height() is more accurate remove the 2.0
+                            body.height() * 2.0 * scale.map_or(1.0, |s| s.0),
+                            hpfl,
+                            uid,
+                            in_group,
+                        )
+                    },
+                )
             {
                 let bubble = self.speech_bubbles.get(uid);
 
@@ -1118,6 +1154,7 @@ impl Hud {
                     stats,
                     energy,
                     own_level,
+                    in_group,
                     &global_state.settings.gameplay,
                     self.pulse,
                     &self.voxygen_i18n,

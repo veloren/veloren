@@ -153,7 +153,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             let mut clients = state.ecs().write_storage::<Client>();
             let uids = state.ecs().read_storage::<sync::Uid>();
             let mut group_manager = state.ecs().write_resource::<GroupManager>();
-            group_manager.remove_from_group(
+            group_manager.leave_group(
                 entity,
                 &mut state.ecs().write_storage(),
                 &state.ecs().read_storage(),
@@ -174,6 +174,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
         GroupManip::Kick(uid) => {
             let mut clients = state.ecs().write_storage::<Client>();
             let uids = state.ecs().read_storage::<sync::Uid>();
+            let alignments = state.ecs().read_storage::<comp::Alignment>();
 
             let target = match state.ecs().entity_from_uid(uid.into()) {
                 Some(t) => t,
@@ -188,6 +189,27 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                     return;
                 },
             };
+
+            // Can't kick pet
+            if matches!(alignments.get(target), Some(comp::Alignment::Owned(owner)) if uids.get(target).map_or(true, |u| u != owner))
+            {
+                if let Some(client) = clients.get_mut(entity) {
+                    client.notify(
+                        ChatType::Meta.server_msg("Kick failed, can't kick pet".to_owned()),
+                    );
+                }
+                return;
+            }
+            // Can't kick yourself
+            if uids.get(entity).map_or(false, |u| *u == uid) {
+                if let Some(client) = clients.get_mut(entity) {
+                    client.notify(
+                        ChatType::Meta.server_msg("Kick failed, can't kick yourself".to_owned()),
+                    );
+                }
+                return;
+            }
+
             let mut groups = state.ecs().write_storage::<group::Group>();
             let mut group_manager = state.ecs().write_resource::<GroupManager>();
             // Make sure kicker is the group leader
@@ -197,7 +219,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             {
                 Some(info) if info.leader == entity => {
                     // Remove target from group
-                    group_manager.remove_from_group(
+                    group_manager.leave_group(
                         target,
                         &mut groups,
                         &state.ecs().read_storage(),

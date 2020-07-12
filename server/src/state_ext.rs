@@ -351,7 +351,7 @@ impl StateExt for State {
             let mut clients = self.ecs().write_storage::<Client>();
             let uids = self.ecs().read_storage::<Uid>();
             let mut group_manager = self.ecs().write_resource::<comp::group::GroupManager>();
-            group_manager.remove_from_group(
+            group_manager.entity_deleted(
                 entity,
                 &mut self.ecs().write_storage(),
                 &self.ecs().read_storage(),

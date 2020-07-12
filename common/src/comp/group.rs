@@ -89,7 +89,9 @@ fn with_pets(
 ) -> Vec<specs::Entity> {
     let mut list = (entities, alignments)
         .join()
-        .filter_map(|(e, a)| matches!(a, Alignment::Owned(owner) if *owner == uid).then_some(e))
+        .filter_map(|(e, a)| {
+            matches!(a, Alignment::Owned(owner) if *owner == uid && e != entity).then_some(e)
+        })
         .collect::<Vec<_>>();
     list.push(entity);
     list
@@ -145,8 +147,12 @@ impl GroupManager {
         };
 
         // If new member is a member of a different group remove that
-        if groups.get(new_member).is_some() {
-            self.remove_from_group(
+        if groups
+            .get(new_member)
+            .and_then(|g| self.group_info(*g))
+            .is_some()
+        {
+            self.leave_group(
                 new_member,
                 groups,
                 alignments,
@@ -168,7 +174,7 @@ impl GroupManager {
             // Member of an existing group can't be a leader
             // If the lead is a member of another group leave that group first
             Some(_) => {
-                self.remove_from_group(leader, groups, alignments, uids, entities, &mut notifier);
+                self.leave_group(leader, groups, alignments, uids, entities, &mut notifier);
                 None
             },
             None => None,
@@ -238,10 +244,7 @@ impl GroupManager {
         }
     }
 
-    // Remove someone from a group if they are in one
-    // Don't need to check if they are in a group before calling this
-    // Also removes pets (ie call this if the pet no longer exists)
-    pub fn remove_from_group(
+    pub fn leave_group(
         &mut self,
         member: specs::Entity,
         groups: &mut GroupsMut,
@@ -249,6 +252,52 @@ impl GroupManager {
         uids: &Uids,
         entities: &specs::Entities,
         notifier: &mut impl FnMut(specs::Entity, ChangeNotification<specs::Entity>),
+    ) {
+        // Pets can't leave
+        if matches!(alignments.get(member), Some(Alignment::Owned(uid)) if uids.get(member).map_or(true, |u| u != uid))
+        {
+            return;
+        }
+        self.remove_from_group(member, groups, alignments, uids, entities, notifier, false);
+
+        // Set NPC back to their group
+        if let Some(alignment) = alignments.get(member) {
+            match alignment {
+                Alignment::Npc => {
+                    let _ = groups.insert(member, NPC);
+                },
+                Alignment::Enemy => {
+                    let _ = groups.insert(member, ENEMY);
+                },
+                _ => {},
+            }
+        }
+    }
+
+    pub fn entity_deleted(
+        &mut self,
+        member: specs::Entity,
+        groups: &mut GroupsMut,
+        alignments: &Alignments,
+        uids: &Uids,
+        entities: &specs::Entities,
+        notifier: &mut impl FnMut(specs::Entity, ChangeNotification<specs::Entity>),
+    ) {
+        self.remove_from_group(member, groups, alignments, uids, entities, notifier, true);
+    }
+
+    // Remove someone from a group if they are in one
+    // Don't need to check if they are in a group before calling this
+    // Also removes pets (ie call this if the pet no longer exists)
+    fn remove_from_group(
+        &mut self,
+        member: specs::Entity,
+        groups: &mut GroupsMut,
+        alignments: &Alignments,
+        uids: &Uids,
+        entities: &specs::Entities,
+        notifier: &mut impl FnMut(specs::Entity, ChangeNotification<specs::Entity>),
+        to_be_deleted: bool,
     ) {
         let group = match groups.get(member) {
             Some(group) => *group,
@@ -266,11 +315,14 @@ impl GroupManager {
 
             (entities, uids, &*groups, alignments.maybe())
                 .join()
-                .filter(|(_, _, g, _)| **g == group)
+                .filter(|(e, _, g, _)| **g == group && (!to_be_deleted || *e == member))
                 .fold(
                     HashMap::<Uid, (Option<specs::Entity>, Vec<specs::Entity>)>::new(),
                     |mut acc, (e, uid, _, alignment)| {
-                        if let Some(Alignment::Owned(owner)) = alignment {
+                        if let Some(owner) = alignment.and_then(|a| match a {
+                            Alignment::Owned(owner) if uid != owner => Some(owner),
+                            _ => None,
+                        }) {
                             // Assumes owner will be in the group
                             acc.entry(*owner).or_default().1.push(e);
                         } else {
@@ -309,10 +361,6 @@ impl GroupManager {
                             notifier(owner, ChangeNotification::NoGroup)
                         }
                     } else {
-                        warn!(
-                            "Something went wrong! The pet owner is missing from a group that the \
-                             pet is in"
-                        );
                         pets.into_iter()
                             .for_each(|pet| notifier(pet, ChangeNotification::NoGroup));
                     }
@@ -328,47 +376,45 @@ impl GroupManager {
 
             let leaving = with_pets(member, leaving_member_uid, alignments, entities);
 
-            // If pets form new group
-            if leaving.len() > 1 {
+            // If pets and not about to be deleted form new group
+            if leaving.len() > 1 && !to_be_deleted {
                 let new_group = self.create_group(member);
-
-                leaving.iter().for_each(|e| {
-                    let _ = groups.insert(*e, new_group).unwrap();
-                });
 
                 let notification = ChangeNotification::NewGroup {
                     leader: member,
                     members: leaving.clone(),
                 };
 
-                leaving
-                    .iter()
-                    .for_each(|e| notifier(*e, notification.clone()));
+                leaving.iter().for_each(|&e| {
+                    let _ = groups.insert(e, new_group).unwrap();
+                    notifier(e, notification.clone());
+                });
             } else {
-                groups.remove(member);
-                notifier(member, ChangeNotification::NoGroup)
+                leaving.iter().for_each(|&e| {
+                    let _ = groups.remove(e);
+                    notifier(e, ChangeNotification::NoGroup);
+                });
             }
 
-            // Inform remaining members
-            let mut num_members = 0;
-            members(group, &*groups, entities).for_each(|a| {
-                num_members += 1;
-                leaving.iter().for_each(|b| {
-                    notifier(a, ChangeNotification::Removed(*b));
-                })
-            });
-
-            // If leader is the last one left then disband the group
-            // Assumes last member is the leader
-            if num_members == 1 {
-                if let Some(info) = self.group_info(group) {
+            if let Some(info) = self.group_info(group) {
+                // Inform remaining members
+                let mut num_members = 0;
+                members(group, &*groups, entities).for_each(|a| {
+                    num_members += 1;
+                    leaving.iter().for_each(|b| {
+                        notifier(a, ChangeNotification::Removed(*b));
+                    })
+                });
+                // If leader is the last one left then disband the group
+                // Assumes last member is the leader
+                if num_members == 1 {
                     let leader = info.leader;
                     self.remove_group(group);
                     groups.remove(leader);
                     notifier(leader, ChangeNotification::NoGroup);
+                } else if num_members == 0 {
+                    error!("Somehow group has no members")
                 }
-            } else if num_members == 0 {
-                error!("Somehow group has no members")
             }
         }
     }
@@ -392,7 +438,7 @@ impl GroupManager {
 
         // Point to new leader
         members(group, groups, entities).for_each(|e| {
-            notifier(e, ChangeNotification::NewLeader(e));
+            notifier(e, ChangeNotification::NewLeader(new_leader));
         });
     }
 }

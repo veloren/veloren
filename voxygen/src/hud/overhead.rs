@@ -56,6 +56,7 @@ pub struct Overhead<'a> {
     stats: &'a Stats,
     energy: Option<&'a Energy>,
     own_level: u32,
+    in_group: bool,
     settings: &'a GameplaySettings,
     pulse: f32,
     voxygen_i18n: &'a std::sync::Arc<VoxygenLocalization>,
@@ -73,6 +74,7 @@ impl<'a> Overhead<'a> {
         stats: &'a Stats,
         energy: Option<&'a Energy>,
         own_level: u32,
+        in_group: bool,
         settings: &'a GameplaySettings,
         pulse: f32,
         voxygen_i18n: &'a std::sync::Arc<VoxygenLocalization>,
@@ -85,6 +87,7 @@ impl<'a> Overhead<'a> {
             stats,
             energy,
             own_level,
+            in_group,
             settings,
             pulse,
             voxygen_i18n,
@@ -145,7 +148,11 @@ impl<'a> Widget for Overhead<'a> {
         Text::new(&self.name)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(30)
-            .color(Color::Rgba(0.61, 0.61, 0.89, 1.0))
+            .color(if self.in_group {
+                Color::Rgba(1.0, 0.5, 0.6, 1.0)
+            } else {
+                Color::Rgba(0.61, 0.61, 0.89, 1.0)
+            })
             .x_y(0.0, MANA_BAR_Y + 50.0)
             .set(state.ids.name, ui);
 
