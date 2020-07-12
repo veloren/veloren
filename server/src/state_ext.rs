@@ -173,7 +173,7 @@ impl StateExt for State {
         self.write_component(entity, comp::CharacterState::default());
         self.write_component(
             entity,
-            comp::Alignment::Owned(self.read_component_cloned(entity).unwrap()),
+            comp::Alignment::Owned(self.read_component_copied(entity).unwrap()),
         );
 
         // Set the character id for the player
@@ -213,7 +213,7 @@ impl StateExt for State {
 
         // Notify clients of a player list update
         let client_uid = self
-            .read_component_cloned::<Uid>(entity)
+            .read_component_copied::<Uid>(entity)
             .map(|u| u)
             .expect("Client doesn't have a Uid!!!");
 

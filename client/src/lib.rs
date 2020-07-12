@@ -383,7 +383,7 @@ impl Client {
     }
 
     pub fn pick_up(&mut self, entity: EcsEntity) {
-        if let Some(uid) = self.state.ecs().read_storage::<Uid>().get(entity).copied() {
+        if let Some(uid) = self.state.read_component_copied(entity) {
             self.singleton_stream
                 .send(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
                     InventoryManip::Pickup(uid),
@@ -436,6 +436,12 @@ impl Client {
 
     pub fn group_leader(&self) -> Option<Uid> { self.group_leader }
 
+    pub fn send_group_invite(&mut self, invitee: Uid) {
+        self.singleton_stream
+            .send(ClientMsg::ControlEvent(ControlEvent::GroupManip( GroupManip::Invite(invitee) )))
+            .unwrap()
+    }
+
     pub fn accept_group_invite(&mut self) {
         // Clear invite
         self.group_invite.take();
@@ -461,22 +467,18 @@ impl Client {
             ))).unwrap();
     }
 
-    pub fn kick_from_group(&mut self, entity: specs::Entity) {
-        if let Some(uid) = self.state.ecs().read_storage::<Uid>().get(entity).copied() {
-            self.singleton_stream
-                .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
-                    GroupManip::Kick(uid),
-                ))).unwrap();
-        }
+    pub fn kick_from_group(&mut self, uid: Uid) {
+        self.singleton_stream
+            .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
+                GroupManip::Kick(uid),
+            ))).unwrap();
     }
 
-    pub fn assign_group_leader(&mut self, entity: specs::Entity) {
-        if let Some(uid) = self.state.ecs().read_storage::<Uid>().get(entity).copied() {
-            self.singleton_stream
-                .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
-                    GroupManip::AssignLeader(uid),
-                ))).unwrap();
-        }
+    pub fn assign_group_leader(&mut self, uid: Uid) {
+        self.singleton_stream
+            .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
+                GroupManip::AssignLeader(uid),
+            ))).unwrap();
     }
 
     pub fn is_mounted(&self) -> bool {
@@ -488,7 +490,7 @@ impl Client {
     }
 
     pub fn mount(&mut self, entity: EcsEntity) {
-        if let Some(uid) = self.state.ecs().read_storage::<Uid>().get(entity).copied() {
+        if let Some(uid) = self.state.read_component_copied(entity) {
             self.singleton_stream
                 .send(ClientMsg::ControlEvent(ControlEvent::Mount(uid)))
                 .unwrap();
@@ -1069,7 +1071,7 @@ impl Client {
                     self.state.ecs_mut().apply_entity_package(entity_package);
                 },
                 ServerMsg::DeleteEntity(entity) => {
-                    if self.state.read_component_cloned::<Uid>(self.entity) != Some(entity) {
+                    if self.uid() != Some(entity) {
                         self.state
                             .ecs_mut()
                             .delete_entity_and_clear_from_uid_allocator(entity.0);
@@ -1179,6 +1181,11 @@ impl Client {
     /// Get the player's entity.
     pub fn entity(&self) -> EcsEntity { self.entity }
 
+    /// Get the player's Uid.
+    pub fn uid(&self) -> Option<Uid> {
+        self.state.read_component_copied(self.entity)
+    }
+
     /// Get the client state
     pub fn get_client_state(&self) -> ClientState { self.client_state }
 
@@ -1230,7 +1237,7 @@ impl Client {
     pub fn is_admin(&self) -> bool {
         let client_uid = self
             .state
-            .read_component_cloned::<Uid>(self.entity)
+            .read_component_copied::<Uid>(self.entity)
             .expect("Client doesn't have a Uid!!!");
 
         self.player_list
@@ -1241,8 +1248,7 @@ impl Client {
     /// Clean client ECS state
     fn clean_state(&mut self) {
         let client_uid = self
-            .state
-            .read_component_cloned::<Uid>(self.entity)
+            .uid()
             .map(|u| u.into())
             .expect("Client doesn't have a Uid!!!");
 
@@ -1313,7 +1319,7 @@ impl Client {
             comp::ChatType::Tell(from, to) => {
                 let from_alias = alias_of_uid(from);
                 let to_alias = alias_of_uid(to);
-                if Some(from) == self.state.ecs().read_storage::<Uid>().get(self.entity) {
+                if Some(*from) == self.uid() {
                     format!("To [{}]: {}", to_alias, message)
                 } else {
                     format!("From [{}]: {}", from_alias, message)

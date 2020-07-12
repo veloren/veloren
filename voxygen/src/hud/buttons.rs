@@ -41,7 +41,7 @@ widget_ids! {
         crafting_button_bg,
         crafting_text,
         crafting_text_bg,
-
+        group_button,
     }
 }
 #[derive(WidgetCommon)]
@@ -98,6 +98,7 @@ pub enum Event {
     ToggleSocial,
     ToggleSpell,
     ToggleCrafting,
+    ToggleGroup,
 }
 
 impl<'a> Widget for Buttons<'a> {
@@ -360,6 +361,7 @@ impl<'a> Widget for Buttons<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.spellbook_text, ui);
         }
+
         // Crafting
         if Button::image(self.imgs.crafting_icon)
             .w_h(25.0, 25.0)
@@ -396,6 +398,26 @@ impl<'a> Widget for Buttons<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.crafting_text, ui);
         }
+
+        // Group
+        if Button::image(self.imgs.group_icon)
+            .w_h(49.0, 26.0)
+            .bottom_left_with_margins_on(ui.window, 190.0, 10.0)
+            .hover_image(self.imgs.group_icon_hover)
+            .press_image(self.imgs.group_icon_press)
+            .with_tooltip(
+                self.tooltip_manager,
+                &localized_strings.get("hud.group"),
+                "",
+                &button_tooltip,
+            )
+            .bottom_offset(TOOLTIP_UPSHIFT)
+            .set(state.ids.group_button, ui)
+            .was_clicked()
+        {
+            return Some(Event::ToggleGroup);
+        }
+
         None
     }
 }

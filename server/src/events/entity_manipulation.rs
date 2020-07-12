@@ -189,7 +189,7 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
         .is_some()
     {
         let respawn_point = state
-            .read_component_cloned::<comp::Waypoint>(entity)
+            .read_component_copied::<comp::Waypoint>(entity)
             .map(|wp| wp.get_pos())
             .unwrap_or(state.ecs().read_resource::<SpawnPoint>().0);
 

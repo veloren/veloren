@@ -65,6 +65,7 @@ VoxygenLocalization(
         "common.create": "Create",
         "common.okay": "Okay",
         "common.accept": "Accept",
+        "common.reject": "Reject",
         "common.disclaimer": "Disclaimer",
         "common.cancel": "Cancel",
         "common.none": "None",
@@ -319,7 +320,14 @@ magically infused items?"#,
         "hud.crafting.craft": "Craft",
         "hud.crafting.tool_cata": "Requires:",
 
-        "hud.spell": "Spells",        
+        "hud.group": "Group",
+        "hud.group.invite_to_join": "{name} invited you to their group.",
+        "hud.group.invite": "Invite",
+        "hud.group.kick": "Kick",
+        "hud.group.assign_leader": "Assign Leader",
+        "hud.group.leave": "Leave Group",
+
+        "hud.spell": "Spells",
 
         "hud.free_look_indicator": "Free look active",
         "hud.auto_walk_indicator": "Auto walk active",

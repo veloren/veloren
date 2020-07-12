@@ -74,6 +74,8 @@ image_ids! {
         crafting_icon_hover: "voxygen.element.buttons.anvil_hover",
         crafting_icon_press: "voxygen.element.buttons.anvil_press",
 
+        // Group Window
+
 
         // Chat-Arrows
         chat_arrow: "voxygen.element.buttons.arrow_down",
@@ -94,7 +96,6 @@ image_ids! {
         slider_indicator_small: "voxygen.element.slider.indicator_round",
 
         // Buttons
-
         settings: "voxygen.element.buttons.settings",
         settings_hover: "voxygen.element.buttons.settings_hover",
         settings_press: "voxygen.element.buttons.settings_press",
@@ -110,6 +111,10 @@ image_ids! {
         spellbook_button: "voxygen.element.buttons.spellbook",
         spellbook_hover: "voxygen.element.buttons.spellbook_hover",
         spellbook_press: "voxygen.element.buttons.spellbook_press",
+
+        group_icon: "voxygen.element.buttons.group",
+        group_icon_hover: "voxygen.element.buttons.group_hover",
+        group_icon_press: "voxygen.element.buttons.group_press",
 
         // Skill Icons
         twohsword_m1: "voxygen.element.icons.2hsword_m1",

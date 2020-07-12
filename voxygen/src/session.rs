@@ -53,7 +53,7 @@ pub struct SessionState {
     auto_walk: bool,
     is_aiming: bool,
     target_entity: Option<specs::Entity>,
-    selected_entity: Option<specs::Entity>,
+    selected_entity: Option<(specs::Entity, std::time::Instant)>,
 }
 
 /// Represents an active game session (i.e., the one being played).
@@ -533,7 +533,8 @@ impl PlayState for SessionState {
                     },
                     Event::InputUpdate(GameInput::Select, state) => {
                         if !state {
-                            self.selected_entity = self.target_entity;
+                            self.selected_entity =
+                                self.target_entity.map(|e| (e, std::time::Instant::now()));
                         }
                     },
                     Event::AnalogGameInput(input) => match input {
@@ -949,6 +950,24 @@ impl PlayState for SessionState {
                     },
                     HudEvent::CraftRecipe(r) => {
                         self.client.borrow_mut().craft_recipe(&r);
+                    },
+                    HudEvent::InviteMember(uid) => {
+                        self.client.borrow_mut().send_group_invite(uid);
+                    },
+                    HudEvent::AcceptInvite => {
+                        self.client.borrow_mut().accept_group_invite();
+                    },
+                    HudEvent::RejectInvite => {
+                        self.client.borrow_mut().reject_group_invite();
+                    },
+                    HudEvent::KickMember(uid) => {
+                        self.client.borrow_mut().kick_from_group(uid);
+                    },
+                    HudEvent::LeaveGroup => {
+                        self.client.borrow_mut().leave_group();
+                    },
+                    HudEvent::AssignLeader(uid) => {
+                        self.client.borrow_mut().assign_group_leader(uid);
                     },
                 }
             }

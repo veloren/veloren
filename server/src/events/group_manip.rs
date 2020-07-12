@@ -10,6 +10,7 @@ use common::{
     sync::WorldSyncExt,
 };
 use specs::world::WorldExt;
+use tracing::warn;
 
 // TODO: turn chat messages into enums
 pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupManip) {
@@ -23,15 +24,26 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 None => {
                     // Inform of failure
                     if let Some(client) = clients.get_mut(entity) {
-                        client.notify(ChatType::Meta.server_msg(
-                            "Leadership transfer failed, target does not exist".to_owned(),
-                        ));
+                        client.notify(
+                            ChatType::Meta
+                                .server_msg("Invite failed, target does not exist".to_owned()),
+                        );
                     }
                     return;
                 },
             };
 
             let uids = state.ecs().read_storage::<sync::Uid>();
+
+            // Check if entity is trying to invite themselves to a group
+            if uids
+                .get(entity)
+                .map_or(false, |inviter_uid| *inviter_uid == uid)
+            {
+                warn!("Entity tried to invite themselves into a group");
+                return;
+            }
+
             let alignments = state.ecs().read_storage::<comp::Alignment>();
             let agents = state.ecs().read_storage::<comp::Agent>();
             let mut already_has_invite = false;
@@ -54,10 +66,15 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             ) {
                 add_to_group = true;
                 // Wipe agent state
+                drop(agents);
                 let _ = state
                     .ecs()
                     .write_storage()
                     .insert(invitee, comp::Agent::default());
+            } else {
+                if let Some(client) = clients.get_mut(entity) {
+                    client.notify(ChatType::Meta.server_msg("Invite rejected".to_owned()));
+                }
             }
 
             if already_has_invite {
@@ -76,7 +93,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                     invitee,
                     &state.ecs().entities(),
                     &mut state.ecs().write_storage(),
-                    &state.ecs().read_storage(),
+                    &alignments,
                     &uids,
                     |entity, group_change| {
                         clients
@@ -163,9 +180,10 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 None => {
                     // Inform of failure
                     if let Some(client) = clients.get_mut(entity) {
-                        client.notify(ChatType::Meta.server_msg(
-                            "Leadership transfer failed, target does not exist".to_owned(),
-                        ));
+                        client.notify(
+                            ChatType::Meta
+                                .server_msg("Kick failed, target does not exist".to_owned()),
+                        );
                     }
                     return;
                 },
