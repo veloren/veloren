@@ -111,6 +111,10 @@ const WORLD_COLOR: Color = Color::Rgba(0.95, 1.0, 0.95, 1.0);
 /// Color for collected loot messages
 const LOOT_COLOR: Color = Color::Rgba(0.69, 0.57, 1.0, 1.0);
 
+//Nametags
+const GROUP_MEMBER: Color = Color::Rgba(0.47, 0.84, 1.0, 1.0);
+const DEFAULT_NPC: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+
 // UI Color-Theme
 const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
 //const UI_MAIN: Color = Color::Rgba(0.1, 0.1, 0.1, 0.97); // Dark

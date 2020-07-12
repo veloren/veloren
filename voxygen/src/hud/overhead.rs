@@ -1,6 +1,6 @@
 use super::{
-    img_ids::Imgs, FACTION_COLOR, GROUP_COLOR, HP_COLOR, LOW_HP_COLOR, MANA_COLOR, REGION_COLOR,
-    SAY_COLOR, TELL_COLOR, TEXT_BG, TEXT_COLOR,
+    img_ids::Imgs, DEFAULT_NPC, FACTION_COLOR, GROUP_COLOR, GROUP_MEMBER, HP_COLOR, LOW_HP_COLOR,
+    MANA_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_BG, TEXT_COLOR,
 };
 use crate::{
     i18n::VoxygenLocalization,
@@ -149,9 +149,9 @@ impl<'a> Widget for Overhead<'a> {
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(30)
             .color(if self.in_group {
-                Color::Rgba(1.0, 0.5, 0.6, 1.0)
+                GROUP_MEMBER
             } else {
-                Color::Rgba(0.61, 0.61, 0.89, 1.0)
+                DEFAULT_NPC
             })
             .x_y(0.0, MANA_BAR_Y + 50.0)
             .set(state.ids.name, ui);
