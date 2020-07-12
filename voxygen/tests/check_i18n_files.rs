@@ -108,7 +108,10 @@ fn generate_key_version<'a>(
         .iter()
         .for_each(|e: git2::BlameHunk| {
             for state in keys.values_mut() {
-                let line = state.key_line.unwrap();
+                let line = match state.key_line {
+                    Some(l) => l,
+                    None => continue,
+                };
 
                 if line >= e.final_start_line() && line < e.final_start_line() + e.lines_in_hunk() {
                     state.chuck_line_range = Some((
@@ -176,14 +179,25 @@ fn test_all_localizations<'a>() {
 
         // Find the localization entry state
         let current_blob = read_file_from_path(&repo, &head_ref, &relfile);
-        let current_loc: VoxygenLocalization =
-            from_bytes(current_blob.content()).expect("Expect to parse the RON file");
+        let current_loc: VoxygenLocalization = match from_bytes(current_blob.content()) {
+            Ok(v) => v,
+            Err(e) => {
+                eprintln!("Could not parse RON file, skipping: {}", e);
+                continue;
+            },
+        };
         let mut current_i18n = generate_key_version(&repo, &current_loc, &relfile, &current_blob);
         for (ref_key, ref_state) in i18n_references.iter() {
             match current_i18n.get_mut(ref_key) {
                 Some(state) => {
-                    let commit_id = state.commit_id.unwrap();
-                    let ref_commit_id = ref_state.commit_id.unwrap();
+                    let commit_id = match state.commit_id {
+                        Some(c) => c,
+                        None => continue,
+                    };
+                    let ref_commit_id = match ref_state.commit_id {
+                        Some(c) => c,
+                        None => continue,
+                    };
                     if commit_id != ref_commit_id
                         && !repo
                             .graph_descendant_of(commit_id, ref_commit_id)

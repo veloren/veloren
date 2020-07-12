@@ -21,7 +21,7 @@ localization-status:
   extends: .recompile-branch
   stage: build
   variables:
-    GIT_DEPTH: 0
+    GIT_DEPTH: 9999999999999
   allow_failure: true
   script:
     - ln -s /dockercache/cache-all target
