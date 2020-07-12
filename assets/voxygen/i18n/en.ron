@@ -303,6 +303,8 @@ magically infused items?"#,
         "hud.settings.audio_device": "Audio Device",
 
         "hud.settings.awaitingkey": "Press a key...",
+        "hud.settings.unbound": "None",
+        "hud.settings.reset_keybinds": "Reset to Defaults",
 
         "hud.social": "Social",
         "hud.social.online": "Online",
