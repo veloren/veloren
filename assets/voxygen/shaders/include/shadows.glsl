@@ -81,6 +81,9 @@ float ShadowCalculationPoint(uint lightIndex, vec3 fragToLight, vec3 fragNorm, /
         if (visibility <= 0.25) {
             return 0.0;
         } */
+        /* if (visibility < 1.0) {
+            return 0.0;
+        } */
         return visibility == 1.0 ? 1.0 : 0.0;
     }
 

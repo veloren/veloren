@@ -30,8 +30,8 @@ uniform u_locals {
 out vec4 tgt_color;
 
 void main() {
-    tgt_color = vec4(MU_SCATTER, 1.0);
-    return;
+    // tgt_color = vec4(MU_SCATTER, 1.0);
+    // return;
 	vec4 _clouds;
 
 	vec3 cam_dir = normalize(f_pos - cam_pos.xyz);

@@ -246,7 +246,7 @@ void main() {
     // Computing light attenuation from water.
     vec3 emitted_light, reflected_light;
     // To account for prior saturation
-    /*float */f_light = faces_fluid ? 1.0 : pow(f_light, 1.5);
+    /*float */f_light = faces_fluid ? 1.0 : f_light * sqrt(f_light);
 
     emitted_light = vec3(1.0);
     reflected_light = vec3(1.0);

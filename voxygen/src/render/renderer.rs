@@ -160,13 +160,15 @@ impl Renderer {
         let dims = win_color_view.get_dimensions();
 
         let mut shader_reload_indicator = ReloadIndicator::new();
-        let shadow_views = ShadowMapMode::try_from(mode.shadow).ok().and_then(|mode| {
-            Self::create_shadow_views(&mut factory, (dims.0, dims.1), &mode)
-                .map_err(|err| {
-                    warn!("Could not create shadow map views: {:?}", err);
-                })
-                .ok()
-        });
+        let shadow_views = Self::create_shadow_views(
+            &mut factory,
+            (dims.0, dims.1),
+            &ShadowMapMode::try_from(mode.shadow).unwrap_or(ShadowMapMode::default()),
+        )
+        .map_err(|err| {
+            warn!("Could not create shadow map views: {:?}", err);
+        })
+        .ok();
 
         let (
             skybox_pipeline,
