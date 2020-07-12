@@ -29,9 +29,8 @@ pub use body::{
     humanoid, object, quadruped_low, quadruped_medium, quadruped_small, AllBodies, Body, BodyData,
 };
 pub use character_state::{Attacking, CharacterState, StateUpdate};
-// TODO: replace chat::Group functionality with group::Group
 pub use chat::{
-    ChatMode, ChatMsg, ChatType, Faction, Group as ChatGroup, SpeechBubble, SpeechBubbleType,
+    ChatMode, ChatMsg, ChatType, Faction, SpeechBubble, SpeechBubbleType, UnresolvedChatMsg,
 };
 pub use controller::{
     Climb, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip, Input,

@@ -46,7 +46,7 @@ pub trait StateExt {
     /// Performed after loading component data from the database
     fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents);
     /// Iterates over registered clients and send each `ServerMsg`
-    fn send_chat(&self, msg: comp::ChatMsg);
+    fn send_chat(&self, msg: comp::UnresolvedChatMsg);
     fn notify_registered_clients(&self, msg: ServerMsg);
     /// Delete an entity, recording the deletion in [`DeletedEntities`]
     fn delete_entity_recorded(
@@ -240,10 +240,18 @@ impl StateExt for State {
 
     /// Send the chat message to the proper players. Say and region are limited
     /// by location. Faction and group are limited by component.
-    fn send_chat(&self, msg: comp::ChatMsg) {
+    fn send_chat(&self, msg: comp::UnresolvedChatMsg) {
         let ecs = self.ecs();
         let is_within =
             |target, a: &comp::Pos, b: &comp::Pos| a.0.distance_squared(b.0) < target * target;
+
+        let group_manager = ecs.read_resource::<comp::group::GroupManager>();
+        let resolved_msg = msg.clone().map_group(|group_id| {
+            group_manager
+                .group_info(group_id)
+                .map_or_else(|| "???".into(), |i| i.name.clone())
+        });
+
         match &msg.chat_type {
             comp::ChatType::Online
             | comp::ChatType::Offline
@@ -253,7 +261,7 @@ impl StateExt for State {
             | comp::ChatType::Kill
             | comp::ChatType::Meta
             | comp::ChatType::World(_) => {
-                self.notify_registered_clients(ServerMsg::ChatMsg(msg.clone()))
+                self.notify_registered_clients(ServerMsg::ChatMsg(resolved_msg.clone()))
             },
             comp::ChatType::Tell(u, t) => {
                 for (client, uid) in (
@@ -263,7 +271,7 @@ impl StateExt for State {
                     .join()
                 {
                     if uid == u || uid == t {
-                        client.notify(ServerMsg::ChatMsg(msg.clone()));
+                        client.notify(ServerMsg::ChatMsg(resolved_msg.clone()));
                     }
                 }
             },
@@ -275,7 +283,7 @@ impl StateExt for State {
                 if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
                     for (client, pos) in (&mut ecs.write_storage::<Client>(), &positions).join() {
                         if is_within(comp::ChatMsg::SAY_DISTANCE, pos, speaker_pos) {
-                            client.notify(ServerMsg::ChatMsg(msg.clone()));
+                            client.notify(ServerMsg::ChatMsg(resolved_msg.clone()));
                         }
                     }
                 }
@@ -287,7 +295,7 @@ impl StateExt for State {
                 if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
                     for (client, pos) in (&mut ecs.write_storage::<Client>(), &positions).join() {
                         if is_within(comp::ChatMsg::REGION_DISTANCE, pos, speaker_pos) {
-                            client.notify(ServerMsg::ChatMsg(msg.clone()));
+                            client.notify(ServerMsg::ChatMsg(resolved_msg.clone()));
                         }
                     }
                 }
@@ -299,7 +307,7 @@ impl StateExt for State {
                 if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
                     for (client, pos) in (&mut ecs.write_storage::<Client>(), &positions).join() {
                         if is_within(comp::ChatMsg::NPC_DISTANCE, pos, speaker_pos) {
-                            client.notify(ServerMsg::ChatMsg(msg.clone()));
+                            client.notify(ServerMsg::ChatMsg(resolved_msg.clone()));
                         }
                     }
                 }
@@ -313,19 +321,19 @@ impl StateExt for State {
                     .join()
                 {
                     if s == &faction.0 {
-                        client.notify(ServerMsg::ChatMsg(msg.clone()));
+                        client.notify(ServerMsg::ChatMsg(resolved_msg.clone()));
                     }
                 }
             },
-            comp::ChatType::GroupMeta(s) | comp::ChatType::Group(_, s) => {
+            comp::ChatType::GroupMeta(g) | comp::ChatType::Group(_, g) => {
                 for (client, group) in (
                     &mut ecs.write_storage::<Client>(),
-                    &ecs.read_storage::<comp::ChatGroup>(),
+                    &ecs.read_storage::<comp::Group>(),
                 )
                     .join()
                 {
-                    if s == &group.0 {
-                        client.notify(ServerMsg::ChatMsg(msg.clone()));
+                    if g == group {
+                        client.notify(ServerMsg::ChatMsg(resolved_msg.clone()));
                     }
                 }
             },

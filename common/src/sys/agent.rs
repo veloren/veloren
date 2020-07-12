@@ -4,8 +4,8 @@ use crate::{
         agent::Activity,
         group,
         item::{tool::ToolKind, ItemKind},
-        Agent, Alignment, Body, CharacterState, ChatMsg, ControlAction, Controller, Loadout,
-        MountState, Ori, PhysicsState, Pos, Scale, Stats, Vel,
+        Agent, Alignment, Body, CharacterState, ControlAction, Controller, Loadout, MountState,
+        Ori, PhysicsState, Pos, Scale, Stats, UnresolvedChatMsg, Vel,
     },
     event::{EventBus, ServerEvent},
     path::{Chaser, TraversalConfig},
@@ -430,8 +430,9 @@ impl<'a> System<'a> for Sys {
                                 if stats.get(attacker).map_or(false, |a| !a.is_dead) {
                                     if agent.can_speak {
                                         let msg = "npc.speech.villager_under_attack".to_string();
-                                        event_bus
-                                            .emit_now(ServerEvent::Chat(ChatMsg::npc(*uid, msg)));
+                                        event_bus.emit_now(ServerEvent::Chat(
+                                            UnresolvedChatMsg::npc(*uid, msg),
+                                        ));
                                     }
 
                                     agent.activity = Activity::Attack {

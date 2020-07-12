@@ -27,11 +27,12 @@ impl Component for Group {
     type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct GroupInfo {
     // TODO: what about enemy groups, either the leader will constantly change because they have to
     // be loaded or we create a dummy entity or this needs to be optional
     pub leader: specs::Entity,
+    pub name: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -110,12 +111,15 @@ pub fn members<'a>(
 
 // TODO: optimize add/remove for massive NPC groups
 impl GroupManager {
-    pub fn group_info(&self, group: Group) -> Option<GroupInfo> {
-        self.groups.get(group.0 as usize).copied()
+    pub fn group_info(&self, group: Group) -> Option<&GroupInfo> {
+        self.groups.get(group.0 as usize)
     }
 
     fn create_group(&mut self, leader: specs::Entity) -> Group {
-        Group(self.groups.insert(GroupInfo { leader }) as u32)
+        Group(self.groups.insert(GroupInfo {
+            leader,
+            name: "Flames".into(),
+        }) as u32)
     }
 
     fn remove_group(&mut self, group: Group) { self.groups.remove(group.0 as usize); }

@@ -77,7 +77,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Health => handle_health,
         ChatCommand::Help => handle_help,
         ChatCommand::JoinFaction => handle_join_faction,
-        ChatCommand::JoinGroup => handle_join_group,
+        //ChatCommand::JoinGroup => handle_join_group,
         ChatCommand::Jump => handle_jump,
         ChatCommand::Kill => handle_kill,
         ChatCommand::KillNpcs => handle_kill_npcs,
@@ -1197,8 +1197,8 @@ fn handle_group(
         return;
     }
     let ecs = server.state.ecs();
-    if let Some(comp::ChatGroup(group)) = ecs.read_storage().get(client) {
-        let mode = comp::ChatMode::Group(group.to_string());
+    if let Some(group) = ecs.read_storage::<comp::Group>().get(client) {
+        let mode = comp::ChatMode::Group(*group);
         let _ = ecs.write_storage().insert(client, mode.clone());
         if !msg.is_empty() {
             if let Some(uid) = ecs.read_storage().get(client) {
@@ -1208,7 +1208,7 @@ fn handle_group(
     } else {
         server.notify_client(
             client,
-            ChatType::CommandError.server_msg("Please join a group with /join_group"),
+            ChatType::CommandError.server_msg("Please create a group first"),
         );
     }
 }
@@ -1359,7 +1359,8 @@ fn handle_join_faction(
     }
 }
 
-fn handle_join_group(
+// TODO: it might be useful to copy the GroupMeta messages elsewhere
+/*fn handle_join_group(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
@@ -1419,7 +1420,7 @@ fn handle_join_group(
             ChatType::CommandError.server_msg("Could not find your player alias"),
         );
     }
-}
+}*/
 
 #[cfg(not(feature = "worldgen"))]
 fn handle_debug_column(

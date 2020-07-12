@@ -5,7 +5,7 @@ use crate::{
 };
 use common::{
     comp::{
-        Admin, AdminList, CanBuild, ChatMode, ChatMsg, ChatType, ControlEvent, Controller,
+        Admin, AdminList, CanBuild, ChatMode, UnresolvedChatMsg, ChatType, ControlEvent, Controller,
         ForceUpdate, Ori, Player, Pos, Stats, Vel,
     },
     event::{EventBus, ServerEvent},
@@ -32,7 +32,7 @@ impl Sys {
     #[allow(clippy::too_many_arguments)]
     async fn handle_client_msg(
         server_emitter: &mut common::event::Emitter<'_, ServerEvent>,
-        new_chat_msgs: &mut Vec<(Option<specs::Entity>, ChatMsg)>,
+        new_chat_msgs: &mut Vec<(Option<specs::Entity>, UnresolvedChatMsg)>,
         player_list: &HashMap<Uid, PlayerInfo>,
         new_players: &mut Vec<specs::Entity>,
         entity: specs::Entity,
@@ -202,7 +202,7 @@ impl Sys {
                             // Only send login message if it wasn't already
                             // sent previously
                             if !client.login_msg_sent {
-                                new_chat_msgs.push((None, ChatMsg {
+                                new_chat_msgs.push((None, UnresolvedChatMsg {
                                     chat_type: ChatType::Online,
                                     message: format!("[{}] is now online.", &player.alias), // TODO: Localize this
                                 }));
@@ -461,7 +461,7 @@ impl<'a> System<'a> for Sys {
 
         let mut server_emitter = server_event_bus.emitter();
 
-        let mut new_chat_msgs: Vec<(Option<specs::Entity>, ChatMsg)> = Vec::new();
+        let mut new_chat_msgs = Vec::new();
 
         // Player list to send new players.
         let player_list = (&uids, &players, stats.maybe(), admins.maybe())
