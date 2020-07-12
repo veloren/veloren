@@ -98,7 +98,7 @@ where
     ) -> Result<Self, RenderError> {
         let (tex, srv) = factory
             .create_texture_immutable::<F>(kind, mipmap, data)
-            .map_err(|err| RenderError::CombinedError(err))?;
+            .map_err(RenderError::CombinedError)?;
 
         Ok(Self {
             tex,

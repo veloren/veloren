@@ -10,7 +10,7 @@ use super::{
     },
     texture::Texture,
     AaMode, CloudMode, FilterMethod, FluidMode, LightingMode, Pipeline, RenderError, RenderMode,
-    ShadowMode, WrapMode,
+    ShadowMapMode, ShadowMode, WrapMode,
 };
 use common::assets::{self, watch::ReloadIndicator};
 use core::convert::TryFrom;
@@ -144,20 +144,29 @@ impl Renderer {
     /// Create a new `Renderer` from a variety of backend-specific components
     /// and the window targets.
     pub fn new(
-        device: gfx_backend::Device,
+        mut device: gfx_backend::Device,
         mut factory: gfx_backend::Factory,
         win_color_view: WinColorView,
         win_depth_view: WinDepthView,
         mode: RenderMode,
     ) -> Result<Self, RenderError> {
+        // Enable seamless cubemaps globally, where available--they are essentially a
+        // strict improvement on regular cube maps.
+        //
+        // Note that since we only have to enable this once globally, there is no point
+        // in doing this on rerender.
+        Self::enable_seamless_cube_maps(&mut device);
+
         let dims = win_color_view.get_dimensions();
 
         let mut shader_reload_indicator = ReloadIndicator::new();
-        let shadow_views = Self::create_shadow_views(&mut factory, (dims.0, dims.1))
-            .map_err(|err| {
-                warn!("Could not create shadow map views: {:?}", err);
-            })
-            .ok();
+        let shadow_views = ShadowMapMode::try_from(mode.shadow).ok().and_then(|mode| {
+            Self::create_shadow_views(&mut factory, (dims.0, dims.1), &mode)
+                .map_err(|err| {
+                    warn!("Could not create shadow map views: {:?}", err);
+                })
+                .ok()
+        });
 
         let (
             skybox_pipeline,
@@ -320,8 +329,10 @@ impl Renderer {
             self.tgt_color_res = tgt_color_res;
             self.tgt_color_view = tgt_color_view;
             self.tgt_depth_stencil_view = tgt_depth_stencil_view;
-            if let Some(shadow_map) = self.shadow_map.as_mut() {
-                match Self::create_shadow_views(&mut self.factory, (dims.0, dims.1)) {
+            if let (Some(shadow_map), ShadowMode::Map(mode)) =
+                (self.shadow_map.as_mut(), self.mode.shadow)
+            {
+                match Self::create_shadow_views(&mut self.factory, (dims.0, dims.1), &mode) {
                     Ok((
                         point_depth_stencil_view,
                         point_res,
@@ -407,6 +418,7 @@ impl Renderer {
     fn create_shadow_views(
         factory: &mut gfx_device_gl::Factory,
         size: (u16, u16),
+        mode: &ShadowMapMode,
     ) -> Result<
         (
             ShadowDepthStencilView,
@@ -418,17 +430,40 @@ impl Renderer {
         ),
         RenderError,
     > {
-        let size = Vec2::new(size.0, size.1);
+        // (Attempt to) apply resolution factor to shadow map resolution.
+        let resolution_factor = mode.resolution.clamped(0.25, 4.0);
+        fn vec2_result<T, E>(v: Vec2<Result<T, E>>) -> Result<Vec2<T>, E> {
+            Ok(Vec2::new(v.x?, v.y?))
+        };
+
         let max_texture_size = Self::max_texture_size_raw(factory);
+        let size = vec2_result(Vec2::new(size.0, size.1).map(|e| {
+            let size = f32::from(e) * resolution_factor;
+            // NOTE: We know 0 <= e since we clamped the resolution factor to be between
+            // 0.25 and 4.0.
+            if size <= f32::from(max_texture_size) {
+                Ok(size as u16)
+            } else {
+                Err(RenderError::CustomError(format!(
+                    "Resolution factor {:?} multiplied by screen resolution axis {:?} does not \
+                     fit in a texture on this machine.",
+                    resolution_factor, e
+                )))
+            }
+        }))?;
+
         let levels = 1; //10;
-        let two_size = size.map(|e| {
+        let two_size = vec2_result(size.map(|e| {
             u16::checked_next_power_of_two(e)
                 .filter(|&e| e <= max_texture_size)
-                .expect(
-                    "Next power of two for max screen resolution axis does not fit in a texture \
-                     on this machine.",
-                )
-        });
+                .ok_or_else(|| {
+                    RenderError::CustomError(format!(
+                        "Next power of two for shadow map resolution axis {:?} does not fit in a \
+                         texture on this machine.",
+                        e
+                    ))
+                })
+        }))?;
         let min_size = size.reduce_min();
         let max_size = size.reduce_max();
         let _min_two_size = two_size.reduce_min();
@@ -437,23 +472,30 @@ impl Renderer {
         // size of a diagonal along that axis.
         let diag_size = size.map(f64::from).magnitude();
         let diag_cross_size = f64::from(min_size) / f64::from(max_size) * diag_size;
-        let (diag_size, _diag_cross_size) =
-            if 0.0 < diag_size && diag_size <= f64::from(max_texture_size) {
-                // NOTE: diag_cross_size must be non-negative, since it is the ratio of a
-                // non-negative and a positive number (if max_size were zero,
-                // diag_size would be 0 too).  And it must be <= diag_size,
-                // since min_size <= max_size.  Therefore, if diag_size fits in a
-                // u16, so does diag_cross_size.
-                (diag_size as u16, diag_cross_size as u16)
-            } else {
-                panic!("Resolution of screen diagonal does not fit in a texture on this machine.");
-            };
+        let (diag_size, _diag_cross_size) = if 0.0 < diag_size
+            && diag_size <= f64::from(max_texture_size)
+        {
+            // NOTE: diag_cross_size must be non-negative, since it is the ratio of a
+            // non-negative and a positive number (if max_size were zero,
+            // diag_size would be 0 too).  And it must be <= diag_size,
+            // since min_size <= max_size.  Therefore, if diag_size fits in a
+            // u16, so does diag_cross_size.
+            (diag_size as u16, diag_cross_size as u16)
+        } else {
+            return Err(RenderError::CustomError(format!(
+                "Resolution of shadow map diagonal {:?} does not fit in a texture on this machine.",
+                diag_size
+            )));
+        };
         let diag_two_size = u16::checked_next_power_of_two(diag_size)
             .filter(|&e| e <= max_texture_size)
-            .expect(
-                "Next power of two for resolution of screen diagonal does not fit in a texture on \
-                 this machine.",
-            );
+            .ok_or_else(|| {
+                RenderError::CustomError(format!(
+                    "Next power of two for resolution of shadow map diagonal {:?} does not fit in \
+                     a texture on this machine.",
+                    diag_size
+                ))
+            })?;
         /* let color_cty = <<TgtColorFmt as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped
                 >::get_channel_type();
         let tgt_color_tex = factory.create_texture(
@@ -619,7 +661,7 @@ impl Renderer {
     /// Queue the clearing of the shadow targets ready for a new frame to be
     /// rendered.
     pub fn clear_shadows(&mut self) {
-        if self.mode.shadow != ShadowMode::Map {
+        if !self.mode.shadow.is_map() {
             return;
         }
         if let Some(shadow_map) = self.shadow_map.as_mut() {
@@ -633,18 +675,45 @@ impl Renderer {
         }
     }
 
+    /// NOTE: Supported by Vulkan (by default), DirectX 10+ (it seems--it's hard
+    /// to find proof of this, but Direct3D 10 apparently does it by
+    /// default, and 11 definitely does, so I assume it's natively supported
+    /// by DirectX itself), OpenGL 3.2+, and Metal (done by default).  While
+    /// there may be some GPUs that don't quite support it correctly, the
+    /// impact is relatively small, so there is no reaosn not to enable it where
+    /// available.
+    #[allow(unsafe_code)]
+    fn enable_seamless_cube_maps(device: &mut gfx_backend::Device) {
+        unsafe {
+            // NOTE: Currently just fail silently rather than complain if the computer is on
+            // a version lower than 3.2, where seamless cubemaps were introduced.
+            if !device.get_info().is_version_supported(3, 2) {
+                // println!("whoops");
+                return;
+            }
+
+            // NOTE: Safe because GL_TEXTURE_CUBE_MAP_SEAMLESS is supported by OpenGL 3.2+
+            // (see https://www.khronos.org/opengl/wiki/Cubemap_Texture#Seamless_cubemap);
+            // enabling seamless cube maps should always be safe regardless of the state of
+            // the OpenGL context, so no further checks are needd.
+            device.with_gl(|gl| {
+                gl.Enable(gfx_gl::TEXTURE_CUBE_MAP_SEAMLESS);
+            });
+        }
+    }
+
     /// NOTE: Supported by all but a handful of mobile GPUs
     /// (see https://github.com/gpuweb/gpuweb/issues/480)
     /// so wgpu should support it too.
     #[allow(unsafe_code)]
-    fn set_depth_clamp(&mut self, depth_clamp: bool) {
+    fn set_depth_clamp(device: &mut gfx_backend::Device, depth_clamp: bool) {
         unsafe {
             // NOTE: Currently just fail silently rather than complain if the computer is on
             // a version lower than 3.3, though we probably will complain
             // elsewhere regardless, since shadow mapping is an optional feature
             // and having depth clamping disabled won't cause undefined
             // behavior, just incorrect shadowing from objects behind the viewer.
-            if !self.device.get_info().is_version_supported(3, 3) {
+            if !device.get_info().is_version_supported(3, 3) {
                 // println!("whoops");
                 return;
             }
@@ -654,7 +723,7 @@ impl Renderer {
             // may use different extensions.  Also, enabling depth clamping should
             // essentially always be safe regardless of the state of the OpenGL
             // context, so no further checks are needed.
-            self.device.with_gl(|gl| {
+            device.with_gl(|gl| {
                 // println!("gl.Enable(gfx_gl::DEPTH_CLAMP) = {:?}",
                 // gl.IsEnabled(gfx_gl::DEPTH_CLAMP));
                 if depth_clamp {
@@ -676,18 +745,18 @@ impl Renderer {
 
     /// Set up shadow rendering.
     pub fn start_shadows(&mut self) {
-        if self.mode.shadow != ShadowMode::Map {
+        if !self.mode.shadow.is_map() {
             return;
         }
         if let Some(_shadow_map) = self.shadow_map.as_mut() {
             self.encoder.flush(&mut self.device);
-            self.set_depth_clamp(true);
+            Self::set_depth_clamp(&mut self.device, true);
         }
     }
 
     /// Perform all queued draw calls for shadows.
     pub fn flush_shadows(&mut self) {
-        if self.mode.shadow != ShadowMode::Map {
+        if !self.mode.shadow.is_map() {
             return;
         }
         if let Some(_shadow_map) = self.shadow_map.as_mut() {
@@ -697,7 +766,7 @@ impl Renderer {
             // let directed_encoder = &mut shadow_map.directed_encoder;
             // directed_encoder.flush(&mut self.device);
             // Reset depth clamping.
-            self.set_depth_clamp(false);
+            Self::set_depth_clamp(&mut self.device, false);
         }
     }
 
@@ -1322,7 +1391,7 @@ impl Renderer {
          * map: &Texture<LodColorFmt>,
          * horizon: &Texture<LodTextureFmt>, */
     ) {
-        if self.mode.shadow != ShadowMode::Map {
+        if !self.mode.shadow.is_map() {
             return;
         }
         // NOTE: Don't render shadows if the shader is not supported.
@@ -1377,7 +1446,7 @@ impl Renderer {
          * map: &Texture<LodColorFmt>,
          * horizon: &Texture<LodTextureFmt>, */
     ) {
-        if self.mode.shadow != ShadowMode::Map {
+        if !self.mode.shadow.is_map() {
             return;
         }
         // NOTE: Don't render shadows if the shader is not supported.
@@ -1433,7 +1502,7 @@ impl Renderer {
          * map: &Texture<LodColorFmt>,
          * horizon: &Texture<LodTextureFmt>, */
     ) {
-        if self.mode.shadow != ShadowMode::Map {
+        if !self.mode.shadow.is_map() {
             return;
         }
         // NOTE: Don't render shadows if the shader is not supported.
@@ -1783,14 +1852,14 @@ fn create_pipelines(
             CloudMode::Regular => "CLOUD_MODE_REGULAR",
         },
         match mode.lighting {
-            LightingMode::Ashikmin => "LIGHTING_ALGORITHM_ASHIKHMIN",
+            LightingMode::Ashikhmin => "LIGHTING_ALGORITHM_ASHIKHMIN",
             LightingMode::BlinnPhong => "LIGHTING_ALGORITHM_BLINN_PHONG",
             LightingMode::Lambertian => "CLOUD_MODE_NONE",
         },
         match mode.shadow {
             ShadowMode::None => "SHADOW_MODE_NONE",
-            ShadowMode::Map if has_shadow_views => "SHADOW_MODE_MAP",
-            ShadowMode::Cheap | ShadowMode::Map => "SHADOW_MODE_CHEAP",
+            ShadowMode::Map(_) if has_shadow_views => "SHADOW_MODE_MAP",
+            ShadowMode::Cheap | ShadowMode::Map(_) => "SHADOW_MODE_CHEAP",
         },
     );
 

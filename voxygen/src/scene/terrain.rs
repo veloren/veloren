@@ -1,9 +1,9 @@
 use crate::{
     mesh::{greedy::GreedyMesh, Meshable},
     render::{
-        self, ColLightFmt, ColLightInfo, Consts, FluidPipeline, Globals, Instances, Light, Mesh,
-        Model, RenderError, Renderer, Shadow, ShadowLocals, ShadowPipeline, SpriteInstance,
-        SpriteLocals, SpritePipeline, TerrainLocals, TerrainPipeline, Texture,
+        ColLightFmt, ColLightInfo, Consts, FluidPipeline, Globals, Instances, Light, Mesh, Model,
+        RenderError, Renderer, Shadow, ShadowLocals, ShadowPipeline, SpriteInstance, SpriteLocals,
+        SpritePipeline, TerrainLocals, TerrainPipeline, Texture,
     },
 };
 
@@ -2855,7 +2855,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         let collides_with_aabr = |a: math::Aabr<f32>, b: math::Aabr<f32>| {
             a.min.partial_cmple(&b.max).reduce_and() && a.max.partial_cmpge(&b.min).reduce_and()
         };
-        if ray_direction.z < 0.0 && renderer.render_mode().shadow == render::ShadowMode::Map {
+        if ray_direction.z < 0.0 && renderer.render_mode().shadow.is_map() {
             let visible_bounding_box = Aabb {
                 min: visible_bounding_box.min - focus_off,
                 max: visible_bounding_box.max - focus_off,
@@ -2962,7 +2962,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             min: -0.5,
             max: 0.5,
         }; */
-        /* if ray_direction.z < 0.0 && renderer.render_mode().shadow == render::ShadowMode::Map {
+        /* if ray_direction.z < 0.0 && renderer.render_mode().shadow.is_map() {
             let ray = if ray_direction.x.abs() * scene_bounding_box.size().d > ray_direction.z.abs() * chunk_sz {
                 -ray_direction / ray_direction.x * chunk_sz
             } else {
@@ -3029,7 +3029,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         is_daylight: bool,
         focus_pos: Vec3<f32>,
     ) {
-        if !(renderer.render_mode().shadow == render::ShadowMode::Map) {
+        if !renderer.render_mode().shadow.is_map() {
             return;
         };
 

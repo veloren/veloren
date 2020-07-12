@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     i18n::{list_localizations, LanguageMetadata, VoxygenLocalization},
-    render::{AaMode, CloudMode, FluidMode, LightingMode, RenderMode, ShadowMode},
+    render::{AaMode, CloudMode, FluidMode, LightingMode, RenderMode, ShadowMapMode, ShadowMode},
     ui::{fonts::ConrodVoxygenFonts, ImageSlider, ScaleMode, ToggleButton},
     window::GameInput,
     GlobalState,
@@ -16,6 +16,7 @@ use conrod_core::{
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
     WidgetCommon,
 };
+use core::convert::TryFrom;
 
 const FPS_CHOICES: [u32; 11] = [15, 30, 40, 50, 60, 90, 120, 144, 240, 300, 500];
 
@@ -119,6 +120,9 @@ widget_ids! {
         lighting_mode_list,
         shadow_mode_text,
         shadow_mode_list,
+        shadow_mode_map_resolution_text,
+        shadow_mode_map_resolution_slider,
+        shadow_mode_map_resolution_value,
         save_window_size_button,
         audio_volume_slider,
         audio_volume_text,
@@ -1884,6 +1888,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.figure_dist_value, ui);
 
+            let render_mode = self.global_state.settings.graphics.render_mode;
+
             // AaMode
             Text::new(&self.localized_strings.get("hud.settings.antialiasing_mode"))
                 .down_from(state.ids.gamma_slider, 8.0)
@@ -1910,9 +1916,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             ];
 
             // Get which AA mode is currently active
-            let selected = mode_list
-                .iter()
-                .position(|x| *x == self.global_state.settings.graphics.render_mode.aa);
+            let selected = mode_list.iter().position(|x| *x == render_mode.aa);
 
             if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
                 .w_h(400.0, 22.0)
@@ -1924,7 +1928,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             {
                 events.push(Event::ChangeRenderMode(RenderMode {
                     aa: mode_list[clicked],
-                    ..self.global_state.settings.graphics.render_mode
+                    ..render_mode
                 }));
             }
 
@@ -1949,9 +1953,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             ];
 
             // Get which cloud rendering mode is currently active
-            let selected = mode_list
-                .iter()
-                .position(|x| *x == self.global_state.settings.graphics.render_mode.cloud);
+            let selected = mode_list.iter().position(|x| *x == render_mode.cloud);
 
             if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
                 .w_h(400.0, 22.0)
@@ -1963,7 +1965,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             {
                 events.push(Event::ChangeRenderMode(RenderMode {
                     cloud: mode_list[clicked],
-                    ..self.global_state.settings.graphics.render_mode
+                    ..render_mode
                 }));
             }
 
@@ -1990,9 +1992,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             ];
 
             // Get which fluid rendering mode is currently active
-            let selected = mode_list
-                .iter()
-                .position(|x| *x == self.global_state.settings.graphics.render_mode.fluid);
+            let selected = mode_list.iter().position(|x| *x == render_mode.fluid);
 
             if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
                 .w_h(400.0, 22.0)
@@ -2004,7 +2004,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             {
                 events.push(Event::ChangeRenderMode(RenderMode {
                     fluid: mode_list[clicked],
-                    ..self.global_state.settings.graphics.render_mode
+                    ..render_mode
                 }));
             }
 
@@ -2021,14 +2021,14 @@ impl<'a> Widget for SettingsWindow<'a> {
             .set(state.ids.lighting_mode_text, ui);
 
             let mode_list = [
-                LightingMode::Ashikmin,
+                LightingMode::Ashikhmin,
                 LightingMode::BlinnPhong,
                 LightingMode::Lambertian,
             ];
             let mode_label_list = [
                 &self
                     .localized_strings
-                    .get("hud.settings.lighting_rendering_mode.ashikmin"),
+                    .get("hud.settings.lighting_rendering_mode.ashikhmin"),
                 &self
                     .localized_strings
                     .get("hud.settings.lighting_rendering_mode.blinnphong"),
@@ -2038,9 +2038,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             ];
 
             // Get which lighting rendering mode is currently active
-            let selected = mode_list
-                .iter()
-                .position(|x| *x == self.global_state.settings.graphics.render_mode.lighting);
+            let selected = mode_list.iter().position(|x| *x == render_mode.lighting);
 
             if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
                 .w_h(400.0, 22.0)
@@ -2052,7 +2050,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             {
                 events.push(Event::ChangeRenderMode(RenderMode {
                     lighting: mode_list[clicked],
-                    ..self.global_state.settings.graphics.render_mode
+                    ..render_mode
                 }));
             }
 
@@ -2068,7 +2066,12 @@ impl<'a> Widget for SettingsWindow<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.shadow_mode_text, ui);
 
-            let mode_list = [ShadowMode::None, ShadowMode::Cheap, ShadowMode::Map];
+            let shadow_map_mode = ShadowMapMode::try_from(render_mode.shadow).ok();
+            let mode_list = [
+                ShadowMode::None,
+                ShadowMode::Cheap,
+                ShadowMode::Map(shadow_map_mode.unwrap_or_default()),
+            ];
             let mode_label_list = [
                 &self
                     .localized_strings
@@ -2082,9 +2085,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             ];
 
             // Get which shadow rendering mode is currently active
-            let selected = mode_list
-                .iter()
-                .position(|x| *x == self.global_state.settings.graphics.render_mode.shadow);
+            let selected = mode_list.iter().position(|x| *x == render_mode.shadow);
 
             if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
                 .w_h(400.0, 22.0)
@@ -2096,8 +2097,54 @@ impl<'a> Widget for SettingsWindow<'a> {
             {
                 events.push(Event::ChangeRenderMode(RenderMode {
                     shadow: mode_list[clicked],
-                    ..self.global_state.settings.graphics.render_mode
+                    ..render_mode
                 }));
+            }
+
+            if let Some(shadow_map_mode) = shadow_map_mode {
+                // Display the shadow map mode if selected.
+                Text::new(
+                    &self
+                        .localized_strings
+                        .get("hud.settings.shadow_rendering_mode.map.resolution"),
+                )
+                .right_from(state.ids.shadow_mode_list, 10.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.shadow_mode_map_resolution_text, ui);
+
+                if let Some(new_val) = ImageSlider::discrete(
+                    (shadow_map_mode.resolution.log2() * 4.0).round() as i8,
+                    -8,
+                    8,
+                    self.imgs.slider_indicator,
+                    self.imgs.slider,
+                )
+                .w_h(104.0, 22.0)
+                .right_from(state.ids.shadow_mode_map_resolution_text, 8.0)
+                .track_breadth(12.0)
+                .slider_length(10.0)
+                .pad_track((5.0, 5.0))
+                .set(state.ids.shadow_mode_map_resolution_slider, ui)
+                {
+                    events.push(Event::ChangeRenderMode(RenderMode {
+                        shadow: ShadowMode::Map(ShadowMapMode {
+                            resolution: 2.0f32.powf(f32::from(new_val) / 4.0),
+                            ..shadow_map_mode
+                        }),
+                        ..render_mode
+                    }));
+                }
+
+                // TODO: Consider fixing to avoid allocation (it's probably not a bottleneck but
+                // there's no reason to allocate for numbers).
+                Text::new(&format!("{}", shadow_map_mode.resolution))
+                    .right_from(state.ids.shadow_mode_map_resolution_slider, 8.0)
+                    .font_size(self.fonts.cyri.scale(14))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.shadow_mode_map_resolution_value, ui);
             }
 
             // Fullscreen

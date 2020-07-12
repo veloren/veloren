@@ -14,7 +14,7 @@ use self::{
 use crate::{
     audio::{music::MusicMgr, sfx::SfxMgr, AudioFrontend},
     render::{
-        self, create_pp_mesh, create_skybox_mesh, Consts, Globals, Light, Model, PostProcessLocals,
+        create_pp_mesh, create_skybox_mesh, Consts, Globals, Light, Model, PostProcessLocals,
         PostProcessPipeline, Renderer, Shadow, ShadowLocals, SkyboxLocals, SkyboxPipeline,
     },
     settings::Settings,
@@ -553,9 +553,7 @@ impl Scene {
 
         let sun_dir = scene_data.get_sun_dir();
         let is_daylight = sun_dir.z < 0.0/*0.6*/;
-        if renderer.render_mode().shadow == render::ShadowMode::Map
-            && (is_daylight || !lights.is_empty())
-        {
+        if renderer.render_mode().shadow.is_map() && (is_daylight || !lights.is_empty()) {
             /* // We treat the actual scene bounds as being clipped by the horizontal terrain bounds, but
             // expanded to contain the z values of all NPCs.  This is potentially important to make
             // sure we don't clip out figures in front of the camera.
@@ -1270,9 +1268,7 @@ impl Scene {
         let cam_pos = self.camera.dependents().cam_pos + focus_pos.map(|e| e.trunc());
 
         // would instead have this as an extension.
-        if renderer.render_mode().shadow == render::ShadowMode::Map
-            && (is_daylight || self.light_data.len() > 0)
-        {
+        if renderer.render_mode().shadow.is_map() && (is_daylight || self.light_data.len() > 0) {
             // Set up shadow mapping.
             renderer.start_shadows();
 

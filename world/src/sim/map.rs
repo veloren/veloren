@@ -317,7 +317,7 @@ impl<'a> MapConfig<'a> {
         let water_color_factor = 2.0;
         let g_water = 32.0 * water_color_factor;
         let b_water = 64.0 * water_color_factor;
-        let column_rgb = column_rgb.unwrap_or(Rgb::new(
+        let default_rgb = Rgb::new(
             if is_shaded || is_temperature {
                 1.0
             } else {
@@ -325,7 +325,8 @@ impl<'a> MapConfig<'a> {
             },
             if is_shaded { 1.0 } else { alt },
             if is_shaded || is_humidity { 1.0 } else { 0.0 },
-        ));
+        );
+        let column_rgb = column_rgb.unwrap_or(default_rgb);
         let mut connections = [None; 8];
         let mut has_connections = false;
         // TODO: Support non-river connections.

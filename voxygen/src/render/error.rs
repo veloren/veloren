@@ -10,6 +10,7 @@ pub enum RenderError {
     IncludeError(glsl_include::Error),
     MappingError(gfx::mapping::Error),
     CopyError(gfx::CopyError<[u16; 3], usize>),
+    CustomError(String),
 }
 
 impl From<gfx::PipelineStateError<String>> for RenderError {

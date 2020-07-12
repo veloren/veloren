@@ -832,7 +832,6 @@ impl PlayState for SessionState {
                     },
                     HudEvent::ChangeRenderMode(new_render_mode) => {
                         // Do this first so if it crashes the setting isn't saved :)
-                        println!("Changing render mode: {:?}", new_render_mode);
                         global_state
                             .window
                             .renderer_mut()

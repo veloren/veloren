@@ -8,8 +8,8 @@ use crate::{
     ecs::comp::Interpolated,
     mesh::greedy::GreedyMesh,
     render::{
-        self, BoneMeshes, ColLightFmt, Consts, FigureBoneData, FigureLocals, FigureModel, Globals,
-        Light, RenderError, Renderer, Shadow, ShadowLocals, ShadowPipeline, Texture,
+        BoneMeshes, ColLightFmt, Consts, FigureBoneData, FigureLocals, FigureModel, Globals, Light,
+        RenderError, Renderer, Shadow, ShadowLocals, ShadowPipeline, Texture,
     },
     scene::{
         camera::{Camera, CameraMode},
@@ -1805,7 +1805,7 @@ impl FigureMgr {
     ) {
         let ecs = state.ecs();
 
-        if is_daylight && renderer.render_mode().shadow == render::ShadowMode::Map {
+        if is_daylight && renderer.render_mode().shadow.is_map() {
             (
                 &ecs.entities(),
                 &ecs.read_storage::<Pos>(),
