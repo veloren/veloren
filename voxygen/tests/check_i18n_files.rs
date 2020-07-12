@@ -80,13 +80,10 @@ fn generate_key_version<'a>(
         .keys()
         .map(|k| (k.to_owned(), LocalizationEntryState::new()))
         .collect();
-    let mut to_process: HashSet<&String> = localization.string_map.keys().map(|k| k).collect();
+    let mut to_process: HashSet<&String> = localization.string_map.keys().collect();
     // Find key start lines
-    for (line_nb, line) in std::str::from_utf8(file_blob.content())
-        .expect("UTF-8 file")
-        .split('\n')
-        .enumerate()
-    {
+    let file_content = std::str::from_utf8(file_blob.content()).expect("Got non UTF-8 file");
+    for (line_nb, line) in file_content.lines().enumerate() {
         let mut found_key = None;
 
         for key in to_process.iter() {
@@ -107,10 +104,16 @@ fn generate_key_version<'a>(
         .expect("Impossible to generate the Git blame")
         .iter()
         .for_each(|e: git2::BlameHunk| {
-            for state in keys.values_mut() {
+            for (key, state) in keys.iter_mut() {
                 let line = match state.key_line {
                     Some(l) => l,
-                    None => continue,
+                    None => {
+                        eprintln!(
+                            "Key {} does not have a git line in it's state! Skipping key.",
+                            key
+                        );
+                        continue;
+                    },
                 };
 
                 if line >= e.final_start_line() && line < e.final_start_line() + e.lines_in_hunk() {
@@ -162,16 +165,20 @@ fn test_all_localizations<'a>() {
 
     // Read HEAD for the reference language file
     let i18n_en_blob = read_file_from_path(&repo, &head_ref, &en_i18n_path);
-    let loc: VoxygenLocalization =
-        from_bytes(i18n_en_blob.content()).expect("Expect to parse the RON file");
+    let loc: VoxygenLocalization = from_bytes(i18n_en_blob.content())
+        .expect("Expect to parse reference i18n RON file, can't proceed without it");
     let i18n_references: HashMap<String, LocalizationEntryState> =
         generate_key_version(&repo, &loc, &en_i18n_path, &i18n_en_blob);
 
     // Compare to other reference files
+    let mut overall_uptodate_entry_count = 0;
+    let mut overall_outdated_entry_count = 0;
+    let mut overall_untranslated_entry_count = 0;
+    let mut overall_real_entry_count = 0;
+
     let i18n_files = i18n_files(&i18n_path);
-    for file in i18n_files {
+    for file in &i18n_files {
         let relfile = file.strip_prefix(&root_dir).unwrap();
-        let mut uptodate_entries = 0;
         if relfile == en_i18n_path {
             continue;
         }
@@ -182,7 +189,11 @@ fn test_all_localizations<'a>() {
         let current_loc: VoxygenLocalization = match from_bytes(current_blob.content()) {
             Ok(v) => v,
             Err(e) => {
-                eprintln!("Could not parse RON file, skipping: {}", e);
+                eprintln!(
+                    "Could not parse {} RON file, skipping: {}",
+                    relfile.to_string_lossy(),
+                    e
+                );
                 continue;
             },
         };
@@ -192,11 +203,25 @@ fn test_all_localizations<'a>() {
                 Some(state) => {
                     let commit_id = match state.commit_id {
                         Some(c) => c,
-                        None => continue,
+                        None => {
+                            eprintln!(
+                                "Commit ID of key {} in i18n file {} is missing! Skipping key.",
+                                ref_key,
+                                relfile.to_string_lossy()
+                            );
+                            continue;
+                        },
                     };
                     let ref_commit_id = match ref_state.commit_id {
                         Some(c) => c,
-                        None => continue,
+                        None => {
+                            eprintln!(
+                                "Commit ID of key {} in reference i18n file is missing! Skipping \
+                                 key.",
+                                ref_key
+                            );
+                            continue;
+                        },
                     };
                     if commit_id != ref_commit_id
                         && !repo
@@ -238,9 +263,25 @@ fn test_all_localizations<'a>() {
 
         let mut sorted_keys: Vec<&String> = current_i18n.keys().collect();
         sorted_keys.sort();
+
+        let current_i18n_entry_count = current_i18n.len();
+        let mut uptodate_entries = 0;
+        let mut outdated_entries = 0;
+        let mut unused_entries = 0;
+        let mut notfound_entries = 0;
+        let mut unknown_entries = 0;
+
         for key in sorted_keys {
             let state = current_i18n.get(key).unwrap();
             if state.state != LocalizationState::UpToDate {
+                match state.state {
+                    LocalizationState::Outdated => outdated_entries += 1,
+                    LocalizationState::NotFound => notfound_entries += 1,
+                    LocalizationState::Unknown => unknown_entries += 1,
+                    LocalizationState::Unused => unused_entries += 1,
+                    LocalizationState::UpToDate => unreachable!(),
+                };
+
                 println!(
                     "[{:9}] {:60}{:40} {:40}",
                     format!("{:?}", state.state),
@@ -260,6 +301,35 @@ fn test_all_localizations<'a>() {
                 uptodate_entries += 1;
             }
         }
-        println!("{} entries are up-to-date\n", uptodate_entries);
+
+        println!(
+            "\n{} up-to-date, {} outdated, {} unused, {} not found, {} unknown entries found",
+            uptodate_entries, outdated_entries, unused_entries, notfound_entries, unknown_entries
+        );
+
+        // Calculate key count that actually matter for the status of the translation
+        // Unused entries don't break the game
+        let real_entry_count = current_i18n_entry_count - unused_entries;
+        let uptodate_percent = (uptodate_entries as f32 / real_entry_count as f32) * 100_f32;
+        let outdated_percent = (outdated_entries as f32 / real_entry_count as f32) * 100_f32;
+        let untranslated_percent =
+            ((notfound_entries + unknown_entries) as f32 / real_entry_count as f32) * 100_f32;
+
+        println!(
+            "{}% up-to-date, {}% outdated, {}% untranslated\n",
+            uptodate_percent, outdated_percent, untranslated_percent,
+        );
+
+        overall_uptodate_entry_count += uptodate_entries;
+        overall_outdated_entry_count += outdated_entries;
+        overall_untranslated_entry_count += notfound_entries + unknown_entries;
+        overall_real_entry_count += real_entry_count;
     }
+
+    println!(
+        "Overall translation status: {}% up-to-date, {}% outdated, {}% untranslated\n",
+        (overall_uptodate_entry_count as f32 / overall_real_entry_count as f32) * 100_f32,
+        (overall_outdated_entry_count as f32 / overall_real_entry_count as f32) * 100_f32,
+        (overall_untranslated_entry_count as f32 / overall_real_entry_count as f32) * 100_f32,
+    );
 }
