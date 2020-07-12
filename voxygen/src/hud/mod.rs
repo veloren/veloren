@@ -1082,7 +1082,7 @@ impl Hud {
                         client.group_members.contains(uid),
                     )
                 })
-                .filter(|(entity, pos, _, stats, _, _, _, _, hpfl, uid, in_group)| {
+                .filter(|(entity, pos, _, stats, _, _, _, _, hpfl, _, in_group)| {
                     *entity != me && !stats.is_dead
                     && (stats.health.current() != stats.health.maximum()
                          || info.target_entity.map_or(false, |e| e == *entity)
