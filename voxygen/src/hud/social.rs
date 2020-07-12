@@ -375,6 +375,9 @@ impl<'a> Widget for Social<'a> {
                 {
                     if let Some(uid) = selected {
                         events.push(Event::Invite(uid));
+                        state.update(|s| {
+                            s.selected_uid = None;
+                        });
                     }
                 }
             }
@@ -452,6 +455,9 @@ impl<'a> Widget for Social<'a> {
                     {
                         if let Some(uid) = selected {
                             events.push(Event::Kick(uid));
+                            state.update(|s| {
+                                s.selected_member = None;
+                            });
                         }
                     }
                     // Assign leader
@@ -474,6 +480,9 @@ impl<'a> Widget for Social<'a> {
                     {
                         if let Some(uid) = selected {
                             events.push(Event::AssignLeader(uid));
+                            state.update(|s| {
+                                s.selected_member = None;
+                            });
                         }
                     }
                 }
