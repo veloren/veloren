@@ -20,6 +20,7 @@ pub enum CharacterAbilityType {
     BasicBlock,
     TripleStrike(Stage),
     LeapMelee,
+    SpinMelee,
 }
 
 impl From<&CharacterState> for CharacterAbilityType {
@@ -32,6 +33,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::BasicBlock => Self::BasicBlock,
             CharacterState::LeapMelee(_) => Self::LeapMelee,
             CharacterState::TripleStrike(data) => Self::TripleStrike(data.stage),
+            CharacterState::SpinMelee(_) => Self::SpinMelee,
             _ => Self::BasicMelee,
         }
     }
@@ -80,6 +82,12 @@ pub enum CharacterAbility {
         recover_duration: Duration,
         base_damage: u32,
     },
+    SpinMelee {
+        energy_cost: u32,
+        buildup_duration: Duration,
+        recover_duration: Duration,
+        base_damage: u32,
+    },
 }
 
 impl CharacterAbility {
@@ -114,6 +122,10 @@ impl CharacterAbility {
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
             CharacterAbility::LeapMelee { energy_cost, .. } => update
+                .energy
+                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                .is_ok(),
+            CharacterAbility::SpinMelee { energy_cost, .. } => update
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
@@ -238,6 +250,26 @@ impl From<&CharacterAbility> for CharacterState {
                 buildup_duration: *buildup_duration,
                 recover_duration: *recover_duration,
                 base_damage: *base_damage,
+            }),
+            CharacterAbility::SpinMelee {
+                energy_cost,
+                buildup_duration,
+                recover_duration,
+                base_damage,
+            } => CharacterState::SpinMelee(spin_melee::Data {
+                exhausted: false,
+                energy_cost: *energy_cost,
+                buildup_duration: *buildup_duration,
+                buildup_duration_default: *buildup_duration,
+                recover_duration: *recover_duration,
+                recover_duration_default: *recover_duration,
+                base_damage: *base_damage,
+                // This isn't needed for it's continuous implementation, but is left in should this
+                // skill be moved to the skillbar
+                hits_remaining: 1,
+                hits_remaining_default: 1, /* Should be the same value as hits_remaining, also
+                                            * this value can be removed if ability moved to
+                                            * skillbar */
             }),
         }
     }

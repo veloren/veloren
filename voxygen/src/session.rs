@@ -177,7 +177,9 @@ impl PlayState for SessionState {
         )
         .unwrap();
 
-        let mut ori = self.scene.camera().get_orientation();
+        let mut walk_forward_dir = self.scene.camera().forward_xy();
+        let mut walk_right_dir = self.scene.camera().right_xy();
+        let mut freefly_vel = Vec3::zero();
         let mut free_look = false;
         let mut auto_walk = false;
 
@@ -526,6 +528,14 @@ impl PlayState for SessionState {
                             _ => {},
                         }
                     },
+                    Event::InputUpdate(GameInput::CycleCamera, true) => {
+                        // Prevent accessing camera modes which aren't available in multiplayer
+                        // unless you are an admin. This is an easily bypassed clientside check.
+                        // The server should do its own filtering of which entities are sent to
+                        // clients to prevent abuse.
+                        let camera = self.scene.camera_mut();
+                        camera.next_mode(self.client.borrow().is_admin());
+                    },
                     Event::AnalogGameInput(input) => match input {
                         AnalogGameInput::MovementX(v) => {
                             self.key_state.analog_matrix.x = v;
@@ -552,17 +562,60 @@ impl PlayState for SessionState {
             }
 
             if !free_look {
-                ori = self.scene.camera().get_orientation();
+                walk_forward_dir = self.scene.camera().forward_xy();
+                walk_right_dir = self.scene.camera().right_xy();
                 self.inputs.look_dir = Dir::from_unnormalized(cam_dir + aim_dir_offset).unwrap();
             }
-            // Calculate the movement input vector of the player from the current key
-            // presses and the camera direction.
-            let unit_vecs = (
-                Vec2::new(ori[0].cos(), -ori[0].sin()),
-                Vec2::new(ori[0].sin(), ori[0].cos()),
-            );
-            let dir_vec = self.key_state.dir_vec();
-            self.inputs.move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
+
+            // Get the current state of movement related inputs
+            let input_vec = self.key_state.dir_vec();
+            let (axis_right, axis_up) = (input_vec[0], input_vec[1]);
+
+            match self.scene.camera().get_mode() {
+                camera::CameraMode::FirstPerson | camera::CameraMode::ThirdPerson => {
+                    // Move the player character based on their walking direction.
+                    // This could be different from the camera direction if free look is enabled.
+                    self.inputs.move_dir = walk_right_dir * axis_right + walk_forward_dir * axis_up;
+                    freefly_vel = Vec3::zero();
+                },
+
+                camera::CameraMode::Freefly => {
+                    // Move the camera freely in 3d space. Apply acceleration so that
+                    // the movement feels more natural and controlled.
+                    const FREEFLY_ACCEL: f32 = 120.0;
+                    const FREEFLY_DAMPING: f32 = 80.0;
+                    const FREEFLY_MAX_SPEED: f32 = 50.0;
+
+                    let forward = self.scene.camera().forward();
+                    let right = self.scene.camera().right();
+                    let dir = right * axis_right + forward * axis_up;
+
+                    let dt = clock.get_last_delta().as_secs_f32();
+                    if freefly_vel.magnitude_squared() > 0.01 {
+                        let new_vel =
+                            freefly_vel - freefly_vel.normalized() * (FREEFLY_DAMPING * dt);
+                        if freefly_vel.dot(new_vel) > 0.0 {
+                            freefly_vel = new_vel;
+                        } else {
+                            freefly_vel = Vec3::zero();
+                        }
+                    }
+                    if dir.magnitude_squared() > 0.01 {
+                        freefly_vel += dir * (FREEFLY_ACCEL * dt);
+                        if freefly_vel.magnitude() > FREEFLY_MAX_SPEED {
+                            freefly_vel = freefly_vel.normalized() * FREEFLY_MAX_SPEED;
+                        }
+                    }
+
+                    let pos = self.scene.camera().get_focus_pos();
+                    self.scene
+                        .camera_mut()
+                        .set_focus_pos(pos + freefly_vel * dt);
+
+                    // Do not apply any movement to the player character
+                    self.inputs.move_dir = Vec2::zero();
+                },
+            };
 
             self.inputs.climb = self.key_state.climb();
 
@@ -597,7 +650,7 @@ impl PlayState for SessionState {
                 global_state,
                 DebugInfo {
                     tps: clock.get_tps(),
-                    ping_ms: self.client.borrow().get_ping_ms(),
+                    ping_ms: self.client.borrow().get_ping_ms_rolling_avg(),
                     coordinates: self
                         .client
                         .borrow()

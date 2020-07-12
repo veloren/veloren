@@ -2,7 +2,7 @@ extern crate serde_json;
 
 use super::schema::{body, character, inventory, loadout, stats};
 use crate::comp;
-use common::{character::Character as CharacterData, LoadoutBuilder};
+use common::character::Character as CharacterData;
 use diesel::sql_types::Text;
 use serde::{Deserialize, Serialize};
 use tracing::warn;
@@ -106,7 +106,7 @@ impl From<StatsJoinData<'_>> for comp::Stats {
 
         base_stats.exp.set_current(data.stats.exp as u32);
 
-        base_stats.update_max_hp();
+        base_stats.update_max_hp(base_stats.body_type);
         base_stats
             .health
             .set_to(base_stats.health.maximum(), comp::HealthSource::Revive);
@@ -212,14 +212,7 @@ where
         bytes: Option<&<DB as diesel::backend::Backend>::RawValue>,
     ) -> diesel::deserialize::Result<Self> {
         let t = String::from_sql(bytes)?;
-
-        match serde_json::from_str(&t) {
-            Ok(data) => Ok(Self(data)),
-            Err(e) => {
-                warn!(?e, "Failed to deserialise inventory data");
-                Ok(Self(comp::Inventory::default()))
-            },
-        }
+        serde_json::from_str(&t).map_err(Box::from)
     }
 }
 
@@ -298,23 +291,7 @@ where
         bytes: Option<&<DB as diesel::backend::Backend>::RawValue>,
     ) -> diesel::deserialize::Result<Self> {
         let t = String::from_sql(bytes)?;
-
-        match serde_json::from_str(&t) {
-            Ok(data) => Ok(Self(data)),
-            Err(e) => {
-                warn!(?e, "Failed to deserialise loadout data");
-
-                // We don't have a weapon reference here, so we default to sword
-                let loadout = LoadoutBuilder::new()
-                    .defaults()
-                    .active_item(LoadoutBuilder::default_item_config_from_str(Some(
-                        "common.items.weapons.sword.starter_sword",
-                    )))
-                    .build();
-
-                Ok(Self(loadout))
-            },
-        }
+        serde_json::from_str(&t).map_err(Box::from)
     }
 }
 

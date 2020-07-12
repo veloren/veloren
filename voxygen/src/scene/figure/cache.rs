@@ -122,42 +122,50 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
 
                 [
                     match camera_mode {
-                        CameraMode::ThirdPerson => Some(
+                        CameraMode::ThirdPerson | CameraMode::Freefly => Some(
                             humanoid_head_spec
                                 .mesh_head(&body, |segment, offset| generate_mesh(segment, offset)),
                         ),
                         CameraMode::FirstPerson => None,
                     },
                     match camera_mode {
-                        CameraMode::ThirdPerson => Some(humanoid_armor_chest_spec.mesh_chest(
-                            &body,
-                            loadout,
-                            |segment, offset| generate_mesh(segment, offset),
-                        )),
+                        CameraMode::ThirdPerson | CameraMode::Freefly => {
+                            Some(humanoid_armor_chest_spec.mesh_chest(
+                                &body,
+                                loadout,
+                                |segment, offset| generate_mesh(segment, offset),
+                            ))
+                        },
                         CameraMode::FirstPerson => None,
                     },
                     match camera_mode {
-                        CameraMode::ThirdPerson => Some(humanoid_armor_belt_spec.mesh_belt(
-                            &body,
-                            loadout,
-                            |segment, offset| generate_mesh(segment, offset),
-                        )),
+                        CameraMode::ThirdPerson | CameraMode::Freefly => {
+                            Some(humanoid_armor_belt_spec.mesh_belt(
+                                &body,
+                                loadout,
+                                |segment, offset| generate_mesh(segment, offset),
+                            ))
+                        },
                         CameraMode::FirstPerson => None,
                     },
                     match camera_mode {
-                        CameraMode::ThirdPerson => Some(humanoid_armor_back_spec.mesh_back(
-                            &body,
-                            loadout,
-                            |segment, offset| generate_mesh(segment, offset),
-                        )),
+                        CameraMode::ThirdPerson | CameraMode::Freefly => {
+                            Some(humanoid_armor_back_spec.mesh_back(
+                                &body,
+                                loadout,
+                                |segment, offset| generate_mesh(segment, offset),
+                            ))
+                        },
                         CameraMode::FirstPerson => None,
                     },
                     match camera_mode {
-                        CameraMode::ThirdPerson => Some(humanoid_armor_pants_spec.mesh_pants(
-                            &body,
-                            loadout,
-                            |segment, offset| generate_mesh(segment, offset),
-                        )),
+                        CameraMode::ThirdPerson | CameraMode::Freefly => {
+                            Some(humanoid_armor_pants_spec.mesh_pants(
+                                &body,
+                                loadout,
+                                |segment, offset| generate_mesh(segment, offset),
+                            ))
+                        },
                         CameraMode::FirstPerson => None,
                     },
                     Some(humanoid_armor_hand_spec.mesh_left_hand(
@@ -181,7 +189,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         |segment, offset| generate_mesh(segment, offset),
                     )),
                     match camera_mode {
-                        CameraMode::ThirdPerson => {
+                        CameraMode::ThirdPerson | CameraMode::Freefly => {
                             Some(humanoid_armor_shoulder_spec.mesh_left_shoulder(
                                 &body,
                                 loadout,
@@ -191,7 +199,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         CameraMode::FirstPerson => None,
                     },
                     match camera_mode {
-                        CameraMode::ThirdPerson => {
+                        CameraMode::ThirdPerson | CameraMode::Freefly => {
                             Some(humanoid_armor_shoulder_spec.mesh_right_shoulder(
                                 &body,
                                 loadout,

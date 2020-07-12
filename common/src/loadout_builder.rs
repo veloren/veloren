@@ -2,7 +2,7 @@ use crate::{
     assets,
     comp::{
         item::{Item, ItemKind},
-        CharacterAbility, ItemConfig, Loadout,
+        Body, CharacterAbility, ItemConfig, Loadout,
     },
 };
 use std::time::Duration;
@@ -23,6 +23,44 @@ use std::time::Duration;
 ///     .build();
 /// ```
 pub struct LoadoutBuilder(Loadout);
+
+impl Body {
+    pub fn base_dmg(&self) -> u32 {
+        match self {
+            Body::Humanoid(_) => 8,
+            Body::QuadrupedSmall(_) => 7,
+            Body::QuadrupedMedium(_) => 10,
+            Body::BirdMedium(_) => 6,
+            Body::FishMedium(_) => 5,
+            Body::Dragon(_) => 75,
+            Body::BirdSmall(_) => 4,
+            Body::FishSmall(_) => 3,
+            Body::BipedLarge(_) => 30,
+            Body::Object(_) => 0,
+            Body::Golem(_) => 30,
+            Body::Critter(_) => 6,
+            Body::QuadrupedLow(_) => 9,
+        }
+    }
+
+    pub fn base_range(&self) -> f32 {
+        match self {
+            Body::Humanoid(_) => 5.0,
+            Body::QuadrupedSmall(_) => 4.5,
+            Body::QuadrupedMedium(_) => 5.5,
+            Body::BirdMedium(_) => 3.5,
+            Body::FishMedium(_) => 3.5,
+            Body::Dragon(_) => 12.5,
+            Body::BirdSmall(_) => 3.0,
+            Body::FishSmall(_) => 3.0,
+            Body::BipedLarge(_) => 10.0,
+            Body::Object(_) => 3.0,
+            Body::Golem(_) => 7.5,
+            Body::Critter(_) => 3.0,
+            Body::QuadrupedLow(_) => 4.5,
+        }
+    }
+}
 
 impl LoadoutBuilder {
     #[allow(clippy::new_without_default)] // TODO: Pending review in #587
@@ -63,7 +101,7 @@ impl LoadoutBuilder {
     }
 
     /// Default animal configuration
-    pub fn animal() -> Self {
+    pub fn animal(body: Body) -> Self {
         Self(Loadout {
             active_item: Some(ItemConfig {
                 item: assets::load_expect_cloned("common.items.weapons.empty"),
@@ -71,8 +109,8 @@ impl LoadoutBuilder {
                     energy_cost: 10,
                     buildup_duration: Duration::from_millis(600),
                     recover_duration: Duration::from_millis(100),
-                    base_healthchange: -6,
-                    range: 5.0,
+                    base_healthchange: -(body.base_dmg() as i32),
+                    range: body.base_range(),
                     max_angle: 80.0,
                 }),
                 ability2: None,

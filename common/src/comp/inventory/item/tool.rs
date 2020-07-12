@@ -221,13 +221,11 @@ impl Tool {
                     base_damage: 7,
                     needs_timing: true,
                 },
-                BasicMelee {
+                SpinMelee {
                     energy_cost: 100,
-                    buildup_duration: Duration::from_millis(700),
-                    recover_duration: Duration::from_millis(100),
-                    base_healthchange: -12,
-                    range: 3.5,
-                    max_angle: 30.0,
+                    buildup_duration: Duration::from_millis(125),
+                    recover_duration: Duration::from_millis(125),
+                    base_damage: 5,
                 },
             ],
             Hammer(_) => vec![

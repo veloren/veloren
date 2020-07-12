@@ -22,7 +22,7 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         &mut self,
-        (entities, dt, server_event_bus, character_states, mut stats,mut energies): Self::SystemData,
+        (entities, dt, server_event_bus, character_states, mut stats, mut energies): Self::SystemData,
     ) {
         let mut server_event_emitter = server_event_bus.emitter();
 
@@ -62,7 +62,7 @@ impl<'a> System<'a> for Sys {
                     server_event_emitter.emit(ServerEvent::LevelUp(entity, stat.level.level()));
                 }
 
-                stat.update_max_hp();
+                stat.update_max_hp(stat.body_type);
                 stat.health
                     .set_to(stat.health.maximum(), HealthSource::LevelUp);
             }
@@ -103,6 +103,7 @@ impl<'a> System<'a> for Sys {
                 CharacterState::BasicMelee { .. }
                 | CharacterState::DashMelee { .. }
                 | CharacterState::LeapMelee { .. }
+                | CharacterState::SpinMelee { .. }
                 | CharacterState::TripleStrike { .. }
                 | CharacterState::BasicRanged { .. } => {
                     if energy.get_unchecked().regen_rate != 0.0 {
