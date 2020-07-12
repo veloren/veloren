@@ -20,7 +20,7 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
     // Note: If other `ServerEvent`s are referring to this entity they will be
     // disrupted
     let maybe_client = state.ecs().write_storage::<Client>().remove(entity);
-    let maybe_uid = state.read_component_cloned::<Uid>(entity);
+    let maybe_uid = state.read_component_copied::<Uid>(entity);
     let maybe_player = state.ecs().write_storage::<comp::Player>().remove(entity);
     let maybe_group = state
         .ecs()

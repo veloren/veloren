@@ -130,6 +130,12 @@ impl GroupManager {
         uids: &Uids,
         mut notifier: impl FnMut(specs::Entity, ChangeNotification<specs::Entity>),
     ) {
+        // Ensure leader is not inviting themselves
+        if leader == new_member {
+            warn!("Attempt to form group with leader as the only member (this is disallowed)");
+            return;
+        }
+
         // Get uid
         let new_member_uid = if let Some(uid) = uids.get(new_member) {
             *uid
