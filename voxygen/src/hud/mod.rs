@@ -67,6 +67,7 @@ const TEXT_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 const MENU_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 0.4);
 //const TEXT_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 const TEXT_COLOR_3: Color = Color::Rgba(1.0, 1.0, 1.0, 0.1);
+const TEXT_BIND_CONFLICT_COLOR: Color = Color::Rgba(1.0, 0.0, 0.0, 1.0);
 const BLACK: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 //const BG_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 0.8);
 const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
@@ -282,6 +283,7 @@ pub enum Event {
     Quit,
     ChangeLanguage(LanguageMetadata),
     ChangeBinding(GameInput),
+    ResetBindings,
     ChangeFreeLookBehavior(PressBehavior),
     ChangeAutoWalkBehavior(PressBehavior),
     ChangeStopAutoWalkOnInput(bool),
@@ -1743,6 +1745,9 @@ impl Hud {
                     },
                     settings_window::Event::ChangeBinding(game_input) => {
                         events.push(Event::ChangeBinding(game_input));
+                    },
+                    settings_window::Event::ResetBindings => {
+                        events.push(Event::ResetBindings);
                     },
                     settings_window::Event::ChangeFreeLookBehavior(behavior) => {
                         events.push(Event::ChangeFreeLookBehavior(behavior));
