@@ -1,6 +1,6 @@
 use super::{
-    img_ids::Imgs, BarNumbers, CrosshairType, PressBehavior, ShortcutNumbers, Show, XpBar, MENU_BG,
-    TEXT_COLOR,
+    img_ids::Imgs, BarNumbers, CrosshairType, PressBehavior, ShortcutNumbers, Show, XpBar,
+    ERROR_COLOR, MENU_BG, TEXT_BIND_CONFLICT_COLOR, TEXT_COLOR,
 };
 use crate::{
     i18n::{list_localizations, LanguageMetadata, VoxygenLocalization},
@@ -32,6 +32,7 @@ widget_ids! {
         settings_scrollbar,
         controls_texts[],
         controls_buttons[],
+        reset_controls_button,
         controls_alignment_rectangle,
         button_help,
         button_help2,
@@ -250,6 +251,7 @@ pub enum Event {
     SpeechBubbleIcon(bool),
     ChangeLanguage(LanguageMetadata),
     ChangeBinding(GameInput),
+    ResetBindings,
     ChangeFreeLookBehavior(PressBehavior),
     ChangeAutoWalkBehavior(PressBehavior),
     ChangeStopAutoWalkOnInput(bool),
@@ -1512,23 +1514,25 @@ impl<'a> Widget for SettingsWindow<'a> {
 
         // Contents
         if let SettingsTab::Controls = self.show.settings_tab {
+            // Used for sequential placement in a flow-down pattern
+            let mut previous_element_id = None;
+            let mut keybindings_vec: Vec<GameInput> = GameInput::iterator().collect();
+            keybindings_vec.sort();
+
             let controls = &self.global_state.settings.controls;
-            if controls.keybindings.len() > state.ids.controls_texts.len()
-                || controls.keybindings.len() > state.ids.controls_buttons.len()
+            if keybindings_vec.len() > state.ids.controls_texts.len()
+                || keybindings_vec.len() > state.ids.controls_buttons.len()
             {
                 state.update(|s| {
                     s.ids
                         .controls_texts
-                        .resize(controls.keybindings.len(), &mut ui.widget_id_generator());
+                        .resize(keybindings_vec.len(), &mut ui.widget_id_generator());
                     s.ids
                         .controls_buttons
-                        .resize(controls.keybindings.len(), &mut ui.widget_id_generator());
+                        .resize(keybindings_vec.len(), &mut ui.widget_id_generator());
                 });
             }
-            // Used for sequential placement in a flow-down pattern
-            let mut previous_text_id = None;
-            let mut keybindings_vec: Vec<&GameInput> = controls.keybindings.keys().collect();
-            keybindings_vec.sort();
+
             // Loop all existing keybindings and the ids for text and button widgets
             for (game_input, (&text_id, &button_id)) in keybindings_vec.into_iter().zip(
                 state
@@ -1537,58 +1541,82 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .iter()
                     .zip(state.ids.controls_buttons.iter()),
             ) {
-                if let Some(key) = controls.get_binding(*game_input) {
-                    let loc_key = self
-                        .localized_strings
-                        .get(game_input.get_localization_key());
-                    let key_string = match self.global_state.window.remapping_keybindings {
-                        Some(game_input_binding) => {
-                            if *game_input == game_input_binding {
-                                String::from(self.localized_strings.get("hud.settings.awaitingkey"))
+                let (key_string, key_color) =
+                    if self.global_state.window.remapping_keybindings == Some(game_input) {
+                        (
+                            String::from(self.localized_strings.get("hud.settings.awaitingkey")),
+                            TEXT_COLOR,
+                        )
+                    } else if let Some(key) = controls.get_binding(game_input) {
+                        (
+                            key.to_string(),
+                            if controls.has_conflicting_bindings(key) {
+                                TEXT_BIND_CONFLICT_COLOR
                             } else {
-                                key.to_string()
-                            }
-                        },
-                        None => key.to_string(),
+                                TEXT_COLOR
+                            },
+                        )
+                    } else {
+                        (
+                            String::from(self.localized_strings.get("hud.settings.unbound")),
+                            ERROR_COLOR,
+                        )
                     };
-
-                    let text_widget = Text::new(loc_key)
-                        .color(TEXT_COLOR)
-                        .font_id(self.fonts.cyri.conrod_id)
-                        .font_size(self.fonts.cyri.scale(18));
-                    let button_widget = Button::new()
-                        .label(&key_string)
-                        .label_color(TEXT_COLOR)
-                        .label_font_id(self.fonts.cyri.conrod_id)
-                        .label_font_size(self.fonts.cyri.scale(15))
-                        .w(150.0)
-                        .rgba(0.0, 0.0, 0.0, 0.0)
-                        .border_rgba(0.0, 0.0, 0.0, 255.0)
-                        .label_y(Relative::Scalar(3.0));
-                    // Place top-left if it's the first text, else under the previous one
-                    let text_widget = match previous_text_id {
-                        None => text_widget.top_left_with_margins_on(
-                            state.ids.settings_content,
-                            10.0,
-                            5.0,
-                        ),
-                        Some(prev_id) => text_widget.down_from(prev_id, 10.0),
-                    };
-                    let text_width = text_widget.get_w(ui).unwrap_or(0.0);
-                    text_widget.set(text_id, ui);
-                    if button_widget
-                        .right_from(text_id, 350.0 - text_width)
-                        .set(button_id, ui)
-                        .was_clicked()
-                    {
-                        events.push(Event::ChangeBinding(*game_input));
-                    }
-                    // Set the previous id to the current one for the next cycle
-                    previous_text_id = Some(text_id);
+                let loc_key = self
+                    .localized_strings
+                    .get(game_input.get_localization_key());
+                let text_widget = Text::new(loc_key)
+                    .color(TEXT_COLOR)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(self.fonts.cyri.scale(18));
+                let button_widget = Button::new()
+                    .label(&key_string)
+                    .label_color(key_color)
+                    .label_font_id(self.fonts.cyri.conrod_id)
+                    .label_font_size(self.fonts.cyri.scale(15))
+                    .w(150.0)
+                    .rgba(0.0, 0.0, 0.0, 0.0)
+                    .border_rgba(0.0, 0.0, 0.0, 255.0)
+                    .label_y(Relative::Scalar(3.0));
+                // Place top-left if it's the first text, else under the previous one
+                let text_widget = match previous_element_id {
+                    None => {
+                        text_widget.top_left_with_margins_on(state.ids.settings_content, 10.0, 5.0)
+                    },
+                    Some(prev_id) => text_widget.down_from(prev_id, 10.0),
+                };
+                let text_width = text_widget.get_w(ui).unwrap_or(0.0);
+                text_widget.set(text_id, ui);
+                if button_widget
+                    .right_from(text_id, 350.0 - text_width)
+                    .set(button_id, ui)
+                    .was_clicked()
+                {
+                    events.push(Event::ChangeBinding(game_input));
                 }
+                // Set the previous id to the current one for the next cycle
+                previous_element_id = Some(text_id);
+            }
+            if let Some(prev_id) = previous_element_id {
+                let key_string = self.localized_strings.get("hud.settings.reset_keybinds");
+                let button_widget = Button::new()
+                    .label(&key_string)
+                    .label_color(TEXT_COLOR)
+                    .label_font_id(self.fonts.cyri.conrod_id)
+                    .label_font_size(self.fonts.cyri.scale(18))
+                    .down_from(prev_id, 20.0)
+                    .w(200.0)
+                    .rgba(0.0, 0.0, 0.0, 0.0)
+                    .border_rgba(0.0, 0.0, 0.0, 255.0)
+                    .label_y(Relative::Scalar(3.0))
+                    .set(state.ids.reset_controls_button, ui);
+                if button_widget.was_clicked() {
+                    events.push(Event::ResetBindings);
+                }
+                previous_element_id = Some(state.ids.reset_controls_button)
             }
             // Add an empty text widget to simulate some bottom margin, because conrod sucks
-            if let Some(prev_id) = previous_text_id {
+            if let Some(prev_id) = previous_element_id {
                 Rectangle::fill_with([1.0, 1.0], color::TRANSPARENT)
                     .down_from(prev_id, 10.0)
                     .set(state.ids.controls_alignment_rectangle, ui);

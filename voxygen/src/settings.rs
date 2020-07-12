@@ -100,9 +100,23 @@ impl ControlSettings {
         self.keybindings.insert(game_input, key_mouse);
     }
 
+    /// Return true if this key is used for multiple GameInputs that aren't
+    /// expected to be safe to have bound to the same key at the same time
+    pub fn has_conflicting_bindings(&self, key_mouse: KeyMouse) -> bool {
+        if let Some(game_inputs) = self.inverse_keybindings.get(&key_mouse) {
+            for a in game_inputs.iter() {
+                for b in game_inputs.iter() {
+                    if !GameInput::can_share_bindings(*a, *b) {
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
+
     pub fn default_binding(game_input: GameInput) -> KeyMouse {
-        // If a new GameInput is added, be sure to update ControlSettings::default()
-        // too!
+        // If a new GameInput is added, be sure to update GameInput::iterator() too!
         match game_input {
             GameInput::Primary => KeyMouse::Mouse(MouseButton::Left),
             GameInput::Secondary => KeyMouse::Mouse(MouseButton::Right),
@@ -157,68 +171,14 @@ impl ControlSettings {
         }
     }
 }
+
 impl Default for ControlSettings {
     fn default() -> Self {
         let mut new_settings = Self {
             keybindings: HashMap::new(),
             inverse_keybindings: HashMap::new(),
         };
-        // Sets the initial keybindings for those GameInputs. If a new one is created in
-        // future, you'll have to update default_binding, and you should update this vec
-        // too.
-        let game_inputs = vec![
-            GameInput::Primary,
-            GameInput::Secondary,
-            GameInput::ToggleCursor,
-            GameInput::MoveForward,
-            GameInput::MoveBack,
-            GameInput::MoveLeft,
-            GameInput::MoveRight,
-            GameInput::Jump,
-            GameInput::Sit,
-            GameInput::Dance,
-            GameInput::Glide,
-            GameInput::Climb,
-            GameInput::ClimbDown,
-            GameInput::Swim,
-            //GameInput::WallLeap,
-            GameInput::ToggleLantern,
-            GameInput::Mount,
-            GameInput::Enter,
-            GameInput::Command,
-            GameInput::Escape,
-            GameInput::Map,
-            GameInput::Bag,
-            GameInput::Social,
-            GameInput::Spellbook,
-            GameInput::Settings,
-            GameInput::ToggleInterface,
-            GameInput::Help,
-            GameInput::ToggleDebug,
-            GameInput::Fullscreen,
-            GameInput::Screenshot,
-            GameInput::ToggleIngameUi,
-            GameInput::Roll,
-            GameInput::Respawn,
-            GameInput::Interact,
-            GameInput::ToggleWield,
-            //GameInput::Charge,
-            GameInput::FreeLook,
-            GameInput::AutoWalk,
-            GameInput::CycleCamera,
-            GameInput::Slot1,
-            GameInput::Slot2,
-            GameInput::Slot3,
-            GameInput::Slot4,
-            GameInput::Slot5,
-            GameInput::Slot6,
-            GameInput::Slot7,
-            GameInput::Slot8,
-            GameInput::Slot9,
-            GameInput::Slot10,
-            GameInput::SwapLoadout,
-        ];
-        for game_input in game_inputs {
+        for game_input in GameInput::iterator() {
             new_settings.insert_binding(game_input, ControlSettings::default_binding(game_input));
         }
         new_settings

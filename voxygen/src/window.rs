@@ -123,6 +123,85 @@ impl GameInput {
             GameInput::SwapLoadout => "gameinput.swaploadout",
         }
     }
+
+    pub fn iterator() -> impl Iterator<Item = GameInput> {
+        [
+            GameInput::Primary,
+            GameInput::Secondary,
+            GameInput::ToggleCursor,
+            GameInput::MoveForward,
+            GameInput::MoveLeft,
+            GameInput::MoveRight,
+            GameInput::MoveBack,
+            GameInput::Jump,
+            GameInput::Sit,
+            GameInput::Dance,
+            GameInput::Glide,
+            GameInput::Climb,
+            GameInput::ClimbDown,
+            GameInput::Swim,
+            GameInput::ToggleLantern,
+            GameInput::Mount,
+            GameInput::Enter,
+            GameInput::Command,
+            GameInput::Escape,
+            GameInput::Map,
+            GameInput::Bag,
+            GameInput::Social,
+            GameInput::Spellbook,
+            GameInput::Settings,
+            GameInput::ToggleInterface,
+            GameInput::Help,
+            GameInput::ToggleDebug,
+            GameInput::Fullscreen,
+            GameInput::Screenshot,
+            GameInput::ToggleIngameUi,
+            GameInput::Roll,
+            GameInput::Respawn,
+            GameInput::Interact,
+            GameInput::ToggleWield,
+            GameInput::FreeLook,
+            GameInput::AutoWalk,
+            GameInput::Slot1,
+            GameInput::Slot2,
+            GameInput::Slot3,
+            GameInput::Slot4,
+            GameInput::Slot5,
+            GameInput::Slot6,
+            GameInput::Slot7,
+            GameInput::Slot8,
+            GameInput::Slot9,
+            GameInput::Slot10,
+            GameInput::SwapLoadout,
+        ]
+        .iter()
+        .copied()
+    }
+
+    /// Return true if `a` and `b` are able to be bound to the same key at the
+    /// same time without conflict. For example, the player can't jump and climb
+    /// at the same time, so these can be bound to the same key.
+    pub fn can_share_bindings(a: GameInput, b: GameInput) -> bool {
+        a.get_representative_binding() == b.get_representative_binding()
+    }
+
+    /// If two GameInputs are able to be bound at the same time, then they will
+    /// return the same value from this function (the representative value for
+    /// that set). This models the Find operation of a disjoint-set data
+    /// structure.
+    fn get_representative_binding(&self) -> GameInput {
+        match self {
+            GameInput::Jump => GameInput::Jump,
+            GameInput::Climb => GameInput::Jump,
+            GameInput::Swim => GameInput::Jump,
+            GameInput::Respawn => GameInput::Jump,
+
+            GameInput::FreeLook => GameInput::FreeLook,
+            GameInput::AutoWalk => GameInput::FreeLook,
+
+            _ => *self,
+        }
+    }
 }
 
 /// Represents a key that the game menus recognise after input mapping
