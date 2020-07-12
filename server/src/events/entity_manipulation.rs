@@ -2,8 +2,8 @@ use crate::{client::Client, Server, SpawnPoint, StateExt};
 use common::{
     assets,
     comp::{
-        self, item::lottery::Lottery, object, Body, Damage, DamageSource, HealthChange,
-        HealthSource, Player, Stats,
+        self, item::lottery::Lottery, object, Body, Damage, DamageSource, Group, HealthChange,
+        HealthSource, Player, Pos, Stats,
     },
     msg::{PlayerListUpdate, ServerMsg},
     state::BlockChange,
@@ -62,16 +62,44 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             if let HealthSource::Attack { by } | HealthSource::Projectile { owner: Some(by) } =
                 cause
             {
+                const MAX_EXP_DIST: f32 = 150.0;
+                // Attacker gets double exp of everyone else
+                const ATTACKER_EXP_WEIGHT: f32 = 2.0;
+                let mut exp_reward = (entity_stats.body_type.base_exp()
+                    + entity_stats.level.level() * entity_stats.body_type.base_exp_increase())
+                    as f32;
                 state.ecs().entity_from_uid(by.into()).map(|attacker| {
+                    // Distribute EXP to group
+                    let groups = state.ecs().read_storage::<Group>();
+                    let positions = state.ecs().read_storage::<Pos>();
+                    // TODO: rework if change to groups makes it easier to iterate entities in a
+                    // group
+                    if let (Some(attacker_group), Some(pos)) =
+                        (groups.get(attacker), positions.get(entity))
+                    {
+                        let members_in_range = (&state.ecs().entities(), &groups, &positions)
+                            .join()
+                            .filter(|(entity, group, member_pos)| {
+                                *group == attacker_group
+                                    && *entity != attacker
+                                    && pos.0.distance_squared(member_pos.0) < MAX_EXP_DIST.powi(2)
+                            })
+                            .map(|(entity, _, _)| entity)
+                            .collect::<Vec<_>>();
+                        let exp =
+                            exp_reward / (members_in_range.len() as f32 + ATTACKER_EXP_WEIGHT);
+                        exp_reward = exp * ATTACKER_EXP_WEIGHT;
+                        members_in_range.into_iter().for_each(|e| {
+                            if let Some(stats) = stats.get_mut(e) {
+                                stats.exp.change_by(exp.ceil() as i64);
+                            }
+                        });
+                    }
+
                     if let Some(attacker_stats) = stats.get_mut(attacker) {
                         // TODO: Discuss whether we should give EXP by Player
                         // Killing or not.
-                        attacker_stats.exp.change_by(
-                            (entity_stats.body_type.base_exp()
-                                + entity_stats.level.level()
-                                    * entity_stats.body_type.base_exp_increase())
-                                as i64,
-                        );
+                        attacker_stats.exp.change_by(exp_reward.ceil() as i64);
                     }
                 });
             }

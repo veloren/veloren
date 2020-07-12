@@ -1123,7 +1123,7 @@ fn under_cursor(
         .join()
         .filter(|(e, _, _, _)| *e != player_entity)
         .map(|(e, p, s, b)| {
-            const RADIUS_SCALE: f32 = 1.2;
+            const RADIUS_SCALE: f32 = 1.6;
             let radius = s.map_or(1.0, |s| s.0) * b.radius() * RADIUS_SCALE;
             // Move position up from the feet
             let pos = Vec3::new(p.0.x, p.0.y, p.0.z + radius);
