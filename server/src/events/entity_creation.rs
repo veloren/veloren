@@ -2,11 +2,10 @@ use crate::{sys, Server, StateExt};
 use common::{
     comp::{
         self, Agent, Alignment, Body, Gravity, Item, ItemDrop, LightEmitter, Loadout,
-        ParticleEmitter, Pos, Projectile, Scale, Stats, Vel, WaypointArea,
+        ParticleEmitter, ParticleEmitters, Pos, Projectile, Scale, Stats, Vel, WaypointArea,
     },
     util::Dir,
 };
-use comp::visual::ParticleEmitterMode;
 use specs::{Builder, Entity as EcsEntity, WorldExt};
 use vek::{Rgb, Vec3};
 
@@ -78,7 +77,7 @@ pub fn handle_shoot(
     dir: Dir,
     body: Body,
     light: Option<LightEmitter>,
-    particles: Option<ParticleEmitter>,
+    particles: Vec<ParticleEmitter>,
     projectile: Projectile,
     gravity: Option<Gravity>,
 ) {
@@ -98,9 +97,7 @@ pub fn handle_shoot(
     if let Some(light) = light {
         builder = builder.with(light)
     }
-    if let Some(particles) = particles {
-        builder = builder.with(particles)
-    }
+    builder = builder.with(ParticleEmitters(particles));
     if let Some(gravity) = gravity {
         builder = builder.with(gravity)
     }
@@ -118,7 +115,7 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
             flicker: 1.0,
             animated: true,
         })
-        .with(ParticleEmitter::default())
+        .with(ParticleEmitters::default())
         .with(WaypointArea::default())
         .build();
 }

@@ -15,7 +15,7 @@ sum_type! {
         Stats(comp::Stats),
         Energy(comp::Energy),
         LightEmitter(comp::LightEmitter),
-        ParticleEmitter(comp::ParticleEmitter),
+        ParticleEmitter(comp::ParticleEmitters),
         Item(comp::Item),
         Scale(comp::Scale),
         Group(comp::Group),
@@ -43,7 +43,7 @@ sum_type! {
         Stats(PhantomData<comp::Stats>),
         Energy(PhantomData<comp::Energy>),
         LightEmitter(PhantomData<comp::LightEmitter>),
-        ParticleEmitter(PhantomData<comp::ParticleEmitter>),
+        ParticleEmitter(PhantomData<comp::ParticleEmitters>),
         Item(PhantomData<comp::Item>),
         Scale(PhantomData<comp::Scale>),
         Group(PhantomData<comp::Group>),
@@ -126,7 +126,7 @@ impl sync::CompPacket for EcsCompPacket {
                 sync::handle_remove::<comp::LightEmitter>(entity, world)
             },
             EcsCompPhantom::ParticleEmitter(_) => {
-                sync::handle_remove::<comp::ParticleEmitter>(entity, world)
+                sync::handle_remove::<comp::ParticleEmitters>(entity, world)
             },
             EcsCompPhantom::Item(_) => sync::handle_remove::<comp::Item>(entity, world),
             EcsCompPhantom::Scale(_) => sync::handle_remove::<comp::Scale>(entity, world),
