@@ -56,6 +56,18 @@ impl From<Path<Vec3<i32>>> for Route {
     fn from(path: Path<Vec3<i32>>) -> Self { Self { path, next_idx: 0 } }
 }
 
+pub struct TraversalConfig {
+    /// The distance to a node at which node is considered visited.
+    pub node_tolerance: f32,
+    /// The slowdown factor when following corners.
+    /// 0.0 = no slowdown on corners, 1.0 = total slowdown on corners.
+    pub slow_factor: f32,
+    /// Whether the agent is currently on the ground.
+    pub on_ground: bool,
+    /// The distance to the target below which it is considered reached.
+    pub min_tgt_dist: f32,
+}
+
 impl Route {
     pub fn path(&self) -> &Path<Vec3<i32>> { &self.path }
 
@@ -70,9 +82,7 @@ impl Route {
         vol: &V,
         pos: Vec3<f32>,
         vel: Vec3<f32>,
-        on_ground: bool,
-        traversal_tolerance: f32,
-        slow_factor: f32,
+        traversal_cfg: TraversalConfig,
     ) -> Option<(Vec3<f32>, f32)>
     where
         V: BaseVol<Vox = Block> + ReadVol,
@@ -120,8 +130,8 @@ impl Route {
 
             // Determine whether we're close enough to the next to to consider it completed
             let dist_sqrd = pos.xy().distance_squared(closest_tgt.xy());
-            if dist_sqrd < traversal_tolerance.powf(2.0) * if be_precise { 0.25 } else { 1.0 }
-                && (pos.z - closest_tgt.z > 1.2 || (pos.z - closest_tgt.z > -0.2 && on_ground))
+            if dist_sqrd < traversal_cfg.node_tolerance.powf(2.0) * if be_precise { 0.25 } else { 1.0 }
+                && (pos.z - closest_tgt.z > 1.2 || (pos.z - closest_tgt.z > -0.2 && traversal_cfg.on_ground))
                 && (pos.z - closest_tgt.z < 1.2 || (pos.z - closest_tgt.z < 2.9 && vel.z < -0.05))
                 && vel.z <= 0.0
                 // Only consider the node reached if there's nothing solid between us and it
@@ -242,7 +252,7 @@ impl Route {
 
         let bez = CubicBezier2 {
             start: pos.xy(),
-            ctrl0: pos.xy() + vel.xy().try_normalized().unwrap_or(Vec2::zero()) * 1.0,
+            ctrl0: pos.xy() + vel.xy().try_normalized().unwrap_or_default() * 1.0,
             ctrl1: align(next0, 1.0),
             end: align(next1, 1.0),
         };
@@ -254,7 +264,7 @@ impl Route {
         let next_dir = bez
             .evaluate_derivative(0.85)
             .try_normalized()
-            .unwrap_or(Vec2::zero());
+            .unwrap_or_default();
         let straight_factor = next_dir
             .dot(vel.xy().try_normalized().unwrap_or(next_dir))
             .max(0.0)
@@ -262,15 +272,14 @@ impl Route {
 
         let bez = CubicBezier2 {
             start: pos.xy(),
-            ctrl0: pos.xy() + vel.xy().try_normalized().unwrap_or(Vec2::zero()) * 1.0,
+            ctrl0: pos.xy() + vel.xy().try_normalized().unwrap_or_default() * 1.0,
             ctrl1: align(
                 next0,
-                (1.0 - straight_factor
-                    * if (next0.z as f32 - pos.z).abs() < 0.25 && !be_precise {
-                        1.0
-                    } else {
-                        0.0
-                    })
+                (1.0 - if (next0.z as f32 - pos.z).abs() < 0.25 && !be_precise {
+                    straight_factor
+                } else {
+                    0.0
+                })
                 .max(0.1),
             ),
             end: align(next1, 1.0),
@@ -292,7 +301,7 @@ impl Route {
             // Control the entity's speed to hopefully stop us falling off walls on sharp corners.
             // This code is very imperfect: it does its best but it can still fail for particularly
             // fast entities.
-            straight_factor * slow_factor + (1.0 - slow_factor),
+            straight_factor * traversal_cfg.slow_factor + (1.0 - traversal_cfg.slow_factor),
         ))
         .filter(|(bearing, _)| bearing.z < 2.1)
     }
@@ -317,11 +326,8 @@ impl Chaser {
         vol: &V,
         pos: Vec3<f32>,
         vel: Vec3<f32>,
-        on_ground: bool,
         tgt: Vec3<f32>,
-        min_dist: f32,
-        traversal_tolerance: f32,
-        slow_factor: f32,
+        traversal_cfg: TraversalConfig,
     ) -> Option<(Vec3<f32>, f32)>
     where
         V: BaseVol<Vox = Block> + ReadVol,
@@ -329,7 +335,9 @@ impl Chaser {
         let pos_to_tgt = pos.distance(tgt);
 
         // If we're already close to the target then there's nothing to do
-        if ((pos - tgt) * Vec3::new(1.0, 1.0, 2.0)).magnitude_squared() < min_dist.powf(2.0) {
+        if ((pos - tgt) * Vec3::new(1.0, 1.0, 2.0)).magnitude_squared()
+            < traversal_cfg.min_tgt_dist.powf(2.0)
+        {
             self.route = None;
             return None;
         }
@@ -349,7 +357,7 @@ impl Chaser {
             } else {
                 self.route
                     .as_mut()
-                    .and_then(|r| r.traverse(vol, pos, vel, on_ground, traversal_tolerance, slow_factor))
+                    .and_then(|r| r.traverse(vol, pos, vel, traversal_cfg))
                     // In theory this filter isn't needed, but in practice agents often try to take
                     // stale paths that start elsewhere. This code makes sure that we're only using
                     // paths that start near us, avoiding the agent doubling back to chase a stale
