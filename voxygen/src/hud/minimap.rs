@@ -234,7 +234,7 @@ impl<'a> Widget for MiniMap<'a> {
                     + Vec2::unit_y().rotated_z(self.ori.x as f64) * dir.y;
                 let clamped = (cardinal_dir * 3.0)
                     / (cardinal_dir * 3.0).map(|e| e.abs()).reduce_partial_max();
-                let pos = clamped * (map_size * 0.75 - 10.0);
+                let pos = clamped * (map_size * 0.73 - 10.0);
                 Text::new(name)
                     .x_y_position_relative_to(
                         state.ids.grid,

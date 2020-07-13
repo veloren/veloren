@@ -7,7 +7,7 @@ use crate::{
         MountState, Ori, PhysicsState, Pos, Scale, Stats, Vel,
     },
     event::{EventBus, ServerEvent},
-    path::Chaser,
+    path::{Chaser, TraversalConfig},
     state::{DeltaTime, Time},
     sync::{Uid, UidAllocator},
     terrain::TerrainGrid,
@@ -134,7 +134,7 @@ impl<'a> System<'a> for Sys {
             // and so can afford to be less precise when trying to move around
             // the world (especially since they would otherwise get stuck on
             // obstacles that smaller entities would not).
-            let traversal_tolerance = scale + vel.0.xy().magnitude() * 0.2;
+            let node_tolerance = scale + vel.0.xy().magnitude() * 0.2;
             let slow_factor = body.map(|b| b.base_accel() / 250.0).unwrap_or(0.0).min(1.0);
 
             let mut do_idle = false;
@@ -207,11 +207,13 @@ impl<'a> System<'a> for Sys {
                                     &*terrain,
                                     pos.0,
                                     vel.0,
-                                    physics_state.on_ground,
                                     tgt_pos.0,
-                                    AVG_FOLLOW_DIST,
-                                    traversal_tolerance,
-                                    slow_factor,
+                                    TraversalConfig {
+                                        node_tolerance,
+                                        slow_factor,
+                                        on_ground: physics_state.on_ground,
+                                        min_tgt_dist: AVG_FOLLOW_DIST,
+                                    },
                                 ) {
                                     inputs.move_dir =
                                         bearing.xy().try_normalized().unwrap_or(Vec2::zero())
@@ -325,11 +327,13 @@ impl<'a> System<'a> for Sys {
                                     &*terrain,
                                     pos.0,
                                     vel.0,
-                                    physics_state.on_ground,
                                     tgt_pos.0,
-                                    1.25,
-                                    traversal_tolerance,
-                                    slow_factor,
+                                    TraversalConfig {
+                                        node_tolerance,
+                                        slow_factor,
+                                        on_ground: physics_state.on_ground,
+                                        min_tgt_dist: 1.25,
+                                    },
                                 ) {
                                     inputs.move_dir = Vec2::from(bearing)
                                         .try_normalized()
