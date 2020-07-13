@@ -496,13 +496,18 @@ impl Window {
 
         let size = settings.graphics.window_size;
 
-        let win_builder = glutin::window::WindowBuilder::new()
+        let win_builder = winit::window::WindowBuilder::new()
             .with_title("Veloren")
-            .with_inner_size(glutin::dpi::LogicalSize::new(
-                size[0] as f64,
-                size[1] as f64,
-            ))
+            .with_inner_size(winit::dpi::LogicalSize::new(size[0] as f64, size[1] as f64))
             .with_maximized(true);
+
+        // Avoid cpal / winit OleInitialize conflict
+        // See: https://github.com/rust-windowing/winit/pull/1524
+        #[cfg(target_os = "windows")]
+        let win_builder = winit::platform::windows::WindowBuilderExtWindows::with_drag_and_drop(
+            win_builder,
+            false,
+        );
 
         let (window, device, factory, win_color_view, win_depth_view) =
             glutin::ContextBuilder::new()
