@@ -70,7 +70,6 @@ impl<'a, R: Rng> GenCtx<'a, R> {
 }
 
 impl Civs {
-    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     pub fn generate(seed: u32, sim: &mut WorldSim) -> Self {
         let mut this = Self::default();
         let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
@@ -120,7 +119,7 @@ impl Civs {
         for site in this.sites.iter() {
             let radius = 48i32;
 
-            let wpos = site.center * Vec2::from(TerrainChunkSize::RECT_SIZE).map(|e: u32| e as i32);
+            let wpos = site.center * TerrainChunkSize::RECT_SIZE.map(|e: u32| e as i32);
 
             let flatten_radius = match &site.kind {
                 SiteKind::Settlement => 10.0,
@@ -164,11 +163,9 @@ impl Civs {
         let mut cnt = 0;
         for site in this.sites.iter() {
             cnt += 1;
-            let wpos = site
-                .center
-                .map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
-                    e * sz as i32 + sz as i32 / 2
-                });
+            let wpos = site.center.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
+                e * sz as i32 + sz as i32 / 2
+            });
 
             let mut rng = ctx.reseed().rng;
             let world_site = match &site.kind {
