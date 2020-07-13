@@ -8,7 +8,7 @@ use async_std::sync::RwLock;
 use clap::{App, Arg};
 use futures::executor::{block_on, ThreadPool};
 use network::{ProtocolAddr, Network, Participant, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
-use std::{sync::Arc, thread, time::Duration, collections::HashMap};
+use std::{sync::Arc, thread, time::Duration};
 use tracing::*;
 use tracing_subscriber::EnvFilter;
 
@@ -104,19 +104,19 @@ fn server(address: ProtocolAddr) {
     let server = Arc::new(server);
     std::thread::spawn(f);
     let pool = ThreadPool::new().unwrap();
-    let participants = Arc::new(RwLock::new(HashMap::new()));
+    let participants = Arc::new(RwLock::new(Vec::new()));
     block_on(async {
         server.listen(address).await.unwrap();
         loop {
             let p1 = Arc::new(server.connected().await.unwrap());
             let server1 = server.clone();
-            participants.write().await.insert(p1.remote_pid(), p1.clone());
+            participants.write().await.push(p1.clone());
             pool.spawn_ok(client_connection(server1, p1, participants.clone()));
         }
     });
 }
 
-async fn client_connection(_network: Arc<Network>, participant: Arc<Participant>, participants: Arc<RwLock<HashMap<Pid, Arc<Participant>>>>) {
+async fn client_connection(_network: Arc<Network>, participant: Arc<Participant>, participants: Arc<RwLock<Vec<Arc<Participant>>>>) {
     let mut s1 = participant.opened().await.unwrap();
     let username = s1.recv::<String>().await.unwrap();
     println!("[{}] connected", username);
@@ -127,7 +127,7 @@ async fn client_connection(_network: Arc<Network>, participant: Arc<Participant>
             },
             Ok(msg) => {
                 println!("[{}]: {}", username, msg);
-                for (_, p) in participants.read().await.iter() {
+                for p in participants.read().await.iter() {
                     match p
                         .open(32, PROMISES_ORDERED | PROMISES_CONSISTENCY)
                         .await {

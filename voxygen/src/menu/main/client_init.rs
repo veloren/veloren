@@ -101,24 +101,17 @@ impl ClientInit {
                                 },
                                 Err(ClientError::NetworkErr(NetworkError::ConnectFailed(e))) => {
                                     if e.kind() == std::io::ErrorKind::PermissionDenied {
-                                        warn!(
-                                            ?e,
-                                            "You can't connect to the server, you are running a \
-                                             incompatible version than the server"
-                                        );
+                                        warn!(?e, "Cannot connect to server: Incompatible version");
                                         last_err = Some(Error::ClientError(
                                             ClientError::NetworkErr(NetworkError::ConnectFailed(e)),
                                         ));
                                         break 'tries;
                                     } else {
-                                        debug!(
-                                            "can't reach the server, going to retry in a few \
-                                             seconds"
-                                        );
+                                        debug!("Cannot connect to server: Timeout (retrying...)");
                                     }
                                 },
                                 Err(e) => {
-                                    trace!(?e, "stopping connecting to server, due to error");
+                                    trace!(?e, "Aborting server connection attempt");
                                     last_err = Some(Error::ClientError(e));
                                     break 'tries;
                                 },
