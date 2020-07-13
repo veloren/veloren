@@ -11,7 +11,6 @@ impl Animation for RunAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"quadruped_medium_run\0";
 
-    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_medium_run")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
@@ -58,10 +57,10 @@ impl Animation for RunAnimation {
         let footvertaltfslow = (anim_time as f32 * 16.0 * lab as f32 * speedmult + PI * 1.8).sin();
         let footverttaltfslow = (anim_time as f32 * 16.0 * lab as f32 * speedmult + PI * 2.2).sin();
         //
-        let ori = Vec2::from(orientation);
+        let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
         let tilt = if Vec2::new(ori, last_ori)
-            .map(|o| Vec2::<f32>::from(o).magnitude_squared())
+            .map(|o| o.magnitude_squared())
             .map(|m| m > 0.001 && m.is_finite())
             .reduce_and()
             && ori.angle_between(last_ori).is_finite()
