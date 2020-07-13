@@ -241,7 +241,7 @@ pub enum AnalogGameInput {
 }
 
 /// Represents an incoming event from the window.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Event {
     /// The window has been requested to close.
     Close,
@@ -610,9 +610,7 @@ impl Window {
 
     #[allow(clippy::match_bool)] // TODO: Pending review in #587
     pub fn fetch_events(&mut self) -> Vec<Event> {
-        let mut events = std::mem::take(&mut self.events);
-
-        events.append(&mut self.supplement_events);
+        self.events.append(&mut self.supplement_events);
 
         // Refresh ui size (used when changing playstates)
         if self.needs_refresh_resize {
@@ -622,9 +620,9 @@ impl Window {
         }
 
         // Receive any messages sent through the message channel
-        self.message_receiver
-            .try_iter()
-            .for_each(|message| events.push(Event::ScreenshotMessage(message)));
+        for message in self.message_receiver.try_iter() {
+            self.events.push(Event::ScreenshotMessage(message))
+        }
 
         if let Some(gilrs) = &mut self.gilrs {
             while let Some(event) = gilrs.next_event() {
@@ -779,7 +777,7 @@ impl Window {
             }
         }
 
-        let mut events = std::mem::replace(&mut self.events, Vec::new());
+        let mut events = std::mem::take(&mut self.events);
         // Mouse emulation for the menus, to be removed when a proper menu navigation
         // system is available
         if !self.cursor_grabbed {
