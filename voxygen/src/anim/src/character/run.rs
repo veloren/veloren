@@ -23,7 +23,7 @@ impl Animation for RunAnimation {
     const UPDATE_FN: &'static [u8] = b"character_run\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_run")]
-    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
+
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, second_tool_kind, velocity, orientation, last_ori, global_time, avg_vel): Self::Dependency,
@@ -96,10 +96,10 @@ impl Animation for RunAnimation {
                 * 0.1,
         );
 
-        let ori = Vec2::from(orientation);
+        let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
         let tilt = if Vec2::new(ori, last_ori)
-            .map(|o| Vec2::<f32>::from(o).magnitude_squared())
+            .map(|o| o.magnitude_squared())
             .map(|m| m > 0.001 && m.is_finite())
             .reduce_and()
             && ori.angle_between(last_ori).is_finite()

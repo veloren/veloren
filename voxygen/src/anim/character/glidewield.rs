@@ -9,7 +9,7 @@ impl Animation for GlideWieldAnimation {
     type Dependency = (Option<ToolKind>, Option<ToolKind>, Vec3<f32>, Vec3<f32>, Vec3<f32>, f64);
     type Skeleton = CharacterSkeleton;
 
-    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
+
     fn update_skeleton(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, _second_tool_kind, velocity, orientation, last_ori, global_time): Self::Dependency,
