@@ -62,7 +62,7 @@ pub enum CharacterAbility {
         projectile: Projectile,
         projectile_body: Body,
         projectile_light: Option<LightEmitter>,
-        projectile_particles: Option<ParticleEmitter>,
+        projectile_particles: Vec<ParticleEmitter>,
         projectile_gravity: Option<Gravity>,
     },
     Boost {
@@ -261,7 +261,7 @@ impl From<&CharacterAbility> for CharacterState {
                 projectile: projectile.clone(),
                 projectile_body: *projectile_body,
                 projectile_light: *projectile_light,
-                projectile_particles: *projectile_particles,
+                projectile_particles: projectile_particles.clone().to_vec(),
                 projectile_gravity: *projectile_gravity,
             }),
             CharacterAbility::Boost { duration, only_up } => CharacterState::Boost(boost::Data {

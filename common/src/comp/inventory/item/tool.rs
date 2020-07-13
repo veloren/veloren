@@ -180,7 +180,7 @@ impl Tool {
                     },
                     projectile_body: Body::Object(object::Body::Arrow),
                     projectile_light: None,
-                    projectile_particles: None,
+                    projectile_particles: vec![],
                     projectile_gravity: Some(Gravity(0.2)),
                 },
                 ChargedRanged {
@@ -195,7 +195,7 @@ impl Tool {
                     recover_duration: Duration::from_millis(500),
                     projectile_body: Body::Object(object::Body::Arrow),
                     projectile_light: None,
-                    projectile_particles: None,
+                    projectile_particles: vec![],
                     projectile_gravity: Some(Gravity(0.05)),
                 },
             ],
@@ -276,7 +276,7 @@ impl Tool {
                         col: (0.85, 0.5, 0.11).into(),
                         ..Default::default()
                     }),
-                    projectile_particles: Some(ParticleEmitter {
+                    projectile_particles: vec![ParticleEmitter {
                         mode: ParticleEmitterMode::Sprinkler,
                         // model_key: "voxygen.voxel.not_found",
                         count: (2, 3),
@@ -288,7 +288,8 @@ impl Tool {
                             vek::Vec3::broadcast(1.0),
                         ),
                         initial_scale: (0.1, 0.3),
-                    }),
+                        initial_velocity: (vek::Vec3::zero(), vek::Vec3::one()),
+                    }],
                     projectile_gravity: None,
                 },
                 BasicRanged {
@@ -313,7 +314,7 @@ impl Tool {
                         col: (1.0, 0.75, 0.11).into(),
                         ..Default::default()
                     }),
-                    projectile_particles: Some(ParticleEmitter::default()),
+                    projectile_particles: vec![ParticleEmitter::default()],
                     projectile_gravity: None,
                 },
             ],
@@ -358,7 +359,7 @@ impl Tool {
                             col: (0.0, 1.0, 0.33).into(),
                             ..Default::default()
                         }),
-                        projectile_particles: None,
+                        projectile_particles: vec![],
                         projectile_gravity: None,
                     },
                 ],

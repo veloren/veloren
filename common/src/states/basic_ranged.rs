@@ -20,7 +20,7 @@ pub struct Data {
     pub projectile: Projectile,
     pub projectile_body: Body,
     pub projectile_light: Option<LightEmitter>,
-    pub projectile_particles: Option<ParticleEmitter>,
+    pub projectile_particles: Vec<ParticleEmitter>,
     pub projectile_gravity: Option<Gravity>,
     /// Whether the attack fired already
     pub exhausted: bool,
@@ -49,7 +49,7 @@ impl CharacterBehavior for Data {
                 projectile: self.projectile.clone(),
                 projectile_body: self.projectile_body,
                 projectile_light: self.projectile_light,
-                projectile_particles: self.projectile_particles,
+                projectile_particles: self.projectile_particles.clone(),
                 projectile_gravity: self.projectile_gravity,
                 exhausted: false,
             });
@@ -63,7 +63,7 @@ impl CharacterBehavior for Data {
                 body: self.projectile_body,
                 projectile,
                 light: self.projectile_light,
-                particles: self.projectile_particles,
+                particles: self.projectile_particles.clone(),
                 gravity: self.projectile_gravity,
             });
 
@@ -75,7 +75,7 @@ impl CharacterBehavior for Data {
                 projectile: self.projectile.clone(),
                 projectile_body: self.projectile_body,
                 projectile_light: self.projectile_light,
-                projectile_particles: self.projectile_particles,
+                projectile_particles: self.projectile_particles.clone(),
                 projectile_gravity: self.projectile_gravity,
                 exhausted: true,
             });
@@ -92,7 +92,7 @@ impl CharacterBehavior for Data {
                 projectile: self.projectile.clone(),
                 projectile_body: self.projectile_body,
                 projectile_light: self.projectile_light,
-                projectile_particles: self.projectile_particles,
+                projectile_particles: self.projectile_particles.clone(),
                 projectile_gravity: self.projectile_gravity,
                 exhausted: true,
             });

@@ -52,6 +52,13 @@ pub enum ParticleEmitterMode {
     Sprinkler,
 }
 
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)] // Copy
+pub struct ParticleEmitters(pub Vec<ParticleEmitter>);
+
+impl Default for ParticleEmitters {
+    fn default() -> Self { Self(vec![ParticleEmitter::default()]) }
+}
+
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ParticleEmitter {
     pub mode: ParticleEmitterMode,
@@ -67,6 +74,7 @@ pub struct ParticleEmitter {
     pub initial_offset: (Vec3<f32>, Vec3<f32>), // fn() -> Vec3<f32>,
     pub initial_scale: (f32, f32),              // fn() -> Vec3<f32>,
     pub initial_orientation: (Vec3<f32>, Vec3<f32>), // fn() -> Vec3<f32>,
+    pub initial_velocity: (Vec3<f32>, Vec3<f32>), // fn() -> Vec3<f32>,
 }
 
 impl Default for ParticleEmitter {
@@ -75,11 +83,15 @@ impl Default for ParticleEmitter {
             mode: ParticleEmitterMode::Sprinkler,
             // model_key: "voxygen.voxel.not_found",
             count: (2, 5),
-            frequency: Duration::from_millis(500),
-            initial_lifespan: Duration::from_secs(2),
-            initial_offset: (vek::Vec3::broadcast(-5.0), vek::Vec3::broadcast(5.0)),
-            initial_orientation: (vek::Vec3::broadcast(-5.0), vek::Vec3::broadcast(5.0)),
+            frequency: Duration::from_millis(100),
+            initial_lifespan: Duration::from_secs(20),
+            initial_offset: (vek::Vec3::broadcast(-0.1), vek::Vec3::broadcast(0.1)),
+            initial_orientation: (vek::Vec3::broadcast(0.0), vek::Vec3::broadcast(1.0)),
             initial_scale: (0.1, 2.0),
+            initial_velocity: (
+                vek::Vec3::new(0.0, 0.0, 0.2),
+                vek::Vec3::new(0.01, 0.01, 1.0),
+            ),
         }
     }
 }

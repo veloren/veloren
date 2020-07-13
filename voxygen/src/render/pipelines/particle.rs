@@ -28,7 +28,7 @@ gfx_defines! {
         inst_mat3: [f32; 4] = "inst_mat3",
         inst_col: [f32; 3] = "inst_col",
         inst_vel: [f32; 3] = "inst_vel",
-        inst_tick: [f32; 4] = "inst_tick",
+        inst_time: [f32; 4] = "inst_time",
         inst_wind_sway: f32 = "inst_wind_sway",
         mode: u8 = "mode",
     }
@@ -74,7 +74,7 @@ impl Instance {
         mat: Mat4<f32>,
         col: Rgb<f32>,
         vel: Vec3<f32>,
-        tick: u64,
+        time: f64,
         wind_sway: f32,
         mode: ParticleEmitterMode,
     ) -> Self {
@@ -86,7 +86,7 @@ impl Instance {
             inst_mat3: mat_arr[3],
             inst_col: col.into_array(),
             inst_vel: vel.into_array(),
-            inst_tick: [tick as f32; 4],
+            inst_time: [time as f32; 4],
 
             inst_wind_sway: wind_sway,
 
@@ -101,7 +101,7 @@ impl Default for Instance {
             Mat4::identity(),
             Rgb::broadcast(1.0),
             Vec3::zero(),
-            0,
+            0.0,
             0.0,
             ParticleEmitterMode::Sprinkler,
         )

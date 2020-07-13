@@ -2,8 +2,8 @@ use super::SysTimer;
 use common::{
     comp::{
         Alignment, Body, CanBuild, CharacterState, Collider, Energy, Gravity, Item, LightEmitter,
-        Loadout, Mass, MountState, Mounting, Ori, ParticleEmitter, Player, Pos, Scale, Stats,
-        Sticky, Vel,
+        Loadout, Mass, MountState, Mounting, Ori, ParticleEmitter, ParticleEmitters, Player, Pos,
+        Scale, Stats, Sticky, Vel,
     },
     msg::EcsCompPacket,
     sync::{CompSyncPackage, EntityPackage, EntitySyncPackage, Uid, UpdateTracker, WorldSyncExt},
@@ -45,7 +45,7 @@ pub struct TrackedComps<'a> {
     pub energy: ReadStorage<'a, Energy>,
     pub can_build: ReadStorage<'a, CanBuild>,
     pub light_emitter: ReadStorage<'a, LightEmitter>,
-    pub particle_emitter: ReadStorage<'a, ParticleEmitter>,
+    pub particle_emitter: ReadStorage<'a, ParticleEmitters>,
     pub item: ReadStorage<'a, Item>,
     pub scale: ReadStorage<'a, Scale>,
     pub mounting: ReadStorage<'a, Mounting>,
@@ -96,7 +96,7 @@ impl<'a> TrackedComps<'a> {
             .map(|c| comps.push(c.into()));
         self.particle_emitter
             .get(entity)
-            .copied()
+            .cloned()
             .map(|c| comps.push(c.into()));
         self.item.get(entity).cloned().map(|c| comps.push(c.into()));
         self.scale
@@ -153,7 +153,7 @@ pub struct ReadTrackers<'a> {
     pub energy: ReadExpect<'a, UpdateTracker<Energy>>,
     pub can_build: ReadExpect<'a, UpdateTracker<CanBuild>>,
     pub light_emitter: ReadExpect<'a, UpdateTracker<LightEmitter>>,
-    pub particle_emitter: ReadExpect<'a, UpdateTracker<ParticleEmitter>>,
+    pub particle_emitter: ReadExpect<'a, UpdateTracker<ParticleEmitters>>,
     pub item: ReadExpect<'a, UpdateTracker<Item>>,
     pub scale: ReadExpect<'a, UpdateTracker<Scale>>,
     pub mounting: ReadExpect<'a, UpdateTracker<Mounting>>,
@@ -223,7 +223,7 @@ pub struct WriteTrackers<'a> {
     energy: WriteExpect<'a, UpdateTracker<Energy>>,
     can_build: WriteExpect<'a, UpdateTracker<CanBuild>>,
     light_emitter: WriteExpect<'a, UpdateTracker<LightEmitter>>,
-    particle_emitter: WriteExpect<'a, UpdateTracker<ParticleEmitter>>,
+    particle_emitter: WriteExpect<'a, UpdateTracker<ParticleEmitters>>,
     item: WriteExpect<'a, UpdateTracker<Item>>,
     scale: WriteExpect<'a, UpdateTracker<Scale>>,
     mounting: WriteExpect<'a, UpdateTracker<Mounting>>,
@@ -304,7 +304,7 @@ pub fn register_trackers(world: &mut World) {
     world.register_tracker::<Energy>();
     world.register_tracker::<CanBuild>();
     world.register_tracker::<LightEmitter>();
-    world.register_tracker::<ParticleEmitter>();
+    world.register_tracker::<ParticleEmitters>();
     world.register_tracker::<Item>();
     world.register_tracker::<Scale>();
     world.register_tracker::<Mounting>();

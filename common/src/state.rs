@@ -113,7 +113,7 @@ impl State {
         ecs.register::<comp::Energy>();
         ecs.register::<comp::CanBuild>();
         ecs.register::<comp::LightEmitter>();
-        ecs.register::<comp::ParticleEmitter>();
+        ecs.register::<comp::ParticleEmitters>();
         ecs.register::<comp::Item>();
         ecs.register::<comp::Scale>();
         ecs.register::<comp::Mounting>();
