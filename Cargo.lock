@@ -5131,8 +5131,7 @@ dependencies = [
 [[package]]
 name = "winit"
 version = "0.22.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e4ccbf7ddb6627828eace16cacde80fc6bf4dbb3469f88487262a02cf8e7862"
+source = "git+https://github.com/rust-windowing/winit.git?rev=6919c2fb2d45dc4063c9ef52a69d857ed30657c7#6919c2fb2d45dc4063c9ef52a69d857ed30657c7"
 dependencies = [
  "bitflags",
  "cocoa 0.20.2",

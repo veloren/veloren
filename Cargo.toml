@@ -72,3 +72,7 @@ debug = false
 [profile.releasedebuginfo]
 inherits =  'release'
 debug = 1
+
+# cpal conflict fix isn't released yet
+[patch.crates-io]
+winit = { git = "https://github.com/rust-windowing/winit.git", rev = "6919c2fb2d45dc4063c9ef52a69d857ed30657c7" }
