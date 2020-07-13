@@ -1,7 +1,7 @@
 use conrod_core::{event::Input, input::Button};
 use vek::*;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Event(pub Input);
 impl Event {
     pub fn try_from(
