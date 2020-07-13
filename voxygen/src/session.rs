@@ -991,22 +991,6 @@ impl PlayState for SessionState {
                         &scene_data,
                     );
                 }
-
-                let renderer = global_state.window.renderer_mut();
-                // Clear the screen
-                renderer.clear();
-                // Render the screen using the global renderer
-                self.scene.render(
-                    renderer,
-                    client.state(),
-                    client.entity(),
-                    client.get_tick(),
-                    &scene_data,
-                );
-                // Draw the UI to the screen
-                self.hud.render(renderer, self.scene.globals());
-                // Finish the frame
-                renderer.flush();
             }
 
             // Clean things up after the tick.
