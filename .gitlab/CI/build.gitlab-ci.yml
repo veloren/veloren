@@ -1,8 +1,11 @@
 unittests:
   extends: .recompile-branch
   stage: build
+  variables:
+    GIT_DEPTH: 9999999999999
   script:
     - ln -s /dockercache/cache-all target
+    - cargo test --package veloren-voxygen --lib test_all_localizations -- --nocapture --ignored
     - cargo test
   retry:
     max: 2
@@ -16,16 +19,6 @@ benchmarks:
     - cargo bench
   retry:
     max: 2
-
-localization-status:
-  extends: .recompile-branch
-  stage: build
-  variables:
-    GIT_DEPTH: 9999999999999
-  allow_failure: true
-  script:
-    - ln -s /dockercache/cache-all target
-    - cargo test test_all_localizations -- --nocapture --ignored
 
 # Coverage is needed on master for the README.md badge to work
 coverage:
