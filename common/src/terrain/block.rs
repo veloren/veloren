@@ -204,8 +204,9 @@ impl BlockKind {
 
     pub fn get_glow(&self) -> Option<u8> {
         match self {
-            BlockKind::StreetLamp | BlockKind::StreetLampTall => Some(20),
-            BlockKind::Velorite | BlockKind::VeloriteFrag => Some(10),
+            // TODO: When we have proper volumetric lighting
+            //BlockKind::StreetLamp | BlockKind::StreetLampTall => Some(20),
+            //BlockKind::Velorite | BlockKind::VeloriteFrag => Some(10),
             _ => None,
         }
     }
