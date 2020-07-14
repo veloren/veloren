@@ -26,7 +26,7 @@ impl Server {
     pub fn new() -> (Self, mpsc::UnboundedSender<LocalCommand>) {
         let (command_sender, command_receiver) = mpsc::unbounded();
 
-        let (network, f) = Network::new(Pid::new(), None);
+        let (network, f) = Network::new(Pid::new());
         std::thread::spawn(f);
 
         let run_channels = Some(ControlChannels { command_receiver });

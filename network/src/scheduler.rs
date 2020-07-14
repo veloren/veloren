@@ -1,7 +1,8 @@
+#[cfg(feature = "metrics")]
+use crate::metrics::NetworkMetrics;
 use crate::{
     api::{Participant, ProtocolAddr},
     channel::Handshake,
-    metrics::NetworkMetrics,
     participant::{B2sPrioStatistic, BParticipant, S2bCreateChannel},
     protocols::{Protocols, TcpProtocol, UdpProtocol},
     types::Pid,
@@ -18,6 +19,7 @@ use futures::{
     sink::SinkExt,
     stream::StreamExt,
 };
+#[cfg(feature = "metrics")]
 use prometheus::Registry;
 use rand::Rng;
 use std::{
@@ -78,13 +80,14 @@ pub struct Scheduler {
     participants: Arc<RwLock<HashMap<Pid, ParticipantInfo>>>,
     channel_ids: Arc<AtomicU64>,
     channel_listener: RwLock<HashMap<ProtocolAddr, oneshot::Sender<()>>>,
+    #[cfg(feature = "metrics")]
     metrics: Arc<NetworkMetrics>,
 }
 
 impl Scheduler {
     pub fn new(
         local_pid: Pid,
-        registry: Option<&Registry>,
+        #[cfg(feature = "metrics")] registry: Option<&Registry>,
     ) -> (
         Self,
         mpsc::UnboundedSender<A2sListen>,
@@ -113,9 +116,14 @@ impl Scheduler {
             b2s_prio_statistic_s,
         };
 
+        #[cfg(feature = "metrics")]
         let metrics = Arc::new(NetworkMetrics::new(&local_pid).unwrap());
-        if let Some(registry) = registry {
-            metrics.register(registry).unwrap();
+
+        #[cfg(feature = "metrics")]
+        {
+            if let Some(registry) = registry {
+                metrics.register(registry).unwrap();
+            }
         }
 
         let mut rng = rand::thread_rng();
@@ -132,6 +140,7 @@ impl Scheduler {
                 participants: Arc::new(RwLock::new(HashMap::new())),
                 channel_ids: Arc::new(AtomicU64::new(0)),
                 channel_listener: RwLock::new(HashMap::new()),
+                #[cfg(feature = "metrics")]
                 metrics,
             },
             a2s_listen_s,
@@ -161,6 +170,7 @@ impl Scheduler {
 
                 async move {
                     debug!(?address, "Got request to open a channel_creator");
+                    #[cfg(feature = "metrics")]
                     self.metrics
                         .listen_requests_total
                         .with_label_values(&[match address {
@@ -193,6 +203,7 @@ impl Scheduler {
         while let Some((addr, pid_sender)) = a2s_connect_r.next().await {
             let (protocol, handshake) = match addr {
                 ProtocolAddr::Tcp(addr) => {
+                    #[cfg(feature = "metrics")]
                     self.metrics
                         .connect_requests_total
                         .with_label_values(&["tcp"])
@@ -206,11 +217,16 @@ impl Scheduler {
                     };
                     info!("Connecting Tcp to: {}", stream.peer_addr().unwrap());
                     (
-                        Protocols::Tcp(TcpProtocol::new(stream, self.metrics.clone())),
+                        Protocols::Tcp(TcpProtocol::new(
+                            stream,
+                            #[cfg(feature = "metrics")]
+                            self.metrics.clone(),
+                        )),
                         false,
                     )
                 },
                 ProtocolAddr::Udp(addr) => {
+                    #[cfg(feature = "metrics")]
                     self.metrics
                         .connect_requests_total
                         .with_label_values(&["udp"])
@@ -231,6 +247,7 @@ impl Scheduler {
                     let protocol = UdpProtocol::new(
                         socket.clone(),
                         addr,
+                        #[cfg(feature = "metrics")]
                         self.metrics.clone(),
                         udp_data_receiver,
                     );
@@ -372,7 +389,11 @@ impl Scheduler {
                         },
                     };
                     info!("Accepting Tcp from: {}", peer_addr);
-                    let protocol = TcpProtocol::new(stream, self.metrics.clone());
+                    let protocol = TcpProtocol::new(
+                        stream,
+                        #[cfg(feature = "metrics")]
+                        self.metrics.clone(),
+                    );
                     self.init_protocol(Protocols::Tcp(protocol), None, true)
                         .await;
                 }
@@ -416,6 +437,7 @@ impl Scheduler {
                         let protocol = UdpProtocol::new(
                             socket.clone(),
                             remote_addr,
+                            #[cfg(feature = "metrics")]
                             self.metrics.clone(),
                             udp_data_receiver,
                         );
@@ -474,6 +496,7 @@ impl Scheduler {
         // the UDP listening is done in another place.
         let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
         let participants = self.participants.clone();
+        #[cfg(feature = "metrics")]
         let metrics = self.metrics.clone();
         let pool = self.pool.clone();
         let local_pid = self.local_pid;
@@ -486,6 +509,7 @@ impl Scheduler {
                     cid,
                     local_pid,
                     local_secret,
+                    #[cfg(feature = "metrics")]
                     metrics.clone(),
                     send_handshake,
                 );
@@ -506,7 +530,12 @@ impl Scheduler {
                                 mut s2b_create_channel_s,
                                 s2b_shutdown_bparticipant_s,
                                 api_participant_closed,
-                            ) = BParticipant::new(pid, sid, metrics.clone());
+                            ) = BParticipant::new(
+                                pid,
+                                sid,
+                                #[cfg(feature = "metrics")]
+                                metrics.clone(),
+                            );
 
                             let participant = Participant::new(
                                 local_pid,
@@ -517,6 +546,7 @@ impl Scheduler {
                                 api_participant_closed,
                             );
 
+                            #[cfg(feature = "metrics")]
                             metrics.participants_connected_total.inc();
                             participants.insert(pid, ParticipantInfo {
                                 secret,
