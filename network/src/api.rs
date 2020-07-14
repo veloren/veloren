@@ -4,6 +4,7 @@
 //! (cd network/examples/async_recv && RUST_BACKTRACE=1 cargo run)
 use crate::{
     message::{self, partial_eq_bincode, IncomingMessage, MessageBuffer, OutgoingMessage},
+    participant::{A2bStreamOpen, S2bShutdownBparticipant},
     scheduler::Scheduler,
     types::{Mid, Pid, Prio, Promises, Sid},
 };
@@ -30,8 +31,7 @@ use std::{
 use tracing::*;
 use tracing_futures::Instrument;
 
-type ParticipantCloseChannel =
-    mpsc::UnboundedSender<(Pid, oneshot::Sender<async_std::io::Result<()>>)>;
+type A2sDisconnect = Arc<Mutex<Option<mpsc::UnboundedSender<(Pid, S2bShutdownBparticipant)>>>>;
 
 /// Represents a Tcp or Udp or Mpsc address
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
@@ -51,10 +51,10 @@ pub enum ProtocolAddr {
 pub struct Participant {
     local_pid: Pid,
     remote_pid: Pid,
-    a2b_steam_open_s: RwLock<mpsc::UnboundedSender<(Prio, Promises, oneshot::Sender<Stream>)>>,
+    a2b_stream_open_s: RwLock<mpsc::UnboundedSender<A2bStreamOpen>>,
     b2a_stream_opened_r: RwLock<mpsc::UnboundedReceiver<Stream>>,
     closed: Arc<RwLock<Result<(), ParticipantError>>>,
-    a2s_disconnect_s: Arc<Mutex<Option<ParticipantCloseChannel>>>,
+    a2s_disconnect_s: A2sDisconnect,
 }
 
 /// `Streams` represents a channel to send `n` messages with a certain priority
@@ -147,8 +147,7 @@ pub enum StreamError {
 /// [`connected`]: Network::connected
 pub struct Network {
     local_pid: Pid,
-    participant_disconnect_sender:
-        RwLock<HashMap<Pid, Arc<Mutex<Option<ParticipantCloseChannel>>>>>,
+    participant_disconnect_sender: RwLock<HashMap<Pid, A2sDisconnect>>,
     listen_sender:
         RwLock<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<async_std::io::Result<()>>)>>,
     connect_sender:
@@ -390,15 +389,15 @@ impl Participant {
     pub(crate) fn new(
         local_pid: Pid,
         remote_pid: Pid,
-        a2b_steam_open_s: mpsc::UnboundedSender<(Prio, Promises, oneshot::Sender<Stream>)>,
+        a2b_stream_open_s: mpsc::UnboundedSender<A2bStreamOpen>,
         b2a_stream_opened_r: mpsc::UnboundedReceiver<Stream>,
-        a2s_disconnect_s: mpsc::UnboundedSender<(Pid, oneshot::Sender<async_std::io::Result<()>>)>,
+        a2s_disconnect_s: mpsc::UnboundedSender<(Pid, S2bShutdownBparticipant)>,
         closed: Arc<RwLock<Result<(), ParticipantError>>>,
     ) -> Self {
         Self {
             local_pid,
             remote_pid,
-            a2b_steam_open_s: RwLock::new(a2b_steam_open_s),
+            a2b_stream_open_s: RwLock::new(a2b_stream_open_s),
             b2a_stream_opened_r: RwLock::new(b2a_stream_opened_r),
             closed,
             a2s_disconnect_s: Arc::new(Mutex::new(Some(a2s_disconnect_s))),
@@ -448,10 +447,10 @@ impl Participant {
     pub async fn open(&self, prio: u8, promises: Promises) -> Result<Stream, ParticipantError> {
         //use this lock for now to make sure that only one open at a time is made,
         // TODO: not sure if we can paralise that, check in future
-        let mut a2b_steam_open_s = self.a2b_steam_open_s.write().await;
+        let mut a2b_stream_open_s = self.a2b_stream_open_s.write().await;
         self.closed.read().await.clone()?;
         let (p2a_return_stream_s, p2a_return_stream_r) = oneshot::channel();
-        a2b_steam_open_s
+        a2b_stream_open_s
             .send((prio, promises, p2a_return_stream_s))
             .await
             .unwrap();
