@@ -289,6 +289,7 @@ impl Tool {
                         ),
                         initial_scale: (0.1, 0.3),
                         initial_velocity: (vek::Vec3::zero(), vek::Vec3::one()),
+                        initial_col: (vek::Rgb::zero(), vek::Rgb::one()),
                     }],
                     projectile_gravity: None,
                 },

@@ -56,7 +56,20 @@ pub enum ParticleEmitterMode {
 pub struct ParticleEmitters(pub Vec<ParticleEmitter>);
 
 impl Default for ParticleEmitters {
-    fn default() -> Self { Self(vec![ParticleEmitter::default()]) }
+    fn default() -> Self {
+        Self(vec![ParticleEmitter::default(), ParticleEmitter {
+            mode: ParticleEmitterMode::Sprinkler,
+            // model_key: "voxygen.voxel.not_found",
+            count: (7, 10),
+            frequency: Duration::from_millis(100),
+            initial_lifespan: Duration::from_secs(500),
+            initial_offset: (Vec3::broadcast(-0.2), Vec3::broadcast(0.2)),
+            initial_orientation: (Vec3::broadcast(0.0), Vec3::broadcast(1.0)),
+            initial_scale: (1.0, 2.0),
+            initial_velocity: (Vec3::new(0.0, 0.0, 1.0), Vec3::new(0.01, 0.01, 3.0)),
+            initial_col: (Rgb::new(0.999, 0.0, 0.0), Rgb::new(1.0, 1.0, 0.001)),
+        }])
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -75,6 +88,7 @@ pub struct ParticleEmitter {
     pub initial_scale: (f32, f32),              // fn() -> Vec3<f32>,
     pub initial_orientation: (Vec3<f32>, Vec3<f32>), // fn() -> Vec3<f32>,
     pub initial_velocity: (Vec3<f32>, Vec3<f32>), // fn() -> Vec3<f32>,
+    pub initial_col: (Rgb<f32>, Rgb<f32>),      // fn() -> Vec3<f32>,
 }
 
 impl Default for ParticleEmitter {
@@ -85,13 +99,11 @@ impl Default for ParticleEmitter {
             count: (2, 5),
             frequency: Duration::from_millis(100),
             initial_lifespan: Duration::from_secs(20),
-            initial_offset: (vek::Vec3::broadcast(-0.1), vek::Vec3::broadcast(0.1)),
-            initial_orientation: (vek::Vec3::broadcast(0.0), vek::Vec3::broadcast(1.0)),
+            initial_offset: (Vec3::broadcast(-0.1), Vec3::broadcast(0.1)),
+            initial_orientation: (Vec3::broadcast(0.0), Vec3::broadcast(1.0)),
             initial_scale: (0.1, 2.0),
-            initial_velocity: (
-                vek::Vec3::new(0.0, 0.0, 0.2),
-                vek::Vec3::new(0.01, 0.01, 1.0),
-            ),
+            initial_velocity: (Vec3::new(0.0, 0.0, 0.2), Vec3::new(0.01, 0.01, 1.0)),
+            initial_col: (Rgb::new(0.999, 0.999, 0.999), Rgb::new(1.0, 1.0, 1.0)),
         }
     }
 }
