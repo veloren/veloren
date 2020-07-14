@@ -1,6 +1,6 @@
 use serde::{de::DeserializeOwned, Serialize};
 //use std::collections::VecDeque;
-use crate::types::{Mid, Sid};
+use crate::types::{Frame, Mid, Sid};
 use std::{io, sync::Arc};
 
 //Todo: Evaluate switching to VecDeque for quickly adding and removing data
@@ -36,17 +36,52 @@ pub(crate) struct IncomingMessage {
 pub(crate) fn serialize<M: Serialize>(message: &M) -> MessageBuffer {
     //this will never fail: https://docs.rs/bincode/0.8.0/bincode/fn.serialize.html
     let writer = bincode::serialize(message).unwrap();
-    MessageBuffer { data: writer }
+    MessageBuffer {
+        data: lz4_compress::compress(&writer),
+    }
 }
 
 //pub(crate) fn deserialize<M: DeserializeOwned>(buffer: MessageBuffer) ->
 // std::Result<M, std::Box<bincode::error::bincode::ErrorKind>> {
 pub(crate) fn deserialize<M: DeserializeOwned>(buffer: MessageBuffer) -> bincode::Result<M> {
-    let span = buffer.data;
+    let span = lz4_compress::decompress(&buffer.data)
+        .expect("lz4 decompression failed, failed to deserialze");
     //this might fail if you choose the wrong type for M. in that case probably X
     // got transfered while you assume Y. probably this means your application
     // logic is wrong. E.g. You expect a String, but just get a u8.
     bincode::deserialize(span.as_slice())
+}
+
+impl OutgoingMessage {
+    pub(crate) const FRAME_DATA_SIZE: u64 = 1400;
+
+    /// returns if msg is empty
+    pub(crate) fn fill_next<E: Extend<(Sid, Frame)>>(
+        &mut self,
+        msg_sid: Sid,
+        frames: &mut E,
+    ) -> bool {
+        let to_send = std::cmp::min(
+            self.buffer.data[self.cursor as usize..].len() as u64,
+            Self::FRAME_DATA_SIZE,
+        );
+        if to_send > 0 {
+            if self.cursor == 0 {
+                frames.extend(std::iter::once((msg_sid, Frame::DataHeader {
+                    mid: self.mid,
+                    sid: self.sid,
+                    length: self.buffer.data.len() as u64,
+                })));
+            }
+            frames.extend(std::iter::once((msg_sid, Frame::Data {
+                mid: self.mid,
+                start: self.cursor,
+                data: self.buffer.data[self.cursor as usize..][..to_send as usize].to_vec(),
+            })));
+        };
+        self.cursor += to_send;
+        self.cursor >= self.buffer.data.len() as u64
+    }
 }
 
 ///wouldn't trust this aaaassss much, fine for tests
@@ -134,13 +169,11 @@ mod tests {
     fn serialize_test() {
         let msg = "abc";
         let mb = serialize(&msg);
-        assert_eq!(mb.data.len(), 11);
-        assert_eq!(mb.data[0], 3);
-        assert_eq!(mb.data[1], 0);
-        assert_eq!(mb.data[7], 0);
-        assert_eq!(mb.data[8], b'a');
-        assert_eq!(mb.data[8], 97);
-        assert_eq!(mb.data[9], b'b');
-        assert_eq!(mb.data[10], b'c');
+        assert_eq!(mb.data.len(), 9);
+        assert_eq!(mb.data[0], 34);
+        assert_eq!(mb.data[1], 3);
+        assert_eq!(mb.data[6], b'a');
+        assert_eq!(mb.data[7], b'b');
+        assert_eq!(mb.data[8], b'c');
     }
 }

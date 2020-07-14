@@ -2,17 +2,17 @@ use async_std::{
     fs,
     path::{Path, PathBuf},
 };
-use network::{Address, Participant, Stream};
+use network::{ProtocolAddr, Participant, Stream};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum LocalCommand {
     Shutdown,
     Disconnect,
-    Connect(Address),
+    Connect(ProtocolAddr),
     List,
     Serve(FileInfo),
     Get(u32, Option<String>),
@@ -34,7 +34,7 @@ pub struct FileInfo {
 
 pub struct RemoteInfo {
     infos: HashMap<u32, FileInfo>,
-    _participant: Arc<Participant>,
+    _participant: Participant,
     pub cmd_out: Stream,
     pub file_out: Stream,
 }
@@ -44,7 +44,7 @@ impl FileInfo {
         let mt = match fs::metadata(&path).await {
             Err(e) => {
                 println!(
-                    "cannot get metadata for file: {:?}, does it exist? Error: {:?}",
+                    "Cannot get metadata for file: {:?}, does it exist? Error: {:?}",
                     &path, &e
                 );
                 return None;
@@ -68,7 +68,7 @@ impl FileInfo {
 }
 
 impl RemoteInfo {
-    pub fn new(cmd_out: Stream, file_out: Stream, participant: Arc<Participant>) -> Self {
+    pub fn new(cmd_out: Stream, file_out: Stream, participant: Participant) -> Self {
         Self {
             infos: HashMap::new(),
             _participant: participant,

@@ -7,7 +7,11 @@ use crate::{
     scheduler::Scheduler,
     types::{Mid, Pid, Prio, Promises, Sid},
 };
-use async_std::{io, sync::RwLock, task};
+use async_std::{
+    io,
+    sync::{Mutex, RwLock},
+    task,
+};
 use futures::{
     channel::{mpsc, oneshot},
     sink::SinkExt,
@@ -26,9 +30,12 @@ use std::{
 use tracing::*;
 use tracing_futures::Instrument;
 
+type ParticipantCloseChannel =
+    mpsc::UnboundedSender<(Pid, oneshot::Sender<async_std::io::Result<()>>)>;
+
 /// Represents a Tcp or Udp or Mpsc address
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub enum Address {
+pub enum ProtocolAddr {
     Tcp(SocketAddr),
     Udp(SocketAddr),
     Mpsc(u64),
@@ -46,9 +53,8 @@ pub struct Participant {
     remote_pid: Pid,
     a2b_steam_open_s: RwLock<mpsc::UnboundedSender<(Prio, Promises, oneshot::Sender<Stream>)>>,
     b2a_stream_opened_r: RwLock<mpsc::UnboundedReceiver<Stream>>,
-    closed: AtomicBool,
-    a2s_disconnect_s:
-        Option<mpsc::UnboundedSender<(Pid, oneshot::Sender<async_std::io::Result<()>>)>>,
+    closed: Arc<RwLock<Result<(), ParticipantError>>>,
+    a2s_disconnect_s: Arc<Mutex<Option<ParticipantCloseChannel>>>,
 }
 
 /// `Streams` represents a channel to send `n` messages with a certain priority
@@ -83,13 +89,18 @@ pub enum NetworkError {
     NetworkClosed,
     ListenFailed(std::io::Error),
     ConnectFailed(std::io::Error),
-    GracefulDisconnectFailed(std::io::Error),
 }
 
 /// Error type thrown by [`Participants`](Participant) methods
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ParticipantError {
-    ParticipantClosed,
+    ///Participant was closed by remote side
+    ParticipantDisconnected,
+    ///Underlying Protocol failed and wasn't able to recover, expect some Data
+    /// loss unfortunately, there is no method to get the exact messages
+    /// that failed. This is also returned when local side tries to do
+    /// something while remote site gracefully disconnects
+    ProtocolFailedUnrecoverable,
 }
 
 /// Error type thrown by [`Streams`](Stream) methods
@@ -105,14 +116,13 @@ pub enum StreamError {
 /// Application. You can pass it around multiple threads in an
 /// [`Arc`](std::sync::Arc) as all commands have internal mutability.
 ///
-/// The `Network` has methods to [`connect`] and [`disconnect`] to other
-/// [`Participants`] via their [`Address`]. All [`Participants`] will be stored
-/// in the Network until explicitly disconnected, which is the only way to close
-/// the sockets.
+/// The `Network` has methods to [`connect`] to other [`Participants`] actively
+/// via their [`ProtocolAddr`], or [`listen`] passively for [`connected`]
+/// [`Participants`].
 ///
 /// # Examples
 /// ```rust
-/// use veloren_network::{Network, Address, Pid};
+/// use veloren_network::{Network, ProtocolAddr, Pid};
 /// use futures::executor::block_on;
 ///
 /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
@@ -123,9 +133,9 @@ pub enum StreamError {
 ///     # //setup pseudo database!
 ///     # let (database, fd) = Network::new(Pid::new(), None);
 ///     # std::thread::spawn(fd);
-///     # database.listen(Address::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
-///     network.listen(Address::Tcp("127.0.0.1:2999".parse().unwrap())).await?;
-///     let database = network.connect(Address::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
+///     # database.listen(ProtocolAddr::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
+///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2999".parse().unwrap())).await?;
+///     let database = network.connect(ProtocolAddr::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
 ///     # Ok(())
 /// })
 /// # }
@@ -133,14 +143,16 @@ pub enum StreamError {
 ///
 /// [`Participants`]: crate::api::Participant
 /// [`connect`]: Network::connect
-/// [`disconnect`]: Network::disconnect
+/// [`listen`]: Network::listen
+/// [`connected`]: Network::connected
 pub struct Network {
     local_pid: Pid,
-    participants: RwLock<HashMap<Pid, Arc<Participant>>>,
+    participant_disconnect_sender:
+        RwLock<HashMap<Pid, Arc<Mutex<Option<ParticipantCloseChannel>>>>>,
     listen_sender:
-        RwLock<mpsc::UnboundedSender<(Address, oneshot::Sender<async_std::io::Result<()>>)>>,
+        RwLock<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<async_std::io::Result<()>>)>>,
     connect_sender:
-        RwLock<mpsc::UnboundedSender<(Address, oneshot::Sender<io::Result<Participant>>)>>,
+        RwLock<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<io::Result<Participant>>)>>,
     connected_receiver: RwLock<mpsc::UnboundedReceiver<Participant>>,
     shutdown_sender: Option<oneshot::Sender<()>>,
 }
@@ -170,7 +182,7 @@ impl Network {
     /// ```rust
     /// //Example with uvth
     /// use uvth::ThreadPoolBuilder;
-    /// use veloren_network::{Address, Network, Pid};
+    /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// let pool = ThreadPoolBuilder::new().build();
     /// let (network, f) = Network::new(Pid::new(), None);
@@ -179,7 +191,7 @@ impl Network {
     ///
     /// ```rust
     /// //Example with std::thread
-    /// use veloren_network::{Address, Network, Pid};
+    /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// let (network, f) = Network::new(Pid::new(), None);
     /// std::thread::spawn(f);
@@ -198,31 +210,31 @@ impl Network {
         registry: Option<&Registry>,
     ) -> (Self, impl std::ops::FnOnce()) {
         let p = participant_id;
-        debug!(?p, "starting Network");
+        debug!(?p, "Starting Network");
         let (scheduler, listen_sender, connect_sender, connected_receiver, shutdown_sender) =
             Scheduler::new(participant_id, registry);
         (
             Self {
                 local_pid: participant_id,
-                participants: RwLock::new(HashMap::new()),
+                participant_disconnect_sender: RwLock::new(HashMap::new()),
                 listen_sender: RwLock::new(listen_sender),
                 connect_sender: RwLock::new(connect_sender),
                 connected_receiver: RwLock::new(connected_receiver),
                 shutdown_sender: Some(shutdown_sender),
             },
             move || {
-                trace!(?p, "starting sheduler in own thread");
+                trace!(?p, "Starting sheduler in own thread");
                 let _handle = task::block_on(
                     scheduler
                         .run()
                         .instrument(tracing::info_span!("scheduler", ?p)),
                 );
-                trace!(?p, "stopping sheduler and his own thread");
+                trace!(?p, "Stopping sheduler and his own thread");
             },
         )
     }
 
-    /// starts listening on an [`Address`].
+    /// starts listening on an [`ProtocolAddr`].
     /// When the method returns the `Network` is ready to listen for incoming
     /// connections OR has returned a [`NetworkError`] (e.g. port already used).
     /// You can call [`connected`] to asynchrony wait for a [`Participant`] to
@@ -232,7 +244,7 @@ impl Network {
     /// # Examples
     /// ```rust
     /// use futures::executor::block_on;
-    /// use veloren_network::{Address, Network, Pid};
+    /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2000` TCP on all NICs and `2001` UDP locally
@@ -240,10 +252,10 @@ impl Network {
     /// std::thread::spawn(f);
     /// block_on(async {
     ///     network
-    ///         .listen(Address::Tcp("0.0.0.0:2000".parse().unwrap()))
+    ///         .listen(ProtocolAddr::Tcp("0.0.0.0:2000".parse().unwrap()))
     ///         .await?;
     ///     network
-    ///         .listen(Address::Udp("127.0.0.1:2001".parse().unwrap()))
+    ///         .listen(ProtocolAddr::Udp("127.0.0.1:2001".parse().unwrap()))
     ///         .await?;
     ///     # Ok(())
     /// })
@@ -251,7 +263,7 @@ impl Network {
     /// ```
     ///
     /// [`connected`]: Network::connected
-    pub async fn listen(&self, address: Address) -> Result<(), NetworkError> {
+    pub async fn listen(&self, address: ProtocolAddr) -> Result<(), NetworkError> {
         let (s2a_result_s, s2a_result_r) = oneshot::channel::<async_std::io::Result<()>>();
         debug!(?address, "listening on address");
         self.listen_sender
@@ -267,13 +279,13 @@ impl Network {
         }
     }
 
-    /// starts connectiong to an [`Address`].
+    /// starts connectiong to an [`ProtocolAddr`].
     /// When the method returns the Network either returns a [`Participant`]
     /// ready to open [`Streams`] on OR has returned a [`NetworkError`] (e.g.
     /// can't connect, or invalid Handshake) # Examples
     /// ```rust
     /// use futures::executor::block_on;
-    /// use veloren_network::{Address, Network, Pid};
+    /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port `2010` TCP and `2011` UDP like listening above
@@ -282,34 +294,34 @@ impl Network {
     /// # let (remote, fr) = Network::new(Pid::new(), None);
     /// # std::thread::spawn(fr);
     /// block_on(async {
-    ///     # remote.listen(Address::Tcp("0.0.0.0:2010".parse().unwrap())).await?;
-    ///     # remote.listen(Address::Udp("0.0.0.0:2011".parse().unwrap())).await?;
+    ///     # remote.listen(ProtocolAddr::Tcp("0.0.0.0:2010".parse().unwrap())).await?;
+    ///     # remote.listen(ProtocolAddr::Udp("0.0.0.0:2011".parse().unwrap())).await?;
     ///     let p1 = network
-    ///         .connect(Address::Tcp("127.0.0.1:2010".parse().unwrap()))
+    ///         .connect(ProtocolAddr::Tcp("127.0.0.1:2010".parse().unwrap()))
     ///         .await?;
     ///     # //this doesn't work yet, so skip the test
     ///     # //TODO fixme!
     ///     # return Ok(());
     ///     let p2 = network
-    ///         .connect(Address::Udp("127.0.0.1:2011".parse().unwrap()))
+    ///         .connect(ProtocolAddr::Udp("127.0.0.1:2011".parse().unwrap()))
     ///         .await?;
-    ///     assert!(std::sync::Arc::ptr_eq(&p1, &p2));
+    ///     assert_eq!(&p1, &p2);
     ///     # Ok(())
     /// })
     /// # }
     /// ```
     /// Usually the `Network` guarantees that a operation on a [`Participant`]
     /// succeeds, e.g. by automatic retrying unless it fails completely e.g. by
-    /// disconnecting from the remote. If 2 [`Addresses`] you `connect` to
+    /// disconnecting from the remote. If 2 [`ProtocolAddres`] you `connect` to
     /// belongs to the same [`Participant`], you get the same [`Participant`] as
     /// a result. This is useful e.g. by connecting to the same
     /// [`Participant`] via multiple Protocols.
     ///
     /// [`Streams`]: crate::api::Stream
-    /// [`Addresses`]: crate::api::Address
-    pub async fn connect(&self, address: Address) -> Result<Arc<Participant>, NetworkError> {
+    /// [`ProtocolAddres`]: crate::api::ProtocolAddr
+    pub async fn connect(&self, address: ProtocolAddr) -> Result<Participant, NetworkError> {
         let (pid_sender, pid_receiver) = oneshot::channel::<io::Result<Participant>>();
-        debug!(?address, "connect to address");
+        debug!(?address, "Connect to address");
         self.connect_sender
             .write()
             .await
@@ -322,17 +334,16 @@ impl Network {
         let pid = participant.remote_pid;
         debug!(
             ?pid,
-            "received Participant id from remote and return to user"
+            "Received Participant id from remote and return to user"
         );
-        let participant = Arc::new(participant);
-        self.participants
+        self.participant_disconnect_sender
             .write()
             .await
-            .insert(participant.remote_pid, participant.clone());
+            .insert(pid, participant.a2s_disconnect_s.clone());
         Ok(participant)
     }
 
-    /// returns a [`Participant`] created from a [`Address`] you called
+    /// returns a [`Participant`] created from a [`ProtocolAddr`] you called
     /// [`listen`] on before. This function will either return a working
     /// [`Participant`] ready to open [`Streams`] on OR has returned a
     /// [`NetworkError`] (e.g. Network got closed)
@@ -340,7 +351,7 @@ impl Network {
     /// # Examples
     /// ```rust
     /// use futures::executor::block_on;
-    /// use veloren_network::{Address, Network, Pid};
+    /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2020` TCP and opens returns their Pid
@@ -350,9 +361,9 @@ impl Network {
     /// # std::thread::spawn(fr);
     /// block_on(async {
     ///     network
-    ///         .listen(Address::Tcp("0.0.0.0:2020".parse().unwrap()))
+    ///         .listen(ProtocolAddr::Tcp("0.0.0.0:2020".parse().unwrap()))
     ///         .await?;
-    ///     # remote.connect(Address::Tcp("0.0.0.0:2020".parse().unwrap())).await?;
+    ///     # remote.connect(ProtocolAddr::Tcp("0.0.0.0:2020".parse().unwrap())).await?;
     ///     while let Ok(participant) = network.connected().await {
     ///         println!("Participant connected: {}", participant.remote_pid());
     ///         # //skip test here as it would be a endless loop
@@ -365,128 +376,13 @@ impl Network {
     ///
     /// [`Streams`]: crate::api::Stream
     /// [`listen`]: crate::api::Network::listen
-    pub async fn connected(&self) -> Result<Arc<Participant>, NetworkError> {
+    pub async fn connected(&self) -> Result<Participant, NetworkError> {
         let participant = self.connected_receiver.write().await.next().await?;
-        let participant = Arc::new(participant);
-        self.participants
+        self.participant_disconnect_sender
             .write()
             .await
-            .insert(participant.remote_pid, participant.clone());
+            .insert(participant.remote_pid, participant.a2s_disconnect_s.clone());
         Ok(participant)
-    }
-
-    /// disconnecting a [`Participant`] where you move the last existing
-    /// [`Arc<Participant>`]. As the [`Network`] also holds [`Arc`] to the
-    /// [`Participant`], you need to provide the last [`Arc<Participant>`] and
-    /// are not allowed to keep others. If you do so the [`Participant`]
-    /// can't be disconnected properly. If you no longer have the respective
-    /// [`Participant`], try using the [`participants`] method to get it.
-    ///
-    /// This function will wait for all [`Streams`] to properly close, including
-    /// all messages to be send before closing. If an error occurs with one
-    /// of the messages.
-    /// Except if the remote side already dropped the [`Participant`]
-    /// simultaneously, then messages won't be sended
-    ///
-    /// There is NO `disconnected` function in `Network`, if a [`Participant`]
-    /// is no longer reachable (e.g. as the network cable was unplugged) the
-    /// [`Participant`] will fail all action, but needs to be manually
-    /// disconected, using this function.
-    ///
-    /// # Examples
-    /// ```rust
-    /// use futures::executor::block_on;
-    /// use veloren_network::{Address, Network, Pid};
-    ///
-    /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
-    /// // Create a Network, listen on port `2030` TCP and opens returns their Pid and close connection.
-    /// let (network, f) = Network::new(Pid::new(), None);
-    /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new(), None);
-    /// # std::thread::spawn(fr);
-    /// block_on(async {
-    ///     network
-    ///         .listen(Address::Tcp("0.0.0.0:2030".parse().unwrap()))
-    ///         .await?;
-    ///     # remote.connect(Address::Tcp("0.0.0.0:2030".parse().unwrap())).await?;
-    ///     while let Ok(participant) = network.connected().await {
-    ///         println!("Participant connected: {}", participant.remote_pid());
-    ///         network.disconnect(participant).await?;
-    ///         # //skip test here as it would be a endless loop
-    ///         # break;
-    ///     }
-    ///     # Ok(())
-    /// })
-    /// # }
-    /// ```
-    ///
-    /// [`Arc<Participant>`]: crate::api::Participant
-    /// [`Streams`]: crate::api::Stream
-    /// [`participants`]: Network::participants
-    /// [`Arc`]: std::sync::Arc
-    pub async fn disconnect(&self, participant: Arc<Participant>) -> Result<(), NetworkError> {
-        // Remove, Close and try_unwrap error when unwrap fails!
-        let pid = participant.remote_pid;
-        debug!(?pid, "removing participant from network");
-        self.participants.write().await.remove(&pid)?;
-        participant.closed.store(true, Ordering::Relaxed);
-
-        match Arc::try_unwrap(participant) {
-            Err(_) => {
-                warn!(
-                    "you are disconnecting and still keeping a reference to this participant, \
-                     this is a bad idea. Participant will only be dropped when you drop your last \
-                     reference"
-                );
-                Ok(())
-            },
-            Ok(mut participant) => {
-                trace!("waiting now for participant to close");
-                let (finished_sender, finished_receiver) = oneshot::channel();
-                // we are deleting here asyncly before DROP is called. Because this is done
-                // nativly async, while drop needs an BLOCK! Drop will recognis
-                // that it has been delete here and don't try another double delete.
-                participant
-                    .a2s_disconnect_s
-                    .take()
-                    .unwrap()
-                    .send((pid, finished_sender))
-                    .await
-                    .expect("something is wrong in internal scheduler coding");
-                match finished_receiver.await {
-                    Ok(Ok(())) => {
-                        trace!(?pid, "Participant is now closed");
-                        Ok(())
-                    },
-                    Ok(Err(e)) => {
-                        trace!(
-                            ?e,
-                            "Error occured during shutdown of participant and is propagated to \
-                             User"
-                        );
-                        Err(NetworkError::GracefulDisconnectFailed(e))
-                    },
-                    Err(e) => {
-                        error!(
-                            ?pid,
-                            ?e,
-                            "Failed to get a message back from the scheduler, closing the network"
-                        );
-                        Err(NetworkError::NetworkClosed)
-                    },
-                }
-            },
-        }
-    }
-
-    /// returns a copy of all current connected [`Participants`],
-    /// including ones, which can't send data anymore as the underlying sockets
-    /// are closed already but haven't been [`disconnected`] yet.
-    ///
-    /// [`Participants`]: crate::api::Participant
-    /// [`disconnected`]: Network::disconnect
-    pub async fn participants(&self) -> HashMap<Pid, Arc<Participant>> {
-        self.participants.read().await.clone()
     }
 }
 
@@ -497,14 +393,15 @@ impl Participant {
         a2b_steam_open_s: mpsc::UnboundedSender<(Prio, Promises, oneshot::Sender<Stream>)>,
         b2a_stream_opened_r: mpsc::UnboundedReceiver<Stream>,
         a2s_disconnect_s: mpsc::UnboundedSender<(Pid, oneshot::Sender<async_std::io::Result<()>>)>,
+        closed: Arc<RwLock<Result<(), ParticipantError>>>,
     ) -> Self {
         Self {
             local_pid,
             remote_pid,
             a2b_steam_open_s: RwLock::new(a2b_steam_open_s),
             b2a_stream_opened_r: RwLock::new(b2a_stream_opened_r),
-            closed: AtomicBool::new(false),
-            a2s_disconnect_s: Some(a2s_disconnect_s),
+            closed,
+            a2s_disconnect_s: Arc::new(Mutex::new(Some(a2s_disconnect_s))),
         }
     }
 
@@ -528,7 +425,7 @@ impl Participant {
     /// # Examples
     /// ```rust
     /// use futures::executor::block_on;
-    /// use veloren_network::{Address, Network, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
+    /// use veloren_network::{Network, Pid, ProtocolAddr, PROMISES_CONSISTENCY, PROMISES_ORDERED};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2100 and open a stream
@@ -537,9 +434,9 @@ impl Participant {
     /// # let (remote, fr) = Network::new(Pid::new(), None);
     /// # std::thread::spawn(fr);
     /// block_on(async {
-    ///     # remote.listen(Address::Tcp("0.0.0.0:2100".parse().unwrap())).await?;
+    ///     # remote.listen(ProtocolAddr::Tcp("0.0.0.0:2100".parse().unwrap())).await?;
     ///     let p1 = network
-    ///         .connect(Address::Tcp("127.0.0.1:2100".parse().unwrap()))
+    ///         .connect(ProtocolAddr::Tcp("127.0.0.1:2100".parse().unwrap()))
     ///         .await?;
     ///     let _s1 = p1.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
     ///     # Ok(())
@@ -552,20 +449,12 @@ impl Participant {
         //use this lock for now to make sure that only one open at a time is made,
         // TODO: not sure if we can paralise that, check in future
         let mut a2b_steam_open_s = self.a2b_steam_open_s.write().await;
-        if self.closed.load(Ordering::Relaxed) {
-            warn!(?self.remote_pid, "participant is closed but another open is tried on it");
-            return Err(ParticipantError::ParticipantClosed);
-        }
+        self.closed.read().await.clone()?;
         let (p2a_return_stream_s, p2a_return_stream_r) = oneshot::channel();
-        if a2b_steam_open_s
+        a2b_steam_open_s
             .send((prio, promises, p2a_return_stream_s))
             .await
-            .is_err()
-        {
-            debug!(?self.remote_pid, "stream_open_sender failed, closing participant");
-            self.closed.store(true, Ordering::Relaxed);
-            return Err(ParticipantError::ParticipantClosed);
-        }
+            .unwrap();
         match p2a_return_stream_r.await {
             Ok(stream) => {
                 let sid = stream.sid;
@@ -574,8 +463,8 @@ impl Participant {
             },
             Err(_) => {
                 debug!(?self.remote_pid, "p2a_return_stream_r failed, closing participant");
-                self.closed.store(true, Ordering::Relaxed);
-                Err(ParticipantError::ParticipantClosed)
+                *self.closed.write().await = Err(ParticipantError::ProtocolFailedUnrecoverable);
+                Err(ParticipantError::ProtocolFailedUnrecoverable)
             },
         }
     }
@@ -589,7 +478,7 @@ impl Participant {
     ///
     /// # Examples
     /// ```rust
-    /// use veloren_network::{Network, Pid, Address, PROMISES_ORDERED, PROMISES_CONSISTENCY};
+    /// use veloren_network::{Network, Pid, ProtocolAddr, PROMISES_ORDERED, PROMISES_CONSISTENCY};
     /// use futures::executor::block_on;
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
@@ -600,8 +489,8 @@ impl Participant {
     /// # let (remote, fr) = Network::new(Pid::new(), None);
     /// # std::thread::spawn(fr);
     /// block_on(async {
-    ///     # remote.listen(Address::Tcp("0.0.0.0:2110".parse().unwrap())).await?;
-    ///     let p1 = network.connect(Address::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
+    ///     # remote.listen(ProtocolAddr::Tcp("0.0.0.0:2110".parse().unwrap())).await?;
+    ///     let p1 = network.connect(ProtocolAddr::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
     ///     # let p2 = remote.connected().await?;
     ///     # p2.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
     ///     let _s1 = p1.opened().await?;
@@ -617,20 +506,115 @@ impl Participant {
         //use this lock for now to make sure that only one open at a time is made,
         // TODO: not sure if we can paralise that, check in future
         let mut stream_opened_receiver = self.b2a_stream_opened_r.write().await;
-        if self.closed.load(Ordering::Relaxed) {
-            warn!(?self.remote_pid, "participant is closed but another open is tried on it");
-            return Err(ParticipantError::ParticipantClosed);
-        }
+        self.closed.read().await.clone()?;
         match stream_opened_receiver.next().await {
             Some(stream) => {
                 let sid = stream.sid;
-                debug!(?sid, ?self.remote_pid, "receive opened stream");
+                debug!(?sid, ?self.remote_pid, "Receive opened stream");
                 Ok(stream)
             },
             None => {
                 debug!(?self.remote_pid, "stream_opened_receiver failed, closing participant");
-                self.closed.store(true, Ordering::Relaxed);
-                Err(ParticipantError::ParticipantClosed)
+                *self.closed.write().await = Err(ParticipantError::ProtocolFailedUnrecoverable);
+                Err(ParticipantError::ProtocolFailedUnrecoverable)
+            },
+        }
+    }
+
+    /// disconnecting a `Participant` in a async way.
+    /// Use this rather than `Participant::Drop` if you want to close multiple
+    /// `Participants`.
+    ///
+    /// This function will wait for all [`Streams`] to properly close, including
+    /// all messages to be send before closing. If an error occurs with one
+    /// of the messages.
+    /// Except if the remote side already dropped the `Participant`
+    /// simultaneously, then messages won't be send
+    ///
+    /// There is NO `disconnected` function in `Participant`, if a `Participant`
+    /// is no longer reachable (e.g. as the network cable was unplugged) the
+    /// `Participant` will fail all action, but needs to be manually
+    /// disconected, using this function.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use futures::executor::block_on;
+    /// use veloren_network::{Network, Pid, ProtocolAddr};
+    ///
+    /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
+    /// // Create a Network, listen on port `2030` TCP and opens returns their Pid and close connection.
+    /// let (network, f) = Network::new(Pid::new(), None);
+    /// std::thread::spawn(f);
+    /// # let (remote, fr) = Network::new(Pid::new(), None);
+    /// # std::thread::spawn(fr);
+    /// block_on(async {
+    ///     network
+    ///         .listen(ProtocolAddr::Tcp("0.0.0.0:2030".parse().unwrap()))
+    ///         .await?;
+    ///     # let keep_alive = remote.connect(ProtocolAddr::Tcp("0.0.0.0:2030".parse().unwrap())).await?;
+    ///     while let Ok(participant) = network.connected().await {
+    ///         println!("Participant connected: {}", participant.remote_pid());
+    ///         participant.disconnect().await?;
+    ///         # //skip test here as it would be a endless loop
+    ///         # break;
+    ///     }
+    ///     # Ok(())
+    /// })
+    /// # }
+    /// ```
+    ///
+    /// [`Streams`]: crate::api::Stream
+    pub async fn disconnect(self) -> Result<(), ParticipantError> {
+        // Remove, Close and try_unwrap error when unwrap fails!
+        let pid = self.remote_pid;
+        debug!(?pid, "Closing participant from network");
+        {
+            let mut lock = self.closed.write().await;
+            lock.clone()?;
+            *lock = Err(ParticipantError::ParticipantDisconnected);
+        }
+
+        //Streams will be closed by BParticipant
+        match self.a2s_disconnect_s.lock().await.take() {
+            Some(mut a2s_disconnect_s) => {
+                let (finished_sender, finished_receiver) = oneshot::channel();
+                // Participant is connecting to Scheduler here, not as usual
+                // Participant<->BParticipant
+                a2s_disconnect_s
+                    .send((pid, finished_sender))
+                    .await
+                    .expect("Something is wrong in internal scheduler coding");
+                match finished_receiver.await {
+                    Ok(Ok(())) => {
+                        trace!(?pid, "Participant is now closed");
+                        Ok(())
+                    },
+                    Ok(Err(e)) => {
+                        trace!(
+                            ?e,
+                            "Error occured during shutdown of participant and is propagated to \
+                             User"
+                        );
+                        Err(ParticipantError::ProtocolFailedUnrecoverable)
+                    },
+                    Err(e) => {
+                        //this is a bug. but as i am Participant i can't destroy the network
+                        error!(
+                            ?pid,
+                            ?e,
+                            "Failed to get a message back from the scheduler, seems like the \
+                             network is already closed"
+                        );
+                        Err(ParticipantError::ProtocolFailedUnrecoverable)
+                    },
+                }
+            },
+            None => {
+                warn!(
+                    "seems like you are trying to disconnecting a participant after the network \
+                     was already dropped. It was already dropped with the network!"
+                );
+                Err(ParticipantError::ParticipantDisconnected)
             },
         }
     }
@@ -690,7 +674,7 @@ impl Stream {
     ///
     /// # Example
     /// ```
-    /// use veloren_network::{Network, Address, Pid};
+    /// use veloren_network::{Network, ProtocolAddr, Pid};
     /// # use veloren_network::{PROMISES_ORDERED, PROMISES_CONSISTENCY};
     /// use futures::executor::block_on;
     ///
@@ -701,8 +685,8 @@ impl Stream {
     /// # let (remote, fr) = Network::new(Pid::new(), None);
     /// # std::thread::spawn(fr);
     /// block_on(async {
-    ///     network.listen(Address::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
-    ///     # let remote_p = remote.connect(Address::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
+    ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
+    ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
     ///     # // keep it alive
     ///     # let _stream_p = remote_p.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
     ///     let participant_a = network.connected().await?;
@@ -729,7 +713,7 @@ impl Stream {
     ///
     /// # Example
     /// ```rust
-    /// use veloren_network::{Network, Address, Pid, MessageBuffer};
+    /// use veloren_network::{Network, ProtocolAddr, Pid, MessageBuffer};
     /// # use veloren_network::{PROMISES_ORDERED, PROMISES_CONSISTENCY};
     /// use futures::executor::block_on;
     /// use bincode;
@@ -743,9 +727,9 @@ impl Stream {
     /// # let (remote2, fr2) = Network::new(Pid::new(), None);
     /// # std::thread::spawn(fr2);
     /// block_on(async {
-    ///     network.listen(Address::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
-    ///     # let remote1_p = remote1.connect(Address::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
-    ///     # let remote2_p = remote2.connect(Address::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
+    ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
+    ///     # let remote1_p = remote1.connect(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
+    ///     # let remote2_p = remote2.connect(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
     ///     # assert_eq!(remote1_p.remote_pid(), remote2_p.remote_pid());
     ///     # remote1_p.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
     ///     # remote2_p.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
@@ -795,7 +779,7 @@ impl Stream {
     ///
     /// # Example
     /// ```
-    /// use veloren_network::{Network, Address, Pid};
+    /// use veloren_network::{Network, ProtocolAddr, Pid};
     /// # use veloren_network::{PROMISES_ORDERED, PROMISES_CONSISTENCY};
     /// use futures::executor::block_on;
     ///
@@ -806,8 +790,8 @@ impl Stream {
     /// # let (remote, fr) = Network::new(Pid::new(), None);
     /// # std::thread::spawn(fr);
     /// block_on(async {
-    ///     network.listen(Address::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
-    ///     # let remote_p = remote.connect(Address::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
+    ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
+    ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
     ///     # let mut stream_p = remote_p.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
     ///     # stream_p.send("Hello World");
     ///     let participant_a = network.connected().await?;
@@ -837,38 +821,67 @@ impl Stream {
     }
 }
 
+///
+impl core::cmp::PartialEq for Participant {
+    fn eq(&self, other: &Self) -> bool {
+        //don't check local_pid, 2 Participant from different network should match if
+        // they are the "same"
+        self.remote_pid == other.remote_pid
+    }
+}
+
 impl Drop for Network {
     fn drop(&mut self) {
         let pid = self.local_pid;
-        debug!(?pid, "shutting down Network");
-        debug!(
+        debug!(?pid, "Shutting down Network");
+        trace!(
             ?pid,
-            "shutting down Participants of Network, while we still have metrics"
+            "Shutting down Participants of Network, while we still have metrics"
         );
+        let mut finished_receiver_list = vec![];
         task::block_on(async {
-            // we need to carefully shut down here! as otherwise we might call
-            // Participant::Drop with a2s_disconnect_s here which would open
-            // another task::block, which would panic! also i can't `.write` on
-            // `self.participants` as the `disconnect` fn needs it.
-            let mut participant_clone = self.participants().await;
-            for (_, p) in participant_clone.drain() {
-                if let Err(e) = self.disconnect(p).await {
-                    error!(
-                        ?e,
-                        "error while dropping network, the error occured when dropping a \
-                         participant but can't be notified to the user any more"
-                    );
+            // we MUST avoid nested block_on, good that Network::Drop no longer triggers
+            // Participant::Drop directly but just the BParticipant
+            for (remote_pid, a2s_disconnect_s) in
+                self.participant_disconnect_sender.write().await.drain()
+            {
+                match a2s_disconnect_s.lock().await.take() {
+                    Some(mut a2s_disconnect_s) => {
+                        trace!(?remote_pid, "Participants will be closed");
+                        let (finished_sender, finished_receiver) = oneshot::channel();
+                        finished_receiver_list.push((remote_pid, finished_receiver));
+                        a2s_disconnect_s
+                            .send((remote_pid, finished_sender))
+                            .await
+                            .expect(
+                                "Scheduler is closed, but nobody other should be able to close it",
+                            );
+                    },
+                    None => trace!(?remote_pid, "Participant already disconnected gracefully"),
                 }
             }
-            self.participants.write().await.clear();
+            //wait after close is requested for all
+            for (remote_pid, finished_receiver) in finished_receiver_list.drain(..) {
+                match finished_receiver.await {
+                    Ok(Ok(())) => trace!(?remote_pid, "disconnect successful"),
+                    Ok(Err(e)) => info!(?remote_pid, ?e, "unclean disconnect"),
+                    Err(e) => warn!(
+                        ?remote_pid,
+                        ?e,
+                        "Failed to get a message back from the scheduler, seems like the network \
+                         is already closed"
+                    ),
+                }
+            }
         });
-        debug!(?pid, "shutting down Scheduler");
+        trace!(?pid, "Participants have shut down!");
+        trace!(?pid, "Shutting down Scheduler");
         self.shutdown_sender
             .take()
             .unwrap()
             .send(())
-            .expect("scheduler is closed, but nobody other should be able to close it");
-        debug!(?pid, "participants have shut down!");
+            .expect("Scheduler is closed, but nobody other should be able to close it");
+        debug!(?pid, "Network has shut down");
     }
 }
 
@@ -877,42 +890,36 @@ impl Drop for Participant {
         // ignore closed, as we need to send it even though we disconnected the
         // participant from network
         let pid = self.remote_pid;
-        debug!(?pid, "shutting down Participant");
-        match self.a2s_disconnect_s.take() {
-            None => debug!(
+        debug!(?pid, "Shutting down Participant");
+
+        match task::block_on(self.a2s_disconnect_s.lock()).take() {
+            None => trace!(
                 ?pid,
                 "Participant has been shutdown cleanly, no further waiting is requiered!"
             ),
             Some(mut a2s_disconnect_s) => {
-                debug!(
-                    ?pid,
-                    "unclean shutdown detected, active waiting for client to be disconnected"
-                );
+                debug!(?pid, "Disconnect from Scheduler");
                 task::block_on(async {
                     let (finished_sender, finished_receiver) = oneshot::channel();
                     a2s_disconnect_s
                         .send((self.remote_pid, finished_sender))
                         .await
-                        .expect("something is wrong in internal scheduler coding");
-                    match finished_receiver.await {
-                        Ok(Err(e)) => error!(
+                        .expect("Something is wrong in internal scheduler coding");
+                    if let Err(e) = finished_receiver
+                        .await
+                        .expect("Something is wrong in internal scheduler/participant coding")
+                    {
+                        error!(
                             ?pid,
                             ?e,
                             "Error while dropping the participant, couldn't send all outgoing \
                              messages, dropping remaining"
-                        ),
-                        Err(e) => warn!(
-                            ?e,
-                            "//TODO i dont know why the finish doesnt work, i normally would \
-                             expect to have sended a return message from the participant... \
-                             ignoring to not caue a panic for now, please fix me"
-                        ),
-                        _ => (),
+                        );
                     };
                 });
             },
         }
-        debug!(?pid, "network dropped");
+        debug!(?pid, "Participant dropped");
     }
 }
 
@@ -922,7 +929,7 @@ impl Drop for Stream {
         if !self.closed.load(Ordering::Relaxed) {
             let sid = self.sid;
             let pid = self.pid;
-            debug!(?pid, ?sid, "shutting down Stream");
+            debug!(?pid, ?sid, "Shutting down Stream");
             if task::block_on(self.a2b_close_stream_s.take().unwrap().send(self.sid)).is_err() {
                 warn!(
                     "Other side got already dropped, probably due to timing, other side will \
@@ -932,7 +939,7 @@ impl Drop for Stream {
         } else {
             let sid = self.sid;
             let pid = self.pid;
-            debug!(?pid, ?sid, "not needed");
+            trace!(?pid, ?sid, "Stream Drop not needed");
         }
     }
 }
@@ -940,25 +947,16 @@ impl Drop for Stream {
 impl std::fmt::Debug for Participant {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let status = if self.closed.load(Ordering::Relaxed) {
-            "[CLOSED]"
-        } else {
-            "[OPEN]"
-        };
         write!(
             f,
-            "Participant {{{} local_pid: {:?}, remote_pid: {:?} }}",
-            status, &self.local_pid, &self.remote_pid,
+            "Participant {{ local_pid: {:?}, remote_pid: {:?} }}",
+            &self.local_pid, &self.remote_pid,
         )
     }
 }
 
 impl<T> From<crossbeam_channel::SendError<T>> for StreamError {
     fn from(_err: crossbeam_channel::SendError<T>) -> Self { StreamError::StreamClosed }
-}
-
-impl<T> From<crossbeam_channel::SendError<T>> for ParticipantError {
-    fn from(_err: crossbeam_channel::SendError<T>) -> Self { ParticipantError::ParticipantClosed }
 }
 
 impl<T> From<crossbeam_channel::SendError<T>> for NetworkError {
@@ -969,24 +967,12 @@ impl From<std::option::NoneError> for StreamError {
     fn from(_err: std::option::NoneError) -> Self { StreamError::StreamClosed }
 }
 
-impl From<std::option::NoneError> for ParticipantError {
-    fn from(_err: std::option::NoneError) -> Self { ParticipantError::ParticipantClosed }
-}
-
 impl From<std::option::NoneError> for NetworkError {
     fn from(_err: std::option::NoneError) -> Self { NetworkError::NetworkClosed }
 }
 
-impl From<mpsc::SendError> for ParticipantError {
-    fn from(_err: mpsc::SendError) -> Self { ParticipantError::ParticipantClosed }
-}
-
 impl From<mpsc::SendError> for NetworkError {
     fn from(_err: mpsc::SendError) -> Self { NetworkError::NetworkClosed }
-}
-
-impl From<oneshot::Canceled> for ParticipantError {
-    fn from(_err: oneshot::Canceled) -> Self { ParticipantError::ParticipantClosed }
 }
 
 impl From<oneshot::Canceled> for NetworkError {
@@ -1011,7 +997,10 @@ impl core::fmt::Display for StreamError {
 impl core::fmt::Display for ParticipantError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            ParticipantError::ParticipantClosed => write!(f, "participant closed"),
+            ParticipantError::ParticipantDisconnected => write!(f, "Participant disconnect"),
+            ParticipantError::ProtocolFailedUnrecoverable => {
+                write!(f, "underlying protocol failed unrecoverable")
+            },
         }
     }
 }
@@ -1019,10 +1008,9 @@ impl core::fmt::Display for ParticipantError {
 impl core::fmt::Display for NetworkError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            NetworkError::NetworkClosed => write!(f, "network closed"),
-            NetworkError::ListenFailed(_) => write!(f, "listening failed"),
-            NetworkError::ConnectFailed(_) => write!(f, "connecting failed"),
-            NetworkError::GracefulDisconnectFailed(_) => write!(f, "graceful disconnect failed"),
+            NetworkError::NetworkClosed => write!(f, "Network closed"),
+            NetworkError::ListenFailed(_) => write!(f, "Listening failed"),
+            NetworkError::ConnectFailed(_) => write!(f, "Connecting failed"),
         }
     }
 }

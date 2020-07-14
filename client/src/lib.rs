@@ -35,14 +35,16 @@ use futures_timer::Delay;
 use futures_util::{select, FutureExt};
 use hashbrown::HashMap;
 use image::DynamicImage;
-use network::{Address, Network, Participant, Pid, Stream, PROMISES_CONSISTENCY, PROMISES_ORDERED};
+use network::{
+    Network, Participant, Pid, ProtocolAddr, Stream, PROMISES_CONSISTENCY, PROMISES_ORDERED,
+};
 use std::{
     collections::VecDeque,
     net::SocketAddr,
     sync::Arc,
     time::{Duration, Instant},
 };
-use tracing::{debug, error, warn};
+use tracing::{debug, error, trace, warn};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 
@@ -75,7 +77,7 @@ pub struct Client {
     pub active_character_id: Option<i32>,
 
     _network: Network,
-    _participant: Arc<Participant>,
+    participant: Option<Participant>,
     singleton_stream: Stream,
 
     last_server_ping: f64,
@@ -117,7 +119,7 @@ impl Client {
         let (network, f) = Network::new(Pid::new(), None);
         thread_pool.execute(f);
 
-        let participant = block_on(network.connect(Address::Tcp(addr.into())))?;
+        let participant = block_on(network.connect(ProtocolAddr::Tcp(addr.into())))?;
         let mut stream = block_on(participant.open(10, PROMISES_ORDERED | PROMISES_CONSISTENCY))?;
 
         // Wait for initial sync
@@ -200,7 +202,7 @@ impl Client {
             active_character_id: None,
 
             _network: network,
-            _participant: participant,
+            participant: Some(participant),
             singleton_stream: stream,
 
             last_server_ping: 0.0,
@@ -312,10 +314,11 @@ impl Client {
 
     /// Send disconnect message to the server
     pub fn request_logout(&mut self) {
+        debug!("Requesting logout from server");
         if let Err(e) = self.singleton_stream.send(ClientMsg::Disconnect) {
             error!(
                 ?e,
-                "couldn't send disconnect package to server, did server close already?"
+                "Couldn't send disconnect package to server, did server close already?"
             );
         }
     }
@@ -610,8 +613,7 @@ impl Client {
                 );
             }
             self.singleton_stream
-                .send(ClientMsg::ControllerInputs(inputs))
-                .unwrap();
+                .send(ClientMsg::ControllerInputs(inputs))?;
         }
 
         // 2) Build up a list of events for this frame, to be passed to the frontend.
@@ -1191,12 +1193,16 @@ impl Client {
 
 impl Drop for Client {
     fn drop(&mut self) {
+        trace!("Dropping client");
         if let Err(e) = self.singleton_stream.send(ClientMsg::Disconnect) {
             warn!(
-                "error during drop of client, couldn't send disconnect package, is the connection \
-                 already closed? : {}",
-                e
+                ?e,
+                "Error during drop of client, couldn't send disconnect package, is the connection \
+                 already closed?",
             );
+        }
+        if let Err(e) = block_on(self.participant.take().unwrap().disconnect()) {
+            warn!(?e, "error when disconnecting, couldn't send all data");
         }
     }
 }

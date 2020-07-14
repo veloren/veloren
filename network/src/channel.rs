@@ -48,13 +48,13 @@ impl Channel {
 
         //reapply leftovers from handshake
         let cnt = leftover_cid_frame.len();
-        trace!(?self.cid, ?cnt, "reapplying leftovers");
+        trace!(?self.cid, ?cnt, "Reapplying leftovers");
         for cid_frame in leftover_cid_frame.drain(..) {
             w2c_cid_frame_s.send(cid_frame).await.unwrap();
         }
-        trace!(?self.cid, ?cnt, "all leftovers reapplied");
+        trace!(?self.cid, ?cnt, "All leftovers reapplied");
 
-        trace!(?self.cid, "start up channel");
+        trace!(?self.cid, "Start up channel");
         match protocol {
             Protocols::Tcp(tcp) => {
                 futures::join!(
@@ -70,7 +70,7 @@ impl Channel {
             },
         }
 
-        trace!(?self.cid, "shut down channel");
+        trace!(?self.cid, "Shut down channel");
     }
 }
 
@@ -159,7 +159,7 @@ impl Handshake {
         &self,
         w2c_cid_frame_r: &mut mpsc::UnboundedReceiver<(Cid, Frame)>,
         mut c2w_frame_s: mpsc::UnboundedSender<Frame>,
-        _read_stop_sender: oneshot::Sender<()>,
+        read_stop_sender: oneshot::Sender<()>,
     ) -> Result<(Pid, Sid, u128), ()> {
         const ERR_S: &str = "Got A Raw Message, these are usually Debug Messages indicating that \
                              something went wrong on network layer and connection will be closed";
@@ -170,7 +170,7 @@ impl Handshake {
             self.send_handshake(&mut c2w_frame_s).await;
         }
 
-        match w2c_cid_frame_r.next().await {
+        let r = match w2c_cid_frame_r.next().await {
             Some((
                 _,
                 Frame::Handshake {
@@ -178,33 +178,32 @@ impl Handshake {
                     version,
                 },
             )) => {
-                trace!(?magic_number, ?version, "recv handshake");
+                trace!(?magic_number, ?version, "Recv handshake");
                 self.metrics
                     .frames_in_total
                     .with_label_values(&["", &cid_string, "Handshake"])
                     .inc();
                 if magic_number != VELOREN_MAGIC_NUMBER {
-                    error!(?magic_number, "connection with invalid magic_number");
+                    error!(?magic_number, "Connection with invalid magic_number");
                     #[cfg(debug_assertions)]
                     {
                         self.metrics
                             .frames_out_total
                             .with_label_values(&["", &cid_string, "Raw"])
                             .inc();
-                        debug!("sending client instructions before killing");
+                        debug!("Sending client instructions before killing");
                         c2w_frame_s
                             .send(Frame::Raw(Self::WRONG_NUMBER.to_vec()))
                             .await
                             .unwrap();
                         c2w_frame_s.send(Frame::Shutdown).await.unwrap();
                     }
-                    return Err(());
-                }
-                if version != VELOREN_NETWORK_VERSION {
-                    error!(?version, "connection with wrong network version");
+                    Err(())
+                } else if version != VELOREN_NETWORK_VERSION {
+                    error!(?version, "Connection with wrong network version");
                     #[cfg(debug_assertions)]
                     {
-                        debug!("sending client instructions before killing");
+                        debug!("Sending client instructions before killing");
                         self.metrics
                             .frames_out_total
                             .with_label_values(&["", &cid_string, "Raw"])
@@ -225,63 +224,19 @@ impl Handshake {
                             .unwrap();
                         c2w_frame_s.send(Frame::Shutdown {}).await.unwrap();
                     }
-                    return Err(());
-                }
-                debug!("handshake completed");
-                if self.init_handshake {
-                    self.send_init(&mut c2w_frame_s, &pid_string).await;
+                    Err(())
                 } else {
-                    self.send_handshake(&mut c2w_frame_s).await;
+                    debug!("Handshake completed");
+                    if self.init_handshake {
+                        self.send_init(&mut c2w_frame_s, &pid_string).await;
+                    } else {
+                        self.send_handshake(&mut c2w_frame_s).await;
+                    }
+                    Ok(())
                 }
             },
             Some((_, Frame::Shutdown)) => {
-                info!("shutdown signal received");
-                self.metrics
-                    .frames_in_total
-                    .with_label_values(&[&pid_string, &cid_string, "Shutdown"])
-                    .inc();
-                return Err(());
-            },
-            Some((_, Frame::Raw(bytes))) => {
-                self.metrics
-                    .frames_in_total
-                    .with_label_values(&[&pid_string, &cid_string, "Raw"])
-                    .inc();
-                match std::str::from_utf8(bytes.as_slice()) {
-                    Ok(string) => error!(?string, ERR_S),
-                    _ => error!(?bytes, ERR_S),
-                }
-                return Err(());
-            },
-            Some((_, frame)) => {
-                self.metrics
-                    .frames_in_total
-                    .with_label_values(&[&pid_string, &cid_string, frame.get_string()])
-                    .inc();
-                return Err(());
-            },
-            None => return Err(()),
-        };
-
-        match w2c_cid_frame_r.next().await {
-            Some((_, Frame::Init { pid, secret })) => {
-                debug!(?pid, "Participant send their ID");
-                pid_string = pid.to_string();
-                self.metrics
-                    .frames_in_total
-                    .with_label_values(&[&pid_string, &cid_string, "ParticipantId"])
-                    .inc();
-                let stream_id_offset = if self.init_handshake {
-                    STREAM_ID_OFFSET1
-                } else {
-                    self.send_init(&mut c2w_frame_s, &pid_string).await;
-                    STREAM_ID_OFFSET2
-                };
-                info!(?pid, "this Handshake is now configured!");
-                Ok((pid, stream_id_offset, secret))
-            },
-            Some((_, Frame::Shutdown)) => {
-                info!("shutdown signal received");
+                info!("Shutdown signal received");
                 self.metrics
                     .frames_in_total
                     .with_label_values(&[&pid_string, &cid_string, "Shutdown"])
@@ -307,7 +262,73 @@ impl Handshake {
                 Err(())
             },
             None => Err(()),
+        };
+        if let Err(()) = r {
+            if let Err(e) = read_stop_sender.send(()) {
+                trace!(
+                    ?e,
+                    "couldn't stop protocol, probably it encountered a Protocol Stop and closed \
+                     itself already, which is fine"
+                );
+            }
+            return Err(());
         }
+
+        let r = match w2c_cid_frame_r.next().await {
+            Some((_, Frame::Init { pid, secret })) => {
+                debug!(?pid, "Participant send their ID");
+                pid_string = pid.to_string();
+                self.metrics
+                    .frames_in_total
+                    .with_label_values(&[&pid_string, &cid_string, "ParticipantId"])
+                    .inc();
+                let stream_id_offset = if self.init_handshake {
+                    STREAM_ID_OFFSET1
+                } else {
+                    self.send_init(&mut c2w_frame_s, &pid_string).await;
+                    STREAM_ID_OFFSET2
+                };
+                info!(?pid, "This Handshake is now configured!");
+                Ok((pid, stream_id_offset, secret))
+            },
+            Some((_, Frame::Shutdown)) => {
+                info!("Shutdown signal received");
+                self.metrics
+                    .frames_in_total
+                    .with_label_values(&[&pid_string, &cid_string, "Shutdown"])
+                    .inc();
+                Err(())
+            },
+            Some((_, Frame::Raw(bytes))) => {
+                self.metrics
+                    .frames_in_total
+                    .with_label_values(&[&pid_string, &cid_string, "Raw"])
+                    .inc();
+                match std::str::from_utf8(bytes.as_slice()) {
+                    Ok(string) => error!(?string, ERR_S),
+                    _ => error!(?bytes, ERR_S),
+                }
+                Err(())
+            },
+            Some((_, frame)) => {
+                self.metrics
+                    .frames_in_total
+                    .with_label_values(&[&pid_string, &cid_string, frame.get_string()])
+                    .inc();
+                Err(())
+            },
+            None => Err(()),
+        };
+        if r.is_err() {
+            if let Err(e) = read_stop_sender.send(()) {
+                trace!(
+                    ?e,
+                    "couldn't stop protocol, probably it encountered a Protocol Stop and closed \
+                     itself already, which is fine"
+                );
+            }
+        }
+        r
     }
 
     async fn send_handshake(&self, c2w_frame_s: &mut mpsc::UnboundedSender<Frame>) {
