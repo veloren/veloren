@@ -2,9 +2,9 @@ use crate::{
     api::{Participant, ProtocolAddr},
     channel::Handshake,
     metrics::NetworkMetrics,
-    participant::BParticipant,
+    participant::{B2sPrioStatistic, BParticipant, S2bCreateChannel},
     protocols::{Protocols, TcpProtocol, UdpProtocol},
-    types::{Cid, Frame, Pid, Sid},
+    types::Pid,
 };
 use async_std::{
     io, net,
@@ -30,16 +30,6 @@ use std::{
 use tracing::*;
 use tracing_futures::Instrument;
 
-#[derive(Debug)]
-#[allow(clippy::type_complexity)]
-struct ParticipantInfo {
-    secret: u128,
-    s2b_create_channel_s:
-        mpsc::UnboundedSender<(Cid, Sid, Protocols, Vec<(Cid, Frame)>, oneshot::Sender<()>)>,
-    s2b_shutdown_bparticipant_s:
-        Option<oneshot::Sender<oneshot::Sender<async_std::io::Result<()>>>>,
-}
-
 /// Naming of Channels `x2x`
 ///  - a: api
 ///  - s: scheduler
@@ -48,21 +38,33 @@ struct ParticipantInfo {
 ///  - r: protocol
 ///  - w: wire
 ///  - c: channel/handshake
+
+#[derive(Debug)]
+struct ParticipantInfo {
+    secret: u128,
+    s2b_create_channel_s: mpsc::UnboundedSender<S2bCreateChannel>,
+    s2b_shutdown_bparticipant_s:
+        Option<oneshot::Sender<oneshot::Sender<async_std::io::Result<()>>>>,
+}
+
+type A2sListen = (ProtocolAddr, oneshot::Sender<io::Result<()>>);
+type A2sConnect = (ProtocolAddr, oneshot::Sender<io::Result<Participant>>);
+type A2sDisconnect = (Pid, oneshot::Sender<async_std::io::Result<()>>);
+
 #[derive(Debug)]
 struct ControlChannels {
-    a2s_listen_r: mpsc::UnboundedReceiver<(ProtocolAddr, oneshot::Sender<io::Result<()>>)>,
-    a2s_connect_r:
-        mpsc::UnboundedReceiver<(ProtocolAddr, oneshot::Sender<io::Result<Participant>>)>,
+    a2s_listen_r: mpsc::UnboundedReceiver<A2sListen>,
+    a2s_connect_r: mpsc::UnboundedReceiver<A2sConnect>,
     a2s_scheduler_shutdown_r: oneshot::Receiver<()>,
-    a2s_disconnect_r: mpsc::UnboundedReceiver<(Pid, oneshot::Sender<async_std::io::Result<()>>)>,
-    b2s_prio_statistic_r: mpsc::UnboundedReceiver<(Pid, u64, u64)>,
+    a2s_disconnect_r: mpsc::UnboundedReceiver<A2sDisconnect>,
+    b2s_prio_statistic_r: mpsc::UnboundedReceiver<B2sPrioStatistic>,
 }
 
 #[derive(Debug, Clone)]
 struct ParticipantChannels {
     s2a_connected_s: mpsc::UnboundedSender<Participant>,
-    a2s_disconnect_s: mpsc::UnboundedSender<(Pid, oneshot::Sender<async_std::io::Result<()>>)>,
-    b2s_prio_statistic_s: mpsc::UnboundedSender<(Pid, u64, u64)>,
+    a2s_disconnect_s: mpsc::UnboundedSender<A2sDisconnect>,
+    b2s_prio_statistic_s: mpsc::UnboundedSender<B2sPrioStatistic>,
 }
 
 #[derive(Debug)]
@@ -80,26 +82,22 @@ pub struct Scheduler {
 }
 
 impl Scheduler {
-    #[allow(clippy::type_complexity)]
     pub fn new(
         local_pid: Pid,
         registry: Option<&Registry>,
     ) -> (
         Self,
-        mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<io::Result<()>>)>,
-        mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<io::Result<Participant>>)>,
+        mpsc::UnboundedSender<A2sListen>,
+        mpsc::UnboundedSender<A2sConnect>,
         mpsc::UnboundedReceiver<Participant>,
         oneshot::Sender<()>,
     ) {
-        let (a2s_listen_s, a2s_listen_r) =
-            mpsc::unbounded::<(ProtocolAddr, oneshot::Sender<io::Result<()>>)>();
-        let (a2s_connect_s, a2s_connect_r) =
-            mpsc::unbounded::<(ProtocolAddr, oneshot::Sender<io::Result<Participant>>)>();
+        let (a2s_listen_s, a2s_listen_r) = mpsc::unbounded::<A2sListen>();
+        let (a2s_connect_s, a2s_connect_r) = mpsc::unbounded::<A2sConnect>();
         let (s2a_connected_s, s2a_connected_r) = mpsc::unbounded::<Participant>();
         let (a2s_scheduler_shutdown_s, a2s_scheduler_shutdown_r) = oneshot::channel::<()>();
-        let (a2s_disconnect_s, a2s_disconnect_r) =
-            mpsc::unbounded::<(Pid, oneshot::Sender<async_std::io::Result<()>>)>();
-        let (b2s_prio_statistic_s, b2s_prio_statistic_r) = mpsc::unbounded::<(Pid, u64, u64)>();
+        let (a2s_disconnect_s, a2s_disconnect_r) = mpsc::unbounded::<A2sDisconnect>();
+        let (b2s_prio_statistic_s, b2s_prio_statistic_r) = mpsc::unbounded::<B2sPrioStatistic>();
 
         let run_channels = Some(ControlChannels {
             a2s_listen_r,
@@ -155,10 +153,7 @@ impl Scheduler {
         );
     }
 
-    async fn listen_mgr(
-        &self,
-        a2s_listen_r: mpsc::UnboundedReceiver<(ProtocolAddr, oneshot::Sender<io::Result<()>>)>,
-    ) {
+    async fn listen_mgr(&self, a2s_listen_r: mpsc::UnboundedReceiver<A2sListen>) {
         trace!("Start listen_mgr");
         a2s_listen_r
             .for_each_concurrent(None, |(address, s2a_listen_result_s)| {
@@ -253,13 +248,7 @@ impl Scheduler {
         trace!("Stop connect_mgr");
     }
 
-    async fn disconnect_mgr(
-        &self,
-        mut a2s_disconnect_r: mpsc::UnboundedReceiver<(
-            Pid,
-            oneshot::Sender<async_std::io::Result<()>>,
-        )>,
-    ) {
+    async fn disconnect_mgr(&self, mut a2s_disconnect_r: mpsc::UnboundedReceiver<A2sDisconnect>) {
         trace!("Start disconnect_mgr");
         while let Some((pid, return_once_successful_shutdown)) = a2s_disconnect_r.next().await {
             //Closing Participants is done the following way:
@@ -289,7 +278,7 @@ impl Scheduler {
 
     async fn prio_adj_mgr(
         &self,
-        mut b2s_prio_statistic_r: mpsc::UnboundedReceiver<(Pid, u64, u64)>,
+        mut b2s_prio_statistic_r: mpsc::UnboundedReceiver<B2sPrioStatistic>,
     ) {
         trace!("Start prio_adj_mgr");
         while let Some((_pid, _frame_cnt, _unused)) = b2s_prio_statistic_r.next().await {
@@ -512,7 +501,7 @@ impl Scheduler {
                             debug!(?cid, "New participant connected via a channel");
                             let (
                                 bparticipant,
-                                a2b_steam_open_s,
+                                a2b_stream_open_s,
                                 b2a_stream_opened_r,
                                 mut s2b_create_channel_s,
                                 s2b_shutdown_bparticipant_s,
@@ -522,7 +511,7 @@ impl Scheduler {
                             let participant = Participant::new(
                                 local_pid,
                                 pid,
-                                a2b_steam_open_s,
+                                a2b_stream_open_s,
                                 b2a_stream_opened_r,
                                 participant_channels.a2s_disconnect_s,
                                 api_participant_closed,

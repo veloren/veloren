@@ -25,6 +25,11 @@ use std::{
 };
 use tracing::*;
 
+pub(crate) type A2bStreamOpen = (Prio, Promises, oneshot::Sender<Stream>);
+pub(crate) type S2bCreateChannel = (Cid, Sid, Protocols, Vec<(Cid, Frame)>, oneshot::Sender<()>);
+pub(crate) type S2bShutdownBparticipant = oneshot::Sender<async_std::io::Result<()>>;
+pub(crate) type B2sPrioStatistic = (Pid, u64, u64);
+
 #[derive(Debug)]
 struct ChannelInfo {
     cid: Cid,
@@ -42,15 +47,13 @@ struct StreamInfo {
 }
 
 #[derive(Debug)]
-#[allow(clippy::type_complexity)]
 struct ControlChannels {
-    a2b_steam_open_r: mpsc::UnboundedReceiver<(Prio, Promises, oneshot::Sender<Stream>)>,
+    a2b_stream_open_r: mpsc::UnboundedReceiver<A2bStreamOpen>,
     b2a_stream_opened_s: mpsc::UnboundedSender<Stream>,
-    s2b_create_channel_r:
-        mpsc::UnboundedReceiver<(Cid, Sid, Protocols, Vec<(Cid, Frame)>, oneshot::Sender<()>)>,
+    s2b_create_channel_r: mpsc::UnboundedReceiver<S2bCreateChannel>,
     a2b_close_stream_r: mpsc::UnboundedReceiver<Sid>,
     a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
-    s2b_shutdown_bparticipant_r: oneshot::Receiver<oneshot::Sender<async_std::io::Result<()>>>, /* own */
+    s2b_shutdown_bparticipant_r: oneshot::Receiver<S2bShutdownBparticipant>, /* own */
 }
 
 #[derive(Debug)]
@@ -75,21 +78,20 @@ impl BParticipant {
         metrics: Arc<NetworkMetrics>,
     ) -> (
         Self,
-        mpsc::UnboundedSender<(Prio, Promises, oneshot::Sender<Stream>)>,
+        mpsc::UnboundedSender<A2bStreamOpen>,
         mpsc::UnboundedReceiver<Stream>,
-        mpsc::UnboundedSender<(Cid, Sid, Protocols, Vec<(Cid, Frame)>, oneshot::Sender<()>)>,
-        oneshot::Sender<oneshot::Sender<async_std::io::Result<()>>>,
+        mpsc::UnboundedSender<S2bCreateChannel>,
+        oneshot::Sender<S2bShutdownBparticipant>,
         Arc<RwLock<Result<(), ParticipantError>>>,
     ) {
-        let (a2b_steam_open_s, a2b_steam_open_r) =
-            mpsc::unbounded::<(Prio, Promises, oneshot::Sender<Stream>)>();
+        let (a2b_steam_open_s, a2b_stream_open_r) = mpsc::unbounded::<A2bStreamOpen>();
         let (b2a_stream_opened_s, b2a_stream_opened_r) = mpsc::unbounded::<Stream>();
         let (a2b_close_stream_s, a2b_close_stream_r) = mpsc::unbounded();
         let (s2b_shutdown_bparticipant_s, s2b_shutdown_bparticipant_r) = oneshot::channel();
         let (s2b_create_channel_s, s2b_create_channel_r) = mpsc::unbounded();
 
         let run_channels = Some(ControlChannels {
-            a2b_steam_open_r,
+            a2b_stream_open_r,
             b2a_stream_opened_s,
             s2b_create_channel_r,
             a2b_close_stream_r,
@@ -120,7 +122,7 @@ impl BParticipant {
         )
     }
 
-    pub async fn run(mut self, b2s_prio_statistic_s: mpsc::UnboundedSender<(Pid, u64, u64)>) {
+    pub async fn run(mut self, b2s_prio_statistic_s: mpsc::UnboundedSender<B2sPrioStatistic>) {
         //those managers that listen on api::Participant need an additional oneshot for
         // shutdown scenario, those handled by scheduler will be closed by it.
         let (shutdown_send_mgr_sender, shutdown_send_mgr_receiver) = oneshot::channel();
@@ -135,7 +137,7 @@ impl BParticipant {
         let run_channels = self.run_channels.take().unwrap();
         futures::join!(
             self.open_mgr(
-                run_channels.a2b_steam_open_r,
+                run_channels.a2b_stream_open_r,
                 run_channels.a2b_close_stream_s.clone(),
                 a2p_msg_s.clone(),
                 shutdown_open_mgr_receiver,
@@ -175,7 +177,7 @@ impl BParticipant {
         mut prios: PrioManager,
         mut shutdown_send_mgr_receiver: oneshot::Receiver<()>,
         b2b_prios_flushed_s: oneshot::Sender<()>,
-        mut b2s_prio_statistic_s: mpsc::UnboundedSender<(Pid, u64, u64)>,
+        mut b2s_prio_statistic_s: mpsc::UnboundedSender<B2sPrioStatistic>,
     ) {
         //This time equals the MINIMUM Latency in average, so keep it down and //Todo:
         // make it configureable or switch to await E.g. Prio 0 = await, prio 50
@@ -407,16 +409,9 @@ impl BParticipant {
         self.running_mgr.fetch_sub(1, Ordering::Relaxed);
     }
 
-    #[allow(clippy::type_complexity)]
     async fn create_channel_mgr(
         &self,
-        s2b_create_channel_r: mpsc::UnboundedReceiver<(
-            Cid,
-            Sid,
-            Protocols,
-            Vec<(Cid, Frame)>,
-            oneshot::Sender<()>,
-        )>,
+        s2b_create_channel_r: mpsc::UnboundedReceiver<S2bCreateChannel>,
         w2b_frames_s: mpsc::UnboundedSender<(Cid, Frame)>,
     ) {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
@@ -461,7 +456,7 @@ impl BParticipant {
 
     async fn open_mgr(
         &self,
-        mut a2b_steam_open_r: mpsc::UnboundedReceiver<(Prio, Promises, oneshot::Sender<Stream>)>,
+        mut a2b_stream_open_r: mpsc::UnboundedReceiver<A2bStreamOpen>,
         a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
         a2p_msg_s: crossbeam_channel::Sender<(Prio, Sid, OutgoingMessage)>,
         shutdown_open_mgr_receiver: oneshot::Receiver<()>,
@@ -474,7 +469,7 @@ impl BParticipant {
         let mut shutdown_open_mgr_receiver = shutdown_open_mgr_receiver.fuse();
         //from api or shutdown signal
         while let Some((prio, promises, p2a_return_stream)) = select! {
-            next = a2b_steam_open_r.next().fuse() => next,
+            next = a2b_stream_open_r.next().fuse() => next,
             _ = shutdown_open_mgr_receiver => None,
         } {
             debug!(?prio, ?promises, "Got request to open a new steam");
@@ -512,7 +507,7 @@ impl BParticipant {
     /// called by api to get the result status
     async fn participant_shutdown_mgr(
         &self,
-        s2b_shutdown_bparticipant_r: oneshot::Receiver<oneshot::Sender<async_std::io::Result<()>>>,
+        s2b_shutdown_bparticipant_r: oneshot::Receiver<S2bShutdownBparticipant>,
         b2b_prios_flushed_r: oneshot::Receiver<()>,
         mut mgr_to_shutdown: Vec<oneshot::Sender<()>>,
     ) {
