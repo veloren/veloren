@@ -623,26 +623,7 @@ impl<'a> Widget for Skillbar<'a> {
                 _ => self.imgs.nothing,
             },
         ) // Insert Icon here
-        .w(
-            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
-                    ToolKind::Bow(_) => 30.0 * scale,
-                    ToolKind::Staff(_) => 32.0 * scale,
-                    _ => 38.0 * scale,
-                },
-                _ => 38.0 * scale,
-            },
-        )
-        .h(
-            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
-                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
-                    ToolKind::Bow(_) => 30.0 * scale,
-                    ToolKind::Staff(_) => 32.0 * scale,
-                    _ => 38.0 * scale,
-                },
-                _ => 38.0 * scale,
-            },
-        )
+        .w_h(32.0 * scale, 32.0 * scale)
         .middle_of(state.ids.m1_slot_bg)
         .set(state.ids.m1_content, ui);
         // M2 Slot
@@ -704,7 +685,7 @@ impl<'a> Widget for Skillbar<'a> {
             .middle_of(state.ids.m2_slot)
             .set(state.ids.m2_slot_bg, ui);
         Button::image(match tool_kind {
-            Some(ToolKind::Sword(_)) => self.imgs.charge,
+            Some(ToolKind::Sword(_)) => self.imgs.twohsword_m2,
             Some(ToolKind::Dagger(_)) => self.imgs.onehdagger_m2,
             Some(ToolKind::Shield(_)) => self.imgs.onehshield_m2,
             Some(ToolKind::Hammer(_)) => self.imgs.hammerleap,
@@ -714,17 +695,8 @@ impl<'a> Widget for Skillbar<'a> {
             Some(ToolKind::Staff(_)) => self.imgs.staff_m2,
             Some(ToolKind::Debug(DebugKind::Boost)) => self.imgs.flyingrod_m2,
             _ => self.imgs.nothing,
-        }) // Insert Icon here
-        .w(match tool_kind {
-            Some(ToolKind::Staff(_)) => 30.0 * scale,
-            Some(ToolKind::Bow(_)) => 30.0 * scale,
-            _ => 38.0 * scale,
         })
-        .h(match tool_kind {
-            Some(ToolKind::Staff(_)) => 30.0 * scale,
-            Some(ToolKind::Bow(_)) => 30.0 * scale,
-            _ => 38.0 * scale,
-        })
+        .w_h(32.0 * scale, 32.0 * scale)
         .middle_of(state.ids.m2_slot_bg)
         .image_color(match tool_kind {
             Some(ToolKind::Sword(_)) => {

@@ -1,0 +1,7 @@
+Item(
+    name: "Empty Vial",
+    description: "Can be filled with fluids.",
+    kind: Ingredient(
+        kind: EmptyVial,
+    )
+)

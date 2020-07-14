@@ -32,6 +32,7 @@ use common::{
     comp::{self, ChatType},
     event::{EventBus, ServerEvent},
     msg::{ClientState, ServerInfo, ServerMsg},
+    recipe::default_recipe_book,
     state::{State, TimeOfDay},
     sync::WorldSyncExt,
     terrain::TerrainChunkSize,
@@ -636,6 +637,7 @@ impl Server {
                         server_info: self.get_server_info(),
                         time_of_day: *self.state.ecs().read_resource(),
                         world_map: (WORLD_SIZE.map(|e| e as u32), self.map.clone()),
+                        recipe_book: (&*default_recipe_book()).clone(),
                     });
 
                 frontend_events.push(Event::ClientConnected { entity });

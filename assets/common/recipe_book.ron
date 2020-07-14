@@ -1,0 +1,12 @@
+{
+	"crafting_hammer": (("common.items.crafting_tools.craftsman_hammer", 1),[("common.items.crafting_ing.twigs", 10), ("common.items.crafting_ing.stones", 10)]),
+	"mortar_pestle": (("common.items.crafting_tools.mortar_pestle", 1), [("common.items.crafting_ing.stones", 6), ("common.items.food.coconut", 2), ("common.items.crafting_tools.craftsman_hammer", 0)]),	
+	"velorite_frag": (("common.items.ore.veloritefrag", 2), [("common.items.ore.velorite", 1), ("common.items.crafting_tools.craftsman_hammer", 0)]),
+	"potion_s": (("common.items.consumable.potion_minor", 1), [("common.items.crafting_ing.empty_vial", 1), ("common.items.ore.veloritefrag", 2)]),
+	"potion_m": (("common.items.consumable.potion_med", 1), [("common.items.consumable.potion_minor", 2), ("common.items.ore.veloritefrag", 4)]),
+	"collar_basic": (("common.items.utility.collar", 1), [("common.items.crafting_ing.leather_scraps", 5), ("common.items.crafting_ing.shiny_gem", 1)]),
+	"bomb_coconut": (("common.items.utility.bomb", 1), [("common.items.crafting_ing.stones", 10), ("common.items.food.coconut", 2), ("common.items.ore.veloritefrag", 2), ("common.items.crafting_tools.mortar_pestle", 0)]),	
+	"apple_shroom_curry": (("common.items.food.apple_mushroom_curry", 1), [("common.items.food.mushroom", 10), ("common.items.food.coconut", 1), ("common.items.food.apple", 5), ("common.items.crafting_tools.mortar_pestle", 0)]),
+	"apples_stick": (("common.items.food.apple_stick", 1),[("common.items.crafting_ing.twigs", 1), ("common.items.food.apple", 3)]),
+	"mushroom_stick": (("common.items.food.mushroom_stick", 1),[("common.items.crafting_ing.twigs", 1), ("common.items.food.mushroom", 5)]),
+}	

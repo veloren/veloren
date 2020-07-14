@@ -1,5 +1,5 @@
 #![deny(unsafe_code)]
-#![feature(label_break_value)]
+#![feature(label_break_value, option_zip)]
 
 pub mod cmd;
 pub mod error;
@@ -25,6 +25,7 @@ use common::{
         PlayerInfo, PlayerListUpdate, RegisterError, RequestStateError, ServerInfo, ServerMsg,
         MAX_BYTES_CHAT_MSG,
     },
+    recipe::RecipeBook,
     state::State,
     sync::{Uid, UidAllocator, WorldSyncExt},
     terrain::{block::Block, TerrainChunk, TerrainChunkSize},
@@ -33,7 +34,7 @@ use common::{
 use futures_executor::block_on;
 use futures_timer::Delay;
 use futures_util::{select, FutureExt};
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use image::DynamicImage;
 use network::{
     Network, Participant, Pid, ProtocolAddr, Stream, PROMISES_CONSISTENCY, PROMISES_ORDERED,
@@ -75,6 +76,8 @@ pub struct Client {
     pub player_list: HashMap<Uid, PlayerInfo>,
     pub character_list: CharacterList,
     pub active_character_id: Option<i32>,
+    recipe_book: RecipeBook,
+    available_recipes: HashSet<String>,
 
     _network: Network,
     participant: Option<Participant>,
@@ -123,7 +126,7 @@ impl Client {
         let mut stream = block_on(participant.open(10, PROMISES_ORDERED | PROMISES_CONSISTENCY))?;
 
         // Wait for initial sync
-        let (state, entity, server_info, world_map) = block_on(async {
+        let (state, entity, server_info, world_map, recipe_book) = block_on(async {
             loop {
                 match stream.recv().await? {
                     ServerMsg::InitialSync {
@@ -131,6 +134,7 @@ impl Client {
                         server_info,
                         time_of_day,
                         world_map: (map_size, world_map),
+                        recipe_book,
                     } => {
                         // TODO: Display that versions don't match in Voxygen
                         if &server_info.git_hash != *common::util::GIT_HASH {
@@ -174,7 +178,13 @@ impl Client {
                         );
                         debug!("Done preparing image...");
 
-                        break Ok((state, entity, server_info, (world_map, map_size)));
+                        break Ok((
+                            state,
+                            entity,
+                            server_info,
+                            (world_map, map_size),
+                            recipe_book,
+                        ));
                     },
                     ServerMsg::TooManyPlayers => break Err(Error::TooManyPlayers),
                     err => {
@@ -200,6 +210,8 @@ impl Client {
             player_list: HashMap::new(),
             character_list: CharacterList::default(),
             active_character_id: None,
+            recipe_book,
+            available_recipes: HashSet::default(),
 
             _network: network,
             participant: Some(participant),
@@ -370,6 +382,40 @@ impl Client {
                 )))
                 .unwrap();
         }
+    }
+
+    pub fn recipe_book(&self) -> &RecipeBook { &self.recipe_book }
+
+    pub fn available_recipes(&self) -> &HashSet<String> { &self.available_recipes }
+
+    pub fn can_craft_recipe(&self, recipe: &str) -> bool {
+        self.recipe_book
+            .get(recipe)
+            .zip(self.inventories().get(self.entity))
+            .map(|(recipe, inv)| inv.contains_ingredients(&*recipe).is_ok())
+            .unwrap_or(false)
+    }
+
+    pub fn craft_recipe(&mut self, recipe: &str) -> bool {
+        if self.can_craft_recipe(recipe) {
+            self.singleton_stream
+                .send(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
+                    InventoryManip::CraftRecipe(recipe.to_string()),
+                )))
+                .unwrap();
+            true
+        } else {
+            false
+        }
+    }
+
+    fn update_available_recipes(&mut self) {
+        self.available_recipes = self
+            .recipe_book
+            .iter()
+            .map(|(name, _)| name.clone())
+            .filter(|name| self.can_craft_recipe(name))
+            .collect();
     }
 
     pub fn toggle_lantern(&mut self) {
@@ -948,6 +994,8 @@ impl Client {
                             self.state.write_component(self.entity, inventory);
                         },
                     }
+
+                    self.update_available_recipes();
 
                     frontend_events.push(Event::InventoryUpdated(event));
                 },

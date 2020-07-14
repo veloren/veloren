@@ -1,0 +1,7 @@
+Item(
+    name: "Leather Scraps",
+    description: "Used to craft various items.",
+    kind: Ingredient(
+        kind: LeatherScraps,
+    )
+)
