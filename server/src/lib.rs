@@ -41,7 +41,7 @@ use futures_executor::block_on;
 use futures_timer::Delay;
 use futures_util::{select, FutureExt};
 use metrics::{ServerMetrics, TickMetrics};
-use network::{Address, Network, Pid};
+use network::{Network, Pid, ProtocolAddr};
 use persistence::character::{CharacterLoader, CharacterLoaderResponseType, CharacterUpdater};
 use specs::{join::Join, Builder, Entity as EcsEntity, RunNow, SystemData, WorldExt};
 use std::{
@@ -241,7 +241,7 @@ impl Server {
             .build();
         let (network, f) = Network::new(Pid::new(), None);
         thread_pool.execute(f);
-        block_on(network.listen(Address::Tcp(settings.gameserver_address)))?;
+        block_on(network.listen(ProtocolAddr::Tcp(settings.gameserver_address)))?;
 
         let this = Self {
             state,
@@ -343,9 +343,9 @@ impl Server {
 
         // 3) Handle inputs from clients
         block_on(async {
-            //TIMEOUT 0.01 ms for msg handling
+            //TIMEOUT 0.1 ms for msg handling
             select!(
-                _ = Delay::new(std::time::Duration::from_micros(10)).fuse() => Ok(()),
+                _ = Delay::new(std::time::Duration::from_micros(100)).fuse() => Ok(()),
                 err = self.handle_new_connections(&mut frontend_events).fuse() => err,
             )
         })?;
@@ -597,11 +597,14 @@ impl Server {
     ) -> Result<(), Error> {
         loop {
             let participant = self.network.connected().await?;
+            debug!("New Participant connected to the server");
             let singleton_stream = participant.opened().await?;
 
             let mut client = Client {
                 client_state: ClientState::Connected,
+                participant: std::sync::Mutex::new(Some(participant)),
                 singleton_stream,
+                network_error: std::sync::atomic::AtomicBool::new(false),
                 last_ping: self.state.get_time(),
                 login_msg_sent: false,
             };
@@ -634,9 +637,9 @@ impl Server {
                         time_of_day: *self.state.ecs().read_resource(),
                         world_map: (WORLD_SIZE.map(|e| e as u32), self.map.clone()),
                     });
-                debug!("Done initial sync with client.");
 
                 frontend_events.push(Event::ClientConnected { entity });
+                debug!("Done initial sync with client.");
             }
         }
     }

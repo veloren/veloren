@@ -1,16 +1,13 @@
 use lazy_static::*;
 use std::{
     net::SocketAddr,
-    sync::{
-        atomic::{AtomicU16, Ordering},
-        Arc,
-    },
+    sync::atomic::{AtomicU16, Ordering},
     thread,
     time::Duration,
 };
 use tracing::*;
 use tracing_subscriber::EnvFilter;
-use veloren_network::{Address, Network, Participant, Pid, Stream, PROMISES_NONE};
+use veloren_network::{Network, Participant, Pid, ProtocolAddr, Stream, PROMISES_NONE};
 
 #[allow(dead_code)]
 pub fn setup(tracing: bool, mut sleep: u64) -> (u64, u64) {
@@ -50,15 +47,8 @@ pub fn setup(tracing: bool, mut sleep: u64) -> (u64, u64) {
 
 #[allow(dead_code)]
 pub async fn network_participant_stream(
-    addr: Address,
-) -> (
-    Network,
-    Arc<Participant>,
-    Stream,
-    Network,
-    Arc<Participant>,
-    Stream,
-) {
+    addr: ProtocolAddr,
+) -> (Network, Participant, Stream, Network, Participant, Stream) {
     let (n_a, f_a) = Network::new(Pid::fake(1), None);
     std::thread::spawn(f_a);
     let (n_b, f_b) = Network::new(Pid::fake(2), None);
@@ -75,19 +65,19 @@ pub async fn network_participant_stream(
 }
 
 #[allow(dead_code)]
-pub fn tcp() -> veloren_network::Address {
+pub fn tcp() -> veloren_network::ProtocolAddr {
     lazy_static! {
         static ref PORTS: AtomicU16 = AtomicU16::new(5000);
     }
     let port = PORTS.fetch_add(1, Ordering::Relaxed);
-    veloren_network::Address::Tcp(SocketAddr::from(([127, 0, 0, 1], port)))
+    veloren_network::ProtocolAddr::Tcp(SocketAddr::from(([127, 0, 0, 1], port)))
 }
 
 #[allow(dead_code)]
-pub fn udp() -> veloren_network::Address {
+pub fn udp() -> veloren_network::ProtocolAddr {
     lazy_static! {
         static ref PORTS: AtomicU16 = AtomicU16::new(5000);
     }
     let port = PORTS.fetch_add(1, Ordering::Relaxed);
-    veloren_network::Address::Udp(SocketAddr::from(([127, 0, 0, 1], port)))
+    veloren_network::ProtocolAddr::Udp(SocketAddr::from(([127, 0, 0, 1], port)))
 }

@@ -27,8 +27,8 @@ use specs::{
 };
 
 impl Sys {
-    ///We need to move this to a async fn, otherwise the compiler generates to
-    /// much recursive fn, and async closures dont work yet
+    ///We needed to move this to a async fn, if we would use a async closures
+    /// the compiler generates to much recursion and fails to compile this
     #[allow(clippy::too_many_arguments)]
     async fn handle_client_msg(
         server_emitter: &mut common::event::Emitter<'_, ServerEvent>,
@@ -57,7 +57,7 @@ impl Sys {
         settings: &Read<'_, ServerSettings>,
     ) -> Result<(), crate::error::Error> {
         loop {
-            let msg = client.singleton_stream.recv().await?;
+            let msg = client.recv().await?;
             *cnt += 1;
             match msg {
                 // Go back to registered state (char selection screen)
@@ -473,9 +473,9 @@ impl<'a> System<'a> for Sys {
             let mut cnt = 0;
 
             let network_err: Result<(), crate::error::Error> = block_on(async {
-                //TIMEOUT 0.01 ms for msg handling
+                //TIMEOUT 0.02 ms for msg handling
                 select!(
-                    _ = Delay::new(std::time::Duration::from_micros(10)).fuse() => Ok(()),
+                    _ = Delay::new(std::time::Duration::from_micros(20)).fuse() => Ok(()),
                     err = Self::handle_client_msg(
                     &mut server_emitter,
                     &mut new_chat_msgs,

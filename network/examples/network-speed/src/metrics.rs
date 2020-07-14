@@ -55,7 +55,7 @@ impl SimpleMetrics {
                     Ok(Some(rq)) => rq,
                     Ok(None) => continue,
                     Err(e) => {
-                        println!("error: {}", e);
+                        println!("Error: {}", e);
                         break;
                     },
                 };
@@ -76,7 +76,7 @@ impl SimpleMetrics {
                     _ => (),
                 }
             }
-            debug!("stopping tiny_http server to serve metrics");
+            debug!("Stopping tiny_http server to serve metrics");
         }));
         Ok(())
     }

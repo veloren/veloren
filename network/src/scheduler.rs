@@ -1,5 +1,5 @@
 use crate::{
-    api::{Address, Participant},
+    api::{Participant, ProtocolAddr},
     channel::Handshake,
     metrics::NetworkMetrics,
     participant::BParticipant,
@@ -50,8 +50,9 @@ struct ParticipantInfo {
 ///  - c: channel/handshake
 #[derive(Debug)]
 struct ControlChannels {
-    a2s_listen_r: mpsc::UnboundedReceiver<(Address, oneshot::Sender<io::Result<()>>)>,
-    a2s_connect_r: mpsc::UnboundedReceiver<(Address, oneshot::Sender<io::Result<Participant>>)>,
+    a2s_listen_r: mpsc::UnboundedReceiver<(ProtocolAddr, oneshot::Sender<io::Result<()>>)>,
+    a2s_connect_r:
+        mpsc::UnboundedReceiver<(ProtocolAddr, oneshot::Sender<io::Result<Participant>>)>,
     a2s_scheduler_shutdown_r: oneshot::Receiver<()>,
     a2s_disconnect_r: mpsc::UnboundedReceiver<(Pid, oneshot::Sender<async_std::io::Result<()>>)>,
     b2s_prio_statistic_r: mpsc::UnboundedReceiver<(Pid, u64, u64)>,
@@ -74,7 +75,7 @@ pub struct Scheduler {
     participant_channels: Arc<Mutex<Option<ParticipantChannels>>>,
     participants: Arc<RwLock<HashMap<Pid, ParticipantInfo>>>,
     channel_ids: Arc<AtomicU64>,
-    channel_listener: RwLock<HashMap<Address, oneshot::Sender<()>>>,
+    channel_listener: RwLock<HashMap<ProtocolAddr, oneshot::Sender<()>>>,
     metrics: Arc<NetworkMetrics>,
 }
 
@@ -85,15 +86,15 @@ impl Scheduler {
         registry: Option<&Registry>,
     ) -> (
         Self,
-        mpsc::UnboundedSender<(Address, oneshot::Sender<io::Result<()>>)>,
-        mpsc::UnboundedSender<(Address, oneshot::Sender<io::Result<Participant>>)>,
+        mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<io::Result<()>>)>,
+        mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<io::Result<Participant>>)>,
         mpsc::UnboundedReceiver<Participant>,
         oneshot::Sender<()>,
     ) {
         let (a2s_listen_s, a2s_listen_r) =
-            mpsc::unbounded::<(Address, oneshot::Sender<io::Result<()>>)>();
+            mpsc::unbounded::<(ProtocolAddr, oneshot::Sender<io::Result<()>>)>();
         let (a2s_connect_s, a2s_connect_r) =
-            mpsc::unbounded::<(Address, oneshot::Sender<io::Result<Participant>>)>();
+            mpsc::unbounded::<(ProtocolAddr, oneshot::Sender<io::Result<Participant>>)>();
         let (s2a_connected_s, s2a_connected_r) = mpsc::unbounded::<Participant>();
         let (a2s_scheduler_shutdown_s, a2s_scheduler_shutdown_r) = oneshot::channel::<()>();
         let (a2s_disconnect_s, a2s_disconnect_r) =
@@ -156,21 +157,21 @@ impl Scheduler {
 
     async fn listen_mgr(
         &self,
-        a2s_listen_r: mpsc::UnboundedReceiver<(Address, oneshot::Sender<io::Result<()>>)>,
+        a2s_listen_r: mpsc::UnboundedReceiver<(ProtocolAddr, oneshot::Sender<io::Result<()>>)>,
     ) {
-        trace!("start listen_mgr");
+        trace!("Start listen_mgr");
         a2s_listen_r
             .for_each_concurrent(None, |(address, s2a_listen_result_s)| {
                 let address = address;
 
                 async move {
-                    debug!(?address, "got request to open a channel_creator");
+                    debug!(?address, "Got request to open a channel_creator");
                     self.metrics
                         .listen_requests_total
                         .with_label_values(&[match address {
-                            Address::Tcp(_) => "tcp",
-                            Address::Udp(_) => "udp",
-                            Address::Mpsc(_) => "mpsc",
+                            ProtocolAddr::Tcp(_) => "tcp",
+                            ProtocolAddr::Udp(_) => "udp",
+                            ProtocolAddr::Mpsc(_) => "mpsc",
                         }])
                         .inc();
                     let (end_sender, end_receiver) = oneshot::channel::<()>();
@@ -183,20 +184,20 @@ impl Scheduler {
                 }
             })
             .await;
-        trace!("stop listen_mgr");
+        trace!("Stop listen_mgr");
     }
 
     async fn connect_mgr(
         &self,
         mut a2s_connect_r: mpsc::UnboundedReceiver<(
-            Address,
+            ProtocolAddr,
             oneshot::Sender<io::Result<Participant>>,
         )>,
     ) {
-        trace!("start connect_mgr");
+        trace!("Start connect_mgr");
         while let Some((addr, pid_sender)) = a2s_connect_r.next().await {
             let (protocol, handshake) = match addr {
-                Address::Tcp(addr) => {
+                ProtocolAddr::Tcp(addr) => {
                     self.metrics
                         .connect_requests_total
                         .with_label_values(&["tcp"])
@@ -214,7 +215,7 @@ impl Scheduler {
                         false,
                     )
                 },
-                Address::Udp(addr) => {
+                ProtocolAddr::Udp(addr) => {
                     self.metrics
                         .connect_requests_total
                         .with_label_values(&["udp"])
@@ -249,7 +250,7 @@ impl Scheduler {
             self.init_protocol(protocol, Some(pid_sender), handshake)
                 .await;
         }
-        trace!("stop connect_mgr");
+        trace!("Stop connect_mgr");
     }
 
     async fn disconnect_mgr(
@@ -259,14 +260,14 @@ impl Scheduler {
             oneshot::Sender<async_std::io::Result<()>>,
         )>,
     ) {
-        trace!("start disconnect_mgr");
+        trace!("Start disconnect_mgr");
         while let Some((pid, return_once_successful_shutdown)) = a2s_disconnect_r.next().await {
             //Closing Participants is done the following way:
             // 1. We drop our senders and receivers
             // 2. we need to close BParticipant, this will drop its senderns and receivers
             // 3. Participant will try to access the BParticipant senders and receivers with
             // their next api action, it will fail and be closed then.
-            trace!(?pid, "got request to close participant");
+            trace!(?pid, "Got request to close participant");
             if let Some(mut pi) = self.participants.write().await.remove(&pid) {
                 let (finished_sender, finished_receiver) = oneshot::channel();
                 pi.s2b_shutdown_bparticipant_s
@@ -278,36 +279,36 @@ impl Scheduler {
                 let e = finished_receiver.await.unwrap();
                 return_once_successful_shutdown.send(e).unwrap();
             } else {
-                debug!(?pid, "looks like participant is already dropped");
+                debug!(?pid, "Looks like participant is already dropped");
                 return_once_successful_shutdown.send(Ok(())).unwrap();
             }
-            trace!(?pid, "closed participant");
+            trace!(?pid, "Closed participant");
         }
-        trace!("stop disconnect_mgr");
+        trace!("Stop disconnect_mgr");
     }
 
     async fn prio_adj_mgr(
         &self,
         mut b2s_prio_statistic_r: mpsc::UnboundedReceiver<(Pid, u64, u64)>,
     ) {
-        trace!("start prio_adj_mgr");
+        trace!("Start prio_adj_mgr");
         while let Some((_pid, _frame_cnt, _unused)) = b2s_prio_statistic_r.next().await {
 
             //TODO adjust prios in participants here!
         }
-        trace!("stop prio_adj_mgr");
+        trace!("Stop prio_adj_mgr");
     }
 
     async fn scheduler_shutdown_mgr(&self, a2s_scheduler_shutdown_r: oneshot::Receiver<()>) {
-        trace!("start scheduler_shutdown_mgr");
+        trace!("Start scheduler_shutdown_mgr");
         a2s_scheduler_shutdown_r.await.unwrap();
         self.closed.store(true, Ordering::Relaxed);
-        debug!("shutting down all BParticipants gracefully");
+        debug!("Shutting down all BParticipants gracefully");
         let mut participants = self.participants.write().await;
         let waitings = participants
             .drain()
             .map(|(pid, mut pi)| {
-                trace!(?pid, "shutting down BParticipants");
+                trace!(?pid, "Shutting down BParticipants");
                 let (finished_sender, finished_receiver) = oneshot::channel();
                 pi.s2b_shutdown_bparticipant_s
                     .take()
@@ -317,33 +318,34 @@ impl Scheduler {
                 (pid, finished_receiver)
             })
             .collect::<Vec<_>>();
-        debug!("wait for partiticipants to be shut down");
+        debug!("Wait for partiticipants to be shut down");
         for (pid, recv) in waitings {
             if let Err(e) = recv.await {
                 error!(
                     ?pid,
                     ?e,
-                    "failed to finish sending all remainding messages to participant when \
+                    "Failed to finish sending all remainding messages to participant when \
                      shutting down"
                 );
             };
         }
+        debug!("Scheduler shut down gracefully");
         //removing the possibility to create new participants, needed to close down
         // some mgr:
         self.participant_channels.lock().await.take();
 
-        trace!("stop scheduler_shutdown_mgr");
+        trace!("Stop scheduler_shutdown_mgr");
     }
 
     async fn channel_creator(
         &self,
-        addr: Address,
+        addr: ProtocolAddr,
         s2s_stop_listening_r: oneshot::Receiver<()>,
         s2a_listen_result_s: oneshot::Sender<io::Result<()>>,
     ) {
-        trace!(?addr, "start up channel creator");
+        trace!(?addr, "Start up channel creator");
         match addr {
-            Address::Tcp(addr) => {
+            ProtocolAddr::Tcp(addr) => {
                 let listener = match net::TcpListener::bind(addr).await {
                     Ok(listener) => {
                         s2a_listen_result_s.send(Ok(())).unwrap();
@@ -353,27 +355,40 @@ impl Scheduler {
                         info!(
                             ?addr,
                             ?e,
-                            "listener couldn't be started due to error on tcp bind"
+                            "Listener couldn't be started due to error on tcp bind"
                         );
                         s2a_listen_result_s.send(Err(e)).unwrap();
                         return;
                     },
                 };
-                trace!(?addr, "listener bound");
+                trace!(?addr, "Listener bound");
                 let mut incoming = listener.incoming();
                 let mut end_receiver = s2s_stop_listening_r.fuse();
                 while let Some(stream) = select! {
                     next = incoming.next().fuse() => next,
                     _ = end_receiver => None,
                 } {
-                    let stream = stream.unwrap();
-                    info!("Accepting Tcp from: {}", stream.peer_addr().unwrap());
+                    let stream = match stream {
+                        Ok(s) => s,
+                        Err(e) => {
+                            warn!(?e, "TcpStream Error, ignoring connection attempt");
+                            continue;
+                        },
+                    };
+                    let peer_addr = match stream.peer_addr() {
+                        Ok(s) => s,
+                        Err(e) => {
+                            warn!(?e, "TcpStream Error, ignoring connection attempt");
+                            continue;
+                        },
+                    };
+                    info!("Accepting Tcp from: {}", peer_addr);
                     let protocol = TcpProtocol::new(stream, self.metrics.clone());
                     self.init_protocol(Protocols::Tcp(protocol), None, true)
                         .await;
                 }
             },
-            Address::Udp(addr) => {
+            ProtocolAddr::Udp(addr) => {
                 let socket = match net::UdpSocket::bind(addr).await {
                     Ok(socket) => {
                         s2a_listen_result_s.send(Ok(())).unwrap();
@@ -383,13 +398,13 @@ impl Scheduler {
                         info!(
                             ?addr,
                             ?e,
-                            "listener couldn't be started due to error on udp bind"
+                            "Listener couldn't be started due to error on udp bind"
                         );
                         s2a_listen_result_s.send(Err(e)).unwrap();
                         return;
                     },
                 };
-                trace!(?addr, "listener bound");
+                trace!(?addr, "Listener bound");
                 // receiving is done from here and will be piped to protocol as UDP does not
                 // have any state
                 let mut listeners = HashMap::new();
@@ -424,7 +439,7 @@ impl Scheduler {
             },
             _ => unimplemented!(),
         }
-        trace!(?addr, "ending channel creator");
+        trace!(?addr, "Ending channel creator");
     }
 
     async fn udp_single_channel_connect(
@@ -432,7 +447,7 @@ impl Scheduler {
         mut w2p_udp_package_s: mpsc::UnboundedSender<Vec<u8>>,
     ) {
         let addr = socket.local_addr();
-        trace!(?addr, "start udp_single_channel_connect");
+        trace!(?addr, "Start udp_single_channel_connect");
         //TODO: implement real closing
         let (_end_sender, end_receiver) = oneshot::channel::<()>();
 
@@ -448,7 +463,7 @@ impl Scheduler {
             datavec.extend_from_slice(&data[0..size]);
             w2p_udp_package_s.send(datavec).await.unwrap();
         }
-        trace!(?addr, "stop udp_single_channel_connect");
+        trace!(?addr, "Stop udp_single_channel_connect");
     }
 
     async fn init_protocol(
@@ -477,7 +492,7 @@ impl Scheduler {
         // this is necessary for UDP to work at all and to remove code duplication
         self.pool.spawn_ok(
             async move {
-                trace!(?cid, "open channel and be ready for Handshake");
+                trace!(?cid, "Open channel and be ready for Handshake");
                 let handshake = Handshake::new(
                     cid,
                     local_pid,
@@ -490,17 +505,18 @@ impl Scheduler {
                         trace!(
                             ?cid,
                             ?pid,
-                            "detected that my channel is ready!, activating it :)"
+                            "Detected that my channel is ready!, activating it :)"
                         );
                         let mut participants = participants.write().await;
                         if !participants.contains_key(&pid) {
-                            debug!(?cid, "new participant connected via a channel");
+                            debug!(?cid, "New participant connected via a channel");
                             let (
                                 bparticipant,
                                 a2b_steam_open_s,
                                 b2a_stream_opened_r,
                                 mut s2b_create_channel_s,
                                 s2b_shutdown_bparticipant_s,
+                                api_participant_closed,
                             ) = BParticipant::new(pid, sid, metrics.clone());
 
                             let participant = Participant::new(
@@ -509,6 +525,7 @@ impl Scheduler {
                                 a2b_steam_open_s,
                                 b2a_stream_opened_r,
                                 participant_channels.a2s_disconnect_s,
+                                api_participant_closed,
                             );
 
                             metrics.participants_connected_total.inc();
@@ -557,7 +574,7 @@ impl Scheduler {
                                     ?secret,
                                     "Detected incompatible Secret!, this is probably an attack!"
                                 );
-                                error!("just dropping here, TODO handle this correctly!");
+                                error!("Just dropping here, TODO handle this correctly!");
                                 //TODO
                                 if let Some(pid_oneshot) = s2a_return_pid_s {
                                     // someone is waiting with `connect`, so give them their Error
@@ -571,7 +588,7 @@ impl Scheduler {
                                 return;
                             }
                             error!(
-                                "ufff i cant answer the pid_oneshot. as i need to create the SAME \
+                                "Ufff i cant answer the pid_oneshot. as i need to create the SAME \
                                  participant. maybe switch to ARC"
                             );
                         }
@@ -581,10 +598,11 @@ impl Scheduler {
                     Err(()) => {
                         if let Some(pid_oneshot) = s2a_return_pid_s {
                             // someone is waiting with `connect`, so give them their Error
+                            trace!("returning the Err to api who requested the connect");
                             pid_oneshot
                                 .send(Err(std::io::Error::new(
                                     std::io::ErrorKind::PermissionDenied,
-                                    "handshake failed, denying connection",
+                                    "Handshake failed, denying connection",
                                 )))
                                 .unwrap();
                         }

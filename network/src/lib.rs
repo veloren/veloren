@@ -14,16 +14,16 @@
 //! struct [`Network`] once with a new [`Pid`]. The Pid is necessary to identify
 //! other [`Networks`] over the network protocols (e.g. TCP, UDP)
 //!
-//! To connect to another application, you must know it's [`Address`]. One side
-//! will call [`connect`], the other [`connected`]. If successfull both
-//! applications will now get a [`Arc<Participant>`].
+//! To connect to another application, you must know it's [`ProtocolAddr`]. One
+//! side will call [`connect`], the other [`connected`]. If successfull both
+//! applications will now get a [`Participant`].
 //!
 //! This [`Participant`] represents the connection between those 2 applications.
-//! over the respective [`Address`] and with it the choosen network protocol.
-//! However messages can't be send directly via [`Participants`], instead you
-//! must open a [`Stream`] on it. Like above, one side has to call [`open`], the
-//! other [`opened`]. [`Streams`] can have a different priority and
-//! [`Promises`].
+//! over the respective [`ProtocolAddr`] and with it the choosen network
+//! protocol. However messages can't be send directly via [`Participants`],
+//! instead you must open a [`Stream`] on it. Like above, one side has to call
+//! [`open`], the other [`opened`]. [`Streams`] can have a different priority
+//! and [`Promises`].
 //!
 //! You can now use the [`Stream`] to [`send`] and [`recv`] in both directions.
 //! You can send all kind of messages that implement [`serde`].
@@ -40,7 +40,7 @@
 //! ```rust
 //! use async_std::task::sleep;
 //! use futures::{executor::block_on, join};
-//! use veloren_network::{Address, Network, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
+//! use veloren_network::{Network, Pid, ProtocolAddr, PROMISES_CONSISTENCY, PROMISES_ORDERED};
 //!
 //! // Client
 //! async fn client() -> std::result::Result<(), Box<dyn std::error::Error>> {
@@ -48,7 +48,7 @@
 //!     let (client_network, f) = Network::new(Pid::new(), None);
 //!     std::thread::spawn(f);
 //!     let server = client_network
-//!         .connect(Address::Tcp("127.0.0.1:12345".parse().unwrap()))
+//!         .connect(ProtocolAddr::Tcp("127.0.0.1:12345".parse().unwrap()))
 //!         .await?;
 //!     let mut stream = server
 //!         .open(10, PROMISES_ORDERED | PROMISES_CONSISTENCY)
@@ -62,12 +62,12 @@
 //!     let (server_network, f) = Network::new(Pid::new(), None);
 //!     std::thread::spawn(f);
 //!     server_network
-//!         .listen(Address::Tcp("127.0.0.1:12345".parse().unwrap()))
+//!         .listen(ProtocolAddr::Tcp("127.0.0.1:12345".parse().unwrap()))
 //!         .await?;
 //!     let client = server_network.connected().await?;
 //!     let mut stream = client.opened().await?;
 //!     let msg: String = stream.recv().await?;
-//!     println!("got message: {}", msg);
+//!     println!("Got message: {}", msg);
 //!     assert_eq!(msg, "Hello World");
 //!     Ok(())
 //! }
@@ -86,7 +86,6 @@
 //! [`Networks`]: crate::api::Network
 //! [`connect`]: crate::api::Network::connect
 //! [`connected`]: crate::api::Network::connected
-//! [`Arc<Participant>`]: crate::api::Participant
 //! [`Participant`]: crate::api::Participant
 //! [`Participants`]: crate::api::Participant
 //! [`open`]: crate::api::Participant::open
@@ -96,7 +95,7 @@
 //! [`send`]: crate::api::Stream::send
 //! [`recv`]: crate::api::Stream::recv
 //! [`Pid`]: crate::types::Pid
-//! [`Address`]: crate::api::Address
+//! [`ProtocolAddr`]: crate::api::ProtocolAddr
 //! [`Promises`]: crate::types::Promises
 
 mod api;
@@ -110,7 +109,9 @@ mod scheduler;
 #[macro_use]
 mod types;
 
-pub use api::{Address, Network, NetworkError, Participant, ParticipantError, Stream, StreamError};
+pub use api::{
+    Network, NetworkError, Participant, ParticipantError, ProtocolAddr, Stream, StreamError,
+};
 pub use message::MessageBuffer;
 pub use types::{
     Pid, Promises, PROMISES_COMPRESSED, PROMISES_CONSISTENCY, PROMISES_ENCRYPTED,
