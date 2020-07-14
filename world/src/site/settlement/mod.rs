@@ -2,7 +2,7 @@ pub mod building;
 mod town;
 
 use self::{
-    building::{HouseBuilding, KeepBuilding},
+    building::{Building, House, Keep},
     town::{District, Town},
 };
 use super::SpawnRules;
@@ -86,8 +86,8 @@ const AREA_SIZE: u32 = 32;
 fn to_tile(e: i32) -> i32 { ((e as f32).div_euclid(AREA_SIZE as f32)).floor() as i32 }
 
 pub enum StructureKind {
-    House(HouseBuilding),
-    Keep(KeepBuilding),
+    House(Building<House>),
+    Keep(Building<Keep>),
 }
 
 pub struct Structure {
@@ -403,12 +403,12 @@ impl Settlement {
 
                     let structure = Structure {
                         kind: if tile == town_center && i == 0 {
-                            StructureKind::Keep(KeepBuilding::generate(
+                            StructureKind::Keep(Building::<Keep>::generate(
                                 ctx.rng,
                                 Vec3::new(house_pos.x, house_pos.y, alt),
                             ))
                         } else {
-                            StructureKind::House(HouseBuilding::generate(
+                            StructureKind::House(Building::<House>::generate(
                                 ctx.rng,
                                 Vec3::new(house_pos.x, house_pos.y, alt),
                             ))
@@ -671,94 +671,79 @@ impl Settlement {
                             }))
                         },
                         Some(Plot::Field { seed, crop, .. }) => {
-                            if let Some(color) = col_sample.path.and_then(|(dist, _, path, _)| {
-                                if dist < path.width {
-                                    Some(path.surface_color(
-                                        col_sample.sub_surface_color.map(|e| (e * 255.0) as u8),
-                                    ))
-                                } else {
-                                    None
-                                }
-                            }) {
-                                Some(color)
-                            } else {
-                                let furrow_dirs = [
-                                    Vec2::new(1, 0),
-                                    Vec2::new(0, 1),
-                                    Vec2::new(1, 1),
-                                    Vec2::new(-1, 1),
-                                ];
-                                let furrow_dir = furrow_dirs[*seed as usize % furrow_dirs.len()];
-                                let in_furrow = (wpos2d * furrow_dir).sum().rem_euclid(5) < 2;
+                            let furrow_dirs = [
+                                Vec2::new(1, 0),
+                                Vec2::new(0, 1),
+                                Vec2::new(1, 1),
+                                Vec2::new(-1, 1),
+                            ];
+                            let furrow_dir = furrow_dirs[*seed as usize % furrow_dirs.len()];
+                            let in_furrow = (wpos2d * furrow_dir).sum().rem_euclid(5) < 2;
 
-                                let dirt = Rgb::new(80, 55, 35).map(|e| {
-                                    e + (self.noise.get(Vec3::broadcast((seed % 4096 + 0) as i32))
+                            let dirt = Rgb::new(80, 55, 35).map(|e| {
+                                e + (self.noise.get(Vec3::broadcast((seed % 4096 + 0) as i32)) % 32)
+                                    as u8
+                            });
+                            let mound =
+                                Rgb::new(70, 80, 30).map(|e| e + roll(0, 8) as u8).map(|e| {
+                                    e + (self.noise.get(Vec3::broadcast((seed % 4096 + 1) as i32))
                                         % 32) as u8
                                 });
-                                let mound =
-                                    Rgb::new(70, 80, 30).map(|e| e + roll(0, 8) as u8).map(|e| {
-                                        e + (self
-                                            .noise
-                                            .get(Vec3::broadcast((seed % 4096 + 1) as i32))
-                                            % 32) as u8
-                                    });
 
-                                if in_furrow {
-                                    if roll(0, 5) == 0 {
-                                        surface_block = match crop {
-                                            Crop::Corn => Some(BlockKind::Corn),
-                                            Crop::Wheat if roll(1, 2) == 0 => {
-                                                Some(BlockKind::WheatYellow)
-                                            },
-                                            Crop::Wheat => Some(BlockKind::WheatGreen),
-                                            Crop::Cabbage if roll(2, 2) == 0 => {
-                                                Some(BlockKind::Cabbage)
-                                            },
-                                            Crop::Pumpkin if roll(3, 2) == 0 => {
-                                                Some(BlockKind::Pumpkin)
-                                            },
-                                            Crop::Flax if roll(4, 2) == 0 => Some(BlockKind::Flax),
-                                            Crop::Carrot if roll(5, 2) == 0 => {
-                                                Some(BlockKind::Carrot)
-                                            },
-                                            Crop::Tomato if roll(6, 2) == 0 => {
-                                                Some(BlockKind::Tomato)
-                                            },
-                                            Crop::Radish if roll(7, 2) == 0 => {
-                                                Some(BlockKind::Radish)
-                                            },
-                                            Crop::Turnip if roll(8, 2) == 0 => {
-                                                Some(BlockKind::Turnip)
-                                            },
-                                            Crop::Sunflower => Some(BlockKind::Sunflower),
-                                            _ => None,
-                                        }
-                                        .or_else(|| {
-                                            if roll(9, 400) == 0 {
-                                                Some(BlockKind::Scarecrow)
-                                            } else {
-                                                None
-                                            }
-                                        })
-                                        .map(|kind| Block::new(kind, Rgb::white()));
+                            if in_furrow {
+                                if roll(0, 5) == 0 {
+                                    surface_block = match crop {
+                                        Crop::Corn => Some(BlockKind::Corn),
+                                        Crop::Wheat if roll(1, 2) == 0 => {
+                                            Some(BlockKind::WheatYellow)
+                                        },
+                                        Crop::Wheat => Some(BlockKind::WheatGreen),
+                                        Crop::Cabbage if roll(2, 2) == 0 => {
+                                            Some(BlockKind::Cabbage)
+                                        },
+                                        Crop::Pumpkin if roll(3, 2) == 0 => {
+                                            Some(BlockKind::Pumpkin)
+                                        },
+                                        Crop::Flax if roll(4, 2) == 0 => Some(BlockKind::Flax),
+                                        Crop::Carrot if roll(5, 2) == 0 => Some(BlockKind::Carrot),
+                                        Crop::Tomato if roll(6, 2) == 0 => Some(BlockKind::Tomato),
+                                        Crop::Radish if roll(7, 2) == 0 => Some(BlockKind::Radish),
+                                        Crop::Turnip if roll(8, 2) == 0 => Some(BlockKind::Turnip),
+                                        Crop::Sunflower => Some(BlockKind::Sunflower),
+                                        _ => None,
                                     }
-                                } else if roll(0, 20) == 0 {
-                                    surface_block =
-                                        Some(Block::new(BlockKind::ShortGrass, Rgb::white()));
-                                } else if roll(1, 30) == 0 {
-                                    surface_block =
-                                        Some(Block::new(BlockKind::MediumGrass, Rgb::white()));
+                                    .or_else(|| {
+                                        if roll(9, 400) == 0 {
+                                            Some(BlockKind::Scarecrow)
+                                        } else {
+                                            None
+                                        }
+                                    })
+                                    .map(|kind| Block::new(kind, Rgb::white()));
                                 }
-
-                                Some(if in_furrow { dirt } else { mound })
+                            } else if roll(0, 20) == 0 {
+                                surface_block =
+                                    Some(Block::new(BlockKind::ShortGrass, Rgb::white()));
+                            } else if roll(1, 30) == 0 {
+                                surface_block =
+                                    Some(Block::new(BlockKind::MediumGrass, Rgb::white()));
                             }
+
+                            Some(if in_furrow { dirt } else { mound })
                         },
                         _ => None,
                     };
 
                     if let Some(color) = color {
-                        if col_sample.water_dist.map(|dist| dist > 2.0).unwrap_or(true) {
+                        let is_path = col_sample
+                            .path
+                            .map(|(dist, _, path, _)| dist < path.width)
+                            .unwrap_or(false);
+
+                        if col_sample.water_dist.map(|dist| dist > 2.0).unwrap_or(true) && !is_path
+                        {
                             let diff = (surface_z - land_surface_z).abs();
+
                             for z in -8 - diff..3 + diff {
                                 let pos = Vec3::new(offs.x, offs.y, surface_z + z);
 

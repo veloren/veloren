@@ -23,7 +23,7 @@ pub fn simulate(index: &mut Index, world: &mut WorldSim) {
         write!(f, "{:?} Value,", g).unwrap();
     }
     for g in Good::list() {
-        write!(f, "{:?} Price,", g).unwrap();
+        write!(f, "{:?} LaborVal,", g).unwrap();
     }
     for g in Good::list() {
         write!(f, "{:?} Stock,", g).unwrap();
@@ -36,6 +36,9 @@ pub fn simulate(index: &mut Index, world: &mut WorldSim) {
     }
     for l in Labor::list() {
         write!(f, "{:?} Productivity,", l).unwrap();
+    }
+    for l in Labor::list() {
+        write!(f, "{:?} Yields,", l).unwrap();
     }
     writeln!(f, "").unwrap();
 
@@ -53,7 +56,7 @@ pub fn simulate(index: &mut Index, world: &mut WorldSim) {
                 write!(f, "{:?},", site.economy.values[*g].unwrap_or(-1.0)).unwrap();
             }
             for g in Good::list() {
-                write!(f, "{:?},", site.economy.prices[*g]).unwrap();
+                write!(f, "{:?},", site.economy.labor_values[*g]).unwrap();
             }
             for g in Good::list() {
                 write!(f, "{:?},", site.economy.stocks[*g]).unwrap();
@@ -66,6 +69,9 @@ pub fn simulate(index: &mut Index, world: &mut WorldSim) {
             }
             for l in Labor::list() {
                 write!(f, "{:?},", site.economy.productivity[*l]).unwrap();
+            }
+            for l in Labor::list() {
+                write!(f, "{:?},", site.economy.yields[*l]).unwrap();
             }
             writeln!(f, "").unwrap();
         }
@@ -144,11 +150,6 @@ pub fn tick_site_economy(index: &mut Index, site: Id<Site>, dt: f32) {
         };
     });
 
-    site.economy.prices = site.economy.stocks.clone().map(|g, stock| {
-        // Price rationalisation
-        demand[g] / (supply[g] + stocks[g])
-    });
-
     // Update export targets based on relative values
     let value_avg = values
         .iter()
@@ -169,7 +170,8 @@ pub fn tick_site_economy(index: &mut Index, site: Id<Site>, dt: f32) {
 
     // Redistribute workforce according to relative good values
     let labor_ratios = productivity.clone().map(|labor, (output_good, _)| {
-        site.economy.values[output_good].unwrap_or(0.0) * site.economy.productivity[labor]
+        site.economy.values[output_good].unwrap_or(0.0) * site.economy.yields[labor]
+        //(site.economy.prices[output_good] - site.economy.material_costs[output_good]) * site.economy.yields[labor]
         //* demand[output_good] / supply[output_good].max(0.001)
     });
     let labor_ratio_sum = labor_ratios.iter().map(|(_, r)| *r).sum::<f32>().max(0.01);
@@ -182,6 +184,7 @@ pub fn tick_site_economy(index: &mut Index, site: Id<Site>, dt: f32) {
 
     // Production
     let stocks_before = site.economy.stocks.clone();
+    site.economy.labor_values = Default::default();
     for (labor, orders) in orders.iter() {
         let scale = if let Some(labor) = labor {
             site.economy.labors[*labor]
@@ -207,11 +210,15 @@ pub fn tick_site_economy(index: &mut Index, site: Id<Site>, dt: f32) {
             .min_by(|a, b| a.partial_cmp(b).unwrap())
             .unwrap_or_else(|| panic!("Industry {:?} requires at least one input order", labor));
 
+        let mut total_materials_cost = 0.0;
         for (good, amount) in orders {
             // What quantity is this order requesting?
             let quantity = *amount * scale;
             // What amount gets actually used in production?
             let used = quantity * labor_productivity;
+
+            // Material cost of each factor of production
+            total_materials_cost += used * site.economy.labor_values[*good];
 
             // Deplete stocks accordingly
             site.economy.stocks[*good] = (site.economy.stocks[*good] - used).max(0.0);
@@ -222,10 +229,19 @@ pub fn tick_site_economy(index: &mut Index, site: Id<Site>, dt: f32) {
             let (stock, rate) = productivity[*labor];
             let workers = site.economy.labors[*labor] * site.economy.pop;
             let final_rate = rate;
-            let yield_per_worker = labor_productivity * final_rate;
+            let yield_per_worker = labor_productivity * final_rate * (1.0 + workers / 100.0);
             site.economy.yields[*labor] = yield_per_worker;
             site.economy.productivity[*labor] = labor_productivity;
-            site.economy.stocks[stock] += yield_per_worker * workers.powf(1.1);
+            let total_output = yield_per_worker * workers;
+            site.economy.stocks[stock] += total_output;
+
+            // Materials cost per unit
+            let material_cost_per_unit = total_materials_cost / total_output.max(0.001);
+            site.economy.material_costs[stock] = material_cost_per_unit;
+            site.economy.labor_values[stock] += material_cost_per_unit;
+            // Labor costs
+            let wages = 1.0;
+            site.economy.labor_values[stock] += workers * wages / total_output.max(0.001);
         }
     }
 

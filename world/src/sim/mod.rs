@@ -26,6 +26,7 @@ pub use self::{
 use crate::{
     all::ForestKind,
     civ::Place,
+    column::{ColumnGen, ColumnSample},
     site::Site,
     util::{seed_expan, FastNoise, RandomField, StructureGen2d, LOCALITY, NEIGHBORS},
     Index, CONFIG,
@@ -1699,8 +1700,9 @@ impl WorldSim {
         Some(z0 + z1 + z2 + z3)
     }
 
-    /// Return the distance to the nearest path in blocks, along with the closest point on the
-    /// path, the path metadata, and the tangent vector of that path.
+    /// Return the distance to the nearest path in blocks, along with the
+    /// closest point on the path, the path metadata, and the tangent vector
+    /// of that path.
     pub fn get_nearest_path(&self, wpos: Vec2<i32>) -> Option<(f32, Vec2<f32>, Path, Vec2<f32>)> {
         let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
             e.div_euclid(sz as i32)

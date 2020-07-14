@@ -12,28 +12,60 @@ use common::{
 use rand::prelude::*;
 use vek::*;
 
-const COLOR_THEMES: [Rgb<u8>; 17] = [
-    Rgb::new(0x1D, 0x4D, 0x45),
-    Rgb::new(0xB3, 0x7D, 0x60),
-    Rgb::new(0xAC, 0x5D, 0x26),
-    Rgb::new(0x32, 0x46, 0x6B),
-    Rgb::new(0x2B, 0x19, 0x0F),
-    Rgb::new(0x93, 0x78, 0x51),
-    Rgb::new(0x92, 0x57, 0x24),
-    Rgb::new(0x4A, 0x4E, 0x4E),
-    Rgb::new(0x2F, 0x32, 0x47),
-    Rgb::new(0x8F, 0x35, 0x43),
-    Rgb::new(0x6D, 0x1E, 0x3A),
-    Rgb::new(0x6D, 0xA7, 0x80),
-    Rgb::new(0x4F, 0xA0, 0x95),
-    Rgb::new(0xE2, 0xB9, 0x99),
-    Rgb::new(0x7A, 0x30, 0x22),
-    Rgb::new(0x4A, 0x06, 0x08),
-    Rgb::new(0x8E, 0xB4, 0x57),
+pub struct ColorTheme {
+    roof: Rgb<u8>,
+    wall: Rgb<u8>,
+    support: Rgb<u8>,
+}
+
+const ROOF_COLORS: &[Rgb<u8>] = &[
+    // Rgb::new(0x1D, 0x4D, 0x45),
+    // Rgb::new(0xB3, 0x7D, 0x60),
+    // Rgb::new(0xAC, 0x5D, 0x26),
+    // Rgb::new(0x32, 0x46, 0x6B),
+    // Rgb::new(0x2B, 0x19, 0x0F),
+    // Rgb::new(0x93, 0x78, 0x51),
+    // Rgb::new(0x92, 0x57, 0x24),
+    // Rgb::new(0x4A, 0x4E, 0x4E),
+    // Rgb::new(0x2F, 0x32, 0x47),
+    // Rgb::new(0x8F, 0x35, 0x43),
+    // Rgb::new(0x6D, 0x1E, 0x3A),
+    // Rgb::new(0x6D, 0xA7, 0x80),
+    // Rgb::new(0x4F, 0xA0, 0x95),
+    // Rgb::new(0xE2, 0xB9, 0x99),
+    // Rgb::new(0x7A, 0x30, 0x22),
+    // Rgb::new(0x4A, 0x06, 0x08),
+    // Rgb::new(0x8E, 0xB4, 0x57),
+    Rgb::new(0x99, 0x5E, 0x54),
+    Rgb::new(0x43, 0x63, 0x64),
+    Rgb::new(0x76, 0x6D, 0x68),
+    Rgb::new(0x7B, 0x41, 0x61),
+    Rgb::new(0x52, 0x20, 0x20),
+    Rgb::new(0x1A, 0x4A, 0x59),
+    Rgb::new(0xCC, 0x76, 0x4E),
+];
+
+const WALL_COLORS: &[Rgb<u8>] = &[
+    Rgb::new(200, 180, 150),
+    Rgb::new(0xB8, 0xB4, 0xA4),
+    Rgb::new(0x76, 0x6D, 0x68),
+    Rgb::new(0xF3, 0xC9, 0x8F),
+    Rgb::new(0xD3, 0xB7, 0x99),
+    Rgb::new(0xE1, 0xAB, 0x91),
+    Rgb::new(0x82, 0x57, 0x4C),
+    Rgb::new(0xB9, 0x96, 0x77),
+    Rgb::new(0x6E, 0x4D, 0x3C),
+];
+
+const SUPPORT_COLORS: &[Rgb<u8>] = &[
+    Rgb::new(60, 45, 30),
+    Rgb::new(0x65, 0x55, 0x56),
+    Rgb::new(0x53, 0x33, 0x13),
+    Rgb::new(0x58, 0x42, 0x33),
 ];
 
 pub struct House {
-    pub roof_color: Rgb<u8>,
+    pub colors: ColorTheme,
     pub noise: RandomField,
     pub roof_ribbing: bool,
     pub roof_ribbing_diagonal: bool,
@@ -126,6 +158,7 @@ impl Archetype for House {
         let len = rng.gen_range(-8, 24).clamped(0, 20);
         let locus = 6 + rng.gen_range(0, 5);
         let branches_per_side = 1 + len as usize / 20;
+        let levels = rng.gen_range(1, 3);
         let skel = Skeleton {
             offset: -rng.gen_range(0, len + 7).clamped(0, len),
             ori: if rng.gen() { Ori::East } else { Ori::North },
@@ -139,7 +172,7 @@ impl Archetype for House {
                         1 => Pillar::Tower(5 + rng.gen_range(1, 5)),
                         _ => Pillar::None,
                     },
-                    levels: rng.gen_range(1, 4),
+                    levels,
                     ..Attr::generate(rng, locus)
                 },
                 locus,
@@ -154,7 +187,10 @@ impl Archetype for House {
                                 i as i32 * len / (branches_per_side - 1).max(1) as i32,
                                 Branch {
                                     len: rng.gen_range(8, 16) * flip,
-                                    attr: Attr::generate(rng, locus),
+                                    attr: Attr {
+                                        levels: rng.gen_range(1, 4).min(levels),
+                                        ..Attr::generate(rng, locus)
+                                    },
                                     locus: (6 + rng.gen_range(0, 3)).min(locus),
                                     border: 4,
                                     children: Vec::new(),
@@ -169,7 +205,11 @@ impl Archetype for House {
         };
 
         let this = Self {
-            roof_color: *COLOR_THEMES.choose(rng).unwrap(),
+            colors: ColorTheme {
+                roof: *ROOF_COLORS.choose(rng).unwrap(),
+                wall: *WALL_COLORS.choose(rng).unwrap(),
+                support: *SUPPORT_COLORS.choose(rng).unwrap(),
+            },
             noise: RandomField::new(rng.gen()),
             roof_ribbing: rng.gen(),
             roof_ribbing_diagonal: rng.gen(),
@@ -205,7 +245,7 @@ impl Archetype for House {
             )
         };
 
-        let make_block = |r, g, b| {
+        let make_block = |(r, g, b)| {
             let nz = self
                 .noise
                 .get(Vec3::new(center_offset.x, center_offset.y, z * 8));
@@ -225,12 +265,11 @@ impl Archetype for House {
         let foundation_layer = internal_layer + 1;
         let floor_layer = foundation_layer + 1;
 
-        let foundation = make_block(100, 100, 100).with_priority(foundation_layer);
-        let log = make_block(60, 45, 30);
-        let floor = make_block(100, 75, 50);
-        let wall = make_block(200, 180, 150).with_priority(facade_layer);
-        let roof = make_block(self.roof_color.r, self.roof_color.g, self.roof_color.b)
-            .with_priority(facade_layer - 1);
+        let foundation = make_block((100, 100, 100)).with_priority(foundation_layer);
+        let log = make_block(self.colors.support.into_tuple());
+        let floor = make_block((100, 75, 50));
+        let wall = make_block(self.colors.wall.into_tuple()).with_priority(facade_layer);
+        let roof = make_block(self.colors.roof.into_tuple()).with_priority(facade_layer - 1);
         let empty = BlockMask::nothing();
         let internal = BlockMask::new(Block::empty(), internal_layer);
         let end_window = BlockMask::new(

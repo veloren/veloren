@@ -127,7 +127,7 @@ impl Civs {
             let wpos = site.center * TerrainChunkSize::RECT_SIZE.map(|e: u32| e as i32);
 
             let flatten_radius = match &site.kind {
-                SiteKind::Settlement => 8.0,
+                SiteKind::Settlement => 10.0,
                 SiteKind::Dungeon => 2.0,
                 SiteKind::Castle => 5.0,
             };
@@ -148,9 +148,10 @@ impl Civs {
                             0.0
                         }; // Raise the town centre up a little
                     let pos = site.center + offs;
-                    let factor = (1.0
+                    let factor = ((1.0
                         - (site.center - pos).map(|e| e as f32).magnitude() / flatten_radius)
-                        * 0.8;
+                        * 1.25)
+                        .min(1.0);
                     ctx.sim
                         .get_mut(pos)
                         // Don't disrupt chunks that are near water
@@ -170,9 +171,11 @@ impl Civs {
         let mut cnt = 0;
         for sim_site in this.sites.values() {
             cnt += 1;
-            let wpos = sim_site.center.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
-                e * sz as i32 + sz as i32 / 2
-            });
+            let wpos = sim_site
+                .center
+                .map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
+                    e * sz as i32 + sz as i32 / 2
+                });
 
             let mut rng = ctx.reseed().rng;
             let site = index.sites.insert(match &sim_site.kind {

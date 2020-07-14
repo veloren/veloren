@@ -15,7 +15,7 @@ use common::{
     sync::{Uid, WorldSyncExt},
     terrain::{Block, BlockKind, TerrainChunkSize},
     util::Dir,
-    vol::{RectVolSize, WriteVol},
+    vol::RectVolSize,
     LoadoutBuilder,
 };
 use rand::Rng;
