@@ -30,7 +30,6 @@ widget_ids! {
         inv_grid_2,
         inv_scrollbar,
         inv_slots_0,
-        map_title,
         inv_slots[],
         //tooltip[],
         bg,

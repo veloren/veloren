@@ -287,11 +287,14 @@ impl<'a> BlockGen<'a> {
                     BlockKind::WhiteFlower,
                     BlockKind::YellowFlower,
                     BlockKind::Sunflower,
-                    BlockKind::Mushroom,
+                    BlockKind::Mushroom, //TODO: Better spawnrules
                     BlockKind::LeafyPlant,
                     BlockKind::Blueberry,
                     BlockKind::LingonBerry,
                     BlockKind::Fern,
+                    /*BlockKind::Twigs,    // TODO: Better spawnrules
+                     *BlockKind::Stones,   // TODO: Better spawnrules
+                     *BlockKind::ShinyGem, // TODO: Better spawnrules */
                 ];
                 let grasses = [
                     BlockKind::LongGrass,

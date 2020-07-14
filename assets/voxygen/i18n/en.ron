@@ -118,8 +118,6 @@ Thanks for taking the time to read this notice, we hope you enjoy the game!
         // Login process description
         "main.login_process": r#"Information on the Login Process:
 
-If you are having issues signing in:
-
 Please note that you now need an account
 to play on auth-enabled servers.
 
@@ -313,7 +311,13 @@ magically infused items?"#,
         "hud.social.faction": "Faction",
         "hud.social.play_online_fmt": "{nb_player} player(s) online",
 
-        "hud.spell": "Spells",
+        "hud.crafting": "Crafting",
+        "hud.crafting.recipes": "Recipes",
+        "hud.crafting.ingredients": "Ingredients:",
+        "hud.crafting.craft": "Craft",
+        "hud.crafting.tool_cata": "Requires:",
+
+        "hud.spell": "Spells",        
 
         "hud.free_look_indicator": "Free look active",
         "hud.auto_walk_indicator": "Auto walk active",
