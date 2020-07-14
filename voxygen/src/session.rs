@@ -87,6 +87,12 @@ impl SessionState {
             is_aiming: false,
         }
     }
+
+    fn stop_auto_walk(&mut self) {
+        self.auto_walk = false;
+        self.hud.auto_walk(false);
+        self.key_state.auto_walk = false;
+    }
 }
 
 impl SessionState {
@@ -180,11 +186,6 @@ impl PlayState for SessionState {
         ));
 
         // TODO: can this be a method on the session or are there borrowcheck issues?
-        fn stop_auto_walk(auto_walk: &mut bool, key_state: &mut KeyState, hud: &mut Hud) {
-            *auto_walk = false;
-            hud.auto_walk(false);
-            key_state.auto_walk = false;
-        }
 
         let client_state = self.client.borrow().get_client_state();
         if let ClientState::Pending | ClientState::Character = client_state {
@@ -340,7 +341,7 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::Respawn, state)
                         if state != self.key_state.respawn =>
                     {
-                        stop_auto_walk(&mut auto_walk, &mut self.key_state, &mut self.hud);
+                        self.stop_auto_walk();
                         self.key_state.respawn = state;
                         if state {
                             self.client.borrow_mut().respawn();
@@ -357,7 +358,7 @@ impl PlayState for SessionState {
                     {
                         self.key_state.toggle_sit = state;
                         if state {
-                            stop_auto_walk(&mut self.auto_walk, &mut self.key_state, &mut self.hud);
+                            self.stop_auto_walk();
                             self.client.borrow_mut().toggle_sit();
                         }
                     }
@@ -366,31 +367,31 @@ impl PlayState for SessionState {
                     {
                         self.key_state.toggle_dance = state;
                         if state {
-                            stop_auto_walk(&mut self.auto_walk, &mut self.key_state, &mut self.hud);
+                            self.stop_auto_walk();
                             self.client.borrow_mut().toggle_dance();
                         }
                     }
                     Event::InputUpdate(GameInput::MoveForward, state) => {
                         if state && global_state.settings.gameplay.stop_auto_walk_on_input {
-                            stop_auto_walk(&mut self.auto_walk, &mut self.key_state, &mut self.hud);
+                            self.stop_auto_walk();
                         }
                         self.key_state.up = state
                     },
                     Event::InputUpdate(GameInput::MoveBack, state) => {
                         if state && global_state.settings.gameplay.stop_auto_walk_on_input {
-                            stop_auto_walk(&mut self.auto_walk, &mut self.key_state, &mut self.hud);
+                            self.stop_auto_walk();
                         }
                         self.key_state.down = state
                     },
                     Event::InputUpdate(GameInput::MoveLeft, state) => {
                         if state && global_state.settings.gameplay.stop_auto_walk_on_input {
-                            stop_auto_walk(&mut self.auto_walk, &mut self.key_state, &mut self.hud);
+                            self.stop_auto_walk();
                         }
                         self.key_state.left = state
                     },
                     Event::InputUpdate(GameInput::MoveRight, state) => {
                         if state && global_state.settings.gameplay.stop_auto_walk_on_input {
-                            stop_auto_walk(&mut self.auto_walk, &mut self.key_state, &mut self.hud);
+                            self.stop_auto_walk();
                         }
                         self.key_state.right = state
                     },
