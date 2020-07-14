@@ -18,6 +18,7 @@ use futures::{
     sink::SinkExt,
     stream::StreamExt,
 };
+#[cfg(feature = "metrics")]
 use prometheus::Registry;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
@@ -127,11 +128,11 @@ pub enum StreamError {
 ///
 /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
 /// // Create a Network, listen on port `2999` to accept connections and connect to port `8080` to connect to a (pseudo) database Application
-/// let (network, f) = Network::new(Pid::new(), None);
+/// let (network, f) = Network::new(Pid::new());
 /// std::thread::spawn(f);
 /// block_on(async{
 ///     # //setup pseudo database!
-///     # let (database, fd) = Network::new(Pid::new(), None);
+///     # let (database, fd) = Network::new(Pid::new());
 ///     # std::thread::spawn(fd);
 ///     # database.listen(ProtocolAddr::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
 ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2999".parse().unwrap())).await?;
@@ -162,9 +163,6 @@ impl Network {
     /// # Arguments
     /// * `participant_id` - provide it by calling [`Pid::new()`], usually you
     ///   don't want to reuse a Pid for 2 `Networks`
-    /// * `registry` - Provide a Registy in order to collect Prometheus metrics
-    ///   by this `Network`, `None` will deactivate Tracing. Tracing is done via
-    ///   [`prometheus`]
     ///
     /// # Result
     /// * `Self` - returns a `Network` which can be `Send` to multiple areas of
@@ -184,7 +182,7 @@ impl Network {
     /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// let pool = ThreadPoolBuilder::new().build();
-    /// let (network, f) = Network::new(Pid::new(), None);
+    /// let (network, f) = Network::new(Pid::new());
     /// pool.execute(f);
     /// ```
     ///
@@ -192,11 +190,11 @@ impl Network {
     /// //Example with std::thread
     /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
-    /// let (network, f) = Network::new(Pid::new(), None);
+    /// let (network, f) = Network::new(Pid::new());
     /// std::thread::spawn(f);
     /// ```
     ///
-    /// Usually you only create a single `Network` for an appliregistrycation,
+    /// Usually you only create a single `Network` for an application,
     /// except when client and server are in the same application, then you
     /// will want 2. However there are no technical limitations from
     /// creating more.
@@ -204,14 +202,51 @@ impl Network {
     /// [`Pid::new()`]: crate::types::Pid::new
     /// [`ThreadPool`]: https://docs.rs/uvth/newest/uvth/struct.ThreadPool.html
     /// [`uvth`]: https://docs.rs/uvth
-    pub fn new(
+    pub fn new(participant_id: Pid) -> (Self, impl std::ops::FnOnce()) {
+        Self::internal_new(
+            participant_id,
+            #[cfg(feature = "metrics")]
+            None,
+        )
+    }
+
+    /// See [`new`]
+    ///
+    /// # additional Arguments
+    /// * `registry` - Provide a Registy in order to collect Prometheus metrics
+    ///   by this `Network`, `None` will deactivate Tracing. Tracing is done via
+    ///   [`prometheus`]
+    ///
+    /// # Examples
+    /// ```rust
+    /// use prometheus::Registry;
+    /// use veloren_network::{Network, Pid, ProtocolAddr};
+    ///
+    /// let registry = Registry::new();
+    /// let (network, f) = Network::new_with_registry(Pid::new(), &registry);
+    /// std::thread::spawn(f);
+    /// ```
+    /// [`new`]: crate::api::Network::new
+    #[cfg(feature = "metrics")]
+    pub fn new_with_registry(
         participant_id: Pid,
-        registry: Option<&Registry>,
+        registry: &Registry,
+    ) -> (Self, impl std::ops::FnOnce()) {
+        Self::internal_new(participant_id, Some(registry))
+    }
+
+    fn internal_new(
+        participant_id: Pid,
+        #[cfg(feature = "metrics")] registry: Option<&Registry>,
     ) -> (Self, impl std::ops::FnOnce()) {
         let p = participant_id;
         debug!(?p, "Starting Network");
         let (scheduler, listen_sender, connect_sender, connected_receiver, shutdown_sender) =
-            Scheduler::new(participant_id, registry);
+            Scheduler::new(
+                participant_id,
+                #[cfg(feature = "metrics")]
+                registry,
+            );
         (
             Self {
                 local_pid: participant_id,
@@ -222,13 +257,13 @@ impl Network {
                 shutdown_sender: Some(shutdown_sender),
             },
             move || {
-                trace!(?p, "Starting sheduler in own thread");
+                trace!(?p, "Starting scheduler in own thread");
                 let _handle = task::block_on(
                     scheduler
                         .run()
                         .instrument(tracing::info_span!("scheduler", ?p)),
                 );
-                trace!(?p, "Stopping sheduler and his own thread");
+                trace!(?p, "Stopping scheduler and his own thread");
             },
         )
     }
@@ -247,7 +282,7 @@ impl Network {
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2000` TCP on all NICs and `2001` UDP locally
-    /// let (network, f) = Network::new(Pid::new(), None);
+    /// let (network, f) = Network::new(Pid::new());
     /// std::thread::spawn(f);
     /// block_on(async {
     ///     network
@@ -288,9 +323,9 @@ impl Network {
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port `2010` TCP and `2011` UDP like listening above
-    /// let (network, f) = Network::new(Pid::new(), None);
+    /// let (network, f) = Network::new(Pid::new());
     /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new(), None);
+    /// # let (remote, fr) = Network::new(Pid::new());
     /// # std::thread::spawn(fr);
     /// block_on(async {
     ///     # remote.listen(ProtocolAddr::Tcp("0.0.0.0:2010".parse().unwrap())).await?;
@@ -354,9 +389,9 @@ impl Network {
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2020` TCP and opens returns their Pid
-    /// let (network, f) = Network::new(Pid::new(), None);
+    /// let (network, f) = Network::new(Pid::new());
     /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new(), None);
+    /// # let (remote, fr) = Network::new(Pid::new());
     /// # std::thread::spawn(fr);
     /// block_on(async {
     ///     network
@@ -428,9 +463,9 @@ impl Participant {
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2100 and open a stream
-    /// let (network, f) = Network::new(Pid::new(), None);
+    /// let (network, f) = Network::new(Pid::new());
     /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new(), None);
+    /// # let (remote, fr) = Network::new(Pid::new());
     /// # std::thread::spawn(fr);
     /// block_on(async {
     ///     # remote.listen(ProtocolAddr::Tcp("0.0.0.0:2100".parse().unwrap())).await?;
@@ -483,9 +518,9 @@ impl Participant {
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2110 and wait for the other side to open a stream
     /// // Note: It's quite unusal to activly connect, but then wait on a stream to be connected, usually the Appication taking initiative want's to also create the first Stream.
-    /// let (network, f) = Network::new(Pid::new(), None);
+    /// let (network, f) = Network::new(Pid::new());
     /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new(), None);
+    /// # let (remote, fr) = Network::new(Pid::new());
     /// # std::thread::spawn(fr);
     /// block_on(async {
     ///     # remote.listen(ProtocolAddr::Tcp("0.0.0.0:2110".parse().unwrap())).await?;
@@ -542,9 +577,9 @@ impl Participant {
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2030` TCP and opens returns their Pid and close connection.
-    /// let (network, f) = Network::new(Pid::new(), None);
+    /// let (network, f) = Network::new(Pid::new());
     /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new(), None);
+    /// # let (remote, fr) = Network::new(Pid::new());
     /// # std::thread::spawn(fr);
     /// block_on(async {
     ///     network
@@ -679,9 +714,9 @@ impl Stream {
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2200` and wait for a Stream to be opened, then answer `Hello World`
-    /// let (network, f) = Network::new(Pid::new(), None);
+    /// let (network, f) = Network::new(Pid::new());
     /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new(), None);
+    /// # let (remote, fr) = Network::new(Pid::new());
     /// # std::thread::spawn(fr);
     /// block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
@@ -719,11 +754,11 @@ impl Stream {
     /// use std::sync::Arc;
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
-    /// let (network, f) = Network::new(Pid::new(), None);
+    /// let (network, f) = Network::new(Pid::new());
     /// std::thread::spawn(f);
-    /// # let (remote1, fr1) = Network::new(Pid::new(), None);
+    /// # let (remote1, fr1) = Network::new(Pid::new());
     /// # std::thread::spawn(fr1);
-    /// # let (remote2, fr2) = Network::new(Pid::new(), None);
+    /// # let (remote2, fr2) = Network::new(Pid::new());
     /// # std::thread::spawn(fr2);
     /// block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
@@ -784,9 +819,9 @@ impl Stream {
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2220` and wait for a Stream to be opened, then listen on it
-    /// let (network, f) = Network::new(Pid::new(), None);
+    /// let (network, f) = Network::new(Pid::new());
     /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new(), None);
+    /// # let (remote, fr) = Network::new(Pid::new());
     /// # std::thread::spawn(fr);
     /// block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2220".parse().unwrap())).await?;

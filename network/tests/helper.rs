@@ -49,9 +49,9 @@ pub fn setup(tracing: bool, mut sleep: u64) -> (u64, u64) {
 pub async fn network_participant_stream(
     addr: ProtocolAddr,
 ) -> (Network, Participant, Stream, Network, Participant, Stream) {
-    let (n_a, f_a) = Network::new(Pid::fake(1), None);
+    let (n_a, f_a) = Network::new(Pid::fake(1));
     std::thread::spawn(f_a);
-    let (n_b, f_b) = Network::new(Pid::fake(2), None);
+    let (n_b, f_b) = Network::new(Pid::fake(2));
     std::thread::spawn(f_b);
 
     n_a.listen(addr.clone()).await.unwrap();

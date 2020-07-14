@@ -1,7 +1,6 @@
-use crate::{
-    metrics::{CidFrameCache, NetworkMetrics},
-    types::{Cid, Frame, Mid, Pid, Sid},
-};
+#[cfg(feature = "metrics")]
+use crate::metrics::{CidFrameCache, NetworkMetrics};
+use crate::types::{Cid, Frame, Mid, Pid, Sid};
 use async_std::{
     net::{TcpStream, UdpSocket},
     prelude::*,
@@ -41,6 +40,7 @@ pub(crate) enum Protocols {
 #[derive(Debug)]
 pub(crate) struct TcpProtocol {
     stream: TcpStream,
+    #[cfg(feature = "metrics")]
     metrics: Arc<NetworkMetrics>,
 }
 
@@ -48,14 +48,22 @@ pub(crate) struct TcpProtocol {
 pub(crate) struct UdpProtocol {
     socket: Arc<UdpSocket>,
     remote_addr: SocketAddr,
+    #[cfg(feature = "metrics")]
     metrics: Arc<NetworkMetrics>,
     data_in: Mutex<mpsc::UnboundedReceiver<Vec<u8>>>,
 }
 
 //TODO: PERFORMACE: Use BufWriter and BufReader from std::io!
 impl TcpProtocol {
-    pub(crate) fn new(stream: TcpStream, metrics: Arc<NetworkMetrics>) -> Self {
-        Self { stream, metrics }
+    pub(crate) fn new(
+        stream: TcpStream,
+        #[cfg(feature = "metrics")] metrics: Arc<NetworkMetrics>,
+    ) -> Self {
+        Self {
+            stream,
+            #[cfg(feature = "metrics")]
+            metrics,
+        }
     }
 
     /// read_except and if it fails, close the protocol
@@ -98,7 +106,9 @@ impl TcpProtocol {
         end_r: oneshot::Receiver<()>,
     ) {
         trace!("Starting up tcp read()");
+        #[cfg(feature = "metrics")]
         let mut metrics_cache = CidFrameCache::new(self.metrics.frames_wire_in_total.clone(), cid);
+        #[cfg(feature = "metrics")]
         let throughput_cache = self
             .metrics
             .wire_in_throughput
@@ -177,6 +187,7 @@ impl TcpProtocol {
                     let start = u64::from_le_bytes(*<&[u8; 8]>::try_from(&bytes[8..16]).unwrap());
                     let length = u16::from_le_bytes(*<&[u8; 2]>::try_from(&bytes[16..18]).unwrap());
                     let mut data = vec![0; length as usize];
+                    #[cfg(feature = "metrics")]
                     throughput_cache.inc_by(length as i64);
                     read_or_close!(&mut data);
                     Frame::Data { mid, start, data }
@@ -199,6 +210,7 @@ impl TcpProtocol {
                     Frame::Raw(data)
                 },
             };
+            #[cfg(feature = "metrics")]
             metrics_cache.with_label_values(&frame).inc();
             w2c_cid_frame_s
                 .send((cid, frame))
@@ -230,11 +242,15 @@ impl TcpProtocol {
     pub async fn write_to_wire(&self, cid: Cid, mut c2w_frame_r: mpsc::UnboundedReceiver<Frame>) {
         trace!("Starting up tcp write()");
         let mut stream = self.stream.clone();
+        #[cfg(feature = "metrics")]
         let mut metrics_cache = CidFrameCache::new(self.metrics.frames_wire_out_total.clone(), cid);
+        #[cfg(feature = "metrics")]
         let throughput_cache = self
             .metrics
             .wire_out_throughput
             .with_label_values(&[&cid.to_string()]);
+        #[cfg(not(feature = "metrics"))]
+        let _cid = cid;
 
         macro_rules! write_or_close {
             ($x:expr) => {
@@ -246,6 +262,7 @@ impl TcpProtocol {
         }
 
         while let Some(frame) = c2w_frame_r.next().await {
+            #[cfg(feature = "metrics")]
             metrics_cache.with_label_values(&frame).inc();
             match frame {
                 Frame::Handshake {
@@ -287,6 +304,7 @@ impl TcpProtocol {
                     write_or_close!(&length.to_le_bytes());
                 },
                 Frame::Data { mid, start, data } => {
+                    #[cfg(feature = "metrics")]
                     throughput_cache.inc_by(data.len() as i64);
                     write_or_close!(&FRAME_DATA.to_be_bytes());
                     write_or_close!(&mid.to_le_bytes());
@@ -309,12 +327,13 @@ impl UdpProtocol {
     pub(crate) fn new(
         socket: Arc<UdpSocket>,
         remote_addr: SocketAddr,
-        metrics: Arc<NetworkMetrics>,
+        #[cfg(feature = "metrics")] metrics: Arc<NetworkMetrics>,
         data_in: mpsc::UnboundedReceiver<Vec<u8>>,
     ) -> Self {
         Self {
             socket,
             remote_addr,
+            #[cfg(feature = "metrics")]
             metrics,
             data_in: Mutex::new(data_in),
         }
@@ -327,7 +346,9 @@ impl UdpProtocol {
         end_r: oneshot::Receiver<()>,
     ) {
         trace!("Starting up udp read()");
+        #[cfg(feature = "metrics")]
         let mut metrics_cache = CidFrameCache::new(self.metrics.frames_wire_in_total.clone(), cid);
+        #[cfg(feature = "metrics")]
         let throughput_cache = self
             .metrics
             .wire_in_throughput
@@ -418,6 +439,7 @@ impl UdpProtocol {
                     ]);
                     let length = u16::from_le_bytes([bytes[17], bytes[18]]);
                     let mut data = vec![0; length as usize];
+                    #[cfg(feature = "metrics")]
                     throughput_cache.inc_by(length as i64);
                     data.copy_from_slice(&bytes[19..]);
                     Frame::Data { mid, start, data }
@@ -430,6 +452,7 @@ impl UdpProtocol {
                 },
                 _ => Frame::Raw(bytes),
             };
+            #[cfg(feature = "metrics")]
             metrics_cache.with_label_values(&frame).inc();
             w2c_cid_frame_s.send((cid, frame)).await.unwrap();
         }
@@ -439,12 +462,17 @@ impl UdpProtocol {
     pub async fn write_to_wire(&self, cid: Cid, mut c2w_frame_r: mpsc::UnboundedReceiver<Frame>) {
         trace!("Starting up udp write()");
         let mut buffer = [0u8; 2000];
+        #[cfg(feature = "metrics")]
         let mut metrics_cache = CidFrameCache::new(self.metrics.frames_wire_out_total.clone(), cid);
+        #[cfg(feature = "metrics")]
         let throughput_cache = self
             .metrics
             .wire_out_throughput
             .with_label_values(&[&cid.to_string()]);
+        #[cfg(not(feature = "metrics"))]
+        let _cid = cid;
         while let Some(frame) = c2w_frame_r.next().await {
+            #[cfg(feature = "metrics")]
             metrics_cache.with_label_values(&frame).inc();
             let len = match frame {
                 Frame::Handshake {
@@ -498,6 +526,7 @@ impl UdpProtocol {
                     buffer[9..17].copy_from_slice(&start.to_le_bytes());
                     buffer[17..19].copy_from_slice(&(data.len() as u16).to_le_bytes());
                     buffer[19..(data.len() + 19)].clone_from_slice(&data[..]);
+                    #[cfg(feature = "metrics")]
                     throughput_cache.inc_by(data.len() as i64);
                     19 + data.len()
                 },
