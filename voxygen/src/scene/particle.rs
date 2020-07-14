@@ -197,6 +197,7 @@ impl ParticleMgr {
                         Vec3::new(1.0, 0.0, 0.0),
                         Vec3::new(10.0, 0.01, 0.01), /* TODO: cone // melee_data.max_angle */
                     ),
+                    initial_col: (Rgb::zero(), Rgb::one()),
                 };
 
                 let cpu_insts =
@@ -272,7 +273,11 @@ fn into_particle_instances(
                             rng.gen_range(particle_emitter.initial_offset.0.z, particle_emitter.initial_offset.1.z),
                         ),
                 ),
-            Rgb::broadcast(1.0), // instance color
+            Rgb::new(
+                rng.gen_range(particle_emitter.initial_col.0.r, particle_emitter.initial_col.1.r),
+                rng.gen_range(particle_emitter.initial_col.0.g, particle_emitter.initial_col.1.g),
+                rng.gen_range(particle_emitter.initial_col.0.b, particle_emitter.initial_col.1.b),
+            ), // instance color
             vel2 // relative
             + Vec3::new(
                 rng.gen_range(particle_emitter.initial_velocity.0.x, particle_emitter.initial_velocity.1.x),
