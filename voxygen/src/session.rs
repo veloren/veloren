@@ -936,6 +936,9 @@ impl PlayState for SessionState {
                     HudEvent::ChangeStopAutoWalkOnInput(state) => {
                         global_state.settings.gameplay.stop_auto_walk_on_input = state;
                     },
+                    HudEvent::CraftRecipe(r) => {
+                        self.client.borrow_mut().craft_recipe(&r);
+                    },
                 }
             }
 

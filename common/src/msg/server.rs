@@ -1,7 +1,9 @@
 use super::{ClientState, EcsCompPacket};
 use crate::{
     character::CharacterItem,
-    comp, state, sync,
+    comp,
+    recipe::RecipeBook,
+    state, sync,
     sync::Uid,
     terrain::{Block, TerrainChunk},
 };
@@ -58,6 +60,7 @@ pub enum ServerMsg {
         server_info: ServerInfo,
         time_of_day: state::TimeOfDay,
         world_map: (Vec2<u32>, Vec<u32>),
+        recipe_book: RecipeBook,
     },
     /// An error occurred while loading character data
     CharacterDataLoadError(String),

@@ -1,0 +1,11 @@
+Item(
+    name: "Apple Stick",
+    description: "Restores 60 Health\n\n<Right-Click to use>",
+    kind: Consumable(
+        kind: AppleStick,
+        effect: Health((
+            amount: 60,
+            cause: Item,
+        )),        
+    ),
+)

@@ -83,6 +83,9 @@ pub enum BlockKind {
     WardrobeDouble,
     LargeGrass,
     Pot,
+    Stones,
+    Twigs,
+    ShinyGem,
 }
 
 impl BlockKind {
@@ -167,6 +170,9 @@ impl BlockKind {
             BlockKind::WardrobeSingle => false,
             BlockKind::WardrobeDouble => false,
             BlockKind::Pot => false,
+            BlockKind::Stones => true,
+            BlockKind::Twigs => true,
+            BlockKind::ShinyGem => true,
             _ => false,
         }
     }
@@ -252,6 +258,9 @@ impl BlockKind {
             BlockKind::WardrobeDouble => false,
             BlockKind::LargeGrass => false,
             BlockKind::Pot => false,
+            BlockKind::Stones => false,
+            BlockKind::Twigs => false,
+            BlockKind::ShinyGem => false,
             _ => true,
         }
     }
@@ -323,6 +332,9 @@ impl BlockKind {
             BlockKind::WardrobeSingle => true,
             BlockKind::WardrobeDouble => true,
             BlockKind::Pot => true,
+            BlockKind::Stones => false,
+            BlockKind::Twigs => false,
+            BlockKind::ShinyGem => false,
             _ => true,
         }
     }
@@ -389,6 +401,9 @@ impl BlockKind {
             BlockKind::VeloriteFrag => true,
             BlockKind::Chest => true,
             BlockKind::Coconut => true,
+            BlockKind::Stones => true,
+            BlockKind::Twigs => true,
+            BlockKind::ShinyGem => true,
             _ => false,
         }
     }

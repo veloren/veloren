@@ -1,6 +1,7 @@
 mod bag;
 mod buttons;
 mod chat;
+mod crafting;
 mod esc_menu;
 mod hotbar;
 mod img_ids;
@@ -25,6 +26,7 @@ use bag::Bag;
 use buttons::Buttons;
 use chat::Chat;
 use chrono::NaiveTime;
+use crafting::Crafting;
 use esc_menu::EscMenu;
 use img_ids::Imgs;
 use item_imgs::ItemImgs;
@@ -62,6 +64,8 @@ use vek::*;
 
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+const TEXT_GRAY_COLOR: Color = Color::Rgba(0.5, 0.5, 0.5, 1.0);
+const TEXT_DULL_RED_COLOR: Color = Color::Rgba(0.56, 0.2, 0.2, 1.0);
 const TEXT_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 //const TEXT_COLOR_GREY: Color = Color::Rgba(1.0, 1.0, 1.0, 0.5);
 const MENU_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 0.4);
@@ -199,6 +203,7 @@ widget_ids! {
         esc_menu,
         small_window,
         social_window,
+        crafting_window,
         settings_window,
 
         // Free look indicator
@@ -287,6 +292,7 @@ pub enum Event {
     ChangeFreeLookBehavior(PressBehavior),
     ChangeAutoWalkBehavior(PressBehavior),
     ChangeStopAutoWalkOnInput(bool),
+    CraftRecipe(String),
 }
 
 // TODO: Are these the possible layouts we want?
@@ -337,6 +343,7 @@ pub struct Show {
     ui: bool,
     intro: bool,
     help: bool,
+    crafting: bool,
     debug: bool,
     bag: bool,
     social: bool,
@@ -355,29 +362,50 @@ pub struct Show {
 }
 impl Show {
     fn bag(&mut self, open: bool) {
-        self.bag = open;
-        self.map = false;
-        self.want_grab = !open;
+        if !self.esc_menu {
+            self.bag = open;
+            self.map = false;
+            self.want_grab = !open;
+        }
     }
 
     fn toggle_bag(&mut self) { self.bag(!self.bag); }
 
     fn map(&mut self, open: bool) {
-        self.map = open;
-        self.bag = false;
-        self.want_grab = !open;
+        if !self.esc_menu {
+            self.map = open;
+            self.bag = false;
+            self.crafting = false;
+            self.social = false;
+            self.spell = false;
+            self.want_grab = !open;
+        }
     }
 
     fn social(&mut self, open: bool) {
-        self.social = open;
-        self.spell = false;
-        self.want_grab = !open;
+        if !self.esc_menu {
+            self.social = open;
+            self.crafting = false;
+            self.spell = false;
+            self.want_grab = !open;
+        }
+    }
+
+    fn crafting(&mut self, open: bool) {
+        if !self.esc_menu {
+            self.crafting = open;
+            self.bag = open;
+            self.want_grab = !open;
+        }
     }
 
     fn spell(&mut self, open: bool) {
-        self.social = false;
-        self.spell = open;
-        self.want_grab = !open;
+        if !self.esc_menu {
+            self.social = false;
+            self.crafting = false;
+            self.spell = open;
+            self.want_grab = !open;
+        }
     }
 
     fn toggle_map(&mut self) { self.map(!self.map) }
@@ -385,15 +413,18 @@ impl Show {
     fn toggle_mini_map(&mut self) { self.mini_map = !self.mini_map; }
 
     fn settings(&mut self, open: bool) {
-        self.open_windows = if open {
-            Windows::Settings
-        } else {
-            Windows::None
-        };
-        self.bag = false;
-        self.social = false;
-        self.spell = false;
-        self.want_grab = !open;
+        if !self.esc_menu {
+            self.open_windows = if open {
+                Windows::Settings
+            } else {
+                Windows::None
+            };
+            self.bag = false;
+            self.social = false;
+            self.crafting = false;
+            self.spell = false;
+            self.want_grab = !open;
+        }
     }
 
     fn toggle_settings(&mut self) {
@@ -412,6 +443,7 @@ impl Show {
             || self.esc_menu
             || self.map
             || self.social
+            || self.crafting
             || self.spell
             || self.help
             || self.intro
@@ -427,6 +459,7 @@ impl Show {
             self.map = false;
             self.social = false;
             self.spell = false;
+            self.crafting = false;
             self.open_windows = Windows::None;
             self.want_grab = true;
 
@@ -457,6 +490,8 @@ impl Show {
         self.social = !self.social;
         self.spell = false;
     }
+
+    fn toggle_crafting(&mut self) { self.crafting(!self.crafting) }
 
     fn open_social_tab(&mut self, social_tab: SocialTab) {
         self.social_tab = social_tab;
@@ -557,6 +592,7 @@ impl Hud {
                 esc_menu: false,
                 open_windows: Windows::None,
                 map: false,
+                crafting: false,
                 ui: true,
                 social: false,
                 spell: false,
@@ -1478,6 +1514,7 @@ impl Hud {
                 Some(buttons::Event::ToggleSocial) => self.show.toggle_social(),
                 Some(buttons::Event::ToggleSpell) => self.show.toggle_spell(),
                 Some(buttons::Event::ToggleMap) => self.show.toggle_map(),
+                Some(buttons::Event::ToggleCrafting) => self.show.toggle_crafting(),
                 None => {},
             }
         }
@@ -1535,7 +1572,6 @@ impl Hud {
                 }
             }
         }
-
         // Skillbar
         // Get player stats
         let ecs = client.state().ecs();
@@ -1581,6 +1617,35 @@ impl Hud {
                 &self.show,
             )
             .set(self.ids.skillbar, ui_widgets);
+        }
+
+        // Crafting
+        if self.show.crafting {
+            if let Some(inventory) = inventories.get(entity) {
+                for event in Crafting::new(
+                    //&self.show,
+                    client,
+                    &self.imgs,
+                    &self.fonts,
+                    &self.voxygen_i18n,
+                    &self.rot_imgs,
+                    tooltip_manager,
+                    &self.item_imgs,
+                    &inventory,
+                )
+                .set(self.ids.crafting_window, ui_widgets)
+                {
+                    match event {
+                        crafting::Event::CraftRecipe(r) => {
+                            events.push(Event::CraftRecipe(r));
+                        },
+                        crafting::Event::Close => {
+                            self.show.crafting(false);
+                            self.force_ungrab = true;
+                        },
+                    }
+                }
+            }
         }
 
         // Don't put NPC messages in chat box.
@@ -2069,6 +2134,10 @@ impl Hud {
                 },
                 GameInput::Social if state => {
                     self.show.toggle_social();
+                    true
+                },
+                GameInput::Crafting if state => {
+                    self.show.toggle_crafting();
                     true
                 },
                 GameInput::Spellbook if state => {

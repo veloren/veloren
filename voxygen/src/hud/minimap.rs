@@ -109,7 +109,7 @@ impl<'a> Widget for MiniMap<'a> {
         if self.show.mini_map {
             Image::new(self.imgs.mmap_frame)
                 .w_h(174.0 * SCALE, 190.0 * SCALE)
-                .top_right_with_margins_on(ui.window, 0.0, 5.0)
+                .top_right_with_margins_on(ui.window, 5.0, 5.0)
                 .color(Some(UI_MAIN))
                 .set(state.ids.mmap_frame, ui);
             Image::new(self.imgs.mmap_frame_2)

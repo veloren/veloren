@@ -182,9 +182,6 @@ image_ids! {
         <VoxelGraphic>
         charlist_frame: "voxygen.element.frames.window_4",
         server_frame: "voxygen.element.frames.server_frame",
-        selection: "voxygen.element.frames.selection",
-        selection_hover: "voxygen.element.frames.selection_hover",
-        selection_press: "voxygen.element.frames.selection_press",
 
         // Info Window
         info_frame: "voxygen.element.frames.info_frame",
@@ -195,6 +192,9 @@ image_ids! {
         delete_button_press: "voxygen.element.buttons.x_red_press",
 
         <ImageGraphic>
+        selection: "voxygen.element.frames.selection",
+        selection_hover: "voxygen.element.frames.selection_hover",
+        selection_press: "voxygen.element.frames.selection_press",
 
         name_input: "voxygen.element.misc_bg.textbox_mid",
 
@@ -241,8 +241,7 @@ image_ids! {
 }
 rotation_image_ids! {
     pub struct ImgsRot {
-        <VoxelGraphic>
-
+        <ImageGraphic>
         // Tooltip Test
         tt_side: "voxygen/element/frames/tt_test_edge",
         tt_corner: "voxygen/element/frames/tt_test_corner_tr",

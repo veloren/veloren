@@ -26,6 +26,7 @@ pub mod msg;
 pub mod npc;
 pub mod path;
 pub mod ray;
+pub mod recipe;
 pub mod region;
 pub mod spiral;
 pub mod state;
