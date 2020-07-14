@@ -600,6 +600,7 @@ impl Hud {
         debug_info: DebugInfo,
         dt: Duration,
         info: HudInfo,
+        camera: &Camera,
     ) -> Vec<Event> {
         let mut events = std::mem::replace(&mut self.events, Vec::new());
         let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
@@ -1499,6 +1500,7 @@ impl Hud {
             &self.rot_imgs,
             &self.world_map,
             &self.fonts,
+            camera.get_orientation(),
         )
         .set(self.ids.minimap, ui_widgets)
         {
@@ -2251,7 +2253,7 @@ impl Hud {
         if let Some(maybe_id) = self.to_focus.take() {
             self.ui.focus_widget(maybe_id);
         }
-        let events = self.update_layout(client, global_state, debug_info, dt, info);
+        let events = self.update_layout(client, global_state, debug_info, dt, info, camera);
         let camera::Dependents {
             view_mat, proj_mat, ..
         } = camera.dependents();
