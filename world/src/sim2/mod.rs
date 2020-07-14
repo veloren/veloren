@@ -56,7 +56,7 @@ pub fn simulate(index: &mut Index, world: &mut WorldSim) {
                 write!(f, "{:?},", site.economy.values[*g].unwrap_or(-1.0)).unwrap();
             }
             for g in Good::list() {
-                write!(f, "{:?},", site.economy.labor_values[*g]).unwrap();
+                write!(f, "{:?},", site.economy.labor_values[*g].unwrap_or(-1.0)).unwrap();
             }
             for g in Good::list() {
                 write!(f, "{:?},", site.economy.stocks[*g]).unwrap();
@@ -121,7 +121,7 @@ pub fn tick_site_economy(index: &mut Index, site: Id<Site>, dt: f32) {
         }
     }
 
-    let mut supply = MapVec::from_default(0.0);
+    let mut supply = site.economy.stocks.clone();//MapVec::from_default(0.0);
     for (labor, (output_good, _)) in productivity.iter() {
         supply[*output_good] +=
             site.economy.yields[labor] * site.economy.labors[labor] * site.economy.pop;
@@ -170,7 +170,8 @@ pub fn tick_site_economy(index: &mut Index, site: Id<Site>, dt: f32) {
 
     // Redistribute workforce according to relative good values
     let labor_ratios = productivity.clone().map(|labor, (output_good, _)| {
-        site.economy.values[output_good].unwrap_or(0.0) * site.economy.yields[labor]
+        site.economy.values[output_good].unwrap_or(0.0)
+            * site.economy.productivity[labor]
         //(site.economy.prices[output_good] - site.economy.material_costs[output_good]) * site.economy.yields[labor]
         //* demand[output_good] / supply[output_good].max(0.001)
     });
@@ -184,7 +185,8 @@ pub fn tick_site_economy(index: &mut Index, site: Id<Site>, dt: f32) {
 
     // Production
     let stocks_before = site.economy.stocks.clone();
-    site.economy.labor_values = Default::default();
+    let mut total_labor_values = MapVec::<_, f32>::default();
+    let mut total_outputs = MapVec::<_, f32>::default();
     for (labor, orders) in orders.iter() {
         let scale = if let Some(labor) = labor {
             site.economy.labors[*labor]
@@ -218,7 +220,7 @@ pub fn tick_site_economy(index: &mut Index, site: Id<Site>, dt: f32) {
             let used = quantity * labor_productivity;
 
             // Material cost of each factor of production
-            total_materials_cost += used * site.economy.labor_values[*good];
+            total_materials_cost += used * site.economy.labor_values[*good].unwrap_or(0.0);
 
             // Deplete stocks accordingly
             site.economy.stocks[*good] = (site.economy.stocks[*good] - used).max(0.0);
@@ -229,21 +231,32 @@ pub fn tick_site_economy(index: &mut Index, site: Id<Site>, dt: f32) {
             let (stock, rate) = productivity[*labor];
             let workers = site.economy.labors[*labor] * site.economy.pop;
             let final_rate = rate;
-            let yield_per_worker = labor_productivity * final_rate * (1.0 + workers / 100.0);
+            let yield_per_worker = labor_productivity * final_rate * (1.0 + workers / 100.0).min(3.0);
             site.economy.yields[*labor] = yield_per_worker;
             site.economy.productivity[*labor] = labor_productivity;
             let total_output = yield_per_worker * workers;
             site.economy.stocks[stock] += total_output;
 
             // Materials cost per unit
-            let material_cost_per_unit = total_materials_cost / total_output.max(0.001);
-            site.economy.material_costs[stock] = material_cost_per_unit;
-            site.economy.labor_values[stock] += material_cost_per_unit;
+            site.economy.material_costs[stock] = total_materials_cost / total_output.max(0.001);
             // Labor costs
             let wages = 1.0;
-            site.economy.labor_values[stock] += workers * wages / total_output.max(0.001);
+            let total_labor_cost = workers * wages;
+
+            total_labor_values[stock] += total_materials_cost + total_labor_cost;
+            total_outputs[stock] += total_output;
         }
     }
+
+    // Update labour values per unit
+    site.economy.labor_values = total_labor_values.map(|stock, tlv| {
+        let total_output = total_outputs[stock];
+        if total_output > 0.01 {
+            Some(tlv / total_outputs[stock])
+        } else {
+            None
+        }
+    });
 
     // Decay stocks
     site.economy

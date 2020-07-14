@@ -36,7 +36,7 @@ pub struct Economy {
     pub marginal_surplus: MapVec<Good, f32>,
     pub values: MapVec<Good, Option<f32>>,
 
-    pub labor_values: MapVec<Good, f32>,
+    pub labor_values: MapVec<Good, Option<f32>>,
     pub material_costs: MapVec<Good, f32>,
 
     pub labors: MapVec<Labor, f32>,
@@ -91,7 +91,7 @@ impl Economy {
                 (Farmer, (Flour, 2.0)),
                 (Lumberjack, (Wood, 0.5)),
                 (Miner, (Stone, 0.5)),
-                (Fisher, (Meat, 3.0)),
+                (Fisher, (Meat, 4.0)),
                 (Hunter, (Meat, 1.0)),
                 (Cook, (Food, 16.0)),
             ],
@@ -102,7 +102,7 @@ impl Economy {
 
     pub fn replenish(&mut self, time: f32) {
         use rand::Rng;
-        for (i, (g, v)) in [(Wheat, 195.0), (Logs, 120.0), (Rock, 120.0), (Game, 20.0)]
+        for (i, (g, v)) in [(Wheat, 50.0), (Logs, 20.0), (Rock, 120.0), (Game, 12.0), (Fish, 10.0)]
             .iter()
             .enumerate()
         {

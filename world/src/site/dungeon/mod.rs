@@ -396,17 +396,19 @@ impl Floor {
         origin: Vec3<i32>,
         supplement: &mut ChunkSupplement,
     ) {
-        let stair_rcenter = Vec3::from((self.stair_tile + self.tile_offset)
-            .map(|e| e * TILE_SIZE + TILE_SIZE / 2));
+        let stair_rcenter =
+            Vec3::from((self.stair_tile + self.tile_offset).map(|e| e * TILE_SIZE + TILE_SIZE / 2));
 
         if area.contains_point(stair_rcenter.xy()) {
             let offs = Vec2::new(rng.gen_range(-1.0, 1.0), rng.gen_range(-1.0, 1.0))
                 .try_normalized()
                 .unwrap_or(Vec2::unit_y())
-                * FLOOR_SIZE.x as f32 / 2.0 - 8.0;
+                * FLOOR_SIZE.x as f32
+                / 2.0
+                - 8.0;
             supplement.add_entity(
                 EntityInfo::at((origin + stair_rcenter).map(|e| e as f32) + Vec3::from(offs))
-                    .into_waypoint()
+                    .into_waypoint(),
             );
         }
 
