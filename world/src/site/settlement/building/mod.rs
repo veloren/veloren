@@ -2,14 +2,14 @@ pub mod archetype;
 pub mod skeleton;
 
 // Reexports
-pub use self::{archetype::Archetype, skeleton::*};
+pub use self::{
+    archetype::{house::House, keep::Keep, Archetype},
+    skeleton::*,
+};
 
 use common::terrain::Block;
 use rand::prelude::*;
 use vek::*;
-
-pub type HouseBuilding = Building<archetype::house::House>;
-pub type KeepBuilding = Building<archetype::keep::Keep>;
 
 pub struct Building<A: Archetype> {
     skel: Skeleton<A::Attr>,

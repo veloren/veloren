@@ -35,7 +35,9 @@ pub struct Economy {
     pub surplus: MapVec<Good, f32>,
     pub marginal_surplus: MapVec<Good, f32>,
     pub values: MapVec<Good, Option<f32>>,
-    pub prices: MapVec<Good, f32>,
+
+    pub labor_values: MapVec<Good, f32>,
+    pub material_costs: MapVec<Good, f32>,
 
     pub labors: MapVec<Labor, f32>,
     pub yields: MapVec<Labor, f32>,
@@ -51,7 +53,9 @@ impl Default for Economy {
             surplus: Default::default(),
             marginal_surplus: Default::default(),
             values: Default::default(),
-            prices: Default::default(),
+
+            labor_values: Default::default(),
+            material_costs: Default::default(),
 
             labors: Default::default(),
             yields: Default::default(),

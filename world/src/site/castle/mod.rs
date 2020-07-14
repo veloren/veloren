@@ -69,19 +69,6 @@ impl Castle {
 
         let radius = 150;
 
-        // Adjust ground
-        if let Some(sim) = ctx.sim.as_mut() {
-            for rpos in Spiral2d::new()
-                .radius((radius as f32 * 0.7) as i32 / TerrainChunkSize::RECT_SIZE.x as i32)
-            {
-                sim.get_mut(wpos / TerrainChunkSize::RECT_SIZE.map(|e| e as i32) + rpos)
-                    .map(|chunk| {
-                        chunk.surface_veg = 0.0;
-                        chunk.path.clear();
-                    });
-            }
-        }
-
         let this = Self {
             origin: wpos,
             alt: ctx
@@ -157,6 +144,23 @@ impl Castle {
         this
     }
 
+    pub fn contains_point(&self, wpos: Vec2<i32>) -> bool {
+        let lpos = wpos - self.origin;
+        for i in 0..self.towers.len() {
+            let tower0 = &self.towers[i];
+            let tower1 = &self.towers[(i + 1) % self.towers.len()];
+
+            if lpos.determine_side(Vec2::zero(), tower0.offset) > 0
+                && lpos.determine_side(Vec2::zero(), tower1.offset) <= 0
+                && lpos.determine_side(tower0.offset, tower1.offset) > 0
+            {
+                return true;
+            }
+        }
+
+        false
+    }
+
     pub fn get_origin(&self) -> Vec2<i32> { self.origin }
 
     pub fn radius(&self) -> f32 { 1200.0 }
@@ -182,12 +186,37 @@ impl Castle {
                 let wpos2d = wpos2d + offs;
                 let rpos = wpos2d - self.origin;
 
-                // Apply the dungeon entrance
+                if rpos.magnitude_squared() > (self.radius + 64).pow(2) {
+                    continue;
+                }
+
                 let col_sample = if let Some(col) = get_column(offs) {
                     col
                 } else {
                     continue;
                 };
+
+                // Inner ground
+                if self.contains_point(wpos2d) {
+                    let surface_z = col_sample.alt as i32;
+                    for z in -5..3 {
+                        let pos = Vec3::new(offs.x, offs.y, surface_z + z);
+
+                        if z >= 0 {
+                            if vol.get(pos).unwrap().kind() != BlockKind::Water {
+                                let _ = vol.set(pos, Block::empty());
+                            }
+                        } else {
+                            let _ = vol.set(
+                                pos,
+                                Block::new(
+                                    BlockKind::Normal,
+                                    col_sample.sub_surface_color.map(|e| (e * 255.0) as u8),
+                                ),
+                            );
+                        }
+                    }
+                }
 
                 let (wall_dist, wall_pos, wall_alt, wall_ori, towers) = (0..self.towers.len())
                     .map(|i| {
