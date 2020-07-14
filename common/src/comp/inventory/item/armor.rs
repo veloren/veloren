@@ -349,5 +349,14 @@ pub enum Armor {
     Tabard(Tabard),
 }
 
+impl Armor {
+    /// Determines whether two pieces of armour are superficially equivalent to
+    /// one another (i.e: one may be substituted for the other in crafting
+    /// recipes or item possession checks).
+    pub fn superficially_eq(&self, other: &Self) -> bool {
+        std::mem::discriminant(self) == std::mem::discriminant(other)
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Stats(pub u32);

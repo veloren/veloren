@@ -453,4 +453,11 @@ impl Tool {
             }],
         }
     }
+
+    /// Determines whether two tools are superficially equivalent to one another
+    /// (i.e: one may be substituted for the other in crafting recipes or
+    /// item possession checks).
+    pub fn superficially_eq(&self, other: &Self) -> bool {
+        ToolCategory::from(self.kind) == ToolCategory::from(other.kind)
+    }
 }

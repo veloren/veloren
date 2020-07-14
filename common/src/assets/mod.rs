@@ -80,13 +80,14 @@ pub fn load_map<A: Asset + 'static, F: FnOnce(A) -> A>(
     specifier: &str,
     f: F,
 ) -> Result<Arc<A>, Error> {
-    let mut assets_write = ASSETS.write().unwrap();
+    let assets_write = ASSETS.read().unwrap();
     match assets_write.get(specifier) {
         Some(asset) => Ok(Arc::clone(asset).downcast()?),
         None => {
+            drop(assets_write); // Drop the asset hashmap to permit recursive loading
             let asset = Arc::new(f(A::parse(load_file(specifier, A::ENDINGS)?)?));
             let clone = Arc::clone(&asset);
-            assets_write.insert(specifier.to_owned(), clone);
+            ASSETS.write().unwrap().insert(specifier.to_owned(), clone);
             Ok(asset)
         },
     }

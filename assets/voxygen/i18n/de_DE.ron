@@ -304,6 +304,8 @@ magischen Gegenstände ergattern?"#,
         "hud.settings.audio_device": "Ausgabegerät",
 
         "hud.settings.awaitingkey": "Drückt eine Taste...",
+        "hud.settings.unbound": "-",
+        "hud.settings.reset_keybinds": "Auf Standard zurücksetzen",
 
         "hud.social": "Sozial",
         "hud.social.online": "Online",
@@ -313,6 +315,12 @@ magischen Gegenstände ergattern?"#,
         "hud.social.play_online_fmt": "{nb_player} Spieler online",
 
         "hud.spell": "Zauber",
+
+        "hud.crafting": "Herstellen",
+        "hud.crafting.recipes": "Rezepte",
+        "hud.crafting.ingredients": "Zutaten:",
+        "hud.crafting.craft": "Herstellen",
+        "hud.crafting.tool_cata": "Benötigt:",
 
         "hud.free_look_indicator": "Freie Sicht aktiv",
         "hud.auto_walk_indicator": "Automatisches Laufen aktiv",

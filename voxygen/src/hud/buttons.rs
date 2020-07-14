@@ -37,6 +37,11 @@ widget_ids! {
         spellbook_button_bg,
         spellbook_text,
         spellbook_text_bg,
+        crafting_button,
+        crafting_button_bg,
+        crafting_text,
+        crafting_text_bg,
+
     }
 }
 const TOOLTIP_UPSHIFT: f64 = 40.0;
@@ -93,6 +98,7 @@ pub enum Event {
     ToggleMap,
     ToggleSocial,
     ToggleSpell,
+    ToggleCrafting,
 }
 
 impl<'a> Widget for Buttons<'a> {
@@ -359,6 +365,43 @@ impl<'a> Widget for Buttons<'a> {
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(state.ids.spellbook_text, ui);
+        }
+        // Crafting
+        if Button::image(self.imgs.crafting_icon)
+            .w_h(25.0, 25.0)
+            .left_from(state.ids.spellbook_button, 10.0)
+            .hover_image(self.imgs.crafting_icon_hover)
+            .press_image(self.imgs.crafting_icon_press)
+            .with_tooltip(
+                self.tooltip_manager,
+                &localized_strings.get("hud.crafting"),
+                "",
+                &button_tooltip,
+            )
+            .bottom_offset(TOOLTIP_UPSHIFT)
+            .set(state.ids.crafting_button, ui)
+            .was_clicked()
+        {
+            return Some(Event::ToggleCrafting);
+        }
+        if let Some(crafting) = &self
+            .global_state
+            .settings
+            .controls
+            .get_binding(GameInput::Crafting)
+        {
+            Text::new(crafting.to_string().as_str())
+                .bottom_right_with_margins_on(state.ids.crafting_button, 0.0, 0.0)
+                .font_size(10)
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(BLACK)
+                .set(state.ids.crafting_text_bg, ui);
+            Text::new(crafting.to_string().as_str())
+                .bottom_right_with_margins_on(state.ids.crafting_text_bg, 1.0, 1.0)
+                .font_size(10)
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.crafting_text, ui);
         }
         None
     }

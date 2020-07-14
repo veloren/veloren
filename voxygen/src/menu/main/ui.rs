@@ -35,6 +35,7 @@ widget_ids! {
         alpha_text,
         banner,
         banner_top,
+        gears,
         // Disclaimer
         //disc_window,
         //disc_text_1,
@@ -98,7 +99,12 @@ image_ids! {
         button_press: "voxygen.element.buttons.button_press",
         input_bg: "voxygen.element.misc_bg.textbox_mid",
         //disclaimer: "voxygen.element.frames.disclaimer",
-
+        // Animation
+        f1: "voxygen.element.animation.gears.1",
+        f2: "voxygen.element.animation.gears.2",
+        f3: "voxygen.element.animation.gears.3",
+        f4: "voxygen.element.animation.gears.4",
+        f5: "voxygen.element.animation.gears.5",
 
         <BlankGraphic>
         nothing: (),
@@ -107,7 +113,7 @@ image_ids! {
 
 rotation_image_ids! {
     pub struct ImgsRot {
-        <VoxelGraphic>
+        <ImageGraphic>
 
         // Tooltip Test
         tt_side: "voxygen/element/frames/tt_test_edge",
@@ -155,6 +161,7 @@ pub struct MainMenuUi {
     show_servers: bool,
     //show_disclaimer: bool,
     time: f32,
+    anim_timer: f32,
     bg_img_id: conrod_core::image::Id,
     voxygen_i18n: std::sync::Arc<VoxygenLocalization>,
     fonts: ConrodVoxygenFonts,
@@ -221,6 +228,7 @@ impl MainMenuUi {
             show_servers: false,
             connect: false,
             time: 0.0,
+            anim_timer: 0.0,
             //show_disclaimer: global_state.settings.show_disclaimer,
             bg_img_id,
             voxygen_i18n,
@@ -274,6 +282,23 @@ impl MainMenuUi {
         })
         .middle_of(ui_widgets.window)
         .set(self.ids.bg, ui_widgets);
+
+        if self.connect {
+            self.anim_timer = (self.anim_timer + dt.as_secs_f32()) * 1.05; // Linear time function with Anim-Speed Factor
+            if self.anim_timer >= 4.0 {
+                self.anim_timer = 0.0 // Reset timer at last frame to loop
+            };
+            Image::new(match self.anim_timer.round() as i32 {
+                0 => self.imgs.f1,
+                1 => self.imgs.f2,
+                2 => self.imgs.f3,
+                3 => self.imgs.f4,
+                _ => self.imgs.f5,
+            })
+            .w_h(74.0, 62.0)
+            .bottom_right_with_margins_on(self.ids.bg, 10.0, 10.0)
+            .set(self.ids.gears, ui_widgets);
+        };
 
         // Version displayed top right corner
         Text::new(&version)
