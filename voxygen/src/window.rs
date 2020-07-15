@@ -475,6 +475,7 @@ pub struct Window {
     pub zoom_inversion: bool,
     pub mouse_y_inversion: bool,
     fullscreen: bool,
+    modifiers: winit::event::ModifiersState,
     needs_refresh_resize: bool,
     keypress_map: HashMap<GameInput, winit::event::ElementState>,
     pub remapping_keybindings: Option<GameInput>,
@@ -578,6 +579,7 @@ impl Window {
             zoom_inversion: settings.gameplay.zoom_inversion,
             mouse_y_inversion: settings.gameplay.mouse_y_inversion,
             fullscreen: false,
+            modifiers: Default::default(),
             needs_refresh_resize: false,
             keypress_map,
             remapping_keybindings: None,
@@ -915,7 +917,32 @@ impl Window {
                 }
                 self.events.push(Event::MouseButton(button, state));
             },
-            WindowEvent::KeyboardInput { input, .. } => {
+            WindowEvent::ModifiersChanged(modifiers) => self.modifiers = modifiers,
+            WindowEvent::KeyboardInput {
+                input,
+                is_synthetic,
+                ..
+            } => {
+                // Ignore synthetic tab presses so that we don't get tabs when alt-tabbing back
+                // into the window
+                if matches!(
+                    input.virtual_keycode,
+                    Some(winit::event::VirtualKeyCode::Tab)
+                ) && is_synthetic
+                {
+                    return;
+                }
+                // Ignore Alt-F4 so we don't try to do anything heavy like take a screenshot
+                // when the window is about to close
+                if matches!(input, winit::event::KeyboardInput {
+                    state: winit::event::ElementState::Pressed,
+                    virtual_keycode: Some(winit::event::VirtualKeyCode::F4),
+                    ..
+                }) && self.modifiers.alt()
+                {
+                    return;
+                }
+
                 if let Some(key) = input.virtual_keycode {
                     if let Some(game_inputs) = Window::map_input(
                         KeyMouse::Key(key),
