@@ -15,7 +15,10 @@ use common::{
     assets::{load_expect, load_watched, watch},
     clock::Clock,
     comp,
-    comp::{ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel, MAX_MOUNT_RANGE_SQR, MAX_PICKUP_RANGE_SQR},
+    comp::{
+        ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel, MAX_MOUNT_RANGE_SQR,
+        MAX_PICKUP_RANGE_SQR,
+    },
     event::EventBus,
     msg::ClientState,
     terrain::{Block, BlockKind},
@@ -432,26 +435,30 @@ impl PlayState for SessionState {
                                 // Find closest mountable entity
                                 let mut closest_mountable: Option<(specs::Entity, i32)> = None;
 
-                                for (uid, pos, ms) in (
+                                for (entity, pos, ms) in (
                                     &client.state().ecs().entities(),
                                     &client.state().ecs().read_storage::<comp::Pos>(),
                                     &client.state().ecs().read_storage::<comp::MountState>(),
-                                ).join() {
+                                )
+                                    .join()
+                                    .filter(|(entity, _, _)| *entity != client.entity())
+                                {
                                     if comp::MountState::Unmounted != *ms {
                                         continue;
                                     }
 
-                                    let dist = (player_pos.0.distance_squared(pos.0) * 1000.0) as i32;
-                                    if MAX_MOUNT_RANGE_SQR < dist {
+                                    let dist =
+                                        (player_pos.0.distance_squared(pos.0) * 1000.0) as i32;
+                                    if dist > MAX_MOUNT_RANGE_SQR {
                                         continue;
                                     }
 
                                     if let Some(previous) = closest_mountable.as_mut() {
                                         if dist < previous.1 {
-                                            *previous = (uid, dist);
+                                            *previous = (entity, dist);
                                         }
                                     } else {
-                                        closest_mountable = Some((uid, dist));
+                                        closest_mountable = Some((entity, dist));
                                     }
                                 }
 
