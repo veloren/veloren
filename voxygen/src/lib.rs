@@ -73,12 +73,11 @@ impl GlobalState {
     #[cfg(not(feature = "singleplayer"))]
     pub fn paused(&self) -> bool { false }
 
-    pub fn unpause(&self) {
-        #[cfg(feature = "singleplayer")]
-        {
-            self.singleplayer.as_ref().map(|s| s.pause(false));
-        }
-    }
+    #[cfg(feature = "singleplayer")]
+    pub fn unpause(&self) { self.singleplayer.as_ref().map(|s| s.pause(false)); }
+
+    #[cfg(feature = "singleplayer")]
+    pub fn pause(&self) { self.singleplayer.as_ref().map(|s| s.pause(true)); }
 }
 
 // TODO: appears to be currently unused by playstates
