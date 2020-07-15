@@ -644,11 +644,11 @@ impl PlayState for SessionState {
             self.scene
                 .camera_mut()
                 .compute_dependents(&*self.client.borrow().state().terrain());
-            // Extract HUD events ensuring the client borrow gets dropped.
-            let mut hud_events = self.hud.maintain(
-                &self.client.borrow(),
-                global_state,
-                DebugInfo {
+
+            // Generate debug info, if needed (it iterates through enough data that we might
+            // as well avoid it unless we need it).
+            let debug_info = if global_state.settings.gameplay.toggle_debug {
+                Some(DebugInfo {
                     tps: clock.get_tps(),
                     ping_ms: self.client.borrow().get_ping_ms_rolling_avg(),
                     coordinates: self
@@ -677,9 +677,19 @@ impl PlayState for SessionState {
                         .cloned(),
                     num_chunks: self.scene.terrain().chunk_count() as u32,
                     num_visible_chunks: self.scene.terrain().visible_chunk_count() as u32,
+                    num_shadow_chunks: self.scene.terrain().shadow_chunk_count() as u32,
                     num_figures: self.scene.figure_mgr().figure_count() as u32,
                     num_figures_visible: self.scene.figure_mgr().figure_count_visible() as u32,
-                },
+                })
+            } else {
+                None
+            };
+
+            // Extract HUD events ensuring the client borrow gets dropped.
+            let mut hud_events = self.hud.maintain(
+                &self.client.borrow(),
+                global_state,
+                &debug_info,
                 &self.scene.camera(),
                 clock.get_last_delta(),
                 HudInfo {

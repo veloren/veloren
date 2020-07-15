@@ -30,6 +30,17 @@
 // // Currently, we only need lights for the light position
 // #include <light.glsl>
 
+/* struct Light {
+	vec4 light_pos;
+	vec4 light_col;
+    // mat4 light_proj;
+};
+
+layout (std140)
+uniform u_lights {
+	Light lights[31];
+}; */
+
 // Since our output primitive is a triangle strip, we have to render three vertices
 // each.
 #define VERTICES_PER_FACE 3
@@ -236,8 +247,8 @@ void main() {
             for(int i = 0; i < VERTICES_PER_FACE; ++i) // for each triangle vertex
             {
                 // NOTE: See above, we don't make FragPos a uniform.
-                vec3 FragPos = gl_in[i].gl_Position.xyz;
-                // FragPos = gl_in[i].gl_Position.xyz;
+                vec3 fragPos = gl_in[i].gl_Position.xyz;
+                // FragPos = fragPos - (lights[((/*FragLayer*/layer - 1u) & 31u)].light_pos.xyz - focus_off.xyz);
                 // FragLayer = layer;
                 // float lightDistance = length(FragPos - lights[((layer - 1) & 31)].light_pos.xyz);
                 // lightDistance /= screen_res.w;
@@ -250,7 +261,7 @@ void main() {
                 // int face = int(((floatBitsToUint(gl_Position.w) >> 29) & 0x7u) ^ 0x1u);
                 int layer_face = layer_base + face;
                 gl_Layer = face;//layer_face; // built-in variable that specifies to which face we render.
-                gl_Position = shadowMats[layer_face].shadowMatrices * vec4(FragPos, 1.0);
+                gl_Position = shadowMats[layer_face].shadowMatrices * vec4(fragPos, 1.0);
                 // gl_Position.z = -((gl_Position.z + screen_res.z) / (screen_res.w - screen_res.z)) * lightDistance;
                 // gl_Position.z = gl_Position.z / screen_res.w;
                 // gl_Position.z = gl_Position.z / gl_Position.w;

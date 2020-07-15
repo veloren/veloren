@@ -455,6 +455,15 @@ struct SpriteData {
 pub struct Terrain<V: RectRasterableVol> {
     atlas: AtlasAllocator,
     chunks: HashMap<Vec2<i32>, TerrainChunkData>,
+    /// Temporary storage for dead chunks that might still be shadowing chunks
+    /// in view.  We wait until either the chunk definitely cannot be
+    /// shadowing anything the player can see, the chunk comes back into
+    /// view, or for daylight to end, before removing it (whichever comes
+    /// first).
+    ///
+    /// Note that these chunks are not complete; for example, they are missing
+    /// texture data.
+    shadow_chunks: Vec<(Vec2<i32>, TerrainChunkData)>,
     /* /// Secondary index into the terrain chunk table, used to sort through chunks by z index from
     /// the top down.
     z_index_down: BTreeSet<Vec3<i32>>,
@@ -2239,6 +2248,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         Self {
             atlas,
             chunks: HashMap::default(),
+            shadow_chunks: Vec::default(),
             mesh_send_tmp: send,
             mesh_recv: recv,
             mesh_todo: HashMap::default(),
@@ -2328,7 +2338,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         Ok((atlas, texture))
     }
 
-    fn remove_chunk_meta(&mut self, _pos: Vec2<i32>, chunk: TerrainChunkData) {
+    fn remove_chunk_meta(&mut self, _pos: Vec2<i32>, chunk: &TerrainChunkData) {
         /* println!("Terrain chunk already existed: {:?}", pos); */
         self.atlas.deallocate(chunk.col_lights);
         /* let (zmin, zmax) = chunk.z_bounds;
@@ -2338,7 +2348,7 @@ impl<V: RectRasterableVol> Terrain<V> {
 
     fn insert_chunk(&mut self, pos: Vec2<i32>, chunk: TerrainChunkData) {
         if let Some(old) = self.chunks.insert(pos, chunk) {
-            self.remove_chunk_meta(pos, old);
+            self.remove_chunk_meta(pos, &old);
         }
         /* let (zmin, zmax) = chunk.z_bounds;
         self.z_index_up.insert(Vec3::from(zmin, pos.x, pos.y));
@@ -2348,7 +2358,9 @@ impl<V: RectRasterableVol> Terrain<V> {
     fn remove_chunk(&mut self, pos: Vec2<i32>) {
         // println!("Terrain chunk removed: {:?}", pos);
         if let Some(chunk) = self.chunks.remove(&pos) {
-            self.remove_chunk_meta(pos, chunk);
+            self.remove_chunk_meta(pos, &chunk);
+            // Temporarily remember dead chunks for shadowing purposes.
+            self.shadow_chunks.push((pos, chunk));
         }
         if let Some(_todo) = self.mesh_todo.remove(&pos) {
             /* println!("Terrain chunk was being meshed: {:?}",
@@ -2367,7 +2379,11 @@ impl<V: RectRasterableVol> Terrain<V> {
         loaded_distance: f32,
         view_mat: Mat4<f32>,
         proj_mat: Mat4<f32>,
-    ) -> (Aabb<f32>, Aabb<f32>, Aabb<f32>) {
+    ) -> (
+        Aabb<f32>,
+        /* Aabb<f32>, Aabb<f32> */ Vec<math::Vec3<f32>>,
+        math::Aabr<f32>,
+    ) {
         let current_tick = scene_data.tick;
         let current_time = scene_data.state.get_time();
         let mut visible_bounding_box: Option<Aabb<f32>> = None;
@@ -2855,7 +2871,9 @@ impl<V: RectRasterableVol> Terrain<V> {
         let collides_with_aabr = |a: math::Aabr<f32>, b: math::Aabr<f32>| {
             a.min.partial_cmple(&b.max).reduce_and() && a.max.partial_cmpge(&b.min).reduce_and()
         };
-        if ray_direction.z < 0.0 && renderer.render_mode().shadow.is_map() {
+        let (visible_light_volume, visible_psr_bounds) = if ray_direction.z < 0.0
+            && renderer.render_mode().shadow.is_map()
+        {
             let visible_bounding_box = Aabb {
                 min: visible_bounding_box.min - focus_off,
                 max: visible_bounding_box.max - focus_off,
@@ -2912,47 +2930,81 @@ impl<V: RectRasterableVol> Terrain<V> {
             let visible_bounds = math::Aabr::from(math::fit_psr(
                 ray_mat,
                 /* super::aabb_to_points(visible_bounding_box).iter().copied() */
-                visible_light_volume.into_iter(),
+                visible_light_volume.iter().copied(),
                 |p| p, //math::Vec3::from(p), /* / p.w */
             ));
+            let ray_mat = ray_mat * math::Mat4::translation_3d(-focus_off);
             /* let visible_bounds_old = Aabr::from(super::fit_psr(ray_mat, super::aabb_to_points(visible_bounding_box).iter().copied(), |p| Vec3::from(p) / p.w));
             println!("old: {:?} new: {:?}", visible_bounds_old, visible_bounds); */
 
-            self.chunks.iter_mut()
-                // NOTE: We deliberately avoid doing this computation for chunks we already know
-                // are visible, since by definition they'll always intersect the visible view
-                // frustum.
-                .filter(|chunk| chunk.1.visible == Visibility::InRange)
-                .for_each(|(pos, chunk)| {
+            let can_shadow_sun = |pos: Vec2<i32>, chunk: &TerrainChunkData| {
                 let chunk_pos = pos.map(|e| e as f32 * chunk_sz);
 
-                // Ensure the chunk is within the view frustum
-                let chunk_min = [chunk_pos.x, chunk_pos.y, chunk.z_bounds.0];
-                let chunk_max = [
-                    chunk_pos.x + chunk_sz,
-                    chunk_pos.y + chunk_sz,
-                    chunk.z_bounds.1,
-                ];
+                // Ensure the chunk is within the PSR set.
                 let chunk_box = math::Aabb {
-                    min: math::Vec3::from(chunk_min) - focus_off,
-                    max: math::Vec3::from(chunk_max) - focus_off,
+                    min: math::Vec3::new(chunk_pos.x, chunk_pos.y, chunk.z_bounds.0),
+                    max: math::Vec3::new(
+                        chunk_pos.x + chunk_sz,
+                        chunk_pos.y + chunk_sz,
+                        chunk.z_bounds.1,
+                    ),
                 };
 
-                let chunk_from_light = math::Aabr::from(math::fit_psr(ray_mat, math::aabb_to_points(chunk_box).iter().copied(), |p| p/*math::Vec3::from(p)/* / p.w*/*/));
+                let chunk_from_light = math::Aabr::from(math::fit_psr(
+                    ray_mat,
+                    math::aabb_to_points(chunk_box).iter().copied(),
+                    |p| p, /* math::Vec3::from(p)/* / p.w*/ */
+                ));
                 /* let chunk_from_light = Aabr {
                     min: (ray_mat * Vec4::from_point(chunk_box.min)).xy(),
                     max: (ray_mat * Vec4::from_point(chunk_box.max)).xy(),
                 }.made_valid(); */
-                let can_shadow_sun = collides_with_aabr(chunk_from_light, visible_bounds);
+                /* let can_shadow_sun = */
+                collides_with_aabr(chunk_from_light, visible_bounds)
                 /* let can_shadow_sun_old = collides_with_aabr(chunk_from_light, visible_bounds_old);
                 if can_shadow_sun != can_shadow_sun_old {
                     println!("Different results for chunk {:?} (from light = {:?}):\n\
                                 old = {:?} new = {:?}",
                              chunk_box, chunk_from_light, can_shadow_sun_old, can_shadow_sun);
                 } */
-                chunk.can_shadow_sun = can_shadow_sun;
-            });
-        }
+            };
+
+            // Handle potential shadow casters (chunks that aren't visible, but are still in
+            // range) to see if they could cast shadows.
+            self.chunks.iter_mut()
+                // NOTE: We deliberately avoid doing this computation for chunks we already know
+                // are visible, since by definition they'll always intersect the visible view
+                // frustum.
+                .filter(|chunk| chunk.1.visible <= Visibility::InRange)
+                .for_each(|(&pos, chunk)| {
+                    chunk.can_shadow_sun = can_shadow_sun(pos, chunk);
+                });
+
+            // Handle dead chunks that we kept around only to make sure shadows don't blink
+            // out when a chunk disappears.
+            //
+            // If the sun can currently cast shadows, we retain only those shadow chunks
+            // that both: 1. have not been replaced by a real chunk instance,
+            // and 2. are currently potential shadow casters (as witnessed by
+            // `can_shadow_sun` returning    true).
+            //
+            // NOTE: Please make sure this runs *after* any code that could insert a chunk!
+            // Otherwise we may end up with multiple instances of the chunk trying to cast
+            // shadows at the same time.
+            let chunks = &self.chunks;
+            self.shadow_chunks
+                .retain(|(pos, chunk)| !chunks.contains_key(pos) && can_shadow_sun(*pos, chunk));
+
+            (visible_light_volume, visible_bounds)
+        } else {
+            // There's no daylight or no shadows, so there's no reason to keep any
+            // shadow chunks around.
+            self.shadow_chunks.clear();
+            (Vec::new(), math::Aabr {
+                min: math::Vec2::zero(),
+                max: math::Vec2::zero(),
+            })
+        };
         /* let cam_pos = Vec3::from(view_mat.inverted() * Vec4::unit_w()) + focus_off; let look_at = visible_box.center();
         let view_dir = (focus_pos - cam_pos).normalized();
         let up_vec = ray_direction.cross(view_dir).cross(light_dir).normalized();
@@ -3008,7 +3060,12 @@ impl<V: RectRasterableVol> Terrain<V> {
             }
         } */
 
-        (scene_bounding_box, visible_bounding_box, psc_bounding_box)
+        (
+            /* scene_bounding_box, visible_bounding_box, psc_bounding_box */
+            visible_bounding_box,
+            visible_light_volume,
+            visible_psr_bounds,
+        )
     }
 
     pub fn chunk_count(&self) -> usize { self.chunks.len() }
@@ -3020,10 +3077,13 @@ impl<V: RectRasterableVol> Terrain<V> {
             .count()
     }
 
+    pub fn shadow_chunk_count(&self) -> usize { self.shadow_chunks.len() }
+
     pub fn render_shadows(
         &self,
         renderer: &mut Renderer,
         globals: &Consts<Globals>,
+        lights: &Consts<Light>,
         shadow_mats: &Consts<ShadowLocals>,
         light_data: &[Light],
         is_daylight: bool,
@@ -3040,16 +3100,23 @@ impl<V: RectRasterableVol> Terrain<V> {
         let chunk_iter = Spiral2d::new()
             .filter_map(|rpos| {
                 let pos = focus_chunk + rpos;
-                self.chunks.get(&pos).map(|c| (pos, c))
+                self.chunks.get(&pos)
             })
             .take(self.chunks.len());
 
         // let is_daylight = sun_dir.z < 0.0/*0.6*/;
 
         // Directed shadows
+        //
+        // NOTE: We also render shadows for dead chunks that were found to still be
+        // potential shadow casters, to avoid shadows suddenly disappearing at
+        // very steep sun angles (e.g. sunrise / sunset).
         if is_daylight {
-            for (_, chunk) in chunk_iter.clone() {
-                if chunk.can_shadow_sun() {
+            chunk_iter
+                .clone()
+                .filter(|chunk| chunk.can_shadow_sun())
+                .chain(self.shadow_chunks.iter().map(|(_, chunk)| chunk))
+                .for_each(|chunk| {
                     // Directed light shadows.
                     renderer.render_terrain_shadow_directed(
                         // &chunk.shadow_model,
@@ -3057,18 +3124,20 @@ impl<V: RectRasterableVol> Terrain<V> {
                         globals,
                         &chunk.locals,
                         shadow_mats,
-                        /* lights,
-                         * shadows,
+                        lights,
+                        /* shadows,
                          * &lod.map,
                          * &lod.horizon, */
                     );
-                }
-            }
+                });
         }
 
         // Point shadows
-        for _light in light_data.iter().take(1) {
-            for (_, chunk) in chunk_iter.clone() {
+        //
+        // NOTE: We don't bother retaining chunks unless they cast sun shadows, so we
+        // don't use `shadow_chunks` here.
+        light_data.iter().take(1).for_each(|_light| {
+            chunk_iter.clone().for_each(|chunk| {
                 if chunk.can_shadow_point {
                     // shadow_vertex_count += chunk.shadow_model.vertex_range.len();
                     renderer.render_shadow_point(
@@ -3077,14 +3146,14 @@ impl<V: RectRasterableVol> Terrain<V> {
                         globals,
                         &chunk.locals,
                         shadow_mats,
-                        /* lights,
-                         * shadows,
+                        lights,
+                        /* shadows,
                          * &lod.map,
                          * &lod.horizon, */
                     );
                 }
-            }
-        }
+            });
+        });
     }
 
     pub fn render(

@@ -12,8 +12,8 @@ use crate::{
         RenderError, Renderer, Shadow, ShadowLocals, ShadowPipeline, Texture,
     },
     scene::{
-        camera::{Camera, CameraMode},
-        LodData, SceneData,
+        camera::{Camera, CameraMode, Dependents},
+        math, LodData, SceneData,
     },
 };
 use anim::{
@@ -221,56 +221,68 @@ impl FigureMgrStates {
     fn count_visible(&self) -> usize {
         self.character_states
             .iter()
-            .filter(|(_, c)| c.visible)
+            .filter(|(_, c)| c.visible())
             .count()
             + self
                 .quadruped_small_states
                 .iter()
-                .filter(|(_, c)| c.visible)
+                .filter(|(_, c)| c.visible())
                 .count()
             + self
                 .quadruped_medium_states
                 .iter()
-                .filter(|(_, c)| c.visible)
+                .filter(|(_, c)| c.visible())
                 .count()
             + self
                 .quadruped_low_states
                 .iter()
-                .filter(|(_, c)| c.visible)
+                .filter(|(_, c)| c.visible())
                 .count()
             + self
                 .bird_medium_states
                 .iter()
-                .filter(|(_, c)| c.visible)
+                .filter(|(_, c)| c.visible())
                 .count()
             + self
                 .critter_states
                 .iter()
-                .filter(|(_, c)| c.visible)
+                .filter(|(_, c)| c.visible())
                 .count()
-            + self.dragon_states.iter().filter(|(_, c)| c.visible).count()
+            + self
+                .dragon_states
+                .iter()
+                .filter(|(_, c)| c.visible())
+                .count()
             + self
                 .fish_medium_states
                 .iter()
-                .filter(|(_, c)| c.visible)
+                .filter(|(_, c)| c.visible())
                 .count()
             + self
                 .bird_small_states
                 .iter()
-                .filter(|(_, c)| c.visible)
+                .filter(|(_, c)| c.visible())
                 .count()
             + self
                 .fish_small_states
                 .iter()
-                .filter(|(_, c)| c.visible)
+                .filter(|(_, c)| c.visible())
                 .count()
             + self
                 .biped_large_states
                 .iter()
-                .filter(|(_, c)| c.visible)
+                .filter(|(_, c)| c.visible())
                 .count()
-            + self.golem_states.iter().filter(|(_, c)| c.visible).count()
-            + self.object_states.iter().filter(|(_, c)| c.visible).count()
+            + self
+                .golem_states
+                .iter()
+                .filter(|(_, c)| c.visible())
+                .count()
+            + self
+                .object_states
+                .iter()
+                .filter(|(_, c)| c.visible())
+                .count()
     }
 }
 
@@ -404,6 +416,8 @@ impl FigureMgr {
         &mut self,
         renderer: &mut Renderer,
         scene_data: &SceneData,
+        // Visible chunk data.
+        visible_psr_bounds: math::Aabr<f32>,
         camera: &Camera,
     ) -> Aabb<f32> {
         let state = scene_data.state;
@@ -413,6 +427,81 @@ impl FigureMgr {
         let view_distance = scene_data.view_distance;
         let dt = state.get_delta_time();
         let frustum = camera.frustum();
+
+        // Sun shadows--find the bounding box of the shadow map plane (i.e. the bounds
+        // of the image rendered from the light).  If the position projected
+        // with the ray_mat matrix is valid, and shadows are otherwise enabled,
+        // we mark can_shadow.
+        let can_shadow_sun = {
+            let ray_direction = scene_data.get_sun_dir();
+            let is_daylight = ray_direction.z < 0.0/*0.6*/;
+            // Are shadows enabled at all?
+            let can_shadow_sun = renderer.render_mode().shadow.is_map() && is_daylight;
+            let Dependents {
+                proj_mat,
+                view_mat,
+                cam_pos,
+            } = camera.dependents();
+            let cam_pos = math::Vec3::from(cam_pos);
+            let ray_direction = math::Vec3::from(ray_direction);
+
+            // Transform (semi) world space to light space.
+            let ray_mat: math::Mat4<f32> =
+                math::Mat4::look_at_rh(cam_pos, cam_pos + ray_direction, math::Vec3::up());
+            let focus_off = math::Vec3::from(camera.get_focus_pos().map(f32::trunc));
+            /* let visible_bounding_box = Aabb {
+                min: visible_bounding_box.min - focus_off,
+                max: visible_bounding_box.max - focus_off,
+            };
+            let visible_bounds_fine = math::Aabb::<f64> {
+                min: math::Vec3::from(visible_bounding_box.min.map(f64::from)),
+                max: math::Vec3::from(visible_bounding_box.max.map(f64::from)),
+            };
+            let inv_proj_view = math::Mat4::from_col_arrays(
+                (proj_mat * view_mat/* * Mat4::translation_3d(-focus_off)*/).into_col_arrays(),
+            )
+            .map(f64::from)
+            .inverted();
+            let visible_light_volume = math::calc_focused_light_volume_points(
+                inv_proj_view,
+                ray_direction.map(f64::from),
+                visible_bounds_fine,
+                1e-6,
+            )
+            .map(|v| v.map(|e| e as f32));
+            // Now that the work that requires high accuracy is done, switch from focus-relative
+            // to proper world space coordinates.
+            let visible_bounds = math::Aabr::from(math::fit_psr(
+                ray_mat,
+                /* super::aabb_to_points(visible_bounding_box).iter().copied() */
+                visible_light_volume,
+                |p| p, //math::Vec3::from(p), /* / p.w */
+            )); */
+            let ray_mat = ray_mat * math::Mat4::translation_3d(-focus_off);
+
+            let collides_with_aabr = |a: math::Aabr<f32>, b: math::Aabr<f32>| {
+                a.min.partial_cmple(&b.max).reduce_and() && a.max.partial_cmpge(&b.min).reduce_and()
+            };
+            // println!("Aabr: {:?}", visible_bounds);
+            move |pos: Pos, radius: f32| {
+                // Short circuit when there are no shadows to cast.
+                if !can_shadow_sun {
+                    return false;
+                }
+                // First project center onto shadow map.
+                let center = (ray_mat * math::Vec4::new(pos.0.x, pos.0.y, pos.0.z, 1.0)).xy();
+                // Then, create an approximate bounding box (± radius).
+                let figure_box = math::Aabr {
+                    min: center - radius,
+                    max: center + radius,
+                };
+                // println!("center: {:?}, radius: {:?}", center, figure_box);
+                // Quick intersection test for membership in the PSC (potential shader caster)
+                // list.
+                collides_with_aabr(figure_box, visible_psr_bounds)
+            }
+        };
+
         // Get player position.
         let player_pos = ecs
             .read_storage::<Pos>()
@@ -467,6 +556,7 @@ impl FigureMgr {
             // TODO: Investigate passing the velocity into the shader so we can at least
             // interpolate motion
             const MIN_PERFECT_RATE_DIST: f32 = 50.0;
+
             if (i as u64 + tick)
                 % (1 + ((pos.0.distance_squared(camera.get_focus_pos()).powf(0.25)
                     - MIN_PERFECT_RATE_DIST.powf(0.5))
@@ -477,6 +567,13 @@ impl FigureMgr {
                 continue;
             }
 
+            // Check whether we could have been shadowing last frame.
+            let mut state = self.states.get_mut(body, &entity);
+            let can_shadow_prev = state
+                .as_mut()
+                .map(|state| state.can_shadow_sun())
+                .unwrap_or(false);
+
             // Don't process figures outside the vd
             let vd_frac = Vec2::from(pos.0 - player_pos)
                 .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
@@ -484,15 +581,17 @@ impl FigureMgr {
                 })
                 .magnitude()
                 / view_distance as f32;
+
             // Keep from re-adding/removing entities on the border of the vd
             if vd_frac > 1.2 {
                 self.states.remove(body, &entity);
                 continue;
             } else if vd_frac > 1.0 {
-                self.states
-                    .get_mut(body, &entity)
-                    .map(|state| state.visible = false);
-                continue;
+                state.as_mut().map(|state| state.visible = false);
+                // Keep processing if this might be a shadow caster.
+                if !can_shadow_prev {
+                    continue;
+                }
             }
 
             // Don't display figures outside the frustum spectrum (this is important to do
@@ -502,22 +601,25 @@ impl FigureMgr {
             // shadow correctly until their next update.  For now, we treat this
             // as an acceptable tradeoff.
             let radius = scale.unwrap_or(&Scale(1.0)).0 * 2.0;
-            let (in_frustum, lpindex) = if let Some(mut meta) = self.states.get_mut(body, &entity) {
+            let (in_frustum, lpindex) = if let Some(mut meta) = state {
                 let (in_frustum, lpindex) = BoundingSphere::new(pos.0.into_array(), radius)
                     .coherent_test_against_frustum(frustum, meta.lpindex);
                 meta.visible = in_frustum;
                 meta.lpindex = lpindex;
+                if in_frustum {
+                    // Update visible bounds.
+                    visible_aabb.expand_to_contain(Aabb {
+                        min: pos.0 - radius,
+                        max: pos.0 + radius,
+                    });
+                } else {
+                    // Check whether we can shadow.
+                    meta.can_shadow_sun = can_shadow_sun(pos, radius);
+                }
                 (in_frustum, lpindex)
             } else {
                 (true, 0)
             };
-            if in_frustum {
-                // Update visible bounds.
-                visible_aabb.expand_to_contain(Aabb {
-                    min: pos.0 - radius,
-                    max: pos.0 + radius,
-                });
-            }
 
             // Change in health as color!
             let col = stats
@@ -1839,7 +1941,7 @@ impl FigureMgr {
                     false,
                     pos.0,
                     figure_lod_render_distance,
-                    |state| state.visible,
+                    |state| state.can_shadow_sun(),
                 ) {
                     renderer.render_figure_shadow_directed(
                         model,
@@ -1900,7 +2002,7 @@ impl FigureMgr {
                     false,
                     pos.0,
                     figure_lod_render_distance,
-                    |state| state.visible,
+                    |state| state.visible(),
                 ) {
                     renderer.render_figure(
                         model,
@@ -1964,7 +2066,7 @@ impl FigureMgr {
                 true,
                 pos.0,
                 figure_lod_render_distance,
-                |state| state.visible,
+                |state| state.visible(),
             ) {
                 renderer.render_player(
                     model,
@@ -2160,40 +2262,46 @@ impl FigureMgr {
                             .0,
                     )
                 }),
-            Body::BirdMedium(_) => bird_medium_states.get(&entity).map(move |state| {
-                (
-                    state.locals(),
-                    state.bone_consts(),
-                    &bird_medium_model_cache
-                        .get_or_create_model(
-                            renderer,
-                            col_lights,
-                            *body,
-                            loadout,
-                            tick,
-                            player_camera_mode,
-                            character_state,
-                        )
-                        .0,
-                )
-            }),
-            Body::FishMedium(_) => fish_medium_states.get(&entity).map(move |state| {
-                (
-                    state.locals(),
-                    state.bone_consts(),
-                    &fish_medium_model_cache
-                        .get_or_create_model(
-                            renderer,
-                            col_lights,
-                            *body,
-                            loadout,
-                            tick,
-                            player_camera_mode,
-                            character_state,
-                        )
-                        .0,
-                )
-            }),
+            Body::BirdMedium(_) => bird_medium_states
+                .get(&entity)
+                .filter(|state| filter_state(&*state))
+                .map(move |state| {
+                    (
+                        state.locals(),
+                        state.bone_consts(),
+                        &bird_medium_model_cache
+                            .get_or_create_model(
+                                renderer,
+                                col_lights,
+                                *body,
+                                loadout,
+                                tick,
+                                player_camera_mode,
+                                character_state,
+                            )
+                            .0,
+                    )
+                }),
+            Body::FishMedium(_) => fish_medium_states
+                .get(&entity)
+                .filter(|state| filter_state(&*state))
+                .map(move |state| {
+                    (
+                        state.locals(),
+                        state.bone_consts(),
+                        &fish_medium_model_cache
+                            .get_or_create_model(
+                                renderer,
+                                col_lights,
+                                *body,
+                                loadout,
+                                tick,
+                                player_camera_mode,
+                                character_state,
+                            )
+                            .0,
+                    )
+                }),
             Body::Critter(_) => critter_states
                 .get(&entity)
                 .filter(|state| filter_state(&*state))
@@ -2490,9 +2598,19 @@ pub struct FigureStateMeta {
     state_time: f64,
     last_ori: Vec3<f32>,
     lpindex: u8,
+    can_shadow_sun: bool,
     visible: bool,
     last_pos: Option<Vec3<f32>>,
     avg_vel: Vec3<f32>,
+}
+
+impl FigureStateMeta {
+    pub fn visible(&self) -> bool { self.visible }
+
+    pub fn can_shadow_sun(&self) -> bool {
+        // Either visible, or explicitly a shadow caster.
+        self.visible || self.can_shadow_sun
+    }
 }
 
 pub struct FigureState<S> {
@@ -2525,6 +2643,7 @@ impl<S: Skeleton> FigureState<S> {
                 last_ori: Vec3::zero(),
                 lpindex: 0,
                 visible: false,
+                can_shadow_sun: false,
                 last_pos: None,
                 avg_vel: Vec3::zero(),
             },

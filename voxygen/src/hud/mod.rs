@@ -226,6 +226,7 @@ pub struct DebugInfo {
     pub ori: Option<comp::Ori>,
     pub num_chunks: u32,
     pub num_visible_chunks: u32,
+    pub num_shadow_chunks: u32,
     pub num_figures: u32,
     pub num_figures_visible: u32,
 }
@@ -594,7 +595,7 @@ impl Hud {
         &mut self,
         client: &Client,
         global_state: &GlobalState,
-        debug_info: DebugInfo,
+        debug_info: &Option<DebugInfo>,
         dt: Duration,
         info: HudInfo,
     ) -> Vec<Event> {
@@ -602,10 +603,6 @@ impl Hud {
         let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
         // pulse time for pulsating elements
         self.pulse = self.pulse + dt.as_secs_f32();
-        self.velocity = match debug_info.velocity {
-            Some(velocity) => velocity.0.magnitude(),
-            None => 0.0,
-        };
 
         let version = format!(
             "{}-{}",
@@ -1239,7 +1236,11 @@ impl Hud {
         }
 
         // Display debug window.
-        if global_state.settings.gameplay.toggle_debug {
+        if let Some(debug_info) = debug_info {
+            self.velocity = match debug_info.velocity {
+                Some(velocity) => velocity.0.magnitude(),
+                None => 0.0,
+            };
             // Alpha Version
             Text::new(&version)
                 .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
@@ -1345,8 +1346,8 @@ impl Hud {
 
             // Number of chunks
             Text::new(&format!(
-                "Chunks: {} ({} visible)",
-                debug_info.num_chunks, debug_info.num_visible_chunks,
+                "Chunks: {} ({} visible) & {} (shadow)",
+                debug_info.num_chunks, debug_info.num_visible_chunks, debug_info.num_shadow_chunks,
             ))
             .color(TEXT_COLOR)
             .down_from(self.ids.entity_count, 5.0)
@@ -2213,7 +2214,7 @@ impl Hud {
         &mut self,
         client: &Client,
         global_state: &mut GlobalState,
-        debug_info: DebugInfo,
+        debug_info: &Option<DebugInfo>,
         camera: &Camera,
         dt: Duration,
         info: HudInfo,
