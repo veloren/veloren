@@ -45,7 +45,7 @@
 //! // Client
 //! async fn client() -> std::result::Result<(), Box<dyn std::error::Error>> {
 //!     sleep(std::time::Duration::from_secs(1)).await; // `connect` MUST be after `listen`
-//!     let (client_network, f) = Network::new(Pid::new(), None);
+//!     let (client_network, f) = Network::new(Pid::new());
 //!     std::thread::spawn(f);
 //!     let server = client_network
 //!         .connect(ProtocolAddr::Tcp("127.0.0.1:12345".parse().unwrap()))
@@ -59,7 +59,7 @@
 //!
 //! // Server
 //! async fn server() -> std::result::Result<(), Box<dyn std::error::Error>> {
-//!     let (server_network, f) = Network::new(Pid::new(), None);
+//!     let (server_network, f) = Network::new(Pid::new());
 //!     std::thread::spawn(f);
 //!     server_network
 //!         .listen(ProtocolAddr::Tcp("127.0.0.1:12345".parse().unwrap()))
@@ -101,7 +101,7 @@
 mod api;
 mod channel;
 mod message;
-mod metrics;
+#[cfg(feature = "metrics")] mod metrics;
 mod participant;
 mod prios;
 mod protocols;

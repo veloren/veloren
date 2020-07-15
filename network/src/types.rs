@@ -90,8 +90,10 @@ pub(crate) enum Frame {
 }
 
 impl Frame {
+    #[cfg(feature = "metrics")]
     pub const FRAMES_LEN: u8 = 8;
 
+    #[cfg(feature = "metrics")]
     pub const fn int_to_string(i: u8) -> &'static str {
         match i {
             0 => "Handshake",
@@ -106,6 +108,7 @@ impl Frame {
         }
     }
 
+    #[cfg(feature = "metrics")]
     pub fn get_int(&self) -> u8 {
         match self {
             Frame::Handshake { .. } => 0,
@@ -119,6 +122,7 @@ impl Frame {
         }
     }
 
+    #[cfg(feature = "metrics")]
     pub fn get_string(&self) -> &str { Self::int_to_string(self.get_int()) }
 }
 
@@ -130,7 +134,7 @@ impl Pid {
     /// use veloren_network::{Network, Pid};
     ///
     /// let pid = Pid::new();
-    /// let _ = Network::new(pid, None);
+    /// let _ = Network::new(pid);
     /// ```
     pub fn new() -> Self {
         Self {
