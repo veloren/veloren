@@ -43,7 +43,6 @@ pub enum ServerEvent {
         dir: Dir,
         body: comp::Body,
         light: Option<comp::LightEmitter>,
-        particles: Vec<comp::ParticleEmitter>,
         projectile: comp::Projectile,
         gravity: Option<comp::Gravity>,
     },

@@ -2,8 +2,8 @@
 // version in voxygen\src\meta.rs in order to reset save files to being empty
 
 use crate::comp::{
-    body::object, projectile, visual::ParticleEmitterMode, Body, CharacterAbility, Gravity,
-    HealthChange, HealthSource, LightEmitter, ParticleEmitter, Projectile,
+    body::object, projectile, Body, CharacterAbility, Gravity, HealthChange, HealthSource,
+    LightEmitter, Projectile,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -180,7 +180,6 @@ impl Tool {
                     },
                     projectile_body: Body::Object(object::Body::Arrow),
                     projectile_light: None,
-                    projectile_particles: vec![],
                     projectile_gravity: Some(Gravity(0.2)),
                 },
                 ChargedRanged {
@@ -195,7 +194,6 @@ impl Tool {
                     recover_duration: Duration::from_millis(500),
                     projectile_body: Body::Object(object::Body::Arrow),
                     projectile_light: None,
-                    projectile_particles: vec![],
                     projectile_gravity: Some(Gravity(0.05)),
                 },
             ],
@@ -276,21 +274,6 @@ impl Tool {
                         col: (0.85, 0.5, 0.11).into(),
                         ..Default::default()
                     }),
-                    projectile_particles: vec![ParticleEmitter {
-                        mode: ParticleEmitterMode::Sprinkler,
-                        // model_key: "voxygen.voxel.not_found",
-                        count: (2, 3),
-                        frequency: Duration::from_millis(50),
-                        initial_lifespan: Duration::from_millis(500),
-                        initial_offset: (vek::Vec3::broadcast(-1.0), vek::Vec3::broadcast(1.0)),
-                        initial_orientation: (
-                            vek::Vec3::broadcast(-1.0),
-                            vek::Vec3::broadcast(1.0),
-                        ),
-                        initial_scale: (0.1, 0.3),
-                        initial_velocity: (vek::Vec3::zero(), vek::Vec3::one()),
-                        initial_col: (vek::Rgb::zero(), vek::Rgb::one()),
-                    }],
                     projectile_gravity: None,
                 },
                 BasicRanged {
@@ -315,7 +298,6 @@ impl Tool {
                         col: (1.0, 0.75, 0.11).into(),
                         ..Default::default()
                     }),
-                    projectile_particles: vec![ParticleEmitter::default()],
                     projectile_gravity: None,
                 },
             ],
@@ -360,7 +342,6 @@ impl Tool {
                             col: (0.0, 1.0, 0.33).into(),
                             ..Default::default()
                         }),
-                        projectile_particles: vec![],
                         projectile_gravity: None,
                     },
                 ],

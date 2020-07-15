@@ -398,14 +398,7 @@ impl Scene {
         self.figure_mgr.clean(scene_data.tick);
 
         // Maintain the particles.
-        self.particle_mgr.maintain(
-            renderer,
-            &scene_data,
-            self.camera.get_focus_pos(),
-            self.loaded_distance,
-            view_mat,
-            proj_mat,
-        );
+        self.particle_mgr.maintain(renderer, &scene_data);
 
         // Maintain audio
         self.sfx_mgr
@@ -442,13 +435,8 @@ impl Scene {
             scene_data.figure_lod_render_distance,
         );
 
-        self.particle_mgr.render(
-            renderer,
-            &self.globals,
-            &self.lights,
-            &self.shadows,
-            self.camera.get_focus_pos(),
-        );
+        self.particle_mgr
+            .render(renderer, &self.globals, &self.lights, &self.shadows);
 
         // Render the skybox.
         renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);
