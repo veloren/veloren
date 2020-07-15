@@ -155,6 +155,18 @@ https://account.veloren.net."#,
         "hud.press_key_to_toggle_keybindings_fmt": "Presiona {key} para alternar los controles del teclado",
         "hud.press_key_to_toggle_debug_info_fmt": "Presiona {key} para alternar la información de depuración",
 
+        // Chat outputs
+        "hud.chat.online_msg": "[{name}] se ha conectado.",
+        "hud.chat.offline_msg": "{name} se ha desconectado.",
+        "hud.chat.loot_msg": "Recogiste [{item}]",
+        "hud.chat.loot_fail": "Tu inventario está lleno!",
+        "hud.chat.goodbye": "Adiós!",
+        "hud.chat.connection_lost": "Conexión perdida. Expulsando en {time} segundos.",
+
+        // SCT outputs
+        "hud.sct.experience": "{amount} Exp",
+        "hud.sct.block": "BLOQUEADO",
+
         /// Respawn message
         "hud.press_key_to_respawn": r#"Presiona {key} para reaparecer en la ultima fogata que visitaste."#,
 
@@ -252,12 +264,15 @@ objetos infundidos con magia?"#,
         "hud.settings.cumulated_damage": "Daño Acumulado",
         "hud.settings.incoming_damage": "Daño Recibido",
         "hud.settings.cumulated_incoming_damage": "Daño Recibido Acumulado",
-        "hud.settings.speech_bubble_dark_mode": "Burbujas de Dialogo en Modo Oscuro",
+        "hud.settings.speech_bubble": "Burbuja de Diálogo",
+        "hud.settings.speech_bubble_dark_mode": "Burbuja de Diálogo en Modo Oscuro",
+        "hud.settings.speech_bubble_icon": "Icono de Burbuja de Diálogo",
         "hud.settings.energybar_numbers": "Números de la Barras de Energia",
         "hud.settings.values": "Valores",
         "hud.settings.percentages": "Porcentajes",
         "hud.settings.chat": "Chat",
         "hud.settings.background_transparency": "Transparencia de Fondo",
+        "hud.settings.chat_character_name": "Nombres de Personajes en el chat",
 
         "hud.settings.pan_sensitivity": "Sensibilidad de Desplazamiento",
         "hud.settings.zoom_sensitivity": "Sensibilidad del Zoom",
@@ -288,6 +303,8 @@ objetos infundidos con magia?"#,
         "hud.settings.audio_device": "Dispositivo de Audio",
 		
 		"hud.settings.awaitingkey": "Presiona una tecla...",
+        "hud.settings.unbound": "Ninguno",
+        "hud.settings.reset_keybinds": "Reestablecer a los valores predeterminados",
 
         "hud.social": "Social",
         "hud.social.online": "En Linea",
@@ -299,7 +316,7 @@ objetos infundidos con magia?"#,
         "hud.spell": "Hechizos",
 
         "hud.free_look_indicator": "Vista libre activa",       
-		"hud.auto_walk_indicator": "Auto caminar activada",
+		"hud.auto_walk_indicator": "Auto caminar activado",
 
         /// End HUD section
 
