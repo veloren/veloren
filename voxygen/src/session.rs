@@ -15,7 +15,7 @@ use common::{
     assets::{load_expect, load_watched, watch},
     clock::Clock,
     comp,
-    comp::{ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel, MAX_PICKUP_RANGE_SQR},
+    comp::{ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel, MAX_MOUNT_RANGE_SQR, MAX_PICKUP_RANGE_SQR},
     event::EventBus,
     msg::ClientState,
     terrain::{Block, BlockKind},
@@ -430,25 +430,32 @@ impl PlayState for SessionState {
                                 .copied();
                             if let Some(player_pos) = player_pos {
                                 // Find closest mountable entity
-                                let closest_mountable = (
+                                let mut closest_mountable: Option<(specs::Entity, i32)> = None;
+
+                                for (uid, pos, ms) in (
                                     &client.state().ecs().entities(),
                                     &client.state().ecs().read_storage::<comp::Pos>(),
                                     &client.state().ecs().read_storage::<comp::MountState>(),
-                                )
-                                    .join()
-                                    .filter(|(_, _, ms)| {
-                                        if let comp::MountState::Unmounted = ms {
-                                            true
-                                        } else {
-                                            false
-                                        }
-                                    })
-                                    .min_by_key(|(_, pos, _)| {
-                                        (player_pos.0.distance_squared(pos.0) * 1000.0) as i32
-                                    })
-                                    .map(|(uid, _, _)| uid);
+                                ).join() {
+                                    if comp::MountState::Unmounted != *ms {
+                                        continue;
+                                    }
 
-                                if let Some(mountee_entity) = closest_mountable {
+                                    let dist = (player_pos.0.distance_squared(pos.0) * 1000.0) as i32;
+                                    if MAX_MOUNT_RANGE_SQR < dist {
+                                        continue;
+                                    }
+
+                                    if let Some(previous) = closest_mountable.as_mut() {
+                                        if dist < previous.1 {
+                                            *previous = (uid, dist);
+                                        }
+                                    } else {
+                                        closest_mountable = Some((uid, dist));
+                                    }
+                                }
+
+                                if let Some((mountee_entity, _)) = closest_mountable {
                                     client.mount(mountee_entity);
                                 }
                             }
