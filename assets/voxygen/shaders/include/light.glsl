@@ -126,7 +126,7 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
     vec3 directed_light = vec3(0.0);
     vec3 max_light = vec3(0.0);
 
-	const float LIGHT_AMBIANCE = 0.015625;
+	const float LIGHT_AMBIANCE = 0.0;//0.015625;
 
 	for (uint i = 0u; i < /*light_shadow_count.x*//*0u*/light_shadow_count.x/*32u*/; i ++) {
 
@@ -184,8 +184,8 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
         vec3 direct_light = PI * color * strength * square_factor * light_reflection_factor(/*direct_norm_dir*/wnorm, /*cam_to_frag*/view_dir, direct_light_dir, k_d, k_s, alpha, voxel_norm, voxel_lighting);
         float computed_shadow = ShadowCalculationPoint(i, -difference, wnorm, wpos/*, light_distance*/);
         // directed_light += is_direct ? max(computed_shadow, /*LIGHT_AMBIANCE*/0.0) * direct_light * square_factor : vec3(0.0);
-        // directed_light += is_direct ? mix(LIGHT_AMBIANCE, 1.0, computed_shadow) * direct_light * square_factor : vec3(0.0);
-        directed_light += (is_direct ? 1.0 : LIGHT_AMBIANCE) * max(computed_shadow, /*LIGHT_AMBIANCE*/0.0) * direct_light * square_factor;// : vec3(0.0);
+        directed_light += is_direct ? mix(LIGHT_AMBIANCE, 1.0, computed_shadow) * direct_light * square_factor : vec3(0.0);
+        // directed_light += (is_direct ? 1.0 : LIGHT_AMBIANCE) * max(computed_shadow, /*LIGHT_AMBIANCE*/0.0) * direct_light * square_factor;// : vec3(0.0);
         // directed_light += mix(LIGHT_AMBIANCE, 1.0, computed_shadow) * direct_light * square_factor;
         // ambient_light += is_direct ? vec3(0.0) : vec3(0.0); // direct_light * square_factor * LIGHT_AMBIANCE;
         // ambient_light += is_direct ? direct_light * (1.0 - square_factor * LIGHT_AMBIANCE) : vec3(0.0);

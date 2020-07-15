@@ -438,8 +438,8 @@ impl FigureMgr {
             // Are shadows enabled at all?
             let can_shadow_sun = renderer.render_mode().shadow.is_map() && is_daylight;
             let Dependents {
-                proj_mat,
-                view_mat,
+                proj_mat: _,
+                view_mat: _,
                 cam_pos,
             } = camera.dependents();
             let cam_pos = math::Vec3::from(cam_pos);

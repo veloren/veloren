@@ -1,9 +1,9 @@
 use core::{iter, mem};
 use hashbrown::HashMap;
 use num::traits::Float;
-// pub use vek::{geom::repr_simd::*, mat::repr_simd::column_major::Mat4, ops::*,
-// vec::repr_simd::*};
-pub use vek::{geom::repr_c::*, mat::repr_c::column_major::Mat4, ops::*, vec::repr_c::*};
+pub use vek::{geom::repr_simd::*, mat::repr_simd::column_major::Mat4, ops::*, vec::repr_simd::*};
+// pub use vek::{geom::repr_c::*, mat::repr_c::column_major::Mat4, ops::*,
+// vec::repr_c::*};
 
 pub fn aabb_to_points<T: Float>(bounds: Aabb<T>) -> [Vec3<T>; 8] {
     [

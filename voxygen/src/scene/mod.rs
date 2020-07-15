@@ -569,7 +569,7 @@ impl Scene {
 
         // Maintain the terrain.
         let (
-            /* _scene_bounds, visible_bounds, _psc_bounds */ visible_bounds,
+            /* _scene_bounds, visible_bounds, _psc_bounds */ _visible_bounds,
             visible_light_volume,
             visible_psr_bounds,
         ) = self.terrain.maintain(
@@ -775,8 +775,8 @@ impl Scene {
                 .scaled_3d(Vec3::new(proj_mat[(0, 0)], proj_mat[(1, 1)], 1.0));
             let focus_off = focus_pos.map(|e| e.trunc()); */
             let z_n = 1.0; //f64::from(camera::NEAR_PLANE);
-            let z_f = f64::from(camera::FAR_PLANE);
-            let scalar_fov = /*f64::from(fov / 2.0)*/compute_scalar_fov(z_n, f64::from(fov), f64::from(aspect_ratio));
+            let _z_f = f64::from(camera::FAR_PLANE);
+            let _scalar_fov = /*f64::from(fov / 2.0)*/compute_scalar_fov(z_n, f64::from(fov), f64::from(aspect_ratio));
             shadow_mats.extend(directed_shadow_mats.iter().enumerate().map(move |(idx, &light_view_mat)| {
                 if idx >= NUM_DIRECTED_LIGHTS {
                     return ShadowLocals::new(Mat4::identity(), Mat4::identity());
@@ -911,7 +911,8 @@ impl Scene {
                 let cos_gamma = new_dir.map(f64::from).dot(directed_light_dir.map(f64::from));
                 let sin_gamma = (1.0 - cos_gamma * cos_gamma).sqrt();
                 let gamma = sin_gamma.asin()/*cos_gamma.acos()*/;
-                let bounds1 = math::fit_psr(view_mat, visible_light_volume.iter().copied(), math::Vec4::homogenized);
+                let view_mat = math::Mat4::from_col_array(view_mat.into_col_array());
+                let bounds1 = math::fit_psr(view_mat.map_cols(math::Vec4::from), visible_light_volume.iter().copied(), math::Vec4::homogenized);
                 let n_e = f64::from(-bounds1.max.z);
                 // let f_e = f64::from(-bounds1.min.z);
                 // let fov = 2.0 * aspect_ratio * (fov / 2.0).tan();
@@ -988,7 +989,7 @@ impl Scene {
                         0.0, 0.0, 0.0, 1.0,
                     );
 
-                    let w_p_arr = solve_p0.cols.iter().map(|e| (e.x, e.y, e.z, e.w)).collect::<Vec<_>>();
+                    // let _w_p_arr = solve_p0.cols.iter().map(|e| (e.x, e.y, e.z, e.w)).collect::<Vec<_>>();
                     // println!("mat4 solve_p0 = mat4(vec4{:?}, vec4{:?}, vec4{:?}, vec4{:?});", w_p_arr[0], w_p_arr[1], w_p_arr[2], w_p_arr[3]);
 
                     let p0_world = solve_p0.inverted() * math::Vec4::unit_w();
@@ -1286,7 +1287,7 @@ impl Scene {
                     0.0, 0.0, 1.0, 0.0,
                     0.0, 1.0, 0.0, 0.0,
                 ); */
-                let _w_p_arr = w_p.cols.iter().map(|e| (e.x, e.y, e.z, e.w)).collect::<Vec<_>>();
+                // let _w_p_arr = w_p.cols.iter().map(|e| (e.x, e.y, e.z, e.w)).collect::<Vec<_>>();
                 // println!("mat4 w_p = mat4(vec4{:?}, vec4{:?}, vec4{:?}, vec4{:?});", w_p_arr[0], w_p_arr[1], w_p_arr[2], w_p_arr[3]);
                 // let w_p: Mat4<f32> = Mat4::identity();
                 // let zmin = p1.z.min(p4.z);
@@ -1312,7 +1313,7 @@ impl Scene {
                     far: zmax,//directed_far,
                 }); */
                 let shadow_all_mat: math::Mat4<f32> = /*(w_v * l_r).inverted() * */w_p * shadow_view_mat/*w_v * light_all_mat*/;
-                let _w_p_arr = shadow_all_mat.cols.iter().map(|e| (e.x, e.y, e.z, e.w)).collect::<Vec<_>>();
+                // let _w_p_arr = shadow_all_mat.cols.iter().map(|e| (e.x, e.y, e.z, e.w)).collect::<Vec<_>>();
                 // println!("mat4 shadow_all_mat = mat4(vec4{:?}, vec4{:?}, vec4{:?}, vec4{:?});", w_p_arr[0], w_p_arr[1], w_p_arr[2], w_p_arr[3]);
                 let math::Aabb::<f32> { min: math::Vec3 { x: xmin, y: ymin, z: zmin }, max: math::Vec3 { x: xmax, y: ymax, z: zmax } } =
                     math::fit_psr(/*light_all_mat*/shadow_all_mat/*shadow_view_mat*//* * inverse_visible*/, visible_light_volume.iter().copied(), /*|p| math::Vec3::from(p) / p.w*/math::Vec4::homogenized);
@@ -1349,11 +1350,11 @@ impl Scene {
                 }/*.scaled_3d(Vec3::new(1.0, 1.0, -1.0))*//* * w_p * w_v*//* * l_r*/;//Mat4::identity();
                 // println!("proj_mat: {:?}", directed_proj_mat);
                 // println!("all_mat: {:?}", directed_proj_mat * view_mat);
-                let _w_p_arr = directed_proj_mat.cols.iter().map(|e| (e.x, e.y, e.z, e.w)).collect::<Vec<_>>();
+                // let _w_p_arr = directed_proj_mat.cols.iter().map(|e| (e.x, e.y, e.z, e.w)).collect::<Vec<_>>();
                 // println!("mat4 directed_proj_mat = mat4(vec4{:?}, vec4{:?}, vec4{:?}, vec4{:?});", w_p_arr[0], w_p_arr[1], w_p_arr[2], w_p_arr[3]);
 
                 let shadow_all_mat: Mat4<f32> = Mat4::from_col_arrays(shadow_all_mat.into_col_arrays());
-                let _w_p_arr = (directed_proj_mat * shadow_all_mat).cols.iter().map(|e| (e.x, e.y, e.z, e.w)).collect::<Vec<_>>();
+                // let _w_p_arr = (directed_proj_mat * shadow_all_mat).cols.iter().map(|e| (e.x, e.y, e.z, e.w)).collect::<Vec<_>>();
                 // println!("mat4 final_mat = mat4(vec4{:?}, vec4{:?}, vec4{:?}, vec4{:?});", w_p_arr[0], w_p_arr[1], w_p_arr[2], w_p_arr[3]);
 
                 let directed_texture_proj_mat = texture_mat * directed_proj_mat;
@@ -1441,7 +1442,7 @@ impl Scene {
             self.terrain.render_shadows(
                 renderer,
                 &self.globals,
-                &self.lights,
+                // &self.lights,
                 &self.shadow_mats,
                 &self.light_data,
                 is_daylight,

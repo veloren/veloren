@@ -1388,8 +1388,8 @@ impl Renderer {
         globals: &Consts<Globals>,
         terrain_locals: &Consts<terrain::Locals>,
         locals: &Consts<shadow::Locals>,
-        lights: &Consts<Light>,
-        /* shadows: &Consts<Shadow>,
+        /* lights: &Consts<Light>,
+         * shadows: &Consts<Shadow>,
          * map: &Texture<LodColorFmt>,
          * horizon: &Texture<LodTextureFmt>, */
     ) {
@@ -1419,7 +1419,7 @@ impl Renderer {
                 vbuf: model.vbuf.clone(),
                 locals: terrain_locals.buf.clone(),
                 globals: globals.buf.clone(),
-                lights: lights.buf.clone(),
+                // lights: lights.buf.clone(),
                 // shadows: shadows.buf.clone(),
                 // noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 // map: (map.srv.clone(), map.sampler.clone()),
@@ -1443,8 +1443,8 @@ impl Renderer {
         globals: &Consts<Globals>,
         terrain_locals: &Consts<terrain::Locals>,
         locals: &Consts<shadow::Locals>,
-        lights: &Consts<Light>,
-        /* shadows: &Consts<Shadow>,
+        /* lights: &Consts<Light>,
+         * shadows: &Consts<Shadow>,
          * map: &Texture<LodColorFmt>,
          * horizon: &Texture<LodTextureFmt>, */
     ) {
@@ -1474,7 +1474,7 @@ impl Renderer {
                 vbuf: model.vbuf.clone(),
                 locals: terrain_locals.buf.clone(),
                 globals: globals.buf.clone(),
-                lights: lights.buf.clone(),
+                // lights: lights.buf.clone(),
                 // shadows: shadows.buf.clone(),
                 // noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 // map: (map.srv.clone(), map.sampler.clone()),
@@ -2089,8 +2089,9 @@ fn create_pipelines(
         )
         .unwrap(),
         &include_ctx,
-        gfx::state::CullFace::Front,
-        Some(gfx::state::Offset(2, /* 10 */ 0)),
+        gfx::state::CullFace::Back,
+        None,
+        // Some(gfx::state::Offset(2, /* 10 */ 0)),
     ) {
         Ok(pipe) => Some(pipe),
         Err(err) => {

@@ -39,7 +39,7 @@ fn main() {
         // world_file: sim::FileOpts::Save,
         ..WorldOpts::default()
     });
-    log::info!("Sampling data...");
+    tracing::info!("Sampling data...");
     let sampler = world.sim();
 
     let samples_data = {

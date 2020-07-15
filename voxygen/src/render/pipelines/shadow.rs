@@ -1,6 +1,6 @@
 use super::{
     super::{
-        ColLightFmt, ColLightInfo, Light, Pipeline, RenderError, Renderer, ShadowDepthStencilFmt,
+        ColLightFmt, ColLightInfo, Pipeline, RenderError, Renderer, ShadowDepthStencilFmt,
         TerrainLocals, Texture,
     },
     figure, terrain, Globals,
@@ -30,7 +30,7 @@ gfx_defines! {
 
         locals: gfx::ConstantBuffer<TerrainLocals> = "u_locals",
         globals: gfx::ConstantBuffer<Globals> = "u_globals",
-        lights: gfx::ConstantBuffer<Light> = "u_lights",
+        // lights: gfx::ConstantBuffer<Light> = "u_lights",
         // shadows: gfx::ConstantBuffer<Shadow> = "u_shadows",
 
         // map: gfx::TextureSampler<[f32; 4]> = "t_map",
@@ -42,7 +42,7 @@ gfx_defines! {
         light_shadows: gfx::ConstantBuffer<Locals> = "u_light_shadows",
 
         tgt_depth_stencil: gfx::DepthTarget<ShadowDepthStencilFmt> = gfx::state::Depth {
-            fun: gfx::state::Comparison::LessEqual,
+            fun: gfx::state::Comparison::Less,
             write: true,
         },
         // tgt_depth_stencil: gfx::DepthTarget<ShadowDepthStencilFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,//,Stencil::new(Comparison::Always,0xff,(StencilOp::Keep,StencilOp::Keep,StencilOp::Keep))),
@@ -67,7 +67,7 @@ gfx_defines! {
         light_shadows: gfx::ConstantBuffer<Locals> = "u_light_shadows",
 
         tgt_depth_stencil: gfx::DepthTarget<ShadowDepthStencilFmt> = gfx::state::Depth {
-            fun: gfx::state::Comparison::LessEqual,
+            fun: gfx::state::Comparison::Less,
             write: true,
         },
         // tgt_depth_stencil: gfx::DepthTarget<ShadowDepthStencilFmt> = gfx::preset::depth::LESS_WRITE,//,Stencil::new(Comparison::Always,0xff,(StencilOp::Keep,StencilOp::Keep,StencilOp::Keep))),

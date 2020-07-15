@@ -2788,7 +2788,7 @@ impl<V: RectRasterableVol> Terrain<V> {
 
         // Update chunk visibility
         let chunk_sz = V::RECT_SIZE.x as f32;
-        let scene_bounding_box: Aabb<f32> = Aabb {
+        let _scene_bounding_box: Aabb<f32> = Aabb {
             min: focus_pos - 2.0, /*
                                    * - /0.5f32 */
             max: focus_pos + 2.0, /* + 0.5f32 */
@@ -2862,7 +2862,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         });
 
         // PSCs: Potential shadow casters
-        let psc_bounding_box: Aabb<f32> = visible_bounding_box;
+        let _psc_bounding_box: Aabb<f32> = visible_bounding_box;
         /*Aabb {
             min: focus_pos - 0.5f32,
             max: focus_pos + 0.5f32,
@@ -3083,7 +3083,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         &self,
         renderer: &mut Renderer,
         globals: &Consts<Globals>,
-        lights: &Consts<Light>,
+        // lights: &Consts<Light>,
         shadow_mats: &Consts<ShadowLocals>,
         light_data: &[Light],
         is_daylight: bool,
@@ -3124,7 +3124,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                         globals,
                         &chunk.locals,
                         shadow_mats,
-                        lights,
+                        /* lights, */
                         /* shadows,
                          * &lod.map,
                          * &lod.horizon, */
@@ -3146,7 +3146,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                         globals,
                         &chunk.locals,
                         shadow_mats,
-                        lights,
+                        /* lights, */
                         /* shadows,
                          * &lod.map,
                          * &lod.horizon, */

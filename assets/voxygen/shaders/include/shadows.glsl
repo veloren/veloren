@@ -138,7 +138,7 @@ float ShadowCalculationPoint(uint lightIndex, vec3 fragToLight, vec3 fragNorm, /
 
 float ShadowCalculationDirected(in vec3 fragPos)//in vec4 /*light_pos[2]*/sun_pos, vec3 fragPos)
 {
-    float bias = 0.001;//0.0005;//-0.0001;// 0.05 / (2.0 * view_distance.x);
+    float bias = 0.000;//0.0005;//-0.0001;// 0.05 / (2.0 * view_distance.x);
     float diskRadius = 0.01;
     const vec3 sampleOffsetDirections[20] = vec3[]
     (
