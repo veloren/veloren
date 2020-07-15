@@ -76,6 +76,10 @@ impl Civs {
         let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
         let mut ctx = GenCtx { sim, rng };
 
+        for _ in 0..100 {
+            this.generate_cave(&mut ctx);
+        }
+
         for _ in 0..INITIAL_CIV_COUNT {
             debug!("Creating civilisation...");
             if this.birth_civ(&mut ctx.reseed()).is_none() {
@@ -206,6 +210,62 @@ impl Civs {
         //this.display_info();
 
         this
+    }
+
+    // TODO: Move this
+    fn generate_cave(&self, ctx: &mut GenCtx<impl Rng>) {
+        let mut pos = ctx.sim
+            .get_size()
+            .map(|sz| ctx.rng.gen_range(0, sz as i32) as f32);
+        let mut vel = pos
+            .map2(ctx.sim.get_size(), |pos, sz| sz as f32 / 2.0 - pos)
+            .try_normalized()
+            .unwrap_or_else(Vec2::unit_y);
+
+        let path = (-100..100)
+            .filter_map(|i: i32| {
+                let depth = (i.abs() as f32 / 100.0 * std::f32::consts::PI / 2.0).cos();
+                vel = (vel + Vec2::new(
+                    ctx.rng.gen_range(-0.25, 0.25),
+                    ctx.rng.gen_range(-0.25, 0.25),
+                ))
+                    .try_normalized()
+                    .unwrap_or_else(Vec2::unit_y);
+                let old_pos = pos.map(|e| e as i32);
+                pos = (pos + vel * 0.5).clamped(Vec2::zero(), ctx.sim.get_size().map(|e| e as f32 - 1.0));
+                Some((pos.map(|e| e as i32), depth)).filter(|(pos, _)| *pos != old_pos)
+            })
+            .collect::<Vec<_>>();
+
+        for locs in path.windows(3) {
+            let to_prev_idx = NEIGHBORS
+                .iter()
+                .enumerate()
+                .find(|(_, dir)| **dir == locs[0].0 - locs[1].0)
+                .expect("Track locations must be neighbors")
+                .0;
+            let to_next_idx = NEIGHBORS
+                .iter()
+                .enumerate()
+                .find(|(_, dir)| **dir == locs[2].0 - locs[1].0)
+                .expect("Track locations must be neighbors")
+                .0;
+
+            ctx.sim.get_mut(locs[0].0).unwrap().cave.0.neighbors |=
+                1 << ((to_prev_idx as u8 + 4) % 8);
+            ctx.sim.get_mut(locs[2].0).unwrap().cave.0.neighbors |=
+                1 << ((to_next_idx as u8 + 4) % 8);
+            let mut chunk = ctx.sim.get_mut(locs[1].0).unwrap();
+            chunk.cave.0.neighbors |=
+                (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
+            let depth = locs[1].1 * 250.0;
+            chunk.cave.1.alt = chunk.alt - depth + ctx.rng.gen_range(-4.0, 4.0) * (depth > 10.0) as i32 as f32;
+            chunk.cave.1.width = ctx.rng.gen_range(12.0, 32.0);
+            chunk.cave.0.offset = Vec2::new(
+                ctx.rng.gen_range(-16, 17),
+                ctx.rng.gen_range(-16, 17),
+            );
+        }
     }
 
     pub fn place(&self, id: Id<Place>) -> &Place { self.places.get(id) }
@@ -425,16 +485,16 @@ impl Civs {
                                 .expect("Track locations must be neighbors")
                                 .0;
 
-                            ctx.sim.get_mut(locs[0]).unwrap().path.neighbors |=
+                            ctx.sim.get_mut(locs[0]).unwrap().path.0.neighbors |=
                                 1 << ((to_prev_idx as u8 + 4) % 8);
-                            ctx.sim.get_mut(locs[2]).unwrap().path.neighbors |=
+                            ctx.sim.get_mut(locs[2]).unwrap().path.0.neighbors |=
                                 1 << ((to_next_idx as u8 + 4) % 8);
                             let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
-                            chunk.path.neighbors |=
+                            chunk.path.0.neighbors |=
                                 (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
-                            chunk.path.offset = Vec2::new(
-                                ctx.rng.gen_range(-16.0, 16.0),
-                                ctx.rng.gen_range(-16.0, 16.0),
+                            chunk.path.0.offset = Vec2::new(
+                                ctx.rng.gen_range(-16, 17),
+                                ctx.rng.gen_range(-16, 17),
                             );
                         }
 
@@ -570,7 +630,7 @@ fn walk_in_dir(sim: &WorldSim, a: Vec2<i32>, dir: Vec2<i32>) -> Option<f32> {
         } else {
             0.0
         };
-        let wild_cost = if b_chunk.path.is_path() {
+        let wild_cost = if b_chunk.path.0.is_way() {
             0.0 // Traversing existing paths has no additional cost!
         } else {
             2.0

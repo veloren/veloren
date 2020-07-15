@@ -2,7 +2,8 @@ use crate::{
     all::ForestKind,
     block::StructureMeta,
     sim::{
-        local_cells, uniform_idx_as_vec2, vec2_as_uniform_idx, Path, RiverKind, SimChunk, WorldSim,
+        local_cells, uniform_idx_as_vec2, vec2_as_uniform_idx,
+        Path, Cave, RiverKind, SimChunk, WorldSim,
     },
     util::Sampler,
     Index, CONFIG,
@@ -1082,6 +1083,7 @@ where
         };
 
         let path = sim.get_nearest_path(wpos);
+        let cave = sim.get_nearest_cave(wpos);
 
         Some(ColumnSample {
             alt,
@@ -1131,6 +1133,7 @@ where
             stone_col,
             water_dist,
             path,
+            cave,
 
             chunk: sim_chunk,
         })
@@ -1165,6 +1168,7 @@ pub struct ColumnSample<'a> {
     pub stone_col: Rgb<u8>,
     pub water_dist: Option<f32>,
     pub path: Option<(f32, Vec2<f32>, Path, Vec2<f32>)>,
+    pub cave: Option<(f32, Vec2<f32>, Cave, Vec2<f32>)>,
 
     pub chunk: &'a SimChunk,
 }

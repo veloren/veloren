@@ -121,7 +121,7 @@ pub fn tick_site_economy(index: &mut Index, site: Id<Site>, dt: f32) {
         }
     }
 
-    let mut supply = site.economy.stocks.clone();//MapVec::from_default(0.0);
+    let mut supply = site.economy.stocks.clone(); //MapVec::from_default(0.0);
     for (labor, (output_good, _)) in productivity.iter() {
         supply[*output_good] +=
             site.economy.yields[labor] * site.economy.labors[labor] * site.economy.pop;
@@ -231,7 +231,8 @@ pub fn tick_site_economy(index: &mut Index, site: Id<Site>, dt: f32) {
             let (stock, rate) = productivity[*labor];
             let workers = site.economy.labors[*labor] * site.economy.pop;
             let final_rate = rate;
-            let yield_per_worker = labor_productivity * final_rate * (1.0 + workers / 100.0).min(3.0);
+            let yield_per_worker =
+                labor_productivity * final_rate * (1.0 + workers / 100.0).min(3.0);
             site.economy.yields[*labor] = yield_per_worker;
             site.economy.productivity[*labor] = labor_productivity;
             let total_output = yield_per_worker * workers;
