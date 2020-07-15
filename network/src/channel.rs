@@ -1,5 +1,6 @@
+#[cfg(feature = "metrics")]
+use crate::metrics::NetworkMetrics;
 use crate::{
-    metrics::NetworkMetrics,
     protocols::Protocols,
     types::{
         Cid, Frame, Pid, Sid, STREAM_ID_OFFSET1, STREAM_ID_OFFSET2, VELOREN_MAGIC_NUMBER,
@@ -13,7 +14,7 @@ use futures::{
     stream::StreamExt,
     FutureExt,
 };
-use std::sync::Arc;
+#[cfg(feature = "metrics")] use std::sync::Arc;
 use tracing::*;
 
 pub(crate) struct Channel {
@@ -80,6 +81,7 @@ pub(crate) struct Handshake {
     local_pid: Pid,
     secret: u128,
     init_handshake: bool,
+    #[cfg(feature = "metrics")]
     metrics: Arc<NetworkMetrics>,
 }
 
@@ -98,13 +100,14 @@ impl Handshake {
         cid: u64,
         local_pid: Pid,
         secret: u128,
-        metrics: Arc<NetworkMetrics>,
+        #[cfg(feature = "metrics")] metrics: Arc<NetworkMetrics>,
         init_handshake: bool,
     ) -> Self {
         Self {
             cid,
             local_pid,
             secret,
+            #[cfg(feature = "metrics")]
             metrics,
             init_handshake,
         }
@@ -163,104 +166,73 @@ impl Handshake {
     ) -> Result<(Pid, Sid, u128), ()> {
         const ERR_S: &str = "Got A Raw Message, these are usually Debug Messages indicating that \
                              something went wrong on network layer and connection will be closed";
-        let mut pid_string = "".to_string();
+        #[cfg(feature = "metrics")]
         let cid_string = self.cid.to_string();
 
         if self.init_handshake {
             self.send_handshake(&mut c2w_frame_s).await;
         }
 
-        let r = match w2c_cid_frame_r.next().await {
-            Some((
-                _,
-                Frame::Handshake {
-                    magic_number,
-                    version,
-                },
-            )) => {
-                trace!(?magic_number, ?version, "Recv handshake");
+        let frame = w2c_cid_frame_r.next().await.map(|(_cid, frame)| frame);
+        #[cfg(feature = "metrics")]
+        {
+            if let Some(ref frame) = frame {
                 self.metrics
                     .frames_in_total
-                    .with_label_values(&["", &cid_string, "Handshake"])
+                    .with_label_values(&["", &cid_string, &frame.get_string()])
                     .inc();
+            }
+        }
+        let r = match frame {
+            Some(Frame::Handshake {
+                magic_number,
+                version,
+            }) => {
+                trace!(?magic_number, ?version, "Recv handshake");
                 if magic_number != VELOREN_MAGIC_NUMBER {
                     error!(?magic_number, "Connection with invalid magic_number");
                     #[cfg(debug_assertions)]
-                    {
-                        self.metrics
-                            .frames_out_total
-                            .with_label_values(&["", &cid_string, "Raw"])
-                            .inc();
-                        debug!("Sending client instructions before killing");
-                        c2w_frame_s
-                            .send(Frame::Raw(Self::WRONG_NUMBER.to_vec()))
-                            .await
-                            .unwrap();
-                        c2w_frame_s.send(Frame::Shutdown).await.unwrap();
-                    }
+                    self.send_raw_and_shutdown(&mut c2w_frame_s, Self::WRONG_NUMBER.to_vec())
+                        .await;
                     Err(())
                 } else if version != VELOREN_NETWORK_VERSION {
                     error!(?version, "Connection with wrong network version");
                     #[cfg(debug_assertions)]
-                    {
-                        debug!("Sending client instructions before killing");
-                        self.metrics
-                            .frames_out_total
-                            .with_label_values(&["", &cid_string, "Raw"])
-                            .inc();
-                        c2w_frame_s
-                            .send(Frame::Raw(
-                                format!(
-                                    "{} Our Version: {:?}\nYour Version: {:?}\nClosing the \
-                                     connection",
-                                    Self::WRONG_VERSION,
-                                    VELOREN_NETWORK_VERSION,
-                                    version,
-                                )
-                                .as_bytes()
-                                .to_vec(),
-                            ))
-                            .await
-                            .unwrap();
-                        c2w_frame_s.send(Frame::Shutdown {}).await.unwrap();
-                    }
+                    self.send_raw_and_shutdown(
+                        &mut c2w_frame_s,
+                        format!(
+                            "{} Our Version: {:?}\nYour Version: {:?}\nClosing the connection",
+                            Self::WRONG_VERSION,
+                            VELOREN_NETWORK_VERSION,
+                            version,
+                        )
+                        .as_bytes()
+                        .to_vec(),
+                    )
+                    .await;
                     Err(())
                 } else {
                     debug!("Handshake completed");
                     if self.init_handshake {
-                        self.send_init(&mut c2w_frame_s, &pid_string).await;
+                        self.send_init(&mut c2w_frame_s, "").await;
                     } else {
                         self.send_handshake(&mut c2w_frame_s).await;
                     }
                     Ok(())
                 }
             },
-            Some((_, Frame::Shutdown)) => {
+            Some(Frame::Shutdown) => {
                 info!("Shutdown signal received");
-                self.metrics
-                    .frames_in_total
-                    .with_label_values(&[&pid_string, &cid_string, "Shutdown"])
-                    .inc();
                 Err(())
             },
-            Some((_, Frame::Raw(bytes))) => {
-                self.metrics
-                    .frames_in_total
-                    .with_label_values(&[&pid_string, &cid_string, "Raw"])
-                    .inc();
+            Some(Frame::Raw(bytes)) => {
                 match std::str::from_utf8(bytes.as_slice()) {
                     Ok(string) => error!(?string, ERR_S),
                     _ => error!(?bytes, ERR_S),
                 }
                 Err(())
             },
-            Some((_, frame)) => {
-                self.metrics
-                    .frames_in_total
-                    .with_label_values(&[&pid_string, &cid_string, frame.get_string()])
-                    .inc();
-                Err(())
-            },
+            Some(_) => Err(()),
             None => Err(()),
         };
         if let Err(()) = r {
@@ -274,10 +246,12 @@ impl Handshake {
             return Err(());
         }
 
-        let r = match w2c_cid_frame_r.next().await {
-            Some((_, Frame::Init { pid, secret })) => {
+        let frame = w2c_cid_frame_r.next().await.map(|(_cid, frame)| frame);
+        let r = match frame {
+            Some(Frame::Init { pid, secret }) => {
                 debug!(?pid, "Participant send their ID");
-                pid_string = pid.to_string();
+                let pid_string = pid.to_string();
+                #[cfg(feature = "metrics")]
                 self.metrics
                     .frames_in_total
                     .with_label_values(&[&pid_string, &cid_string, "ParticipantId"])
@@ -291,30 +265,20 @@ impl Handshake {
                 info!(?pid, "This Handshake is now configured!");
                 Ok((pid, stream_id_offset, secret))
             },
-            Some((_, Frame::Shutdown)) => {
-                info!("Shutdown signal received");
+            Some(frame) => {
+                #[cfg(feature = "metrics")]
                 self.metrics
                     .frames_in_total
-                    .with_label_values(&[&pid_string, &cid_string, "Shutdown"])
+                    .with_label_values(&["", &cid_string, frame.get_string()])
                     .inc();
-                Err(())
-            },
-            Some((_, Frame::Raw(bytes))) => {
-                self.metrics
-                    .frames_in_total
-                    .with_label_values(&[&pid_string, &cid_string, "Raw"])
-                    .inc();
-                match std::str::from_utf8(bytes.as_slice()) {
-                    Ok(string) => error!(?string, ERR_S),
-                    _ => error!(?bytes, ERR_S),
+                match frame {
+                    Frame::Shutdown => info!("Shutdown signal received"),
+                    Frame::Raw(bytes) => match std::str::from_utf8(bytes.as_slice()) {
+                        Ok(string) => error!(?string, ERR_S),
+                        _ => error!(?bytes, ERR_S),
+                    },
+                    _ => (),
                 }
-                Err(())
-            },
-            Some((_, frame)) => {
-                self.metrics
-                    .frames_in_total
-                    .with_label_values(&[&pid_string, &cid_string, frame.get_string()])
-                    .inc();
                 Err(())
             },
             None => Err(()),
@@ -332,6 +296,7 @@ impl Handshake {
     }
 
     async fn send_handshake(&self, c2w_frame_s: &mut mpsc::UnboundedSender<Frame>) {
+        #[cfg(feature = "metrics")]
         self.metrics
             .frames_out_total
             .with_label_values(&["", &self.cid.to_string(), "Handshake"])
@@ -345,7 +310,13 @@ impl Handshake {
             .unwrap();
     }
 
-    async fn send_init(&self, c2w_frame_s: &mut mpsc::UnboundedSender<Frame>, pid_string: &str) {
+    async fn send_init(
+        &self,
+        c2w_frame_s: &mut mpsc::UnboundedSender<Frame>,
+        #[cfg(feature = "metrics")] pid_string: &str,
+        #[cfg(not(feature = "metrics"))] _pid_string: &str,
+    ) {
+        #[cfg(feature = "metrics")]
         self.metrics
             .frames_out_total
             .with_label_values(&[pid_string, &self.cid.to_string(), "ParticipantId"])
@@ -357,5 +328,28 @@ impl Handshake {
             })
             .await
             .unwrap();
+    }
+
+    #[cfg(debug_assertions)]
+    async fn send_raw_and_shutdown(
+        &self,
+        c2w_frame_s: &mut mpsc::UnboundedSender<Frame>,
+        data: Vec<u8>,
+    ) {
+        debug!("Sending client instructions before killing");
+        #[cfg(feature = "metrics")]
+        {
+            let cid_string = self.cid.to_string();
+            self.metrics
+                .frames_out_total
+                .with_label_values(&["", &cid_string, "Raw"])
+                .inc();
+            self.metrics
+                .frames_out_total
+                .with_label_values(&["", &cid_string, "Shutdown"])
+                .inc();
+        }
+        c2w_frame_s.send(Frame::Raw(data)).await.unwrap();
+        c2w_frame_s.send(Frame::Shutdown).await.unwrap();
     }
 }

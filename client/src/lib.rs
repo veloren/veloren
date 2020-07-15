@@ -119,7 +119,7 @@ impl Client {
         // We reduce the thread count by 1 to keep rendering smooth
         thread_pool.set_num_threads((num_cpus::get() - 1).max(1));
 
-        let (network, f) = Network::new(Pid::new(), None);
+        let (network, f) = Network::new(Pid::new());
         thread_pool.execute(f);
 
         let participant = block_on(network.connect(ProtocolAddr::Tcp(addr.into())))?;

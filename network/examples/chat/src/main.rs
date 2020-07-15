@@ -100,7 +100,7 @@ fn main() {
 }
 
 fn server(address: ProtocolAddr) {
-    let (server, f) = Network::new(Pid::new(), None);
+    let (server, f) = Network::new(Pid::new());
     let server = Arc::new(server);
     std::thread::spawn(f);
     let pool = ThreadPool::new().unwrap();
@@ -144,7 +144,7 @@ async fn client_connection(_network: Arc<Network>, participant: Arc<Participant>
 }
 
 fn client(address: ProtocolAddr) {
-    let (client, f) = Network::new(Pid::new(), None);
+    let (client, f) = Network::new(Pid::new());
     std::thread::spawn(f);
     let pool = ThreadPool::new().unwrap();
 

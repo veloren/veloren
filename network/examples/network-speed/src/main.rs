@@ -120,7 +120,7 @@ fn main() {
 
 fn server(address: ProtocolAddr) {
     let mut metrics = metrics::SimpleMetrics::new();
-    let (server, f) = Network::new(Pid::new(), Some(metrics.registry()));
+    let (server, f) = Network::new_with_registry(Pid::new(), metrics.registry());
     std::thread::spawn(f);
     metrics.run("0.0.0.0:59112".parse().unwrap()).unwrap();
     block_on(server.listen(address)).unwrap();
@@ -148,7 +148,7 @@ fn server(address: ProtocolAddr) {
 
 fn client(address: ProtocolAddr) {
     let mut metrics = metrics::SimpleMetrics::new();
-    let (client, f) = Network::new(Pid::new(), Some(metrics.registry()));
+    let (client, f) = Network::new_with_registry(Pid::new(), metrics.registry());
     std::thread::spawn(f);
     metrics.run("0.0.0.0:59111".parse().unwrap()).unwrap();
 

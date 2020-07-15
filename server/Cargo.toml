@@ -11,7 +11,7 @@ default = ["worldgen"]
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
 world = { package = "veloren-world", path = "../world" }
-network = { package = "veloren_network", path = "../network", default-features = false }
+network = { package = "veloren_network", path = "../network", features = ["metrics"], default-features = false }
 
 specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", branch = "specs-git" }
 

@@ -62,8 +62,8 @@ fn stream_simple_udp_3msg() {
 #[ignore]
 fn tcp_and_udp_2_connections() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let (_, _) = helper::setup(false, 0);
-    let (network, f) = Network::new(Pid::new(), None);
-    let (remote, fr) = Network::new(Pid::new(), None);
+    let (network, f) = Network::new(Pid::new());
+    let (remote, fr) = Network::new(Pid::new());
     std::thread::spawn(f);
     std::thread::spawn(fr);
     block_on(async {
@@ -87,7 +87,7 @@ fn tcp_and_udp_2_connections() -> std::result::Result<(), Box<dyn std::error::Er
 #[test]
 fn failed_listen_on_used_ports() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let (_, _) = helper::setup(false, 0);
-    let (network, f) = Network::new(Pid::new(), None);
+    let (network, f) = Network::new(Pid::new());
     std::thread::spawn(f);
     let udp1 = udp();
     let tcp1 = tcp();
@@ -95,7 +95,7 @@ fn failed_listen_on_used_ports() -> std::result::Result<(), Box<dyn std::error::
     block_on(network.listen(tcp1.clone()))?;
     std::thread::sleep(std::time::Duration::from_millis(200));
 
-    let (network2, f2) = Network::new(Pid::new(), None);
+    let (network2, f2) = Network::new(Pid::new());
     std::thread::spawn(f2);
     let e1 = block_on(network2.listen(udp1));
     let e2 = block_on(network2.listen(tcp1));
@@ -120,8 +120,8 @@ fn api_stream_send_main() -> std::result::Result<(), Box<dyn std::error::Error>>
     let (_, _) = helper::setup(false, 0);
     // Create a Network, listen on Port `1200` and wait for a Stream to be opened,
     // then answer `Hello World`
-    let (network, f) = Network::new(Pid::new(), None);
-    let (remote, fr) = Network::new(Pid::new(), None);
+    let (network, f) = Network::new(Pid::new());
+    let (remote, fr) = Network::new(Pid::new());
     std::thread::spawn(f);
     std::thread::spawn(fr);
     block_on(async {
@@ -148,8 +148,8 @@ fn api_stream_recv_main() -> std::result::Result<(), Box<dyn std::error::Error>>
     let (_, _) = helper::setup(false, 0);
     // Create a Network, listen on Port `1220` and wait for a Stream to be opened,
     // then listen on it
-    let (network, f) = Network::new(Pid::new(), None);
-    let (remote, fr) = Network::new(Pid::new(), None);
+    let (network, f) = Network::new(Pid::new());
+    let (remote, fr) = Network::new(Pid::new());
     std::thread::spawn(f);
     std::thread::spawn(fr);
     block_on(async {

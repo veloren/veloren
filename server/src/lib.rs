@@ -53,7 +53,7 @@ use std::{
 };
 #[cfg(not(feature = "worldgen"))]
 use test_world::{World, WORLD_SIZE};
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, warn};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 #[cfg(feature = "worldgen")]
@@ -240,7 +240,7 @@ impl Server {
         let thread_pool = ThreadPoolBuilder::new()
             .name("veloren-worker".to_string())
             .build();
-        let (network, f) = Network::new(Pid::new(), None);
+        let (network, f) = Network::new(Pid::new());
         thread_pool.execute(f);
         block_on(network.listen(ProtocolAddr::Tcp(settings.gameserver_address)))?;
 
@@ -599,7 +599,16 @@ impl Server {
         loop {
             let participant = self.network.connected().await?;
             debug!("New Participant connected to the server");
-            let singleton_stream = participant.opened().await?;
+            let singleton_stream = match participant.opened().await {
+                Ok(s) => s,
+                Err(e) => {
+                    warn!(
+                        ?e,
+                        "Failed to open a Stream from remote client. Dropping it"
+                    );
+                    continue;
+                },
+            };
 
             let mut client = Client {
                 client_state: ClientState::Connected,

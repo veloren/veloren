@@ -4,18 +4,17 @@
 //!E.g. in the same time 100 prio0 messages are send, only 50 prio5, 25 prio10,
 //! 12 prio15 or 6 prio20 messages are send. Note: TODO: prio0 will be send
 //! immeadiatly when found!
-
+//!
+#[cfg(feature = "metrics")]
+use crate::metrics::NetworkMetrics;
 use crate::{
     message::OutgoingMessage,
-    metrics::NetworkMetrics,
     types::{Frame, Prio, Sid},
 };
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use futures::channel::oneshot;
-use std::{
-    collections::{HashMap, HashSet, VecDeque},
-    sync::Arc,
-};
+use std::collections::{HashMap, HashSet, VecDeque};
+#[cfg(feature = "metrics")] use std::sync::Arc;
 
 use tracing::*;
 
@@ -35,7 +34,9 @@ pub(crate) struct PrioManager {
     //you can register to be notified if a pid_sid combination is flushed completly here
     sid_flushed_rx: Receiver<(Sid, oneshot::Sender<()>)>,
     queued: HashSet<u8>,
+    #[cfg(feature = "metrics")]
     metrics: Arc<NetworkMetrics>,
+    #[cfg(feature = "metrics")]
     pid: String,
 }
 
@@ -50,13 +51,15 @@ impl PrioManager {
 
     #[allow(clippy::type_complexity)]
     pub fn new(
-        metrics: Arc<NetworkMetrics>,
+        #[cfg(feature = "metrics")] metrics: Arc<NetworkMetrics>,
         pid: String,
     ) -> (
         Self,
         Sender<(Prio, Sid, OutgoingMessage)>,
         Sender<(Sid, oneshot::Sender<()>)>,
     ) {
+        #[cfg(not(feature = "metrics"))]
+        let _pid = pid;
         // (a2p_msg_s, a2p_msg_r)
         let (messages_tx, messages_rx) = unbounded();
         let (sid_flushed_tx, sid_flushed_rx) = unbounded();
@@ -133,7 +136,9 @@ impl PrioManager {
                 queued: HashSet::new(), //TODO: optimize with u64 and 64 bits
                 sid_flushed_rx,
                 sid_owned: HashMap::new(),
+                #[cfg(feature = "metrics")]
                 metrics,
+                #[cfg(feature = "metrics")]
                 pid,
             },
             messages_tx,
@@ -148,15 +153,19 @@ impl PrioManager {
         for (prio, sid, msg) in self.messages_rx.try_iter() {
             debug_assert!(prio as usize <= PRIO_MAX);
             messages += 1;
-            let sid_string = sid.to_string();
-            self.metrics
-                .message_out_total
-                .with_label_values(&[&self.pid, &sid_string])
-                .inc();
-            self.metrics
-                .message_out_throughput
-                .with_label_values(&[&self.pid, &sid_string])
-                .inc_by(msg.buffer.data.len() as i64);
+            #[cfg(feature = "metrics")]
+            {
+                let sid_string = sid.to_string();
+                self.metrics
+                    .message_out_total
+                    .with_label_values(&[&self.pid, &sid_string])
+                    .inc();
+                self.metrics
+                    .message_out_throughput
+                    .with_label_values(&[&self.pid, &sid_string])
+                    .inc_by(msg.buffer.data.len() as i64);
+            }
+
             //trace!(?prio, ?sid_string, "tick");
             self.queued.insert(prio);
             self.messages[prio as usize].push_back((sid, msg));
