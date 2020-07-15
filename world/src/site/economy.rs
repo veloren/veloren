@@ -102,9 +102,15 @@ impl Economy {
 
     pub fn replenish(&mut self, time: f32) {
         use rand::Rng;
-        for (i, (g, v)) in [(Wheat, 50.0), (Logs, 20.0), (Rock, 120.0), (Game, 12.0), (Fish, 10.0)]
-            .iter()
-            .enumerate()
+        for (i, (g, v)) in [
+            (Wheat, 50.0),
+            (Logs, 20.0),
+            (Rock, 120.0),
+            (Game, 12.0),
+            (Fish, 10.0),
+        ]
+        .iter()
+        .enumerate()
         {
             self.stocks[*g] = (*v
                 * (1.25 + (((time * 0.0001 + i as f32).sin() + 1.0) % 1.0) * 0.5)

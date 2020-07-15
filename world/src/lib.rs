@@ -175,8 +175,9 @@ impl World {
 
         let mut rng = rand::thread_rng();
 
-        // Apply paths
+        // Apply layers (paths, caves, etc.)
         layer::apply_paths_to(chunk_wpos2d, sample_get, &mut chunk);
+        layer::apply_caves_to(chunk_wpos2d, sample_get, &mut chunk);
 
         // Apply site generation
         sim_chunk.sites.iter().for_each(|site| {

@@ -95,3 +95,40 @@ pub fn apply_paths_to<'a>(
         }
     }
 }
+
+pub fn apply_caves_to<'a>(
+    wpos2d: Vec2<i32>,
+    mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
+    vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
+) {
+    for y in 0..vol.size_xy().y as i32 {
+        for x in 0..vol.size_xy().x as i32 {
+            let offs = Vec2::new(x, y);
+
+            let wpos2d = wpos2d + offs;
+
+            // Sample terrain
+            let col_sample = if let Some(col_sample) = get_column(offs) {
+                col_sample
+            } else {
+                continue;
+            };
+            let surface_z = col_sample.riverless_alt.floor() as i32;
+
+            if let Some((cave_dist, cave_nearest, cave, _)) = col_sample
+                .cave
+                .filter(|(dist, _, cave, _)| *dist < cave.width)
+            {
+                let cave_x = (cave_dist / cave.width).min(1.0);
+                let height = (1.0 - cave_x.powf(2.0)).max(0.0).sqrt() * cave.width;
+
+                for z in (cave.alt - height) as i32..(cave.alt + height) as i32 {
+                    let _ = vol.set(
+                        Vec3::new(offs.x, offs.y, z),
+                        Block::empty(),
+                    );
+                }
+            }
+        }
+    }
+}
