@@ -2,7 +2,6 @@ use super::{
     super::{Pipeline, TgtColorFmt, TgtDepthStencilFmt},
     Globals, Light, Shadow,
 };
-use common::comp::visual::ParticleEmitterMode;
 use gfx::{
     self, gfx_defines, gfx_impl_struct_meta, gfx_pipeline, gfx_pipeline_inner,
     gfx_vertex_struct_meta,
@@ -22,15 +21,26 @@ gfx_defines! {
     }
 
     vertex Instance {
+        // created_at time, so we can calculate time relativity, needed for relative animation.
+        // can save 32 bits per instance, for particles that are not relatively animated.
+        inst_time: f32 = "inst_time",
+
+        // a seed value for randomness
+        inst_entropy: f32 = "inst_entropy",
+
+        // modes should probably be seperate shaders, as a part of scaling and optimisation efforts
+        inst_mode: i32 = "inst_mode",
+
+        // a triangle is:  f32 x 3 x 3 x 1  = 288 bits
+        // a quad is:      f32 x 3 x 3 x 2  = 576 bits
+        // a cube is:      f32 x 3 x 3 x 12 = 3456 bits
+        // this matrix is: f32 x 4 x 4 x 1  = 512 bits (per instance!)
+        // consider using vertex postion & entropy instead;
+        // to determine initial offset, scale, orientation etc.
         inst_mat0: [f32; 4] = "inst_mat0",
         inst_mat1: [f32; 4] = "inst_mat1",
         inst_mat2: [f32; 4] = "inst_mat2",
         inst_mat3: [f32; 4] = "inst_mat3",
-        inst_col: [f32; 3] = "inst_col",
-        inst_vel: [f32; 3] = "inst_vel",
-        inst_time: [f32; 4] = "inst_time",
-        inst_wind_sway: f32 = "inst_wind_sway",
-        mode: u8 = "mode",
     }
 
     pipeline pipe {
@@ -69,43 +79,38 @@ impl Vertex {
     }
 }
 
+pub enum ParticleMode {
+    CampfireSmoke,
+    CampfireFire,
+}
+
+impl ParticleMode {
+    pub fn into_uint(self) -> u32 { self as u32 }
+}
+
 impl Instance {
     pub fn new(
-        mat: Mat4<f32>,
-        col: Rgb<f32>,
-        vel: Vec3<f32>,
-        time: f64,
-        wind_sway: f32,
-        mode: ParticleEmitterMode,
+        inst_time: f64,
+        inst_entropy: f32,
+        inst_mode: ParticleMode,
+        inst_mat: Mat4<f32>,
     ) -> Self {
-        let mat_arr = mat.into_col_arrays();
+        let inst_mat_col = inst_mat.into_col_arrays();
         Self {
-            inst_mat0: mat_arr[0],
-            inst_mat1: mat_arr[1],
-            inst_mat2: mat_arr[2],
-            inst_mat3: mat_arr[3],
-            inst_col: col.into_array(),
-            inst_vel: vel.into_array(),
-            inst_time: [time as f32; 4],
+            inst_time: inst_time as f32,
+            inst_entropy,
+            inst_mode: inst_mode as i32,
 
-            inst_wind_sway: wind_sway,
-
-            mode: mode as u8,
+            inst_mat0: inst_mat_col[0],
+            inst_mat1: inst_mat_col[1],
+            inst_mat2: inst_mat_col[2],
+            inst_mat3: inst_mat_col[3],
         }
     }
 }
 
 impl Default for Instance {
-    fn default() -> Self {
-        Self::new(
-            Mat4::identity(),
-            Rgb::broadcast(1.0),
-            Vec3::zero(),
-            0.0,
-            0.0,
-            ParticleEmitterMode::Sprinkler,
-        )
-    }
+    fn default() -> Self { Self::new(0.0, 0.0, ParticleMode::CampfireSmoke, Mat4::identity()) }
 }
 
 pub struct ParticlePipeline;

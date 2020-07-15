@@ -910,7 +910,6 @@ fn handle_light(
             .create_entity_synced()
             .with(pos)
             .with(comp::ForceUpdate)
-            .with(comp::ParticleEmitters::default())
             .with(light_emitter);
         if let Some(light_offset) = light_offset_opt {
             builder.with(light_offset).build();

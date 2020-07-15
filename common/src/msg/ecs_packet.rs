@@ -15,7 +15,6 @@ sum_type! {
         Stats(comp::Stats),
         Energy(comp::Energy),
         LightEmitter(comp::LightEmitter),
-        ParticleEmitter(comp::ParticleEmitters),
         Item(comp::Item),
         Scale(comp::Scale),
         Group(comp::Group),
@@ -43,7 +42,6 @@ sum_type! {
         Stats(PhantomData<comp::Stats>),
         Energy(PhantomData<comp::Energy>),
         LightEmitter(PhantomData<comp::LightEmitter>),
-        ParticleEmitter(PhantomData<comp::ParticleEmitters>),
         Item(PhantomData<comp::Item>),
         Scale(PhantomData<comp::Scale>),
         Group(PhantomData<comp::Group>),
@@ -71,7 +69,6 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Stats(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Energy(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::LightEmitter(comp) => sync::handle_insert(comp, entity, world),
-            EcsCompPacket::ParticleEmitter(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Item(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Scale(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Group(comp) => sync::handle_insert(comp, entity, world),
@@ -97,7 +94,6 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Stats(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Energy(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::LightEmitter(comp) => sync::handle_modify(comp, entity, world),
-            EcsCompPacket::ParticleEmitter(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Item(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Scale(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Group(comp) => sync::handle_modify(comp, entity, world),
@@ -124,9 +120,6 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPhantom::Energy(_) => sync::handle_remove::<comp::Energy>(entity, world),
             EcsCompPhantom::LightEmitter(_) => {
                 sync::handle_remove::<comp::LightEmitter>(entity, world)
-            },
-            EcsCompPhantom::ParticleEmitter(_) => {
-                sync::handle_remove::<comp::ParticleEmitters>(entity, world)
             },
             EcsCompPhantom::Item(_) => sync::handle_remove::<comp::Item>(entity, world),
             EcsCompPhantom::Scale(_) => sync::handle_remove::<comp::Scale>(entity, world),

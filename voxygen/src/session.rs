@@ -787,7 +787,7 @@ impl PlayState for SessionState {
                     },
                     HudEvent::AdjustParticleRenderDistance(particle_render_distance) => {
                         global_state.settings.graphics.particle_render_distance =
-                        particle_render_distance;
+                            particle_render_distance;
                         global_state.settings.save_to_file_warn();
                     },
                     HudEvent::AdjustFigureLoDRenderDistance(figure_lod_render_distance) => {
@@ -1002,9 +1002,12 @@ impl PlayState for SessionState {
                     gamma: global_state.settings.graphics.gamma,
                     mouse_smoothing: global_state.settings.gameplay.smooth_pan_enable,
                     sprite_render_distance: global_state.settings.graphics.sprite_render_distance
-                    as f32,
-                    particle_render_distance: global_state.settings.graphics.particle_render_distance
-                    as f32,
+                        as f32,
+                    particle_render_distance: global_state
+                        .settings
+                        .graphics
+                        .particle_render_distance
+                        as f32,
                     figure_lod_render_distance: global_state
                         .settings
                         .graphics
@@ -1060,6 +1063,7 @@ impl PlayState for SessionState {
                 mouse_smoothing: settings.gameplay.smooth_pan_enable,
                 sprite_render_distance: settings.graphics.sprite_render_distance as f32,
                 figure_lod_render_distance: settings.graphics.figure_lod_render_distance as f32,
+                particle_render_distance: settings.graphics.particle_render_distance as f32,
                 is_aiming: self.is_aiming,
             };
             self.scene.render(
