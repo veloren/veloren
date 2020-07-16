@@ -65,6 +65,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
     match cmd {
         ChatCommand::Adminify => handle_adminify,
         ChatCommand::Alias => handle_alias,
+        ChatCommand::Ban => handle_ban,
         ChatCommand::Build => handle_build,
         ChatCommand::Campfire => handle_spawn_campfire,
         ChatCommand::Debug => handle_debug,
@@ -80,6 +81,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Help => handle_help,
         ChatCommand::JoinFaction => handle_join_faction,
         ChatCommand::Jump => handle_jump,
+        ChatCommand::Kick => handle_kick,
         ChatCommand::Kill => handle_kill,
         ChatCommand::KillNpcs => handle_kill_npcs,
         ChatCommand::Lantern => handle_lantern,
@@ -98,6 +100,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Tell => handle_tell,
         ChatCommand::Time => handle_time,
         ChatCommand::Tp => handle_tp,
+        ChatCommand::Unban => handle_unban,
         ChatCommand::Version => handle_version,
         ChatCommand::Waypoint => handle_waypoint,
         ChatCommand::Whitelist => handle_whitelist,
@@ -1809,4 +1812,72 @@ fn handle_whitelist(
             ChatType::CommandError.server_msg(action.help_string()),
         );
     }
+}
+
+fn handle_kick(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) {
+    if let (Some(target_alias), reason_opt) = scan_fmt_some!(&args, &action.arg_fmt(), String, String) {
+        let reason = reason_opt.unwrap_or(String::new());
+        let ecs = server.state.ecs();
+        let target_player_opt = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
+            .join()
+            .find(|(_, player)| player.alias == target_alias)
+            .map(|(entity, _)| entity);
+
+        if let Some(target_player) = target_player_opt {
+            server.notify_client(
+                target_player,
+                ServerMsg::Disconnect
+            );
+            server.notify_client(
+                client,
+                ChatType::CommandInfo.server_msg(
+                    format!("Kicked {} from the server with reason: {}",
+                            target_alias,
+                            reason))
+            );
+        } else {
+            server.notify_client(
+                client,
+                ChatType::CommandError.server_msg(format!("Player with alias {} not found", target_alias))
+            )
+        }
+    } else {
+        server.notify_client(
+          client,
+            ChatType::CommandError.server_msg(action.help_string())
+        );
+    }
+
+}
+
+fn handle_ban(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    _args: String,
+    _action: &ChatCommand,
+) {
+    server.notify_client(
+        client,
+        ChatType::CommandInfo.server_msg("This command is not yet implemented")
+    )
+}
+
+fn handle_unban(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    _args: String,
+    _action: &ChatCommand,
+) {
+    server.notify_client(
+        client,
+        ChatType::CommandInfo.server_msg("This command is not yet implemented")
+    )
 }
