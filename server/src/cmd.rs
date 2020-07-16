@@ -1877,7 +1877,6 @@ fn handle_ban(
             server.settings_mut().edit(|s| {
                 s.banlist.push((target_alias.clone(), reason.clone()))
             });
-
             server.notify_client(
                 client,
                 ChatType::CommandInfo.server_msg(
@@ -1899,11 +1898,22 @@ fn handle_unban(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    _args: String,
-    _action: &ChatCommand,
+    args: String,
+    action: &ChatCommand,
 ) {
-    server.notify_client(
-        client,
-        ChatType::CommandInfo.server_msg("This command is not yet implemented")
-    )
+    if let Ok(username) = scan_fmt!(&args, &action.arg_fmt(), String) {
+        server.settings_mut().edit(|s| {
+            s.banlist.retain(|x| !(x.0).eq_ignore_ascii_case(&username))
+        });
+
+        server.notify_client(
+            client,
+            ChatType::CommandInfo.server_msg(format!("{} was successfully unbanned", username)),
+        );
+    } else {
+        server.notify_client(
+            client,
+            ChatType::CommandError.server_msg(action.help_string())
+        );
+    }
 }
