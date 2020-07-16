@@ -1,7 +1,7 @@
 use super::SysTimer;
 use crate::{
-    auth_provider::AuthProvider, client::Client, persistence::character::CharacterLoader,
-    ServerSettings, CLIENT_TIMEOUT,
+    alias_validator::AliasValidator, auth_provider::AuthProvider, client::Client,
+    persistence::character::CharacterLoader, ServerSettings, CLIENT_TIMEOUT,
 };
 use common::{
     comp::{
@@ -55,6 +55,7 @@ impl Sys {
         players: &mut WriteStorage<'_, Player>,
         controllers: &mut WriteStorage<'_, Controller>,
         settings: &Read<'_, ServerSettings>,
+        alias_validator: &ReadExpect<'_, AliasValidator>,
     ) -> Result<(), crate::error::Error> {
         loop {
             let msg = client.recv().await?;
@@ -347,7 +348,14 @@ impl Sys {
                     }
                 },
                 ClientMsg::CreateCharacter { alias, tool, body } => {
-                    if let Some(player) = players.get(entity) {
+                    if let Err(error) = alias_validator.validate(&alias) {
+                        tracing::debug!(
+                            ?error,
+                            ?alias,
+                            "denied alias as it contained a banned word"
+                        );
+                        client.notify(ServerMsg::CharacterActionError(error.to_string()));
+                    } else if let Some(player) = players.get(entity) {
                         character_loader.create_character(
                             entity,
                             player.uuid().to_string(),
@@ -413,6 +421,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Client>,
         WriteStorage<'a, Controller>,
         Read<'a, ServerSettings>,
+        ReadExpect<'a, AliasValidator>,
     );
 
     #[allow(clippy::match_ref_pats)] // TODO: Pending review in #587
@@ -443,6 +452,7 @@ impl<'a> System<'a> for Sys {
             mut clients,
             mut controllers,
             settings,
+            alias_validator,
         ): Self::SystemData,
     ) {
         timer.start();
@@ -502,6 +512,7 @@ impl<'a> System<'a> for Sys {
                     &mut players,
                     &mut controllers,
                     &settings,
+                    &alias_validator,
                     ).fuse() => err,
                 )
             });
