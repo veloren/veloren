@@ -87,7 +87,6 @@ winres = "0.1"
 criterion = "0.3"
 git2 = "0.13"
 world = { package = "veloren-world", path = "../world" }
-gfx_window_glutin = { version = "0.31.0", features = ["headless"] }
 
 [[bench]]
 name = "meshing_benchmark"
