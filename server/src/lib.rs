@@ -2,6 +2,7 @@
 #![allow(clippy::option_map_unit_fn)]
 #![feature(drain_filter, option_zip)]
 
+pub mod alias_validator;
 pub mod auth_provider;
 pub mod chunk_generator;
 pub mod client;
@@ -20,6 +21,7 @@ pub mod sys;
 pub use crate::{error::Error, events::Event, input::Input, settings::ServerSettings};
 
 use crate::{
+    alias_validator::AliasValidator,
     auth_provider::AuthProvider,
     chunk_generator::ChunkGenerator,
     client::{Client, RegionSubscription},
@@ -136,6 +138,30 @@ impl Server {
         // Server-only components
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
+
+        //Alias validator
+        let banned_words_paths = &settings.banned_words_files;
+        let mut banned_words = Vec::new();
+        for path in banned_words_paths {
+            let mut list = match std::fs::File::open(&path) {
+                Ok(file) => match ron::de::from_reader(&file) {
+                    Ok(vec) => vec,
+                    Err(error) => {
+                        tracing::warn!(?error, ?file, "Couldn't deserialize banned words file");
+                        return Err(Error::Other(error.to_string()));
+                    },
+                },
+                Err(error) => {
+                    tracing::warn!(?error, ?path, "couldn't open banned words file");
+                    return Err(Error::Other(error.to_string()));
+                },
+            };
+            banned_words.append(&mut list);
+        }
+        let banned_words_count = banned_words.len();
+        tracing::debug!(?banned_words_count);
+        tracing::trace!(?banned_words);
+        state.ecs_mut().insert(AliasValidator::new(banned_words));
 
         #[cfg(feature = "worldgen")]
         let world = World::generate(settings.world_seed, WorldOpts {
