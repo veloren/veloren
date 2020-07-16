@@ -200,7 +200,7 @@ impl ChatCommand {
             ),
             ChatCommand::Alias => cmd(vec![Any("name", Required)], "Change your alias", NoAdmin),
             ChatCommand::Ban => cmd(
-                vec![Any("username", Required), Any("reason", Optional)],
+                vec![Any("username", Required), Message(Optional)],
                 "Ban a player with a given username",
                 Admin
             ),
@@ -275,7 +275,7 @@ impl ChatCommand {
                 Admin,
             ),
             ChatCommand::Kick => cmd(
-                vec![Any("username", Required), Any("reason", Optional)],
+                vec![Any("username", Required), Message(Optional)],
                 "Kick a player with a given username",
                 Admin
             ),
