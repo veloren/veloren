@@ -1,7 +1,0 @@
-Item(
-    name: "Twigs",
-    description: "Dry.",
-    kind: Ingredient(
-        kind: Twigs,
-    )
-)
