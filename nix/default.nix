@@ -1,12 +1,23 @@
 { crateName ? "veloren-voxygen",
 # `crate2nix` doesn't support profiles in `Cargo.toml`, so default to release. Otherwise bad performance (non-release is built with opt level 0)
-release ? true, sources ? import ./sources.nix { }, nixpkgsSrc ? <nixpkgs> }:
+release ? true, nixpkgs ? <nixpkgs>, system ? builtins.currentSystem
+, sources ? import ./sources.nix { inherit system; } }:
 
 let
-  # Check if git-lfs is working.
-  isGitLfsSetup =
+  gitHash =
+    # Check if git-lfs is working.
     if builtins.pathExists ../assets/voxygen/background/bg_main.png then
-      true
+      builtins.readFile (pkgs.runCommand "getGitHash" { } ''
+        cd ${
+        # Only copy the `.git` directory to nix store, anything else is a waste.
+          builtins.path {
+            path = ../.git;
+            # Nix store path names don't accept names that start with a dot.
+            name = "git";
+          }
+        }
+        ${pkgs.git}/bin/git log -n 1 --pretty=format:%h/%cd --date=format:%Y-%m-%d-%H:%M --abbrev=8 > $out
+      '')
     else
       abort ''
         Git Large File Storage (git-lfs) has not been set up correctly.
@@ -17,34 +28,17 @@ let
         See the book at https://book.veloren.net/ for details.
       '';
 
-  pkgs = import ./nixpkgs.nix { inherit sources nixpkgsSrc; };
-
-  # Only copy the `.git` directory to nix store, anything else is a waste.
-  gitSrc = builtins.path {
-    path = ../.git;
-    name = "git";
-  };
-  gitHash = builtins.readFile (with pkgs;
-    runCommand "getGitHash" { nativeBuildInputs = [ git ]; } ''
-      cd ${gitSrc}
-      git log -n 1 --pretty=format:%h/%cd --date=format:%Y-%m-%d-%H:%M --abbrev=8 > $out
-    '');
+  pkgs = import ./nixpkgs.nix { inherit sources nixpkgs system; };
 
   veloren = with pkgs;
     callPackage ./Cargo.nix {
       defaultCrateOverrides = defaultCrateOverrides // {
-        libudev-sys = attrs: { buildInputs = [ pkg-config libudev ]; };
-        alsa-sys = attrs: { buildInputs = [ pkg-config alsaLib ]; };
-        veloren-common = attrs: {
-          NIX_GIT_HASH = gitHash;
-          # We need to include the result here otherwise nix won't evaluate the check.
-          GIT_LFS_SETUP = isGitLfsSetup;
-        };
-        veloren-network = attrs: { buildInputs = [ pkg-config openssl ]; };
-        veloren-voxygen = attrs: {
-          buildInputs = [ atk cairo glib gtk3 pango ];
-        };
+        libudev-sys = _: { buildInputs = [ pkg-config libudev ]; };
+        alsa-sys = _: { buildInputs = [ pkg-config alsaLib ]; };
+        veloren-common = _: { NIX_GIT_HASH = gitHash; };
+        veloren-network = _: { buildInputs = [ pkg-config openssl ]; };
+        veloren-voxygen = _: { buildInputs = [ atk cairo glib gtk3 pango ]; };
       };
-      inherit release pkgs;
+      inherit release pkgs nixpkgs;
     };
 in veloren.workspaceMembers."${crateName}".build

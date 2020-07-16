@@ -8,6 +8,7 @@
   "guillotiere 0.4.2 (git+https://github.com/Imberflur/guillotiere#42c298f5bcf0f95f1a004360d05e25ca3711e9ed)": "1knqbn777f3cgzbsaqawzclgrqf3nav6x3gjzc2hsls3acccx1ya",
   "msgbox 0.4.0 (git+https://github.com/bekker/msgbox-rs.git?rev=68fe39a#68fe39a60019b38a1569ae4e9ed796a0f0542673)": "18h6s50n7mz2ggfishhi91p2298shqhzx5xagpg9q4zb4y90c2wr",
   "portpicker 0.1.0 (git+https://github.com/xMAC94x/portpicker-rs#9d6df36c53c94684080a64a7212dd6bfc3617ee4)": "00vl2k3xfihxq86kf5rsknjl8dxmrxqhwajwn0hj4gzgnbssr0rx",
-  "specs-idvs 0.1.0 (git+https://gitlab.com/veloren/specs-idvs.git#111548cf44e9bb4c43feb12aa3fc253953ac6e4a)": "1qgbzr4g4iys10hi56l6z7k3gk9qwj9xamfdigqnkhxvcynfhqqv",
+  "specs 0.16.1 (git+https://github.com/amethyst/specs.git?rev=7a2e348ab2223818bad487695c66c43db88050a5#7a2e348ab2223818bad487695c66c43db88050a5)": "1z7gjiq7zirg9az3ly1y2ghi5m7s3x1bp35gw5x0cyv50fsi3pjq",
+  "specs-idvs 0.1.0 (git+https://gitlab.com/veloren/specs-idvs.git?branch=specs-git#fcb0b2306b571f62f9f85d89e79e087454d95efd)": "00w4kc60d7mjb5gbkcxrxzarshmhf4idqm3sk8335f7s3pn9q0s5",
   "treeculler 0.1.0 (git+https://gitlab.com/yusdacra/treeculler.git#efcf5283cf386117a7e654abdaa45ef664a08e42)": "19niwgha0jnvrp22pq0070dfimb2wkda53a3parhga3vhap2g01b"
 }
