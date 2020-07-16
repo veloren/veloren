@@ -1,7 +1,0 @@
-Item(
-    name: "Shiny Gem",
-    description: "It's so shiny!",
-    kind: Ingredient(
-        kind: ShinyGem,
-    )
-)
