@@ -1866,17 +1866,27 @@ fn handle_ban(
     if let (Some(target_alias), reason_opt) = scan_fmt_some!(&args, &action.arg_fmt(), String, String) {
         let reason = reason_opt.unwrap_or(String::new());
 
-        server.settings_mut().edit(|s| {
-           s.banlist.push((target_alias.clone(), reason.clone()))
-        });
+        let banlist = server.settings().banlist.clone();
 
-        server.notify_client(
-            client,
-            ChatType::CommandInfo.server_msg(
-                format!("Added {} to the banlist with reason: {}",
-                        target_alias,
-                        reason))
-        );
+        if let Some(_) = banlist.iter().find(|x| x.0 == target_alias) {
+            server.notify_client(
+                client,
+                ChatType::CommandError.server_msg(format!("{} is already on the banlist", target_alias))
+            )
+        } else {
+            server.settings_mut().edit(|s| {
+                s.banlist.push((target_alias.clone(), reason.clone()))
+            });
+
+            server.notify_client(
+                client,
+                ChatType::CommandInfo.server_msg(
+                    format!("Added {} to the banlist with reason: {}",
+                            target_alias,
+                            reason))
+            );
+        }
+
     } else {
         server.notify_client(
             client,
