@@ -20,7 +20,7 @@ pub struct ServerSettings {
     pub start_time: f64,
     pub admins: Vec<String>,
     pub whitelist: Vec<String>,
-    pub banlist: Vec<String>,
+    pub banlist: Vec<(String, String)>,
     /// When set to None, loads the default map file (if available); otherwise,
     /// uses the value of the file options to decide how to proceed.
     pub map_file: Option<FileOpts>,

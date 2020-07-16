@@ -1860,13 +1860,29 @@ fn handle_ban(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
-    _args: String,
-    _action: &ChatCommand,
+    args: String,
+    action: &ChatCommand,
 ) {
-    server.notify_client(
-        client,
-        ChatType::CommandInfo.server_msg("This command is not yet implemented")
-    )
+    if let (Some(target_alias), reason_opt) = scan_fmt_some!(&args, &action.arg_fmt(), String, String) {
+        let reason = reason_opt.unwrap_or(String::new());
+
+        server.settings_mut().edit(|s| {
+           s.banlist.push((target_alias.clone(), reason.clone()))
+        });
+
+        server.notify_client(
+            client,
+            ChatType::CommandInfo.server_msg(
+                format!("Added {} to the banlist with reason: {}",
+                        target_alias,
+                        reason))
+        );
+    } else {
+        server.notify_client(
+            client,
+            ChatType::CommandError.server_msg(action.help_string())
+        );
+    }
 }
 
 fn handle_unban(
