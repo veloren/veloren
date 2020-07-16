@@ -25,6 +25,7 @@ pub struct ServerSettings {
     pub map_file: Option<FileOpts>,
     pub persistence_db_dir: String,
     pub max_view_distance: Option<u32>,
+    pub banned_words_files: Vec<PathBuf>,
 }
 
 impl Default for ServerSettings {
@@ -63,6 +64,7 @@ impl Default for ServerSettings {
             whitelist: Vec::new(),
             persistence_db_dir: "saves".to_owned(),
             max_view_distance: Some(30),
+            banned_words_files: Vec::new(),
         }
     }
 }
