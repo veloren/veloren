@@ -28,7 +28,7 @@ use tracing::*;
 
 pub(crate) type A2bStreamOpen = (Prio, Promises, oneshot::Sender<Stream>);
 pub(crate) type S2bCreateChannel = (Cid, Sid, Protocols, Vec<(Cid, Frame)>, oneshot::Sender<()>);
-pub(crate) type S2bShutdownBparticipant = oneshot::Sender<async_std::io::Result<()>>;
+pub(crate) type S2bShutdownBparticipant = oneshot::Sender<Result<(), ParticipantError>>;
 pub(crate) type B2sPrioStatistic = (Pid, u64, u64);
 
 #[derive(Debug)]
@@ -43,8 +43,8 @@ struct ChannelInfo {
 struct StreamInfo {
     prio: Prio,
     promises: Promises,
+    send_closed: Arc<AtomicBool>,
     b2a_msg_recv_s: mpsc::UnboundedSender<IncomingMessage>,
-    closed: Arc<AtomicBool>,
 }
 
 #[derive(Debug)]
@@ -58,18 +58,25 @@ struct ControlChannels {
 }
 
 #[derive(Debug)]
+struct ShutdownInfo {
+    //a2b_stream_open_r: mpsc::UnboundedReceiver<A2bStreamOpen>,
+    b2a_stream_opened_s: mpsc::UnboundedSender<Stream>,
+    error: Option<ParticipantError>,
+}
+
+#[derive(Debug)]
 pub struct BParticipant {
     remote_pid: Pid,
     remote_pid_string: String, //optimisation
     offset_sid: Sid,
     channels: Arc<RwLock<Vec<ChannelInfo>>>,
     streams: RwLock<HashMap<Sid, StreamInfo>>,
-    api_participant_closed: Arc<RwLock<Result<(), ParticipantError>>>,
     running_mgr: AtomicUsize,
     run_channels: Option<ControlChannels>,
     #[cfg(feature = "metrics")]
     metrics: Arc<NetworkMetrics>,
     no_channel_error_info: RwLock<(Instant, u64)>,
+    shutdown_info: RwLock<ShutdownInfo>,
 }
 
 impl BParticipant {
@@ -84,13 +91,18 @@ impl BParticipant {
         mpsc::UnboundedReceiver<Stream>,
         mpsc::UnboundedSender<S2bCreateChannel>,
         oneshot::Sender<S2bShutdownBparticipant>,
-        Arc<RwLock<Result<(), ParticipantError>>>,
     ) {
         let (a2b_steam_open_s, a2b_stream_open_r) = mpsc::unbounded::<A2bStreamOpen>();
         let (b2a_stream_opened_s, b2a_stream_opened_r) = mpsc::unbounded::<Stream>();
         let (a2b_close_stream_s, a2b_close_stream_r) = mpsc::unbounded();
         let (s2b_shutdown_bparticipant_s, s2b_shutdown_bparticipant_r) = oneshot::channel();
         let (s2b_create_channel_s, s2b_create_channel_r) = mpsc::unbounded();
+
+        let shutdown_info = RwLock::new(ShutdownInfo {
+            //a2b_stream_open_r: a2b_stream_open_r.clone(),
+            b2a_stream_opened_s: b2a_stream_opened_s.clone(),
+            error: None,
+        });
 
         let run_channels = Some(ControlChannels {
             a2b_stream_open_r,
@@ -101,8 +113,6 @@ impl BParticipant {
             s2b_shutdown_bparticipant_r,
         });
 
-        let api_participant_closed = Arc::new(RwLock::new(Ok(())));
-
         (
             Self {
                 remote_pid,
@@ -110,18 +120,17 @@ impl BParticipant {
                 offset_sid,
                 channels: Arc::new(RwLock::new(vec![])),
                 streams: RwLock::new(HashMap::new()),
-                api_participant_closed: api_participant_closed.clone(),
                 running_mgr: AtomicUsize::new(0),
                 run_channels,
                 #[cfg(feature = "metrics")]
                 metrics,
                 no_channel_error_info: RwLock::new((Instant::now(), 0)),
+                shutdown_info,
             },
             a2b_steam_open_s,
             b2a_stream_opened_r,
             s2b_create_channel_s,
             s2b_shutdown_bparticipant_s,
-            api_participant_closed,
         )
     }
 
@@ -269,7 +278,7 @@ impl BParticipant {
                      will be closed, but not if we do channel-takeover"
                 );
                 //TEMP FIX: as we dont have channel takeover yet drop the whole bParticipant
-                self.close_api(ParticipantError::ProtocolFailedUnrecoverable)
+                self.close_api(Some(ParticipantError::ProtocolFailedUnrecoverable))
                     .await;
                 false
             } else {
@@ -347,7 +356,8 @@ impl BParticipant {
                             .streams_closed_total
                             .with_label_values(&[&self.remote_pid_string])
                             .inc();
-                        si.closed.store(true, Ordering::Relaxed);
+                        si.send_closed.store(true, Ordering::Relaxed);
+                        si.b2a_msg_recv_s.close_channel();
                         trace!(?sid, "Closed stream from remote");
                     } else {
                         warn!(
@@ -411,7 +421,7 @@ impl BParticipant {
                 },
                 Frame::Shutdown => {
                     debug!("Shutdown received from remote side");
-                    self.close_api(ParticipantError::ParticipantDisconnected)
+                    self.close_api(Some(ParticipantError::ParticipantDisconnected))
                         .await;
                 },
                 f => unreachable!("Frame should never reache participant!: {:?}", f),
@@ -495,6 +505,13 @@ impl BParticipant {
             _ = shutdown_open_mgr_receiver => None,
         } {
             debug!(?prio, ?promises, "Got request to open a new steam");
+            //TODO: a2b_stream_open_r isn't closed on api_close yet. This needs to change.
+            //till then just check here if we are closed and in that case do nothing (not
+            // even answer)
+            if self.shutdown_info.read().await.error.is_some() {
+                continue;
+            }
+
             let a2p_msg_s = a2p_msg_s.clone();
             let sid = stream_ids;
             let stream = self
@@ -538,10 +555,7 @@ impl BParticipant {
         trace!("Start participant_shutdown_mgr");
         let sender = s2b_shutdown_bparticipant_r.await.unwrap();
 
-        //Todo: isn't ParticipantDisconnected useless, as api is waiting rn for a
-        // callback?
-        self.close_api(ParticipantError::ParticipantDisconnected)
-            .await;
+        self.close_api(None).await;
 
         debug!("Closing all managers");
         for sender in mgr_to_shutdown.drain(..) {
@@ -580,7 +594,14 @@ impl BParticipant {
         self.metrics.participants_disconnected_total.inc();
         debug!("BParticipant close done");
 
-        sender.send(Ok(())).unwrap();
+        let mut lock = self.shutdown_info.write().await;
+        sender
+            .send(match lock.error.take() {
+                None => Ok(()),
+                Some(e) => Err(e),
+            })
+            .unwrap();
+
         trace!("Stop participant_shutdown_mgr");
         self.running_mgr.fetch_sub(1, Ordering::Relaxed);
     }
@@ -616,7 +637,8 @@ impl BParticipant {
             trace!(?sid, "Stopping api to use this stream");
             match self.streams.read().await.get(&sid) {
                 Some(si) => {
-                    si.closed.store(true, Ordering::Relaxed);
+                    si.send_closed.store(true, Ordering::Relaxed);
+                    si.b2a_msg_recv_s.close_channel();
                 },
                 None => warn!("Couldn't find the stream, might be simulanious close from remote"),
             }
@@ -658,12 +680,12 @@ impl BParticipant {
         a2b_close_stream_s: &mpsc::UnboundedSender<Sid>,
     ) -> Stream {
         let (b2a_msg_recv_s, b2a_msg_recv_r) = mpsc::unbounded::<IncomingMessage>();
-        let closed = Arc::new(AtomicBool::new(false));
+        let send_closed = Arc::new(AtomicBool::new(false));
         self.streams.write().await.insert(sid, StreamInfo {
             prio,
             promises,
+            send_closed: send_closed.clone(),
             b2a_msg_recv_s,
-            closed: closed.clone(),
         });
         #[cfg(feature = "metrics")]
         self.metrics
@@ -675,20 +697,28 @@ impl BParticipant {
             sid,
             prio,
             promises,
+            send_closed,
             a2p_msg_s,
             b2a_msg_recv_r,
-            closed.clone(),
             a2b_close_stream_s.clone(),
         )
     }
 
     /// close streams and set err
-    async fn close_api(&self, err: ParticipantError) {
-        *self.api_participant_closed.write().await = Err(err);
+    async fn close_api(&self, reason: Option<ParticipantError>) {
+        //closing api::Participant is done by closing all channels, exepct for the
+        // shutdown channel at this point!
+        let mut lock = self.shutdown_info.write().await;
+        if let Some(r) = reason {
+            lock.error = Some(r);
+        }
+        lock.b2a_stream_opened_s.close_channel();
+
         debug!("Closing all streams");
         for (sid, si) in self.streams.write().await.drain() {
             trace!(?sid, "Shutting down Stream");
-            si.closed.store(true, Ordering::Relaxed);
+            si.b2a_msg_recv_s.close_channel();
+            si.send_closed.store(true, Ordering::Relaxed);
         }
     }
 }
