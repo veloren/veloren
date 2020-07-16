@@ -1,7 +1,0 @@
-Item(
-    name: "Stones",
-    description: "Pebbles from the ground.",
-    kind: Ingredient(
-        kind: Stones,
-    )
-)
