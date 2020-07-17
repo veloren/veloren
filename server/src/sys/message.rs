@@ -317,7 +317,8 @@ impl Sys {
                             pos.0.xy().map(|e| e as f64).distance(
                                 key.map(|e| e as f64 + 0.5)
                                     * TerrainChunkSize::RECT_SIZE.map(|e| e as f64),
-                            ) < (view_distance as f64 + 1.5) * TerrainChunkSize::RECT_SIZE.x as f64
+                            ) < (view_distance as f64 - 1.0 + 2.5 * 2.0_f64.sqrt())
+                                * TerrainChunkSize::RECT_SIZE.x as f64
                         } else {
                             true
                         };
