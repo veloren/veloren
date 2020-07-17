@@ -26,6 +26,7 @@ use world::util::Sampler;
 
 use scan_fmt::{scan_fmt, scan_fmt_some};
 use tracing::error;
+use crate::auth_provider::AuthProvider;
 
 pub trait ChatCommandExt {
     fn execute(&self, server: &mut Server, entity: EcsEntity, args: String);
@@ -1877,6 +1878,9 @@ fn handle_ban(
             server.settings_mut().edit(|s| {
                 s.banlist.push((target_alias.clone(), reason.clone()))
             });
+            // Override AuthProvider's banlist since it is only a copy
+            let mut accounts = server.state.ecs().write_resource::<AuthProvider>();
+            accounts.banlist = server.settings().banlist.clone();
             server.notify_client(
                 client,
                 ChatType::CommandInfo.server_msg(
@@ -1905,7 +1909,9 @@ fn handle_unban(
         server.settings_mut().edit(|s| {
             s.banlist.retain(|x| !(x.0).eq_ignore_ascii_case(&username))
         });
-
+        // Override AuthProvider's banlist since it is only a copy
+        let mut accounts = server.state.ecs().write_resource::<AuthProvider>();
+        accounts.banlist = server.settings().banlist.clone();
         server.notify_client(
             client,
             ChatType::CommandInfo.server_msg(format!("{} was successfully unbanned", username)),
