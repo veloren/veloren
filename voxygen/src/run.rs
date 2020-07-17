@@ -16,7 +16,7 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
         debug!(?current_state, "Started game with state");
     });
 
-    // Used to ignore every other `MainEvenstCleared`
+    // Used to ignore every other `MainEventsCleared`
     // This is a workaround for a bug on macos in which mouse motion events are only
     // reported every other cycle of the event loop
     // See: https://github.com/rust-windowing/winit/issues/1418

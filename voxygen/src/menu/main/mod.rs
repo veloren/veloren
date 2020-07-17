@@ -65,6 +65,7 @@ impl PlayState for MainMenuState {
         // Poll client creation.
         match self.client_init.as_ref().and_then(|init| init.poll()) {
             Some(InitMsg::Done(Ok(mut client))) => {
+                self.client_init = None;
                 self.main_menu_ui.connected();
                 // Register voxygen components / resources
                 crate::ecs::init(client.state_mut().ecs_mut());
