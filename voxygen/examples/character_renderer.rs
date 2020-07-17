@@ -1,7 +1,7 @@
-// TODO: fix this example when we switch to actively maintained renderering
-// backend Right now we would have to update `gfx_window_glutin` to work with
+// TODO: Fix this example when we switch to actively maintained rendering
+// backend. Right now we would have to update `gfx_window_glutin` to work with
 // the latest version of glutin or we would need to add headless support to
-// `old_school_gfx_glutin_ext`
+// `old_school_gfx_glutin_ext`.
 
 fn main() {
     println!("Example temporarily disabled, see the TODO comment for details");
