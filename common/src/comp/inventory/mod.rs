@@ -241,6 +241,132 @@ impl Inventory {
         }
     }
 
+    /// Checks if inserting item exists in given cell. Inserts an item if it
+    /// exists.
+    pub fn insert_or_stack(&mut self, cell: usize, item: Item) -> Result<Option<Item>, Item> {
+        match &item.kind {
+            ItemKind::Tool(_) | ItemKind::Armor { .. } | ItemKind::Lantern(_) => {
+                self.insert(cell, item)
+            },
+            ItemKind::Utility {
+                amount: new_amount, ..
+            } => match self.slots.get_mut(cell) {
+                Some(Some(slot_item)) => {
+                    if slot_item.name() == item.name()
+                        && slot_item.description() == item.description()
+                    {
+                        if let Item {
+                            kind: ItemKind::Utility { amount, .. },
+                            ..
+                        } = slot_item
+                        {
+                            *amount += *new_amount;
+                            self.recount_items();
+                            Ok(None)
+                        } else {
+                            let old_item = std::mem::replace(slot_item, item);
+                            self.recount_items();
+                            Ok(Some(old_item))
+                        }
+                    } else {
+                        let old_item = std::mem::replace(slot_item, item);
+                        self.recount_items();
+                        Ok(Some(old_item))
+                    }
+                },
+                Some(None) => self.insert(cell, item),
+                None => Err(item),
+            },
+            ItemKind::Ingredient {
+                amount: new_amount, ..
+            } => match self.slots.get_mut(cell) {
+                Some(Some(slot_item)) => {
+                    if slot_item.name() == item.name()
+                        && slot_item.description() == item.description()
+                    {
+                        if let Item {
+                            kind: ItemKind::Ingredient { amount, .. },
+                            ..
+                        } = slot_item
+                        {
+                            *amount += *new_amount;
+                            self.recount_items();
+                            Ok(None)
+                        } else {
+                            let old_item = std::mem::replace(slot_item, item);
+                            self.recount_items();
+                            Ok(Some(old_item))
+                        }
+                    } else {
+                        let old_item = std::mem::replace(slot_item, item);
+                        self.recount_items();
+                        Ok(Some(old_item))
+                    }
+                },
+                Some(None) => self.insert(cell, item),
+                None => Err(item),
+            },
+            ItemKind::Consumable {
+                amount: new_amount, ..
+            } => match self.slots.get_mut(cell) {
+                Some(Some(slot_item)) => {
+                    if slot_item.name() == item.name()
+                        && slot_item.description() == item.description()
+                    {
+                        if let Item {
+                            kind: ItemKind::Consumable { amount, .. },
+                            ..
+                        } = slot_item
+                        {
+                            *amount += *new_amount;
+                            self.recount_items();
+                            Ok(None)
+                        } else {
+                            let old_item = std::mem::replace(slot_item, item);
+                            self.recount_items();
+                            Ok(Some(old_item))
+                        }
+                    } else {
+                        let old_item = std::mem::replace(slot_item, item);
+                        self.recount_items();
+                        Ok(Some(old_item))
+                    }
+                },
+                Some(None) => self.insert(cell, item),
+                None => Err(item),
+            },
+            ItemKind::Throwable {
+                amount: new_amount, ..
+            } => match self.slots.get_mut(cell) {
+                Some(Some(slot_item)) => {
+                    if slot_item.name() == item.name()
+                        && slot_item.description() == item.description()
+                    {
+                        if let Item {
+                            kind: ItemKind::Throwable { amount, .. },
+                            ..
+                        } = slot_item
+                        {
+                            *amount += *new_amount;
+                            self.recount_items();
+                            Ok(None)
+                        } else {
+                            let old_item = std::mem::replace(slot_item, item);
+                            self.recount_items();
+                            Ok(Some(old_item))
+                        }
+                    } else {
+                        let old_item = std::mem::replace(slot_item, item);
+                        self.recount_items();
+                        Ok(Some(old_item))
+                    }
+                },
+                Some(None) => self.insert(cell, item),
+                None => Err(item),
+            },
+        }
+    }
+
     pub fn is_full(&self) -> bool { self.slots.iter().all(|slot| slot.is_some()) }
 
     /// O(n) count the number of items in this inventory.
