@@ -8,6 +8,7 @@ edition = "2018"
 no-assets = []
 
 [dependencies]
+arraygen = "0.1.13"
 specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", branch = "specs-git" }
 
 specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control"], rev = "7a2e348ab2223818bad487695c66c43db88050a5" }

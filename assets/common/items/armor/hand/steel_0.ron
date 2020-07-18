@@ -1,8 +1,12 @@
 Item(
     name: "Steel Gauntlets",
-    description: "Gauntlets made of steel",
+    description: "Gauntlets forged from steel.",
     kind: Armor(
-        kind: Hand(Steel0),
-        stats: (20),
+        (
+            kind: Hand(Steel0),
+            stats: (
+                protection: Normal(10.0),
+            ),
+        )
     ),
 )

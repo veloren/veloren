@@ -1,8 +1,12 @@
 Item(
     name: "Swift Boots",
-    description: "Feet\n\nArmor: 0\n\nSwift like the wind.\nWon't make you run faster.\n\n<Right-Click to use>",
+    description: "Swift like the wind.",
     kind: Armor(
-        kind: Foot(Leather0),
-        stats: (20),
+        (
+            kind: Foot(Leather0),
+            stats: (
+                protection: Normal(2.0),
+            ),
+        )
     ),
 )

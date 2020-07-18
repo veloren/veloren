@@ -1,8 +1,12 @@
 Item(
     name: "Leather Pauldrons",
-    description: "Shoulders\n\nArmor: 0\n\n<Right-Click to use>",
+    description: "Shoulder pads made of leather.",
     kind: Armor(
-        kind: Shoulder(Leather0),
-        stats: (20),
+        (
+            kind: Shoulder(Leather0),
+            stats: (
+                protection: Normal(6.0),
+            ),
+        )
     ),
 )

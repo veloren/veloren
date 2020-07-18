@@ -1,8 +1,12 @@
 Item(
     name: "Blue Worker Pants",
-    description: "Legs\n\nArmor: 0\n\n<Right-Click to use>",
+    description: "Pants used by a farmer, until recently.",
     kind: Armor(
-        kind: Pants(WorkerBlue0),
-        stats: (20),
+        (
+            kind: Pants(WorkerBlue0),
+            stats: (
+                protection: Normal(1.0),
+            ),
+        )
     ),
 )

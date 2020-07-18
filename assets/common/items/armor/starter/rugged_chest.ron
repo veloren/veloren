@@ -1,8 +1,12 @@
 Item(
     name: "Rugged Shirt",
-    description: "Chest\n\nArmor: 0\n\nSmells like Adventure.\n\n<Right-Click to use>",
+    description: "Smells like Adventure.",
     kind: Armor(
-        kind: Chest(Rugged0),
-        stats: (20),
+        (
+            kind: Chest(Rugged0),
+            stats: (
+                protection: Normal(1.0),
+            ),
+        )
     ),
 )

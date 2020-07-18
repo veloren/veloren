@@ -1,8 +1,12 @@
 Item(
     name: "Purple Silk Wrists",
-   description: "Hands\n\nArmor: 0\n\n<Right-Click to use>",
+    description: "A strip of cloth.",
     kind: Armor(
-        kind: Hand(ClothPurple0),
-        stats: (20),
+        (
+            kind: Hand(ClothPurple0),
+            stats: (
+                protection: Normal(0.0),
+            ),
+        )
     ),
 )

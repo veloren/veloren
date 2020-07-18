@@ -1,8 +1,12 @@
 Item(
     name: "Hunting Pants",
-    description: "Crafted from soft, supple leather\n\n<Right-Click to use>",
+    description: "Crafted from soft, supple leather.",
     kind: Armor(
-        kind: Pants(Hunting),
-        stats: (20),
+        (
+            kind: Pants(Hunting),
+            stats: (
+                protection: Normal(8.0),
+            ),
+        )
     ),
 )

@@ -1,8 +1,12 @@
 Item(
     name: "Steel Chausses",
-    description: "Leg armour made of steel plates",
+    description: "Greaves forged from steel.",
     kind: Armor(
-        kind: Pants(Steel0),
-        stats: (20),
+        (
+            kind: Pants(Steel0),
+            stats: (
+                protection: Normal(20.0),
+            ),
+        )
     ),
 )

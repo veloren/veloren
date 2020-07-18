@@ -241,6 +241,7 @@ image_ids! {
         willpower_ico: "voxygen.element.icons.willpower",
         endurance_ico: "voxygen.element.icons.endurance",
         fitness_ico: "voxygen.element.icons.fitness",
+        protection_ico: "voxygen.element.icons.protection",
 
         not_found:"voxygen.element.not_found",
 

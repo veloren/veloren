@@ -1,8 +1,12 @@
 Item(
     name: "Twig Belt",
-    description: "A belt made from woven from twigs.\n\n<Right-Click to use>",
+    description: "A belt made from woven from twigs.",
     kind: Armor(
-        kind: Belt(Twig),
-        stats: (20),
+        (
+            kind: Belt(Twig),
+            stats: (
+                protection: Normal(0.0),
+            ),
+        )
     ),
 )

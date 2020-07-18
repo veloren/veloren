@@ -1,8 +1,12 @@
 Item(
     name: "Swift Leather Cap",
-   description: "Head\n\nArmor: 0\n\n<Right-Click to use>",
+    description: "Swift like the wind.",
     kind: Armor(
-        kind: Head(Leather0),
-        stats: (20),
+        (
+            kind: Head(Leather0),
+            stats: (
+                protection: Normal(0.0),
+            ),
+        )
     ),
 )
