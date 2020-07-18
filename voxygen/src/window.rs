@@ -479,7 +479,6 @@ pub struct Window {
     needs_refresh_resize: bool,
     keypress_map: HashMap<GameInput, winit::event::ElementState>,
     pub remapping_keybindings: Option<GameInput>,
-    supplement_events: Vec<Event>,
     events: Vec<Event>,
     focused: bool,
     gilrs: Option<Gilrs>,
@@ -583,7 +582,6 @@ impl Window {
             needs_refresh_resize: false,
             keypress_map,
             remapping_keybindings: None,
-            supplement_events: Vec::new(),
             events: Vec::new(),
             focused: true,
             gilrs,
@@ -610,10 +608,7 @@ impl Window {
 
     pub fn renderer_mut(&mut self) -> &mut Renderer { &mut self.renderer }
 
-    #[allow(clippy::match_bool)] // TODO: Pending review in #587
     pub fn fetch_events(&mut self) -> Vec<Event> {
-        self.events.append(&mut self.supplement_events);
-
         // Refresh ui size (used when changing playstates)
         if self.needs_refresh_resize {
             self.events
@@ -686,13 +681,14 @@ impl Window {
                     },
 
                     EventType::AxisChanged(axis, value, code) => {
-                        let value = match self
+                        let value = if self
                             .controller_settings
                             .inverted_axes
                             .contains(&Axis::from((axis, code)))
                         {
-                            true => value * -1.0,
-                            false => value,
+                            -value
+                        } else {
+                            value
                         };
 
                         let value = self
@@ -1049,8 +1045,12 @@ impl Window {
         let window = self.window.window();
         self.fullscreen = fullscreen;
         if fullscreen {
-            window.set_fullscreen(Some(winit::window::Fullscreen::Borderless(
-                window.current_monitor(),
+            window.set_fullscreen(Some(winit::window::Fullscreen::Exclusive(
+                window
+                    .current_monitor()
+                    .video_modes()
+                    .max_by_key(|mode| mode.size().width)
+                    .expect("No video modes available!!"),
             )));
         } else {
             window.set_fullscreen(None);
@@ -1080,8 +1080,6 @@ impl Window {
     }
 
     pub fn send_event(&mut self, event: Event) { self.events.push(event) }
-
-    pub fn send_supplement_event(&mut self, event: Event) { self.supplement_events.push(event) }
 
     pub fn take_screenshot(&mut self, settings: &Settings) {
         match self.renderer.create_screenshot() {
