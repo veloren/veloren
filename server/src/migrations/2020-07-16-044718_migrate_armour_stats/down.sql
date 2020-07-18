@@ -1,0 +1,1 @@
+-- No down action for this migration

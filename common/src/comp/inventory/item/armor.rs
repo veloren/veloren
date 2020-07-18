@@ -335,7 +335,7 @@ pub enum Tabard {
 pub const ALL_TABARDS: [Tabard; 1] = [Tabard::Admin];
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Armor {
+pub enum ArmorKind {
     Shoulder(Shoulder),
     Chest(Chest),
     Belt(Belt),
@@ -354,9 +354,27 @@ impl Armor {
     /// one another (i.e: one may be substituted for the other in crafting
     /// recipes or item possession checks).
     pub fn superficially_eq(&self, other: &Self) -> bool {
-        std::mem::discriminant(self) == std::mem::discriminant(other)
+        std::mem::discriminant(&self.kind) == std::mem::discriminant(&other.kind)
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct Stats(pub u32);
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Stats {
+    protection: Protection,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub enum Protection {
+    Invincible,
+    Normal(f32),
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Armor {
+    pub kind: ArmorKind,
+    pub stats: Stats,
+}
+
+impl Armor {
+    pub fn get_protection(&self) -> Protection { self.stats.protection }
+}

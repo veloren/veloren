@@ -1,8 +1,12 @@
 Item(
     name: "Steel Belt",
-    description: "A belt made from Steel.",
+    description: "A belt forged from steel.",
     kind: Armor(
-        kind: Belt(Steel0),
-        stats: (20),
+        (
+            kind: Belt(Steel0),
+            stats: (
+                protection: Normal(0.0),
+            ),
+        )
     ),
 )

@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Creature specific stats
 - Minimap compass
 - Initial crafting system implementation
+- Protection stat to armor that reduces incoming damage
 
 ### Changed
 

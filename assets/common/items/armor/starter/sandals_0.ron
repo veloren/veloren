@@ -1,8 +1,12 @@
 Item(
     name: "Worn out Sandals",
-    description: "Feet\n\nArmor: 0\n\nLoyal companions.\n\n<Right-Click to use>",
+    description: "Loyal companions.",
     kind: Armor(
-        kind: Foot(Sandal0),
-        stats: (20),
+        (
+            kind: Foot(Sandal0),
+            stats: (
+                protection: Normal(0.0),
+            ),
+        )
     ),
 )

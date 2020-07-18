@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        Alignment, Attacking, Body, CharacterState, HealthChange, HealthSource, Ori, Pos, Scale,
-        Stats,
+        Alignment, Attacking, Body, CharacterState, HealthChange, HealthSource, Loadout, Ori, Pos,
+        Scale, Stats,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     sync::Uid,
@@ -29,6 +29,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Alignment>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Stats>,
+        ReadStorage<'a, Loadout>,
         WriteStorage<'a, Attacking>,
         WriteStorage<'a, CharacterState>,
     );
@@ -46,6 +47,7 @@ impl<'a> System<'a> for Sys {
             alignments,
             bodies,
             stats,
+            loadouts,
             mut attacking_storage,
             character_states,
         ): Self::SystemData,
@@ -143,6 +145,12 @@ impl<'a> System<'a> for Sys {
                         && ori_b.0.angle_between(pos.0 - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0
                     {
                         healthchange *= 1.0 - BLOCK_EFFICIENCY
+                    }
+
+                    // Armor
+                    if let Some(loadout) = loadouts.get(b) {
+                        let damage_reduction = loadout.get_damage_reduction();
+                        healthchange *= 1.0 - damage_reduction;
                     }
 
                     if healthchange != 0.0 {

@@ -1,11 +1,13 @@
 use crate::{
     comp::{
-        ability::Stage, item::Item, Body, CharacterState, EnergySource, Gravity, LightEmitter,
-        Projectile, StateUpdate,
+        ability::Stage,
+        item::{armor::Protection, Item, ItemKind},
+        Body, CharacterState, EnergySource, Gravity, LightEmitter, Projectile, StateUpdate,
     },
     states::{triple_strike::*, *},
     sys::character_behavior::JoinData,
 };
+use arraygen::Arraygen;
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
@@ -144,23 +146,61 @@ pub struct ItemConfig {
     pub dodge_ability: Option<CharacterAbility>,
 }
 
-#[derive(Clone, PartialEq, Default, Debug, Serialize, Deserialize)]
+#[derive(Arraygen, Clone, PartialEq, Default, Debug, Serialize, Deserialize)]
+#[gen_array(pub fn get_armor: &Option<Item>)]
 pub struct Loadout {
     pub active_item: Option<ItemConfig>,
     pub second_item: Option<ItemConfig>,
 
-    pub shoulder: Option<Item>,
-    pub chest: Option<Item>,
-    pub belt: Option<Item>,
-    pub hand: Option<Item>,
-    pub pants: Option<Item>,
-    pub foot: Option<Item>,
-    pub back: Option<Item>,
-    pub ring: Option<Item>,
-    pub neck: Option<Item>,
     pub lantern: Option<Item>,
+
+    #[in_array(get_armor)]
+    pub shoulder: Option<Item>,
+    #[in_array(get_armor)]
+    pub chest: Option<Item>,
+    #[in_array(get_armor)]
+    pub belt: Option<Item>,
+    #[in_array(get_armor)]
+    pub hand: Option<Item>,
+    #[in_array(get_armor)]
+    pub pants: Option<Item>,
+    #[in_array(get_armor)]
+    pub foot: Option<Item>,
+    #[in_array(get_armor)]
+    pub back: Option<Item>,
+    #[in_array(get_armor)]
+    pub ring: Option<Item>,
+    #[in_array(get_armor)]
+    pub neck: Option<Item>,
+    #[in_array(get_armor)]
     pub head: Option<Item>,
+    #[in_array(get_armor)]
     pub tabard: Option<Item>,
+}
+
+impl Loadout {
+    pub fn get_damage_reduction(&self) -> f32 {
+        let protection = self
+            .get_armor()
+            .iter()
+            .flat_map(|armor| armor.as_ref())
+            .filter_map(|item| {
+                if let ItemKind::Armor(armor) = item.kind {
+                    Some(armor.get_protection())
+                } else {
+                    None
+                }
+            })
+            .map(|protection| match protection {
+                Protection::Normal(protection) => Some(protection),
+                Protection::Invincible => None,
+            })
+            .sum::<Option<f32>>();
+        match protection {
+            Some(dr) => dr / (60.0 + dr.abs()),
+            None => 1.0,
+        }
+    }
 }
 
 impl From<&CharacterAbility> for CharacterState {

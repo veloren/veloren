@@ -1,8 +1,12 @@
 Item(
     name: "Blue Cultist Chest",
-    description: "Chest\n\nArmor: 0\n\n<Right-Click to use>",
+    description: "Ceremonial attire used by members.",
     kind: Armor(
-        kind: Chest(CultistBlue),
-        stats: (20),
+        (
+            kind: Chest(CultistBlue),
+            stats: (
+                protection: Normal(5.0),
+            ),
+        )
     ),
 )

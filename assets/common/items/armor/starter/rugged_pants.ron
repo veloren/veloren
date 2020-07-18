@@ -1,8 +1,12 @@
 Item(
     name: "Rugged Commoner's Pants",
-   description: "Legs\n\nArmor: 0\n\nThey remind you of the old days.\n\n<Right-Click to use>",
+    description: "They remind you of the old days.",
     kind: Armor(
-        kind: Pants(Rugged0),
-        stats: (20),
+        (
+            kind: Pants(Rugged0),
+            stats: (
+                protection: Normal(1.0),
+            ),
+        )
     ),
 )

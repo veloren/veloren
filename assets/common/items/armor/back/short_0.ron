@@ -1,8 +1,12 @@
 Item(
     name: "Short leather Cape",
-   description: "Back\n\nArmor: 0\n\n<Right-Click to use>",
+    description: "Probably made of the finest leather.",
     kind: Armor(
-        kind: Back(Short0),
-        stats: (20),
+        (
+            kind: Back(Short0),
+            stats: (
+                protection: Normal(0.0),
+            ),
+        )
     ),
 )

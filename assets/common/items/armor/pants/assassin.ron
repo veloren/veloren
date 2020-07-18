@@ -1,8 +1,12 @@
 Item(
     name: "Assassin Pants",
-    description: "Legs\n\nArmor: 0\n\nOnly the best for a member of the creed.\n\n<Right-Click to use>",
+    description: "Only the best for a member of the creed.",
     kind: Armor(
-        kind: Pants(Assassin),
-        stats: (20),
+        (
+            kind: Pants(Assassin),
+            stats: (
+                protection: Normal(5.0),
+            ),
+        )
     ),
 )

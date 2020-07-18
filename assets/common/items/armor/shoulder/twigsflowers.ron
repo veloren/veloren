@@ -1,8 +1,12 @@
 Item(
     name: "Flowery Shoulders",
-    description: "Flowery, leafy spaulders.\n\n<Right-Click to use>",
+    description: "Flowery, leafy spaulders.",
     kind: Armor(
-        kind: Shoulder(FlowerShoulder),
-        stats: (20),
+        (
+            kind: Shoulder(FlowerShoulder),
+            stats: (
+                protection: Normal(9.0),
+            ),
+        )
     ),
 )

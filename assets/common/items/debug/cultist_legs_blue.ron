@@ -1,8 +1,12 @@
 Item(
     name: "Blue Cultist Skirt",
-    description: "Legs\n\nArmor: 0\n\n<Right-Click to use>",
+    description: "Ceremonial attire used by members.",
     kind: Armor(
-        kind: Pants(CultistBlue),
-        stats: (20),
+        (
+            kind: Pants(CultistBlue),
+            stats: (
+                protection: Invincible,
+            ),
+        )
     ),
 )
