@@ -2013,7 +2013,7 @@ impl FigureMgr {
                         lights,
                         shadows,
                         shadow_mats,
-                        &lod.map,
+                        &lod.alt,
                         &lod.horizon,
                     );
                 }
@@ -2077,7 +2077,7 @@ impl FigureMgr {
                     lights,
                     shadows,
                     shadow_mats,
-                    &lod.map,
+                    &lod.alt,
                     &lod.horizon,
                 );
                 renderer.render_player_shadow(
@@ -2089,7 +2089,7 @@ impl FigureMgr {
                     lights,
                     shadows,
                     shadow_mats,
-                    &lod.map,
+                    &lod.alt,
                     &lod.horizon,
                 );
             }

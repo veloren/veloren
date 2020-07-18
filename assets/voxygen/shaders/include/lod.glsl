@@ -2,7 +2,7 @@
 #include <sky.glsl>
 #include <srgb.glsl>
 
-uniform sampler2D t_map;
+uniform sampler2D t_alt;
 uniform sampler2D t_horizon;
 
 const float MIN_SHADOW = 0.33;
@@ -11,7 +11,7 @@ vec2 pos_to_uv(sampler2D sampler, vec2 pos) {
     // Want: (pixel + 0.5) / W
     vec2 texSize = textureSize(sampler, 0);
 	vec2 uv_pos = (focus_off.xy + pos + 16) / (32.0 * texSize);
-	return vec2(uv_pos.x, 1.0 - uv_pos.y);
+	return vec2(uv_pos.x, /*1.0 - */uv_pos.y);
 }
 
 vec2 pos_to_tex(vec2 pos) {
@@ -35,6 +35,7 @@ vec4 cubic(float v) {
 vec4 textureBicubic(sampler2D sampler, vec2 texCoords) {
    vec2 texSize = textureSize(sampler, 0);
    vec2 invTexSize = 1.0 / texSize;
+   /* texCoords.y = texSize.y - texCoords.y; */
 
    texCoords = texCoords/* * texSize */ - 0.5;
 
@@ -52,8 +53,8 @@ vec4 textureBicubic(sampler2D sampler, vec2 texCoords) {
     vec4 offset = c + vec4 (xcubic.yw, ycubic.yw) / s;
 
     offset *= invTexSize.xxyy;
-    // Correct for map rotaton.
-    offset.zw  = 1.0 - offset.zw;
+    /* // Correct for map rotaton.
+    offset.zw  = 1.0 - offset.zw; */
 
     vec4 sample0 = texture(sampler, offset.xz);
     vec4 sample1 = texture(sampler, offset.yz);
@@ -73,7 +74,7 @@ vec4 textureBicubic(sampler2D sampler, vec2 texCoords) {
 }
 
 float alt_at(vec2 pos) {
-	return (texture/*textureBicubic*/(t_map, pos_to_uv(t_map, pos)).a * (/*1300.0*//*1278.7266845703125*/view_distance.w) + /*140.0*/view_distance.z - focus_off.z);
+	return (/*round*/(texture/*textureBicubic*/(t_alt, pos_to_uv(t_alt, pos)).r * (/*1300.0*//*1278.7266845703125*/view_distance.w)) + /*140.0*/view_distance.z - focus_off.z);
 		//+ (texture(t_noise, pos * 0.002).x - 0.5) * 64.0;
 
     // return 0.0
@@ -87,7 +88,7 @@ float alt_at_real(vec2 pos) {
 // #if (FLUID_MODE == FLUID_MODE_CHEAP)
 // 	return alt_at(pos);
 // #elif (FLUID_MODE == FLUID_MODE_SHINY)
-	return (textureBicubic(t_map, pos_to_tex(pos)).a * (/*1300.0*//*1278.7266845703125*/view_distance.w) + /*140.0*/view_distance.z - focus_off.z);
+	return (/*round*/(textureBicubic(t_alt, pos_to_tex(pos)).r * (/*1300.0*//*1278.7266845703125*/view_distance.w)) + /*140.0*/view_distance.z - focus_off.z);
 // #endif
 		//+ (texture(t_noise, pos * 0.002).x - 0.5) * 64.0;
 
@@ -201,14 +202,14 @@ vec2 splay(vec2 pos) {
     const float SQRT_2 = sqrt(2.0) / 2.0;
     // /const float CBRT_2 = cbrt(2.0) / 2.0;
 	// vec2 splayed = pos * (view_distance.x * SQRT_2 + pow(len * 0.5, 3.0) * (SPLAY_MULT - view_distance.x));
-	vec2 splayed = pos * (view_distance.x * SQRT_2 + pow(len/* * SQRT_2*//* * 0.5*/, 3.0) * (textureSize(t_map, 0) * 32.0 - view_distance.x));
+	vec2 splayed = pos * (view_distance.x * SQRT_2 + pow(len/* * SQRT_2*//* * 0.5*/, 3.0) * (textureSize(t_alt, 0) * 32.0 - view_distance.x));
     return splayed;
 
     // Radial: pos.x = r - view_distance.x from focus_pos, pos.y = θ from cam_pos to focus_pos on xy plane.
     // const float PI_2 = 3.1415926535897932384626433832795;
     // float squared = pos.x * pos.x;
 	// // // vec2 splayed2 = pos * vec2(squared * (SPLAY_MULT - view_distance.x), PI);
-	// vec2 splayed2 = pos * vec2(squared * (textureSize(t_map, 0).x * 32.0 - view_distance.x), PI);
+	// vec2 splayed2 = pos * vec2(squared * (textureSize(t_alt, 0).x * 32.0 - view_distance.x), PI);
     // float r = splayed2.x + view_distance.x;
     // vec2 theta = vec2(cos(splayed2.y), sin(splayed2.y));
     // return r * theta;
@@ -273,9 +274,14 @@ vec3 lod_pos(vec2 pos, vec2 focus_pos) {
 	return vec3(hpos, alt_at_real(hpos));
 }
 
+#ifdef HAS_LOD_FULL_INFO
+uniform sampler2D t_map;
+
 vec3 lod_col(vec2 pos) {
 	//return vec3(0, 0.5, 0);
+	// return /*linear_to_srgb*/vec3(alt_at(pos), textureBicubic(t_map, pos_to_tex(pos)).gb);
 	return /*linear_to_srgb*/(textureBicubic(t_map, pos_to_tex(pos)).rgb)
 		;//+ (texture(t_noise, pos * 0.04 + texture(t_noise, pos * 0.005).xy * 2.0 + texture(t_noise, pos * 0.06).xy * 0.6).x - 0.5) * 0.1;
 		//+ (texture(t_noise, pos * 0.04 + texture(t_noise, pos * 0.005).xy * 2.0 + texture(t_noise, pos * 0.06).xy * 0.6).x - 0.5) * 0.1;
 }
+#endif

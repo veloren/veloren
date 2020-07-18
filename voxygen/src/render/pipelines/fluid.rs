@@ -25,7 +25,7 @@ gfx_defines! {
         point_shadow_maps: gfx::TextureSampler<f32> = "t_point_shadow_maps",
         directed_shadow_maps: gfx::TextureSampler<f32> = "t_directed_shadow_maps",
 
-        map: gfx::TextureSampler<[f32; 4]> = "t_map",
+        alt: gfx::TextureSampler<[f32; 2]> = "t_alt",
         horizon: gfx::TextureSampler<[f32; 4]> = "t_horizon",
 
         noise: gfx::TextureSampler<f32> = "t_noise",

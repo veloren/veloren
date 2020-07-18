@@ -105,16 +105,19 @@ impl Scene {
 
         let map_bounds = Vec2::new(-65536.0, 131071.0);
         let map_border = [0.0, 0.0, 0.0, 0.0];
-        let map_image = image::DynamicImage::ImageRgba8(image::RgbaImage::from_pixel(
+        /* let map_image = image::DynamicImage::ImageRgba8(image::RgbaImage::from_pixel(
             1,
             1,
             image::Rgba([0, 0, 0, 0]),
-        ));
-        let horizon_image = image::DynamicImage::ImageRgba8(image::RgbaImage::from_pixel(
+        )); */
+        let map_image = [0];
+        let alt_image = [0];
+        /* let horizon_image = image::DynamicImage::ImageRgba8(image::RgbaImage::from_pixel(
             1,
             1,
             image::Rgba([0, 1, 0, 1]),
-        ));
+        )); */
+        let horizon_image = [0x_00_01_00_01];
 
         let mut camera = Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson);
         camera.set_focus_pos(Vec3::unit_z() * 1.5);
@@ -139,7 +142,7 @@ impl Scene {
                     .create_consts(&[PostProcessLocals::default()])
                     .unwrap(),
             },
-            lod: LodData::new(renderer, &map_image, &horizon_image, 1, map_border.into()),// Lod::new(renderer, client, settings),
+            lod: LodData::new(renderer, Vec2::new(1, 1), &map_image, &alt_image, &horizon_image, 1, map_border.into()),// Lod::new(renderer, client, settings),
             map_bounds,//: client.world_map.2,
 
             figure_model_cache: FigureModelCache::new(),
@@ -333,7 +336,7 @@ impl Scene {
             &self.skybox.model,
             &self.globals,
             &self.skybox.locals,
-            &self.lod.map,
+            &self.lod.alt,
             &self.lod.horizon,
         );
 
@@ -360,7 +363,7 @@ impl Scene {
                 &self.lights,
                 &self.shadows,
                 &self.shadow_mats,
-                &self.lod.map,
+                &self.lod.alt,
                 &self.lod.horizon,
             );
         }
@@ -375,7 +378,7 @@ impl Scene {
                 &self.lights,
                 &self.shadows,
                 &self.shadow_mats,
-                &self.lod.map,
+                &self.lod.alt,
                 &self.lod.horizon,
             );
         }

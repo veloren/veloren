@@ -36,8 +36,8 @@ pub use self::{
         Globals, Light, Shadow,
     },
     renderer::{
-        ColLightFmt, ColLightInfo, LodColorFmt, LodTextureFmt, Renderer, ShadowDepthStencilFmt,
-        TgtColorFmt, TgtDepthStencilFmt, WinColorFmt, WinDepthFmt,
+        ColLightFmt, ColLightInfo, LodAltFmt, LodColorFmt, LodTextureFmt, Renderer,
+        ShadowDepthStencilFmt, TgtColorFmt, TgtDepthStencilFmt, WinColorFmt, WinDepthFmt,
     },
     texture::Texture,
 };

@@ -33,7 +33,7 @@ gfx_defines! {
         // lights: gfx::ConstantBuffer<Light> = "u_lights",
         // shadows: gfx::ConstantBuffer<Shadow> = "u_shadows",
 
-        // map: gfx::TextureSampler<[f32; 4]> = "t_map",
+        // alt: gfx::TextureSampler<[f32; 2]> = "t_map",
         // horizon: gfx::TextureSampler<[f32; 4]> = "t_horizon",
 
         // noise: gfx::TextureSampler<f32> = "t_noise",
@@ -58,7 +58,7 @@ gfx_defines! {
         // lights: gfx::ConstantBuffer<Light> = "u_lights",
         // shadows: gfx::ConstantBuffer<Shadow> = "u_shadows",
 
-        // map: gfx::TextureSampler<[f32; 4]> = "t_map",
+        // alt: gfx::TextureSampler<[f32; 2]> = "t_map",
         // horizon: gfx::TextureSampler<[f32; 4]> = "t_horizon",
 
         // noise: gfx::TextureSampler<f32> = "t_noise",

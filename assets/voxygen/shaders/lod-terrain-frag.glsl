@@ -17,6 +17,8 @@
 
 #define LIGHTING_DISTRIBUTION LIGHTING_DISTRIBUTION_BECKMANN
 
+#define HAS_LOD_FULL_INFO
+
 #include <globals.glsl>
 #include <sky.glsl>
 #include <lod.glsl>

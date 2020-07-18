@@ -1,17 +1,19 @@
 use crate::{
     render::{
         pipelines::lod_terrain::{Locals, Vertex},
-        Consts, FilterMethod, Globals, LodColorFmt, LodTerrainPipeline, LodTextureFmt, Mesh, Model,
-        Quad, Renderer, Texture, WrapMode,
+        Consts, Globals, LodAltFmt, LodColorFmt, LodTerrainPipeline, LodTextureFmt, Mesh, Model,
+        Quad, Renderer, Texture,
     },
     settings::Settings,
 };
 use client::Client;
 use common::{spiral::Spiral2d, util::srgba_to_linear};
+use gfx::texture::SamplerInfo;
 use vek::*;
 
 pub struct LodData {
     pub map: Texture<LodColorFmt>,
+    pub alt: Texture<LodAltFmt>,
     pub horizon: Texture<LodTextureFmt>,
     pub tgt_detail: u32,
 }
@@ -25,28 +27,54 @@ pub struct Lod {
 impl LodData {
     pub fn new(
         renderer: &mut Renderer,
-        lod_base: &image::DynamicImage,
-        lod_horizon: &image::DynamicImage,
+        map_size: Vec2<u16>,
+        lod_base: &[u32],
+        lod_alt: &[u32],
+        lod_horizon: &[u32],
         tgt_detail: u32,
         border_color: gfx::texture::PackedColor,
     ) -> Self {
+        let kind = gfx::texture::Kind::D2(map_size.x, map_size.y, gfx::texture::AaMode::Single);
+        let info = gfx::texture::SamplerInfo::new(
+            gfx::texture::FilterMethod::Bilinear,
+            gfx::texture::WrapMode::Border,
+        );
         Self {
             map: renderer
-                .create_texture(
-                    lod_base,
-                    Some(FilterMethod::Bilinear),
-                    Some(WrapMode::Border),
-                    Some(border_color),
+                .create_texture_immutable_raw(
+                    kind,
+                    gfx::texture::Mipmap::Provided,
+                    &[gfx::memory::cast_slice(lod_base)],
+                    SamplerInfo {
+                        border: border_color,
+                        ..info
+                    },
                 )
                 .expect("Failed to generate map texture"),
+            alt: renderer
+                .create_texture_immutable_raw(
+                    kind,
+                    gfx::texture::Mipmap::Provided,
+                    &[gfx::memory::cast_slice(lod_alt)],
+                    SamplerInfo {
+                        border: [0.0, 0.0, 0.0, 0.0].into(),
+                        ..info
+                    },
+                )
+                .expect("Failed to generate alt texture"),
             horizon: renderer
-                .create_texture(
-                    lod_horizon,
-                    Some(FilterMethod::Trilinear),
-                    Some(WrapMode::Border),
-                    Some([0.0, 1.0, 0.0, 1.0].into()),
+                .create_texture_immutable_raw(
+                    kind,
+                    gfx::texture::Mipmap::Provided,
+                    &[gfx::memory::cast_slice(lod_horizon)],
+                    SamplerInfo {
+                        // filter: gfx::texture::FilterMethod::Nearest,
+                        // filter: gfx::texture::FilterMethod::TriLinear,
+                        border: [1.0, 0.0, 1.0, 0.0].into(),
+                        ..info
+                    },
                 )
-                .expect("Failed to generate map texture"),
+                .expect("Failed to generate horizon texture"),
             tgt_detail,
         }
     }
@@ -60,7 +88,9 @@ impl Lod {
             locals: renderer.create_consts(&[Locals::default()]).unwrap(),
             data: LodData::new(
                 renderer,
+                client.world_map.1,
                 &client.lod_base,
+                &client.lod_alt,
                 &client.lod_horizon,
                 settings.graphics.lod_detail.max(100).min(2500),
                 [water_color.r, water_color.g, water_color.b, water_color.a].into(),
@@ -95,6 +125,7 @@ impl Lod {
                 globals,
                 &self.locals,
                 &self.data.map,
+                &self.data.alt,
                 &self.data.horizon,
             );
         }

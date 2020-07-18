@@ -1512,7 +1512,7 @@ impl Scene {
             &self.skybox.model,
             &self.globals,
             &self.skybox.locals,
-            &lod.map,
+            &lod.alt,
             &lod.horizon,
         );
 

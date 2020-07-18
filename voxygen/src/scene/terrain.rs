@@ -3126,7 +3126,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                         shadow_mats,
                         /* lights, */
                         /* shadows,
-                         * &lod.map,
+                         * &lod.alt,
                          * &lod.horizon, */
                     );
                 });
@@ -3148,7 +3148,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                         shadow_mats,
                         /* lights, */
                         /* shadows,
-                         * &lod.map,
+                         * &lod.alt,
                          * &lod.horizon, */
                     );
                 }
@@ -3210,7 +3210,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     shadow_mats,
                     // lights,
                     // shadows,
-                    // &lod.map,
+                    // &lod.alt,
                     // &lod.horizon,
                 );
             }
@@ -3229,7 +3229,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                         shadow_mats,
                         // lights,
                         // shadows,
-                        // &lod.map,
+                        // &lod.alt,
                         // &lod.horizon,
                     );
                 }
@@ -3258,7 +3258,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     lights,
                     shadows,
                     shadow_mats,
-                    &lod.map,
+                    &lod.alt,
                     &lod.horizon,
                 );
             }
@@ -3362,7 +3362,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                             lights,
                             shadows,
                             shadow_mats,
-                            &lod.map,
+                            &lod.alt,
                             &lod.horizon,
                         );
                     }
@@ -3391,7 +3391,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     lights,
                     shadows,
                     shadow_mats,
-                    &lod.map,
+                    &lod.alt,
                     &lod.horizon,
                     &self.waves,
                 )

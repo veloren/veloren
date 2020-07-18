@@ -508,7 +508,7 @@ impl Hud {
         // Load world map
         let world_map = (
             ui.add_graphic_with_rotations(Graphic::Image(client.world_map.0.clone())),
-            client.world_map.1,
+            client.world_map.1.map(u32::from),
         );
         // Load images.
         let imgs = Imgs::load(&mut ui).expect("Failed to load images!");

@@ -1382,6 +1382,7 @@ impl WorldSim {
         .unwrap();
 
         let mut v = vec![0u32; WORLD_SIZE.x * WORLD_SIZE.y];
+        let mut alts = vec![0u32; WORLD_SIZE.x * WORLD_SIZE.y];
         // TODO: Parallelize again.
         let config = MapConfig {
             gain: self.max_height,
@@ -1400,15 +1401,18 @@ impl WorldSim {
                     self,
                     pos.map(|e| e as i32) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                 );
-                let a = (alt.min(1.0).max(0.0) * 255.0) as u8;
+                let a = 0; //(alt.min(1.0).max(0.0) * 255.0) as u8;
 
-                v[pos.y * WORLD_SIZE.x + pos.x] = u32::from_le_bytes([r, g, b, a]);
+                let posi = pos.y * WORLD_SIZE.x + pos.x;
+                v[posi] = u32::from_le_bytes([r, g, b, a]);
+                alts[posi] = (((alt.min(1.0).max(0.0) * 8191.0) as u32) & 0x1FFF) << 3;
             },
         );
         WorldMapMsg {
-            dimensions: WORLD_SIZE.map(|e| e as u32),
+            dimensions: WORLD_SIZE.map(|e| e as u16),
             max_height: self.max_height,
             rgba: v,
+            alt: alts,
             horizons,
         }
     }

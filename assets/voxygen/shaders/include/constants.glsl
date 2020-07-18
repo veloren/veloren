@@ -68,4 +68,6 @@
 /*
 // When sets, shadow maps are used to cast shadows.
 #define HAS_SHADOW_MAPS
+// When set, "full" LOD terrain informatino is available (e.g. terrain colors).
+#define HAS_LOD_FULL_INFO
 */

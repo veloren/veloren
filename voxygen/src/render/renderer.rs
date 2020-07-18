@@ -51,6 +51,9 @@ pub type WinDepthView = gfx::handle::DepthStencilView<gfx_backend::Resources, Wi
 /// Represents the format of LOD shadows.
 pub type LodTextureFmt = (gfx::format::R8_G8_B8_A8, gfx::format::Unorm); //[gfx::format::U8Norm; 4];
 
+/// Represents the format of LOD altitudes.
+pub type LodAltFmt = (gfx::format::R16_G16, gfx::format::Unorm); //[gfx::format::U8Norm; 4];
+
 /// Represents the format of LOD map colors.
 pub type LodColorFmt = (gfx::format::R8_G8_B8_A8, gfx::format::Srgb); //[gfx::format::U8Norm; 4];
 
@@ -1081,7 +1084,7 @@ impl Renderer {
         model: &Model<skybox::SkyboxPipeline>,
         globals: &Consts<Globals>,
         locals: &Consts<skybox::Locals>,
-        map: &Texture<LodColorFmt>,
+        alt: &Texture<LodAltFmt>,
         horizon: &Texture<LodTextureFmt>,
     ) {
         self.encoder.draw(
@@ -1098,7 +1101,7 @@ impl Renderer {
                 locals: locals.buf.clone(),
                 globals: globals.buf.clone(),
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                map: (map.srv.clone(), map.sampler.clone()),
+                alt: (alt.srv.clone(), alt.sampler.clone()),
                 horizon: (horizon.srv.clone(), horizon.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
@@ -1117,7 +1120,7 @@ impl Renderer {
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
         light_shadows: &Consts<shadow::Locals>,
-        map: &Texture<LodColorFmt>,
+        alt: &Texture<LodAltFmt>,
         horizon: &Texture<LodTextureFmt>,
     ) {
         // return;
@@ -1157,7 +1160,7 @@ impl Renderer {
                 vbuf: model.vbuf.clone(),
                 // abuf: atlas_model.vbuf.clone(),
                 col_lights: (col_lights.srv.clone(), col_lights.sampler.clone()),
-                // col_lights: (map.srv.clone(), map.sampler.clone()),
+                // col_lights: (alt.srv.clone(), alt.sampler.clone()),
                 locals: locals.buf.clone(),
                 globals: globals.buf.clone(),
                 bones: bones.buf.clone(),
@@ -1167,7 +1170,7 @@ impl Renderer {
                 point_shadow_maps,
                 directed_shadow_maps,
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                map: (map.srv.clone(), map.sampler.clone()),
+                alt: (alt.srv.clone(), alt.sampler.clone()),
                 horizon: (horizon.srv.clone(), horizon.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
@@ -1186,7 +1189,7 @@ impl Renderer {
         _lights: &Consts<Light>,
         _shadows: &Consts<Shadow>,
         _light_shadows: &Consts<shadow::Locals>,
-        _map: &Texture<LodColorFmt>,
+        _alt: &Texture<LodAltFmt>,
         _horizon: &Texture<LodTextureFmt>,
     ) {
         return;
@@ -1226,7 +1229,7 @@ impl Renderer {
                 vbuf: model.vbuf.clone(),
                 // abuf: atlas_model.vbuf.clone(),
                 col_lights: (col_lights.srv.clone(), col_lights.sampler.clone()),
-                // col_lights: (map.srv.clone(), map.sampler.clone()),
+                // col_lights: (alt.srv.clone(), alt.sampler.clone()),
                 locals: locals.buf.clone(),
                 globals: globals.buf.clone(),
                 bones: bones.buf.clone(),
@@ -1236,7 +1239,7 @@ impl Renderer {
                 point_shadow_maps,
                 directed_shadow_maps,
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                map: (map.srv.clone(), map.sampler.clone()),
+                alt: (alt.srv.clone(), alt.sampler.clone()),
                 horizon: (horizon.srv.clone(), horizon.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (0, 0) */),
@@ -1255,7 +1258,7 @@ impl Renderer {
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
         light_shadows: &Consts<shadow::Locals>,
-        map: &Texture<LodColorFmt>,
+        alt: &Texture<LodAltFmt>,
         horizon: &Texture<LodTextureFmt>,
     ) {
         let (point_shadow_maps, directed_shadow_maps) =
@@ -1294,7 +1297,7 @@ impl Renderer {
                 vbuf: model.vbuf.clone(),
                 // abuf: atlas_model.vbuf.clone(),
                 col_lights: (col_lights.srv.clone(), col_lights.sampler.clone()),
-                // col_lights: (map.srv.clone(), map.sampler.clone()),
+                // col_lights: (alt.srv.clone(), alt.sampler.clone()),
                 locals: locals.buf.clone(),
                 globals: globals.buf.clone(),
                 bones: bones.buf.clone(),
@@ -1304,7 +1307,7 @@ impl Renderer {
                 point_shadow_maps,
                 directed_shadow_maps,
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                map: (map.srv.clone(), map.sampler.clone()),
+                alt: (alt.srv.clone(), alt.sampler.clone()),
                 horizon: (horizon.srv.clone(), horizon.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
@@ -1325,7 +1328,7 @@ impl Renderer {
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
         light_shadows: &Consts<shadow::Locals>,
-        map: &Texture<LodColorFmt>,
+        alt: &Texture<LodAltFmt>,
         horizon: &Texture<LodTextureFmt>,
     ) {
         let (point_shadow_maps, directed_shadow_maps) =
@@ -1362,7 +1365,7 @@ impl Renderer {
                 // since we don't need it for things like shadows.
                 // abuf: atlas_model.vbuf.clone(),
                 col_lights: (col_lights.srv.clone(), col_lights.sampler.clone()),
-                // col_lights: (map.srv.clone(), map.sampler.clone()),
+                // col_lights: (alt.srv.clone(), alt.sampler.clone()),
                 locals: locals.buf.clone(),
                 globals: globals.buf.clone(),
                 lights: lights.buf.clone(),
@@ -1371,7 +1374,7 @@ impl Renderer {
                 point_shadow_maps,
                 directed_shadow_maps,
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                map: (map.srv.clone(), map.sampler.clone()),
+                alt: (alt.srv.clone(), alt.sampler.clone()),
                 horizon: (horizon.srv.clone(), horizon.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
@@ -1390,7 +1393,7 @@ impl Renderer {
         locals: &Consts<shadow::Locals>,
         /* lights: &Consts<Light>,
          * shadows: &Consts<Shadow>,
-         * map: &Texture<LodColorFmt>,
+         * alt: &Texture<LodAltFmt>,
          * horizon: &Texture<LodTextureFmt>, */
     ) {
         if !self.mode.shadow.is_map() {
@@ -1422,7 +1425,7 @@ impl Renderer {
                 // lights: lights.buf.clone(),
                 // shadows: shadows.buf.clone(),
                 // noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                // map: (map.srv.clone(), map.sampler.clone()),
+                // alt: (alt.srv.clone(), alt.sampler.clone()),
                 // horizon: (horizon.srv.clone(), horizon.sampler.clone()),
 
                 // Shadow stuff
@@ -1445,7 +1448,7 @@ impl Renderer {
         locals: &Consts<shadow::Locals>,
         /* lights: &Consts<Light>,
          * shadows: &Consts<Shadow>,
-         * map: &Texture<LodColorFmt>,
+         * alt: &Texture<LodAltFmt>,
          * horizon: &Texture<LodTextureFmt>, */
     ) {
         if !self.mode.shadow.is_map() {
@@ -1477,7 +1480,7 @@ impl Renderer {
                 // lights: lights.buf.clone(),
                 // shadows: shadows.buf.clone(),
                 // noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                // map: (map.srv.clone(), map.sampler.clone()),
+                // alt: (alt.srv.clone(), alt.sampler.clone()),
                 // horizon: (horizon.srv.clone(), horizon.sampler.clone()),
 
                 // Shadow stuff
@@ -1501,7 +1504,7 @@ impl Renderer {
         locals: &Consts<shadow::Locals>,
         /* lights: &Consts<Light>,
          * shadows: &Consts<Shadow>,
-         * map: &Texture<LodColorFmt>,
+         * alt: &Texture<LodAltFmt>,
          * horizon: &Texture<LodTextureFmt>, */
     ) {
         if !self.mode.shadow.is_map() {
@@ -1535,7 +1538,7 @@ impl Renderer {
                 // lights: lights.buf.clone(),
                 // shadows: shadows.buf.clone(),
                 // noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                // map: (map.srv.clone(), map.sampler.clone()),
+                // alt: (alt.srv.clone(), alt.sampler.clone()),
                 // horizon: (horizon.srv.clone(), horizon.sampler.clone()),
 
                 // Shadow stuff
@@ -1557,7 +1560,7 @@ impl Renderer {
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
         light_shadows: &Consts<shadow::Locals>,
-        map: &Texture<LodColorFmt>,
+        alt: &Texture<LodAltFmt>,
         horizon: &Texture<LodTextureFmt>,
         waves: &Texture,
     ) {
@@ -1598,7 +1601,7 @@ impl Renderer {
                 light_shadows: light_shadows.buf.clone(),
                 point_shadow_maps,
                 directed_shadow_maps,
-                map: (map.srv.clone(), map.sampler.clone()),
+                alt: (alt.srv.clone(), alt.sampler.clone()),
                 horizon: (horizon.srv.clone(), horizon.sampler.clone()),
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 waves: (waves.srv.clone(), waves.sampler.clone()),
@@ -1623,7 +1626,7 @@ impl Renderer {
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
         light_shadows: &Consts<shadow::Locals>,
-        map: &Texture<LodColorFmt>,
+        alt: &Texture<LodAltFmt>,
         horizon: &Texture<LodTextureFmt>,
     ) {
         let (point_shadow_maps, directed_shadow_maps) =
@@ -1668,7 +1671,7 @@ impl Renderer {
                 point_shadow_maps,
                 directed_shadow_maps,
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                map: (map.srv.clone(), map.sampler.clone()),
+                alt: (alt.srv.clone(), alt.sampler.clone()),
                 horizon: (horizon.srv.clone(), horizon.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
@@ -1684,6 +1687,7 @@ impl Renderer {
         globals: &Consts<Globals>,
         locals: &Consts<lod_terrain::Locals>,
         map: &Texture<LodColorFmt>,
+        alt: &Texture<LodAltFmt>,
         horizon: &Texture<LodTextureFmt>,
     ) {
         self.encoder.draw(
@@ -1701,6 +1705,7 @@ impl Renderer {
                 globals: globals.buf.clone(),
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 map: (map.srv.clone(), map.sampler.clone()),
+                alt: (alt.srv.clone(), alt.sampler.clone()),
                 horizon: (horizon.srv.clone(), horizon.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),

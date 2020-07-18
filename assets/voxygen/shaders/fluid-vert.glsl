@@ -46,7 +46,7 @@ flat out uint f_pos_norm;
 // out float f_light;
 // out vec3 light_pos[2];
 
-const float EXTRA_NEG_Z = /*65536.0*/65536.1;
+const float EXTRA_NEG_Z = 65536.0/*65536.1*/;
 
 void main() {
     f_pos = vec3((uvec3(v_pos_norm) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0x1FFFFu)) - vec3(0, 0, EXTRA_NEG_Z) + model_offs - focus_off.xyz;

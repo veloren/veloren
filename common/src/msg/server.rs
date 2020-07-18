@@ -65,12 +65,17 @@ pub struct CharacterInfo {
 /// shadow maps intended for height maps.
 pub struct WorldMapMsg {
     /// World map dimensions (width × height)
-    pub dimensions: Vec2<u32>,
+    pub dimensions: Vec2<u16>,
     /// Max height (used to scale altitudes).
     pub max_height: f32,
-    /// RGB+A; the alpha channel is currently a proxy for altitude.
-    /// Entries are in the usual chunk order.
+    /// RGB+A; the alpha channel is currently unused, but will be used in the
+    /// future. Entries are in the usual chunk order.
     pub rgba: Vec<u32>,
+    /// Altitudes: bits 2 to 0 are unused, then bits 15 to 3 are used for
+    /// altitude. The remainder are currently unused, but we have plans to
+    /// use 7 bits for water depth (using an integer f7 encoding), and we
+    /// will find other uses for the remaining 12 bits.
+    pub alt: Vec<u32>,
     /// Horizon mapping.  This is a variant of shadow mapping that is
     /// specifically designed for height maps; it takes advantage of their
     /// regular structure (e.g. no holes) to compress all information needed
