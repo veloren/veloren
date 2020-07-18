@@ -488,6 +488,9 @@ pub struct Window {
     // Currently used to send and receive screenshot result messages
     message_sender: channel::Sender<String>,
     message_receiver: channel::Receiver<String>,
+    // Used for screenshots & fullscreen toggle to deduplicate/postpone to after event handler
+    take_screenshot: bool,
+    toggle_fullscreen: bool,
 }
 
 impl Window {
@@ -591,6 +594,8 @@ impl Window {
             // Currently used to send and receive screenshot result messages
             message_sender,
             message_receiver,
+            take_screenshot: false,
+            toggle_fullscreen: false,
         };
 
         this.fullscreen(settings.graphics.fullscreen);
@@ -607,6 +612,18 @@ impl Window {
     pub fn renderer(&self) -> &Renderer { &self.renderer }
 
     pub fn renderer_mut(&mut self) -> &mut Renderer { &mut self.renderer }
+
+    pub fn resolve_deduplicated_events(&mut self, settings: &mut Settings) {
+        // Handle screenshots and toggling fullscreen
+        if self.take_screenshot {
+            self.take_screenshot = false;
+            self.take_screenshot(&settings);
+        }
+        if self.toggle_fullscreen {
+            self.toggle_fullscreen = false;
+            self.toggle_fullscreen(settings);
+        }
+    }
 
     pub fn fetch_events(&mut self) -> Vec<Event> {
         // Refresh ui size (used when changing playstates)
@@ -876,10 +893,6 @@ impl Window {
         use winit::event::WindowEvent;
 
         let controls = &mut settings.controls;
-        // TODO: these used to be used to deduplicate events which they no longer do
-        // this needs to be handled elsewhere
-        let mut toggle_fullscreen = false;
-        let mut take_screenshot = false;
 
         match event {
             WindowEvent::CloseRequested => self.events.push(Event::Close),
@@ -954,7 +967,7 @@ impl Window {
                                             GameInput::Fullscreen,
                                         )
                                     {
-                                        toggle_fullscreen = !toggle_fullscreen;
+                                        self.toggle_fullscreen = !self.toggle_fullscreen;
                                     }
                                     Self::set_pressed(
                                         &mut self.keypress_map,
@@ -963,7 +976,7 @@ impl Window {
                                     );
                                 },
                                 GameInput::Screenshot => {
-                                    take_screenshot = input.state
+                                    self.take_screenshot = input.state
                                         == winit::event::ElementState::Pressed
                                         && !Self::is_pressed(
                                             &mut self.keypress_map,
@@ -992,14 +1005,6 @@ impl Window {
                 self.cursor_position = position;
             },
             _ => {},
-        }
-
-        if take_screenshot {
-            self.take_screenshot(&settings);
-        }
-
-        if toggle_fullscreen {
-            self.toggle_fullscreen(settings);
         }
     }
 
