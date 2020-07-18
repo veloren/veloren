@@ -22,9 +22,6 @@ use std::panic;
 use tracing::{error, warn};
 
 fn main() {
-    #[cfg(feature = "tweak")]
-    const_tweaker::run().expect("Could not run server");
-
     // Load the settings
     // Note: This won't log anything due to it being called before
     // `logging::init`. The issue is we need to read a setting to decide
