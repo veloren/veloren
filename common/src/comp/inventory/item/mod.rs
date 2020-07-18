@@ -90,15 +90,12 @@ impl Lantern {
 
 fn default_amount() -> u32 { 1 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ItemKind {
     /// Something wieldable
     Tool(tool::Tool),
     Lantern(Lantern),
-    Armor {
-        kind: armor::Armor,
-        stats: armor::Stats,
-    },
+    Armor(armor::Armor),
     Consumable {
         kind: Consumable,
         effect: Effect,
@@ -122,7 +119,7 @@ pub enum ItemKind {
     },
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Item {
     name: String,
     description: String,
@@ -237,9 +234,7 @@ impl Item {
             (ItemKind::Tool(a), ItemKind::Tool(b)) => a.superficially_eq(b),
             // TODO: Differentiate between lantern colors?
             (ItemKind::Lantern(_), ItemKind::Lantern(_)) => true,
-            (ItemKind::Armor { kind: a, .. }, ItemKind::Armor { kind: b, .. }) => {
-                a.superficially_eq(b)
-            },
+            (ItemKind::Armor(a), ItemKind::Armor(b)) => a.superficially_eq(b),
             (ItemKind::Consumable { kind: a, .. }, ItemKind::Consumable { kind: b, .. }) => a == b,
             (ItemKind::Throwable { kind: a, .. }, ItemKind::Throwable { kind: b, .. }) => a == b,
             (ItemKind::Utility { kind: a, .. }, ItemKind::Utility { kind: b, .. }) => a == b,
@@ -253,7 +248,7 @@ impl Component for Item {
     type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ItemDrop(pub Item);
 
 impl Component for ItemDrop {

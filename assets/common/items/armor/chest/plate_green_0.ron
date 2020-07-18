@@ -1,8 +1,12 @@
 Item(
     name: "Iron Chestplate",
-    description: "Chest\n\nArmor: 0\n\n<Right-Click to use>",
+    description: "A chestplate forged from iron.",
     kind: Armor(
-        kind: Chest(PlateGreen0),
-        stats: (20),
+        (
+            kind: Chest(PlateGreen0),
+            stats: (
+                protection: Normal(20.0),
+            ),
+        )
     ),
 )

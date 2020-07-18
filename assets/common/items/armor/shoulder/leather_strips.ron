@@ -1,8 +1,12 @@
 Item(
     name: "Leather Strips",
-    description: "Shoulder wraps made from leather strips.\n\n<Right-click to use.>",
+    description: "Shoulder wraps made from leather strips.",
     kind: Armor(
-        kind: Shoulder(LeatherStrips),
-        stats: (20),
+        (
+            kind: Shoulder(LeatherStrips),
+            stats: (
+                protection: Normal(4.0),
+            ),
+        )
     ),
 )

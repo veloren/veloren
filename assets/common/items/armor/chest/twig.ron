@@ -1,8 +1,12 @@
 Item(
     name: "Twig Shirt",
-    description: "A shirt woven from twigs.\n\n<Right-Click to use>",
+    description: "A shirt woven from twigs.",
     kind: Armor(
-        kind: Chest(Twig),
-        stats: (20),
+        (
+            kind: Chest(Twig),
+            stats: (
+                protection: Normal(15.0),
+            ),
+        )
     ),
 )

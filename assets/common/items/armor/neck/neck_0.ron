@@ -1,8 +1,12 @@
 Item(
     name: "Plain Necklace",
-   description: "Neck\n\nArmor: 0\n\n<Right-Click to use>",
+    description: "It's become tarnished with age.",
     kind: Armor(
-        kind: Neck(Neck0),
-        stats: (20),
+        (
+            kind: Neck(Neck0),
+            stats: (
+                protection: Normal(0.0),
+            ),
+        )
     ),
 )

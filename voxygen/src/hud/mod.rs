@@ -15,6 +15,7 @@ mod skillbar;
 mod slots;
 mod social;
 mod spell;
+mod util;
 
 use crate::{ecs::comp::HpFloaterList, hud::img_ids::ImgsRot, ui::img_ids::Rotations};
 pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};

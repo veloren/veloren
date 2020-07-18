@@ -1,8 +1,12 @@
 Item(
     name: "Blue Linen Coat",
-   description: "Shoulders\n\nArmor: 0\n\n<Right-Click to use>",
+    description: "A warm coat.",
     kind: Armor(
-        kind: Shoulder(ClothBlue0),
-        stats: (20),
+        (
+            kind: Shoulder(ClothBlue0),
+            stats: (
+                protection: Normal(0.0),
+            ),
+        )
     ),
 )

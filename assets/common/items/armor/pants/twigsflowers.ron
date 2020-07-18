@@ -1,8 +1,12 @@
 Item(
     name: "Flowery Pants",
-    description: "Pants woven from twigs and flowers. Fragrant!\n\n<Right-Click to use>",
+    description: "Pants woven from twigs and flowers. Fragrant!",
     kind: Armor(
-        kind: Pants(Twigsflowers),
-        stats: (20),
+        (
+            kind: Pants(Twigsflowers),
+            stats: (
+                protection: Normal(12.0),
+            ),
+        )
     ),
 )

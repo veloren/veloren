@@ -1,8 +1,12 @@
 Item(
     name: "Flowery Belt",
-    description: "A belt woven from twigs and flowers.\n\n<Right-Click to use>",
+    description: "A belt woven from twigs and flowers.",
     kind: Armor(
-        kind: Belt(Twigsflowers),
-        stats: (20),
+        (
+            kind: Belt(Twigsflowers),
+            stats: (
+                protection: Normal(0.0),
+            ),
+        )
     ),
 )

@@ -1,8 +1,12 @@
 Item(
     name: "Druid's Belt",
-    description: "Twisted vines to keep everything secure.\n\n<Right-Click to use>",
+    description: "Twisted vines to keep everything secure.",
     kind: Armor(
-        kind: Belt(Druid),
-        stats: (20),
+        (
+            kind: Belt(Druid),
+            stats: (
+                protection: Normal(0.0),
+            ),
+        )
     ),
 )

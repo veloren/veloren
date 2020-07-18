@@ -1,8 +1,12 @@
 Item(
     name: "Dark Assassin Mask",
-   description: "Head\n\nArmor: 0\n\n<Right-Click to use>",
+    description: "Used to obscure your face.",
     kind: Armor(
-        kind: Head(AssaMask0),
-        stats: (20),
+        (
+            kind: Head(AssaMask0),
+            stats: (
+                protection: Normal(0.0),
+            ),
+        )
     ),
 )

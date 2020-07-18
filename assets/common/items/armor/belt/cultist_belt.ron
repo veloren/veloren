@@ -1,8 +1,12 @@
 Item(
     name: "Cultist Belt",
-    description: "Belt\n\nArmor: 0\n\n<Right-Click to use>",
+    description: "Ceremonial attire used by members.",
     kind: Armor(
-        kind: Belt(Cultist),
-        stats: (20),
+        (
+            kind: Belt(Cultist),
+            stats: (
+                protection: Normal(0.0),
+            ),
+        )
     ),
 )

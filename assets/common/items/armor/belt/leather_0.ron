@@ -1,8 +1,12 @@
 Item(
     name: "Swift Belt",
-    description: "Belt\n\nArmor: 0\n\nSwift like the wind.\n\n<Right-Click to use>",
+    description: "Swift like the wind.",
     kind: Armor(
-        kind: Belt(Leather0),
-        stats: (20),
+        (
+            kind: Belt(Leather0),
+            stats: (
+                protection: Normal(0.0),
+            ),
+        )
     ),
 )
