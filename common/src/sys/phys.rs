@@ -117,7 +117,12 @@ impl<'a> System<'a> for Sys {
                 } else {
                     0.0
                 });
-            let downward_force = if physics_state.in_fluid {
+            let in_loaded_chunk = terrain
+                .get_key(terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
+                .is_some();
+            let downward_force = if !in_loaded_chunk {
+                0.0 // No gravity in unloaded chunks
+            } else if physics_state.in_fluid {
                 (1.0 - BOUYANCY) * GRAVITY
             } else {
                 GRAVITY
@@ -125,16 +130,12 @@ impl<'a> System<'a> for Sys {
             vel.0 = integrate_forces(dt.0, vel.0, downward_force, friction);
 
             // Don't move if we're not in a loaded chunk
-            let mut pos_delta = if terrain
-                .get_key(terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
-                .is_some()
-            {
+            let mut pos_delta = if in_loaded_chunk {
                 // this is an approximation that allows most framerates to
                 // behave in a similar manner.
                 let dt_lerp = 0.2;
                 (vel.0 * dt_lerp + old_vel.0 * (1.0 - dt_lerp)) * dt.0
             } else {
-                vel.0 = Vec3::zero();
                 Vec3::zero()
             };
 
