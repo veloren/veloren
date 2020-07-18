@@ -235,14 +235,13 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 };
 
                                 if reinsert {
-                                    let _ = inventory.insert(slot, item);
+                                    let _ = inventory.insert_or_stack(slot, item);
                                 }
 
                                 Some(comp::InventoryUpdateEvent::Used)
                             },
                             _ => {
-                                // TODO: this doesn't work for stackable items
-                                inventory.insert(slot, item).unwrap();
+                                inventory.insert_or_stack(slot, item).unwrap();
                                 None
                             },
                         }
