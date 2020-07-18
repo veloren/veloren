@@ -72,3 +72,7 @@ debug = false
 [profile.releasedebuginfo]
 inherits =  'release'
 debug = 1
+
+# cpal conflict fix isn't released yet
+[patch.crates-io]
+winit = { git = "https://github.com/Imberflur/winit.git", branch = "macos-test" }

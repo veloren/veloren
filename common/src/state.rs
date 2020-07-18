@@ -249,15 +249,11 @@ impl State {
 
     /// Removes every chunk of the terrain.
     pub fn clear_terrain(&mut self) {
-        let keys = self
-            .terrain_mut()
-            .drain()
-            .map(|(key, _)| key)
-            .collect::<Vec<_>>();
+        let removed_chunks = &mut self.ecs.write_resource::<TerrainChanges>().removed_chunks;
 
-        for key in keys {
-            self.remove_chunk(key);
-        }
+        self.terrain_mut().drain().for_each(|(key, _)| {
+            removed_chunks.insert(key);
+        });
     }
 
     /// Insert the provided chunk into this state's terrain.

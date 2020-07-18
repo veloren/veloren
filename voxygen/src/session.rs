@@ -5,15 +5,15 @@ use crate::{
     i18n::{i18n_asset_key, VoxygenLocalization},
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
+    render::Renderer,
     scene::{camera, Scene, SceneData},
-    settings::{AudioOutput, ControlSettings},
+    settings::{AudioOutput, ControlSettings, Settings},
     window::{AnalogGameInput, Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
 use common::{
-    assets::{load_expect, load_watched, watch},
-    clock::Clock,
+    assets::{load_expect, load_watched},
     comp,
     comp::{
         ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel, MAX_MOUNT_RANGE_SQR,
@@ -46,6 +46,12 @@ pub struct SessionState {
     inputs: comp::ControllerInputs,
     selected_block: Block,
     voxygen_i18n: std::sync::Arc<VoxygenLocalization>,
+    walk_forward_dir: Vec2<f32>,
+    walk_right_dir: Vec2<f32>,
+    freefly_vel: Vec3<f32>,
+    free_look: bool,
+    auto_walk: bool,
+    is_aiming: bool,
 }
 
 /// Represents an active game session (i.e., the one being played).
@@ -59,14 +65,12 @@ impl SessionState {
             .camera_mut()
             .set_fov_deg(global_state.settings.graphics.fov);
         let hud = Hud::new(global_state, &client.borrow());
-        {
-            let mut client = client.borrow_mut();
-            let my_entity = client.entity();
-            client.state_mut().ecs_mut().insert(MyEntity(my_entity));
-        }
         let voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
             &global_state.settings.language.selected_language,
         ));
+
+        let walk_forward_dir = scene.camera().forward_xy();
+        let walk_right_dir = scene.camera().right_xy();
         Self {
             scene,
             client,
@@ -75,7 +79,19 @@ impl SessionState {
             hud,
             selected_block: Block::new(BlockKind::Normal, Rgb::broadcast(255)),
             voxygen_i18n,
+            walk_forward_dir,
+            walk_right_dir,
+            freefly_vel: Vec3::zero(),
+            free_look: false,
+            auto_walk: false,
+            is_aiming: false,
         }
+    }
+
+    fn stop_auto_walk(&mut self) {
+        self.auto_walk = false;
+        self.hud.auto_walk(false);
+        self.key_state.auto_walk = false;
     }
 }
 
@@ -86,9 +102,6 @@ impl SessionState {
 
         let mut client = self.client.borrow_mut();
         for event in client.tick(self.inputs.clone(), dt, crate::ecs::sys::add_local_systems)? {
-            self.voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
-                &global_state.settings.language.selected_language,
-            ));
             match event {
                 client::Event::Chat(m) => {
                     self.hud.new_message(m);
@@ -153,12 +166,10 @@ impl SessionState {
 }
 
 impl PlayState for SessionState {
-    fn play(&mut self, _: Direction, global_state: &mut GlobalState) -> PlayStateResult {
+    fn enter(&mut self, global_state: &mut GlobalState, _: Direction) {
         // Trap the cursor.
         global_state.window.grab_cursor(true);
 
-        // Set up an fps clock.
-        let mut clock = Clock::start();
         self.client.borrow_mut().clear_terrain();
 
         // Send startup commands to the server
@@ -167,30 +178,28 @@ impl PlayState for SessionState {
                 self.client.borrow_mut().send_chat(cmd.to_string());
             }
         }
+    }
 
-        // Keep a watcher on the language
-        let mut localization_watcher = watch::ReloadIndicator::new();
-        let mut localized_strings = load_watched::<VoxygenLocalization>(
-            &i18n_asset_key(&global_state.settings.language.selected_language),
-            &mut localization_watcher,
-        )
-        .unwrap();
+    fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
+        self.voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+            &global_state.settings.language.selected_language,
+        ));
 
-        let mut walk_forward_dir = self.scene.camera().forward_xy();
-        let mut walk_right_dir = self.scene.camera().right_xy();
-        let mut freefly_vel = Vec3::zero();
-        let mut free_look = false;
-        let mut auto_walk = false;
+        // TODO: can this be a method on the session or are there borrowcheck issues?
 
-        fn stop_auto_walk(auto_walk: &mut bool, key_state: &mut KeyState, hud: &mut Hud) {
-            *auto_walk = false;
-            hud.auto_walk(false);
-            key_state.auto_walk = false;
-        }
-
-        // Game loop
-        let mut current_client_state = self.client.borrow().get_client_state();
-        while let ClientState::Pending | ClientState::Character = current_client_state {
+        let client_state = self.client.borrow().get_client_state();
+        if let ClientState::Pending | ClientState::Character = client_state {
+            // Update MyEntity
+            // Note: Alternatively, the client could emit an event when the entity changes
+            // which may or may not be more elegant
+            {
+                let my_entity = self.client.borrow().entity();
+                self.client
+                    .borrow_mut()
+                    .state_mut()
+                    .ecs_mut()
+                    .insert(MyEntity(my_entity));
+            }
             // Compute camera data
             self.scene
                 .camera_mut()
@@ -229,6 +238,7 @@ impl PlayState for SessionState {
                     },
                 )
             };
+            self.is_aiming = is_aiming;
 
             let cam_dir: Vec3<f32> = Vec3::from(view_mat.inverted() * -Vec4::unit_z());
 
@@ -278,7 +288,7 @@ impl PlayState for SessionState {
             }));
 
             // Handle window events.
-            for event in global_state.window.fetch_events(&mut global_state.settings) {
+            for event in events {
                 // Pass all events to the ui first.
                 if self.hud.handle_event(event.clone(), global_state) {
                     continue;
@@ -331,7 +341,7 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::Respawn, state)
                         if state != self.key_state.respawn =>
                     {
-                        stop_auto_walk(&mut auto_walk, &mut self.key_state, &mut self.hud);
+                        self.stop_auto_walk();
                         self.key_state.respawn = state;
                         if state {
                             self.client.borrow_mut().respawn();
@@ -348,7 +358,7 @@ impl PlayState for SessionState {
                     {
                         self.key_state.toggle_sit = state;
                         if state {
-                            stop_auto_walk(&mut auto_walk, &mut self.key_state, &mut self.hud);
+                            self.stop_auto_walk();
                             self.client.borrow_mut().toggle_sit();
                         }
                     }
@@ -357,31 +367,31 @@ impl PlayState for SessionState {
                     {
                         self.key_state.toggle_dance = state;
                         if state {
-                            stop_auto_walk(&mut auto_walk, &mut self.key_state, &mut self.hud);
+                            self.stop_auto_walk();
                             self.client.borrow_mut().toggle_dance();
                         }
                     }
                     Event::InputUpdate(GameInput::MoveForward, state) => {
                         if state && global_state.settings.gameplay.stop_auto_walk_on_input {
-                            stop_auto_walk(&mut auto_walk, &mut self.key_state, &mut self.hud);
+                            self.stop_auto_walk();
                         }
                         self.key_state.up = state
                     },
                     Event::InputUpdate(GameInput::MoveBack, state) => {
                         if state && global_state.settings.gameplay.stop_auto_walk_on_input {
-                            stop_auto_walk(&mut auto_walk, &mut self.key_state, &mut self.hud);
+                            self.stop_auto_walk();
                         }
                         self.key_state.down = state
                     },
                     Event::InputUpdate(GameInput::MoveLeft, state) => {
                         if state && global_state.settings.gameplay.stop_auto_walk_on_input {
-                            stop_auto_walk(&mut auto_walk, &mut self.key_state, &mut self.hud);
+                            self.stop_auto_walk();
                         }
                         self.key_state.left = state
                     },
                     Event::InputUpdate(GameInput::MoveRight, state) => {
                         if state && global_state.settings.gameplay.stop_auto_walk_on_input {
-                            stop_auto_walk(&mut auto_walk, &mut self.key_state, &mut self.hud);
+                            self.stop_auto_walk();
                         }
                         self.key_state.right = state
                     },
@@ -509,12 +519,12 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::FreeLook, state) => {
                         match (global_state.settings.gameplay.free_look_behavior, state) {
                             (PressBehavior::Toggle, true) => {
-                                free_look = !free_look;
-                                self.hud.free_look(free_look);
+                                self.free_look = !self.free_look;
+                                self.hud.free_look(self.free_look);
                             },
                             (PressBehavior::Hold, state) => {
-                                free_look = state;
-                                self.hud.free_look(free_look);
+                                self.free_look = state;
+                                self.hud.free_look(self.free_look);
                             },
                             _ => {},
                         };
@@ -522,14 +532,14 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::AutoWalk, state) => {
                         match (global_state.settings.gameplay.auto_walk_behavior, state) {
                             (PressBehavior::Toggle, true) => {
-                                auto_walk = !auto_walk;
-                                self.key_state.auto_walk = auto_walk;
-                                self.hud.auto_walk(auto_walk);
+                                self.auto_walk = !self.auto_walk;
+                                self.key_state.auto_walk = self.auto_walk;
+                                self.hud.auto_walk(self.auto_walk);
                             },
                             (PressBehavior::Hold, state) => {
-                                auto_walk = state;
-                                self.key_state.auto_walk = auto_walk;
-                                self.hud.auto_walk(auto_walk);
+                                self.auto_walk = state;
+                                self.key_state.auto_walk = self.auto_walk;
+                                self.hud.auto_walk(self.auto_walk);
                             },
                             _ => {},
                         }
@@ -567,9 +577,9 @@ impl PlayState for SessionState {
                 }
             }
 
-            if !free_look {
-                walk_forward_dir = self.scene.camera().forward_xy();
-                walk_right_dir = self.scene.camera().right_xy();
+            if !self.free_look {
+                self.walk_forward_dir = self.scene.camera().forward_xy();
+                self.walk_right_dir = self.scene.camera().right_xy();
                 self.inputs.look_dir = Dir::from_unnormalized(cam_dir + aim_dir_offset).unwrap();
             }
 
@@ -581,8 +591,9 @@ impl PlayState for SessionState {
                 camera::CameraMode::FirstPerson | camera::CameraMode::ThirdPerson => {
                     // Move the player character based on their walking direction.
                     // This could be different from the camera direction if free look is enabled.
-                    self.inputs.move_dir = walk_right_dir * axis_right + walk_forward_dir * axis_up;
-                    freefly_vel = Vec3::zero();
+                    self.inputs.move_dir =
+                        self.walk_right_dir * axis_right + self.walk_forward_dir * axis_up;
+                    self.freefly_vel = Vec3::zero();
                 },
 
                 camera::CameraMode::Freefly => {
@@ -596,27 +607,27 @@ impl PlayState for SessionState {
                     let right = self.scene.camera().right();
                     let dir = right * axis_right + forward * axis_up;
 
-                    let dt = clock.get_last_delta().as_secs_f32();
-                    if freefly_vel.magnitude_squared() > 0.01 {
-                        let new_vel =
-                            freefly_vel - freefly_vel.normalized() * (FREEFLY_DAMPING * dt);
-                        if freefly_vel.dot(new_vel) > 0.0 {
-                            freefly_vel = new_vel;
+                    let dt = global_state.clock.get_last_delta().as_secs_f32();
+                    if self.freefly_vel.magnitude_squared() > 0.01 {
+                        let new_vel = self.freefly_vel
+                            - self.freefly_vel.normalized() * (FREEFLY_DAMPING * dt);
+                        if self.freefly_vel.dot(new_vel) > 0.0 {
+                            self.freefly_vel = new_vel;
                         } else {
-                            freefly_vel = Vec3::zero();
+                            self.freefly_vel = Vec3::zero();
                         }
                     }
                     if dir.magnitude_squared() > 0.01 {
-                        freefly_vel += dir * (FREEFLY_ACCEL * dt);
-                        if freefly_vel.magnitude() > FREEFLY_MAX_SPEED {
-                            freefly_vel = freefly_vel.normalized() * FREEFLY_MAX_SPEED;
+                        self.freefly_vel += dir * (FREEFLY_ACCEL * dt);
+                        if self.freefly_vel.magnitude() > FREEFLY_MAX_SPEED {
+                            self.freefly_vel = self.freefly_vel.normalized() * FREEFLY_MAX_SPEED;
                         }
                     }
 
                     let pos = self.scene.camera().get_focus_pos();
                     self.scene
                         .camera_mut()
-                        .set_focus_pos(pos + freefly_vel * dt);
+                        .set_focus_pos(pos + self.freefly_vel * dt);
 
                     // Do not apply any movement to the player character
                     self.inputs.move_dir = Vec2::zero();
@@ -626,16 +637,14 @@ impl PlayState for SessionState {
             self.inputs.climb = self.key_state.climb();
 
             // Runs if either in a multiplayer server or the singleplayer server is unpaused
-            if global_state.singleplayer.is_none()
-                || !global_state.singleplayer.as_ref().unwrap().is_paused()
-            {
+            if !global_state.paused() {
                 // Perform an in-game tick.
-                match self.tick(clock.get_avg_delta(), global_state) {
+                match self.tick(global_state.clock.get_avg_delta(), global_state) {
                     Ok(TickAction::Continue) => {}, // Do nothing
                     Ok(TickAction::Disconnect) => return PlayStateResult::Pop, // Go to main menu
                     Err(err) => {
                         global_state.info_message =
-                            Some(localized_strings.get("common.connection_lost").to_owned());
+                            Some(self.voxygen_i18n.get("common.connection_lost").to_owned());
                         error!("[session] Failed to tick the scene: {:?}", err);
 
                         return PlayStateResult::Pop;
@@ -643,19 +652,17 @@ impl PlayState for SessionState {
                 }
             }
 
-            // Maintain global state.
-            global_state.maintain(clock.get_last_delta().as_secs_f32());
-
             // Recompute dependents just in case some input modified the camera
             self.scene
                 .camera_mut()
                 .compute_dependents(&*self.client.borrow().state().terrain());
+
             // Extract HUD events ensuring the client borrow gets dropped.
             let mut hud_events = self.hud.maintain(
                 &self.client.borrow(),
                 global_state,
                 DebugInfo {
-                    tps: clock.get_tps(),
+                    tps: global_state.clock.get_tps(),
                     ping_ms: self.client.borrow().get_ping_ms_rolling_avg(),
                     coordinates: self
                         .client
@@ -687,7 +694,7 @@ impl PlayState for SessionState {
                     num_figures_visible: self.scene.figure_mgr().figure_count_visible() as u32,
                 },
                 &self.scene.camera(),
-                clock.get_last_delta(),
+                global_state.clock.get_last_delta(),
                 HudInfo {
                     is_aiming,
                     is_first_person: matches!(
@@ -698,8 +705,8 @@ impl PlayState for SessionState {
             );
 
             // Look for changes in the localization files
-            if localization_watcher.reloaded() {
-                hud_events.push(HudEvent::ChangeLanguage(localized_strings.metadata.clone()));
+            if global_state.localization_watcher.reloaded() {
+                hud_events.push(HudEvent::ChangeLanguage(self.voxygen_i18n.metadata.clone()));
             }
 
             // Maintain the UI.
@@ -916,13 +923,13 @@ impl PlayState for SessionState {
                     HudEvent::ChangeLanguage(new_language) => {
                         global_state.settings.language.selected_language =
                             new_language.language_identifier;
-                        localized_strings = load_watched::<VoxygenLocalization>(
+                        self.voxygen_i18n = load_watched::<VoxygenLocalization>(
                             &i18n_asset_key(&global_state.settings.language.selected_language),
-                            &mut localization_watcher,
+                            &mut global_state.localization_watcher,
                         )
                         .unwrap();
-                        localized_strings.log_missing_entries();
-                        self.hud.update_language(localized_strings.clone());
+                        self.voxygen_i18n.log_missing_entries();
+                        self.hud.update_language(self.voxygen_i18n.clone());
                     },
                     HudEvent::ToggleFullscreen => {
                         global_state
@@ -978,59 +985,62 @@ impl PlayState for SessionState {
                 };
 
                 // Runs if either in a multiplayer server or the singleplayer server is unpaused
-                if global_state.singleplayer.is_none()
-                    || !global_state.singleplayer.as_ref().unwrap().is_paused()
-                {
+                if !global_state.paused() {
                     self.scene.maintain(
                         global_state.window.renderer_mut(),
                         &mut global_state.audio,
                         &scene_data,
                     );
                 }
-
-                let renderer = global_state.window.renderer_mut();
-                // Clear the screen
-                renderer.clear();
-                // Render the screen using the global renderer
-                self.scene.render(
-                    renderer,
-                    client.state(),
-                    client.entity(),
-                    client.get_tick(),
-                    &scene_data,
-                );
-                // Draw the UI to the screen
-                self.hud.render(renderer, self.scene.globals());
-                // Finish the frame
-                renderer.flush();
             }
-
-            // Display the frame on the window.
-            global_state
-                .window
-                .swap_buffers()
-                .expect("Failed to swap window buffers!");
-
-            // Wait for the next tick.
-            clock.tick(Duration::from_millis(
-                1000 / global_state.settings.graphics.max_fps as u64,
-            ));
 
             // Clean things up after the tick.
             self.cleanup();
 
-            current_client_state = self.client.borrow().get_client_state();
-        }
-
-        if let ClientState::Registered = current_client_state {
-            return PlayStateResult::Switch(Box::new(CharSelectionState::new(
+            PlayStateResult::Continue
+        } else if let ClientState::Registered = client_state {
+            PlayStateResult::Switch(Box::new(CharSelectionState::new(
                 global_state,
                 self.client.clone(),
-            )));
+            )))
+        } else {
+            error!("Client not in the expected state, exiting session play state");
+            PlayStateResult::Pop
         }
-
-        PlayStateResult::Pop
     }
 
     fn name(&self) -> &'static str { "Session" }
+
+    /// Render the session to the screen.
+    ///
+    /// This method should be called once per frame.
+    fn render(&mut self, renderer: &mut Renderer, settings: &Settings) {
+        // Render the screen using the global renderer
+        {
+            let client = self.client.borrow();
+
+            let scene_data = SceneData {
+                state: client.state(),
+                player_entity: client.entity(),
+                loaded_distance: client.loaded_distance(),
+                view_distance: client.view_distance().unwrap_or(1),
+                tick: client.get_tick(),
+                thread_pool: client.thread_pool(),
+                gamma: settings.graphics.gamma,
+                mouse_smoothing: settings.gameplay.smooth_pan_enable,
+                sprite_render_distance: settings.graphics.sprite_render_distance as f32,
+                figure_lod_render_distance: settings.graphics.figure_lod_render_distance as f32,
+                is_aiming: self.is_aiming,
+            };
+            self.scene.render(
+                renderer,
+                client.state(),
+                client.entity(),
+                client.get_tick(),
+                &scene_data,
+            );
+        }
+        // Draw the UI to the screen
+        self.hud.render(renderer, self.scene.globals());
+    }
 }

@@ -465,17 +465,15 @@ impl Show {
             self.want_grab = true;
 
             // Unpause the game if we are on singleplayer
-            if let Some(singleplayer) = global_state.singleplayer.as_ref() {
-                singleplayer.pause(false);
-            };
+            #[cfg(feature = "singleplayer")]
+            global_state.unpause();
         } else {
             self.esc_menu = true;
             self.want_grab = false;
 
             // Pause the game if we are on singleplayer
-            if let Some(singleplayer) = global_state.singleplayer.as_ref() {
-                singleplayer.pause(true);
-            };
+            #[cfg(feature = "singleplayer")]
+            global_state.pause();
         }
     }
 
@@ -1721,9 +1719,8 @@ impl Hud {
                     settings_window::Event::ChangeTab(tab) => self.show.open_setting_tab(tab),
                     settings_window::Event::Close => {
                         // Unpause the game if we are on singleplayer so that we can logout
-                        if let Some(singleplayer) = global_state.singleplayer.as_ref() {
-                            singleplayer.pause(false);
-                        };
+                        #[cfg(feature = "singleplayer")]
+                        global_state.unpause();
 
                         self.show.settings(false)
                     },
@@ -1908,24 +1905,21 @@ impl Hud {
                     self.force_ungrab = false;
 
                     // Unpause the game if we are on singleplayer
-                    if let Some(singleplayer) = global_state.singleplayer.as_ref() {
-                        singleplayer.pause(false);
-                    };
+                    #[cfg(feature = "singleplayer")]
+                    global_state.unpause();
                 },
                 Some(esc_menu::Event::Logout) => {
                     // Unpause the game if we are on singleplayer so that we can logout
-                    if let Some(singleplayer) = global_state.singleplayer.as_ref() {
-                        singleplayer.pause(false);
-                    };
+                    #[cfg(feature = "singleplayer")]
+                    global_state.unpause();
 
                     events.push(Event::Logout);
                 },
                 Some(esc_menu::Event::Quit) => events.push(Event::Quit),
                 Some(esc_menu::Event::CharacterSelection) => {
                     // Unpause the game if we are on singleplayer so that we can logout
-                    if let Some(singleplayer) = global_state.singleplayer.as_ref() {
-                        singleplayer.pause(false);
-                    };
+                    #[cfg(feature = "singleplayer")]
+                    global_state.unpause();
 
                     events.push(Event::CharacterSelection)
                 },

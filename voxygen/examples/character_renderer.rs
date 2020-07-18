@@ -1,9 +1,16 @@
-use common::comp;
+// TODO: Fix this example when we switch to actively maintained rendering
+// backend. Right now we would have to update `gfx_window_glutin` to work with
+// the latest version of glutin or we would need to add headless support to
+// `old_school_gfx_glutin_ext`.
+
+fn main() {
+    println!("Example temporarily disabled, see the TODO comment for details");
+}
+/*use common::comp;
 use gfx_window_glutin::init_headless;
 use vek::*;
 use veloren_voxygen::{render, scene::simple as scene};
 
-#[allow(clippy::clone_on_copy)] // TODO: Pending review in #587
 fn main() {
     // Setup renderer
     let dim = (200u16, 300u16, 1, gfx::texture::AaMode::Single);
@@ -72,4 +79,4 @@ fn main() {
     // Get image
     let img = renderer.create_screenshot().unwrap();
     img.save("character.png").unwrap();
-}
+}*/
