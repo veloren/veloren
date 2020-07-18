@@ -4,10 +4,10 @@ use crate::{
     settings::{ControlSettings, Settings},
     ui, Error,
 };
+use crossbeam::channel;
 use gilrs::{EventType, Gilrs};
 use hashbrown::HashMap;
-
-use crossbeam::channel;
+use old_school_gfx_glutin_ext::{ContextBuilderExt, WindowInitExt, WindowUpdateExt};
 use serde_derive::{Deserialize, Serialize};
 use std::fmt;
 use tracing::{error, info, warn};
@@ -241,7 +241,7 @@ pub enum AnalogGameInput {
 }
 
 /// Represents an incoming event from the window.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Event {
     /// The window has been requested to close.
     Close,
@@ -280,19 +280,20 @@ pub enum Event {
     ScreenshotMessage(String),
 }
 
-pub type MouseButton = winit::MouseButton;
-pub type PressState = winit::ElementState;
+pub type MouseButton = winit::event::MouseButton;
+pub type PressState = winit::event::ElementState;
+pub type EventLoop = winit::event_loop::EventLoop<()>;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub enum KeyMouse {
-    Key(glutin::VirtualKeyCode),
-    Mouse(glutin::MouseButton),
+    Key(winit::event::VirtualKeyCode),
+    Mouse(winit::event::MouseButton),
 }
 
 impl fmt::Display for KeyMouse {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use self::KeyMouse::*;
-        use glutin::{MouseButton, VirtualKeyCode::*};
+        use winit::event::{MouseButton, VirtualKeyCode::*};
         write!(f, "{}", match self {
             Key(Key1) => "1",
             Key(Key2) => "2",
@@ -466,23 +467,23 @@ impl fmt::Display for KeyMouse {
 }
 
 pub struct Window {
-    events_loop: glutin::EventsLoop,
     renderer: Renderer,
-    window: glutin::ContextWrapper<glutin::PossiblyCurrent, winit::Window>,
+    window: glutin::ContextWrapper<glutin::PossiblyCurrent, winit::window::Window>,
     cursor_grabbed: bool,
     pub pan_sensitivity: u32,
     pub zoom_sensitivity: u32,
     pub zoom_inversion: bool,
     pub mouse_y_inversion: bool,
     fullscreen: bool,
+    modifiers: winit::event::ModifiersState,
     needs_refresh_resize: bool,
-    keypress_map: HashMap<GameInput, glutin::ElementState>,
+    keypress_map: HashMap<GameInput, winit::event::ElementState>,
     pub remapping_keybindings: Option<GameInput>,
-    supplement_events: Vec<Event>,
+    events: Vec<Event>,
     focused: bool,
     gilrs: Option<Gilrs>,
     controller_settings: ControllerSettings,
-    cursor_position: winit::dpi::LogicalPosition,
+    cursor_position: winit::dpi::PhysicalPosition<f64>,
     mouse_emulation_vec: Vec2<f32>,
     // Currently used to send and receive screenshot result messages
     message_sender: channel::Sender<String>,
@@ -490,30 +491,32 @@ pub struct Window {
 }
 
 impl Window {
-    pub fn new(settings: &Settings) -> Result<Window, Error> {
-        let events_loop = glutin::EventsLoop::new();
+    pub fn new(settings: &Settings) -> Result<(Window, EventLoop), Error> {
+        let event_loop = EventLoop::new();
 
         let size = settings.graphics.window_size;
 
-        let win_builder = glutin::WindowBuilder::new()
+        let win_builder = winit::window::WindowBuilder::new()
             .with_title("Veloren")
-            .with_dimensions(glutin::dpi::LogicalSize::new(
-                size[0] as f64,
-                size[1] as f64,
-            ))
+            .with_inner_size(winit::dpi::LogicalSize::new(size[0] as f64, size[1] as f64))
             .with_maximized(true);
 
-        let ctx_builder = glutin::ContextBuilder::new()
-            .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, (3, 2)))
-            .with_vsync(false);
+        // Avoid cpal / winit OleInitialize conflict
+        // See: https://github.com/rust-windowing/winit/pull/1524
+        #[cfg(target_os = "windows")]
+        let win_builder = winit::platform::windows::WindowBuilderExtWindows::with_drag_and_drop(
+            win_builder,
+            false,
+        );
 
         let (window, device, factory, win_color_view, win_depth_view) =
-            gfx_window_glutin::init::<WinColorFmt, WinDepthFmt>(
-                win_builder,
-                ctx_builder,
-                &events_loop,
-            )
-            .map_err(|err| Error::BackendError(Box::new(err)))?;
+            glutin::ContextBuilder::new()
+                .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, (3, 2)))
+                .with_vsync(false)
+                .with_gfx_color_depth::<WinColorFmt, WinDepthFmt>()
+                .build_windowed(win_builder, &event_loop)
+                .map_err(|err| Error::BackendError(Box::new(err)))?
+                .init_gfx::<WinColorFmt, WinDepthFmt>();
 
         let vendor = device.get_info().platform_name.vendor;
         let renderer = device.get_info().platform_name.renderer;
@@ -559,7 +562,6 @@ impl Window {
         ) = channel::unbounded::<String>();
 
         let mut this = Self {
-            events_loop,
             renderer: Renderer::new(
                 device,
                 factory,
@@ -576,14 +578,15 @@ impl Window {
             zoom_inversion: settings.gameplay.zoom_inversion,
             mouse_y_inversion: settings.gameplay.mouse_y_inversion,
             fullscreen: false,
+            modifiers: Default::default(),
             needs_refresh_resize: false,
             keypress_map,
             remapping_keybindings: None,
-            supplement_events: vec![],
+            events: Vec::new(),
             focused: true,
             gilrs,
             controller_settings,
-            cursor_position: winit::dpi::LogicalPosition::new(0.0, 0.0),
+            cursor_position: winit::dpi::PhysicalPosition::new(0.0, 0.0),
             mouse_emulation_vec: Vec2::zero(),
             // Currently used to send and receive screenshot result messages
             message_sender,
@@ -592,195 +595,30 @@ impl Window {
 
         this.fullscreen(settings.graphics.fullscreen);
 
-        Ok(this)
+        Ok((this, event_loop))
+    }
+
+    pub fn window(
+        &self,
+    ) -> &glutin::ContextWrapper<glutin::PossiblyCurrent, winit::window::Window> {
+        &self.window
     }
 
     pub fn renderer(&self) -> &Renderer { &self.renderer }
 
     pub fn renderer_mut(&mut self) -> &mut Renderer { &mut self.renderer }
 
-    #[allow(clippy::match_bool)] // TODO: Pending review in #587
-    pub fn fetch_events(&mut self, settings: &mut Settings) -> Vec<Event> {
-        let mut events = vec![];
-        events.append(&mut self.supplement_events);
+    pub fn fetch_events(&mut self) -> Vec<Event> {
         // Refresh ui size (used when changing playstates)
         if self.needs_refresh_resize {
-            events.push(Event::Ui(ui::Event::new_resize(self.logical_size())));
+            self.events
+                .push(Event::Ui(ui::Event::new_resize(self.logical_size())));
             self.needs_refresh_resize = false;
         }
 
         // Receive any messages sent through the message channel
-        self.message_receiver
-            .try_iter()
-            .for_each(|message| events.push(Event::ScreenshotMessage(message)));
-
-        // Copy data that is needed by the events closure to avoid lifetime errors.
-        // TODO: Remove this if/when the compiler permits it.
-        let cursor_grabbed = self.cursor_grabbed;
-        let renderer = &mut self.renderer;
-        let window = &mut self.window;
-        let remapping_keybindings = &mut self.remapping_keybindings;
-        let focused = &mut self.focused;
-        let controls = &mut settings.controls;
-        let keypress_map = &mut self.keypress_map;
-        let pan_sensitivity = self.pan_sensitivity;
-        let zoom_sensitivity = self.zoom_sensitivity;
-        let zoom_inversion = match self.zoom_inversion {
-            true => -1.0,
-            false => 1.0,
-        };
-        let mouse_y_inversion = match self.mouse_y_inversion {
-            true => -1.0,
-            false => 1.0,
-        };
-        let mut toggle_fullscreen = false;
-        let mut take_screenshot = false;
-        let mut cursor_position = None;
-
-        self.events_loop.poll_events(|event| {
-            // Get events for ui.
-            if let Some(event) = ui::Event::try_from(event.clone(), window) {
-                events.push(Event::Ui(event));
-            }
-
-            match event {
-                glutin::Event::WindowEvent { event, .. } => match event {
-                    glutin::WindowEvent::CloseRequested => events.push(Event::Close),
-                    glutin::WindowEvent::Resized(glutin::dpi::LogicalSize { width, height }) => {
-                        let (mut color_view, mut depth_view) = renderer.win_views_mut();
-                        gfx_window_glutin::update_views(window, &mut color_view, &mut depth_view);
-                        renderer.on_resize().unwrap();
-                        events.push(Event::Resize(Vec2::new(width as u32, height as u32)));
-                    },
-                    glutin::WindowEvent::Moved(glutin::dpi::LogicalPosition { x, y }) => {
-                        events.push(Event::Moved(Vec2::new(x as u32, y as u32)))
-                    },
-                    glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
-                    glutin::WindowEvent::MouseInput { button, state, .. } => {
-                        if let (true, Some(game_inputs)) = (
-                            cursor_grabbed,
-                            Window::map_input(
-                                KeyMouse::Mouse(button),
-                                controls,
-                                remapping_keybindings,
-                            ),
-                        ) {
-                            for game_input in game_inputs {
-                                events.push(Event::InputUpdate(
-                                    *game_input,
-                                    state == glutin::ElementState::Pressed,
-                                ));
-                            }
-                        }
-                        events.push(Event::MouseButton(button, state));
-                    },
-                    glutin::WindowEvent::KeyboardInput { input, .. } => {
-                        if let Some(key) = input.virtual_keycode {
-                            if let Some(game_inputs) = Window::map_input(
-                                KeyMouse::Key(key),
-                                controls,
-                                remapping_keybindings,
-                            ) {
-                                for game_input in game_inputs {
-                                    match game_input {
-                                        GameInput::Fullscreen => {
-                                            if input.state == glutin::ElementState::Pressed
-                                                && !Self::is_pressed(
-                                                    keypress_map,
-                                                    GameInput::Fullscreen,
-                                                )
-                                            {
-                                                toggle_fullscreen = !toggle_fullscreen;
-                                            }
-                                            Self::set_pressed(
-                                                keypress_map,
-                                                GameInput::Fullscreen,
-                                                input.state,
-                                            );
-                                        },
-                                        GameInput::Screenshot => {
-                                            take_screenshot = input.state
-                                                == glutin::ElementState::Pressed
-                                                && !Self::is_pressed(
-                                                    keypress_map,
-                                                    GameInput::Screenshot,
-                                                );
-                                            Self::set_pressed(
-                                                keypress_map,
-                                                GameInput::Screenshot,
-                                                input.state,
-                                            );
-                                        },
-                                        _ => events.push(Event::InputUpdate(
-                                            *game_input,
-                                            input.state == glutin::ElementState::Pressed,
-                                        )),
-                                    }
-                                }
-                            }
-                        }
-                    },
-
-                    glutin::WindowEvent::Focused(state) => {
-                        *focused = state;
-                        events.push(Event::Focused(state));
-                    },
-                    glutin::WindowEvent::CursorMoved { position, .. } => {
-                        cursor_position = Some(position);
-                    },
-                    _ => {},
-                },
-                glutin::Event::DeviceEvent { event, .. } => match event {
-                    glutin::DeviceEvent::MouseMotion {
-                        delta: (dx, dy), ..
-                    } if *focused => {
-                        let delta = Vec2::new(
-                            dx as f32 * (pan_sensitivity as f32 / 100.0),
-                            dy as f32 * (pan_sensitivity as f32 * mouse_y_inversion / 100.0),
-                        );
-
-                        if cursor_grabbed {
-                            events.push(Event::CursorPan(delta));
-                        } else {
-                            events.push(Event::CursorMove(delta));
-                        }
-                    },
-                    glutin::DeviceEvent::MouseWheel { delta, .. } if cursor_grabbed && *focused => {
-                        events.push(Event::Zoom({
-                            // Since scrolling apparently acts different depending on platform
-                            #[cfg(target_os = "windows")]
-                            const PLATFORM_FACTOR: f32 = -4.0;
-                            #[cfg(not(target_os = "windows"))]
-                            const PLATFORM_FACTOR: f32 = 1.0;
-
-                            let y = match delta {
-                                glutin::MouseScrollDelta::LineDelta(_x, y) => y,
-                                // TODO: Check to see if there is a better way to find the "line
-                                // height" than just hardcoding 16.0 pixels.  Alternately we could
-                                // get rid of this and have the user set zoom sensitivity, since
-                                // it's unlikely people would expect a configuration file to work
-                                // across operating systems.
-                                glutin::MouseScrollDelta::PixelDelta(pos) => (pos.y / 16.0) as f32,
-                            };
-                            y * (zoom_sensitivity as f32 / 100.0) * zoom_inversion * PLATFORM_FACTOR
-                        }))
-                    },
-                    _ => {},
-                },
-                _ => {},
-            }
-        });
-
-        if let Some(pos) = cursor_position {
-            self.cursor_position = pos;
-        }
-
-        if take_screenshot {
-            self.take_screenshot(&settings);
-        }
-
-        if toggle_fullscreen {
-            self.toggle_fullscreen(settings);
+        for message in self.message_receiver.try_iter() {
+            self.events.push(Event::ScreenshotMessage(message))
         }
 
         if let Some(gilrs) = &mut self.gilrs {
@@ -808,7 +646,7 @@ impl Window {
                     | EventType::ButtonRepeated(button, code) => {
                         handle_buttons(
                             &self.controller_settings,
-                            &mut events,
+                            &mut self.events,
                             &Button::from((button, code)),
                             true,
                         );
@@ -816,7 +654,7 @@ impl Window {
                     EventType::ButtonReleased(button, code) => {
                         handle_buttons(
                             &self.controller_settings,
-                            &mut events,
+                            &mut self.events,
                             &Button::from((button, code)),
                             false,
                         );
@@ -843,13 +681,14 @@ impl Window {
                     },
 
                     EventType::AxisChanged(axis, value, code) => {
-                        let value = match self
+                        let value = if self
                             .controller_settings
                             .inverted_axes
                             .contains(&Axis::from((axis, code)))
                         {
-                            true => value * -1.0,
-                            false => value,
+                            -value
+                        } else {
+                            value
                         };
 
                         let value = self
@@ -865,17 +704,17 @@ impl Window {
                                 for action in actions {
                                     match *action {
                                         AxisGameAction::MovementX => {
-                                            events.push(Event::AnalogGameInput(
+                                            self.events.push(Event::AnalogGameInput(
                                                 AnalogGameInput::MovementX(value),
                                             ));
                                         },
                                         AxisGameAction::MovementY => {
-                                            events.push(Event::AnalogGameInput(
+                                            self.events.push(Event::AnalogGameInput(
                                                 AnalogGameInput::MovementY(value),
                                             ));
                                         },
                                         AxisGameAction::CameraX => {
-                                            events.push(Event::AnalogGameInput(
+                                            self.events.push(Event::AnalogGameInput(
                                                 AnalogGameInput::CameraX(
                                                     value
                                                         * self.controller_settings.pan_sensitivity
@@ -885,7 +724,7 @@ impl Window {
                                             ));
                                         },
                                         AxisGameAction::CameraY => {
-                                            events.push(Event::AnalogGameInput(
+                                            self.events.push(Event::AnalogGameInput(
                                                 AnalogGameInput::CameraY(
                                                     value
                                                         * self.controller_settings.pan_sensitivity
@@ -906,22 +745,22 @@ impl Window {
                             for action in actions {
                                 match *action {
                                     AxisMenuAction::MoveX => {
-                                        events.push(Event::AnalogMenuInput(
+                                        self.events.push(Event::AnalogMenuInput(
                                             AnalogMenuInput::MoveX(value),
                                         ));
                                     },
                                     AxisMenuAction::MoveY => {
-                                        events.push(Event::AnalogMenuInput(
+                                        self.events.push(Event::AnalogMenuInput(
                                             AnalogMenuInput::MoveY(value),
                                         ));
                                     },
                                     AxisMenuAction::ScrollX => {
-                                        events.push(Event::AnalogMenuInput(
+                                        self.events.push(Event::AnalogMenuInput(
                                             AnalogMenuInput::ScrollX(value),
                                         ));
                                     },
                                     AxisMenuAction::ScrollY => {
-                                        events.push(Event::AnalogMenuInput(
+                                        self.events.push(Event::AnalogMenuInput(
                                             AnalogMenuInput::ScrollY(value),
                                         ));
                                     },
@@ -936,6 +775,7 @@ impl Window {
             }
         }
 
+        let mut events = std::mem::take(&mut self.events);
         // Mouse emulation for the menus, to be removed when a proper menu navigation
         // system is available
         if !self.cursor_grabbed {
@@ -952,46 +792,231 @@ impl Window {
                             self.mouse_emulation_vec.y = d * -1.0;
                             None
                         },
-                        _ => {
-                            let event = Event::AnalogMenuInput(input);
-                            Some(event)
-                        },
+                        input => Some(Event::AnalogMenuInput(input)),
                     },
-                    Event::MenuInput(input, state) => match input {
-                        MenuInput::Apply => Some(match state {
-                            true => Event::Ui(ui::Event(conrod_core::event::Input::Press(
-                                conrod_core::input::Button::Mouse(
-                                    conrod_core::input::state::mouse::Button::Left,
-                                ),
-                            ))),
-                            false => Event::Ui(ui::Event(conrod_core::event::Input::Release(
-                                conrod_core::input::Button::Mouse(
-                                    conrod_core::input::state::mouse::Button::Left,
-                                ),
-                            ))),
-                        }),
-                        _ => Some(event),
-                    },
+                    Event::MenuInput(MenuInput::Apply, state) => Some(match state {
+                        true => Event::Ui(ui::Event(conrod_core::event::Input::Press(
+                            conrod_core::input::Button::Mouse(
+                                conrod_core::input::state::mouse::Button::Left,
+                            ),
+                        ))),
+                        false => Event::Ui(ui::Event(conrod_core::event::Input::Release(
+                            conrod_core::input::Button::Mouse(
+                                conrod_core::input::state::mouse::Button::Left,
+                            ),
+                        ))),
+                    }),
                     _ => Some(event),
                 })
                 .collect();
+
             let sensitivity = self.controller_settings.mouse_emulation_sensitivity;
-            if self.mouse_emulation_vec != Vec2::zero() {
-                self.offset_cursor(self.mouse_emulation_vec * sensitivity as f32)
-                    .unwrap_or(());
-            }
+            // TODO: make this independent of framerate
+            // TODO: consider multiplying by scale factor
+            self.offset_cursor(self.mouse_emulation_vec * sensitivity as f32);
         }
+
         events
     }
 
+    pub fn handle_device_event(&mut self, event: winit::event::DeviceEvent) {
+        use winit::event::DeviceEvent;
+
+        let mouse_y_inversion = match self.mouse_y_inversion {
+            true => -1.0,
+            false => 1.0,
+        };
+
+        match event {
+            DeviceEvent::MouseMotion {
+                delta: (dx, dy), ..
+            } if self.focused => {
+                let delta = Vec2::new(
+                    dx as f32 * (self.pan_sensitivity as f32 / 100.0),
+                    dy as f32 * (self.pan_sensitivity as f32 * mouse_y_inversion / 100.0),
+                );
+
+                if self.cursor_grabbed {
+                    self.events.push(Event::CursorPan(delta));
+                } else {
+                    self.events.push(Event::CursorMove(delta));
+                }
+            },
+            DeviceEvent::MouseWheel { delta, .. } if self.cursor_grabbed && self.focused => {
+                self.events.push(Event::Zoom({
+                    // Since scrolling apparently acts different depending on platform
+                    #[cfg(target_os = "windows")]
+                    const PLATFORM_FACTOR: f32 = -4.0;
+                    #[cfg(not(target_os = "windows"))]
+                    const PLATFORM_FACTOR: f32 = 1.0;
+
+                    let y = match delta {
+                        winit::event::MouseScrollDelta::LineDelta(_x, y) => y,
+                        // TODO: Check to see if there is a better way to find the "line
+                        // height" than just hardcoding 16.0 pixels.  Alternately we could
+                        // get rid of this and have the user set zoom sensitivity, since
+                        // it's unlikely people would expect a configuration file to work
+                        // across operating systems.
+                        winit::event::MouseScrollDelta::PixelDelta(pos) => (pos.y / 16.0) as f32,
+                    };
+                    y * (self.zoom_sensitivity as f32 / 100.0)
+                        * if self.zoom_inversion { -1.0 } else { 1.0 }
+                        * PLATFORM_FACTOR
+                }))
+            },
+            _ => {},
+        }
+    }
+
+    pub fn handle_window_event(
+        &mut self,
+        event: winit::event::WindowEvent,
+        settings: &mut Settings,
+    ) {
+        use winit::event::WindowEvent;
+
+        let controls = &mut settings.controls;
+        // TODO: these used to be used to deduplicate events which they no longer do
+        // this needs to be handled elsewhere
+        let mut toggle_fullscreen = false;
+        let mut take_screenshot = false;
+
+        match event {
+            WindowEvent::CloseRequested => self.events.push(Event::Close),
+            WindowEvent::Resized(winit::dpi::PhysicalSize { width, height }) => {
+                let (mut color_view, mut depth_view) = self.renderer.win_views_mut();
+                self.window.update_gfx(&mut color_view, &mut depth_view);
+                self.renderer.on_resize().unwrap();
+                // TODO: update users of this event with the fact that it is now the physical
+                // size
+                self.events
+                    .push(Event::Resize(Vec2::new(width as u32, height as u32)));
+            },
+            WindowEvent::ReceivedCharacter(c) => self.events.push(Event::Char(c)),
+            WindowEvent::MouseInput { button, state, .. } => {
+                if let (true, Some(game_inputs)) =
+                    // Mouse input not mapped to input if it is not grabbed
+                    (
+                    self.cursor_grabbed,
+                    Window::map_input(
+                        KeyMouse::Mouse(button),
+                        controls,
+                        &mut self.remapping_keybindings,
+                    ),
+                ) {
+                    for game_input in game_inputs {
+                        self.events.push(Event::InputUpdate(
+                            *game_input,
+                            state == winit::event::ElementState::Pressed,
+                        ));
+                    }
+                }
+                self.events.push(Event::MouseButton(button, state));
+            },
+            WindowEvent::ModifiersChanged(modifiers) => self.modifiers = modifiers,
+            WindowEvent::KeyboardInput {
+                input,
+                is_synthetic,
+                ..
+            } => {
+                // Ignore synthetic tab presses so that we don't get tabs when alt-tabbing back
+                // into the window
+                if matches!(
+                    input.virtual_keycode,
+                    Some(winit::event::VirtualKeyCode::Tab)
+                ) && is_synthetic
+                {
+                    return;
+                }
+                // Ignore Alt-F4 so we don't try to do anything heavy like take a screenshot
+                // when the window is about to close
+                if matches!(input, winit::event::KeyboardInput {
+                    state: winit::event::ElementState::Pressed,
+                    virtual_keycode: Some(winit::event::VirtualKeyCode::F4),
+                    ..
+                }) && self.modifiers.alt()
+                {
+                    return;
+                }
+
+                if let Some(key) = input.virtual_keycode {
+                    if let Some(game_inputs) = Window::map_input(
+                        KeyMouse::Key(key),
+                        controls,
+                        &mut self.remapping_keybindings,
+                    ) {
+                        for game_input in game_inputs {
+                            match game_input {
+                                GameInput::Fullscreen => {
+                                    if input.state == winit::event::ElementState::Pressed
+                                        && !Self::is_pressed(
+                                            &mut self.keypress_map,
+                                            GameInput::Fullscreen,
+                                        )
+                                    {
+                                        toggle_fullscreen = !toggle_fullscreen;
+                                    }
+                                    Self::set_pressed(
+                                        &mut self.keypress_map,
+                                        GameInput::Fullscreen,
+                                        input.state,
+                                    );
+                                },
+                                GameInput::Screenshot => {
+                                    take_screenshot = input.state
+                                        == winit::event::ElementState::Pressed
+                                        && !Self::is_pressed(
+                                            &mut self.keypress_map,
+                                            GameInput::Screenshot,
+                                        );
+                                    Self::set_pressed(
+                                        &mut self.keypress_map,
+                                        GameInput::Screenshot,
+                                        input.state,
+                                    );
+                                },
+                                _ => self.events.push(Event::InputUpdate(
+                                    *game_input,
+                                    input.state == winit::event::ElementState::Pressed,
+                                )),
+                            }
+                        }
+                    }
+                }
+            },
+            WindowEvent::Focused(state) => {
+                self.focused = state;
+                self.events.push(Event::Focused(state));
+            },
+            WindowEvent::CursorMoved { position, .. } => {
+                self.cursor_position = position;
+            },
+            _ => {},
+        }
+
+        if take_screenshot {
+            self.take_screenshot(&settings);
+        }
+
+        if toggle_fullscreen {
+            self.toggle_fullscreen(settings);
+        }
+    }
+
     /// Moves cursor by an offset
-    pub fn offset_cursor(&self, d: Vec2<f32>) -> Result<(), String> {
-        self.window
-            .window()
-            .set_cursor_position(winit::dpi::LogicalPosition::new(
-                d.x as f64 + self.cursor_position.x,
-                d.y as f64 + self.cursor_position.y,
-            ))
+    pub fn offset_cursor(&self, d: Vec2<f32>) {
+        if d != Vec2::zero() {
+            if let Err(err) =
+                self.window
+                    .window()
+                    .set_cursor_position(winit::dpi::LogicalPosition::new(
+                        d.x as f64 + self.cursor_position.x,
+                        d.y as f64 + self.cursor_position.y,
+                    ))
+            {
+                error!("Error setting cursor position: {:?}", err);
+            }
+        }
     }
 
     pub fn swap_buffers(&self) -> Result<(), Error> {
@@ -1004,8 +1029,8 @@ impl Window {
 
     pub fn grab_cursor(&mut self, grab: bool) {
         self.cursor_grabbed = grab;
-        self.window.window().hide_cursor(grab);
-        let _ = self.window.window().grab_cursor(grab);
+        self.window.window().set_cursor_visible(!grab);
+        let _ = self.window.window().set_cursor_grab(grab);
     }
 
     pub fn toggle_fullscreen(&mut self, settings: &mut Settings) {
@@ -1020,7 +1045,13 @@ impl Window {
         let window = self.window.window();
         self.fullscreen = fullscreen;
         if fullscreen {
-            window.set_fullscreen(Some(window.get_current_monitor()));
+            window.set_fullscreen(Some(winit::window::Fullscreen::Exclusive(
+                window
+                    .current_monitor()
+                    .video_modes()
+                    .max_by_key(|mode| mode.size().width)
+                    .expect("No video modes available!!"),
+            )));
         } else {
             window.set_fullscreen(None);
         }
@@ -1033,8 +1064,8 @@ impl Window {
         let (w, h) = self
             .window
             .window()
-            .get_inner_size()
-            .unwrap_or(glutin::dpi::LogicalSize::new(0.0, 0.0))
+            .inner_size()
+            .to_logical::<f64>(self.window.window().scale_factor())
             .into();
         Vec2::new(w, h)
     }
@@ -1048,7 +1079,7 @@ impl Window {
             ));
     }
 
-    pub fn send_supplement_event(&mut self, event: Event) { self.supplement_events.push(event) }
+    pub fn send_event(&mut self, event: Event) { self.events.push(event) }
 
     pub fn take_screenshot(&mut self, settings: &Settings) {
         match self.renderer.create_screenshot() {
@@ -1086,15 +1117,20 @@ impl Window {
         }
     }
 
-    fn is_pressed(map: &mut HashMap<GameInput, glutin::ElementState>, input: GameInput) -> bool {
-        *(map.entry(input).or_insert(glutin::ElementState::Released))
-            == glutin::ElementState::Pressed
+    fn is_pressed(
+        map: &mut HashMap<GameInput, winit::event::ElementState>,
+        input: GameInput,
+    ) -> bool {
+        *(map
+            .entry(input)
+            .or_insert(winit::event::ElementState::Released))
+            == winit::event::ElementState::Pressed
     }
 
     fn set_pressed(
-        map: &mut HashMap<GameInput, glutin::ElementState>,
+        map: &mut HashMap<GameInput, winit::event::ElementState>,
         input: GameInput,
-        state: glutin::ElementState,
+        state: winit::event::ElementState,
     ) {
         map.insert(input, state);
     }
@@ -1109,6 +1145,7 @@ impl Window {
         remapping: &mut Option<GameInput>,
     ) -> Option<impl Iterator<Item = &'a GameInput>> {
         match *remapping {
+            // TODO: save settings
             Some(game_input) => {
                 controls.modify_binding(game_input, key_mouse);
                 *remapping = None;
