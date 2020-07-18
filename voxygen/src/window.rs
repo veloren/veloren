@@ -1049,8 +1049,16 @@ impl Window {
                 window
                     .current_monitor()
                     .video_modes()
+                    .filter(|mode| mode.bit_depth() >= 24)
                     .max_by_key(|mode| mode.size().width)
-                    .expect("No video modes available!!"),
+                    .unwrap_or_else(|| {
+                        warn!("No video mode with a bit depth of at least 24 found");
+                        window
+                            .current_monitor()
+                            .video_modes()
+                            .max_by_key(|mode| mode.size().width)
+                            .expect("No video modes available!!")
+                    }),
             )));
         } else {
             window.set_fullscreen(None);
