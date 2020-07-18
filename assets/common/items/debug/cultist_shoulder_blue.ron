@@ -1,8 +1,12 @@
 Item(
     name: "Blue Cultist Mantle",
-    description: "Shoulders\n\nArmor: 0\n\nA strong shoulder to lean on.\n\n<Right-Click to use>",
+    description: "Ceremonial attire used by members.",
     kind: Armor(
-        kind: Shoulder(CultistBlue),
-        stats: (20),
+        (
+            kind: Shoulder(CultistBlue),
+            stats: (
+                protection: Invincible,
+            ),
+        )
     ),
 )

@@ -1,8 +1,12 @@
 Item(
     name: "Iron Feet",
-    description: "Feet\n\nArmor: 0\n\n<Right-Click to use>",
+    description: "Boots forged from iron.",
     kind: Armor(
-        kind: Foot(Plate0),
-        stats: (20),
+        (
+            kind: Foot(Plate0),
+            stats: (
+                protection: Normal(4.0),
+            ),
+        )
     ),
 )

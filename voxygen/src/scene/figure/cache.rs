@@ -8,8 +8,8 @@ use anim::Skeleton;
 use common::{
     assets::watch::ReloadIndicator,
     comp::{
-        item::{tool::ToolKind, ItemKind},
-        Body, CharacterState, Item, Loadout,
+        item::{armor::ArmorKind, tool::ToolKind, ItemKind, LanternKind},
+        Body, CharacterState, Loadout,
     },
     figure::Segment,
     vol::BaseVol,
@@ -33,14 +33,14 @@ struct CharacterCacheKey {
     state: Option<Discriminant<CharacterState>>, // TODO: Can this be simplified?
     active_tool: Option<ToolKind>,
     second_tool: Option<ToolKind>,
-    shoulder: Option<Item>,
-    chest: Option<Item>,
-    belt: Option<Item>,
-    back: Option<Item>,
-    lantern: Option<Item>,
-    hand: Option<Item>,
-    pants: Option<Item>,
-    foot: Option<Item>,
+    shoulder: Option<ArmorKind>,
+    chest: Option<ArmorKind>,
+    belt: Option<ArmorKind>,
+    back: Option<ArmorKind>,
+    lantern: Option<LanternKind>,
+    hand: Option<ArmorKind>,
+    pants: Option<ArmorKind>,
+    foot: Option<ArmorKind>,
 }
 
 impl CharacterCacheKey {
@@ -61,14 +61,50 @@ impl CharacterCacheKey {
             } else {
                 None
             },
-            shoulder: loadout.shoulder.clone(),
-            chest: loadout.chest.clone(),
-            belt: loadout.belt.clone(),
-            back: loadout.back.clone(),
-            lantern: loadout.lantern.clone(),
-            hand: loadout.hand.clone(),
-            pants: loadout.pants.clone(),
-            foot: loadout.foot.clone(),
+            shoulder: if let Some(ItemKind::Armor(armor)) =
+                loadout.shoulder.as_ref().map(|i| &i.kind)
+            {
+                Some(armor.kind)
+            } else {
+                None
+            },
+            chest: if let Some(ItemKind::Armor(armor)) = loadout.chest.as_ref().map(|i| &i.kind) {
+                Some(armor.kind)
+            } else {
+                None
+            },
+            belt: if let Some(ItemKind::Armor(armor)) = loadout.belt.as_ref().map(|i| &i.kind) {
+                Some(armor.kind)
+            } else {
+                None
+            },
+            back: if let Some(ItemKind::Armor(armor)) = loadout.back.as_ref().map(|i| &i.kind) {
+                Some(armor.kind)
+            } else {
+                None
+            },
+            lantern: if let Some(ItemKind::Lantern(lantern)) =
+                loadout.lantern.as_ref().map(|i| &i.kind)
+            {
+                Some(lantern.kind)
+            } else {
+                None
+            },
+            hand: if let Some(ItemKind::Armor(armor)) = loadout.hand.as_ref().map(|i| &i.kind) {
+                Some(armor.kind)
+            } else {
+                None
+            },
+            pants: if let Some(ItemKind::Armor(armor)) = loadout.pants.as_ref().map(|i| &i.kind) {
+                Some(armor.kind)
+            } else {
+                None
+            },
+            foot: if let Some(ItemKind::Armor(armor)) = loadout.foot.as_ref().map(|i| &i.kind) {
+                Some(armor.kind)
+            } else {
+                None
+            },
         }
     }
 }

@@ -1,8 +1,12 @@
 Item(
     name: "Green Linen Chest",
-   description: "Chest\n\nArmor: 0\n\nSoft and warm\n\n<Right-Click to use>",
+    description: "Soft and warm.",
     kind: Armor(
-        kind: Chest(ClothGreen0),
-        stats: (20),
+        (
+            kind: Chest(ClothGreen0),
+            stats: (
+                protection: Normal(1.0),
+            ),
+        )
     ),
 )

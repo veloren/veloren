@@ -1,8 +1,12 @@
 Item(
     name: "Scratched Ring",
-   description: "Ring\n\nBarely fits your finger.\n\n<Right-Click to use>",
+    description: "Barely fits your finger.",
     kind: Armor(
-        kind: Ring(Ring0),
-        stats: (20),
+        (
+            kind: Ring(Ring0),
+            stats: (
+                protection: Normal(0.0),
+            ),
+        )
     ),
 )

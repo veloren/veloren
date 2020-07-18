@@ -1,8 +1,12 @@
 Item(
     name: "Purple Linen Belt",
-   description: "Belt\n\nArmor: 0\n\nSoft and warm\n\n<Right-Click to use>",
+    description: "Soft and warm.",
     kind: Armor(
-        kind: Belt(ClothPurple0),
-        stats: (20),
+        (
+            kind: Belt(ClothPurple0),
+            stats: (
+                protection: Normal(0.0),
+            ),
+        )
     ),
 )

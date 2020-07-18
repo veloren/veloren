@@ -2,7 +2,11 @@ Item(
     name: "Testing Boots",
     description: "Hopefully this test doesn't break!",
     kind: Armor(
-        kind: Foot(Dark),
-        stats: (20),
+        (
+            kind: Foot(Dark),
+            stats: (
+                protection: Normal(0.0),
+            ),
+        )
     ),
 )

@@ -1,8 +1,12 @@
 Item(
     name: "Iron Legguards",
-    description: "Legs\n\nArmor: 0\n\n<Right-Click to use>",
+    description: "Greaves forged from iron.",
     kind: Armor(
-        kind: Pants(PlateGreen0),
-        stats: (20),
+        (
+            kind: Pants(PlateGreen0),
+            stats: (
+                protection: Normal(16.0),
+            ),
+        )
     ),
 )

@@ -1,4 +1,7 @@
-use crate::{comp, comp::item};
+use crate::{
+    comp,
+    comp::{item, item::armor},
+};
 use comp::{Inventory, Loadout};
 use serde::{Deserialize, Serialize};
 use tracing::warn;
@@ -47,9 +50,10 @@ impl Slot {
 
 impl EquipSlot {
     fn can_hold(self, item_kind: &item::ItemKind) -> bool {
+        use armor::Armor;
         use item::ItemKind;
         match (self, item_kind) {
-            (Self::Armor(slot), ItemKind::Armor { kind, .. }) => slot.can_hold(kind),
+            (Self::Armor(slot), ItemKind::Armor(Armor { kind, .. })) => slot.can_hold(kind),
             (Self::Mainhand, ItemKind::Tool(_)) => true,
             (Self::Offhand, ItemKind::Tool(_)) => true,
             (Self::Lantern, ItemKind::Lantern(_)) => true,
@@ -59,20 +63,20 @@ impl EquipSlot {
 }
 
 impl ArmorSlot {
-    fn can_hold(self, armor: &item::armor::Armor) -> bool {
-        use item::armor::Armor;
+    fn can_hold(self, armor: &item::armor::ArmorKind) -> bool {
+        use item::armor::ArmorKind;
         match (self, armor) {
-            (Self::Head, Armor::Head(_)) => true,
-            (Self::Neck, Armor::Neck(_)) => true,
-            (Self::Shoulders, Armor::Shoulder(_)) => true,
-            (Self::Chest, Armor::Chest(_)) => true,
-            (Self::Hands, Armor::Hand(_)) => true,
-            (Self::Ring, Armor::Ring(_)) => true,
-            (Self::Back, Armor::Back(_)) => true,
-            (Self::Belt, Armor::Belt(_)) => true,
-            (Self::Legs, Armor::Pants(_)) => true,
-            (Self::Feet, Armor::Foot(_)) => true,
-            (Self::Tabard, Armor::Tabard(_)) => true,
+            (Self::Head, ArmorKind::Head(_)) => true,
+            (Self::Neck, ArmorKind::Neck(_)) => true,
+            (Self::Shoulders, ArmorKind::Shoulder(_)) => true,
+            (Self::Chest, ArmorKind::Chest(_)) => true,
+            (Self::Hands, ArmorKind::Hand(_)) => true,
+            (Self::Ring, ArmorKind::Ring(_)) => true,
+            (Self::Back, ArmorKind::Back(_)) => true,
+            (Self::Belt, ArmorKind::Belt(_)) => true,
+            (Self::Legs, ArmorKind::Pants(_)) => true,
+            (Self::Feet, ArmorKind::Foot(_)) => true,
+            (Self::Tabard, ArmorKind::Tabard(_)) => true,
             _ => false,
         }
     }
@@ -285,22 +289,23 @@ pub fn swap(
 /// assert_eq!(boots, loadout.foot);
 /// ```
 pub fn equip(slot: usize, inventory: &mut Inventory, loadout: &mut Loadout) {
-    use item::{armor::Armor, ItemKind};
+    use armor::Armor;
+    use item::{armor::ArmorKind, ItemKind};
 
     let equip_slot = inventory.get(slot).and_then(|i| match &i.kind {
         ItemKind::Tool(_) => Some(EquipSlot::Mainhand),
-        ItemKind::Armor { kind, .. } => Some(EquipSlot::Armor(match kind {
-            Armor::Head(_) => ArmorSlot::Head,
-            Armor::Neck(_) => ArmorSlot::Neck,
-            Armor::Shoulder(_) => ArmorSlot::Shoulders,
-            Armor::Chest(_) => ArmorSlot::Chest,
-            Armor::Hand(_) => ArmorSlot::Hands,
-            Armor::Ring(_) => ArmorSlot::Ring,
-            Armor::Back(_) => ArmorSlot::Back,
-            Armor::Belt(_) => ArmorSlot::Belt,
-            Armor::Pants(_) => ArmorSlot::Legs,
-            Armor::Foot(_) => ArmorSlot::Feet,
-            Armor::Tabard(_) => ArmorSlot::Tabard,
+        ItemKind::Armor(Armor { kind, .. }) => Some(EquipSlot::Armor(match kind {
+            ArmorKind::Head(_) => ArmorSlot::Head,
+            ArmorKind::Neck(_) => ArmorSlot::Neck,
+            ArmorKind::Shoulder(_) => ArmorSlot::Shoulders,
+            ArmorKind::Chest(_) => ArmorSlot::Chest,
+            ArmorKind::Hand(_) => ArmorSlot::Hands,
+            ArmorKind::Ring(_) => ArmorSlot::Ring,
+            ArmorKind::Back(_) => ArmorSlot::Back,
+            ArmorKind::Belt(_) => ArmorSlot::Belt,
+            ArmorKind::Pants(_) => ArmorSlot::Legs,
+            ArmorKind::Foot(_) => ArmorSlot::Feet,
+            ArmorKind::Tabard(_) => ArmorSlot::Tabard,
         })),
         ItemKind::Lantern(_) => Some(EquipSlot::Lantern),
         _ => None,

@@ -1,8 +1,12 @@
 Item(
     name: "Druid Shoulders",
-    description: "Forged for protectors of the wild.\n\n<Right-Click to use>",
+    description: "Forged for protectors of the wild.",
     kind: Armor(
-        kind: Shoulder(DruidShoulder),
-        stats: (20),
+        (
+            kind: Shoulder(DruidShoulder),
+            stats: (
+                protection: Normal(3.0),
+            ),
+        )
     ),
 )

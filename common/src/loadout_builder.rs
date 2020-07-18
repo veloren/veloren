@@ -24,44 +24,6 @@ use std::time::Duration;
 /// ```
 pub struct LoadoutBuilder(Loadout);
 
-impl Body {
-    pub fn base_dmg(&self) -> u32 {
-        match self {
-            Body::Humanoid(_) => 8,
-            Body::QuadrupedSmall(_) => 7,
-            Body::QuadrupedMedium(_) => 10,
-            Body::BirdMedium(_) => 6,
-            Body::FishMedium(_) => 5,
-            Body::Dragon(_) => 75,
-            Body::BirdSmall(_) => 4,
-            Body::FishSmall(_) => 3,
-            Body::BipedLarge(_) => 30,
-            Body::Object(_) => 0,
-            Body::Golem(_) => 30,
-            Body::Critter(_) => 6,
-            Body::QuadrupedLow(_) => 9,
-        }
-    }
-
-    pub fn base_range(&self) -> f32 {
-        match self {
-            Body::Humanoid(_) => 5.0,
-            Body::QuadrupedSmall(_) => 4.5,
-            Body::QuadrupedMedium(_) => 5.5,
-            Body::BirdMedium(_) => 3.5,
-            Body::FishMedium(_) => 3.5,
-            Body::Dragon(_) => 12.5,
-            Body::BirdSmall(_) => 3.0,
-            Body::FishSmall(_) => 3.0,
-            Body::BipedLarge(_) => 10.0,
-            Body::Object(_) => 3.0,
-            Body::Golem(_) => 7.5,
-            Body::Critter(_) => 3.0,
-            Body::QuadrupedLow(_) => 4.5,
-        }
-    }
-}
-
 impl LoadoutBuilder {
     #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {

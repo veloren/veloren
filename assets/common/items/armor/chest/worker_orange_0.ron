@@ -1,8 +1,12 @@
 Item(
     name: "Orange Worker Shirt",
-    description: "Chest\n\nArmor: 0\n\n<Right-Click to use>",
+    description: "Was used by a farmer, until recently.",
     kind: Armor(
-        kind: Chest(WorkerOrange0),
-        stats: (20),
+        (
+            kind: Chest(WorkerOrange0),
+            stats: (
+                protection: Normal(1.0),
+            ),
+        )
     ),
 )

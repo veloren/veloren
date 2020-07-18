@@ -11,7 +11,7 @@ use std::ops::Not;
 // The limit on distance between the entity and a collectible (squared)
 pub const MAX_PICKUP_RANGE_SQR: f32 = 64.0;
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Inventory {
     pub slots: Vec<Option<Item>>,
     pub amount: u32,
@@ -401,7 +401,7 @@ impl Component for Inventory {
     type Storage = HashMapStorage<Self>;
 }
 
-#[derive(Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum InventoryUpdateEvent {
     Init,
     Used,

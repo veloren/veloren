@@ -1,8 +1,12 @@
 Item(
     name: "Twig Boots",
-    description: "Boots woven from twigs.\n\n<Right-Click to use>",
+    description: "Boots woven from twigs.",
     kind: Armor(
-        kind: Foot(Twig),
-        stats: (20),
+        (
+            kind: Foot(Twig),
+            stats: (
+                protection: Normal(3.0),
+            ),
+        )
     ),
 )

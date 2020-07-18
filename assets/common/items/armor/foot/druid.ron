@@ -1,8 +1,12 @@
 Item(
     name: "Druid's Slippers",
-    description: "For treading softly through the woods.\n\n<Right-Click to use>",
+    description: "For treading softly through the woods.",
     kind: Armor(
-        kind: Foot(Druid),
-        stats: (20),
+        (
+            kind: Foot(Druid),
+            stats: (
+                protection: Normal(1.0),
+            ),
+        )
     ),
 )

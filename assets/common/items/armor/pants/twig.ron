@@ -1,8 +1,12 @@
 Item(
     name: "Twig Pants",
-    description: "Pants woven from twigs. Chafey!\n\n<Right-Click to use>",
+    description: "Pants woven from twigs. Chafey!",
     kind: Armor(
-        kind: Pants(Twig),
-        stats: (20),
+        (
+            kind: Pants(Twig),
+            stats: (
+                protection: Normal(12.0),
+            ),
+        )
     ),
 )
