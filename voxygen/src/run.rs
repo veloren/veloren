@@ -59,6 +59,10 @@ fn handle_main_events_cleared(
     control_flow: &mut winit::event_loop::ControlFlow,
     global_state: &mut GlobalState,
 ) {
+    // Screenshot / Fullscreen toggle
+    global_state
+        .window
+        .resolve_deduplicated_events(&mut global_state.settings);
     // Run tick here
 
     // What's going on here?
