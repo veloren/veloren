@@ -11,7 +11,6 @@ use tracing::{error, warn};
 //  - no support for more complex group structures
 //  - lack of complex enemy npc integration
 //  - relies on careful management of groups to maintain a valid state
-//  - clients don't know what entities are their pets
 //  - the possesion rod could probably wreck this
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -35,15 +34,21 @@ pub struct GroupInfo {
     pub name: String,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub enum Role {
+    Member,
+    Pet,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ChangeNotification<E> {
     // :D
-    Added(E),
+    Added(E, Role),
     // :(
     Removed(E),
     NewLeader(E),
     // Use to put in a group overwriting existing group
-    NewGroup { leader: E, members: Vec<E> },
+    NewGroup { leader: E, members: Vec<(E, Role)> },
     // No longer in a group
     NoGroup,
 }
@@ -54,14 +59,17 @@ pub enum ChangeNotification<E> {
 impl<E> ChangeNotification<E> {
     pub fn try_map<T>(self, f: impl Fn(E) -> Option<T>) -> Option<ChangeNotification<T>> {
         match self {
-            Self::Added(e) => f(e).map(ChangeNotification::Added),
+            Self::Added(e, r) => f(e).map(|t| ChangeNotification::Added(t, r)),
             Self::Removed(e) => f(e).map(ChangeNotification::Removed),
             Self::NewLeader(e) => f(e).map(ChangeNotification::NewLeader),
             // Note just discards members that fail map
             Self::NewGroup { leader, members } => {
                 f(leader).map(|leader| ChangeNotification::NewGroup {
                     leader,
-                    members: members.into_iter().filter_map(f).collect(),
+                    members: members
+                        .into_iter()
+                        .filter_map(|(e, r)| f(e).map(|t| (t, r)))
+                        .collect(),
                 })
             },
             Self::NoGroup => Some(ChangeNotification::NoGroup),
@@ -79,23 +87,21 @@ pub struct GroupManager {
     groups: Slab<GroupInfo>,
 }
 
-// Gather list of pets of the group member + member themselves
+// Gather list of pets of the group member
 // Note: iterating through all entities here could become slow at higher entity
 // counts
-fn with_pets(
+fn pets(
     entity: specs::Entity,
     uid: Uid,
     alignments: &Alignments,
     entities: &specs::Entities,
 ) -> Vec<specs::Entity> {
-    let mut list = (entities, alignments)
+    (entities, alignments)
         .join()
         .filter_map(|(e, a)| {
             matches!(a, Alignment::Owned(owner) if *owner == uid && e != entity).then_some(e)
         })
-        .collect::<Vec<_>>();
-    list.push(entity);
-    list
+        .collect::<Vec<_>>()
 }
 
 /// Returns list of current members of a group
@@ -103,10 +109,23 @@ pub fn members<'a>(
     group: Group,
     groups: impl Join<Type = &'a Group> + 'a,
     entities: &'a specs::Entities,
-) -> impl Iterator<Item = specs::Entity> + 'a {
-    (entities, groups)
+    alignments: &'a Alignments,
+    uids: &'a Uids,
+) -> impl Iterator<Item = (specs::Entity, Role)> + 'a {
+    (entities, groups, alignments, uids)
         .join()
-        .filter_map(move |(e, g)| (*g == group).then_some(e))
+        .filter_map(move |(e, g, a, u)| {
+            (*g == group).then(|| {
+                (
+                    e,
+                    if matches!(a, Alignment::Owned(owner) if owner != u) {
+                        Role::Pet
+                    } else {
+                        Role::Member
+                    },
+                )
+            })
+        })
 }
 
 // TODO: optimize add/remove for massive NPC groups
@@ -194,23 +213,30 @@ impl GroupManager {
             new_group
         });
 
-        let member_plus_pets = with_pets(new_member, new_member_uid, alignments, entities);
+        let new_pets = pets(new_member, new_member_uid, alignments, entities);
 
         // Inform
-        members(group, &*groups, entities).for_each(|a| {
-            member_plus_pets.iter().for_each(|b| {
-                notifier(a, ChangeNotification::Added(*b));
-                notifier(*b, ChangeNotification::Added(a));
-            })
+        members(group, &*groups, entities, alignments, uids).for_each(|(e, role)| match role {
+            Role::Member => {
+                notifier(e, ChangeNotification::Added(new_member, Role::Member));
+                notifier(new_member, ChangeNotification::Added(e, Role::Member));
+
+                new_pets.iter().for_each(|p| {
+                    notifier(e, ChangeNotification::Added(*p, Role::Pet));
+                })
+            },
+            Role::Pet => {
+                notifier(new_member, ChangeNotification::Added(e, Role::Pet));
+            },
         });
-        // Note: pets not informed
         notifier(new_member, ChangeNotification::NewLeader(leader));
 
         // Add group id for new member and pets
         // Unwrap should not fail since we just found these entities and they should
         // still exist
         // Note: if there is an issue replace with a warn
-        member_plus_pets.iter().for_each(|e| {
+        let _ = groups.insert(new_member, group).unwrap();
+        new_pets.iter().for_each(|e| {
             let _ = groups.insert(*e, group).unwrap();
         });
     }
@@ -221,6 +247,8 @@ impl GroupManager {
         owner: specs::Entity,
         groups: &mut GroupsMut,
         entities: &specs::Entities,
+        alignments: &Alignments,
+        uids: &Uids,
         notifier: &mut impl FnMut(specs::Entity, ChangeNotification<specs::Entity>),
     ) {
         let group = match groups.get(owner).copied() {
@@ -235,17 +263,15 @@ impl GroupManager {
         };
 
         // Inform
-        members(group, &*groups, entities).for_each(|a| {
-            notifier(a, ChangeNotification::Added(pet));
-            notifier(pet, ChangeNotification::Added(a));
+        members(group, &*groups, entities, alignments, uids).for_each(|(e, role)| match role {
+            Role::Member => {
+                notifier(e, ChangeNotification::Added(pet, Role::Pet));
+            },
+            Role::Pet => {},
         });
 
         // Add
         groups.insert(pet, group).unwrap();
-
-        if let Some(info) = self.group_info(group) {
-            notifier(pet, ChangeNotification::NewLeader(info.leader));
-        }
     }
 
     pub fn leave_group(
@@ -341,32 +367,30 @@ impl GroupManager {
                 .for_each(|(owner, pets)| {
                     if let Some(owner) = owner {
                         if !pets.is_empty() {
-                            let mut members = pets.clone();
-                            members.push(owner);
+                            let mut members =
+                                pets.iter().map(|e| (*e, Role::Pet)).collect::<Vec<_>>();
+                            members.push((owner, Role::Member));
 
                             // New group
                             let new_group = self.create_group(owner);
-                            for &member in &members {
-                                groups.insert(member, new_group).unwrap();
+                            for (member, _) in &members {
+                                groups.insert(*member, new_group).unwrap();
                             }
 
-                            let notification = ChangeNotification::NewGroup {
+                            notifier(owner, ChangeNotification::NewGroup {
                                 leader: owner,
                                 members,
-                            };
-
-                            // TODO: don't clone
-                            notifier(owner, notification.clone());
-                            pets.into_iter()
-                                .for_each(|pet| notifier(pet, notification.clone()));
+                            });
                         } else {
                             // If no pets just remove group
                             groups.remove(owner);
                             notifier(owner, ChangeNotification::NoGroup)
                         }
                     } else {
-                        pets.into_iter()
-                            .for_each(|pet| notifier(pet, ChangeNotification::NoGroup));
+                        // Owner not found, potentially the were removed from the world
+                        pets.into_iter().for_each(|pet| {
+                            groups.remove(pet);
+                        });
                     }
                 });
         } else {
@@ -378,36 +402,47 @@ impl GroupManager {
                 return;
             };
 
-            let leaving = with_pets(member, leaving_member_uid, alignments, entities);
+            let leaving_pets = pets(member, leaving_member_uid, alignments, entities);
 
             // If pets and not about to be deleted form new group
-            if leaving.len() > 1 && !to_be_deleted {
+            if !leaving_pets.is_empty() && !to_be_deleted {
                 let new_group = self.create_group(member);
 
-                let notification = ChangeNotification::NewGroup {
+                notifier(member, ChangeNotification::NewGroup {
                     leader: member,
-                    members: leaving.clone(),
-                };
+                    members: leaving_pets
+                        .iter()
+                        .map(|p| (*p, Role::Pet))
+                        .chain(std::iter::once((member, Role::Member)))
+                        .collect(),
+                });
 
-                leaving.iter().for_each(|&e| {
+                let _ = groups.insert(member, new_group).unwrap();
+                leaving_pets.iter().for_each(|&e| {
                     let _ = groups.insert(e, new_group).unwrap();
-                    notifier(e, notification.clone());
                 });
             } else {
-                leaving.iter().for_each(|&e| {
+                let _ = groups.remove(member);
+                notifier(member, ChangeNotification::NoGroup);
+                leaving_pets.iter().for_each(|&e| {
                     let _ = groups.remove(e);
-                    notifier(e, ChangeNotification::NoGroup);
                 });
             }
 
             if let Some(info) = self.group_info(group) {
                 // Inform remaining members
                 let mut num_members = 0;
-                members(group, &*groups, entities).for_each(|a| {
+                members(group, &*groups, entities, alignments, uids).for_each(|(e, role)| {
                     num_members += 1;
-                    leaving.iter().for_each(|b| {
-                        notifier(a, ChangeNotification::Removed(*b));
-                    })
+                    match role {
+                        Role::Member => {
+                            notifier(e, ChangeNotification::Removed(member));
+                            leaving_pets.iter().for_each(|p| {
+                                notifier(e, ChangeNotification::Removed(*p));
+                            })
+                        },
+                        Role::Pet => {},
+                    }
                 });
                 // If leader is the last one left then disband the group
                 // Assumes last member is the leader
@@ -430,6 +465,8 @@ impl GroupManager {
         new_leader: specs::Entity,
         groups: &Groups,
         entities: &specs::Entities,
+        alignments: &Alignments,
+        uids: &Uids,
         mut notifier: impl FnMut(specs::Entity, ChangeNotification<specs::Entity>),
     ) {
         let group = match groups.get(new_leader) {
@@ -441,8 +478,9 @@ impl GroupManager {
         self.groups[group.0 as usize].leader = new_leader;
 
         // Point to new leader
-        members(group, groups, entities).for_each(|e| {
-            notifier(e, ChangeNotification::NewLeader(new_leader));
+        members(group, &*groups, entities, alignments, uids).for_each(|(e, role)| match role {
+            Role::Member => notifier(e, ChangeNotification::NewLeader(new_leader)),
+            Role::Pet => {},
         });
     }
 }

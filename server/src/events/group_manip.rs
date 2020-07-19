@@ -136,7 +136,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 );
             }
         },
-        GroupManip::Reject => {
+        GroupManip::Decline => {
             let mut clients = state.ecs().write_storage::<Client>();
             if let Some(inviter) = clients
                 .get_mut(entity)
@@ -144,8 +144,8 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             {
                 // Inform inviter of rejection
                 if let Some(client) = clients.get_mut(inviter) {
-                    // TODO: say who rejected the invite
-                    client.notify(ChatType::Meta.server_msg("Invite rejected".to_owned()));
+                    // TODO: say who declined the invite
+                    client.notify(ChatType::Meta.server_msg("Invite declined".to_owned()));
                 }
             }
         },
@@ -296,6 +296,8 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                         target,
                         &groups,
                         &state.ecs().entities(),
+                        &state.ecs().read_storage(),
+                        &uids,
                         |entity, group_change| {
                             clients
                                 .get_mut(entity)

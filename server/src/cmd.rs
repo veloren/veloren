@@ -569,6 +569,8 @@ fn handle_spawn(
                                     target,
                                     &mut state.ecs().write_storage(),
                                     &state.ecs().entities(),
+                                    &state.ecs().read_storage(),
+                                    &uids,
                                     &mut |entity, group_change| {
                                         clients
                                             .get_mut(entity)

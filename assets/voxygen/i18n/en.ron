@@ -65,7 +65,7 @@ VoxygenLocalization(
         "common.create": "Create",
         "common.okay": "Okay",
         "common.accept": "Accept",
-        "common.reject": "Reject",
+        "common.decline": "Decline",
         "common.disclaimer": "Disclaimer",
         "common.cancel": "Cancel",
         "common.none": "None",
@@ -386,6 +386,8 @@ magically infused items?"#,
         "gameinput.autowalk": "Auto Walk",
         "gameinput.dance": "Dance",
         "gameinput.select": "Select Entity",
+        "gameinput.acceptgroupinvite": "Accept Group Invite",
+        "gameinput.declinegroupinvite": "Decline Group Invite",
         
         /// End GameInput section
 

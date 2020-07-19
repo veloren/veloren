@@ -236,6 +236,8 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                             entity,
                                             &mut state.ecs().write_storage(),
                                             &state.ecs().entities(),
+                                            &state.ecs().read_storage(),
+                                            &uids,
                                             &mut |entity, group_change| {
                                                 clients
                                                     .get_mut(entity)
