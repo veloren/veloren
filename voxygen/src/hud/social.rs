@@ -2,16 +2,12 @@ use super::{img_ids::Imgs, Show, TEXT_COLOR, TEXT_COLOR_3, UI_MAIN};
 
 use crate::{i18n::VoxygenLocalization, ui::fonts::ConrodVoxygenFonts};
 use client::{self, Client};
-use common::{
-    comp::Stats,
-    sync::{Uid, WorldSyncExt},
-};
+use common::sync::Uid;
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-use specs::WorldExt;
 use std::time::Instant;
 
 widget_ids! {
@@ -31,15 +27,7 @@ widget_ids! {
         friends_test,
         faction_test,
         player_names[],
-        group,
-        group_invite,
-        member_names[],
-        accept_invite_button,
-        reject_invite_button,
         invite_button,
-        kick_button,
-        assign_leader_button,
-        leave_button,
     }
 }
 
@@ -48,8 +36,6 @@ pub struct State {
     // Holds the time when selection is made since this selection can be overriden
     // by selecting an entity in-game
     selected_uid: Option<(Uid, Instant)>,
-    // Selected group member
-    selected_member: Option<Uid>,
 }
 
 pub enum SocialTab {
@@ -95,13 +81,8 @@ impl<'a> Social<'a> {
 
 pub enum Event {
     Close,
-    ChangeSocialTab(SocialTab),
     Invite(Uid),
-    Accept,
-    Reject,
-    Kick(Uid),
-    LeaveGroup,
-    AssignLeader(Uid),
+    ChangeSocialTab(SocialTab),
 }
 
 impl<'a> Widget for Social<'a> {
@@ -113,7 +94,6 @@ impl<'a> Widget for Social<'a> {
         Self::State {
             ids: Ids::new(id_gen),
             selected_uid: None,
-            selected_member: None,
         }
     }
 
@@ -270,86 +250,11 @@ impl<'a> Widget for Social<'a> {
                 }
             }
 
-            Text::new(&self.localized_strings.get("hud.group"))
-                .down(10.0)
-                .font_size(self.fonts.cyri.scale(20))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.group, ui);
-
-            // Helper
-            let uid_to_name_text = |uid, client: &Client| match client.player_list.get(&uid) {
-                Some(player_info) => {
-                    let alias = &player_info.player_alias;
-                    let character_name_level = match &player_info.character {
-                        Some(character) => format!("{} Lvl {}", &character.name, &character.level),
-                        None => "<None>".to_string(), // character select or spectating
-                    };
-                    format!("[{}] {}", alias, character_name_level)
-                },
-                None => self
-                    .client
-                    .state()
-                    .ecs()
-                    .entity_from_uid(uid.0)
-                    .and_then(|entity| {
-                        self.client
-                            .state()
-                            .ecs()
-                            .read_storage::<Stats>()
-                            .get(entity)
-                            .map(|stats| stats.name.clone())
-                    })
-                    .unwrap_or_else(|| format!("NPC Uid: {}", uid)),
-            };
-
-            // Accept/Reject Invite
-            if let Some(invite_uid) = self.client.group_invite() {
-                let name = uid_to_name_text(invite_uid, &self.client);
-                let text = self
-                    .localized_strings
-                    .get("hud.group.invite_to_join")
-                    .replace("{name}", &name);
-                Text::new(&text)
-                    .down(10.0)
-                    .font_size(self.fonts.cyri.scale(15))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(state.ids.group_invite, ui);
-                if Button::image(self.imgs.button)
-                    .down(3.0)
-                    .w_h(150.0, 30.0)
-                    .hover_image(self.imgs.button_hover)
-                    .press_image(self.imgs.button_press)
-                    .label(&self.localized_strings.get("common.accept"))
-                    .label_y(conrod_core::position::Relative::Scalar(3.0))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(15))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .set(state.ids.accept_invite_button, ui)
-                    .was_clicked()
-                {
-                    events.push(Event::Accept);
-                }
-                if Button::image(self.imgs.button)
-                    .down(3.0)
-                    .w_h(150.0, 30.0)
-                    .hover_image(self.imgs.button_hover)
-                    .press_image(self.imgs.button_press)
-                    .label(&self.localized_strings.get("common.reject"))
-                    .label_y(conrod_core::position::Relative::Scalar(3.0))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(15))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .set(state.ids.reject_invite_button, ui)
-                    .was_clicked()
-                {
-                    events.push(Event::Reject);
-                }
-            } else if self // Invite Button
+            // Invite Button
+            if self
                 .client
-                .group_leader()
-                .map_or(true, |l_uid| self.client.uid() == Some(l_uid))
+                .group_info()
+                .map_or(true, |(_, l_uid)| self.client.uid() == Some(l_uid))
             {
                 let selected = state.selected_uid.map(|s| s.0).or_else(|| {
                     self.selected_entity
@@ -379,129 +284,6 @@ impl<'a> Widget for Social<'a> {
                             s.selected_uid = None;
                         });
                     }
-                }
-            }
-
-            // Show group members
-            if let Some(leader) = self.client.group_leader() {
-                let group_size = self.client.group_members.len() + 1;
-                if state.ids.member_names.len() < group_size {
-                    state.update(|s| {
-                        s.ids
-                            .member_names
-                            .resize(group_size, &mut ui.widget_id_generator())
-                    })
-                }
-                // List member names
-                for (i, &uid) in self
-                    .client
-                    .uid()
-                    .iter()
-                    .chain(self.client.group_members.iter())
-                    .enumerate()
-                {
-                    let selected = state.selected_member.map_or(false, |u| u == uid);
-                    let text = uid_to_name_text(uid, &self.client);
-                    let text = if selected {
-                        format!("-> {}", &text)
-                    } else {
-                        text
-                    };
-                    let text = if uid == leader {
-                        format!("{} (Leader)", &text)
-                    } else {
-                        text
-                    };
-                    Text::new(&text)
-                        .down(3.0)
-                        .font_size(self.fonts.cyri.scale(15))
-                        .font_id(self.fonts.cyri.conrod_id)
-                        .color(TEXT_COLOR)
-                        .set(state.ids.member_names[i], ui);
-                    // Check for click
-                    if ui
-                        .widget_input(state.ids.member_names[i])
-                        .clicks()
-                        .left()
-                        .next()
-                        .is_some()
-                    {
-                        state.update(|s| {
-                            s.selected_member = if selected { None } else { Some(uid) }
-                        });
-                    }
-                }
-
-                // Show more buttons if leader
-                if self.client.uid() == Some(leader) {
-                    let selected = state.selected_member;
-                    // Kick
-                    if Button::image(self.imgs.button)
-                        .down(3.0)
-                        .w_h(150.0, 30.0)
-                        .hover_image(self.imgs.button_hover)
-                        .press_image(self.imgs.button_press)
-                        .label(&self.localized_strings.get("hud.group.kick"))
-                        .label_y(conrod_core::position::Relative::Scalar(3.0))
-                        .label_color(if selected.is_some() {
-                            TEXT_COLOR
-                        } else {
-                            TEXT_COLOR_3
-                        })
-                        .label_font_size(self.fonts.cyri.scale(15))
-                        .label_font_id(self.fonts.cyri.conrod_id)
-                        .set(state.ids.kick_button, ui)
-                        .was_clicked()
-                    {
-                        if let Some(uid) = selected {
-                            events.push(Event::Kick(uid));
-                            state.update(|s| {
-                                s.selected_member = None;
-                            });
-                        }
-                    }
-                    // Assign leader
-                    if Button::image(self.imgs.button)
-                        .down(3.0)
-                        .w_h(150.0, 30.0)
-                        .hover_image(self.imgs.button_hover)
-                        .press_image(self.imgs.button_press)
-                        .label(&self.localized_strings.get("hud.group.assign_leader"))
-                        .label_y(conrod_core::position::Relative::Scalar(3.0))
-                        .label_color(if selected.is_some() {
-                            TEXT_COLOR
-                        } else {
-                            TEXT_COLOR_3
-                        })
-                        .label_font_size(self.fonts.cyri.scale(15))
-                        .label_font_id(self.fonts.cyri.conrod_id)
-                        .set(state.ids.assign_leader_button, ui)
-                        .was_clicked()
-                    {
-                        if let Some(uid) = selected {
-                            events.push(Event::AssignLeader(uid));
-                            state.update(|s| {
-                                s.selected_member = None;
-                            });
-                        }
-                    }
-                }
-
-                // Leave group button
-                if Button::image(self.imgs.button)
-                    .down(3.0)
-                    .w_h(150.0, 30.0)
-                    .hover_image(self.imgs.button_hover)
-                    .press_image(self.imgs.button_press)
-                    .label(&self.localized_strings.get("hud.group.leave"))
-                    .label_y(conrod_core::position::Relative::Scalar(3.0))
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(15))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .set(state.ids.leave_button, ui)
-                    .was_clicked()
-                {
-                    events.push(Event::LeaveGroup);
                 }
             }
         }

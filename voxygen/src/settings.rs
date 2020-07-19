@@ -169,7 +169,9 @@ impl ControlSettings {
             GameInput::Slot9 => KeyMouse::Key(VirtualKeyCode::Key9),
             GameInput::Slot10 => KeyMouse::Key(VirtualKeyCode::Q),
             GameInput::SwapLoadout => KeyMouse::Key(VirtualKeyCode::LAlt),
-            GameInput::Select => KeyMouse::Key(VirtualKeyCode::I),
+            GameInput::Select => KeyMouse::Key(VirtualKeyCode::Y),
+            GameInput::AcceptGroupInvite => KeyMouse::Key(VirtualKeyCode::U),
+            GameInput::DeclineGroupInvite => KeyMouse::Key(VirtualKeyCode::I),
         }
     }
 }
@@ -236,6 +238,8 @@ impl Default for ControlSettings {
             GameInput::Slot10,
             GameInput::SwapLoadout,
             GameInput::Select,
+            GameInput::AcceptGroupInvite,
+            GameInput::DeclineGroupInvite,
         ];
         for game_input in game_inputs {
             new_settings.insert_binding(game_input, ControlSettings::default_binding(game_input));

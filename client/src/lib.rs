@@ -18,7 +18,7 @@ use common::{
     character::CharacterItem,
     comp::{
         self, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip,
-        InventoryManip, InventoryUpdateEvent,
+        InventoryManip, InventoryUpdateEvent, group,
     },
     msg::{
         validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, Notification,
@@ -34,7 +34,7 @@ use common::{
 use futures_executor::block_on;
 use futures_timer::Delay;
 use futures_util::{select, FutureExt};
-use hashbrown::{HashMap, HashSet};
+use hashbrown::HashMap;
 use image::DynamicImage;
 use network::{
     Network, Participant, Pid, ProtocolAddr, Stream, PROMISES_CONSISTENCY, PROMISES_ORDERED,
@@ -74,7 +74,6 @@ pub struct Client {
     pub server_info: ServerInfo,
     pub world_map: (Arc<DynamicImage>, Vec2<u32>),
     pub player_list: HashMap<Uid, PlayerInfo>,
-    pub group_members: HashSet<Uid>,
     pub character_list: CharacterList,
     pub active_character_id: Option<i32>,
     recipe_book: RecipeBook,
@@ -82,6 +81,7 @@ pub struct Client {
 
     group_invite: Option<Uid>,
     group_leader: Option<Uid>,
+    group_members: HashMap<Uid, group::Role>,
 
     _network: Network,
     participant: Option<Participant>,
@@ -212,7 +212,7 @@ impl Client {
             server_info,
             world_map,
             player_list: HashMap::new(),
-            group_members: HashSet::new(),
+            group_members: HashMap::new(),
             character_list: CharacterList::default(),
             active_character_id: None,
             recipe_book,
@@ -434,11 +434,15 @@ impl Client {
 
     pub fn group_invite(&self) -> Option<Uid> { self.group_invite }
 
-    pub fn group_leader(&self) -> Option<Uid> { self.group_leader }
+    pub fn group_info(&self) -> Option<(String, Uid)> { self.group_leader.map(|l| ("TODO".into(), l)) }
+
+    pub fn group_members(&self) -> &HashMap<Uid, group::Role> { &self.group_members }
 
     pub fn send_group_invite(&mut self, invitee: Uid) {
         self.singleton_stream
-            .send(ClientMsg::ControlEvent(ControlEvent::GroupManip( GroupManip::Invite(invitee) )))
+            .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
+                GroupManip::Invite(invitee),
+            )))
             .unwrap()
     }
 
@@ -448,37 +452,42 @@ impl Client {
         self.singleton_stream
             .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
                 GroupManip::Accept,
-            ))).unwrap();
+            )))
+            .unwrap();
     }
 
-    pub fn reject_group_invite(&mut self) {
+    pub fn decline_group_invite(&mut self) {
         // Clear invite
         self.group_invite.take();
         self.singleton_stream
             .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
-                GroupManip::Reject,
-            ))).unwrap();
+                GroupManip::Decline,
+            )))
+            .unwrap();
     }
 
     pub fn leave_group(&mut self) {
         self.singleton_stream
             .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
                 GroupManip::Leave,
-            ))).unwrap();
+            )))
+            .unwrap();
     }
 
     pub fn kick_from_group(&mut self, uid: Uid) {
         self.singleton_stream
             .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
                 GroupManip::Kick(uid),
-            ))).unwrap();
+            )))
+            .unwrap();
     }
 
     pub fn assign_group_leader(&mut self, uid: Uid) {
         self.singleton_stream
             .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
                 GroupManip::AssignLeader(uid),
-            ))).unwrap();
+            )))
+            .unwrap();
     }
 
     pub fn is_mounted(&self) -> bool {
@@ -993,47 +1002,47 @@ impl Client {
                     }
                 },
                 ServerMsg::GroupUpdate(change_notification) => {
-                        use comp::group::ChangeNotification::*;
-                        // Note: we use a hashmap since this would not work with entities outside
-                        // the view distance
-                        match change_notification {
-                            Added(uid) => {
-                                if !self.group_members.insert(uid) {
-                                    warn!(
-                                        "Received msg to add uid {} to the group members but they \
-                                         were already there",
-                                        uid
-                                    );
-                                }
-                            },
-                            Removed(uid) => {
-                                if !self.group_members.remove(&uid) {
-                                    warn!(
-                                        "Received msg to remove uid {} from group members but by \
-                                         they weren't in there!",
-                                        uid
-                                    );
-                                }
-                            },
-                            NewLeader(leader) => {
-                                self.group_leader = Some(leader);
-                            },
-                            NewGroup { leader, members } => {
-                                self.group_leader = Some(leader);
-                                self.group_members = members.into_iter().collect();
-                                // Currently add/remove messages treat client as an implicit member
-                                // of the group whereas this message explicitly included them so to
-                                // be consistent for now we will remove the client from the
-                                // received hashset
-                                if let Some(uid) = self.uid() {
-                                    self.group_members.remove(&uid);
-                                }
-                            },
-                            NoGroup => {
-                                self.group_leader = None;
-                                self.group_members = HashSet::new();
+                    use comp::group::ChangeNotification::*;
+                    // Note: we use a hashmap since this would not work with entities outside
+                    // the view distance
+                    match change_notification {
+                        Added(uid, role) => {
+                            if self.group_members.insert(uid, role) == Some(role) {
+                                warn!(
+                                    "Received msg to add uid {} to the group members but they \
+                                     were already there",
+                                    uid
+                                );
                             }
-                        }
+                        },
+                        Removed(uid) => {
+                            if self.group_members.remove(&uid).is_none() {
+                                warn!(
+                                    "Received msg to remove uid {} from group members but by they \
+                                     weren't in there!",
+                                    uid
+                                );
+                            }
+                        },
+                        NewLeader(leader) => {
+                            self.group_leader = Some(leader);
+                        },
+                        NewGroup { leader, members } => {
+                            self.group_leader = Some(leader);
+                            self.group_members = members.into_iter().collect();
+                            // Currently add/remove messages treat client as an implicit member
+                            // of the group whereas this message explicitly included them so to
+                            // be consistent for now we will remove the client from the
+                            // received hashset
+                            if let Some(uid) = self.uid() {
+                                self.group_members.remove(&uid);
+                            }
+                        },
+                        NoGroup => {
+                            self.group_leader = None;
+                            self.group_members = HashMap::new();
+                        },
+                    }
                 },
                 ServerMsg::GroupInvite(uid) => {
                     self.group_invite = Some(uid);
@@ -1189,9 +1198,7 @@ impl Client {
     pub fn entity(&self) -> EcsEntity { self.entity }
 
     /// Get the player's Uid.
-    pub fn uid(&self) -> Option<Uid> {
-        self.state.read_component_copied(self.entity)
-    }
+    pub fn uid(&self) -> Option<Uid> { self.state.read_component_copied(self.entity) }
 
     /// Get the client state
     pub fn get_client_state(&self) -> ClientState { self.client_state }

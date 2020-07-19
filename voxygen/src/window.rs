@@ -68,6 +68,8 @@ pub enum GameInput {
     AutoWalk,
     CycleCamera,
     Select,
+    AcceptGroupInvite,
+    DeclineGroupInvite,
 }
 
 impl GameInput {
@@ -125,6 +127,8 @@ impl GameInput {
             GameInput::Slot10 => "gameinput.slot10",
             GameInput::SwapLoadout => "gameinput.swaploadout",
             GameInput::Select => "gameinput.select",
+            GameInput::AcceptGroupInvite => "gameinput.acceptgroupinvite",
+            GameInput::DeclineGroupInvite => "gameinput.declinegroupinvite",
         }
     }
 

@@ -22,7 +22,7 @@ pub enum InventoryManip {
 pub enum GroupManip {
     Invite(Uid),
     Accept,
-    Reject,
+    Decline,
     Leave,
     Kick(Uid),
     AssignLeader(Uid),

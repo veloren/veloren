@@ -957,8 +957,8 @@ impl PlayState for SessionState {
                     HudEvent::AcceptInvite => {
                         self.client.borrow_mut().accept_group_invite();
                     },
-                    HudEvent::RejectInvite => {
-                        self.client.borrow_mut().reject_group_invite();
+                    HudEvent::DeclineInvite => {
+                        self.client.borrow_mut().decline_group_invite();
                     },
                     HudEvent::KickMember(uid) => {
                         self.client.borrow_mut().kick_from_group(uid);

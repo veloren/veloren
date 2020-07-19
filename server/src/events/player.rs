@@ -57,6 +57,8 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
                     new_entity,
                     &state.ecs().read_storage(),
                     &state.ecs().entities(),
+                    &state.ecs().read_storage(),
+                    &state.ecs().read_storage(),
                     // Nothing actually changing
                     |_, _| {},
                 );
