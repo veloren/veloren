@@ -26,21 +26,24 @@ gfx_defines! {
         inst_time: f32 = "inst_time",
 
         // a seed value for randomness
+        // can save 32 bits per instance, for particles that don't need randomness/uniqueness.
         inst_entropy: f32 = "inst_entropy",
 
-        // modes should probably be seperate shaders, as a part of scaling and optimisation efforts
+        // modes should probably be seperate shaders, as a part of scaling and optimisation efforts.
+        // can save 32 bits per instance, and have cleaner tailor made code.
         inst_mode: i32 = "inst_mode",
 
-        // a triangle is:  f32 x 3 x 3 x 1  = 288 bits
-        // a quad is:      f32 x 3 x 3 x 2  = 576 bits
-        // a cube is:      f32 x 3 x 3 x 12 = 3456 bits
-        // this matrix is: f32 x 4 x 4 x 1  = 512 bits (per instance!)
-        // consider using vertex postion & entropy instead;
-        // to determine initial offset, scale, orientation etc.
-        inst_mat0: [f32; 4] = "inst_mat0",
-        inst_mat1: [f32; 4] = "inst_mat1",
-        inst_mat2: [f32; 4] = "inst_mat2",
-        inst_mat3: [f32; 4] = "inst_mat3",
+        // a triangle is: f32 x 3 x 3 x 1  = 288 bits
+        // a quad is:     f32 x 3 x 3 x 2  = 576 bits
+        // a cube is:     f32 x 3 x 3 x 12 = 3456 bits
+        // this vec is:   f32 x 3 x 1 x 1  = 96 bits (per instance!)
+        // consider using a throw-away mesh and
+        // positioning the vertex verticies instead,
+        // if we have:
+        // - a triangle mesh, and 3 or more instances.
+        // - a quad mesh, and 6 or more instances.
+        // - a cube mesh, and 36 or more instances.
+        inst_pos: [f32; 3] = "inst_pos",
     }
 
     pipeline pipe {
@@ -82,6 +85,7 @@ impl Vertex {
 pub enum ParticleMode {
     CampfireSmoke,
     CampfireFire,
+    GunPowderSpark,
 }
 
 impl ParticleMode {
@@ -93,24 +97,19 @@ impl Instance {
         inst_time: f64,
         inst_entropy: f32,
         inst_mode: ParticleMode,
-        inst_mat: Mat4<f32>,
+        inst_pos: Vec3<f32>,
     ) -> Self {
-        let inst_mat_col = inst_mat.into_col_arrays();
         Self {
             inst_time: inst_time as f32,
             inst_entropy,
             inst_mode: inst_mode as i32,
-
-            inst_mat0: inst_mat_col[0],
-            inst_mat1: inst_mat_col[1],
-            inst_mat2: inst_mat_col[2],
-            inst_mat3: inst_mat_col[3],
+            inst_pos: inst_pos.into_array(),
         }
     }
 }
 
 impl Default for Instance {
-    fn default() -> Self { Self::new(0.0, 0.0, ParticleMode::CampfireSmoke, Mat4::identity()) }
+    fn default() -> Self { Self::new(0.0, 0.0, ParticleMode::CampfireSmoke, Vec3::zero()) }
 }
 
 pub struct ParticlePipeline;
