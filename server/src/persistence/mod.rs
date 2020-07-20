@@ -22,6 +22,9 @@ use tracing::warn;
 // See: https://docs.rs/diesel_migrations/1.4.0/diesel_migrations/macro.embed_migrations.html
 // This macro is called at build-time, and produces the necessary migration info
 // for the `embedded_migrations` call below.
+//
+// NOTE: Adding a useless comment to trigger the migrations being run.  Delete
+// when needed.
 embed_migrations!();
 
 /// Runs any pending database migrations. This is executed during server startup
