@@ -114,6 +114,7 @@ Is the client up to date?"#,
         "main.connecting": "Connecting",
         "main.creating_world": "Creating world",
         "main.tip": "Tip:",
+		"main.select_language": "Select a language",
 
         // Welcome notice that appears the first time Veloren is started
         "main.notice": r#"Welcome to the alpha version of Veloren!

@@ -5,8 +5,11 @@ use super::char_selection::CharSelectionState;
 #[cfg(feature = "singleplayer")]
 use crate::singleplayer::Singleplayer;
 use crate::{
-    render::Renderer, settings::Settings, window::Event, Direction, GlobalState, PlayState,
-    PlayStateResult,
+    i18n::{i18n_asset_key, Localization},
+    render::Renderer,
+    settings::Settings,
+    window::Event,
+    Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
 use common::{assets::Asset, comp, span};
@@ -47,7 +50,7 @@ impl PlayState for MainMenuState {
 
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
         span!(_guard, "tick", "<MainMenuState as PlayState>::tick");
-        let localized_strings = crate::i18n::Localization::load_expect(
+        let mut localized_strings = crate::i18n::Localization::load_expect(
             &crate::i18n::i18n_asset_key(&global_state.settings.language.selected_language),
         );
 
@@ -247,6 +250,15 @@ impl PlayState for MainMenuState {
                     }
                     self.client_init = None;
                     self.main_menu_ui.cancel_connection();
+                },
+                MainMenuEvent::ChangeLanguage(new_language) => {
+                    global_state.settings.language.selected_language =
+                        new_language.language_identifier;
+                    localized_strings = Localization::load_expect(&i18n_asset_key(
+                        &global_state.settings.language.selected_language,
+                    ));
+                    localized_strings.log_missing_entries();
+                    self.main_menu_ui.update_language(localized_strings.clone());
                 },
                 #[cfg(feature = "singleplayer")]
                 MainMenuEvent::StartSingleplayer => {
