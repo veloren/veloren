@@ -14,7 +14,10 @@ use crate::{
         },
     },
 };
-use iced::{button, text_input, Align, Column, Container, Length, Row, Space, Text, TextInput};
+use iced::{
+    button, scrollable, text_input, Align, Button, Column, Container, Length, Row, Scrollable,
+    Space, Text, TextInput,
+};
 use vek::*;
 
 const FILL_FRAC_ONE: f32 = 0.77;
@@ -27,10 +30,12 @@ pub struct Screen {
     quit_button: button::State,
     settings_button: button::State,
     servers_button: button::State,
+    language_select_button: button::State,
 
     error_okay_button: button::State,
 
-    pub banner: Banner,
+    pub banner: LoginBanner,
+    language_selection: LanguageSelectBanner,
 }
 
 impl Screen {
@@ -39,10 +44,12 @@ impl Screen {
             servers_button: Default::default(),
             settings_button: Default::default(),
             quit_button: Default::default(),
+            language_select_button: Default::default(),
 
             error_okay_button: Default::default(),
 
-            banner: Banner::new(),
+            banner: LoginBanner::new(),
+            language_selection: LanguageSelectBanner::new(),
         }
     }
 
@@ -53,6 +60,9 @@ impl Screen {
         login_info: &LoginInfo,
         error: Option<&str>,
         i18n: &Localization,
+        is_selecting_language: bool,
+        selected_language_index: Option<usize>,
+        language_metadatas: &[crate::i18n::LanguageMetadata],
         button_style: style::button::Style,
     ) -> Element<Message> {
         let buttons = Column::with_children(vec![
@@ -76,6 +86,13 @@ impl Screen {
                 FILL_FRAC_ONE,
                 button_style,
                 Some(Message::Quit),
+            ),
+            neat_button(
+                &mut self.language_select_button,
+                i18n.get("common.languages"),
+                FILL_FRAC_ONE,
+                button_style,
+                Some(Message::OpenLanguageMenu),
             ),
         ])
         .width(Length::Fill)
@@ -140,8 +157,19 @@ impl Screen {
             .padding(20)
             .into()
         } else {
-            self.banner
-                .view(fonts, imgs, login_info, i18n, button_style)
+            if is_selecting_language {
+                self.language_selection.view(
+                    fonts,
+                    imgs,
+                    i18n,
+                    language_metadatas,
+                    selected_language_index,
+                    button_style,
+                )
+            } else {
+                self.banner
+                    .view(fonts, imgs, login_info, i18n, button_style)
+            }
         };
 
         let central_column = Container::new(central_content)
@@ -164,7 +192,105 @@ impl Screen {
     }
 }
 
-pub struct Banner {
+pub struct LanguageSelectBanner {
+    okay_button: button::State,
+    language_buttons: Vec<button::State>,
+
+    selection_list: scrollable::State,
+}
+
+impl LanguageSelectBanner {
+    fn new() -> Self {
+        Self {
+            okay_button: Default::default(),
+            language_buttons: Default::default(),
+            selection_list: Default::default(),
+        }
+    }
+
+    fn view(
+        &mut self,
+        fonts: &Fonts,
+        imgs: &Imgs,
+        i18n: &Localization,
+        language_metadatas: &[crate::i18n::LanguageMetadata],
+        selected_language_index: Option<usize>,
+        button_style: style::button::Style,
+    ) -> Element<Message> {
+        let title =
+            Container::new(Text::new(i18n.get("main.select_language")).size(fonts.cyri.scale(35)))
+                .center_x();
+
+        let mut list = Scrollable::new(&mut self.selection_list)
+            .height(Length::Fill)
+            .width(Length::Fill)
+            .align_items(Align::Start);
+
+        if self.language_buttons.len() != language_metadatas.len() {
+            self.language_buttons = vec![Default::default(); language_metadatas.len()];
+        }
+
+        for (i, (state, lang)) in self
+            .language_buttons
+            .iter_mut()
+            .zip(language_metadatas)
+            .enumerate()
+        {
+            let text = format!(
+                "{}{}",
+                if Some(i) == selected_language_index {
+                    "-> "
+                } else {
+                    "  "
+                },
+                lang.language_name,
+            );
+            let button = Button::new(
+                state,
+                Container::new(Text::new(text).size(fonts.cyri.scale(25)))
+                    .padding(5)
+                    .center_y(),
+            )
+            .width(Length::Fill)
+            .on_press(Message::LangaugeChanged(i));
+            list = list.push(button);
+        }
+
+        let okay_button = Container::new(neat_button(
+            &mut self.okay_button,
+            i18n.get("common.okay"),
+            FILL_FRAC_TWO,
+            button_style,
+            Some(Message::OpenLanguageMenu),
+        ))
+        .center_x()
+        .max_width(200);
+
+        let content = Column::with_children(vec![title.into(), list.into(), okay_button.into()])
+            .spacing(8)
+            .width(Length::Fill)
+            .height(Length::FillPortion(38))
+            .align_items(Align::Center);
+
+        let selection_menu = BackgroundContainer::new(
+            CompoundGraphic::from_graphics(vec![
+                Graphic::image(imgs.banner_top, [138, 17], [0, 0]),
+                Graphic::rect(Rgba::new(0, 0, 0, 230), [130, 165], [4, 17]),
+                // TODO: use non image gradient
+                Graphic::gradient(Rgba::new(0, 0, 0, 230), Rgba::zero(), [130, 50], [4, 182]),
+            ])
+            .fix_aspect_ratio()
+            .height(Length::Fill),
+            content,
+        )
+        .padding(Padding::new().horizontal(8).vertical(15).bottom(50))
+        .max_width(350);
+
+        selection_menu.into()
+    }
+}
+
+pub struct LoginBanner {
     pub username: text_input::State,
     pub password: text_input::State,
     pub server: text_input::State,
@@ -174,7 +300,7 @@ pub struct Banner {
     singleplayer_button: button::State,
 }
 
-impl Banner {
+impl LoginBanner {
     fn new() -> Self {
         Self {
             username: Default::default(),

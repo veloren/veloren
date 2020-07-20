@@ -4,7 +4,7 @@ mod login;
 mod servers;
 
 use crate::{
-    i18n::{i18n_asset_key, Localization},
+    i18n::{i18n_asset_key, LanguageMetadata, Localization},
     render::Renderer,
     ui::{
         self,
@@ -78,6 +78,7 @@ pub enum Event {
         server_address: String,
     },
     CancelLoginAttempt,
+    ChangeLanguage(LanguageMetadata),
     #[cfg(feature = "singleplayer")]
     StartSingleplayer,
     Quit,
@@ -143,6 +144,9 @@ struct Controls {
     selected_server_index: Option<usize>,
     login_info: LoginInfo,
 
+    is_selecting_language: bool,
+    selected_language_index: Option<usize>,
+
     time: f32,
 
     screen: Screen,
@@ -156,6 +160,8 @@ enum Message {
     #[cfg(feature = "singleplayer")]
     Singleplayer,
     Multiplayer,
+    LangaugeChanged(usize),
+    OpenLanguageMenu,
     Username(String),
     Password(String),
     Server(String),
@@ -206,6 +212,11 @@ impl Controls {
             .iter()
             .position(|f| f == &login_info.server);
 
+        let language_metadatas = crate::i18n::list_localizations();
+        let selected_language_index = language_metadatas
+            .iter()
+            .position(|f| &f.language_identifier == &settings.language.selected_language);
+
         Self {
             fonts,
             imgs,
@@ -216,6 +227,9 @@ impl Controls {
 
             selected_server_index,
             login_info,
+
+            is_selecting_language: false,
+            selected_language_index,
 
             time: 0.0,
 
@@ -256,6 +270,8 @@ impl Controls {
             self.imgs.bg
         };
 
+        let language_metadatas = crate::i18n::list_localizations();
+
         // TODO: make any large text blocks scrollable so that if the area is to
         // small they can still be read
         let content = match &mut self.screen {
@@ -266,6 +282,9 @@ impl Controls {
                 &self.login_info,
                 error.as_deref(),
                 &self.i18n,
+                self.is_selecting_language,
+                self.selected_language_index,
+                &language_metadatas,
                 button_style,
             ),
             Screen::Servers { screen } => screen.view(
@@ -300,6 +319,7 @@ impl Controls {
 
     fn update(&mut self, message: Message, events: &mut Vec<Event>, settings: &Settings) {
         let servers = &settings.networking.servers;
+        let mut language_metadatas = crate::i18n::list_localizations();
 
         match message {
             Message::Quit => events.push(Event::Quit),
@@ -344,6 +364,11 @@ impl Controls {
                 });
             },
             Message::Username(new_value) => self.login_info.username = new_value,
+            Message::LangaugeChanged(new_value) => {
+                self.selected_language_index = Some(new_value);
+                events.push(Event::ChangeLanguage(language_metadatas.remove(new_value)));
+            },
+            Message::OpenLanguageMenu => self.is_selecting_language = !self.is_selecting_language,
             Message::Password(new_value) => self.login_info.password = new_value,
             Message::Server(new_value) => {
                 self.login_info.server = new_value;
@@ -504,6 +529,12 @@ impl<'a> MainMenuUi {
         );
 
         Self { ui, controls }
+    }
+
+    pub fn update_language(&mut self, i18n: std::sync::Arc<Localization>) {
+        self.controls.i18n = i18n;
+        self.controls.fonts = Fonts::load(&self.controls.i18n.fonts, &mut self.ui)
+            .expect("Impossible to load fonts!");
     }
 
     pub fn auth_trust_prompt(&mut self, auth_server: String) {
