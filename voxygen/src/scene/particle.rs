@@ -20,12 +20,13 @@ use vek::Vec3;
 
 struct Particles {
     alive_until: Instant, // created_at + lifespan
-    instances: Instances<ParticleInstance>,
+    instance: ParticleInstance,
 }
 
 pub struct ParticleMgr {
     // keep track of lifespans
     particles: Vec<Particles>,
+    instances: Instances<ParticleInstance>,
     model_cache: HashMap<&'static str, Model<ParticlePipeline>>,
 }
 
@@ -54,11 +55,22 @@ impl ParticleMgr {
             model
         });
 
+        let insts = Vec::new();
+
+        let instances = renderer
+            .create_instances(&insts)
+            .expect("Failed to upload particle instances to the GPU!");
+
         Self {
             particles: Vec::new(),
+            instances,
             model_cache,
         }
     }
+
+    pub fn particle_count(&self) -> usize { self.instances.count() }
+
+    pub fn particle_count_visible(&self) -> usize { self.instances.count() }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, scene_data: &SceneData) {
         let now = Instant::now();
@@ -66,9 +78,23 @@ impl ParticleMgr {
         // remove dead particles
         self.particles.retain(|p| p.alive_until > now);
 
+        // let zxc = scene_data.particle_render_distance;
+
         self.maintain_body_particles(renderer, scene_data);
 
         self.maintain_boost_particles(renderer, scene_data);
+
+        let all_cpu_instances = self
+            .particles
+            .iter()
+            .map(|p| p.instance)
+            .collect::<Vec<ParticleInstance>>();
+
+        // TODO: upload just the ones that were created and added to queue, not all of
+        // them.
+        self.instances = renderer
+            .create_instances(&all_cpu_instances)
+            .expect("Failed to upload particle instances to the GPU!");
     }
 
     fn maintain_body_particles(&mut self, renderer: &mut Renderer, scene_data: &SceneData) {
@@ -112,34 +138,14 @@ impl ParticleMgr {
         let now = Instant::now();
         let mut rng = rand::thread_rng();
 
-        let fire_cpu_insts = vec![ParticleInstance::new(
-            time,
-            rng.gen(),
-            ParticleMode::CampfireFire,
-            pos.0,
-        )];
-
         self.particles.push(Particles {
             alive_until: now + Duration::from_millis(250),
-            instances: renderer
-                .create_instances(&fire_cpu_insts)
-                .expect("Failed to upload particle instances to the GPU!"),
+            instance: ParticleInstance::new(time, rng.gen(), ParticleMode::CampfireFire, pos.0),
         });
-
-        let smoke_cpu_insts = vec![ParticleInstance::new(
-            time,
-            rng.gen(),
-            ParticleMode::CampfireSmoke,
-            pos.0,
-        )];
-
-        let smoke_cpu_insts = renderer
-            .create_instances(&smoke_cpu_insts)
-            .expect("Failed to upload particle instances to the GPU!");
 
         self.particles.push(Particles {
             alive_until: now + Duration::from_secs(10),
-            instances: smoke_cpu_insts,
+            instance: ParticleInstance::new(time, rng.gen(), ParticleMode::CampfireSmoke, pos.0),
         });
     }
 
@@ -153,34 +159,14 @@ impl ParticleMgr {
         let now = Instant::now();
         let mut rng = rand::thread_rng();
 
-        let fire_cpu_insts = vec![ParticleInstance::new(
-            time,
-            rng.gen(),
-            ParticleMode::CampfireFire,
-            pos.0,
-        )];
-
         self.particles.push(Particles {
             alive_until: now + Duration::from_millis(250),
-            instances: renderer
-                .create_instances(&fire_cpu_insts)
-                .expect("Failed to upload particle instances to the GPU!"),
+            instance: ParticleInstance::new(time, rng.gen(), ParticleMode::CampfireFire, pos.0),
         });
-
-        let smoke_cpu_insts = vec![ParticleInstance::new(
-            time,
-            rng.gen(),
-            ParticleMode::CampfireSmoke,
-            pos.0,
-        )];
-
-        let smoke_cpu_insts = renderer
-            .create_instances(&smoke_cpu_insts)
-            .expect("Failed to upload particle instances to the GPU!");
 
         self.particles.push(Particles {
             alive_until: now + Duration::from_secs(1),
-            instances: smoke_cpu_insts,
+            instance: ParticleInstance::new(time, rng.gen(), ParticleMode::CampfireSmoke, pos.0),
         });
     }
 
@@ -194,31 +180,28 @@ impl ParticleMgr {
         let now = Instant::now();
         let mut rng = rand::thread_rng();
 
-        let fire_cpu_insts = vec![
-            ParticleInstance::new(time, rng.gen(), ParticleMode::CampfireFire, pos.0),
-            ParticleInstance::new(time, rng.gen(), ParticleMode::CampfireFire, pos.0),
-        ];
-
+        // fire
         self.particles.push(Particles {
             alive_until: now + Duration::from_millis(250),
-            instances: renderer
-                .create_instances(&fire_cpu_insts)
-                .expect("Failed to upload particle instances to the GPU!"),
+            instance: ParticleInstance::new(time, rng.gen(), ParticleMode::CampfireFire, pos.0),
+        });
+        self.particles.push(Particles {
+            alive_until: now + Duration::from_millis(250),
+            instance: ParticleInstance::new(time, rng.gen(), ParticleMode::CampfireFire, pos.0),
         });
 
-        let smoke_cpu_insts = vec![
-            ParticleInstance::new(time, rng.gen(), ParticleMode::CampfireSmoke, pos.0),
-            ParticleInstance::new(time, rng.gen(), ParticleMode::CampfireSmoke, pos.0),
-            ParticleInstance::new(time, rng.gen(), ParticleMode::CampfireSmoke, pos.0),
-        ];
-
-        let smoke_cpu_insts = renderer
-            .create_instances(&smoke_cpu_insts)
-            .expect("Failed to upload particle instances to the GPU!");
-
+        // smoke
         self.particles.push(Particles {
             alive_until: now + Duration::from_secs(2),
-            instances: smoke_cpu_insts,
+            instance: ParticleInstance::new(time, rng.gen(), ParticleMode::CampfireSmoke, pos.0),
+        });
+        self.particles.push(Particles {
+            alive_until: now + Duration::from_secs(2),
+            instance: ParticleInstance::new(time, rng.gen(), ParticleMode::CampfireSmoke, pos.0),
+        });
+        self.particles.push(Particles {
+            alive_until: now + Duration::from_secs(2),
+            instance: ParticleInstance::new(time, rng.gen(), ParticleMode::CampfireSmoke, pos.0),
         });
     }
 
@@ -232,35 +215,32 @@ impl ParticleMgr {
         let now = Instant::now();
         let mut rng = rand::thread_rng();
 
-        let fire_cpu_insts = vec![
-            ParticleInstance::new(time, rng.gen(), ParticleMode::GunPowderSpark, pos.0),
-            ParticleInstance::new(time, rng.gen(), ParticleMode::GunPowderSpark, pos.0),
-            ParticleInstance::new(time, rng.gen(), ParticleMode::GunPowderSpark, pos.0),
-            ParticleInstance::new(time, rng.gen(), ParticleMode::GunPowderSpark, pos.0),
-            ParticleInstance::new(time, rng.gen(), ParticleMode::GunPowderSpark, pos.0),
-        ];
-
+        // sparks
         self.particles.push(Particles {
             alive_until: now + Duration::from_millis(1500),
-            instances: renderer
-                .create_instances(&fire_cpu_insts)
-                .expect("Failed to upload particle instances to the GPU!"),
+            instance: ParticleInstance::new(time, rng.gen(), ParticleMode::GunPowderSpark, pos.0),
+        });
+        self.particles.push(Particles {
+            alive_until: now + Duration::from_millis(1500),
+            instance: ParticleInstance::new(time, rng.gen(), ParticleMode::GunPowderSpark, pos.0),
+        });
+        self.particles.push(Particles {
+            alive_until: now + Duration::from_millis(1500),
+            instance: ParticleInstance::new(time, rng.gen(), ParticleMode::GunPowderSpark, pos.0),
+        });
+        self.particles.push(Particles {
+            alive_until: now + Duration::from_millis(1500),
+            instance: ParticleInstance::new(time, rng.gen(), ParticleMode::GunPowderSpark, pos.0),
+        });
+        self.particles.push(Particles {
+            alive_until: now + Duration::from_millis(1500),
+            instance: ParticleInstance::new(time, rng.gen(), ParticleMode::GunPowderSpark, pos.0),
         });
 
-        let smoke_cpu_insts = vec![ParticleInstance::new(
-            time,
-            rng.gen(),
-            ParticleMode::CampfireSmoke,
-            pos.0,
-        )];
-
-        let smoke_cpu_insts = renderer
-            .create_instances(&smoke_cpu_insts)
-            .expect("Failed to upload particle instances to the GPU!");
-
+        // smoke
         self.particles.push(Particles {
             alive_until: now + Duration::from_secs(2),
-            instances: smoke_cpu_insts,
+            instance: ParticleInstance::new(time, rng.gen(), ParticleMode::CampfireSmoke, pos.0),
         });
     }
 
@@ -307,20 +287,14 @@ impl ParticleMgr {
             .enumerate()
         {
             if let CharacterState::Boost(_) = character_state {
-                let cpu_insts = vec![ParticleInstance::new(
-                    time,
-                    rng.gen(),
-                    ParticleMode::CampfireSmoke,
-                    pos.0,
-                )];
-
-                let gpu_insts = renderer
-                    .create_instances(&cpu_insts)
-                    .expect("Failed to upload particle instances to the GPU!");
-
                 self.particles.push(Particles {
                     alive_until: now + Duration::from_secs(15),
-                    instances: gpu_insts,
+                    instance: ParticleInstance::new(
+                        time,
+                        rng.gen(),
+                        ParticleMode::CampfireSmoke,
+                        pos.0,
+                    ),
                 });
             }
         }
@@ -338,8 +312,6 @@ impl ParticleMgr {
             .get(MODEL_KEY)
             .expect("Expected particle model in cache");
 
-        for particle in &self.particles {
-            renderer.render_particles(model, globals, &particle.instances, lights, shadows);
-        }
+        renderer.render_particles(model, globals, &self.instances, lights, shadows);
     }
 }
