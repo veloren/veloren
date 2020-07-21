@@ -120,13 +120,14 @@ impl CharacterBehavior for Data {
 
             // Move player forward while in first third of each stage
             if update.vel.0.magnitude_squared() < BASE_SPEED.powf(2.0) {
-                update.vel.0 += data.dt.0
-                    * ( adjusted_accel * Vec3::from(data.ori.0.xy())); 
+                update.vel.0 += data.dt.0 * (adjusted_accel * Vec3::from(data.ori.0.xy()));
                 let mag2 = update.vel.0.magnitude_squared();
                 if mag2 > BASE_SPEED.powf(2.0) {
                     update.vel.0 = update.vel.0.normalized() * BASE_SPEED;
                 }
             };
+        // update.vel.0 = Vec3::new(data.inputs.move_dir.x,
+        // data.inputs.move_dir.y, 0.0) * 5.0;
         } else {
             handle_orientation(data, &mut update, 50.0);
         }
@@ -140,6 +141,8 @@ impl CharacterBehavior for Data {
                 Stage::Second => self.base_damage,
                 Stage::Third => (self.base_damage as f32 * 1.5) as u32,
             };
+
+            update.vel.0 = Vec3::new(data.inputs.move_dir.x, data.inputs.move_dir.y, 0.0) * 5.0;
 
             // Try to deal damage in second half of stage
             data.updater.insert(data.entity, Attacking {
@@ -172,6 +175,8 @@ impl CharacterBehavior for Data {
             }
             // Player messed up inputs, don't transition
             else { None };
+
+            update.vel.0 = Vec3::new(data.inputs.move_dir.x, data.inputs.move_dir.y, 0.0) * 5.0;
 
             if let Some(stage) = next_stage {
                 CharacterState::TripleStrike(Data {

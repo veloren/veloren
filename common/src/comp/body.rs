@@ -128,8 +128,30 @@ impl Body {
         }
     }
 
-    // Note: currently assumes sphericality
-    pub fn height(&self) -> f32 { self.radius() * 2.0 }
+    pub fn height(&self) -> f32 {
+        match self {
+            Body::Humanoid(humanoid) => match humanoid.species {
+                humanoid::Species::Danari => 0.8,
+                humanoid::Species::Dwarf => 0.9,
+                humanoid::Species::Orc => 1.14,
+                humanoid::Species::Undead => 0.95,
+                _ => 1.0,
+            },
+            Body::QuadrupedSmall(_) => 0.6,
+            Body::QuadrupedMedium(_) => 0.5,
+            Body::Critter(_) => 0.4,
+            Body::BirdMedium(_) => 1.2,
+            Body::FishMedium(_) => 1.0,
+            Body::Dragon(_) => 5.0,
+            Body::BirdSmall(_) => 0.4,
+            Body::FishSmall(_) => 0.4,
+            Body::BipedLarge(_) => 4.0,
+            Body::Golem(_) => 5.0,
+            Body::QuadrupedLow(_) => 0.5,
+            Body::Object(_) => 0.6,
+            // _ => 0.5,
+        }
+    }
 
     pub fn base_health(&self) -> u32 {
         match self {
