@@ -148,12 +148,19 @@ impl Server {
                     Ok(vec) => vec,
                     Err(error) => {
                         tracing::warn!(?error, ?file, "Couldn't deserialize banned words file");
-                        return Err(Error::Other(error.to_string()));
+                        return Err(Error::Other(format!(
+                            "Couldn't read banned words file \"{}\"",
+                            path.to_string_lossy()
+                        )));
                     },
                 },
                 Err(error) => {
-                    tracing::warn!(?error, ?path, "couldn't open banned words file");
-                    return Err(Error::Other(error.to_string()));
+                    tracing::warn!(?error, ?path, "Couldn't open banned words file");
+                    return Err(Error::Other(format!(
+                        "Couldn't open banned words file \"{}\". Error: {}",
+                        path.to_string_lossy(),
+                        error
+                    )));
                 },
             };
             banned_words.append(&mut list);
