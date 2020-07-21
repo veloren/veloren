@@ -12,6 +12,8 @@ impl CharacterBehavior for Data {
 
         handle_move(&data, &mut update, 1.0);
         handle_jump(&data, &mut update);
+        handle_dodge_input(data, &mut update);
+        handle_wield(data, &mut update);
 
         // If not on the ground while wielding glider enter gliding state
         if !data.physics.on_ground && !data.physics.in_fluid {
