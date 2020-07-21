@@ -35,7 +35,7 @@ impl Animation for RunAnimation {
 
         let speed = Vec2::<f32>::from(velocity).magnitude();
         *rate = 1.0;
-        let impact = (avg_vel.z * 3000.0).max(-8.0);
+        let impact = (avg_vel.z).max(-8.0);
 
         let walkintensity = if speed > 5.0 { 1.0 } else { 0.45 };
         let walk = if speed > 5.0 { 1.0 } else { 0.5 };
