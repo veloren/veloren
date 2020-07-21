@@ -50,6 +50,22 @@ impl PlayState for MainMenuState {
             &crate::i18n::i18n_asset_key(&global_state.settings.language.selected_language),
         );
 
+        //Poll server creation
+        #[cfg(feature = "singleplayer")]
+        {
+            if let Some(singleplayer) = &global_state.singleplayer {
+                if let Ok(result) = singleplayer.receiver.try_recv() {
+                    if let Err(error) = result {
+                        tracing::error!(?error, "Could not start server");
+                        global_state.singleplayer = None;
+                        self.client_init = None;
+                        self.main_menu_ui.cancel_connection();
+                        self.main_menu_ui.show_info(format!("Error: {:?}", error));
+                    }
+                }
+            }
+        }
+
         // Handle window events.
         for event in events {
             match event {

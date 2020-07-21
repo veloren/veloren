@@ -1,7 +1,7 @@
 use client::Client;
 use common::clock::Clock;
-use crossbeam::channel::{unbounded, Receiver, Sender, TryRecvError};
-use server::{Event, Input, Server, ServerSettings};
+use crossbeam::channel::{bounded, unbounded, Receiver, Sender, TryRecvError};
+use server::{Error as ServerError, Event, Input, Server, ServerSettings};
 use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
@@ -23,6 +23,7 @@ enum Msg {
 pub struct Singleplayer {
     _server_thread: JoinHandle<()>,
     sender: Sender<Msg>,
+    pub receiver: Receiver<Result<(), ServerError>>,
     // Wether the server is stopped or not
     paused: Arc<AtomicBool>,
 }
@@ -47,8 +48,19 @@ impl Singleplayer {
         let paused = Arc::new(AtomicBool::new(false));
         let paused1 = paused.clone();
 
+        let (result_sender, result_receiver) = bounded(1);
+
         let thread = thread::spawn(move || {
-            let server = Server::new(settings2).expect("Failed to create server instance!");
+            let server = match Server::new(settings2) {
+                Ok(server) => {
+                    result_sender.send(Ok(())).unwrap();
+                    server
+                },
+                Err(error) => {
+                    result_sender.send(Err(error)).unwrap();
+                    return;
+                },
+            };
 
             let server = match thread_pool {
                 Some(pool) => server.with_thread_pool(pool),
@@ -62,6 +74,7 @@ impl Singleplayer {
             Singleplayer {
                 _server_thread: thread,
                 sender,
+                receiver: result_receiver,
                 paused,
             },
             settings,
