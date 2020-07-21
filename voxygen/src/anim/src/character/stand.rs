@@ -24,7 +24,7 @@ impl Animation for StandAnimation {
 
         let slow = (anim_time as f32 * 1.0).sin();
         let breathe = ((anim_time as f32 * 0.5).sin()).abs();
-        let impact = (avg_vel.z * 3000.0).max(-15.0);
+        let impact = (avg_vel.z).max(-15.0);
         let head_look = Vec2::new(
             ((global_time + anim_time) as f32 / 12.0)
                 .floor()
