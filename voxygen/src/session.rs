@@ -689,6 +689,9 @@ impl PlayState for SessionState {
                     num_visible_chunks: self.scene.terrain().visible_chunk_count() as u32,
                     num_figures: self.scene.figure_mgr().figure_count() as u32,
                     num_figures_visible: self.scene.figure_mgr().figure_count_visible() as u32,
+                    num_particles: self.scene.particle_mgr().particle_count() as u32,
+                    num_particles_visible: self.scene.particle_mgr().particle_count_visible()
+                        as u32,
                 },
                 &self.scene.camera(),
                 global_state.clock.get_last_delta(),

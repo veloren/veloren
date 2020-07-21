@@ -435,8 +435,12 @@ impl Scene {
             scene_data.figure_lod_render_distance,
         );
 
-        self.particle_mgr
-            .render(renderer, &self.globals, &self.lights, &self.shadows);
+        self.particle_mgr.render(
+            renderer,
+            &self.globals,
+            &self.lights,
+            &self.shadows,
+        );
 
         // Render the skybox.
         renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);
