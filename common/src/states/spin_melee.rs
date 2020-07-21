@@ -133,14 +133,6 @@ impl CharacterBehavior for Data {
             data.updater.remove::<Attacking>(data.entity);
         }
 
-        // Grant energy on successful hit
-        if let Some(attack) = data.attacking {
-            if attack.applied && attack.hit_count > 0 {
-                data.updater.remove::<Attacking>(data.entity);
-                update.energy.change_by(10, EnergySource::HitEnemy);
-            }
-        }
-
         update
     }
 }
