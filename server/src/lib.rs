@@ -376,13 +376,7 @@ impl Server {
         let before_new_connections = Instant::now();
 
         // 3) Handle inputs from clients
-        block_on(async {
-            //TIMEOUT 0.1 ms for msg handling
-            select!(
-                _ = Delay::new(std::time::Duration::from_micros(100)).fuse() => Ok(()),
-                err = self.handle_new_connections(&mut frontend_events).fuse() => err,
-            )
-        })?;
+        block_on(self.handle_new_connections(&mut frontend_events))?;
 
         let before_message_system = Instant::now();
 
@@ -629,16 +623,29 @@ impl Server {
         &mut self,
         frontend_events: &mut Vec<Event>,
     ) -> Result<(), Error> {
+        //TIMEOUT 0.1 ms for msg handling
+        const TIMEOUT: Duration = Duration::from_micros(100);
         loop {
-            let participant = self.network.connected().await?;
+            let participant = match select!(
+                _ = Delay::new(TIMEOUT).fuse() => None,
+                pr = self.network.connected().fuse() => Some(pr),
+            ) {
+                None => return Ok(()),
+                Some(pr) => pr?,
+            };
             debug!("New Participant connected to the server");
-            let singleton_stream = match participant.opened().await {
-                Ok(s) => s,
-                Err(e) => {
-                    warn!(
-                        ?e,
-                        "Failed to open a Stream from remote client. Dropping it"
-                    );
+
+            let singleton_stream = match select!(
+                _ = Delay::new(TIMEOUT*100).fuse() => None,
+                sr = participant.opened().fuse() => Some(sr),
+            ) {
+                None => {
+                    warn!("Either Slowloris attack or very slow client, dropping");
+                    return Ok(()); //return rather then continue to give removes a tick more to send data.
+                },
+                Some(Ok(s)) => s,
+                Some(Err(e)) => {
+                    warn!(?e, "Failed to open a Stream from remote client. dropping");
                     continue;
                 },
             };
