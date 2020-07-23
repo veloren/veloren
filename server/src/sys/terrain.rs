@@ -209,7 +209,7 @@ impl<'a> System<'a> for Sys {
                             "common.items.armor.foot.cultist_boots",
                         )),
                         back: Some(assets::load_expect_cloned(
-                            "common.items.armor.back.dungeon_purple_0",
+                            "common.items.armor.back.dungeon_purple-0",
                         )),
                         ring: None,
                         neck: None,
