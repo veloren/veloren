@@ -15,24 +15,32 @@ fn derive_uuid(username: &str) -> Uuid {
     Uuid::from_slice(&state.to_be_bytes()).unwrap()
 }
 
-pub struct AuthProvider {
+pub struct LoginProvider {
     accounts: HashMap<Uuid, String>,
     auth_server: Option<AuthClient>,
-    whitelist: Vec<String>,
 }
 
-impl AuthProvider {
-    pub fn new(auth_addr: Option<String>, whitelist: Vec<String>) -> Self {
+impl LoginProvider {
+    pub fn new(auth_addr: Option<String>) -> Self {
         let auth_server = match auth_addr {
             Some(addr) => Some(AuthClient::new(addr)),
             None => None,
         };
 
-        AuthProvider {
+        Self {
             accounts: HashMap::new(),
             auth_server,
-            whitelist,
         }
+    }
+
+    fn login(&mut self, uuid: Uuid, username: String) -> Result<(), RegisterError> {
+        // make sure that the user is not logged in already
+        if self.accounts.contains_key(&uuid) {
+            return Err(RegisterError::AlreadyLoggedIn);
+        }
+        info!(?username, "New User");
+        self.accounts.insert(uuid, username);
+        Ok(())
     }
 
     pub fn logout(&mut self, uuid: Uuid) {
@@ -41,7 +49,30 @@ impl AuthProvider {
         };
     }
 
-    pub fn query(&mut self, username_or_token: String) -> Result<(String, Uuid), RegisterError> {
+    pub fn try_login(
+        &mut self,
+        username_or_token: &str,
+        whitelist: &[String],
+    ) -> Result<(String, Uuid), RegisterError> {
+        self
+            // resolve user information
+            .query(username_or_token)
+            // if found, check name against whitelist or if user is admin
+            .and_then(|(username, uuid)| {
+                // user can only join if he is admin, the whitelist is empty (everyone can join)
+                // or his name is in the whitelist
+                if !whitelist.is_empty() && !whitelist.contains(&username) {
+                    return Err(RegisterError::NotOnWhitelist);
+                }
+
+                // add the user to self.accounts
+                self.login(uuid, username.clone())?;
+
+                Ok((username, uuid))
+            })
+    }
+
+    pub fn query(&mut self, username_or_token: &str) -> Result<(String, Uuid), RegisterError> {
         // Based on whether auth server is provided or not we expect an username or
         // token
         match &self.auth_server {
@@ -49,36 +80,19 @@ impl AuthProvider {
             Some(srv) => {
                 info!(?username_or_token, "Validating token");
                 // Parse token
-                let token = AuthToken::from_str(&username_or_token)
+                let token = AuthToken::from_str(username_or_token)
                     .map_err(|e| RegisterError::AuthError(e.to_string()))?;
                 // Validate token
                 let uuid = srv.validate(token)?;
-                // Check if already logged in
-                if self.accounts.contains_key(&uuid) {
-                    return Err(RegisterError::AlreadyLoggedIn);
-                }
                 let username = srv.uuid_to_username(uuid)?;
-                // Check if player is in whitelist
-                if self.whitelist.len() > 0 && !self.whitelist.contains(&username) {
-                    return Err(RegisterError::NotOnWhitelist);
-                }
-
-                // Log in
-                self.accounts.insert(uuid, username.clone());
                 Ok((username, uuid))
             },
             // Username is expected
             None => {
                 // Assume username was provided
                 let username = username_or_token;
-                let uuid = derive_uuid(&username);
-                if !self.accounts.contains_key(&uuid) {
-                    info!(?username, "New User");
-                    self.accounts.insert(uuid, username.clone());
-                    Ok((username, uuid))
-                } else {
-                    Err(RegisterError::AlreadyLoggedIn)
-                }
+                let uuid = derive_uuid(username);
+                Ok((username.to_string(), uuid))
             },
         }
     }
