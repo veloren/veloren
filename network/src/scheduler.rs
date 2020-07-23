@@ -3,7 +3,7 @@ use crate::metrics::NetworkMetrics;
 use crate::{
     api::{Participant, ProtocolAddr},
     channel::Handshake,
-    participant::{B2sPrioStatistic, BParticipant, S2bCreateChannel},
+    participant::{B2sPrioStatistic, BParticipant, S2bCreateChannel, S2bShutdownBparticipant},
     protocols::{Protocols, TcpProtocol, UdpProtocol},
     types::Pid,
 };
@@ -45,13 +45,12 @@ use tracing_futures::Instrument;
 struct ParticipantInfo {
     secret: u128,
     s2b_create_channel_s: mpsc::UnboundedSender<S2bCreateChannel>,
-    s2b_shutdown_bparticipant_s:
-        Option<oneshot::Sender<oneshot::Sender<async_std::io::Result<()>>>>,
+    s2b_shutdown_bparticipant_s: Option<oneshot::Sender<S2bShutdownBparticipant>>,
 }
 
 type A2sListen = (ProtocolAddr, oneshot::Sender<io::Result<()>>);
 type A2sConnect = (ProtocolAddr, oneshot::Sender<io::Result<Participant>>);
-type A2sDisconnect = (Pid, oneshot::Sender<async_std::io::Result<()>>);
+type A2sDisconnect = (Pid, S2bShutdownBparticipant);
 
 #[derive(Debug)]
 struct ControlChannels {
@@ -529,7 +528,6 @@ impl Scheduler {
                                 b2a_stream_opened_r,
                                 mut s2b_create_channel_s,
                                 s2b_shutdown_bparticipant_s,
-                                api_participant_closed,
                             ) = BParticipant::new(
                                 pid,
                                 sid,
@@ -543,7 +541,6 @@ impl Scheduler {
                                 a2b_stream_open_s,
                                 b2a_stream_opened_r,
                                 participant_channels.a2s_disconnect_s,
-                                api_participant_closed,
                             );
 
                             #[cfg(feature = "metrics")]
