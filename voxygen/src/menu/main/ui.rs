@@ -17,7 +17,7 @@ use conrod_core::{
     widget::{text_box::Event as TextBoxEvent, Button, Image, List, Rectangle, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
-use rand::{seq::SliceRandom, thread_rng};
+use rand::{seq::SliceRandom, thread_rng, Rng};
 use std::time::Duration;
 
 const COL1: Color = Color::Rgba(0.07, 0.1, 0.1, 0.9);
@@ -79,6 +79,9 @@ widget_ids! {
         info_bottom,
         // Auth Trust Prompt
         button_add_auth_trust,
+        // Loading Screen Tips
+        tip_txt_bg,
+        tip_txt,
     }
 }
 
@@ -165,9 +168,10 @@ pub struct MainMenuUi {
     bg_img_id: conrod_core::image::Id,
     voxygen_i18n: std::sync::Arc<VoxygenLocalization>,
     fonts: ConrodVoxygenFonts,
+    tip_no: u16,
 }
 
-impl MainMenuUi {
+impl<'a> MainMenuUi {
     pub fn new(global_state: &mut GlobalState) -> Self {
         let window = &mut global_state.window;
         let networking = &global_state.settings.networking;
@@ -203,6 +207,7 @@ impl MainMenuUi {
         let bg_img_id = ui.add_graphic(Graphic::Image(load_expect(
             bg_imgs.choose(&mut rng).unwrap(),
         )));
+        //let chosen_tip = *tips.choose(&mut rng).unwrap();
         // Load language
         let voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
             &global_state.settings.language.selected_language,
@@ -233,6 +238,7 @@ impl MainMenuUi {
             bg_img_id,
             voxygen_i18n,
             fonts,
+            tip_no: 0,
         }
     }
 
@@ -244,6 +250,13 @@ impl MainMenuUi {
         self.time = self.time + dt.as_secs_f32();
         let fade_msg = (self.time * 2.0).sin() * 0.5 + 0.51;
         let (ref mut ui_widgets, ref mut _tooltip_manager) = self.ui.set_widgets();
+        let tip_msg = format!(
+            "{} {}",
+            &self.voxygen_i18n.get("main.tip"),
+            &self.voxygen_i18n.get_variation("loading.tips", self.tip_no),
+        );
+        let tip_show = global_state.settings.gameplay.loading_tips;
+        let mut rng = thread_rng();
         let version = format!(
             "{}-{}",
             env!("CARGO_PKG_VERSION"),
@@ -251,6 +264,7 @@ impl MainMenuUi {
         );
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         const TEXT_COLOR_2: Color = Color::Rgba(1.0, 1.0, 1.0, 0.2);
+        const TEXT_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
         //const INACTIVE: Color = Color::Rgba(0.47, 0.47, 0.47, 0.47);
 
         let intro_text = &self.voxygen_i18n.get("main.login_process");
@@ -296,8 +310,22 @@ impl MainMenuUi {
                 _ => self.imgs.f5,
             })
             .w_h(74.0, 62.0)
-            .bottom_right_with_margins_on(self.ids.bg, 10.0, 10.0)
+            .bottom_left_with_margins_on(self.ids.bg, 10.0, 10.0)
             .set(self.ids.gears, ui_widgets);
+            if tip_show {
+                Text::new(&tip_msg)
+                    .color(TEXT_BG)
+                    .mid_bottom_with_margin_on(ui_widgets.window, 80.0)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(self.fonts.cyri.scale(20))
+                    .set(self.ids.tip_txt_bg, ui_widgets);
+                Text::new(&tip_msg)
+                    .color(TEXT_COLOR)
+                    .bottom_left_with_margins_on(self.ids.tip_txt_bg, 2.0, 2.0)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(self.fonts.cyri.scale(20))
+                    .set(self.ids.tip_txt, ui_widgets);
+            };
         };
 
         // Version displayed top right corner
@@ -358,16 +386,16 @@ impl MainMenuUi {
                 .middle_of(self.ids.login_error_bg)
                 .set(self.ids.error_frame, ui_widgets);
             if let PopupType::ConnectionInfo = popup_type {
-                text.mid_top_with_margin_on(self.ids.error_frame, 10.0)
-                    .font_id(self.fonts.alkhemi.conrod_id)
-                    .bottom_left_with_margins_on(ui_widgets.window, 60.0, 60.0)
-                    .font_size(self.fonts.cyri.scale(70))
-                    .set(self.ids.login_error, ui_widgets);
+                /*text.mid_top_with_margin_on(self.ids.error_frame, 10.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .bottom_left_with_margins_on(self.ids.bg, 30.0, 95.0)
+                .font_size(self.fonts.cyri.scale(35))
+                .set(self.ids.login_error, ui_widgets);*/
             } else {
                 text.mid_top_with_margin_on(self.ids.error_frame, 10.0)
                     .w(frame_w - 10.0 * 2.0)
                     .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(self.fonts.cyri.scale(25))
+                    .font_size(self.fonts.cyri.scale(20))
                     .set(self.ids.login_error, ui_widgets);
             };
             if Button::image(self.imgs.button)
@@ -533,7 +561,7 @@ impl MainMenuUi {
                     self.connect = true;
                     self.connecting = Some(std::time::Instant::now());
                     self.popup = Some(PopupData {
-                        msg: [self.voxygen_i18n.get("main.creating_world"), "..."].concat(),
+                        msg: [self.voxygen_i18n.get(""), ""].concat(),
                         popup_type: PopupType::ConnectionInfo,
                     });
                 };
@@ -716,6 +744,7 @@ impl MainMenuUi {
                     .set(self.ids.login_button, ui_widgets)
                     .was_clicked()
             {
+                self.tip_no = rng.gen();
                 login!();
             }
 
@@ -737,6 +766,7 @@ impl MainMenuUi {
                     .set(self.ids.singleplayer_button, ui_widgets)
                     .was_clicked()
                 {
+                    self.tip_no = rng.gen();
                     singleplayer!();
                 }
             }

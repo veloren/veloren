@@ -57,6 +57,9 @@ impl Animation for IdleAnimation {
         next.shorts.ori = Quaternion::rotation_x(0.0);
         next.shorts.scale = Vec3::one();
 
+        next.back.offset = Vec3::new(0.0, skeleton_attr.back.0, skeleton_attr.back.1);
+        next.back.scale = Vec3::one() * 1.02;
+
         next.l_hand.offset = Vec3::new(
             -skeleton_attr.hand.0,
             skeleton_attr.hand.1 + wave_ultra_slow_cos * 0.15,

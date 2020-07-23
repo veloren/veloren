@@ -720,6 +720,10 @@
         "voxel.armor.back.admin",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
+    Armor(Back(DungPurp0)): VoxTrans(
+        "voxel.armor.back.dung_purp-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    ),
     // Rings
     Armor(Ring(Ring0)): Png(
         "element.icons.ring-0",

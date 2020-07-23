@@ -499,6 +499,7 @@ pub struct GameplaySettings {
     pub auto_walk_behavior: PressBehavior,
     pub stop_auto_walk_on_input: bool,
     pub map_zoom: f64,
+    pub loading_tips: bool,
 }
 
 impl Default for GameplaySettings {
@@ -528,6 +529,7 @@ impl Default for GameplaySettings {
             auto_walk_behavior: PressBehavior::Toggle,
             stop_auto_walk_on_input: true,
             map_zoom: 4.0,
+            loading_tips: true,
         }
     }
 }

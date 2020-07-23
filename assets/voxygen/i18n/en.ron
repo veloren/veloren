@@ -95,6 +95,7 @@ Is the client up to date?"#,
         /// Start Main screen section
         "main.connecting": "Connecting",
         "main.creating_world": "Creating world",
+        "main.tip": "Tip:",
 
         // Welcome notice that appears the first time Veloren is started
         "main.notice": r#"Welcome to the alpha version of Veloren!
@@ -271,6 +272,7 @@ magically infused items?"#,
         "hud.settings.chat": "Chat",
         "hud.settings.background_transparency": "Background Transparency",
         "hud.settings.chat_character_name": "Character Names in chat",
+        "hud.settings.loading_tips": "Loading Screen Tips",
 
         "hud.settings.pan_sensitivity": "Pan Sensitivity",
         "hud.settings.zoom_sensitivity": "Zoom Sensitivity",
@@ -408,7 +410,7 @@ magically infused items?"#,
 
         /// Start character window section
         "character_window.character_name": "Character Name",
-        // Charater stats
+        // Character stats
         "character_window.character_stats": r#"Endurance
 
 Fitness
@@ -423,10 +425,30 @@ Protection
         /// Start Escape Menu Section
         "esc_menu.logout": "Logout",
         "esc_menu.quit_game": "Quit Game",
-        /// End Escape Menu Section
+        /// End Escape Menu Section        
+
     },
 
-    vector_map: {
+    
+    vector_map: {     
+        "loading.tips": [
+            "Press 'G' to light your lantern.",
+            "Press 'F1' to see all default keybindings.",
+            "You can type /say or /s to only chat with players directly around you.",
+            "You can type /region or /r to only chat with players a couple of hundred blocks around you.",
+            "To send private message type /tell followed by a player name and your message.",
+            "NPCs with the same level can have a different difficulty.",
+            "Look at the ground for food, chests and other loot!",
+            "Inventory filled with food? Try crafting better food from it!",
+            "Wondering what's there to do? Dungeons are marked with brown spots on the map!",    
+            "Don't forget to adjust the graphics for your system. Press 'N' to open the settings.",
+            "Playing with others is fun! Press 'O' to see who is online.", 
+            "An NPC with a skull beneath their healthbar is quite powerful compared to yourself.",
+            "Press 'J' to dance. Party!",
+            "Press 'L-Shift' to open your Glider and conquer the skies.",
+            "Veloren is still in Pre-Alpha. We do our best to improve it every day!",
+            "If you want to join the Dev-Team or just have a chat with us join our Discord-Server.",            
+        ],         
         "npc.speech.villager_under_attack": [
             "Help, I'm under attack!",
             "Help! I'm under attack!",
@@ -507,6 +529,6 @@ Protection
             "Please don't do that again.",
             "Guards, throw this monster in the lake!",
             "I'll set my tarrasque on you!",
-        ],
+        ],        
     }
 )

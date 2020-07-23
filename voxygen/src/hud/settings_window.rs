@@ -51,10 +51,10 @@ widget_ids! {
         languages_list,
         rectangle,
         general_txt,
+        load_tips_button,
+        load_tips_button_label,
         debug_button,
         debug_button_label,
-        tips_button,
-        tips_button_label,
         interface,
         language_text,
         mouse_pan_slider,
@@ -215,6 +215,7 @@ pub struct State {
 pub enum Event {
     ToggleHelp,
     ToggleDebug,
+    ToggleTips(bool),
     ToggleXpBar(XpBar),
     ToggleBarNumbers(BarNumbers),
     ToggleShortcutNumbers(ShortcutNumbers),
@@ -399,6 +400,31 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.show_help_label, ui);
 
+            // Loading Screen Tips
+            let show_tips = ToggleButton::new(
+                self.global_state.settings.gameplay.loading_tips,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
+            )
+            .w_h(18.0, 18.0)
+            .down_from(state.ids.button_help, 8.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.load_tips_button, ui);
+
+            if self.global_state.settings.gameplay.loading_tips != show_tips {
+                events.push(Event::ToggleTips(
+                    !self.global_state.settings.gameplay.loading_tips,
+                ));
+            }
+
+            Text::new(&self.localized_strings.get("hud.settings.loading_tips"))
+                .right_from(state.ids.load_tips_button, 10.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .graphics_for(state.ids.load_tips_button)
+                .color(TEXT_COLOR)
+                .set(state.ids.load_tips_button_label, ui);
             // Debug
             let show_debug = ToggleButton::new(
                 self.show.debug,
@@ -406,7 +432,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 self.imgs.checkbox_checked,
             )
             .w_h(18.0, 18.0)
-            .down_from(state.ids.button_help, 8.0)
+            .down_from(state.ids.load_tips_button, 8.0)
             .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
             .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
             .set(state.ids.debug_button, ui);
