@@ -306,8 +306,9 @@ pub const ALL_SHOULDERS: [Shoulder; 24] = [
 pub enum Back {
     Short0 = 1,
     Admin = 2,
+    DungPurp0 = 3,
 }
-pub const ALL_BACKS: [Back; 2] = [Back::Short0, Back::Admin];
+pub const ALL_BACKS: [Back; 3] = [Back::Short0, Back::Admin, Back::DungPurp0];
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
 pub enum Ring {

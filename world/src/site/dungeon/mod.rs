@@ -533,6 +533,9 @@ impl Floor {
                                     11 => comp::Item::expect_from_asset(
                                         "common.items.weapons.sword.cultist_purp_2h-0",
                                     ),
+                                    12 => comp::Item::expect_from_asset(
+                                        "common.items.armor.back.dungeon_purple-0",
+                                    ),
                                     _ => comp::Item::expect_from_asset(
                                         "common.items.boss_drops.exp_flask",
                                     ),

@@ -408,8 +408,7 @@ magischen Gegenstände ergattern?"#,
         /// End chracter selection section
         /// Start character window section
         "character_window.character_name": "Charakter",
-        // Charater stats
-        // Charater stats
+        // Character stats
         "character_window.character_stats": r#"Ausdauer
 
 Beweglichkeit
@@ -428,8 +427,26 @@ Willenskraft
     },
 
     vector_map: {
+        "loading.tips": [
+            "Drückt 'G', um Eure Laterne anzuzünden.",
+            "Drückt 'F1', um die Standard Tastenbelegung anzuzeigen.",
+            "Ihr könnt /say oder /s verwenden, um den Spielern in Eurer Nähe zu schreiben.",
+            "Verwendet /region oder /r, um mit Spielern in Eurem Gebiet zu schreiben.",
+            "Mit /tell könnt ihr einem Mitspieler direkte Nachrichten schicken.",
+            "NPCs mit demselben Level können unterschiedlich schwierig zu besiegen sein.",
+            "Behaltet den Boden um euch im Blick! Dort gibt es Nahrung, Kisten und Anderes zu finden.",
+            "Ist Euer Inventar voll mit Nahrung? Wertet es einfach durch Crafting auf!",
+            "Ihr sucht nach einem Abenteuer? Dungeons sind mit braunen Markierungen auf der Karte vermerkt!",    
+            "Vergesst nicht Eure Grafikeinstellungen anzupassen! Mit 'N' kommt ihr in die Einstellungen.",
+            "Zusammen kämpfen macht mehr Spaß! Drückt 'O' um Eure Mitspieler anzuzeigen.", 
+            "Ein NPC mit einem Schädel unter seiner Lebensanzeige ist deutlich stärker als Ihr.",
+            "Drückt 'J' um zu tanzen. Yeah!",
+            "Verwendet 'L-Shift' um mit Eurem Gleiter den Himmel zu erorbern!",
+            "Veloren befindet sich noch in der Pre-Alpha Phase. Wir tun unser Bestes, um das Spielgefühl jeden Tag zu verbessern!",
+            "Ihr wünscht, Euch mit uns auszutauschen oder wollt unserem Entwickler-Team beitreten? Kommt doch einfach auf unseren Discord-Server!",            
+        ],         
         "npc.speech.villager_under_attack": [
             "Hilfe, ich werde angegriffen!",            
-            ],
+        ],
     }
 )

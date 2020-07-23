@@ -746,6 +746,10 @@ impl PlayState for SessionState {
                         global_state.settings.gameplay.sct_player_batch = sct_player_batch;
                         global_state.settings.save_to_file_warn();
                     },
+                    HudEvent::ToggleTips(loading_tips) => {
+                        global_state.settings.gameplay.loading_tips = loading_tips;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::SctDamageBatch(sct_damage_batch) => {
                         global_state.settings.gameplay.sct_damage_batch = sct_damage_batch;
                         global_state.settings.save_to_file_warn();
