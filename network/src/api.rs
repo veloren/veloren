@@ -54,7 +54,6 @@ pub struct Participant {
     remote_pid: Pid,
     a2b_stream_open_s: RwLock<mpsc::UnboundedSender<A2bStreamOpen>>,
     b2a_stream_opened_r: RwLock<mpsc::UnboundedReceiver<Stream>>,
-    closed: Arc<RwLock<Result<(), ParticipantError>>>,
     a2s_disconnect_s: A2sDisconnect,
 }
 
@@ -78,9 +77,9 @@ pub struct Stream {
     mid: Mid,
     prio: Prio,
     promises: Promises,
+    send_closed: Arc<AtomicBool>,
     a2b_msg_s: crossbeam_channel::Sender<(Prio, Sid, OutgoingMessage)>,
     b2a_msg_recv_r: mpsc::UnboundedReceiver<IncomingMessage>,
-    closed: Arc<AtomicBool>,
     a2b_close_stream_s: Option<mpsc::UnboundedSender<Sid>>,
 }
 
@@ -427,14 +426,12 @@ impl Participant {
         a2b_stream_open_s: mpsc::UnboundedSender<A2bStreamOpen>,
         b2a_stream_opened_r: mpsc::UnboundedReceiver<Stream>,
         a2s_disconnect_s: mpsc::UnboundedSender<(Pid, S2bShutdownBparticipant)>,
-        closed: Arc<RwLock<Result<(), ParticipantError>>>,
     ) -> Self {
         Self {
             local_pid,
             remote_pid,
             a2b_stream_open_s: RwLock::new(a2b_stream_open_s),
             b2a_stream_opened_r: RwLock::new(b2a_stream_opened_r),
-            closed,
             a2s_disconnect_s: Arc::new(Mutex::new(Some(a2s_disconnect_s))),
         }
     }
@@ -483,12 +480,14 @@ impl Participant {
         //use this lock for now to make sure that only one open at a time is made,
         // TODO: not sure if we can paralise that, check in future
         let mut a2b_stream_open_s = self.a2b_stream_open_s.write().await;
-        self.closed.read().await.clone()?;
         let (p2a_return_stream_s, p2a_return_stream_r) = oneshot::channel();
-        a2b_stream_open_s
+        if let Err(e) = a2b_stream_open_s
             .send((prio, promises, p2a_return_stream_s))
             .await
-            .unwrap();
+        {
+            debug!(?e, "bParticipant is already closed, notifying");
+            return Err(ParticipantError::ParticipantDisconnected);
+        }
         match p2a_return_stream_r.await {
             Ok(stream) => {
                 let sid = stream.sid;
@@ -497,8 +496,7 @@ impl Participant {
             },
             Err(_) => {
                 debug!(?self.remote_pid, "p2a_return_stream_r failed, closing participant");
-                *self.closed.write().await = Err(ParticipantError::ProtocolFailedUnrecoverable);
-                Err(ParticipantError::ProtocolFailedUnrecoverable)
+                Err(ParticipantError::ParticipantDisconnected)
             },
         }
     }
@@ -540,7 +538,6 @@ impl Participant {
         //use this lock for now to make sure that only one open at a time is made,
         // TODO: not sure if we can paralise that, check in future
         let mut stream_opened_receiver = self.b2a_stream_opened_r.write().await;
-        self.closed.read().await.clone()?;
         match stream_opened_receiver.next().await {
             Some(stream) => {
                 let sid = stream.sid;
@@ -549,8 +546,7 @@ impl Participant {
             },
             None => {
                 debug!(?self.remote_pid, "stream_opened_receiver failed, closing participant");
-                *self.closed.write().await = Err(ParticipantError::ProtocolFailedUnrecoverable);
-                Err(ParticipantError::ProtocolFailedUnrecoverable)
+                Err(ParticipantError::ParticipantDisconnected)
             },
         }
     }
@@ -602,11 +598,6 @@ impl Participant {
         // Remove, Close and try_unwrap error when unwrap fails!
         let pid = self.remote_pid;
         debug!(?pid, "Closing participant from network");
-        {
-            let mut lock = self.closed.write().await;
-            lock.clone()?;
-            *lock = Err(ParticipantError::ParticipantDisconnected);
-        }
 
         //Streams will be closed by BParticipant
         match self.a2s_disconnect_s.lock().await.take() {
@@ -619,17 +610,14 @@ impl Participant {
                     .await
                     .expect("Something is wrong in internal scheduler coding");
                 match finished_receiver.await {
-                    Ok(Ok(())) => {
-                        trace!(?pid, "Participant is now closed");
-                        Ok(())
-                    },
-                    Ok(Err(e)) => {
-                        trace!(
-                            ?e,
-                            "Error occured during shutdown of participant and is propagated to \
-                             User"
-                        );
-                        Err(ParticipantError::ProtocolFailedUnrecoverable)
+                    Ok(res) => {
+                        match res {
+                            Ok(()) => trace!(?pid, "Participant is now closed"),
+                            Err(ref e) => {
+                                trace!(?pid, ?e, "Error occured during shutdown of participant")
+                            },
+                        };
+                        res
                     },
                     Err(e) => {
                         //this is a bug. but as i am Participant i can't destroy the network
@@ -664,9 +652,9 @@ impl Stream {
         sid: Sid,
         prio: Prio,
         promises: Promises,
+        send_closed: Arc<AtomicBool>,
         a2b_msg_s: crossbeam_channel::Sender<(Prio, Sid, OutgoingMessage)>,
         b2a_msg_recv_r: mpsc::UnboundedReceiver<IncomingMessage>,
-        closed: Arc<AtomicBool>,
         a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
     ) -> Self {
         Self {
@@ -675,9 +663,9 @@ impl Stream {
             mid: 0,
             prio,
             promises,
+            send_closed,
             a2b_msg_s,
             b2a_msg_recv_r,
-            closed,
             a2b_close_stream_s: Some(a2b_close_stream_s),
         }
     }
@@ -788,10 +776,9 @@ impl Stream {
     /// [`send`]: Stream::send
     /// [`Participants`]: crate::api::Participant
     pub fn send_raw(&mut self, messagebuffer: Arc<MessageBuffer>) -> Result<(), StreamError> {
-        if self.closed.load(Ordering::Relaxed) {
+        if self.send_closed.load(Ordering::Relaxed) {
             return Err(StreamError::StreamClosed);
         }
-        //debug!(?messagebuffer, "sending a message");
         self.a2b_msg_s.send((self.prio, self.sid, OutgoingMessage {
             buffer: messagebuffer,
             cursor: 0,
@@ -847,10 +834,7 @@ impl Stream {
     /// [`send_raw`]: Stream::send_raw
     /// [`recv`]: Stream::recv
     pub async fn recv_raw(&mut self) -> Result<MessageBuffer, StreamError> {
-        //no need to access self.closed here, as when this stream is closed the Channel
-        // is closed which will trigger a None
         let msg = self.b2a_msg_recv_r.next().await?;
-        //info!(?msg, "delivering a message");
         Ok(msg.buffer)
     }
 }
@@ -959,8 +943,8 @@ impl Drop for Participant {
 
 impl Drop for Stream {
     fn drop(&mut self) {
-        // a send if closed is unecessary but doesnt hurt, we must not crash here
-        if !self.closed.load(Ordering::Relaxed) {
+        // send if closed is unecessary but doesnt hurt, we must not crash
+        if !self.send_closed.load(Ordering::Relaxed) {
             let sid = self.sid;
             let pid = self.pid;
             debug!(?pid, ?sid, "Shutting down Stream");
