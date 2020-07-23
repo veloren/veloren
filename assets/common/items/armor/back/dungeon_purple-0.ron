@@ -1,0 +1,12 @@
+Item(
+    name: "Purple Cultist Cape",
+    description: "Smells like dark magic and candles.",
+    kind: Armor(
+        (
+            kind: Back(DungPurp0),
+            stats: (
+                protection: Normal(3.0),
+            ),
+        )
+    ),
+)

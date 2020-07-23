@@ -243,6 +243,7 @@ pub struct HudInfo {
 }
 
 pub enum Event {
+    ToggleTips(bool),
     SendMessage(String),
     AdjustMousePan(u32),
     AdjustMouseZoom(u32),
@@ -1716,6 +1717,9 @@ impl Hud {
                     },
                     settings_window::Event::ToggleHelp => self.show.help = !self.show.help,
                     settings_window::Event::ToggleDebug => self.show.debug = !self.show.debug,
+                    settings_window::Event::ToggleTips(loading_tips) => {
+                        events.push(Event::ToggleTips(loading_tips));
+                    },
                     settings_window::Event::ChangeTab(tab) => self.show.open_setting_tab(tab),
                     settings_window::Event::Close => {
                         // Unpause the game if we are on singleplayer so that we can logout

@@ -359,7 +359,8 @@ impl Animation for AlphaAnimation {
             Some(ToolKind::Staff(_)) => {
                 next.head.offset = Vec3::new(
                     0.0,
-                    0.0 + skeleton_attr.head.0 + decel * 0.8,
+                    0.0 + skeleton_attr.head.0, /* + decel * 0.8 */
+                    // Had some clipping issues
                     skeleton_attr.head.1,
                 );
                 next.head.ori = Quaternion::rotation_z(decel * 0.25)
