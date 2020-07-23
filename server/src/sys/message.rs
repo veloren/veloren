@@ -1,6 +1,6 @@
 use super::SysTimer;
 use crate::{
-    alias_validator::AliasValidator, auth_provider::AuthProvider, client::Client,
+    alias_validator::AliasValidator, client::Client, login_provider::LoginProvider,
     persistence::character::CharacterLoader, ServerSettings, CLIENT_TIMEOUT,
 };
 use common::{
@@ -45,7 +45,7 @@ impl Sys {
         force_updates: &ReadStorage<'_, ForceUpdate>,
         stats: &mut WriteStorage<'_, Stats>,
         chat_modes: &ReadStorage<'_, ChatMode>,
-        accounts: &mut WriteExpect<'_, AuthProvider>,
+        login_provider: &mut WriteExpect<'_, LoginProvider>,
         block_changes: &mut Write<'_, BlockChange>,
         admin_list: &ReadExpect<'_, AdminList>,
         admins: &mut WriteStorage<'_, Admin>,
@@ -86,13 +86,14 @@ impl Sys {
                     view_distance,
                     token_or_username,
                 } => {
-                    let (username, uuid) = match accounts.query(token_or_username.clone()) {
-                        Err(err) => {
-                            client.error_state(RequestStateError::RegisterDenied(err));
-                            break Ok(());
-                        },
-                        Ok((username, uuid)) => (username, uuid),
-                    };
+                    let (username, uuid) =
+                        match login_provider.try_login(&token_or_username, &settings.whitelist) {
+                            Err(err) => {
+                                client.error_state(RequestStateError::RegisterDenied(err));
+                                break Ok(());
+                            },
+                            Ok((username, uuid)) => (username, uuid),
+                        };
 
                     let vd =
                         view_distance.map(|vd| vd.min(settings.max_view_distance.unwrap_or(vd)));
@@ -411,7 +412,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, ForceUpdate>,
         WriteStorage<'a, Stats>,
         ReadStorage<'a, ChatMode>,
-        WriteExpect<'a, AuthProvider>,
+        WriteExpect<'a, LoginProvider>,
         Write<'a, BlockChange>,
         ReadExpect<'a, AdminList>,
         WriteStorage<'a, Admin>,
