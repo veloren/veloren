@@ -3,13 +3,13 @@
 #![feature(drain_filter, option_zip)]
 
 pub mod alias_validator;
-pub mod auth_provider;
 pub mod chunk_generator;
 pub mod client;
 pub mod cmd;
 pub mod error;
 pub mod events;
 pub mod input;
+pub mod login_provider;
 pub mod metrics;
 pub mod persistence;
 pub mod settings;
@@ -22,10 +22,10 @@ pub use crate::{error::Error, events::Event, input::Input, settings::ServerSetti
 
 use crate::{
     alias_validator::AliasValidator,
-    auth_provider::AuthProvider,
     chunk_generator::ChunkGenerator,
     client::{Client, RegionSubscription},
     cmd::ChatCommandExt,
+    login_provider::LoginProvider,
     state_ext::StateExt,
     sys::sentinel::{DeletedEntities, TrackedComps},
 };
@@ -99,10 +99,9 @@ impl Server {
         let mut state = State::default();
         state.ecs_mut().insert(settings.clone());
         state.ecs_mut().insert(EventBus::<ServerEvent>::default());
-        state.ecs_mut().insert(AuthProvider::new(
-            settings.auth_server_address.clone(),
-            settings.whitelist.clone(),
-        ));
+        state
+            .ecs_mut()
+            .insert(LoginProvider::new(settings.auth_server_address.clone()));
         state.ecs_mut().insert(Tick(0));
         state.ecs_mut().insert(ChunkGenerator::new());
         state

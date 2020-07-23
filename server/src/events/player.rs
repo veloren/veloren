@@ -1,6 +1,6 @@
 use super::Event;
 use crate::{
-    auth_provider::AuthProvider, client::Client, persistence, state_ext::StateExt, Server,
+    client::Client, login_provider::LoginProvider, persistence, state_ext::StateExt, Server,
 };
 use common::{
     comp,
@@ -68,11 +68,11 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
         state.notify_registered_clients(ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(*uid)))
     }
 
-    // Make sure to remove the player from the logged in list. (See AuthProvider)
+    // Make sure to remove the player from the logged in list. (See LoginProvider)
     // And send a disconnected message
     if let Some(player) = state.ecs().read_storage::<Player>().get(entity) {
-        let mut accounts = state.ecs().write_resource::<AuthProvider>();
-        accounts.logout(player.uuid());
+        let mut login_provider = state.ecs().write_resource::<LoginProvider>();
+        login_provider.logout(player.uuid());
 
         let msg = comp::ChatType::Offline.server_msg(format!("[{}] went offline.", &player.alias));
         state.notify_registered_clients(msg);
