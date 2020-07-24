@@ -20,9 +20,9 @@ impl Animation for JumpAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        next.head.offset = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1) / 11.0;
+        next.head.offset = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
         next.head.ori = Quaternion::rotation_z(-0.8) * Quaternion::rotation_x(0.5);
-        next.head.scale = Vec3::one() / 10.5;
+        next.head.scale = Vec3::one();
 
         next.chest.offset = Vec3::new(0.0, skeleton_attr.chest.0, skeleton_attr.chest.1) / 11.0;
         next.chest.ori = Quaternion::rotation_y(0.0);
@@ -32,33 +32,33 @@ impl Animation for JumpAnimation {
             -skeleton_attr.feet_f.0,
             skeleton_attr.feet_f.1,
             skeleton_attr.feet_f.2,
-        ) / 11.0;
+        );
         next.leg_fl.ori = Quaternion::rotation_x(0.0);
-        next.leg_fl.scale = Vec3::one() / 11.0;
+        next.leg_fl.scale = Vec3::one();
 
         next.leg_fr.offset = Vec3::new(
             skeleton_attr.feet_f.0,
             skeleton_attr.feet_f.1,
             skeleton_attr.feet_f.2,
-        ) / 11.0;
+        );
         next.leg_fr.ori = Quaternion::rotation_x(0.0);
-        next.leg_fr.scale = Vec3::one() / 11.0;
+        next.leg_fr.scale = Vec3::one();
 
         next.leg_bl.offset = Vec3::new(
             -skeleton_attr.feet_b.0,
             skeleton_attr.feet_b.1,
             skeleton_attr.feet_b.2,
-        ) / 11.0;
+        );
         next.leg_bl.ori = Quaternion::rotation_x(0.0);
-        next.leg_bl.scale = Vec3::one() / 11.0;
+        next.leg_bl.scale = Vec3::one();
 
         next.leg_br.offset = Vec3::new(
             skeleton_attr.feet_b.0,
             skeleton_attr.feet_b.1,
             skeleton_attr.feet_b.2,
-        ) / 11.0;
+        );
         next.leg_br.ori = Quaternion::rotation_x(0.0);
-        next.leg_br.scale = Vec3::one() / 11.0;
+        next.leg_br.scale = Vec3::one();
 
         next.tail.offset = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1);
         next.tail.ori = Quaternion::rotation_x(-0.3);
