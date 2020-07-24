@@ -48,11 +48,14 @@ image_ids_ice! {
         loading_art: "voxygen.element.frames.loading_screen.loading_bg",
         loading_art_l: "voxygen.element.frames.loading_screen.loading_bg_l",
         loading_art_r: "voxygen.element.frames.loading_screen.loading_bg_r",
+        selection: "voxygen.element.frames.selection",
+        selection_hover: "voxygen.element.frames.selection_hover",
+        selection_press: "voxygen.element.frames.selection_press",
     }
 }
 
 // Randomly loaded background images
-const BG_IMGS: [&str; 16] = [
+const BG_IMGS: [&str; 13] = [
     "voxygen.background.bg_1",
     "voxygen.background.bg_2",
     "voxygen.background.bg_3",
@@ -160,7 +163,7 @@ enum Message {
     #[cfg(feature = "singleplayer")]
     Singleplayer,
     Multiplayer,
-    LangaugeChanged(usize),
+    LanguageChanged(usize),
     OpenLanguageMenu,
     Username(String),
     Password(String),
@@ -289,6 +292,7 @@ impl Controls {
             ),
             Screen::Servers { screen } => screen.view(
                 &self.fonts,
+                &self.imgs,
                 &settings.networking.servers,
                 self.selected_server_index,
                 &self.i18n,
@@ -364,7 +368,7 @@ impl Controls {
                 });
             },
             Message::Username(new_value) => self.login_info.username = new_value,
-            Message::LangaugeChanged(new_value) => {
+            Message::LanguageChanged(new_value) => {
                 self.selected_language_index = Some(new_value);
                 events.push(Event::ChangeLanguage(language_metadatas.remove(new_value)));
             },
