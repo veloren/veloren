@@ -1,12 +1,19 @@
-use super::Message;
+use super::{Imgs, Message};
 use crate::{
     i18n::Localization,
     ui::{
         fonts::IcedFonts as Fonts,
-        ice::{component::neat_button, style, Element},
+        ice::{
+            component::neat_button,
+            style,
+            widget::background_container::{BackgroundContainer, Padding},
+            Element,
+        },
     },
 };
-use iced::{button, scrollable, Align, Button, Column, Container, Length, Scrollable, Text};
+use iced::{
+    button, scrollable, Align, Button, Column, Container, Length, Row, Scrollable, Space, Text,
+};
 
 pub struct Screen {
     back_button: button::State,
@@ -26,6 +33,7 @@ impl Screen {
     pub(super) fn view(
         &mut self,
         fonts: &Fonts,
+        imgs: &Imgs,
         servers: &[impl AsRef<str>],
         selected_server_index: Option<usize>,
         i18n: &Localization,
@@ -44,6 +52,7 @@ impl Screen {
             .align_x(Align::Center);
 
         let mut list = Scrollable::new(&mut self.servers_list)
+            .spacing(8)
             .align_items(Align::Start)
             .width(Length::Fill)
             .height(Length::Fill);
@@ -53,22 +62,26 @@ impl Screen {
         }
 
         for (i, (state, server)) in self.server_buttons.iter_mut().zip(servers).enumerate() {
-            let text = format!(
-                "{}{}",
-                if Some(i) == selected_server_index {
-                    "-> "
-                } else {
-                    "  "
-                },
-                server.as_ref(),
-            );
+            let color = if Some(i) == selected_server_index {
+                (97, 255, 18)
+            } else {
+                (97, 97, 25)
+            };
             let button = Button::new(
                 state,
-                Container::new(Text::new(text).size(fonts.cyri.scale(25)))
-                    .padding(5)
-                    .center_y(),
+                Container::new(Text::new(server.as_ref()).size(fonts.cyri.scale(30)))
+                    .padding(24)
+                    .center_y()
+                    .height(Length::Fill),
+            )
+            .style(
+                style::button::Style::new(imgs.selection)
+                    .hover_image(imgs.selection_hover)
+                    .press_image(imgs.selection_press)
+                    .image_color(vek::Rgba::new(color.0, color.1, color.2, 255)),
             )
             .width(Length::Fill)
+            .min_height(100)
             .on_press(Message::ServerChanged(i));
             list = list.push(button);
         }

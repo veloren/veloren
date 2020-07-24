@@ -222,6 +222,7 @@ impl LanguageSelectBanner {
                 .center_x();
 
         let mut list = Scrollable::new(&mut self.selection_list)
+            .spacing(8)
             .height(Length::Fill)
             .width(Length::Fill)
             .align_items(Align::Start);
@@ -236,23 +237,26 @@ impl LanguageSelectBanner {
             .zip(language_metadatas)
             .enumerate()
         {
-            let text = format!(
-                "{}{}",
-                if Some(i) == selected_language_index {
-                    "-> "
-                } else {
-                    "  "
-                },
-                lang.language_name,
-            );
+            let color = if Some(i) == selected_language_index {
+                (97, 255, 18)
+            } else {
+                (97, 97, 25)
+            };
             let button = Button::new(
                 state,
-                Container::new(Text::new(text).size(fonts.cyri.scale(25)))
-                    .padding(5)
+                Container::new(Text::new(lang.language_name.clone()).size(fonts.cyri.scale(25)))
+                    .padding(16)
                     .center_y(),
             )
+            .style(
+                style::button::Style::new(imgs.selection)
+                    .hover_image(imgs.selection_hover)
+                    .press_image(imgs.selection_press)
+                    .image_color(vek::Rgba::new(color.0, color.1, color.2, 192)),
+            )
             .width(Length::Fill)
-            .on_press(Message::LangaugeChanged(i));
+            .min_height(56)
+            .on_press(Message::LanguageChanged(i));
             list = list.push(button);
         }
 
