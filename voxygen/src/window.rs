@@ -1054,10 +1054,13 @@ impl Window {
                 window
                     .current_monitor()
                     .video_modes()
-                    .filter(|mode| mode.bit_depth() >= 24)
+                    .filter(|mode| mode.bit_depth() >= 24 && mode.refresh_rate() >= 59)
                     .max_by_key(|mode| mode.size().width)
                     .unwrap_or_else(|| {
-                        warn!("No video mode with a bit depth of at least 24 found");
+                        warn!(
+                            "No video mode with a bit depth of at least 24 and a refresh rate of \
+                             at least 60Hz found"
+                        );
                         window
                             .current_monitor()
                             .video_modes()
