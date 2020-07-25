@@ -5,7 +5,7 @@ Item(
         (
             kind: Shoulder(CultistPurple),
             stats: (
-                protection: Normal(3.0),
+                protection: Normal(18.0),
             ),
         )
     ),

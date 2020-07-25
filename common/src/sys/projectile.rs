@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        projectile, Alignment, Energy, EnergySource, HealthSource, Ori, PhysicsState, Pos,
-        Projectile, Vel,
+        projectile, Alignment, Damage, DamageSource, Energy, EnergySource, HealthChange,
+        HealthSource, Loadout, Ori, PhysicsState, Pos, Projectile, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
@@ -29,6 +29,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Projectile>,
         WriteStorage<'a, Energy>,
         ReadStorage<'a, Alignment>,
+        ReadStorage<'a, Loadout>,
     );
 
     fn run(
@@ -46,6 +47,7 @@ impl<'a> System<'a> for Sys {
             mut projectiles,
             mut energies,
             alignments,
+            loadouts,
         ): Self::SystemData,
     ) {
         let mut local_emitter = local_bus.emitter();
@@ -84,8 +86,19 @@ impl<'a> System<'a> for Sys {
             else if let Some(other) = physics.touch_entity {
                 for effect in projectile.hit_entity.drain(..) {
                     match effect {
-                        projectile::Effect::Damage(change) => {
+                        projectile::Effect::Damage(healthchange) => {
                             let owner_uid = projectile.owner.unwrap();
+                            let mut damage = Damage {
+                                healthchange: healthchange as f32,
+                                source: DamageSource::Projectile,
+                            };
+                            if let Some(entity) =
+                                uid_allocator.retrieve_entity_internal(other.into())
+                            {
+                                if let Some(loadout) = loadouts.get(entity) {
+                                    damage.modify_damage(false, loadout);
+                                }
+                            }
                             // Hacky: remove this when groups get implemented
                             let passive = uid_allocator
                                 .retrieve_entity_internal(other.into())
@@ -96,7 +109,13 @@ impl<'a> System<'a> for Sys {
                                 })
                                 .unwrap_or(false);
                             if other != projectile.owner.unwrap() && !passive {
-                                server_emitter.emit(ServerEvent::Damage { uid: other, change });
+                                server_emitter.emit(ServerEvent::Damage {
+                                    uid: other,
+                                    change: HealthChange {
+                                        amount: damage.healthchange as i32,
+                                        cause: HealthSource::Attack { by: owner_uid },
+                                    },
+                                });
                             }
                         },
                         projectile::Effect::Knockback(knockback) => {

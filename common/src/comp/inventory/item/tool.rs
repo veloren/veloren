@@ -2,8 +2,7 @@
 // version in voxygen\src\meta.rs in order to reset save files to being empty
 
 use crate::comp::{
-    body::object, projectile, Body, CharacterAbility, Gravity, HealthChange, HealthSource,
-    LightEmitter, Projectile,
+    body::object, projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -262,11 +261,7 @@ impl Tool {
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
-                            projectile::Effect::Damage(HealthChange {
-                                // TODO: This should not be fixed (?)
-                                amount: -3,
-                                cause: HealthSource::Projectile { owner: None },
-                            }),
+                            projectile::Effect::Damage(-3),
                             projectile::Effect::Knockback(10.0),
                             projectile::Effect::RewardEnergy(100),
                             projectile::Effect::Vanish,
@@ -286,11 +281,7 @@ impl Tool {
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
-                            projectile::Effect::Damage(HealthChange {
-                                // TODO: This should not be fixed (?)
-                                amount: -9,
-                                cause: HealthSource::Projectile { owner: None },
-                            }),
+                            projectile::Effect::Damage(-9),
                             projectile::Effect::Knockback(15.0),
                             projectile::Effect::RewardEnergy(50),
                             projectile::Effect::Vanish,
@@ -336,11 +327,7 @@ impl Tool {
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Vanish],
                         hit_entity: vec![
-                            projectile::Effect::Damage(HealthChange {
-                                // TODO: This should not be fixed (?)
-                                amount: -3,
-                                cause: HealthSource::Projectile { owner: None },
-                            }),
+                            projectile::Effect::Damage(-3),
                             projectile::Effect::RewardEnergy(150),
                             projectile::Effect::Vanish,
                         ],
