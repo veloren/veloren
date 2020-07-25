@@ -1,4 +1,4 @@
-use super::{Imgs, Message};
+use super::{Imgs, Message, FILL_FRAC_ONE};
 use crate::{
     i18n::Localization,
     ui::{
@@ -48,7 +48,7 @@ impl Screen {
             Container::new(neat_button(
                 &mut self.back_button,
                 i18n.get("common.back"),
-                0.77_f32,
+                FILL_FRAC_ONE,
                 button_style,
                 Some(Message::Back),
             ))
@@ -63,33 +63,50 @@ impl Screen {
             .width(Length::Fill)
             .height(Length::Fill);
 
+        // Reset button states if servers were added / removed
         if self.server_buttons.len() != servers.len() {
             self.server_buttons = vec![Default::default(); servers.len()];
         }
 
-        for (i, (state, server)) in self.server_buttons.iter_mut().zip(servers).enumerate() {
-            let color = if Some(i) == selected_server_index {
-                (97, 255, 18)
-            } else {
-                (97, 97, 25)
-            };
-            let button = Button::new(
-                state,
-                Container::new(Text::new(server.as_ref()).size(fonts.cyri.scale(30)))
-                    .padding(24)
-                    .center_y()
-                    .height(Length::Fill),
-            )
-            .style(
-                style::button::Style::new(imgs.selection)
-                    .hover_image(imgs.selection_hover)
-                    .press_image(imgs.selection_press)
-                    .image_color(vek::Rgba::new(color.0, color.1, color.2, 255)),
-            )
-            .width(Length::Fill)
-            .min_height(100)
-            .on_press(Message::ServerChanged(i));
-            list = list.push(button);
+        let list_items =
+            self.server_buttons
+                .iter_mut()
+                .zip(servers)
+                .enumerate()
+                .map(|(i, (state, server))| {
+                    let color = if Some(i) == selected_server_index {
+                        (97, 255, 18)
+                    } else {
+                        (97, 97, 25)
+                    };
+                    let button = Button::new(
+                        state,
+                        Row::with_children(vec![
+                            Space::new(Length::FillPortion(5), Length::Units(0)).into(),
+                            Text::new(server.as_ref())
+                                .size(fonts.cyri.scale(30))
+                                .width(Length::FillPortion(95))
+                                .vertical_alignment(iced::VerticalAlignment::Center)
+                                .into(),
+                        ]),
+                    )
+                    .style(
+                        style::button::Style::new(imgs.selection)
+                            .hover_image(imgs.selection_hover)
+                            .press_image(imgs.selection_press)
+                            .image_color(vek::Rgba::new(color.0, color.1, color.2, 255)),
+                    )
+                    .min_height(100)
+                    .on_press(Message::ServerChanged(i));
+                    Row::with_children(vec![
+                        Space::new(Length::FillPortion(3), Length::Units(0)).into(),
+                        button.width(Length::FillPortion(92)).into(),
+                        Space::new(Length::FillPortion(5), Length::Units(0)).into(),
+                    ])
+                });
+
+        for item in list_items {
+            list = list.push(item);
         }
 
         Container::new(

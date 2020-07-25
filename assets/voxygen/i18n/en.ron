@@ -114,7 +114,6 @@ Is the client up to date?"#,
         "main.connecting": "Connecting",
         "main.creating_world": "Creating world",
         "main.tip": "Tip:",
-		"main.select_language": "Select a language",
 
         // Welcome notice that appears the first time Veloren is started
         "main.notice": r#"Welcome to the alpha version of Veloren!
@@ -159,6 +158,7 @@ https://veloren.net/account/."#,
         "main.login.not_on_whitelist": "You need a Whitelist entry by an Admin to join",
         "main.login.banned": "You have been banned with the following reason",
         "main.login.kicked": "You have been kicked with the following reason",
+        "main.login.select_language": "Select a language",
 
 		"main.servers.select_server": "Select a server",
 
