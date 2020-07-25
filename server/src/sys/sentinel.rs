@@ -2,8 +2,7 @@ use super::SysTimer;
 use common::{
     comp::{
         Alignment, Body, CanBuild, CharacterState, Collider, Energy, Gravity, Item, LightEmitter,
-        Loadout, Mass, MountState, Mounting, Ori, Player, Pos,
-        Scale, Stats, Sticky, Vel,
+        Loadout, Mass, MountState, Mounting, Ori, Player, Pos, Scale, Stats, Sticky, Vel,
     },
     msg::EcsCompPacket,
     sync::{CompSyncPackage, EntityPackage, EntitySyncPackage, Uid, UpdateTracker, WorldSyncExt},

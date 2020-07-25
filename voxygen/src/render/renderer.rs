@@ -4,7 +4,9 @@ use super::{
     instances::Instances,
     mesh::Mesh,
     model::{DynamicModel, Model},
-    pipelines::{figure, fluid, postprocess, skybox, sprite, particle, terrain, ui, Globals, Light, Shadow},
+    pipelines::{
+        figure, fluid, particle, postprocess, skybox, sprite, terrain, ui, Globals, Light, Shadow,
+    },
     texture::Texture,
     AaMode, CloudMode, FluidMode, Pipeline, RenderError,
 };
@@ -951,17 +953,17 @@ fn create_pipelines(
         gfx::state::CullFace::Back,
     )?;
 
-        // Construct a pipeline for rendering particles
-        let particle_pipeline = create_pipeline(
-            factory,
-            particle::pipe::new(),
-            &assets::load_watched::<String>("voxygen.shaders.particle-vert", shader_reload_indicator)
-                .unwrap(),
-            &assets::load_watched::<String>("voxygen.shaders.particle-frag", shader_reload_indicator)
-                .unwrap(),
-            &include_ctx,
-            gfx::state::CullFace::Back,
-        )?;
+    // Construct a pipeline for rendering particles
+    let particle_pipeline = create_pipeline(
+        factory,
+        particle::pipe::new(),
+        &assets::load_watched::<String>("voxygen.shaders.particle-vert", shader_reload_indicator)
+            .unwrap(),
+        &assets::load_watched::<String>("voxygen.shaders.particle-frag", shader_reload_indicator)
+            .unwrap(),
+        &include_ctx,
+        gfx::state::CullFace::Back,
+    )?;
 
     // Construct a pipeline for rendering UI elements
     let ui_pipeline = create_pipeline(

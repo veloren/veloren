@@ -34,35 +34,10 @@ const MODEL_KEY: &str = "voxygen.voxel.particle";
 
 impl ParticleMgr {
     pub fn new(renderer: &mut Renderer) -> Self {
-        let mut model_cache = HashMap::new();
-
-        model_cache.entry(MODEL_KEY).or_insert_with(|| {
-            let offset = Vec3::zero();
-            let lod_scale = Vec3::one();
-
-            let vox = assets::load_expect::<DotVoxData>(MODEL_KEY);
-
-            let mesh = &Meshable::<ParticlePipeline, ParticlePipeline>::generate_mesh(
-                &Segment::from(vox.as_ref()),
-                (offset * lod_scale, Vec3::one() / lod_scale),
-            )
-            .0;
-
-            renderer
-                .create_model(mesh)
-                .expect("Failed to create particle model");
-        });
-
-        let insts = Vec::new();
-
-        let instances = renderer
-            .create_instances(&insts)
-            .expect("Failed to upload particle instances to the GPU!");
-
         Self {
             particles: Vec::new(),
-            instances,
-            model_cache,
+            instances: default_instances(renderer),
+            model_cache: default_cache(renderer),
         }
     }
 
@@ -269,4 +244,35 @@ impl ParticleMgr {
             renderer.render_particles(model, globals, &self.instances, lights, shadows);
         }
     }
+}
+
+fn default_instances(renderer: &mut Renderer) -> Instances<ParticleInstance> {
+    let empty_vec = Vec::new();
+
+    renderer
+        .create_instances(&empty_vec)
+        .expect("Failed to upload particle instances to the GPU!")
+}
+
+fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<ParticlePipeline>> {
+    let mut model_cache = HashMap::new();
+
+    model_cache.entry(MODEL_KEY).or_insert_with(|| {
+        let offset = Vec3::zero();
+        let lod_scale = Vec3::one();
+
+        let vox = assets::load_expect::<DotVoxData>(MODEL_KEY);
+
+        let mesh = &Meshable::<ParticlePipeline, ParticlePipeline>::generate_mesh(
+            &Segment::from(vox.as_ref()),
+            (offset * lod_scale, Vec3::one() / lod_scale),
+        )
+        .0;
+
+        renderer
+            .create_model(mesh)
+            .expect("Failed to create particle model")
+    });
+
+    model_cache
 }
