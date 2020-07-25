@@ -34,7 +34,7 @@ use common::{
 use futures_executor::block_on;
 use futures_timer::Delay;
 use futures_util::{select, FutureExt};
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use image::DynamicImage;
 use network::{
     Network, Participant, Pid, ProtocolAddr, Stream, PROMISES_CONSISTENCY, PROMISES_ORDERED,
