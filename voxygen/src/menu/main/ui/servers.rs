@@ -39,17 +39,23 @@ impl Screen {
         i18n: &Localization,
         button_style: style::button::Style,
     ) -> Element<Message> {
-        let button = neat_button(
-            &mut self.back_button,
-            i18n.get("common.back"),
-            0.77_f32,
-            button_style,
-            Some(Message::Back),
-        );
-
-        let button = Container::new(Container::new(button).max_width(200))
+        let title = Text::new(i18n.get("main.servers.select_server"))
+            .size(fonts.cyri.scale(35))
             .width(Length::Fill)
-            .align_x(Align::Center);
+            .horizontal_alignment(iced::HorizontalAlignment::Center);
+
+        let back_button = Container::new(
+            Container::new(neat_button(
+                &mut self.back_button,
+                i18n.get("common.back"),
+                0.77_f32,
+                button_style,
+                Some(Message::Back),
+            ))
+            .max_width(200),
+        )
+        .width(Length::Fill)
+        .align_x(Align::Center);
 
         let mut list = Scrollable::new(&mut self.servers_list)
             .spacing(8)
@@ -88,7 +94,7 @@ impl Screen {
 
         Container::new(
             Container::new(
-                Column::with_children(vec![list.into(), button.into()])
+                Column::with_children(vec![title.into(), list.into(), back_button.into()])
                     .width(Length::Fill)
                     .height(Length::Fill)
                     .spacing(10)

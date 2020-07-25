@@ -217,9 +217,9 @@ impl LanguageSelectBanner {
         selected_language_index: Option<usize>,
         button_style: style::button::Style,
     ) -> Element<Message> {
-        let title =
-            Container::new(Text::new(i18n.get("main.select_language")).size(fonts.cyri.scale(35)))
-                .center_x();
+        let title = Text::new(i18n.get("main.select_language"))
+            .size(fonts.cyri.scale(35))
+            .horizontal_alignment(iced::HorizontalAlignment::Center);
 
         let mut list = Scrollable::new(&mut self.selection_list)
             .spacing(8)
