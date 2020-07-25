@@ -156,6 +156,7 @@ impl Civs {
                         - (site.center - pos).map(|e| e as f32).magnitude() / flatten_radius)
                         * 1.25)
                         .min(1.0);
+                    let rng = &mut ctx.rng;
                     ctx.sim
                         .get_mut(pos)
                         // Don't disrupt chunks that are near water
@@ -166,6 +167,7 @@ impl Civs {
                             chunk.basement += diff;
                             chunk.rockiness = 0.0;
                             chunk.warp_factor = 0.0;
+                            chunk.surface_veg *= 1.0 - factor * rng.gen_range(0.25, 0.9);
                         });
                 }
             }
