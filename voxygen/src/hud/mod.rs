@@ -269,7 +269,6 @@ pub enum Event {
     ToggleSmoothPan(bool),
     AdjustViewDistance(u32),
     AdjustSpriteRenderDistance(u32),
-    AdjustParticleRenderDistance(u32),
     AdjustFigureLoDRenderDistance(u32),
     AdjustMusicVolume(f32),
     AdjustSfxVolume(f32),
@@ -279,6 +278,7 @@ pub enum Event {
     ChangeGamma(f32),
     MapZoom(f64),
     AdjustWindowSize([u16; 2]),
+    ToggleParticlesEnabled(bool),
     ToggleFullscreen,
     ChangeAaMode(AaMode),
     ChangeCloudMode(CloudMode),
@@ -1910,6 +1910,9 @@ impl Hud {
                     },
                     settings_window::Event::ChangeLanguage(language) => {
                         events.push(Event::ChangeLanguage(language));
+                    },
+                    settings_window::Event::ToggleParticlesEnabled(particles_enabled) => {
+                        events.push(Event::ToggleParticlesEnabled(particles_enabled));
                     },
                     settings_window::Event::ToggleFullscreen => {
                         events.push(Event::ToggleFullscreen);

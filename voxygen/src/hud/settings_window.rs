@@ -111,6 +111,8 @@ widget_ids! {
         cloud_mode_list,
         fluid_mode_text,
         fluid_mode_list,
+        particles_button,
+        particles_label,
         fullscreen_button,
         fullscreen_label,
         save_window_size_button,
@@ -232,6 +234,7 @@ pub enum Event {
     AdjustFOV(u16),
     AdjustGamma(f32),
     AdjustWindowSize([u16; 2]),
+    ToggleParticlesEnabled(bool),
     ToggleFullscreen,
     ChangeAaMode(AaMode),
     ChangeCloudMode(CloudMode),
@@ -1845,7 +1848,6 @@ impl<'a> Widget for SettingsWindow<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.sprite_dist_text, ui);
 
-
             Text::new(&format!(
                 "{}",
                 self.global_state.settings.graphics.sprite_render_distance
@@ -1898,8 +1900,6 @@ impl<'a> Widget for SettingsWindow<'a> {
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(state.ids.figure_dist_value, ui);
-
-            // TODO: Particle View Distance slider.
 
             // AaMode
             Text::new(&self.localized_strings.get("hud.settings.antialiasing_mode"))
@@ -2016,11 +2016,34 @@ impl<'a> Widget for SettingsWindow<'a> {
                 events.push(Event::ChangeFluidMode(mode_list[clicked]));
             }
 
+            // Particles
+            Text::new(&self.localized_strings.get("hud.settings.particles"))
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .down_from(state.ids.fluid_mode_list, 8.0)
+                .color(TEXT_COLOR)
+                .set(state.ids.particles_label, ui);
+
+            let particles_enabled = ToggleButton::new(
+                self.global_state.settings.graphics.particles_enabled,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
+            )
+            .w_h(18.0, 18.0)
+            .right_from(state.ids.particles_label, 10.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.particles_button, ui);
+
+            if self.global_state.settings.graphics.particles_enabled != particles_enabled {
+                events.push(Event::ToggleParticlesEnabled(particles_enabled));
+            }
+
             // Fullscreen
             Text::new(&self.localized_strings.get("hud.settings.fullscreen"))
                 .font_size(self.fonts.cyri.scale(14))
                 .font_id(self.fonts.cyri.conrod_id)
-                .down_from(state.ids.fluid_mode_list, 8.0)
+                .down_from(state.ids.particles_label, 8.0)
                 .color(TEXT_COLOR)
                 .set(state.ids.fullscreen_label, ui);
 

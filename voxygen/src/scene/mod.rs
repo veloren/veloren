@@ -81,7 +81,7 @@ pub struct SceneData<'a> {
     pub gamma: f32,
     pub mouse_smoothing: bool,
     pub sprite_render_distance: f32,
-    pub particle_render_distance: f32,
+    pub particles_enabled: bool,
     pub figure_lod_render_distance: f32,
     pub is_aiming: bool,
 }
@@ -377,7 +377,6 @@ impl Scene {
                 scene_data.gamma,
                 self.camera.get_mode(),
                 scene_data.sprite_render_distance as f32 - 20.0,
-                scene_data.particle_render_distance as f32 - 20.0,
             )])
             .expect("Failed to update global constants");
 
@@ -437,6 +436,7 @@ impl Scene {
 
         self.particle_mgr.render(
             renderer,
+            scene_data,
             &self.globals,
             &self.lights,
             &self.shadows,
