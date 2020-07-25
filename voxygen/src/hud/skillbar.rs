@@ -1153,15 +1153,14 @@ impl<'a> Widget for Skillbar<'a> {
             .w_h(100.0 * scale, 20.0 * scale)
             .top_left_with_margins_on(state.ids.m1_slot, 0.0, -100.0 * scale)
             .set(state.ids.healthbar_bg, ui);
+        let health_col = match hp_percentage as u8 {
+            0..=20 => crit_hp_color,
+            21..=40 => LOW_HP_COLOR,
+            _ => HP_COLOR,
+        };
         Image::new(self.imgs.bar_content)
             .w_h(97.0 * scale * hp_percentage / 100.0, 16.0 * scale)
-            .color(Some(if hp_percentage <= 20.0 {
-                crit_hp_color
-            } else if hp_percentage <= 40.0 {
-                LOW_HP_COLOR
-            } else {
-                HP_COLOR
-            }))
+            .color(Some(health_col))
             .top_right_with_margins_on(state.ids.healthbar_bg, 2.0 * scale, 1.0 * scale)
             .set(state.ids.healthbar_filling, ui);
         // Energybar

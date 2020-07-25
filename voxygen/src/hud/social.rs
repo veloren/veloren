@@ -105,8 +105,10 @@ impl<'a> Widget for Social<'a> {
 
         let mut events = Vec::new();
 
+        let pos = if self.show.group { 180.0 } else { 25.0 };
+
         Image::new(self.imgs.window_3)
-            .top_left_with_margins_on(ui.window, 200.0, 25.0)
+            .top_left_with_margins_on(ui.window, 200.0, pos)
             .color(Some(UI_MAIN))
             .w_h(103.0 * 4.0, 122.0 * 4.0)
             .set(state.ids.social_frame, ui);

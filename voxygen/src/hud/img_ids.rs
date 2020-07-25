@@ -76,6 +76,8 @@ image_ids! {
 
         // Group Window
 
+        member_frame: "voxygen.element.frames.group_member_frame",
+        member_bg: "voxygen.element.frames.group_member_bg",
 
         // Chat-Arrows
         chat_arrow: "voxygen.element.buttons.arrow_down",

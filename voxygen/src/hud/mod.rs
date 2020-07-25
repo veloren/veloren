@@ -82,6 +82,7 @@ const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
 const LOW_HP_COLOR: Color = Color::Rgba(0.93, 0.59, 0.03, 1.0);
 const CRITICAL_HP_COLOR: Color = Color::Rgba(0.79, 0.19, 0.17, 1.0);
 const MANA_COLOR: Color = Color::Rgba(0.29, 0.62, 0.75, 0.9);
+const TRANSPARENT: Color = Color::Rgba(0.0, 0.0, 0.0, 0.0);
 //const FOCUS_COLOR: Color = Color::Rgba(1.0, 0.56, 0.04, 1.0);
 //const RAGE_COLOR: Color = Color::Rgba(0.5, 0.04, 0.13, 1.0);
 
@@ -370,6 +371,7 @@ pub struct Show {
     social: bool,
     spell: bool,
     group: bool,
+    group_menu: bool,
     esc_menu: bool,
     open_windows: Windows,
     map: bool,
@@ -404,11 +406,6 @@ impl Show {
         }
     }
 
-    fn group(&mut self, open: bool) {
-        self.group = open;
-        self.want_grab = !open;
-    }
-
     fn social(&mut self, open: bool) {
         if !self.esc_menu {
             self.social = open;
@@ -436,8 +433,6 @@ impl Show {
     }
 
     fn toggle_map(&mut self) { self.map(!self.map) }
-
-    fn toggle_group(&mut self) { self.group(!self.group) }
 
     fn toggle_mini_map(&mut self) { self.mini_map = !self.mini_map; }
 
@@ -624,6 +619,7 @@ impl Hud {
                 social: false,
                 spell: false,
                 group: false,
+                group_menu: false,
                 mini_map: true,
                 settings_tab: SettingsTab::Interface,
                 social_tab: SocialTab::Online,
@@ -1610,7 +1606,6 @@ impl Hud {
                 Some(buttons::Event::ToggleSpell) => self.show.toggle_spell(),
                 Some(buttons::Event::ToggleMap) => self.show.toggle_map(),
                 Some(buttons::Event::ToggleCrafting) => self.show.toggle_crafting(),
-                Some(buttons::Event::ToggleGroup) => self.show.toggle_group(),
                 None => {},
             }
         }
@@ -1949,25 +1944,27 @@ impl Hud {
             }
         }
         // Group Window
-        if self.show.group {
-            for event in Group::new(
-                &mut self.show,
-                client,
-                &global_state.settings,
-                &self.imgs,
-                &self.fonts,
-                &self.voxygen_i18n,
-            )
-            .set(self.ids.group_window, ui_widgets)
-            {
-                match event {
-                    group::Event::Close => self.show.social(false),
-                    group::Event::Accept => events.push(Event::AcceptInvite),
-                    group::Event::Decline => events.push(Event::DeclineInvite),
-                    group::Event::Kick(uid) => events.push(Event::KickMember(uid)),
-                    group::Event::LeaveGroup => events.push(Event::LeaveGroup),
-                    group::Event::AssignLeader(uid) => events.push(Event::AssignLeader(uid)),
-                }
+
+        for event in Group::new(
+            &mut self.show,
+            client,
+            &global_state.settings,
+            &self.imgs,
+            &self.fonts,
+            &self.voxygen_i18n,
+            tooltip_manager,
+            &self.rot_imgs,
+            self.pulse,
+            &global_state,
+        )
+        .set(self.ids.group_window, ui_widgets)
+        {
+            match event {
+                group::Event::Accept => events.push(Event::AcceptInvite),
+                group::Event::Decline => events.push(Event::DeclineInvite),
+                group::Event::Kick(uid) => events.push(Event::KickMember(uid)),
+                group::Event::LeaveGroup => events.push(Event::LeaveGroup),
+                group::Event::AssignLeader(uid) => events.push(Event::AssignLeader(uid)),
             }
         }
 
