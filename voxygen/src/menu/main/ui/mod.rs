@@ -33,6 +33,9 @@ const UI_HIGHLIGHT_0: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0);*/
 pub const TEXT_COLOR: iced::Color = iced::Color::from_rgb(1.0, 1.0, 1.0);
 pub const DISABLED_TEXT_COLOR: iced::Color = iced::Color::from_rgba(1.0, 1.0, 1.0, 0.2);
 
+pub const FILL_FRAC_ONE: f32 = 0.77;
+pub const FILL_FRAC_TWO: f32 = 0.53;
+
 image_ids_ice! {
     struct Imgs {
         <VoxelGraphic>
@@ -218,7 +221,7 @@ impl Controls {
         let language_metadatas = crate::i18n::list_localizations();
         let selected_language_index = language_metadatas
             .iter()
-            .position(|f| &f.language_identifier == &settings.language.selected_language);
+            .position(|f| f.language_identifier == settings.language.selected_language);
 
         Self {
             fonts,

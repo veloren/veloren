@@ -1,4 +1,4 @@
-use super::{Imgs, LoginInfo, Message};
+use super::{Imgs, LoginInfo, Message, FILL_FRAC_ONE, FILL_FRAC_TWO};
 use crate::{
     i18n::Localization,
     ui::{
@@ -20,8 +20,6 @@ use iced::{
 };
 use vek::*;
 
-const FILL_FRAC_ONE: f32 = 0.77;
-const FILL_FRAC_TWO: f32 = 0.53;
 const INPUT_WIDTH: u16 = 280;
 const INPUT_TEXT_SIZE: u16 = 24;
 
@@ -217,47 +215,59 @@ impl LanguageSelectBanner {
         selected_language_index: Option<usize>,
         button_style: style::button::Style,
     ) -> Element<Message> {
-        let title = Text::new(i18n.get("main.select_language"))
+        // Reset button states if languages were added / removed
+        if self.language_buttons.len() != language_metadatas.len() {
+            self.language_buttons = vec![Default::default(); language_metadatas.len()];
+        }
+
+        let title = Text::new(i18n.get("main.login.select_language"))
             .size(fonts.cyri.scale(35))
             .horizontal_alignment(iced::HorizontalAlignment::Center);
 
         let mut list = Scrollable::new(&mut self.selection_list)
             .spacing(8)
             .height(Length::Fill)
-            .width(Length::Fill)
             .align_items(Align::Start);
 
-        if self.language_buttons.len() != language_metadatas.len() {
-            self.language_buttons = vec![Default::default(); language_metadatas.len()];
-        }
-
-        for (i, (state, lang)) in self
+        let list_items = self
             .language_buttons
             .iter_mut()
             .zip(language_metadatas)
             .enumerate()
-        {
-            let color = if Some(i) == selected_language_index {
-                (97, 255, 18)
-            } else {
-                (97, 97, 25)
-            };
-            let button = Button::new(
-                state,
-                Container::new(Text::new(lang.language_name.clone()).size(fonts.cyri.scale(25)))
-                    .padding(16)
-                    .center_y(),
-            )
-            .style(
-                style::button::Style::new(imgs.selection)
-                    .hover_image(imgs.selection_hover)
-                    .press_image(imgs.selection_press)
-                    .image_color(vek::Rgba::new(color.0, color.1, color.2, 192)),
-            )
-            .width(Length::Fill)
-            .min_height(56)
-            .on_press(Message::LanguageChanged(i));
-            list = list.push(button);
+            .map(|(i, (state, lang))| {
+                let color = if Some(i) == selected_language_index {
+                    (97, 255, 18)
+                } else {
+                    (97, 97, 25)
+                };
+                let button = Button::new(
+                    state,
+                    Row::with_children(vec![
+                        Space::new(Length::FillPortion(5), Length::Units(0)).into(),
+                        Text::new(lang.language_name.clone())
+                            .width(Length::FillPortion(95))
+                            .size(fonts.cyri.scale(25))
+                            .vertical_alignment(iced::VerticalAlignment::Center)
+                            .into(),
+                    ]),
+                )
+                .style(
+                    style::button::Style::new(imgs.selection)
+                        .hover_image(imgs.selection_hover)
+                        .press_image(imgs.selection_press)
+                        .image_color(vek::Rgba::new(color.0, color.1, color.2, 192)),
+                )
+                .min_height(56)
+                .on_press(Message::LanguageChanged(i));
+                Row::with_children(vec![
+                    Space::new(Length::FillPortion(3), Length::Units(0)).into(),
+                    button.width(Length::FillPortion(92)).into(),
+                    Space::new(Length::FillPortion(5), Length::Units(0)).into(),
+                ])
+            });
+
+        for item in list_items {
+            list = list.push(item);
         }
 
         let okay_button = Container::new(neat_button(
@@ -287,7 +297,7 @@ impl LanguageSelectBanner {
             .height(Length::Fill),
             content,
         )
-        .padding(Padding::new().horizontal(8).vertical(15).bottom(50))
+        .padding(Padding::new().horizontal(5).top(15).bottom(50))
         .max_width(350);
 
         selection_menu.into()
