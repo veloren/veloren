@@ -39,5 +39,6 @@ pub mod terrain;
 pub mod util;
 pub mod vol;
 pub mod volumes;
+pub mod lottery;
 
 pub use loadout_builder::LoadoutBuilder;

@@ -1,10 +1,13 @@
 use crate::{
     column::ColumnSample,
     util::{RandomField, Sampler},
+    Index,
 };
 use common::{
     terrain::{Block, BlockKind},
     vol::{BaseVol, ReadVol, RectSizedVol, Vox, WriteVol},
+    lottery::Lottery,
+    assets,
 };
 use std::f32;
 use vek::*;
@@ -13,6 +16,7 @@ pub fn apply_paths_to<'a>(
     wpos2d: Vec2<i32>,
     mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
     vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
+    index: &Index,
 ) {
     for y in 0..vol.size_xy().y as i32 {
         for x in 0..vol.size_xy().x as i32 {
@@ -100,6 +104,7 @@ pub fn apply_caves_to<'a>(
     wpos2d: Vec2<i32>,
     mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
     vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
+    index: &Index,
 ) {
     for y in 0..vol.size_xy().y as i32 {
         for x in 0..vol.size_xy().x as i32 {
@@ -120,14 +125,26 @@ pub fn apply_caves_to<'a>(
                 .filter(|(dist, _, cave, _)| *dist < cave.width)
             {
                 let cave_x = (cave_dist / cave.width).min(1.0);
-                let height = (1.0 - cave_x.powf(2.0)).max(0.0).sqrt() * cave.width;
 
-                for z in (cave.alt - height) as i32..(cave.alt + height) as i32 {
-                    let _ = vol.set(
-                        Vec3::new(offs.x, offs.y, z),
-                        Block::empty(),
-                    );
+                // Relative units
+                let cave_floor = 0.0 - 0.5 * (1.0 - cave_x.powf(2.0)).max(0.0).sqrt() * cave.width;
+                let cave_height = (1.0 - cave_x.powf(2.0)).max(0.0).sqrt() * cave.width;
+
+                // Abs units
+                let cave_base = (cave.alt + cave_floor) as i32;
+                let cave_roof = (cave.alt + cave_height) as i32;
+
+                for z in cave_base..cave_roof {
+                    let _ = vol.set(Vec3::new(offs.x, offs.y, z), Block::empty());
                 }
+
+                // Scatter things in caves
+                if RandomField::new(index.seed).chance(wpos2d.into(), 0.002) && cave_base < surface_z as i32 - 25 {
+                    let kind = *assets::load_expect::<Lottery<BlockKind>>("common.cave_scatter")
+                        .choose_seeded(RandomField::new(index.seed + 1).get(wpos2d.into()));
+                    let _ = vol.set(Vec3::new(offs.x, offs.y, cave_base), Block::new(kind, Rgb::zero()));
+                }
+
             }
         }
     }
