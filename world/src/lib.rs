@@ -48,7 +48,7 @@ pub struct World {
 impl World {
     pub fn generate(seed: u32, opts: sim::WorldOpts) -> Self {
         let mut sim = sim::WorldSim::generate(seed, opts);
-        let mut index = Index::default();
+        let mut index = Index::new(seed);
         let civs = civ::Civs::generate(seed, &mut sim, &mut index);
 
         sim2::simulate(&mut index, &mut sim);
@@ -176,8 +176,8 @@ impl World {
         let mut rng = rand::thread_rng();
 
         // Apply layers (paths, caves, etc.)
-        layer::apply_paths_to(chunk_wpos2d, sample_get, &mut chunk);
-        layer::apply_caves_to(chunk_wpos2d, sample_get, &mut chunk);
+        layer::apply_paths_to(chunk_wpos2d, sample_get, &mut chunk, &self.index);
+        layer::apply_caves_to(chunk_wpos2d, sample_get, &mut chunk, &self.index);
 
         // Apply site generation
         sim_chunk.sites.iter().for_each(|site| {

@@ -2,8 +2,8 @@ use crate::{
     all::ForestKind,
     block::StructureMeta,
     sim::{
-        local_cells, uniform_idx_as_vec2, vec2_as_uniform_idx,
-        Path, Cave, RiverKind, SimChunk, WorldSim,
+        local_cells, uniform_idx_as_vec2, vec2_as_uniform_idx, Cave, Path, RiverKind, SimChunk,
+        WorldSim,
     },
     util::Sampler,
     Index, CONFIG,
@@ -1038,34 +1038,6 @@ where
             (alt, ground, sub_surface_color)
         };
 
-        // Caves
-        let cave_at = |wposf: Vec2<f64>| {
-            (sim.gen_ctx.cave_0_nz.get(
-                Vec3::new(wposf.x, wposf.y, alt as f64 * 8.0)
-                    .div(800.0)
-                    .into_array(),
-            ) as f32)
-                .powf(2.0)
-                .neg()
-                .add(1.0)
-                .mul((1.32 - chaos).min(1.0))
-        };
-        let cave_xy = cave_at(wposf);
-        let cave_alt = alt - 24.0
-            + (sim
-                .gen_ctx
-                .cave_1_nz
-                .get(Vec2::new(wposf.x, wposf.y).div(48.0).into_array()) as f32)
-                * 8.0
-            + (sim
-                .gen_ctx
-                .cave_1_nz
-                .get(Vec2::new(wposf.x, wposf.y).div(500.0).into_array()) as f32)
-                .add(1.0)
-                .mul(0.5)
-                .powf(15.0)
-                .mul(150.0);
-
         let near_ocean = max_river.and_then(|(_, _, river_data, _)| {
             if (river_data.is_lake() || river_data.river_kind == Some(RiverKind::Ocean))
                 && ((alt <= water_level.max(CONFIG.sea_level + 5.0) && !is_cliffs) || !near_cliffs)
@@ -1118,8 +1090,6 @@ where
             },
             forest_kind: sim_chunk.forest_kind,
             close_structures: self.gen_close_structures(wpos),
-            cave_xy,
-            cave_alt,
             marble,
             marble_small,
             rock,
@@ -1153,8 +1123,6 @@ pub struct ColumnSample<'a> {
     pub tree_density: f32,
     pub forest_kind: ForestKind,
     pub close_structures: [Option<StructureData>; 9],
-    pub cave_xy: f32,
-    pub cave_alt: f32,
     pub marble: f32,
     pub marble_small: f32,
     pub rock: f32,

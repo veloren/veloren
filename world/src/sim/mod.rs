@@ -2,8 +2,8 @@ mod diffusion;
 mod erosion;
 mod location;
 mod map;
-mod way;
 mod util;
+mod way;
 
 // Reexports
 use self::erosion::Compute;
@@ -15,12 +15,12 @@ pub use self::{
     },
     location::Location,
     map::{MapConfig, MapDebug},
-    way::{Way, Path, Cave},
     util::{
         cdf_irwin_hall, downhill, get_oceans, local_cells, map_edge_factor, neighbors,
         uniform_idx_as_vec2, uniform_noise, uphill, vec2_as_uniform_idx, InverseCdf, ScaleBias,
         NEIGHBOR_DELTA,
     },
+    way::{Cave, Path, Way},
 };
 
 use crate::{
@@ -1703,7 +1703,7 @@ impl WorldSim {
     /// Return the distance to the nearest way in blocks, along with the
     /// closest point on the way, the way metadata, and the tangent vector
     /// of that way.
-    pub fn get_nearest_way<M: Clone + Lerp<Output=M>>(
+    pub fn get_nearest_way<M: Clone + Lerp<Output = M>>(
         &self,
         wpos: Vec2<i32>,
         get_way: impl Fn(&SimChunk) -> Option<(Way, M)>,
@@ -1722,7 +1722,8 @@ impl WorldSim {
             .iter()
             .filter_map(|ctrl| {
                 let (way, meta) = get_way(self.get(chunk_pos + *ctrl)?)?;
-                let ctrl_pos = get_chunk_centre(chunk_pos + *ctrl).map(|e| e as f32) + way.offset.map(|e| e as f32);
+                let ctrl_pos = get_chunk_centre(chunk_pos + *ctrl).map(|e| e as f32)
+                    + way.offset.map(|e| e as f32);
 
                 let chunk_connections = way.neighbors.count_ones();
                 if chunk_connections == 0 {

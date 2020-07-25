@@ -467,7 +467,15 @@ impl Floor {
                     if room.boss {
                         let boss_spawn_tile = room.area.center();
                         // Don't spawn the boss in a pillar
-                        let boss_spawn_tile = boss_spawn_tile + if tile_is_pillar { 1 } else { 0 };
+                        let boss_tile_is_pillar = room
+                            .pillars
+                            .map(|pillar_space| {
+                                boss_spawn_tile
+                                    .map(|e| e.rem_euclid(pillar_space) == 0)
+                                    .reduce_and()
+                            })
+                            .unwrap_or(false);
+                        let boss_spawn_tile = boss_spawn_tile + if boss_tile_is_pillar { 1 } else { 0 };
 
                         if tile_pos == boss_spawn_tile && tile_wcenter.xy() == wpos2d {
                             let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))

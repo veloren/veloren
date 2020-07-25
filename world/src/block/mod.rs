@@ -164,8 +164,6 @@ impl<'a> BlockGen<'a> {
             //tree_density,
             //forest_kind,
             //close_structures,
-            cave_xy,
-            cave_alt,
             marble,
             marble_small,
             rock,
@@ -370,23 +368,6 @@ impl<'a> BlockGen<'a> {
                     None
                 }
             })
-            .and_then(|block| {
-                // Caves
-                // Underground
-                let cave = cave_xy.powf(2.0)
-                    * (wposf.z as f32 - cave_alt)
-                        .div(40.0)
-                        .powf(4.0)
-                        .neg()
-                        .add(1.0)
-                    > 0.9993;
-
-                if cave && wposf.z as f32 > water_height + 3.0 {
-                    None
-                } else {
-                    Some(block)
-                }
-            })
             .or_else(|| {
                 // Water
                 if (wposf.z as f32) < water_height {
@@ -422,14 +403,7 @@ pub struct ZCache<'a> {
 
 impl<'a> ZCache<'a> {
     pub fn get_z_limits(&self, block_gen: &mut BlockGen, index: &Index) -> (f32, f32, f32) {
-        let cave_depth =
-            if self.sample.cave_xy.abs() > 0.9 && self.sample.water_level <= self.sample.alt {
-                (self.sample.alt - self.sample.cave_alt + 8.0).max(0.0)
-            } else {
-                0.0
-            };
-
-        let min = self.sample.alt - (self.sample.chaos.min(1.0) * 16.0 + cave_depth);
+        let min = self.sample.alt - (self.sample.chaos.min(1.0) * 16.0);
         let min = min - 4.0;
 
         let cliff = BlockGen::get_cliff_height(
