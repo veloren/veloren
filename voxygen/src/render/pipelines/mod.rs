@@ -1,9 +1,9 @@
 pub mod figure;
 pub mod fluid;
+pub mod particle;
 pub mod postprocess;
 pub mod skybox;
 pub mod sprite;
-pub mod particle;
 pub mod terrain;
 pub mod ui;
 
@@ -30,7 +30,6 @@ gfx_defines! {
         gamma: [f32; 4] = "gamma",
         cam_mode: u32 = "cam_mode",
         sprite_render_distance: f32 = "sprite_render_distance",
-        particle_render_distance: f32 = "particle_render_distance",
     }
 
     constant Light {
@@ -63,7 +62,6 @@ impl Globals {
         gamma: f32,
         cam_mode: CameraMode,
         sprite_render_distance: f32,
-        particle_render_distance: f32,
     ) -> Self {
         Self {
             view_mat: view_mat.into_col_arrays(),
@@ -84,7 +82,6 @@ impl Globals {
             gamma: [gamma; 4],
             cam_mode: cam_mode as u32,
             sprite_render_distance,
-            particle_render_distance,
         }
     }
 }
@@ -106,7 +103,6 @@ impl Default for Globals {
             None,
             1.0,
             CameraMode::ThirdPerson,
-            250.0,
             250.0,
         )
     }

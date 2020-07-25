@@ -190,7 +190,6 @@ impl Scene {
             scene_data.gamma,
             self.camera.get_mode(),
             250.0,
-            250.0,
         )]) {
             error!(?e, "Renderer failed to update");
         }

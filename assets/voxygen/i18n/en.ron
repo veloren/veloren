@@ -297,6 +297,7 @@ magically infused items?"#,
         "hud.settings.fluid_rendering_mode.cheap": "Cheap",
         "hud.settings.fluid_rendering_mode.shiny": "Shiny",
         "hud.settings.cloud_rendering_mode.regular": "Regular",
+        "hud.settings.particles": "Particles",
         "hud.settings.fullscreen": "Fullscreen",
         "hud.settings.save_window_size": "Save window size",
 

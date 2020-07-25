@@ -788,11 +788,6 @@ impl PlayState for SessionState {
                             sprite_render_distance;
                         global_state.settings.save_to_file_warn();
                     },
-                    HudEvent::AdjustParticleRenderDistance(particle_render_distance) => {
-                        global_state.settings.graphics.particle_render_distance =
-                            particle_render_distance;
-                        global_state.settings.save_to_file_warn();
-                    },
                     HudEvent::AdjustFigureLoDRenderDistance(figure_lod_render_distance) => {
                         global_state.settings.graphics.figure_lod_render_distance =
                             figure_lod_render_distance;
@@ -942,6 +937,10 @@ impl PlayState for SessionState {
                         self.voxygen_i18n.log_missing_entries();
                         self.hud.update_language(self.voxygen_i18n.clone());
                     },
+                    HudEvent::ToggleParticlesEnabled(particles_enabled) => {
+                        global_state.settings.graphics.particles_enabled = particles_enabled;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::ToggleFullscreen => {
                         global_state
                             .window
@@ -1006,11 +1005,7 @@ impl PlayState for SessionState {
                     mouse_smoothing: global_state.settings.gameplay.smooth_pan_enable,
                     sprite_render_distance: global_state.settings.graphics.sprite_render_distance
                         as f32,
-                    particle_render_distance: global_state
-                        .settings
-                        .graphics
-                        .particle_render_distance
-                        as f32,
+                    particles_enabled: global_state.settings.graphics.particles_enabled,
                     figure_lod_render_distance: global_state
                         .settings
                         .graphics
@@ -1066,7 +1061,7 @@ impl PlayState for SessionState {
                 mouse_smoothing: settings.gameplay.smooth_pan_enable,
                 sprite_render_distance: settings.graphics.sprite_render_distance as f32,
                 figure_lod_render_distance: settings.graphics.figure_lod_render_distance as f32,
-                particle_render_distance: settings.graphics.particle_render_distance as f32,
+                particles_enabled: settings.graphics.particles_enabled,
                 is_aiming: self.is_aiming,
             };
             self.scene.render(

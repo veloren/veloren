@@ -48,11 +48,9 @@ impl ParticleMgr {
             )
             .0;
 
-            let model = renderer
+            renderer
                 .create_model(mesh)
                 .expect("Failed to create particle model");
-
-            model
         });
 
         let insts = Vec::new();
@@ -73,31 +71,37 @@ impl ParticleMgr {
     pub fn particle_count_visible(&self) -> usize { self.instances.count() }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, scene_data: &SceneData) {
-        let now = Instant::now();
+        if scene_data.particles_enabled {
+            let now = Instant::now();
 
-        // remove dead particles
-        self.particles.retain(|p| p.alive_until > now);
+            // remove dead particles
+            self.particles.retain(|p| p.alive_until > now);
 
-        // let zxc = scene_data.particle_render_distance;
+            self.maintain_body_particles(scene_data);
+            self.maintain_boost_particles(scene_data);
 
-        self.maintain_body_particles(renderer, scene_data);
+            self.upload_particles(renderer);
+        } else {
+            self.particles.clear();
+        }
+    }
 
-        self.maintain_boost_particles(renderer, scene_data);
-
+    fn upload_particles(&mut self, renderer: &mut Renderer) {
         let all_cpu_instances = self
             .particles
             .iter()
             .map(|p| p.instance)
             .collect::<Vec<ParticleInstance>>();
 
-        // TODO: upload just the ones that were created and added to queue, not all of
-        // them.
-        self.instances = renderer
+        // TODO: optimise buffer writes
+        let gpu_instances = renderer
             .create_instances(&all_cpu_instances)
             .expect("Failed to upload particle instances to the GPU!");
+
+        self.instances = gpu_instances;
     }
 
-    fn maintain_body_particles(&mut self, renderer: &mut Renderer, scene_data: &SceneData) {
+    fn maintain_body_particles(&mut self, scene_data: &SceneData) {
         let ecs = scene_data.state.ecs();
         for (_i, (_entity, body, pos)) in (
             &ecs.entities(),
@@ -109,31 +113,21 @@ impl ParticleMgr {
         {
             match body {
                 Body::Object(object::Body::CampfireLit) => {
-                    self.maintain_campfirelit_particles(renderer, scene_data, pos)
+                    self.maintain_campfirelit_particles(scene_data, pos)
                 },
                 Body::Object(object::Body::BoltFire) => {
-                    self.maintain_boltfire_particles(renderer, scene_data, pos)
+                    self.maintain_boltfire_particles(scene_data, pos)
                 },
                 Body::Object(object::Body::BoltFireBig) => {
-                    self.maintain_boltfirebig_particles(renderer, scene_data, pos)
+                    self.maintain_boltfirebig_particles(scene_data, pos)
                 },
-                Body::Object(object::Body::Bomb) => {
-                    self.maintain_bomb_particles(renderer, scene_data, pos)
-                },
-                // Body::Object(object::Body::Pouch) => {
-                //     self.maintain_pouch_particles(renderer, scene_data, pos)
-                // },
+                Body::Object(object::Body::Bomb) => self.maintain_bomb_particles(scene_data, pos),
                 _ => {},
             }
         }
     }
 
-    fn maintain_campfirelit_particles(
-        &mut self,
-        renderer: &mut Renderer,
-        scene_data: &SceneData,
-        pos: &Pos,
-    ) {
+    fn maintain_campfirelit_particles(&mut self, scene_data: &SceneData, pos: &Pos) {
         let time = scene_data.state.get_time();
         let now = Instant::now();
         let mut rng = rand::thread_rng();
@@ -149,12 +143,7 @@ impl ParticleMgr {
         });
     }
 
-    fn maintain_boltfire_particles(
-        &mut self,
-        renderer: &mut Renderer,
-        scene_data: &SceneData,
-        pos: &Pos,
-    ) {
+    fn maintain_boltfire_particles(&mut self, scene_data: &SceneData, pos: &Pos) {
         let time = scene_data.state.get_time();
         let now = Instant::now();
         let mut rng = rand::thread_rng();
@@ -170,12 +159,7 @@ impl ParticleMgr {
         });
     }
 
-    fn maintain_boltfirebig_particles(
-        &mut self,
-        renderer: &mut Renderer,
-        scene_data: &SceneData,
-        pos: &Pos,
-    ) {
+    fn maintain_boltfirebig_particles(&mut self, scene_data: &SceneData, pos: &Pos) {
         let time = scene_data.state.get_time();
         let now = Instant::now();
         let mut rng = rand::thread_rng();
@@ -205,12 +189,7 @@ impl ParticleMgr {
         });
     }
 
-    fn maintain_bomb_particles(
-        &mut self,
-        renderer: &mut Renderer,
-        scene_data: &SceneData,
-        pos: &Pos,
-    ) {
+    fn maintain_bomb_particles(&mut self, scene_data: &SceneData, pos: &Pos) {
         let time = scene_data.state.get_time();
         let now = Instant::now();
         let mut rng = rand::thread_rng();
@@ -244,34 +223,7 @@ impl ParticleMgr {
         });
     }
 
-    // fn maintain_pouch_particles(
-    //     &mut self,
-    //     renderer: &mut Renderer,
-    //     scene_data: &SceneData,
-    //     pos: &Pos,
-    // ) {
-    //     let time = scene_data.state.get_time();
-    //     let now = Instant::now();
-    //     let mut rng = rand::thread_rng();
-
-    //     let smoke_cpu_insts = vec![ParticleInstance::new(
-    //         time,
-    //         rng.gen(),
-    //         ParticleMode::CampfireSmoke,
-    //         pos.0,
-    //     )];
-
-    //     let smoke_cpu_insts = renderer
-    //         .create_instances(&smoke_cpu_insts)
-    //         .expect("Failed to upload particle instances to the GPU!");
-
-    //     self.particles.push(Particles {
-    //         alive_until: now + Duration::from_secs(1),
-    //         instances: smoke_cpu_insts,
-    //     });
-    // }
-
-    fn maintain_boost_particles(&mut self, renderer: &mut Renderer, scene_data: &SceneData) {
+    fn maintain_boost_particles(&mut self, scene_data: &SceneData) {
         let state = scene_data.state;
         let ecs = state.ecs();
         let time = state.get_time();
@@ -303,15 +255,18 @@ impl ParticleMgr {
     pub fn render(
         &self,
         renderer: &mut Renderer,
+        scene_data: &SceneData,
         globals: &Consts<Globals>,
         lights: &Consts<Light>,
         shadows: &Consts<Shadow>,
     ) {
-        let model = &self
-            .model_cache
-            .get(MODEL_KEY)
-            .expect("Expected particle model in cache");
+        if scene_data.particles_enabled {
+            let model = &self
+                .model_cache
+                .get(MODEL_KEY)
+                .expect("Expected particle model in cache");
 
-        renderer.render_particles(model, globals, &self.instances, lights, shadows);
+            renderer.render_particles(model, globals, &self.instances, lights, shadows);
+        }
     }
 }
