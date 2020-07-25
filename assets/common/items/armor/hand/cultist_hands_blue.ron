@@ -5,7 +5,7 @@ Item(
         (
             kind: Hand(CultistBlue),
             stats: (
-                protection: Normal(2.0),
+                protection: Normal(12.0),
             ),
         )
     ),
