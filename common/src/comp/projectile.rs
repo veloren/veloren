@@ -1,4 +1,4 @@
-use crate::{comp, sync::Uid};
+use crate::sync::Uid;
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
@@ -6,7 +6,7 @@ use std::time::Duration;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Effect {
-    Damage(comp::HealthChange),
+    Damage(i32),
     Knockback(f32),
     RewardEnergy(u32),
     Explode { power: f32 },
@@ -23,21 +23,6 @@ pub struct Projectile {
     /// Time left until the projectile will despawn
     pub time_left: Duration,
     pub owner: Option<Uid>,
-}
-
-impl Projectile {
-    pub fn set_owner(&mut self, new_owner: Uid) {
-        self.owner = Some(new_owner);
-        for e in self.hit_solid.iter_mut().chain(self.hit_entity.iter_mut()) {
-            if let Effect::Damage(comp::HealthChange {
-                cause: comp::HealthSource::Projectile { owner, .. },
-                ..
-            }) = e
-            {
-                *owner = Some(new_owner);
-            }
-        }
-    }
 }
 
 impl Component for Projectile {
