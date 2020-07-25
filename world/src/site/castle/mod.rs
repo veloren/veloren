@@ -202,7 +202,7 @@ impl Castle {
                     for z in -5..3 {
                         let pos = Vec3::new(offs.x, offs.y, surface_z + z);
 
-                        if z >= 0 {
+                        if z > 0 {
                             if vol.get(pos).unwrap().kind() != BlockKind::Water {
                                 let _ = vol.set(pos, Block::empty());
                             }

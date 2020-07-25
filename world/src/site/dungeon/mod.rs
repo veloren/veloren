@@ -201,6 +201,7 @@ pub struct Floor {
     hollow_depth: i32,
     #[allow(dead_code)]
     stair_tile: Vec2<i32>,
+    final_level: bool,
 }
 
 const FLOOR_SIZE: Vec2<i32> = Vec2::new(18, 18);
@@ -233,6 +234,7 @@ impl Floor {
             solid_depth: if level == 0 { 80 } else { 32 },
             hollow_depth: 30,
             stair_tile: new_stair_tile - tile_offset,
+            final_level,
         };
 
         const STAIR_ROOM_HEIGHT: i32 = 13;
@@ -632,10 +634,12 @@ impl Floor {
             empty
         };
 
+        let tunnel_height = if self.final_level { 16.0 } else { 8.0 };
+
         move |z| match self.tiles.get(tile_pos) {
             Some(Tile::Solid) => BlockMask::nothing(),
             Some(Tile::Tunnel) => {
-                if dist_to_wall >= wall_thickness && (z as f32) < 8.0 - 8.0 * tunnel_dist.powf(4.0)
+                if dist_to_wall >= wall_thickness && (z as f32) < tunnel_height * (1.0 - tunnel_dist.powf(4.0))
                 {
                     if z == 0 { floor_sprite } else { empty }
                 } else {

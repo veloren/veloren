@@ -139,7 +139,7 @@ pub fn apply_caves_to<'a>(
                 }
 
                 // Scatter things in caves
-                if RandomField::new(index.seed).chance(wpos2d.into(), 0.002) && cave_base < surface_z as i32 - 25 {
+                if RandomField::new(index.seed).chance(wpos2d.into(), 0.001) && cave_base < surface_z as i32 - 25 {
                     let kind = *assets::load_expect::<Lottery<BlockKind>>("common.cave_scatter")
                         .choose_seeded(RandomField::new(index.seed + 1).get(wpos2d.into()));
                     let _ = vol.set(Vec3::new(offs.x, offs.y, cave_base), Block::new(kind, Rgb::zero()));
