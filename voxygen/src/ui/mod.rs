@@ -239,8 +239,10 @@ impl Ui {
 
     pub fn handle_event(&mut self, event: Event) {
         match event.0 {
-            Input::Resize(w, h) if w > 1.0 && h > 1.0 => {
-                self.window_resized = Some(Vec2::new(w, h))
+            Input::Resize(w, h) => {
+                if w > 1.0 && h > 1.0 {
+                    self.window_resized = Some(Vec2::new(w, h))
+                }
             },
             Input::Touch(touch) => self.ui.handle_event(Input::Touch(Touch {
                 xy: self.scale.scale_point(touch.xy.into()).into_array(),
@@ -459,7 +461,7 @@ impl Ui {
                                             || image_h == 0
                                             || source_w < 1.0
                                             || source_h < 1.0
-                                            || gl_size.reduce_partial_max() < f32::EPSILON
+                                            || gl_size.reduce_partial_min() < f32::EPSILON
                                         {
                                             None
                                         } else {
