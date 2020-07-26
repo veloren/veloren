@@ -35,7 +35,7 @@ impl Animation for RunAnimation {
             skeleton_attr.chest.0 + wave * 1.0,
             skeleton_attr.chest.1,
         ) / 18.0;
-        next.chest.ori = Quaternion::rotation_y(wave_slow * 0.3);
+        next.chest.ori = Quaternion::rotation_y(0.0);
         next.chest.scale = Vec3::one() / 18.0;
 
         next.feet_f.offset = Vec3::new(0.0, skeleton_attr.feet_f.0, skeleton_attr.feet_f.1);

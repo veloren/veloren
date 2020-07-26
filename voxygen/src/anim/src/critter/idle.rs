@@ -50,11 +50,11 @@ impl Animation for IdleAnimation {
         next.chest.ori = Quaternion::rotation_y(wave_slow * 0.06);
         next.chest.scale = Vec3::one() / 18.0;
 
-        next.feet_f.offset = Vec3::new(0.0, skeleton_attr.feet_f.0, skeleton_attr.feet_f.1 + 3.0);
+        next.feet_f.offset = Vec3::new(0.0, skeleton_attr.feet_f.0, skeleton_attr.feet_f.1);
         next.feet_f.ori = Quaternion::rotation_z(0.0);
         next.feet_f.scale = Vec3::one();
 
-        next.feet_b.offset = Vec3::new(0.0, skeleton_attr.feet_b.0, skeleton_attr.feet_b.1 + 3.0);
+        next.feet_b.offset = Vec3::new(0.0, skeleton_attr.feet_b.0, skeleton_attr.feet_b.1);
         next.feet_b.ori = Quaternion::rotation_x(0.0);
         next.feet_b.scale = Vec3::one();
 
