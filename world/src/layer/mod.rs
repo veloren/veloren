@@ -9,7 +9,8 @@ use common::{
     lottery::Lottery,
     assets,
 };
-use std::f32;
+use noise::NoiseFn;
+use std::{f32, ops::{Sub, Mul}};
 use vek::*;
 
 pub fn apply_paths_to<'a>(
@@ -136,6 +137,18 @@ pub fn apply_caves_to<'a>(
 
                 for z in cave_base..cave_roof {
                     let _ = vol.set(Vec3::new(offs.x, offs.y, z), Block::empty());
+                }
+
+                // Stalagtites
+                let stalagtites = index.noise.cave_nz
+                    .get(wpos2d.map(|e| e as f64 * 0.1).into_array())
+                    .sub(0.6)
+                    .max(0.0)
+                    .mul((col_sample.alt - cave_roof as f32 - 5.0).mul(0.15).clamped(0.0, 1.0) as f64)
+                    .mul(40.0) as i32;
+
+                for z in cave_roof - stalagtites..cave_roof {
+                    let _ = vol.set(Vec3::new(offs.x, offs.y, z), Block::new(BlockKind::Normal, Rgb::broadcast(200)));
                 }
 
                 // Scatter things in caves
