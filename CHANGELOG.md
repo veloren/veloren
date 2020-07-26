@@ -73,6 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pathfinding is much smoother and pets are cleverer
 - Animals run/turn at different speeds
 - Updated windowing library (winit 0.19 -> 0.22)
+- Bow M2 is now a charged attack that scales the longer it's held
 
 ### Removed
 
