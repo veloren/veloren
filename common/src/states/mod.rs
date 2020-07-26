@@ -2,6 +2,7 @@ pub mod basic_block;
 pub mod basic_melee;
 pub mod basic_ranged;
 pub mod boost;
+pub mod charged_ranged;
 pub mod climb;
 pub mod dance;
 pub mod dash_melee;
