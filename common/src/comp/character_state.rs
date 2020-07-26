@@ -66,6 +66,8 @@ pub enum CharacterState {
     LeapMelee(leap_melee::Data),
     /// Spin around, dealing damage to enemies surrounding you
     SpinMelee(spin_melee::Data),
+    /// A charged ranged attack (e.g. bow)
+    ChargedRanged(charged_ranged::Data),
 }
 
 impl CharacterState {
@@ -78,7 +80,8 @@ impl CharacterState {
             | CharacterState::TripleStrike(_)
             | CharacterState::BasicBlock
             | CharacterState::LeapMelee(_)
-            | CharacterState::SpinMelee(_) => true,
+            | CharacterState::SpinMelee(_)
+            | CharacterState::ChargedRanged(_) => true,
             _ => false,
         }
     }
@@ -90,7 +93,8 @@ impl CharacterState {
             | CharacterState::DashMelee(_)
             | CharacterState::TripleStrike(_)
             | CharacterState::LeapMelee(_)
-            | CharacterState::SpinMelee(_) => true,
+            | CharacterState::SpinMelee(_)
+            | CharacterState::ChargedRanged(_) => true,
             _ => false,
         }
     }
@@ -102,7 +106,8 @@ impl CharacterState {
             | CharacterState::DashMelee(_)
             | CharacterState::TripleStrike(_)
             | CharacterState::BasicBlock
-            | CharacterState::LeapMelee(_) => true,
+            | CharacterState::LeapMelee(_)
+            | CharacterState::ChargedRanged(_) => true,
             _ => false,
         }
     }

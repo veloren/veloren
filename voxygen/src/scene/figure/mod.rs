@@ -681,6 +681,32 @@ impl FigureMgr {
                                 )
                             }
                         },
+                        CharacterState::ChargedRanged(data) => {
+                            if data.exhausted {
+                                anim::character::ShootAnimation::update_skeleton(
+                                    &target_base,
+                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            } else {
+                                anim::character::ChargeAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        active_tool_kind,
+                                        second_tool_kind,
+                                        vel.0.magnitude(),
+                                        ori,
+                                        state.last_ori,
+                                        time,
+                                    ),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            }
+                        },
                         CharacterState::Boost(_) => {
                             anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,
