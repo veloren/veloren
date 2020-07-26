@@ -63,8 +63,8 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 cause
             {
                 const MAX_EXP_DIST: f32 = 150.0;
-                // Attacker gets double exp of everyone else
-                const ATTACKER_EXP_WEIGHT: f32 = 2.0;
+                // Attacker gets same as exp of everyone else
+                const ATTACKER_EXP_WEIGHT: f32 = 1.0;
                 let mut exp_reward = (entity_stats.body_type.base_exp()
                     + entity_stats.level.level() * entity_stats.body_type.base_exp_increase())
                     as f32;
