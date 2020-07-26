@@ -245,6 +245,7 @@ impl<'a> System<'a> for Sys {
                     CharacterState::DashMelee(data) => data.handle_event(&j, action),
                     CharacterState::LeapMelee(data) => data.handle_event(&j, action),
                     CharacterState::SpinMelee(data) => data.handle_event(&j, action),
+                    CharacterState::ChargedRanged(data) => data.handle_event(&j, action),
                 };
                 local_emitter.append(&mut state_update.local_events);
                 server_emitter.append(&mut state_update.server_events);
@@ -271,6 +272,7 @@ impl<'a> System<'a> for Sys {
                 CharacterState::DashMelee(data) => data.behavior(&j),
                 CharacterState::LeapMelee(data) => data.behavior(&j),
                 CharacterState::SpinMelee(data) => data.behavior(&j),
+                CharacterState::ChargedRanged(data) => data.behavior(&j),
             };
 
             local_emitter.append(&mut state_update.local_events);

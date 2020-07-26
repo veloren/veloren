@@ -18,6 +18,7 @@ pub enum CharacterAbilityType {
     BasicMelee,
     BasicRanged,
     Boost,
+    ChargedRanged,
     DashMelee,
     BasicBlock,
     TripleStrike(Stage),
@@ -36,6 +37,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::LeapMelee(_) => Self::LeapMelee,
             CharacterState::TripleStrike(data) => Self::TripleStrike(data.stage),
             CharacterState::SpinMelee(_) => Self::SpinMelee,
+            CharacterState::ChargedRanged(_) => Self::ChargedRanged,
             _ => Self::BasicMelee,
         }
     }
@@ -90,6 +92,19 @@ pub enum CharacterAbility {
         recover_duration: Duration,
         base_damage: u32,
     },
+    ChargedRanged {
+        energy_cost: u32,
+        energy_drain: u32,
+        initial_damage: u32,
+        max_damage: u32,
+        initial_knockback: f32,
+        max_knockback: f32,
+        prepare_duration: Duration,
+        charge_duration: Duration,
+        recover_duration: Duration,
+        projectile_body: Body,
+        projectile_light: Option<LightEmitter>,
+    },
 }
 
 impl CharacterAbility {
@@ -128,6 +143,10 @@ impl CharacterAbility {
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
             CharacterAbility::SpinMelee { energy_cost, .. } => update
+                .energy
+                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                .is_ok(),
+            CharacterAbility::ChargedRanged { energy_cost, .. } => update
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
@@ -310,6 +329,32 @@ impl From<&CharacterAbility> for CharacterState {
                 hits_remaining_default: 1, /* Should be the same value as hits_remaining, also
                                             * this value can be removed if ability moved to
                                             * skillbar */
+            }),
+            CharacterAbility::ChargedRanged {
+                energy_cost: _,
+                energy_drain,
+                initial_damage,
+                max_damage,
+                initial_knockback,
+                max_knockback,
+                prepare_duration,
+                charge_duration,
+                recover_duration,
+                projectile_body,
+                projectile_light,
+            } => CharacterState::ChargedRanged(charged_ranged::Data {
+                exhausted: false,
+                energy_drain: *energy_drain,
+                initial_damage: *initial_damage,
+                max_damage: *max_damage,
+                initial_knockback: *initial_knockback,
+                max_knockback: *max_knockback,
+                prepare_duration: *prepare_duration,
+                charge_duration: *charge_duration,
+                charge_timer: Duration::default(),
+                recover_duration: *recover_duration,
+                projectile_body: *projectile_body,
+                projectile_light: *projectile_light,
             }),
         }
     }
