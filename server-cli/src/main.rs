@@ -27,6 +27,54 @@ lazy_static! {
     static ref LOG: TuiLog<'static> = TuiLog::default();
 }
 
+#[derive(Debug, Default, Clone)]
+struct TuiLog<'a> {
+    inner: Arc<Mutex<Text<'a>>>,
+}
+
+impl<'a> TuiLog<'a> {
+    fn resize(&self, h: usize) {
+        let mut inner = self.inner.lock().unwrap();
+
+        if inner.height() > h {
+            let length = inner.height() - h;
+            inner.lines.drain(0..length);
+        }
+    }
+}
+
+impl<'a> Write for TuiLog<'a> {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        use ansi_parser::{AnsiParser, AnsiSequence, Output};
+        use tui::text::{Span,Spans};
+
+        let line = String::from_utf8(buf.into())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+        let mut spans = Vec::new();
+
+        for out in line.ansi_parse() {
+            match out {
+                Output::TextBlock(text) => spans.push(text.to_string().into()),
+                Output::Escape(seq) => info!("{:?}",seq)
+            }
+        }
+
+        self.inner.lock().unwrap().lines.push(Spans(spans));
+
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+enum Message {
+    Quit,
+}
+
 fn main() -> io::Result<()> {
     // Init logging
     let filter = match std::env::var_os(RUST_LOG_ENV).map(|s| s.into_string()) {
@@ -99,7 +147,7 @@ fn main() -> io::Result<()> {
 
                 use crossterm::event::{KeyModifiers, *};
 
-                if poll(Duration::from_millis(50)).unwrap() {
+                if poll(Duration::from_millis(10)).unwrap() {
                     // It's guaranteed that the `read()` won't block when the `poll()`
                     // function returns `true`
                     match read().unwrap() {
@@ -182,38 +230,4 @@ fn main() -> io::Result<()> {
     }
 
     Ok(())
-}
-
-#[derive(Debug, Default, Clone)]
-struct TuiLog<'a> {
-    inner: Arc<Mutex<Text<'a>>>,
-}
-
-impl<'a> TuiLog<'a> {
-    fn resize(&self, h: usize) {
-        let mut inner = self.inner.lock().unwrap();
-
-        if inner.height() > h {
-            let length = inner.height() - h;
-            inner.lines.drain(0..length);
-        }
-    }
-}
-
-impl<'a> Write for TuiLog<'a> {
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        let line = String::from_utf8(buf.into())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-        self.inner.lock().unwrap().lines.push(From::from(line));
-
-        Ok(buf.len())
-    }
-
-    fn flush(&mut self) -> io::Result<()> { Ok(()) }
-}
-
-#[derive(Debug, Copy, Clone)]
-enum Message {
-    Quit,
 }
