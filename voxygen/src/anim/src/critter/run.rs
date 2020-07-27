@@ -46,8 +46,7 @@ impl Animation for RunAnimation {
         next.feet_b.ori = Quaternion::rotation_x(wave_cos * 1.0);
         next.feet_b.scale = Vec3::one();
 
-        next.tail.offset =
-            Vec3::new(0.0, skeleton_attr.tail.0 + wave * 1.0, skeleton_attr.tail.1);
+        next.tail.offset = Vec3::new(0.0, skeleton_attr.tail.0 + wave * 1.0, skeleton_attr.tail.1);
         next.tail.ori = Quaternion::rotation_y(wave_slow * 0.08);
         next.tail.scale = Vec3::one();
 
