@@ -46,18 +46,61 @@ impl<'a> TuiLog<'a> {
 impl<'a> Write for TuiLog<'a> {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         use ansi_parser::{AnsiParser, AnsiSequence, Output};
-        use tui::text::{Span,Spans};
+        use tui::{
+            style::{Color, Modifier},
+            text::{Span, Spans},
+        };
 
         let line = String::from_utf8(buf.into())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         let mut spans = Vec::new();
+        let mut span = Span::raw("");
 
         for out in line.ansi_parse() {
             match out {
-                Output::TextBlock(text) => spans.push(text.to_string().into()),
-                Output::Escape(seq) => info!("{:?}",seq)
+                Output::TextBlock(text) => {
+                    span.content = format!("{}{}", span.content.to_owned(), text).into()
+                },
+                Output::Escape(seq) => {
+                    if span.content.len() != 0 {
+                        spans.push(span);
+
+                        span = Span::raw("");
+                    }
+
+                    match seq {
+                        AnsiSequence::SetGraphicsMode(values) => {
+                            const COLOR_TABLE: [Color; 8] = [
+                                Color::Black,
+                                Color::Red,
+                                Color::Green,
+                                Color::Yellow,
+                                Color::Blue,
+                                Color::Magenta,
+                                Color::Cyan,
+                                Color::White,
+                            ];
+
+                            let mut iter = values.iter();
+
+                            match iter.next().unwrap() {
+                                0 => {},
+                                2 => span.style.add_modifier = Modifier::DIM,
+                                idx @ 30..=37 => {
+                                    span.style.fg = Some(COLOR_TABLE[(idx - 30) as usize])
+                                },
+                                _ => println!("{:#?}", values),
+                            }
+                        },
+                        _ => println!("{:#?}", seq),
+                    }
+                },
             }
+        }
+
+        if span.content.len() != 0 {
+            spans.push(span);
         }
 
         self.inner.lock().unwrap().lines.push(Spans(spans));
@@ -65,9 +108,7 @@ impl<'a> Write for TuiLog<'a> {
         Ok(buf.len())
     }
 
-    fn flush(&mut self) -> io::Result<()> {
-        Ok(())
-    }
+    fn flush(&mut self) -> io::Result<()> { Ok(()) }
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -148,8 +189,6 @@ fn main() -> io::Result<()> {
                 use crossterm::event::{KeyModifiers, *};
 
                 if poll(Duration::from_millis(10)).unwrap() {
-                    // It's guaranteed that the `read()` won't block when the `poll()`
-                    // function returns `true`
                     match read().unwrap() {
                         Event::Key(event) => match event.code {
                             KeyCode::Char('c') => {
