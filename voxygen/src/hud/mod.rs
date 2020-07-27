@@ -1924,22 +1924,28 @@ impl Hud {
 
         // Social Window
         if self.show.social {
-            for event in Social::new(
-                &self.show,
-                client,
-                &self.imgs,
-                &self.fonts,
-                &self.voxygen_i18n,
-                info.selected_entity,
-            )
-            .set(self.ids.social_window, ui_widgets)
-            {
-                match event {
-                    social::Event::Close => self.show.social(false),
-                    social::Event::ChangeSocialTab(social_tab) => {
-                        self.show.open_social_tab(social_tab)
-                    },
-                    social::Event::Invite(uid) => events.push(Event::InviteMember(uid)),
+            let ecs = client.state().ecs();
+            let stats = ecs.read_storage::<comp::Stats>();
+            let me = client.entity();
+            if let Some(stats) = stats.get(me) {
+                for event in Social::new(
+                    &self.show,
+                    client,
+                    &self.imgs,
+                    &self.fonts,
+                    &self.voxygen_i18n,
+                    &stats,
+                    info.selected_entity,
+                )
+                .set(self.ids.social_window, ui_widgets)
+                {
+                    match event {
+                        social::Event::Close => self.show.social(false),
+                        social::Event::ChangeSocialTab(social_tab) => {
+                            self.show.open_social_tab(social_tab)
+                        },
+                        social::Event::Invite(uid) => events.push(Event::InviteMember(uid)),
+                    }
                 }
             }
         }

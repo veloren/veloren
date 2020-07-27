@@ -308,11 +308,15 @@ magically infused items?"#,
         "hud.settings.reset_keybinds": "Reset to Defaults",
 
         "hud.social": "Social",
-        "hud.social.online": "Online",
+        "hud.social.online": "Online:",
         "hud.social.friends": "Friends",
         "hud.social.not_yet_available": "Not yet available",
         "hud.social.faction": "Faction",
         "hud.social.play_online_fmt": "{nb_player} player(s) online",
+        "hud.social.name": "Name",
+        "hud.social.level": "Level",
+        "hud.social.zone": "Zone",
+
 
         "hud.crafting": "Crafting",
         "hud.crafting.recipes": "Recipes",
