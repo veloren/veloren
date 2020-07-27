@@ -70,6 +70,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b8052e2d8aabbb8d556d6abbcce2a22b9590996c5f849b9c7ce4544a2e3b984e"
 
 [[package]]
+name = "ansi-parser"
+version = "0.6.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "761ac675f1638a6a49e26f6ac3a4067ca3fefa8029816ae4ef8d3fa3d06a5194"
+dependencies = [
+ "nom 4.2.3",
+]
+
+[[package]]
 name = "ansi_term"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4901,6 +4910,7 @@ dependencies = [
 name = "veloren-server-cli"
 version = "0.7.0"
 dependencies = [
+ "ansi-parser",
  "crossterm",
  "lazy_static",
  "tracing",
