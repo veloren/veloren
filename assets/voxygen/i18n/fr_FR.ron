@@ -49,8 +49,12 @@ VoxygenLocalization(
         "common.yes": "Oui",
         "common.no": "Non",
         "common.okay": "Compris",
+        "common.accept": "Accepter",
+        "common.disclaimer": "Avertissement",
         "common.cancel": "Annuler",
         "common.none": "Aucun",
+        "common.error": "Erreur",
+        "common.fatal_error": "Erreur Fatale",
 
         "common.species.orc": "Orc",
         "common.species.human": "Humain",
@@ -89,34 +93,59 @@ Merci d'avoir pris le temps de lire cette notice, nous esperons que vous appreci
 
 ~ L'équipe de Veloren"#,
 
-
+        //Informations de connection
         "main.login_process": r#"Information sur la procédure de connexion:
 
-L'identifiant de connexion sera votre pseudo en jeu.
+Vous devez à présent posséder un compte
+afin de jouer sur les serveurs avec authentification.
 
-Le nom et l'apparence que vous choisirez seront
-sauvegardés sur votre ordinateur.
+Vous pouvez créer un compte à l'adresse 
 
-Les niveaux/objets ne sont pas sauvegardés."#,
+https://account.veloren.net."#,
+        "main.login.server_not_found": "Serveur introuvable",
+        "main.login.authentication_error": "Erreur d'authentification sur le serveur",
+        "main.login.server_full": "Serveur plein",
+        "main.login.untrusted_auth_server": "Le serveur d'authentification n'est pas de confiance",
+        "main.login.outdated_client_or_server": "ServeurPasContent: Les versions sont probablement incompatibles, verifiez les mises à jour.",
+        "main.login.timeout": "DélaiEcoulé: Le serveur n'a pas repondu à temps. (Surchage ou Problèmes réseau).",
+        "main.login.server_shut_down": "Extinction du Serveur",
+        "main.login.already_logged_in": "Vous êtes déjà connecté à ce serveur.",
+        "main.login.network_error": "Problème Réseau",
+        "main.login.failed_sending_request": "Demande d'authentification serveur échouée",
+        "main.login.invalid_character": "Le personnage sélectionné n'est pas valide",
+        "main.login.client_crashed": "Le client a planté",
+        "main.login.not_on_whitelist": "Vous devez être ajouté à la liste blanche par un Admin pour pouvoir entrer",
+        "main.tip": "Astuce:",
 
+        /// End Main screen section
 
-        // HUD texts
-        "hud.you_died": "Vous êtes mort",
+        ///Début section Hud
         "hud.do_not_show_on_startup": "Ne pas afficher au démarage",
-        "hud.press_key_to_show_keybindings_fmt": "Appuyer sur {key} pour afficher les contrôles",
-        "hud.settings.toggle_shortcuts": "Activer les raccourcis",
         "hud.show_tips": "Voir les astuces",
         "hud.quests": "Quêtes",
-        "hud.spell": "Sorts",
-        "hud.press_key_to_toggle_debug_info_fmt": "Appuyer sur {key} pour activer les informations de debogage",
+        "hud.you_died": "Vous êtes mort",
+        "hud.waypoint_saved": "Point de Repère Sauvegardé",
+
+        
+        "hud.press_key_to_show_keybindings_fmt": "Appuyer sur {key} pour afficher les contrôles",
         "hud.press_key_to_show_debug_info_fmt": "Appuyer sur {key} pour afficher les informations de debogage",
+        "hud.press_key_to_toggle_debug_info_fmt": "Appuyer sur {key} pour activer les informations de debogage",
         "hud.press_key_to_toggle_keybindings_fmt": "Appuyer sur {key} pour afficher les contrôles",
 
+        // Sorties Tchat
+        "hud.chat.online_msg": "[{name}] est maintenant en ligne.",
+        "hud.chat.offline_msg": "{name} s'est déconnecté.",
+        "hud.chat.loot_msg": "Vous avez ramassé [{item}]",
+        "hud.chat.loot_fail": "Votre inventaire est plein!",
+        "hud.chat.goodbye": "Au revoir!",
+        "hud.chat.connection_lost": "Connection perdue. Expulsion dans {time} secondes.",
 
-        /// Respawn message
-        "hud.press_key_to_respawn": r#"Appuyer sur {key} pour revivre à votre point de repère.
+        // Sorties SCT
+        "hud.sct.experience": "{amount} Exp",
+        "hud.sct.block": "BLOQUÉ",
 
-Appuyez sur Entrée, taper /waypoint pour configurer le point de repère à l'endroit actuel"#,
+        // Respawn message
+        "hud.press_key_to_respawn": r#"Appuyez sur {key} pour réapparaitre au dernier feu de camp visité"#,
 
 
         /// Welcome message
@@ -153,54 +182,93 @@ Vous souhaitez libérer votre souris pour fermer cette fenêtre? Tapez sur TAB!
 
 Profitez de votre séjour dans le monde de Veloren."#,
 
-"hud.temp_quest_headline": r#"Please, help us Traveller!"#,
-"hud.temp_quest_text": r#"Dungeons filled with evil cultists 
-have emerged all around our peaceful towns!
+"hud.temp_quest_headline": r#"S'il vous plaît, aidez nous voyageur!"#,
+"hud.temp_quest_text": r#"Des donjons remplis de cultistes malfaisants 
+sont apparus tout autour de nos paisibles villages!
 
 
-Gather some company, stack up on food 
-and defeat their vile leaders and acolytes.
+Trouvez des alliés, faites des provisions
+et venez à bout de leurs chefs ainsi que de leurs sbires.
 
 
-Maybe you can even obtain one of their  
-magically infused items?"#,
+Peut être pourrez-vous même obtenir un de leurs 
+objets magiques ?"#,
 
+
+       
+        // Inventaire
+        "hud.bag.inventory": "Inventaire de {playername}",
+        "hud.bag.stats_title": "Attributs de {playername}",
+        "hud.bag.exp": "Exp",
+        "hud.bag.armor": "Armure",
+        "hud.bag.stats": "Attributs",
+        "hud.bag.head": "Tête",
+        "hud.bag.neck": "Cou",
+        "hud.bag.tabard": "Tabar",
+        "hud.bag.shoulders": "Epaules",
+        "hud.bag.chest": "Torse",
+        "hud.bag.hands": "Mains",
+        "hud.bag.lantern": "Lanterne",
+        "hud.bag.belt": "Ceinture",
+        "hud.bag.ring": "Bague",
+        "hud.bag.back": "Dos",
+        "hud.bag.legs": "Jambes",
+        "hud.bag.feet": "Pieds",
+        "hud.bag.mainhand": "Main Dominante",
+        "hud.bag.offhand": "Main Dominée",
+
+        // Carte et journal de quetes
+        "hud.map.map_title": "Carte",
+        "hud.map.qlog_title": "Quêtes",
+
+
+        //Paramètres
         "hud.settings.general": "Général",
+        "hud.settings.none": "Aucun",
+        "hud.settings.press_behavior.toggle": "Activer/Desactiver",
+        "hud.settings.press_behavior.hold": "Maintenir",
         "hud.settings.help_window": "Fenêtre d'aide",
         "hud.settings.debug_info": "Information de débogage",
         "hud.settings.tips_on_startup": "Astuces au démarrage",
-
         "hud.settings.ui_scale": "Echelle de l'interface",
         "hud.settings.relative_scaling": "Echelle relative",
         "hud.settings.custom_scaling": "Echelle personalisée",
-
         "hud.settings.crosshair": "Réticule",
         "hud.settings.transparency": "Transparence",
-        "hud.settings.hotbar": "Barre active",
+        "hud.settings.hotbar": "Barre d'action",
+        "hud.settings.toggle_shortcuts": "Activer les raccourcis",
         "hud.settings.toggle_bar_experience": "Activer la barre d'experience",
-
         "hud.settings.scrolling_combat_text": "Dégats de combat",
         "hud.settings.single_damage_number": "Dégat adversaire (par dégat)",
         "hud.settings.cumulated_damage": "Dégat adversaire (cumulé)",
         "hud.settings.incoming_damage": "Dégat personnage (par dégat)",
         "hud.settings.cumulated_incoming_damage": "Dégat personnage (cumulé)",
-
+        "hud.settings.speech_bubble": "Bulle de dialogue",
+        "hud.settings.speech_bubble_dark_mode": "Bulle de dialogue Mode Sombre",
+        "hud.settings.speech_bubble_icon": "Icône Bulle de dialogue",
         "hud.settings.energybar_numbers": "Nombre des barres d'energie",
-        "hud.settings.none": "Aucuns",
         "hud.settings.values": "Valeurs",
         "hud.settings.percentages": "Pourcentages",
-
         "hud.settings.chat": "Tchat",
         "hud.settings.background_transparency": "Transparence du fond",
+        "hud.settings.chat_character_name": "Nom des personnages dans le tchat",
+        "hud.settings.loading_tips": "Astuces de chargement",
 
         "hud.settings.pan_sensitivity": "Sensibilité de la souris",
         "hud.settings.zoom_sensitivity": "Sensibilité du zoom",
         "hud.settings.invert_scroll_zoom": "Inverser la molette",
         "hud.settings.invert_mouse_y_axis": "Inverser l'axe Y",
+        "hud.settings.enable_mouse_smoothing": "Lissage Camera",
+        "hud.settings.free_look_behavior": "Comportement Vue libre",
+        "hud.settings.auto_walk_behavior": "Comportement Marche Automatique",
+        "hud.settings.stop_auto_walk_on_input": "Arrêt marche auto si mouvement",
 
         "hud.settings.view_distance": "Distance d'affichage",
+        "hud.settings.sprites_view_distance": "Distance d'affichage des sprites",
+        "hud.settings.figures_view_distance": "Distance d'affichage des entités",
         "hud.settings.maximum_fps": "Limite FPS",
         "hud.settings.fov": "Champs de vision (degrés)",
+        "hud.settings.gamma": "Gamma",
         "hud.settings.antialiasing_mode": "Mode anticrénelage",
         "hud.settings.cloud_rendering_mode": "Rendu des nuages",
         "hud.settings.fluid_rendering_mode": "Rendu des fluides",
@@ -214,87 +282,9 @@ magically infused items?"#,
         "hud.settings.sound_effect_volume": "Volume des effets",
         "hud.settings.audio_device": "Périphérique audio",
 
-        "hud.settings.control_names": r#"Libérer le curseur
-Activer la fenêtre d'aide
-Activer l'interface
-Activer la fenêtre de débogage
-Prendre une capture d'écran
-Activer les noms de personnage
-Activer le mode plein écran
-
-
-Avancer
-Aller à gauche
-Aller à droite
-Reculer
-
-Sauter
-
-Planer
-
-Esquiver
-
-Roulade
-
-Escalader
-
-Desescalader
-
-Marche automatique
-
-Ranger/Sortir les armes
-
-Mettre/Enlever le casque
-
-S'assoir
-
-Monter
-
-Intéragir
-
-
-Attaque basique
-Attaque secondaire/Bloquer/Viser
-
-
-Barre de compétence 1
-Barre de compétence 2
-Barre de compétence 3
-Barre de compétence 4
-Barre de compétence 5
-Barre de compétence 6
-Barre de compétence 7
-Barre de compétence 8
-Barre de compétence 9
-Barre de compétence 10
-
-
-Pause
-Paramètres
-Social
-Carte
-Livre de sorts
-Personnages
-Livre de quêtes
-Sac à dos
-
-
-
-Envoyer un message
-Défiler dans le tchat
-
-
-Commandes du tchat:
-
-/alias [Nom] - Changer de nom
-/tp [Nom] - Se téléporter vers un autre joueur  
-/jump <dx> <dy> <dz> - Sauter à partir de votre position
-/goto <x> <y> <z> - Se téléporter à une position
-/kill - Se suicider
-/pig - Faire aparaitre un cochon PNJ    
-/wolf - Faire aparaitre un loup PNJ
-/help - Afficher les commandes de tchat"#,
-
+        "hud.settings.awaitingkey": "Appuyez sur une touche...",
+        "hud.settings.unbound": "Aucun",
+        "hud.settings.reset_keybinds": "Réinitialiser touches par défaut",
 
         "hud.social": "Social",
         "hud.social.friends": "Amis",
@@ -302,30 +292,102 @@ Commandes du tchat:
         "hud.social.online": "Jeu en ligne",
         "hud.social.not_yet_available": "Pas encore disponible",
         "hud.social.play_online_fmt": "{nb_player} joueurs en ligne",
-        "char_selection.change_server": "Changer de serveur",
-        "char_selection.delete_permanently": "Supprimer",
 
+        "hud.crafting": "Fabrication",
+        "hud.crafting.recipes": "Recettes",
+        "hud.crafting.ingredients": "Ingrédients:",
+        "hud.crafting.craft": "Fabriquer",
+        "hud.crafting.tool_cata": "Nécessite:",
 
+        "hud.spell": "Sorts",
+
+        "hud.free_look_indicator": "Vue libre active",
+        "hud.auto_walk_indicator": "Marche automatique active",
+
+        //Fin Section Hud
+
+        /// Debut de section GameInput
+        "gameinput.primary": "Attaque Basique",
+        "gameinput.secondary": "Attaque Secondaire/Bloquer/Viser",
+        "gameinput.slot1": "Emplacement rapide 1",
+        "gameinput.slot2": "Emplacement rapide 2",
+        "gameinput.slot3": "Emplacement rapide 3",
+        "gameinput.slot4": "Emplacement rapide 4",
+        "gameinput.slot5": "Emplacement rapide 5",
+        "gameinput.slot6": "Emplacement rapide 6",
+        "gameinput.slot7": "Emplacement rapide 7",
+        "gameinput.slot8": "Emplacement rapide 8",
+        "gameinput.slot9": "Emplacement rapide 9",
+        "gameinput.slot10": "Emplacement rapide 10",
+        "gameinput.swaploadout": "Échanger l'équipement",
+        "gameinput.togglecursor": "Activer/Desactiver Curseur",
+        "gameinput.help": "Activer/Desactiver Fenêtre d'aide",
+        "gameinput.toggleinterface": "Activer/Desactiver Interface",
+        "gameinput.toggledebug": "Activer/Desactiver IPS et Infos Debogage",
+        "gameinput.screenshot": "Prendre une capture d'écran",
+        "gameinput.toggleingameui": "Activer/Desactiver Noms de joueurs",
+        "gameinput.fullscreen": "Activer/Desactiver Plein Ecran",
+        "gameinput.moveforward": "Avancer",
+        "gameinput.moveleft": "Aller à Gauche",
+        "gameinput.moveright": "Aller à Droite",
+        "gameinput.moveback": "Reculer",
+        "gameinput.jump": "Sauter",
+        "gameinput.glide": "Planeur",
+        "gameinput.roll": "Rouler",
+        "gameinput.climb": "Grimper",
+        "gameinput.climbdown": "Descendre",
+        "gameinput.wallleap": "Saut Mural",
+        "gameinput.togglelantern": "Activer/Desactiver Lanterne",
+        "gameinput.mount": "Monture",
+        "gameinput.enter": "Entrer",
+        "gameinput.command": "Commande",
+        "gameinput.escape": "Fuir",
+        "gameinput.map": "Carte",
+        "gameinput.bag": "Sac",
+        "gameinput.social": "Social",
+        "gameinput.sit": "S'asseoir",
+        "gameinput.spellbook": "Sorts",
+        "gameinput.settings": "Paramètres",
+        "gameinput.respawn": "Réapparaître",
+        "gameinput.charge": "Charger",
+        "gameinput.togglewield": "Ranger Arme",
+        "gameinput.interact": "Interagir",
+        "gameinput.freelook": "Vue Libre",
+        "gameinput.autowalk": "Marche Automatique",
+        "gameinput.dance": "Dancer",
+
+        /// End GameInput section
+
+        /// Debut Section Menu Start Quitter
         "esc_menu.quit_game": "Quitter le jeu",
         "esc_menu.logout": "Se déconnecter",
 
+        /// Fin Section Menu Start Quitter
 
+        /// Debut de la section Création du personnage
+        "char_selection.accessories": "Accessoires",
         "char_selection.beard": "Barbe",
-        "char_selection.hair_style": "Coupe de cheveux",
-        "char_selection.hair_color": "Couleur des cheveux",
-        "char_selection.skin": "Couleur de peau",
+        "char_selection.create_new_charater": "Créer un nouveau personnage",
+        "char_selection.creating_character": "Création du personnage...",
+        "char_selection.character_creation": "Création de personnages",
+        "char_selection.create_info_name": "Votre personnage doit avoir un prénom !",
+        "char_selection.deleting_character": "Suppression du personnage...",
+        "char_selection.enter_world": "Entrer dans le monde",
         "char_selection.eyebrows": "Sourcils",
         "char_selection.eye_color": "Couleur des yeux",
-        "char_selection.accessories": "Accessoires",
-        "char_selection.level_fmt": "Niveau {level_nb}",
-        "char_selection.create_new_charater": "Créer un nouveau personnage",
+        "char_selection.eyeshape": "Forme des yeux",
+        "char_selection.hair_style": "Coupe de cheveux",
+        "char_selection.hair_color": "Couleur des cheveux",
         "char_selection.human_default": "Humain par défault",
-        "char_selection.uncanny_valley": "Vallée dérangeante",
-        "char_selection.chest_color": "Couleur du torse",
+        "char_selection.level_fmt": "Niveau {level_nb}",
         "char_selection.logout": "Se déconnecter",
-        "char_selection.enter_world": "Entrer dans le monde",
+        "char_selection.loading_characters": "Chargement des personnages...",
         "char_selection.plains_of_uncertainty": "Plaines de l'incertitude",
-        "char_selection.character_creation": "Création de personnages",
+        "char_selection.skin": "Couleur de peau",
+        "char_selection.uncanny_valley": "Vallée dérangeante",
+        "char_selection.change_server": "Changer de serveur",
+        "char_selection.delete_permanently": "Supprimer définitivement ce personnage ?",
+        /// Fin de la section Création du personnage
 
         "character_window.character_name": "Personnage",
         "character_window.character_stats": r#"Endurance
@@ -334,9 +396,117 @@ Force
 
 Dexterité
 
-Intelligence"#,
+Protection
+"#,
+        /// End character window section
+
+
+        /// Start Escape Menu Section
+        "esc_menu.logout": "Déconnexion",
+        "esc_menu.quit_game": "Quitter le jeu",
+        /// End Escape Menu Section        
+
     },
 
-    vector_map: {
+    vector_map: {     
+        "loading.tips": [
+            "Appuie sur 'G' pour allumer ta lanterne.",
+            "Appuie sur 'F1' pour voir les raccourcis clavier par défaut.",
+            "Tu peux écrire /say ou /s pour discuter aux joueurs directement à côté toi.",
+            "Tu peux écrire /region ou /r pour discuter avec les joueurs situés à quelques centaines de blocs de toi.",
+            "Pour envoyer un message privé, écrit /tell suivi par un nom de joueur puis ton message.",
+            "Des PNJs avec le même niveau peuvent varier en difficulté.",
+            "Regarde le sol pour trouver de la nourriture, des coffres et d'autres butins!",
+            "Ton inventaire est rempli de nourriture? Essaie de créer un meilleur repas avec!",
+            "Tu cherches une activité? Les donjons sont marqués avec des points marron sur la carte!",    
+            "N'oublie pas d'ajuster les graphiques pour ton système. Appuie sur 'N' pour ouvrir les paramètres.",
+            "Jouer à plusieurs est amusant! Appuie sur 'O' pour voir qui est en ligne.", 
+            "Un PNJ avec une tête-de-mort sous sa barre de vie est plus puissant que toi.",
+            "Appuie sur 'J' pour danser. C'est la fête!",
+            "Appuie sur 'L-Shift'pour ouvrir ton deltaplane et conquérir les cieux.",
+            "Veloren est encore Pre-Alpha. Nous faisons de notre mieux pour l'améliorer chaque jour!",
+            "Si tu veux te joindre à l'équipe de développement ou juste discuter avec nous, rejoins notre serveur Discord.",            
+        ],         
+        "npc.speech.villager_under_attack": [
+            "À l'aide, on m'attaque!",
+            "À l'aide! On m'attaque!",
+            "Aïe! On m'attaque!",
+            "Aïe! On m'attaque! À l'aide!",
+            "Aidez-moi! On m'attaque!",
+            "On m'attaque! À l'aide!",
+            "On m'attaque! Aidez-moi!",
+            "À l'aide!",
+            "À l'aide! À l'aide!",
+            "À l'aide! À l'aide! À l'aide!",
+            "On m'attaque!",
+            "AAAHHH! On m'attaque!",
+            "AAAHHH! On m'attaque! À l'aide!",
+            "À l'aide! Nous sommes attaqués!",
+            "À l'aide! Assassin!",
+            "À l'aide! Il y a un assassin en liberté!",
+            "À l'aide! On essaie de me tuer!",
+            "Gardes, on m'attaque!",
+            "Gardes! On m'attaque!",
+            "On m'attaque! Gardes!",
+            "À l'aide! Gardes! On m'attaque!",
+            "Gardes! Venez vite!",
+            "Gardes! Gardes!",
+            "Gardes! Un scélérat m'attaque!",
+            "Gardes, abattez ce scélérat!",
+            "Gardes! Il y a un meurtrier!",
+            "Gardes! Aidez-moi!",
+            "Vous ne vous en tirerez pas comme ça! Gardes!",
+            "Monstre!",
+            "Aidez-moi!",
+            "À l'aide! S'il vous plait!",
+            "Aïe! Gardes! À l'aide!",
+            "Ils viennent pour moi !",
+            "À l'aide! À l'aide! Je me fais réprimer!",
+            "Ah, nous voyons maintenant la violence inhérente au système.",
+            "C'est seulement une égratignure.",
+            "Arrêtez ça!",
+            "Qu'est ce que je t'ai fait?!",
+            "S'il te plaît arrête de m'attaquer!",
+            "Hé! Regardez où vous pointez cette chose!",
+            "Misérable, allez-vous-en!",
+            "Arrêtez! Partez! Arrêtez!",
+            "Vous m'avez ennervé!",
+            "Oi! Qui croyez-vous être?!",
+            "J'aurais votre tête pour ça!",
+            "Stoppez s'il vous plaît! Je ne transporte rien de valeur!",
+            "Je vais appeler mon frère, il est plus grand que moi!",
+            "Nooon, Je vais le dire à ma mère!",
+            "Soyez maudit!",
+            "Ne faites pas ça.",
+            "Ce n'était pas très gentil!",
+            "Ton arme fonctionne, tu peux la ranger maintenant!",
+            "Épargnez-moi!",
+            "Pitié, J'ai une famille!",
+            "Je suis trop jeune pour mourrir!",
+            "On peut en parler?",
+            "La violence n'est jamais la solution!",
+            "Aujourd'hui est une très mauvaise journée...",
+            "Hé, ça fait mal!",
+            "Aïe!",
+            "Quelle impolitesse!",
+            "Stop, je vous en prie!",
+            "Que la peste vous emporte!",
+            "Ce n'est pas amusant.",
+            "Comment osez-vous?!",
+            "Vous allez payer!",
+            "Continue et tu vas le regretter!",
+            "Ne m'obligez pas à vous faire du mal!",
+            "Il doit y avoir erreur!",
+            "Vous n'avez pas besoin de faire ça!",
+            "Fuyez, monstre!",
+            "Ça fait vraiment mal!",
+            "Pourquoi faites-vous cela?",
+            "Par les esprits, cessez!",
+            "Vous devez m'avoir confondu avec quelqu'un d'autre!",
+            "Je ne mérite pas cela!",
+            "Ne faites plus cela.",
+            "Gardes, jetez ce monstre dans le lac!",
+            "Je vais t'envoyer ma tarrasque!",
+        ],        
     }
 )

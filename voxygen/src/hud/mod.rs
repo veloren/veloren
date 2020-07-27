@@ -1,6 +1,7 @@
 mod bag;
 mod buttons;
 mod chat;
+mod crafting;
 mod esc_menu;
 mod hotbar;
 mod img_ids;
@@ -14,6 +15,7 @@ mod skillbar;
 mod slots;
 mod social;
 mod spell;
+mod util;
 
 use crate::{ecs::comp::HpFloaterList, hud::img_ids::ImgsRot, ui::img_ids::Rotations};
 pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
@@ -25,6 +27,7 @@ use bag::Bag;
 use buttons::Buttons;
 use chat::Chat;
 use chrono::NaiveTime;
+use crafting::Crafting;
 use esc_menu::EscMenu;
 use img_ids::Imgs;
 use item_imgs::ItemImgs;
@@ -62,11 +65,14 @@ use vek::*;
 
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+const TEXT_GRAY_COLOR: Color = Color::Rgba(0.5, 0.5, 0.5, 1.0);
+const TEXT_DULL_RED_COLOR: Color = Color::Rgba(0.56, 0.2, 0.2, 1.0);
 const TEXT_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 //const TEXT_COLOR_GREY: Color = Color::Rgba(1.0, 1.0, 1.0, 0.5);
 const MENU_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 0.4);
 //const TEXT_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 const TEXT_COLOR_3: Color = Color::Rgba(1.0, 1.0, 1.0, 0.1);
+const TEXT_BIND_CONFLICT_COLOR: Color = Color::Rgba(1.0, 0.0, 0.0, 1.0);
 const BLACK: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 //const BG_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 0.8);
 const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
@@ -198,6 +204,7 @@ widget_ids! {
         esc_menu,
         small_window,
         social_window,
+        crafting_window,
         settings_window,
 
         // Free look indicator
@@ -237,6 +244,7 @@ pub struct HudInfo {
 }
 
 pub enum Event {
+    ToggleTips(bool),
     SendMessage(String),
     AdjustMousePan(u32),
     AdjustMouseZoom(u32),
@@ -281,10 +289,12 @@ pub enum Event {
     Quit,
     ChangeLanguage(LanguageMetadata),
     ChangeBinding(GameInput),
+    ResetBindings,
     ChangeFreeLookBehavior(PressBehavior),
     ChangeRenderMode(RenderMode),
     ChangeAutoWalkBehavior(PressBehavior),
     ChangeStopAutoWalkOnInput(bool),
+    CraftRecipe(String),
 }
 
 // TODO: Are these the possible layouts we want?
@@ -335,6 +345,7 @@ pub struct Show {
     ui: bool,
     intro: bool,
     help: bool,
+    crafting: bool,
     debug: bool,
     bag: bool,
     social: bool,
@@ -353,29 +364,50 @@ pub struct Show {
 }
 impl Show {
     fn bag(&mut self, open: bool) {
-        self.bag = open;
-        self.map = false;
-        self.want_grab = !open;
+        if !self.esc_menu {
+            self.bag = open;
+            self.map = false;
+            self.want_grab = !open;
+        }
     }
 
     fn toggle_bag(&mut self) { self.bag(!self.bag); }
 
     fn map(&mut self, open: bool) {
-        self.map = open;
-        self.bag = false;
-        self.want_grab = !open;
+        if !self.esc_menu {
+            self.map = open;
+            self.bag = false;
+            self.crafting = false;
+            self.social = false;
+            self.spell = false;
+            self.want_grab = !open;
+        }
     }
 
     fn social(&mut self, open: bool) {
-        self.social = open;
-        self.spell = false;
-        self.want_grab = !open;
+        if !self.esc_menu {
+            self.social = open;
+            self.crafting = false;
+            self.spell = false;
+            self.want_grab = !open;
+        }
+    }
+
+    fn crafting(&mut self, open: bool) {
+        if !self.esc_menu {
+            self.crafting = open;
+            self.bag = open;
+            self.want_grab = !open;
+        }
     }
 
     fn spell(&mut self, open: bool) {
-        self.social = false;
-        self.spell = open;
-        self.want_grab = !open;
+        if !self.esc_menu {
+            self.social = false;
+            self.crafting = false;
+            self.spell = open;
+            self.want_grab = !open;
+        }
     }
 
     fn toggle_map(&mut self) { self.map(!self.map) }
@@ -383,15 +415,18 @@ impl Show {
     fn toggle_mini_map(&mut self) { self.mini_map = !self.mini_map; }
 
     fn settings(&mut self, open: bool) {
-        self.open_windows = if open {
-            Windows::Settings
-        } else {
-            Windows::None
-        };
-        self.bag = false;
-        self.social = false;
-        self.spell = false;
-        self.want_grab = !open;
+        if !self.esc_menu {
+            self.open_windows = if open {
+                Windows::Settings
+            } else {
+                Windows::None
+            };
+            self.bag = false;
+            self.social = false;
+            self.crafting = false;
+            self.spell = false;
+            self.want_grab = !open;
+        }
     }
 
     fn toggle_settings(&mut self) {
@@ -410,6 +445,7 @@ impl Show {
             || self.esc_menu
             || self.map
             || self.social
+            || self.crafting
             || self.spell
             || self.help
             || self.intro
@@ -425,21 +461,20 @@ impl Show {
             self.map = false;
             self.social = false;
             self.spell = false;
+            self.crafting = false;
             self.open_windows = Windows::None;
             self.want_grab = true;
 
             // Unpause the game if we are on singleplayer
-            if let Some(singleplayer) = global_state.singleplayer.as_ref() {
-                singleplayer.pause(false);
-            };
+            #[cfg(feature = "singleplayer")]
+            global_state.unpause();
         } else {
             self.esc_menu = true;
             self.want_grab = false;
 
             // Pause the game if we are on singleplayer
-            if let Some(singleplayer) = global_state.singleplayer.as_ref() {
-                singleplayer.pause(true);
-            };
+            #[cfg(feature = "singleplayer")]
+            global_state.pause();
         }
     }
 
@@ -455,6 +490,8 @@ impl Show {
         self.social = !self.social;
         self.spell = false;
     }
+
+    fn toggle_crafting(&mut self) { self.crafting(!self.crafting) }
 
     fn open_social_tab(&mut self, social_tab: SocialTab) {
         self.social_tab = social_tab;
@@ -555,6 +592,7 @@ impl Hud {
                 esc_menu: false,
                 open_windows: Windows::None,
                 map: false,
+                crafting: false,
                 ui: true,
                 social: false,
                 spell: false,
@@ -598,6 +636,7 @@ impl Hud {
         debug_info: &Option<DebugInfo>,
         dt: Duration,
         info: HudInfo,
+        camera: &Camera,
     ) -> Vec<Event> {
         let mut events = std::mem::replace(&mut self.events, Vec::new());
         let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
@@ -1475,6 +1514,7 @@ impl Hud {
                 Some(buttons::Event::ToggleSocial) => self.show.toggle_social(),
                 Some(buttons::Event::ToggleSpell) => self.show.toggle_spell(),
                 Some(buttons::Event::ToggleMap) => self.show.toggle_map(),
+                Some(buttons::Event::ToggleCrafting) => self.show.toggle_crafting(),
                 None => {},
             }
         }
@@ -1497,6 +1537,7 @@ impl Hud {
             &self.rot_imgs,
             &self.world_map,
             &self.fonts,
+            camera.get_orientation(),
         )
         .set(self.ids.minimap, ui_widgets)
         {
@@ -1531,7 +1572,6 @@ impl Hud {
                 }
             }
         }
-
         // Skillbar
         // Get player stats
         let ecs = client.state().ecs();
@@ -1577,6 +1617,35 @@ impl Hud {
                 &self.show,
             )
             .set(self.ids.skillbar, ui_widgets);
+        }
+
+        // Crafting
+        if self.show.crafting {
+            if let Some(inventory) = inventories.get(entity) {
+                for event in Crafting::new(
+                    //&self.show,
+                    client,
+                    &self.imgs,
+                    &self.fonts,
+                    &self.voxygen_i18n,
+                    &self.rot_imgs,
+                    tooltip_manager,
+                    &self.item_imgs,
+                    &inventory,
+                )
+                .set(self.ids.crafting_window, ui_widgets)
+                {
+                    match event {
+                        crafting::Event::CraftRecipe(r) => {
+                            events.push(Event::CraftRecipe(r));
+                        },
+                        crafting::Event::Close => {
+                            self.show.crafting(false);
+                            self.force_ungrab = true;
+                        },
+                    }
+                }
+            }
         }
 
         // Don't put NPC messages in chat box.
@@ -1648,12 +1717,14 @@ impl Hud {
                     },
                     settings_window::Event::ToggleHelp => self.show.help = !self.show.help,
                     settings_window::Event::ToggleDebug => self.show.debug = !self.show.debug,
+                    settings_window::Event::ToggleTips(loading_tips) => {
+                        events.push(Event::ToggleTips(loading_tips));
+                    },
                     settings_window::Event::ChangeTab(tab) => self.show.open_setting_tab(tab),
                     settings_window::Event::Close => {
                         // Unpause the game if we are on singleplayer so that we can logout
-                        if let Some(singleplayer) = global_state.singleplayer.as_ref() {
-                            singleplayer.pause(false);
-                        };
+                        #[cfg(feature = "singleplayer")]
+                        global_state.unpause();
 
                         self.show.settings(false)
                     },
@@ -1740,6 +1811,9 @@ impl Hud {
                     },
                     settings_window::Event::ChangeBinding(game_input) => {
                         events.push(Event::ChangeBinding(game_input));
+                    },
+                    settings_window::Event::ResetBindings => {
+                        events.push(Event::ResetBindings);
                     },
                     settings_window::Event::ChangeFreeLookBehavior(behavior) => {
                         events.push(Event::ChangeFreeLookBehavior(behavior));
@@ -1832,24 +1906,21 @@ impl Hud {
                     self.force_ungrab = false;
 
                     // Unpause the game if we are on singleplayer
-                    if let Some(singleplayer) = global_state.singleplayer.as_ref() {
-                        singleplayer.pause(false);
-                    };
+                    #[cfg(feature = "singleplayer")]
+                    global_state.unpause();
                 },
                 Some(esc_menu::Event::Logout) => {
                     // Unpause the game if we are on singleplayer so that we can logout
-                    if let Some(singleplayer) = global_state.singleplayer.as_ref() {
-                        singleplayer.pause(false);
-                    };
+                    #[cfg(feature = "singleplayer")]
+                    global_state.unpause();
 
                     events.push(Event::Logout);
                 },
                 Some(esc_menu::Event::Quit) => events.push(Event::Quit),
                 Some(esc_menu::Event::CharacterSelection) => {
                     // Unpause the game if we are on singleplayer so that we can logout
-                    if let Some(singleplayer) = global_state.singleplayer.as_ref() {
-                        singleplayer.pause(false);
-                    };
+                    #[cfg(feature = "singleplayer")]
+                    global_state.unpause();
 
                     events.push(Event::CharacterSelection)
                 },
@@ -2061,6 +2132,10 @@ impl Hud {
                     self.show.toggle_social();
                     true
                 },
+                GameInput::Crafting if state => {
+                    self.show.toggle_crafting();
+                    true
+                },
                 GameInput::Spellbook if state => {
                     self.show.toggle_spell();
                     true
@@ -2243,7 +2318,7 @@ impl Hud {
         if let Some(maybe_id) = self.to_focus.take() {
             self.ui.focus_widget(maybe_id);
         }
-        let events = self.update_layout(client, global_state, debug_info, dt, info);
+        let events = self.update_layout(client, global_state, debug_info, dt, info, camera);
         let camera::Dependents {
             view_mat, proj_mat, ..
         } = camera.dependents();

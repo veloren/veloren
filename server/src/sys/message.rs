@@ -1,7 +1,7 @@
 use super::SysTimer;
 use crate::{
-    auth_provider::AuthProvider, client::Client, persistence::character::CharacterLoader,
-    ServerSettings, CLIENT_TIMEOUT,
+    alias_validator::AliasValidator, client::Client, login_provider::LoginProvider,
+    persistence::character::CharacterLoader, ServerSettings, CLIENT_TIMEOUT,
 };
 use common::{
     comp::{
@@ -27,8 +27,8 @@ use specs::{
 };
 
 impl Sys {
-    ///We need to move this to a async fn, otherwise the compiler generates to
-    /// much recursive fn, and async closures dont work yet
+    ///We needed to move this to a async fn, if we would use a async closures
+    /// the compiler generates to much recursion and fails to compile this
     #[allow(clippy::too_many_arguments)]
     async fn handle_client_msg(
         server_emitter: &mut common::event::Emitter<'_, ServerEvent>,
@@ -45,7 +45,7 @@ impl Sys {
         force_updates: &ReadStorage<'_, ForceUpdate>,
         stats: &mut WriteStorage<'_, Stats>,
         chat_modes: &ReadStorage<'_, ChatMode>,
-        accounts: &mut WriteExpect<'_, AuthProvider>,
+        login_provider: &mut WriteExpect<'_, LoginProvider>,
         block_changes: &mut Write<'_, BlockChange>,
         admin_list: &ReadExpect<'_, AdminList>,
         admins: &mut WriteStorage<'_, Admin>,
@@ -55,9 +55,10 @@ impl Sys {
         players: &mut WriteStorage<'_, Player>,
         controllers: &mut WriteStorage<'_, Controller>,
         settings: &Read<'_, ServerSettings>,
+        alias_validator: &ReadExpect<'_, AliasValidator>,
     ) -> Result<(), crate::error::Error> {
         loop {
-            let msg = client.singleton_stream.recv().await?;
+            let msg = client.recv().await?;
             *cnt += 1;
             match msg {
                 // Go back to registered state (char selection screen)
@@ -85,13 +86,14 @@ impl Sys {
                     view_distance,
                     token_or_username,
                 } => {
-                    let (username, uuid) = match accounts.query(token_or_username.clone()) {
-                        Err(err) => {
-                            client.error_state(RequestStateError::RegisterDenied(err));
-                            break Ok(());
-                        },
-                        Ok((username, uuid)) => (username, uuid),
-                    };
+                    let (username, uuid) =
+                        match login_provider.try_login(&token_or_username, &settings.whitelist) {
+                            Err(err) => {
+                                client.error_state(RequestStateError::RegisterDenied(err));
+                                break Ok(());
+                            },
+                            Ok((username, uuid)) => (username, uuid),
+                        };
 
                     let vd =
                         view_distance.map(|vd| vd.min(settings.max_view_distance.unwrap_or(vd)));
@@ -146,20 +148,20 @@ impl Sys {
                 },
                 ClientMsg::SetViewDistance(view_distance) => {
                     if let ClientState::Character { .. } = client.client_state {
+                        players.get_mut(entity).map(|player| {
+                            player.view_distance = Some(
+                                settings
+                                    .max_view_distance
+                                    .map(|max| view_distance.min(max))
+                                    .unwrap_or(view_distance),
+                            )
+                        });
+
                         if settings
                             .max_view_distance
-                            .map(|max| view_distance <= max)
-                            .unwrap_or(true)
+                            .map(|max| view_distance > max)
+                            .unwrap_or(false)
                         {
-                            players.get_mut(entity).map(|player| {
-                                player.view_distance = Some(
-                                    settings
-                                        .max_view_distance
-                                        .map(|max| view_distance.min(max))
-                                        .unwrap_or(view_distance),
-                                )
-                            });
-                        } else {
                             client.notify(ServerMsg::SetViewDistance(
                                 settings.max_view_distance.unwrap_or(0),
                             ));
@@ -316,7 +318,8 @@ impl Sys {
                             pos.0.xy().map(|e| e as f64).distance(
                                 key.map(|e| e as f64 + 0.5)
                                     * TerrainChunkSize::RECT_SIZE.map(|e| e as f64),
-                            ) < (view_distance as f64 + 1.5) * TerrainChunkSize::RECT_SIZE.x as f64
+                            ) < (view_distance as f64 - 1.0 + 2.5 * 2.0_f64.sqrt())
+                                * TerrainChunkSize::RECT_SIZE.x as f64
                         } else {
                             true
                         };
@@ -347,7 +350,14 @@ impl Sys {
                     }
                 },
                 ClientMsg::CreateCharacter { alias, tool, body } => {
-                    if let Some(player) = players.get(entity) {
+                    if let Err(error) = alias_validator.validate(&alias) {
+                        tracing::debug!(
+                            ?error,
+                            ?alias,
+                            "denied alias as it contained a banned word"
+                        );
+                        client.notify(ServerMsg::CharacterActionError(error.to_string()));
+                    } else if let Some(player) = players.get(entity) {
                         character_loader.create_character(
                             entity,
                             player.uuid().to_string(),
@@ -402,7 +412,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, ForceUpdate>,
         WriteStorage<'a, Stats>,
         ReadStorage<'a, ChatMode>,
-        WriteExpect<'a, AuthProvider>,
+        WriteExpect<'a, LoginProvider>,
         Write<'a, BlockChange>,
         ReadExpect<'a, AdminList>,
         WriteStorage<'a, Admin>,
@@ -413,6 +423,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Client>,
         WriteStorage<'a, Controller>,
         Read<'a, ServerSettings>,
+        ReadExpect<'a, AliasValidator>,
     );
 
     #[allow(clippy::match_ref_pats)] // TODO: Pending review in #587
@@ -443,6 +454,7 @@ impl<'a> System<'a> for Sys {
             mut clients,
             mut controllers,
             settings,
+            alias_validator,
         ): Self::SystemData,
     ) {
         timer.start();
@@ -473,9 +485,9 @@ impl<'a> System<'a> for Sys {
             let mut cnt = 0;
 
             let network_err: Result<(), crate::error::Error> = block_on(async {
-                //TIMEOUT 0.01 ms for msg handling
+                //TIMEOUT 0.02 ms for msg handling
                 select!(
-                    _ = Delay::new(std::time::Duration::from_micros(10)).fuse() => Ok(()),
+                    _ = Delay::new(std::time::Duration::from_micros(20)).fuse() => Ok(()),
                     err = Self::handle_client_msg(
                     &mut server_emitter,
                     &mut new_chat_msgs,
@@ -502,6 +514,7 @@ impl<'a> System<'a> for Sys {
                     &mut players,
                     &mut controllers,
                     &settings,
+                    &alias_validator,
                     ).fuse() => err,
                 )
             });

@@ -1,8 +1,12 @@
 Item(
     name: "Flowery Shirt",
-    description: "A shirt woven from twigs and flowers.\n\n<Right-Click to use>",
+    description: "A shirt woven from twigs and flowers.",
     kind: Armor(
-        kind: Chest(Twigsflowers),
-        stats: (20),
+        (
+            kind: Chest(Twigsflowers),
+            stats: (
+                protection: Normal(15.0),
+            ),
+        )
     ),
 )

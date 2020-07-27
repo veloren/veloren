@@ -26,7 +26,12 @@ pub enum Consumable {
     Velorite,
     VeloriteFrag,
     PotionMinor,
+    PotionMed,
+    PotionLarge,
     PotionExp,
+    AppleShroomCurry,
+    AppleStick,
+    MushroomStick,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -44,6 +49,13 @@ pub enum Utility {
 pub enum Ingredient {
     Flower,
     Grass,
+    EmptyVial,
+    LeatherScraps,
+    ShinyGem,
+    Stones,
+    Twigs,
+    MortarPestle,
+    CraftsmanHammer,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -78,15 +90,12 @@ impl Lantern {
 
 fn default_amount() -> u32 { 1 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ItemKind {
     /// Something wieldable
     Tool(tool::Tool),
     Lantern(Lantern),
-    Armor {
-        kind: armor::Armor,
-        stats: armor::Stats,
-    },
+    Armor(armor::Armor),
     Consumable {
         kind: Consumable,
         effect: Effect,
@@ -110,7 +119,7 @@ pub enum ItemKind {
     },
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Item {
     name: String,
     description: String,
@@ -159,13 +168,25 @@ impl Item {
 
     pub fn description(&self) -> &str { &self.description }
 
+    pub fn amount(&self) -> u32 {
+        match &self.kind {
+            ItemKind::Tool(_) => 1,
+            ItemKind::Lantern(_) => 1,
+            ItemKind::Armor { .. } => 1,
+            ItemKind::Consumable { amount, .. } => *amount,
+            ItemKind::Throwable { amount, .. } => *amount,
+            ItemKind::Utility { amount, .. } => *amount,
+            ItemKind::Ingredient { amount, .. } => *amount,
+        }
+    }
+
     pub fn try_reclaim_from_block(block: Block) -> Option<Self> {
         match block.kind() {
-            BlockKind::Apple => Some(assets::load_expect_cloned("common.items.apple")),
-            BlockKind::Mushroom => Some(assets::load_expect_cloned("common.items.mushroom")),
-            BlockKind::Velorite => Some(assets::load_expect_cloned("common.items.velorite")),
+            BlockKind::Apple => Some(assets::load_expect_cloned("common.items.food.apple")),
+            BlockKind::Mushroom => Some(assets::load_expect_cloned("common.items.food.mushroom")),
+            BlockKind::Velorite => Some(assets::load_expect_cloned("common.items.ore.velorite")),
             BlockKind::VeloriteFrag => {
-                Some(assets::load_expect_cloned("common.items.veloritefrag"))
+                Some(assets::load_expect_cloned("common.items.ore.veloritefrag"))
             },
             BlockKind::BlueFlower => Some(assets::load_expect_cloned("common.items.flowers.blue")),
             BlockKind::PinkFlower => Some(assets::load_expect_cloned("common.items.flowers.pink")),
@@ -185,14 +206,40 @@ impl Item {
                 Some(assets::load_expect_cloned("common.items.grasses.medium"))
             },
             BlockKind::ShortGrass => Some(assets::load_expect_cloned("common.items.grasses.short")),
-            BlockKind::Coconut => Some(assets::load_expect_cloned("common.items.coconut")),
+            BlockKind::Coconut => Some(assets::load_expect_cloned("common.items.food.coconut")),
             BlockKind::Chest => {
                 let chosen = assets::load_expect::<lottery::Lottery<_>>("common.loot_table");
                 let chosen = chosen.choose();
 
                 Some(assets::load_expect_cloned(chosen))
             },
+            BlockKind::Stones => Some(assets::load_expect_cloned(
+                "common.items.crafting_ing.stones",
+            )),
+            BlockKind::Twigs => Some(assets::load_expect_cloned(
+                "common.items.crafting_ing.twigs",
+            )),
+            BlockKind::ShinyGem => Some(assets::load_expect_cloned(
+                "common.items.crafting_ing.shiny_gem",
+            )),
             _ => None,
+        }
+    }
+
+    /// Determines whether two items are superficially equivalent to one another
+    /// (i.e: one may be substituted for the other in crafting recipes or
+    /// item possession checks).
+    pub fn superficially_eq(&self, other: &Self) -> bool {
+        match (&self.kind, &other.kind) {
+            (ItemKind::Tool(a), ItemKind::Tool(b)) => a.superficially_eq(b),
+            // TODO: Differentiate between lantern colors?
+            (ItemKind::Lantern(_), ItemKind::Lantern(_)) => true,
+            (ItemKind::Armor(a), ItemKind::Armor(b)) => a.superficially_eq(b),
+            (ItemKind::Consumable { kind: a, .. }, ItemKind::Consumable { kind: b, .. }) => a == b,
+            (ItemKind::Throwable { kind: a, .. }, ItemKind::Throwable { kind: b, .. }) => a == b,
+            (ItemKind::Utility { kind: a, .. }, ItemKind::Utility { kind: b, .. }) => a == b,
+            (ItemKind::Ingredient { kind: a, .. }, ItemKind::Ingredient { kind: b, .. }) => a == b,
+            _ => false,
         }
     }
 }
@@ -201,7 +248,7 @@ impl Component for Item {
     type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ItemDrop(pub Item);
 
 impl Component for ItemDrop {

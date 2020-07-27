@@ -50,50 +50,50 @@ impl NetworkMetrics {
         let listen_requests_total = IntCounterVec::new(
             Opts::new(
                 "listen_requests_total",
-                "shows the number of listen requests to the scheduler",
+                "Shows the number of listen requests to the scheduler",
             ),
             &["protocol"],
         )?;
         let connect_requests_total = IntCounterVec::new(
             Opts::new(
                 "connect_requests_total",
-                "shows the number of connect requests to the scheduler",
+                "Shows the number of connect requests to the scheduler",
             ),
             &["protocol"],
         )?;
         let participants_connected_total = IntCounter::with_opts(Opts::new(
             "participants_connected_total",
-            "shows the number of participants connected to the network",
+            "Shows the number of participants connected to the network",
         ))?;
         let participants_disconnected_total = IntCounter::with_opts(Opts::new(
             "participants_disconnected_total",
-            "shows the number of participants disconnected to the network",
+            "Shows the number of participants disconnected to the network",
         ))?;
         let channels_connected_total = IntCounterVec::new(
             Opts::new(
                 "channels_connected_total",
-                "number of all channels currently connected on the network",
+                "Number of all channels currently connected on the network",
             ),
             &["participant"],
         )?;
         let channels_disconnected_total = IntCounterVec::new(
             Opts::new(
                 "channels_disconnected_total",
-                "number of all channels currently disconnected on the network",
+                "Number of all channels currently disconnected on the network",
             ),
             &["participant"],
         )?;
         let streams_opened_total = IntCounterVec::new(
             Opts::new(
                 "streams_opened_total",
-                "number of all streams currently open on the network",
+                "Number of all streams currently open on the network",
             ),
             &["participant"],
         )?;
         let streams_closed_total = IntCounterVec::new(
             Opts::new(
                 "streams_closed_total",
-                "number of all streams currently open on the network",
+                "Number of all streams currently open on the network",
             ),
             &["participant"],
         )?;
@@ -112,42 +112,42 @@ impl NetworkMetrics {
         let frames_out_total = IntCounterVec::new(
             Opts::new(
                 "frames_out_total",
-                "number of all frames send per channel, at the channel level",
+                "Number of all frames send per channel, at the channel level",
             ),
             &["participant", "channel", "frametype"],
         )?;
         let frames_in_total = IntCounterVec::new(
             Opts::new(
                 "frames_in_total",
-                "number of all frames received per channel, at the channel level",
+                "Number of all frames received per channel, at the channel level",
             ),
             &["participant", "channel", "frametype"],
         )?;
         let frames_wire_out_total = IntCounterVec::new(
             Opts::new(
                 "frames_wire_out_total",
-                "number of all frames send per channel, at the protocol level",
+                "Number of all frames send per channel, at the protocol level",
             ),
             &["channel", "frametype"],
         )?;
         let frames_wire_in_total = IntCounterVec::new(
             Opts::new(
                 "frames_wire_in_total",
-                "number of all frames received per channel, at the protocol level",
+                "Number of all frames received per channel, at the protocol level",
             ),
             &["channel", "frametype"],
         )?;
         let wire_out_throughput = IntCounterVec::new(
             Opts::new(
                 "wire_out_throughput",
-                "throupgput of all data frames send per channel, at the protocol level",
+                "Throupgput of all data frames send per channel, at the protocol level",
             ),
             &["channel"],
         )?;
         let wire_in_throughput = IntCounterVec::new(
             Opts::new(
                 "wire_in_throughput",
-                "throupgput of all data frames send per channel, at the protocol level",
+                "Throupgput of all data frames send per channel, at the protocol level",
             ),
             &["channel"],
         )?;
@@ -155,7 +155,7 @@ impl NetworkMetrics {
         let message_out_total = IntCounterVec::new(
             Opts::new(
                 "message_out_total",
-                "number of messages send by streams on the network",
+                "Number of messages send by streams on the network",
             ),
             &["participant", "stream"],
         )?;
@@ -163,28 +163,28 @@ impl NetworkMetrics {
         let message_out_throughput = IntCounterVec::new(
             Opts::new(
                 "message_out_throughput",
-                "throughput of messages send by streams on the network",
+                "Throughput of messages send by streams on the network",
             ),
             &["participant", "stream"],
         )?;
         let queued_count = IntGaugeVec::new(
             Opts::new(
                 "queued_count",
-                "queued number of messages by participant on the network",
+                "Queued number of messages by participant on the network",
             ),
             &["channel"],
         )?;
         let queued_bytes = IntGaugeVec::new(
             Opts::new(
                 "queued_bytes",
-                "queued bytes of messages by participant on the network",
+                "Queued bytes of messages by participant on the network",
             ),
             &["channel"],
         )?;
         let participants_ping = IntGaugeVec::new(
             Opts::new(
                 "participants_ping",
-                "ping time to participants on the network",
+                "Ping time to participants on the network",
             ),
             &["channel"],
         )?;

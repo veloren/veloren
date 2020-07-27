@@ -2,6 +2,7 @@ use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     slots::{ArmorSlot, EquipSlot, InventorySlot, SlotManager},
+    util::loadout_slot_text,
     Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
 };
 use crate::{
@@ -19,6 +20,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+
 use vek::Vec2;
 
 widget_ids! {
@@ -30,7 +32,6 @@ widget_ids! {
         inv_grid_2,
         inv_scrollbar,
         inv_slots_0,
-        map_title,
         inv_slots[],
         //tooltip[],
         bg,
@@ -77,6 +78,7 @@ widget_ids! {
         end_ico,
         fit_ico,
         wp_ico,
+        prot_ico,
     }
 }
 
@@ -340,180 +342,139 @@ impl<'a> Widget for Bag<'a> {
                 image_source: self.item_imgs,
                 slot_manager: Some(self.slot_manager),
             };
+            let i18n = &self.localized_strings;
             //  Head
-            let (title, desc) = loadout
-                .head
-                .as_ref()
-                .map_or((self.localized_strings.get("hud.bag.head"), ""), |item| {
-                    (item.name(), item.description())
-                });
+            let (title, desc) =
+                loadout_slot_text(loadout.head.as_ref(), || (i18n.get("hud.bag.head"), ""));
             slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Head), [45.0; 2])
                 .mid_top_with_margin_on(state.ids.bg_frame, 60.0)
                 .with_icon(self.imgs.head_bg, Vec2::new(32.0, 40.0), Some(UI_MAIN))
-                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .with_tooltip(self.tooltip_manager, title, &*desc, &item_tooltip)
                 .set(state.ids.head_slot, ui);
             //  Necklace
-            let (title, desc) = loadout
-                .neck
-                .as_ref()
-                .map_or((self.localized_strings.get("hud.bag.neck"), ""), |item| {
-                    (item.name(), item.description())
-                });
+            let (title, desc) =
+                loadout_slot_text(loadout.neck.as_ref(), || (i18n.get("hud.bag.neck"), ""));
             slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Neck), [45.0; 2])
                 .mid_bottom_with_margin_on(state.ids.head_slot, -55.0)
                 .with_icon(self.imgs.necklace_bg, Vec2::new(40.0, 31.0), Some(UI_MAIN))
-                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .with_tooltip(self.tooltip_manager, title, &*desc, &item_tooltip)
                 .set(state.ids.neck_slot, ui);
             // Chest
             //Image::new(self.imgs.armor_slot) // different graphics for empty/non empty
-            let (title, desc) = loadout
-                .chest
-                .as_ref()
-                .map_or((self.localized_strings.get("hud.bag.chest"), ""), |item| {
-                    (item.name(), item.description())
-                });
+            let (title, desc) =
+                loadout_slot_text(loadout.chest.as_ref(), || (i18n.get("hud.bag.chest"), ""));
             slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Chest), [85.0; 2])
                 .mid_bottom_with_margin_on(state.ids.neck_slot, -95.0)
                 .with_icon(self.imgs.chest_bg, Vec2::new(64.0, 42.0), Some(UI_MAIN))
-                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .with_tooltip(self.tooltip_manager, title, &*desc, &item_tooltip)
                 .set(state.ids.chest_slot, ui);
             //  Shoulders
-            let (title, desc) = loadout.shoulder.as_ref().map_or(
-                (self.localized_strings.get("hud.bag.shoulders"), ""),
-                |item| (item.name(), item.description()),
-            );
+            let (title, desc) = loadout_slot_text(loadout.shoulder.as_ref(), || {
+                (i18n.get("hud.bag.shoulders"), "")
+            });
             slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Shoulders), [70.0; 2])
                 .bottom_left_with_margins_on(state.ids.chest_slot, 0.0, -80.0)
                 .with_icon(self.imgs.shoulders_bg, Vec2::new(60.0, 36.0), Some(UI_MAIN))
-                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .with_tooltip(self.tooltip_manager, title, &*desc, &item_tooltip)
                 .set(state.ids.shoulders_slot, ui);
             // Hands
-            let (title, desc) = loadout
-                .hand
-                .as_ref()
-                .map_or((self.localized_strings.get("hud.bag.hands"), ""), |item| {
-                    (item.name(), item.description())
-                });
+            let (title, desc) =
+                loadout_slot_text(loadout.hand.as_ref(), || (i18n.get("hud.bag.hands"), ""));
             slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Hands), [70.0; 2])
                 .bottom_right_with_margins_on(state.ids.chest_slot, 0.0, -80.0)
                 .with_icon(self.imgs.hands_bg, Vec2::new(55.0, 60.0), Some(UI_MAIN))
-                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .with_tooltip(self.tooltip_manager, title, &*desc, &item_tooltip)
                 .set(state.ids.hands_slot, ui);
             // Belt
-            let (title, desc) = loadout
-                .belt
-                .as_ref()
-                .map_or((self.localized_strings.get("hud.bag.belt"), ""), |item| {
-                    (item.name(), item.description())
-                });
+            let (title, desc) =
+                loadout_slot_text(loadout.belt.as_ref(), || (i18n.get("hud.bag.belt"), ""));
             slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Belt), [45.0; 2])
                 .mid_bottom_with_margin_on(state.ids.chest_slot, -55.0)
                 .with_icon(self.imgs.belt_bg, Vec2::new(40.0, 23.0), Some(UI_MAIN))
-                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .with_tooltip(self.tooltip_manager, title, &*desc, &item_tooltip)
                 .set(state.ids.belt_slot, ui);
             // Legs
-            let (title, desc) = loadout
-                .pants
-                .as_ref()
-                .map_or((self.localized_strings.get("hud.bag.legs"), ""), |item| {
-                    (item.name(), item.description())
-                });
+            let (title, desc) =
+                loadout_slot_text(loadout.pants.as_ref(), || (i18n.get("hud.bag.legs"), ""));
             slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Legs), [85.0; 2])
                 .mid_bottom_with_margin_on(state.ids.belt_slot, -95.0)
                 .with_icon(self.imgs.legs_bg, Vec2::new(48.0, 70.0), Some(UI_MAIN))
-                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .with_tooltip(self.tooltip_manager, title, &*desc, &item_tooltip)
                 .set(state.ids.legs_slot, ui);
             // Lantern
-            let (title, desc) = loadout.lantern.as_ref().map_or(
-                (self.localized_strings.get("hud.bag.lantern"), ""),
-                |item| (item.name(), item.description()),
-            );
+            let (title, desc) = loadout_slot_text(loadout.lantern.as_ref(), || {
+                (i18n.get("hud.bag.lantern"), "")
+            });
             slot_maker
                 .fabricate(EquipSlot::Lantern, [45.0; 2])
                 .bottom_right_with_margins_on(state.ids.shoulders_slot, -55.0, 0.0)
                 .with_icon(self.imgs.lantern_bg, Vec2::new(24.0, 38.0), Some(UI_MAIN))
-                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .with_tooltip(self.tooltip_manager, title, &*desc, &item_tooltip)
                 .set(state.ids.lantern_slot, ui);
             // Ring
-            let (title, desc) = loadout
-                .ring
-                .as_ref()
-                .map_or((self.localized_strings.get("hud.bag.ring"), ""), |item| {
-                    (item.name(), item.description())
-                });
+            let (title, desc) =
+                loadout_slot_text(loadout.ring.as_ref(), || (i18n.get("hud.bag.ring"), ""));
             slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Ring), [45.0; 2])
                 .bottom_left_with_margins_on(state.ids.hands_slot, -55.0, 0.0)
                 .with_icon(self.imgs.ring_bg, Vec2::new(36.0, 40.0), Some(UI_MAIN))
-                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .with_tooltip(self.tooltip_manager, title, &*desc, &item_tooltip)
                 .set(state.ids.ring_slot, ui);
             // Back
-            let (title, desc) = loadout
-                .back
-                .as_ref()
-                .map_or((self.localized_strings.get("hud.bag.back"), ""), |item| {
-                    (item.name(), item.description())
-                });
+            let (title, desc) =
+                loadout_slot_text(loadout.back.as_ref(), || (i18n.get("hud.bag.back"), ""));
             slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Back), [45.0; 2])
                 .down_from(state.ids.lantern_slot, 10.0)
                 .with_icon(self.imgs.back_bg, Vec2::new(33.0, 40.0), Some(UI_MAIN))
-                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .with_tooltip(self.tooltip_manager, title, &*desc, &item_tooltip)
                 .set(state.ids.back_slot, ui);
             // Foot
-            let (title, desc) = loadout
-                .foot
-                .as_ref()
-                .map_or((self.localized_strings.get("hud.bag.feet"), ""), |item| {
-                    (item.name(), item.description())
-                });
+            let (title, desc) =
+                loadout_slot_text(loadout.foot.as_ref(), || (i18n.get("hud.bag.feet"), ""));
             slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Feet), [45.0; 2])
                 .down_from(state.ids.ring_slot, 10.0)
                 .with_icon(self.imgs.feet_bg, Vec2::new(32.0, 40.0), Some(UI_MAIN))
-                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .with_tooltip(self.tooltip_manager, title, &*desc, &item_tooltip)
                 .set(state.ids.feet_slot, ui);
             // Tabard
-            let (title, desc) = loadout
-                .tabard
-                .as_ref()
-                .map_or((self.localized_strings.get("hud.bag.tabard"), ""), |item| {
-                    (item.name(), item.description())
-                });
+            let (title, desc) =
+                loadout_slot_text(loadout.tabard.as_ref(), || (i18n.get("hud.bag.tabard"), ""));
             slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Tabard), [70.0; 2])
                 .top_right_with_margins_on(state.ids.bg_frame, 80.5, 53.0)
                 .with_icon(self.imgs.tabard_bg, Vec2::new(60.0, 60.0), Some(UI_MAIN))
-                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .with_tooltip(self.tooltip_manager, title, &*desc, &item_tooltip)
                 .set(state.ids.tabard_slot, ui);
             // Mainhand/Left-Slot
-            let (title, desc) = loadout.active_item.as_ref().map(|i| &i.item).map_or(
-                (self.localized_strings.get("hud.bag.mainhand"), ""),
-                |item| (item.name(), item.description()),
-            );
+            let (title, desc) =
+                loadout_slot_text(loadout.active_item.as_ref().map(|i| &i.item), || {
+                    (i18n.get("hud.bag.mainhand"), "")
+                });
             slot_maker
                 .fabricate(EquipSlot::Mainhand, [85.0; 2])
                 .bottom_right_with_margins_on(state.ids.back_slot, -95.0, 0.0)
                 .with_icon(self.imgs.mainhand_bg, Vec2::new(75.0, 75.0), Some(UI_MAIN))
-                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .with_tooltip(self.tooltip_manager, title, &*desc, &item_tooltip)
                 .set(state.ids.mainhand_slot, ui);
             // Offhand/Right-Slot
-            let (title, desc) = loadout.second_item.as_ref().map(|i| &i.item).map_or(
-                (self.localized_strings.get("hud.bag.offhand"), ""),
-                |item| (item.name(), item.description()),
-            );
+            let (title, desc) =
+                loadout_slot_text(loadout.second_item.as_ref().map(|i| &i.item), || {
+                    (i18n.get("hud.bag.offhand"), "")
+                });
             slot_maker
                 .fabricate(EquipSlot::Offhand, [85.0; 2])
                 .bottom_left_with_margins_on(state.ids.feet_slot, -95.0, 0.0)
                 .with_icon(self.imgs.offhand_bg, Vec2::new(75.0, 75.0), Some(UI_MAIN))
-                .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                .with_tooltip(self.tooltip_manager, title, &*desc, &item_tooltip)
                 .set(state.ids.offhand_slot, ui);
         } else {
             // Stats
@@ -581,11 +542,14 @@ impl<'a> Widget for Bag<'a> {
             // Divider
             /*Image::new(self.imgs.divider)
             .w_h(50.0, 5.0)
-            .mid_top_with_margin_on(state.ids.exp, 30.0)
+            .mid_top_with_margin_on(state.ids.exp, 20.0)
             .color(Some(UI_HIGHLIGHT_0))
             .set(state.ids.divider, ui);*/
 
             // Stats
+            // Defense
+            let damage_reduction = (100.0 * loadout.get_damage_reduction()) as i32;
+
             Text::new(
                 &self
                     .localized_strings
@@ -597,24 +561,29 @@ impl<'a> Widget for Bag<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.statnames, ui);
             Image::new(self.imgs.endurance_ico)
-                .w_h(30.0, 30.0)
-                .top_left_with_margins_on(state.ids.statnames, -10.0, -40.0)
+                .w_h(20.0, 20.0)
+                .top_left_with_margins_on(state.ids.statnames, 0.0, -40.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.end_ico, ui);
             Image::new(self.imgs.fitness_ico)
-                .w_h(30.0, 30.0)
-                .down_from(state.ids.end_ico, 10.0)
+                .w_h(20.0, 20.0)
+                .down_from(state.ids.end_ico, 15.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.fit_ico, ui);
             Image::new(self.imgs.willpower_ico)
-                .w_h(30.0, 30.0)
-                .down_from(state.ids.fit_ico, 10.0)
+                .w_h(20.0, 20.0)
+                .down_from(state.ids.fit_ico, 15.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.wp_ico, ui);
+            Image::new(self.imgs.protection_ico)
+                .w_h(20.0, 20.0)
+                .down_from(state.ids.wp_ico, 15.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.prot_ico, ui);
 
             Text::new(&format!(
-                "{}\n\n{}\n\n{}",
-                self.stats.endurance, self.stats.fitness, self.stats.willpower
+                "{}\n\n{}\n\n{}\n\n{}%",
+                self.stats.endurance, self.stats.fitness, self.stats.willpower, damage_reduction
             ))
             .top_right_with_margins_on(state.ids.stats_alignment, 120.0, 150.0)
             .font_id(self.fonts.cyri.conrod_id)
@@ -663,16 +632,9 @@ impl<'a> Widget for Bag<'a> {
                     0.0 + x as f64 * (40.0),
                 );
             if let Some(item) = item {
+                let (title, desc) = super::util::item_text(item);
                 slot_widget
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        &item.name(),
-                        &format!(
-                            "{}",
-                            /* item.kind, item.effect(), */ item.description()
-                        ),
-                        &item_tooltip,
-                    )
+                    .with_tooltip(self.tooltip_manager, title, &*desc, &item_tooltip)
                     .set(state.ids.inv_slots[i], ui);
             } else {
                 slot_widget.set(state.ids.inv_slots[i], ui);

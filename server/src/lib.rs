@@ -2,13 +2,14 @@
 #![allow(clippy::option_map_unit_fn)]
 #![feature(drain_filter, option_zip)]
 
-pub mod auth_provider;
+pub mod alias_validator;
 pub mod chunk_generator;
 pub mod client;
 pub mod cmd;
 pub mod error;
 pub mod events;
 pub mod input;
+pub mod login_provider;
 pub mod metrics;
 pub mod persistence;
 pub mod settings;
@@ -20,10 +21,11 @@ pub mod sys;
 pub use crate::{error::Error, events::Event, input::Input, settings::ServerSettings};
 
 use crate::{
-    auth_provider::AuthProvider,
+    alias_validator::AliasValidator,
     chunk_generator::ChunkGenerator,
     client::{Client, RegionSubscription},
     cmd::ChatCommandExt,
+    login_provider::LoginProvider,
     state_ext::StateExt,
     sys::sentinel::{DeletedEntities, TrackedComps},
 };
@@ -32,6 +34,7 @@ use common::{
     comp::{self, ChatType},
     event::{EventBus, ServerEvent},
     msg::{server::WorldMapMsg, ClientState, ServerInfo, ServerMsg},
+    recipe::default_recipe_book,
     state::{State, TimeOfDay},
     sync::WorldSyncExt,
     terrain::TerrainChunkSize,
@@ -41,7 +44,7 @@ use futures_executor::block_on;
 use futures_timer::Delay;
 use futures_util::{select, FutureExt};
 use metrics::{ServerMetrics, TickMetrics};
-use network::{Address, Network, Pid};
+use network::{Network, Pid, ProtocolAddr};
 use persistence::character::{CharacterLoader, CharacterLoaderResponseType, CharacterUpdater};
 use specs::{join::Join, Builder, Entity as EcsEntity, RunNow, SystemData, WorldExt};
 use std::{
@@ -52,7 +55,7 @@ use std::{
 };
 #[cfg(not(feature = "worldgen"))]
 use test_world::{World, WORLD_SIZE};
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, warn};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 #[cfg(feature = "worldgen")]
@@ -96,10 +99,9 @@ impl Server {
         let mut state = State::default();
         state.ecs_mut().insert(settings.clone());
         state.ecs_mut().insert(EventBus::<ServerEvent>::default());
-        state.ecs_mut().insert(AuthProvider::new(
-            settings.auth_server_address.clone(),
-            settings.whitelist.clone(),
-        ));
+        state
+            .ecs_mut()
+            .insert(LoginProvider::new(settings.auth_server_address.clone()));
         state.ecs_mut().insert(Tick(0));
         state.ecs_mut().insert(ChunkGenerator::new());
         state
@@ -135,6 +137,37 @@ impl Server {
         // Server-only components
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
+
+        //Alias validator
+        let banned_words_paths = &settings.banned_words_files;
+        let mut banned_words = Vec::new();
+        for path in banned_words_paths {
+            let mut list = match std::fs::File::open(&path) {
+                Ok(file) => match ron::de::from_reader(&file) {
+                    Ok(vec) => vec,
+                    Err(error) => {
+                        tracing::warn!(?error, ?file, "Couldn't deserialize banned words file");
+                        return Err(Error::Other(format!(
+                            "Couldn't read banned words file \"{}\"",
+                            path.to_string_lossy()
+                        )));
+                    },
+                },
+                Err(error) => {
+                    tracing::warn!(?error, ?path, "Couldn't open banned words file");
+                    return Err(Error::Other(format!(
+                        "Couldn't open banned words file \"{}\". Error: {}",
+                        path.to_string_lossy(),
+                        error
+                    )));
+                },
+            };
+            banned_words.append(&mut list);
+        }
+        let banned_words_count = banned_words.len();
+        tracing::debug!(?banned_words_count);
+        tracing::trace!(?banned_words);
+        state.ecs_mut().insert(AliasValidator::new(banned_words));
 
         #[cfg(feature = "worldgen")]
         let world = World::generate(settings.world_seed, WorldOpts {
@@ -244,9 +277,9 @@ impl Server {
         let thread_pool = ThreadPoolBuilder::new()
             .name("veloren-worker".to_string())
             .build();
-        let (network, f) = Network::new(Pid::new(), None);
+        let (network, f) = Network::new(Pid::new());
         thread_pool.execute(f);
-        block_on(network.listen(Address::Tcp(settings.gameserver_address)))?;
+        block_on(network.listen(ProtocolAddr::Tcp(settings.gameserver_address)))?;
 
         let this = Self {
             state,
@@ -347,13 +380,7 @@ impl Server {
         let before_new_connections = Instant::now();
 
         // 3) Handle inputs from clients
-        block_on(async {
-            //TIMEOUT 0.01 ms for msg handling
-            select!(
-                _ = Delay::new(std::time::Duration::from_micros(10)).fuse() => Ok(()),
-                err = self.handle_new_connections(&mut frontend_events).fuse() => err,
-            )
-        })?;
+        block_on(self.handle_new_connections(&mut frontend_events))?;
 
         let before_message_system = Instant::now();
 
@@ -600,13 +627,38 @@ impl Server {
         &mut self,
         frontend_events: &mut Vec<Event>,
     ) -> Result<(), Error> {
+        //TIMEOUT 0.1 ms for msg handling
+        const TIMEOUT: Duration = Duration::from_micros(100);
         loop {
-            let participant = self.network.connected().await?;
-            let singleton_stream = participant.opened().await?;
+            let participant = match select!(
+                _ = Delay::new(TIMEOUT).fuse() => None,
+                pr = self.network.connected().fuse() => Some(pr),
+            ) {
+                None => return Ok(()),
+                Some(pr) => pr?,
+            };
+            debug!("New Participant connected to the server");
+
+            let singleton_stream = match select!(
+                _ = Delay::new(TIMEOUT*100).fuse() => None,
+                sr = participant.opened().fuse() => Some(sr),
+            ) {
+                None => {
+                    warn!("Either Slowloris attack or very slow client, dropping");
+                    return Ok(()); //return rather then continue to give removes a tick more to send data.
+                },
+                Some(Ok(s)) => s,
+                Some(Err(e)) => {
+                    warn!(?e, "Failed to open a Stream from remote client. dropping");
+                    continue;
+                },
+            };
 
             let mut client = Client {
                 client_state: ClientState::Connected,
+                participant: std::sync::Mutex::new(Some(participant)),
                 singleton_stream,
+                network_error: std::sync::atomic::AtomicBool::new(false),
                 last_ping: self.state.get_time(),
                 login_msg_sent: false,
             };
@@ -638,10 +690,11 @@ impl Server {
                         server_info: self.get_server_info(),
                         time_of_day: *self.state.ecs().read_resource(),
                         world_map: self.map.clone(),
+                        recipe_book: (&*default_recipe_book()).clone(),
                     });
-                debug!("Done initial sync with client.");
 
                 frontend_events.push(Event::ClientConnected { entity });
+                debug!("Done initial sync with client.");
             }
         }
     }

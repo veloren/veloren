@@ -2,7 +2,7 @@ use crate::ui::{Graphic, SampleStrat, Transform, Ui};
 use common::{
     assets::{self, watch::ReloadIndicator, Asset},
     comp::item::{
-        armor::Armor,
+        armor::{Armor, ArmorKind},
         tool::{Tool, ToolKind},
         Consumable, Ingredient, Item, ItemKind, Lantern, LanternKind, Throwable, Utility,
     },
@@ -21,7 +21,7 @@ use vek::*;
 pub enum ItemKey {
     Tool(ToolKind),
     Lantern(LanternKind),
-    Armor(Armor),
+    Armor(ArmorKind),
     Utility(Utility),
     Consumable(Consumable),
     Throwable(Throwable),
@@ -33,7 +33,7 @@ impl From<&Item> for ItemKey {
         match &item.kind {
             ItemKind::Tool(Tool { kind, .. }) => ItemKey::Tool(*kind),
             ItemKind::Lantern(Lantern { kind, .. }) => ItemKey::Lantern(*kind),
-            ItemKind::Armor { kind, .. } => ItemKey::Armor(*kind),
+            ItemKind::Armor(Armor { kind, .. }) => ItemKey::Armor(*kind),
             ItemKind::Utility { kind, .. } => ItemKey::Utility(*kind),
             ItemKind::Consumable { kind, .. } => ItemKey::Consumable(*kind),
             ItemKind::Throwable { kind, .. } => ItemKey::Throwable(*kind),

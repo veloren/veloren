@@ -4,18 +4,17 @@
 //!E.g. in the same time 100 prio0 messages are send, only 50 prio5, 25 prio10,
 //! 12 prio15 or 6 prio20 messages are send. Note: TODO: prio0 will be send
 //! immeadiatly when found!
-
+//!
+#[cfg(feature = "metrics")]
+use crate::metrics::NetworkMetrics;
 use crate::{
     message::OutgoingMessage,
-    metrics::NetworkMetrics,
     types::{Frame, Prio, Sid},
 };
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use futures::channel::oneshot;
-use std::{
-    collections::{HashMap, HashSet, VecDeque},
-    sync::Arc,
-};
+use std::collections::{HashMap, HashSet, VecDeque};
+#[cfg(feature = "metrics")] use std::sync::Arc;
 
 use tracing::*;
 
@@ -35,12 +34,13 @@ pub(crate) struct PrioManager {
     //you can register to be notified if a pid_sid combination is flushed completly here
     sid_flushed_rx: Receiver<(Sid, oneshot::Sender<()>)>,
     queued: HashSet<u8>,
+    #[cfg(feature = "metrics")]
     metrics: Arc<NetworkMetrics>,
+    #[cfg(feature = "metrics")]
     pid: String,
 }
 
 impl PrioManager {
-    const FRAME_DATA_SIZE: u64 = 1400;
     const PRIOS: [u32; PRIO_MAX] = [
         100, 115, 132, 152, 174, 200, 230, 264, 303, 348, 400, 459, 528, 606, 696, 800, 919, 1056,
         1213, 1393, 1600, 1838, 2111, 2425, 2786, 3200, 3676, 4222, 4850, 5572, 6400, 7352, 8445,
@@ -51,13 +51,15 @@ impl PrioManager {
 
     #[allow(clippy::type_complexity)]
     pub fn new(
-        metrics: Arc<NetworkMetrics>,
+        #[cfg(feature = "metrics")] metrics: Arc<NetworkMetrics>,
         pid: String,
     ) -> (
         Self,
         Sender<(Prio, Sid, OutgoingMessage)>,
         Sender<(Sid, oneshot::Sender<()>)>,
     ) {
+        #[cfg(not(feature = "metrics"))]
+        let _pid = pid;
         // (a2p_msg_s, a2p_msg_r)
         let (messages_tx, messages_rx) = unbounded();
         let (sid_flushed_tx, sid_flushed_rx) = unbounded();
@@ -134,7 +136,9 @@ impl PrioManager {
                 queued: HashSet::new(), //TODO: optimize with u64 and 64 bits
                 sid_flushed_rx,
                 sid_owned: HashMap::new(),
+                #[cfg(feature = "metrics")]
                 metrics,
+                #[cfg(feature = "metrics")]
                 pid,
             },
             messages_tx,
@@ -149,15 +153,19 @@ impl PrioManager {
         for (prio, sid, msg) in self.messages_rx.try_iter() {
             debug_assert!(prio as usize <= PRIO_MAX);
             messages += 1;
-            let sid_string = sid.to_string();
-            self.metrics
-                .message_out_total
-                .with_label_values(&[&self.pid, &sid_string])
-                .inc();
-            self.metrics
-                .message_out_throughput
-                .with_label_values(&[&self.pid, &sid_string])
-                .inc_by(msg.buffer.data.len() as i64);
+            #[cfg(feature = "metrics")]
+            {
+                let sid_string = sid.to_string();
+                self.metrics
+                    .message_out_total
+                    .with_label_values(&[&self.pid, &sid_string])
+                    .inc();
+                self.metrics
+                    .message_out_throughput
+                    .with_label_values(&[&self.pid, &sid_string])
+                    .inc_by(msg.buffer.data.len() as i64);
+            }
+
             //trace!(?prio, ?sid_string, "tick");
             self.queued.insert(prio);
             self.messages[prio as usize].push_back((sid, msg));
@@ -201,34 +209,6 @@ impl PrioManager {
             .min_by_key(|&n| self.points[*n as usize]).cloned()*/
     }
 
-    /// returns if msg is empty
-    fn tick_msg<E: Extend<(Sid, Frame)>>(
-        msg: &mut OutgoingMessage,
-        msg_sid: Sid,
-        frames: &mut E,
-    ) -> bool {
-        let to_send = std::cmp::min(
-            msg.buffer.data[msg.cursor as usize..].len() as u64,
-            Self::FRAME_DATA_SIZE,
-        );
-        if to_send > 0 {
-            if msg.cursor == 0 {
-                frames.extend(std::iter::once((msg_sid, Frame::DataHeader {
-                    mid: msg.mid,
-                    sid: msg.sid,
-                    length: msg.buffer.data.len() as u64,
-                })));
-            }
-            frames.extend(std::iter::once((msg_sid, Frame::Data {
-                mid: msg.mid,
-                start: msg.cursor,
-                data: msg.buffer.data[msg.cursor as usize..][..to_send as usize].to_vec(),
-            })));
-        };
-        msg.cursor += to_send;
-        msg.cursor >= msg.buffer.data.len() as u64
-    }
-
     /// no_of_frames = frames.len()
     /// Your goal is to try to find a realistic no_of_frames!
     /// no_of_frames should be choosen so, that all Frames can be send out till
@@ -257,7 +237,7 @@ impl PrioManager {
                     // => messages with same prio get a fair chance :)
                     //TODO: evalaute not poping every time
                     let (sid, mut msg) = self.messages[prio as usize].pop_front().unwrap();
-                    if Self::tick_msg(&mut msg, sid, frames) {
+                    if msg.fill_next(sid, frames) {
                         //trace!(?m.mid, "finish message");
                         //check if prio is empty
                         if self.messages[prio as usize].is_empty() {
@@ -265,7 +245,7 @@ impl PrioManager {
                         }
                         //decrease pid_sid counter by 1 again
                         let cnt = self.sid_owned.get_mut(&sid).expect(
-                            "the pid_sid_owned counter works wrong, more pid,sid removed than \
+                            "The pid_sid_owned counter works wrong, more pid,sid removed than \
                              inserted",
                         );
                         cnt.len -= 1;
@@ -276,7 +256,7 @@ impl PrioManager {
                             }
                         }
                     } else {
-                        trace!(?msg.mid, "repush message");
+                        trace!(?msg.mid, "Repush message");
                         self.messages[prio as usize].push_front((sid, msg));
                     }
                 },
@@ -314,8 +294,8 @@ mod tests {
     use futures::{channel::oneshot, executor::block_on};
     use std::{collections::VecDeque, sync::Arc};
 
-    const SIZE: u64 = PrioManager::FRAME_DATA_SIZE;
-    const USIZE: usize = PrioManager::FRAME_DATA_SIZE as usize;
+    const SIZE: u64 = OutgoingMessage::FRAME_DATA_SIZE;
+    const USIZE: usize = OutgoingMessage::FRAME_DATA_SIZE as usize;
 
     #[allow(clippy::type_complexity)]
     fn mock_new() -> (
@@ -358,28 +338,28 @@ mod tests {
     fn assert_header(frames: &mut VecDeque<(Sid, Frame)>, f_sid: u64, f_length: u64) {
         let frame = frames
             .pop_front()
-            .expect("frames vecdeque doesn't contain enough frames!")
+            .expect("Frames vecdeque doesn't contain enough frames!")
             .1;
         if let Frame::DataHeader { mid, sid, length } = frame {
             assert_eq!(mid, 1);
             assert_eq!(sid, Sid::new(f_sid));
             assert_eq!(length, f_length);
         } else {
-            panic!("wrong frame type!, expected DataHeader");
+            panic!("Wrong frame type!, expected DataHeader");
         }
     }
 
     fn assert_data(frames: &mut VecDeque<(Sid, Frame)>, f_start: u64, f_data: Vec<u8>) {
         let frame = frames
             .pop_front()
-            .expect("frames vecdeque doesn't contain enough frames!")
+            .expect("Frames vecdeque doesn't contain enough frames!")
             .1;
         if let Frame::Data { mid, start, data } = frame {
             assert_eq!(mid, 1);
             assert_eq!(start, f_start);
             assert_eq!(data, f_data);
         } else {
-            panic!("wrong frame type!, expected Data");
+            panic!("Wrong frame type!, expected Data");
         }
     }
 

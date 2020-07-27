@@ -1,8 +1,12 @@
 Item(
     name: "Blue Linen Skirt",
-   description: "Legs\n\nArmor: 0\n\n<Right-Click to use>",
+    description: "A skirt made from linen.",
     kind: Armor(
-        kind: Pants(ClothBlue0),
-        stats: (20),
+        (
+            kind: Pants(ClothBlue0),
+            stats: (
+                protection: Normal(1.0),
+            ),
+        )
     ),
 )

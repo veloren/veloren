@@ -1,0 +1,7 @@
+Item(
+    name: "Craftsman Hammer",
+    description: "Used to craft various items.",
+    kind: Ingredient(
+        kind: CraftsmanHammer,
+    )
+)

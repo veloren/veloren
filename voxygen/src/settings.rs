@@ -6,11 +6,11 @@ use crate::{
     window::{GameInput, KeyMouse},
 };
 use directories_next::{ProjectDirs, UserDirs};
-use glutin::{MouseButton, VirtualKeyCode};
 use hashbrown::{HashMap, HashSet};
 use serde_derive::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, path::PathBuf};
 use tracing::warn;
+use winit::event::{MouseButton, VirtualKeyCode};
 
 // ControlSetting-like struct used by Serde, to handle not serializing/building
 // post-deserializing the inverse_keybindings hashmap
@@ -100,9 +100,23 @@ impl ControlSettings {
         self.keybindings.insert(game_input, key_mouse);
     }
 
+    /// Return true if this key is used for multiple GameInputs that aren't
+    /// expected to be safe to have bound to the same key at the same time
+    pub fn has_conflicting_bindings(&self, key_mouse: KeyMouse) -> bool {
+        if let Some(game_inputs) = self.inverse_keybindings.get(&key_mouse) {
+            for a in game_inputs.iter() {
+                for b in game_inputs.iter() {
+                    if !GameInput::can_share_bindings(*a, *b) {
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
+
     pub fn default_binding(game_input: GameInput) -> KeyMouse {
-        // If a new GameInput is added, be sure to update ControlSettings::default()
-        // too!
+        // If a new GameInput is added, be sure to update GameInput::iterator() too!
         match game_input {
             GameInput::Primary => KeyMouse::Mouse(MouseButton::Left),
             GameInput::Secondary => KeyMouse::Mouse(MouseButton::Right),
@@ -127,6 +141,7 @@ impl ControlSettings {
             GameInput::Map => KeyMouse::Key(VirtualKeyCode::M),
             GameInput::Bag => KeyMouse::Key(VirtualKeyCode::B),
             GameInput::Social => KeyMouse::Key(VirtualKeyCode::O),
+            GameInput::Crafting => KeyMouse::Key(VirtualKeyCode::C),
             GameInput::Spellbook => KeyMouse::Key(VirtualKeyCode::P),
             GameInput::Settings => KeyMouse::Key(VirtualKeyCode::N),
             GameInput::Help => KeyMouse::Key(VirtualKeyCode::F1),
@@ -157,6 +172,7 @@ impl ControlSettings {
         }
     }
 }
+
 impl Default for ControlSettings {
     fn default() -> Self {
         let mut new_settings = Self {
@@ -190,6 +206,7 @@ impl Default for ControlSettings {
             GameInput::Map,
             GameInput::Bag,
             GameInput::Social,
+            GameInput::Crafting,
             GameInput::Spellbook,
             GameInput::Settings,
             GameInput::ToggleInterface,
@@ -294,6 +311,7 @@ pub mod con_settings {
         pub quest_log: Button,
         pub character_window: Button,
         pub social: Button,
+        pub crafting: Button,
         pub spellbook: Button,
         pub settings: Button,
         pub help: Button,
@@ -383,6 +401,7 @@ pub mod con_settings {
                 quest_log: Button::Simple(GilButton::Unknown),
                 character_window: Button::Simple(GilButton::Unknown),
                 social: Button::Simple(GilButton::Unknown),
+                crafting: Button::Simple(GilButton::Unknown),
                 spellbook: Button::Simple(GilButton::Unknown),
                 settings: Button::Simple(GilButton::Unknown),
                 help: Button::Simple(GilButton::Unknown),
@@ -480,6 +499,7 @@ pub struct GameplaySettings {
     pub auto_walk_behavior: PressBehavior,
     pub stop_auto_walk_on_input: bool,
     pub map_zoom: f64,
+    pub loading_tips: bool,
 }
 
 impl Default for GameplaySettings {
@@ -503,12 +523,13 @@ impl Default for GameplaySettings {
             intro_show: Intro::Show,
             xp_bar: XpBar::Always,
             shortcut_numbers: ShortcutNumbers::On,
-            bar_numbers: BarNumbers::Off,
+            bar_numbers: BarNumbers::Values,
             ui_scale: ScaleMode::RelativeToWindow([1920.0, 1080.0].into()),
             free_look_behavior: PressBehavior::Toggle,
             auto_walk_behavior: PressBehavior::Toggle,
             stop_auto_walk_on_input: true,
             map_zoom: 4.0,
+            loading_tips: true,
         }
     }
 }

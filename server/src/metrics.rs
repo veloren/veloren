@@ -33,7 +33,6 @@ pub struct ServerMetrics {
 }
 
 impl TickMetrics {
-    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     pub fn new(registry: &Registry, tick: Arc<AtomicU64>) -> Result<Self, Box<dyn Error>> {
         let player_online = IntGauge::with_opts(Opts::new(
             "player_online",
@@ -65,10 +64,10 @@ impl TickMetrics {
             "chunks_count",
             "number of all chunks currently active on the server",
         ))?;
-        let tick_time = IntGaugeVec::from(IntGaugeVec::new(
+        let tick_time = IntGaugeVec::new(
             Opts::new("tick_time", "time in ns requiered for a tick of the server"),
             &["period"],
-        )?);
+        )?;
 
         let since_the_epoch = SystemTime::now()
             .duration_since(UNIX_EPOCH)

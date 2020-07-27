@@ -5,6 +5,7 @@ mod body;
 mod character_state;
 mod chat;
 mod controller;
+mod damage;
 mod energy;
 mod inputs;
 mod inventory;
@@ -32,6 +33,7 @@ pub use controller::{
     Climb, ControlAction, ControlEvent, Controller, ControllerInputs, Input, InventoryManip,
     MountState, Mounting,
 };
+pub use damage::{Damage, DamageSource};
 pub use energy::{Energy, EnergySource};
 pub use inputs::CanBuild;
 pub use inventory::{
@@ -43,7 +45,7 @@ pub use last::Last;
 pub use location::{Waypoint, WaypointArea};
 pub use misc::Object;
 pub use phys::{Collider, ForceUpdate, Gravity, Mass, Ori, PhysicsState, Pos, Scale, Sticky, Vel};
-pub use player::Player;
+pub use player::{Player, MAX_MOUNT_RANGE_SQR};
 pub use projectile::Projectile;
 pub use skills::{Skill, SkillGroup, SkillGroupType, SkillSet};
 pub use stats::{Exp, HealthChange, HealthSource, Level, Stats};

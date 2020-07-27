@@ -1,5 +1,5 @@
 #![deny(unsafe_code)]
-#![feature(label_break_value)]
+#![feature(label_break_value, option_zip)]
 
 pub mod cmd;
 pub mod error;
@@ -25,6 +25,7 @@ use common::{
         PlayerInfo, PlayerListUpdate, RegisterError, RequestStateError, ServerInfo, ServerMsg,
         MAX_BYTES_CHAT_MSG,
     },
+    recipe::RecipeBook,
     state::State,
     sync::{Uid, UidAllocator, WorldSyncExt},
     terrain::{block::Block, TerrainChunk, TerrainChunkSize},
@@ -33,9 +34,11 @@ use common::{
 use futures_executor::block_on;
 use futures_timer::Delay;
 use futures_util::{select, FutureExt};
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use image::DynamicImage;
-use network::{Address, Network, Participant, Pid, Stream, PROMISES_CONSISTENCY, PROMISES_ORDERED};
+use network::{
+    Network, Participant, Pid, ProtocolAddr, Stream, PROMISES_CONSISTENCY, PROMISES_ORDERED,
+};
 use num::traits::FloatConst;
 use rayon::prelude::*;
 use std::{
@@ -44,7 +47,7 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
-use tracing::{debug, error, warn};
+use tracing::{debug, error, trace, warn};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 // TODO: remove world dependencies.  We should see if we
@@ -99,9 +102,11 @@ pub struct Client {
     pub player_list: HashMap<Uid, PlayerInfo>,
     pub character_list: CharacterList,
     pub active_character_id: Option<i32>,
+    recipe_book: RecipeBook,
+    available_recipes: HashSet<String>,
 
     _network: Network,
-    _participant: Arc<Participant>,
+    participant: Option<Participant>,
     singleton_stream: Stream,
 
     last_server_ping: f64,
@@ -140,15 +145,15 @@ impl Client {
         // We reduce the thread count by 1 to keep rendering smooth
         thread_pool.set_num_threads((num_cpus::get() - 1).max(1));
 
-        let (network, scheduler) = Network::new(Pid::new(), None);
+        let (network, scheduler) = Network::new(Pid::new());
         thread_pool.execute(scheduler);
 
-        let participant = block_on(network.connect(Address::Tcp(addr.into())))?;
+        let participant = block_on(network.connect(ProtocolAddr::Tcp(addr.into())))?;
         let mut stream = block_on(participant.open(10, PROMISES_ORDERED | PROMISES_CONSISTENCY))?;
 
         // Wait for initial sync
-        let (state, entity, server_info, lod_base, lod_alt, lod_horizon, world_map) = block_on(
-            async {
+        let (state, entity, server_info, lod_base, lod_alt, lod_horizon, world_map, recipe_book) =
+            block_on(async {
                 loop {
                     match stream.recv().await? {
                         ServerMsg::InitialSync {
@@ -156,6 +161,7 @@ impl Client {
                             server_info,
                             time_of_day,
                             world_map,
+                            recipe_book,
                         } => {
                             // TODO: Display that versions don't match in Voxygen
                             if &server_info.git_hash != *common::util::GIT_HASH {
@@ -334,6 +340,7 @@ impl Client {
                                 lod_alt,
                                 lod_horizon,
                                 (world_map, map_size, map_bounds),
+                                recipe_book,
                             ));
                         },
                         ServerMsg::TooManyPlayers => break Err(Error::TooManyPlayers),
@@ -342,8 +349,7 @@ impl Client {
                         },
                     }
                 }
-            },
-        )?;
+            })?;
 
         stream.send(ClientMsg::Ping)?;
 
@@ -364,9 +370,11 @@ impl Client {
             player_list: HashMap::new(),
             character_list: CharacterList::default(),
             active_character_id: None,
+            recipe_book,
+            available_recipes: HashSet::default(),
 
             _network: network,
-            _participant: participant,
+            participant: Some(participant),
             singleton_stream: stream,
 
             last_server_ping: 0.0,
@@ -478,10 +486,11 @@ impl Client {
 
     /// Send disconnect message to the server
     pub fn request_logout(&mut self) {
+        debug!("Requesting logout from server");
         if let Err(e) = self.singleton_stream.send(ClientMsg::Disconnect) {
             error!(
                 ?e,
-                "couldn't send disconnect package to server, did server close already?"
+                "Couldn't send disconnect package to server, did server close already?"
             );
         }
     }
@@ -533,6 +542,40 @@ impl Client {
                 )))
                 .unwrap();
         }
+    }
+
+    pub fn recipe_book(&self) -> &RecipeBook { &self.recipe_book }
+
+    pub fn available_recipes(&self) -> &HashSet<String> { &self.available_recipes }
+
+    pub fn can_craft_recipe(&self, recipe: &str) -> bool {
+        self.recipe_book
+            .get(recipe)
+            .zip(self.inventories().get(self.entity))
+            .map(|(recipe, inv)| inv.contains_ingredients(&*recipe).is_ok())
+            .unwrap_or(false)
+    }
+
+    pub fn craft_recipe(&mut self, recipe: &str) -> bool {
+        if self.can_craft_recipe(recipe) {
+            self.singleton_stream
+                .send(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
+                    InventoryManip::CraftRecipe(recipe.to_string()),
+                )))
+                .unwrap();
+            true
+        } else {
+            false
+        }
+    }
+
+    fn update_available_recipes(&mut self) {
+        self.available_recipes = self
+            .recipe_book
+            .iter()
+            .map(|(name, _)| name.clone())
+            .filter(|name| self.can_craft_recipe(name))
+            .collect();
     }
 
     pub fn toggle_lantern(&mut self) {
@@ -776,8 +819,7 @@ impl Client {
                 );
             }
             self.singleton_stream
-                .send(ClientMsg::ControllerInputs(inputs))
-                .unwrap();
+                .send(ClientMsg::ControllerInputs(inputs))?;
         }
 
         // 2) Build up a list of events for this frame, to be passed to the frontend.
@@ -1113,6 +1155,8 @@ impl Client {
                         },
                     }
 
+                    self.update_available_recipes();
+
                     frontend_events.push(Event::InventoryUpdated(event));
                 },
                 ServerMsg::TerrainChunkUpdate { key, chunk } => {
@@ -1357,12 +1401,16 @@ impl Client {
 
 impl Drop for Client {
     fn drop(&mut self) {
+        trace!("Dropping client");
         if let Err(e) = self.singleton_stream.send(ClientMsg::Disconnect) {
             warn!(
-                "error during drop of client, couldn't send disconnect package, is the connection \
-                 already closed? : {}",
-                e
+                ?e,
+                "Error during drop of client, couldn't send disconnect package, is the connection \
+                 already closed?",
             );
+        }
+        if let Err(e) = block_on(self.participant.take().unwrap().disconnect()) {
+            warn!(?e, "error when disconnecting, couldn't send all data");
         }
     }
 }

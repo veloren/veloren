@@ -360,6 +360,18 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             variations: 2,
             wind_sway: 0.0,
         }),
+        BlockKind::Stones => Some(SpriteConfig {
+            variations: 3,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Twigs => Some(SpriteConfig {
+            variations: 3,
+            wind_sway: 0.0,
+        }),
+        BlockKind::ShinyGem => Some(SpriteConfig {
+            variations: 3,
+            wind_sway: 0.0,
+        }),
         _ => None,
     }
 }
@@ -2233,6 +2245,63 @@ impl<V: RectRasterableVol> Terrain<V> {
                 (BlockKind::WardrobeDouble, 1),
                 "voxygen.voxel.sprite.furniture.wardrobe_double-1",
                 Vec3::new(-6.0, -10.5, 0.0),
+                Vec3::one(),
+            ),
+            /* Stones */
+            make_models(
+                (BlockKind::Stones, 0),
+                "voxygen.voxel.sprite.rocks.rock-0",
+                Vec3::new(-3.0, -3.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Stones, 1),
+                "voxygen.voxel.sprite.rocks.rock-1",
+                Vec3::new(-4.5, -5.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Stones, 2),
+                "voxygen.voxel.sprite.rocks.rock-2",
+                Vec3::new(-4.5, -4.5, 0.0),
+                Vec3::one(),
+            ),
+            /* Twigs */
+            make_models(
+                (BlockKind::Twigs, 0),
+                "voxygen.voxel.sprite.twigs.twigs-0",
+                Vec3::new(-3.5, -3.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Twigs, 1),
+                "voxygen.voxel.sprite.twigs.twigs-1",
+                Vec3::new(-2.0, -1.5, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::Twigs, 2),
+                "voxygen.voxel.sprite.twigs.twigs-2",
+                Vec3::new(-4.0, -4.0, 0.0),
+                Vec3::one(),
+            ),
+            // Shiny Gems
+            make_models(
+                (BlockKind::ShinyGem, 0),
+                "voxygen.voxel.sprite.gem.gem_blue",
+                Vec3::new(-2.0, -3.0, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::ShinyGem, 1),
+                "voxygen.voxel.sprite.gem.gem_green",
+                Vec3::new(-2.0, -3.0, 0.0),
+                Vec3::one(),
+            ),
+            make_models(
+                (BlockKind::ShinyGem, 2),
+                "voxygen.voxel.sprite.gem.gem_red",
+                Vec3::new(-3.0, -2.0, -2.0),
                 Vec3::one(),
             ),
         ]

@@ -1,8 +1,12 @@
 Item(
     name: "Druid's Kilt",
-    description: "Feel the breeze!\n\n<Right-Click to use>",
+    description: "Feel the breeze!",
     kind: Armor(
-        kind: Pants(Druid),
-        stats: (20),
+        (
+            kind: Pants(Druid),
+            stats: (
+                protection: Normal(4.0),
+            ),
+        )
     ),
 )

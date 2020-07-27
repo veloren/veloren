@@ -7,76 +7,33 @@ use veloren_voxygen::{
     audio::{self, AudioFrontend},
     i18n::{self, i18n_asset_key, VoxygenLocalization},
     logging,
-    menu::main::MainMenuState,
     profile::Profile,
+    run,
     settings::{AudioOutput, Settings},
     window::Window,
-    Direction, GlobalState, PlayState, PlayStateResult,
+    GlobalState,
 };
 
-use common::assets::{load, load_expect};
-use std::{mem, panic};
-use tracing::{debug, error, warn};
+use common::{
+    assets::{load_watched, watch},
+    clock::Clock,
+};
+use std::panic;
+use tracing::{error, warn};
 
 fn main() {
-    #[cfg(feature = "tweak")]
-    const_tweaker::run().expect("Could not run server");
-
     // Load the settings
     // Note: This won't log anything due to it being called before
     // `logging::init`. The issue is we need to read a setting to decide
     // whether we create a log file or not.
-    let settings = Settings::load();
-
-    // Init logging and hold the guards.
-    let _guards = logging::init(&settings);
-
-    // Save settings to add new fields or create the file if it is not already
-    // there.
+    let mut settings = Settings::load();
+    // Save settings to add new fields or create the file if it is not already there
     if let Err(err) = settings.save_to_file() {
         panic!("Failed to save settings: {:?}", err);
     }
 
-    let mut audio = match settings.audio.output {
-        AudioOutput::Off => None,
-        AudioOutput::Automatic => audio::get_default_device(),
-        AudioOutput::Device(ref dev) => Some(dev.clone()),
-    }
-    .map(|dev| AudioFrontend::new(dev, settings.audio.max_sfx_channels))
-    .unwrap_or_else(AudioFrontend::no_audio);
-
-    audio.set_music_volume(settings.audio.music_volume);
-    audio.set_sfx_volume(settings.audio.sfx_volume);
-
-    // Load the profile.
-    let profile = Profile::load();
-
-    let mut global_state = GlobalState {
-        audio,
-        profile,
-        window: Window::new(&settings).expect("Failed to create window!"),
-        settings,
-        info_message: None,
-        singleplayer: None,
-    };
-
-    // Try to load the localization and log missing entries
-    let localized_strings = load::<VoxygenLocalization>(&i18n_asset_key(
-        &global_state.settings.language.selected_language,
-    ))
-    .unwrap_or_else(|e| {
-        let preferred_language = &global_state.settings.language.selected_language;
-        warn!(
-            ?e,
-            ?preferred_language,
-            "Impossible to load language: change to the default language (English) instead.",
-        );
-        global_state.settings.language.selected_language = i18n::REFERENCE_LANG.to_owned();
-        load_expect::<VoxygenLocalization>(&i18n_asset_key(
-            &global_state.settings.language.selected_language,
-        ))
-    });
-    localized_strings.log_missing_entries();
+    // Init logging and hold the guards.
+    let _guards = logging::init(&settings);
 
     // Set up panic handler to relay swish panic messages to the user
     let default_hook = panic::take_hook();
@@ -159,68 +116,56 @@ fn main() {
     #[cfg(feature = "hot-anim")]
     anim::init();
 
-    // Set up the initial play state.
-    let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];
-    states.last().map(|current_state| {
-        let current_state = current_state.name();
-        debug!(?current_state, "Started game with state")
-    });
-
-    // What's going on here?
-    // ---------------------
-    // The state system used by Voxygen allows for the easy development of
-    // stack-based menus. For example, you may want a "title" state that can
-    // push a "main menu" state on top of it, which can in turn push a
-    // "settings" state or a "game session" state on top of it. The code below
-    // manages the state transfer logic automatically so that we don't have to
-    // re-engineer it for each menu we decide to add to the game.
-    let mut direction = Direction::Forwards;
-    while let Some(state_result) = states
-        .last_mut()
-        .map(|last| last.play(direction, &mut global_state))
-    {
-        // Implement state transfer logic.
-        match state_result {
-            PlayStateResult::Shutdown => {
-                direction = Direction::Backwards;
-                debug!("Shutting down all states...");
-                while states.last().is_some() {
-                    states.pop().map(|old_state| {
-                        let old_state = old_state.name();
-                        debug!(?old_state, "Popped state");
-                        global_state.on_play_state_changed();
-                    });
-                }
-            },
-            PlayStateResult::Pop => {
-                direction = Direction::Backwards;
-                states.pop().map(|old_state| {
-                    let old_state = old_state.name();
-                    debug!(?old_state, "Popped state");
-                    global_state.on_play_state_changed();
-                });
-            },
-            PlayStateResult::Push(new_state) => {
-                direction = Direction::Forwards;
-                debug!("Pushed state '{}'.", new_state.name());
-                states.push(new_state);
-                global_state.on_play_state_changed();
-            },
-            PlayStateResult::Switch(mut new_state_box) => {
-                direction = Direction::Forwards;
-                states.last_mut().map(|old_state_box| {
-                    let old_state = old_state_box.name();
-                    let new_state = new_state_box.name();
-                    debug!(?old_state, ?new_state, "Switching to states",);
-                    mem::swap(old_state_box, &mut new_state_box);
-                    global_state.on_play_state_changed();
-                });
-            },
-        }
+    // Setup audio
+    let mut audio = match settings.audio.output {
+        AudioOutput::Off => None,
+        AudioOutput::Automatic => audio::get_default_device(),
+        AudioOutput::Device(ref dev) => Some(dev.clone()),
     }
+    .map(|dev| AudioFrontend::new(dev, settings.audio.max_sfx_channels))
+    .unwrap_or_else(AudioFrontend::no_audio);
 
-    // Save any unsaved changes to profile.
-    global_state.profile.save_to_file_warn();
-    // Save any unsaved changes to settings.
-    global_state.settings.save_to_file_warn();
+    audio.set_music_volume(settings.audio.music_volume);
+    audio.set_sfx_volume(settings.audio.sfx_volume);
+
+    // Load the profile.
+    let profile = Profile::load();
+
+    let mut localization_watcher = watch::ReloadIndicator::new();
+    let localized_strings = load_watched::<VoxygenLocalization>(
+        &i18n_asset_key(&settings.language.selected_language),
+        &mut localization_watcher,
+    )
+    .unwrap_or_else(|error| {
+        let selected_language = &settings.language.selected_language;
+        warn!(
+            ?error,
+            ?selected_language,
+            "Impossible to load language: change to the default language (English) instead.",
+        );
+        settings.language.selected_language = i18n::REFERENCE_LANG.to_owned();
+        load_watched::<VoxygenLocalization>(
+            &i18n_asset_key(&settings.language.selected_language),
+            &mut localization_watcher,
+        )
+        .unwrap()
+    });
+    localized_strings.log_missing_entries();
+
+    // Create window
+    let (window, event_loop) = Window::new(&settings).expect("Failed to create window!");
+
+    let global_state = GlobalState {
+        audio,
+        profile,
+        window,
+        settings,
+        clock: Clock::start(),
+        info_message: None,
+        #[cfg(feature = "singleplayer")]
+        singleplayer: None,
+        localization_watcher,
+    };
+
+    run::run(global_state, event_loop);
 }

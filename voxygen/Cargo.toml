@@ -26,11 +26,11 @@ anim = { package = "veloren-voxygen-anim", path = "src/anim", default-features =
 gfx = "0.18.2"
 gfx_device_gl = { version = "0.16.2", optional = true }
 gfx_gl = { version = "0.6.1", optional = true }
-gfx_window_glutin = "0.31.0"
-glutin = "0.21.1"
-winit = { version = "0.19.4", features = ["serde"] }
-conrod_core = { git = "https://gitlab.com/veloren/conrod.git", branch = "pre-winit-20" }
-conrod_winit = { git = "https://gitlab.com/veloren/conrod.git", branch = "pre-winit-20" }
+old_school_gfx_glutin_ext = "0.24"
+glutin = "0.24.1"
+winit = { version = "0.22.2", features = ["serde"] }
+conrod_core = { git = "https://gitlab.com/veloren/conrod.git" }
+conrod_winit = { git = "https://gitlab.com/veloren/conrod.git" }
 euc = { git = "https://github.com/zesterer/euc.git" }
 
 # ECS
@@ -91,7 +91,6 @@ winres = "0.1"
 criterion = "0.3"
 git2 = "0.13"
 world = { package = "veloren-world", path = "../world" }
-gfx_window_glutin = { version = "0.31.0", features = ["headless"] }
 
 [[bench]]
 name = "meshing_benchmark"

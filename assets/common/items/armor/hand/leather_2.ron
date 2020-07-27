@@ -1,8 +1,12 @@
 Item(
     name: "Leather Gloves",
-    description: "Gloves made of simple leather",
+    description: "Gloves made of simple leather.",
     kind: Armor(
-        kind: Hand(Leather2),
-        stats: (20),
+        (
+            kind: Hand(Leather2),
+            stats: (
+                protection: Normal(4.0),
+            ),
+        )
     ),
 )

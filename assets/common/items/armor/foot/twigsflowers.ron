@@ -1,8 +1,12 @@
 Item(
     name: "Flowery Boots",
-    description: "Boots woven from twigs and flowers.\n\n<Right-Click to use>",
+    description: "Boots woven from twigs and flowers.",
     kind: Armor(
-        kind: Foot(Twigsflowers),
-        stats: (20),
+        (
+            kind: Foot(Twigsflowers),
+            stats: (
+                protection: Normal(3.0),
+            ),
+        )
     ),
 )

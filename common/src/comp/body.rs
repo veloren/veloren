@@ -231,6 +231,114 @@ impl Body {
 
     // Note: currently assumes sphericality
     pub fn height(&self) -> f32 { self.radius() * 2.0 }
+
+    pub fn base_health(&self) -> u32 {
+        match self {
+            Body::Humanoid(_) => 52,
+            Body::QuadrupedSmall(_) => 44,
+            Body::QuadrupedMedium(_) => 72,
+            Body::BirdMedium(_) => 36,
+            Body::FishMedium(_) => 32,
+            Body::Dragon(_) => 256,
+            Body::BirdSmall(_) => 24,
+            Body::FishSmall(_) => 20,
+            Body::BipedLarge(_) => 144,
+            Body::Object(_) => 100,
+            Body::Golem(_) => 168,
+            Body::Critter(_) => 32,
+            Body::QuadrupedLow(_) => 64,
+        }
+    }
+
+    pub fn base_health_increase(&self) -> u32 {
+        match self {
+            Body::Humanoid(_) => 5,
+            Body::QuadrupedSmall(_) => 4,
+            Body::QuadrupedMedium(_) => 7,
+            Body::BirdMedium(_) => 4,
+            Body::FishMedium(_) => 3,
+            Body::Dragon(_) => 26,
+            Body::BirdSmall(_) => 2,
+            Body::FishSmall(_) => 2,
+            Body::BipedLarge(_) => 14,
+            Body::Object(_) => 0,
+            Body::Golem(_) => 17,
+            Body::Critter(_) => 3,
+            Body::QuadrupedLow(_) => 6,
+        }
+    }
+
+    pub fn base_exp(&self) -> u32 {
+        match self {
+            Body::Humanoid(_) => 15,
+            Body::QuadrupedSmall(_) => 12,
+            Body::QuadrupedMedium(_) => 28,
+            Body::BirdMedium(_) => 10,
+            Body::FishMedium(_) => 8,
+            Body::Dragon(_) => 160,
+            Body::BirdSmall(_) => 5,
+            Body::FishSmall(_) => 4,
+            Body::BipedLarge(_) => 75,
+            Body::Object(_) => 0,
+            Body::Golem(_) => 75,
+            Body::Critter(_) => 8,
+            Body::QuadrupedLow(_) => 24,
+        }
+    }
+
+    pub fn base_exp_increase(&self) -> u32 {
+        match self {
+            Body::Humanoid(_) => 3,
+            Body::QuadrupedSmall(_) => 2,
+            Body::QuadrupedMedium(_) => 6,
+            Body::BirdMedium(_) => 2,
+            Body::FishMedium(_) => 2,
+            Body::Dragon(_) => 32,
+            Body::BirdSmall(_) => 1,
+            Body::FishSmall(_) => 1,
+            Body::BipedLarge(_) => 15,
+            Body::Object(_) => 0,
+            Body::Golem(_) => 15,
+            Body::Critter(_) => 2,
+            Body::QuadrupedLow(_) => 5,
+        }
+    }
+
+    pub fn base_dmg(&self) -> u32 {
+        match self {
+            Body::Humanoid(_) => 6,
+            Body::QuadrupedSmall(_) => 8,
+            Body::QuadrupedMedium(_) => 12,
+            Body::BirdMedium(_) => 7,
+            Body::FishMedium(_) => 6,
+            Body::Dragon(_) => 90,
+            Body::BirdSmall(_) => 5,
+            Body::FishSmall(_) => 3,
+            Body::BipedLarge(_) => 36,
+            Body::Object(_) => 0,
+            Body::Golem(_) => 36,
+            Body::Critter(_) => 7,
+            Body::QuadrupedLow(_) => 11,
+        }
+    }
+
+    pub fn base_range(&self) -> f32 {
+        match self {
+            Body::Humanoid(_) => 5.0,
+            Body::QuadrupedSmall(_) => 4.5,
+            Body::QuadrupedMedium(_) => 5.5,
+            Body::BirdMedium(_) => 3.5,
+            Body::FishMedium(_) => 3.5,
+            Body::Dragon(_) => 12.5,
+            Body::BirdSmall(_) => 3.0,
+            Body::FishSmall(_) => 3.0,
+            Body::BipedLarge(_) => 10.0,
+            Body::Object(_) => 3.0,
+            Body::Golem(_) => 7.5,
+            Body::Critter(_) => 3.0,
+            Body::QuadrupedLow(_) => 4.5,
+        }
+    }
 }
 
 impl Component for Body {

@@ -64,7 +64,6 @@ impl World {
 
     pub fn sample_blocks(&self) -> BlockGen { BlockGen::new(ColumnGen::new(&self.sim)) }
 
-    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn generate_chunk(
         &self,
@@ -74,7 +73,7 @@ impl World {
     ) -> Result<(TerrainChunk, ChunkSupplement), ()> {
         let mut sampler = self.sample_blocks();
 
-        let chunk_wpos2d = Vec2::from(chunk_pos) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
+        let chunk_wpos2d = chunk_pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
         let grid_border = 4;
         let zcache_grid = Grid::populate_from(
             TerrainChunkSize::RECT_SIZE.map(|e| e as i32) + grid_border * 2,

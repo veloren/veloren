@@ -1,11 +1,14 @@
 use crate::{client::Client, Server, SpawnPoint, StateExt};
 use common::{
     assets,
-    comp::{self, item::lottery::Lottery, object, Body, HealthChange, HealthSource, Player, Stats},
+    comp::{
+        self, item::lottery::Lottery, object, Body, Damage, DamageSource, HealthChange,
+        HealthSource, Player, Stats,
+    },
     msg::{PlayerListUpdate, ServerMsg},
     state::BlockChange,
     sync::{Uid, WorldSyncExt},
-    sys::combat::{BLOCK_ANGLE, BLOCK_EFFICIENCY},
+    sys::combat::BLOCK_ANGLE,
     terrain::{Block, TerrainGrid},
     vol::{ReadVol, Vox},
 };
@@ -159,9 +162,16 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
     let state = &server.state;
     if vel.z <= -30.0 {
         if let Some(stats) = state.ecs().write_storage::<comp::Stats>().get_mut(entity) {
-            let falldmg = vel.z.powi(2) as i32 / 20 - 40;
+            let falldmg = vel.z.powi(2) / 20.0 - 40.0;
+            let mut damage = Damage {
+                healthchange: -falldmg,
+                source: DamageSource::Falling,
+            };
+            if let Some(loadout) = state.ecs().read_storage::<comp::Loadout>().get(entity) {
+                damage.modify_damage(false, loadout);
+            }
             stats.health.change_by(comp::HealthChange {
-                amount: -falldmg,
+                amount: damage.healthchange as i32,
                 cause: comp::HealthSource::World,
             });
         }
@@ -211,11 +221,12 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Opti
     // Go through all other entities
     let hit_range = 3.0 * power;
     let ecs = &server.state.ecs();
-    for (pos_b, ori_b, character_b, stats_b) in (
+    for (pos_b, ori_b, character_b, stats_b, loadout_b) in (
         &ecs.read_storage::<comp::Pos>(),
         &ecs.read_storage::<comp::Ori>(),
         ecs.read_storage::<comp::CharacterState>().maybe(),
         &mut ecs.write_storage::<comp::Stats>(),
+        ecs.read_storage::<comp::Loadout>().maybe(),
     )
         .join()
     {
@@ -227,21 +238,22 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Opti
             && distance_squared < hit_range.powi(2)
         {
             // Weapon gives base damage
-            let mut dmg = ((1.0 - distance_squared / hit_range.powi(2)) * power * 10.0) as u32;
+            let dmg = (1.0 - distance_squared / hit_range.powi(2)) * power * 10.0;
 
-            if rand::random() {
-                dmg += 1;
-            }
+            let mut damage = Damage {
+                healthchange: -dmg,
+                source: DamageSource::Explosion,
+            };
 
-            // Block
-            if character_b.map(|c_b| c_b.is_block()).unwrap_or(false)
-                && ori_b.0.angle_between(pos - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0
-            {
-                dmg = (dmg as f32 * (1.0 - BLOCK_EFFICIENCY)) as u32
+            let block = character_b.map(|c_b| c_b.is_block()).unwrap_or(false)
+                && ori_b.0.angle_between(pos - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0;
+
+            if let Some(loadout) = loadout_b {
+                damage.modify_damage(block, loadout);
             }
 
             stats_b.health.change_by(HealthChange {
-                amount: -(dmg as i32),
+                amount: damage.healthchange as i32,
                 cause: HealthSource::Projectile { owner },
             });
         }

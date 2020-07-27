@@ -18,63 +18,12 @@ impl From<gfx::PipelineStateError<String>> for RenderError {
 }
 
 impl From<gfx::PipelineStateError<&str>> for RenderError {
-    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     fn from(err: gfx::PipelineStateError<&str>) -> Self {
-        // This is horrid. We do it to get rid of the `&str`'s lifetime bound by turning
-        // it into a `String`.
         match err {
             gfx::PipelineStateError::DescriptorInit(err) => {
-                gfx::PipelineStateError::DescriptorInit(match err {
-                    gfx::pso::InitError::VertexImport(s, x) => {
-                        gfx::pso::InitError::VertexImport(s.to_string(), x)
-                    },
-                    gfx::pso::InitError::ConstantBuffer(s, x) => {
-                        gfx::pso::InitError::ConstantBuffer(
-                            s.to_string(),
-                            x.map(|x| match x {
-                                gfx::pso::ElementError::NotFound(s) => {
-                                    gfx::pso::ElementError::NotFound(s.to_string())
-                                },
-                                gfx::pso::ElementError::Offset {
-                                    name,
-                                    shader_offset,
-                                    code_offset,
-                                } => gfx::pso::ElementError::Offset {
-                                    name: name.to_string(),
-                                    shader_offset,
-                                    code_offset,
-                                },
-                                gfx::pso::ElementError::Format {
-                                    name,
-                                    shader_format,
-                                    code_format,
-                                } => gfx::pso::ElementError::Format {
-                                    name: name.to_string(),
-                                    shader_format,
-                                    code_format,
-                                },
-                            }),
-                        )
-                    },
-                    gfx::pso::InitError::GlobalConstant(s, x) => {
-                        gfx::pso::InitError::GlobalConstant(s.to_string(), x)
-                    },
-                    gfx::pso::InitError::ResourceView(s, x) => {
-                        gfx::pso::InitError::ResourceView(s.to_string(), x)
-                    },
-                    gfx::pso::InitError::UnorderedView(s, x) => {
-                        gfx::pso::InitError::UnorderedView(s.to_string(), x)
-                    },
-                    gfx::pso::InitError::Sampler(s, x) => {
-                        gfx::pso::InitError::Sampler(s.to_string(), x)
-                    },
-                    gfx::pso::InitError::PixelExport(s, x) => {
-                        gfx::pso::InitError::PixelExport(s.to_string(), x)
-                    },
-                })
+                gfx::PipelineStateError::DescriptorInit(err)
             },
-            gfx::PipelineStateError::Program(p) => gfx::PipelineStateError::Program(p),
-            gfx::PipelineStateError::DeviceCreate(c) => gfx::PipelineStateError::DeviceCreate(c),
+            err => err,
         }
         .into()
     }

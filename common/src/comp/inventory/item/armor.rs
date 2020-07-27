@@ -306,8 +306,9 @@ pub const ALL_SHOULDERS: [Shoulder; 24] = [
 pub enum Back {
     Short0 = 1,
     Admin = 2,
+    DungPurp0 = 3,
 }
-pub const ALL_BACKS: [Back; 2] = [Back::Short0, Back::Admin];
+pub const ALL_BACKS: [Back; 3] = [Back::Short0, Back::Admin, Back::DungPurp0];
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u32)]
 pub enum Ring {
@@ -335,7 +336,7 @@ pub enum Tabard {
 pub const ALL_TABARDS: [Tabard; 1] = [Tabard::Admin];
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Armor {
+pub enum ArmorKind {
     Shoulder(Shoulder),
     Chest(Chest),
     Belt(Belt),
@@ -349,5 +350,32 @@ pub enum Armor {
     Tabard(Tabard),
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct Stats(pub u32);
+impl Armor {
+    /// Determines whether two pieces of armour are superficially equivalent to
+    /// one another (i.e: one may be substituted for the other in crafting
+    /// recipes or item possession checks).
+    pub fn superficially_eq(&self, other: &Self) -> bool {
+        std::mem::discriminant(&self.kind) == std::mem::discriminant(&other.kind)
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Stats {
+    protection: Protection,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub enum Protection {
+    Invincible,
+    Normal(f32),
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Armor {
+    pub kind: ArmorKind,
+    pub stats: Stats,
+}
+
+impl Armor {
+    pub fn get_protection(&self) -> Protection { self.stats.protection }
+}

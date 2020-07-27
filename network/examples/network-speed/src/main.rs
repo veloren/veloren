@@ -7,7 +7,7 @@ mod metrics;
 
 use clap::{App, Arg};
 use futures::executor::block_on;
-use network::{Address, MessageBuffer, Network, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
+use network::{ProtocolAddr, MessageBuffer, Network, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
 use serde::{Deserialize, Serialize};
 use std::{
     sync::Arc,
@@ -96,9 +96,9 @@ fn main() {
     let port: u16 = matches.value_of("port").unwrap().parse().unwrap();
     let ip: &str = matches.value_of("ip").unwrap();
     let address = match matches.value_of("protocol") {
-        Some("tcp") => Address::Tcp(format!("{}:{}", ip, port).parse().unwrap()),
-        Some("udp") => Address::Udp(format!("{}:{}", ip, port).parse().unwrap()),
-        _ => panic!("invalid mode, run --help!"),
+        Some("tcp") => ProtocolAddr::Tcp(format!("{}:{}", ip, port).parse().unwrap()),
+        Some("udp") => ProtocolAddr::Udp(format!("{}:{}", ip, port).parse().unwrap()),
+        _ => panic!("Invalid mode, run --help!"),
     };
 
     let mut background = None;
@@ -111,22 +111,22 @@ fn main() {
             thread::sleep(Duration::from_millis(200)); //start client after server
             client(address);
         },
-        _ => panic!("invalid mode, run --help!"),
+        _ => panic!("Invalid mode, run --help!"),
     };
     if let Some(background) = background {
         background.join().unwrap();
     }
 }
 
-fn server(address: Address) {
+fn server(address: ProtocolAddr) {
     let mut metrics = metrics::SimpleMetrics::new();
-    let (server, f) = Network::new(Pid::new(), Some(metrics.registry()));
+    let (server, f) = Network::new_with_registry(Pid::new(), metrics.registry());
     std::thread::spawn(f);
     metrics.run("0.0.0.0:59112".parse().unwrap()).unwrap();
     block_on(server.listen(address)).unwrap();
 
     loop {
-        info!("waiting for participant to connect");
+        info!("Waiting for participant to connect");
         let p1 = block_on(server.connected()).unwrap(); //remote representation of p1
         let mut s1 = block_on(p1.opened()).unwrap(); //remote representation of s1
         block_on(async {
@@ -138,17 +138,17 @@ fn server(address: Address) {
                     let new = Instant::now();
                     let diff = new.duration_since(last);
                     last = new;
-                    println!("recv 1.000.000 took {}", diff.as_millis());
+                    println!("Recv 1.000.000 took {}", diff.as_millis());
                 }
             }
-            info!("other stream was closed");
+            info!("Other stream was closed");
         });
     }
 }
 
-fn client(address: Address) {
+fn client(address: ProtocolAddr) {
     let mut metrics = metrics::SimpleMetrics::new();
-    let (client, f) = Network::new(Pid::new(), Some(metrics.registry()));
+    let (client, f) = Network::new_with_registry(Pid::new(), metrics.registry());
     std::thread::spawn(f);
     metrics.run("0.0.0.0:59111".parse().unwrap()).unwrap();
 
@@ -170,18 +170,18 @@ fn client(address: Address) {
             let new = Instant::now();
             let diff = new.duration_since(last);
             last = new;
-            println!("send 1.000.000 took {}", diff.as_millis());
+            println!("Send 1.000.000 took {}", diff.as_millis());
         }
         if id > 2000000 {
-            println!("stop");
+            println!("Stop");
             std::thread::sleep(std::time::Duration::from_millis(5000));
             break;
         }
     }
     drop(s1);
     std::thread::sleep(std::time::Duration::from_millis(5000));
-    info!("closing participant");
-    block_on(client.disconnect(p1)).unwrap();
+    info!("Closing participant");
+    block_on(p1.disconnect()).unwrap();
     std::thread::sleep(std::time::Duration::from_millis(25000));
     info!("DROPPING! client");
     drop(client);

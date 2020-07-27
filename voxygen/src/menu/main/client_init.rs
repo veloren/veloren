@@ -12,7 +12,7 @@ use std::{
     thread,
     time::Duration,
 };
-use tracing::debug;
+use tracing::{debug, trace, warn};
 
 #[derive(Debug)]
 pub enum Error {
@@ -81,7 +81,7 @@ impl ClientInit {
                         {
                             match Client::new(socket_addr, view_distance) {
                                 Ok(mut client) => {
-                                    if let Err(err) =
+                                    if let Err(e) =
                                         client.register(username, password, |auth_server| {
                                             let _ = tx
                                                 .send(Msg::IsAuthTrusted(auth_server.to_string()));
@@ -93,28 +93,27 @@ impl ClientInit {
                                                 .unwrap_or(false)
                                         })
                                     {
-                                        last_err = Some(Error::ClientError(err));
+                                        last_err = Some(Error::ClientError(e));
                                         break 'tries;
                                     }
                                     let _ = tx.send(Msg::Done(Ok(client)));
                                     return;
                                 },
-                                Err(err) => {
-                                    match err {
-                                        ClientError::NetworkErr(NetworkError::ConnectFailed(
-                                            ..,
-                                        )) => {
-                                            debug!(
-                                                "can't reach the server, going to retry in a few \
-                                                 seconds"
-                                            );
-                                        },
-                                        // Non-connection error, stop attempts
-                                        err => {
-                                            last_err = Some(Error::ClientError(err));
-                                            break 'tries;
-                                        },
+                                Err(ClientError::NetworkErr(NetworkError::ConnectFailed(e))) => {
+                                    if e.kind() == std::io::ErrorKind::PermissionDenied {
+                                        warn!(?e, "Cannot connect to server: Incompatible version");
+                                        last_err = Some(Error::ClientError(
+                                            ClientError::NetworkErr(NetworkError::ConnectFailed(e)),
+                                        ));
+                                        break 'tries;
+                                    } else {
+                                        debug!("Cannot connect to server: Timeout (retrying...)");
                                     }
+                                },
+                                Err(e) => {
+                                    trace!(?e, "Aborting server connection attempt");
+                                    last_err = Some(Error::ClientError(e));
+                                    break 'tries;
                                 },
                             }
                         }

@@ -2,8 +2,7 @@
 // version in voxygen\src\meta.rs in order to reset save files to being empty
 
 use crate::comp::{
-    body::object, projectile, Body, CharacterAbility, Gravity, HealthChange, HealthSource,
-    LightEmitter, Projectile,
+    body::object, projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -262,11 +261,7 @@ impl Tool {
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
-                            projectile::Effect::Damage(HealthChange {
-                                // TODO: This should not be fixed (?)
-                                amount: -3,
-                                cause: HealthSource::Projectile { owner: None },
-                            }),
+                            projectile::Effect::Damage(-3),
                             projectile::Effect::Knockback(10.0),
                             projectile::Effect::RewardEnergy(100),
                             projectile::Effect::Vanish,
@@ -278,29 +273,18 @@ impl Tool {
                     projectile_light: None,
                     projectile_gravity: Some(Gravity(0.2)),
                 },
-                BasicRanged {
-                    energy_cost: 350,
-                    holdable: true,
-                    prepare_duration: Duration::from_millis(250),
-                    recover_duration: Duration::from_millis(700),
-                    projectile: Projectile {
-                        hit_solid: vec![projectile::Effect::Stick],
-                        hit_entity: vec![
-                            projectile::Effect::Damage(HealthChange {
-                                // TODO: This should not be fixed (?)
-                                amount: -9,
-                                cause: HealthSource::Projectile { owner: None },
-                            }),
-                            projectile::Effect::Knockback(15.0),
-                            projectile::Effect::RewardEnergy(50),
-                            projectile::Effect::Vanish,
-                        ],
-                        time_left: Duration::from_secs(15),
-                        owner: None,
-                    },
+                ChargedRanged {
+                    energy_cost: 0,
+                    energy_drain: 300,
+                    initial_damage: 3,
+                    max_damage: 15,
+                    initial_knockback: 10.0,
+                    max_knockback: 20.0,
+                    prepare_duration: Duration::from_millis(100),
+                    charge_duration: Duration::from_millis(1500),
+                    recover_duration: Duration::from_millis(500),
                     projectile_body: Body::Object(object::Body::Arrow),
                     projectile_light: None,
-                    projectile_gravity: Some(Gravity(0.05)),
                 },
             ],
             Dagger(_) => vec![
@@ -336,11 +320,7 @@ impl Tool {
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Vanish],
                         hit_entity: vec![
-                            projectile::Effect::Damage(HealthChange {
-                                // TODO: This should not be fixed (?)
-                                amount: -3,
-                                cause: HealthSource::Projectile { owner: None },
-                            }),
+                            projectile::Effect::Damage(-3),
                             projectile::Effect::RewardEnergy(150),
                             projectile::Effect::Vanish,
                         ],
@@ -452,5 +432,12 @@ impl Tool {
                 max_angle: 60.0,
             }],
         }
+    }
+
+    /// Determines whether two tools are superficially equivalent to one another
+    /// (i.e: one may be substituted for the other in crafting recipes or
+    /// item possession checks).
+    pub fn superficially_eq(&self, other: &Self) -> bool {
+        ToolCategory::from(self.kind) == ToolCategory::from(other.kind)
     }
 }

@@ -74,7 +74,7 @@ VoxygenLocalization(
         "common.connection_lost": r#"Verbindung unterbrochen."#,
 
 
-        "common.species.orc": "Orc",
+        "common.species.orc": "Ork",
         "common.species.human": "Mensch",
         "common.species.dwarf": "Zwerg",
         "common.species.elf": "Elf",
@@ -102,16 +102,16 @@ Bevor es losgeht noch einige Infos:
 
 Dies ist eine frühe Alpha. Ihr werdet auf Bugs, unfertiges Gameplay und Mechaniken, sowie fehlende Features stoßen.
 
-Für konstruktives Feedback und Bug-Reports könnt ihr uns via Reddit, Gitlab oder unseren Discord Server kontaktieren.
+Für konstruktives Feedback und Bug-Reports könnt Ihr uns via Reddit, Gitlab oder unseren Discord Server kontaktieren.
 
-Veloren hat die GPL 3 Open-Source Lizenz. Das heißt ihr könnt es kostenlos spielen, 
+Veloren hat die GPL 3 Open-Source Lizenz. Das heißt Ihr könnt es kostenlos spielen, 
 aber auch modifizieren (solange die Mods auch die selbe Lizenz tragen) und das Spiel an andere weiterschicken.
 
 Veloren ist ein Non-Profit Community Projekt und jeder Mitarbeiter entwickelt es als Hobby in seiner Freizeit.
 
-Wenn euch die Idee gefällt, dann schließt euch doch einfach unserem Dev- oder Art-Team an!
+Wenn Euch die Idee gefällt, dann schließt Euch doch einfach unserem Dev- oder Art-Team an!
 
-Danke, dass ihr euch die Zeit genommen habt diese Zeilen zu lesen und wir hoffen, dass euch Veloren gefällt!
+Danke, dass Ihr Euch die Zeit genommen habt diese Zeilen zu lesen und wir hoffen, dass Euch Veloren gefällt!
 
 ~ Die Entwickler"#,
 
@@ -120,7 +120,7 @@ Danke, dass ihr euch die Zeit genommen habt diese Zeilen zu lesen und wir hoffen
 
 Zum Spielen wird ein Account benötigt. 
 
-Diesen könnt ihr euch hier erstellen:
+Diesen könnt Ihr Euch hier erstellen:
 
 https://account.veloren.net.
 
@@ -161,7 +161,7 @@ eurer erstellen Charaktere gespeichert."#,
         "hud.chat.loot_msg": "Ihr erhaltet [{item}]",        
         "hud.chat.loot_fail": "Euer Inventar ist voll!",
         "hud.chat.goodbye": "Verbindung getrennt.",
-        "hud.chat.connection_lost": "Verbindung unterbrochen. Trenne Verbindung in {time} sekunden.",
+        "hud.chat.connection_lost": "Verbindung unterbrochen. Trenne Verbindung in {time} Sekunden.",
 
         // SCT outputs
         "hud.sct.experience": "{amount} Erf",
@@ -174,7 +174,7 @@ eurer erstellen Charaktere gespeichert."#,
         "hud.welcome": r#"Willkommen zur Veloren Alpha.
 
 
-Einige Tipps bevor ihr startet:
+Einige Tipps bevor Ihr beginnt:
 
 
 Drückt F1, um die Tastenbelegungen zu sehen.
@@ -186,9 +186,9 @@ Um Chat-Kommandos zu sehen gebt /help in den Chat ein.
 
 Sammelt diese mit Rechts-Klick auf.
 
-Um diese zu nutzen öffnet euer Inventar mit 'B'.
+Um diese zu nutzen öffnet Euer Inventar mit 'B'.
 
-Doppelklickt den Gegenstand in eurer Tasche, um diesen zu nutzen.
+Doppelklickt den Gegenstand in Eurer Tasche, um diesen zu nutzen.
 
 Um Items wegzuwerfen klickt sie einmal im Inventar an 
 
@@ -197,10 +197,10 @@ und klickt dann außerhalb der Tasche.
 
 Die Nächte in Veloren können sehr dunkel werden.
 
-Drückt 'G' um eure Laterne einzuschalten.
+Drückt 'G' um Eure Laterne einzuschalten.
 
 
-Ihr wollt endlich spielen und dafür euren Cursor befreien,
+Ihr wollt endlich spielen und dafür Euren Cursor befreien,
 
 um dieses Fenster zu schließen? Drückt 'TAB'!
 
@@ -216,7 +216,7 @@ Versammelt einige Kämpfer, sucht etwas
 Nahrung und besiegt ihre abscheulichen 
 Anführer und Akolyten.
 
-Vielleicht könnt ihr sogar einen ihrer 
+Vielleicht könnt Ihr sogar einen ihrer 
 magischen Gegenstände ergattern?"#,
 
         // Inventory
@@ -313,6 +313,8 @@ magischen Gegenstände ergattern?"#,
         "hud.settings.audio_device": "Ausgabegerät",
 
         "hud.settings.awaitingkey": "Drückt eine Taste...",
+        "hud.settings.unbound": "-",
+        "hud.settings.reset_keybinds": "Auf Standard zurücksetzen",
 
         "hud.social": "Sozial",
         "hud.social.online": "Online",
@@ -322,6 +324,12 @@ magischen Gegenstände ergattern?"#,
         "hud.social.play_online_fmt": "{nb_player} Spieler online",
 
         "hud.spell": "Zauber",
+
+        "hud.crafting": "Herstellen",
+        "hud.crafting.recipes": "Rezepte",
+        "hud.crafting.ingredients": "Zutaten:",
+        "hud.crafting.craft": "Herstellen",
+        "hud.crafting.tool_cata": "Benötigt:",
 
         "hud.free_look_indicator": "Freie Sicht aktiv",
         "hud.auto_walk_indicator": "Automatisches Laufen aktiv",
@@ -409,8 +417,7 @@ magischen Gegenstände ergattern?"#,
         /// End chracter selection section
         /// Start character window section
         "character_window.character_name": "Charakter",
-        // Charater stats
-        // Charater stats
+        // Character stats
         "character_window.character_stats": r#"Ausdauer
 
 Beweglichkeit
@@ -429,8 +436,26 @@ Willenskraft
     },
 
     vector_map: {
+        "loading.tips": [
+            "Drückt 'G', um Eure Laterne anzuzünden.",
+            "Drückt 'F1', um die Standard Tastenbelegung anzuzeigen.",
+            "Ihr könnt /say oder /s verwenden, um den Spielern in Eurer Nähe zu schreiben.",
+            "Verwendet /region oder /r, um mit Spielern in Eurem Gebiet zu schreiben.",
+            "Mit /tell könnt ihr einem Mitspieler direkte Nachrichten schicken.",
+            "NPCs mit demselben Level können unterschiedlich schwierig zu besiegen sein.",
+            "Behaltet den Boden um euch im Blick! Dort gibt es Nahrung, Kisten und Anderes zu finden.",
+            "Ist Euer Inventar voll mit Nahrung? Wertet es einfach durch Crafting auf!",
+            "Ihr sucht nach einem Abenteuer? Dungeons sind mit braunen Markierungen auf der Karte vermerkt!",    
+            "Vergesst nicht Eure Grafikeinstellungen anzupassen! Mit 'N' kommt ihr in die Einstellungen.",
+            "Zusammen kämpfen macht mehr Spaß! Drückt 'O' um Eure Mitspieler anzuzeigen.", 
+            "Ein NPC mit einem Schädel unter seiner Lebensanzeige ist deutlich stärker als Ihr.",
+            "Drückt 'J' um zu tanzen. Yeah!",
+            "Verwendet 'L-Shift' um mit Eurem Gleiter den Himmel zu erorbern!",
+            "Veloren befindet sich noch in der Pre-Alpha Phase. Wir tun unser Bestes, um das Spielgefühl jeden Tag zu verbessern!",
+            "Ihr wünscht, Euch mit uns auszutauschen oder wollt unserem Entwickler-Team beitreten? Kommt doch einfach auf unseren Discord-Server!",            
+        ],         
         "npc.speech.villager_under_attack": [
             "Hilfe, ich werde angegriffen!",            
-            ],
+        ],
     }
 )

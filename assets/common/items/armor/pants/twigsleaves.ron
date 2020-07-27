@@ -1,8 +1,12 @@
 Item(
     name: "Leafy Pants",
-    description: "Pants woven from twigs and leaves. Slightly less chafey than the twig pants!\n\n<Right-Click to use>",
+    description: "Pants woven from twigs and leaves. Slightly less chafey than the twig pants!",
     kind: Armor(
-        kind: Pants(Twigsleaves),
-        stats: (20),
+        (
+            kind: Pants(Twigsleaves),
+            stats: (
+                protection: Normal(12.0),
+            ),
+        )
     ),
 )

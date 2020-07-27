@@ -1,6 +1,9 @@
-{ sources ? import ./sources.nix { }, pkgs ? import <nixpkgs> { } }:
+{ nixpkgs ? <nixpkgs>, sources ? import ./sources.nix { }
+, system ? builtins.currentSystem }:
 
-let crate2nix = import sources.crate2nix { };
+let
+  pkgs = import ./nixpkgs.nix { inherit sources nixpkgs system; };
+  crate2nix = import sources.crate2nix { inherit pkgs; };
 in pkgs.mkShell {
   name = "veloren-shell";
   nativeBuildInputs = with pkgs; [
@@ -11,7 +14,8 @@ in pkgs.mkShell {
     niv
     nixfmt
     crate2nix
-    rustup
+    cargo
+    rustc
   ];
   buildInputs = with pkgs; [
     alsaLib

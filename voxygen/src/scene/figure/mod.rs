@@ -790,6 +790,32 @@ impl FigureMgr {
                                 )
                             }
                         },
+                        CharacterState::ChargedRanged(data) => {
+                            if data.exhausted {
+                                anim::character::ShootAnimation::update_skeleton(
+                                    &target_base,
+                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            } else {
+                                anim::character::ChargeAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        active_tool_kind,
+                                        second_tool_kind,
+                                        vel.0.magnitude(),
+                                        ori,
+                                        state.last_ori,
+                                        time,
+                                    ),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            }
+                        },
                         CharacterState::Boost(_) => {
                             anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,
@@ -2724,7 +2750,7 @@ impl<S: Skeleton> FigureState<S> {
 
         let smoothing = (5.0 * dt).min(1.0);
         if let Some(last_pos) = self.last_pos {
-            self.avg_vel = (1.0 - smoothing) * self.avg_vel + smoothing * (pos - last_pos) * dt;
+            self.avg_vel = (1.0 - smoothing) * self.avg_vel + smoothing * (pos - last_pos) / dt;
         }
         self.last_pos = Some(pos);
     }

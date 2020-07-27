@@ -1,8 +1,12 @@
 Item(
     name: "Cultist Boots",
-    description: "Feet\n\nArmor: 0\n\n<Right-Click to use>",
+    description: "Ceremonial attire used by members.",
     kind: Armor(
-        kind: Foot(Cultist),
-        stats: (20),
+        (
+            kind: Foot(Cultist),
+            stats: (
+                protection: Normal(6.0),
+            ),
+        )
     ),
 )

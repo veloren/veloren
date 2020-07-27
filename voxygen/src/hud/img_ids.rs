@@ -1,16 +1,15 @@
-use crate::ui::img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic, VoxelPixArtGraphic};
+use crate::ui::img_ids::{BlankGraphic, ImageGraphic, VoxelPixArtGraphic};
 
 // TODO: Combine with image_ids, see macro definition
 rotation_image_ids! {
     pub struct ImgsRot {
         <VoxelGraphic>
 
-        // Tooltip Test
-        tt_side: "voxygen/element/frames/tt_test_edge",
-        tt_corner: "voxygen/element/frames/tt_test_corner_tr",
-
         <ImageGraphic>
         indicator_mmap_small: "voxygen.element.buttons.indicator_mmap_small",
+         // Tooltip Test
+         tt_side: "voxygen/element/frames/tt_test_edge",
+         tt_corner: "voxygen/element/frames/tt_test_corner_tr",
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
         <VoxelPixArtGraphic>
@@ -54,6 +53,10 @@ image_ids! {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
         <ImageGraphic>
+        // Selection Frame
+        selection: "voxygen.element.frames.selection",
+        selection_hover: "voxygen.element.frames.selection_hover",
+        selection_press: "voxygen.element.frames.selection_press",
 
         // Social Window
         social_button: "voxygen.element.buttons.social_tab",
@@ -61,6 +64,16 @@ image_ids! {
         social_button_hover: "voxygen.element.buttons.social_tab_hover",
         social_button_press: "voxygen.element.buttons.social_tab_press",
         social_frame: "voxygen.element.frames.social_frame",
+
+        // Crafting Window
+
+        crafting_window: "voxygen.element.misc_bg.crafting",
+        crafting_frame: "voxygen.element.misc_bg.crafting_frame",
+        crafting_icon_bordered: "voxygen.element.icons.anvil",
+        crafting_icon: "voxygen.element.buttons.anvil",
+        crafting_icon_hover: "voxygen.element.buttons.anvil_hover",
+        crafting_icon_press: "voxygen.element.buttons.anvil_press",
+
 
         // Chat-Arrows
         chat_arrow: "voxygen.element.buttons.arrow_down",
@@ -115,7 +128,7 @@ image_ids! {
         staff_m2: "voxygen.element.icons.staff_m2",
         flyingrod_m1: "voxygen.element.icons.debug_wand_m1",
         flyingrod_m2: "voxygen.element.icons.debug_wand_m2",
-        charge: "voxygen.element.icons.skill_charge_3",
+        sword_pierce: "voxygen.element.icons.skill_sword_pierce",
         hammerleap: "voxygen.element.icons.skill_hammerleap",
         axespin: "voxygen.element.icons.skill_axespin",
 
@@ -228,6 +241,7 @@ image_ids! {
         willpower_ico: "voxygen.element.icons.willpower",
         endurance_ico: "voxygen.element.icons.endurance",
         fitness_ico: "voxygen.element.icons.fitness",
+        protection_ico: "voxygen.element.icons.protection",
 
         not_found:"voxygen.element.not_found",
 

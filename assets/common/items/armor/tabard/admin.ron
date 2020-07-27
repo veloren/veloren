@@ -1,8 +1,12 @@
 Item(
     name: "Admin's Tabard",
-   description: "Tabard\n\nWith great power comes\ngreat responsibility.\n\n<Right-Click to use>",
+    description: "With great power comes\ngreat responsibility.",
     kind: Armor(
-        kind: Tabard(Admin),
-        stats: (20),
+        (
+            kind: Tabard(Admin),
+            stats: (
+                protection: Normal(0.0),
+            ),
+        )
     ),
 )

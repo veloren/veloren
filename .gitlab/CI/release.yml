@@ -1,6 +1,6 @@
 # allow_failure: true makes these pipelines manual and "non-blocking" which changed with except -> rule syntax
 .optional-release:
-  stage: build
+  stage: check
   tags:
     - veloren-docker
   rules:

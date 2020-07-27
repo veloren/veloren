@@ -418,7 +418,6 @@ impl<'a> MapConfig<'a> {
     /// returns the approximate altitude at that column.  When in doubt, try
     /// using `MapConfig::sample_wpos` for this.
     #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
-    #[allow(clippy::useless_conversion)] // TODO: Pending review in #587
     #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
     #[allow(clippy::many_single_char_names)]
     pub fn generate(
@@ -459,253 +458,249 @@ impl<'a> MapConfig<'a> {
 
         let chunk_size = TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
 
-        (0..dimensions.y * dimensions.x)
-            .into_iter()
-            .for_each(|chunk_idx| {
-                let i = chunk_idx % dimensions.x as usize;
-                let j = chunk_idx / dimensions.x as usize;
+        (0..dimensions.y * dimensions.x).for_each(|chunk_idx| {
+            let i = chunk_idx % dimensions.x as usize;
+            let j = chunk_idx / dimensions.x as usize;
 
-                let wposf = focus_rect + Vec2::new(i as f64, j as f64) * scale;
-                let pos = wposf.map(|e: f64| e as i32);
-                let wposf = wposf * chunk_size;
+            let wposf = focus_rect + Vec2::new(i as f64, j as f64) * scale;
+            let pos = wposf.map(|e: f64| e as i32);
+            let wposf = wposf * chunk_size;
 
-                let chunk_idx = if pos.reduce_partial_min() >= 0
-                    && pos.x < WORLD_SIZE.x as i32
-                    && pos.y < WORLD_SIZE.y as i32
-                {
-                    Some(vec2_as_uniform_idx(pos))
-                } else {
-                    None
-                };
+            let chunk_idx = if pos.reduce_partial_min() >= 0
+                && pos.x < WORLD_SIZE.x as i32
+                && pos.y < WORLD_SIZE.y as i32
+            {
+                Some(vec2_as_uniform_idx(pos))
+            } else {
+                None
+            };
 
-                let MapSample {
-                    rgb,
-                    alt,
-                    downhill_wpos,
-                    ..
-                } = sample_pos(pos);
+            let MapSample {
+                rgb,
+                alt,
+                downhill_wpos,
+                ..
+            } = sample_pos(pos);
 
-                let alt = alt as f32;
-                let wposi = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
-                let mut rgb = rgb.map(|e| e as f64 / 255.0);
+            let alt = alt as f32;
+            let wposi = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
+            let mut rgb = rgb.map(|e| e as f64 / 255.0);
 
-                // Material properties:
-                //
-                // For each material in the scene,
-                //  k_s = (RGB) specular reflection constant
-                let mut k_s = Rgb::new(1.0, 1.0, 1.0);
-                //  k_d = (RGB) diffuse reflection constant
-                let mut k_d = rgb;
-                //  k_a = (RGB) ambient reflection constant
-                let mut k_a = rgb;
-                //  α = (per-material) shininess constant
-                let mut alpha = 4.0; // 4.0;
+            // Material properties:
+            //
+            // For each material in the scene,
+            //  k_s = (RGB) specular reflection constant
+            let mut k_s = Rgb::new(1.0, 1.0, 1.0);
+            //  k_d = (RGB) diffuse reflection constant
+            let mut k_d = rgb;
+            //  k_a = (RGB) ambient reflection constant
+            let mut k_a = rgb;
+            //  α = (per-material) shininess constant
+            let mut alpha = 4.0; // 4.0;
 
-                // Compute connections
-                let mut has_river = false;
-                // NOTE: consider replacing neighbors with local_cells, since it is more
-                // accurate (though I'm not sure if it can matter for these
-                // purposes).
-                chunk_idx
-                    .map(|chunk_idx| neighbors(chunk_idx).chain(iter::once(chunk_idx)))
-                    .into_iter()
-                    .flatten()
-                    .for_each(|neighbor_posi| {
-                        let neighbor_pos = uniform_idx_as_vec2(neighbor_posi);
-                        let neighbor_wpos = neighbor_pos.map(|e| e as f64) * chunk_size;
-                        let MapSample { connections, .. } = sample_pos(neighbor_pos);
-                        NEIGHBOR_DELTA
-                            .iter()
-                            .zip(
-                                connections
-                                    .as_ref()
-                                    .map(|e| e.iter())
-                                    .into_iter()
-                                    .flatten()
-                                    .into_iter(),
-                            )
-                            .for_each(|(&delta, connection)| {
-                                let connection = if let Some(connection) = connection {
-                                    connection
+            // Compute connections
+            let mut has_river = false;
+            // NOTE: consider replacing neighbors with local_cells, since it is more
+            // accurate (though I'm not sure if it can matter for these
+            // purposes).
+            chunk_idx
+                .map(|chunk_idx| neighbors(chunk_idx).chain(iter::once(chunk_idx)))
+                .into_iter()
+                .flatten()
+                .for_each(|neighbor_posi| {
+                    let neighbor_pos = uniform_idx_as_vec2(neighbor_posi);
+                    let neighbor_wpos = neighbor_pos.map(|e| e as f64) * chunk_size;
+                    let MapSample { connections, .. } = sample_pos(neighbor_pos);
+                    NEIGHBOR_DELTA
+                        .iter()
+                        .zip(
+                            connections
+                                .as_ref()
+                                .map(|e| e.iter())
+                                .into_iter()
+                                .flatten()
+                                .into_iter(),
+                        )
+                        .for_each(|(&delta, connection)| {
+                            let connection = if let Some(connection) = connection {
+                                connection
+                            } else {
+                                return;
+                            };
+                            let downhill_wpos = neighbor_wpos
+                                + Vec2::from(delta).map(|e: i32| e as f64) * chunk_size;
+                            let coeffs = river_spline_coeffs(
+                                neighbor_wpos,
+                                connection.spline_derivative,
+                                downhill_wpos,
+                            );
+                            let (_t, _pt, dist) = if let Some((t, pt, dist)) =
+                                quadratic_nearest_point(&coeffs, wposf)
+                            {
+                                (t, pt, dist)
+                            } else {
+                                let ndist = wposf.distance_squared(neighbor_wpos);
+                                let ddist = wposf.distance_squared(downhill_wpos);
+                                if ndist <= ddist {
+                                    (0.0, neighbor_wpos, ndist)
                                 } else {
-                                    return;
-                                };
-                                let downhill_wpos = neighbor_wpos
-                                    + Vec2::from(delta).map(|e: i32| e as f64) * chunk_size;
-                                let coeffs = river_spline_coeffs(
-                                    neighbor_wpos,
-                                    connection.spline_derivative,
-                                    downhill_wpos,
-                                );
-                                let (_t, _pt, dist) = if let Some((t, pt, dist)) =
-                                    quadratic_nearest_point(&coeffs, wposf)
-                                {
-                                    (t, pt, dist)
-                                } else {
-                                    let ndist = wposf.distance_squared(neighbor_wpos);
-                                    let ddist = wposf.distance_squared(downhill_wpos);
-                                    if ndist <= ddist {
-                                        (0.0, neighbor_wpos, ndist)
-                                    } else {
-                                        (1.0, downhill_wpos, ddist)
-                                    }
-                                };
-                                let connection_dist = (dist.sqrt()
-                                    - (connection.width as f64 * 0.5).max(1.0))
-                                .max(0.0);
-                                if connection_dist == 0.0 {
-                                    match connection.kind {
-                                        ConnectionKind::River => {
-                                            has_river = true;
-                                        },
-                                    }
+                                    (1.0, downhill_wpos, ddist)
                                 }
-                            });
-                    });
+                            };
+                            let connection_dist =
+                                (dist.sqrt() - (connection.width as f64 * 0.5).max(1.0)).max(0.0);
+                            if connection_dist == 0.0 {
+                                match connection.kind {
+                                    ConnectionKind::River => {
+                                        has_river = true;
+                                    },
+                                }
+                            }
+                        });
+                });
 
-                // Color in connectins.
-                let water_color_factor = 2.0;
-                let g_water = 32.0 * water_color_factor;
-                let b_water = 64.0 * water_color_factor;
-                if has_river {
-                    let water_rgb = Rgb::new(0, ((g_water) * 1.0) as u8, ((b_water) * 1.0) as u8)
-                        .map(|e| e as f64 / 255.0);
-                    rgb = water_rgb;
-                    k_s = Rgb::new(1.0, 1.0, 1.0);
-                    k_d = water_rgb;
-                    k_a = water_rgb;
-                    alpha = 0.255;
+            // Color in connectins.
+            let water_color_factor = 2.0;
+            let g_water = 32.0 * water_color_factor;
+            let b_water = 64.0 * water_color_factor;
+            if has_river {
+                let water_rgb = Rgb::new(0, ((g_water) * 1.0) as u8, ((b_water) * 1.0) as u8)
+                    .map(|e| e as f64 / 255.0);
+                rgb = water_rgb;
+                k_s = Rgb::new(1.0, 1.0, 1.0);
+                k_d = water_rgb;
+                k_a = water_rgb;
+                alpha = 0.255;
+            }
+
+            let downhill_alt = sample_wpos(downhill_wpos);
+            let cross_pos = wposi
+                + ((downhill_wpos - wposi)
+                    .map(|e| e as f32)
+                    .rotated_z(f32::consts::FRAC_PI_2)
+                    .map(|e| e as i32));
+            let cross_alt = sample_wpos(cross_pos);
+            // Pointing downhill, forward
+            // (index--note that (0,0,1) is backward right-handed)
+            let forward_vec = Vec3::new(
+                (downhill_wpos.x - wposi.x) as f64,
+                ((downhill_alt - alt) * gain) as f64 * lgain,
+                (downhill_wpos.y - wposi.y) as f64,
+            );
+            // Pointing 90 degrees left (in horizontal xy) of downhill, up
+            // (middle--note that (1,0,0), 90 degrees CCW backward, is right right-handed)
+            let up_vec = Vec3::new(
+                (cross_pos.x - wposi.x) as f64,
+                ((cross_alt - alt) * gain) as f64 * lgain,
+                (cross_pos.y - wposi.y) as f64,
+            );
+            // let surface_normal = Vec3::new(lgain * (f.y * u.z - f.z * u.y), -(f.x * u.z -
+            // f.z * u.x), lgain * (f.x * u.y - f.y * u.x)).normalized();
+            // Then cross points "to the right" (upwards) on a right-handed coordinate
+            // system. (right-handed coordinate system means (0, 0, 1.0) is
+            // "forward" into the screen).
+            let surface_normal = forward_vec.cross(up_vec).normalized();
+
+            // TODO: Figure out if we can reimplement debugging.
+            /* if is_debug {
+                let quad =
+                    |x: f32| ((x as f64 * QUADRANTS as f64).floor() as usize).min(QUADRANTS - 1);
+                if river_kind.is_none() || humidity != 0.0 {
+                    quads[quad(humidity)][quad(temperature)] += 1;
                 }
-
-                let downhill_alt = sample_wpos(downhill_wpos);
-                let cross_pos = wposi
-                    + ((downhill_wpos - wposi)
-                        .map(|e| e as f32)
-                        .rotated_z(f32::consts::FRAC_PI_2)
-                        .map(|e| e as i32));
-                let cross_alt = sample_wpos(cross_pos);
-                // Pointing downhill, forward
-                // (index--note that (0,0,1) is backward right-handed)
-                let forward_vec = Vec3::new(
-                    (downhill_wpos.x - wposi.x) as f64,
-                    ((downhill_alt - alt) * gain) as f64 * lgain,
-                    (downhill_wpos.y - wposi.y) as f64,
-                );
-                // Pointing 90 degrees left (in horizontal xy) of downhill, up
-                // (middle--note that (1,0,0), 90 degrees CCW backward, is right right-handed)
-                let up_vec = Vec3::new(
-                    (cross_pos.x - wposi.x) as f64,
-                    ((cross_alt - alt) * gain) as f64 * lgain,
-                    (cross_pos.y - wposi.y) as f64,
-                );
-                // let surface_normal = Vec3::new(lgain * (f.y * u.z - f.z * u.y), -(f.x * u.z -
-                // f.z * u.x), lgain * (f.x * u.y - f.y * u.x)).normalized();
-                // Then cross points "to the right" (upwards) on a right-handed coordinate
-                // system. (right-handed coordinate system means (0, 0, 1.0) is
-                // "forward" into the screen).
-                let surface_normal = forward_vec.cross(up_vec).normalized();
-
-                // TODO: Figure out if we can reimplement debugging.
-                /* if is_debug {
-                    let quad = |x: f32| {
-                        ((x as f64 * QUADRANTS as f64).floor() as usize).min(QUADRANTS - 1)
-                    };
-                    if river_kind.is_none() || humidity != 0.0 {
-                        quads[quad(humidity)][quad(temperature)] += 1;
-                    }
-                    match river_kind {
-                        Some(RiverKind::River { .. }) => {
-                            rivers += 1;
-                        },
-                        Some(RiverKind::Lake { .. }) => {
-                            lakes += 1;
-                        },
-                        Some(RiverKind::Ocean { .. }) => {
-                            oceans += 1;
-                        },
-                        None => {},
-                    }
-                } */
-
-                let shade_frac = horizon_map
-                    .and_then(|(angles, heights)| {
-                        chunk_idx
-                            .and_then(|chunk_idx| angles.get(chunk_idx))
-                            .map(|&e| (e as f64, heights))
-                    })
-                    .and_then(|(e, heights)| {
-                        chunk_idx
-                            .and_then(|chunk_idx| heights.get(chunk_idx))
-                            .map(|&f| (e, f as f64))
-                    })
-                    .map(|(angle, height)| {
-                        let w = 0.1;
-                        let height = (height - alt as Alt * gain as Alt).max(0.0);
-                        if angle != 0.0 && light_direction.x != 0.0 && height != 0.0 {
-                            let deltax = height / angle;
-                            let lighty = (light_direction.y / light_direction.x * deltax).abs();
-                            let deltay = lighty - height;
-                            let s = (deltay / deltax / w).min(1.0).max(0.0);
-                            // Smoothstep
-                            s * s * (3.0 - 2.0 * s)
-                        } else {
-                            1.0
-                        }
-                    })
-                    .unwrap_or(1.0);
-
-                let rgb = if is_shaded {
-                    // Phong reflection model with shadows:
-                    //
-                    // I_p = k_a i_a + shadow * Σ {m ∈ lights} (k_d (L_m ⋅ N) i_m,d + k_s (R_m ⋅
-                    // V)^α i_m,s)
-                    //
-                    // where for the whole scene,
-                    //  i_a = (RGB) intensity of ambient lighting component
-                    let i_a = Rgb::new(0.1, 0.1, 0.1);
-                    //  V = direction pointing towards the viewer (e.g. virtual camera).
-                    let v = Vec3::new(0.0, 0.0, -1.0).normalized();
-                    // let v = Vec3::new(0.0, -1.0, 0.0).normalized();
-                    //
-                    // for each light m,
-                    //  i_m,d = (RGB) intensity of diffuse component of light source m
-                    let i_m_d = Rgb::new(1.0, 1.0, 1.0);
-                    //  i_m,s = (RGB) intensity of specular component of light source m
-                    let i_m_s = Rgb::new(0.45, 0.45, 0.45);
-                    // let i_m_s = Rgb::new(0.45, 0.45, 0.45);
-
-                    // for each light m and point p,
-                    //  L_m = (normalized) direction vector from point on surface to light source m
-                    let l_m = light;
-                    //  N = (normalized) normal at this point on the surface,
-                    let n = surface_normal;
-                    //  R_m = (normalized) direction a perfectly reflected ray of light from m would
-                    // take from point p      = 2(L_m ⋅ N)N - L_m
-                    let r_m = (-l_m).reflected(n); // 2 * (l_m.dot(n)) * n - l_m;
-                    //
-                    // and for each point p in the scene,
-                    //  shadow = computed shadow factor at point p
-                    // FIXME: Should really just be shade_frac, but with only ambient light we lose
-                    // all local lighting detail... some sort of global illumination (e.g.
-                    // radiosity) is of course the "right" solution, but maybe we can find
-                    // something cheaper?
-                    let shadow = 0.2 + 0.8 * shade_frac;
-
-                    let lambertian = l_m.dot(n).max(0.0);
-                    let spec_angle = r_m.dot(v).max(0.0);
-
-                    let ambient = k_a * i_a;
-                    let diffuse = k_d * lambertian * i_m_d;
-                    let specular = k_s * spec_angle.powf(alpha) * i_m_s;
-                    (ambient + shadow * (diffuse + specular)).map(|e| e.min(1.0))
-                } else {
-                    rgb
+                match river_kind {
+                    Some(RiverKind::River { .. }) => {
+                        rivers += 1;
+                    },
+                    Some(RiverKind::Lake { .. }) => {
+                        lakes += 1;
+                    },
+                    Some(RiverKind::Ocean { .. }) => {
+                        oceans += 1;
+                    },
+                    None => {},
                 }
-                .map(|e| (e * 255.0) as u8);
+            } */
 
-                let rgba = (rgb.r, rgb.g, rgb.b, 255);
-                write_pixel(Vec2::new(i, j), rgba);
-            });
+            let shade_frac = horizon_map
+                .and_then(|(angles, heights)| {
+                    chunk_idx
+                        .and_then(|chunk_idx| angles.get(chunk_idx))
+                        .map(|&e| (e as f64, heights))
+                })
+                .and_then(|(e, heights)| {
+                    chunk_idx
+                        .and_then(|chunk_idx| heights.get(chunk_idx))
+                        .map(|&f| (e, f as f64))
+                })
+                .map(|(angle, height)| {
+                    let w = 0.1;
+                    let height = (height - alt as Alt * gain as Alt).max(0.0);
+                    if angle != 0.0 && light_direction.x != 0.0 && height != 0.0 {
+                        let deltax = height / angle;
+                        let lighty = (light_direction.y / light_direction.x * deltax).abs();
+                        let deltay = lighty - height;
+                        let s = (deltay / deltax / w).min(1.0).max(0.0);
+                        // Smoothstep
+                        s * s * (3.0 - 2.0 * s)
+                    } else {
+                        1.0
+                    }
+                })
+                .unwrap_or(1.0);
+
+            let rgb = if is_shaded {
+                // Phong reflection model with shadows:
+                //
+                // I_p = k_a i_a + shadow * Σ {m ∈ lights} (k_d (L_m ⋅ N) i_m,d + k_s (R_m ⋅
+                // V)^α i_m,s)
+                //
+                // where for the whole scene,
+                //  i_a = (RGB) intensity of ambient lighting component
+                let i_a = Rgb::new(0.1, 0.1, 0.1);
+                //  V = direction pointing towards the viewer (e.g. virtual camera).
+                let v = Vec3::new(0.0, 0.0, -1.0).normalized();
+                // let v = Vec3::new(0.0, -1.0, 0.0).normalized();
+                //
+                // for each light m,
+                //  i_m,d = (RGB) intensity of diffuse component of light source m
+                let i_m_d = Rgb::new(1.0, 1.0, 1.0);
+                //  i_m,s = (RGB) intensity of specular component of light source m
+                let i_m_s = Rgb::new(0.45, 0.45, 0.45);
+                // let i_m_s = Rgb::new(0.45, 0.45, 0.45);
+
+                // for each light m and point p,
+                //  L_m = (normalized) direction vector from point on surface to light source m
+                let l_m = light;
+                //  N = (normalized) normal at this point on the surface,
+                let n = surface_normal;
+                //  R_m = (normalized) direction a perfectly reflected ray of light from m would
+                // take from point p      = 2(L_m ⋅ N)N - L_m
+                let r_m = (-l_m).reflected(n); // 2 * (l_m.dot(n)) * n - l_m;
+                //
+                // and for each point p in the scene,
+                //  shadow = computed shadow factor at point p
+                // FIXME: Should really just be shade_frac, but with only ambient light we lose
+                // all local lighting detail... some sort of global illumination (e.g.
+                // radiosity) is of course the "right" solution, but maybe we can find
+                // something cheaper?
+                let shadow = 0.2 + 0.8 * shade_frac;
+
+                let lambertian = l_m.dot(n).max(0.0);
+                let spec_angle = r_m.dot(v).max(0.0);
+
+                let ambient = k_a * i_a;
+                let diffuse = k_d * lambertian * i_m_d;
+                let specular = k_s * spec_angle.powf(alpha) * i_m_s;
+                (ambient + shadow * (diffuse + specular)).map(|e| e.min(1.0))
+            } else {
+                rgb
+            }
+            .map(|e| (e * 255.0) as u8);
+
+            let rgba = (rgb.r, rgb.g, rgb.b, 255);
+            write_pixel(Vec2::new(i, j), rgba);
+        });
 
         MapDebug {
             quads,

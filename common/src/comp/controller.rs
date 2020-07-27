@@ -15,6 +15,7 @@ pub enum InventoryManip {
     Use(Slot),
     Swap(Slot, Slot),
     Drop(Slot),
+    CraftRecipe(String),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

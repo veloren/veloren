@@ -191,7 +191,7 @@
     Tool(Hammer(BasicHammer)): VoxTrans(
         "voxel.weapon.hammer.rusty_2h",
         (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
+    ),   
     // Staffs
     Tool(Staff(BasicStaff)): VoxTrans(
         "voxel.weapon.staff.wood-fire",
@@ -720,6 +720,10 @@
         "voxel.armor.back.admin",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
+    Armor(Back(DungPurp0)): VoxTrans(
+        "voxel.armor.back.dung_purp-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    ),
     // Rings
     Armor(Ring(Ring0)): Png(
         "element.icons.ring-0",
@@ -743,24 +747,30 @@
     ),
     // Consumables
     Consumable(Apple):
-    VoxTrans(
+    Png(
         "element.icons.item_apple",
-        (0.0, 0.0, 0.0), (-90.0, 90.0, 0.0), 1.0,
     ),
     Consumable(Coconut): Png(
         "element.icons.item_coconut",
     ),
+    Consumable(PotionMed): VoxTrans(
+        "voxel.object.potion_red",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
+    ),
     Consumable(PotionMinor): VoxTrans(
         "voxel.object.potion_red",
-        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.5,
+    ),
+    Consumable(PotionLarge): VoxTrans(
+        "voxel.object.potion_red",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
     ),
     Consumable(PotionExp): VoxTrans(
         "voxel.object.potion_turq",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
-    Consumable(Cheese): VoxTrans(
+    Consumable(Cheese): Png(
         "element.icons.item_cheese",
-        (0.0, 0.0, 0.0), (-90.0, 90.0, 0.0), 0.9,
     ),
     Consumable(Potion): VoxTrans(
         "voxel.object.potion_red",
@@ -776,18 +786,32 @@
     ),
     Consumable(VeloriteFrag): VoxTrans(
         "voxel.sprite.velorite.velorite_1",
-        (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
+        (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
+    Consumable(AppleShroomCurry): Png(
+        "element.icons.item_apple_curry",
+    ),
+    Consumable(AppleStick): Png(
+        "element.icons.item_apple_stick",
+    ),
+    Consumable(MushroomStick): Png(
+        "element.icons.item_shroom_stick",
+    ),
+        
     // Throwables
     Throwable(Bomb): VoxTrans(
         "voxel.object.bomb",
-        (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
+        (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
     Throwable(TrainingDummy): VoxTrans(
         "voxel.object.training_dummy",
         (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
     // Ingredients
+    Ingredient(CraftsmanHammer): VoxTrans( //TODO This should be a 1h hammer!
+        "voxel.weapon.hammer.craftsman",
+        (1.0, 1.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
     Ingredient(Flower): VoxTrans(
         "voxel.sprite.flowers.flower_red_2",
         (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
@@ -795,6 +819,27 @@
     Ingredient(Grass): VoxTrans(
         "voxel.sprite.grass.grass_long_5",
         (0.0, 0.0, 0.0), (-90.0, 50.0, 0.0), 1.0,
+    ),
+    Ingredient(Stones): VoxTrans(
+        "voxel.sprite.rocks.rock-0",
+        (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
+    ),
+    Ingredient(Twigs): VoxTrans(
+        "voxel.sprite.twigs.twigs-0",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient(LeatherScraps): Png(
+        "element.icons.item_leather0",
+    ),
+    Ingredient(ShinyGem): Png(
+        "element.icons.gem",
+    ),
+    Ingredient(MortarPestle): Png(
+        "element.icons.item_mortarpestlecoco",
+    ),
+    Ingredient(EmptyVial): VoxTrans(
+        "voxel.object.potion_empty",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
     // Debug Items
     Tool(Debug(Boost)): VoxTrans(

@@ -4,7 +4,7 @@ use veloren_network::{NetworkError, StreamError};
 mod helper;
 use helper::{network_participant_stream, tcp, udp};
 use std::io::ErrorKind;
-use veloren_network::{Address, Network, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
+use veloren_network::{Network, Pid, ProtocolAddr, PROMISES_CONSISTENCY, PROMISES_ORDERED};
 
 #[test]
 #[ignore]
@@ -17,7 +17,7 @@ fn network_20s() {
 #[test]
 fn stream_simple() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(tcp()));
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(tcp()));
 
     s1_a.send("Hello World").unwrap();
     assert_eq!(block_on(s1_b.recv()), Ok("Hello World".to_string()));
@@ -26,7 +26,7 @@ fn stream_simple() {
 #[test]
 fn stream_simple_3msg() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(tcp()));
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(tcp()));
 
     s1_a.send("Hello World").unwrap();
     s1_a.send(1337).unwrap();
@@ -39,7 +39,7 @@ fn stream_simple_3msg() {
 #[test]
 fn stream_simple_udp() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(udp()));
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(udp()));
 
     s1_a.send("Hello World").unwrap();
     assert_eq!(block_on(s1_b.recv()), Ok("Hello World".to_string()));
@@ -48,7 +48,7 @@ fn stream_simple_udp() {
 #[test]
 fn stream_simple_udp_3msg() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(udp()));
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(udp()));
 
     s1_a.send("Hello World").unwrap();
     s1_a.send(1337).unwrap();
@@ -62,24 +62,24 @@ fn stream_simple_udp_3msg() {
 #[ignore]
 fn tcp_and_udp_2_connections() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let (_, _) = helper::setup(false, 0);
-    let (network, f) = Network::new(Pid::new(), None);
-    let (remote, fr) = Network::new(Pid::new(), None);
+    let (network, f) = Network::new(Pid::new());
+    let (remote, fr) = Network::new(Pid::new());
     std::thread::spawn(f);
     std::thread::spawn(fr);
     block_on(async {
         remote
-            .listen(Address::Tcp("0.0.0.0:2000".parse().unwrap()))
+            .listen(ProtocolAddr::Tcp("0.0.0.0:2000".parse().unwrap()))
             .await?;
         remote
-            .listen(Address::Udp("0.0.0.0:2001".parse().unwrap()))
+            .listen(ProtocolAddr::Udp("0.0.0.0:2001".parse().unwrap()))
             .await?;
         let p1 = network
-            .connect(Address::Tcp("127.0.0.1:2000".parse().unwrap()))
+            .connect(ProtocolAddr::Tcp("127.0.0.1:2000".parse().unwrap()))
             .await?;
         let p2 = network
-            .connect(Address::Udp("127.0.0.1:2001".parse().unwrap()))
+            .connect(ProtocolAddr::Udp("127.0.0.1:2001".parse().unwrap()))
             .await?;
-        assert!(std::sync::Arc::ptr_eq(&p1, &p2));
+        assert_eq!(&p1, &p2);
         Ok(())
     })
 }
@@ -87,7 +87,7 @@ fn tcp_and_udp_2_connections() -> std::result::Result<(), Box<dyn std::error::Er
 #[test]
 fn failed_listen_on_used_ports() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let (_, _) = helper::setup(false, 0);
-    let (network, f) = Network::new(Pid::new(), None);
+    let (network, f) = Network::new(Pid::new());
     std::thread::spawn(f);
     let udp1 = udp();
     let tcp1 = tcp();
@@ -95,7 +95,7 @@ fn failed_listen_on_used_ports() -> std::result::Result<(), Box<dyn std::error::
     block_on(network.listen(tcp1.clone()))?;
     std::thread::sleep(std::time::Duration::from_millis(200));
 
-    let (network2, f2) = Network::new(Pid::new(), None);
+    let (network2, f2) = Network::new(Pid::new());
     std::thread::spawn(f2);
     let e1 = block_on(network2.listen(udp1));
     let e2 = block_on(network2.listen(tcp1));
@@ -120,16 +120,16 @@ fn api_stream_send_main() -> std::result::Result<(), Box<dyn std::error::Error>>
     let (_, _) = helper::setup(false, 0);
     // Create a Network, listen on Port `1200` and wait for a Stream to be opened,
     // then answer `Hello World`
-    let (network, f) = Network::new(Pid::new(), None);
-    let (remote, fr) = Network::new(Pid::new(), None);
+    let (network, f) = Network::new(Pid::new());
+    let (remote, fr) = Network::new(Pid::new());
     std::thread::spawn(f);
     std::thread::spawn(fr);
     block_on(async {
         network
-            .listen(Address::Tcp("127.0.0.1:1200".parse().unwrap()))
+            .listen(ProtocolAddr::Tcp("127.0.0.1:1200".parse().unwrap()))
             .await?;
         let remote_p = remote
-            .connect(Address::Tcp("127.0.0.1:1200".parse().unwrap()))
+            .connect(ProtocolAddr::Tcp("127.0.0.1:1200".parse().unwrap()))
             .await?;
         // keep it alive
         let _stream_p = remote_p
@@ -148,16 +148,16 @@ fn api_stream_recv_main() -> std::result::Result<(), Box<dyn std::error::Error>>
     let (_, _) = helper::setup(false, 0);
     // Create a Network, listen on Port `1220` and wait for a Stream to be opened,
     // then listen on it
-    let (network, f) = Network::new(Pid::new(), None);
-    let (remote, fr) = Network::new(Pid::new(), None);
+    let (network, f) = Network::new(Pid::new());
+    let (remote, fr) = Network::new(Pid::new());
     std::thread::spawn(f);
     std::thread::spawn(fr);
     block_on(async {
         network
-            .listen(Address::Tcp("127.0.0.1:1220".parse().unwrap()))
+            .listen(ProtocolAddr::Tcp("127.0.0.1:1220".parse().unwrap()))
             .await?;
         let remote_p = remote
-            .connect(Address::Tcp("127.0.0.1:1220".parse().unwrap()))
+            .connect(ProtocolAddr::Tcp("127.0.0.1:1220".parse().unwrap()))
             .await?;
         let mut stream_p = remote_p
             .open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY)
@@ -174,7 +174,7 @@ fn api_stream_recv_main() -> std::result::Result<(), Box<dyn std::error::Error>>
 #[test]
 fn wrong_parse() {
     let (_, _) = helper::setup(false, 0);
-    let (_n_a, _, mut s1_a, _n_b, _, mut s1_b) = block_on(network_participant_stream(tcp()));
+    let (_n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = block_on(network_participant_stream(tcp()));
 
     s1_a.send(1337).unwrap();
     match block_on(s1_b.recv::<String>()) {

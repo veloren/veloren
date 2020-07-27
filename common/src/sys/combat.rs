@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        Alignment, Attacking, Body, CharacterState, HealthChange, HealthSource, Ori, Pos, Scale,
-        Stats,
+        Alignment, Attacking, Body, CharacterState, Damage, DamageSource, HealthChange,
+        HealthSource, Loadout, Ori, Pos, Scale, Stats,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     sync::Uid,
@@ -29,6 +29,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Alignment>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Stats>,
+        ReadStorage<'a, Loadout>,
         WriteStorage<'a, Attacking>,
         WriteStorage<'a, CharacterState>,
     );
@@ -46,6 +47,7 @@ impl<'a> System<'a> for Sys {
             alignments,
             bodies,
             stats,
+            loadouts,
             mut attacking_storage,
             character_states,
         ): Self::SystemData,
@@ -110,7 +112,15 @@ impl<'a> System<'a> for Sys {
                     && ori2.angle_between(pos_b2 - pos2) < attack.max_angle + (rad_b / pos2.distance(pos_b2)).atan()
                 {
                     // Weapon gives base damage
-                    let mut healthchange = attack.base_healthchange as f32;
+                    let source = if attack.base_healthchange > 0 {
+                        DamageSource::Healing
+                    } else {
+                        DamageSource::Melee
+                    };
+                    let mut damage = Damage {
+                        healthchange: attack.base_healthchange as f32,
+                        source,
+                    };
                     let mut knockback = attack.knockback;
 
                     // TODO: remove this, either it will remain unused or be used as a temporary
@@ -122,34 +132,30 @@ impl<'a> System<'a> for Sys {
 
                     // TODO: remove this when there is a better way to deal with alignment
                     // Don't heal NPCs
-                    if (healthchange > 0.0 && alignment_b_maybe
+                    if (damage.healthchange > 0.0 && alignment_b_maybe
                         .map(|a| !a.is_friendly_to_players())
                         .unwrap_or(true))
                         // Don't hurt pets
-                    || (healthchange < 0.0 && alignment_b_maybe
+                    || (damage.healthchange < 0.0 && alignment_b_maybe
                         .map(|b| Alignment::Owned(*uid).passive_towards(*b))
                         .unwrap_or(false))
                     {
-                        healthchange = 0.0;
+                        damage.healthchange = 0.0;
                         knockback = 0.0;
                     }
 
-                    if rand::random() {
-                        healthchange *= 1.2;
+                    let block = character_b.map(|c_b| c_b.is_block()).unwrap_or(false)
+                        && ori_b.0.angle_between(pos.0 - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0;
+
+                    if let Some(loadout) = loadouts.get(b) {
+                        damage.modify_damage(block, loadout);
                     }
 
-                    // Block
-                    if character_b.map(|c_b| c_b.is_block()).unwrap_or(false)
-                        && ori_b.0.angle_between(pos.0 - pos_b.0) < BLOCK_ANGLE.to_radians() / 2.0
-                    {
-                        healthchange *= 1.0 - BLOCK_EFFICIENCY
-                    }
-
-                    if healthchange != 0.0 {
+                    if damage.healthchange != 0.0 {
                         server_emitter.emit(ServerEvent::Damage {
                             uid: *uid_b,
                             change: HealthChange {
-                                amount: healthchange as i32,
+                                amount: damage.healthchange as i32,
                                 cause: HealthSource::Attack { by: *uid },
                             },
                         });
@@ -157,7 +163,7 @@ impl<'a> System<'a> for Sys {
                     if knockback != 0.0 {
                         local_emitter.emit(LocalEvent::ApplyForce {
                             entity: b,
-                            force: attack.knockback
+                            force: knockback
                                 * *Dir::slerp(ori.0, Dir::new(Vec3::new(0.0, 0.0, 1.0)), 0.5),
                         });
                     }

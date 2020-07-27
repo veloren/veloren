@@ -11,7 +11,9 @@ use common::{
         golem::{BodyType as GBodyType, Species as GSpecies},
         humanoid::{Body, BodyType, EyeColor, Skin, Species},
         item::{
-            armor::{Armor, Back, Belt, Chest, Foot, Hand, Head, Pants, Shoulder, Tabard},
+            armor::{
+                Armor, ArmorKind, Back, Belt, Chest, Foot, Hand, Head, Pants, Shoulder, Tabard,
+            },
             tool::{Tool, ToolKind},
             ItemKind, Lantern, LanternKind,
         },
@@ -365,10 +367,10 @@ impl HumArmorShoulderSpec {
         flipped: bool,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        let spec = if let Some(ItemKind::Armor {
-            kind: Armor::Shoulder(shoulder),
+        let spec = if let Some(ItemKind::Armor(Armor {
+            kind: ArmorKind::Shoulder(shoulder),
             ..
-        }) = loadout.shoulder.as_ref().map(|i| &i.kind)
+        })) = loadout.shoulder.as_ref().map(|i| &i.kind)
         {
             match self.0.map.get(&shoulder) {
                 Some(spec) => spec,
@@ -447,10 +449,10 @@ impl HumArmorChestSpec {
         loadout: &Loadout,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        let spec = if let Some(ItemKind::Armor {
-            kind: Armor::Chest(chest),
+        let spec = if let Some(ItemKind::Armor(Armor {
+            kind: ArmorKind::Chest(chest),
             ..
-        }) = loadout.chest.as_ref().map(|i| &i.kind)
+        })) = loadout.chest.as_ref().map(|i| &i.kind)
         {
             match self.0.map.get(&chest) {
                 Some(spec) => spec,
@@ -504,10 +506,10 @@ impl HumArmorHandSpec {
         flipped: bool,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        let spec = if let Some(ItemKind::Armor {
-            kind: Armor::Hand(hand),
+        let spec = if let Some(ItemKind::Armor(Armor {
+            kind: ArmorKind::Hand(hand),
             ..
-        }) = loadout.hand.as_ref().map(|i| &i.kind)
+        })) = loadout.hand.as_ref().map(|i| &i.kind)
         {
             match self.0.map.get(&hand) {
                 Some(spec) => spec,
@@ -580,10 +582,10 @@ impl HumArmorBeltSpec {
         loadout: &Loadout,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        let spec = if let Some(ItemKind::Armor {
-            kind: Armor::Belt(belt),
+        let spec = if let Some(ItemKind::Armor(Armor {
+            kind: ArmorKind::Belt(belt),
             ..
-        }) = loadout.belt.as_ref().map(|i| &i.kind)
+        })) = loadout.belt.as_ref().map(|i| &i.kind)
         {
             match self.0.map.get(&belt) {
                 Some(spec) => spec,
@@ -624,10 +626,10 @@ impl HumArmorBackSpec {
         loadout: &Loadout,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        let spec = if let Some(ItemKind::Armor {
-            kind: Armor::Back(back),
+        let spec = if let Some(ItemKind::Armor(Armor {
+            kind: ArmorKind::Back(back),
             ..
-        }) = loadout.back.as_ref().map(|i| &i.kind)
+        })) = loadout.back.as_ref().map(|i| &i.kind)
         {
             match self.0.map.get(&back) {
                 Some(spec) => spec,
@@ -667,10 +669,10 @@ impl HumArmorPantsSpec {
         loadout: &Loadout,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        let spec = if let Some(ItemKind::Armor {
-            kind: Armor::Pants(pants),
+        let spec = if let Some(ItemKind::Armor(Armor {
+            kind: ArmorKind::Pants(pants),
             ..
-        }) = loadout.pants.as_ref().map(|i| &i.kind)
+        })) = loadout.pants.as_ref().map(|i| &i.kind)
         {
             match self.0.map.get(&pants) {
                 Some(spec) => spec,
@@ -724,10 +726,10 @@ impl HumArmorFootSpec {
         flipped: bool,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        let spec = if let Some(ItemKind::Armor {
-            kind: Armor::Foot(foot),
+        let spec = if let Some(ItemKind::Armor(Armor {
+            kind: ArmorKind::Foot(foot),
             ..
-        }) = loadout.foot.as_ref().map(|i| &i.kind)
+        })) = loadout.foot.as_ref().map(|i| &i.kind)
         {
             match self.0.map.get(&foot) {
                 Some(spec) => spec,
@@ -879,10 +881,10 @@ impl HumArmorHeadSpec {
         loadout: &Loadout,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        let spec = if let Some(ItemKind::Armor {
-            kind: Armor::Head(head),
+        let spec = if let Some(ItemKind::Armor(Armor {
+            kind: ArmorKind::Head(head),
             ..
-        }) = loadout.head.as_ref().map(|i| &i.kind)
+        })) = loadout.head.as_ref().map(|i| &i.kind)
         {
             match self.0.map.get(&head) {
                 Some(spec) => spec,
@@ -934,10 +936,10 @@ impl HumArmorTabardSpec {
         loadout: &Loadout,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        let spec = if let Some(ItemKind::Armor {
-            kind: Armor::Tabard(tabard),
+        let spec = if let Some(ItemKind::Armor(Armor {
+            kind: ArmorKind::Tabard(tabard),
             ..
-        }) = loadout.tabard.as_ref().map(|i| &i.kind)
+        })) = loadout.tabard.as_ref().map(|i| &i.kind)
         {
             match self.0.map.get(&tabard) {
                 Some(spec) => spec,

@@ -1,8 +1,12 @@
 Item(
     name: "Leafy Wraps",
-    description: "Handwraps woven from twigs and leaves.\n\n<Right-Click to use>",
+    description: "Handwraps woven from twigs and leaves.",
     kind: Armor(
-        kind: Hand(Twigsleaves),
-        stats: (20),
+        (
+            kind: Hand(Twigsleaves),
+            stats: (
+                protection: Normal(6.0),
+            ),
+        )
     ),
 )

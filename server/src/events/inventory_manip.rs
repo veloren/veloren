@@ -5,6 +5,7 @@ use common::{
         slot::{self, Slot},
         Pos, MAX_PICKUP_RANGE_SQR,
     },
+    recipe::default_recipe_book,
     sync::{Uid, WorldSyncExt},
     terrain::block::Block,
     vol::{ReadVol, Vox},
@@ -165,16 +166,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                     thrown_items.push((
                                         *pos,
                                         state
-                                            .ecs()
-                                            .read_storage::<comp::Vel>()
-                                            .get(entity)
-                                            .copied()
+                                            .read_component_cloned::<comp::Vel>(entity)
                                             .unwrap_or_default(),
                                         state
-                                            .ecs()
-                                            .read_storage::<comp::Ori>()
-                                            .get(entity)
-                                            .copied()
+                                            .read_component_cloned::<comp::Ori>(entity)
                                             .unwrap_or_default(),
                                         *kind,
                                     ));
@@ -240,14 +235,13 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 };
 
                                 if reinsert {
-                                    let _ = inventory.insert(slot, item);
+                                    let _ = inventory.insert_or_stack(slot, item);
                                 }
 
                                 Some(comp::InventoryUpdateEvent::Used)
                             },
                             _ => {
-                                // TODO: this doesn't work for stackable items
-                                inventory.insert(slot, item).unwrap();
+                                inventory.insert_or_stack(slot, item).unwrap();
                                 None
                             },
                         }
@@ -317,10 +311,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 dropped_items.push((
                     *pos,
                     state
-                        .ecs()
-                        .read_storage::<comp::Ori>()
-                        .get(entity)
-                        .copied()
+                        .read_component_cloned::<comp::Ori>(entity)
                         .unwrap_or_default(),
                     item,
                 ));
@@ -329,6 +320,39 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 entity,
                 comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Dropped),
             );
+        },
+
+        comp::InventoryManip::CraftRecipe(recipe) => {
+            if let Some(inv) = state
+                .ecs()
+                .write_storage::<comp::Inventory>()
+                .get_mut(entity)
+            {
+                let recipe_book = default_recipe_book();
+                let craft_result = recipe_book.get(&recipe).and_then(|r| r.perform(inv).ok());
+
+                if craft_result.is_some() {
+                    let _ = state.ecs().write_storage().insert(
+                        entity,
+                        comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Craft),
+                    );
+                }
+
+                // Drop the item if there wasn't enough space
+                if let Some(Some((item, amount))) = craft_result {
+                    for _ in 0..amount {
+                        dropped_items.push((
+                            state
+                                .read_component_cloned::<comp::Pos>(entity)
+                                .unwrap_or_default(),
+                            state
+                                .read_component_cloned::<comp::Ori>(entity)
+                                .unwrap_or_default(),
+                            item.clone(),
+                        ));
+                    }
+                }
+            }
         },
     }
 

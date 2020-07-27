@@ -30,6 +30,8 @@ widget_ids! {
         chat_icons[],
     }
 }
+/*#[const_tweaker::tweak(min = 0.0, max = 60.0, step = 1.0)]
+const X: f64 = 18.0;*/
 
 const MAX_MESSAGES: usize = 100;
 
@@ -316,7 +318,7 @@ impl<'a> Widget for Chat<'a> {
             .set(state.ids.message_box_bg, ui);
         let (mut items, _) = List::flow_down(state.messages.len() + 1)
             .top_left_with_margins_on(state.ids.message_box_bg, 0.0, 16.0)
-            .w_h(CHAT_BOX_WIDTH, CHAT_BOX_HEIGHT)
+            .w_h(CHAT_BOX_WIDTH - 16.0, CHAT_BOX_HEIGHT)
             .scroll_kids_vertically()
             .set(state.ids.message_box, ui);
         if state.ids.chat_icons.len() < state.messages.len() {
@@ -337,7 +339,7 @@ impl<'a> Widget for Chat<'a> {
                 let text = Text::new(&msg)
                     .font_size(self.fonts.opensans.scale(15))
                     .font_id(self.fonts.opensans.conrod_id)
-                    .w(CHAT_BOX_WIDTH - 16.0)
+                    .w(CHAT_BOX_WIDTH - 17.0)
                     .color(color)
                     .line_spacing(2.0);
                 // Add space between messages.

@@ -1,11 +1,13 @@
 use crate::{
     comp::{
-        ability::Stage, item::Item, Body, CharacterState, EnergySource, Gravity, LightEmitter,
-        Projectile, StateUpdate,
+        ability::Stage,
+        item::{armor::Protection, Item, ItemKind},
+        Body, CharacterState, EnergySource, Gravity, LightEmitter, Projectile, StateUpdate,
     },
     states::{triple_strike::*, *},
     sys::character_behavior::JoinData,
 };
+use arraygen::Arraygen;
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
@@ -16,6 +18,7 @@ pub enum CharacterAbilityType {
     BasicMelee,
     BasicRanged,
     Boost,
+    ChargedRanged,
     DashMelee,
     BasicBlock,
     TripleStrike(Stage),
@@ -34,6 +37,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::LeapMelee(_) => Self::LeapMelee,
             CharacterState::TripleStrike(data) => Self::TripleStrike(data.stage),
             CharacterState::SpinMelee(_) => Self::SpinMelee,
+            CharacterState::ChargedRanged(_) => Self::ChargedRanged,
             _ => Self::BasicMelee,
         }
     }
@@ -88,6 +92,19 @@ pub enum CharacterAbility {
         recover_duration: Duration,
         base_damage: u32,
     },
+    ChargedRanged {
+        energy_cost: u32,
+        energy_drain: u32,
+        initial_damage: u32,
+        max_damage: u32,
+        initial_knockback: f32,
+        max_knockback: f32,
+        prepare_duration: Duration,
+        charge_duration: Duration,
+        recover_duration: Duration,
+        projectile_body: Body,
+        projectile_light: Option<LightEmitter>,
+    },
 }
 
 impl CharacterAbility {
@@ -129,6 +146,10 @@ impl CharacterAbility {
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
+            CharacterAbility::ChargedRanged { energy_cost, .. } => update
+                .energy
+                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                .is_ok(),
             _ => true,
         }
     }
@@ -144,23 +165,61 @@ pub struct ItemConfig {
     pub dodge_ability: Option<CharacterAbility>,
 }
 
-#[derive(Clone, PartialEq, Default, Debug, Serialize, Deserialize)]
+#[derive(Arraygen, Clone, PartialEq, Default, Debug, Serialize, Deserialize)]
+#[gen_array(pub fn get_armor: &Option<Item>)]
 pub struct Loadout {
     pub active_item: Option<ItemConfig>,
     pub second_item: Option<ItemConfig>,
 
-    pub shoulder: Option<Item>,
-    pub chest: Option<Item>,
-    pub belt: Option<Item>,
-    pub hand: Option<Item>,
-    pub pants: Option<Item>,
-    pub foot: Option<Item>,
-    pub back: Option<Item>,
-    pub ring: Option<Item>,
-    pub neck: Option<Item>,
     pub lantern: Option<Item>,
+
+    #[in_array(get_armor)]
+    pub shoulder: Option<Item>,
+    #[in_array(get_armor)]
+    pub chest: Option<Item>,
+    #[in_array(get_armor)]
+    pub belt: Option<Item>,
+    #[in_array(get_armor)]
+    pub hand: Option<Item>,
+    #[in_array(get_armor)]
+    pub pants: Option<Item>,
+    #[in_array(get_armor)]
+    pub foot: Option<Item>,
+    #[in_array(get_armor)]
+    pub back: Option<Item>,
+    #[in_array(get_armor)]
+    pub ring: Option<Item>,
+    #[in_array(get_armor)]
+    pub neck: Option<Item>,
+    #[in_array(get_armor)]
     pub head: Option<Item>,
+    #[in_array(get_armor)]
     pub tabard: Option<Item>,
+}
+
+impl Loadout {
+    pub fn get_damage_reduction(&self) -> f32 {
+        let protection = self
+            .get_armor()
+            .iter()
+            .flat_map(|armor| armor.as_ref())
+            .filter_map(|item| {
+                if let ItemKind::Armor(armor) = item.kind {
+                    Some(armor.get_protection())
+                } else {
+                    None
+                }
+            })
+            .map(|protection| match protection {
+                Protection::Normal(protection) => Some(protection),
+                Protection::Invincible => None,
+            })
+            .sum::<Option<f32>>();
+        match protection {
+            Some(dr) => dr / (60.0 + dr.abs()),
+            None => 1.0,
+        }
+    }
 }
 
 impl From<&CharacterAbility> for CharacterState {
@@ -219,7 +278,7 @@ impl From<&CharacterAbility> for CharacterState {
             }),
             CharacterAbility::BasicBlock => CharacterState::BasicBlock,
             CharacterAbility::Roll => CharacterState::Roll(roll::Data {
-                remaining_duration: Duration::from_millis(700),
+                remaining_duration: Duration::from_millis(500),
                 was_wielded: false, // false by default. utils might set it to true
             }),
             CharacterAbility::TripleStrike {
@@ -270,6 +329,32 @@ impl From<&CharacterAbility> for CharacterState {
                 hits_remaining_default: 1, /* Should be the same value as hits_remaining, also
                                             * this value can be removed if ability moved to
                                             * skillbar */
+            }),
+            CharacterAbility::ChargedRanged {
+                energy_cost: _,
+                energy_drain,
+                initial_damage,
+                max_damage,
+                initial_knockback,
+                max_knockback,
+                prepare_duration,
+                charge_duration,
+                recover_duration,
+                projectile_body,
+                projectile_light,
+            } => CharacterState::ChargedRanged(charged_ranged::Data {
+                exhausted: false,
+                energy_drain: *energy_drain,
+                initial_damage: *initial_damage,
+                max_damage: *max_damage,
+                initial_knockback: *initial_knockback,
+                max_knockback: *max_knockback,
+                prepare_duration: *prepare_duration,
+                charge_duration: *charge_duration,
+                charge_timer: Duration::default(),
+                recover_duration: *recover_duration,
+                projectile_body: *projectile_body,
+                projectile_light: *projectile_light,
             }),
         }
     }

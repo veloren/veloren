@@ -1,8 +1,12 @@
 Item(
     name: "Green Linen Boots",
-   description: "Feet\n\nArmor: 0\n\nSoft and warm\n\n<Right-Click to use>",
+    description: "Soft and warm.",
     kind: Armor(
-        kind: Foot(ClothGreen0),
-        stats: (20),
+        (
+            kind: Foot(ClothGreen0),
+            stats: (
+                protection: Normal(0.0),
+            ),
+        )
     ),
 )
