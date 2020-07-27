@@ -64,12 +64,12 @@ VoxygenLocalization(
         "common.back": "Geri",
         "common.create": "Oluştur",
         "common.okay": "Tamam",
+        "common.accept": "Kabul Et",
         "common.disclaimer": "Uyarı",
         "common.cancel": "İptal Et",
         "common.none": "Yok",
         "common.error": "Hata",
         "common.fatal_error": "Ölümcül hata",
-        "common.accept": "Kabul Et",
 
         // Message when connection to the server is lost
         "common.connection_lost": r#"Bağlantı koptu!
@@ -95,6 +95,7 @@ Sunucu yeniden mi başladı?
         /// Start Main screen section
         "main.connecting": "Bağlanılıyor",
         "main.creating_world": "Dünya oluşturuluyor",
+		"main.tip": "İpucu:",
 
         // Welcome notice that appears the first time Veloren is started
         "main.notice": r#"Veloren Alfa sürümüne hoşgeldin!
@@ -138,6 +139,7 @@ bir hesap oluşturabilirsin."#,
         "main.login.failed_sending_request": "Kimlik doğrulama sunucusuna istek gönderilemedi",
 		"main.login.invalid_character": "Seçilen karakter geçersiz",
         "main.login.client_crashed": "İstemci çöktü",
+		"main.login.not_on_whitelist": "Sunucuya girmek için bir Yönetici tarafından beyaz listeye eklenmen gerekiyor",
 
         /// End Main screen section
 
@@ -153,6 +155,19 @@ bir hesap oluşturabilirsin."#,
         "hud.press_key_to_show_debug_info_fmt": "Hata ayıklama bilgilerini göstermek için {key}'e bas",
         "hud.press_key_to_toggle_keybindings_fmt": "Kontrolleri açmak veya kapamak için {key}'e bas",
         "hud.press_key_to_toggle_debug_info_fmt": "Hata ayıklama bilgilerini açmak veya kapamak için {key}'e bas",
+
+
+        // Chat outputs
+        "hud.chat.online_msg": "[{name}] çevrimiçi oldu.",
+        "hud.chat.offline_msg": "{name} çevrimdışı oldu.",
+        "hud.chat.loot_msg": "[{item}] topladın.",
+        "hud.chat.loot_fail": "Envanterin dolu!",
+        "hud.chat.goodbye": "Hoşçakal!",
+        "hud.chat.connection_lost": "Bağlantı koptu. {time} saniye içinde sunucudan atılacaksın.",
+
+        // SCT outputs
+        "hud.sct.experience": "{amount} Tecrübe",
+        "hud.sct.block": "BLOKLANDI",
 
         // Respawn message
         "hud.press_key_to_respawn": r#"Ziyaret ettiğin en son kamp ateşinde yeniden doğmak için {key}'e bas."#, 
@@ -254,13 +269,16 @@ magically infused items?"#,
         "hud.settings.cumulated_damage": "Toplam Verilen Hasarı Göster",
         "hud.settings.incoming_damage": "Alınan Hasarı Tek Tek Göster",
         "hud.settings.cumulated_incoming_damage": "Toplam Alınan Hasarı Göster",
-		"hud.settings.speech_bubble_dark_mode": "Konuşma balonu için karanlık tema kullan",
+        "hud.settings.speech_bubble": "Konuşma balonu",
+		"hud.settings.speech_bubble_dark_mode": "Konuşma balonunda karanlık tema kullan",
+        "hud.settings.speech_bubble_icon": "Konuşma balonunda ikon göster",
         "hud.settings.energybar_numbers": "Enerji çubuğu değerleri",
         "hud.settings.values": "Sayılar",
         "hud.settings.percentages": "Yüzdeler",
         "hud.settings.chat": "Sohbet",
         "hud.settings.background_transparency": "Arkaplan Şeffaflığı",
-        "hud.settings.none": "Yok",
+        "hud.settings.chat_character_name": "Sohbette karakter isimlerini göster",
+        "hud.settings.loading_tips": "Yükleme ekranı ipuçları",
 
         "hud.settings.pan_sensitivity": "Kaydırma Hassaslığı",
         "hud.settings.zoom_sensitivity": "Büyütme Hassaslığı",
@@ -268,6 +286,9 @@ magically infused items?"#,
         "hud.settings.invert_mouse_y_axis": "Fare Y eksenini ters çevir",
         "hud.settings.enable_mouse_smoothing": "Kamera kontrolünü yumuşat",
         "hud.settings.free_look_behavior": "Serbest bakış davranışı",
+        "hud.settings.auto_walk_behavior": "Otomatik yürüme davranışı",
+        "hud.settings.stop_auto_walk_on_input": r#"Otomatik yürüyüşü hareket
+edince kapat"#,
 
         "hud.settings.view_distance": "Görüş Mesafesi",
         "hud.settings.sprites_view_distance": "Sprite Görüş Mesafesi",
@@ -285,6 +306,8 @@ magically infused items?"#,
         "hud.settings.save_window_size": "Pencere boyutunu kaydet",
 
         "hud.settings.awaitingkey": "Bir tuşa bas...",
+        "hud.settings.unbound": "Atanmamış",
+        "hud.settings.reset_keybinds": "Varsayılana döndür",
 
         "hud.settings.music_volume": "Müzik Sesi",
         "hud.settings.sound_effect_volume": "Efekt Sesi",
@@ -297,9 +320,17 @@ magically infused items?"#,
         "hud.social.faction": "Klan",
         "hud.social.play_online_fmt": "{nb_player} oyuncu çevrimiçi",
 
+        "hud.crafting": "Üretim",
+        "hud.crafting.recipes": "Tarifler",
+        "hud.crafting.ingredients": "Malzemeler:",
+        "hud.crafting.craft": "Üret",
+        "hud.crafting.tool_cata": "Gerektiriyor:",
+
         "hud.spell": "Büyü",
 
         "hud.free_look_indicator": "Serbest bakış açık",
+        "hud.auto_walk_indicator": "Otomatik yürüme açık",
+
         /// End HUD section
 
 
@@ -351,6 +382,8 @@ magically infused items?"#,
         "gameinput.togglewield": "Kuşan/koy",
         "gameinput.interact": "Etkileşim",
         "gameinput.freelook": "Serbest Bakış",
+        "gameinput.autowalk": "Otomatik Yürüyüş",
+        "gameinput.dance": "Dans et",
         
         /// End GameInput section
 
@@ -365,7 +398,7 @@ silmek istediğinden emin misin?"#,
         "char_selection.logout": "Çıkış yap",
         "char_selection.create_new_charater": "Yeni Karakter Oluştur",
 		"char_selection.creating_character": "Karakter oluşturuluyor...",
-        "char_selection.character_creation": "Karakter Oluşumu",
+        "char_selection.character_creation": "Karakter Oluşturma",
 
         "char_selection.human_default": "İnsan Varsayılanı",
         "char_selection.level_fmt": "Seviye {level_nb}",
@@ -374,11 +407,9 @@ silmek istediğinden emin misin?"#,
         "char_selection.beard": "Sakal",
         "char_selection.hair_style": "Saç Stili",
         "char_selection.hair_color": "Saç Rengi",
-        "char_selection.chest_color": "Göğüs Rengi",
         "char_selection.eye_color": "Göz Rengi",
         "char_selection.skin": "Deri",
 		"char_selection.eyeshape": "Göz Detayları",
-        "char_selection.eyebrows": "Kaşlar",
         "char_selection.accessories": "Aksesuarlar",
 		"char_selection.create_info_name": "Karakterinin bir isme ihtiyacı var!",
 
@@ -393,6 +424,8 @@ silmek istediğinden emin misin?"#,
 Hareket gücü
 
 İrade gücü
+
+Koruma
 "#,
 
 
@@ -406,6 +439,24 @@ Hareket gücü
     },
 
     vector_map: {
+		"loading.tips": [
+			"'G'ye basarak fenerini yak.",
+			"'F1'e basarak bütün kontrolleri görebilirsin.",
+			"'/say' veya '/s' yazarak sadece hemen yanındaki oyuncularla konuşabilirsin.",
+			"'/region' veya '/r' yazarak sadece bir kaç yüz blok içindeki oyuncularla konuşabilirsin.",
+			"Özel bir mesaj göndermek için '/tell' ve sonra bir oyuncu ismi ile mesajını yaz.",
+			"Aynı seviyedeki NPCler farklı zorluklara sahip olabilir.",
+			"Yemek, sandık ve diğer ganimetler için yere bak!",
+			"Envanterin yemekle mi dolu? Onları kullanarak daha iyi yemek yapmaya çalış!",
+			"Ne yapabileceğini merak mı ediyorsun? Zindanlar haritada kahverengi bölgeler olarak işaretlenmiştir!",
+			"Grafikleri sistemin için ayarlamayı unutma. 'N'e basarak ayarları aç.",
+			"Başkalarıyla oynamak eğlencelidir! 'O'ya basarak kimlerin çevirimiçi olduğunu gör.",
+			"Can barının yanında kurukafa olan bir NPC senden hayli bir güçlüdür.",
+			"'J'ye basarak dans et. Parti!",
+			"'L-Shift'e basarak Planörünü aç ve gökyüzünü fethet.",
+			"Veloren hala Pre-Alpha'da. Onu geliştirmek için her gün elimizden geleni yapıyoruz!",
+			"Geliştirme Takımına katılmak istiyorsan veya sadece sohbet etmek istiyorsan Discord sunucumuza katıl.",
+		],
 		"npc.speech.villager_under_attack": [
     		"Saldırı altındayım, yardım edin!",
 			"Saldırı altındayım! Yardım edin!",
@@ -442,7 +493,7 @@ Hareket gücü
 			"Benim için geliyorlar!",
 			"Yardım edin! Yardım edin! Baskı altındayım!",
 			"Ah, artık sistemin doğasında var olan şiddeti görüyoruz.",
-			"Bu benim için bir çizik bile değil!"
+			"Bu bana göre bir çizik bile değil!",
 		],
     }
 )
