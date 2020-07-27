@@ -1340,25 +1340,21 @@ impl FigureMgr {
                         physics.in_fluid,                                 // In water
                     ) {
                         // Standing
-                        (true, false, false) => {
-                            anim::dragon::IdleAnimation::update_skeleton(
-                                &DragonSkeleton::new(),
-                                time,
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
+                        (true, false, false) => anim::dragon::IdleAnimation::update_skeleton(
+                            &DragonSkeleton::new(),
+                            time,
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
                         // Running
-                        (true, true, false) => {
-                            anim::dragon::RunAnimation::update_skeleton(
-                                &DragonSkeleton::new(),
-                                (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
+                        (true, true, false) => anim::dragon::RunAnimation::update_skeleton(
+                            &DragonSkeleton::new(),
+                            (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
                         // In air
                         (false, _, false) => anim::dragon::FlyAnimation::update_skeleton(
                             &DragonSkeleton::new(),

@@ -26,8 +26,7 @@ impl Animation for RunAnimation {
         let short = (((1.0)
             / (0.72
                 + 0.28
-                    * ((anim_time as f32 * 16.0 * lab as f32+ PI * 1.0).sin())
-                        .powf(2.0 as f32)))
+                    * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.0).sin()).powf(2.0 as f32)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.0).sin());
 
@@ -36,7 +35,7 @@ impl Animation for RunAnimation {
         let shortalt = (anim_time as f32 * 16.0 * lab as f32 + PI * 0.5).sin();
 
         let footvert = (anim_time as f32 * 16.0 * lab as f32 + PI * 0.0).sin();
-        let footvertt = (anim_time as f32 * 16.0 * lab as f32  + PI * 0.4).sin();
+        let footvertt = (anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin();
         let footvertalt = (anim_time as f32 * 16.0 * lab as f32 + PI * 1.2).sin();
         let footverttalt = (anim_time as f32 * 16.0 * lab as f32 + PI * 1.6).sin();
 
@@ -87,18 +86,18 @@ impl Animation for RunAnimation {
         let centeroffset = (anim_time as f32 * lab as f32 + PI * 1.5).sin();
 
         next.head_upper.offset =
-        Vec3::new(0.0, skeleton_attr.head_upper.0, skeleton_attr.head_upper.1);
-    next.head_upper.ori = Quaternion::rotation_x(short * -0.03 - 0.1)
-        * Quaternion::rotation_z(tilt * -1.2)
-        * Quaternion::rotation_y(tilt * 0.8);
-    next.head_upper.scale = Vec3::one();
+            Vec3::new(0.0, skeleton_attr.head_upper.0, skeleton_attr.head_upper.1);
+        next.head_upper.ori = Quaternion::rotation_x(short * -0.03 - 0.1)
+            * Quaternion::rotation_z(tilt * -1.2)
+            * Quaternion::rotation_y(tilt * 0.8);
+        next.head_upper.scale = Vec3::one();
 
-    next.head_lower.offset =
-        Vec3::new(0.0, skeleton_attr.head_lower.0, skeleton_attr.head_lower.1);
-    next.head_lower.ori = Quaternion::rotation_z(tilt * -0.8)
-        * Quaternion::rotation_x(short * -0.05)
-        * Quaternion::rotation_y(tilt * 0.3);
-    next.head_lower.scale = Vec3::one() * 1.02;
+        next.head_lower.offset =
+            Vec3::new(0.0, skeleton_attr.head_lower.0, skeleton_attr.head_lower.1);
+        next.head_lower.ori = Quaternion::rotation_z(tilt * -0.8)
+            * Quaternion::rotation_x(short * -0.05)
+            * Quaternion::rotation_y(tilt * 0.3);
+        next.head_lower.scale = Vec3::one() * 1.02;
 
         next.jaw.offset = Vec3::new(
             0.0,
@@ -129,7 +128,8 @@ impl Animation for RunAnimation {
         next.chest_front.offset = Vec3::new(
             0.0,
             skeleton_attr.chest_front.0,
-            skeleton_attr.chest_front.1 + shortalt * 2.5 + x_tilt * 10.0,);
+            skeleton_attr.chest_front.1 + shortalt * 2.5 + x_tilt * 10.0,
+        );
         next.chest_front.ori = Quaternion::rotation_x(short * 0.13 + x_tilt)
             * Quaternion::rotation_y(0.0)
             * Quaternion::rotation_z(tilt * -1.5);

@@ -79,8 +79,16 @@ impl Skeleton for DragonSkeleton {
                 ),
                 FigureBoneData::new(chest_front_mat * self.foot_fl.compute_base_matrix()),
                 FigureBoneData::new(chest_front_mat * self.foot_fr.compute_base_matrix()),
-                FigureBoneData::new(chest_front_mat * self.chest_rear.compute_base_matrix() * self.foot_bl.compute_base_matrix()),
-                FigureBoneData::new(chest_front_mat * self.chest_rear.compute_base_matrix() * self.foot_br.compute_base_matrix()),
+                FigureBoneData::new(
+                    chest_front_mat
+                        * self.chest_rear.compute_base_matrix()
+                        * self.foot_bl.compute_base_matrix(),
+                ),
+                FigureBoneData::new(
+                    chest_front_mat
+                        * self.chest_rear.compute_base_matrix()
+                        * self.foot_br.compute_base_matrix(),
+                ),
                 FigureBoneData::default(),
             ],
             Vec3::default(),
