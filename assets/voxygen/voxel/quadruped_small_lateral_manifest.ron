@@ -520,4 +520,41 @@
             lateral: ("npc.rabbit.male.foot_br"),
         ),
     ),
+    (Truffler, Male): (
+        left_front: (
+            offset: (-2.5, -3.0, -6.5),
+            lateral: ("npc.truffler.male.foot_fl"),
+        ),
+        right_front: (
+            offset: (-2.5, -3.0, -6.5),
+            lateral: ("npc.truffler.male.foot_fr"),
+        ),
+        left_back: (
+            offset: (-2.5, -3.0, -6.5),
+            lateral: ("npc.truffler.male.foot_bl"),
+        ),
+        right_back: (
+            offset: (-2.5, -3.0, -6.5),
+            lateral: ("npc.truffler.male.foot_br"),
+        ),
+    ),
+
+    (Truffler, Female): (
+        left_front: (
+            offset: (-2.5, -3.0, -6.5),
+            lateral: ("npc.truffler.male.foot_fl"),
+        ),
+        right_front: (
+            offset: (-2.5, -3.0, -6.5),
+            lateral: ("npc.truffler.male.foot_fr"),
+        ),
+        left_back: (
+            offset: (-2.5, -3.0, -6.5),
+            lateral: ("npc.truffler.male.foot_bl"),
+        ),
+        right_back: (
+            offset: (-2.5, -3.0, -6.5),
+            lateral: ("npc.truffler.male.foot_br"),
+        ),
+    ),
 })
