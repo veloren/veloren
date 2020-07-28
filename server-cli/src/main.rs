@@ -20,6 +20,7 @@ use std::{
 };
 use tui::{
     backend::CrosstermBackend,
+    layout::Rect,
     text::Text,
     widgets::{Block, Borders, Paragraph, Wrap},
     Terminal,
@@ -273,6 +274,12 @@ fn start_tui(mut sender: mpsc::Sender<Message>) {
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture).unwrap();
 
+    let hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        stop_tui();
+        hook(info);
+    }));
+
     std::thread::spawn(move || {
         // Start the tui
         let stdout = io::stdout();
@@ -285,12 +292,18 @@ fn start_tui(mut sender: mpsc::Sender<Message>) {
 
         loop {
             let _ = terminal.draw(|f| {
-                let mut log_rect = f.size();
-                log_rect.height -= 3;
+                let (log_rect, input_rect) = if f.size().height > 6 {
+                    let mut log_rect = f.size();
+                    log_rect.height -= 3;
 
-                let mut input_rect = f.size();
-                input_rect.y = input_rect.height - 3;
-                input_rect.height = 3;
+                    let mut input_rect = f.size();
+                    input_rect.y = input_rect.height - 3;
+                    input_rect.height = 3;
+
+                    (log_rect, input_rect)
+                } else {
+                    (f.size(), Rect::default())
+                };
 
                 let block = Block::default().borders(Borders::ALL);
                 let size = block.inner(log_rect);
@@ -314,7 +327,7 @@ fn start_tui(mut sender: mpsc::Sender<Message>) {
 
                 f.set_cursor(x, size.y);
 
-                use crossterm::event::{KeyModifiers, *};
+                use crossterm::event::*;
 
                 if poll(Duration::from_millis(10)).unwrap() {
                     if let Event::Key(event) = read().unwrap() {
