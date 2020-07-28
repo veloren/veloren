@@ -46,11 +46,11 @@
             lateral: ("npc.fox.male.foot_fr"),
         ),
         left_back: (
-            offset: (-1.0, -2.0, -2.5),
+            offset: (-1.0, -2.0, -5.0),
             lateral: ("npc.fox.male.foot_bl"),
         ),
         right_back: (
-            offset: (-1.0, -2.0, -2.5),
+            offset: (-1.0, -2.0, -5.0),
             lateral: ("npc.fox.male.foot_br"),
         ),
     ),
@@ -64,11 +64,11 @@
             lateral: ("npc.fox.female.foot_fr"),
         ),
         left_back: (
-            offset: (-1.0, -2.0, -2.5),
+            offset: (-1.0, -2.0, -5.0),
             lateral: ("npc.fox.female.foot_bl"),
         ),
         right_back: (
-            offset: (-1.0, -2.0, -2.5),
+            offset: (-1.0, -2.0, -5.0),
             lateral: ("npc.fox.female.foot_br"),
         ),
     ),
@@ -457,11 +457,11 @@
             lateral: ("npc.hyena.male.foot_fr"),
         ),
         left_back: (
-            offset: (-1.5, -2.0, -4.5),
+            offset: (-1.5, -2.0, -6.5),
             lateral: ("npc.hyena.male.foot_bl"),
         ),
         right_back: (
-            offset: (-1.5, -2.0, -4.5),
+            offset: (-1.5, -2.0, -6.5),
             lateral: ("npc.hyena.male.foot_br"),
         ),
     ),
@@ -476,12 +476,48 @@
             lateral: ("npc.hyena.male.foot_fr"),
         ),
         left_back: (
-            offset: (-1.5, -2.0, -4.5),
+            offset: (-1.5, -2.0, -6.5),
             lateral: ("npc.hyena.male.foot_bl"),
         ),
         right_back: (
-            offset: (-1.5, -2.0, -4.5),
+            offset: (-1.5, -2.0, -6.5),
             lateral: ("npc.hyena.male.foot_br"),
+        ),
+    ),
+    (Rabbit, Male): (
+        left_front: (
+            offset: (-1.5, -0.0, -2.0),
+            lateral: ("npc.rabbit.male.foot_fl"),
+        ),
+        right_front: (
+            offset: (-1.5, -0.0, -2.0),
+            lateral: ("npc.rabbit.male.foot_fr"),
+        ),
+        left_back: (
+            offset: (-1.5, -3.0, -4.0),
+            lateral: ("npc.rabbit.male.foot_bl"),
+        ),
+        right_back: (
+            offset: (-1.5, -3.0, -4.0),
+            lateral: ("npc.rabbit.male.foot_br"),
+        ),
+    ),
+    (Rabbit, Female): (
+        left_front: (
+            offset: (-1.5, -0.0, -2.0),
+            lateral: ("npc.rabbit.male.foot_fl"),
+        ),
+        right_front: (
+            offset: (-1.5, -0.0, -2.0),
+            lateral: ("npc.rabbit.male.foot_fr"),
+        ),
+        left_back: (
+            offset: (-1.5, -3.0, -4.0),
+            lateral: ("npc.rabbit.male.foot_bl"),
+        ),
+        right_back: (
+            offset: (-1.5, -3.0, -4.0),
+            lateral: ("npc.rabbit.male.foot_br"),
         ),
     ),
 })

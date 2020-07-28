@@ -183,6 +183,8 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Wolf, _) => (-0.5, 3.0),
                 (Frostfang, _) => (1.0, -2.0),
                 (Mouflon, _) => (-2.5, 6.0),
+                (Catoblepas, _) => (-1.0, -6.5),
+                (Bonerattler, _) => (0.0, -0.5),
             },
             head_lower: match (body.species, body.body_type) {
                 (Grolgar, _) => (1.0, -1.0),
@@ -194,6 +196,8 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Wolf, _) => (-4.5, 2.0),
                 (Frostfang, _) => (2.0, 1.5),
                 (Mouflon, _) => (-1.0, 0.5),
+                (Catoblepas, _) => (19.5, -2.0),
+                (Bonerattler, _) => (7.0, -1.5),
             },
             jaw: match (body.species, body.body_type) {
                 (Grolgar, _) => (7.0, 1.5),
@@ -205,6 +209,8 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Wolf, _) => (5.0, -3.0),
                 (Frostfang, _) => (4.0, -3.0),
                 (Mouflon, _) => (10.5, -4.0),
+                (Catoblepas, _) => (1.0, -6.0),
+                (Bonerattler, _) => (3.5, -3.0),
             },
             tail: match (body.species, body.body_type) {
                 (Grolgar, _) => (-11.5, -0.5),
@@ -216,6 +222,8 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Wolf, _) => (-11.0, 0.0),
                 (Frostfang, _) => (-7.0, -3.5),
                 (Mouflon, _) => (-10.5, 3.0),
+                (Catoblepas, _) => (-8.5, -2.0),
+                (Bonerattler, _) => (-9.0, 2.5),
             },
             torso_front: match (body.species, body.body_type) {
                 (Grolgar, _) => (10.0, 13.0),
@@ -227,6 +235,8 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Wolf, _) => (12.0, 13.0),
                 (Frostfang, _) => (9.0, 11.5),
                 (Mouflon, _) => (11.0, 13.5),
+                (Catoblepas, _) => (7.5, 19.5),
+                (Bonerattler, _) => (6.0, 12.5),
             },
             torso_back: match (body.species, body.body_type) {
                 (Grolgar, _) => (-10.0, 1.5),
@@ -238,6 +248,8 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Wolf, _) => (-12.5, 1.0),
                 (Frostfang, _) => (-10.5, 0.0),
                 (Mouflon, _) => (-8.5, -0.5),
+                (Catoblepas, _) => (-8.5, -4.5),
+                (Bonerattler, _) => (-5.0, 0.0),
             },
             ears: match (body.species, body.body_type) {
                 (Grolgar, _) => (5.0, 8.0),
@@ -249,6 +261,8 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Wolf, _) => (3.0, 2.5),
                 (Frostfang, _) => (2.0, 3.5),
                 (Mouflon, _) => (2.5, 5.0),
+                (Catoblepas, _) => (11.0, -3.0),
+                (Bonerattler, _) => (2.0, 3.5),
             },
             leg_f: match (body.species, body.body_type) {
                 (Grolgar, _) => (-7.0, 4.0, 0.0),
@@ -260,6 +274,8 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Wolf, _) => (4.5, -6.5, -1.0),
                 (Frostfang, _) => (5.5, -5.5, -2.0),
                 (Mouflon, _) => (4.0, -5.0, -5.0),
+                (Catoblepas, _) => (7.0, 2.0, -6.0),
+                (Bonerattler, _) => (5.5, 3.5, -4.0),
             },
             leg_b: match (body.species, body.body_type) {
                 (Grolgar, _) => (6.0, -6.5, -5.5),
@@ -271,6 +287,8 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Wolf, _) => (5.0, -6.5, -2.5),
                 (Frostfang, _) => (3.5, -4.5, -2.0),
                 (Mouflon, _) => (3.5, -8.0, -4.5),
+                (Catoblepas, _) => (6.0, -2.5, -2.5),
+                (Bonerattler, _) => (6.5, -9.5, -4.0),
             },
             feet_f: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.0, -9.0, -7.0),
@@ -282,6 +300,8 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Wolf, _) => (0.5, 0.0, -2.0),
                 (Frostfang, _) => (0.5, 1.5, -3.5),
                 (Mouflon, _) => (-0.5, -0.5, -1.5),
+                (Catoblepas, _) => (1.0, 4.0, -3.0),
+                (Bonerattler, _) => (-0.5, -3.0, -2.5),
             },
             feet_b: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.0, 0.0, -5.0),
@@ -293,6 +313,8 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Wolf, _) => (0.0, -1.0, -1.5),
                 (Frostfang, _) => (0.0, -1.5, -3.5),
                 (Mouflon, _) => (-1.0, 0.0, -2.5),
+                (Catoblepas, _) => (0.5, 0.5, -3.0),
+                (Bonerattler, _) => (0.0, 3.0, -2.5),
             },
             scaler: match (body.species, body.body_type) {
                 (Grolgar, _) => (1.3),
@@ -304,6 +326,8 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Wolf, _) => (1.0),
                 (Frostfang, _) => (1.0),
                 (Mouflon, _) => (1.0),
+                (Catoblepas, _) => (1.3),
+                (Bonerattler, _) => (1.0),
             },
             dampen: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.5),
@@ -315,6 +339,8 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Wolf, _) => (1.0),
                 (Frostfang, _) => (1.0),
                 (Mouflon, _) => (1.0),
+                (Catoblepas, _) => (0.6),
+                (Bonerattler, _) => (0.6),
             },
             maximize: match (body.species, body.body_type) {
                 (Grolgar, _) => (2.0),
@@ -326,6 +352,8 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Wolf, _) => (1.0),
                 (Frostfang, _) => (1.2),
                 (Mouflon, _) => (1.1),
+                (Catoblepas, _) => (0.9),
+                (Bonerattler, _) => (0.8),
             },
             tempo: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.95),
@@ -337,6 +365,8 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Wolf, _) => (1.1),
                 (Frostfang, _) => (1.0),
                 (Mouflon, _) => (0.85),
+                (Catoblepas, _) => (0.8),
+                (Bonerattler, _) => (1.0),
             },
         }
     }
