@@ -152,7 +152,7 @@ impl PlayState for MainMenuState {
                                     e
                                 ),
                                 // TODO: remove parentheses
-                                client::AuthClientError::RequestError() => localized_strings
+                                client::AuthClientError::RequestError => localized_strings
                                     .get("main.login.failed_sending_request")
                                     .to_owned(),
                                 client::AuthClientError::ServerError(_, e) => e,
