@@ -7,6 +7,7 @@ use server::{Event, Input, Server, ServerSettings};
 use tracing::{error, info, warn, Level};
 use tracing_subscriber::{filter::LevelFilter, EnvFilter, FmtSubscriber};
 
+use clap::{App, Arg};
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
     execute,
@@ -28,16 +29,23 @@ use tui::{
 const TPS: u64 = 30;
 const RUST_LOG_ENV: &str = "RUST_LOG";
 
+#[derive(Debug, Clone)]
+enum Message {
+    Quit,
+}
+
 const COMMANDS: [Command; 2] = [
     Command {
         name: "quit",
         description: "Closes the server",
+        split_spaces: true,
         args: 0,
         cmd: |_, sender| sender.send(Message::Quit).unwrap(),
     },
     Command {
         name: "help",
         description: "List all command available",
+        split_spaces: true,
         args: 0,
         cmd: |_, _| {
             info!("===== Help =====");
@@ -52,8 +60,10 @@ const COMMANDS: [Command; 2] = [
 struct Command<'a> {
     pub name: &'a str,
     pub description: &'a str,
+    // Whether or not the command splits the arguments on whitespace
+    pub split_spaces: bool,
     pub args: usize,
-    pub cmd: fn(Vec<&str>, &mut mpsc::Sender<Message>),
+    pub cmd: fn(Vec<String>, &mut mpsc::Sender<Message>),
 }
 
 lazy_static! {
@@ -144,12 +154,29 @@ impl<'a> Write for TuiLog<'a> {
     fn flush(&mut self) -> io::Result<()> { Ok(()) }
 }
 
-#[derive(Debug, Copy, Clone)]
-enum Message {
-    Quit,
-}
-
 fn main() -> io::Result<()> {
+    let matches = App::new("Veloren server cli")
+        .version(
+            format!(
+                "{}-{}",
+                env!("CARGO_PKG_VERSION"),
+                common::util::GIT_HASH.to_string()
+            )
+            .as_str(),
+        )
+        .author("The veloren devs <https://gitlab.com/veloren/veloren>")
+        .about("The veloren server cli provides a easy to use interface to start a veloren server")
+        .arg(
+            Arg::with_name("basic")
+                .short("b")
+                .long("basic")
+                .help("Disables the tui")
+                .takes_value(false),
+        )
+        .get_matches();
+
+    let basic = matches.is_present("basic");
+
     // Init logging
     let filter = match std::env::var_os(RUST_LOG_ENV).map(|s| s.into_string()) {
         Some(Ok(env)) => {
@@ -170,15 +197,21 @@ fn main() -> io::Result<()> {
             .add_directive(LevelFilter::INFO.into()),
     };
 
-    FmtSubscriber::builder()
+    let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::ERROR)
-        .with_env_filter(filter)
-        .with_writer(|| LOG.clone())
-        .init();
+        .with_env_filter(filter);
+
+    if basic {
+        subscriber.init();
+    } else {
+        subscriber.with_writer(|| LOG.clone()).init();
+    }
 
     let (sender, receiver) = mpsc::channel();
 
-    start_tui(sender);
+    if !basic {
+        start_tui(sender);
+    }
 
     info!("Starting server...");
 
@@ -229,7 +262,9 @@ fn main() -> io::Result<()> {
         clock.tick(Duration::from_millis(1000 / TPS));
     }
 
-    stop_tui();
+    if !basic {
+        stop_tui();
+    }
 
     Ok(())
 }
@@ -303,12 +338,23 @@ fn start_tui(mut sender: mpsc::Sender<Message>) {
                                     {
                                         let args = args.collect::<Vec<_>>();
 
-                                        if args.len() > cmd.args {
+                                        let (arg_len, args) = if cmd.split_spaces {
+                                            (
+                                                args.len(),
+                                                args.into_iter()
+                                                    .map(|s| s.to_string())
+                                                    .collect::<Vec<String>>(),
+                                            )
+                                        } else {
+                                            (1, vec![args.into_iter().collect::<String>()])
+                                        };
+
+                                        if arg_len > cmd.args {
                                             warn!("{} only takes {} arguments", cmd_name, cmd.args);
                                             let cmd = cmd.cmd;
 
                                             cmd(args, &mut sender)
-                                        } else if args.len() < cmd.args {
+                                        } else if arg_len < cmd.args {
                                             error!("{} takes {} arguments", cmd_name, cmd.args);
                                         } else {
                                             let cmd = cmd.cmd;

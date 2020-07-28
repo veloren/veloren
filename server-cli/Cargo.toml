@@ -18,3 +18,4 @@ crossterm = "0.17"
 tui = { version = "0.10", default-features = false, features = ['crossterm'] }
 lazy_static = "1"
 ansi-parser = "0.6"
+clap = "2.33"
