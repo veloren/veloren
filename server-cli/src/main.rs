@@ -4,7 +4,7 @@
 
 use common::clock::Clock;
 use server::{Event, Input, Server, ServerSettings};
-use tracing::{error, info, Level};
+use tracing::{error, info, warn, Level};
 use tracing_subscriber::{filter::LevelFilter, EnvFilter, FmtSubscriber};
 
 use crossterm::{
@@ -27,6 +27,34 @@ use tui::{
 
 const TPS: u64 = 30;
 const RUST_LOG_ENV: &str = "RUST_LOG";
+
+const COMMANDS: [Command; 2] = [
+    Command {
+        name: "quit",
+        description: "Closes the server",
+        args: 0,
+        cmd: |_, sender| sender.send(Message::Quit).unwrap(),
+    },
+    Command {
+        name: "help",
+        description: "List all command available",
+        args: 0,
+        cmd: |_, _| {
+            info!("===== Help =====");
+            for command in COMMANDS.iter() {
+                info!("{} - {}", command.name, command.description)
+            }
+            info!("================");
+        },
+    },
+];
+
+struct Command<'a> {
+    pub name: &'a str,
+    pub description: &'a str,
+    pub args: usize,
+    pub cmd: fn(Vec<&str>, &mut mpsc::Sender<Message>),
+}
 
 lazy_static! {
     static ref LOG: TuiLog<'static> = TuiLog::default();
@@ -206,7 +234,7 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-fn start_tui(sender: mpsc::Sender<Message>) {
+fn start_tui(mut sender: mpsc::Sender<Message>) {
     enable_raw_mode().unwrap();
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture).unwrap();
@@ -267,9 +295,29 @@ fn start_tui(sender: mpsc::Sender<Message>) {
                                 input.pop();
                             },
                             KeyCode::Enter => {
-                                match input.as_str() {
-                                    "quit" => sender.send(Message::Quit).unwrap(),
-                                    _ => error!("invalid command"),
+                                let mut args = input.as_str().split_whitespace();
+
+                                if let Some(cmd_name) = args.next() {
+                                    if let Some(cmd) =
+                                        COMMANDS.iter().find(|cmd| cmd.name == cmd_name)
+                                    {
+                                        let args = args.collect::<Vec<_>>();
+
+                                        if args.len() > cmd.args {
+                                            warn!("{} only takes {} arguments", cmd_name, cmd.args);
+                                            let cmd = cmd.cmd;
+
+                                            cmd(args, &mut sender)
+                                        } else if args.len() < cmd.args {
+                                            error!("{} takes {} arguments", cmd_name, cmd.args);
+                                        } else {
+                                            let cmd = cmd.cmd;
+
+                                            cmd(args, &mut sender)
+                                        }
+                                    } else {
+                                        error!("{} not found", cmd_name);
+                                    }
                                 }
 
                                 input = String::new();
