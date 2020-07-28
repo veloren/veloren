@@ -20,7 +20,6 @@ use std::{
 };
 use tui::{
     backend::CrosstermBackend,
-    layout::{Constraint, Direction, Layout},
     text::Text,
     widgets::{Block, Borders, Paragraph, Wrap},
     Terminal,
@@ -286,30 +285,32 @@ fn start_tui(mut sender: mpsc::Sender<Message>) {
 
         loop {
             let _ = terminal.draw(|f| {
-                let chunks = Layout::default()
-                    .direction(Direction::Vertical)
-                    .constraints([Constraint::Max(u16::MAX), Constraint::Max(3)].as_ref())
-                    .split(f.size());
+                let mut log_rect = f.size();
+                log_rect.height -= 3;
+
+                let mut input_rect = f.size();
+                input_rect.y = input_rect.height - 3;
+                input_rect.height = 3;
 
                 let block = Block::default().borders(Borders::ALL);
-                let size = block.inner(chunks[0]);
+                let size = block.inner(log_rect);
 
                 LOG.resize(size.height as usize);
 
                 let logger = Paragraph::new(LOG.inner.lock().unwrap().clone())
                     .block(block)
                     .wrap(Wrap { trim: false });
-                f.render_widget(logger, chunks[0]);
+                f.render_widget(logger, log_rect);
 
                 let text: Text = input.as_str().into();
 
                 let block = Block::default().borders(Borders::ALL);
-                let size = block.inner(chunks[1]);
+                let size = block.inner(input_rect);
 
                 let x = (size.x + text.width() as u16).min(size.width);
 
                 let input_field = Paragraph::new(text).block(block);
-                f.render_widget(input_field, chunks[1]);
+                f.render_widget(input_field, input_rect);
 
                 f.set_cursor(x, size.y);
 
