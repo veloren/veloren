@@ -42,6 +42,7 @@ pub enum Species {
     Holladon = 11,
     Hyena = 12,
     Rabbit = 13,
+    Truffler = 14,
 }
 
 /// Data representing per-species generic data.
@@ -63,6 +64,7 @@ pub struct AllSpecies<SpeciesMeta> {
     pub holladon: SpeciesMeta,
     pub hyena: SpeciesMeta,
     pub rabbit: SpeciesMeta,
+    pub truffler: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -85,11 +87,12 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::Holladon => &self.holladon,
             Species::Hyena => &self.hyena,
             Species::Rabbit => &self.rabbit,
+            Species::Truffler => &self.truffler,
         }
     }
 }
 
-pub const ALL_SPECIES: [Species; 14] = [
+pub const ALL_SPECIES: [Species; 15] = [
     Species::Pig,
     Species::Fox,
     Species::Sheep,
@@ -104,6 +107,7 @@ pub const ALL_SPECIES: [Species; 14] = [
     Species::Holladon,
     Species::Hyena,
     Species::Rabbit,
+    Species::Truffler,
 ];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {

@@ -128,6 +128,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Holladon, _) => (7.0, 1.0),
                 (Hyena, _) => (7.5, 2.0),
                 (Rabbit, _) => (4.0, 3.0),
+                (Truffler, _) => (7.5, -9.0),
             },
             chest: match (body.species, body.body_type) {
                 (Pig, _) => (0.0, 7.0),
@@ -144,6 +145,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Holladon, _) => (-2.0, 9.0),
                 (Hyena, _) => (-2.0, 9.0),
                 (Rabbit, _) => (-2.0, 6.0),
+                (Truffler, _) => (-2.0, 16.0),
             },
             feet_f: match (body.species, body.body_type) {
                 (Pig, _) => (4.5, 3.0, -2.0),
@@ -160,6 +162,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Holladon, _) => (5.0, 4.0, -2.5),
                 (Hyena, _) => (2.5, 5.0, -4.0),
                 (Rabbit, _) => (3.0, 3.0, -3.0),
+                (Truffler, _) => (2.5, 5.0, -9.0),
             },
             feet_b: match (body.species, body.body_type) {
                 (Pig, _) => (3.5, -2.0, -1.5),
@@ -176,6 +179,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Holladon, _) => (4.0, -2.0, -3.0),
                 (Hyena, _) => (3.0, -5.0, -2.5),
                 (Rabbit, _) => (3.5, -2.0, -1.0),
+                (Truffler, _) => (3.0, -5.0, -9.5),
             },
             tail: match (body.species, body.body_type) {
                 (Pig, _) => (-4.5, 2.5),
@@ -192,6 +196,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Holladon, _) => (-1.0, 4.0),
                 (Hyena, _) => (-7.0, 0.0),
                 (Rabbit, _) => (-4.0, -0.0),
+                (Truffler, _) => (-7.0, 0.0),
             },
             scaler: match (body.species, body.body_type) {
                 (Pig, _) => (0.9),
@@ -208,6 +213,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Holladon, _) => (1.4),
                 (Hyena, _) => (1.0),
                 (Rabbit, _) => (0.7),
+                (Truffler, _) => (1.0),
             },
             tempo: match (body.species, body.body_type) {
                 (Pig, _) => (1.0),
@@ -224,6 +230,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Holladon, _) => (1.0),
                 (Hyena, _) => (1.1),
                 (Rabbit, _) => (1.15),
+                (Truffler, _) => (1.0),
             },
             maximize: match (body.species, body.body_type) {
                 (Pig, _) => (1.0),
@@ -240,6 +247,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Holladon, _) => (1.0),
                 (Hyena, _) => (1.4),
                 (Rabbit, _) => (1.3),
+                (Truffler, _) => (1.0),
             },
             minimize: match (body.species, body.body_type) {
                 (Pig, _) => (0.6),
@@ -256,6 +264,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Holladon, _) => (0.7),
                 (Hyena, _) => (1.4),
                 (Rabbit, _) => (0.8),
+                (Truffler, _) => (1.0),
             },
             spring: match (body.species, body.body_type) {
                 (Pig, _) => (1.0),
@@ -272,6 +281,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Holladon, _) => (0.7),
                 (Hyena, _) => (1.4),
                 (Rabbit, _) => (2.5),
+                (Truffler, _) => (0.8),
             },
         }
     }

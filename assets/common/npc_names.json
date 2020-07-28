@@ -453,6 +453,10 @@
             "rabbit": {
                 "keyword": "rabbit",
                 "generic": "Rabbit"
+            },
+            "truffler": {
+                "keyword": "truffler",
+                "generic": "Truffler"
             }
         }
     },
@@ -513,6 +517,14 @@
             "cyclops": {
                 "keyword": "cyclops",
                 "generic": "Cyclops"
+            },
+            "wendigo": {
+                "keyword": "wendigo",
+                "generic": "Wendigo"
+            },
+            "troll": {
+                "keyword": "troll",
+                "generic": "Troll"
             }
         }
     },

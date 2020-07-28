@@ -55,4 +55,60 @@
             center: ("npc.cyclops.male.torso_lower"),
         )
     ),
+    (Wendigo, Male): (
+        head: (
+            offset: (-15.0, -4.5, -9.5),
+            center: ("npc.wendigo.male.head"),
+        ),
+        torso_upper: (
+            offset: (-6.0, -5.5, -6.5),
+            center: ("npc.wendigo.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-4.0, -2.0, -2.0),
+            center: ("npc.wendigo.male.torso_lower"),
+        )
+    ),
+    (Wendigo, Female): (
+        head: (
+            offset: (-15.0, -4.5, -9.5),
+            center: ("npc.wendigo.male.head"),
+        ),
+        torso_upper: (
+            offset: (-6.0, -5.5, -6.5),
+            center: ("npc.wendigo.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-4.0, -2.0, -2.0),
+            center: ("npc.wendigo.male.torso_lower"),
+        )
+    ),
+    (Troll, Male): (
+        head: (
+            offset: (-8.0, -8.5, -9.0),
+            center: ("npc.troll.male.head"),
+        ),
+        torso_upper: (
+            offset: (-8.0, -7.5, -11.0),
+            center: ("npc.troll.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.0, -3.5, -2.5),
+            center: ("npc.troll.male.torso_lower"),
+        )
+    ),
+    (Troll, Female): (
+        head: (
+            offset: (-8.0, -8.5, -9.0),
+            center: ("npc.troll.male.head"),
+        ),
+        torso_upper: (
+            offset: (-8.0, -7.5, -11.0),
+            center: ("npc.troll.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.0, -3.5, -2.5),
+            center: ("npc.troll.male.torso_lower"),
+        )
+    ),
 })

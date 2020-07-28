@@ -406,4 +406,32 @@
             central: ("npc.rabbit.male.tail"),
         ),
     ),
+    (Truffler, Male):(
+        head: (
+            offset: (-8.5, 0.0, -4.5),
+            central: ("npc.truffler.male.head"),
+        ),
+        chest: (
+            offset: (-10.5, -11.0, -15.0),
+            central: ("npc.truffler.male.chest"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+    ),
+    (Truffler, Female):(
+        head: (
+            offset: (-8.5, 0.0, -4.5),
+            central: ("npc.truffler.male.head"),
+        ),
+        chest: (
+            offset: (-10.5, -11.0, -15.0),
+            central: ("npc.truffler.male.chest"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+    ),
 })
