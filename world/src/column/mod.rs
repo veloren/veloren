@@ -1,13 +1,18 @@
 use crate::{
     all::ForestKind,
     block::StructureMeta,
-    sim::{local_cells, uniform_idx_as_vec2, vec2_as_uniform_idx, RiverKind, SimChunk, WorldSim},
+    sim::{local_cells, RiverKind, SimChunk, WorldSim},
     util::Sampler,
     CONFIG,
 };
-use common::{terrain::TerrainChunkSize, vol::RectVolSize};
+use common::{
+    terrain::{
+        quadratic_nearest_point, river_spline_coeffs, uniform_idx_as_vec2, vec2_as_uniform_idx,
+        TerrainChunkSize,
+    },
+    vol::RectVolSize,
+};
 use noise::NoiseFn;
-use roots::find_roots_cubic;
 use std::{
     cmp::Reverse,
     f32, f64,
@@ -74,97 +79,6 @@ impl<'a> ColumnGen<'a> {
     }
 }
 
-pub fn river_spline_coeffs(
-    // _sim: &WorldSim,
-    chunk_pos: Vec2<f64>,
-    spline_derivative: Vec2<f32>,
-    downhill_pos: Vec2<f64>,
-) -> Vec3<Vec2<f64>> {
-    let dxy = downhill_pos - chunk_pos;
-    // Since all splines have been precomputed, we don't have to do that much work
-    // to evaluate the spline.  The spline is just ax^2 + bx + c = 0, where
-    //
-    // a = dxy - chunk.river.spline_derivative
-    // b = chunk.river.spline_derivative
-    // c = chunk_pos
-    let spline_derivative = spline_derivative.map(|e| e as f64);
-    Vec3::new(dxy - spline_derivative, spline_derivative, chunk_pos)
-}
-
-/// Find the nearest point from a quadratic spline to this point (in terms of t,
-/// the "distance along the curve" by which our spline is parameterized).  Note
-/// that if t < 0.0 or t >= 1.0, we probably shouldn't be considered "on the
-/// curve"... hopefully this works out okay and gives us what we want (a
-/// river that extends outwards tangent to a quadratic curve, with width
-/// configured by distance along the line).
-#[allow(clippy::let_and_return)] // TODO: Pending review in #587
-#[allow(clippy::many_single_char_names)]
-pub fn quadratic_nearest_point(
-    spline: &Vec3<Vec2<f64>>,
-    point: Vec2<f64>,
-) -> Option<(f64, Vec2<f64>, f64)> {
-    let a = spline.z.x;
-    let b = spline.y.x;
-    let c = spline.x.x;
-    let d = point.x;
-    let e = spline.z.y;
-    let f = spline.y.y;
-    let g = spline.x.y;
-    let h = point.y;
-    // This is equivalent to solving the following cubic equation (derivation is a
-    // bit annoying):
-    //
-    // A = 2(c^2 + g^2)
-    // B = 3(b * c + g * f)
-    // C = ((a - d) * 2 * c + b^2 + (e - h) * 2 * g + f^2)
-    // D = ((a - d) * b + (e - h) * f)
-    //
-    // Ax³ + Bx² + Cx + D = 0
-    //
-    // Once solved, this yield up to three possible values for t (reflecting minimal
-    // and maximal values).  We should choose the minimal such real value with t
-    // between 0.0 and 1.0.  If we fall outside those bounds, then we are
-    // outside the spline and return None.
-    let a_ = (c * c + g * g) * 2.0;
-    let b_ = (b * c + g * f) * 3.0;
-    let a_d = a - d;
-    let e_h = e - h;
-    let c_ = a_d * c * 2.0 + b * b + e_h * g * 2.0 + f * f;
-    let d_ = a_d * b + e_h * f;
-    let roots = find_roots_cubic(a_, b_, c_, d_);
-    let roots = roots.as_ref();
-
-    let min_root = roots
-        .iter()
-        .copied()
-        .filter_map(|root| {
-            let river_point = spline.x * root * root + spline.y * root + spline.z;
-            let river_zero = spline.z;
-            let river_one = spline.x + spline.y + spline.z;
-            if root > 0.0 && root < 1.0 {
-                Some((root, river_point))
-            } else if river_point.distance_squared(river_zero) < 0.5 {
-                Some((root, /*river_point*/ river_zero))
-            } else if river_point.distance_squared(river_one) < 0.5 {
-                Some((root, /*river_point*/ river_one))
-            } else {
-                None
-            }
-        })
-        .map(|(root, river_point)| {
-            let river_distance = river_point.distance_squared(point);
-            (root, river_point, river_distance)
-        })
-        // In the (unlikely?) case that distances are equal, prefer the earliest point along the
-        // river.
-        .min_by(|&(ap, _, a), &(bp, _, b)| {
-            (a, ap < 0.0 || ap > 1.0, ap)
-                .partial_cmp(&(b, bp < 0.0 || bp > 1.0, bp))
-                .unwrap()
-        });
-    min_root
-}
-
 impl<'a> Sampler<'a> for ColumnGen<'a> {
     type Index = Vec2<i32>;
     type Sample = Option<ColumnSample<'a>>;
@@ -196,12 +110,13 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let chunk_warp_factor = sim.get_interpolated_monotone(wpos, |chunk| chunk.warp_factor)?;
         let sim_chunk = sim.get(chunk_pos)?;
         let neighbor_coef = TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
-        let my_chunk_idx = vec2_as_uniform_idx(chunk_pos);
-        let neighbor_river_data = local_cells(my_chunk_idx).filter_map(|neighbor_idx: usize| {
-            let neighbor_pos = uniform_idx_as_vec2(neighbor_idx);
-            let neighbor_chunk = sim.get(neighbor_pos)?;
-            Some((neighbor_pos, neighbor_chunk, &neighbor_chunk.river))
-        });
+        let my_chunk_idx = vec2_as_uniform_idx(self.sim.map_size_lg(), chunk_pos);
+        let neighbor_river_data =
+            local_cells(self.sim.map_size_lg(), my_chunk_idx).filter_map(|neighbor_idx: usize| {
+                let neighbor_pos = uniform_idx_as_vec2(self.sim.map_size_lg(), neighbor_idx);
+                let neighbor_chunk = sim.get(neighbor_pos)?;
+                Some((neighbor_pos, neighbor_chunk, &neighbor_chunk.river))
+            });
         let lake_width = (TerrainChunkSize::RECT_SIZE.x as f64 * (2.0f64.sqrt())) + 12.0;
         let neighbor_river_data = neighbor_river_data.map(|(posj, chunkj, river)| {
             let kind = match river.river_kind {

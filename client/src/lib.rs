@@ -28,7 +28,7 @@ use common::{
     recipe::RecipeBook,
     state::State,
     sync::{Uid, UidAllocator, WorldSyncExt},
-    terrain::{block::Block, TerrainChunk, TerrainChunkSize},
+    terrain::{block::Block, neighbors, TerrainChunk, TerrainChunkSize},
     vol::RectVolSize,
 };
 use futures_executor::block_on;
@@ -50,9 +50,6 @@ use std::{
 use tracing::{debug, error, trace, warn};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
-// TODO: remove world dependencies.  We should see if we
-// can pull out map drawing into common somehow.
-use world::sim::{neighbors, Alt};
 
 // The duration of network inactivity until the player is kicked
 // @TODO: in the future, this should be configurable on the server
@@ -187,8 +184,18 @@ impl Client {
                             let entity = state.ecs_mut().apply_entity_package(entity_package);
                             *state.ecs_mut().write_resource() = time_of_day;
 
-                            let map_size = world_map.dimensions;
+                            let map_size_lg = common::terrain::MapSizeLg::new(
+                                world_map.dimensions_lg,
+                            )
+                            .map_err(|_| {
+                                Error::Other(format!(
+                                    "Server sent bad world map dimensions: {:?}",
+                                    world_map.dimensions_lg,
+                                ))
+                            })?;
+                            let map_size = map_size_lg.chunks();
                             let max_height = world_map.max_height;
+                            let sea_level = world_map.sea_level;
                             let rgba = world_map.rgba;
                             let alt = world_map.alt;
                             let expected_size =
@@ -203,10 +210,9 @@ impl Client {
                             }
                             let [west, east] = world_map.horizons;
                             let scale_angle =
-                                |a: u8| (a as Alt / 255.0 * <Alt as FloatConst>::FRAC_PI_2()).tan();
-                            let scale_height = |h: u8| h as Alt / 255.0 * max_height as Alt;
-                            let scale_height_big =
-                                |h: u32| (h >> 3) as Alt / 8191.0 * max_height as Alt;
+                                |a: u8| (a as f32 / 255.0 * <f32 as FloatConst>::FRAC_PI_2()).tan();
+                            let scale_height = |h: u8| h as f32 / 255.0 * max_height;
+                            let scale_height_big = |h: u32| (h >> 3) as f32 / 8191.0 * max_height;
 
                             debug!("Preparing image...");
                             let unzip_horizons = |(angles, heights): &(Vec<_>, Vec<_>)| {
@@ -223,13 +229,15 @@ impl Client {
 
                             // Redraw map (with shadows this time).
                             let mut world_map = vec![0u32; rgba.len()];
-                            let mut map_config = world::sim::MapConfig::default();
-                            map_config.lgain = 1.0;
-                            map_config.gain = max_height;
+                            let mut map_config = common::terrain::map::MapConfig::orthographic(
+                                map_size_lg,
+                                core::ops::RangeInclusive::new(0.0, max_height),
+                            );
+                            // map_config.gain = max_height;
                             map_config.horizons = Some(&horizons);
                             // map_config.light_direction = Vec3::new(1.0, -1.0, 0.0);
-                            map_config.focus.z = 0.0;
-                            let rescale_height = |h: Alt| (h / max_height as Alt) as f32;
+                            // map_config.focus.z = 0.0;
+                            let rescale_height = |h: f32| h / max_height;
                             let bounds_check = |pos: Vec2<i32>| {
                                 pos.reduce_partial_min() >= 0
                                     && pos.x < map_size.x as i32
@@ -246,9 +254,7 @@ impl Client {
                                         let downhill = {
                                             let mut best = -1;
                                             let mut besth = alti;
-                                            // TODO: Fix to work for dynamic WORLD_SIZE (i.e.
-                                            // map_size).
-                                            for nposi in neighbors(posi) {
+                                            for nposi in neighbors(map_size_lg, posi) {
                                                 let nbh = alt[nposi];
                                                 if nbh < besth {
                                                     besth = nbh;
@@ -278,9 +284,9 @@ impl Client {
                                         wpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                                     );
                                     let alt = rescale_height(scale_height_big(alt));
-                                    world::sim::MapSample {
+                                    common::terrain::map::MapSample {
                                         rgb: Rgb::from(rgba),
-                                        alt: alt as Alt,
+                                        alt: f64::from(alt),
                                         downhill_wpos,
                                         connections: None,
                                     }
@@ -326,10 +332,7 @@ impl Client {
                                 .collect::<Vec<_>>();
                             let lod_horizon = horizons; //make_raw(&horizons)?;
                             // TODO: Get sea_level from server.
-                            let map_bounds = Vec2::new(
-                                /* map_config.focus.z */ world::CONFIG.sea_level,
-                                /* map_config.gain */ max_height,
-                            );
+                            let map_bounds = Vec2::new(sea_level, max_height);
                             debug!("Done preparing image...");
 
                             break Ok((

@@ -54,14 +54,14 @@ use std::{
     time::{Duration, Instant},
 };
 #[cfg(not(feature = "worldgen"))]
-use test_world::{World, WORLD_SIZE};
+use test_world::World;
 use tracing::{debug, error, info, warn};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 #[cfg(feature = "worldgen")]
 use world::{
     civ::SiteKind,
-    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, WORLD_SIZE},
+    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP},
     World,
 };
 
@@ -200,7 +200,7 @@ impl Server {
             // complaining)
 
             // spawn in the chunk, that is in the middle of the world
-            let center_chunk: Vec2<i32> = WORLD_SIZE.map(|e| e as i32) / 2;
+            let center_chunk: Vec2<i32> = world.sim().map_size_lg().chunks().map(i32::from) / 2;
 
             // Find a town to spawn in that's close to the centre of the world
             let spawn_chunk = world

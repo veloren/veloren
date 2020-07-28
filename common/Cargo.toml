@@ -11,6 +11,7 @@ no-assets = []
 arraygen = "0.1.13"
 specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", branch = "specs-git" }
 
+roots = "0.0.5"
 specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control"], rev = "7a2e348ab2223818bad487695c66c43db88050a5" }
 vek = { version = "0.11.0", features = ["serde"] }
 dot_vox = "4.0"

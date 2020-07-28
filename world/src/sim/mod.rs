@@ -14,12 +14,11 @@ pub use self::{
         get_rivers, mrec_downhill, Alt, RiverData, RiverKind,
     },
     location::Location,
-    map::{MapConfig, MapDebug, MapSample},
+    map::{sample_pos, sample_wpos},
     path::PathData,
     util::{
         cdf_irwin_hall, downhill, get_horizon_map, get_oceans, local_cells, map_edge_factor,
-        neighbors, uniform_idx_as_vec2, uniform_noise, uphill, vec2_as_uniform_idx, InverseCdf,
-        ScaleBias, NEIGHBOR_DELTA,
+        uniform_noise, uphill, InverseCdf, ScaleBias,
     },
 };
 
@@ -36,7 +35,10 @@ use common::{
     assets,
     msg::server::WorldMapMsg,
     store::Id,
-    terrain::{BiomeKind, TerrainChunkSize},
+    terrain::{
+        map::MapConfig, uniform_idx_as_vec2, vec2_as_uniform_idx, BiomeKind, MapSizeLg,
+        TerrainChunkSize,
+    },
     vol::RectVolSize,
 };
 use noise::{
@@ -58,6 +60,18 @@ use std::{
 use tracing::{debug, warn};
 use vek::*;
 
+/// Default base two logarithm of the world size, in chunks, per dimension.
+///
+/// Currently, our default map dimensions are 2^10 × 2^10 chunks,
+/// mostly for historical reasons.  It is likely that we will increase this
+/// default at some point.
+const DEFAULT_WORLD_CHUNKS_LG: MapSizeLg =
+    if let Ok(map_size_lg) = MapSizeLg::new(Vec2 { x: 10, y: 10 }) {
+        map_size_lg
+    } else {
+        panic!("Default world chunk size does not satisfy required invariants.");
+    };
+
 // NOTE: I suspect this is too small (1024 * 16 * 1024 * 16 * 8 doesn't fit in
 // an i32), but we'll see what happens, I guess!  We could always store sizes >>
 // 3.  I think 32 or 64 is the absolute limit though, and would require
@@ -67,9 +81,9 @@ use vek::*;
 // don't think we actually cast a chunk id to float, just coordinates... could
 // be wrong though!
 #[allow(clippy::identity_op)] // TODO: Pending review in #587
-pub const WORLD_SIZE: Vec2<usize> = Vec2 {
-    x: 1024 * 1,
-    y: 1024 * 1,
+const WORLD_SIZE: Vec2<usize> = Vec2 {
+    x: 1 << DEFAULT_WORLD_CHUNKS_LG.vec().x,
+    y: 1 << DEFAULT_WORLD_CHUNKS_LG.vec().y,
 };
 
 /// A structure that holds cached noise values and cumulative distribution
@@ -296,6 +310,8 @@ impl WorldFile {
 
 pub struct WorldSim {
     pub seed: u32,
+    /// Base 2 logarithm of the map size.
+    map_size_lg: MapSizeLg,
     /// Maximum height above sea level of any chunk in the map (not including
     /// post-erosion warping, cliffs, and other things like that).
     pub max_height: f32,
@@ -449,16 +465,17 @@ impl WorldSim {
         // Assumes μ = 0, σ = 1
         let logistic_cdf = |x: f64| (x / logistic_2_base).tanh() * 0.5 + 0.5;
 
-        let min_epsilon =
-            1.0 / (WORLD_SIZE.x as f64 * WORLD_SIZE.y as f64).max(f64::EPSILON as f64 * 0.5);
-        let max_epsilon = (1.0 - 1.0 / (WORLD_SIZE.x as f64 * WORLD_SIZE.y as f64))
-            .min(1.0 - f64::EPSILON as f64 * 0.5);
+        let map_size_lg = DEFAULT_WORLD_CHUNKS_LG;
+        let map_size_chunks_len_f64 = map_size_lg.chunks().map(f64::from).product();
+        let min_epsilon = 1.0 / map_size_chunks_len_f64.max(f64::EPSILON as f64 * 0.5);
+        let max_epsilon =
+            (1.0 - 1.0 / map_size_chunks_len_f64).min(1.0 - f64::EPSILON as f64 * 0.5);
 
         // No NaNs in these uniform vectors, since the original noise value always
         // returns Some.
         let ((alt_base, _), (chaos, _)) = rayon::join(
             || {
-                uniform_noise(|_, wposf| {
+                uniform_noise(map_size_lg, |_, wposf| {
                     // "Base" of the chunk, to be multiplied by CONFIG.mountain_scale (multiplied
                     // value is from -0.35 * (CONFIG.mountain_scale * 1.05) to
                     // 0.35 * (CONFIG.mountain_scale * 0.95), but value here is from -0.3675 to
@@ -475,7 +492,7 @@ impl WorldSim {
                 })
             },
             || {
-                uniform_noise(|_, wposf| {
+                uniform_noise(map_size_lg, |_, wposf| {
                     // From 0 to 1.6, but the distribution before the max is from -1 and 1.6, so
                     // there is a 50% chance that hill will end up at 0.3 or
                     // lower, and probably a very high change it will be exactly
@@ -548,7 +565,7 @@ impl WorldSim {
         //
         // No NaNs in these uniform vectors, since the original noise value always
         // returns Some.
-        let (alt_old, _) = uniform_noise(|posi, wposf| {
+        let (alt_old, _) = uniform_noise(map_size_lg, |posi, wposf| {
             // This is the extension upwards from the base added to some extra noise from -1
             // to 1.
             //
@@ -612,11 +629,11 @@ impl WorldSim {
             // = [-0.946, 1.067]
             Some(
                 ((alt_base[posi].1 + alt_main.mul((chaos[posi].1 as f64).powf(1.2)))
-                    .mul(map_edge_factor(posi) as f64)
+                    .mul(map_edge_factor(map_size_lg, posi) as f64)
                     .add(
                         (CONFIG.sea_level as f64)
                             .div(CONFIG.mountain_scale as f64)
-                            .mul(map_edge_factor(posi) as f64),
+                            .mul(map_edge_factor(map_size_lg, posi) as f64),
                     )
                     .sub((CONFIG.sea_level as f64).div(CONFIG.mountain_scale as f64)))
                     as f32,
@@ -624,12 +641,12 @@ impl WorldSim {
         });
 
         // Calculate oceans.
-        let is_ocean = get_oceans(|posi: usize| alt_old[posi].1);
+        let is_ocean = get_oceans(map_size_lg, |posi: usize| alt_old[posi].1);
         // NOTE: Uncomment if you want oceans to exclusively be on the border of the
         // map.
-        /* let is_ocean = (0..WORLD_SIZE.x * WORLD_SIZE.y)
+        /* let is_ocean = (0..map_size_lg.chunks())
         .into_par_iter()
-        .map(|i| map_edge_factor(i) == 0.0)
+        .map(|i| map_edge_factor(map_size_lg, i) == 0.0)
         .collect::<Vec<_>>(); */
         let is_ocean_fn = |posi: usize| is_ocean[posi];
 
@@ -650,14 +667,14 @@ impl WorldSim {
 
         // Recalculate altitudes without oceans.
         // NaNs in these uniform vectors wherever is_ocean_fn returns true.
-        let (alt_old_no_ocean, _) = uniform_noise(|posi, _| {
+        let (alt_old_no_ocean, _) = uniform_noise(map_size_lg, |posi, _| {
             if is_ocean_fn(posi) {
                 None
             } else {
                 Some(old_height(posi))
             }
         });
-        let (uplift_uniform, _) = uniform_noise(|posi, _wposf| {
+        let (uplift_uniform, _) = uniform_noise(map_size_lg, |posi, _wposf| {
             if is_ocean_fn(posi) {
                 None
             } else {
@@ -717,7 +734,7 @@ impl WorldSim {
             }
         };
         let g_func = |posi| {
-            if map_edge_factor(posi) == 0.0 {
+            if map_edge_factor(map_size_lg, posi) == 0.0 {
                 return 0.0;
             }
             // G = d* v_s / p_0, where
@@ -743,8 +760,9 @@ impl WorldSim {
                 let epsilon_0_i = 2.078e-3 / 4.0;
                 return epsilon_0_i * epsilon_0_scale_i;
             }
-            let wposf = (uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
-                .map(|e| e as f64);
+            let wposf = (uniform_idx_as_vec2(map_size_lg, posi)
+                * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
+            .map(|e| e as f64);
             let turb_wposf = wposf
                 .mul(5_000.0 / continent_scale)
                 .div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
@@ -797,8 +815,9 @@ impl WorldSim {
                 // marine: α = 3.7e-2
                 return 3.7e-2 * alpha_scale_i;
             }
-            let wposf = (uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
-                .map(|e| e as f64);
+            let wposf = (uniform_idx_as_vec2(map_size_lg, posi)
+                * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
+            .map(|e| e as f64);
             let turb_wposf = wposf
                 .mul(5_000.0 / continent_scale)
                 .div(TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
@@ -963,10 +982,11 @@ impl WorldSim {
 
         // Perform some erosion.
 
-        let (alt, basement) = if let Some(map) = parsed_world_file {
-            (map.alt, map.basement)
+        let (alt, basement, map_size_lg) = if let Some(map) = parsed_world_file {
+            (map.alt, map.basement, DEFAULT_WORLD_CHUNKS_LG)
         } else {
             let (alt, basement) = do_erosion(
+                map_size_lg,
                 max_erosion_per_delta_t as f32,
                 n_steps,
                 &river_seed,
@@ -992,7 +1012,8 @@ impl WorldSim {
             );
 
             // Quick "small scale" erosion cycle in order to lower extreme angles.
-            do_erosion(
+            let (alt, basement) = do_erosion(
+                map_size_lg,
                 1.0f32,
                 n_small_steps,
                 &river_seed,
@@ -1011,7 +1032,9 @@ impl WorldSim {
                 height_scale,
                 k_d_scale(n_approx),
                 k_da_scale,
-            )
+            );
+
+            (alt, basement, map_size_lg)
         };
 
         // Save map, if necessary.
@@ -1060,6 +1083,7 @@ impl WorldSim {
             (alt, basement)
         } else {
             do_erosion(
+                map_size_lg,
                 1.0f32,
                 n_post_load_steps,
                 &river_seed,
@@ -1081,28 +1105,31 @@ impl WorldSim {
             )
         };
 
-        let is_ocean = get_oceans(|posi| alt[posi]);
+        let is_ocean = get_oceans(map_size_lg, |posi| alt[posi]);
         let is_ocean_fn = |posi: usize| is_ocean[posi];
-        let mut dh = downhill(|posi| alt[posi], is_ocean_fn);
-        let (boundary_len, indirection, water_alt_pos, maxh) = get_lakes(|posi| alt[posi], &mut dh);
+        let mut dh = downhill(map_size_lg, |posi| alt[posi], is_ocean_fn);
+        let (boundary_len, indirection, water_alt_pos, maxh) =
+            get_lakes(map_size_lg, |posi| alt[posi], &mut dh);
         debug!(?maxh, "Max height");
         let (mrec, mstack, mwrec) = {
-            let mut wh = vec![0.0; WORLD_SIZE.x * WORLD_SIZE.y];
+            let mut wh = vec![0.0; map_size_lg.chunks_len()];
             get_multi_rec(
+                map_size_lg,
                 |posi| alt[posi],
                 &dh,
                 &water_alt_pos,
                 &mut wh,
-                WORLD_SIZE.x,
-                WORLD_SIZE.y,
+                usize::from(map_size_lg.chunks().x),
+                usize::from(map_size_lg.chunks().y),
                 TerrainChunkSize::RECT_SIZE.x as Compute,
                 TerrainChunkSize::RECT_SIZE.y as Compute,
                 maxh,
             )
         };
-        let flux_old = get_multi_drainage(&mstack, &mrec, &*mwrec, boundary_len);
-        // let flux_rivers = get_drainage(&water_alt_pos, &dh, boundary_len);
-        // TODO: Make rivers work with multi-direction flux as well.
+        let flux_old = get_multi_drainage(map_size_lg, &mstack, &mrec, &*mwrec, boundary_len);
+        // let flux_rivers = get_drainage(map_size_lg, &water_alt_pos, &dh,
+        // boundary_len); TODO: Make rivers work with multi-direction flux as
+        // well.
         let flux_rivers = flux_old.clone();
 
         let water_height_initial = |chunk_idx| {
@@ -1153,13 +1180,20 @@ impl WorldSim {
         // may comment out this line and replace it with the commented-out code
         // below; however, there are no guarantees that this
         // will work correctly.
-        let water_alt = fill_sinks(water_height_initial, is_ocean_fn);
-        /* let water_alt = (0..WORLD_SIZE.x * WORLD_SIZE.y)
+        let water_alt = fill_sinks(map_size_lg, water_height_initial, is_ocean_fn);
+        /* let water_alt = (0..map_size_lg.chunks_len())
         .into_par_iter()
         .map(|posi| water_height_initial(posi))
         .collect::<Vec<_>>(); */
 
-        let rivers = get_rivers(&water_alt_pos, &water_alt, &dh, &indirection, &flux_rivers);
+        let rivers = get_rivers(
+            map_size_lg,
+            &water_alt_pos,
+            &water_alt,
+            &dh,
+            &indirection,
+            &flux_rivers,
+        );
 
         let water_alt = indirection
             .par_iter()
@@ -1198,11 +1232,15 @@ impl WorldSim {
         // Check whether any tiles around this tile are not water (since Lerp will
         // ensure that they are included).
         let pure_water = |posi: usize| {
-            let pos = uniform_idx_as_vec2(posi);
+            let pos = uniform_idx_as_vec2(map_size_lg, posi);
             for x in pos.x - 1..(pos.x + 1) + 1 {
                 for y in pos.y - 1..(pos.y + 1) + 1 {
-                    if x >= 0 && y >= 0 && x < WORLD_SIZE.x as i32 && y < WORLD_SIZE.y as i32 {
-                        let posi = vec2_as_uniform_idx(Vec2::new(x, y));
+                    if x >= 0
+                        && y >= 0
+                        && x < map_size_lg.chunks().x as i32
+                        && y < map_size_lg.chunks().y as i32
+                    {
+                        let posi = vec2_as_uniform_idx(map_size_lg, Vec2::new(x, y));
                         if !is_underwater(posi) {
                             return false;
                         }
@@ -1217,7 +1255,7 @@ impl WorldSim {
             || {
                 rayon::join(
                     || {
-                        uniform_noise(|posi, _| {
+                        uniform_noise(map_size_lg, |posi, _| {
                             if pure_water(posi) {
                                 None
                             } else {
@@ -1228,7 +1266,7 @@ impl WorldSim {
                         })
                     },
                     || {
-                        uniform_noise(|posi, _| {
+                        uniform_noise(map_size_lg, |posi, _| {
                             if pure_water(posi) {
                                 None
                             } else {
@@ -1241,7 +1279,7 @@ impl WorldSim {
             || {
                 rayon::join(
                     || {
-                        uniform_noise(|posi, wposf| {
+                        uniform_noise(map_size_lg, |posi, wposf| {
                             if pure_water(posi) {
                                 None
                             } else {
@@ -1251,7 +1289,7 @@ impl WorldSim {
                         })
                     },
                     || {
-                        uniform_noise(|posi, wposf| {
+                        uniform_noise(map_size_lg, |posi, wposf| {
                             // Check whether any tiles around this tile are water.
                             if pure_water(posi) {
                                 None
@@ -1283,13 +1321,14 @@ impl WorldSim {
             rivers,
         };
 
-        let chunks = (0..WORLD_SIZE.x * WORLD_SIZE.y)
+        let chunks = (0..map_size_lg.chunks_len())
             .into_par_iter()
-            .map(|i| SimChunk::generate(i, &gen_ctx, &gen_cdf))
+            .map(|i| SimChunk::generate(map_size_lg, i, &gen_ctx, &gen_cdf))
             .collect::<Vec<_>>();
 
         let mut this = Self {
             seed,
+            map_size_lg,
             max_height: maxh as f32,
             chunks,
             locations: Vec::new(),
@@ -1304,13 +1343,18 @@ impl WorldSim {
         this
     }
 
-    pub fn get_size(&self) -> Vec2<u32> { WORLD_SIZE.map(|e| e as u32) }
+    #[inline(always)]
+    pub const fn map_size_lg(&self) -> MapSizeLg { self.map_size_lg }
+
+    pub fn get_size(&self) -> Vec2<u32> { self.map_size_lg().chunks().map(u32::from) }
 
     /// Draw a map of the world based on chunk information.  Returns a buffer of
     /// u32s.
     pub fn get_map(&self) -> WorldMapMsg {
-        let mut map_config = MapConfig::default();
-        map_config.lgain = 1.0;
+        let mut map_config = MapConfig::orthographic(
+            DEFAULT_WORLD_CHUNKS_LG,
+            core::ops::RangeInclusive::new(CONFIG.sea_level, CONFIG.sea_level + self.max_height),
+        );
         // Build a horizon map.
         let scale_angle = |angle: Alt| {
             (/* 0.0.max( */angle /* ) */
@@ -1325,14 +1369,14 @@ impl WorldSim {
 
         let samples_data = {
             let column_sample = ColumnGen::new(self);
-            (0..WORLD_SIZE.product())
+            (0..self.map_size_lg().chunks_len())
                 .into_par_iter()
                 .map_init(
                     || Box::new(BlockGen::new(ColumnGen::new(self))),
                     |block_gen, posi| {
-                        let wpos = uniform_idx_as_vec2(posi);
+                        let wpos = uniform_idx_as_vec2(self.map_size_lg(), posi);
                         let mut sample = column_sample.get(
-                            uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                            uniform_idx_as_vec2(self.map_size_lg(), posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                         )?;
                         let alt = sample.alt;
                         /* let z_cache = block_gen.get_z_cache(wpos);
@@ -1353,7 +1397,7 @@ impl WorldSim {
                 )
                 /* .map(|posi| {
                     let mut sample = column_sample.get(
-                        uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                        uniform_idx_as_vec2(self.map_size_lg(), posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                     );
                 }) */
                 .collect::<Vec<_>>()
@@ -1361,55 +1405,53 @@ impl WorldSim {
         };
 
         let horizons = get_horizon_map(
-            map_config.lgain,
+            self.map_size_lg(),
             Aabr {
                 min: Vec2::zero(),
-                max: WORLD_SIZE.map(|e| e as i32),
+                max: self.map_size_lg().chunks().map(|e| e as i32),
             },
-            CONFIG.sea_level as Alt,
-            (CONFIG.sea_level + self.max_height) as Alt,
+            CONFIG.sea_level,
+            CONFIG.sea_level + self.max_height,
             |posi| {
                 /* let chunk = &self.chunks[posi];
                 chunk.alt.max(chunk.water_alt) as Alt */
                 let sample = samples_data[posi].as_ref();
                 sample
                     .map(|s| s.alt.max(s.water_level))
-                    .unwrap_or(CONFIG.sea_level) as Alt
+                    .unwrap_or(CONFIG.sea_level)
             },
-            |a| scale_angle(a),
-            |h| scale_height(h),
+            |a| scale_angle(a.into()),
+            |h| scale_height(h.into()),
         )
         .unwrap();
 
-        let mut v = vec![0u32; WORLD_SIZE.x * WORLD_SIZE.y];
-        let mut alts = vec![0u32; WORLD_SIZE.x * WORLD_SIZE.y];
+        let mut v = vec![0u32; self.map_size_lg().chunks_len()];
+        let mut alts = vec![0u32; self.map_size_lg().chunks_len()];
         // TODO: Parallelize again.
-        let config = MapConfig {
-            gain: self.max_height,
-            samples: Some(&samples_data),
-            is_shaded: false,
-            ..map_config
-        };
+        map_config.is_shaded = false;
 
-        config.generate(
-            |pos| config.sample_pos(self, pos),
-            |pos| config.sample_wpos(self, pos),
+        map_config.generate(
+            |pos| sample_pos(&map_config, self, Some(&samples_data), pos),
+            |pos| sample_wpos(&map_config, self, pos),
             |pos, (r, g, b, _a)| {
                 // We currently ignore alpha and replace it with the height at pos, scaled to
                 // u8.
-                let alt = config.sample_wpos(
+                let alt = sample_wpos(
+                    &map_config,
                     self,
                     pos.map(|e| e as i32) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                 );
                 let a = 0; //(alt.min(1.0).max(0.0) * 255.0) as u8;
 
-                let posi = pos.y * WORLD_SIZE.x + pos.x;
+                // NOTE: Safe by invariants on map_size_lg.
+                let posi = (pos.y << self.map_size_lg().vec().x) | pos.x;
                 v[posi] = u32::from_le_bytes([r, g, b, a]);
                 alts[posi] = (((alt.min(1.0).max(0.0) * 8191.0) as u32) & 0x1FFF) << 3;
             },
         );
         WorldMapMsg {
-            dimensions: WORLD_SIZE.map(|e| e as u16),
+            dimensions_lg: self.map_size_lg().vec(),
+            sea_level: CONFIG.sea_level,
             max_height: self.max_height,
             rgba: v,
             alt: alts,
@@ -1422,7 +1464,7 @@ impl WorldSim {
         let mut rng = self.rng.clone();
 
         let cell_size = 16;
-        let grid_size = WORLD_SIZE / cell_size;
+        let grid_size = self.map_size_lg().chunks().map(usize::from) / cell_size;
         let loc_count = 100;
 
         let mut loc_grid = vec![None; grid_size.product()];
@@ -1490,7 +1532,7 @@ impl WorldSim {
             .par_iter_mut()
             .enumerate()
             .for_each(|(ij, chunk)| {
-                let chunk_pos = uniform_idx_as_vec2(ij);
+                let chunk_pos = uniform_idx_as_vec2(self.map_size_lg(), ij);
                 let i = chunk_pos.x as usize;
                 let j = chunk_pos.y as usize;
                 let block_pos = Vec2::new(
@@ -1530,10 +1572,10 @@ impl WorldSim {
         // Create waypoints
         const WAYPOINT_EVERY: usize = 16;
         let this = &self;
-        let waypoints = (0..WORLD_SIZE.x)
+        let waypoints = (0..this.map_size_lg().chunks().x)
             .step_by(WAYPOINT_EVERY)
             .map(|i| {
-                (0..WORLD_SIZE.y)
+                (0..this.map_size_lg().chunks().y)
                     .step_by(WAYPOINT_EVERY)
                     .map(move |j| (i, j))
             })
@@ -1576,10 +1618,10 @@ impl WorldSim {
 
     pub fn get(&self, chunk_pos: Vec2<i32>) -> Option<&SimChunk> {
         if chunk_pos
-            .map2(WORLD_SIZE, |e, sz| e >= 0 && e < sz as i32)
+            .map2(self.map_size_lg().chunks(), |e, sz| e >= 0 && e < sz as i32)
             .reduce_and()
         {
-            Some(&self.chunks[vec2_as_uniform_idx(chunk_pos)])
+            Some(&self.chunks[vec2_as_uniform_idx(self.map_size_lg(), chunk_pos)])
         } else {
             None
         }
@@ -1607,11 +1649,12 @@ impl WorldSim {
     }
 
     pub fn get_mut(&mut self, chunk_pos: Vec2<i32>) -> Option<&mut SimChunk> {
+        let map_size_lg = self.map_size_lg();
         if chunk_pos
-            .map2(WORLD_SIZE, |e, sz| e >= 0 && e < sz as i32)
+            .map2(map_size_lg.chunks(), |e, sz| e >= 0 && e < sz as i32)
             .reduce_and()
         {
-            Some(&mut self.chunks[vec2_as_uniform_idx(chunk_pos)])
+            Some(&mut self.chunks[vec2_as_uniform_idx(map_size_lg, chunk_pos)])
         } else {
             None
         }
@@ -1619,16 +1662,18 @@ impl WorldSim {
 
     pub fn get_base_z(&self, chunk_pos: Vec2<i32>) -> Option<f32> {
         if !chunk_pos
-            .map2(WORLD_SIZE, |e, sz| e > 0 && e < sz as i32 - 2)
+            .map2(self.map_size_lg().chunks(), |e, sz| {
+                e > 0 && e < sz as i32 - 2
+            })
             .reduce_and()
         {
             return None;
         }
 
-        let chunk_idx = vec2_as_uniform_idx(chunk_pos);
-        local_cells(chunk_idx)
+        let chunk_idx = vec2_as_uniform_idx(self.map_size_lg(), chunk_pos);
+        local_cells(self.map_size_lg(), chunk_idx)
             .flat_map(|neighbor_idx| {
-                let neighbor_pos = uniform_idx_as_vec2(neighbor_idx);
+                let neighbor_pos = uniform_idx_as_vec2(self.map_size_lg(), neighbor_idx);
                 let neighbor_chunk = self.get(neighbor_pos);
                 let river_kind = neighbor_chunk.and_then(|c| c.river.river_kind);
                 let has_water = river_kind.is_some() && river_kind != Some(RiverKind::Ocean);
@@ -1904,11 +1949,10 @@ pub struct RegionInfo {
 impl SimChunk {
     #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
     #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
-    fn generate(posi: usize, gen_ctx: &GenCtx, gen_cdf: &GenCdf) -> Self {
-        let pos = uniform_idx_as_vec2(posi);
+    fn generate(map_size_lg: MapSizeLg, posi: usize, gen_ctx: &GenCtx, gen_cdf: &GenCdf) -> Self {
+        let pos = uniform_idx_as_vec2(map_size_lg, posi);
         let wposf = (pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32)).map(|e| e as f64);
 
-        let _map_edge_factor = map_edge_factor(posi);
         let (_, chaos) = gen_cdf.chaos[posi];
         let alt_pre = gen_cdf.alt[posi] as f32;
         let basement_pre = gen_cdf.basement[posi] as f32;
@@ -1929,7 +1973,7 @@ impl SimChunk {
         // can always add a small x component).
         //
         // Not clear that we want this yet, let's see.
-        let latitude_uniform = (pos.y as f32 / WORLD_SIZE.y as f32).sub(0.5).mul(2.0);
+        let latitude_uniform = (pos.y as f32 / f32::from(self.map_size_lg().chunks().y)).sub(0.5).mul(2.0);
 
         // Even less granular--if this matters we can make the sign affect the quantiy slightly.
         let abs_lat_uniform = latitude_uniform.abs(); */
@@ -1962,7 +2006,7 @@ impl SimChunk {
             panic!("Uh... shouldn't this never, ever happen?");
         } else {
             Some(
-                uniform_idx_as_vec2(downhill_pre as usize)
+                uniform_idx_as_vec2(map_size_lg, downhill_pre as usize)
                     * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
             )
         };

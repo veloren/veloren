@@ -14,7 +14,7 @@ use common::{
     path::Path,
     spiral::Spiral2d,
     store::{Id, Store},
-    terrain::TerrainChunkSize,
+    terrain::{MapSizeLg, TerrainChunkSize},
     vol::RectVolSize,
 };
 use core::{
@@ -29,7 +29,11 @@ use rand_chacha::ChaChaRng;
 use tracing::{debug, info, warn};
 use vek::*;
 
-const INITIAL_CIV_COUNT: usize = (crate::sim::WORLD_SIZE.x * crate::sim::WORLD_SIZE.y * 3) / 65536; //48 at default scale
+const fn initial_civ_count(map_size_lg: MapSizeLg) -> u32 {
+    // NOTE: since map_size_lg's dimensions must fit in a u16, we can safely add
+    // them here. NOTE: N48 at "default" scale of 10 × 10 bits.
+    (3 << (map_size_lg.vec().x + map_size_lg.vec().y)) >> 16
+}
 
 #[allow(clippy::type_complexity)] // TODO: Pending review in #587
 #[derive(Default)]
@@ -74,17 +78,17 @@ impl Civs {
     pub fn generate(seed: u32, sim: &mut WorldSim) -> Self {
         let mut this = Self::default();
         let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
+        let initial_civ_count = initial_civ_count(sim.map_size_lg());
         let mut ctx = GenCtx { sim, rng };
-
-        for _ in 0..INITIAL_CIV_COUNT {
+        for _ in 0..initial_civ_count {
             debug!("Creating civilisation...");
             if this.birth_civ(&mut ctx.reseed()).is_none() {
                 warn!("Failed to find starting site for civilisation.");
             }
         }
-        info!(?INITIAL_CIV_COUNT, "all civilisations created");
+        info!(?initial_civ_count, "all civilisations created");
 
-        for _ in 0..INITIAL_CIV_COUNT * 3 {
+        for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
                 let loc = find_site_loc(&mut ctx, None)?;
                 this.establish_site(&mut ctx.reseed(), loc, |place| Site {

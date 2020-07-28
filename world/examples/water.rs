@@ -1,16 +1,19 @@
-use common::{terrain::TerrainChunkSize, vol::RectVolSize};
+use common::{
+    terrain::{
+        map::{MapConfig, MapDebug, MapSample},
+        uniform_idx_as_vec2, vec2_as_uniform_idx, TerrainChunkSize,
+    },
+    vol::RectVolSize,
+};
 use rayon::prelude::*;
 use std::{f64, io::Write, path::PathBuf, time::SystemTime};
 use tracing::warn;
 use tracing_subscriber;
 use vek::*;
 use veloren_world::{
-    sim::{
-        self, get_horizon_map, uniform_idx_as_vec2, vec2_as_uniform_idx, MapConfig, MapDebug,
-        MapSample, WorldOpts, WORLD_SIZE,
-    },
+    sim::{self, get_horizon_map, sample_pos, sample_wpos, WorldOpts},
     util::Sampler,
-    World, CONFIG,
+    ColumnSample, World, CONFIG,
 };
 
 const W: usize = 1024;
@@ -41,31 +44,41 @@ fn main() {
     });
     tracing::info!("Sampling data...");
     let sampler = world.sim();
+    let map_size_lg = sampler.map_size_lg();
 
     let samples_data = {
         let column_sample = world.sample_columns();
-        (0..WORLD_SIZE.product())
+        (0..map_size_lg.chunks_len())
             .into_par_iter()
             .map(|posi| {
-                column_sample
-                    .get(uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
+                column_sample.get(
+                    uniform_idx_as_vec2(map_size_lg, posi)
+                        * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                )
             })
             .collect::<Vec<_>>()
             .into_boxed_slice()
     };
-    let refresh_map_samples = |config: &MapConfig| {
-        (0..WORLD_SIZE.product())
+    let refresh_map_samples = |config: &MapConfig, samples: Option<&[Option<ColumnSample>]>| {
+        (0..map_size_lg.chunks_len())
             .into_par_iter()
-            .map(|posi| config.sample_pos(sampler, uniform_idx_as_vec2(posi)))
+            .map(|posi| {
+                sample_pos(
+                    config,
+                    sampler,
+                    samples,
+                    uniform_idx_as_vec2(map_size_lg, posi),
+                )
+            })
             .collect::<Vec<_>>()
             .into_boxed_slice()
     };
     let get_map_sample = |map_samples: &[MapSample], pos: Vec2<i32>| {
         if pos.reduce_partial_min() >= 0
-            && pos.x < WORLD_SIZE.x as i32
-            && pos.y < WORLD_SIZE.y as i32
+            && pos.x < map_size_lg.chunks().x as i32
+            && pos.y < map_size_lg.chunks().y as i32
         {
-            map_samples[vec2_as_uniform_idx(pos)].clone()
+            map_samples[vec2_as_uniform_idx(map_size_lg, pos)].clone()
         } else {
             MapSample {
                 alt: 0.0,
@@ -76,26 +89,26 @@ fn main() {
         }
     };
 
-    let refresh_horizons = |lgain, is_basement, is_water| {
+    let refresh_horizons = |is_basement, is_water| {
         get_horizon_map(
-            lgain,
+            map_size_lg,
             Aabr {
                 min: Vec2::zero(),
-                max: WORLD_SIZE.map(|e| e as i32),
+                max: map_size_lg.chunks().map(|e| e as i32),
             },
-            CONFIG.sea_level as f64,
-            (CONFIG.sea_level + sampler.max_height) as f64,
+            CONFIG.sea_level,
+            CONFIG.sea_level + sampler.max_height,
             |posi| {
-                let sample = sampler.get(uniform_idx_as_vec2(posi)).unwrap();
+                let sample = sampler.get(uniform_idx_as_vec2(map_size_lg, posi)).unwrap();
                 if is_basement {
-                    sample.alt as f64
+                    sample.alt
                 } else {
-                    sample.basement as f64
+                    sample.basement
                 }
                 .max(if is_water {
-                    sample.water_alt as f64
+                    sample.water_alt
                 } else {
-                    -f64::INFINITY
+                    -f32::INFINITY
                 })
             },
             |a| a,
@@ -114,8 +127,8 @@ fn main() {
     // makes smaller differences in altitude appear larger.
     let mut gain = /*CONFIG.mountain_scale*/sampler.max_height;
     // The Z component during normal calculations is multiplied by gain; thus,
-    let mut lgain = 1.0;
-    let mut scale = WORLD_SIZE.x as f64 / W as f64;
+    let mut fov = 1.0;
+    let mut scale = map_size_lg.chunks().x as f64 / W as f64;
 
     // Right-handed coordinate system: light is going left, down, and "backwards"
     // (i.e. on the map, where we translate the y coordinate on the world map to
@@ -133,21 +146,21 @@ fn main() {
     let mut is_temperature = true;
     let mut is_humidity = true;
 
-    let mut horizons = refresh_horizons(lgain, is_basement, is_water);
+    let mut horizons = refresh_horizons(is_basement, is_water);
     let mut samples = None;
 
     let mut samples_changed = true;
     let mut map_samples: Box<[_]> = Box::new([]);
     while win.is_open() {
         let config = MapConfig {
+            map_size_lg,
             dimensions: Vec2::new(W, H),
             focus,
             gain,
-            lgain,
+            fov,
             scale,
             light_direction,
             horizons: horizons.as_ref(), /* .map(|(a, b)| (&**a, &**b)) */
-            samples,
 
             is_basement,
             is_water,
@@ -158,7 +171,7 @@ fn main() {
         };
 
         if samples_changed {
-            map_samples = refresh_map_samples(&config);
+            map_samples = refresh_map_samples(&config, samples);
         };
 
         let mut buf = vec![0; W * H];
@@ -169,7 +182,7 @@ fn main() {
             quads,
         } = config.generate(
             |pos| get_map_sample(&map_samples, pos),
-            |pos| config.sample_wpos(sampler, pos),
+            |pos| sample_wpos(&config, sampler, pos),
             |pos, (r, g, b, a)| {
                 let i = pos.x;
                 let j = pos.y;
@@ -187,7 +200,7 @@ fn main() {
             {
                 let x = (W as f64 * scale) as usize;
                 let y = (H as f64 * scale) as usize;
-                let config = sim::MapConfig {
+                let config = MapConfig {
                     dimensions: Vec2::new(x, y),
                     scale: 1.0,
                     ..config
@@ -195,7 +208,7 @@ fn main() {
                 let mut buf = vec![0u8; 4 * len];
                 config.generate(
                     |pos| get_map_sample(&map_samples, pos),
-                    |pos| config.sample_wpos(sampler, pos),
+                    |pos| sample_wpos(&config, sampler, pos),
                     |pos, (r, g, b, a)| {
                         let i = pos.x;
                         let j = pos.y;
@@ -233,7 +246,7 @@ fn main() {
                  Land(adjacent): (X = temp, Y = humidity): {:?}\nRivers: {:?}\nLakes: \
                  {:?}\nOceans: {:?}\nTotal water: {:?}\nTotal land(adjacent): {:?}",
                 gain,
-                lgain,
+                fov,
                 scale,
                 focus,
                 light_direction,
@@ -272,7 +285,7 @@ fn main() {
         if win.is_key_down(minifb::Key::B) {
             is_basement ^= true;
             samples_changed = true;
-            horizons = horizons.and_then(|_| refresh_horizons(lgain, is_basement, is_water));
+            horizons = horizons.and_then(|_| refresh_horizons(is_basement, is_water));
         }
         if win.is_key_down(minifb::Key::H) {
             is_humidity ^= true;
@@ -285,7 +298,7 @@ fn main() {
         if win.is_key_down(minifb::Key::O) {
             is_water ^= true;
             samples_changed = true;
-            horizons = horizons.and_then(|_| refresh_horizons(lgain, is_basement, is_water));
+            horizons = horizons.and_then(|_| refresh_horizons(is_basement, is_water));
         }
         if win.is_key_down(minifb::Key::L) {
             if is_camera {
@@ -293,7 +306,7 @@ fn main() {
                 horizons = if horizons.is_some() {
                     None
                 } else {
-                    refresh_horizons(lgain, is_basement, is_water)
+                    refresh_horizons(is_basement, is_water)
                 };
                 samples_changed = true;
             } else {
@@ -335,10 +348,8 @@ fn main() {
         }
         if win.is_key_down(minifb::Key::Q) {
             if is_camera {
-                if (lgain * 2.0).is_normal() {
-                    lgain *= 2.0;
-                    horizons =
-                        horizons.and_then(|_| refresh_horizons(lgain, is_basement, is_water));
+                if (fov * 2.0).is_normal() {
+                    fov *= 2.0;
                 }
             } else {
                 gain += 64.0;
@@ -346,10 +357,8 @@ fn main() {
         }
         if win.is_key_down(minifb::Key::E) {
             if is_camera {
-                if (lgain / 2.0).is_normal() {
-                    lgain /= 2.0;
-                    horizons =
-                        horizons.and_then(|_| refresh_horizons(lgain, is_basement, is_water));
+                if (fov / 2.0).is_normal() {
+                    fov /= 2.0;
                 }
             } else {
                 gain = (gain - 64.0).max(64.0);

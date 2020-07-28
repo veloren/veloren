@@ -66,8 +66,12 @@ pub struct CharacterInfo {
 /// repeating the "small angles" optimization that works well on more detailed
 /// shadow maps intended for height maps.
 pub struct WorldMapMsg {
-    /// World map dimensions (width × height)
-    pub dimensions: Vec2<u16>,
+    /// Log base 2 of world map dimensions (width × height) in chunks.
+    ///
+    /// NOTE: Invariant: chunk count fits in a u16.
+    pub dimensions_lg: Vec2<u32>,
+    /// Sea level (used to provide a base altitude).
+    pub sea_level: f32,
     /// Max height (used to scale altitudes).
     pub max_height: f32,
     /// RGB+A; the alpha channel is currently unused, but will be used in the

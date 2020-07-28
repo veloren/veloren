@@ -1,13 +1,18 @@
 use common::{
     generation::{ChunkSupplement, EntityInfo, EntityKind},
-    terrain::{Block, BlockKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
+    terrain::{Block, BlockKind, MapSizeLg, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, Vox, WriteVol},
 };
 use rand::{prelude::*, rngs::SmallRng};
 use std::time::Duration;
 use vek::*;
 
-pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1, y: 1 };
+const DEFAULT_WORLD_CHUNKS_LG: MapSizeLg =
+    if let Ok(map_size_lg) = MapSizeLg::new(Vec2 { x: 1, y: 1 }) {
+        map_size_lg
+    } else {
+        panic!("Default world chunk size does not satisfy required invariants.");
+    };
 
 pub struct World;
 
@@ -15,6 +20,9 @@ impl World {
     pub fn generate(_seed: u32) -> Self { Self }
 
     pub fn tick(&self, dt: Duration) {}
+
+    #[inline(always)]
+    pub const fn map_size_lg(&self) -> MapSizeLg { DEFAULT_WORLD_CHUNKS_LG }
 
     pub fn generate_chunk(
         &self,

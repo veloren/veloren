@@ -1,9 +1,12 @@
-use super::{
-    diffusion, downhill, neighbors, uniform_idx_as_vec2, uphill, vec2_as_uniform_idx,
-    NEIGHBOR_DELTA, WORLD_SIZE,
-};
+use super::{diffusion, downhill, uphill};
 use crate::{config::CONFIG, util::RandomField};
-use common::{terrain::TerrainChunkSize, vol::RectVolSize};
+use common::{
+    terrain::{
+        neighbors, uniform_idx_as_vec2, vec2_as_uniform_idx, MapSizeLg, TerrainChunkSize,
+        NEIGHBOR_DELTA,
+    },
+    vol::RectVolSize,
+};
 use tracing::{debug, error, warn};
 // use faster::*;
 use itertools::izip;
@@ -27,7 +30,12 @@ pub type Computex8 = [Compute; 8];
 
 /// Compute the water flux at all chunks, given a list of chunk indices sorted
 /// by increasing height.
-pub fn get_drainage(newh: &[u32], downhill: &[isize], _boundary_len: usize) -> Box<[f32]> {
+pub fn get_drainage(
+    map_size_lg: MapSizeLg,
+    newh: &[u32],
+    downhill: &[isize],
+    _boundary_len: usize,
+) -> Box<[f32]> {
     // FIXME: Make the below work.  For now, we just use constant flux.
     // Initially, flux is determined by rainfall.  We currently treat this as the
     // same as humidity, so we just use humidity as a proxy.  The total flux
@@ -35,10 +43,10 @@ pub fn get_drainage(newh: &[u32], downhill: &[isize], _boundary_len: usize) -> B
     // to be 0.5.  To figure out how far from normal any given chunk is, we use
     // its logit. NOTE: If there are no non-boundary chunks, we just set
     // base_flux to 1.0; this should still work fine because in that case
-    // there's no erosion anyway. let base_flux = 1.0 / ((WORLD_SIZE.x *
-    // WORLD_SIZE.y) as f32);
+    // there's no erosion anyway. let base_flux = 1.0 / ((map_size_lg.chunks_len())
+    // as f32);
     let base_flux = 1.0;
-    let mut flux = vec![base_flux; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
+    let mut flux = vec![base_flux; map_size_lg.chunks_len()].into_boxed_slice();
     newh.iter().rev().for_each(|&chunk_idx| {
         let chunk_idx = chunk_idx as usize;
         let downhill_idx = downhill[chunk_idx];
@@ -52,6 +60,7 @@ pub fn get_drainage(newh: &[u32], downhill: &[isize], _boundary_len: usize) -> B
 /// Compute the water flux at all chunks for multiple receivers, given a list of
 /// chunk indices sorted by increasing height and weights for each receiver.
 pub fn get_multi_drainage(
+    map_size_lg: MapSizeLg,
     mstack: &[u32],
     mrec: &[u8],
     mwrec: &[Computex8],
@@ -66,12 +75,12 @@ pub fn get_multi_drainage(
     // base_flux to 1.0; this should still work fine because in that case
     // there's no erosion anyway.
     let base_area = 1.0;
-    let mut area = vec![base_area; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
+    let mut area = vec![base_area; map_size_lg.chunks_len()].into_boxed_slice();
     mstack.iter().for_each(|&ij| {
         let ij = ij as usize;
         let wrec_ij = &mwrec[ij];
         let area_ij = area[ij];
-        mrec_downhill(mrec, ij).for_each(|(k, ijr)| {
+        mrec_downhill(map_size_lg, mrec, ij).for_each(|(k, ijr)| {
             area[ijr] += area_ij * wrec_ij[k];
         });
     });
@@ -226,6 +235,7 @@ impl RiverData {
 /// liberties with the constant factors etc. in order to make it more likely
 /// that we draw rivers at all.
 pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
+    map_size_lg: MapSizeLg,
     newh: &[u32],
     water_alt: &[F],
     downhill: &[isize],
@@ -236,7 +246,7 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
     // to build up the derivatives from the top down.  Fortunately this
     // computation seems tractable.
 
-    let mut rivers = vec![RiverData::default(); WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
+    let mut rivers = vec![RiverData::default(); map_size_lg.chunks_len()].into_boxed_slice();
     let neighbor_coef = TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
     // (Roughly) area of a chunk, times minutes per second.
     // NOTE: Clearly, this should "actually" be 1/60 (or maybe 1/64, if you want to
@@ -262,8 +272,8 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
             return;
         }
         let downhill_idx = downhill_idx as usize;
-        let downhill_pos = uniform_idx_as_vec2(downhill_idx);
-        let dxy = (downhill_pos - uniform_idx_as_vec2(chunk_idx)).map(|e| e as f64);
+        let downhill_pos = uniform_idx_as_vec2(map_size_lg, downhill_idx);
+        let dxy = (downhill_pos - uniform_idx_as_vec2(map_size_lg, chunk_idx)).map(|e| e as f64);
         let neighbor_dim = neighbor_coef * dxy;
         // First, we calculate the river's volumetric flow rate.
         let chunk_drainage = drainage[chunk_idx].into();
@@ -382,10 +392,16 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
                     // This is a pass, so set our flow direction to point to the neighbor pass
                     // rather than downhill.
                     // NOTE: Safe because neighbor_pass_idx >= 0.
-                    (uniform_idx_as_vec2(downhill_idx), river_spline_derivative)
+                    (
+                        uniform_idx_as_vec2(map_size_lg, downhill_idx),
+                        river_spline_derivative,
+                    )
                 } else {
                     // Try pointing towards the lake side of the pass.
-                    (uniform_idx_as_vec2(pass_idx), river_spline_derivative)
+                    (
+                        uniform_idx_as_vec2(map_size_lg, pass_idx),
+                        river_spline_derivative,
+                    )
                 };
                 let mut lake = &mut rivers[chunk_idx];
                 lake.spline_derivative = river_spline_derivative;
@@ -427,12 +443,12 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
             error!(
                 "Our chunk (and downhill, lake, pass, neighbor_pass): {:?} (to {:?}, in {:?} via \
                  {:?} to {:?}), chunk water alt: {:?}, lake water alt: {:?}",
-                uniform_idx_as_vec2(chunk_idx),
-                uniform_idx_as_vec2(downhill_idx),
-                uniform_idx_as_vec2(lake_idx),
-                uniform_idx_as_vec2(pass_idx),
+                uniform_idx_as_vec2(map_size_lg, chunk_idx),
+                uniform_idx_as_vec2(map_size_lg, downhill_idx),
+                uniform_idx_as_vec2(map_size_lg, lake_idx),
+                uniform_idx_as_vec2(map_size_lg, pass_idx),
                 if neighbor_pass_idx >= 0 {
-                    Some(uniform_idx_as_vec2(neighbor_pass_idx as usize))
+                    Some(uniform_idx_as_vec2(map_size_lg, neighbor_pass_idx as usize))
                 } else {
                     None
                 },
@@ -550,6 +566,7 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
 /// TODO: See if allocating in advance is worthwhile.
 #[allow(clippy::let_and_return)] // TODO: Pending review in #587
 fn get_max_slope(
+    map_size_lg: MapSizeLg,
     h: &[Alt],
     rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync),
     height_scale: impl Fn(usize) -> Alt + Sync,
@@ -560,7 +577,7 @@ fn get_max_slope(
     h.par_iter()
         .enumerate()
         .map(|(posi, &z)| {
-            let wposf = uniform_idx_as_vec2(posi).map(|e| e as f64)
+            let wposf = uniform_idx_as_vec2(map_size_lg, posi).map(|e| e as f64)
                 * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
             let height_scale = height_scale(posi);
             let wposz = z as f64 / height_scale as f64;
@@ -685,6 +702,8 @@ fn get_max_slope(
 #[allow(clippy::many_single_char_names)]
 #[allow(clippy::too_many_arguments)]
 fn erode(
+    // Underlying map dimensions.
+    map_size_lg: MapSizeLg,
     // Height above sea level of topsoil
     h: &mut [Alt],
     // Height above sea level of bedrock
@@ -733,8 +752,8 @@ fn erode(
     // at the cost of less interesting erosion behavior (linear vs. nonlinear).
     let q_ = 1.5;
     let k_da = 2.5 * k_da_scale(q);
-    let nx = WORLD_SIZE.x;
-    let ny = WORLD_SIZE.y;
+    let nx = usize::from(map_size_lg.chunks().x);
+    let ny = usize::from(map_size_lg.chunks().y);
     let dx = TerrainChunkSize::RECT_SIZE.x as f64;
     let dy = TerrainChunkSize::RECT_SIZE.y as f64;
 
@@ -795,11 +814,17 @@ fn erode(
     let g_fs_mult_sed = 1.0;
     let ((dh, newh, maxh, mrec, mstack, mwrec, area), (mut max_slopes, h_t)) = rayon::join(
         || {
-            let mut dh = downhill(|posi| h[posi], |posi| is_ocean(posi) && h[posi] <= 0.0);
+            let mut dh = downhill(
+                map_size_lg,
+                |posi| h[posi],
+                |posi| is_ocean(posi) && h[posi] <= 0.0,
+            );
             debug!("Computed downhill...");
-            let (boundary_len, _indirection, newh, maxh) = get_lakes(|posi| h[posi], &mut dh);
+            let (boundary_len, _indirection, newh, maxh) =
+                get_lakes(map_size_lg, |posi| h[posi], &mut dh);
             debug!("Got lakes...");
             let (mrec, mstack, mwrec) = get_multi_rec(
+                map_size_lg,
                 |posi| h[posi],
                 &dh,
                 &newh,
@@ -813,16 +838,17 @@ fn erode(
             debug!("Got multiple receivers...");
             // TODO: Figure out how to switch between single-receiver and multi-receiver
             // drainage, as the former is much less computationally costly.
-            // let area = get_drainage(&newh, &dh, boundary_len);
-            let area = get_multi_drainage(&mstack, &mrec, &*mwrec, boundary_len);
+            // let area = get_drainage(map_size_lg, &newh, &dh, boundary_len);
+            let area = get_multi_drainage(map_size_lg, &mstack, &mrec, &*mwrec, boundary_len);
             debug!("Got flux...");
             (dh, newh, maxh, mrec, mstack, mwrec, area)
         },
         || {
             rayon::join(
                 || {
-                    let max_slope =
-                        get_max_slope(h, rock_strength_nz, |posi| height_scale(n_f(posi)));
+                    let max_slope = get_max_slope(map_size_lg, h, rock_strength_nz, |posi| {
+                        height_scale(n_f(posi))
+                    });
                     debug!("Got max slopes...");
                     max_slope
                 },
@@ -870,9 +896,10 @@ fn erode(
                         let m = m_f(posi) as f64;
 
                         let mwrec_i = &mwrec[posi];
-                        mrec_downhill(&mrec, posi).for_each(|(kk, posj)| {
-                            let dxy = (uniform_idx_as_vec2(posi) - uniform_idx_as_vec2(posj))
-                                .map(|e| e as f64);
+                        mrec_downhill(map_size_lg, &mrec, posi).for_each(|(kk, posj)| {
+                            let dxy = (uniform_idx_as_vec2(map_size_lg, posi)
+                                - uniform_idx_as_vec2(map_size_lg, posj))
+                            .map(|e| e as f64);
                             let neighbor_distance = (neighbor_coef * dxy).magnitude();
                             let knew = (k
                                 * (p as f64
@@ -919,7 +946,7 @@ fn erode(
                         let k_da = k_da * kd_factor;
 
                         let mwrec_i = &mwrec[posi];
-                        mrec_downhill(&mrec, posi).for_each(|(kk, posj)| {
+                        mrec_downhill(map_size_lg, &mrec, posi).for_each(|(kk, posj)| {
                             let mwrec_kk = mwrec_i[kk] as f64;
 
                             #[rustfmt::skip]
@@ -965,8 +992,9 @@ fn erode(
                             let k = (mwrec_kk * (uplift_i + max_uplift as f64 * g_i / p as f64))
                                 / (1.0 + k_da * (mwrec_kk * chunk_neutral_area).powf(q))
                                 / max_slope.powf(q_);
-                            let dxy = (uniform_idx_as_vec2(posi) - uniform_idx_as_vec2(posj))
-                                .map(|e| e as f64);
+                            let dxy = (uniform_idx_as_vec2(map_size_lg, posi)
+                                - uniform_idx_as_vec2(map_size_lg, posj))
+                            .map(|e| e as f64);
                             let neighbor_distance = (neighbor_coef * dxy).magnitude();
 
                             let knew = (k
@@ -984,11 +1012,10 @@ fn erode(
 
     debug!("Computed stream power factors...");
 
-    let mut lake_water_volume =
-        vec![0.0 as Compute; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
-    let mut elev = vec![0.0 as Compute; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
-    let mut h_p = vec![0.0 as Compute; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
-    let mut deltah = vec![0.0 as Compute; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
+    let mut lake_water_volume = vec![0.0 as Compute; map_size_lg.chunks_len()].into_boxed_slice();
+    let mut elev = vec![0.0 as Compute; map_size_lg.chunks_len()].into_boxed_slice();
+    let mut h_p = vec![0.0 as Compute; map_size_lg.chunks_len()].into_boxed_slice();
+    let mut deltah = vec![0.0 as Compute; map_size_lg.chunks_len()].into_boxed_slice();
 
     // calculate the elevation / SPL, including sediment flux
     let tol1 = 1.0e-4 as Compute * (maxh as Compute + 1.0);
@@ -1022,8 +1049,8 @@ fn erode(
 
     // Gauss-Seidel iteration
 
-    let mut lake_silt = vec![0.0 as Compute; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
-    let mut lake_sill = vec![-1isize; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
+    let mut lake_silt = vec![0.0 as Compute; map_size_lg.chunks_len()].into_boxed_slice();
+    let mut lake_sill = vec![-1isize; map_size_lg.chunks_len()].into_boxed_slice();
 
     let mut n_gs_stream_power_law = 0;
     // NOTE: Increasing this can theoretically sometimes be necessary for
@@ -1120,7 +1147,7 @@ fn erode(
                         }
                     }
                     let mwrec_i = &mwrec[posi];
-                    mrec_downhill(&mrec, posi).for_each(|(k, posj)| {
+                    mrec_downhill(map_size_lg, &mrec, posi).for_each(|(k, posj)| {
                         let stack_posj = mstack_inv[posj];
                         deltah[stack_posj] += deltah_i * mwrec_i[k];
                     });
@@ -1269,7 +1296,7 @@ fn erode(
                         if (n - 1.0).abs() <= 1.0e-3 && (q_ - 1.0).abs() <= 1.0e-3 {
                             let mut f = h0;
                             let mut df = 1.0;
-                            mrec_downhill(&mrec, posi).for_each(|(kk, posj)| {
+                            mrec_downhill(map_size_lg, &mrec, posi).for_each(|(kk, posj)| {
                                 let posj_stack = mstack_inv[posj];
                                 let h_j = h_stack[posj_stack] as f64;
                                 // This can happen in cases where receiver kk is neither uphill of
@@ -1295,7 +1322,7 @@ fn erode(
                             let mut errp = 2.0 * tolp;
                             let mut rec_heights = [0.0; 8];
                             let mut mask = [MaskType::new(false); 8];
-                            mrec_downhill(&mrec, posi).for_each(|(kk, posj)| {
+                            mrec_downhill(map_size_lg, &mrec, posi).for_each(|(kk, posj)| {
                                 let posj_stack = mstack_inv[posj];
                                 let h_j = h_stack[posj_stack];
                                 // NOTE: Fastscape does h_t[posi] + uplift(posi) as f64 >= h_t[posj]
@@ -1383,8 +1410,9 @@ fn erode(
                             // of wh_j.
                             new_h_i = wh_j;
                         } else if compute_stats && new_h_i > 0.0 {
-                            let dxy = (uniform_idx_as_vec2(posi) - uniform_idx_as_vec2(posj))
-                                .map(|e| e as f64);
+                            let dxy = (uniform_idx_as_vec2(map_size_lg, posi)
+                                - uniform_idx_as_vec2(map_size_lg, posj))
+                            .map(|e| e as f64);
                             let neighbor_distance = (neighbor_coef * dxy).magnitude();
                             let dz = (new_h_i - wh_j).max(0.0);
                             let mag_slope = dz / neighbor_distance;
@@ -1479,7 +1507,9 @@ fn erode(
             } else {
                 let posj = posj as usize;
                 let h_j = h[posj];
-                let dxy = (uniform_idx_as_vec2(posi) - uniform_idx_as_vec2(posj)).map(|e| e as f64);
+                let dxy = (uniform_idx_as_vec2(map_size_lg, posi)
+                    - uniform_idx_as_vec2(map_size_lg, posj))
+                .map(|e| e as f64);
                 let neighbor_distance_squared = (neighbor_coef * dxy).magnitude_squared();
                 let dh = (h_i - h_j) as f64;
                 // H_i_fact = (h_i - h_j) / (||p_i - p_j||^2 + (h_i - h_j)^2)
@@ -1608,7 +1638,9 @@ fn erode(
                 // redistribute uplift to other neighbors.
                 let (posk, h_k) = (posj, h_j);
                 let (posk, h_k) = if h_k < h_j { (posk, h_k) } else { (posj, h_j) };
-                let dxy = (uniform_idx_as_vec2(posi) - uniform_idx_as_vec2(posk)).map(|e| e as f64);
+                let dxy = (uniform_idx_as_vec2(map_size_lg, posi)
+                    - uniform_idx_as_vec2(map_size_lg, posk))
+                .map(|e| e as f64);
                 let neighbor_distance = (neighbor_coef * dxy).magnitude();
                 let dz = (new_h_i - h_k).max(0.0);
                 let mag_slope = dz / neighbor_distance;
@@ -1706,6 +1738,7 @@ fn erode(
 ///
 /// See https://github.com/mewo2/terrain/blob/master/terrain.js
 pub fn fill_sinks<F: Float + Send + Sync>(
+    map_size_lg: MapSizeLg,
     h: impl Fn(usize) -> F + Sync,
     is_ocean: impl Fn(usize) -> bool + Sync,
 ) -> Box<[F]> {
@@ -1713,7 +1746,7 @@ pub fn fill_sinks<F: Float + Send + Sync>(
     // but doesn't change altitudes.
     let epsilon = F::zero();
     let infinity = F::infinity();
-    let range = 0..WORLD_SIZE.x * WORLD_SIZE.y;
+    let range = 0..map_size_lg.chunks_len();
     let oldh = range
         .into_par_iter()
         .map(|posi| h(posi))
@@ -1742,7 +1775,7 @@ pub fn fill_sinks<F: Float + Send + Sync>(
             if nh == oh {
                 return;
             }
-            for nposi in neighbors(posi) {
+            for nposi in neighbors(map_size_lg, posi) {
                 let onbh = newh[nposi];
                 let nbh = onbh + epsilon;
                 // If there is even one path downhill from this node's original height, fix
@@ -1793,6 +1826,7 @@ pub fn fill_sinks<F: Float + Send + Sync>(
 ///   indirection vector.
 #[allow(clippy::filter_next)] // TODO: Pending review in #587
 pub fn get_lakes<F: Float>(
+    map_size_lg: MapSizeLg,
     h: impl Fn(usize) -> F,
     downhill: &mut [isize],
 ) -> (usize, Box<[i32]>, Box<[u32]>, F) {
@@ -1817,7 +1851,7 @@ pub fn get_lakes<F: Float>(
     // node, so we should access that entry and increment it, then set our own
     // entry to it.
     let mut boundary = Vec::with_capacity(downhill.len());
-    let mut indirection = vec![/*-1i32*/0i32; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
+    let mut indirection = vec![/*-1i32*/0i32; map_size_lg.chunks_len()].into_boxed_slice();
 
     let mut newh = Vec::with_capacity(downhill.len());
 
@@ -1855,7 +1889,7 @@ pub fn get_lakes<F: Float>(
             let mut cur = start;
             while cur < newh.len() {
                 let node = newh[cur as usize];
-                uphill(downhill, node as usize).for_each(|child| {
+                uphill(map_size_lg, downhill, node as usize).for_each(|child| {
                     // lake_idx is the index of our lake root.
                     indirection[child] = chunk_idx as i32;
                     indirection_[child] = indirection_idx;
@@ -1896,7 +1930,7 @@ pub fn get_lakes<F: Float>(
         // our own lake's entry list.  If the maximum of the heights we get out
         // from this process is greater than the maximum of this chunk and its
         // neighbor chunk, we switch to this new edge.
-        neighbors(chunk_idx).for_each(|neighbor_idx| {
+        neighbors(map_size_lg, chunk_idx).for_each(|neighbor_idx| {
             let neighbor_height = h(neighbor_idx);
             let neighbor_lake_idx_ = indirection_[neighbor_idx];
             let neighbor_lake_idx = neighbor_lake_idx_ as usize;
@@ -1962,24 +1996,33 @@ pub fn get_lakes<F: Float>(
                             "For edge {:?} between lakes {:?}, couldn't find partner for pass \
                              {:?}. Should never happen; maybe forgot to set both edges?",
                             (
-                                (chunk_idx, uniform_idx_as_vec2(chunk_idx as usize)),
-                                (neighbor_idx, uniform_idx_as_vec2(neighbor_idx as usize))
+                                (
+                                    chunk_idx,
+                                    uniform_idx_as_vec2(map_size_lg, chunk_idx as usize)
+                                ),
+                                (
+                                    neighbor_idx,
+                                    uniform_idx_as_vec2(map_size_lg, neighbor_idx as usize)
+                                )
                             ),
                             (
                                 (
                                     lake_chunk_idx,
-                                    uniform_idx_as_vec2(lake_chunk_idx as usize),
+                                    uniform_idx_as_vec2(map_size_lg, lake_chunk_idx as usize),
                                     lake_idx_
                                 ),
                                 (
                                     neighbor_lake_chunk_idx,
-                                    uniform_idx_as_vec2(neighbor_lake_chunk_idx as usize),
+                                    uniform_idx_as_vec2(
+                                        map_size_lg,
+                                        neighbor_lake_chunk_idx as usize
+                                    ),
                                     neighbor_lake_idx_
                                 )
                             ),
                             (
-                                (pass.0, uniform_idx_as_vec2(pass.0 as usize)),
-                                (pass.1, uniform_idx_as_vec2(pass.1 as usize))
+                                (pass.0, uniform_idx_as_vec2(map_size_lg, pass.0 as usize)),
+                                (pass.1, uniform_idx_as_vec2(map_size_lg, pass.1 as usize))
                             ),
                         );
                     }
@@ -2068,7 +2111,7 @@ pub fn get_lakes<F: Float>(
         downhill[lake_chunk_idx] = neighbor_idx as isize;
         // Also set the indirection of the lake bottom to the negation of the
         // lake side of the chosen pass (chunk_idx).
-        // NOTE: This can't overflow i32 because WORLD_SIZE.x * WORLD_SIZE.y should fit
+        // NOTE: This can't overflow i32 because map_size_lg.chunks_len() should fit
         // in an i32.
         indirection[lake_chunk_idx] = -(chunk_idx as i32);
         // Add this edge to the sorted list.
@@ -2114,7 +2157,7 @@ pub fn get_lakes<F: Float>(
         InQueue,
         WithRcv,
     }
-    let mut tag = vec![Tag::UnParsed; WORLD_SIZE.x * WORLD_SIZE.y];
+    let mut tag = vec![Tag::UnParsed; map_size_lg.chunks_len()];
     // TODO: Combine with adding to vector.
     let mut filling_queue = Vec::with_capacity(downhill.len());
 
@@ -2182,17 +2225,17 @@ pub fn get_lakes<F: Float>(
                     tag[neighbor_pass_idx] = Tag::WithRcv;
                     tag[pass_idx] = Tag::InQueue;
 
-                    let outflow_coords = uniform_idx_as_vec2(neighbor_pass_idx);
+                    let outflow_coords = uniform_idx_as_vec2(map_size_lg, neighbor_pass_idx);
                     let elev = h(neighbor_pass_idx).max(h(pass_idx));
 
                     while let Some(node) = filling_queue.pop() {
-                        let coords = uniform_idx_as_vec2(node);
+                        let coords = uniform_idx_as_vec2(map_size_lg, node);
 
                         let mut rcv = -1;
                         let mut rcv_cost = -f64::INFINITY; /*f64::EPSILON;*/
                         let outflow_distance = (outflow_coords - coords).map(|e| e as f64);
 
-                        neighbors(node).for_each(|ineighbor| {
+                        neighbors(map_size_lg, node).for_each(|ineighbor| {
                             if indirection[ineighbor] != chunk_idx as i32
                                 && ineighbor != chunk_idx
                                 && ineighbor != neighbor_pass_idx
@@ -2200,7 +2243,8 @@ pub fn get_lakes<F: Float>(
                             {
                                 return;
                             }
-                            let dxy = (uniform_idx_as_vec2(ineighbor) - coords).map(|e| e as f64);
+                            let dxy = (uniform_idx_as_vec2(map_size_lg, ineighbor) - coords)
+                                .map(|e| e as f64);
                             let neighbor_distance = /*neighbor_coef * */dxy;
                             let tag = &mut tag[ineighbor];
                             match *tag {
@@ -2242,7 +2286,7 @@ pub fn get_lakes<F: Float>(
             let mut cur = start;
             let mut node = first_idx;
             loop {
-                uphill(downhill, node as usize).for_each(|child| {
+                uphill(map_size_lg, downhill, node as usize).for_each(|child| {
                     // lake_idx is the index of our lake root.
                     // Check to make sure child (flowing into us) is in the same lake.
                     if indirection[child] == chunk_idx as i32 || child == chunk_idx {
@@ -2263,10 +2307,11 @@ pub fn get_lakes<F: Float>(
 
 /// Iterate through set neighbors of multi-receiver flow.
 pub fn mrec_downhill<'a>(
+    map_size_lg: MapSizeLg,
     mrec: &'a [u8],
     posi: usize,
 ) -> impl Clone + Iterator<Item = (usize, usize)> + 'a {
-    let pos = uniform_idx_as_vec2(posi);
+    let pos = uniform_idx_as_vec2(map_size_lg, posi);
     let mrec_i = mrec[posi];
     NEIGHBOR_DELTA
         .iter()
@@ -2275,13 +2320,14 @@ pub fn mrec_downhill<'a>(
         .map(move |(k, &(x, y))| {
             (
                 k,
-                vec2_as_uniform_idx(Vec2::new(pos.x + x as i32, pos.y + y as i32)),
+                vec2_as_uniform_idx(map_size_lg, Vec2::new(pos.x + x as i32, pos.y + y as i32)),
             )
         })
 }
 
 /// Algorithm for computing multi-receiver flow.
 ///
+/// * `map_size_lg`: Size of the underlying map.
 /// * `h`: altitude
 /// * `downhill`: single receiver
 /// * `newh`: single receiver stack
@@ -2299,6 +2345,7 @@ pub fn mrec_downhill<'a>(
 #[allow(clippy::too_many_arguments)]
 #[allow(clippy::type_complexity)] // TODO: Pending review in #587
 pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
+    map_size_lg: MapSizeLg,
     h: impl Fn(usize) -> F + Sync,
     downhill: &[isize],
     newh: &[u32],
@@ -2379,18 +2426,15 @@ pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
             let mut mrec_ij = 0u8;
             let mut ndon_ij = 0u8;
             let neighbor_iter = |posi| {
-                let pos = uniform_idx_as_vec2(posi);
+                let pos = uniform_idx_as_vec2(map_size_lg, posi);
                 NEIGHBOR_DELTA
                     .iter()
                     .map(move |&(x, y)| Vec2::new(pos.x + x, pos.y + y))
                     .enumerate()
                     .filter(move |&(_, pos)| {
-                        pos.x >= 0
-                            && pos.y >= 0
-                            && pos.x < WORLD_SIZE.x as i32
-                            && pos.y < WORLD_SIZE.y as i32
+                        pos.x >= 0 && pos.y >= 0 && pos.x < nx as i32 && pos.y < ny as i32
                     })
-                    .map(move |(k, pos)| (k, vec2_as_uniform_idx(pos)))
+                    .map(move |(k, pos)| (k, vec2_as_uniform_idx(map_size_lg, pos)))
             };
 
             neighbor_iter(ij).for_each(|(k, ijk)| {
@@ -2417,9 +2461,10 @@ pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
                     let mut sumweight = czero;
                     let mut wrec = [czero; 8];
                     let mut nrec = 0;
-                    mrec_downhill(&mrec, ij).for_each(|(k, ijk)| {
-                        let lrec_ijk = ((uniform_idx_as_vec2(ijk) - uniform_idx_as_vec2(ij))
-                            .map(|e| e as Compute)
+                    mrec_downhill(map_size_lg, &mrec, ij).for_each(|(k, ijk)| {
+                        let lrec_ijk = ((uniform_idx_as_vec2(map_size_lg, ijk)
+                            - uniform_idx_as_vec2(map_size_lg, ij))
+                        .map(|e| e as Compute)
                             * dxdy)
                             .magnitude();
                         let wrec_ijk = (wh[ij] - wh[ijk]).into() / lrec_ijk;
@@ -2464,7 +2509,7 @@ pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
                 while let Some(ijn) = parse.pop() {
                     // we add the node to the stack
                     stack.push(ijn as u32);
-                    mrec_downhill(&mrec, ijn).for_each(|(_, ijr)| {
+                    mrec_downhill(map_size_lg, &mrec, ijn).for_each(|(_, ijr)| {
                         let (_, ref mut vis_ijr) = don_vis[ijr];
                         if *vis_ijr >= 1 {
                             *vis_ijr -= 1;
@@ -2492,6 +2537,7 @@ pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
 #[allow(clippy::many_single_char_names)]
 #[allow(clippy::too_many_arguments)]
 pub fn do_erosion(
+    map_size_lg: MapSizeLg,
     _max_uplift: f32,
     n_steps: usize,
     seed: &RandomField,
@@ -2513,59 +2559,59 @@ pub fn do_erosion(
     k_da_scale: impl Fn(f64) -> f64,
 ) -> (Box<[Alt]>, Box<[Alt]> /* , Box<[Alt]> */) {
     debug!("Initializing erosion arrays...");
-    let oldh_ = (0..WORLD_SIZE.x * WORLD_SIZE.y)
+    let oldh_ = (0..map_size_lg.chunks_len())
         .into_par_iter()
         .map(|posi| oldh(posi) as Alt)
         .collect::<Vec<_>>()
         .into_boxed_slice();
     // Topographic basement (The height of bedrock, not including sediment).
-    let mut b = (0..WORLD_SIZE.x * WORLD_SIZE.y)
+    let mut b = (0..map_size_lg.chunks_len())
         .into_par_iter()
         .map(|posi| oldb(posi) as Alt)
         .collect::<Vec<_>>()
         .into_boxed_slice();
     // Stream power law slope exponent--link between channel slope and erosion rate.
-    let n = (0..WORLD_SIZE.x * WORLD_SIZE.y)
+    let n = (0..map_size_lg.chunks_len())
         .into_par_iter()
         .map(|posi| n(posi))
         .collect::<Vec<_>>()
         .into_boxed_slice();
     // Stream power law concavity index (θ = m/n), turned into an exponent on
     // drainage (which is a proxy for discharge according to Hack's Law).
-    let m = (0..WORLD_SIZE.x * WORLD_SIZE.y)
+    let m = (0..map_size_lg.chunks_len())
         .into_par_iter()
         .map(|posi| theta(posi) * n[posi])
         .collect::<Vec<_>>()
         .into_boxed_slice();
     // Stream power law erodability constant for fluvial erosion (bedrock)
-    let kf = (0..WORLD_SIZE.x * WORLD_SIZE.y)
+    let kf = (0..map_size_lg.chunks_len())
         .into_par_iter()
         .map(|posi| kf(posi))
         .collect::<Vec<_>>()
         .into_boxed_slice();
     // Stream power law erodability constant for hillslope diffusion (bedrock)
-    let kd = (0..WORLD_SIZE.x * WORLD_SIZE.y)
+    let kd = (0..map_size_lg.chunks_len())
         .into_par_iter()
         .map(|posi| kd(posi))
         .collect::<Vec<_>>()
         .into_boxed_slice();
     // Deposition coefficient
-    let g = (0..WORLD_SIZE.x * WORLD_SIZE.y)
+    let g = (0..map_size_lg.chunks_len())
         .into_par_iter()
         .map(|posi| g(posi))
         .collect::<Vec<_>>()
         .into_boxed_slice();
-    let epsilon_0 = (0..WORLD_SIZE.x * WORLD_SIZE.y)
+    let epsilon_0 = (0..map_size_lg.chunks_len())
         .into_par_iter()
         .map(|posi| epsilon_0(posi))
         .collect::<Vec<_>>()
         .into_boxed_slice();
-    let alpha = (0..WORLD_SIZE.x * WORLD_SIZE.y)
+    let alpha = (0..map_size_lg.chunks_len())
         .into_par_iter()
         .map(|posi| alpha(posi))
         .collect::<Vec<_>>()
         .into_boxed_slice();
-    let mut wh = vec![0.0; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
+    let mut wh = vec![0.0; map_size_lg.chunks_len()].into_boxed_slice();
     // TODO: Don't do this, maybe?
     // (To elaborate, maybe we should have varying uplift or compute it some other
     // way).
@@ -2613,6 +2659,7 @@ pub fn do_erosion(
     (0..n_steps).for_each(|i| {
         debug!("Erosion iteration #{:?}", i);
         erode(
+            map_size_lg,
             &mut h,
             &mut b,
             &mut wh,

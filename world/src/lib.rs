@@ -1,7 +1,13 @@
 #![deny(unsafe_code)]
 #![allow(incomplete_features)]
 #![allow(clippy::option_map_unit_fn)]
-#![feature(arbitrary_enum_discriminant, const_generics, label_break_value)]
+#![feature(
+    arbitrary_enum_discriminant,
+    const_if_match,
+    const_generics,
+    const_panic,
+    label_break_value
+)]
 
 mod all;
 mod block;
@@ -16,9 +22,10 @@ pub mod util;
 // Reexports
 pub use crate::config::CONFIG;
 pub use block::BlockGen;
+pub use column::ColumnSample;
 
 use crate::{
-    column::{ColumnGen, ColumnSample},
+    column::ColumnGen,
     util::{Grid, Sampler},
 };
 use common::{

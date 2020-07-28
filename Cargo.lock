@@ -4565,7 +4565,6 @@ dependencies = [
  "uvth 3.1.1",
  "vek",
  "veloren-common",
- "veloren-world",
  "veloren_network",
 ]
 
@@ -4588,6 +4587,7 @@ dependencies = [
  "rand 0.7.3",
  "rayon",
  "ron",
+ "roots",
  "serde",
  "serde_json",
  "specs",
@@ -4733,7 +4733,6 @@ dependencies = [
  "rand_chacha 0.2.2",
  "rayon",
  "ron",
- "roots",
  "serde",
  "tracing",
  "tracing-subscriber",
