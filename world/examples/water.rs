@@ -31,6 +31,7 @@ fn main() {
         // "map_1575990726223.bin";
         // "map_1575987666972.bin";
         // "map_1576046079066.bin";
+        // "maps/071090_2x.bin";
         "map_1579539133272.bin";
     let mut _map_file = PathBuf::from("./maps");
     _map_file.push(map_file);

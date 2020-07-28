@@ -236,6 +236,7 @@ impl RiverData {
 /// that we draw rivers at all.
 pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
     map_size_lg: MapSizeLg,
+    continent_scale_hack: f64,
     newh: &[u32],
     water_alt: &[F],
     downhill: &[isize],
@@ -257,7 +258,7 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
     // increases, mins_per_sec should decrease, until it hits 1 / 60 or 1/ 64.
     // For example, if grid_scale is multiplied by 4, mins_per_sec should be
     // multiplied by 1 / (4.0 * 4.0).
-    let mins_per_sec = 1.0/*1.0 / 16.0*//*1.0 / 64.0*/;
+    let mins_per_sec = 1.0 / (continent_scale_hack * continent_scale_hack)/*1.0 / 16.0*//*1.0 / 64.0*/;
     let chunk_area_factor = neighbor_coef.x * neighbor_coef.y * mins_per_sec;
     // NOTE: This technically makes us discontinuous, so we should be cautious about
     // using this.

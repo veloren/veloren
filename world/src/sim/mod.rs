@@ -72,20 +72,6 @@ const DEFAULT_WORLD_CHUNKS_LG: MapSizeLg =
         panic!("Default world chunk size does not satisfy required invariants.");
     };
 
-// NOTE: I suspect this is too small (1024 * 16 * 1024 * 16 * 8 doesn't fit in
-// an i32), but we'll see what happens, I guess!  We could always store sizes >>
-// 3.  I think 32 or 64 is the absolute limit though, and would require
-// substantial changes.  Also, 1024 * 16 * 1024 * 16 is no longer
-// cleanly representable in f32 (that stops around 1024 * 4 * 1024 * 4, for
-// signed floats anyway) but I think that is probably less important since I
-// don't think we actually cast a chunk id to float, just coordinates... could
-// be wrong though!
-#[allow(clippy::identity_op)] // TODO: Pending review in #587
-const WORLD_SIZE: Vec2<usize> = Vec2 {
-    x: 1 << DEFAULT_WORLD_CHUNKS_LG.vec().x,
-    y: 1 << DEFAULT_WORLD_CHUNKS_LG.vec().y,
-};
-
 /// A structure that holds cached noise values and cumulative distribution
 /// functions for the input that led to those values.  See the definition of
 /// InverseCdf for a description of how to interpret the types of its fields.
@@ -199,6 +185,23 @@ pub struct WorldMap_0_5_0 {
     pub basement: Box<[Alt]>,
 }
 
+/// Version of the world map intended for use in Veloren 0.7.0.
+#[derive(Serialize, Deserialize)]
+#[repr(C)]
+pub struct WorldMap_0_7_0 {
+    /// Saved map size.
+    pub map_size_lg: Vec2<u32>,
+    /// Saved continent_scale hack, to try to better approximate the correct
+    /// seed according to varying map size.
+    ///
+    /// TODO: Remove when generating new maps becomes more principled.
+    pub continent_scale_hack: f64,
+    /// Saved altitude height map.
+    pub alt: Box<[Alt]>,
+    /// Saved basement height map.
+    pub basement: Box<[Alt]>,
+}
+
 /// Errors when converting a map to the most recent type (currently,
 /// shared by the various map types, but at some point we might switch to
 /// version-specific errors if it feels worthwhile).
@@ -237,11 +240,12 @@ pub enum WorldFileError {
 #[repr(u32)]
 pub enum WorldFile {
     Veloren0_5_0(WorldMap_0_5_0) = 0,
+    Veloren0_7_0(WorldMap_0_7_0) = 1,
 }
 
 /// Data for the most recent map type.  Update this when you add a new map
 /// verson.
-pub type ModernMap = WorldMap_0_5_0;
+pub type ModernMap = WorldMap_0_7_0;
 
 /// The default world map.
 ///
@@ -262,9 +266,9 @@ impl WorldFileLegacy {
     /// should construct a call chain that ultimately ends up with a modern
     /// version.
     pub fn into_modern(self) -> Result<ModernMap, WorldFileError> {
-        if self.alt.len() != self.basement.len()
-            || self.alt.len() != WORLD_SIZE.x as usize * WORLD_SIZE.y as usize
-        {
+        // NOTE: At this point, we ssume that any remaining legacy maps were 1024 ×
+        // 1024.
+        if self.alt.len() != self.basement.len() || self.alt.len() != 1024 * 1024 {
             return Err(WorldFileError::WorldSizeInvalid);
         }
 
@@ -280,8 +284,34 @@ impl WorldFileLegacy {
 impl WorldMap_0_5_0 {
     #[inline]
     pub fn into_modern(self) -> Result<ModernMap, WorldFileError> {
+        let pow_size = (self.alt.len().trailing_zeros()) / 2;
+        let coord_size = 1 << pow_size;
+        let two_coord_size = 1 << (2 * pow_size);
+        if self.alt.len() != self.basement.len() || self.alt.len() != two_coord_size {
+            return Err(WorldFileError::WorldSizeInvalid);
+        }
+
+        // The recommended continent scale for maps from version 0.5.0 is (in all
+        // existing cases) just 1.0 << (f64::from(coord_size) - 10.0).
+        let continent_scale_hack = (f64::from(coord_size) - 10.0).exp2();
+
+        let map = WorldMap_0_7_0 {
+            map_size_lg: Vec2::new(pow_size, pow_size),
+            continent_scale_hack,
+            alt: self.alt,
+            basement: self.basement,
+        };
+
+        map.into_modern()
+    }
+}
+
+impl WorldMap_0_7_0 {
+    #[inline]
+    pub fn into_modern(self) -> Result<ModernMap, WorldFileError> {
         if self.alt.len() != self.basement.len()
-            || self.alt.len() != WORLD_SIZE.x as usize * WORLD_SIZE.y as usize
+            || self.alt.len() != (1 << (self.map_size_lg.x + self.map_size_lg.y))
+            || self.continent_scale_hack <= 0.0
         {
             return Err(WorldFileError::WorldSizeInvalid);
         }
@@ -296,7 +326,7 @@ impl WorldFile {
     /// variant we construct here to make sure we're using the latest map
     /// version.
 
-    pub fn new(map: ModernMap) -> Self { WorldFile::Veloren0_5_0(map) }
+    pub fn new(map: ModernMap) -> Self { WorldFile::Veloren0_7_0(map) }
 
     #[inline]
     /// Turns a WorldFile into the latest version.  Whenever a new map version
@@ -304,6 +334,7 @@ impl WorldFile {
     pub fn into_modern(self) -> Result<ModernMap, WorldFileError> {
         match self {
             WorldFile::Veloren0_5_0(map) => map.into_modern(),
+            WorldFile::Veloren0_7_0(map) => map.into_modern(),
         }
     }
 }
@@ -326,12 +357,120 @@ impl WorldSim {
     #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
 
     pub fn generate(seed: u32, opts: WorldOpts) -> Self {
-        let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
-        // NOTE: Change 1.0 to 4.0, while multiplying grid_size by 4, for a 4x
-        // improvement in world detail.  You may also want to set mins_per_sec to 1 /
-        // (4.0 * 4.0) in ./erosion.rs, in order to get a similar rate of river
+        // Parse out the contents of various map formats into the values we need.
+        let parsed_world_file = (|| {
+            let map = match opts.world_file {
+                FileOpts::LoadLegacy(ref path) => {
+                    let file = match File::open(path) {
+                        Ok(file) => file,
+                        Err(e) => {
+                            warn!(?e, ?path, "Couldn't read path for maps");
+                            return None;
+                        },
+                    };
+
+                    let reader = BufReader::new(file);
+                    let map: WorldFileLegacy = match bincode::deserialize_from(reader) {
+                        Ok(map) => map,
+                        Err(e) => {
+                            warn!(
+                                ?e,
+                                "Couldn't parse legacy map.  Maybe you meant to try a regular \
+                                 load?"
+                            );
+                            return None;
+                        },
+                    };
+
+                    map.into_modern()
+                },
+                FileOpts::Load(ref path) => {
+                    let file = match File::open(path) {
+                        Ok(file) => file,
+                        Err(e) => {
+                            warn!(?e, ?path, "Couldn't read path for maps");
+                            return None;
+                        },
+                    };
+
+                    let reader = BufReader::new(file);
+                    let map: WorldFile = match bincode::deserialize_from(reader) {
+                        Ok(map) => map,
+                        Err(e) => {
+                            warn!(
+                                ?e,
+                                "Couldn't parse modern map.  Maybe you meant to try a legacy load?"
+                            );
+                            return None;
+                        },
+                    };
+
+                    map.into_modern()
+                },
+                FileOpts::LoadAsset(ref specifier) => {
+                    let reader = match assets::load_file(specifier, &["bin"]) {
+                        Ok(reader) => reader,
+                        Err(e) => {
+                            warn!(?e, ?specifier, "Couldn't read asset specifier for maps",);
+                            return None;
+                        },
+                    };
+
+                    let map: WorldFile = match bincode::deserialize_from(reader) {
+                        Ok(map) => map,
+                        Err(e) => {
+                            warn!(
+                                ?e,
+                                "Couldn't parse modern map.  Maybe you meant to try a legacy load?"
+                            );
+                            return None;
+                        },
+                    };
+
+                    map.into_modern()
+                },
+                FileOpts::Generate | FileOpts::Save => return None,
+            };
+
+            match map {
+                Ok(map) => Some(map),
+                Err(e) => {
+                    match e {
+                        WorldFileError::WorldSizeInvalid => {
+                            warn!("World size of map is invalid.");
+                        },
+                    }
+                    None
+                },
+            }
+        })();
+
+        // NOTE: Change 1.0 to 4.0 for a 4x
+        // improvement in world detail.  We also use this to automatically adjust
+        // grid_scale (multiplying by 4.0) and multiply mins_per_sec by
+        // 1.0 / (4.0 * 4.0) in ./erosion.rs, in order to get a similar rate of river
         // formation.
-        let continent_scale = 1.0/*4.0*/
+        //
+        // FIXME: This is a hack!  At some point we will hae a more principled way of
+        // dealing with this.
+        let continent_scale_hack = 1.0/*4.0*/;
+        let (parsed_world_file, map_size_lg) = parsed_world_file
+            .and_then(|map| match MapSizeLg::new(map.map_size_lg) {
+                Ok(map_size_lg) => Some((Some(map), map_size_lg)),
+                Err(e) => {
+                    warn!("World size of map does not satisfy invariants: {:?}", e);
+                    None
+                },
+            })
+            .unwrap_or((None, DEFAULT_WORLD_CHUNKS_LG));
+        let continent_scale_hack = if let Some(map) = &parsed_world_file {
+            map.continent_scale_hack
+        } else {
+            continent_scale_hack
+        };
+
+        let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
+        let continent_scale = continent_scale_hack
             * 5_000.0f64
                 .div(32.0)
                 .mul(TerrainChunkSize::RECT_SIZE.x as f64);
@@ -412,7 +551,7 @@ impl WorldSim {
         // Suppose the old world has grid spacing Δx' = Δy', new Δx = Δy.
         // We define grid_scale such that Δx = height_scale * Δx' ⇒
         //  grid_scale = Δx / Δx'.
-        let grid_scale = 1.0f64 / 4.0/*1.0*/;
+        let grid_scale = 1.0f64 / (4.0 / continent_scale_hack)/*1.0*/;
 
         // Now, suppose we want to generate a world with "similar" topography, defined
         // in this case as having roughly equal slopes at steady state, with the
@@ -465,7 +604,6 @@ impl WorldSim {
         // Assumes μ = 0, σ = 1
         let logistic_cdf = |x: f64| (x / logistic_2_base).tanh() * 0.5 + 0.5;
 
-        let map_size_lg = DEFAULT_WORLD_CHUNKS_LG;
         let map_size_chunks_len_f64 = map_size_lg.chunks().map(f64::from).product();
         let min_epsilon = 1.0 / map_size_chunks_len_f64.max(f64::EPSILON as f64 * 0.5);
         let max_epsilon =
@@ -892,98 +1030,10 @@ impl WorldSim {
             }
         };
 
-        // Parse out the contents of various map formats into the values we need.
-        let parsed_world_file = (|| {
-            let map = match opts.world_file {
-                FileOpts::LoadLegacy(ref path) => {
-                    let file = match File::open(path) {
-                        Ok(file) => file,
-                        Err(e) => {
-                            warn!(?e, ?path, "Couldn't read path for maps");
-                            return None;
-                        },
-                    };
-
-                    let reader = BufReader::new(file);
-                    let map: WorldFileLegacy = match bincode::deserialize_from(reader) {
-                        Ok(map) => map,
-                        Err(e) => {
-                            warn!(
-                                ?e,
-                                "Couldn't parse legacy map.  Maybe you meant to try a regular \
-                                 load?"
-                            );
-                            return None;
-                        },
-                    };
-
-                    map.into_modern()
-                },
-                FileOpts::Load(ref path) => {
-                    let file = match File::open(path) {
-                        Ok(file) => file,
-                        Err(e) => {
-                            warn!(?e, ?path, "Couldn't read path for maps");
-                            return None;
-                        },
-                    };
-
-                    let reader = BufReader::new(file);
-                    let map: WorldFile = match bincode::deserialize_from(reader) {
-                        Ok(map) => map,
-                        Err(e) => {
-                            warn!(
-                                ?e,
-                                "Couldn't parse modern map.  Maybe you meant to try a legacy load?"
-                            );
-                            return None;
-                        },
-                    };
-
-                    map.into_modern()
-                },
-                FileOpts::LoadAsset(ref specifier) => {
-                    let reader = match assets::load_file(specifier, &["bin"]) {
-                        Ok(reader) => reader,
-                        Err(e) => {
-                            warn!(?e, ?specifier, "Couldn't read asset specifier for maps",);
-                            return None;
-                        },
-                    };
-
-                    let map: WorldFile = match bincode::deserialize_from(reader) {
-                        Ok(map) => map,
-                        Err(e) => {
-                            warn!(
-                                ?e,
-                                "Couldn't parse modern map.  Maybe you meant to try a legacy load?"
-                            );
-                            return None;
-                        },
-                    };
-
-                    map.into_modern()
-                },
-                FileOpts::Generate | FileOpts::Save => return None,
-            };
-
-            match map {
-                Ok(map) => Some(map),
-                Err(e) => {
-                    match e {
-                        WorldFileError::WorldSizeInvalid => {
-                            warn!("World size of map is invalid.");
-                        },
-                    }
-                    None
-                },
-            }
-        })();
-
         // Perform some erosion.
 
-        let (alt, basement, map_size_lg) = if let Some(map) = parsed_world_file {
-            (map.alt, map.basement, DEFAULT_WORLD_CHUNKS_LG)
+        let (alt, basement) = if let Some(map) = parsed_world_file {
+            (map.alt, map.basement)
         } else {
             let (alt, basement) = do_erosion(
                 map_size_lg,
@@ -1012,7 +1062,7 @@ impl WorldSim {
             );
 
             // Quick "small scale" erosion cycle in order to lower extreme angles.
-            let (alt, basement) = do_erosion(
+            do_erosion(
                 map_size_lg,
                 1.0f32,
                 n_small_steps,
@@ -1032,14 +1082,17 @@ impl WorldSim {
                 height_scale,
                 k_d_scale(n_approx),
                 k_da_scale,
-            );
-
-            (alt, basement, map_size_lg)
+            )
         };
 
         // Save map, if necessary.
         // NOTE: We wll always save a map with latest version.
-        let map = WorldFile::new(ModernMap { alt, basement });
+        let map = WorldFile::new(ModernMap {
+            continent_scale_hack,
+            map_size_lg: map_size_lg.vec(),
+            alt,
+            basement,
+        });
         (|| {
             if let FileOpts::Save = opts.world_file {
                 use std::time::SystemTime;
@@ -1076,7 +1129,12 @@ impl WorldSim {
 
         // Skip validation--we just performed a no-op conversion for this map, so it had
         // better be valid!
-        let ModernMap { alt, basement } = map.into_modern().unwrap();
+        let ModernMap {
+            continent_scale_hack: _,
+            map_size_lg: _,
+            alt,
+            basement,
+        } = map.into_modern().unwrap();
 
         // Additional small-scale eroson after map load, only used during testing.
         let (alt, basement) = if n_post_load_steps == 0 {
@@ -1188,6 +1246,7 @@ impl WorldSim {
 
         let rivers = get_rivers(
             map_size_lg,
+            continent_scale_hack,
             &water_alt_pos,
             &water_alt,
             &dh,
@@ -1352,7 +1411,7 @@ impl WorldSim {
     /// u32s.
     pub fn get_map(&self) -> WorldMapMsg {
         let mut map_config = MapConfig::orthographic(
-            DEFAULT_WORLD_CHUNKS_LG,
+            self.map_size_lg(),
             core::ops::RangeInclusive::new(CONFIG.sea_level, CONFIG.sea_level + self.max_height),
         );
         // Build a horizon map.
