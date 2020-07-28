@@ -278,6 +278,14 @@
             "mouflon": {
                 "keyword": "mouflon",
                 "generic": "Mouflon"
+            },
+            "catoblepas": {
+                "keyword": "catoblepas",
+                "generic": "Catoblepas"
+            },
+            "bonerattler": {
+                "keyword": "bonerattler",
+                "generic": "Bonerattler"
             }
         }
     },
@@ -441,6 +449,10 @@
             "hyena": {
                 "keyword": "hyena",
                 "generic": "Hyena"
+            },
+            "rabbit": {
+                "keyword": "rabbit",
+                "generic": "Rabbit"
             }
         }
     },

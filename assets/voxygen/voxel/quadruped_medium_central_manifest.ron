@@ -539,4 +539,124 @@
             central: ("npc.mouflon.male.tail"),
         ),
     ),
+    (Catoblepas, Male): (
+        upper: (
+            offset: (-13.0, 0.0, -4.5),
+            central: ("npc.catoblepas.male.head_upper"),
+        ),
+        lower: (
+            offset: (-4.0, -10.0, -12.0),
+            central: ("npc.catoblepas.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-4.0, 0.0, -3.0),
+            central: ("npc.catoblepas.male.jaw"),
+        ),
+        torso_front: (
+            offset: (-7.0, -10.0, -11.5),
+            central: ("npc.catoblepas.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-5.0, -9.0, -6.5),
+            central: ("npc.catoblepas.male.torso_back"),
+        ),
+        ears: (
+            offset: (-2.0, -12.0, -10.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-2.0, -12.0, -10.0),
+            central: ("npc.catoblepas.male.tail"),
+        ),
+    ),
+    (Catoblepas, Female): (
+        upper: (
+            offset: (-13.0, 0.0, -4.5),
+            central: ("npc.catoblepas.male.head_upper"),
+        ),
+        lower: (
+            offset: (-4.0, -10.0, -12.0),
+            central: ("npc.catoblepas.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-4.0, 0.0, -3.0),
+            central: ("npc.catoblepas.male.jaw"),
+        ),
+        torso_front: (
+            offset: (-7.0, -10.0, -11.5),
+            central: ("npc.catoblepas.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-5.0, -9.0, -6.5),
+            central: ("npc.catoblepas.male.torso_back"),
+        ),
+        ears: (
+            offset: (-2.0, -12.0, -10.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-2.0, -12.0, -10.0),
+            central: ("npc.catoblepas.male.tail"),
+        ),
+    ),
+    (Bonerattler, Male): (
+        upper: (
+            offset: (-4.5, 0.0, -4.5),
+            central: ("npc.bonerattler.male.head_upper"),
+        ),
+        lower: (
+            offset: (-4.5, -2.0, -5.0),
+            central: ("npc.bonerattler.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-3.5, 0.0, -2.0),
+            central: ("npc.bonerattler.male.jaw"),
+        ),
+        torso_front: (
+            offset: (-5.5, -7.0, -6.5),
+            central: ("npc.bonerattler.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-5.5, -11.0, -6.5),
+            central: ("npc.bonerattler.male.torso_back"),
+        ),
+        ears: (
+            offset: (-4.0, -1.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-3.5, -14.0, -10.0),
+            central: ("npc.bonerattler.male.tail"),
+        ),
+    ),
+    (Bonerattler, Female): (
+        upper: (
+            offset: (-4.5, 0.0, -4.5),
+            central: ("npc.bonerattler.male.head_upper"),
+        ),
+        lower: (
+            offset: (-4.5, -2.0, -5.0),
+            central: ("npc.bonerattler.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-3.5, 0.0, -2.0),
+            central: ("npc.bonerattler.male.jaw"),
+        ),
+        torso_front: (
+            offset: (-5.5, -7.0, -6.5),
+            central: ("npc.bonerattler.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-5.5, -11.0, -6.5),
+            central: ("npc.bonerattler.male.torso_back"),
+        ),
+        ears: (
+            offset: (-4.0, -1.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-3.5, -14.0, -10.0),
+            central: ("npc.bonerattler.male.tail"),
+        ),
+    ),
 })

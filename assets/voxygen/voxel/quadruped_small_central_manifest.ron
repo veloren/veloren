@@ -378,4 +378,32 @@
             central: ("npc.hyena.male.tail"),
         ),
     ),
+    (Rabbit, Male):(
+        head: (
+            offset: (-3.5, 0.0, -3.0),
+            central: ("npc.rabbit.male.head"),
+        ),
+        chest: (
+            offset: (-2.5, -5.5, -3.0),
+            central: ("npc.rabbit.male.chest"),
+        ),
+        tail: (
+            offset: (-1.5, -2.0, -1.0),
+            central: ("npc.rabbit.male.tail"),
+        ),
+    ),
+    (Rabbit, Female):(
+        head: (
+            offset: (-3.5, 0.0, -3.0),
+            central: ("npc.rabbit.male.head"),
+        ),
+        chest: (
+            offset: (-2.5, -5.5, -3.0),
+            central: ("npc.rabbit.male.chest"),
+        ),
+        tail: (
+            offset: (-1.5, -2.0, -1.0),
+            central: ("npc.rabbit.male.tail"),
+        ),
+    ),
 })
