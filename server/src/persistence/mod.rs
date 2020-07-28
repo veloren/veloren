@@ -17,7 +17,7 @@ extern crate diesel;
 use diesel::{connection::SimpleConnection, prelude::*};
 use diesel_migrations::embed_migrations;
 use std::{env, fs, path::PathBuf};
-use tracing::warn;
+use tracing::{info, warn};
 
 // See: https://docs.rs/diesel_migrations/1.4.0/diesel_migrations/macro.embed_migrations.html
 // This macro is called at build-time, and produces the necessary migration info
@@ -27,16 +27,28 @@ use tracing::warn;
 // when needed.
 embed_migrations!();
 
+struct TracingOut;
+
+impl std::io::Write for TracingOut {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        info!("{}", String::from_utf8_lossy(buf));
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> { Ok(()) }
+}
+
 /// Runs any pending database migrations. This is executed during server startup
 pub fn run_migrations(db_dir: &str) -> Result<(), diesel_migrations::RunMigrationsError> {
     let db_dir = &apply_saves_dir_override(db_dir);
     let _ = fs::create_dir(format!("{}/", db_dir));
+
     embedded_migrations::run_with_output(
         &establish_connection(db_dir).expect(
             "If we cannot execute migrations, we should not be allowed to launch the server, so \
              we don't populate it with bad data.",
         ),
-        &mut std::io::stdout(),
+        &mut std::io::LineWriter::new(TracingOut),
     )
 }
 
