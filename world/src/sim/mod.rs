@@ -285,15 +285,14 @@ impl WorldMap_0_5_0 {
     #[inline]
     pub fn into_modern(self) -> Result<ModernMap, WorldFileError> {
         let pow_size = (self.alt.len().trailing_zeros()) / 2;
-        let coord_size = 1 << pow_size;
         let two_coord_size = 1 << (2 * pow_size);
         if self.alt.len() != self.basement.len() || self.alt.len() != two_coord_size {
             return Err(WorldFileError::WorldSizeInvalid);
         }
 
         // The recommended continent scale for maps from version 0.5.0 is (in all
-        // existing cases) just 1.0 << (f64::from(coord_size) - 10.0).
-        let continent_scale_hack = (f64::from(coord_size) - 10.0).exp2();
+        // existing cases) just 1.0 << (f64::from(pow_size) - 10.0).
+        let continent_scale_hack = (f64::from(pow_size) - 10.0).exp2();
 
         let map = WorldMap_0_7_0 {
             map_size_lg: Vec2::new(pow_size, pow_size),
