@@ -222,7 +222,7 @@ dependencies = [
 [[package]]
 name = "auth-common"
 version = "0.1.0"
-source = "git+https://gitlab.com/veloren/auth.git?rev=223a4097f7ebc8d451936dccb5e6517194bbf086#223a4097f7ebc8d451936dccb5e6517194bbf086"
+source = "git+https://gitlab.com/veloren/auth.git?rev=57784d2135a2c81ff0266f52a528da092ddf89e6#57784d2135a2c81ff0266f52a528da092ddf89e6"
 dependencies = [
  "rand 0.7.3",
  "serde",
@@ -232,7 +232,7 @@ dependencies = [
 [[package]]
 name = "authc"
 version = "1.0.0"
-source = "git+https://gitlab.com/veloren/auth.git?rev=223a4097f7ebc8d451936dccb5e6517194bbf086#223a4097f7ebc8d451936dccb5e6517194bbf086"
+source = "git+https://gitlab.com/veloren/auth.git?rev=57784d2135a2c81ff0266f52a528da092ddf89e6#57784d2135a2c81ff0266f52a528da092ddf89e6"
 dependencies = [
  "auth-common",
  "fxhash",
@@ -500,9 +500,9 @@ dependencies = [
 
 [[package]]
 name = "chunked_transfer"
-version = "1.1.0"
+version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b89647f09b9f4c838cb622799b2843e4e13bff64661dab9a0362bb92985addd"
+checksum = "1d29eb15132782371f71da8f947dba48b3717bdb6fa771b9b434d645e40a7193"
 
 [[package]]
 name = "clang-sys"
@@ -4411,9 +4411,9 @@ checksum = "a156c684c91ea7d62626509bce3cb4e1d9ed5c4d978f7b4352658f96a4c26b4a"
 
 [[package]]
 name = "ureq"
-version = "1.1.1"
+version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b777d3fc1e1a5cf8e4675c9016ae748a26ba6a73f4030b9110bb3c8a70499c76"
+checksum = "677df6896edc382f1a2abcbb3e4058edfe973cdc4e1ed764b11891a7a289bfc0"
 dependencies = [
  "base64 0.12.1",
  "chunked_transfer",
@@ -4611,7 +4611,6 @@ dependencies = [
 name = "veloren-voxygen"
 version = "0.6.0"
 dependencies = [
- "authc",
  "backtrace",
  "bincode",
  "chrono",
