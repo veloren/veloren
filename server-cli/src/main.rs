@@ -165,7 +165,7 @@ fn main() -> io::Result<()> {
             .as_str(),
         )
         .author("The veloren devs <https://gitlab.com/veloren/veloren>")
-        .about("The veloren server cli provides a easy to use interface to start a veloren server")
+        .about("The veloren server cli provides an easy to use interface to start a veloren server")
         .arg(
             Arg::with_name("basic")
                 .short("b")
@@ -316,8 +316,8 @@ fn start_tui(mut sender: mpsc::Sender<Message>) {
                 use crossterm::event::{KeyModifiers, *};
 
                 if poll(Duration::from_millis(10)).unwrap() {
-                    match read().unwrap() {
-                        Event::Key(event) => match event.code {
+                    if let Event::Key(event) = read().unwrap() {
+                        match event.code {
                             KeyCode::Char('c') => {
                                 if event.modifiers.contains(KeyModifiers::CONTROL) {
                                     sender.send(Message::Quit).unwrap()
@@ -349,17 +349,24 @@ fn start_tui(mut sender: mpsc::Sender<Message>) {
                                             (1, vec![args.into_iter().collect::<String>()])
                                         };
 
-                                        if arg_len > cmd.args {
-                                            warn!("{} only takes {} arguments", cmd_name, cmd.args);
-                                            let cmd = cmd.cmd;
+                                        match arg_len.cmp(&cmd.args) {
+                                            std::cmp::Ordering::Less => {
+                                                error!("{} takes {} arguments", cmd_name, cmd.args)
+                                            },
+                                            std::cmp::Ordering::Greater => {
+                                                warn!(
+                                                    "{} only takes {} arguments",
+                                                    cmd_name, cmd.args
+                                                );
+                                                let cmd = cmd.cmd;
 
-                                            cmd(args, &mut sender)
-                                        } else if arg_len < cmd.args {
-                                            error!("{} takes {} arguments", cmd_name, cmd.args);
-                                        } else {
-                                            let cmd = cmd.cmd;
+                                                cmd(args, &mut sender)
+                                            },
+                                            std::cmp::Ordering::Equal => {
+                                                let cmd = cmd.cmd;
 
-                                            cmd(args, &mut sender)
+                                                cmd(args, &mut sender)
+                                            },
                                         }
                                     } else {
                                         error!("{} not found", cmd_name);
@@ -369,8 +376,7 @@ fn start_tui(mut sender: mpsc::Sender<Message>) {
                                 input = String::new();
                             },
                             _ => {},
-                        },
-                        _ => {},
+                        }
                     }
                 }
             });
