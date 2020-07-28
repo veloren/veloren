@@ -7,6 +7,11 @@ use server::{Event, Input, Server, ServerSettings};
 use tracing::{error, info, Level};
 use tracing_subscriber::{filter::LevelFilter, EnvFilter, FmtSubscriber};
 
+use crossterm::{
+    event::{DisableMouseCapture, EnableMouseCapture},
+    execute,
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+};
 use std::{
     io::{self, Write},
     sync::{mpsc, Arc, Mutex},
@@ -145,13 +150,72 @@ fn main() -> io::Result<()> {
 
     let (sender, receiver) = mpsc::channel();
 
+    start_tui(sender);
+
+    info!("Starting server...");
+
+    // Set up an fps clock
+    let mut clock = Clock::start();
+
+    // Load settings
+    let settings = ServerSettings::load();
+    let server_port = &settings.gameserver_address.port();
+    let metrics_port = &settings.metrics_address.port();
+    // Create server
+    let mut server = Server::new(settings).expect("Failed to create server instance!");
+
+    info!("Server is ready to accept connections.");
+    info!(?metrics_port, "starting metrics at port");
+    info!(?server_port, "starting server at port");
+
+    loop {
+        let events = server
+            .tick(Input::default(), clock.get_last_delta())
+            .expect("Failed to tick server");
+
+        for event in events {
+            match event {
+                Event::ClientConnected { entity: _ } => info!("Client connected!"),
+                Event::ClientDisconnected { entity: _ } => info!("Client disconnected!"),
+                Event::Chat { entity: _, msg } => info!("[Client] {}", msg),
+            }
+        }
+
+        // Clean up the server after a tick.
+        server.cleanup();
+
+        match receiver.try_recv() {
+            Ok(msg) => match msg {
+                Message::Quit => {
+                    info!("Closing the server");
+                    break;
+                },
+            },
+            Err(e) => match e {
+                mpsc::TryRecvError::Empty => {},
+                mpsc::TryRecvError::Disconnected => panic!(),
+            },
+        };
+
+        // Wait for the next tick.
+        clock.tick(Duration::from_millis(1000 / TPS));
+    }
+
+    stop_tui();
+
+    Ok(())
+}
+
+fn start_tui(sender: mpsc::Sender<Message>) {
+    enable_raw_mode().unwrap();
+    let mut stdout = io::stdout();
+    execute!(stdout, EnterAlternateScreen, EnableMouseCapture).unwrap();
+
     std::thread::spawn(move || {
         // Start the tui
         let stdout = io::stdout();
         let backend = CrosstermBackend::new(stdout);
         let mut terminal = Terminal::new(backend).unwrap();
-
-        crossterm::terminal::enable_raw_mode().unwrap();
 
         let mut input = String::new();
 
@@ -218,55 +282,11 @@ fn main() -> io::Result<()> {
             });
         }
     });
+}
 
-    info!("Starting server...");
+fn stop_tui() {
+    let mut stdout = io::stdout();
 
-    // Set up an fps clock
-    let mut clock = Clock::start();
-
-    // Load settings
-    let settings = ServerSettings::load();
-    let server_port = &settings.gameserver_address.port();
-    let metrics_port = &settings.metrics_address.port();
-    // Create server
-    let mut server = Server::new(settings).expect("Failed to create server instance!");
-
-    info!("Server is ready to accept connections.");
-    info!(?metrics_port, "starting metrics at port");
-    info!(?server_port, "starting server at port");
-
-    loop {
-        let events = server
-            .tick(Input::default(), clock.get_last_delta())
-            .expect("Failed to tick server");
-
-        for event in events {
-            match event {
-                Event::ClientConnected { entity: _ } => info!("Client connected!"),
-                Event::ClientDisconnected { entity: _ } => info!("Client disconnected!"),
-                Event::Chat { entity: _, msg } => info!("[Client] {}", msg),
-            }
-        }
-
-        // Clean up the server after a tick.
-        server.cleanup();
-
-        match receiver.try_recv() {
-            Ok(msg) => match msg {
-                Message::Quit => {
-                    info!("Closing the server");
-                    break;
-                },
-            },
-            Err(e) => match e {
-                mpsc::TryRecvError::Empty => {},
-                mpsc::TryRecvError::Disconnected => panic!(),
-            },
-        };
-
-        // Wait for the next tick.
-        clock.tick(Duration::from_millis(1000 / TPS));
-    }
-
-    Ok(())
+    disable_raw_mode().unwrap();
+    execute!(stdout, LeaveAlternateScreen, DisableMouseCapture).unwrap();
 }
