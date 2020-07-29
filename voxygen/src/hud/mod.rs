@@ -9,6 +9,7 @@ mod item_imgs;
 mod map;
 mod minimap;
 mod overhead;
+mod overitem;
 mod popup;
 mod settings_window;
 mod skillbar;
@@ -141,6 +142,7 @@ widget_ids! {
         scts[],
 
         overheads[],
+        overitems[],
 
         // Intro Text
         intro_bg,
@@ -664,6 +666,7 @@ impl Hud {
             let players = ecs.read_storage::<comp::Player>();
             let scales = ecs.read_storage::<comp::Scale>();
             let bodies = ecs.read_storage::<comp::Body>();
+            let items = ecs.read_storage::<comp::Item>();
             let entities = ecs.entities();
             let me = client.entity();
             let own_level = stats
@@ -1000,8 +1003,28 @@ impl Hud {
             }
 
             let mut overhead_walker = self.ids.overheads.walk();
+            let mut overitem_walker = self.ids.overitems.walk();
             let mut sct_walker = self.ids.scts.walk();
             let mut sct_bg_walker = self.ids.sct_bgs.walk();
+
+            // Render overitem name
+            for (pos, item, distance) in (&entities, &pos, &items)
+                .join()
+                .map(|(_, pos, item)| (pos, item, pos.0.distance_squared(player_pos)))
+                .filter(|(_, _, distance)| distance < &common::comp::MAX_PICKUP_RANGE_SQR)
+            {
+                let overitem_id = overitem_walker.next(
+                    &mut self.ids.overitems,
+                    &mut ui_widgets.widget_id_generator(),
+                );
+                let ingame_pos = pos.0 + Vec3::unit_z() * 1.2;
+
+                // Item name
+                overitem::Overitem::new(&item.name(), &distance, &self.fonts)
+                    .x_y(0.0, 100.0)
+                    .position_ingame(ingame_pos)
+                    .set(overitem_id, ui_widgets);
+            }
 
             // Render overhead name tags and health bars
             for (pos, name, stats, energy, height_offset, hpfl, uid) in (

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Display item name over loot/dropped items
 - Added Lottery system for loot
 - Added context-sensitive crosshair
 - Announce alias changes to all clients
