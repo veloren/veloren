@@ -33,7 +33,7 @@ use vek::*;
 struct Keep {
     offset: Vec2<i32>,
     locus: i32,
-    height: i32,
+    storeys: i32,
     is_tower: bool,
     alt: i32,
 }
@@ -123,12 +123,12 @@ impl Castle {
 
                     let locus = ctx.rng.gen_range(20, 26);
                     let offset = (dir * dist).map(|e| e as i32);
-                    let height = ctx.rng.gen_range(25, 70).clamped(30, 48);
+                    let storeys = ctx.rng.gen_range(1, 5).clamped(2, 3);
 
                     Keep {
                         offset,
                         locus,
-                        height,
+                        storeys,
                         is_tower: true,
                         alt: ctx
                             .sim
@@ -301,7 +301,7 @@ impl Castle {
                         4,
                         0,
                         &Attr {
-                            height: 16,
+                            storeys: 1,
                             is_tower: false,
                             ridged: false,
                             rounded: true,
@@ -336,7 +336,7 @@ impl Castle {
                             tower_locus,
                             0,
                             &Attr {
-                                height: 28,
+                                storeys: 2,
                                 is_tower: true,
                                 ridged: false,
                                 rounded: self.rounded_towers,
@@ -371,7 +371,7 @@ impl Castle {
                             keep.locus,
                             0,
                             &Attr {
-                                height: keep.height,
+                                storeys: keep.storeys,
                                 is_tower: keep.is_tower,
                                 ridged: true,
                                 rounded: self.rounded_towers,

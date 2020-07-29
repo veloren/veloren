@@ -157,9 +157,9 @@ impl<'a> System<'a> for Sys {
                     z_max,
                 } => {
                     // Scale collider
-                    let radius = *radius * scale;
-                    let z_min = *z_min * scale;
-                    let z_max = *z_max * scale;
+                    let radius = *radius;// * scale;
+                    let z_min = *z_min;// * scale;
+                    let z_max = *z_max;// * scale;
 
                     // Probe distances
                     let hdist = radius.ceil() as i32;

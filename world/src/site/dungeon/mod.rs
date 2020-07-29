@@ -408,10 +408,12 @@ impl Floor {
                 * FLOOR_SIZE.x as f32
                 / 2.0
                 - 8.0;
-            supplement.add_entity(
-                EntityInfo::at((origin + stair_rcenter).map(|e| e as f32) + Vec3::from(offs))
-                    .into_waypoint(),
-            );
+            if !self.final_level {
+                supplement.add_entity(
+                    EntityInfo::at((origin + stair_rcenter).map(|e| e as f32) + Vec3::from(offs))
+                        .into_waypoint(),
+                );
+            }
         }
 
         for x in area.min.x..area.max.x {
