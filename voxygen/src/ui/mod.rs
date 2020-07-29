@@ -452,7 +452,7 @@ impl Ui {
                         let ((uv_l, uv_r, uv_b, uv_t), gl_size) =
                             match graphic_cache.get_graphic(*graphic_id) {
                                 Some(Graphic::Blank) | None => continue,
-                                Some(Graphic::Image(image)) => {
+                                Some(Graphic::Image(image, ..)) => {
                                     source_rect.and_then(|src_rect| {
                                         let (image_w, image_h) = image.dimensions();
                                         let (source_w, source_h) = src_rect.w_h();

@@ -33,19 +33,24 @@ void main() {
         gl_Position = vec4(projected_pos.xy / projected_pos.w + v_pos/* * projected_pos.w*/, -1.0, /*projected_pos.w*/1.0);
     } else if (v_mode == uint(3)) {
         // HACK: North facing source rectangle.
-        vec2 look_at_dir = normalize(vec2(-view_mat[0][2], -view_mat[1][2]));
-        mat2 look_at = mat2(look_at_dir.y, look_at_dir.x, -look_at_dir.x, look_at_dir.y);
-        f_uv = v_center + look_at * (v_uv - v_center);
         gl_Position = vec4(v_pos, -1.0, 1.0);
+        vec2 look_at_dir = normalize(vec2(-view_mat[0][2], -view_mat[1][2]));
+        // TODO: Consider cleaning up matrix to something more efficient (e.g. a mat3).
+        vec2 aspect_ratio = textureSize(u_tex, 0).yx;
+        mat2 look_at = mat2(look_at_dir.y, look_at_dir.x, -look_at_dir.x, look_at_dir.y);
+        vec2 v_centered = (v_uv - v_center) / aspect_ratio;
+        vec2 v_rotated = look_at * v_centered;
+        f_uv = aspect_ratio * v_rotated + v_center;
     } else if (v_mode == uint(5)) {
         // HACK: North facing target rectangle.
         f_uv = v_uv;
-        float aspect_ratio = screen_res.x / screen_res.y;
         vec2 look_at_dir = normalize(vec2(-view_mat[0][2], -view_mat[1][2]));
+        // TODO: Consider cleaning up matrix to something more efficient (e.g. a mat3).
+        vec2 aspect_ratio = screen_res.yx;
         mat2 look_at = mat2(look_at_dir.y, -look_at_dir.x, look_at_dir.x, look_at_dir.y);
-        vec2 v_len = v_pos - v_center;
-        vec2 v_proj = look_at * vec2(v_len.x, v_len.y / aspect_ratio);
-        gl_Position = vec4(v_center + vec2(v_proj.x, v_proj.y * aspect_ratio), -1.0, 1.0);
+        vec2 v_centered = (v_pos - v_center) / aspect_ratio;
+        vec2 v_rotated = look_at * v_centered;
+        gl_Position = vec4(aspect_ratio * v_rotated + v_center, -1.0, 1.0);
     } else {
         // Interface element
         f_uv = v_uv;

@@ -44,7 +44,10 @@ use crate::{
     ecs::comp as vcomp,
     i18n::{i18n_asset_key, LanguageMetadata, VoxygenLocalization},
     render::{Consts, Globals, RenderMode, Renderer},
-    scene::camera::{self, Camera},
+    scene::{
+        camera::{self, Camera},
+        lod,
+    },
     ui::{fonts::ConrodVoxygenFonts, slot, Graphic, Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, GameInput},
     GlobalState,
@@ -542,9 +545,16 @@ impl Hud {
         ui.set_scaling_mode(settings.gameplay.ui_scale);
         // Generate ids.
         let ids = Ids::new(ui.id_generator());
+        // NOTE: Use a border the same color as the LOD ocean color (but with a
+        // translucent alpha since UI have transparency and LOD doesn't).
+        let mut water_color = lod::water_color();
+        water_color.a = 0.5;
         // Load world map
         let world_map = (
-            ui.add_graphic_with_rotations(Graphic::Image(client.world_map.0.clone())),
+            ui.add_graphic_with_rotations(Graphic::Image(
+                client.world_map.0.clone(),
+                Some(water_color),
+            )),
             client.world_map.1.map(u32::from),
         );
         // Load images.

@@ -129,7 +129,8 @@ fn main() {
     let mut gain = /*CONFIG.mountain_scale*/sampler.max_height;
     // The Z component during normal calculations is multiplied by gain; thus,
     let mut fov = 1.0;
-    let mut scale = map_size_lg.chunks().x as f64 / W as f64;
+    let mut scale =
+        (map_size_lg.chunks().x as f64 / W as f64).max(map_size_lg.chunks().y as f64 / H as f64);
 
     // Right-handed coordinate system: light is going left, down, and "backwards"
     // (i.e. on the map, where we translate the y coordinate on the world map to

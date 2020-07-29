@@ -197,8 +197,10 @@ impl<'a> Widget for Map<'a> {
             .read_storage::<comp::Pos>()
             .get(self.client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
-        let w_src = worldsize.x / TerrainChunkSize::RECT_SIZE.x as f64 / zoom;
-        let h_src = worldsize.y / TerrainChunkSize::RECT_SIZE.y as f64 / zoom;
+        let max_zoom = (worldsize / TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
+            .reduce_partial_max()/*.min(f64::MAX)*/;
+        let w_src = max_zoom / zoom;
+        let h_src = max_zoom / zoom;
         let rect_src = position::Rect::from_xy_dim(
             [
                 player_pos.x as f64 / TerrainChunkSize::RECT_SIZE.x as f64,

@@ -15,7 +15,7 @@ roots = "0.0.5"
 specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control"], rev = "7a2e348ab2223818bad487695c66c43db88050a5" }
 vek = { version = "0.11.0", features = ["serde"] }
 dot_vox = "4.0"
-image = { version = "0.22.5", default-features = false, features = ["png"] }
+image = { version = "0.23.8", default-features = false, features = ["png"] }
 serde = { version = "1.0.110", features = ["derive"] }
 serde_json = "1.0.50"
 ron = { version = "0.6", default-features = false }

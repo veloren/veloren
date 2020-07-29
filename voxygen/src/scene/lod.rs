@@ -80,9 +80,14 @@ impl LodData {
     }
 }
 
+// TODO: Make constant when possible.
+pub fn water_color() -> Rgba<f32> {
+    /* Rgba::new(0.2, 0.5, 1.0, 0.0) */
+    srgba_to_linear(Rgba::new(0.0, 0.25, 0.5, 0.0)/* * 0.5*/)
+}
+
 impl Lod {
     pub fn new(renderer: &mut Renderer, client: &Client, settings: &Settings) -> Self {
-        let water_color = /*Rgba::new(0.2, 0.5, 1.0, 0.0)*/srgba_to_linear(Rgba::new(0.0, 0.25, 0.5, 0.0)/* * 0.5*/);
         Self {
             model: None,
             locals: renderer.create_consts(&[Locals::default()]).unwrap(),
@@ -93,7 +98,7 @@ impl Lod {
                 &client.lod_alt,
                 &client.lod_horizon,
                 settings.graphics.lod_detail.max(100).min(2500),
-                [water_color.r, water_color.g, water_color.b, water_color.a].into(),
+                water_color().into_array().into(),
             ),
         }
     }

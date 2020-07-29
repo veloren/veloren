@@ -33,6 +33,12 @@ where
         wrap_mode: Option<gfx::texture::WrapMode>,
         border: Option<gfx::texture::PackedColor>,
     ) -> Result<Self, RenderError> {
+        // TODO: Actualy handle images that aren't in rgba format properly.
+        let buffer = image.as_flat_samples_u8().ok_or_else(|| {
+            RenderError::CustomError(
+                "We currently do not support color formats using more than 4 bytes / pixel.".into(),
+            )
+        })?;
         let (tex, srv) = factory
             .create_texture_immutable_u8::<F>(
                 gfx::texture::Kind::D2(
@@ -41,7 +47,11 @@ where
                     gfx::texture::AaMode::Single,
                 ),
                 gfx::texture::Mipmap::Provided,
-                &[&image.raw_pixels()],
+                // Guarenteed to be correct, since all the conversions from DynamicImage to
+                // FlatSamples<u8> go through the underlying ImageBuffer's implementation of
+                // as_flat_samples(), which guarantees that the resulting FlatSamples is
+                // well-formed.
+                &[buffer.as_slice()],
             )
             .map_err(RenderError::CombinedError)?;
 

@@ -9,7 +9,7 @@ bincode = "1.2.0"
 common = { package = "veloren-common", path = "../common" }
 bitvec = "0.17.4"
 fxhash = "0.2.1"
-image = { version = "0.22.5", default-features = false, features = ["png"] }
+image = { version = "0.23.8", default-features = false, features = ["png"] }
 itertools = "0.9"
 vek = { version = "0.11.0", features = ["serde"] }
 noise = { version = "0.6.0", default-features = false }
