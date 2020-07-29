@@ -84,6 +84,29 @@ impl<'a> TuiLog<'a> {
             inner.lines.drain(0..length);
         }
     }
+
+    fn height(&self, rect: Rect) -> u16 {
+        // TODO: There's probably a better solution
+        let inner = self.inner.lock().unwrap();
+        let mut h = 0;
+
+        for line in inner.lines.iter() {
+            let mut w = 0;
+
+            for word in line.0.iter() {
+                if word.width() + w > rect.width as usize {
+                    h += (word.width() / rect.width as usize).min(1);
+                    w = word.width() % rect.width as usize;
+                } else {
+                    w += word.width();
+                }
+            }
+
+            h += 1;
+        }
+
+        h as u16
+    }
 }
 
 impl<'a> Write for TuiLog<'a> {
@@ -310,9 +333,14 @@ fn start_tui(mut sender: mpsc::Sender<Message>) {
 
                 LOG.resize(size.height as usize);
 
+                let scroll = (LOG.height(size) as i16 - size.height as i16).max(0) as u16;
+
+                print!("{} {} {}", LOG.height(size) as i16, size.width, size.height);
+
                 let logger = Paragraph::new(LOG.inner.lock().unwrap().clone())
                     .block(block)
-                    .wrap(Wrap { trim: false });
+                    .wrap(Wrap { trim: false })
+                    .scroll((scroll, 0));
                 f.render_widget(logger, log_rect);
 
                 let text: Text = input.as_str().into();
