@@ -319,12 +319,12 @@ impl<'a> System<'a> for Sys {
                     pos: Pos(entity.pos),
                     stats,
                     loadout,
-                    body,
                     agent: if entity.has_agency {
-                        Some(comp::Agent::new(entity.pos, can_speak))
+                        Some(comp::Agent::new(entity.pos, can_speak, &body))
                     } else {
                         None
                     },
+                    body,
                     alignment,
                     scale: comp::Scale(scale),
                     drop_item: entity.loot_drop,

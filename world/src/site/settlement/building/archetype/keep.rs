@@ -1,5 +1,8 @@
 use super::{super::skeleton::*, Archetype};
-use crate::site::BlockMask;
+use crate::{
+    site::BlockMask,
+    util::{RandomField, Sampler},
+};
 use common::{
     terrain::{Block, BlockKind},
     vol::Vox,
@@ -12,7 +15,7 @@ pub struct Keep {
 }
 
 pub struct Attr {
-    pub height: i32,
+    pub storeys: i32,
     pub is_tower: bool,
     pub ridged: bool,
     pub rounded: bool,
@@ -29,7 +32,7 @@ impl Archetype for Keep {
             root: Branch {
                 len,
                 attr: Attr {
-                    height: rng.gen_range(12, 16),
+                    storeys: 1,
                     is_tower: false,
                     ridged: false,
                     rounded: true,
@@ -43,12 +46,12 @@ impl Archetype for Keep {
                             Branch {
                                 len: 0,
                                 attr: Attr {
-                                    height: rng.gen_range(20, 28),
+                                    storeys: 2,
                                     is_tower: true,
                                     ridged: false,
                                     rounded: true,
                                 },
-                                locus: 4 + rng.gen_range(0, 5),
+                                locus: 6 + rng.gen_range(0, 3),
                                 border: 3,
                                 children: Vec::new(),
                             },
@@ -93,8 +96,10 @@ impl Archetype for Keep {
             )
         };
 
-        let foundation = make_block(100, 100, 100);
-        let wall = make_block(100, 100, 110);
+        let brick_tex_pos = (pos + Vec3::new(pos.z, pos.z, 0)) / Vec3::new(2, 2, 1);
+        let brick_tex = RandomField::new(0).get(brick_tex_pos) as u8 % 24;
+        let foundation = make_block(80 + brick_tex, 80 + brick_tex, 80 + brick_tex);
+        let wall = make_block(100 + brick_tex, 100 + brick_tex, 110 + brick_tex);
         let floor = make_block(
             80 + (pos.y.abs() % 2) as u8 * 15,
             60 + (pos.y.abs() % 2) as u8 * 15,
@@ -107,6 +112,26 @@ impl Archetype for Keep {
         let internal = BlockMask::new(Block::empty(), internal_layer);
         let empty = BlockMask::nothing();
 
+        let make_staircase = move |pos: Vec3<i32>, radius: f32, inner_radius: f32, stretch: f32| {
+            let stone = BlockMask::new(Block::new(BlockKind::Normal, Rgb::new(150, 150, 175)), 5);
+
+            if (pos.xy().magnitude_squared() as f32) < inner_radius.powf(2.0) {
+                stone
+            } else if (pos.xy().magnitude_squared() as f32) < radius.powf(2.0) {
+                if ((pos.x as f32).atan2(pos.y as f32) / (std::f32::consts::PI * 2.0) * stretch
+                    + pos.z as f32)
+                    .rem_euclid(stretch)
+                    < 1.5
+                {
+                    stone
+                } else {
+                    internal
+                }
+            } else {
+                BlockMask::nothing()
+            }
+        };
+
         let edge_pos = if (bound_offset.x.abs() > bound_offset.y.abs()) ^ (ori == Ori::East) {
             pos.y
         } else {
@@ -114,15 +139,16 @@ impl Archetype for Keep {
         };
 
         let width = locus
-            + if edge_pos % 4 == 0 && attr.ridged && !attr.rounded {
+            + if (edge_pos + 1000) % 8 < 4 && attr.ridged && !attr.rounded {
                 1
             } else {
                 0
             };
         let rampart_width = 2 + width;
-        let ceil_height = attr.height;
+        let storey_height = 16;
+        let roof_height = attr.storeys * storey_height;
         let door_height = 6;
-        let rampart_height = ceil_height + if edge_pos % 2 == 0 { 3 } else { 4 };
+        let rampart_height = roof_height + if edge_pos % 2 == 0 { 3 } else { 4 };
         let min_dist = if attr.rounded {
             bound_offset.map(|e| e.pow(2) as f32).sum().powf(0.5) as i32
         } else {
@@ -132,31 +158,32 @@ impl Archetype for Keep {
         if profile.y <= 0 - (min_dist - width - 1).max(0) && min_dist < width + 3 {
             // Foundations
             foundation
-        } else if profile.y == ceil_height && min_dist < rampart_width {
+        } else if (0..=roof_height).contains(&profile.y) && profile.y % storey_height == 0 && min_dist < rampart_width {
             if min_dist < width { floor } else { wall }
         } else if !attr.is_tower
             && bound_offset.x.abs() == 4
             && min_dist == width + 1
-            && profile.y < ceil_height
+            && profile.y < roof_height
         {
             wall
         } else if bound_offset.x.abs() < 3
             && profile.y < door_height - bound_offset.x.abs()
             && profile.y > 0
+            && min_dist >= width - 2
         {
             internal
-        } else if min_dist == width && profile.y <= ceil_height {
+        } else if min_dist == width && profile.y <= roof_height {
             wall
-        } else if profile.y >= ceil_height {
-            if profile.y > ceil_height && min_dist < rampart_width {
-                if attr.is_tower && center_offset == Vec2::zero() && profile.y < ceil_height + 16 {
+        } else if profile.y >= roof_height {
+            if profile.y > roof_height && min_dist < rampart_width {
+                if attr.is_tower && center_offset == Vec2::zero() && profile.y < roof_height + 16 {
                     pole
                 } else if attr.is_tower
                     && center_offset.x == 0
                     && center_offset.y > 0
                     && center_offset.y < 8
-                    && profile.y > ceil_height + 8
-                    && profile.y < ceil_height + 14
+                    && profile.y > roof_height + 8
+                    && profile.y < roof_height + 14
                 {
                     flag
                 } else {
@@ -171,10 +198,20 @@ impl Archetype for Keep {
             } else {
                 empty
             }
-        } else if profile.y < ceil_height && min_dist < width {
+        } else if profile.y < roof_height && min_dist < width {
             internal
         } else {
             empty
         }
+        .resolve_with(if attr.is_tower && profile.y > 0 && profile.y <= roof_height {
+            make_staircase(
+                Vec3::new(center_offset.x, center_offset.y, pos.z),
+                7.0f32.min(width as f32 - 1.0),
+                0.5,
+                9.0,
+            )
+        } else {
+            BlockMask::nothing()
+        })
     }
 }

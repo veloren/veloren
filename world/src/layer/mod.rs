@@ -4,13 +4,16 @@ use crate::{
     Index,
 };
 use common::{
+    assets,
+    lottery::Lottery,
     terrain::{Block, BlockKind},
     vol::{BaseVol, ReadVol, RectSizedVol, Vox, WriteVol},
-    lottery::Lottery,
-    assets,
 };
 use noise::NoiseFn;
-use std::{f32, ops::{Sub, Mul}};
+use std::{
+    f32,
+    ops::{Mul, Sub},
+};
 use vek::*;
 
 pub fn apply_paths_to<'a>(
@@ -136,28 +139,49 @@ pub fn apply_caves_to<'a>(
                 let cave_roof = (cave.alt + cave_height) as i32;
 
                 for z in cave_base..cave_roof {
-                    let _ = vol.set(Vec3::new(offs.x, offs.y, z), Block::empty());
+                    if cave_x < 0.95
+                        || index.noise.cave_nz.get(
+                            Vec3::new(wpos2d.x, wpos2d.y, z)
+                                .map(|e| e as f64 * 0.15)
+                                .into_array(),
+                        ) < 0.0
+                    {
+                        let _ = vol.set(Vec3::new(offs.x, offs.y, z), Block::empty());
+                    }
                 }
 
                 // Stalagtites
-                let stalagtites = index.noise.cave_nz
-                    .get(wpos2d.map(|e| e as f64 * 0.1).into_array())
-                    .sub(0.6)
+                let stalagtites = index
+                    .noise
+                    .cave_nz
+                    .get(wpos2d.map(|e| e as f64 * 0.125).into_array())
+                    .sub(0.5)
                     .max(0.0)
-                    .mul((col_sample.alt - cave_roof as f32 - 5.0).mul(0.15).clamped(0.0, 1.0) as f64)
-                    .mul(40.0) as i32;
+                    .mul(
+                        (col_sample.alt - cave_roof as f32 - 5.0)
+                            .mul(0.15)
+                            .clamped(0.0, 1.0) as f64,
+                    )
+                    .mul(45.0) as i32;
 
                 for z in cave_roof - stalagtites..cave_roof {
-                    let _ = vol.set(Vec3::new(offs.x, offs.y, z), Block::new(BlockKind::Normal, Rgb::broadcast(200)));
+                    let _ = vol.set(
+                        Vec3::new(offs.x, offs.y, z),
+                        Block::new(BlockKind::Rock, Rgb::broadcast(200)),
+                    );
                 }
 
                 // Scatter things in caves
-                if RandomField::new(index.seed).chance(wpos2d.into(), 0.001) && cave_base < surface_z as i32 - 25 {
+                if RandomField::new(index.seed).chance(wpos2d.into(), 0.001)
+                    && cave_base < surface_z as i32 - 25
+                {
                     let kind = *assets::load_expect::<Lottery<BlockKind>>("common.cave_scatter")
                         .choose_seeded(RandomField::new(index.seed + 1).get(wpos2d.into()));
-                    let _ = vol.set(Vec3::new(offs.x, offs.y, cave_base), Block::new(kind, Rgb::zero()));
+                    let _ = vol.set(
+                        Vec3::new(offs.x, offs.y, cave_base),
+                        Block::new(kind, Rgb::zero()),
+                    );
                 }
-
             }
         }
     }

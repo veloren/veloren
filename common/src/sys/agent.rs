@@ -151,6 +151,7 @@ impl<'a> System<'a> for Sys {
             const SEARCH_DIST: f32 = 48.0;
             const SIGHT_DIST: f32 = 128.0;
             const MIN_ATTACK_DIST: f32 = 3.5;
+            const MAX_FLEE_DIST: f32 = 32.0;
 
             let scale = scales.get(entity).map(|s| s.0).unwrap_or(1.0);
 
@@ -306,27 +307,31 @@ impl<'a> System<'a> for Sys {
 
                             // Flee
                             if 1.0 - agent.psyche.aggro > damage {
-                                if let Some((bearing, speed)) = chaser.chase(
-                                    &*terrain,
-                                    pos.0,
-                                    vel.0,
-                                    // Away from the target (ironically)
-                                    tgt_pos.0 + (pos.0 - tgt_pos.0)
-                                        .try_normalized()
-                                        .unwrap_or_else(Vec3::unit_y) * 32.0,
-                                    TraversalConfig {
-                                        node_tolerance,
-                                        slow_factor,
-                                        on_ground: physics_state.on_ground,
-                                        min_tgt_dist: 1.25,
-                                    },
-                                ) {
-                                    inputs.move_dir = Vec2::from(bearing)
-                                        .try_normalized()
-                                        .unwrap_or(Vec2::zero())
-                                        * speed;
-                                    inputs.jump.set_state(bearing.z > 1.5);
-                                    inputs.swim.set_state(bearing.z > 0.5);
+                                if dist_sqrd < MAX_FLEE_DIST.powf(2.0) {
+                                    if let Some((bearing, speed)) = chaser.chase(
+                                        &*terrain,
+                                        pos.0,
+                                        vel.0,
+                                        // Away from the target (ironically)
+                                        pos.0 + (pos.0 - tgt_pos.0)
+                                            .try_normalized()
+                                            .unwrap_or_else(Vec3::unit_y) * 8.0,
+                                        TraversalConfig {
+                                            node_tolerance,
+                                            slow_factor,
+                                            on_ground: physics_state.on_ground,
+                                            min_tgt_dist: 1.25,
+                                        },
+                                    ) {
+                                        inputs.move_dir = Vec2::from(bearing)
+                                            .try_normalized()
+                                            .unwrap_or(Vec2::zero())
+                                            * speed;
+                                        inputs.jump.set_state(bearing.z > 1.5);
+                                        inputs.swim.set_state(bearing.z > 0.5);
+                                    }
+                                } else {
+                                    do_idle = true;
                                 }
                             } else if dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0) {
                                 // Close-range attack
