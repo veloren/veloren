@@ -1,0 +1,518 @@
+/// Localization for "global" Simplified Chinese
+VoxygenLocalization(
+    metadata: (
+        language_name: "Simplified Chinese",
+        language_identifier: "zh_CN",
+    ),
+    convert_utf8_to_ascii: false,
+    fonts: {
+        "opensans": Font (
+            asset_key: "voxygen.font.FangZhengHeiTiJianTi",
+            scale_ratio: 0.75,
+        ),
+        "metamorph": Font (
+            asset_key: "voxygen.font.FangZhengHeiTiJianTi",
+            scale_ratio: 0.75,
+        ),
+        "alkhemi": Font (
+            asset_key: "voxygen.font.FangZhengHeiTiJianTi",
+            scale_ratio: 0.75,
+        ),
+        "wizard": Font (
+            asset_key: "voxygen.font.FangZhengHeiTiJianTi",
+            scale_ratio: 0.75,
+        ),
+        "cyri": Font (
+            asset_key: "voxygen.font.FangZhengHeiTiJianTi",
+            scale_ratio: 0.75,
+        ),
+    },
+    string_map: {
+        /// Start Common section
+        // Texts used in multiple locations with the same formatting
+        "common.username": "用户名",
+        "common.singleplayer": "单人游戏",
+        "common.multiplayer": "多人游戏",
+        "common.servers": "服务器",
+        "common.quit": "退出",
+        "common.settings": "设置",
+        "common.languages": "语言",
+        "common.interface": "界面",
+        "common.gameplay": "游戏",
+        "common.controls": "控制",
+        "common.video": "图像",
+        "common.sound": "声音",
+        "common.resume": "继续",
+        "common.characters": "人物",
+        "common.close": "关闭",
+        "common.yes": "是",
+        "common.no": "否",
+        "common.back": "返回",
+        "common.create": "创建",
+        "common.okay": "好",
+        "common.accept": "同意",
+        "common.disclaimer": "免责声明",
+        "common.cancel": "返回",
+        "common.none": "无",
+        "common.error": "错误",
+        "common.fatal_error": "致命错误",
+
+        // Message when connection to the server is lost
+        "common.connection_lost": r#"连接丢失!
+服务器有没有重启?
+客户端是否更新?"#,
+
+
+        "common.species.orc": "兽人",
+        "common.species.human": "人类",
+        "common.species.dwarf": "矮人",
+        "common.species.elf": "精灵",
+        "common.species.undead": "不死族",
+        "common.species.danari": "丹那利",
+
+        "common.weapons.axe": "斧",
+        "common.weapons.sword": "剑",
+        "common.weapons.staff": "法杖",
+        "common.weapons.bow": "弓",
+        "common.weapons.hammer": "锤",
+        /// End Common section
+
+
+        /// Start Main screen section
+        "main.connecting": "连接中",
+        "main.creating_world": "生成世界中",
+        "main.tip": "小贴士:",
+
+        // Welcome notice that appears the first time Veloren is started
+        "main.notice": r#"欢迎加入 Veloren Alpha版 !
+
+在您开始享受游戏之前，请注意一些事情:
+
+- 这是非常前期的 alpha 版本，您会遇到不少错误、未完成的游戏模式、未完善的游戏机制以及缺失的功能。 
+
+- 如果有建设性的意见反馈或是错误汇报，可以通过 Reddit、GitLab 或者我们的 Discord 服务器联系我们。
+
+- Veloren 的授权条款是GPL3. 意思是你可以免费游玩，修改并重新发布游戏（衍生内容也必须是GPL3）
+
+- Veloren 是一个非营利的社区项目, 参与该项目的都是志愿者.
+如果你想在项目中看到你的身影，欢迎加入开发或艺术团队!
+
+感谢您抽出宝贵的时间阅读此通知,希望您喜欢这款游戏!
+
+~ Veloren 的开发团队"#,
+
+        // Login process description
+        "main.login_process": r#"有关登录的信息:
+
+请注意，您现在需要一个账户，在启用身份验证的服务器上游玩。
+
+你可以通过下面的网站创建用户.
+
+https://account.veloren.net."#,
+        "main.login.server_not_found": "找不到服务器",
+        "main.login.authentication_error": "服务器验证错误",
+        "main.login.server_full": "服务器已满",
+        "main.login.untrusted_auth_server": "认证服务器不可信",
+        "main.login.outdated_client_or_server": "服务器与客户端可能版本不兼容，请检查更新.",
+        "main.login.timeout": "超时: 服务器无法及时响应.",
+        "main.login.server_shut_down": "服务器已关闭",
+        "main.login.already_logged_in": "您已登入服务器.",
+        "main.login.network_error": "网络错误",
+        "main.login.failed_sending_request": "认证服务器请求失败",
+        "main.login.invalid_character": "选择的人物无效",
+        "main.login.client_crashed": "客户端崩溃",
+        "main.login.not_on_whitelist": "您需要在管理员的白名单里才可以加入",
+
+        /// End Main screen section
+
+
+        /// Start HUD Section
+        "hud.do_not_show_on_startup": "开始时不显示这个",
+        "hud.show_tips": "显示提示",
+        "hud.quests": "任务",
+        "hud.you_died": "你死了",
+        "hud.waypoint_saved": "标记已保存",
+
+        "hud.press_key_to_show_keybindings_fmt": "按下 {key} 显示快捷键设置",
+        "hud.press_key_to_show_debug_info_fmt": "按下 {key} 显示调试信息",
+        "hud.press_key_to_toggle_keybindings_fmt": "按下 {key} 切换显示快捷键设置",
+        "hud.press_key_to_toggle_debug_info_fmt": "按下 {key} 切换显示调试信息",
+
+        // Chat outputs
+        "hud.chat.online_msg": "[{name}] 正在线上.",
+        "hud.chat.offline_msg": "{name} 下线了.",
+        "hud.chat.loot_msg": "你捡起了 [{item}]",
+        "hud.chat.loot_fail": "你的背包已满!",
+        "hud.chat.goodbye": "再见!",
+        "hud.chat.connection_lost": "连接已断开. {time} 秒内将被踢出.",
+
+        // SCT outputs
+        "hud.sct.experience": "{amount} 经验",
+        "hud.sct.block": "阻拦",
+
+        // Respawn message
+        "hud.press_key_to_respawn": r#"按下 {key} 您可以在上一个复活点重生."#,
+
+        // Welcome message
+        "hud.welcome": r#"欢迎来到 Veloren Alpha版!
+
+
+开始前的一些提示:
+
+
+按 F1 查看可用的键位信息.
+
+输入 /help 在聊天栏以查看聊天命令
+
+
+世界上会随机生成箱子以及其他物品!
+
+右键单击以收集它们.
+
+按 B 打开库存可以看到您在这些箱子中获取到的物品.
+
+双击背包中的物品以使用或装备它们.
+
+单击并坨拽到背包外可以将物品移除
+
+
+Veloren 的夜晚会变得非常的黑.
+
+按下 G 可以点亮你的灯笼.
+
+
+按下 Tab 可以释放光标用于关闭窗口!
+
+
+祝你在Veloren世界玩的愉快."#,
+
+"hud.temp_quest_headline": r#"请帮助我们，旅行者!"#,
+"hud.temp_quest_text": r#"在我们宁静的城镇周围
+遍布地下城,里面充满了邪恶的信徒!
+
+
+组织人手, 带上食物
+击败他们邪恶的领袖和同伙.
+
+
+或许你可以获得注入了
+他们魔力的物品?"#,
+
+
+
+        // Inventory
+        "hud.bag.inventory": "{playername} 的物品栏",
+        "hud.bag.stats_title": "{playername} 的状态",
+        "hud.bag.exp": "经验",
+        "hud.bag.armor": "护甲",
+        "hud.bag.stats": "状态",
+        "hud.bag.head": "头部",
+        "hud.bag.neck": "颈部",
+        "hud.bag.tabard": "披风",
+        "hud.bag.shoulders": "肩膀",
+        "hud.bag.chest": "胸部",
+        "hud.bag.hands": "手部",
+        "hud.bag.lantern": "灯笼",
+        "hud.bag.belt": "腰带",
+        "hud.bag.ring": "戒指",
+        "hud.bag.back": "背部",
+        "hud.bag.legs": "腿部",
+        "hud.bag.feet": "脚部",
+        "hud.bag.mainhand": "主手",
+        "hud.bag.offhand": "副手",
+
+
+        // Map and Questlog
+        "hud.map.map_title": "地图",
+        "hud.map.qlog_title": "任务",
+
+        // Settings
+        "hud.settings.general": "一般",
+        "hud.settings.none": "无",
+        "hud.settings.press_behavior.toggle": "切换",
+        "hud.settings.press_behavior.hold": "按住",
+        "hud.settings.help_window": "帮助",
+        "hud.settings.debug_info": "调试信息",
+        "hud.settings.tips_on_startup": "开始时的提示信息",
+        "hud.settings.ui_scale": "ui缩放",
+        "hud.settings.relative_scaling": "相对缩放",
+        "hud.settings.custom_scaling": "自定义缩放",
+        "hud.settings.crosshair": "准星",
+        "hud.settings.transparency": "透明度",
+        "hud.settings.hotbar": "快捷键",
+        "hud.settings.toggle_shortcuts": "显示快捷键",
+        "hud.settings.toggle_bar_experience": "显示经验条",
+        "hud.settings.scrolling_combat_text": "战斗信息",
+        "hud.settings.single_damage_number": "单一伤害",
+        "hud.settings.cumulated_damage": "累计伤害",
+        "hud.settings.incoming_damage": "所受伤害",
+        "hud.settings.cumulated_incoming_damage": "累计所受伤害",
+        "hud.settings.speech_bubble": "对话框",
+        "hud.settings.speech_bubble_dark_mode": "对话框启用暗色模式",
+        "hud.settings.speech_bubble_icon": "对话框显示图标",
+        "hud.settings.energybar_numbers": "能量条",
+        "hud.settings.values": "数字",
+        "hud.settings.percentages": "百分比",
+        "hud.settings.chat": "聊天",
+        "hud.settings.background_transparency": "背景透明度",
+        "hud.settings.chat_character_name": "聊天显示人物名称",
+        "hud.settings.loading_tips": "加载过程中显示贴士",
+
+        "hud.settings.pan_sensitivity": "鼠标灵敏度",
+        "hud.settings.zoom_sensitivity": "缩放灵敏度",
+        "hud.settings.invert_scroll_zoom": "反转滚动缩放",
+        "hud.settings.invert_mouse_y_axis": "反转鼠标Y轴",
+        "hud.settings.enable_mouse_smoothing": "平滑相机",
+        "hud.settings.free_look_behavior": "自由视角行为",
+        "hud.settings.auto_walk_behavior": "自动行走行为",
+        "hud.settings.stop_auto_walk_on_input": "停止自动行走",
+
+        "hud.settings.view_distance": "视野距离",
+        "hud.settings.sprites_view_distance": "精灵视距",
+        "hud.settings.figures_view_distance": "实体视距",
+        "hud.settings.maximum_fps": "最高FPS",
+        "hud.settings.fov": "视野",
+        "hud.settings.gamma": "Gamma",
+        "hud.settings.antialiasing_mode": "抗锯齿模式",
+        "hud.settings.cloud_rendering_mode": "云朵渲染模式",
+        "hud.settings.fluid_rendering_mode": "流体渲染模式",
+        "hud.settings.fluid_rendering_mode.cheap": "简单",
+        "hud.settings.fluid_rendering_mode.shiny": "闪烁",
+        "hud.settings.cloud_rendering_mode.regular": "一般",
+        "hud.settings.fullscreen": "全屏",
+        "hud.settings.save_window_size": "保存窗口大小",
+
+        "hud.settings.music_volume": "音乐音量",
+        "hud.settings.sound_effect_volume": "音效音量",
+        "hud.settings.audio_device": "声音设备",
+
+        "hud.settings.awaitingkey": "等待按键...",
+        "hud.settings.unbound": "无",
+        "hud.settings.reset_keybinds": "重置快捷键",
+
+        "hud.social": "社交",
+        "hud.social.online": "线上",
+        "hud.social.friends": "好友",
+        "hud.social.not_yet_available": "尚不可用",
+        "hud.social.faction": "派别",
+        "hud.social.play_online_fmt": "{nb_player} 玩家在线",
+
+        "hud.crafting": "制作中",
+        "hud.crafting.recipes": "食谱",
+        "hud.crafting.ingredients": "配方:",
+        "hud.crafting.craft": "制作",
+        "hud.crafting.tool_cata": "需要:",
+
+        "hud.spell": "法术",        
+
+        "hud.free_look_indicator": "自由视角",
+        "hud.auto_walk_indicator": "自动行走",
+
+        /// End HUD section
+
+
+        /// Start GameInput section
+
+        "gameinput.primary": "普通攻击",
+        "gameinput.secondary": "特殊攻击/格挡/瞄准",
+       "gameinput.slot1": "技能栏 1",
+        "gameinput.slot2": "技能栏 2",
+        "gameinput.slot3": "技能栏 3",
+        "gameinput.slot4": "技能栏 4",
+        "gameinput.slot5": "技能栏 5",
+        "gameinput.slot6": "技能栏 6",
+        "gameinput.slot7": "技能栏 7",
+        "gameinput.slot8": "技能栏 8",
+        "gameinput.slot9": "技能栏 9",
+        "gameinput.slot10": "技能栏 10",
+        "gameinput.swaploadout": "缓存加载",
+        "gameinput.togglecursor": "切换光标",
+        "gameinput.help": "切换帮助窗口",
+        "gameinput.toggleinterface": "切换显示界面",
+        "gameinput.toggledebug": "切换显示FPS和调试信息",
+        "gameinput.screenshot": "截图",
+        "gameinput.toggleingameui": "切换显示名称",
+        "gameinput.fullscreen": "切换显示全屏",
+        "gameinput.moveforward": "前进",
+        "gameinput.moveleft": "向左移动",
+        "gameinput.moveright": "向右移动",
+        "gameinput.moveback": "后退",
+        "gameinput.jump": "跳跃",
+        "gameinput.glide": "滑翔伞",
+        "gameinput.roll": "翻滚",
+        "gameinput.climb": "攀爬",
+        "gameinput.climbdown": "向下攀爬",
+        "gameinput.wallleap": "越过障碍",
+        "gameinput.togglelantern": "切换显示灯笼",
+        "gameinput.mount": "安装",
+        "gameinput.enter": "进入",
+        "gameinput.command": "指令",
+        "gameinput.escape": "逃脱",
+        "gameinput.map": "地图",
+        "gameinput.bag": "背包",
+        "gameinput.social": "社交",
+        "gameinput.sit": "坐下",
+        "gameinput.spellbook": "法术",
+        "gameinput.settings": "设置",
+        "gameinput.respawn": "重生",
+        "gameinput.charge": "冲锋",
+        "gameinput.togglewield": "切换手持",
+        "gameinput.interact": "相互影响",
+        "gameinput.freelook": "自由视角",
+        "gameinput.autowalk": "自动行走",
+        "gameinput.dance": "跳舞",
+
+        /// End GameInput section
+
+
+        /// Start chracter selection section
+        "char_selection.loading_characters": "加载人物中...",
+        "char_selection.delete_permanently": "确定永久删除此角色?",
+        "char_selection.deleting_character": "删除人物中...",
+        "char_selection.change_server": "切换服务器",
+        "char_selection.enter_world": "进入世界",
+        "char_selection.logout": "登出",
+        "char_selection.create_new_charater": "创建新的角色",
+        "char_selection.creating_character": "创建角色中...",
+        "char_selection.character_creation": "人物创作",
+
+        "char_selection.human_default": "普通人类",
+        "char_selection.level_fmt": "等级 {level_nb}",
+        "char_selection.uncanny_valley": "荒野",
+        "char_selection.plains_of_uncertainty": "不确定的平原",
+        "char_selection.beard": "胡须",
+        "char_selection.hair_style": "发型",
+        "char_selection.hair_color": "发色",
+        "char_selection.eye_color": "眼睛颜色",
+        "char_selection.skin": "肤色",
+        "char_selection.eyeshape": "眼睛细节",
+        "char_selection.accessories": "配饰",
+        "char_selection.create_info_name": "你的人物需要一个名字!",
+
+        /// End chracter selection section
+
+
+        /// Start character window section
+        "character_window.character_name": "人物名称",
+        // Character stats
+        "character_window.character_stats": r#"耐力
+
+生命
+
+意志
+
+护甲
+"#,
+        /// End character window section
+
+
+        /// Start Escape Menu Section
+        "esc_menu.logout": "登出",
+        "esc_menu.quit_game": "退出游戏",
+        /// End Escape Menu Section        
+
+    },
+
+    
+    vector_map: {     
+        "loading.tips": [
+            "按下 'G' 来点亮灯笼.",
+            "按下 'F1' 查看所有默认快捷键.",
+            "你可以通过 /say 或 /s 只与您周围的玩家聊天.",
+            "你可以通过 /region 或 /r 只与您数百个方块范围内的玩家聊天.",
+            "你可以通过 /tell 玩家名称 发送私人消息.",
+            "相同等级的NPC可能具有不同的难度.",
+            "注意地面上的食物，箱子以及其他战利品!",
+            "包里全是食物? 尝试使用它们制作更好的食物!",
+            "不知道做什么？ 地图上褐色斑点区域有地牢!",    
+            "不要忘记调整图形设置. 按 'N' 打开设置.",
+            "和其他人一起玩! 按 'O' 查看在线人员.", 
+            "生命值下面有骷髅标识的NPC比您强大的多.",
+            "按下 'J' 跳舞!",
+            "按下 'LShift' 可以打开滑翔翼并立刻起飞",
+            "Veloren 处于Alpha阶段. 我们每天都在努力改善它!",
+            "如果您想加入开发团队或与我们聊天，请加入我们的Discord服务器.",            
+        ],         
+        "npc.speech.villager_under_attack": [
+            "救命！我受到攻击!",
+            "救命！我受到攻击!",
+            "哎哟! 我受到攻击!",
+            "哎哟! 我受到攻击!我需要帮助!",
+            "救命！我受到攻击!",
+            "唉哟! 我受到攻击!我需要帮助!",
+            "唉哟! 我受到攻击!我需要帮助!",
+            "救命!",
+            "救命! 救命!",
+            "救命! 救命! 救命!",
+            "我受到攻击!",
+            "啊啊啊啊! 我受到攻击!",
+            "啊啊啊啊! 我受到攻击! 救命!",
+            "救命! 我们受到攻击!",
+            "救命! 有杀人犯!",
+            "救命! 这里有一个杀人犯在逃跑!",
+            "救命! 他们想杀我!",
+            "守卫, 我受到攻击!",
+            "守卫! 我受到攻击!",
+            "我受到攻击! 守卫!",
+            "救命! 守卫! 我受到攻击!",
+            "守卫! 快来!",
+            "守卫! 守卫!",
+            "守卫! 这里有一个恶棍在攻击我!",
+            "守卫, 快杀死这个恶棍!",
+            "守卫! 这里有一个杀人犯!",
+            "守卫! 帮帮我!",
+            "你别想逃了! 守卫!",
+            "你是恶魔!",
+            "救命!",
+            "救救我!",
+            "哎哟! 守卫! 救命!",
+            "他们会来找我的!",
+            "救命! 救命! 我被压迫了!",
+            "啊, now we see the violence inherent in the system.",
+            "Tis but a scratch!",
+            "停下来!",
+            "我曾经对你做过什么?!",
+            "不要攻击我了!",
+            "嘿! 注意你指向的东西!",
+            "可恶的家伙, 你们一起去死吧!",
+            "停下来! 然后滚蛋!",
+            "你现在让我很生气!",
+            "噢! 你以为你是谁?!",
+            "我会让你听到的!",
+            "请停一下! 我没有任何值钱的东西!",
+            "I'll set my brother on you, he's bigger than I am!",
+            "不, 我要告诉妈妈!",
+            "诅咒你!",
+            "请不要这么做.",
+            "那不是很好!",
+            "Your weapon works, you can put it away now!",
+            "绕了我吧!",
+            "拜托了，我还有家庭!",
+            "我还小就要死了!",
+            "我们可以谈谈这个吗?",
+            "暴力永远不是解决问题的方式!",
+            "今天真是非常糟糕的一天...",
+            "喂, 别打我!",
+            "诶!",
+            "真没礼貌!",
+            "拜托, 求求你了!",
+            "A pox upon you!",
+            "这不好玩.",
+            "你怎么敢?!",
+            "你会为此复出代价的!",
+            "坚持下去你会后悔的!",
+            "不要让我伤害你!",
+            "一定有误会!",
+            "你不需要这样做!",
+            "再见吧, 恶魔!",
+            "真的好疼!",
+            "为什么要这么做?",
+            "砸瓦鲁多!",
+            "You must have me confused with someone else!",
+            "I don't deserve this!",
+            "请不要再这样做.",
+            "守卫, 把这个怪物扔进湖里!",
+            "I'll set my tarrasque on you!",
+        ],        
+    }
+)

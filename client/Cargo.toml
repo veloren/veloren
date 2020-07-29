@@ -21,4 +21,4 @@ rayon = "^1.3.0"
 specs = { git = "https://github.com/amethyst/specs.git", rev = "7a2e348ab2223818bad487695c66c43db88050a5" }
 vek = { version = "0.11.0", features = ["serde"] }
 hashbrown = { version = "0.7.2", features = ["rayon", "serde", "nightly"] }
-authc = { git = "https://gitlab.com/veloren/auth.git", rev = "223a4097f7ebc8d451936dccb5e6517194bbf086" }
+authc = { git = "https://gitlab.com/veloren/auth.git", rev = "57784d2135a2c81ff0266f52a528da092ddf89e6" }
