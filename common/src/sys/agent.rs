@@ -240,6 +240,7 @@ impl<'a> System<'a> for Sys {
                                         bearing.xy().try_normalized().unwrap_or(Vec2::zero())
                                             * speed.min(0.2 + (dist - AVG_FOLLOW_DIST) / 8.0);
                                     inputs.jump.set_state(bearing.z > 1.5);
+                                    inputs.swim.set_state(bearing.z > 0.5);
                                 }
                             } else {
                                 do_idle = true;
@@ -297,7 +298,37 @@ impl<'a> System<'a> for Sys {
                             }
 
                             let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
-                            if dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0) {
+
+                            let damage = stats
+                                .get(entity)
+                                .map(|s| s.health.current() as f32 / s.health.maximum() as f32)
+                                .unwrap_or(0.5);
+
+                            // Flee
+                            if 1.0 - agent.psyche.aggro > damage {
+                                if let Some((bearing, speed)) = chaser.chase(
+                                    &*terrain,
+                                    pos.0,
+                                    vel.0,
+                                    // Away from the target (ironically)
+                                    tgt_pos.0 + (pos.0 - tgt_pos.0)
+                                        .try_normalized()
+                                        .unwrap_or_else(Vec3::unit_y) * 32.0,
+                                    TraversalConfig {
+                                        node_tolerance,
+                                        slow_factor,
+                                        on_ground: physics_state.on_ground,
+                                        min_tgt_dist: 1.25,
+                                    },
+                                ) {
+                                    inputs.move_dir = Vec2::from(bearing)
+                                        .try_normalized()
+                                        .unwrap_or(Vec2::zero())
+                                        * speed;
+                                    inputs.jump.set_state(bearing.z > 1.5);
+                                    inputs.swim.set_state(bearing.z > 0.5);
+                                }
+                            } else if dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0) {
                                 // Close-range attack
                                 inputs.move_dir = Vec2::from(tgt_pos.0 - pos.0)
                                     .try_normalized()
@@ -360,6 +391,7 @@ impl<'a> System<'a> for Sys {
                                         .unwrap_or(Vec2::zero())
                                         * speed;
                                     inputs.jump.set_state(bearing.z > 1.5);
+                                    inputs.swim.set_state(bearing.z > 0.5);
                                 }
 
                                 if dist_sqrd < 16.0f32.powf(2.0)

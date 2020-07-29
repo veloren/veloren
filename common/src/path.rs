@@ -402,7 +402,7 @@ fn walkable<V>(vol: &V, pos: Vec3<i32>) -> bool
 where
     V: BaseVol<Vox = Block> + ReadVol,
 {
-    vol.get(pos - Vec3::new(0, 0, 1))
+    (vol.get(pos - Vec3::new(0, 0, 1))
         .map(|b| b.is_solid() && b.get_height() == 1.0)
         .unwrap_or(false)
         && vol
@@ -412,7 +412,15 @@ where
         && vol
             .get(pos + Vec3::new(0, 0, 1))
             .map(|b| !b.is_solid())
+            .unwrap_or(true))
+    || (vol
+            .get(pos + Vec3::new(0, 0, 0))
+            .map(|b| b.is_fluid())
             .unwrap_or(true)
+        && vol
+            .get(pos + Vec3::new(0, 0, 1))
+            .map(|b| b.is_fluid())
+            .unwrap_or(true))
 }
 
 #[allow(clippy::float_cmp)] // TODO: Pending review in #587
@@ -449,7 +457,7 @@ where
     let heuristic = |pos: &Vec3<i32>| (pos.distance_squared(end) as f32).sqrt();
     let neighbors = |pos: &Vec3<i32>| {
         let pos = *pos;
-        const DIRS: [Vec3<i32>; 17] = [
+        const DIRS: [Vec3<i32>; 18] = [
             Vec3::new(0, 1, 0),   // Forward
             Vec3::new(0, 1, 1),   // Forward upward
             Vec3::new(0, 1, 2),   // Forward Upwardx2
@@ -466,7 +474,8 @@ where
             Vec3::new(-1, 0, 1),  // Left upward
             Vec3::new(-1, 0, 2),  // Left Upwardx2
             Vec3::new(-1, 0, -1), // Left downward
-            Vec3::new(0, 0, -1),  // Downwards
+            Vec3::new(0, 0, -1),  // Downwards (water)
+            Vec3::new(0, 0, 1),  // Upwards (water)
         ];
 
         // let walkable = [
