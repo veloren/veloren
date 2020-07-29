@@ -84,31 +84,29 @@ VoxygenLocalization(
         "main.tip": "小贴士:",
 
         // Welcome notice that appears the first time Veloren is started
-        "main.notice": r#"Welcome to the alpha version of Veloren!
+        "main.notice": r#"欢迎加入 Veloren Alpha版 !
 
-Before you dive into the fun, please keep a few things in mind:
+在您开始享受游戏之前，请注意一些事情:
 
-- This is a very early alpha. Expect bugs, extremely unfinished gameplay, unpolished mechanics, and missing features.
+- 这是非常前期的 alpha 版本，您会遇到不少错误、未完成的游戏模式、未完善的游戏机制以及缺失的功能。 
 
-- If you have constructive feedback or bug reports, you can contact us via Reddit, GitLab, or our community iscord服 server
+- 如果有建设性的意见反馈或是错误汇报，可以通过 Reddit、GitLab 或者我们的 Discord 服务器联系我们。
 
-- Veloren is licensed under the GPL 3 open-source licence. That means you're free to play, modify, and redistribute the game however
- you wish (provided derived work is also under GPL 3).
+- Veloren 的授权条款是GPL3. 意思是你可以免费游玩，修改并重新发布游戏（衍生内容也必须是GPL3）
 
-- Veloren is a non-profit community project, and everybody working on it is a volunteer.
-If you like what you see, you're welcome to join the development or art teams!
+- Veloren 是一个非营利的社区项目, 参与该项目的都是志愿者.
+如果你想在项目中看到你的身影，欢迎加入开发或艺术团队!
 
-Thanks for taking the time to read this notice, we hope you enjoy the game!
+感谢您抽出宝贵的时间阅读此通知,希望您喜欢这款游戏!
 
-~ The Veloren Devs"#,
+~ Veloren 的开发团队"#,
 
         // Login process description
-        "main.login_process": r#"Information on the Login Process:
+        "main.login_process": r#"有关登录的信息:
 
-Please note that you now need an account
-to play on auth-enabled servers.
+请注意，您现在需要一个账户，在启用身份验证的服务器上游玩。
 
-You can create an account over at
+你可以通过下面的网站创建用户.
 
 https://account.veloren.net."#,
         "main.login.server_not_found": "找不到服务器",
@@ -159,46 +157,46 @@ https://account.veloren.net."#,
         "hud.welcome": r#"欢迎来到 Veloren Alpha版!
 
 
-Some tips before you start:
+开始前的一些提示:
 
 
-Press F1 to see the available key commands.
+按 F1 查看可用的键位信息.
 
-Type /help into the chat to see chat commands
-
-
-There are chests and other objects randomly spawning in the World!
-
-Right-Click to collect them.
-
-To actually use whatever you loot from those chests open your inventory with 'B'.
-
-Double click the items in your bag to use or equip them.
-
-Throw them away by clicking them once and clicking outside of the bag
+输入 /help 在聊天栏以查看聊天命令
 
 
-Nights can get pretty dark in Veloren.
+世界上会随机生成箱子以及其他物品!
 
-Light your lantern by pressing 'G'
+右键单击以收集它们.
+
+按 B 打开库存可以看到您在这些箱子中获取到的物品.
+
+双击背包中的物品以使用或装备它们.
+
+单击并坨拽到背包外可以将物品移除
 
 
-Want to free your cursor to close this window? Press TAB!
+Veloren 的夜晚会变得非常的黑.
+
+按下 G 可以点亮你的灯笼.
 
 
-Enjoy your stay in the World of Veloren."#,
+按下 Tab 可以释放光标用于关闭窗口!
+
+
+祝你在Veloren世界玩的愉快."#,
 
 "hud.temp_quest_headline": r#"请帮助我们，旅行者!"#,
-"hud.temp_quest_text": r#"Dungeons filled with evil cultists
-have emerged all around our peaceful towns!
+"hud.temp_quest_text": r#"在我们宁静的城镇周围
+遍布地下城,里面充满了邪恶的信徒!
 
 
-Gather some company, stack up on food
-and defeat their vile leaders and acolytes.
+组织人手, 带上食物
+击败他们邪恶的领袖和同伙.
 
 
-Maybe you can even obtain one of their
-magically infused items?"#,
+或许你可以获得注入了
+他们魔力的物品?"#,
 
 
 
@@ -397,13 +395,13 @@ magically infused items?"#,
         /// Start character window section
         "character_window.character_name": "人物名称",
         // Character stats
-        "character_window.character_stats": r#"Endurance
+        "character_window.character_stats": r#"耐力
 
-Fitness
+生命
 
-Willpower
+意志
 
-Protection
+护甲
 "#,
         /// End character window section
 
@@ -486,7 +484,7 @@ Protection
             "不, 我要告诉妈妈!",
             "诅咒你!",
             "请不要这么做.",
-            "That wasn't very nice!",
+            "那不是很好!",
             "Your weapon works, you can put it away now!",
             "绕了我吧!",
             "拜托了，我还有家庭!",
@@ -509,7 +507,7 @@ Protection
             "再见吧, 恶魔!",
             "真的好疼!",
             "为什么要这么做?",
-            "By the spirits, cease!",
+            "砸瓦鲁多!",
             "You must have me confused with someone else!",
             "I don't deserve this!",
             "请不要再这样做.",
