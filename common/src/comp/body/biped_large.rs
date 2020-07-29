@@ -60,7 +60,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
 }
 
 pub const ALL_SPECIES: [Species; 4] = [
-    Species::Ogre, 
+    Species::Ogre,
     Species::Cyclops,
     Species::Wendigo,
     Species::Troll,
