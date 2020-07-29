@@ -947,11 +947,29 @@ impl FigureMgr {
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
+                        _ => anim::quadruped_small::IdleAnimation::update_skeleton(
+                            &QuadrupedSmallSkeleton::new(),
+                            time,
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                    };
+                    let target_bones = match &character {
+                        CharacterState::Sit { .. } => {
+                            anim::quadruped_small::FeedAnimation::update_skeleton(
+                                &target_base,
+                                time,
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         // TODO!
-                        _ => state.skeleton_mut().clone(),
+                        _ => target_base,
                     };
 
-                    state.skeleton.interpolate(&target_base, dt);
+                    state.skeleton.interpolate(&target_bones, dt);
                     state.update(
                         renderer,
                         pos.0,

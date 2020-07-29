@@ -1,9 +1,10 @@
+pub mod feed;
 pub mod idle;
 pub mod jump;
 pub mod run;
 
 // Reexports
-pub use self::{idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
+pub use self::{feed::FeedAnimation, idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
 
 use super::{Bone, FigureBoneData, Skeleton};
 use common::comp::{self};
@@ -80,6 +81,7 @@ pub struct SkeletonAttr {
     maximize: f32,
     minimize: f32,
     spring: f32,
+    feed: f32,
 }
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
     type Error = ();
@@ -105,6 +107,7 @@ impl Default for SkeletonAttr {
             maximize: 0.0,
             minimize: 0.0,
             spring: 0.0,
+            feed: 0.0,
         }
     }
 }
@@ -149,7 +152,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
             },
             feet_f: match (body.species, body.body_type) {
                 (Pig, _) => (4.5, 3.0, -2.0),
-                (Fox, _) => (3.0, 5.0, -5.0),
+                (Fox, _) => (3.0, 5.0, -5.5),
                 (Sheep, _) => (3.5, 2.0, -2.0),
                 (Boar, _) => (3.5, 6.0, -5.5),
                 (Jackalope, _) => (3.0, 4.0, -2.0),
@@ -166,7 +169,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
             },
             feet_b: match (body.species, body.body_type) {
                 (Pig, _) => (3.5, -2.0, -1.5),
-                (Fox, _) => (3.0, -3.0, -2.0),
+                (Fox, _) => (3.0, -3.0, -3.0),
                 (Sheep, _) => (3.5, -3.5, -2.0),
                 (Boar, _) => (3.0, -3.0, -2.5),
                 (Jackalope, _) => (3.5, -2.0, 0.0),
@@ -282,6 +285,23 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Hyena, _) => (1.4),
                 (Rabbit, _) => (2.5),
                 (Truffler, _) => (0.8),
+            },
+            feed: match (body.species, body.body_type) {
+                (Pig, _) => (1.0),
+                (Fox, _) => (1.0),
+                (Sheep, _) => (1.0),
+                (Boar, _) => (0.6),
+                (Jackalope, _) => (1.0),
+                (Skunk, _) => (0.8),
+                (Cat, _) => (1.0),
+                (Batfox, _) => (0.7),
+                (Raccoon, _) => (0.8),
+                (Quokka, _) => (1.0),
+                (Dodarock, _) => (0.7),
+                (Holladon, _) => (1.0),
+                (Hyena, _) => (1.0),
+                (Rabbit, _) => (1.2),
+                (Truffler, _) => (0.6),
             },
         }
     }

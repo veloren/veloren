@@ -629,6 +629,10 @@
             "pangolin": {
                 "keyword": "pangolin",
                 "generic": "Pangolin"
+            },
+            "maneater": {
+                "keyword": "maneater",
+                "generic": "Maneater"
             }
         }
     }

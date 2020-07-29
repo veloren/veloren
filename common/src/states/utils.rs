@@ -148,7 +148,7 @@ pub fn attempt_wield(data: &JoinData, update: &mut StateUpdate) {
 
 /// Checks that player can `Sit` and updates `CharacterState` if so
 pub fn attempt_sit(data: &JoinData, update: &mut StateUpdate) {
-    if data.physics.on_ground && data.body.is_humanoid() {
+    if data.physics.on_ground {
         update.character = CharacterState::Sit;
     }
 }

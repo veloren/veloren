@@ -287,4 +287,40 @@
             lateral: ("npc.pangolin.male.foot_br"),
         ),
     ),
+    (Maneater, Male): (
+        front_left: (
+            offset: (-6.0, 0.0, -6.5),
+            lateral: ("npc.maneater.male.foot_fl"),
+        ),
+        front_right: (
+            offset: (-2.0, 0.0, -6.5),
+            lateral: ("npc.maneater.male.foot_fr"),
+        ),
+        back_left: (
+            offset: (-6.0, -8.0, -9.0),
+            lateral: ("npc.maneater.male.foot_bl"),
+        ),
+        back_right: (
+            offset: (-2.0, -8.0, -9.0),
+            lateral: ("npc.maneater.male.foot_br"),
+        ),
+    ),
+    (Maneater, Female): (
+        front_left: (
+            offset: (-6.0, 0.0, -6.5),
+            lateral: ("npc.maneater.male.foot_fl"),
+        ),
+        front_right: (
+            offset: (-2.0, 0.0, -6.5),
+            lateral: ("npc.maneater.male.foot_fr"),
+        ),
+        back_left: (
+            offset: (-6.0, -8.0, -9.0),
+            lateral: ("npc.maneater.male.foot_bl"),
+        ),
+        back_right: (
+            offset: (-2.0, -8.0, -9.0),
+            lateral: ("npc.maneater.male.foot_br"),
+        ),
+    ),
 })
