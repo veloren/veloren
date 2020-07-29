@@ -184,7 +184,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Frostfang, _) => (1.0, -2.0),
                 (Mouflon, _) => (-2.5, 6.0),
                 (Catoblepas, _) => (-1.0, -6.5),
-                (Bonerattler, _) => (0.0, -0.5),
+                (Bonerattler, _) => (-1.0, 2.5),
             },
             head_lower: match (body.species, body.body_type) {
                 (Grolgar, _) => (1.0, -1.0),
@@ -210,7 +210,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Frostfang, _) => (4.0, -3.0),
                 (Mouflon, _) => (10.5, -4.0),
                 (Catoblepas, _) => (1.0, -6.0),
-                (Bonerattler, _) => (3.5, -3.0),
+                (Bonerattler, _) => (3.0, -3.0),
             },
             tail: match (body.species, body.body_type) {
                 (Grolgar, _) => (-11.5, -0.5),
@@ -223,7 +223,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Frostfang, _) => (-7.0, -3.5),
                 (Mouflon, _) => (-10.5, 3.0),
                 (Catoblepas, _) => (-8.5, -2.0),
-                (Bonerattler, _) => (-9.0, 2.5),
+                (Bonerattler, _) => (-10.0, 1.5),
             },
             torso_front: match (body.species, body.body_type) {
                 (Grolgar, _) => (10.0, 13.0),
@@ -275,7 +275,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Frostfang, _) => (5.5, -5.5, -2.0),
                 (Mouflon, _) => (4.0, -5.0, -5.0),
                 (Catoblepas, _) => (7.0, 2.0, -6.0),
-                (Bonerattler, _) => (5.5, 3.5, -4.0),
+                (Bonerattler, _) => (5.5, 5.0, -4.0),
             },
             leg_b: match (body.species, body.body_type) {
                 (Grolgar, _) => (6.0, -6.5, -5.5),
@@ -288,7 +288,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Frostfang, _) => (3.5, -4.5, -2.0),
                 (Mouflon, _) => (3.5, -8.0, -4.5),
                 (Catoblepas, _) => (6.0, -2.5, -2.5),
-                (Bonerattler, _) => (6.5, -9.5, -4.0),
+                (Bonerattler, _) => (6.0, -8.0, -4.0),
             },
             feet_f: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.0, -9.0, -7.0),
