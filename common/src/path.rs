@@ -4,7 +4,6 @@ use crate::{
     vol::{BaseVol, ReadVol},
 };
 use hashbrown::hash_map::DefaultHashBuilder;
-use rand::prelude::*;
 use std::iter::FromIterator;
 use vek::*;
 
@@ -366,6 +365,8 @@ impl Chaser {
         if let Some((bearing, speed)) = bearing {
             Some((bearing, speed))
         } else {
+            let tgt_dir = (tgt - pos).xy().try_normalized().unwrap_or_default();
+
             // Only search for a path if the target has moved from their last position. We
             // don't want to be thrashing the pathfinding code for targets that
             // we're unable to access!
@@ -379,11 +380,10 @@ impl Chaser {
                 let (start_pos, path) = find_path(&mut self.astar, vol, pos, tgt);
 
                 self.route = path.map(|path| {
-                    let tgt_dir = (tgt - pos).try_normalized().unwrap_or_default();
                     let start_index = path
                         .iter()
                         .enumerate()
-                        .min_by_key(|(_, node)| node.map(|e| e as f32).distance_squared(pos + tgt_dir) as i32)
+                        .min_by_key(|(_, node)| node.xy().map(|e| e as f32).distance_squared(pos.xy() + tgt_dir) as i32)
                         .map(|(idx, _)| idx);
 
                     Route {
@@ -393,7 +393,11 @@ impl Chaser {
                 });
             }
 
-            Some(((tgt - pos) * Vec3::new(1.0, 1.0, 0.0), 0.75))
+            if walkable(vol, (pos + Vec3::<f32>::from(tgt_dir) * 3.0).map(|e| e as i32)) {
+                Some(((tgt - pos) * Vec3::new(1.0, 1.0, 0.0), 0.75))
+            } else {
+                None
+            }
         }
     }
 }
