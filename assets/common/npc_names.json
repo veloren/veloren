@@ -457,6 +457,10 @@
             "truffler": {
                 "keyword": "truffler",
                 "generic": "Truffler"
+            },
+            "frog": {
+                "keyword": "frog",
+                "generic": "Frog"
             }
         }
     },

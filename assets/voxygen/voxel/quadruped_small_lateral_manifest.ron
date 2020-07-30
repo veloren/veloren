@@ -20,19 +20,19 @@
     (Pig, Female): (
         left_front: (
             offset: (-1.0, -1.5, -5.0),
-            lateral: ("npc.pig.female.foot_fl"),
+            lateral: ("npc.pig.male.foot_fl"),
         ),
         right_front: (
             offset: (-1.0, -1.5, -5.0),
-            lateral: ("npc.pig.female.foot_fr"),
+            lateral: ("npc.pig.male.foot_fr"),
         ),
         left_back: (
             offset: (-1.0, -2.0, -6.0),
-            lateral: ("npc.pig.female.foot_bl"),
+            lateral: ("npc.pig.male.foot_bl"),
         ),
         right_back: (
             offset: (-1.0, -2.0, -6.0),
-            lateral: ("npc.pig.female.foot_br"),
+            lateral: ("npc.pig.male.foot_br"),
         ),
     ),
 
@@ -555,6 +555,43 @@
         right_back: (
             offset: (-2.5, -3.0, -6.5),
             lateral: ("npc.truffler.male.foot_br"),
+        ),
+    ),
+    (Frog, Male): (
+        left_front: (
+            offset: (-2.5, -2.5, -4.0),
+            lateral: ("npc.frog.male.foot_fl"),
+        ),
+        right_front: (
+            offset: (-2.5, -2.5, -4.0),
+            lateral: ("npc.frog.male.foot_fr"),
+        ),
+        left_back: (
+            offset: (-2.5, -3.5, -4.0),
+            lateral: ("npc.frog.male.foot_bl"),
+        ),
+        right_back: (
+            offset: (-2.5, -3.5, -4.0),
+            lateral: ("npc.frog.male.foot_br"),
+        ),
+    ),
+
+    (Frog, Female): (
+        left_front: (
+            offset: (-2.5, -2.5, -4.0),
+            lateral: ("npc.frog.male.foot_fl"),
+        ),
+        right_front: (
+            offset: (-2.5, -2.5, -4.0),
+            lateral: ("npc.frog.male.foot_fr"),
+        ),
+        left_back: (
+            offset: (-2.5, -3.5, -4.0),
+            lateral: ("npc.frog.male.foot_bl"),
+        ),
+        right_back: (
+            offset: (-2.5, -3.5, -4.0),
+            lateral: ("npc.frog.male.foot_br"),
         ),
     ),
 })
