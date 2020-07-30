@@ -135,12 +135,12 @@ impl Route {
                 && (pos.z - closest_tgt.z < 1.2 || (pos.z - closest_tgt.z < 2.9 && vel.z < -0.05))
                 && vel.z <= 0.0
                 // Only consider the node reached if there's nothing solid between us and it
-                && vol
+                && (vol
                     .ray(pos + Vec3::unit_z() * 1.5, closest_tgt + Vec3::unit_z() * 1.5)
                     .until(|block| block.is_solid())
                     .cast()
                     .0
-                    > pos.distance(closest_tgt) * 0.9
+                    > pos.distance(closest_tgt) * 0.9 || dist_sqrd < 0.5)
                 && self.next_idx < self.path.len()
             {
                 // Node completed, move on to the next one
@@ -358,13 +358,6 @@ impl Chaser {
                 self.route
                     .as_mut()
                     .and_then(|r| r.traverse(vol, pos, vel, traversal_cfg))
-                    // In theory this filter isn't needed, but in practice agents often try to take
-                    // stale paths that start elsewhere. This code makes sure that we're only using
-                    // paths that start near us, avoiding the agent doubling back to chase a stale
-                    // path.
-                    .filter(|(bearing, _)| bearing.xy()
-                        .magnitude_squared() < 1.75f32.powf(2.0)
-                        && thread_rng().gen::<f32>() > 0.025)
             }
         } else {
             None
@@ -384,12 +377,20 @@ impl Chaser {
                 || self.route.is_none()
             {
                 let (start_pos, path) = find_path(&mut self.astar, vol, pos, tgt);
-                // Don't use a stale path
-                if start_pos.distance_squared(pos) < 4.0f32.powf(2.0) {
-                    self.route = path.map(Route::from);
-                } else {
-                    self.route = None;
-                }
+
+                self.route = path.map(|path| {
+                    let tgt_dir = (tgt - pos).try_normalized().unwrap_or_default();
+                    let start_index = path
+                        .iter()
+                        .enumerate()
+                        .min_by_key(|(_, node)| node.map(|e| e as f32).distance_squared(pos + tgt_dir) as i32)
+                        .map(|(idx, _)| idx);
+
+                    Route {
+                        path,
+                        next_idx: start_index.unwrap_or(0),
+                    }
+                });
             }
 
             Some(((tgt - pos) * Vec3::new(1.0, 1.0, 0.0), 0.75))
@@ -402,7 +403,7 @@ fn walkable<V>(vol: &V, pos: Vec3<i32>) -> bool
 where
     V: BaseVol<Vox = Block> + ReadVol,
 {
-    (vol.get(pos - Vec3::new(0, 0, 1))
+    vol.get(pos - Vec3::new(0, 0, 1))
         .map(|b| b.is_solid() && b.get_height() == 1.0)
         .unwrap_or(false)
         && vol
@@ -412,15 +413,7 @@ where
         && vol
             .get(pos + Vec3::new(0, 0, 1))
             .map(|b| !b.is_solid())
-            .unwrap_or(true))
-    || (vol
-            .get(pos + Vec3::new(0, 0, 0))
-            .map(|b| b.is_fluid())
             .unwrap_or(true)
-        && vol
-            .get(pos + Vec3::new(0, 0, 1))
-            .map(|b| b.is_fluid())
-            .unwrap_or(true))
 }
 
 #[allow(clippy::float_cmp)] // TODO: Pending review in #587
@@ -457,7 +450,7 @@ where
     let heuristic = |pos: &Vec3<i32>| (pos.distance_squared(end) as f32).sqrt();
     let neighbors = |pos: &Vec3<i32>| {
         let pos = *pos;
-        const DIRS: [Vec3<i32>; 18] = [
+        const DIRS: [Vec3<i32>; 17] = [
             Vec3::new(0, 1, 0),   // Forward
             Vec3::new(0, 1, 1),   // Forward upward
             Vec3::new(0, 1, 2),   // Forward Upwardx2
@@ -474,8 +467,7 @@ where
             Vec3::new(-1, 0, 1),  // Left upward
             Vec3::new(-1, 0, 2),  // Left Upwardx2
             Vec3::new(-1, 0, -1), // Left downward
-            Vec3::new(0, 0, -1),  // Downwards (water)
-            Vec3::new(0, 0, 1),  // Upwards (water)
+            Vec3::new(0, 0, -1),  // Downwards
         ];
 
         // let walkable = [
