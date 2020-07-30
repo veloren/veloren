@@ -697,6 +697,7 @@ impl PlayState for SessionState {
                         .get(self.client.borrow().entity())
                         .cloned(),
                     num_chunks: self.scene.terrain().chunk_count() as u32,
+                    num_lights: self.scene.lights().len() as u32,
                     num_visible_chunks: self.scene.terrain().visible_chunk_count() as u32,
                     num_shadow_chunks: self.scene.terrain().shadow_chunk_count() as u32,
                     num_figures: self.scene.figure_mgr().figure_count() as u32,

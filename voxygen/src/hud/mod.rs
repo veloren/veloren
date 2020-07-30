@@ -170,6 +170,7 @@ widget_ids! {
         time,
         entity_count,
         num_chunks,
+        num_lights,
         num_figures,
 
         // Game Version
@@ -235,6 +236,7 @@ pub struct DebugInfo {
     pub velocity: Option<comp::Vel>,
     pub ori: Option<comp::Ori>,
     pub num_chunks: u32,
+    pub num_lights: u32,
     pub num_visible_chunks: u32,
     pub num_shadow_chunks: u32,
     pub num_figures: u32,
@@ -1404,13 +1406,21 @@ impl Hud {
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.num_chunks, ui_widgets);
 
+            // Number of lights
+            Text::new(&format!("Lights: {}", debug_info.num_lights,))
+                .color(TEXT_COLOR)
+                .down_from(self.ids.num_chunks, 5.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .set(self.ids.num_lights, ui_widgets);
+
             // Number of figures
             Text::new(&format!(
                 "Figures: {} ({} visible)",
                 debug_info.num_figures, debug_info.num_figures_visible,
             ))
             .color(TEXT_COLOR)
-            .down_from(self.ids.num_chunks, 5.0)
+            .down_from(self.ids.num_lights, 5.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.num_figures, ui_widgets);

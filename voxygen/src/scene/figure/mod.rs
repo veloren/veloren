@@ -41,7 +41,7 @@ use core::{
 };
 use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
-use specs::{Entity as EcsEntity, Join, WorldExt};
+use specs::{Entity as EcsEntity, Join, LazyUpdate, WorldExt};
 use treeculler::{BVol, BoundingSphere};
 use vek::*;
 
@@ -365,6 +365,7 @@ impl FigureMgr {
             }
         }
         let dt = ecs.fetch::<DeltaTime>().0;
+        let updater = ecs.read_resource::<LazyUpdate>();
         for (entity, waypoint, light_emitter_opt, light_anim) in (
             &ecs.entities(),
             ecs.read_storage::<common::comp::Waypoint>().maybe(),
@@ -377,7 +378,7 @@ impl FigureMgr {
                 if let Some(emitter) = light_emitter_opt {
                     (
                         emitter.col,
-                        if emitter.strength.is_finite() {
+                        if emitter.strength.is_normal() {
                             emitter.strength
                         } else {
                             0.0
@@ -394,7 +395,7 @@ impl FigureMgr {
             if let Some(state) = self.states.character_states.get(&entity) {
                 light_anim.offset = state.lantern_offset;
             }
-            if !light_anim.strength.is_finite() {
+            if !light_anim.strength.is_normal() {
                 light_anim.strength = 0.0;
             }
             if animated {
@@ -407,6 +408,18 @@ impl FigureMgr {
             } else {
                 light_anim.strength = target_strength;
                 light_anim.col = target_col;
+            }
+            // NOTE: We add `LIGHT_EPSILON` because if we wait for numbers to become
+            // equal to target (or even within a subnormal), it will take a minimum
+            // of 30 seconds for a light to fully turn off (for initial
+            // strength ≥ 1), which prevents optimizations (particularly those that
+            // can kick in with zero lights).
+            const LIGHT_EPSILON: f32 = 0.0001;
+            if (light_anim.strength - target_strength).abs() < LIGHT_EPSILON {
+                light_anim.strength = target_strength;
+                if light_anim.strength == 0.0 {
+                    updater.remove::<LightAnimation>(entity);
+                }
             }
         }
     }

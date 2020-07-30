@@ -304,6 +304,9 @@ impl Scene {
     /// Get a reference to the scene's terrain.
     pub fn terrain(&self) -> &Terrain<TerrainChunk> { &self.terrain }
 
+    /// Get a reference to the scene's lights.
+    pub fn lights(&self) -> &Vec<Light> { &self.light_data }
+
     /// Get a reference to the scene's figure manager.
     pub fn figure_mgr(&self) -> &FigureMgr { &self.figure_mgr }
 
@@ -466,9 +469,11 @@ impl Scene {
                     .read_storage::<comp::LightAnimation>(),
             )
                 .join()
-                .filter(|(pos, _, _, _)| {
-                    (pos.0.distance_squared(player_pos) as f32)
-                        < loaded_distance.powf(2.0) + LIGHT_DIST_RADIUS
+                .filter(|(pos, _, _, light_anim)| {
+                    light_anim.col != Rgb::zero()
+                        && light_anim.strength > 0.0
+                        && (pos.0.distance_squared(player_pos) as f32)
+                            < loaded_distance.powf(2.0) + LIGHT_DIST_RADIUS
                 })
                 .map(|(pos, ori, interpolated, light_anim)| {
                     // Use interpolated values if they are available
@@ -1435,8 +1440,10 @@ impl Scene {
 
         // would instead have this as an extension.
         if renderer.render_mode().shadow.is_map() && (is_daylight || self.light_data.len() > 0) {
-            // Set up shadow mapping.
-            renderer.start_shadows();
+            if is_daylight {
+                // Set up shadow mapping.
+                renderer.start_shadows();
+            }
 
             // Render terrain shadows.
             self.terrain.render_shadows(
@@ -1462,8 +1469,10 @@ impl Scene {
                 scene_data.figure_lod_render_distance,
             );
 
-            // Flush shadows.
-            renderer.flush_shadows();
+            if is_daylight {
+                // Flush shadows.
+                renderer.flush_shadows();
+            }
         }
         let lod = self.lod.get_data();
 
