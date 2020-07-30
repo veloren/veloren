@@ -54,7 +54,7 @@ VoxygenLocalization(
         "common.interface": "Interfaz",
         "common.gameplay": "Jugabilidad",
         "common.controls": "Controles",
-        "common.video": "Video",
+        "common.video": "Gráficos",
         "common.sound": "Sonido",
         "common.resume": "Continuar",
         "common.characters": "Personajes",
@@ -86,7 +86,7 @@ El cliente esta actualizado?"#,
 
         "common.weapons.axe": "Hacha",
         "common.weapons.sword": "Espada",
-        "common.weapons.staff": "Baston",
+        "common.weapons.staff": "Báculo",
         "common.weapons.bow": "Arco",
         "common.weapons.hammer": "Martillo",
         /// End Common section
@@ -99,16 +99,16 @@ El cliente esta actualizado?"#,
         // Welcome notice that appears the first time Veloren is started
         "main.notice": r#"Bienvenido a la version alfa de Veloren!
 
-Antes de que te diviertas, por favor ten algunas cosas en mente:
+Antes de que te diviertas, por favor ten en cuenta lo siguiente:
 
-- Esta es una alfa muy temprana, espera fallos, jugabilidad extremadamente incompleta, mecanicas sin pulir y caracteristicas faltantes. 
+- Esta es una alfa muy temprana, espera fallos, jugabilidad extremadamente incompleta, mecánicas sin pulir y características faltantes. 
 
-- Si tienes criticas constructivas o reportes de fallos, puedes contactarnos por reddit, GitLab, o el server de Discord de nuestra comunidad.
+- Si tienes críticas constructivas o reportes de fallos, puedes contactarnos por reddit, GitLab, o por el server de Discord de nuestra comunidad.
 
-- Veloren esta licenciado bajo la licencia GPL 3 open-source (codigo abierto). 
-Eso significa que tienes la libertad de jugar, modificar, y redistribuir el juego como desees (siempre y cuando dicho trabajo tambien este licenciado como GPL 3).
+- Veloren esta licenciado bajo la licencia GPL 3 open-source (código abierto). 
+Eso significa que tienes la libertad de jugar, modificar, y redistribuir el juego como desees (siempre y cuando dicho trabajo también este licenciado como GPL 3).
 
-- Veloren es un proyecto de la comunidad sin animo de lucro, y todos los que trabajan en el son voluntarios.
+- Veloren es un proyecto en comunidad sin ánimo de lucro, y todos los que trabajan en el son voluntarios.
 Si te gusta lo que ves, eres bienvenido a unirte a los equipos de desarrollo o de arte!
 
 Gracias por tomarte el tiempo de leer este mensaje, esperamos que disfrutes el juego!
@@ -129,15 +129,15 @@ https://account.veloren.net."#,
 		"main.login.server_not_found": "No se encontró el servidor",
         "main.login.authentication_error": "Error de autenticación en el servidor",
         "main.login.server_full": "El servidor esta lleno",
-        "main.login.untrusted_auth_server": "El servidor de autenticacion no es confiable",
+        "main.login.untrusted_auth_server": "El servidor de autenticación no es confiable",
         "main.login.outdated_client_or_server": "ServidorEnloquecido: Probablemente las versiones son incompatibles, intenta actualizar tu cliente.",
         "main.login.timeout": "Tiempo de espera agotado: El servidor no respondio a tiempo. (Puede estar sobrecargado o tener problemas de red).",
-        "main.login.server_shut_down": "El servidor se apago",
-        "main.login.already_logged_in": "Ya tienes una sesion iniciada en el servidor.",
+        "main.login.server_shut_down": "El servidor se apagó",
+        "main.login.already_logged_in": "Ya estas en una sesión en el servidor.",
         "main.login.network_error": "Error de red",
         "main.login.failed_sending_request": "El pedido al servidor de autenticacion fallo",
-        "main.login.invalid_character": "El personaje seleccionado no es valido",
-        "main.login.client_crashed": "El cliente crasheo",
+        "main.login.invalid_character": "El personaje seleccionado no es válido",
+        "main.login.client_crashed": "El cliente crasheó",
 		"main.login.not_on_whitelist": "No estas en la lista blanca. Contacta al Dueño del Servidor si quieres unirte.",
 
         /// End Main screen section
@@ -147,7 +147,7 @@ https://account.veloren.net."#,
         "hud.do_not_show_on_startup": "No muestres esto al iniciar",
         "hud.show_tips": "Mostrar Consejos",
         "hud.quests": "Misiones",
-        "hud.you_died": "Has Muerto",
+        "hud.you_died": "Moriste",
 		"hud.waypoint_saved": "Marcador Guardado",
         
         "hud.press_key_to_show_keybindings_fmt": "Presiona {key} para mostrar los controles del teclado",
@@ -177,35 +177,35 @@ https://account.veloren.net."#,
 Algunos consejos antes de que empieces:
 
 
-Presiona F1 para ver los comandos del teclado disponibles.
+Presiona F1 para ver los controles del teclado disponibles.
 
 Escribe /help en el chat para ver los comandos del chat
 
 
 Hay cofres y otros objetos que aparecen al azar en el Mundo!
 
-Click-Derecho para recogerlos.
+Presiona E para recogerlos.
 
-Para usar lo que consigas de los cofres que abras abre tu inventario con 'B'.
+Para usar lo que consigas de los cofres abre tu inventario con 'B'.
 
 Doble click en los objetos en tu bolsa para usarlos o equiparlos.
 
-Deshazte de ellos haciendo click en ellos y luego fuera de la bolsa
+Deshazte de ellos haciendo click en ellos y luego arrastralos fuera de la bolsa.
 
 
 Las noches pueden volverse bastante oscuras en Veloren.
 
-Enciende tu farol escribiendo /lantern en el chat
+Enciende tu farol escribiendo /lantern en el chat o presionando la G.
 
 
 Quieres liberar tu cursor para cerrar esta ventana? Presiona TAB!
 
 
-Disfruta tu estadia en el Mundo de Veloren."#,
+Disfruta tu estadía en el Mundo de Veloren."#,
 
 "hud.temp_quest_headline": r#"Porfavor, ayudanos Viajero!"#,
 "hud.temp_quest_text": r#"Calabozos llenos de cultistas malvados 
- han emergido alrededor de nuestros pacificos pueblos!
+ han emergido alrededor de nuestros pacíficos pueblos!
 
 
 Consigue alguien que te acompañe, re-abastecete con comida 
@@ -219,10 +219,10 @@ objetos infundidos con magia?"#,
 
 		// Inventory
         "hud.bag.inventory": "Inventario de {playername}",
-        "hud.bag.stats_title": "Estadisticas de {playername}",
+        "hud.bag.stats_title": "Estadísticas de {playername}",
         "hud.bag.exp": "Exp",
         "hud.bag.armor": "Armadura",
-        "hud.bag.stats": "Estadisticas",
+        "hud.bag.stats": "Estadísticas",
         "hud.bag.head": "Cabeza",
         "hud.bag.neck": "Cuello",
         "hud.bag.tabard": "Tabardo",
@@ -235,8 +235,8 @@ objetos infundidos con magia?"#,
         "hud.bag.back": "Espalda",
         "hud.bag.legs": "Piernas",
         "hud.bag.feet": "Pies",
-        "hud.bag.mainhand": "Mano Dominante",
-        "hud.bag.offhand": "Otra Mano",    
+        "hud.bag.mainhand": "Mano Principal",
+        "hud.bag.offhand": "Mano Secundaria",    
 
 
         // Map and Questlog
@@ -260,28 +260,28 @@ objetos infundidos con magia?"#,
 		"hud.settings.toggle_shortcuts": "Alternar Atajos",
         "hud.settings.toggle_bar_experience": "Alternar Barra de Experiencia",
         "hud.settings.scrolling_combat_text": "Texto de Combate con Desplazamiento",
-        "hud.settings.single_damage_number": "Números de Daño Singulares",
+        "hud.settings.single_damage_number": "Números de Daño Singular",
         "hud.settings.cumulated_damage": "Daño Acumulado",
         "hud.settings.incoming_damage": "Daño Recibido",
         "hud.settings.cumulated_incoming_damage": "Daño Recibido Acumulado",
         "hud.settings.speech_bubble": "Burbuja de Diálogo",
         "hud.settings.speech_bubble_dark_mode": "Burbuja de Diálogo en Modo Oscuro",
         "hud.settings.speech_bubble_icon": "Icono de Burbuja de Diálogo",
-        "hud.settings.energybar_numbers": "Números de la Barras de Energia",
+        "hud.settings.energybar_numbers": "Números de la Barra de Energia",
         "hud.settings.values": "Valores",
         "hud.settings.percentages": "Porcentajes",
         "hud.settings.chat": "Chat",
-        "hud.settings.background_transparency": "Transparencia de Fondo",
+        "hud.settings.background_transparency": "Transparencia del Fondo",
         "hud.settings.chat_character_name": "Nombres de Personajes en el chat",
 
-        "hud.settings.pan_sensitivity": "Sensibilidad de Desplazamiento",
+        "hud.settings.pan_sensitivity": "Sensibilidad de Desplazamiento de la Cámara",
         "hud.settings.zoom_sensitivity": "Sensibilidad del Zoom",
         "hud.settings.invert_scroll_zoom": "Invertir Desplazamiento de Zoom",
         "hud.settings.invert_mouse_y_axis": "Invertir eje Y del Ratón",
-        "hud.settings.enable_mouse_smoothing": "Suavizado de la Camara",
+        "hud.settings.enable_mouse_smoothing": "Suavizado de la Cámara",
         "hud.settings.free_look_behavior": "Comportamiento de vista libre",
-		"hud.settings.auto_walk_behavior": "Comportamiento al auto caminar",
-        "hud.settings.stop_auto_walk_on_input": "Parar de auto caminar al moverte",
+		"hud.settings.auto_walk_behavior": "Comportamiento al caminar automaticamente",
+        "hud.settings.stop_auto_walk_on_input": "Frenar caminata automática",
 
         "hud.settings.view_distance": "Distancia de Visión",
         "hud.settings.sprites_view_distance": "Distancia de Visión de Sprites",
@@ -309,21 +309,21 @@ objetos infundidos con magia?"#,
         "hud.social": "Social",
         "hud.social.online": "En Linea",
         "hud.social.friends": "Amigos",
-        "hud.social.not_yet_available": "Aun no esta disponible",
+        "hud.social.not_yet_available": "Aún no esta disponible",
         "hud.social.faction": "Facción",
         "hud.social.play_online_fmt": "{nb_player} jugador(es) en linea",
 
         "hud.spell": "Hechizos",
 
         "hud.free_look_indicator": "Vista libre activa",       
-		"hud.auto_walk_indicator": "Auto caminar activado",
+		"hud.auto_walk_indicator": "Caminata automática activa",
 
         /// End HUD section
 
 
         /// Start GameInput section
 
-        "gameinput.primary": "Ataque Basico",
+        "gameinput.primary": "Ataque Básico",
         "gameinput.secondary": "Ataque Secundario/Bloquear/Apuntar",
        "gameinput.slot1": "Ranura de Inventario Rápido 1",        
         "gameinput.slot2": "Ranura de Inventario Rápido 2",
@@ -335,14 +335,14 @@ objetos infundidos con magia?"#,
         "gameinput.slot8": "Ranura de Inventario Rápido 8",
         "gameinput.slot9": "Ranura de Inventario Rápido 9",
         "gameinput.slot10": "Ranura de Inventario Rápido 10",
-        "gameinput.swaploadout": "Intercambiar Equipamiento",
+        "gameinput.swaploadout": "Cambiar Equipamiento",
         "gameinput.togglecursor": "Alternar Cursor",
         "gameinput.help": "Alternar Ventana de Ayuda",
         "gameinput.toggleinterface": "Alternar Interfaz",
         "gameinput.toggledebug": "Alternar FPS y la Info de Depuración",
         "gameinput.screenshot": "Tomar Captura de Pantalla",
         "gameinput.toggleingameui": "Alternar Nombres",
-        "gameinput.fullscreen": "Alternar Pantalla Completa",
+        "gameinput.fullscreen": "Pantalla Completa",
         "gameinput.moveforward": "Moverse hacia Adelante",
         "gameinput.moveleft": "Moverse hacia la Izquierda",
         "gameinput.moveright": "Moverse hacia la Derecha",
@@ -366,10 +366,10 @@ objetos infundidos con magia?"#,
         "gameinput.settings": "Configuración",
         "gameinput.respawn": "Re-aparecer",
         "gameinput.charge": "Cargar",
-        "gameinput.togglewield": "Alternar Empuñar",
+        "gameinput.togglewield": "Alternar empuñadura",
         "gameinput.interact": "Interactuar",
         "gameinput.freelook": "Vista Libre",
-		"gameinput.autowalk": "Auto Caminar",
+		"gameinput.autowalk": "Caminata Automática",
         "gameinput.dance": "Bailar",
         
         /// End GameInput section
@@ -384,16 +384,16 @@ objetos infundidos con magia?"#,
         "char_selection.logout": "Cerrar Sesión",
         "char_selection.create_new_charater": "Crear Nuevo Personaje",
         "char_selection.creating_character": "Creando Personaje...",
-        "char_selection.character_creation": "Creacion de Personaje",
+        "char_selection.character_creation": "Creación de Personaje",
 
         "char_selection.human_default": "Humano por defecto",
         "char_selection.level_fmt": "Nivel {level_nb}",
-        "char_selection.uncanny_valley": "Valle Extraño",
+        "char_selection.uncanny_valley": "Valle Misterioso",
         "char_selection.plains_of_uncertainty": "Planicies de la Incertidumbre",
         "char_selection.beard": "Barba",
         "char_selection.hair_style": "Estilo de Pelo",
-        "char_selection.hair_color": "Color de pelo",
-        "char_selection.chest_color": "Color de Torso",
+        "char_selection.hair_color": "Color de Pelo",
+        "char_selection.chest_color": "Color del Torso",
         "char_selection.eye_color": "Color de Ojos",
         "char_selection.skin": "Piel",
         "char_selection.eyebrows": "Cejas",
@@ -407,7 +407,7 @@ objetos infundidos con magia?"#,
         // Charater stats
         "character_window.character_stats": r#"Resistencia
 
-Estado Fisico
+Estado Físico
 
 Fuerza de Voluntad
 "#,
@@ -415,49 +415,49 @@ Fuerza de Voluntad
 
 
         /// Start Escape Menu Section
-        "esc_menu.logout": "Cerrar Sesion",
+        "esc_menu.logout": "Cerrar Sesión",
         "esc_menu.quit_game": "Salir del Juego",
         /// End Escape Menu Section
     }
 	
 	vector_map: {
         "npc.speech.villager_under_attack": [
-            "Ayuda, ¡Me estan atacando!",
-            "¡Ayuda! ¡Me estan atacando!",
-            "¡Auch! ¡Me estan atacando!",
-            "¡Auch! ¡Me estan atacando! Ayuda!",
-            "¡Ayudenme! ¡Me estan atacando!",
-            "¡Me estan atacando! ¡Ayuda!",
-            "¡Me estan atacando! ¡Ayudenme!",
+            "Ayuda, ¡Me están atacando!",
+            "¡Ayuda! ¡Me están atacando!",
+            "¡Auch! ¡Me están atacando!",
+            "¡Auch! ¡Me están atacando! ¡Ayuda!",
+            "¡Ayudenme! ¡Me están atacando!",
+            "¡Me están atacando! ¡Ayuda!",
+            "¡Me están atacando! ¡Ayudenme!",
             "¡Ayuda!",
             "¡Ayuda! ¡Ayuda!",
             "¡Ayuda! ¡Ayuda! ¡Ayuda!",
-            "¡Me estan atacando!",
-            "¡AAAHH! ¡Me estan atacando!",
-            "¡AAAHH! ¡Me estan atacando! ¡Ayuda!",
-            "Ayuda! Nos estan atacando!",
+            "¡Me están atacando!",
+            "¡AAAHH! ¡Me están atacando!",
+            "¡AAAHH! ¡Me están atacando! ¡Ayuda!",
+            "Ayuda! Nos están atacando!",
             "¡Ayuda! ¡Asesino!",
             "¡Ayuda! ¡Hay un asesino suelto!",
-            "¡Ayuda! ¡Estan intentando matarme!",
-            "Guardias, ¡Me estan atacando!",
-            "¡Guardias! ¡Me estan atacando!",
-            "¡Me estan atacando! ¡Guardias!",
-            "¡Ayuda! ¡Guardias! ¡Me estan atacando!",
+            "¡Ayuda! ¡están intentando matarme!",
+            "Guardias, ¡Me están atacando!",
+            "¡Guardias! ¡Me están atacando!",
+            "¡Me están atacando! ¡Guardias!",
+            "¡Ayuda! ¡Guardias! ¡Me están atacando!",
             "¡Guardias! ¡Vengan rapido!",
-            "¡Guardias! Guardias!",
+            "¡Guardias, Guardias!",
             "¡Guardias! ¡Me esta atacando un villano!",
             "¡Guardias, eliminen a este desagradable villano!",
             "¡Guardias! ¡Ahi esta el asesino!",
-            "¡Guardias! ¡Ayudenme!",
-            "¡No te saldras con la tuya! Guardias!",
-            "¡Seras despreciable!",
-            "¡Ayudenme!",
-            "¡Help! ¡Porfavor!",
+            "¡Guardias! ¡Ayúdenme!",
+            "No te saldrás con la tuya, ¡Guardias!",
+            "¡Serás despreciable!",
+            "¡Ayúdenme!",
+            "¡Ayuda! ¡Porfavor!",
             "¡Auch! ¡Guardias! ¡Ayuda!",
             "¡Vienen por mi!",
             "¡Ayuda! ¡Ayuda! Estoy siendo oprimido",
             "Ah, se nota que la violencia es parte del sistema.",
-            "¡Esto no es mas que un rasguño!"
+            "¡Esto no es más que un rasguño!"
         ],
     }
 )
