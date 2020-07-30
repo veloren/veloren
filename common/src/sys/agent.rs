@@ -159,7 +159,7 @@ impl<'a> System<'a> for Sys {
             // and so can afford to be less precise when trying to move around
             // the world (especially since they would otherwise get stuck on
             // obstacles that smaller entities would not).
-            let node_tolerance = scale + vel.0.xy().magnitude() * 0.2;
+            let node_tolerance = scale * 1.5;
             let slow_factor = body.map(|b| b.base_accel() / 250.0).unwrap_or(0.0).min(1.0);
 
             let mut do_idle = false;
@@ -306,7 +306,10 @@ impl<'a> System<'a> for Sys {
                                 .unwrap_or(0.5);
 
                             // Flee
-                            if 1.0 - agent.psyche.aggro > damage {
+                            let flees = alignment
+                                .map(|a| !matches!(a, Alignment::Enemy | Alignment::Owned(_)))
+                                .unwrap_or(true);
+                            if 1.0 - agent.psyche.aggro > damage && flees {
                                 if dist_sqrd < MAX_FLEE_DIST.powf(2.0) {
                                     if let Some((bearing, speed)) = chaser.chase(
                                         &*terrain,
@@ -464,7 +467,7 @@ impl<'a> System<'a> for Sys {
             // Attack a target that's attacking us
             if let Some(my_stats) = stats.get(entity) {
                 // Only if the attack was recent
-                if my_stats.health.last_change.0 < 5.0 {
+                if my_stats.health.last_change.0 < 3.0 {
                     if let comp::HealthSource::Attack { by }
                     | comp::HealthSource::Projectile { owner: Some(by) } =
                         my_stats.health.last_change.1.cause
@@ -473,20 +476,23 @@ impl<'a> System<'a> for Sys {
                             if let Some(attacker) = uid_allocator.retrieve_entity_internal(by.id())
                             {
                                 if stats.get(attacker).map_or(false, |a| !a.is_dead) {
-                                    if agent.can_speak {
-                                        let msg = "npc.speech.villager_under_attack".to_string();
-                                        event_bus.emit_now(ServerEvent::Chat(
-                                            UnresolvedChatMsg::npc(*uid, msg),
-                                        ));
-                                    }
+                                    match agent.activity {
+                                        Activity::Attack { target, .. } if target == attacker => {},
+                                        _ => {
+                                            if agent.can_speak {
+                                                let msg = "npc.speech.villager_under_attack".to_string();
+                                                event_bus.emit_now(ServerEvent::Chat(UnresolvedChatMsg::npc(*uid, msg)));
+                                            }
 
-                                    agent.activity = Activity::Attack {
-                                        target: attacker,
-                                        chaser: Chaser::default(),
-                                        time: time.0,
-                                        been_close: false,
-                                        powerup: 0.0,
-                                    };
+                                            agent.activity = Activity::Attack {
+                                                target: attacker,
+                                                chaser: Chaser::default(),
+                                                time: time.0,
+                                                been_close: false,
+                                                powerup: 0.0,
+                                            };
+                                        },
+                                    }
                                 }
                             }
                         }

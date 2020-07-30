@@ -4,6 +4,7 @@ use crate::{
     vol::{BaseVol, ReadVol},
 };
 use hashbrown::hash_map::DefaultHashBuilder;
+use rand::prelude::*;
 use std::iter::FromIterator;
 use vek::*;
 
@@ -67,6 +68,17 @@ pub struct TraversalConfig {
     pub min_tgt_dist: f32,
 }
 
+const DIAGONALS: [Vec2<i32>; 8] = [
+    Vec2::new(1, 0),
+    Vec2::new(1, 1),
+    Vec2::new(0, 1),
+    Vec2::new(-1, 1),
+    Vec2::new(-1, 0),
+    Vec2::new(-1, -1),
+    Vec2::new(0, -1),
+    Vec2::new(1, -1),
+];
+
 impl Route {
     pub fn path(&self) -> &Path<Vec3<i32>> { &self.path }
 
@@ -90,42 +102,31 @@ impl Route {
             let next0 = self
                 .next(0)
                 .unwrap_or_else(|| pos.map(|e| e.floor() as i32));
+            let next1 = self.next(1).unwrap_or(next0);
 
             // Stop using obstructed paths
-            if vol.get(next0).map(|b| b.is_solid()).unwrap_or(false) {
+            if !walkable(vol, next1) {
                 return None;
             }
 
-            let diagonals = [
-                Vec2::new(1, 0),
-                Vec2::new(1, 1),
-                Vec2::new(0, 1),
-                Vec2::new(-1, 1),
-                Vec2::new(-1, 0),
-                Vec2::new(-1, -1),
-                Vec2::new(0, -1),
-                Vec2::new(1, -1),
-            ];
-
-            let next1 = self.next(1).unwrap_or(next0);
-
-            let be_precise = diagonals.iter().any(|pos| {
-                !walkable(vol, next0 + Vec3::new(pos.x, pos.y, 0))
-                    && !walkable(vol, next0 + Vec3::new(pos.x, pos.y, -1))
-                    && !walkable(vol, next0 + Vec3::new(pos.x, pos.y, -2))
-                    && !walkable(vol, next0 + Vec3::new(pos.x, pos.y, 1))
+            let be_precise = DIAGONALS.iter().any(|pos| {
+                (-2..2)
+                    .all(|z| vol.get(next0 + Vec3::new(pos.x, pos.y, z))
+                        .map(|b| !b.is_solid())
+                        .unwrap_or(false))
             });
 
             let next0_tgt = next0.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
             let next1_tgt = next1.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
             let next_tgt = next0_tgt;
 
-            // Maybe skip a node (useful with traversing downhill)
-            let closest_tgt = if next0_tgt.distance_squared(pos) < next1_tgt.distance_squared(pos) {
-                next0_tgt
-            } else {
-                next1_tgt
-            };
+            // // Maybe skip a node (useful with traversing downhill)
+            // let closest_tgt = if next0_tgt.distance_squared(pos) < next1_tgt.distance_squared(pos) {
+            //     next0_tgt
+            // } else {
+            //     next1_tgt
+            // };
+            let closest_tgt = next0_tgt.map2(pos, |tgt, pos| pos.clamped(tgt.floor(), tgt.ceil()));
 
             // Determine whether we're close enough to the next to to consider it completed
             let dist_sqrd = pos.xy().distance_squared(closest_tgt.xy());
@@ -349,9 +350,7 @@ impl Chaser {
             // theory this shouldn't happen, but in practice the world is full
             // of unpredictable obstacles that are more than willing to mess up
             // our day. TODO: Come up with a better heuristic for this
-            if end_to_tgt > pos_to_tgt * 0.3 + 5.0
-            /* || thread_rng().gen::<f32>() < 0.005 */
-            {
+            if end_to_tgt > pos_to_tgt * 0.3 + 5.0 || thread_rng().gen::<f32>() < 0.001 {
                 None
             } else {
                 self.route
@@ -393,7 +392,12 @@ impl Chaser {
                 });
             }
 
-            if walkable(vol, (pos + Vec3::<f32>::from(tgt_dir) * 3.0).map(|e| e as i32)) {
+            let walking_towards_edge = (-3..2)
+                .all(|z| vol.get((pos + Vec3::<f32>::from(tgt_dir) * 2.5).map(|e| e as i32) + Vec3::unit_z() * z)
+                    .map(|b| !b.is_solid())
+                    .unwrap_or(false));
+
+            if !walking_towards_edge {
                 Some(((tgt - pos) * Vec3::new(1.0, 1.0, 0.0), 0.75))
             } else {
                 None
@@ -454,23 +458,27 @@ where
     let heuristic = |pos: &Vec3<i32>| (pos.distance_squared(end) as f32).sqrt();
     let neighbors = |pos: &Vec3<i32>| {
         let pos = *pos;
-        const DIRS: [Vec3<i32>; 17] = [
+        const DIRS: [Vec3<i32>; 21] = [
             Vec3::new(0, 1, 0),   // Forward
             Vec3::new(0, 1, 1),   // Forward upward
             Vec3::new(0, 1, 2),   // Forward Upwardx2
             Vec3::new(0, 1, -1),  // Forward downward
+            Vec3::new(0, 1, -2),  // Forward downwardx2
             Vec3::new(1, 0, 0),   // Right
             Vec3::new(1, 0, 1),   // Right upward
             Vec3::new(1, 0, 2),   // Right Upwardx2
             Vec3::new(1, 0, -1),  // Right downward
+            Vec3::new(1, 0, -2),  // Right downwardx2
             Vec3::new(0, -1, 0),  // Backwards
             Vec3::new(0, -1, 1),  // Backward Upward
             Vec3::new(0, -1, 2),  // Backward Upwardx2
             Vec3::new(0, -1, -1), // Backward downward
+            Vec3::new(0, -1, -2), // Backward downwardx2
             Vec3::new(-1, 0, 0),  // Left
             Vec3::new(-1, 0, 1),  // Left upward
             Vec3::new(-1, 0, 2),  // Left Upwardx2
             Vec3::new(-1, 0, -1), // Left downward
+            Vec3::new(-1, 0, -2), // Left downwardx2
             Vec3::new(0, 0, -1),  // Downwards
         ];
 
