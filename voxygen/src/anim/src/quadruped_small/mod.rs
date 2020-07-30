@@ -132,9 +132,10 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Hyena, _) => (7.5, 2.0),
                 (Rabbit, _) => (4.0, 3.0),
                 (Truffler, _) => (7.5, -9.0),
+                (Frog, _) => (4.0, 2.0),
             },
             chest: match (body.species, body.body_type) {
-                (Pig, _) => (0.0, 7.0),
+                (Pig, _) => (0.0, 6.0),
                 (Fox, _) => (0.0, 8.0),
                 (Sheep, _) => (2.0, 7.0),
                 (Boar, _) => (0.0, 9.5),
@@ -149,9 +150,10 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Hyena, _) => (-2.0, 9.0),
                 (Rabbit, _) => (-2.0, 6.0),
                 (Truffler, _) => (-2.0, 16.0),
+                (Frog, _) => (-2.0, 4.5),
             },
             feet_f: match (body.species, body.body_type) {
-                (Pig, _) => (4.5, 3.0, -2.0),
+                (Pig, _) => (4.5, 3.5, -1.0),
                 (Fox, _) => (3.0, 5.0, -5.5),
                 (Sheep, _) => (3.5, 2.0, -2.0),
                 (Boar, _) => (3.5, 6.0, -5.5),
@@ -166,9 +168,10 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Hyena, _) => (2.5, 5.0, -4.0),
                 (Rabbit, _) => (3.0, 3.0, -3.0),
                 (Truffler, _) => (2.5, 5.0, -9.0),
+                (Frog, _) => (4.5, 6.5, 0.0),
             },
             feet_b: match (body.species, body.body_type) {
-                (Pig, _) => (3.5, -2.0, -1.5),
+                (Pig, _) => (3.5, -2.0, 0.0),
                 (Fox, _) => (3.0, -3.0, -3.0),
                 (Sheep, _) => (3.5, -3.5, -2.0),
                 (Boar, _) => (3.0, -3.0, -2.5),
@@ -183,6 +186,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Hyena, _) => (3.0, -5.0, -2.5),
                 (Rabbit, _) => (3.5, -2.0, -1.0),
                 (Truffler, _) => (3.0, -5.0, -9.5),
+                (Frog, _) => (5.0, -3.5, 0.0),
             },
             tail: match (body.species, body.body_type) {
                 (Pig, _) => (-4.5, 2.5),
@@ -199,7 +203,8 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Holladon, _) => (-1.0, 4.0),
                 (Hyena, _) => (-7.0, 0.0),
                 (Rabbit, _) => (-4.0, -0.0),
-                (Truffler, _) => (-7.0, 0.0),
+                (Truffler, _) => (0.0, 0.0),
+                (Frog, _) => (0.0, -0.0),
             },
             scaler: match (body.species, body.body_type) {
                 (Pig, _) => (0.9),
@@ -217,6 +222,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Hyena, _) => (1.0),
                 (Rabbit, _) => (0.7),
                 (Truffler, _) => (1.0),
+                (Frog, _) => (0.7),
             },
             tempo: match (body.species, body.body_type) {
                 (Pig, _) => (1.0),
@@ -234,6 +240,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Hyena, _) => (1.1),
                 (Rabbit, _) => (1.15),
                 (Truffler, _) => (1.0),
+                (Frog, _) => (1.15),
             },
             maximize: match (body.species, body.body_type) {
                 (Pig, _) => (1.0),
@@ -251,6 +258,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Hyena, _) => (1.4),
                 (Rabbit, _) => (1.3),
                 (Truffler, _) => (1.0),
+                (Frog, _) => (1.3),
             },
             minimize: match (body.species, body.body_type) {
                 (Pig, _) => (0.6),
@@ -268,6 +276,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Hyena, _) => (1.4),
                 (Rabbit, _) => (0.8),
                 (Truffler, _) => (1.0),
+                (Frog, _) => (0.8),
             },
             spring: match (body.species, body.body_type) {
                 (Pig, _) => (1.0),
@@ -285,6 +294,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Hyena, _) => (1.4),
                 (Rabbit, _) => (2.5),
                 (Truffler, _) => (0.8),
+                (Frog, _) => (2.5),
             },
             feed: match (body.species, body.body_type) {
                 (Pig, _) => (1.0),
@@ -302,6 +312,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Hyena, _) => (1.0),
                 (Rabbit, _) => (1.2),
                 (Truffler, _) => (0.6),
+                (Frog, _) => (1.2),
             },
         }
     }
