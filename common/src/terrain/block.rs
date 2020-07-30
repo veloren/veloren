@@ -88,6 +88,8 @@ pub enum BlockKind {
     Stones,
     Twigs,
     ShinyGem,
+    DropGate,
+    DropGateBottom,
 }
 
 impl fmt::Display for BlockKind {
@@ -191,6 +193,8 @@ impl BlockKind {
             BlockKind::Stones => true,
             BlockKind::Twigs => true,
             BlockKind::ShinyGem => true,
+            BlockKind::DropGate => false,
+            BlockKind::DropGateBottom => false,
             _ => false,
         }
     }
@@ -288,6 +292,8 @@ impl BlockKind {
             BlockKind::Stones => false,
             BlockKind::Twigs => false,
             BlockKind::ShinyGem => false,
+            BlockKind::DropGate => false,
+            BlockKind::DropGateBottom => false,
             _ => true,
         }
     }
@@ -362,6 +368,8 @@ impl BlockKind {
             BlockKind::Stones => false,
             BlockKind::Twigs => false,
             BlockKind::ShinyGem => false,
+            BlockKind::DropGate => true,
+            BlockKind::DropGateBottom => false,
             _ => true,
         }
     }
@@ -486,7 +494,10 @@ impl Block {
             | BlockKind::WardrobeSingle
             | BlockKind::WardrobeDouble
             | BlockKind::Pot
+            | BlockKind::DropGate 
+            | BlockKind::DropGateBottom
             | BlockKind::Door => Some(self.color[0] & 0b111),
+            
             _ => None,
         }
     }

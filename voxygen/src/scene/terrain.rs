@@ -350,6 +350,14 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             variations: 3,
             wind_sway: 0.0,
         }),
+        BlockKind::DropGate => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::DropGateBottom => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
         _ => None,
     }
 }
@@ -2730,6 +2738,23 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.gem.gem_red",
                         Vec3::new(-3.0, -2.0, -2.0),
+                        Vec3::one(),
+                    ),
+                ),
+                // Drop Gate Parts
+                (
+                    (BlockKind::DropGate, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.castle.drop_gate_bars-0",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::DropGateBottom, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.castle.drop_gate_bottom-0",
+                        Vec3::new(-5.5, -5.5, 0.0),
                         Vec3::one(),
                     ),
                 ),
