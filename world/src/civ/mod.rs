@@ -258,15 +258,23 @@ impl Civs {
 
             ctx.sim.get_mut(locs[0].0).unwrap().cave.0.neighbors |=
                 1 << ((to_prev_idx as u8 + 4) % 8);
+            ctx.sim.get_mut(locs[1].0).unwrap().cave.0.neighbors |=
+                (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
             ctx.sim.get_mut(locs[2].0).unwrap().cave.0.neighbors |=
                 1 << ((to_next_idx as u8 + 4) % 8);
-            let mut chunk = ctx.sim.get_mut(locs[1].0).unwrap();
-            chunk.cave.0.neighbors |= (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
-            let depth = locs[1].1 * 250.0 - 20.0;
+        }
+
+        for (i, loc) in path.iter().enumerate() {
+            let mut chunk = ctx.sim.get_mut(loc.0).unwrap();
+            let depth = loc.1 * 250.0 - 20.0;
             chunk.cave.1.alt =
                 chunk.alt - depth + ctx.rng.gen_range(-4.0, 4.0) * (depth > 10.0) as i32 as f32;
             chunk.cave.1.width = ctx.rng.gen_range(6.0, 32.0);
             chunk.cave.0.offset = Vec2::new(ctx.rng.gen_range(-16, 17), ctx.rng.gen_range(-16, 17));
+
+            if chunk.cave.1.alt + chunk.cave.1.width + 5.0 > chunk.alt {
+                chunk.spawn_rate = 0.0;
+            }
         }
     }
 
