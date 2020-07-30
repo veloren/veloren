@@ -40,6 +40,7 @@ impl Skeleton for BipedLargeSkeleton {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_compute_mats")]
     fn compute_matrices_inner(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
         let upper_torso_mat = self.upper_torso.compute_base_matrix();
+        let lower_torso_mat = self.lower_torso.compute_base_matrix();
         let shoulder_l_mat = self.shoulder_l.compute_base_matrix();
         let shoulder_r_mat = self.shoulder_r.compute_base_matrix();
         let leg_l_mat = self.leg_l.compute_base_matrix();
@@ -49,19 +50,23 @@ impl Skeleton for BipedLargeSkeleton {
             [
                 FigureBoneData::new(torso_mat * upper_torso_mat * self.head.compute_base_matrix()),
                 FigureBoneData::new(torso_mat * upper_torso_mat),
-                FigureBoneData::new(
-                    torso_mat * upper_torso_mat * self.lower_torso.compute_base_matrix(),
-                ),
+                FigureBoneData::new(torso_mat * upper_torso_mat * lower_torso_mat),
                 FigureBoneData::new(torso_mat * upper_torso_mat * shoulder_l_mat),
                 FigureBoneData::new(torso_mat * upper_torso_mat * shoulder_r_mat),
                 FigureBoneData::new(
-                    torso_mat * upper_torso_mat * self.hand_l.compute_base_matrix(),
+                    torso_mat
+                        * upper_torso_mat
+                        * shoulder_l_mat
+                        * self.hand_l.compute_base_matrix(),
                 ),
                 FigureBoneData::new(
-                    torso_mat * upper_torso_mat * self.hand_r.compute_base_matrix(),
+                    torso_mat
+                        * upper_torso_mat
+                        * shoulder_r_mat
+                        * self.hand_r.compute_base_matrix(),
                 ),
-                FigureBoneData::new(torso_mat * upper_torso_mat * leg_l_mat),
-                FigureBoneData::new(torso_mat * upper_torso_mat * leg_r_mat),
+                FigureBoneData::new(torso_mat * upper_torso_mat * lower_torso_mat * leg_l_mat),
+                FigureBoneData::new(torso_mat * upper_torso_mat * lower_torso_mat * leg_r_mat),
                 FigureBoneData::new(self.foot_l.compute_base_matrix()),
                 FigureBoneData::new(self.foot_r.compute_base_matrix()),
                 FigureBoneData::default(),
@@ -131,7 +136,7 @@ impl<'a> From<&'a comp::biped_large::Body> for SkeletonAttr {
         Self {
             head: match (body.species, body.body_type) {
                 (Ogre, _) => (3.0, 6.0),
-                (Cyclops, _) => (3.0, 9.0),
+                (Cyclops, _) => (4.5, 7.5),
                 (Wendigo, _) => (3.0, 13.5),
                 (Troll, _) => (6.0, 10.0),
             },
@@ -143,25 +148,25 @@ impl<'a> From<&'a comp::biped_large::Body> for SkeletonAttr {
             },
             lower_torso: match (body.species, body.body_type) {
                 (Ogre, _) => (1.0, -9.5),
-                (Cyclops, _) => (1.0, -10.5),
+                (Cyclops, _) => (1.0, -4.5),
                 (Wendigo, _) => (-1.5, -8.0),
                 (Troll, _) => (1.0, -12.5),
             },
             shoulder: match (body.species, body.body_type) {
                 (Ogre, _) => (6.1, 0.5, 2.5),
-                (Cyclops, _) => (9.5, 0.5, 2.5),
+                (Cyclops, _) => (9.5, 2.5, 2.5),
                 (Wendigo, _) => (9.0, 0.5, -0.5),
                 (Troll, _) => (11.0, 0.5, -2.5),
             },
             hand: match (body.species, body.body_type) {
                 (Ogre, _) => (10.5, -1.0, -0.5),
-                (Cyclops, _) => (10.5, 0.0, -0.5),
+                (Cyclops, _) => (0.0, 0.0, -3.5),
                 (Wendigo, _) => (12.0, 0.0, -0.5),
                 (Troll, _) => (11.5, 0.0, -1.5),
             },
             leg: match (body.species, body.body_type) {
                 (Ogre, _) => (0.0, 0.0, -6.0),
-                (Cyclops, _) => (0.0, 0.0, -9.0),
+                (Cyclops, _) => (0.0, 0.0, -5.0),
                 (Wendigo, _) => (2.0, 0.0, -8.5),
                 (Troll, _) => (5.0, 0.0, -16.0),
             },

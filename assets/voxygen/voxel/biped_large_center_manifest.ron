@@ -37,7 +37,7 @@
             center: ("npc.cyclops.male.torso_upper"),
         ),
         torso_lower: (
-            offset: (-6.0, -5.5, -6.0),
+            offset: (-6.0, -5.5, -12.0),
             center: ("npc.cyclops.male.torso_lower"),
         )
     ),
@@ -51,7 +51,7 @@
             center: ("npc.cyclops.male.torso_upper"),
         ),
         torso_lower: (
-            offset: (-6.0, -5.5, -6.0),
+            offset: (-6.0, -5.5, -12.0),
             center: ("npc.cyclops.male.torso_lower"),
         )
     ),
