@@ -64,7 +64,7 @@ impl<'a> From<&'a Body> for Psyche {
     fn from(body: &'a Body) -> Self {
         Self {
             aggro: match body {
-                Body::Humanoid(_) => 0.8,
+                Body::Humanoid(_) => 0.5,
                 Body::QuadrupedSmall(_) => 0.35,
                 Body::QuadrupedMedium(_) => 0.5,
                 Body::QuadrupedLow(_) => 0.65,
