@@ -38,9 +38,9 @@ impl Body {
             Body::Dragon(_) => 250.0,
             Body::BirdSmall(_) => 75.0,
             Body::FishSmall(_) => 40.0,
-            Body::BipedLarge(_) => 120.0,
+            Body::BipedLarge(_) => 75.0,
             Body::Object(_) => 40.0,
-            Body::Golem(_) => 130.0,
+            Body::Golem(_) => 60.0,
             Body::Critter(_) => 85.0,
             Body::QuadrupedLow(_) => 120.0,
         }
