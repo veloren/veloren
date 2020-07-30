@@ -51,6 +51,7 @@ pub struct Castle {
     towers: Vec<Tower>,
     keeps: Vec<Keep>,
     rounded_towers: bool,
+    ridged: bool,
 }
 
 pub struct GenCtx<'a, R: Rng> {
@@ -114,6 +115,7 @@ impl Castle {
                 })
                 .collect(),
             rounded_towers: ctx.rng.gen(),
+            ridged: ctx.rng.gen(),
             keeps: (0..keep_count)
                 .map(|i| {
                     let angle = (i as f32 / keep_count as f32) * f32::consts::PI * 2.0;
@@ -123,7 +125,7 @@ impl Castle {
 
                     let locus = ctx.rng.gen_range(20, 26);
                     let offset = (dir * dist).map(|e| e as i32);
-                    let storeys = ctx.rng.gen_range(1, 5).clamped(2, 3);
+                    let storeys = ctx.rng.gen_range(1, 8).clamped(3, 5);
 
                     Keep {
                         offset,
@@ -244,9 +246,9 @@ impl Castle {
                         let wall_ori = if (tower0.offset.x - tower1.offset.x).abs()
                             < (tower0.offset.y - tower1.offset.y).abs()
                         {
-                            Ori::East
-                        } else {
                             Ori::North
+                        } else {
+                            Ori::East
                         };
 
                         (
@@ -271,12 +273,14 @@ impl Castle {
                     .map(|(dist, _, path, _)| path.head_space(dist))
                     .unwrap_or(0);
 
-                // Apply the dungeon entrance
                 let wall_sample = if let Some(col) = get_column(offs + wall_pos - rpos) {
                     col
                 } else {
                     col_sample
                 };
+
+                // Make sure particularly weird terrain doesn't give us underground walls
+                let wall_alt = wall_alt + (wall_sample.alt as i32 - wall_alt - 10).max(0);
 
                 let keep_archetype = KeepArchetype {
                     flag_color: Rgb::new(200, 80, 40),
@@ -294,17 +298,18 @@ impl Castle {
                     let mut mask = keep_archetype.draw(
                         Vec3::from(wall_rpos) + Vec3::unit_z() * wpos.z - wall_alt,
                         wall_dist,
-                        Vec2::new(border_pos.reduce_max(), border_pos.reduce_min()),
+                        border_pos,
                         rpos - wall_pos,
                         wall_z,
                         wall_ori,
                         4,
                         0,
                         &Attr {
-                            storeys: 1,
+                            storeys: 2,
                             is_tower: false,
                             ridged: false,
                             rounded: true,
+                            has_doors: false,
                         },
                     );
 
@@ -329,17 +334,22 @@ impl Castle {
                                 )
                             },
                             border_pos.reduce_max() - tower_locus,
-                            Vec2::new(border_pos.reduce_max(), border_pos.reduce_min()),
+                            Vec2::new(border_pos.reduce_min(), border_pos.reduce_max()),
                             (wpos - tower_wpos).xy(),
                             wpos.z - tower.alt,
-                            Ori::East,
+                            if border_pos.x > border_pos.y {
+                                Ori::East
+                            } else {
+                                Ori::North
+                            },
                             tower_locus,
                             0,
                             &Attr {
-                                storeys: 2,
+                                storeys: 3,
                                 is_tower: true,
-                                ridged: false,
+                                ridged: self.ridged,
                                 rounded: self.rounded_towers,
+                                has_doors: false,
                             },
                         ));
                     }
@@ -364,17 +374,22 @@ impl Castle {
                                 )
                             },
                             border_pos.reduce_max() - keep.locus,
-                            Vec2::new(border_pos.reduce_max(), border_pos.reduce_min()),
+                            Vec2::new(border_pos.reduce_min(), border_pos.reduce_max()),
                             (wpos - keep_wpos).xy(),
                             wpos.z - keep.alt,
-                            Ori::East,
+                            if border_pos.x > border_pos.y {
+                                Ori::East
+                            } else {
+                                Ori::North
+                            },
                             keep.locus,
                             0,
                             &Attr {
                                 storeys: keep.storeys,
                                 is_tower: keep.is_tower,
-                                ridged: true,
+                                ridged: self.ridged,
                                 rounded: self.rounded_towers,
+                                has_doors: true,
                             },
                         ));
                     }
