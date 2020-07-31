@@ -2,6 +2,7 @@
 
 #include <globals.glsl>
 #include <srgb.glsl>
+#include <random.glsl>
 
 in vec3 v_pos;
 in uint v_col;
@@ -43,49 +44,86 @@ mat4 translate(vec3 vec){
     );
 }
 
+struct Attr {
+	vec3 offs;
+	float scale;
+	vec3 col;
+};
+
+float lifetime = tick.x - inst_time;
+
+vec3 linear_motion(vec3 init_offs, vec3 vel) {
+	return init_offs + vel * lifetime;
+}
+
+vec3 grav_vel(float grav) {
+	return vec3(0, 0, -grav * lifetime);
+}
+
+float exp_scale(float factor) {
+	return 1 / (1 - lifetime * factor);
+}
+
 void main() {
 	mat4 inst_mat = translate(inst_pos);
 
-	float rand1 = gold_noise(vec2(0.0, 0.0), inst_entropy);
-	float rand2 = gold_noise(vec2(10.0, 10.0), inst_entropy);
-	float rand3 = gold_noise(vec2(20.0, 20.0), inst_entropy);
-	float rand4 = gold_noise(vec2(30.0, 30.0), inst_entropy);
-	float rand5 = gold_noise(vec2(40.0, 40.0), inst_entropy);
-	float rand6 = gold_noise(vec2(50.0, 50.0), inst_entropy);
+	float rand0 = hash(vec4(inst_entropy + 0));
+	float rand1 = hash(vec4(inst_entropy + 1));
+	float rand2 = hash(vec4(inst_entropy + 2));
+	float rand3 = hash(vec4(inst_entropy + 3));
+	float rand4 = hash(vec4(inst_entropy + 4));
+	float rand5 = hash(vec4(inst_entropy + 5));
+	float rand6 = hash(vec4(inst_entropy + 6));
+	float rand7 = hash(vec4(inst_entropy + 7));
 
-	vec3 inst_vel = vec3(0.0, 0.0, 0.0);
-	vec3 inst_pos2 = vec3(0.0, 0.0, 0.0);
-	vec3 inst_col = vec3(1.0, 1.0, 1.0);
+	Attr attr;
 
 	if (inst_mode == SMOKE) {
-		inst_col = vec3(1.0, 1.0, 1.0);
-		inst_vel = vec3(rand1 * 0.2 - 0.1, rand2 * 0.2 - 0.1, 1.0 + rand3);
-		inst_pos2 = vec3(rand4 * 5.0 - 2.5, rand5 * 5.0 - 2.5, 0.0);
+		attr = Attr(
+			linear_motion(
+				vec3(rand0 * 0.25, rand1 * 0.25, 1.7 + rand5),
+				vec3(rand2 * 0.2, rand3 * 0.2, 1.0 + rand4 * 0.5)// + vec3(sin(lifetime), sin(lifetime + 1.5), sin(lifetime * 4) * 0.25)
+			),
+			exp_scale(-0.2),
+			vec3(1)
+		);
 	} else if (inst_mode == FIRE) {
-		inst_col = vec3(1.0, 1.0 * inst_entropy, 0.0);
-		inst_vel = vec3(rand1 * 0.2 - 0.1, rand2 * 0.2 - 0.1, 4.0 + rand3);
-		inst_pos2 = vec3(rand4 * 5.0 - 2.5, rand5 * 5.0 - 2.5, 0.0);
+		attr = Attr(
+			linear_motion(
+				vec3(rand0 * 0.25, rand1 * 0.25, 0.3),
+				vec3(rand2 * 0.1, rand3 * 0.1, 2.0 + rand4 * 1.0)
+			),
+			1.0,
+			vec3(2, rand5 + 2, 0)
+		);
 	} else if (inst_mode == GUN_POWDER_SPARK) {
-		inst_col = vec3(1.0, 1.0, 0.0);
-		inst_vel = vec3(rand2 * 2.0 - 1.0, rand1 * 2.0 - 1.0, 5.0 + rand3);
-		inst_vel -= vec3(0.0, 0.0, earth_gravity * (tick.x - inst_time));
-		inst_pos2 = vec3(0.0, 0.0, 0.0);
+		attr = Attr(
+			linear_motion(
+				vec3(rand0, rand1, rand3) * 0.3,
+				vec3(rand4, rand5, rand6) * 2.0 + grav_vel(earth_gravity)
+			),
+			1.0,
+			vec3(3.5, 3 + rand7, 0)
+		);
 	} else {
-		inst_col = vec3(rand1, rand2, rand3);
-		inst_vel = vec3(rand4, rand5, rand6);
-		inst_pos2 = vec3(rand1, rand2, rand3);
+		attr = Attr(
+			linear_motion(
+				vec3(rand0 * 0.25, rand1 * 0.25, 1.7 + rand5),
+				vec3(rand2 * 0.1, rand3 * 0.1, 1.0 + rand4 * 0.5)
+			),
+			exp_scale(-0.2),
+			vec3(1)
+		);
 	}
 
-	f_pos = (inst_mat * vec4((v_pos + inst_pos2) * SCALE, 1)).xyz;
-
-	f_pos += inst_vel * (tick.x - inst_time);
+	f_pos = (inst_mat * vec4(v_pos * attr.scale * SCALE + attr.offs, 1)).xyz;
 
 	// First 3 normals are negative, next 3 are positive
 	vec3 normals[6] = vec3[](vec3(-1,0,0), vec3(1,0,0), vec3(0,-1,0), vec3(0,1,0), vec3(0,0,-1), vec3(0,0,1));
 	f_norm = (inst_mat * vec4(normals[(v_norm_ao >> 0) & 0x7u], 0)).xyz;
 
 	vec3 col = vec3((uvec3(v_col) >> uvec3(0, 8, 16)) & uvec3(0xFFu)) / 255.0;
-	f_col = srgb_to_linear(col) * srgb_to_linear(inst_col);
+	f_col = srgb_to_linear(col) * srgb_to_linear(attr.col);
 	f_ao = float((v_norm_ao >> 3) & 0x3u) / 4.0;
 
 	f_light = 1.0;
