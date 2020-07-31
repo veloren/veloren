@@ -53,12 +53,18 @@ impl LoginProvider {
         &mut self,
         username_or_token: &str,
         whitelist: &[String],
+        banlist: &[(String, String)]
     ) -> Result<(String, Uuid), RegisterError> {
         self
             // resolve user information
             .query(username_or_token)
             // if found, check name against whitelist or if user is admin
             .and_then(|(username, uuid)| {
+                // user cannot join if they are listed on the banlist
+                if banlist.len() > 0 && banlist.iter().any(|x| x.0.eq_ignore_ascii_case(&username)) {
+                    return Err(RegisterError::NotOnWhitelist);
+                }
+
                 // user can only join if he is admin, the whitelist is empty (everyone can join)
                 // or his name is in the whitelist
                 if !whitelist.is_empty() && !whitelist.contains(&username) {
