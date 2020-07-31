@@ -106,6 +106,18 @@
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
             threshold: 0.3,
-        )
+        ),
+        Explosion: (
+            files: [
+                "voxygen.audio.sfx.glider_open",
+            ],
+            threshold: 0.5,
+        ),
+        ProjectileShot: (
+            files: [
+                "voxygen.audio.sfx.glider_open",
+            ],
+            threshold: 0.5,
+        ),
     }
 )

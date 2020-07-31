@@ -29,6 +29,7 @@ pub struct Dependents {
     pub view_mat: Mat4<f32>,
     pub proj_mat: Mat4<f32>,
     pub cam_pos: Vec3<f32>,
+    pub cam_dir: Vec3<f32>,
 }
 
 pub struct Camera {
@@ -67,6 +68,7 @@ impl Camera {
                 view_mat: Mat4::identity(),
                 proj_mat: Mat4::identity(),
                 cam_pos: Vec3::zero(),
+                cam_dir: Vec3::unit_y(),
             },
         }
     }
@@ -104,6 +106,8 @@ impl Camera {
 
         // TODO: Make this more efficient.
         self.dependents.cam_pos = Vec3::from(self.dependents.view_mat.inverted() * Vec4::unit_w());
+
+        self.dependents.cam_dir = Vec3::from(self.dependents.view_mat.inverted() * -Vec4::unit_z());
     }
 
     pub fn frustum(&self) -> Frustum<f32> {

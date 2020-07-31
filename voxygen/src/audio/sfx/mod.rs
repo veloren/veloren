@@ -83,17 +83,17 @@
 
 mod event_mapper;
 
-use crate::audio::AudioFrontend;
+use crate::{audio::AudioFrontend, scene::Camera};
 
 use common::{
     assets,
     comp::{
-        item::{ItemKind, ToolCategory},
+        item::{Consumable, ItemKind, ToolCategory},
         CharacterAbilityType, InventoryUpdateEvent, Ori, Pos,
     },
     event::EventBus,
-    state::State,
     outcome::Outcome,
+    state::State,
 };
 use event_mapper::SfxEventMapper;
 use hashbrown::HashMap;
@@ -147,6 +147,8 @@ pub enum SfxEvent {
     Wield(ToolCategory),
     Unwield(ToolCategory),
     Inventory(SfxInventoryEvent),
+    Explosion,
+    ProjectileShot,
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
@@ -189,13 +191,19 @@ impl From<&InventoryUpdateEvent> for SfxEvent {
     }
 }
 
-impl TryFrom<Outcome> for SfxEventItem {
+impl<'a> TryFrom<&'a Outcome> for SfxEventItem {
     type Error = ();
 
-    fn try_from(outcome: Outcome) -> Result<Self, Self::Error> {
+    fn try_from(outcome: &'a Outcome) -> Result<Self, Self::Error> {
         match outcome {
-            Outcome::Explosion { pos, power } => Ok(Self::new(SfxEvent::GliderOpen, Some(pos), Some((power / 10.0).min(1.0)))),
-            Outcome::ProjectileShot { pos, .. } => Ok(Self::new(SfxEvent::GliderOpen, Some(pos), None)),
+            Outcome::Explosion { pos, power } => Ok(Self::new(
+                SfxEvent::Explosion,
+                Some(*pos),
+                Some((*power / 10.0).min(1.0)),
+            )),
+            Outcome::ProjectileShot { pos, .. } => {
+                Ok(Self::new(SfxEvent::ProjectileShot, Some(*pos), None))
+            },
             _ => Err(()),
         }
     }
@@ -237,36 +245,25 @@ impl SfxMgr {
         audio: &mut AudioFrontend,
         state: &State,
         player_entity: specs::Entity,
+        camera: &Camera,
     ) {
         if !audio.sfx_enabled() {
             return;
         }
 
         self.event_mapper
-            .maintain(state, player_entity, &self.triggers);
+            .maintain(state, player_entity, camera, &self.triggers);
 
         let ecs = state.ecs();
 
-        let player_position = ecs
-            .read_storage::<Pos>()
-            .get(player_entity)
-            .map_or(Vec3::zero(), |pos| pos.0);
-
-        let player_ori = *ecs
-            .read_storage::<Ori>()
-            .get(player_entity)
-            .copied()
-            .unwrap_or_default()
-            .0;
-
-        audio.set_listener_pos(&player_position, &player_ori);
+        audio.set_listener_pos(camera.dependents().cam_pos, camera.dependents().cam_dir);
 
         let events = ecs.read_resource::<EventBus<SfxEventItem>>().recv_all();
 
         for event in events {
             let position = match event.pos {
                 Some(pos) => pos,
-                _ => player_position,
+                _ => camera.dependents().cam_pos,
             };
 
             if let Some(item) = self.triggers.get_trigger(&event.sfx) {

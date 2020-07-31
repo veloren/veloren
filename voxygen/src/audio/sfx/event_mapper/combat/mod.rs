@@ -1,6 +1,9 @@
 /// EventMapper::Combat watches the combat states of surrounding entities' and
 /// emits sfx related to weapons and attacks/abilities
-use crate::audio::sfx::{SfxEvent, SfxEventItem, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR};
+use crate::{
+    audio::sfx::{SfxEvent, SfxEventItem, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR},
+    scene::Camera,
+};
 
 use super::EventMapper;
 
@@ -15,7 +18,6 @@ use common::{
 use hashbrown::HashMap;
 use specs::{Entity as EcsEntity, Join, WorldExt};
 use std::time::{Duration, Instant};
-use vek::*;
 
 #[derive(Clone)]
 struct PreviousEntityState {
@@ -39,16 +41,13 @@ pub struct CombatEventMapper {
 }
 
 impl EventMapper for CombatEventMapper {
-    fn maintain(&mut self, state: &State, player_entity: EcsEntity, triggers: &SfxTriggers) {
+    fn maintain(&mut self, state: &State, player_entity: specs::Entity, camera: &Camera, triggers: &SfxTriggers) {
         let ecs = state.ecs();
 
         let sfx_event_bus = ecs.read_resource::<EventBus<SfxEventItem>>();
         let mut sfx_emitter = sfx_event_bus.emitter();
 
-        let player_position = ecs
-            .read_storage::<Pos>()
-            .get(player_entity)
-            .map_or(Vec3::zero(), |pos| pos.0);
+        let cam_pos = camera.dependents().cam_pos;
 
         for (entity, pos, loadout, character) in (
             &ecs.entities(),
@@ -58,7 +57,7 @@ impl EventMapper for CombatEventMapper {
         )
             .join()
             .filter(|(_, e_pos, ..)| {
-                (e_pos.0.distance_squared(player_position)) < SFX_DIST_LIMIT_SQR
+                (e_pos.0.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR
             })
         {
             if let Some(character) = character {
