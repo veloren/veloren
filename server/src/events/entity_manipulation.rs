@@ -6,6 +6,7 @@ use common::{
         HealthChange, HealthSource, Player, Pos, Stats,
     },
     msg::{PlayerListUpdate, ServerMsg},
+    outcome::Outcome,
     state::BlockChange,
     sync::{Uid, UidAllocator, WorldSyncExt},
     sys::combat::BLOCK_ANGLE,
@@ -277,25 +278,16 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
     }
 }
 
-pub fn handle_explosion(
-    server: &Server,
-    pos: Vec3<f32>,
-    power: f32,
-    owner: Option<Uid>,
-    friendly_damage: bool,
-) {
-    // Go through all other entities
-    let hit_range = 3.0 * power;
+pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Option<Uid>) {
     let ecs = &server.state.ecs();
 
-    let owner_entity = owner.and_then(|uid| {
-        ecs.read_resource::<UidAllocator>()
-            .retrieve_entity_internal(uid.into())
-    });
-    let groups = ecs.read_storage::<comp::Group>();
+    // Add an outcome
+    ecs.write_resource::<Vec<Outcome>>()
+        .push(Outcome::Explosion { pos, power });
 
-    for (entity_b, pos_b, ori_b, character_b, stats_b, loadout_b) in (
-        &ecs.entities(),
+    // Go through all other entities
+    let hit_range = 3.0 * power;
+    for (pos_b, ori_b, character_b, stats_b, loadout_b) in (
         &ecs.read_storage::<comp::Pos>(),
         &ecs.read_storage::<comp::Ori>(),
         ecs.read_storage::<comp::CharacterState>().maybe(),

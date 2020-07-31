@@ -5,6 +5,7 @@ use common::{
         Projectile, Scale, Stats, Vel, WaypointArea,
     },
     util::Dir,
+    outcome::Outcome,
 };
 use specs::{Builder, Entity as EcsEntity, WorldExt};
 use vek::{Rgb, Vec3};
@@ -89,10 +90,15 @@ pub fn handle_shoot(
         .expect("Failed to fetch entity")
         .0;
 
+    let vel = *dir * 100.0;
+
+    // Add an outcome
+    state.ecs().write_resource::<Vec<Outcome>>().push(Outcome::ProjectileShot { pos, body, vel });
+
     // TODO: Player height
     pos.z += 1.2;
 
-    let mut builder = state.create_projectile(Pos(pos), Vel(*dir * 100.0), body, projectile);
+    let mut builder = state.create_projectile(Pos(pos), Vel(vel), body, projectile);
     if let Some(light) = light {
         builder = builder.with(light)
     }

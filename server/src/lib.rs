@@ -34,6 +34,7 @@ use common::{
     comp::{self, ChatType},
     event::{EventBus, ServerEvent},
     msg::{ClientState, ServerInfo, ServerMsg},
+    outcome::Outcome,
     recipe::default_recipe_book,
     state::{State, TimeOfDay},
     sync::WorldSyncExt,
@@ -118,6 +119,7 @@ impl Server {
         state
             .ecs_mut()
             .insert(comp::AdminList(settings.admins.clone()));
+        state.ecs_mut().insert(Vec::<Outcome>::new());
 
         // System timers for performance monitoring
         state.ecs_mut().insert(sys::EntitySyncTimer::default());
