@@ -351,7 +351,11 @@ impl<'a> Widget for Social<'a> {
                 })
             };
             // Create a name, level and zone row for every player in the list
-            for (i, (&uid, player_info)) in players.enumerate() {
+            // Filter out yourself from the online list
+            let my_uid = self.client.uid();
+            for (i, (&uid, player_info)) in
+                players.filter(|(uid, _)| Some(**uid) != my_uid).enumerate()
+            {
                 let selected = state.selected_uid.map_or(false, |u| u.0 == uid);
                 let alias = &player_info.player_alias;
                 let name = match &player_info.character {
@@ -433,47 +437,63 @@ impl<'a> Widget for Social<'a> {
                 {
                     state.update(|s| s.selected_uid = Some((uid, Instant::now())));
                 }
-                let player = if name == self.stats.name { true } else { false };
-                if Button::image(self.imgs.button)
-                    .w_h(106.0, 26.0)
-                    .bottom_right_with_margins_on(state.ids.frame, 9.0, 7.0)
-                    .hover_image(if !player && selected {
-                        self.imgs.button_hover
-                    } else {
-                        self.imgs.button
-                    })
-                    .press_image(if !player && selected {
-                        self.imgs.button_press
-                    } else {
-                        self.imgs.button
-                    })
-                    .label(&self.localized_strings.get("hud.group.invite"))
-                    .label_y(conrod_core::position::Relative::Scalar(3.0))
-                    .label_color(if !player && selected {
-                        TEXT_COLOR
-                    } else {
-                        TEXT_COLOR_3
-                    })
-                    .image_color(if !player && selected {
-                        TEXT_COLOR
-                    } else {
-                        TEXT_COLOR_3
-                    })
-                    .label_font_size(self.fonts.cyri.scale(15))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .set(state.ids.invite_button, ui)
-                    .was_clicked()
-                {
-                    if !player && selected {
-                        events.push(Event::Invite(uid));
-                        state.update(|s| {
-                            s.selected_uid = None;
-                        });
-                    }
+            }
+
+            // Invite Button
+            let selected_ingame = state
+                .selected_uid
+                .as_ref()
+                .map(|(s, _)| *s)
+                .filter(|selected| {
+                    self.client
+                        .player_list
+                        .get(selected)
+                        .map_or(false, |selected_player| {
+                            selected_player.is_online && selected_player.character.is_some()
+                        })
+                })
+                .or_else(|| {
+                    self.selected_entity
+                        .and_then(|s| self.client.state().read_component_copied(s.0))
+                });
+
+            if Button::image(self.imgs.button)
+                .w_h(106.0, 26.0)
+                .bottom_right_with_margins_on(state.ids.frame, 9.0, 7.0)
+                .hover_image(if selected_ingame.is_some() {
+                    self.imgs.button_hover
+                } else {
+                    self.imgs.button
+                })
+                .press_image(if selected_ingame.is_some() {
+                    self.imgs.button_press
+                } else {
+                    self.imgs.button
+                })
+                .label(&self.localized_strings.get("hud.group.invite"))
+                .label_y(conrod_core::position::Relative::Scalar(3.0))
+                .label_color(if selected_ingame.is_some() {
+                    TEXT_COLOR
+                } else {
+                    TEXT_COLOR_3
+                })
+                .image_color(if selected_ingame.is_some() {
+                    TEXT_COLOR
+                } else {
+                    TEXT_COLOR_3
+                })
+                .label_font_size(self.fonts.cyri.scale(15))
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .set(state.ids.invite_button, ui)
+                .was_clicked()
+            {
+                if let Some(uid) = selected_ingame {
+                    events.push(Event::Invite(uid));
+                    state.update(|s| {
+                        s.selected_uid = None;
+                    });
                 }
             }
-            // Invite Button
-            /*  */
         } // End of Online Tab
 
         // Alignment

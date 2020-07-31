@@ -1,7 +1,7 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
     Show, BLACK, GROUP_COLOR, HP_COLOR, KILL_COLOR, LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR,
-    TEXT_COLOR_GREY, TRANSPARENT, UI_HIGHLIGHT_0,
+    TEXT_COLOR_GREY, UI_HIGHLIGHT_0,
 };
 
 use crate::{
@@ -171,6 +171,9 @@ impl<'a> Widget for Group<'a> {
             .collect::<Vec<_>>();
         // Not considered in group for ui purposes if it is just pets
         let in_group = !group_members.is_empty();
+        if !in_group {
+            self.show.group_menu = false;
+        }
 
         // Helper
         let uid_to_name_text = |uid, client: &Client| match client.player_list.get(&uid) {
@@ -238,7 +241,7 @@ impl<'a> Widget for Group<'a> {
                 self.show.group_menu = !self.show.group_menu;
             };
             // Member panels
-            let group_size = group_members.len() + 1;
+            let group_size = group_members.len();
             if state.ids.member_panels_bg.len() < group_size {
                 state.update(|s| {
                     s.ids
@@ -303,13 +306,7 @@ impl<'a> Widget for Group<'a> {
                 .ecs()
                 .read_resource::<common::sync::UidAllocator>();
 
-            for (i, &uid) in self
-                .client
-                .uid()
-                .iter()
-                .chain(group_members.iter().copied())
-                .enumerate()
-            {
+            for (i, &uid) in group_members.iter().copied().enumerate() {
                 self.show.group = true;
                 let entity = uid_allocator.retrieve_entity_internal(uid.into());
                 let stats = entity.and_then(|entity| stats.get(entity));
@@ -324,7 +321,7 @@ impl<'a> Widget for Group<'a> {
                     } else {
                         110.0
                     };
-                    let pos = if i == 0 {
+                    let back = if i == 0 {
                         Image::new(self.imgs.member_bg)
                             .top_left_with_margins_on(ui.window, offset, 20.0)
                     } else {
@@ -340,21 +337,13 @@ impl<'a> Widget for Group<'a> {
                     };
                     // Don't show panel for the player!
                     // Panel BG
-                    pos.w_h(152.0, 36.0)
-                        .color(if i == 0 {
-                            Some(TRANSPARENT)
-                        } else {
-                            Some(TEXT_COLOR)
-                        })
+                    back.w_h(152.0, 36.0)
+                        .color(Some(TEXT_COLOR))
                         .set(state.ids.member_panels_bg[i], ui);
                     // Health
                     Image::new(self.imgs.bar_content)
                         .w_h(148.0 * health_perc, 22.0)
-                        .color(if i == 0 {
-                            Some(TRANSPARENT)
-                        } else {
-                            Some(health_col)
-                        })
+                        .color(Some(health_col))
                         .top_left_with_margins_on(state.ids.member_panels_bg[i], 2.0, 2.0)
                         .set(state.ids.member_health[i], ui);
                     if stats.is_dead {
@@ -363,7 +352,7 @@ impl<'a> Widget for Group<'a> {
                             .mid_top_with_margin_on(state.ids.member_panels_bg[i], 1.0)
                             .font_size(20)
                             .font_id(self.fonts.cyri.conrod_id)
-                            .color(if i == 0 { TRANSPARENT } else { KILL_COLOR })
+                            .color(KILL_COLOR)
                             .set(state.ids.dead_txt[i], ui);
                     } else {
                         // Health Text
@@ -388,46 +377,34 @@ impl<'a> Widget for Group<'a> {
                             .mid_top_with_margin_on(state.ids.member_panels_bg[i], txt_offset)
                             .font_size(font_size)
                             .font_id(self.fonts.cyri.conrod_id)
-                            .color(if i == 0 {
-                                TRANSPARENT
-                            } else {
-                                Color::Rgba(1.0, 1.0, 1.0, 0.5)
-                            })
+                            .color(Color::Rgba(1.0, 1.0, 1.0, 0.5))
                             .set(state.ids.health_txt[i], ui);
                     };
                     // Panel Frame
                     Image::new(self.imgs.member_frame)
                         .w_h(152.0, 36.0)
                         .middle_of(state.ids.member_panels_bg[i])
-                        .color(if i == 0 {
-                            Some(TRANSPARENT)
-                        } else {
-                            Some(UI_HIGHLIGHT_0)
-                        })
+                        .color(Some(UI_HIGHLIGHT_0))
                         .set(state.ids.member_panels_frame[i], ui);
                     // Panel Text
                     Text::new(&char_name)
                         .top_left_with_margins_on(state.ids.member_panels_frame[i], -22.0, 0.0)
                         .font_size(20)
                         .font_id(self.fonts.cyri.conrod_id)
-                        .color(if i == 0 { TRANSPARENT } else { BLACK })
+                        .color(BLACK)
                         .set(state.ids.member_panels_txt_bg[i], ui);
                     Text::new(&char_name)
                         .bottom_left_with_margins_on(state.ids.member_panels_txt_bg[i], 2.0, 2.0)
                         .font_size(20)
                         .font_id(self.fonts.cyri.conrod_id)
-                        .color(if i == 0 { TRANSPARENT } else { GROUP_COLOR })
+                        .color(GROUP_COLOR)
                         .set(state.ids.member_panels_txt[i], ui);
                     if let Some(energy) = energy {
                         let stam_perc = energy.current() as f64 / energy.maximum() as f64;
                         // Stamina
                         Image::new(self.imgs.bar_content)
                             .w_h(100.0 * stam_perc, 8.0)
-                            .color(if i == 0 {
-                                Some(TRANSPARENT)
-                            } else {
-                                Some(MANA_COLOR)
-                            })
+                            .color(Some(MANA_COLOR))
                             .top_left_with_margins_on(state.ids.member_panels_bg[i], 26.0, 2.0)
                             .set(state.ids.member_stam[i], ui);
                     }
@@ -446,36 +423,28 @@ impl<'a> Widget for Group<'a> {
                     } else {
                         110.0
                     };
-                    let pos = if i == 0 {
+                    let back = if i == 0 {
                         Image::new(self.imgs.member_bg)
                             .top_left_with_margins_on(ui.window, offset, 20.0)
                     } else {
                         Image::new(self.imgs.member_bg)
                             .down_from(state.ids.member_panels_bg[i - 1], 40.0)
                     };
-                    pos.w_h(152.0, 36.0)
-                        .color(if i == 0 {
-                            Some(TRANSPARENT)
-                        } else {
-                            Some(TEXT_COLOR)
-                        })
+                    back.w_h(152.0, 36.0)
+                        .color(Some(TEXT_COLOR))
                         .set(state.ids.member_panels_bg[i], ui);
                     // Panel Frame
                     Image::new(self.imgs.member_frame)
                         .w_h(152.0, 36.0)
                         .middle_of(state.ids.member_panels_bg[i])
-                        .color(if i == 0 {
-                            Some(TRANSPARENT)
-                        } else {
-                            Some(UI_HIGHLIGHT_0)
-                        })
+                        .color(Some(UI_HIGHLIGHT_0))
                         .set(state.ids.member_panels_frame[i], ui);
                     // Panel Text
                     Text::new(&self.localized_strings.get("hud.group.out_of_range"))
                         .mid_top_with_margin_on(state.ids.member_panels_bg[i], 3.0)
                         .font_size(16)
                         .font_id(self.fonts.cyri.conrod_id)
-                        .color(if i == 0 { TRANSPARENT } else { TEXT_COLOR })
+                        .color(TEXT_COLOR)
                         .set(state.ids.dead_txt[i], ui);
                 }
             }
@@ -579,7 +548,7 @@ impl<'a> Widget for Group<'a> {
                 }
                 // Group Members, only character names, cut long names when they exceed the
                 // button size
-                let group_size = group_members.len() + 1;
+                let group_size = group_members.len();
                 if state.ids.members.len() < group_size {
                     state.update(|s| {
                         s.ids
@@ -598,13 +567,7 @@ impl<'a> Widget for Group<'a> {
                     .rgba(0.33, 0.33, 0.33, 1.0)
                     .set(state.ids.scrollbar, ui);
                 // List member names
-                for (i, &uid) in self
-                    .client
-                    .uid()
-                    .iter()
-                    .chain(group_members.iter().copied())
-                    .enumerate()
-                {
+                for (i, &uid) in group_members.iter().copied().enumerate() {
                     let selected = state.selected_member.map_or(false, |u| u == uid);
                     let char_name = uid_to_name_text(uid, &self.client);
 

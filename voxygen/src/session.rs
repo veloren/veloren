@@ -537,6 +537,18 @@ impl PlayState for SessionState {
                                 self.target_entity.map(|e| (e, std::time::Instant::now()));
                         }
                     },
+                    Event::InputUpdate(GameInput::AcceptGroupInvite, true) => {
+                        let mut client = self.client.borrow_mut();
+                        if client.group_invite().is_some() {
+                            client.accept_group_invite();
+                        }
+                    },
+                    Event::InputUpdate(GameInput::DeclineGroupInvite, true) => {
+                        let mut client = self.client.borrow_mut();
+                        if client.group_invite().is_some() {
+                            client.decline_group_invite();
+                        }
+                    },
                     Event::AnalogGameInput(input) => match input {
                         AnalogGameInput::MovementX(v) => {
                             self.key_state.analog_matrix.x = v;
