@@ -8,10 +8,11 @@ use combat::CombatEventMapper;
 use movement::MovementEventMapper;
 use progression::ProgressionEventMapper;
 
+use crate::scene::Camera;
 use super::SfxTriggers;
 
 trait EventMapper {
-    fn maintain(&mut self, state: &State, player_entity: specs::Entity, triggers: &SfxTriggers);
+    fn maintain(&mut self, state: &State, player_entity: specs::Entity, camera: &Camera, triggers: &SfxTriggers);
 }
 
 pub struct SfxEventMapper {
@@ -33,10 +34,11 @@ impl SfxEventMapper {
         &mut self,
         state: &State,
         player_entity: specs::Entity,
+        camera: &Camera,
         triggers: &SfxTriggers,
     ) {
         for mapper in &mut self.mappers {
-            mapper.maintain(state, player_entity, triggers);
+            mapper.maintain(state, player_entity, camera, triggers);
         }
     }
 }

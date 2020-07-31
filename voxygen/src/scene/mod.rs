@@ -4,7 +4,7 @@ pub mod particle;
 pub mod simple;
 pub mod terrain;
 
-use self::{
+pub use self::{
     camera::{Camera, CameraMode},
     figure::FigureMgr,
     particle::ParticleMgr,
@@ -134,6 +134,9 @@ impl Scene {
 
     /// Get a reference to the scene's particle manager.
     pub fn particle_mgr(&self) -> &ParticleMgr { &self.particle_mgr }
+
+    /// Get a mutable reference to the scene's particle manager.
+    pub fn particle_mgr_mut(&mut self) -> &mut ParticleMgr { &mut self.particle_mgr }
 
     /// Get a reference to the scene's figure manager.
     pub fn figure_mgr(&self) -> &FigureMgr { &self.figure_mgr }
@@ -273,6 +276,7 @@ impl Scene {
             view_mat,
             proj_mat,
             cam_pos,
+            ..
         } = self.camera.dependents();
 
         // Update chunk loaded distance smoothly for nice shader fog
@@ -401,7 +405,7 @@ impl Scene {
 
         // Maintain audio
         self.sfx_mgr
-            .maintain(audio, scene_data.state, scene_data.player_entity);
+            .maintain(audio, scene_data.state, scene_data.player_entity, &self.camera);
         self.music_mgr.maintain(audio, scene_data.state);
     }
 

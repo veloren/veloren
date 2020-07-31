@@ -2,7 +2,10 @@
 /// and triggers sfx related to running, climbing and gliding, at a volume
 /// proportionate to the extity's size
 use super::EventMapper;
-use crate::audio::sfx::{SfxEvent, SfxEventItem, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR};
+use crate::{
+    audio::sfx::{SfxEvent, SfxEventItem, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR},
+    scene::Camera,
+};
 use common::{
     comp::{Body, CharacterState, PhysicsState, Pos, Vel},
     event::EventBus,
@@ -35,16 +38,13 @@ pub struct MovementEventMapper {
 }
 
 impl EventMapper for MovementEventMapper {
-    fn maintain(&mut self, state: &State, player_entity: EcsEntity, triggers: &SfxTriggers) {
+    fn maintain(&mut self, state: &State, player_entity: specs::Entity, camera: &Camera, triggers: &SfxTriggers) {
         let ecs = state.ecs();
 
         let sfx_event_bus = ecs.read_resource::<EventBus<SfxEventItem>>();
         let mut sfx_emitter = sfx_event_bus.emitter();
 
-        let player_position = ecs
-            .read_storage::<Pos>()
-            .get(player_entity)
-            .map_or(Vec3::zero(), |pos| pos.0);
+        let cam_pos = camera.dependents().cam_pos;
 
         for (entity, pos, vel, body, physics, character) in (
             &ecs.entities(),
@@ -56,7 +56,7 @@ impl EventMapper for MovementEventMapper {
         )
             .join()
             .filter(|(_, e_pos, ..)| {
-                (e_pos.0.distance_squared(player_position)) < SFX_DIST_LIMIT_SQR
+                (e_pos.0.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR
             })
         {
             if let Some(character) = character {

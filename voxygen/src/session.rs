@@ -24,6 +24,7 @@ use common::{
     terrain::{Block, BlockKind},
     util::Dir,
     vol::ReadVol,
+    outcome::Outcome,
 };
 use specs::{Join, WorldExt};
 use std::{cell::RefCell, rc::Rc, time::Duration, convert::TryFrom};
@@ -100,7 +101,7 @@ impl SessionState {
     }
 
     /// Tick the session (and the client attached to it).
-    fn tick(&mut self, dt: Duration, global_state: &mut GlobalState) -> Result<TickAction, Error> {
+    fn tick(&mut self, dt: Duration, global_state: &mut GlobalState, outcomes: &mut Vec<Outcome>) -> Result<TickAction, Error> {
         self.inputs.tick(dt);
 
         let mut client = self.client.borrow_mut();
@@ -158,15 +159,7 @@ impl SessionState {
                     global_state.settings.graphics.view_distance = vd;
                     global_state.settings.save_to_file_warn();
                 },
-                client::Event::Outcome(outcome) => {
-                    if let Ok(sfx_event_item) = SfxEventItem::try_from(outcome) {
-                        client
-                            .state()
-                            .ecs()
-                            .read_resource::<EventBus<SfxEventItem>>()
-                            .emit_now(sfx_event_item);
-                    }
-                },
+                client::Event::Outcome(outcome) => outcomes.push(outcome),
             }
         }
 
@@ -218,7 +211,7 @@ impl PlayState for SessionState {
                 .camera_mut()
                 .compute_dependents(&*self.client.borrow().state().terrain());
             let camera::Dependents {
-                view_mat, cam_pos, ..
+                cam_pos, cam_dir, ..
             } = self.scene.camera().dependents();
 
             let (is_aiming, aim_dir_offset) = {
@@ -240,8 +233,6 @@ impl PlayState for SessionState {
                 )
             };
             self.is_aiming = is_aiming;
-
-            let cam_dir: Vec3<f32> = Vec3::from(view_mat.inverted() * -Vec4::unit_z());
 
             // Check to see whether we're aiming at anything
             let (build_pos, select_pos, target_entity) =
@@ -642,10 +633,12 @@ impl PlayState for SessionState {
 
             self.inputs.climb = self.key_state.climb();
 
+            let mut outcomes = Vec::new();
+
             // Runs if either in a multiplayer server or the singleplayer server is unpaused
             if !global_state.paused() {
                 // Perform an in-game tick.
-                match self.tick(global_state.clock.get_avg_delta(), global_state) {
+                match self.tick(global_state.clock.get_avg_delta(), global_state, &mut outcomes) {
                     Ok(TickAction::Continue) => {}, // Do nothing
                     Ok(TickAction::Disconnect) => return PlayStateResult::Pop, // Go to main menu
                     Err(err) => {
@@ -1030,6 +1023,18 @@ impl PlayState for SessionState {
                         &mut global_state.audio,
                         &scene_data,
                     );
+
+                    // Process outcomes from client
+                    for outcome in outcomes {
+                        if let Ok(sfx_event_item) = SfxEventItem::try_from(&outcome) {
+                            client
+                                .state()
+                                .ecs()
+                                .read_resource::<EventBus<SfxEventItem>>()
+                                .emit_now(sfx_event_item);
+                        }
+                        self.scene.particle_mgr_mut().handle_outcome(&outcome, &scene_data);
+                    }
                 }
             }
 

@@ -2,7 +2,10 @@
 /// and triggers sfx for gaining experience and levelling up
 use super::EventMapper;
 
-use crate::audio::sfx::{SfxEvent, SfxEventItem, SfxTriggers};
+use crate::{
+    audio::sfx::{SfxEvent, SfxEventItem, SfxTriggers},
+    scene::Camera,
+};
 
 use common::{comp::Stats, event::EventBus, state::State};
 use specs::WorldExt;
@@ -23,7 +26,7 @@ pub struct ProgressionEventMapper {
 
 impl EventMapper for ProgressionEventMapper {
     #[allow(clippy::op_ref)] // TODO: Pending review in #587
-    fn maintain(&mut self, state: &State, player_entity: specs::Entity, triggers: &SfxTriggers) {
+    fn maintain(&mut self, state: &State, player_entity: specs::Entity, _camera: &Camera, triggers: &SfxTriggers) {
         let ecs = state.ecs();
 
         let next_state = ecs.read_storage::<Stats>().get(player_entity).map_or(

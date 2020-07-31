@@ -10,13 +10,14 @@ use common::{
     assets,
     comp::{object, Body, CharacterState, Pos},
     figure::Segment,
+    outcome::Outcome,
 };
 use dot_vox::DotVoxData;
 use hashbrown::HashMap;
 use rand::Rng;
 use specs::{Join, WorldExt};
 use std::time::{Duration, Instant};
-use vek::Vec3;
+use vek::*;
 
 struct Particles {
     alive_until: Instant, // created_at + lifespan
@@ -44,6 +45,24 @@ impl ParticleMgr {
     pub fn particle_count(&self) -> usize { self.instances.count() }
 
     pub fn particle_count_visible(&self) -> usize { self.instances.count() }
+
+    pub fn handle_outcome(&mut self, outcome: &Outcome, scene_data: &SceneData) {
+        let time = scene_data.state.get_time();
+        let now = Instant::now();
+        let mut rng = rand::thread_rng();
+
+        match outcome {
+            Outcome::Explosion { pos, power } => {
+                for _ in 0..64 {
+                    self.particles.push(Particles {
+                        alive_until: now + Duration::from_secs(4),
+                        instance: ParticleInstance::new(time, rng.gen(), ParticleMode::CampfireSmoke, *pos + Vec2::<f32>::zero().map(|_| rng.gen_range(-1.0, 1.0) * power)),
+                    });
+                }
+            },
+            _ => {},
+        }
+    }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, scene_data: &SceneData) {
         if scene_data.particles_enabled {

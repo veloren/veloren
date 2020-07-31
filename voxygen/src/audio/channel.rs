@@ -16,7 +16,10 @@
 //! the channel capacity has been reached and all channels are occupied, a
 //! warning is logged, and no sound is played.
 
-use crate::audio::fader::{FadeDirection, Fader};
+use crate::audio::{
+    fader::{FadeDirection, Fader},
+    Listener,
+};
 use rodio::{Device, Sample, Sink, Source, SpatialSink};
 use vek::*;
 
@@ -163,11 +166,13 @@ impl SfxChannel {
 
     pub fn is_done(&self) -> bool { self.sink.empty() }
 
-    pub fn set_emitter_position(&mut self, pos: [f32; 3]) { self.sink.set_emitter_position(pos); }
+    pub fn set_pos(&mut self, pos: Vec3<f32>) { self.pos = pos; }
 
-    pub fn set_left_ear_position(&mut self, pos: [f32; 3]) { self.sink.set_left_ear_position(pos); }
+    pub fn update(&mut self, listener: &Listener) {
+        const FALLOFF: f32 = 0.13;
 
-    pub fn set_right_ear_position(&mut self, pos: [f32; 3]) {
-        self.sink.set_right_ear_position(pos);
+        self.sink.set_emitter_position(((self.pos - listener.pos) * FALLOFF).into_array());
+        self.sink.set_left_ear_position(listener.ear_left_rpos.into_array());
+        self.sink.set_right_ear_position(listener.ear_right_rpos.into_array());
     }
 }
