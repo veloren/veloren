@@ -61,8 +61,9 @@ impl LoginProvider {
             // if found, check name against whitelist or if user is admin
             .and_then(|(username, uuid)| {
                 // user cannot join if they are listed on the banlist
-                if banlist.len() > 0 && banlist.iter().any(|x| x.0.eq_ignore_ascii_case(&username)) {
-                    return Err(RegisterError::NotOnWhitelist);
+                if let Some(ban_record) = banlist.iter().find(|x| x.0.eq_ignore_ascii_case(&username)) {
+                    // Pull reason string out of ban record and send a copy of it
+                    return Err(RegisterError::Banned(ban_record.1.clone()));
                 }
 
                 // user can only join if he is admin, the whitelist is empty (everyone can join)

@@ -455,6 +455,7 @@ impl Client {
                             RegisterError::AuthError(err) => Error::AuthErr(err),
                             RegisterError::InvalidCharacter => Error::InvalidCharacter,
                             RegisterError::NotOnWhitelist => Error::NotOnWhitelist,
+                            RegisterError::Banned(reason) => Error::Banned(reason),
                         });
                     },
                     ServerMsg::StateAnswer(Ok(ClientState::Registered)) => break Ok(()),

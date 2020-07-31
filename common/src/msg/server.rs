@@ -260,6 +260,7 @@ pub enum RequestStateError {
 pub enum RegisterError {
     AlreadyLoggedIn,
     AuthError(String),
+    Banned(String),
     InvalidCharacter,
     NotOnWhitelist,
     //TODO: InvalidAlias,
