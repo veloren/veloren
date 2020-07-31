@@ -1877,9 +1877,6 @@ fn handle_ban(
             server.settings_mut().edit(|s| {
                 s.banlist.push((target_alias.clone(), reason.clone()))
             });
-            // Overwrite AuthProvider's banlist since it AuthProvider only has a copy
-            let ecs = server.state.ecs();
-            ecs.write_resource::<AuthProvider>().banlist = server.settings().banlist.clone();
             server.notify_client(
                 client,
                 ChatType::CommandInfo.server_msg(
@@ -1889,6 +1886,7 @@ fn handle_ban(
             );
 
             // If the player is online kick them
+            let ecs = server.state.ecs();
             let entity_opt = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
                 .join()
                 .find(|(_, player)| player.alias == target_alias)
@@ -1917,9 +1915,6 @@ fn handle_unban(
         server.settings_mut().edit(|s| {
             s.banlist.retain(|x| !(x.0).eq_ignore_ascii_case(&username))
         });
-        // Overwrite AuthProvider's banlist since it AuthProvider only has a copy
-        let mut accounts = server.state.ecs().write_resource::<AuthProvider>();
-        accounts.banlist = server.settings().banlist.clone();
         server.notify_client(
             client,
             ChatType::CommandInfo.server_msg(format!("{} was successfully unbanned", username)),
