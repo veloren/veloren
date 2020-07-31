@@ -65,9 +65,9 @@ impl Animation for RunAnimation {
             0.0,
             skeleton_attr.upper_torso.0,
             skeleton_attr.upper_torso.1 + shortalt * -1.5,
-        ) / 8.0;
+        );
         next.upper_torso.ori = Quaternion::rotation_z(short * 0.18);
-        next.upper_torso.scale = Vec3::one() / 8.0;
+        next.upper_torso.scale = Vec3::one();
 
         next.lower_torso.offset = Vec3::new(
             0.0,
@@ -76,6 +76,15 @@ impl Animation for RunAnimation {
         );
         next.lower_torso.ori = Quaternion::rotation_z(short * 0.15) * Quaternion::rotation_x(0.14);
         next.lower_torso.scale = Vec3::one() * 1.02;
+
+        next.control.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.control.ori = Quaternion::rotation_z(0.0);
+        next.control.scale = Vec3::one();
+
+        next.main.offset = Vec3::new(-5.0, -7.0, 7.0);
+        next.main.ori =
+            Quaternion::rotation_x(PI) * Quaternion::rotation_y(0.6) * Quaternion::rotation_z(1.57);
+        next.main.scale = Vec3::one() * 1.02;
 
         next.shoulder_l.offset = Vec3::new(
             -skeleton_attr.shoulder.0,
@@ -98,20 +107,20 @@ impl Animation for RunAnimation {
         next.shoulder_r.scale = Vec3::one();
 
         next.hand_l.offset = Vec3::new(
-            -skeleton_attr.hand.0,
-            skeleton_attr.hand.1,
-            skeleton_attr.hand.2,
+            -1.0 + -skeleton_attr.hand.0,
+            skeleton_attr.hand.1 + foothoril * -4.0,
+            skeleton_attr.hand.2 + foothoril * 1.0,
         );
-        next.hand_l.ori = Quaternion::rotation_x(0.3 + (handhoril * -0.6).max(0.0))
+        next.hand_l.ori = Quaternion::rotation_x(0.15 + (handhoril * -1.2).max(-0.3))
             * Quaternion::rotation_y(handhoril * -0.1);
         next.hand_l.scale = Vec3::one() * 1.02;
 
         next.hand_r.offset = Vec3::new(
-            skeleton_attr.hand.0,
-            skeleton_attr.hand.1,
-            skeleton_attr.hand.2,
+            1.0 + skeleton_attr.hand.0,
+            skeleton_attr.hand.1 + foothorir * -4.0,
+            skeleton_attr.hand.2 + foothorir * 1.0,
         );
-        next.hand_r.ori = Quaternion::rotation_x(0.3 + (handhorir * -0.6).max(0.0))
+        next.hand_r.ori = Quaternion::rotation_x(0.15 + (handhorir * -1.2).max(-0.3))
             * Quaternion::rotation_y(handhorir * 0.1);
         next.hand_r.scale = Vec3::one() * 1.02;
 
@@ -152,9 +161,9 @@ impl Animation for RunAnimation {
             Quaternion::rotation_x(-0.5 + footrotr * 0.85) * Quaternion::rotation_y(0.0);
         next.foot_r.scale = Vec3::one() / 8.0;
 
-        next.torso.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.torso.offset = Vec3::new(0.0, 0.0, 0.0) / 8.0;
         next.torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(-0.25);
-        next.torso.scale = Vec3::one();
+        next.torso.scale = Vec3::one() / 8.0;
         next
     }
 }

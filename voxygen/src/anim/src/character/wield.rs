@@ -346,6 +346,10 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_y(-1.27)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
+                next.control.offset = Vec3::new(0.0, 6.0, 6.0);
+                next.control.ori =
+                    Quaternion::rotation_x(u_slow * 0.2) * Quaternion::rotation_z(u_slowalt * 0.1);
+                next.control.scale = Vec3::one();
             },
             Some(ToolKind::Farming(_)) => {
                 if velocity < 0.5 {
