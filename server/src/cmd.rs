@@ -26,7 +26,6 @@ use world::util::Sampler;
 
 use scan_fmt::{scan_fmt, scan_fmt_some};
 use tracing::error;
-use crate::auth_provider::AuthProvider;
 
 pub trait ChatCommandExt {
     fn execute(&self, server: &mut Server, entity: EcsEntity, args: String);

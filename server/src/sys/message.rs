@@ -89,7 +89,7 @@ impl Sys {
                     token_or_username,
                 } => {
                     let (username, uuid) =
-                        match login_provider.try_login(&token_or_username, &settings.whitelist) {
+                        match login_provider.try_login(&token_or_username, &settings.whitelist, &settings.banlist) {
                             Err(err) => {
                                 client.error_state(RequestStateError::RegisterDenied(err));
                                 break Ok(());
