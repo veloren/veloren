@@ -94,10 +94,10 @@ float is_star_at(vec3 dir) {
 	vec3 pos = (floor(dir * star_scale) - 0.5) / star_scale;
 
 	// Noisy offsets
-	pos += (3.0 / star_scale) * rand_perm_3(pos);
+	pos += (3.0 / star_scale) * (1.0 + hash(pos.yxzz) * 0.85);
 
 	// Find distance to fragment
-	float dist = length(normalize(pos) - dir);
+	float dist = length(pos - dir);
 
 	// Star threshold
 	if (dist < 0.0015) {
