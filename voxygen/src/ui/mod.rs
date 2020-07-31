@@ -90,11 +90,10 @@ pub struct Font(text::Font);
 impl assets::Asset for Font {
     const ENDINGS: &'static [&'static str] = &["ttf"];
 
-    #[allow(clippy::redundant_clone)] // TODO: Pending review in #587
     fn parse(mut buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         let mut buf = Vec::new();
         buf_reader.read_to_end(&mut buf)?;
-        Ok(Font(text::Font::from_bytes(buf.clone()).unwrap()))
+        Ok(Font(text::Font::from_bytes(buf).unwrap()))
     }
 }
 
@@ -588,23 +587,25 @@ impl Ui {
                         glyph_cache.queue_glyph(font_id.index(), glyph.clone());
                     }
 
-                    glyph_cache
-                        .cache_queued(|rect, data| {
-                            let offset = [rect.min.x as u16, rect.min.y as u16];
-                            let size = [rect.width() as u16, rect.height() as u16];
+                    if let Err(err) = glyph_cache.cache_queued(|rect, data| {
+                        let offset = [rect.min.x as u16, rect.min.y as u16];
+                        let size = [rect.width() as u16, rect.height() as u16];
 
-                            let new_data = data
-                                .iter()
-                                .map(|x| [255, 255, 255, *x])
-                                .collect::<Vec<[u8; 4]>>();
+                        let new_data = data
+                            .iter()
+                            .map(|x| [255, 255, 255, *x])
+                            .collect::<Vec<[u8; 4]>>();
 
-                            if let Err(err) =
-                                renderer.update_texture(cache_tex, offset, size, &new_data)
-                            {
-                                warn!("Failed to update texture: {:?}", err);
-                            }
-                        })
-                        .unwrap();
+                        if let Err(err) =
+                            renderer.update_texture(cache_tex, offset, size, &new_data)
+                        {
+                            warn!("Failed to update texture: {:?}", err);
+                        }
+                    }) {
+                        warn!("Failed to cache queued glyphs: {:?}", err);
+                        // Clear uncachable glyphs from the queue
+                        glyph_cache.clear_queue();
+                    }
 
                     let color = srgba_to_linear(color.to_fsa().into());
 
