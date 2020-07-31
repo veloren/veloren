@@ -1680,12 +1680,29 @@ impl FigureMgr {
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
-
+                        _ => anim::biped_large::IdleAnimation::update_skeleton(
+                            &BipedLargeSkeleton::new(),
+                            time,
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                    };
+                    let target_bones = match &character {
+                        CharacterState::Wielding { .. } => {
+                            anim::biped_large::WieldAnimation::update_skeleton(
+                                &target_base,
+                                (vel.0.magnitude(), time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         // TODO!
-                        _ => state.skeleton_mut().clone(),
+                        _ => target_base,
                     };
 
-                    state.skeleton.interpolate(&target_base, dt);
+                    state.skeleton.interpolate(&target_bones, dt);
                     state.update(
                         renderer,
                         pos.0,
