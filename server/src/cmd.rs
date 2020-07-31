@@ -65,6 +65,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Adminify => handle_adminify,
         ChatCommand::Alias => handle_alias,
         ChatCommand::Build => handle_build,
+        ChatCommand::Campfire => handle_spawn_campfire,
         ChatCommand::Debug => handle_debug,
         ChatCommand::DebugColumn => handle_debug_column,
         ChatCommand::Dummy => handle_spawn_training_dummy,
@@ -655,6 +656,47 @@ fn handle_spawn_training_dummy(
             server.notify_client(
                 client,
                 ChatType::CommandInfo.server_msg("Spawned a training dummy"),
+            );
+        },
+        None => server.notify_client(
+            client,
+            ChatType::CommandError.server_msg("You have no position!"),
+        ),
+    }
+}
+
+fn handle_spawn_campfire(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    _args: String,
+    _action: &ChatCommand,
+) {
+    match server.state.read_component_cloned::<comp::Pos>(target) {
+        Some(pos) => {
+            let vel = Vec3::new(
+                rand::thread_rng().gen_range(-2.0, 3.0),
+                rand::thread_rng().gen_range(-2.0, 3.0),
+                10.0,
+            );
+
+            let body = comp::Body::Object(comp::object::Body::CampfireLit);
+
+            let mut stats = comp::Stats::new("Campfire".to_string(), body);
+
+            // Level 0 will prevent exp gain from kill
+            stats.level.set_level(0);
+
+            server
+                .state
+                .create_npc(pos, stats, comp::Loadout::default(), body)
+                .with(comp::Vel(vel))
+                .with(comp::MountState::Unmounted)
+                .build();
+
+            server.notify_client(
+                client,
+                ChatType::CommandInfo.server_msg("Spawned a campfire"),
             );
         },
         None => server.notify_client(
