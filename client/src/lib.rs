@@ -30,6 +30,7 @@ use common::{
     sync::{Uid, UidAllocator, WorldSyncExt},
     terrain::{block::Block, TerrainChunk, TerrainChunkSize},
     vol::RectVolSize,
+    outcome::Outcome,
 };
 use futures_executor::block_on;
 use futures_timer::Delay;
@@ -66,6 +67,7 @@ pub enum Event {
     InventoryUpdated(InventoryUpdateEvent),
     Notification(Notification),
     SetViewDistance(u32),
+    Outcome(Outcome),
 }
 
 pub struct Client {
@@ -1229,6 +1231,9 @@ impl Client {
                     self.view_distance = Some(vd);
                     frontend_events.push(Event::SetViewDistance(vd));
                 },
+                ServerMsg::Outcomes(outcomes) => frontend_events.extend(outcomes
+                    .into_iter()
+                    .map(Event::Outcome)),
             }
         }
     }

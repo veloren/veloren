@@ -26,7 +26,7 @@ use common::{
     vol::ReadVol,
 };
 use specs::{Join, WorldExt};
-use std::{cell::RefCell, rc::Rc, time::Duration};
+use std::{cell::RefCell, rc::Rc, time::Duration, convert::TryFrom};
 use tracing::{error, info};
 use vek::*;
 
@@ -157,6 +157,15 @@ impl SessionState {
                 client::Event::SetViewDistance(vd) => {
                     global_state.settings.graphics.view_distance = vd;
                     global_state.settings.save_to_file_warn();
+                },
+                client::Event::Outcome(outcome) => {
+                    if let Ok(sfx_event_item) = SfxEventItem::try_from(outcome) {
+                        client
+                            .state()
+                            .ecs()
+                            .read_resource::<EventBus<SfxEventItem>>()
+                            .emit_now(sfx_event_item);
+                    }
                 },
             }
         }

@@ -93,6 +93,7 @@ use common::{
     },
     event::EventBus,
     state::State,
+    outcome::Outcome,
 };
 use event_mapper::SfxEventMapper;
 use hashbrown::HashMap;
@@ -184,6 +185,18 @@ impl From<&InventoryUpdateEvent> for SfxEvent {
             InventoryUpdateEvent::Given => SfxEvent::Inventory(SfxInventoryEvent::Given),
             InventoryUpdateEvent::Swapped => SfxEvent::Inventory(SfxInventoryEvent::Swapped),
             _ => SfxEvent::Inventory(SfxInventoryEvent::Swapped),
+        }
+    }
+}
+
+impl TryFrom<Outcome> for SfxEventItem {
+    type Error = ();
+
+    fn try_from(outcome: Outcome) -> Result<Self, Self::Error> {
+        match outcome {
+            Outcome::Explosion { pos, power } => Ok(Self::new(SfxEvent::GliderOpen, Some(pos), Some((power / 10.0).min(1.0)))),
+            Outcome::ProjectileShot { pos, .. } => Ok(Self::new(SfxEvent::GliderOpen, Some(pos), None)),
+            _ => Err(()),
         }
     }
 }
