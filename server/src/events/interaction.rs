@@ -48,7 +48,6 @@ pub fn handle_lantern(server: &mut Server, entity: EcsEntity) {
     }
 }
 
-#[allow(clippy::useless_conversion)] // TODO: Pending review in #587
 pub fn handle_mount(server: &mut Server, mounter: EcsEntity, mountee: EcsEntity) {
     let state = server.state_mut();
 
@@ -58,24 +57,18 @@ pub fn handle_mount(server: &mut Server, mounter: EcsEntity, mountee: EcsEntity)
         .get(mounter)
         .is_none()
     {
-        let not_mounting_yet = if let Some(comp::MountState::Unmounted) = state
-            .ecs()
-            .read_storage::<comp::MountState>()
-            .get(mountee)
-            .cloned()
-        {
-            true
-        } else {
-            false
-        };
+        let not_mounting_yet = matches!(
+            state.ecs().read_storage::<comp::MountState>().get(mountee),
+            Some(comp::MountState::Unmounted)
+        );
 
         if not_mounting_yet {
             if let (Some(mounter_uid), Some(mountee_uid)) = (
                 state.ecs().uid_from_entity(mounter),
                 state.ecs().uid_from_entity(mountee),
             ) {
-                state.write_component(mountee, comp::MountState::MountedBy(mounter_uid.into()));
-                state.write_component(mounter, comp::Mounting(mountee_uid.into()));
+                state.write_component(mountee, comp::MountState::MountedBy(mounter_uid));
+                state.write_component(mounter, comp::Mounting(mountee_uid));
             }
         }
     }

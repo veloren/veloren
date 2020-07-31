@@ -911,7 +911,8 @@ impl Hud {
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         let font_size_xp = 30
-                            + (exp_change.abs() as f32 / stats.exp.maximum() as f32 * 50.0) as u32
+                            + ((exp_change.abs() as f32 / stats.exp.maximum() as f32).min(1.0)
+                                * 50.0) as u32
                             + if timer < 0.1 {
                                 (FLASH_MAX * (1.0 - timer / 0.1)) as u32
                             } else {
@@ -953,7 +954,8 @@ impl Hud {
                             // Increase font size based on fraction of maximum health
                             // "flashes" by having a larger size in the first 100ms
                             let font_size_xp = 30
-                                + (floater.exp_change.abs() as f32 / stats.exp.maximum() as f32
+                                + ((floater.exp_change.abs() as f32 / stats.exp.maximum() as f32)
+                                    .min(1.0)
                                     * 50.0) as u32
                                 + if floater.timer < 0.1 {
                                     (FLASH_MAX * (1.0 - floater.timer / 0.1)) as u32
