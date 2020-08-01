@@ -57,7 +57,7 @@
     ),
     (Goose, Male): (
         head: (
-            offset: (-2.0, -3.5, -2.5),
+            offset: (-2.0, -3.5, -0.0),
             center: ("npc.goose.male.head"),
         ),
         torso: (
@@ -71,7 +71,7 @@
     ),
     (Goose, Female): (
         head: (
-            offset: (-2.0, -3.5, -2.5),
+            offset: (-2.0, -3.5, -0.0),
             center: ("npc.goose.male.head"),
         ),
         torso: (
@@ -85,7 +85,7 @@
     ),
     (Peacock, Male): (
         head: (
-            offset: (-2.0, -1.5, -6.5),
+            offset: (-2.0, -1.5, -0.0),
             center: ("npc.peacock.male.head"),
         ),
         torso: (
@@ -99,7 +99,7 @@
     ),
     (Peacock, Female): (
         head: (
-            offset: (-2.0, -1.5, -6.5),
+            offset: (-2.0, -1.5, -0.0),
             center: ("npc.peacock.female.head"),
         ),
         torso: (
@@ -197,7 +197,7 @@
     ),
     (Cockatrice, Male): (
         head: (
-            offset: (-2.5, -3.5, -8.0),
+            offset: (-2.5, 0.0, -8.0),
             center: ("npc.cockatrice.male.head"),
         ),
         torso: (
@@ -211,7 +211,7 @@
     ),
     (Cockatrice, Female): (
         head: (
-            offset: (-2.5, -3.5, -8.0),
+            offset: (-2.5, 0.0, -8.0),
             center: ("npc.cockatrice.male.head"),
         ),
         torso: (

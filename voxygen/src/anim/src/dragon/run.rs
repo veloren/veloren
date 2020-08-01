@@ -1,5 +1,5 @@
 use super::{super::Animation, DragonSkeleton, SkeletonAttr};
-use std::{f32::consts::PI, ops::Mul};
+use std::f32::consts::PI;
 use vek::*;
 
 pub struct RunAnimation;
@@ -14,7 +14,7 @@ impl Animation for RunAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "dragon_run")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (velocity, orientation, last_ori, global_time, avg_vel): Self::Dependency,
+        (_velocity, orientation, last_ori, _global_time, avg_vel): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -34,20 +34,6 @@ impl Animation for RunAnimation {
 
         let shortalt = (anim_time as f32 * 16.0 * lab as f32 + PI * 0.5).sin();
 
-        let footvert = (anim_time as f32 * 16.0 * lab as f32 + PI * 0.0).sin();
-        let footvertt = (anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin();
-        let footvertalt = (anim_time as f32 * 16.0 * lab as f32 + PI * 1.2).sin();
-        let footverttalt = (anim_time as f32 * 16.0 * lab as f32 + PI * 1.6).sin();
-
-        let footvertf = (anim_time as f32 * 16.0 * lab as f32 + PI * 0.3).sin();
-        let footverttf = (anim_time as f32 * 16.0 * lab as f32 + PI * 0.7).sin();
-        let footvertaltf = (anim_time as f32 * 16.0 * lab as f32 + PI * 1.5).sin();
-        let footverttaltf = (anim_time as f32 * 16.0 * lab as f32 + PI * 1.9).sin();
-
-        let footvertfslow = (anim_time as f32 * 16.0 * lab as f32 + PI * 0.6).sin();
-        let footverttfslow = (anim_time as f32 * 16.0 * lab as f32 + PI * 1.0).sin();
-        let footvertaltfslow = (anim_time as f32 * 16.0 * lab as f32 + PI * 1.8).sin();
-        let footverttaltfslow = (anim_time as f32 * 16.0 * lab as f32 + PI * 2.2).sin();
         //
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
@@ -78,9 +64,6 @@ impl Animation for RunAnimation {
         let horirfoffset = (anim_time as f32 * lab as f32 + PI * 0.20).sin();
         let horilboffset = (anim_time as f32 * lab as f32 + PI * 1.4).sin();
         let horirb = (anim_time as f32 * lab as f32 + PI * 0.4).sin();
-
-        let vertchest = (anim_time as f32 * lab as f32 + PI * 0.3).sin().max(0.2);
-        let horichest = (anim_time as f32 * lab as f32 + PI * 0.8).sin();
 
         let center = (anim_time as f32 * lab as f32 + PI / 2.0).sin();
         let centeroffset = (anim_time as f32 * lab as f32 + PI * 1.5).sin();

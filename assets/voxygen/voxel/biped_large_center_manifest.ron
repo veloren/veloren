@@ -9,12 +9,12 @@
             center: ("npc.ogre.male.torso_upper"),
         ),
         torso_lower: (
-            offset: (-5.0, -4.5, -4.5),
+            offset: (-5.0, -4.5, -9.0),
             center: ("npc.ogre.male.torso_lower"),
         ),
         main: (
             offset: (-8.0, -4.5, -5.0),
-            center: ("npc.ogre.male.torso_upper"),
+            center: ("armor.empty"),
         )
     ),
     (Ogre, Female): (
@@ -27,12 +27,12 @@
             center: ("npc.ogre.male.torso_upper"),
         ),
         torso_lower: (
-            offset: (-5.0, -4.5, -4.5),
+            offset: (-5.0, -4.5, -9.0),
             center: ("npc.ogre.male.torso_lower"),
         ),
         main: (
             offset: (-8.0, -4.5, -5.0),
-            center: ("npc.ogre.male.torso_upper"),
+            center: ("armor.empty"),
         )
     ),
     (Cyclops, Male): (
@@ -81,12 +81,12 @@
             center: ("npc.wendigo.male.torso_upper"),
         ),
         torso_lower: (
-            offset: (-4.0, -2.0, -2.0),
+            offset: (-4.0, -2.0, -4.0),
             center: ("npc.wendigo.male.torso_lower"),
         ),
         main: (
             offset: (-8.0, -4.5, -5.0),
-            center: ("npc.ogre.male.torso_upper"),
+            center: ("armor.empty"),
         )
     ),
     (Wendigo, Female): (
@@ -99,12 +99,12 @@
             center: ("npc.wendigo.male.torso_upper"),
         ),
         torso_lower: (
-            offset: (-4.0, -2.0, -2.0),
+            offset: (-4.0, -2.0, -4.0),
             center: ("npc.wendigo.male.torso_lower"),
         ),
         main: (
             offset: (-8.0, -4.5, -5.0),
-            center: ("npc.ogre.male.torso_upper"),
+            center: ("armor.empty"),
         )
     ),
     (Troll, Male): (
@@ -117,12 +117,12 @@
             center: ("npc.troll.male.torso_upper"),
         ),
         torso_lower: (
-            offset: (-6.0, -3.5, -2.5),
+            offset: (-6.0, -3.5, -5.0),
             center: ("npc.troll.male.torso_lower"),
         ),
         main: (
             offset: (-8.0, -4.5, -5.0),
-            center: ("npc.ogre.male.torso_upper"),
+            center: ("armor.empty"),
         )
     ),
     (Troll, Female): (
@@ -135,12 +135,12 @@
             center: ("npc.troll.male.torso_upper"),
         ),
         torso_lower: (
-            offset: (-6.0, -3.5, -2.5),
+            offset: (-6.0, -3.5, -5.0),
             center: ("npc.troll.male.torso_lower"),
         ),
         main: (
             offset: (-8.0, -4.5, -5.0),
-            center: ("npc.ogre.male.torso_upper"),
+            center: ("armor.empty"),
         )
     ),
 })

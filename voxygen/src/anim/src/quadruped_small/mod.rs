@@ -312,7 +312,7 @@ impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
                 (Hyena, _) => (1.0),
                 (Rabbit, _) => (1.2),
                 (Truffler, _) => (0.6),
-                (Frog, _) => (1.2),
+                (Frog, _) => (0.7),
             },
         }
     }

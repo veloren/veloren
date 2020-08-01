@@ -1231,12 +1231,29 @@ impl FigureMgr {
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
-
+                        _ => anim::bird_medium::IdleAnimation::update_skeleton(
+                            &BirdMediumSkeleton::new(),
+                            time,
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                    };
+                    let target_bones = match &character {
+                        CharacterState::Sit { .. } => {
+                            anim::bird_medium::FeedAnimation::update_skeleton(
+                                &target_base,
+                                time,
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         // TODO!
-                        _ => state.skeleton_mut().clone(),
+                        _ => target_base,
                     };
 
-                    state.skeleton.interpolate(&target_base, dt);
+                    state.skeleton.interpolate(&target_bones, dt);
                     state.update(
                         renderer,
                         pos.0,
