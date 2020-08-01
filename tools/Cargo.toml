@@ -1,0 +1,10 @@
+[package]
+name = "tools"
+version = "0.1.0"
+authors = ["Sam <samuelkeiffer@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+common = { package = "veloren-common", path = "../common" }
+csv = "1.1.3"
+structopt = "0.3.13"

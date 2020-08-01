@@ -1,0 +1,13 @@
+Item(
+    name: "Hardwood Mallet",
+    description: "Seems sturdy enough.",
+    kind: Tool(
+        (
+            kind: Hammer(WoodHammer0),    
+            stats: (
+                equip_time_millis: 500,
+                power: 0.60,
+            ),
+        )
+    ),
+)

@@ -4,7 +4,7 @@ Item(
     kind: Consumable(
         kind: Coconut,
         effect: Health((
-            amount: 30,
+            amount: 300,
             cause: Item,
         )),       
     ),

@@ -1,10 +1,13 @@
 Item(
     name: "Broom",
-    description: "",
+    description: "It's beginning to fall apart.",
     kind: Tool (
         (
             kind: Farming(Broom),
-            equip_time_millis: 400,
+            stats: (
+                equip_time_millis: 400,
+                power: 1.00,
+            ),
         )
     ),
 )

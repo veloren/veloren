@@ -1,0 +1,13 @@
+Item(
+    name: "Worn Dwarven Axe",
+    description: "Hopefully it's previous owner won't miss it.",
+    kind: Tool(
+        (
+            kind: Axe(WornIronAxe0),    
+            stats: (
+                equip_time_millis: 400,
+                power: 0.80,
+            ),
+        )
+    ),
+)

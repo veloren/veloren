@@ -4,7 +4,7 @@ Item(
     kind: Consumable(
         kind: PotionMinor,
         effect: Health((
-            amount: 50,
+            amount: 500,
             cause: Item,
         )),        
     ),

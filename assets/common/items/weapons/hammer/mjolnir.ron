@@ -1,0 +1,13 @@
+Item(
+    name: "Mjolnir",
+    description: "It's crackling with lightning.",
+    kind: Tool(
+        (
+            kind: Hammer(Mjolnir),    
+            stats: (
+                equip_time_millis: 500,
+                power: 2.00,
+            ),
+        )
+    ),
+)

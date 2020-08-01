@@ -1,0 +1,13 @@
+Item(
+    name: "Tribal Axe",
+    description: "An axe forged from steel that thirsts for blood.",
+    kind: Tool(
+        (
+            kind: Axe(BloodsteelAxe2),    
+            stats: (
+                equip_time_millis: 400,
+                power: 1.60,
+            ),
+        )
+    ),
+)

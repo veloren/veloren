@@ -1,0 +1,13 @@
+Item(
+    name: "Cobalt Mace",
+    description: "Forged with cobalt.",
+    kind: Tool(
+        (
+            kind: Hammer(CobaltHammer1),    
+            stats: (
+                equip_time_millis: 500,
+                power: 1.60,
+            ),
+        )
+    ),
+)
