@@ -1,10 +1,13 @@
 Item(
     name: "Pitchfork",
-    description: "",
+    description: "One of the prongs is broken.",
     kind: Tool (
         (
             kind: Farming(Pitchfork),
-            equip_time_millis: 400,
+            stats: (
+                equip_time_millis: 400,
+                power: 1.00,
+            ),
         )
     ),
 )

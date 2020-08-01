@@ -4,7 +4,7 @@ Item(
     kind: Consumable(
         kind: Mushroom,
         effect: Health((
-            amount: 10,
+            amount: 100,
             cause: Item,
         )),        
     ),

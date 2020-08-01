@@ -1,10 +1,13 @@
 Item(
     name: "Rusty Dagger",
-    description: "One-Hand Dagger\n\nPower 5-6\n\n#writing.\n\n<Right-Click to use>",
+    description: "Easily concealed.",
     kind: Tool(
         (
             kind: Dagger(BasicDagger),    
-            equip_time_millis: 300,
+            stats: (
+                equip_time_millis: 300,
+                power: 1.00,
+            ),
         )
     ),
 )

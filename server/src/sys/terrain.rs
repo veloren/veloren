@@ -132,12 +132,12 @@ impl<'a> System<'a> for Sys {
                     } else {
                         Some(ItemConfig {
                             // We need the empty item so npcs can attack
-                            item: assets::load_expect_cloned("common.items.weapons.empty"),
+                            item: assets::load_expect_cloned("common.items.weapons.empty.empty"),
                             ability1: Some(CharacterAbility::BasicMelee {
                                 energy_cost: 0,
                                 buildup_duration: Duration::from_millis(0),
                                 recover_duration: Duration::from_millis(400),
-                                base_healthchange: -6,
+                                base_healthchange: -60,
                                 range: 5.0,
                                 max_angle: 80.0,
                             }),
@@ -258,7 +258,7 @@ impl<'a> System<'a> for Sys {
                                 energy_cost: 0,
                                 buildup_duration: Duration::from_millis(800),
                                 recover_duration: Duration::from_millis(200),
-                                base_healthchange: -10,
+                                base_healthchange: -100,
                                 range: 3.5,
                                 max_angle: 60.0,
                             }),

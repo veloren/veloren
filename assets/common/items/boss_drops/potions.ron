@@ -4,7 +4,7 @@ Item(
     kind: Consumable(
         kind: Potion,
         effect: Health((
-            amount: 100,
+            amount: 1000,
             cause: Item,
         )),
     ),

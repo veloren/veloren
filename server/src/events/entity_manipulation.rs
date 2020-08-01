@@ -162,7 +162,7 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
     let state = &server.state;
     if vel.z <= -30.0 {
         if let Some(stats) = state.ecs().write_storage::<comp::Stats>().get_mut(entity) {
-            let falldmg = vel.z.powi(2) / 20.0 - 40.0;
+            let falldmg = (vel.z.powi(2) / 20.0 - 40.0) * 10.0;
             let mut damage = Damage {
                 healthchange: -falldmg,
                 source: DamageSource::Falling,
@@ -238,7 +238,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Opti
             && distance_squared < hit_range.powi(2)
         {
             // Weapon gives base damage
-            let dmg = (1.0 - distance_squared / hit_range.powi(2)) * power * 10.0;
+            let dmg = (1.0 - distance_squared / hit_range.powi(2)) * power * 130.0;
 
             let mut damage = Damage {
                 healthchange: -dmg,

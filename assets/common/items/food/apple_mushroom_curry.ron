@@ -4,7 +4,7 @@ Item(
     kind: Consumable(
         kind: AppleShroomCurry,
         effect: Health((
-            amount: 120,
+            amount: 1200,
             cause: Item,
         )),        
     ),

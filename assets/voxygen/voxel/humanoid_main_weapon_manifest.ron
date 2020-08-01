@@ -167,13 +167,262 @@
         vox_spec: ("weapon.sword.cultist_purp_2h-0", (-2.0, -4.5, -7.5)),
         color: None
     ),
+    // Axes
     Axe(BasicAxe): (
-        vox_spec: ("weapon.axe.rusty_2h", (-1.5, -5.0, -4.0)),
+        vox_spec: ("weapon.axe.2haxe_rusty", (-1.5, -5.0, -4.0)),
+        color: None
+    ),
+    Axe(OrcAxe0): (
+        vox_spec: ("weapon.axe.2haxe_orc-0", (-1.5, -3.0, -4.5)),
+        color: None
+    ),
+    Axe(WornIronAxe0): (
+        vox_spec: ("weapon.axe.2haxe_worn_iron-0", (-1.5, -3.0, -4.0)),
+        color: None
+    ),
+    Axe(WornIronAxe1): (
+        vox_spec: ("weapon.axe.2haxe_worn_iron-1", (-1.5, -4.0, -4.0)),
+        color: None
+    ),
+    Axe(WornIronAxe2): (
+        vox_spec: ("weapon.axe.2haxe_worn_iron-2", (-1.5, -4.0, -4.0)),
+        color: None
+    ),
+    Axe(WornIronAxe3): (
+        vox_spec: ("weapon.axe.2haxe_worn_iron-3", (-1.5, -4.5, -4.0)),
+        color: None
+    ),
+    Axe(WornIronAxe4): (
+        vox_spec: ("weapon.axe.2haxe_worn_iron-4", (-1.5, -4.0, -5.5)),
+        color: None
+    ),
+    Axe(BronzeAxe0): (
+        vox_spec: ("weapon.axe.2haxe_bronze-0", (-1.5, -4.0, -4.5)),
+        color: None
+    ),
+    Axe(BronzeAxe1): (
+        vox_spec: ("weapon.axe.2haxe_bronze-1", (-1.5, -3.0, -5.5)),
+        color: None
+    ),
+    Axe(IronAxe0): (
+        vox_spec: ("weapon.axe.2haxe_iron-0", (-1.5, -5.0, -5.5)),
+        color: None
+    ),
+    Axe(IronAxe1): (
+        vox_spec: ("weapon.axe.2haxe_iron-1", (-1.5, -5.0, -5.5)),
+        color: None
+    ),
+    Axe(IronAxe2): (
+        vox_spec: ("weapon.axe.2haxe_iron-2", (-1.5, -5.0, -5.5)),
+        color: None
+    ),
+    Axe(IronAxe3): (
+        vox_spec: ("weapon.axe.2haxe_iron-3", (-1.5, -6.0, -6.5)),
+        color: None
+    ),
+    Axe(IronAxe4): (
+        vox_spec: ("weapon.axe.2haxe_iron-4", (-1.5, -6.0, -5.5)),
+        color: None
+    ),
+    Axe(IronAxe5): (
+        vox_spec: ("weapon.axe.2haxe_iron-5", (-1.5, -6.0, -5.0)),
+        color: None
+    ),
+    Axe(IronAxe6): (
+        vox_spec: ("weapon.axe.2haxe_iron-6", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
+    Axe(IronAxe7): (
+        vox_spec: ("weapon.axe.2haxe_iron-7", (-1.5, -5.0, -5.0)),
+        color: None
+    ),
+    Axe(IronAxe8): (
+        vox_spec: ("weapon.axe.2haxe_iron-8", (-1.5, -5.0, -5.0)),
+        color: None
+    ),
+    Axe(IronAxe9): (
+        vox_spec: ("weapon.axe.2haxe_iron-9", (-1.5, -4.0, -5.0)),
+        color: None
+    ),
+    Axe(SteelAxe0): (
+        vox_spec: ("weapon.axe.2haxe_steel-0", (-1.5, -6.0, -4.5)),
+        color: None
+    ),
+    Axe(SteelAxe1): (
+        vox_spec: ("weapon.axe.2haxe_steel-1", (-1.5, -7.0, -5.5)),
+        color: None
+    ),
+    Axe(SteelAxe2): (
+        vox_spec: ("weapon.axe.2haxe_steel-2", (-1.5, -3.5, -3.5)),
+        color: None
+    ),
+    Axe(SteelAxe3): (
+        vox_spec: ("weapon.axe.2haxe_steel-3", (-1.5, -4.0, -6.0)),
+        color: None
+    ),
+    Axe(SteelAxe4): (
+        vox_spec: ("weapon.axe.2haxe_steel-4", (-1.5, -4.0, -5.5)),
+        color: None
+    ),
+    Axe(SteelAxe5): (
+        vox_spec: ("weapon.axe.2haxe_steel-5", (-1.5, -5.5, -5.5)),
+        color: None
+    ),
+    Axe(SteelAxe6): (
+        vox_spec: ("weapon.axe.2haxe_steel-6", (-1.5, -4.0, -4.0)),
+        color: None
+    ),
+    Axe(BloodsteelAxe0): (
+        vox_spec: ("weapon.axe.2haxe_bloodsteel-0", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
+    Axe(BloodsteelAxe1): (
+        vox_spec: ("weapon.axe.2haxe_bloodsteel-1", (-1.5, -5.5, -5.0)),
+        color: None
+    ),
+    Axe(BloodsteelAxe2): (
+        vox_spec: ("weapon.axe.2haxe_bloodsteel-2", (-1.5, -5.0, -4.0)),
+        color: None
+    ),
+    Axe(CobaltAxe0): (
+        vox_spec: ("weapon.axe.2haxe_cobalt-0", (-1.5, -5.0, -5.5)),
+        color: None
+    ),
+    Axe(MalachiteAxe0): (
+        vox_spec: ("weapon.axe.2haxe_malachite-0", (-1.5, -5.0, -6.0)),
         color: None
     ),
     // Hammers
     Hammer(BasicHammer): (
-        vox_spec: ("weapon.hammer.rusty_2h", (-2.5, -5.5, -4.0)),
+        vox_spec: ("weapon.hammer.2hhammer_rusty", (-2.5, -5.5, -4.5)),
+        color: None
+    ),
+    Hammer(WoodHammer0): (
+        vox_spec: ("weapon.hammer.2hhammer_wood-0", (-3.5, -5.5, -4.5)),
+        color: None
+    ),
+    Hammer(FlimsyHammer): (
+        vox_spec: ("weapon.hammer.2hhammer_flimsy", (-2.5, -5.5, -4.0)),
+        color: None
+    ),
+    Hammer(StoneHammer0): (
+        vox_spec: ("weapon.hammer.2hhammer_stone-0", (-3.5, -6.5, -5.0)),
+        color: None
+    ),
+    Hammer(StoneHammer1): (
+        vox_spec: ("weapon.hammer.2hhammer_stone-1", (-3.5, -6.5, -5.0)),
+        color: None
+    ),
+    Hammer(StoneHammer2): (
+        vox_spec: ("weapon.hammer.2hhammer_stone-2", (-3.5, -6.5, -5.0)),
+        color: None
+    ),
+    Hammer(StoneHammer3): (
+        vox_spec: ("weapon.hammer.2hhammer_stone-3", (-2.5, -6.5, -5.0)),
+        color: None
+    ),
+    Hammer(WornIronHammer0): (
+        vox_spec: ("weapon.hammer.2hhammer_worn_iron-0", (-2.5, -4.5, -4.0)),
+        color: None
+    ),
+    Hammer(WornIronHammer1): (
+        vox_spec: ("weapon.hammer.2hhammer_worn_iron-1", (-2.5, -4.5, -3.0)),
+        color: None
+    ),
+    Hammer(WornIronHammer2): (
+        vox_spec: ("weapon.hammer.2hhammer_worn_iron-2", (-2.5, -3.5, -3.0)),
+        color: None
+    ),
+    Hammer(WornIronHammer3): (
+        vox_spec: ("weapon.hammer.2hhammer_worn_iron-3", (-2.5, -4.5, -3.0)),
+        color: None
+    ),
+    Hammer(BronzeHammer0): (
+        vox_spec: ("weapon.hammer.2hhammer_bronze-0", (-2.5, -6.5, -5.0)),
+        color: None
+    ),
+    Hammer(BronzeHammer1): (
+        vox_spec: ("weapon.hammer.2hhammer_bronze-1", (-3.5, -3.5, -4.0)),
+        color: None
+    ),
+    Hammer(IronHammer0): (
+        vox_spec: ("weapon.hammer.2hhammer_iron-0", (-2.5, -6.5, -4.0)),
+        color: None
+    ),
+    Hammer(IronHammer1): (
+        vox_spec: ("weapon.hammer.2hhammer_iron-1", (-3.5, -7.5, -5.0)),
+        color: None
+    ),
+    Hammer(IronHammer2): (
+        vox_spec: ("weapon.hammer.2hhammer_iron-2", (-3.5, -3.5, -5.0)),
+        color: None
+    ),
+    Hammer(IronHammer3): (
+        vox_spec: ("weapon.hammer.2hhammer_iron-3", (-3.5, -3.5, -5.0)),
+        color: None
+    ),
+    Hammer(IronHammer4): (
+        vox_spec: ("weapon.hammer.2hhammer_iron-4", (-3.5, -7.5, -4.0)),
+        color: None
+    ),
+    Hammer(IronHammer5): (
+        vox_spec: ("weapon.hammer.2hhammer_iron-5", (-1.5, -7.0, -5.0)),
+        color: None
+    ),
+    Hammer(IronHammer6): (
+        vox_spec: ("weapon.hammer.2hhammer_iron-6", (-2.5, -7.0, -5.0)),
+        color: None
+    ),
+    Hammer(IronHammer7): (
+        vox_spec: ("weapon.hammer.2hhammer_iron-7", (-3.5, -7.5, -5.0)),
+        color: None
+    ),
+    Hammer(IronHammer8): (
+        vox_spec: ("weapon.hammer.2hhammer_iron-8", (-1.5, -5.5, -7.0)),
+        color: None
+    ),
+    Hammer(SteelHammer0): (
+        vox_spec: ("weapon.hammer.2hhammer_steel-0", (-2.5, -5.5, -5.0)),
+        color: None
+    ),
+    Hammer(SteelHammer1): (
+        vox_spec: ("weapon.hammer.2hhammer_steel-1", (-3.5, -7.5, -5.0)),
+        color: None
+    ),
+    Hammer(SteelHammer2): (
+        vox_spec: ("weapon.hammer.2hhammer_steel-2", (-3.5, -3.5, -3.0)),
+        color: None
+    ),
+    Hammer(SteelHammer3): (
+        vox_spec: ("weapon.hammer.2hhammer_steel-3", (-5.5, -5.5, -4.5)),
+        color: None
+    ),
+    Hammer(SteelHammer4): (
+        vox_spec: ("weapon.hammer.2hhammer_steel-4", (-3.5, -7.5, -4.0)),
+        color: None
+    ),
+    Hammer(SteelHammer5): (
+        vox_spec: ("weapon.hammer.2hhammer_steel-5", (-5.5, -5.5, -5.0)),
+        color: None
+    ),
+    Hammer(CobaltHammer0): (
+        vox_spec: ("weapon.hammer.2hhammer_cobalt-0", (-2.5, -7.5, -6.0)),
+        color: None
+    ),
+    Hammer(CobaltHammer1): (
+        vox_spec: ("weapon.hammer.2hhammer_cobalt-1", (-4.5, -4.5, -4.0)),
+        color: None
+    ),
+    Hammer(RunicHammer): (
+        vox_spec: ("weapon.hammer.2hhammer_runic", (-2.5, -7.5, -5.0)),
+        color: None
+    ),
+    Hammer(RamsheadHammer): (
+        vox_spec: ("weapon.hammer.2hhammer_ramshead", (-4.5, -5.5, -5.0)),
+        color: None
+    ),
+    Hammer(Mjolnir): (
+        vox_spec: ("weapon.hammer.2hhammer_mjolnir", (-2.5, -8.5, -4.0)),
         color: None
     ),
     /*Dagger(Craftsman): ( //TODO This should be a 1h hammer!
@@ -192,23 +441,43 @@
     ),
     // Bows
     Bow(ShortBow0): (
-        vox_spec: ("weapon.bow.shortbow-0", (-1.0, -6.0, 2.5)),
+        vox_spec: ("weapon.bow.shortbow_starter", (-1.0, -6.0, 3.0)),
         color: None
     ),
-    Bow(ShortBow1): (
-        vox_spec: ("weapon.bow.shortbow-1", (-1.0, -6.0, 2.5)),
-        color: None
-    ),    
-    Bow(LongBow0): (
-        vox_spec: ("weapon.bow.longbow-0", (-1.0, -6.0, 2.5)),
+    Bow(WoodShortbow0): (
+        vox_spec: ("weapon.bow.shortbow_wood-0", (-1.0, -6.0, 2.5)),
         color: None
     ),
-    Bow(LongBow1): (
-        vox_spec: ("weapon.bow.longbow-1", (-1.0, -6.0, 2.5)),
+    Bow(WoodShortbow1): (
+        vox_spec: ("weapon.bow.shortbow_wood-1", (-1.0, -6.5, 2.5)),
         color: None
     ),
-    Bow(RareBow0): (
-        vox_spec: ("weapon.bow.rare_bow-0", (-1.0, -6.0, 2.5)),
+    Bow(LeafyShortbow0): (
+        vox_spec: ("weapon.bow.shortbow_leafy-0", (-1.0, -8.0, 3.5)),
+        color: None
+    ),
+    Bow(WoodLongbow0): (
+        vox_spec: ("weapon.bow.longbow_wood-0", (-1.0, -6.0, -0.5)),
+        color: None
+    ),
+    Bow(WoodLongbow1): (
+        vox_spec: ("weapon.bow.longbow_wood-1", (-1.0, -6.0, 0.0)),
+        color: None
+    ),
+    Bow(LeafyLongbow0): (
+        vox_spec: ("weapon.bow.longbow_leafy-0", (-1.0, -8.0, -0.5)),
+        color: None
+    ),
+    Bow(HornLongbow0): (
+        vox_spec: ("weapon.bow.longbow_horn-0", (-2.0, -6.0, -6.5)),
+        color: None
+    ),
+    Bow(IronLongbow0): (
+        vox_spec: ("weapon.bow.longbow_iron-0", (-2.0, -6.0, -5.5)),
+        color: None
+    ),
+    Bow(RareLongbow): (
+        vox_spec: ("weapon.bow.longbow_rare", (-2.0, -6.0, -2.5)),
         color: None
     ),
     // Farming Equipment
@@ -254,10 +523,22 @@
     ),
     // Staves    
     Staff(BasicStaff): (
-        vox_spec: ("weapon.staff.wood-fire", (-1.0, -6.0, -3.0)),
+        vox_spec: ("weapon.staff.firestaff_starter", (-1.0, -6.0, -3.0)),
         color: None
     ),
-    // Sceptres
+    Staff(BoneStaff): (
+        vox_spec: ("weapon.staff.firestaff_bone", (-1.0, -6.0, -3.0)),
+        color: None
+    ),
+    Staff(AmethystStaff): (
+        vox_spec: ("weapon.staff.firestaff_amethyst", (-1.0, -8.0, -4.0)),
+        color: None
+    ),
+    Staff(CultistStaff): (
+        vox_spec: ("weapon.staff.firestaff_cultist", (-2.0, -6.0, -4.0)),
+        color: None
+    ),
+    // Healing staff
      Staff(Sceptre): (
         vox_spec: ("weapon.staff.wood-nature", (-1.0, -6.0, -5.0)),
         color: None
