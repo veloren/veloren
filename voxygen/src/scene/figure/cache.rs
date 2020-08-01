@@ -586,6 +586,11 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         body.body_type,
                         generate_mesh,
                     )),
+                    Some(biped_large_center_spec.mesh_main(
+                        body.species,
+                        body.body_type,
+                        generate_mesh,
+                    )),
                     Some(biped_large_lateral_spec.mesh_shoulder_l(
                         body.species,
                         body.body_type,
@@ -626,7 +631,6 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         body.body_type,
                         generate_mesh,
                     )),
-                    None,
                     None,
                     None,
                     None,

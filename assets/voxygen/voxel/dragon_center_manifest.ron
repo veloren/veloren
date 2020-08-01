@@ -17,7 +17,7 @@
             center: ("npc.reddragon.male.chest_front"),
         ),
         chest_rear: (
-            offset: (-6.5, -7.0, -7.0),
+            offset: (-6.5, -13.0, -7.0),
             center: ("npc.reddragon.male.chest_rear"),
         ),
         tail_front: (
@@ -47,7 +47,7 @@
             center: ("npc.reddragon.male.chest_front"),
         ),
         chest_rear: (
-            offset: (-6.5, -7.0, -7.0),
+            offset: (-6.5, -13.0, -7.0),
             center: ("npc.reddragon.male.chest_rear"),
         ),
         tail_front: (

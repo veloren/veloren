@@ -416,4 +416,56 @@
             central: ("npc.pangolin.male.tail_front"),
         ),
     ),
+    (Maneater, Male): (
+        upper: (
+            offset: (-5.5, 0.0, 0.0),
+            central: ("npc.maneater.male.head_upper"),
+        ),
+        lower: (
+            offset: (-14.5, -5.5, -0.0),
+            central: ("npc.maneater.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-7.5, 0.0, -19.0),
+            central: ("npc.maneater.male.jaw"),
+        ),
+        chest: (
+            offset: (-6.5, -6.5, -6.0),
+            central: ("npc.maneater.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-0.5, -14.0, -6.5),
+            central: ("npc.maneater.male.tail_rear"),
+        ),
+        tail_front: (
+            offset: (-4.5, -15.0, -0.0),
+            central: ("npc.maneater.male.tail_front"),
+        ),
+    ),
+    (Maneater, Female): (
+        upper: (
+            offset: (-5.5, 0.0, 0.0),
+            central: ("npc.maneater.male.head_upper"),
+        ),
+        lower: (
+            offset: (-14.5, -5.5, -0.0),
+            central: ("npc.maneater.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-7.5, 0.0, -19.0),
+            central: ("npc.maneater.male.jaw"),
+        ),
+        chest: (
+            offset: (-6.5, -6.5, -6.0),
+            central: ("npc.maneater.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-0.5, -14.0, -6.5),
+            central: ("npc.maneater.male.tail_rear"),
+        ),
+        tail_front: (
+            offset: (-4.5, -15.0, -0.0),
+            central: ("npc.maneater.male.tail_front"),
+        ),
+    ),
 })

@@ -142,6 +142,7 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
                 (Tortoise, _) => (5.0, 1.0),
                 (Rocksnapper, _) => (6.0, 0.5),
                 (Pangolin, _) => (-0.5, 8.0),
+                (Maneater, _) => (6.0, 9.5),
             },
             head_lower: match (body.species, body.body_type) {
                 (Crocodile, _) => (8.0, 0.0),
@@ -152,6 +153,7 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
                 (Tortoise, _) => (12.0, -3.5),
                 (Rocksnapper, _) => (12.0, -9.0),
                 (Pangolin, _) => (8.0, -9.0),
+                (Maneater, _) => (1.0, 4.5),
             },
             jaw: match (body.species, body.body_type) {
                 (Crocodile, _) => (2.5, -3.0),
@@ -162,6 +164,7 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
                 (Tortoise, _) => (-3.5, -2.0),
                 (Rocksnapper, _) => (-5.0, -1.5),
                 (Pangolin, _) => (0.0, 0.0),
+                (Maneater, _) => (-1.0, 4.0),
             },
             chest: match (body.species, body.body_type) {
                 (Crocodile, _) => (0.0, 5.0),
@@ -172,6 +175,7 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
                 (Tortoise, _) => (0.0, 11.0),
                 (Rocksnapper, _) => (0.0, 18.5),
                 (Pangolin, _) => (0.0, 7.0),
+                (Maneater, _) => (0.0, 12.0),
             },
             tail_rear: match (body.species, body.body_type) {
                 (Crocodile, _) => (-12.5, -1.0),
@@ -182,6 +186,7 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
                 (Tortoise, _) => (-10.0, -1.5),
                 (Rocksnapper, _) => (-14.5, -2.0),
                 (Pangolin, _) => (-7.0, -3.0),
+                (Maneater, _) => (-15.0, 4.0),
             },
             tail_front: match (body.species, body.body_type) {
                 (Crocodile, _) => (-6.0, 0.0),
@@ -192,6 +197,7 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
                 (Tortoise, _) => (-13.0, -3.5),
                 (Rocksnapper, _) => (-13.5, -6.5),
                 (Pangolin, _) => (-7.5, -0.5),
+                (Maneater, _) => (-1.0, 4.0),
             },
             feet_f: match (body.species, body.body_type) {
                 (Crocodile, _) => (3.5, 6.0, -1.0),
@@ -202,6 +208,7 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
                 (Tortoise, _) => (5.5, 6.5, -3.0),
                 (Rocksnapper, _) => (7.5, 5.0, -8.5),
                 (Pangolin, _) => (5.5, 5.5, -1.0),
+                (Maneater, _) => (4.5, 4.0, -5.5),
             },
             feet_b: match (body.species, body.body_type) {
                 (Crocodile, _) => (3.5, -6.0, -1.0),
@@ -212,6 +219,7 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
                 (Tortoise, _) => (5.5, -11.5, -3.0),
                 (Rocksnapper, _) => (8.0, -12.0, -9.5),
                 (Pangolin, _) => (6.5, -3.5, -1.0),
+                (Maneater, _) => (4.5, -2.5, -3.0),
             },
             lean: match (body.species, body.body_type) {
                 (Pangolin, _) => (0.4, 0.0),
@@ -226,6 +234,7 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
                 (Tortoise, _) => (1.0),
                 (Rocksnapper, _) => (1.4),
                 (Pangolin, _) => (1.3),
+                (Maneater, _) => (1.4),
             },
             tempo: match (body.species, body.body_type) {
                 (Crocodile, _) => (0.8),
@@ -236,6 +245,7 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
                 (Tortoise, _) => (0.9),
                 (Rocksnapper, _) => (0.9),
                 (Pangolin, _) => (1.15),
+                (Maneater, _) => (1.0),
             },
         }
     }

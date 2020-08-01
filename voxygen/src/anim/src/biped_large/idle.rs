@@ -49,9 +49,9 @@ impl Animation for IdleAnimation {
             0.0,
             skeleton_attr.upper_torso.0,
             skeleton_attr.upper_torso.1 + torso * 0.5,
-        ) / 8.0;
-        next.upper_torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-        next.upper_torso.scale = Vec3::one() / 8.0;
+        );
+        next.upper_torso.ori = Quaternion::rotation_z(0.0);
+        next.upper_torso.scale = Vec3::one();
 
         next.lower_torso.offset = Vec3::new(
             0.0,
@@ -60,6 +60,15 @@ impl Animation for IdleAnimation {
         );
         next.lower_torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.lower_torso.scale = Vec3::one() * 1.02;
+
+        next.control.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.control.ori = Quaternion::rotation_z(0.0);
+        next.control.scale = Vec3::one();
+
+        next.main.offset = Vec3::new(-5.0, -7.0, 7.0);
+        next.main.ori =
+            Quaternion::rotation_x(PI) * Quaternion::rotation_y(0.6) * Quaternion::rotation_z(1.57);
+        next.main.scale = Vec3::one() * 1.02;
 
         next.shoulder_l.offset = Vec3::new(
             -skeleton_attr.shoulder.0,
@@ -125,9 +134,10 @@ impl Animation for IdleAnimation {
         next.foot_r.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.foot_r.scale = Vec3::one() / 8.0;
 
-        next.torso.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.torso.offset = Vec3::new(0.0, 0.0, 0.0) / 8.0;
         next.torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-        next.torso.scale = Vec3::one();
+        next.torso.scale = Vec3::one() / 8.0;
+
         next
     }
 }
