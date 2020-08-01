@@ -1,0 +1,13 @@
+Item(
+    name: "Iron Mace",
+    description: "Forged with iron.",
+    kind: Tool(
+        (
+            kind: Hammer(IronHammer2),    
+            stats: (
+                equip_time_millis: 500,
+                power: 1.20,
+            ),
+        )
+    ),
+)

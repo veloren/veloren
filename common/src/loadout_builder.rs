@@ -66,7 +66,7 @@ impl LoadoutBuilder {
     pub fn animal(body: Body) -> Self {
         Self(Loadout {
             active_item: Some(ItemConfig {
-                item: assets::load_expect_cloned("common.items.weapons.empty"),
+                item: assets::load_expect_cloned("common.items.weapons.empty.empty"),
                 ability1: Some(CharacterAbility::BasicMelee {
                     energy_cost: 10,
                     buildup_duration: Duration::from_millis(600),

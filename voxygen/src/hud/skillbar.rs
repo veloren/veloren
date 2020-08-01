@@ -1179,8 +1179,8 @@ impl<'a> Widget for Skillbar<'a> {
         if let BarNumbers::Values = bar_values {
             let hp_text = format!(
                 "{}/{}",
-                self.stats.health.current() as u32,
-                self.stats.health.maximum() as u32
+                (self.stats.health.current() / 10) as u32,
+                (self.stats.health.maximum() / 10) as u32
             );
             Text::new(&hp_text)
                 .mid_top_with_margin_on(state.ids.healthbar_bg, 6.0 * scale)

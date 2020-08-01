@@ -1,0 +1,13 @@
+Item(
+    name: "Amethyst Staff",
+    description: "The amethyst faintly glows.",
+    kind: Tool(
+        (
+            kind: Staff(AmethystStaff),   
+            stats: ( 
+                equip_time_millis: 300,
+                power: 1.50,
+            ),
+        )
+    ),
+)

@@ -1,0 +1,13 @@
+Item(
+    name: "Cultist Staff",
+    description: "The fire gives off no heat.",
+    kind: Tool(
+        (
+            kind: Staff(CultistStaff),    
+            stats: (
+                equip_time_millis: 300,
+                power: 2.00,
+            ),
+        )
+    ),
+)

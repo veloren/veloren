@@ -1,0 +1,13 @@
+Item(
+    name: "Rocky Maul",
+    description: "It seems brittle.",
+    kind: Tool(
+        (
+            kind: Hammer(StoneHammer2),    
+            stats: (
+                equip_time_millis: 500,
+                power: 0.70,
+            ),
+        )
+    ),
+)

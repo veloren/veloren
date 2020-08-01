@@ -33,8 +33,8 @@ impl Damage {
                 self.healthchange *= 1.0 - loadout.get_damage_reduction();
 
                 // Min damage
-                if self.healthchange > -1.0 {
-                    self.healthchange = -1.0;
+                if self.healthchange > -10.0 {
+                    self.healthchange = -10.0;
                 }
             },
             DamageSource::Projectile => {
@@ -50,8 +50,8 @@ impl Damage {
                 self.healthchange *= 1.0 - loadout.get_damage_reduction();
 
                 // Min damage
-                if self.healthchange > -1.0 {
-                    self.healthchange = -1.0;
+                if self.healthchange > -10.0 {
+                    self.healthchange = -10.0;
                 }
             },
             DamageSource::Explosion => {
@@ -67,8 +67,8 @@ impl Damage {
                 self.healthchange *= 1.0 - loadout.get_damage_reduction();
 
                 // Min damage
-                if self.healthchange > -1.0 {
-                    self.healthchange = -1.0;
+                if self.healthchange > -10.0 {
+                    self.healthchange = -10.0;
                 }
             },
             _ => {},

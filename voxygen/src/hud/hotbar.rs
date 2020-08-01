@@ -76,13 +76,13 @@ impl State {
                 .map(|i| &i.item.kind)
                 .filter(|kind| {
                     use common::comp::item::{
-                        tool::{DebugKind, StaffKind, Tool, ToolKind},
+                        tool::{DebugKind, Tool, ToolKind},
                         ItemKind,
                     };
                     matches!(
                         kind,
                         ItemKind::Tool(Tool {
-                            kind: ToolKind::Staff(StaffKind::BasicStaff),
+                            kind: ToolKind::Staff(_),
                             ..
                         }) | ItemKind::Tool(Tool {
                             kind: ToolKind::Debug(DebugKind::Boost),

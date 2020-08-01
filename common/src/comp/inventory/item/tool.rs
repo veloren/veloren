@@ -52,21 +52,89 @@ pub enum SwordKind {
     LongFine5,
     CultPurp0,
 }
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum AxeKind {
     BasicAxe,
+    OrcAxe0,
+    WornIronAxe0,
+    WornIronAxe1,
+    WornIronAxe2,
+    WornIronAxe3,
+    WornIronAxe4,
+    BronzeAxe0,
+    BronzeAxe1,
+    IronAxe0,
+    IronAxe1,
+    IronAxe2,
+    IronAxe3,
+    IronAxe4,
+    IronAxe5,
+    IronAxe6,
+    IronAxe7,
+    IronAxe8,
+    IronAxe9,
+    SteelAxe0,
+    SteelAxe1,
+    SteelAxe2,
+    SteelAxe3,
+    SteelAxe4,
+    SteelAxe5,
+    SteelAxe6,
+    BloodsteelAxe0,
+    BloodsteelAxe1,
+    BloodsteelAxe2,
+    CobaltAxe0,
+    MalachiteAxe0,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum HammerKind {
     BasicHammer,
+    FlimsyHammer,
+    WoodHammer0,
+    StoneHammer0,
+    StoneHammer1,
+    StoneHammer2,
+    StoneHammer3,
+    WornIronHammer0,
+    WornIronHammer1,
+    WornIronHammer2,
+    WornIronHammer3,
+    BronzeHammer0,
+    BronzeHammer1,
+    IronHammer0,
+    IronHammer1,
+    IronHammer2,
+    IronHammer3,
+    IronHammer4,
+    IronHammer5,
+    IronHammer6,
+    IronHammer7,
+    IronHammer8,
+    SteelHammer0,
+    SteelHammer1,
+    SteelHammer2,
+    SteelHammer3,
+    SteelHammer4,
+    SteelHammer5,
+    CobaltHammer0,
+    CobaltHammer1,
+    RunicHammer,
+    RamsheadHammer,
+    Mjolnir,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum BowKind {
     ShortBow0,
-    ShortBow1,
-    LongBow0,
-    LongBow1,
-    RareBow0,
+    WoodShortbow0,
+    WoodShortbow1,
+    LeafyShortbow0,
+    WoodLongbow0,
+    WoodLongbow1,
+    LeafyLongbow0,
+    HornLongbow0,
+    IronLongbow0,
+    RareLongbow,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum DaggerKind {
@@ -74,8 +142,11 @@ pub enum DaggerKind {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum StaffKind {
-    BasicStaff,
     Sceptre,
+    BasicStaff,
+    BoneStaff,
+    AmethystStaff,
+    CultistStaff,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ShieldKind {
@@ -168,10 +239,16 @@ impl From<ToolKind> for ToolCategory {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Stats {
+    equip_time_millis: u32,
+    power: f32,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Tool {
     pub kind: ToolKind,
-    equip_time_millis: u32,
+    pub stats: Stats,
     // TODO: item specific abilities
 }
 
@@ -179,11 +256,19 @@ impl Tool {
     pub fn empty() -> Self {
         Self {
             kind: ToolKind::Empty,
-            equip_time_millis: 0,
+            stats: Stats {
+                equip_time_millis: 0,
+                power: 1.00,
+            },
         }
     }
 
-    pub fn equip_time(&self) -> Duration { Duration::from_millis(self.equip_time_millis as u64) }
+    // Keep power between 0.5 and 2.00
+    pub fn base_power(&self) -> f32 { self.stats.power }
+
+    pub fn equip_time(&self) -> Duration {
+        Duration::from_millis(self.stats.equip_time_millis as u64)
+    }
 
     pub fn get_abilities(&self) -> Vec<CharacterAbility> {
         use CharacterAbility::*;
@@ -191,40 +276,28 @@ impl Tool {
         use ToolKind::*;
 
         match self.kind {
-            Sword(SwordKind::CultPurp0) => vec![
-                TripleStrike {
-                    base_damage: 10,
-                    needs_timing: false,
-                },
-                DashMelee {
-                    energy_cost: 700,
-                    buildup_duration: Duration::from_millis(500),
-                    recover_duration: Duration::from_millis(500),
-                    base_damage: 20,
-                },
-            ],
             Sword(_) => vec![
                 TripleStrike {
-                    base_damage: 5,
+                    base_damage: (60.0 * self.base_power()) as u32,
                     needs_timing: false,
                 },
                 DashMelee {
                     energy_cost: 700,
                     buildup_duration: Duration::from_millis(500),
                     recover_duration: Duration::from_millis(500),
-                    base_damage: 10,
+                    base_damage: (120.0 * self.base_power()) as u32,
                 },
             ],
             Axe(_) => vec![
                 TripleStrike {
-                    base_damage: 7,
+                    base_damage: (80.0 * self.base_power()) as u32,
                     needs_timing: true,
                 },
                 SpinMelee {
                     energy_cost: 100,
                     buildup_duration: Duration::from_millis(125),
                     recover_duration: Duration::from_millis(125),
-                    base_damage: 5,
+                    base_damage: (60.0 * self.base_power()) as u32,
                 },
             ],
             Hammer(_) => vec![
@@ -232,7 +305,7 @@ impl Tool {
                     energy_cost: 0,
                     buildup_duration: Duration::from_millis(700),
                     recover_duration: Duration::from_millis(300),
-                    base_healthchange: -10,
+                    base_healthchange: (-120.0 * self.base_power()) as i32,
                     range: 3.5,
                     max_angle: 60.0,
                 },
@@ -241,14 +314,14 @@ impl Tool {
                     movement_duration: Duration::from_millis(500),
                     buildup_duration: Duration::from_millis(1000),
                     recover_duration: Duration::from_millis(100),
-                    base_damage: 20,
+                    base_damage: (240.0 * self.base_power()) as u32,
                 },
             ],
             Farming(_) => vec![BasicMelee {
                 energy_cost: 1,
                 buildup_duration: Duration::from_millis(700),
                 recover_duration: Duration::from_millis(150),
-                base_healthchange: -5,
+                base_healthchange: (-50.0 * self.base_power()) as i32,
                 range: 3.0,
                 max_angle: 60.0,
             }],
@@ -257,11 +330,11 @@ impl Tool {
                     energy_cost: 0,
                     holdable: true,
                     prepare_duration: Duration::from_millis(100),
-                    recover_duration: Duration::from_millis(500),
+                    recover_duration: Duration::from_millis(400),
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
-                            projectile::Effect::Damage(-3),
+                            projectile::Effect::Damage((-40.0 * self.base_power()) as i32),
                             projectile::Effect::Knockback(10.0),
                             projectile::Effect::RewardEnergy(100),
                             projectile::Effect::Vanish,
@@ -276,8 +349,8 @@ impl Tool {
                 ChargedRanged {
                     energy_cost: 0,
                     energy_drain: 300,
-                    initial_damage: 3,
-                    max_damage: 15,
+                    initial_damage: (40.0 * self.base_power()) as u32,
+                    max_damage: (200.0 * self.base_power()) as u32,
                     initial_knockback: 10.0,
                     max_knockback: 20.0,
                     prepare_duration: Duration::from_millis(100),
@@ -292,7 +365,7 @@ impl Tool {
                     energy_cost: 0,
                     buildup_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(400),
-                    base_healthchange: -5,
+                    base_healthchange: (-50.0 * self.base_power()) as i32,
                     range: 3.5,
                     max_angle: 60.0,
                 },
@@ -300,15 +373,33 @@ impl Tool {
                     energy_cost: 700,
                     buildup_duration: Duration::from_millis(500),
                     recover_duration: Duration::from_millis(500),
-                    base_damage: 20,
+                    base_damage: (100.0 * self.base_power()) as u32,
                 },
             ],
-            Staff(StaffKind::BasicStaff) => vec![
+            Staff(StaffKind::Sceptre) => vec![
+                BasicMelee {
+                    energy_cost: 0,
+                    buildup_duration: Duration::from_millis(0),
+                    recover_duration: Duration::from_millis(300),
+                    base_healthchange: (-10.0 * self.base_power()) as i32,
+                    range: 10.0,
+                    max_angle: 45.0,
+                },
+                BasicMelee {
+                    energy_cost: 350,
+                    buildup_duration: Duration::from_millis(0),
+                    recover_duration: Duration::from_millis(1000),
+                    base_healthchange: (150.0 * self.base_power()) as i32,
+                    range: 10.0,
+                    max_angle: 45.0,
+                },
+            ],
+            Staff(_) => vec![
                 BasicMelee {
                     energy_cost: 0,
                     buildup_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(300),
-                    base_healthchange: -3,
+                    base_healthchange: (-40.0 * self.base_power()) as i32,
                     range: 10.0,
                     max_angle: 45.0,
                 },
@@ -320,7 +411,7 @@ impl Tool {
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Vanish],
                         hit_entity: vec![
-                            projectile::Effect::Damage(-3),
+                            projectile::Effect::Damage((-40.0 * self.base_power()) as i32),
                             projectile::Effect::RewardEnergy(150),
                             projectile::Effect::Vanish,
                         ],
@@ -342,11 +433,15 @@ impl Tool {
                     recover_duration: Duration::from_millis(50),
                     projectile: Projectile {
                         hit_solid: vec![
-                            projectile::Effect::Explode { power: 1.4 },
+                            projectile::Effect::Explode {
+                                power: 1.4 * self.base_power(),
+                            },
                             projectile::Effect::Vanish,
                         ],
                         hit_entity: vec![
-                            projectile::Effect::Explode { power: 1.4 },
+                            projectile::Effect::Explode {
+                                power: 1.4 * self.base_power(),
+                            },
                             projectile::Effect::Vanish,
                         ],
                         time_left: Duration::from_secs(20),
@@ -361,30 +456,12 @@ impl Tool {
                     projectile_gravity: None,
                 },
             ],
-            Staff(StaffKind::Sceptre) => vec![
-                BasicMelee {
-                    energy_cost: 0,
-                    buildup_duration: Duration::from_millis(0),
-                    recover_duration: Duration::from_millis(300),
-                    base_healthchange: -1,
-                    range: 10.0,
-                    max_angle: 45.0,
-                },
-                BasicMelee {
-                    energy_cost: 350,
-                    buildup_duration: Duration::from_millis(0),
-                    recover_duration: Duration::from_millis(1000),
-                    base_healthchange: 15,
-                    range: 10.0,
-                    max_angle: 45.0,
-                },
-            ],
             Shield(_) => vec![
                 BasicMelee {
                     energy_cost: 0,
                     buildup_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(400),
-                    base_healthchange: -4,
+                    base_healthchange: (-40.0 * self.base_power()) as i32,
                     range: 3.0,
                     max_angle: 120.0,
                 },
@@ -427,7 +504,7 @@ impl Tool {
                 energy_cost: 0,
                 buildup_duration: Duration::from_millis(0),
                 recover_duration: Duration::from_millis(1000),
-                base_healthchange: -2,
+                base_healthchange: -20,
                 range: 5.0,
                 max_angle: 60.0,
             }],

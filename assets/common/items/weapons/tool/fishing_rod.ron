@@ -1,10 +1,13 @@
 Item(
     name: "Fishing Rod",
-    description: "",
+    description: "Smells of fish.",
     kind: Tool (
         (
             kind: Farming(FishingRod0),
-            equip_time_millis: 400,
+            stats: (
+                equip_time_millis: 400,
+                power: 1.00,
+            ),
         )
     ),
 )

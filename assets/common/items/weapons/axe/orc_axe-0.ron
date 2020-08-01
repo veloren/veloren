@@ -1,0 +1,13 @@
+Item(
+    name: "Beast Cleaver",
+    description: "Created by orcs to cleave beasts in 2.",
+    kind: Tool(
+        (
+            kind: Axe(OrcAxe0),    
+            stats: (
+                equip_time_millis: 400,
+                power: 0.60,
+            ),
+        )
+    ),
+)

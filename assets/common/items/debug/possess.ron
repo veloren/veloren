@@ -4,7 +4,10 @@ Item(
     kind: Tool(
         (
             kind: Debug(Boost),
-            equip_time_millis: 0,            
+            stats: (
+                equip_time_millis: 0,
+                power: 1.00,
+            ),
         )
     ),
 )

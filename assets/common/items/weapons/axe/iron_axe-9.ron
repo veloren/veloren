@@ -1,0 +1,13 @@
+Item(
+    name: "Wolfen Axe",
+    description: "Forged from iron.",
+    kind: Tool(
+        (
+            kind: Axe(IronAxe9),    
+            stats: (
+                equip_time_millis: 400,
+                power: 1.20,
+            ),
+        )
+    ),
+)
