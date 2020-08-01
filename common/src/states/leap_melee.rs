@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use vek::Vec3;
 
-const LEAP_SPEED: f32 = 16.0;
+const LEAP_SPEED: f32 = 24.0;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct Data {
@@ -43,7 +43,8 @@ impl CharacterBehavior for Data {
                     + 0.25 * data.inputs.move_dir.try_normalized().unwrap_or_default())
                 .try_normalized()
                 .unwrap_or_default()
-                    * LEAP_SPEED;
+                    * LEAP_SPEED
+                    * (1.0 - data.inputs.look_dir.z.abs());
 
             update.character = CharacterState::LeapMelee(Data {
                 movement_duration: self

@@ -1,10 +1,13 @@
 Item(
     name: "Sturdy Old Hammer",
-    description: "Two-Hand Hammer\n\nPower: 10-12\n\n'Property of...' The rest is missing.\n\n<Right-Click to use>",
+    description: "'Property of...' The rest is missing.",
     kind: Tool(
         (
             kind: Hammer(BasicHammer),    
-            equip_time_millis: 500,
+            stats: (
+                equip_time_millis: 500,
+                power: 0.50,
+            ),
         )
     ),
 )

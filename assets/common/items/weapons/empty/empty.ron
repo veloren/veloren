@@ -1,0 +1,13 @@
+Item(
+    name: "Empty",
+    description: "You expected a description?",
+    kind: Tool (
+        (
+            kind: Empty,
+            stats: (
+                equip_time_millis: 200,
+                power: 1.00,
+            ),
+        )
+    ),
+)

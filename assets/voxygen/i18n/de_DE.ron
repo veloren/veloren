@@ -92,6 +92,8 @@ VoxygenLocalization(
         /// Start Main screen section
         "main.connecting": "Verbinde ",
         "main.creating_world": "Erschaffe Welt ",
+        "main.tip": "Tip:",
+        "hud.settings.loading_tips": "Ladebildschirm Tips",
 
 
         /// Start Main screen section
@@ -118,14 +120,11 @@ Danke, dass Ihr Euch die Zeit genommen habt diese Zeilen zu lesen und wir hoffen
         /// Login process description
         "main.login_process": r#"Information zum Login:
 
-Zum Spielen wird ein Account benötigt. 
-
-Diesen könnt Ihr Euch hier erstellen:
+Erstellt euch hier einen Account zum Spielen:
 
 https://account.veloren.net.
 
-Aktuell wird nur das Aussehen 
-eurer erstellen Charaktere gespeichert."#,
+"#,
 "main.login.server_not_found": "Server nicht gefunden.",
         "main.login.authentication_error": "Authentifizierung fehlgeschlagen",
         "main.login.server_full": "Server ist voll",

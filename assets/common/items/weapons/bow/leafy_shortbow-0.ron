@@ -1,0 +1,13 @@
+Item(
+    name: "Elven Shortbow",
+    description: "The wood still seems alive.",  
+    kind: Tool(
+        (
+            kind: Bow(LeafyShortbow0),    
+            stats: (
+                equip_time_millis: 400,
+                power: 1.00,
+            ),
+        )
+    ),
+)

@@ -30,6 +30,8 @@ run.sh
 maps
 screenshots
 todo.txt
+armorstats.csv
+weaponstats.csv
 
 # Game data
 *.sqlite

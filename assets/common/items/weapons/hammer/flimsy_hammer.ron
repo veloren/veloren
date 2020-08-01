@@ -1,0 +1,13 @@
+Item(
+    name: "Flimsy Hammer",
+    description: "The head is barely secured.",
+    kind: Tool(
+        (
+            kind: Hammer(FlimsyHammer),    
+            stats: (
+                equip_time_millis: 500,
+                power: 0.50,
+            ),
+        )
+    ),
+)

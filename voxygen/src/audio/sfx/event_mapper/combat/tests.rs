@@ -78,7 +78,7 @@ fn maps_basic_melee() {
         &CharacterState::BasicMelee(states::basic_melee::Data {
             buildup_duration: Duration::default(),
             recover_duration: Duration::default(),
-            base_healthchange: 1,
+            base_healthchange: 10,
             range: 1.0,
             max_angle: 1.0,
             exhausted: false,

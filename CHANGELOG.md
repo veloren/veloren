@@ -47,6 +47,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Protection stat to armor that reduces incoming damage
 - Loading-Screen tips
 - Feeding animation for some animals
+- Power stat to weapons which affects weapon damage
+
 ### Changed
 
 - Improved camera aiming
