@@ -478,7 +478,7 @@ impl PlayState for SessionState {
                             }
                         }
                     },
-                    Event::InputUpdate(GameInput::Interact, state) => {
+                    Event::InputUpdate(GameInput::Interact, true) => {
                         let mut client = self.client.borrow_mut();
 
                         // Collect terrain sprites
@@ -493,7 +493,7 @@ impl PlayState for SessionState {
                             .get(client.entity())
                             .copied();
 
-                        if let (Some(player_pos), true) = (player_pos, state) {
+                        if let Some(player_pos) = player_pos {
                             let entity = (
                                 &client.state().ecs().entities(),
                                 &client.state().ecs().read_storage::<comp::Pos>(),
