@@ -278,6 +278,14 @@
             "mouflon": {
                 "keyword": "mouflon",
                 "generic": "Mouflon"
+            },
+            "catoblepas": {
+                "keyword": "catoblepas",
+                "generic": "Catoblepas"
+            },
+            "bonerattler": {
+                "keyword": "bonerattler",
+                "generic": "Bonerattler"
             }
         }
     },
@@ -441,6 +449,18 @@
             "hyena": {
                 "keyword": "hyena",
                 "generic": "Hyena"
+            },
+            "rabbit": {
+                "keyword": "rabbit",
+                "generic": "Rabbit"
+            },
+            "truffler": {
+                "keyword": "truffler",
+                "generic": "Truffler"
+            },
+            "frog": {
+                "keyword": "frog",
+                "generic": "Frog"
             }
         }
     },
@@ -501,6 +521,14 @@
             "cyclops": {
                 "keyword": "cyclops",
                 "generic": "Cyclops"
+            },
+            "wendigo": {
+                "keyword": "wendigo",
+                "generic": "Wendigo"
+            },
+            "troll": {
+                "keyword": "troll",
+                "generic": "Troll"
             }
         }
     },
@@ -605,6 +633,10 @@
             "pangolin": {
                 "keyword": "pangolin",
                 "generic": "Pangolin"
+            },
+            "maneater": {
+                "keyword": "maneater",
+                "generic": "Maneater"
             }
         }
     }

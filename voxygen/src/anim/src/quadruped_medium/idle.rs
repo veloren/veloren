@@ -96,7 +96,7 @@ impl Animation for IdleAnimation {
         next.torso_back.ori = Quaternion::rotation_y(-slow * 0.005)
             * Quaternion::rotation_z(0.0)
             * Quaternion::rotation_x(0.0);
-        next.torso_back.scale = Vec3::one();
+        next.torso_back.scale = Vec3::one() * 0.99;
 
         next.ears.offset = Vec3::new(0.0, skeleton_attr.ears.0, skeleton_attr.ears.1);
         next.ears.ori = Quaternion::rotation_x(0.0 + slower * 0.03);

@@ -40,13 +40,14 @@ impl Skeleton for CritterSkeleton {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "critter_compute_mats")]
 
     fn compute_matrices_inner(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
+        let chest_mat = self.chest.compute_base_matrix();
         (
             [
-                FigureBoneData::new(self.head.compute_base_matrix()),
-                FigureBoneData::new(self.chest.compute_base_matrix()),
-                FigureBoneData::new(self.feet_f.compute_base_matrix()),
-                FigureBoneData::new(self.feet_b.compute_base_matrix()),
-                FigureBoneData::new(self.tail.compute_base_matrix()),
+                FigureBoneData::new(chest_mat * self.head.compute_base_matrix()),
+                FigureBoneData::new(chest_mat),
+                FigureBoneData::new(chest_mat * self.feet_f.compute_base_matrix()),
+                FigureBoneData::new(chest_mat * self.feet_b.compute_base_matrix()),
+                FigureBoneData::new(chest_mat * self.tail.compute_base_matrix()),
                 FigureBoneData::default(),
                 FigureBoneData::default(),
                 FigureBoneData::default(),
@@ -109,12 +110,12 @@ impl<'a> From<&'a comp::critter::Body> for CritterAttr {
         use comp::critter::Species::*;
         Self {
             head: match (body.species, body.body_type) {
-                (Rat, _) => (6.5, 7.0),
-                (Axolotl, _) => (5.0, 5.0),
-                (Gecko, _) => (5.0, 4.0),
-                (Turtle, _) => (8.0, 7.0),
-                (Squirrel, _) => (5.0, 4.0),
-                (Fungome, _) => (4.0, 4.0),
+                (Rat, _) => (6.5, 3.0),
+                (Axolotl, _) => (5.0, 1.0),
+                (Gecko, _) => (5.0, 0.0),
+                (Turtle, _) => (8.0, 3.0),
+                (Squirrel, _) => (5.0, 0.0),
+                (Fungome, _) => (4.0, 0.0),
             },
             chest: match (body.species, body.body_type) {
                 (Rat, _) => (0.0, 6.0),
@@ -125,28 +126,28 @@ impl<'a> From<&'a comp::critter::Body> for CritterAttr {
                 (Fungome, _) => (0.0, 5.0),
             },
             feet_f: match (body.species, body.body_type) {
-                (Rat, _) => (2.0, 0.5),
-                (Axolotl, _) => (2.0, 0.5),
-                (Gecko, _) => (1.0, 0.5),
-                (Turtle, _) => (3.0, 0.5),
-                (Squirrel, _) => (1.0, 0.5),
-                (Fungome, _) => (1.0, 0.5),
+                (Rat, _) => (2.0, -5.0),
+                (Axolotl, _) => (2.0, -5.0),
+                (Gecko, _) => (1.0, -2.0),
+                (Turtle, _) => (3.0, -5.0),
+                (Squirrel, _) => (1.0, -2.0),
+                (Fungome, _) => (1.0, -4.0),
             },
             feet_b: match (body.species, body.body_type) {
-                (Rat, _) => (-2.0, 0.5),
-                (Axolotl, _) => (-2.0, 0.5),
-                (Gecko, _) => (-2.0, 0.5),
-                (Turtle, _) => (-2.0, 0.5),
-                (Squirrel, _) => (-1.0, 0.5),
-                (Fungome, _) => (-2.0, 0.5),
+                (Rat, _) => (-2.0, -5.0),
+                (Axolotl, _) => (-2.0, -5.0),
+                (Gecko, _) => (-2.0, -2.0),
+                (Turtle, _) => (-2.0, -5.0),
+                (Squirrel, _) => (-1.0, -2.0),
+                (Fungome, _) => (-2.0, -4.0),
             },
             tail: match (body.species, body.body_type) {
-                (Rat, _) => (-8.0, 3.0),
-                (Axolotl, _) => (-7.0, 3.0),
-                (Gecko, _) => (-7.0, 2.0),
-                (Turtle, _) => (-6.0, 4.0),
-                (Squirrel, _) => (-3.0, 4.0),
-                (Fungome, _) => (-6.0, 3.0),
+                (Rat, _) => (-8.0, -1.0),
+                (Axolotl, _) => (-7.0, -1.0),
+                (Gecko, _) => (-6.5, -2.0),
+                (Turtle, _) => (-6.0, 0.0),
+                (Squirrel, _) => (-3.0, 0.0),
+                (Fungome, _) => (-6.0, -1.0),
             },
         }
     }
