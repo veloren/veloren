@@ -1,9 +1,10 @@
+pub mod feed;
 pub mod fly;
 pub mod idle;
 pub mod run;
 
 // Reexports
-pub use self::{fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation};
+pub use self::{feed::FeedAnimation, fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation};
 
 use super::{Bone, FigureBoneData, Skeleton};
 use common::comp::{self};
@@ -77,6 +78,7 @@ pub struct SkeletonAttr {
     tail: (f32, f32),
     wing: (f32, f32, f32),
     foot: (f32, f32, f32),
+    feed: f32,
 }
 
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -98,6 +100,7 @@ impl Default for SkeletonAttr {
             tail: (0.0, 0.0),
             wing: (0.0, 0.0, 0.0),
             foot: (0.0, 0.0, 0.0),
+            feed: 0.0,
         }
     }
 }
@@ -109,12 +112,12 @@ impl<'a> From<&'a comp::bird_medium::Body> for SkeletonAttr {
             head: match (body.species, body.body_type) {
                 (Duck, _) => (4.0, 3.0),
                 (Chicken, _) => (4.0, 3.0),
-                (Goose, _) => (5.0, 5.0),
-                (Peacock, _) => (4.0, 7.0),
+                (Goose, _) => (5.0, 2.5),
+                (Peacock, _) => (1.0, 1.0),
                 (Eagle, _) => (2.5, 5.0),
                 (Snowyowl, _) => (2.5, 5.0),
                 (Parrot, _) => (0.5, 4.5),
-                (Cockatrice, _) => (3.0, 4.0),
+                (Cockatrice, _) => (0.0, 4.0),
             },
             chest: match (body.species, body.body_type) {
                 (Duck, _) => (0.0, 5.0),
@@ -155,6 +158,16 @@ impl<'a> From<&'a comp::bird_medium::Body> for SkeletonAttr {
                 (Snowyowl, _) => (1.5, -2.5, 7.0),
                 (Parrot, _) => (1.5, -3.0, 3.0),
                 (Cockatrice, _) => (4.0, -3.5, 12.0),
+            },
+            feed: match (body.species, body.body_type) {
+                (Duck, _) => 1.0,
+                (Chicken, _) => 1.0,
+                (Goose, _) => 1.4,
+                (Peacock, _) => 1.6,
+                (Eagle, _) => 1.2,
+                (Snowyowl, _) => 1.0,
+                (Parrot, _) => 1.2,
+                (Cockatrice, _) => 1.3,
             },
         }
     }

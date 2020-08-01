@@ -52,8 +52,6 @@ impl Animation for WieldAnimation {
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin());
         let footvertl = (anim_time as f32 * 16.0 * lab as f32).sin();
         let footvertr = (anim_time as f32 * 16.0 * lab as f32 + PI).sin();
-        let handhoril = (anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin();
-        let handhorir = (anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin();
 
         let footrotl = (((5.0)
             / (2.5
