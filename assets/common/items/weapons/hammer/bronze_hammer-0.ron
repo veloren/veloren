@@ -3,7 +3,7 @@ Item(
     description: "Forged with bronze.",
     kind: Tool(
         (
-            kind: Hammer(BronzeHammer0),    
+            kind: Hammer("BronzeHammer0"),    
             stats: (
                 equip_time_millis: 500,
                 power: 1.00,

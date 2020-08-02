@@ -3,7 +3,7 @@ Item(
     description: "It was well maintained by it's previous owner.",
     kind: Tool(
        (
-            kind: Sword(LongSimple0),    
+            kind: Sword("LongSimple0"),    
             stats: (
                 equip_time_millis: 500,
                 power: 0.90,

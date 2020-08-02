@@ -6,7 +6,7 @@ use super::{
 use crate::ui::slot::{self, SlotKey, SumSlot};
 use common::comp::{
     item::{
-        tool::{DebugKind, Tool, ToolKind},
+        tool::{Tool, ToolKind},
         ItemKind,
     },
     Energy, Inventory, Loadout,
@@ -114,7 +114,10 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                     match kind {
                         ItemKind::Tool(Tool { kind, .. }) => match kind {
                             ToolKind::Staff(_) => Some(HotbarImage::Fireball),
-                            ToolKind::Debug(DebugKind::Boost) => Some(HotbarImage::SnakeArrow),
+                            ToolKind::Debug(kind) => match kind.as_ref() {
+                                "Boost" => Some(HotbarImage::SnakeArrow),
+                                _ => None,
+                            },
                             _ => None,
                         },
                         _ => None,

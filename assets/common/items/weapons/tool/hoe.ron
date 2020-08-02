@@ -3,7 +3,7 @@ Item(
     description: "It's stained with dirt.",
     kind: Tool (
         (
-            kind: Farming(Hoe0),
+            kind: Farming("Hoe0"),
             stats: (
                 equip_time_millis: 400,
                 power: 1.00,

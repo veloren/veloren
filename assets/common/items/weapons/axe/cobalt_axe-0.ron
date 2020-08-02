@@ -3,7 +3,7 @@ Item(
     description: "Forged from cobalt.",
     kind: Tool(
         (
-            kind: Axe(CobaltAxe0),    
+            kind: Axe("CobaltAxe0"),    
             stats: (
                 equip_time_millis: 400,
                 power: 1.80,

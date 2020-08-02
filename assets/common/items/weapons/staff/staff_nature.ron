@@ -3,7 +3,7 @@ Item(
     description: "Heals your allies with the power of nature.",      
     kind: Tool(
         (
-            kind: Staff(Sceptre),    
+            kind: Staff("Sceptre"),    
             stats: (
                 equip_time_millis: 400,
                 power: 1.00,

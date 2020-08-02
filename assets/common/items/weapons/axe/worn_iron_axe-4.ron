@@ -3,7 +3,7 @@ Item(
     description: "The blade is in the shape of a beetle.",
     kind: Tool(
         (
-            kind: Axe(WornIronAxe4),
+            kind: Axe("WornIronAxe4"),
             stats: (
                 equip_time_millis: 400,
                 power: 0.80,

@@ -3,7 +3,7 @@ Item(
     description: "Someone carved his initials into it.",  
     kind: Tool(
         (
-            kind: Bow(ShortBow0),    
+            kind: Bow("ShortBow0"),    
             stats: (
                 equip_time_millis: 400,
                 power: 0.50,

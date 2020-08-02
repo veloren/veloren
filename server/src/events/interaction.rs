@@ -126,7 +126,7 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
                     .or_insert(comp::Loadout::default());
 
                 let item = assets::load_expect_cloned::<comp::Item>("common.items.debug.possess");
-                if let item::ItemKind::Tool(tool) = item.kind {
+                if let item::ItemKind::Tool(tool) = &item.kind {
                     let mut abilities = tool.get_abilities();
                     let mut ability_drain = abilities.drain(..);
                     let debug_item = comp::ItemConfig {
