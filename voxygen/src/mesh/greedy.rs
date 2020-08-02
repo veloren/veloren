@@ -3,6 +3,77 @@ use vek::*;
 
 type TerrainVertex = <TerrainPipeline as render::Pipeline>::Vertex;
 
+/// `max_size`:
+///
+/// `draw_delta`:
+///
+/// `greedy_size`:
+///
+/// `greedy_size_cross`:
+///
+/// `get_light`:
+///
+/// `get_color`:
+///
+///
+/// `create_shadow`:
+/// Create a shadow vertex (used for both shadow and display rendering)
+/// given its position, normal, and meta information.  Note that the position
+/// received here is relative to `draw_delta`--it still needs to be translated
+/// to mesh coordinates.
+///
+/// `create_opaque`:
+pub struct GreedyConfig<D, FL, FC, FO, FS, FP> {
+    pub data: D,
+    /// The minimum position to mesh, in the coordinate system used
+    /// for queries against the volume.
+    pub draw_delta: Vec3<i32>,
+    /// For each dimension i, for faces drawn in planes *parallel* to i,
+    /// represents the number of voxels considered along dimenson i in those
+    /// planes, starting from `draw_delta`.
+    pub greedy_size: Vec3<usize>,
+    /// For each dimension i, represents the number of planes considered
+    /// *orthogonal* to dimension i, starting from `draw_delta`.  This should
+    /// usually be the same as greedy_size.
+    ///
+    /// An important exception is during chunk rendering (where vertical faces
+    /// at chunk boundaries would otherwise be rendered twice, and also
+    /// force us to use more than 5 bits to represent x and y
+    /// positions--though there may be a clever way aruond the latter).
+    /// Thus, for chunk rendering we set the number of *vertical* planes to
+    /// one less than the chunk size along the x and y dimensions, but keep
+    /// the number of *horizontal* planes large enough to cover the whole
+    /// chunk.
+    pub greedy_size_cross: Vec3<usize>,
+    /// Given a position, return the lighting information for the voxel at that
+    /// position.
+    pub get_light: FL,
+    /// Given a position, return the color information for the voxel at that
+    /// position.
+    pub get_color: FC,
+    /// Given a position, return the opacity information for the voxel at that
+    /// position. Currently, we don't support real translucent lighting, so the
+    /// value should either be `false` (for opaque blocks) or `true`
+    /// (otherwise).
+    pub get_opacity: FO,
+    /// Given a position and a normal, should we draw the face between the
+    /// position and position - normal (i.e. the voxel "below" this vertex)?
+    /// If so, provide its orientation, together with any other meta
+    /// information required for the mesh that needs to split up faces.  For
+    /// example, terrain faces currently record a bit indicating whether
+    /// they are exposed to water or not, so we should not merge faces where
+    /// one is submerged in water and the other is not, even if they
+    /// otherwise have the same orientation, dimensions, and are
+    /// next to each other.
+    pub should_draw: FS,
+    /// Create an opauqe quad (used for only display rendering) from its
+    /// top-left atlas position, the rectangle's dimensions in (2D) atlas
+    /// space, a world position, the u and v axes of the rectangle in (3D)
+    /// world space, the normal facing out frmo the rectangle in world
+    /// space, and meta information common to every voxel in this rectangle.
+    pub push_quad: FP,
+}
+
 /// A suspended greedy mesh, with enough information to recover color data.
 ///
 /// The reason this exists is that greedy meshing is split into two parts.
@@ -28,6 +99,20 @@ pub struct GreedyMesh<'a> {
 }
 
 impl<'a> GreedyMesh<'a> {
+    /// Construct a new greedy mesher.
+    ///
+    /// Takes as input the maximum allowable size of the texture atlas used to
+    /// store the light/color data for this mesh.
+    ///
+    /// NOTE: It is an error to pass any size > u16::MAX.
+    ///
+    /// Even aside from the above limitation, this will not necessarily always
+    /// be the same as the maximum atlas size supported by the hardware.
+    /// For instance, since we want to reserve 4 bits for a bone index for
+    /// figures in their shadow vertex, the atlas parameter for figures has
+    /// to have at least 2 bits of the normal; thus, it can only take up at
+    /// most 30 bits total, meaning we are restricted to "only" at most 2^15
+    /// × 2^15 atlases even if the hardware supports larger ones.
     pub fn new(max_size: guillotiere::Size) -> Self {
         let min_max_dim = max_size.width.min(max_size.height);
         assert!(
@@ -55,45 +140,55 @@ impl<'a> GreedyMesh<'a> {
         }
     }
 
-    pub fn push</* S: render::Pipeline, *//*O: render::Pipeline, */ M: PartialEq, D: 'a>(
+    /// Perform greedy meshing on a model, separately producing "pure" model
+    /// data (the opaque mesh, ttogether with atlas positions connecting
+    /// each rectangle with texture information), and raw light and color
+    /// data ready to be used as a texture (accessible with `finalize`).
+    /// Texture data built up within the same greedy mesh will be inserted
+    /// into the same atlas, which can be used to group texture data for
+    /// things like figures that are the result of meshing multiple models.
+    ///
+    /// Returns an estimate of the bounds of the current meshed model.
+    ///
+    /// For more information on the config parameter, see [GreedyConfig].
+    pub fn push<
+        M: PartialEq,
+        D: 'a,
+        FL,
+        FC,
+        FO,
+        FS,
+        FP,
+    >(
         &mut self,
-        data: D,
-        draw_delta: Vec3<i32>,
-        greedy_size: Vec3<usize>,
-        greedy_size_cross: Vec3<usize>,
-        get_light: impl for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
-        get_color: impl for<'r> FnMut(&'r mut D, Vec3<i32>) -> Rgb<u8> + 'a,
-        get_opacity: impl for<'r> FnMut(&'r mut D, Vec3<i32>) -> bool + 'a,
-        should_draw: impl for<'r> FnMut(
-            &'r mut D,
-            Vec3<i32>,
-            Vec3<i32>,
-            Vec2<Vec3<i32>>,
-        ) -> Option<(bool, M)>,
-        // create_shadow: impl for<'r> Fn(Vec3<f32>, Vec3<f32>, &'r M) -> S::Vertex,
-        // create_opaque: impl for<'r> Fn(Vec2<u16>, Vec3<f32>, Vec3<f32>, &'r M) -> O::Vertex,
-        push_quad: impl FnMut(Vec2<u16>, Vec2<Vec2<u16>>, Vec3<f32>, Vec2<Vec3<f32>>, Vec3<f32>, &M),
-    ) -> Aabb<u16> {
+        config: GreedyConfig<D, FL, FC, FO, FS, FP>,
+    ) -> Aabb<u16>
+    where
+        FL: for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
+        FC: for<'r> FnMut(&'r mut D, Vec3<i32>) -> Rgb<u8> + 'a,
+        FO: for<'r> FnMut(&'r mut D, Vec3<i32>) -> bool + 'a,
+        FS: for<'r> FnMut(&'r mut D, Vec3<i32>, Vec3<i32>, Vec2<Vec3<i32>>) -> Option<(bool, M)>,
+        FP: FnMut(Vec2<u16>, Vec2<Vec2<u16>>, Vec3<f32>, Vec2<Vec3<f32>>, Vec3<f32>, &M),
+    {
         let (bounds, /* opaque, *//*shadow, */ cont) = greedy_mesh(
             &mut self.atlas,
             &mut self.col_lights_size,
             self.max_size,
-            data,
-            draw_delta,
-            greedy_size,
-            greedy_size_cross,
-            get_light,
-            get_color,
-            get_opacity,
-            should_draw,
-            // create_shadow,
-            // create_opaque,
-            push_quad,
+            config,
         );
         self.suspended.push(cont);
         bounds
     }
 
+    /// Finalize the mesh, producing texture color data for the whole model.
+    ///
+    /// By delaying finalization until the contents of the whole texture atlas
+    /// are known, we can perform just a single allocation to construct a
+    /// precisely fitting atlas.  This will also let us (in the future)
+    /// suspend meshing partway through in order to meet frame budget, and
+    /// potentially use a single staged upload to the GPU.
+    ///
+    /// Returns the ColLightsInfo corresponding to the consstructed atlas.
     pub fn finalize(self) -> ColLightInfo {
         let cur_size = self.col_lights_size;
         let col_lights = vec![/*Default::default()*/TerrainVertex::make_col_light(254, Rgb::broadcast(254)); usize::from(cur_size.x) * usize::from(cur_size.y)];
@@ -107,122 +202,34 @@ impl<'a> GreedyMesh<'a> {
     pub fn max_size(&self) -> guillotiere::Size { self.max_size }
 }
 
-/// Perform greedy meshing on a model, separately producing "pure" model data
-/// (the shadow mesh), raw light and color data ready to be used as a texture
-/// (the returned vector of ColLights, together with their width and height),
-/// and the atlas positions (the opaque mesh) used to connect the shadow
-/// information with the light and color information.
-///
-/// The opaque and shadow data are in the same order and it is intended that
-/// they be used together as vertex buffers for display purposes.  Thus, if you
-/// perform further manipulation on the meshes after this function returns, such
-/// as merges, please be sure that all those operations preserve this
-/// relationship.
-///
-/// TODO: Consider supporting shared texture atlases (this might come in handy
-/// for mobs or sprites, for instance).a
-///
-/// TODO: Add assertions to make this more robust.
-///
-/// Parameter description:
-///
-/// `max_size`:
-/// The maximum allowable size of the texture atlas used to store the
-/// light/color data for this mesh.
-///
-/// NOTE: It is an error to pass any size > u16::MAX.
-///
-/// Even aside from the above limitation, this will not necessarily always be
-/// the same as the maximum atlas size supported by the hardware.  For instance,
-/// since we want to reserve 4 bits for a bone index for figures in their shadow
-/// vertex, the atlas parameter for figures has to have at least 2 bits of the
-/// normal; thus, it can only take up at most 30 bits total, meaning we are
-/// restricted to "only" at most 2^15 × 2^15 atlases even if the hardware
-/// supports larger ones.
-///
-/// `draw_delta`: The minimum position to mesh, in the coordinate system used
-/// for queries against the volume.
-///
-/// `greedy_size`:
-/// For each dimension i, for faces drawn in planes *parallel* to i, represents
-/// the number of voxels considered along dimenson i in those planes, starting
-/// from `draw_delta`.
-///
-/// `greedy_size_cross`:
-/// For each dimension i, represents the number of planes considered
-/// *orthogonal* to dimension i, starting from `draw_delta`.  This should
-/// usually be the same as greedy_size.
-///
-/// An important exception is during chunk rendering (where vertical faces at
-/// chunk boundaries would otherwise be rendered twice, and also force us to use
-/// more than 5 bits to represent x and y positions--though there may be a
-/// clever way aruond the latter).  Thus, for chunk rendering we set the number
-/// of *vertical* planes to one less than the chunk size along the
-/// x and y dimensions, but keep the number of *horizontal* planes large enough
-/// to cover the whole chunk.
-///
-/// `get_light`:
-/// Given a position, return the lighting information for the voxel at that
-/// position.
-///
-/// `get_color`:
-/// Given a position, return the color information for the voxel at that
-/// position.
-///
-/// `get_opacity`:
-/// Given a position, return the opacity information for the voxel at that
-/// position. Currently, we don't support real translucent lighting, so the
-/// value should either be `false` (for opaque blocks) or `true` (otherwise).
-///
-/// `should_draw`:
-/// Given a position and a normal, should we draw the face between the position
-/// and position - normal (i.e. the voxel "below" this vertex)?  If so, provide
-/// its orientation, together with any other meta information required for the
-/// mesh that needs to split up faces.  For example, terrain faces currently
-/// record a bit indicating whether they are exposed to water or not, so we
-/// should not merge faces where one is submerged in water and the other is not,
-/// even if they otherwise have the same orientation, dimensions, and are
-/// next to each other.
-///
-/// `create_shadow`:
-/// Create a shadow vertex (used for both shadow and display rendering)
-/// given its position, normal, and meta information.  Note that the position
-/// received here is relative to `draw_delta`--it still needs to be translated
-/// to mesh coordinates.
-///
-/// `create_opaque`:
-/// Create an opauqe vertex (used for only display rendering) from an atlas
-/// position, normal, and meta information.
-fn greedy_mesh<
-    'a, /* , S: render::Pipeline*//*, O: render::Pipeline */
-    M: PartialEq,
-    D: 'a,
->(
+fn greedy_mesh<'a, M: PartialEq, D: 'a, FL, FC, FO, FS, FP>(
     atlas: &mut guillotiere::SimpleAtlasAllocator,
     col_lights_size: &mut Vec2<u16>,
     max_size: guillotiere::Size,
-    mut data: D,
-    draw_delta: Vec3<i32>,
-    greedy_size: Vec3<usize>,
-    greedy_size_cross: Vec3<usize>,
-    get_light: impl for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
-    get_color: impl for<'r> FnMut(&'r mut D, Vec3<i32>) -> Rgb<u8> + 'a,
-    get_opacity: impl for<'r> FnMut(&'r mut D, Vec3<i32>) -> bool + 'a,
-    mut should_draw: impl for<'r> FnMut(
-        &'r mut D,
-        Vec3<i32>,
-        Vec3<i32>,
-        Vec2<Vec3<i32>>,
-    ) -> Option<(bool, M)>,
-    // create_shadow: impl Fn(Vec3<f32>, Vec3<f32>, &M) -> S::Vertex,
-    // create_opaque: impl Fn(Vec2<u16>, Vec3<f32>, Vec3<f32>, &M) -> O::Vertex,
-    mut push_quad: impl FnMut(Vec2<u16>, Vec2<Vec2<u16>>, Vec3<f32>, Vec2<Vec3<f32>>, Vec3<f32>, &M),
+    GreedyConfig {
+        mut data,
+        draw_delta,
+        greedy_size,
+        greedy_size_cross,
+        get_light,
+        get_color,
+        get_opacity,
+        mut should_draw,
+        mut push_quad,
+    }: GreedyConfig<D, FL, FC, FO, FS, FP>,
 ) -> (
     Aabb<u16>,
     // Mesh<O>,
     // Mesh<S>,
     Box<SuspendedMesh<'a>>,
-) {
+)
+where
+    FL: for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
+    FC: for<'r> FnMut(&'r mut D, Vec3<i32>) -> Rgb<u8> + 'a,
+    FO: for<'r> FnMut(&'r mut D, Vec3<i32>) -> bool + 'a,
+    FS: for<'r> FnMut(&'r mut D, Vec3<i32>, Vec3<i32>, Vec2<Vec3<i32>>) -> Option<(bool, M)>,
+    FP: FnMut(Vec2<u16>, Vec2<Vec2<u16>>, Vec3<f32>, Vec2<Vec3<f32>>, Vec3<f32>, &M),
+{
     // let mut opaque_mesh = Mesh::new();
     // let mut shadow_mesh = Mesh::new();
 

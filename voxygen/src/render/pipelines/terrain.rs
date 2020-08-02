@@ -58,8 +58,10 @@ impl Vertex {
             if norm.x < 0.0 { 0 } else { 1 }
         } else if norm.y != 0.0 {
             if norm.y < 0.0 { 2 } else { 3 }
+        } else if norm.z < 0.0 {
+            4
         } else {
-            if norm.z < 0.0 { 4 } else { 5 }
+            5
         };
         Self {
             pos_norm: 0

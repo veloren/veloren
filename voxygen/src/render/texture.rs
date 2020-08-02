@@ -59,7 +59,8 @@ where
             filter_method.unwrap_or(gfx::texture::FilterMethod::Scale),
             wrap_mode.unwrap_or(gfx::texture::WrapMode::Clamp),
         );
-        sampler_info.border = border.unwrap_or([0.0, 0.0, 0.0, 1.0].into());
+        let transparent = [0.0, 0.0, 0.0, 1.0].into();
+        sampler_info.border = border.unwrap_or(transparent);
         Ok(Self {
             tex,
             srv,

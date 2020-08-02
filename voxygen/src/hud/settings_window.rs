@@ -2185,7 +2185,6 @@ impl<'a> Widget for SettingsWindow<'a> {
                     events.push(Event::ChangeRenderMode(RenderMode {
                         shadow: ShadowMode::Map(ShadowMapMode {
                             resolution: 2.0f32.powf(f32::from(new_val) / 4.0),
-                            ..shadow_map_mode
                         }),
                         ..render_mode
                     }));

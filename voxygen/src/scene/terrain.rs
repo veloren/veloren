@@ -525,6 +525,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         let mut make_models = |(kind, variation), s, offset, lod_axes: Vec3<f32>| {
             let scaled = [1.0, 0.8, 0.6, 0.4, 0.2];
             let model = assets::load_expect::<DotVoxData>(s);
+            let zero = Vec3::zero();
             let model_size = model
                 .models
                 .first()
@@ -534,7 +535,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                          ..
                      }| Vec3::new(x, y, z),
                 )
-                .unwrap_or(Vec3::zero());
+                .unwrap_or(zero);
             let max_model_size = Vec3::new(15.0, 15.0, 63.0);
             let model_scale = max_model_size.map2(model_size, |max_sz: f32, cur_sz| {
                 let scale = max_sz / max_sz.max(cur_sz as f32);
@@ -2663,7 +2664,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         // store it. Only pull out one chunk per frame to avoid an unacceptable
         // amount of blocking lag due to the GPU upload. That still gives us a
         // 60 chunks / second budget to play with.
-        if let Some(response) = self.mesh_recv.recv_timeout(Duration::new(0, 0)).ok() {
+        if let Ok(response) = self.mesh_recv.recv_timeout(Duration::new(0, 0)) {
             match self.mesh_todo.get(&response.pos) {
                 // It's the mesh we want, insert the newly finished model into the terrain model
                 // data structure (convert the mesh to a model first of course).

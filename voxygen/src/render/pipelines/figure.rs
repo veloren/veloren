@@ -163,7 +163,7 @@ impl FigureModel {
         // in order to store the bone index.  The two bits are instead taken out
         // of the atlas coordinates, which is why we "only" allow 1 << 15 per
         // coordinate instead of 1 << 16.
-        let max_size = guillotiere::Size::new(1 << 15 - 1, 1 << 15 - 1);
+        let max_size = guillotiere::Size::new((1 << 15) - 1, (1 << 15) - 1);
         GreedyMesh::new(max_size)
     }
 }

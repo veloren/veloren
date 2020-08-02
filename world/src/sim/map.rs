@@ -232,7 +232,7 @@ pub fn sample_pos(
             );
             Rgb::new((r * 255.0) as u8, (g * 255.0) as u8, (b * 255.0) as u8)
         },
-        (None, _) | (Some(RiverKind::Lake { .. }), _) | (Some(RiverKind::Ocean), _) => Rgb::new(
+        (None | Some(RiverKind::Lake { .. } | RiverKind::Ocean), _) => Rgb::new(
             0,
             ((g_water - water_depth * g_water) * 1.0) as u8,
             ((b_water - water_depth * b_water) * 1.0) as u8,

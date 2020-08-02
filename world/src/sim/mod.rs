@@ -1440,7 +1440,7 @@ impl WorldSim {
                         /* let z_cache = block_gen.get_z_cache(wpos);
                         sample.alt = alt.max(z_cache.get_z_limits(&mut block_gen).2); */
                         sample.alt = alt.max(BlockGen::get_cliff_height(
-                            &mut block_gen.column_gen,
+                            &block_gen.column_gen,
                             &mut block_gen.column_cache,
                             wpos.map(|e| e as f32),
                             &sample.close_cliffs,
@@ -1719,12 +1719,12 @@ impl WorldSim {
     }
 
     pub fn get_base_z(&self, chunk_pos: Vec2<i32>) -> Option<f32> {
-        if !chunk_pos
+        let in_bounds = chunk_pos
             .map2(self.map_size_lg().chunks(), |e, sz| {
                 e > 0 && e < sz as i32 - 2
             })
-            .reduce_and()
-        {
+            .reduce_and();
+        if !in_bounds {
             return None;
         }
 

@@ -1195,19 +1195,19 @@ impl Scene {
                 let w_p: math::Mat4<f32> = {
                     if /*sin_gamma > EPISLON_GAMMA*/factor > EPSILON_UPSILON {
                         // Projection for y
-                        let n = directed_near;// - near_dist;
-                        let f = directed_far;
-                        let l = -1.0;// bounds0.min.x;//-1.0;// bounds0.min.x - light_focus_pos.x;
-                        let r = 1.0;// bounds0.max.x;//1.0;// bounds0.max.x - light_focus_pos.x;
-                        let b = -1.0;// bounds0.max.z;// bounds0.max.z - light_focus_pos.z;
-                        let t = 1.0;// bounds0.min.z;// bounds0.min.z - light_focus_pos.z;
-                        let s_x = 2.0 * n / (r - l);
-                        let o_x = (r + l) / (r - l);
-                        let s_z = 2.0 * n / (t - b);
-                        let o_z = (t + b) / (t - b);
+                        let near = directed_near;// - near_dist;
+                        let far = directed_far;
+                        let left = -1.0;// bounds0.min.x;//-1.0;// bounds0.min.x - light_focus_pos.x;
+                        let right = 1.0;// bounds0.max.x;//1.0;// bounds0.max.x - light_focus_pos.x;
+                        let bottom = -1.0;// bounds0.max.z;// bounds0.max.z - light_focus_pos.z;
+                        let top = 1.0;// bounds0.min.z;// bounds0.min.z - light_focus_pos.z;
+                        let s_x = 2.0 * near / (right - left);
+                        let o_x = (right + left) / (right - left);
+                        let s_z = 2.0 * near / (top - bottom);
+                        let o_z = (top + bottom) / (top - bottom);
 
-                        let s_y = (f + n) / (f - n);
-                        let o_y = -2.0 * f * n / (f - n);
+                        let s_y = (far + near) / (far - near);
+                        let o_y = -2.0 * far * near / (far - near);
                         // y(y₀) = s_y y₀ + o_y
                         //      = ((f + n)y₀ - 2fn) / (f - n)
                         // y(f) = s_y f + o_y
@@ -1337,22 +1337,12 @@ impl Scene {
                 let o_x = -(xmax + xmin) / (xmax - xmin);
                 let o_y = -(ymax + ymin) / (ymax - ymin);
                 let o_z = -(zmax + zmin) / (zmax - zmin);
-                let directed_proj_mat = if /*sin_gamma > EPISLON_GAMMA*/factor > EPSILON_UPSILON {
-                    // Mat4::identity()
-                    Mat4::new(
-                        s_x, 0.0, 0.0, o_x,
-                        0.0, s_y, 0.0, o_y,
-                        0.0, 0.0, /*-*/s_z, /*-*/o_z,
-                        0.0, 0.0, 0.0, 1.0,
-                    )/*.scaled_3d(Vec3::new(1.0, 1.0, -1.0))*/
-                } else {
-                    Mat4::new(
-                        s_x, 0.0, 0.0, o_x,
-                        0.0, s_y, 0.0, o_y,
-                        0.0, 0.0, s_z, o_z,
-                        0.0, 0.0, 0.0, 1.0,
-                    )/*.scaled_3d(Vec3::new(1.0, 1.0, -1.0))*/
-                }/*.scaled_3d(Vec3::new(1.0, 1.0, -1.0))*//* * w_p * w_v*//* * l_r*/;//Mat4::identity();
+                let directed_proj_mat = Mat4::new(
+                    s_x, 0.0, 0.0, o_x,
+                    0.0, s_y, 0.0, o_y,
+                    0.0, 0.0, s_z, o_z,
+                    0.0, 0.0, 0.0, 1.0,
+                )/*.scaled_3d(Vec3::new(1.0, 1.0, -1.0))*//* * w_p * w_v*//* * l_r*/;//Mat4::identity();
                 // println!("proj_mat: {:?}", directed_proj_mat);
                 // println!("all_mat: {:?}", directed_proj_mat * view_mat);
                 // let _w_p_arr = directed_proj_mat.cols.iter().map(|e| (e.x, e.y, e.z, e.w)).collect::<Vec<_>>();

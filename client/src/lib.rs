@@ -316,7 +316,7 @@ impl Client {
                                 // Should not fail if the dimensions are correct.
                                 let map =
                                     image::ImageBuffer::from_raw(u32::from(map_size.x), u32::from(map_size.y), raw);
-                                map.ok_or(Error::Other("Server sent a bad world map image".into()))?
+                                map.ok_or_else(|| Error::Other("Server sent a bad world map image".into()))?
                             })
                             // Flip the image, since Voxygen uses an orientation where rotation from
                             // positive x axis to positive y axis is counterclockwise around the z axis.

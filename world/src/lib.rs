@@ -6,7 +6,8 @@
     const_if_match,
     const_generics,
     const_panic,
-    label_break_value
+    label_break_value,
+    or_patterns
 )]
 
 mod all;

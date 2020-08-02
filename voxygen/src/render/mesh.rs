@@ -128,7 +128,7 @@ impl<P: Pipeline> Quad<P> {
         let verts = [self.a, self.b, self.c, self.d];
 
         Self {
-            a: verts[(0 + n) % 4].clone(),
+            a: verts[n % 4].clone(),
             b: verts[(1 + n) % 4].clone(),
             c: verts[(2 + n) % 4].clone(),
             d: verts[(3 + n) % 4].clone(),

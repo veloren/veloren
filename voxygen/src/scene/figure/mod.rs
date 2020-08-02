@@ -185,7 +185,7 @@ impl FigureMgrStates {
         }
     }
 
-    fn retain<'a>(&'a mut self, mut f: impl FnMut(&EcsEntity, &mut FigureStateMeta) -> bool) {
+    fn retain(&mut self, mut f: impl FnMut(&EcsEntity, &mut FigureStateMeta) -> bool) {
         self.character_states.retain(|k, v| f(k, &mut *v));
         self.quadruped_small_states.retain(|k, v| f(k, &mut *v));
         self.quadruped_medium_states.retain(|k, v| f(k, &mut *v));

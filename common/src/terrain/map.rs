@@ -142,6 +142,12 @@ pub const MAX_WORLD_BLOCKS_LG: Vec2<u32> = Vec2 { x: 19, y: 19 };
 pub struct MapSizeLg(Vec2<u32>);
 
 impl MapSizeLg {
+    // FIXME: We cannot use is_some() here because it is not currently marked as a
+    // `const fn`.  Since being able to use conditionals in constant expressions has
+    // not technically been stabilized yet, Clippy probably doesn't check for this
+    // case yet.  When it can, or when is_some() is stabilized as a `const fn`,
+    // we should deal with this.
+    #[allow(clippy::redundant_pattern_matching)]
     /// Construct a new `MapSizeLg`, returning an error if the needed invariants
     /// do not hold and the vector otherwise.
     ///
@@ -509,23 +515,17 @@ impl<'a> MapConfig<'a> {
             // accurate (though I'm not sure if it can matter for these
             // purposes).
             chunk_idx
-                .map(|chunk_idx| neighbors(map_size_lg, chunk_idx).chain(iter::once(chunk_idx)))
                 .into_iter()
-                .flatten()
+                .flat_map(|chunk_idx| {
+                    neighbors(map_size_lg, chunk_idx).chain(iter::once(chunk_idx))
+                })
                 .for_each(|neighbor_posi| {
                     let neighbor_pos = uniform_idx_as_vec2(map_size_lg, neighbor_posi);
                     let neighbor_wpos = neighbor_pos.map(|e| e as f64) * chunk_size;
                     let MapSample { connections, .. } = sample_pos(neighbor_pos);
                     NEIGHBOR_DELTA
                         .iter()
-                        .zip(
-                            connections
-                                .as_ref()
-                                .map(|e| e.iter())
-                                .into_iter()
-                                .flatten()
-                                .into_iter(),
-                        )
+                        .zip(connections.iter().flatten())
                         .for_each(|(&delta, connection)| {
                             let connection = if let Some(connection) = connection {
                                 connection

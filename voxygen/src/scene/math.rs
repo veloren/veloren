@@ -53,7 +53,7 @@ pub fn mat_mul_points<T: Float + MulAdd<T, T, Output = T>>(
     pts: &mut [Vec3<T>],
     mut do_p: impl FnMut(Vec4<T>) -> Vec3<T>,
 ) {
-    pts.into_iter().for_each(|p| {
+    pts.iter_mut().for_each(|p| {
         *p = do_p(mat * Vec4::from_point(*p));
     });
 }
@@ -480,12 +480,10 @@ pub fn clip_test<T: Float + core::fmt::Debug>(p: T, q: T, (u1, u2): (T, T)) -> O
             } else {
                 Some((if r > u1 { r } else { u1 }, u2))
             }
+        } else if r < u1 {
+            None
         } else {
-            if r < u1 {
-                None
-            } else {
-                Some((u1, if r < u2 { r } else { u2 }))
-            }
+            Some((u1, if r < u2 { r } else { u2 }))
         }
     } /*;
     // println!("clip_test@(p={:?}, q={:?}, (u1, u2)=({:?}. {:?})):

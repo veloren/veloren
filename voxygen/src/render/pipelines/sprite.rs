@@ -82,10 +82,7 @@ impl fmt::Display for Vertex {
             .field("pos", &Vec3::<f32>::from(self.pos))
             .field(
                 "atlas_pos",
-                &Vec2::new(
-                    (self.atlas_pos >> 0) & 0xFFFF,
-                    (self.atlas_pos >> 16) & 0xFFFF,
-                ),
+                &Vec2::new(self.atlas_pos & 0xFFFF, (self.atlas_pos >> 16) & 0xFFFF),
             )
             .field("norm_ao", &self.norm_ao)
             .finish()

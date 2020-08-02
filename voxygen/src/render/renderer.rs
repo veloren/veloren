@@ -166,7 +166,7 @@ impl Renderer {
         let shadow_views = Self::create_shadow_views(
             &mut factory,
             (dims.0, dims.1),
-            &ShadowMapMode::try_from(mode.shadow).unwrap_or(ShadowMapMode::default()),
+            &ShadowMapMode::try_from(mode.shadow).unwrap_or_default(),
         )
         .map_err(|err| {
             warn!("Could not create shadow map views: {:?}", err);
@@ -1192,7 +1192,6 @@ impl Renderer {
         _alt: &Texture<LodAltFmt>,
         _horizon: &Texture<LodTextureFmt>,
     ) {
-        return;
         /* let (point_shadow_maps, directed_shadow_maps) =
             if let Some(shadow_map) = &mut self.shadow_map {
                 (
@@ -2222,7 +2221,7 @@ fn create_shadow_pipeline<P: gfx::pso::PipelineInit>(
         factory.create_shader_set(vs.as_bytes(), fs.as_bytes())?
     };
 
-    let result = Ok(GfxPipeline {
+    Ok(GfxPipeline {
         pso: factory.create_pipeline_state(
             &shader_set,
             gfx::Primitive::TriangleList,
@@ -2242,7 +2241,5 @@ fn create_shadow_pipeline<P: gfx::pso::PipelineInit>(
             },
             pipe,
         )?,
-    });
-
-    result
+    })
 }

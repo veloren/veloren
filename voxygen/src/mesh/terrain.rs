@@ -1,6 +1,6 @@
 use crate::{
     mesh::{
-        greedy::{self, GreedyMesh},
+        greedy::{self, GreedyConfig, GreedyMesh},
         Meshable,
     },
     render::{self, ColLightInfo, FluidPipeline, Mesh, ShadowPipeline, TerrainPipeline},
@@ -503,8 +503,9 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
         let get_color =
             |_: &mut (), pos: Vec3<i32>| flat_get(pos).get_color().unwrap_or(Rgb::zero());
         let get_opacity = |_: &mut (), pos: Vec3<i32>| !flat_get(pos).is_opaque();
+        let flat_get = |pos| flat_get(pos);
         let should_draw = |_: &mut (), pos: Vec3<i32>, delta: Vec3<i32>, _uv| {
-            should_draw_greedy(pos, delta, |pos| flat_get(pos))
+            should_draw_greedy(pos, delta, flat_get)
         };
         // NOTE: Conversion to f32 is fine since this i32 is actually in bounds for u16.
         // let create_shadow = |pos, norm, meta| ShadowVertex::new(pos + Vec3::new(0.0,
@@ -513,45 +514,44 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
         let create_opaque = |atlas_pos, pos, norm, meta| {
             TerrainVertex::new(atlas_pos, pos + mesh_delta, norm, meta)
         };
-        let create_transparent =
-            |_atlas_pos, pos, norm, _meta| FluidVertex::new(pos + mesh_delta, norm);
+        let create_transparent = |_atlas_pos, pos, norm| FluidVertex::new(pos + mesh_delta, norm);
 
         let mut greedy = GreedyMesh::new(max_size);
         let mut opaque_mesh = Mesh::new();
         let mut fluid_mesh = Mesh::new();
         let bounds = greedy.push(
-            (),
-            draw_delta,
-            greedy_size,
-            greedy_size_cross,
-            get_light,
-            get_color,
-            get_opacity,
-            should_draw,
-            |atlas_origin, dim, origin, draw_dim, norm, meta| match meta {
-                FaceKind::Opaque(meta) => {
-                    opaque_mesh.push_quad(greedy::create_quad(
-                        atlas_origin,
-                        dim,
-                        origin,
-                        draw_dim,
-                        norm,
-                        meta,
-                        |atlas_pos, pos, norm, &meta| create_opaque(atlas_pos, pos, norm, meta),
-                    ));
-                },
-                FaceKind::Fluid => {
-                    fluid_mesh.push_quad(greedy::create_quad(
-                        atlas_origin,
-                        dim,
-                        origin,
-                        draw_dim,
-                        norm,
-                        &(),
-                        |atlas_pos, pos, norm, &meta| {
-                            create_transparent(atlas_pos, pos, norm, meta)
-                        },
-                    ));
+            GreedyConfig {
+                data: (),
+                draw_delta,
+                greedy_size,
+                greedy_size_cross,
+                get_light,
+                get_color,
+                get_opacity,
+                should_draw,
+                push_quad: |atlas_origin, dim, origin, draw_dim, norm, meta: &FaceKind| match meta {
+                    FaceKind::Opaque(meta) => {
+                        opaque_mesh.push_quad(greedy::create_quad(
+                            atlas_origin,
+                            dim,
+                            origin,
+                            draw_dim,
+                            norm,
+                            meta,
+                            |atlas_pos, pos, norm, &meta| create_opaque(atlas_pos, pos, norm, meta),
+                        ));
+                    },
+                    FaceKind::Fluid => {
+                        fluid_mesh.push_quad(greedy::create_quad(
+                            atlas_origin,
+                            dim,
+                            origin,
+                            draw_dim,
+                            norm,
+                            &(),
+                            |atlas_pos, pos, norm, &_meta| create_transparent(atlas_pos, pos, norm),
+                        ));
+                    },
                 },
             },
         );
