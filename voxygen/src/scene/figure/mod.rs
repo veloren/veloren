@@ -636,6 +636,7 @@ impl FigureMgr {
                                 ori,
                                 state.last_ori,
                                 time,
+                                state.avg_vel,
                             ),
                             state.state_time,
                             &mut state_animation_rate,

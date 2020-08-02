@@ -8,7 +8,7 @@ edition = "2018"
 name = "voxygen_anim"
 # Uncomment to use animation hot reloading
 # Note: this breaks `cargo test`
-# crate-type = ["lib", "cdylib"]
+crate-type = ["lib", "cdylib"]
 
 [features]
 use-dyn-lib = ["libloading", "notify", "lazy_static", "tracing", "find_folder"]
