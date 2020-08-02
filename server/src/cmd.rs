@@ -1832,7 +1832,7 @@ fn handle_kick(
         if let Some(target_player) = target_player_opt {
             server.notify_client(
                 target_player,
-                ServerMsg::Disconnect
+                ServerMsg::Kicked(reason.clone())
             );
             server.notify_client(
                 client,

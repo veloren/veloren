@@ -132,6 +132,13 @@ impl PlayState for MainMenuState {
                                     reason
                                 )
                             },
+                            client::Error::Kicked(reason) => {
+                                format!(
+                                    "{}: {}",
+                                    localized_strings.get("main.login.kicked"),
+                                    reason
+                                )
+                            }
                             client::Error::InvalidCharacter => {
                                 localized_strings.get("main.login.invalid_character").into()
                             },
