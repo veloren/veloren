@@ -2,7 +2,7 @@ use super::{img_ids::Imgs, Show, TEXT_COLOR, TEXT_COLOR_3, UI_HIGHLIGHT_0, UI_MA
 
 use crate::{i18n::VoxygenLocalization, ui::fonts::ConrodVoxygenFonts};
 use client::{self, Client};
-use common::{comp::Stats, sync::Uid};
+use common::sync::Uid;
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
@@ -14,6 +14,7 @@ widget_ids! {
     pub struct Ids {
         frame,
         close,
+        title_align,
         title,
         bg,
         icon,
@@ -62,8 +63,7 @@ pub struct Social<'a> {
     imgs: &'a Imgs,
     fonts: &'a ConrodVoxygenFonts,
     localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
-    stats: &'a Stats,
-
+    //stats: &'a Stats,
     selected_entity: Option<(specs::Entity, Instant)>,
 
     #[conrod(common_builder)]
@@ -77,7 +77,7 @@ impl<'a> Social<'a> {
         imgs: &'a Imgs,
         fonts: &'a ConrodVoxygenFonts,
         localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
-        stats: &'a Stats,
+        //stats: &'a Stats,
         selected_entity: Option<(specs::Entity, Instant)>,
     ) -> Self {
         Self {
@@ -86,7 +86,7 @@ impl<'a> Social<'a> {
             imgs,
             fonts,
             localized_strings,
-            stats,
+            //stats,
             selected_entity,
             common: widget::CommonBuilder::default(),
         }
@@ -120,7 +120,11 @@ impl<'a> Widget for Social<'a> {
         let mut events = Vec::new();
 
         // Window frame and BG
-        let pos = if self.show.group { 180.0 } else { 25.0 };
+        let pos = if self.show.group || self.show.group_menu {
+            200.0
+        } else {
+            25.0
+        };
         // TODO: Different window visuals depending on the selected tab
         let window_bg = match &self.show.social_tab {
             SocialTab::Online => self.imgs.social_bg_on,
@@ -133,7 +137,7 @@ impl<'a> Widget for Social<'a> {
             SocialTab::Faction => self.imgs.social_frame_fact,
         };
         Image::new(window_bg)
-            .top_left_with_margins_on(ui.window, 200.0, pos)
+            .bottom_left_with_margins_on(ui.window, 308.0, pos)
             .color(Some(UI_MAIN))
             .w_h(280.0, 460.0)
             .set(state.ids.bg, ui);
@@ -160,10 +164,13 @@ impl<'a> Widget for Social<'a> {
         }
 
         // Title
+        Rectangle::fill_with([212.0, 42.0], color::TRANSPARENT)
+            .top_left_with_margins_on(state.ids.frame, 2.0, 44.0)
+            .set(state.ids.title_align, ui);
         Text::new(&self.localized_strings.get("hud.social"))
-            .mid_top_with_margin_on(state.ids.frame, 9.0)
+            .middle_of(state.ids.title_align)
             .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(22))
+            .font_size(self.fonts.cyri.scale(20))
             .color(TEXT_COLOR)
             .set(state.ids.title, ui);
 
@@ -186,7 +193,7 @@ impl<'a> Widget for Social<'a> {
             SocialTab::Online => UI_MAIN,
             _ => Color::Rgba(1.0, 1.0, 1.0, 0.6),
         })
-        .top_right_with_margins_on(state.ids.frame, 50.0, -28.0)
+        .top_right_with_margins_on(state.ids.frame, 50.0, -27.0)
         .set(state.ids.online_tab, ui)
         .was_clicked()
         {
@@ -322,7 +329,7 @@ impl<'a> Widget for Social<'a> {
                 .font_size(self.fonts.cyri.scale(14))
                 .color(TEXT_COLOR)
                 .set(state.ids.online_txt, ui);
-            Text::new(&count.to_string())
+            Text::new(&(count - 1).to_string())
                 .right_from(state.ids.online_txt, 5.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
@@ -356,24 +363,33 @@ impl<'a> Widget for Social<'a> {
             for (i, (&uid, player_info)) in
                 players.filter(|(uid, _)| Some(**uid) != my_uid).enumerate()
             {
+                let hide_username = true;
+                let zone = "Wilderness"; // TODO Add real zone
                 let selected = state.selected_uid.map_or(false, |u| u.0 == uid);
                 let alias = &player_info.player_alias;
-                let name = match &player_info.character {
-                    Some(character) => format!("{} ", &character.name),
-                    None => "<None>".to_string(), // character select or spectating
+                let name_text = match &player_info.character {
+                    Some(character) => {
+                        if Some(uid) == my_uid {
+                            format!(
+                                "{} ({})",
+                                &self.localized_strings.get("hud.common.you"),
+                                &character.name
+                            )
+                        } else if hide_username {
+                            character.name.clone()
+                        } else {
+                            format!("[{}] {}", alias, &character.name)
+                        }
+                    },
+                    None => alias.clone(), // character select or spectating
                 };
                 let level = match &player_info.character {
                     Some(character) => format!("{} ", &character.level),
-                    None => "<None>".to_string(), // character select or spectating
+                    None => "".to_string(), // character select or spectating
                 };
-                let setting = true; // TODO Remove this
-                let zone = "Wilderness"; // TODO: Add real zone
-                let name_text = if name == self.stats.name {
-                    format!("You ({})", name) // TODO: Locale
-                } else if setting {
-                    format!("{}", name)
-                } else {
-                    format!("[{}] {}", alias, name)
+                let zone_name = match &player_info.character {
+                    None => self.localized_strings.get("hud.group.in_menu").to_string(), /* character select or spectating */
+                    _ => format!("{} ", &zone),
                 };
                 // Player name widgets
                 let button = Button::image(if !selected {
@@ -417,9 +433,9 @@ impl<'a> Widget for Social<'a> {
                     .color(TEXT_COLOR)
                     .set(state.ids.player_levels[i], ui);
                 let zone_txt = if i == 0 {
-                    Text::new(&zone).mid_top_with_margin_on(state.ids.zones_align, 2.0)
+                    Text::new(&zone_name).mid_top_with_margin_on(state.ids.zones_align, 2.0)
                 } else {
-                    Text::new(&zone).down_from(state.ids.player_zones[i - 1], 2.0)
+                    Text::new(&zone_name).down_from(state.ids.player_zones[i - 1], 2.0)
                 };
                 zone_txt
                     .font_size(self.fonts.cyri.scale(14))
@@ -494,190 +510,7 @@ impl<'a> Widget for Social<'a> {
                     });
                 }
             }
-        } // End of Online Tab
-
-        // Alignment
-        /*
-        // Online Tab
-
-        // Contents
-
-        if let SocialTab::Online = self.show.social_tab {
-            // Players list
-            // TODO: this list changes infrequently enough that it should not have to be
-            // recreated every frame
-            let players = self.client.player_list.iter().filter(|(_, p)| p.is_online);
-            let count = players.clone().count();
-            if state.ids.player_names.len() < count {
-                state.update(|s| {
-                    s.ids
-                        .player_names
-                        .resize(count, &mut ui.widget_id_generator())
-                })
-            }
-            Text::new(
-                &self
-                    .localized_strings
-                    .get("hud.social.play_online_fmt")
-                    .replace("{nb_player}", &format!("{:?}", count)),
-            )
-            .top_left_with_margins_on(state.ids.content_align, -2.0, 7.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .color(TEXT_COLOR)
-            .set(state.ids.online_title, ui);
-
-            // Clear selected player if an entity was selected
-            if state
-                .selected_uid
-                .zip(self.selected_entity)
-                // Compare instants
-                .map_or(false, |(u, e)| u.1 < e.1)
-            {
-                state.update(|s| s.selected_uid = None);
-            }
-
-            for (i, (&uid, player_info)) in players.enumerate() {
-                let selected = state.selected_uid.map_or(false, |u| u.0 == uid);
-                let alias = &player_info.player_alias;
-                let character_name_level = match &player_info.character {
-                    Some(character) => format!("{} Lvl {}", &character.name, &character.level),
-                    None => "<None>".to_string(), // character select or spectating
-                };
-                let text = if selected {
-                    format!("-> [{}] {}", alias, character_name_level)
-                } else {
-                    format!("[{}] {}", alias, character_name_level)
-                };
-                Text::new(&text)
-                    .down(3.0)
-                    .font_size(self.fonts.cyri.scale(15))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(state.ids.player_names[i], ui);
-                // Check for click
-                if ui
-                    .widget_input(state.ids.player_names[i])
-                    .clicks()
-                    .left()
-                    .next()
-                    .is_some()
-                {
-                    state.update(|s| s.selected_uid = Some((uid, Instant::now())));
-                }
-            }
-
-            // Invite Button
-            if self
-                .client
-                .group_info()
-                .map_or(true, |(_, l_uid)| self.client.uid() == Some(l_uid))
-            {
-                let selected = state.selected_uid.map(|s| s.0).or_else(|| {
-                    self.selected_entity
-                        .and_then(|s| self.client.state().read_component_copied(s.0))
-                });
-
-                if Button::image(self.imgs.button)
-                    .down(3.0)
-                    .w_h(150.0, 30.0)
-                    .hover_image(self.imgs.button_hover)
-                    .press_image(self.imgs.button_press)
-                    .label(&self.localized_strings.get("hud.group.invite"))
-                    .label_y(conrod_core::position::Relative::Scalar(3.0))
-                    .label_color(if selected.is_some() {
-                        TEXT_COLOR
-                    } else {
-                        TEXT_COLOR_3
-                    })
-                    .label_font_size(self.fonts.cyri.scale(15))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .set(state.ids.invite_button, ui)
-                    .was_clicked()
-                {
-                    if let Some(uid) = selected {
-                        events.push(Event::Invite(uid));
-                        state.update(|s| {
-                            s.selected_uid = None;
-                        });
-                    }
-                }
-            }
-        }
-
-        // Friends Tab
-
-        if Button::image(if let SocialTab::Friends = self.show.social_tab {
-            self.imgs.social_button_pressed
-        } else {
-            self.imgs.social_button
-        })
-        .w_h(30.0 * 4.0, 12.0 * 4.0)
-        .hover_image(if let SocialTab::Friends = self.show.social_tab {
-            self.imgs.social_button_pressed
-        } else {
-            self.imgs.social_button
-        })
-        .press_image(if let SocialTab::Friends = self.show.social_tab {
-            self.imgs.social_button_pressed
-        } else {
-            self.imgs.social_button
-        })
-        .right_from(state.ids.online_tab, 0.0)
-        .label(&self.localized_strings.get("hud.social.friends"))
-        .label_font_size(self.fonts.cyri.scale(14))
-        .label_font_id(self.fonts.cyri.conrod_id)
-        .parent(state.ids.frame)
-        .color(UI_MAIN)
-        .label_color(TEXT_COLOR_3)
-        .set(state.ids.friends_tab, ui)
-        .was_clicked()
-        {
-            events.push(Event::ChangeSocialTab(SocialTab::Friends));
-        }
-
-        // Contents
-
-        if let SocialTab::Friends = self.show.social_tab {
-            Text::new(&self.localized_strings.get("hud.social.not_yet_available"))
-                .middle_of(state.ids.content_align)
-                .font_size(self.fonts.cyri.scale(18))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR_3)
-                .set(state.ids.friends_test, ui);
-        }
-
-        // Faction Tab
-        let button_img = if let SocialTab::Faction = self.show.social_tab {
-            self.imgs.social_button_pressed
-        } else {
-            self.imgs.social_button
-        };
-        if Button::image(button_img)
-            .w_h(30.0 * 4.0, 12.0 * 4.0)
-            .right_from(state.ids.friends_tab, 0.0)
-            .label(&self.localized_strings.get("hud.social.faction"))
-            .parent(state.ids.frame)
-            .label_font_size(self.fonts.cyri.scale(14))
-            .label_font_id(self.fonts.cyri.conrod_id)
-            .color(UI_MAIN)
-            .label_color(TEXT_COLOR_3)
-            .set(state.ids.faction_tab, ui)
-            .was_clicked()
-        {
-            events.push(Event::ChangeSocialTab(SocialTab::Faction));
-        }
-
-        // Contents
-
-        if let SocialTab::Faction = self.show.social_tab {
-            Text::new(&self.localized_strings.get("hud.social.not_yet_available"))
-                .middle_of(state.ids.content_align)
-                .font_size(self.fonts.cyri.scale(18))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR_3)
-                .set(state.ids.faction_test, ui);
-        }*/
+        } // End of Online Tab       
 
         events
     }

@@ -137,7 +137,7 @@ impl GroupManager {
     fn create_group(&mut self, leader: specs::Entity) -> Group {
         Group(self.groups.insert(GroupInfo {
             leader,
-            name: "Flames".into(),
+            name: "Group".into(),
         }) as u32)
     }
 

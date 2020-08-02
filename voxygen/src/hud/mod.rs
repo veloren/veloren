@@ -409,7 +409,6 @@ impl Show {
     fn social(&mut self, open: bool) {
         if !self.esc_menu {
             self.social = open;
-            self.crafting = false;
             self.spell = false;
             self.want_grab = !open;
         }
@@ -509,7 +508,7 @@ impl Show {
     }
 
     fn toggle_social(&mut self) {
-        self.social = !self.social;
+        self.social(!self.social);
         self.spell = false;
     }
 
@@ -1925,22 +1924,25 @@ impl Hud {
         // Social Window
         if self.show.social {
             let ecs = client.state().ecs();
-            let stats = ecs.read_storage::<comp::Stats>();
+            let _stats = ecs.read_storage::<comp::Stats>();
             let me = client.entity();
-            if let Some(stats) = stats.get(me) {
+            if let Some(_stats) = stats.get(me) {
                 for event in Social::new(
                     &self.show,
                     client,
                     &self.imgs,
                     &self.fonts,
                     &self.voxygen_i18n,
-                    &stats,
+                    //&stats,
                     info.selected_entity,
                 )
                 .set(self.ids.social_window, ui_widgets)
                 {
                     match event {
-                        social::Event::Close => self.show.social(false),
+                        social::Event::Close => {
+                            self.show.social(false);
+                            self.force_ungrab = true;
+                        },
                         social::Event::ChangeSocialTab(social_tab) => {
                             self.show.open_social_tab(social_tab)
                         },
@@ -1950,7 +1952,6 @@ impl Hud {
             }
         }
         // Group Window
-
         for event in Group::new(
             &mut self.show,
             client,

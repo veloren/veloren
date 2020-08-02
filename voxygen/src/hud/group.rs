@@ -205,7 +205,7 @@ impl<'a> Widget for Group<'a> {
         // broken
         if self.show.group_menu || open_invite.is_some() {
             // Frame
-            Rectangle::fill_with([220.0, 230.0], color::Color::Rgba(0.0, 0.0, 0.0, 0.8))
+            Rectangle::fill_with([220.0, 165.0], color::Color::Rgba(0.0, 0.0, 0.0, 0.8))
                 .bottom_left_with_margins_on(ui.window, 220.0, 10.0)
                 .set(state.ids.bg, ui);
         }
@@ -358,15 +358,17 @@ impl<'a> Widget for Group<'a> {
                         // Health Text
                         let txt = format!(
                             "{}/{}",
-                            stats.health.current() as u32,
-                            stats.health.maximum() as u32,
+                            stats.health.current() / 10 as u32,
+                            stats.health.maximum() / 10 as u32,
                         );
+                        // Change font size depending on health amount
                         let font_size = match stats.health.maximum() {
                             0..=999 => 14,
                             1000..=9999 => 13,
                             10000..=99999 => 12,
                             _ => 11,
                         };
+                        // Change text offset depending on health amount
                         let txt_offset = match stats.health.maximum() {
                             0..=999 => 4.0,
                             1000..=9999 => 4.5,
@@ -458,16 +460,17 @@ impl<'a> Widget for Group<'a> {
                     .color(TEXT_COLOR)
                     .set(state.ids.title, ui);
                 if Button::image(self.imgs.button)
-                .w_h(90.0, 22.0)
-                .top_right_with_margins_on(state.ids.bg, 30.0, 5.0)
-                .hover_image(self.imgs.button)
-                .press_image(self.imgs.button)
-                .label("Add to Friends")
-                .label_color(TEXT_COLOR_GREY) // Change this when the friendslist is working
-                .label_font_id(self.fonts.cyri.conrod_id)
-                .label_font_size(self.fonts.cyri.scale(10))
-                .set(state.ids.btn_friend, ui)
-                .was_clicked()
+                    .w_h(90.0, 22.0)
+                    .top_right_with_margins_on(state.ids.bg, 30.0, 5.0)
+                    .hover_image(self.imgs.button) // Change this when the friendslist is working
+                    .press_image(self.imgs.button) // Change this when the friendslist is working                
+                    .label_color(TEXT_COLOR_GREY) // Change this when the friendslist is working
+                    .image_color (TEXT_COLOR_GREY) // Change this when the friendslist is working
+                    .label(&self.localized_strings.get("hud.group.add_friend"))
+                    .label_font_id(self.fonts.cyri.conrod_id)
+                    .label_font_size(self.fonts.cyri.scale(10))
+                    .set(state.ids.btn_friend, ui)
+                    .was_clicked()
                 {};
                 if Button::image(self.imgs.button)
                     .w_h(90.0, 22.0)
@@ -482,6 +485,7 @@ impl<'a> Widget for Group<'a> {
                     .was_clicked()
                 {
                     self.show.group_menu = false;
+                    self.show.group = !self.show.group;
                     events.push(Event::LeaveGroup);
                 };
                 // Group leader functions
@@ -514,8 +518,11 @@ impl<'a> Widget for Group<'a> {
                     .mid_bottom_with_margin_on(state.ids.btn_leader, -27.0)
                     .hover_image(self.imgs.button)
                     .press_image(self.imgs.button)
-                    .label("Link Group") // TODO: Localize
-                    .label_color(TEXT_COLOR_GREY) // Change this when the linking is working
+                    .label(&self.localized_strings.get("hud.group.link_group"))
+                    .hover_image(self.imgs.button) // Change this when the friendslist is working
+                .press_image(self.imgs.button) // Change this when the friendslist is working                
+                .label_color(TEXT_COLOR_GREY) // Change this when the friendslist is working
+                .image_color (TEXT_COLOR_GREY) // Change this when the friendslist is working
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_font_size(self.fonts.cyri.scale(10))
                     .set(state.ids.btn_link, ui)
@@ -557,7 +564,7 @@ impl<'a> Widget for Group<'a> {
                     })
                 }
                 // Scrollable area for group member names
-                Rectangle::fill_with([110.0, 192.0], color::TRANSPARENT)
+                Rectangle::fill_with([110.0, 135.0], color::TRANSPARENT)
                     .top_left_with_margins_on(state.ids.bg, 30.0, 5.0)
                     .scroll_kids()
                     .scroll_kids_vertically()
@@ -582,7 +589,7 @@ impl<'a> Widget for Group<'a> {
                         if i == 0 {
                             w.top_left_with_margins_on(state.ids.scroll_area, 5.0, 0.0)
                         } else {
-                            w.down_from(state.ids.members[i - 1], 10.0)
+                            w.down_from(state.ids.members[i - 1], 5.0)
                         }
                     })
                     .hover_image(self.imgs.selection_hover)

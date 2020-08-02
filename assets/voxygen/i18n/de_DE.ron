@@ -68,6 +68,7 @@ VoxygenLocalization(
         "common.none": "Kein",
         "common.error": "Fehler",
         "common.fatal_error": "Fataler Fehler",
+        "common.decline": "Ablehnen",
         /// End Common section
 
          // Message when connection to the server is lost
@@ -306,7 +307,7 @@ magischen Gegenstände ergattern?"#,
         "hud.settings.unbound": "-",
         "hud.settings.reset_keybinds": "Auf Standard zurücksetzen",
 
-        "hud.social": "Sozial",
+        "hud.social": "Andere Spieler   ",
         "hud.social.online": "Online",
         "hud.social.friends": "Freunde",
         "hud.social.not_yet_available": "Noch nicht verfügbar",
@@ -314,6 +315,21 @@ magischen Gegenstände ergattern?"#,
         "hud.social.play_online_fmt": "{nb_player} Spieler online",
 
         "hud.spell": "Zauber",
+        
+        "hud.social.name" : "Name",
+        "hud.social.level" : "Lvl",
+        "hud.social.zone" : "Gebiet",
+
+        "hud.group": "Gruppe",
+        "hud.group.invite": "Einladen",      
+        "hud.group.leave": "Verlassen",
+        "hud.group.add_friend": "Freund hinzufügen",
+        "hud.group.assign_leader": "Anführer",
+        "hud.group.kick": "Entfernen",          
+        "hud.group.invite_to_join": "{name} hat euch zu seiner Gruppe eingeladen!",    
+        "hud.group.dead" : "Tot",
+        "hud.group.out_of_range": "Außer Reichweite",
+        "hud.group.link_group": "Gruppen verbinden",
 
         "hud.crafting": "Herstellen",
         "hud.crafting.recipes": "Rezepte",
@@ -376,6 +392,8 @@ magischen Gegenstände ergattern?"#,
         "gameinput.freelook": "Freie Sicht",        
         "gameinput.autowalk": "Automatisch Laufen",
         "gameinput.dance": "Tanzen",
+        "gameinput.declinegroupinvite": "Ablehnen",
+        "gameinput.acceptgroupinvite": "Annehmen",
 
         /// End GameInput section
 

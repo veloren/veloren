@@ -17,8 +17,8 @@ use byteorder::{ByteOrder, LittleEndian};
 use common::{
     character::CharacterItem,
     comp::{
-        self, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip,
-        InventoryManip, InventoryUpdateEvent, group,
+        self, group, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip,
+        InventoryManip, InventoryUpdateEvent,
     },
     msg::{
         validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, Notification,
@@ -434,7 +434,9 @@ impl Client {
 
     pub fn group_invite(&self) -> Option<Uid> { self.group_invite }
 
-    pub fn group_info(&self) -> Option<(String, Uid)> { self.group_leader.map(|l| ("TODO".into(), l)) }
+    pub fn group_info(&self) -> Option<(String, Uid)> {
+        self.group_leader.map(|l| ("Group".into(), l)) // TODO
+    }
 
     pub fn group_members(&self) -> &HashMap<Uid, group::Role> { &self.group_members }
 

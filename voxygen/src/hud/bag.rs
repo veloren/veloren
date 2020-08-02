@@ -229,7 +229,7 @@ impl<'a> Widget for Bag<'a> {
         )
         .mid_top_with_margin_on(state.ids.bg_frame, 9.0)
         .font_id(self.fonts.cyri.conrod_id)
-        .font_size(self.fonts.cyri.scale(22))
+        .font_size(self.fonts.cyri.scale(20))
         .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
         .set(state.ids.inventory_title_bg, ui);
         Text::new(
@@ -240,7 +240,7 @@ impl<'a> Widget for Bag<'a> {
         )
         .top_left_with_margins_on(state.ids.inventory_title_bg, 2.0, 2.0)
         .font_id(self.fonts.cyri.conrod_id)
-        .font_size(self.fonts.cyri.scale(22))
+        .font_size(self.fonts.cyri.scale(20))
         .color(TEXT_COLOR)
         .set(state.ids.inventory_title, ui);
         // Scrollbar-BG
