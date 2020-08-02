@@ -88,7 +88,7 @@
     (0.50, "common.items.weapons.staff.starter_staff"),
     (0.35, "common.items.weapons.staff.bone_staff"),
     (0.15, "common.items.weapons.staff.amethyst_staff"),
-    (0.01, "common.items.weapons.staff.cultist_staff"),
+    //(0.01, "common.items.weapons.staff.cultist_staff"),
     // hammers
     (0.05, "common.items.weapons.hammer.starter_hammer"),
     (0.05, "common.items.weapons.hammer.wood_hammer-0"),

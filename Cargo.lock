@@ -222,6 +222,16 @@ dependencies = [
 [[package]]
 name = "auth-common"
 version = "0.1.0"
+source = "git+https://gitlab.com/veloren/auth.git?rev=223a4097f7ebc8d451936dccb5e6517194bbf086#223a4097f7ebc8d451936dccb5e6517194bbf086"
+dependencies = [
+ "rand 0.7.3",
+ "serde",
+ "uuid",
+]
+
+[[package]]
+name = "auth-common"
+version = "0.1.0"
 source = "git+https://gitlab.com/veloren/auth.git?rev=b943c85e4a38f5ec60cd18c34c73097640162bfe#b943c85e4a38f5ec60cd18c34c73097640162bfe"
 dependencies = [
  "rand 0.7.3",
@@ -232,9 +242,23 @@ dependencies = [
 [[package]]
 name = "authc"
 version = "1.0.0"
+source = "git+https://gitlab.com/veloren/auth.git?rev=223a4097f7ebc8d451936dccb5e6517194bbf086#223a4097f7ebc8d451936dccb5e6517194bbf086"
+dependencies = [
+ "auth-common 0.1.0 (git+https://gitlab.com/veloren/auth.git?rev=223a4097f7ebc8d451936dccb5e6517194bbf086)",
+ "fxhash",
+ "hex",
+ "rust-argon2 0.8.2",
+ "serde_json",
+ "ureq",
+ "uuid",
+]
+
+[[package]]
+name = "authc"
+version = "1.0.0"
 source = "git+https://gitlab.com/veloren/auth.git?rev=b943c85e4a38f5ec60cd18c34c73097640162bfe#b943c85e4a38f5ec60cd18c34c73097640162bfe"
 dependencies = [
- "auth-common",
+ "auth-common 0.1.0 (git+https://gitlab.com/veloren/auth.git?rev=b943c85e4a38f5ec60cd18c34c73097640162bfe)",
  "fxhash",
  "hex",
  "rust-argon2 0.8.2",
@@ -4601,7 +4625,7 @@ dependencies = [
 name = "veloren-client"
 version = "0.6.0"
 dependencies = [
- "authc",
+ "authc 1.0.0 (git+https://gitlab.com/veloren/auth.git?rev=b943c85e4a38f5ec60cd18c34c73097640162bfe)",
  "byteorder 1.3.4",
  "futures-executor",
  "futures-timer",
@@ -4622,7 +4646,7 @@ name = "veloren-common"
 version = "0.6.0"
 dependencies = [
  "arraygen",
- "authc",
+ "authc 1.0.0 (git+https://gitlab.com/veloren/auth.git?rev=223a4097f7ebc8d451936dccb5e6517194bbf086)",
  "criterion",
  "crossbeam",
  "dot_vox",
@@ -4650,7 +4674,7 @@ dependencies = [
 name = "veloren-server"
 version = "0.6.0"
 dependencies = [
- "authc",
+ "authc 1.0.0 (git+https://gitlab.com/veloren/auth.git?rev=b943c85e4a38f5ec60cd18c34c73097640162bfe)",
  "chrono",
  "crossbeam",
  "diesel",
