@@ -3,7 +3,7 @@ Item(
     description: "It seems brittle.",
     kind: Tool(
         (
-            kind: Hammer(StoneHammer1),    
+            kind: Hammer("StoneHammer1"),    
             stats: (
                 equip_time_millis: 500,
                 power: 0.70,

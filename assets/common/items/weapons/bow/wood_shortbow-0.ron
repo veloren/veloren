@@ -3,7 +3,7 @@ Item(
     description: "Strips of leather are wrapped around the handle.",  
     kind: Tool(
         (
-            kind: Bow(WoodShortbow0),    
+            kind: Bow("WoodShortbow0"),    
             stats: (
                 equip_time_millis: 400,
                 power: 0.75,

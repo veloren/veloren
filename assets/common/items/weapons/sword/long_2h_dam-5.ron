@@ -3,7 +3,7 @@ Item(
     description: "It's slightly cracked.",
     kind: Tool(
        (
-            kind: Sword(LongDam5),    
+            kind: Sword("LongDam5"),    
             stats: (
                 equip_time_millis: 500,
                 power: 0.60,

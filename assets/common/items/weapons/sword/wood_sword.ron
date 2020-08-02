@@ -3,7 +3,7 @@ Item(
     description: "It's not sharp.",
     kind: Tool(
         (
-            kind: Sword(WoodTraining),    
+            kind: Sword("WoodTraining"),    
             stats: (
                 equip_time_millis: 400,
                 power: 0.50,

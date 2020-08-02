@@ -50,14 +50,14 @@ impl CharacterCacheKey {
             active_tool: if let Some(ItemKind::Tool(tool)) =
                 loadout.active_item.as_ref().map(|i| &i.item.kind)
             {
-                Some(tool.kind)
+                Some(tool.kind.clone())
             } else {
                 None
             },
             second_tool: if let Some(ItemKind::Tool(tool)) =
                 loadout.second_item.as_ref().map(|i| &i.item.kind)
             {
-                Some(tool.kind)
+                Some(tool.kind.clone())
             } else {
                 None
             },

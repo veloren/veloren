@@ -3,7 +3,7 @@ Item(
     description: "The previous owner won't miss it much.",
     kind: Tool(
         (
-            kind: Hammer(WornIronHammer2),    
+            kind: Hammer("WornIronHammer2"),    
             stats: (
                 equip_time_millis: 500,
                 power: 0.85,

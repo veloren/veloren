@@ -3,7 +3,7 @@ Item(
     description: "It's hard to pull all the way back.",  
     kind: Tool(
         (
-            kind: Bow(WoodLongbow1),    
+            kind: Bow("WoodLongbow1"),    
             stats: (
                 equip_time_millis: 400,
                 power: 1.00,

@@ -3,7 +3,7 @@ Item(
     description: "There are strange runes inscribed into it.",
     kind: Tool(
         (
-            kind: Hammer(RunicHammer),    
+            kind: Hammer("RunicHammer"),    
             stats: (
                 equip_time_millis: 500,
                 power: 1.80,

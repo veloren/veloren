@@ -3,7 +3,7 @@ Item(
     description: "It's been well used.",
     kind: Tool(
        (
-            kind: Sword(GreatswordSimple1),    
+            kind: Sword("GreatswordSimple1"),    
             stats: (
                 equip_time_millis: 500,
                 power: 1.10,

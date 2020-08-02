@@ -3,7 +3,7 @@ Item(
     description: "The sword's almost a work of art.",
     kind: Tool(
        (
-            kind: Sword(GreatswordOrn0),    
+            kind: Sword("GreatswordOrn0"),    
             stats: (
                 equip_time_millis: 500,
                 power: 1.70,

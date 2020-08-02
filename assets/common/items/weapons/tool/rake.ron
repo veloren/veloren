@@ -3,7 +3,7 @@ Item(
     description: "Held together with twine.",
     kind: Tool (
         (
-            kind: Farming(Rake),
+            kind: Farming("Rake"),
             stats: (
                 equip_time_millis: 400,
                 power: 1.00,
