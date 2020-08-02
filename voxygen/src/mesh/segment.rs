@@ -82,29 +82,27 @@ where
         };
 
         let mut opaque_mesh = Mesh::new();
-        let bounds = greedy.push(
-            GreedyConfig {
-                data: self,
-                draw_delta,
-                greedy_size,
-                greedy_size_cross,
-                get_light,
-                get_color,
-                get_opacity,
-                should_draw,
-                push_quad: |atlas_origin, dim, origin, draw_dim, norm, meta: &()| {
-                    opaque_mesh.push_quad(greedy::create_quad(
-                        atlas_origin,
-                        dim,
-                        origin,
-                        draw_dim,
-                        norm,
-                        meta,
-                        |atlas_pos, pos, norm, &_meta| create_opaque(atlas_pos, pos, norm),
-                    ));
-                },
+        let bounds = greedy.push(GreedyConfig {
+            data: self,
+            draw_delta,
+            greedy_size,
+            greedy_size_cross,
+            get_light,
+            get_color,
+            get_opacity,
+            should_draw,
+            push_quad: |atlas_origin, dim, origin, draw_dim, norm, meta: &()| {
+                opaque_mesh.push_quad(greedy::create_quad(
+                    atlas_origin,
+                    dim,
+                    origin,
+                    draw_dim,
+                    norm,
+                    meta,
+                    |atlas_pos, pos, norm, &_meta| create_opaque(atlas_pos, pos, norm),
+                ));
             },
-        );
+        });
         let bounds = bounds.map(f32::from);
         let bounds = Aabb {
             min: (bounds.min + offs) * scale,
@@ -195,29 +193,27 @@ where
         };
 
         let mut opaque_mesh = Mesh::new();
-        let _bounds = greedy.push(
-            GreedyConfig {
-                data: self,
-                draw_delta,
-                greedy_size,
-                greedy_size_cross,
-                get_light,
-                get_color,
-                get_opacity,
-                should_draw,
-                push_quad: |atlas_origin, dim, origin, draw_dim, norm, meta: &bool| {
-                    opaque_mesh.push_quad(greedy::create_quad(
-                        atlas_origin,
-                        dim,
-                        origin,
-                        draw_dim,
-                        norm,
-                        meta,
-                        |atlas_pos, pos, norm, &meta| create_opaque(atlas_pos, pos, norm, meta),
-                    ));
-                },
+        let _bounds = greedy.push(GreedyConfig {
+            data: self,
+            draw_delta,
+            greedy_size,
+            greedy_size_cross,
+            get_light,
+            get_color,
+            get_opacity,
+            should_draw,
+            push_quad: |atlas_origin, dim, origin, draw_dim, norm, meta: &bool| {
+                opaque_mesh.push_quad(greedy::create_quad(
+                    atlas_origin,
+                    dim,
+                    origin,
+                    draw_dim,
+                    norm,
+                    meta,
+                    |atlas_pos, pos, norm, &meta| create_opaque(atlas_pos, pos, norm, meta),
+                ));
             },
-        );
+        });
 
         (opaque_mesh, Mesh::new(), Mesh::new(), ())
     }

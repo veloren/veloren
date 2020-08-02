@@ -151,15 +151,7 @@ impl<'a> GreedyMesh<'a> {
     /// Returns an estimate of the bounds of the current meshed model.
     ///
     /// For more information on the config parameter, see [GreedyConfig].
-    pub fn push<
-        M: PartialEq,
-        D: 'a,
-        FL,
-        FC,
-        FO,
-        FS,
-        FP,
-    >(
+    pub fn push<M: PartialEq, D: 'a, FL, FC, FO, FS, FP>(
         &mut self,
         config: GreedyConfig<D, FL, FC, FO, FS, FP>,
     ) -> Aabb<u16>
