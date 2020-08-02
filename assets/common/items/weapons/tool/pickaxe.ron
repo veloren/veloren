@@ -1,10 +1,13 @@
 Item(
     name: "Pickaxe",
-    description: "",
+    description: "It has a chipped edge.",
     kind: Tool (
         (
-            kind: Farming(Pickaxe0),
-            equip_time_millis: 400,
+            kind: Farming("Pickaxe0"),
+            stats: (
+                equip_time_millis: 400,
+                power: 1.00,
+            ),
         )
     ),
 )

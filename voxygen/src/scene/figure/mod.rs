@@ -652,7 +652,7 @@ impl FigureMgr {
                 .and_then(|l| l.active_item.as_ref())
                 .map(|i| &i.item.kind);
             let active_tool_kind = if let Some(ItemKind::Tool(tool)) = active_item_kind {
-                Some(tool.kind)
+                Some(tool.kind.clone())
             } else {
                 None
             };
@@ -662,7 +662,7 @@ impl FigureMgr {
                 .map(|i| &i.item.kind);
 
             let second_tool_kind = if let Some(ItemKind::Tool(tool)) = second_item_kind {
-                Some(tool.kind)
+                Some(tool.kind.clone())
             } else {
                 None
             };
@@ -701,7 +701,12 @@ impl FigureMgr {
                         // Standing
                         (true, false, _) => anim::character::StandAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
-                            (active_tool_kind, second_tool_kind, time, state.avg_vel),
+                            (
+                                active_tool_kind.clone(),
+                                second_tool_kind.clone(),
+                                time,
+                                state.avg_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -710,8 +715,8 @@ impl FigureMgr {
                         (true, true, _) => anim::character::RunAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (
-                                active_tool_kind,
-                                second_tool_kind,
+                                active_tool_kind.clone(),
+                                second_tool_kind.clone(),
                                 vel.0,
                                 ori,
                                 state.last_ori,
@@ -726,8 +731,8 @@ impl FigureMgr {
                         (false, _, false) => anim::character::JumpAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (
-                                active_tool_kind,
-                                second_tool_kind,
+                                active_tool_kind.clone(),
+                                second_tool_kind.clone(),
                                 ori,
                                 state.last_ori,
                                 time,
@@ -740,8 +745,8 @@ impl FigureMgr {
                         (false, _, true) => anim::character::SwimAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (
-                                active_tool_kind,
-                                second_tool_kind,
+                                active_tool_kind.clone(),
+                                second_tool_kind.clone(),
                                 vel.0,
                                 ori,
                                 state.last_ori,
@@ -1057,7 +1062,7 @@ impl FigureMgr {
                         (true, true, false) => {
                             anim::quadruped_small::RunAnimation::update_skeleton(
                                 &QuadrupedSmallSkeleton::new(),
-                                (vel.0.magnitude(), time, state.avg_vel),
+                                (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1071,11 +1076,29 @@ impl FigureMgr {
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
+                        _ => anim::quadruped_small::IdleAnimation::update_skeleton(
+                            &QuadrupedSmallSkeleton::new(),
+                            time,
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                    };
+                    let target_bones = match &character {
+                        CharacterState::Sit { .. } => {
+                            anim::quadruped_small::FeedAnimation::update_skeleton(
+                                &target_base,
+                                time,
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         // TODO!
-                        _ => state.skeleton_mut().clone(),
+                        _ => target_base,
                     };
 
-                    state.skeleton.interpolate(&target_base, dt);
+                    state.skeleton.interpolate(&target_bones, dt);
                     state.update(
                         renderer,
                         pos.0,
@@ -1342,12 +1365,29 @@ impl FigureMgr {
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
-
+                        _ => anim::bird_medium::IdleAnimation::update_skeleton(
+                            &BirdMediumSkeleton::new(),
+                            time,
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                    };
+                    let target_bones = match &character {
+                        CharacterState::Sit { .. } => {
+                            anim::bird_medium::FeedAnimation::update_skeleton(
+                                &target_base,
+                                time,
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         // TODO!
-                        _ => state.skeleton_mut().clone(),
+                        _ => target_base,
                     };
 
-                    state.skeleton.interpolate(&target_base, dt);
+                    state.skeleton.interpolate(&target_bones, dt);
                     state.update(
                         renderer,
                         pos.0,
@@ -1481,7 +1521,7 @@ impl FigureMgr {
                         // Running
                         (true, true, false) => anim::dragon::RunAnimation::update_skeleton(
                             &DragonSkeleton::new(),
-                            (vel.0.magnitude(), time),
+                            (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -1494,7 +1534,6 @@ impl FigureMgr {
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
-
                         // TODO!
                         _ => state.skeleton_mut().clone(),
                     };
@@ -1798,12 +1837,29 @@ impl FigureMgr {
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
-
+                        _ => anim::biped_large::IdleAnimation::update_skeleton(
+                            &BipedLargeSkeleton::new(),
+                            time,
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                    };
+                    let target_bones = match &character {
+                        CharacterState::Wielding { .. } => {
+                            anim::biped_large::WieldAnimation::update_skeleton(
+                                &target_base,
+                                (vel.0.magnitude(), time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         // TODO!
-                        _ => state.skeleton_mut().clone(),
+                        _ => target_base,
                     };
 
-                    state.skeleton.interpolate(&target_base, dt);
+                    state.skeleton.interpolate(&target_bones, dt);
                     state.update(
                         renderer,
                         pos.0,

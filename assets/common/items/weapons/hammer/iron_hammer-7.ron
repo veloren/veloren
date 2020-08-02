@@ -1,0 +1,13 @@
+Item(
+    name: "Giant's Fist",
+    description: "Forged with iron.",
+    kind: Tool(
+        (
+            kind: Hammer("IronHammer7"),    
+            stats: (
+                equip_time_millis: 500,
+                power: 1.20,
+            ),
+        )
+    ),
+)

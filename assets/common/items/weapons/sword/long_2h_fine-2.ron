@@ -1,10 +1,13 @@
 Item(
     name: "Fine Longsword",
-    description: "A Very Fine Double-Edged, Two-Hand LongSword\n\nPower: 2-10\n\n<Right-Click to use>",
+    description: "It shines when you hold it up to the light.",
     kind: Tool(
        (
-            kind: Sword(LongFine2),    
-            equip_time_millis: 500,
+            kind: Sword("LongFine2"),    
+            stats: (
+                equip_time_millis: 500,
+                power: 1.20,
+            ),
         )
     ),
 )

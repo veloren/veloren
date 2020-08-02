@@ -1,0 +1,13 @@
+Item(
+    name: "Malachite Axe",
+    description: "An axe infused with malachite.",
+    kind: Tool(
+        (
+            kind: Axe("MalachiteAxe0"),    
+            stats: (
+                equip_time_millis: 400,
+                power: 2.00,
+            ),
+        )
+    ),
+)

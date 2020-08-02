@@ -1,10 +1,13 @@
 Item(
     name: "Humble Stick",
-    description: "Two-Hand Staff\n\nPower: 2-10\n\nWalking stick with a sharpened end\n\n<Right-Click to use>",
+    description: "Walking stick with a sharpened end.",
     kind: Tool(
         (
-            kind: Staff(BasicStaff),
-            equip_time_millis: 200,
+            kind: Staff("BasicStaff"),
+            stats: (
+                equip_time_millis: 200,
+                power: 0.50,
+            ),
         )
     ),
 )

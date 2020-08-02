@@ -1,0 +1,13 @@
+Item(
+    name: "Iron Hammer",
+    description: "Forged with iron.",
+    kind: Tool(
+        (
+            kind: Hammer("IronHammer0"),    
+            stats: (
+                equip_time_millis: 500,
+                power: 1.20,
+            ),
+        )
+    ),
+)

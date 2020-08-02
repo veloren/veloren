@@ -1,0 +1,13 @@
+Item(
+    name: "Elven Longbow",
+    description: "There's a new leaf starting to grow.",  
+    kind: Tool(
+        (
+            kind: Bow("LeafyLongbow0"),    
+            stats: (
+                equip_time_millis: 400,
+                power: 1.25,
+            ),
+        )
+    ),
+)

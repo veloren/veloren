@@ -1,10 +1,13 @@
 Item(
     name: "Crude Mallet",
-    description: "Two-Hand Hammer\n\nPower: 10-12\n\nBreaks bones like sticks and stones.\n\n<Right-Click to use>",
+    description: "Breaks bones like sticks and stones.",
     kind: Tool(
         (
-            kind: Hammer(BasicHammer),    
-            equip_time_millis: 500,
+            kind: Hammer("BasicHammer"),    
+            stats: (
+                equip_time_millis: 500,
+                power: 0.50,
+            ),
         )
     )
 )

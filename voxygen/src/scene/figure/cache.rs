@@ -52,14 +52,14 @@ impl CharacterCacheKey {
             active_tool: if let Some(ItemKind::Tool(tool)) =
                 loadout.active_item.as_ref().map(|i| &i.item.kind)
             {
-                Some(tool.kind)
+                Some(tool.kind.clone())
             } else {
                 None
             },
             second_tool: if let Some(ItemKind::Tool(tool)) =
                 loadout.second_item.as_ref().map(|i| &i.item.kind)
             {
-                Some(tool.kind)
+                Some(tool.kind.clone())
             } else {
                 None
             },
@@ -655,6 +655,11 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         body.body_type,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
+                    Some(biped_large_center_spec.mesh_main(
+                        body.species,
+                        body.body_type,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
                     Some(biped_large_lateral_spec.mesh_shoulder_l(
                         body.species,
                         body.body_type,
@@ -695,7 +700,6 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         body.body_type,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
-                    None,
                     None,
                     None,
                     None,

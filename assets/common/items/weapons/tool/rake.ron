@@ -1,10 +1,13 @@
 Item(
     name: "Rake",
-    description: "",
+    description: "Held together with twine.",
     kind: Tool (
         (
-            kind: Farming(Rake),
-            equip_time_millis: 400,
+            kind: Farming("Rake"),
+            stats: (
+                equip_time_millis: 400,
+                power: 1.00,
+            ),
         )
     ),
 )

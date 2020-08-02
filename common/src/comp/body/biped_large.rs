@@ -30,6 +30,8 @@ impl From<Body> for super::Body {
 pub enum Species {
     Ogre = 0,
     Cyclops = 1,
+    Wendigo = 2,
+    Troll = 3,
 }
 
 /// Data representing per-species generic data.
@@ -39,6 +41,8 @@ pub enum Species {
 pub struct AllSpecies<SpeciesMeta> {
     pub ogre: SpeciesMeta,
     pub cyclops: SpeciesMeta,
+    pub wendigo: SpeciesMeta,
+    pub troll: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -49,11 +53,18 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
         match index {
             Species::Ogre => &self.ogre,
             Species::Cyclops => &self.cyclops,
+            Species::Wendigo => &self.wendigo,
+            Species::Troll => &self.troll,
         }
     }
 }
 
-pub const ALL_SPECIES: [Species; 2] = [Species::Ogre, Species::Cyclops];
+pub const ALL_SPECIES: [Species; 4] = [
+    Species::Ogre,
+    Species::Cyclops,
+    Species::Wendigo,
+    Species::Troll,
+];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     type IntoIter = std::iter::Copied<std::slice::Iter<'static, Self::Item>>;

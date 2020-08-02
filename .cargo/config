@@ -3,3 +3,5 @@ rustflags = [
     "-C", "link-arg=-fuse-ld=gold",
 ]
 
+[alias]
+generate = "run --package tools --"

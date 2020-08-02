@@ -1,0 +1,13 @@
+Item(
+    name: "Cobalt Axe",
+    description: "Forged from cobalt.",
+    kind: Tool(
+        (
+            kind: Axe("CobaltAxe0"),    
+            stats: (
+                equip_time_millis: 400,
+                power: 1.80,
+            ),
+        )
+    ),
+)

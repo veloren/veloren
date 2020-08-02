@@ -1,10 +1,13 @@
 Item(
     name: "Damaged Greatsword",
-    description: "A Damaged Two-Handed Greatsword\n\nPower: 2-10\n\n<Right-Click to use>",
+    description: "The blade has been chipped quite a few times.",
     kind: Tool(
        (
-            kind: Sword(GreatswordDam2),    
-            equip_time_millis: 500,
+            kind: Sword("GreatswordDam2"),    
+            stats: (
+                equip_time_millis: 500,
+                power: 0.80,
+            ),
         )
     ),
 )

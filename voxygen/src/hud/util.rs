@@ -1,5 +1,6 @@
 use common::comp::item::{
     armor::{Armor, ArmorKind, Protection},
+    tool::{Tool, ToolKind},
     Item, ItemKind,
 };
 use std::borrow::Cow;
@@ -18,9 +19,9 @@ pub fn loadout_slot_text<'a>(
 }
 
 pub fn item_text<'a>(item: &'a Item) -> (&'_ str, Cow<'a, str>) {
-    let desc = match item.kind {
-        ItemKind::Armor(armor) => Cow::Owned(armor_desc(armor, item.description())),
-        // ItemKind::Tool => {},
+    let desc = match &item.kind {
+        ItemKind::Armor(armor) => Cow::Owned(armor_desc(*armor, item.description())),
+        ItemKind::Tool(tool) => Cow::Owned(tool_desc(tool.clone(), item.description())),
         /*ItemKind::Consumable(kind, effect, ..) => {
             Cow::Owned(consumable_desc(consumable, item.description()))
         },*/
@@ -64,7 +65,37 @@ fn armor_desc(armor: Armor, desc: &str) -> String {
     }
 }
 // Weapon/Tool Description
+fn tool_desc(tool: Tool, desc: &str) -> String {
+    // TODO: localization
+    let kind = match tool.kind {
+        ToolKind::Sword(_) => "Sword",
+        ToolKind::Axe(_) => "Axe",
+        ToolKind::Hammer(_) => "Hammer",
+        ToolKind::Bow(_) => "Bow",
+        ToolKind::Dagger(_) => "Dagger",
+        ToolKind::Staff(_) => "Staff",
+        ToolKind::Shield(_) => "Shield",
+        ToolKind::Debug(_) => "Debug",
+        ToolKind::Farming(_) => "Farming Tool",
+        ToolKind::Empty => "Empty",
+    };
+    let power = tool.base_power();
 
+    if !desc.is_empty() {
+        format!(
+            "{}\n\nPower: {:0.1}\n\n{}\n\n<Right-Click to use>",
+            kind,
+            power * 10.0,
+            desc
+        )
+    } else {
+        format!(
+            "{}\n\nPower: {:0.1}\n\n<Right-Click to use>",
+            kind,
+            power * 10.0
+        )
+    }
+}
 // Consumable Description
 /*fn consumable_desc(consumable: Consumable, desc: &str) -> String {
     // TODO: localization

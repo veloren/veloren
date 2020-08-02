@@ -367,7 +367,7 @@ fn handle_health(
             .write_storage::<comp::Stats>()
             .get_mut(target)
         {
-            stats.health.set_to(hp, comp::HealthSource::Command);
+            stats.health.set_to(hp * 10, comp::HealthSource::Command);
         } else {
             server.notify_client(
                 client,

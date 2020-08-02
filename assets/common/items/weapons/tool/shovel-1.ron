@@ -1,10 +1,13 @@
 Item(
     name: "Shovel",
-    description: "",
+    description: "It's been recently cleaned.",
     kind: Tool (
         (
-            kind: Farming(Shovel1),
-            equip_time_millis: 400,
+            kind: Farming("Shovel1"),
+            stats: (
+                equip_time_millis: 400,
+                power: 1.00,
+            ),
         )
     ),
 )

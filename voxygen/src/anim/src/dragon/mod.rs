@@ -77,10 +77,18 @@ impl Skeleton for DragonSkeleton {
                 FigureBoneData::new(
                     chest_front_mat * wing_in_r_mat * self.wing_out_r.compute_base_matrix(),
                 ),
-                FigureBoneData::new(self.foot_fl.compute_base_matrix()),
-                FigureBoneData::new(self.foot_fr.compute_base_matrix()),
-                FigureBoneData::new(self.foot_bl.compute_base_matrix()),
-                FigureBoneData::new(self.foot_br.compute_base_matrix()),
+                FigureBoneData::new(chest_front_mat * self.foot_fl.compute_base_matrix()),
+                FigureBoneData::new(chest_front_mat * self.foot_fr.compute_base_matrix()),
+                FigureBoneData::new(
+                    chest_front_mat
+                        * self.chest_rear.compute_base_matrix()
+                        * self.foot_bl.compute_base_matrix(),
+                ),
+                FigureBoneData::new(
+                    chest_front_mat
+                        * self.chest_rear.compute_base_matrix()
+                        * self.foot_br.compute_base_matrix(),
+                ),
                 FigureBoneData::default(),
             ],
             Vec3::default(),
@@ -165,10 +173,10 @@ impl<'a> From<&'a comp::dragon::Body> for SkeletonAttr {
                 (Reddragon, _) => (6.5, -5.0),
             },
             chest_front: match (body.species, body.body_type) {
-                (Reddragon, _) => (0.0, 14.0),
+                (Reddragon, _) => (0.0, 15.0),
             },
             chest_rear: match (body.species, body.body_type) {
-                (Reddragon, _) => (-12.5, 0.0),
+                (Reddragon, _) => (-6.5, 0.0),
             },
             tail_front: match (body.species, body.body_type) {
                 (Reddragon, _) => (-6.5, 1.5),
@@ -183,10 +191,10 @@ impl<'a> From<&'a comp::dragon::Body> for SkeletonAttr {
                 (Reddragon, _) => (23.0, 0.5, 4.0),
             },
             feet_f: match (body.species, body.body_type) {
-                (Reddragon, _) => (6.0, 0.0, 1.5),
+                (Reddragon, _) => (6.0, 1.0, -13.0),
             },
             feet_b: match (body.species, body.body_type) {
-                (Reddragon, _) => (6.0, -15.0, 3.0),
+                (Reddragon, _) => (6.0, -2.0, -10.5),
             },
             height: match (body.species, body.body_type) {
                 (Reddragon, _) => (1.0),

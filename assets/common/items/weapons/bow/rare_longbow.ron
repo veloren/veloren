@@ -1,0 +1,13 @@
+Item(
+    name: "Enchanted Longbow",
+    description: "You can sense power resting in the bow.",  
+    kind: Tool(
+        (
+            kind: Bow("RareLongbow"),    
+            stats: (
+                equip_time_millis: 400,
+                power: 2.00,
+            ),
+        )
+    ),
+)

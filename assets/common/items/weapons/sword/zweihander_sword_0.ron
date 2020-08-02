@@ -1,10 +1,13 @@
 Item(
-    name: "Sturdy Bihander",
-    description: "Two-Hand Sword\n\nPower: 2-10\n\n<Right-Click to use>",
+    name: "Sturdy Zweihander",
+    description: "It's a big sword, and sharp too.",
     kind: Tool(
        (
-            kind: Sword(Zweihander0),    
-            equip_time_millis: 500,
+            kind: Sword("Zweihander0"),    
+            stats: (
+                equip_time_millis: 500,
+                power: 1.50,
+            ),
         )
     ),
 )

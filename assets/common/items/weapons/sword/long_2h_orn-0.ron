@@ -1,10 +1,13 @@
 Item(
-    name: "Ornimented Longsword",
-    description: "An Ornimanted Double-Edged, Two-Hand LongSword\n\nPower: 2-10\n\n<Right-Click to use>",
+    name: "Ornamented Longsword",
+    description: "It's probably the weapon of some noble.",
     kind: Tool(
        (
-            kind: Sword(LongOrn0),    
-            equip_time_millis: 500,
+            kind: Sword("LongOrn0"),    
+            stats: (
+                equip_time_millis: 500,
+                power: 1.50,
+            ),
         )
     ),
 )

@@ -7,116 +7,23 @@ use crate::comp::{
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum SwordKind {
-    BasicSword,
-    Rapier,
-    Zweihander0,
-    WoodTraining,
-    Short0,
-    GreatswordDam0,
-    GreatswordDam1,
-    GreatswordDam2,
-    GreatswordSimple0,
-    GreatswordSimple1,
-    GreatswordSimple2,
-    GreatswordOrn0,
-    GreatswordOrn1,
-    GreatswordOrn2,
-    GreatswordFine0,
-    GreatswordFine1,
-    GreatswordFine2,
-    LongDam0,
-    LongDam1,
-    LongDam2,
-    LongDam3,
-    LongDam4,
-    LongDam5,
-    LongSimple0,
-    LongSimple1,
-    LongSimple2,
-    LongSimple3,
-    LongSimple4,
-    LongSimple5,
-    LongOrn0,
-    LongOrn1,
-    LongOrn2,
-    LongOrn3,
-    LongOrn4,
-    LongOrn5,
-    LongFine0,
-    LongFine1,
-    LongFine2,
-    LongFine3,
-    LongFine4,
-    LongFine5,
-    CultPurp0,
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum AxeKind {
-    BasicAxe,
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum HammerKind {
-    BasicHammer,
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum BowKind {
-    ShortBow0,
-    ShortBow1,
-    LongBow0,
-    LongBow1,
-    RareBow0,
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum DaggerKind {
-    BasicDagger,
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum StaffKind {
-    BasicStaff,
-    Sceptre,
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum ShieldKind {
-    BasicShield,
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum FarmKind {
-    Broom,
-    Hoe0,
-    Hoe1,
-    Pitchfork,
-    Rake,
-    FishingRod0,
-    FishingRod1,
-    Pickaxe0,
-    Shovel0,
-    Shovel1,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum DebugKind {
-    Boost,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ToolKind {
-    Sword(SwordKind),
-    Axe(AxeKind),
-    Hammer(HammerKind),
-    Bow(BowKind),
-    Dagger(DaggerKind),
-    Staff(StaffKind),
-    Shield(ShieldKind),
-    Debug(DebugKind),
-    Farming(FarmKind),
+    Sword(String),
+    Axe(String),
+    Hammer(String),
+    Bow(String),
+    Dagger(String),
+    Staff(String),
+    Shield(String),
+    Debug(String),
+    Farming(String),
     /// This is an placeholder item, it is used by non-humanoid npcs to attack
     Empty,
 }
 
 impl ToolKind {
-    pub fn into_hands(self) -> Hands {
+    pub fn hands(&self) -> Hands {
         match self {
             ToolKind::Sword(_) => Hands::TwoHand,
             ToolKind::Axe(_) => Hands::TwoHand,
@@ -151,8 +58,8 @@ pub enum ToolCategory {
     Empty,
 }
 
-impl From<ToolKind> for ToolCategory {
-    fn from(kind: ToolKind) -> ToolCategory {
+impl From<&ToolKind> for ToolCategory {
+    fn from(kind: &ToolKind) -> ToolCategory {
         match kind {
             ToolKind::Sword(_) => ToolCategory::Sword,
             ToolKind::Axe(_) => ToolCategory::Axe,
@@ -168,10 +75,16 @@ impl From<ToolKind> for ToolCategory {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Stats {
+    equip_time_millis: u32,
+    power: f32,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Tool {
     pub kind: ToolKind,
-    equip_time_millis: u32,
+    pub stats: Stats,
     // TODO: item specific abilities
 }
 
@@ -179,52 +92,47 @@ impl Tool {
     pub fn empty() -> Self {
         Self {
             kind: ToolKind::Empty,
-            equip_time_millis: 0,
+            stats: Stats {
+                equip_time_millis: 0,
+                power: 1.00,
+            },
         }
     }
 
-    pub fn equip_time(&self) -> Duration { Duration::from_millis(self.equip_time_millis as u64) }
+    // Keep power between 0.5 and 2.00
+    pub fn base_power(&self) -> f32 { self.stats.power }
+
+    pub fn equip_time(&self) -> Duration {
+        Duration::from_millis(self.stats.equip_time_millis as u64)
+    }
 
     pub fn get_abilities(&self) -> Vec<CharacterAbility> {
         use CharacterAbility::*;
-        //use DebugKind::*;
         use ToolKind::*;
 
-        match self.kind {
-            Sword(SwordKind::CultPurp0) => vec![
-                TripleStrike {
-                    base_damage: 10,
-                    needs_timing: false,
-                },
-                DashMelee {
-                    energy_cost: 700,
-                    buildup_duration: Duration::from_millis(500),
-                    recover_duration: Duration::from_millis(500),
-                    base_damage: 20,
-                },
-            ],
+        match &self.kind {
             Sword(_) => vec![
                 TripleStrike {
-                    base_damage: 5,
+                    base_damage: (60.0 * self.base_power()) as u32,
                     needs_timing: false,
                 },
                 DashMelee {
                     energy_cost: 700,
                     buildup_duration: Duration::from_millis(500),
                     recover_duration: Duration::from_millis(500),
-                    base_damage: 10,
+                    base_damage: (120.0 * self.base_power()) as u32,
                 },
             ],
             Axe(_) => vec![
                 TripleStrike {
-                    base_damage: 7,
+                    base_damage: (80.0 * self.base_power()) as u32,
                     needs_timing: true,
                 },
                 SpinMelee {
                     energy_cost: 100,
                     buildup_duration: Duration::from_millis(125),
                     recover_duration: Duration::from_millis(125),
-                    base_damage: 5,
+                    base_damage: (60.0 * self.base_power()) as u32,
                 },
             ],
             Hammer(_) => vec![
@@ -232,7 +140,7 @@ impl Tool {
                     energy_cost: 0,
                     buildup_duration: Duration::from_millis(700),
                     recover_duration: Duration::from_millis(300),
-                    base_healthchange: -10,
+                    base_healthchange: (-120.0 * self.base_power()) as i32,
                     range: 3.5,
                     max_angle: 60.0,
                 },
@@ -241,14 +149,14 @@ impl Tool {
                     movement_duration: Duration::from_millis(500),
                     buildup_duration: Duration::from_millis(1000),
                     recover_duration: Duration::from_millis(100),
-                    base_damage: 20,
+                    base_damage: (240.0 * self.base_power()) as u32,
                 },
             ],
             Farming(_) => vec![BasicMelee {
                 energy_cost: 1,
                 buildup_duration: Duration::from_millis(700),
                 recover_duration: Duration::from_millis(150),
-                base_healthchange: -5,
+                base_healthchange: (-50.0 * self.base_power()) as i32,
                 range: 3.0,
                 max_angle: 60.0,
             }],
@@ -257,11 +165,11 @@ impl Tool {
                     energy_cost: 0,
                     holdable: true,
                     prepare_duration: Duration::from_millis(100),
-                    recover_duration: Duration::from_millis(500),
+                    recover_duration: Duration::from_millis(400),
                     projectile: Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
-                            projectile::Effect::Damage(-3),
+                            projectile::Effect::Damage((-40.0 * self.base_power()) as i32),
                             projectile::Effect::Knockback(10.0),
                             projectile::Effect::RewardEnergy(100),
                             projectile::Effect::Vanish,
@@ -276,8 +184,8 @@ impl Tool {
                 ChargedRanged {
                     energy_cost: 0,
                     energy_drain: 300,
-                    initial_damage: 3,
-                    max_damage: 15,
+                    initial_damage: (40.0 * self.base_power()) as u32,
+                    max_damage: (200.0 * self.base_power()) as u32,
                     initial_knockback: 10.0,
                     max_knockback: 20.0,
                     prepare_duration: Duration::from_millis(100),
@@ -292,7 +200,7 @@ impl Tool {
                     energy_cost: 0,
                     buildup_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(400),
-                    base_healthchange: -5,
+                    base_healthchange: (-50.0 * self.base_power()) as i32,
                     range: 3.5,
                     max_angle: 60.0,
                 },
@@ -300,134 +208,147 @@ impl Tool {
                     energy_cost: 700,
                     buildup_duration: Duration::from_millis(500),
                     recover_duration: Duration::from_millis(500),
-                    base_damage: 20,
+                    base_damage: (100.0 * self.base_power()) as u32,
                 },
             ],
-            Staff(StaffKind::BasicStaff) => vec![
-                BasicMelee {
-                    energy_cost: 0,
-                    buildup_duration: Duration::from_millis(100),
-                    recover_duration: Duration::from_millis(300),
-                    base_healthchange: -3,
-                    range: 10.0,
-                    max_angle: 45.0,
-                },
-                BasicRanged {
-                    energy_cost: 0,
-                    holdable: false,
-                    prepare_duration: Duration::from_millis(250),
-                    recover_duration: Duration::from_millis(600),
-                    projectile: Projectile {
-                        hit_solid: vec![projectile::Effect::Vanish],
-                        hit_entity: vec![
-                            projectile::Effect::Damage(-3),
-                            projectile::Effect::RewardEnergy(150),
-                            projectile::Effect::Vanish,
-                        ],
-                        time_left: Duration::from_secs(20),
-                        owner: None,
-                    },
-                    projectile_body: Body::Object(object::Body::BoltFire),
-                    projectile_light: Some(LightEmitter {
-                        col: (0.85, 0.5, 0.11).into(),
-                        ..Default::default()
-                    }),
+            Staff(kind) => {
+                if kind == "Sceptre" {
+                    vec![
+                        BasicMelee {
+                            energy_cost: 0,
+                            buildup_duration: Duration::from_millis(0),
+                            recover_duration: Duration::from_millis(300),
+                            base_healthchange: (-10.0 * self.base_power()) as i32,
+                            range: 10.0,
+                            max_angle: 45.0,
+                        },
+                        BasicMelee {
+                            energy_cost: 350,
+                            buildup_duration: Duration::from_millis(0),
+                            recover_duration: Duration::from_millis(1000),
+                            base_healthchange: (150.0 * self.base_power()) as i32,
+                            range: 10.0,
+                            max_angle: 45.0,
+                        },
+                    ]
+                } else {
+                    vec![
+                        BasicMelee {
+                            energy_cost: 0,
+                            buildup_duration: Duration::from_millis(100),
+                            recover_duration: Duration::from_millis(300),
+                            base_healthchange: (-40.0 * self.base_power()) as i32,
+                            range: 10.0,
+                            max_angle: 45.0,
+                        },
+                        BasicRanged {
+                            energy_cost: 0,
+                            holdable: false,
+                            prepare_duration: Duration::from_millis(250),
+                            recover_duration: Duration::from_millis(600),
+                            projectile: Projectile {
+                                hit_solid: vec![projectile::Effect::Vanish],
+                                hit_entity: vec![
+                                    projectile::Effect::Damage((-40.0 * self.base_power()) as i32),
+                                    projectile::Effect::RewardEnergy(150),
+                                    projectile::Effect::Vanish,
+                                ],
+                                time_left: Duration::from_secs(20),
+                                owner: None,
+                            },
+                            projectile_body: Body::Object(object::Body::BoltFire),
+                            projectile_light: Some(LightEmitter {
+                                col: (0.85, 0.5, 0.11).into(),
+                                ..Default::default()
+                            }),
 
-                    projectile_gravity: None,
-                },
-                BasicRanged {
-                    energy_cost: 400,
-                    holdable: true,
-                    prepare_duration: Duration::from_millis(800),
-                    recover_duration: Duration::from_millis(50),
-                    projectile: Projectile {
-                        hit_solid: vec![
-                            projectile::Effect::Explode { power: 1.4 },
-                            projectile::Effect::Vanish,
-                        ],
-                        hit_entity: vec![
-                            projectile::Effect::Explode { power: 1.4 },
-                            projectile::Effect::Vanish,
-                        ],
-                        time_left: Duration::from_secs(20),
-                        owner: None,
-                    },
-                    projectile_body: Body::Object(object::Body::BoltFireBig),
-                    projectile_light: Some(LightEmitter {
-                        col: (1.0, 0.75, 0.11).into(),
-                        ..Default::default()
-                    }),
+                            projectile_gravity: None,
+                        },
+                        BasicRanged {
+                            energy_cost: 400,
+                            holdable: true,
+                            prepare_duration: Duration::from_millis(800),
+                            recover_duration: Duration::from_millis(50),
+                            projectile: Projectile {
+                                hit_solid: vec![
+                                    projectile::Effect::Explode {
+                                        power: 1.4 * self.base_power(),
+                                    },
+                                    projectile::Effect::Vanish,
+                                ],
+                                hit_entity: vec![
+                                    projectile::Effect::Explode {
+                                        power: 1.4 * self.base_power(),
+                                    },
+                                    projectile::Effect::Vanish,
+                                ],
+                                time_left: Duration::from_secs(20),
+                                owner: None,
+                            },
+                            projectile_body: Body::Object(object::Body::BoltFireBig),
+                            projectile_light: Some(LightEmitter {
+                                col: (1.0, 0.75, 0.11).into(),
+                                ..Default::default()
+                            }),
 
-                    projectile_gravity: None,
-                },
-            ],
-            Staff(StaffKind::Sceptre) => vec![
-                BasicMelee {
-                    energy_cost: 0,
-                    buildup_duration: Duration::from_millis(0),
-                    recover_duration: Duration::from_millis(300),
-                    base_healthchange: -1,
-                    range: 10.0,
-                    max_angle: 45.0,
-                },
-                BasicMelee {
-                    energy_cost: 350,
-                    buildup_duration: Duration::from_millis(0),
-                    recover_duration: Duration::from_millis(1000),
-                    base_healthchange: 15,
-                    range: 10.0,
-                    max_angle: 45.0,
-                },
-            ],
+                            projectile_gravity: None,
+                        },
+                    ]
+                }
+            },
             Shield(_) => vec![
                 BasicMelee {
                     energy_cost: 0,
                     buildup_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(400),
-                    base_healthchange: -4,
+                    base_healthchange: (-40.0 * self.base_power()) as i32,
                     range: 3.0,
                     max_angle: 120.0,
                 },
                 BasicBlock,
             ],
-            Debug(kind) => match kind {
-                DebugKind::Boost => vec![
-                    CharacterAbility::Boost {
-                        duration: Duration::from_millis(50),
-                        only_up: false,
-                    },
-                    CharacterAbility::Boost {
-                        duration: Duration::from_millis(50),
-                        only_up: true,
-                    },
-                    BasicRanged {
-                        energy_cost: 0,
-                        holdable: false,
-                        prepare_duration: Duration::from_millis(0),
-                        recover_duration: Duration::from_millis(10),
-                        projectile: Projectile {
-                            hit_solid: vec![projectile::Effect::Stick],
-                            hit_entity: vec![
-                                projectile::Effect::Stick,
-                                projectile::Effect::Possess,
-                            ],
-                            time_left: Duration::from_secs(10),
-                            owner: None,
+            Debug(kind) => {
+                if kind == "Boost" {
+                    vec![
+                        CharacterAbility::Boost {
+                            duration: Duration::from_millis(50),
+                            only_up: false,
                         },
-                        projectile_body: Body::Object(object::Body::ArrowSnake),
-                        projectile_light: Some(LightEmitter {
-                            col: (0.0, 1.0, 0.33).into(),
-                            ..Default::default()
-                        }),
-                        projectile_gravity: None,
-                    },
-                ],
+                        CharacterAbility::Boost {
+                            duration: Duration::from_millis(50),
+                            only_up: true,
+                        },
+                        BasicRanged {
+                            energy_cost: 0,
+                            holdable: false,
+                            prepare_duration: Duration::from_millis(0),
+                            recover_duration: Duration::from_millis(10),
+                            projectile: Projectile {
+                                hit_solid: vec![projectile::Effect::Stick],
+                                hit_entity: vec![
+                                    projectile::Effect::Stick,
+                                    projectile::Effect::Possess,
+                                ],
+                                time_left: Duration::from_secs(10),
+                                owner: None,
+                            },
+                            projectile_body: Body::Object(object::Body::ArrowSnake),
+                            projectile_light: Some(LightEmitter {
+                                col: (0.0, 1.0, 0.33).into(),
+                                ..Default::default()
+                            }),
+                            projectile_gravity: None,
+                        },
+                    ]
+                } else {
+                    vec![]
+                }
             },
             Empty => vec![BasicMelee {
                 energy_cost: 0,
                 buildup_duration: Duration::from_millis(0),
                 recover_duration: Duration::from_millis(1000),
-                base_healthchange: -2,
+                base_healthchange: -20,
                 range: 5.0,
                 max_angle: 60.0,
             }],
@@ -438,6 +359,6 @@ impl Tool {
     /// (i.e: one may be substituted for the other in crafting recipes or
     /// item possession checks).
     pub fn superficially_eq(&self, other: &Self) -> bool {
-        ToolCategory::from(self.kind) == ToolCategory::from(other.kind)
+        ToolCategory::from(&self.kind) == ToolCategory::from(&other.kind)
     }
 }

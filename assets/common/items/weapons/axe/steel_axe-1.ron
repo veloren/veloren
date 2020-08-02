@@ -1,0 +1,13 @@
+Item(
+    name: "Steel Labrys",
+    description: "Forged from steel.",
+    kind: Tool(
+        (
+            kind: Axe("SteelAxe1"),    
+            stats: (
+                equip_time_millis: 400,
+                power: 1.40,
+            ),
+        )
+    ),
+)

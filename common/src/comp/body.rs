@@ -234,37 +234,37 @@ impl Body {
 
     pub fn base_health(&self) -> u32 {
         match self {
-            Body::Humanoid(_) => 52,
-            Body::QuadrupedSmall(_) => 44,
-            Body::QuadrupedMedium(_) => 72,
-            Body::BirdMedium(_) => 36,
-            Body::FishMedium(_) => 32,
-            Body::Dragon(_) => 256,
-            Body::BirdSmall(_) => 24,
-            Body::FishSmall(_) => 20,
-            Body::BipedLarge(_) => 144,
-            Body::Object(_) => 100,
-            Body::Golem(_) => 168,
-            Body::Critter(_) => 32,
-            Body::QuadrupedLow(_) => 64,
+            Body::Humanoid(_) => 520,
+            Body::QuadrupedSmall(_) => 440,
+            Body::QuadrupedMedium(_) => 720,
+            Body::BirdMedium(_) => 360,
+            Body::FishMedium(_) => 320,
+            Body::Dragon(_) => 2560,
+            Body::BirdSmall(_) => 240,
+            Body::FishSmall(_) => 200,
+            Body::BipedLarge(_) => 1440,
+            Body::Object(_) => 1000,
+            Body::Golem(_) => 1680,
+            Body::Critter(_) => 320,
+            Body::QuadrupedLow(_) => 640,
         }
     }
 
     pub fn base_health_increase(&self) -> u32 {
         match self {
-            Body::Humanoid(_) => 5,
-            Body::QuadrupedSmall(_) => 4,
-            Body::QuadrupedMedium(_) => 7,
-            Body::BirdMedium(_) => 4,
-            Body::FishMedium(_) => 3,
-            Body::Dragon(_) => 26,
-            Body::BirdSmall(_) => 2,
-            Body::FishSmall(_) => 2,
-            Body::BipedLarge(_) => 14,
+            Body::Humanoid(_) => 50,
+            Body::QuadrupedSmall(_) => 40,
+            Body::QuadrupedMedium(_) => 70,
+            Body::BirdMedium(_) => 40,
+            Body::FishMedium(_) => 30,
+            Body::Dragon(_) => 260,
+            Body::BirdSmall(_) => 20,
+            Body::FishSmall(_) => 20,
+            Body::BipedLarge(_) => 140,
             Body::Object(_) => 0,
-            Body::Golem(_) => 17,
-            Body::Critter(_) => 3,
-            Body::QuadrupedLow(_) => 6,
+            Body::Golem(_) => 170,
+            Body::Critter(_) => 30,
+            Body::QuadrupedLow(_) => 60,
         }
     }
 
@@ -306,19 +306,19 @@ impl Body {
 
     pub fn base_dmg(&self) -> u32 {
         match self {
-            Body::Humanoid(_) => 6,
-            Body::QuadrupedSmall(_) => 8,
-            Body::QuadrupedMedium(_) => 12,
-            Body::BirdMedium(_) => 7,
-            Body::FishMedium(_) => 6,
-            Body::Dragon(_) => 90,
-            Body::BirdSmall(_) => 5,
-            Body::FishSmall(_) => 3,
-            Body::BipedLarge(_) => 36,
+            Body::Humanoid(_) => 60,
+            Body::QuadrupedSmall(_) => 80,
+            Body::QuadrupedMedium(_) => 120,
+            Body::BirdMedium(_) => 70,
+            Body::FishMedium(_) => 60,
+            Body::Dragon(_) => 900,
+            Body::BirdSmall(_) => 50,
+            Body::FishSmall(_) => 30,
+            Body::BipedLarge(_) => 360,
             Body::Object(_) => 0,
-            Body::Golem(_) => 36,
-            Body::Critter(_) => 7,
-            Body::QuadrupedLow(_) => 11,
+            Body::Golem(_) => 360,
+            Body::Critter(_) => 70,
+            Body::QuadrupedLow(_) => 110,
         }
     }
 

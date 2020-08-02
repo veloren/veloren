@@ -34,7 +34,7 @@ crossbeam = "0.7.2"
 prometheus = { version = "0.9", default-features = false}
 tiny_http = "0.7.0"
 portpicker = { git = "https://github.com/xMAC94x/portpicker-rs" }
-authc = { git = "https://gitlab.com/veloren/auth.git", rev = "57784d2135a2c81ff0266f52a528da092ddf89e6" }
+authc = { git = "https://gitlab.com/veloren/auth.git", rev = "b943c85e4a38f5ec60cd18c34c73097640162bfe" }
 libsqlite3-sys = { version = "0.18", features = ["bundled"] }
 diesel = { version = "1.4.3", features = ["sqlite"] }
 diesel_migrations = "1.4.0"

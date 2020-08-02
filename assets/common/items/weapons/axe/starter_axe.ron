@@ -1,10 +1,13 @@
 Item(
     name: "Notched Axe",
-    description: "Two-Hand Axe\n\nPower 3-14\n\nEvery dent tells the story of a chopped tree.\n\n<Right-Click to use>",
+    description: "Every dent tells the story of a chopped tree.",
     kind: Tool(
         (
-            kind: Axe(BasicAxe),    
-            equip_time_millis: 400,
+            kind: Axe("BasicAxe"),    
+            stats: (
+                equip_time_millis: 400,
+                power: 0.50,
+            ),
         )
     ),
 )

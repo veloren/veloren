@@ -755,7 +755,8 @@ impl Hud {
                 .read_storage::<comp::Pos>()
                 .get(client.entity())
                 .map_or(Vec3::zero(), |pos| pos.0);
-
+            // SCT Output values are called hp_damage and floater.hp_change
+            // Numbers are currently divided by 10 and rounded
             if global_state.settings.gameplay.sct {
                 // Render Player SCT numbers
                 let mut player_sct_bg_id_walker = self.ids.player_sct_bgs.walk();
@@ -779,6 +780,8 @@ impl Hud {
                         // Calculate total change
                         // Ignores healing
                         let hp_damage = floaters.iter().fold(0, |acc, f| f.hp_change.min(0) + acc);
+                        // Divide by 10 to stay in the same dimension as the HP display
+                        let hp_dmg_rounded_abs = ((hp_damage + 5) / 10).abs();
                         let max_hp_frac = hp_damage.abs() as f32 / stats.health.maximum() as f32;
                         let timer = floaters
                             .last()
@@ -798,7 +801,7 @@ impl Hud {
                         // Timer sets text transparency
                         let hp_fade =
                             ((crate::ecs::sys::floater::MY_HP_SHOWTIME - timer) * 0.25) + 0.2;
-                        Text::new(&format!("{}", (hp_damage).abs()))
+                        Text::new(&format!("{}", hp_dmg_rounded_abs))
                             .font_size(font_size)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(if hp_damage < 0 {
@@ -808,7 +811,7 @@ impl Hud {
                             })
                             .mid_bottom_with_margin_on(ui_widgets.window, 297.0 + y)
                             .set(player_sct_bg_id, ui_widgets);
-                        Text::new(&format!("{}", (hp_damage).abs()))
+                        Text::new(&format!("{}", hp_dmg_rounded_abs))
                             .font_size(font_size)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(if hp_damage < 0 {
@@ -872,13 +875,13 @@ impl Hud {
                         let hp_fade = ((crate::ecs::sys::floater::MY_HP_SHOWTIME - floater.timer)
                             * 0.25)
                             + 0.2;
-                        Text::new(&format!("{}", (floater.hp_change).abs()))
+                        Text::new(&format!("{}", (floater.hp_change / 10).abs()))
                             .font_size(font_size)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(0.0, 0.0, 0.0, hp_fade))
                             .x_y(x, y - 3.0)
                             .set(player_sct_bg_id, ui_widgets);
-                        Text::new(&format!("{}", (floater.hp_change).abs()))
+                        Text::new(&format!("{}", (floater.hp_change / 10).abs()))
                             .font_size(font_size)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(if floater.hp_change < 0 {
@@ -919,7 +922,8 @@ impl Hud {
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         let font_size_xp = 30
-                            + (exp_change.abs() as f32 / stats.exp.maximum() as f32 * 50.0) as u32
+                            + ((exp_change.abs() as f32 / stats.exp.maximum() as f32).min(1.0)
+                                * 50.0) as u32
                             + if timer < 0.1 {
                                 (FLASH_MAX * (1.0 - timer / 0.1)) as u32
                             } else {
@@ -961,7 +965,8 @@ impl Hud {
                             // Increase font size based on fraction of maximum health
                             // "flashes" by having a larger size in the first 100ms
                             let font_size_xp = 30
-                                + (floater.exp_change.abs() as f32 / stats.exp.maximum() as f32
+                                + ((floater.exp_change.abs() as f32 / stats.exp.maximum() as f32)
+                                    .min(1.0)
                                     * 50.0) as u32
                                 + if floater.timer < 0.1 {
                                     (FLASH_MAX * (1.0 - floater.timer / 0.1)) as u32
@@ -1124,6 +1129,8 @@ impl Hud {
                                 acc
                             }
                         });
+                        // Divide by 10 to stay in the same dimension as the HP display
+                        let hp_dmg_rounded_abs = ((hp_damage + 5) / 10).abs();
                         let max_hp_frac = hp_damage.abs() as f32 / stats.health.maximum() as f32;
                         let timer = floaters
                             .last()
@@ -1146,14 +1153,14 @@ impl Hud {
                         // Timer sets text transparency
                         let fade = ((crate::ecs::sys::floater::HP_SHOWTIME - timer) * 0.25) + 0.2;
 
-                        Text::new(&format!("{}", (hp_damage).abs()))
+                        Text::new(&format!("{}", hp_dmg_rounded_abs))
                             .font_size(font_size)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(0.0, 0.0, 0.0, fade))
                             .x_y(0.0, y - 3.0)
                             .position_ingame(ingame_pos)
                             .set(sct_bg_id, ui_widgets);
-                        Text::new(&format!("{}", hp_damage.abs()))
+                        Text::new(&format!("{}", hp_dmg_rounded_abs))
                             .font_size(font_size)
                             .font_id(self.fonts.cyri.conrod_id)
                             .x_y(0.0, y)
@@ -1194,7 +1201,7 @@ impl Hud {
                                 * 0.25)
                                 + 0.2;
 
-                            Text::new(&format!("{}", (floater.hp_change).abs()))
+                            Text::new(&format!("{}", (floater.hp_change / 10).abs()))
                                 .font_size(font_size)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .color(if floater.hp_change < 0 {
@@ -1205,7 +1212,7 @@ impl Hud {
                                 .x_y(0.0, y - 3.0)
                                 .position_ingame(ingame_pos)
                                 .set(sct_bg_id, ui_widgets);
-                            Text::new(&format!("{}", (floater.hp_change).abs()))
+                            Text::new(&format!("{}", (floater.hp_change / 10).abs()))
                                 .font_size(font_size)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .x_y(0.0, y)

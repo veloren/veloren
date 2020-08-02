@@ -1,0 +1,13 @@
+Item(
+    name: "Ram's Head Mace",
+    description: "You feel an evil presence in the hammer.",
+    kind: Tool(
+        (
+            kind: Hammer("RamsheadHammer"),    
+            stats: (
+                equip_time_millis: 500,
+                power: 1.80,
+            ),
+        )
+    ),
+)

@@ -1,0 +1,13 @@
+Item(
+    name: "Stone Sledgehammer",
+    description: "It seems brittle.",
+    kind: Tool(
+        (
+            kind: Hammer("StoneHammer3"),    
+            stats: (
+                equip_time_millis: 500,
+                power: 0.70,
+            ),
+        )
+    ),
+)

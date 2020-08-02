@@ -1,0 +1,13 @@
+Item(
+    name: "Morning Star",
+    description: "Forged with steel.",
+    kind: Tool(
+        (
+            kind: Hammer("SteelHammer5"),    
+            stats: (
+                equip_time_millis: 500,
+                power: 1.40,
+            ),
+        )
+    ),
+)

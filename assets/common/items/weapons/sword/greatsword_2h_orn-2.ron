@@ -1,10 +1,13 @@
 Item(
-    name: "Ornimented Greatsword",
-    description: "A Ornimented Two-Handed Greatsword\n\nPower: 2-10\n\n<Right-Click to use>",
+    name: "Ornamented Greatsword",
+    description: "The sword's almost a work of art.",
     kind: Tool(
        (
-            kind: Sword(GreatswordOrn2),    
-            equip_time_millis: 500,
+            kind: Sword("GreatswordOrn2"),    
+            stats: (
+                equip_time_millis: 500,
+                power: 1.70,
+            ),
         )
     ),
 )

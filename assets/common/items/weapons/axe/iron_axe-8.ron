@@ -1,0 +1,13 @@
+Item(
+    name: "Fanged Axe",
+    description: "Forged from iron.",
+    kind: Tool(
+        (
+            kind: Axe("IronAxe8"),    
+            stats: (
+                equip_time_millis: 400,
+                power: 1.20,
+            ),
+        )
+    ),
+)

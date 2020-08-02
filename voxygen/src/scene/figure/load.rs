@@ -2481,6 +2481,7 @@ struct SidedBLCenterVoxSpec {
     head: BipedLargeCenterSubSpec,
     torso_upper: BipedLargeCenterSubSpec,
     torso_lower: BipedLargeCenterSubSpec,
+    main: BipedLargeCenterSubSpec,
 }
 #[derive(Serialize, Deserialize)]
 struct BipedLargeCenterSubSpec {
@@ -2591,6 +2592,27 @@ impl BipedLargeCenterSpec {
         let center = graceful_load_segment(&spec.torso_lower.center.0);
 
         generate_mesh(center, Vec3::from(spec.torso_lower.offset))
+    }
+
+    pub fn mesh_main(
+        &self,
+        species: BLSpecies,
+        body_type: BLBodyType,
+        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
+    ) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No main weapon specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let center = graceful_load_segment(&spec.main.center.0);
+
+        generate_mesh(center, Vec3::from(spec.main.offset))
     }
 }
 impl BipedLargeLateralSpec {

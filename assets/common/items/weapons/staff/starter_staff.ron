@@ -1,10 +1,13 @@
 Item(
     name: "Gnarled Rod",
-    description: "Firestaff\n\nPower: 1-13\n\nSmells like resin and magic.\n\n<Right-Click to use>",
+    description: "Smells like resin and magic.",
     kind: Tool(
         (
-            kind: Staff(BasicStaff),    
-            equip_time_millis: 300,
+            kind: Staff("BasicStaff"),    
+            stats: (
+                equip_time_millis: 300,
+                power: 0.50,
+            ),
         )
     ),
 )

@@ -1,0 +1,13 @@
+Item(
+    name: "Soldier's Bow",
+    description: "Has an insignia on it.",  
+    kind: Tool(
+        (
+            kind: Bow("IronLongbow0"),    
+            stats: (
+                equip_time_millis: 400,
+                power: 1.75,
+            ),
+        )
+    ),
+)

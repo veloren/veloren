@@ -346,6 +346,10 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_y(-1.27)
                     * Quaternion::rotation_z(0.0);
                 next.main.scale = Vec3::one();
+                next.control.offset = Vec3::new(0.0, 6.0, 6.0);
+                next.control.ori =
+                    Quaternion::rotation_x(u_slow * 0.2) * Quaternion::rotation_z(u_slowalt * 0.1);
+                next.control.scale = Vec3::one();
             },
             Some(ToolKind::Farming(_)) => {
                 if velocity < 0.5 {
@@ -380,8 +384,8 @@ impl Animation for WieldAnimation {
         next.r_control.scale = Vec3::one();
 
         next.second.scale = match (
-            active_tool_kind.map(|tk| tk.into_hands()),
-            second_tool_kind.map(|tk| tk.into_hands()),
+            active_tool_kind.map(|tk| tk.hands()),
+            second_tool_kind.map(|tk| tk.hands()),
         ) {
             (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
             (_, _) => Vec3::zero(),

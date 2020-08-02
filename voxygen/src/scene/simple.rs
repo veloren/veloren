@@ -269,7 +269,7 @@ impl Scene {
             .map(|i| &i.item.kind);
 
         let active_tool_kind = if let Some(ItemKind::Tool(tool)) = active_item_kind {
-            Some(tool.kind)
+            Some(tool.kind.clone())
         } else {
             None
         };
@@ -279,7 +279,7 @@ impl Scene {
             .map(|i| &i.item.kind);
 
         let second_tool_kind = if let Some(ItemKind::Tool(tool)) = second_item_kind {
-            Some(tool.kind)
+            Some(tool.kind.clone())
         } else {
             None
         };
