@@ -77,6 +77,7 @@ impl<'a> System<'a> for Sys {
                 CharacterState::Idle { .. }
                 | CharacterState::Sit { .. }
                 | CharacterState::Dance { .. }
+                | CharacterState::Sneak { .. }
                 | CharacterState::Glide { .. }
                 | CharacterState::GlideWield { .. }
                 | CharacterState::Wielding { .. }

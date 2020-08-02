@@ -142,7 +142,7 @@ impl<'a> From<&'a comp::quadruped_low::Body> for SkeletonAttr {
                 (Tortoise, _) => (5.0, 1.0),
                 (Rocksnapper, _) => (6.0, 0.5),
                 (Pangolin, _) => (-0.5, 8.0),
-                (Maneater, _) => (6.0, 9.5),
+                (Maneater, _) => (7.0, 11.5),
             },
             head_lower: match (body.species, body.body_type) {
                 (Crocodile, _) => (8.0, 0.0),

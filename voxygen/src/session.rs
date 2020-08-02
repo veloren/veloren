@@ -347,6 +347,15 @@ impl PlayState for SessionState {
                             self.client.borrow_mut().toggle_dance();
                         }
                     }
+                    Event::InputUpdate(GameInput::Sneak, state)
+                        if state != self.key_state.toggle_sneak =>
+                    {
+                        self.key_state.toggle_sneak = state;
+                        if state {
+                            self.stop_auto_walk();
+                            self.client.borrow_mut().toggle_sneak();
+                        }
+                    }
                     Event::InputUpdate(GameInput::MoveForward, state) => {
                         if state && global_state.settings.gameplay.stop_auto_walk_on_input {
                             self.stop_auto_walk();

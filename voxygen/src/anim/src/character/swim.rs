@@ -42,11 +42,7 @@ impl Animation for SwimAnimation {
 
         let short = (anim_time as f32 * lab as f32 * 6.0).sin();
 
-        let shortalt = (anim_time as f32 * lab as f32 * 6.0 + PI / 2.0).sin();
-
         let foot = (anim_time as f32 * lab as f32 * 6.0).sin();
-
-        let wave_stop = (anim_time as f32 * 9.0).min(PI / 2.0 / 2.0).sin();
 
         let footrotl = (((1.0)
             / (0.2
@@ -146,7 +142,7 @@ impl Animation for SwimAnimation {
 
         next.l_foot.offset = Vec3::new(
             -skeleton_attr.foot.0,
-            skeleton_attr.foot.1 + foothorir * 1.5 * intensity,
+            skeleton_attr.foot.1 + foothoril * 1.5 * intensity,
             -15.0 + skeleton_attr.foot.2 + footrotl * 3.0 * intensity,
         );
         next.l_foot.ori = Quaternion::rotation_x(-0.8 + footrotl * 0.4 * intensity);

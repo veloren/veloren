@@ -209,7 +209,7 @@ impl<'a> From<&'a comp::quadruped_medium::Body> for SkeletonAttr {
                 (Wolf, _) => (5.0, -3.0),
                 (Frostfang, _) => (4.0, -3.0),
                 (Mouflon, _) => (10.5, -4.0),
-                (Catoblepas, _) => (1.0, -6.0),
+                (Catoblepas, _) => (1.0, -4.0),
                 (Bonerattler, _) => (3.0, -3.0),
             },
             tail: match (body.species, body.body_type) {

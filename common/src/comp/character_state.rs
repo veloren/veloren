@@ -41,6 +41,7 @@ pub enum CharacterState {
     Climb,
     Sit,
     Dance,
+    Sneak,
     Glide,
     GlideWield,
     /// A basic blocking state
