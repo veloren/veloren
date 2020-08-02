@@ -71,10 +71,11 @@ impl SessionState {
 
         let walk_forward_dir = scene.camera().forward_xy();
         let walk_right_dir = scene.camera().right_xy();
+
         Self {
             scene,
             client,
-            key_state: KeyState::new(),
+            key_state: KeyState::default(),
             inputs: comp::ControllerInputs::default(),
             hud,
             selected_block: Block::new(BlockKind::Normal, Rgb::broadcast(255)),
@@ -93,9 +94,7 @@ impl SessionState {
         self.hud.auto_walk(false);
         self.key_state.auto_walk = false;
     }
-}
 
-impl SessionState {
     /// Tick the session (and the client attached to it).
     fn tick(&mut self, dt: Duration, global_state: &mut GlobalState) -> Result<TickAction, Error> {
         self.inputs.tick(dt);
@@ -357,6 +356,7 @@ impl PlayState for SessionState {
                         if state != self.key_state.toggle_sit =>
                     {
                         self.key_state.toggle_sit = state;
+
                         if state {
                             self.stop_auto_walk();
                             self.client.borrow_mut().toggle_sit();
@@ -478,41 +478,47 @@ impl PlayState for SessionState {
                             }
                         }
                     },
-                    Event::InputUpdate(GameInput::Interact, state) => {
-                        let mut client = self.client.borrow_mut();
+                    Event::InputUpdate(GameInput::Interact, state)
+                        if state != self.key_state.collect =>
+                    {
+                        self.key_state.collect = state;
 
-                        // Collect terrain sprites
-                        if let Some(select_pos) = self.scene.select_pos() {
-                            client.collect_block(select_pos);
-                        }
+                        if state {
+                            let mut client = self.client.borrow_mut();
 
-                        // Collect lootable entities
-                        let player_pos = client
-                            .state()
-                            .read_storage::<comp::Pos>()
-                            .get(client.entity())
-                            .copied();
+                            // Collect terrain sprites
+                            if let Some(select_pos) = self.scene.select_pos() {
+                                client.collect_block(select_pos);
+                            }
 
-                        if let (Some(player_pos), true) = (player_pos, state) {
-                            let entity = (
-                                &client.state().ecs().entities(),
-                                &client.state().ecs().read_storage::<comp::Pos>(),
-                                &client.state().ecs().read_storage::<comp::Item>(),
-                            )
-                                .join()
-                                .filter(|(_, pos, _)| {
-                                    pos.0.distance_squared(player_pos.0) < MAX_PICKUP_RANGE_SQR
-                                })
-                                .min_by_key(|(_, pos, _)| {
-                                    (pos.0.distance_squared(player_pos.0) * 1000.0) as i32
-                                })
-                                .map(|(entity, _, _)| entity);
+                            // Collect lootable entities
+                            let player_pos = client
+                                .state()
+                                .read_storage::<comp::Pos>()
+                                .get(client.entity())
+                                .copied();
 
-                            if let Some(entity) = entity {
-                                client.pick_up(entity);
+                            if let Some(player_pos) = player_pos {
+                                let entity = (
+                                    &client.state().ecs().entities(),
+                                    &client.state().ecs().read_storage::<comp::Pos>(),
+                                    &client.state().ecs().read_storage::<comp::Item>(),
+                                )
+                                    .join()
+                                    .filter(|(_, pos, _)| {
+                                        pos.0.distance_squared(player_pos.0) < MAX_PICKUP_RANGE_SQR
+                                    })
+                                    .min_by_key(|(_, pos, _)| {
+                                        (pos.0.distance_squared(player_pos.0) * 1000.0) as i32
+                                    })
+                                    .map(|(entity, _, _)| entity);
+
+                                if let Some(entity) = entity {
+                                    client.pick_up(entity);
+                                }
                             }
                         }
-                    },
+                    }
                     /*Event::InputUpdate(GameInput::Charge, state) => {
                         self.inputs.charge.set_state(state);
                     },*/
