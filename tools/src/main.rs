@@ -111,7 +111,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                         .replace("/", ".");
                     let asset = assets::load_expect_cloned::<comp::Item>(asset_identifier);
 
-                    match asset.kind {
+                    match &asset.kind {
                         comp::item::ItemKind::Tool(tool) => {
                             let power = tool.base_power().to_string();
                             let equip_time = tool.equip_time().subsec_millis().to_string();

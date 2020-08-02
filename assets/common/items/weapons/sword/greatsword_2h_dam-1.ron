@@ -3,7 +3,7 @@ Item(
     description: "The blade has been chipped quite a few times.",
     kind: Tool(
        (
-            kind: Sword(GreatswordDam1),    
+            kind: Sword("GreatswordDam1"),    
             stats: (
                 equip_time_millis: 500,
                 power: 0.80,

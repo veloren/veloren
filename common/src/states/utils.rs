@@ -224,8 +224,8 @@ pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
         };
 
         match (
-            active_tool_kind.map(|tk| tk.into_hands()),
-            second_tool_kind.map(|tk| tk.into_hands()),
+            active_tool_kind.map(|tk| tk.hands()),
+            second_tool_kind.map(|tk| tk.hands()),
         ) {
             (Some(Hands::TwoHand), _) => {
                 if let Some(ability) = data

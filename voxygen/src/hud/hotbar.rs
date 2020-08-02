@@ -75,20 +75,18 @@ impl State {
                 .as_ref()
                 .map(|i| &i.item.kind)
                 .filter(|kind| {
-                    use common::comp::item::{
-                        tool::{DebugKind, Tool, ToolKind},
-                        ItemKind,
-                    };
-                    matches!(
-                        kind,
-                        ItemKind::Tool(Tool {
-                            kind: ToolKind::Staff(_),
-                            ..
-                        }) | ItemKind::Tool(Tool {
-                            kind: ToolKind::Debug(DebugKind::Boost),
-                            ..
-                        })
-                    )
+                    use common::comp::item::{tool::ToolKind, ItemKind};
+                    if let ItemKind::Tool(kind) = kind {
+                        if let ToolKind::Staff(_) = &kind.kind {
+                            true
+                        } else if let ToolKind::Debug(kind) = &kind.kind {
+                            kind == "Boost"
+                        } else {
+                            false
+                        }
+                    } else {
+                        false
+                    }
                 })
                 .is_some()
         } else {

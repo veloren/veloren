@@ -3,7 +3,7 @@ Item(
     description: "Breaks bones like sticks and stones.",
     kind: Tool(
         (
-            kind: Hammer(BasicHammer),    
+            kind: Hammer("BasicHammer"),    
             stats: (
                 equip_time_millis: 500,
                 power: 0.50,

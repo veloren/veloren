@@ -166,9 +166,9 @@ impl From<&InventoryUpdateEvent> for SfxEvent {
             InventoryUpdateEvent::Collected(item) => {
                 // Handle sound effects for types of collected items, falling back to the
                 // default Collected event
-                match item.kind {
+                match &item.kind {
                     ItemKind::Tool(tool) => SfxEvent::Inventory(SfxInventoryEvent::CollectedTool(
-                        ToolCategory::try_from(tool.kind).unwrap(),
+                        ToolCategory::try_from(&tool.kind).unwrap(),
                     )),
                     _ => SfxEvent::Inventory(SfxInventoryEvent::Collected),
                 }

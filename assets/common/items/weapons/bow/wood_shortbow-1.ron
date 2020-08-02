@@ -3,7 +3,7 @@ Item(
     description: "Works on the ground too.",  
     kind: Tool(
         (
-            kind: Bow(WoodShortbow1),    
+            kind: Bow("WoodShortbow1"),    
             stats: (
                 equip_time_millis: 400,
                 power: 0.75,

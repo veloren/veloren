@@ -3,7 +3,7 @@ Item(
     description: "Every dent tells the story of a chopped tree.",
     kind: Tool(
         (
-            kind: Axe(BasicAxe),    
+            kind: Axe("BasicAxe"),    
             stats: (
                 equip_time_millis: 400,
                 power: 0.50,

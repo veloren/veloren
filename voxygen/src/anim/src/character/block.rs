@@ -211,8 +211,8 @@ impl Animation for BlockAnimation {
         next.r_control.scale = Vec3::one();
 
         next.second.scale = match (
-            active_tool_kind.map(|tk| tk.into_hands()),
-            second_tool_kind.map(|tk| tk.into_hands()),
+            active_tool_kind.map(|tk| tk.hands()),
+            second_tool_kind.map(|tk| tk.hands()),
         ) {
             (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
             (_, _) => Vec3::zero(),
