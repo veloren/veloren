@@ -720,6 +720,15 @@ impl FigureMgr {
                                 )
                             }
                         },
+                        CharacterState::Sneak { .. } => {
+                            anim::character::SneakAnimation::update_skeleton(
+                                &CharacterSkeleton::new(),
+                                (active_tool_kind, vel.0, ori, state.last_ori, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         CharacterState::Boost(_) => {
                             anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,

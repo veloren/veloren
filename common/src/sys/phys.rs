@@ -15,7 +15,7 @@ use specs::{
 use vek::*;
 
 pub const GRAVITY: f32 = 9.81 * 5.0;
-const BOUYANCY: f32 = 0.0;
+const BOUYANCY: f32 = 1.0;
 // Friction values used for linear damping. They are unitless quantities. The
 // value of these quantities must be between zero and one. They represent the
 // amount an object will slow down within 1/60th of a second. Eg. if the frction

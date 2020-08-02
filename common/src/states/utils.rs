@@ -118,9 +118,14 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     handle_orientation(data, update, if data.physics.on_ground { 9.0 } else { 2.0 });
 
     // Swim
-    if data.inputs.swim.is_pressed() {
+    if data.inputs.swimup.is_pressed() {
         update.vel.0.z =
-            (update.vel.0.z + data.dt.0 * GRAVITY * 2.25).min(BASE_HUMANOID_WATER_SPEED);
+            (update.vel.0.z + data.dt.0 * GRAVITY * 4.0).min(BASE_HUMANOID_WATER_SPEED);
+    }
+    // Swim
+    if data.inputs.swimdown.is_pressed() {
+        update.vel.0.z =
+            (update.vel.0.z + data.dt.0 * GRAVITY * -3.5).min(BASE_HUMANOID_WATER_SPEED);
     }
 }
 
@@ -156,6 +161,12 @@ pub fn attempt_sit(data: &JoinData, update: &mut StateUpdate) {
 pub fn attempt_dance(data: &JoinData, update: &mut StateUpdate) {
     if data.physics.on_ground && data.body.is_humanoid() {
         update.character = CharacterState::Dance;
+    }
+}
+
+pub fn attempt_sneak(data: &JoinData, update: &mut StateUpdate) {
+    if data.physics.on_ground && data.body.is_humanoid() {
+        update.character = CharacterState::Sneak;
     }
 }
 

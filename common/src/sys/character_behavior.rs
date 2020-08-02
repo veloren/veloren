@@ -27,6 +27,7 @@ pub trait CharacterBehavior {
     fn unwield(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn sit(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn dance(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
+    fn sneak(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn stand(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn handle_event(&self, data: &JoinData, event: ControlAction) -> StateUpdate {
         match event {
@@ -36,6 +37,7 @@ pub trait CharacterBehavior {
             ControlAction::Unwield => self.unwield(data),
             ControlAction::Sit => self.sit(data),
             ControlAction::Dance => self.dance(data),
+            ControlAction::Sneak => self.sneak(data),
             ControlAction::Stand => self.stand(data),
         }
     }
@@ -232,6 +234,9 @@ impl<'a> System<'a> for Sys {
                     CharacterState::Dance => {
                         states::dance::Data::handle_event(&states::dance::Data, &j, action)
                     },
+                    CharacterState::Sneak => {
+                        states::sneak::Data::handle_event(&states::sneak::Data, &j, action)
+                    },
                     CharacterState::BasicBlock => {
                         states::basic_block::Data.handle_event(&j, action)
                     },
@@ -261,6 +266,7 @@ impl<'a> System<'a> for Sys {
                 CharacterState::GlideWield => states::glide_wield::Data.behavior(&j),
                 CharacterState::Sit => states::sit::Data::behavior(&states::sit::Data, &j),
                 CharacterState::Dance => states::dance::Data::behavior(&states::dance::Data, &j),
+                CharacterState::Sneak => states::sneak::Data::behavior(&states::sneak::Data, &j),
                 CharacterState::BasicBlock => states::basic_block::Data.behavior(&j),
                 CharacterState::Roll(data) => data.behavior(&j),
                 CharacterState::Wielding => states::wielding::Data.behavior(&j),

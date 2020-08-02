@@ -33,6 +33,12 @@ impl CharacterBehavior for Data {
         update
     }
 
+    fn sneak(&self, data: &JoinData) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        attempt_sneak(data, &mut update);
+        update
+    }
+
     fn unwield(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         update.character = CharacterState::Idle;
