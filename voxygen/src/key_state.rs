@@ -14,13 +14,13 @@ pub struct KeyState {
     pub auto_walk: bool,
     pub swap_loadout: bool,
     pub respawn: bool,
+    pub collect: bool,
     pub analog_matrix: Vec2<f32>,
 }
 
-impl KeyState {
-    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
-    pub fn new() -> KeyState {
-        KeyState {
+impl Default for KeyState {
+    fn default() -> Self {
+        Self {
             right: false,
             left: false,
             up: false,
@@ -34,10 +34,13 @@ impl KeyState {
             auto_walk: false,
             swap_loadout: false,
             respawn: false,
+            collect: false,
             analog_matrix: Vec2::zero(),
         }
     }
+}
 
+impl KeyState {
     pub fn dir_vec(&self) -> Vec2<f32> {
         let dir = if self.analog_matrix == Vec2::zero() {
             Vec2::<f32>::new(
