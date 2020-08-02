@@ -239,6 +239,7 @@ pub enum ServerMsg {
     },
     TerrainBlockUpdates(HashMap<Vec3<i32>, Block>),
     Disconnect,
+    Kicked(String),
     Shutdown,
     TooManyPlayers,
     /// Send a popup notification such as "Waypoint Saved"
