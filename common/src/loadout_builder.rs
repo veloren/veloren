@@ -104,7 +104,7 @@ impl LoadoutBuilder {
     /// method
     pub fn default_item_config_from_item(maybe_item: Option<Item>) -> Option<ItemConfig> {
         if let Some(item) = maybe_item {
-            if let ItemKind::Tool(tool) = item.kind {
+            if let ItemKind::Tool(tool) = &item.kind {
                 let mut abilities = tool.get_abilities();
                 let mut ability_drain = abilities.drain(..);
 

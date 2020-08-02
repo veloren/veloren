@@ -3,7 +3,7 @@ Item(
     description: "There's blood encrusted on the blade.",
     kind: Tool(
         (
-            kind: Sword(Short0),    
+            kind: Sword("Short0"),    
             stats: (
                 equip_time_millis: 400,
                 power: 0.75,

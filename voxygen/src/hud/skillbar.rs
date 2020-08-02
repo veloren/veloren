@@ -17,7 +17,7 @@ use crate::{
 };
 use common::comp::{
     item::{
-        tool::{DebugKind, StaffKind, Tool, ToolKind},
+        tool::{Tool, ToolKind},
         Hands, ItemKind,
     },
     CharacterState, ControllerInputs, Energy, Inventory, Loadout, Stats,
@@ -617,7 +617,10 @@ impl<'a> Widget for Skillbar<'a> {
                     ToolKind::Axe(_) => self.imgs.twohaxe_m1,
                     ToolKind::Bow(_) => self.imgs.bow_m1,
                     ToolKind::Staff(_) => self.imgs.staff_m1,
-                    ToolKind::Debug(DebugKind::Boost) => self.imgs.flyingrod_m1,
+                    ToolKind::Debug(kind) => match kind.as_ref() {
+                        "Boost" => self.imgs.flyingrod_m1,
+                        _ => self.imgs.nothing,
+                    },
                     _ => self.imgs.nothing,
                 },
                 _ => self.imgs.nothing,
@@ -667,8 +670,8 @@ impl<'a> Widget for Skillbar<'a> {
         };
 
         let tool_kind = match (
-            active_tool_kind.map(|tk| tk.into_hands()),
-            second_tool_kind.map(|tk| tk.into_hands()),
+            active_tool_kind.map(|tk| tk.hands()),
+            second_tool_kind.map(|tk| tk.hands()),
         ) {
             (Some(Hands::TwoHand), _) => active_tool_kind,
             (_, Some(Hands::OneHand)) => second_tool_kind,
@@ -691,9 +694,14 @@ impl<'a> Widget for Skillbar<'a> {
             Some(ToolKind::Hammer(_)) => self.imgs.hammerleap,
             Some(ToolKind::Axe(_)) => self.imgs.axespin,
             Some(ToolKind::Bow(_)) => self.imgs.bow_m2,
-            Some(ToolKind::Staff(StaffKind::Sceptre)) => self.imgs.heal_0,
-            Some(ToolKind::Staff(_)) => self.imgs.staff_m2,
-            Some(ToolKind::Debug(DebugKind::Boost)) => self.imgs.flyingrod_m2,
+            Some(ToolKind::Staff(kind)) => match kind.as_ref() {
+                "Sceptre" => self.imgs.heal_0,
+                _ => self.imgs.staff_m2,
+            },
+            Some(ToolKind::Debug(kind)) => match kind.as_ref() {
+                "Boost" => self.imgs.flyingrod_m2,
+                _ => self.imgs.nothing,
+            },
             _ => self.imgs.nothing,
         })
         .w_h(32.0 * scale, 32.0 * scale)
@@ -706,12 +714,15 @@ impl<'a> Widget for Skillbar<'a> {
                     Color::Rgba(0.3, 0.3, 0.3, 0.8)
                 }
             },
-            Some(ToolKind::Staff(StaffKind::Sceptre)) => {
-                if self.energy.current() as f64 >= 400.0 {
-                    Color::Rgba(1.0, 1.0, 1.0, 1.0)
-                } else {
-                    Color::Rgba(0.3, 0.3, 0.3, 0.8)
-                }
+            Some(ToolKind::Staff(kind)) => match kind.as_ref() {
+                "Sceptre" => {
+                    if self.energy.current() as f64 >= 400.0 {
+                        Color::Rgba(1.0, 1.0, 1.0, 1.0)
+                    } else {
+                        Color::Rgba(0.3, 0.3, 0.3, 0.8)
+                    }
+                },
+                _ => Color::Rgba(1.0, 1.0, 1.0, 1.0),
             },
             _ => Color::Rgba(1.0, 1.0, 1.0, 1.0),
         })
@@ -780,10 +791,14 @@ impl<'a> Widget for Skillbar<'a> {
                                     "\nWhirls a big fireball into the air. \nExplodes the ground \
                                      and does\na big amount of damage",
                                 )),
-                                ToolKind::Debug(DebugKind::Boost) => Some((
-                                    "Possessing Arrow",
-                                    "\nShoots a poisonous arrow.\nLets you control your target.",
-                                )),
+                                ToolKind::Debug(kind) => match kind.as_ref() {
+                                    "Boost" => Some((
+                                        "Possessing Arrow",
+                                        "\nShoots a poisonous arrow.\nLets you control your \
+                                         target.",
+                                    )),
+                                    _ => None,
+                                },
                                 _ => None,
                             },
                             _ => None,

@@ -3,7 +3,7 @@ Item(
     description: "Held together by Rust and hope.",
     kind: Tool(
         (
-            kind: Sword(BasicSword),    
+            kind: Sword("BasicSword"),    
             stats: (
                 equip_time_millis: 300,
                 power: 0.50,

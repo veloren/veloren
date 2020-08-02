@@ -3,7 +3,7 @@ Item(
     description: "Smells like resin and magic.",
     kind: Tool(
         (
-            kind: Staff(BasicStaff),    
+            kind: Staff("BasicStaff"),    
             stats: (
                 equip_time_millis: 300,
                 power: 0.50,

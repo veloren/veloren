@@ -3,7 +3,7 @@ Item(
     description: "Should withstand a few more hits, hopefully...",
     kind: Tool (
         (
-            kind: Shield(BasicShield),
+            kind: Shield("BasicShield"),
             stats: (
                 equip_time_millis: 400,
                 power: 1.00,

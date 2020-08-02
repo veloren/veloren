@@ -3,7 +3,7 @@ Item(
     description: "An axe forged from steel that thirsts for blood.",
     kind: Tool(
         (
-            kind: Axe(BloodsteelAxe1),    
+            kind: Axe("BloodsteelAxe1"),    
             stats: (
                 equip_time_millis: 400,
                 power: 1.60,

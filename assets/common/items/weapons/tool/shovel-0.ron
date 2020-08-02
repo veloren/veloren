@@ -3,7 +3,7 @@ Item(
     description: "It's covered in manure.",
     kind: Tool (
         (
-            kind: Farming(Shovel0),
+            kind: Farming("Shovel0"),
             stats: (
                 equip_time_millis: 400,
                 power: 1.00,
