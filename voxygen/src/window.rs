@@ -896,14 +896,19 @@ impl Window {
 
         match event {
             WindowEvent::CloseRequested => self.events.push(Event::Close),
-            WindowEvent::Resized(winit::dpi::PhysicalSize { width, height }) => {
+            WindowEvent::Resized(physical) => {
                 let (mut color_view, mut depth_view) = self.renderer.win_views_mut();
+                self.window.resize(physical);
                 self.window.update_gfx(&mut color_view, &mut depth_view);
                 self.renderer.on_resize().unwrap();
                 // TODO: update users of this event with the fact that it is now the physical
                 // size
+                let winit::dpi::PhysicalSize { width, height } = physical;
                 self.events
                     .push(Event::Resize(Vec2::new(width as u32, height as u32)));
+            },
+            WindowEvent::ScaleFactorChanged { .. } => {
+                // TODO: Handle properly!
             },
             WindowEvent::ReceivedCharacter(c) => self.events.push(Event::Char(c)),
             WindowEvent::MouseInput { button, state, .. } => {
