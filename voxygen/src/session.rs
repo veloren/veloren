@@ -180,6 +180,7 @@ impl PlayState for SessionState {
     }
 
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
+        // NOTE: Not strictly necessary, but useful for hotloading translation changes.
         self.voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
             &global_state.settings.language.selected_language,
         ));
