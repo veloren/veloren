@@ -3,7 +3,7 @@ Item(
     description: "Soft, strong, and flexible.",
     kind: Armor(
         (
-            kind: Hand(Druid),
+            kind: Hand("Druid"),
             stats: (
                 protection: Normal(2.0),
             ),

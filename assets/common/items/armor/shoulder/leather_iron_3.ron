@@ -3,7 +3,7 @@ Item(
     description: "Robust spaulders made from iron and leather.",
     kind: Armor(
         (
-            kind: Shoulder(IronLeather3),
+            kind: Shoulder("IronLeather3"),
             stats: (
                 protection: Normal(9.0),
             ),

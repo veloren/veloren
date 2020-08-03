@@ -3,7 +3,7 @@ Item(
     description: "A belt with a buckle forged from iron.",
     kind: Armor(
         (
-            kind: Belt(Plate0),
+            kind: Belt("Plate0"),
             stats: (
                 protection: Normal(0.0),
             ),

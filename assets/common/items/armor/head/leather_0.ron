@@ -3,7 +3,7 @@ Item(
     description: "Swift like the wind.",
     kind: Armor(
         (
-            kind: Head(Leather0),
+            kind: Head("Leather0"),
             stats: (
                 protection: Normal(0.0),
             ),

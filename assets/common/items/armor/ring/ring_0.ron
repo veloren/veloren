@@ -3,7 +3,7 @@ Item(
     description: "Barely fits your finger.",
     kind: Armor(
         (
-            kind: Ring(Ring0),
+            kind: Ring("Ring0"),
             stats: (
                 protection: Normal(0.0),
             ),

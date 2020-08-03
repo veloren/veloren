@@ -3,7 +3,7 @@ Item(
     description: "A warm coat.",
     kind: Armor(
         (
-            kind: Shoulder(ClothGreen0),
+            kind: Shoulder("ClothGreen0"),
             stats: (
                 protection: Normal(0.0),
             ),

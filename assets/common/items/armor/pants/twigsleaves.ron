@@ -3,7 +3,7 @@ Item(
     description: "Pants woven from twigs and leaves. Slightly less chafey than the twig pants!",
     kind: Armor(
         (
-            kind: Pants(Twigsleaves),
+            kind: Pants("Twigsleaves"),
             stats: (
                 protection: Normal(12.0),
             ),

@@ -3,7 +3,7 @@ Item(
     description: "A cuirass made of simple leather.",
     kind: Armor(
         (
-            kind: Chest(Leather2),
+            kind: Chest("Leather2"),
             stats: (
                 protection: Normal(10.0),
             ),

@@ -3,7 +3,7 @@ Item(
     description: "They remind you of the old days.",
     kind: Armor(
         (
-            kind: Pants(Rugged0),
+            kind: Pants("Rugged0"),
             stats: (
                 protection: Normal(1.0),
             ),

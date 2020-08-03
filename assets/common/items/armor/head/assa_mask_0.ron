@@ -3,7 +3,7 @@ Item(
     description: "Used to obscure your face.",
     kind: Armor(
         (
-            kind: Head(AssaMask0),
+            kind: Head("AssaMask0"),
             stats: (
                 protection: Normal(0.0),
             ),

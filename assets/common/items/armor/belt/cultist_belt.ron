@@ -3,7 +3,7 @@ Item(
     description: "Ceremonial attire used by members.",
     kind: Armor(
         (
-            kind: Belt(Cultist),
+            kind: Belt("Cultist"),
             stats: (
                 protection: Normal(0.0),
             ),

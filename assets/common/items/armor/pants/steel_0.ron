@@ -3,7 +3,7 @@ Item(
     description: "Greaves forged from steel.",
     kind: Armor(
         (
-            kind: Pants(Steel0),
+            kind: Pants("Steel0"),
             stats: (
                 protection: Normal(20.0),
             ),

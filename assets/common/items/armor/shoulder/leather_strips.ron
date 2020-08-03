@@ -3,7 +3,7 @@ Item(
     description: "Shoulder wraps made from leather strips.",
     kind: Armor(
         (
-            kind: Shoulder(LeatherStrips),
+            kind: Shoulder("LeatherStrips"),
             stats: (
                 protection: Normal(4.0),
             ),

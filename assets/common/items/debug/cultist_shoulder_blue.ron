@@ -3,7 +3,7 @@ Item(
     description: "Ceremonial attire used by members.",
     kind: Armor(
         (
-            kind: Shoulder(CultistBlue),
+            kind: Shoulder("CultistBlue"),
             stats: (
                 protection: Invincible,
             ),

@@ -3,7 +3,7 @@ Item(
     description: "Simple shoulderpads made from blue cloth.",
     kind: Armor(
         (
-            kind: Shoulder(ClothBlue1),
+            kind: Shoulder("ClothBlue1"),
             stats: (
                 protection: Normal(0.0),
             ),
