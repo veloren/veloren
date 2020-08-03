@@ -21,9 +21,10 @@ use crate::{
 use anim::character::SkeletonAttr;
 use common::{
     comp,
-    state::State,
+    state::{State, DeltaTime},
     terrain::{BlockKind, TerrainChunk},
     vol::ReadVol,
+    outcome::Outcome,
 };
 use specs::{Entity as EcsEntity, Join, WorldExt};
 use vek::*;
@@ -41,6 +42,12 @@ const SHADOW_MAX_DIST: f32 = 96.0; // The distance beyond which shadows may not 
 /// Used for first person camera effects
 const RUNNING_THRESHOLD: f32 = 0.7;
 
+struct EventLight {
+    light: Light,
+    timeout: f32,
+    fadeout: fn(f32) -> f32,
+}
+
 struct Skybox {
     model: Model<SkyboxPipeline>,
     locals: Consts<SkyboxLocals>,
@@ -57,6 +64,7 @@ pub struct Scene {
     shadows: Consts<Shadow>,
     camera: Camera,
     camera_input_state: Vec2<f32>,
+    event_lights: Vec<EventLight>,
 
     skybox: Skybox,
     postprocess: PostProcess,
@@ -101,6 +109,7 @@ impl Scene {
                 .unwrap(),
             camera: Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson),
             camera_input_state: Vec2::zero(),
+            event_lights: Vec::new(),
 
             skybox: Skybox {
                 model: renderer.create_model(&create_skybox_mesh()).unwrap(),
@@ -134,9 +143,6 @@ impl Scene {
 
     /// Get a reference to the scene's particle manager.
     pub fn particle_mgr(&self) -> &ParticleMgr { &self.particle_mgr }
-
-    /// Get a mutable reference to the scene's particle manager.
-    pub fn particle_mgr_mut(&mut self) -> &mut ParticleMgr { &mut self.particle_mgr }
 
     /// Get a reference to the scene's figure manager.
     pub fn figure_mgr(&self) -> &FigureMgr { &self.figure_mgr }
@@ -185,6 +191,23 @@ impl Scene {
             // All other events are unhandled
             _ => false,
         }
+    }
+
+    pub fn handle_outcome(&mut self, outcome: &Outcome, scene_data: &SceneData) {
+        match outcome {
+            Outcome::Explosion { pos, power, .. } => self.event_lights.push(EventLight {
+                light: Light::new(
+                    *pos,
+                    Rgb::new(1.0, 0.5, 0.0),
+                    *power * 2.5,
+                ),
+                timeout: 0.5,
+                fadeout: |timeout| timeout * 2.0,
+            }),
+            _ => {},
+        }
+
+        self.particle_mgr.handle_outcome(&outcome, &scene_data);
     }
 
     /// Maintain data such as GPU constant buffers, models, etc. To be called
@@ -319,12 +342,22 @@ impl Scene {
                     light_anim.strength,
                 )
             })
+            .chain(self.event_lights
+                .iter()
+                .map(|el| el.light.with_strength((el.fadeout)(el.timeout))))
             .collect::<Vec<_>>();
         lights.sort_by_key(|light| light.get_pos().distance_squared(player_pos) as i32);
         lights.truncate(MAX_LIGHT_COUNT);
         renderer
             .update_consts(&mut self.lights, &lights)
             .expect("Failed to update light constants");
+
+        // Update event lights
+        let dt = ecs.fetch::<DeltaTime>().0;
+        self.event_lights.drain_filter(|el| {
+            el.timeout -= dt;
+            el.timeout <= 0.0
+        });
 
         // Update shadow constants
         let mut shadows = (

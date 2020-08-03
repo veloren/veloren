@@ -53,7 +53,13 @@ impl ParticleMgr {
 
         match outcome {
             Outcome::Explosion { pos, power } => {
-                for _ in 0..64 {
+                for _ in 0..150 {
+                    self.particles.push(Particles {
+                        alive_until: now + Duration::from_millis(250),
+                        instance: ParticleInstance::new(time, rng.gen(), ParticleMode::Shrapnel, *pos),
+                    });
+                }
+                for _ in 0..200 {
                     self.particles.push(Particles {
                         alive_until: now + Duration::from_secs(4),
                         instance: ParticleInstance::new(time, rng.gen(), ParticleMode::CampfireSmoke, *pos + Vec2::<f32>::zero().map(|_| rng.gen_range(-1.0, 1.0) * power)),

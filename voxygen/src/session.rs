@@ -1033,7 +1033,7 @@ impl PlayState for SessionState {
                                 .read_resource::<EventBus<SfxEventItem>>()
                                 .emit_now(sfx_event_item);
                         }
-                        self.scene.particle_mgr_mut().handle_outcome(&outcome, &scene_data);
+                        self.scene.handle_outcome(&outcome, &scene_data);
                     }
                 }
             }

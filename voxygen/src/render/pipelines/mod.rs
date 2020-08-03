@@ -117,6 +117,11 @@ impl Light {
     }
 
     pub fn get_pos(&self) -> Vec3<f32> { Vec3::new(self.pos[0], self.pos[1], self.pos[2]) }
+
+    pub fn with_strength(mut self, strength: f32) -> Self {
+        self.col = (Vec4::<f32>::from(self.col) * strength).into_array();
+        self
+    }
 }
 
 impl Default for Light {
