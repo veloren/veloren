@@ -11,7 +11,7 @@
         )
     ),
     map: {
-        Brown1: (
+        "Brown1": (
             left: (
                 vox_spec: ("armor.shoulder.brown_right", (-3.0, -3.5, 1.0)),
                 color: None
@@ -21,7 +21,7 @@
                 color: None
             )
         ),
-        Assassin: (
+        "Assassin": (
             left: (
                 vox_spec: ("armor.shoulder.assa_right", (-4.0, -3.5, 1.0)),
                 color: None
@@ -31,17 +31,7 @@
                 color: None
             )
         ),
-        Assassin: (
-            left: (
-                vox_spec: ("armor.shoulder.assa_right", (-4.0, -3.5, 1.0)),
-                color: None
-            ),
-            right: (
-                vox_spec: ("armor.shoulder.assa_right", (-2.0, -3.5, 1.0)),
-                color: None
-            )
-        ),
-        Chain: (
+        "Chain": (
             left: (
                 vox_spec: ("armor.shoulder.chain_right-1", (-4.0, -3.5, 1.0)),
                 color: None
@@ -51,7 +41,7 @@
                 color: None
             )
         ),
-        Plate0: (
+        "Plate0": (
             left: (
                 vox_spec: ("armor.shoulder.plate_right-0", (-3.6, -3.5, -0.0)),
                 color: None
@@ -61,7 +51,7 @@
                 color: None
             )
         ),
-        Leather0: (
+        "Leather0": (
             left: (
                 vox_spec: ("armor.shoulder.leather_right-0", (-3.2, -3.5, 0.0)),
                 color: None
@@ -71,7 +61,7 @@
                 color: None
             )
         ),
-         Leather1: (
+        "Leather1": (
             left: (
                 vox_spec: ("armor.shoulder.leather_right-1", (-3.6, -4.5, 0.0)),
                 color: None
@@ -81,7 +71,7 @@
                 color: None
             )
         ),
-        ClothPurple0: (
+        "ClothPurple0": (
             left: (
                 vox_spec: ("armor.shoulder.cloth_purple_right-0", (-3.2, -3.5, 0.0)),
                 color: None
@@ -91,7 +81,7 @@
                 color: None
             )
         ),
-        ClothBlue0: (
+        "ClothBlue0": (
             left: (
                 vox_spec: ("armor.shoulder.cloth_blue_left-0", (-3.2, -3.5, 0.0)),
                 color: None
@@ -101,7 +91,7 @@
                 color: None
             )
         ),
-        ClothGreen0: (
+        "ClothGreen0": (
             left: (
                 vox_spec: ("armor.shoulder.cloth_green_left-0", (-3.2, -3.5, 0.0)),
                 color: None
@@ -111,7 +101,7 @@
                 color: None
             )
         ),
-        CultistPurple: (
+        "CultistPurple": (
             left: (
                 vox_spec: ("armor.shoulder.cultist_right", (-2.0, -3.5, 0.0)),
                 color: Some((30, 0, 64))
@@ -121,7 +111,7 @@
                 color: Some((30, 0, 64))
             )
         ),
-        CultistBlue: (
+        "CultistBlue": (
             left: (
                 vox_spec: ("armor.shoulder.cultist_right", (-2.0, -3.5, 0.0)),
                 color: Some((57, 81, 132))
@@ -131,7 +121,7 @@
                 color: Some((57, 81, 132))
             )
         ),
-        Steel0: (
+        "Steel0": (
             left: (
                 vox_spec: ("armor.shoulder.steel_left-0", (-5.0, -4.5 , 0.0)),
                 color: None
@@ -141,7 +131,7 @@
                 color: None
             )
         ),
-        Leather2: (
+        "Leather2": (
             left: (
                 vox_spec: ("armor.shoulder.leather_left-2", (-5.0, -3.8, -0.9)),
                 color: None
@@ -150,8 +140,8 @@
                 vox_spec: ("armor.shoulder.leather_right-2", (-1.0, -3.8, -0.9)),
                 color: None
             )
-            ),
-        TwiggyShoulder: (
+        ),
+        "TwiggyShoulder": (
             left: (
                 vox_spec: ("armor.shoulder.twigs_left", (-5.0, -4.5 , -1.0)),
                 color: None
@@ -160,8 +150,8 @@
                 vox_spec: ("armor.shoulder.twigs_right", (-1.0, -4.5, -1.0)),
                 color: None
             )
-            ),
-        LeafyShoulder: (
+        ),
+        "LeafyShoulder": (
             left: (
                 vox_spec: ("armor.shoulder.twigsleaves_shoulder_left", (-5.5, -5.0 , 0.0)),
                 color: None
@@ -170,8 +160,8 @@
                 vox_spec: ("armor.shoulder.twigsleaves_shoulder_right", (-1.5, -5.0, 0.0)),
                 color: None
             )
-            ),
-        FlowerShoulder: (
+        ),
+        "FlowerShoulder": (
             left: (
                 vox_spec: ("armor.shoulder.twigsflowers_shoulder_left", (-5.5, -5.0 , 0.0)),
                 color: None
@@ -180,9 +170,8 @@
                 vox_spec: ("armor.shoulder.twigsflowers_shoulder_right", (-1.5, -5.0, 0.0)),
                 color: None
             ),
-            
         ),        
-        ClothBlue1: (
+        "ClothBlue1": (
             left: (
                 vox_spec: ("armor.shoulder.cloth_blue_left-1", (-4.0, -2.5, -0.5)),
                 color: None
@@ -192,7 +181,7 @@
                 color: None
             )
         ),
-        IronSpikes: (
+        "IronSpikes": (
             left: (
                 vox_spec: ("armor.shoulder.iron_spikes_left", (-5.5, -3.8, -2.0)),
                 color: None
@@ -202,7 +191,7 @@
                 color: None
             )
         ),
-        IronLeather3: (
+        "IronLeather3": (
             left: (
                 vox_spec: ("armor.shoulder.leather_iron_left-3", (-4.0, -2.5, -1.0)),
                 color: None
@@ -212,7 +201,7 @@
                 color: None
             )
         ),
-        IronLeather2: (
+        "IronLeather2": (
             left: (
                 vox_spec: ("armor.shoulder.leather_iron_left-2", (-5.0, -2.5, -0.5)),
                 color: None
@@ -222,7 +211,7 @@
                 color: None
             )
         ),
-        IronLeather1: (
+        "IronLeather1": (
             left: (
                 vox_spec: ("armor.shoulder.leather_iron_left-1", (-5.0, -2.5, -0.5)),
                 color: None
@@ -232,7 +221,7 @@
                 color: None
             )
         ),
-        IronLeather0: (
+        "IronLeather0": (
             left: (
                 vox_spec: ("armor.shoulder.leather_iron_left-0", (-6.0, -2.5, -0.5)),
                 color: None
@@ -242,7 +231,7 @@
                 color: None
             )
         ),
-        LeatherStrips: (
+        "LeatherStrips": (
             left: (
                 vox_spec: ("armor.shoulder.leather_strips_left", (-3.0, -2.5, -2.0)),
                 color: None
@@ -252,7 +241,7 @@
                 color: None
             )
         ),      
-        DruidShoulder: (
+        "DruidShoulder": (
             left: (
                 vox_spec: ("armor.shoulder.druid_left", (-4.0, -4.5 , -3.0)),
                 color: None

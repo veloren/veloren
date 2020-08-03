@@ -3,7 +3,7 @@ Item(
     description: "Flowery, leafy spaulders.",
     kind: Armor(
         (
-            kind: Shoulder(FlowerShoulder),
+            kind: Shoulder("FlowerShoulder"),
             stats: (
                 protection: Normal(9.0),
             ),

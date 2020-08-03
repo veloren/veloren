@@ -3,7 +3,7 @@ Item(
     description: "Gauntlets forged from steel.",
     kind: Armor(
         (
-            kind: Hand(Steel0),
+            kind: Hand("Steel0"),
             stats: (
                 protection: Normal(10.0),
             ),

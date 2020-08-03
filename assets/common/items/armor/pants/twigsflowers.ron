@@ -3,7 +3,7 @@ Item(
     description: "Pants woven from twigs and flowers. Fragrant!",
     kind: Armor(
         (
-            kind: Pants(Twigsflowers),
+            kind: Pants("Twigsflowers"),
             stats: (
                 protection: Normal(12.0),
             ),

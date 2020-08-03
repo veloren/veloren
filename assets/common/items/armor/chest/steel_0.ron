@@ -3,7 +3,7 @@ Item(
     description: "A cuirass of steel plate.",
     kind: Armor(
         (
-            kind: Chest(Steel0),
+            kind: Chest("Steel0"),
             stats: (
                 protection: Normal(25.0),
             ),

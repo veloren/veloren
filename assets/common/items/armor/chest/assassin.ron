@@ -3,7 +3,7 @@ Item(
     description: "Only the best for a member of the creed.",
     kind: Armor(
         (
-            kind: Chest(Assassin),
+            kind: Chest("Assassin"),
             stats: (
                 protection: Normal(6.0),
             ),

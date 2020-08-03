@@ -3,7 +3,7 @@ Item(
     description: "Feel the breeze!",
     kind: Armor(
         (
-            kind: Pants(Druid),
+            kind: Pants("Druid"),
             stats: (
                 protection: Normal(4.0),
             ),

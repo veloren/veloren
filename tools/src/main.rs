@@ -45,7 +45,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
 
                     let asset = assets::load_expect_cloned::<comp::Item>(asset_identifier);
 
-                    match asset.kind {
+                    match &asset.kind {
                         comp::item::ItemKind::Armor(armor) => {
                             let protection = match armor.get_protection() {
                                 Protection::Invincible => "Invincible".to_string(),

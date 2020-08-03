@@ -3,7 +3,7 @@ Item(
     description: "Ceremonial attire used by members.",
     kind: Armor(
         (
-            kind: Foot(Cultist),
+            kind: Foot("Cultist"),
             stats: (
                 protection: Normal(6.0),
             ),

@@ -3,7 +3,7 @@ Item(
     description: "A skirt made from linen.",
     kind: Armor(
         (
-            kind: Pants(ClothBlue0),
+            kind: Pants("ClothBlue0"),
             stats: (
                 protection: Normal(1.0),
             ),

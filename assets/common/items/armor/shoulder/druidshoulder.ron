@@ -3,7 +3,7 @@ Item(
     description: "Forged for protectors of the wild.",
     kind: Armor(
         (
-            kind: Shoulder(DruidShoulder),
+            kind: Shoulder("DruidShoulder"),
             stats: (
                 protection: Normal(3.0),
             ),

@@ -11,9 +11,7 @@ use common::{
         golem::{BodyType as GBodyType, Species as GSpecies},
         humanoid::{Body, BodyType, EyeColor, Skin, Species},
         item::{
-            armor::{
-                Armor, ArmorKind, Back, Belt, Chest, Foot, Hand, Head, Pants, Shoulder, Tabard,
-            },
+            armor::{Armor, ArmorKind},
             tool::{Tool, ToolKind},
             ItemKind, Lantern, LanternKind,
         },
@@ -254,27 +252,27 @@ where
     map: HashMap<K, S>,
 }
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorShoulderSpec(ArmorVoxSpecMap<Shoulder, SidedArmorVoxSpec>);
+pub struct HumArmorShoulderSpec(ArmorVoxSpecMap<String, SidedArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorChestSpec(ArmorVoxSpecMap<Chest, ArmorVoxSpec>);
+pub struct HumArmorChestSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorHandSpec(ArmorVoxSpecMap<Hand, SidedArmorVoxSpec>);
+pub struct HumArmorHandSpec(ArmorVoxSpecMap<String, SidedArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorBeltSpec(ArmorVoxSpecMap<Belt, ArmorVoxSpec>);
+pub struct HumArmorBeltSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorBackSpec(ArmorVoxSpecMap<Back, ArmorVoxSpec>);
+pub struct HumArmorBackSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorPantsSpec(ArmorVoxSpecMap<Pants, ArmorVoxSpec>);
+pub struct HumArmorPantsSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorFootSpec(ArmorVoxSpecMap<Foot, ArmorVoxSpec>);
+pub struct HumArmorFootSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
 pub struct HumMainWeaponSpec(HashMap<ToolKind, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
 pub struct HumArmorLanternSpec(ArmorVoxSpecMap<LanternKind, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorHeadSpec(ArmorVoxSpecMap<Head, ArmorVoxSpec>);
+pub struct HumArmorHeadSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorTabardSpec(ArmorVoxSpecMap<Tabard, ArmorVoxSpec>);
+pub struct HumArmorTabardSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 
 impl Asset for HumArmorShoulderSpec {
     const ENDINGS: &'static [&'static str] = &["ron"];
@@ -372,7 +370,7 @@ impl HumArmorShoulderSpec {
             ..
         })) = loadout.shoulder.as_ref().map(|i| &i.kind)
         {
-            match self.0.map.get(&shoulder) {
+            match self.0.map.get(shoulder) {
                 Some(spec) => spec,
                 None => {
                     error!(?shoulder, "No shoulder specification exists");
@@ -454,7 +452,7 @@ impl HumArmorChestSpec {
             ..
         })) = loadout.chest.as_ref().map(|i| &i.kind)
         {
-            match self.0.map.get(&chest) {
+            match self.0.map.get(chest) {
                 Some(spec) => spec,
                 None => {
                     error!(?loadout.chest, "No chest specification exists");
@@ -511,7 +509,7 @@ impl HumArmorHandSpec {
             ..
         })) = loadout.hand.as_ref().map(|i| &i.kind)
         {
-            match self.0.map.get(&hand) {
+            match self.0.map.get(hand) {
                 Some(spec) => spec,
                 None => {
                     error!(?hand, "No hand specification exists");
@@ -587,7 +585,7 @@ impl HumArmorBeltSpec {
             ..
         })) = loadout.belt.as_ref().map(|i| &i.kind)
         {
-            match self.0.map.get(&belt) {
+            match self.0.map.get(belt) {
                 Some(spec) => spec,
                 None => {
                     error!(?belt, "No belt specification exists");
@@ -631,7 +629,7 @@ impl HumArmorBackSpec {
             ..
         })) = loadout.back.as_ref().map(|i| &i.kind)
         {
-            match self.0.map.get(&back) {
+            match self.0.map.get(back) {
                 Some(spec) => spec,
                 None => {
                     error!(?back, "No back specification exists");
@@ -674,7 +672,7 @@ impl HumArmorPantsSpec {
             ..
         })) = loadout.pants.as_ref().map(|i| &i.kind)
         {
-            match self.0.map.get(&pants) {
+            match self.0.map.get(pants) {
                 Some(spec) => spec,
                 None => {
                     error!(?pants, "No pants specification exists");
@@ -731,7 +729,7 @@ impl HumArmorFootSpec {
             ..
         })) = loadout.foot.as_ref().map(|i| &i.kind)
         {
-            match self.0.map.get(&foot) {
+            match self.0.map.get(foot) {
                 Some(spec) => spec,
                 None => {
                     error!(?foot, "No foot specification exists");
@@ -886,7 +884,7 @@ impl HumArmorHeadSpec {
             ..
         })) = loadout.head.as_ref().map(|i| &i.kind)
         {
-            match self.0.map.get(&head) {
+            match self.0.map.get(head) {
                 Some(spec) => spec,
                 None => {
                     error!(?head, "No head specification exists");
@@ -941,7 +939,7 @@ impl HumArmorTabardSpec {
             ..
         })) = loadout.tabard.as_ref().map(|i| &i.kind)
         {
-            match self.0.map.get(&tabard) {
+            match self.0.map.get(tabard) {
                 Some(spec) => spec,
                 None => {
                     error!(?tabard, "No tabard specification exists");

@@ -204,7 +204,7 @@ impl Loadout {
             .iter()
             .flat_map(|armor| armor.as_ref())
             .filter_map(|item| {
-                if let ItemKind::Armor(armor) = item.kind {
+                if let ItemKind::Armor(armor) = &item.kind {
                     Some(armor.get_protection())
                 } else {
                     None

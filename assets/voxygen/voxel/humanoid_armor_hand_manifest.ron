@@ -10,7 +10,7 @@
         )
     ),
     map: {
-        Assassin: (
+        "Assassin": (
             left: (
                 vox_spec: ("armor.hand.assa_right", (-1.5, -1.5, -2.5)),
                 color: None
@@ -20,7 +20,7 @@
                 color: None
             )
         ),
-        Cloth: (
+        "Cloth": (
             left: (
                 vox_spec: ("armor.hand.cloth_basic_right", (-1.5, -1.5, -2.5)),
                 color: None
@@ -30,7 +30,7 @@
                 color: None
             )
         ),
-        Plate0: (
+        "Plate0": (
             left: (
                 vox_spec: ("armor.hand.plate_right-0", (-1.5, -1.5, -2.5)),
                 color: None
@@ -40,7 +40,7 @@
                 color: None
             )
         ),
-        Leather0: (
+        "Leather0": (
             left: (
                 vox_spec: ("armor.hand.leather_right-0", (-1.5, -1.5, -2.5)),
                 color: None
@@ -50,7 +50,7 @@
                 color: None
             )
         ),
-        ClothPurple0: (
+        "ClothPurple0": (
             left: (
                 vox_spec: ("armor.hand.cloth_purple_right-0", (-1.5, -1.5, -2.5)),
                 color: None
@@ -60,7 +60,7 @@
                 color: None
             )
         ),
-        ClothBlue0: (
+        "ClothBlue0": (
             left: (
                 vox_spec: ("armor.hand.cloth_blue_right-0", (-1.5, -1.5, -2.5)),
                 color: None
@@ -70,7 +70,7 @@
                 color: None
             )
         ),
-        ClothGreen0: (
+        "ClothGreen0": (
             left: (
                 vox_spec: ("armor.hand.cloth_green_right-0", (-1.5, -1.5, -2.5)),
                 color: None
@@ -80,7 +80,7 @@
                 color: None
             )
         ),
-        CultistPurple: (
+        "CultistPurple": (
             left: (
                 vox_spec: ("armor.hand.cultist_right", (-3.0, -1.5, -2.5)),
                 color: Some((30, 0, 64))
@@ -90,7 +90,7 @@
                 color: Some((30, 0, 64))
             )
         ),
-        CultistBlue: (
+        "CultistBlue": (
             left: (
                 vox_spec: ("armor.hand.cultist_right", (-3.0, -1.5, -2.5)),
                 color: Some((57, 81, 132))
@@ -100,7 +100,7 @@
                 color: Some((57, 81, 132))
             )
         ),
-        Steel0: (
+        "Steel0": (
             left: (
                 vox_spec: ("armor.hand.steel_left-0", (-1.5, -1.5, -2.5)),
                 color: None
@@ -110,7 +110,7 @@
                 color: None
             )
         ),
-        Leather2: (
+        "Leather2": (
             left: (
                 vox_spec: ("armor.hand.leather_left-2", (-1.5, -1.5, -2.5)),
                 color: None
@@ -120,7 +120,7 @@
                 color: None
             )
         ),
-        Druid: (
+        "Druid": (
             left: (
                 vox_spec: ("armor.hand.druid_left", (-1.5, -1.5, -2.5)),
                 color: None
@@ -130,7 +130,7 @@
                 color: None
             )
         ),
-        Twig: (
+        "Twig": (
             left: (
                 vox_spec: ("armor.hand.twigs_glove_left", (-1.5, -1.5, -2.5)),
                 color: None
@@ -140,7 +140,7 @@
                 color: None
             )
         ),
-        Twigsleaves: (
+        "Twigsleaves": (
             left: (
                 vox_spec: ("armor.hand.twigsleaves_glove_left", (-1.5, -1.5, -2.5)),
                 color: None
@@ -150,7 +150,7 @@
                 color: None
             )
         ),
-        Twigsflowers: (
+        "Twigsflowers": (
             left: (
                 vox_spec: ("armor.hand.twigsflowers_glove_left", (-1.5, -1.5, -2.5)),
                 color: None
