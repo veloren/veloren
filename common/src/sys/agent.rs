@@ -113,13 +113,17 @@ impl<'a> System<'a> for Sys {
             .join()
         {
             // Hack, replace with better system when groups are more sophisticated
-            // Override alignment if in a group
-            let alignment = group
-                .and_then(|g| group_manager.group_info(*g))
-                .and_then(|info| uids.get(info.leader))
-                .copied()
-                .map(Alignment::Owned)
-                .or(alignment.copied());
+            // Override alignment if in a group unless entity is owned already
+            let alignment = if !matches!(alignment, Some(Alignment::Owned(_))) {
+                group
+                    .and_then(|g| group_manager.group_info(*g))
+                    .and_then(|info| uids.get(info.leader))
+                    .copied()
+                    .map(Alignment::Owned)
+                    .or(alignment.copied())
+            } else {
+                alignment.copied()
+            };
 
             // Skip mounted entities
             if mount_state
