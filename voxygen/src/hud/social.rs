@@ -262,15 +262,15 @@ impl<'a> Widget for Social<'a> {
                 .mid_top_with_margin_on(state.ids.frame, 74.0)
                 .scroll_kids_vertically()
                 .set(state.ids.online_align, ui);
-            Rectangle::fill_with([133.0, 370.0], color::TRANSPARENT)
+            Rectangle::fill_with([133.0, 346.0], color::TRANSPARENT)
                 .top_left_with_margins_on(state.ids.online_align, 0.0, 0.0)
                 .crop_kids()
                 .set(state.ids.names_align, ui);
-            Rectangle::fill_with([39.0, 370.0], color::TRANSPARENT)
+            Rectangle::fill_with([39.0, 346.0], color::TRANSPARENT)
                 .right_from(state.ids.names_align, 2.0)
                 .crop_kids()
                 .set(state.ids.levels_align, ui);
-            Rectangle::fill_with([94.0, 370.0], color::TRANSPARENT)
+            Rectangle::fill_with([94.0, 346.0], color::TRANSPARENT)
                 .right_from(state.ids.levels_align, 2.0)
                 .crop_kids()
                 .set(state.ids.zones_align, ui);
@@ -423,9 +423,9 @@ impl<'a> Widget for Social<'a> {
                     .was_clicked()
                 {};
                 let level_txt = if i == 0 {
-                    Text::new(&level).mid_top_with_margin_on(state.ids.levels_align, 2.0)
+                    Text::new(&level).mid_top_with_margin_on(state.ids.levels_align, 4.0)
                 } else {
-                    Text::new(&level).down_from(state.ids.player_levels[i - 1], 2.0)
+                    Text::new(&level).down_from(state.ids.player_levels[i - 1], 4.0)
                 };
                 level_txt
                     .font_size(self.fonts.cyri.scale(14))
@@ -433,9 +433,9 @@ impl<'a> Widget for Social<'a> {
                     .color(TEXT_COLOR)
                     .set(state.ids.player_levels[i], ui);
                 let zone_txt = if i == 0 {
-                    Text::new(&zone_name).mid_top_with_margin_on(state.ids.zones_align, 2.0)
+                    Text::new(&zone_name).mid_top_with_margin_on(state.ids.zones_align, 4.0)
                 } else {
-                    Text::new(&zone_name).down_from(state.ids.player_zones[i - 1], 2.0)
+                    Text::new(&zone_name).down_from(state.ids.player_zones[i - 1], 4.0)
                 };
                 zone_txt
                     .font_size(self.fonts.cyri.scale(14))

@@ -173,6 +173,7 @@ impl<'a> Widget for Group<'a> {
         let in_group = !group_members.is_empty();
         if !in_group {
             self.show.group_menu = false;
+            self.show.group = false;
         }
 
         // Helper
@@ -207,6 +208,7 @@ impl<'a> Widget for Group<'a> {
             // Frame
             Rectangle::fill_with([220.0, 165.0], color::Color::Rgba(0.0, 0.0, 0.0, 0.8))
                 .bottom_left_with_margins_on(ui.window, 220.0, 10.0)
+                .crop_kids()
                 .set(state.ids.bg, ui);
         }
         if open_invite.is_some() {
