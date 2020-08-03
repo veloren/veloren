@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        projectile, Alignment, Damage, DamageSource, Energy, EnergySource, HealthChange,
-        HealthSource, Loadout, Ori, PhysicsState, Pos, Projectile, Vel,
+        projectile, Damage, DamageSource, Energy, EnergySource, HealthChange, HealthSource,
+        Loadout, Ori, PhysicsState, Pos, Projectile, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     state::DeltaTime,
@@ -28,7 +28,6 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Projectile>,
         WriteStorage<'a, Energy>,
-        ReadStorage<'a, Alignment>,
         ReadStorage<'a, Loadout>,
     );
 
@@ -46,7 +45,6 @@ impl<'a> System<'a> for Sys {
             mut orientations,
             mut projectiles,
             mut energies,
-            alignments,
             loadouts,
         ): Self::SystemData,
     ) {
@@ -92,23 +90,13 @@ impl<'a> System<'a> for Sys {
                                 healthchange: healthchange as f32,
                                 source: DamageSource::Projectile,
                             };
-                            if let Some(entity) =
-                                uid_allocator.retrieve_entity_internal(other.into())
-                            {
-                                if let Some(loadout) = loadouts.get(entity) {
-                                    damage.modify_damage(false, loadout);
-                                }
+
+                            let other_entity = uid_allocator.retrieve_entity_internal(other.into());
+                            if let Some(loadout) = other_entity.and_then(|e| loadouts.get(e)) {
+                                damage.modify_damage(false, loadout);
                             }
-                            // Hacky: remove this when groups get implemented
-                            let passive = uid_allocator
-                                .retrieve_entity_internal(other.into())
-                                .and_then(|other| {
-                                    alignments
-                                        .get(other)
-                                        .map(|a| Alignment::Owned(owner_uid).passive_towards(*a))
-                                })
-                                .unwrap_or(false);
-                            if other != projectile.owner.unwrap() && !passive {
+
+                            if other != owner_uid {
                                 server_emitter.emit(ServerEvent::Damage {
                                     uid: other,
                                     change: HealthChange {
