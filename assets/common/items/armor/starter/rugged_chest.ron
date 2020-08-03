@@ -3,7 +3,7 @@ Item(
     description: "Smells like Adventure.",
     kind: Armor(
         (
-            kind: Chest(Rugged0),
+            kind: Chest("Rugged0"),
             stats: (
                 protection: Normal(1.0),
             ),

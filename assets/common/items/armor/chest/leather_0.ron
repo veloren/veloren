@@ -3,7 +3,7 @@ Item(
     description: "Swift like the wind.",
     kind: Armor(
         (
-            kind: Chest(Leather0),
+            kind: Chest("Leather0"),
             stats: (
                 protection: Normal(10.0),
             ),

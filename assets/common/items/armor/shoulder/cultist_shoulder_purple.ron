@@ -3,7 +3,7 @@ Item(
     description: "Ceremonial attire used by members.",
     kind: Armor(
         (
-            kind: Shoulder(CultistPurple),
+            kind: Shoulder("CultistPurple"),
             stats: (
                 protection: Normal(18.0),
             ),

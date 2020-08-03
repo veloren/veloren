@@ -3,7 +3,7 @@ Item(
     description: "Pants woven from twigs. Chafey!",
     kind: Armor(
         (
-            kind: Pants(Twig),
+            kind: Pants("Twig"),
             stats: (
                 protection: Normal(12.0),
             ),

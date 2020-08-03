@@ -4,15 +4,15 @@
         color: None
     ),
     map: {
-      Short0: (
+      "Short0": (
           vox_spec: ("armor.back.short-0", (-5.0, -1.0, -11.0)),
           color: None
       ), 
-      Admin: (
+      "Admin": (
           vox_spec: ("armor.back.admin", (-5.0, -1.0, -11.0)),
           color: None
       ),    
-      DungPurp0: (
+      "DungPurp0": (
           vox_spec: ("armor.back.dung_purp-0", (-5.0, -1.0, -14.0)),
           color: None
       ),     

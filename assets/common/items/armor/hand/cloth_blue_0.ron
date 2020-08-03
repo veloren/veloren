@@ -3,7 +3,7 @@ Item(
     description: "A strip of cloth.",
     kind: Armor(
         (
-            kind: Hand(ClothBlue0),
+            kind: Hand("ClothBlue0"),
             stats: (
                 protection: Normal(0.0),
             ),
