@@ -16,13 +16,15 @@ pub mod object;
 pub mod quadruped_low;
 pub mod quadruped_medium;
 pub mod quadruped_small;
+pub mod vek;
 
 #[cfg(feature = "use-dyn-lib")]
 pub use dyn_lib::init;
 
 #[cfg(feature = "use-dyn-lib")]
 use std::ffi::CStr;
-use vek::*;
+
+use self::vek::*;
 
 // TODO: replace with inner type everywhere
 pub struct FigureBoneData(pub Mat4<f32>);

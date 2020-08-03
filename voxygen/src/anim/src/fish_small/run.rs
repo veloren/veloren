@@ -1,6 +1,6 @@
 use super::{super::Animation, FishSmallSkeleton, SkeletonAttr};
 //use std::{f32::consts::PI, ops::Mul};
-use vek::*;
+use super::super::vek::*;
 
 pub struct RunAnimation;
 

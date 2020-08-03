@@ -1,7 +1,7 @@
 use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
 use common::comp::item::{Hands, ToolKind};
 /* use std::f32::consts::PI; */
-use vek::*;
+use super::super::vek::*;
 
 pub struct LeapAnimation;
 

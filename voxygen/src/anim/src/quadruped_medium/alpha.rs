@@ -1,6 +1,8 @@
-use super::{super::Animation, QuadrupedMediumSkeleton, SkeletonAttr};
+use super::{
+    super::{vek::*, Animation},
+    QuadrupedMediumSkeleton, SkeletonAttr,
+};
 use std::f32::consts::PI;
-use vek::*;
 
 pub struct AlphaAnimation;
 

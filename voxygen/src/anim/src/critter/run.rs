@@ -1,7 +1,7 @@
 use super::{super::Animation, CritterAttr, CritterSkeleton};
 //use std::{f32::consts::PI, ops::Mul};
+use super::super::vek::*;
 use std::f32::consts::PI;
-use vek::*;
 
 pub struct RunAnimation;
 

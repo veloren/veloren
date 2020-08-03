@@ -1,7 +1,9 @@
-use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
+use super::{
+    super::{vek::*, Animation},
+    CharacterSkeleton, SkeletonAttr,
+};
 use common::comp::item::{Hands, ToolKind};
 use std::{f32::consts::PI, ops::Mul};
-use vek::*;
 
 pub struct GlidingAnimation;
 
@@ -56,7 +58,7 @@ impl Animation for GlidingAnimation {
 
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
-        let tilt = if Vec2::new(ori, last_ori)
+        let tilt = if ::vek::Vec2::new(ori, last_ori)
             .map(|o| o.magnitude_squared())
             .map(|m| m > 0.0001 && m.is_finite())
             .reduce_and()

@@ -1,6 +1,8 @@
-use super::{super::Animation, BirdMediumSkeleton, SkeletonAttr};
+use super::{
+    super::{vek::*, Animation},
+    BirdMediumSkeleton, SkeletonAttr,
+};
 use std::ops::Mul;
-use vek::*;
 
 pub struct FeedAnimation;
 

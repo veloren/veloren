@@ -1,6 +1,8 @@
-use super::{super::Animation, GolemSkeleton, SkeletonAttr};
+use super::{
+    super::{vek::*, Animation},
+    GolemSkeleton, SkeletonAttr,
+};
 use std::f32::consts::PI;
-use vek::*;
 
 pub struct RunAnimation;
 

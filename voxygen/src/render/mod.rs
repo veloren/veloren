@@ -247,7 +247,7 @@ impl ShadowMode {
 }
 
 /// Render modes
-#[derive(PartialEq, Clone, Copy, Debug, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Clone, Debug, Default, Serialize, Deserialize)]
 pub struct RenderMode {
     #[serde(default)]
     pub aa: AaMode,

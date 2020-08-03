@@ -1,6 +1,6 @@
 use super::{super::Animation, CritterAttr, CritterSkeleton};
 //use std::f32::consts::PI;
-use vek::*;
+use super::super::vek::*;
 
 pub struct JumpAnimation;
 

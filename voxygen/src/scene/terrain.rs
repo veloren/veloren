@@ -2439,6 +2439,9 @@ impl<V: RectRasterableVol> Terrain<V> {
     }
 
     /// Maintain terrain data. To be called once per tick.
+    // NOTE: All of the "useless" conversion reported here allow us to abstract over repr_c vs.
+    // simd vectors, so fixing this warning would make the code worse in this case.
+    #[allow(clippy::useless_conversion)]
     #[allow(clippy::for_loops_over_fallibles)] // TODO: Pending review in #587
     #[allow(clippy::len_zero)] // TODO: Pending review in #587
     pub fn maintain(

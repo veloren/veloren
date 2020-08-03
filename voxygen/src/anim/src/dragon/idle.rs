@@ -1,6 +1,8 @@
-use super::{super::Animation, DragonSkeleton, SkeletonAttr};
+use super::{
+    super::{vek::*, Animation},
+    DragonSkeleton, SkeletonAttr,
+};
 use std::{f32::consts::PI, ops::Mul};
-use vek::*;
 
 pub struct IdleAnimation;
 

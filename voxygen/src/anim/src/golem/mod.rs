@@ -5,9 +5,8 @@ pub mod run;
 // Reexports
 pub use self::{idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
 
-use super::{Bone, FigureBoneData, Skeleton};
+use super::{vek::Vec3, Bone, FigureBoneData, Skeleton};
 use common::comp::{self};
-use vek::Vec3;
 
 #[derive(Clone, Default)]
 pub struct GolemSkeleton {

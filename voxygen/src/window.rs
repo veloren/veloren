@@ -570,7 +570,7 @@ impl Window {
                 factory,
                 win_color_view,
                 win_depth_view,
-                settings.graphics.render_mode,
+                settings.graphics.render_mode.clone(),
             )?,
             window,
             cursor_grabbed: false,

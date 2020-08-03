@@ -1,5 +1,7 @@
-use super::{super::Animation, QuadrupedLowSkeleton, SkeletonAttr};
-use vek::*;
+use super::{
+    super::{vek::*, Animation},
+    QuadrupedLowSkeleton, SkeletonAttr,
+};
 
 pub struct JumpAnimation;
 

@@ -731,7 +731,9 @@ impl PlayState for SessionState {
 
             // Look for changes in the localization files
             if global_state.localization_watcher.reloaded() {
-                hud_events.push(HudEvent::ChangeLanguage(self.voxygen_i18n.metadata.clone()));
+                hud_events.push(HudEvent::ChangeLanguage(Box::new(
+                    self.voxygen_i18n.metadata.clone(),
+                )));
             }
 
             // Maintain the UI.
@@ -930,9 +932,9 @@ impl PlayState for SessionState {
                         global_state
                             .window
                             .renderer_mut()
-                            .set_render_mode(new_render_mode)
+                            .set_render_mode((&*new_render_mode).clone())
                             .unwrap();
-                        global_state.settings.graphics.render_mode = new_render_mode;
+                        global_state.settings.graphics.render_mode = *new_render_mode;
                         global_state.settings.save_to_file_warn();
                     },
                     HudEvent::ChangeLanguage(new_language) => {

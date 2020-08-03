@@ -1,6 +1,8 @@
-use super::{super::Animation, BirdMediumSkeleton, SkeletonAttr};
+use super::{
+    super::{vek::*, Animation},
+    BirdMediumSkeleton, SkeletonAttr,
+};
 use std::f32::consts::PI;
-use vek::*;
 
 pub struct FlyAnimation;
 

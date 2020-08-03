@@ -43,7 +43,6 @@ use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
 use specs::{Entity as EcsEntity, Join, LazyUpdate, WorldExt};
 use treeculler::{BVol, BoundingSphere};
-use vek::*;
 
 const DAMAGE_FADE_COEFFICIENT: f64 = 5.0;
 const MOVING_THRESHOLD: f32 = 0.7;
@@ -348,7 +347,11 @@ impl FigureMgr {
         self.golem_model_cache.clean(&mut self.col_lights, tick);
     }
 
-    #[allow(clippy::redundant_pattern_matching)] // TODO: Pending review in #587
+    #[allow(clippy::redundant_pattern_matching)]
+    // TODO: Pending review in #587
+    // NOTE: All of the "useless" conversion reported here allow us to abstract over repr_c vs.
+    // simd vectors, so fixing this warning would make the code worse in this case.
+    #[allow(clippy::useless_conversion)]
     pub fn update_lighting(&mut self, scene_data: &SceneData) {
         let ecs = scene_data.state.ecs();
         for (entity, light_emitter) in (&ecs.entities(), &ecs.read_storage::<LightEmitter>()).join()
@@ -357,7 +360,7 @@ impl FigureMgr {
             let mut anim_storage = ecs.write_storage::<LightAnimation>();
             if let None = anim_storage.get_mut(entity) {
                 let anim = LightAnimation {
-                    offset: Vec3::zero(), //Vec3::new(0.0, 0.0, 2.0),
+                    offset: vek::Vec3::zero(), //Vec3::new(0.0, 0.0, 2.0),
                     col: light_emitter.col,
                     strength: 0.0,
                 };
@@ -387,13 +390,13 @@ impl FigureMgr {
                         emitter.animated,
                     )
                 } else {
-                    (Rgb::zero(), 0.0, 0.0, true)
+                    (vek::Rgb::zero(), 0.0, 0.0, true)
                 };
             if let Some(_) = waypoint {
-                light_anim.offset = Vec3::unit_z() * 0.5;
+                light_anim.offset = vek::Vec3::unit_z() * 0.5;
             }
             if let Some(state) = self.states.character_states.get(&entity) {
-                light_anim.offset = state.lantern_offset;
+                light_anim.offset = vek::Vec3::from(state.lantern_offset);
             }
             if !light_anim.strength.is_normal() {
                 light_anim.strength = 0.0;
@@ -424,7 +427,11 @@ impl FigureMgr {
         }
     }
 
-    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
+    #[allow(clippy::or_fun_call)]
+    // TODO: Pending review in #587
+    // NOTE: All of the "useless" conversion reported here allow us to abstract over repr_c vs.
+    // simd vectors, so fixing this warning would make the code worse in this case.
+    #[allow(clippy::useless_conversion)]
     pub fn maintain(
         &mut self,
         renderer: &mut Renderer,
@@ -432,7 +439,7 @@ impl FigureMgr {
         // Visible chunk data.
         visible_psr_bounds: math::Aabr<f32>,
         camera: &Camera,
-    ) -> Aabb<f32> {
+    ) -> anim::vek::Aabb<f32> {
         let state = scene_data.state;
         let time = state.get_time();
         let tick = scene_data.tick;
@@ -496,7 +503,7 @@ impl FigureMgr {
                 a.min.partial_cmple(&b.max).reduce_and() && a.max.partial_cmpge(&b.min).reduce_and()
             };
             // println!("Aabr: {:?}", visible_bounds);
-            move |pos: Pos, radius: f32| {
+            move |pos: (anim::vek::Vec3<f32>,), radius: f32| {
                 // Short circuit when there are no shadows to cast.
                 if !can_shadow_sun {
                     return false;
@@ -519,11 +526,13 @@ impl FigureMgr {
         let player_pos = ecs
             .read_storage::<Pos>()
             .get(scene_data.player_entity)
-            .map_or(Vec3::zero(), |pos| pos.0);
-        let mut visible_aabb = Aabb {
+            .map_or(anim::vek::Vec3::zero(), |pos| anim::vek::Vec3::from(pos.0));
+        let visible_aabb = anim::vek::Aabb {
             min: player_pos - 2.0,
             max: player_pos + 2.0,
         };
+
+        let focus_pos = anim::vek::Vec3::<f32>::from(camera.get_focus_pos());
 
         for (
             i,
@@ -556,10 +565,19 @@ impl FigureMgr {
             .join()
             .enumerate()
         {
+            let vel = (anim::vek::Vec3::<f32>::from(vel.0),);
             let is_player = scene_data.player_entity == entity;
             let (pos, ori) = interpolated
-                .map(|i| (Pos(i.pos), *i.ori))
-                .unwrap_or((*pos, Vec3::unit_y()));
+                .map(|i| {
+                    (
+                        (anim::vek::Vec3::from(i.pos),),
+                        anim::vek::Vec3::from(*i.ori),
+                    )
+                })
+                .unwrap_or((
+                    (anim::vek::Vec3::<f32>::from(pos.0),),
+                    anim::vek::Vec3::<f32>::unit_y(),
+                ));
 
             // Maintaining figure data and sending new figure data to the GPU turns out to
             // be a very expensive operation. We want to avoid doing it as much
@@ -571,7 +589,7 @@ impl FigureMgr {
             const MIN_PERFECT_RATE_DIST: f32 = 50.0;
 
             if (i as u64 + tick)
-                % (1 + ((pos.0.distance_squared(camera.get_focus_pos()).powf(0.25)
+                % (1 + ((pos.0.distance_squared(focus_pos).powf(0.25)
                     - MIN_PERFECT_RATE_DIST.powf(0.5))
                 .max(0.0)
                     / 3.0) as u64)
@@ -588,10 +606,11 @@ impl FigureMgr {
                 .unwrap_or(false);
 
             // Don't process figures outside the vd
-            let vd_frac = Vec2::from(pos.0 - player_pos)
-                .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
-                    d.abs() as f32 / sz as f32
-                })
+            let vd_frac = anim::vek::Vec2::from(pos.0 - player_pos)
+                .map2(
+                    anim::vek::Vec2::<u32>::from(TerrainChunk::RECT_SIZE),
+                    |d: f32, sz| d.abs() as f32 / sz as f32,
+                )
                 .magnitude()
                 / view_distance as f32;
 
@@ -620,11 +639,11 @@ impl FigureMgr {
                 meta.visible = in_frustum;
                 meta.lpindex = lpindex;
                 if in_frustum {
-                    // Update visible bounds.
+                    /* // Update visible bounds.
                     visible_aabb.expand_to_contain(Aabb {
                         min: pos.0 - radius,
                         max: pos.0 + radius,
-                    });
+                    }); */
                 } else {
                     // Check whether we can shadow.
                     meta.can_shadow_sun = can_shadow_sun(pos, radius);
@@ -637,12 +656,12 @@ impl FigureMgr {
             // Change in health as color!
             let col = stats
                 .map(|s| {
-                    Rgba::broadcast(1.0)
-                        + Rgba::new(2.0, 2.0, 2., 0.00).map(|c| {
+                    vek::Rgba::broadcast(1.0)
+                        + vek::Rgba::new(2.0, 2.0, 2., 0.00).map(|c| {
                             (c / (1.0 + DAMAGE_FADE_COEFFICIENT * s.health.last_change.0)) as f32
                         })
                 })
-                .unwrap_or(Rgba::broadcast(1.0));
+                .unwrap_or(vek::Rgba::broadcast(1.0));
 
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
 
@@ -1968,7 +1987,6 @@ impl FigureMgr {
                         .entry(entity)
                         .or_insert_with(|| FigureState::new(renderer, ObjectSkeleton::new()));
 
-                    state.skeleton = state.skeleton_mut().clone();
                     state.update(
                         renderer,
                         pos.0,
@@ -2226,7 +2244,7 @@ impl FigureMgr {
         loadout: Option<&Loadout>,
         is_player: bool,
         // is_shadow: bool,
-        pos: Vec3<f32>,
+        pos: vek::Vec3<f32>,
         figure_lod_render_distance: f32,
         filter_state: impl Fn(&FigureStateMeta) -> bool,
     ) -> Option<(
@@ -2593,11 +2611,11 @@ impl FigureColLights {
         // println!("Allocation {:?} for {:?} (original size = {:?}... ugh)",
         // allocation, response.pos, tex_size); NOTE: Cast is safe since the
         // origin was a u16.
-        let atlas_offs = Vec2::new(
+        let atlas_offs = vek::Vec2::new(
             allocation.rectangle.min.x as u16,
             allocation.rectangle.min.y as u16,
         );
-        if atlas_offs == Vec2::zero() {
+        if atlas_offs == vek::Vec2::zero() {
             // println!("Model: {:?}", &response.opaque_mesh.vertices());
             // println!("Texture: {:?}", tex);
         }
@@ -2689,14 +2707,14 @@ impl FigureColLights {
 pub struct FigureStateMeta {
     bone_consts: Consts<FigureBoneData>,
     locals: Consts<FigureLocals>,
-    lantern_offset: Vec3<f32>,
+    lantern_offset: anim::vek::Vec3<f32>,
     state_time: f64,
-    last_ori: Vec3<f32>,
+    last_ori: anim::vek::Vec3<f32>,
     lpindex: u8,
     can_shadow_sun: bool,
     visible: bool,
-    last_pos: Option<Vec3<f32>>,
-    avg_vel: Vec3<f32>,
+    last_pos: Option<anim::vek::Vec3<f32>>,
+    avg_vel: anim::vek::Vec3<f32>,
 }
 
 impl FigureStateMeta {
@@ -2735,12 +2753,12 @@ impl<S: Skeleton> FigureState<S> {
                 locals: renderer.create_consts(&[FigureLocals::default()]).unwrap(),
                 lantern_offset,
                 state_time: 0.0,
-                last_ori: Vec3::zero(),
+                last_ori: anim::vek::Vec3::zero(),
                 lpindex: 0,
                 visible: false,
                 can_shadow_sun: false,
                 last_pos: None,
-                avg_vel: Vec3::zero(),
+                avg_vel: anim::vek::Vec3::zero(),
             },
             skeleton,
         }
@@ -2750,10 +2768,10 @@ impl<S: Skeleton> FigureState<S> {
     pub fn update(
         &mut self,
         renderer: &mut Renderer,
-        pos: Vec3<f32>,
-        ori: Vec3<f32>,
+        pos: anim::vek::Vec3<f32>,
+        ori: anim::vek::Vec3<f32>,
         scale: f32,
-        col: Rgba<f32>,
+        col: vek::Rgba<f32>,
         dt: f32,
         state_animation_rate: f32,
         model: &FigureModel,
@@ -2778,16 +2796,16 @@ impl<S: Skeleton> FigureState<S> {
         self.visible = visible; */
         // What is going on here?
         // (note: that ori is now the slerped ori)
-        self.last_ori = Lerp::lerp(self.last_ori, ori, 15.0 * dt);
+        self.last_ori = vek::Lerp::lerp(self.last_ori, ori, 15.0 * dt);
 
         self.state_time += (dt * state_animation_rate) as f64;
 
-        let _focus_off = camera.get_focus_pos().map(|e| e.trunc());
-        let mat = Mat4::<f32>::identity()
+        // let _focus_off = camera.get_focus_pos().map(|e| e.trunc());
+        let mat = anim::vek::Mat4::<f32>::identity()
             // * Mat4::translation_3d(pos - focus_off)
-            * Mat4::rotation_z(-ori.x.atan2(ori.y))
-            * Mat4::rotation_x(ori.z.atan2(Vec2::from(ori).magnitude()))
-            * Mat4::scaling_3d(Vec3::from(0.8 * scale));
+            * anim::vek::Mat4::rotation_z(-ori.x.atan2(ori.y))
+            * anim::vek::Mat4::rotation_x(ori.z.atan2(anim::vek::Vec2::from(ori).magnitude()))
+            * anim::vek::Mat4::scaling_3d(anim::vek::Vec3::from(0.8 * scale));
 
         /* let dependents = camera.get_dependents();
         let all_mat = dependents.proj_mat * dependents.view_mat; */
@@ -2797,7 +2815,7 @@ impl<S: Skeleton> FigureState<S> {
             mat,
             col,
             pos,
-            Vec2::new(atlas_offs.x, atlas_offs.y),
+            vek::Vec2::new(atlas_offs.x, atlas_offs.y),
             is_player,
         );
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();
@@ -2833,7 +2851,7 @@ impl<S: Skeleton> FigureState<S> {
 
 fn figure_bone_data_from_anim(
     mats: [anim::FigureBoneData; 16],
-    mut make_bone: impl FnMut(Mat4<f32>) -> FigureBoneData,
+    mut make_bone: impl FnMut(anim::vek::Mat4<f32>) -> FigureBoneData,
 ) -> [FigureBoneData; 16] {
     [
         make_bone(mats[0].0),

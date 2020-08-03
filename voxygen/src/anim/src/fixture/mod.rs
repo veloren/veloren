@@ -1,5 +1,7 @@
-use super::{FigureBoneData, Skeleton};
-use vek::Vec3;
+use super::{
+    vek::{Mat4, Vec3},
+    FigureBoneData, Skeleton,
+};
 
 #[derive(Clone)]
 pub struct FixtureSkeleton;
@@ -24,22 +26,22 @@ impl Skeleton for FixtureSkeleton {
     fn compute_matrices_inner(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
         (
             [
-                FigureBoneData::new(vek::Mat4::identity()), // <-- This is actually a bone!
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()), // <-- This is actually a bone!
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
             ],
             Vec3::default(),
         )

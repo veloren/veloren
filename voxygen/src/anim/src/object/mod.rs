@@ -1,5 +1,4 @@
-use super::{FigureBoneData, Skeleton};
-use vek::*;
+use super::{vek::*, FigureBoneData, Skeleton};
 
 #[derive(Clone)]
 pub struct ObjectSkeleton;
@@ -25,21 +24,21 @@ impl Skeleton for ObjectSkeleton {
         (
             [
                 FigureBoneData::new(Mat4::scaling_3d(Vec3::broadcast(SCALE))),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
+                FigureBoneData::new(Mat4::identity()),
             ],
             Vec3::default(),
         )

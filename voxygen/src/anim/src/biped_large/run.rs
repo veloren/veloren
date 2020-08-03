@@ -1,6 +1,8 @@
-use super::{super::Animation, BipedLargeSkeleton, SkeletonAttr};
+use super::{
+    super::{vek::*, Animation},
+    BipedLargeSkeleton, SkeletonAttr,
+};
 use std::f32::consts::PI;
-use vek::*;
 
 pub struct RunAnimation;
 

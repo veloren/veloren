@@ -1,6 +1,8 @@
-use super::{super::Animation, QuadrupedLowSkeleton, SkeletonAttr};
+use super::{
+    super::{vek::*, Animation},
+    QuadrupedLowSkeleton, SkeletonAttr,
+};
 use std::{f32::consts::PI, ops::Mul};
-use vek::*;
 
 pub struct IdleAnimation;
 

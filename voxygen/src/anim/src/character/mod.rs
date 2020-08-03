@@ -33,9 +33,11 @@ pub use self::{
     stand::StandAnimation, swim::SwimAnimation, wield::WieldAnimation,
 };
 
-use super::{Bone, FigureBoneData, Skeleton};
+use super::{
+    vek::{Vec3, Vec4},
+    Bone, FigureBoneData, Skeleton,
+};
 use common::comp;
-use vek::{Vec3, Vec4};
 
 #[derive(Clone, Default)]
 pub struct CharacterSkeleton {

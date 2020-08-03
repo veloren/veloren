@@ -1,6 +1,8 @@
-use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
+use super::{
+    super::{vek::*, Animation},
+    CharacterSkeleton, SkeletonAttr,
+};
 use common::comp::item::{Hands, ToolKind};
-use vek::*;
 
 pub struct ShootAnimation;
 

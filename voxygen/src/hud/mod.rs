@@ -288,15 +288,15 @@ pub enum Event {
     UseSlot(comp::slot::Slot),
     SwapSlots(comp::slot::Slot, comp::slot::Slot),
     DropSlot(comp::slot::Slot),
-    ChangeHotbarState(HotbarState),
+    ChangeHotbarState(Box<HotbarState>),
     Ability3(bool),
     Logout,
     Quit,
-    ChangeLanguage(LanguageMetadata),
+    ChangeLanguage(Box<LanguageMetadata>),
     ChangeBinding(GameInput),
     ResetBindings,
     ChangeFreeLookBehavior(PressBehavior),
-    ChangeRenderMode(RenderMode),
+    ChangeRenderMode(Box<RenderMode>),
     ChangeAutoWalkBehavior(PressBehavior),
     ChangeStopAutoWalkOnInput(bool),
     CraftRecipe(String),
@@ -2006,10 +2006,10 @@ impl Hud {
                         events.push(Event::SwapSlots(a, b));
                     } else if let (Inventory(i), Hotbar(h)) = (a, b) {
                         self.hotbar.add_inventory_link(h, i.0);
-                        events.push(Event::ChangeHotbarState(self.hotbar.to_owned()));
+                        events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
                     } else if let (Hotbar(a), Hotbar(b)) = (a, b) {
                         self.hotbar.swap(a, b);
-                        events.push(Event::ChangeHotbarState(self.hotbar.to_owned()));
+                        events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
                     }
                 },
                 slot::Event::Dropped(from) => {
@@ -2018,7 +2018,7 @@ impl Hud {
                         events.push(Event::DropSlot(from));
                     } else if let Hotbar(h) = from {
                         self.hotbar.clear_slot(h);
-                        events.push(Event::ChangeHotbarState(self.hotbar.to_owned()));
+                        events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
                     }
                 },
                 slot::Event::Used(from) => {

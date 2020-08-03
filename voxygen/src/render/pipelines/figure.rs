@@ -64,41 +64,11 @@ gfx_defines! {
     }
 }
 
-impl Vertex {
-    #[allow(clippy::collapsible_if)]
-    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, col: Rgb<f32>, ao: f32, bone_idx: u8) -> Self {
-        let norm_bits = if norm.x != 0.0 {
-            if norm.x < 0.0 { 0 } else { 1 }
-        } else if norm.y != 0.0 {
-            if norm.y < 0.0 { 2 } else { 3 }
-        } else {
-            if norm.z < 0.0 { 4 } else { 5 }
-        };
-        Self {
-            pos_norm: pos
-                .map2(Vec3::new(0, 9, 18), |e, shift| {
-                    (((e * 2.0 + 256.0) as u32) & 0x3FF) << shift
-                })
-                .reduce_bitor()
-                | (norm_bits << 29),
-            col: col
-                .map2(Rgb::new(0, 8, 16), |e, shift| ((e * 255.0) as u32) << shift)
-                .reduce_bitor(),
-            ao_bone: (bone_idx << 2) | ((ao * 3.9999) as u8),
-        }
-    }
-
-    pub fn with_bone_idx(mut self, bone_idx: u8) -> Self {
-        self.ao_bone = (self.ao_bone & 0b11) | (bone_idx << 2);
-        self
-    }
-}
-
 impl Locals {
     pub fn new(
-        model_mat: Mat4<f32>,
+        model_mat: anim::vek::Mat4<f32>,
         col: Rgba<f32>,
-        pos: Vec3<f32>,
+        pos: anim::vek::Vec3<f32>,
         atlas_offs: Vec2<i32>,
         is_player: bool,
     ) -> Self {
@@ -118,9 +88,9 @@ impl Locals {
 impl Default for Locals {
     fn default() -> Self {
         Self::new(
-            Mat4::identity(),
+            anim::vek::Mat4::identity(),
             Rgba::broadcast(1.0),
-            Vec3::default(),
+            anim::vek::Vec3::default(),
             Vec2::default(),
             false,
         )
@@ -128,7 +98,7 @@ impl Default for Locals {
 }
 
 impl BoneData {
-    pub fn new(bone_mat: Mat4<f32>, normals_mat: Mat4<f32>) -> Self {
+    pub fn new(bone_mat: anim::vek::Mat4<f32>, normals_mat: anim::vek::Mat4<f32>) -> Self {
         Self {
             bone_mat: bone_mat.into_col_arrays(),
             normals_mat: normals_mat.into_col_arrays(),
@@ -137,7 +107,7 @@ impl BoneData {
 }
 
 impl Default for BoneData {
-    fn default() -> Self { Self::new(Mat4::identity(), Mat4::identity()) }
+    fn default() -> Self { Self::new(anim::vek::Mat4::identity(), anim::vek::Mat4::identity()) }
 }
 
 pub struct FigurePipeline;

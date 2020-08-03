@@ -1,7 +1,9 @@
-use super::{super::Animation, CharacterSkeleton, SkeletonAttr};
+use super::{
+    super::{vek::*, Animation},
+    CharacterSkeleton, SkeletonAttr,
+};
 use common::comp::item::{Hands, ToolKind};
 use std::{f32::consts::PI, ops::Mul};
-use vek::*;
 
 pub struct WieldAnimation;
 

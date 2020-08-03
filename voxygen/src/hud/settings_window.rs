@@ -245,7 +245,7 @@ pub enum Event {
     AdjustGamma(f32),
     AdjustWindowSize([u16; 2]),
     ToggleFullscreen,
-    ChangeRenderMode(RenderMode),
+    ChangeRenderMode(Box<RenderMode>),
     AdjustMusicVolume(f32),
     AdjustSfxVolume(f32),
     ChangeAudioDevice(String),
@@ -260,7 +260,7 @@ pub enum Event {
     SctDamageBatch(bool),
     SpeechBubbleDarkMode(bool),
     SpeechBubbleIcon(bool),
-    ChangeLanguage(LanguageMetadata),
+    ChangeLanguage(Box<LanguageMetadata>),
     ChangeBinding(GameInput),
     ResetBindings,
     ChangeFreeLookBehavior(PressBehavior),
@@ -1226,7 +1226,9 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .label_font_id(self.fonts.cyri.conrod_id)
                 .set(state.ids.languages_list, ui)
             {
-                events.push(Event::ChangeLanguage(language_list[clicked].to_owned()));
+                events.push(Event::ChangeLanguage(Box::new(
+                    language_list[clicked].to_owned(),
+                )));
             }
         }
 
@@ -1942,7 +1944,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.figure_dist_value, ui);
 
-            let render_mode = self.global_state.settings.graphics.render_mode;
+            let render_mode = &self.global_state.settings.graphics.render_mode;
 
             // AaMode
             Text::new(&self.localized_strings.get("hud.settings.antialiasing_mode"))
@@ -1980,10 +1982,10 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .down_from(state.ids.aa_mode_text, 8.0)
                 .set(state.ids.aa_mode_list, ui)
             {
-                events.push(Event::ChangeRenderMode(RenderMode {
+                events.push(Event::ChangeRenderMode(Box::new(RenderMode {
                     aa: mode_list[clicked],
-                    ..render_mode
-                }));
+                    ..render_mode.clone()
+                })));
             }
 
             // CloudMode
@@ -2017,10 +2019,10 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .down_from(state.ids.cloud_mode_text, 8.0)
                 .set(state.ids.cloud_mode_list, ui)
             {
-                events.push(Event::ChangeRenderMode(RenderMode {
+                events.push(Event::ChangeRenderMode(Box::new(RenderMode {
                     cloud: mode_list[clicked],
-                    ..render_mode
-                }));
+                    ..render_mode.clone()
+                })));
             }
 
             // FluidMode
@@ -2056,10 +2058,10 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .down_from(state.ids.fluid_mode_text, 8.0)
                 .set(state.ids.fluid_mode_list, ui)
             {
-                events.push(Event::ChangeRenderMode(RenderMode {
+                events.push(Event::ChangeRenderMode(Box::new(RenderMode {
                     fluid: mode_list[clicked],
-                    ..render_mode
-                }));
+                    ..render_mode.clone()
+                })));
             }
 
             // LightingMode
@@ -2102,10 +2104,10 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .down_from(state.ids.lighting_mode_text, 8.0)
                 .set(state.ids.lighting_mode_list, ui)
             {
-                events.push(Event::ChangeRenderMode(RenderMode {
+                events.push(Event::ChangeRenderMode(Box::new(RenderMode {
                     lighting: mode_list[clicked],
-                    ..render_mode
-                }));
+                    ..render_mode.clone()
+                })));
             }
 
             // ShadowMode
@@ -2149,10 +2151,10 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .down_from(state.ids.shadow_mode_text, 8.0)
                 .set(state.ids.shadow_mode_list, ui)
             {
-                events.push(Event::ChangeRenderMode(RenderMode {
+                events.push(Event::ChangeRenderMode(Box::new(RenderMode {
                     shadow: mode_list[clicked],
-                    ..render_mode
-                }));
+                    ..render_mode.clone()
+                })));
             }
 
             if let Some(shadow_map_mode) = shadow_map_mode {
@@ -2182,12 +2184,12 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .pad_track((5.0, 5.0))
                 .set(state.ids.shadow_mode_map_resolution_slider, ui)
                 {
-                    events.push(Event::ChangeRenderMode(RenderMode {
+                    events.push(Event::ChangeRenderMode(Box::new(RenderMode {
                         shadow: ShadowMode::Map(ShadowMapMode {
                             resolution: 2.0f32.powf(f32::from(new_val) / 4.0),
                         }),
-                        ..render_mode
-                    }));
+                        ..render_mode.clone()
+                    })));
                 }
 
                 // TODO: Consider fixing to avoid allocation (it's probably not a bottleneck but

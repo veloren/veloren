@@ -358,6 +358,9 @@ impl Scene {
 
     /// Maintain data such as GPU constant buffers, models, etc. To be called
     /// once per tick.
+    // NOTE: All of the "useless" conversion reported here allow us to abstract over repr_c vs.
+    // simd vectors, so fixing this warning would make the code worse in this case.
+    #[allow(clippy::useless_conversion)]
     pub fn maintain(
         &mut self,
         renderer: &mut Renderer,

@@ -159,8 +159,8 @@ impl Scene {
                 let model = col_lights.create_figure(renderer, greedy, mesh).unwrap();
                 state.update(
                     renderer,
-                    Vec3::zero(),
-                    Vec3::new(start_angle.sin(), -start_angle.cos(), 0.0),
+                    anim::vek::Vec3::zero(),
+                    anim::vek::Vec3::new(start_angle.sin(), -start_angle.cos(), 0.0),
                     1.0,
                     Rgba::broadcast(1.0),
                     15.0, // Want to get there immediately.
@@ -310,8 +310,8 @@ impl Scene {
                 .0;
             self.figure_state.update(
                 renderer,
-                Vec3::zero(),
-                Vec3::new(self.char_ori.sin(), -self.char_ori.cos(), 0.0),
+                anim::vek::Vec3::zero(),
+                anim::vek::Vec3::new(self.char_ori.sin(), -self.char_ori.cos(), 0.0),
                 1.0,
                 Rgba::broadcast(1.0),
                 scene_data.delta_time,
