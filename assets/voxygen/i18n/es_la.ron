@@ -72,9 +72,9 @@ VoxygenLocalization(
         "common.fatal_error": "Error Fatal",
 
         // Message when connection to the server is lost
-        "common.connection_lost": r#"Conexion perdida!
-Se reinicio el servidor?
-El cliente esta actualizado?"#,
+        "common.connection_lost": r#"Conexión perdida!
+Se reinició el servidor?
+El cliente está actualizado?"#,
 
 
         "common.races.orc": "Orco",
@@ -95,6 +95,7 @@ El cliente esta actualizado?"#,
         /// Start Main screen section
         "main.connecting": "Conectando",
         "main.creating_world": "Creando Mundo",
+        "main.tip": "Consejo:",
 
         // Welcome notice that appears the first time Veloren is started
         "main.notice": r#"Bienvenido a la version alfa de Veloren!
@@ -115,11 +116,9 @@ Gracias por tomarte el tiempo de leer este mensaje, esperamos que disfrutes el j
 
 ~ Los Desarrolladores de Veloren"#,
 
-        /// Login process description
+        // Login process description
         "main.login_process": r#"Información sobre el proceso para Iniciar Sesión:
-
-Si estas teniendo problemas iniciando sesión:
-                                       
+                                   
 Por favor ten en cuenta que ahora necesitas una cuenta
 para jugar en servidores con autenticación activada.
 
@@ -167,10 +166,10 @@ https://account.veloren.net."#,
         "hud.sct.experience": "{amount} Exp",
         "hud.sct.block": "BLOQUEADO",
 
-        /// Respawn message
+        // Respawn message
         "hud.press_key_to_respawn": r#"Presiona {key} para reaparecer en la ultima fogata que visitaste."#,
 
-        /// Welcome message
+        // Welcome message
         "hud.welcome": r#"Bienvenido a la alfa de Veloren!,
 
 
@@ -273,6 +272,7 @@ objetos infundidos con magia?"#,
         "hud.settings.chat": "Chat",
         "hud.settings.background_transparency": "Transparencia del Fondo",
         "hud.settings.chat_character_name": "Nombres de Personajes en el chat",
+        "hud.settings.loading_tips": "Consejos en Pantalla de Carga",
 
         "hud.settings.pan_sensitivity": "Sensibilidad de Desplazamiento de la Cámara",
         "hud.settings.zoom_sensitivity": "Sensibilidad del Zoom",
@@ -398,6 +398,7 @@ objetos infundidos con magia?"#,
         "char_selection.skin": "Piel",
         "char_selection.eyebrows": "Cejas",
         "char_selection.accessories": "Accesorios",
+        "char_selection.create_info_name": "Tu Personaje necesita un nombre!",
 
         /// End chracter selection section
 
@@ -410,6 +411,8 @@ objetos infundidos con magia?"#,
 Estado Físico
 
 Fuerza de Voluntad
+
+Protección
 "#,
         /// End character window section
 
@@ -421,6 +424,24 @@ Fuerza de Voluntad
     }
 	
 	vector_map: {
+        "loading.tips":[
+            "Presiona 'G' para encender tu linterna.",
+            "Presiona 'F1' para ver los controles predeterminados.",
+            "Puedes escribir /say o /s para chatear solo con jugadores alrededor tuyo.",
+            "Puedes escribr /region o /r para chatear solo con jugadores que están a unos cien bloques alrededor tuyo.",
+            "Para enviar mensajes privados escribe /tell segudi de el nombre de un jugador y luego tu mensaje.",
+            "NPCs con el mismo nivel pueden tener una dificultad diferente.",
+            "Observa el terreno en búsqueda de comida, cofres y botines.",
+            "¿Inventario lleno de comida? Intenta craftear mejor comida con ella!",
+            "¿Te preguntas dónde debes hacerlo? Los Dungeons están marcados con puntos marrones en el mapa!",
+            "No te olvides de ajustar los gráficos de tu pc. Presiona 'N' para abrir la configuración.",
+            "Jugar con otros es divertido! Presiona 'O' para ver quien esta conectado.",
+            "Un NPC con una craneo debajo de su barra de vida es bastante más poderoso comparado contigo.",
+            "Presiona 'J' para bailar. Fiesta!",
+            "Presiona 'Shift-Izquierdo' para abrir tu planeador y conquistar los cielos.",
+            "Veloren está aún en Alfa temprana. Hacemos lo mejor para mejorar día a día!",
+            "Si te quieres unir al equipo de desarrolladores o solo chatear con nosotros, únete a nuestro servidor en Discord.",
+        ],
         "npc.speech.villager_under_attack": [
             "Ayuda, ¡Me están atacando!",
             "¡Ayuda! ¡Me están atacando!",
