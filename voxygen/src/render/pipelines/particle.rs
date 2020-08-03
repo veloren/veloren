@@ -83,9 +83,10 @@ impl Vertex {
 }
 
 pub enum ParticleMode {
-    CampfireSmoke,
-    CampfireFire,
-    GunPowderSpark,
+    CampfireSmoke = 0,
+    CampfireFire = 1,
+    GunPowderSpark = 2,
+    Shrapnel = 3,
 }
 
 impl ParticleMode {

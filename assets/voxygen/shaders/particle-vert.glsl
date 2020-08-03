@@ -31,6 +31,7 @@ float gold_noise(in vec2 xy, in float seed){
 const int SMOKE = 0;
 const int FIRE = 1;
 const int GUN_POWDER_SPARK = 2;
+const int SHRAPNEL = 3;
 
 // meters per second
 const float earth_gravity = 9.807;
@@ -104,6 +105,15 @@ void main() {
 			),
 			1.0,
 			vec3(3.5, 3 + rand7, 0)
+		);
+	} else if (inst_mode == SHRAPNEL) {
+		attr = Attr(
+			linear_motion(
+				vec3(0),
+				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
+			),
+			3.0 + rand0,
+			vec3(0.6 + rand7 * 0.4)
 		);
 	} else {
 		attr = Attr(

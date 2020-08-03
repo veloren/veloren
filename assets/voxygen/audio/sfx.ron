@@ -109,9 +109,9 @@
         ),
         Explosion: (
             files: [
-                "voxygen.audio.sfx.glider_open",
+                "voxygen.audio.sfx.explosion",
             ],
-            threshold: 0.5,
+            threshold: 0.2,
         ),
         ProjectileShot: (
             files: [

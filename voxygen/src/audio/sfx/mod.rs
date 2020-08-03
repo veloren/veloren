@@ -199,7 +199,7 @@ impl<'a> TryFrom<&'a Outcome> for SfxEventItem {
             Outcome::Explosion { pos, power } => Ok(Self::new(
                 SfxEvent::Explosion,
                 Some(*pos),
-                Some((*power / 10.0).min(1.0)),
+                Some((*power / 2.5).min(1.5)),
             )),
             Outcome::ProjectileShot { pos, .. } => {
                 Ok(Self::new(SfxEvent::ProjectileShot, Some(*pos), None))
