@@ -3,7 +3,7 @@ Item(
     description: "Loyal companions.",
     kind: Armor(
         (
-            kind: Foot(Sandal0),
+            kind: Foot("Sandal0"),
             stats: (
                 protection: Normal(0.0),
             ),

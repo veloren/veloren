@@ -3,7 +3,7 @@ Item(
     description: "Boots forged from iron.",
     kind: Armor(
         (
-            kind: Foot(Plate0),
+            kind: Foot("Plate0"),
             stats: (
                 protection: Normal(4.0),
             ),

@@ -3,7 +3,7 @@ Item(
     description: "Leg armour made of simple leather.",
     kind: Armor(
         (
-            kind: Pants(Leather2),
+            kind: Pants("Leather2"),
             stats: (
                 protection: Normal(8.0),
             ),

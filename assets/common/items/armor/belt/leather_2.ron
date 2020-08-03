@@ -3,7 +3,7 @@ Item(
     description: "A belt made from simple leather.",
     kind: Armor(
         (
-            kind: Belt(Leather2),
+            kind: Belt("Leather2"),
             stats: (
                 protection: Normal(0.0),
             ),

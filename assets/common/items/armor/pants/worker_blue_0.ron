@@ -3,7 +3,7 @@ Item(
     description: "Pants used by a farmer, until recently.",
     kind: Armor(
         (
-            kind: Pants(WorkerBlue0),
+            kind: Pants("WorkerBlue0"),
             stats: (
                 protection: Normal(1.0),
             ),

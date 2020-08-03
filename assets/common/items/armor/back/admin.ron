@@ -3,7 +3,7 @@ Item(
     description: "With great power comes\ngreat responsibility.",
     kind: Armor(
         (
-            kind: Back(Admin),
+            kind: Back("Admin"),
             stats: (
                 protection: Normal(0.0),
             ),

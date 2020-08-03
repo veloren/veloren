@@ -3,7 +3,7 @@ Item(
     description: "Hopefully this test doesn't break!",
     kind: Armor(
         (
-            kind: Foot(Dark),
+            kind: Foot("Dark"),
             stats: (
                 protection: Normal(0.0),
             ),

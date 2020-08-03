@@ -3,7 +3,7 @@ Item(
     description: "Soft and warm.",
     kind: Armor(
         (
-            kind: Chest(ClothPurple0),
+            kind: Chest("ClothPurple0"),
             stats: (
                 protection: Normal(1.0),
             ),

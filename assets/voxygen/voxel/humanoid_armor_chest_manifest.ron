@@ -4,133 +4,133 @@
         color: None
     ),
     map: {
-        Blue: (
+        "Blue": (
             vox_spec: ("armor.chest.grayscale", (-7.0, -3.5, 2.0)),
             color: Some((44, 74, 109))
         ),
-        Brown: (
+        "Brown": (
             vox_spec: ("armor.chest.grayscale", (-7.0, -3.5, 2.0)),
             color: Some((90, 49, 43))
         ),
-        Dark: (
+        "Dark": (
             vox_spec: ("armor.chest.grayscale", (-7.0, -3.5, 2.0)),
             color: Some((73, 63, 59))
         ),
-        Green: (
+        "Green": (
             vox_spec: ("armor.chest.grayscale", (-7.0, -3.5, 2.0)),
             color: Some((59, 95, 67))
         ),
-        Orange: (
+        "Orange": (
             vox_spec: ("armor.chest.grayscale", (-7.0, -3.5, 2.0)),
             color: Some((109, 58, 58))
         ),
-        Midnight: (
+        "Midnight": (
             vox_spec: ("armor.chest.grayscale", (-7.0, -3.5, 2.0)),
             color: Some((29, 26, 33))
         ),
-        Assassin: (
+        "Assassin": (
             vox_spec: ("armor.chest.assa", (-7.0, -3.5, 2.0)),
             color: None
         ),
-        Kimono: (
+        "Kimono": (
             vox_spec: ("armor.chest.cloth_red_kimono", (-7.0, -3.5, 2.0)),
             color: None
         ),
-        PlateGreen0: (
+        "PlateGreen0": (
             vox_spec: ("armor.chest.plate_green-0", (-7.0, -3.5, 2.0)),
             color: None
         ),
-        Leather0: (
+        "Leather0": (
             vox_spec: ("armor.chest.leather-0", (-7.0, -3.5, 2.0)),
             color: None
         ),
-        ClothPurple0:(
+        "ClothPurple0": (
             vox_spec: ("armor.chest.cloth_purple-0", (-7.0, -3.5, 1.0)),
             color: None
         ),
-        ClothBlue0:(
+        "ClothBlue0": (
             vox_spec: ("armor.chest.cloth_blue-0", (-7.0, -3.5, 1.0)),
             color: None
         ),
-       ClothGreen0:(
+        "ClothGreen0": (
             vox_spec: ("armor.chest.cloth_green-0", (-7.0, -3.5, 1.0)),
             color: None
         ),
-        Rugged0:(
+        "Rugged0": (
             vox_spec: ("armor.chest.rugged-0", (-7.0, -3.5, 2.0)),
             color: None
         ),
         // Villagers
-        WorkerGreen0:(
+        "WorkerGreen0": (
             vox_spec: ("armor.chest.worker_white-0", (-7.0, -3.5, 2.0)),
             color: Some((88, 108, 65))
         ),
-        WorkerGreen1:(
+        "WorkerGreen1": (
             vox_spec: ("armor.chest.shirt_white-0", (-7.0, -3.5, 2.0)),
             color: Some((88, 108, 65))
         ),
-        WorkerRed0:(
+        "WorkerRed0": (
             vox_spec: ("armor.chest.worker_white-0", (-7.0, -3.5, 2.0)),
             color: Some((124, 38, 46))
         ),
-        WorkerRed1:(
+        "WorkerRed1": (
             vox_spec: ("armor.chest.shirt_white-0", (-7.0, -3.5, 2.0)),
             color: Some((124, 38, 46))
         ),
-        WorkerPurple0:(
+        "WorkerPurple0": (
             vox_spec: ("armor.chest.worker_white-0", (-7.0, -3.5, 2.0)),
             color: Some((64, 47, 56))
         ),  
-        WorkerPurple1:(
+        "WorkerPurple1": (
             vox_spec: ("armor.chest.shirt_white-0", (-7.0, -3.5, 2.0)),
             color: Some((64, 47, 56))
         ),   
-        WorkerYellow0:(
+        "WorkerYellow0": (
             vox_spec: ("armor.chest.worker_white-0", (-7.0, -3.5, 2.0)),
             color: Some((184, 132, 40))
         ), 
-        WorkerYellow1:(
+        "WorkerYellow1": (
             vox_spec: ("armor.chest.shirt_white-0", (-7.0, -3.5, 2.0)),
             color: Some((184, 132, 40)) 
         ), 
-        WorkerOrange0:(
+        "WorkerOrange0": (
             vox_spec: ("armor.chest.worker_white-0", (-7.0, -3.5, 2.0)),
             color: Some((135, 82, 67))
         ), 
-        WorkerOrange1:(
+        "WorkerOrange1": (
             vox_spec: ("armor.chest.shirt_white-0", (-7.0, -3.5, 2.0)),
             color: Some((135, 82, 67))
         ),      
-        Druid:(
+        "Druid": (
             vox_spec: ("armor.chest.druid", (-7.0, -3.5, 2.0)),
             color: None
         ),
-        Twig:(
+        "Twig": (
             vox_spec: ("armor.chest.twigs_chest", (-7.0, -3.5, 2.0)),
             color: None
         ),
-        Twigsleaves:(
+        "Twigsleaves": (
             vox_spec: ("armor.chest.twigsleaves_chest", (-7.0, -3.5, 2.0)),
             color: None
         ),
-        Twigsflowers:(
+        "Twigsflowers": (
             vox_spec: ("armor.chest.twigsflowers_chest", (-7.0, -3.5, 2.0)),
             color: None
         ),
         // Cultists
-        CultistPurple: (
+        "CultistPurple": (
             vox_spec: ("armor.chest.cultist", (-7.0, -3.5, 2.0)),
             color: Some((30, 0, 64))
         ),
-        CultistBlue: (
+        "CultistBlue": (
             vox_spec: ("armor.chest.cultist", (-7.0, -3.5, 2.0)),
             color: Some((57, 81, 132))
         ),
-        Steel0:(
+        "Steel0": (
             vox_spec: ("armor.chest.steel-0", (-8.0, -4.5, 2.0)),
             color: None
         ),
-        Leather2:(
+        "Leather2": (
             vox_spec: ("armor.chest.leather-2", (-7.0, -3.5, 2.0)),
             color: None
         ),

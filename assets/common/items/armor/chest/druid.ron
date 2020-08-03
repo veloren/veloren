@@ -3,7 +3,7 @@ Item(
     description: "Druidic chest wrappings.",
     kind: Armor(
         (
-            kind: Chest(Druid),
+            kind: Chest("Druid"),
             stats: (
                 protection: Normal(6.0),
             ),

@@ -64,22 +64,22 @@ impl CharacterCacheKey {
             shoulder: if let Some(ItemKind::Armor(armor)) =
                 loadout.shoulder.as_ref().map(|i| &i.kind)
             {
-                Some(armor.kind)
+                Some(armor.kind.clone())
             } else {
                 None
             },
             chest: if let Some(ItemKind::Armor(armor)) = loadout.chest.as_ref().map(|i| &i.kind) {
-                Some(armor.kind)
+                Some(armor.kind.clone())
             } else {
                 None
             },
             belt: if let Some(ItemKind::Armor(armor)) = loadout.belt.as_ref().map(|i| &i.kind) {
-                Some(armor.kind)
+                Some(armor.kind.clone())
             } else {
                 None
             },
             back: if let Some(ItemKind::Armor(armor)) = loadout.back.as_ref().map(|i| &i.kind) {
-                Some(armor.kind)
+                Some(armor.kind.clone())
             } else {
                 None
             },
@@ -91,17 +91,17 @@ impl CharacterCacheKey {
                 None
             },
             hand: if let Some(ItemKind::Armor(armor)) = loadout.hand.as_ref().map(|i| &i.kind) {
-                Some(armor.kind)
+                Some(armor.kind.clone())
             } else {
                 None
             },
             pants: if let Some(ItemKind::Armor(armor)) = loadout.pants.as_ref().map(|i| &i.kind) {
-                Some(armor.kind)
+                Some(armor.kind.clone())
             } else {
                 None
             },
             foot: if let Some(ItemKind::Armor(armor)) = loadout.foot.as_ref().map(|i| &i.kind) {
-                Some(armor.kind)
+                Some(armor.kind.clone())
             } else {
                 None
             },

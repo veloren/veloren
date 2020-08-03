@@ -3,7 +3,7 @@ Item(
     description: "Boots woven from twigs and leaves.",
     kind: Armor(
         (
-            kind: Foot(Twigsleaves),
+            kind: Foot("Twigsleaves"),
             stats: (
                 protection: Normal(3.0),
             ),

@@ -3,7 +3,7 @@ Item(
     description: "A simple shoulder pad made of steel.",
     kind: Armor(
         (
-            kind: Shoulder(Steel0),
+            kind: Shoulder("Steel0"),
             stats: (
                 protection: Normal(15.0),
             ),
