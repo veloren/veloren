@@ -4,91 +4,91 @@
         color: Some((28, 66, 109))
     ),
     map: {
-        Blue: (
+        "Blue": (
             vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
             color: Some((28, 66, 109))
         ),
-        Brown: (
+        "Brown": (
             vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
             color: Some((54, 30, 26))
         ),
-        Dark: (
+        "Dark": (
             vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
             color: Some((24, 19, 17))
         ),
-        Hunting: (
+        "Hunting": (
             vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
             color: Some((49, 95, 59))
         ),
-        Orange: (
+        "Orange": (
             vox_spec: ("armor.pants.grayscale", (-5.0, -3.5, 1.0)),
             color: Some((148, 52, 33))
         ),
-        Assassin: (
+        "Assassin": (
             vox_spec: ("armor.pants.assa", (-5.0, -3.5, 1.0)),
             color: None
         ),
-        Kimono: (
+        "Kimono": (
             vox_spec: ("armor.pants.cloth_red_kimono", (-5.0, -3.5, 0.0)),
             color: None
         ),    
-        PlateGreen0: (
+        "PlateGreen0": (
             vox_spec: ("armor.pants.plate_green-0", (-5.0, -3.5, 1.0)),
             color: None
         ),
-        Leather0: (
+        "Leather0": (
             vox_spec: ("armor.pants.leather-0", (-5.0, -3.5, 1.0)),
             color: None
         ),
-        ClothPurple0:(
+        "ClothPurple0": (
             vox_spec: ("armor.pants.cloth_purple-0", (-5.0, -3.5, 0.0)),
             color: None
         ),
-        ClothBlue0:(
+        "ClothBlue0": (
             vox_spec: ("armor.pants.cloth_blue-0", (-5.0, -3.5, 0.0)),
             color: None
         ),
-        ClothGreen0:(
+        "ClothGreen0": (
             vox_spec: ("armor.pants.cloth_green-0", (-5.0, -3.5, 0.0)),
             color: None
         ),
-        Rugged0:(
+        "Rugged0": (
             vox_spec: ("armor.pants.rugged-0", (-5.0, -3.5, 1.0)),
             color: None
         ),
-        WorkerBlue0:(
+        "WorkerBlue0": (
             vox_spec: ("armor.pants.worker_blue-0", (-5.0, -3.5, 1.0)),
             color: None
         ),
-        CultistPurple: (
+        "CultistPurple": (
             vox_spec: ("armor.pants.cultist", (-5.0, -3.5, 1.0)),
             color: Some((30, 0, 64))
         ),
-        CultistBlue : (
+        "CultistBlue" : (
             vox_spec: ("armor.pants.cultist", (-5.0, -3.5, 1.0)),
             color: Some((57, 81, 132))
         ),
-        Steel0:(
+        "Steel0": (
             vox_spec: ("armor.pants.steel-0", (-6.0, -4.5, 1.0)),
             color: None
         ),
-        Leather2:(
+        "Leather2": (
             vox_spec: ("armor.pants.leather-2", (-5.0, -3.5, 1.0)),
             color: None
         ),
-        Druid:(
+        "Druid": (
             vox_spec: ("armor.pants.druid", (-5.0, -3.5, -1.0)),
             color: None
         ),
-        Twig:(
+        "Twig": (
             vox_spec: ("armor.pants.twigs_pants", (-5.0, -3.5, 0.0)),
             color: None
         ),
-        Twigsleaves:(
+        "Twigsleaves": (
             vox_spec: ("armor.pants.twigsleaves_pants", (-5.0, -3.5, 0.0)),
             color: None
         ),
-        Twigsflowers:(
+        "Twigsflowers": (
             vox_spec: ("armor.pants.twigsflowers_pants", (-6.0, -3.5, 0.0)),
             color: None
         ),

@@ -3,7 +3,7 @@ Item(
     description: "Handwraps woven from twigs and flowers.",
     kind: Armor(
         (
-            kind: Hand(Twigsflowers),
+            kind: Hand("Twigsflowers"),
             stats: (
                 protection: Normal(6.0),
             ),

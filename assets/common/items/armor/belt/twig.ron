@@ -3,7 +3,7 @@ Item(
     description: "A belt made from woven from twigs.",
     kind: Armor(
         (
-            kind: Belt(Twig),
+            kind: Belt("Twig"),
             stats: (
                 protection: Normal(0.0),
             ),

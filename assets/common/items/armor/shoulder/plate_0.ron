@@ -3,7 +3,7 @@ Item(
     description: "Shoulderguards forged from iron.",
     kind: Armor(
         (
-            kind: Shoulder(Plate0),
+            kind: Shoulder("Plate0"),
             stats: (
                 protection: Normal(12.0),
             ),

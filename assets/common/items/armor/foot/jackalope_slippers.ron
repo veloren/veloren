@@ -3,7 +3,7 @@ Item(
     description: "So warm and cozy!",
     kind: Armor(
         (
-            kind: Foot(JackalopeSlips),
+            kind: Foot("JackalopeSlips"),
             stats: (
                 protection: Normal(0.0),
             ),

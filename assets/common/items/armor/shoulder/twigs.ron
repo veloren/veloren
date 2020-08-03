@@ -3,7 +3,7 @@ Item(
     description: "Spaulders made from tightly tied twigs.",
     kind: Armor(
         (
-            kind: Shoulder(TwiggyShoulder),
+            kind: Shoulder("TwiggyShoulder"),
             stats: (
                 protection: Normal(9.0),
             ),

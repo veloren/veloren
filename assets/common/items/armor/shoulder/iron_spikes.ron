@@ -3,7 +3,7 @@ Item(
     description: "Iron shoulder pads with spikes attached.",
     kind: Armor(
         (
-            kind: Shoulder(IronSpikes),
+            kind: Shoulder("IronSpikes"),
             stats: (
                 protection: Normal(12.0),
             ),

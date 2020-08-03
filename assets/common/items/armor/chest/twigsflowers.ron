@@ -3,7 +3,7 @@ Item(
     description: "A shirt woven from twigs and flowers.",
     kind: Armor(
         (
-            kind: Chest(Twigsflowers),
+            kind: Chest("Twigsflowers"),
             stats: (
                 protection: Normal(15.0),
             ),

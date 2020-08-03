@@ -3,7 +3,7 @@ Item(
     description: "Twisted vines to keep everything secure.",
     kind: Armor(
         (
-            kind: Belt(Druid),
+            kind: Belt("Druid"),
             stats: (
                 protection: Normal(0.0),
             ),
