@@ -88,7 +88,7 @@ use crate::audio::AudioFrontend;
 use common::{
     assets,
     comp::{
-        item::{Consumable, ItemKind, ToolCategory},
+        item::{ItemKind, ToolCategory},
         CharacterAbilityType, InventoryUpdateEvent, Ori, Pos,
     },
     event::EventBus,
@@ -153,7 +153,7 @@ pub enum SfxInventoryEvent {
     Collected,
     CollectedTool(ToolCategory),
     CollectFailed,
-    Consumed(Consumable),
+    Consumed(String),
     Debug,
     Dropped,
     Given,
@@ -177,7 +177,7 @@ impl From<&InventoryUpdateEvent> for SfxEvent {
                 SfxEvent::Inventory(SfxInventoryEvent::CollectFailed)
             },
             InventoryUpdateEvent::Consumed(consumable) => {
-                SfxEvent::Inventory(SfxInventoryEvent::Consumed(*consumable))
+                SfxEvent::Inventory(SfxInventoryEvent::Consumed(consumable.clone()))
             },
             InventoryUpdateEvent::Debug => SfxEvent::Inventory(SfxInventoryEvent::Debug),
             InventoryUpdateEvent::Dropped => SfxEvent::Inventory(SfxInventoryEvent::Dropped),
