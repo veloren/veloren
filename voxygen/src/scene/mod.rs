@@ -21,10 +21,10 @@ use crate::{
 use anim::character::SkeletonAttr;
 use common::{
     comp,
-    state::{State, DeltaTime},
+    outcome::Outcome,
+    state::{DeltaTime, State},
     terrain::{BlockKind, TerrainChunk},
     vol::ReadVol,
-    outcome::Outcome,
 };
 use specs::{Entity as EcsEntity, Join, WorldExt};
 use vek::*;
@@ -193,21 +193,23 @@ impl Scene {
         }
     }
 
-    pub fn handle_outcome(&mut self, outcome: &Outcome, scene_data: &SceneData) {
+    pub fn handle_outcome(
+        &mut self,
+        outcome: &Outcome,
+        scene_data: &SceneData,
+        audio: &mut AudioFrontend,
+    ) {
+        self.particle_mgr.handle_outcome(&outcome, &scene_data);
+        self.sfx_mgr.handle_outcome(&outcome, audio);
+
         match outcome {
             Outcome::Explosion { pos, power, .. } => self.event_lights.push(EventLight {
-                light: Light::new(
-                    *pos,
-                    Rgb::new(1.0, 0.5, 0.0),
-                    *power * 2.5,
-                ),
+                light: Light::new(*pos, Rgb::new(1.0, 0.5, 0.0), *power * 2.5),
                 timeout: 0.5,
                 fadeout: |timeout| timeout * 2.0,
             }),
             _ => {},
         }
-
-        self.particle_mgr.handle_outcome(&outcome, &scene_data);
     }
 
     /// Maintain data such as GPU constant buffers, models, etc. To be called
@@ -342,9 +344,11 @@ impl Scene {
                     light_anim.strength,
                 )
             })
-            .chain(self.event_lights
-                .iter()
-                .map(|el| el.light.with_strength((el.fadeout)(el.timeout))))
+            .chain(
+                self.event_lights
+                    .iter()
+                    .map(|el| el.light.with_strength((el.fadeout)(el.timeout))),
+            )
             .collect::<Vec<_>>();
         lights.sort_by_key(|light| light.get_pos().distance_squared(player_pos) as i32);
         lights.truncate(MAX_LIGHT_COUNT);
@@ -437,8 +441,12 @@ impl Scene {
         self.particle_mgr.maintain(renderer, &scene_data);
 
         // Maintain audio
-        self.sfx_mgr
-            .maintain(audio, scene_data.state, scene_data.player_entity, &self.camera);
+        self.sfx_mgr.maintain(
+            audio,
+            scene_data.state,
+            scene_data.player_entity,
+            &self.camera,
+        );
         self.music_mgr.maintain(audio, scene_data.state);
     }
 
