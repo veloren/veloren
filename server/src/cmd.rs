@@ -7,7 +7,7 @@ use chrono::{NaiveTime, Timelike};
 use common::{
     assets,
     cmd::{ChatCommand, CHAT_COMMANDS, CHAT_SHORTCUTS},
-    comp::{self, ChatType, Item},
+    comp::{self, ChatType, Item, LightEmitter, WaypointArea},
     event::{EventBus, ServerEvent},
     msg::{Notification, PlayerListUpdate, ServerMsg},
     npc::{self, get_npc_name},
@@ -674,24 +674,16 @@ fn handle_spawn_campfire(
 ) {
     match server.state.read_component_cloned::<comp::Pos>(target) {
         Some(pos) => {
-            let vel = Vec3::new(
-                rand::thread_rng().gen_range(-2.0, 3.0),
-                rand::thread_rng().gen_range(-2.0, 3.0),
-                10.0,
-            );
-
-            let body = comp::Body::Object(comp::object::Body::CampfireLit);
-
-            let mut stats = comp::Stats::new("Campfire".to_string(), body);
-
-            // Level 0 will prevent exp gain from kill
-            stats.level.set_level(0);
-
             server
                 .state
-                .create_npc(pos, stats, comp::Loadout::default(), body)
-                .with(comp::Vel(vel))
-                .with(comp::MountState::Unmounted)
+                .create_object(pos, comp::object::Body::CampfireLit)
+                .with(LightEmitter {
+                    col: Rgb::new(1.0, 0.65, 0.2),
+                    strength: 2.0,
+                    flicker: 1.0,
+                    animated: true,
+                })
+                .with(WaypointArea::default())
                 .build();
 
             server.notify_client(
