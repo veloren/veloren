@@ -1,6 +1,6 @@
 Item(
     name: "Uneven Bow",
-    description: "Someone carved his initials into it.",  
+    description: "Someone carved their initials into it.",  
     kind: Tool(
         (
             kind: Bow("ShortBow0"),    

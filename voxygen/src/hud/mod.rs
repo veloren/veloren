@@ -1933,8 +1933,9 @@ impl Hud {
                     &self.imgs,
                     &self.fonts,
                     &self.voxygen_i18n,
-                    //&stats,
                     info.selected_entity,
+                    &self.rot_imgs,
+                    tooltip_manager,
                 )
                 .set(self.ids.social_window, ui_widgets)
                 {
@@ -1959,8 +1960,6 @@ impl Hud {
             &self.imgs,
             &self.fonts,
             &self.voxygen_i18n,
-            tooltip_manager,
-            &self.rot_imgs,
             self.pulse,
             &global_state,
         )

@@ -230,6 +230,8 @@
     (0.6, "common.items.armor.ring.ring_0"),
     // capes
     (0.6, "common.items.armor.back.short_0"),
+    (0.7, "common.items.armor.back.short_1"),
     // necks
     (0.6, "common.items.armor.neck.neck_0"),
+    (0.4, "common.items.armor.neck.neck_1"),
 ]

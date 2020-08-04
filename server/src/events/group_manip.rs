@@ -54,7 +54,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 if client.invited_to_group.is_some() {
                     already_has_invite = true;
                 } else {
-                    client.notify(ServerMsg::GroupInvite((*inviter_uid).into()));
+                    client.notify(ServerMsg::GroupInvite((*inviter_uid)));
                     client.invited_to_group = Some(entity);
                 }
             // Would be cool to do this in agent system (e.g. add an invited
@@ -71,10 +71,8 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                     .ecs()
                     .write_storage()
                     .insert(invitee, comp::Agent::default());
-            } else {
-                if let Some(client) = clients.get_mut(entity) {
-                    client.notify(ChatType::Meta.server_msg("Invite rejected".to_owned()));
-                }
+            } else if let Some(client) = clients.get_mut(entity) {
+                client.notify(ChatType::Meta.server_msg("Invite rejected".to_owned()));
             }
 
             if already_has_invite {

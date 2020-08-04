@@ -585,7 +585,7 @@ impl<'a> Widget for Bag<'a> {
                 "{}\n\n{}\n\n{}\n\n{}%",
                 self.stats.endurance, self.stats.fitness, self.stats.willpower, damage_reduction
             ))
-            .top_right_with_margins_on(state.ids.stats_alignment, 120.0, 150.0)
+            .top_right_with_margins_on(state.ids.stats_alignment, 120.0, 130.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(16))
             .color(TEXT_COLOR)

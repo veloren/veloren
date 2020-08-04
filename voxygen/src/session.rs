@@ -1071,6 +1071,7 @@ impl PlayState for SessionState {
 /// Max distance an entity can be "targeted"
 const MAX_TARGET_RANGE: f32 = 30.0;
 /// Calculate what the cursor is pointing at within the 3d scene
+#[allow(clippy::type_complexity)]
 fn under_cursor(
     client: &Client,
     cam_pos: Vec3<f32>,

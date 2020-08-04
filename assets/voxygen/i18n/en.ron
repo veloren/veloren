@@ -336,6 +336,7 @@ magically infused items?"#,
         "hud.group.add_friend": "Add to Friends",
         "hud.group.link_group": "Link Groups",
         "hud.group.in_menu": "In Menu",
+        "hud.group.members": "Group Members",
 
         "hud.spell": "Spells",
 
@@ -470,7 +471,8 @@ Protection
             "Press 'L-Shift' to open your Glider and conquer the skies.",
             "Veloren is still in Pre-Alpha. We do our best to improve it every day!",
             "If you want to join the Dev-Team or just have a chat with us join our Discord-Server.", 
-            "You can toggle showing your amount of health on the healthbar in the settings.",           
+            "You can toggle showing your amount of health on the healthbar in the settings.",
+            "In order to see your stats click the 'Stats' button in your inventory.",           
         ],         
         "npc.speech.villager_under_attack": [
             "Help, I'm under attack!",
