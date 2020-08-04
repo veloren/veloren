@@ -191,24 +191,6 @@ impl From<&InventoryUpdateEvent> for SfxEvent {
     }
 }
 
-impl<'a> TryFrom<&'a Outcome> for SfxEventItem {
-    type Error = ();
-
-    fn try_from(outcome: &'a Outcome) -> Result<Self, Self::Error> {
-        match outcome {
-            Outcome::Explosion { pos, power } => Ok(Self::new(
-                SfxEvent::Explosion,
-                Some(*pos),
-                Some((*power / 2.5).min(1.5)),
-            )),
-            Outcome::ProjectileShot { pos, .. } => {
-                Ok(Self::new(SfxEvent::ProjectileShot, Some(*pos), None))
-            },
-            // _ => Err(()),
-        }
-    }
-}
-
 #[derive(Deserialize)]
 pub struct SfxTriggerItem {
     pub files: Vec<String>,
@@ -251,13 +233,15 @@ impl SfxMgr {
             return;
         }
 
-        self.event_mapper
-            .maintain(state, player_entity, camera, &self.triggers);
-
         let ecs = state.ecs();
 
         audio.set_listener_pos(camera.dependents().cam_pos, camera.dependents().cam_dir);
 
+        // deprecated in favor of outcomes
+        self.event_mapper
+            .maintain(state, player_entity, camera, &self.triggers);
+
+        // deprecated in favor of outcomes
         let events = ecs.read_resource::<EventBus<SfxEventItem>>().recv_all();
 
         for event in events {
@@ -280,6 +264,31 @@ impl SfxMgr {
 
                 audio.play_sfx(sfx_file, position, event.vol);
             }
+        }
+    }
+
+    pub fn handle_outcome(&mut self, outcome: &Outcome, audio: &mut AudioFrontend) {
+        if !audio.sfx_enabled() {
+            return;
+        }
+
+        match outcome {
+            Outcome::Explosion { pos, power } => {
+                audio.play_sfx(
+                    // TODO: from sfx triggers config
+                    "voxygen.audio.sfx.explosion",
+                    *pos,
+                    Some((*power / 2.5).min(1.5)),
+                );
+            },
+            Outcome::ProjectileShot { pos, body, .. } => {
+                audio.play_sfx(
+                    // TODO: from sfx triggers config
+                    "voxygen.audio.sfx.glider_open",
+                    *pos,
+                    None,
+                );
+            },
         }
     }
 

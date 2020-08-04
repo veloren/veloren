@@ -21,13 +21,13 @@ use common::{
     },
     event::EventBus,
     msg::ClientState,
+    outcome::Outcome,
     terrain::{Block, BlockKind},
     util::Dir,
     vol::ReadVol,
-    outcome::Outcome,
 };
 use specs::{Join, WorldExt};
-use std::{cell::RefCell, rc::Rc, time::Duration, convert::TryFrom};
+use std::{cell::RefCell, rc::Rc, time::Duration};
 use tracing::{error, info};
 use vek::*;
 
@@ -101,7 +101,12 @@ impl SessionState {
     }
 
     /// Tick the session (and the client attached to it).
-    fn tick(&mut self, dt: Duration, global_state: &mut GlobalState, outcomes: &mut Vec<Outcome>) -> Result<TickAction, Error> {
+    fn tick(
+        &mut self,
+        dt: Duration,
+        global_state: &mut GlobalState,
+        outcomes: &mut Vec<Outcome>,
+    ) -> Result<TickAction, Error> {
         self.inputs.tick(dt);
 
         let mut client = self.client.borrow_mut();
@@ -638,7 +643,11 @@ impl PlayState for SessionState {
             // Runs if either in a multiplayer server or the singleplayer server is unpaused
             if !global_state.paused() {
                 // Perform an in-game tick.
-                match self.tick(global_state.clock.get_avg_delta(), global_state, &mut outcomes) {
+                match self.tick(
+                    global_state.clock.get_avg_delta(),
+                    global_state,
+                    &mut outcomes,
+                ) {
                     Ok(TickAction::Continue) => {}, // Do nothing
                     Ok(TickAction::Disconnect) => return PlayStateResult::Pop, // Go to main menu
                     Err(err) => {
@@ -1026,14 +1035,7 @@ impl PlayState for SessionState {
 
                     // Process outcomes from client
                     for outcome in outcomes {
-                        if let Ok(sfx_event_item) = SfxEventItem::try_from(&outcome) {
-                            client
-                                .state()
-                                .ecs()
-                                .read_resource::<EventBus<SfxEventItem>>()
-                                .emit_now(sfx_event_item);
-                        }
-                        self.scene.handle_outcome(&outcome, &scene_data);
+                        self.scene.handle_outcome(&outcome, &scene_data, &mut global_state.audio);
                     }
                 }
             }
