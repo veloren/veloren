@@ -17,7 +17,6 @@ pub enum Error {
     AuthClientError(AuthClientError),
     AuthServerNotTrusted,
     Banned(String),
-    Kicked(String),
     /// Persisted character data is invalid or missing
     InvalidCharacter,
     //TODO: InvalidAlias,
