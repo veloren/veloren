@@ -25,7 +25,7 @@ impl Component for Vel {
 pub struct Ori(pub Dir);
 
 impl Ori {
-    pub fn vec(&self) -> &Vec3<f32> { &self.0.vec() }
+    pub fn vec(&self) -> &Vec3<f32> { &*self.0 }
 }
 
 impl Component for Ori {

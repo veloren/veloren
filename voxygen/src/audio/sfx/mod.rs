@@ -204,7 +204,7 @@ impl<'a> TryFrom<&'a Outcome> for SfxEventItem {
             Outcome::ProjectileShot { pos, .. } => {
                 Ok(Self::new(SfxEvent::ProjectileShot, Some(*pos), None))
             },
-            _ => Err(()),
+            // _ => Err(()),
         }
     }
 }

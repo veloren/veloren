@@ -87,8 +87,6 @@ impl Dir {
     }
 
     pub fn is_valid(&self) -> bool { !self.0.map(f32::is_nan).reduce_or() && self.is_normalized() }
-
-    pub fn vec(&self) -> &Vec3<f32> { &self.0 }
 }
 
 impl std::ops::Deref for Dir {
