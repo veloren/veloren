@@ -56,13 +56,23 @@ impl ParticleMgr {
                 for _ in 0..150 {
                     self.particles.push(Particles {
                         alive_until: now + Duration::from_millis(250),
-                        instance: ParticleInstance::new(time, rng.gen(), ParticleMode::Shrapnel, *pos),
+                        instance: ParticleInstance::new(
+                            time,
+                            rng.gen(),
+                            ParticleMode::Shrapnel,
+                            *pos,
+                        ),
                     });
                 }
                 for _ in 0..200 {
                     self.particles.push(Particles {
                         alive_until: now + Duration::from_secs(4),
-                        instance: ParticleInstance::new(time, rng.gen(), ParticleMode::CampfireSmoke, *pos + Vec2::<f32>::zero().map(|_| rng.gen_range(-1.0, 1.0) * power)),
+                        instance: ParticleInstance::new(
+                            time,
+                            rng.gen(),
+                            ParticleMode::CampfireSmoke,
+                            *pos + Vec2::<f32>::zero().map(|_| rng.gen_range(-1.0, 1.0) * power),
+                        ),
                     });
                 }
             },
@@ -77,13 +87,15 @@ impl ParticleMgr {
             // remove dead particles
             self.particles.retain(|p| p.alive_until > now);
 
+            // add new particles
             self.maintain_body_particles(scene_data);
             self.maintain_boost_particles(scene_data);
-
-            self.upload_particles(renderer);
         } else {
+            // remove all particles
             self.particles.clear();
         }
+
+        self.upload_particles(renderer);
     }
 
     fn upload_particles(&mut self, renderer: &mut Renderer) {
