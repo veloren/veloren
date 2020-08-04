@@ -20,30 +20,14 @@ out float f_light;
 
 const float SCALE = 1.0 / 11.0;
 
-// Φ = Golden Ratio
-float PHI = 1.61803398874989484820459;
-
-float gold_noise(in vec2 xy, in float seed){
-       return fract(tan(distance(xy * PHI, xy) * seed) * xy.x);
-}
-
 // Modes
 const int SMOKE = 0;
 const int FIRE = 1;
 const int GUN_POWDER_SPARK = 2;
 const int SHRAPNEL = 3;
 
-// meters per second
+// meters per second squared (acceleration)
 const float earth_gravity = 9.807;
-
-mat4 translate(vec3 vec){
-    return mat4(
-        vec4(1.0,   0.0,   0.0,   0.0),
-        vec4(0.0,   1.0,   0.0,   0.0),
-        vec4(0.0,   0.0,   1.0,   0.0),
-        vec4(vec.x, vec.y, vec.z, 1.0)
-    );
-}
 
 struct Attr {
 	vec3 offs;
@@ -66,8 +50,6 @@ float exp_scale(float factor) {
 }
 
 void main() {
-	mat4 inst_mat = translate(inst_pos);
-
 	float rand0 = hash(vec4(inst_entropy + 0));
 	float rand1 = hash(vec4(inst_entropy + 1));
 	float rand2 = hash(vec4(inst_entropy + 2));
@@ -126,14 +108,18 @@ void main() {
 		);
 	}
 
-	f_pos = (inst_mat * vec4(v_pos * attr.scale * SCALE + attr.offs, 1)).xyz;
+	f_pos = inst_pos + (v_pos * attr.scale * SCALE + attr.offs);
 
 	// First 3 normals are negative, next 3 are positive
 	vec3 normals[6] = vec3[](vec3(-1,0,0), vec3(1,0,0), vec3(0,-1,0), vec3(0,1,0), vec3(0,0,-1), vec3(0,0,1));
-	f_norm = (inst_mat * vec4(normals[(v_norm_ao >> 0) & 0x7u], 0)).xyz;
+	f_norm = 
+		// inst_pos *
+		normals[(v_norm_ao >> 0) & 0x7u];
 
-	vec3 col = vec3((uvec3(v_col) >> uvec3(0, 8, 16)) & uvec3(0xFFu)) / 255.0;
-	f_col = srgb_to_linear(col) * srgb_to_linear(attr.col);
+	//vec3 col = vec3((uvec3(v_col) >> uvec3(0, 8, 16)) & uvec3(0xFFu)) / 255.0;
+	f_col = 
+		//srgb_to_linear(col) * 
+		srgb_to_linear(attr.col);
 	f_ao = float((v_norm_ao >> 3) & 0x3u) / 4.0;
 
 	f_light = 1.0;
