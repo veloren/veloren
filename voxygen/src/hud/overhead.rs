@@ -148,12 +148,15 @@ impl<'a> Widget for Overhead<'a> {
         const MANA_BAR_Y: f64 = MANA_BAR_HEIGHT / 2.0;
         let hp_percentage =
             self.stats.health.current() as f64 / self.stats.health.maximum() as f64 * 100.0;
-        let name_y = if hp_percentage == 100.0 {
-            MANA_BAR_Y + 10.0
+        let level_comp = self.stats.level.level() as i64 - self.own_level as i64;
+        let name_y = if hp_percentage.abs() > 99.9 {
+            MANA_BAR_Y + 20.0
+        } else if level_comp > 9 {
+            MANA_BAR_Y + 38.0
         } else {
             MANA_BAR_Y + 32.0
         };
-        let font_size = if hp_percentage == 100.0 { 24 } else { 20 };
+        let font_size = if hp_percentage.abs() > 99.9 { 24 } else { 20 };
         // Name
         Text::new(&self.name)
             .font_id(self.fonts.cyri.conrod_id)

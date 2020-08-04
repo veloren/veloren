@@ -1,6 +1,12 @@
-use super::{img_ids::Imgs, Show, TEXT_COLOR, TEXT_COLOR_3, UI_HIGHLIGHT_0, UI_MAIN};
+use super::{
+    img_ids::{Imgs, ImgsRot},
+    Show, TEXT_COLOR, TEXT_COLOR_3, UI_HIGHLIGHT_0, UI_MAIN,
+};
 
-use crate::{i18n::VoxygenLocalization, ui::fonts::ConrodVoxygenFonts};
+use crate::{
+    i18n::VoxygenLocalization,
+    ui::{fonts::ConrodVoxygenFonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
+};
 use client::{self, Client};
 use common::sync::Uid;
 use conrod_core::{
@@ -63,30 +69,34 @@ pub struct Social<'a> {
     imgs: &'a Imgs,
     fonts: &'a ConrodVoxygenFonts,
     localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
-    //stats: &'a Stats,
     selected_entity: Option<(specs::Entity, Instant)>,
+    rot_imgs: &'a ImgsRot,
+    tooltip_manager: &'a mut TooltipManager,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 
 impl<'a> Social<'a> {
+    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn new(
         show: &'a Show,
         client: &'a Client,
         imgs: &'a Imgs,
         fonts: &'a ConrodVoxygenFonts,
         localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
-        //stats: &'a Stats,
         selected_entity: Option<(specs::Entity, Instant)>,
+        rot_imgs: &'a ImgsRot,
+        tooltip_manager: &'a mut TooltipManager,
     ) -> Self {
         Self {
             show,
             client,
             imgs,
+            rot_imgs,
             fonts,
             localized_strings,
-            //stats,
+            tooltip_manager,
             selected_entity,
             common: widget::CommonBuilder::default(),
         }
@@ -118,6 +128,24 @@ impl<'a> Widget for Social<'a> {
         let widget::UpdateArgs { state, ui, .. } = args;
 
         let mut events = Vec::new();
+        let button_tooltip = Tooltip::new({
+            // Edge images [t, b, r, l]
+            // Corner images [tr, tl, br, bl]
+            let edge = &self.rot_imgs.tt_side;
+            let corner = &self.rot_imgs.tt_corner;
+            ImageFrame::new(
+                [edge.cw180, edge.none, edge.cw270, edge.cw90],
+                [corner.none, corner.cw270, corner.cw90, corner.cw180],
+                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                5.0,
+            )
+        })
+        .title_font_size(self.fonts.cyri.scale(15))
+        .parent(ui.window)
+        .desc_font_size(self.fonts.cyri.scale(12))
+        .title_text_color(TEXT_COLOR)
+        .font_id(self.fonts.cyri.conrod_id)
+        .desc_text_color(TEXT_COLOR);
 
         // Window frame and BG
         let pos = if self.show.group || self.show.group_menu {
@@ -472,7 +500,20 @@ impl<'a> Widget for Social<'a> {
                     self.selected_entity
                         .and_then(|s| self.client.state().read_component_copied(s.0))
                 });
-
+            // TODO: Prevent inviting players with the same group uid
+            // TODO: Show current amount of group members as a tooltip for the invite button
+            // if the player is the group leader TODO: Grey out the invite
+            // button if the group has 6/6 members
+            let current_members = 4;
+            let tooltip_txt = if selected_ingame.is_some() {
+                format!(
+                    "{}/6 {}",
+                    &current_members,
+                    &self.localized_strings.get("hud.group.members")
+                )
+            } else {
+                (&self.localized_strings.get("hud.group.members")).to_string()
+            };
             if Button::image(self.imgs.button)
                 .w_h(106.0, 26.0)
                 .bottom_right_with_margins_on(state.ids.frame, 9.0, 7.0)
@@ -500,6 +541,7 @@ impl<'a> Widget for Social<'a> {
                 })
                 .label_font_size(self.fonts.cyri.scale(15))
                 .label_font_id(self.fonts.cyri.conrod_id)
+                .with_tooltip(self.tooltip_manager, &tooltip_txt, "", &button_tooltip)
                 .set(state.ids.invite_button, ui)
                 .was_clicked()
             {

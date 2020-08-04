@@ -261,7 +261,7 @@ impl StateExt for State {
             | comp::ChatType::Kill
             | comp::ChatType::Meta
             | comp::ChatType::World(_) => {
-                self.notify_registered_clients(ServerMsg::ChatMsg(resolved_msg.clone()))
+                self.notify_registered_clients(ServerMsg::ChatMsg(resolved_msg))
             },
             comp::ChatType::Tell(u, t) => {
                 for (client, uid) in (
