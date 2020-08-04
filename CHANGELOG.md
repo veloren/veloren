@@ -78,6 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated windowing library (winit 0.19 -> 0.22)
 - Bow M2 is now a charged attack that scales the longer it's held
 - Fixed window resizing on Mac OS X.
+- Dehardcoded many item variants
 
 ### Removed
 

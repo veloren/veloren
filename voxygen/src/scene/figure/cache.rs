@@ -8,7 +8,7 @@ use anim::Skeleton;
 use common::{
     assets::watch::ReloadIndicator,
     comp::{
-        item::{armor::ArmorKind, tool::ToolKind, ItemKind, LanternKind},
+        item::{armor::ArmorKind, tool::ToolKind, ItemKind},
         Body, CharacterState, Loadout,
     },
     figure::Segment,
@@ -37,7 +37,7 @@ struct CharacterCacheKey {
     chest: Option<ArmorKind>,
     belt: Option<ArmorKind>,
     back: Option<ArmorKind>,
-    lantern: Option<LanternKind>,
+    lantern: Option<String>,
     hand: Option<ArmorKind>,
     pants: Option<ArmorKind>,
     foot: Option<ArmorKind>,
@@ -86,7 +86,7 @@ impl CharacterCacheKey {
             lantern: if let Some(ItemKind::Lantern(lantern)) =
                 loadout.lantern.as_ref().map(|i| &i.kind)
             {
-                Some(lantern.kind)
+                Some(lantern.kind.clone())
             } else {
                 None
             },

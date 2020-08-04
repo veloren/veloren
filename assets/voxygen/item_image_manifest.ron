@@ -461,11 +461,11 @@
         (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     Tool(Hammer("CobaltHammer0")): VoxTrans(
-        "voxel.weapon.hammer.2hhammer_Cobalt-0",
+        "voxel.weapon.hammer.2hhammer_cobalt-0",
         (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     Tool(Hammer("CobaltHammer1")): VoxTrans(
-        "voxel.weapon.hammer.2hhammer_Cobalt-1",
+        "voxel.weapon.hammer.2hhammer_cobalt-1",
         (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     Tool(Hammer("RunicHammer")): VoxTrans(
@@ -508,16 +508,16 @@
         (0.0, 0.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
     ),
     // Lanterns
-    Lantern(Black0): Png(
+    Lantern("Black0"): Png(
         "element.icons.lantern_black-0",
     ),
-    Lantern(Green0): Png(
+    Lantern("Green0"): Png(
         "element.icons.lantern_green-0",
     ),
-    Lantern(Blue0): Png(
+    Lantern("Blue0"): Png(
         "element.icons.lantern_blue-0",
     ),
-    Lantern(Red0): Png(
+    Lantern("Red0"): Png(
         "element.icons.lantern_red-0",
     ),
     // Farming Equipment
@@ -621,7 +621,7 @@
         "voxel.armor.shoulder.cultist_right",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
-     // Druid Set
+    // Druid Set
     Armor(Chest("Druid")): VoxTrans(
         "voxel.armor.chest.druid",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
@@ -762,7 +762,7 @@
         "voxel.armor.hand.steel_right-0",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
-     Armor(Shoulder("Steel0")): VoxTrans(
+    Armor(Shoulder("Steel0")): VoxTrans(
         "voxel.armor.shoulder.steel_right-0",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
@@ -787,7 +787,7 @@
         "voxel.armor.hand.leather_right-0",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
-     Armor(Shoulder("Leather0")): VoxTrans(
+    Armor(Shoulder("Leather0")): VoxTrans(
         "voxel.armor.shoulder.leather_right-0",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
@@ -817,7 +817,7 @@
         "voxel.armor.hand.leather_right-2",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
-     Armor(Shoulder("Leather2")): VoxTrans(
+    Armor(Shoulder("Leather2")): VoxTrans(
         "voxel.armor.shoulder.leather_right-2",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
@@ -871,7 +871,7 @@
         "voxel.armor.shoulder.cloth_green_right-0",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
-     Armor(Shoulder("ClothGreen0")): VoxTrans(
+    Armor(Shoulder("ClothGreen0")): VoxTrans(
         "voxel.armor.shoulder.cloth_green_right-0",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
@@ -900,19 +900,19 @@
         "voxel.armor.shoulder.cloth_purple_right-0",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
-     Armor(Shoulder("ClothBlue1")): VoxTrans(
+    Armor(Shoulder("ClothBlue1")): VoxTrans(
         "voxel.armor.shoulder.cloth_blue_right-1",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
-     Armor(Shoulder("IronSpikes")): VoxTrans(
+    Armor(Shoulder("IronSpikes")): VoxTrans(
         "voxel.armor.shoulder.iron_spikes_right",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
-     Armor(Shoulder("IronLeather3")): VoxTrans(
+    Armor(Shoulder("IronLeather3")): VoxTrans(
         "voxel.armor.shoulder.leather_iron_right-3",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
-     Armor(Shoulder("IronLeather2")): VoxTrans(
+    Armor(Shoulder("IronLeather2")): VoxTrans(
         "voxel.armor.shoulder.leather_iron_right-2",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
@@ -978,7 +978,7 @@
         "voxel.armor.hand.twigsleaves_glove_right",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
-     Armor(Shoulder("LeafyShoulder")): VoxTrans(
+    Armor(Shoulder("LeafyShoulder")): VoxTrans(
         "voxel.armor.shoulder.twigsleaves_shoulder_right",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
@@ -1003,7 +1003,7 @@
         "voxel.armor.hand.twigsflowers_glove_right",
         (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
-     Armor(Shoulder("FlowerShoulder")): VoxTrans(
+    Armor(Shoulder("FlowerShoulder")): VoxTrans(
         "voxel.armor.shoulder.twigsflowers_shoulder_right",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
@@ -1047,55 +1047,54 @@
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
     // Consumables
-    Consumable(Apple):
-    Png(
+    Consumable("Apple"): Png(
         "element.icons.item_apple",
     ),
-    Consumable(Coconut): Png(
+    Consumable("Coconut"): Png(
         "element.icons.item_coconut",
     ),
-    Consumable(PotionMed): VoxTrans(
+    Consumable("PotionMed"): VoxTrans(
         "voxel.object.potion_red",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
     ),
-    Consumable(PotionMinor): VoxTrans(
+    Consumable("PotionMinor"): VoxTrans(
         "voxel.object.potion_red",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.5,
     ),
-    Consumable(PotionLarge): VoxTrans(
+    Consumable("PotionLarge"): VoxTrans(
         "voxel.object.potion_red",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
     ),
-    Consumable(PotionExp): VoxTrans(
+    Consumable("PotionExp"): VoxTrans(
         "voxel.object.potion_turq",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
-    Consumable(Cheese): Png(
+    Consumable("Cheese"): Png(
         "element.icons.item_cheese",
     ),
-    Consumable(Potion): VoxTrans(
+    Consumable("Potion"): VoxTrans(
         "voxel.object.potion_red",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.0,
     ),
-    Consumable(Mushroom): VoxTrans(
+    Consumable("Mushroom"): VoxTrans(
         "voxel.sprite.mushrooms.mushroom-10",
         (0.0, 0.0, 0.0), (-50.0, 70.0, 40.0), 1.0,
     ),
-    Consumable(Velorite): VoxTrans(
+    Consumable("Velorite"): VoxTrans(
         "voxel.sprite.velorite.velorite_ore",
         (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    Consumable(VeloriteFrag): VoxTrans(
+    Consumable("VeloriteFrag"): VoxTrans(
         "voxel.sprite.velorite.velorite_1",
         (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    Consumable(AppleShroomCurry): Png(
+    Consumable("AppleShroomCurry"): Png(
         "element.icons.item_apple_curry",
     ),
-    Consumable(AppleStick): Png(
+    Consumable("AppleStick"): Png(
         "element.icons.item_apple_stick",
     ),
-    Consumable(MushroomStick): Png(
+    Consumable("MushroomStick"): Png(
         "element.icons.item_shroom_stick",
     ),
         
@@ -1109,36 +1108,36 @@
         (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
     // Ingredients
-    Ingredient(CraftsmanHammer): VoxTrans( //TODO This should be a 1h hammer!
+    Ingredient("CraftsmanHammer"): VoxTrans( //TODO This should be a 1h hammer!
         "voxel.weapon.hammer.craftsman",
         (1.0, 1.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
-    Ingredient(Flower): VoxTrans(
+    Ingredient("Flower"): VoxTrans(
         "voxel.sprite.flowers.flower_red_2",
         (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    Ingredient(Grass): VoxTrans(
+    Ingredient("Grass"): VoxTrans(
         "voxel.sprite.grass.grass_long_5",
         (0.0, 0.0, 0.0), (-90.0, 50.0, 0.0), 1.0,
     ),
-    Ingredient(Stones): VoxTrans(
+    Ingredient("Stones"): VoxTrans(
         "voxel.sprite.rocks.rock-0",
         (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    Ingredient(Twigs): VoxTrans(
+    Ingredient("Twigs"): VoxTrans(
         "voxel.sprite.twigs.twigs-0",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient(LeatherScraps): Png(
+    Ingredient("LeatherScraps"): Png(
         "element.icons.item_leather0",
     ),
-    Ingredient(ShinyGem): Png(
+    Ingredient("ShinyGem"): Png(
         "element.icons.gem",
     ),
-    Ingredient(MortarPestle): Png(
+    Ingredient("MortarPestle"): Png(
         "element.icons.item_mortarpestlecoco",
     ),
-    Ingredient(EmptyVial): VoxTrans(
+    Ingredient("EmptyVial"): VoxTrans(
         "voxel.object.potion_empty",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
