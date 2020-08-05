@@ -2,7 +2,7 @@ Item(
     name: "Coconut",
     description: "Restores 30 health\n\nReliable source of water and fat\n\n<Right-Click to use>",
     kind: Consumable(
-        kind: Coconut,
+        kind: "Coconut",
         effect: Health((
             amount: 300,
             cause: Item,

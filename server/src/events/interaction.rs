@@ -24,12 +24,12 @@ pub fn handle_lantern(server: &mut Server, entity: EcsEntity) {
             .write_storage::<comp::LightEmitter>()
             .remove(entity);
     } else {
-        let lantern_opt = ecs
-            .read_storage::<comp::Loadout>()
+        let loadout_storage = ecs.read_storage::<comp::Loadout>();
+        let lantern_opt = loadout_storage
             .get(entity)
             .and_then(|loadout| loadout.lantern.as_ref())
             .and_then(|item| {
-                if let comp::item::ItemKind::Lantern(l) = item.kind {
+                if let comp::item::ItemKind::Lantern(l) = &item.kind {
                     Some(l)
                 } else {
                     None

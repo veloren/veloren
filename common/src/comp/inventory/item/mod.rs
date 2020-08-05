@@ -17,24 +17,6 @@ use std::{fs::File, io::BufReader};
 use vek::Rgb;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Consumable {
-    Coconut,
-    Apple,
-    Cheese,
-    Potion,
-    Mushroom,
-    Velorite,
-    VeloriteFrag,
-    PotionMinor,
-    PotionMed,
-    PotionLarge,
-    PotionExp,
-    AppleShroomCurry,
-    AppleStick,
-    MushroomStick,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Throwable {
     Bomb,
     TrainingDummy,
@@ -45,42 +27,13 @@ pub enum Utility {
     Collar,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Ingredient {
-    Flower,
-    Grass,
-    EmptyVial,
-    LeatherScraps,
-    ShinyGem,
-    Stones,
-    Twigs,
-    MortarPestle,
-    CraftsmanHammer,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum LanternKind {
-    Black0 = 1,
-    Green0 = 2,
-    Red0 = 3,
-    Blue0 = 4,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Lantern {
-    pub kind: LanternKind,
+    pub kind: String,
     color: Rgb<u32>,
     strength_thousandths: u32,
     flicker_thousandths: u32,
 }
-
-pub const ALL_LANTERNS: [LanternKind; 4] = [
-    LanternKind::Black0,
-    LanternKind::Green0,
-    LanternKind::Red0,
-    LanternKind::Blue0,
-];
 
 impl Lantern {
     pub fn strength(&self) -> f32 { self.strength_thousandths as f32 / 1000_f32 }
@@ -97,7 +50,7 @@ pub enum ItemKind {
     Lantern(Lantern),
     Armor(armor::Armor),
     Consumable {
-        kind: Consumable,
+        kind: String,
         effect: Effect,
         #[serde(default = "default_amount")]
         amount: u32,
@@ -113,7 +66,7 @@ pub enum ItemKind {
         amount: u32,
     },
     Ingredient {
-        kind: Ingredient,
+        kind: String,
         #[serde(default = "default_amount")]
         amount: u32,
     },

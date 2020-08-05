@@ -2,7 +2,7 @@ pub mod item;
 pub mod slot;
 
 use crate::{assets, recipe::Recipe};
-use item::{Consumable, Item, ItemKind};
+use item::{Item, ItemKind};
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage, HashMapStorage};
 use specs_idvs::IdvStorage;
@@ -38,7 +38,7 @@ impl Inventory {
     /// Adds a new item to the first fitting group of the inventory or starts a
     /// new group. Returns the item again if no space was found.
     pub fn push(&mut self, item: Item) -> Option<Item> {
-        let item = match item.kind {
+        let item = match &item.kind {
             ItemKind::Tool(_) | ItemKind::Armor { .. } | ItemKind::Lantern(_) => {
                 self.add_to_first_empty(item)
             },
@@ -61,7 +61,7 @@ impl Inventory {
                             ..
                         }) = slot
                         {
-                            if item_kind == *kind {
+                            if *item_kind == *kind {
                                 *amount += new_amount;
                                 self.recount_items();
                                 return None;
@@ -92,7 +92,7 @@ impl Inventory {
                             ..
                         }) = slot
                         {
-                            if item_kind == *kind {
+                            if *item_kind == *kind {
                                 *amount += new_amount;
                                 self.recount_items();
                                 return None;
@@ -123,7 +123,7 @@ impl Inventory {
                             ..
                         }) = slot
                         {
-                            if item_kind == *kind {
+                            if *item_kind == *kind {
                                 *amount += new_amount;
                                 self.recount_items();
                                 return None;
@@ -153,7 +153,7 @@ impl Inventory {
                             ..
                         }) = slot
                         {
-                            if item_kind == *kind {
+                            if *item_kind == *kind {
                                 *amount += new_amount;
                                 self.recount_items();
                                 return None;
@@ -424,7 +424,7 @@ impl Inventory {
                     } else {
                         *amount -= 1;
                         return_item.kind = ItemKind::Consumable {
-                            kind: *kind,
+                            kind: kind.clone(),
                             effect: *effect,
                             amount: 1,
                         };
@@ -451,7 +451,7 @@ impl Inventory {
                     } else {
                         *amount -= 1;
                         return_item.kind = ItemKind::Ingredient {
-                            kind: *kind,
+                            kind: kind.clone(),
                             amount: 1,
                         };
                         self.recount_items();
@@ -531,7 +531,7 @@ impl Component for Inventory {
 pub enum InventoryUpdateEvent {
     Init,
     Used,
-    Consumed(Consumable),
+    Consumed(String),
     Gave,
     Given,
     Swapped,
