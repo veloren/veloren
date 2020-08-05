@@ -27,7 +27,6 @@ widget_ids! {
         scrollbar,
         online_align,
         online_tab,
-        online_tab_icon,
         names_align,
         name_txt,
         player_levels[],
@@ -205,18 +204,10 @@ impl<'a> Widget for Social<'a> {
         // Tabs Buttons
         // Online Tab Button
         if Button::image(match &self.show.social_tab {
-            SocialTab::Online => self.imgs.social_tab_act,
+            SocialTab::Online => self.imgs.social_tab_online,
             _ => self.imgs.social_tab_inact,
         })
         .w_h(30.0, 44.0)
-        .hover_image(match &self.show.social_tab {
-            SocialTab::Online => self.imgs.social_tab_act,
-            _ => self.imgs.social_tab_inact_hover,
-        })
-        .press_image(match &self.show.social_tab {
-            SocialTab::Online => self.imgs.social_tab_act,
-            _ => self.imgs.social_tab_inact_press,
-        })
         .image_color(match &self.show.social_tab {
             SocialTab::Online => UI_MAIN,
             _ => Color::Rgba(1.0, 1.0, 1.0, 0.6),
@@ -227,14 +218,6 @@ impl<'a> Widget for Social<'a> {
         {
             events.push(Event::ChangeSocialTab(SocialTab::Online));
         }
-        Image::new(self.imgs.chat_online_small)
-            .w_h(20.0, 20.0)
-            .top_right_with_margins_on(state.ids.online_tab, 12.0, 7.0)
-            .color(match &self.show.social_tab {
-                SocialTab::Online => Some(TEXT_COLOR),
-                _ => Some(UI_MAIN),
-            })
-            .set(state.ids.online_tab_icon, ui);
         // Friends Tab Button
         if Button::image(match &self.show.social_tab {
             SocialTab::Friends => self.imgs.social_tab_act,
