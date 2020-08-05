@@ -79,6 +79,7 @@ fn get_tool_kind(kind: &ToolKind) -> String {
         ToolKind::Shield(_) => "Shield".to_string(),
         ToolKind::Debug(_) => "Debug".to_string(),
         ToolKind::Farming(_) => "Farming".to_string(),
+        ToolKind::NpcWeapon(_) => "NpcWeapon".to_string(),
         ToolKind::Empty => "Empty".to_string(),
     }
 }
@@ -94,6 +95,7 @@ fn get_tool_kind_kind(kind: &ToolKind) -> String {
         ToolKind::Shield(x) => x.clone(),
         ToolKind::Debug(x) => x.clone(),
         ToolKind::Farming(x) => x.clone(),
+        ToolKind::NpcWeapon(x) => x.clone(),
         ToolKind::Empty => "".to_string(),
     }
 }
