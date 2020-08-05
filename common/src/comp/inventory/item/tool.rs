@@ -2,7 +2,8 @@
 // version in voxygen\src\meta.rs in order to reset save files to being empty
 
 use crate::comp::{
-    body::object, projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile,
+    body::object, projectile, Ability, AbilityId, Body, CharacterAbility, Gravity, LightEmitter,
+    Projectile,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -106,62 +107,62 @@ impl Tool {
         Duration::from_millis(self.stats.equip_time_millis as u64)
     }
 
-    pub fn get_abilities(&self) -> Vec<CharacterAbility> {
+    pub fn get_abilities(&self) -> Vec<Ability> {
         use CharacterAbility::*;
         use ToolKind::*;
 
         match &self.kind {
             Sword(_) => vec![
-                TripleStrike {
+                Ability::new(AbilityId::SwordCut, TripleStrike {
                     base_damage: (60.0 * self.base_power()) as u32,
                     needs_timing: false,
-                },
-                DashMelee {
+                }),
+                Ability::new(AbilityId::SwordThrust, DashMelee {
                     energy_cost: 700,
                     buildup_duration: Duration::from_millis(500),
                     recover_duration: Duration::from_millis(500),
                     base_damage: (120.0 * self.base_power()) as u32,
-                },
+                }),
             ],
             Axe(_) => vec![
-                TripleStrike {
+                Ability::new(AbilityId::AxeSwing, TripleStrike {
                     base_damage: (80.0 * self.base_power()) as u32,
                     needs_timing: true,
-                },
-                SpinMelee {
+                }),
+                Ability::new(AbilityId::AxeSpin, SpinMelee {
                     energy_cost: 100,
                     buildup_duration: Duration::from_millis(125),
                     recover_duration: Duration::from_millis(125),
                     base_damage: (60.0 * self.base_power()) as u32,
-                },
+                }),
             ],
             Hammer(_) => vec![
-                BasicMelee {
+                Ability::new(AbilityId::HammerSmash, BasicMelee {
                     energy_cost: 0,
                     buildup_duration: Duration::from_millis(700),
                     recover_duration: Duration::from_millis(300),
                     base_healthchange: (-120.0 * self.base_power()) as i32,
                     range: 3.5,
                     max_angle: 60.0,
-                },
-                LeapMelee {
+                }),
+                Ability::new(AbilityId::HammerLeap, LeapMelee {
                     energy_cost: 800,
                     movement_duration: Duration::from_millis(500),
                     buildup_duration: Duration::from_millis(1000),
                     recover_duration: Duration::from_millis(100),
                     base_damage: (240.0 * self.base_power()) as u32,
-                },
+                }),
             ],
-            Farming(_) => vec![BasicMelee {
+            Farming(_) => vec![Ability::new(AbilityId::FarmingAttack, BasicMelee {
                 energy_cost: 1,
                 buildup_duration: Duration::from_millis(700),
                 recover_duration: Duration::from_millis(150),
                 base_healthchange: (-50.0 * self.base_power()) as i32,
                 range: 3.0,
                 max_angle: 60.0,
-            }],
+            })],
             Bow(_) => vec![
-                BasicRanged {
+                Ability::new(AbilityId::BowShot, BasicRanged {
                     energy_cost: 0,
                     holdable: true,
                     prepare_duration: Duration::from_millis(100),
@@ -180,8 +181,8 @@ impl Tool {
                     projectile_body: Body::Object(object::Body::Arrow),
                     projectile_light: None,
                     projectile_gravity: Some(Gravity(0.2)),
-                },
-                ChargedRanged {
+                }),
+                Ability::new(AbilityId::BowCharged, ChargedRanged {
                     energy_cost: 0,
                     energy_drain: 300,
                     initial_damage: (40.0 * self.base_power()) as u32,
@@ -193,55 +194,55 @@ impl Tool {
                     recover_duration: Duration::from_millis(500),
                     projectile_body: Body::Object(object::Body::Arrow),
                     projectile_light: None,
-                },
+                }),
             ],
             Dagger(_) => vec![
-                BasicMelee {
+                Ability::new(AbilityId::DaggerStab, BasicMelee {
                     energy_cost: 0,
                     buildup_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(400),
                     base_healthchange: (-50.0 * self.base_power()) as i32,
                     range: 3.5,
                     max_angle: 60.0,
-                },
-                DashMelee {
+                }),
+                Ability::new(AbilityId::DaggerDash, DashMelee {
                     energy_cost: 700,
                     buildup_duration: Duration::from_millis(500),
                     recover_duration: Duration::from_millis(500),
                     base_damage: (100.0 * self.base_power()) as u32,
-                },
+                }),
             ],
             Staff(kind) => {
                 if kind == "Sceptre" {
                     vec![
-                        BasicMelee {
+                        Ability::new(AbilityId::StaffSwing, BasicMelee {
                             energy_cost: 0,
                             buildup_duration: Duration::from_millis(0),
                             recover_duration: Duration::from_millis(300),
                             base_healthchange: (-10.0 * self.base_power()) as i32,
                             range: 10.0,
                             max_angle: 45.0,
-                        },
-                        BasicMelee {
+                        }),
+                        Ability::new(AbilityId::StaffHeal, BasicMelee {
                             energy_cost: 350,
                             buildup_duration: Duration::from_millis(0),
                             recover_duration: Duration::from_millis(1000),
                             base_healthchange: (150.0 * self.base_power()) as i32,
                             range: 10.0,
                             max_angle: 45.0,
-                        },
+                        }),
                     ]
                 } else {
                     vec![
-                        BasicMelee {
+                        Ability::new(AbilityId::StaffSwing, BasicMelee {
                             energy_cost: 0,
                             buildup_duration: Duration::from_millis(100),
                             recover_duration: Duration::from_millis(300),
                             base_healthchange: (-40.0 * self.base_power()) as i32,
                             range: 10.0,
                             max_angle: 45.0,
-                        },
-                        BasicRanged {
+                        }),
+                        Ability::new(AbilityId::StaffShot, BasicRanged {
                             energy_cost: 0,
                             holdable: false,
                             prepare_duration: Duration::from_millis(250),
@@ -263,8 +264,8 @@ impl Tool {
                             }),
 
                             projectile_gravity: None,
-                        },
-                        BasicRanged {
+                        }),
+                        Ability::new(AbilityId::StaffFireball, BasicRanged {
                             energy_cost: 400,
                             holdable: true,
                             prepare_duration: Duration::from_millis(800),
@@ -292,33 +293,33 @@ impl Tool {
                             }),
 
                             projectile_gravity: None,
-                        },
+                        }),
                     ]
                 }
             },
             Shield(_) => vec![
-                BasicMelee {
+                Ability::new(AbilityId::ShieldBash, BasicMelee {
                     energy_cost: 0,
                     buildup_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(400),
                     base_healthchange: (-40.0 * self.base_power()) as i32,
                     range: 3.0,
                     max_angle: 120.0,
-                },
-                BasicBlock,
+                }),
+                Ability::new(AbilityId::ShieldBlock, BasicBlock),
             ],
             Debug(kind) => {
                 if kind == "Boost" {
                     vec![
-                        CharacterAbility::Boost {
+                        Ability::new(AbilityId::DebugFlyDirection, CharacterAbility::Boost {
                             duration: Duration::from_millis(50),
                             only_up: false,
-                        },
-                        CharacterAbility::Boost {
+                        }),
+                        Ability::new(AbilityId::DebugFlyUp, CharacterAbility::Boost {
                             duration: Duration::from_millis(50),
                             only_up: true,
-                        },
-                        BasicRanged {
+                        }),
+                        Ability::new(AbilityId::DebugPossesArrow, BasicRanged {
                             energy_cost: 0,
                             holdable: false,
                             prepare_duration: Duration::from_millis(0),
@@ -338,20 +339,20 @@ impl Tool {
                                 ..Default::default()
                             }),
                             projectile_gravity: None,
-                        },
+                        }),
                     ]
                 } else {
                     vec![]
                 }
             },
-            Empty => vec![BasicMelee {
+            Empty => vec![Ability::new(AbilityId::Empty, BasicMelee {
                 energy_cost: 0,
                 buildup_duration: Duration::from_millis(0),
                 recover_duration: Duration::from_millis(1000),
                 base_healthchange: -20,
                 range: 5.0,
                 max_angle: 60.0,
-            }],
+            })],
         }
     }
 
