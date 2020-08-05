@@ -70,6 +70,7 @@ impl LoadoutBuilder {
                     buildup_duration: Duration::from_millis(600),
                     recover_duration: Duration::from_millis(100),
                     base_healthchange: -(body.base_dmg() as i32),
+                    knockback: 0.0,
                     range: body.base_range(),
                     max_angle: 20.0,
                 }),

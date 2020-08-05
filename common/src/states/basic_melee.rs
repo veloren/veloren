@@ -14,6 +14,8 @@ pub struct Data {
     pub recover_duration: Duration,
     /// Base damage (negative) or healing (positive)
     pub base_healthchange: i32,
+    /// Knockback
+    pub knockback: f32,
     /// Max range
     pub range: f32,
     /// Max angle (45.0 will give you a 90.0 angle window)
@@ -38,6 +40,7 @@ impl CharacterBehavior for Data {
                     .unwrap_or_default(),
                 recover_duration: self.recover_duration,
                 base_healthchange: self.base_healthchange,
+                knockback: self.knockback,
                 range: self.range,
                 max_angle: self.max_angle,
                 exhausted: false,
@@ -50,13 +53,14 @@ impl CharacterBehavior for Data {
                 max_angle: self.max_angle.to_radians(),
                 applied: false,
                 hit_count: 0,
-                knockback: 0.0,
+                knockback: self.knockback,
             });
 
             update.character = CharacterState::BasicMelee(Data {
                 buildup_duration: self.buildup_duration,
                 recover_duration: self.recover_duration,
                 base_healthchange: self.base_healthchange,
+                knockback: self.knockback,
                 range: self.range,
                 max_angle: self.max_angle,
                 exhausted: true,
@@ -70,6 +74,7 @@ impl CharacterBehavior for Data {
                     .checked_sub(Duration::from_secs_f32(data.dt.0))
                     .unwrap_or_default(),
                 base_healthchange: self.base_healthchange,
+                knockback: self.knockback,
                 range: self.range,
                 max_angle: self.max_angle,
                 exhausted: true,
