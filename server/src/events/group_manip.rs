@@ -26,7 +26,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                     if let Some(client) = clients.get_mut(entity) {
                         client.notify(
                             ChatType::Meta
-                                .server_msg("Invite failed, target does not exist".to_owned()),
+                                .server_msg("Invite failed, target does not exist.".to_owned()),
                         );
                     }
                     return;
@@ -54,7 +54,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 if client.invited_to_group.is_some() {
                     already_has_invite = true;
                 } else {
-                    client.notify(ServerMsg::GroupInvite((*inviter_uid)));
+                    client.notify(ServerMsg::GroupInvite(*inviter_uid));
                     client.invited_to_group = Some(entity);
                 }
             // Would be cool to do this in agent system (e.g. add an invited
@@ -72,15 +72,16 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                     .write_storage()
                     .insert(invitee, comp::Agent::default());
             } else if let Some(client) = clients.get_mut(entity) {
-                client.notify(ChatType::Meta.server_msg("Invite rejected".to_owned()));
+                client.notify(ChatType::Meta.server_msg("Invite rejected.".to_owned()));
             }
 
             if already_has_invite {
                 // Inform inviter that there is already an invite
                 if let Some(client) = clients.get_mut(entity) {
-                    client.notify(ChatType::Meta.server_msg(
-                        "Invite failed target already has a pending invite".to_owned(),
-                    ));
+                    client.notify(
+                        ChatType::Meta
+                            .server_msg("This player already has a pending invite.".to_owned()),
+                    );
                 }
             }
 
@@ -143,7 +144,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 // Inform inviter of rejection
                 if let Some(client) = clients.get_mut(inviter) {
                     // TODO: say who declined the invite
-                    client.notify(ChatType::Meta.server_msg("Invite declined".to_owned()));
+                    client.notify(ChatType::Meta.server_msg("Invite declined.".to_owned()));
                 }
             }
         },
@@ -181,7 +182,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                     if let Some(client) = clients.get_mut(entity) {
                         client.notify(
                             ChatType::Meta
-                                .server_msg("Kick failed, target does not exist".to_owned()),
+                                .server_msg("Kick failed, target does not exist.".to_owned()),
                         );
                     }
                     return;
@@ -193,7 +194,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             {
                 if let Some(client) = clients.get_mut(entity) {
                     client.notify(
-                        ChatType::Meta.server_msg("Kick failed, can't kick pet".to_owned()),
+                        ChatType::Meta.server_msg("Kick failed, you can't kick pets.".to_owned()),
                     );
                 }
                 return;
@@ -202,7 +203,8 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             if uids.get(entity).map_or(false, |u| *u == uid) {
                 if let Some(client) = clients.get_mut(entity) {
                     client.notify(
-                        ChatType::Meta.server_msg("Kick failed, can't kick yourself".to_owned()),
+                        ChatType::Meta
+                            .server_msg("Kick failed, you can't kick yourself.".to_owned()),
                     );
                 }
                 return;
@@ -238,19 +240,20 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                     // Tell them the have been kicked
                     if let Some(client) = clients.get_mut(target) {
                         client.notify(
-                            ChatType::Meta.server_msg("The group leader kicked you".to_owned()),
+                            ChatType::Meta
+                                .server_msg("You were removed from the group.".to_owned()),
                         );
                     }
                     // Tell kicker that they were succesful
                     if let Some(client) = clients.get_mut(entity) {
-                        client.notify(ChatType::Meta.server_msg("Kick complete".to_owned()));
+                        client.notify(ChatType::Meta.server_msg("Player kicked.".to_owned()));
                     }
                 },
                 Some(_) => {
                     // Inform kicker that they are not the leader
                     if let Some(client) = clients.get_mut(entity) {
                         client.notify(ChatType::Meta.server_msg(
-                            "Kick failed: you are not the leader of the target's group".to_owned(),
+                            "Kick failed: You are not the leader of the target's group.".to_owned(),
                         ));
                     }
                 },
@@ -259,7 +262,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                     if let Some(client) = clients.get_mut(entity) {
                         client.notify(
                             ChatType::Meta.server_msg(
-                                "Kick failed: your target is not in a group".to_owned(),
+                                "Kick failed: Your target is not in a group.".to_owned(),
                             ),
                         );
                     }
@@ -309,14 +312,16 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                     );
                     // Tell them they are the leader
                     if let Some(client) = clients.get_mut(target) {
-                        client.notify(ChatType::Meta.server_msg(
-                            "The group leader has passed leadership to you".to_owned(),
-                        ));
+                        client.notify(
+                            ChatType::Meta.server_msg("You are the group leader now.".to_owned()),
+                        );
                     }
                     // Tell the old leader that the transfer was succesful
                     if let Some(client) = clients.get_mut(target) {
-                        client
-                            .notify(ChatType::Meta.server_msg("Leadership transferred".to_owned()));
+                        client.notify(
+                            ChatType::Meta
+                                .server_msg("You are no longer the group leader.".to_owned()),
+                        );
                     }
                 },
                 Some(_) => {
@@ -324,7 +329,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                     if let Some(client) = clients.get_mut(entity) {
                         client.notify(
                             ChatType::Meta.server_msg(
-                                "Transfer failed: you are not the leader of the target's group"
+                                "Transfer failed: You are not the leader of the target's group."
                                     .to_owned(),
                             ),
                         );
@@ -334,7 +339,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                     // Inform transferer that the target is not in a group
                     if let Some(client) = clients.get_mut(entity) {
                         client.notify(ChatType::Meta.server_msg(
-                            "Transfer failed: your target is not in a group".to_owned(),
+                            "Transfer failed: Your target is not in a group.".to_owned(),
                         ));
                     }
                 },

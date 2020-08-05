@@ -69,6 +69,7 @@ VoxygenLocalization(
         "common.error": "Fehler",
         "common.fatal_error": "Fataler Fehler",
         "common.decline": "Ablehnen",
+        "common.you": "Ihr",
         /// End Common section
 
          // Message when connection to the server is lost
@@ -321,15 +322,17 @@ magischen Gegenstände ergattern?"#,
         "hud.social.zone" : "Gebiet",
 
         "hud.group": "Gruppe",
-        "hud.group.invite": "Einladen",      
-        "hud.group.leave": "Verlassen",
-        "hud.group.add_friend": "Freund hinzufügen",
+        "hud.group.invite_to_join": "{name} lädt euch in seine Gruppe ein!",
+        "hud.group.invite": "Einladen",
+        "hud.group.kick": "Kicken",
         "hud.group.assign_leader": "Anführer",
-        "hud.group.kick": "Entfernen",          
-        "hud.group.invite_to_join": "{name} hat euch zu seiner Gruppe eingeladen!",    
+        "hud.group.leave": "Gruppe Verlassen",
         "hud.group.dead" : "Tot",
         "hud.group.out_of_range": "Außer Reichweite",
+        "hud.group.add_friend": "Freund hinzufügen",
         "hud.group.link_group": "Gruppen verbinden",
+        "hud.group.in_menu": "In Menü",
+        "hud.group.members": "Gruppen Mitglieder",
 
         "hud.crafting": "Herstellen",
         "hud.crafting.recipes": "Rezepte",
@@ -394,6 +397,7 @@ magischen Gegenstände ergattern?"#,
         "gameinput.dance": "Tanzen",
         "gameinput.declinegroupinvite": "Ablehnen",
         "gameinput.acceptgroupinvite": "Annehmen",
+        "gameinput.select": "Auswählen",
 
         /// End GameInput section
 

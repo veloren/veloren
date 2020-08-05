@@ -66,6 +66,7 @@ image_ids! {
         social_frame_fact: "voxygen.element.misc_bg.social_frame",
         social_bg_fact: "voxygen.element.misc_bg.social_bg",
         social_tab_act: "voxygen.element.buttons.social_tab_active",
+        social_tab_online: "voxygen.element.misc_bg.social_tab_online",
         social_tab_inact: "voxygen.element.buttons.social_tab_inactive",
         social_tab_inact_hover: "voxygen.element.buttons.social_tab_inactive",
         social_tab_inact_press: "voxygen.element.buttons.social_tab_inactive",
