@@ -1,25 +1,25 @@
 /// Translation document instructions
-/// 
-/// In order to keep localization documents readable please follow the following
+///
+/// In order to keep localization documents readible please follow the following
 /// rules:
 /// - separate the string map sections using a commentary describing the purpose
 ///   of the next section
 /// - prepend multi-line strings with a commentary
 /// - append one blank lines after a multi-line strings and two after sections
 ///
-/// To add a new language in Veloren, just write an additional `.ron` file in 
+/// To add a new language in Veloren, just write an additional `.ron` file in
 /// `assets/voxygen/i18n` and that's it!
 ///
-/// WARNING: Localization files shall be saved in UTF-8 format without BOM   
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Localization for "global" Español Latino
+/// Localization for "latinoamericano" Latin-American
 VoxygenLocalization(
     metadata: (
         language_name: "Español Latino",
         language_identifier: "es_la",
     ),
     convert_utf8_to_ascii: false,
-	  fonts: {
+    fonts: {
         "opensans": Font (
             asset_key: "voxygen.font.OpenSans-Regular",
             scale_ratio: 1.0,
@@ -40,17 +40,17 @@ VoxygenLocalization(
             asset_key: "voxygen.font.haxrcorp_4089_cyrillic_altgr_extended",
             scale_ratio: 1.0,
         ),
-    },					 
+    },
     string_map: {
         /// Start Common section
         // Texts used in multiple locations with the same formatting
-        "common.username": "usuario",
+        "common.username": "Usuario",
         "common.singleplayer": "Un Jugador",
         "common.multiplayer": "Multijugador",
         "common.servers": "Servidores",
         "common.quit": "Salir",
-        "common.settings": "Configuracion",
-        "common.languages": "Lenguajes",
+        "common.settings": "Configuración",
+        "common.languages": "Idiomas",
         "common.interface": "Interfaz",
         "common.gameplay": "Jugabilidad",
         "common.controls": "Controles",
@@ -77,12 +77,12 @@ Se reinició el servidor?
 El cliente está actualizado?"#,
 
 
-        "common.races.orc": "Orco",
-        "common.races.human": "Humano",
-        "common.races.dwarf": "Enano",
-        "common.races.elf": "Elfo",
-        "common.races.undead": "No-Muerto",
-        "common.races.danari": "Danari",
+        "common.species.orc": "Orco",
+        "common.species.human": "Humano",
+        "common.species.dwarf": "Enano",
+        "common.species.elf": "Elfo",
+        "common.species.undead": "No-Muerto",
+        "common.species.danari": "Danari",
 
         "common.weapons.axe": "Hacha",
         "common.weapons.sword": "Espada",
@@ -102,12 +102,12 @@ El cliente está actualizado?"#,
 
 Antes de que te diviertas, por favor ten en cuenta lo siguiente:
 
-- Esta es una alfa muy temprana, espera fallos, jugabilidad extremadamente incompleta, mecánicas sin pulir y características faltantes. 
+- Esta es una alfa muy temprana, espera fallos, jugabilidad extremadamente incompleta, mecánicas sin pulir y características faltantes.
 
 - Si tienes críticas constructivas o reportes de fallos, puedes contactarnos por reddit, GitLab, o por el server de Discord de nuestra comunidad.
 
-- Veloren esta licenciado bajo la licencia GPL 3 open-source (código abierto). 
-Eso significa que tienes la libertad de jugar, modificar, y redistribuir el juego como desees (siempre y cuando dicho trabajo también este licenciado como GPL 3).
+- Veloren esta licenciado bajo la licencia GPL 3 open-source (código abierto). Eso significa que tienes la libertad de jugar, modificar, y redistribuir el Juego como
+ desees (siempre y cuando dicho trabajo también este licenciado como GPL 3).
 
 - Veloren es un proyecto en comunidad sin ánimo de lucro, y todos los que trabajan en el son voluntarios.
 Si te gusta lo que ves, eres bienvenido a unirte a los equipos de desarrollo o de arte!
@@ -118,7 +118,7 @@ Gracias por tomarte el tiempo de leer este mensaje, esperamos que disfrutes el j
 
         // Login process description
         "main.login_process": r#"Información sobre el proceso para Iniciar Sesión:
-                                   
+
 Por favor ten en cuenta que ahora necesitas una cuenta
 para jugar en servidores con autenticación activada.
 
@@ -148,7 +148,7 @@ https://account.veloren.net."#,
         "hud.quests": "Misiones",
         "hud.you_died": "Moriste",
         "hud.waypoint_saved": "Marcador Guardado",
-        
+
         "hud.press_key_to_show_keybindings_fmt": "Presiona {key} para mostrar los controles del teclado",
         "hud.press_key_to_show_debug_info_fmt": "Presiona {key} para mostrar información de depuración",
         "hud.press_key_to_toggle_keybindings_fmt": "Presiona {key} para alternar los controles del teclado",
@@ -170,7 +170,7 @@ https://account.veloren.net."#,
         "hud.press_key_to_respawn": r#"Presiona {key} para reaparecer en la ultima fogata que visitaste."#,
 
         // Welcome message
-        "hud.welcome": r#"Bienvenido a la alfa de Veloren!,
+        "hud.welcome": r#"Bienvenido a la alfa de Veloren!
 
 
 Algunos consejos antes de que empieces:
@@ -203,11 +203,11 @@ Quieres liberar tu cursor para cerrar esta ventana? Presiona TAB!
 Disfruta tu estadía en el Mundo de Veloren."#,
 
 "hud.temp_quest_headline": r#"Porfavor, ayudanos Viajero!"#,
-"hud.temp_quest_text": r#"Calabozos llenos de cultistas malvados 
- han emergido alrededor de nuestros pacíficos pueblos!
+"hud.temp_quest_text": r#"Calabozos llenos de cultistas malvados
+han emergido alrededor de nuestros pacíficos pueblos!
 
 
-Consigue alguien que te acompañe, re-abastecete con comida 
+Consigue alguien que te acompañe, re-abastecete con comida
 y derrota sus viles lideres y acólitos.
 
 
@@ -228,20 +228,20 @@ objetos infundidos con magia?"#,
         "hud.bag.shoulders": "Hombros",
         "hud.bag.chest": "Torso",
         "hud.bag.hands": "Manos",
-        "hud.bag.lantern": "Farol",
-        "hud.bag.belt": "Cinturon",
+        "hud.bag.lantern": "Linterna",
+        "hud.bag.belt": "Cinturón",
         "hud.bag.ring": "Anillo",
         "hud.bag.back": "Espalda",
         "hud.bag.legs": "Piernas",
         "hud.bag.feet": "Pies",
         "hud.bag.mainhand": "Mano Principal",
-        "hud.bag.offhand": "Mano Secundaria",    
+        "hud.bag.offhand": "Mano Secundaria",
 
 
         // Map and Questlog
         "hud.map.map_title": "Mapa",
         "hud.map.qlog_title": "Misiones",
-        
+
         // Settings
         "hud.settings.general": "General",
         "hud.settings.none": "Ninguno",
@@ -265,7 +265,7 @@ objetos infundidos con magia?"#,
         "hud.settings.cumulated_incoming_damage": "Daño Recibido Acumulado",
         "hud.settings.speech_bubble": "Burbuja de Diálogo",
         "hud.settings.speech_bubble_dark_mode": "Burbuja de Diálogo en Modo Oscuro",
-        "hud.settings.speech_bubble_icon": "Icono de Burbuja de Diálogo",
+        "hud.settings.speech_bubble_icon": "Burbuja de Diálogo en Modo Oscuro",
         "hud.settings.energybar_numbers": "Números de la Barra de Energia",
         "hud.settings.values": "Valores",
         "hud.settings.percentages": "Porcentajes",
@@ -301,29 +301,28 @@ objetos infundidos con magia?"#,
         "hud.settings.music_volume": "Volumen de Musica",
         "hud.settings.sound_effect_volume": "Volumen de Efectos de Sonido",
         "hud.settings.audio_device": "Dispositivo de Audio",
-        
-        
+
         "hud.settings.awaitingkey": "Presiona una tecla...",
         "hud.settings.unbound": "Ninguno",
         "hud.settings.reset_keybinds": "Reestablecer a los valores predeterminados",
 
         "hud.social": "Social",
-        "hud.social.online": "En Linea",
+        "hud.social.online": "En Línea",
         "hud.social.friends": "Amigos",
         "hud.social.not_yet_available": "Aún no esta disponible",
         "hud.social.faction": "Facción",
-        "hud.social.play_online_fmt": "{nb_player} jugador(es) en linea",
-        
+        "hud.social.play_online_fmt": "{nb_player} jugador(es) en línea",
+
         "hud.crafting": "Crafteo",
         "hud.crafting.recipes": "Recetas",
-        "hud.crafting.ingredients": "Ingredientes de Crafteo",
+        "hud.crafting.ingredients": "Ingredientes:",
         "hud.crafting.craft": "Fabricar",
-        "hud.crafting.tool_cata": "Requisitos",
-        
-        "hud.spell": "Hechizos",
+        "hud.crafting.tool_cata": "Requisitos:",
 
-        "hud.free_look_indicator": "Vista libre activa",       
-		"hud.auto_walk_indicator": "Caminata automática activa",
+        "hud.spell": "Hechizos",        
+
+        "hud.free_look_indicator": "Vista libre activa",
+        "hud.auto_walk_indicator": "Caminata automática activa",
 
         /// End HUD section
 
@@ -332,7 +331,7 @@ objetos infundidos con magia?"#,
 
         "gameinput.primary": "Ataque Básico",
         "gameinput.secondary": "Ataque Secundario/Bloquear/Apuntar",
-       "gameinput.slot1": "Ranura de Inventario Rápido 1",        
+       "gameinput.slot1": "Ranura de Inventario Rápido 1",
         "gameinput.slot2": "Ranura de Inventario Rápido 2",
         "gameinput.slot3": "Ranura de Inventario Rápido 3",
         "gameinput.slot4": "Ranura de Inventario Rápido 4",
@@ -364,21 +363,21 @@ objetos infundidos con magia?"#,
         "gameinput.mount": "Montar",
         "gameinput.enter": "Entrar",
         "gameinput.command": "Comando",
-        "gameinput.escape": "Escape",
+        "gameinput.escape": "Escapar",
         "gameinput.map": "Mapa",
         "gameinput.bag": "Bolsa",
         "gameinput.social": "Social",
         "gameinput.sit": "Sentarse",
         "gameinput.spellbook": "Hechizos",
         "gameinput.settings": "Configuración",
-        "gameinput.respawn": "Re-aparecer",
+        "gameinput.respawn": "Reaparecer",
         "gameinput.charge": "Cargar",
         "gameinput.togglewield": "Alternar empuñadura",
         "gameinput.interact": "Interactuar",
         "gameinput.freelook": "Vista Libre",
         "gameinput.autowalk": "Caminata Automática",
         "gameinput.dance": "Bailar",
-        
+
         /// End GameInput section
 
 
@@ -400,10 +399,9 @@ objetos infundidos con magia?"#,
         "char_selection.beard": "Barba",
         "char_selection.hair_style": "Estilo de Pelo",
         "char_selection.hair_color": "Color de Pelo",
-        "char_selection.chest_color": "Color del Torso",
         "char_selection.eye_color": "Color de Ojos",
         "char_selection.skin": "Piel",
-        "char_selection.eyebrows": "Cejas",
+        "char_selection.eyeshape": "Detalles de los Ojos",
         "char_selection.accessories": "Accesorios",
         "char_selection.create_info_name": "Tu Personaje necesita un nombre!",
 
@@ -412,7 +410,7 @@ objetos infundidos con magia?"#,
 
         /// Start character window section
         "character_window.character_name": "Nombre de Personaje",
-        // Charater stats
+        // Character stats
         "character_window.character_stats": r#"Resistencia
 
 Estado Físico
@@ -427,28 +425,30 @@ Protección
         /// Start Escape Menu Section
         "esc_menu.logout": "Cerrar Sesión",
         "esc_menu.quit_game": "Salir del Juego",
-        /// End Escape Menu Section
-    }
-	
-	vector_map: {
-        "loading.tips":[
+        /// End Escape Menu Section        
+
+    },
+
+    
+    vector_map: {     
+        "loading.tips": [
             "Presiona 'G' para encender tu linterna.",
             "Presiona 'F1' para ver los controles predeterminados.",
             "Puedes escribir /say o /s para chatear solo con jugadores alrededor tuyo.",
             "Puedes escribr /region o /r para chatear solo con jugadores que están a unos cien bloques alrededor tuyo.",
             "Para enviar mensajes privados escribe /tell segudi de el nombre de un jugador y luego tu mensaje.",
             "NPCs con el mismo nivel pueden tener una dificultad diferente.",
-            "Observa el terreno en búsqueda de comida, cofres y botines.",
+            "Observa el terreno en búsqueda de comida, cofres y botines!",
             "¿Inventario lleno de comida? Intenta craftear mejor comida con ella!",
             "¿Te preguntas dónde debes hacerlo? Los Dungeons están marcados con puntos marrones en el mapa!",
             "No te olvides de ajustar los gráficos de tu pc. Presiona 'N' para abrir la configuración.",
-            "Jugar con otros es divertido! Presiona 'O' para ver quien esta conectado.",
+            "Jugar con otros es divertido! Presiona 'O' para ver quien esta conectado.", 
             "Un NPC con una craneo debajo de su barra de vida es bastante más poderoso comparado contigo.",
             "Presiona 'J' para bailar. Fiesta!",
             "Presiona 'Shift-Izquierdo' para abrir tu planeador y conquistar los cielos.",
             "Veloren está aún en Alfa temprana. Hacemos lo mejor para mejorar día a día!",
-            "Si te quieres unir al equipo de desarrolladores o solo chatear con nosotros, únete a nuestro servidor en Discord.",
-        ],
+            "Si te quieres unir al equipo de desarrolladores o solo chatear con nosotros, únete a nuestro servidor en Discord.",            
+        ],         
         "npc.speech.villager_under_attack": [
             "Ayuda, ¡Me están atacando!",
             "¡Ayuda! ¡Me están atacando!",
@@ -529,6 +529,6 @@ Protección
             "Por favor, no lo hagas de nuevo",
             "Guardias, tiren este monstruo al lago",
             "Invocaré mis demonios en ti!",
-        ],
+        ],        
     }
 )
