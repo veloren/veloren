@@ -20,7 +20,7 @@ use common::comp::{
         tool::{Tool, ToolKind},
         Hands, ItemKind,
     },
-    AbilityId, CharacterState, ControllerInputs, Energy, Inventory, Loadout, Stats,
+    CharacterState, ControllerInputs, Energy, Inventory, Loadout, Stats,
 };
 use conrod_core::{
     color,
@@ -179,44 +179,6 @@ impl<'a> Skillbar<'a> {
             slot_manager,
             localized_strings,
             show,
-        }
-    }
-
-    /// Pairs ability with image.
-    ///
-    /// TODO: Dehardcode this into a .ron file
-    fn get_ability_image(&self, ability: AbilityId) -> conrod_core::image::Id {
-        use AbilityId::*;
-        match ability {
-            // Sword
-            SwordCut => self.imgs.twohsword_m1,
-            SwordThrust => self.imgs.twohsword_m2,
-            // Axe
-            AxeSwing => self.imgs.twohaxe_m1,
-            AxeSpin => self.imgs.axespin,
-            // Hammer
-            HammerSmash => self.imgs.twohhammer_m1,
-            HammerLeap => self.imgs.hammerleap,
-            // Bow
-            BowShot => self.imgs.bow_m1,
-            BowCharged => self.imgs.bow_m2,
-            // Staff
-            StaffSwing => self.imgs.staff_m1,
-            StaffShot => self.imgs.staff_m2,
-            StaffFireball => self.imgs.fire_spell_1,
-            StaffHeal => self.imgs.heal_0,
-            // Dagger
-            DaggerStab => self.imgs.onehdagger_m1,
-            DaggerDash => self.imgs.onehdagger_m2,
-            // Shield
-            ShieldBash => self.imgs.onehshield_m1,
-            ShieldBlock => self.imgs.onehshield_m2,
-            // Debug
-            DebugFlyDirection => self.imgs.flyingrod_m1,
-            DebugFlyUp => self.imgs.flyingrod_m2,
-            DebugPossesArrow => self.imgs.snake_arrow_0,
-
-            _ => self.imgs.nothing,
         }
     }
 }
@@ -646,13 +608,20 @@ impl<'a> Widget for Skillbar<'a> {
             .middle_of(state.ids.m1_slot)
             .set(state.ids.m1_slot_bg, ui);
         Button::image(
-            match self.loadout.active_item.as_ref().map(|i| &i.ability1) {
-                Some(ability) => {
-                    if let Some(ability) = ability {
-                        self.get_ability_image(ability.id)
-                    } else {
-                        self.imgs.nothing
-                    }
+            match self.loadout.active_item.as_ref().map(|i| &i.item.kind) {
+                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
+                    ToolKind::Sword(_) => self.imgs.twohsword_m1,
+                    ToolKind::Dagger(_) => self.imgs.onehdagger_m1,
+                    ToolKind::Shield(_) => self.imgs.onehshield_m1,
+                    ToolKind::Hammer(_) => self.imgs.twohhammer_m1,
+                    ToolKind::Axe(_) => self.imgs.twohaxe_m1,
+                    ToolKind::Bow(_) => self.imgs.bow_m1,
+                    ToolKind::Staff(_) => self.imgs.staff_m1,
+                    ToolKind::Debug(kind) => match kind.as_ref() {
+                        "Boost" => self.imgs.flyingrod_m1,
+                        _ => self.imgs.nothing,
+                    },
+                    _ => self.imgs.nothing,
                 },
                 _ => self.imgs.nothing,
             },
@@ -700,38 +669,63 @@ impl<'a> Widget for Skillbar<'a> {
             _ => None,
         };
 
-        let active_tool_secondary_ability =
-            match self.loadout.active_item.as_ref().map(|i| &i.ability2) {
-                Some(Some(ability)) => Some(ability.id),
-                _ => None,
-            };
-
-        let second_tool_secondary_ability =
-            match self.loadout.second_item.as_ref().map(|i| &i.ability2) {
-                Some(Some(ability)) => Some(ability.id),
-                _ => None,
-            };
-
-        let used_secondary_ability = match (
+        let tool_kind = match (
             active_tool_kind.map(|tk| tk.hands()),
             second_tool_kind.map(|tk| tk.hands()),
         ) {
-            (Some(Hands::TwoHand), _) => active_tool_secondary_ability,
-            (Some(Hands::OneHand), Some(Hands::OneHand)) => second_tool_secondary_ability,
+            (Some(Hands::TwoHand), _) => active_tool_kind,
+            (_, Some(Hands::OneHand)) => second_tool_kind,
             (_, _) => None,
         };
 
         Image::new(self.imgs.skillbar_slot_big_bg)
             .w_h(38.0 * scale, 38.0 * scale)
-            .color(Some(BG_COLOR_2))
+            .color(match tool_kind {
+                Some(ToolKind::Bow(_)) => Some(BG_COLOR_2),
+                Some(ToolKind::Staff(_)) => Some(BG_COLOR_2),
+                _ => Some(BG_COLOR_2),
+            })
             .middle_of(state.ids.m2_slot)
             .set(state.ids.m2_slot_bg, ui);
-        Button::image(match used_secondary_ability {
-            Some(ability) => self.get_ability_image(ability),
+        Button::image(match tool_kind {
+            Some(ToolKind::Sword(_)) => self.imgs.twohsword_m2,
+            Some(ToolKind::Dagger(_)) => self.imgs.onehdagger_m2,
+            Some(ToolKind::Shield(_)) => self.imgs.onehshield_m2,
+            Some(ToolKind::Hammer(_)) => self.imgs.hammerleap,
+            Some(ToolKind::Axe(_)) => self.imgs.axespin,
+            Some(ToolKind::Bow(_)) => self.imgs.bow_m2,
+            Some(ToolKind::Staff(kind)) => match kind.as_ref() {
+                "Sceptre" => self.imgs.heal_0,
+                _ => self.imgs.staff_m2,
+            },
+            Some(ToolKind::Debug(kind)) => match kind.as_ref() {
+                "Boost" => self.imgs.flyingrod_m2,
+                _ => self.imgs.nothing,
+            },
             _ => self.imgs.nothing,
         })
         .w_h(32.0 * scale, 32.0 * scale)
         .middle_of(state.ids.m2_slot_bg)
+        .image_color(match tool_kind {
+            Some(ToolKind::Sword(_)) => {
+                if self.energy.current() as f64 >= 200.0 {
+                    Color::Rgba(1.0, 1.0, 1.0, 1.0)
+                } else {
+                    Color::Rgba(0.3, 0.3, 0.3, 0.8)
+                }
+            },
+            Some(ToolKind::Staff(kind)) => match kind.as_ref() {
+                "Sceptre" => {
+                    if self.energy.current() as f64 >= 400.0 {
+                        Color::Rgba(1.0, 1.0, 1.0, 1.0)
+                    } else {
+                        Color::Rgba(0.3, 0.3, 0.3, 0.8)
+                    }
+                },
+                _ => Color::Rgba(1.0, 1.0, 1.0, 1.0),
+            },
+            _ => Color::Rgba(1.0, 1.0, 1.0, 1.0),
+        })
         .set(state.ids.m2_content, ui);
         // Slots
         let content_source = (self.hotbar, self.inventory, self.loadout, self.energy); // TODO: avoid this
