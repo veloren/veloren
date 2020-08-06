@@ -70,6 +70,8 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
+        handle_move(data, &mut update, 0.3);
+
         #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
         let stage_time_active = self
             .stage_time_active
@@ -109,16 +111,6 @@ impl CharacterBehavior for Data {
             },
         };
 
-        // Handle hit applied
-        if let Some(attack) = data.attacking {
-            if attack.applied && attack.hit_count > 0 {
-                // Take energy on successful hit
-                update.energy.change_by(100, EnergySource::HitEnemy);
-                // Always remove component
-                data.updater.remove::<Attacking>(data.entity);
-            }
-        }
-
         // Handling movement
         if stage_time_active < Duration::from_millis(STAGE_DURATION / 3) {
             let adjusted_accel = match (self.stage, data.physics.touch_entity.is_none()) {
@@ -130,12 +122,7 @@ impl CharacterBehavior for Data {
 
             // Move player forward while in first third of each stage
             if update.vel.0.magnitude_squared() < BASE_SPEED.powf(2.0) {
-                update.vel.0 += data.dt.0
-                    * (if data.physics.on_ground {
-                        Vec3::new(0.0, 0.0, 500.0) // Jump upwards if on ground
-                    } else {
-                        Vec3::one()
-                    } + adjusted_accel * Vec3::from(data.ori.0.xy()));
+                update.vel.0 += data.dt.0 * (adjusted_accel * Vec3::from(data.ori.0.xy()));
                 let mag2 = update.vel.0.magnitude_squared();
                 if mag2 > BASE_SPEED.powf(2.0) {
                     update.vel.0 = update.vel.0.normalized() * BASE_SPEED;
@@ -155,14 +142,16 @@ impl CharacterBehavior for Data {
                 Stage::Third => (self.base_damage as f32 * 1.5) as u32,
             };
 
+            update.vel.0 = Vec3::new(data.inputs.move_dir.x, data.inputs.move_dir.y, 0.0) * 5.0;
+
             // Try to deal damage in second half of stage
             data.updater.insert(data.entity, Attacking {
                 base_healthchange: -(dmg as i32),
                 range: 3.5,
-                max_angle: 180_f32.to_radians(),
+                max_angle: 45_f32.to_radians(),
                 applied: false,
                 hit_count: 0,
-                knockback: 16.0,
+                knockback: 10.0,
             });
 
             CharacterState::TripleStrike(Data {
@@ -186,6 +175,8 @@ impl CharacterBehavior for Data {
             }
             // Player messed up inputs, don't transition
             else { None };
+
+            update.vel.0 = Vec3::new(data.inputs.move_dir.x, data.inputs.move_dir.y, 0.0) * 5.0;
 
             if let Some(stage) = next_stage {
                 CharacterState::TripleStrike(Data {
@@ -220,7 +211,7 @@ impl CharacterBehavior for Data {
         if let Some(attack) = data.attacking {
             if attack.applied && attack.hit_count > 0 {
                 data.updater.remove::<Attacking>(data.entity);
-                update.energy.change_by(100, EnergySource::HitEnemy);
+                update.energy.change_by(50, EnergySource::HitEnemy);
             }
         }
 

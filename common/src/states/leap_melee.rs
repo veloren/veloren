@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Attacking, CharacterState, EnergySource, StateUpdate},
+    comp::{Attacking, CharacterState, StateUpdate},
     states::utils::*,
     sys::character_behavior::*,
 };
@@ -108,14 +108,6 @@ impl CharacterBehavior for Data {
             update.character = CharacterState::Wielding;
             // Make sure attack component is removed
             data.updater.remove::<Attacking>(data.entity);
-        }
-
-        // Grant energy on successful hit
-        if let Some(attack) = data.attacking {
-            if attack.applied && attack.hit_count > 0 {
-                data.updater.remove::<Attacking>(data.entity);
-                update.energy.change_by(100, EnergySource::HitEnemy);
-            }
         }
 
         update

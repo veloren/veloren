@@ -471,7 +471,7 @@ impl<'a> System<'a> for Sys {
 
                 let diff = Vec2::<f32>::from(pos.0 - pos_other.0);
 
-                let collision_dist = 0.95 * (scale + scale_other);
+                let collision_dist = 0.55 * (scale + scale_other);
 
                 if diff.magnitude_squared() > 0.0
                     && diff.magnitude_squared() < collision_dist.powf(2.0)
