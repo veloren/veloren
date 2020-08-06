@@ -5,64 +5,36 @@ pub mod run;
 // Reexports
 pub use self::{idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
 
-use super::{vek::Vec3, Bone, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, Bone, FigureBoneData, Skeleton};
 use common::comp::{self};
+use core::convert::TryFrom;
 
-#[derive(Clone)]
-pub struct FishSmallSkeleton {
-    torso: Bone,
-    tail: Bone,
-}
-
-impl FishSmallSkeleton {
-    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
-    pub fn new() -> Self {
-        Self {
-            torso: Bone::default(),
-            tail: Bone::default(),
-        }
-    }
-}
+skeleton_impls!(struct FishSmallSkeleton {
+    + torso,
+    + tail,
+});
 
 impl Skeleton for FishSmallSkeleton {
     type Attr = SkeletonAttr;
 
+    const BONE_COUNT: usize = 2;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"fish_small_compute_mats\0";
 
-    fn bone_count(&self) -> usize { 2 }
-
     #[cfg_attr(feature = "be-dyn-lib", export_name = "fish_small_compute_mats")]
 
-    fn compute_matrices_inner(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
-        let torso_mat = self.torso.compute_base_matrix();
+    fn compute_matrices_inner(
+        &self,
+        base_mat: Mat4<f32>,
+        buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
+    ) -> Vec3<f32> {
+        let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
 
-        (
-            [
-                FigureBoneData::new(torso_mat),
-                FigureBoneData::new(self.tail.compute_base_matrix() * torso_mat),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-            ],
-            Vec3::default(),
-        )
-    }
-
-    fn interpolate(&mut self, target: &Self, dt: f32) {
-        self.torso.interpolate(&target.torso, dt);
-        self.tail.interpolate(&target.tail, dt);
+        *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
+            make_bone(torso_mat),
+            make_bone(torso_mat * Mat4::<f32>::from(self.tail)),
+        ];
+        Vec3::default()
     }
 }
 

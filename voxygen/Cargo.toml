@@ -38,10 +38,7 @@ specs = { git = "https://github.com/amethyst/specs.git", rev = "7a2e348ab2223818
 specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", branch = "specs-git" }
 
 # Mathematics
-vek = { version = "0.11.0", features = [
-    # "repr_simd",
-    "serde"
-] }
+vek = { version = "0.11.2", features = ["repr_simd", "serde"] }
 
 # Controller
 gilrs = { version = "0.7", features = ["serde"] }
@@ -72,6 +69,7 @@ chrono = "0.4.9"
 bincode = "1.2"
 deunicode = "1.0"
 uvth = "3.1.1"
+# vec_map = { version = "0.8.2" }
 const-tweaker = { version = "0.3.1", optional = true }
 
 # Logging

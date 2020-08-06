@@ -15,7 +15,7 @@ use crate::{
 use anim::{
     character::{CharacterSkeleton, IdleAnimation, SkeletonAttr},
     fixture::FixtureSkeleton,
-    Animation, Skeleton,
+    Animation,
 };
 use common::{
     comp::{humanoid, item::ItemKind, Body, Loadout},
@@ -146,10 +146,10 @@ impl Scene {
             map_bounds,//: client.world_map.2,
 
             figure_model_cache: FigureModelCache::new(),
-            figure_state: FigureState::new(renderer, CharacterSkeleton::new()),
+            figure_state: FigureState::new(renderer, CharacterSkeleton::default()),
 
             backdrop: backdrop.map(|specifier| {
-                let mut state = FigureState::new(renderer, FixtureSkeleton::new());
+                let mut state = FigureState::new(renderer, FixtureSkeleton::default());
                 let mut greedy = FigureModel::make_greedy();
                 let mesh = load_mesh(
                     specifier,
@@ -157,6 +157,7 @@ impl Scene {
                     |segment, offset| generate_mesh(&mut greedy, segment, offset),
                 );
                 let model = col_lights.create_figure(renderer, greedy, mesh).unwrap();
+                let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
                 state.update(
                     renderer,
                     anim::vek::Vec3::zero(),
@@ -170,6 +171,7 @@ impl Scene {
                     true,
                     false,
                     &camera,
+                    &mut buf,
                 );
                 (
                     model,
@@ -292,9 +294,9 @@ impl Scene {
                 &mut 0.0,
                 &SkeletonAttr::from(&body),
             );
-            self.figure_state
-                .skeleton_mut()
-                .interpolate(&tgt_skeleton, scene_data.delta_time);
+            let dt_lerp = (scene_data.delta_time * 15.0).min(1.0);
+            *self.figure_state.skeleton_mut() =
+                anim::vek::Lerp::lerp(&*self.figure_state.skeleton_mut(), &tgt_skeleton, dt_lerp);
 
             let model = &self
                 .figure_model_cache
@@ -308,6 +310,7 @@ impl Scene {
                     None,
                 )
                 .0;
+            let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
             self.figure_state.update(
                 renderer,
                 anim::vek::Vec3::zero(),
@@ -321,6 +324,7 @@ impl Scene {
                 true,
                 false,
                 &self.camera,
+                &mut buf,
             );
         }
     }

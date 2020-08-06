@@ -105,12 +105,14 @@ impl<'a> Ingameable for Overhead<'a> {
         // this could be done automatically?
         // - 2 Text::new for name
         // - 1 for level: either Text or Image
-        // - 4 for HP + mana + fg + bg
+        // - 3 for HP + fg + bg
         // If there's a speech bubble
         // - 2 Text::new for speech bubble
         // - 1 Image::new for icon
         // - 10 Image::new for speech bubble (9-slice + tail)
-        7 + if self.bubble.is_some() { 13 } else { 0 }
+        // If there's mana
+        // - 1 Rect::new for man
+        6 + if self.bubble.is_some() { 13 } else { 0 } + if self.energy.is_some() { 1 } else { 0 }
     }
 }
 
@@ -263,10 +265,11 @@ impl<'a> Widget for Overhead<'a> {
             .mid_bottom_with_margin_on(state.ids.speech_bubble_text, -32.0);
 
             if dark_mode {
-                tail.w_h(22.0, 13.0).set(state.ids.speech_bubble_tail, ui)
+                tail.w_h(22.0, 13.0)
             } else {
-                tail.w_h(22.0, 28.0).set(state.ids.speech_bubble_tail, ui)
-            };
+                tail.w_h(22.0, 28.0)
+            }
+            .set(state.ids.speech_bubble_tail, ui);
 
             let mut text_shadow = Text::new(&bubble_contents)
                 .color(shadow_color)
@@ -292,6 +295,8 @@ impl<'a> Widget for Overhead<'a> {
             Image::new(icon)
                 .w_h(16.0, 16.0)
                 .top_left_with_margin_on(state.ids.speech_bubble_text, -16.0)
+                // TODO: Figure out whether this should be parented.
+                // .parent(id)
                 .set(state.ids.speech_bubble_icon, ui);
         }
 

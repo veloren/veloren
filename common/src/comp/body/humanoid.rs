@@ -153,7 +153,7 @@ pub const DWARF_HAIR_COLORS: [(u8, u8, u8); 21] = [
     (146, 198, 238), // Lagoon Blue
     (174, 148, 161), // Matte Pink
     (163, 186, 192), // Matte Green
-    (84, 139, 107),  // Grass Green
+    (0, 139, 58),    // Grass Green
     (48, 61, 52),    // Dark Green
     (20, 19, 17),    // Black
 ];
@@ -625,8 +625,8 @@ impl Skin {
             Self::DanariTwo => (30, 149, 201),
             Self::DanariThree => (57, 120, 148),
             Self::DanariFour => (40, 85, 105),
-            Self::ElfOne => (178, 164, 186),
-            Self::ElfTwo => (132, 139, 161),
+            Self::ElfOne => (159, 136, 173),
+            Self::ElfTwo => (99, 114, 161),
             //Self::ElfThree => (230, 188, 198),
             Self::OrcOne => (61, 130, 42),
             Self::OrcTwo => (82, 117, 36),
@@ -665,7 +665,7 @@ impl Skin {
             Self::DanariTwo => (42, 158, 206),
             Self::DanariThree => (70, 133, 160),
             Self::DanariFour => (53, 96, 116),
-            Self::ElfOne => (190, 176, 199), //178, 164, 186
+            Self::ElfOne => (183, 155, 199), //178, 164, 186
             Self::ElfTwo => (137, 144, 167),
             //Self::ElfThree => (242, 199, 209),
             Self::OrcOne => (83, 165, 56),
@@ -705,7 +705,7 @@ impl Skin {
             Self::DanariTwo => (25, 142, 192),
             Self::DanariThree => (52, 115, 143),
             Self::DanariFour => (34, 80, 99),
-            Self::ElfOne => (170, 155, 175), //170, 157, 179
+            Self::ElfOne => (148, 125, 161), //170, 157, 179
             Self::ElfTwo => (126, 132, 153),
             //Self::ElfThree => (217, 178, 187),
             Self::OrcOne => (55, 114, 36),

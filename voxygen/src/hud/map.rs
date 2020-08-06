@@ -134,7 +134,7 @@ impl<'a> Widget for Map<'a> {
             .set(state.ids.icon, ui);
 
         // Map Title
-        Text::new(&self.localized_strings.get("hud.map.map_title"))
+        Text::new(self.localized_strings.get("hud.map.map_title"))
             .mid_top_with_margin_on(state.ids.frame, 3.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(29))
@@ -142,15 +142,12 @@ impl<'a> Widget for Map<'a> {
             .set(state.ids.map_title, ui);
 
         // Questlog Title
-        Text::new(&format!(
-            "{}",
-            &self.localized_strings.get("hud.map.qlog_title")
-        ))
-        .mid_top_with_margin_on(state.ids.qlog_align, 6.0)
-        .font_id(self.fonts.cyri.conrod_id)
-        .font_size(self.fonts.cyri.scale(21))
-        .color(TEXT_COLOR)
-        .set(state.ids.qlog_title, ui);
+        Text::new(self.localized_strings.get("hud.map.qlog_title"))
+            .mid_top_with_margin_on(state.ids.qlog_align, 6.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(21))
+            .color(TEXT_COLOR)
+            .set(state.ids.qlog_title, ui);
 
         // X-Button
         if Button::image(self.imgs.close_button)

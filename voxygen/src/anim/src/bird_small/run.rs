@@ -21,20 +21,20 @@ impl Animation for RunAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        next.head.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.head.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.head.position = Vec3::new(0.0, 7.5, 15.0) / 11.0;
+        next.head.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.head.scale = Vec3::one() / 10.88;
 
-        next.torso.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.torso.position = Vec3::new(0.0, 7.5, 15.0) / 11.0;
+        next.torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.torso.scale = Vec3::one() / 10.88;
 
-        next.wing_l.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.wing_l.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.wing_l.position = Vec3::new(0.0, 7.5, 15.0) / 11.0;
+        next.wing_l.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.wing_l.scale = Vec3::one() / 10.88;
 
-        next.wing_r.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.wing_r.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.wing_r.position = Vec3::new(0.0, 7.5, 15.0) / 11.0;
+        next.wing_r.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.wing_r.scale = Vec3::one() / 10.88;
 
         next

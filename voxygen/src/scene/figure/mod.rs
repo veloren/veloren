@@ -83,27 +83,6 @@ impl FigureMgrStates {
         }
     }
 
-    /* fn get<'a, Q: ?Sized>(&'a self, body: &Body, entity: &Q) -> Option<&'a FigureStateMeta>
-    where
-        EcsEntity: Borrow<Q>,
-        Q: Hash + Eq,
-    {
-        match body {
-            Body::Humanoid(_) => self.character_states.get(&entity).map(Deref::deref),
-            Body::QuadrupedSmall(_) => self.quadruped_small_states.get(&entity).map(Deref::deref),
-            Body::QuadrupedMedium(_) => self.quadruped_medium_states.get(&entity).map(Deref::deref),
-            Body::BirdMedium(_) => self.bird_medium_states.get(&entity).map(Deref::deref),
-            Body::FishMedium(_) => self.fish_medium_states.get(&entity).map(Deref::deref),
-            Body::Critter(_) => self.critter_states.get(&entity).map(Deref::deref),
-            Body::Dragon(_) => self.dragon_states.get(&entity).map(Deref::deref),
-            Body::BirdSmall(_) => self.bird_small_states.get(&entity).map(Deref::deref),
-            Body::FishSmall(_) => self.fish_small_states.get(&entity).map(Deref::deref),
-            Body::BipedLarge(_) => self.biped_large_states.get(&entity).map(Deref::deref),
-            Body::Golem(_) => self.golem_states.get(&entity).map(Deref::deref),
-            Body::Object(_) => self.object_states.get(&entity).map(Deref::deref),
-        }
-    } */
-
     fn get_mut<'a, Q: ?Sized>(
         &'a mut self,
         body: &Body,
@@ -360,7 +339,7 @@ impl FigureMgr {
             let mut anim_storage = ecs.write_storage::<LightAnimation>();
             if let None = anim_storage.get_mut(entity) {
                 let anim = LightAnimation {
-                    offset: vek::Vec3::zero(), //Vec3::new(0.0, 0.0, 2.0),
+                    offset: vek::Vec3::zero(),
                     col: light_emitter.col,
                     strength: 0.0,
                 };
@@ -371,7 +350,7 @@ impl FigureMgr {
         let updater = ecs.read_resource::<LazyUpdate>();
         for (entity, waypoint, light_emitter_opt, light_anim) in (
             &ecs.entities(),
-            ecs.read_storage::<common::comp::Waypoint>().maybe(),
+            ecs.read_storage::<common::comp::WaypointArea>().maybe(),
             ecs.read_storage::<LightEmitter>().maybe(),
             &mut ecs.write_storage::<LightAnimation>(),
         )
@@ -393,7 +372,7 @@ impl FigureMgr {
                     (vek::Rgb::zero(), 0.0, 0.0, true)
                 };
             if let Some(_) = waypoint {
-                light_anim.offset = vek::Vec3::unit_z() * 0.5;
+                light_anim.offset = vek::Vec3::unit_z() * 5.0;
             }
             if let Some(state) = self.states.character_states.get(&entity) {
                 light_anim.offset = vek::Vec3::from(state.lantern_offset);
@@ -446,6 +425,7 @@ impl FigureMgr {
         let ecs = state.ecs();
         let view_distance = scene_data.view_distance;
         let dt = state.get_delta_time();
+        let dt_lerp = (15.0 * dt).min(1.0);
         let frustum = camera.frustum();
 
         // Sun shadows--find the bounding box of the shadow map plane (i.e. the bounds
@@ -469,34 +449,6 @@ impl FigureMgr {
             let ray_mat: math::Mat4<f32> =
                 math::Mat4::look_at_rh(cam_pos, cam_pos + ray_direction, math::Vec3::up());
             let focus_off = math::Vec3::from(camera.get_focus_pos().map(f32::trunc));
-            /* let visible_bounding_box = Aabb {
-                min: visible_bounding_box.min - focus_off,
-                max: visible_bounding_box.max - focus_off,
-            };
-            let visible_bounds_fine = math::Aabb::<f64> {
-                min: math::Vec3::from(visible_bounding_box.min.map(f64::from)),
-                max: math::Vec3::from(visible_bounding_box.max.map(f64::from)),
-            };
-            let inv_proj_view = math::Mat4::from_col_arrays(
-                (proj_mat * view_mat/* * Mat4::translation_3d(-focus_off)*/).into_col_arrays(),
-            )
-            .map(f64::from)
-            .inverted();
-            let visible_light_volume = math::calc_focused_light_volume_points(
-                inv_proj_view,
-                ray_direction.map(f64::from),
-                visible_bounds_fine,
-                1e-6,
-            )
-            .map(|v| v.map(|e| e as f32));
-            // Now that the work that requires high accuracy is done, switch from focus-relative
-            // to proper world space coordinates.
-            let visible_bounds = math::Aabr::from(math::fit_psr(
-                ray_mat,
-                /* super::aabb_to_points(visible_bounding_box).iter().copied() */
-                visible_light_volume,
-                |p| p, //math::Vec3::from(p), /* / p.w */
-            )); */
             let ray_mat = ray_mat * math::Mat4::translation_3d(-focus_off);
 
             let collides_with_aabr = |a: math::Aabr<f32>, b: math::Aabr<f32>| {
@@ -515,7 +467,6 @@ impl FigureMgr {
                     min: center - radius,
                     max: center + radius,
                 };
-                // println!("center: {:?}, radius: {:?}", center, figure_box);
                 // Quick intersection test for membership in the PSC (potential shader caster)
                 // list.
                 collides_with_aabr(figure_box, visible_psr_bounds)
@@ -533,6 +484,8 @@ impl FigureMgr {
         };
 
         let focus_pos = anim::vek::Vec3::<f32>::from(camera.get_focus_pos());
+
+        let mut update_buf = [Default::default(); anim::MAX_BONE_COUNT];
 
         for (
             i,
@@ -702,7 +655,9 @@ impl FigureMgr {
                         .states
                         .character_states
                         .entry(entity)
-                        .or_insert_with(|| FigureState::new(renderer, CharacterSkeleton::new()));
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, CharacterSkeleton::default())
+                        });
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
                         _ => continue,
@@ -719,7 +674,7 @@ impl FigureMgr {
                     ) {
                         // Standing
                         (true, false, _) => anim::character::StandAnimation::update_skeleton(
-                            &CharacterSkeleton::new(),
+                            &CharacterSkeleton::default(),
                             (
                                 active_tool_kind.clone(),
                                 second_tool_kind.clone(),
@@ -732,7 +687,7 @@ impl FigureMgr {
                         ),
                         // Running
                         (true, true, _) => anim::character::RunAnimation::update_skeleton(
-                            &CharacterSkeleton::new(),
+                            &CharacterSkeleton::default(),
                             (
                                 active_tool_kind.clone(),
                                 second_tool_kind.clone(),
@@ -748,7 +703,7 @@ impl FigureMgr {
                         ),
                         // In air
                         (false, _, false) => anim::character::JumpAnimation::update_skeleton(
-                            &CharacterSkeleton::new(),
+                            &CharacterSkeleton::default(),
                             (
                                 active_tool_kind.clone(),
                                 second_tool_kind.clone(),
@@ -762,7 +717,7 @@ impl FigureMgr {
                         ),
                         // Swim
                         (false, _, true) => anim::character::SwimAnimation::update_skeleton(
-                            &CharacterSkeleton::new(),
+                            &CharacterSkeleton::default(),
                             (
                                 active_tool_kind.clone(),
                                 second_tool_kind.clone(),
@@ -920,7 +875,7 @@ impl FigureMgr {
                         },
                         CharacterState::BasicBlock { .. } => {
                             anim::character::BlockIdleAnimation::update_skeleton(
-                                &CharacterSkeleton::new(),
+                                &CharacterSkeleton::default(),
                                 (active_tool_kind, second_tool_kind, time),
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -973,7 +928,7 @@ impl FigureMgr {
                         },
                         CharacterState::Climb { .. } => {
                             anim::character::ClimbAnimation::update_skeleton(
-                                &CharacterSkeleton::new(),
+                                &CharacterSkeleton::default(),
                                 (active_tool_kind, second_tool_kind, vel.0, ori, time),
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -982,7 +937,7 @@ impl FigureMgr {
                         },
                         CharacterState::Sit { .. } => {
                             anim::character::SitAnimation::update_skeleton(
-                                &CharacterSkeleton::new(),
+                                &CharacterSkeleton::default(),
                                 (active_tool_kind, second_tool_kind, time),
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -991,7 +946,7 @@ impl FigureMgr {
                         },
                         CharacterState::GlideWield { .. } => {
                             anim::character::GlideWieldAnimation::update_skeleton(
-                                &CharacterSkeleton::new(),
+                                &CharacterSkeleton::default(),
                                 (
                                     active_tool_kind,
                                     second_tool_kind,
@@ -1007,7 +962,7 @@ impl FigureMgr {
                         },
                         CharacterState::Dance { .. } => {
                             anim::character::DanceAnimation::update_skeleton(
-                                &CharacterSkeleton::new(),
+                                &CharacterSkeleton::default(),
                                 (active_tool_kind, second_tool_kind, time),
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -1017,7 +972,7 @@ impl FigureMgr {
                         _ => target_base,
                     };
 
-                    state.skeleton.interpolate(&target_bones, dt);
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         pos.0,
@@ -1031,6 +986,7 @@ impl FigureMgr {
                         in_frustum,
                         is_player,
                         camera,
+                        &mut update_buf,
                     );
                 },
                 Body::QuadrupedSmall(_) => {
@@ -1050,7 +1006,7 @@ impl FigureMgr {
                         .quadruped_small_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, QuadrupedSmallSkeleton::new())
+                            FigureState::new(renderer, QuadrupedSmallSkeleton::default())
                         });
 
                     let (character, last_character) = match (character, last_character) {
@@ -1070,7 +1026,7 @@ impl FigureMgr {
                         // Standing
                         (true, false, false) => {
                             anim::quadruped_small::IdleAnimation::update_skeleton(
-                                &QuadrupedSmallSkeleton::new(),
+                                &QuadrupedSmallSkeleton::default(),
                                 time,
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -1080,7 +1036,7 @@ impl FigureMgr {
                         // Running
                         (true, true, false) => {
                             anim::quadruped_small::RunAnimation::update_skeleton(
-                                &QuadrupedSmallSkeleton::new(),
+                                &QuadrupedSmallSkeleton::default(),
                                 (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -1089,14 +1045,14 @@ impl FigureMgr {
                         },
                         // In air
                         (false, _, false) => anim::quadruped_small::JumpAnimation::update_skeleton(
-                            &QuadrupedSmallSkeleton::new(),
+                            &QuadrupedSmallSkeleton::default(),
                             (vel.0.magnitude(), time),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
                         _ => anim::quadruped_small::IdleAnimation::update_skeleton(
-                            &QuadrupedSmallSkeleton::new(),
+                            &QuadrupedSmallSkeleton::default(),
                             time,
                             state.state_time,
                             &mut state_animation_rate,
@@ -1117,7 +1073,7 @@ impl FigureMgr {
                         _ => target_base,
                     };
 
-                    state.skeleton.interpolate(&target_bones, dt);
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         pos.0,
@@ -1131,6 +1087,7 @@ impl FigureMgr {
                         in_frustum,
                         is_player,
                         camera,
+                        &mut update_buf,
                     );
                 },
                 Body::QuadrupedMedium(_) => {
@@ -1150,7 +1107,7 @@ impl FigureMgr {
                         .quadruped_medium_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, QuadrupedMediumSkeleton::new())
+                            FigureState::new(renderer, QuadrupedMediumSkeleton::default())
                         });
 
                     let (character, last_character) = match (character, last_character) {
@@ -1170,7 +1127,7 @@ impl FigureMgr {
                         // Standing
                         (true, false, false) => {
                             anim::quadruped_medium::IdleAnimation::update_skeleton(
-                                &QuadrupedMediumSkeleton::new(),
+                                &QuadrupedMediumSkeleton::default(),
                                 time,
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -1179,7 +1136,7 @@ impl FigureMgr {
                         },
                         // Running
                         (true, true, _) => anim::quadruped_medium::RunAnimation::update_skeleton(
-                            &QuadrupedMediumSkeleton::new(),
+                            &QuadrupedMediumSkeleton::default(),
                             (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
                             state.state_time,
                             &mut state_animation_rate,
@@ -1188,7 +1145,7 @@ impl FigureMgr {
                         // In air
                         (false, _, false) => {
                             anim::quadruped_medium::JumpAnimation::update_skeleton(
-                                &QuadrupedMediumSkeleton::new(),
+                                &QuadrupedMediumSkeleton::default(),
                                 time,
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -1196,7 +1153,7 @@ impl FigureMgr {
                             )
                         },
                         _ => anim::quadruped_medium::IdleAnimation::update_skeleton(
-                            &QuadrupedMediumSkeleton::new(),
+                            &QuadrupedMediumSkeleton::default(),
                             time,
                             state.state_time,
                             &mut state_animation_rate,
@@ -1217,7 +1174,7 @@ impl FigureMgr {
                         _ => target_base,
                     };
 
-                    state.skeleton.interpolate(&target_bones, dt);
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         pos.0,
@@ -1231,6 +1188,7 @@ impl FigureMgr {
                         in_frustum,
                         is_player,
                         camera,
+                        &mut update_buf,
                     );
                 },
                 Body::QuadrupedLow(_) => {
@@ -1249,7 +1207,9 @@ impl FigureMgr {
                         .states
                         .quadruped_low_states
                         .entry(entity)
-                        .or_insert_with(|| FigureState::new(renderer, QuadrupedLowSkeleton::new()));
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, QuadrupedLowSkeleton::default())
+                        });
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -1268,7 +1228,7 @@ impl FigureMgr {
                         // Standing
                         (true, false, false) => {
                             anim::quadruped_low::IdleAnimation::update_skeleton(
-                                &QuadrupedLowSkeleton::new(),
+                                &QuadrupedLowSkeleton::default(),
                                 time,
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -1277,7 +1237,7 @@ impl FigureMgr {
                         },
                         // Running
                         (true, true, _) => anim::quadruped_low::RunAnimation::update_skeleton(
-                            &QuadrupedLowSkeleton::new(),
+                            &QuadrupedLowSkeleton::default(),
                             (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
                             state.state_time,
                             &mut state_animation_rate,
@@ -1285,14 +1245,14 @@ impl FigureMgr {
                         ),
                         // In air
                         (false, _, false) => anim::quadruped_low::JumpAnimation::update_skeleton(
-                            &QuadrupedLowSkeleton::new(),
+                            &QuadrupedLowSkeleton::default(),
                             (vel.0.magnitude(), time),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
                         _ => anim::quadruped_low::IdleAnimation::update_skeleton(
-                            &QuadrupedLowSkeleton::new(),
+                            &QuadrupedLowSkeleton::default(),
                             time,
                             state.state_time,
                             &mut state_animation_rate,
@@ -1313,7 +1273,7 @@ impl FigureMgr {
                         _ => target_base,
                     };
 
-                    state.skeleton.interpolate(&target_bones, dt);
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         pos.0,
@@ -1327,6 +1287,7 @@ impl FigureMgr {
                         in_frustum,
                         is_player,
                         camera,
+                        &mut update_buf,
                     );
                 },
                 Body::BirdMedium(_) => {
@@ -1344,7 +1305,9 @@ impl FigureMgr {
                         .states
                         .bird_medium_states
                         .entry(entity)
-                        .or_insert_with(|| FigureState::new(renderer, BirdMediumSkeleton::new()));
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, BirdMediumSkeleton::default())
+                        });
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -1362,7 +1325,7 @@ impl FigureMgr {
                     ) {
                         // Standing
                         (true, false, false) => anim::bird_medium::IdleAnimation::update_skeleton(
-                            &BirdMediumSkeleton::new(),
+                            &BirdMediumSkeleton::default(),
                             time,
                             state.state_time,
                             &mut state_animation_rate,
@@ -1370,7 +1333,7 @@ impl FigureMgr {
                         ),
                         // Running
                         (true, true, _) => anim::bird_medium::RunAnimation::update_skeleton(
-                            &BirdMediumSkeleton::new(),
+                            &BirdMediumSkeleton::default(),
                             (vel.0.magnitude(), time),
                             state.state_time,
                             &mut state_animation_rate,
@@ -1378,14 +1341,14 @@ impl FigureMgr {
                         ),
                         // In air
                         (false, _, false) => anim::bird_medium::FlyAnimation::update_skeleton(
-                            &BirdMediumSkeleton::new(),
+                            &BirdMediumSkeleton::default(),
                             (vel.0.magnitude(), time),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
                         _ => anim::bird_medium::IdleAnimation::update_skeleton(
-                            &BirdMediumSkeleton::new(),
+                            &BirdMediumSkeleton::default(),
                             time,
                             state.state_time,
                             &mut state_animation_rate,
@@ -1406,7 +1369,7 @@ impl FigureMgr {
                         _ => target_base,
                     };
 
-                    state.skeleton.interpolate(&target_bones, dt);
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         pos.0,
@@ -1420,6 +1383,7 @@ impl FigureMgr {
                         in_frustum,
                         is_player,
                         camera,
+                        &mut update_buf,
                     );
                 },
                 Body::FishMedium(_) => {
@@ -1437,7 +1401,9 @@ impl FigureMgr {
                         .states
                         .fish_medium_states
                         .entry(entity)
-                        .or_insert_with(|| FigureState::new(renderer, FishMediumSkeleton::new()));
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, FishMediumSkeleton::default())
+                        });
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -1455,7 +1421,7 @@ impl FigureMgr {
                     ) {
                         // Standing
                         (true, false, false) => anim::fish_medium::IdleAnimation::update_skeleton(
-                            &FishMediumSkeleton::new(),
+                            &FishMediumSkeleton::default(),
                             time,
                             state.state_time,
                             &mut state_animation_rate,
@@ -1463,7 +1429,7 @@ impl FigureMgr {
                         ),
                         // Running
                         (true, true, false) => anim::fish_medium::RunAnimation::update_skeleton(
-                            &FishMediumSkeleton::new(),
+                            &FishMediumSkeleton::default(),
                             (vel.0.magnitude(), time),
                             state.state_time,
                             &mut state_animation_rate,
@@ -1471,7 +1437,7 @@ impl FigureMgr {
                         ),
                         // In air
                         (false, _, false) => anim::fish_medium::JumpAnimation::update_skeleton(
-                            &FishMediumSkeleton::new(),
+                            &FishMediumSkeleton::default(),
                             (vel.0.magnitude(), time),
                             state.state_time,
                             &mut state_animation_rate,
@@ -1482,7 +1448,7 @@ impl FigureMgr {
                         _ => state.skeleton_mut().clone(),
                     };
 
-                    state.skeleton.interpolate(&target_base, dt);
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt);
                     state.update(
                         renderer,
                         pos.0,
@@ -1496,6 +1462,7 @@ impl FigureMgr {
                         in_frustum,
                         is_player,
                         camera,
+                        &mut update_buf,
                     );
                 },
                 Body::Dragon(_) => {
@@ -1509,11 +1476,10 @@ impl FigureMgr {
                         None,
                     );
 
-                    let state = self
-                        .states
-                        .dragon_states
-                        .entry(entity)
-                        .or_insert_with(|| FigureState::new(renderer, DragonSkeleton::new()));
+                    let state =
+                        self.states.dragon_states.entry(entity).or_insert_with(|| {
+                            FigureState::new(renderer, DragonSkeleton::default())
+                        });
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -1531,7 +1497,7 @@ impl FigureMgr {
                     ) {
                         // Standing
                         (true, false, false) => anim::dragon::IdleAnimation::update_skeleton(
-                            &DragonSkeleton::new(),
+                            &DragonSkeleton::default(),
                             time,
                             state.state_time,
                             &mut state_animation_rate,
@@ -1539,7 +1505,7 @@ impl FigureMgr {
                         ),
                         // Running
                         (true, true, false) => anim::dragon::RunAnimation::update_skeleton(
-                            &DragonSkeleton::new(),
+                            &DragonSkeleton::default(),
                             (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
                             state.state_time,
                             &mut state_animation_rate,
@@ -1547,7 +1513,7 @@ impl FigureMgr {
                         ),
                         // In air
                         (false, _, false) => anim::dragon::FlyAnimation::update_skeleton(
-                            &DragonSkeleton::new(),
+                            &DragonSkeleton::default(),
                             (vel.0.magnitude(), time),
                             state.state_time,
                             &mut state_animation_rate,
@@ -1557,7 +1523,7 @@ impl FigureMgr {
                         _ => state.skeleton_mut().clone(),
                     };
 
-                    state.skeleton.interpolate(&target_base, dt);
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt);
                     state.update(
                         renderer,
                         pos.0,
@@ -1571,6 +1537,7 @@ impl FigureMgr {
                         in_frustum,
                         is_player,
                         camera,
+                        &mut update_buf,
                     );
                 },
                 Body::Critter(_) => {
@@ -1584,11 +1551,10 @@ impl FigureMgr {
                         None,
                     );
 
-                    let state = self
-                        .states
-                        .critter_states
-                        .entry(entity)
-                        .or_insert_with(|| FigureState::new(renderer, CritterSkeleton::new()));
+                    let state =
+                        self.states.critter_states.entry(entity).or_insert_with(|| {
+                            FigureState::new(renderer, CritterSkeleton::default())
+                        });
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -1606,7 +1572,7 @@ impl FigureMgr {
                     ) {
                         // Standing
                         (true, false, false) => anim::critter::IdleAnimation::update_skeleton(
-                            &CritterSkeleton::new(),
+                            &CritterSkeleton::default(),
                             time,
                             state.state_time,
                             &mut state_animation_rate,
@@ -1614,7 +1580,7 @@ impl FigureMgr {
                         ),
                         // Running
                         (true, true, false) => anim::critter::RunAnimation::update_skeleton(
-                            &CritterSkeleton::new(),
+                            &CritterSkeleton::default(),
                             (vel.0.magnitude(), time),
                             state.state_time,
                             &mut state_animation_rate,
@@ -1622,7 +1588,7 @@ impl FigureMgr {
                         ),
                         // In air
                         (false, _, false) => anim::critter::JumpAnimation::update_skeleton(
-                            &CritterSkeleton::new(),
+                            &CritterSkeleton::default(),
                             (vel.0.magnitude(), time),
                             state.state_time,
                             &mut state_animation_rate,
@@ -1633,7 +1599,7 @@ impl FigureMgr {
                         _ => state.skeleton_mut().clone(),
                     };
 
-                    state.skeleton.interpolate(&target_base, dt);
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt);
                     state.update(
                         renderer,
                         pos.0,
@@ -1647,6 +1613,7 @@ impl FigureMgr {
                         in_frustum,
                         is_player,
                         camera,
+                        &mut update_buf,
                     );
                 },
                 Body::BirdSmall(_) => {
@@ -1664,7 +1631,9 @@ impl FigureMgr {
                         .states
                         .bird_small_states
                         .entry(entity)
-                        .or_insert_with(|| FigureState::new(renderer, BirdSmallSkeleton::new()));
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, BirdSmallSkeleton::default())
+                        });
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -1682,7 +1651,7 @@ impl FigureMgr {
                     ) {
                         // Standing
                         (true, false, false) => anim::bird_small::IdleAnimation::update_skeleton(
-                            &BirdSmallSkeleton::new(),
+                            &BirdSmallSkeleton::default(),
                             time,
                             state.state_time,
                             &mut state_animation_rate,
@@ -1690,7 +1659,7 @@ impl FigureMgr {
                         ),
                         // Running
                         (true, true, false) => anim::bird_small::RunAnimation::update_skeleton(
-                            &BirdSmallSkeleton::new(),
+                            &BirdSmallSkeleton::default(),
                             (vel.0.magnitude(), time),
                             state.state_time,
                             &mut state_animation_rate,
@@ -1698,7 +1667,7 @@ impl FigureMgr {
                         ),
                         // In air
                         (false, _, false) => anim::bird_small::JumpAnimation::update_skeleton(
-                            &BirdSmallSkeleton::new(),
+                            &BirdSmallSkeleton::default(),
                             (vel.0.magnitude(), time),
                             state.state_time,
                             &mut state_animation_rate,
@@ -1709,7 +1678,7 @@ impl FigureMgr {
                         _ => state.skeleton_mut().clone(),
                     };
 
-                    state.skeleton.interpolate(&target_base, dt);
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt);
                     state.update(
                         renderer,
                         pos.0,
@@ -1723,6 +1692,7 @@ impl FigureMgr {
                         in_frustum,
                         is_player,
                         camera,
+                        &mut update_buf,
                     );
                 },
                 Body::FishSmall(_) => {
@@ -1740,7 +1710,9 @@ impl FigureMgr {
                         .states
                         .fish_small_states
                         .entry(entity)
-                        .or_insert_with(|| FigureState::new(renderer, FishSmallSkeleton::new()));
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, FishSmallSkeleton::default())
+                        });
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -1758,7 +1730,7 @@ impl FigureMgr {
                     ) {
                         // Standing
                         (true, false, false) => anim::fish_small::IdleAnimation::update_skeleton(
-                            &FishSmallSkeleton::new(),
+                            &FishSmallSkeleton::default(),
                             time,
                             state.state_time,
                             &mut state_animation_rate,
@@ -1766,7 +1738,7 @@ impl FigureMgr {
                         ),
                         // Running
                         (true, true, false) => anim::fish_small::RunAnimation::update_skeleton(
-                            &FishSmallSkeleton::new(),
+                            &FishSmallSkeleton::default(),
                             (vel.0.magnitude(), time),
                             state.state_time,
                             &mut state_animation_rate,
@@ -1774,7 +1746,7 @@ impl FigureMgr {
                         ),
                         // In air
                         (false, _, false) => anim::fish_small::JumpAnimation::update_skeleton(
-                            &FishSmallSkeleton::new(),
+                            &FishSmallSkeleton::default(),
                             (vel.0.magnitude(), time),
                             state.state_time,
                             &mut state_animation_rate,
@@ -1785,7 +1757,7 @@ impl FigureMgr {
                         _ => state.skeleton_mut().clone(),
                     };
 
-                    state.skeleton.interpolate(&target_base, dt);
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt);
                     state.update(
                         renderer,
                         pos.0,
@@ -1799,6 +1771,7 @@ impl FigureMgr {
                         in_frustum,
                         is_player,
                         camera,
+                        &mut update_buf,
                     );
                 },
                 Body::BipedLarge(_) => {
@@ -1816,7 +1789,9 @@ impl FigureMgr {
                         .states
                         .biped_large_states
                         .entry(entity)
-                        .or_insert_with(|| FigureState::new(renderer, BipedLargeSkeleton::new()));
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, BipedLargeSkeleton::default())
+                        });
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -1834,7 +1809,7 @@ impl FigureMgr {
                     ) {
                         // Standing
                         (true, false, false) => anim::biped_large::IdleAnimation::update_skeleton(
-                            &BipedLargeSkeleton::new(),
+                            &BipedLargeSkeleton::default(),
                             time,
                             state.state_time,
                             &mut state_animation_rate,
@@ -1842,7 +1817,7 @@ impl FigureMgr {
                         ),
                         // Running
                         (true, true, false) => anim::biped_large::RunAnimation::update_skeleton(
-                            &BipedLargeSkeleton::new(),
+                            &BipedLargeSkeleton::default(),
                             (vel.0.magnitude(), time),
                             state.state_time,
                             &mut state_animation_rate,
@@ -1850,14 +1825,14 @@ impl FigureMgr {
                         ),
                         // In air
                         (false, _, false) => anim::biped_large::JumpAnimation::update_skeleton(
-                            &BipedLargeSkeleton::new(),
+                            &BipedLargeSkeleton::default(),
                             (vel.0.magnitude(), time),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
                         _ => anim::biped_large::IdleAnimation::update_skeleton(
-                            &BipedLargeSkeleton::new(),
+                            &BipedLargeSkeleton::default(),
                             time,
                             state.state_time,
                             &mut state_animation_rate,
@@ -1878,7 +1853,7 @@ impl FigureMgr {
                         _ => target_base,
                     };
 
-                    state.skeleton.interpolate(&target_bones, dt);
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         pos.0,
@@ -1892,6 +1867,7 @@ impl FigureMgr {
                         in_frustum,
                         is_player,
                         camera,
+                        &mut update_buf,
                     );
                 },
                 Body::Golem(_) => {
@@ -1905,11 +1881,10 @@ impl FigureMgr {
                         None,
                     );
 
-                    let state = self
-                        .states
-                        .golem_states
-                        .entry(entity)
-                        .or_insert_with(|| FigureState::new(renderer, GolemSkeleton::new()));
+                    let state =
+                        self.states.golem_states.entry(entity).or_insert_with(|| {
+                            FigureState::new(renderer, GolemSkeleton::default())
+                        });
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -1927,7 +1902,7 @@ impl FigureMgr {
                     ) {
                         // Standing
                         (true, false, false) => anim::golem::IdleAnimation::update_skeleton(
-                            &GolemSkeleton::new(),
+                            &GolemSkeleton::default(),
                             time,
                             state.state_time,
                             &mut state_animation_rate,
@@ -1935,7 +1910,7 @@ impl FigureMgr {
                         ),
                         // Running
                         (true, true, false) => anim::golem::RunAnimation::update_skeleton(
-                            &GolemSkeleton::new(),
+                            &GolemSkeleton::default(),
                             (vel.0.magnitude(), time),
                             state.state_time,
                             &mut state_animation_rate,
@@ -1943,7 +1918,7 @@ impl FigureMgr {
                         ),
                         // In air
                         (false, _, false) => anim::golem::JumpAnimation::update_skeleton(
-                            &GolemSkeleton::new(),
+                            &GolemSkeleton::default(),
                             (vel.0.magnitude(), time),
                             state.state_time,
                             &mut state_animation_rate,
@@ -1954,7 +1929,7 @@ impl FigureMgr {
                         _ => state.skeleton_mut().clone(),
                     };
 
-                    state.skeleton.interpolate(&target_base, dt);
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt);
                     state.update(
                         renderer,
                         pos.0,
@@ -1968,6 +1943,7 @@ impl FigureMgr {
                         in_frustum,
                         is_player,
                         camera,
+                        &mut update_buf,
                     );
                 },
                 Body::Object(_) => {
@@ -1981,11 +1957,10 @@ impl FigureMgr {
                         None,
                     );
 
-                    let state = self
-                        .states
-                        .object_states
-                        .entry(entity)
-                        .or_insert_with(|| FigureState::new(renderer, ObjectSkeleton::new()));
+                    let state =
+                        self.states.object_states.entry(entity).or_insert_with(|| {
+                            FigureState::new(renderer, ObjectSkeleton::default())
+                        });
 
                     state.update(
                         renderer,
@@ -2000,6 +1975,7 @@ impl FigureMgr {
                         true,
                         is_player,
                         camera,
+                        &mut update_buf,
                     );
                 },
             }
@@ -2208,29 +2184,6 @@ impl FigureMgr {
             }
         }
     }
-
-    /* fn do_models_for_render(
-        state: &State,
-        player_entity: EcsEntity,
-    ) -> impl IntoIterator<> + Clone {
-        let ecs = state.ecs();
-
-        (
-            &ecs.entities(),
-            &ecs.read_storage::<Pos>(),
-            ecs.read_storage::<Ori>().maybe(),
-            &ecs.read_storage::<Body>(),
-            ecs.read_storage::<Stats>().maybe(),
-            ecs.read_storage::<Loadout>().maybe(),
-            ecs.read_storage::<Scale>().maybe(),
-        )
-            .join()
-            // Don't render dead entities
-            .filter(|(_, _, _, _, stats, _, _)| stats.map_or(true, |s| !s.is_dead))
-            .for_each(|(entity, pos, _, body, _, loadout, _)| {
-
-            });
-    } */
 
     #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     fn get_model_for_render(
@@ -2597,9 +2550,8 @@ impl FigureColLights {
         &mut self,
         renderer: &mut Renderer,
         greedy: GreedyMesh<'a>,
-        /* (opaque, shadow) */ (opaque, bounds): BoneMeshes,
+        (opaque, bounds): BoneMeshes,
     ) -> Result<FigureModel, RenderError> {
-        // println!("Figure bounds: {:?}", bounds);
         let (tex, tex_size) = greedy.finalize();
         let atlas = &mut self.atlas;
         let allocation = atlas
@@ -2608,38 +2560,6 @@ impl FigureColLights {
                 i32::from(tex_size.y),
             ))
             .expect("Not yet implemented: allocate new atlas on allocation faillure.");
-        // println!("Allocation {:?} for {:?} (original size = {:?}... ugh)",
-        // allocation, response.pos, tex_size); NOTE: Cast is safe since the
-        // origin was a u16.
-        let atlas_offs = vek::Vec2::new(
-            allocation.rectangle.min.x as u16,
-            allocation.rectangle.min.y as u16,
-        );
-        if atlas_offs == vek::Vec2::zero() {
-            // println!("Model: {:?}", &response.opaque_mesh.vertices());
-            // println!("Texture: {:?}", tex);
-        }
-
-        /* if let Err(err) = renderer.update_texture(
-            &self.col_lights,
-            // &col_lights,
-            // NOTE: Cast is safe since the origin was a u16.
-            atlas_offs.into_array(),
-            tex_size.into_array(),
-            &tex,
-        ) {
-            panic!("Ahhh {:?}", err);
-            log::warn!("Failed to update texture: {:?}", err);
-        } */
-        // FIXME: Deal with allocation failure!
-        /* renderer.update_texture(
-            &self.col_lights,
-            // &col_lights,
-            // NOTE: Cast is safe since the origin was a u16.
-            atlas_offs.into_array(),
-            tex_size.into_array(),
-            &tex,
-        )?; */
         let col_lights = ShadowPipeline::create_col_lights(renderer, (tex, tex_size))?;
 
         Ok(FigureModel {
@@ -2657,7 +2577,6 @@ impl FigureColLights {
         let max_texture_size = renderer.max_texture_size();
         let atlas_size =
             guillotiere::Size::new(i32::from(max_texture_size), i32::from(max_texture_size));
-        // let atlas_size = guillotiere::Size::new(1, 1);
         let atlas = AtlasAllocator::with_options(atlas_size, &guillotiere::AllocatorOptions {
             // TODO: Verify some good empirical constants.
             small_size_threshold: 32,
@@ -2671,8 +2590,7 @@ impl FigureColLights {
                 gfx::texture::AaMode::Single,
             ),
             1 as gfx::texture::Level,
-            // gfx::memory::Upload,
-            gfx::memory::Bind::SHADER_RESOURCE, /* | gfx::memory::Bind::TRANSFER_DST */
+            gfx::memory::Bind::SHADER_RESOURCE,
             gfx::memory::Usage::Dynamic,
             (0, 0),
             gfx::format::Swizzle::new(),
@@ -2681,25 +2599,6 @@ impl FigureColLights {
                 gfx::texture::WrapMode::Clamp,
             ),
         )?;
-        /* renderer.flush();
-        renderer.update_texture(
-            &texture,
-            [0, 0],
-            [max_texture_size, max_texture_size],
-            &vec![[0u8; 4]; (usize::from(max_texture_size) * usize::from(max_texture_size))],
-            //&[[255u8; 4]; 64 * 64],
-            // NOTE: Cast is safe since the origin was a u16.
-        )?;
-        renderer.flush(); */
-        // texture.cleanup();
-        // Not sure if this is necessary...
-        // renderer.flush();
-        // texture.update();
-        // // FIXME: Currently, there seems to be a bug where the very first texture
-        // update always // fails.  Not sure why, but we currently work around
-        // it with a dummy allocation (which we // proceed to leak, in case the
-        // bug can return after it's freed). let _ = atlas.allocate(guillotiere:
-        // :Size::new(64, 64));
         Ok((atlas, texture))
     }
 }
@@ -2743,13 +2642,13 @@ impl<S> DerefMut for FigureState<S> {
 
 impl<S: Skeleton> FigureState<S> {
     pub fn new(renderer: &mut Renderer, skeleton: S) -> Self {
-        let (bone_mats, lantern_offset) = skeleton.compute_matrices();
-        let bone_consts = figure_bone_data_from_anim(bone_mats, |mat| {
-            FigureBoneData::new(mat, mat.map_cols(|c| c.normalized()))
-        });
+        let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
+        let lantern_offset =
+            anim::compute_matrices(&skeleton, anim::vek::Mat4::identity(), &mut buf);
+        let bone_consts = figure_bone_data_from_anim(&buf);
         Self {
             meta: FigureStateMeta {
-                bone_consts: renderer.create_consts(&bone_consts).unwrap(),
+                bone_consts: renderer.create_consts(bone_consts).unwrap(),
                 locals: renderer.create_consts(&[FigureLocals::default()]).unwrap(),
                 lantern_offset,
                 state_time: 0.0,
@@ -2779,6 +2678,7 @@ impl<S: Skeleton> FigureState<S> {
         _visible: bool,
         is_player: bool,
         camera: &Camera,
+        buf: &mut [anim::FigureBoneData; anim::MAX_BONE_COUNT],
     ) {
         let _frustum = camera.frustum();
 
@@ -2789,26 +2689,13 @@ impl<S: Skeleton> FigureState<S> {
         let radius = model.bounds.half_size().reduce_partial_max();
         let _bounds = BoundingSphere::new(pos.into_array(), scale * 0.8 * radius);
 
-        /* let (in_frustum, lpindex) = bounds.coherent_test_against_frustum(frustum, self.lpindex);
-        let visible = visible && in_frustum;
-
-        self.lpindex = lpindex;
-        self.visible = visible; */
-        // What is going on here?
-        // (note: that ori is now the slerped ori)
         self.last_ori = vek::Lerp::lerp(self.last_ori, ori, 15.0 * dt);
 
         self.state_time += (dt * state_animation_rate) as f64;
 
-        // let _focus_off = camera.get_focus_pos().map(|e| e.trunc());
-        let mat = anim::vek::Mat4::<f32>::identity()
-            // * Mat4::translation_3d(pos - focus_off)
-            * anim::vek::Mat4::rotation_z(-ori.x.atan2(ori.y))
+        let mat = anim::vek::Mat4::rotation_z(-ori.x.atan2(ori.y))
             * anim::vek::Mat4::rotation_x(ori.z.atan2(anim::vek::Vec2::from(ori).magnitude()))
             * anim::vek::Mat4::scaling_3d(anim::vek::Vec3::from(0.8 * scale));
-
-        /* let dependents = camera.get_dependents();
-        let all_mat = dependents.proj_mat * dependents.view_mat; */
 
         let atlas_offs = model.allocation.rectangle.min;
         let locals = FigureLocals::new(
@@ -2820,17 +2707,14 @@ impl<S: Skeleton> FigureState<S> {
         );
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();
 
-        let (new_bone_mats, lantern_offset) = self.skeleton.compute_matrices();
+        let lantern_offset = anim::compute_matrices(&self.skeleton, mat, buf);
 
-        let new_bone_consts = figure_bone_data_from_anim(new_bone_mats, |bone_mat| {
-            let model_mat = mat * bone_mat;
-            FigureBoneData::new(model_mat, model_mat.map_cols(|c| c.normalized()))
-        });
+        let new_bone_consts = figure_bone_data_from_anim(buf);
 
         renderer
             .update_consts(
                 &mut self.meta.bone_consts,
-                &new_bone_consts[0..self.skeleton.bone_count()],
+                &new_bone_consts[0..S::BONE_COUNT],
             )
             .unwrap();
         self.lantern_offset = lantern_offset;
@@ -2850,25 +2734,7 @@ impl<S: Skeleton> FigureState<S> {
 }
 
 fn figure_bone_data_from_anim(
-    mats: [anim::FigureBoneData; 16],
-    mut make_bone: impl FnMut(anim::vek::Mat4<f32>) -> FigureBoneData,
-) -> [FigureBoneData; 16] {
-    [
-        make_bone(mats[0].0),
-        make_bone(mats[1].0),
-        make_bone(mats[2].0),
-        make_bone(mats[3].0),
-        make_bone(mats[4].0),
-        make_bone(mats[5].0),
-        make_bone(mats[6].0),
-        make_bone(mats[7].0),
-        make_bone(mats[8].0),
-        make_bone(mats[9].0),
-        make_bone(mats[10].0),
-        make_bone(mats[11].0),
-        make_bone(mats[12].0),
-        make_bone(mats[13].0),
-        make_bone(mats[14].0),
-        make_bone(mats[15].0),
-    ]
+    mats: &[anim::FigureBoneData; anim::MAX_BONE_COUNT],
+) -> &[FigureBoneData] {
+    gfx::memory::cast_slice(mats)
 }

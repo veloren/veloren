@@ -749,7 +749,7 @@ impl Hud {
             }
 
             // Max amount the sct font size increases when "flashing"
-            const FLASH_MAX: f32 = 25.0;
+            const FLASH_MAX: u32 = 2;
 
             // Get player position.
             let player_pos = client
@@ -793,9 +793,9 @@ impl Hud {
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         let font_size = 30
-                            + (max_hp_frac * 30.0) as u32
+                            + ((max_hp_frac * 10.0) as u32) * 3
                             + if timer < 0.1 {
-                                (FLASH_MAX * (1.0 - timer / 0.1)) as u32
+                                FLASH_MAX * (((1.0 - timer / 0.1) * 10.0) as u32)
                             } else {
                                 0
                             };
@@ -846,9 +846,9 @@ impl Hud {
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         let font_size = 30
-                            + (max_hp_frac * 30.0) as u32
+                            + ((max_hp_frac * 10.0) as u32) * 3
                             + if floater.timer < 0.1 {
-                                (FLASH_MAX * (1.0 - floater.timer / 0.1)) as u32
+                                FLASH_MAX * (((1.0 - floater.timer / 0.1) * 10.0) as u32)
                             } else {
                                 0
                             };
@@ -928,7 +928,7 @@ impl Hud {
                             + ((exp_change.abs() as f32 / stats.exp.maximum() as f32).min(1.0)
                                 * 50.0) as u32
                             + if timer < 0.1 {
-                                (FLASH_MAX * (1.0 - timer / 0.1)) as u32
+                                FLASH_MAX * (((1.0 - timer / 0.1) * 10.0) as u32)
                             } else {
                                 0
                             };
@@ -972,7 +972,7 @@ impl Hud {
                                     .min(1.0)
                                     * 50.0) as u32
                                 + if floater.timer < 0.1 {
-                                    (FLASH_MAX * (1.0 - floater.timer / 0.1)) as u32
+                                    FLASH_MAX * (((1.0 - floater.timer / 0.1) * 10.0) as u32)
                                 } else {
                                     0
                                 };
@@ -1162,9 +1162,9 @@ impl Hud {
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         let font_size = 30
-                            + (max_hp_frac * 30.0) as u32
+                            + ((max_hp_frac * 10.0) as u32) * 3
                             + if timer < 0.1 {
-                                (FLASH_MAX * (1.0 - timer / 0.1)) as u32
+                                FLASH_MAX * (((1.0 - timer / 0.1) * 10.0) as u32)
                             } else {
                                 0
                             };
@@ -1207,9 +1207,9 @@ impl Hud {
                             // Increase font size based on fraction of maximum health
                             // "flashes" by having a larger size in the first 100ms
                             let font_size = 30
-                                + (max_hp_frac * 30.0) as u32
+                                + ((max_hp_frac * 10.0) as u32) * 3
                                 + if floater.timer < 0.1 {
-                                    (FLASH_MAX * (1.0 - floater.timer / 0.1)) as u32
+                                    FLASH_MAX * (((1.0 - floater.timer / 0.1) * 10.0) as u32)
                                 } else {
                                     0
                                 };
@@ -2365,6 +2365,11 @@ impl Hud {
                 .handle_event(conrod_core::event::Input::Text("\t".to_string()));
         }
 
+        if !self.show.ui {
+            // Optimization: skip maintaining UI when it's off.
+            return vec![];
+        }
+
         if let Some(maybe_id) = self.to_focus.take() {
             self.ui.focus_widget(maybe_id);
         }
@@ -2373,13 +2378,14 @@ impl Hud {
             view_mat, proj_mat, ..
         } = camera.dependents();
         let focus_off = camera.get_focus_pos().map(f32::trunc);
+
+        // Check if item images need to be reloaded
+        self.item_imgs.reload_if_changed(&mut self.ui);
+
         self.ui.maintain(
             &mut global_state.window.renderer_mut(),
             Some(proj_mat * view_mat * Mat4::translation_3d(-focus_off)),
         );
-
-        // Check if item images need to be reloaded
-        self.item_imgs.reload_if_changed(&mut self.ui);
 
         events
     }

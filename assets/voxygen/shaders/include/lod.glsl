@@ -197,12 +197,14 @@ float horizon_at2(vec4 f_horizons, float alt, vec3 pos, /*float time_of_day*/vec
 
 vec2 splay(vec2 pos) {
     // const float SPLAY_MULT = 1048576.0;
-    float len = length(pos);
+    float len_2 = dot(pos, pos);
+    float len_pow = len_2 * sqrt(len_2);
+    // float len_pow = pow(len/* * SQRT_2*//* * 0.5*/, 3.0);
 	// vec2 splayed = pos * pow(len * 0.5, 3.0) * SPLAY_MULT;
     const float SQRT_2 = sqrt(2.0) / 2.0;
     // /const float CBRT_2 = cbrt(2.0) / 2.0;
 	// vec2 splayed = pos * (view_distance.x * SQRT_2 + pow(len * 0.5, 3.0) * (SPLAY_MULT - view_distance.x));
-	vec2 splayed = pos * (view_distance.x * SQRT_2 + pow(len/* * SQRT_2*//* * 0.5*/, 3.0) * (textureSize(t_alt, 0) * 32.0 - view_distance.x));
+	vec2 splayed = pos * (view_distance.x * SQRT_2 + len_pow * (textureSize(t_alt, 0) * 32.0/* - view_distance.x*/));
     return splayed;
 
     // Radial: pos.x = r - view_distance.x from focus_pos, pos.y = θ from cam_pos to focus_pos on xy plane.

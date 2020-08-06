@@ -1,5 +1,42 @@
+#![feature(const_generics)]
+#![allow(incomplete_features)]
 #[cfg(all(feature = "be-dyn-lib", feature = "use-dyn-lib"))]
 compile_error!("Can't use both \"be-dyn-lib\" and \"use-dyn-lib\" features at once");
+
+macro_rules! skeleton_impls {
+    { struct $Skeleton:ident { $( $(+)? $bone:ident ),* $(,)? } } => {
+        #[derive(Clone, Default)]
+        pub struct $Skeleton {
+            $(
+                $bone: Bone,
+            )*
+        }
+
+        impl<'a, Factor> Lerp<Factor> for &'a $Skeleton
+            where
+                Factor: Copy,
+                Bone: Lerp<Factor, Output=Bone>
+        {
+            type Output = $Skeleton;
+
+            fn lerp_unclamped_precise(from: Self, to: Self, factor: Factor) -> Self::Output {
+                Self::Output {
+                    $(
+                        $bone: Lerp::lerp_unclamped_precise(from.$bone, to.$bone, factor),
+                    )*
+                }
+            }
+
+            fn lerp_unclamped(from: Self, to: Self, factor: Factor) -> Self::Output {
+                Self::Output {
+                    $(
+                        $bone: Lerp::lerp_unclamped(from.$bone, to.$bone, factor),
+                    )*
+                }
+            }
+        }
+    }
+}
 
 pub mod biped_large;
 pub mod bird_medium;
@@ -26,86 +63,63 @@ use std::ffi::CStr;
 
 use self::vek::*;
 
-// TODO: replace with inner type everywhere
-pub struct FigureBoneData(pub Mat4<f32>);
-impl FigureBoneData {
-    pub fn new(mat: Mat4<f32>) -> Self { Self(mat) }
+type MatRaw = [[f32; 4]; 4];
 
-    pub fn default() -> Self { Self(Mat4::identity()) }
+pub type FigureBoneData = (MatRaw, MatRaw);
+
+pub const MAX_BONE_COUNT: usize = 16;
+
+fn make_bone(mat: Mat4<f32>) -> FigureBoneData {
+    let normal = mat.map_cols(Vec4::normalized);
+    (mat.into_col_arrays(), normal.into_col_arrays())
 }
 
-#[derive(Copy, Clone, Debug)]
-pub struct Bone {
-    pub offset: Vec3<f32>,
-    pub ori: Quaternion<f32>,
-    pub scale: Vec3<f32>,
-}
-
-impl Default for Bone {
-    fn default() -> Self {
-        Self {
-            offset: Vec3::zero(),
-            ori: Quaternion::identity(),
-            scale: Vec3::broadcast(1.0 / 11.0),
-        }
-    }
-}
-
-impl Bone {
-    pub fn compute_base_matrix(&self) -> Mat4<f32> {
-        Mat4::<f32>::translation_3d(self.offset)
-            * Mat4::scaling_3d(self.scale)
-            * Mat4::from(self.ori)
-    }
-
-    /// Change the current bone to be more like `target`.
-    fn interpolate(&mut self, target: &Bone, dt: f32) {
-        // TODO: Make configurable.
-        let factor = (15.0 * dt).min(1.0);
-        self.offset += (target.offset - self.offset) * factor;
-        self.ori = vek::Slerp::slerp(self.ori, target.ori, factor);
-        self.scale += (target.scale - self.scale) * factor;
-    }
-}
+pub type Bone = Transform<f32, f32, f32>;
 
 pub trait Skeleton: Send + Sync + 'static {
     type Attr;
 
+    const BONE_COUNT: usize;
+
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8];
 
-    fn bone_count(&self) -> usize { 16 }
+    fn compute_matrices_inner(
+        &self,
+        base_mat: Mat4<f32>,
+        buf: &mut [FigureBoneData; MAX_BONE_COUNT],
+    ) -> Vec3<f32>;
+}
 
-    fn compute_matrices_inner(&self) -> ([FigureBoneData; 16], Vec3<f32>);
-
-    fn compute_matrices(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
-        #[cfg(not(feature = "use-dyn-lib"))]
-        {
-            Self::compute_matrices_inner(self)
-        }
-        #[cfg(feature = "use-dyn-lib")]
-        {
-            let lock = dyn_lib::LIB.lock().unwrap();
-            let lib = &lock.as_ref().unwrap().lib;
-
-            let compute_fn: libloading::Symbol<fn(&Self) -> ([FigureBoneData; 16], Vec3<f32>)> =
-                unsafe { lib.get(Self::COMPUTE_FN) }.unwrap_or_else(|e| {
-                    panic!(
-                        "Trying to use: {} but had error: {:?}",
-                        CStr::from_bytes_with_nul(Self::COMPUTE_FN)
-                            .map(CStr::to_str)
-                            .unwrap()
-                            .unwrap(),
-                        e
-                    )
-                });
-
-            compute_fn(self)
-        }
+pub fn compute_matrices<S: Skeleton>(
+    skeleton: &S,
+    base_mat: Mat4<f32>,
+    buf: &mut [FigureBoneData; MAX_BONE_COUNT],
+) -> Vec3<f32> {
+    #[cfg(not(feature = "use-dyn-lib"))]
+    {
+        S::compute_matrices_inner(skeleton, base_mat, buf)
     }
+    #[cfg(feature = "use-dyn-lib")]
+    {
+        let lock = dyn_lib::LIB.lock().unwrap();
+        let lib = &lock.as_ref().unwrap().lib;
 
-    /// Change the current skeleton to be more like `target`.
-    fn interpolate(&mut self, target: &Self, dt: f32);
+        let compute_fn: libloading::Symbol<
+            fn(&S, Mat4<f32>, &mut [FigureBoneData; MAX_BONE_COUNT]) -> Vec3<f32>,
+        > = unsafe { lib.get(Self::COMPUTE_FN) }.unwrap_or_else(|e| {
+            panic!(
+                "Trying to use: {} but had error: {:?}",
+                CStr::from_bytes_with_nul(S::COMPUTE_FN)
+                    .map(CStr::to_str)
+                    .unwrap()
+                    .unwrap(),
+                e
+            )
+        });
+
+        compute_fn(skeleton, base_mat, buf)
+    }
 }
 
 pub trait Animation {

@@ -427,6 +427,23 @@ void main() {
 #endif
     float moon_shade_frac = 1.0;//horizon_at2(f_shadow, shadow_alt, f_pos, moon_dir);
 
+    // Magic stop-gap code without any physical justification.
+    vec3 lerpy_norm;
+    if (my_norm.z/*f_norm.z*/ > 0.99999) {
+        lerpy_norm = vec3(0, 0, 1);
+    } else {
+        vec3 side_norm = normalize(vec3(my_norm.xy, 0));
+        // lerpy_norm = f_norm;
+        float mix_factor = clamp(abs(dot(f_orig_view_dir, side_norm)), 0, 1);
+        lerpy_norm = mix(
+            mix(my_norm, side_norm, clamp(dot(side_norm, my_norm) + 0.5, 0, 1)),
+            my_norm,
+            mix_factor
+        );
+    }
+    const float DIST = 0.07;
+    voxel_norm = normalize(mix(voxel_norm, lerpy_norm, clamp(my_norm.z * my_norm.z - (1.0 - DIST), 0, 1) / DIST));
+
     f_pos.xyz += abs(voxel_norm) * delta_sides;
     voxel_norm = voxel_norm == vec3(0.0) ? f_norm : voxel_norm;
 

@@ -35,15 +35,16 @@ use cache::Cache;
 use common::{assets, util::srgba_to_linear};
 use conrod_core::{
     event::Input,
-    graph::Graph,
+    graph::{self, Graph},
     image::{self, Map},
     input::{touch::Touch, Motion, Widget},
     render::{Primitive, PrimitiveKind},
     text::{self, font},
     widget::{self, id::Generator},
-    Rect, UiBuilder, UiCell,
+    Rect, Scalar, UiBuilder, UiCell,
 };
 use graphic::{Rotation, TexId};
+use hashbrown::hash_map::Entry;
 use std::{
     f32, f64,
     fs::File,
@@ -103,6 +104,9 @@ pub struct Ui {
     cache: Cache,
     // Draw commands for the next render
     draw_commands: Vec<DrawCommand>,
+    // Mesh buffer for UI vertics; we reuse its allocation in order to limit vector reallocations
+    // during redrawing.
+    mesh: Mesh<UiPipeline>,
     // Model for drawing the ui
     model: DynamicModel<UiPipeline>,
     // Consts for default ui drawing position (ie the interface)
@@ -128,6 +132,10 @@ impl Ui {
         let renderer = window.renderer_mut();
 
         let mut ui = UiBuilder::new(win_dims).build();
+        // NOTE: Since we redraw the actual frame each time whether or not the UI needs
+        // to be updated, there's no reason to set the redraw count higher than
+        // 1.
+        ui.set_num_redraw_frames(1);
         let tooltip_manager = TooltipManager::new(
             ui.widget_id_generator(),
             Duration::from_millis(1),
@@ -140,6 +148,7 @@ impl Ui {
             image_map: Map::new(),
             cache: Cache::new(renderer)?,
             draw_commands: Vec::new(),
+            mesh: Mesh::new(),
             model: renderer.create_dynamic_model(100)?,
             interface_locals: renderer.create_consts(&[UiLocals::default()])?,
             default_globals: renderer.create_consts(&[Globals::default()])?,
@@ -274,23 +283,55 @@ impl Ui {
         self.tooltip_manager
             .maintain(self.ui.global_input(), self.scale.scale_factor_logical());
 
-        // Regenerate draw commands and associated models only if the ui changed
-        let mut primitives = match self.ui.draw_if_changed() {
-            Some(primitives) => primitives,
-            None => return,
-        };
+        // Handle window resizing.
+        if let Some(new_dims) = self.window_resized.take() {
+            let (old_w, old_h) = self.scale.scaled_window_size().into_tuple();
+            self.scale.window_resized(new_dims, renderer);
+            let (w, h) = self.scale.scaled_window_size().into_tuple();
+            self.ui.handle_event(Input::Resize(w, h));
+
+            // Avoid panic in graphic cache when minimizing.
+            // Avoid resetting cache if window size didn't change
+            // Somewhat inefficient for elements that won't change size after a window
+            // resize
+            let res = renderer.get_resolution();
+            self.need_cache_resize = res.x > 0 && res.y > 0 && !(old_w == w && old_h == h);
+        }
 
         if self.need_cache_resize {
             // Resize graphic cache
-            self.cache.resize_graphic_cache(renderer);
-            // Resize glyph cache
-            self.cache.resize_glyph_cache(renderer).unwrap();
+            // FIXME: Handle errors here.
+            self.cache.resize(renderer).unwrap();
 
             self.need_cache_resize = false;
         }
 
-        self.draw_commands.clear();
-        let mut mesh = Mesh::new();
+        let mut retry = false;
+        self.maintain_internal(renderer, view_projection_mat, &mut retry);
+        if retry {
+            // Update the glyph cache and try again.
+            self.maintain_internal(renderer, view_projection_mat, &mut retry);
+        }
+    }
+
+    fn maintain_internal(
+        &mut self,
+        renderer: &mut Renderer,
+        view_projection_mat: Option<Mat4<f32>>,
+        retry: &mut bool,
+    ) {
+        let (graphic_cache, text_cache, glyph_cache, cache_tex) = self.cache.cache_mut_and_tex();
+
+        let mut primitives = if *retry {
+            // If this is a retry, always redraw.
+            self.ui.draw()
+        } else {
+            // Otherwise, redraw only if widgets were actually updated.
+            match self.ui.draw_if_changed() {
+                Some(primitives) => primitives,
+                None => return,
+            }
+        };
 
         let (half_res, x_align, y_align) = {
             let res = renderer.get_resolution();
@@ -300,6 +341,215 @@ impl Ui {
                 (res.y & 1) as f32 * 0.5,
             )
         };
+
+        let ui = &self.ui;
+        let p_scale_factor = self.scale.scale_factor_physical();
+        // Functions for converting for conrod scalar coords to GL vertex coords (-1.0
+        // to 1.0).
+        let (ui_win_w, ui_win_h) = (ui.win_w, ui.win_h);
+        let vx = |x: f64| (x / ui_win_w * 2.0) as f32;
+        let vy = |y: f64| (y / ui_win_h * 2.0) as f32;
+        let gl_aabr = |rect: Rect| {
+            let (l, r, b, t) = rect.l_r_b_t();
+            let min = Vec2::new(
+                ((vx(l) * half_res.x + x_align).round() - x_align) / half_res.x,
+                ((vy(b) * half_res.y + y_align).round() - y_align) / half_res.y,
+            );
+            let max = Vec2::new(
+                ((vx(r) * half_res.x + x_align).round() - x_align) / half_res.x,
+                ((vy(t) * half_res.y + y_align).round() - y_align) / half_res.y,
+            );
+            Aabr { min, max }
+        };
+
+        // let window_dim = ui.window_dim();
+        let theme = &ui.theme;
+        let widget_graph = ui.widget_graph();
+        let fonts = &ui.fonts;
+        let dpi_factor = p_scale_factor as f32;
+
+        // We can use information about whether a widget was actually updated to more
+        // easily track cache invalidations.
+        let updated_widgets = ui.updated_widgets();
+        let mut glyph_missing = false;
+
+        updated_widgets.iter()
+            // Filter out widgets that are either:
+            // - not text primitives, or
+            // - are text primitives, but were both already in the cache, and not updated this
+            //  frame.
+            //
+            // The reason the second condition is so complicated is that we want to handle cases
+            // where we cleared the whole cache, which can result in glyphs from text updated in a
+            // previous frame not being present in the text cache.
+            .filter_map(|(&widget_id, updated)| {
+                widget_graph.widget(widget_id)
+                    .and_then(|widget| Some((widget.rect, widget.unique_widget_state::<widget::Text>()?)))
+                    .and_then(|(rect, text)| {
+                        // NOTE: This fallback is weird and probably shouldn't exist.
+                        let font_id = text.style.font_id(theme)/*.or_else(|| fonts.ids().next())*/?;
+                        let font = fonts.get(font_id)?;
+
+                        Some((widget_id, updated, rect, text, font_id, font))
+                    })
+            })
+            // Recache the entry.
+            .for_each(|(widget_id, updated, rect, graph::UniqueWidgetState { state, style }, font_id, font)| {
+                let entry = match text_cache.entry(widget_id) {
+                    Entry::Occupied(_) if !updated => return,
+                    entry => entry,
+                };
+
+                // Retrieve styling.
+                let color = style.color(theme);
+                let font_size = style.font_size(theme);
+                let line_spacing = style.line_spacing(theme);
+                let justify = style.justify(theme);
+                let y_align = conrod_core::position::Align::End;
+
+                let text = &state.string;
+                let line_infos = &state.line_infos;
+
+                // Convert conrod coordinates to pixel coordinates.
+                let trans_x = |x: Scalar| (x + ui_win_w / 2.0) * dpi_factor as Scalar;
+                let trans_y = |y: Scalar| ((-y) + ui_win_h / 2.0) * dpi_factor as Scalar;
+
+                // Produce the text layout iterators.
+                let lines = line_infos.iter().map(|info| &text[info.byte_range()]);
+                let line_rects = text::line::rects(line_infos.iter(), font_size, rect,
+                                                   justify, y_align, line_spacing);
+
+                // Grab the positioned glyphs from the text primitives.
+                let scale = text::f32_pt_to_scale(font_size as f32 * dpi_factor);
+                let positioned_glyphs = lines.zip(line_rects).flat_map(|(line, line_rect)| {
+                    let (x, y) = (trans_x(line_rect.left()) as f32, trans_y(line_rect.bottom()) as f32);
+                    let point = text::rt::Point { x, y };
+                    font.layout(line, scale, point)
+                });
+
+                // Reuse the mesh allocation if possible at this entry if possible; we
+                // then clear it to avoid using stale entries.
+                let mesh = entry.or_insert_with(Mesh::new);
+                mesh.clear();
+
+                let color = srgba_to_linear(color.to_fsa().into());
+
+                positioned_glyphs.for_each(|g| {
+                    match glyph_cache.rect_for(font_id.index(), &g) {
+                        Ok(Some((uv_rect, screen_rect))) => {
+                            let uv = Aabr {
+                                min: Vec2::new(uv_rect.min.x, uv_rect.max.y),
+                                max: Vec2::new(uv_rect.max.x, uv_rect.min.y),
+                            };
+                            let rect = Aabr {
+                                min: Vec2::new(
+                                    vx(screen_rect.min.x as f64 / p_scale_factor
+                                        - ui.win_w / 2.0),
+                                    vy(ui.win_h / 2.0
+                                        - screen_rect.max.y as f64 / p_scale_factor),
+                                ),
+                                max: Vec2::new(
+                                    vx(screen_rect.max.x as f64 / p_scale_factor
+                                        - ui.win_w / 2.0),
+                                    vy(ui.win_h / 2.0
+                                        - screen_rect.min.y as f64 / p_scale_factor),
+                                ),
+                            };
+                            mesh.push_quad(create_ui_quad(rect, uv, color, UiMode::Text));
+                        },
+                        // Glyph not found, no-op.
+                        Ok(None) => {},
+                        // Glyph was found, but was not yet cached; we'll need to add it to the
+                        // cache and retry.
+                        Err(_) => {
+                            // Queue the unknown glyph to be cached.
+                            glyph_missing = true;
+                        }
+                    }
+
+                    // NOTE: Important to do this for *all* glyphs to try to make sure that
+                    // any that are uncached are part of the graph.  Because we always
+                    // clear the entire cache whenever a new glyph is encountered, by
+                    // adding and checking all glyphs as they come in we guarantee that (1)
+                    // any glyphs in the text cache are in the queue, and (2) any glyphs
+                    // not in the text cache are either in the glyph cache, or (during our
+                    // processing here) we set the retry flag to force a glyph cache
+                    // update.  Setting the flag causes all glyphs in the current queue to
+                    // become part of the glyph cache during the second call to
+                    // `maintain_internal`, so as long as the cache refresh succeeded,
+                    // during the second call all glyphs will hit this branch as desired.
+                    glyph_cache.queue_glyph(font_id.index(), g);
+                });
+            });
+
+        if glyph_missing {
+            if *retry {
+                // If a glyph was missing and this was our second try, we know something was
+                // messed up during the glyph_cache redraw.  It is possible that
+                // the queue contained unneeded glyphs, so we don't necessarily
+                // have to give up; a more precise enumeration of the
+                // glyphs required to render this frame might work out.  However, this is a
+                // pretty remote edge case, so we opt to not care about this
+                // frame (we skip rendering it, basically), and just clear the
+                // text cache and glyph queue; next frame will then
+                // start out with an empty slate, and therefore will enqueue precisely the
+                // glyphs needed for that frame.  If *that* frame fails, we're
+                // in bigger trouble.
+                text_cache.clear();
+                glyph_cache.clear();
+                glyph_cache.clear_queue();
+                self.ui.needs_redraw();
+                warn!("Could not recache queued glyphs, skipping frame.");
+            } else {
+                // NOTE: If this is the first round after encountering a new glyph, we just
+                // refresh the whole glyph cache.  Technically this is not necessary since
+                // positioned_glyphs should still be accurate, but it's just the easiest way
+                // to ensure that all glyph positions get updated.  It also helps keep the glyph
+                // cache reasonable by making sure any glyphs that subsequently get rendered are
+                // actually in the cache, including glyphs that were mapped to ids but didn't
+                // happen to be rendered on the frame where the cache was
+                // refreshed.
+                text_cache.clear();
+                tracing::debug!("Updating glyphs and clearing text cache.");
+
+                if let Err(err) = glyph_cache.cache_queued(|rect, data| {
+                    let offset = [rect.min.x as u16, rect.min.y as u16];
+                    let size = [rect.width() as u16, rect.height() as u16];
+
+                    let new_data = data
+                        .iter()
+                        .map(|x| [255, 255, 255, *x])
+                        .collect::<Vec<[u8; 4]>>();
+
+                    if let Err(err) = renderer.update_texture(cache_tex, offset, size, &new_data) {
+                        warn!("Failed to update texture: {:?}", err);
+                    }
+                }) {
+                    // FIXME: If we actually hit this error, it's still possible we could salvage
+                    // things in various ways (for instance, the current queue might have extra
+                    // stuff in it, so we could try calling maintain_internal a
+                    // third time with a fully clean queue; or we could try to
+                    // increase the glyph texture size, etc.  But hopefully
+                    // we will not actually encounter this error.
+                    warn!("Failed to cache queued glyphs: {:?}", err);
+
+                    // Clear queued glyphs, so that (hopefully) next time we won't have the
+                    // offending glyph or glyph set.  We then exit the loop and don't try to
+                    // rerender the frame.
+                    glyph_cache.clear_queue();
+                    self.ui.needs_redraw();
+                } else {
+                    // Successfully cached, so repeat the loop.
+                    *retry = true;
+                }
+            }
+
+            return;
+        }
+
+        self.draw_commands.clear();
+        let mesh = &mut self.mesh;
+        mesh.clear();
 
         enum State {
             Image(TexId),
@@ -321,7 +571,6 @@ impl Ui {
         };
 
         let mut placement = Placement::Interface;
-        let p_scale_factor = self.scale.scale_factor_physical();
 
         // Switches to the `Plain` state and completes the previous `Command` if not
         // already in the `Plain` state.
@@ -341,9 +590,8 @@ impl Ui {
                 kind,
                 scizzor,
                 rect,
-                ..
+                id: widget_id,
             } = prim;
-
             // Check for a change in the scissor.
             let new_scissor = {
                 let (l, b, w, h) = scizzor.l_b_w_h();
@@ -351,8 +599,8 @@ impl Ui {
                 // Calculate minimum x and y coordinates while
                 // flipping y axis (from +up to +down) and
                 // moving origin to top-left corner (from middle).
-                let min_x = self.ui.win_w / 2.0 + l;
-                let min_y = self.ui.win_h / 2.0 - b - h;
+                let min_x = ui.win_w / 2.0 + l;
+                let min_y = ui.win_h / 2.0 - b - h;
                 let intersection = Aabr {
                     min: Vec2 {
                         x: (min_x * scale_factor) as u16,
@@ -415,24 +663,6 @@ impl Ui {
                 Placement::Interface => {},
             }
 
-            // Functions for converting for conrod scalar coords to GL vertex coords (-1.0
-            // to 1.0).
-            let (ui_win_w, ui_win_h) = (self.ui.win_w, self.ui.win_h);
-            let vx = |x: f64| (x / ui_win_w * 2.0) as f32;
-            let vy = |y: f64| (y / ui_win_h * 2.0) as f32;
-            let gl_aabr = |rect: Rect| {
-                let (l, r, b, t) = rect.l_r_b_t();
-                let min = Vec2::new(
-                    ((vx(l) * half_res.x + x_align).round() - x_align) / half_res.x,
-                    ((vy(b) * half_res.y + y_align).round() - y_align) / half_res.y,
-                );
-                let max = Vec2::new(
-                    ((vx(r) * half_res.x + x_align).round() - x_align) / half_res.x,
-                    ((vy(t) * half_res.y + y_align).round() - y_align) / half_res.y,
-                );
-                Aabr { min, max }
-            };
-
             match kind {
                 PrimitiveKind::Image {
                     image_id,
@@ -443,7 +673,6 @@ impl Ui {
                         .image_map
                         .get(&image_id)
                         .expect("Image does not exist in image map");
-                    let graphic_cache = self.cache.graphic_cache_mut();
                     let gl_aabr = gl_aabr(rect);
                     let (source_aabr, gl_size) = {
                         // Transform the source rectangle into uv coordinate.
@@ -573,67 +802,16 @@ impl Ui {
                         Rotation::TargetNorth => UiMode::ImageTargetNorth,
                     }));
                 },
-                PrimitiveKind::Text {
-                    color,
-                    text,
-                    font_id,
-                } => {
+                PrimitiveKind::Text { .. } => {
                     switch_to_plain_state!();
 
-                    let positioned_glyphs = text.positioned_glyphs(p_scale_factor as f32);
-                    let (glyph_cache, cache_tex) = self.cache.glyph_cache_mut_and_tex();
-                    // Queue the glyphs to be cached.
-                    for glyph in positioned_glyphs {
-                        glyph_cache.queue_glyph(font_id.index(), glyph.clone());
-                    }
-
-                    if let Err(err) = glyph_cache.cache_queued(|rect, data| {
-                        let offset = [rect.min.x as u16, rect.min.y as u16];
-                        let size = [rect.width() as u16, rect.height() as u16];
-
-                        let new_data = data
-                            .iter()
-                            .map(|x| [255, 255, 255, *x])
-                            .collect::<Vec<[u8; 4]>>();
-
-                        if let Err(err) =
-                            renderer.update_texture(cache_tex, offset, size, &new_data)
-                        {
-                            warn!("Failed to update texture: {:?}", err);
-                        }
-                    }) {
-                        warn!("Failed to cache queued glyphs: {:?}", err);
-                        // Clear uncachable glyphs from the queue
-                        glyph_cache.clear_queue();
-                    }
-
-                    let color = srgba_to_linear(color.to_fsa().into());
-
-                    for g in positioned_glyphs {
-                        if let Ok(Some((uv_rect, screen_rect))) =
-                            glyph_cache.rect_for(font_id.index(), g)
-                        {
-                            let uv = Aabr {
-                                min: Vec2::new(uv_rect.min.x, uv_rect.max.y),
-                                max: Vec2::new(uv_rect.max.x, uv_rect.min.y),
-                            };
-                            let rect = Aabr {
-                                min: Vec2::new(
-                                    vx(screen_rect.min.x as f64 / p_scale_factor
-                                        - self.ui.win_w / 2.0),
-                                    vy(self.ui.win_h / 2.0
-                                        - screen_rect.max.y as f64 / p_scale_factor),
-                                ),
-                                max: Vec2::new(
-                                    vx(screen_rect.max.x as f64 / p_scale_factor
-                                        - self.ui.win_w / 2.0),
-                                    vy(self.ui.win_h / 2.0
-                                        - screen_rect.min.y as f64 / p_scale_factor),
-                                ),
-                            };
-                            mesh.push_quad(create_ui_quad(rect, uv, color, UiMode::Text));
-                        }
-                    }
+                    // Mesh should already be cached.
+                    mesh.push_mesh(
+                        text_cache
+                            .get(&widget_id)
+                            .as_deref()
+                            .unwrap_or(&Mesh::new()),
+                    );
                 },
                 PrimitiveKind::Rectangle { color } => {
                     let color = srgba_to_linear(color.to_fsa().into());
@@ -675,13 +853,6 @@ impl Ui {
                         } else {
                             [p2.into_array(), p1.into_array(), p3.into_array()]
                         };
-                        /* // If triangle is counter-clockwise, reverse it.
-                        let (v1, v2): (Vec3<f32>, Vec3<f32>) = ((p2 - p1).into(), (p3 - p1).into());
-                        let triangle = if v1.cross(v2).z > 0.0 {
-                            [p2.into_array(), p1.into_array(), p3.into_array()]
-                        } else {
-                            [p1.into_array(), p2.into_array(), p3.into_array()]
-                        }; */
                         mesh.push_tri(create_ui_tri(
                             triangle,
                             [[0.0; 2]; 3],
@@ -762,8 +933,8 @@ impl Ui {
             State::Image(id) => DrawCommand::image(start..mesh.vertices().len(), id),
         });
 
-        // Draw glyph cache (use for debugging).
-        /*self.draw_commands
+        /* // Draw glyph cache (use for debugging).
+        self.draw_commands
             .push(DrawCommand::Scissor(default_scissor(renderer)));
         start = mesh.vertices().len();
         mesh.push_quad(create_ui_quad(
@@ -779,32 +950,17 @@ impl Ui {
             UiMode::Text,
         ));
         self.draw_commands
-            .push(DrawCommand::plain(start..mesh.vertices().len()));*/
+            .push(DrawCommand::plain(start..mesh.vertices().len())); */
 
         // Create a larger dynamic model if the mesh is larger than the current model
         // size.
-        if self.model.vbuf.len() < mesh.vertices().len() {
+        if self.model.vbuf.len() < self.mesh.vertices().len() {
             self.model = renderer
-                .create_dynamic_model(mesh.vertices().len() * 4 / 3)
+                .create_dynamic_model(self.mesh.vertices().len() * 4 / 3)
                 .unwrap();
         }
         // Update model with new mesh.
-        renderer.update_model(&self.model, &mesh, 0).unwrap();
-
-        // Handle window resizing.
-        if let Some(new_dims) = self.window_resized.take() {
-            let (old_w, old_h) = self.scale.scaled_window_size().into_tuple();
-            self.scale.window_resized(new_dims, renderer);
-            let (w, h) = self.scale.scaled_window_size().into_tuple();
-            self.ui.handle_event(Input::Resize(w, h));
-
-            // Avoid panic in graphic cache when minimizing.
-            // Avoid resetting cache if window size didn't change
-            // Somewhat inefficient for elements that won't change size after a window
-            // resize
-            let res = renderer.get_resolution();
-            self.need_cache_resize = res.x > 0 && res.y > 0 && !(old_w == w && old_h == h);
-        }
+        renderer.update_model(&self.model, &self.mesh, 0).unwrap();
     }
 
     pub fn render(&self, renderer: &mut Renderer, maybe_globals: Option<&Consts<Globals>>) {

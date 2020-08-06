@@ -21,12 +21,12 @@ impl Animation for IdleAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        next.torso.offset = Vec3::new(0.0, 7.5, 15.0) / 11.0;
-        next.torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.torso.position = Vec3::new(0.0, 7.5, 15.0) / 11.0;
+        next.torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.torso.scale = Vec3::one() / 10.88;
 
-        next.tail.offset = Vec3::new(0.0, 4.5, 2.0);
-        next.tail.ori = Quaternion::rotation_x(0.0);
+        next.tail.position = Vec3::new(0.0, 4.5, 2.0);
+        next.tail.orientation = Quaternion::rotation_x(0.0);
         next.tail.scale = Vec3::one() * 1.01;
 
         next

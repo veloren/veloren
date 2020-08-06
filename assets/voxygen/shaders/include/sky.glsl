@@ -17,13 +17,13 @@ const float PI = 3.141592;
 const vec3 SKY_DAY_TOP = vec3(0.1, 0.5, 0.9);
 const vec3 SKY_DAY_MID = vec3(0.02, 0.28, 0.8);
 const vec3 SKY_DAY_BOT = vec3(0.1, 0.2, 0.3);
-const vec3 DAY_LIGHT   = vec3(1.5, 1.4, 1.0);//vec3(1.5, 1.4, 1.0);
+const vec3 DAY_LIGHT   = vec3(1.9, 1.75, 0.9);//vec3(1.5, 1.4, 1.0);
 const vec3 SUN_HALO_DAY = vec3(0.35, 0.35, 0.0);
 
 const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
 const vec3 SKY_DUSK_MID = vec3(0.35, 0.1, 0.15);
 const vec3 SKY_DUSK_BOT = vec3(0.0, 0.1, 0.23);
-const vec3 DUSK_LIGHT   = vec3(8.0, 1.5, 0.15);
+const vec3 DUSK_LIGHT   = vec3(9.0, 1.5, 0.15);
 const vec3 SUN_HALO_DUSK = vec3(1.2, 0.15, 0.0);
 
 const vec3 SKY_NIGHT_TOP = vec3(0.001, 0.001, 0.0025);
@@ -35,13 +35,13 @@ const vec3 NIGHT_LIGHT   = vec3(0.002, 0.02, 0.02);
 // Linear RGB, scattering coefficients for atmosphere at roughly R, G, B wavelengths.
 //
 // See https://en.wikipedia.org/wiki/Diffuse_sky_radiation
-const vec3 MU_SCATTER = vec3(0.05, 0.10, 0.23) * 2.0;
+const vec3 MU_SCATTER = vec3(0.05, 0.10, 0.23) * 1.5;
 
-const float SUN_COLOR_FACTOR = 6.0;//6.0;// * 1.5;//1.8;
+const float SUN_COLOR_FACTOR = 5.0;//6.0;// * 1.5;//1.8;
 
 const float UNDERWATER_MIST_DIST = 100.0;
 
-const float PERSISTENT_AMBIANCE = 1.0 / 512;// 1.0 / 512; // 0.00125 // 0.1;// 0.025; // 0.1;
+const float PERSISTENT_AMBIANCE = 1.0 / 80.0;// 1.0 / 512; // 0.00125 // 0.1;// 0.025; // 0.1;
 
 //vec3 get_sun_dir(float time_of_day) {
 //    const float TIME_FACTOR = (PI * 2.0) / (3600.0 * 24.0);
