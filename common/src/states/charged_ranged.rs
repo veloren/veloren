@@ -10,9 +10,6 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-const MAX_GRAVITY: f32 = 0.2;
-const MIN_GRAVITY: f32 = 0.05;
-
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
     /// Whether the attack fired already
@@ -38,6 +35,9 @@ pub struct Data {
     /// Projectile information
     pub projectile_body: Body,
     pub projectile_light: Option<LightEmitter>,
+    pub projectile_gravity: Option<Gravity>,
+    pub initial_projectile_speed: f32,
+    pub max_projectile_speed: f32,
 }
 
 impl CharacterBehavior for Data {
@@ -65,6 +65,9 @@ impl CharacterBehavior for Data {
                 recover_duration: self.recover_duration,
                 projectile_body: self.projectile_body,
                 projectile_light: self.projectile_light,
+                projectile_gravity: self.projectile_gravity,
+                initial_projectile_speed: self.initial_projectile_speed,
+                max_projectile_speed: self.max_projectile_speed,
             });
         } else if data.inputs.secondary.is_pressed()
             && self.charge_timer < self.charge_duration
@@ -87,6 +90,9 @@ impl CharacterBehavior for Data {
                 recover_duration: self.recover_duration,
                 projectile_body: self.projectile_body,
                 projectile_light: self.projectile_light,
+                projectile_gravity: self.projectile_gravity,
+                initial_projectile_speed: self.initial_projectile_speed,
+                max_projectile_speed: self.max_projectile_speed,
             });
 
             // Consumes energy if there's enough left and RMB is held down
@@ -109,6 +115,9 @@ impl CharacterBehavior for Data {
                 recover_duration: self.recover_duration,
                 projectile_body: self.projectile_body,
                 projectile_light: self.projectile_light,
+                projectile_gravity: self.projectile_gravity,
+                initial_projectile_speed: self.initial_projectile_speed,
+                max_projectile_speed: self.max_projectile_speed,
             });
 
             // Consumes energy if there's enough left and RMB is held down
@@ -145,9 +154,8 @@ impl CharacterBehavior for Data {
                 body: self.projectile_body,
                 projectile,
                 light: self.projectile_light,
-                gravity: Some(Gravity(
-                    MAX_GRAVITY - charge_amount * (MAX_GRAVITY - MIN_GRAVITY),
-                )),
+                gravity: self.projectile_gravity,
+                speed: self.initial_projectile_speed + charge_amount * (self.max_projectile_speed - self.initial_projectile_speed),
             });
 
             update.character = CharacterState::ChargedRanged(Data {
@@ -163,6 +171,9 @@ impl CharacterBehavior for Data {
                 recover_duration: self.recover_duration,
                 projectile_body: self.projectile_body,
                 projectile_light: self.projectile_light,
+                projectile_gravity: self.projectile_gravity,
+                initial_projectile_speed: self.initial_projectile_speed,
+                max_projectile_speed: self.max_projectile_speed,
             });
         } else if self.recover_duration != Duration::default() {
             // Recovery
@@ -182,6 +193,9 @@ impl CharacterBehavior for Data {
                     .unwrap_or_default(),
                 projectile_body: self.projectile_body,
                 projectile_light: self.projectile_light,
+                projectile_gravity: self.projectile_gravity,
+                initial_projectile_speed: self.initial_projectile_speed,
+                max_projectile_speed: self.max_projectile_speed,
             });
         } else {
             // Done
