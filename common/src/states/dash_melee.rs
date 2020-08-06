@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Attacking, CharacterState, EnergySource, StateUpdate},
+    comp::{Attacking, CharacterState, StateUpdate},
     states::utils::*,
     sys::character_behavior::*,
 };

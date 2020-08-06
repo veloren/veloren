@@ -149,7 +149,6 @@ impl Body {
             Body::Golem(_) => 5.0,
             Body::QuadrupedLow(_) => 0.5,
             Body::Object(_) => 0.6,
-            // _ => 0.5,
         }
     }
 
