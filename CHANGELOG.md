@@ -49,7 +49,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Loading-Screen tips
 - Feeding animation for some animals
 - Power stat to weapons which affects weapon damage
-- Add IDs to abilities.
 
 ### Changed
 
