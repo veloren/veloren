@@ -17,6 +17,13 @@ VoxygenLocalization(
         language_identifier: "sv",
     ),
     convert_utf8_to_ascii: false,
+    // Make sure that fonts contain all swedisch characters
+    fonts: {
+        "opensans": Font (
+            asset_key: "voxygen.font.OpenSans-Regular",
+            scale_ratio: 1.0,
+        ),
+    },
     string_map: {
         /// Start Common section
         // Texts used in multiple locations with the same formatting
@@ -332,5 +339,9 @@ Willpower
         "esc_menu.logout": "Logout",
         "esc_menu.quit_game": "Quit Game",
         /// End Escape Menu Section
-    }
+    },
+
+    vector_map: {
+
+    },
 )
