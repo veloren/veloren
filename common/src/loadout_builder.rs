@@ -73,7 +73,7 @@ impl LoadoutBuilder {
                     recover_duration: Duration::from_millis(100),
                     base_healthchange: -(body.base_dmg() as i32),
                     range: body.base_range(),
-                    max_angle: 80.0,
+                    max_angle: 20.0,
                 }),
                 ability2: None,
                 ability3: None,
