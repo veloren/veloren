@@ -2,7 +2,7 @@ use crate::{
     assets,
     comp::{
         item::{Item, ItemKind},
-        Ability, AbilityId, Body, CharacterAbility, ItemConfig, Loadout,
+        Body, CharacterAbility, ItemConfig, Loadout,
     },
 };
 use std::time::Duration;
@@ -67,17 +67,14 @@ impl LoadoutBuilder {
         Self(Loadout {
             active_item: Some(ItemConfig {
                 item: assets::load_expect_cloned("common.items.weapons.empty.empty"),
-                ability1: Some(Ability::new(
-                    AbilityId::Empty,
-                    CharacterAbility::BasicMelee {
-                        energy_cost: 10,
-                        buildup_duration: Duration::from_millis(600),
-                        recover_duration: Duration::from_millis(100),
-                        base_healthchange: -(body.base_dmg() as i32),
-                        range: body.base_range(),
-                        max_angle: 80.0,
-                    },
-                )),
+                ability1: Some(CharacterAbility::BasicMelee {
+                    energy_cost: 10,
+                    buildup_duration: Duration::from_millis(600),
+                    recover_duration: Duration::from_millis(100),
+                    base_healthchange: -(body.base_dmg() as i32),
+                    range: body.base_range(),
+                    max_angle: 80.0,
+                }),
                 ability2: None,
                 ability3: None,
                 block_ability: None,
@@ -116,11 +113,8 @@ impl LoadoutBuilder {
                     ability1: ability_drain.next(),
                     ability2: ability_drain.next(),
                     ability3: ability_drain.next(),
-                    block_ability: Some(Ability::new(
-                        AbilityId::Block,
-                        CharacterAbility::BasicBlock,
-                    )),
-                    dodge_ability: Some(Ability::new(AbilityId::Roll, CharacterAbility::Roll)),
+                    block_ability: Some(CharacterAbility::BasicBlock),
+                    dodge_ability: Some(CharacterAbility::Roll),
                 });
             }
         }

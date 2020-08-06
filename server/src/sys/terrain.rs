@@ -127,26 +127,20 @@ impl<'a> System<'a> for Sys {
                             ability2: ability_drain.next(),
                             ability3: ability_drain.next(),
                             block_ability: None,
-                            dodge_ability: Some(comp::Ability::new(
-                                comp::AbilityId::Roll,
-                                comp::CharacterAbility::Roll,
-                            )),
+                            dodge_ability: Some(comp::CharacterAbility::Roll),
                         })
                     } else {
                         Some(ItemConfig {
                             // We need the empty item so npcs can attack
                             item: assets::load_expect_cloned("common.items.weapons.empty.empty"),
-                            ability1: Some(comp::Ability::new(
-                                comp::AbilityId::Empty,
-                                CharacterAbility::BasicMelee {
-                                    energy_cost: 0,
-                                    buildup_duration: Duration::from_millis(0),
-                                    recover_duration: Duration::from_millis(400),
-                                    base_healthchange: -60,
-                                    range: 5.0,
-                                    max_angle: 80.0,
-                                },
-                            )),
+                            ability1: Some(CharacterAbility::BasicMelee {
+                                energy_cost: 0,
+                                buildup_duration: Duration::from_millis(0),
+                                recover_duration: Duration::from_millis(400),
+                                base_healthchange: -60,
+                                range: 5.0,
+                                max_angle: 80.0,
+                            }),
                             ability2: None,
                             ability3: None,
                             block_ability: None,
@@ -260,17 +254,14 @@ impl<'a> System<'a> for Sys {
                             item: assets::load_expect_cloned(
                                 "common.items.weapons.sword.zweihander_sword_0",
                             ),
-                            ability1: Some(comp::Ability::new(
-                                comp::AbilityId::Empty,
-                                CharacterAbility::BasicMelee {
-                                    energy_cost: 0,
-                                    buildup_duration: Duration::from_millis(800),
-                                    recover_duration: Duration::from_millis(200),
-                                    base_healthchange: -100,
-                                    range: 3.5,
-                                    max_angle: 60.0,
-                                },
-                            )),
+                            ability1: Some(CharacterAbility::BasicMelee {
+                                energy_cost: 0,
+                                buildup_duration: Duration::from_millis(800),
+                                recover_duration: Duration::from_millis(200),
+                                base_healthchange: -100,
+                                range: 3.5,
+                                max_angle: 60.0,
+                            }),
                             ability2: None,
                             ability3: None,
                             block_ability: None,
