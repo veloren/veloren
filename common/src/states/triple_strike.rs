@@ -70,6 +70,8 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
+        handle_move(data, &mut update, 0.3);
+
         #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
         let stage_time_active = self
             .stage_time_active
@@ -126,8 +128,6 @@ impl CharacterBehavior for Data {
                     update.vel.0 = update.vel.0.normalized() * BASE_SPEED;
                 }
             };
-        // update.vel.0 = Vec3::new(data.inputs.move_dir.x,
-        // data.inputs.move_dir.y, 0.0) * 5.0;
         } else {
             handle_orientation(data, &mut update, 50.0);
         }
