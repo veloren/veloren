@@ -4,8 +4,8 @@ use common::{
         self, Agent, Alignment, Body, Gravity, Item, ItemDrop, LightEmitter, Loadout, Pos,
         Projectile, Scale, Stats, Vel, WaypointArea,
     },
-    util::Dir,
     outcome::Outcome,
+    util::Dir,
 };
 use specs::{Builder, Entity as EcsEntity, WorldExt};
 use vek::{Rgb, Vec3};
@@ -93,7 +93,10 @@ pub fn handle_shoot(
     let vel = *dir * 100.0;
 
     // Add an outcome
-    state.ecs().write_resource::<Vec<Outcome>>().push(Outcome::ProjectileShot { pos, body, vel });
+    state
+        .ecs()
+        .write_resource::<Vec<Outcome>>()
+        .push(Outcome::ProjectileShot { pos, body, vel });
 
     // TODO: Player height
     pos.z += 1.2;

@@ -76,7 +76,7 @@ impl ParticleMgr {
                     });
                 }
             },
-            _ => {},
+            Outcome::ProjectileShot { .. } => {},
         }
     }
 

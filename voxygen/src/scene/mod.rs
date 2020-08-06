@@ -208,7 +208,7 @@ impl Scene {
                 timeout: 0.5,
                 fadeout: |timeout| timeout * 2.0,
             }),
-            _ => {},
+            Outcome::ProjectileShot { .. } => {},
         }
     }
 

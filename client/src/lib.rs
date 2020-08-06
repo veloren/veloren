@@ -25,12 +25,12 @@ use common::{
         Notification, PlayerInfo, PlayerListUpdate, RegisterError, RequestStateError, ServerInfo,
         ServerMsg, MAX_BYTES_CHAT_MSG,
     },
+    outcome::Outcome,
     recipe::RecipeBook,
     state::State,
     sync::{Uid, UidAllocator, WorldSyncExt},
     terrain::{block::Block, TerrainChunk, TerrainChunkSize},
     vol::RectVolSize,
-    outcome::Outcome,
 };
 use futures_executor::block_on;
 use futures_timer::Delay;
@@ -1231,9 +1231,9 @@ impl Client {
                     self.view_distance = Some(vd);
                     frontend_events.push(Event::SetViewDistance(vd));
                 },
-                ServerMsg::Outcomes(outcomes) => frontend_events.extend(outcomes
-                    .into_iter()
-                    .map(Event::Outcome)),
+                ServerMsg::Outcomes(outcomes) => {
+                    frontend_events.extend(outcomes.into_iter().map(Event::Outcome))
+                },
             }
         }
     }

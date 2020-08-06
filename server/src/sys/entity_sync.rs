@@ -7,14 +7,14 @@ use crate::{
     Tick,
 };
 use common::{
-    comp::{ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Pos, Vel, Player},
+    comp::{ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Player, Pos, Vel},
     msg::ServerMsg,
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
     state::TimeOfDay,
     sync::{CompSyncPackage, Uid},
-    vol::RectVolSize,
     terrain::TerrainChunkSize,
+    vol::RectVolSize,
 };
 use specs::{
     Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage,
@@ -326,8 +326,12 @@ impl<'a> System<'a> for Sys {
 
         // Sync outcomes
         for (client, player, pos) in (&mut clients, &players, positions.maybe()).join() {
-            let is_near = |o_pos: Vec3<f32>| pos
-                .zip_with(player.view_distance, |pos, vd| pos.0.xy().distance_squared(o_pos.xy()) < (vd as f32 * TerrainChunkSize::RECT_SIZE.x as f32).powf(2.0));
+            let is_near = |o_pos: Vec3<f32>| {
+                pos.zip_with(player.view_distance, |pos, vd| {
+                    pos.0.xy().distance_squared(o_pos.xy())
+                        < (vd as f32 * TerrainChunkSize::RECT_SIZE.x as f32).powf(2.0)
+                })
+            };
 
             let outcomes = outcomes
                 .iter()
