@@ -46,6 +46,7 @@ pub enum ServerEvent {
         light: Option<comp::LightEmitter>,
         projectile: comp::Projectile,
         gravity: Option<comp::Gravity>,
+        speed: f32,
     },
     LandOnGround {
         entity: EcsEntity,

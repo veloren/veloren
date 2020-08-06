@@ -63,6 +63,7 @@ pub enum CharacterAbility {
         projectile_body: Body,
         projectile_light: Option<LightEmitter>,
         projectile_gravity: Option<Gravity>,
+        projectile_speed: f32,
     },
     Boost {
         duration: Duration,
@@ -105,6 +106,9 @@ pub enum CharacterAbility {
         recover_duration: Duration,
         projectile_body: Body,
         projectile_light: Option<LightEmitter>,
+        projectile_gravity: Option<Gravity>,
+        initial_projectile_speed: f32,
+        max_projectile_speed: f32,
     },
 }
 
@@ -272,6 +276,7 @@ impl From<&CharacterAbility> for CharacterState {
                 projectile_body,
                 projectile_light,
                 projectile_gravity,
+                projectile_speed,
                 energy_cost: _,
             } => CharacterState::BasicRanged(basic_ranged::Data {
                 exhausted: false,
@@ -283,6 +288,7 @@ impl From<&CharacterAbility> for CharacterState {
                 projectile_body: *projectile_body,
                 projectile_light: *projectile_light,
                 projectile_gravity: *projectile_gravity,
+                projectile_speed: *projectile_speed,
             }),
             CharacterAbility::Boost { duration, only_up } => CharacterState::Boost(boost::Data {
                 duration: *duration,
@@ -366,6 +372,9 @@ impl From<&CharacterAbility> for CharacterState {
                 recover_duration,
                 projectile_body,
                 projectile_light,
+                projectile_gravity,
+                initial_projectile_speed,
+                max_projectile_speed,
             } => CharacterState::ChargedRanged(charged_ranged::Data {
                 exhausted: false,
                 energy_drain: *energy_drain,
@@ -379,6 +388,9 @@ impl From<&CharacterAbility> for CharacterState {
                 recover_duration: *recover_duration,
                 projectile_body: *projectile_body,
                 projectile_light: *projectile_light,
+                projectile_gravity: *projectile_gravity,
+                initial_projectile_speed: *initial_projectile_speed,
+                max_projectile_speed: *max_projectile_speed,
             }),
         }
     }

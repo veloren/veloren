@@ -187,6 +187,7 @@ impl Tool {
                     projectile_body: Body::Object(object::Body::Arrow),
                     projectile_light: None,
                     projectile_gravity: Some(Gravity(0.2)),
+                    projectile_speed: 100.0,
                 },
                 ChargedRanged {
                     energy_cost: 0,
@@ -200,6 +201,9 @@ impl Tool {
                     recover_duration: Duration::from_millis(500),
                     projectile_body: Body::Object(object::Body::MultiArrow),
                     projectile_light: None,
+                    projectile_gravity: Some(Gravity(0.2)),
+                    initial_projectile_speed: 100.0,
+                    max_projectile_speed: 500.0,
                 },
             ],
             Dagger(_) => vec![
@@ -296,6 +300,7 @@ impl Tool {
                             }),
 
                             projectile_gravity: None,
+                            projectile_speed: 100.0,
                         },
                         BasicRanged {
                             energy_cost: 400,
@@ -326,6 +331,7 @@ impl Tool {
                             }),
 
                             projectile_gravity: None,
+                            projectile_speed: 100.0,
                         },
                     ]
                 }
@@ -397,6 +403,7 @@ impl Tool {
                                 ..Default::default()
                             }),
                             projectile_gravity: None,
+                            projectile_speed: 100.0,
                         },
                     ]
                 } else {

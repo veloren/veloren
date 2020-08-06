@@ -87,6 +87,7 @@ pub fn handle_shoot(
     light: Option<LightEmitter>,
     projectile: Projectile,
     gravity: Option<Gravity>,
+    speed: f32,
 ) {
     let state = server.state_mut();
 
@@ -97,7 +98,7 @@ pub fn handle_shoot(
         .expect("Failed to fetch entity")
         .0;
 
-    let vel = *dir * 100.0;
+    let vel = *dir * speed;
 
     // Add an outcome
     state
