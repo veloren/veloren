@@ -88,8 +88,8 @@ use crate::{audio::AudioFrontend, scene::Camera};
 use common::{
     assets,
     comp::{
-        item::{Consumable, ItemKind, ToolCategory},
-        CharacterAbilityType, InventoryUpdateEvent, Ori, Pos,
+        item::{ItemKind, ToolCategory},
+        CharacterAbilityType, InventoryUpdateEvent,
     },
     event::EventBus,
     outcome::Outcome,
@@ -281,7 +281,7 @@ impl SfxMgr {
                     Some((*power / 2.5).min(1.5)),
                 );
             },
-            Outcome::ProjectileShot { pos, body, .. } => {
+            Outcome::ProjectileShot { pos, .. } => {
                 audio.play_sfx(
                     // TODO: from sfx triggers config
                     "voxygen.audio.sfx.glider_open",

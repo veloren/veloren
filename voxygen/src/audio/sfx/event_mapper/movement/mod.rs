@@ -38,7 +38,13 @@ pub struct MovementEventMapper {
 }
 
 impl EventMapper for MovementEventMapper {
-    fn maintain(&mut self, state: &State, player_entity: specs::Entity, camera: &Camera, triggers: &SfxTriggers) {
+    fn maintain(
+        &mut self,
+        state: &State,
+        player_entity: specs::Entity,
+        camera: &Camera,
+        triggers: &SfxTriggers,
+    ) {
         let ecs = state.ecs();
 
         let sfx_event_bus = ecs.read_resource::<EventBus<SfxEventItem>>();
@@ -55,9 +61,7 @@ impl EventMapper for MovementEventMapper {
             ecs.read_storage::<CharacterState>().maybe(),
         )
             .join()
-            .filter(|(_, e_pos, ..)| {
-                (e_pos.0.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR
-            })
+            .filter(|(_, e_pos, ..)| (e_pos.0.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR)
         {
             if let Some(character) = character {
                 let state = self.event_history.entry(entity).or_default();

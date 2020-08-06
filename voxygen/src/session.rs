@@ -1035,7 +1035,8 @@ impl PlayState for SessionState {
 
                     // Process outcomes from client
                     for outcome in outcomes {
-                        self.scene.handle_outcome(&outcome, &scene_data, &mut global_state.audio);
+                        self.scene
+                            .handle_outcome(&outcome, &scene_data, &mut global_state.audio);
                     }
                 }
             }

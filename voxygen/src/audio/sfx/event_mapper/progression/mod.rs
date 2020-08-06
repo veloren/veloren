@@ -26,7 +26,13 @@ pub struct ProgressionEventMapper {
 
 impl EventMapper for ProgressionEventMapper {
     #[allow(clippy::op_ref)] // TODO: Pending review in #587
-    fn maintain(&mut self, state: &State, player_entity: specs::Entity, _camera: &Camera, triggers: &SfxTriggers) {
+    fn maintain(
+        &mut self,
+        state: &State,
+        player_entity: specs::Entity,
+        _camera: &Camera,
+        triggers: &SfxTriggers,
+    ) {
         let ecs = state.ecs();
 
         let next_state = ecs.read_storage::<Stats>().get(player_entity).map_or(

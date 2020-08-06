@@ -171,8 +171,11 @@ impl SfxChannel {
     pub fn update(&mut self, listener: &Listener) {
         const FALLOFF: f32 = 0.13;
 
-        self.sink.set_emitter_position(((self.pos - listener.pos) * FALLOFF).into_array());
-        self.sink.set_left_ear_position(listener.ear_left_rpos.into_array());
-        self.sink.set_right_ear_position(listener.ear_right_rpos.into_array());
+        self.sink
+            .set_emitter_position(((self.pos - listener.pos) * FALLOFF).into_array());
+        self.sink
+            .set_left_ear_position(listener.ear_left_rpos.into_array());
+        self.sink
+            .set_right_ear_position(listener.ear_right_rpos.into_array());
     }
 }
