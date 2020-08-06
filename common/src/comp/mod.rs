@@ -20,9 +20,7 @@ mod stats;
 mod visual;
 
 // Reexports
-pub use ability::{
-    Ability, AbilityId, CharacterAbility, CharacterAbilityType, ItemConfig, Loadout,
-};
+pub use ability::{CharacterAbility, CharacterAbilityType, ItemConfig, Loadout};
 pub use admin::{Admin, AdminList};
 pub use agent::{Agent, Alignment};
 pub use body::{

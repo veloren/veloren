@@ -203,7 +203,7 @@ pub fn handle_ability1_input(data: &JoinData, update: &mut StateUpdate) {
             .active_item
             .as_ref()
             .and_then(|i| i.ability1.as_ref())
-            .filter(|ability| ability.data.requirements_paid(data, update))
+            .filter(|ability| ability.requirements_paid(data, update))
         {
             update.character = ability.into();
         }
@@ -233,7 +233,7 @@ pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
                     .active_item
                     .as_ref()
                     .and_then(|i| i.ability2.as_ref())
-                    .filter(|ability| ability.data.requirements_paid(data, update))
+                    .filter(|ability| ability.requirements_paid(data, update))
                 {
                     update.character = ability.into();
                 }
@@ -244,7 +244,7 @@ pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
                     .second_item
                     .as_ref()
                     .and_then(|i| i.ability2.as_ref())
-                    .filter(|ability| ability.data.requirements_paid(data, update))
+                    .filter(|ability| ability.requirements_paid(data, update))
                 {
                     update.character = ability.into();
                 }
@@ -262,7 +262,7 @@ pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
             .active_item
             .as_ref()
             .and_then(|i| i.ability3.as_ref())
-            .filter(|ability| ability.data.requirements_paid(data, update))
+            .filter(|ability| ability.requirements_paid(data, update))
         {
             update.character = ability.into();
         }
@@ -278,7 +278,7 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             .active_item
             .as_ref()
             .and_then(|i| i.dodge_ability.as_ref())
-            .filter(|ability| ability.data.requirements_paid(data, update))
+            .filter(|ability| ability.requirements_paid(data, update))
         {
             if data.character.is_wield() {
                 update.character = ability.into();

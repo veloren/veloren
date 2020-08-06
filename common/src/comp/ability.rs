@@ -43,63 +43,6 @@ impl From<&CharacterState> for CharacterAbilityType {
     }
 }
 
-/// This enum is used for matching ability to image in GUI.
-/// This is beacuse `CharacterAbility` can have more "meanings"
-/// (like axe swing and sword swing, both are BasicMelee)
-/// and different GUI can be done for each.
-///
-/// TODO: Dehardcode this in case of modding.
-#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub enum AbilityId {
-    // Sword
-    SwordCut,
-    SwordThrust,
-    // Axe
-    AxeSwing,
-    AxeSpin,
-    // Hammer
-    HammerSmash,
-    HammerLeap,
-    // Bow
-    BowShot,
-    BowCharged,
-    // Staff
-    StaffSwing,
-    StaffShot,
-    StaffFireball,
-    StaffHeal,
-    // Dagger
-    DaggerStab,
-    DaggerDash,
-    // Shield
-    ShieldBash,
-    ShieldBlock,
-    // Farming
-    FarmingAttack,
-    // Debug
-    DebugFlyDirection,
-    DebugFlyUp,
-    DebugPossesArrow,
-    // Special
-    // TODO: Review usage
-    Roll,
-    Block,
-    Empty,
-}
-
-/// Unique ability config.
-/// It composes from an ID (currently used to inform Client's GUI)
-/// and data, which is the actual ability behaviour/config.
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub struct Ability {
-    pub id: AbilityId,
-    pub data: CharacterAbility,
-}
-
-impl Ability {
-    pub fn new(id: AbilityId, data: CharacterAbility) -> Ability { Ability { id, data } }
-}
-
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum CharacterAbility {
     BasicMelee {
@@ -215,11 +158,11 @@ impl CharacterAbility {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ItemConfig {
     pub item: Item,
-    pub ability1: Option<Ability>,
-    pub ability2: Option<Ability>,
-    pub ability3: Option<Ability>,
-    pub block_ability: Option<Ability>,
-    pub dodge_ability: Option<Ability>,
+    pub ability1: Option<CharacterAbility>,
+    pub ability2: Option<CharacterAbility>,
+    pub ability3: Option<CharacterAbility>,
+    pub block_ability: Option<CharacterAbility>,
+    pub dodge_ability: Option<CharacterAbility>,
 }
 
 #[derive(Arraygen, Clone, PartialEq, Default, Debug, Serialize, Deserialize)]
@@ -415,10 +358,6 @@ impl From<&CharacterAbility> for CharacterState {
             }),
         }
     }
-}
-
-impl From<&Ability> for CharacterState {
-    fn from(ability: &Ability) -> Self { CharacterState::from(&ability.data) }
 }
 
 impl Component for Loadout {

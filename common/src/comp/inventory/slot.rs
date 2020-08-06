@@ -2,7 +2,7 @@ use crate::{
     comp,
     comp::{item, item::armor},
 };
-use comp::{Ability, AbilityId, Inventory, Loadout};
+use comp::{Inventory, Loadout};
 use serde::{Deserialize, Serialize};
 use tracing::warn;
 
@@ -100,11 +100,8 @@ fn item_config(item: item::Item) -> comp::ItemConfig {
         ability1: abilities.next(),
         ability2: abilities.next(),
         ability3: abilities.next(),
-        block_ability: Some(Ability::new(
-            AbilityId::Block,
-            comp::CharacterAbility::BasicBlock,
-        )),
-        dodge_ability: Some(Ability::new(AbilityId::Roll, comp::CharacterAbility::Roll)),
+        block_ability: Some(comp::CharacterAbility::BasicBlock),
+        dodge_ability: Some(comp::CharacterAbility::Roll),
     }
 }
 
