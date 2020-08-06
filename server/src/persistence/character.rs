@@ -234,7 +234,7 @@ impl Drop for CharacterLoader {
 /// After first logging in, and after a character is selected, we fetch this
 /// data for the purpose of inserting their persisted data for the entity.
 fn load_character_data(player_uuid: &str, character_id: i32, db_dir: &str) -> CharacterDataResult {
-    let connection = establish_connection(db_dir);
+    let connection = establish_connection(db_dir)?;
 
     let result = schema::character::dsl::character
         .filter(schema::character::id.eq(character_id))
@@ -281,7 +281,7 @@ fn load_character_list(player_uuid: &str, db_dir: &str) -> CharacterListResult {
         .inner_join(schema::body::table)
         .inner_join(schema::stats::table)
         .inner_join(schema::loadout::table)
-        .load::<(Character, Body, Stats, Loadout)>(&establish_connection(db_dir));
+        .load::<(Character, Body, Stats, Loadout)>(&establish_connection(db_dir)?);
 
     match result {
         Ok(data) => Ok(data
@@ -322,7 +322,7 @@ fn create_character(
 ) -> CharacterListResult {
     check_character_limit(uuid, db_dir)?;
 
-    let connection = establish_connection(db_dir);
+    let connection = establish_connection(db_dir)?;
 
     connection.transaction::<_, diesel::result::Error, _>(|| {
         use schema::{body, character, character::dsl::*, inventory, loadout, stats};
@@ -413,12 +413,20 @@ fn create_character(
 fn delete_character(uuid: &str, character_id: i32, db_dir: &str) -> CharacterListResult {
     use schema::character::dsl::*;
 
-    diesel::delete(
-        character
-            .filter(id.eq(character_id))
-            .filter(player_uuid.eq(uuid)),
-    )
-    .execute(&establish_connection(db_dir))?;
+    let connection = establish_connection(db_dir)?;
+
+    if let Err(e) = connection.transaction::<_, diesel::result::Error, _>(|| {
+        diesel::delete(
+            character
+                .filter(id.eq(character_id))
+                .filter(player_uuid.eq(uuid)),
+        )
+        .execute(&connection)?;
+
+        Ok(())
+    }) {
+        error!(?e, "Error during stats batch update transaction");
+    }
 
     load_character_list(uuid, db_dir)
 }
@@ -432,7 +440,7 @@ fn check_character_limit(uuid: &str, db_dir: &str) -> Result<(), Error> {
     let character_count = character
         .select(count_star())
         .filter(player_uuid.eq(uuid))
-        .load::<i64>(&establish_connection(db_dir))?;
+        .load::<i64>(&establish_connection(db_dir)?)?;
 
     match character_count.first() {
         Some(count) => {
@@ -511,25 +519,28 @@ impl CharacterUpdater {
 fn batch_update(updates: impl Iterator<Item = (i32, CharacterUpdateData)>, db_dir: &str) {
     let connection = establish_connection(db_dir);
 
-    if let Err(e) = connection.transaction::<_, diesel::result::Error, _>(|| {
-        updates.for_each(
-            |(character_id, (stats_update, inventory_update, loadout_update))| {
-                update(
-                    character_id,
-                    &stats_update,
-                    &inventory_update,
-                    &loadout_update,
-                    &connection,
-                )
-            },
-        );
+    if let Err(e) = connection.and_then(|connection| {
+        connection.transaction::<_, diesel::result::Error, _>(|| {
+            updates.for_each(
+                |(character_id, (stats_update, inventory_update, loadout_update))| {
+                    update(
+                        character_id,
+                        &stats_update,
+                        &inventory_update,
+                        &loadout_update,
+                        &connection,
+                    )
+                },
+            );
 
-        Ok(())
+            Ok(())
+        })
     }) {
         error!(?e, "Error during stats batch update transaction");
     }
 }
 
+/// NOTE: Only call while a transaction is held!
 fn update(
     character_id: i32,
     stats: &StatsUpdate,
