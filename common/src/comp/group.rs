@@ -462,10 +462,21 @@ impl GroupManager {
             }
 
             if let Some(info) = self.group_info_mut(group) {
-                info.num_members -= 1;
+                // If not pet, decrement number of members
+                if !matches!(alignments.get(member), Some(Alignment::Owned(owner)) if uids.get(member).map_or(true, |uid| uid != owner))
+                {
+                    if info.num_members > 0 {
+                        info.num_members -= 1;
+                    } else {
+                        error!("Group with invalid number of members")
+                    }
+                }
+
+                let mut remaining_count = 0; // includes pets
                 // Inform remaining members
-                members(group, &*groups, entities, alignments, uids).for_each(
-                    |(e, role)| match role {
+                members(group, &*groups, entities, alignments, uids).for_each(|(e, role)| {
+                    remaining_count += 1;
+                    match role {
                         Role::Member => {
                             notifier(e, ChangeNotification::Removed(member));
                             leaving_pets.iter().for_each(|p| {
@@ -473,16 +484,16 @@ impl GroupManager {
                             })
                         },
                         Role::Pet => {},
-                    },
-                );
+                    }
+                });
                 // If leader is the last one left then disband the group
                 // Assumes last member is the leader
-                if info.num_members == 1 {
+                if remaining_count == 1 {
                     let leader = info.leader;
                     self.remove_group(group);
                     groups.remove(leader);
                     notifier(leader, ChangeNotification::NoGroup);
-                } else if info.num_members == 0 {
+                } else if remaining_count == 0 {
                     error!("Somehow group has no members")
                 }
             }
