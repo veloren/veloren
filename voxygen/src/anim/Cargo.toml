@@ -17,7 +17,7 @@ be-dyn-lib = []
 default = ["be-dyn-lib"]
 
 [dependencies]
-vek = { version = "0.11.2", features = ["repr_simd", "serde"] }
+vek = { version = "0.12.0", features = ["platform_intrinsics", "serde"] }
 common = { package = "veloren-common", path = "../../../common" }
 libloading = { version = "0.6.2", optional = true }
 notify = { version = "5.0.0-pre.2", optional = true }

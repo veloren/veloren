@@ -2365,9 +2365,6 @@ impl<V: RectRasterableVol> Terrain<V> {
     }
 
     /// Maintain terrain data. To be called once per tick.
-    // NOTE: All of the "useless" conversion reported here allow us to abstract over repr_c vs.
-    // simd vectors, so fixing this warning would make the code worse in this case.
-    #[allow(clippy::useless_conversion)]
     #[allow(clippy::for_loops_over_fallibles)] // TODO: Pending review in #587
     #[allow(clippy::len_zero)] // TODO: Pending review in #587
     pub fn maintain(
@@ -2689,7 +2686,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         // Update chunk visibility
         let chunk_sz = V::RECT_SIZE.x as f32;
         for (pos, chunk) in &mut self.chunks {
-            let chunk_pos = pos.map(|e| e as f32 * chunk_sz);
+            let chunk_pos = pos.as_::<f32>() * chunk_sz;
 
             chunk.can_shadow_sun = false;
 
@@ -2745,33 +2742,32 @@ impl<V: RectRasterableVol> Terrain<V> {
 
         // PSCs: Potential shadow casters
         let ray_direction = scene_data.get_sun_dir();
-        let collides_with_aabr = |a: math::Aabr<f32>, b: math::Aabr<f32>| {
-            a.min.partial_cmple(&b.max).reduce_and() && a.max.partial_cmpge(&b.min).reduce_and()
+        let collides_with_aabr = |a: math::Aabb<f32>, b: math::Aabr<f32>| {
+            let min = math::Vec4::new(a.min.x, a.min.y, b.min.x, b.min.y);
+            let max = math::Vec4::new(b.max.x, b.max.y, a.max.x, a.max.y);
+            min.partial_cmple_simd(max).reduce_and()
         };
         let (visible_light_volume, visible_psr_bounds) = if ray_direction.z < 0.0
             && renderer.render_mode().shadow.is_map()
         {
-            let visible_bounding_box = Aabb {
-                min: visible_bounding_box.min - focus_off,
-                max: visible_bounding_box.max - focus_off,
+            let visible_bounding_box = math::Aabb::<f32> {
+                min: math::Vec3::from(visible_bounding_box.min - focus_off),
+                max: math::Vec3::from(visible_bounding_box.max - focus_off),
             };
             let focus_off = math::Vec3::from(focus_off);
-            let visible_bounds_fine = math::Aabb::<f64> {
-                min: math::Vec3::from(visible_bounding_box.min.map(f64::from)),
-                max: math::Vec3::from(visible_bounding_box.max.map(f64::from)),
-            };
+            let visible_bounds_fine = visible_bounding_box.as_::<f64>();
             let inv_proj_view =
                 math::Mat4::from_col_arrays((proj_mat * view_mat).into_col_arrays())
-                    .map(f64::from)
+                    .as_::<f64>()
                     .inverted();
             let ray_direction = math::Vec3::<f32>::from(ray_direction);
             let visible_light_volume = math::calc_focused_light_volume_points(
                 inv_proj_view,
-                ray_direction.map(f64::from),
+                ray_direction.as_::<f64>(),
                 visible_bounds_fine,
                 1e-6,
             )
-            .map(|v| v.map(|e| e as f32))
+            .map(|v| v.as_::<f32>())
             .collect::<Vec<_>>();
 
             let cam_pos = math::Vec4::from(view_mat.inverted() * Vec4::unit_w()).xyz();
@@ -2786,7 +2782,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             let ray_mat = ray_mat * math::Mat4::translation_3d(-focus_off);
 
             let can_shadow_sun = |pos: Vec2<i32>, chunk: &TerrainChunkData| {
-                let chunk_pos = pos.map(|e| e as f32 * chunk_sz);
+                let chunk_pos = pos.as_::<f32>() * chunk_sz;
 
                 // Ensure the chunk is within the PSR set.
                 let chunk_box = math::Aabb {
@@ -2798,11 +2794,11 @@ impl<V: RectRasterableVol> Terrain<V> {
                     ),
                 };
 
-                let chunk_from_light = math::Aabr::from(math::fit_psr(
+                let chunk_from_light = math::fit_psr(
                     ray_mat,
                     math::aabb_to_points(chunk_box).iter().copied(),
                     |p| p,
-                ));
+                );
                 collides_with_aabr(chunk_from_light, visible_bounds)
             };
 

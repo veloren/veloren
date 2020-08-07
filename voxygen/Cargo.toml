@@ -38,7 +38,7 @@ specs = { git = "https://github.com/amethyst/specs.git", rev = "7a2e348ab2223818
 specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", branch = "specs-git" }
 
 # Mathematics
-vek = { version = "0.11.2", features = ["repr_simd", "serde"] }
+vek = { version = "0.12.0", features = ["platform_intrinsics", "serde"] }
 
 # Controller
 gilrs = { version = "0.7", features = ["serde"] }

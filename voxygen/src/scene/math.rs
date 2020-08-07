@@ -1,9 +1,9 @@
 use core::{iter, mem};
 use hashbrown::HashMap;
 use num::traits::Float;
-// pub use vek::{geom::repr_simd::*, mat::repr_simd::column_major::Mat4, ops::*,
-// vec::repr_simd::*};
-pub use vek::{geom::repr_c::*, mat::repr_c::column_major::Mat4, ops::*, vec::repr_c::*};
+pub use vek::{geom::repr_simd::*, mat::repr_simd::column_major::Mat4, ops::*, vec::repr_simd::*};
+// pub use vek::{geom::repr_c::*, mat::repr_c::column_major::Mat4, ops::*,
+// vec::repr_c::*};
 
 pub fn aabb_to_points<T: Float>(bounds: Aabb<T>) -> [Vec3<T>; 8] {
     [
@@ -18,7 +18,7 @@ pub fn aabb_to_points<T: Float>(bounds: Aabb<T>) -> [Vec3<T>; 8] {
     ]
 }
 
-/// Each Vec4 <a, b, c, d> should be interpreted as reprenting plane
+/// Each Vec4 <a, b, c, -d> should be interpreted as reprenting plane
 /// equation
 ///
 /// a(x - x0) + b(y - y0) + c(z - z0) = 0, i.e.
@@ -28,23 +28,23 @@ pub fn aabb_to_points<T: Float>(bounds: Aabb<T>) -> [Vec3<T>; 8] {
 /// ax + by + cz = d
 ///
 /// where d is the distance of the plane from the origin.
-pub fn aabb_to_planes<T: Float>(bounds: Aabb<T>) -> [(Vec3<T>, T); 6] {
+pub fn aabb_to_planes<T: Float>(bounds: Aabb<T>) -> [Vec4<T>; 6] {
     let zero = T::zero();
     let one = T::one();
     let bounds = bounds.map(|e| e.abs());
     [
         // bottom
-        (Vec3::new(zero, -one, zero), bounds.min.y),
+        Vec4::new(zero, -one, zero, -bounds.min.y),
         // top
-        (Vec3::new(zero, one, zero), bounds.max.y),
+        Vec4::new(zero, one, zero, -bounds.max.y),
         // left
-        (Vec3::new(-one, zero, zero), bounds.min.x),
+        Vec4::new(-one, zero, zero, -bounds.min.x),
         // right
-        (Vec3::new(one, zero, zero), bounds.max.x),
+        Vec4::new(one, zero, zero, -bounds.max.x),
         // near
-        (Vec3::new(zero, zero, -one), bounds.min.z),
+        Vec4::new(zero, zero, -one, -bounds.min.z),
         // far
-        (Vec3::new(zero, zero, one), bounds.max.z),
+        Vec4::new(zero, zero, one, -bounds.max.z),
     ]
 }
 
@@ -87,11 +87,11 @@ pub fn calc_view_frustum_world_coord<T: Float + MulAdd<T, T, Output = T>>(
     world_pts
 }
 
-pub fn point_plane_distance<T: Float>(point: Vec3<T>, (norm, dist): (Vec3<T>, T)) -> T {
-    norm.dot(point) - dist
+pub fn point_plane_distance<T: Float>(point: Vec3<T>, norm_dist: Vec4<T>) -> T {
+    norm_dist.dot(Vec4::from_point(point))
 }
 
-pub fn point_before_plane<T: Float>(point: Vec3<T>, plane: (Vec3<T>, T)) -> bool {
+pub fn point_before_plane<T: Float>(point: Vec3<T>, plane: Vec4<T>) -> bool {
     point_plane_distance(point, plane) > T::zero()
 }
 
@@ -100,7 +100,7 @@ pub fn point_before_plane<T: Float>(point: Vec3<T>, plane: (Vec3<T>, T)) -> bool
 /// (this implies that the polygon must be non-degenerate).
 pub fn clip_points_by_plane<T: Float + MulAdd<T, T, Output = T> + core::fmt::Debug>(
     points: &mut Vec<Vec3<T>>,
-    plane: (Vec3<T>, T),
+    plane: Vec4<T>,
     intersection_points: &mut Vec<Vec3<T>>,
 ) -> bool {
     if points.len() < 3 {
@@ -108,18 +108,17 @@ pub fn clip_points_by_plane<T: Float + MulAdd<T, T, Output = T> + core::fmt::Deb
     }
     // NOTE: Guaranteed to succeed since points.len() > 3.
     let mut current_point = points[points.len() - 1];
-    let (norm, dist) = plane;
     let intersect_plane_edge = |a, b| {
-        let diff = b - a;
-        let t = norm.dot(diff);
+        let diff: Vec3<_> = b - a;
+        let t = plane.dot(Vec4::from_direction(diff));
         if t == T::zero() {
             None
         } else {
-            let t = (dist - norm.dot(a)) / t;
+            let t = -(plane.dot(Vec4::from_point(a)) / t);
             if t < T::zero() || T::one() < t {
                 None
             } else {
-                Some(diff.mul_add(Vec3::broadcast(t), a))
+                Some(diff * t + a)
             }
         }
     };
@@ -247,7 +246,7 @@ fn append_intersection_points<T: Float + core::fmt::Debug>(
 
 pub fn clip_object_by_plane<T: Float + MulAdd<T, T, Output = T> + core::fmt::Debug>(
     polys: &mut Vec<Vec<Vec3<T>>>,
-    plane: (Vec3<T>, T),
+    plane: Vec4<T>,
     tolerance: T,
 ) {
     let mut intersection_points = Vec::new();

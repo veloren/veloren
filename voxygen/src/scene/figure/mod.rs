@@ -331,9 +331,6 @@ impl FigureMgr {
 
     #[allow(clippy::redundant_pattern_matching)]
     // TODO: Pending review in #587
-    // NOTE: All of the "useless" conversion reported here allow us to abstract over repr_c vs.
-    // simd vectors, so fixing this warning would make the code worse in this case.
-    #[allow(clippy::useless_conversion)]
     pub fn update_lighting(&mut self, scene_data: &SceneData) {
         let ecs = scene_data.state.ecs();
         for (entity, light_emitter) in (&ecs.entities(), &ecs.read_storage::<LightEmitter>()).join()
@@ -411,9 +408,6 @@ impl FigureMgr {
 
     #[allow(clippy::or_fun_call)]
     // TODO: Pending review in #587
-    // NOTE: All of the "useless" conversion reported here allow us to abstract over repr_c vs.
-    // simd vectors, so fixing this warning would make the code worse in this case.
-    #[allow(clippy::useless_conversion)]
     pub fn maintain(
         &mut self,
         renderer: &mut Renderer,
@@ -422,6 +416,7 @@ impl FigureMgr {
         visible_psr_bounds: math::Aabr<f32>,
         camera: &Camera,
     ) -> anim::vek::Aabb<f32> {
+        let visible_psr_bounds = math::Aabr::from(visible_psr_bounds);
         let state = scene_data.state;
         let time = state.get_time();
         let tick = scene_data.tick;
@@ -455,9 +450,10 @@ impl FigureMgr {
             let ray_mat = ray_mat * math::Mat4::translation_3d(-focus_off);
 
             let collides_with_aabr = |a: math::Aabr<f32>, b: math::Aabr<f32>| {
-                a.min.partial_cmple(&b.max).reduce_and() && a.max.partial_cmpge(&b.min).reduce_and()
+                let min = math::Vec4::new(a.min.x, a.min.y, b.min.x, b.min.y);
+                let max = math::Vec4::new(b.max.x, b.max.y, a.max.x, a.max.y);
+                min.partial_cmple_simd(max).reduce_and()
             };
-            // println!("Aabr: {:?}", visible_bounds);
             move |pos: (anim::vek::Vec3<f32>,), radius: f32| {
                 // Short circuit when there are no shadows to cast.
                 if !can_shadow_sun {

@@ -80,3 +80,4 @@ debug = 1
 [patch.crates-io]
 # cpal conflict fix isn't released yet
 winit = { git = "https://github.com/Imberflur/winit.git", branch = "macos-test" }
+vek = { git = "https://gitlab.com/veloren/vek.git", branch = "fix_intrinsics" }

@@ -1223,7 +1223,7 @@ name = "euc"
 version = "0.5.1"
 source = "git+https://github.com/zesterer/euc.git#c9a7c17a03d45fce00caeeca09afa1e1558cd183"
 dependencies = [
- "vek",
+ "vek 0.11.2",
 ]
 
 [[package]]
@@ -4468,7 +4468,7 @@ version = "0.1.0"
 source = "git+https://gitlab.com/yusdacra/treeculler.git#efcf5283cf386117a7e654abdaa45ef664a08e42"
 dependencies = [
  "num-traits",
- "vek",
+ "vek 0.11.2",
 ]
 
 [[package]]
@@ -4637,6 +4637,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "vek"
+version = "0.12.0"
+source = "git+https://gitlab.com/veloren/vek.git?branch=fix_intrinsics#237a78528b505f34f6dde5dc77db3b642388fe4a"
+dependencies = [
+ "approx",
+ "num-integer",
+ "num-traits",
+ "rustc_version",
+ "serde",
+ "static_assertions",
+]
+
+[[package]]
 name = "veloren-chat-cli"
 version = "0.6.0"
 dependencies = [
@@ -4663,7 +4676,7 @@ dependencies = [
  "specs",
  "tracing",
  "uvth 3.1.1",
- "vek",
+ "vek 0.12.0",
  "veloren-common",
  "veloren_network",
 ]
@@ -4694,7 +4707,7 @@ dependencies = [
  "specs-idvs",
  "sum_type",
  "tracing",
- "vek",
+ "vek 0.12.0",
 ]
 
 [[package]]
@@ -4725,7 +4738,7 @@ dependencies = [
  "tiny_http",
  "tracing",
  "uvth 3.1.1",
- "vek",
+ "vek 0.12.0",
  "veloren-common",
  "veloren-world",
  "veloren_network",
@@ -4786,7 +4799,7 @@ dependencies = [
  "tracing-subscriber",
  "treeculler",
  "uvth 3.1.1",
- "vek",
+ "vek 0.12.0",
  "veloren-client",
  "veloren-common",
  "veloren-server",
@@ -4805,7 +4818,7 @@ dependencies = [
  "libloading 0.6.2",
  "notify",
  "tracing",
- "vek",
+ "vek 0.12.0",
  "veloren-common",
 ]
 
@@ -4835,7 +4848,7 @@ dependencies = [
  "serde",
  "tracing",
  "tracing-subscriber",
- "vek",
+ "vek 0.12.0",
  "veloren-common",
 ]
 
