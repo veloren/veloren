@@ -179,6 +179,7 @@ impl Animation for ClimbAnimation {
         next.lantern.orientation =
             Quaternion::rotation_x(smooth * -0.3) * Quaternion::rotation_y(smooth * -0.3);
         next.lantern.scale = Vec3::one() * 0.65;
+        next.hold.scale = Vec3::one() * 0.0;
 
         next.torso.position = Vec3::new(0.0, -0.2 + smooth * -0.08, 0.4) * skeleton_attr.scaler;
         next.torso.orientation = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);

@@ -188,6 +188,7 @@ impl Animation for DashAnimation {
         );
         next.lantern.orientation =
             Quaternion::rotation_x(slow * -0.7 + 0.4) * Quaternion::rotation_y(slow * 0.4);
+        next.hold.scale = Vec3::one() * 0.0;
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.1) * skeleton_attr.scaler;
         next.torso.orientation =

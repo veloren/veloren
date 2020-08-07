@@ -132,6 +132,7 @@ impl Animation for BetaAnimation {
         next.lantern.orientation =
             Quaternion::rotation_x(slow * -0.7 + 0.4) * Quaternion::rotation_y(slow * 0.4);
         next.lantern.scale = Vec3::one() * 0.65;
+        next.hold.scale = Vec3::one() * 0.0;
 
         next.l_control.scale = Vec3::one();
 
