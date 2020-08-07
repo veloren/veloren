@@ -44,7 +44,6 @@ widget_ids! {
 
     }
 }
-const TOOLTIP_UPSHIFT: f64 = 40.0;
 #[derive(WidgetCommon)]
 pub struct Buttons<'a> {
     client: &'a Client,
@@ -167,7 +166,6 @@ impl<'a> Widget for Buttons<'a> {
             "",
             &button_tooltip,
         )
-        .bottom_offset(55.0)
         .set(state.ids.bag, ui)
         .was_clicked()
         {
@@ -228,7 +226,6 @@ impl<'a> Widget for Buttons<'a> {
                 "",
                 &button_tooltip,
             )
-            .bottom_offset(TOOLTIP_UPSHIFT)
             .set(state.ids.settings_button, ui)
             .was_clicked()
         {
@@ -266,7 +263,6 @@ impl<'a> Widget for Buttons<'a> {
                 "",
                 &button_tooltip,
             )
-            .bottom_offset(TOOLTIP_UPSHIFT)
             .set(state.ids.social_button, ui)
             .was_clicked()
         {
@@ -303,7 +299,6 @@ impl<'a> Widget for Buttons<'a> {
                 "",
                 &button_tooltip,
             )
-            .bottom_offset(TOOLTIP_UPSHIFT)
             .set(state.ids.map_button, ui)
             .was_clicked()
         {
@@ -341,7 +336,6 @@ impl<'a> Widget for Buttons<'a> {
                 "",
                 &button_tooltip,
             )
-            .bottom_offset(TOOLTIP_UPSHIFT)
             .set(state.ids.spellbook_button, ui)
             .was_clicked()
         {
@@ -378,7 +372,6 @@ impl<'a> Widget for Buttons<'a> {
                 "",
                 &button_tooltip,
             )
-            .bottom_offset(TOOLTIP_UPSHIFT)
             .set(state.ids.crafting_button, ui)
             .was_clicked()
         {
