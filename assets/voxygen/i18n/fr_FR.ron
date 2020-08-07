@@ -44,10 +44,10 @@ VoxygenLocalization(
         "common.resume": "Reprendre",
         "common.characters": "Personages",
         "common.close": "Fermer",
-        "common.create": "Créer",
-        "common.back": "Retour",
         "common.yes": "Oui",
         "common.no": "Non",
+        "common.back": "Retour",
+        "common.create": "Créer",
         "common.okay": "Compris",
         "common.accept": "Accepter",
         "common.disclaimer": "Avertissement",
@@ -55,6 +55,12 @@ VoxygenLocalization(
         "common.none": "Aucun",
         "common.error": "Erreur",
         "common.fatal_error": "Erreur Fatale",
+
+        // Message when connection to the server is lost
+        "common.connection_lost": r#"Connexion perdue !
+Le serveur a-il redémarré?
+Le client est-il à jour?"#,
+
 
         "common.species.orc": "Orc",
         "common.species.human": "Humain",
@@ -69,27 +75,28 @@ VoxygenLocalization(
         "common.weapons.bow": "Arc",
         "common.weapons.hammer": "Marteau",
 
-        // Message when connection to the server is lost
-        "common.connection_lost": r#"Connexion perdue!
-Le serveur a-il redémarré?
-Le client est-il à jour?"#,
 
 
         // Main screen texts
         "main.connecting": "Connexion",
         "main.creating_world": "Création du monde",
+        "main.tip": "Astuce:",
+
+        // Annonce de bienvenui qui apparaît la première fois que Veloren est lancé
         "main.notice": r#"Bienvenue dans la version alpha de Veloren!
 
 Avant de commencer à vous amuser, merci de garder les choses suivantes en tête:
 
 - Il s'agit d'une version alpha très jeune. Attendez-vous à des bugs, un gameplay non terminé, des mécaniques non peaufinées et des fonctionalités manquantes.
-- Si vous avez des retours constructifs ou avez detecté un bug, vous pouvez nous contacter via Reddit, GitLab ou notre communauté Discord.
-- Veloren est un logiciel open-source sour licence GPL3. Cela signifit que vous êtes libre de jouer, modfier et redistribuer le jeu comme il vous semble (licence contaminante sous GPL 3 pour toute modification)
-- Veloren est un projet communautaire à but non-lucratif développé par des bénévolles.
-Si vous apprecier ce jeu, vous êtes les bienvenues pour rejoindre les équipes de développement ou d'artistes!
-- Le genre 'Voxel RPG' est un genre à part entiere. Les FPS étaient appelé Doom-like. De la même façon, nous essayons de construire un genre à part entière. Ce jeu n'est pas un clone et ses mechaniques changeront au cours du developpement. 
 
-Merci d'avoir pris le temps de lire cette notice, nous esperons que vous apprecierez le jeu!
+- Si vous avez des retours constructifs ou avez detecté un bug, vous pouvez nous contacter via Reddit, GitLab ou le serveur de notre communauté Discord.
+
+- Veloren est un logiciel open-source sour licence GPL3. Cela signifit que vous êtes libre de jouer, modfier et redistribuer le jeu comme il vous semble (licence contaminante sous GPL 3 pour toute modification)
+
+- Veloren est un projet communautaire à but non-lucratif développé par des bénévoles.
+Si vous apprecier ce jeu, vous êtes les bienvenues pour rejoindre les équipes de développement ou d'artistes!
+
+Merci d'avoir pris le temps de lire cette annonce, nous espérons que vous apprecierez le jeu!
 
 ~ L'équipe de Veloren"#,
 
@@ -107,7 +114,7 @@ https://account.veloren.net."#,
         "main.login.server_full": "Serveur plein",
         "main.login.untrusted_auth_server": "Le serveur d'authentification n'est pas de confiance",
         "main.login.outdated_client_or_server": "ServeurPasContent: Les versions sont probablement incompatibles, verifiez les mises à jour.",
-        "main.login.timeout": "DélaiEcoulé: Le serveur n'a pas repondu à temps. (Surchage ou Problèmes réseau).",
+        "main.login.timeout": "DélaiEcoulé: Le serveur n'a pas repondu à temps. (Surchage ou problèmes réseau).",
         "main.login.server_shut_down": "Extinction du Serveur",
         "main.login.already_logged_in": "Vous êtes déjà connecté à ce serveur.",
         "main.login.network_error": "Problème Réseau",
@@ -115,9 +122,9 @@ https://account.veloren.net."#,
         "main.login.invalid_character": "Le personnage sélectionné n'est pas valide",
         "main.login.client_crashed": "Le client a planté",
         "main.login.not_on_whitelist": "Vous devez être ajouté à la liste blanche par un Admin pour pouvoir entrer",
-        "main.tip": "Astuce:",
 
         /// End Main screen section
+
 
         ///Début section Hud
         "hud.do_not_show_on_startup": "Ne pas afficher au démarage",
@@ -126,11 +133,10 @@ https://account.veloren.net."#,
         "hud.you_died": "Vous êtes mort",
         "hud.waypoint_saved": "Point de Repère Sauvegardé",
 
-        
         "hud.press_key_to_show_keybindings_fmt": "Appuyer sur {key} pour afficher les contrôles",
         "hud.press_key_to_show_debug_info_fmt": "Appuyer sur {key} pour afficher les informations de debogage",
-        "hud.press_key_to_toggle_debug_info_fmt": "Appuyer sur {key} pour activer les informations de debogage",
         "hud.press_key_to_toggle_keybindings_fmt": "Appuyer sur {key} pour afficher les contrôles",
+        "hud.press_key_to_toggle_debug_info_fmt": "Appuyer sur {key} pour activer les informations de debogage",
 
         // Sorties Tchat
         "hud.chat.online_msg": "[{name}] est maintenant en ligne.",
@@ -147,7 +153,6 @@ https://account.veloren.net."#,
         // Respawn message
         "hud.press_key_to_respawn": r#"Appuyez sur {key} pour réapparaitre au dernier feu de camp visité"#,
 
-
         /// Welcome message
         "hud.welcome": r#"Bienvenue dans la version Alpha de Veloren!
 
@@ -155,16 +160,12 @@ https://account.veloren.net."#,
 Quelques astuces avant de démarrer:
 
 
-POINT LE PLUS IMPORTANT: Pour configurer votre point de resurection tapez
-/waypoint dans le chat. (y-compris si vous être déjà mort!)
-        
-
 Appuyer sur F1 pour voir les commandes disponibles.
 
 Tapez /help dans le chat pour voir les commandes du chat.
 
 
-Des coffres et autres objets sont disposés aléatoirement dans le monde!
+Des coffres et autres objets sont disposés aléatoirement dans le monde !
 
 Utilisez le click droit pour le collecter.
 
@@ -174,15 +175,18 @@ Double cliquez sur les éléments de votre sac pour les utiliser ou les équiper
 
 Jettez-les en cliquant sur un element puis en cliquant en dehors du sac.
 
+
 Les nuits peuvent être très sombre à Veloren.
 
-Allumez votre lanterne en tapant /lantern dans le chat.
+Allumez votre lanterne en appuyant sur 'G'.
 
-Vous souhaitez libérer votre souris pour fermer cette fenêtre? Tapez sur TAB!
+
+Vous souhaitez libérer votre souris pour fermer cette fenêtre? Appuyez sur TAB!
+
 
 Profitez de votre séjour dans le monde de Veloren."#,
 
-"hud.temp_quest_headline": r#"S'il vous plaît, aidez nous voyageur!"#,
+"hud.temp_quest_headline": r#"S'il vous plaît, aidez-nous voyageur!"#,
 "hud.temp_quest_text": r#"Des donjons remplis de cultistes malfaisants 
 sont apparus tout autour de nos paisibles villages!
 
@@ -204,7 +208,7 @@ objets magiques ?"#,
         "hud.bag.stats": "Attributs",
         "hud.bag.head": "Tête",
         "hud.bag.neck": "Cou",
-        "hud.bag.tabard": "Tabar",
+        "hud.bag.tabard": "Tabard",
         "hud.bag.shoulders": "Epaules",
         "hud.bag.chest": "Torse",
         "hud.bag.hands": "Mains",
@@ -215,17 +219,17 @@ objets magiques ?"#,
         "hud.bag.legs": "Jambes",
         "hud.bag.feet": "Pieds",
         "hud.bag.mainhand": "Main Dominante",
-        "hud.bag.offhand": "Main Dominée",
+        "hud.bag.offhand": "Main Secondaire",
+
 
         // Carte et journal de quetes
         "hud.map.map_title": "Carte",
         "hud.map.qlog_title": "Quêtes",
 
-
         //Paramètres
         "hud.settings.general": "Général",
         "hud.settings.none": "Aucun",
-        "hud.settings.press_behavior.toggle": "Activer/Desactiver",
+        "hud.settings.press_behavior.toggle": "Activer/Désactiver",
         "hud.settings.press_behavior.hold": "Maintenir",
         "hud.settings.help_window": "Fenêtre d'aide",
         "hud.settings.debug_info": "Information de débogage",
@@ -237,12 +241,12 @@ objets magiques ?"#,
         "hud.settings.transparency": "Transparence",
         "hud.settings.hotbar": "Barre d'action",
         "hud.settings.toggle_shortcuts": "Activer les raccourcis",
-        "hud.settings.toggle_bar_experience": "Activer la barre d'experience",
+        "hud.settings.toggle_bar_experience": "Activer la barre d'expérience",
         "hud.settings.scrolling_combat_text": "Dégats de combat",
-        "hud.settings.single_damage_number": "Dégat adversaire (par dégat)",
-        "hud.settings.cumulated_damage": "Dégat adversaire (cumulé)",
-        "hud.settings.incoming_damage": "Dégat personnage (par dégat)",
-        "hud.settings.cumulated_incoming_damage": "Dégat personnage (cumulé)",
+        "hud.settings.single_damage_number": "Dégats infligés",
+        "hud.settings.cumulated_damage": "Dégat infligés cumulés",
+        "hud.settings.incoming_damage": "Dégats reçus",
+        "hud.settings.cumulated_incoming_damage": "Dégats reçus cumulés",
         "hud.settings.speech_bubble": "Bulle de dialogue",
         "hud.settings.speech_bubble_dark_mode": "Bulle de dialogue Mode Sombre",
         "hud.settings.speech_bubble_icon": "Icône Bulle de dialogue",
@@ -251,8 +255,8 @@ objets magiques ?"#,
         "hud.settings.percentages": "Pourcentages",
         "hud.settings.chat": "Tchat",
         "hud.settings.background_transparency": "Transparence du fond",
-        "hud.settings.chat_character_name": "Nom des personnages dans le tchat",
-        "hud.settings.loading_tips": "Astuces de chargement",
+        "hud.settings.chat_character_name": "Noms des personnages dans le tchat",
+        "hud.settings.loading_tips": "Astuces sur l'écran de chargement",
 
         "hud.settings.pan_sensitivity": "Sensibilité de la souris",
         "hud.settings.zoom_sensitivity": "Sensibilité du zoom",
@@ -287,11 +291,11 @@ objets magiques ?"#,
         "hud.settings.reset_keybinds": "Réinitialiser touches par défaut",
 
         "hud.social": "Social",
+        "hud.social.online": "En ligne",
         "hud.social.friends": "Amis",
-        "hud.social.faction": "Faction",
-        "hud.social.online": "Jeu en ligne",
         "hud.social.not_yet_available": "Pas encore disponible",
-        "hud.social.play_online_fmt": "{nb_player} joueurs en ligne",
+        "hud.social.faction": "Faction",
+        "hud.social.play_online_fmt": "{nb_player} joueur(s) en ligne",
 
         "hud.crafting": "Fabrication",
         "hud.crafting.recipes": "Recettes",
@@ -304,9 +308,11 @@ objets magiques ?"#,
         "hud.free_look_indicator": "Vue libre active",
         "hud.auto_walk_indicator": "Marche automatique active",
 
-        //Fin Section Hud
+        /// Fin Section Hud
+
 
         /// Debut de section GameInput
+
         "gameinput.primary": "Attaque Basique",
         "gameinput.secondary": "Attaque Secondaire/Bloquer/Viser",
         "gameinput.slot1": "Emplacement rapide 1",
@@ -323,7 +329,7 @@ objets magiques ?"#,
         "gameinput.togglecursor": "Activer/Desactiver Curseur",
         "gameinput.help": "Activer/Desactiver Fenêtre d'aide",
         "gameinput.toggleinterface": "Activer/Desactiver Interface",
-        "gameinput.toggledebug": "Activer/Desactiver IPS et Infos Debogage",
+        "gameinput.toggledebug": "Activer/Desactiver FPS et Infos Debogage",
         "gameinput.screenshot": "Prendre une capture d'écran",
         "gameinput.toggleingameui": "Activer/Desactiver Noms de joueurs",
         "gameinput.fullscreen": "Activer/Desactiver Plein Ecran",
@@ -341,7 +347,7 @@ objets magiques ?"#,
         "gameinput.mount": "Monture",
         "gameinput.enter": "Entrer",
         "gameinput.command": "Commande",
-        "gameinput.escape": "Fuir",
+        "gameinput.escape": "Menu principal/Fermer menu",
         "gameinput.map": "Carte",
         "gameinput.bag": "Sac",
         "gameinput.social": "Social",
@@ -358,43 +364,41 @@ objets magiques ?"#,
 
         /// End GameInput section
 
-        /// Debut Section Menu Start Quitter
-        "esc_menu.quit_game": "Quitter le jeu",
-        "esc_menu.logout": "Se déconnecter",
-
-        /// Fin Section Menu Start Quitter
 
         /// Debut de la section Création du personnage
-        "char_selection.accessories": "Accessoires",
-        "char_selection.beard": "Barbe",
+        "char_selection.loading_characters": "Chargement des personnages...",
+        "char_selection.delete_permanently": "Supprimer définitivement ce personnage ?",
+        "char_selection.deleting_character": "Suppression du personnage...",
+        "char_selection.change_server": "Changer de serveur",
+        "char_selection.enter_world": "Entrer dans le monde",
+        "char_selection.logout": "Se déconnecter",
         "char_selection.create_new_charater": "Créer un nouveau personnage",
         "char_selection.creating_character": "Création du personnage...",
-        "char_selection.character_creation": "Création de personnages",
-        "char_selection.create_info_name": "Votre personnage doit avoir un prénom !",
-        "char_selection.deleting_character": "Suppression du personnage...",
-        "char_selection.enter_world": "Entrer dans le monde",
-        "char_selection.eyebrows": "Sourcils",
-        "char_selection.eye_color": "Couleur des yeux",
-        "char_selection.eyeshape": "Forme des yeux",
-        "char_selection.hair_style": "Coupe de cheveux",
-        "char_selection.hair_color": "Couleur des cheveux",
+        "char_selection.character_creation": "Création de personnage",
+
         "char_selection.human_default": "Humain par défault",
         "char_selection.level_fmt": "Niveau {level_nb}",
-        "char_selection.logout": "Se déconnecter",
-        "char_selection.loading_characters": "Chargement des personnages...",
-        "char_selection.plains_of_uncertainty": "Plaines de l'incertitude",
-        "char_selection.skin": "Couleur de peau",
-        "char_selection.uncanny_valley": "Vallée dérangeante",
-        "char_selection.change_server": "Changer de serveur",
-        "char_selection.delete_permanently": "Supprimer définitivement ce personnage ?",
+        "char_selection.uncanny_valley": "Région sauvage",
+        "char_selection.plains_of_uncertainty": "Plaines de l'Incertitude",
+        "char_selection.beard": "Barbe",
+        "char_selection.hair_style": "Coupe de cheveux",
+        "char_selection.hair_color": "Couleur des cheveux",
+        "char_selection.eye_color": "Couleur des yeux",
+        "char_selection.skin": "Couleur de la peau",
+        "char_selection.eyeshape": "Forme des yeux",
+        "char_selection.accessories": "Accessoires",
+        "char_selection.create_info_name": "Votre personnage doit avoir un prénom !",
+
         /// Fin de la section Création du personnage
 
+        /// Start character window section
         "character_window.character_name": "Personnage",
+        // Character stats
         "character_window.character_stats": r#"Endurance
 
 Force
 
-Dexterité
+Volonté
 
 Protection
 "#,
@@ -408,105 +412,106 @@ Protection
 
     },
 
+
     vector_map: {     
         "loading.tips": [
-            "Appuie sur 'G' pour allumer ta lanterne.",
-            "Appuie sur 'F1' pour voir les raccourcis clavier par défaut.",
-            "Tu peux écrire /say ou /s pour discuter aux joueurs directement à côté toi.",
-            "Tu peux écrire /region ou /r pour discuter avec les joueurs situés à quelques centaines de blocs de toi.",
-            "Pour envoyer un message privé, écrit /tell suivi par un nom de joueur puis ton message.",
+            "Appuiez sur 'G' pour allumer ta lanterne.",
+            "Appuiez sur 'F1' pour voir les raccourcis clavier par défaut.",
+            "Vous pouvez taper /say ou /s pour discuter aux joueurs directement à côté toi.",
+            "Vous pouvez taper /region ou /r pour discuter avec les joueurs situés à quelques centaines de blocs de toi.",
+            "Pour envoyer un message privé, tapez /tell suivi par un nom de joueur puis votre message.",
             "Des PNJs avec le même niveau peuvent varier en difficulté.",
-            "Regarde le sol pour trouver de la nourriture, des coffres et d'autres butins!",
-            "Ton inventaire est rempli de nourriture? Essaie de créer un meilleur repas avec!",
-            "Tu cherches une activité? Les donjons sont marqués avec des points marron sur la carte!",    
-            "N'oublie pas d'ajuster les graphiques pour ton système. Appuie sur 'N' pour ouvrir les paramètres.",
-            "Jouer à plusieurs est amusant! Appuie sur 'O' pour voir qui est en ligne.", 
-            "Un PNJ avec une tête-de-mort sous sa barre de vie est plus puissant que toi.",
-            "Appuie sur 'J' pour danser. C'est la fête!",
-            "Appuie sur 'L-Shift'pour ouvrir ton deltaplane et conquérir les cieux.",
+            "Regardez le sol pour trouver de la nourriture, des coffres et d'autres butins!",
+            "Votre inventaire est rempli de nourriture? Essayez de créer un meilleur repas avec!",
+            "Vous cherchez une activité? Les donjons sont marqués avec des points marron sur la carte !",    
+            "N'oubliez pas d'ajuster les graphiques pour votre système. Appuyez sur 'N' pour ouvrir les paramètres.",
+            "Jouer à plusieurs est amusant! Appuyez sur 'O' pour voir qui est en ligne.", 
+            "Un PNJ avec une tête de mort sous sa barre de vie est plus puissant que vous.",
+            "Appuyez sur 'J' pour danser. C'est la fête !",
+            "Appuyez sur 'L-Shift'pour ouvrir votre deltaplane et conquérir les cieux.",
             "Veloren est encore Pre-Alpha. Nous faisons de notre mieux pour l'améliorer chaque jour!",
-            "Si tu veux te joindre à l'équipe de développement ou juste discuter avec nous, rejoins notre serveur Discord.",            
+            "Si vous voulez vous joindre à l'équipe de développement ou juste discuter avec nous, rejoignez notre serveur Discord.",            
         ],         
         "npc.speech.villager_under_attack": [
-            "À l'aide, on m'attaque!",
-            "À l'aide! On m'attaque!",
-            "Aïe! On m'attaque!",
-            "Aïe! On m'attaque! À l'aide!",
-            "Aidez-moi! On m'attaque!",
-            "On m'attaque! À l'aide!",
-            "On m'attaque! Aidez-moi!",
-            "À l'aide!",
-            "À l'aide! À l'aide!",
-            "À l'aide! À l'aide! À l'aide!",
-            "On m'attaque!",
-            "AAAHHH! On m'attaque!",
-            "AAAHHH! On m'attaque! À l'aide!",
-            "À l'aide! Nous sommes attaqués!",
-            "À l'aide! Assassin!",
-            "À l'aide! Il y a un assassin en liberté!",
-            "À l'aide! On essaie de me tuer!",
-            "Gardes, on m'attaque!",
-            "Gardes! On m'attaque!",
-            "On m'attaque! Gardes!",
-            "À l'aide! Gardes! On m'attaque!",
-            "Gardes! Venez vite!",
-            "Gardes! Gardes!",
-            "Gardes! Un scélérat m'attaque!",
-            "Gardes, abattez ce scélérat!",
-            "Gardes! Il y a un meurtrier!",
-            "Gardes! Aidez-moi!",
-            "Vous ne vous en tirerez pas comme ça! Gardes!",
-            "Monstre!",
+            "À l'aide, on m'attaque !",
+            "À l'aide ! On m'attaque !",
+            "Aïe ! On m'attaque !",
+            "Aïe ! On m'attaque ! À l'aide !",
+            "Aidez-moi! On m'attaque !",
+            "On m'attaque ! À l'aide !",
+            "On m'attaque ! Aidez-moi !",
+            "À l'aide !",
+            "À l'aide ! À l'aide !",
+            "À l'aide ! À l'aide ! À l'aide !",
+            "On m'attaque !",
+            "AAAHHH ! On m'attaque !",
+            "AAAHHH ! On m'attaque ! À l'aide !",
+            "À l'aide ! Nous sommes attaqués !",
+            "À l'aide ! Assassin !",
+            "À l'aide ! Il y a un assassin en liberté !",
+            "À l'aide ! On essaie de me tuer !",
+            "Gardes, on m'attaque !",
+            "Gardes ! On m'attaque !",
+            "On m'attaque ! Gardes !",
+            "À l'aide ! Gardes ! On m'attaque !",
+            "Gardes ! Venez vite !",
+            "Gardes ! Gardes !",
+            "Gardes ! Un scélérat m'attaque !",
+            "Gardes, abattez ce scélérat !",
+            "Gardes ! Il y a un meurtrier !",
+            "Gardes ! Aidez-moi!",
+            "Vous ne vous en tirerez pas comme ça! Gardes !",
+            "Monstre !",
             "Aidez-moi!",
-            "À l'aide! S'il vous plait!",
-            "Aïe! Gardes! À l'aide!",
+            "À l'aide ! S'il vous plait !",
+            "Aïe ! Gardes ! À l'aide !",
             "Ils viennent pour moi !",
-            "À l'aide! À l'aide! Je me fais réprimer!",
+            "À l'aide ! À l'aide ! Je me fais réprimer !",
             "Ah, nous voyons maintenant la violence inhérente au système.",
             "C'est seulement une égratignure.",
-            "Arrêtez ça!",
-            "Qu'est ce que je t'ai fait?!",
-            "S'il te plaît arrête de m'attaquer!",
-            "Hé! Regardez où vous pointez cette chose!",
-            "Misérable, allez-vous-en!",
-            "Arrêtez! Partez! Arrêtez!",
-            "Vous m'avez ennervé!",
-            "Oi! Qui croyez-vous être?!",
-            "J'aurais votre tête pour ça!",
-            "Stoppez s'il vous plaît! Je ne transporte rien de valeur!",
-            "Je vais appeler mon frère, il est plus grand que moi!",
-            "Nooon, Je vais le dire à ma mère!",
-            "Soyez maudit!",
+            "Arrêtez ça !",
+            "Qu'est ce que je vous ai fait ?!",
+            "S'il vous plaît arrêtez de m'attaquer !",
+            "Hé! Regardez où vous pointez cette chose !",
+            "Misérable, allez-vous-en !",
+            "Arrêtez ! Partez ! Arrêtez !",
+            "Vous m'avez ennervé !",
+            "Oi ! Qui croyez-vous être ?!",
+            "J'aurais votre tête pour ça !",
+            "Arrêtez, s'il vous plaît ! Je ne transporte rien de valeur !",
+            "Je vais appeler mon frère, il est plus grand que moi !",
+            "Nooon, Je vais le dire à ma mère !",
+            "Soyez maudit !",
             "Ne faites pas ça.",
-            "Ce n'était pas très gentil!",
-            "Ton arme fonctionne, tu peux la ranger maintenant!",
-            "Épargnez-moi!",
-            "Pitié, J'ai une famille!",
-            "Je suis trop jeune pour mourrir!",
-            "On peut en parler?",
-            "La violence n'est jamais la solution!",
+            "Ce n'était pas très gentil !",
+            "Ton arme fonctionne, tu peux la ranger maintenant !",
+            "Épargnez-moi !",
+            "Pitié, J'ai une famille !",
+            "Je suis trop jeune pour mourrir !",
+            "On peut en parler ?",
+            "La violence n'est jamais la solution !",
             "Aujourd'hui est une très mauvaise journée...",
-            "Hé, ça fait mal!",
-            "Aïe!",
-            "Quelle impolitesse!",
-            "Stop, je vous en prie!",
-            "Que la peste vous emporte!",
+            "Hé, ça fait mal !",
+            "Aïe !",
+            "Quelle impolitesse !",
+            "Stop, je vous en prie !",
+            "Que la peste vous emporte !",
             "Ce n'est pas amusant.",
-            "Comment osez-vous?!",
-            "Vous allez payer!",
-            "Continue et tu vas le regretter!",
-            "Ne m'obligez pas à vous faire du mal!",
-            "Il doit y avoir erreur!",
-            "Vous n'avez pas besoin de faire ça!",
-            "Fuyez, monstre!",
-            "Ça fait vraiment mal!",
-            "Pourquoi faites-vous cela?",
-            "Par les esprits, cessez!",
-            "Vous devez m'avoir confondu avec quelqu'un d'autre!",
-            "Je ne mérite pas cela!",
+            "Comment osez-vous ?!",
+            "Vous allez payer !",
+            "Continue et tu vas le regretter !",
+            "Ne m'obligez pas à vous faire du mal !",
+            "Il doit y avoir erreur !",
+            "Vous n'avez pas besoin de faire ça !",
+            "Fuyez, monstre !",
+            "Ça fait vraiment mal !",
+            "Pourquoi faites-vous cela ?",
+            "Par les esprits, cessez !",
+            "Vous devez m'avoir confondu avec quelqu'un d'autre !",
+            "Je ne mérite pas cela !",
             "Ne faites plus cela.",
-            "Gardes, jetez ce monstre dans le lac!",
-            "Je vais t'envoyer ma tarrasque!",
+            "Gardes, jetez ce monstre dans le lac !",
+            "Je vais t'envoyer ma tarrasque !",
         ],        
     }
 )
