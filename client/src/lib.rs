@@ -1045,6 +1045,14 @@ impl Client {
                                     "Type /g or /group to chat with your group members",
                                 )));
                             }
+                            if let Some(player_info) = self.player_list.get(&uid) {
+                                frontend_events.push(Event::Chat(
+                                    comp::ChatType::GroupMeta("Group".into()).chat_msg(format!(
+                                        "[{}] joined group",
+                                        player_info.player_alias
+                                    )),
+                                ));
+                            }
                             if self.group_members.insert(uid, role) == Some(role) {
                                 warn!(
                                     "Received msg to add uid {} to the group members but they \
@@ -1054,6 +1062,14 @@ impl Client {
                             }
                         },
                         Removed(uid) => {
+                            if let Some(player_info) = self.player_list.get(&uid) {
+                                frontend_events.push(Event::Chat(
+                                    comp::ChatType::GroupMeta("Group".into()).chat_msg(format!(
+                                        "[{}] left group",
+                                        player_info.player_alias
+                                    )),
+                                ));
+                            }
                             if self.group_members.remove(&uid).is_none() {
                                 warn!(
                                     "Received msg to remove uid {} from group members but by they \

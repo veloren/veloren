@@ -1190,9 +1190,9 @@ impl<'a> Widget for SettingsWindow<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.chat_char_name_text, ui);
 
-            // Show account name in chat
+            // TODO Show account name in chat
 
-            // Show account names in social window
+            // TODO Show account names in social window
 
             // Language select drop down
             Text::new(&self.localized_strings.get("common.languages"))
