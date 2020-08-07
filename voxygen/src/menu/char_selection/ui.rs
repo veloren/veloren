@@ -905,8 +905,6 @@ impl CharSelectionUi {
                             "",
                             &tooltip_human,
                         )
-                        .bottom_offset(55.0)
-                        .x_offset(-10.0)
                         .set(self.ids.create_button, ui_widgets)
                         .was_clicked()
                     {}
