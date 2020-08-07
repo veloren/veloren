@@ -32,8 +32,8 @@ pub use self::{
     glidewield::GlideWieldAnimation, gliding::GlidingAnimation, idle::IdleAnimation,
     jump::JumpAnimation, leapmelee::LeapAnimation, roll::RollAnimation, run::RunAnimation,
     shoot::ShootAnimation, sit::SitAnimation, sneak::SneakAnimation, spin::SpinAnimation,
-    spinmelee::SpinMeleeAnimation, stand::StandAnimation, swim::SwimAnimation, swimwield::SwimWieldAnimation,
-    wield::WieldAnimation,
+    spinmelee::SpinMeleeAnimation, stand::StandAnimation, swim::SwimAnimation,
+    swimwield::SwimWieldAnimation, wield::WieldAnimation,
 };
 
 use super::{Bone, FigureBoneData, Skeleton};

@@ -40,7 +40,7 @@ impl Animation for SwimAnimation {
 
         let lab = 1.0 * tempo;
 
-        let short = (anim_time as f32 * lab as f32 * 6.0+ PI/2.0).sin();
+        let short = (anim_time as f32 * lab as f32 * 6.0 + PI / 2.0).sin();
 
         let foot = (anim_time as f32 * lab as f32 * 6.0).sin();
 
@@ -92,7 +92,7 @@ impl Animation for SwimAnimation {
             -3.0 + skeleton_attr.head.0,
             skeleton_attr.head.1 - 1.0 + short * 0.3,
         );
-        next.head.ori = Quaternion::rotation_z(head_look.x*0.5 + short * -0.2 * intensity)
+        next.head.ori = Quaternion::rotation_z(head_look.x * 0.5 + short * -0.2 * intensity)
             * Quaternion::rotation_x(
                 (0.4 * head_look.y * (1.0 / intensity)).abs()
                     + 0.45 * intensity
@@ -123,21 +123,21 @@ impl Animation for SwimAnimation {
         next.shorts.scale = Vec3::one();
 
         next.l_hand.offset = Vec3::new(
-            -1.0-skeleton_attr.hand.0,
+            -1.0 - skeleton_attr.hand.0,
             1.5 + skeleton_attr.hand.1 - foot * 2.0 * intensity,
             5.0 + skeleton_attr.hand.2 + foot * -5.0 * intensity,
         );
-        next.l_hand.ori =
-            Quaternion::rotation_x(1.5 + foot * -1.2 * intensity) * Quaternion::rotation_y(0.4+foot*-0.35);
+        next.l_hand.ori = Quaternion::rotation_x(1.5 + foot * -1.2 * intensity)
+            * Quaternion::rotation_y(0.4 + foot * -0.35);
         next.l_hand.scale = Vec3::one();
 
         next.r_hand.offset = Vec3::new(
-            1.0+skeleton_attr.hand.0,
+            1.0 + skeleton_attr.hand.0,
             1.5 + skeleton_attr.hand.1 + foot * 2.0 * intensity,
             5.0 + skeleton_attr.hand.2 + foot * 5.0 * intensity,
         );
-        next.r_hand.ori =
-            Quaternion::rotation_x(1.5 + foot * 1.2 * intensity) * Quaternion::rotation_y(-0.4+foot*-0.35);
+        next.r_hand.ori = Quaternion::rotation_x(1.5 + foot * 1.2 * intensity)
+            * Quaternion::rotation_y(-0.4 + foot * -0.35);
         next.r_hand.scale = Vec3::one();
 
         next.l_foot.offset = Vec3::new(
