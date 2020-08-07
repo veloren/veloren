@@ -21,6 +21,7 @@ pub mod spin;
 pub mod spinmelee;
 pub mod stand;
 pub mod swim;
+pub mod swimwield;
 pub mod wield;
 
 // Reexports
@@ -31,7 +32,7 @@ pub use self::{
     glidewield::GlideWieldAnimation, gliding::GlidingAnimation, idle::IdleAnimation,
     jump::JumpAnimation, leapmelee::LeapAnimation, roll::RollAnimation, run::RunAnimation,
     shoot::ShootAnimation, sit::SitAnimation, sneak::SneakAnimation, spin::SpinAnimation,
-    spinmelee::SpinMeleeAnimation, stand::StandAnimation, swim::SwimAnimation,
+    spinmelee::SpinMeleeAnimation, stand::StandAnimation, swim::SwimAnimation, swimwield::SwimWieldAnimation,
     wield::WieldAnimation,
 };
 
