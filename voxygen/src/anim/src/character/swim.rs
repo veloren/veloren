@@ -198,6 +198,7 @@ impl Animation for SwimAnimation {
         );
         next.lantern.orientation = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
         next.lantern.scale = Vec3::one() * 0.65;
+        next.hold.scale = Vec3::one() * 0.0;
 
         next.torso.position = Vec3::new(0.0, -1.2 + shortalt * -0.065, 0.4) * skeleton_attr.scaler;
         next.torso.orientation = Quaternion::rotation_x(speed * -0.190 * wave_stop * 1.05)

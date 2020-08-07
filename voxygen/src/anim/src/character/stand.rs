@@ -127,7 +127,8 @@ impl Animation for StandAnimation {
 
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;
-
+        next.hold.position = Vec3::new(0.4, -0.3, -5.8);
+        next.hold.scale = Vec3::one() * 0.0;
         match active_tool_kind {
             Some(ToolKind::Dagger(_)) => {
                 next.main.position = Vec3::new(-4.0, -5.0, 7.0);

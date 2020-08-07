@@ -249,6 +249,7 @@ impl Animation for RunAnimation {
         next.lantern.orientation =
             Quaternion::rotation_x(shorte * 0.7 + 0.4) * Quaternion::rotation_y(shorte * 0.4);
         next.lantern.scale = Vec3::one() * 0.65;
+        next.hold.scale = Vec3::one() * 0.0;
 
         next.torso.position = Vec3::new(0.0, -0.3, 0.0) * skeleton_attr.scaler;
         next.torso.orientation = Quaternion::rotation_y(0.0);

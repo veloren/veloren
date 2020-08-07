@@ -333,6 +333,7 @@ impl Animation for BlockIdleAnimation {
         );
         next.lantern.orientation = Quaternion::rotation_x(0.0);
         next.lantern.scale = Vec3::one();
+        next.hold.scale = Vec3::one() * 0.0;
 
         next.torso.position = Vec3::new(0.0, -0.2, 0.1) * skeleton_attr.scaler;
         next.torso.orientation = Quaternion::rotation_x(0.0);

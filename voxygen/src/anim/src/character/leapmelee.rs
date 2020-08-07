@@ -70,6 +70,7 @@ impl Animation for LeapAnimation {
 
             next.lantern.orientation =
                 Quaternion::rotation_x(slower * -0.7 + 0.4) * Quaternion::rotation_y(slower * 0.4);
+            next.hold.scale = Vec3::one() * 0.0;
 
             next.l_foot.position = Vec3::new(
                 -skeleton_attr.foot.0,

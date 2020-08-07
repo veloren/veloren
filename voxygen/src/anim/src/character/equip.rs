@@ -203,6 +203,7 @@ impl Animation for EquipAnimation {
                 .sin()
                 * 0.1,
         );
+        next.hold.scale = Vec3::one() * 0.0;
 
         if velocity > 0.5 {
             next.torso.position = Vec3::new(0.0, 0.0, 0.0) * skeleton_attr.scaler;

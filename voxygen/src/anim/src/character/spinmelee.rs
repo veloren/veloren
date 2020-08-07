@@ -155,6 +155,7 @@ impl Animation for SpinMeleeAnimation {
         next.lantern.orientation = Quaternion::rotation_z(0.0)
             * Quaternion::rotation_x(0.7)
             * Quaternion::rotation_y(-0.8);
+        next.hold.scale = Vec3::one() * 0.0;
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;
         next.l_control.scale = Vec3::one();
