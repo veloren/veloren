@@ -50,9 +50,12 @@ impl Server {
 
         for event in events {
             match event {
-                ServerEvent::Explosion { pos, power, owner } => {
-                    handle_explosion(&self, pos, power, owner)
-                },
+                ServerEvent::Explosion {
+                    pos,
+                    power,
+                    owner,
+                    friendly_damage,
+                } => handle_explosion(&self, pos, power, owner, friendly_damage),
                 ServerEvent::Shoot {
                     entity,
                     dir,

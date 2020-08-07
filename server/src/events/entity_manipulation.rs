@@ -7,12 +7,12 @@ use common::{
     },
     msg::{PlayerListUpdate, ServerMsg},
     state::BlockChange,
-    sync::{Uid, WorldSyncExt},
+    sync::{Uid, UidAllocator, WorldSyncExt},
     sys::combat::BLOCK_ANGLE,
     terrain::{Block, TerrainGrid},
     vol::{ReadVol, Vox},
 };
-use specs::{join::Join, Entity as EcsEntity, WorldExt};
+use specs::{join::Join, saveload::MarkerAllocator, Entity as EcsEntity, WorldExt};
 use tracing::error;
 use vek::Vec3;
 
@@ -277,11 +277,25 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
     }
 }
 
-pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Option<Uid>) {
+pub fn handle_explosion(
+    server: &Server,
+    pos: Vec3<f32>,
+    power: f32,
+    owner: Option<Uid>,
+    friendly_damage: bool,
+) {
     // Go through all other entities
     let hit_range = 3.0 * power;
     let ecs = &server.state.ecs();
-    for (pos_b, ori_b, character_b, stats_b, loadout_b) in (
+
+    let owner_entity = owner.and_then(|uid| {
+        ecs.read_resource::<UidAllocator>()
+            .retrieve_entity_internal(uid.into())
+    });
+    let groups = ecs.read_storage::<comp::Group>();
+
+    for (entity_b, pos_b, ori_b, character_b, stats_b, loadout_b) in (
+        &ecs.entities(),
         &ecs.read_storage::<comp::Pos>(),
         &ecs.read_storage::<comp::Ori>(),
         ecs.read_storage::<comp::CharacterState>().maybe(),
@@ -293,9 +307,13 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Opti
         let distance_squared = pos.distance_squared(pos_b.0);
         // Check if it is a hit
         if !stats_b.is_dead
-            // Spherical wedge shaped attack field
             // RADIUS
             && distance_squared < hit_range.powi(2)
+            // Skip if they are in the same group and friendly_damage is turned off for the
+            // explosion
+            && (friendly_damage || !owner_entity
+                    .and_then(|e| groups.get(e))
+                    .map_or(false, |group_a| Some(group_a) == groups.get(entity_b)))
         {
             // Weapon gives base damage
             let dmg = (1.0 - distance_squared / hit_range.powi(2)) * power * 130.0;

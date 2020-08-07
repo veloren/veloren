@@ -1050,7 +1050,7 @@ impl Client {
                             self.group_leader = Some(leader);
                             self.group_members = members.into_iter().collect();
                             // Currently add/remove messages treat client as an implicit member
-                            // of the group whereas this message explicitly included them so to
+                            // of the group whereas this message explicitly includes them so to
                             // be consistent for now we will remove the client from the
                             // received hashset
                             if let Some(uid) = self.uid() {
