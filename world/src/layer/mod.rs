@@ -5,9 +5,11 @@ use crate::{
 };
 use common::{
     assets,
+    comp,
     lottery::Lottery,
     terrain::{Block, BlockKind},
     vol::{BaseVol, ReadVol, RectSizedVol, Vox, WriteVol},
+    generation::{ChunkSupplement, EntityInfo},
 };
 use noise::NoiseFn;
 use std::{
@@ -15,6 +17,7 @@ use std::{
     ops::{Mul, Sub},
 };
 use vek::*;
+use rand::prelude::*;
 
 pub fn apply_paths_to<'a>(
     wpos2d: Vec2<i32>,
@@ -181,6 +184,105 @@ pub fn apply_caves_to<'a>(
                         Vec3::new(offs.x, offs.y, cave_base),
                         Block::new(kind, Rgb::zero()),
                     );
+                }
+            }
+        }
+    }
+}
+
+pub fn apply_caves_supplement<'a>(
+    rng: &mut impl Rng,
+    wpos2d: Vec2<i32>,
+    mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
+    vol: &(impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
+    index: &Index,
+    supplement: &mut ChunkSupplement,
+) {
+    for y in 0..vol.size_xy().y as i32 {
+        for x in 0..vol.size_xy().x as i32 {
+            let offs = Vec2::new(x, y);
+
+            let wpos2d = wpos2d + offs;
+
+            // Sample terrain
+            let col_sample = if let Some(col_sample) = get_column(offs) {
+                col_sample
+            } else {
+                continue;
+            };
+            let surface_z = col_sample.riverless_alt.floor() as i32;
+
+            if let Some((cave_dist, cave_nearest, cave, _)) = col_sample
+                .cave
+                .filter(|(dist, _, cave, _)| *dist < cave.width)
+            {
+                let cave_x = (cave_dist / cave.width).min(1.0);
+
+                // Relative units
+                let cave_floor = 0.0 - 0.5 * (1.0 - cave_x.powf(2.0)).max(0.0).sqrt() * cave.width;
+                let cave_height = (1.0 - cave_x.powf(2.0)).max(0.0).sqrt() * cave.width;
+
+                // Abs units
+                let cave_base = (cave.alt + cave_floor) as i32;
+                let cave_roof = (cave.alt + cave_height) as i32;
+
+                // Scatter things in caves
+                if RandomField::new(index.seed).chance(wpos2d.into(), 0.0001)
+                    && cave_base < surface_z as i32 - 40
+                {
+                    let entity = EntityInfo::at(Vec3::new(wpos2d.x as f32, wpos2d.y as f32, cave_base as f32))
+                        .with_alignment(comp::Alignment::Enemy)
+                        .with_body(match rng.gen_range(0, 6) {
+                            0 => {
+                                let species = match rng.gen_range(0, 2) {
+                                    0 => comp::quadruped_small::Species::Truffler,
+                                    _ => comp::quadruped_small::Species::Hyena,
+                                };
+                                comp::quadruped_small::Body::random_with(rng, &species).into()
+                            },
+                            1 => {
+                                let species = match rng.gen_range(0, 3) {
+                                    0 => comp::quadruped_medium::Species::Tarasque,
+                                    1 => comp::quadruped_medium::Species::Frostfang,
+                                    _ => comp::quadruped_medium::Species::Bonerattler,
+                                };
+                                comp::quadruped_medium::Body::random_with(rng, &species).into()
+                            },
+                            2 => {
+                                let species = match rng.gen_range(0, 3) {
+                                    0 => comp::quadruped_low::Species::Maneater,
+                                    1 => comp::quadruped_low::Species::Rocksnapper,
+                                    _ => comp::quadruped_low::Species::Salamander,
+                                };
+                                comp::quadruped_low::Body::random_with(rng, &species).into()
+                            },
+                            3 => {
+                                let species = match rng.gen_range(0, 3) {
+                                    0 => comp::critter::Species::Fungome,
+                                    1 => comp::critter::Species::Axolotl,
+                                    _ => comp::critter::Species::Rat,
+                                };
+                                comp::critter::Body::random_with(rng, &species).into()
+                            },
+                            4 => {
+                                let species = match rng.gen_range(0, 1) {
+                                    _ => comp::golem::Species::StoneGolem,
+                                };
+                                comp::golem::Body::random_with(rng, &species).into()
+                            },
+                            _ => {
+                                let species = match rng.gen_range(0, 4) {
+                                    0 => comp::biped_large::Species::Ogre,
+                                    1 => comp::biped_large::Species::Cyclops,
+                                    2 => comp::biped_large::Species::Wendigo,
+                                    _ => comp::biped_large::Species::Troll,
+                                };
+                                comp::biped_large::Body::random_with(rng, &species).into()
+                            },
+                        })
+                        .with_automatic_name();
+
+                    supplement.add_entity(entity);
                 }
             }
         }

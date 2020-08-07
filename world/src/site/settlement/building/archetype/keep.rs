@@ -12,11 +12,13 @@ use vek::*;
 
 pub struct Keep {
     pub flag_color: Rgb<u8>,
+    pub stone_color: Rgb<u8>,
 }
 
 pub struct Attr {
     pub storeys: i32,
     pub is_tower: bool,
+    pub flag: bool,
     pub ridged: bool,
     pub rounded: bool,
     pub has_doors: bool,
@@ -36,6 +38,7 @@ impl Archetype for Keep {
                 attr: Attr {
                     storeys,
                     is_tower: false,
+                    flag: false,
                     ridged: false,
                     rounded: true,
                     has_doors: true,
@@ -51,6 +54,7 @@ impl Archetype for Keep {
                                 attr: Attr {
                                     storeys: storeys + rng.gen_range(1, 3),
                                     is_tower: true,
+                                    flag: true,
                                     ridged: false,
                                     rounded: true,
                                     has_doors: false,
@@ -68,6 +72,7 @@ impl Archetype for Keep {
         (
             Self {
                 flag_color: Rgb::new(200, 80, 40),
+                stone_color: Rgb::new(100, 100, 110),
             },
             skel,
         )
@@ -114,7 +119,11 @@ impl Archetype for Keep {
         let brick_tex_pos = (pos + Vec3::new(pos.z, pos.z, 0)) / Vec3::new(2, 2, 1);
         let brick_tex = RandomField::new(0).get(brick_tex_pos) as u8 % 24;
         let foundation = make_block(80 + brick_tex, 80 + brick_tex, 80 + brick_tex);
-        let wall = make_block(100 + brick_tex, 100 + brick_tex, 110 + brick_tex);
+        let wall = make_block(
+            self.stone_color.r + brick_tex,
+            self.stone_color.g + brick_tex,
+            self.stone_color.b + brick_tex,
+        );
         let window = BlockMask::new(
             Block::new(BlockKind::Window1, make_meta(ori.flip())),
             normal_layer,
@@ -199,9 +208,9 @@ impl Archetype for Keep {
             if profile.y > roof_height
                 && (min_dist < rampart_width - 1 || (attr.is_tower && min_dist < rampart_width))
             {
-                if attr.is_tower && center_offset == Vec2::zero() && profile.y < roof_height + 16 {
+                if attr.is_tower && attr.flag && center_offset == Vec2::zero() && profile.y < roof_height + 16 {
                     pole
-                } else if attr.is_tower
+                } else if attr.is_tower && attr.flag
                     && center_offset.x == 0
                     && center_offset.y > 0
                     && center_offset.y < 8
