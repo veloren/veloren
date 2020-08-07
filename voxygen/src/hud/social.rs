@@ -287,7 +287,7 @@ impl<'a> Widget for Social<'a> {
                 .set(state.ids.zones_align, ui);
             Scrollbar::y_axis(state.ids.online_align)
                 .thickness(4.0)
-                .color(UI_HIGHLIGHT_0)
+                .color(Color::Rgba(0.79, 1.09, 1.09, 0.0))
                 .set(state.ids.scrollbar, ui);
             //
             // Headlines
@@ -413,7 +413,7 @@ impl<'a> Widget for Social<'a> {
                 } else {
                     button.down_from(state.ids.player_names[i - 1], 1.0)
                 };
-                if button
+                button
                     .w_h(133.0, 20.0)
                     .hover_image(if selected {
                         self.imgs.selection
@@ -427,33 +427,40 @@ impl<'a> Widget for Social<'a> {
                     })
                     .label(&name_text)
                     .label_font_size(self.fonts.cyri.scale(14))
-                    .label_y(conrod_core::position::Relative::Scalar(0.0))
+                    .label_y(conrod_core::position::Relative::Scalar(1.0))
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_color(TEXT_COLOR)
-                    .set(state.ids.player_names[i], ui)
-                    .was_clicked()
-                {};
-                let level_txt = if i == 0 {
-                    Text::new(&level).mid_top_with_margin_on(state.ids.levels_align, 4.0)
+                    .set(state.ids.player_names[i], ui);
+                // Player Levels
+                Button::image(if !selected {
+                    self.imgs.nothing
                 } else {
-                    Text::new(&level).down_from(state.ids.player_levels[i - 1], 4.0)
-                };
-                level_txt
-                    .font_size(self.fonts.cyri.scale(14))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(state.ids.player_levels[i], ui);
-                let zone_txt = if i == 0 {
-                    Text::new(&zone_name).mid_top_with_margin_on(state.ids.zones_align, 4.0)
+                    self.imgs.selection
+                })
+                .w_h(39.0, 20.0)
+                .right_from(state.ids.player_names[i], 2.0)
+                .label(&level)
+                .label_font_size(self.fonts.cyri.scale(14))
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .label_color(TEXT_COLOR)
+                .label_y(conrod_core::position::Relative::Scalar(1.0))
+                .parent(state.ids.levels_align)
+                .set(state.ids.player_levels[i], ui);
+                // Player Zones
+                Button::image(if !selected {
+                    self.imgs.nothing
                 } else {
-                    Text::new(&zone_name).down_from(state.ids.player_zones[i - 1], 4.0)
-                };
-                zone_txt
-                    .font_size(self.fonts.cyri.scale(14))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(state.ids.player_zones[i], ui);
-
+                    self.imgs.selection
+                })
+                .w_h(94.0, 20.0)
+                .right_from(state.ids.player_levels[i], 2.0)
+                .label(&zone_name)
+                .label_font_size(self.fonts.cyri.scale(14))
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .label_color(TEXT_COLOR)
+                .label_y(conrod_core::position::Relative::Scalar(1.0))
+                .parent(state.ids.zones_align)
+                .set(state.ids.player_zones[i], ui);
                 // Check for click
                 if ui
                     .widget_input(state.ids.player_names[i])
