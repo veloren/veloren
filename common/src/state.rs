@@ -158,6 +158,8 @@ impl State {
         ecs.register::<comp::ItemDrop>();
         ecs.register::<comp::ChatMode>();
         ecs.register::<comp::Faction>();
+        ecs.register::<comp::group::Invite>();
+        ecs.register::<comp::group::PendingInvites>();
 
         // Register synced resources used by the ECS.
         ecs.insert(TimeOfDay(0.0));

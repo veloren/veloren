@@ -23,7 +23,7 @@ use common::{
     msg::{
         validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, Notification,
         PlayerInfo, PlayerListUpdate, RegisterError, RequestStateError, ServerInfo, ServerMsg,
-        MAX_BYTES_CHAT_MSG,
+        MAX_BYTES_CHAT_MSG, InviteAnswer,
     },
     recipe::RecipeBook,
     state::State,
@@ -79,9 +79,14 @@ pub struct Client {
     recipe_book: RecipeBook,
     available_recipes: HashSet<String>,
 
-    group_invite: Option<Uid>,
+    max_group_size: u32,
+    // Client has received an invite (inviter uid, time out instant)
+    group_invite: Option<(Uid, std::time::Instant, std::time::Duration)>,
     group_leader: Option<Uid>,
+    // Note: potentially representable as a client only component
     group_members: HashMap<Uid, group::Role>,
+    // Pending invites that this client has sent out
+    pending_invites: HashSet<Uid>,
 
     _network: Network,
     participant: Option<Participant>,
@@ -130,13 +135,14 @@ impl Client {
         let mut stream = block_on(participant.open(10, PROMISES_ORDERED | PROMISES_CONSISTENCY))?;
 
         // Wait for initial sync
-        let (state, entity, server_info, world_map, recipe_book) = block_on(async {
+        let (state, entity, server_info, world_map, recipe_book, max_group_size) = block_on(async {
             loop {
                 match stream.recv().await? {
                     ServerMsg::InitialSync {
                         entity_package,
                         server_info,
                         time_of_day,
+                        max_group_size,
                         world_map: (map_size, world_map),
                         recipe_book,
                     } => {
@@ -188,6 +194,7 @@ impl Client {
                             server_info,
                             (world_map, map_size),
                             recipe_book,
+                            max_group_size,
                         ));
                     },
                     ServerMsg::TooManyPlayers => break Err(Error::TooManyPlayers),
@@ -212,14 +219,16 @@ impl Client {
             server_info,
             world_map,
             player_list: HashMap::new(),
-            group_members: HashMap::new(),
             character_list: CharacterList::default(),
             active_character_id: None,
             recipe_book,
             available_recipes: HashSet::default(),
 
+            max_group_size,
             group_invite: None,
             group_leader: None,
+            group_members: HashMap::new(),
+            pending_invites: HashSet::new(),
 
             _network: network,
             participant: Some(participant),
@@ -432,13 +441,17 @@ impl Client {
             .unwrap();
     }
 
-    pub fn group_invite(&self) -> Option<Uid> { self.group_invite }
+    pub fn max_group_size(&self) -> u32 { self.max_group_size }
+
+    pub fn group_invite(&self) -> Option<(Uid, std::time::Instant, std::time::Duration)> { self.group_invite }
 
     pub fn group_info(&self) -> Option<(String, Uid)> {
         self.group_leader.map(|l| ("Group".into(), l)) // TODO
     }
 
     pub fn group_members(&self) -> &HashMap<Uid, group::Role> { &self.group_members }
+
+    pub fn pending_invites(&self) -> &HashSet<Uid> { &self.pending_invites }
 
     pub fn send_group_invite(&mut self, invitee: Uid) {
         self.singleton_stream
@@ -758,6 +771,10 @@ impl Client {
         frontend_events.append(&mut self.handle_new_messages()?);
 
         // 3) Update client local data
+        // Check if the group invite has timed out and remove if so
+        if self.group_invite.map_or(false, |(_, timeout, dur)| timeout.elapsed() > dur) {
+            self.group_invite = None;
+        }
 
         // 4) Tick the client's LocalState
         self.state.tick(dt, add_foreign_systems, true);
@@ -1046,9 +1063,28 @@ impl Client {
                         },
                     }
                 },
-                ServerMsg::GroupInvite(uid) => {
-                    self.group_invite = Some(uid);
+                ServerMsg::GroupInvite { inviter, timeout } => {
+                    self.group_invite = Some((inviter, std::time::Instant::now(), timeout));
                 },
+                ServerMsg::InvitePending(uid) => {
+                    if !self.pending_invites.insert(uid) {
+                        warn!("Received message about pending invite that was already pending");
+                    }
+                }
+                ServerMsg::InviteComplete { target, answer } => {
+                    if !self.pending_invites.remove(&target) {
+                        warn!("Received completed invite message for invite that was not in the list of pending invites")
+                    }
+                    // TODO: expose this as a new event variant instead of going
+                    // through the chat
+                    let msg = match answer {
+                        // TODO: say who accepted/declined/timed out the invite
+                        InviteAnswer::Accepted => "Invite accepted",
+                        InviteAnswer::Declined => "Invite declined", 
+                        InviteAnswer::TimedOut => "Invite timed out", 
+                    };
+                    frontend_events.push(Event::Chat(comp::ChatType::Meta.chat_msg(msg)));
+                }
                 ServerMsg::Ping => {
                     self.singleton_stream.send(ClientMsg::Pong)?;
                 },

@@ -59,7 +59,7 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
                     &state.ecs().entities(),
                     &state.ecs().read_storage(),
                     &state.ecs().read_storage(),
-                    // Nothing actually changing
+                    // Nothing actually changing since Uid is transferred
                     |_, _| {},
                 );
             }

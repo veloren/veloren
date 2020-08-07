@@ -9,9 +9,11 @@ use tracing::{error, warn};
 // Primitive group system
 // Shortcomings include:
 //  - no support for more complex group structures
-//  - lack of complex enemy npc integration
+//  - lack of npc group integration
 //  - relies on careful management of groups to maintain a valid state
 //  - the possesion rod could probably wreck this
+//  - clients don't know which pets are theirs (could be easy to solve by
+//    putting owner uid in Role::Pet)
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Group(u32);
@@ -26,11 +28,26 @@ impl Component for Group {
     type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
 
+pub struct Invite(pub specs::Entity);
+impl Component for Invite {
+    type Storage = IdvStorage<Self>;
+}
+
+// Pending invites that an entity currently has sent out
+// (invited entity, instant when invite times out)
+pub struct PendingInvites(pub Vec<(specs::Entity, std::time::Instant)>);
+impl Component for PendingInvites {
+    type Storage = IdvStorage<Self>;
+}
+
 #[derive(Clone, Debug)]
 pub struct GroupInfo {
     // TODO: what about enemy groups, either the leader will constantly change because they have to
     // be loaded or we create a dummy entity or this needs to be optional
     pub leader: specs::Entity,
+    // Number of group members (excluding pets)
+    pub num_members: u32,
+    // Name of the group
     pub name: String,
 }
 
@@ -134,9 +151,14 @@ impl GroupManager {
         self.groups.get(group.0 as usize)
     }
 
-    fn create_group(&mut self, leader: specs::Entity) -> Group {
+    fn group_info_mut(&mut self, group: Group) -> Option<&mut GroupInfo> {
+        self.groups.get_mut(group.0 as usize)
+    }
+
+    fn create_group(&mut self, leader: specs::Entity, num_members: u32) -> Group {
         Group(self.groups.insert(GroupInfo {
             leader,
+            num_members,
             name: "Group".into(),
         }) as u32)
     }
@@ -204,15 +226,20 @@ impl GroupManager {
             None => None,
         };
 
-        let group = group.unwrap_or_else(|| {
-            let new_group = self.create_group(leader);
+        let group = if let Some(group) = group {
+            // Increment group size
+            // Note: unwrap won't fail since we just retrieved the group successfully above
+            self.group_info_mut(group).unwrap().num_members += 1;
+            group
+        } else {
+            let new_group = self.create_group(leader, 2);
             // Unwrap should not fail since we just found these entities and they should
             // still exist Note: if there is an issue replace with a warn
             groups.insert(leader, new_group).unwrap();
             // Inform
             notifier(leader, ChangeNotification::NewLeader(leader));
             new_group
-        });
+        };
 
         let new_pets = pets(new_member, new_member_uid, alignments, entities);
 
@@ -256,7 +283,7 @@ impl GroupManager {
         let group = match groups.get(owner).copied() {
             Some(group) => group,
             None => {
-                let new_group = self.create_group(owner);
+                let new_group = self.create_group(owner, 1);
                 groups.insert(owner, new_group).unwrap();
                 // Inform
                 notifier(owner, ChangeNotification::NewLeader(owner));
@@ -348,7 +375,7 @@ impl GroupManager {
 
             (entities, uids, &*groups, alignments.maybe())
                 .join()
-                .filter(|(e, _, g, _)| **g == group && (!to_be_deleted || *e == member))
+                .filter(|(e, _, g, _)| **g == group && !(to_be_deleted && *e == member))
                 .fold(
                     HashMap::<Uid, (Option<specs::Entity>, Vec<specs::Entity>)>::new(),
                     |mut acc, (e, uid, _, alignment)| {
@@ -356,9 +383,11 @@ impl GroupManager {
                             Alignment::Owned(owner) if uid != owner => Some(owner),
                             _ => None,
                         }) {
+                            // A pet
                             // Assumes owner will be in the group
                             acc.entry(*owner).or_default().1.push(e);
                         } else {
+                            // Not a pet
                             acc.entry(*uid).or_default().0 = Some(e);
                         }
 
@@ -375,7 +404,7 @@ impl GroupManager {
                             members.push((owner, Role::Member));
 
                             // New group
-                            let new_group = self.create_group(owner);
+                            let new_group = self.create_group(owner, 1);
                             for (member, _) in &members {
                                 groups.insert(*member, new_group).unwrap();
                             }
@@ -401,7 +430,7 @@ impl GroupManager {
             let leaving_member_uid = if let Some(uid) = uids.get(member) {
                 *uid
             } else {
-                error!("Failed to retrieve uid for the new group member");
+                error!("Failed to retrieve uid for the leaving member");
                 return;
             };
 
@@ -409,7 +438,7 @@ impl GroupManager {
 
             // If pets and not about to be deleted form new group
             if !leaving_pets.is_empty() && !to_be_deleted {
-                let new_group = self.create_group(member);
+                let new_group = self.create_group(member, 1);
 
                 notifier(member, ChangeNotification::NewGroup {
                     leader: member,
@@ -432,12 +461,11 @@ impl GroupManager {
                 });
             }
 
-            if let Some(info) = self.group_info(group) {
+            if let Some(info) = self.group_info_mut(group) {
+                info.num_members -= 1;
                 // Inform remaining members
-                let mut num_members = 0;
-                members(group, &*groups, entities, alignments, uids).for_each(|(e, role)| {
-                    num_members += 1;
-                    match role {
+                members(group, &*groups, entities, alignments, uids).for_each(
+                    |(e, role)| match role {
                         Role::Member => {
                             notifier(e, ChangeNotification::Removed(member));
                             leaving_pets.iter().for_each(|p| {
@@ -445,16 +473,16 @@ impl GroupManager {
                             })
                         },
                         Role::Pet => {},
-                    }
-                });
+                    },
+                );
                 // If leader is the last one left then disband the group
                 // Assumes last member is the leader
-                if num_members == 1 {
+                if info.num_members == 1 {
                     let leader = info.leader;
                     self.remove_group(group);
                     groups.remove(leader);
                     notifier(leader, ChangeNotification::NoGroup);
-                } else if num_members == 0 {
+                } else if info.num_members == 0 {
                     error!("Somehow group has no members")
                 }
             }

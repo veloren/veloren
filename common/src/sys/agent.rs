@@ -3,9 +3,11 @@ use crate::{
         self,
         agent::Activity,
         group,
+        group::Invite,
         item::{tool::ToolKind, ItemKind},
-        Agent, Alignment, Body, CharacterState, ControlAction, Controller, Loadout, MountState,
-        Ori, PhysicsState, Pos, Scale, Stats, UnresolvedChatMsg, Vel,
+        Agent, Alignment, Body, CharacterState, ControlAction, ControlEvent, Controller,
+        GroupManip, Loadout, MountState, Ori, PhysicsState, Pos, Scale, Stats, UnresolvedChatMsg,
+        Vel,
     },
     event::{EventBus, ServerEvent},
     path::{Chaser, TraversalConfig},
@@ -49,6 +51,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Agent>,
         WriteStorage<'a, Controller>,
         ReadStorage<'a, MountState>,
+        ReadStorage<'a, Invite>,
     );
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
@@ -77,6 +80,7 @@ impl<'a> System<'a> for Sys {
             mut agents,
             mut controllers,
             mount_states,
+            invites,
         ): Self::SystemData,
     ) {
         for (
@@ -493,6 +497,24 @@ impl<'a> System<'a> for Sys {
 
             debug_assert!(inputs.move_dir.map(|e| !e.is_nan()).reduce_and());
             debug_assert!(inputs.look_dir.map(|e| !e.is_nan()).reduce_and());
+        }
+
+        // Proccess group invites
+        for (_invite, alignment, agent, controller) in
+            (&invites, &alignments, &mut agents, &mut controllers).join()
+        {
+            let accept = matches!(alignment, Alignment::Npc);
+            if accept {
+                // Clear agent comp
+                *agent = Agent::default();
+                controller
+                    .events
+                    .push(ControlEvent::GroupManip(GroupManip::Accept));
+            } else {
+                controller
+                    .events
+                    .push(ControlEvent::GroupManip(GroupManip::Decline));
+            }
         }
     }
 }

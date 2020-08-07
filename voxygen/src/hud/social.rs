@@ -8,7 +8,7 @@ use crate::{
     ui::{fonts::ConrodVoxygenFonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
 };
 use client::{self, Client};
-use common::sync::Uid;
+use common::{comp::group, sync::Uid};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
@@ -467,68 +467,90 @@ impl<'a> Widget for Social<'a> {
             }
 
             // Invite Button
-            let selected_ingame = state
-                .selected_uid
-                .as_ref()
-                .map(|(s, _)| *s)
-                .filter(|selected| {
-                    self.client
-                        .player_list
-                        .get(selected)
-                        .map_or(false, |selected_player| {
-                            selected_player.is_online && selected_player.character.is_some()
+            let is_leader_or_not_in_group = self
+                .client
+                .group_info()
+                .map_or(true, |(_, l_uid)| self.client.uid() == Some(l_uid));
+
+            let current_members = self
+                .client
+                .group_members()
+                .iter()
+                .filter(|(_, role)| matches!(role, group::Role::Member))
+                .count()
+                + 1;
+            let current_invites = self.client.pending_invites().len();
+            let max_members = self.client.max_group_size() as usize;
+            let group_not_full = current_members + current_invites < max_members;
+            let selected_to_invite = (is_leader_or_not_in_group && group_not_full)
+                .then(|| {
+                    state
+                        .selected_uid
+                        .as_ref()
+                        .map(|(s, _)| *s)
+                        .filter(|selected| {
+                            self.client
+                                .player_list
+                                .get(selected)
+                                .map_or(false, |selected_player| {
+                                    selected_player.is_online && selected_player.character.is_some()
+                                })
+                        })
+                        .or_else(|| {
+                            self.selected_entity
+                                .and_then(|s| self.client.state().read_component_copied(s.0))
+                        })
+                        .filter(|selected| {
+                            // Prevent inviting entities already in the same group
+                            !self.client.group_members().contains_key(selected)
                         })
                 })
-                .or_else(|| {
-                    self.selected_entity
-                        .and_then(|s| self.client.state().read_component_copied(s.0))
-                });
-            // TODO: Prevent inviting players with the same group uid
-            // TODO: Show current amount of group members as a tooltip for the invite button
-            // if the player is the group leader TODO: Grey out the invite
-            // button if the group has 6/6 members
-            let current_members = 4;
-            let tooltip_txt = if selected_ingame.is_some() {
-                format!(
-                    "{}/6 {}",
-                    &current_members,
-                    &self.localized_strings.get("hud.group.members")
-                )
-            } else {
-                (&self.localized_strings.get("hud.group.members")).to_string()
-            };
-            if Button::image(self.imgs.button)
+                .flatten();
+
+            let invite_button = Button::image(self.imgs.button)
                 .w_h(106.0, 26.0)
                 .bottom_right_with_margins_on(state.ids.frame, 9.0, 7.0)
-                .hover_image(if selected_ingame.is_some() {
+                .hover_image(if selected_to_invite.is_some() {
                     self.imgs.button_hover
                 } else {
                     self.imgs.button
                 })
-                .press_image(if selected_ingame.is_some() {
+                .press_image(if selected_to_invite.is_some() {
                     self.imgs.button_press
                 } else {
                     self.imgs.button
                 })
-                .label(&self.localized_strings.get("hud.group.invite"))
+                .label(self.localized_strings.get("hud.group.invite"))
                 .label_y(conrod_core::position::Relative::Scalar(3.0))
-                .label_color(if selected_ingame.is_some() {
+                .label_color(if selected_to_invite.is_some() {
                     TEXT_COLOR
                 } else {
                     TEXT_COLOR_3
                 })
-                .image_color(if selected_ingame.is_some() {
+                .image_color(if selected_to_invite.is_some() {
                     TEXT_COLOR
                 } else {
                     TEXT_COLOR_3
                 })
                 .label_font_size(self.fonts.cyri.scale(15))
-                .label_font_id(self.fonts.cyri.conrod_id)
-                .with_tooltip(self.tooltip_manager, &tooltip_txt, "", &button_tooltip)
-                .set(state.ids.invite_button, ui)
-                .was_clicked()
+                .label_font_id(self.fonts.cyri.conrod_id);
+
+            if if self.client.group_info().is_some() {
+                let tooltip_txt = format!(
+                    "{}/{} {}",
+                    current_members + current_invites,
+                    max_members,
+                    &self.localized_strings.get("hud.group.members")
+                );
+                invite_button
+                    .with_tooltip(self.tooltip_manager, &tooltip_txt, "", &button_tooltip)
+                    .set(state.ids.invite_button, ui)
+            } else {
+                invite_button.set(state.ids.invite_button, ui)
+            }
+            .was_clicked()
             {
-                if let Some(uid) = selected_ingame {
+                if let Some(uid) = selected_to_invite {
                     events.push(Event::Invite(uid));
                     state.update(|s| {
                         s.selected_uid = None;
