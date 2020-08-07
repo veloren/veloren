@@ -1026,6 +1026,15 @@ impl Client {
                     // the view distance
                     match change_notification {
                         Added(uid, role) => {
+                            // Check if this is a newly formed group by looking for absence of
+                            // other non pet group members
+                            if !matches!(role, group::Role::Pet) 
+                                && !self.group_members.values().any(|r| !matches!(r, group::Role::Pet))
+                            {
+                                frontend_events.push(Event::Chat(comp::ChatType::Meta.chat_msg(
+                                    "Type /g or /group to chat with your group members"
+                                )));
+                            }
                             if self.group_members.insert(uid, role) == Some(role) {
                                 warn!(
                                     "Received msg to add uid {} to the group members but they \
