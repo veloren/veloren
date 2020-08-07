@@ -237,11 +237,11 @@ impl SfxMgr {
 
         audio.set_listener_pos(camera.dependents().cam_pos, camera.dependents().cam_dir);
 
-        // deprecated in favor of outcomes
+        // TODO: replace; deprecated in favor of outcomes
         self.event_mapper
             .maintain(state, player_entity, camera, &self.triggers);
 
-        // deprecated in favor of outcomes
+        // TODO: replace; deprecated in favor of outcomes
         let events = ecs.read_resource::<EventBus<SfxEventItem>>().recv_all();
 
         for event in events {
