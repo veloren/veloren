@@ -2,8 +2,8 @@ use crate::{client::Client, Server, SpawnPoint, StateExt};
 use common::{
     assets,
     comp::{
-        self, item::lottery::Lottery, object, Body, Damage, DamageSource, Group, HealthChange,
-        HealthSource, Player, Pos, Stats,
+        self, item::lottery::Lottery, object, Alignment, Body, Damage, DamageSource, Group,
+        HealthChange, HealthSource, Player, Pos, Stats,
     },
     msg::{PlayerListUpdate, ServerMsg},
     state::BlockChange,
@@ -94,19 +94,35 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
 
         // Distribute EXP to group
         let positions = state.ecs().read_storage::<Pos>();
+        let alignments = state.ecs().read_storage::<Alignment>();
+        let uids = state.ecs().read_storage::<Uid>();
         if let (Some(attacker_group), Some(pos)) = (attacker_group, positions.get(entity)) {
             // TODO: rework if change to groups makes it easier to iterate entities in a
             // group
-            let members_in_range = (&state.ecs().entities(), &groups, &positions)
+            let mut num_not_pets_in_range = 0;
+            let members_in_range = (
+                &state.ecs().entities(),
+                &groups,
+                &positions,
+                alignments.maybe(),
+                &uids,
+            )
                 .join()
-                .filter(|(entity, group, member_pos)| {
+                .filter(|(entity, group, member_pos, _, _)| {
+                    // Check if: in group, not main attacker, and in range
                     *group == attacker_group
                         && *entity != attacker
                         && pos.0.distance_squared(member_pos.0) < MAX_EXP_DIST.powi(2)
                 })
-                .map(|(entity, _, _)| entity)
+                .map(|(entity, _, _, alignment, uid)| {
+                    if !matches!(alignment, Some(Alignment::Owned(owner)) if owner != uid) {
+                        num_not_pets_in_range += 1;
+                    }
+
+                    entity
+                })
                 .collect::<Vec<_>>();
-            let exp = exp_reward / (members_in_range.len() as f32 + ATTACKER_EXP_WEIGHT);
+            let exp = exp_reward / (num_not_pets_in_range as f32 + ATTACKER_EXP_WEIGHT);
             exp_reward = exp * ATTACKER_EXP_WEIGHT;
             members_in_range.into_iter().for_each(|e| {
                 if let Some(stats) = stats.get_mut(e) {
