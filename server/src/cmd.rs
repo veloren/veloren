@@ -77,7 +77,6 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Health => handle_health,
         ChatCommand::Help => handle_help,
         ChatCommand::JoinFaction => handle_join_faction,
-        //ChatCommand::JoinGroup => handle_join_group,
         ChatCommand::Jump => handle_jump,
         ChatCommand::Kill => handle_kill,
         ChatCommand::KillNpcs => handle_kill_npcs,
@@ -588,7 +587,6 @@ fn handle_spawn(
                                 comp::Alignment::Npc | comp::Alignment::Tame => {
                                     Some(comp::group::NPC)
                                 },
-                                // TODO: handle
                                 comp::Alignment::Owned(_) => unreachable!(),
                             } {
                                 let _ =
@@ -1361,69 +1359,6 @@ fn handle_join_faction(
         );
     }
 }
-
-// TODO: it might be useful to copy the GroupMeta messages elsewhere
-/*fn handle_join_group(
-    server: &mut Server,
-    client: EcsEntity,
-    target: EcsEntity,
-    args: String,
-    action: &ChatCommand,
-) {
-    if client != target {
-        // This happens when [ab]using /sudo
-        server.notify_client(
-            client,
-            ChatType::CommandError.server_msg("It's rude to impersonate people"),
-        );
-        return;
-    }
-    if let Some(alias) = server
-        .state
-        .ecs()
-        .read_storage::<comp::Player>()
-        .get(target)
-        .map(|player| player.alias.clone())
-    {
-        let group_leave = if let Ok(group) = scan_fmt!(&args, &action.arg_fmt(), String) {
-            let mode = comp::ChatMode::Group(group.clone());
-            let _ = server.state.ecs().write_storage().insert(client, mode);
-            let group_leave = server
-                .state
-                .ecs()
-                .write_storage()
-                .insert(client, comp::ChatGroup(group.clone()))
-                .ok()
-                .flatten()
-                .map(|f| f.0);
-            server.state.send_chat(
-                ChatType::GroupMeta(group.clone())
-                    .chat_msg(format!("[{}] joined group ({})", alias, group)),
-            );
-            group_leave
-        } else {
-            let mode = comp::ChatMode::default();
-            let _ = server.state.ecs().write_storage().insert(client, mode);
-            server
-                .state
-                .ecs()
-                .write_storage()
-                .remove(client)
-                .map(|comp::ChatGroup(f)| f)
-        };
-        if let Some(group) = group_leave {
-            server.state.send_chat(
-                ChatType::GroupMeta(group.clone())
-                    .chat_msg(format!("[{}] left group ({})", alias, group)),
-            );
-        }
-    } else {
-        server.notify_client(
-            client,
-            ChatType::CommandError.server_msg("Could not find your player alias"),
-        );
-    }
-}*/
 
 #[cfg(not(feature = "worldgen"))]
 fn handle_debug_column(

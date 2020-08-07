@@ -6,4 +6,5 @@ rustflags = [
 [alias]
 generate = "run --package tools --"
 test-server = "run --bin veloren-server-cli --no-default-features" 
+server = "run --bin veloren-server-cli"
 
