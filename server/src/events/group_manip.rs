@@ -54,12 +54,13 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             // Disallow inviting entity that is already in your group
             let groups = state.ecs().read_storage::<Group>();
             let group_manager = state.ecs().read_resource::<GroupManager>();
-            if groups.get(entity).map_or(false, |group| {
+            let already_in_same_group = groups.get(entity).map_or(false, |group| {
                 group_manager
                     .group_info(*group)
                     .map_or(false, |g| g.leader == entity)
                     && groups.get(invitee) == Some(group)
-            }) {
+            });
+            if already_in_same_group {
                 // Inform of failure
                 if let Some(client) = clients.get_mut(entity) {
                     client.notify(ChatType::Meta.server_msg(
@@ -73,7 +74,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
 
             // Check if group max size is already reached
             // Adding the current number of pending invites
-            if state
+            let group_size_limit_reached = state
                 .ecs()
                 .read_storage()
                 .get(entity)
@@ -88,8 +89,8 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 })
                 .unwrap_or(1) as usize
                 + pending_invites.get(entity).map_or(0, |p| p.0.len())
-                >= max_group_size as usize
-            {
+                >= max_group_size as usize;
+            if group_size_limit_reached {
                 // Inform inviter that they have reached the group size limit
                 if let Some(client) = clients.get_mut(entity) {
                     client.notify(
@@ -161,12 +162,10 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 }
             } else if agents.contains(invitee) {
                 send_invite();
-            } else {
-                if let Some(client) = clients.get_mut(entity) {
-                    client.notify(
-                        ChatType::Meta.server_msg("Can't invite, not a player or npc".to_owned()),
-                    );
-                }
+            } else if let Some(client) = clients.get_mut(entity) {
+                client.notify(
+                    ChatType::Meta.server_msg("Can't invite, not a player or npc".to_owned()),
+                );
             }
 
             // Notify inviter that the invite is pending
