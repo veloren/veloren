@@ -31,10 +31,16 @@ embed_migrations!();
 pub fn run_migrations(db_dir: &str) -> Result<(), diesel_migrations::RunMigrationsError> {
     let db_dir = &apply_saves_dir_override(db_dir);
     let _ = fs::create_dir(format!("{}/", db_dir));
-    embedded_migrations::run_with_output(&establish_connection(db_dir), &mut std::io::stdout())
+    embedded_migrations::run_with_output(
+        &establish_connection(db_dir).expect(
+            "If we cannot execute migrations, we should not be allowed to launch the server, so \
+             we don't populate it with bad data.",
+        ),
+        &mut std::io::stdout(),
+    )
 }
 
-fn establish_connection(db_dir: &str) -> SqliteConnection {
+fn establish_connection(db_dir: &str) -> QueryResult<SqliteConnection> {
     let db_dir = &apply_saves_dir_override(db_dir);
     let database_url = format!("{}/db.sqlite", db_dir);
 
@@ -45,18 +51,21 @@ fn establish_connection(db_dir: &str) -> SqliteConnection {
     // Set a busy timeout (in ms): https://sqlite.org/c3ref/busy_timeout.html
     if let Err(e) = connection.batch_execute(
         "
+        PRAGMA foreign_keys = ON;
         PRAGMA journal_mode = WAL;
         PRAGMA busy_timeout = 250; 
         ",
     ) {
         warn!(
             ?e,
-            "Failed adding PRAGMA statements while establishing sqlite connection, this will \
-             result in a higher likelihood of locking errors"
+            "Failed adding PRAGMA statements while establishing sqlite connection, including \
+             enabling foreign key constraints.  We will not allow connecting to the server under \
+             these conditions."
         );
+        return Err(e);
     }
 
-    connection
+    Ok(connection)
 }
 
 fn apply_saves_dir_override(db_dir: &str) -> String {
