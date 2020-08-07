@@ -228,6 +228,9 @@ impl World {
             supplement.add_entity(EntityInfo::at(gen_entity_pos()).into_waypoint());
         }
 
+        // Apply layer supplement
+        layer::apply_caves_supplement(&mut rng, chunk_wpos2d, sample_get, &chunk, &self.index, &mut supplement);
+
         // Apply site supplementary information
         sim_chunk.sites.iter().for_each(|site| {
             self.index.sites[*site].apply_supplement(

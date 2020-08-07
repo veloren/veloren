@@ -99,6 +99,11 @@ impl Route {
         V: BaseVol<Vox = Block> + ReadVol,
     {
         let (next0, next1, next_tgt, be_precise) = loop {
+            // If we've reached the end of the path, stop
+            if self.next(0).is_none() {
+                return None;
+            }
+
             let next0 = self
                 .next(0)
                 .unwrap_or_else(|| pos.map(|e| e.floor() as i32));
@@ -110,7 +115,7 @@ impl Route {
             }
 
             let be_precise = DIAGONALS.iter().any(|pos| {
-                (-2..2)
+                (-1..2)
                     .all(|z| vol.get(next0 + Vec3::new(pos.x, pos.y, z))
                         .map(|b| !b.is_solid())
                         .unwrap_or(false))
@@ -312,7 +317,7 @@ impl Route {
 #[derive(Default, Clone, Debug)]
 pub struct Chaser {
     last_search_tgt: Option<Vec3<f32>>,
-    route: Option<Route>,
+    route: Option<(Route, bool)>,
     /// We use this hasher (AAHasher) because:
     /// (1) we care about DDOS attacks (ruling out FxHash);
     /// (2) we don't care about determinism across computers (we can use
@@ -335,14 +340,22 @@ impl Chaser {
         let pos_to_tgt = pos.distance(tgt);
 
         // If we're already close to the target then there's nothing to do
-        if ((pos - tgt) * Vec3::new(1.0, 1.0, 2.0)).magnitude_squared()
+        let end = self.route
+            .as_ref()
+            .and_then(|(r, _)| r.path.end().copied())
+            .map(|e| e.map(|e| e as f32 + 0.5))
+            .unwrap_or(tgt);
+        if ((pos - end) * Vec3::new(1.0, 1.0, 2.0)).magnitude_squared()
             < traversal_cfg.min_tgt_dist.powf(2.0)
         {
             self.route = None;
             return None;
         }
 
-        let bearing = if let Some(end) = self.route.as_ref().and_then(|r| r.path().end().copied()) {
+        let bearing = if let Some((end, complete)) = self.route
+            .as_ref()
+            .and_then(|(r, complete)| Some((r.path().end().copied()?, *complete)))
+        {
             let end_to_tgt = end.map(|e| e as f32).distance(tgt);
             // If the target has moved significantly since the path was generated then it's
             // time to search for a new path. Also, do this randomly from time
@@ -350,12 +363,12 @@ impl Chaser {
             // theory this shouldn't happen, but in practice the world is full
             // of unpredictable obstacles that are more than willing to mess up
             // our day. TODO: Come up with a better heuristic for this
-            if end_to_tgt > pos_to_tgt * 0.3 + 5.0 || thread_rng().gen::<f32>() < 0.001 {
+            if (end_to_tgt > pos_to_tgt * 0.3 + 5.0 && complete) || thread_rng().gen::<f32>() < 0.001 {
                 None
             } else {
                 self.route
                     .as_mut()
-                    .and_then(|r| r.traverse(vol, pos, vel, traversal_cfg))
+                    .and_then(|(r, _)| r.traverse(vol, pos, vel, traversal_cfg))
             }
         } else {
             None
@@ -376,7 +389,9 @@ impl Chaser {
                 || self.astar.is_some()
                 || self.route.is_none()
             {
-                let (start_pos, path) = find_path(&mut self.astar, vol, pos, tgt);
+                self.last_search_tgt = Some(tgt);
+
+                let (path, complete) = find_path(&mut self.astar, vol, pos, tgt);
 
                 self.route = path.map(|path| {
                     let start_index = path
@@ -385,10 +400,10 @@ impl Chaser {
                         .min_by_key(|(_, node)| node.xy().map(|e| e as f32).distance_squared(pos.xy() + tgt_dir) as i32)
                         .map(|(idx, _)| idx);
 
-                    Route {
+                    (Route {
                         path,
                         next_idx: start_index.unwrap_or(0),
-                    }
+                    }, complete)
                 });
             }
 
@@ -424,13 +439,14 @@ where
             .unwrap_or(true)
 }
 
-#[allow(clippy::float_cmp)] // TODO: Pending review in #587
+/// Attempt to search for a path to a target, returning the path (if one was found)
+/// and whether it is complete (reaches the target)
 fn find_path<V>(
     astar: &mut Option<Astar<Vec3<i32>, DefaultHashBuilder>>,
     vol: &V,
     startf: Vec3<f32>,
     endf: Vec3<f32>,
-) -> (Vec3<f32>, Option<Path<Vec3<i32>>>)
+) -> (Option<Path<Vec3<i32>>>, bool)
 where
     V: BaseVol<Vox = Block> + ReadVol,
 {
@@ -452,7 +468,7 @@ where
         get_walkable_z(endf.map(|e| e.floor() as i32)),
     ) {
         (Some(start), Some(end)) => (start, end),
-        _ => return (startf, None),
+        _ => return (None, false),
     };
 
     let heuristic = |pos: &Vec3<i32>| (pos.distance_squared(end) as f32).sqrt();
@@ -554,19 +570,19 @@ where
 
     *astar = Some(new_astar);
 
-    (startf, match path_result {
+    match path_result {
         PathResult::Path(path) => {
             *astar = None;
-            Some(path)
+            (Some(path), true)
         },
         PathResult::None(path) => {
             *astar = None;
-            Some(path)
+            (Some(path), false)
         },
         PathResult::Exhausted(path) => {
             *astar = None;
-            Some(path)
+            (Some(path), false)
         },
-        PathResult::Pending => None,
-    })
+        PathResult::Pending => (None, false),
+    }
 }

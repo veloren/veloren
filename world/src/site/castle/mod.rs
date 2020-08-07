@@ -1,3 +1,5 @@
+mod keep;
+
 use super::SpawnRules;
 use crate::{
     block::block_from_structure,
@@ -52,6 +54,11 @@ pub struct Castle {
     keeps: Vec<Keep>,
     rounded_towers: bool,
     ridged: bool,
+    flags: bool,
+
+    evil: bool,
+
+    keep: Option<keep::Keep>,
 }
 
 pub struct GenCtx<'a, R: Rng> {
@@ -70,7 +77,7 @@ impl Castle {
 
         let radius = 150;
 
-        let this = Self {
+        let mut this = Self {
             origin: wpos,
             alt: ctx
                 .sim
@@ -116,6 +123,8 @@ impl Castle {
                 .collect(),
             rounded_towers: ctx.rng.gen(),
             ridged: ctx.rng.gen(),
+            flags: ctx.rng.gen(),
+            evil: ctx.rng.gen(),
             keeps: (0..keep_count)
                 .map(|i| {
                     let angle = (i as f32 / keep_count as f32) * f32::consts::PI * 2.0;
@@ -141,6 +150,8 @@ impl Castle {
                     }
                 })
                 .collect(),
+
+            keep: None,
         };
 
         this
@@ -283,7 +294,16 @@ impl Castle {
                 let wall_alt = wall_alt + (wall_sample.alt as i32 - wall_alt - 10).max(0);
 
                 let keep_archetype = KeepArchetype {
-                    flag_color: Rgb::new(200, 80, 40),
+                    flag_color: if self.evil {
+                        Rgb::new(80, 10, 130)
+                    } else {
+                        Rgb::new(200, 80, 40)
+                    },
+                    stone_color: if self.evil {
+                        Rgb::new(65, 60, 55)
+                    } else {
+                        Rgb::new(100, 100, 110)
+                    },
                 };
 
                 for z in -10..64 {
@@ -307,6 +327,7 @@ impl Castle {
                         &Attr {
                             storeys: 2,
                             is_tower: false,
+                            flag: self.flags,
                             ridged: false,
                             rounded: true,
                             has_doors: false,
@@ -347,6 +368,7 @@ impl Castle {
                             &Attr {
                                 storeys: 3,
                                 is_tower: true,
+                                flag: self.flags,
                                 ridged: self.ridged,
                                 rounded: self.rounded_towers,
                                 has_doors: false,
@@ -387,6 +409,7 @@ impl Castle {
                             &Attr {
                                 storeys: keep.storeys,
                                 is_tower: keep.is_tower,
+                                flag: self.flags,
                                 ridged: self.ridged,
                                 rounded: self.rounded_towers,
                                 has_doors: true,
