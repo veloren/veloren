@@ -509,13 +509,18 @@ impl Server {
             .nanos as i64;
         let terrain_nanos = self.state.ecs().read_resource::<sys::TerrainTimer>().nanos as i64;
         let waypoint_nanos = self.state.ecs().read_resource::<sys::WaypointTimer>().nanos as i64;
-        let invite_timeout_nanos = self.state.ecs().read_resource::<sys::InviteTimeoutTimer>().nanos as i64;
+        let invite_timeout_nanos = self
+            .state
+            .ecs()
+            .read_resource::<sys::InviteTimeoutTimer>()
+            .nanos as i64;
         let stats_persistence_nanos = self
             .state
             .ecs()
             .read_resource::<sys::PersistenceTimer>()
             .nanos as i64;
-        let total_sys_ran_in_dispatcher_nanos = terrain_nanos + waypoint_nanos + invite_timeout_nanos;
+        let total_sys_ran_in_dispatcher_nanos =
+            terrain_nanos + waypoint_nanos + invite_timeout_nanos;
 
         // Report timing info
         self.tick_metrics
@@ -690,7 +695,7 @@ impl Server {
                             .create_entity_package(entity, None, None, None),
                         server_info: self.get_server_info(),
                         time_of_day: *self.state.ecs().read_resource(),
-                        max_group_size: self.settings().max_player_group_size, 
+                        max_group_size: self.settings().max_player_group_size,
                         world_map: (WORLD_SIZE.map(|e| e as u32), self.map.clone()),
                         recipe_book: (&*default_recipe_book()).clone(),
                     });

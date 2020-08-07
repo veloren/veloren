@@ -21,9 +21,9 @@ use common::{
         InventoryManip, InventoryUpdateEvent,
     },
     msg::{
-        validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, Notification,
-        PlayerInfo, PlayerListUpdate, RegisterError, RequestStateError, ServerInfo, ServerMsg,
-        MAX_BYTES_CHAT_MSG, InviteAnswer,
+        validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, InviteAnswer,
+        Notification, PlayerInfo, PlayerListUpdate, RegisterError, RequestStateError, ServerInfo,
+        ServerMsg, MAX_BYTES_CHAT_MSG,
     },
     recipe::RecipeBook,
     state::State,
@@ -135,48 +135,49 @@ impl Client {
         let mut stream = block_on(participant.open(10, PROMISES_ORDERED | PROMISES_CONSISTENCY))?;
 
         // Wait for initial sync
-        let (state, entity, server_info, world_map, recipe_book, max_group_size) = block_on(async {
-            loop {
-                match stream.recv().await? {
-                    ServerMsg::InitialSync {
-                        entity_package,
-                        server_info,
-                        time_of_day,
-                        max_group_size,
-                        world_map: (map_size, world_map),
-                        recipe_book,
-                    } => {
-                        // TODO: Display that versions don't match in Voxygen
-                        if &server_info.git_hash != *common::util::GIT_HASH {
-                            warn!(
-                                "Server is running {}[{}], you are running {}[{}], versions might \
-                                 be incompatible!",
-                                server_info.git_hash,
-                                server_info.git_date,
-                                common::util::GIT_HASH.to_string(),
-                                common::util::GIT_DATE.to_string(),
-                            );
-                        }
+        let (state, entity, server_info, world_map, recipe_book, max_group_size) = block_on(
+            async {
+                loop {
+                    match stream.recv().await? {
+                        ServerMsg::InitialSync {
+                            entity_package,
+                            server_info,
+                            time_of_day,
+                            max_group_size,
+                            world_map: (map_size, world_map),
+                            recipe_book,
+                        } => {
+                            // TODO: Display that versions don't match in Voxygen
+                            if &server_info.git_hash != *common::util::GIT_HASH {
+                                warn!(
+                                    "Server is running {}[{}], you are running {}[{}], versions \
+                                     might be incompatible!",
+                                    server_info.git_hash,
+                                    server_info.git_date,
+                                    common::util::GIT_HASH.to_string(),
+                                    common::util::GIT_DATE.to_string(),
+                                );
+                            }
 
-                        debug!("Auth Server: {:?}", server_info.auth_provider);
+                            debug!("Auth Server: {:?}", server_info.auth_provider);
 
-                        // Initialize `State`
-                        let mut state = State::default();
-                        // Client-only components
-                        state
-                            .ecs_mut()
-                            .register::<comp::Last<comp::CharacterState>>();
+                            // Initialize `State`
+                            let mut state = State::default();
+                            // Client-only components
+                            state
+                                .ecs_mut()
+                                .register::<comp::Last<comp::CharacterState>>();
 
-                        let entity = state.ecs_mut().apply_entity_package(entity_package);
-                        *state.ecs_mut().write_resource() = time_of_day;
+                            let entity = state.ecs_mut().apply_entity_package(entity_package);
+                            *state.ecs_mut().write_resource() = time_of_day;
 
-                        assert_eq!(world_map.len(), (map_size.x * map_size.y) as usize);
-                        let mut world_map_raw =
-                            vec![0u8; 4 * world_map.len()/*map_size.x * map_size.y*/];
-                        LittleEndian::write_u32_into(&world_map, &mut world_map_raw);
-                        debug!("Preparing image...");
-                        let world_map = Arc::new(
-                            image::DynamicImage::ImageRgba8({
+                            assert_eq!(world_map.len(), (map_size.x * map_size.y) as usize);
+                            let mut world_map_raw =
+                                vec![0u8; 4 * world_map.len()/*map_size.x * map_size.y*/];
+                            LittleEndian::write_u32_into(&world_map, &mut world_map_raw);
+                            debug!("Preparing image...");
+                            let world_map = Arc::new(
+                                image::DynamicImage::ImageRgba8({
                                 // Should not fail if the dimensions are correct.
                                 let world_map =
                                     image::ImageBuffer::from_raw(map_size.x, map_size.y, world_map_raw);
@@ -185,25 +186,26 @@ impl Client {
                                 // Flip the image, since Voxygen uses an orientation where rotation from
                                 // positive x axis to positive y axis is counterclockwise around the z axis.
                                 .flipv(),
-                        );
-                        debug!("Done preparing image...");
+                            );
+                            debug!("Done preparing image...");
 
-                        break Ok((
-                            state,
-                            entity,
-                            server_info,
-                            (world_map, map_size),
-                            recipe_book,
-                            max_group_size,
-                        ));
-                    },
-                    ServerMsg::TooManyPlayers => break Err(Error::TooManyPlayers),
-                    err => {
-                        warn!("whoops, server mad {:?}, ignoring", err);
-                    },
+                            break Ok((
+                                state,
+                                entity,
+                                server_info,
+                                (world_map, map_size),
+                                recipe_book,
+                                max_group_size,
+                            ));
+                        },
+                        ServerMsg::TooManyPlayers => break Err(Error::TooManyPlayers),
+                        err => {
+                            warn!("whoops, server mad {:?}, ignoring", err);
+                        },
+                    }
                 }
-            }
-        })?;
+            },
+        )?;
 
         stream.send(ClientMsg::Ping)?;
 
@@ -443,7 +445,9 @@ impl Client {
 
     pub fn max_group_size(&self) -> u32 { self.max_group_size }
 
-    pub fn group_invite(&self) -> Option<(Uid, std::time::Instant, std::time::Duration)> { self.group_invite }
+    pub fn group_invite(&self) -> Option<(Uid, std::time::Instant, std::time::Duration)> {
+        self.group_invite
+    }
 
     pub fn group_info(&self) -> Option<(String, Uid)> {
         self.group_leader.map(|l| ("Group".into(), l)) // TODO
@@ -772,7 +776,10 @@ impl Client {
 
         // 3) Update client local data
         // Check if the group invite has timed out and remove if so
-        if self.group_invite.map_or(false, |(_, timeout, dur)| timeout.elapsed() > dur) {
+        if self
+            .group_invite
+            .map_or(false, |(_, timeout, dur)| timeout.elapsed() > dur)
+        {
             self.group_invite = None;
         }
 
@@ -1028,11 +1035,14 @@ impl Client {
                         Added(uid, role) => {
                             // Check if this is a newly formed group by looking for absence of
                             // other non pet group members
-                            if !matches!(role, group::Role::Pet) 
-                                && !self.group_members.values().any(|r| !matches!(r, group::Role::Pet))
+                            if !matches!(role, group::Role::Pet)
+                                && !self
+                                    .group_members
+                                    .values()
+                                    .any(|r| !matches!(r, group::Role::Pet))
                             {
                                 frontend_events.push(Event::Chat(comp::ChatType::Meta.chat_msg(
-                                    "Type /g or /group to chat with your group members"
+                                    "Type /g or /group to chat with your group members",
                                 )));
                             }
                             if self.group_members.insert(uid, role) == Some(role) {
@@ -1079,21 +1089,24 @@ impl Client {
                     if !self.pending_invites.insert(uid) {
                         warn!("Received message about pending invite that was already pending");
                     }
-                }
+                },
                 ServerMsg::InviteComplete { target, answer } => {
                     if !self.pending_invites.remove(&target) {
-                        warn!("Received completed invite message for invite that was not in the list of pending invites")
+                        warn!(
+                            "Received completed invite message for invite that was not in the \
+                             list of pending invites"
+                        )
                     }
                     // TODO: expose this as a new event variant instead of going
                     // through the chat
                     let msg = match answer {
                         // TODO: say who accepted/declined/timed out the invite
                         InviteAnswer::Accepted => "Invite accepted",
-                        InviteAnswer::Declined => "Invite declined", 
-                        InviteAnswer::TimedOut => "Invite timed out", 
+                        InviteAnswer::Declined => "Invite declined",
+                        InviteAnswer::TimedOut => "Invite timed out",
                     };
                     frontend_events.push(Event::Chat(comp::ChatType::Meta.chat_msg(msg)));
-                }
+                },
                 ServerMsg::Ping => {
                     self.singleton_stream.send(ClientMsg::Pong)?;
                 },

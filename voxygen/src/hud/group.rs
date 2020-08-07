@@ -118,13 +118,13 @@ impl<'a> Widget for Group<'a> {
         }
     }
 
-    #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
-    fn style(&self) -> Self::Style { () }
+    fn style(&self) -> Self::Style {}
 
     //TODO: Disband groups when there's only one member in them
     //TODO: Always send health, energy, level and position of group members to the
     // client
     #[allow(clippy::unused_unit)] // TODO: Pending review in #587
+    #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
 
@@ -326,11 +326,11 @@ impl<'a> Widget for Group<'a> {
                         21..=40 => LOW_HP_COLOR,
                         _ => HP_COLOR,
                     };
-                    let lead = if uid == leader { true } else { false };
+                    let is_leader = uid == leader;
                     // Don't show panel for the player!
                     // Panel BG
                     back.w_h(152.0, 36.0)
-                        .color(if lead {
+                        .color(if is_leader {
                             Some(ERROR_COLOR)
                         } else {
                             Some(TEXT_COLOR)
@@ -396,7 +396,7 @@ impl<'a> Widget for Group<'a> {
                         .bottom_left_with_margins_on(state.ids.member_panels_txt_bg[i], 2.0, 2.0)
                         .font_size(20)
                         .font_id(self.fonts.cyri.conrod_id)
-                        .color(if lead { ERROR_COLOR } else { GROUP_COLOR })
+                        .color(if is_leader { ERROR_COLOR } else { GROUP_COLOR })
                         .w(300.0) // limit name length display
                         .set(state.ids.member_panels_txt[i], ui);
                     if let Some(energy) = energy {

@@ -1164,14 +1164,14 @@ impl<'a> Widget for Skillbar<'a> {
         };
         Image::new(self.imgs.bar_content)
             .w_h(97.0 * scale * hp_percentage / 100.0, 16.0 * scale)
-            .color(Some(health_col))            
+            .color(Some(health_col))
             .top_right_with_margins_on(state.ids.healthbar_bg, 2.0 * scale, 1.0 * scale)
             .set(state.ids.healthbar_filling, ui);
         // Energybar
         Image::new(self.imgs.energybar_bg)
             .w_h(100.0 * scale, 20.0 * scale)
             .top_right_with_margins_on(state.ids.m2_slot, 0.0, -100.0 * scale)
-            .set(state.ids.energybar_bg, ui);        
+            .set(state.ids.energybar_bg, ui);
         Image::new(self.imgs.bar_content)
             .w_h(97.0 * scale * energy_percentage / 100.0, 16.0 * scale)
             .top_left_with_margins_on(state.ids.energybar_bg, 2.0 * scale, 1.0 * scale)
@@ -1186,7 +1186,8 @@ impl<'a> Widget for Skillbar<'a> {
         if let BarNumbers::Values = bar_values {
             let mut hp_text = format!(
                 "{}/{}",
-                (self.stats.health.current() / 10).max(1) as u32, // Don't show 0 health for living players
+                (self.stats.health.current() / 10).max(1) as u32, /* Don't show 0 health for
+                                                                   * living players */
                 (self.stats.health.maximum() / 10) as u32
             );
             let mut energy_text = format!(
@@ -1194,7 +1195,7 @@ impl<'a> Widget for Skillbar<'a> {
                 self.energy.current() as u32 / 10, /* TODO Fix regeneration with smaller energy
                                                     * numbers instead of dividing by 10 here */
                 self.energy.maximum() as u32 / 10
-            );           
+            );
             if self.stats.is_dead {
                 hp_text = self.localized_strings.get("hud.group.dead").to_string();
                 energy_text = self.localized_strings.get("hud.group.dead").to_string();
@@ -1210,7 +1211,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .font_size(self.fonts.cyri.scale(14))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
-                .set(state.ids.health_text, ui);            
+                .set(state.ids.health_text, ui);
             Text::new(&energy_text)
                 .mid_top_with_margin_on(state.ids.energybar_bg, 6.0 * scale)
                 .font_size(self.fonts.cyri.scale(14))
