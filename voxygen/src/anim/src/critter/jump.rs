@@ -21,6 +21,8 @@ impl Animation for JumpAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
+        let wave = (_anim_time as f32 * 1.0).sin();
+
         next.head.offset = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
         next.head.ori = Quaternion::rotation_z(0.8) * Quaternion::rotation_x(0.5);
         next.head.scale = Vec3::one();
@@ -30,11 +32,11 @@ impl Animation for JumpAnimation {
         next.chest.scale = Vec3::one() / 18.0;
 
         next.feet_f.offset = Vec3::new(0.0, skeleton_attr.feet_f.0, skeleton_attr.feet_f.1);
-        next.feet_f.ori = Quaternion::rotation_z(0.0);
+        next.feet_f.ori = Quaternion::rotation_x(wave * 0.4);
         next.feet_f.scale = Vec3::one();
 
         next.feet_b.offset = Vec3::new(0.0, skeleton_attr.feet_b.0, skeleton_attr.feet_b.1);
-        next.feet_b.ori = Quaternion::rotation_x(0.0);
+        next.feet_b.ori = Quaternion::rotation_x(wave * 0.4);
         next.feet_b.scale = Vec3::one();
 
         next.tail.offset = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1);
