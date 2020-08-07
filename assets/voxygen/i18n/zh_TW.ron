@@ -377,5 +377,9 @@ Veloren 半夜會特別暗。
         "esc_menu.logout": "登出",
         "esc_menu.quit_game": "退出遊戲",
         /// End Escape Menu Section
-    }
+    },
+
+    vector_map: {
+
+    },
 )
