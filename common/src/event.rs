@@ -25,6 +25,7 @@ pub enum ServerEvent {
         pos: Vec3<f32>,
         power: f32,
         owner: Option<Uid>,
+        friendly_damage: bool,
     },
     Damage {
         uid: Uid,

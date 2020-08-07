@@ -70,6 +70,7 @@ impl<'a> System<'a> for Sys {
                                 pos: pos.0,
                                 power,
                                 owner: projectile.owner,
+                                friendly_damage: false,
                             })
                         },
                         projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
@@ -131,6 +132,7 @@ impl<'a> System<'a> for Sys {
                                 pos: pos.0,
                                 power,
                                 owner: projectile.owner,
+                                friendly_damage: false,
                             })
                         },
                         projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
