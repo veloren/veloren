@@ -125,7 +125,7 @@ impl Animation for SwimAnimation {
         next.l_hand.offset = Vec3::new(
             -1.0 - skeleton_attr.hand.0,
             1.5 + skeleton_attr.hand.1 - foot * 2.0 * intensity,
-            5.0 + skeleton_attr.hand.2 + foot * -5.0 * intensity,
+            intensity * 5.0 + skeleton_attr.hand.2 + foot * -5.0 * intensity,
         );
         next.l_hand.ori = Quaternion::rotation_x(1.5 + foot * -1.2 * intensity)
             * Quaternion::rotation_y(0.4 + foot * -0.35);
@@ -134,7 +134,7 @@ impl Animation for SwimAnimation {
         next.r_hand.offset = Vec3::new(
             1.0 + skeleton_attr.hand.0,
             1.5 + skeleton_attr.hand.1 + foot * 2.0 * intensity,
-            5.0 + skeleton_attr.hand.2 + foot * 5.0 * intensity,
+            intensity * 5.0 + skeleton_attr.hand.2 + foot * 5.0 * intensity,
         );
         next.r_hand.ori = Quaternion::rotation_x(1.5 + foot * 1.2 * intensity)
             * Quaternion::rotation_y(-0.4 + foot * -0.35);
