@@ -529,6 +529,10 @@
             "troll": {
                 "keyword": "troll",
                 "generic": "Troll"
+            },
+            "dullahan": {
+                "keyword": "dullahan",
+                "generic": "Dullahan"
             }
         }
     },
