@@ -2,18 +2,25 @@ use crate::{client::Client, Server};
 use common::{
     comp::{
         self,
-        group::{self, GroupManager},
+        group::{self, Group, GroupManager, Invite, PendingInvites},
         ChatType, GroupManip,
     },
-    msg::ServerMsg,
+    msg::{InviteAnswer, ServerMsg},
     sync,
     sync::WorldSyncExt,
 };
 use specs::world::WorldExt;
-use tracing::warn;
+use std::time::{Duration, Instant};
+use tracing::{error, warn};
+
+/// Time before invite times out
+const INVITE_TIMEOUT_DUR: Duration = Duration::from_secs(31);
+/// Reduced duration shown to the client to help alleviate latency issues
+const PRESENTED_INVITE_TIMEOUT_DUR: Duration = Duration::from_secs(30);
 
 // TODO: turn chat messages into enums
 pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupManip) {
+    let max_group_size = server.settings().max_player_group_size;
     let state = server.state_mut();
 
     match manip {
@@ -44,38 +51,62 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                 return;
             }
 
-            let alignments = state.ecs().read_storage::<comp::Alignment>();
-            let agents = state.ecs().read_storage::<comp::Agent>();
-            let mut already_has_invite = false;
-            let mut add_to_group = false;
-            // If client comp
-            if let (Some(client), Some(inviter_uid)) = (clients.get_mut(invitee), uids.get(entity))
-            {
-                if client.invited_to_group.is_some() {
-                    already_has_invite = true;
-                } else {
-                    client.notify(ServerMsg::GroupInvite(*inviter_uid));
-                    client.invited_to_group = Some(entity);
+            // Disallow inviting entity that is already in your group
+            let groups = state.ecs().read_storage::<Group>();
+            let group_manager = state.ecs().read_resource::<GroupManager>();
+            if groups.get(entity).map_or(false, |group| {
+                group_manager
+                    .group_info(*group)
+                    .map_or(false, |g| g.leader == entity)
+                    && groups.get(invitee) == Some(group)
+            }) {
+                // Inform of failure
+                if let Some(client) = clients.get_mut(entity) {
+                    client.notify(ChatType::Meta.server_msg(
+                        "Invite failed, can't invite someone already in your group".to_owned(),
+                    ));
                 }
-            // Would be cool to do this in agent system (e.g. add an invited
-            // component to replace the field on Client)
-            // TODO: move invites to component and make them time out
-            } else if matches!(
-                (alignments.get(invitee), agents.get(invitee)),
-                (Some(comp::Alignment::Npc), Some(_))
-            ) {
-                add_to_group = true;
-                // Wipe agent state
-                drop(agents);
-                let _ = state
-                    .ecs()
-                    .write_storage()
-                    .insert(invitee, comp::Agent::default());
-            } else if let Some(client) = clients.get_mut(entity) {
-                client.notify(ChatType::Meta.server_msg("Invite rejected.".to_owned()));
+                return;
             }
 
-            if already_has_invite {
+            let mut pending_invites = state.ecs().write_storage::<PendingInvites>();
+
+            // Check if group max size is already reached
+            // Adding the current number of pending invites
+            if state
+                .ecs()
+                .read_storage()
+                .get(entity)
+                .copied()
+                .and_then(|group| {
+                    // If entity is currently the leader of a full group then they can't invite
+                    // anyone else
+                    group_manager
+                        .group_info(group)
+                        .filter(|i| i.leader == entity)
+                        .map(|i| i.num_members)
+                })
+                .unwrap_or(1) as usize
+                + pending_invites.get(entity).map_or(0, |p| p.0.len())
+                >= max_group_size as usize
+            {
+                // Inform inviter that they have reached the group size limit
+                if let Some(client) = clients.get_mut(entity) {
+                    client.notify(
+                        ChatType::Meta.server_msg(
+                            "Invite failed, pending invites plus current group size have reached \
+                             the group size limit"
+                                .to_owned(),
+                        ),
+                    );
+                }
+                return;
+            }
+
+            let agents = state.ecs().read_storage::<comp::Agent>();
+            let mut invites = state.ecs().write_storage::<Invite>();
+
+            if invites.contains(invitee) {
                 // Inform inviter that there is already an invite
                 if let Some(client) = clients.get_mut(entity) {
                     client.notify(
@@ -83,37 +114,94 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                             .server_msg("This player already has a pending invite.".to_owned()),
                     );
                 }
+                return;
             }
 
-            if add_to_group {
-                let mut group_manager = state.ecs().write_resource::<GroupManager>();
-                group_manager.add_group_member(
-                    entity,
-                    invitee,
-                    &state.ecs().entities(),
-                    &mut state.ecs().write_storage(),
-                    &alignments,
-                    &uids,
-                    |entity, group_change| {
-                        clients
-                            .get_mut(entity)
-                            .and_then(|c| {
-                                group_change
-                                    .try_map(|e| uids.get(e).copied())
-                                    .map(|g| (g, c))
-                            })
-                            .map(|(g, c)| c.notify(ServerMsg::GroupUpdate(g)));
+            let mut invite_sent = false;
+            // Returns true if insertion was succesful
+            let mut send_invite = || {
+                match invites.insert(invitee, group::Invite(entity)) {
+                    Err(err) => {
+                        error!("Failed to insert Invite component: {:?}", err);
+                        false
                     },
-                );
+                    Ok(_) => {
+                        match pending_invites.entry(entity) {
+                            Ok(entry) => {
+                                entry
+                                    .or_insert_with(|| PendingInvites(Vec::new()))
+                                    .0
+                                    .push((invitee, Instant::now() + INVITE_TIMEOUT_DUR));
+                                invite_sent = true;
+                                true
+                            },
+                            Err(err) => {
+                                error!(
+                                    "Failed to get entry for pending invites component: {:?}",
+                                    err
+                                );
+                                // Cleanup
+                                invites.remove(invitee);
+                                false
+                            },
+                        }
+                    },
+                }
+            };
+
+            // If client comp
+            if let (Some(client), Some(inviter)) =
+                (clients.get_mut(invitee), uids.get(entity).copied())
+            {
+                if send_invite() {
+                    client.notify(ServerMsg::GroupInvite {
+                        inviter,
+                        timeout: PRESENTED_INVITE_TIMEOUT_DUR,
+                    });
+                }
+            } else if agents.contains(invitee) {
+                send_invite();
+            } else {
+                if let Some(client) = clients.get_mut(entity) {
+                    client.notify(
+                        ChatType::Meta.server_msg("Can't invite, not a player or npc".to_owned()),
+                    );
+                }
+            }
+
+            // Notify inviter that the invite is pending
+            if invite_sent {
+                if let Some(client) = clients.get_mut(entity) {
+                    client.notify(ServerMsg::InvitePending(uid));
+                }
             }
         },
         GroupManip::Accept => {
             let mut clients = state.ecs().write_storage::<Client>();
             let uids = state.ecs().read_storage::<sync::Uid>();
-            if let Some(inviter) = clients
-                .get_mut(entity)
-                .and_then(|c| c.invited_to_group.take())
-            {
+            let mut invites = state.ecs().write_storage::<Invite>();
+            if let Some(inviter) = invites.remove(entity).and_then(|invite| {
+                let inviter = invite.0;
+                let mut pending_invites = state.ecs().write_storage::<PendingInvites>();
+                let pending = &mut pending_invites.get_mut(inviter)?.0;
+                // Check that inviter has a pending invite and remove it from the list
+                let invite_index = pending.iter().position(|p| p.0 == entity)?;
+                pending.swap_remove(invite_index);
+                // If no pending invites remain remove the component
+                if pending.is_empty() {
+                    pending_invites.remove(inviter);
+                }
+
+                Some(inviter)
+            }) {
+                if let (Some(client), Some(target)) =
+                    (clients.get_mut(inviter), uids.get(entity).copied())
+                {
+                    client.notify(ServerMsg::InviteComplete {
+                        target,
+                        answer: InviteAnswer::Accepted,
+                    })
+                }
                 let mut group_manager = state.ecs().write_resource::<GroupManager>();
                 group_manager.add_group_member(
                     inviter,
@@ -137,14 +225,30 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
         },
         GroupManip::Decline => {
             let mut clients = state.ecs().write_storage::<Client>();
-            if let Some(inviter) = clients
-                .get_mut(entity)
-                .and_then(|c| c.invited_to_group.take())
-            {
+            let uids = state.ecs().read_storage::<sync::Uid>();
+            let mut invites = state.ecs().write_storage::<Invite>();
+            if let Some(inviter) = invites.remove(entity).and_then(|invite| {
+                let inviter = invite.0;
+                let mut pending_invites = state.ecs().write_storage::<PendingInvites>();
+                let pending = &mut pending_invites.get_mut(inviter)?.0;
+                // Check that inviter has a pending invite and remove it from the list
+                let invite_index = pending.iter().position(|p| p.0 == entity)?;
+                pending.swap_remove(invite_index);
+                // If no pending invites remain remove the component
+                if pending.is_empty() {
+                    pending_invites.remove(inviter);
+                }
+
+                Some(inviter)
+            }) {
                 // Inform inviter of rejection
-                if let Some(client) = clients.get_mut(inviter) {
-                    // TODO: say who declined the invite
-                    client.notify(ChatType::Meta.server_msg("Invite declined.".to_owned()));
+                if let (Some(client), Some(target)) =
+                    (clients.get_mut(inviter), uids.get(entity).copied())
+                {
+                    client.notify(ServerMsg::InviteComplete {
+                        target,
+                        answer: InviteAnswer::Declined,
+                    })
                 }
             }
         },

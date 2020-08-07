@@ -182,23 +182,22 @@ impl<'a> Widget for Group<'a> {
                 .crop_kids()
                 .set(state.ids.bg, ui);
         }
-        if open_invite.is_some() {
+        if let Some((_, timeout_start, timeout_dur)) = open_invite {
             // Group Menu button
             Button::image(self.imgs.group_icon)
                 .w_h(49.0, 26.0)
                 .bottom_left_with_margins_on(ui.window, 10.0, 490.0)
                 .set(state.ids.group_button, ui);
             // Show timeout bar
-            let max_time = 90.0;
-            let time = 50.0;
-            let progress_perc = time / max_time;
+            let timeout_progress =
+                1.0 - timeout_start.elapsed().as_secs_f32() / timeout_dur.as_secs_f32();
             Image::new(self.imgs.progress_frame)
                 .w_h(100.0, 10.0)
                 .middle_of(state.ids.bg)
                 .color(Some(UI_MAIN))
                 .set(state.ids.timeout_bg, ui);
             Image::new(self.imgs.progress)
-                .w_h(98.0 * progress_perc, 8.0)
+                .w_h(98.0 * timeout_progress as f64, 8.0)
                 .top_left_with_margins_on(state.ids.timeout_bg, 1.0, 1.0)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.timeout, ui);
@@ -613,7 +612,7 @@ impl<'a> Widget for Group<'a> {
                 // into the maximum group size.
             }
         }
-        if let Some(invite_uid) = open_invite {
+        if let Some((invite_uid, _, _)) = open_invite {
             self.show.group = true; // Auto open group menu
             // TODO: add group name here too
             // Invite text
