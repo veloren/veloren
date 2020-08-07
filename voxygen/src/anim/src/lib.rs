@@ -107,7 +107,7 @@ pub fn compute_matrices<S: Skeleton>(
 
         let compute_fn: libloading::Symbol<
             fn(&S, Mat4<f32>, &mut [FigureBoneData; MAX_BONE_COUNT]) -> Vec3<f32>,
-        > = unsafe { lib.get(Self::COMPUTE_FN) }.unwrap_or_else(|e| {
+        > = unsafe { lib.get(S::COMPUTE_FN) }.unwrap_or_else(|e| {
             panic!(
                 "Trying to use: {} but had error: {:?}",
                 CStr::from_bytes_with_nul(S::COMPUTE_FN)

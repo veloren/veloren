@@ -416,7 +416,6 @@ impl FigureMgr {
         visible_psr_bounds: math::Aabr<f32>,
         camera: &Camera,
     ) -> anim::vek::Aabb<f32> {
-        let visible_psr_bounds = math::Aabr::from(visible_psr_bounds);
         let state = scene_data.state;
         let time = state.get_time();
         let tick = scene_data.tick;
