@@ -13,7 +13,7 @@ use common::{
         item::{
             armor::{Armor, ArmorKind},
             tool::{Tool, ToolKind},
-            ItemKind, Lantern, LanternKind,
+            ItemKind, Lantern,
         },
         object,
         quadruped_low::{BodyType as QLBodyType, Species as QLSpecies},
@@ -268,7 +268,7 @@ pub struct HumArmorFootSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
 pub struct HumMainWeaponSpec(HashMap<ToolKind, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
-pub struct HumArmorLanternSpec(ArmorVoxSpecMap<LanternKind, ArmorVoxSpec>);
+pub struct HumArmorLanternSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
 pub struct HumArmorHeadSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Serialize, Deserialize)]
@@ -841,7 +841,7 @@ impl HumArmorLanternSpec {
         let spec = if let Some(ItemKind::Lantern(Lantern { kind, .. })) =
             loadout.lantern.as_ref().map(|i| &i.kind)
         {
-            match self.0.map.get(&kind) {
+            match self.0.map.get(kind) {
                 Some(spec) => spec,
                 None => {
                     error!(?kind, "No lantern specification exists");

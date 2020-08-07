@@ -2,7 +2,7 @@ Item(
     name: "Apple",
     description: "Restores 20 Health\n\nRed and juicy\n\n<Right-Click to use>",
     kind: Consumable(
-        kind: Apple,
+        kind: "Apple",
         effect: Health((
             amount: 200,
             cause: Item,

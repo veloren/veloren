@@ -77,31 +77,31 @@
             ],
             threshold: 0.3,
         ),
-        Inventory(Consumed(Potion)): (
+        Inventory(Consumed("Potion")): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.liquid",
             ],
             threshold: 0.3,
         ),
-        Inventory(Consumed(PotionMinor)): (
+        Inventory(Consumed("PotionMinor")): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.liquid",
             ],
             threshold: 0.3,
         ),
-        Inventory(Consumed(Apple)): (
+        Inventory(Consumed("Apple")): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.apple",
             ],
             threshold: 0.3,
         ),
-        Inventory(Consumed(Mushroom)): (
+        Inventory(Consumed("Mushroom")): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
             threshold: 0.3,
         ),
-        Inventory(Consumed(Cheese)): (
+        Inventory(Consumed("Cheese")): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],

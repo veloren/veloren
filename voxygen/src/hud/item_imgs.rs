@@ -4,7 +4,7 @@ use common::{
     comp::item::{
         armor::{Armor, ArmorKind},
         tool::{Tool, ToolKind},
-        Consumable, Ingredient, Item, ItemKind, Lantern, LanternKind, Throwable, Utility,
+        Item, ItemKind, Lantern, Throwable, Utility,
     },
     figure::Segment,
 };
@@ -20,24 +20,24 @@ use vek::*;
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ItemKey {
     Tool(ToolKind),
-    Lantern(LanternKind),
+    Lantern(String),
     Armor(ArmorKind),
     Utility(Utility),
-    Consumable(Consumable),
+    Consumable(String),
     Throwable(Throwable),
-    Ingredient(Ingredient),
+    Ingredient(String),
     Empty,
 }
 impl From<&Item> for ItemKey {
     fn from(item: &Item) -> Self {
         match &item.kind {
             ItemKind::Tool(Tool { kind, .. }) => ItemKey::Tool(kind.clone()),
-            ItemKind::Lantern(Lantern { kind, .. }) => ItemKey::Lantern(*kind),
+            ItemKind::Lantern(Lantern { kind, .. }) => ItemKey::Lantern(kind.clone()),
             ItemKind::Armor(Armor { kind, .. }) => ItemKey::Armor(kind.clone()),
             ItemKind::Utility { kind, .. } => ItemKey::Utility(*kind),
-            ItemKind::Consumable { kind, .. } => ItemKey::Consumable(*kind),
+            ItemKind::Consumable { kind, .. } => ItemKey::Consumable(kind.clone()),
             ItemKind::Throwable { kind, .. } => ItemKey::Throwable(*kind),
-            ItemKind::Ingredient { kind, .. } => ItemKey::Ingredient(*kind),
+            ItemKind::Ingredient { kind, .. } => ItemKey::Ingredient(kind.clone()),
         }
     }
 }

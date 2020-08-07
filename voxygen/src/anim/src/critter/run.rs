@@ -22,8 +22,8 @@ impl Animation for RunAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let wave = (anim_time as f32 * 13.0).sin();
-        let wave_cos = (anim_time as f32 * 13.0).sin();
+        let wave = (anim_time as f32 * 8.0).sin();
+        let wavealt = (anim_time as f32 * 8.0 + PI / 2.0).sin();
         let wave_slow = (anim_time as f32 * 6.5 + PI).sin();
 
         next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
@@ -36,15 +36,17 @@ impl Animation for RunAnimation {
             skeleton_attr.chest.0 + wave * 1.0,
             skeleton_attr.chest.1,
         ) / 18.0;
-        next.chest.orientation = Quaternion::rotation_y(0.0);
+        next.chest.orientation = Quaternion::rotation_x(wave * 0.1);
         next.chest.scale = Vec3::one() / 18.0;
 
         next.feet_f.position = Vec3::new(0.0, skeleton_attr.feet_f.0, skeleton_attr.feet_f.1);
-        next.feet_f.orientation = Quaternion::rotation_x(wave * 1.0);
+        next.feet_f.orientation =
+            Quaternion::rotation_x(wave * 0.8) * Quaternion::rotation_z(wavealt / 6.0);
         next.feet_f.scale = Vec3::one();
 
         next.feet_b.position = Vec3::new(0.0, skeleton_attr.feet_b.0, skeleton_attr.feet_b.1);
-        next.feet_b.orientation = Quaternion::rotation_x(wave_cos * 1.0);
+        next.feet_b.orientation =
+            Quaternion::rotation_x(wavealt * 0.8) * Quaternion::rotation_z(wavealt / 6.0);
         next.feet_b.scale = Vec3::one();
 
         next.tail.position =

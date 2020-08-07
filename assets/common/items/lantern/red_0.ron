@@ -3,7 +3,7 @@ Item(
     description: "Caution: contents hot",
     kind: Lantern(
         (
-            kind: Red0,
+            kind: "Red0",
             color: (r: 255, g: 127, b: 51),
             strength_thousandths: 3500,
             flicker_thousandths: 1000,
