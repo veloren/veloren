@@ -388,5 +388,9 @@ Siła woli
         "esc_menu.quit_game": "Opuść gre",
         /// End Escape Menu Section
         /// Koniec sekcji Menu pauzy
-    }
+    },
+
+    vector_map: {
+
+    },
 )
