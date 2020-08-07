@@ -52,17 +52,16 @@ impl TooltipManager {
 
         if let Some(um_id) = current.widget_under_mouse {
             match self.state {
-                HoverState::Hovering(hover) if um_id == hover.0 || um_id == self.tooltip_id => (),
+                HoverState::Hovering(hover) if um_id == hover.0 => (),
                 HoverState::Hovering(hover) => {
                     self.state =
                         HoverState::Fading(Instant::now(), hover, Some((Instant::now(), um_id)))
                 },
-                HoverState::Fading(_, _, Some((_, id)))
-                    if um_id == id || um_id == self.tooltip_id => {},
+                HoverState::Fading(_, _, Some((_, id))) if um_id == id => {},
                 HoverState::Fading(start, hover, _) => {
                     self.state = HoverState::Fading(start, hover, Some((Instant::now(), um_id)))
                 },
-                HoverState::Start(_, id) if um_id == id || um_id == self.tooltip_id => (),
+                HoverState::Start(_, id) if um_id == id => (),
                 HoverState::Start(_, _) | HoverState::None => {
                     self.state = HoverState::Start(Instant::now(), um_id)
                 },
@@ -100,8 +99,6 @@ impl TooltipManager {
         img_id: Option<image::Id>,
         image_dims: Option<(f64, f64)>,
         src_id: widget::Id,
-        bottom_offset: f64,
-        x_offset: f64,
         ui: &mut UiCell,
     ) {
         let tooltip_id = self.tooltip_id;
@@ -122,9 +119,17 @@ impl TooltipManager {
             let (w_w, w_h) = (ui.win_w, ui.win_h);
 
             // Determine position based on size and mouse position
-            // Flow to the bottom right of the mouse
-            let x = (m_x + t_w / 2.0).min(w_w / 2.0 - t_w / 2.0 + x_offset);
-            let y = (m_y - mp_h - t_h / 2.0).max(-w_h / 2.0 + t_h / 2.0 + bottom_offset);
+            // Flow to the top left of the mouse when there is space
+            let x = if (m_x + w_w / 2.0) > t_w {
+                m_x - t_w / 2.0
+            } else {
+                m_x + t_w / 2.0
+            };
+            let y = if w_h - (m_y + w_h / 2.0) > t_h + mp_h {
+                m_y + mp_h + t_h / 2.0
+            } else {
+                m_y - mp_h - t_h / 2.0
+            };
             tooltip
                 .floating(true)
                 .transparency(transparency)
@@ -157,9 +162,6 @@ pub struct Tooltipped<'a, W> {
     desc_text: &'a str,
     img_id: Option<image::Id>,
     image_dims: Option<(f64, f64)>,
-    // Offsets limit of bottom of tooltip
-    bottom_offset: Option<f64>,
-    x_offset: Option<f64>,
     tooltip: &'a Tooltip<'a>,
 }
 impl<'a, W: Widget> Tooltipped<'a, W> {
@@ -173,16 +175,6 @@ impl<'a, W: Widget> Tooltipped<'a, W> {
         self
     }
 
-    pub fn x_offset(mut self, off: f64) -> Self {
-        self.x_offset = Some(off);
-        self
-    }
-
-    pub fn bottom_offset(mut self, off: f64) -> Self {
-        self.bottom_offset = Some(off);
-        self
-    }
-
     pub fn set(self, id: widget::Id, ui: &mut UiCell) -> W::Event {
         let event = self.inner.set(id, ui);
         self.tooltip_manager.set_tooltip(
@@ -192,8 +184,6 @@ impl<'a, W: Widget> Tooltipped<'a, W> {
             self.img_id,
             self.image_dims,
             id,
-            self.bottom_offset.unwrap_or(0.0),
-            self.x_offset.unwrap_or(0.0),
             ui,
         );
         event
@@ -227,8 +217,6 @@ impl<W: Widget> Tooltipable for W {
             desc_text,
             img_id: None,
             image_dims: None,
-            bottom_offset: None,
-            x_offset: None,
             tooltip,
         }
     }

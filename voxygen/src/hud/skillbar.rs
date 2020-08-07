@@ -806,14 +806,12 @@ impl<'a> Widget for Skillbar<'a> {
                 })
         };
 
-        const SLOT_TOOLTIP_UPSHIFT: f64 = 70.0;
         //Slot 5
         let slot = slot_maker
             .fabricate(hotbar::Slot::Five, [20.0 * scale as f32; 2])
             .bottom_left_with_margins_on(state.ids.m1_slot, 0.0, -20.0 * scale);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Five) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
-                .bottom_offset(SLOT_TOOLTIP_UPSHIFT)
                 .set(state.ids.slot5, ui);
         } else {
             slot.set(state.ids.slot5, ui);
@@ -824,7 +822,6 @@ impl<'a> Widget for Skillbar<'a> {
             .left_from(state.ids.slot5, 0.0);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Four) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
-                .bottom_offset(SLOT_TOOLTIP_UPSHIFT)
                 .set(state.ids.slot4, ui);
         } else {
             slot.set(state.ids.slot4, ui);
@@ -835,7 +832,6 @@ impl<'a> Widget for Skillbar<'a> {
             .left_from(state.ids.slot4, 0.0);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Three) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
-                .bottom_offset(SLOT_TOOLTIP_UPSHIFT)
                 .set(state.ids.slot3, ui);
         } else {
             slot.set(state.ids.slot3, ui);
@@ -846,7 +842,6 @@ impl<'a> Widget for Skillbar<'a> {
             .left_from(state.ids.slot3, 0.0);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Two) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
-                .bottom_offset(SLOT_TOOLTIP_UPSHIFT)
                 .set(state.ids.slot2, ui);
         } else {
             slot.set(state.ids.slot2, ui);
@@ -860,7 +855,6 @@ impl<'a> Widget for Skillbar<'a> {
             .left_from(state.ids.slot2, 0.0);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::One) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
-                .bottom_offset(SLOT_TOOLTIP_UPSHIFT)
                 .set(state.ids.slot1, ui);
         } else {
             slot.set(state.ids.slot1, ui);
@@ -874,7 +868,6 @@ impl<'a> Widget for Skillbar<'a> {
             .bottom_right_with_margins_on(state.ids.m2_slot, 0.0, -20.0 * scale);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Six) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
-                .bottom_offset(SLOT_TOOLTIP_UPSHIFT)
                 .set(state.ids.slot6, ui);
         } else {
             slot.set(state.ids.slot6, ui);
@@ -885,7 +878,6 @@ impl<'a> Widget for Skillbar<'a> {
             .right_from(state.ids.slot6, 0.0);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Seven) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
-                .bottom_offset(SLOT_TOOLTIP_UPSHIFT)
                 .set(state.ids.slot7, ui);
         } else {
             slot.set(state.ids.slot7, ui);
@@ -896,7 +888,6 @@ impl<'a> Widget for Skillbar<'a> {
             .right_from(state.ids.slot7, 0.0);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Eight) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
-                .bottom_offset(SLOT_TOOLTIP_UPSHIFT)
                 .set(state.ids.slot8, ui);
         } else {
             slot.set(state.ids.slot8, ui);
@@ -907,7 +898,6 @@ impl<'a> Widget for Skillbar<'a> {
             .right_from(state.ids.slot8, 0.0);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Nine) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
-                .bottom_offset(SLOT_TOOLTIP_UPSHIFT)
                 .set(state.ids.slot9, ui);
         } else {
             slot.set(state.ids.slot9, ui);
@@ -921,7 +911,6 @@ impl<'a> Widget for Skillbar<'a> {
             .right_from(state.ids.slot9, 0.0);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Ten) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
-                .bottom_offset(SLOT_TOOLTIP_UPSHIFT)
                 .set(state.ids.slot10, ui);
         } else {
             slot.set(state.ids.slot10, ui);
