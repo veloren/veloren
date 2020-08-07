@@ -3,6 +3,13 @@ use vek::*;
 
 type TerrainVertex = <TerrainPipeline as render::Pipeline>::Vertex;
 
+type TodoRect = (
+    Vec3<i32>,
+    Vec2<Vec3<u16>>,
+    guillotiere::Rectangle,
+    Vec3<i32>,
+);
+
 /// `max_size`:
 ///
 /// `draw_delta`:
@@ -162,7 +169,7 @@ impl<'a> GreedyMesh<'a> {
         FS: for<'r> FnMut(&'r mut D, Vec3<i32>, Vec3<i32>, Vec2<Vec3<i32>>) -> Option<(bool, M)>,
         FP: FnMut(Vec2<u16>, Vec2<Vec2<u16>>, Vec3<f32>, Vec2<Vec3<f32>>, Vec3<f32>, &M),
     {
-        let (bounds, /* opaque, *//*shadow, */ cont) = greedy_mesh(
+        let (bounds, cont) = greedy_mesh(
             &mut self.atlas,
             &mut self.col_lights_size,
             self.max_size,
@@ -183,7 +190,10 @@ impl<'a> GreedyMesh<'a> {
     /// Returns the ColLightsInfo corresponding to the consstructed atlas.
     pub fn finalize(self) -> ColLightInfo {
         let cur_size = self.col_lights_size;
-        let col_lights = vec![/*Default::default()*/TerrainVertex::make_col_light(254, Rgb::broadcast(254)); usize::from(cur_size.x) * usize::from(cur_size.y)];
+        let col_lights = vec![
+            TerrainVertex::make_col_light(254, Rgb::broadcast(254));
+            usize::from(cur_size.x) * usize::from(cur_size.y)
+        ];
         let mut col_lights_info = (col_lights, cur_size);
         self.suspended.into_iter().for_each(|cont| {
             cont(&mut col_lights_info);
@@ -209,12 +219,7 @@ fn greedy_mesh<'a, M: PartialEq, D: 'a, FL, FC, FO, FS, FP>(
         mut should_draw,
         mut push_quad,
     }: GreedyConfig<D, FL, FC, FO, FS, FP>,
-) -> (
-    Aabb<u16>,
-    // Mesh<O>,
-    // Mesh<S>,
-    Box<SuspendedMesh<'a>>,
-)
+) -> (Aabb<u16>, Box<SuspendedMesh<'a>>)
 where
     FL: for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
     FC: for<'r> FnMut(&'r mut D, Vec3<i32>) -> Rgb<u8> + 'a,
@@ -222,23 +227,8 @@ where
     FS: for<'r> FnMut(&'r mut D, Vec3<i32>, Vec3<i32>, Vec2<Vec3<i32>>) -> Option<(bool, M)>,
     FP: FnMut(Vec2<u16>, Vec2<Vec2<u16>>, Vec3<f32>, Vec2<Vec3<f32>>, Vec3<f32>, &M),
 {
-    // let mut opaque_mesh = Mesh::new();
-    // let mut shadow_mesh = Mesh::new();
-
     // TODO: Collect information to see if we can choose a good value here.
     let mut todo_rects = Vec::with_capacity(1024);
-
-    /* let mut bounds = Aabb {
-        min: Vec3::zero(),
-        max: Vec3::zero(),
-    }; */
-
-    /* let compute_bounds = |pos: Vec3<usize>, dim: Vec2<usize>, uv: Vec2<Vec3<u16>>/*, norm: Vec3<u16>, faces_forward: bool*/| {
-        Aabb {
-            min: pos,
-            max: pos + uv.x.map(usize::from) * dim.x + uv.y.map(usize::from) * dim.y,
-        }
-    }; */
 
     // x (u = y, v = z)
     greedy_mesh_cross_section(
@@ -247,7 +237,7 @@ where
             should_draw(
                 &mut data,
                 draw_delta + Vec3::new(pos.z, pos.x, pos.y),
-                Vec3::unit_x(), /* , pos.z, 0, x_size */
+                Vec3::unit_x(),
                 Vec2::new(Vec3::unit_y(), Vec3::unit_z()),
             )
         },
@@ -255,7 +245,6 @@ where
             let pos = Vec3::new(pos.z, pos.x, pos.y);
             let uv = Vec2::new(Vec3::unit_y(), Vec3::unit_z());
             let norm = Vec3::unit_x();
-            // bounds.expand_to_contain(compute_bounds(pos, dim, uv));
             let atlas_pos = if let Some(atlas_pos) = add_to_atlas(
                 atlas,
                 &mut todo_rects,
@@ -267,29 +256,18 @@ where
                 max_size,
                 col_lights_size,
             ) {
-                // assert!(atlas_pos.max.x - atlas_pos.min.x == dim.x as i32);
-                // assert!(atlas_pos.max.y - atlas_pos.min.y == dim.y as i32);
                 atlas_pos
             } else {
                 return;
             };
             create_quad_greedy(
-                // &mut shadow_mesh,
-                // &mut opaque_mesh,
-                /* Vec3::new(pos.z, pos.x, pos.y) */
                 pos,
                 dim,
                 uv,
                 norm,
                 faces_forward,
-                // Rgba::from_opaque(flat_get(pos).color),
-                // lightm
-                // ao,
                 meta,
                 atlas_pos,
-                // |pos| flat_get(pos),
-                // |pos, norm, meta| create_shadow(pos, norm, meta),
-                // |atlas_pos, pos, norm, meta| create_opaque(atlas_pos, pos, norm, meta),
                 |atlas_pos, dim, pos, draw_dim, norm, meta| {
                     push_quad(atlas_pos, dim, pos, draw_dim, norm, meta)
                 },
@@ -312,7 +290,6 @@ where
             let pos = Vec3::new(pos.y, pos.z, pos.x);
             let uv = Vec2::new(Vec3::unit_z(), Vec3::unit_x());
             let norm = Vec3::unit_y();
-            // bounds.expand_to_contain(compute_bounds(pos, dim, uv));
             let atlas_pos = if let Some(atlas_pos) = add_to_atlas(
                 atlas,
                 &mut todo_rects,
@@ -329,18 +306,13 @@ where
                 return;
             };
             create_quad_greedy(
-                // &mut shadow_mesh,
-                // &mut opaque_mesh,
                 pos,
                 dim,
                 uv,
                 norm,
                 faces_forward,
-                // Rgba::from_opaque(flat_get(pos).color),
                 meta,
                 atlas_pos,
-                // |pos, norm, meta| create_shadow(pos, norm, meta),
-                // |atlas_pos, pos, norm, meta| create_opaque(atlas_pos, pos, norm, meta),
                 |atlas_pos, dim, pos, draw_dim, norm, meta| {
                     push_quad(atlas_pos, dim, pos, draw_dim, norm, meta)
                 },
@@ -352,25 +324,17 @@ where
     greedy_mesh_cross_section(
         Vec3::new(greedy_size.x, greedy_size.y, greedy_size_cross.z),
         |pos| {
-            /* if pos.z == 0 {
-                let pos = pos.map(|e| e as i32) + draw_delta; // - delta;
-                let to = flat_get(pos).is_opaque(); //map(|v| v.is_opaque()).unwrap_or(false);
-                if to { Some(false) } else { None }
-            } else */
-            {
-                should_draw(
-                    &mut data,
-                    draw_delta + Vec3::new(pos.x, pos.y, pos.z),
-                    Vec3::unit_z(),
-                    Vec2::new(Vec3::unit_x(), Vec3::unit_y()),
-                )
-            }
+            should_draw(
+                &mut data,
+                draw_delta + Vec3::new(pos.x, pos.y, pos.z),
+                Vec3::unit_z(),
+                Vec2::new(Vec3::unit_x(), Vec3::unit_y()),
+            )
         },
         |pos, dim, &(faces_forward, ref meta)| {
             let pos = Vec3::new(pos.x, pos.y, pos.z);
             let uv = Vec2::new(Vec3::unit_x(), Vec3::unit_y());
             let norm = Vec3::unit_z();
-            // bounds.expand_to_contain(compute_bounds(pos, dim, uv));
             let atlas_pos = if let Some(atlas_pos) = add_to_atlas(
                 atlas,
                 &mut todo_rects,
@@ -387,18 +351,13 @@ where
                 return;
             };
             create_quad_greedy(
-                // &mut shadow_mesh,
-                // &mut opaque_mesh,
                 pos,
                 dim,
                 uv,
                 norm,
                 faces_forward,
-                // Rgba::from_opaque(flat_get(pos).color),
                 meta,
                 atlas_pos,
-                // |pos, norm, meta| create_shadow(pos, norm, meta),
-                // |atlas_pos, pos, norm, meta| create_opaque(atlas_pos, pos, norm, meta),
                 |atlas_pos, dim, pos, draw_dim, norm, meta| {
                     push_quad(atlas_pos, dim, pos, draw_dim, norm, meta)
                 },
@@ -406,9 +365,6 @@ where
         },
     );
 
-    // NOTE: Safe because bound dimensions actually fit in a u16.
-    // let bounds = bounds.map(|e| e as u16);
-    // NOTE: Safe because draw_delta fits in i16.
     let bounds = Aabb {
         min: Vec3::zero(),
         // NOTE: Safe because greedy_size fit in u16.
@@ -416,7 +372,6 @@ where
     };
     (
         bounds,
-        /* opaque_mesh, *//*shadow_mesh, */
         Box::new(move |col_lights_info| {
             let mut data = data;
             draw_col_lights(
@@ -435,7 +390,6 @@ where
 
 // Greedy meshing a single cross-section.
 fn greedy_mesh_cross_section<M: PartialEq>(
-    /* mask: &mut [bool], */
     dims: Vec3<usize>,
     // Should we draw a face here (below this vertex)?  If so, provide its meta information.
     mut draw_face: impl FnMut(Vec3<i32>) -> Option<M>,
@@ -477,7 +431,7 @@ fn greedy_mesh_cross_section<M: PartialEq>(
                             .count();
                     let max_y = j + height;
                     // Add quad.
-                    push_quads(Vec3::new(i, j, d /* + 1 */), Vec2::new(width, height), ori);
+                    push_quads(Vec3::new(i, j, d), Vec2::new(width, height), ori);
                     // Unset mask bits in drawn region, so we don't try to re-draw them.
                     (j..max_y).for_each(|l| {
                         mask[l * dims.x + i..l * dims.x + max_x]
@@ -498,12 +452,7 @@ fn greedy_mesh_cross_section<M: PartialEq>(
 
 fn add_to_atlas(
     atlas: &mut guillotiere::SimpleAtlasAllocator,
-    todo_rects: &mut Vec<(
-        Vec3<i32>,
-        Vec2<Vec3<u16>>,
-        guillotiere::Rectangle,
-        Vec3<i32>,
-    )>,
+    todo_rects: &mut Vec<TodoRect>,
     pos: Vec3<usize>,
     uv: Vec2<Vec3<u16>>,
     dim: Vec2<usize>,
@@ -542,7 +491,6 @@ fn add_to_atlas(
                         (max texture size={:?}, so we are discarding this rectangle.",
                 pos, dim, max_size
             );
-            // return None;
         }
         // Otherwise, we haven't reached max size yet, so double the size (or reach the
         // max texture size) and try again.
@@ -551,7 +499,6 @@ fn add_to_atlas(
             max_size.height.min(current_size.height.saturating_mul(2)),
         );
         atlas.grow(new_size);
-        // atlas.grow((current_size * 2).min(max_size));
     }
     // NOTE: Conversion is correct because our initial max size for the atlas was
     // a u16 and we never grew the atlas, meaning all valid coordinates within the
@@ -560,14 +507,6 @@ fn add_to_atlas(
         cur_size.x.max(atlas_rect.max.x as u16),
         cur_size.y.max(atlas_rect.max.y as u16),
     );
-
-    /* let (dim, uv, norm) = if faces_forward {
-        // NOTE: Conversion to u16 safe by function precondition.
-        (dim.map(|e| e as u16), uv, norm)
-    } else {
-        // NOTE: Conversion to u16 safe by function precondition.
-        (Vec2::new(dim.y as u16, dim.x as u16), Vec2::new(uv.y, uv.x), -norm)
-    }; */
 
     // NOTE: pos can be converted safely from usize to i32 because all legal block
     // coordinates in this chunk must fit in an i32 (actually we have the much
@@ -591,46 +530,28 @@ fn add_to_atlas(
 fn draw_col_lights<D>(
     (col_lights, cur_size): &mut ColLightInfo,
     data: &mut D,
-    todo_rects: Vec<(
-        Vec3<i32>,
-        Vec2<Vec3<u16>>,
-        guillotiere::Rectangle,
-        Vec3<i32>,
-    )>,
+    todo_rects: Vec<TodoRect>,
     draw_delta: Vec3<i32>,
     mut get_light: impl FnMut(&mut D, Vec3<i32>) -> f32,
     mut get_color: impl FnMut(&mut D, Vec3<i32>) -> Rgb<u8>,
     mut get_opacity: impl FnMut(&mut D, Vec3<i32>) -> bool,
     mut make_col_light: impl FnMut(u8, Rgb<u8>) -> <<ColLightFmt as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType,
 ) {
-    /* for i in 0..todo_rects.len() {
-        for j in 0..todo_rects.len() {
-            if i == j {
-                continue;
-            }
-
-            assert!(!todo_rects[i].2.intersects(&todo_rects[j].2));
-        }
-    } */
-    todo_rects
-        .into_iter()
-        // .rev()
-        .for_each(|(pos, uv, rect, delta)| {
-            // NOTE: Conversions are safe because width, height, and offset must be
-            // non-negative, and because every allocated coordinate in the atlas must be in
-            // bounds for the original size, max_texture_size, which fit into a u16.
-            let width = (rect.max.x - rect.min.x) as u16;//rect.width() as u16;
-            let height = (rect.max.y - rect.min.y) as u16;//rect.height() as u16;
-            /* if width > 32 || height > 32 {
-                println!("Rect: {:?}", rect);
-            } */
-            let left = rect.min.x as u16;
-            let top = rect.min.y as u16;
-            let uv = uv.map(|e| e.map(i32::from));
-            let pos = pos + draw_delta;//Vec3::new(0, 0, z_start - 1);// + mesh_delta;// + draw_delta;
-            (0..height).for_each(|v| {
-                let start = usize::from(cur_size.x) * usize::from(top + v) + usize::from(left);
-                (0..width).zip(&mut col_lights[start..start + usize::from(width)]).for_each(|(u, col_light)| {
+    todo_rects.into_iter().for_each(|(pos, uv, rect, delta)| {
+        // NOTE: Conversions are safe because width, height, and offset must be
+        // non-negative, and because every allocated coordinate in the atlas must be in
+        // bounds for the original size, max_texture_size, which fit into a u16.
+        let width = (rect.max.x - rect.min.x) as u16;
+        let height = (rect.max.y - rect.min.y) as u16;
+        let left = rect.min.x as u16;
+        let top = rect.min.y as u16;
+        let uv = uv.map(|e| e.map(i32::from));
+        let pos = pos + draw_delta;
+        (0..height).for_each(|v| {
+            let start = usize::from(cur_size.x) * usize::from(top + v) + usize::from(left);
+            (0..width)
+                .zip(&mut col_lights[start..start + usize::from(width)])
+                .for_each(|(u, col_light)| {
                     let pos = pos + uv.x * i32::from(u) + uv.y * i32::from(v);
                     // TODO: Consider optimizing to take advantage of the fact that this whole
                     // face should be facing nothing but air (this is not currently true, but
@@ -642,33 +563,23 @@ fn draw_col_lights<D>(
                     // direct_opacity, and indirect_uv_opacity is multiplied by
                     // the maximum of both of u and v's indirect opacities (since there are
                     // two choices for how to get to the direct surface).
-                    let pos = pos +
-                        if u + 1 == width { -uv.x } else { Vec3::zero() } +
-                        if v + 1 == height { -uv.y } else { Vec3::zero() };
+                    let pos = pos
+                        + if u + 1 == width { -uv.x } else { Vec3::zero() }
+                        + if v + 1 == height { -uv.y } else { Vec3::zero() };
                     let uv = Vec2::new(
                         if u + 1 == width { -uv.x } else { uv.x },
-                        if v + 1 == height { -uv.y } else  { uv.y },
+                        if v + 1 == height { -uv.y } else { uv.y },
                     );
 
-                    let light_pos = pos + /*range.min + */delta;
-                    // let block = flat_get(pos);
+                    let light_pos = pos + delta;
 
                     // Currently, we assume that direct_opacity is 1 (if it's 0, you can't see
                     // the face anyway, since it's blocked by the block directly in front of it).
                     // TODO: If we add non-0/1 opacities, fix this.
-                    // top-left block
-                    // let direct_opacity = !flat_get(pos + delta).is_opaque();
                     // bottom-left block
                     let direct_u_opacity = get_opacity(data, light_pos - uv.x);
                     // top-right block
                     let direct_v_opacity = get_opacity(data, light_pos - uv.y);
-                    // top-left block
-                    // NOTE: Currently, since we only have 0 / 1 opacities, we don't worry
-                    // about whether the uv block itself is opaque, because if it is its light
-                    // value will be 0 anyway.  But if we add translucent objects, we'll need
-                    // to care about uv's opacity as well.
-                    // let direct_uv_opacity = !flat_get(pos + delta - uv.x - uv.y).is_opaque();
-                    // let indirect_opacity = direct_uv_opacity && (direct_u_opacity || direct_v_opacity) && direct_opacity;
 
                     // NOTE: Since we only support 0/1 opacities currently, we asssume
                     // direct_opacity is  1, and the light value will be zero anyway for objects
@@ -680,24 +591,26 @@ fn draw_col_lights<D>(
                         // Light from the bottom-right-front block to this vertex always
                         // appears on this face, since it's the block this face is facing (so
                         // it can't be blocked by anything).
-                        if /*direct_u_opacity || direct_v_opacity*/true/* || !flat_get(pos - uv.x - uv.y).is_opaque()*//* || !block.is_opaque()*/ { get_light(data, light_pos) } else { 0.0 } +
-                        if /*direct_opacity || direct_uv_opacity*/true/* || !flat_get(pos - uv.y).is_opaque()*/ { get_light(data, light_pos - uv.x) } else { 0.0 } +
-                        if /*direct_opacity || direct_uv_opacity*/true/* || !flat_get(pos - uv.x).is_opaque()*/ { get_light(data, light_pos - uv.y) } else { 0.0 } +
-                        if direct_u_opacity || direct_v_opacity/* || !block.is_opaque()*/ { get_light(data, light_pos - uv.x - uv.y) } else { 0.0 }
+                        get_light(data, light_pos)
+                            + get_light(data, light_pos - uv.x)
+                            + get_light(data, light_pos - uv.y)
+                            + if direct_u_opacity || direct_v_opacity {
+                                get_light(data, light_pos - uv.x - uv.y)
+                            } else {
+                                0.0
+                            }
                     ) / 4.0;
-                    let col = get_color(data, pos);//.map(Rgba::from_opaque).unwrap_or(Rgba::zero());
+                    let col = get_color(data, pos);
                     let light = (darkness * 255.0) as u8;
                     *col_light = make_col_light(light, col);
                 });
-            });
         });
+    });
 }
 
 /// Precondition: when this function is called, atlas_pos should reflect an
 /// actual valid position in a texture atlas (meaning it should fit into a u16).
-fn create_quad_greedy</* S: render::Pipeline, *//*O: render::Pipeline, */ M>(
-    // shadow_mesh: &mut Mesh<S>,
-    // opaque_mesh: &mut Mesh<O>,
+fn create_quad_greedy<M>(
     origin: Vec3<usize>,
     dim: Vec2<usize>,
     uv: Vec2<Vec3<u16>>,
@@ -705,26 +618,16 @@ fn create_quad_greedy</* S: render::Pipeline, *//*O: render::Pipeline, */ M>(
     faces_forward: bool,
     meta: &M,
     atlas_pos: guillotiere::Rectangle,
-    // origin, norm, meta
-    // create_shadow: impl Fn(Vec3<f32>, Vec3<f32>, &M) -> S::Vertex,
-    // create_opaque: impl Fn(Vec2<u16>, Vec3<f32>, Vec3<f32>, &M) -> O::Vertex,
     mut push_quad: impl FnMut(Vec2<u16>, Vec2<Vec2<u16>>, Vec3<f32>, Vec2<Vec3<f32>>, Vec3<f32>, &M),
-) /* -> Quad<ShadowPipeline> */
-{
+) {
     let origin = origin.map(|e| e as f32);
-    /* // NOTE: Conversion to u16 safe by function precondition.
-    let dim = uv.map2(dim.map(|e| e as u16), |e, f| e * f); */
     // NOTE: Conversion to f32 safe by function precondition (u16 can losslessly
     // cast to f32, and dim fits in a u16).
     let draw_dim = uv.map2(dim.map(|e| e as f32), |e, f| e.map(f32::from) * f);
     let dim = Vec2::new(Vec2::new(dim.x as u16, 0), Vec2::new(0, dim.y as u16));
     let (draw_dim, dim, /* uv, */ norm) = if faces_forward {
-        /* // NOTE: Conversion to u16 safe by function precondition.
-        (dim.map(|e| e as u16), uv, norm) */
         (draw_dim, dim, norm)
     } else {
-        /* // NOTE: Conversion to u16 safe by function precondition.
-        (Vec2::new(dim.y as u16, dim.x as u16), Vec2::new(uv.y, uv.x), -norm) */
         (
             Vec2::new(draw_dim.y, draw_dim.x),
             Vec2::new(dim.y, dim.x),
@@ -732,21 +635,8 @@ fn create_quad_greedy</* S: render::Pipeline, *//*O: render::Pipeline, */ M>(
         )
     };
     let norm = norm.map(f32::from);
-    // let draw_dim = draw_dim.map(|e|  e.map(f32::from));
     // NOTE: Conversion to u16 safe by function precondition.
     let atlas_pos = Vec2::new(atlas_pos.min.x as u16, atlas_pos.min.y as u16);
-    /* shadow_mesh.push_quad(Quad::new(
-        create_shadow(origin, norm, &meta/*, atlas_pos*/),
-        create_shadow(origin + draw_dim.x, norm, &meta/*, atlas_pos + dim.x*/),
-        create_shadow(origin + draw_dim.x + draw_dim.y, norm, &meta/*, atlas_pos + dim.x + dim.y*/),
-        create_shadow(origin + draw_dim.y, norm, &meta/*, atlas_pos + dim.y*/),
-    )); */
-    /* opaque_mesh.push_quad(Quad::new(
-        create_opaque(atlas_pos, origin, norm, &meta),
-        create_opaque(atlas_pos + dim.x, origin + draw_dim.x, norm, &meta),
-        create_opaque(atlas_pos + dim.x + dim.y, origin + draw_dim.x + draw_dim.y, norm, &meta),
-        create_opaque(atlas_pos + dim.y, origin + draw_dim.y, norm, &meta),
-    )); */
     push_quad(atlas_pos, dim, origin, draw_dim, norm, meta);
 }
 
@@ -769,9 +659,5 @@ pub fn create_quad<O: render::Pipeline, M>(
             meta,
         ),
         create_vertex(atlas_pos + dim.y, origin + draw_dim.y, norm, meta),
-        /* create_vertex(atlas_pos, origin, norm, meta),
-        create_vertex(atlas_pos + dim.y, origin + draw_dim.y, norm, meta),
-        create_vertex(atlas_pos + dim.x + dim.y, origin + draw_dim.x + draw_dim.y, norm, meta),
-        create_vertex(atlas_pos + dim.x, origin + draw_dim.x, norm, meta), */
     )
 }

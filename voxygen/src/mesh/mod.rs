@@ -4,6 +4,13 @@ pub mod terrain;
 
 use crate::render::{self, Mesh};
 
+pub type MeshGen<P, T, M> = (
+    Mesh<<M as Meshable<P, T>>::Pipeline>,
+    Mesh<<M as Meshable<P, T>>::TranslucentPipeline>,
+    Mesh<<M as Meshable<P, T>>::ShadowPipeline>,
+    <M as Meshable<P, T>>::Result,
+);
+
 pub trait Meshable<P: render::Pipeline, T> {
     type Pipeline: render::Pipeline;
     type TranslucentPipeline: render::Pipeline;
@@ -12,13 +19,5 @@ pub trait Meshable<P: render::Pipeline, T> {
     type Result;
 
     // Generate meshes - one opaque, one translucent, one shadow
-    fn generate_mesh(
-        self,
-        supp: Self::Supplement,
-    ) -> (
-        Mesh<Self::Pipeline>,
-        Mesh<Self::TranslucentPipeline>,
-        Mesh<Self::ShadowPipeline>,
-        Self::Result,
-    );
+    fn generate_mesh(self, supp: Self::Supplement) -> MeshGen<P, T, Self>;
 }

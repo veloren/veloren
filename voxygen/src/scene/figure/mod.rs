@@ -8,8 +8,8 @@ use crate::{
     ecs::comp::Interpolated,
     mesh::greedy::GreedyMesh,
     render::{
-        BoneMeshes, ColLightFmt, Consts, FigureBoneData, FigureLocals, FigureModel, Globals, Light,
-        RenderError, Renderer, Shadow, ShadowLocals, ShadowPipeline, Texture,
+        BoneMeshes, ColLightFmt, Consts, FigureBoneData, FigureLocals, FigureModel, GlobalModel,
+        RenderError, Renderer, ShadowPipeline, Texture,
     },
     scene::{
         camera::{Camera, CameraMode, Dependents},
@@ -47,6 +47,9 @@ use treeculler::{BVol, BoundingSphere};
 const DAMAGE_FADE_COEFFICIENT: f64 = 5.0;
 const MOVING_THRESHOLD: f32 = 0.7;
 const MOVING_THRESHOLD_SQR: f32 = MOVING_THRESHOLD * MOVING_THRESHOLD;
+
+/// camera data, fiigure LOD render distance.
+pub type CameraData<'a> = (&'a Camera, f32);
 
 struct FigureMgrStates {
     character_states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
@@ -1996,12 +1999,9 @@ impl FigureMgr {
         renderer: &mut Renderer,
         state: &State,
         tick: u64,
-        globals: &Consts<Globals>,
-        shadow_mats: &Consts<ShadowLocals>,
-        is_daylight: bool,
-        _light_data: &[Light],
-        camera: &Camera,
-        figure_lod_render_distance: f32,
+        global: &GlobalModel,
+        (is_daylight, _light_data): super::LightData,
+        (camera, figure_lod_render_distance): CameraData,
     ) {
         let ecs = state.ecs();
 
@@ -2034,10 +2034,10 @@ impl FigureMgr {
                 ) {
                     renderer.render_figure_shadow_directed(
                         model,
-                        globals,
+                        global,
                         locals,
                         bone_consts,
-                        shadow_mats,
+                        &global.shadow_mats,
                     );
                 }
             });
@@ -2051,13 +2051,9 @@ impl FigureMgr {
         state: &State,
         player_entity: EcsEntity,
         tick: u64,
-        globals: &Consts<Globals>,
-        lights: &Consts<Light>,
-        shadows: &Consts<Shadow>,
-        shadow_mats: &Consts<ShadowLocals>,
+        global: &GlobalModel,
         lod: &LodData,
-        camera: &Camera,
-        figure_lod_render_distance: f32,
+        (camera, figure_lod_render_distance): CameraData,
     ) {
         let ecs = state.ecs();
 
@@ -2096,14 +2092,10 @@ impl FigureMgr {
                     renderer.render_figure(
                         model,
                         &col_lights.col_lights,
-                        globals,
+                        global,
                         locals,
                         bone_consts,
-                        lights,
-                        shadows,
-                        shadow_mats,
-                        &lod.alt,
-                        &lod.horizon,
+                        lod,
                     );
                 }
             }
@@ -2117,13 +2109,9 @@ impl FigureMgr {
         state: &State,
         player_entity: EcsEntity,
         tick: u64,
-        globals: &Consts<Globals>,
-        lights: &Consts<Light>,
-        shadows: &Consts<Shadow>,
-        shadow_mats: &Consts<ShadowLocals>,
+        global: &GlobalModel,
         lod: &LodData,
-        camera: &Camera,
-        figure_lod_render_distance: f32,
+        (camera, figure_lod_render_distance): CameraData,
     ) {
         let ecs = state.ecs();
 
@@ -2160,26 +2148,18 @@ impl FigureMgr {
                 renderer.render_player(
                     model,
                     &col_lights.col_lights,
-                    globals,
+                    global,
                     locals,
                     bone_consts,
-                    lights,
-                    shadows,
-                    shadow_mats,
-                    &lod.alt,
-                    &lod.horizon,
+                    lod,
                 );
                 renderer.render_player_shadow(
                     model,
                     &col_lights.col_lights,
-                    globals,
-                    locals,
+                    global,
                     bone_consts,
-                    lights,
-                    shadows,
-                    shadow_mats,
-                    &lod.alt,
-                    &lod.horizon,
+                    lod,
+                    &global.shadow_mats,
                 );
             }
         }

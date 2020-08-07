@@ -17,15 +17,6 @@ impl<T: Copy + gfx::traits::Pod> Consts<T> {
         }
     }
 
-    /* /// Create a new immutable `Const<T>`.
-    pub fn new_immutable(factory: &mut gfx_backend::Factory, data: &[T]) -> Result<gfx::handle::RawBuffer<T>, RenderError> {
-        Ok(Self {
-            ibuf: factory
-                .create_buffer_immutable_raw(gfx::memory::cast_slice(data), core::mem::size_of::<T>(), gfx::buffer::Role::Constant, gfx::memory::Bind::empty())
-                .map_err(|err| RenderError::BufferCreationError(err))?,
-        })
-    } */
-
     /// Update the GPU-side value represented by this constant handle.
 
     pub fn update(

@@ -91,8 +91,6 @@ impl Camera {
                 (_, Err(_)) => self.dist,
             }
             .max(0.0)
-            // .max(NEAR_PLANE)
-            // self.dist.max(0.0)
         };
 
         self.dependents.view_mat = Mat4::<f32>::identity()

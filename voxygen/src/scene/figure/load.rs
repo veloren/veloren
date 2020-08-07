@@ -793,7 +793,7 @@ impl HumMainWeaponSpec {
         let tool_kind = if let Some(ItemKind::Tool(Tool { kind, .. })) = item_kind {
             kind
         } else {
-            return (Mesh::new() /* , Mesh::new() */, Aabb::default());
+            return (Mesh::new(), Aabb::default());
         };
 
         let spec = match self.0.get(tool_kind) {

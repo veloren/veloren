@@ -119,7 +119,6 @@ impl Pipeline for FigurePipeline {
 pub struct FigureModel {
     pub bounds: Aabb<f32>,
     pub opaque: Model<TerrainPipeline>,
-    // pub shadow: Model<ShadowPipeline>,
     // TODO: Consider using mipmaps instead of storing multiple texture atlases for different LOD
     // levels.
     pub col_lights: Texture<ColLightFmt>,

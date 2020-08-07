@@ -13,10 +13,7 @@ use vek::*;
 
 gfx_defines! {
     vertex Vertex {
-        // pos: [f32; 4] = "v_pos",
         pos_norm: u32 = "v_pos_norm",
-        // col_light: u32 = "v_col_light",
-        // atlas_pos: u32 = "v_atlas_pos",
     }
 
     constant Locals {
@@ -26,17 +23,10 @@ gfx_defines! {
 
     pipeline pipe {
         // Terrain vertex stuff
-        vbuf: gfx::VertexBuffer</*Vertex*/terrain::Vertex> = (),
+        vbuf: gfx::VertexBuffer<terrain::Vertex> = (),
 
         locals: gfx::ConstantBuffer<TerrainLocals> = "u_locals",
         globals: gfx::ConstantBuffer<Globals> = "u_globals",
-        // lights: gfx::ConstantBuffer<Light> = "u_lights",
-        // shadows: gfx::ConstantBuffer<Shadow> = "u_shadows",
-
-        // alt: gfx::TextureSampler<[f32; 2]> = "t_map",
-        // horizon: gfx::TextureSampler<[f32; 4]> = "t_horizon",
-
-        // noise: gfx::TextureSampler<f32> = "t_noise",
 
         // Shadow stuff
         light_shadows: gfx::ConstantBuffer<Locals> = "u_light_shadows",
@@ -45,23 +35,15 @@ gfx_defines! {
             fun: gfx::state::Comparison::Less,
             write: true,
         },
-        // tgt_depth_stencil: gfx::DepthTarget<ShadowDepthStencilFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,//,Stencil::new(Comparison::Always,0xff,(StencilOp::Keep,StencilOp::Keep,StencilOp::Keep))),
     }
 
     pipeline figure_pipe {
         // Terrain vertex stuff
-        vbuf: gfx::VertexBuffer</*Vertex*/terrain::Vertex> = (),
+        vbuf: gfx::VertexBuffer<terrain::Vertex> = (),
 
         locals: gfx::ConstantBuffer<figure::Locals> = "u_locals",
         bones: gfx::ConstantBuffer<figure::BoneData> = "u_bones",
         globals: gfx::ConstantBuffer<Globals> = "u_globals",
-        // lights: gfx::ConstantBuffer<Light> = "u_lights",
-        // shadows: gfx::ConstantBuffer<Shadow> = "u_shadows",
-
-        // alt: gfx::TextureSampler<[f32; 2]> = "t_map",
-        // horizon: gfx::TextureSampler<[f32; 4]> = "t_horizon",
-
-        // noise: gfx::TextureSampler<f32> = "t_noise",
 
         // Shadow stuff
         light_shadows: gfx::ConstantBuffer<Locals> = "u_light_shadows",
@@ -70,16 +52,11 @@ gfx_defines! {
             fun: gfx::state::Comparison::Less,
             write: true,
         },
-        // tgt_depth_stencil: gfx::DepthTarget<ShadowDepthStencilFmt> = gfx::preset::depth::LESS_WRITE,//,Stencil::new(Comparison::Always,0xff,(StencilOp::Keep,StencilOp::Keep,StencilOp::Keep))),
     }
 }
 
 impl Vertex {
-    pub fn new(
-        pos: Vec3<f32>,
-        norm: Vec3<f32>,
-        meta: bool, /* , atlas_pos: Vec2<u16> */
-    ) -> Self {
+    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, meta: bool) -> Self {
         let norm_bits = if norm.x != 0.0 {
             if norm.x < 0.0 { 0 } else { 1 }
         } else if norm.y != 0.0 {
@@ -89,10 +66,6 @@ impl Vertex {
         } else {
             5
         };
-        // let ao = 0xFFu32;
-        // let light = 0xFFu32;
-        // let col = Rgb::new(1.0f32, 0.0, 0.0);
-        // let meta = true;
 
         const EXTRA_NEG_Z: f32 = 32768.0;
 
@@ -103,23 +76,10 @@ impl Vertex {
                 | (((pos + EXTRA_NEG_Z).z.max(0.0).min((1 << 16) as f32) as u32) & 0xFFFF) << 12
                 | if meta { 1 } else { 0 } << 28
                 | (norm_bits & 0x7) << 29,
-            /* atlas_pos: 0
-                | ((atlas_pos.x as u32) & 0xFFFF) << 0
-                | ((atlas_pos.y as u32) & 0xFFFF) << 16, */
-            /* col_light: 0
-            | (((col.r * 255.0) as u32) & 0xFF) << 8
-            | (((col.g * 255.0) as u32) & 0xFF) << 16
-            | (((col.b * 255.0) as u32) & 0xFF) << 24
-            | (ao >> 6) << 6
-            | ((light >> 2) & 0x3F) << 0, */
         }
     }
 
-    pub fn new_figure(
-        pos: Vec3<f32>,
-        norm: Vec3<f32>,
-        /* col: Rgb<f32>, ao: f32, */ bone_idx: u8,
-    ) -> Self {
+    pub fn new_figure(pos: Vec3<f32>, norm: Vec3<f32>, bone_idx: u8) -> Self {
         let norm_bits = if norm.x.min(norm.y).min(norm.z) < 0.0 {
             0
         } else {
@@ -133,10 +93,6 @@ impl Vertex {
                 .reduce_bitor()
                 | (((bone_idx & 0xF) as u32) << 27)
                 | (norm_bits << 31),
-            // col: col
-            //     .map2(Rgb::new(0, 8, 16), |e, shift| ((e * 255.0) as u32) << shift)
-            //     .reduce_bitor(),
-            // ao_bone: (bone_idx << 2) | ((ao * 3.9999) as u8),
         }
     }
 
@@ -172,7 +128,7 @@ impl ShadowPipeline {
                 gfx::texture::AaMode::Single,
             ),
             gfx::texture::Mipmap::Provided,
-            &[&col_lights /* .raw_pixels() */],
+            &[&col_lights],
             gfx::texture::SamplerInfo::new(
                 gfx::texture::FilterMethod::Bilinear,
                 gfx::texture::WrapMode::Clamp,

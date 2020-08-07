@@ -936,45 +936,49 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                             .unwrap_or_else(<Skel::Attr as Default>::default);
 
                         let manifest_indicator = &mut self.manifest_indicator;
-                        let mut make_model = |generate_mesh: for<'a> fn(&mut GreedyMesh<'a>, _, _) -> _| {
-                            let mut greedy = FigureModel::make_greedy();
-                            let mut opaque = Mesh::new();
-                            let mut figure_bounds = Aabb {
-                                min: Vec3::zero(),
-                                max: Vec3::zero(),
+                        let mut make_model =
+                            |generate_mesh: for<'a> fn(&mut GreedyMesh<'a>, _, _) -> _| {
+                                let mut greedy = FigureModel::make_greedy();
+                                let mut opaque = Mesh::new();
+                                let mut figure_bounds = Aabb {
+                                    min: Vec3::zero(),
+                                    max: Vec3::zero(),
+                                };
+                                Self::bone_meshes(
+                                    body,
+                                    loadout,
+                                    character_state,
+                                    camera_mode,
+                                    manifest_indicator,
+                                    |segment, offset| generate_mesh(&mut greedy, segment, offset),
+                                )
+                                .iter()
+                                .enumerate()
+                                .filter_map(|(i, bm)| bm.as_ref().map(|bm| (i, bm)))
+                                .for_each(
+                                    |(i, (opaque_mesh, bounds))| {
+                                        opaque.push_mesh_map(opaque_mesh, |vert| {
+                                            vert.with_bone_idx(i as u8)
+                                        });
+                                        figure_bounds.expand_to_contain(*bounds);
+                                    },
+                                );
+                                col_lights
+                                    .create_figure(renderer, greedy, (opaque, figure_bounds))
+                                    .unwrap()
                             };
-                            // let mut shadow = Mesh::new();
-                            Self::bone_meshes(
-                                body,
-                                loadout,
-                                character_state,
-                                camera_mode,
-                                manifest_indicator,
-                                |segment, offset| generate_mesh(&mut greedy, segment, offset),
-                            )
-                            .iter()
-                            // .zip(&mut figure_bounds)
-                            .enumerate()
-                            .filter_map(|(i, bm)| bm.as_ref().map(|bm| (i, bm)))
-                            .for_each(|(i, (opaque_mesh/*, shadow_mesh*/, bounds)/*, bone_bounds*/)| {
-                                // opaque.push_mesh_map(opaque_mesh, |vert| vert.with_bone_idx(i as u8));
-                                opaque.push_mesh_map(opaque_mesh, |vert| vert.with_bone_idx(i as u8));
-                                figure_bounds.expand_to_contain(*bounds);
-                                // shadow.push_mesh_map(shadow_mesh, |vert| vert.with_bone_idx(i as u8));
-                            });
-                            col_lights.create_figure(renderer, greedy, (opaque/*, shadow*/, figure_bounds)).unwrap()
-                        };
 
                         fn generate_mesh<'a>(
                             greedy: &mut GreedyMesh<'a>,
                             segment: Segment,
                             offset: Vec3<f32>,
                         ) -> BoneMeshes {
-                            let (opaque, _, /*shadow*/_, bounds) = Meshable::<FigurePipeline, &mut GreedyMesh>::generate_mesh(
-                                segment,
-                                (greedy, offset, Vec3::one()),
-                            );
-                            (opaque/*, shadow*/, bounds)
+                            let (opaque, _, _, bounds) =
+                                Meshable::<FigurePipeline, &mut GreedyMesh>::generate_mesh(
+                                    segment,
+                                    (greedy, offset, Vec3::one()),
+                                );
+                            (opaque, bounds)
                         }
 
                         fn generate_mesh_lod_mid<'a>(
@@ -983,11 +987,12 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                             offset: Vec3<f32>,
                         ) -> BoneMeshes {
                             let lod_scale = Vec3::broadcast(0.6);
-                            let (opaque, _, /*shadow*/_, bounds) = Meshable::<FigurePipeline, &mut GreedyMesh>::generate_mesh(
-                                segment.scaled_by(lod_scale),
-                                (greedy, offset * lod_scale, Vec3::one() / lod_scale),
-                            );
-                            (opaque/*, shadow*/, bounds)
+                            let (opaque, _, _, bounds) =
+                                Meshable::<FigurePipeline, &mut GreedyMesh>::generate_mesh(
+                                    segment.scaled_by(lod_scale),
+                                    (greedy, offset * lod_scale, Vec3::one() / lod_scale),
+                                );
+                            (opaque, bounds)
                         }
 
                         fn generate_mesh_lod_low<'a>(
@@ -997,11 +1002,12 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         ) -> BoneMeshes {
                             let lod_scale = Vec3::broadcast(0.3);
                             let segment = segment.scaled_by(lod_scale);
-                            let (opaque, _, /*shadow*/_, bounds) = Meshable::<FigurePipeline, &mut GreedyMesh>::generate_mesh(
-                                segment,
-                                (greedy, offset * lod_scale, Vec3::one() / lod_scale),
-                            );
-                            (opaque/*, shadow*/, bounds)
+                            let (opaque, _, _, bounds) =
+                                Meshable::<FigurePipeline, &mut GreedyMesh>::generate_mesh(
+                                    segment,
+                                    (greedy, offset * lod_scale, Vec3::one() / lod_scale),
+                                );
+                            (opaque, bounds)
                         }
 
                         (

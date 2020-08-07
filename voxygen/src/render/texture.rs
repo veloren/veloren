@@ -139,8 +139,6 @@ where
             )
             .map_err(|err| RenderError::CombinedError(gfx::CombinedError::Texture(err)))?;
 
-        // device.cleanup();
-
         let srv = factory
             .view_texture_as_shader_resource::<F>(&tex, levels, swizzle)
             .map_err(|err| RenderError::CombinedError(gfx::CombinedError::Resource(err)))?;

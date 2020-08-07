@@ -233,10 +233,7 @@ impl Client {
                                 map_size_lg,
                                 core::ops::RangeInclusive::new(0.0, max_height),
                             );
-                            // map_config.gain = max_height;
                             map_config.horizons = Some(&horizons);
-                            // map_config.light_direction = Vec3::new(1.0, -1.0, 0.0);
-                            // map_config.focus.z = 0.0;
                             let rescale_height = |h: f32| h / max_height;
                             let bounds_check = |pos: Vec2<i32>| {
                                 pos.reduce_partial_min() >= 0
@@ -308,8 +305,7 @@ impl Client {
                                 },
                             );
                             let make_raw = |rgba| -> Result<_, Error> {
-                                let mut raw =
-                                    vec![0u8; 4 * world_map.len()/*map_size.x * map_size.y*/];
+                                let mut raw = vec![0u8; 4 * world_map.len()];
                                 LittleEndian::write_u32_into(rgba, &mut raw);
                                 Ok(Arc::new(
                                     image::DynamicImage::ImageRgba8({
@@ -323,15 +319,14 @@ impl Client {
                             .flipv(),
                                 ))
                             };
-                            let lod_base = rgba; //make_raw(&rgba)?;
-                            let lod_alt = alt; //make_raw(&alt)?;
+                            let lod_base = rgba;
+                            let lod_alt = alt;
                             let world_map = make_raw(&world_map)?;
                             let horizons = (west.0, west.1, east.0, east.1)
                                 .into_par_iter()
                                 .map(|(wa, wh, ea, eh)| u32::from_le_bytes([wa, wh, ea, eh]))
                                 .collect::<Vec<_>>();
-                            let lod_horizon = horizons; //make_raw(&horizons)?;
-                            // TODO: Get sea_level from server.
+                            let lod_horizon = horizons;
                             let map_bounds = Vec2::new(sea_level, max_height);
                             debug!("Done preparing image...");
 

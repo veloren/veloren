@@ -157,7 +157,7 @@ impl MapSizeLg {
     #[inline(always)]
     pub const fn new(map_size_lg: Vec2<u32>) -> Result<Self, ()> {
         // Assertion on dimensions: must be between
-        // 0 and MAX_WORLD_BLOCKS_LG] - [TERRAIN_CHUNK_BLOCKS_LG
+        // 0 and ([MAX_WORLD_BLOCKS_LG] - [TERRAIN_CHUNK_BLOCKS_LG])
         let is_le_max = map_size_lg.x <= MAX_WORLD_BLOCKS_LG.x - TERRAIN_CHUNK_BLOCKS_LG
             && map_size_lg.y <= MAX_WORLD_BLOCKS_LG.y - TERRAIN_CHUNK_BLOCKS_LG;
         // Assertion on dimensions: chunks must fit in a u16.
@@ -667,14 +667,12 @@ impl<'a> MapConfig<'a> {
                 let i_a = Rgb::new(0.1, 0.1, 0.1);
                 //  V = direction pointing towards the viewer (e.g. virtual camera).
                 let v = Vec3::new(0.0, 0.0, -1.0).normalized();
-                // let v = Vec3::new(0.0, -1.0, 0.0).normalized();
-                //
+
                 // for each light m,
                 //  i_m,d = (RGB) intensity of diffuse component of light source m
                 let i_m_d = Rgb::new(1.0, 1.0, 1.0);
                 //  i_m,s = (RGB) intensity of specular component of light source m
                 let i_m_s = Rgb::new(0.45, 0.45, 0.45);
-                // let i_m_s = Rgb::new(0.45, 0.45, 0.45);
 
                 // for each light m and point p,
                 //  L_m = (normalized) direction vector from point on surface to light source m

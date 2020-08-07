@@ -12,7 +12,6 @@ use vek::*;
 gfx_defines! {
     vertex Vertex {
         pos: [f32; 3] = "v_pos",
-        // pos_norm: u32 = "v_pos_norm",
         // Because we try to restrict terrain sprite data to a 128×128 block
         // we need an offset into the texture atlas.
         atlas_pos: u32 = "v_atlas_pos",
@@ -40,21 +39,17 @@ gfx_defines! {
         inst_mat1: [f32; 4] = "inst_mat1",
         inst_mat2: [f32; 4] = "inst_mat2",
         inst_mat3: [f32; 4] = "inst_mat3",
-        // inst_mat: [[f32; 4]; 4] = "inst_mat",
-        // inst_col: [f32; 3] = "inst_col",
         inst_wind_sway: f32 = "inst_wind_sway",
     }
 
     pipeline pipe {
         vbuf: gfx::VertexBuffer<Vertex> = (),
         ibuf: gfx::InstanceBuffer<Instance> = (),
-        // ibuf: gfx::/*handle::RawBuffer*/ConstantBuffer<Instance> = "u_ibuf",
         col_lights: gfx::TextureSampler<[f32; 4]> = "t_col_light",
 
         locals: gfx::ConstantBuffer<Locals> = "u_locals",
         // A sprite instance is a cross between a sprite and a terrain chunk.
         terrain_locals: gfx::ConstantBuffer<terrain::Locals> = "u_terrain_locals",
-        // locals: gfx::ConstantBuffer<terrain::Locals> = "u_locals",
         globals: gfx::ConstantBuffer<Globals> = "u_globals",
         lights: gfx::ConstantBuffer<Light> = "u_lights",
         shadows: gfx::ConstantBuffer<Shadow> = "u_shadows",
@@ -113,24 +108,16 @@ impl Vertex {
             //     | if meta { 1 } else { 0 } << 28
             //     | (norm_bits & 0x7) << 29,
             pos: pos.into_array(),
-            /* col: col
-            .map2(Rgb::new(0, 8, 16), |e, shift| ((e * 255.0) as u32) << shift)
-            .reduce_bitor(), */
             atlas_pos: 0
                 | ((atlas_pos.x as u32) & 0xFFFF) << 0
-                | ((atlas_pos.y as u32) & 0xFFFF) << 16, /* | axis_bits & 3 */
-            norm_ao: norm_bits, /* | (((ao * 3.9999) as u32) << 3) */
+                | ((atlas_pos.y as u32) & 0xFFFF) << 16,
+            norm_ao: norm_bits,
         }
     }
 }
 
 impl Instance {
-    pub fn new(
-        mat: Mat4<f32>,
-        /* col: Rgb<f32>, */ wind_sway: f32,
-        pos: Vec3<i32>,
-        ori_bits: u8,
-    ) -> Self {
+    pub fn new(mat: Mat4<f32>, wind_sway: f32, pos: Vec3<i32>, ori_bits: u8) -> Self {
         const EXTRA_NEG_Z: i32 = 32768;
 
         let mat_arr = mat.into_col_arrays();
@@ -138,29 +125,19 @@ impl Instance {
             pos_ori: 0
                 | ((pos.x as u32) & 0x003F) << 0
                 | ((pos.y as u32) & 0x003F) << 6
-                | (((pos + EXTRA_NEG_Z).z.max(0).min(1 << 16/* as f32*/) as u32) & 0xFFFF) << 12
-                // | if meta { 1 } else { 0 } << 28
+                | (((pos + EXTRA_NEG_Z).z.max(0).min(1 << 16) as u32) & 0xFFFF) << 12
                 | (u32::from(ori_bits) & 0x7) << 29,
             inst_mat0: mat_arr[0],
             inst_mat1: mat_arr[1],
             inst_mat2: mat_arr[2],
             inst_mat3: mat_arr[3],
-            // inst_mat: mat_arr,
-            // inst_col: col.into_array(),
             inst_wind_sway: wind_sway,
         }
     }
 }
 
 impl Default for Instance {
-    fn default() -> Self {
-        Self::new(
-            Mat4::identity(),
-            /* Rgb::broadcast(1.0), */ 0.0,
-            Vec3::zero(),
-            0,
-        )
-    }
+    fn default() -> Self { Self::new(Mat4::identity(), 0.0, Vec3::zero(), 0) }
 }
 
 impl Default for Locals {

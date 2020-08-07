@@ -4,7 +4,6 @@ use std::iter::FromIterator;
 /// A `Vec`-based mesh structure used to store mesh data on the CPU.
 pub struct Mesh<P: Pipeline> {
     verts: Vec<P::Vertex>,
-    // textures: Vec<>
 }
 
 impl<P: Pipeline> Clone for Mesh<P>

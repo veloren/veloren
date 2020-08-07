@@ -2,8 +2,8 @@ use crate::{
     mesh::{greedy::GreedyMesh, Meshable},
     render::{
         create_pp_mesh, create_skybox_mesh, BoneMeshes, Consts, FigureModel, FigurePipeline,
-        Globals, Light, Model, PostProcessLocals, PostProcessPipeline, Renderer, Shadow,
-        ShadowLocals, SkyboxLocals, SkyboxPipeline,
+        GlobalModel, Globals, Light, Model, PostProcessLocals, PostProcessPipeline, Renderer,
+        Shadow, ShadowLocals, SkyboxLocals, SkyboxPipeline,
     },
     scene::{
         camera::{self, Camera, CameraMode},
@@ -68,10 +68,7 @@ struct PostProcess {
 }
 
 pub struct Scene {
-    globals: Consts<Globals>,
-    lights: Consts<Light>,
-    shadows: Consts<Shadow>,
-    shadow_mats: Consts<ShadowLocals>,
+    data: GlobalModel,
     camera: Camera,
 
     skybox: Skybox,
@@ -105,18 +102,8 @@ impl Scene {
 
         let map_bounds = Vec2::new(-65536.0, 131071.0);
         let map_border = [0.0, 0.0, 0.0, 0.0];
-        /* let map_image = image::DynamicImage::ImageRgba8(image::RgbaImage::from_pixel(
-            1,
-            1,
-            image::Rgba([0, 0, 0, 0]),
-        )); */
         let map_image = [0];
         let alt_image = [0];
-        /* let horizon_image = image::DynamicImage::ImageRgba8(image::RgbaImage::from_pixel(
-            1,
-            1,
-            image::Rgba([0, 1, 0, 1]),
-        )); */
         let horizon_image = [0x_00_01_00_01];
 
         let mut camera = Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson);
@@ -127,10 +114,14 @@ impl Scene {
         let mut col_lights = FigureColLights::new(renderer);
 
         Self {
-            globals: renderer.create_consts(&[Globals::default()]).unwrap(),
-            lights: renderer.create_consts(&[Light::default(); 32]).unwrap(),
-            shadows: renderer.create_consts(&[Shadow::default(); 32]).unwrap(),
-            shadow_mats: renderer.create_consts(&[ShadowLocals::default(); 6]).unwrap(),
+            data: GlobalModel {
+                globals: renderer.create_consts(&[Globals::default()]).unwrap(),
+                lights: renderer.create_consts(&[Light::default(); 32]).unwrap(),
+                shadows: renderer.create_consts(&[Shadow::default(); 32]).unwrap(),
+                shadow_mats: renderer
+                    .create_consts(&[ShadowLocals::default(); 6])
+                    .unwrap(),
+            },
 
             skybox: Skybox {
                 model: renderer.create_model(&create_skybox_mesh()).unwrap(),
@@ -142,8 +133,16 @@ impl Scene {
                     .create_consts(&[PostProcessLocals::default()])
                     .unwrap(),
             },
-            lod: LodData::new(renderer, Vec2::new(1, 1), &map_image, &alt_image, &horizon_image, 1, map_border.into()),// Lod::new(renderer, client, settings),
-            map_bounds,//: client.world_map.2,
+            lod: LodData::new(
+                renderer,
+                Vec2::new(1, 1),
+                &map_image,
+                &alt_image,
+                &horizon_image,
+                1,
+                map_border.into(),
+            ),
+            map_bounds,
 
             figure_model_cache: FigureModelCache::new(),
             figure_state: FigureState::new(renderer, CharacterSkeleton::default()),
@@ -173,21 +172,18 @@ impl Scene {
                     &camera,
                     &mut buf,
                 );
-                (
-                    model,
-                    state,
-                )
+                (model, state)
             }),
             col_lights,
 
             camera,
 
             turning: false,
-            char_ori: /*0.0*/-start_angle,
+            char_ori: -start_angle,
         }
     }
 
-    pub fn globals(&self) -> &Consts<Globals> { &self.globals }
+    pub fn globals(&self) -> &Consts<Globals> { &self.data.globals }
 
     pub fn camera_mut(&mut self) -> &mut Camera { &mut self.camera }
 
@@ -234,19 +230,18 @@ impl Scene {
             cam_pos,
         } = self.camera.dependents();
         const VD: f32 = 115.0; // View Distance
-        // const MAP_BOUNDS: Vec2<f32> = Vec2::new(140.0, 2048.0);
-        const TIME: f64 = 10.0 * 60.0 * 60.0; //43200.0; // 12 hours*3600 seconds
+        const TIME: f64 = 10.0 * 60.0 * 60.0;
         const SHADOW_NEAR: f32 = 1.0;
         const SHADOW_FAR: f32 = 25.0;
 
-        if let Err(e) = renderer.update_consts(&mut self.globals, &[Globals::new(
+        if let Err(e) = renderer.update_consts(&mut self.data.globals, &[Globals::new(
             view_mat,
             proj_mat,
             cam_pos,
             self.camera.get_focus_pos(),
             VD,
             self.lod.tgt_detail as f32,
-            self.map_bounds, //MAP_BOUNDS,
+            self.map_bounds,
             TIME,
             scene_data.time,
             renderer.get_resolution(),
@@ -338,10 +333,9 @@ impl Scene {
     ) {
         renderer.render_skybox(
             &self.skybox.model,
-            &self.globals,
+            &self.data,
             &self.skybox.locals,
-            &self.lod.alt,
-            &self.lod.horizon,
+            &self.lod,
         );
 
         if let Some(body) = body {
@@ -361,14 +355,10 @@ impl Scene {
             renderer.render_figure(
                 &model[0],
                 &self.col_lights.texture(),
-                &self.globals,
+                &self.data,
                 self.figure_state.locals(),
                 self.figure_state.bone_consts(),
-                &self.lights,
-                &self.shadows,
-                &self.shadow_mats,
-                &self.lod.alt,
-                &self.lod.horizon,
+                &self.lod,
             );
         }
 
@@ -376,20 +366,16 @@ impl Scene {
             renderer.render_figure(
                 model,
                 &self.col_lights.texture(),
-                &self.globals,
+                &self.data,
                 state.locals(),
                 state.bone_consts(),
-                &self.lights,
-                &self.shadows,
-                &self.shadow_mats,
-                &self.lod.alt,
-                &self.lod.horizon,
+                &self.lod,
             );
         }
 
         renderer.render_post_process(
             &self.postprocess.model,
-            &self.globals,
+            &self.data.globals,
             &self.postprocess.locals,
         );
     }

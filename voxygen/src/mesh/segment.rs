@@ -1,7 +1,7 @@
 use crate::{
     mesh::{
         greedy::{self, GreedyConfig, GreedyMesh},
-        Meshable,
+        MeshGen, Meshable,
     },
     render::{self, FigurePipeline, Mesh, ShadowPipeline, SpritePipeline, TerrainPipeline},
 };
@@ -32,12 +32,7 @@ where
     fn generate_mesh(
         self,
         (greedy, offs, scale): Self::Supplement,
-    ) -> (
-        Mesh<Self::Pipeline>,
-        Mesh<Self::TranslucentPipeline>,
-        Mesh<Self::ShadowPipeline>,
-        Self::Result,
-    ) {
+    ) -> MeshGen<FigurePipeline, &'b mut GreedyMesh<'a>, Self> {
         let max_size = greedy.max_size();
         // NOTE: Required because we steal two bits from the normal in the shadow uint
         // in order to store the bone index.  The two bits are instead taken out
@@ -114,7 +109,7 @@ where
     }
 }
 
-impl<'a: 'b, 'b, V: 'a> Meshable<SpritePipeline, /* SpritePipeline */ &'b mut GreedyMesh<'a>> for V
+impl<'a: 'b, 'b, V: 'a> Meshable<SpritePipeline, &'b mut GreedyMesh<'a>> for V
 where
     V: BaseVol<Vox = Cell> + ReadVol + SizedVol,
     /* TODO: Use VolIterator instead of manually iterating
@@ -132,12 +127,7 @@ where
     fn generate_mesh(
         self,
         (greedy, vertical_stripes): Self::Supplement,
-    ) -> (
-        Mesh<Self::Pipeline>,
-        Mesh<Self::TranslucentPipeline>,
-        Mesh<Self::ShadowPipeline>,
-        (),
-    ) {
+    ) -> MeshGen<SpritePipeline, &'b mut GreedyMesh<'a>, Self> {
         let max_size = greedy.max_size();
         // NOTE: Required because we steal two bits from the normal in the shadow uint
         // in order to store the bone index.  The two bits are instead taken out
@@ -182,15 +172,8 @@ where
                 vol.get(vox).map(|vox| *vox).unwrap_or(Vox::empty())
             })
         };
-        // NOTE: Conversion to f32 is fine since this i32 is actually in bounds for u16.
-        // let create_shadow = |pos, norm, _meta| ShadowVertex::new_figure((pos + offs)
-        // * scale, norm, 0);
-        let create_opaque = |atlas_pos, pos: Vec3<f32>, norm, _meta| {
-            /* if pos.x >= 15.0 || pos.y >= 15.0 || pos.z >= 63.0 {
-                println!("{:?}", pos);
-            } */
-            SpriteVertex::new(atlas_pos, pos, norm /* , ao */)
-        };
+        let create_opaque =
+            |atlas_pos, pos: Vec3<f32>, norm, _meta| SpriteVertex::new(atlas_pos, pos, norm);
 
         let mut opaque_mesh = Mesh::new();
         let _bounds = greedy.push(GreedyConfig {
@@ -224,10 +207,8 @@ fn should_draw_greedy(
     _uv: Vec2<Vec3<i32>>,
     flat_get: impl Fn(Vec3<i32>) -> Cell,
 ) -> Option<(bool, /* u8 */ ())> {
-    // TODO: Verify conversion.
-    // let pos = pos.map(|e| e as i32) + draw_delta; // - delta;
-    let from = flat_get(pos - delta); // map(|v| v.is_opaque()).unwrap_or(false);
-    let to = flat_get(pos); //map(|v| v.is_opaque()).unwrap_or(false);
+    let from = flat_get(pos - delta);
+    let to = flat_get(pos);
     let from_opaque = !from.is_empty();
     if from_opaque == !to.is_empty() {
         None
@@ -244,52 +225,17 @@ fn should_draw_greedy_ao(
     delta: Vec3<i32>,
     _uv: Vec2<Vec3<i32>>,
     flat_get: impl Fn(Vec3<i32>) -> Cell,
-) -> Option<(bool, /* u8 */ bool)> {
-    // TODO: Verify conversion.
-    // let pos = pos.map(|e| e as i32) + draw_delta; // - delta;
-    let from = flat_get(pos - delta); // map(|v| v.is_opaque()).unwrap_or(false);
-    let to = flat_get(pos); //map(|v| v.is_opaque()).unwrap_or(false);
+) -> Option<(bool, bool)> {
+    let from = flat_get(pos - delta);
+    let to = flat_get(pos);
     let from_opaque = !from.is_empty();
     if from_opaque == !to.is_empty() {
         None
     } else {
         let faces_forward = from_opaque;
-        let ao = /* if delta.z != 0 {
-            0u8
-        } else {
-            (pos.z & 1) as u8
-            // (((pos.x & 1) as u8) << 1) | (pos.y & 1) as u8
-        }*/!vertical_stripes || /*((pos.x & 1) ^ (pos.y & 1))*/(pos.z & 1) != 0/* as u8*/;
-        /* let (from, delta, uv) = if faces_forward {
-            (pos - delta - uv.x - uv.y, delta, uv)
-        } else {
-            (pos, -delta, Vec2::new(-uv.y, -uv.x))
-        };
-        let ao_vertex = |from: Vec3<i32>, delta: Vec3<i32>, uv: Vec2<Vec3<i32>>| {
-            let corner = !flat_get(from + delta - uv.x - uv.y).is_empty();
-            let s1 = !flat_get(from + delta - uv.x).is_empty();
-            let s2 = !flat_get(from + delta - uv.y).is_empty();
-            if s1 && s2 {
-                0
-            } else {
-                3 - (if corner { 1 } else { 0 } + if s1 { 1 } else { 0 } + if s2 { 1 } else { 0 })
-            }
-        };
-        // We only care about the vertices we are *not* merging, since the shared vertices
-        // by definition have the same AO values.  But snce we go both down and right we end up
-        // needing all but the bottom right vertex.
-        let ao_corner = ao_vertex(from, delta, uv);
-        let ao1 = ao_vertex(from + uv.x, delta, uv);
-        let ao2 = ao_vertex(from + uv.y, delta, uv);
-        let ao3 = ao_vertex(from + uv.x + uv.y, delta, uv);
-        // NOTE: ao's 4 values correspond (from 0 to 3) to 0.25, 0.5, 0.75, 1.0.
-        //
-        // 0.0 is the None case.
-        let ao = (ao_corner << 6) | (ao1 << 4) | (ao2 << 2) | ao3; */
-        // let ao = ao_vertex(from, delta, uv);
+        let ao = !vertical_stripes || (pos.z & 1) != 0;
         // If going from transparent to opaque, backward facing; otherwise, forward
         // facing.
         Some((faces_forward, ao))
-        // Some((faces_forward, ()))
     }
 }

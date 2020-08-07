@@ -8,6 +8,7 @@ pub mod sprite;
 pub mod terrain;
 pub mod ui;
 
+use super::Consts;
 use crate::scene::camera::CameraMode;
 use common::terrain::BlockKind;
 use gfx::{self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta};
@@ -25,9 +26,6 @@ gfx_defines! {
         cam_pos: [f32; 4] = "cam_pos",
         focus_off: [f32; 4] = "focus_off",
         focus_pos: [f32; 4] = "focus_pos",
-        /// NOTE: max_intensity is computed as the ratio between the brightest and least bright
-        /// intensities among all lights in the scene.
-        // hdr_ratio: [f32; 4] = "max_intensity",
         /// NOTE: view_distance.x is the horizontal view distance, view_distance.y is the LOD
         /// detail, view_distance.z is the
         /// minimum height over any land chunk (i.e. the sea level), and view_distance.w is the
@@ -54,7 +52,6 @@ gfx_defines! {
     constant Light {
         pos: [f32; 4] = "light_pos",
         col: [f32; 4] = "light_col",
-        // proj: [[f32; 4]; 4] = "light_proj";
     }
 
     constant Shadow {
@@ -200,4 +197,12 @@ impl Shadow {
 
 impl Default for Shadow {
     fn default() -> Self { Self::new(Vec3::zero(), 0.0) }
+}
+
+// Global scene data spread across several arrays.
+pub struct GlobalModel {
+    pub globals: Consts<Globals>,
+    pub lights: Consts<Light>,
+    pub shadows: Consts<Shadow>,
+    pub shadow_mats: Consts<shadow::Locals>,
 }
