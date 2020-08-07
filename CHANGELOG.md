@@ -79,6 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bow M2 is now a charged attack that scales the longer it's held
 - Fixed window resizing on Mac OS X.
 - Dehardcoded many item variants
+- Tooltips avoid the mouse better and disappear when hovered
 
 ### Removed
 
