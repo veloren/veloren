@@ -584,7 +584,7 @@ impl FigureMgr {
                         physics.in_fluid,                                 // In water
                     ) {
                         // Standing
-                        (true, false, _) => anim::character::StandAnimation::update_skeleton(
+                        (true, false, false) => anim::character::StandAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (
                                 active_tool_kind.clone(),
