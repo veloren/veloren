@@ -350,15 +350,27 @@ impl Tool {
             ],
             NpcWeapon(kind) => {
                 if kind == "CyclopsHammer" {
-                    vec![BasicMelee {
-                        energy_cost: 0,
-                        buildup_duration: Duration::from_millis(0),
-                        recover_duration: Duration::from_millis(300),
-                        knockback: 20.0,
-                        base_healthchange: -200,
-                        range: 10.0,
-                        max_angle: 120.0,
-                    }]
+                    vec![
+                        BasicMelee {
+                            energy_cost: 0,
+                            buildup_duration: Duration::from_millis(0),
+                            recover_duration: Duration::from_millis(300),
+                            knockback: 20.0,
+                            base_healthchange: -200,
+                            range: 10.0,
+                            max_angle: 120.0,
+                        },
+                        GroundShockwave {
+                            energy_cost: 0,
+                            buildup_duration: Duration::from_millis(1000),
+                            recover_duration: Duration::from_millis(2000),
+                            damage: 300,
+                            knockback: -30.0,
+                            shockwave_angle: 15.0,
+                            shockwave_speed: 10.0,
+                            shockwave_duration: Duration::from_millis(3000),
+                        },
+                    ]
                 } else {
                     vec![BasicMelee {
                         energy_cost: 0,

@@ -24,6 +24,7 @@ pub enum CharacterAbilityType {
     TripleStrike(Stage),
     LeapMelee,
     SpinMelee,
+    GroundShockwave,
 }
 
 impl From<&CharacterState> for CharacterAbilityType {
@@ -38,6 +39,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::TripleStrike(data) => Self::TripleStrike(data.stage),
             CharacterState::SpinMelee(_) => Self::SpinMelee,
             CharacterState::ChargedRanged(_) => Self::ChargedRanged,
+            CharacterState::GroundShockwave(_) => Self::ChargedRanged,
             _ => Self::BasicMelee,
         }
     }
@@ -110,6 +112,16 @@ pub enum CharacterAbility {
         initial_projectile_speed: f32,
         max_projectile_speed: f32,
     },
+    GroundShockwave {
+        energy_cost: u32,
+        buildup_duration: Duration,
+        recover_duration: Duration,
+        damage: u32,
+        knockback: f32,
+        shockwave_angle: f32,
+        shockwave_speed: f32,
+        shockwave_duration: Duration,
+    },
 }
 
 impl CharacterAbility {
@@ -152,6 +164,10 @@ impl CharacterAbility {
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
             CharacterAbility::ChargedRanged { energy_cost, .. } => update
+                .energy
+                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                .is_ok(),
+            CharacterAbility::GroundShockwave { energy_cost, .. } => update
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
@@ -391,6 +407,25 @@ impl From<&CharacterAbility> for CharacterState {
                 projectile_gravity: *projectile_gravity,
                 initial_projectile_speed: *initial_projectile_speed,
                 max_projectile_speed: *max_projectile_speed,
+            }),
+            CharacterAbility::GroundShockwave {
+                energy_cost: _,
+                buildup_duration,
+                recover_duration,
+                damage,
+                knockback,
+                shockwave_angle,
+                shockwave_speed,
+                shockwave_duration,
+            } => CharacterState::GroundShockwave(ground_shockwave::Data {
+                exhausted: false,
+                buildup_duration: *buildup_duration,
+                recover_duration: *recover_duration,
+                damage: *damage,
+                knockback: *knockback,
+                shockwave_angle: *shockwave_angle,
+                shockwave_speed: *shockwave_speed,
+                shockwave_duration: *shockwave_duration,
             }),
         }
     }
