@@ -33,9 +33,10 @@ impl Animation for SwimAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
         let avgspeed = Vec2::<f32>::from(avg_vel).magnitude();
-        let avgtotal = Vec3::<f32>::from(avg_vel).magnitude();
 
-        let speed = Vec3::<f32>::from(velocity).magnitude();
+        let avgtotal = avg_vel.magnitude();
+
+        let speed = velocity.magnitude();
         *rate = 1.0;
         let tempo = if speed > 0.5 { 1.5 } else { 0.7 };
         let intensity = if speed > 0.5 { 1.0 } else { 0.3 };
@@ -96,12 +97,12 @@ impl Animation for SwimAnimation {
             skeleton_attr.head.1 - 1.0 + short * 0.3,
         );
         next.head.ori =
-            Quaternion::rotation_z(head_look.x * 0.5 + short * -0.2 * intensity + tilt * 3.0)
+            Quaternion::rotation_z(head_look.x * 0.3 + short * -0.2 * intensity + tilt * 3.0)
                 * Quaternion::rotation_x(
                     (0.4 * head_look.y * (1.0 / intensity)).abs()
                         + 0.45 * intensity
                         + velocity.z * 0.03
-                        - (abstilt * 1.8),
+                        - (abstilt * 1.8).min(0.0),
                 );
         next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
@@ -230,11 +231,12 @@ impl Animation for SwimAnimation {
         } else {
             avgtotal
         };
-        next.torso.offset = Vec3::new(0.0, 0.0, 1.0) * skeleton_attr.scaler;
+        next.torso.offset = Vec3::new(0.0, 0.0, 1.0 - avgspeed * 0.05) * skeleton_attr.scaler;
         next.torso.ori = Quaternion::rotation_x(
             (((1.0 / switch) * PI / 2.0 + avg_vel.z * 0.12).min(1.57) - PI / 2.0)
                 + avgspeed * avg_vel.z * -0.003,
-        ) * Quaternion::rotation_z(tilt * 8.0);
+        ) * Quaternion::rotation_y(tilt * 8.0)
+            * Quaternion::rotation_z(tilt * 8.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
         next.control.scale = Vec3::one(); //avgspeed*-0.14*reverse + 
