@@ -70,6 +70,7 @@ pub struct Scene {
 pub struct SceneData<'a> {
     pub state: &'a State,
     pub player_entity: specs::Entity,
+    pub target_entity: Option<specs::Entity>,
     pub loaded_distance: f32,
     pub view_distance: u32,
     pub tick: u64,

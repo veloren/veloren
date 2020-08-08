@@ -48,6 +48,13 @@ pub struct CharacterInfo {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum InviteAnswer {
+    Accepted,
+    Declined,
+    TimedOut,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Notification {
     WaypointSaved,
 }
@@ -59,6 +66,7 @@ pub enum ServerMsg {
         entity_package: sync::EntityPackage<EcsCompPacket>,
         server_info: ServerInfo,
         time_of_day: state::TimeOfDay,
+        max_group_size: u32,
         world_map: (Vec2<u32>, Vec<u32>),
         recipe_book: RecipeBook,
     },
@@ -69,6 +77,22 @@ pub enum ServerMsg {
     /// An error occured while creating or deleting a character
     CharacterActionError(String),
     PlayerListUpdate(PlayerListUpdate),
+    GroupUpdate(comp::group::ChangeNotification<sync::Uid>),
+    // Indicate to the client that they are invited to join a group
+    GroupInvite {
+        inviter: sync::Uid,
+        timeout: std::time::Duration,
+    },
+    // Indicate to the client that their sent invite was not invalid and is currently pending
+    InvitePending(sync::Uid),
+    // Note: this could potentially include all the failure cases such as inviting yourself in
+    // which case the `InvitePending` message could be removed and the client could consider their
+    // invite pending until they receive this message
+    // Indicate to the client the result of their invite
+    InviteComplete {
+        target: sync::Uid,
+        answer: InviteAnswer,
+    },
     StateAnswer(Result<ClientState, (RequestStateError, ClientState)>),
     /// Trigger cleanup for when the client goes back to the `Registered` state
     /// from an ingame state

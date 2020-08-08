@@ -1,4 +1,5 @@
 pub mod entity_sync;
+pub mod invite_timeout;
 pub mod message;
 pub mod object;
 pub mod persistence;
@@ -21,6 +22,7 @@ pub type SubscriptionTimer = SysTimer<subscription::Sys>;
 pub type TerrainTimer = SysTimer<terrain::Sys>;
 pub type TerrainSyncTimer = SysTimer<terrain_sync::Sys>;
 pub type WaypointTimer = SysTimer<waypoint::Sys>;
+pub type InviteTimeoutTimer = SysTimer<invite_timeout::Sys>;
 pub type PersistenceTimer = SysTimer<persistence::Sys>;
 pub type PersistenceScheduler = SysScheduler<persistence::Sys>;
 
@@ -32,12 +34,14 @@ pub type PersistenceScheduler = SysScheduler<persistence::Sys>;
 //const TERRAIN_SYNC_SYS: &str = "server_terrain_sync_sys";
 const TERRAIN_SYS: &str = "server_terrain_sys";
 const WAYPOINT_SYS: &str = "server_waypoint_sys";
+const INVITE_TIMEOUT_SYS: &str = "server_invite_timeout_sys";
 const PERSISTENCE_SYS: &str = "server_persistence_sys";
 const OBJECT_SYS: &str = "server_object_sys";
 
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(terrain::Sys, TERRAIN_SYS, &[]);
     dispatch_builder.add(waypoint::Sys, WAYPOINT_SYS, &[]);
+    dispatch_builder.add(invite_timeout::Sys, INVITE_TIMEOUT_SYS, &[]);
     dispatch_builder.add(persistence::Sys, PERSISTENCE_SYS, &[]);
     dispatch_builder.add(object::Sys, OBJECT_SYS, &[]);
 }

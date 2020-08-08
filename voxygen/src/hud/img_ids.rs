@@ -59,14 +59,19 @@ image_ids! {
         selection_press: "voxygen.element.frames.selection_press",
 
         // Social Window
-        social_button: "voxygen.element.buttons.social_tab",
-        social_button_pressed: "voxygen.element.buttons.social_tab_pressed",
-        social_button_hover: "voxygen.element.buttons.social_tab_hover",
-        social_button_press: "voxygen.element.buttons.social_tab_press",
-        social_frame: "voxygen.element.frames.social_frame",
+        social_frame_on: "voxygen.element.misc_bg.social_frame",
+        social_bg_on: "voxygen.element.misc_bg.social_bg",
+        social_frame_friends: "voxygen.element.misc_bg.social_frame",
+        social_bg_friends: "voxygen.element.misc_bg.social_bg",
+        social_frame_fact: "voxygen.element.misc_bg.social_frame",
+        social_bg_fact: "voxygen.element.misc_bg.social_bg",
+        social_tab_act: "voxygen.element.buttons.social_tab_active",
+        social_tab_online: "voxygen.element.misc_bg.social_tab_online",
+        social_tab_inact: "voxygen.element.buttons.social_tab_inactive",
+        social_tab_inact_hover: "voxygen.element.buttons.social_tab_inactive",
+        social_tab_inact_press: "voxygen.element.buttons.social_tab_inactive",
 
         // Crafting Window
-
         crafting_window: "voxygen.element.misc_bg.crafting",
         crafting_frame: "voxygen.element.misc_bg.crafting_frame",
         crafting_icon_bordered: "voxygen.element.icons.anvil",
@@ -74,6 +79,9 @@ image_ids! {
         crafting_icon_hover: "voxygen.element.buttons.anvil_hover",
         crafting_icon_press: "voxygen.element.buttons.anvil_press",
 
+        // Group Window
+        member_frame: "voxygen.element.frames.group_member_frame",
+        member_bg: "voxygen.element.frames.group_member_bg",
 
         // Chat-Arrows
         chat_arrow: "voxygen.element.buttons.arrow_down",
@@ -94,7 +102,6 @@ image_ids! {
         slider_indicator_small: "voxygen.element.slider.indicator_round",
 
         // Buttons
-
         settings: "voxygen.element.buttons.settings",
         settings_hover: "voxygen.element.buttons.settings_hover",
         settings_press: "voxygen.element.buttons.settings_press",
@@ -110,6 +117,10 @@ image_ids! {
         spellbook_button: "voxygen.element.buttons.spellbook",
         spellbook_hover: "voxygen.element.buttons.spellbook_hover",
         spellbook_press: "voxygen.element.buttons.spellbook_press",
+
+        group_icon: "voxygen.element.buttons.group",
+        group_icon_hover: "voxygen.element.buttons.group_hover",
+        group_icon_press: "voxygen.element.buttons.group_press",
 
         // Skill Icons
         twohsword_m1: "voxygen.element.icons.2hsword_m1",

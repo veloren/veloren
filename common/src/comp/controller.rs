@@ -19,11 +19,22 @@ pub enum InventoryManip {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum GroupManip {
+    Invite(Uid),
+    Accept,
+    Decline,
+    Leave,
+    Kick(Uid),
+    AssignLeader(Uid),
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ControlEvent {
     ToggleLantern,
     Mount(Uid),
     Unmount,
     InventoryManip(InventoryManip),
+    GroupManip(GroupManip),
     Respawn,
 }
 
