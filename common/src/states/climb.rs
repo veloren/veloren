@@ -87,7 +87,8 @@ impl CharacterBehavior for Data {
                 },
                 Climb::Hold => {
                     // Antigrav
-                    update.vel.0.z = (update.vel.0.z + data.dt.0 * GRAVITY * 1.1).min(CLIMB_SPEED);
+                    update.vel.0.z =
+                        (update.vel.0.z + data.dt.0 * GRAVITY * 1.075).min(CLIMB_SPEED);
                     update.vel.0 = Lerp::lerp(
                         update.vel.0,
                         Vec3::zero(),
