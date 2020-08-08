@@ -1866,9 +1866,7 @@ fn handle_ban(
     if let (Some(target_alias), reason_opt) = scan_fmt_some!(&args, &action.arg_fmt(), String, String) {
         let reason = reason_opt.unwrap_or(String::new());
 
-        let banlist = server.settings().banlist.clone();
-
-        if banlist.contains_key(&target_alias) {
+        if server.settings().banlist.contains_key(&target_alias) {
             server.notify_client(
                 client,
                 ChatType::CommandError.server_msg(format!("{} is already on the banlist", target_alias))
