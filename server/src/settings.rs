@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, net::SocketAddr, path::PathBuf, time::Duration};
 use tracing::{error, warn};
 use world::sim::FileOpts;
+use hashbrown::HashMap;
 
 const DEFAULT_WORLD_SEED: u32 = 59686;
 
@@ -20,7 +21,7 @@ pub struct ServerSettings {
     pub start_time: f64,
     pub admins: Vec<String>,
     pub whitelist: Vec<String>,
-    pub banlist: Vec<(String, String)>,
+    pub banlist: HashMap<String, String>,
     /// When set to None, loads the default map file (if available); otherwise,
     /// uses the value of the file options to decide how to proceed.
     pub map_file: Option<FileOpts>,
@@ -45,7 +46,7 @@ impl Default for ServerSettings {
             map_file: None,
             admins: Vec::new(),
             whitelist: Vec::new(),
-            banlist: Vec::new(),
+            banlist: HashMap::new(),
             persistence_db_dir: "saves".to_owned(),
             max_view_distance: Some(30),
             banned_words_files: Vec::new(),

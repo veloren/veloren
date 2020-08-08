@@ -1868,14 +1868,14 @@ fn handle_ban(
 
         let banlist = server.settings().banlist.clone();
 
-        if let Some(_) = banlist.iter().find(|x| x.0 == target_alias) {
+        if banlist.contains_key(&target_alias) {
             server.notify_client(
                 client,
                 ChatType::CommandError.server_msg(format!("{} is already on the banlist", target_alias))
             )
         } else {
             server.settings_mut().edit(|s| {
-                s.banlist.push((target_alias.clone(), reason.clone()))
+                s.banlist.insert(target_alias.clone(), reason.clone());
             });
             server.notify_client(
                 client,
@@ -1913,7 +1913,7 @@ fn handle_unban(
 ) {
     if let Ok(username) = scan_fmt!(&args, &action.arg_fmt(), String) {
         server.settings_mut().edit(|s| {
-            s.banlist.retain(|x| !(x.0).eq_ignore_ascii_case(&username))
+            s.banlist.remove(&username);
         });
         server.notify_client(
             client,

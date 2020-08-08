@@ -53,7 +53,7 @@ impl LoginProvider {
         &mut self,
         username_or_token: &str,
         whitelist: &[String],
-        banlist: &[(String, String)]
+        banlist: &HashMap<String, String>
     ) -> Result<(String, Uuid), RegisterError> {
         self
             // resolve user information
@@ -61,9 +61,9 @@ impl LoginProvider {
             // if found, check name against whitelist or if user is admin
             .and_then(|(username, uuid)| {
                 // user cannot join if they are listed on the banlist
-                if let Some(ban_record) = banlist.iter().find(|x| x.0.eq_ignore_ascii_case(&username)) {
+                if let Some(ban_record) = banlist.get(&username) {
                     // Pull reason string out of ban record and send a copy of it
-                    return Err(RegisterError::Banned(ban_record.1.clone()));
+                    return Err(RegisterError::Banned(ban_record.clone()));
                 }
 
                 // user can only join if he is admin, the whitelist is empty (everyone can join)
