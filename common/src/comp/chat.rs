@@ -1,4 +1,4 @@
-use crate::{msg::ServerMsg, sync::Uid};
+use crate::{comp::group::Group, msg::ServerMsg, sync::Uid};
 use serde::{Deserialize, Serialize};
 use specs::Component;
 use specs_idvs::IdvStorage;
@@ -15,7 +15,7 @@ pub enum ChatMode {
     /// Talk to players in your region of the world
     Region,
     /// Talk to your current group of players
-    Group(String),
+    Group(Group),
     /// Talk to your faction
     Faction(String),
     /// Talk to every player on the server
@@ -28,16 +28,16 @@ impl Component for ChatMode {
 
 impl ChatMode {
     /// Create a message from your current chat mode and uuid.
-    pub fn new_message(&self, from: Uid, message: String) -> ChatMsg {
+    pub fn new_message(&self, from: Uid, message: String) -> UnresolvedChatMsg {
         let chat_type = match self {
             ChatMode::Tell(to) => ChatType::Tell(from, *to),
             ChatMode::Say => ChatType::Say(from),
             ChatMode::Region => ChatType::Region(from),
-            ChatMode::Group(name) => ChatType::Group(from, name.to_string()),
-            ChatMode::Faction(name) => ChatType::Faction(from, name.to_string()),
+            ChatMode::Group(group) => ChatType::Group(from, *group),
+            ChatMode::Faction(faction) => ChatType::Faction(from, faction.clone()),
             ChatMode::World => ChatType::World(from),
         };
-        ChatMsg { chat_type, message }
+        UnresolvedChatMsg { chat_type, message }
     }
 }
 
@@ -49,7 +49,7 @@ impl Default for ChatMode {
 ///
 /// This is a superset of `SpeechBubbleType`, which is a superset of `ChatMode`
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ChatType {
+pub enum ChatType<G> {
     /// A player came online
     Online,
     /// A player went offline
@@ -61,7 +61,7 @@ pub enum ChatType {
     /// Inform players that someone died
     Kill,
     /// Server notifications to a group, such as player join/leave
-    GroupMeta(String),
+    GroupMeta(G),
     /// Server notifications to a faction, such as player join/leave
     FactionMeta(String),
     /// One-on-one chat (from, to)
@@ -69,7 +69,7 @@ pub enum ChatType {
     /// Chat with nearby players
     Say(Uid),
     /// Group chat
-    Group(Uid, String),
+    Group(Uid, G),
     /// Factional chat
     Faction(Uid, String),
     /// Regional chat
@@ -86,17 +86,18 @@ pub enum ChatType {
     Loot,
 }
 
-impl ChatType {
-    pub fn chat_msg<S>(self, msg: S) -> ChatMsg
+impl<G> ChatType<G> {
+    pub fn chat_msg<S>(self, msg: S) -> GenericChatMsg<G>
     where
         S: Into<String>,
     {
-        ChatMsg {
+        GenericChatMsg {
             chat_type: self,
             message: msg.into(),
         }
     }
-
+}
+impl ChatType<String> {
     pub fn server_msg<S>(self, msg: S) -> ServerMsg
     where
         S: Into<String>,
@@ -106,12 +107,15 @@ impl ChatType {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChatMsg {
-    pub chat_type: ChatType,
+pub struct GenericChatMsg<G> {
+    pub chat_type: ChatType<G>,
     pub message: String,
 }
 
-impl ChatMsg {
+pub type ChatMsg = GenericChatMsg<String>;
+pub type UnresolvedChatMsg = GenericChatMsg<Group>;
+
+impl<G> GenericChatMsg<G> {
     pub const NPC_DISTANCE: f32 = 100.0;
     pub const REGION_DISTANCE: f32 = 1000.0;
     pub const SAY_DISTANCE: f32 = 100.0;
@@ -119,6 +123,32 @@ impl ChatMsg {
     pub fn npc(uid: Uid, message: String) -> Self {
         let chat_type = ChatType::Npc(uid, rand::random());
         Self { chat_type, message }
+    }
+
+    pub fn map_group<T>(self, mut f: impl FnMut(G) -> T) -> GenericChatMsg<T> {
+        let chat_type = match self.chat_type {
+            ChatType::Online => ChatType::Online,
+            ChatType::Offline => ChatType::Offline,
+            ChatType::CommandInfo => ChatType::CommandInfo,
+            ChatType::CommandError => ChatType::CommandError,
+            ChatType::Loot => ChatType::Loot,
+            ChatType::FactionMeta(a) => ChatType::FactionMeta(a),
+            ChatType::GroupMeta(g) => ChatType::GroupMeta(f(g)),
+            ChatType::Kill => ChatType::Kill,
+            ChatType::Tell(a, b) => ChatType::Tell(a, b),
+            ChatType::Say(a) => ChatType::Say(a),
+            ChatType::Group(a, g) => ChatType::Group(a, f(g)),
+            ChatType::Faction(a, b) => ChatType::Faction(a, b),
+            ChatType::Region(a) => ChatType::Region(a),
+            ChatType::World(a) => ChatType::World(a),
+            ChatType::Npc(a, b) => ChatType::Npc(a, b),
+            ChatType::Meta => ChatType::Meta,
+        };
+
+        GenericChatMsg {
+            chat_type,
+            message: self.message,
+        }
     }
 
     pub fn to_bubble(&self) -> Option<(SpeechBubble, Uid)> {
@@ -172,19 +202,6 @@ impl ChatMsg {
             ChatType::Meta => None,
         }
     }
-}
-
-/// Player groups are useful when forming raiding parties and coordinating
-/// gameplay.
-///
-/// Groups are currently just an associated String (the group's name)
-#[derive(Clone, Debug)]
-pub struct Group(pub String);
-impl Component for Group {
-    type Storage = IdvStorage<Self>;
-}
-impl From<String> for Group {
-    fn from(s: String) -> Self { Group(s) }
 }
 
 /// Player factions are used to coordinate pvp vs hostile factions or segment

@@ -96,6 +96,9 @@ impl<'a> System<'a> for Sys {
                         }
                         server_emitter.emit(ServerEvent::InventoryManip(entity, manip))
                     },
+                    ControlEvent::GroupManip(manip) => {
+                        server_emitter.emit(ServerEvent::GroupManip(entity, manip))
+                    },
                     ControlEvent::Respawn => server_emitter.emit(ServerEvent::Respawn(entity)),
                 }
             }

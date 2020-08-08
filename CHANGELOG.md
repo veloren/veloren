@@ -49,6 +49,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Loading-Screen tips
 - Feeding animation for some animals
 - Power stat to weapons which affects weapon damage
+- Add detection of entities under the cursor 
+- Functional group-system with exp-sharing and disabled damage to group members
 
 ### Changed
 
@@ -80,6 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed window resizing on Mac OS X.
 - Dehardcoded many item variants
 - Tooltips avoid the mouse better and disappear when hovered
+- Improved social window functions and visuals
 
 ### Removed
 

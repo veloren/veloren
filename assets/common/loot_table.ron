@@ -88,7 +88,7 @@
     (0.50, "common.items.weapons.staff.starter_staff"),
     (0.35, "common.items.weapons.staff.bone_staff"),
     (0.15, "common.items.weapons.staff.amethyst_staff"),
-    (0.01, "common.items.weapons.staff.cultist_staff"),
+    //(0.01, "common.items.weapons.staff.cultist_staff"),
     // hammers
     (0.05, "common.items.weapons.hammer.starter_hammer"),
     (0.05, "common.items.weapons.hammer.wood_hammer-0"),
@@ -230,6 +230,8 @@
     (0.6, "common.items.armor.ring.ring_0"),
     // capes
     (0.6, "common.items.armor.back.short_0"),
+    (0.7, "common.items.armor.back.short_1"),
     // necks
     (0.6, "common.items.armor.neck.neck_0"),
+    (0.4, "common.items.armor.neck.neck_1"),
 ]

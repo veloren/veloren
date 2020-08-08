@@ -117,23 +117,6 @@ impl<'a> Widget for Crafting<'a> {
                 )
             });
         }
-        /*if state.ids.recipe_img_frame.len() < self.client.recipe_book().iter().len() {
-            state.update(|state| {
-                state.ids.recipe_img_frame.resize(
-                    self.client.recipe_book().iter().len(),
-                    &mut ui.widget_id_generator(),
-                )
-            });
-        }
-        if state.ids.recipe_img.len() < self.client.recipe_book().iter().len() {
-            state.update(|state| {
-                state.ids.recipe_img.resize(
-                    self.client.recipe_book().iter().len(),
-                    &mut ui.widget_id_generator(),
-                )
-            });
-        }*/
-
         let ids = &state.ids;
 
         let mut events = Vec::new();
@@ -186,7 +169,7 @@ impl<'a> Widget for Crafting<'a> {
         Text::new(&self.localized_strings.get("hud.crafting"))
             .mid_top_with_margin_on(ids.window_frame, 9.0)
             .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(22))
+            .font_size(self.fonts.cyri.scale(20))
             .color(TEXT_COLOR)
             .set(ids.title_main, ui);
 

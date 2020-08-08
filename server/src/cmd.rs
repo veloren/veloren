@@ -2,7 +2,7 @@
 //! To implement a new command, add an instance of `ChatCommand` to
 //! `CHAT_COMMANDS` and provide a handler function.
 
-use crate::{Server, StateExt};
+use crate::{client::Client, Server, StateExt};
 use chrono::{NaiveTime, Timelike};
 use common::{
     assets,
@@ -77,7 +77,6 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Health => handle_health,
         ChatCommand::Help => handle_help,
         ChatCommand::JoinFaction => handle_join_faction,
-        ChatCommand::JoinGroup => handle_join_group,
         ChatCommand::Jump => handle_jump,
         ChatCommand::Kill => handle_kill,
         ChatCommand::KillNpcs => handle_kill_npcs,
@@ -227,7 +226,7 @@ fn handle_jump(
     action: &ChatCommand,
 ) {
     if let Ok((x, y, z)) = scan_fmt!(&args, &action.arg_fmt(), f32, f32, f32) {
-        match server.state.read_component_cloned::<comp::Pos>(target) {
+        match server.state.read_component_copied::<comp::Pos>(target) {
             Some(current_pos) => {
                 server
                     .state
@@ -252,7 +251,7 @@ fn handle_goto(
     if let Ok((x, y, z)) = scan_fmt!(&args, &action.arg_fmt(), f32, f32, f32) {
         if server
             .state
-            .read_component_cloned::<comp::Pos>(target)
+            .read_component_copied::<comp::Pos>(target)
             .is_some()
         {
             server
@@ -463,9 +462,9 @@ fn handle_tp(
         );
         return;
     };
-    if let Some(_pos) = server.state.read_component_cloned::<comp::Pos>(target) {
+    if let Some(_pos) = server.state.read_component_copied::<comp::Pos>(target) {
         if let Some(player) = opt_player {
-            if let Some(pos) = server.state.read_component_cloned::<comp::Pos>(player) {
+            if let Some(pos) = server.state.read_component_copied::<comp::Pos>(player) {
                 server.state.write_component(target, pos);
                 server.state.write_component(target, comp::ForceUpdate);
             } else {
@@ -510,7 +509,7 @@ fn handle_spawn(
         (Some(opt_align), Some(npc::NpcBody(id, mut body)), opt_amount, opt_ai) => {
             let uid = server
                 .state
-                .read_component_cloned(target)
+                .read_component_copied(target)
                 .expect("Expected player to have a UID");
             if let Some(alignment) = parse_alignment(uid, &opt_align) {
                 let amount = opt_amount
@@ -521,7 +520,7 @@ fn handle_spawn(
 
                 let ai = opt_ai.unwrap_or_else(|| "true".to_string());
 
-                match server.state.read_component_cloned::<comp::Pos>(target) {
+                match server.state.read_component_copied::<comp::Pos>(target) {
                     Some(pos) => {
                         let agent =
                             if let comp::Alignment::Owned(_) | comp::Alignment::Npc = alignment {
@@ -556,6 +555,43 @@ fn handle_spawn(
                             }
 
                             let new_entity = entity_base.build();
+
+                            // Add to group system if a pet
+                            if matches!(alignment, comp::Alignment::Owned { .. }) {
+                                let state = server.state();
+                                let mut clients = state.ecs().write_storage::<Client>();
+                                let uids = state.ecs().read_storage::<Uid>();
+                                let mut group_manager =
+                                    state.ecs().write_resource::<comp::group::GroupManager>();
+                                group_manager.new_pet(
+                                    new_entity,
+                                    target,
+                                    &mut state.ecs().write_storage(),
+                                    &state.ecs().entities(),
+                                    &state.ecs().read_storage(),
+                                    &uids,
+                                    &mut |entity, group_change| {
+                                        clients
+                                            .get_mut(entity)
+                                            .and_then(|c| {
+                                                group_change
+                                                    .try_map(|e| uids.get(e).copied())
+                                                    .map(|g| (g, c))
+                                            })
+                                            .map(|(g, c)| c.notify(ServerMsg::GroupUpdate(g)));
+                                    },
+                                );
+                            } else if let Some(group) = match alignment {
+                                comp::Alignment::Wild => None,
+                                comp::Alignment::Enemy => Some(comp::group::ENEMY),
+                                comp::Alignment::Npc | comp::Alignment::Tame => {
+                                    Some(comp::group::NPC)
+                                },
+                                comp::Alignment::Owned(_) => unreachable!(),
+                            } {
+                                let _ =
+                                    server.state.ecs().write_storage().insert(new_entity, group);
+                            }
 
                             if let Some(uid) = server.state.ecs().uid_from_entity(new_entity) {
                                 server.notify_client(
@@ -594,7 +630,7 @@ fn handle_spawn_training_dummy(
     _args: String,
     _action: &ChatCommand,
 ) {
-    match server.state.read_component_cloned::<comp::Pos>(target) {
+    match server.state.read_component_copied::<comp::Pos>(target) {
         Some(pos) => {
             let vel = Vec3::new(
                 rand::thread_rng().gen_range(-2.0, 3.0),
@@ -961,13 +997,14 @@ fn handle_explosion(
 
     let ecs = server.state.ecs();
 
-    match server.state.read_component_cloned::<comp::Pos>(target) {
+    match server.state.read_component_copied::<comp::Pos>(target) {
         Some(pos) => {
             ecs.read_resource::<EventBus<ServerEvent>>()
                 .emit_now(ServerEvent::Explosion {
                     pos: pos.0,
                     power,
                     owner: ecs.read_storage::<Uid>().get(target).copied(),
+                    friendly_damage: true,
                 })
         },
         None => server.notify_client(
@@ -984,7 +1021,7 @@ fn handle_waypoint(
     _args: String,
     _action: &ChatCommand,
 ) {
-    match server.state.read_component_cloned::<comp::Pos>(target) {
+    match server.state.read_component_copied::<comp::Pos>(target) {
         Some(pos) => {
             let time = server.state.ecs().read_resource();
             let _ = server
@@ -1020,7 +1057,7 @@ fn handle_adminify(
             Some(player) => {
                 let is_admin = if server
                     .state
-                    .read_component_cloned::<comp::Admin>(player)
+                    .read_component_copied::<comp::Admin>(player)
                     .is_some()
                 {
                     ecs.write_storage::<comp::Admin>().remove(player);
@@ -1161,8 +1198,8 @@ fn handle_group(
         return;
     }
     let ecs = server.state.ecs();
-    if let Some(comp::Group(group)) = ecs.read_storage().get(client) {
-        let mode = comp::ChatMode::Group(group.to_string());
+    if let Some(group) = ecs.read_storage::<comp::Group>().get(client) {
+        let mode = comp::ChatMode::Group(*group);
         let _ = ecs.write_storage().insert(client, mode.clone());
         if !msg.is_empty() {
             if let Some(uid) = ecs.read_storage().get(client) {
@@ -1172,7 +1209,7 @@ fn handle_group(
     } else {
         server.notify_client(
             client,
-            ChatType::CommandError.server_msg("Please join a group with /join_group"),
+            ChatType::CommandError.server_msg("Please create a group first"),
         );
     }
 }
@@ -1313,68 +1350,6 @@ fn handle_join_faction(
             server.state.send_chat(
                 ChatType::FactionMeta(faction.clone())
                     .chat_msg(format!("[{}] left faction ({})", alias, faction)),
-            );
-        }
-    } else {
-        server.notify_client(
-            client,
-            ChatType::CommandError.server_msg("Could not find your player alias"),
-        );
-    }
-}
-
-fn handle_join_group(
-    server: &mut Server,
-    client: EcsEntity,
-    target: EcsEntity,
-    args: String,
-    action: &ChatCommand,
-) {
-    if client != target {
-        // This happens when [ab]using /sudo
-        server.notify_client(
-            client,
-            ChatType::CommandError.server_msg("It's rude to impersonate people"),
-        );
-        return;
-    }
-    if let Some(alias) = server
-        .state
-        .ecs()
-        .read_storage::<comp::Player>()
-        .get(target)
-        .map(|player| player.alias.clone())
-    {
-        let group_leave = if let Ok(group) = scan_fmt!(&args, &action.arg_fmt(), String) {
-            let mode = comp::ChatMode::Group(group.clone());
-            let _ = server.state.ecs().write_storage().insert(client, mode);
-            let group_leave = server
-                .state
-                .ecs()
-                .write_storage()
-                .insert(client, comp::Group(group.clone()))
-                .ok()
-                .flatten()
-                .map(|f| f.0);
-            server.state.send_chat(
-                ChatType::GroupMeta(group.clone())
-                    .chat_msg(format!("[{}] joined group ({})", alias, group)),
-            );
-            group_leave
-        } else {
-            let mode = comp::ChatMode::default();
-            let _ = server.state.ecs().write_storage().insert(client, mode);
-            server
-                .state
-                .ecs()
-                .write_storage()
-                .remove(client)
-                .map(|comp::Group(f)| f)
-        };
-        if let Some(group) = group_leave {
-            server.state.send_chat(
-                ChatType::GroupMeta(group.clone())
-                    .chat_msg(format!("[{}] left group ({})", alias, group)),
             );
         }
     } else {
@@ -1626,7 +1601,7 @@ fn handle_remove_lights(
     action: &ChatCommand,
 ) {
     let opt_radius = scan_fmt_some!(&args, &action.arg_fmt(), f32);
-    let opt_player_pos = server.state.read_component_cloned::<comp::Pos>(target);
+    let opt_player_pos = server.state.read_component_copied::<comp::Pos>(target);
     let mut to_delete = vec![];
 
     match opt_player_pos {

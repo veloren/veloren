@@ -39,6 +39,7 @@ impl<'a> System<'a> for Sys {
                             pos: pos.0,
                             power: 4.0,
                             owner: *owner,
+                            friendly_damage: true,
                         });
                     }
                 },

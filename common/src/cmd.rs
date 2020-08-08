@@ -50,7 +50,6 @@ pub enum ChatCommand {
     Health,
     Help,
     JoinFaction,
-    JoinGroup,
     Jump,
     Kill,
     KillNpcs,
@@ -92,7 +91,6 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Health,
     ChatCommand::Help,
     ChatCommand::JoinFaction,
-    ChatCommand::JoinGroup,
     ChatCommand::Jump,
     ChatCommand::Kill,
     ChatCommand::KillNpcs,
@@ -246,11 +244,6 @@ impl ChatCommand {
                 "Join/leave the specified faction",
                 NoAdmin,
             ),
-            ChatCommand::JoinGroup => ChatCommandData::new(
-                vec![Any("group", Optional)],
-                "Join/leave the specified group",
-                NoAdmin,
-            ),
             ChatCommand::Jump => cmd(
                 vec![
                     Float("x", 0.0, Required),
@@ -383,7 +376,6 @@ impl ChatCommand {
             ChatCommand::Group => "group",
             ChatCommand::Health => "health",
             ChatCommand::JoinFaction => "join_faction",
-            ChatCommand::JoinGroup => "join_group",
             ChatCommand::Help => "help",
             ChatCommand::Jump => "jump",
             ChatCommand::Kill => "kill",
