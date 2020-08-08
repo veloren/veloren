@@ -70,6 +70,7 @@ impl Server {
                     gravity,
                     speed,
                 } => handle_shoot(self, entity, dir, body, light, projectile, gravity, speed),
+                ServerEvent::Shockwave {shockwave} => handle_shockwave(self, shockwave),
                 ServerEvent::Damage { uid, change } => handle_damage(&self, uid, change),
                 ServerEvent::Destroy { entity, cause } => handle_destroy(self, entity, cause),
                 ServerEvent::InventoryManip(entity, manip) => handle_inventory(self, entity, manip),

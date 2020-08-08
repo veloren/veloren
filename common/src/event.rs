@@ -48,6 +48,7 @@ pub enum ServerEvent {
         gravity: Option<comp::Gravity>,
         speed: f32,
     },
+    Shockwave {shockwave: comp::Shockwave},
     LandOnGround {
         entity: EcsEntity,
         vel: Vec3<f32>,

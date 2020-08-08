@@ -3,7 +3,7 @@ use common::{
     character::CharacterId,
     comp::{
         self, humanoid::DEFAULT_HUMANOID_EYE_HEIGHT, Agent, Alignment, Body, Gravity, Item,
-        ItemDrop, LightEmitter, Loadout, Pos, Projectile, Scale, Stats, Vel, WaypointArea,
+        ItemDrop, LightEmitter, Loadout, Pos, Projectile, Scale, Shockwave, Stats, Vel, WaypointArea,
     },
     outcome::Outcome,
     util::Dir,
@@ -121,6 +121,12 @@ pub fn handle_shoot(
         builder = builder.with(gravity)
     }
 
+    builder.build();
+}
+
+pub fn handle_shockwave(server: &mut Server, shockwave: Shockwave) {
+    let state = server.state_mut();
+    let builder = state.create_shockwave(shockwave);
     builder.build();
 }
 
