@@ -672,7 +672,7 @@ fn handle_spawn_campfire(
     _args: String,
     _action: &ChatCommand,
 ) {
-    match server.state.read_component_cloned::<comp::Pos>(target) {
+    match server.state.read_component_copied::<comp::Pos>(target) {
         Some(pos) => {
             server
                 .state

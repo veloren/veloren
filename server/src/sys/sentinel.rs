@@ -1,7 +1,7 @@
 use super::SysTimer;
 use common::{
     comp::{
-        Alignment, Body, CanBuild, CharacterState, Collider, Energy, Gravity, Item, LightEmitter,
+        Body, CanBuild, CharacterState, Collider, Energy, Gravity, Group, Item, LightEmitter,
         Loadout, Mass, MountState, Mounting, Ori, Player, Pos, Scale, Stats, Sticky, Vel,
     },
     msg::EcsCompPacket,
