@@ -24,7 +24,7 @@ impl Default for CameraMode {
     fn default() -> Self { Self::ThirdPerson }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Dependents {
     pub view_mat: Mat4<f32>,
     pub proj_mat: Mat4<f32>,
@@ -116,7 +116,7 @@ impl Camera {
         )
     }
 
-    pub fn dependents(&self) -> Dependents { self.dependents.clone() }
+    pub fn dependents(&self) -> Dependents { &self.dependents }
 
     /// Rotate the camera about its focus by the given delta, limiting the input
     /// accordingly.
