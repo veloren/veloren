@@ -2481,9 +2481,12 @@ pub struct BipedLargeCenterSpec(HashMap<(BLSpecies, BLBodyType), SidedBLCenterVo
 #[derive(Serialize, Deserialize)]
 struct SidedBLCenterVoxSpec {
     head: BipedLargeCenterSubSpec,
+    jaw: BipedLargeCenterSubSpec,
     torso_upper: BipedLargeCenterSubSpec,
     torso_lower: BipedLargeCenterSubSpec,
+    tail: BipedLargeCenterSubSpec,
     main: BipedLargeCenterSubSpec,
+    second: BipedLargeCenterSubSpec,
 }
 #[derive(Serialize, Deserialize)]
 struct BipedLargeCenterSubSpec {
@@ -2554,6 +2557,27 @@ impl BipedLargeCenterSpec {
         generate_mesh(&center, Vec3::from(spec.head.offset))
     }
 
+    pub fn mesh_jaw(
+        &self,
+        species: BLSpecies,
+        body_type: BLBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No jaw specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let center = graceful_load_segment(&spec.jaw.center.0);
+
+        generate_mesh(&center, Vec3::from(spec.jaw.offset))
+    }
+
     pub fn mesh_torso_upper(
         &self,
         species: BLSpecies,
@@ -2596,6 +2620,27 @@ impl BipedLargeCenterSpec {
         generate_mesh(&center, Vec3::from(spec.torso_lower.offset))
     }
 
+    pub fn mesh_tail(
+        &self,
+        species: BLSpecies,
+        body_type: BLBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No tail specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let center = graceful_load_segment(&spec.tail.center.0);
+
+        generate_mesh(&center, Vec3::from(spec.tail.offset))
+    }
+
     pub fn mesh_main(
         &self,
         species: BLSpecies,
@@ -2615,6 +2660,27 @@ impl BipedLargeCenterSpec {
         let center = graceful_load_segment(&spec.main.center.0);
 
         generate_mesh(&center, Vec3::from(spec.main.offset))
+    }
+
+    pub fn mesh_second(
+        &self,
+        species: BLSpecies,
+        body_type: BLBodyType,
+        generate_mesh: impl FnOnce(&Segment, Vec3<f32>) -> Mesh<FigurePipeline>,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No second weapon specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let center = graceful_load_segment(&spec.second.center.0);
+
+        generate_mesh(&center, Vec3::from(spec.second.offset))
     }
 }
 impl BipedLargeLateralSpec {

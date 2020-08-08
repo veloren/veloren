@@ -37,6 +37,8 @@ impl Animation for IdleAnimation {
                 * 0.25,
         );
 
+        let wave_slow = (anim_time as f32 * 0.8).sin();
+
         next.head.offset = Vec3::new(
             0.0,
             skeleton_attr.head.0,
@@ -61,9 +63,26 @@ impl Animation for IdleAnimation {
         next.lower_torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.lower_torso.scale = Vec3::one() * 1.02;
 
+        next.jaw.offset = Vec3::new(0.0, skeleton_attr.jaw.0, skeleton_attr.jaw.1);
+        next.jaw.ori = Quaternion::rotation_x(wave_slow * 0.09);
+        next.jaw.scale = Vec3::one();
+
+        next.tail.offset = Vec3::new(
+            0.0,
+            skeleton_attr.tail.0,
+            skeleton_attr.tail.1 + torso * 0.0,
+        );
+        next.tail.ori = Quaternion::rotation_z(0.0);
+        next.tail.scale = Vec3::one();
+
         next.control.offset = Vec3::new(0.0, 0.0, 0.0);
         next.control.ori = Quaternion::rotation_z(0.0);
         next.control.scale = Vec3::one();
+
+        next.second.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.second.ori =
+            Quaternion::rotation_x(PI) * Quaternion::rotation_y(0.0) * Quaternion::rotation_z(0.0);
+        next.second.scale = Vec3::one() * 0.0;
 
         next.main.offset = Vec3::new(-5.0, -7.0, 7.0);
         next.main.ori =
