@@ -7,6 +7,7 @@ use common::{
     outcome::Outcome,
     util::Dir,
 };
+use comp::group;
 use specs::{Builder, Entity as EcsEntity, WorldExt};
 use vek::{Rgb, Vec3};
 

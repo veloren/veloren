@@ -116,7 +116,7 @@ impl Camera {
         )
     }
 
-    pub fn dependents(&self) -> Dependents { &self.dependents }
+    pub fn dependents(&self) -> Dependents { self.dependents }
 
     /// Rotate the camera about its focus by the given delta, limiting the input
     /// accordingly.
