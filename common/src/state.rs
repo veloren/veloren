@@ -126,6 +126,7 @@ impl State {
         ecs.register::<comp::CharacterState>();
         ecs.register::<comp::Object>();
         ecs.register::<comp::Group>();
+        ecs.register::<comp::Shockwave>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();

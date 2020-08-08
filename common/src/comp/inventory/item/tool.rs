@@ -116,6 +116,16 @@ impl Tool {
 
         match &self.kind {
             Sword(_) => vec![
+                GroundShockwave {
+                    energy_cost: 0,
+                    buildup_duration: Duration::from_millis(1000),
+                    recover_duration: Duration::from_millis(2000),
+                    damage: 300,
+                    knockback: -30.0,
+                    shockwave_angle: 15.0,
+                    shockwave_speed: 10.0,
+                    shockwave_duration: Duration::from_millis(3000),
+                },
                 TripleStrike {
                     base_damage: (60.0 * self.base_power()) as u32,
                     needs_timing: false,

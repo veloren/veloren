@@ -2,7 +2,8 @@ use super::SysTimer;
 use common::{
     comp::{
         Body, CanBuild, CharacterState, Collider, Energy, Gravity, Group, Item, LightEmitter,
-        Loadout, Mass, MountState, Mounting, Ori, Player, Pos, Scale, Stats, Sticky, Vel,
+        Loadout, Mass, MountState, Mounting, Ori, Player, Pos, Scale, Shockwave, Stats, Sticky,
+        Vel,
     },
     msg::EcsCompPacket,
     span,
@@ -57,6 +58,7 @@ pub struct TrackedComps<'a> {
     pub gravity: ReadStorage<'a, Gravity>,
     pub loadout: ReadStorage<'a, Loadout>,
     pub character_state: ReadStorage<'a, CharacterState>,
+    pub shockwave: ReadStorage<'a, Shockwave>,
 }
 impl<'a> TrackedComps<'a> {
     pub fn create_entity_package(
@@ -132,6 +134,11 @@ impl<'a> TrackedComps<'a> {
             .get(entity)
             .cloned()
             .map(|c| comps.push(c.into()));
+        self.shockwave
+            .get(entity)
+            .cloned()
+            .map(|c| comps.push(c.into()));
+        // Add untracked comps
         // Add untracked comps
         pos.map(|c| comps.push(c.into()));
         vel.map(|c| comps.push(c.into()));
@@ -160,6 +167,7 @@ pub struct ReadTrackers<'a> {
     pub gravity: ReadExpect<'a, UpdateTracker<Gravity>>,
     pub loadout: ReadExpect<'a, UpdateTracker<Loadout>>,
     pub character_state: ReadExpect<'a, UpdateTracker<CharacterState>>,
+    pub shockwave: ReadExpect<'a, UpdateTracker<Shockwave>>,
 }
 impl<'a> ReadTrackers<'a> {
     pub fn create_sync_packages(
@@ -197,7 +205,8 @@ impl<'a> ReadTrackers<'a> {
                 &*self.character_state,
                 &comps.character_state,
                 filter,
-            );
+            )
+            .with_component(&comps.uid, &*self.shockwave, &comps.shockwave, filter);
 
         (entity_sync_package, comp_sync_package)
     }
@@ -223,6 +232,7 @@ pub struct WriteTrackers<'a> {
     gravity: WriteExpect<'a, UpdateTracker<Gravity>>,
     loadout: WriteExpect<'a, UpdateTracker<Loadout>>,
     character_state: WriteExpect<'a, UpdateTracker<CharacterState>>,
+    shockwave: WriteExpect<'a, UpdateTracker<Shockwave>>,
 }
 
 fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
@@ -247,6 +257,7 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     trackers
         .character_state
         .record_changes(&comps.character_state);
+    trackers.shockwave.record_changes(&comps.shockwave);
     // Debug how many updates are being sent
     /*
     macro_rules! log_counts {
@@ -278,6 +289,7 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     log_counts!(gravity, "Gravitys");
     log_counts!(loadout, "Loadouts");
     log_counts!(character_state, "Character States");
+    log_counts!(shockwave, "Shockwaves");
     */
 }
 
@@ -300,6 +312,7 @@ pub fn register_trackers(world: &mut World) {
     world.register_tracker::<Gravity>();
     world.register_tracker::<Loadout>();
     world.register_tracker::<CharacterState>();
+    world.register_tracker::<Shockwave>();
 }
 
 /// Deleted entities grouped by region

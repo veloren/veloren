@@ -155,7 +155,8 @@ impl CharacterBehavior for Data {
                 projectile,
                 light: self.projectile_light,
                 gravity: self.projectile_gravity,
-                speed: self.initial_projectile_speed + charge_amount * (self.max_projectile_speed - self.initial_projectile_speed),
+                speed: self.initial_projectile_speed
+                    + charge_amount * (self.max_projectile_speed - self.initial_projectile_speed),
             });
 
             update.character = CharacterState::ChargedRanged(Data {
