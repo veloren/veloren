@@ -70,7 +70,7 @@ impl Animation for SwimWieldAnimation {
         next.l_foot.offset = Vec3::new(
             -skeleton_attr.foot.0,
             skeleton_attr.foot.1 + foothoril * 1.5 * intensity,
-            -15.0 + skeleton_attr.foot.2 + footrotl * 3.0 * intensity,
+            -10.0 + skeleton_attr.foot.2 + footrotl * 3.0 * intensity,
         );
         next.l_foot.ori = Quaternion::rotation_x(-0.8 + footrotl * 0.4 * intensity);
         next.l_foot.scale = Vec3::one();
@@ -78,11 +78,11 @@ impl Animation for SwimWieldAnimation {
         next.r_foot.offset = Vec3::new(
             skeleton_attr.foot.0,
             skeleton_attr.foot.1 + foothorir * 1.5 * intensity,
-            -15.0 + skeleton_attr.foot.2 + footrotr * 3.0 * intensity,
+            -10.0 + skeleton_attr.foot.2 + footrotr * 3.0 * intensity,
         );
         next.r_foot.ori = Quaternion::rotation_x(-0.8 + footrotr * 0.4 * intensity);
         next.r_foot.scale = Vec3::one();
-        if velocity > 0.1 {
+        if velocity > 0.01 {
             next.torso.offset = Vec3::new(0.0, 0.0, 1.0) * skeleton_attr.scaler;
             next.torso.ori = Quaternion::rotation_x(velocity * -0.05);
             next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
@@ -123,7 +123,7 @@ impl Animation for SwimWieldAnimation {
             );
 
             next.chest.ori =
-                Quaternion::rotation_y(u_slowalt * 0.04) * Quaternion::rotation_z(0.15);
+                Quaternion::rotation_y(u_slowalt * 0.04) * Quaternion::rotation_z(0.25);
 
             next.belt.offset = Vec3::new(0.0, skeleton_attr.belt.0, skeleton_attr.belt.1);
             next.belt.ori = Quaternion::rotation_y(u_slowalt * 0.03) * Quaternion::rotation_z(0.22);
