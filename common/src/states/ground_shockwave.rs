@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Attacking, CharacterState, Shockwave, StateUpdate},
+    comp::{shockwave, Attacking, CharacterState, StateUpdate},
     event::ServerEvent,
     states::utils::*,
     sys::character_behavior::*,
@@ -51,19 +51,19 @@ impl CharacterBehavior for Data {
             });
         } else if !self.exhausted {
             // Attack
-            let shockwave = Shockwave {
-                shockwave_origin: *data.pos,
-                shockwave_direction: *data.ori,
-                shockwave_angle: self.shockwave_angle,
-                shockwave_speed: self.shockwave_speed,
-                shockwave_duration: self.shockwave_duration,
+            let properties = shockwave::Properties {
+                angle: self.shockwave_angle,
+                speed: self.shockwave_speed,
+                duration: self.shockwave_duration,
                 damage: self.damage,
                 knockback: self.knockback,
                 requires_ground: true,
                 owner: Some(*data.uid),
             };
             update.server_events.push_front(ServerEvent::Shockwave {
-                shockwave,
+                properties,
+                pos: *data.pos,
+                ori: *data.ori,
             });
 
             update.character = CharacterState::GroundShockwave(Data {

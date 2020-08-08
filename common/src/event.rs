@@ -1,5 +1,8 @@
 use crate::{character::CharacterId, comp, sync::Uid, util::Dir};
-use comp::item::{Item, Reagent};
+use comp::{
+    item::{Item, Reagent},
+    Ori, Pos,
+};
 use parking_lot::Mutex;
 use specs::Entity as EcsEntity;
 use std::{collections::VecDeque, ops::DerefMut};
@@ -48,7 +51,11 @@ pub enum ServerEvent {
         gravity: Option<comp::Gravity>,
         speed: f32,
     },
-    Shockwave {shockwave: comp::Shockwave},
+    Shockwave {
+        properties: comp::shockwave::Properties,
+        pos: Pos,
+        ori: Ori,
+    },
     LandOnGround {
         entity: EcsEntity,
         vel: Vec3<f32>,

@@ -5,6 +5,7 @@ pub mod controller;
 mod mount;
 pub mod phys;
 mod projectile;
+mod shockwave;
 mod stats;
 
 // External
@@ -18,6 +19,7 @@ pub const CONTROLLER_SYS: &str = "controller_sys";
 pub const MOUNT_SYS: &str = "mount_sys";
 pub const PHYS_SYS: &str = "phys_sys";
 pub const PROJECTILE_SYS: &str = "projectile_sys";
+pub const SHOCKWAVE_SYS: &str = "shockwave_sys";
 pub const STATS_SYS: &str = "stats_sys";
 
 pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
@@ -30,5 +32,6 @@ pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(stats::Sys, STATS_SYS, &[]);
     dispatch_builder.add(phys::Sys, PHYS_SYS, &[CONTROLLER_SYS, MOUNT_SYS, STATS_SYS]);
     dispatch_builder.add(projectile::Sys, PROJECTILE_SYS, &[PHYS_SYS]);
+    dispatch_builder.add(shockwave::Sys, SHOCKWAVE_SYS, &[PHYS_SYS]);
     dispatch_builder.add(combat::Sys, COMBAT_SYS, &[PROJECTILE_SYS]);
 }

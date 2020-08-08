@@ -173,7 +173,7 @@ impl<'a> System<'a> for Sys {
                 mass_other,
                 collider_other,
                 _,
-                group,
+                group_b,
             ) in (
                 &entities,
                 &uids,
@@ -186,7 +186,7 @@ impl<'a> System<'a> for Sys {
             )
                 .join()
             {
-                if entity == entity_other || (ignore_group.is_some() && ignore_group == group) {
+                if entity == entity_other || (ignore_group.is_some() && ignore_group == group_b) {
                     continue;
                 }
 
