@@ -283,6 +283,7 @@ impl<'a> BlockGen<'a> {
                 && marble_small > 0.55
                 && (marble * 3173.7).fract() < 0.6
                 && humidity > CONFIG.desert_hum
+                && false
             {
                 let treasures = [BlockKind::Chest, BlockKind::Velorite];
 
@@ -322,6 +323,7 @@ impl<'a> BlockGen<'a> {
             } else if (wposf.z as f32) < height + 0.9
                 && temp > CONFIG.desert_temp
                 && (marble * 4423.5).fract() < 0.0005
+                && false
             {
                 let large_cacti = [
                     BlockKind::LargeCactus,

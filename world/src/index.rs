@@ -22,12 +22,14 @@ impl Index {
 
 pub struct Noise {
     pub cave_nz: SuperSimplex,
+    pub scatter_nz: SuperSimplex,
 }
 
 impl Noise {
     fn new(seed: u32) -> Self {
         Self {
-            cave_nz: SuperSimplex::new().set_seed(seed),
+            cave_nz: SuperSimplex::new().set_seed(seed + 0),
+            scatter_nz: SuperSimplex::new().set_seed(seed + 1),
         }
     }
 }

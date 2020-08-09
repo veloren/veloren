@@ -176,6 +176,7 @@ impl World {
         let mut rng = rand::thread_rng();
 
         // Apply layers (paths, caves, etc.)
+        layer::apply_scatter_to(chunk_wpos2d, sample_get, &mut chunk, &self.index, sim_chunk);
         layer::apply_paths_to(chunk_wpos2d, sample_get, &mut chunk, &self.index);
         layer::apply_caves_to(chunk_wpos2d, sample_get, &mut chunk, &self.index);
 
