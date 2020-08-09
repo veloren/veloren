@@ -12,6 +12,18 @@
             offset: (-5.0, -4.5, -9.0),
             center: ("npc.ogre.male.torso_lower"),
         ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),        
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
+        ),
         main: (
             offset: (-8.0, -4.5, -5.0),
             center: ("armor.empty"),
@@ -29,6 +41,18 @@
         torso_lower: (
             offset: (-5.0, -4.5, -9.0),
             center: ("npc.ogre.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),        
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
         ),
         main: (
             offset: (-8.0, -4.5, -5.0),
@@ -48,6 +72,18 @@
             offset: (-6.0, -5.5, -12.0),
             center: ("npc.cyclops.male.torso_lower"),
         ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),        
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
+        ),
         main: (
             offset: (-5.0, -6.5, -4.0),
             center: ("npc.cyclops.male.hammer"),
@@ -65,6 +101,18 @@
         torso_lower: (
             offset: (-6.0, -5.5, -12.0),
             center: ("npc.cyclops.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),        
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
         ),
         main: (
             offset: (-5.0, -6.5, -4.0),
@@ -84,6 +132,18 @@
             offset: (-4.0, -2.0, -4.0),
             center: ("npc.wendigo.male.torso_lower"),
         ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),        
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
+        ),
         main: (
             offset: (-8.0, -4.5, -5.0),
             center: ("armor.empty"),
@@ -101,6 +161,18 @@
         torso_lower: (
             offset: (-4.0, -2.0, -4.0),
             center: ("npc.wendigo.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),        
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
         ),
         main: (
             offset: (-8.0, -4.5, -5.0),
@@ -120,6 +192,18 @@
             offset: (-6.0, -3.5, -5.0),
             center: ("npc.troll.male.torso_lower"),
         ),
+        jaw: (
+            offset: (-4.0, 0.0, -4.5),
+            center: ("npc.troll.male.jaw"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),        
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
+        ),
         main: (
             offset: (-8.0, -4.5, -5.0),
             center: ("armor.empty"),
@@ -137,6 +221,18 @@
         torso_lower: (
             offset: (-6.0, -3.5, -5.0),
             center: ("npc.troll.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-4.0, 0.0, -4.5),
+            center: ("npc.troll.male.jaw"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),        
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
         ),
         main: (
             offset: (-8.0, -4.5, -5.0),
@@ -158,6 +254,18 @@
             offset: (-8.0, -6.0, -9.0),
             center: ("npc.dullahan.male.torso_lower"),
         ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),        
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
+        ),
         main: (
             offset: (-1.5, -9.0, -10.0),
             center: ("npc.dullahan.male.sword"),
@@ -176,6 +284,18 @@
         torso_lower: (
             offset: (-8.0, -6.0, -9.0),
             center: ("npc.dullahan.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),        
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
         ),
         main: (
             offset: (-1.5, -9.0, -10.0),
