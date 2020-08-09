@@ -26,6 +26,9 @@ impl Animation for IdleAnimation {
         let lab = 1.0;
         let torso = (anim_time as f32 * lab as f32 + 1.5 * PI).sin();
 
+        let slower = (anim_time as f32 * 1.0 + PI).sin();
+        let slow = (anim_time as f32 * 3.5 + PI).sin();
+        
         let look = Vec2::new(
             ((global_time + anim_time) as f32 / 8.0)
                 .floor()
@@ -38,8 +41,18 @@ impl Animation for IdleAnimation {
                 .sin()
                 * 0.25,
         );
-
-        let wave_slow = (anim_time as f32 * 0.8).sin();
+        let tailmove = Vec2::new(
+            ((global_time + anim_time) as f32 / 2.0)
+                .floor()
+                .mul(7331.0)
+                .sin()
+                * 0.25,
+            ((global_time + anim_time) as f32 / 2.0)
+                .floor()
+                .mul(1337.0)
+                .sin()
+                * 0.125,
+        );
 
         next.head.position = Vec3::new(
             0.0,
@@ -65,17 +78,18 @@ impl Animation for IdleAnimation {
         );
         next.lower_torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.lower_torso.scale = Vec3::one() * 1.02;
-
-        next.jaw.position = Vec3::new(0.0, skeleton_attr.jaw.0, skeleton_attr.jaw.1);
-        next.jaw.orientation = Quaternion::rotation_x(wave_slow * 0.09);
-        next.jaw.scale = Vec3::one();
-
-        next.tail.position = Vec3::new(
+        
+        next.jaw.position = Vec3::new(
             0.0,
-            skeleton_attr.tail.0,
-            skeleton_attr.tail.1 + torso * 0.0,
+            skeleton_attr.jaw.0 - slower * 0.12,
+            skeleton_attr.jaw.1 + slow * 0.2,
         );
-        next.tail.orientation = Quaternion::rotation_z(0.0);
+        next.jaw.orientation = Quaternion::rotation_x(slow * 0.05);
+        next.jaw.scale = Vec3::one() * 1.02;
+
+        next.tail.position = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1);
+        next.tail.orientation =
+            Quaternion::rotation_z(0.0 + slow * 0.2 + tailmove.x) * Quaternion::rotation_x(0.0);
         next.tail.scale = Vec3::one();
 
         next.control.position = Vec3::new(0.0, 0.0, 0.0);
