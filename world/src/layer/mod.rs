@@ -1,6 +1,7 @@
 use crate::{
     column::ColumnSample,
     util::{RandomField, Sampler},
+    sim::SimChunk,
     Index,
 };
 use common::{
@@ -18,6 +19,70 @@ use std::{
 };
 use vek::*;
 use rand::prelude::*;
+
+fn close(x: f32, tgt: f32, falloff: f32) -> f32 { (1.0 - (x - tgt).abs() / falloff).max(0.0).powf(0.5) }
+
+pub fn apply_scatter_to<'a>(
+    wpos2d: Vec2<i32>,
+    mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
+    vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
+    index: &Index,
+    chunk: &SimChunk,
+) {
+    use BlockKind::*;
+    let scatter: &[(_, fn(&SimChunk) -> (f32, Option<(f32, f32)>))] = &[
+        // (density, Option<(wavelen, threshold)>)
+        (BlueFlower, |c| (close(c.temp, -0.3, 0.7).min(close(c.humidity, 0.6, 0.35)) * 0.05, Some((48.0, 0.6)))),
+        (PinkFlower, |c| (close(c.temp, 0.15, 0.5).min(close(c.humidity, 0.6, 0.35)) * 0.05, Some((48.0, 0.6)))),
+        (DeadBush, |c| (close(c.temp, 0.8, 0.3).min(close(c.humidity, 0.0, 0.4)) * 0.015, None)),
+        (Twigs, |c| ((c.tree_density - 0.5).max(0.0) * 0.0025, None)),
+        (Stones, |c| ((c.rockiness - 0.5).max(0.0) * 0.005, None)),
+    ];
+
+    for y in 0..vol.size_xy().y as i32 {
+        for x in 0..vol.size_xy().x as i32 {
+            let offs = Vec2::new(x, y);
+
+            let wpos2d = wpos2d + offs;
+
+            // Sample terrain
+            let col_sample = if let Some(col_sample) = get_column(offs) {
+                col_sample
+            } else {
+                continue;
+            };
+
+            let bk = scatter
+                .iter()
+                .enumerate()
+                .find_map(|(i, (bk, f))| {
+                    let (density, patch) = f(chunk);
+                    if density <= 0.0 || patch.map(|(wavelen, threshold)| index
+                        .noise
+                        .scatter_nz
+                        .get(wpos2d.map(|e| e as f64 / wavelen as f64 + i as f64 * 43.0).into_array()) < threshold as f64)
+                        .unwrap_or(false)
+                        || !RandomField::new(i as u32).chance(Vec3::new(wpos2d.x, wpos2d.y, 0), density)
+                    {
+                        None
+                    } else {
+                        Some(*bk)
+                    }
+                });
+
+            if let Some(bk) = bk {
+                let mut z = col_sample.alt as i32 - 4;
+                for _ in 0..8 {
+                    if vol.get(Vec3::new(offs.x, offs.y, z)).map(|b| !b.is_solid()).unwrap_or(true) {
+                        let _ = vol.set(Vec3::new(offs.x, offs.y, z), Block::new(bk, Rgb::broadcast(0)));
+                        break;
+                    }
+                    z += 1;
+                }
+            }
+        }
+    }
+}
 
 pub fn apply_paths_to<'a>(
     wpos2d: Vec2<i32>,
@@ -227,7 +292,7 @@ pub fn apply_caves_supplement<'a>(
                 let cave_roof = (cave.alt + cave_height) as i32;
 
                 // Scatter things in caves
-                if RandomField::new(index.seed).chance(wpos2d.into(), 0.0001)
+                if RandomField::new(index.seed).chance(wpos2d.into(), 0.00005)
                     && cave_base < surface_z as i32 - 40
                 {
                     let entity = EntityInfo::at(Vec3::new(wpos2d.x as f32, wpos2d.y as f32, cave_base as f32))

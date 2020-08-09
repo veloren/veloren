@@ -20,6 +20,7 @@ use dot_vox::DotVoxData;
 use hashbrown::HashMap;
 use std::{f32, fmt::Debug, i32, marker::PhantomData, time::Duration};
 use treeculler::{BVol, Frustum, AABB};
+use tracing::warn;
 use vek::*;
 
 struct TerrainChunkData {
@@ -142,7 +143,7 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             wind_sway: 0.1,
         }),
         BlockKind::LargeGrass => Some(SpriteConfig {
-            variations: 3,
+            variations: 1,
             wind_sway: 0.5,
         }),
 
@@ -3141,23 +3142,28 @@ impl<V: RectRasterableVol> Terrain<V> {
                 let dist_sqrd = Vec2::from(focus_pos).distance_squared(chunk_center);
                 if dist_sqrd < sprite_render_distance.powf(2.0) {
                     for (kind, instances) in &chunk.sprite_instances {
-                        renderer.render_sprites(
-                            if dist_sqrd < sprite_high_detail_distance.powf(2.0) {
-                                &self.sprite_models[&kind][0]
-                            } else if dist_sqrd < sprite_hid_detail_distance.powf(2.0) {
-                                &self.sprite_models[&kind][1]
-                            } else if dist_sqrd < sprite_mid_detail_distance.powf(2.0) {
-                                &self.sprite_models[&kind][2]
-                            } else if dist_sqrd < sprite_low_detail_distance.powf(2.0) {
-                                &self.sprite_models[&kind][3]
-                            } else {
-                                &self.sprite_models[&kind][4]
-                            },
-                            globals,
-                            &instances,
-                            lights,
-                            shadows,
-                        );
+
+                        if let Some(models) = self.sprite_models.get(&kind) {
+                            renderer.render_sprites(
+                                if dist_sqrd < sprite_high_detail_distance.powf(2.0) {
+                                    &self.sprite_models[&kind][0]
+                                } else if dist_sqrd < sprite_hid_detail_distance.powf(2.0) {
+                                    &self.sprite_models[&kind][1]
+                                } else if dist_sqrd < sprite_mid_detail_distance.powf(2.0) {
+                                    &self.sprite_models[&kind][2]
+                                } else if dist_sqrd < sprite_low_detail_distance.powf(2.0) {
+                                    &self.sprite_models[&kind][3]
+                                } else {
+                                    &self.sprite_models[&kind][4]
+                                },
+                                globals,
+                                &instances,
+                                lights,
+                                shadows,
+                            );
+                        } else {
+                            warn!("Sprite model for {:?} does not exists", kind);
+                        }
                     }
                 }
             }
