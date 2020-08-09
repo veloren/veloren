@@ -179,6 +179,7 @@ widget_ids! {
         entity_count,
         num_chunks,
         num_figures,
+        num_particles,
 
         // Game Version
         version,
@@ -247,6 +248,8 @@ pub struct DebugInfo {
     pub num_visible_chunks: u32,
     pub num_figures: u32,
     pub num_figures_visible: u32,
+    pub num_particles: u32,
+    pub num_particles_visible: u32,
 }
 
 pub struct HudInfo {
@@ -275,6 +278,7 @@ pub enum Event {
     ChangeGamma(f32),
     MapZoom(f64),
     AdjustWindowSize([u16; 2]),
+    ToggleParticlesEnabled(bool),
     ToggleFullscreen,
     ChangeAaMode(AaMode),
     ChangeCloudMode(CloudMode),
@@ -1495,6 +1499,17 @@ impl Hud {
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.num_figures, ui_widgets);
 
+            // Number of particles
+            Text::new(&format!(
+                "Particles: {} ({} visible)",
+                debug_info.num_particles, debug_info.num_particles_visible,
+            ))
+            .color(TEXT_COLOR)
+            .down_from(self.ids.num_figures, 5.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
+            .set(self.ids.num_particles, ui_widgets);
+
             // Help Window
             if let Some(help_key) = global_state.settings.controls.get_binding(GameInput::Help) {
                 Text::new(
@@ -1504,7 +1519,7 @@ impl Hud {
                         .replace("{key}", help_key.to_string().as_str()),
                 )
                 .color(TEXT_COLOR)
-                .down_from(self.ids.num_figures, 5.0)
+                .down_from(self.ids.num_particles, 5.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.help_info, ui_widgets);
@@ -1895,6 +1910,9 @@ impl Hud {
                     },
                     settings_window::Event::ChangeLanguage(language) => {
                         events.push(Event::ChangeLanguage(language));
+                    },
+                    settings_window::Event::ToggleParticlesEnabled(particles_enabled) => {
+                        events.push(Event::ToggleParticlesEnabled(particles_enabled));
                     },
                     settings_window::Event::ToggleFullscreen => {
                         events.push(Event::ToggleFullscreen);

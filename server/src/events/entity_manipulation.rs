@@ -6,6 +6,7 @@ use common::{
         HealthChange, HealthSource, Player, Pos, Stats,
     },
     msg::{PlayerListUpdate, ServerMsg},
+    outcome::Outcome,
     state::BlockChange,
     sync::{Uid, UidAllocator, WorldSyncExt},
     sys::combat::BLOCK_ANGLE,
@@ -287,6 +288,10 @@ pub fn handle_explosion(
     // Go through all other entities
     let hit_range = 3.0 * power;
     let ecs = &server.state.ecs();
+
+    // Add an outcome
+    ecs.write_resource::<Vec<Outcome>>()
+        .push(Outcome::Explosion { pos, power });
 
     let owner_entity = owner.and_then(|uid| {
         ecs.read_resource::<UidAllocator>()

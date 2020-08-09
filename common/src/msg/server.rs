@@ -2,6 +2,7 @@ use super::{ClientState, EcsCompPacket};
 use crate::{
     character::CharacterItem,
     comp,
+    outcome::Outcome,
     recipe::RecipeBook,
     state, sync,
     sync::Uid,
@@ -120,6 +121,7 @@ pub enum ServerMsg {
     /// Send a popup notification such as "Waypoint Saved"
     Notification(Notification),
     SetViewDistance(u32),
+    Outcomes(Vec<Outcome>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

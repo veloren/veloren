@@ -1,6 +1,6 @@
 use crate::{
     mesh::{vol, Meshable},
-    render::{self, FigurePipeline, Mesh, SpritePipeline},
+    render::{self, FigurePipeline, Mesh, ParticlePipeline, SpritePipeline},
 };
 use common::{
     figure::Cell,
@@ -11,6 +11,7 @@ use vek::*;
 
 type FigureVertex = <FigurePipeline as render::Pipeline>::Vertex;
 type SpriteVertex = <SpritePipeline as render::Pipeline>::Vertex;
+type ParticleVertex = <ParticlePipeline as render::Pipeline>::Vertex;
 
 impl<'a, V: 'a> Meshable<'a, FigurePipeline, FigurePipeline> for V
 where
@@ -118,6 +119,73 @@ where
                     &[[[Rgba::from_opaque(col); 3]; 3]; 3],
                     |origin, norm, col, light, ao| {
                         SpriteVertex::new(
+                            origin * scale,
+                            norm,
+                            linear_to_srgb(srgb_to_linear(col) * light),
+                            ao,
+                        )
+                    },
+                    &{
+                        let mut ls = [[[None; 3]; 3]; 3];
+                        for x in 0..3 {
+                            for y in 0..3 {
+                                for z in 0..3 {
+                                    ls[z][y][x] = self
+                                        .get(pos + Vec3::new(x as i32, y as i32, z as i32) - 1)
+                                        .map(|v| v.is_empty())
+                                        .unwrap_or(true)
+                                        .then_some(1.0);
+                                }
+                            }
+                        }
+                        ls
+                    },
+                );
+            }
+        }
+
+        (mesh, Mesh::new())
+    }
+}
+
+impl<'a, V: 'a> Meshable<'a, ParticlePipeline, ParticlePipeline> for V
+where
+    V: BaseVol<Vox = Cell> + ReadVol + SizedVol,
+    /* TODO: Use VolIterator instead of manually iterating
+     * &'a V: IntoVolIterator<'a> + IntoFullVolIterator<'a>,
+     * &'a V: BaseVol<Vox=Cell>, */
+{
+    type Pipeline = ParticlePipeline;
+    type Supplement = (Vec3<f32>, Vec3<f32>);
+    type TranslucentPipeline = ParticlePipeline;
+
+    #[allow(clippy::needless_range_loop)] // TODO: Pending review in #587
+    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
+    fn generate_mesh(
+        &'a self,
+        (offs, scale): Self::Supplement,
+    ) -> (Mesh<Self::Pipeline>, Mesh<Self::TranslucentPipeline>) {
+        let mut mesh = Mesh::new();
+
+        let vol_iter = (self.lower_bound().x..self.upper_bound().x)
+            .map(|i| {
+                (self.lower_bound().y..self.upper_bound().y).map(move |j| {
+                    (self.lower_bound().z..self.upper_bound().z).map(move |k| Vec3::new(i, j, k))
+                })
+            })
+            .flatten()
+            .flatten()
+            .map(|pos| (pos, self.get(pos).map(|x| *x).unwrap_or(Vox::empty())));
+
+        for (pos, vox) in vol_iter {
+            if let Some(col) = vox.get_color() {
+                vol::push_vox_verts(
+                    &mut mesh,
+                    faces_to_make(self, pos, true, |vox| vox.is_empty()),
+                    offs + pos.map(|e| e as f32),
+                    &[[[Rgba::from_opaque(col); 3]; 3]; 3],
+                    |origin, norm, col, light, ao| {
+                        ParticleVertex::new(
                             origin * scale,
                             norm,
                             linear_to_srgb(srgb_to_linear(col) * light),

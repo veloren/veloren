@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Power stat to weapons which affects weapon damage
 - Add detection of entities under the cursor 
 - Functional group-system with exp-sharing and disabled damage to group members
+- Some Campfire, fireball & bomb; particle, light & sound effects.
 
 ### Changed
 
