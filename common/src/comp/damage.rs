@@ -15,6 +15,7 @@ pub enum DamageSource {
     Projectile,
     Explosion,
     Falling,
+    Shockwave,
 }
 
 impl Damage {
@@ -71,6 +72,23 @@ impl Damage {
 
                 // Min damage
                 if (damage_reduction - 1.0).abs() > f32::EPSILON && self.healthchange > -10.0 {
+                    self.healthchange = -10.0;
+                }
+            },
+            DamageSource::Shockwave => {
+                // Critical hit
+                if rand::random() {
+                    self.healthchange *= 1.2;
+                }
+                // Block
+                if block {
+                    self.healthchange *= 1.0 - BLOCK_EFFICIENCY
+                }
+                // Armor
+                self.healthchange *= 1.0 - loadout.get_damage_reduction();
+
+                // Min damage
+                if self.healthchange > -10.0 {
                     self.healthchange = -10.0;
                 }
             },
