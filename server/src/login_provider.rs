@@ -53,7 +53,7 @@ impl LoginProvider {
         &mut self,
         username_or_token: &str,
         whitelist: &[String],
-        banlist: &HashMap<String, String>
+        banlist: &HashMap<String, String>,
     ) -> Result<(String, Uuid), RegisterError> {
         self
             // resolve user information

@@ -1399,7 +1399,7 @@ impl Client {
                 ServerMsg::Kicked(reason) => {
                     frontend_events.push(Event::Kicked(reason.clone()));
                     self.singleton_stream.send(ClientMsg::Terminate)?;
-                }
+                },
                 ServerMsg::CharacterListUpdate(character_list) => {
                     self.character_list.characters = character_list;
                     self.character_list.loading = false;

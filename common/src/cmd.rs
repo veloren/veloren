@@ -202,7 +202,7 @@ impl ChatCommand {
             ChatCommand::Ban => cmd(
                 vec![Any("username", Required), Message(Optional)],
                 "Ban a player with a given username",
-                Admin
+                Admin,
             ),
             ChatCommand::Build => cmd(vec![], "Toggles build mode on and off", Admin),
             ChatCommand::Campfire => cmd(vec![], "Spawns a campfire", Admin),
@@ -277,7 +277,7 @@ impl ChatCommand {
             ChatCommand::Kick => cmd(
                 vec![Any("username", Required), Message(Optional)],
                 "Kick a player with a given username",
-                Admin
+                Admin,
             ),
             ChatCommand::Kill => cmd(vec![], "Kill yourself", NoAdmin),
             ChatCommand::KillNpcs => cmd(vec![], "Kill the NPCs", Admin),
@@ -373,10 +373,10 @@ impl ChatCommand {
                 "Teleport to another player",
                 Admin,
             ),
-            ChatCommand::Unban => cmd (
+            ChatCommand::Unban => cmd(
                 vec![Any("username", Required)],
                 "Remove the ban for the given username",
-                Admin
+                Admin,
             ),
             ChatCommand::Version => cmd(vec![], "Prints server version", NoAdmin),
             ChatCommand::Waypoint => {

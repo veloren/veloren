@@ -88,14 +88,17 @@ impl Sys {
                     view_distance,
                     token_or_username,
                 } => {
-                    let (username, uuid) =
-                        match login_provider.try_login(&token_or_username, &settings.whitelist, &settings.banlist) {
-                            Err(err) => {
-                                client.error_state(RequestStateError::RegisterDenied(err));
-                                break Ok(());
-                            },
-                            Ok((username, uuid)) => (username, uuid),
-                        };
+                    let (username, uuid) = match login_provider.try_login(
+                        &token_or_username,
+                        &settings.whitelist,
+                        &settings.banlist,
+                    ) {
+                        Err(err) => {
+                            client.error_state(RequestStateError::RegisterDenied(err));
+                            break Ok(());
+                        },
+                        Ok((username, uuid)) => (username, uuid),
+                    };
 
                     let vd =
                         view_distance.map(|vd| vd.min(settings.max_view_distance.unwrap_or(vd)));

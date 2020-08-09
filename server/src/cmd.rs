@@ -1814,6 +1814,10 @@ fn handle_whitelist(
     }
 }
 
+fn kick_player(server: &mut Server, target_player: EcsEntity, reason: &str) {
+    server.notify_client(target_player, ServerMsg::Kicked(reason.to_string()));
+}
+
 fn handle_kick(
     server: &mut Server,
     client: EcsEntity,
@@ -1821,8 +1825,10 @@ fn handle_kick(
     args: String,
     action: &ChatCommand,
 ) {
-    if let (Some(target_alias), reason_opt) = scan_fmt_some!(&args, &action.arg_fmt(), String, String) {
-        let reason = reason_opt.unwrap_or(String::new());
+    if let (Some(target_alias), reason_opt) =
+        scan_fmt_some!(&args, &action.arg_fmt(), String, String)
+    {
+        let reason = reason_opt.unwrap_or_default();
         let ecs = server.state.ecs();
         let target_player_opt = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
             .join()
@@ -1830,46 +1836,46 @@ fn handle_kick(
             .map(|(entity, _)| entity);
 
         if let Some(target_player) = target_player_opt {
-            server.notify_client(
-                target_player,
-                ServerMsg::Kicked(reason.clone())
-            );
+            kick_player(server, target_player, &reason);
             server.notify_client(
                 client,
-                ChatType::CommandInfo.server_msg(
-                    format!("Kicked {} from the server with reason: {}",
-                            target_alias,
-                            reason))
+                ChatType::CommandInfo.server_msg(format!(
+                    "Kicked {} from the server with reason: {}",
+                    target_alias, reason
+                )),
             );
         } else {
             server.notify_client(
                 client,
-                ChatType::CommandError.server_msg(format!("Player with alias {} not found", target_alias))
+                ChatType::CommandError
+                    .server_msg(format!("Player with alias {} not found", target_alias)),
             )
         }
     } else {
         server.notify_client(
-          client,
-            ChatType::CommandError.server_msg(action.help_string())
+            client,
+            ChatType::CommandError.server_msg(action.help_string()),
         );
     }
-
 }
 
 fn handle_ban(
     server: &mut Server,
     client: EcsEntity,
-    target: EcsEntity,
+    _target: EcsEntity,
     args: String,
     action: &ChatCommand,
 ) {
-    if let (Some(target_alias), reason_opt) = scan_fmt_some!(&args, &action.arg_fmt(), String, String) {
-        let reason = reason_opt.unwrap_or(String::new());
+    if let (Some(target_alias), reason_opt) =
+        scan_fmt_some!(&args, &action.arg_fmt(), String, String)
+    {
+        let reason = reason_opt.unwrap_or_default();
 
         if server.settings().banlist.contains_key(&target_alias) {
             server.notify_client(
                 client,
-                ChatType::CommandError.server_msg(format!("{} is already on the banlist", target_alias))
+                ChatType::CommandError
+                    .server_msg(format!("{} is already on the banlist", target_alias)),
             )
         } else {
             server.settings_mut().edit(|s| {
@@ -1877,27 +1883,26 @@ fn handle_ban(
             });
             server.notify_client(
                 client,
-                ChatType::CommandInfo.server_msg(
-                    format!("Added {} to the banlist with reason: {}",
-                            target_alias,
-                            reason))
+                ChatType::CommandInfo.server_msg(format!(
+                    "Added {} to the banlist with reason: {}",
+                    target_alias, reason
+                )),
             );
 
             // If the player is online kick them
             let ecs = server.state.ecs();
-            let entity_opt = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
+            let target_player_opt = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
                 .join()
                 .find(|(_, player)| player.alias == target_alias)
                 .map(|(entity, _)| entity);
-            if let Some(_) = entity_opt {
-                get_handler(&ChatCommand::Kick)(server, client, target, format!("{} {}", target_alias, reason), &ChatCommand::Kick)
+            if let Some(target_player) = target_player_opt {
+                kick_player(server, target_player, &reason);
             }
         }
-
     } else {
         server.notify_client(
             client,
-            ChatType::CommandError.server_msg(action.help_string())
+            ChatType::CommandError.server_msg(action.help_string()),
         );
     }
 }
@@ -1920,7 +1925,7 @@ fn handle_unban(
     } else {
         server.notify_client(
             client,
-            ChatType::CommandError.server_msg(action.help_string())
+            ChatType::CommandError.server_msg(action.help_string()),
         );
     }
 }
