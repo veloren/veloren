@@ -16,7 +16,14 @@ use cpal::traits::DeviceTrait;
 use rodio::{source::Source, Decoder, Device};
 use vek::*;
 
-const FALLOFF: f32 = 0.13;
+#[derive(Default, Clone)]
+pub struct Listener {
+    pos: Vec3<f32>,
+    ori: Vec3<f32>,
+
+    ear_left_rpos: Vec3<f32>,
+    ear_right_rpos: Vec3<f32>,
+}
 
 /// Holds information about the system audio devices and internal channels used
 /// for sfx and music playback. An instance of `AudioFrontend` is used by
@@ -34,11 +41,7 @@ pub struct AudioFrontend {
     sfx_volume: f32,
     music_volume: f32,
 
-    listener_pos: Vec3<f32>,
-    listener_ori: Vec3<f32>,
-
-    listener_ear_left: Vec3<f32>,
-    listener_ear_right: Vec3<f32>,
+    listener: Listener,
 }
 
 impl AudioFrontend {
@@ -63,10 +66,8 @@ impl AudioFrontend {
             sfx_channels,
             sfx_volume: 1.0,
             music_volume: 1.0,
-            listener_pos: Vec3::zero(),
-            listener_ori: Vec3::zero(),
-            listener_ear_left: Vec3::zero(),
-            listener_ear_right: Vec3::zero(),
+
+            listener: Listener::default(),
         }
     }
 
@@ -81,10 +82,7 @@ impl AudioFrontend {
             sfx_channels: Vec::new(),
             sfx_volume: 1.0,
             music_volume: 1.0,
-            listener_pos: Vec3::zero(),
-            listener_ori: Vec3::zero(),
-            listener_ear_left: Vec3::zero(),
-            listener_ear_right: Vec3::zero(),
+            listener: Listener::default(),
         }
     }
 
@@ -146,20 +144,15 @@ impl AudioFrontend {
     /// Play (once) an sfx file by file path at the give position and volume
     pub fn play_sfx(&mut self, sound: &str, pos: Vec3<f32>, vol: Option<f32>) {
         if self.audio_device.is_some() {
-            let calc_pos = ((pos - self.listener_pos) * FALLOFF).into_array();
-
             let sound = self
                 .sound_cache
                 .load_sound(sound)
                 .amplify(vol.unwrap_or(1.0));
 
-            let left_ear = self.listener_ear_left.into_array();
-            let right_ear = self.listener_ear_right.into_array();
-
+            let listener = self.listener.clone();
             if let Some(channel) = self.get_sfx_channel() {
-                channel.set_emitter_position(calc_pos);
-                channel.set_left_ear_position(left_ear);
-                channel.set_right_ear_position(right_ear);
+                channel.set_pos(pos);
+                channel.update(&listener);
                 channel.play(sound);
             }
         }
@@ -174,27 +167,17 @@ impl AudioFrontend {
         }
     }
 
-    pub fn set_listener_pos(&mut self, pos: &Vec3<f32>, ori: &Vec3<f32>) {
-        self.listener_pos = *pos;
-        self.listener_ori = ori.normalized();
+    pub fn set_listener_pos(&mut self, pos: Vec3<f32>, ori: Vec3<f32>) {
+        self.listener.pos = pos;
+        self.listener.ori = ori.normalized();
 
         let up = Vec3::new(0.0, 0.0, 1.0);
-
-        let pos_left = up.cross(self.listener_ori).normalized();
-        let pos_right = self.listener_ori.cross(up).normalized();
-
-        self.listener_ear_left = pos_left;
-        self.listener_ear_right = pos_right;
+        self.listener.ear_left_rpos = up.cross(self.listener.ori).normalized();
+        self.listener.ear_right_rpos = -up.cross(self.listener.ori).normalized();
 
         for channel in self.sfx_channels.iter_mut() {
             if !channel.is_done() {
-                // TODO: Update this to correctly determine the updated relative position of
-                // the SFX emitter when the player (listener) moves
-                // channel.set_emitter_position(
-                //     ((channel.pos - self.listener_pos) * FALLOFF).into_array(),
-                // );
-                channel.set_left_ear_position(pos_left.into_array());
-                channel.set_right_ear_position(pos_right.into_array());
+                channel.update(&self.listener);
             }
         }
     }

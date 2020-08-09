@@ -24,6 +24,10 @@ impl Component for Vel {
 #[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Ori(pub Dir);
 
+impl Ori {
+    pub fn vec(&self) -> &Vec3<f32> { &*self.0 }
+}
+
 impl Component for Ori {
     type Storage = IdvStorage<Self>;
 }

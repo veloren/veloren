@@ -7,7 +7,7 @@ use chrono::{NaiveTime, Timelike};
 use common::{
     assets,
     cmd::{ChatCommand, CHAT_COMMANDS, CHAT_SHORTCUTS},
-    comp::{self, ChatType, Item},
+    comp::{self, ChatType, Item, LightEmitter, WaypointArea},
     event::{EventBus, ServerEvent},
     msg::{Notification, PlayerListUpdate, ServerMsg},
     npc::{self, get_npc_name},
@@ -65,6 +65,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Adminify => handle_adminify,
         ChatCommand::Alias => handle_alias,
         ChatCommand::Build => handle_build,
+        ChatCommand::Campfire => handle_spawn_campfire,
         ChatCommand::Debug => handle_debug,
         ChatCommand::DebugColumn => handle_debug_column,
         ChatCommand::Dummy => handle_spawn_training_dummy,
@@ -655,6 +656,39 @@ fn handle_spawn_training_dummy(
             server.notify_client(
                 client,
                 ChatType::CommandInfo.server_msg("Spawned a training dummy"),
+            );
+        },
+        None => server.notify_client(
+            client,
+            ChatType::CommandError.server_msg("You have no position!"),
+        ),
+    }
+}
+
+fn handle_spawn_campfire(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    _args: String,
+    _action: &ChatCommand,
+) {
+    match server.state.read_component_copied::<comp::Pos>(target) {
+        Some(pos) => {
+            server
+                .state
+                .create_object(pos, comp::object::Body::CampfireLit)
+                .with(LightEmitter {
+                    col: Rgb::new(1.0, 0.65, 0.2),
+                    strength: 2.0,
+                    flicker: 1.0,
+                    animated: true,
+                })
+                .with(WaypointArea::default())
+                .build();
+
+            server.notify_client(
+                client,
+                ChatType::CommandInfo.server_msg("Spawned a campfire"),
             );
         },
         None => server.notify_client(

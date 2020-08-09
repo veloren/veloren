@@ -611,6 +611,7 @@ impl Default for Log {
 pub struct GraphicsSettings {
     pub view_distance: u32,
     pub sprite_render_distance: u32,
+    pub particles_enabled: bool,
     pub figure_lod_render_distance: u32,
     pub max_fps: u32,
     pub fov: u16,
@@ -627,6 +628,7 @@ impl Default for GraphicsSettings {
         Self {
             view_distance: 10,
             sprite_render_distance: 150,
+            particles_enabled: true,
             figure_lod_render_distance: 250,
             max_fps: 60,
             fov: 50,
