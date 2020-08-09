@@ -2,7 +2,7 @@ use super::{
     super::{vek::*, Animation},
     BipedLargeSkeleton, SkeletonAttr,
 };
-use std::f32::consts::PI;
+use std::{f32::consts::PI, ops::Mul};
 
 pub struct RunAnimation;
 
@@ -82,11 +82,12 @@ impl Animation for RunAnimation {
         next.lower_torso.scale = Vec3::one() * 1.02;
 
         next.jaw.position = Vec3::new(0.0, skeleton_attr.jaw.0, skeleton_attr.jaw.1);
-        next.jaw.orientation = Quaternion::rotation_z(0.0);
-        next.jaw.scale = Vec3::one();
+        next.jaw.orientation = Quaternion::rotation_x(0.0);
+        next.jaw.scale = Vec3::one() * 1.02;
 
-        next.tail.position = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1 * 0.0);
-        next.tail.orientation = Quaternion::rotation_z(0.0);
+        next.tail.position = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1);
+        next.tail.orientation =
+            Quaternion::rotation_x(shortalt * 0.3);
         next.tail.scale = Vec3::one();
 
         next.second.position = Vec3::new(0.0, 0.0, 0.0);

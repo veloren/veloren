@@ -239,8 +239,6 @@
             central: ("npc.troll.female.hammer"),
         )
     ),
-
-
     (Dullahan, Male): (
         head: (
             offset: (-8.0, -5.0, -6.0),
@@ -271,7 +269,6 @@
             central: ("npc.cyclops.male.hammer"),
         )
     ),
-
     (Dullahan, Female): (
         head: (
             offset: (-8.0, -5.0, -6.0),
@@ -300,6 +297,66 @@
         main: (
             offset: (-5.0, -6.5, -4.0),
             central: ("npc.cyclops.male.hammer"),
+        )
+    ),
+    (Werewolf, Male): (
+        head: (
+            offset: (-5.0, -7.5, -6.5),
+            center: ("npc.werewolf.male.head"),
+        ),
+        torso_upper: (
+            offset: (-8.0, -12.5, -10.5),
+            center: ("npc.werewolf.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.0, -5.5, -4.0),
+            center: ("npc.werewolf.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-2.0, 0.0, -2.0),
+            center: ("npc.werewolf.male.jaw"),
+        ),
+        tail: (
+            offset: (-4.0, -27.0, -6.0),
+            center: ("npc.werewolf.male.tail"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
+        ),
+        main: (
+            offset: (-1.5, -9.0, -10.0),
+            center: ("armor.empty"),
+        )
+    ),
+    (Werewolf, Female): (
+        head: (
+            offset: (-5.0, -7.5, -6.5),
+            center: ("npc.werewolf.male.head"),
+        ),
+        torso_upper: (
+            offset: (-8.0, -12.5, -10.5),
+            center: ("npc.werewolf.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.0, -5.5, -4.0),
+            center: ("npc.werewolf.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-2.0, 0.0, -2.0),
+            center: ("npc.werewolf.male.jaw"),
+        ),
+        tail: (
+            offset: (-4.0, -27.0, -6.0),
+            center: ("npc.werewolf.male.tail"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
+        ),
+        main: (
+            offset: (-1.5, -9.0, -10.0),
+            center: ("armor.empty"),
         )
     ),
 })
