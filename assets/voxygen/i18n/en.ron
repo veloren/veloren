@@ -72,6 +72,7 @@ VoxygenLocalization(
         "common.error": "Error",
         "common.fatal_error": "Fatal Error",
         "common.you": "You",
+        "common.automatic": "Auto",
 
         // Message when connection to the server is lost
         "common.connection_lost": r#"Connection lost!
@@ -298,6 +299,9 @@ magically infused items?"#,
         "hud.settings.fluid_rendering_mode.shiny": "Shiny",
         "hud.settings.cloud_rendering_mode.regular": "Regular",
         "hud.settings.particles": "Particles",
+        "hud.settings.resolution": "Resolution",
+        "hud.settings.bit_depth": "Bit Depth",
+        "hud.settings.refresh_rate": "Refresh Rate",
         "hud.settings.fullscreen": "Fullscreen",
         "hud.settings.save_window_size": "Save window size",
 
