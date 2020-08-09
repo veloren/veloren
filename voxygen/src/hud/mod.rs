@@ -283,6 +283,9 @@ pub enum Event {
     ChangeAaMode(AaMode),
     ChangeCloudMode(CloudMode),
     ChangeFluidMode(FluidMode),
+    ChangeResolution([u16; 2]),
+    ChangeBitDepth(Option<u16>),
+    ChangeRefreshRate(Option<u16>),
     CrosshairTransp(f32),
     ChatTransp(f32),
     ChatCharName(bool),
@@ -1907,6 +1910,15 @@ impl Hud {
                     },
                     settings_window::Event::ChangeFluidMode(new_fluid_mode) => {
                         events.push(Event::ChangeFluidMode(new_fluid_mode));
+                    },
+                    settings_window::Event::ChangeResolution(new_resolution) => {
+                        events.push(Event::ChangeResolution(new_resolution));
+                    },
+                    settings_window::Event::ChangeBitDepth(new_bit_depth) => {
+                        events.push(Event::ChangeBitDepth(new_bit_depth));
+                    },
+                    settings_window::Event::ChangeRefreshRate(new_refresh_rate) => {
+                        events.push(Event::ChangeRefreshRate(new_refresh_rate));
                     },
                     settings_window::Event::ChangeLanguage(language) => {
                         events.push(Event::ChangeLanguage(language));

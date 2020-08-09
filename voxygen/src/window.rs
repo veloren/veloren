@@ -7,11 +7,13 @@ use crate::{
 use crossbeam::channel;
 use gilrs::{EventType, Gilrs};
 use hashbrown::HashMap;
+use itertools::Itertools;
 use old_school_gfx_glutin_ext::{ContextBuilderExt, WindowInitExt, WindowUpdateExt};
 use serde_derive::{Deserialize, Serialize};
 use std::fmt;
 use tracing::{error, info, warn};
 use vek::*;
+use winit::monitor::VideoMode;
 
 /// Represents a key that the game recognises after input mapping.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Deserialize, Serialize)]
@@ -610,7 +612,12 @@ impl Window {
             toggle_fullscreen: false,
         };
 
-        this.fullscreen(settings.graphics.fullscreen);
+        this.fullscreen(
+            settings.graphics.fullscreen,
+            settings.graphics.resolution,
+            settings.graphics.bit_depth,
+            settings.graphics.refresh_rate,
+        );
 
         Ok((this, event_loop))
     }
@@ -1056,34 +1063,206 @@ impl Window {
     }
 
     pub fn toggle_fullscreen(&mut self, settings: &mut Settings) {
-        self.fullscreen(!self.is_fullscreen());
+        self.fullscreen(
+            !self.is_fullscreen(),
+            settings.graphics.resolution,
+            settings.graphics.bit_depth,
+            settings.graphics.refresh_rate,
+        );
         settings.graphics.fullscreen = self.is_fullscreen();
         settings.save_to_file_warn();
     }
 
     pub fn is_fullscreen(&self) -> bool { self.fullscreen }
 
-    pub fn fullscreen(&mut self, fullscreen: bool) {
+    pub fn select_video_mode_rec(
+        &self,
+        resolution: [u16; 2],
+        bit_depth: Option<u16>,
+        refresh_rate: Option<u16>,
+        correct_res: Option<Vec<VideoMode>>,
+        correct_depth: Option<Option<VideoMode>>,
+        correct_rate: Option<Option<VideoMode>>,
+    ) -> Option<VideoMode> {
+        // if a previous iteration of this method filtered the available video modes for
+        // the correct resolution already, load that value, otherwise filter it
+        // in this iteration
+        let correct_res = correct_res.unwrap_or_else(|| {
+            let window = self.window.window();
+            window
+                .current_monitor()
+                .video_modes()
+                .filter(|mode| mode.size().width == resolution[0] as u32)
+                .filter(|mode| mode.size().height == resolution[1] as u32)
+                .collect()
+        });
+
+        match bit_depth {
+            // A bit depth is given
+            Some(depth) => {
+                // analogous to correct_res
+                let correct_depth = correct_depth.unwrap_or_else(|| {
+                    correct_res
+                        .iter()
+                        .find(|mode| mode.bit_depth() == depth)
+                        .cloned()
+                });
+
+                match refresh_rate {
+                    // A bit depth and a refresh rate is given
+                    Some(rate) => {
+                        // analogous to correct_res
+                        let correct_rate = correct_rate.unwrap_or_else(|| {
+                            correct_res
+                                .iter()
+                                .find(|mode| mode.refresh_rate() == rate)
+                                .cloned()
+                        });
+
+                        // if no video mode with the given bit depth and refresh rate exists, fall
+                        // back to a video mode that fits the resolution and either bit depth or
+                        // refresh rate depending on which parameter was causing the correct video
+                        // mode not to be found
+                        correct_res
+                            .iter()
+                            .filter(|mode| mode.bit_depth() == depth)
+                            .find(|mode| mode.refresh_rate() == rate)
+                            .cloned()
+                            .or_else(|| {
+                                if correct_depth.is_none() && correct_rate.is_none() {
+                                    warn!(
+                                        "Bit depth and refresh rate specified in settings are \
+                                         incompatible with the monitor. Choosing highest bit \
+                                         depth and refresh rate possible instead."
+                                    );
+                                }
+
+                                self.select_video_mode_rec(
+                                    resolution,
+                                    correct_depth.is_some().then_some(depth),
+                                    correct_rate.is_some().then_some(rate),
+                                    Some(correct_res),
+                                    Some(correct_depth),
+                                    Some(correct_rate),
+                                )
+                            })
+                    },
+                    // A bit depth and no refresh rate is given
+                    // if no video mode with the given bit depth exists, fall
+                    // back to a video mode that fits only the resolution
+                    None => match correct_depth {
+                        Some(mode) => Some(mode),
+                        None => {
+                            warn!(
+                                "Bit depth specified in settings is incompatible with the \
+                                 monitor. Choosing highest bit depth possible instead."
+                            );
+
+                            self.select_video_mode_rec(
+                                resolution,
+                                None,
+                                None,
+                                Some(correct_res),
+                                Some(correct_depth),
+                                None,
+                            )
+                        },
+                    },
+                }
+            },
+            // No bit depth is given
+            None => match refresh_rate {
+                // No bit depth and a refresh rate is given
+                Some(rate) => {
+                    // analogous to correct_res
+                    let correct_rate = correct_rate.unwrap_or_else(|| {
+                        correct_res
+                            .iter()
+                            .find(|mode| mode.refresh_rate() == rate)
+                            .cloned()
+                    });
+
+                    // if no video mode with the given bit depth exists, fall
+                    // back to a video mode that fits only the resolution
+                    match correct_rate {
+                        Some(mode) => Some(mode),
+                        None => {
+                            warn!(
+                                "Refresh rate specified in settings is incompatible with the \
+                                 monitor. Choosing highest refresh rate possible instead."
+                            );
+
+                            self.select_video_mode_rec(
+                                resolution,
+                                None,
+                                None,
+                                Some(correct_res),
+                                None,
+                                Some(correct_rate),
+                            )
+                        },
+                    }
+                },
+                // No bit depth and no refresh rate is given
+                // get the video mode with the specified resolution and the max bit depth and
+                // refresh rate
+                None => correct_res
+                    .into_iter()
+                    // Prefer bit depth over refresh rate
+                    .sorted_by_key(|mode| mode.bit_depth())
+                    .max_by_key(|mode| mode.refresh_rate()),
+            },
+        }
+    }
+
+    pub fn select_video_mode(
+        &self,
+        resolution: [u16; 2],
+        bit_depth: Option<u16>,
+        refresh_rate: Option<u16>,
+    ) -> VideoMode {
+        // (resolution, bit depth, refresh rate) represents a video mode
+        // spec: as specified
+        // max: maximum value available
+
+        // order of fallbacks as follows:
+        // (spec, spec, spec)
+        // (spec, spec, max), (spec, max, spec)
+        // (spec, max, max)
+        // (max, max, max)
+        self.select_video_mode_rec(resolution, bit_depth, refresh_rate, None, None, None)
+            // if there is no video mode with the specified resolution, fall back to the video mode with max resolution, bit depth and refresh rate
+            .unwrap_or_else(|| {
+                warn!(
+                    "Resolution specified in settings is incompatible with the monitor. Choosing \
+                     highest resolution possible instead."
+                );
+
+                self
+                    .window
+                    .window()
+                    .current_monitor()
+                    .video_modes()
+                    // Prefer bit depth over refresh rate
+                    .sorted_by_key(|mode| mode.refresh_rate())
+                    .sorted_by_key(|mode| mode.bit_depth())
+                    .max_by_key(|mode| mode.size().width)
+                    .expect("No video modes available!!")
+            })
+    }
+
+    pub fn fullscreen(
+        &mut self,
+        fullscreen: bool,
+        resolution: [u16; 2],
+        bit_depth: Option<u16>,
+        refresh_rate: Option<u16>,
+    ) {
         let window = self.window.window();
         self.fullscreen = fullscreen;
         if fullscreen {
             window.set_fullscreen(Some(winit::window::Fullscreen::Exclusive(
-                window
-                    .current_monitor()
-                    .video_modes()
-                    .filter(|mode| mode.bit_depth() >= 24 && mode.refresh_rate() >= 59)
-                    .max_by_key(|mode| mode.size().width)
-                    .unwrap_or_else(|| {
-                        warn!(
-                            "No video mode with a bit depth of at least 24 and a refresh rate of \
-                             at least 60Hz found"
-                        );
-                        window
-                            .current_monitor()
-                            .video_modes()
-                            .max_by_key(|mode| mode.size().width)
-                            .expect("No video modes available!!")
-                    }),
+                self.select_video_mode(resolution, bit_depth, refresh_rate),
             )));
         } else {
             window.set_fullscreen(None);
