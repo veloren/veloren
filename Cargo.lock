@@ -4719,6 +4719,7 @@ dependencies = [
  "guillotiere",
  "hashbrown",
  "image",
+ "itertools",
  "msgbox",
  "num 0.2.1",
  "old_school_gfx_glutin_ext",

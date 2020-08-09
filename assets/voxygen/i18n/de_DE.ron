@@ -70,6 +70,7 @@ VoxygenLocalization(
         "common.fatal_error": "Fataler Fehler",
         "common.decline": "Ablehnen",
         "common.you": "Ihr",
+        "common.automatic": "Auto",
         /// End Common section
 
          // Message when connection to the server is lost
@@ -297,6 +298,10 @@ magischen Gegenstände ergattern?"#,
         "hud.settings.fluid_rendering_mode.cheap": "Niedrig",
         "hud.settings.fluid_rendering_mode.shiny": "Hoch",
         "hud.settings.cloud_rendering_mode.regular": "Realistisch",
+        "hud.settings.particles": "Partikel",
+        "hud.settings.resolution": "Auflösung",
+        "hud.settings.bit_depth": "Bittiefe",
+        "hud.settings.refresh_rate": "Bildwiederholrate",
         "hud.settings.fullscreen": "Vollbild",
         "hud.settings.save_window_size": "Größe speichern",
 

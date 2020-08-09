@@ -949,6 +949,37 @@ impl PlayState for SessionState {
                         global_state.settings.graphics.fluid_mode = new_fluid_mode;
                         global_state.settings.save_to_file_warn();
                     },
+                    HudEvent::ChangeResolution(new_resolution) => {
+                        // Do this first so if it crashes the setting isn't saved :)
+                        global_state.window.fullscreen(
+                            global_state.settings.graphics.fullscreen,
+                            new_resolution,
+                            global_state.settings.graphics.bit_depth,
+                            global_state.settings.graphics.refresh_rate,
+                        );
+                        global_state.settings.graphics.resolution = new_resolution;
+                        global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::ChangeBitDepth(new_bit_depth) => {
+                        global_state.window.fullscreen(
+                            global_state.settings.graphics.fullscreen,
+                            global_state.settings.graphics.resolution,
+                            new_bit_depth,
+                            global_state.settings.graphics.refresh_rate,
+                        );
+                        global_state.settings.graphics.bit_depth = new_bit_depth;
+                        global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::ChangeRefreshRate(new_refresh_rate) => {
+                        global_state.window.fullscreen(
+                            global_state.settings.graphics.fullscreen,
+                            global_state.settings.graphics.resolution,
+                            global_state.settings.graphics.bit_depth,
+                            new_refresh_rate,
+                        );
+                        global_state.settings.graphics.refresh_rate = new_refresh_rate;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::ChangeLanguage(new_language) => {
                         global_state.settings.language.selected_language =
                             new_language.language_identifier;
