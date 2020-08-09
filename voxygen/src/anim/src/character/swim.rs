@@ -120,7 +120,6 @@ impl Animation for SwimAnimation {
         next.belt.scale = Vec3::one();
 
         next.back.offset = Vec3::new(0.0, skeleton_attr.back.0, skeleton_attr.back.1);
-        next.back.ori = Quaternion::rotation_z(0.0);
         next.back.scale = Vec3::one() * 1.02;
 
         next.shorts.offset = Vec3::new(0.0, skeleton_attr.shorts.0, skeleton_attr.shorts.1);

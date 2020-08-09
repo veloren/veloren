@@ -77,6 +77,19 @@ impl Animation for RunAnimation {
         next.lower_torso.ori = Quaternion::rotation_z(short * 0.15) * Quaternion::rotation_x(0.14);
         next.lower_torso.scale = Vec3::one() * 1.02;
 
+        next.jaw.offset = Vec3::new(0.0, skeleton_attr.jaw.0, skeleton_attr.jaw.1);
+        next.jaw.ori = Quaternion::rotation_z(0.0);
+        next.jaw.scale = Vec3::one();
+
+        next.tail.offset = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1 * 0.0);
+        next.tail.ori = Quaternion::rotation_z(0.0);
+        next.tail.scale = Vec3::one();
+
+        next.second.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.second.ori =
+            Quaternion::rotation_x(PI) * Quaternion::rotation_y(0.0) * Quaternion::rotation_z(0.0);
+        next.second.scale = Vec3::one() * 0.0;
+
         next.control.offset = Vec3::new(0.0, 0.0, 0.0);
         next.control.ori = Quaternion::rotation_z(0.0);
         next.control.scale = Vec3::one();
