@@ -54,30 +54,37 @@ impl Animation for IdleAnimation {
                 * 0.125,
         );
 
+        // Controls for the beast breathing
+        let intensity = 0.04;
+        let lenght = 1.0;
+        let chop = 0.2;
+        let chop_freq = 40.0;
+
+        let breathing = intensity * (lenght * anim_time as f32).sin() + 0.05 * chop * (anim_time as f32 * chop_freq).sin() * (anim_time as f32 * lenght).cos();
+
         next.head.position = Vec3::new(
             0.0,
             skeleton_attr.head.0,
             skeleton_attr.head.1 + torso * 0.2,
         ) * 1.02;
-        next.head.orientation =
-            Quaternion::rotation_z(look.x * 0.6) * Quaternion::rotation_x(look.y * 0.6);
-        next.head.scale = Vec3::one() * 1.02;
+        next.head.orientation = Quaternion::rotation_z(look.x * 0.6) * Quaternion::rotation_x(look.y * 0.6 + breathing);
+        next.head.scale = Vec3::one() * 1.02 + breathing * 0.4;
 
         next.upper_torso.position = Vec3::new(
             0.0,
             skeleton_attr.upper_torso.0,
             skeleton_attr.upper_torso.1 + torso * 0.5,
         );
-        next.upper_torso.orientation = Quaternion::rotation_z(0.0);
-        next.upper_torso.scale = Vec3::one();
+        next.upper_torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(- breathing);
+        next.upper_torso.scale = Vec3::one() - breathing * 0.4;
 
         next.lower_torso.position = Vec3::new(
             0.0,
             skeleton_attr.lower_torso.0,
             skeleton_attr.lower_torso.1 + torso * 0.15,
         );
-        next.lower_torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-        next.lower_torso.scale = Vec3::one() * 1.02;
+        next.lower_torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(breathing);
+        next.lower_torso.scale = Vec3::one() * 1.02 + breathing * 0.4;
         
         next.jaw.position = Vec3::new(
             0.0,
@@ -111,16 +118,16 @@ impl Animation for IdleAnimation {
             skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );
-        next.shoulder_l.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-        next.shoulder_l.scale = Vec3::one();
+        next.shoulder_l.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(breathing);
+        next.shoulder_l.scale = Vec3::one() + breathing;
 
         next.shoulder_r.position = Vec3::new(
             skeleton_attr.shoulder.0,
             skeleton_attr.shoulder.1,
             skeleton_attr.shoulder.2,
         );
-        next.shoulder_r.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-        next.shoulder_r.scale = Vec3::one();
+        next.shoulder_r.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(breathing);
+        next.shoulder_r.scale = Vec3::one() + breathing;
 
         next.hand_l.position = Vec3::new(
             -skeleton_attr.hand.0,

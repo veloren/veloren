@@ -309,7 +309,7 @@
             center: ("npc.werewolf.male.torso_upper"),
         ),
         torso_lower: (
-            offset: (-6.0, -5.5, -4.0),
+            offset: (-6.0, -5.5, -8.0),
             center: ("npc.werewolf.male.torso_lower"),
         ),
         jaw: (
@@ -339,7 +339,7 @@
             center: ("npc.werewolf.male.torso_upper"),
         ),
         torso_lower: (
-            offset: (-6.0, -5.5, -4.0),
+            offset: (-6.0, -5.5, -8.0),
             center: ("npc.werewolf.male.torso_lower"),
         ),
         jaw: (

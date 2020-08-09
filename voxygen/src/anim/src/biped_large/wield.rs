@@ -27,6 +27,22 @@ impl Animation for WieldAnimation {
         let breathe = (anim_time as f32 + 1.5 * PI).sin();
         let test = (anim_time as f32 + 36.0 * PI).sin();
 
+        let slower = (anim_time as f32 * 1.0 + PI).sin();
+        let slow = (anim_time as f32 * 3.5 + PI).sin();
+        
+        let tailmove = Vec2::new(
+            ((global_time + anim_time) as f32 / 2.0)
+                .floor()
+                .mul(7331.0)
+                .sin()
+                * 0.25,
+            ((global_time + anim_time) as f32 / 2.0)
+                .floor()
+                .mul(1337.0)
+                .sin()
+                * 0.125,
+        );
+
         let look = Vec2::new(
             ((global_time + anim_time) as f32 / 8.0)
                 .floor()
@@ -126,12 +142,17 @@ impl Animation for WieldAnimation {
                 Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
             next.lower_torso.scale = Vec3::one() * 1.02;
 
-            next.jaw.position = Vec3::new(0.0, skeleton_attr.jaw.0, skeleton_attr.jaw.1 * 0.0);
-            next.jaw.orientation = Quaternion::rotation_z(0.0);
-            next.jaw.scale = Vec3::one();
-
+            next.jaw.position = Vec3::new(
+                0.0,
+                skeleton_attr.jaw.0 - slower * 0.12,
+                skeleton_attr.jaw.1 + slow * 0.2,
+            );
+            next.jaw.orientation = Quaternion::rotation_x(slow * 0.05);
+            next.jaw.scale = Vec3::one() * 1.02;
+    
             next.tail.position = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1);
-            next.tail.orientation = Quaternion::rotation_z(0.0);
+            next.tail.orientation =
+                Quaternion::rotation_z(0.0 + slow * 0.2 + tailmove.x) * Quaternion::rotation_x(0.0);
             next.tail.scale = Vec3::one();
 
             next.shoulder_l.position = Vec3::new(
@@ -213,6 +234,19 @@ impl Animation for WieldAnimation {
             next.lower_torso.orientation =
                 Quaternion::rotation_z(short * 0.15) * Quaternion::rotation_x(0.14);
             next.lower_torso.scale = Vec3::one() * 1.02;
+
+            next.jaw.position = Vec3::new(
+                0.0,
+                skeleton_attr.jaw.0 - slower * 0.12,
+                skeleton_attr.jaw.1 + slow * 0.2,
+            );
+            next.jaw.orientation = Quaternion::rotation_x(slow * 0.05);
+            next.jaw.scale = Vec3::one() * 1.02;
+    
+            next.tail.position = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1);
+            next.tail.orientation =
+                Quaternion::rotation_z(0.0 + slow * 0.2 + tailmove.x) * Quaternion::rotation_x(0.0);
+            next.tail.scale = Vec3::one();
 
             next.shoulder_l.position = Vec3::new(
                 -skeleton_attr.shoulder.0,
