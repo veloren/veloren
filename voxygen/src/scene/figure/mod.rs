@@ -584,7 +584,7 @@ impl FigureMgr {
                         physics.in_fluid,                                 // In water
                     ) {
                         // Standing
-                        (true, false, _) => anim::character::StandAnimation::update_skeleton(
+                        (true, false, false) => anim::character::StandAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (
                                 active_tool_kind.clone(),
@@ -597,7 +597,7 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
                         // Running
-                        (true, true, _) => anim::character::RunAnimation::update_skeleton(
+                        (true, true, false) => anim::character::RunAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (
                                 active_tool_kind.clone(),
@@ -627,7 +627,7 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
                         // Swim
-                        (false, _, true) => anim::character::SwimAnimation::update_skeleton(
+                        (_, _, true) => anim::character::SwimAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             (
                                 active_tool_kind.clone(),
@@ -636,6 +636,7 @@ impl FigureMgr {
                                 ori,
                                 state.last_ori,
                                 time,
+                                state.avg_vel,
                             ),
                             state.state_time,
                             &mut state_animation_rate,
@@ -718,6 +719,15 @@ impl FigureMgr {
                                     skeleton_attr,
                                 )
                             }
+                        },
+                        CharacterState::Sneak { .. } => {
+                            anim::character::SneakAnimation::update_skeleton(
+                                &CharacterSkeleton::new(),
+                                (active_tool_kind, vel.0, ori, state.last_ori, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
                         },
                         CharacterState::Boost(_) => {
                             anim::character::AlphaAnimation::update_skeleton(
@@ -813,13 +823,23 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::Wielding { .. } => {
-                            anim::character::WieldAnimation::update_skeleton(
-                                &target_base,
-                                (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
+                            if physics.in_fluid {
+                                anim::character::SwimWieldAnimation::update_skeleton(
+                                    &target_base,
+                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            } else {
+                                anim::character::WieldAnimation::update_skeleton(
+                                    &target_base,
+                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            }
                         },
                         CharacterState::Glide { .. } => {
                             anim::character::GlidingAnimation::update_skeleton(

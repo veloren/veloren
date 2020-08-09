@@ -322,8 +322,11 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::Jump, state) => {
                         self.inputs.jump.set_state(state);
                     },
-                    Event::InputUpdate(GameInput::Swim, state) => {
-                        self.inputs.swim.set_state(state);
+                    Event::InputUpdate(GameInput::SwimUp, state) => {
+                        self.inputs.swimup.set_state(state);
+                    },
+                    Event::InputUpdate(GameInput::SwimDown, state) => {
+                        self.inputs.swimdown.set_state(state);
                     },
                     Event::InputUpdate(GameInput::Sit, state)
                         if state != self.key_state.toggle_sit =>
@@ -342,6 +345,15 @@ impl PlayState for SessionState {
                         if state {
                             self.stop_auto_walk();
                             self.client.borrow_mut().toggle_dance();
+                        }
+                    }
+                    Event::InputUpdate(GameInput::Sneak, state)
+                        if state != self.key_state.toggle_sneak =>
+                    {
+                        self.key_state.toggle_sneak = state;
+                        if state {
+                            self.stop_auto_walk();
+                            self.client.borrow_mut().toggle_sneak();
                         }
                     }
                     Event::InputUpdate(GameInput::MoveForward, state) => {

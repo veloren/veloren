@@ -48,17 +48,17 @@ impl Animation for RunAnimation {
         let footvertl = (anim_time as f32 * 16.0 * walk * lab as f32).sin();
         let footvertr = (anim_time as f32 * 16.0 * walk * lab as f32 + PI).sin();
 
-        let footrotl = (((5.0)
-            / (2.5
-                + (2.5)
+        let footrotl = (((1.0)
+            / (0.5
+                + (0.5)
                     * ((anim_time as f32 * 16.0 * walk * lab as f32 + PI * 1.4).sin())
                         .powf(2.0 as f32)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * walk * lab as f32 + PI * 1.4).sin());
 
-        let footrotr = (((5.0)
-            / (1.0
-                + (4.0)
+        let footrotr = (((1.0)
+            / (0.5
+                + (0.5)
                     * ((anim_time as f32 * 16.0 * walk * lab as f32 + PI * 0.4).sin())
                         .powf(2.0 as f32)))
         .sqrt())
