@@ -59,7 +59,7 @@ directories-next = "1.0.1"
 num = "0.2"
 backtrace = "0.3.40"
 rand = "0.7"
-treeculler = { git = "https://gitlab.com/yusdacra/treeculler.git" }
+treeculler = "0.1.0"
 rodio = { version = "0.11", default-features = false, features = ["wav", "vorbis"] }
 cpal = "0.11"
 crossbeam = "=0.7.2"
