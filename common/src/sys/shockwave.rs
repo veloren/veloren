@@ -183,7 +183,7 @@ impl<'a> System<'a> for Sys {
                     }
 
                     // Weapon gives base damage
-                    let source = DamageSource::Melee;
+                    let source = DamageSource::Shockwave;
 
                     let mut damage = Damage {
                         healthchange: -(shockwave.damage as f32),
@@ -210,11 +210,19 @@ impl<'a> System<'a> for Sys {
                         });
                     }
                     if shockwave.knockback != 0.0 {
-                        local_emitter.emit(LocalEvent::ApplyForce {
-                            entity: b,
-                            force: shockwave.knockback
-                                * *Dir::slerp(ori.0, Dir::new(Vec3::new(0.0, 0.0, 1.0)), 0.5),
-                        });
+                        if shockwave.knockback < 0.0 {
+                            local_emitter.emit(LocalEvent::ApplyForce {
+                                entity: b,
+                                force: shockwave.knockback
+                                    * *Dir::slerp(ori.0, Dir::new(Vec3::new(0.0, 0.0, -1.0)), 0.5),
+                            });
+                        } else {
+                            local_emitter.emit(LocalEvent::ApplyForce {
+                                entity: b,
+                                force: shockwave.knockback
+                                    * *Dir::slerp(ori.0, Dir::new(Vec3::new(0.0, 0.0, 1.0)), 0.5),
+                            });
+                        }
                     }
                 }
             }

@@ -31,13 +31,12 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_move(data, &mut update, 0.7);
-        handle_jump(data, &mut update);
+        handle_move(data, &mut update, 0.05);
 
         if self.buildup_duration != Duration::default() {
             // Build up
             update.character = CharacterState::GroundShockwave(Data {
-                exhausted: false,
+                exhausted: self.exhausted,
                 buildup_duration: self
                     .buildup_duration
                     .checked_sub(Duration::from_secs_f32(data.dt.0))
@@ -79,7 +78,7 @@ impl CharacterBehavior for Data {
         } else if self.recover_duration != Duration::default() {
             // Recovery
             update.character = CharacterState::GroundShockwave(Data {
-                exhausted: false,
+                exhausted: self.exhausted,
                 buildup_duration: self.buildup_duration,
                 recover_duration: self
                     .recover_duration
