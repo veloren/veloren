@@ -619,6 +619,9 @@ pub struct GraphicsSettings {
     pub aa_mode: AaMode,
     pub cloud_mode: CloudMode,
     pub fluid_mode: FluidMode,
+    pub resolution: [u16; 2],
+    pub bit_depth: Option<u16>,
+    pub refresh_rate: Option<u16>,
     pub window_size: [u16; 2],
     pub fullscreen: bool,
 }
@@ -636,6 +639,9 @@ impl Default for GraphicsSettings {
             aa_mode: AaMode::Fxaa,
             cloud_mode: CloudMode::Regular,
             fluid_mode: FluidMode::Shiny,
+            resolution: [1920, 1080],
+            bit_depth: None,
+            refresh_rate: None,
             window_size: [1920, 1080],
             fullscreen: false,
         }
