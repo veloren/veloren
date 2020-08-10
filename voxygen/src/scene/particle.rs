@@ -16,7 +16,7 @@ use dot_vox::DotVoxData;
 use hashbrown::HashMap;
 use rand::Rng;
 use specs::{Join, WorldExt};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 use vek::*;
 
 pub struct ParticleMgr {
@@ -72,17 +72,16 @@ impl ParticleMgr {
 
     pub fn maintain(&mut self, renderer: &mut Renderer, scene_data: &SceneData) {
         if scene_data.particles_enabled {
-            let now = Instant::now();
+            // update timings
+            self.scheduler.maintain(scene_data.state.get_time());
 
             // remove dead Particle
-            self.particles.retain(|p| p.alive_until > now);
+            self.particles
+                .retain(|p| p.alive_until > scene_data.state.get_time());
 
             // add new Particle
             self.maintain_body_particles(scene_data);
             self.maintain_boost_particles(scene_data);
-
-            // update timings
-            self.scheduler.maintain();
         } else {
             // remove all particle lifespans
             self.particles.clear();
@@ -305,36 +304,49 @@ fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<Particl
 /// Accumulates heartbeats to be consumed on the next tick.
 struct HeartbeatScheduler {
     /// Duration = Heartbeat Frequency/Intervals
-    /// Instant = Last update time
+    /// f64 = Last update time
     /// u8 = number of heartbeats since last update
     /// - if it's more frequent then tick rate, it could be 1 or more.
     /// - if it's less frequent then tick rate, it could be 1 or 0.
     /// - if it's equal to the tick rate, it could be between 2 and 0, due to
     /// delta time variance etc.
-    timers: HashMap<Duration, (Instant, u8)>,
+    timers: HashMap<Duration, (f64, u8)>,
+
+    last_known_time: f64,
 }
 
 impl HeartbeatScheduler {
     pub fn new() -> Self {
         HeartbeatScheduler {
             timers: HashMap::new(),
+            last_known_time: 0.0,
         }
     }
 
     /// updates the last elapsed times and elasped counts
     /// this should be called once, and only once per tick.
-    pub fn maintain(&mut self) {
-        for (frequency, (last_update, heartbeats)) in self.timers.iter_mut() {
-            // the number of iterations since last update
-            *heartbeats =
-                // TODO: use nightly api once stable; https://github.com/rust-lang/rust/issues/63139
-                (last_update.elapsed().as_secs_f32() / frequency.as_secs_f32()).floor() as u8;
+    pub fn maintain(&mut self, now: f64) {
+        self.last_known_time = now;
 
-            // Instant::now() minus the heart beat count precision,
-            // or alternatively as expressed below.
-            *last_update += frequency.mul_f32(*heartbeats as f32);
-            // Note: we want to preserve incomplete heartbeats, and include them
-            // in the next update.
+        for (frequency, (last_update, heartbeats)) in self.timers.iter_mut() {
+            // the number of frequency cycles that have occurred.
+            let total_heartbeats = (now - *last_update) / frequency.as_secs_f64();
+
+            // exclude partial frequency cycles
+            let full_heartbeats = total_heartbeats.floor();
+
+            *heartbeats = full_heartbeats as u8;
+
+            // the remaining partial freqency cycle, as a decimal.
+            let partial_heartbeat = total_heartbeats - full_heartbeats;
+
+            // the remaining partial freqency cycle, as a unit of time(f64).
+            let partial_heartbeat_as_time = frequency.mul_f64(partial_heartbeat).as_secs_f64();
+
+            // now minus the left over heart beat count precision as seconds,
+            // Note: we want to preserve incomplete heartbeats, and roll them
+            // over into the next update.
+            *last_update = now - partial_heartbeat_as_time;
         }
     }
 
@@ -345,9 +357,11 @@ impl HeartbeatScheduler {
     /// - if it's equal to the tick rate, it could be between 2 and 0, due to
     /// delta time variance.
     pub fn heartbeats(&mut self, frequency: Duration) -> u8 {
+        let last_known_time = self.last_known_time;
+
         self.timers
             .entry(frequency)
-            .or_insert_with(|| (Instant::now(), 0))
+            .or_insert_with(|| (last_known_time, 0))
             .1
     }
 
@@ -355,14 +369,14 @@ impl HeartbeatScheduler {
 }
 
 struct Particle {
-    alive_until: Instant, // created_at + lifespan
+    alive_until: f64, // created_at + lifespan
     instance: ParticleInstance,
 }
 
 impl Particle {
     fn new(lifespan: Duration, time: f64, mode: ParticleMode, pos: Vec3<f32>) -> Self {
         Particle {
-            alive_until: Instant::now() + lifespan,
+            alive_until: time + lifespan.as_secs_f64(),
             instance: ParticleInstance::new(time, mode, pos),
         }
     }
