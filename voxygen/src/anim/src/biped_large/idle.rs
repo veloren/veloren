@@ -57,7 +57,7 @@ impl Animation for IdleAnimation {
         // Controls for the beast breathing
         let intensity = 0.04;
         let lenght = 1.0;
-        let chop = 0.2;
+        let chop = 0.15;
         let chop_freq = 40.0;
 
         let breathing = intensity * (lenght * anim_time as f32).sin() + 0.05 * chop * (anim_time as f32 * chop_freq).sin() * (anim_time as f32 * lenght).cos();
@@ -91,7 +91,7 @@ impl Animation for IdleAnimation {
             skeleton_attr.jaw.0 - slower * 0.12,
             skeleton_attr.jaw.1 + slow * 0.2,
         );
-        next.jaw.orientation = Quaternion::rotation_x(slow * 0.05);
+        next.jaw.orientation = Quaternion::rotation_x(-0.1 + breathing * 2.0);
         next.jaw.scale = Vec3::one() * 1.02;
 
         next.tail.position = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1);
