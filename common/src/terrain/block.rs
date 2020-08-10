@@ -90,6 +90,7 @@ pub enum BlockKind {
     ShinyGem,
     DropGate,
     DropGateBottom,
+    GrassSnow,
 }
 
 impl fmt::Display for BlockKind {
@@ -195,6 +196,7 @@ impl BlockKind {
             BlockKind::ShinyGem => true,
             BlockKind::DropGate => false,
             BlockKind::DropGateBottom => false,
+            BlockKind::GrassSnow => true,
             _ => false,
         }
     }
@@ -294,6 +296,7 @@ impl BlockKind {
             BlockKind::ShinyGem => false,
             BlockKind::DropGate => false,
             BlockKind::DropGateBottom => false,
+            BlockKind::GrassSnow => false,
             _ => true,
         }
     }
@@ -370,13 +373,14 @@ impl BlockKind {
             BlockKind::ShinyGem => false,
             BlockKind::DropGate => true,
             BlockKind::DropGateBottom => false,
+            BlockKind::GrassSnow => false,
             _ => true,
         }
     }
 
     pub fn is_explodable(&self) -> bool {
         match self {
-            BlockKind::Leaves | BlockKind::Grass | BlockKind::Rock => true,
+            BlockKind::Leaves | BlockKind::Grass | BlockKind::Rock | BlockKind::GrassSnow => true,
             _ => false,
         }
     }
@@ -494,10 +498,9 @@ impl Block {
             | BlockKind::WardrobeSingle
             | BlockKind::WardrobeDouble
             | BlockKind::Pot
-            | BlockKind::DropGate 
+            | BlockKind::DropGate
             | BlockKind::DropGateBottom
             | BlockKind::Door => Some(self.color[0] & 0b111),
-            
             _ => None,
         }
     }

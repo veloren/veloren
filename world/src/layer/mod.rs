@@ -1,26 +1,27 @@
 use crate::{
     column::ColumnSample,
-    util::{RandomField, Sampler},
     sim::SimChunk,
+    util::{RandomField, Sampler},
     Index,
 };
 use common::{
-    assets,
-    comp,
+    assets, comp,
+    generation::{ChunkSupplement, EntityInfo},
     lottery::Lottery,
     terrain::{Block, BlockKind},
     vol::{BaseVol, ReadVol, RectSizedVol, Vox, WriteVol},
-    generation::{ChunkSupplement, EntityInfo},
 };
 use noise::NoiseFn;
+use rand::prelude::*;
 use std::{
     f32,
     ops::{Mul, Sub},
 };
 use vek::*;
-use rand::prelude::*;
 
-fn close(x: f32, tgt: f32, falloff: f32) -> f32 { (1.0 - (x - tgt).abs() / falloff).max(0.0).powf(0.5) }
+fn close(x: f32, tgt: f32, falloff: f32) -> f32 {
+    (1.0 - (x - tgt).abs() / falloff).max(0.0).powf(0.5)
+}
 
 pub fn apply_scatter_to<'a>(
     wpos2d: Vec2<i32>,
@@ -32,11 +33,50 @@ pub fn apply_scatter_to<'a>(
     use BlockKind::*;
     let scatter: &[(_, fn(&SimChunk) -> (f32, Option<(f32, f32)>))] = &[
         // (density, Option<(wavelen, threshold)>)
-        (BlueFlower, |c| (close(c.temp, -0.3, 0.7).min(close(c.humidity, 0.6, 0.35)) * 0.05, Some((48.0, 0.6)))),
-        (PinkFlower, |c| (close(c.temp, 0.15, 0.5).min(close(c.humidity, 0.6, 0.35)) * 0.05, Some((48.0, 0.6)))),
-        (DeadBush, |c| (close(c.temp, 0.8, 0.3).min(close(c.humidity, 0.0, 0.4)) * 0.015, None)),
+        (BlueFlower, |c| {
+            (
+                close(c.temp, -0.3, 0.7).min(close(c.humidity, 0.6, 0.35)) * 0.05,
+                Some((48.0, 0.6)),
+            )
+        }),
+        (PinkFlower, |c| {
+            (
+                close(c.temp, 0.15, 0.5).min(close(c.humidity, 0.6, 0.35)) * 0.05,
+                Some((48.0, 0.6)),
+            )
+        }),
+        (DeadBush, |c| {
+            (
+                close(c.temp, 0.8, 0.3).min(close(c.humidity, 0.0, 0.4)) * 0.015,
+                None,
+            )
+        }),
         (Twigs, |c| ((c.tree_density - 0.5).max(0.0) * 0.0025, None)),
         (Stones, |c| ((c.rockiness - 0.5).max(0.0) * 0.005, None)),
+        (ShortGrass, |c| {
+            (
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, 0.6, 0.35)) * 0.05,
+                Some((48.0, 0.4)),
+            )
+        }),
+        (MediumGrass, |c| {
+            (
+                close(c.temp, 0.0, 0.6).min(close(c.humidity, 0.6, 0.35)) * 0.05,
+                Some((48.0, 0.2)),
+            )
+        }),
+        (LongGrass, |c| {
+            (
+                close(c.temp, 0.4, 0.4).min(close(c.humidity, 0.8, 0.2)) * 0.05,
+                Some((48.0, 0.1)),
+            )
+        }),
+        (GrassSnow, |c| {
+            (
+                close(c.temp, -0.4, 0.4).min(close(c.rockiness, 0.0, 0.5)),
+                Some((48.0, 0.6)),
+            )
+        }),
     ];
 
     for y in 0..vol.size_xy().y as i32 {
@@ -52,29 +92,38 @@ pub fn apply_scatter_to<'a>(
                 continue;
             };
 
-            let bk = scatter
-                .iter()
-                .enumerate()
-                .find_map(|(i, (bk, f))| {
-                    let (density, patch) = f(chunk);
-                    if density <= 0.0 || patch.map(|(wavelen, threshold)| index
-                        .noise
-                        .scatter_nz
-                        .get(wpos2d.map(|e| e as f64 / wavelen as f64 + i as f64 * 43.0).into_array()) < threshold as f64)
+            let bk = scatter.iter().enumerate().find_map(|(i, (bk, f))| {
+                let (density, patch) = f(chunk);
+                if density <= 0.0
+                    || patch
+                        .map(|(wavelen, threshold)| {
+                            index.noise.scatter_nz.get(
+                                wpos2d
+                                    .map(|e| e as f64 / wavelen as f64 + i as f64 * 43.0)
+                                    .into_array(),
+                            ) < threshold as f64
+                        })
                         .unwrap_or(false)
-                        || !RandomField::new(i as u32).chance(Vec3::new(wpos2d.x, wpos2d.y, 0), density)
-                    {
-                        None
-                    } else {
-                        Some(*bk)
-                    }
-                });
+                    || !RandomField::new(i as u32).chance(Vec3::new(wpos2d.x, wpos2d.y, 0), density)
+                {
+                    None
+                } else {
+                    Some(*bk)
+                }
+            });
 
             if let Some(bk) = bk {
                 let mut z = col_sample.alt as i32 - 4;
                 for _ in 0..8 {
-                    if vol.get(Vec3::new(offs.x, offs.y, z)).map(|b| !b.is_solid()).unwrap_or(true) {
-                        let _ = vol.set(Vec3::new(offs.x, offs.y, z), Block::new(bk, Rgb::broadcast(0)));
+                    if vol
+                        .get(Vec3::new(offs.x, offs.y, z))
+                        .map(|b| !b.is_solid())
+                        .unwrap_or(true)
+                    {
+                        let _ = vol.set(
+                            Vec3::new(offs.x, offs.y, z),
+                            Block::new(bk, Rgb::broadcast(0)),
+                        );
                         break;
                     }
                     z += 1;
@@ -295,57 +344,61 @@ pub fn apply_caves_supplement<'a>(
                 if RandomField::new(index.seed).chance(wpos2d.into(), 0.00005)
                     && cave_base < surface_z as i32 - 40
                 {
-                    let entity = EntityInfo::at(Vec3::new(wpos2d.x as f32, wpos2d.y as f32, cave_base as f32))
-                        .with_alignment(comp::Alignment::Enemy)
-                        .with_body(match rng.gen_range(0, 6) {
-                            0 => {
-                                let species = match rng.gen_range(0, 2) {
-                                    0 => comp::quadruped_small::Species::Truffler,
-                                    _ => comp::quadruped_small::Species::Hyena,
-                                };
-                                comp::quadruped_small::Body::random_with(rng, &species).into()
-                            },
-                            1 => {
-                                let species = match rng.gen_range(0, 3) {
-                                    0 => comp::quadruped_medium::Species::Tarasque,
-                                    1 => comp::quadruped_medium::Species::Frostfang,
-                                    _ => comp::quadruped_medium::Species::Bonerattler,
-                                };
-                                comp::quadruped_medium::Body::random_with(rng, &species).into()
-                            },
-                            2 => {
-                                let species = match rng.gen_range(0, 3) {
-                                    0 => comp::quadruped_low::Species::Maneater,
-                                    1 => comp::quadruped_low::Species::Rocksnapper,
-                                    _ => comp::quadruped_low::Species::Salamander,
-                                };
-                                comp::quadruped_low::Body::random_with(rng, &species).into()
-                            },
-                            3 => {
-                                let species = match rng.gen_range(0, 3) {
-                                    0 => comp::critter::Species::Fungome,
-                                    1 => comp::critter::Species::Axolotl,
-                                    _ => comp::critter::Species::Rat,
-                                };
-                                comp::critter::Body::random_with(rng, &species).into()
-                            },
-                            4 => {
-                                let species = match rng.gen_range(0, 1) {
-                                    _ => comp::golem::Species::StoneGolem,
-                                };
-                                comp::golem::Body::random_with(rng, &species).into()
-                            },
-                            _ => {
-                                let species = match rng.gen_range(0, 4) {
-                                    0 => comp::biped_large::Species::Ogre,
-                                    1 => comp::biped_large::Species::Cyclops,
-                                    2 => comp::biped_large::Species::Wendigo,
-                                    _ => comp::biped_large::Species::Troll,
-                                };
-                                comp::biped_large::Body::random_with(rng, &species).into()
-                            },
-                        })
-                        .with_automatic_name();
+                    let entity = EntityInfo::at(Vec3::new(
+                        wpos2d.x as f32,
+                        wpos2d.y as f32,
+                        cave_base as f32,
+                    ))
+                    .with_alignment(comp::Alignment::Enemy)
+                    .with_body(match rng.gen_range(0, 6) {
+                        0 => {
+                            let species = match rng.gen_range(0, 2) {
+                                0 => comp::quadruped_small::Species::Truffler,
+                                _ => comp::quadruped_small::Species::Hyena,
+                            };
+                            comp::quadruped_small::Body::random_with(rng, &species).into()
+                        },
+                        1 => {
+                            let species = match rng.gen_range(0, 3) {
+                                0 => comp::quadruped_medium::Species::Tarasque,
+                                1 => comp::quadruped_medium::Species::Frostfang,
+                                _ => comp::quadruped_medium::Species::Bonerattler,
+                            };
+                            comp::quadruped_medium::Body::random_with(rng, &species).into()
+                        },
+                        2 => {
+                            let species = match rng.gen_range(0, 3) {
+                                0 => comp::quadruped_low::Species::Maneater,
+                                1 => comp::quadruped_low::Species::Rocksnapper,
+                                _ => comp::quadruped_low::Species::Salamander,
+                            };
+                            comp::quadruped_low::Body::random_with(rng, &species).into()
+                        },
+                        3 => {
+                            let species = match rng.gen_range(0, 3) {
+                                0 => comp::critter::Species::Fungome,
+                                1 => comp::critter::Species::Axolotl,
+                                _ => comp::critter::Species::Rat,
+                            };
+                            comp::critter::Body::random_with(rng, &species).into()
+                        },
+                        4 => {
+                            let species = match rng.gen_range(0, 1) {
+                                _ => comp::golem::Species::StoneGolem,
+                            };
+                            comp::golem::Body::random_with(rng, &species).into()
+                        },
+                        _ => {
+                            let species = match rng.gen_range(0, 4) {
+                                0 => comp::biped_large::Species::Ogre,
+                                1 => comp::biped_large::Species::Cyclops,
+                                2 => comp::biped_large::Species::Wendigo,
+                                _ => comp::biped_large::Species::Troll,
+                            };
+                            comp::biped_large::Body::random_with(rng, &species).into()
+                        },
+                    })
+                    .with_automatic_name();
 
                     supplement.add_entity(entity);
                 }

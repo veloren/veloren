@@ -19,8 +19,8 @@ use crossbeam::channel;
 use dot_vox::DotVoxData;
 use hashbrown::HashMap;
 use std::{f32, fmt::Debug, i32, marker::PhantomData, time::Duration};
-use treeculler::{BVol, Frustum, AABB};
 use tracing::warn;
+use treeculler::{BVol, Frustum, AABB};
 use vek::*;
 
 struct TerrainChunkData {
@@ -358,6 +358,10 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
         BlockKind::DropGateBottom => Some(SpriteConfig {
             variations: 1,
             wind_sway: 0.0,
+        }),
+        BlockKind::GrassSnow => Some(SpriteConfig {
+            variations: 10,
+            wind_sway: 0.2,
         }),
         _ => None,
     }
@@ -2759,6 +2763,87 @@ impl<V: RectRasterableVol> Terrain<V> {
                         Vec3::one(),
                     ),
                 ),
+                // Snow covered Grass
+                (
+                    (BlockKind::GrassSnow, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_snow_0",
+                        Vec3::new(-2.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::GrassSnow, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_snow_1",
+                        Vec3::new(-2.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::GrassSnow, 2),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_snow_2",
+                        Vec3::new(-2.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::GrassSnow, 3),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_snow_3",
+                        Vec3::new(-2.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::GrassSnow, 4),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_snow_4",
+                        Vec3::new(-2.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::GrassSnow, 5),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_snow_5",
+                        Vec3::new(-2.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::GrassSnow, 6),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_snow_6",
+                        Vec3::new(-2.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::GrassSnow, 7),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_snow_7",
+                        Vec3::new(-2.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::GrassSnow, 8),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_snow_8",
+                        Vec3::new(-2.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::GrassSnow, 9),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_snow_9",
+                        Vec3::new(-2.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
             ]
             .into_iter()
             .collect(),
@@ -3142,7 +3227,6 @@ impl<V: RectRasterableVol> Terrain<V> {
                 let dist_sqrd = Vec2::from(focus_pos).distance_squared(chunk_center);
                 if dist_sqrd < sprite_render_distance.powf(2.0) {
                     for (kind, instances) in &chunk.sprite_instances {
-
                         if let Some(models) = self.sprite_models.get(&kind) {
                             renderer.render_sprites(
                                 if dist_sqrd < sprite_high_detail_distance.powf(2.0) {
