@@ -19,7 +19,7 @@ impl CharacterBehavior for Data {
         if !data.physics.on_ground {
             update.character = CharacterState::Glide;
         }
-        if data.physics.in_fluid {
+        if data.physics.in_fluid.map(|depth| depth > 0.5).unwrap_or(false) {
             update.character = CharacterState::Idle;
         }
 

@@ -241,7 +241,8 @@ impl<'a> System<'a> for Sys {
                                         bearing.xy().try_normalized().unwrap_or(Vec2::zero())
                                             * speed.min(0.2 + (dist - AVG_FOLLOW_DIST) / 8.0);
                                     inputs.jump.set_state(bearing.z > 1.5);
-                                    inputs.swim.set_state(bearing.z > 0.5);
+                                    inputs.swimup.set_state(bearing.z > 0.5);
+                                    inputs.swimdown.set_state(bearing.z < 0.5);
                                 }
                             } else {
                                 do_idle = true;
@@ -331,7 +332,8 @@ impl<'a> System<'a> for Sys {
                                             .unwrap_or(Vec2::zero())
                                             * speed;
                                         inputs.jump.set_state(bearing.z > 1.5);
-                                        inputs.swim.set_state(bearing.z > 0.5);
+                                        inputs.swimup.set_state(bearing.z > 0.5);
+                                        inputs.swimdown.set_state(bearing.z < 0.5);
                                     }
                                 } else {
                                     do_idle = true;
@@ -399,7 +401,8 @@ impl<'a> System<'a> for Sys {
                                         .unwrap_or(Vec2::zero())
                                         * speed;
                                     inputs.jump.set_state(bearing.z > 1.5);
-                                    inputs.swim.set_state(bearing.z > 0.5);
+                                    inputs.swimup.set_state(bearing.z > 0.5);
+                                    inputs.swimdown.set_state(bearing.z < 0.5);
                                 }
 
                                 if dist_sqrd < 16.0f32.powf(2.0)
