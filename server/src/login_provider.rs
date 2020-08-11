@@ -1,4 +1,4 @@
-use authc::{AuthClient, AuthToken, Uuid};
+use authc::{AuthClient, AuthToken, Uuid, AuthClientError};
 use common::msg::RegisterError;
 use hashbrown::HashMap;
 use std::str::FromStr;
@@ -102,5 +102,9 @@ impl LoginProvider {
                 Ok((username.to_string(), uuid))
             },
         }
+    }
+
+    pub fn username_to_uuid(&self, username: &str) -> Result<Uuid, AuthClientError> {
+        self.auth_server.map_or_else(|| Ok(derive_uuid(username)), |username| auth.username_to_uuid(username))
     }
 }
