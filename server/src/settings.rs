@@ -1,10 +1,10 @@
+use authc::Uuid;
 use hashbrown::HashMap;
 use portpicker::pick_unused_port;
 use serde::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, net::SocketAddr, path::PathBuf, time::Duration};
 use tracing::{error, warn};
 use world::sim::FileOpts;
-use authc::Uuid;
 
 const DEFAULT_WORLD_SEED: u32 = 59686;
 

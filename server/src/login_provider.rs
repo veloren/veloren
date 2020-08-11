@@ -1,4 +1,4 @@
-use authc::{AuthClient, AuthToken, Uuid, AuthClientError};
+use authc::{AuthClient, AuthClientError, AuthToken, Uuid};
 use common::msg::RegisterError;
 use hashbrown::HashMap;
 use std::str::FromStr;
@@ -53,7 +53,7 @@ impl LoginProvider {
         &mut self,
         username_or_token: &str,
         whitelist: &[String],
-        banlist: &HashMap<Uuid, (String,String)>,
+        banlist: &HashMap<Uuid, (String, String)>,
     ) -> Result<(String, Uuid), RegisterError> {
         self
             // resolve user information
@@ -105,6 +105,9 @@ impl LoginProvider {
     }
 
     pub fn username_to_uuid(&self, username: &str) -> Result<Uuid, AuthClientError> {
-        self.auth_server.as_ref().map_or_else(|| Ok(derive_uuid(username)), |auth| auth.username_to_uuid(&username))
+        self.auth_server.as_ref().map_or_else(
+            || Ok(derive_uuid(username)),
+            |auth| auth.username_to_uuid(&username),
+        )
     }
 }

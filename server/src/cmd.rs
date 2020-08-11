@@ -24,9 +24,9 @@ use std::convert::TryFrom;
 use vek::*;
 use world::util::Sampler;
 
+use crate::login_provider::LoginProvider;
 use scan_fmt::{scan_fmt, scan_fmt_some};
 use tracing::error;
-use crate::login_provider::LoginProvider;
 
 pub trait ChatCommandExt {
     fn execute(&self, server: &mut Server, entity: EcsEntity, args: String);
@@ -1816,6 +1816,11 @@ fn handle_whitelist(
 }
 
 fn kick_player(server: &mut Server, target_player: EcsEntity, reason: &str) {
+    server
+        .state
+        .ecs()
+        .read_resource::<EventBus<ServerEvent>>()
+        .emit_now(ServerEvent::ClientDisconnect(target_player));
     server.notify_client(target_player, ServerMsg::Kicked(reason.to_string()));
 }
 
@@ -1871,7 +1876,11 @@ fn handle_ban(
         scan_fmt_some!(&args, &action.arg_fmt(), String, String)
     {
         let reason = reason_opt.unwrap_or_default();
-        let uuid_result = server.state.ecs().read_resource::<LoginProvider>().username_to_uuid(&target_alias);
+        let uuid_result = server
+            .state
+            .ecs()
+            .read_resource::<LoginProvider>()
+            .username_to_uuid(&target_alias);
 
         if let Ok(uuid) = uuid_result {
             if server.settings().banlist.contains_key(&uuid) {
@@ -1882,7 +1891,8 @@ fn handle_ban(
                 )
             } else {
                 server.settings_mut().edit(|s| {
-                    s.banlist.insert(uuid, (target_alias.clone(), reason.clone()));
+                    s.banlist
+                        .insert(uuid, (target_alias.clone(), reason.clone()));
                 });
                 server.notify_client(
                     client,
@@ -1905,7 +1915,10 @@ fn handle_ban(
         } else {
             server.notify_client(
                 client,
-                ChatType::CommandError.server_msg(format!("Unable to determine UUID for username \"{}\"", target_alias))
+                ChatType::CommandError.server_msg(format!(
+                    "Unable to determine UUID for username \"{}\"",
+                    target_alias
+                )),
             )
         }
     } else {
@@ -1924,7 +1937,11 @@ fn handle_unban(
     action: &ChatCommand,
 ) {
     if let Ok(username) = scan_fmt!(&args, &action.arg_fmt(), String) {
-        let uuid_result = server.state.ecs().read_resource::<LoginProvider>().username_to_uuid(&username);
+        let uuid_result = server
+            .state
+            .ecs()
+            .read_resource::<LoginProvider>()
+            .username_to_uuid(&username);
 
         if let Ok(uuid) = uuid_result {
             server.settings_mut().edit(|s| {
@@ -1937,10 +1954,12 @@ fn handle_unban(
         } else {
             server.notify_client(
                 client,
-                ChatType::CommandError.server_msg(format!("Unable to determine UUID for username \"{}\"", username))
+                ChatType::CommandError.server_msg(format!(
+                    "Unable to determine UUID for username \"{}\"",
+                    username
+                )),
             )
         }
-
     } else {
         server.notify_client(
             client,
