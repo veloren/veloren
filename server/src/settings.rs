@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, net::SocketAddr, path::PathBuf, time::Duration};
 use tracing::{error, warn};
 use world::sim::FileOpts;
+use authc::Uuid;
 
 const DEFAULT_WORLD_SEED: u32 = 59686;
 
@@ -21,7 +22,7 @@ pub struct ServerSettings {
     pub start_time: f64,
     pub admins: Vec<String>,
     pub whitelist: Vec<String>,
-    pub banlist: HashMap<String, String>,
+    pub banlist: HashMap<Uuid, (String, String)>,
     /// When set to None, loads the default map file (if available); otherwise,
     /// uses the value of the file options to decide how to proceed.
     pub map_file: Option<FileOpts>,

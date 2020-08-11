@@ -26,6 +26,7 @@ use world::util::Sampler;
 
 use scan_fmt::{scan_fmt, scan_fmt_some};
 use tracing::error;
+use crate::login_provider::LoginProvider;
 
 pub trait ChatCommandExt {
     fn execute(&self, server: &mut Server, entity: EcsEntity, args: String);
@@ -1870,34 +1871,42 @@ fn handle_ban(
         scan_fmt_some!(&args, &action.arg_fmt(), String, String)
     {
         let reason = reason_opt.unwrap_or_default();
+        let uuid_result = server.state.ecs().read_resource::<LoginProvider>().username_to_uuid(&target_alias);
 
-        if server.settings().banlist.contains_key(&target_alias) {
-            server.notify_client(
-                client,
-                ChatType::CommandError
-                    .server_msg(format!("{} is already on the banlist", target_alias)),
-            )
-        } else {
-            server.settings_mut().edit(|s| {
-                s.banlist.insert(target_alias.clone(), reason.clone());
-            });
-            server.notify_client(
-                client,
-                ChatType::CommandInfo.server_msg(format!(
-                    "Added {} to the banlist with reason: {}",
-                    target_alias, reason
-                )),
-            );
+        if let Ok(uuid) = uuid_result {
+            if server.settings().banlist.contains_key(&uuid) {
+                server.notify_client(
+                    client,
+                    ChatType::CommandError
+                        .server_msg(format!("{} is already on the banlist", target_alias)),
+                )
+            } else {
+                server.settings_mut().edit(|s| {
+                    s.banlist.insert(uuid, (target_alias.clone(), reason.clone()));
+                });
+                server.notify_client(
+                    client,
+                    ChatType::CommandInfo.server_msg(format!(
+                        "Added {} to the banlist with reason: {}",
+                        target_alias, reason
+                    )),
+                );
 
-            // If the player is online kick them
-            let ecs = server.state.ecs();
-            let target_player_opt = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
-                .join()
-                .find(|(_, player)| player.alias == target_alias)
-                .map(|(entity, _)| entity);
-            if let Some(target_player) = target_player_opt {
-                kick_player(server, target_player, &reason);
+                // If the player is online kick them
+                let ecs = server.state.ecs();
+                let target_player_opt = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
+                    .join()
+                    .find(|(_, player)| player.alias == target_alias)
+                    .map(|(entity, _)| entity);
+                if let Some(target_player) = target_player_opt {
+                    kick_player(server, target_player, &reason);
+                }
             }
+        } else {
+            server.notify_client(
+                client,
+                ChatType::CommandError.server_msg(format!("Unable to determine UUID for username \"{}\"", target_alias))
+            )
         }
     } else {
         server.notify_client(
@@ -1915,13 +1924,23 @@ fn handle_unban(
     action: &ChatCommand,
 ) {
     if let Ok(username) = scan_fmt!(&args, &action.arg_fmt(), String) {
-        server.settings_mut().edit(|s| {
-            s.banlist.remove(&username);
-        });
-        server.notify_client(
-            client,
-            ChatType::CommandInfo.server_msg(format!("{} was successfully unbanned", username)),
-        );
+        let uuid_result = server.state.ecs().read_resource::<LoginProvider>().username_to_uuid(&username);
+
+        if let Ok(uuid) = uuid_result {
+            server.settings_mut().edit(|s| {
+                s.banlist.remove(&uuid);
+            });
+            server.notify_client(
+                client,
+                ChatType::CommandInfo.server_msg(format!("{} was successfully unbanned", username)),
+            );
+        } else {
+            server.notify_client(
+                client,
+                ChatType::CommandError.server_msg(format!("Unable to determine UUID for username \"{}\"", username))
+            )
+        }
+
     } else {
         server.notify_client(
             client,
