@@ -402,16 +402,22 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
     // Throw items
     for (pos, vel, ori, kind) in thrown_items {
-        let vel = vel.0
-            + *ori.0 * 20.0
-            + Vec3::unit_z() * 15.0
-            + Vec3::<f32>::zero().map(|_| rand::thread_rng().gen::<f32>() - 0.5) * 4.0;
+        let vel = match kind {
+            item::Throwable::Firework => Vec3::unit_z() * 200.0,
+            _ => {
+                vel.0
+                    + *ori.0 * 20.0
+                    + Vec3::unit_z() * 15.0
+                    + Vec3::<f32>::zero().map(|_| rand::thread_rng().gen::<f32>() - 0.5) * 4.0
+            },
+        };
 
         let uid = state.read_component_copied::<Uid>(entity);
 
         let mut new_entity = state
             .create_object(Default::default(), match kind {
                 item::Throwable::Bomb => comp::object::Body::Bomb,
+                item::Throwable::Firework => comp::object::Body::Bomb,
                 item::Throwable::TrainingDummy => comp::object::Body::TrainingDummy,
             })
             .with(comp::Pos(pos.0 + Vec3::unit_z() * 0.25))
@@ -420,6 +426,9 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
         match kind {
             item::Throwable::Bomb => {
                 new_entity = new_entity.with(comp::Object::Bomb { owner: uid });
+            },
+            item::Throwable::Firework => {
+                new_entity = new_entity.with(comp::Object::Firework { owner: uid });
             },
             item::Throwable::TrainingDummy => {
                 new_entity = new_entity.with(comp::Stats::new(
