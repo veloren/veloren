@@ -26,6 +26,12 @@ const int FIRE = 1;
 const int GUN_POWDER_SPARK = 2;
 const int SHRAPNEL = 3;
 
+const int FIREWORK_BLUE = 4;
+const int FIREWORK_GREEN = 5;
+const int FIREWORK_PURPLE = 6;
+const int FIREWORK_RED = 7;
+const int FIREWORK_YELLOW = 8;
+
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
 
@@ -92,6 +98,51 @@ void main() {
 		attr = Attr(
 			linear_motion(
 				vec3(0),
+				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
+			),
+			3.0 + rand0,
+			vec3(0.6 + rand7 * 0.4)
+		);
+	} else if (inst_mode == FIREWORK_BLUE) {
+		attr = Attr(
+			linear_motion(
+				vec3(0.0, 1.0, 1.0),
+				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
+			),
+			3.0 + rand0,
+			vec3(0.6 + rand7 * 0.4)
+		);
+	} else if (inst_mode == FIREWORK_GREEN) {
+		attr = Attr(
+			linear_motion(
+				vec3(0.0, 1.0, 0.0),
+				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
+			),
+			3.0 + rand0,
+			vec3(0.6 + rand7 * 0.4)
+		);
+	} else if (inst_mode == FIREWORK_PURPLE) {
+		attr = Attr(
+			linear_motion(
+				vec3(1.0, 0.0, 1.0),
+				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
+			),
+			3.0 + rand0,
+			vec3(0.6 + rand7 * 0.4)
+		);
+	} else if (inst_mode == FIREWORK_RED) {
+		attr = Attr(
+			linear_motion(
+				vec3(1.0, 0.0, 0.0),
+				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
+			),
+			3.0 + rand0,
+			vec3(0.6 + rand7 * 0.4)
+		);
+	} else if (inst_mode == FIREWORK_YELLOW) {
+		attr = Attr(
+			linear_motion(
+				vec3(1.0, 1.0, 0.0),
 				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
 			),
 			3.0 + rand0,

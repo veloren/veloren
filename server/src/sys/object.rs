@@ -26,8 +26,14 @@ impl<'a> System<'a> for Sys {
         let mut server_emitter = server_bus.emitter();
 
         // Objects
-        for (entity, pos, vel, physics, object) in
-            (&entities, &positions, &velocities, &physics_states, &mut objects).join()
+        for (entity, pos, vel, physics, object) in (
+            &entities,
+            &positions,
+            &velocities,
+            &physics_states,
+            &mut objects,
+        )
+            .join()
         {
             match object {
                 Object::Bomb { owner } => {
@@ -41,11 +47,12 @@ impl<'a> System<'a> for Sys {
                             power: 4.0,
                             owner: *owner,
                             friendly_damage: true,
+                            reagent: None,
                         });
                     }
                 },
-                Object::Firework { owner } => {
-                    if physics.on_surface().is_some() || vel.0.z < 0.0 {
+                Object::Firework { owner, reagent } => {
+                    if vel.0.z < 0.0 {
                         server_emitter.emit(ServerEvent::Destroy {
                             entity,
                             cause: HealthSource::Suicide,
@@ -55,6 +62,7 @@ impl<'a> System<'a> for Sys {
                             power: 4.0,
                             owner: *owner,
                             friendly_damage: true,
+                            reagent: Some(*reagent),
                         });
                     }
                 },

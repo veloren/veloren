@@ -11,10 +11,11 @@ use common::{
     terrain::block::Block,
     vol::{ReadVol, Vox},
 };
+use comp::LightEmitter;
 use rand::Rng;
 use specs::{join::Join, world::WorldExt, Builder, Entity as EcsEntity, WriteStorage};
 use tracing::{debug, error};
-use vek::Vec3;
+use vek::{Rgb, Vec3};
 
 pub fn swap_lantern(
     storage: &mut WriteStorage<comp::LightEmitter>,
@@ -400,10 +401,16 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             .build();
     }
 
+    let mut rng = rand::thread_rng();
+
     // Throw items
     for (pos, vel, ori, kind) in thrown_items {
         let vel = match kind {
-            item::Throwable::Firework => Vec3::unit_z() * 200.0,
+            item::Throwable::Firework(_) => Vec3::new(
+                rng.gen_range(-15.0, 15.0),
+                rng.gen_range(-15.0, 15.0),
+                rng.gen_range(80.0, 110.0),
+            ),
             _ => {
                 vel.0
                     + *ori.0 * 20.0
@@ -417,7 +424,13 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
         let mut new_entity = state
             .create_object(Default::default(), match kind {
                 item::Throwable::Bomb => comp::object::Body::Bomb,
-                item::Throwable::Firework => comp::object::Body::Bomb,
+                item::Throwable::Firework(reagent) => match reagent {
+                    item::Reagent::Blue => comp::object::Body::FireworkBlue,
+                    item::Reagent::Green => comp::object::Body::FireworkGreen,
+                    item::Reagent::Purple => comp::object::Body::FireworkPurple,
+                    item::Reagent::Red => comp::object::Body::FireworkRed,
+                    item::Reagent::Yellow => comp::object::Body::FireworkYellow,
+                },
                 item::Throwable::TrainingDummy => comp::object::Body::TrainingDummy,
             })
             .with(comp::Pos(pos.0 + Vec3::unit_z() * 0.25))
@@ -427,8 +440,18 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             item::Throwable::Bomb => {
                 new_entity = new_entity.with(comp::Object::Bomb { owner: uid });
             },
-            item::Throwable::Firework => {
-                new_entity = new_entity.with(comp::Object::Firework { owner: uid });
+            item::Throwable::Firework(reagent) => {
+                new_entity = new_entity
+                    .with(comp::Object::Firework {
+                        owner: uid,
+                        reagent,
+                    })
+                    .with(LightEmitter {
+                        animated: true,
+                        flicker: 2.0,
+                        strength: 2.0,
+                        col: Rgb::new(1.0, 1.0, 0.0),
+                    });
             },
             item::Throwable::TrainingDummy => {
                 new_entity = new_entity.with(comp::Stats::new(

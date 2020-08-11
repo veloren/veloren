@@ -273,7 +273,7 @@ impl SfxMgr {
         }
 
         match outcome {
-            Outcome::Explosion { pos, power } => {
+            Outcome::Explosion { pos, power, .. } => {
                 audio.play_sfx(
                     // TODO: from sfx triggers config
                     "voxygen.audio.sfx.explosion",
