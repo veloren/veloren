@@ -1110,6 +1110,10 @@
         "voxel.object.bomb",
         (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
+    Throwable(Firework): VoxTrans(
+        "voxel.object.firework",
+        (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
+    ),
     Throwable(TrainingDummy): VoxTrans(
         "voxel.object.training_dummy",
         (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,

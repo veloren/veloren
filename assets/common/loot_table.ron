@@ -9,6 +9,7 @@
     (0.4, "common.items.ore.velorite"),
     (0.6, "common.items.ore.veloritefrag"),    
     (0.1, "common.items.consumable.potion_minor"),
+    (1.0, "common.items.utility.firework"),
     (0.01, "common.items.utility.collar"),
     (0.01, "common.items.utility.bomb_pile"),
     (0.1, "common.items.utility.bomb"),

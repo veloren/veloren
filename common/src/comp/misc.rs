@@ -6,6 +6,7 @@ use specs_idvs::IdvStorage;
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Object {
     Bomb { owner: Option<Uid> },
+    Firework { owner: Option<Uid> },
 }
 
 impl Component for Object {

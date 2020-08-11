@@ -3418,6 +3418,7 @@ pub fn mesh_object(
             Vec3::new(-0.5, -6.0, -1.5),
         ),
         Body::Bomb => ("object.bomb", Vec3::new(-5.5, -5.5, 0.0)),
+        Body::Firework => ("object.firework", Vec3::new(-5.5, -5.5, 0.0)),
         Body::Scarecrow => ("object.scarecrow", Vec3::new(-9.5, -4.0, 0.0)),
         Body::Cauldron => ("object.cauldron", Vec3::new(-10.0, -10.0, 0.0)),
         Body::ChestVines => ("object.chest_vines", Vec3::new(-7.5, -6.0, 0.0)),
