@@ -1,5 +1,5 @@
 use crate::{comp, sync::Uid, util::Dir};
-use comp::item::Item;
+use comp::item::{Item, Reagent};
 use parking_lot::Mutex;
 use specs::Entity as EcsEntity;
 use std::{collections::VecDeque, ops::DerefMut};
@@ -26,6 +26,7 @@ pub enum ServerEvent {
         power: f32,
         owner: Option<Uid>,
         friendly_damage: bool,
+        reagent: Option<Reagent>,
     },
     Damage {
         uid: Uid,

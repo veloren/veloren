@@ -13,6 +13,7 @@ use common::{
     terrain::{Block, TerrainGrid},
     vol::{ReadVol, Vox},
 };
+use comp::item::Reagent;
 use specs::{join::Join, saveload::MarkerAllocator, Entity as EcsEntity, WorldExt};
 use tracing::error;
 use vek::Vec3;
@@ -284,6 +285,7 @@ pub fn handle_explosion(
     power: f32,
     owner: Option<Uid>,
     friendly_damage: bool,
+    reagent: Option<Reagent>,
 ) {
     // Go through all other entities
     let hit_range = 3.0 * power;
@@ -291,7 +293,11 @@ pub fn handle_explosion(
 
     // Add an outcome
     ecs.write_resource::<Vec<Outcome>>()
-        .push(Outcome::Explosion { pos, power });
+        .push(Outcome::Explosion {
+            pos,
+            power,
+            reagent,
+        });
 
     let owner_entity = owner.and_then(|uid| {
         ecs.read_resource::<UidAllocator>()
