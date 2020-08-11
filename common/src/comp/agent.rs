@@ -1,5 +1,4 @@
 use crate::{path::Chaser, sync::Uid, comp::Body};
-use serde::{Deserialize, Serialize};
 use specs::{Component, Entity as EcsEntity};
 use specs_idvs::IdvStorage;
 use vek::*;

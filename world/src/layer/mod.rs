@@ -31,49 +31,44 @@ pub fn apply_scatter_to<'a>(
     chunk: &SimChunk,
 ) {
     use BlockKind::*;
-    let scatter: &[(_, fn(&SimChunk) -> (f32, Option<(f32, f32)>))] = &[
+    let scatter: &[(_, bool, fn(&SimChunk) -> (f32, Option<(f32, f32)>))] = &[
         // (density, Option<(wavelen, threshold)>)
-        (BlueFlower, |c| {
+        (BlueFlower, false, |c| {
             (
                 close(c.temp, -0.3, 0.7).min(close(c.humidity, 0.6, 0.35)) * 0.05,
                 Some((48.0, 0.6)),
             )
         }),
-        (PinkFlower, |c| {
+        (PinkFlower, false, |c| {
             (
                 close(c.temp, 0.15, 0.5).min(close(c.humidity, 0.6, 0.35)) * 0.05,
                 Some((48.0, 0.6)),
             )
         }),
-        (DeadBush, |c| {
+        (DeadBush, false, |c| {
             (
                 close(c.temp, 0.8, 0.3).min(close(c.humidity, 0.0, 0.4)) * 0.015,
                 None,
             )
         }),
-        (Twigs, |c| ((c.tree_density - 0.5).max(0.0) * 0.0025, None)),
-        (Stones, |c| ((c.rockiness - 0.5).max(0.0) * 0.005, None)),
-        (ShortGrass, |c| {
-            (
-                close(c.temp, 0.3, 0.4).min(close(c.humidity, 0.6, 0.35)) * 0.05,
-                Some((48.0, 0.4)),
-            )
-        }),
-        (MediumGrass, |c| {
+        (Twigs, false, |c| ((c.tree_density - 0.5).max(0.0) * 0.0025, None)),
+        (Stones, false, |c| ((c.rockiness - 0.5).max(0.0) * 0.005, None)),
+        (ShortGrass, false, |c| (close(c.temp, 0.3, 0.4).min(close(c.humidity, 0.6, 0.35)) * 0.05, Some((48.0, 0.4)))),
+        (MediumGrass, false, |c| {
             (
                 close(c.temp, 0.0, 0.6).min(close(c.humidity, 0.6, 0.35)) * 0.05,
                 Some((48.0, 0.2)),
             )
         }),
-        (LongGrass, |c| {
+        (LongGrass, false, |c| {
             (
                 close(c.temp, 0.4, 0.4).min(close(c.humidity, 0.8, 0.2)) * 0.05,
                 Some((48.0, 0.1)),
             )
         }),
-        (GrassSnow, |c| {
+        (GrassSnow, false, |c| {
             (
-                close(c.temp, -0.4, 0.4).min(close(c.rockiness, 0.0, 0.5)),
+                close(c.temp, -0.4, 0.4).min(close(c.rockiness, 0.0, 0.5)) * 0.1,
                 Some((48.0, 0.6)),
             )
         }),
@@ -92,7 +87,9 @@ pub fn apply_scatter_to<'a>(
                 continue;
             };
 
-            let bk = scatter.iter().enumerate().find_map(|(i, (bk, f))| {
+            let underwater = col_sample.water_level > col_sample.alt;
+
+            let bk = scatter.iter().enumerate().find_map(|(i, (bk, is_underwater, f))| {
                 let (density, patch) = f(chunk);
                 if density <= 0.0
                     || patch
@@ -105,6 +102,7 @@ pub fn apply_scatter_to<'a>(
                         })
                         .unwrap_or(false)
                     || !RandomField::new(i as u32).chance(Vec3::new(wpos2d.x, wpos2d.y, 0), density)
+                    || underwater != *is_underwater
                 {
                     None
                 } else {

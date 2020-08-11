@@ -199,8 +199,8 @@ impl State {
     }
 
     /// Read a component attributed to a particular entity.
-    pub fn read_component_copied<C: Component + Copy>(&self, entity: EcsEntity) -> Option<C> {
-        self.ecs.read_storage().get(entity).copied()
+    pub fn read_component_cloned<C: Component + Copy>(&self, entity: EcsEntity) -> Option<C> {
+        self.ecs.read_storage().get(entity).cloned()
     }
 
     /// Get a read-only reference to the storage of a particular component type.
