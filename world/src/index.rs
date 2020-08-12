@@ -1,6 +1,6 @@
 use crate::site::Site;
-use common::store::{Id, Store};
-use noise::{NoiseFn, Seedable, SuperSimplex};
+use common::store::Store;
+use noise::{Seedable, SuperSimplex};
 
 pub struct Index {
     pub seed: u32,

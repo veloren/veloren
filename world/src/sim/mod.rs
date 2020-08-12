@@ -26,7 +26,6 @@ pub use self::{
 use crate::{
     all::ForestKind,
     civ::Place,
-    column::{ColumnGen, ColumnSample},
     site::Site,
     util::{seed_expan, FastNoise, RandomField, StructureGen2d, LOCALITY, NEIGHBORS},
     Index, CONFIG,

@@ -14,10 +14,9 @@ use crate::column::ColumnSample;
 use common::{
     generation::ChunkSupplement,
     terrain::Block,
-    vol::{BaseVol, ReadVol, RectSizedVol, Vox, WriteVol},
+    vol::{BaseVol, ReadVol, RectSizedVol, WriteVol},
 };
 use rand::Rng;
-use std::{fmt, sync::Arc};
 use vek::*;
 
 pub struct SpawnRules {

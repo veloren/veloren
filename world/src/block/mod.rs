@@ -9,7 +9,7 @@ use common::{
     terrain::{structure::StructureBlock, Block, BlockKind, Structure},
     vol::{ReadVol, Vox},
 };
-use std::ops::{Add, Div, Mul, Neg};
+use std::ops::{Div, Mul};
 use vek::*;
 
 pub struct BlockGen<'a> {

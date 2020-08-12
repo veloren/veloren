@@ -264,7 +264,7 @@ impl Civs {
                 1 << ((to_next_idx as u8 + 4) % 8);
         }
 
-        for (i, loc) in path.iter().enumerate() {
+        for loc in path.iter() {
             let mut chunk = ctx.sim.get_mut(loc.0).unwrap();
             let depth = loc.1 * 250.0 - 20.0;
             chunk.cave.1.alt =

@@ -49,10 +49,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Loading-Screen tips
 - Feeding animation for some animals
 - Power stat to weapons which affects weapon damage
-- Add detection of entities under the cursor 
+- Add detection of entities under the cursor
 - Functional group-system with exp-sharing and disabled damage to group members
 - Some Campfire, fireball & bomb; particle, light & sound effects.
 - Added setting to change resolution
+- Rare (unfinished) castles
+- Caves with monsters and treasure
+- Furniture and decals in towns
 
 ### Changed
 
@@ -85,6 +88,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dehardcoded many item variants
 - Tooltips avoid the mouse better and disappear when hovered
 - Improved social window functions and visuals
+- Changed agent behaviour to allow fleeing
+- Waypoints now spawn on dungeon staircases
 
 ### Removed
 

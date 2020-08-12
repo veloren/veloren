@@ -20,7 +20,7 @@ pub use self::{
     unit_chooser::UnitChooser,
 };
 
-use fxhash::{FxHasher32, FxHasher64};
+use fxhash::FxHasher32;
 use hashbrown::{HashMap, HashSet};
 use std::hash::BuildHasherDefault;
 use vek::*;

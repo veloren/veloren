@@ -82,13 +82,13 @@ impl Archetype for Keep {
     fn draw(
         &self,
         pos: Vec3<i32>,
-        dist: i32,
+        _dist: i32,
         bound_offset: Vec2<i32>,
         center_offset: Vec2<i32>,
         z: i32,
         ori: Ori,
         locus: i32,
-        len: i32,
+        _len: i32,
         attr: &Self::Attr,
     ) -> BlockMask {
         let profile = Vec2::new(bound_offset.x, z);

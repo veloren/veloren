@@ -121,17 +121,8 @@ impl Route {
                         .unwrap_or(false))
             });
 
-            let next0_tgt = next0.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
-            let next1_tgt = next1.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
-            let next_tgt = next0_tgt;
-
-            // // Maybe skip a node (useful with traversing downhill)
-            // let closest_tgt = if next0_tgt.distance_squared(pos) < next1_tgt.distance_squared(pos) {
-            //     next0_tgt
-            // } else {
-            //     next1_tgt
-            // };
-            let closest_tgt = next0_tgt.map2(pos, |tgt, pos| pos.clamped(tgt.floor(), tgt.ceil()));
+            let next_tgt = next0.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
+            let closest_tgt = next_tgt.map2(pos, |tgt, pos| pos.clamped(tgt.floor(), tgt.ceil()));
 
             // Determine whether we're close enough to the next to to consider it completed
             let dist_sqrd = pos.xy().distance_squared(closest_tgt.xy());
