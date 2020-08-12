@@ -381,7 +381,8 @@ impl BlockKind {
     pub fn is_explodable(&self) -> bool {
         match self {
             BlockKind::Leaves | BlockKind::Grass | BlockKind::Rock | BlockKind::GrassSnow => true,
-            _ => false,
+            BlockKind::Air => false,
+            bk => bk.is_air(), // Temporary catch for terrain sprites
         }
     }
 
