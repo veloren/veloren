@@ -11,10 +11,10 @@
             artist: "https://www.youtube.com/watch?v=FwVTkB-BIvM",
         ), 
         (
-            title: "A Solemn Quest Day",
-            path: "voxygen.audio.ambient.a_solemn_quest",
+            title: "A Solemn Quest",
+            path: "voxygen.audio.soundtrack.a_solemn_quest",
             length: 206.0,
-            timing: Some(Day),
+            timing: Some(Night),
             artist: "Eden",
         ),        
         (
