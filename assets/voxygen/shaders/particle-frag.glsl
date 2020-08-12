@@ -34,5 +34,5 @@ void main() {
 	vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, cam_pos.xyz, f_pos, 0.5, true, clouds);
 	vec3 color = mix(mix(surf_color, fog_color, fog_level), clouds.rgb, clouds.a);
 
-	tgt_color = vec4(color, 1.0 - clamp((distance(focus_pos.xy, f_pos.xy) - (1000.0 - FADE_DIST)) / FADE_DIST, 0, 1));
+	tgt_color = vec4(color, 0.3);
 }
