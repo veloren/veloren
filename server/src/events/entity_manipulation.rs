@@ -2,17 +2,18 @@ use crate::{client::Client, Server, SpawnPoint, StateExt};
 use common::{
     assets,
     comp::{
-        self, item::lottery::Lottery, object, Body, Damage, DamageSource, HealthChange,
-        HealthSource, Player, Stats,
+        self, item::lottery::Lottery, object, Alignment, Body, Damage, DamageSource, Group,
+        HealthChange, HealthSource, Player, Pos, Stats,
     },
     msg::{PlayerListUpdate, ServerMsg},
+    outcome::Outcome,
     state::BlockChange,
-    sync::{Uid, WorldSyncExt},
+    sync::{Uid, UidAllocator, WorldSyncExt},
     sys::combat::BLOCK_ANGLE,
     terrain::{Block, TerrainGrid},
     vol::{ReadVol, Vox},
 };
-use specs::{join::Join, Entity as EcsEntity, WorldExt};
+use specs::{join::Join, saveload::MarkerAllocator, Entity as EcsEntity, WorldExt};
 use tracing::error;
 use vek::Vec3;
 
@@ -55,28 +56,88 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         state.notify_registered_clients(comp::ChatType::Kill.server_msg(msg));
     }
 
-    {
-        // Give EXP to the killer if entity had stats
+    // Give EXP to the killer if entity had stats
+    (|| {
         let mut stats = state.ecs().write_storage::<Stats>();
-        if let Some(entity_stats) = stats.get(entity).cloned() {
-            if let HealthSource::Attack { by } | HealthSource::Projectile { owner: Some(by) } =
-                cause
-            {
-                state.ecs().entity_from_uid(by.into()).map(|attacker| {
-                    if let Some(attacker_stats) = stats.get_mut(attacker) {
-                        // TODO: Discuss whether we should give EXP by Player
-                        // Killing or not.
-                        attacker_stats.exp.change_by(
-                            (entity_stats.body_type.base_exp()
-                                + entity_stats.level.level()
-                                    * entity_stats.body_type.base_exp_increase())
-                                as i64,
-                        );
-                    }
-                });
-            }
+        let by = if let HealthSource::Attack { by } | HealthSource::Projectile { owner: Some(by) } =
+            cause
+        {
+            by
+        } else {
+            return;
+        };
+        let attacker = if let Some(attacker) = state.ecs().entity_from_uid(by.into()) {
+            attacker
+        } else {
+            return;
+        };
+        let entity_stats = if let Some(entity_stats) = stats.get(entity) {
+            entity_stats
+        } else {
+            return;
+        };
+
+        let groups = state.ecs().read_storage::<Group>();
+        let attacker_group = groups.get(attacker);
+        let destroyed_group = groups.get(entity);
+        // Don't give exp if attacker destroyed themselves or one of their group members
+        if (attacker_group.is_some() && attacker_group == destroyed_group) || attacker == entity {
+            return;
         }
-    }
+
+        // Maximum distance for other group members to receive exp
+        const MAX_EXP_DIST: f32 = 150.0;
+        // Attacker gets same as exp of everyone else
+        const ATTACKER_EXP_WEIGHT: f32 = 1.0;
+        let mut exp_reward = (entity_stats.body_type.base_exp()
+            + entity_stats.level.level() * entity_stats.body_type.base_exp_increase())
+            as f32;
+
+        // Distribute EXP to group
+        let positions = state.ecs().read_storage::<Pos>();
+        let alignments = state.ecs().read_storage::<Alignment>();
+        let uids = state.ecs().read_storage::<Uid>();
+        if let (Some(attacker_group), Some(pos)) = (attacker_group, positions.get(entity)) {
+            // TODO: rework if change to groups makes it easier to iterate entities in a
+            // group
+            let mut num_not_pets_in_range = 0;
+            let members_in_range = (
+                &state.ecs().entities(),
+                &groups,
+                &positions,
+                alignments.maybe(),
+                &uids,
+            )
+                .join()
+                .filter(|(entity, group, member_pos, _, _)| {
+                    // Check if: in group, not main attacker, and in range
+                    *group == attacker_group
+                        && *entity != attacker
+                        && pos.0.distance_squared(member_pos.0) < MAX_EXP_DIST.powi(2)
+                })
+                .map(|(entity, _, _, alignment, uid)| {
+                    if !matches!(alignment, Some(Alignment::Owned(owner)) if owner != uid) {
+                        num_not_pets_in_range += 1;
+                    }
+
+                    entity
+                })
+                .collect::<Vec<_>>();
+            let exp = exp_reward / (num_not_pets_in_range as f32 + ATTACKER_EXP_WEIGHT);
+            exp_reward = exp * ATTACKER_EXP_WEIGHT;
+            members_in_range.into_iter().for_each(|e| {
+                if let Some(stats) = stats.get_mut(e) {
+                    stats.exp.change_by(exp.ceil() as i64);
+                }
+            });
+        }
+
+        if let Some(attacker_stats) = stats.get_mut(attacker) {
+            // TODO: Discuss whether we should give EXP by Player
+            // Killing or not.
+            attacker_stats.exp.change_by(exp_reward.ceil() as i64);
+        }
+    })();
 
     if state
         .ecs()
@@ -189,7 +250,7 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
         .is_some()
     {
         let respawn_point = state
-            .read_component_cloned::<comp::Waypoint>(entity)
+            .read_component_copied::<comp::Waypoint>(entity)
             .map(|wp| wp.get_pos())
             .unwrap_or(state.ecs().read_resource::<SpawnPoint>().0);
 
@@ -217,11 +278,29 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
     }
 }
 
-pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Option<Uid>) {
+pub fn handle_explosion(
+    server: &Server,
+    pos: Vec3<f32>,
+    power: f32,
+    owner: Option<Uid>,
+    friendly_damage: bool,
+) {
     // Go through all other entities
     let hit_range = 3.0 * power;
     let ecs = &server.state.ecs();
-    for (pos_b, ori_b, character_b, stats_b, loadout_b) in (
+
+    // Add an outcome
+    ecs.write_resource::<Vec<Outcome>>()
+        .push(Outcome::Explosion { pos, power });
+
+    let owner_entity = owner.and_then(|uid| {
+        ecs.read_resource::<UidAllocator>()
+            .retrieve_entity_internal(uid.into())
+    });
+    let groups = ecs.read_storage::<comp::Group>();
+
+    for (entity_b, pos_b, ori_b, character_b, stats_b, loadout_b) in (
+        &ecs.entities(),
         &ecs.read_storage::<comp::Pos>(),
         &ecs.read_storage::<comp::Ori>(),
         ecs.read_storage::<comp::CharacterState>().maybe(),
@@ -233,9 +312,13 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, power: f32, owner: Opti
         let distance_squared = pos.distance_squared(pos_b.0);
         // Check if it is a hit
         if !stats_b.is_dead
-            // Spherical wedge shaped attack field
             // RADIUS
             && distance_squared < hit_range.powi(2)
+            // Skip if they are in the same group and friendly_damage is turned off for the
+            // explosion
+            && (friendly_damage || !owner_entity
+                    .and_then(|e| groups.get(e))
+                    .map_or(false, |group_a| Some(group_a) == groups.get(entity_b)))
         {
             // Weapon gives base damage
             let dmg = (1.0 - distance_squared / hit_range.powi(2)) * power * 130.0;

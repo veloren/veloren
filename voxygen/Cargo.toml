@@ -60,7 +60,7 @@ directories-next = "1.0.1"
 num = "0.2"
 backtrace = "0.3.40"
 rand = "0.7"
-treeculler = { git = "https://gitlab.com/yusdacra/treeculler.git" }
+treeculler = "0.1.0"
 rodio = { version = "0.11", default-features = false, features = ["wav", "vorbis"] }
 cpal = "0.11"
 crossbeam = "=0.7.2"
@@ -71,6 +71,7 @@ deunicode = "1.0"
 uvth = "3.1.1"
 # vec_map = { version = "0.8.2" }
 const-tweaker = { version = "0.3.1", optional = true }
+itertools = "0.9.0"
 
 # Logging
 tracing = "0.1" 

@@ -7,15 +7,19 @@ use crate::{
     Tick,
 };
 use common::{
-    comp::{ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Pos, Vel},
+    comp::{ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Player, Pos, Vel},
     msg::ServerMsg,
+    outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
     state::TimeOfDay,
     sync::{CompSyncPackage, Uid},
+    terrain::TerrainChunkSize,
+    vol::RectVolSize,
 };
 use specs::{
     Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage,
 };
+use vek::*;
 
 /// This system will send physics updates to the client
 pub struct Sys;
@@ -33,6 +37,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Inventory>,
         ReadStorage<'a, RegionSubscription>,
+        ReadStorage<'a, Player>,
         WriteStorage<'a, Last<Pos>>,
         WriteStorage<'a, Last<Vel>>,
         WriteStorage<'a, Last<Ori>>,
@@ -40,6 +45,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, ForceUpdate>,
         WriteStorage<'a, InventoryUpdate>,
         Write<'a, DeletedEntities>,
+        Write<'a, Vec<Outcome>>,
         TrackedComps<'a>,
         ReadTrackers<'a>,
     );
@@ -58,6 +64,7 @@ impl<'a> System<'a> for Sys {
             orientations,
             inventories,
             subscriptions,
+            players,
             mut last_pos,
             mut last_vel,
             mut last_ori,
@@ -65,6 +72,7 @@ impl<'a> System<'a> for Sys {
             mut force_updates,
             mut inventory_updates,
             mut deleted_entities,
+            mut outcomes,
             tracked_comps,
             trackers,
         ): Self::SystemData,
@@ -315,6 +323,26 @@ impl<'a> System<'a> for Sys {
                 update.event(),
             ));
         }
+
+        // Sync outcomes
+        for (client, player, pos) in (&mut clients, &players, positions.maybe()).join() {
+            let is_near = |o_pos: Vec3<f32>| {
+                pos.zip_with(player.view_distance, |pos, vd| {
+                    pos.0.xy().distance_squared(o_pos.xy())
+                        < (vd as f32 * TerrainChunkSize::RECT_SIZE.x as f32).powf(2.0)
+                })
+            };
+
+            let outcomes = outcomes
+                .iter()
+                .filter(|o| o.get_pos().and_then(&is_near).unwrap_or(true))
+                .cloned()
+                .collect::<Vec<_>>();
+            if outcomes.len() > 0 {
+                client.notify(ServerMsg::Outcomes(outcomes));
+            }
+        }
+        outcomes.clear();
 
         // Remove all force flags.
         force_updates.clear();

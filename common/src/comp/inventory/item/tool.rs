@@ -261,6 +261,7 @@ impl Tool {
                                 col: (0.85, 0.5, 0.11).into(),
                                 ..Default::default()
                             }),
+
                             projectile_gravity: None,
                         },
                         BasicRanged {

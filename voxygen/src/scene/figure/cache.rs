@@ -645,6 +645,11 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         body.body_type,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
+                    Some(biped_large_center_spec.mesh_jaw(
+                        body.species,
+                        body.body_type,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
                     Some(biped_large_center_spec.mesh_torso_upper(
                         body.species,
                         body.body_type,
@@ -655,7 +660,17 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         body.body_type,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
+                    Some(biped_large_center_spec.mesh_tail(
+                        body.species,
+                        body.body_type,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
                     Some(biped_large_center_spec.mesh_main(
+                        body.species,
+                        body.body_type,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
+                    Some(biped_large_center_spec.mesh_second(
                         body.species,
                         body.body_type,
                         |segment, offset| generate_mesh(segment, offset),
@@ -700,9 +715,6 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         body.body_type,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
-                    None,
-                    None,
-                    None,
                     None,
                 ]
             },

@@ -2,13 +2,15 @@ pub mod camera;
 pub mod figure;
 pub mod lod;
 pub mod math;
+pub mod particle;
 pub mod simple;
 pub mod terrain;
 
-use self::{
+pub use self::{
     camera::{Camera, CameraMode},
     figure::FigureMgr,
     lod::Lod,
+    particle::ParticleMgr,
     terrain::Terrain,
 };
 use crate::{
@@ -25,7 +27,8 @@ use anim::character::SkeletonAttr;
 use client::Client;
 use common::{
     comp,
-    state::State,
+    outcome::Outcome,
+    state::{DeltaTime, State},
     terrain::{BlockKind, TerrainChunk},
     vol::ReadVol,
 };
@@ -55,6 +58,12 @@ const RUNNING_THRESHOLD: f32 = 0.7;
 /// is_daylight, array of active lights.
 pub type LightData<'a> = (bool, &'a [Light]);
 
+struct EventLight {
+    light: Light,
+    timeout: f32,
+    fadeout: fn(f32) -> f32,
+}
+
 struct Skybox {
     model: Model<SkyboxPipeline>,
     locals: Consts<SkyboxLocals>,
@@ -69,6 +78,7 @@ pub struct Scene {
     data: GlobalModel,
     camera: Camera,
     camera_input_state: Vec2<f32>,
+    event_lights: Vec<EventLight>,
 
     skybox: Skybox,
     postprocess: PostProcess,
@@ -82,6 +92,7 @@ pub struct Scene {
     select_pos: Option<Vec3<i32>>,
     light_data: Vec<Light>,
 
+    particle_mgr: ParticleMgr,
     figure_mgr: FigureMgr,
     sfx_mgr: SfxMgr,
     music_mgr: MusicMgr,
@@ -90,6 +101,7 @@ pub struct Scene {
 pub struct SceneData<'a> {
     pub state: &'a State,
     pub player_entity: specs::Entity,
+    pub target_entity: Option<specs::Entity>,
     pub loaded_distance: f32,
     pub view_distance: u32,
     pub tick: u64,
@@ -97,6 +109,7 @@ pub struct SceneData<'a> {
     pub gamma: f32,
     pub mouse_smoothing: bool,
     pub sprite_render_distance: f32,
+    pub particles_enabled: bool,
     pub figure_lod_render_distance: f32,
     pub is_aiming: bool,
 }
@@ -261,6 +274,7 @@ impl Scene {
             },
             camera: Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson),
             camera_input_state: Vec2::zero(),
+            event_lights: Vec::new(),
 
             skybox: Skybox {
                 model: renderer.create_model(&create_skybox_mesh()).unwrap(),
@@ -278,7 +292,7 @@ impl Scene {
             map_bounds: client.world_map.2,
             select_pos: None,
             light_data: Vec::new(),
-
+            particle_mgr: ParticleMgr::new(renderer),
             figure_mgr: FigureMgr::new(renderer),
             sfx_mgr: SfxMgr::new(),
             music_mgr: MusicMgr::new(),
@@ -296,6 +310,9 @@ impl Scene {
 
     /// Get a reference to the scene's lights.
     pub fn lights(&self) -> &Vec<Light> { &self.light_data }
+
+    /// Get a reference to the scene's particle manager.
+    pub fn particle_mgr(&self) -> &ParticleMgr { &self.particle_mgr }
 
     /// Get a reference to the scene's figure manager.
     pub fn figure_mgr(&self) -> &FigureMgr { &self.figure_mgr }
@@ -343,6 +360,25 @@ impl Scene {
             },
             // All other events are unhandled
             _ => false,
+        }
+    }
+
+    pub fn handle_outcome(
+        &mut self,
+        outcome: &Outcome,
+        scene_data: &SceneData,
+        audio: &mut AudioFrontend,
+    ) {
+        self.particle_mgr.handle_outcome(&outcome, &scene_data);
+        self.sfx_mgr.handle_outcome(&outcome, audio);
+
+        match outcome {
+            Outcome::Explosion { pos, power, .. } => self.event_lights.push(EventLight {
+                light: Light::new(*pos, Rgb::new(1.0, 0.5, 0.0), *power * 2.5),
+                timeout: 0.5,
+                fadeout: |timeout| timeout * 2.0,
+            }),
+            Outcome::ProjectileShot { .. } => {},
         }
     }
 
@@ -435,6 +471,7 @@ impl Scene {
             view_mat,
             proj_mat,
             cam_pos,
+            ..
         } = self.camera.dependents();
 
         // Update chunk loaded distance smoothly for nice shader fog
@@ -481,13 +518,25 @@ impl Scene {
                         light_anim.col,
                         light_anim.strength,
                     )
-                }),
+                })
+                .chain(
+                    self.event_lights
+                        .iter()
+                        .map(|el| el.light.with_strength((el.fadeout)(el.timeout))),
+                ),
         );
         lights.sort_by_key(|light| light.get_pos().distance_squared(player_pos) as i32);
         lights.truncate(MAX_LIGHT_COUNT);
         renderer
             .update_consts(&mut self.data.lights, &lights)
             .expect("Failed to update light constants");
+
+        // Update event lights
+        let dt = ecs.fetch::<DeltaTime>().0;
+        self.event_lights.drain_filter(|el| {
+            el.timeout -= dt;
+            el.timeout <= 0.0
+        });
 
         // Update shadow constants
         let mut shadows = (
@@ -890,9 +939,16 @@ impl Scene {
         // Remove unused figures.
         self.figure_mgr.clean(scene_data.tick);
 
+        // Maintain the particles.
+        self.particle_mgr.maintain(renderer, &scene_data);
+
         // Maintain audio
-        self.sfx_mgr
-            .maintain(audio, scene_data.state, scene_data.player_entity);
+        self.sfx_mgr.maintain(
+            audio,
+            scene_data.state,
+            scene_data.player_entity,
+            &self.camera,
+        );
         self.music_mgr.maintain(audio, scene_data.state);
     }
 
@@ -923,11 +979,11 @@ impl Scene {
 
             // Render terrain shadows.
             self.terrain
-                .render_shadows(renderer, &global, light_data, focus_pos);
+                .render_shadows(renderer, global, light_data, focus_pos);
 
             // Render figure shadows.
             self.figure_mgr
-                .render_shadows(renderer, state, tick, &global, light_data, camera_data);
+                .render_shadows(renderer, state, tick, global, light_data, camera_data);
 
             if is_daylight {
                 // Flush shadows.
@@ -941,31 +997,34 @@ impl Scene {
             state,
             player_entity,
             tick,
-            &global,
+            global,
             lod,
             camera_data,
         );
 
         // Render terrain and figures.
-        self.terrain.render(renderer, &global, lod, focus_pos);
+        self.terrain.render(renderer, global, lod, focus_pos);
 
         self.figure_mgr.render(
             renderer,
             state,
             player_entity,
             tick,
-            &global,
+            global,
             lod,
             camera_data,
         );
-        self.lod.render(renderer, &global);
+        self.lod.render(renderer, global);
+
+        // Render particle effects.
+        self.particle_mgr.render(renderer, scene_data, global, lod);
 
         // Render the skybox.
-        renderer.render_skybox(&self.skybox.model, &global, &self.skybox.locals, lod);
+        renderer.render_skybox(&self.skybox.model, global, &self.skybox.locals, lod);
 
         self.terrain.render_translucent(
             renderer,
-            &global,
+            global,
             lod,
             focus_pos,
             cam_pos,

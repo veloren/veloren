@@ -228,6 +228,7 @@ impl Scene {
             view_mat,
             proj_mat,
             cam_pos,
+            ..
         } = self.camera.dependents();
         const VD: f32 = 115.0; // View Distance
         const TIME: f64 = 10.0 * 60.0 * 60.0;

@@ -26,8 +26,8 @@ use anim::{
 };
 use common::{
     comp::{
-        item::ItemKind, Body, CharacterState, Last, LightAnimation, LightEmitter, Loadout, Ori,
-        PhysicsState, Pos, Scale, Stats, Vel,
+        item::ItemKind, Body, CharacterState, Item, Last, LightAnimation, LightEmitter, Loadout,
+        Ori, PhysicsState, Pos, Scale, Stats, Vel,
     },
     state::{DeltaTime, State},
     states::triple_strike,
@@ -438,6 +438,7 @@ impl FigureMgr {
                 proj_mat: _,
                 view_mat: _,
                 cam_pos,
+                ..
             } = camera.dependents();
             let cam_pos = math::Vec3::from(cam_pos);
             let ray_direction = math::Vec3::from(ray_direction);
@@ -499,6 +500,7 @@ impl FigureMgr {
                 physics,
                 stats,
                 loadout,
+                item,
             ),
         ) in (
             &ecs.entities(),
@@ -512,6 +514,7 @@ impl FigureMgr {
             &ecs.read_storage::<PhysicsState>(),
             ecs.read_storage::<Stats>().maybe(),
             ecs.read_storage::<Loadout>().maybe(),
+            ecs.read_storage::<Item>().maybe(),
         )
             .join()
             .enumerate()
@@ -612,7 +615,13 @@ impl FigureMgr {
                             (c / (1.0 + DAMAGE_FADE_COEFFICIENT * s.health.last_change.0)) as f32
                         })
                 })
-                .unwrap_or(vek::Rgba::broadcast(1.0));
+                .unwrap_or(vek::Rgba::broadcast(1.0))
+            // Highlight targeted collectible entities
+            * if item.is_some() && scene_data.target_entity.map_or(false, |e| e == entity) {
+                vek::Rgba::new(2.0, 2.0, 2.0, 1.0)
+            } else {
+                vek::Rgba::one()
+            };
 
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
 
@@ -671,7 +680,7 @@ impl FigureMgr {
                         physics.in_fluid,                                 // In water
                     ) {
                         // Standing
-                        (true, false, _) => anim::character::StandAnimation::update_skeleton(
+                        (true, false, false) => anim::character::StandAnimation::update_skeleton(
                             &CharacterSkeleton::default(),
                             (
                                 active_tool_kind.clone(),
@@ -684,7 +693,7 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
                         // Running
-                        (true, true, _) => anim::character::RunAnimation::update_skeleton(
+                        (true, true, false) => anim::character::RunAnimation::update_skeleton(
                             &CharacterSkeleton::default(),
                             (
                                 active_tool_kind.clone(),
@@ -714,7 +723,7 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
                         // Swim
-                        (false, _, true) => anim::character::SwimAnimation::update_skeleton(
+                        (_, _, true) => anim::character::SwimAnimation::update_skeleton(
                             &CharacterSkeleton::default(),
                             (
                                 active_tool_kind.clone(),
@@ -723,6 +732,7 @@ impl FigureMgr {
                                 ori,
                                 state.last_ori,
                                 time,
+                                state.avg_vel,
                             ),
                             state.state_time,
                             &mut state_animation_rate,
@@ -805,6 +815,15 @@ impl FigureMgr {
                                     skeleton_attr,
                                 )
                             }
+                        },
+                        CharacterState::Sneak { .. } => {
+                            anim::character::SneakAnimation::update_skeleton(
+                                &CharacterSkeleton::default(),
+                                (active_tool_kind, vel.0, ori, state.last_ori, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
                         },
                         CharacterState::Boost(_) => {
                             anim::character::AlphaAnimation::update_skeleton(
@@ -900,13 +919,23 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::Wielding { .. } => {
-                            anim::character::WieldAnimation::update_skeleton(
-                                &target_base,
-                                (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
+                            if physics.in_fluid {
+                                anim::character::SwimWieldAnimation::update_skeleton(
+                                    &target_base,
+                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            } else {
+                                anim::character::WieldAnimation::update_skeleton(
+                                    &target_base,
+                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            }
                         },
                         CharacterState::Glide { .. } => {
                             anim::character::GlidingAnimation::update_skeleton(

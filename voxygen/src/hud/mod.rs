@@ -3,6 +3,7 @@ mod buttons;
 mod chat;
 mod crafting;
 mod esc_menu;
+mod group;
 mod hotbar;
 mod img_ids;
 mod item_imgs;
@@ -30,6 +31,7 @@ use chat::Chat;
 use chrono::NaiveTime;
 use crafting::Crafting;
 use esc_menu::EscMenu;
+use group::Group;
 use img_ids::Imgs;
 use item_imgs::ItemImgs;
 use map::Map;
@@ -72,7 +74,7 @@ const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const TEXT_GRAY_COLOR: Color = Color::Rgba(0.5, 0.5, 0.5, 1.0);
 const TEXT_DULL_RED_COLOR: Color = Color::Rgba(0.56, 0.2, 0.2, 1.0);
 const TEXT_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
-//const TEXT_COLOR_GREY: Color = Color::Rgba(1.0, 1.0, 1.0, 0.5);
+const TEXT_COLOR_GREY: Color = Color::Rgba(1.0, 1.0, 1.0, 0.5);
 const MENU_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 0.4);
 //const TEXT_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 const TEXT_COLOR_3: Color = Color::Rgba(1.0, 1.0, 1.0, 0.1);
@@ -83,6 +85,7 @@ const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
 const LOW_HP_COLOR: Color = Color::Rgba(0.93, 0.59, 0.03, 1.0);
 const CRITICAL_HP_COLOR: Color = Color::Rgba(0.79, 0.19, 0.17, 1.0);
 const MANA_COLOR: Color = Color::Rgba(0.29, 0.62, 0.75, 0.9);
+//const TRANSPARENT: Color = Color::Rgba(0.0, 0.0, 0.0, 0.0);
 //const FOCUS_COLOR: Color = Color::Rgba(1.0, 0.56, 0.04, 1.0);
 //const RAGE_COLOR: Color = Color::Rgba(0.5, 0.04, 0.13, 1.0);
 
@@ -112,12 +115,18 @@ const WORLD_COLOR: Color = Color::Rgba(0.95, 1.0, 0.95, 1.0);
 /// Color for collected loot messages
 const LOOT_COLOR: Color = Color::Rgba(0.69, 0.57, 1.0, 1.0);
 
+//Nametags
+const GROUP_MEMBER: Color = Color::Rgba(0.47, 0.84, 1.0, 1.0);
+const DEFAULT_NPC: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+
 // UI Color-Theme
 const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
 //const UI_MAIN: Color = Color::Rgba(0.1, 0.1, 0.1, 0.97); // Dark
 const UI_HIGHLIGHT_0: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0);
 //const UI_DARK_0: Color = Color::Rgba(0.25, 0.37, 0.37, 1.0);
 
+/// Distance at which nametags are visible for group members
+const NAMETAG_GROUP_RANGE: f32 = 300.0;
 /// Distance at which nametags are visible
 const NAMETAG_RANGE: f32 = 40.0;
 /// Time nametags stay visible after doing damage even if they are out of range
@@ -174,6 +183,7 @@ widget_ids! {
         num_chunks,
         num_lights,
         num_figures,
+        num_particles,
 
         // Game Version
         version,
@@ -212,6 +222,7 @@ widget_ids! {
         social_window,
         crafting_window,
         settings_window,
+        group_window,
 
         // Free look indicator
         free_look_txt,
@@ -243,11 +254,15 @@ pub struct DebugInfo {
     pub num_shadow_chunks: u32,
     pub num_figures: u32,
     pub num_figures_visible: u32,
+    pub num_particles: u32,
+    pub num_particles_visible: u32,
 }
 
 pub struct HudInfo {
     pub is_aiming: bool,
     pub is_first_person: bool,
+    pub target_entity: Option<specs::Entity>,
+    pub selected_entity: Option<(specs::Entity, std::time::Instant)>,
 }
 
 pub enum Event {
@@ -270,7 +285,11 @@ pub enum Event {
     ChangeGamma(f32),
     MapZoom(f64),
     AdjustWindowSize([u16; 2]),
+    ToggleParticlesEnabled(bool),
     ToggleFullscreen,
+    ChangeResolution([u16; 2]),
+    ChangeBitDepth(Option<u16>),
+    ChangeRefreshRate(Option<u16>),
     CrosshairTransp(f32),
     ChatTransp(f32),
     ChatCharName(bool),
@@ -302,6 +321,12 @@ pub enum Event {
     ChangeAutoWalkBehavior(PressBehavior),
     ChangeStopAutoWalkOnInput(bool),
     CraftRecipe(String),
+    InviteMember(common::sync::Uid),
+    AcceptInvite,
+    DeclineInvite,
+    KickMember(common::sync::Uid),
+    LeaveGroup,
+    AssignLeader(common::sync::Uid),
 }
 
 // TODO: Are these the possible layouts we want?
@@ -357,6 +382,8 @@ pub struct Show {
     bag: bool,
     social: bool,
     spell: bool,
+    group: bool,
+    group_menu: bool,
     esc_menu: bool,
     open_windows: Windows,
     map: bool,
@@ -394,7 +421,6 @@ impl Show {
     fn social(&mut self, open: bool) {
         if !self.esc_menu {
             self.social = open;
-            self.crafting = false;
             self.spell = false;
             self.want_grab = !open;
         }
@@ -494,7 +520,7 @@ impl Show {
     }
 
     fn toggle_social(&mut self) {
-        self.social = !self.social;
+        self.social(!self.social);
         self.spell = false;
     }
 
@@ -610,6 +636,8 @@ impl Hud {
                 ui: true,
                 social: false,
                 spell: false,
+                group: false,
+                group_menu: false,
                 mini_map: true,
                 settings_tab: SettingsTab::Interface,
                 social_tab: SocialTab::Online,
@@ -1040,7 +1068,7 @@ impl Hud {
             }
 
             // Render overhead name tags and health bars
-            for (pos, name, stats, energy, height_offset, hpfl, uid) in (
+            for (pos, name, stats, energy, height_offset, hpfl, uid, in_group) in (
                 &entities,
                 &pos,
                 interpolated.maybe(),
@@ -1053,11 +1081,34 @@ impl Hud {
                 &uids,
             )
                 .join()
-                .filter(|(entity, _, _, stats, _, _, _, _, _, _)| *entity != me && !stats.is_dead)
-                // Don't show outside a certain range
-                .filter(|(_, pos, _, _, _, _, _, _, hpfl, _)| {
-                    pos.0.distance_squared(player_pos)
-                        < (if hpfl
+                .map(|(a, b, c, d, e, f, g, h, i, uid)| {
+                    (
+                        a,
+                        b,
+                        c,
+                        d,
+                        e,
+                        f,
+                        g,
+                        h,
+                        i,
+                        uid,
+                        client.group_members().contains_key(uid),
+                    )
+                })
+                .filter(|(entity, pos, _, stats, _, _, _, _, hpfl, _, in_group)| {
+                    *entity != me && !stats.is_dead
+                    && (stats.health.current() != stats.health.maximum()
+                         || info.target_entity.map_or(false, |e| e == *entity)
+                         || info.selected_entity.map_or(false, |s| s.0 == *entity)
+                         || *in_group
+                    )
+                    // Don't show outside a certain range
+                     && pos.0.distance_squared(player_pos)
+                        < (if *in_group
+                        {
+                            NAMETAG_GROUP_RANGE
+                        } else if hpfl
                             .time_since_last_dmg_by_me
                             .map_or(false, |t| t < NAMETAG_DMG_TIME)
                         {
@@ -1067,25 +1118,40 @@ impl Hud {
                         })
                         .powi(2)
                 })
-                .map(|(_, pos, interpolated, stats, energy, player, scale, body, hpfl, uid)| {
-                    // TODO: This is temporary
-                    // If the player used the default character name display their name instead
-                    let name = if stats.name == "Character Name" {
-                        player.map_or(&stats.name, |p| &p.alias)
-                    } else {
-                        &stats.name
-                    };
-                    (
-                        interpolated.map_or(pos.0, |i| i.pos),
-                        name,
+                .map(
+                    |(
+                        _,
+                        pos,
+                        interpolated,
                         stats,
                         energy,
-                        // TODO: when body.height() is more accurate remove the 2.0
-                        body.height() * 2.0 * scale.map_or(1.0, |s| s.0),
+                        player,
+                        scale,
+                        body,
                         hpfl,
                         uid,
-                    )
-                })
+                        in_group,
+                    )| {
+                        // TODO: This is temporary
+                        // If the player used the default character name display their name instead
+                        let name = if stats.name == "Character Name" {
+                            player.map_or(&stats.name, |p| &p.alias)
+                        } else {
+                            &stats.name
+                        };
+                        (
+                            interpolated.map_or(pos.0, |i| i.pos),
+                            name,
+                            stats,
+                            energy,
+                            // TODO: when body.height() is more accurate remove the 2.0
+                            body.height() * 2.0 * scale.map_or(1.0, |s| s.0),
+                            hpfl,
+                            uid,
+                            in_group,
+                        )
+                    },
+                )
             {
                 let bubble = self.speech_bubbles.get(uid);
 
@@ -1102,6 +1168,7 @@ impl Hud {
                     stats,
                     energy,
                     own_level,
+                    in_group,
                     &global_state.settings.gameplay,
                     self.pulse,
                     &self.voxygen_i18n,
@@ -1455,6 +1522,17 @@ impl Hud {
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.num_figures, ui_widgets);
 
+            // Number of particles
+            Text::new(&format!(
+                "Particles: {} ({} visible)",
+                debug_info.num_particles, debug_info.num_particles_visible,
+            ))
+            .color(TEXT_COLOR)
+            .down_from(self.ids.num_figures, 5.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
+            .set(self.ids.num_particles, ui_widgets);
+
             // Help Window
             if let Some(help_key) = global_state.settings.controls.get_binding(GameInput::Help) {
                 Text::new(
@@ -1464,7 +1542,7 @@ impl Hud {
                         .replace("{key}", help_key.to_string().as_str()),
                 )
                 .color(TEXT_COLOR)
-                .down_from(self.ids.num_figures, 5.0)
+                .down_from(self.ids.num_particles, 5.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.help_info, ui_widgets);
@@ -1847,11 +1925,23 @@ impl Hud {
                     settings_window::Event::AdjustGamma(new_gamma) => {
                         events.push(Event::ChangeGamma(new_gamma));
                     },
+                    settings_window::Event::ChangeRenderMode(new_render_mode) => {
+                        events.push(Event::ChangeRenderMode(new_render_mode));
+                    },
+                    settings_window::Event::ChangeResolution(new_resolution) => {
+                        events.push(Event::ChangeResolution(new_resolution));
+                    },
+                    settings_window::Event::ChangeBitDepth(new_bit_depth) => {
+                        events.push(Event::ChangeBitDepth(new_bit_depth));
+                    },
+                    settings_window::Event::ChangeRefreshRate(new_refresh_rate) => {
+                        events.push(Event::ChangeRefreshRate(new_refresh_rate));
+                    },
                     settings_window::Event::ChangeLanguage(language) => {
                         events.push(Event::ChangeLanguage(language));
                     },
-                    settings_window::Event::ChangeRenderMode(new_render_mode) => {
-                        events.push(Event::ChangeRenderMode(new_render_mode));
+                    settings_window::Event::ToggleParticlesEnabled(particles_enabled) => {
+                        events.push(Event::ToggleParticlesEnabled(particles_enabled));
                     },
                     settings_window::Event::ToggleFullscreen => {
                         events.push(Event::ToggleFullscreen);
@@ -1880,21 +1970,54 @@ impl Hud {
 
         // Social Window
         if self.show.social {
-            for event in Social::new(
-                &self.show,
-                client,
-                &self.imgs,
-                &self.fonts,
-                &self.voxygen_i18n,
-            )
-            .set(self.ids.social_window, ui_widgets)
-            {
-                match event {
-                    social::Event::Close => self.show.social(false),
-                    social::Event::ChangeSocialTab(social_tab) => {
-                        self.show.open_social_tab(social_tab)
-                    },
+            let ecs = client.state().ecs();
+            let _stats = ecs.read_storage::<comp::Stats>();
+            let me = client.entity();
+            if let Some(_stats) = stats.get(me) {
+                for event in Social::new(
+                    &self.show,
+                    client,
+                    &self.imgs,
+                    &self.fonts,
+                    &self.voxygen_i18n,
+                    info.selected_entity,
+                    &self.rot_imgs,
+                    tooltip_manager,
+                )
+                .set(self.ids.social_window, ui_widgets)
+                {
+                    match event {
+                        social::Event::Close => {
+                            self.show.social(false);
+                            self.force_ungrab = true;
+                        },
+                        social::Event::ChangeSocialTab(social_tab) => {
+                            self.show.open_social_tab(social_tab)
+                        },
+                        social::Event::Invite(uid) => events.push(Event::InviteMember(uid)),
+                    }
                 }
+            }
+        }
+        // Group Window
+        for event in Group::new(
+            &mut self.show,
+            client,
+            &global_state.settings,
+            &self.imgs,
+            &self.fonts,
+            &self.voxygen_i18n,
+            self.pulse,
+            &global_state,
+        )
+        .set(self.ids.group_window, ui_widgets)
+        {
+            match event {
+                group::Event::Accept => events.push(Event::AcceptInvite),
+                group::Event::Decline => events.push(Event::DeclineInvite),
+                group::Event::Kick(uid) => events.push(Event::KickMember(uid)),
+                group::Event::LeaveGroup => events.push(Event::LeaveGroup),
+                group::Event::AssignLeader(uid) => events.push(Event::AssignLeader(uid)),
             }
         }
 

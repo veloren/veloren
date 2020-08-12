@@ -41,6 +41,14 @@ impl Animation for JumpAnimation {
         next.lower_torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.lower_torso.scale = Vec3::one() * 1.02;
 
+        next.jaw.position = Vec3::new(0.0, skeleton_attr.jaw.0, skeleton_attr.jaw.1);
+        next.jaw.orientation = Quaternion::rotation_z(0.0);
+        next.jaw.scale = Vec3::one();
+
+        next.tail.position = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1 * 0.0);
+        next.tail.orientation = Quaternion::rotation_z(0.0);
+        next.tail.scale = Vec3::one();
+
         next.shoulder_l.position = Vec3::new(
             -skeleton_attr.shoulder.0,
             skeleton_attr.shoulder.1,

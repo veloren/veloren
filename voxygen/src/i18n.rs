@@ -180,7 +180,7 @@ pub fn i18n_asset_key(language_id: &str) -> String { "voxygen.i18n.".to_string()
 mod tests {
     use super::VoxygenLocalization;
     use git2::Repository;
-    use ron::de::from_bytes;
+    use ron::de::{from_bytes, from_reader};
     use std::{
         collections::{HashMap, HashSet},
         fs,
@@ -325,10 +325,49 @@ mod tests {
         keys
     }
 
+    // Test to verify all languages that they are VALID and loadable, without
+    // need of git just on the local assets folder
+    #[test]
+    fn verify_all_localizations() {
+        // Generate paths
+        let i18n_asset_path = Path::new("assets/voxygen/i18n/");
+        let en_i18n_path = i18n_asset_path.join("en.ron");
+        let root_dir = std::env::current_dir()
+            .map(|p| p.parent().expect("").to_owned())
+            .unwrap();
+        assert!(
+            root_dir.join(&en_i18n_path).is_file(),
+            "en reference files doesn't exist, something is wrong!"
+        );
+        let i18n_files = i18n_files(&root_dir.join(i18n_asset_path));
+        // This simple check  ONLY guarantees that an arbitrary minimum of translation
+        // files exists. It's just to notice unintentional deletion of all
+        // files, or modifying the paths. In case you want to delete all
+        // language you have to adjust this number:
+        assert!(
+            i18n_files.len() > 5,
+            "have less than 5 translation files, arbitrary minimum check failed. Maybe the i18n \
+             folder is empty?"
+        );
+        for path in i18n_files {
+            let f = fs::File::open(&path).expect("Failed opening file");
+            let _: VoxygenLocalization = match from_reader(f) {
+                Ok(v) => v,
+                Err(e) => {
+                    panic!(
+                        "Could not parse {} RON file, error: {}",
+                        path.to_string_lossy(),
+                        e
+                    );
+                },
+            };
+        }
+    }
+
+    // Test to verify all languages and print missing and faulty localisation
     #[test]
     #[ignore]
     #[allow(clippy::expect_fun_call)]
-    /// Test to verify all languages and print missing and faulty localisation
     fn test_all_localizations() {
         // Generate paths
         let i18n_asset_path = Path::new("assets/voxygen/i18n/");

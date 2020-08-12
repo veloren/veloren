@@ -5,8 +5,8 @@ use super::{
     mesh::Mesh,
     model::{DynamicModel, Model},
     pipelines::{
-        figure, fluid, lod_terrain, postprocess, shadow, skybox, sprite, terrain, ui, GlobalModel,
-        Globals,
+        figure, fluid, lod_terrain, particle, postprocess, shadow, skybox, sprite, terrain, ui,
+        GlobalModel, Globals,
     },
     texture::Texture,
     AaMode, CloudMode, FilterMethod, FluidMode, LightingMode, Pipeline, RenderError, RenderMode,
@@ -131,6 +131,7 @@ pub struct Renderer {
     terrain_pipeline: GfxPipeline<terrain::pipe::Init<'static>>,
     fluid_pipeline: GfxPipeline<fluid::pipe::Init<'static>>,
     sprite_pipeline: GfxPipeline<sprite::pipe::Init<'static>>,
+    particle_pipeline: GfxPipeline<particle::pipe::Init<'static>>,
     ui_pipeline: GfxPipeline<ui::pipe::Init<'static>>,
     lod_terrain_pipeline: GfxPipeline<lod_terrain::pipe::Init<'static>>,
     postprocess_pipeline: GfxPipeline<postprocess::pipe::Init<'static>>,
@@ -179,6 +180,7 @@ impl Renderer {
             terrain_pipeline,
             fluid_pipeline,
             sprite_pipeline,
+            particle_pipeline,
             ui_pipeline,
             lod_terrain_pipeline,
             postprocess_pipeline,
@@ -266,6 +268,7 @@ impl Renderer {
             terrain_pipeline,
             fluid_pipeline,
             sprite_pipeline,
+            particle_pipeline,
             ui_pipeline,
             lod_terrain_pipeline,
             postprocess_pipeline,
@@ -729,6 +732,7 @@ impl Renderer {
                 terrain_pipeline,
                 fluid_pipeline,
                 sprite_pipeline,
+                particle_pipeline,
                 ui_pipeline,
                 lod_terrain_pipeline,
                 postprocess_pipeline,
@@ -742,6 +746,7 @@ impl Renderer {
                 self.terrain_pipeline = terrain_pipeline;
                 self.fluid_pipeline = fluid_pipeline;
                 self.sprite_pipeline = sprite_pipeline;
+                self.particle_pipeline = particle_pipeline;
                 self.ui_pipeline = ui_pipeline;
                 self.lod_terrain_pipeline = lod_terrain_pipeline;
                 self.postprocess_pipeline = postprocess_pipeline;
@@ -1519,6 +1524,60 @@ impl Renderer {
         );
     }
 
+    /// Queue the rendering of the provided particle in the upcoming frame.
+    pub fn render_particles(
+        &mut self,
+        model: &Model<particle::ParticlePipeline>,
+        global: &GlobalModel,
+        instances: &Instances<particle::Instance>,
+        lod: &lod_terrain::LodData,
+    ) {
+        let (point_shadow_maps, directed_shadow_maps) =
+            if let Some(shadow_map) = &mut self.shadow_map {
+                (
+                    (
+                        shadow_map.point_res.clone(),
+                        shadow_map.point_sampler.clone(),
+                    ),
+                    (
+                        shadow_map.directed_res.clone(),
+                        shadow_map.directed_sampler.clone(),
+                    ),
+                )
+            } else {
+                (
+                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+                )
+            };
+
+        self.encoder.draw(
+            &gfx::Slice {
+                start: model.vertex_range().start,
+                end: model.vertex_range().end,
+                base_vertex: 0,
+                instances: Some((instances.count() as u32, 0)),
+                buffer: gfx::IndexBuffer::Auto,
+            },
+            &self.particle_pipeline.pso,
+            &particle::pipe::Data {
+                vbuf: model.vbuf.clone(),
+                ibuf: instances.ibuf.clone(),
+                globals: global.globals.buf.clone(),
+                lights: global.lights.buf.clone(),
+                shadows: global.shadows.buf.clone(),
+                light_shadows: global.shadow_mats.buf.clone(),
+                point_shadow_maps,
+                directed_shadow_maps,
+                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
+                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
+                tgt_color: self.tgt_color_view.clone(),
+                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
+            },
+        );
+    }
+
     /// Queue the rendering of the provided UI element in the upcoming frame.
     pub fn render_ui_element<F: gfx::format::Formatted<View = [f32; 4]>>(
         &mut self,
@@ -1604,6 +1663,7 @@ fn create_pipelines(
         GfxPipeline<terrain::pipe::Init<'static>>,
         GfxPipeline<fluid::pipe::Init<'static>>,
         GfxPipeline<sprite::pipe::Init<'static>>,
+        GfxPipeline<particle::pipe::Init<'static>>,
         GfxPipeline<ui::pipe::Init<'static>>,
         GfxPipeline<lod_terrain::pipe::Init<'static>>,
         GfxPipeline<postprocess::pipe::Init<'static>>,
@@ -1805,6 +1865,18 @@ fn create_pipelines(
         gfx::state::CullFace::Back,
     )?;
 
+    // Construct a pipeline for rendering particles
+    let particle_pipeline = create_pipeline(
+        factory,
+        particle::pipe::new(),
+        &assets::load_watched::<String>("voxygen.shaders.particle-vert", shader_reload_indicator)
+            .unwrap(),
+        &assets::load_watched::<String>("voxygen.shaders.particle-frag", shader_reload_indicator)
+            .unwrap(),
+        &include_ctx,
+        gfx::state::CullFace::Back,
+    )?;
+
     // Construct a pipeline for rendering UI elements
     let ui_pipeline = create_pipeline(
         factory,
@@ -1951,6 +2023,7 @@ fn create_pipelines(
         terrain_pipeline,
         fluid_pipeline,
         sprite_pipeline,
+        particle_pipeline,
         ui_pipeline,
         lod_terrain_pipeline,
         postprocess_pipeline,

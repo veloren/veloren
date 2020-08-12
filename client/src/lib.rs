@@ -17,14 +17,15 @@ use byteorder::{ByteOrder, LittleEndian};
 use common::{
     character::CharacterItem,
     comp::{
-        self, ControlAction, ControlEvent, Controller, ControllerInputs, InventoryManip,
-        InventoryUpdateEvent,
+        self, group, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip,
+        InventoryManip, InventoryUpdateEvent,
     },
     msg::{
-        validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, Notification,
-        PlayerInfo, PlayerListUpdate, RegisterError, RequestStateError, ServerInfo, ServerMsg,
-        MAX_BYTES_CHAT_MSG,
+        validate_chat_msg, ChatMsgValidationError, ClientMsg, ClientState, InviteAnswer,
+        Notification, PlayerInfo, PlayerListUpdate, RegisterError, RequestStateError, ServerInfo,
+        ServerMsg, MAX_BYTES_CHAT_MSG,
     },
+    outcome::Outcome,
     recipe::RecipeBook,
     state::State,
     sync::{Uid, UidAllocator, WorldSyncExt},
@@ -68,6 +69,7 @@ pub enum Event {
     InventoryUpdated(InventoryUpdateEvent),
     Notification(Notification),
     SetViewDistance(u32),
+    Outcome(Outcome),
 }
 
 pub struct Client {
@@ -101,6 +103,15 @@ pub struct Client {
     pub active_character_id: Option<i32>,
     recipe_book: RecipeBook,
     available_recipes: HashSet<String>,
+
+    max_group_size: u32,
+    // Client has received an invite (inviter uid, time out instant)
+    group_invite: Option<(Uid, std::time::Instant, std::time::Duration)>,
+    group_leader: Option<Uid>,
+    // Note: potentially representable as a client only component
+    group_members: HashMap<Uid, group::Role>,
+    // Pending invites that this client has sent out
+    pending_invites: HashSet<Uid>,
 
     _network: Network,
     participant: Option<Participant>,
@@ -149,166 +160,170 @@ impl Client {
         let mut stream = block_on(participant.open(10, PROMISES_ORDERED | PROMISES_CONSISTENCY))?;
 
         // Wait for initial sync
-        let (state, entity, server_info, lod_base, lod_alt, lod_horizon, world_map, recipe_book) =
-            block_on(async {
-                loop {
-                    match stream.recv().await? {
-                        ServerMsg::InitialSync {
-                            entity_package,
-                            server_info,
-                            time_of_day,
-                            world_map,
-                            recipe_book,
-                        } => {
-                            // TODO: Display that versions don't match in Voxygen
-                            if &server_info.git_hash != *common::util::GIT_HASH {
-                                warn!(
-                                    "Server is running {}[{}], you are running {}[{}], versions \
-                                     might be incompatible!",
-                                    server_info.git_hash,
-                                    server_info.git_date,
-                                    common::util::GIT_HASH.to_string(),
-                                    common::util::GIT_DATE.to_string(),
-                                );
-                            }
+        let (
+            state,
+            entity,
+            server_info,
+            lod_base,
+            lod_alt,
+            lod_horizon,
+            world_map,
+            recipe_book,
+            max_group_size,
+        ) = block_on(async {
+            loop {
+                match stream.recv().await? {
+                    ServerMsg::InitialSync {
+                        entity_package,
+                        server_info,
+                        time_of_day,
+                        max_group_size,
+                        world_map,
+                        recipe_book,
+                    } => {
+                        // TODO: Display that versions don't match in Voxygen
+                        if &server_info.git_hash != *common::util::GIT_HASH {
+                            warn!(
+                                "Server is running {}[{}], you are running {}[{}], versions might \
+                                 be incompatible!",
+                                server_info.git_hash,
+                                server_info.git_date,
+                                common::util::GIT_HASH.to_string(),
+                                common::util::GIT_DATE.to_string(),
+                            );
+                        }
 
-                            debug!("Auth Server: {:?}", server_info.auth_provider);
+                        debug!("Auth Server: {:?}", server_info.auth_provider);
 
-                            // Initialize `State`
-                            let mut state = State::default();
-                            // Client-only components
-                            state
-                                .ecs_mut()
-                                .register::<comp::Last<comp::CharacterState>>();
+                        // Initialize `State`
+                        let mut state = State::default();
+                        // Client-only components
+                        state
+                            .ecs_mut()
+                            .register::<comp::Last<comp::CharacterState>>();
 
-                            let entity = state.ecs_mut().apply_entity_package(entity_package);
-                            *state.ecs_mut().write_resource() = time_of_day;
+                        let entity = state.ecs_mut().apply_entity_package(entity_package);
+                        *state.ecs_mut().write_resource() = time_of_day;
 
-                            let map_size_lg = common::terrain::MapSizeLg::new(
-                                world_map.dimensions_lg,
-                            )
+                        let map_size_lg = common::terrain::MapSizeLg::new(world_map.dimensions_lg)
                             .map_err(|_| {
                                 Error::Other(format!(
                                     "Server sent bad world map dimensions: {:?}",
                                     world_map.dimensions_lg,
                                 ))
                             })?;
-                            let map_size = map_size_lg.chunks();
-                            let max_height = world_map.max_height;
-                            let sea_level = world_map.sea_level;
-                            let rgba = world_map.rgba;
-                            let alt = world_map.alt;
-                            let expected_size =
-                                (u32::from(map_size.x) * u32::from(map_size.y)) as usize;
-                            if rgba.len() != expected_size {
-                                return Err(Error::Other(
-                                    "Server sent a bad world map image".into(),
-                                ));
-                            }
-                            if alt.len() != expected_size {
-                                return Err(Error::Other("Server sent a bad altitude map.".into()));
-                            }
-                            let [west, east] = world_map.horizons;
-                            let scale_angle =
-                                |a: u8| (a as f32 / 255.0 * <f32 as FloatConst>::FRAC_PI_2()).tan();
-                            let scale_height = |h: u8| h as f32 / 255.0 * max_height;
-                            let scale_height_big = |h: u32| (h >> 3) as f32 / 8191.0 * max_height;
+                        let map_size = map_size_lg.chunks();
+                        let max_height = world_map.max_height;
+                        let sea_level = world_map.sea_level;
+                        let rgba = world_map.rgba;
+                        let alt = world_map.alt;
+                        let expected_size =
+                            (u32::from(map_size.x) * u32::from(map_size.y)) as usize;
+                        if rgba.len() != expected_size {
+                            return Err(Error::Other("Server sent a bad world map image".into()));
+                        }
+                        if alt.len() != expected_size {
+                            return Err(Error::Other("Server sent a bad altitude map.".into()));
+                        }
+                        let [west, east] = world_map.horizons;
+                        let scale_angle =
+                            |a: u8| (a as f32 / 255.0 * <f32 as FloatConst>::FRAC_PI_2()).tan();
+                        let scale_height = |h: u8| h as f32 / 255.0 * max_height;
+                        let scale_height_big = |h: u32| (h >> 3) as f32 / 8191.0 * max_height;
 
-                            debug!("Preparing image...");
-                            let unzip_horizons = |(angles, heights): &(Vec<_>, Vec<_>)| {
-                                (
-                                    angles.iter().copied().map(scale_angle).collect::<Vec<_>>(),
-                                    heights
-                                        .iter()
-                                        .copied()
-                                        .map(scale_height)
-                                        .collect::<Vec<_>>(),
-                                )
-                            };
-                            let horizons = [unzip_horizons(&west), unzip_horizons(&east)];
+                        debug!("Preparing image...");
+                        let unzip_horizons = |(angles, heights): &(Vec<_>, Vec<_>)| {
+                            (
+                                angles.iter().copied().map(scale_angle).collect::<Vec<_>>(),
+                                heights
+                                    .iter()
+                                    .copied()
+                                    .map(scale_height)
+                                    .collect::<Vec<_>>(),
+                            )
+                        };
+                        let horizons = [unzip_horizons(&west), unzip_horizons(&east)];
 
-                            // Redraw map (with shadows this time).
-                            let mut world_map = vec![0u32; rgba.len()];
-                            let mut map_config = common::terrain::map::MapConfig::orthographic(
-                                map_size_lg,
-                                core::ops::RangeInclusive::new(0.0, max_height),
-                            );
-                            map_config.horizons = Some(&horizons);
-                            let rescale_height = |h: f32| h / max_height;
-                            let bounds_check = |pos: Vec2<i32>| {
-                                pos.reduce_partial_min() >= 0
-                                    && pos.x < map_size.x as i32
-                                    && pos.y < map_size.y as i32
-                            };
-                            map_config.generate(
-                                |pos| {
-                                    let (rgba, alt, downhill_wpos) = if bounds_check(pos) {
-                                        let posi =
-                                            pos.y as usize * map_size.x as usize + pos.x as usize;
-                                        let [r, g, b, a] = rgba[posi].to_le_bytes();
-                                        let alti = alt[posi];
-                                        // Compute downhill.
-                                        let downhill = {
-                                            let mut best = -1;
-                                            let mut besth = alti;
-                                            for nposi in neighbors(map_size_lg, posi) {
-                                                let nbh = alt[nposi];
-                                                if nbh < besth {
-                                                    besth = nbh;
-                                                    best = nposi as isize;
-                                                }
+                        // Redraw map (with shadows this time).
+                        let mut world_map = vec![0u32; rgba.len()];
+                        let mut map_config = common::terrain::map::MapConfig::orthographic(
+                            map_size_lg,
+                            core::ops::RangeInclusive::new(0.0, max_height),
+                        );
+                        map_config.horizons = Some(&horizons);
+                        let rescale_height = |h: f32| h / max_height;
+                        let bounds_check = |pos: Vec2<i32>| {
+                            pos.reduce_partial_min() >= 0
+                                && pos.x < map_size.x as i32
+                                && pos.y < map_size.y as i32
+                        };
+                        map_config.generate(
+                            |pos| {
+                                let (rgba, alt, downhill_wpos) = if bounds_check(pos) {
+                                    let posi =
+                                        pos.y as usize * map_size.x as usize + pos.x as usize;
+                                    let [r, g, b, a] = rgba[posi].to_le_bytes();
+                                    let alti = alt[posi];
+                                    // Compute downhill.
+                                    let downhill = {
+                                        let mut best = -1;
+                                        let mut besth = alti;
+                                        for nposi in neighbors(map_size_lg, posi) {
+                                            let nbh = alt[nposi];
+                                            if nbh < besth {
+                                                besth = nbh;
+                                                best = nposi as isize;
                                             }
-                                            best
-                                        };
-                                        let downhill_wpos = if downhill < 0 {
-                                            None
-                                        } else {
-                                            Some(
-                                                Vec2::new(
-                                                    (downhill as usize % map_size.x as usize)
-                                                        as i32,
-                                                    (downhill as usize / map_size.x as usize)
-                                                        as i32,
-                                                ) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
-                                            )
-                                        };
-                                        (Rgba::new(r, g, b, a), alti, downhill_wpos)
-                                    } else {
-                                        (Rgba::zero(), 0, None)
+                                        }
+                                        best
                                     };
-                                    let wpos = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
-                                    let downhill_wpos = downhill_wpos.unwrap_or(
-                                        wpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
-                                    );
-                                    let alt = rescale_height(scale_height_big(alt));
-                                    common::terrain::map::MapSample {
-                                        rgb: Rgb::from(rgba),
-                                        alt: f64::from(alt),
-                                        downhill_wpos,
-                                        connections: None,
-                                    }
-                                },
-                                |wpos| {
-                                    let pos =
-                                        wpos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as i32);
-                                    rescale_height(if bounds_check(pos) {
-                                        let posi =
-                                            pos.y as usize * map_size.x as usize + pos.x as usize;
-                                        scale_height_big(alt[posi])
+                                    let downhill_wpos = if downhill < 0 {
+                                        None
                                     } else {
-                                        0.0
-                                    })
-                                },
-                                |pos, (r, g, b, a)| {
-                                    world_map[pos.y * map_size.x as usize + pos.x] =
-                                        u32::from_le_bytes([r, g, b, a]);
-                                },
-                            );
-                            let make_raw = |rgba| -> Result<_, Error> {
-                                let mut raw = vec![0u8; 4 * world_map.len()];
-                                LittleEndian::write_u32_into(rgba, &mut raw);
-                                Ok(Arc::new(
-                                    image::DynamicImage::ImageRgba8({
+                                        Some(
+                                            Vec2::new(
+                                                (downhill as usize % map_size.x as usize) as i32,
+                                                (downhill as usize / map_size.x as usize) as i32,
+                                            ) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                                        )
+                                    };
+                                    (Rgba::new(r, g, b, a), alti, downhill_wpos)
+                                } else {
+                                    (Rgba::zero(), 0, None)
+                                };
+                                let wpos = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
+                                let downhill_wpos = downhill_wpos.unwrap_or(
+                                    wpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                                );
+                                let alt = rescale_height(scale_height_big(alt));
+                                common::terrain::map::MapSample {
+                                    rgb: Rgb::from(rgba),
+                                    alt: f64::from(alt),
+                                    downhill_wpos,
+                                    connections: None,
+                                }
+                            },
+                            |wpos| {
+                                let pos =
+                                    wpos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as i32);
+                                rescale_height(if bounds_check(pos) {
+                                    let posi =
+                                        pos.y as usize * map_size.x as usize + pos.x as usize;
+                                    scale_height_big(alt[posi])
+                                } else {
+                                    0.0
+                                })
+                            },
+                            |pos, (r, g, b, a)| {
+                                world_map[pos.y * map_size.x as usize + pos.x] =
+                                    u32::from_le_bytes([r, g, b, a]);
+                            },
+                        );
+                        let make_raw = |rgba| -> Result<_, Error> {
+                            let mut raw = vec![0u8; 4 * world_map.len()];
+                            LittleEndian::write_u32_into(rgba, &mut raw);
+                            Ok(Arc::new(
+                                image::DynamicImage::ImageRgba8({
                                 // Should not fail if the dimensions are correct.
                                 let map =
                                     image::ImageBuffer::from_raw(u32::from(map_size.x), u32::from(map_size.y), raw);
@@ -317,37 +332,38 @@ impl Client {
                             // Flip the image, since Voxygen uses an orientation where rotation from
                             // positive x axis to positive y axis is counterclockwise around the z axis.
                             .flipv(),
-                                ))
-                            };
-                            let lod_base = rgba;
-                            let lod_alt = alt;
-                            let world_map = make_raw(&world_map)?;
-                            let horizons = (west.0, west.1, east.0, east.1)
-                                .into_par_iter()
-                                .map(|(wa, wh, ea, eh)| u32::from_le_bytes([wa, wh, ea, eh]))
-                                .collect::<Vec<_>>();
-                            let lod_horizon = horizons;
-                            let map_bounds = Vec2::new(sea_level, max_height);
-                            debug!("Done preparing image...");
+                            ))
+                        };
+                        let lod_base = rgba;
+                        let lod_alt = alt;
+                        let world_map = make_raw(&world_map)?;
+                        let horizons = (west.0, west.1, east.0, east.1)
+                            .into_par_iter()
+                            .map(|(wa, wh, ea, eh)| u32::from_le_bytes([wa, wh, ea, eh]))
+                            .collect::<Vec<_>>();
+                        let lod_horizon = horizons;
+                        let map_bounds = Vec2::new(sea_level, max_height);
+                        debug!("Done preparing image...");
 
-                            break Ok((
-                                state,
-                                entity,
-                                server_info,
-                                lod_base,
-                                lod_alt,
-                                lod_horizon,
-                                (world_map, map_size, map_bounds),
-                                recipe_book,
-                            ));
-                        },
-                        ServerMsg::TooManyPlayers => break Err(Error::TooManyPlayers),
-                        err => {
-                            warn!("whoops, server mad {:?}, ignoring", err);
-                        },
-                    }
+                        break Ok((
+                            state,
+                            entity,
+                            server_info,
+                            lod_base,
+                            lod_alt,
+                            lod_horizon,
+                            (world_map, map_size, map_bounds),
+                            recipe_book,
+                            max_group_size,
+                        ));
+                    },
+                    ServerMsg::TooManyPlayers => break Err(Error::TooManyPlayers),
+                    err => {
+                        warn!("whoops, server mad {:?}, ignoring", err);
+                    },
                 }
-            })?;
+            }
+        })?;
 
         stream.send(ClientMsg::Ping)?;
 
@@ -370,6 +386,12 @@ impl Client {
             active_character_id: None,
             recipe_book,
             available_recipes: HashSet::default(),
+
+            max_group_size,
+            group_invite: None,
+            group_leader: None,
+            group_members: HashMap::new(),
+            pending_invites: HashSet::new(),
 
             _network: network,
             participant: Some(participant),
@@ -533,7 +555,7 @@ impl Client {
     }
 
     pub fn pick_up(&mut self, entity: EcsEntity) {
-        if let Some(uid) = self.state.ecs().read_storage::<Uid>().get(entity).copied() {
+        if let Some(uid) = self.state.read_component_copied(entity) {
             self.singleton_stream
                 .send(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
                     InventoryManip::Pickup(uid),
@@ -582,6 +604,72 @@ impl Client {
             .unwrap();
     }
 
+    pub fn max_group_size(&self) -> u32 { self.max_group_size }
+
+    pub fn group_invite(&self) -> Option<(Uid, std::time::Instant, std::time::Duration)> {
+        self.group_invite
+    }
+
+    pub fn group_info(&self) -> Option<(String, Uid)> {
+        self.group_leader.map(|l| ("Group".into(), l)) // TODO
+    }
+
+    pub fn group_members(&self) -> &HashMap<Uid, group::Role> { &self.group_members }
+
+    pub fn pending_invites(&self) -> &HashSet<Uid> { &self.pending_invites }
+
+    pub fn send_group_invite(&mut self, invitee: Uid) {
+        self.singleton_stream
+            .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
+                GroupManip::Invite(invitee),
+            )))
+            .unwrap()
+    }
+
+    pub fn accept_group_invite(&mut self) {
+        // Clear invite
+        self.group_invite.take();
+        self.singleton_stream
+            .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
+                GroupManip::Accept,
+            )))
+            .unwrap();
+    }
+
+    pub fn decline_group_invite(&mut self) {
+        // Clear invite
+        self.group_invite.take();
+        self.singleton_stream
+            .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
+                GroupManip::Decline,
+            )))
+            .unwrap();
+    }
+
+    pub fn leave_group(&mut self) {
+        self.singleton_stream
+            .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
+                GroupManip::Leave,
+            )))
+            .unwrap();
+    }
+
+    pub fn kick_from_group(&mut self, uid: Uid) {
+        self.singleton_stream
+            .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
+                GroupManip::Kick(uid),
+            )))
+            .unwrap();
+    }
+
+    pub fn assign_group_leader(&mut self, uid: Uid) {
+        self.singleton_stream
+            .send(ClientMsg::ControlEvent(ControlEvent::GroupManip(
+                GroupManip::AssignLeader(uid),
+            )))
+            .unwrap();
+    }
+
     pub fn is_mounted(&self) -> bool {
         self.state
             .ecs()
@@ -591,7 +679,7 @@ impl Client {
     }
 
     pub fn mount(&mut self, entity: EcsEntity) {
-        if let Some(uid) = self.state.ecs().read_storage::<Uid>().get(entity).copied() {
+        if let Some(uid) = self.state.read_component_copied(entity) {
             self.singleton_stream
                 .send(ClientMsg::ControlEvent(ControlEvent::Mount(uid)))
                 .unwrap();
@@ -664,6 +752,21 @@ impl Client {
             Some(true) => self.control_action(ControlAction::Stand),
             Some(false) => self.control_action(ControlAction::Dance),
             None => warn!("Can't toggle dance, client entity doesn't have a `CharacterState`"),
+        }
+    }
+
+    pub fn toggle_sneak(&mut self) {
+        let is_sneaking = self
+            .state
+            .ecs()
+            .read_storage::<comp::CharacterState>()
+            .get(self.entity)
+            .map(|cs| matches!(cs, comp::CharacterState::Sneak));
+
+        match is_sneaking {
+            Some(true) => self.control_action(ControlAction::Stand),
+            Some(false) => self.control_action(ControlAction::Sneak),
+            None => warn!("Can't toggle sneak, client entity doesn't have a `CharacterState`"),
         }
     }
 
@@ -848,6 +951,13 @@ impl Client {
         frontend_events.append(&mut self.handle_new_messages()?);
 
         // 3) Update client local data
+        // Check if the group invite has timed out and remove if so
+        if self
+            .group_invite
+            .map_or(false, |(_, timeout, dur)| timeout.elapsed() > dur)
+        {
+            self.group_invite = None;
+        }
 
         // 4) Tick the client's LocalState
         self.state.tick(dt, add_foreign_systems, true);
@@ -1093,7 +1203,102 @@ impl Client {
                         );
                     }
                 },
-
+                ServerMsg::GroupUpdate(change_notification) => {
+                    use comp::group::ChangeNotification::*;
+                    // Note: we use a hashmap since this would not work with entities outside
+                    // the view distance
+                    match change_notification {
+                        Added(uid, role) => {
+                            // Check if this is a newly formed group by looking for absence of
+                            // other non pet group members
+                            if !matches!(role, group::Role::Pet)
+                                && !self
+                                    .group_members
+                                    .values()
+                                    .any(|r| !matches!(r, group::Role::Pet))
+                            {
+                                frontend_events.push(Event::Chat(comp::ChatType::Meta.chat_msg(
+                                    "Type /g or /group to chat with your group members",
+                                )));
+                            }
+                            if let Some(player_info) = self.player_list.get(&uid) {
+                                frontend_events.push(Event::Chat(
+                                    comp::ChatType::GroupMeta("Group".into()).chat_msg(format!(
+                                        "[{}] joined group",
+                                        player_info.player_alias
+                                    )),
+                                ));
+                            }
+                            if self.group_members.insert(uid, role) == Some(role) {
+                                warn!(
+                                    "Received msg to add uid {} to the group members but they \
+                                     were already there",
+                                    uid
+                                );
+                            }
+                        },
+                        Removed(uid) => {
+                            if let Some(player_info) = self.player_list.get(&uid) {
+                                frontend_events.push(Event::Chat(
+                                    comp::ChatType::GroupMeta("Group".into()).chat_msg(format!(
+                                        "[{}] left group",
+                                        player_info.player_alias
+                                    )),
+                                ));
+                            }
+                            if self.group_members.remove(&uid).is_none() {
+                                warn!(
+                                    "Received msg to remove uid {} from group members but by they \
+                                     weren't in there!",
+                                    uid
+                                );
+                            }
+                        },
+                        NewLeader(leader) => {
+                            self.group_leader = Some(leader);
+                        },
+                        NewGroup { leader, members } => {
+                            self.group_leader = Some(leader);
+                            self.group_members = members.into_iter().collect();
+                            // Currently add/remove messages treat client as an implicit member
+                            // of the group whereas this message explicitly includes them so to
+                            // be consistent for now we will remove the client from the
+                            // received hashset
+                            if let Some(uid) = self.uid() {
+                                self.group_members.remove(&uid);
+                            }
+                        },
+                        NoGroup => {
+                            self.group_leader = None;
+                            self.group_members = HashMap::new();
+                        },
+                    }
+                },
+                ServerMsg::GroupInvite { inviter, timeout } => {
+                    self.group_invite = Some((inviter, std::time::Instant::now(), timeout));
+                },
+                ServerMsg::InvitePending(uid) => {
+                    if !self.pending_invites.insert(uid) {
+                        warn!("Received message about pending invite that was already pending");
+                    }
+                },
+                ServerMsg::InviteComplete { target, answer } => {
+                    if !self.pending_invites.remove(&target) {
+                        warn!(
+                            "Received completed invite message for invite that was not in the \
+                             list of pending invites"
+                        )
+                    }
+                    // TODO: expose this as a new event variant instead of going
+                    // through the chat
+                    let msg = match answer {
+                        // TODO: say who accepted/declined/timed out the invite
+                        InviteAnswer::Accepted => "Invite accepted",
+                        InviteAnswer::Declined => "Invite declined",
+                        InviteAnswer::TimedOut => "Invite timed out",
+                    };
+                    frontend_events.push(Event::Chat(comp::ChatType::Meta.chat_msg(msg)));
+                },
                 ServerMsg::Ping => {
                     self.singleton_stream.send(ClientMsg::Pong)?;
                 },
@@ -1134,7 +1339,7 @@ impl Client {
                     self.state.ecs_mut().apply_entity_package(entity_package);
                 },
                 ServerMsg::DeleteEntity(entity) => {
-                    if self.state.read_component_cloned::<Uid>(self.entity) != Some(entity) {
+                    if self.uid() != Some(entity) {
                         self.state
                             .ecs_mut()
                             .delete_entity_and_clear_from_uid_allocator(entity.0);
@@ -1200,6 +1405,9 @@ impl Client {
                     self.view_distance = Some(vd);
                     frontend_events.push(Event::SetViewDistance(vd));
                 },
+                ServerMsg::Outcomes(outcomes) => {
+                    frontend_events.extend(outcomes.into_iter().map(Event::Outcome))
+                },
             }
         }
     }
@@ -1243,6 +1451,9 @@ impl Client {
 
     /// Get the player's entity.
     pub fn entity(&self) -> EcsEntity { self.entity }
+
+    /// Get the player's Uid.
+    pub fn uid(&self) -> Option<Uid> { self.state.read_component_copied(self.entity) }
 
     /// Get the client state
     pub fn get_client_state(&self) -> ClientState { self.client_state }
@@ -1295,7 +1506,7 @@ impl Client {
     pub fn is_admin(&self) -> bool {
         let client_uid = self
             .state
-            .read_component_cloned::<Uid>(self.entity)
+            .read_component_copied::<Uid>(self.entity)
             .expect("Client doesn't have a Uid!!!");
 
         self.player_list
@@ -1306,8 +1517,7 @@ impl Client {
     /// Clean client ECS state
     fn clean_state(&mut self) {
         let client_uid = self
-            .state
-            .read_component_cloned::<Uid>(self.entity)
+            .uid()
             .map(|u| u.into())
             .expect("Client doesn't have a Uid!!!");
 
@@ -1378,7 +1588,7 @@ impl Client {
             comp::ChatType::Tell(from, to) => {
                 let from_alias = alias_of_uid(from);
                 let to_alias = alias_of_uid(to);
-                if Some(from) == self.state.ecs().read_storage::<Uid>().get(self.entity) {
+                if Some(*from) == self.uid() {
                     format!("To [{}]: {}", to_alias, message)
                 } else {
                     format!("From [{}]: {}", from_alias, message)

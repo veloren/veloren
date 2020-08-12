@@ -26,6 +26,7 @@ pub mod generation;
 pub mod loadout_builder;
 pub mod msg;
 pub mod npc;
+pub mod outcome;
 pub mod path;
 pub mod ray;
 pub mod recipe;

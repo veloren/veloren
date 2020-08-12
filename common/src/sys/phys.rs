@@ -1,16 +1,21 @@
 use crate::{
-    comp::{Collider, Gravity, Mass, Mounting, Ori, PhysicsState, Pos, Scale, Sticky, Vel},
+    comp::{
+        Collider, Gravity, Group, Mass, Mounting, Ori, PhysicsState, Pos, Projectile, Scale,
+        Sticky, Vel,
+    },
     event::{EventBus, ServerEvent},
     state::DeltaTime,
-    sync::Uid,
+    sync::{Uid, UidAllocator},
     terrain::{Block, BlockKind, TerrainGrid},
     vol::ReadVol,
 };
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
+use specs::{
+    saveload::MarkerAllocator, Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage,
+};
 use vek::*;
 
 pub const GRAVITY: f32 = 9.81 * 5.0;
-const BOUYANCY: f32 = 0.0;
+const BOUYANCY: f32 = 1.0;
 // Friction values used for linear damping. They are unitless quantities. The
 // value of these quantities must be between zero and one. They represent the
 // amount an object will slow down within 1/60th of a second. Eg. if the frction
@@ -44,6 +49,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Uid>,
         ReadExpect<'a, TerrainGrid>,
         Read<'a, DeltaTime>,
+        Read<'a, UidAllocator>,
         Read<'a, EventBus<ServerEvent>>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Sticky>,
@@ -55,6 +61,8 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
         ReadStorage<'a, Mounting>,
+        ReadStorage<'a, Group>,
+        ReadStorage<'a, Projectile>,
     );
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
@@ -66,6 +74,7 @@ impl<'a> System<'a> for Sys {
             uids,
             terrain,
             dt,
+            uid_allocator,
             event_bus,
             scales,
             stickies,
@@ -77,6 +86,8 @@ impl<'a> System<'a> for Sys {
             mut velocities,
             mut orientations,
             mountings,
+            groups,
+            projectiles,
         ): Self::SystemData,
     ) {
         let mut event_emitter = event_bus.emitter();
@@ -432,7 +443,7 @@ impl<'a> System<'a> for Sys {
         }
 
         // Apply pushback
-        for (pos, scale, mass, vel, _, _, _, physics) in (
+        for (pos, scale, mass, vel, _, _, _, physics, projectile) in (
             &positions,
             scales.maybe(),
             masses.maybe(),
@@ -441,9 +452,12 @@ impl<'a> System<'a> for Sys {
             !&mountings,
             stickies.maybe(),
             &mut physics_states,
+            // TODO: if we need to avoid collisions for other things consider moving whether it
+            // should interact into the collider component or into a separate component
+            projectiles.maybe(),
         )
             .join()
-            .filter(|(_, _, _, _, _, _, sticky, physics)| {
+            .filter(|(_, _, _, _, _, _, sticky, physics, _)| {
                 sticky.is_none() || (physics.on_wall.is_none() && !physics.on_ground)
             })
         {
@@ -452,16 +466,27 @@ impl<'a> System<'a> for Sys {
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
             let mass = mass.map(|m| m.0).unwrap_or(scale);
 
-            for (other, pos_other, scale_other, mass_other, _, _) in (
+            // Group to ignore collisions with
+            let ignore_group = projectile
+                .and_then(|p| p.owner)
+                .and_then(|uid| uid_allocator.retrieve_entity_internal(uid.into()))
+                .and_then(|e| groups.get(e));
+
+            for (other, pos_other, scale_other, mass_other, _, _, group) in (
                 &uids,
                 &positions,
                 scales.maybe(),
                 masses.maybe(),
                 &colliders,
                 !&mountings,
+                groups.maybe(),
             )
                 .join()
             {
+                if ignore_group.is_some() && ignore_group == group {
+                    continue;
+                }
+
                 let scale_other = scale_other.map(|s| s.0).unwrap_or(1.0);
 
                 let mass_other = mass_other.map(|m| m.0).unwrap_or(scale_other);

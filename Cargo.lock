@@ -4465,7 +4465,8 @@ dependencies = [
 [[package]]
 name = "treeculler"
 version = "0.1.0"
-source = "git+https://gitlab.com/yusdacra/treeculler.git#efcf5283cf386117a7e654abdaa45ef664a08e42"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aa14b9f5cd7d513bab5accebe8f403df8b1ac22302cac549a6ac99c0a007c84a"
 dependencies = [
  "num-traits",
  "vek 0.11.2",
@@ -4703,6 +4704,7 @@ dependencies = [
  "roots",
  "serde",
  "serde_json",
+ "slab",
  "specs",
  "specs-idvs",
  "sum_type",
@@ -4783,6 +4785,7 @@ dependencies = [
  "guillotiere",
  "hashbrown",
  "image",
+ "itertools",
  "msgbox",
  "num 0.2.1",
  "old_school_gfx_glutin_ext",

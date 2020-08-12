@@ -24,7 +24,9 @@ impl CharacterBehavior for Data {
             update.character = CharacterState::GlideWield;
             return update;
         }
-
+        if data.physics.in_fluid {
+            update.character = CharacterState::Idle;
+        }
         // If there is a wall in front of character and they are trying to climb go to
         // climb
         handle_climb(&data, &mut update);

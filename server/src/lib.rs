@@ -1,6 +1,6 @@
 #![deny(unsafe_code)]
 #![allow(clippy::option_map_unit_fn)]
-#![feature(drain_filter, option_zip)]
+#![feature(bool_to_option, drain_filter, option_zip)]
 
 pub mod alias_validator;
 pub mod chunk_generator;
@@ -34,6 +34,7 @@ use common::{
     comp::{self, ChatType},
     event::{EventBus, ServerEvent},
     msg::{server::WorldMapMsg, ClientState, ServerInfo, ServerMsg},
+    outcome::Outcome,
     recipe::default_recipe_book,
     state::{State, TimeOfDay},
     sync::WorldSyncExt,
@@ -118,6 +119,7 @@ impl Server {
         state
             .ecs_mut()
             .insert(comp::AdminList(settings.admins.clone()));
+        state.ecs_mut().insert(Vec::<Outcome>::new());
 
         // System timers for performance monitoring
         state.ecs_mut().insert(sys::EntitySyncTimer::default());
@@ -127,6 +129,7 @@ impl Server {
         state.ecs_mut().insert(sys::TerrainSyncTimer::default());
         state.ecs_mut().insert(sys::TerrainTimer::default());
         state.ecs_mut().insert(sys::WaypointTimer::default());
+        state.ecs_mut().insert(sys::InviteTimeoutTimer::default());
         state.ecs_mut().insert(sys::PersistenceTimer::default());
 
         // System schedulers to control execution of systems
@@ -513,12 +516,18 @@ impl Server {
             .nanos as i64;
         let terrain_nanos = self.state.ecs().read_resource::<sys::TerrainTimer>().nanos as i64;
         let waypoint_nanos = self.state.ecs().read_resource::<sys::WaypointTimer>().nanos as i64;
+        let invite_timeout_nanos = self
+            .state
+            .ecs()
+            .read_resource::<sys::InviteTimeoutTimer>()
+            .nanos as i64;
         let stats_persistence_nanos = self
             .state
             .ecs()
             .read_resource::<sys::PersistenceTimer>()
             .nanos as i64;
-        let total_sys_ran_in_dispatcher_nanos = terrain_nanos + waypoint_nanos;
+        let total_sys_ran_in_dispatcher_nanos =
+            terrain_nanos + waypoint_nanos + invite_timeout_nanos;
 
         // Report timing info
         self.tick_metrics
@@ -580,6 +589,10 @@ impl Server {
             .tick_time
             .with_label_values(&["waypoint"])
             .set(waypoint_nanos);
+        self.tick_metrics
+            .tick_time
+            .with_label_values(&["invite timeout"])
+            .set(invite_timeout_nanos);
         self.tick_metrics
             .tick_time
             .with_label_values(&["persistence:stats"])
@@ -689,6 +702,7 @@ impl Server {
                             .create_entity_package(entity, None, None, None),
                         server_info: self.get_server_info(),
                         time_of_day: *self.state.ecs().read_resource(),
+                        max_group_size: self.settings().max_player_group_size,
                         world_map: self.map.clone(),
                         recipe_book: (&*default_recipe_book()).clone(),
                     });

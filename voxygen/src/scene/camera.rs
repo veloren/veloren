@@ -24,11 +24,12 @@ impl Default for CameraMode {
     fn default() -> Self { Self::ThirdPerson }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Dependents {
     pub view_mat: Mat4<f32>,
     pub proj_mat: Mat4<f32>,
     pub cam_pos: Vec3<f32>,
+    pub cam_dir: Vec3<f32>,
 }
 
 pub struct Camera {
@@ -68,6 +69,7 @@ impl Camera {
                 view_mat: Mat4::identity(),
                 proj_mat: Mat4::identity(),
                 cam_pos: Vec3::zero(),
+                cam_dir: Vec3::unit_y(),
             },
             frustum: Frustum::from_modelview_projection(Mat4::identity().into_col_arrays()),
         }
@@ -112,11 +114,13 @@ impl Camera {
                 * Mat4::translation_3d(-self.focus.map(|e| e.trunc())))
             .into_col_arrays(),
         );
+
+        self.dependents.cam_dir = Vec3::from(self.dependents.view_mat.inverted() * -Vec4::unit_z());
     }
 
     pub fn frustum(&self) -> &Frustum<f32> { &self.frustum }
 
-    pub fn dependents(&self) -> Dependents { self.dependents.clone() }
+    pub fn dependents(&self) -> Dependents { self.dependents }
 
     /// Rotate the camera about its focus by the given delta, limiting the input
     /// accordingly.

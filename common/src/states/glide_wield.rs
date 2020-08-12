@@ -16,8 +16,11 @@ impl CharacterBehavior for Data {
         handle_wield(data, &mut update);
 
         // If not on the ground while wielding glider enter gliding state
-        if !data.physics.on_ground && !data.physics.in_fluid {
+        if !data.physics.on_ground {
             update.character = CharacterState::Glide;
+        }
+        if data.physics.in_fluid {
+            update.character = CharacterState::Idle;
         }
 
         update
@@ -32,6 +35,12 @@ impl CharacterBehavior for Data {
     fn dance(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         attempt_dance(data, &mut update);
+        update
+    }
+
+    fn sneak(&self, data: &JoinData) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        attempt_sneak(data, &mut update);
         update
     }
 

@@ -26,6 +26,7 @@ pub struct ServerSettings {
     pub persistence_db_dir: String,
     pub max_view_distance: Option<u32>,
     pub banned_words_files: Vec<PathBuf>,
+    pub max_player_group_size: u32,
 }
 
 impl Default for ServerSettings {
@@ -65,6 +66,7 @@ impl Default for ServerSettings {
             persistence_db_dir: "saves".to_owned(),
             max_view_distance: Some(30),
             banned_words_files: Vec::new(),
+            max_player_group_size: 6,
         }
     }
 }

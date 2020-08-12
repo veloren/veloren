@@ -1,7 +1,7 @@
 uniform sampler2D t_noise;
 
 float hash(vec4 p) {
-	p = fract(p * 0.3183099 + 0.1);
+	p = fract(p * 0.3183099 + 0.1) - fract(p + 23.22121);
 	p *= 17.0;
     return (fract(p.x * p.y * p.z * p.w * (p.x + p.y + p.z + p.w)) - 0.5) * 2.0;
 }

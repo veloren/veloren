@@ -40,22 +40,6 @@ Due to rapid developement stable versions become outdated fast and might be **in
 
 If you want to compile Veloren yourself, follow the instructions in our [Book](https://book.veloren.net/contributors/introduction.html).
 
-### Packaging status
-
-#### Fedora
-
-[COPR repo](https://copr.fedorainfracloud.org/coprs/atim/veloren/): `sudo dnf copr enable atim/veloren -y && sudo dnf install veloren -y`
-
-#### Arch
-
-[AUR Airshipper](https://aur.archlinux.org/packages/airshipper-git): `yay -Syu airshipper-git`
-
-[AUR latest binary release](https://aur.archlinux.org/packages/veloren-bin/): `yay -Syu veloren-bin`
-
-[AUR latest release](https://aur.archlinux.org/packages/veloren/): `yay -Syu veloren`
-
-[AUR latest master](https://aur.archlinux.org/packages/veloren-git): `yay -Syu veloren-git`
-
 ## F.A.Q.
 
 ### **Q:** How is this game licensed?
@@ -68,7 +52,7 @@ If you want to compile Veloren yourself, follow the instructions in our [Book](h
 
 ### **Q:** Do you accept donations?
 
-**A:** To keep Veloren a passion project free from financial incentives we will **only accept donations to cover server hosting expenses.** There is no way to donate yet.
+**A:** You can support the project on our [OpenCollective Page](https://opencollective.com/veloren).
 
 ## Credit
 

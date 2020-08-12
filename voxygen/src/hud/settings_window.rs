@@ -18,6 +18,10 @@ use conrod_core::{
 };
 use core::convert::TryFrom;
 
+use itertools::Itertools;
+use std::iter::once;
+use winit::monitor::VideoMode;
+
 const FPS_CHOICES: [u32; 11] = [15, 30, 40, 50, 60, 90, 120, 144, 240, 300, 500];
 
 widget_ids! {
@@ -115,6 +119,17 @@ widget_ids! {
         cloud_mode_list,
         fluid_mode_text,
         fluid_mode_list,
+        //
+        resolution,
+        resolution_label,
+        bit_depth,
+        bit_depth_label,
+        refresh_rate,
+        refresh_rate_label,
+        //
+        particles_button,
+        particles_label,
+        //
         fullscreen_button,
         fullscreen_label,
         lighting_mode_text,
@@ -244,8 +259,12 @@ pub enum Event {
     AdjustLodDetail(u32),
     AdjustGamma(f32),
     AdjustWindowSize([u16; 2]),
+    ToggleParticlesEnabled(bool),
     ToggleFullscreen,
     ChangeRenderMode(Box<RenderMode>),
+    ChangeResolution([u16; 2]),
+    ChangeBitDepth(Option<u16>),
+    ChangeRefreshRate(Option<u16>),
     AdjustMusicVolume(f32),
     AdjustSfxVolume(f32),
     ChangeAudioDevice(String),
@@ -1199,6 +1218,10 @@ impl<'a> Widget for SettingsWindow<'a> {
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(state.ids.chat_char_name_text, ui);
+
+            // TODO Show account name in chat
+
+            // TODO Show account names in social window
 
             // Language select drop down
             Text::new(&self.localized_strings.get("common.languages"))
@@ -2202,11 +2225,191 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .set(state.ids.shadow_mode_map_resolution_value, ui);
             }
 
+            // Particles
+            Text::new(&self.localized_strings.get("hud.settings.particles"))
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .down_from(state.ids.shadow_mode_list, 8.0)
+                .color(TEXT_COLOR)
+                .set(state.ids.particles_label, ui);
+
+            let particles_enabled = ToggleButton::new(
+                self.global_state.settings.graphics.particles_enabled,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
+            )
+            .w_h(18.0, 18.0)
+            .right_from(state.ids.particles_label, 10.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.particles_button, ui);
+
+            if self.global_state.settings.graphics.particles_enabled != particles_enabled {
+                events.push(Event::ToggleParticlesEnabled(particles_enabled));
+            }
+
+            // Resolution, Bit Depth and Refresh Rate
+            let video_modes: Vec<VideoMode> = self
+                .global_state
+                .window
+                .window()
+                .window()
+                .current_monitor()
+                .video_modes()
+                .collect();
+
+            // Resolution
+            let resolutions: Vec<[u16; 2]> = video_modes
+                .iter()
+                .sorted_by_key(|mode| mode.size().height)
+                .sorted_by_key(|mode| mode.size().width)
+                .map(|mode| [mode.size().width as u16, mode.size().height as u16])
+                .dedup()
+                .collect();
+
+            Text::new(&self.localized_strings.get("hud.settings.resolution"))
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .down_from(state.ids.particles_label, 8.0)
+                .color(TEXT_COLOR)
+                .set(state.ids.resolution_label, ui);
+
+            if let Some(clicked) = DropDownList::new(
+                resolutions
+                    .iter()
+                    .map(|res| format!("{}x{}", res[0], res[1]))
+                    .collect::<Vec<String>>()
+                    .as_slice(),
+                resolutions
+                    .iter()
+                    .position(|res| res == &self.global_state.settings.graphics.resolution),
+            )
+            .w_h(128.0, 22.0)
+            .color(MENU_BG)
+            .label_color(TEXT_COLOR)
+            .label_font_id(self.fonts.opensans.conrod_id)
+            .down_from(state.ids.resolution_label, 10.0)
+            .set(state.ids.resolution, ui)
+            {
+                events.push(Event::ChangeResolution(resolutions[clicked]));
+            }
+
+            // Bit Depth and Refresh Rate
+            let correct_res: Vec<VideoMode> = video_modes
+                .into_iter()
+                .filter(|mode| {
+                    mode.size().width == self.global_state.settings.graphics.resolution[0] as u32
+                })
+                .filter(|mode| {
+                    mode.size().height == self.global_state.settings.graphics.resolution[1] as u32
+                })
+                .collect();
+
+            // Bit Depth
+            let bit_depths: Vec<u16> = correct_res
+                .iter()
+                .filter(
+                    |mode| match self.global_state.settings.graphics.refresh_rate {
+                        Some(refresh_rate) => mode.refresh_rate() == refresh_rate,
+                        None => true,
+                    },
+                )
+                .sorted_by_key(|mode| mode.bit_depth())
+                .map(|mode| mode.bit_depth())
+                .rev()
+                .dedup()
+                .collect();
+
+            Text::new(&self.localized_strings.get("hud.settings.bit_depth"))
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .down_from(state.ids.particles_label, 8.0)
+                .right_from(state.ids.resolution, 8.0)
+                .color(TEXT_COLOR)
+                .set(state.ids.bit_depth_label, ui);
+
+            if let Some(clicked) = DropDownList::new(
+                once(String::from(self.localized_strings.get("common.automatic")))
+                    .chain(bit_depths.iter().map(|depth| format!("{}", depth)))
+                    .collect::<Vec<String>>()
+                    .as_slice(),
+                match self.global_state.settings.graphics.bit_depth {
+                    Some(bit_depth) => bit_depths
+                        .iter()
+                        .position(|depth| depth == &bit_depth)
+                        .map(|index| index + 1),
+                    None => Some(0),
+                },
+            )
+            .w_h(128.0, 22.0)
+            .color(MENU_BG)
+            .label_color(TEXT_COLOR)
+            .label_font_id(self.fonts.opensans.conrod_id)
+            .down_from(state.ids.bit_depth_label, 10.0)
+            .right_from(state.ids.resolution, 8.0)
+            .set(state.ids.bit_depth, ui)
+            {
+                events.push(Event::ChangeBitDepth(if clicked == 0 {
+                    None
+                } else {
+                    Some(bit_depths[clicked - 1])
+                }));
+            }
+
+            // Refresh Rate
+            let refresh_rates: Vec<u16> = correct_res
+                .into_iter()
+                .filter(|mode| match self.global_state.settings.graphics.bit_depth {
+                    Some(bit_depth) => mode.bit_depth() == bit_depth,
+                    None => true,
+                })
+                .sorted_by_key(|mode| mode.refresh_rate())
+                .map(|mode| mode.refresh_rate())
+                .rev()
+                .dedup()
+                .collect();
+
+            Text::new(&self.localized_strings.get("hud.settings.refresh_rate"))
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .down_from(state.ids.particles_label, 8.0)
+                .right_from(state.ids.bit_depth, 8.0)
+                .color(TEXT_COLOR)
+                .set(state.ids.refresh_rate_label, ui);
+
+            if let Some(clicked) = DropDownList::new(
+                once(String::from(self.localized_strings.get("common.automatic")))
+                    .chain(refresh_rates.iter().map(|rate| format!("{}", rate)))
+                    .collect::<Vec<String>>()
+                    .as_slice(),
+                match self.global_state.settings.graphics.refresh_rate {
+                    Some(refresh_rate) => refresh_rates
+                        .iter()
+                        .position(|rate| rate == &refresh_rate)
+                        .map(|index| index + 1),
+                    None => Some(0),
+                },
+            )
+            .w_h(128.0, 22.0)
+            .color(MENU_BG)
+            .label_color(TEXT_COLOR)
+            .label_font_id(self.fonts.opensans.conrod_id)
+            .down_from(state.ids.refresh_rate_label, 10.0)
+            .right_from(state.ids.bit_depth, 8.0)
+            .set(state.ids.refresh_rate, ui)
+            {
+                events.push(Event::ChangeRefreshRate(if clicked == 0 {
+                    None
+                } else {
+                    Some(refresh_rates[clicked - 1])
+                }));
+            }
+
             // Fullscreen
             Text::new(&self.localized_strings.get("hud.settings.fullscreen"))
                 .font_size(self.fonts.cyri.scale(14))
                 .font_id(self.fonts.cyri.conrod_id)
-                .down_from(state.ids.shadow_mode_list, 8.0)
+                .down_from(state.ids.resolution, 8.0)
                 .color(TEXT_COLOR)
                 .set(state.ids.fullscreen_label, ui);
 

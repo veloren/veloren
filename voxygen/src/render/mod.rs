@@ -22,6 +22,7 @@ pub use self::{
         },
         fluid::FluidPipeline,
         lod_terrain::{Locals as LodTerrainLocals, LodData, LodTerrainPipeline},
+        particle::{Instance as ParticleInstance, ParticlePipeline},
         postprocess::{
             create_mesh as create_pp_mesh, Locals as PostProcessLocals, PostProcessPipeline,
         },

@@ -68,6 +68,9 @@ VoxygenLocalization(
         "common.none": "Kein",
         "common.error": "Fehler",
         "common.fatal_error": "Fataler Fehler",
+        "common.decline": "Ablehnen",
+        "common.you": "Ihr",
+        "common.automatic": "Auto",
         /// End Common section
 
          // Message when connection to the server is lost
@@ -295,6 +298,10 @@ magischen Gegenstände ergattern?"#,
         "hud.settings.fluid_rendering_mode.cheap": "Niedrig",
         "hud.settings.fluid_rendering_mode.shiny": "Hoch",
         "hud.settings.cloud_rendering_mode.regular": "Realistisch",
+        "hud.settings.particles": "Partikel",
+        "hud.settings.resolution": "Auflösung",
+        "hud.settings.bit_depth": "Bittiefe",
+        "hud.settings.refresh_rate": "Bildwiederholrate",
         "hud.settings.fullscreen": "Vollbild",
         "hud.settings.lighting_rendering_mode": "Beleuchtung",
         "hud.settings.lighting_rendering_mode.ashikhmin": "Typ A",
@@ -315,7 +322,7 @@ magischen Gegenstände ergattern?"#,
         "hud.settings.unbound": "-",
         "hud.settings.reset_keybinds": "Auf Standard zurücksetzen",
 
-        "hud.social": "Sozial",
+        "hud.social": "Andere Spieler",
         "hud.social.online": "Online",
         "hud.social.friends": "Freunde",
         "hud.social.not_yet_available": "Noch nicht verfügbar",
@@ -323,6 +330,23 @@ magischen Gegenstände ergattern?"#,
         "hud.social.play_online_fmt": "{nb_player} Spieler online",
 
         "hud.spell": "Zauber",
+        
+        "hud.social.name" : "Name",
+        "hud.social.level" : "Lvl",
+        "hud.social.zone" : "Gebiet",
+
+        "hud.group": "Gruppe",
+        "hud.group.invite_to_join": "{name} lädt euch in seine Gruppe ein!",
+        "hud.group.invite": "Einladen",
+        "hud.group.kick": "Kicken",
+        "hud.group.assign_leader": "Anführer",
+        "hud.group.leave": "Gruppe Verlassen",
+        "hud.group.dead" : "Tot",
+        "hud.group.out_of_range": "Außer Reichweite",
+        "hud.group.add_friend": "Freund hinzufügen",
+        "hud.group.link_group": "Gruppen verbinden",
+        "hud.group.in_menu": "In Menü",
+        "hud.group.members": "Gruppen Mitglieder",
 
         "hud.crafting": "Herstellen",
         "hud.crafting.recipes": "Rezepte",
@@ -385,6 +409,9 @@ magischen Gegenstände ergattern?"#,
         "gameinput.freelook": "Freie Sicht",        
         "gameinput.autowalk": "Automatisch Laufen",
         "gameinput.dance": "Tanzen",
+        "gameinput.declinegroupinvite": "Ablehnen",
+        "gameinput.acceptgroupinvite": "Annehmen",
+        "gameinput.select": "Auswählen",
 
         /// End GameInput section
 

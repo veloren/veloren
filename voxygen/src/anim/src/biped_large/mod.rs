@@ -14,9 +14,12 @@ use core::convert::TryFrom;
 
 skeleton_impls!(struct BipedLargeSkeleton {
     + head,
+    + jaw,
     + upper_torso,
     + lower_torso,
+    + tail,
     + main,
+    + second,
     + shoulder_l,
     + shoulder_r,
     + hand_l,
@@ -32,7 +35,7 @@ skeleton_impls!(struct BipedLargeSkeleton {
 impl Skeleton for BipedLargeSkeleton {
     type Attr = SkeletonAttr;
 
-    const BONE_COUNT: usize = 12;
+    const BONE_COUNT: usize = 15;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"biped_large_compute_mats\0";
 
@@ -48,12 +51,16 @@ impl Skeleton for BipedLargeSkeleton {
         let control_mat = torso_mat * Mat4::<f32>::from(self.control) * upper_torso;
         let upper_torso_mat = torso_mat * upper_torso;
         let lower_torso_mat = upper_torso_mat * Mat4::<f32>::from(self.lower_torso);
+        let head_mat = upper_torso_mat * Mat4::<f32>::from(self.head);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(upper_torso_mat * Mat4::<f32>::from(self.head)),
+            make_bone(head_mat),
+            make_bone(head_mat * Mat4::<f32>::from(self.jaw)),
             make_bone(upper_torso_mat),
             make_bone(lower_torso_mat),
+            make_bone(lower_torso_mat * Mat4::<f32>::from(self.tail)),
             make_bone(control_mat * Mat4::<f32>::from(self.main)),
+            make_bone(control_mat * Mat4::<f32>::from(self.second)),
             make_bone(upper_torso_mat * Mat4::<f32>::from(self.shoulder_l)),
             make_bone(upper_torso_mat * Mat4::<f32>::from(self.shoulder_r)),
             make_bone(control_mat * Mat4::<f32>::from(self.hand_l)),
@@ -69,8 +76,10 @@ impl Skeleton for BipedLargeSkeleton {
 
 pub struct SkeletonAttr {
     head: (f32, f32),
+    jaw: (f32, f32),
     upper_torso: (f32, f32),
     lower_torso: (f32, f32),
+    tail: (f32, f32),
     shoulder: (f32, f32, f32),
     hand: (f32, f32, f32),
     leg: (f32, f32, f32),
@@ -92,8 +101,10 @@ impl Default for SkeletonAttr {
     fn default() -> Self {
         Self {
             head: (0.0, 0.0),
+            jaw: (0.0, 0.0),
             upper_torso: (0.0, 0.0),
             lower_torso: (0.0, 0.0),
+            tail: (0.0, 0.0),
             shoulder: (0.0, 0.0, 0.0),
             hand: (0.0, 0.0, 0.0),
             leg: (0.0, 0.0, 0.0),
@@ -113,6 +124,13 @@ impl<'a> From<&'a comp::biped_large::Body> for SkeletonAttr {
                 (Troll, _) => (6.0, 10.0),
                 (Dullahan, _) => (3.0, 6.0),
             },
+            jaw: match (body.species, body.body_type) {
+                (Ogre, _) => (0.0, 0.0),
+                (Cyclops, _) => (0.0, 0.0),
+                (Wendigo, _) => (0.0, 0.0),
+                (Troll, _) => (2.0, -4.0),
+                (Dullahan, _) => (0.0, 0.0),
+            },
             upper_torso: match (body.species, body.body_type) {
                 (Ogre, _) => (0.0, 19.0),
                 (Cyclops, _) => (-2.0, 27.0),
@@ -127,11 +145,18 @@ impl<'a> From<&'a comp::biped_large::Body> for SkeletonAttr {
                 (Troll, _) => (1.0, -10.5),
                 (Dullahan, _) => (0.0, -6.5),
             },
+            tail: match (body.species, body.body_type) {
+                (Ogre, _) => (0.0, 0.0),
+                (Cyclops, _) => (0.0, 0.0),
+                (Wendigo, _) => (0.0, 0.0),
+                (Troll, _) => (0.0, 0.0),
+                (Dullahan, _) => (0.0, 0.0),
+            },
             shoulder: match (body.species, body.body_type) {
                 (Ogre, _) => (6.1, 0.5, 2.5),
                 (Cyclops, _) => (9.5, 2.5, 2.5),
                 (Wendigo, _) => (9.0, 0.5, -0.5),
-                (Troll, _) => (11.0, 0.5, -2.5),
+                (Troll, _) => (11.0, 0.5, -1.5),
                 (Dullahan, _) => (14.0, 0.5, 4.5),
             },
             hand: match (body.species, body.body_type) {

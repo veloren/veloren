@@ -522,7 +522,7 @@ impl Floor {
                                         "common.items.armor.shoulder.cultist_shoulder_purple",
                                     ),
                                     8 => comp::Item::expect_from_asset(
-                                        "common.items.weapons.sword.greatsword_2h_fine-0",
+                                        "common.items.weapons.staff.cultist_staff",
                                     ),
                                     9 => comp::Item::expect_from_asset(
                                         "common.items.weapons.sword.greatsword_2h_fine-1",

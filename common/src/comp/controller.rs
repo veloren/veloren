@@ -19,11 +19,22 @@ pub enum InventoryManip {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum GroupManip {
+    Invite(Uid),
+    Accept,
+    Decline,
+    Leave,
+    Kick(Uid),
+    AssignLeader(Uid),
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ControlEvent {
     ToggleLantern,
     Mount(Uid),
     Unmount,
     InventoryManip(InventoryManip),
+    GroupManip(GroupManip),
     Respawn,
 }
 
@@ -35,6 +46,7 @@ pub enum ControlAction {
     Unwield,
     Sit,
     Dance,
+    Sneak,
     Stand,
 }
 
@@ -159,7 +171,8 @@ pub struct ControllerInputs {
     pub wall_leap: Input,
     pub charge: Input,
     pub climb: Option<Climb>,
-    pub swim: Input,
+    pub swimup: Input,
+    pub swimdown: Input,
     pub move_dir: Vec2<f32>,
     pub look_dir: Dir,
 }
@@ -183,7 +196,8 @@ impl ControllerInputs {
         self.glide.tick(dt);
         self.wall_leap.tick(dt);
         self.charge.tick(dt);
-        self.swim.tick(dt);
+        self.swimup.tick(dt);
+        self.swimdown.tick(dt);
     }
 
     pub fn tick_freshness(&mut self) {
@@ -195,7 +209,8 @@ impl ControllerInputs {
         self.glide.tick_freshness();
         self.wall_leap.tick_freshness();
         self.charge.tick_freshness();
-        self.swim.tick_freshness();
+        self.swimup.tick_freshness();
+        self.swimdown.tick_freshness();
     }
 
     /// Updates Controller inputs with new version received from the client
@@ -209,7 +224,8 @@ impl ControllerInputs {
         self.wall_leap.update_with_new(new.wall_leap);
         self.charge.update_with_new(new.charge);
         self.climb = new.climb;
-        self.swim.update_with_new(new.swim);
+        self.swimup.update_with_new(new.swimup);
+        self.swimdown.update_with_new(new.swimdown);
         self.move_dir = new.move_dir;
         self.look_dir = new.look_dir;
     }

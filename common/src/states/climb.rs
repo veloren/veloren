@@ -52,7 +52,8 @@ impl CharacterBehavior for Data {
 
         // Expend energy if climbing
         let energy_use = match climb {
-            Climb::Up | Climb::Down => 8,
+            Climb::Up => 5,
+            Climb::Down => 1,
             Climb::Hold => 1,
         };
 
@@ -79,14 +80,15 @@ impl CharacterBehavior for Data {
             match climb {
                 Climb::Down => {
                     update.vel.0 -=
-                        data.dt.0 * update.vel.0.map(|e| e.abs().powf(1.5) * e.signum() * 6.0);
+                        data.dt.0 * update.vel.0.map(|e| e.abs().powf(1.5) * e.signum() * 1.0);
                 },
                 Climb::Up => {
                     update.vel.0.z = (update.vel.0.z + data.dt.0 * GRAVITY * 1.25).min(CLIMB_SPEED);
                 },
                 Climb::Hold => {
                     // Antigrav
-                    update.vel.0.z = (update.vel.0.z + data.dt.0 * GRAVITY * 1.5).min(CLIMB_SPEED);
+                    update.vel.0.z =
+                        (update.vel.0.z + data.dt.0 * GRAVITY * 1.075).min(CLIMB_SPEED);
                     update.vel.0 = Lerp::lerp(
                         update.vel.0,
                         Vec3::zero(),

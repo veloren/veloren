@@ -1,10 +1,9 @@
 use crate::{path::Chaser, sync::Uid};
-use serde::{Deserialize, Serialize};
-use specs::{Component, Entity as EcsEntity, FlaggedStorage};
+use specs::{Component, Entity as EcsEntity};
 use specs_idvs::IdvStorage;
 use vek::*;
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Alignment {
     /// Wild animals and gentle giants
     Wild,
@@ -52,7 +51,7 @@ impl Alignment {
 }
 
 impl Component for Alignment {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = IdvStorage<Self>;
 }
 
 #[derive(Clone, Debug, Default)]

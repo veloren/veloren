@@ -83,15 +83,16 @@
 
 mod event_mapper;
 
-use crate::audio::AudioFrontend;
+use crate::{audio::AudioFrontend, scene::Camera};
 
 use common::{
     assets,
     comp::{
         item::{ItemKind, ToolCategory},
-        CharacterAbilityType, InventoryUpdateEvent, Ori, Pos,
+        CharacterAbilityType, InventoryUpdateEvent,
     },
     event::EventBus,
+    outcome::Outcome,
     state::State,
 };
 use event_mapper::SfxEventMapper;
@@ -146,6 +147,8 @@ pub enum SfxEvent {
     Wield(ToolCategory),
     Unwield(ToolCategory),
     Inventory(SfxInventoryEvent),
+    Explosion,
+    ProjectileShot,
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
@@ -224,36 +227,27 @@ impl SfxMgr {
         audio: &mut AudioFrontend,
         state: &State,
         player_entity: specs::Entity,
+        camera: &Camera,
     ) {
         if !audio.sfx_enabled() {
             return;
         }
 
-        self.event_mapper
-            .maintain(state, player_entity, &self.triggers);
-
         let ecs = state.ecs();
 
-        let player_position = ecs
-            .read_storage::<Pos>()
-            .get(player_entity)
-            .map_or(Vec3::zero(), |pos| pos.0);
+        audio.set_listener_pos(camera.dependents().cam_pos, camera.dependents().cam_dir);
 
-        let player_ori = *ecs
-            .read_storage::<Ori>()
-            .get(player_entity)
-            .copied()
-            .unwrap_or_default()
-            .0;
+        // TODO: replace; deprecated in favor of outcomes
+        self.event_mapper
+            .maintain(state, player_entity, camera, &self.triggers);
 
-        audio.set_listener_pos(&player_position, &player_ori);
-
+        // TODO: replace; deprecated in favor of outcomes
         let events = ecs.read_resource::<EventBus<SfxEventItem>>().recv_all();
 
         for event in events {
             let position = match event.pos {
                 Some(pos) => pos,
-                _ => player_position,
+                _ => camera.dependents().cam_pos,
             };
 
             if let Some(item) = self.triggers.get_trigger(&event.sfx) {
@@ -270,6 +264,31 @@ impl SfxMgr {
 
                 audio.play_sfx(sfx_file, position, event.vol);
             }
+        }
+    }
+
+    pub fn handle_outcome(&mut self, outcome: &Outcome, audio: &mut AudioFrontend) {
+        if !audio.sfx_enabled() {
+            return;
+        }
+
+        match outcome {
+            Outcome::Explosion { pos, power } => {
+                audio.play_sfx(
+                    // TODO: from sfx triggers config
+                    "voxygen.audio.sfx.explosion",
+                    *pos,
+                    Some((*power / 2.5).min(1.5)),
+                );
+            },
+            Outcome::ProjectileShot { pos, .. } => {
+                audio.play_sfx(
+                    // TODO: from sfx triggers config
+                    "voxygen.audio.sfx.glider_open",
+                    *pos,
+                    None,
+                );
+            },
         }
     }
 

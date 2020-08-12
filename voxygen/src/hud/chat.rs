@@ -475,7 +475,7 @@ fn cursor_offset_to_index(
 }
 
 /// Get the color and icon for the current line in the chat box
-fn render_chat_line(chat_type: &ChatType, imgs: &Imgs) -> (Color, conrod_core::image::Id) {
+fn render_chat_line(chat_type: &ChatType<String>, imgs: &Imgs) -> (Color, conrod_core::image::Id) {
     match chat_type {
         ChatType::Online => (ONLINE_COLOR, imgs.chat_online_small),
         ChatType::Offline => (OFFLINE_COLOR, imgs.chat_offline_small),
