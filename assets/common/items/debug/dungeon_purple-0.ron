@@ -1,0 +1,12 @@
+Item(
+    name: "Purple Admin Cape",
+    description: "Where did I put my banhammer again?",
+    kind: Armor(
+        (
+            kind: Back("DungPurp0"),
+            stats: (
+                protection: Invincible,
+            ),
+        )
+    ),
+)

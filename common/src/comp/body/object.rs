@@ -63,6 +63,7 @@ pub enum Body {
     FireworkPurple = 56,
     FireworkRed = 57,
     FireworkYellow = 58,
+    MultiArrow = 59,
 }
 
 impl Body {
@@ -72,7 +73,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 59] = [
+pub const ALL_OBJECTS: [Body; 60] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -132,6 +133,7 @@ pub const ALL_OBJECTS: [Body; 59] = [
     Body::FireworkPurple,
     Body::FireworkRed,
     Body::FireworkYellow,
+    Body::MultiArrow,
 ];
 
 impl From<Body> for super::Body {
@@ -200,6 +202,7 @@ impl Body {
             Body::FireworkPurple => "firework_purple",
             Body::FireworkRed => "firework_red",
             Body::FireworkYellow => "firework_yellow",
+            Body::MultiArrow => "multi_arrow",
         }
     }
 }
