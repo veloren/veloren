@@ -1,5 +1,4 @@
 pub mod armor;
-pub mod lottery;
 pub mod tool;
 
 // Reexports
@@ -8,6 +7,7 @@ pub use tool::{Hands, Tool, ToolCategory, ToolKind};
 use crate::{
     assets::{self, Asset},
     effect::Effect,
+    lottery::Lottery,
     terrain::{Block, BlockKind},
 };
 use serde::{Deserialize, Serialize};
@@ -171,7 +171,7 @@ impl Item {
             BlockKind::ShortGrass => Some(assets::load_expect_cloned("common.items.grasses.short")),
             BlockKind::Coconut => Some(assets::load_expect_cloned("common.items.food.coconut")),
             BlockKind::Chest => {
-                let chosen = assets::load_expect::<lottery::Lottery<_>>("common.loot_table");
+                let chosen = assets::load_expect::<Lottery<String>>("common.loot_table");
                 let chosen = chosen.choose();
 
                 Some(assets::load_expect_cloned(chosen))

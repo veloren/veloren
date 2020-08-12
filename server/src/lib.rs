@@ -184,7 +184,7 @@ impl Server {
             ..WorldOpts::default()
         });
         #[cfg(feature = "worldgen")]
-        let map = world.sim().get_map();
+        let map = world.get_map_data();
 
         #[cfg(not(feature = "worldgen"))]
         let world = World::generate(settings.world_seed);
@@ -219,11 +219,11 @@ impl Server {
             // get a z cache for the collumn in which we want to spawn
             let mut block_sampler = world.sample_blocks();
             let z_cache = block_sampler
-                .get_z_cache(spawn_location)
+                .get_z_cache(spawn_location, world.index())
                 .expect(&format!("no z_cache found for chunk: {}", spawn_chunk));
 
             // get the minimum and maximum z values at which there could be soild blocks
-            let (min_z, _, max_z) = z_cache.get_z_limits(&mut block_sampler);
+            let (min_z, _, max_z) = z_cache.get_z_limits(&mut block_sampler, world.index());
             // round range outwards, so no potential air block is missed
             let min_z = min_z.floor() as i32;
             let max_z = max_z.ceil() as i32;
@@ -239,6 +239,7 @@ impl Server {
                             Vec3::new(spawn_location.x, spawn_location.y, *z),
                             Some(&z_cache),
                             false,
+                            world.index(),
                         )
                         .map(|b| b.is_air())
                         .unwrap_or(false)

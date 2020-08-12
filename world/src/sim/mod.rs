@@ -2,8 +2,8 @@ mod diffusion;
 mod erosion;
 mod location;
 mod map;
-mod path;
 mod util;
+mod way;
 
 // Reexports
 use self::erosion::Compute;
@@ -15,12 +15,12 @@ pub use self::{
     },
     location::Location,
     map::{MapConfig, MapDebug},
-    path::PathData,
     util::{
         cdf_irwin_hall, downhill, get_oceans, local_cells, map_edge_factor, neighbors,
         uniform_idx_as_vec2, uniform_noise, uphill, vec2_as_uniform_idx, InverseCdf, ScaleBias,
         NEIGHBOR_DELTA,
     },
+    way::{Cave, Path, Way},
 };
 
 use crate::{
@@ -28,7 +28,7 @@ use crate::{
     civ::Place,
     site::Site,
     util::{seed_expan, FastNoise, RandomField, StructureGen2d, LOCALITY, NEIGHBORS},
-    CONFIG,
+    Index, CONFIG,
 };
 use common::{
     assets,
@@ -1305,14 +1305,14 @@ impl WorldSim {
 
     /// Draw a map of the world based on chunk information.  Returns a buffer of
     /// u32s.
-    pub fn get_map(&self) -> Vec<u32> {
+    pub fn get_map(&self, index: &Index) -> Vec<u32> {
         let mut v = vec![0u32; WORLD_SIZE.x * WORLD_SIZE.y];
         // TODO: Parallelize again.
         MapConfig {
             gain: self.max_height,
             ..MapConfig::default()
         }
-        .generate(&self, |pos, (r, g, b, a)| {
+        .generate(&self, index, |pos, (r, g, b, a)| {
             v[pos.y * WORLD_SIZE.x + pos.x] = u32::from_le_bytes([r, g, b, a]);
         });
         v
@@ -1699,7 +1699,14 @@ impl WorldSim {
         Some(z0 + z1 + z2 + z3)
     }
 
-    pub fn get_nearest_path(&self, wpos: Vec2<i32>) -> Option<(f32, Vec2<f32>)> {
+    /// Return the distance to the nearest way in blocks, along with the
+    /// closest point on the way, the way metadata, and the tangent vector
+    /// of that way.
+    pub fn get_nearest_way<M: Clone + Lerp<Output = M>>(
+        &self,
+        wpos: Vec2<i32>,
+        get_way: impl Fn(&SimChunk) -> Option<(Way, M)>,
+    ) -> Option<(f32, Vec2<f32>, M, Vec2<f32>)> {
         let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
             e.div_euclid(sz as i32)
         });
@@ -1709,32 +1716,35 @@ impl WorldSim {
             })
         };
 
+        let get_way = &get_way;
         LOCALITY
             .iter()
             .filter_map(|ctrl| {
-                let chunk = self.get(chunk_pos + *ctrl)?;
-                let ctrl_pos =
-                    get_chunk_centre(chunk_pos + *ctrl).map(|e| e as f32) + chunk.path.offset;
+                let (way, meta) = get_way(self.get(chunk_pos + *ctrl)?)?;
+                let ctrl_pos = get_chunk_centre(chunk_pos + *ctrl).map(|e| e as f32)
+                    + way.offset.map(|e| e as f32);
 
-                let chunk_connections = chunk.path.neighbors.count_ones();
+                let chunk_connections = way.neighbors.count_ones();
                 if chunk_connections == 0 {
                     return None;
                 }
 
-                let (start_pos, _start_idx) = if chunk_connections != 2 {
-                    (ctrl_pos, None)
+                let (start_pos, _start_idx, start_meta) = if chunk_connections != 2 {
+                    (ctrl_pos, None, meta.clone())
                 } else {
                     let (start_idx, start_rpos) = NEIGHBORS
                         .iter()
                         .copied()
                         .enumerate()
-                        .find(|(i, _)| chunk.path.neighbors & (1 << *i as u8) != 0)
+                        .find(|(i, _)| way.neighbors & (1 << *i as u8) != 0)
                         .unwrap();
                     let start_pos_chunk = chunk_pos + *ctrl + start_rpos;
+                    let (start_way, start_meta) = get_way(self.get(start_pos_chunk)?)?;
                     (
                         get_chunk_centre(start_pos_chunk).map(|e| e as f32)
-                            + self.get(start_pos_chunk)?.path.offset,
+                            + start_way.offset.map(|e| e as f32),
                         Some(start_idx),
+                        start_meta,
                     )
                 };
 
@@ -1742,11 +1752,12 @@ impl WorldSim {
                     NEIGHBORS
                         .iter()
                         .enumerate()
-                        .filter(move |(i, _)| chunk.path.neighbors & (1 << *i as u8) != 0)
+                        .filter(move |(i, _)| way.neighbors & (1 << *i as u8) != 0)
                         .filter_map(move |(_, end_rpos)| {
                             let end_pos_chunk = chunk_pos + *ctrl + end_rpos;
+                            let (end_way, end_meta) = get_way(self.get(end_pos_chunk)?)?;
                             let end_pos = get_chunk_centre(end_pos_chunk).map(|e| e as f32)
-                                + self.get(end_pos_chunk)?.path.offset;
+                                + end_way.offset.map(|e| e as f32);
 
                             let bez = QuadraticBezier2 {
                                 start: (start_pos + ctrl_pos) / 2.0,
@@ -1759,13 +1770,28 @@ impl WorldSim {
                                 .clamped(0.0, 1.0);
                             let pos = bez.evaluate(nearest_interval);
                             let dist_sqrd = pos.distance_squared(wpos.map(|e| e as f32));
-                            Some((dist_sqrd, pos))
+                            let meta = if nearest_interval < 0.5 {
+                                Lerp::lerp(start_meta.clone(), meta.clone(), 0.5 + nearest_interval)
+                            } else {
+                                Lerp::lerp(meta.clone(), end_meta, nearest_interval - 0.5)
+                            };
+                            Some((dist_sqrd, pos, meta, move || {
+                                bez.evaluate_derivative(nearest_interval).normalized()
+                            }))
                         }),
                 )
             })
             .flatten()
-            .min_by_key(|(dist_sqrd, _)| (dist_sqrd * 1024.0) as i32)
-            .map(|(dist, pos)| (dist.sqrt(), pos))
+            .min_by_key(|(dist_sqrd, _, _, _)| (dist_sqrd * 1024.0) as i32)
+            .map(|(dist, pos, meta, calc_tangent)| (dist.sqrt(), pos, meta, calc_tangent()))
+    }
+
+    pub fn get_nearest_path(&self, wpos: Vec2<i32>) -> Option<(f32, Vec2<f32>, Path, Vec2<f32>)> {
+        self.get_nearest_way(wpos, |chunk| Some(chunk.path))
+    }
+
+    pub fn get_nearest_cave(&self, wpos: Vec2<i32>) -> Option<(f32, Vec2<f32>, Cave, Vec2<f32>)> {
+        self.get_nearest_way(wpos, |chunk| Some(chunk.cave))
     }
 }
 
@@ -1787,10 +1813,14 @@ pub struct SimChunk {
     pub spawn_rate: f32,
     pub river: RiverData,
     pub warp_factor: f32,
+    pub surface_veg: f32,
 
-    pub sites: Vec<Site>,
+    pub sites: Vec<Id<Site>>,
     pub place: Option<Id<Place>>,
-    pub path: PathData,
+
+    pub path: (Way, Path),
+    pub cave: (Way, Cave),
+
     pub contains_waypoint: bool,
 }
 
@@ -2022,10 +2052,12 @@ impl SimChunk {
             spawn_rate: 1.0,
             river,
             warp_factor: 1.0,
+            surface_veg: 1.0,
 
             sites: Vec::new(),
             place: None,
-            path: PathData::default(),
+            path: Default::default(),
+            cave: Default::default(),
             contains_waypoint: false,
         }
     }

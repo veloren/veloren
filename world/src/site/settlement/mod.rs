@@ -1,6 +1,10 @@
-mod building;
+pub mod building;
+mod town;
 
-use self::building::HouseBuilding;
+use self::{
+    building::{Building, House, Keep},
+    town::{District, Town},
+};
 use super::SpawnRules;
 use crate::{
     column::ColumnSample,
@@ -82,7 +86,8 @@ const AREA_SIZE: u32 = 32;
 fn to_tile(e: i32) -> i32 { ((e as f32).div_euclid(AREA_SIZE as f32)).floor() as i32 }
 
 pub enum StructureKind {
-    House(HouseBuilding),
+    House(Building<House>),
+    Keep(Building<Keep>),
 }
 
 pub struct Structure {
@@ -93,6 +98,21 @@ impl Structure {
     pub fn bounds_2d(&self) -> Aabr<i32> {
         match &self.kind {
             StructureKind::House(house) => house.bounds_2d(),
+            StructureKind::Keep(keep) => keep.bounds_2d(),
+        }
+    }
+
+    pub fn bounds(&self) -> Aabb<i32> {
+        match &self.kind {
+            StructureKind::House(house) => house.bounds(),
+            StructureKind::Keep(keep) => keep.bounds(),
+        }
+    }
+
+    pub fn sample(&self, rpos: Vec3<i32>) -> Option<Block> {
+        match &self.kind {
+            StructureKind::House(house) => house.sample(rpos),
+            StructureKind::Keep(keep) => keep.sample(rpos),
         }
     }
 }
@@ -105,10 +125,6 @@ pub struct Settlement {
     structures: Vec<Structure>,
     town: Option<Town>,
     noise: RandomField,
-}
-
-pub struct Town {
-    base_tile: Vec2<i32>,
 }
 
 pub struct Farm {
@@ -216,7 +232,7 @@ impl Settlement {
         for _ in 0..PATH_COUNT {
             dir = (Vec2::new(rng.gen::<f32>() - 0.5, rng.gen::<f32>() - 0.5) * 2.0 - dir)
                 .try_normalized()
-                .unwrap_or(Vec2::zero());
+                .unwrap_or_else(Vec2::zero);
             let origin = dir.map(|e| (e * 100.0) as i32);
             let origin = self
                 .land
@@ -260,12 +276,28 @@ impl Settlement {
                 Some(Plot::Dirt) => true,
                 _ => false,
             }) {
-                self.land
-                    .plot_at_mut(base_tile)
-                    .map(|plot| *plot = Plot::Town);
+                // self.land
+                //     .plot_at_mut(base_tile)
+                //     .map(|plot| *plot = Plot::Town { district: None });
 
                 if i == 0 {
-                    self.town = Some(Town { base_tile });
+                    let town = Town::generate(self.origin, base_tile, ctx);
+
+                    for (id, district) in town.districts().iter() {
+                        let district_plot =
+                            self.land.plots.insert(Plot::Town { district: Some(id) });
+
+                        for x in district.aabr.min.x..district.aabr.max.x {
+                            for y in district.aabr.min.y..district.aabr.max.y {
+                                if !matches!(self.land.plot_at(Vec2::new(x, y)), Some(Plot::Hazard))
+                                {
+                                    self.land.set(Vec2::new(x, y), district_plot);
+                                }
+                            }
+                        }
+                    }
+
+                    self.town = Some(town);
                     origin = base_tile;
                 }
             }
@@ -331,42 +363,56 @@ impl Settlement {
             .take(16usize.pow(2))
         {
             // This is a stupid way to decide how to place buildings
-            for _ in 0..ctx.rng.gen_range(2, 5) {
+            for i in 0..ctx.rng.gen_range(2, 5) {
                 for _ in 0..25 {
                     let house_pos = tile.map(|e| e * AREA_SIZE as i32 + AREA_SIZE as i32 / 2)
                         + Vec2::<i32>::zero().map(|_| {
                             ctx.rng
-                                .gen_range(-(AREA_SIZE as i32) / 2, AREA_SIZE as i32 / 2)
+                                .gen_range(-(AREA_SIZE as i32) / 4, AREA_SIZE as i32 / 4)
                         });
 
                     let tile_pos = house_pos.map(|e| e.div_euclid(AREA_SIZE as i32));
-                    if !matches!(self.land.plot_at(tile_pos), Some(Plot::Town))
-                        || self
-                            .land
-                            .tile_at(tile_pos)
-                            .map(|t| t.contains(WayKind::Path))
-                            .unwrap_or(true)
+                    if self
+                        .land
+                        .tile_at(tile_pos)
+                        .map(|t| t.contains(WayKind::Path))
+                        .unwrap_or(true)
                         || ctx
                             .sim
                             .and_then(|sim| sim.get_nearest_path(self.origin + house_pos))
-                            .map(|(dist, _)| dist < 28.0)
+                            .map(|(dist, _, _, _)| dist < 28.0)
                             .unwrap_or(false)
                     {
                         continue;
                     }
 
-                    let structure = Structure {
-                        kind: StructureKind::House(HouseBuilding::generate(
-                            ctx.rng,
-                            Vec3::new(
-                                house_pos.x,
-                                house_pos.y,
+                    let alt = if let Some(Plot::Town { district }) = self.land.plot_at(tile_pos) {
+                        district
+                            .and_then(|d| self.town.as_ref().map(|t| t.districts().get(d)))
+                            .map(|d| d.alt)
+                            .filter(|_| false) // Temporary
+                            .unwrap_or_else(|| {
                                 ctx.sim
                                     .and_then(|sim| sim.get_alt_approx(self.origin + house_pos))
                                     .unwrap_or(0.0)
-                                    .ceil() as i32,
-                            ),
-                        )),
+                                    .ceil() as i32
+                            })
+                    } else {
+                        continue;
+                    };
+
+                    let structure = Structure {
+                        kind: if tile == town_center && i == 0 {
+                            StructureKind::Keep(Building::<Keep>::generate(
+                                ctx.rng,
+                                Vec3::new(house_pos.x, house_pos.y, alt),
+                            ))
+                        } else {
+                            StructureKind::House(Building::<House>::generate(
+                                ctx.rng,
+                                Vec3::new(house_pos.x, house_pos.y, alt),
+                            ))
+                        },
                     };
 
                     let bounds = structure.bounds_2d();
@@ -501,12 +547,13 @@ impl Settlement {
                 } else {
                     continue;
                 };
-                let surface_z = col_sample.riverless_alt.floor() as i32;
+                let land_surface_z = col_sample.riverless_alt.floor() as i32;
+                let mut surface_z = land_surface_z;
 
                 // Sample settlement
                 let sample = self.land.get_at_block(rpos);
 
-                let noisy_color = |col: Rgb<u8>, factor: u32| {
+                let noisy_color = move |col: Rgb<u8>, factor: u32| {
                     let nz = self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, surface_z));
                     col.map(|e| {
                         (e as u32 + nz % (factor * 2))
@@ -515,46 +562,75 @@ impl Settlement {
                     })
                 };
 
+                // District alt
+                if let Some(Plot::Town { district }) = sample.plot {
+                    if let Some(d) = district
+                        .and_then(|d| self.town.as_ref().map(|t| t.districts().get(d)))
+                        .filter(|_| false)
+                    // Temporary
+                    {
+                        let other = self
+                            .land
+                            .plot_at(sample.second_closest)
+                            .and_then(|p| match p {
+                                Plot::Town { district } => *district,
+                                _ => None,
+                            })
+                            .and_then(|d| {
+                                self.town.as_ref().map(|t| t.districts().get(d).alt as f32)
+                            })
+                            .filter(|_| false)
+                            .unwrap_or(surface_z as f32);
+                        surface_z = Lerp::lerp(
+                            (other + d.alt as f32) / 2.0,
+                            d.alt as f32,
+                            (1.25 * sample.edge_dist / (d.alt as f32 - other).abs()).min(1.0),
+                        ) as i32;
+                    }
+                }
+
                 // Paths
-                if let Some((WayKind::Path, dist, nearest)) = sample.way {
-                    let inset = -1;
+                // if let Some((WayKind::Path, dist, nearest)) = sample.way {
+                //     let inset = -1;
 
-                    // Try to use the column at the centre of the path for sampling to make them
-                    // flatter
-                    let col = get_column(offs + (nearest.floor().map(|e| e as i32) - rpos))
-                        .unwrap_or(col_sample);
-                    let (bridge_offset, depth) = if let Some(water_dist) = col.water_dist {
-                        (
-                            ((water_dist.max(0.0) * 0.2).min(f32::consts::PI).cos() + 1.0) * 5.0,
-                            ((1.0 - ((water_dist + 2.0) * 0.3).min(0.0).cos().abs())
-                                * (col.riverless_alt + 5.0 - col.alt).max(0.0)
-                                * 1.75
-                                + 3.0) as i32,
-                        )
-                    } else {
-                        (0.0, 3)
-                    };
-                    let surface_z = (col.riverless_alt + bridge_offset).floor() as i32;
+                //     // Try to use the column at the centre of the path for sampling to make
+                // them     // flatter
+                //     let col = get_column(offs + (nearest.floor().map(|e| e as i32) - rpos))
+                //         .unwrap_or(col_sample);
+                //     let (bridge_offset, depth) = if let Some(water_dist) = col.water_dist {
+                //         (
+                //             ((water_dist.max(0.0) * 0.2).min(f32::consts::PI).cos() + 1.0) *
+                // 5.0,             ((1.0 - ((water_dist + 2.0) *
+                // 0.3).min(0.0).cos().abs())
+                //                 * (col.riverless_alt + 5.0 - col.alt).max(0.0)
+                //                 * 1.75
+                //                 + 3.0) as i32,
+                //         )
+                //     } else {
+                //         (0.0, 3)
+                //     };
+                //     let surface_z = (col.riverless_alt + bridge_offset).floor() as i32;
 
-                    for z in inset - depth..inset {
-                        let _ = vol.set(
-                            Vec3::new(offs.x, offs.y, surface_z + z),
-                            if bridge_offset >= 2.0 && dist >= 3.0 || z < inset - 1 {
-                                Block::new(BlockKind::Normal, noisy_color(Rgb::new(80, 80, 100), 8))
-                            } else {
-                                Block::new(BlockKind::Normal, noisy_color(Rgb::new(80, 50, 30), 8))
-                            },
-                        );
-                    }
-                    let head_space = (8 - (dist * 0.25).powf(6.0).round() as i32).max(1);
-                    for z in inset..inset + head_space {
-                        let pos = Vec3::new(offs.x, offs.y, surface_z + z);
-                        if vol.get(pos).unwrap().kind() != BlockKind::Water {
-                            let _ = vol.set(pos, Block::empty());
-                        }
-                    }
-                // Ground colour
-                } else {
+                //     for z in inset - depth..inset {
+                //         let _ = vol.set(
+                //             Vec3::new(offs.x, offs.y, surface_z + z),
+                //             if bridge_offset >= 2.0 && dist >= 3.0 || z < inset - 1 {
+                //                 Block::new(BlockKind::Normal, noisy_color(Rgb::new(80, 80,
+                // 100), 8))             } else {
+                //                 Block::new(BlockKind::Normal, noisy_color(Rgb::new(80, 50,
+                // 30), 8))             },
+                //         );
+                //     }
+                //     let head_space = (8 - (dist * 0.25).powf(6.0).round() as i32).max(1);
+                //     for z in inset..inset + head_space {
+                //         let pos = Vec3::new(offs.x, offs.y, surface_z + z);
+                //         if vol.get(pos).unwrap().kind() != BlockKind::Water {
+                //             let _ = vol.set(pos, Block::empty());
+                //         }
+                //     }
+                // // Ground colour
+                // } else
+                {
                     let mut surface_block = None;
 
                     let roll =
@@ -564,27 +640,29 @@ impl Settlement {
                         Some(Plot::Dirt) => Some(Rgb::new(90, 70, 50)),
                         Some(Plot::Grass) => Some(Rgb::new(100, 200, 0)),
                         Some(Plot::Water) => Some(Rgb::new(100, 150, 250)),
-                        Some(Plot::Town) => {
-                            if let Some((_, path_nearest)) = col_sample.path {
+                        //Some(Plot::Town { district }) => None,
+                        Some(Plot::Town { .. }) => {
+                            if let Some((_, path_nearest, _, _)) = col_sample.path {
                                 let path_dir = (path_nearest - wpos2d.map(|e| e as f32))
                                     .rotated_z(f32::consts::PI / 2.0)
                                     .normalized();
                                 let is_lamp = if path_dir.x.abs() > path_dir.y.abs() {
-                                    wpos2d.x as f32 % 20.0 / path_dir.dot(Vec2::unit_y()).abs()
+                                    wpos2d.x as f32 % 30.0 / path_dir.dot(Vec2::unit_y()).abs()
                                         <= 1.0
                                 } else {
-                                    wpos2d.y as f32 % 20.0 / path_dir.dot(Vec2::unit_x()).abs()
+                                    (wpos2d.y as f32 + 10.0) % 30.0
+                                        / path_dir.dot(Vec2::unit_x()).abs()
                                         <= 1.0
                                 };
-                                if (col_sample.path.map(|(dist, _)| dist > 6.0 && dist < 7.0).unwrap_or(false) && is_lamp) //roll(0, 50) == 0)
-                                    || roll(0, 2000) == 0
+                                if (col_sample.path.map(|(dist, _, _, _)| dist > 6.0 && dist < 7.0).unwrap_or(false) && is_lamp) //roll(0, 50) == 0)
+                                    || (roll(0, 2000) == 0 && col_sample.path.map(|(dist, _, _, _)| dist > 20.0).unwrap_or(true))
                                 {
                                     surface_block =
                                         Some(Block::new(BlockKind::StreetLamp, Rgb::white()));
                                 }
                             }
 
-                            Some(Rgb::new(100, 90, 75).map2(Rgb::iota(), |e: u8, i: i32| {
+                            Some(Rgb::new(100, 95, 65).map2(Rgb::iota(), |e: u8, i: i32| {
                                 e.saturating_add(
                                     (self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, i * 5)) % 1)
                                         as u8,
@@ -657,14 +735,27 @@ impl Settlement {
                     };
 
                     if let Some(color) = color {
-                        if col_sample.water_dist.map(|dist| dist > 2.0).unwrap_or(true) {
-                            for z in -8..3 {
+                        let is_path = col_sample
+                            .path
+                            .map(|(dist, _, path, _)| dist < path.width)
+                            .unwrap_or(false);
+
+                        if col_sample.water_dist.map(|dist| dist > 2.0).unwrap_or(true) && !is_path
+                        {
+                            let diff = (surface_z - land_surface_z).abs();
+
+                            for z in -8 - diff..4 + diff {
                                 let pos = Vec3::new(offs.x, offs.y, surface_z + z);
+                                let block = vol.get(pos).ok().copied().unwrap_or_else(Block::empty);
+
+                                if block.kind() == BlockKind::Air {
+                                    break;
+                                }
 
                                 if let (0, Some(block)) = (z, surface_block) {
                                     let _ = vol.set(pos, block);
                                 } else if z >= 0 {
-                                    if vol.get(pos).unwrap().kind() != BlockKind::Water {
+                                    if block.kind() != BlockKind::Water {
                                         let _ = vol.set(pos, Block::empty());
                                     }
                                 } else {
@@ -728,33 +819,27 @@ impl Settlement {
                 continue;
             }
 
-            match &structure.kind {
-                StructureKind::House(b) => {
-                    let bounds = b.bounds();
+            let bounds = structure.bounds();
 
-                    for x in bounds.min.x..bounds.max.x + 1 {
-                        for y in bounds.min.y..bounds.max.y + 1 {
-                            let col = if let Some(col) =
-                                get_column(self.origin + Vec2::new(x, y) - wpos2d)
-                            {
-                                col
-                            } else {
-                                continue;
-                            };
+            for x in bounds.min.x..bounds.max.x + 1 {
+                for y in bounds.min.y..bounds.max.y + 1 {
+                    let col = if let Some(col) = get_column(self.origin + Vec2::new(x, y) - wpos2d)
+                    {
+                        col
+                    } else {
+                        continue;
+                    };
 
-                            for z in bounds.min.z.min(col.alt.floor() as i32 - 1)..bounds.max.z + 1
-                            {
-                                let rpos = Vec3::new(x, y, z);
-                                let wpos = Vec3::from(self.origin) + rpos;
-                                let coffs = wpos - Vec3::from(wpos2d);
+                    for z in bounds.min.z.min(col.alt.floor() as i32 - 1)..bounds.max.z + 1 {
+                        let rpos = Vec3::new(x, y, z);
+                        let wpos = Vec3::from(self.origin) + rpos;
+                        let coffs = wpos - Vec3::from(wpos2d);
 
-                                if let Some(block) = b.sample(rpos) {
-                                    let _ = vol.set(coffs, block);
-                                }
-                            }
+                        if let Some(block) = structure.sample(rpos) {
+                            let _ = vol.set(coffs, block);
                         }
                     }
-                },
+                }
             }
         }
     }
@@ -785,7 +870,7 @@ impl Settlement {
 
                 let entity_wpos = Vec3::new(wpos2d.x as f32, wpos2d.y as f32, col_sample.alt + 3.0);
 
-                if matches!(sample.plot, Some(Plot::Town))
+                if matches!(sample.plot, Some(Plot::Town { .. }))
                     && RandomField::new(self.seed).chance(Vec3::from(wpos2d), 1.0 / (50.0 * 50.0))
                 {
                     let is_human: bool;
@@ -875,7 +960,7 @@ impl Settlement {
             Some(Plot::Dirt) => return Some(Rgb::new(90, 70, 50)),
             Some(Plot::Grass) => return Some(Rgb::new(100, 200, 0)),
             Some(Plot::Water) => return Some(Rgb::new(100, 150, 250)),
-            Some(Plot::Town) => {
+            Some(Plot::Town { .. }) => {
                 return Some(Rgb::new(150, 110, 60).map2(Rgb::iota(), |e: u8, i: i32| {
                     e.saturating_add((self.noise.get(Vec3::new(pos.x, pos.y, i * 5)) % 16) as u8)
                         .saturating_sub(8)
@@ -927,7 +1012,9 @@ pub enum Plot {
     Dirt,
     Grass,
     Water,
-    Town,
+    Town {
+        district: Option<Id<District>>,
+    },
     Field {
         farm: Id<Farm>,
         seed: u32,
@@ -987,6 +1074,8 @@ pub struct Sample<'a> {
     plot: Option<&'a Plot>,
     way: Option<(&'a WayKind, f32, Vec2<f32>)>,
     tower: Option<(&'a Tower, Vec2<i32>)>,
+    edge_dist: f32,
+    second_closest: Vec2<i32>,
 }
 
 pub struct Land {
@@ -1021,6 +1110,15 @@ impl Land {
             .min_by_key(|(center, _)| center.distance_squared(pos))
             .unwrap()
             .0;
+        let second_closest = neighbors
+            .iter()
+            .filter(|(center, _)| *center != closest)
+            .min_by_key(|(center, _)| center.distance_squared(pos))
+            .unwrap()
+            .0;
+        sample.second_closest = second_closest.map(to_tile);
+        sample.edge_dist = (second_closest - pos).map(|e| e as f32).magnitude()
+            - (closest - pos).map(|e| e as f32).magnitude();
 
         let center_tile = self.tile_at(neighbors[4].0.map(to_tile));
 
@@ -1064,6 +1162,7 @@ impl Land {
         self.tiles.get(&pos).map(|tile| self.plots.get(tile.plot))
     }
 
+    #[allow(dead_code)]
     pub fn plot_at_mut(&mut self, pos: Vec2<i32>) -> Option<&mut Plot> {
         self.tiles
             .get(&pos)

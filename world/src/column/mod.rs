@@ -1,9 +1,12 @@
 use crate::{
     all::ForestKind,
     block::StructureMeta,
-    sim::{local_cells, uniform_idx_as_vec2, vec2_as_uniform_idx, RiverKind, SimChunk, WorldSim},
+    sim::{
+        local_cells, uniform_idx_as_vec2, vec2_as_uniform_idx, Cave, Path, RiverKind, SimChunk,
+        WorldSim,
+    },
     util::Sampler,
-    CONFIG,
+    Index, CONFIG,
 };
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 use noise::NoiseFn;
@@ -11,7 +14,7 @@ use roots::find_roots_cubic;
 use std::{
     cmp::Reverse,
     f32, f64,
-    ops::{Add, Div, Mul, Neg, Sub},
+    ops::{Add, Div, Mul, Sub},
 };
 use tracing::error;
 use vek::*;
@@ -165,16 +168,18 @@ pub fn quadratic_nearest_point(
     min_root
 }
 
-impl<'a> Sampler<'a> for ColumnGen<'a> {
-    type Index = Vec2<i32>;
+impl<'a, 'b> Sampler<'b> for ColumnGen<'a>
+where
+    'a: 'b,
+{
+    type Index = (Vec2<i32>, &'b Index);
     type Sample = Option<ColumnSample<'a>>;
 
     #[allow(clippy::float_cmp)] // TODO: Pending review in #587
     #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
     #[allow(clippy::nonminimal_bool)] // TODO: Pending review in #587
     #[allow(clippy::single_match)] // TODO: Pending review in #587
-    #[allow(clippy::bind_instead_of_map)] // TODO: Pending review in #587
-    fn get(&self, wpos: Vec2<i32>) -> Option<ColumnSample<'a>> {
+    fn get(&self, (wpos, index): Self::Index) -> Option<ColumnSample<'a>> {
         let wposf = wpos.map(|e| e as f64);
         let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
 
@@ -193,6 +198,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
         let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
         let alt = sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?;
+        let surface_veg = sim.get_interpolated_monotone(wpos, |chunk| chunk.surface_veg)?;
         let chunk_warp_factor = sim.get_interpolated_monotone(wpos, |chunk| chunk.warp_factor)?;
         let sim_chunk = sim.get(chunk_pos)?;
         let neighbor_coef = TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
@@ -608,7 +614,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                     .unwrap_or_else(|| {
                         max_border_river
                             .river_kind
-                            .and_then(|river_kind| {
+                            .map(|river_kind| {
                                 match river_kind {
                                     RiverKind::Ocean => {
                                         let (
@@ -642,7 +648,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                             let river_dist = wposf.distance(river_pos);
                                             let _river_height_factor =
                                                 river_dist / (river_width * 0.5);
-                                            return Some((
+                                            return (
                                                 true,
                                                 Some((river_dist - river_width * 0.5) as f32),
                                                 alt_for_river
@@ -650,10 +656,10 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                                 lake_water_alt - river_gouge,
                                                 alt_for_river.max(lake_water_alt),
                                                 0.0,
-                                            ));
+                                            );
                                         }
 
-                                        Some((
+                                        (
                                             river_scale_factor <= 1.0,
                                             Some(
                                                 (wposf.distance(river_pos) - river_width * 0.5)
@@ -663,7 +669,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                             downhill_water_alt,
                                             alt_for_river,
                                             river_scale_factor as f32,
-                                        ))
+                                        )
                                     },
                                     RiverKind::Lake { .. } => {
                                         let lake_dist = (max_border_river_pos.map(|e| e as f64)
@@ -685,7 +691,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                                 || in_bounds
                                             {
                                                 let gouge_factor = 0.0;
-                                                return Some((
+                                                return (
                                                     in_bounds
                                                         || downhill_water_alt
                                                             .max(river_chunk.water_alt)
@@ -697,16 +703,16 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                                     alt_for_river,
                                                     river_scale_factor as f32
                                                         * (1.0 - gouge_factor),
-                                                ));
+                                                );
                                             } else {
-                                                return Some((
+                                                return (
                                                     false,
                                                     Some(lake_dist as f32),
                                                     alt_for_river,
                                                     downhill_water_alt,
                                                     alt_for_river,
                                                     river_scale_factor as f32,
-                                                ));
+                                                );
                                             };
 
                                         let lake_dist = dist.y;
@@ -718,7 +724,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                             river_t as f32,
                                         );
                                         if dist == Vec2::zero() {
-                                            return Some((
+                                            return (
                                                 true,
                                                 Some(lake_dist as f32),
                                                 alt_for_river
@@ -726,7 +732,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                                 lake_water_alt - river_gouge,
                                                 alt_for_river.max(lake_water_alt),
                                                 0.0,
-                                            ));
+                                            );
                                         }
                                         if lake_dist <= TerrainChunkSize::RECT_SIZE.x as f64 * 1.0
                                             || in_bounds
@@ -739,7 +745,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                             let in_bounds_ = lake_dist
                                                 <= TerrainChunkSize::RECT_SIZE.x as f64 * 0.5;
                                             if gouge_factor == 1.0 {
-                                                return Some((
+                                                return (
                                                     true,
                                                     Some(lake_dist as f32),
                                                     alt.min(lake_water_alt - 1.0 - river_gouge),
@@ -747,9 +753,9 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                                         - river_gouge,
                                                     alt.max(lake_water_alt),
                                                     0.0,
-                                                ));
+                                                );
                                             } else {
-                                                return Some((
+                                                return (
                                                     true,
                                                     None,
                                                     alt_for_river,
@@ -761,17 +767,17 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                                     alt_for_river,
                                                     river_scale_factor as f32
                                                         * (1.0 - gouge_factor),
-                                                ));
+                                                );
                                             }
                                         }
-                                        Some((
+                                        (
                                             river_scale_factor <= 1.0,
                                             Some(lake_dist as f32),
                                             alt_for_river,
                                             downhill_water_alt,
                                             alt_for_river,
                                             river_scale_factor as f32,
-                                        ))
+                                        )
                                     },
                                     RiverKind::River { .. } => {
                                         let (_, _, river_width, (_, (river_pos, _), _)) =
@@ -779,14 +785,14 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                         let river_dist = wposf.distance(river_pos);
 
                                         // FIXME: Make water altitude accurate.
-                                        Some((
+                                        (
                                             river_scale_factor <= 1.0,
                                             Some((river_dist - river_width * 0.5) as f32),
                                             alt_for_river,
                                             downhill_water_alt,
                                             alt_for_river,
                                             river_scale_factor as f32,
-                                        ))
+                                        )
                                     },
                                 }
                             })
@@ -857,8 +863,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let cold_stone = Rgb::new(0.57, 0.67, 0.8);
         let hot_stone = Rgb::new(0.07, 0.07, 0.06);
         let warm_stone = Rgb::new(0.77, 0.77, 0.64);
-        let beach_sand = Rgb::new(0.9, 0.82, 0.6);
-        let desert_sand = Rgb::new(0.95, 0.75, 0.5);
+        let beach_sand = Rgb::new(0.8, 0.75, 0.5);
+        let desert_sand = Rgb::new(0.7, 0.4, 0.25);
         let snow = Rgb::new(0.8, 0.85, 1.0);
 
         let stone_col = Rgb::new(195, 187, 201);
@@ -1031,34 +1037,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             (alt, ground, sub_surface_color)
         };
 
-        // Caves
-        let cave_at = |wposf: Vec2<f64>| {
-            (sim.gen_ctx.cave_0_nz.get(
-                Vec3::new(wposf.x, wposf.y, alt as f64 * 8.0)
-                    .div(800.0)
-                    .into_array(),
-            ) as f32)
-                .powf(2.0)
-                .neg()
-                .add(1.0)
-                .mul((1.32 - chaos).min(1.0))
-        };
-        let cave_xy = cave_at(wposf);
-        let cave_alt = alt - 24.0
-            + (sim
-                .gen_ctx
-                .cave_1_nz
-                .get(Vec2::new(wposf.x, wposf.y).div(48.0).into_array()) as f32)
-                * 8.0
-            + (sim
-                .gen_ctx
-                .cave_1_nz
-                .get(Vec2::new(wposf.x, wposf.y).div(500.0).into_array()) as f32)
-                .add(1.0)
-                .mul(0.5)
-                .powf(15.0)
-                .mul(150.0);
-
         let near_ocean = max_river.and_then(|(_, _, river_data, _)| {
             if (river_data.is_lake() || river_data.river_kind == Some(RiverKind::Ocean))
                 && ((alt <= water_level.max(CONFIG.sea_level + 5.0) && !is_cliffs) || !near_cliffs)
@@ -1076,6 +1054,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         };
 
         let path = sim.get_nearest_path(wpos);
+        let cave = sim.get_nearest_cave(wpos);
 
         Some(ColumnSample {
             alt,
@@ -1085,11 +1064,15 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             water_level,
             warp_factor,
             surface_color: Rgb::lerp(
-                Rgb::lerp(cliff, sand, alt.sub(basement).mul(0.25)),
-                // Land
-                ground,
-                // Beach
-                ((ocean_level - 1.0) / 2.0).max(0.0),
+                sub_surface_color,
+                Rgb::lerp(
+                    Rgb::lerp(cliff, sand, alt.sub(basement).mul(0.25)),
+                    // Land
+                    ground,
+                    // Beach
+                    ((ocean_level - 1.0) / 2.0).max(0.0),
+                ),
+                surface_veg,
             ),
             sub_surface_color,
             // No growing directly on bedrock.
@@ -1098,7 +1081,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             tree_density: if sim_chunk
                 .sites
                 .iter()
-                .all(|site| site.spawn_rules(wpos).trees)
+                .all(|site| index.sites[*site].spawn_rules(wpos).trees)
             {
                 Lerp::lerp(0.0, tree_density, alt.sub(2.0).sub(basement).mul(0.5))
             } else {
@@ -1106,8 +1089,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             },
             forest_kind: sim_chunk.forest_kind,
             close_structures: self.gen_close_structures(wpos),
-            cave_xy,
-            cave_alt,
             marble,
             marble_small,
             rock,
@@ -1121,6 +1102,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             stone_col,
             water_dist,
             path,
+            cave,
 
             chunk: sim_chunk,
         })
@@ -1140,8 +1122,6 @@ pub struct ColumnSample<'a> {
     pub tree_density: f32,
     pub forest_kind: ForestKind,
     pub close_structures: [Option<StructureData>; 9],
-    pub cave_xy: f32,
-    pub cave_alt: f32,
     pub marble: f32,
     pub marble_small: f32,
     pub rock: f32,
@@ -1154,7 +1134,8 @@ pub struct ColumnSample<'a> {
     pub spawn_rate: f32,
     pub stone_col: Rgb<u8>,
     pub water_dist: Option<f32>,
-    pub path: Option<(f32, Vec2<f32>)>,
+    pub path: Option<(f32, Vec2<f32>, Path, Vec2<f32>)>,
+    pub cave: Option<(f32, Vec2<f32>, Cave, Vec2<f32>)>,
 
     pub chunk: &'a SimChunk,
 }

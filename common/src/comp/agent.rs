@@ -1,4 +1,4 @@
-use crate::{path::Chaser, sync::Uid};
+use crate::{comp::Body, path::Chaser, sync::Uid};
 use specs::{Component, Entity as EcsEntity};
 use specs_idvs::IdvStorage;
 use vek::*;
@@ -55,12 +55,40 @@ impl Component for Alignment {
 }
 
 #[derive(Clone, Debug, Default)]
+pub struct Psyche {
+    pub aggro: f32, // 0.0 = always flees, 1.0 = always attacks
+}
+
+impl<'a> From<&'a Body> for Psyche {
+    fn from(body: &'a Body) -> Self {
+        Self {
+            aggro: match body {
+                Body::Humanoid(_) => 0.5,
+                Body::QuadrupedSmall(_) => 0.35,
+                Body::QuadrupedMedium(_) => 0.5,
+                Body::QuadrupedLow(_) => 0.65,
+                Body::BirdMedium(_) => 1.0,
+                Body::BirdSmall(_) => 0.2,
+                Body::FishMedium(_) => 0.15,
+                Body::FishSmall(_) => 0.0,
+                Body::BipedLarge(_) => 1.0,
+                Body::Object(_) => 0.0,
+                Body::Golem(_) => 1.0,
+                Body::Critter(_) => 0.1,
+                Body::Dragon(_) => 1.0,
+            },
+        }
+    }
+}
+
+#[derive(Clone, Debug, Default)]
 pub struct Agent {
     pub patrol_origin: Option<Vec3<f32>>,
     pub activity: Activity,
     /// Does the agent talk when e.g. hit by the player
     // TODO move speech patterns into a Behavior component
     pub can_speak: bool,
+    pub psyche: Psyche,
 }
 
 impl Agent {
@@ -69,11 +97,12 @@ impl Agent {
         self
     }
 
-    pub fn new(origin: Vec3<f32>, can_speak: bool) -> Self {
+    pub fn new(origin: Vec3<f32>, can_speak: bool, body: &Body) -> Self {
         let patrol_origin = Some(origin);
         Agent {
             patrol_origin,
             can_speak,
+            psyche: Psyche::from(body),
             ..Default::default()
         }
     }

@@ -24,7 +24,12 @@ impl CharacterBehavior for Data {
             update.character = CharacterState::GlideWield;
             return update;
         }
-        if data.physics.in_fluid {
+        if data
+            .physics
+            .in_fluid
+            .map(|depth| depth > 0.5)
+            .unwrap_or(false)
+        {
             update.character = CharacterState::Idle;
         }
         // If there is a wall in front of character and they are trying to climb go to

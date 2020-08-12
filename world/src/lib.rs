@@ -8,8 +8,10 @@ mod block;
 pub mod civ;
 mod column;
 pub mod config;
+pub mod index;
 pub mod layer;
 pub mod sim;
+pub mod sim2;
 pub mod site;
 pub mod util;
 
@@ -19,6 +21,7 @@ pub use crate::config::CONFIG;
 use crate::{
     block::BlockGen,
     column::{ColumnGen, ColumnSample},
+    index::Index,
     util::{Grid, Sampler},
 };
 use common::{
@@ -39,26 +42,35 @@ pub enum Error {
 pub struct World {
     sim: sim::WorldSim,
     civs: civ::Civs,
+    index: Index,
 }
 
 impl World {
     pub fn generate(seed: u32, opts: sim::WorldOpts) -> Self {
         let mut sim = sim::WorldSim::generate(seed, opts);
-        let civs = civ::Civs::generate(seed, &mut sim);
-        Self { sim, civs }
+        let mut index = Index::new(seed);
+        let civs = civ::Civs::generate(seed, &mut sim, &mut index);
+
+        sim2::simulate(&mut index, &mut sim);
+
+        Self { sim, civs, index }
     }
 
     pub fn sim(&self) -> &sim::WorldSim { &self.sim }
 
     pub fn civs(&self) -> &civ::Civs { &self.civs }
 
+    pub fn index(&self) -> &Index { &self.index }
+
     pub fn tick(&self, _dt: Duration) {
         // TODO
     }
 
+    pub fn get_map_data(&self) -> Vec<u32> { self.sim.get_map(&self.index) }
+
     pub fn sample_columns(
         &self,
-    ) -> impl Sampler<Index = Vec2<i32>, Sample = Option<ColumnSample>> + '_ {
+    ) -> impl Sampler<Index = (Vec2<i32>, &Index), Sample = Option<ColumnSample>> + '_ {
         ColumnGen::new(&self.sim)
     }
 
@@ -77,7 +89,7 @@ impl World {
         let grid_border = 4;
         let zcache_grid = Grid::populate_from(
             TerrainChunkSize::RECT_SIZE.map(|e| e as i32) + grid_border * 2,
-            |offs| sampler.get_z_cache(chunk_wpos2d - grid_border + offs),
+            |offs| sampler.get_z_cache(chunk_wpos2d - grid_border + offs, &self.index),
         );
 
         let air = Block::empty();
@@ -132,7 +144,8 @@ impl World {
                     _ => continue,
                 };
 
-                let (min_z, only_structures_min_z, max_z) = z_cache.get_z_limits(&mut sampler);
+                let (min_z, only_structures_min_z, max_z) =
+                    z_cache.get_z_limits(&mut sampler, &self.index);
 
                 (base_z..min_z as i32).for_each(|z| {
                     let _ = chunk.set(Vec3::new(x, y, z), stone);
@@ -144,7 +157,7 @@ impl World {
                     let only_structures = lpos.z >= only_structures_min_z as i32;
 
                     if let Some(block) =
-                        sampler.get_with_z_cache(wpos, Some(&z_cache), only_structures)
+                        sampler.get_with_z_cache(wpos, Some(&z_cache), only_structures, &self.index)
                     {
                         let _ = chunk.set(lpos, block);
                     }
@@ -162,14 +175,15 @@ impl World {
 
         let mut rng = rand::thread_rng();
 
-        // Apply site generation
-        sim_chunk
-            .sites
-            .iter()
-            .for_each(|site| site.apply_to(chunk_wpos2d, sample_get, &mut chunk));
+        // Apply layers (paths, caves, etc.)
+        layer::apply_scatter_to(chunk_wpos2d, sample_get, &mut chunk, &self.index, sim_chunk);
+        layer::apply_paths_to(chunk_wpos2d, sample_get, &mut chunk, &self.index);
+        layer::apply_caves_to(chunk_wpos2d, sample_get, &mut chunk, &self.index);
 
-        // Apply paths
-        layer::apply_paths_to(chunk_wpos2d, sample_get, &mut chunk);
+        // Apply site generation
+        sim_chunk.sites.iter().for_each(|site| {
+            self.index.sites[*site].apply_to(chunk_wpos2d, sample_get, &mut chunk)
+        });
 
         let gen_entity_pos = || {
             let lpos2d = TerrainChunkSize::RECT_SIZE
@@ -215,9 +229,24 @@ impl World {
             supplement.add_entity(EntityInfo::at(gen_entity_pos()).into_waypoint());
         }
 
+        // Apply layer supplement
+        layer::apply_caves_supplement(
+            &mut rng,
+            chunk_wpos2d,
+            sample_get,
+            &chunk,
+            &self.index,
+            &mut supplement,
+        );
+
         // Apply site supplementary information
         sim_chunk.sites.iter().for_each(|site| {
-            site.apply_supplement(&mut rng, chunk_wpos2d, sample_get, &mut supplement)
+            self.index.sites[*site].apply_supplement(
+                &mut rng,
+                chunk_wpos2d,
+                sample_get,
+                &mut supplement,
+            )
         });
 
         Ok((chunk, supplement))

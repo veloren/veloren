@@ -13,13 +13,14 @@ use common::{
     npc::{self, get_npc_name},
     state::TimeOfDay,
     sync::{Uid, WorldSyncExt},
-    terrain::TerrainChunkSize,
+    terrain::{Block, BlockKind, TerrainChunkSize},
     util::Dir,
     vol::RectVolSize,
     LoadoutBuilder,
 };
 use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
+use std::convert::TryFrom;
 use vek::*;
 use world::util::Sampler;
 
@@ -83,6 +84,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::KillNpcs => handle_kill_npcs,
         ChatCommand::Lantern => handle_lantern,
         ChatCommand::Light => handle_light,
+        ChatCommand::MakeBlock => handle_make_block,
         ChatCommand::Motd => handle_motd,
         ChatCommand::Object => handle_object,
         ChatCommand::Players => handle_players,
@@ -179,6 +181,39 @@ fn handle_give_item(
     }
 }
 
+fn handle_make_block(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) {
+    if let Some(block_name) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
+        if let Ok(bk) = BlockKind::try_from(block_name.as_str()) {
+            match server.state.read_component_cloned::<comp::Pos>(target) {
+                Some(pos) => server.state.set_block(
+                    pos.0.map(|e| e.floor() as i32),
+                    Block::new(bk, Rgb::broadcast(255)),
+                ),
+                None => server.notify_client(
+                    client,
+                    ChatType::CommandError.server_msg(String::from("You have no position.")),
+                ),
+            }
+        } else {
+            server.notify_client(
+                client,
+                ChatType::CommandError.server_msg(format!("Invalid block kind: {}", block_name)),
+            );
+        }
+    } else {
+        server.notify_client(
+            client,
+            ChatType::CommandError.server_msg(action.help_string()),
+        );
+    }
+}
+
 fn handle_motd(
     server: &mut Server,
     client: EcsEntity,
@@ -227,7 +262,7 @@ fn handle_jump(
     action: &ChatCommand,
 ) {
     if let Ok((x, y, z)) = scan_fmt!(&args, &action.arg_fmt(), f32, f32, f32) {
-        match server.state.read_component_copied::<comp::Pos>(target) {
+        match server.state.read_component_cloned::<comp::Pos>(target) {
             Some(current_pos) => {
                 server
                     .state
@@ -252,7 +287,7 @@ fn handle_goto(
     if let Ok((x, y, z)) = scan_fmt!(&args, &action.arg_fmt(), f32, f32, f32) {
         if server
             .state
-            .read_component_copied::<comp::Pos>(target)
+            .read_component_cloned::<comp::Pos>(target)
             .is_some()
         {
             server
@@ -463,9 +498,9 @@ fn handle_tp(
         );
         return;
     };
-    if let Some(_pos) = server.state.read_component_copied::<comp::Pos>(target) {
+    if let Some(_pos) = server.state.read_component_cloned::<comp::Pos>(target) {
         if let Some(player) = opt_player {
-            if let Some(pos) = server.state.read_component_copied::<comp::Pos>(player) {
+            if let Some(pos) = server.state.read_component_cloned::<comp::Pos>(player) {
                 server.state.write_component(target, pos);
                 server.state.write_component(target, comp::ForceUpdate);
             } else {
@@ -510,7 +545,7 @@ fn handle_spawn(
         (Some(opt_align), Some(npc::NpcBody(id, mut body)), opt_amount, opt_ai) => {
             let uid = server
                 .state
-                .read_component_copied(target)
+                .read_component_cloned(target)
                 .expect("Expected player to have a UID");
             if let Some(alignment) = parse_alignment(uid, &opt_align) {
                 let amount = opt_amount
@@ -521,7 +556,7 @@ fn handle_spawn(
 
                 let ai = opt_ai.unwrap_or_else(|| "true".to_string());
 
-                match server.state.read_component_copied::<comp::Pos>(target) {
+                match server.state.read_component_cloned::<comp::Pos>(target) {
                     Some(pos) => {
                         let agent =
                             if let comp::Alignment::Owned(_) | comp::Alignment::Npc = alignment {
@@ -631,7 +666,7 @@ fn handle_spawn_training_dummy(
     _args: String,
     _action: &ChatCommand,
 ) {
-    match server.state.read_component_copied::<comp::Pos>(target) {
+    match server.state.read_component_cloned::<comp::Pos>(target) {
         Some(pos) => {
             let vel = Vec3::new(
                 rand::thread_rng().gen_range(-2.0, 3.0),
@@ -672,7 +707,7 @@ fn handle_spawn_campfire(
     _args: String,
     _action: &ChatCommand,
 ) {
-    match server.state.read_component_copied::<comp::Pos>(target) {
+    match server.state.read_component_cloned::<comp::Pos>(target) {
         Some(pos) => {
             server
                 .state
@@ -1031,7 +1066,7 @@ fn handle_explosion(
 
     let ecs = server.state.ecs();
 
-    match server.state.read_component_copied::<comp::Pos>(target) {
+    match server.state.read_component_cloned::<comp::Pos>(target) {
         Some(pos) => {
             ecs.read_resource::<EventBus<ServerEvent>>()
                 .emit_now(ServerEvent::Explosion {
@@ -1056,7 +1091,7 @@ fn handle_waypoint(
     _args: String,
     _action: &ChatCommand,
 ) {
-    match server.state.read_component_copied::<comp::Pos>(target) {
+    match server.state.read_component_cloned::<comp::Pos>(target) {
         Some(pos) => {
             let time = server.state.ecs().read_resource();
             let _ = server
@@ -1092,7 +1127,7 @@ fn handle_adminify(
             Some(player) => {
                 let is_admin = if server
                     .state
-                    .read_component_copied::<comp::Admin>(player)
+                    .read_component_cloned::<comp::Admin>(player)
                     .is_some()
                 {
                     ecs.write_storage::<comp::Admin>().remove(player);
@@ -1438,7 +1473,7 @@ fn handle_debug_column(
             let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
             let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
             let chunk = sim.get(chunk_pos)?;
-            let col = sampler.get(wpos)?;
+            let col = sampler.get((wpos, server.world.index()))?;
             let downhill = chunk.downhill;
             let river = &chunk.river;
             let flux = chunk.flux;
@@ -1636,7 +1671,7 @@ fn handle_remove_lights(
     action: &ChatCommand,
 ) {
     let opt_radius = scan_fmt_some!(&args, &action.arg_fmt(), f32);
-    let opt_player_pos = server.state.read_component_copied::<comp::Pos>(target);
+    let opt_player_pos = server.state.read_component_cloned::<comp::Pos>(target);
     let mut to_delete = vec![];
 
     match opt_player_pos {

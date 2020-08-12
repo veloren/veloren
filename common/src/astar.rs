@@ -121,12 +121,10 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
     {
         let iter_limit = self.max_iters.min(self.iter + iters);
         while self.iter < iter_limit {
-            if let Some(PathEntry { node, cost }) = self.potential_nodes.pop() {
-                self.cheapest_cost = Some(cost);
+            if let Some(PathEntry { node, .. }) = self.potential_nodes.pop() {
                 if satisfied(&node) {
                     return PathResult::Path(self.reconstruct_path_to(node));
                 } else {
-                    self.cheapest_node = Some(node.clone());
                     for neighbor in neighbors(&node) {
                         let node_cheapest = self.cheapest_scores.get(&node).unwrap_or(&f32::MAX);
                         let neighbor_cheapest =
@@ -136,12 +134,18 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
                         if cost < *neighbor_cheapest {
                             self.came_from.insert(neighbor.clone(), node.clone());
                             self.cheapest_scores.insert(neighbor.clone(), cost);
-                            let neighbor_cost = cost + heuristic(&neighbor);
+                            let h = heuristic(&neighbor);
+                            let neighbor_cost = cost + h;
                             self.final_scores.insert(neighbor.clone(), neighbor_cost);
+
+                            if self.cheapest_cost.map(|cc| h < cc).unwrap_or(true) {
+                                self.cheapest_node = Some(node.clone());
+                                self.cheapest_cost = Some(h);
+                            };
 
                             if self.visited.insert(neighbor.clone()) {
                                 self.potential_nodes.push(PathEntry {
-                                    node: neighbor.clone(),
+                                    node: neighbor,
                                     cost: neighbor_cost,
                                 });
                             }

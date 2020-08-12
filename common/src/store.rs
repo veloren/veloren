@@ -50,20 +50,17 @@ impl<T> Store<T> {
     }
 
     pub fn ids(&self) -> impl Iterator<Item = Id<T>> {
-        // NOTE: Assumes usize fits into 8 bytes.
-        (0..self.items.len() as u64).map(|i| Id(i, PhantomData))
+        (0..self.items.len()).map(|i| Id(i as u64, PhantomData))
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = &T> { self.items.iter() }
+    pub fn values(&self) -> impl Iterator<Item = &T> { self.items.iter() }
 
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> { self.items.iter_mut() }
+    pub fn values_mut(&mut self) -> impl Iterator<Item = &mut T> { self.items.iter_mut() }
 
-    pub fn iter_ids(&self) -> impl Iterator<Item = (Id<T>, &T)> {
-        self.items
-            .iter()
-            .enumerate()
-            // NOTE: Assumes usize fits into 8 bytes.
-            .map(|(i, item)| (Id(i as u64, PhantomData), item))
+    pub fn iter(&self) -> impl Iterator<Item = (Id<T>, &T)> { self.ids().zip(self.values()) }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (Id<T>, &mut T)> {
+        self.ids().zip(self.values_mut())
     }
 
     pub fn insert(&mut self, item: T) -> Id<T> {

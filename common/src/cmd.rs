@@ -1,4 +1,4 @@
-use crate::{assets, comp, npc};
+use crate::{assets, comp, npc, terrain};
 use lazy_static::lazy_static;
 use std::{
     collections::HashMap,
@@ -56,6 +56,7 @@ pub enum ChatCommand {
     KillNpcs,
     Lantern,
     Light,
+    MakeBlock,
     Motd,
     Object,
     Players,
@@ -98,6 +99,7 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::KillNpcs,
     ChatCommand::Lantern,
     ChatCommand::Light,
+    ChatCommand::MakeBlock,
     ChatCommand::Motd,
     ChatCommand::Object,
     ChatCommand::Players,
@@ -148,6 +150,11 @@ lazy_static! {
     .iter()
     .map(|s| s.to_string())
     .collect();
+
+    static ref BLOCK_KINDS: Vec<String> = terrain::block::BLOCK_KINDS
+        .keys()
+        .cloned()
+        .collect();
 
     /// List of item specifiers. Useful for tab completing
     static ref ITEM_SPECS: Vec<String> = {
@@ -281,6 +288,11 @@ impl ChatCommand {
                 "Spawn entity with light",
                 Admin,
             ),
+            ChatCommand::MakeBlock => cmd(
+                vec![Enum("block", BLOCK_KINDS.clone(), Required)],
+                "Make a block",
+                Admin,
+            ),
             ChatCommand::Motd => cmd(
                 vec![Message(Optional)],
                 "View the server description",
@@ -386,6 +398,7 @@ impl ChatCommand {
             ChatCommand::KillNpcs => "kill_npcs",
             ChatCommand::Lantern => "lantern",
             ChatCommand::Light => "light",
+            ChatCommand::MakeBlock => "make_block",
             ChatCommand::Motd => "motd",
             ChatCommand::Object => "object",
             ChatCommand::Players => "players",
