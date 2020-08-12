@@ -1,35 +1,19 @@
-mod keep;
-
 use super::SpawnRules;
 use crate::{
-    block::block_from_structure,
     column::ColumnSample,
     sim::WorldSim,
-    site::{
-        settlement::building::{
-            archetype::keep::{Attr, Keep as KeepArchetype},
-            Archetype, Branch, Ori,
-        },
-        BlockMask,
+    site::settlement::building::{
+        archetype::keep::{Attr, Keep as KeepArchetype},
+        Archetype, Ori,
     },
-    util::{attempt, Grid, RandomField, Sampler, CARDINALS, DIRS},
 };
 use common::{
-    assets,
-    astar::Astar,
-    comp,
-    generation::{ChunkSupplement, EntityInfo},
-    npc,
-    spiral::Spiral2d,
-    store::{Id, Store},
-    terrain::{Block, BlockKind, Structure, TerrainChunkSize},
-    vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, Vox, WriteVol},
+    generation::ChunkSupplement,
+    terrain::{Block, BlockKind},
+    vol::{BaseVol, ReadVol, RectSizedVol, Vox, WriteVol},
 };
-use core::{f32, hash::BuildHasherDefault};
-use fxhash::FxHasher64;
-use lazy_static::lazy_static;
+use core::f32;
 use rand::prelude::*;
-use std::sync::Arc;
 use vek::*;
 
 struct Keep {
@@ -47,8 +31,7 @@ struct Tower {
 
 pub struct Castle {
     origin: Vec2<i32>,
-    alt: i32,
-    seed: u32,
+    //seed: u32,
     radius: i32,
     towers: Vec<Tower>,
     keeps: Vec<Keep>,
@@ -57,8 +40,6 @@ pub struct Castle {
     flags: bool,
 
     evil: bool,
-
-    keep: Option<keep::Keep>,
 }
 
 pub struct GenCtx<'a, R: Rng> {
@@ -69,7 +50,7 @@ pub struct GenCtx<'a, R: Rng> {
 impl Castle {
     #[allow(clippy::let_and_return)] // TODO: Pending review in #587
     pub fn generate(wpos: Vec2<i32>, sim: Option<&mut WorldSim>, rng: &mut impl Rng) -> Self {
-        let mut ctx = GenCtx { sim, rng };
+        let ctx = GenCtx { sim, rng };
 
         let boundary_towers = ctx.rng.gen_range(5, 10);
         let keep_count = ctx.rng.gen_range(1, 4);
@@ -77,15 +58,15 @@ impl Castle {
 
         let radius = 150;
 
-        let mut this = Self {
+        let this = Self {
             origin: wpos,
-            alt: ctx
-                .sim
-                .as_ref()
-                .and_then(|sim| sim.get_alt_approx(wpos))
-                .unwrap_or(0.0) as i32
-                + 6,
-            seed: ctx.rng.gen(),
+            // alt: ctx
+            //     .sim
+            //     .as_ref()
+            //     .and_then(|sim| sim.get_alt_approx(wpos))
+            //     .unwrap_or(0.0) as i32
+            //     + 6,
+            //seed: ctx.rng.gen(),
             radius,
 
             towers: (0..boundary_towers)
@@ -150,8 +131,6 @@ impl Castle {
                     }
                 })
                 .collect(),
-
-            keep: None,
         };
 
         this
@@ -231,7 +210,7 @@ impl Castle {
                     }
                 }
 
-                let (wall_dist, wall_pos, wall_alt, wall_ori, towers) = (0..self.towers.len())
+                let (wall_dist, wall_pos, wall_alt, wall_ori, _towers) = (0..self.towers.len())
                     .map(|i| {
                         let tower0 = &self.towers[i];
                         let tower1 = &self.towers[(i + 1) % self.towers.len()];
@@ -273,7 +252,6 @@ impl Castle {
                     .min_by_key(|x| x.0)
                     .unwrap();
                 let border_pos = (wall_pos - rpos).map(|e| e.abs());
-                let wall_normal = (rpos - wall_pos).map(|e| e as f32);
                 let wall_rpos = if wall_ori == Ori::East {
                     rpos
                 } else {
@@ -428,10 +406,10 @@ impl Castle {
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn apply_supplement<'a>(
         &'a self,
-        rng: &mut impl Rng,
-        wpos2d: Vec2<i32>,
+        _rng: &mut impl Rng,
+        _wpos2d: Vec2<i32>,
         _get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
-        supplement: &mut ChunkSupplement,
+        _supplement: &mut ChunkSupplement,
     ) {
         // TODO
     }

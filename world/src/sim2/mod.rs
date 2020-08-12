@@ -8,7 +8,7 @@ use crate::{
     Index,
 };
 use common::store::Id;
-use tracing::{debug, info, warn};
+use tracing::debug;
 
 const MONTH: f32 = 30.0;
 const YEAR: f32 = 12.0 * MONTH;
@@ -78,7 +78,7 @@ pub fn simulate(index: &mut Index, world: &mut WorldSim) {
     }
 }
 
-pub fn tick(index: &mut Index, world: &mut WorldSim, dt: f32) {
+pub fn tick(index: &mut Index, _world: &mut WorldSim, dt: f32) {
     for site in index.sites.ids() {
         tick_site_economy(index, site, dt);
     }
@@ -137,8 +137,6 @@ pub fn tick_site_economy(index: &mut Index, site: Id<Site>, dt: f32) {
     // Note that values are used for workforce allocation and are not the same thing
     // as price
     let values = &mut site.economy.values;
-    let marginal_surplus = &site.economy.marginal_surplus;
-    let stocks = &site.economy.stocks;
     site.economy.surplus.iter().for_each(|(good, surplus)| {
         // Value rationalisation
         let val = 2.0f32.powf(1.0 - *surplus / demand[good]);
@@ -151,12 +149,12 @@ pub fn tick_site_economy(index: &mut Index, site: Id<Site>, dt: f32) {
     });
 
     // Update export targets based on relative values
-    let value_avg = values
-        .iter()
-        .map(|(_, v)| (*v).unwrap_or(0.0))
-        .sum::<f32>()
-        .max(0.01)
-        / values.iter().filter(|(_, v)| v.is_some()).count() as f32;
+    // let value_avg = values
+    //     .iter()
+    //     .map(|(_, v)| (*v).unwrap_or(0.0))
+    //     .sum::<f32>()
+    //     .max(0.01)
+    //     / values.iter().filter(|(_, v)| v.is_some()).count() as f32;
     //let export_targets = &mut site.economy.export_targets;
     //let last_exports = &self.last_exports;
     // site.economy.values.iter().for_each(|(stock, value)| {

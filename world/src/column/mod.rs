@@ -14,7 +14,7 @@ use roots::find_roots_cubic;
 use std::{
     cmp::Reverse,
     f32, f64,
-    ops::{Add, Div, Mul, Neg, Sub},
+    ops::{Add, Div, Mul, Sub},
 };
 use tracing::error;
 use vek::*;

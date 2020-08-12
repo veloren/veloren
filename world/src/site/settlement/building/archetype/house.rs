@@ -122,7 +122,7 @@ pub struct Attr {
 }
 
 impl Attr {
-    pub fn generate<R: Rng>(rng: &mut R, locus: i32) -> Self {
+    pub fn generate<R: Rng>(rng: &mut R, _locus: i32) -> Self {
         Self {
             central_supports: rng.gen(),
             storey_fill: match rng.gen_range(0, 2) {
@@ -222,14 +222,14 @@ impl Archetype for House {
     #[allow(clippy::int_plus_one)] // TODO: Pending review in #587
     fn draw(
         &self,
-        pos: Vec3<i32>,
+        _pos: Vec3<i32>,
         dist: i32,
         bound_offset: Vec2<i32>,
         center_offset: Vec2<i32>,
         z: i32,
         ori: Ori,
         locus: i32,
-        len: i32,
+        _len: i32,
         attr: &Self::Attr,
     ) -> BlockMask {
         let profile = Vec2::new(bound_offset.x, z);
@@ -521,7 +521,7 @@ impl Archetype for House {
                 {
                     let ornament = match self.noise.get(Vec3::new(center_offset.x, center_offset.y, z + 100)) % 4 {
                         0 => BlockKind::HangingSign,
-                        1 | 2 => BlockKind::HangingBasket,
+                        1 | 2 | 3 => BlockKind::HangingBasket,
                         _ => BlockKind::DungeonWallDecor,
                     };
 

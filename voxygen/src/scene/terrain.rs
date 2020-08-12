@@ -3230,15 +3230,15 @@ impl<V: RectRasterableVol> Terrain<V> {
                         if let Some(models) = self.sprite_models.get(&kind) {
                             renderer.render_sprites(
                                 if dist_sqrd < sprite_high_detail_distance.powf(2.0) {
-                                    &self.sprite_models[&kind][0]
+                                    &models[0]
                                 } else if dist_sqrd < sprite_hid_detail_distance.powf(2.0) {
-                                    &self.sprite_models[&kind][1]
+                                    &models[1]
                                 } else if dist_sqrd < sprite_mid_detail_distance.powf(2.0) {
-                                    &self.sprite_models[&kind][2]
+                                    &models[2]
                                 } else if dist_sqrd < sprite_low_detail_distance.powf(2.0) {
-                                    &self.sprite_models[&kind][3]
+                                    &models[3]
                                 } else {
-                                    &self.sprite_models[&kind][4]
+                                    &models[4]
                                 },
                                 globals,
                                 &instances,

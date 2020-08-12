@@ -101,7 +101,7 @@ impl Economy {
     }
 
     pub fn replenish(&mut self, time: f32) {
-        use rand::Rng;
+        //use rand::Rng;
         for (i, (g, v)) in [
             (Wheat, 50.0),
             (Logs, 20.0),

@@ -94,7 +94,7 @@ impl<'a> System<'a> for Sys {
         let mut event_emitter = event_bus.emitter();
 
         // Apply movement inputs
-        for (entity, scale, sticky, collider, mut pos, mut vel, _ori, _) in (
+        for (entity, _scale, sticky, collider, mut pos, mut vel, _ori, _) in (
             &entities,
             scales.maybe(),
             stickies.maybe(),
@@ -113,7 +113,8 @@ impl<'a> System<'a> for Sys {
                 continue;
             }
 
-            let scale = scale.map(|s| s.0).unwrap_or(1.0);
+            // TODO: Use this
+            //let scale = scale.map(|s| s.0).unwrap_or(1.0);
 
             let old_vel = *vel;
             // Integrate forces

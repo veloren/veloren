@@ -1,5 +1,5 @@
 use super::{GenCtx, AREA_SIZE};
-use common::store::{Id, Store};
+use common::store::Store;
 use rand::prelude::*;
 use vek::*;
 

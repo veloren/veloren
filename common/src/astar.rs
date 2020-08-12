@@ -121,7 +121,7 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
     {
         let iter_limit = self.max_iters.min(self.iter + iters);
         while self.iter < iter_limit {
-            if let Some(PathEntry { node, cost }) = self.potential_nodes.pop() {
+            if let Some(PathEntry { node, .. }) = self.potential_nodes.pop() {
                 if satisfied(&node) {
                     return PathResult::Path(self.reconstruct_path_to(node));
                 } else {

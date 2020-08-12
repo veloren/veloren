@@ -640,8 +640,8 @@ impl Settlement {
                         Some(Plot::Dirt) => Some(Rgb::new(90, 70, 50)),
                         Some(Plot::Grass) => Some(Rgb::new(100, 200, 0)),
                         Some(Plot::Water) => Some(Rgb::new(100, 150, 250)),
-                        Some(Plot::Town { district }) => None,
-                        Some(Plot::Town { district }) => {
+                        //Some(Plot::Town { district }) => None,
+                        Some(Plot::Town { .. }) => {
                             if let Some((_, path_nearest, _, _)) = col_sample.path {
                                 let path_dir = (path_nearest - wpos2d.map(|e| e as f32))
                                     .rotated_z(f32::consts::PI / 2.0)
@@ -662,7 +662,7 @@ impl Settlement {
                                 }
                             }
 
-                            Some(Rgb::new(100, 90, 75).map2(Rgb::iota(), |e: u8, i: i32| {
+                            Some(Rgb::new(100, 105, 75).map2(Rgb::iota(), |e: u8, i: i32| {
                                 e.saturating_add(
                                     (self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, i * 5)) % 1)
                                         as u8,
@@ -744,7 +744,7 @@ impl Settlement {
                         {
                             let diff = (surface_z - land_surface_z).abs();
 
-                            for z in -8 - diff..3 + diff {
+                            for z in -8 - diff..4 + diff {
                                 let pos = Vec3::new(offs.x, offs.y, surface_z + z);
                                 let block = vol.get(pos).ok().copied().unwrap_or(Block::empty());
 
@@ -1162,6 +1162,7 @@ impl Land {
         self.tiles.get(&pos).map(|tile| self.plots.get(tile.plot))
     }
 
+    #[allow(dead_code)]
     pub fn plot_at_mut(&mut self, pos: Vec2<i32>) -> Option<&mut Plot> {
         self.tiles
             .get(&pos)

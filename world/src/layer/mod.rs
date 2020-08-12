@@ -135,7 +135,7 @@ pub fn apply_paths_to<'a>(
     wpos2d: Vec2<i32>,
     mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
     vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
-    index: &Index,
+    _index: &Index,
 ) {
     for y in 0..vol.size_xy().y as i32 {
         for x in 0..vol.size_xy().x as i32 {
@@ -239,7 +239,7 @@ pub fn apply_caves_to<'a>(
             };
             let surface_z = col_sample.riverless_alt.floor() as i32;
 
-            if let Some((cave_dist, cave_nearest, cave, _)) = col_sample
+            if let Some((cave_dist, _, cave, _)) = col_sample
                 .cave
                 .filter(|(dist, _, cave, _)| *dist < cave.width)
             {
@@ -286,8 +286,11 @@ pub fn apply_caves_to<'a>(
                     );
                 }
 
+                let cave_depth = (col_sample.alt - cave.alt).max(0.0);
+                let difficulty = cave_depth / 200.0;
+
                 // Scatter things in caves
-                if RandomField::new(index.seed).chance(wpos2d.into(), 0.001)
+                if RandomField::new(index.seed).chance(wpos2d.into(), 0.002 * difficulty)
                     && cave_base < surface_z as i32 - 25
                 {
                     let kind = *assets::load_expect::<Lottery<BlockKind>>("common.cave_scatter")
@@ -324,7 +327,7 @@ pub fn apply_caves_supplement<'a>(
             };
             let surface_z = col_sample.riverless_alt.floor() as i32;
 
-            if let Some((cave_dist, cave_nearest, cave, _)) = col_sample
+            if let Some((cave_dist, _, cave, _)) = col_sample
                 .cave
                 .filter(|(dist, _, cave, _)| *dist < cave.width)
             {
@@ -332,14 +335,15 @@ pub fn apply_caves_supplement<'a>(
 
                 // Relative units
                 let cave_floor = 0.0 - 0.5 * (1.0 - cave_x.powf(2.0)).max(0.0).sqrt() * cave.width;
-                let cave_height = (1.0 - cave_x.powf(2.0)).max(0.0).sqrt() * cave.width;
 
                 // Abs units
                 let cave_base = (cave.alt + cave_floor) as i32;
-                let cave_roof = (cave.alt + cave_height) as i32;
+
+                let cave_depth = (col_sample.alt - cave.alt).max(0.0);
+                let difficulty = cave_depth / 200.0;
 
                 // Scatter things in caves
-                if RandomField::new(index.seed).chance(wpos2d.into(), 0.00005)
+                if RandomField::new(index.seed).chance(wpos2d.into(), 0.0001 * difficulty)
                     && cave_base < surface_z as i32 - 40
                 {
                     let entity = EntityInfo::at(Vec3::new(
