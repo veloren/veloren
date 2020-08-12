@@ -150,7 +150,7 @@ impl Client {
                             recipe_book,
                         } => {
                             // TODO: Display that versions don't match in Voxygen
-                            if &server_info.git_hash != *common::util::GIT_HASH {
+                            if server_info.git_hash != *common::util::GIT_HASH {
                                 warn!(
                                     "Server is running {}[{}], you are running {}[{}], versions \
                                      might be incompatible!",

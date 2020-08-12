@@ -15,32 +15,39 @@ const YEAR: f32 = 12.0 * MONTH;
 const TICK_PERIOD: f32 = 3.0 * MONTH; // 3 months
 const HISTORY_DAYS: f32 = 500.0 * YEAR; // 500 years
 
+const GENERATE_CSV: bool = false;
+
 pub fn simulate(index: &mut Index, world: &mut WorldSim) {
     use std::io::Write;
-    let mut f = std::fs::File::create("economy.csv").unwrap();
-    write!(f, "Population,").unwrap();
-    for g in Good::list() {
-        write!(f, "{:?} Value,", g).unwrap();
-    }
-    for g in Good::list() {
-        write!(f, "{:?} LaborVal,", g).unwrap();
-    }
-    for g in Good::list() {
-        write!(f, "{:?} Stock,", g).unwrap();
-    }
-    for g in Good::list() {
-        write!(f, "{:?} Surplus,", g).unwrap();
-    }
-    for l in Labor::list() {
-        write!(f, "{:?} Labor,", l).unwrap();
-    }
-    for l in Labor::list() {
-        write!(f, "{:?} Productivity,", l).unwrap();
-    }
-    for l in Labor::list() {
-        write!(f, "{:?} Yields,", l).unwrap();
-    }
-    writeln!(f, "").unwrap();
+    let mut f = if GENERATE_CSV {
+        let mut f = std::fs::File::create("economy.csv").unwrap();
+        write!(f, "Population,").unwrap();
+        for g in Good::list() {
+            write!(f, "{:?} Value,", g).unwrap();
+        }
+        for g in Good::list() {
+            write!(f, "{:?} LaborVal,", g).unwrap();
+        }
+        for g in Good::list() {
+            write!(f, "{:?} Stock,", g).unwrap();
+        }
+        for g in Good::list() {
+            write!(f, "{:?} Surplus,", g).unwrap();
+        }
+        for l in Labor::list() {
+            write!(f, "{:?} Labor,", l).unwrap();
+        }
+        for l in Labor::list() {
+            write!(f, "{:?} Productivity,", l).unwrap();
+        }
+        for l in Labor::list() {
+            write!(f, "{:?} Yields,", l).unwrap();
+        }
+        writeln!(f).unwrap();
+        Some(f)
+    } else {
+        None
+    };
 
     for i in 0..(HISTORY_DAYS / TICK_PERIOD) as i32 {
         if (index.time / YEAR) as i32 % 50 == 0 && (index.time % YEAR) as i32 == 0 {
@@ -49,31 +56,33 @@ pub fn simulate(index: &mut Index, world: &mut WorldSim) {
 
         tick(index, world, TICK_PERIOD);
 
-        if i % 5 == 0 {
-            let site = index.sites.values().next().unwrap();
-            write!(f, "{},", site.economy.pop).unwrap();
-            for g in Good::list() {
-                write!(f, "{:?},", site.economy.values[*g].unwrap_or(-1.0)).unwrap();
+        if let Some(f) = f.as_mut() {
+            if i % 5 == 0 {
+                let site = index.sites.values().next().unwrap();
+                write!(f, "{},", site.economy.pop).unwrap();
+                for g in Good::list() {
+                    write!(f, "{:?},", site.economy.values[*g].unwrap_or(-1.0)).unwrap();
+                }
+                for g in Good::list() {
+                    write!(f, "{:?},", site.economy.labor_values[*g].unwrap_or(-1.0)).unwrap();
+                }
+                for g in Good::list() {
+                    write!(f, "{:?},", site.economy.stocks[*g]).unwrap();
+                }
+                for g in Good::list() {
+                    write!(f, "{:?},", site.economy.marginal_surplus[*g]).unwrap();
+                }
+                for l in Labor::list() {
+                    write!(f, "{:?},", site.economy.labors[*l] * site.economy.pop).unwrap();
+                }
+                for l in Labor::list() {
+                    write!(f, "{:?},", site.economy.productivity[*l]).unwrap();
+                }
+                for l in Labor::list() {
+                    write!(f, "{:?},", site.economy.yields[*l]).unwrap();
+                }
+                writeln!(f).unwrap();
             }
-            for g in Good::list() {
-                write!(f, "{:?},", site.economy.labor_values[*g].unwrap_or(-1.0)).unwrap();
-            }
-            for g in Good::list() {
-                write!(f, "{:?},", site.economy.stocks[*g]).unwrap();
-            }
-            for g in Good::list() {
-                write!(f, "{:?},", site.economy.marginal_surplus[*g]).unwrap();
-            }
-            for l in Labor::list() {
-                write!(f, "{:?},", site.economy.labors[*l] * site.economy.pop).unwrap();
-            }
-            for l in Labor::list() {
-                write!(f, "{:?},", site.economy.productivity[*l]).unwrap();
-            }
-            for l in Labor::list() {
-                write!(f, "{:?},", site.economy.yields[*l]).unwrap();
-            }
-            writeln!(f, "").unwrap();
         }
     }
 }
@@ -204,8 +213,7 @@ pub fn tick_site_economy(index: &mut Index, site: Id<Site>, dt: f32) {
                 // What quantity is this order requesting?
                 let _quantity = *amount * scale;
                 // What proportion of this order is the economy able to satisfy?
-                let satisfaction = (stocks_before[*good] / demand[*good]).min(1.0);
-                satisfaction
+                (stocks_before[*good] / demand[*good]).min(1.0)
             })
             .min_by(|a, b| a.partial_cmp(b).unwrap())
             .unwrap_or_else(|| panic!("Industry {:?} requires at least one input order", labor));

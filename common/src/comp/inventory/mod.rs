@@ -503,7 +503,7 @@ impl Inventory {
             }
         }
 
-        if missing.len() == 0 {
+        if missing.is_empty() {
             Ok(slot_claims)
         } else {
             Err(missing)

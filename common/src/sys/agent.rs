@@ -317,9 +317,11 @@ impl<'a> System<'a> for Sys {
                                         pos.0,
                                         vel.0,
                                         // Away from the target (ironically)
-                                        pos.0 + (pos.0 - tgt_pos.0)
-                                            .try_normalized()
-                                            .unwrap_or_else(Vec3::unit_y) * 8.0,
+                                        pos.0
+                                            + (pos.0 - tgt_pos.0)
+                                                .try_normalized()
+                                                .unwrap_or_else(Vec3::unit_y)
+                                                * 8.0,
                                         TraversalConfig {
                                             node_tolerance,
                                             slow_factor,
@@ -483,8 +485,11 @@ impl<'a> System<'a> for Sys {
                                         Activity::Attack { target, .. } if target == attacker => {},
                                         _ => {
                                             if agent.can_speak {
-                                                let msg = "npc.speech.villager_under_attack".to_string();
-                                                event_bus.emit_now(ServerEvent::Chat(UnresolvedChatMsg::npc(*uid, msg)));
+                                                let msg =
+                                                    "npc.speech.villager_under_attack".to_string();
+                                                event_bus.emit_now(ServerEvent::Chat(
+                                                    UnresolvedChatMsg::npc(*uid, msg),
+                                                ));
                                             }
 
                                             agent.activity = Activity::Attack {

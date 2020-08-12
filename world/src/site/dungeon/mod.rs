@@ -479,7 +479,8 @@ impl Floor {
                                     .reduce_and()
                             })
                             .unwrap_or(false);
-                        let boss_spawn_tile = boss_spawn_tile + if boss_tile_is_pillar { 1 } else { 0 };
+                        let boss_spawn_tile =
+                            boss_spawn_tile + if boss_tile_is_pillar { 1 } else { 0 };
 
                         if tile_pos == boss_spawn_tile && tile_wcenter.xy() == wpos2d {
                             let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
@@ -641,7 +642,8 @@ impl Floor {
         move |z| match self.tiles.get(tile_pos) {
             Some(Tile::Solid) => BlockMask::nothing(),
             Some(Tile::Tunnel) => {
-                if dist_to_wall >= wall_thickness && (z as f32) < tunnel_height * (1.0 - tunnel_dist.powf(4.0))
+                if dist_to_wall >= wall_thickness
+                    && (z as f32) < tunnel_height * (1.0 - tunnel_dist.powf(4.0))
                 {
                     if z == 0 { floor_sprite } else { empty }
                 } else {

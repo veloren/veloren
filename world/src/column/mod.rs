@@ -179,7 +179,6 @@ where
     #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
     #[allow(clippy::nonminimal_bool)] // TODO: Pending review in #587
     #[allow(clippy::single_match)] // TODO: Pending review in #587
-    #[allow(clippy::bind_instead_of_map)] // TODO: Pending review in #587
     fn get(&self, (wpos, index): Self::Index) -> Option<ColumnSample<'a>> {
         let wposf = wpos.map(|e| e as f64);
         let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
