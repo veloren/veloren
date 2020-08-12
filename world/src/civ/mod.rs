@@ -715,9 +715,7 @@ fn find_site_loc(
         loc = ctx.sim.get(test_loc).and_then(|c| {
             Some(
                 c.downhill?
-                    .map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
-                        e / (sz as i32)
-                    }),
+                    .map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / (sz as i32)),
             )
         });
     }

@@ -47,14 +47,11 @@ impl<T> Lottery<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        assets,
-        comp::inventory::item::{lottery::Lottery, Item},
-    };
+    use super::*;
+    use crate::{assets, comp::Item};
     #[test]
     fn test_loot_table() {
-        let test = assets::load_expect::<Lottery<_>>("common.loot_table");
-        let test = test;
+        let test = assets::load_expect::<Lottery<String>>("common.loot_table");
 
         for (_, item) in test.iter() {
             assert!(

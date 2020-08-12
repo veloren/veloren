@@ -85,7 +85,7 @@ fn maps_idle() {
             on_ceiling: false,
             on_wall: None,
             touch_entity: None,
-            in_fluid: false,
+            in_fluid: None,
         },
         &PreviousEntityState {
             event: SfxEvent::Idle,
@@ -107,7 +107,7 @@ fn maps_run_with_sufficient_velocity() {
             on_ceiling: false,
             on_wall: None,
             touch_entity: None,
-            in_fluid: false,
+            in_fluid: None,
         },
         &PreviousEntityState {
             event: SfxEvent::Idle,
@@ -129,7 +129,7 @@ fn does_not_map_run_with_insufficient_velocity() {
             on_ceiling: false,
             on_wall: None,
             touch_entity: None,
-            in_fluid: false,
+            in_fluid: None,
         },
         &PreviousEntityState {
             event: SfxEvent::Idle,
@@ -151,7 +151,7 @@ fn does_not_map_run_with_sufficient_velocity_but_not_on_ground() {
             on_ceiling: false,
             on_wall: None,
             touch_entity: None,
-            in_fluid: false,
+            in_fluid: None,
         },
         &PreviousEntityState {
             event: SfxEvent::Idle,
@@ -176,7 +176,7 @@ fn maps_roll() {
             on_ceiling: false,
             on_wall: None,
             touch_entity: None,
-            in_fluid: false,
+            in_fluid: None,
         },
         &PreviousEntityState {
             event: SfxEvent::Run,
@@ -198,7 +198,7 @@ fn maps_land_on_ground_to_run() {
             on_ceiling: false,
             on_wall: None,
             touch_entity: None,
-            in_fluid: false,
+            in_fluid: None,
         },
         &PreviousEntityState {
             event: SfxEvent::Idle,
@@ -220,7 +220,7 @@ fn maps_glider_open() {
             on_ceiling: false,
             on_wall: None,
             touch_entity: None,
-            in_fluid: false,
+            in_fluid: None,
         },
         &PreviousEntityState {
             event: SfxEvent::Jump,
@@ -242,7 +242,7 @@ fn maps_glide() {
             on_ceiling: false,
             on_wall: None,
             touch_entity: None,
-            in_fluid: false,
+            in_fluid: None,
         },
         &PreviousEntityState {
             event: SfxEvent::Glide,
@@ -264,7 +264,7 @@ fn maps_glider_close_when_closing_mid_flight() {
             on_ceiling: false,
             on_wall: None,
             touch_entity: None,
-            in_fluid: false,
+            in_fluid: None,
         },
         &PreviousEntityState {
             event: SfxEvent::Glide,
@@ -287,7 +287,7 @@ fn maps_glider_close_when_landing() {
             on_ceiling: false,
             on_wall: None,
             touch_entity: None,
-            in_fluid: false,
+            in_fluid: None,
         },
         &PreviousEntityState {
             event: SfxEvent::Glide,
@@ -308,7 +308,7 @@ fn maps_quadrupeds_running() {
             on_ceiling: false,
             on_wall: None,
             touch_entity: None,
-            in_fluid: false,
+            in_fluid: None,
         },
         Vec3::new(0.5, 0.8, 0.0),
     );

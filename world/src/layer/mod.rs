@@ -105,14 +105,14 @@ pub fn apply_scatter_to<'a>(
                 .find_map(|(i, (bk, is_underwater, f))| {
                     let (density, patch) = f(chunk);
                     let is_patch = patch
-                            .map(|(wavelen, threshold)| {
-                                index.noise.scatter_nz.get(
-                                    wpos2d
-                                        .map(|e| e as f64 / wavelen as f64 + i as f64 * 43.0)
-                                        .into_array(),
-                                ) < threshold as f64
-                            })
-                            .unwrap_or(false);
+                        .map(|(wavelen, threshold)| {
+                            index.noise.scatter_nz.get(
+                                wpos2d
+                                    .map(|e| e as f64 / wavelen as f64 + i as f64 * 43.0)
+                                    .into_array(),
+                            ) < threshold as f64
+                        })
+                        .unwrap_or(false);
                     if density <= 0.0
                         || is_patch
                         || !RandomField::new(i as u32)

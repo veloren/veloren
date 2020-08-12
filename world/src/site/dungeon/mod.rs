@@ -404,7 +404,7 @@ impl Floor {
         if area.contains_point(stair_rcenter.xy()) {
             let offs = Vec2::new(rng.gen_range(-1.0, 1.0), rng.gen_range(-1.0, 1.0))
                 .try_normalized()
-                .unwrap_or(Vec2::unit_y())
+                .unwrap_or_else(Vec2::unit_y)
                 * FLOOR_SIZE.x as f32
                 / 2.0
                 - 8.0;
