@@ -209,7 +209,7 @@ fn handle_make_block(
     } else {
         server.notify_client(
             client,
-            ChatType::CommandError.server_msg(String::from(action.help_string())),
+            ChatType::CommandError.server_msg(action.help_string()),
         );
     }
 }

@@ -12,6 +12,8 @@ pub trait Archetype {
     fn generate<R: Rng>(rng: &mut R) -> (Self, Skeleton<Self::Attr>)
     where
         Self: Sized;
+
+    #[allow(clippy::too_many_arguments)]
     fn draw(
         &self,
         pos: Vec3<i32>,

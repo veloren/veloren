@@ -614,7 +614,7 @@ where
                     .unwrap_or_else(|| {
                         max_border_river
                             .river_kind
-                            .and_then(|river_kind| {
+                            .map(|river_kind| {
                                 match river_kind {
                                     RiverKind::Ocean => {
                                         let (
@@ -648,7 +648,7 @@ where
                                             let river_dist = wposf.distance(river_pos);
                                             let _river_height_factor =
                                                 river_dist / (river_width * 0.5);
-                                            return Some((
+                                            return (
                                                 true,
                                                 Some((river_dist - river_width * 0.5) as f32),
                                                 alt_for_river
@@ -656,10 +656,10 @@ where
                                                 lake_water_alt - river_gouge,
                                                 alt_for_river.max(lake_water_alt),
                                                 0.0,
-                                            ));
+                                            );
                                         }
 
-                                        Some((
+                                        (
                                             river_scale_factor <= 1.0,
                                             Some(
                                                 (wposf.distance(river_pos) - river_width * 0.5)
@@ -669,7 +669,7 @@ where
                                             downhill_water_alt,
                                             alt_for_river,
                                             river_scale_factor as f32,
-                                        ))
+                                        )
                                     },
                                     RiverKind::Lake { .. } => {
                                         let lake_dist = (max_border_river_pos.map(|e| e as f64)
@@ -691,7 +691,7 @@ where
                                                 || in_bounds
                                             {
                                                 let gouge_factor = 0.0;
-                                                return Some((
+                                                return (
                                                     in_bounds
                                                         || downhill_water_alt
                                                             .max(river_chunk.water_alt)
@@ -703,16 +703,16 @@ where
                                                     alt_for_river,
                                                     river_scale_factor as f32
                                                         * (1.0 - gouge_factor),
-                                                ));
+                                                );
                                             } else {
-                                                return Some((
+                                                return (
                                                     false,
                                                     Some(lake_dist as f32),
                                                     alt_for_river,
                                                     downhill_water_alt,
                                                     alt_for_river,
                                                     river_scale_factor as f32,
-                                                ));
+                                                );
                                             };
 
                                         let lake_dist = dist.y;
@@ -724,7 +724,7 @@ where
                                             river_t as f32,
                                         );
                                         if dist == Vec2::zero() {
-                                            return Some((
+                                            return (
                                                 true,
                                                 Some(lake_dist as f32),
                                                 alt_for_river
@@ -732,7 +732,7 @@ where
                                                 lake_water_alt - river_gouge,
                                                 alt_for_river.max(lake_water_alt),
                                                 0.0,
-                                            ));
+                                            );
                                         }
                                         if lake_dist <= TerrainChunkSize::RECT_SIZE.x as f64 * 1.0
                                             || in_bounds
@@ -745,7 +745,7 @@ where
                                             let in_bounds_ = lake_dist
                                                 <= TerrainChunkSize::RECT_SIZE.x as f64 * 0.5;
                                             if gouge_factor == 1.0 {
-                                                return Some((
+                                                return (
                                                     true,
                                                     Some(lake_dist as f32),
                                                     alt.min(lake_water_alt - 1.0 - river_gouge),
@@ -753,9 +753,9 @@ where
                                                         - river_gouge,
                                                     alt.max(lake_water_alt),
                                                     0.0,
-                                                ));
+                                                );
                                             } else {
-                                                return Some((
+                                                return (
                                                     true,
                                                     None,
                                                     alt_for_river,
@@ -767,17 +767,17 @@ where
                                                     alt_for_river,
                                                     river_scale_factor as f32
                                                         * (1.0 - gouge_factor),
-                                                ));
+                                                );
                                             }
                                         }
-                                        Some((
+                                        (
                                             river_scale_factor <= 1.0,
                                             Some(lake_dist as f32),
                                             alt_for_river,
                                             downhill_water_alt,
                                             alt_for_river,
                                             river_scale_factor as f32,
-                                        ))
+                                        )
                                     },
                                     RiverKind::River { .. } => {
                                         let (_, _, river_width, (_, (river_pos, _), _)) =
@@ -785,14 +785,14 @@ where
                                         let river_dist = wposf.distance(river_pos);
 
                                         // FIXME: Make water altitude accurate.
-                                        Some((
+                                        (
                                             river_scale_factor <= 1.0,
                                             Some((river_dist - river_width * 0.5) as f32),
                                             alt_for_river,
                                             downhill_water_alt,
                                             alt_for_river,
                                             river_scale_factor as f32,
-                                        ))
+                                        )
                                     },
                                 }
                             })

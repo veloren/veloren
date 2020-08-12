@@ -48,10 +48,7 @@ impl<'a> BlockGen<'a> {
         close_cliffs.iter().fold(
             0.0f32,
             |max_height, (cliff_pos, seed)| match Self::sample_column(
-                column_gen,
-                cache,
-                *cliff_pos,
-                index,
+                column_gen, cache, *cliff_pos, index,
             ) {
                 Some(cliff_sample) if cliff_sample.is_cliffs && cliff_sample.spawn_rate > 0.5 => {
                     let cliff_pos3d = Vec3::from(*cliff_pos);
@@ -314,10 +311,10 @@ impl<'a> BlockGen<'a> {
 
             //     Some(Block::new(
             //         if on_cliff && (height * 1271.0).fract() < 0.015 {
-            //             treasures[(height * 731.3) as usize % treasures.len()]
-            //         } else if (height * 1271.0).fract() < 0.1 {
-            //             flowers[(height * 0.2) as usize % flowers.len()]
-            //         } else {
+            //             treasures[(height * 731.3) as usize %
+            // treasures.len()]         } else if (height *
+            // 1271.0).fract() < 0.1 {             flowers[(height *
+            // 0.2) as usize % flowers.len()]         } else {
             //             grasses[(height * 103.3) as usize % grasses.len()]
             //         },
             //         Rgb::broadcast(0),
@@ -343,10 +340,10 @@ impl<'a> BlockGen<'a> {
 
             //     Some(Block::new(
             //         if (height * 1271.0).fract() < 0.5 {
-            //             large_cacti[(height * 0.2) as usize % large_cacti.len()]
-            //         } else {
-            //             small_cacti[(height * 0.3) as usize % small_cacti.len()]
-            //         },
+            //             large_cacti[(height * 0.2) as usize %
+            // large_cacti.len()]         } else {
+            //             small_cacti[(height * 0.3) as usize %
+            // small_cacti.len()]         },
             //         Rgb::broadcast(0),
             //     ))
             } else {

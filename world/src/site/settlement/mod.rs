@@ -232,7 +232,7 @@ impl Settlement {
         for _ in 0..PATH_COUNT {
             dir = (Vec2::new(rng.gen::<f32>() - 0.5, rng.gen::<f32>() - 0.5) * 2.0 - dir)
                 .try_normalized()
-                .unwrap_or(Vec2::zero());
+                .unwrap_or_else(Vec2::zero);
             let origin = dir.map(|e| (e * 100.0) as i32);
             let origin = self
                 .land
@@ -662,7 +662,7 @@ impl Settlement {
                                 }
                             }
 
-                            Some(Rgb::new(100, 105, 75).map2(Rgb::iota(), |e: u8, i: i32| {
+                            Some(Rgb::new(100, 95, 65).map2(Rgb::iota(), |e: u8, i: i32| {
                                 e.saturating_add(
                                     (self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, i * 5)) % 1)
                                         as u8,
@@ -746,9 +746,9 @@ impl Settlement {
 
                             for z in -8 - diff..4 + diff {
                                 let pos = Vec3::new(offs.x, offs.y, surface_z + z);
-                                let block = vol.get(pos).ok().copied().unwrap_or(Block::empty());
+                                let block = vol.get(pos).ok().copied().unwrap_or_else(Block::empty);
 
-                                if block.is_empty() {
+                                if block.kind() == BlockKind::Air {
                                     break;
                                 }
 
