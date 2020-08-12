@@ -55,6 +55,10 @@ float exp_scale(float factor) {
 	return 1 / (1 - lifetime * factor);
 }
 
+float linear_scale(float factor) {
+	return lifetime * factor;
+}
+
 void main() {
 	float rand0 = hash(vec4(inst_entropy + 0));
 	float rand1 = hash(vec4(inst_entropy + 1));
@@ -70,10 +74,10 @@ void main() {
 	if (inst_mode == SMOKE) {
 		attr = Attr(
 			linear_motion(
-				vec3(rand0 * 0.25, rand1 * 0.25, 1.7 + rand5),
-				vec3(rand2 * 0.2, rand3 * 0.2, 1.0 + rand4 * 0.5)// + vec3(sin(lifetime), sin(lifetime + 1.5), sin(lifetime * 4) * 0.25)
+				vec3(0.0, 0.0, 0.0),
+				vec3(rand2 * 0.1, rand3 * 0.1, 1.0 + rand4 * 0.1)// + vec3(sin(lifetime), sin(lifetime + 1.5), sin(lifetime * 4) * 0.25)
 			),
-			exp_scale(-0.2),
+			linear_scale(0.5),
 			vec3(1)
 		);
 	} else if (inst_mode == FIRE) {

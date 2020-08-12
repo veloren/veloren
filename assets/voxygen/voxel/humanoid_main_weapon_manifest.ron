@@ -425,6 +425,10 @@
         vox_spec: ("weapon.hammer.2hhammer_mjolnir", (-2.5, -8.5, -4.0)),
         color: None
     ),
+    Hammer("CultPurp0"): (
+        vox_spec: ("weapon.hammer.cult_purp-0", (-3.5, -4.5, -5.0)),    
+        color: None
+    ),
     /*Dagger("Craftsman"): ( //TODO This should be a 1h hammer!
         vox_spec: ("weapon.hammer.craftsman", (-2.0, -5.0, -5.5)),
         color: None
