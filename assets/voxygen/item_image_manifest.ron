@@ -480,6 +480,10 @@
         "voxel.weapon.hammer.2hhammer_mjolnir",
         (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
+    Tool(Hammer("CultPurp0")): VoxTrans(
+        "voxel.weapon.hammer.cult_purp-0",
+        (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
     // Staffs
     Tool(Staff("BasicStaff")): VoxTrans(
         "voxel.weapon.staff.firestaff_starter",

@@ -441,9 +441,9 @@ impl Species {
             (Species::Human, BodyType::Female) => 1,
             (Species::Human, BodyType::Male) => 1,
             (Species::Orc, BodyType::Female) => 4,
-            (Species::Orc, BodyType::Male) => 5,
-            (Species::Undead, BodyType::Female) => 1,
-            (Species::Undead, BodyType::Male) => 1,
+            (Species::Orc, BodyType::Male) => 6,
+            (Species::Undead, BodyType::Female) => 2,
+            (Species::Undead, BodyType::Male) => 2,
         }
     }
 

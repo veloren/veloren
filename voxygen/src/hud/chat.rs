@@ -374,7 +374,7 @@ impl<'a> Widget for Chat<'a> {
                 .w_h(20.0, 20.0)
                 .hover_image(self.imgs.chat_arrow_mo)
                 .press_image(self.imgs.chat_arrow_press)
-                .bottom_right_with_margins_on(state.ids.message_box_bg, 0.0, -22.0)
+                .top_right_with_margins_on(state.ids.message_box_bg, 0.0, -22.0)
                 .parent(id)
                 .set(state.ids.chat_arrow, ui)
                 .was_clicked()

@@ -72,7 +72,7 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                     .push(GameInput::Escape);
                 map.entry(settings.game_buttons.enter)
                     .or_default()
-                    .push(GameInput::Enter);
+                    .push(GameInput::Chat);
                 map.entry(settings.game_buttons.command)
                     .or_default()
                     .push(GameInput::Command);
