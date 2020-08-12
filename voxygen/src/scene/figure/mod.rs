@@ -481,6 +481,9 @@ impl FigureMgr {
             min: player_pos - 2.0,
             max: player_pos + 2.0,
         };
+        let camera_mode = camera.get_mode();
+        let character_state_storage = state.read_storage::<common::comp::CharacterState>();
+        let character_state = character_state_storage.get(scene_data.player_entity);
 
         let focus_pos = anim::vek::Vec3::<f32>::from(camera.get_focus_pos());
 
@@ -521,6 +524,13 @@ impl FigureMgr {
         {
             let vel = (anim::vek::Vec3::<f32>::from(vel.0),);
             let is_player = scene_data.player_entity == entity;
+            let player_camera_mode = if is_player {
+                camera_mode
+            } else {
+                CameraMode::default()
+            };
+            let player_character_state = if is_player { character_state } else { None };
+
             let (pos, ori) = interpolated
                 .map(|i| {
                     (
@@ -654,8 +664,8 @@ impl FigureMgr {
                         *body,
                         loadout,
                         tick,
-                        CameraMode::default(),
-                        None,
+                        player_camera_mode,
+                        player_character_state,
                     );
 
                     let state = self
@@ -1024,8 +1034,8 @@ impl FigureMgr {
                             *body,
                             loadout,
                             tick,
-                            CameraMode::default(),
-                            None,
+                            player_camera_mode,
+                            player_character_state,
                         );
 
                     let state = self
@@ -1125,8 +1135,8 @@ impl FigureMgr {
                             *body,
                             loadout,
                             tick,
-                            CameraMode::default(),
-                            None,
+                            player_camera_mode,
+                            player_character_state,
                         );
 
                     let state = self
@@ -1226,8 +1236,8 @@ impl FigureMgr {
                             *body,
                             loadout,
                             tick,
-                            CameraMode::default(),
-                            None,
+                            player_camera_mode,
+                            player_character_state,
                         );
 
                     let state = self
@@ -1324,8 +1334,8 @@ impl FigureMgr {
                         *body,
                         loadout,
                         tick,
-                        CameraMode::default(),
-                        None,
+                        player_camera_mode,
+                        player_character_state,
                     );
 
                     let state = self
@@ -1420,8 +1430,8 @@ impl FigureMgr {
                         *body,
                         loadout,
                         tick,
-                        CameraMode::default(),
-                        None,
+                        player_camera_mode,
+                        player_character_state,
                     );
 
                     let state = self
@@ -1499,8 +1509,8 @@ impl FigureMgr {
                         *body,
                         loadout,
                         tick,
-                        CameraMode::default(),
-                        None,
+                        player_camera_mode,
+                        player_character_state,
                     );
 
                     let state =
@@ -1574,8 +1584,8 @@ impl FigureMgr {
                         *body,
                         loadout,
                         tick,
-                        CameraMode::default(),
-                        None,
+                        player_camera_mode,
+                        player_character_state,
                     );
 
                     let state =
@@ -1650,8 +1660,8 @@ impl FigureMgr {
                         *body,
                         loadout,
                         tick,
-                        CameraMode::default(),
-                        None,
+                        player_camera_mode,
+                        player_character_state,
                     );
 
                     let state = self
@@ -1729,8 +1739,8 @@ impl FigureMgr {
                         *body,
                         loadout,
                         tick,
-                        CameraMode::default(),
-                        None,
+                        player_camera_mode,
+                        player_character_state,
                     );
 
                     let state = self
@@ -1808,8 +1818,8 @@ impl FigureMgr {
                         *body,
                         loadout,
                         tick,
-                        CameraMode::default(),
-                        None,
+                        player_camera_mode,
+                        player_character_state,
                     );
 
                     let state = self
@@ -1904,8 +1914,8 @@ impl FigureMgr {
                         *body,
                         loadout,
                         tick,
-                        CameraMode::default(),
-                        None,
+                        player_camera_mode,
+                        player_character_state,
                     );
 
                     let state =
@@ -1980,8 +1990,8 @@ impl FigureMgr {
                         *body,
                         loadout,
                         tick,
-                        CameraMode::default(),
-                        None,
+                        player_camera_mode,
+                        player_character_state,
                     );
 
                     let state =

@@ -10,16 +10,11 @@ use common::{
         fish_medium, fish_small,
         golem::{BodyType as GBodyType, Species as GSpecies},
         humanoid::{Body, BodyType, EyeColor, Skin, Species},
-        item::{
-            armor::{Armor, ArmorKind},
-            tool::{Tool, ToolKind},
-            ItemKind, Lantern,
-        },
+        item::tool::ToolKind,
         object,
         quadruped_low::{BodyType as QLBodyType, Species as QLSpecies},
         quadruped_medium::{BodyType as QMBodyType, Species as QMSpecies},
         quadruped_small::{BodyType as QSBodyType, Species as QSSpecies},
-        Loadout,
     },
     figure::{DynaUnionizer, MatSegment, Material, Segment},
 };
@@ -361,15 +356,11 @@ impl HumArmorShoulderSpec {
     fn mesh_shoulder(
         &self,
         body: &Body,
-        loadout: &Loadout,
+        shoulder: Option<&str>,
         flipped: bool,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        let spec = if let Some(ItemKind::Armor(Armor {
-            kind: ArmorKind::Shoulder(shoulder),
-            ..
-        })) = loadout.shoulder.as_ref().map(|i| &i.kind)
-        {
+        let spec = if let Some(shoulder) = shoulder {
             match self.0.map.get(shoulder) {
                 Some(spec) => spec,
                 None => {
@@ -419,19 +410,19 @@ impl HumArmorShoulderSpec {
     pub fn mesh_left_shoulder(
         &self,
         body: &Body,
-        loadout: &Loadout,
+        shoulder: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        self.mesh_shoulder(body, loadout, true, generate_mesh)
+        self.mesh_shoulder(body, shoulder, true, generate_mesh)
     }
 
     pub fn mesh_right_shoulder(
         &self,
         body: &Body,
-        loadout: &Loadout,
+        shoulder: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        self.mesh_shoulder(body, loadout, false, generate_mesh)
+        self.mesh_shoulder(body, shoulder, false, generate_mesh)
     }
 }
 // Chest
@@ -444,18 +435,14 @@ impl HumArmorChestSpec {
     pub fn mesh_chest(
         &self,
         body: &Body,
-        loadout: &Loadout,
+        chest: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        let spec = if let Some(ItemKind::Armor(Armor {
-            kind: ArmorKind::Chest(chest),
-            ..
-        })) = loadout.chest.as_ref().map(|i| &i.kind)
-        {
+        let spec = if let Some(chest) = chest {
             match self.0.map.get(chest) {
                 Some(spec) => spec,
                 None => {
-                    error!(?loadout.chest, "No chest specification exists");
+                    error!(?chest, "No chest specification exists");
                     return load_mesh("not_found", Vec3::new(-7.0, -3.5, 2.0), generate_mesh);
                 },
             }
@@ -500,15 +487,11 @@ impl HumArmorHandSpec {
     fn mesh_hand(
         &self,
         body: &Body,
-        loadout: &Loadout,
+        hand: Option<&str>,
         flipped: bool,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        let spec = if let Some(ItemKind::Armor(Armor {
-            kind: ArmorKind::Hand(hand),
-            ..
-        })) = loadout.hand.as_ref().map(|i| &i.kind)
-        {
+        let spec = if let Some(hand) = hand {
             match self.0.map.get(hand) {
                 Some(spec) => spec,
                 None => {
@@ -552,19 +535,19 @@ impl HumArmorHandSpec {
     pub fn mesh_left_hand(
         &self,
         body: &Body,
-        loadout: &Loadout,
+        hand: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        self.mesh_hand(body, loadout, true, generate_mesh)
+        self.mesh_hand(body, hand, true, generate_mesh)
     }
 
     pub fn mesh_right_hand(
         &self,
         body: &Body,
-        loadout: &Loadout,
+        hand: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        self.mesh_hand(body, loadout, false, generate_mesh)
+        self.mesh_hand(body, hand, false, generate_mesh)
     }
 }
 // Belt
@@ -577,14 +560,10 @@ impl HumArmorBeltSpec {
     pub fn mesh_belt(
         &self,
         body: &Body,
-        loadout: &Loadout,
+        belt: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        let spec = if let Some(ItemKind::Armor(Armor {
-            kind: ArmorKind::Belt(belt),
-            ..
-        })) = loadout.belt.as_ref().map(|i| &i.kind)
-        {
+        let spec = if let Some(belt) = belt {
             match self.0.map.get(belt) {
                 Some(spec) => spec,
                 None => {
@@ -621,14 +600,10 @@ impl HumArmorBackSpec {
     pub fn mesh_back(
         &self,
         body: &Body,
-        loadout: &Loadout,
+        back: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        let spec = if let Some(ItemKind::Armor(Armor {
-            kind: ArmorKind::Back(back),
-            ..
-        })) = loadout.back.as_ref().map(|i| &i.kind)
-        {
+        let spec = if let Some(back) = back {
             match self.0.map.get(back) {
                 Some(spec) => spec,
                 None => {
@@ -664,14 +639,10 @@ impl HumArmorPantsSpec {
     pub fn mesh_pants(
         &self,
         body: &Body,
-        loadout: &Loadout,
+        pants: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        let spec = if let Some(ItemKind::Armor(Armor {
-            kind: ArmorKind::Pants(pants),
-            ..
-        })) = loadout.pants.as_ref().map(|i| &i.kind)
-        {
+        let spec = if let Some(pants) = pants {
             match self.0.map.get(pants) {
                 Some(spec) => spec,
                 None => {
@@ -720,15 +691,11 @@ impl HumArmorFootSpec {
     fn mesh_foot(
         &self,
         body: &Body,
-        loadout: &Loadout,
+        foot: Option<&str>,
         flipped: bool,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        let spec = if let Some(ItemKind::Armor(Armor {
-            kind: ArmorKind::Foot(foot),
-            ..
-        })) = loadout.foot.as_ref().map(|i| &i.kind)
-        {
+        let spec = if let Some(foot) = foot {
             match self.0.map.get(foot) {
                 Some(spec) => spec,
                 None => {
@@ -762,19 +729,19 @@ impl HumArmorFootSpec {
     pub fn mesh_left_foot(
         &self,
         body: &Body,
-        loadout: &Loadout,
+        foot: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        self.mesh_foot(body, loadout, true, generate_mesh)
+        self.mesh_foot(body, foot, true, generate_mesh)
     }
 
     pub fn mesh_right_foot(
         &self,
         body: &Body,
-        loadout: &Loadout,
+        foot: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        self.mesh_foot(body, loadout, false, generate_mesh)
+        self.mesh_foot(body, foot, false, generate_mesh)
     }
 }
 
@@ -786,11 +753,11 @@ impl HumMainWeaponSpec {
 
     pub fn mesh_main_weapon(
         &self,
-        item_kind: Option<&ItemKind>,
+        tool_kind: Option<&ToolKind>,
         flipped: bool,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        let tool_kind = if let Some(ItemKind::Tool(Tool { kind, .. })) = item_kind {
+        let tool_kind = if let Some(kind) = tool_kind {
             kind
         } else {
             return (Mesh::new(), Aabb::default());
@@ -835,12 +802,10 @@ impl HumArmorLanternSpec {
     pub fn mesh_lantern(
         &self,
         body: &Body,
-        loadout: &Loadout,
+        lantern: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        let spec = if let Some(ItemKind::Lantern(Lantern { kind, .. })) =
-            loadout.lantern.as_ref().map(|i| &i.kind)
-        {
+        let spec = if let Some(kind) = lantern {
             match self.0.map.get(kind) {
                 Some(spec) => spec,
                 None => {
@@ -876,14 +841,10 @@ impl HumArmorHeadSpec {
     pub fn mesh_head(
         &self,
         body: &Body,
-        loadout: &Loadout,
+        head: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        let spec = if let Some(ItemKind::Armor(Armor {
-            kind: ArmorKind::Head(head),
-            ..
-        })) = loadout.head.as_ref().map(|i| &i.kind)
-        {
+        let spec = if let Some(head) = head {
             match self.0.map.get(head) {
                 Some(spec) => spec,
                 None => {
@@ -931,14 +892,10 @@ impl HumArmorTabardSpec {
     pub fn mesh_tabard(
         &self,
         body: &Body,
-        loadout: &Loadout,
+        tabard: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        let spec = if let Some(ItemKind::Armor(Armor {
-            kind: ArmorKind::Tabard(tabard),
-            ..
-        })) = loadout.tabard.as_ref().map(|i| &i.kind)
-        {
+        let spec = if let Some(tabard) = tabard {
             match self.0.map.get(tabard) {
                 Some(spec) => spec,
                 None => {
@@ -3403,7 +3360,7 @@ impl QuadrupedLowLateralSpec {
 ///
 
 pub fn mesh_object(
-    obj: object::Body,
+    obj: &object::Body,
     generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
 ) -> BoneMeshes {
     use object::Body;

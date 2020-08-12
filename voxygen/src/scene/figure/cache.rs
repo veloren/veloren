@@ -8,80 +8,159 @@ use anim::Skeleton;
 use common::{
     assets::watch::ReloadIndicator,
     comp::{
-        item::{armor::ArmorKind, tool::ToolKind, ItemKind},
+        item::{
+            armor::{Armor, ArmorKind},
+            tool::ToolKind,
+            ItemKind,
+        },
         Body, CharacterState, Loadout,
     },
     figure::Segment,
     vol::BaseVol,
 };
+use core::convert::TryInto;
 use hashbrown::{hash_map::Entry, HashMap};
-use std::{
-    convert::TryInto,
-    mem::{discriminant, Discriminant},
-};
 use vek::*;
 
 pub type FigureModelEntry = [FigureModel; 3];
 
-#[allow(clippy::large_enum_variant)] // TODO: Pending review in #587
-#[derive(PartialEq, Eq, Hash, Clone)]
-enum FigureKey {
-    Simple(Body),
-    Complex(Body, CameraMode, CharacterCacheKey),
+#[derive(Eq, Hash, PartialEq)]
+struct FigureKey {
+    /// Body pointed to by this key.
+    body: Body,
+    /// Extra state.
+    extra: Option<Box<CharacterCacheKey>>,
 }
 
-#[derive(PartialEq, Eq, Hash, Clone)]
+/// Character data that should be visible when tools are visible (i.e. in third
+/// person or when the character is in a tool-using state).
+#[derive(Eq, Hash, PartialEq)]
+pub struct CharacterToolKey {
+    active: Option<ToolKind>,
+    second: Option<ToolKind>,
+}
+
+/// Character data that exists in third person only.
+#[derive(Eq, Hash, PartialEq)]
+struct CharacterThirdPersonKey {
+    shoulder: Option<String>,
+    chest: Option<String>,
+    belt: Option<String>,
+    back: Option<String>,
+    pants: Option<String>,
+}
+
+#[derive(Eq, Hash, PartialEq)]
+/// NOTE: To avoid spamming the character cache with player models, we try to
+/// store only the minimum information required to correctly update the model.
+///
+/// TODO: Memoize, etc.
 struct CharacterCacheKey {
-    state: Option<Discriminant<CharacterState>>, // TODO: Can this be simplified?
-    active_tool: Option<ToolKind>,
-    second_tool: Option<ToolKind>,
-    shoulder: Option<ArmorKind>,
-    chest: Option<ArmorKind>,
-    belt: Option<ArmorKind>,
-    back: Option<ArmorKind>,
+    /// Character state that is only visible in third person.
+    third_person: Option<CharacterThirdPersonKey>,
+    /// Tool state should be present when a character is either in third person,
+    /// or is in first person and the character state is tool-using.
+    ///
+    /// NOTE: This representation could be tightened in various ways to
+    /// eliminate incorrect states, e.g. setting active_tool to None when no
+    /// tools are equipped, but currently we are more focused on the big
+    /// performance impact of recreating the whole model whenever the character
+    /// state changes, so for now we don't bother with this.
+    tool: Option<CharacterToolKey>,
     lantern: Option<String>,
-    hand: Option<ArmorKind>,
-    pants: Option<ArmorKind>,
-    foot: Option<ArmorKind>,
+    hand: Option<String>,
+    foot: Option<String>,
 }
 
 impl CharacterCacheKey {
-    fn from(cs: Option<&CharacterState>, loadout: &Loadout) -> Self {
+    fn from(cs: Option<&CharacterState>, camera_mode: CameraMode, loadout: &Loadout) -> Self {
+        let is_first_person = match camera_mode {
+            CameraMode::FirstPerson => true,
+            CameraMode::ThirdPerson | CameraMode::Freefly => false,
+        };
+
+        // Third person tools are only modeled when the camera is either not first
+        // person, or the camera is first person and we are in a tool-using
+        // state.
+        let are_tools_visible = !is_first_person
+            || cs
+            .map(|cs| cs.is_attack() || cs.is_block() || cs.is_wield())
+            // If there's no provided character state but we're still somehow in first person,
+            // We currently assume there's no need to visually model tools.
+            //
+            // TODO: Figure out what to do here, and/or refactor how this works.
+            .unwrap_or(false);
+
         Self {
-            state: cs.map(|cs| discriminant(cs)),
-            active_tool: if let Some(ItemKind::Tool(tool)) =
-                loadout.active_item.as_ref().map(|i| &i.item.kind)
-            {
-                Some(tool.kind.clone())
-            } else {
+            // Third person armor is only modeled when the camera mode is not first person.
+            third_person: if is_first_person {
                 None
-            },
-            second_tool: if let Some(ItemKind::Tool(tool)) =
-                loadout.second_item.as_ref().map(|i| &i.item.kind)
-            {
-                Some(tool.kind.clone())
             } else {
-                None
+                Some(CharacterThirdPersonKey {
+                    shoulder: if let Some(ItemKind::Armor(Armor {
+                        kind: ArmorKind::Shoulder(armor),
+                        ..
+                    })) = loadout.shoulder.as_ref().map(|i| &i.kind)
+                    {
+                        Some(armor.clone())
+                    } else {
+                        None
+                    },
+                    chest: if let Some(ItemKind::Armor(Armor {
+                        kind: ArmorKind::Chest(armor),
+                        ..
+                    })) = loadout.chest.as_ref().map(|i| &i.kind)
+                    {
+                        Some(armor.clone())
+                    } else {
+                        None
+                    },
+                    belt: if let Some(ItemKind::Armor(Armor {
+                        kind: ArmorKind::Belt(armor),
+                        ..
+                    })) = loadout.belt.as_ref().map(|i| &i.kind)
+                    {
+                        Some(armor.clone())
+                    } else {
+                        None
+                    },
+                    back: if let Some(ItemKind::Armor(Armor {
+                        kind: ArmorKind::Back(armor),
+                        ..
+                    })) = loadout.back.as_ref().map(|i| &i.kind)
+                    {
+                        Some(armor.clone())
+                    } else {
+                        None
+                    },
+                    pants: if let Some(ItemKind::Armor(Armor {
+                        kind: ArmorKind::Pants(armor),
+                        ..
+                    })) = loadout.pants.as_ref().map(|i| &i.kind)
+                    {
+                        Some(armor.clone())
+                    } else {
+                        None
+                    },
+                })
             },
-            shoulder: if let Some(ItemKind::Armor(armor)) =
-                loadout.shoulder.as_ref().map(|i| &i.kind)
-            {
-                Some(armor.kind.clone())
-            } else {
-                None
-            },
-            chest: if let Some(ItemKind::Armor(armor)) = loadout.chest.as_ref().map(|i| &i.kind) {
-                Some(armor.kind.clone())
-            } else {
-                None
-            },
-            belt: if let Some(ItemKind::Armor(armor)) = loadout.belt.as_ref().map(|i| &i.kind) {
-                Some(armor.kind.clone())
-            } else {
-                None
-            },
-            back: if let Some(ItemKind::Armor(armor)) = loadout.back.as_ref().map(|i| &i.kind) {
-                Some(armor.kind.clone())
+            tool: if are_tools_visible {
+                Some(CharacterToolKey {
+                    active: if let Some(ItemKind::Tool(tool)) =
+                        loadout.active_item.as_ref().map(|i| &i.item.kind)
+                    {
+                        Some(tool.kind.clone())
+                    } else {
+                        None
+                    },
+                    second: if let Some(ItemKind::Tool(tool)) =
+                        loadout.second_item.as_ref().map(|i| &i.item.kind)
+                    {
+                        Some(tool.kind.clone())
+                    } else {
+                        None
+                    },
+                })
             } else {
                 None
             },
@@ -92,18 +171,21 @@ impl CharacterCacheKey {
             } else {
                 None
             },
-            hand: if let Some(ItemKind::Armor(armor)) = loadout.hand.as_ref().map(|i| &i.kind) {
-                Some(armor.kind.clone())
+            hand: if let Some(ItemKind::Armor(Armor {
+                kind: ArmorKind::Hand(armor),
+                ..
+            })) = loadout.hand.as_ref().map(|i| &i.kind)
+            {
+                Some(armor.clone())
             } else {
                 None
             },
-            pants: if let Some(ItemKind::Armor(armor)) = loadout.pants.as_ref().map(|i| &i.kind) {
-                Some(armor.kind.clone())
-            } else {
-                None
-            },
-            foot: if let Some(ItemKind::Armor(armor)) = loadout.foot.as_ref().map(|i| &i.kind) {
-                Some(armor.kind.clone())
+            foot: if let Some(ItemKind::Armor(Armor {
+                kind: ArmorKind::Foot(armor),
+                ..
+            })) = loadout.foot.as_ref().map(|i| &i.kind)
+            {
+                Some(armor.clone())
             } else {
                 None
             },
@@ -129,11 +211,12 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
         }
     }
 
+    /// NOTE: We deliberately call this function with only the key into the
+    /// cache, to enforce that the cached state only depends on the key.  We
+    /// may end up using different from this cache eventually, in which case
+    /// this strategy might change.
     fn bone_meshes(
-        body: Body,
-        loadout: Option<&Loadout>,
-        character_state: Option<&CharacterState>,
-        camera_mode: CameraMode,
+        FigureKey { body, extra }: &FigureKey,
         manifest_indicator: &mut ReloadIndicator,
         mut generate_mesh: impl FnMut(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> [Option<BoneMeshes>; 16] {
@@ -152,130 +235,109 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                 let humanoid_armor_foot_spec = HumArmorFootSpec::load_watched(manifest_indicator);
                 let humanoid_main_weapon_spec = HumMainWeaponSpec::load_watched(manifest_indicator);
 
+                const DEFAULT_LOADOUT: CharacterCacheKey = CharacterCacheKey {
+                    third_person: None,
+                    tool: None,
+                    lantern: None,
+                    hand: None,
+                    foot: None,
+                };
+
                 // TODO: This is bad code, maybe this method should return Option<_>
-                let default_loadout = Loadout::default();
-                let loadout = loadout.unwrap_or(&default_loadout);
+                let loadout = extra.as_deref().unwrap_or(&DEFAULT_LOADOUT);
+                let third_person = loadout.third_person.as_ref();
+                let tool = loadout.tool.as_ref();
+                let lantern = loadout.lantern.as_deref();
+                let hand = loadout.hand.as_deref();
+                let foot = loadout.foot.as_deref();
 
                 [
-                    match camera_mode {
-                        CameraMode::ThirdPerson | CameraMode::Freefly => Some(
-                            humanoid_head_spec
-                                .mesh_head(&body, |segment, offset| generate_mesh(segment, offset)),
-                        ),
-                        CameraMode::FirstPerson => None,
-                    },
-                    match camera_mode {
-                        CameraMode::ThirdPerson | CameraMode::Freefly => {
-                            Some(humanoid_armor_chest_spec.mesh_chest(
-                                &body,
-                                loadout,
-                                |segment, offset| generate_mesh(segment, offset),
-                            ))
-                        },
-                        CameraMode::FirstPerson => None,
-                    },
-                    match camera_mode {
-                        CameraMode::ThirdPerson | CameraMode::Freefly => {
-                            Some(humanoid_armor_belt_spec.mesh_belt(
-                                &body,
-                                loadout,
-                                |segment, offset| generate_mesh(segment, offset),
-                            ))
-                        },
-                        CameraMode::FirstPerson => None,
-                    },
-                    match camera_mode {
-                        CameraMode::ThirdPerson | CameraMode::Freefly => {
-                            Some(humanoid_armor_back_spec.mesh_back(
-                                &body,
-                                loadout,
-                                |segment, offset| generate_mesh(segment, offset),
-                            ))
-                        },
-                        CameraMode::FirstPerson => None,
-                    },
-                    match camera_mode {
-                        CameraMode::ThirdPerson | CameraMode::Freefly => {
-                            Some(humanoid_armor_pants_spec.mesh_pants(
-                                &body,
-                                loadout,
-                                |segment, offset| generate_mesh(segment, offset),
-                            ))
-                        },
-                        CameraMode::FirstPerson => None,
-                    },
-                    Some(humanoid_armor_hand_spec.mesh_left_hand(
-                        &body,
-                        loadout,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
+                    third_person.map(|_| {
+                        humanoid_head_spec
+                            .mesh_head(body, |segment, offset| generate_mesh(segment, offset))
+                    }),
+                    third_person.map(|loadout| {
+                        humanoid_armor_chest_spec.mesh_chest(
+                            body,
+                            loadout.chest.as_deref(),
+                            |segment, offset| generate_mesh(segment, offset),
+                        )
+                    }),
+                    third_person.map(|loadout| {
+                        humanoid_armor_belt_spec.mesh_belt(
+                            body,
+                            loadout.belt.as_deref(),
+                            |segment, offset| generate_mesh(segment, offset),
+                        )
+                    }),
+                    third_person.map(|loadout| {
+                        humanoid_armor_back_spec.mesh_back(
+                            body,
+                            loadout.back.as_deref(),
+                            |segment, offset| generate_mesh(segment, offset),
+                        )
+                    }),
+                    third_person.map(|loadout| {
+                        humanoid_armor_pants_spec.mesh_pants(
+                            body,
+                            loadout.pants.as_deref(),
+                            |segment, offset| generate_mesh(segment, offset),
+                        )
+                    }),
+                    Some(
+                        humanoid_armor_hand_spec.mesh_left_hand(body, hand, |segment, offset| {
+                            generate_mesh(segment, offset)
+                        }),
+                    ),
                     Some(humanoid_armor_hand_spec.mesh_right_hand(
-                        &body,
-                        loadout,
+                        body,
+                        hand,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
-                    Some(humanoid_armor_foot_spec.mesh_left_foot(
-                        &body,
-                        loadout,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
+                    Some(
+                        humanoid_armor_foot_spec.mesh_left_foot(body, foot, |segment, offset| {
+                            generate_mesh(segment, offset)
+                        }),
+                    ),
                     Some(humanoid_armor_foot_spec.mesh_right_foot(
-                        &body,
-                        loadout,
+                        body,
+                        foot,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
-                    match camera_mode {
-                        CameraMode::ThirdPerson | CameraMode::Freefly => {
-                            Some(humanoid_armor_shoulder_spec.mesh_left_shoulder(
-                                &body,
-                                loadout,
-                                |segment, offset| generate_mesh(segment, offset),
-                            ))
-                        },
-                        CameraMode::FirstPerson => None,
-                    },
-                    match camera_mode {
-                        CameraMode::ThirdPerson | CameraMode::Freefly => {
-                            Some(humanoid_armor_shoulder_spec.mesh_right_shoulder(
-                                &body,
-                                loadout,
-                                |segment, offset| generate_mesh(segment, offset),
-                            ))
-                        },
-                        CameraMode::FirstPerson => None,
-                    },
+                    third_person.map(|loadout| {
+                        humanoid_armor_shoulder_spec.mesh_left_shoulder(
+                            body,
+                            loadout.shoulder.as_deref(),
+                            |segment, offset| generate_mesh(segment, offset),
+                        )
+                    }),
+                    third_person.map(|loadout| {
+                        humanoid_armor_shoulder_spec.mesh_right_shoulder(
+                            body,
+                            loadout.shoulder.as_deref(),
+                            |segment, offset| generate_mesh(segment, offset),
+                        )
+                    }),
                     Some(mesh_glider(|segment, offset| {
                         generate_mesh(segment, offset)
                     })),
-                    if camera_mode != CameraMode::FirstPerson
-                        || character_state
-                            .map(|cs| cs.is_attack() || cs.is_block() || cs.is_wield())
-                            .unwrap_or_default()
-                    {
-                        Some(humanoid_main_weapon_spec.mesh_main_weapon(
-                            loadout.active_item.as_ref().map(|i| &i.item.kind),
+                    tool.map(|tool| {
+                        humanoid_main_weapon_spec.mesh_main_weapon(
+                            tool.active.as_ref(),
                             false,
                             |segment, offset| generate_mesh(segment, offset),
-                        ))
-                    } else {
-                        None
-                    },
-                    if camera_mode != CameraMode::FirstPerson
-                        || character_state
-                            .map(|cs| cs.is_attack() || cs.is_block() || cs.is_wield())
-                            .unwrap_or_default()
-                    {
-                        Some(humanoid_main_weapon_spec.mesh_main_weapon(
-                            loadout.second_item.as_ref().map(|i| &i.item.kind),
+                        )
+                    }),
+                    tool.map(|tool| {
+                        humanoid_main_weapon_spec.mesh_main_weapon(
+                            tool.second.as_ref(),
                             true,
                             |segment, offset| generate_mesh(segment, offset),
-                        ))
-                    } else {
-                        None
-                    },
+                        )
+                    }),
                     Some(humanoid_armor_lantern_spec.mesh_lantern(
-                        &body,
-                        loadout,
+                        body,
+                        lantern,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
                     Some(mesh_hold(|segment, offset| generate_mesh(segment, offset))),
@@ -923,14 +985,15 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
         for<'a> &'a common::comp::Body: std::convert::TryInto<Skel::Attr>,
         Skel::Attr: Default,
     {
-        let key = if let Some(loadout) = loadout {
-            FigureKey::Complex(
-                body,
-                camera_mode,
-                CharacterCacheKey::from(character_state, loadout),
-            )
-        } else {
-            FigureKey::Simple(body)
+        let key = FigureKey {
+            body,
+            extra: loadout.map(|loadout| {
+                Box::new(CharacterCacheKey::from(
+                    character_state,
+                    camera_mode,
+                    loadout,
+                ))
+            }),
         };
 
         match self.models.entry(key) {
@@ -940,100 +1003,90 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                 model
             },
             Entry::Vacant(v) => {
-                &v.insert((
-                    {
-                        let skeleton_attr = (&body)
-                            .try_into()
-                            .ok()
-                            .unwrap_or_else(<Skel::Attr as Default>::default);
+                let key = v.key();
+                let model = {
+                    let skeleton_attr = (&body)
+                        .try_into()
+                        .ok()
+                        .unwrap_or_else(<Skel::Attr as Default>::default);
 
-                        let manifest_indicator = &mut self.manifest_indicator;
-                        let mut make_model =
-                            |generate_mesh: for<'a> fn(&mut GreedyMesh<'a>, _, _) -> _| {
-                                let mut greedy = FigureModel::make_greedy();
-                                let mut opaque = Mesh::new();
-                                let mut figure_bounds = Aabb {
-                                    min: Vec3::zero(),
-                                    max: Vec3::zero(),
-                                };
-                                Self::bone_meshes(
-                                    body,
-                                    loadout,
-                                    character_state,
-                                    camera_mode,
-                                    manifest_indicator,
-                                    |segment, offset| generate_mesh(&mut greedy, segment, offset),
-                                )
-                                .iter()
-                                .enumerate()
-                                .filter_map(|(i, bm)| bm.as_ref().map(|bm| (i, bm)))
-                                .for_each(
-                                    |(i, (opaque_mesh, bounds))| {
-                                        opaque.push_mesh_map(opaque_mesh, |vert| {
-                                            vert.with_bone_idx(i as u8)
-                                        });
-                                        figure_bounds.expand_to_contain(*bounds);
-                                    },
-                                );
-                                col_lights
-                                    .create_figure(renderer, greedy, (opaque, figure_bounds))
-                                    .unwrap()
+                    let manifest_indicator = &mut self.manifest_indicator;
+                    let mut make_model =
+                        |generate_mesh: for<'a> fn(&mut GreedyMesh<'a>, _, _) -> _| {
+                            let mut greedy = FigureModel::make_greedy();
+                            let mut opaque = Mesh::new();
+                            let mut figure_bounds = Aabb {
+                                min: Vec3::zero(),
+                                max: Vec3::zero(),
                             };
+                            Self::bone_meshes(key, manifest_indicator, |segment, offset| {
+                                generate_mesh(&mut greedy, segment, offset)
+                            })
+                            .iter()
+                            .enumerate()
+                            .filter_map(|(i, bm)| bm.as_ref().map(|bm| (i, bm)))
+                            .for_each(|(i, (opaque_mesh, bounds))| {
+                                opaque
+                                    .push_mesh_map(opaque_mesh, |vert| vert.with_bone_idx(i as u8));
+                                figure_bounds.expand_to_contain(*bounds);
+                            });
+                            col_lights
+                                .create_figure(renderer, greedy, (opaque, figure_bounds))
+                                .unwrap()
+                        };
 
-                        fn generate_mesh<'a>(
-                            greedy: &mut GreedyMesh<'a>,
-                            segment: Segment,
-                            offset: Vec3<f32>,
-                        ) -> BoneMeshes {
-                            let (opaque, _, _, bounds) =
-                                Meshable::<FigurePipeline, &mut GreedyMesh>::generate_mesh(
-                                    segment,
-                                    (greedy, offset, Vec3::one()),
-                                );
-                            (opaque, bounds)
-                        }
+                    fn generate_mesh<'a>(
+                        greedy: &mut GreedyMesh<'a>,
+                        segment: Segment,
+                        offset: Vec3<f32>,
+                    ) -> BoneMeshes {
+                        let (opaque, _, _, bounds) =
+                            Meshable::<FigurePipeline, &mut GreedyMesh>::generate_mesh(
+                                segment,
+                                (greedy, offset, Vec3::one()),
+                            );
+                        (opaque, bounds)
+                    }
 
-                        fn generate_mesh_lod_mid<'a>(
-                            greedy: &mut GreedyMesh<'a>,
-                            segment: Segment,
-                            offset: Vec3<f32>,
-                        ) -> BoneMeshes {
-                            let lod_scale = Vec3::broadcast(0.6);
-                            let (opaque, _, _, bounds) =
-                                Meshable::<FigurePipeline, &mut GreedyMesh>::generate_mesh(
-                                    segment.scaled_by(lod_scale),
-                                    (greedy, offset * lod_scale, Vec3::one() / lod_scale),
-                                );
-                            (opaque, bounds)
-                        }
+                    fn generate_mesh_lod_mid<'a>(
+                        greedy: &mut GreedyMesh<'a>,
+                        segment: Segment,
+                        offset: Vec3<f32>,
+                    ) -> BoneMeshes {
+                        let lod_scale = Vec3::broadcast(0.6);
+                        let (opaque, _, _, bounds) =
+                            Meshable::<FigurePipeline, &mut GreedyMesh>::generate_mesh(
+                                segment.scaled_by(lod_scale),
+                                (greedy, offset * lod_scale, Vec3::one() / lod_scale),
+                            );
+                        (opaque, bounds)
+                    }
 
-                        fn generate_mesh_lod_low<'a>(
-                            greedy: &mut GreedyMesh<'a>,
-                            segment: Segment,
-                            offset: Vec3<f32>,
-                        ) -> BoneMeshes {
-                            let lod_scale = Vec3::broadcast(0.3);
-                            let segment = segment.scaled_by(lod_scale);
-                            let (opaque, _, _, bounds) =
-                                Meshable::<FigurePipeline, &mut GreedyMesh>::generate_mesh(
-                                    segment,
-                                    (greedy, offset * lod_scale, Vec3::one() / lod_scale),
-                                );
-                            (opaque, bounds)
-                        }
+                    fn generate_mesh_lod_low<'a>(
+                        greedy: &mut GreedyMesh<'a>,
+                        segment: Segment,
+                        offset: Vec3<f32>,
+                    ) -> BoneMeshes {
+                        let lod_scale = Vec3::broadcast(0.3);
+                        let segment = segment.scaled_by(lod_scale);
+                        let (opaque, _, _, bounds) =
+                            Meshable::<FigurePipeline, &mut GreedyMesh>::generate_mesh(
+                                segment,
+                                (greedy, offset * lod_scale, Vec3::one() / lod_scale),
+                            );
+                        (opaque, bounds)
+                    }
 
-                        (
-                            [
-                                make_model(generate_mesh),
-                                make_model(generate_mesh_lod_mid),
-                                make_model(generate_mesh_lod_low),
-                            ],
-                            skeleton_attr,
-                        )
-                    },
-                    tick,
-                ))
-                .0
+                    (
+                        [
+                            make_model(generate_mesh),
+                            make_model(generate_mesh_lod_mid),
+                            make_model(generate_mesh_lod_low),
+                        ],
+                        skeleton_attr,
+                    )
+                };
+                &v.insert((model, tick)).0
             },
         }
     }
@@ -1048,7 +1101,9 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
         // TODO: Don't hard-code this.
         if tick % 60 == 0 {
             self.models.retain(|_, ((models, _), last_used)| {
-                let alive = *last_used + 60 > tick;
+                // Wait about a minute at 60 fps before invalidating old models.
+                let delta = 60 * 60;
+                let alive = *last_used + delta > tick;
                 if !alive {
                     models.iter().for_each(|model| {
                         col_lights.atlas.deallocate(model.allocation.id);
