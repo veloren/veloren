@@ -1110,6 +1110,26 @@
         "voxel.object.bomb",
         (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
+    Throwable(Firework(Blue)): VoxTrans(
+        "voxel.weapon.projectile.fireworks_blue-0",
+        (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
+    ),
+    Throwable(Firework(Green)): VoxTrans(
+        "voxel.weapon.projectile.fireworks_green-0",
+        (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
+    ),
+    Throwable(Firework(Purple)): VoxTrans(
+        "voxel.weapon.projectile.fireworks_purple-0",
+        (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
+    ),
+    Throwable(Firework(Red)): VoxTrans(
+        "voxel.weapon.projectile.fireworks_red-0",
+        (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
+    ),
+    Throwable(Firework(Yellow)): VoxTrans(
+        "voxel.weapon.projectile.fireworks_yellow-0",
+        (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
+    ),
     Throwable(TrainingDummy): VoxTrans(
         "voxel.object.training_dummy",
         (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,

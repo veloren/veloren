@@ -1,5 +1,5 @@
 use common::{
-    comp::{HealthSource, Object, PhysicsState, Pos},
+    comp::{HealthSource, Object, PhysicsState, Pos, Vel},
     event::{EventBus, ServerEvent},
     state::DeltaTime,
 };
@@ -14,19 +14,26 @@ impl<'a> System<'a> for Sys {
         Read<'a, DeltaTime>,
         Read<'a, EventBus<ServerEvent>>,
         ReadStorage<'a, Pos>,
+        ReadStorage<'a, Vel>,
         ReadStorage<'a, PhysicsState>,
         WriteStorage<'a, Object>,
     );
 
     fn run(
         &mut self,
-        (entities, _dt, server_bus, positions, physics_states, mut objects): Self::SystemData,
+        (entities, _dt, server_bus, positions, velocities, physics_states, mut objects): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
 
         // Objects
-        for (entity, pos, physics, object) in
-            (&entities, &positions, &physics_states, &mut objects).join()
+        for (entity, pos, vel, physics, object) in (
+            &entities,
+            &positions,
+            &velocities,
+            &physics_states,
+            &mut objects,
+        )
+            .join()
         {
             match object {
                 Object::Bomb { owner } => {
@@ -40,6 +47,22 @@ impl<'a> System<'a> for Sys {
                             power: 4.0,
                             owner: *owner,
                             friendly_damage: true,
+                            reagent: None,
+                        });
+                    }
+                },
+                Object::Firework { owner, reagent } => {
+                    if vel.0.z < 0.0 {
+                        server_emitter.emit(ServerEvent::Destroy {
+                            entity,
+                            cause: HealthSource::Suicide,
+                        });
+                        server_emitter.emit(ServerEvent::Explosion {
+                            pos: pos.0,
+                            power: 4.0,
+                            owner: *owner,
+                            friendly_damage: true,
+                            reagent: Some(*reagent),
                         });
                     }
                 },

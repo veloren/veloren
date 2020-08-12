@@ -1,4 +1,5 @@
 use crate::comp;
+use comp::item::Reagent;
 use serde::{Deserialize, Serialize};
 use vek::*;
 
@@ -12,6 +13,7 @@ pub enum Outcome {
     Explosion {
         pos: Vec3<f32>,
         power: f32,
+        reagent: Option<Reagent>, // How can we better define this?
     },
     ProjectileShot {
         pos: Vec3<f32>,
