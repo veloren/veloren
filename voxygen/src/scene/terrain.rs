@@ -2482,7 +2482,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::HangingSign, 0),
                     make_models(
                         "voxygen.voxel.sprite.furniture.hanging_sign-0",
-                        Vec3::new(-3.5, -17.0, 0.0),
+                        Vec3::new(-3.5, -28.0, -4.0),
                         Vec3::one(),
                     ),
                 ),

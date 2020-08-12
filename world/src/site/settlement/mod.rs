@@ -746,11 +746,16 @@ impl Settlement {
 
                             for z in -8 - diff..3 + diff {
                                 let pos = Vec3::new(offs.x, offs.y, surface_z + z);
+                                let block = vol.get(pos).ok().copied().unwrap_or(Block::empty());
+
+                                if block.is_empty() {
+                                    break;
+                                }
 
                                 if let (0, Some(block)) = (z, surface_block) {
                                     let _ = vol.set(pos, block);
                                 } else if z >= 0 {
-                                    if vol.get(pos).unwrap().kind() != BlockKind::Water {
+                                    if block.kind() != BlockKind::Water {
                                         let _ = vol.set(pos, Block::empty());
                                     }
                                 } else {

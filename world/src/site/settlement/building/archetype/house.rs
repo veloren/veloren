@@ -54,7 +54,7 @@ const WALL_COLORS: &[Rgb<u8>] = &[
     Rgb::new(0xE1, 0xAB, 0x91),
     Rgb::new(0x82, 0x57, 0x4C),
     Rgb::new(0xB9, 0x96, 0x77),
-    Rgb::new(0x6E, 0x4D, 0x3C),
+    Rgb::new(0xAE, 0x8D, 0x9C),
 ];
 
 const SUPPORT_COLORS: &[Rgb<u8>] = &[
@@ -292,6 +292,13 @@ impl Archetype for House {
         let foundation_height = 0 - (dist - width - 1).max(0);
         let roof_top = storey_height * attr.levels + 2 + width;
 
+        let edge_ori = if bound_offset.x.abs() > bound_offset.y.abs() {
+            if center_offset.x > 0 { 6 } else { 2 }
+        } else {
+            if (center_offset.y > 0) ^ (ori == Ori::East) { 0 } else { 4 }
+        };
+        let edge_ori = if ori == Ori::East { (edge_ori + 2) % 8 } else { edge_ori };
+
         if let Pillar::Chimney(chimney_height) = attr.pillar {
             let chimney_top = roof_top + chimney_height;
             // Chimney shaft
@@ -480,12 +487,48 @@ impl Archetype for House {
                         || (!attr.storey_fill.has_upper() && profile.y >= ceil_height)
                     {
                         return Some(empty);
+                    // Furniture
+                    } else if dist == width - 1
+                        && center_offset.sum() % 2 == 0
+                        && profile.y == floor_height + 1
+                        && self.noise.chance(Vec3::new(center_offset.x, center_offset.y, z), 0.2)
+                    {
+                        let furniture = match self.noise.get(Vec3::new(center_offset.x, center_offset.y, z + 100)) % 11 {
+                            0 => BlockKind::Planter,
+                            1 => BlockKind::ChairSingle,
+                            2 => BlockKind::ChairDouble,
+                            3 => BlockKind::CoatRack,
+                            4 => BlockKind::Crate,
+                            6 => BlockKind::DrawerMedium,
+                            7 => BlockKind::DrawerSmall,
+                            8 => BlockKind::TableSide,
+                            9 => BlockKind::WardrobeSingle,
+                            _ => BlockKind::Pot,
+                        };
+
+                        return Some(BlockMask::new(Block::new(furniture, Rgb::new(edge_ori, 0, 0)), internal_layer));
                     } else {
                         return Some(internal);
                     }
                 }
 
-                None
+                // Wall ornaments
+                if dist == width + 1
+                    && center_offset.map(|e| e.abs()).reduce_min() == 0
+                    && profile.y == floor_height + 3
+                    && self.noise.chance(Vec3::new(center_offset.x, center_offset.y, z), 0.35)
+                    && attr.storey_fill.has_lower()
+                {
+                    let ornament = match self.noise.get(Vec3::new(center_offset.x, center_offset.y, z + 100)) % 4 {
+                        0 => BlockKind::HangingSign,
+                        1 | 2 => BlockKind::HangingBasket,
+                        _ => BlockKind::DungeonWallDecor,
+                    };
+
+                    return Some(BlockMask::new(Block::new(ornament, Rgb::new((edge_ori + 4) % 8, 0, 0)), internal_layer));
+                } else {
+                    None
+                }
             };
 
         let mut cblock = empty;
