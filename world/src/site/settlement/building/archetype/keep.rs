@@ -208,9 +208,14 @@ impl Archetype for Keep {
             if profile.y > roof_height
                 && (min_dist < rampart_width - 1 || (attr.is_tower && min_dist < rampart_width))
             {
-                if attr.is_tower && attr.flag && center_offset == Vec2::zero() && profile.y < roof_height + 16 {
+                if attr.is_tower
+                    && attr.flag
+                    && center_offset == Vec2::zero()
+                    && profile.y < roof_height + 16
+                {
                     pole
-                } else if attr.is_tower && attr.flag
+                } else if attr.is_tower
+                    && attr.flag
                     && center_offset.x == 0
                     && center_offset.y > 0
                     && center_offset.y < 8

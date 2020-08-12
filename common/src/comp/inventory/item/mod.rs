@@ -7,8 +7,8 @@ pub use tool::{Hands, Tool, ToolCategory, ToolKind};
 use crate::{
     assets::{self, Asset},
     effect::Effect,
-    terrain::{Block, BlockKind},
     lottery::Lottery,
+    terrain::{Block, BlockKind},
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};

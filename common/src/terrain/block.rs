@@ -209,12 +209,13 @@ impl BlockKind {
     }
 
     pub fn get_glow(&self) -> Option<u8> {
-        match self {
-            // TODO: When we have proper volumetric lighting
-            //BlockKind::StreetLamp | BlockKind::StreetLampTall => Some(20),
-            //BlockKind::Velorite | BlockKind::VeloriteFrag => Some(10),
-            _ => None,
-        }
+        // TODO: When we have proper volumetric lighting
+        // match self {
+        //     BlockKind::StreetLamp | BlockKind::StreetLampTall => Some(20),
+        //     BlockKind::Velorite | BlockKind::VeloriteFrag => Some(10),
+        //     _ => None,
+        // }
+        None
     }
 
     pub fn is_opaque(&self) -> bool {

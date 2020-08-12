@@ -1,6 +1,6 @@
 use crate::assets::{self, Asset};
 use rand::prelude::*;
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::{fs::File, io::BufReader};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -40,9 +40,7 @@ impl<T> Lottery<T> {
         .1
     }
 
-    pub fn choose(&self) -> &T {
-        self.choose_seeded(thread_rng().gen())
-    }
+    pub fn choose(&self) -> &T { self.choose_seeded(thread_rng().gen()) }
 
     pub fn iter(&self) -> impl Iterator<Item = &(f32, T)> { self.items.iter() }
 }

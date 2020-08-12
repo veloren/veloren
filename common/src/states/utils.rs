@@ -119,8 +119,9 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, depth: 
 
     // Swim
     if data.inputs.swimup.is_pressed() {
-        update.vel.0.z =
-            (update.vel.0.z + data.dt.0 * GRAVITY * 4.0 * depth.clamped(0.0, 1.0).powf(3.0)).min(BASE_HUMANOID_WATER_SPEED);
+        update.vel.0.z = (update.vel.0.z
+            + data.dt.0 * GRAVITY * 4.0 * depth.clamped(0.0, 1.0).powf(3.0))
+        .min(BASE_HUMANOID_WATER_SPEED);
     }
     // Swim
     if data.inputs.swimdown.is_pressed() {
@@ -192,14 +193,28 @@ pub fn attempt_swap_loadout(data: &JoinData, update: &mut StateUpdate) {
 
 /// Checks that player can wield the glider and updates `CharacterState` if so
 pub fn attempt_glide_wield(data: &JoinData, update: &mut StateUpdate) {
-    if data.physics.on_ground && !data.physics.in_fluid.map(|depth| depth > 1.0).unwrap_or(false) && data.body.is_humanoid() {
+    if data.physics.on_ground
+        && !data
+            .physics
+            .in_fluid
+            .map(|depth| depth > 1.0)
+            .unwrap_or(false)
+        && data.body.is_humanoid()
+    {
         update.character = CharacterState::GlideWield;
     }
 }
 
 /// Checks that player can jump and sends jump event if so
 pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
-    if data.inputs.jump.is_pressed() && data.physics.on_ground && !data.physics.in_fluid.map(|depth| depth > 1.0).unwrap_or(false) {
+    if data.inputs.jump.is_pressed()
+        && data.physics.on_ground
+        && !data
+            .physics
+            .in_fluid
+            .map(|depth| depth > 1.0)
+            .unwrap_or(false)
+    {
         update
             .local_events
             .push_front(LocalEvent::Jump(data.entity));

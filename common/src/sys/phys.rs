@@ -12,8 +12,8 @@ use crate::{
 use specs::{
     saveload::MarkerAllocator, Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage,
 };
-use vek::*;
 use std::ops::Range;
+use vek::*;
 
 pub const GRAVITY: f32 = 9.81 * 5.0;
 const BOUYANCY: f32 = 1.0;
@@ -135,7 +135,11 @@ impl<'a> System<'a> for Sys {
                 .is_some();
             let downward_force = if !in_loaded_chunk {
                 0.0 // No gravity in unloaded chunks
-            } else if physics_state.in_fluid.map(|depth| depth > 0.75).unwrap_or(false) {
+            } else if physics_state
+                .in_fluid
+                .map(|depth| depth > 0.75)
+                .unwrap_or(false)
+            {
                 (1.0 - BOUYANCY) * GRAVITY
             } else {
                 GRAVITY
@@ -159,9 +163,9 @@ impl<'a> System<'a> for Sys {
                     z_max,
                 } => {
                     // Scale collider
-                    let radius = *radius;// * scale;
-                    let z_min = *z_min;// * scale;
-                    let z_max = *z_max;// * scale;
+                    let radius = *radius; // * scale;
+                    let z_min = *z_min; // * scale;
+                    let z_max = *z_max; // * scale;
 
                     // Probe distances
                     let hdist = radius.ceil() as i32;
@@ -177,47 +181,46 @@ impl<'a> System<'a> for Sys {
                         .flatten()
                         .flatten();
 
-                    // Function for iterating over the blocks the player at a specific position collides
-                    // with
+                    // Function for iterating over the blocks the player at a specific position
+                    // collides with
                     fn collision_iter<'a>(
                         pos: Vec3<f32>,
                         terrain: &'a TerrainGrid,
                         hit: &'a dyn Fn(&Block) -> bool,
-                        near_iter: impl Iterator<Item=(i32, i32, i32)> + 'a,
+                        near_iter: impl Iterator<Item = (i32, i32, i32)> + 'a,
                         radius: f32,
                         z_range: Range<f32>,
-                    ) -> impl Iterator<Item=Aabb<f32>> + 'a {
-                        near_iter
-                            .filter_map(move |(i, j, k)| {
-                                let block_pos = pos.map(|e| e.floor() as i32) + Vec3::new(i, j, k);
+                    ) -> impl Iterator<Item = Aabb<f32>> + 'a {
+                        near_iter.filter_map(move |(i, j, k)| {
+                            let block_pos = pos.map(|e| e.floor() as i32) + Vec3::new(i, j, k);
 
-                                if let Some(block) = terrain.get(block_pos).ok().copied().filter(hit) {
-                                    let player_aabb = Aabb {
-                                        min: pos + Vec3::new(-radius, -radius, z_range.start),
-                                        max: pos + Vec3::new(radius, radius, z_range.end),
-                                    };
-                                    let block_aabb = Aabb {
-                                        min: block_pos.map(|e| e as f32),
-                                        max: block_pos.map(|e| e as f32)
-                                            + Vec3::new(1.0, 1.0, block.get_height()),
-                                    };
+                            if let Some(block) = terrain.get(block_pos).ok().copied().filter(hit) {
+                                let player_aabb = Aabb {
+                                    min: pos + Vec3::new(-radius, -radius, z_range.start),
+                                    max: pos + Vec3::new(radius, radius, z_range.end),
+                                };
+                                let block_aabb = Aabb {
+                                    min: block_pos.map(|e| e as f32),
+                                    max: block_pos.map(|e| e as f32)
+                                        + Vec3::new(1.0, 1.0, block.get_height()),
+                                };
 
-                                    if player_aabb.collides_with_aabb(block_aabb) {
-                                        return Some(block_aabb);
-                                    }
+                                if player_aabb.collides_with_aabb(block_aabb) {
+                                    return Some(block_aabb);
                                 }
+                            }
 
-                                None
-                            })
+                            None
+                        })
                     };
 
                     // Function for determining whether the player at a specific position collides
                     // with blocks with the given criteria
                     let collision_with = |pos: Vec3<f32>,
-                        hit: &dyn Fn(&Block) -> bool,
-                        near_iter|
-                    {
-                        collision_iter(pos, &terrain, hit, near_iter, radius, z_min..z_max).count() > 0
+                                          hit: &dyn Fn(&Block) -> bool,
+                                          near_iter| {
+                        collision_iter(pos, &terrain, hit, near_iter, radius, z_min..z_max).count()
+                            > 0
                     };
 
                     let was_on_ground = physics_state.on_ground;
@@ -418,9 +421,16 @@ impl<'a> System<'a> for Sys {
                     }
 
                     // Figure out if we're in water
-                    physics_state.in_fluid = collision_iter(pos.0, &terrain, &|block| block.is_fluid(), near_iter.clone(), radius, z_min..z_max)
-                        .max_by_key(|block_aabb| (block_aabb.max.z * 100.0) as i32)
-                        .map(|block_aabb| block_aabb.max.z - pos.0.z);
+                    physics_state.in_fluid = collision_iter(
+                        pos.0,
+                        &terrain,
+                        &|block| block.is_fluid(),
+                        near_iter.clone(),
+                        radius,
+                        z_min..z_max,
+                    )
+                    .max_by_key(|block_aabb| (block_aabb.max.z * 100.0) as i32)
+                    .map(|block_aabb| block_aabb.max.z - pos.0.z);
                 },
                 Collider::Point => {
                     let (dist, block) = terrain.ray(pos.0, pos.0 + pos_delta).ignore_error().cast();

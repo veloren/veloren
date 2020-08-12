@@ -21,7 +21,7 @@ impl Spiral2d {
 impl Iterator for Spiral2d {
     type Item = Vec2<i32>;
 
-    #[allow(clippy::erasing_op)]
+    #[allow(clippy::erasing_op, clippy::identity_op)]
     fn next(&mut self) -> Option<Self::Item> {
         let layer_size = (self.layer * 8 + 4 * self.layer.min(1) - 4).max(1);
         if self.i >= layer_size {

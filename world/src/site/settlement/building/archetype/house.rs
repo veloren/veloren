@@ -294,10 +294,16 @@ impl Archetype for House {
 
         let edge_ori = if bound_offset.x.abs() > bound_offset.y.abs() {
             if center_offset.x > 0 { 6 } else { 2 }
+        } else if (center_offset.y > 0) ^ (ori == Ori::East) {
+            0
         } else {
-            if (center_offset.y > 0) ^ (ori == Ori::East) { 0 } else { 4 }
+            4
         };
-        let edge_ori = if ori == Ori::East { (edge_ori + 2) % 8 } else { edge_ori };
+        let edge_ori = if ori == Ori::East {
+            (edge_ori + 2) % 8
+        } else {
+            edge_ori
+        };
 
         if let Pillar::Chimney(chimney_height) = attr.pillar {
             let chimney_top = roof_top + chimney_height;
@@ -491,9 +497,16 @@ impl Archetype for House {
                     } else if dist == width - 1
                         && center_offset.sum() % 2 == 0
                         && profile.y == floor_height + 1
-                        && self.noise.chance(Vec3::new(center_offset.x, center_offset.y, z), 0.2)
+                        && self
+                            .noise
+                            .chance(Vec3::new(center_offset.x, center_offset.y, z), 0.2)
                     {
-                        let furniture = match self.noise.get(Vec3::new(center_offset.x, center_offset.y, z + 100)) % 11 {
+                        let furniture = match self.noise.get(Vec3::new(
+                            center_offset.x,
+                            center_offset.y,
+                            z + 100,
+                        )) % 11
+                        {
                             0 => BlockKind::Planter,
                             1 => BlockKind::ChairSingle,
                             2 => BlockKind::ChairDouble,
@@ -506,7 +519,10 @@ impl Archetype for House {
                             _ => BlockKind::Pot,
                         };
 
-                        return Some(BlockMask::new(Block::new(furniture, Rgb::new(edge_ori, 0, 0)), internal_layer));
+                        return Some(BlockMask::new(
+                            Block::new(furniture, Rgb::new(edge_ori, 0, 0)),
+                            internal_layer,
+                        ));
                     } else {
                         return Some(internal);
                     }
@@ -516,16 +532,26 @@ impl Archetype for House {
                 if dist == width + 1
                     && center_offset.map(|e| e.abs()).reduce_min() == 0
                     && profile.y == floor_height + 3
-                    && self.noise.chance(Vec3::new(center_offset.x, center_offset.y, z), 0.35)
+                    && self
+                        .noise
+                        .chance(Vec3::new(center_offset.x, center_offset.y, z), 0.35)
                     && attr.storey_fill.has_lower()
                 {
-                    let ornament = match self.noise.get(Vec3::new(center_offset.x, center_offset.y, z + 100)) % 4 {
-                        0 => BlockKind::HangingSign,
-                        1 | 2 | 3 => BlockKind::HangingBasket,
-                        _ => BlockKind::DungeonWallDecor,
-                    };
+                    let ornament =
+                        match self
+                            .noise
+                            .get(Vec3::new(center_offset.x, center_offset.y, z + 100))
+                            % 4
+                        {
+                            0 => BlockKind::HangingSign,
+                            1 | 2 | 3 => BlockKind::HangingBasket,
+                            _ => BlockKind::DungeonWallDecor,
+                        };
 
-                    return Some(BlockMask::new(Block::new(ornament, Rgb::new((edge_ori + 4) % 8, 0, 0)), internal_layer));
+                    Some(BlockMask::new(
+                        Block::new(ornament, Rgb::new((edge_ori + 4) % 8, 0, 0)),
+                        internal_layer,
+                    ))
                 } else {
                     None
                 }

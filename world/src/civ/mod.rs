@@ -681,7 +681,6 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>) -> bool {
 }
 
 /// Attempt to search for a location that's suitable for site construction
-#[allow(clippy::useless_conversion)] // TODO: Pending review in #587
 #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
 fn find_site_loc(
     ctx: &mut GenCtx<impl Rng>,
@@ -716,7 +715,7 @@ fn find_site_loc(
         loc = ctx.sim.get(test_loc).and_then(|c| {
             Some(
                 c.downhill?
-                    .map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
+                    .map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
                         e / (sz as i32)
                     }),
             )

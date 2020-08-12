@@ -3,7 +3,7 @@ mod natural;
 use crate::{
     column::{ColumnGen, ColumnSample},
     util::{RandomField, Sampler, SmallCache},
-    Index, CONFIG,
+    Index,
 };
 use common::{
     terrain::{structure::StructureBlock, Block, BlockKind, Structure},
@@ -31,7 +31,9 @@ impl<'a> BlockGen<'a> {
         wpos: Vec2<i32>,
         index: &Index,
     ) -> Option<&'b ColumnSample<'a>> {
-        cache.get(wpos, |wpos| column_gen.get((wpos, index))).as_ref()
+        cache
+            .get(wpos, |wpos| column_gen.get((wpos, index)))
+            .as_ref()
     }
 
     fn get_cliff_height(
@@ -48,7 +50,7 @@ impl<'a> BlockGen<'a> {
             |max_height, (cliff_pos, seed)| match Self::sample_column(
                 column_gen,
                 cache,
-                Vec2::from(*cliff_pos),
+                *cliff_pos,
                 index,
             ) {
                 Some(cliff_sample) if cliff_sample.is_cliffs && cliff_sample.spawn_rate > 0.5 => {
@@ -164,14 +166,14 @@ impl<'a> BlockGen<'a> {
             //tree_density,
             //forest_kind,
             //close_structures,
-            marble,
-            marble_small,
+            // marble,
+            // marble_small,
             rock,
             //cliffs,
             cliff_hill,
             close_cliffs,
-            temp,
-            humidity,
+            // temp,
+            // humidity,
             stone_col,
             ..
         } = sample;
@@ -181,7 +183,7 @@ impl<'a> BlockGen<'a> {
         let wposf = wpos.map(|e| e as f64);
 
         let (block, _height) = if !only_structures {
-            let (_definitely_underground, height, on_cliff, basement_height, water_height) =
+            let (_definitely_underground, height, _on_cliff, basement_height, water_height) =
                 if (wposf.z as f32) < alt - 64.0 * chaos {
                     // Shortcut warping
                     (true, alt, false, basement, water_level)
@@ -276,83 +278,84 @@ impl<'a> BlockGen<'a> {
                     },
                     col.map(|e| (e * 255.0) as u8),
                 ))
-            } else if (wposf.z as f32) < height + 0.9
-                && temp < CONFIG.desert_temp
-                && (wposf.z as f32 > water_height + 3.0)
-                && marble > 0.6
-                && marble_small > 0.55
-                && (marble * 3173.7).fract() < 0.6
-                && humidity > CONFIG.desert_hum
-                && false
-            {
-                let treasures = [BlockKind::Chest, BlockKind::Velorite];
+            // } else if (wposf.z as f32) < height + 0.9
+            //     && temp < CONFIG.desert_temp
+            //     && (wposf.z as f32 > water_height + 3.0)
+            //     && marble > 0.6
+            //     && marble_small > 0.55
+            //     && (marble * 3173.7).fract() < 0.6
+            //     && humidity > CONFIG.desert_hum
+            //     && false
+            // {
+            //     let treasures = [BlockKind::Chest, BlockKind::Velorite];
 
-                let flowers = [
-                    BlockKind::BlueFlower,
-                    BlockKind::PinkFlower,
-                    BlockKind::PurpleFlower,
-                    BlockKind::RedFlower,
-                    BlockKind::WhiteFlower,
-                    BlockKind::YellowFlower,
-                    BlockKind::Sunflower,
-                    BlockKind::Mushroom, //TODO: Better spawnrules
-                    BlockKind::LeafyPlant,
-                    BlockKind::Blueberry,
-                    BlockKind::LingonBerry,
-                    BlockKind::Fern,
-                    /*BlockKind::Twigs,    // TODO: Better spawnrules
-                     *BlockKind::Stones,   // TODO: Better spawnrules
-                     *BlockKind::ShinyGem, // TODO: Better spawnrules */
-                ];
-                let grasses = [
-                    BlockKind::LongGrass,
-                    BlockKind::MediumGrass,
-                    BlockKind::ShortGrass,
-                ];
+            //     let flowers = [
+            //         BlockKind::BlueFlower,
+            //         BlockKind::PinkFlower,
+            //         BlockKind::PurpleFlower,
+            //         BlockKind::RedFlower,
+            //         BlockKind::WhiteFlower,
+            //         BlockKind::YellowFlower,
+            //         BlockKind::Sunflower,
+            //         BlockKind::Mushroom, //TODO: Better spawnrules
+            //         BlockKind::LeafyPlant,
+            //         BlockKind::Blueberry,
+            //         BlockKind::LingonBerry,
+            //         BlockKind::Fern,
+            //         /*BlockKind::Twigs,    // TODO: Better spawnrules
+            //          *BlockKind::Stones,   // TODO: Better spawnrules
+            //          *BlockKind::ShinyGem, // TODO: Better spawnrules */
+            //     ];
+            //     let grasses = [
+            //         BlockKind::LongGrass,
+            //         BlockKind::MediumGrass,
+            //         BlockKind::ShortGrass,
+            //     ];
 
-                Some(Block::new(
-                    if on_cliff && (height * 1271.0).fract() < 0.015 {
-                        treasures[(height * 731.3) as usize % treasures.len()]
-                    } else if (height * 1271.0).fract() < 0.1 {
-                        flowers[(height * 0.2) as usize % flowers.len()]
-                    } else {
-                        grasses[(height * 103.3) as usize % grasses.len()]
-                    },
-                    Rgb::broadcast(0),
-                ))
-            } else if (wposf.z as f32) < height + 0.9
-                && temp > CONFIG.desert_temp
-                && (marble * 4423.5).fract() < 0.0005
-                && false
-            {
-                let large_cacti = [
-                    BlockKind::LargeCactus,
-                    BlockKind::MedFlatCactus,
-                    BlockKind::Welwitch,
-                ];
+            //     Some(Block::new(
+            //         if on_cliff && (height * 1271.0).fract() < 0.015 {
+            //             treasures[(height * 731.3) as usize % treasures.len()]
+            //         } else if (height * 1271.0).fract() < 0.1 {
+            //             flowers[(height * 0.2) as usize % flowers.len()]
+            //         } else {
+            //             grasses[(height * 103.3) as usize % grasses.len()]
+            //         },
+            //         Rgb::broadcast(0),
+            //     ))
+            // } else if (wposf.z as f32) < height + 0.9
+            //     && temp > CONFIG.desert_temp
+            //     && (marble * 4423.5).fract() < 0.0005
+            //     && false
+            // {
+            //     let large_cacti = [
+            //         BlockKind::LargeCactus,
+            //         BlockKind::MedFlatCactus,
+            //         BlockKind::Welwitch,
+            //     ];
 
-                let small_cacti = [
-                    BlockKind::BarrelCactus,
-                    BlockKind::RoundCactus,
-                    BlockKind::ShortCactus,
-                    BlockKind::ShortFlatCactus,
-                    BlockKind::DeadBush,
-                ];
+            //     let small_cacti = [
+            //         BlockKind::BarrelCactus,
+            //         BlockKind::RoundCactus,
+            //         BlockKind::ShortCactus,
+            //         BlockKind::ShortFlatCactus,
+            //         BlockKind::DeadBush,
+            //     ];
 
-                Some(Block::new(
-                    if (height * 1271.0).fract() < 0.5 {
-                        large_cacti[(height * 0.2) as usize % large_cacti.len()]
-                    } else {
-                        small_cacti[(height * 0.3) as usize % small_cacti.len()]
-                    },
-                    Rgb::broadcast(0),
-                ))
+            //     Some(Block::new(
+            //         if (height * 1271.0).fract() < 0.5 {
+            //             large_cacti[(height * 0.2) as usize % large_cacti.len()]
+            //         } else {
+            //             small_cacti[(height * 0.3) as usize % small_cacti.len()]
+            //         },
+            //         Rgb::broadcast(0),
+            //     ))
             } else {
                 None
             }
             .or_else(|| {
                 // Rocks
                 if (height + 2.5 - wposf.z as f32).div(7.5).abs().powf(2.0) < rock {
+                    #[allow(clippy::identity_op)]
                     let field0 = RandomField::new(world.seed + 0);
                     let field1 = RandomField::new(world.seed + 1);
                     let field2 = RandomField::new(world.seed + 2);
@@ -536,7 +539,7 @@ pub fn block_from_structure(
     structure_seed: u32,
     sample: &ColumnSample,
 ) -> Option<Block> {
-    let field = RandomField::new(structure_seed + 0);
+    let field = RandomField::new(structure_seed);
 
     let lerp = ((field.get(Vec3::from(structure_pos)).rem_euclid(256)) as f32 / 255.0) * 0.85
         + ((field.get(pos + std::i32::MAX / 2).rem_euclid(256)) as f32 / 255.0) * 0.15;

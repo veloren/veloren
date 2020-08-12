@@ -31,6 +31,7 @@ pub fn apply_scatter_to<'a>(
     chunk: &SimChunk,
 ) {
     use BlockKind::*;
+    #[allow(clippy::type_complexity)]
     let scatter: &[(_, bool, fn(&SimChunk) -> (f32, Option<(f32, f32)>))] = &[
         // (density, Option<(wavelen, threshold)>)
         (BlueFlower, false, |c| {
@@ -103,8 +104,7 @@ pub fn apply_scatter_to<'a>(
                 .enumerate()
                 .find_map(|(i, (bk, is_underwater, f))| {
                     let (density, patch) = f(chunk);
-                    if density <= 0.0
-                        || patch
+                    let is_patch = patch
                             .map(|(wavelen, threshold)| {
                                 index.noise.scatter_nz.get(
                                     wpos2d
@@ -112,7 +112,9 @@ pub fn apply_scatter_to<'a>(
                                         .into_array(),
                                 ) < threshold as f64
                             })
-                            .unwrap_or(false)
+                            .unwrap_or(false);
+                    if density <= 0.0
+                        || is_patch
                         || !RandomField::new(i as u32)
                             .chance(Vec3::new(wpos2d.x, wpos2d.y, 0), density)
                         || underwater != *is_underwater
@@ -398,6 +400,7 @@ pub fn apply_caves_supplement<'a>(
                             comp::critter::Body::random_with(rng, &species).into()
                         },
                         4 => {
+                            #[allow(clippy::match_single_binding)]
                             let species = match rng.gen_range(0, 1) {
                                 _ => comp::golem::Species::StoneGolem,
                             };

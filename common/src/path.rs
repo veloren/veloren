@@ -100,9 +100,7 @@ impl Route {
     {
         let (next0, next1, next_tgt, be_precise) = loop {
             // If we've reached the end of the path, stop
-            if self.next(0).is_none() {
-                return None;
-            }
+            self.next(0)?;
 
             let next0 = self
                 .next(0)
@@ -115,10 +113,11 @@ impl Route {
             }
 
             let be_precise = DIAGONALS.iter().any(|pos| {
-                (-1..2)
-                    .all(|z| vol.get(next0 + Vec3::new(pos.x, pos.y, z))
+                (-1..2).all(|z| {
+                    vol.get(next0 + Vec3::new(pos.x, pos.y, z))
                         .map(|b| !b.is_solid())
-                        .unwrap_or(false))
+                        .unwrap_or(false)
+                })
             });
 
             let next_tgt = next0.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
@@ -331,7 +330,8 @@ impl Chaser {
         let pos_to_tgt = pos.distance(tgt);
 
         // If we're already close to the target then there's nothing to do
-        let end = self.route
+        let end = self
+            .route
             .as_ref()
             .and_then(|(r, _)| r.path.end().copied())
             .map(|e| e.map(|e| e as f32 + 0.5))
@@ -343,7 +343,8 @@ impl Chaser {
             return None;
         }
 
-        let bearing = if let Some((end, complete)) = self.route
+        let bearing = if let Some((end, complete)) = self
+            .route
             .as_ref()
             .and_then(|(r, complete)| Some((r.path().end().copied()?, *complete)))
         {
@@ -354,7 +355,9 @@ impl Chaser {
             // theory this shouldn't happen, but in practice the world is full
             // of unpredictable obstacles that are more than willing to mess up
             // our day. TODO: Come up with a better heuristic for this
-            if (end_to_tgt > pos_to_tgt * 0.3 + 5.0 && complete) || thread_rng().gen::<f32>() < 0.001 {
+            if (end_to_tgt > pos_to_tgt * 0.3 + 5.0 && complete)
+                || thread_rng().gen::<f32>() < 0.001
+            {
                 None
             } else {
                 self.route
@@ -388,20 +391,31 @@ impl Chaser {
                     let start_index = path
                         .iter()
                         .enumerate()
-                        .min_by_key(|(_, node)| node.xy().map(|e| e as f32).distance_squared(pos.xy() + tgt_dir) as i32)
+                        .min_by_key(|(_, node)| {
+                            node.xy()
+                                .map(|e| e as f32)
+                                .distance_squared(pos.xy() + tgt_dir)
+                                as i32
+                        })
                         .map(|(idx, _)| idx);
 
-                    (Route {
-                        path,
-                        next_idx: start_index.unwrap_or(0),
-                    }, complete)
+                    (
+                        Route {
+                            path,
+                            next_idx: start_index.unwrap_or(0),
+                        },
+                        complete,
+                    )
                 });
             }
 
-            let walking_towards_edge = (-3..2)
-                .all(|z| vol.get((pos + Vec3::<f32>::from(tgt_dir) * 2.5).map(|e| e as i32) + Vec3::unit_z() * z)
-                    .map(|b| !b.is_solid())
-                    .unwrap_or(false));
+            let walking_towards_edge = (-3..2).all(|z| {
+                vol.get(
+                    (pos + Vec3::<f32>::from(tgt_dir) * 2.5).map(|e| e as i32) + Vec3::unit_z() * z,
+                )
+                .map(|b| !b.is_solid())
+                .unwrap_or(false)
+            });
 
             if !walking_towards_edge {
                 Some(((tgt - pos) * Vec3::new(1.0, 1.0, 0.0), 0.75))
@@ -430,8 +444,8 @@ where
             .unwrap_or(true)
 }
 
-/// Attempt to search for a path to a target, returning the path (if one was found)
-/// and whether it is complete (reaches the target)
+/// Attempt to search for a path to a target, returning the path (if one was
+/// found) and whether it is complete (reaches the target)
 fn find_path<V>(
     astar: &mut Option<Astar<Vec3<i32>, DefaultHashBuilder>>,
     vol: &V,

@@ -2,9 +2,10 @@ use crate::{client::Client, Server, SpawnPoint, StateExt};
 use common::{
     assets,
     comp::{
-        self, object, Alignment, Body, Damage, DamageSource, Group,
-        HealthChange, HealthSource, Player, Pos, Stats,
+        self, object, Alignment, Body, Damage, DamageSource, Group, HealthChange, HealthSource,
+        Player, Pos, Stats,
     },
+    lottery::Lottery,
     msg::{PlayerListUpdate, ServerMsg},
     outcome::Outcome,
     state::BlockChange,
@@ -12,7 +13,6 @@ use common::{
     sys::combat::BLOCK_ANGLE,
     terrain::{Block, TerrainGrid},
     vol::{ReadVol, Vox},
-    lottery::Lottery,
 };
 use specs::{join::Join, saveload::MarkerAllocator, Entity as EcsEntity, WorldExt};
 use tracing::error;
