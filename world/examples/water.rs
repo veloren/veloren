@@ -85,7 +85,7 @@ fn main() {
             lakes,
             oceans,
             quads,
-        } = config.generate(sampler, |pos, (r, g, b, a)| {
+        } = config.generate(sampler, world.index(), |pos, (r, g, b, a)| {
             let i = pos.x;
             let j = pos.y;
             buf[j * W + i] = u32::from_le_bytes([b, g, r, a]);
@@ -104,7 +104,7 @@ fn main() {
                     ..config
                 };
                 let mut buf = vec![0u8; 4 * len];
-                config.generate(sampler, |pos, (r, g, b, a)| {
+                config.generate(sampler, world.index(), |pos, (r, g, b, a)| {
                     let i = pos.x;
                     let j = pos.y;
                     (&mut buf[(j * x + i) * 4..]).write(&[r, g, b, a]).unwrap();

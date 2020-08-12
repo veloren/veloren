@@ -19,6 +19,7 @@ use crossbeam::channel;
 use dot_vox::DotVoxData;
 use hashbrown::HashMap;
 use std::{f32, fmt::Debug, i32, marker::PhantomData, time::Duration};
+use tracing::warn;
 use treeculler::{BVol, Frustum, AABB};
 use vek::*;
 
@@ -142,7 +143,7 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             wind_sway: 0.1,
         }),
         BlockKind::LargeGrass => Some(SpriteConfig {
-            variations: 3,
+            variations: 1,
             wind_sway: 0.5,
         }),
 
@@ -349,6 +350,18 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
         BlockKind::ShinyGem => Some(SpriteConfig {
             variations: 3,
             wind_sway: 0.0,
+        }),
+        BlockKind::DropGate => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::DropGateBottom => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::GrassSnow => Some(SpriteConfig {
+            variations: 10,
+            wind_sway: 0.2,
         }),
         _ => None,
     }
@@ -2195,7 +2208,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::Bed, 0),
                     make_models(
                         "voxygen.voxel.sprite.furniture.bed-0",
-                        Vec3::new(-9.5, -6.0, 0.0),
+                        Vec3::new(-9.5, -14.5, 0.0),
                         Vec3::one(),
                     ),
                 ),
@@ -2452,7 +2465,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::HangingBasket, 0),
                     make_models(
                         "voxygen.voxel.sprite.furniture.hanging_basket-0",
-                        Vec3::new(-6.5, -4.5, 0.0),
+                        Vec3::new(-6.5, -3.5, 0.0),
                         Vec3::one(),
                     ),
                 ),
@@ -2469,7 +2482,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::HangingSign, 0),
                     make_models(
                         "voxygen.voxel.sprite.furniture.hanging_sign-0",
-                        Vec3::new(-3.5, -17.0, 0.0),
+                        Vec3::new(-3.5, -28.0, -4.0),
                         Vec3::one(),
                     ),
                 ),
@@ -2486,7 +2499,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::WallLamp, 1),
                     make_models(
                         "voxygen.voxel.sprite.furniture.lamp_wall-1",
-                        Vec3::new(-9.0, -10.5, 0.0),
+                        Vec3::new(-10.5, -9.0, 0.0),
                         Vec3::one(),
                     ),
                 ),
@@ -2603,7 +2616,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::TableDining, 0),
                     make_models(
                         "voxygen.voxel.sprite.furniture.table_dining-0",
-                        Vec3::new(-13.5, -13.5, 0.0),
+                        Vec3::new(-8.5, -8.5, 0.0),
                         Vec3::one(),
                     ),
                 ),
@@ -2611,7 +2624,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::TableDining, 1),
                     make_models(
                         "voxygen.voxel.sprite.furniture.table_dining-1",
-                        Vec3::new(-13.5, -13.5, 0.0),
+                        Vec3::new(-8.5, -8.5, 0.0),
                         Vec3::one(),
                     ),
                 ),
@@ -2629,7 +2642,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::WardrobeSingle, 0),
                     make_models(
                         "voxygen.voxel.sprite.furniture.wardrobe_single-0",
-                        Vec3::new(-6.0, -5.5, 0.0),
+                        Vec3::new(-5.5, -6.0, 0.0),
                         Vec3::one(),
                     ),
                 ),
@@ -2637,7 +2650,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::WardrobeSingle, 1),
                     make_models(
                         "voxygen.voxel.sprite.furniture.wardrobe_single-1",
-                        Vec3::new(-6.5, -5.5, 0.0),
+                        Vec3::new(-5.5, -6.5, 0.0),
                         Vec3::one(),
                     ),
                 ),
@@ -2646,7 +2659,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::WardrobeDouble, 0),
                     make_models(
                         "voxygen.voxel.sprite.furniture.wardrobe_double-0",
-                        Vec3::new(-6.5, -10.5, 0.0),
+                        Vec3::new(-10.5, -6.5, 0.0),
                         Vec3::one(),
                     ),
                 ),
@@ -2654,7 +2667,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     (BlockKind::WardrobeDouble, 1),
                     make_models(
                         "voxygen.voxel.sprite.furniture.wardrobe_double-1",
-                        Vec3::new(-6.0, -10.5, 0.0),
+                        Vec3::new(-10.5, -6.0, 0.0),
                         Vec3::one(),
                     ),
                 ),
@@ -2730,6 +2743,104 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_models(
                         "voxygen.voxel.sprite.gem.gem_red",
                         Vec3::new(-3.0, -2.0, -2.0),
+                        Vec3::one(),
+                    ),
+                ),
+                // Drop Gate Parts
+                (
+                    (BlockKind::DropGate, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.castle.drop_gate_bars-0",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::DropGateBottom, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.castle.drop_gate_bottom-0",
+                        Vec3::new(-5.5, -5.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                // Snow covered Grass
+                (
+                    (BlockKind::GrassSnow, 0),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_snow_0",
+                        Vec3::new(-2.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::GrassSnow, 1),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_snow_1",
+                        Vec3::new(-2.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::GrassSnow, 2),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_snow_2",
+                        Vec3::new(-2.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::GrassSnow, 3),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_snow_3",
+                        Vec3::new(-2.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::GrassSnow, 4),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_snow_4",
+                        Vec3::new(-2.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::GrassSnow, 5),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_snow_5",
+                        Vec3::new(-2.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::GrassSnow, 6),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_snow_6",
+                        Vec3::new(-2.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::GrassSnow, 7),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_snow_7",
+                        Vec3::new(-2.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::GrassSnow, 8),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_snow_8",
+                        Vec3::new(-2.5, -2.5, 0.0),
+                        Vec3::one(),
+                    ),
+                ),
+                (
+                    (BlockKind::GrassSnow, 9),
+                    make_models(
+                        "voxygen.voxel.sprite.grass.grass_snow_9",
+                        Vec3::new(-2.5, -2.5, 0.0),
                         Vec3::one(),
                     ),
                 ),
@@ -2820,26 +2931,6 @@ impl<V: RectRasterableVol> Terrain<V> {
             .iter()
             .map(|(p, _)| *p)
         {
-            let chunk_pos = scene_data.state.terrain().pos_key(pos);
-            // Only mesh if this chunk has all its neighbors
-            let mut neighbours = true;
-            for i in -1..2 {
-                for j in -1..2 {
-                    neighbours &= scene_data
-                        .state
-                        .terrain()
-                        .get_key(chunk_pos + Vec2::new(i, j))
-                        .is_some();
-                }
-            }
-            if neighbours {
-                self.mesh_todo.insert(chunk_pos, ChunkMeshState {
-                    pos: chunk_pos,
-                    started_tick: current_tick,
-                    active_worker: None,
-                });
-            }
-
             // Handle block changes on chunk borders
             // Remesh all neighbours because we have complex lighting now
             // TODO: if lighting is on the server this can be updated to only remesh when
@@ -2850,25 +2941,23 @@ impl<V: RectRasterableVol> Terrain<V> {
                     let neighbour_pos = pos + Vec3::new(x, y, 0);
                     let neighbour_chunk_pos = scene_data.state.terrain().pos_key(neighbour_pos);
 
-                    if neighbour_chunk_pos != chunk_pos {
-                        // Only remesh if this chunk has all its neighbors
-                        let mut neighbours = true;
-                        for i in -1..2 {
-                            for j in -1..2 {
-                                neighbours &= scene_data
-                                    .state
-                                    .terrain()
-                                    .get_key(neighbour_chunk_pos + Vec2::new(i, j))
-                                    .is_some();
-                            }
+                    // Only remesh if this chunk has all its neighbors
+                    let mut neighbours = true;
+                    for i in -1..2 {
+                        for j in -1..2 {
+                            neighbours &= scene_data
+                                .state
+                                .terrain()
+                                .get_key(neighbour_chunk_pos + Vec2::new(i, j))
+                                .is_some();
                         }
-                        if neighbours {
-                            self.mesh_todo.insert(neighbour_chunk_pos, ChunkMeshState {
-                                pos: neighbour_chunk_pos,
-                                started_tick: current_tick,
-                                active_worker: None,
-                            });
-                        }
+                    }
+                    if neighbours {
+                        self.mesh_todo.insert(neighbour_chunk_pos, ChunkMeshState {
+                            pos: neighbour_chunk_pos,
+                            started_tick: current_tick,
+                            active_worker: None,
+                        });
                     }
                 }
             }
@@ -3138,23 +3227,27 @@ impl<V: RectRasterableVol> Terrain<V> {
                 let dist_sqrd = Vec2::from(focus_pos).distance_squared(chunk_center);
                 if dist_sqrd < sprite_render_distance.powf(2.0) {
                     for (kind, instances) in &chunk.sprite_instances {
-                        renderer.render_sprites(
-                            if dist_sqrd < sprite_high_detail_distance.powf(2.0) {
-                                &self.sprite_models[&kind][0]
-                            } else if dist_sqrd < sprite_hid_detail_distance.powf(2.0) {
-                                &self.sprite_models[&kind][1]
-                            } else if dist_sqrd < sprite_mid_detail_distance.powf(2.0) {
-                                &self.sprite_models[&kind][2]
-                            } else if dist_sqrd < sprite_low_detail_distance.powf(2.0) {
-                                &self.sprite_models[&kind][3]
-                            } else {
-                                &self.sprite_models[&kind][4]
-                            },
-                            globals,
-                            &instances,
-                            lights,
-                            shadows,
-                        );
+                        if let Some(models) = self.sprite_models.get(&kind) {
+                            renderer.render_sprites(
+                                if dist_sqrd < sprite_high_detail_distance.powf(2.0) {
+                                    &models[0]
+                                } else if dist_sqrd < sprite_hid_detail_distance.powf(2.0) {
+                                    &models[1]
+                                } else if dist_sqrd < sprite_mid_detail_distance.powf(2.0) {
+                                    &models[2]
+                                } else if dist_sqrd < sprite_low_detail_distance.powf(2.0) {
+                                    &models[3]
+                                } else {
+                                    &models[4]
+                                },
+                                globals,
+                                &instances,
+                                lights,
+                                shadows,
+                            );
+                        } else {
+                            warn!("Sprite model for {:?} does not exists", kind);
+                        }
                     }
                 }
             }

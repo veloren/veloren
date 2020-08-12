@@ -1,9 +1,11 @@
 use crate::vol::Vox;
+use enum_iterator::IntoEnumIterator;
+use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
-use std::ops::Deref;
+use std::{collections::HashMap, convert::TryFrom, fmt, ops::Deref};
 use vek::*;
 
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize, IntoEnumIterator)]
 #[repr(u8)]
 pub enum BlockKind {
     Air,
@@ -86,6 +88,25 @@ pub enum BlockKind {
     Stones,
     Twigs,
     ShinyGem,
+    DropGate,
+    DropGateBottom,
+    GrassSnow,
+}
+
+impl fmt::Display for BlockKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{:?}", self) }
+}
+
+lazy_static! {
+    pub static ref BLOCK_KINDS: HashMap<String, BlockKind> = BlockKind::into_enum_iter()
+        .map(|bk| (bk.to_string(), bk))
+        .collect();
+}
+
+impl<'a> TryFrom<&'a str> for BlockKind {
+    type Error = ();
+
+    fn try_from(s: &'a str) -> Result<Self, Self::Error> { BLOCK_KINDS.get(s).copied().ok_or(()) }
 }
 
 impl BlockKind {
@@ -173,6 +194,9 @@ impl BlockKind {
             BlockKind::Stones => true,
             BlockKind::Twigs => true,
             BlockKind::ShinyGem => true,
+            BlockKind::DropGate => false,
+            BlockKind::DropGateBottom => false,
+            BlockKind::GrassSnow => true,
             _ => false,
         }
     }
@@ -182,6 +206,16 @@ impl BlockKind {
             BlockKind::Water => true,
             _ => false,
         }
+    }
+
+    pub fn get_glow(&self) -> Option<u8> {
+        // TODO: When we have proper volumetric lighting
+        // match self {
+        //     BlockKind::StreetLamp | BlockKind::StreetLampTall => Some(20),
+        //     BlockKind::Velorite | BlockKind::VeloriteFrag => Some(10),
+        //     _ => None,
+        // }
+        None
     }
 
     pub fn is_opaque(&self) -> bool {
@@ -261,6 +295,9 @@ impl BlockKind {
             BlockKind::Stones => false,
             BlockKind::Twigs => false,
             BlockKind::ShinyGem => false,
+            BlockKind::DropGate => false,
+            BlockKind::DropGateBottom => false,
+            BlockKind::GrassSnow => false,
             _ => true,
         }
     }
@@ -335,14 +372,18 @@ impl BlockKind {
             BlockKind::Stones => false,
             BlockKind::Twigs => false,
             BlockKind::ShinyGem => false,
+            BlockKind::DropGate => true,
+            BlockKind::DropGateBottom => false,
+            BlockKind::GrassSnow => false,
             _ => true,
         }
     }
 
     pub fn is_explodable(&self) -> bool {
         match self {
-            BlockKind::Leaves | BlockKind::Grass | BlockKind::Rock => true,
-            _ => false,
+            BlockKind::Leaves | BlockKind::Grass | BlockKind::Rock | BlockKind::GrassSnow => true,
+            BlockKind::Air => false,
+            bk => bk.is_air(), // Temporary catch for terrain sprites
         }
     }
 
@@ -363,9 +404,9 @@ impl BlockKind {
             BlockKind::Radish => 0.18,
             BlockKind::Door => 3.0,
             BlockKind::Bed => 1.54,
-            BlockKind::Bench => 1.45,
-            BlockKind::ChairSingle => 1.36,
-            BlockKind::ChairDouble => 1.36,
+            BlockKind::Bench => 0.5,
+            BlockKind::ChairSingle => 0.5,
+            BlockKind::ChairDouble => 0.5,
             BlockKind::CoatRack => 2.36,
             BlockKind::Crate => 0.90,
             BlockKind::DrawerSmall => 1.0,
@@ -438,6 +479,29 @@ impl Block {
             | BlockKind::Window2
             | BlockKind::Window3
             | BlockKind::Window4
+            | BlockKind::Bed
+            | BlockKind::Bench
+            | BlockKind::ChairSingle
+            | BlockKind::ChairDouble
+            | BlockKind::CoatRack
+            | BlockKind::Crate
+            | BlockKind::DrawerLarge
+            | BlockKind::DrawerMedium
+            | BlockKind::DrawerSmall
+            | BlockKind::DungeonWallDecor
+            | BlockKind::HangingBasket
+            | BlockKind::HangingSign
+            | BlockKind::WallLamp
+            | BlockKind::Planter
+            | BlockKind::Shelf
+            | BlockKind::TableSide
+            | BlockKind::TableDining
+            | BlockKind::TableDouble
+            | BlockKind::WardrobeSingle
+            | BlockKind::WardrobeDouble
+            | BlockKind::Pot
+            | BlockKind::DropGate
+            | BlockKind::DropGateBottom
             | BlockKind::Door => Some(self.color[0] & 0b111),
             _ => None,
         }

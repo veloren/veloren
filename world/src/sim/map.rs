@@ -1,6 +1,6 @@
 use crate::{
     sim::{RiverKind, WorldSim, WORLD_SIZE},
-    CONFIG,
+    Index, CONFIG,
 };
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 use std::{f32, f64};
@@ -114,6 +114,7 @@ impl MapConfig {
     pub fn generate(
         &self,
         sampler: &WorldSim,
+        index: &Index,
         mut write_pixel: impl FnMut(Vec2<usize>, (u8, u8, u8, u8)),
     ) -> MapDebug {
         let MapConfig {
@@ -156,6 +157,7 @@ impl MapConfig {
                 downhill,
                 river_kind,
                 is_path,
+                is_cave,
                 near_site,
             ) = sampler
                 .get(pos)
@@ -168,9 +170,11 @@ impl MapConfig {
                         sample.temp,
                         sample.downhill,
                         sample.river.river_kind,
-                        sample.path.is_path(),
+                        sample.path.0.is_way(),
+                        sample.cave.0.is_way(),
                         sample.sites.iter().any(|site| {
-                            site.get_origin()
+                            index.sites[*site]
+                                .get_origin()
                                 .distance_squared(pos * TerrainChunkSize::RECT_SIZE.x as i32)
                                 < 64i32.pow(2)
                         }),
@@ -184,6 +188,7 @@ impl MapConfig {
                     0.0,
                     None,
                     None,
+                    false,
                     false,
                     false,
                 ));
@@ -315,6 +320,8 @@ impl MapConfig {
                 (0x57, 0x39, 0x33, 0xFF)
             } else if is_path {
                 (0x37, 0x29, 0x23, 0xFF)
+            } else if is_cave {
+                (0x37, 0x37, 0x37, 0xFF)
             } else {
                 rgba
             };

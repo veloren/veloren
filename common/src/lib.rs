@@ -22,6 +22,7 @@ pub mod event;
 pub mod figure;
 pub mod generation;
 pub mod loadout_builder;
+pub mod lottery;
 pub mod msg;
 pub mod npc;
 pub mod outcome;

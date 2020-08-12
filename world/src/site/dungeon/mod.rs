@@ -23,19 +23,6 @@ use rand::prelude::*;
 use std::sync::Arc;
 use vek::*;
 
-impl WorldSim {
-    #[allow(dead_code)]
-    fn can_host_dungeon(&self, pos: Vec2<i32>) -> bool {
-        self.get(pos)
-            .map(|chunk| !chunk.near_cliffs && !chunk.river.is_river() && !chunk.river.is_lake())
-            .unwrap_or(false)
-            && self
-                .get_gradient_approx(pos)
-                .map(|grad| grad > 0.25 && grad < 1.5)
-                .unwrap_or(false)
-    }
-}
-
 pub struct Dungeon {
     origin: Vec2<i32>,
     alt: i32,
@@ -164,20 +151,6 @@ impl Dungeon {
             max: rpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
         };
 
-        if area.contains_point(Vec2::zero()) {
-            let offs = Vec2::new(rng.gen_range(-1.0, 1.0), rng.gen_range(-1.0, 1.0))
-                .try_normalized()
-                .unwrap_or(Vec2::unit_y())
-                * 12.0;
-            supplement.add_entity(
-                EntityInfo::at(
-                    Vec3::new(self.origin.x, self.origin.y, self.alt + 16).map(|e| e as f32)
-                        + Vec3::from(offs),
-                )
-                .into_waypoint(),
-            );
-        }
-
         let mut z = self.alt + ALT_OFFSET;
         for floor in &self.floors {
             z -= floor.total_depth();
@@ -228,6 +201,7 @@ pub struct Floor {
     hollow_depth: i32,
     #[allow(dead_code)]
     stair_tile: Vec2<i32>,
+    final_level: bool,
 }
 
 const FLOOR_SIZE: Vec2<i32> = Vec2::new(18, 18);
@@ -260,6 +234,7 @@ impl Floor {
             solid_depth: if level == 0 { 80 } else { 32 },
             hollow_depth: 30,
             stair_tile: new_stair_tile - tile_offset,
+            final_level,
         };
 
         const STAIR_ROOM_HEIGHT: i32 = 13;
@@ -305,7 +280,7 @@ impl Floor {
 
         this.create_rooms(ctx, level, 7);
         // Create routes between all rooms
-        let room_areas = this.rooms.iter().map(|r| r.area).collect::<Vec<_>>();
+        let room_areas = this.rooms.values().map(|r| r.area).collect::<Vec<_>>();
         for a in room_areas.iter() {
             for b in room_areas.iter() {
                 this.create_route(ctx, a.center(), b.center());
@@ -342,7 +317,7 @@ impl Floor {
                 // Ensure no overlap
                 if self
                     .rooms
-                    .iter()
+                    .values()
                     .any(|r| r.area.collides_with_rect(area_border))
                 {
                     return None;
@@ -423,6 +398,24 @@ impl Floor {
         origin: Vec3<i32>,
         supplement: &mut ChunkSupplement,
     ) {
+        let stair_rcenter =
+            Vec3::from((self.stair_tile + self.tile_offset).map(|e| e * TILE_SIZE + TILE_SIZE / 2));
+
+        if area.contains_point(stair_rcenter.xy()) {
+            let offs = Vec2::new(rng.gen_range(-1.0, 1.0), rng.gen_range(-1.0, 1.0))
+                .try_normalized()
+                .unwrap_or_else(Vec2::unit_y)
+                * FLOOR_SIZE.x as f32
+                / 2.0
+                - 8.0;
+            if !self.final_level {
+                supplement.add_entity(
+                    EntityInfo::at((origin + stair_rcenter).map(|e| e as f32) + Vec3::from(offs))
+                        .into_waypoint(),
+                );
+            }
+        }
+
         for x in area.min.x..area.max.x {
             for y in area.min.y..area.max.y {
                 let tile_pos = Vec2::new(x, y).map(|e| e.div_euclid(TILE_SIZE)) - self.tile_offset;
@@ -478,7 +471,16 @@ impl Floor {
                     if room.boss {
                         let boss_spawn_tile = room.area.center();
                         // Don't spawn the boss in a pillar
-                        let boss_spawn_tile = boss_spawn_tile + if tile_is_pillar { 1 } else { 0 };
+                        let boss_tile_is_pillar = room
+                            .pillars
+                            .map(|pillar_space| {
+                                boss_spawn_tile
+                                    .map(|e| e.rem_euclid(pillar_space) == 0)
+                                    .reduce_and()
+                            })
+                            .unwrap_or(false);
+                        let boss_spawn_tile =
+                            boss_spawn_tile + if boss_tile_is_pillar { 1 } else { 0 };
 
                         if tile_pos == boss_spawn_tile && tile_wcenter.xy() == wpos2d {
                             let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
@@ -635,10 +637,13 @@ impl Floor {
             empty
         };
 
+        let tunnel_height = if self.final_level { 16.0 } else { 8.0 };
+
         move |z| match self.tiles.get(tile_pos) {
             Some(Tile::Solid) => BlockMask::nothing(),
             Some(Tile::Tunnel) => {
-                if dist_to_wall >= wall_thickness && (z as f32) < 8.0 - 8.0 * tunnel_dist.powf(4.0)
+                if dist_to_wall >= wall_thickness
+                    && (z as f32) < tunnel_height * (1.0 - tunnel_dist.powf(4.0))
                 {
                     if z == 0 { floor_sprite } else { empty }
                 } else {

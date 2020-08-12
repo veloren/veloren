@@ -12,40 +12,81 @@ use common::{
 use rand::prelude::*;
 use vek::*;
 
-const COLOR_THEMES: [Rgb<u8>; 11] = [
-    Rgb::new(0x1D, 0x4D, 0x45),
-    Rgb::new(0xB3, 0x7D, 0x60),
-    Rgb::new(0xAC, 0x5D, 0x26),
-    Rgb::new(0x32, 0x46, 0x6B),
-    Rgb::new(0x2B, 0x19, 0x0F),
-    Rgb::new(0x93, 0x78, 0x51),
-    Rgb::new(0x92, 0x57, 0x24),
-    Rgb::new(0x4A, 0x4E, 0x4E),
-    Rgb::new(0x2F, 0x32, 0x47),
-    Rgb::new(0x8F, 0x35, 0x43),
-    Rgb::new(0x6D, 0x1E, 0x3A),
+pub struct ColorTheme {
+    roof: Rgb<u8>,
+    wall: Rgb<u8>,
+    support: Rgb<u8>,
+}
+
+const ROOF_COLORS: &[Rgb<u8>] = &[
+    // Rgb::new(0x1D, 0x4D, 0x45),
+    // Rgb::new(0xB3, 0x7D, 0x60),
+    // Rgb::new(0xAC, 0x5D, 0x26),
+    // Rgb::new(0x32, 0x46, 0x6B),
+    // Rgb::new(0x2B, 0x19, 0x0F),
+    // Rgb::new(0x93, 0x78, 0x51),
+    // Rgb::new(0x92, 0x57, 0x24),
+    // Rgb::new(0x4A, 0x4E, 0x4E),
+    // Rgb::new(0x2F, 0x32, 0x47),
+    // Rgb::new(0x8F, 0x35, 0x43),
+    // Rgb::new(0x6D, 0x1E, 0x3A),
+    // Rgb::new(0x6D, 0xA7, 0x80),
+    // Rgb::new(0x4F, 0xA0, 0x95),
+    // Rgb::new(0xE2, 0xB9, 0x99),
+    // Rgb::new(0x7A, 0x30, 0x22),
+    // Rgb::new(0x4A, 0x06, 0x08),
+    // Rgb::new(0x8E, 0xB4, 0x57),
+    Rgb::new(0x99, 0x5E, 0x54),
+    Rgb::new(0x43, 0x63, 0x64),
+    Rgb::new(0x76, 0x6D, 0x68),
+    Rgb::new(0x7B, 0x41, 0x61),
+    Rgb::new(0x52, 0x20, 0x20),
+    Rgb::new(0x1A, 0x4A, 0x59),
+    Rgb::new(0xCC, 0x76, 0x4E),
+];
+
+const WALL_COLORS: &[Rgb<u8>] = &[
+    Rgb::new(200, 180, 150),
+    Rgb::new(0xB8, 0xB4, 0xA4),
+    Rgb::new(0x76, 0x6D, 0x68),
+    Rgb::new(0xF3, 0xC9, 0x8F),
+    Rgb::new(0xD3, 0xB7, 0x99),
+    Rgb::new(0xE1, 0xAB, 0x91),
+    Rgb::new(0x82, 0x57, 0x4C),
+    Rgb::new(0xB9, 0x96, 0x77),
+    Rgb::new(0xAE, 0x8D, 0x9C),
+];
+
+const SUPPORT_COLORS: &[Rgb<u8>] = &[
+    Rgb::new(60, 45, 30),
+    Rgb::new(0x65, 0x55, 0x56),
+    Rgb::new(0x53, 0x33, 0x13),
+    Rgb::new(0x58, 0x42, 0x33),
 ];
 
 pub struct House {
-    roof_color: Rgb<u8>,
-    noise: RandomField,
-    roof_ribbing: bool,
-    roof_ribbing_diagonal: bool,
+    pub colors: ColorTheme,
+    pub noise: RandomField,
+    pub roof_ribbing: bool,
+    pub roof_ribbing_diagonal: bool,
 }
 
-enum Pillar {
+#[derive(Copy, Clone)]
+pub enum Pillar {
     None,
     Chimney(i32),
     Tower(i32),
 }
 
-enum RoofStyle {
+#[derive(Copy, Clone)]
+pub enum RoofStyle {
     Hip,
     Gable,
     Rounded,
 }
 
-enum StoreyFill {
+#[derive(Copy, Clone)]
+pub enum StoreyFill {
     None,
     Upper,
     All,
@@ -69,16 +110,19 @@ impl StoreyFill {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct Attr {
-    central_supports: bool,
-    storey_fill: StoreyFill,
-    roof_style: RoofStyle,
-    mansard: i32,
-    pillar: Pillar,
+    pub central_supports: bool,
+    pub storey_fill: StoreyFill,
+    pub roof_style: RoofStyle,
+    pub mansard: i32,
+    pub pillar: Pillar,
+    pub levels: i32,
+    pub window: BlockKind,
 }
 
 impl Attr {
-    fn generate<R: Rng>(rng: &mut R, locus: i32) -> Self {
+    pub fn generate<R: Rng>(rng: &mut R, _locus: i32) -> Self {
         Self {
             central_supports: rng.gen(),
             storey_fill: match rng.gen_range(0, 2) {
@@ -93,8 +137,15 @@ impl Attr {
             },
             mansard: rng.gen_range(-7, 4).max(0),
             pillar: match rng.gen_range(0, 4) {
-                0 => Pillar::Chimney(9 + locus + rng.gen_range(0, 4)),
+                0 => Pillar::Chimney(rng.gen_range(2, 6)),
                 _ => Pillar::None,
+            },
+            levels: rng.gen_range(1, 3),
+            window: match rng.gen_range(0, 4) {
+                0 => BlockKind::Window1,
+                1 => BlockKind::Window2,
+                2 => BlockKind::Window3,
+                _ => BlockKind::Window4,
             },
         }
     }
@@ -107,6 +158,7 @@ impl Archetype for House {
         let len = rng.gen_range(-8, 24).clamped(0, 20);
         let locus = 6 + rng.gen_range(0, 5);
         let branches_per_side = 1 + len as usize / 20;
+        let levels = rng.gen_range(1, 3);
         let skel = Skeleton {
             offset: -rng.gen_range(0, len + 7).clamped(0, len),
             ori: if rng.gen() { Ori::East } else { Ori::North },
@@ -116,10 +168,11 @@ impl Archetype for House {
                     storey_fill: StoreyFill::All,
                     mansard: 0,
                     pillar: match rng.gen_range(0, 3) {
-                        0 => Pillar::Chimney(10 + locus + rng.gen_range(0, 4)),
-                        1 => Pillar::Tower(15 + locus + rng.gen_range(0, 4)),
+                        0 => Pillar::Chimney(rng.gen_range(2, 6)),
+                        1 => Pillar::Tower(5 + rng.gen_range(1, 5)),
                         _ => Pillar::None,
                     },
+                    levels,
                     ..Attr::generate(rng, locus)
                 },
                 locus,
@@ -134,7 +187,10 @@ impl Archetype for House {
                                 i as i32 * len / (branches_per_side - 1).max(1) as i32,
                                 Branch {
                                     len: rng.gen_range(8, 16) * flip,
-                                    attr: Attr::generate(rng, locus),
+                                    attr: Attr {
+                                        levels: rng.gen_range(1, 4).min(levels),
+                                        ..Attr::generate(rng, locus)
+                                    },
                                     locus: (6 + rng.gen_range(0, 3)).min(locus),
                                     border: 4,
                                     children: Vec::new(),
@@ -149,10 +205,11 @@ impl Archetype for House {
         };
 
         let this = Self {
-            roof_color: COLOR_THEMES
-                .choose(rng)
-                .unwrap()
-                .map(|e| e.saturating_add(rng.gen_range(0, 20)) - 10),
+            colors: ColorTheme {
+                roof: *ROOF_COLORS.choose(rng).unwrap(),
+                wall: *WALL_COLORS.choose(rng).unwrap(),
+                support: *SUPPORT_COLORS.choose(rng).unwrap(),
+            },
             noise: RandomField::new(rng.gen()),
             roof_ribbing: rng.gen(),
             roof_ribbing_diagonal: rng.gen(),
@@ -165,12 +222,15 @@ impl Archetype for House {
     #[allow(clippy::int_plus_one)] // TODO: Pending review in #587
     fn draw(
         &self,
+        _pos: Vec3<i32>,
         dist: i32,
         bound_offset: Vec2<i32>,
         center_offset: Vec2<i32>,
         z: i32,
         ori: Ori,
-        branch: &Branch<Self::Attr>,
+        locus: i32,
+        _len: i32,
+        attr: &Self::Attr,
     ) -> BlockMask {
         let profile = Vec2::new(bound_offset.x, z);
 
@@ -185,7 +245,7 @@ impl Archetype for House {
             )
         };
 
-        let make_block = |r, g, b| {
+        let make_block = |(r, g, b)| {
             let nz = self
                 .noise
                 .get(Vec3::new(center_offset.x, center_offset.y, z * 8));
@@ -205,32 +265,48 @@ impl Archetype for House {
         let foundation_layer = internal_layer + 1;
         let floor_layer = foundation_layer + 1;
 
-        let foundation = make_block(100, 100, 100).with_priority(foundation_layer);
-        let log = make_block(60, 45, 30);
-        let floor = make_block(100, 75, 50);
-        let wall = make_block(200, 180, 150).with_priority(facade_layer);
-        let roof = make_block(self.roof_color.r, self.roof_color.g, self.roof_color.b)
-            .with_priority(facade_layer - 1);
+        let foundation = make_block((100, 100, 100)).with_priority(foundation_layer);
+        let log = make_block(self.colors.support.into_tuple());
+        let floor = make_block((100, 75, 50));
+        let wall = make_block(self.colors.wall.into_tuple()).with_priority(facade_layer);
+        let roof = make_block(self.colors.roof.into_tuple()).with_priority(facade_layer - 1);
         let empty = BlockMask::nothing();
         let internal = BlockMask::new(Block::empty(), internal_layer);
         let end_window = BlockMask::new(
-            Block::new(BlockKind::Window1, make_meta(ori.flip())),
+            Block::new(attr.window, make_meta(ori.flip())),
             structural_layer,
         );
         let fire = BlockMask::new(Block::new(BlockKind::Ember, Rgb::white()), foundation_layer);
 
-        let ceil_height = 6;
-        let lower_width = branch.locus - 1;
-        let upper_width = branch.locus;
+        let storey_height = 6;
+        let storey = ((z - 1) / storey_height).min(attr.levels - 1);
+        let floor_height = storey_height * storey;
+        let ceil_height = storey_height * (storey + 1);
+        let lower_width = locus - 1;
+        let upper_width = locus;
         let width = if profile.y >= ceil_height {
             upper_width
         } else {
             lower_width
         };
         let foundation_height = 0 - (dist - width - 1).max(0);
-        let roof_top = 8 + width;
+        let roof_top = storey_height * attr.levels + 2 + width;
 
-        if let Pillar::Chimney(chimney_top) = branch.attr.pillar {
+        let edge_ori = if bound_offset.x.abs() > bound_offset.y.abs() {
+            if center_offset.x > 0 { 6 } else { 2 }
+        } else if (center_offset.y > 0) ^ (ori == Ori::East) {
+            0
+        } else {
+            4
+        };
+        let edge_ori = if ori == Ori::East {
+            (edge_ori + 2) % 8
+        } else {
+            edge_ori
+        };
+
+        if let Pillar::Chimney(chimney_height) = attr.pillar {
+            let chimney_top = roof_top + chimney_height;
             // Chimney shaft
             if center_offset.map(|e| e.abs()).reduce_max() == 0
                 && profile.y >= foundation_height + 1
@@ -258,7 +334,7 @@ impl Archetype for House {
 
         if profile.y <= foundation_height && dist < width + 3 {
             // Foundations
-            if branch.attr.storey_fill.has_lower() {
+            if attr.storey_fill.has_lower() {
                 if dist == width - 1 {
                     // Floor lining
                     return log.with_priority(floor_layer);
@@ -281,7 +357,7 @@ impl Archetype for House {
             |profile: Vec2<i32>, width, dist, bound_offset: Vec2<i32>, roof_top, mansard| {
                 // Roof
 
-                let (roof_profile, roof_dist) = match &branch.attr.roof_style {
+                let (roof_profile, roof_dist) = match &attr.roof_style {
                     RoofStyle::Hip => (Vec2::new(dist, profile.y), dist),
                     RoofStyle::Gable => (profile, dist),
                     RoofStyle::Rounded => {
@@ -320,13 +396,15 @@ impl Archetype for House {
                         && bound_offset.x > 0
                         && bound_offset.x < width
                         && profile.y < ceil_height
-                        && branch.attr.storey_fill.has_lower()
+                        && attr.storey_fill.has_lower()
+                        && storey == 0
                     {
                         return Some(
                             if (bound_offset.x == (width - 1) / 2
                                 || bound_offset.x == (width - 1) / 2 + 1)
                                 && profile.y <= foundation_height + 3
                             {
+                                // Doors on first floor only
                                 if profile.y == foundation_height + 1 {
                                     BlockMask::new(
                                         Block::new(
@@ -351,9 +429,9 @@ impl Archetype for House {
                     if bound_offset.x == bound_offset.y || profile.y == ceil_height {
                         // Support beams
                         return Some(log);
-                    } else if !branch.attr.storey_fill.has_lower() && profile.y < ceil_height {
+                    } else if !attr.storey_fill.has_lower() && profile.y < ceil_height {
                         return Some(empty);
-                    } else if !branch.attr.storey_fill.has_upper() {
+                    } else if !attr.storey_fill.has_upper() {
                         return Some(empty);
                     } else {
                         let (frame_bounds, frame_borders) = if profile.y >= ceil_height {
@@ -367,7 +445,7 @@ impl Archetype for House {
                         } else {
                             (
                                 Aabr {
-                                    min: Vec2::new(2, foundation_height + 2),
+                                    min: Vec2::new(2, floor_height + 2),
                                     max: Vec2::new(width - 2, ceil_height - 2),
                                 },
                                 Vec2::new(1, 0),
@@ -392,7 +470,7 @@ impl Archetype for House {
                         }
 
                         // Wall
-                        return Some(if branch.attr.central_supports && profile.x == 0 {
+                        return Some(if attr.central_supports && profile.x == 0 {
                             // Support beams
                             log.with_priority(structural_layer)
                         } else {
@@ -407,36 +485,88 @@ impl Archetype for House {
                         if profile.x == 0 {
                             // Rafters
                             return Some(log);
-                        } else if branch.attr.storey_fill.has_upper() {
+                        } else if attr.storey_fill.has_upper() {
                             // Ceiling
                             return Some(floor);
                         }
-                    } else if (!branch.attr.storey_fill.has_lower() && profile.y < ceil_height)
-                        || (!branch.attr.storey_fill.has_upper() && profile.y >= ceil_height)
+                    } else if (!attr.storey_fill.has_lower() && profile.y < ceil_height)
+                        || (!attr.storey_fill.has_upper() && profile.y >= ceil_height)
                     {
                         return Some(empty);
+                    // Furniture
+                    } else if dist == width - 1
+                        && center_offset.sum() % 2 == 0
+                        && profile.y == floor_height + 1
+                        && self
+                            .noise
+                            .chance(Vec3::new(center_offset.x, center_offset.y, z), 0.2)
+                    {
+                        let furniture = match self.noise.get(Vec3::new(
+                            center_offset.x,
+                            center_offset.y,
+                            z + 100,
+                        )) % 11
+                        {
+                            0 => BlockKind::Planter,
+                            1 => BlockKind::ChairSingle,
+                            2 => BlockKind::ChairDouble,
+                            3 => BlockKind::CoatRack,
+                            4 => BlockKind::Crate,
+                            6 => BlockKind::DrawerMedium,
+                            7 => BlockKind::DrawerSmall,
+                            8 => BlockKind::TableSide,
+                            9 => BlockKind::WardrobeSingle,
+                            _ => BlockKind::Pot,
+                        };
+
+                        return Some(BlockMask::new(
+                            Block::new(furniture, Rgb::new(edge_ori, 0, 0)),
+                            internal_layer,
+                        ));
                     } else {
                         return Some(internal);
                     }
                 }
 
-                None
+                // Wall ornaments
+                if dist == width + 1
+                    && center_offset.map(|e| e.abs()).reduce_min() == 0
+                    && profile.y == floor_height + 3
+                    && self
+                        .noise
+                        .chance(Vec3::new(center_offset.x, center_offset.y, z), 0.35)
+                    && attr.storey_fill.has_lower()
+                {
+                    let ornament =
+                        match self
+                            .noise
+                            .get(Vec3::new(center_offset.x, center_offset.y, z + 100))
+                            % 4
+                        {
+                            0 => BlockKind::HangingSign,
+                            1 | 2 | 3 => BlockKind::HangingBasket,
+                            _ => BlockKind::DungeonWallDecor,
+                        };
+
+                    Some(BlockMask::new(
+                        Block::new(ornament, Rgb::new((edge_ori + 4) % 8, 0, 0)),
+                        internal_layer,
+                    ))
+                } else {
+                    None
+                }
             };
 
         let mut cblock = empty;
 
-        if let Some(block) = do_roof_wall(
-            profile,
-            width,
-            dist,
-            bound_offset,
-            roof_top,
-            branch.attr.mansard,
-        ) {
+        if let Some(block) =
+            do_roof_wall(profile, width, dist, bound_offset, roof_top, attr.mansard)
+        {
             cblock = cblock.resolve_with(block);
         }
 
-        if let Pillar::Tower(tower_top) = branch.attr.pillar {
+        if let Pillar::Tower(tower_height) = attr.pillar {
+            let tower_top = roof_top + tower_height;
             let profile = Vec2::new(center_offset.x.abs(), profile.y);
             let dist = center_offset.map(|e| e.abs()).reduce_max();
 
@@ -446,7 +576,7 @@ impl Archetype for House {
                 dist,
                 center_offset.map(|e| e.abs()),
                 tower_top,
-                branch.attr.mansard,
+                attr.mansard,
             ) {
                 cblock = cblock.resolve_with(block);
             }
