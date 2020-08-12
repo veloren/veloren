@@ -1,12 +1,12 @@
 [
-    (25, Velorite),
-    (35, VeloriteFrag),
+    (20, Velorite),
+    (30, VeloriteFrag),
     (60, Stones),
     (15, PurpleFlower),
-    (150, ShortGrass),
-    (80, Mushroom),
+    (130, ShortGrass),
+    (120, Mushroom),
     (8, ShinyGem),
-    (5, Chest),
+    (15, Chest),
     (2, Crate),
-    (1, Scarecrow),
+    (0.25, Scarecrow),
 ]

@@ -90,9 +90,9 @@ impl Civs {
 
         for _ in 0..INITIAL_CIV_COUNT * 3 {
             attempt(5, || {
-                let (kind, size) = match ctx.rng.gen_range(0, 2) {
-                    0 => (SiteKind::Dungeon, 0),
-                    _ => (SiteKind::Castle, 3),
+                let (kind, size) = match ctx.rng.gen_range(0, 8) {
+                    0 => (SiteKind::Castle, 3),
+                    _ => (SiteKind::Dungeon, 0),
                 };
                 let loc = find_site_loc(&mut ctx, None, size)?;
                 this.establish_site(&mut ctx.reseed(), loc, |place| Site {

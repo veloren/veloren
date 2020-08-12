@@ -51,9 +51,18 @@ pub fn apply_scatter_to<'a>(
                 None,
             )
         }),
-        (Twigs, false, |c| ((c.tree_density - 0.5).max(0.0) * 0.0025, None)),
-        (Stones, false, |c| ((c.rockiness - 0.5).max(0.0) * 0.005, None)),
-        (ShortGrass, false, |c| (close(c.temp, 0.3, 0.4).min(close(c.humidity, 0.6, 0.35)) * 0.05, Some((48.0, 0.4)))),
+        (Twigs, false, |c| {
+            ((c.tree_density - 0.5).max(0.0) * 0.0025, None)
+        }),
+        (Stones, false, |c| {
+            ((c.rockiness - 0.5).max(0.0) * 0.005, None)
+        }),
+        (ShortGrass, false, |c| {
+            (
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, 0.6, 0.35)) * 0.05,
+                Some((48.0, 0.4)),
+            )
+        }),
         (MediumGrass, false, |c| {
             (
                 close(c.temp, 0.0, 0.6).min(close(c.humidity, 0.6, 0.35)) * 0.05,
@@ -89,26 +98,30 @@ pub fn apply_scatter_to<'a>(
 
             let underwater = col_sample.water_level > col_sample.alt;
 
-            let bk = scatter.iter().enumerate().find_map(|(i, (bk, is_underwater, f))| {
-                let (density, patch) = f(chunk);
-                if density <= 0.0
-                    || patch
-                        .map(|(wavelen, threshold)| {
-                            index.noise.scatter_nz.get(
-                                wpos2d
-                                    .map(|e| e as f64 / wavelen as f64 + i as f64 * 43.0)
-                                    .into_array(),
-                            ) < threshold as f64
-                        })
-                        .unwrap_or(false)
-                    || !RandomField::new(i as u32).chance(Vec3::new(wpos2d.x, wpos2d.y, 0), density)
-                    || underwater != *is_underwater
-                {
-                    None
-                } else {
-                    Some(*bk)
-                }
-            });
+            let bk = scatter
+                .iter()
+                .enumerate()
+                .find_map(|(i, (bk, is_underwater, f))| {
+                    let (density, patch) = f(chunk);
+                    if density <= 0.0
+                        || patch
+                            .map(|(wavelen, threshold)| {
+                                index.noise.scatter_nz.get(
+                                    wpos2d
+                                        .map(|e| e as f64 / wavelen as f64 + i as f64 * 43.0)
+                                        .into_array(),
+                                ) < threshold as f64
+                            })
+                            .unwrap_or(false)
+                        || !RandomField::new(i as u32)
+                            .chance(Vec3::new(wpos2d.x, wpos2d.y, 0), density)
+                        || underwater != *is_underwater
+                    {
+                        None
+                    } else {
+                        Some(*bk)
+                    }
+                });
 
             if let Some(bk) = bk {
                 let mut z = col_sample.alt as i32 - 4;
@@ -287,10 +300,10 @@ pub fn apply_caves_to<'a>(
                 }
 
                 let cave_depth = (col_sample.alt - cave.alt).max(0.0);
-                let difficulty = cave_depth / 200.0;
+                let difficulty = cave_depth / 100.0;
 
                 // Scatter things in caves
-                if RandomField::new(index.seed).chance(wpos2d.into(), 0.002 * difficulty)
+                if RandomField::new(index.seed).chance(wpos2d.into(), 0.002 * difficulty.powf(1.5))
                     && cave_base < surface_z as i32 - 25
                 {
                     let kind = *assets::load_expect::<Lottery<BlockKind>>("common.cave_scatter")
@@ -343,7 +356,7 @@ pub fn apply_caves_supplement<'a>(
                 let difficulty = cave_depth / 200.0;
 
                 // Scatter things in caves
-                if RandomField::new(index.seed).chance(wpos2d.into(), 0.0001 * difficulty)
+                if RandomField::new(index.seed).chance(wpos2d.into(), 0.00005 * difficulty)
                     && cave_base < surface_z as i32 - 40
                 {
                     let entity = EntityInfo::at(Vec3::new(
