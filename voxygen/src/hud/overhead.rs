@@ -363,11 +363,10 @@ impl<'a> Widget for Overhead<'a> {
                 }))
                 .parent(id)
                 .set(state.ids.health_bar, ui);
-            // TODO Only show health values for entities below 100% health
             let mut txt = format!(
                 "{}/{}",
-                self.stats.health.current().max(1) / 10 as u32, /* Don't show 0 health for
-                                                                 * living entities */
+                (self.stats.health.current() / 10).max(1) as u32, /* Don't show 0 health for
+                                                                   * living entities */
                 self.stats.health.maximum() / 10 as u32,
             );
             if self.stats.is_dead {

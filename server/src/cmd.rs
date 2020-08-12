@@ -1039,6 +1039,7 @@ fn handle_explosion(
                     power,
                     owner: ecs.read_storage::<Uid>().get(target).copied(),
                     friendly_damage: true,
+                    reagent: None,
                 })
         },
         None => server.notify_client(

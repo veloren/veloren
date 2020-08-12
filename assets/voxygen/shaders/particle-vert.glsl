@@ -38,6 +38,12 @@ const int FIRE = 1;
 const int GUN_POWDER_SPARK = 2;
 const int SHRAPNEL = 3;
 
+const int FIREWORK_BLUE = 4;
+const int FIREWORK_GREEN = 5;
+const int FIREWORK_PURPLE = 6;
+const int FIREWORK_RED = 7;
+const int FIREWORK_YELLOW = 8;
+
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
 
@@ -61,6 +67,10 @@ float exp_scale(float factor) {
 	return 1 / (1 - lifetime * factor);
 }
 
+float linear_scale(float factor) {
+	return lifetime * factor;
+}
+
 void main() {
 	float rand0 = hash(vec4(inst_entropy + 0));
 	float rand1 = hash(vec4(inst_entropy + 1));
@@ -76,10 +86,10 @@ void main() {
 	if (inst_mode == SMOKE) {
 		attr = Attr(
 			linear_motion(
-				vec3(rand0 * 0.25, rand1 * 0.25, 1.7 + rand5),
-				vec3(rand2 * 0.2, rand3 * 0.2, 1.0 + rand4 * 0.5)// + vec3(sin(lifetime), sin(lifetime + 1.5), sin(lifetime * 4) * 0.25)
+				vec3(0.0, 0.0, 0.0),
+				vec3(rand2 * 0.1, rand3 * 0.1, 1.0 + rand4 * 0.1)// + vec3(sin(lifetime), sin(lifetime + 1.5), sin(lifetime * 4) * 0.25)
 			),
-			exp_scale(-0.2),
+			linear_scale(0.5),
 			vec3(1)
 		);
 	} else if (inst_mode == FIRE) {
@@ -104,6 +114,51 @@ void main() {
 		attr = Attr(
 			linear_motion(
 				vec3(0),
+				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
+			),
+			3.0 + rand0,
+			vec3(0.6 + rand7 * 0.4)
+		);
+	} else if (inst_mode == FIREWORK_BLUE) {
+		attr = Attr(
+			linear_motion(
+				vec3(0.0, 1.0, 1.0),
+				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
+			),
+			3.0 + rand0,
+			vec3(0.6 + rand7 * 0.4)
+		);
+	} else if (inst_mode == FIREWORK_GREEN) {
+		attr = Attr(
+			linear_motion(
+				vec3(0.0, 1.0, 0.0),
+				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
+			),
+			3.0 + rand0,
+			vec3(0.6 + rand7 * 0.4)
+		);
+	} else if (inst_mode == FIREWORK_PURPLE) {
+		attr = Attr(
+			linear_motion(
+				vec3(1.0, 0.0, 1.0),
+				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
+			),
+			3.0 + rand0,
+			vec3(0.6 + rand7 * 0.4)
+		);
+	} else if (inst_mode == FIREWORK_RED) {
+		attr = Attr(
+			linear_motion(
+				vec3(1.0, 0.0, 0.0),
+				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
+			),
+			3.0 + rand0,
+			vec3(0.6 + rand7 * 0.4)
+		);
+	} else if (inst_mode == FIREWORK_YELLOW) {
+		attr = Attr(
+			linear_motion(
+				vec3(1.0, 1.0, 0.0),
 				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
 			),
 			3.0 + rand0,

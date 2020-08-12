@@ -20,6 +20,16 @@ use vek::Rgb;
 pub enum Throwable {
     Bomb,
     TrainingDummy,
+    Firework(Reagent),
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Reagent {
+    Blue,
+    Green,
+    Purple,
+    Red,
+    Yellow,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]

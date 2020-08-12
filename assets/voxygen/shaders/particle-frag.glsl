@@ -82,5 +82,5 @@ void main() {
     vec3 color = surf_color;
 #endif
 
-	tgt_color = vec4(color, 1.0 - clamp((distance(focus_pos.xy, f_pos.xy) - (1000.0 - FADE_DIST)) / FADE_DIST, 0, 1));
+	tgt_color = vec4(color, 0.3);
 }

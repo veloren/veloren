@@ -32,6 +32,7 @@ use common::{
     terrain::{BlockKind, TerrainChunk},
     vol::ReadVol,
 };
+use comp::item::Reagent;
 use num::traits::{Float, FloatConst};
 use specs::{Entity as EcsEntity, Join, WorldExt};
 use vek::*;
@@ -373,9 +374,31 @@ impl Scene {
         self.sfx_mgr.handle_outcome(&outcome, audio);
 
         match outcome {
-            Outcome::Explosion { pos, power, .. } => self.event_lights.push(EventLight {
-                light: Light::new(*pos, Rgb::new(1.0, 0.5, 0.0), *power * 2.5),
-                timeout: 0.5,
+            Outcome::Explosion {
+                pos,
+                power,
+                reagent,
+            } => self.event_lights.push(EventLight {
+                light: Light::new(
+                    *pos,
+                    match reagent {
+                        Some(Reagent::Blue) => Rgb::new(0.0, 0.0, 1.0),
+                        Some(Reagent::Green) => Rgb::new(0.0, 1.0, 0.0),
+                        Some(Reagent::Purple) => Rgb::new(1.0, 0.0, 1.0),
+                        Some(Reagent::Red) => Rgb::new(1.0, 0.0, 0.0),
+                        Some(Reagent::Yellow) => Rgb::new(1.0, 1.0, 0.0),
+                        None => Rgb::new(1.0, 0.5, 0.0),
+                    },
+                    *power
+                        * match reagent {
+                            Some(_) => 5.0,
+                            None => 2.5,
+                        },
+                ),
+                timeout: match reagent {
+                    Some(_) => 1.0,
+                    None => 0.5,
+                },
                 fadeout: |timeout| timeout * 2.0,
             }),
             Outcome::ProjectileShot { .. } => {},

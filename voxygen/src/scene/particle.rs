@@ -8,7 +8,7 @@ use crate::{
 };
 use common::{
     assets,
-    comp::{object, Body, CharacterState, Pos},
+    comp::{item::Reagent, object, Body, CharacterState, Pos},
     figure::Segment,
     outcome::Outcome,
 };
@@ -48,15 +48,27 @@ impl ParticleMgr {
         let mut rng = rand::thread_rng();
 
         match outcome {
-            Outcome::Explosion { pos, power } => {
+            Outcome::Explosion {
+                pos,
+                power,
+                reagent,
+            } => {
                 for _ in 0..150 {
                     self.particles.push(Particle::new(
-                        Duration::from_millis(250),
+                        Duration::from_millis(if reagent.is_some() { 1000 } else { 250 }),
                         time,
-                        ParticleMode::Shrapnel,
+                        match reagent {
+                            Some(Reagent::Blue) => ParticleMode::FireworkBlue,
+                            Some(Reagent::Green) => ParticleMode::FireworkGreen,
+                            Some(Reagent::Purple) => ParticleMode::FireworkPurple,
+                            Some(Reagent::Red) => ParticleMode::FireworkRed,
+                            Some(Reagent::Yellow) => ParticleMode::FireworkYellow,
+                            None => ParticleMode::Shrapnel,
+                        },
                         *pos,
                     ));
                 }
+
                 for _ in 0..200 {
                     self.particles.push(Particle::new(
                         Duration::from_secs(4),
@@ -113,7 +125,14 @@ impl ParticleMgr {
                 Body::Object(object::Body::BoltFireBig) => {
                     self.maintain_boltfirebig_particles(scene_data, pos)
                 },
-                Body::Object(object::Body::Bomb) => self.maintain_bomb_particles(scene_data, pos),
+                Body::Object(
+                    object::Body::Bomb
+                    | object::Body::FireworkBlue
+                    | object::Body::FireworkGreen
+                    | object::Body::FireworkPurple
+                    | object::Body::FireworkRed
+                    | object::Body::FireworkYellow,
+                ) => self.maintain_bomb_particles(scene_data, pos),
                 _ => {},
             }
         }

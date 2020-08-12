@@ -191,7 +191,7 @@ impl Tool {
                     prepare_duration: Duration::from_millis(100),
                     charge_duration: Duration::from_millis(1500),
                     recover_duration: Duration::from_millis(500),
-                    projectile_body: Body::Object(object::Body::Arrow),
+                    projectile_body: Body::Object(object::Body::MultiArrow),
                     projectile_light: None,
                 },
             ],

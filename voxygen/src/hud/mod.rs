@@ -2267,7 +2267,7 @@ impl Hud {
             _ if !self.show.ui => false,
             WinEvent::Zoom(_) => !cursor_grabbed && !self.ui.no_widget_capturing_mouse(),
 
-            WinEvent::InputUpdate(GameInput::Enter, true) => {
+            WinEvent::InputUpdate(GameInput::Chat, true) => {
                 self.ui.focus_widget(if self.typing() {
                     None
                 } else {

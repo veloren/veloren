@@ -263,6 +263,7 @@ impl<'a> MainMenuUi {
             env!("CARGO_PKG_VERSION"),
             common::util::GIT_VERSION.to_string()
         );
+        let scale = 0.8;
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         const TEXT_COLOR_2: Color = Color::Rgba(1.0, 1.0, 1.0, 0.2);
         const TEXT_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
@@ -330,9 +331,10 @@ impl<'a> MainMenuUi {
         };
 
         // Version displayed top right corner
+        let pos = if self.connect { 5.0 } else { 98.0 };
         Text::new(&version)
             .color(TEXT_COLOR)
-            .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
+            .top_right_with_margins_on(ui_widgets.window, pos * scale, 10.0 * scale)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.version, ui_widgets);
@@ -463,20 +465,21 @@ impl<'a> MainMenuUi {
 
         if !self.connect {
             Image::new(self.imgs.banner)
-                .w_h(65.0 * 6.0, 100.0 * 6.0)
+                .w_h(65.0 * 6.0 * scale, 100.0 * 6.0 * scale)
                 .middle_of(self.ids.bg)
-                .color(Some(Color::Rgba(0.0, 0.0, 0.0, 0.9)))
+                .color(Some(Color::Rgba(0.0, 0.0, 0.0, 0.0)))
                 .set(self.ids.banner, ui_widgets);
 
             Image::new(self.imgs.banner_top)
-                .w_h(70.0 * 6.0, 34.0)
+                .w_h(70.0 * 6.0 * scale, 34.0 * scale)
                 .mid_top_with_margin_on(self.ids.banner, -34.0)
+                .color(Some(Color::Rgba(0.0, 0.0, 0.0, 0.0)))
                 .set(self.ids.banner_top, ui_widgets);
 
             // Logo
             Image::new(self.imgs.v_logo)
-                .w_h(123.0 * 2.5, 35.0 * 2.5)
-                .mid_top_with_margin_on(self.ids.banner_top, 45.0)
+                .w_h(123.0 * 2.5 * scale, 35.0 * 2.5 * scale)
+                .top_right_with_margins_on(self.ids.bg, 10.0, 10.0)
                 .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.95)))
                 .set(self.ids.v_logo, ui_widgets);
 
@@ -537,18 +540,18 @@ impl<'a> MainMenuUi {
                 };
             }
             // Info Window
-            Rectangle::fill_with([550.0, 250.0], COL1)
-                .top_left_with_margins_on(ui_widgets.window, 40.0, 40.0)
-                .color(Color::Rgba(0.0, 0.0, 0.0, 0.95))
+            Rectangle::fill_with([550.0 * scale, 250.0 * scale], COL1)
+                .top_left_with_margins_on(ui_widgets.window, 40.0 * scale, 40.0 * scale)
+                .color(Color::Rgba(0.0, 0.0, 0.0, 0.80))
                 .set(self.ids.info_frame, ui_widgets);
             Image::new(self.imgs.banner_bottom)
-                .mid_bottom_with_margin_on(self.ids.info_frame, -50.0)
-                .w_h(550.0, 50.0)
-                .color(Some(Color::Rgba(0.0, 0.0, 0.0, 0.95)))
+                .mid_bottom_with_margin_on(self.ids.info_frame, -50.0 * scale)
+                .w_h(550.0 * scale, 50.0 * scale)
+                .color(Some(Color::Rgba(0.0, 0.0, 0.0, 0.80)))
                 .set(self.ids.info_bottom, ui_widgets);
             Text::new(intro_text)
-                .top_left_with_margins_on(self.ids.info_frame, 15.0, 15.0)
-                .font_size(self.fonts.cyri.scale(20))
+                .top_left_with_margins_on(self.ids.info_frame, 15.0 * scale, 15.0 * scale)
+                .font_size(self.fonts.cyri.scale(16))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(self.ids.info_text, ui_widgets);
@@ -569,17 +572,20 @@ impl<'a> MainMenuUi {
             }
 
             // Username
-            Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.0))
-                .mid_top_with_margin_on(self.ids.banner_top, 150.0)
-                .set(self.ids.usrnm_bg, ui_widgets);
+            Rectangle::fill_with(
+                [320.0 * scale, 50.0 * scale],
+                color::rgba(0.0, 0.0, 0.0, 0.0),
+            )
+            .mid_top_with_margin_on(self.ids.banner_top, 150.0)
+            .set(self.ids.usrnm_bg, ui_widgets);
             Image::new(self.imgs.input_bg)
-                .w_h(338.0, 50.0)
+                .w_h(338.0 * scale, 50.0 * scale)
                 .middle_of(self.ids.usrnm_bg)
                 .set(self.ids.username_bg, ui_widgets);
             for event in TextBox::new(&self.username)
-                    .w_h(290.0, 30.0)
-                    .mid_bottom_with_margin_on(self.ids.username_bg, 14.0)
-                    .font_size(self.fonts.cyri.scale(22))
+                    .w_h(290.0* scale, 30.0* scale)
+                    .mid_bottom_with_margin_on(self.ids.username_bg, 14.0* scale)
+                    .font_size(self.fonts.cyri.scale(18))
                     .font_id(self.fonts.cyri.conrod_id)
                     .text_color(TEXT_COLOR)
                     // transparent background
@@ -598,16 +604,19 @@ impl<'a> MainMenuUi {
                 }
             }
             // Password
-            Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.0))
-                .down_from(self.ids.usrnm_bg, 10.0)
-                .set(self.ids.passwd_bg, ui_widgets);
+            Rectangle::fill_with(
+                [320.0 * scale, 50.0 * scale],
+                color::rgba(0.0, 0.0, 0.0, 0.0),
+            )
+            .down_from(self.ids.usrnm_bg, 10.0 * scale)
+            .set(self.ids.passwd_bg, ui_widgets);
             Image::new(self.imgs.input_bg)
-                .w_h(338.0, 50.0)
+                .w_h(338.0 * scale, 50.0 * scale)
                 .middle_of(self.ids.passwd_bg)
                 .set(self.ids.password_bg, ui_widgets);
             for event in TextBox::new(&self.password)
-                    .w_h(290.0, 30.0)
-                    .mid_bottom_with_margin_on(self.ids.password_bg, 10.0)
+                    .w_h(290.0 * scale, 30.0* scale)
+                    .mid_bottom_with_margin_on(self.ids.password_bg, 10.0* scale)
                     // the text is smaller to allow longer passwords, conrod limits text length
                     // this allows 35 characters but can be increased, approximate formula: 420 / scale = length
                     .font_size(self.fonts.cyri.scale(12))
@@ -695,17 +704,20 @@ impl<'a> MainMenuUi {
                 };
             }
             // Server address
-            Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.0))
-                .down_from(self.ids.passwd_bg, 8.0)
-                .set(self.ids.srvr_bg, ui_widgets);
+            Rectangle::fill_with(
+                [320.0 * scale, 50.0 * scale],
+                color::rgba(0.0, 0.0, 0.0, 0.0),
+            )
+            .down_from(self.ids.passwd_bg, 8.0 * scale)
+            .set(self.ids.srvr_bg, ui_widgets);
             Image::new(self.imgs.input_bg)
-                .w_h(338.0, 50.0)
+                .w_h(338.0 * scale, 50.0 * scale)
                 .middle_of(self.ids.srvr_bg)
                 .set(self.ids.address_bg, ui_widgets);
             for event in TextBox::new(&self.server_address)
-                    .w_h(290.0, 30.0)
-                    .mid_top_with_margin_on(self.ids.address_bg, 8.0)
-                    .font_size(self.fonts.cyri.scale(22))
+                    .w_h(290.0*scale, 30.0*scale)
+                    .mid_top_with_margin_on(self.ids.address_bg, 8.0*scale)
+                    .font_size(self.fonts.cyri.scale(18))
                     .font_id(self.fonts.cyri.conrod_id)
                     .text_color(TEXT_COLOR)
                     // transparent background
@@ -727,14 +739,14 @@ impl<'a> MainMenuUi {
             if Button::image(self.imgs.button)
                     .hover_image(self.imgs.button_hover)
                     .press_image(self.imgs.button_press)
-                    .w_h(258.0, 55.0)
-                    .down_from(self.ids.address_bg, 20.0)
+                    .w_h(258.0*scale, 55.0*scale)
+                    .down_from(self.ids.address_bg, 20.0*scale)
                     .align_middle_x_of(self.ids.address_bg)
                     .label(&self.voxygen_i18n.get("common.multiplayer"))
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(22))
-                    .label_y(Relative::Scalar(5.0))
+                    .label_font_size(self.fonts.cyri.scale(18))
+                    .label_y(Relative::Scalar(4.0))
                     /*.with_tooltip(
                         tooltip_manager,
                         "Login",
@@ -755,14 +767,14 @@ impl<'a> MainMenuUi {
                 if Button::image(self.imgs.button)
                     .hover_image(self.imgs.button_hover)
                     .press_image(self.imgs.button_press)
-                    .w_h(258.0, 55.0)
-                    .down_from(self.ids.login_button, 20.0)
+                    .w_h(258.0 * scale, 55.0 * scale)
+                    .down_from(self.ids.login_button, 20.0 * scale)
                     .align_middle_x_of(self.ids.address_bg)
                     .label(&self.voxygen_i18n.get("common.singleplayer"))
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(22))
-                    .label_y(Relative::Scalar(5.0))
+                    .label_font_size(self.fonts.cyri.scale(18))
+                    .label_y(Relative::Scalar(4.0))
                     .label_x(Relative::Scalar(2.0))
                     .set(self.ids.singleplayer_button, ui_widgets)
                     .was_clicked()
@@ -773,14 +785,14 @@ impl<'a> MainMenuUi {
             }
             // Quit
             if Button::image(self.imgs.button)
-                .w_h(190.0, 40.0)
-                .bottom_left_with_margins_on(ui_widgets.window, 60.0, 30.0)
+                .w_h(190.0 * scale, 40.0 * scale)
+                .bottom_left_with_margins_on(ui_widgets.window, 60.0 * scale, 30.0 * scale)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .label(&self.voxygen_i18n.get("common.quit"))
                 .label_font_id(self.fonts.cyri.conrod_id)
                 .label_color(TEXT_COLOR)
-                .label_font_size(self.fonts.cyri.scale(20))
+                .label_font_size(self.fonts.cyri.scale(16))
                 .label_y(Relative::Scalar(3.0))
                 .set(self.ids.quit_button, ui_widgets)
                 .was_clicked()
@@ -790,14 +802,14 @@ impl<'a> MainMenuUi {
 
             // Settings
             if Button::image(self.imgs.button)
-                    .w_h(190.0, 40.0)
-                    .up_from(self.ids.quit_button, 8.0)
+                    .w_h(190.0*scale, 40.0*scale)
+                    .up_from(self.ids.quit_button, 8.0*scale)
                     //.hover_image(self.imgs.button_hover)
                     //.press_image(self.imgs.button_press)
                     .label(&self.voxygen_i18n.get("common.settings"))
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_color(TEXT_COLOR_2)
-                    .label_font_size(self.fonts.cyri.scale(20))
+                    .label_font_size(self.fonts.cyri.scale(16))
                     .label_y(Relative::Scalar(3.0))
                     .set(self.ids.settings_button, ui_widgets)
                     .was_clicked()
@@ -807,14 +819,14 @@ impl<'a> MainMenuUi {
 
             // Servers
             if Button::image(self.imgs.button)
-                .w_h(190.0, 40.0)
-                .up_from(self.ids.settings_button, 8.0)
+                .w_h(190.0 * scale, 40.0 * scale)
+                .up_from(self.ids.settings_button, 8.0 * scale)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .label(&self.voxygen_i18n.get("common.servers"))
                 .label_font_id(self.fonts.cyri.conrod_id)
                 .label_color(TEXT_COLOR)
-                .label_font_size(self.fonts.cyri.scale(20))
+                .label_font_size(self.fonts.cyri.scale(16))
                 .label_y(Relative::Scalar(3.0))
                 .set(self.ids.servers_button, ui_widgets)
                 .was_clicked()

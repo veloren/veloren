@@ -3371,6 +3371,26 @@ pub fn mesh_object(
             Vec3::new(-0.5, -6.0, -1.5),
         ),
         Body::Bomb => ("object.bomb", Vec3::new(-5.5, -5.5, 0.0)),
+        Body::FireworkBlue => (
+            "weapon.projectile.fireworks_blue-0",
+            Vec3::new(0.0, 0.0, 0.0),
+        ),
+        Body::FireworkGreen => (
+            "weapon.projectile.fireworks_green-0",
+            Vec3::new(0.0, 0.0, 0.0),
+        ),
+        Body::FireworkPurple => (
+            "weapon.projectile.fireworks_purple-0",
+            Vec3::new(0.0, 0.0, 0.0),
+        ),
+        Body::FireworkRed => (
+            "weapon.projectile.fireworks_red-0",
+            Vec3::new(0.0, 0.0, 0.0),
+        ),
+        Body::FireworkYellow => (
+            "weapon.projectile.fireworks_yellow-0",
+            Vec3::new(0.0, 0.0, 0.0),
+        ),
         Body::Scarecrow => ("object.scarecrow", Vec3::new(-9.5, -4.0, 0.0)),
         Body::Cauldron => ("object.cauldron", Vec3::new(-10.0, -10.0, 0.0)),
         Body::ChestVines => ("object.chest_vines", Vec3::new(-7.5, -6.0, 0.0)),
@@ -3429,6 +3449,7 @@ pub fn mesh_object(
         Body::BoltFire => ("weapon.projectile.fire-bolt-0", Vec3::new(-3.0, -5.5, -3.0)),
         Body::BoltFireBig => ("weapon.projectile.fire-bolt-1", Vec3::new(-6.0, -6.0, -6.0)),
         Body::TrainingDummy => ("object.training_dummy", Vec3::new(-7.0, -5.0, 0.0)),
+        Body::MultiArrow => ("weapon.projectile.multi-arrow", Vec3::new(-4.0, -9.5, -5.0)),
     };
     load_mesh(name, offset, generate_mesh)
 }

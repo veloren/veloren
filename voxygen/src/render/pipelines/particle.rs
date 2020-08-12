@@ -93,6 +93,11 @@ pub enum ParticleMode {
     CampfireFire = 1,
     GunPowderSpark = 2,
     Shrapnel = 3,
+    FireworkBlue = 4,
+    FireworkGreen = 5,
+    FireworkPurple = 6,
+    FireworkRed = 7,
+    FireworkYellow = 8,
 }
 
 impl ParticleMode {
