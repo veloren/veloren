@@ -10,7 +10,7 @@ use std::{
     thread::{self, JoinHandle},
     time::Duration,
 };
-use tracing::info;
+use tracing::{info, warn};
 
 const TPS: u64 = 30;
 
@@ -51,15 +51,25 @@ impl Singleplayer {
         let (result_sender, result_receiver) = bounded(1);
 
         let thread = thread::spawn(move || {
-            let server = match Server::new(settings2) {
-                Ok(server) => {
-                    result_sender.send(Ok(())).unwrap();
-                    server
+            let mut server = None;
+            if let Err(e) = result_sender.send(match Server::new(settings2) {
+                Ok(s) => {
+                    server = Some(s);
+                    Ok(())
                 },
-                Err(error) => {
-                    result_sender.send(Err(error)).unwrap();
-                    return;
-                },
+                Err(e) => Err(e),
+            }) {
+                warn!(
+                    ?e,
+                    "Failed to send singleplayer server initialization result. Most likely the \
+                     channel was closed by cancelling server creation. Stopping Server"
+                );
+                return;
+            };
+
+            let server = match server {
+                Some(s) => s,
+                None => return,
             };
 
             let server = match thread_pool {
