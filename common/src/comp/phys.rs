@@ -93,7 +93,7 @@ impl PhysicsState {
 }
 
 impl Component for PhysicsState {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = IdvStorage<Self>;
 }
 
 // ForceUpdate
