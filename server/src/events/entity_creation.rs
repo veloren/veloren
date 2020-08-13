@@ -44,6 +44,7 @@ pub fn handle_create_npc(
         Alignment::Npc | Alignment::Tame => Some(group::NPC),
         // TODO: handle
         Alignment::Owned(_) => None,
+        _ => None,
     };
 
     let entity = server

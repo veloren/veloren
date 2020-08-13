@@ -624,6 +624,7 @@ fn handle_spawn(
                                     Some(comp::group::NPC)
                                 },
                                 comp::Alignment::Owned(_) => unreachable!(),
+                                _ => None,
                             } {
                                 let _ =
                                     server.state.ecs().write_storage().insert(new_entity, group);

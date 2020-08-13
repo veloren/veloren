@@ -1,8 +1,11 @@
-use crate::{comp::Body, path::Chaser, sync::Uid};
+use crate::{
+    comp::{critter, humanoid, quadruped_low, quadruped_medium, quadruped_small, Body},
+    path::Chaser,
+    sync::Uid,
+};
 use specs::{Component, Entity as EcsEntity};
 use specs_idvs::IdvStorage;
 use vek::*;
-
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Alignment {
     /// Wild animals and gentle giants
@@ -15,6 +18,8 @@ pub enum Alignment {
     Tame,
     /// Pets you've tamed with a collar
     Owned(Uid),
+    /// Passive objects like training dummies
+    Passive,
 }
 
 impl Alignment {
@@ -22,8 +27,13 @@ impl Alignment {
     pub fn hostile_towards(self, other: Alignment) -> bool {
         match (self, other) {
             (Alignment::Enemy, Alignment::Enemy) => false,
-            (Alignment::Enemy, _) => true,
+            (Alignment::Enemy, Alignment::Wild) => false,
+            (Alignment::Enemy, Alignment::Tame) => true,
+            (Alignment::Wild, Alignment::Enemy) => false,
+            (Alignment::Wild, Alignment::Wild) => false,
+            (Alignment::Npc, Alignment::Wild) => true,
             (_, Alignment::Enemy) => true,
+            (Alignment::Enemy, _) => true,
             _ => false,
         }
     }
@@ -35,8 +45,11 @@ impl Alignment {
             (Alignment::Owned(a), Alignment::Owned(b)) if a == b => true,
             (Alignment::Npc, Alignment::Npc) => true,
             (Alignment::Npc, Alignment::Tame) => true,
+            (Alignment::Enemy, Alignment::Wild) => true,
+            (Alignment::Wild, Alignment::Enemy) => true,
             (Alignment::Tame, Alignment::Npc) => true,
             (Alignment::Tame, Alignment::Tame) => true,
+            (_, Alignment::Passive) => true,
             _ => false,
         }
     }
@@ -53,25 +66,73 @@ impl Component for Alignment {
 
 #[derive(Clone, Debug, Default)]
 pub struct Psyche {
-    pub aggro: f32, // 0.0 = always flees, 1.0 = always attacks
+    pub aggro: f32, // 0.0 = always flees, 1.0 = always attacks, 0.5 = flee at 50% health
 }
-
+#[allow(unreachable_patterns)]
 impl<'a> From<&'a Body> for Psyche {
     fn from(body: &'a Body) -> Self {
         Self {
             aggro: match body {
-                Body::Humanoid(_) => 0.5,
-                Body::QuadrupedSmall(_) => 0.35,
-                Body::QuadrupedMedium(_) => 0.5,
-                Body::QuadrupedLow(_) => 0.65,
+                Body::Humanoid(humanoid) => match humanoid.species {
+                    humanoid::Species::Danari => 0.9,
+                    humanoid::Species::Dwarf => 0.9,
+                    humanoid::Species::Elf => 0.95,
+                    humanoid::Species::Human => 0.95,
+                    humanoid::Species::Orc => 1.0,
+                    humanoid::Species::Undead => 1.0,
+                    _ => 1.0,
+                },
+                Body::QuadrupedSmall(quadruped_small) => match quadruped_small.species {
+                    quadruped_small::Species::Pig => 0.8,
+                    quadruped_small::Species::Fox => 0.4,
+                    quadruped_small::Species::Sheep => 0.7,
+                    quadruped_small::Species::Boar => 1.0,
+                    quadruped_small::Species::Jackalope => 0.4,
+                    quadruped_small::Species::Skunk => 0.8,
+                    quadruped_small::Species::Cat => 0.2,
+                    quadruped_small::Species::Batfox => 0.7,
+                    quadruped_small::Species::Raccoon => 0.4,
+                    quadruped_small::Species::Quokka => 0.7,
+                    quadruped_small::Species::Dodarock => 0.9,
+                    quadruped_small::Species::Holladon => 1.0,
+                    quadruped_small::Species::Hyena => 0.4,
+                    quadruped_small::Species::Rabbit => 0.1,
+                    quadruped_small::Species::Truffler => 0.8,
+                    quadruped_small::Species::Frog => 0.6,
+                    _ => 1.0,
+                },
+                Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
+                    quadruped_medium::Species::Tuskram => 0.8,
+                    quadruped_medium::Species::Frostfang => 0.9,
+                    quadruped_medium::Species::Mouflon => 0.8,
+                    quadruped_medium::Species::Catoblepas => 0.8,
+                    _ => 1.0,
+                },
+                Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
+                    quadruped_low::Species::Crocodile => 1.0,
+                    quadruped_low::Species::Alligator => 1.0,
+                    quadruped_low::Species::Salamander => 0.8,
+                    quadruped_low::Species::Monitor => 0.9,
+                    quadruped_low::Species::Asp => 0.9,
+                    quadruped_low::Species::Tortoise => 1.0,
+                    quadruped_low::Species::Rocksnapper => 1.0,
+                    quadruped_low::Species::Pangolin => 0.6,
+                    quadruped_low::Species::Maneater => 1.0,
+                    _ => 1.0,
+                },
                 Body::BirdMedium(_) => 1.0,
-                Body::BirdSmall(_) => 0.2,
+                Body::BirdSmall(_) => 0.4,
                 Body::FishMedium(_) => 0.15,
                 Body::FishSmall(_) => 0.0,
                 Body::BipedLarge(_) => 1.0,
-                Body::Object(_) => 0.0,
+                Body::Object(_) => 1.0,
                 Body::Golem(_) => 1.0,
-                Body::Critter(_) => 0.1,
+                Body::Critter(critter) => match critter.species {
+                    critter::Species::Axolotl => 1.0,
+                    critter::Species::Turtle => 1.0,
+                    critter::Species::Fungome => 1.0,
+                    _ => 0.4,
+                },
                 Body::Dragon(_) => 1.0,
             },
         }

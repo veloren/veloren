@@ -2109,20 +2109,36 @@ impl Hud {
         }
 
         // Free look indicator
-        if self.show.free_look {
-            Text::new(&self.voxygen_i18n.get("hud.free_look_indicator"))
+        if let Some(freelook_key) = global_state
+            .settings
+            .controls
+            .get_binding(GameInput::FreeLook)
+        {
+            if self.show.free_look {
+                Text::new(
+                    &self
+                        .voxygen_i18n
+                        .get("hud.free_look_indicator")
+                        .replace("{key}", freelook_key.to_string().as_str()),
+                )
                 .color(TEXT_BG)
-                .mid_top_with_margin_on(ui_widgets.window, 100.0)
+                .mid_top_with_margin_on(ui_widgets.window, 130.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(20))
                 .set(self.ids.free_look_bg, ui_widgets);
-            Text::new(&self.voxygen_i18n.get("hud.free_look_indicator"))
+                Text::new(
+                    &self
+                        .voxygen_i18n
+                        .get("hud.free_look_indicator")
+                        .replace("{key}", freelook_key.to_string().as_str()),
+                )
                 .color(KILL_COLOR)
                 .top_left_with_margins_on(self.ids.free_look_bg, -1.0, -1.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(20))
                 .set(self.ids.free_look_txt, ui_widgets);
-        }
+            }
+        };
 
         // Auto walk indicator
         if self.show.auto_walk {

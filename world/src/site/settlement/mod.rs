@@ -897,7 +897,7 @@ impl Settlement {
                         })
                         .with_agency(!is_dummy)
                         .with_alignment(if is_dummy {
-                            comp::Alignment::Wild
+                            comp::Alignment::Passive
                         } else if is_human {
                             comp::Alignment::Npc
                         } else {
