@@ -40,7 +40,10 @@ impl Lod {
 
     pub fn get_data(&self) -> &LodData { &self.data }
 
-    pub fn set_detail(&mut self, detail: u32) { self.data.tgt_detail = detail.max(100).min(2500); }
+    pub fn set_detail(&mut self, detail: u32) {
+        // Make sure the recorded detail is even.
+        self.data.tgt_detail = detail.max(100).min(2500) - self.data.tgt_detail % 2;
+    }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, _time_of_day: f64) {
         if self
@@ -66,8 +69,12 @@ impl Lod {
 }
 
 fn create_lod_terrain_mesh(detail: u32) -> Mesh<LodTerrainPipeline> {
+    // detail is even, so we choose odd detail (detail + 1) to create two even
+    // halves with an empty hole.
+    let detail = detail + 1;
     Spiral2d::new()
         .take((detail * detail) as usize)
+        .skip(1)
         .map(|pos| {
             let x = pos.x + detail as i32 / 2;
             let y = pos.y + detail as i32 / 2;

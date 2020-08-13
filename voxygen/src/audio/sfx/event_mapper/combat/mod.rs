@@ -53,7 +53,8 @@ impl EventMapper for CombatEventMapper {
         let sfx_event_bus = ecs.read_resource::<EventBus<SfxEventItem>>();
         let mut sfx_emitter = sfx_event_bus.emitter();
 
-        let cam_pos = camera.dependents().cam_pos;
+        let focus_off = camera.get_focus_pos().map(f32::trunc);
+        let cam_pos = camera.dependents().cam_pos + focus_off;
 
         for (entity, pos, loadout, character) in (
             &ecs.entities(),

@@ -60,7 +60,7 @@ void main() {
     // // float surfaceAlt = min(floor(f_pos.z), floor(alt_at_real(cam_pos.xy))); // faces_fluid ? max(ceil(f_pos.z), floor(f_alt)) : floor(f_alt);
 
 	// f_pos.z -= max(sign(view_distance.x - distance(focus_pos.xy, f_pos.xy)), 0.0) * (32.0 * view_distance.z / 255 + 32.0 * max(0.0, f_pos.z - cam_pos.z));
-	f_pos.z -= max(view_distance.x - distance(focus_pos.xy, f_pos.xy), 0.0) * (1.0 + max(0.0, f_pos.z - focus_pos.z));
+	f_pos.z -= 0.1 + max(view_distance.x - distance(focus_pos.xy, f_pos.xy), 0.0) * (1.0 + max(0.0, f_pos.z - focus_pos.z));
 
     // vec3 wRayinitial = f_pos; // cam_pos.z < f_pos.z ? f_pos : cam_pos.xyz;
     // vec3 wRayfinal = cam_pos.xyz; // cam_pos.z < f_pos.z ? cam_pos.xyz : f_pos;
