@@ -236,18 +236,35 @@ impl World {
                 && sim_chunk.chaos < 0.5
                 && !sim_chunk.is_underwater()
             {
+                let is_hostile: bool;
                 let entity = EntityInfo::at(gen_entity_pos())
-                    .with_alignment(match rng.gen_range(0, 10) {
-                        0 => comp::Alignment::Enemy,
-                        _ => comp::Alignment::Wild,
-                    })
                     .do_if(rng.gen_range(0, 8) == 0, |e| e.into_giant())
                     .with_body(match rng.gen_range(0, 5) {
-                        0 => comp::Body::QuadrupedMedium(quadruped_medium::Body::random()),
-                        1 => comp::Body::BirdMedium(bird_medium::Body::random()),
-                        2 => comp::Body::Critter(critter::Body::random()),
-                        3 => comp::Body::QuadrupedLow(quadruped_low::Body::random()),
-                        _ => comp::Body::QuadrupedSmall(quadruped_small::Body::random()),
+                        0 => {
+                            is_hostile = true;
+                            comp::Body::QuadrupedMedium(quadruped_medium::Body::random())
+                        },
+                        1 => {
+                            is_hostile = false;
+                            comp::Body::BirdMedium(bird_medium::Body::random())
+                        },
+                        2 => {
+                            is_hostile = false;
+                            comp::Body::Critter(critter::Body::random())
+                        },
+                        3 => {
+                            is_hostile = false;
+                            comp::Body::QuadrupedLow(quadruped_low::Body::random())
+                        },
+                        _ => {
+                            is_hostile = false;
+                            comp::Body::QuadrupedSmall(quadruped_small::Body::random())
+                        },
+                    })
+                    .with_alignment(if is_hostile {
+                        comp::Alignment::Enemy
+                    } else {
+                        comp::Alignment::Wild
                     })
                     .with_automatic_name();
 
