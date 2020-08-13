@@ -155,7 +155,7 @@ impl<'a> Widget for Overhead<'a> {
         let hp_percentage =
             self.stats.health.current() as f64 / self.stats.health.maximum() as f64 * 100.0;
         let level_comp = self.stats.level.level() as i64 - self.own_level as i64;
-        let name_y = if hp_percentage.abs() > 99.9 {
+        let name_y = if hp_percentage == 100.0 {
             MANA_BAR_Y + 20.0
         } else if level_comp > 9 {
             MANA_BAR_Y + 38.0
@@ -163,6 +163,23 @@ impl<'a> Widget for Overhead<'a> {
             MANA_BAR_Y + 32.0
         };
         let font_size = if hp_percentage.abs() > 99.9 { 24 } else { 20 };
+        let health_current = (self.stats.health.current() / 10) as f64;
+        let health_max = (self.stats.health.maximum() / 10) as f64;
+        // Show K for numbers above 10^3 and truncate them
+        // Show M for numbers above 10^6 and truncate them
+        let health_cur_txt = match health_current as u32 {
+            0..=999 => format!("{}", (health_current).trunc().max(1.0) as u32),
+            1000..=999999 => format!("{}K", (health_current / 1000.0).trunc() as u32),
+            _ => format!(
+                "{}M",
+                (health_current as f64 / 10f64.powf(6.0)).trunc() as u32
+            ),
+        };
+        let health_max_txt = match health_max as u32 {
+            0..=999 => format!("{}", (health_max).trunc() as u32),
+            1000..=999999 => format!("{}K", (health_max / 1000.0).trunc() as u32),
+            _ => format!("{}M", (health_max / 10f64.powf(6.0)).trunc() as u32),
+        };
         // Name
         Text::new(&self.name)
             .font_id(self.fonts.cyri.conrod_id)
@@ -363,12 +380,7 @@ impl<'a> Widget for Overhead<'a> {
                 }))
                 .parent(id)
                 .set(state.ids.health_bar, ui);
-            let mut txt = format!(
-                "{}/{}",
-                (self.stats.health.current() / 10).max(1) as u32, /* Don't show 0 health for
-                                                                   * living entities */
-                self.stats.health.maximum() / 10 as u32,
-            );
+            let mut txt = format!("{}/{}", health_cur_txt, health_max_txt);
             if self.stats.is_dead {
                 txt = self.voxygen_i18n.get("hud.group.dead").to_string()
             };
