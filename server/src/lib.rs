@@ -638,6 +638,7 @@ impl Server {
     ) -> Result<(), Error> {
         //TIMEOUT 0.1 ms for msg handling
         const TIMEOUT: Duration = Duration::from_micros(100);
+        const SLOWLORIS_TIMEOUT: Duration = Duration::from_millis(300);
         loop {
             let participant = match select!(
                 _ = Delay::new(TIMEOUT).fuse() => None,
@@ -649,7 +650,7 @@ impl Server {
             debug!("New Participant connected to the server");
 
             let singleton_stream = match select!(
-                _ = Delay::new(TIMEOUT*100).fuse() => None,
+                _ = Delay::new(SLOWLORIS_TIMEOUT).fuse() => None,
                 sr = participant.opened().fuse() => Some(sr),
             ) {
                 None => {
