@@ -68,6 +68,17 @@ pub struct TraversalConfig {
     pub min_tgt_dist: f32,
 }
 
+const DIAGONALS: [Vec2<i32>; 8] = [
+    Vec2::new(1, 0),
+    Vec2::new(1, 1),
+    Vec2::new(0, 1),
+    Vec2::new(-1, 1),
+    Vec2::new(-1, 0),
+    Vec2::new(-1, -1),
+    Vec2::new(0, -1),
+    Vec2::new(1, -1),
+];
+
 impl Route {
     pub fn path(&self) -> &Path<Vec3<i32>> { &self.path }
 
@@ -88,45 +99,29 @@ impl Route {
         V: BaseVol<Vox = Block> + ReadVol,
     {
         let (next0, next1, next_tgt, be_precise) = loop {
+            // If we've reached the end of the path, stop
+            self.next(0)?;
+
             let next0 = self
                 .next(0)
                 .unwrap_or_else(|| pos.map(|e| e.floor() as i32));
+            let next1 = self.next(1).unwrap_or(next0);
 
             // Stop using obstructed paths
-            if vol.get(next0).map(|b| b.is_solid()).unwrap_or(false) {
+            if !walkable(vol, next1) {
                 return None;
             }
 
-            let diagonals = [
-                Vec2::new(1, 0),
-                Vec2::new(1, 1),
-                Vec2::new(0, 1),
-                Vec2::new(-1, 1),
-                Vec2::new(-1, 0),
-                Vec2::new(-1, -1),
-                Vec2::new(0, -1),
-                Vec2::new(1, -1),
-            ];
-
-            let next1 = self.next(1).unwrap_or(next0);
-
-            let be_precise = diagonals.iter().any(|pos| {
-                !walkable(vol, next0 + Vec3::new(pos.x, pos.y, 0))
-                    && !walkable(vol, next0 + Vec3::new(pos.x, pos.y, -1))
-                    && !walkable(vol, next0 + Vec3::new(pos.x, pos.y, -2))
-                    && !walkable(vol, next0 + Vec3::new(pos.x, pos.y, 1))
+            let be_precise = DIAGONALS.iter().any(|pos| {
+                (-1..2).all(|z| {
+                    vol.get(next0 + Vec3::new(pos.x, pos.y, z))
+                        .map(|b| !b.is_solid())
+                        .unwrap_or(false)
+                })
             });
 
-            let next0_tgt = next0.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
-            let next1_tgt = next1.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
-            let next_tgt = next0_tgt;
-
-            // Maybe skip a node (useful with traversing downhill)
-            let closest_tgt = if next0_tgt.distance_squared(pos) < next1_tgt.distance_squared(pos) {
-                next0_tgt
-            } else {
-                next1_tgt
-            };
+            let next_tgt = next0.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
+            let closest_tgt = next_tgt.map2(pos, |tgt, pos| pos.clamped(tgt.floor(), tgt.ceil()));
 
             // Determine whether we're close enough to the next to to consider it completed
             let dist_sqrd = pos.xy().distance_squared(closest_tgt.xy());
@@ -135,12 +130,12 @@ impl Route {
                 && (pos.z - closest_tgt.z < 1.2 || (pos.z - closest_tgt.z < 2.9 && vel.z < -0.05))
                 && vel.z <= 0.0
                 // Only consider the node reached if there's nothing solid between us and it
-                && vol
+                && (vol
                     .ray(pos + Vec3::unit_z() * 1.5, closest_tgt + Vec3::unit_z() * 1.5)
                     .until(|block| block.is_solid())
                     .cast()
                     .0
-                    > pos.distance(closest_tgt) * 0.9
+                    > pos.distance(closest_tgt) * 0.9 || dist_sqrd < 0.5)
                 && self.next_idx < self.path.len()
             {
                 // Node completed, move on to the next one
@@ -312,7 +307,7 @@ impl Route {
 #[derive(Default, Clone, Debug)]
 pub struct Chaser {
     last_search_tgt: Option<Vec3<f32>>,
-    route: Option<Route>,
+    route: Option<(Route, bool)>,
     /// We use this hasher (AAHasher) because:
     /// (1) we care about DDOS attacks (ruling out FxHash);
     /// (2) we don't care about determinism across computers (we can use
@@ -335,14 +330,24 @@ impl Chaser {
         let pos_to_tgt = pos.distance(tgt);
 
         // If we're already close to the target then there's nothing to do
-        if ((pos - tgt) * Vec3::new(1.0, 1.0, 2.0)).magnitude_squared()
+        let end = self
+            .route
+            .as_ref()
+            .and_then(|(r, _)| r.path.end().copied())
+            .map(|e| e.map(|e| e as f32 + 0.5))
+            .unwrap_or(tgt);
+        if ((pos - end) * Vec3::new(1.0, 1.0, 2.0)).magnitude_squared()
             < traversal_cfg.min_tgt_dist.powf(2.0)
         {
             self.route = None;
             return None;
         }
 
-        let bearing = if let Some(end) = self.route.as_ref().and_then(|r| r.path().end().copied()) {
+        let bearing = if let Some((end, complete)) = self
+            .route
+            .as_ref()
+            .and_then(|(r, complete)| Some((r.path().end().copied()?, *complete)))
+        {
             let end_to_tgt = end.map(|e| e as f32).distance(tgt);
             // If the target has moved significantly since the path was generated then it's
             // time to search for a new path. Also, do this randomly from time
@@ -350,21 +355,14 @@ impl Chaser {
             // theory this shouldn't happen, but in practice the world is full
             // of unpredictable obstacles that are more than willing to mess up
             // our day. TODO: Come up with a better heuristic for this
-            if end_to_tgt > pos_to_tgt * 0.3 + 5.0
-            /* || thread_rng().gen::<f32>() < 0.005 */
+            if (end_to_tgt > pos_to_tgt * 0.3 + 5.0 && complete)
+                || thread_rng().gen::<f32>() < 0.001
             {
                 None
             } else {
                 self.route
                     .as_mut()
-                    .and_then(|r| r.traverse(vol, pos, vel, traversal_cfg))
-                    // In theory this filter isn't needed, but in practice agents often try to take
-                    // stale paths that start elsewhere. This code makes sure that we're only using
-                    // paths that start near us, avoiding the agent doubling back to chase a stale
-                    // path.
-                    .filter(|(bearing, _)| bearing.xy()
-                        .magnitude_squared() < 1.75f32.powf(2.0)
-                        && thread_rng().gen::<f32>() > 0.025)
+                    .and_then(|(r, _)| r.traverse(vol, pos, vel, traversal_cfg))
             }
         } else {
             None
@@ -373,6 +371,8 @@ impl Chaser {
         if let Some((bearing, speed)) = bearing {
             Some((bearing, speed))
         } else {
+            let tgt_dir = (tgt - pos).xy().try_normalized().unwrap_or_default();
+
             // Only search for a path if the target has moved from their last position. We
             // don't want to be thrashing the pathfinding code for targets that
             // we're unable to access!
@@ -383,16 +383,45 @@ impl Chaser {
                 || self.astar.is_some()
                 || self.route.is_none()
             {
-                let (start_pos, path) = find_path(&mut self.astar, vol, pos, tgt);
-                // Don't use a stale path
-                if start_pos.distance_squared(pos) < 4.0f32.powf(2.0) {
-                    self.route = path.map(Route::from);
-                } else {
-                    self.route = None;
-                }
+                self.last_search_tgt = Some(tgt);
+
+                let (path, complete) = find_path(&mut self.astar, vol, pos, tgt);
+
+                self.route = path.map(|path| {
+                    let start_index = path
+                        .iter()
+                        .enumerate()
+                        .min_by_key(|(_, node)| {
+                            node.xy()
+                                .map(|e| e as f32)
+                                .distance_squared(pos.xy() + tgt_dir)
+                                as i32
+                        })
+                        .map(|(idx, _)| idx);
+
+                    (
+                        Route {
+                            path,
+                            next_idx: start_index.unwrap_or(0),
+                        },
+                        complete,
+                    )
+                });
             }
 
-            Some(((tgt - pos) * Vec3::new(1.0, 1.0, 0.0), 0.75))
+            let walking_towards_edge = (-3..2).all(|z| {
+                vol.get(
+                    (pos + Vec3::<f32>::from(tgt_dir) * 2.5).map(|e| e as i32) + Vec3::unit_z() * z,
+                )
+                .map(|b| !b.is_solid())
+                .unwrap_or(false)
+            });
+
+            if !walking_towards_edge {
+                Some(((tgt - pos) * Vec3::new(1.0, 1.0, 0.0), 0.75))
+            } else {
+                None
+            }
         }
     }
 }
@@ -415,13 +444,14 @@ where
             .unwrap_or(true)
 }
 
-#[allow(clippy::float_cmp)] // TODO: Pending review in #587
+/// Attempt to search for a path to a target, returning the path (if one was
+/// found) and whether it is complete (reaches the target)
 fn find_path<V>(
     astar: &mut Option<Astar<Vec3<i32>, DefaultHashBuilder>>,
     vol: &V,
     startf: Vec3<f32>,
     endf: Vec3<f32>,
-) -> (Vec3<f32>, Option<Path<Vec3<i32>>>)
+) -> (Option<Path<Vec3<i32>>>, bool)
 where
     V: BaseVol<Vox = Block> + ReadVol,
 {
@@ -443,29 +473,33 @@ where
         get_walkable_z(endf.map(|e| e.floor() as i32)),
     ) {
         (Some(start), Some(end)) => (start, end),
-        _ => return (startf, None),
+        _ => return (None, false),
     };
 
     let heuristic = |pos: &Vec3<i32>| (pos.distance_squared(end) as f32).sqrt();
     let neighbors = |pos: &Vec3<i32>| {
         let pos = *pos;
-        const DIRS: [Vec3<i32>; 17] = [
+        const DIRS: [Vec3<i32>; 21] = [
             Vec3::new(0, 1, 0),   // Forward
             Vec3::new(0, 1, 1),   // Forward upward
             Vec3::new(0, 1, 2),   // Forward Upwardx2
             Vec3::new(0, 1, -1),  // Forward downward
+            Vec3::new(0, 1, -2),  // Forward downwardx2
             Vec3::new(1, 0, 0),   // Right
             Vec3::new(1, 0, 1),   // Right upward
             Vec3::new(1, 0, 2),   // Right Upwardx2
             Vec3::new(1, 0, -1),  // Right downward
+            Vec3::new(1, 0, -2),  // Right downwardx2
             Vec3::new(0, -1, 0),  // Backwards
             Vec3::new(0, -1, 1),  // Backward Upward
             Vec3::new(0, -1, 2),  // Backward Upwardx2
             Vec3::new(0, -1, -1), // Backward downward
+            Vec3::new(0, -1, -2), // Backward downwardx2
             Vec3::new(-1, 0, 0),  // Left
             Vec3::new(-1, 0, 1),  // Left upward
             Vec3::new(-1, 0, 2),  // Left Upwardx2
             Vec3::new(-1, 0, -1), // Left downward
+            Vec3::new(-1, 0, -2), // Left downwardx2
             Vec3::new(0, 0, -1),  // Downwards
         ];
 
@@ -541,19 +575,19 @@ where
 
     *astar = Some(new_astar);
 
-    (startf, match path_result {
+    match path_result {
         PathResult::Path(path) => {
             *astar = None;
-            Some(path)
+            (Some(path), true)
         },
         PathResult::None(path) => {
             *astar = None;
-            Some(path)
+            (Some(path), false)
         },
         PathResult::Exhausted(path) => {
             *astar = None;
-            Some(path)
+            (Some(path), false)
         },
-        PathResult::Pending => None,
-    })
+        PathResult::Pending => (None, false),
+    }
 }

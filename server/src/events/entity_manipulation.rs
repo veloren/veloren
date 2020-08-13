@@ -2,9 +2,10 @@ use crate::{client::Client, Server, SpawnPoint, StateExt};
 use common::{
     assets,
     comp::{
-        self, item::lottery::Lottery, object, Alignment, Body, Damage, DamageSource, Group,
-        HealthChange, HealthSource, Player, Pos, Stats,
+        self, object, Alignment, Body, Damage, DamageSource, Group, HealthChange, HealthSource,
+        Player, Pos, Stats,
     },
+    lottery::Lottery,
     msg::{PlayerListUpdate, ServerMsg},
     outcome::Outcome,
     state::BlockChange,
@@ -183,7 +184,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             item_drops.remove(entity);
             item_drop.0
         } else {
-            let chosen = assets::load_expect::<Lottery<_>>("common.loot_table");
+            let chosen = assets::load_expect::<Lottery<String>>("common.loot_table");
             let chosen = chosen.choose();
 
             assets::load_expect_cloned(chosen)
@@ -251,7 +252,7 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
         .is_some()
     {
         let respawn_point = state
-            .read_component_copied::<comp::Waypoint>(entity)
+            .read_component_cloned::<comp::Waypoint>(entity)
             .map(|wp| wp.get_pos())
             .unwrap_or(state.ecs().read_resource::<SpawnPoint>().0);
 

@@ -20,7 +20,22 @@ impl Sampler<'static> for RandomField {
 
     fn get(&self, pos: Self::Index) -> Self::Sample {
         let pos = pos.map(|e| u32::from_le_bytes(e.to_le_bytes()));
-        seed_expan::diffuse_mult(&[self.seed, pos.x, pos.y, pos.z])
+
+        let mut a = self.seed;
+        a = (a ^ 61) ^ (a >> 16);
+        a = a.wrapping_add(a << 3);
+        a ^= pos.x;
+        a ^= a >> 4;
+        a = a.wrapping_mul(0x27d4eb2d);
+        a ^= a >> 15;
+        a ^= pos.y;
+        a = (a ^ 61) ^ (a >> 16);
+        a = a.wrapping_add(a << 3);
+        a ^= a >> 4;
+        a ^= pos.z;
+        a = a.wrapping_mul(0x27d4eb2d);
+        a ^= a >> 15;
+        a
     }
 }
 

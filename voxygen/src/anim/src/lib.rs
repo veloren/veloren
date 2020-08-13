@@ -1,4 +1,5 @@
 #![feature(const_generics)]
+#![feature(or_patterns)]
 #![allow(incomplete_features)]
 #[cfg(all(feature = "be-dyn-lib", feature = "use-dyn-lib"))]
 compile_error!("Can't use both \"be-dyn-lib\" and \"use-dyn-lib\" features at once");

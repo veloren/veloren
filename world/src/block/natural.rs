@@ -3,7 +3,7 @@ use crate::{
     all::ForestKind,
     column::{ColumnGen, ColumnSample},
     util::{RandomPerm, Sampler, SmallCache, UnitChooser},
-    CONFIG,
+    Index, CONFIG,
 };
 use common::terrain::Structure;
 use lazy_static::lazy_static;
@@ -20,6 +20,7 @@ pub fn structure_gen<'a>(
     st_pos: Vec2<i32>,
     st_seed: u32,
     st_sample: &ColumnSample,
+    index: &'a Index,
 ) -> Option<StructureInfo> {
     // Assuming it's a tree... figure out when it SHOULDN'T spawn
     let random_seed = (st_seed as f64) / (u32::MAX as f64);
@@ -27,7 +28,7 @@ pub fn structure_gen<'a>(
         || st_sample.alt < st_sample.water_level
         || st_sample.spawn_rate < 0.5
         || st_sample.water_dist.map(|d| d < 8.0).unwrap_or(false)
-        || st_sample.path.map(|(d, _)| d < 12.0).unwrap_or(false)
+        || st_sample.path.map(|(d, _, _, _)| d < 12.0).unwrap_or(false)
     {
         return None;
     }
@@ -39,6 +40,7 @@ pub fn structure_gen<'a>(
         &st_sample.close_cliffs,
         st_sample.cliff_hill,
         0.0,
+        index,
     );
 
     let wheight = st_sample.alt.max(cliff_height);

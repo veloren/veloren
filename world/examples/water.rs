@@ -52,10 +52,11 @@ fn main() {
         (0..map_size_lg.chunks_len())
             .into_par_iter()
             .map(|posi| {
-                column_sample.get(
+                column_sample.get((
                     uniform_idx_as_vec2(map_size_lg, posi)
                         * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
-                )
+                    world.index(),
+                ))
             })
             .collect::<Vec<_>>()
             .into_boxed_slice()
@@ -67,6 +68,7 @@ fn main() {
                 sample_pos(
                     config,
                     sampler,
+                    world.index(),
                     samples,
                     uniform_idx_as_vec2(map_size_lg, posi),
                 )

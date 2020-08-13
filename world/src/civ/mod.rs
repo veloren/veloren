@@ -6,8 +6,9 @@ use self::{Occupation::*, Stock::*};
 use crate::{
     config::CONFIG,
     sim::WorldSim,
-    site::{Dungeon, Settlement, Site as WorldSite},
-    util::{attempt, seed_expan, CARDINALS, NEIGHBORS},
+    site::{Castle, Dungeon, Settlement, Site as WorldSite},
+    util::{attempt, seed_expan, MapVec, CARDINALS, NEIGHBORS},
+    Index,
 };
 use common::{
     astar::Astar,
@@ -75,11 +76,17 @@ impl<'a, R: Rng> GenCtx<'a, R> {
 }
 
 impl Civs {
-    pub fn generate(seed: u32, sim: &mut WorldSim) -> Self {
+    pub fn generate(seed: u32, sim: &mut WorldSim, index: &mut Index) -> Self {
         let mut this = Self::default();
         let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
         let initial_civ_count = initial_civ_count(sim.map_size_lg());
         let mut ctx = GenCtx { sim, rng };
+
+        // TODO: Care about world size when generating caves.
+        for _ in 0..100 {
+            this.generate_cave(&mut ctx);
+        }
+
         for _ in 0..initial_civ_count {
             debug!("Creating civilisation...");
             if this.birth_civ(&mut ctx.reseed()).is_none() {
@@ -90,9 +97,13 @@ impl Civs {
 
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
-                let loc = find_site_loc(&mut ctx, None)?;
+                let (kind, size) = match ctx.rng.gen_range(0, 8) {
+                    0 => (SiteKind::Castle, 3),
+                    _ => (SiteKind::Dungeon, 0),
+                };
+                let loc = find_site_loc(&mut ctx, None, size)?;
                 this.establish_site(&mut ctx.reseed(), loc, |place| Site {
-                    kind: SiteKind::Dungeon,
+                    kind,
                     center: loc,
                     place,
 
@@ -108,7 +119,7 @@ impl Civs {
 
                     last_exports: Stocks::from_default(0.0),
                     export_targets: Stocks::from_default(0.0),
-                    trade_states: Stocks::default(),
+                    //trade_states: Stocks::default(),
                     coin: 1000.0,
                 })
             });
@@ -121,7 +132,7 @@ impl Civs {
         }
 
         // Flatten ground around sites
-        for site in this.sites.iter() {
+        for site in this.sites.values() {
             let radius = 48i32;
 
             let wpos = site.center * TerrainChunkSize::RECT_SIZE.map(|e: u32| e as i32);
@@ -129,10 +140,12 @@ impl Civs {
             let flatten_radius = match &site.kind {
                 SiteKind::Settlement => 10.0,
                 SiteKind::Dungeon => 2.0,
+                SiteKind::Castle => 5.0,
             };
 
             let (raise, raise_dist): (f32, i32) = match &site.kind {
                 SiteKind::Settlement => (10.0, 6),
+                SiteKind::Castle => (0.0, 6),
                 _ => (0.0, 0),
             };
 
@@ -146,9 +159,11 @@ impl Civs {
                             0.0
                         }; // Raise the town centre up a little
                     let pos = site.center + offs;
-                    let factor = (1.0
+                    let factor = ((1.0
                         - (site.center - pos).map(|e| e as f32).magnitude() / flatten_radius)
-                        * 1.15;
+                        * 1.25)
+                        .min(1.0);
+                    let rng = &mut ctx.rng;
                     ctx.sim
                         .get_mut(pos)
                         // Don't disrupt chunks that are near water
@@ -164,6 +179,7 @@ impl Civs {
                             chunk.basement += diff;
                             chunk.rockiness = 0.0;
                             chunk.warp_factor = 0.0;
+                            chunk.surface_veg *= 1.0 - factor * rng.gen_range(0.25, 0.9);
                         });
                 }
             }
@@ -171,33 +187,37 @@ impl Civs {
 
         // Place sites in world
         let mut cnt = 0;
-        for site in this.sites.iter() {
+        for sim_site in this.sites.values() {
             cnt += 1;
-            let wpos = site.center.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
-                e * sz as i32 + sz as i32 / 2
-            });
+            let wpos = sim_site
+                .center
+                .map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
+                    e * sz as i32 + sz as i32 / 2
+                });
 
             let mut rng = ctx.reseed().rng;
-            let world_site = match &site.kind {
+            let site = index.sites.insert(match &sim_site.kind {
                 SiteKind::Settlement => {
-                    WorldSite::from(Settlement::generate(wpos, Some(ctx.sim), &mut rng))
+                    WorldSite::settlement(Settlement::generate(wpos, Some(ctx.sim), &mut rng))
                 },
                 SiteKind::Dungeon => {
-                    WorldSite::from(Dungeon::generate(wpos, Some(ctx.sim), &mut rng))
+                    WorldSite::dungeon(Dungeon::generate(wpos, Some(ctx.sim), &mut rng))
                 },
-            };
+                SiteKind::Castle => {
+                    WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
+                },
+            });
+            let site_ref = &index.sites[site];
 
             let radius_chunks =
-                (world_site.radius() / TerrainChunkSize::RECT_SIZE.x as f32).ceil() as usize;
+                (site_ref.radius() / TerrainChunkSize::RECT_SIZE.x as f32).ceil() as usize;
             for pos in Spiral2d::new()
-                .map(|offs| site.center + offs)
+                .map(|offs| sim_site.center + offs)
                 .take((radius_chunks * 2).pow(2))
             {
-                ctx.sim
-                    .get_mut(pos)
-                    .map(|chunk| chunk.sites.push(world_site.clone()));
+                ctx.sim.get_mut(pos).map(|chunk| chunk.sites.push(site));
             }
-            debug!(?site.center, "Placed site at location");
+            debug!(?sim_site.center, "Placed site at location");
         }
         info!(?cnt, "all sites placed");
 
@@ -206,20 +226,84 @@ impl Civs {
         this
     }
 
+    // TODO: Move this
+    fn generate_cave(&self, ctx: &mut GenCtx<impl Rng>) {
+        let mut pos = ctx
+            .sim
+            .get_size()
+            .map(|sz| ctx.rng.gen_range(0, sz as i32) as f32);
+        let mut vel = pos
+            .map2(ctx.sim.get_size(), |pos, sz| sz as f32 / 2.0 - pos)
+            .try_normalized()
+            .unwrap_or_else(Vec2::unit_y);
+
+        let path = (-100..100)
+            .filter_map(|i: i32| {
+                let depth = (i.abs() as f32 / 100.0 * std::f32::consts::PI / 2.0).cos();
+                vel = (vel
+                    + Vec2::new(
+                        ctx.rng.gen_range(-0.35, 0.35),
+                        ctx.rng.gen_range(-0.35, 0.35),
+                    ))
+                .try_normalized()
+                .unwrap_or_else(Vec2::unit_y);
+                let old_pos = pos.map(|e| e as i32);
+                pos = (pos + vel * 0.5)
+                    .clamped(Vec2::zero(), ctx.sim.get_size().map(|e| e as f32 - 1.0));
+                Some((pos.map(|e| e as i32), depth)).filter(|(pos, _)| *pos != old_pos)
+            })
+            .collect::<Vec<_>>();
+
+        for locs in path.windows(3) {
+            let to_prev_idx = NEIGHBORS
+                .iter()
+                .enumerate()
+                .find(|(_, dir)| **dir == locs[0].0 - locs[1].0)
+                .expect("Track locations must be neighbors")
+                .0;
+            let to_next_idx = NEIGHBORS
+                .iter()
+                .enumerate()
+                .find(|(_, dir)| **dir == locs[2].0 - locs[1].0)
+                .expect("Track locations must be neighbors")
+                .0;
+
+            ctx.sim.get_mut(locs[0].0).unwrap().cave.0.neighbors |=
+                1 << ((to_prev_idx as u8 + 4) % 8);
+            ctx.sim.get_mut(locs[1].0).unwrap().cave.0.neighbors |=
+                (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
+            ctx.sim.get_mut(locs[2].0).unwrap().cave.0.neighbors |=
+                1 << ((to_next_idx as u8 + 4) % 8);
+        }
+
+        for loc in path.iter() {
+            let mut chunk = ctx.sim.get_mut(loc.0).unwrap();
+            let depth = loc.1 * 250.0 - 20.0;
+            chunk.cave.1.alt =
+                chunk.alt - depth + ctx.rng.gen_range(-4.0, 4.0) * (depth > 10.0) as i32 as f32;
+            chunk.cave.1.width = ctx.rng.gen_range(6.0, 32.0);
+            chunk.cave.0.offset = Vec2::new(ctx.rng.gen_range(-16, 17), ctx.rng.gen_range(-16, 17));
+
+            if chunk.cave.1.alt + chunk.cave.1.width + 5.0 > chunk.alt {
+                chunk.spawn_rate = 0.0;
+            }
+        }
+    }
+
     pub fn place(&self, id: Id<Place>) -> &Place { self.places.get(id) }
 
-    pub fn sites(&self) -> impl Iterator<Item = &Site> + '_ { self.sites.iter() }
+    pub fn sites(&self) -> impl Iterator<Item = &Site> + '_ { self.sites.values() }
 
     #[allow(dead_code)]
     #[allow(clippy::print_literal)] // TODO: Pending review in #587
     fn display_info(&self) {
-        for (id, civ) in self.civs.iter_ids() {
+        for (id, civ) in self.civs.iter() {
             println!("# Civilisation {:?}", id);
             println!("Name: {}", "<unnamed>");
             println!("Homeland: {:#?}", self.places.get(civ.homeland));
         }
 
-        for (id, site) in self.sites.iter_ids() {
+        for (id, site) in self.sites.iter() {
             println!("# Site {:?}", id);
             println!("{:#?}", site);
         }
@@ -282,7 +366,7 @@ impl Civs {
 
     fn birth_civ(&mut self, ctx: &mut GenCtx<impl Rng>) -> Option<Id<Civ>> {
         let site = attempt(5, || {
-            let loc = find_site_loc(ctx, None)?;
+            let loc = find_site_loc(ctx, None, 1)?;
             self.establish_site(ctx, loc, |place| Site {
                 kind: SiteKind::Settlement,
                 center: loc,
@@ -300,7 +384,7 @@ impl Civs {
 
                 last_exports: Stocks::from_default(0.0),
                 export_targets: Stocks::from_default(0.0),
-                trade_states: Stocks::default(),
+                //trade_states: Stocks::default(),
                 coin: 1000.0,
             })
         })?;
@@ -377,7 +461,7 @@ impl Civs {
         loc: Vec2<i32>,
         site_fn: impl FnOnce(Id<Place>) -> Site,
     ) -> Option<Id<Site>> {
-        const SITE_AREA: Range<usize> = 64..256;
+        const SITE_AREA: Range<usize> = 1..4; //64..256;
 
         let place = match ctx.sim.get(loc).and_then(|site| site.place) {
             Some(place) => place,
@@ -390,13 +474,14 @@ impl Civs {
         const MAX_NEIGHBOR_DISTANCE: f32 = 500.0;
         let mut nearby = self
             .sites
-            .iter_ids()
+            .iter()
+            .filter(|(_, p)| matches!(p.kind, SiteKind::Settlement | SiteKind::Castle))
             .map(|(id, p)| (id, (p.center.distance_squared(loc) as f32).sqrt()))
             .filter(|(_, dist)| *dist < MAX_NEIGHBOR_DISTANCE)
             .collect::<Vec<_>>();
         nearby.sort_by_key(|(_, dist)| *dist as i32);
 
-        if let SiteKind::Settlement = self.sites[site].kind {
+        if let SiteKind::Settlement | SiteKind::Castle = self.sites[site].kind {
             for (nearby, _) in nearby.into_iter().take(5) {
                 // Find a novel path
                 if let Some((path, cost)) = find_path(ctx, loc, self.sites.get(nearby).center) {
@@ -422,17 +507,15 @@ impl Civs {
                                 .expect("Track locations must be neighbors")
                                 .0;
 
-                            ctx.sim.get_mut(locs[0]).unwrap().path.neighbors |=
+                            ctx.sim.get_mut(locs[0]).unwrap().path.0.neighbors |=
                                 1 << ((to_prev_idx as u8 + 4) % 8);
-                            ctx.sim.get_mut(locs[2]).unwrap().path.neighbors |=
+                            ctx.sim.get_mut(locs[2]).unwrap().path.0.neighbors |=
                                 1 << ((to_next_idx as u8 + 4) % 8);
                             let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
-                            chunk.path.neighbors |=
+                            chunk.path.0.neighbors |=
                                 (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
-                            chunk.path.offset = Vec2::new(
-                                ctx.rng.gen_range(-16.0, 16.0),
-                                ctx.rng.gen_range(-16.0, 16.0),
-                            );
+                            chunk.path.0.offset =
+                                Vec2::new(ctx.rng.gen_range(-16, 17), ctx.rng.gen_range(-16, 17));
                         }
 
                         // Take note of the track
@@ -450,7 +533,7 @@ impl Civs {
     }
 
     fn tick(&mut self, _ctx: &mut GenCtx<impl Rng>, years: f32) {
-        for site in self.sites.iter_mut() {
+        for site in self.sites.values_mut() {
             site.simulate(years, &self.places.get(site.place).nat_res);
         }
 
@@ -567,7 +650,7 @@ fn walk_in_dir(sim: &WorldSim, a: Vec2<i32>, dir: Vec2<i32>) -> Option<f32> {
         } else {
             0.0
         };
-        let wild_cost = if b_chunk.path.is_path() {
+        let wild_cost = if b_chunk.path.0.is_way() {
             0.0 // Traversing existing paths has no additional cost!
         } else {
             2.0
@@ -599,6 +682,7 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>) -> bool {
     if let Some(chunk) = sim.get(loc) {
         !chunk.river.is_ocean()
             && !chunk.river.is_lake()
+            && !chunk.river.is_river()
             && sim
                 .get_gradient_approx(loc)
                 .map(|grad| grad < 1.0)
@@ -609,9 +693,12 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>) -> bool {
 }
 
 /// Attempt to search for a location that's suitable for site construction
-#[allow(clippy::useless_conversion)] // TODO: Pending review in #587
 #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
-fn find_site_loc(ctx: &mut GenCtx<impl Rng>, near: Option<(Vec2<i32>, f32)>) -> Option<Vec2<i32>> {
+fn find_site_loc(
+    ctx: &mut GenCtx<impl Rng>,
+    near: Option<(Vec2<i32>, f32)>,
+    size: i32,
+) -> Option<Vec2<i32>> {
     const MAX_ATTEMPTS: usize = 100;
     let mut loc = None;
     for _ in 0..MAX_ATTEMPTS {
@@ -631,16 +718,16 @@ fn find_site_loc(ctx: &mut GenCtx<impl Rng>, near: Option<(Vec2<i32>, f32)>) -> 
             ),
         });
 
-        if loc_suitable_for_site(&ctx.sim, test_loc) {
-            return Some(test_loc);
+        for offset in Spiral2d::new().take((size * 2 + 1).pow(2) as usize) {
+            if loc_suitable_for_site(&ctx.sim, test_loc + offset) {
+                return Some(test_loc);
+            }
         }
 
         loc = ctx.sim.get(test_loc).and_then(|c| {
             Some(
                 c.downhill?
-                    .map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
-                        e / (sz as i32)
-                    }),
+                    .map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / (sz as i32)),
             )
         });
     }
@@ -727,16 +814,13 @@ pub struct Site {
 
     last_exports: Stocks<f32>,
     export_targets: Stocks<f32>,
-    trade_states: Stocks<TradeState>,
+    //trade_states: Stocks<TradeState>,
     coin: f32,
 }
 
 impl fmt::Display for Site {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self.kind {
-            SiteKind::Settlement => writeln!(f, "Settlement")?,
-            SiteKind::Dungeon => writeln!(f, "Dungeon")?,
-        }
+        writeln!(f, "{:?}", self.kind)?;
         writeln!(f, "- population: {}", self.population.floor() as u32)?;
         writeln!(f, "- coin: {}", self.coin.floor() as u32)?;
         writeln!(f, "Stocks")?;
@@ -776,6 +860,7 @@ impl fmt::Display for Site {
 pub enum SiteKind {
     Settlement,
     Dungeon,
+    Castle,
 }
 
 impl Site {
@@ -1006,79 +1091,3 @@ impl Default for TradeState {
 }
 
 pub type Stocks<T> = MapVec<Stock, T>;
-
-#[derive(Clone, Debug)]
-pub struct MapVec<K, T> {
-    /// We use this hasher (FxHasher32) because
-    /// (1) we don't care about DDOS attacks (ruling out SipHash);
-    /// (2) we care about determinism across computers (ruling out AAHash);
-    /// (3) we have 1-byte keys (for which FxHash is supposedly fastest).
-    entries: HashMap<K, T, BuildHasherDefault<FxHasher32>>,
-    default: T,
-}
-
-/// Need manual implementation of Default since K doesn't need that bound.
-impl<K, T: Default> Default for MapVec<K, T> {
-    fn default() -> Self {
-        Self {
-            entries: Default::default(),
-            default: Default::default(),
-        }
-    }
-}
-
-impl<K: Copy + Eq + Hash, T: Clone> MapVec<K, T> {
-    pub fn from_list<'a>(i: impl IntoIterator<Item = &'a (K, T)>, default: T) -> Self
-    where
-        K: 'a,
-        T: 'a,
-    {
-        Self {
-            entries: i.into_iter().cloned().collect(),
-            default,
-        }
-    }
-
-    pub fn from_default(default: T) -> Self {
-        Self {
-            entries: HashMap::default(),
-            default,
-        }
-    }
-
-    pub fn get_mut(&mut self, entry: K) -> &mut T {
-        let default = &self.default;
-        self.entries.entry(entry).or_insert_with(|| default.clone())
-    }
-
-    pub fn get(&self, entry: K) -> &T { self.entries.get(&entry).unwrap_or(&self.default) }
-
-    pub fn map<U: Default>(self, mut f: impl FnMut(K, T) -> U) -> MapVec<K, U> {
-        MapVec {
-            entries: self
-                .entries
-                .into_iter()
-                .map(|(s, v)| (s, f(s, v)))
-                .collect(),
-            default: U::default(),
-        }
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = (K, &T)> + '_ {
-        self.entries.iter().map(|(s, v)| (*s, v))
-    }
-
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = (K, &mut T)> + '_ {
-        self.entries.iter_mut().map(|(s, v)| (*s, v))
-    }
-}
-
-impl<K: Copy + Eq + Hash, T: Clone> std::ops::Index<K> for MapVec<K, T> {
-    type Output = T;
-
-    fn index(&self, entry: K) -> &Self::Output { self.get(entry) }
-}
-
-impl<K: Copy + Eq + Hash, T: Clone> std::ops::IndexMut<K> for MapVec<K, T> {
-    fn index_mut(&mut self, entry: K) -> &mut Self::Output { self.get_mut(entry) }
-}

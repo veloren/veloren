@@ -151,6 +151,7 @@ impl<'a> System<'a> for Sys {
             const SEARCH_DIST: f32 = 48.0;
             const SIGHT_DIST: f32 = 128.0;
             const MIN_ATTACK_DIST: f32 = 3.5;
+            const MAX_FLEE_DIST: f32 = 32.0;
 
             let scale = scales.get(entity).map(|s| s.0).unwrap_or(1.0);
 
@@ -158,7 +159,7 @@ impl<'a> System<'a> for Sys {
             // and so can afford to be less precise when trying to move around
             // the world (especially since they would otherwise get stuck on
             // obstacles that smaller entities would not).
-            let node_tolerance = scale + vel.0.xy().magnitude() * 0.2;
+            let node_tolerance = scale * 1.5;
             let slow_factor = body.map(|b| b.base_accel() / 250.0).unwrap_or(0.0).min(1.0);
 
             let mut do_idle = false;
@@ -240,6 +241,8 @@ impl<'a> System<'a> for Sys {
                                         bearing.xy().try_normalized().unwrap_or(Vec2::zero())
                                             * speed.min(0.2 + (dist - AVG_FOLLOW_DIST) / 8.0);
                                     inputs.jump.set_state(bearing.z > 1.5);
+                                    inputs.swimup.set_state(bearing.z > 0.5);
+                                    inputs.swimdown.set_state(bearing.z < 0.5);
                                 }
                             } else {
                                 do_idle = true;
@@ -297,7 +300,47 @@ impl<'a> System<'a> for Sys {
                             }
 
                             let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
-                            if dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0) {
+
+                            let damage = stats
+                                .get(entity)
+                                .map(|s| s.health.current() as f32 / s.health.maximum() as f32)
+                                .unwrap_or(0.5);
+
+                            // Flee
+                            let flees = alignment
+                                .map(|a| !matches!(a, Alignment::Enemy | Alignment::Owned(_)))
+                                .unwrap_or(true);
+                            if 1.0 - agent.psyche.aggro > damage && flees {
+                                if dist_sqrd < MAX_FLEE_DIST.powf(2.0) {
+                                    if let Some((bearing, speed)) = chaser.chase(
+                                        &*terrain,
+                                        pos.0,
+                                        vel.0,
+                                        // Away from the target (ironically)
+                                        pos.0
+                                            + (pos.0 - tgt_pos.0)
+                                                .try_normalized()
+                                                .unwrap_or_else(Vec3::unit_y)
+                                                * 8.0,
+                                        TraversalConfig {
+                                            node_tolerance,
+                                            slow_factor,
+                                            on_ground: physics_state.on_ground,
+                                            min_tgt_dist: 1.25,
+                                        },
+                                    ) {
+                                        inputs.move_dir = Vec2::from(bearing)
+                                            .try_normalized()
+                                            .unwrap_or(Vec2::zero())
+                                            * speed;
+                                        inputs.jump.set_state(bearing.z > 1.5);
+                                        inputs.swimup.set_state(bearing.z > 0.5);
+                                        inputs.swimdown.set_state(bearing.z < 0.5);
+                                    }
+                                } else {
+                                    do_idle = true;
+                                }
+                            } else if dist_sqrd < (MIN_ATTACK_DIST * scale).powf(2.0) {
                                 // Close-range attack
                                 inputs.move_dir = Vec2::from(tgt_pos.0 - pos.0)
                                     .try_normalized()
@@ -360,6 +403,8 @@ impl<'a> System<'a> for Sys {
                                         .unwrap_or(Vec2::zero())
                                         * speed;
                                     inputs.jump.set_state(bearing.z > 1.5);
+                                    inputs.swimup.set_state(bearing.z > 0.5);
+                                    inputs.swimdown.set_state(bearing.z < 0.5);
                                 }
 
                                 if dist_sqrd < 16.0f32.powf(2.0)
@@ -427,7 +472,7 @@ impl<'a> System<'a> for Sys {
             // Attack a target that's attacking us
             if let Some(my_stats) = stats.get(entity) {
                 // Only if the attack was recent
-                if my_stats.health.last_change.0 < 5.0 {
+                if my_stats.health.last_change.0 < 3.0 {
                     if let comp::HealthSource::Attack { by }
                     | comp::HealthSource::Projectile { owner: Some(by) } =
                         my_stats.health.last_change.1.cause
@@ -436,20 +481,26 @@ impl<'a> System<'a> for Sys {
                             if let Some(attacker) = uid_allocator.retrieve_entity_internal(by.id())
                             {
                                 if stats.get(attacker).map_or(false, |a| !a.is_dead) {
-                                    if agent.can_speak {
-                                        let msg = "npc.speech.villager_under_attack".to_string();
-                                        event_bus.emit_now(ServerEvent::Chat(
-                                            UnresolvedChatMsg::npc(*uid, msg),
-                                        ));
-                                    }
+                                    match agent.activity {
+                                        Activity::Attack { target, .. } if target == attacker => {},
+                                        _ => {
+                                            if agent.can_speak {
+                                                let msg =
+                                                    "npc.speech.villager_under_attack".to_string();
+                                                event_bus.emit_now(ServerEvent::Chat(
+                                                    UnresolvedChatMsg::npc(*uid, msg),
+                                                ));
+                                            }
 
-                                    agent.activity = Activity::Attack {
-                                        target: attacker,
-                                        chaser: Chaser::default(),
-                                        time: time.0,
-                                        been_close: false,
-                                        powerup: 0.0,
-                                    };
+                                            agent.activity = Activity::Attack {
+                                                target: attacker,
+                                                chaser: Chaser::default(),
+                                                time: time.0,
+                                                been_close: false,
+                                                powerup: 0.0,
+                                            };
+                                        },
+                                    }
                                 }
                             }
                         }
