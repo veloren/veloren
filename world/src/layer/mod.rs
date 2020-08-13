@@ -39,6 +39,7 @@ pub fn apply_scatter_to<'a>(
 ) {
     use BlockKind::*;
     #[allow(clippy::type_complexity)]
+    // TODO: Add back all sprites we had before
     let scatter: &[(_, bool, fn(&SimChunk) -> (f32, Option<(f32, f32)>))] = &[
         // (density, Option<(wavelen, threshold)>)
         (BlueFlower, false, |c| {
@@ -60,15 +61,21 @@ pub fn apply_scatter_to<'a>(
             )
         }),
         (Twigs, false, |c| {
-            ((c.tree_density - 0.5).max(0.0) * 0.0025, None)
+            ((c.tree_density - 0.5).max(0.0) * 0.001, None)
         }),
         (Stones, false, |c| {
-            ((c.rockiness - 0.5).max(0.0) * 0.005, None)
+            ((c.rockiness - 0.5).max(0.0) * 0.0008, None)
         }),
         (ShortGrass, false, |c| {
             (
                 close(c.temp, 0.3, 0.4).min(close(c.humidity, 0.6, 0.35)) * 0.05,
                 Some((48.0, 0.4)),
+            )
+        }),
+        (Mushroom, false, |c| {
+            (
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, 0.6, 0.35)) * 0.04,
+                None,
             )
         }),
         (MediumGrass, false, |c| {
@@ -83,12 +90,12 @@ pub fn apply_scatter_to<'a>(
                 Some((48.0, 0.1)),
             )
         }),
-        (GrassSnow, false, |c| {
+        /*(GrassSnow, false, |c| {
             (
                 close(c.temp, -0.4, 0.4).min(close(c.rockiness, 0.0, 0.5)) * 0.1,
                 Some((48.0, 0.6)),
             )
-        }),
+        }),*/
     ];
 
     for y in 0..vol.size_xy().y as i32 {
