@@ -396,7 +396,7 @@ pub fn apply_caves_supplement<'a>(
                             comp::quadruped_small::Body::random_with(rng, &species).into()
                         },
                         1 => {
-                            is_hostile = false;
+                            is_hostile = true;
                             let species = match rng.gen_range(0, 5) {
                                 0 => comp::quadruped_medium::Species::Tarasque,
                                 _ => comp::quadruped_medium::Species::Bonerattler,
@@ -404,7 +404,7 @@ pub fn apply_caves_supplement<'a>(
                             comp::quadruped_medium::Body::random_with(rng, &species).into()
                         },
                         2 => {
-                            is_hostile = false;
+                            is_hostile = true;
                             let species = match rng.gen_range(0, 4) {
                                 1 => comp::quadruped_low::Species::Rocksnapper,
                                 _ => comp::quadruped_low::Species::Salamander,
