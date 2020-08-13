@@ -5,7 +5,7 @@ Item(
         (
             kind: Neck("Neck1"),
             stats: (
-                protection: Normal(0.5),
+                protection: Normal(1.0),
             ),
         )
     ),
