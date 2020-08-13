@@ -1482,7 +1482,13 @@ impl FigureMgr {
                         ),
 
                         // TODO!
-                        _ => state.skeleton_mut().clone(),
+                        _ => anim::fish_medium::IdleAnimation::update_skeleton(
+                            &FishMediumSkeleton::default(),
+                            time,
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
                     };
 
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt);
@@ -1557,7 +1563,13 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
                         // TODO!
-                        _ => state.skeleton_mut().clone(),
+                        _ => anim::dragon::IdleAnimation::update_skeleton(
+                            &DragonSkeleton::default(),
+                            time,
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
                     };
 
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt);
@@ -1633,7 +1645,13 @@ impl FigureMgr {
                         ),
 
                         // TODO!
-                        _ => state.skeleton_mut().clone(),
+                        _ => anim::critter::IdleAnimation::update_skeleton(
+                            &CritterSkeleton::default(),
+                            time,
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
                     };
 
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt);
@@ -1712,7 +1730,13 @@ impl FigureMgr {
                         ),
 
                         // TODO!
-                        _ => state.skeleton_mut().clone(),
+                        _ => anim::bird_small::IdleAnimation::update_skeleton(
+                            &BirdSmallSkeleton::default(),
+                            time,
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
                     };
 
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt);
@@ -1791,7 +1815,13 @@ impl FigureMgr {
                         ),
 
                         // TODO!
-                        _ => state.skeleton_mut().clone(),
+                        _ => anim::fish_small::IdleAnimation::update_skeleton(
+                            &FishSmallSkeleton::default(),
+                            time,
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
                     };
 
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt);
@@ -1963,7 +1993,13 @@ impl FigureMgr {
                         ),
 
                         // TODO!
-                        _ => state.skeleton_mut().clone(),
+                        _ => anim::golem::IdleAnimation::update_skeleton(
+                            &GolemSkeleton::default(),
+                            time,
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
                     };
 
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt);
