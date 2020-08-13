@@ -331,12 +331,19 @@ impl BParticipant {
                     prio,
                     promises,
                 } => {
+                    trace!(?sid, ?prio, ?promises, "Opened frame from remote");
                     let a2p_msg_s = a2p_msg_s.clone();
                     let stream = self
                         .create_stream(sid, prio, promises, a2p_msg_s, &a2b_close_stream_s)
                         .await;
-                    b2a_stream_opened_s.send(stream).await.unwrap();
-                    trace!("Opened frame from remote");
+                    if let Err(e) = b2a_stream_opened_s.send(stream).await {
+                        warn!(
+                            ?e,
+                            ?sid,
+                            "couldn't notify api::Participant that a stream got opened. Is the \
+                             participant already dropped?"
+                        );
+                    }
                 },
                 Frame::CloseStream { sid } => {
                     // Closing is realised by setting a AtomicBool to true, however we also have a
