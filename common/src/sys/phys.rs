@@ -9,8 +9,10 @@ use crate::{
     terrain::{Block, BlockKind, TerrainGrid},
     vol::ReadVol,
 };
+use rayon::iter::ParallelIterator;
 use specs::{
-    saveload::MarkerAllocator, Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage,
+    saveload::MarkerAllocator, Entities, Join, ParJoin, Read, ReadExpect, ReadStorage, System,
+    WriteStorage,
 };
 use std::ops::Range;
 use vek::*;
@@ -93,8 +95,24 @@ impl<'a> System<'a> for Sys {
     ) {
         let mut event_emitter = event_bus.emitter();
 
+        // Add physics state components
+        for entity in (
+            &entities,
+            !&physics_states,
+            &colliders,
+            &positions,
+            &velocities,
+            &orientations,
+        )
+            .join()
+            .map(|(e, _, _, _, _, _)| e)
+            .collect::<Vec<_>>()
+        {
+            let _ = physics_states.insert(entity, Default::default());
+        }
+
         // Apply movement inputs
-        for (entity, _scale, sticky, collider, mut pos, mut vel, _ori, _) in (
+        let land_on_grounds = (
             &entities,
             scales.maybe(),
             stickies.maybe(),
@@ -102,15 +120,17 @@ impl<'a> System<'a> for Sys {
             &mut positions,
             &mut velocities,
             &mut orientations,
+            &mut physics_states,
             !&mountings,
         )
-            .join()
-        {
-            let mut physics_state = physics_states.get(entity).cloned().unwrap_or_default();
-
+        .par_join()
+        .fold(Vec::new, |
+            mut land_on_grounds,
+            (entity, _scale, sticky, collider, mut pos, mut vel, _ori, mut physics_state, _),
+        | {
             if sticky.is_some() && physics_state.on_surface().is_some() {
                 vel.0 = Vec3::zero();
-                continue;
+                return land_on_grounds;
             }
 
             // TODO: Use this
@@ -186,7 +206,7 @@ impl<'a> System<'a> for Sys {
                     fn collision_iter<'a>(
                         pos: Vec3<f32>,
                         terrain: &'a TerrainGrid,
-                        hit: &'a dyn Fn(&Block) -> bool,
+                        hit: &'a impl Fn(&Block) -> bool,
                         near_iter: impl Iterator<Item = (i32, i32, i32)> + 'a,
                         radius: f32,
                         z_range: Range<f32>,
@@ -214,12 +234,18 @@ impl<'a> System<'a> for Sys {
                         })
                     };
 
+                    let z_range = z_min..z_max;
                     // Function for determining whether the player at a specific position collides
                     // with blocks with the given criteria
-                    let collision_with = |pos: Vec3<f32>,
-                                          hit: &dyn Fn(&Block) -> bool,
-                                          near_iter| {
-                        collision_iter(pos, &terrain, hit, near_iter, radius, z_min..z_max).count()
+                    fn collision_with<'a>(
+                        pos: Vec3<f32>,
+                        terrain: &'a TerrainGrid,
+                        hit: &impl Fn(&Block) -> bool,
+                        near_iter: impl Iterator<Item = (i32, i32, i32)> + 'a,
+                        radius: f32,
+                        z_range: Range<f32>,
+                    ) -> bool {
+                        collision_iter(pos, terrain, hit, near_iter, radius, z_range).count()
                             > 0
                     };
 
@@ -241,7 +267,7 @@ impl<'a> System<'a> for Sys {
                         const MAX_ATTEMPTS: usize = 16;
 
                         // While the player is colliding with the terrain...
-                        while collision_with(pos.0, &|block| block.is_solid(), near_iter.clone())
+                        while collision_with(pos.0, &terrain, &|block| block.is_solid(), near_iter.clone(), radius, z_range.clone())
                             && attempts < MAX_ATTEMPTS
                         {
                             // Calculate the player's AABB
@@ -307,8 +333,7 @@ impl<'a> System<'a> for Sys {
                                 on_ground = true;
 
                                 if !was_on_ground {
-                                    event_emitter
-                                        .emit(ServerEvent::LandOnGround { entity, vel: vel.0 });
+                                    land_on_grounds.push((entity, *vel));
                                 }
                             } else if resolve_dir.z < 0.0 && vel.0.z >= 0.0 {
                                 on_ceiling = true;
@@ -316,7 +341,7 @@ impl<'a> System<'a> for Sys {
 
                             // When the resolution direction is non-vertical, we must be colliding
                             // with a wall If the space above is free...
-                            if !collision_with(Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()), &|block| block.is_solid(), near_iter.clone())
+                            if !collision_with(Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()), &terrain, &|block| block.is_solid(), near_iter.clone(), radius, z_range.clone())
                                 // ...and we're being pushed out horizontally...
                                 && resolve_dir.z == 0.0
                                 // ...and the vertical resolution direction is sufficiently great...
@@ -329,8 +354,11 @@ impl<'a> System<'a> for Sys {
                                 // ...and there is a collision with a block beneath our current hitbox...
                                 && collision_with(
                                     pos.0 + resolve_dir - Vec3::unit_z() * 1.05,
+                                    &terrain,
                                     &|block| block.is_solid(),
                                     near_iter.clone(),
+                                    radius,
+                                    z_range.clone(),
                                 )
                             {
                                 // ...block-hop!
@@ -368,18 +396,24 @@ impl<'a> System<'a> for Sys {
                     // If the space below us is free, then "snap" to the ground
                     } else if collision_with(
                         pos.0 - Vec3::unit_z() * 1.05,
+                        &terrain,
                         &|block| block.is_solid(),
                         near_iter.clone(),
+                        radius,
+                        z_range.clone(),
                     ) && vel.0.z < 0.0
                         && vel.0.z > -1.5
                         && was_on_ground
                         && !collision_with(
                             pos.0 - Vec3::unit_z() * 0.05,
+                            &terrain,
                             &|block| {
                                 block.is_solid()
                                     && block.get_height() >= (pos.0.z - 0.05).rem_euclid(1.0)
                             },
                             near_iter.clone(),
+                            radius,
+                            z_range.clone(),
                         )
                     {
                         let snap_height = terrain
@@ -406,8 +440,11 @@ impl<'a> System<'a> for Sys {
                         dirs.iter().fold((Vec3::zero(), false), |(a, hit), dir| {
                             if collision_with(
                                 pos.0 + *dir * 0.01,
+                                &terrain,
                                 &|block| block.is_solid(),
                                 near_iter.clone(),
+                                radius,
+                                z_range.clone(),
                             ) {
                                 (a + dir, true)
                             } else {
@@ -468,8 +505,15 @@ impl<'a> System<'a> for Sys {
                 },
             }
 
-            let _ = physics_states.insert(entity, physics_state);
-        }
+            land_on_grounds
+        }).reduce(Vec::new, |mut land_on_grounds_a, mut land_on_grounds_b| {
+            land_on_grounds_a.append(&mut land_on_grounds_b);
+            land_on_grounds_a
+        });
+
+        land_on_grounds.into_iter().for_each(|(entity, vel)| {
+            event_emitter.emit(ServerEvent::LandOnGround { entity, vel: vel.0 });
+        });
 
         // Apply pushback
         for (pos, scale, mass, vel, _, _, _, physics, projectile) in (
