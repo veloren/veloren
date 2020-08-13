@@ -61,20 +61,20 @@ pub fn apply_scatter_to<'a>(
             )
         }),
         (Twigs, false, |c| {
-            ((c.tree_density - 0.5).max(0.0) * 0.001, None)
+            ((c.tree_density - 0.5).max(0.0) * 0.00001, None)
         }),
         (Stones, false, |c| {
-            ((c.rockiness - 0.5).max(0.0) * 0.0008, None)
+            ((c.rockiness - 0.5).max(0.0) * 0.00001, None)
         }),
         (ShortGrass, false, |c| {
             (
-                close(c.temp, 0.3, 0.4).min(close(c.humidity, 0.6, 0.35)) * 0.05,
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, 0.6, 0.35)) * 0.09,
                 Some((48.0, 0.4)),
             )
         }),
         (Mushroom, false, |c| {
             (
-                close(c.temp, 0.3, 0.4).min(close(c.humidity, 0.6, 0.35)) * 0.04,
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, 0.6, 0.35)) * 0.00001,
                 None,
             )
         }),
@@ -375,56 +375,45 @@ pub fn apply_caves_supplement<'a>(
                 let difficulty = cave_depth / 200.0;
 
                 // Scatter things in caves
-                if RandomField::new(index.seed).chance(wpos2d.into(), 0.00005 * difficulty)
+                if RandomField::new(index.seed).chance(wpos2d.into(), 0.000005 * difficulty)
                     && cave_base < surface_z as i32 - 40
                 {
+                    let is_hostile: bool;
                     let entity = EntityInfo::at(Vec3::new(
                         wpos2d.x as f32,
                         wpos2d.y as f32,
                         cave_base as f32,
                     ))
-                    .with_alignment(comp::Alignment::Enemy)
                     .with_body(match rng.gen_range(0, 6) {
                         0 => {
-                            let species = match rng.gen_range(0, 2) {
+                            is_hostile = false;
+                            let species = match rng.gen_range(0, 4) {
                                 0 => comp::quadruped_small::Species::Truffler,
-                                _ => comp::quadruped_small::Species::Hyena,
+                                1 => comp::quadruped_small::Species::Dodarock,
+                                2 => comp::quadruped_small::Species::Holladon,
+                                _ => comp::quadruped_small::Species::Batfox,
                             };
                             comp::quadruped_small::Body::random_with(rng, &species).into()
                         },
                         1 => {
-                            let species = match rng.gen_range(0, 3) {
+                            is_hostile = false;
+                            let species = match rng.gen_range(0, 5) {
                                 0 => comp::quadruped_medium::Species::Tarasque,
-                                1 => comp::quadruped_medium::Species::Frostfang,
                                 _ => comp::quadruped_medium::Species::Bonerattler,
                             };
                             comp::quadruped_medium::Body::random_with(rng, &species).into()
                         },
                         2 => {
-                            let species = match rng.gen_range(0, 3) {
-                                0 => comp::quadruped_low::Species::Maneater,
+                            is_hostile = false;
+                            let species = match rng.gen_range(0, 4) {
                                 1 => comp::quadruped_low::Species::Rocksnapper,
                                 _ => comp::quadruped_low::Species::Salamander,
                             };
                             comp::quadruped_low::Body::random_with(rng, &species).into()
                         },
                         3 => {
-                            let species = match rng.gen_range(0, 3) {
-                                0 => comp::critter::Species::Fungome,
-                                1 => comp::critter::Species::Axolotl,
-                                _ => comp::critter::Species::Rat,
-                            };
-                            comp::critter::Body::random_with(rng, &species).into()
-                        },
-                        4 => {
-                            #[allow(clippy::match_single_binding)]
-                            let species = match rng.gen_range(0, 1) {
-                                _ => comp::golem::Species::StoneGolem,
-                            };
-                            comp::golem::Body::random_with(rng, &species).into()
-                        },
-                        _ => {
-                            let species = match rng.gen_range(0, 4) {
+                            is_hostile = true;
+                            let species = match rng.gen_range(0, 8) {
                                 0 => comp::biped_large::Species::Ogre,
                                 1 => comp::biped_large::Species::Cyclops,
                                 2 => comp::biped_large::Species::Wendigo,
@@ -432,6 +421,19 @@ pub fn apply_caves_supplement<'a>(
                             };
                             comp::biped_large::Body::random_with(rng, &species).into()
                         },
+                        _ => {
+                            is_hostile = false;
+                            let species = match rng.gen_range(0, 5) {
+                                0 => comp::critter::Species::Fungome,
+                                _ => comp::critter::Species::Rat,
+                            };
+                            comp::critter::Body::random_with(rng, &species).into()
+                        },
+                    })
+                    .with_alignment(if is_hostile {
+                        comp::Alignment::Enemy
+                    } else {
+                        comp::Alignment::Wild
                     })
                     .with_automatic_name();
 

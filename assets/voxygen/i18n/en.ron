@@ -357,7 +357,7 @@ magically infused items?"#,
 
         "hud.spell": "Spells",
 
-        "hud.free_look_indicator": "Free look active",
+        "hud.free_look_indicator": "Free look active. Press {key} to disable.",
         "hud.auto_walk_indicator": "Auto walk active",
 
         /// End HUD section
@@ -482,7 +482,7 @@ Protection
             "You can type /group or /g to only chat with players in your current group.",
             "To send private messages type /tell followed by a player name and your message.",
             "NPCs with the same level can have a different difficulty.",
-            "Look at the ground for food, chests and other loot!",
+            "Keep an eye out for food, chests and other loot spread all around the world!",
             "Inventory filled with food? Try crafting better food from it!",
             "Wondering what's there to do? Dungeons are marked with brown spots on the map!",    
             "Don't forget to adjust the graphics for your system. Press 'N' to open the settings.",

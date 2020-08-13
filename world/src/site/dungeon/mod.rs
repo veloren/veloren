@@ -473,10 +473,10 @@ impl Floor {
                         .with_automatic_name()
                         .with_main_tool(assets::load_expect_cloned(match rng.gen_range(0, 6) {
                             0 => "common.items.weapons.axe.starter_axe",
-                            1 => "common.items.weapons.sword.starter_sword",
+                            1 => "common.items.weapons.sword.cultist_purp_2h-0",
                             2 => "common.items.weapons.sword.short_sword_0",
-                            3 => "common.items.weapons.hammer.hammer_1",
-                            4 => "common.items.weapons.staff.starter_staff",
+                            3 => "common.items.weapons.hammer.cultist_purp_2h-0",
+                            4 => "common.items.weapons.staff.cultist_staff",
                             _ => "common.items.weapons.bow.starter_bow",
                         }));
 
@@ -545,7 +545,7 @@ impl Floor {
                                         "common.items.weapons.sword.greatsword_2h_fine-1",
                                     ),
                                     10 => comp::Item::expect_from_asset(
-                                        "common.items.weapons.sword.greatsword_2h_fine-2",
+                                        "common.items.weapons.hammer.cultist_purp_2h-0",
                                     ),
                                     11 => comp::Item::expect_from_asset(
                                         "common.items.weapons.sword.cultist_purp_2h-0",

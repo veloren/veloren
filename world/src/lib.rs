@@ -237,7 +237,10 @@ impl World {
                 && !sim_chunk.is_underwater()
             {
                 let entity = EntityInfo::at(gen_entity_pos())
-                    .with_alignment(comp::Alignment::Wild)
+                    .with_alignment(match rng.gen_range(0, 10) {
+                        0 => comp::Alignment::Enemy,
+                        _ => comp::Alignment::Wild,
+                    })
                     .do_if(rng.gen_range(0, 8) == 0, |e| e.into_giant())
                     .with_body(match rng.gen_range(0, 5) {
                         0 => comp::Body::QuadrupedMedium(quadruped_medium::Body::random()),
