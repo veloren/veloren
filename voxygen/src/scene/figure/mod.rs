@@ -1724,7 +1724,7 @@ impl FigureMgr {
                         // In air
                         (false, _, false) => anim::biped_large::JumpAnimation::update_skeleton(
                             &BipedLargeSkeleton::new(),
-                            (vel.0.magnitude(), time),
+                            time,
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -1740,6 +1740,15 @@ impl FigureMgr {
                     let target_bones = match &character {
                         CharacterState::Wielding { .. } => {
                             anim::biped_large::WieldAnimation::update_skeleton(
+                                &target_base,
+                                (vel.0.magnitude(), time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::BasicMelee(_) => {
+                            anim::biped_large::AlphaAnimation::update_skeleton(
                                 &target_base,
                                 (vel.0.magnitude(), time),
                                 state.state_time,
