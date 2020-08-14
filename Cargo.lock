@@ -1310,6 +1310,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b"
 
 [[package]]
+name = "format_num"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "14ac05eb8d2eb4ed1eeff847911deae077b0b53332465de9d6a26b0ea9961bc8"
+dependencies = [
+ "regex",
+]
+
+[[package]]
 name = "fsevent"
 version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4766,6 +4775,7 @@ dependencies = [
  "dot_vox",
  "euc",
  "failure",
+ "format_num",
  "gfx",
  "gfx_device_gl",
  "gfx_gl",

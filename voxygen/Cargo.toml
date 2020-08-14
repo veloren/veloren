@@ -47,6 +47,7 @@ gilrs = { version = "0.7", features = ["serde"] }
 server = { package = "veloren-server", path = "../server", optional = true }
 
 # Utility
+format_num = "0.1.0"
 glsl-include = "0.3.1"
 failure = "0.1.6"
 dot_vox = "4.0"

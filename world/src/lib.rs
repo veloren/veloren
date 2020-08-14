@@ -237,8 +237,13 @@ impl World {
                 && !sim_chunk.is_underwater()
             {
                 let is_hostile: bool;
+                let is_giant = if rng.gen_range(0, 8) == 0 {
+                    true
+                } else {
+                    false
+                };
                 let entity = EntityInfo::at(gen_entity_pos())
-                    .do_if(rng.gen_range(0, 8) == 0, |e| e.into_giant())
+                    .do_if(is_giant, |e| e.into_giant())
                     .with_body(match rng.gen_range(0, 5) {
                         0 => {
                             is_hostile = true;
@@ -263,6 +268,8 @@ impl World {
                     })
                     .with_alignment(if is_hostile {
                         comp::Alignment::Enemy
+                    } else if is_giant {
+                        comp::Alignment::Npc
                     } else {
                         comp::Alignment::Wild
                     })
