@@ -54,13 +54,18 @@ impl Animation for IdleAnimation {
                 * 0.125,
         );
 
-        // Controls for the beast breathing
-        let intensity = 0.04;
-        let lenght = 1.0;
-        let chop = 0.15;
-        let chop_freq = 40.0;
 
-        let breathing = intensity * (lenght * anim_time as f32).sin() + 0.05 * chop * (anim_time as f32 * chop_freq).sin() * (anim_time as f32 * lenght).cos();
+        
+        let breathing = if skeleton_attr.beast {
+            // Controls for the beast breathing
+            let intensity = 0.04;
+            let lenght = 1.5;
+            let chop = 0.2;
+            let chop_freq = 60.0;
+            intensity * (lenght * anim_time as f32).sin() + 0.05 * chop * (anim_time as f32 * chop_freq).sin() * (anim_time as f32 * lenght).cos()
+        } else {
+            0.0
+        };
 
         next.head.position = Vec3::new(
             0.0,
@@ -86,11 +91,19 @@ impl Animation for IdleAnimation {
         next.lower_torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(breathing);
         next.lower_torso.scale = Vec3::one() * 1.02 + breathing * 0.4;
         
-        next.jaw.position = Vec3::new(
-            0.0,
-            skeleton_attr.jaw.0 - slower * 0.12,
-            skeleton_attr.jaw.1 + slow * 0.2,
-        );
+        if skeleton_attr.beast {
+            next.jaw.position = Vec3::new(
+                0.0,
+                skeleton_attr.jaw.0,
+                skeleton_attr.jaw.1,
+            );
+        } else {
+            next.jaw.position = Vec3::new(
+                0.0,
+                skeleton_attr.jaw.0 - slower * 0.12,
+                skeleton_attr.jaw.1 + slow * 0.2,
+            );
+        }
         next.jaw.orientation = Quaternion::rotation_x(-0.1 + breathing * 2.0);
         next.jaw.scale = Vec3::one() * 1.02;
 

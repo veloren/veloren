@@ -90,6 +90,10 @@ pub struct SkeletonAttr {
     leg: (f32, f32, f32),
     foot: (f32, f32, f32),
     beast: bool,
+    beast_ori: f32,
+    beast_head: (f32, f32),
+    beast_foot: (f32, f32, f32),
+    beast_hand: (f32, f32, f32),
 }
 
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -116,6 +120,10 @@ impl Default for SkeletonAttr {
             leg: (0.0, 0.0, 0.0),
             foot: (0.0, 0.0, 0.0),
             beast: false,
+            beast_ori: 0.0,
+            beast_head: (0.0, 0.0),
+            beast_foot: (0.0, 0.0, 0.0),
+            beast_hand: (0.0, 0.0, 0.0),
         }
     }
 }
@@ -206,6 +214,22 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             beast: match (body.species, body.body_type) {
                 (Werewolf, _) => (true),
                 _ => (false),
+            },
+            beast_ori: match (body.species, body.body_type) {
+                (Werewolf, _) => (0.45),
+                _ => (0.0),
+            },
+            beast_head: match (body.species, body.body_type) {
+                (Werewolf, _) => (-3.0, 4.0),
+                _ => (0.0, 0.0),
+            },
+            beast_foot: match (body.species, body.body_type) {
+                (Werewolf, _) => (0.0, -11.0, 0.0),
+                _ => (0.0, 0.0, 0.0),
+            },
+            beast_hand: match (body.species, body.body_type) {
+                (Werewolf, _) => (0.0, 2.0, 1.0),
+                _ => (0.0, 0.0, 0.0),
             },
         }
     }
