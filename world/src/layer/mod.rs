@@ -2,7 +2,7 @@ use crate::{
     column::ColumnSample,
     sim::SimChunk,
     util::{RandomField, Sampler},
-    IndexRef,
+    Index, IndexRef, CONFIG,
 };
 use common::{
     assets, comp,
@@ -29,7 +29,7 @@ pub struct Colors {
 fn close(x: f32, tgt: f32, falloff: f32) -> f32 {
     (1.0 - (x - tgt).abs() / falloff).max(0.0).powf(0.5)
 }
-
+const MUSH_FACT: f32 = 0.001; // To balance everything around the mushroom spawning rate
 pub fn apply_scatter_to<'a>(
     wpos2d: Vec2<i32>,
     mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
@@ -42,60 +42,221 @@ pub fn apply_scatter_to<'a>(
     // TODO: Add back all sprites we had before
     let scatter: &[(_, bool, fn(&SimChunk) -> (f32, Option<(f32, f32)>))] = &[
         // (density, Option<(wavelen, threshold)>)
+        // Flowers
         (BlueFlower, false, |c| {
             (
-                close(c.temp, -0.3, 0.7).min(close(c.humidity, 0.6, 0.35)) * 0.05,
-                Some((48.0, 0.6)),
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                    * MUSH_FACT
+                    * 0.5,
+                Some((48.0, 0.4)),
             )
         }),
         (PinkFlower, false, |c| {
             (
-                close(c.temp, 0.15, 0.5).min(close(c.humidity, 0.6, 0.35)) * 0.05,
-                Some((48.0, 0.6)),
-            )
-        }),
-        (DeadBush, false, |c| {
-            (
-                close(c.temp, 0.8, 0.3).min(close(c.humidity, 0.0, 0.4)) * 0.015,
-                None,
-            )
-        }),
-        (Twigs, false, |c| {
-            ((c.tree_density - 0.5).max(0.0) * 0.00001, None)
-        }),
-        (Stones, false, |c| {
-            ((c.rockiness - 0.5).max(0.0) * 0.00001, None)
-        }),
-        (ShortGrass, false, |c| {
-            (
-                close(c.temp, 0.3, 0.4).min(close(c.humidity, 0.6, 0.35)) * 0.09,
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                    * MUSH_FACT
+                    * 0.5,
                 Some((48.0, 0.4)),
             )
         }),
+        (PurpleFlower, false, |c| {
+            (
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                    * MUSH_FACT
+                    * 0.5,
+                Some((48.0, 0.4)),
+            )
+        }),
+        (RedFlower, false, |c| {
+            (
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                    * MUSH_FACT
+                    * 0.5,
+                Some((48.0, 0.4)),
+            )
+        }),
+        (WhiteFlower, false, |c| {
+            (
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                    * MUSH_FACT
+                    * 0.5,
+                Some((48.0, 0.4)),
+            )
+        }),
+        (YellowFlower, false, |c| {
+            (
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                    * MUSH_FACT
+                    * 0.5,
+                Some((48.0, 0.4)),
+            )
+        }),
+        // Herbs and Spices
+        (LingonBerry, false, |c| {
+            (
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                    * MUSH_FACT
+                    * 0.5,
+                None,
+            )
+        }),
+        (LeafyPlant, false, |c| {
+            (
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                    * MUSH_FACT
+                    * 0.5,
+                None,
+            )
+        }),
+        (Fern, false, |c| {
+            (
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                    * MUSH_FACT
+                    * 0.5,
+                Some((48.0, 0.4)),
+            )
+        }),
+        (Blueberry, false, |c| {
+            (
+                close(c.temp, CONFIG.temperate_temp, 0.5).min(close(
+                    c.humidity,
+                    CONFIG.forest_hum,
+                    0.35,
+                )) * MUSH_FACT
+                    * 0.3,
+                None,
+            )
+        }),
+        // Collecable Objects
+        // Only spawn twigs in temperate forests
+        (Twigs, false, |c| {
+            ((c.tree_density - 0.5).max(0.0) * MUSH_FACT, None)
+        }),
+        (Stones, false, |c| {
+            ((c.rockiness - 0.5).max(0.0) * MUSH_FACT, None)
+        }),
+        // Don't spawn Mushrooms in snowy regions
         (Mushroom, false, |c| {
             (
-                close(c.temp, 0.3, 0.4).min(close(c.humidity, 0.6, 0.35)) * 0.00001,
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35)) * MUSH_FACT,
                 None,
+            )
+        }),
+        // Grass
+        (ShortGrass, false, |c| {
+            (
+                close(c.temp, 0.0, 0.6).min(close(c.humidity, CONFIG.forest_hum, 0.35)) * 0.05,
+                Some((48.0, 0.7)),
             )
         }),
         (MediumGrass, false, |c| {
             (
-                close(c.temp, 0.0, 0.6).min(close(c.humidity, 0.6, 0.35)) * 0.05,
-                Some((48.0, 0.2)),
+                close(c.temp, 0.0, 0.6).min(close(c.humidity, CONFIG.forest_hum, 0.35)) * 0.05,
+                Some((48.0, 0.4)),
             )
         }),
         (LongGrass, false, |c| {
             (
-                close(c.temp, 0.4, 0.4).min(close(c.humidity, 0.8, 0.2)) * 0.05,
-                Some((48.0, 0.1)),
+                close(c.temp, 0.4, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.2)) * 0.05,
+                Some((48.0, 0.5)),
             )
         }),
-        /*(GrassSnow, false, |c| {
+        (WheatGreen, false, |c| {
             (
-                close(c.temp, -0.4, 0.4).min(close(c.rockiness, 0.0, 0.5)) * 0.1,
-                Some((48.0, 0.6)),
+                close(c.temp, 0.4, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.1))
+                    * MUSH_FACT
+                    * 0.001,
+                None,
             )
-        }),*/
+        }),
+        (GrassSnow, false, |c| {
+            (
+                close(c.temp, CONFIG.snow_temp - 0.2, 0.4).min(close(
+                    c.humidity,
+                    CONFIG.forest_hum,
+                    0.5,
+                )) * 0.01,
+                Some((48.0, 0.2)),
+            )
+        }),
+        // Desert Plants
+        (DeadBush, false, |c| {
+            (
+                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
+                    c.humidity,
+                    CONFIG.desert_hum,
+                    0.3,
+                )) * MUSH_FACT
+                    * 0.01,
+                None,
+            )
+        }),
+        (LargeCactus, false, |c| {
+            (
+                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
+                    c.humidity,
+                    CONFIG.desert_hum,
+                    0.2,
+                )) * MUSH_FACT
+                    * 0.01,
+                None,
+            )
+        }),
+        (BarrelCactus, false, |c| {
+            (
+                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
+                    c.humidity,
+                    CONFIG.desert_hum,
+                    0.2,
+                )) * MUSH_FACT
+                    * 0.01,
+                None,
+            )
+        }),
+        (RoundCactus, false, |c| {
+            (
+                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
+                    c.humidity,
+                    CONFIG.desert_hum,
+                    0.2,
+                )) * MUSH_FACT
+                    * 0.01,
+                None,
+            )
+        }),
+        (ShortCactus, false, |c| {
+            (
+                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
+                    c.humidity,
+                    CONFIG.desert_hum,
+                    0.2,
+                )) * MUSH_FACT
+                    * 0.01,
+                None,
+            )
+        }),
+        (MedFlatCactus, false, |c| {
+            (
+                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
+                    c.humidity,
+                    CONFIG.desert_hum,
+                    0.2,
+                )) * MUSH_FACT
+                    * 0.01,
+                None,
+            )
+        }),
+        (ShortFlatCactus, false, |c| {
+            (
+                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
+                    c.humidity,
+                    CONFIG.desert_hum,
+                    0.2,
+                )) * MUSH_FACT
+                    * 0.01,
+                None,
+            )
+        }),
     ];
 
     for y in 0..vol.size_xy().y as i32 {
