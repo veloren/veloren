@@ -242,12 +242,23 @@ impl World {
                 } else {
                     false
                 };
+                let quadmed = comp::Body::QuadrupedMedium(quadruped_medium::Body::random()); // Not all of them are hostile so we have to do the rng here
+                let quadlow = comp::Body::QuadrupedLow(quadruped_low::Body::random()); // Not all of them are hostile so we have to do the rng here
                 let entity = EntityInfo::at(gen_entity_pos())
                     .do_if(is_giant, |e| e.into_giant())
                     .with_body(match rng.gen_range(0, 5) {
                         0 => {
-                            is_hostile = true;
-                            comp::Body::QuadrupedMedium(quadruped_medium::Body::random())
+                            match quadmed {
+                                comp::Body::QuadrupedMedium(quadruped_medium) => {
+                                    match quadruped_medium.species {
+                                        quadruped_medium::Species::Catoblepas => is_hostile = false,
+                                        quadruped_medium::Species::Mouflon => is_hostile = false,
+                                        _ => is_hostile = true,
+                                    }
+                                },
+                                _ => is_hostile = true,
+                            };
+                            quadmed
                         },
                         1 => {
                             is_hostile = false;
@@ -258,8 +269,18 @@ impl World {
                             comp::Body::Critter(critter::Body::random())
                         },
                         3 => {
-                            is_hostile = false;
-                            comp::Body::QuadrupedLow(quadruped_low::Body::random())
+                            match quadlow {
+                                comp::Body::QuadrupedLow(quadruped_low) => {
+                                    match quadruped_low.species {
+                                        quadruped_low::Species::Crocodile => is_hostile = true,
+                                        quadruped_low::Species::Alligator => is_hostile = true,
+                                        quadruped_low::Species::Maneater => is_hostile = true,
+                                        _ => is_hostile = false,
+                                    }
+                                },
+                                _ => is_hostile = false,
+                            };
+                            quadlow
                         },
                         _ => {
                             is_hostile = false;

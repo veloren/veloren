@@ -1,0 +1,13 @@
+Item(
+    name: "Pitchfork",
+    description: "One of the prongs is broken.",
+    kind: Tool (
+        (
+            kind: Farming("Pitchfork"),
+            stats: (
+                equip_time_millis: 400,
+                power: 0.50,
+            ),
+        )
+    ),
+)

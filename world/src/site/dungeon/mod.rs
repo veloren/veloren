@@ -472,12 +472,12 @@ impl Floor {
                         .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
                         .with_automatic_name()
                         .with_main_tool(assets::load_expect_cloned(match rng.gen_range(0, 6) {
-                            0 => "common.items.weapons.axe.starter_axe",
-                            1 => "common.items.weapons.sword.cultist_purp_2h-0",
-                            2 => "common.items.weapons.sword.short_sword_0",
-                            3 => "common.items.weapons.hammer.cultist_purp_2h-0",
-                            4 => "common.items.weapons.staff.cultist_staff",
-                            _ => "common.items.weapons.bow.starter_bow",
+                            0 => "common.items.npc_weapons.axe.malachite_axe-0",
+                            1 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
+                            2 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
+                            3 => "common.items.npc_weapons.hammer.cultist_purp_2h-0",
+                            4 => "common.items.npc_weapons.staff.cultist_staff",
+                            _ => "common.items.npc_weapons.bow.horn_longbow-0",
                         }));
 
                         supplement.add_entity(entity);
@@ -509,8 +509,10 @@ impl Floor {
                                 ))
                                 .with_main_tool(assets::load_expect_cloned(
                                     match rng.gen_range(0, 1) {
-                                        //Add more possible cult leader weapons here
-                                        _ => "common.items.weapons.sword.cultist_purp_2h-0",
+                                        //Add more possible cult leader npc_weapons here
+                                        _ => {
+                                            "common.items.npc_weapons.sword.cultist_purp_2h_boss-0"
+                                        },
                                     },
                                 ))
                                 .with_loot_drop(match rng.gen_range(0, 20) {

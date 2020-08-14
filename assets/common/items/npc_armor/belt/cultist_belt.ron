@@ -1,0 +1,12 @@
+Item(
+    name: "Cultist Belt",
+    description: "Ceremonial attire used by members.",
+    kind: Armor(
+        (
+            kind: Belt("Cultist"),
+            stats: (
+                protection: Normal(0.0),
+            ),
+        )
+    ),
+)

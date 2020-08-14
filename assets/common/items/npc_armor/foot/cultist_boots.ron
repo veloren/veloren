@@ -1,0 +1,12 @@
+Item(
+    name: "Cultist Boots",
+    description: "Ceremonial attire used by members.",
+    kind: Armor(
+        (
+            kind: Foot("Cultist"),
+            stats: (
+                protection: Normal(1.0),
+            ),
+        )
+    ),
+)

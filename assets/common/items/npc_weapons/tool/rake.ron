@@ -1,0 +1,13 @@
+Item(
+    name: "Rake",
+    description: "Held together with twine.",
+    kind: Tool (
+        (
+            kind: Farming("Rake"),
+            stats: (
+                equip_time_millis: 400,
+                power: 0.50,
+            ),
+        )
+    ),
+)

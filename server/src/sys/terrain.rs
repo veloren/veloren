@@ -194,25 +194,25 @@ impl<'a> System<'a> for Sys {
                         active_item,
                         second_item: None,
                         shoulder: Some(assets::load_expect_cloned(
-                            "common.items.armor.shoulder.cultist_shoulder_purple",
+                            "common.items.npc_armor.shoulder.cultist_shoulder_purple",
                         )),
                         chest: Some(assets::load_expect_cloned(
-                            "common.items.armor.chest.cultist_chest_purple",
+                            "common.items.npc_armor.chest.cultist_chest_purple",
                         )),
                         belt: Some(assets::load_expect_cloned(
-                            "common.items.armor.belt.cultist_belt",
+                            "common.items.npc_armor.belt.cultist_belt",
                         )),
                         hand: Some(assets::load_expect_cloned(
-                            "common.items.armor.hand.cultist_hands_purple",
+                            "common.items.npc_armor.hand.cultist_hands_purple",
                         )),
                         pants: Some(assets::load_expect_cloned(
-                            "common.items.armor.pants.cultist_legs_purple",
+                            "common.items.npc_armor.pants.cultist_legs_purple",
                         )),
                         foot: Some(assets::load_expect_cloned(
-                            "common.items.armor.foot.cultist_boots",
+                            "common.items.npc_armor.foot.cultist_boots",
                         )),
                         back: Some(assets::load_expect_cloned(
-                            "common.items.armor.back.dungeon_purple-0",
+                            "common.items.npc_armor.back.dungeon_purple-0",
                         )),
                         ring: None,
                         neck: None,
@@ -220,6 +220,11 @@ impl<'a> System<'a> for Sys {
                         head: None,
                         tabard: None,
                     },
+                    _ => LoadoutBuilder::animal(entity.body).build(),
+                };
+
+                loadout = match body {
+                    comp::Body::Humanoid(_) => loadout,
                     _ => LoadoutBuilder::animal(entity.body).build(),
                 };
 
@@ -255,7 +260,7 @@ impl<'a> System<'a> for Sys {
                     loadout = comp::Loadout {
                         active_item: Some(comp::ItemConfig {
                             item: assets::load_expect_cloned(
-                                "common.items.weapons.sword.zweihander_sword_0",
+                                "common.items.npc_weapons.sword.zweihander_sword_0",
                             ),
                             ability1: Some(CharacterAbility::BasicMelee {
                                 energy_cost: 0,

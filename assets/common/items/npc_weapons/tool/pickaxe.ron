@@ -1,0 +1,13 @@
+Item(
+    name: "Pickaxe",
+    description: "It has a chipped edge.",
+    kind: Tool (
+        (
+            kind: Farming("Pickaxe0"),
+            stats: (
+                equip_time_millis: 400,
+                power: 0.50,
+            ),
+        )
+    ),
+)
