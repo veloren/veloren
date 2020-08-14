@@ -45,50 +45,50 @@ pub fn apply_scatter_to<'a>(
         // Flowers
         (BlueFlower, false, |c| {
             (
-                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                close(c.temp, 0.1, 0.2).min(close(c.humidity, CONFIG.forest_hum, 0.35))
                     * MUSH_FACT
-                    * 0.5,
-                Some((48.0, 0.4)),
+                    * 0.01,
+                Some((48.0, 0.2)),
             )
         }),
         (PinkFlower, false, |c| {
             (
-                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                close(c.temp, 0.2, 0.2).min(close(c.humidity, CONFIG.forest_hum, 0.35))
                     * MUSH_FACT
-                    * 0.5,
-                Some((48.0, 0.4)),
+                    * 0.01,
+                Some((48.0, 0.2)),
             )
         }),
         (PurpleFlower, false, |c| {
             (
-                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                close(c.temp, 0.3, 0.2).min(close(c.humidity, CONFIG.forest_hum, 0.35))
                     * MUSH_FACT
-                    * 0.5,
-                Some((48.0, 0.4)),
+                    * 0.01,
+                Some((48.0, 0.2)),
             )
         }),
         (RedFlower, false, |c| {
             (
-                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                close(c.temp, 0.5, 0.2).min(close(c.humidity, CONFIG.forest_hum, 0.35))
                     * MUSH_FACT
-                    * 0.5,
-                Some((48.0, 0.4)),
+                    * 0.01,
+                Some((48.0, 0.2)),
             )
         }),
         (WhiteFlower, false, |c| {
             (
-                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                close(c.temp, 0.0, 0.3).min(close(c.humidity, CONFIG.forest_hum, 0.35))
                     * MUSH_FACT
-                    * 0.5,
-                Some((48.0, 0.4)),
+                    * 0.01,
+                Some((48.0, 0.2)),
             )
         }),
         (YellowFlower, false, |c| {
             (
-                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                close(c.temp, 0.3, 0.2).min(close(c.humidity, CONFIG.forest_hum, 0.35))
                     * MUSH_FACT
-                    * 0.5,
-                Some((48.0, 0.4)),
+                    * 0.01,
+                Some((48.0, 0.2)),
             )
         }),
         // Herbs and Spices
@@ -151,19 +151,19 @@ pub fn apply_scatter_to<'a>(
         }),
         (MediumGrass, false, |c| {
             (
-                close(c.temp, 0.0, 0.6).min(close(c.humidity, CONFIG.forest_hum, 0.35)) * 0.05,
+                close(c.temp, 0.0, 0.5).min(close(c.humidity, CONFIG.forest_hum, 0.35)) * 0.05,
                 Some((48.0, 0.4)),
             )
         }),
         (LongGrass, false, |c| {
             (
-                close(c.temp, 0.4, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.2)) * 0.05,
+                close(c.temp, 0.4, 0.5).min(close(c.humidity, CONFIG.forest_hum, 0.2)) * 0.05,
                 Some((48.0, 0.5)),
             )
         }),
         (WheatGreen, false, |c| {
             (
-                close(c.temp, 0.4, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.1))
+                close(c.temp, 0.4, 0.2).min(close(c.humidity, CONFIG.forest_hum, 0.1))
                     * MUSH_FACT
                     * 0.001,
                 None,

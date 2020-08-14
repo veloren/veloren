@@ -1,0 +1,12 @@
+Item(
+    name: "Purple Cultist Skirt",
+    description: "Ceremonial attire used by members.",
+    kind: Armor(
+        (
+            kind: Pants("CultistPurple"),
+            stats: (
+                protection: Normal(10.0),
+            ),
+        )
+    ),
+)

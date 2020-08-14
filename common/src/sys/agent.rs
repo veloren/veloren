@@ -332,7 +332,8 @@ impl<'a> System<'a> for Sys {
                                         inputs.move_dir = Vec2::from(bearing)
                                             .try_normalized()
                                             .unwrap_or(Vec2::zero())
-                                            * speed;
+                                            * speed
+                                            * 0.6; //Let small/slow animals flee slower than the player
                                         inputs.jump.set_state(bearing.z > 1.5);
                                         inputs.swimup.set_state(bearing.z > 0.5);
                                         inputs.swimdown.set_state(bearing.z < 0.5);

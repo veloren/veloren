@@ -1,0 +1,13 @@
+Item(
+    name: "Magical Cultist Greatsword",
+    description: "This belonged to an evil Cult Leader.",
+    kind: Tool(
+       (
+            kind: Sword("CultPurp0"),    
+            stats: (
+                equip_time_millis: 500,
+                power: 1.0,
+            ),
+        )
+    ),
+)

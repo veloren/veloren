@@ -1,0 +1,13 @@
+Item(
+    name: "Magical Cultist Warhammer",
+    description: "This belonged to an evil Cult Leader.",
+    kind: Tool(
+       (
+            kind: Hammer("CultPurp0"),    
+            stats: (
+                equip_time_millis: 500,
+                power: 0.5,
+            ),
+        )
+    ),
+)
