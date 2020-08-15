@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Removed
+
+## [0.7.0] - 2020-08-15
+
+### Added
+
 - Display item name over loot/dropped items
 - Added Lottery system for loot
 - Added context-sensitive crosshair
@@ -356,7 +364,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _0.1.0 was part of the legacy engine_
 
-[unreleased]: https://gitlab.com/veloren/veloren/compare?from=v0.6.0&to=master
+[unreleased]: https://gitlab.com/veloren/veloren/compare?from=v0.7.0&to=master
+[0.7.0]: https://gitlab.com/veloren/veloren/compare?from=v0.6.0&to=v0.7.0
 [0.6.0]: https://gitlab.com/veloren/veloren/compare?from=v0.5.0&to=v0.6.0
 [0.5.0]: https://gitlab.com/veloren/veloren/compare?from=v0.4.0&to=v0.5.0
 [0.4.0]: https://gitlab.com/veloren/veloren/compare?from=v0.3.0&to=v0.4.0
