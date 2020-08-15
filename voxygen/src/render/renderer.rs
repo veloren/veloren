@@ -443,38 +443,27 @@ impl Renderer {
     > {
         // (Attempt to) apply resolution factor to shadow map resolution.
         let resolution_factor = mode.resolution.clamped(0.25, 4.0);
-        fn vec2_result<T, E>(v: Vec2<Result<T, E>>) -> Result<Vec2<T>, E> {
-            Ok(Vec2::new(v.x?, v.y?))
-        };
 
         let max_texture_size = Self::max_texture_size_raw(factory);
-        let size = vec2_result(Vec2::new(size.0, size.1).map(|e| {
+        // Limit to max texture size, rather than erroring.
+        let size = Vec2::new(size.0, size.1).map(|e| {
             let size = f32::from(e) * resolution_factor;
             // NOTE: We know 0 <= e since we clamped the resolution factor to be between
             // 0.25 and 4.0.
             if size <= f32::from(max_texture_size) {
-                Ok(size as u16)
+                size as u16
             } else {
-                Err(RenderError::CustomError(format!(
-                    "Resolution factor {:?} multiplied by screen resolution axis {:?} does not \
-                     fit in a texture on this machine.",
-                    resolution_factor, e
-                )))
+                max_texture_size
             }
-        }))?;
+        });
 
         let levels = 1;
-        let two_size = vec2_result(size.map(|e| {
+        // Limit to max texture size rather than erroring.
+        let two_size = size.map(|e| {
             u16::checked_next_power_of_two(e)
                 .filter(|&e| e <= max_texture_size)
-                .ok_or_else(|| {
-                    RenderError::CustomError(format!(
-                        "Next power of two for shadow map resolution axis {:?} does not fit in a \
-                         texture on this machine.",
-                        e
-                    ))
-                })
-        }))?;
+                .unwrap_or(max_texture_size)
+        });
         let min_size = size.reduce_min();
         let max_size = size.reduce_max();
         let _min_two_size = two_size.reduce_min();
@@ -493,20 +482,13 @@ impl Renderer {
             // u16, so does diag_cross_size.
             (diag_size as u16, diag_cross_size as u16)
         } else {
-            return Err(RenderError::CustomError(format!(
-                "Resolution of shadow map diagonal {:?} does not fit in a texture on this machine.",
-                diag_size
-            )));
+            // Limit to max texture resolution rather than error.
+            (max_texture_size as u16, max_texture_size as u16)
         };
         let diag_two_size = u16::checked_next_power_of_two(diag_size)
             .filter(|&e| e <= max_texture_size)
-            .ok_or_else(|| {
-                RenderError::CustomError(format!(
-                    "Next power of two for resolution of shadow map diagonal {:?} does not fit in \
-                     a texture on this machine.",
-                    diag_size
-                ))
-            })?;
+            // Limit to max texture resolution rather than error.
+            .unwrap_or(max_texture_size);
         let depth_stencil_cty = <<ShadowDepthStencilFmt as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped>::get_channel_type();
 
         let point_shadow_tex = factory

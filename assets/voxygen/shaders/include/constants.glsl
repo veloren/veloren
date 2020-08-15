@@ -3,42 +3,42 @@
 /* TODO: Add the ability to control the tendency to do stuff in the vertex vs. fragment shader.
  * Currently this flag is ignored and always set to prefer fragment, but this tradeoff is not correct on all
  * machines in all cases (mine, for instance). */
-#define VOXYGEN_COMPUTATION_PREERENCE_FRAGMENT 0u
-#define VOXYGEN_COMPUTATION_PREERENCE_VERTEX 1u
+#define VOXYGEN_COMPUTATION_PREERENCE_FRAGMENT 0
+#define VOXYGEN_COMPUTATION_PREERENCE_VERTEX 1
 
-#define FLUID_MODE_CHEAP 0u
-#define FLUID_MODE_SHINY 1u
+#define FLUID_MODE_CHEAP 0
+#define FLUID_MODE_SHINY 1
 
-#define CLOUD_MODE_NONE 0u
-#define CLOUD_MODE_REGULAR 1u
+#define CLOUD_MODE_NONE 0
+#define CLOUD_MODE_REGULAR 1
 
-#define LIGHTING_ALGORITHM_LAMBERTIAN 0u
-#define LIGHTING_ALGORITHM_BLINN_PHONG 1u
-#define LIGHTING_ALGORITHM_ASHIKHMIN 2u
+#define LIGHTING_ALGORITHM_LAMBERTIAN 0
+#define LIGHTING_ALGORITHM_BLINN_PHONG 1
+#define LIGHTING_ALGORITHM_ASHIKHMIN 2
 
-#define SHADOW_MODE_NONE 0u
-#define SHADOW_MODE_CHEAP 1u
-#define SHADOW_MODE_MAP 2u
+#define SHADOW_MODE_NONE 0
+#define SHADOW_MODE_CHEAP 1
+#define SHADOW_MODE_MAP 2
 
 /* Unlike the other flags (for now anyway), these are bitmask values */
-#define LIGHTING_TYPE_REFLECTION 0x01u
-#define LIGHTING_TYPE_TRANSMISSION 0x02u
+#define LIGHTING_TYPE_REFLECTION 0x01
+#define LIGHTING_TYPE_TRANSMISSION 0x02
 
 /* Currently ignored, but ideally shoud be helpful for determining light transport properties. */
-#define LIGHTING_REFLECTION_KIND_DIFFUSE 0u
-#define LIGHTING_REFLECTION_KIND_GLOSSY 1u
-#define LIGHTING_REFLECTION_KIND_SPECULAR 2u
+#define LIGHTING_REFLECTION_KIND_DIFFUSE 0
+#define LIGHTING_REFLECTION_KIND_GLOSSY 1
+#define LIGHTING_REFLECTION_KIND_SPECULAR 2
 
-#define LIGHTING_TRANSPORT_MODE_IMPORTANCE 0u
+#define LIGHTING_TRANSPORT_MODE_IMPORTANCE 0
 /* Radiance mode is currently used as a proxy for "attenuation and medium materials
  * matter," but we may make it more granular. */
-#define LIGHTING_TRANSPORT_MODE_RADIANCE 1u
+#define LIGHTING_TRANSPORT_MODE_RADIANCE 1
 
-#define LIGHTING_DISTRIBUTION_SCHEME_MICROFACET 0u
-#define LIGHTING_DISTRIBUTION_SCHEME_VOXEL 1u
+#define LIGHTING_DISTRIBUTION_SCHEME_MICROFACET 0
+#define LIGHTING_DISTRIBUTION_SCHEME_VOXEL 1
 
-#define LIGHTING_DISTRIBUTION_BECKMANN 0u
-#define LIGHTING_DISTRIBUTION_TROWBRIDGE 1u
+#define LIGHTING_DISTRIBUTION_BECKMANN 0
+#define LIGHTING_DISTRIBUTION_TROWBRIDGE 1
 
 /* Constants expected to be defined automatically by configuration: */
 
