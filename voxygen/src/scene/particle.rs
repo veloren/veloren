@@ -8,7 +8,7 @@ use crate::{
 };
 use common::{
     assets::Asset,
-    comp::{item::Reagent, object, Body, CharacterState, Pos},
+    comp::{item::Reagent, object, Body, CharacterState, Ori, Pos, Shockwave},
     figure::Segment,
     outcome::Outcome,
     span,
@@ -113,6 +113,7 @@ impl ParticleMgr {
             self.maintain_body_particles(scene_data);
             self.maintain_boost_particles(scene_data);
             self.maintain_block_particles(scene_data, terrain);
+            self.maintain_shockwave_particles(scene_data);
         } else {
             // remove all particle lifespans
             self.particles.clear();
@@ -416,6 +417,48 @@ impl ParticleMgr {
                             )
                         })
                 });
+            }
+        }
+    }
+    fn maintain_shockwave_particles(&mut self, scene_data: &SceneData) {
+        let state = scene_data.state;
+        let ecs = state.ecs();
+        let time = state.get_time();
+
+        for (_i, (_entity, pos, ori, shockwave)) in (
+            &ecs.entities(),
+            &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<Ori>(),
+            &ecs.read_storage::<Shockwave>(),
+        )
+            .join()
+            .enumerate()
+        {
+            let elapsed = time - shockwave.creation.unwrap_or_default();
+
+            let p = shockwave.properties.speed * elapsed as f32;
+
+            let theta = ori.0.y.atan2(ori.0.x);
+            let dtheta = shockwave.properties.angle.to_radians() / p;
+
+            for _ in 0..self.scheduler.heartbeats(Duration::from_millis(10)) {
+                for d in 0..(p as i32) {
+                    self.particles.push(Particle::new(
+                        Duration::from_millis(250),
+                        time,
+                        ParticleMode::CampfireFire, // TODO: TerrainShockwave
+                        pos.0
+                            + Vec3::new(
+                                p * ((theta - (shockwave.properties.angle.to_radians() / 2.0))
+                                    + (dtheta * d as f32))
+                                    .cos(),
+                                p * ((theta - (shockwave.properties.angle.to_radians() / 2.0))
+                                    + (dtheta * d as f32))
+                                    .sin(),
+                                0.0,
+                            ),
+                    ));
+                }
             }
         }
     }
