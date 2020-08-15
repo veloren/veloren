@@ -472,19 +472,18 @@ impl Renderer {
         // size of a diagonal along that axis.
         let diag_size = size.map(f64::from).magnitude();
         let diag_cross_size = f64::from(min_size) / f64::from(max_size) * diag_size;
-        let (diag_size, _diag_cross_size) = if 0.0 < diag_size
-            && diag_size <= f64::from(max_texture_size)
-        {
-            // NOTE: diag_cross_size must be non-negative, since it is the ratio of a
-            // non-negative and a positive number (if max_size were zero,
-            // diag_size would be 0 too).  And it must be <= diag_size,
-            // since min_size <= max_size.  Therefore, if diag_size fits in a
-            // u16, so does diag_cross_size.
-            (diag_size as u16, diag_cross_size as u16)
-        } else {
-            // Limit to max texture resolution rather than error.
-            (max_texture_size as u16, max_texture_size as u16)
-        };
+        let (diag_size, _diag_cross_size) =
+            if 0.0 < diag_size && diag_size <= f64::from(max_texture_size) {
+                // NOTE: diag_cross_size must be non-negative, since it is the ratio of a
+                // non-negative and a positive number (if max_size were zero,
+                // diag_size would be 0 too).  And it must be <= diag_size,
+                // since min_size <= max_size.  Therefore, if diag_size fits in a
+                // u16, so does diag_cross_size.
+                (diag_size as u16, diag_cross_size as u16)
+            } else {
+                // Limit to max texture resolution rather than error.
+                (max_texture_size as u16, max_texture_size as u16)
+            };
         let diag_two_size = u16::checked_next_power_of_two(diag_size)
             .filter(|&e| e <= max_texture_size)
             // Limit to max texture resolution rather than error.
@@ -817,7 +816,9 @@ impl Renderer {
         const MAX_TEXTURE_SIZE_MAX: u16 = 8192;
         #[cfg(not(target_os = "macos"))]
         /// NOTE: Apparently Macs aren't the only machines that lie.
-        const MAX_TEXTURE_SIZE_MAX: u16 = 16384;
+        ///
+        /// TODO: Find a way to let graphics cards that don't lie do better.
+        const MAX_TEXTURE_SIZE_MAX: u16 = 8192;
         // NOTE: Many APIs for textures require coordinates to fit in u16, which is why
         // we perform this conversion.
         u16::try_from(factory.get_capabilities().max_texture_size)
