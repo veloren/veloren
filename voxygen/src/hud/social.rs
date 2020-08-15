@@ -125,7 +125,6 @@ impl<'a> Widget for Social<'a> {
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
-
         let mut events = Vec::new();
         let button_tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
@@ -268,20 +267,27 @@ impl<'a> Widget for Social<'a> {
         }
         // Online Tab
         if let SocialTab::Online = self.show.social_tab {
+            let players = self.client.player_list.iter().filter(|(_, p)| p.is_online);
+            let count = players.clone().count();
+            let height = if count > 1 {
+                count as f64 - 1.0 + 20.0 * count as f64 - 1.0
+            } else {
+                1.0
+            };
             // Content Alignments
             Rectangle::fill_with([270.0, 346.0], color::TRANSPARENT)
                 .mid_top_with_margin_on(state.ids.frame, 74.0)
                 .scroll_kids_vertically()
                 .set(state.ids.online_align, ui);
-            Rectangle::fill_with([133.0, 346.0], color::TRANSPARENT)
+            Rectangle::fill_with([133.0, height], color::TRANSPARENT)
                 .top_left_with_margins_on(state.ids.online_align, 0.0, 0.0)
                 .crop_kids()
                 .set(state.ids.names_align, ui);
-            Rectangle::fill_with([39.0, 346.0], color::TRANSPARENT)
+            Rectangle::fill_with([39.0, height], color::TRANSPARENT)
                 .right_from(state.ids.names_align, 2.0)
                 .crop_kids()
                 .set(state.ids.levels_align, ui);
-            Rectangle::fill_with([94.0, 346.0], color::TRANSPARENT)
+            Rectangle::fill_with([94.0, height], color::TRANSPARENT)
                 .right_from(state.ids.levels_align, 2.0)
                 .crop_kids()
                 .set(state.ids.zones_align, ui);
@@ -332,8 +338,6 @@ impl<'a> Widget for Social<'a> {
                 // Sort widgets by zone alphabetically
             }
             // Online Text
-            let players = self.client.player_list.iter().filter(|(_, p)| p.is_online);
-            let count = players.clone().count();
             Text::new(&self.localized_strings.get("hud.social.online"))
                 .bottom_left_with_margins_on(state.ids.frame, 18.0, 10.0)
                 .font_id(self.fonts.cyri.conrod_id)
