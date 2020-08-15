@@ -8,8 +8,8 @@ use crate::{
     ecs::comp::Interpolated,
     mesh::greedy::GreedyMesh,
     render::{
-        BoneMeshes, ColLightFmt, Consts, FigureBoneData, FigureLocals, FigureModel, GlobalModel,
-        RenderError, Renderer, ShadowPipeline, Texture,
+        ColLightFmt, Consts, FigureBoneData, FigureLocals, FigureModel, GlobalModel, Mesh,
+        RenderError, Renderer, ShadowPipeline, TerrainPipeline, Texture,
     },
     scene::{
         camera::{Camera, CameraMode, Dependents},
@@ -36,8 +36,9 @@ use common::{
 };
 use core::{
     borrow::Borrow,
+    convert::TryFrom,
     hash::Hash,
-    ops::{Deref, DerefMut},
+    ops::{Deref, DerefMut, Range},
 };
 use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
@@ -50,6 +51,33 @@ const MOVING_THRESHOLD_SQR: f32 = MOVING_THRESHOLD * MOVING_THRESHOLD;
 
 /// camera data, fiigure LOD render distance.
 pub type CameraData<'a> = (&'a Camera, f32);
+
+/// Enough data to render a figure model.
+pub type FigureModelRef<'a> = (
+    &'a Consts<FigureLocals>,
+    &'a Consts<FigureBoneData>,
+    &'a FigureModel,
+    &'a Texture<ColLightFmt>,
+);
+
+/// An entry holding enough information to draw or destroy a figure in a
+/// particular cache.
+pub struct FigureModelEntry<const N: usize> {
+    /// The estimated bounds of this figure, in voxels.  This may not be very
+    /// useful yet.
+    _bounds: math::Aabb<f32>,
+    /// Hypothetical texture atlas allocation data for the current figure.
+    /// Will be useful if we decide to use a packed texture atlas for figures
+    /// like we do for terrain.
+    allocation: guillotiere::Allocation,
+    /// Texture used to store color/light information for this figure entry.
+    /* TODO: Consider using mipmaps instead of storing multiple texture atlases for different
+     * LOD levels. */
+    col_lights: Texture<ColLightFmt>,
+    /// Models stored in this figure entry; there may be several for one figure,
+    /// because of LOD models.
+    pub models: [FigureModel; N],
+}
 
 struct FigureMgrStates {
     character_states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
@@ -1018,7 +1046,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model[0],
+                        &model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -1119,7 +1147,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model[0],
+                        &model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -1220,7 +1248,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model[0],
+                        &model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -1319,7 +1347,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model[0],
+                        &model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -1415,7 +1443,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model[0],
+                        &model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -1500,7 +1528,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model[0],
+                        &model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -1581,7 +1609,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model[0],
+                        &model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -1663,7 +1691,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model[0],
+                        &model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -1748,7 +1776,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model[0],
+                        &model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -1833,7 +1861,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model[0],
+                        &model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -1929,7 +1957,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model[0],
+                        &model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -2011,7 +2039,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model[0],
+                        &model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -2043,7 +2071,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model[0],
+                        &model,
                         lpindex,
                         true,
                         is_player,
@@ -2159,14 +2187,7 @@ impl FigureMgr {
                     figure_lod_render_distance,
                     |state| state.visible(),
                 ) {
-                    renderer.render_figure(
-                        model,
-                        &col_lights.col_lights,
-                        global,
-                        locals,
-                        bone_consts,
-                        lod,
-                    );
+                    renderer.render_figure(model, &col_lights, global, locals, bone_consts, lod);
                 }
             }
         }
@@ -2215,17 +2236,10 @@ impl FigureMgr {
                 figure_lod_render_distance,
                 |state| state.visible(),
             ) {
-                renderer.render_player(
-                    model,
-                    &col_lights.col_lights,
-                    global,
-                    locals,
-                    bone_consts,
-                    lod,
-                );
+                renderer.render_player(model, &col_lights, global, locals, bone_consts, lod);
                 renderer.render_player_shadow(
                     model,
-                    &col_lights.col_lights,
+                    &col_lights,
                     global,
                     bone_consts,
                     lod,
@@ -2246,16 +2260,10 @@ impl FigureMgr {
         body: &Body,
         loadout: Option<&Loadout>,
         is_player: bool,
-        // is_shadow: bool,
         pos: vek::Vec3<f32>,
         figure_lod_render_distance: f32,
         filter_state: impl Fn(&FigureStateMeta) -> bool,
-    ) -> Option<(
-        &Consts<FigureLocals>,
-        &Consts<FigureBoneData>,
-        &FigureModel,
-        &FigureColLights,
-    )> {
+    ) -> Option<FigureModelRef> {
         let player_camera_mode = if is_player {
             camera.get_mode()
         } else {
@@ -2297,7 +2305,7 @@ impl FigureMgr {
                 },
         } = self;
         let col_lights = &mut *col_lights_;
-        if let Some((locals, bone_consts, model)) = match body {
+        if let Some((locals, bone_consts, model_entry)) = match body {
             Body::Humanoid(_) => character_states
                 .get(&entity)
                 .filter(|state| filter_state(&*state))
@@ -2563,14 +2571,14 @@ impl FigureMgr {
             let figure_mid_detail_distance = figure_lod_render_distance * 0.5;
 
             let model = if pos.distance_squared(cam_pos) > figure_low_detail_distance.powf(2.0) {
-                &model[2]
+                &model_entry.models[2]
             } else if pos.distance_squared(cam_pos) > figure_mid_detail_distance.powf(2.0) {
-                &model[1]
+                &model_entry.models[1]
             } else {
-                &model[0]
+                &model_entry.models[0]
             };
 
-            Some((locals, bone_consts, model, &*col_lights_))
+            Some((locals, bone_consts, model, col_lights_.texture(model_entry)))
         } else {
             // trace!("Body has no saved figure");
             None
@@ -2584,24 +2592,39 @@ impl FigureMgr {
 
 pub struct FigureColLights {
     atlas: AtlasAllocator,
-    col_lights: Texture<ColLightFmt>,
+    // col_lights: Texture<ColLightFmt>,
 }
 
 impl FigureColLights {
     pub fn new(renderer: &mut Renderer) -> Self {
-        let (atlas, col_lights) =
-            Self::make_atlas(renderer).expect("Failed to create texture atlas for figures");
-        Self { atlas, col_lights }
+        let atlas = Self::make_atlas(renderer).expect("Failed to create texture atlas for figures");
+        Self {
+            atlas, /* col_lights, */
+        }
     }
 
-    pub fn texture(&self) -> &Texture<ColLightFmt> { &self.col_lights }
+    /// Find the correct texture for this model entry.
+    pub fn texture<'a, const N: usize>(
+        &'a self,
+        model: &'a FigureModelEntry<N>,
+    ) -> &'a Texture<ColLightFmt> {
+        /* &self.col_lights */
+        &model.col_lights
+    }
 
-    pub fn create_figure<'a>(
+    /// NOTE: Panics if the opaque model's length does not fit in a u32.
+    /// This is parto f the function contract.
+    ///
+    /// NOTE: Panics if the vertex range bounds are not in range of the opaque
+    /// model stored in the BoneMeshes parameter.  This is part of the
+    /// function contract.
+    pub fn create_figure<'a, const N: usize>(
         &mut self,
         renderer: &mut Renderer,
         greedy: GreedyMesh<'a>,
-        (opaque, bounds): BoneMeshes,
-    ) -> Result<FigureModel, RenderError> {
+        (opaque, bounds): (Mesh<TerrainPipeline>, math::Aabb<f32>),
+        vertex_range: [Range<u32>; N],
+    ) -> Result<FigureModelEntry<N>, RenderError> {
         let (tex, tex_size) = greedy.finalize();
         let atlas = &mut self.atlas;
         let allocation = atlas
@@ -2609,21 +2632,32 @@ impl FigureColLights {
                 i32::from(tex_size.x),
                 i32::from(tex_size.y),
             ))
-            .expect("Not yet implemented: allocate new atlas on allocation faillure.");
+            .expect("Not yet implemented: allocate new atlas on allocation failure.");
         let col_lights = ShadowPipeline::create_col_lights(renderer, (tex, tex_size))?;
+        let model_len = u32::try_from(opaque.vertices().len())
+            .expect("The model size for this figure does not fit in a u32!");
+        let model = renderer.create_model(&opaque)?;
 
-        Ok(FigureModel {
-            bounds,
-            opaque: renderer.create_model(&opaque)?,
-            // shadow: renderer.create_model(&shadow)?,
+        Ok(FigureModelEntry {
+            _bounds: bounds,
+            models: vertex_range.map(|range| {
+                assert!(
+                    range.start <= range.end && range.end <= model_len,
+                    "The provided vertex range for figure mesh {:?} does not fit in the model, \
+                     which is of size {:?}!",
+                    range,
+                    model_len
+                );
+                FigureModel {
+                    opaque: model.submodel(range),
+                }
+            }),
             col_lights,
             allocation,
         })
     }
 
-    fn make_atlas(
-        renderer: &mut Renderer,
-    ) -> Result<(AtlasAllocator, Texture<ColLightFmt>), RenderError> {
+    fn make_atlas(renderer: &mut Renderer) -> Result<AtlasAllocator, RenderError> {
         let max_texture_size = renderer.max_texture_size();
         let atlas_size =
             guillotiere::Size::new(i32::from(max_texture_size), i32::from(max_texture_size));
@@ -2633,7 +2667,11 @@ impl FigureColLights {
             large_size_threshold: 256,
             ..guillotiere::AllocatorOptions::default()
         });
-        let texture = renderer.create_texture_raw(
+        // TODO: Consider using a single texture atlas to store all figures, much like
+        // we do for terrain chunks.  We previoosly avoided this due to
+        // perceived performance degradation for the figure use case, but with a
+        // smaller atlas size this may be less likely.
+        /* let texture = renderer.create_texture_raw(
             gfx::texture::Kind::D2(
                 max_texture_size,
                 max_texture_size,
@@ -2649,7 +2687,8 @@ impl FigureColLights {
                 gfx::texture::WrapMode::Clamp,
             ),
         )?;
-        Ok((atlas, texture))
+        Ok((atlas, texture)) */
+        Ok(atlas)
     }
 }
 
@@ -2714,7 +2753,7 @@ impl<S: Skeleton> FigureState<S> {
     }
 
     #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
-    pub fn update(
+    pub fn update<const N: usize>(
         &mut self,
         renderer: &mut Renderer,
         pos: anim::vek::Vec3<f32>,
@@ -2723,7 +2762,7 @@ impl<S: Skeleton> FigureState<S> {
         col: vek::Rgba<f32>,
         dt: f32,
         state_animation_rate: f32,
-        model: &FigureModel,
+        model: &FigureModelEntry<N>,
         _lpindex: u8,
         _visible: bool,
         is_player: bool,
@@ -2736,8 +2775,8 @@ impl<S: Skeleton> FigureState<S> {
         // largest dimension (if we were exact, it should just be half the largest
         // dimension, but we're not, so we double it and use size() instead of
         // half_size()).
-        let radius = model.bounds.half_size().reduce_partial_max();
-        let _bounds = BoundingSphere::new(pos.into_array(), scale * 0.8 * radius);
+        /* let radius = vek::Extent3::<f32>::from(model.bounds.half_size()).reduce_partial_max();
+        let _bounds = BoundingSphere::new(pos.into_array(), scale * 0.8 * radius); */
 
         self.last_ori = vek::Lerp::lerp(self.last_ori, ori, 15.0 * dt);
 

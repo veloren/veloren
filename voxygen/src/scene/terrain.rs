@@ -393,7 +393,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
     volume: <VolGrid2d<V> as SampleVol<Aabr<i32>>>::Sample,
     max_texture_size: u16,
     range: Aabb<i32>,
-    sprite_models: &HashMap<(BlockKind, usize), Vec<SpriteData>>,
+    sprite_data: &HashMap<(BlockKind, usize), Vec<SpriteData>>,
 ) -> MeshWorkerResponse {
     let (opaque_mesh, fluid_mesh, _shadow_mesh, (bounds, col_lights_info)) =
         volume.generate_mesh((range, Vec2::new(max_texture_size, max_texture_size)));
@@ -424,7 +424,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
                             let key = (block.kind(), variation);
                             // NOTE: Safe bbecause we called sprite_config_for already.
                             // NOTE: Safe because 0 ≤ ori < 8
-                            let sprite_data = &sprite_models[&key][0];
+                            let sprite_data = &sprite_data[&key][0];
                             let instance = SpriteInstance::new(
                                 Mat4::identity()
                                     .translated_3d(sprite_data.offset)
@@ -484,7 +484,7 @@ pub struct Terrain<V: RectRasterableVol> {
     mesh_todo: HashMap<Vec2<i32>, ChunkMeshState>,
 
     // GPU data
-    sprite_models: Arc<HashMap<(BlockKind, usize), Vec<SpriteData>>>,
+    sprite_data: Arc<HashMap<(BlockKind, usize), Vec<SpriteData>>>,
     sprite_col_lights: Texture<ColLightFmt>,
     col_lights: Texture<ColLightFmt>,
     waves: Texture,
@@ -513,6 +513,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             guillotiere::Size::new(i32::from(max_texture_size), i32::from(max_texture_size));
         let mut greedy = GreedyMesh::new(max_size);
         let mut locals_buffer = [SpriteLocals::default(); 8];
+        // NOTE: Tracks the start vertex of the next model to be meshed.
         let mut make_models = |(kind, variation), s, offset, lod_axes: Vec3<f32>| {
             let scaled = [1.0, 0.8, 0.6, 0.4, 0.2];
             let model = assets::load_expect::<DotVoxData>(s);
@@ -550,12 +551,21 @@ impl<V: RectRasterableVol> Terrain<V> {
                                 lod_axes * lod_scale_orig
                                     + lod_axes.map(|e| if e == 0.0 { 1.0 } else { 0.0 })
                             };
-                        let opaque_model =
-                            Meshable::<SpritePipeline, &mut GreedyMesh>::generate_mesh(
-                                Segment::from(model.as_ref()).scaled_by(lod_scale),
-                                (&mut greedy, wind_sway >= 0.4 && lod_scale_orig == 1.0),
-                            )
-                            .0;
+                        // Mesh generation exclusively acts using side effects; it has no
+                        // interesting return value, but updates the mesh.
+                        let mut opaque_mesh = Mesh::new();
+                        Meshable::<SpritePipeline, &mut GreedyMesh>::generate_mesh(
+                            Segment::from(model.as_ref()).scaled_by(lod_scale),
+                            (
+                                &mut greedy,
+                                &mut opaque_mesh,
+                                wind_sway >= 0.4 && lod_scale_orig == 1.0,
+                            ),
+                        );
+                        let model = renderer
+                            .create_model(&opaque_mesh)
+                            .expect("Failed to upload sprite model data to the GPU!");
+
                         let sprite_scale = Vec3::one() / lod_scale;
                         let sprite_mat: Mat4<f32> = sprite_mat * Mat4::scaling_3d(sprite_scale);
                         locals_buffer
@@ -569,8 +579,8 @@ impl<V: RectRasterableVol> Terrain<V> {
                             });
 
                         SpriteData {
+                            /* vertex_range */ model,
                             offset,
-                            model: renderer.create_model(&opaque_model).unwrap(),
                             locals: renderer
                                 .create_consts(&locals_buffer)
                                 .expect("Failed to upload sprite locals to the GPU!"),
@@ -580,7 +590,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             )
         };
 
-        let sprite_models: HashMap<(BlockKind, usize), _> = vec![
+        let sprite_data: HashMap<(BlockKind, usize), _> = vec![
             // Windows
             make_models(
                 (BlockKind::Window1, 0),
@@ -2370,6 +2380,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         .collect();
         let sprite_col_lights = ShadowPipeline::create_col_lights(renderer, greedy.finalize())
             .expect("Failed to upload sprite color and light data to the GPU!");
+
         Self {
             atlas,
             chunks: HashMap::default(),
@@ -2377,7 +2388,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             mesh_send_tmp: send,
             mesh_recv: recv,
             mesh_todo: HashMap::default(),
-            sprite_models: Arc::new(sprite_models),
+            sprite_data: Arc::new(sprite_data),
             sprite_col_lights,
             waves: renderer
                 .create_texture(
@@ -2624,9 +2635,9 @@ impl<V: RectRasterableVol> Terrain<V> {
 
             // Queue the worker thread.
             let started_tick = todo.started_tick;
-            let sprite_models = Arc::clone(&self.sprite_models);
+            let sprite_data = Arc::clone(&self.sprite_data);
             scene_data.thread_pool.execute(move || {
-                let sprite_models = sprite_models;
+                let sprite_data = sprite_data;
                 let _ = send.send(mesh_worker(
                     pos,
                     (min_z as f32, max_z as f32),
@@ -2634,7 +2645,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     volume,
                     max_texture_size,
                     aabb,
-                    &sprite_models,
+                    &sprite_data,
                 ));
             });
             todo.active_worker = Some(todo.started_tick);
@@ -3067,15 +3078,15 @@ impl<V: RectRasterableVol> Terrain<V> {
                             && dist_sqrd <= chunk_mag
                             || dist_sqrd < sprite_high_detail_distance.powf(2.0)
                         {
-                            &self.sprite_models[&kind][0]
+                            &self.sprite_data[&kind][0]
                         } else if dist_sqrd < sprite_hid_detail_distance.powf(2.0) {
-                            &self.sprite_models[&kind][1]
+                            &self.sprite_data[&kind][1]
                         } else if dist_sqrd < sprite_mid_detail_distance.powf(2.0) {
-                            &self.sprite_models[&kind][2]
+                            &self.sprite_data[&kind][2]
                         } else if dist_sqrd < sprite_low_detail_distance.powf(2.0) {
-                            &self.sprite_models[&kind][3]
+                            &self.sprite_data[&kind][3]
                         } else {
-                            &self.sprite_models[&kind][4]
+                            &self.sprite_data[&kind][4]
                         };
                         renderer.render_sprites(
                             model,

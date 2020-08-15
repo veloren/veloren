@@ -175,11 +175,7 @@ impl MapSizeLg {
                 map_size_lg.y + TERRAIN_CHUNK_BLOCKS_LG < 32;
             // Assertion on dimensions: product of dimensions must fit in a usize.
             let chunks_product_in_range =
-                if let Some(_) = 1usize.checked_shl(map_size_lg.x + map_size_lg.y) {
-                    true
-                } else {
-                    false
-                };
+                matches!(1usize.checked_shl(map_size_lg.x + map_size_lg.y), Some(_));
             if blocks_in_range && chunks_product_in_range {
                 // Cleared all invariants.
                 Ok(MapSizeLg(map_size_lg))

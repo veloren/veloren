@@ -15,7 +15,7 @@ impl<T: Copy + gfx::traits::Pod> Instances<T> {
     pub fn new(factory: &mut gfx_backend::Factory, len: usize) -> Result<Self, RenderError> {
         Ok(Self {
             ibuf: factory
-                .create_buffer(len, Role::Vertex, Usage::Dynamic, Bind::TRANSFER_DST)
+                .create_buffer(len, Role::Vertex, Usage::Dynamic, Bind::empty())
                 .map_err(RenderError::BufferCreationError)?,
         })
     }

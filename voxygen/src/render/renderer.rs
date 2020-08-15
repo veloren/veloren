@@ -1002,7 +1002,7 @@ impl Renderer {
     pub fn render_figure(
         &mut self,
         model: &figure::FigureModel,
-        _col_lights: &Texture<ColLightFmt>,
+        col_lights: &Texture<ColLightFmt>,
         global: &GlobalModel,
         locals: &Consts<figure::Locals>,
         bones: &Consts<figure::BoneData>,
@@ -1026,7 +1026,6 @@ impl Renderer {
                     (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 )
             };
-        let col_lights = &model.col_lights;
         let model = &model.opaque;
 
         self.encoder.draw(
@@ -1087,10 +1086,7 @@ impl Renderer {
                     (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 )
             };
-        let col_lights = &model.col_lights;
         let model = &model.opaque;
-        // let atlas_model = &model.opaque;
-        // let model = &model.shadow;
 
         self.encoder.draw(
             &gfx::Slice {
@@ -1103,9 +1099,7 @@ impl Renderer {
             &self.player_shadow_pipeline.pso,
             &figure::pipe::Data {
                 vbuf: model.vbuf.clone(),
-                // abuf: atlas_model.vbuf.clone(),
                 col_lights: (col_lights.srv.clone(), col_lights.sampler.clone()),
-                // col_lights: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
                 locals: locals.buf.clone(),
                 globals: global.globals.buf.clone(),
                 bones: bones.buf.clone(),
@@ -1127,7 +1121,7 @@ impl Renderer {
     pub fn render_player(
         &mut self,
         model: &figure::FigureModel,
-        _col_lights: &Texture<ColLightFmt>,
+        col_lights: &Texture<ColLightFmt>,
         global: &GlobalModel,
         locals: &Consts<figure::Locals>,
         bones: &Consts<figure::BoneData>,
@@ -1151,7 +1145,6 @@ impl Renderer {
                     (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
                 )
             };
-        let col_lights = &model.col_lights;
         let model = &model.opaque;
 
         self.encoder.draw(
@@ -1476,6 +1469,10 @@ impl Renderer {
                 ibuf: instances.ibuf.clone(),
                 col_lights: (col_lights.srv.clone(), col_lights.sampler.clone()),
                 terrain_locals: terrain_locals.buf.clone(),
+                // NOTE: It would be nice if this wasn't needed and we could use a constant buffer
+                // offset into the sprite data.  Hopefully, when we switch to wgpu we can do this,
+                // as it offers the exact API we want (the equivalent can be done in OpenGL using
+                // glBindBufferOffset).
                 locals: locals.buf.clone(),
                 globals: global.globals.buf.clone(),
                 lights: global.lights.buf.clone(),
@@ -1581,7 +1578,7 @@ impl Renderer {
     /// Queue the rendering of the provided UI element in the upcoming frame.
     pub fn render_ui_element<F: gfx::format::Formatted<View = [f32; 4]>>(
         &mut self,
-        model: &Model<ui::UiPipeline>,
+        model: Model<ui::UiPipeline>,
         tex: &Texture<F>,
         scissor: Aabr<u16>,
         globals: &Consts<Globals>,
@@ -1594,15 +1591,15 @@ impl Renderer {
         let Aabr { min, max } = scissor;
         self.encoder.draw(
             &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
+                start: model.vertex_range.start,
+                end: model.vertex_range.end,
                 base_vertex: 0,
                 instances: None,
                 buffer: gfx::IndexBuffer::Auto,
             },
             &self.ui_pipeline.pso,
             &ui::pipe::Data {
-                vbuf: model.vbuf.clone(),
+                vbuf: model.vbuf,
                 scissor: gfx::Rect {
                     x: min.x,
                     y: min.y,

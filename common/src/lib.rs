@@ -4,7 +4,6 @@
 #![feature(
     arbitrary_enum_discriminant,
     const_checked_int_methods,
-    const_if_match,
     option_unwrap_none,
     bool_to_option,
     label_break_value,

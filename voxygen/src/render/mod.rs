@@ -244,7 +244,7 @@ impl core::convert::TryFrom<ShadowMode> for ShadowMapMode {
 }
 
 impl ShadowMode {
-    pub fn is_map(&self) -> bool { if let Self::Map(_) = self { true } else { false } }
+    pub fn is_map(&self) -> bool { matches!(self, Self::Map(_)) }
 }
 
 /// Render modes

@@ -7,7 +7,7 @@ use crate::{
 };
 use common::{
     terrain::{Block, BlockKind},
-    vol::{DefaultVolIterator, ReadVol, RectRasterableVol, Vox},
+    vol::{ReadVol, RectRasterableVol, Vox},
     volumes::vol_grid_2d::{CachedVolGrid2d, VolGrid2d},
 };
 use std::{collections::VecDeque, fmt::Debug};
@@ -40,7 +40,7 @@ impl Blendable for BlockKind {
 }
 
 const SUNLIGHT: u8 = 24;
-const MAX_LIGHT_DIST: i32 = SUNLIGHT as i32;
+const _MAX_LIGHT_DIST: i32 = SUNLIGHT as i32;
 
 fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     bounds: Aabb<i32>,
@@ -241,9 +241,10 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
         (range, max_texture_size): Self::Supplement,
     ) -> MeshGen<TerrainPipeline, FluidPipeline, Self> {
         // Find blocks that should glow
-        let lit_blocks =
-            DefaultVolIterator::new(self, range.min - MAX_LIGHT_DIST, range.max + MAX_LIGHT_DIST)
-                .filter_map(|(pos, block)| block.get_glow().map(|glow| (pos, glow)));
+        // FIXME: Replace with real lit blocks when we actually have blocks that glow.
+        let lit_blocks = core::iter::empty();
+        /*  DefaultVolIterator::new(self, range.min - MAX_LIGHT_DIST, range.max + MAX_LIGHT_DIST)
+        .filter_map(|(pos, block)| block.get_glow().map(|glow| (pos, glow))); */
 
         // Calculate chunk lighting
         let mut light = calc_light(range, self, lit_blocks);
@@ -327,11 +328,18 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
 
         let max_size =
             guillotiere::Size::new(i32::from(max_texture_size.x), i32::from(max_texture_size.y));
-        let greedy_size = Vec3::new(
-            (range.size().w - 2) as usize,
-            (range.size().h - 2) as usize,
-            (z_end - z_start + 1) as usize,
-        );
+        let greedy_size = Vec3::new(range.size().w - 2, range.size().h - 2, z_end - z_start + 1);
+        // NOTE: Terrain sizes are limited to 32 x 32 x 16384 (to fit in 24 bits: 5 + 5
+        // + 14). FIXME: Make this function fallible, since the terrain
+        // information might be dynamically generated which would make this hard
+        // to enforce.
+        assert!(greedy_size.x <= 32 && greedy_size.y <= 32 && greedy_size.z <= 16384);
+        // NOTE: Cast is safe by prior assertion on greedy_size; it fits into a u16,
+        // which always fits into a f32.
+        let max_bounds: Vec3<f32> = greedy_size.as_::<f32>();
+        // NOTE: Cast is safe by prior assertion on greedy_size; it fits into a u16,
+        // which always fits into a usize.
+        let greedy_size = greedy_size.as_::<usize>();
         let greedy_size_cross = Vec3::new(greedy_size.x - 1, greedy_size.y - 1, greedy_size.z);
         let draw_delta = Vec3::new(1, 1, z_start);
 
@@ -353,7 +361,7 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
         let mut greedy = GreedyMesh::new(max_size);
         let mut opaque_mesh = Mesh::new();
         let mut fluid_mesh = Mesh::new();
-        let bounds = greedy.push(GreedyConfig {
+        greedy.push(GreedyConfig {
             data: (),
             draw_delta,
             greedy_size,
@@ -388,10 +396,11 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
             },
         });
 
-        let bounds = bounds.map(f32::from);
+        let min_bounds = mesh_delta;
         let bounds = Aabb {
-            min: bounds.min + mesh_delta,
-            max: bounds.max + mesh_delta,
+            // NOTE: Casts are safe since lower_bound and upper_bound both fit in a i16.
+            min: min_bounds,
+            max: max_bounds + min_bounds,
         };
         let (col_lights, col_lights_size) = greedy.finalize();
 

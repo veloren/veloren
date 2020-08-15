@@ -1,5 +1,5 @@
 use super::Pipeline;
-use std::iter::FromIterator;
+use core::{iter::FromIterator, ops::Range};
 
 /// A `Vec`-based mesh structure used to store mesh data on the CPU.
 pub struct Mesh<P: Pipeline> {
@@ -69,6 +69,11 @@ impl<P: Pipeline> Mesh<P> {
     }
 
     pub fn iter(&self) -> std::slice::Iter<P::Vertex> { self.verts.iter() }
+
+    /// NOTE: Panics if vertex_range is out of bounds of vertices.
+    pub fn iter_mut(&mut self, vertex_range: Range<usize>) -> std::slice::IterMut<P::Vertex> {
+        self.verts[vertex_range].iter_mut()
+    }
 }
 
 impl<P: Pipeline> IntoIterator for Mesh<P> {

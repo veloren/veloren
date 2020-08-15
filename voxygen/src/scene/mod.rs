@@ -994,7 +994,7 @@ impl Scene {
         let camera_data = (&self.camera, scene_data.figure_lod_render_distance);
 
         // would instead have this as an extension.
-        if renderer.render_mode().shadow.is_map() && (is_daylight || light_data.1.len() > 0) {
+        if renderer.render_mode().shadow.is_map() && (is_daylight || !light_data.1.is_empty()) {
             if is_daylight {
                 // Set up shadow mapping.
                 renderer.start_shadows();

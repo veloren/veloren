@@ -214,7 +214,6 @@ impl StateExt for State {
         // Notify clients of a player list update
         let client_uid = self
             .read_component_cloned::<Uid>(entity)
-            .map(|u| u)
             .expect("Client doesn't have a Uid!!!");
 
         self.notify_registered_clients(ServerMsg::PlayerListUpdate(

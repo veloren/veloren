@@ -99,43 +99,17 @@ pub(crate) fn partial_eq_io_error(first: &io::Error, second: &io::Error) -> bool
 }
 
 pub(crate) fn partial_eq_bincode(first: &bincode::ErrorKind, second: &bincode::ErrorKind) -> bool {
+    use bincode::ErrorKind::*;
     match *first {
-        bincode::ErrorKind::Io(ref f) => match *second {
-            bincode::ErrorKind::Io(ref s) => partial_eq_io_error(f, s),
-            _ => false,
-        },
-        bincode::ErrorKind::InvalidUtf8Encoding(f) => match *second {
-            bincode::ErrorKind::InvalidUtf8Encoding(s) => f == s,
-            _ => false,
-        },
-        bincode::ErrorKind::InvalidBoolEncoding(f) => match *second {
-            bincode::ErrorKind::InvalidBoolEncoding(s) => f == s,
-            _ => false,
-        },
-        bincode::ErrorKind::InvalidCharEncoding => match *second {
-            bincode::ErrorKind::InvalidCharEncoding => true,
-            _ => false,
-        },
-        bincode::ErrorKind::InvalidTagEncoding(f) => match *second {
-            bincode::ErrorKind::InvalidTagEncoding(s) => f == s,
-            _ => false,
-        },
-        bincode::ErrorKind::DeserializeAnyNotSupported => match *second {
-            bincode::ErrorKind::DeserializeAnyNotSupported => true,
-            _ => false,
-        },
-        bincode::ErrorKind::SizeLimit => match *second {
-            bincode::ErrorKind::SizeLimit => true,
-            _ => false,
-        },
-        bincode::ErrorKind::SequenceMustHaveLength => match *second {
-            bincode::ErrorKind::SequenceMustHaveLength => true,
-            _ => false,
-        },
-        bincode::ErrorKind::Custom(ref f) => match *second {
-            bincode::ErrorKind::Custom(ref s) => f == s,
-            _ => false,
-        },
+        Io(ref f) => matches!(*second, Io(ref s) if partial_eq_io_error(f, s)),
+        InvalidUtf8Encoding(f) => matches!(*second, InvalidUtf8Encoding(s) if f == s),
+        InvalidBoolEncoding(f) => matches!(*second, InvalidBoolEncoding(s) if f == s),
+        InvalidCharEncoding => matches!(*second, InvalidCharEncoding),
+        InvalidTagEncoding(f) => matches!(*second, InvalidTagEncoding(s) if f == s),
+        DeserializeAnyNotSupported => matches!(*second, DeserializeAnyNotSupported),
+        SizeLimit => matches!(*second, SizeLimit),
+        SequenceMustHaveLength => matches!(*second, SequenceMustHaveLength),
+        Custom(ref f) => matches!(*second, Custom(ref s) if f == s),
     }
 }
 

@@ -120,29 +120,11 @@ pub enum RiverKind {
 }
 
 impl RiverKind {
-    pub fn is_ocean(&self) -> bool {
-        if let RiverKind::Ocean = *self {
-            true
-        } else {
-            false
-        }
-    }
+    pub fn is_ocean(&self) -> bool { matches!(*self, RiverKind::Ocean) }
 
-    pub fn is_river(&self) -> bool {
-        if let RiverKind::River { .. } = *self {
-            true
-        } else {
-            false
-        }
-    }
+    pub fn is_river(&self) -> bool { matches!(*self, RiverKind::River { .. }) }
 
-    pub fn is_lake(&self) -> bool {
-        if let RiverKind::Lake { .. } = *self {
-            true
-        } else {
-            false
-        }
-    }
+    pub fn is_lake(&self) -> bool { matches!(*self, RiverKind::Lake { .. }) }
 }
 
 impl PartialOrd for RiverKind {

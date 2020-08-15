@@ -161,22 +161,20 @@ impl<'a> GreedyMesh<'a> {
     pub fn push<M: PartialEq, D: 'a, FL, FC, FO, FS, FP>(
         &mut self,
         config: GreedyConfig<D, FL, FC, FO, FS, FP>,
-    ) -> Aabb<u16>
-    where
+    ) where
         FL: for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
         FC: for<'r> FnMut(&'r mut D, Vec3<i32>) -> Rgb<u8> + 'a,
         FO: for<'r> FnMut(&'r mut D, Vec3<i32>) -> bool + 'a,
         FS: for<'r> FnMut(&'r mut D, Vec3<i32>, Vec3<i32>, Vec2<Vec3<i32>>) -> Option<(bool, M)>,
         FP: FnMut(Vec2<u16>, Vec2<Vec2<u16>>, Vec3<f32>, Vec2<Vec3<f32>>, Vec3<f32>, &M),
     {
-        let (bounds, cont) = greedy_mesh(
+        let cont = greedy_mesh(
             &mut self.atlas,
             &mut self.col_lights_size,
             self.max_size,
             config,
         );
         self.suspended.push(cont);
-        bounds
     }
 
     /// Finalize the mesh, producing texture color data for the whole model.
@@ -219,7 +217,7 @@ fn greedy_mesh<'a, M: PartialEq, D: 'a, FL, FC, FO, FS, FP>(
         mut should_draw,
         mut push_quad,
     }: GreedyConfig<D, FL, FC, FO, FS, FP>,
-) -> (Aabb<u16>, Box<SuspendedMesh<'a>>)
+) -> Box<SuspendedMesh<'a>>
 where
     FL: for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
     FC: for<'r> FnMut(&'r mut D, Vec3<i32>) -> Rgb<u8> + 'a,
@@ -365,30 +363,23 @@ where
         },
     );
 
-    let bounds = Aabb {
-        min: Vec3::zero(),
-        // NOTE: Safe because greedy_size fit in u16.
-        max: greedy_size.map(|e| e as u16),
-    };
-    (
-        bounds,
-        Box::new(move |col_lights_info| {
-            let mut data = data;
-            draw_col_lights(
-                col_lights_info,
-                &mut data,
-                todo_rects,
-                draw_delta,
-                get_light,
-                get_color,
-                get_opacity,
-                TerrainVertex::make_col_light,
-            );
-        }),
-    )
+    Box::new(move |col_lights_info| {
+        let mut data = data;
+        draw_col_lights(
+            col_lights_info,
+            &mut data,
+            todo_rects,
+            draw_delta,
+            get_light,
+            get_color,
+            get_opacity,
+            TerrainVertex::make_col_light,
+        );
+    })
 }
 
-// Greedy meshing a single cross-section.
+/// Greedy meshing a single cross-section.
+// TODO: See if we can speed a lot of this up using SIMD.
 fn greedy_mesh_cross_section<M: PartialEq>(
     dims: Vec3<usize>,
     // Should we draw a face here (below this vertex)?  If so, provide its meta information.
@@ -524,9 +515,10 @@ fn add_to_atlas(
 /// We deferred actually recording the colors within the rectangles in order to
 /// generate a texture of minimal size; we now proceed to create and populate
 /// it.
-///
-/// TODO: Consider using the heavier interface (not the simple one) which seems
-/// to provide builtin support for what we're doing here.
+// TODO: Consider using the heavier interface (not the simple one) which seems
+// to provide builtin support for what we're doing here.
+//
+// TODO: See if we can speed this up using SIMD.
 fn draw_col_lights<D>(
     (col_lights, cur_size): &mut ColLightInfo,
     data: &mut D,
@@ -610,6 +602,7 @@ fn draw_col_lights<D>(
 
 /// Precondition: when this function is called, atlas_pos should reflect an
 /// actual valid position in a texture atlas (meaning it should fit into a u16).
+// TODO: See if we can speed a lot of this up using SIMD.
 fn create_quad_greedy<M>(
     origin: Vec3<usize>,
     dim: Vec2<usize>,

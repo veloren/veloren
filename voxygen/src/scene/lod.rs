@@ -82,10 +82,10 @@ fn create_lod_terrain_mesh(detail: u32) -> Mesh<LodTerrainPipeline> {
             let transform = |x| (2.0 * x as f32) / detail as f32 - 1.0;
 
             Quad::new(
-                Vertex::new(Vec2::new(x + 0, y + 0).map(transform)),
-                Vertex::new(Vec2::new(x + 1, y + 0).map(transform)),
+                Vertex::new(Vec2::new(x, y).map(transform)),
+                Vertex::new(Vec2::new(x + 1, y).map(transform)),
                 Vertex::new(Vec2::new(x + 1, y + 1).map(transform)),
-                Vertex::new(Vec2::new(x + 0, y + 1).map(transform)),
+                Vertex::new(Vec2::new(x, y + 1).map(transform)),
             )
             .rotated_by(if (x > detail as i32 / 2) ^ (y > detail as i32 / 2) {
                 0

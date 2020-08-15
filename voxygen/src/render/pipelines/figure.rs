@@ -1,11 +1,9 @@
 use super::{
-    super::{
-        ColLightFmt, Mesh, Model, Pipeline, TerrainPipeline, Texture, TgtColorFmt,
-        TgtDepthStencilFmt,
-    },
+    super::{Mesh, Model, Pipeline, TerrainPipeline, TgtColorFmt, TgtDepthStencilFmt},
     shadow, Globals, Light, Shadow,
 };
 use crate::mesh::greedy::GreedyMesh;
+use core::ops::Range;
 use gfx::{
     self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta, gfx_pipeline,
     gfx_pipeline_inner, gfx_vertex_struct_meta, state::ColorMask,
@@ -117,12 +115,9 @@ impl Pipeline for FigurePipeline {
 }
 
 pub struct FigureModel {
-    pub bounds: Aabb<f32>,
     pub opaque: Model<TerrainPipeline>,
-    // TODO: Consider using mipmaps instead of storing multiple texture atlases for different LOD
-    // levels.
-    pub col_lights: Texture<ColLightFmt>,
-    pub allocation: guillotiere::Allocation,
+    /* TODO: Consider using mipmaps instead of storing multiple texture atlases for different
+     * LOD levels. */
 }
 
 impl FigureModel {
@@ -137,7 +132,4 @@ impl FigureModel {
     }
 }
 
-pub type BoneMeshes = (
-    Mesh</* FigurePipeline */ TerrainPipeline>, /* , Mesh<ShadowPipeline> */
-    Aabb<f32>,
-);
+pub type BoneMeshes = (Mesh<TerrainPipeline>, (anim::vek::Aabb<f32>, Range<usize>));

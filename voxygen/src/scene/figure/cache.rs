@@ -1,7 +1,7 @@
-use super::load::*;
+use super::{load::*, FigureModelEntry};
 use crate::{
     mesh::{greedy::GreedyMesh, Meshable},
-    render::{BoneMeshes, FigureModel, FigurePipeline, Mesh, Renderer},
+    render::{BoneMeshes, FigureModel, FigurePipeline, Mesh, Renderer, TerrainPipeline},
     scene::camera::CameraMode,
 };
 use anim::Skeleton;
@@ -22,7 +22,7 @@ use core::convert::TryInto;
 use hashbrown::{hash_map::Entry, HashMap};
 use vek::*;
 
-pub type FigureModelEntry = [FigureModel; 3];
+pub type FigureModelEntryLod = FigureModelEntry<3>;
 
 #[derive(Eq, Hash, PartialEq)]
 struct FigureKey {
@@ -198,7 +198,7 @@ pub struct FigureModelCache<Skel = anim::character::CharacterSkeleton>
 where
     Skel: Skeleton,
 {
-    models: HashMap<FigureKey, ((FigureModelEntry, Skel::Attr), u64)>,
+    models: HashMap<FigureKey, ((FigureModelEntryLod, Skel::Attr), u64)>,
     manifest_indicator: ReloadIndicator,
 }
 
@@ -980,7 +980,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
         tick: u64,
         camera_mode: CameraMode,
         character_state: Option<&CharacterState>,
-    ) -> &(FigureModelEntry, Skel::Attr)
+    ) -> &(FigureModelEntryLod, Skel::Attr)
     where
         for<'a> &'a common::comp::Body: std::convert::TryInto<Skel::Attr>,
         Skel::Attr: Default,
@@ -1011,78 +1011,137 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         .unwrap_or_else(<Skel::Attr as Default>::default);
 
                     let manifest_indicator = &mut self.manifest_indicator;
-                    let mut make_model =
-                        |generate_mesh: for<'a> fn(&mut GreedyMesh<'a>, _, _) -> _| {
-                            let mut greedy = FigureModel::make_greedy();
-                            let mut opaque = Mesh::new();
-                            let mut figure_bounds = Aabb {
-                                min: Vec3::zero(),
-                                max: Vec3::zero(),
-                            };
+                    let mut greedy = FigureModel::make_greedy();
+                    let mut opaque = Mesh::<TerrainPipeline>::new();
+                    // Choose the most conservative bounds for any LOD model.
+                    let mut figure_bounds = anim::vek::Aabb {
+                        min: anim::vek::Vec3::zero(),
+                        max: anim::vek::Vec3::zero(),
+                    };
+                    // Meshes all bone models for this figure using the given mesh generation
+                    // function, attaching it to the current greedy mesher and opaque vertex
+                    // list.  Returns the vertex bounds of the meshed model within the opaque
+                    // mesh.
+                    let mut make_model = |generate_mesh: for<'a, 'b> fn(
+                        &mut GreedyMesh<'a>,
+                        &'b mut _,
+                        _,
+                        _,
+                    )
+                        -> _| {
+                        let vertex_start = opaque.vertices().len();
+                        let meshes =
                             Self::bone_meshes(key, manifest_indicator, |segment, offset| {
-                                generate_mesh(&mut greedy, segment, offset)
-                            })
+                                generate_mesh(&mut greedy, &mut opaque, segment, offset)
+                            });
+                        meshes
                             .iter()
                             .enumerate()
-                            .filter_map(|(i, bm)| bm.as_ref().map(|bm| (i, bm)))
-                            .for_each(|(i, (opaque_mesh, bounds))| {
+                            // NOTE: Cast to u8 is safe because i <= 16.
+                            .filter_map(|(i, bm)| bm.as_ref().map(|bm| (i as u8, bm.clone())))
+                            .for_each(|(i, (_opaque_mesh, (bounds, vertex_range)))| {
+                                // Update the bone index for all vertices that belong ot this
+                                // model.
                                 opaque
-                                    .push_mesh_map(opaque_mesh, |vert| vert.with_bone_idx(i as u8));
-                                figure_bounds.expand_to_contain(*bounds);
+                                    .iter_mut(vertex_range)
+                                    .for_each(|vert| {
+                                        vert.set_bone_idx(i);
+                                    });
+
+                                // Update the figure bounds to the largest granularity seen so far
+                                // (NOTE: this is more than a little imeprfect).
+                                //
+                                // FIXME: Maybe use the default bone position in the idle animation
+                                // to figure this out instead?
+                                figure_bounds.expand_to_contain(bounds);
                             });
-                            col_lights
-                                .create_figure(renderer, greedy, (opaque, figure_bounds))
-                                .unwrap()
-                        };
+                        // NOTE: vertex_start and vertex_end *should* fit in a u32, by the
+                        // following logic:
+                        //
+                        // Our new figure maximum is constrained to at most 2^8 × 2^8 × 2^8.
+                        // This uses at most 24 bits to store every vertex exactly once.
+                        // Greedy meshing can store each vertex in up to 3 quads, we have 3
+                        // greedy models, and we store 1.5x the vertex count, so the maximum
+                        // total space a model can take up is 3 * 3 * 1.5 * 2^24; rounding
+                        // up to 4 * 4 * 2^24 gets us to 2^28, which clearly still fits in a
+                        // u32.
+                        //
+                        // (We could also, though we prefer not to, reason backwards from the
+                        // maximum figure texture size of 2^15 × 2^15, also fits in a u32; we
+                        // can also see that, since we can have at most one texture entry per
+                        // vertex, any texture atlas of size 2^14 × 2^14 or higher should be
+                        // able to store data for any figure.  So the only reason we would fail
+                        // here would be if the user's computer could not store a texture large
+                        // enough to fit all the LOD models for the figure, not for fundamental
+                        // reasonS related to fitting in a u32).
+                        //
+                        // Therefore, these casts are safe.
+                        vertex_start as u32..opaque.vertices().len() as u32
+                    };
 
                     fn generate_mesh<'a>(
                         greedy: &mut GreedyMesh<'a>,
+                        opaque_mesh: &mut Mesh<TerrainPipeline>,
                         segment: Segment,
                         offset: Vec3<f32>,
                     ) -> BoneMeshes {
                         let (opaque, _, _, bounds) =
                             Meshable::<FigurePipeline, &mut GreedyMesh>::generate_mesh(
                                 segment,
-                                (greedy, offset, Vec3::one()),
+                                (greedy, opaque_mesh, offset, Vec3::one()),
                             );
                         (opaque, bounds)
                     }
 
                     fn generate_mesh_lod_mid<'a>(
                         greedy: &mut GreedyMesh<'a>,
+                        opaque_mesh: &mut Mesh<TerrainPipeline>,
                         segment: Segment,
                         offset: Vec3<f32>,
                     ) -> BoneMeshes {
-                        let lod_scale = Vec3::broadcast(0.6);
+                        let lod_scale = 0.6;
                         let (opaque, _, _, bounds) =
                             Meshable::<FigurePipeline, &mut GreedyMesh>::generate_mesh(
-                                segment.scaled_by(lod_scale),
-                                (greedy, offset * lod_scale, Vec3::one() / lod_scale),
+                                segment.scaled_by(Vec3::broadcast(lod_scale)),
+                                (
+                                    greedy,
+                                    opaque_mesh,
+                                    offset * lod_scale,
+                                    Vec3::one() / lod_scale,
+                                ),
                             );
                         (opaque, bounds)
                     }
 
                     fn generate_mesh_lod_low<'a>(
                         greedy: &mut GreedyMesh<'a>,
+                        opaque_mesh: &mut Mesh<TerrainPipeline>,
                         segment: Segment,
                         offset: Vec3<f32>,
                     ) -> BoneMeshes {
-                        let lod_scale = Vec3::broadcast(0.3);
-                        let segment = segment.scaled_by(lod_scale);
+                        let lod_scale = 0.3;
                         let (opaque, _, _, bounds) =
                             Meshable::<FigurePipeline, &mut GreedyMesh>::generate_mesh(
-                                segment,
-                                (greedy, offset * lod_scale, Vec3::one() / lod_scale),
+                                segment.scaled_by(Vec3::broadcast(lod_scale)),
+                                (
+                                    greedy,
+                                    opaque_mesh,
+                                    offset * lod_scale,
+                                    Vec3::one() / lod_scale,
+                                ),
                             );
                         (opaque, bounds)
                     }
 
+                    let models = [
+                        make_model(generate_mesh),
+                        make_model(generate_mesh_lod_mid),
+                        make_model(generate_mesh_lod_low),
+                    ];
                     (
-                        [
-                            make_model(generate_mesh),
-                            make_model(generate_mesh_lod_mid),
-                            make_model(generate_mesh_lod_low),
-                        ],
+                        col_lights
+                            .create_figure(renderer, greedy, (opaque, figure_bounds), models)
+                            .expect("Failed to upload figure data to the GPU!"),
                         skeleton_attr,
                     )
                 };
@@ -1100,14 +1159,12 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
         }
         // TODO: Don't hard-code this.
         if tick % 60 == 0 {
-            self.models.retain(|_, ((models, _), last_used)| {
+            self.models.retain(|_, ((model_entry, _), last_used)| {
                 // Wait about a minute at 60 fps before invalidating old models.
                 let delta = 60 * 60;
                 let alive = *last_used + delta > tick;
                 if !alive {
-                    models.iter().for_each(|model| {
-                        col_lights.atlas.deallocate(model.allocation.id);
-                    });
+                    col_lights.atlas.deallocate(model_entry.allocation.id);
                 }
                 alive
             });

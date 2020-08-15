@@ -7,15 +7,11 @@ use super::{
 };
 use gfx::{
     self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta, gfx_pipeline,
-    gfx_pipeline_inner, gfx_vertex_struct_meta,
+    gfx_pipeline_inner,
 };
 use vek::*;
 
 gfx_defines! {
-    vertex Vertex {
-        pos_norm: u32 = "v_pos_norm",
-    }
-
     constant Locals {
         shadow_matrices: [[f32; 4]; 4] = "shadowMatrices",
         texture_mats: [[f32; 4]; 4] = "texture_mat",
@@ -55,54 +51,6 @@ gfx_defines! {
     }
 }
 
-impl Vertex {
-    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, meta: bool) -> Self {
-        let norm_bits = if norm.x != 0.0 {
-            if norm.x < 0.0 { 0 } else { 1 }
-        } else if norm.y != 0.0 {
-            if norm.y < 0.0 { 2 } else { 3 }
-        } else if norm.z < 0.0 {
-            4
-        } else {
-            5
-        };
-
-        const EXTRA_NEG_Z: f32 = 32768.0;
-
-        Self {
-            pos_norm: 0
-                | ((pos.x as u32) & 0x003F) << 0
-                | ((pos.y as u32) & 0x003F) << 6
-                | (((pos + EXTRA_NEG_Z).z.max(0.0).min((1 << 16) as f32) as u32) & 0xFFFF) << 12
-                | if meta { 1 } else { 0 } << 28
-                | (norm_bits & 0x7) << 29,
-        }
-    }
-
-    pub fn new_figure(pos: Vec3<f32>, norm: Vec3<f32>, bone_idx: u8) -> Self {
-        let norm_bits = if norm.x.min(norm.y).min(norm.z) < 0.0 {
-            0
-        } else {
-            1
-        };
-        Self {
-            pos_norm: pos
-                .map2(Vec3::new(0, 9, 18), |e, shift| {
-                    (((e * 2.0 + 256.0) as u32) & 0x1FF) << shift
-                })
-                .reduce_bitor()
-                | (((bone_idx & 0xF) as u32) << 27)
-                | (norm_bits << 31),
-        }
-    }
-
-    pub fn with_bone_idx(self, bone_idx: u8) -> Self {
-        Self {
-            pos_norm: (self.pos_norm & !(0xF << 27)) | ((bone_idx as u32 & 0xF) << 27),
-        }
-    }
-}
-
 impl Locals {
     pub fn new(shadow_mat: Mat4<f32>, texture_mat: Mat4<f32>) -> Self {
         Self {
@@ -138,5 +86,5 @@ impl ShadowPipeline {
 }
 
 impl Pipeline for ShadowPipeline {
-    type Vertex = Vertex;
+    type Vertex = terrain::Vertex;
 }

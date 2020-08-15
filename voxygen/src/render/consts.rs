@@ -25,12 +25,12 @@ impl<T: Copy + gfx::traits::Pod> Consts<T> {
         vals: &[T],
         offset: usize,
     ) -> Result<(), RenderError> {
-        if vals.len() > 0 {
+        if vals.is_empty() {
+            Ok(())
+        } else {
             encoder
                 .update_buffer(&self.buf, vals, offset)
                 .map_err(RenderError::UpdateError)
-        } else {
-            Ok(())
         }
     }
 }

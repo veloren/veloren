@@ -61,15 +61,12 @@ impl Vertex {
             5
         };
         Self {
-            pos_norm: 0
-                | ((pos.x as u32) & 0x003F) << 0
+            pos_norm: ((pos.x as u32) & 0x003F) << 0
                 | ((pos.y as u32) & 0x003F) << 6
                 | (((pos + EXTRA_NEG_Z).z.max(0.0).min((1 << 16) as f32) as u32) & 0xFFFF) << 12
                 | if meta { 1 } else { 0 } << 28
                 | (norm_bits & 0x7) << 29,
-            atlas_pos: 0
-                | ((atlas_pos.x as u32) & 0xFFFF) << 0
-                | ((atlas_pos.y as u32) & 0xFFFF) << 16,
+            atlas_pos: ((atlas_pos.x as u32) & 0xFFFF) << 0 | ((atlas_pos.y as u32) & 0xFFFF) << 16,
         }
     }
 
@@ -94,8 +91,7 @@ impl Vertex {
                 .reduce_bitor()
                 | (((bone_idx & 0xF) as u32) << 27)
                 | (norm_bits << 31),
-            atlas_pos: 0
-                | ((atlas_pos.x as u32) & 0x7FFF) << 2
+            atlas_pos: ((atlas_pos.x as u32) & 0x7FFF) << 2
                 | ((atlas_pos.y as u32) & 0x7FFF) << 17
                 | axis_bits & 3,
         }
@@ -109,11 +105,9 @@ impl Vertex {
         [col.r, col.g, col.b, light]
     }
 
-    pub fn with_bone_idx(self, bone_idx: u8) -> Self {
-        Self {
-            pos_norm: (self.pos_norm & !(0xF << 27)) | ((bone_idx as u32 & 0xF) << 27),
-            ..self
-        }
+    /// Set the bone_idx for an existing figure vertex.
+    pub fn set_bone_idx(&mut self, bone_idx: u8) {
+        self.pos_norm = (self.pos_norm & !(0xF << 27)) | ((bone_idx as u32 & 0xF) << 27);
     }
 }
 

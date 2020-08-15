@@ -3,7 +3,6 @@
 #![allow(clippy::option_map_unit_fn)]
 #![feature(
     arbitrary_enum_discriminant,
-    const_if_match,
     const_generics,
     const_panic,
     label_break_value,

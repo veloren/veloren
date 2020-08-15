@@ -43,10 +43,7 @@ impl Alignment {
 
     // TODO: Remove this hack
     pub fn is_friendly_to_players(&self) -> bool {
-        match self {
-            Alignment::Npc | Alignment::Tame | Alignment::Owned(_) => true,
-            _ => false,
-        }
+        matches!(self, Alignment::Npc | Alignment::Tame | Alignment::Owned(_))
     }
 }
 
@@ -129,19 +126,9 @@ pub enum Activity {
 }
 
 impl Activity {
-    pub fn is_follow(&self) -> bool {
-        match self {
-            Activity::Follow { .. } => true,
-            _ => false,
-        }
-    }
+    pub fn is_follow(&self) -> bool { matches!(self, Activity::Follow { .. }) }
 
-    pub fn is_attack(&self) -> bool {
-        match self {
-            Activity::Attack { .. } => true,
-            _ => false,
-        }
-    }
+    pub fn is_attack(&self) -> bool { matches!(self, Activity::Attack { .. }) }
 }
 
 impl Default for Activity {

@@ -760,7 +760,7 @@ impl HumMainWeaponSpec {
         let tool_kind = if let Some(kind) = tool_kind {
             kind
         } else {
-            return (Mesh::new(), Aabb::default());
+            return (Mesh::new(), (anim::vek::Aabb::default(), 0..0));
         };
 
         let spec = match self.0.get(tool_kind) {

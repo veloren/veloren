@@ -2,12 +2,12 @@ use crate::{
     mesh::{greedy::GreedyMesh, Meshable},
     render::{
         create_pp_mesh, create_skybox_mesh, BoneMeshes, Consts, FigureModel, FigurePipeline,
-        GlobalModel, Globals, Light, Model, PostProcessLocals, PostProcessPipeline, Renderer,
-        Shadow, ShadowLocals, SkyboxLocals, SkyboxPipeline,
+        GlobalModel, Globals, Light, Mesh, Model, PostProcessLocals, PostProcessPipeline, Renderer,
+        Shadow, ShadowLocals, SkyboxLocals, SkyboxPipeline, TerrainPipeline,
     },
     scene::{
         camera::{self, Camera, CameraMode},
-        figure::{load_mesh, FigureColLights, FigureModelCache, FigureState},
+        figure::{load_mesh, FigureColLights, FigureModelCache, FigureModelEntry, FigureState},
         LodData,
     },
     window::{Event, PressState},
@@ -46,13 +46,14 @@ impl ReadVol for VoidVol {
 
 fn generate_mesh<'a>(
     greedy: &mut GreedyMesh<'a>,
+    mesh: &mut Mesh<TerrainPipeline>,
     segment: Segment,
     offset: Vec3<f32>,
 ) -> BoneMeshes {
     let (opaque, _, /* shadow */ _, bounds) =
         Meshable::<FigurePipeline, &mut GreedyMesh>::generate_mesh(
             segment,
-            (greedy, offset, Vec3::one()),
+            (greedy, mesh, offset, Vec3::one()),
         );
     (opaque /* , shadow */, bounds)
 }
@@ -77,7 +78,7 @@ pub struct Scene {
     map_bounds: Vec2<f32>,
 
     col_lights: FigureColLights,
-    backdrop: Option<(FigureModel, FigureState<FixtureSkeleton>)>,
+    backdrop: Option<(FigureModelEntry<1>, FigureState<FixtureSkeleton>)>,
     figure_model_cache: FigureModelCache,
     figure_state: FigureState<CharacterSkeleton>,
 
@@ -150,12 +151,20 @@ impl Scene {
             backdrop: backdrop.map(|specifier| {
                 let mut state = FigureState::new(renderer, FixtureSkeleton::default());
                 let mut greedy = FigureModel::make_greedy();
-                let mesh = load_mesh(
+                let mut opaque_mesh = Mesh::new();
+                let (_opaque_mesh, (bounds, range)) = load_mesh(
                     specifier,
                     Vec3::new(-55.0, -49.5, -2.0),
-                    |segment, offset| generate_mesh(&mut greedy, segment, offset),
+                    |segment, offset| generate_mesh(&mut greedy, &mut opaque_mesh, segment, offset),
                 );
-                let model = col_lights.create_figure(renderer, greedy, mesh).unwrap();
+                // NOTE: Since MagicaVoxel sizes are limited to 256 × 256 × 256, and there are
+                // at most 3 meshed vertices per unique vertex, we know the
+                // total size is bounded by 2^24 * 3 * 1.5 which is bounded by
+                // 2^27, which fits in a u32.
+                let range = range.start as u32..range.end as u32;
+                let model = col_lights
+                    .create_figure(renderer, greedy, (opaque_mesh, bounds), [range])
+                    .unwrap();
                 let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
                 state.update(
                     renderer,
@@ -315,7 +324,7 @@ impl Scene {
                 Rgba::broadcast(1.0),
                 scene_data.delta_time,
                 1.0,
-                &model[0],
+                &model,
                 0,
                 true,
                 false,
@@ -354,8 +363,8 @@ impl Scene {
                 .0;
 
             renderer.render_figure(
-                &model[0],
-                &self.col_lights.texture(),
+                &model.models[0],
+                &self.col_lights.texture(model),
                 &self.data,
                 self.figure_state.locals(),
                 self.figure_state.bone_consts(),
@@ -365,8 +374,8 @@ impl Scene {
 
         if let Some((model, state)) = &self.backdrop {
             renderer.render_figure(
-                model,
-                &self.col_lights.texture(),
+                &model.models[0],
+                &self.col_lights.texture(model),
                 &self.data,
                 state.locals(),
                 state.bone_consts(),

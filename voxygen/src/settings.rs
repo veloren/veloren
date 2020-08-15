@@ -659,12 +659,7 @@ pub enum AudioOutput {
 }
 
 impl AudioOutput {
-    pub fn is_enabled(&self) -> bool {
-        match self {
-            Self::Off => false,
-            _ => true,
-        }
-    }
+    pub fn is_enabled(&self) -> bool { !matches!(self, Self::Off) }
 }
 /// `AudioSettings` controls the volume of different audio subsystems and which
 /// device is used.

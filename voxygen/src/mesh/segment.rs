@@ -7,11 +7,13 @@ use crate::{
         self, FigurePipeline, Mesh, ParticlePipeline, ShadowPipeline, SpritePipeline,
         TerrainPipeline,
     },
+    scene::math,
 };
 use common::{
     figure::Cell,
     vol::{BaseVol, ReadVol, SizedVol, Vox},
 };
+use core::ops::Range;
 use vek::*;
 
 type SpriteVertex = <SpritePipeline as render::Pipeline>::Vertex;
@@ -26,15 +28,31 @@ where
      * &'a V: BaseVol<Vox=Cell>, */
 {
     type Pipeline = TerrainPipeline;
-    type Result = Aabb<f32>;
+    /// NOTE: The result provides the (roughly) computed bounds for the model,
+    /// and the vertex range meshed for this model; we return this instead
+    /// of the full opaque mesh so we can avoid allocating a separate mesh
+    /// for each bone.
+    ///
+    /// Later, we can iterate through the bone array and correctly assign bone
+    /// ids to all vertices in range for each segment.
+    ///
+    /// FIXME: A refactor of the figure cache to not just return an array of
+    /// models (thus allowing us to knoe the bone index ahead of time) would
+    /// avoid needing per-bone information at all.
+    type Result = (math::Aabb<f32>, Range<usize>);
     type ShadowPipeline = ShadowPipeline;
-    type Supplement = (&'b mut GreedyMesh<'a>, Vec3<f32>, Vec3<f32>);
+    type Supplement = (
+        &'b mut GreedyMesh<'a>,
+        &'b mut Mesh<Self::Pipeline>,
+        Vec3<f32>,
+        Vec3<f32>,
+    );
     type TranslucentPipeline = FigurePipeline;
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn generate_mesh(
         self,
-        (greedy, offs, scale): Self::Supplement,
+        (greedy, opaque_mesh, offs, scale): Self::Supplement,
     ) -> MeshGen<FigurePipeline, &'b mut GreedyMesh<'a>, Self> {
         let max_size = greedy.max_size();
         // NOTE: Required because we steal two bits from the normal in the shadow uint
@@ -43,17 +61,21 @@ where
         // coordinate instead of 1 << 16.
         assert!(max_size.width.max(max_size.height) < 1 << 15);
 
-        let greedy_size = Vec3::new(
-            (self.upper_bound().x - self.lower_bound().x + 1) as usize,
-            (self.upper_bound().y - self.lower_bound().y + 1) as usize,
-            (self.upper_bound().z - self.lower_bound().z + 1) as usize,
+        let lower_bound = self.lower_bound();
+        let upper_bound = self.upper_bound();
+        assert!(
+            lower_bound.x <= upper_bound.x
+                && lower_bound.y <= upper_bound.y
+                && lower_bound.z <= upper_bound.z
         );
+        // NOTE: Figure sizes should be no more than 512 along each axis.
+        let greedy_size = upper_bound - lower_bound + 1;
+        assert!(greedy_size.x <= 512 && greedy_size.y <= 512 && greedy_size.z <= 512);
+        // NOTE: Cast to usize is safe because of previous check, since all values fit
+        // into u16 which is safe to cast to usize.
+        let greedy_size = greedy_size.as_::<usize>();
         let greedy_size_cross = greedy_size;
-        let draw_delta = Vec3::new(
-            self.lower_bound().x,
-            self.lower_bound().y,
-            self.lower_bound().z,
-        );
+        let draw_delta = lower_bound;
 
         let get_light = |vol: &mut V, pos: Vec3<i32>| {
             if vol.get(pos).map(|vox| vox.is_empty()).unwrap_or(true) {
@@ -79,8 +101,8 @@ where
             TerrainVertex::new_figure(atlas_pos, (pos + offs) * scale, norm, 0)
         };
 
-        let mut opaque_mesh = Mesh::new();
-        let bounds = greedy.push(GreedyConfig {
+        let start = opaque_mesh.vertices().len();
+        greedy.push(GreedyConfig {
             data: self,
             draw_delta,
             greedy_size,
@@ -101,14 +123,20 @@ where
                 ));
             },
         });
-        let bounds = bounds.map(f32::from);
-        let bounds = Aabb {
-            min: (bounds.min + offs) * scale,
-            max: (bounds.max + offs) * scale,
+        let bounds = math::Aabb {
+            // NOTE: Casts are safe since lower_bound and upper_bound both fit in a i16.
+            min: math::Vec3::from((lower_bound.as_::<f32>() + offs) * scale),
+            max: math::Vec3::from((upper_bound.as_::<f32>() + offs) * scale),
         }
         .made_valid();
+        let vertex_range = start..opaque_mesh.vertices().len();
 
-        (opaque_mesh, Mesh::new(), Mesh::new(), bounds)
+        (
+            Mesh::new(),
+            Mesh::new(),
+            Mesh::new(),
+            (bounds, vertex_range),
+        )
     }
 }
 
@@ -122,13 +150,13 @@ where
     type Pipeline = SpritePipeline;
     type Result = ();
     type ShadowPipeline = ShadowPipeline;
-    type Supplement = (&'b mut GreedyMesh<'a>, bool);
+    type Supplement = (&'b mut GreedyMesh<'a>, &'b mut Mesh<Self::Pipeline>, bool);
     type TranslucentPipeline = SpritePipeline;
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn generate_mesh(
         self,
-        (greedy, vertical_stripes): Self::Supplement,
+        (greedy, opaque_mesh, vertical_stripes): Self::Supplement,
     ) -> MeshGen<SpritePipeline, &'b mut GreedyMesh<'a>, Self> {
         let max_size = greedy.max_size();
         // NOTE: Required because we steal two bits from the normal in the shadow uint
@@ -137,22 +165,25 @@ where
         // coordinate instead of 1 << 16.
         assert!(max_size.width.max(max_size.height) < 1 << 16);
 
-        let greedy_size = Vec3::new(
-            (self.upper_bound().x - self.lower_bound().x + 1) as usize,
-            (self.upper_bound().y - self.lower_bound().y + 1) as usize,
-            (self.upper_bound().z - self.lower_bound().z + 1) as usize,
+        let lower_bound = self.lower_bound();
+        let upper_bound = self.upper_bound();
+        assert!(
+            lower_bound.x <= upper_bound.x
+                && lower_bound.y <= upper_bound.y
+                && lower_bound.z <= upper_bound.z
         );
+        let greedy_size = upper_bound - lower_bound + 1;
         assert!(
             greedy_size.x <= 16 && greedy_size.y <= 16 && greedy_size.z <= 64,
             "Sprite size out of bounds: {:?} ≤ (15, 15, 63)",
             greedy_size - 1
         );
+        // NOTE: Cast to usize is safe because of previous check, since all values fit
+        // into u16 which is safe to cast to usize.
+        let greedy_size = greedy_size.as_::<usize>();
+
         let greedy_size_cross = greedy_size;
-        let draw_delta = Vec3::new(
-            self.lower_bound().x,
-            self.lower_bound().y,
-            self.lower_bound().z,
-        );
+        let draw_delta = lower_bound;
 
         let get_light = |vol: &mut V, pos: Vec3<i32>| {
             if vol.get(pos).map(|vox| vox.is_empty()).unwrap_or(true) {
@@ -177,8 +208,7 @@ where
         let create_opaque =
             |atlas_pos, pos: Vec3<f32>, norm, _meta| SpriteVertex::new(atlas_pos, pos, norm);
 
-        let mut opaque_mesh = Mesh::new();
-        let _bounds = greedy.push(GreedyConfig {
+        greedy.push(GreedyConfig {
             data: self,
             draw_delta,
             greedy_size,
@@ -200,7 +230,7 @@ where
             },
         });
 
-        (opaque_mesh, Mesh::new(), Mesh::new(), ())
+        (Mesh::new(), Mesh::new(), Mesh::new(), ())
     }
 }
 
@@ -229,22 +259,25 @@ where
         // coordinate instead of 1 << 16.
         assert!(max_size.width.max(max_size.height) < 1 << 16);
 
-        let greedy_size = Vec3::new(
-            (self.upper_bound().x - self.lower_bound().x + 1) as usize,
-            (self.upper_bound().y - self.lower_bound().y + 1) as usize,
-            (self.upper_bound().z - self.lower_bound().z + 1) as usize,
+        let lower_bound = self.lower_bound();
+        let upper_bound = self.upper_bound();
+        assert!(
+            lower_bound.x <= upper_bound.x
+                && lower_bound.y <= upper_bound.y
+                && lower_bound.z <= upper_bound.z
         );
+        let greedy_size = upper_bound - lower_bound + 1;
         assert!(
             greedy_size.x <= 16 && greedy_size.y <= 16 && greedy_size.z <= 64,
-            "Sprite size out of bounds: {:?} ≤ (15, 15, 63)",
+            "Particle size out of bounds: {:?} ≤ (15, 15, 63)",
             greedy_size - 1
         );
+        // NOTE: Cast to usize is safe because of previous check, since all values fit
+        // into u16 which is safe to cast to usize.
+        let greedy_size = greedy_size.as_::<usize>();
+
         let greedy_size_cross = greedy_size;
-        let draw_delta = Vec3::new(
-            self.lower_bound().x,
-            self.lower_bound().y,
-            self.lower_bound().z,
-        );
+        let draw_delta = lower_bound;
 
         let get_light = |vol: &mut V, pos: Vec3<i32>| {
             if vol.get(pos).map(|vox| vox.is_empty()).unwrap_or(true) {
@@ -269,7 +302,7 @@ where
         let create_opaque = |_atlas_pos, pos: Vec3<f32>, norm| ParticleVertex::new(pos, norm);
 
         let mut opaque_mesh = Mesh::new();
-        let _bounds = greedy.push(GreedyConfig {
+        greedy.push(GreedyConfig {
             data: self,
             draw_delta,
             greedy_size,
@@ -304,7 +337,7 @@ fn should_draw_greedy(
     let from = flat_get(pos - delta);
     let to = flat_get(pos);
     let from_opaque = !from.is_empty();
-    if from_opaque == !to.is_empty() {
+    if from_opaque != to.is_empty() {
         None
     } else {
         // If going from transparent to opaque, backward facing; otherwise, forward
@@ -323,7 +356,7 @@ fn should_draw_greedy_ao(
     let from = flat_get(pos - delta);
     let to = flat_get(pos);
     let from_opaque = !from.is_empty();
-    if from_opaque == !to.is_empty() {
+    if from_opaque != to.is_empty() {
         None
     } else {
         let faces_forward = from_opaque;

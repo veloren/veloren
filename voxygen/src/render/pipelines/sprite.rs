@@ -101,16 +101,13 @@ impl Vertex {
         };
 
         Self {
-            // pos_norm: 0
-            //     | ((pos.x as u32) & 0x003F) << 0
+            // pos_norm: ((pos.x as u32) & 0x003F)
             //     | ((pos.y as u32) & 0x003F) << 6
             //     | (((pos + EXTRA_NEG_Z).z.max(0.0).min((1 << 16) as f32) as u32) & 0xFFFF) << 12
             //     | if meta { 1 } else { 0 } << 28
             //     | (norm_bits & 0x7) << 29,
             pos: pos.into_array(),
-            atlas_pos: 0
-                | ((atlas_pos.x as u32) & 0xFFFF) << 0
-                | ((atlas_pos.y as u32) & 0xFFFF) << 16,
+            atlas_pos: ((atlas_pos.x as u32) & 0xFFFF) | ((atlas_pos.y as u32) & 0xFFFF) << 16,
             norm_ao: norm_bits,
         }
     }
@@ -122,8 +119,7 @@ impl Instance {
 
         let mat_arr = mat.into_col_arrays();
         Self {
-            pos_ori: 0
-                | ((pos.x as u32) & 0x003F) << 0
+            pos_ori: ((pos.x as u32) & 0x003F)
                 | ((pos.y as u32) & 0x003F) << 6
                 | (((pos + EXTRA_NEG_Z).z.max(0).min(1 << 16) as u32) & 0xFFFF) << 12
                 | (u32::from(ori_bits) & 0x7) << 29,

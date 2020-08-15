@@ -43,13 +43,12 @@ use conrod_core::{
     widget::{self, id::Generator},
     Rect, Scalar, UiBuilder, UiCell,
 };
+use core::{convert::TryInto, f32, f64, ops::Range};
 use graphic::{Rotation, TexId};
 use hashbrown::hash_map::Entry;
 use std::{
-    f32, f64,
     fs::File,
     io::{BufReader, Read},
-    ops::Range,
     sync::Arc,
     time::Duration,
 };
@@ -67,7 +66,7 @@ enum DrawKind {
     Plain,
 }
 enum DrawCommand {
-    Draw { kind: DrawKind, verts: Range<usize> },
+    Draw { kind: DrawKind, verts: Range<u32> },
     Scissor(Aabr<u16>),
     WorldPos(Option<usize>),
 }
@@ -75,14 +74,28 @@ impl DrawCommand {
     fn image(verts: Range<usize>, id: TexId) -> DrawCommand {
         DrawCommand::Draw {
             kind: DrawKind::Image(id),
-            verts,
+            verts: verts
+                .start
+                .try_into()
+                .expect("Vertex count for UI rendering does not fit in a u32!")
+                ..verts
+                    .end
+                    .try_into()
+                    .expect("Vertex count for UI rendering does not fit in a u32!"),
         }
     }
 
     fn plain(verts: Range<usize>) -> DrawCommand {
         DrawCommand::Draw {
             kind: DrawKind::Plain,
-            verts,
+            verts: verts
+                .start
+                .try_into()
+                .expect("Vertex count for UI rendering does not fit in a u32!")
+                ..verts
+                    .end
+                    .try_into()
+                    .expect("Vertex count for UI rendering does not fit in a u32!"),
         }
     }
 }
@@ -981,7 +994,7 @@ impl Ui {
                         DrawKind::Plain => self.cache.glyph_cache_tex(),
                     };
                     let model = self.model.submodel(verts.clone());
-                    renderer.render_ui_element(&model, tex, scissor, globals, locals);
+                    renderer.render_ui_element(model, tex, scissor, globals, locals);
                 },
             }
         }
