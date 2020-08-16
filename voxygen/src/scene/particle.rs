@@ -446,7 +446,7 @@ impl ParticleMgr {
                     self.particles.push(Particle::new(
                         Duration::from_millis(250),
                         time,
-                        ParticleMode::CampfireFire, // TODO: TerrainShockwave
+                        ParticleMode::GroundShockwave,
                         pos.0
                             + Vec3::new(
                                 p * ((theta - (shockwave.properties.angle.to_radians() / 2.0))

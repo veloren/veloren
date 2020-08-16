@@ -105,6 +105,7 @@ pub enum ParticleMode {
     Leaf = 9,
     Firefly = 10,
     Bee = 11,
+    GroundShockwave = 12,
 }
 
 impl ParticleMode {
