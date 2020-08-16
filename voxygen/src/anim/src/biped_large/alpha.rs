@@ -2,21 +2,21 @@ use super::{
     super::{vek::*, Animation},
     BipedLargeSkeleton, SkeletonAttr,
 };
-use std::{f32::consts::PI, ops::Mul};
+use std::f32::consts::PI;
 
-pub struct WieldAnimation;
+pub struct AlphaAnimation;
 
-impl Animation for WieldAnimation {
+impl Animation for AlphaAnimation {
     type Dependency = (f32, f64);
     type Skeleton = BipedLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
-    const UPDATE_FN: &'static [u8] = b"biped_large_wield\0";
+    const UPDATE_FN: &'static [u8] = b"biped_large_alpha\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_wield")]
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_alpha")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (velocity, global_time): Self::Dependency,
+        (velocity, _global_time): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -24,21 +24,15 @@ impl Animation for WieldAnimation {
         let mut next = (*skeleton).clone();
 
         let lab = 0.55;
-        let breathe = (anim_time as f32 + 1.5 * PI).sin();
-        let test = (anim_time as f32 + 36.0 * PI).sin();
 
-        let look = Vec2::new(
-            ((global_time + anim_time) as f32 / 8.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.5,
-            ((global_time + anim_time) as f32 / 8.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.25,
-        );
+        let slower = (((1.0)
+            / (0.05
+                + 0.95
+                    * ((anim_time as f32 * lab as f32 * 10.0 - 0.8 * PI).sin()).powf(2.0 as f32)))
+        .sqrt())
+            * ((anim_time as f32 * lab as f32 * 10.0 - 0.8 * PI).sin());
+
+        let slowersmooth = (anim_time as f32 * lab as f32 * 4.0).sin();
 
         let foothoril = (((1.0)
             / (0.4
@@ -69,7 +63,9 @@ impl Animation for WieldAnimation {
 
         let short = (anim_time as f32 * lab as f32 * 16.0).sin();
 
-        let shortalt = (anim_time as f32 * lab as f32 * 16.0 + PI / 2.0).sin();
+        next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1) * 1.02;
+        next.head.orientation = Quaternion::rotation_z(slower * 1.0) * Quaternion::rotation_x(0.0);
+        next.head.scale = Vec3::one() * 1.02;
 
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_x(0.0)
@@ -98,32 +94,28 @@ impl Animation for WieldAnimation {
         next.hand_r.orientation = Quaternion::rotation_x(0.57) * Quaternion::rotation_z(1.57);
         next.hand_r.scale = Vec3::one() * 1.02;
 
+        next.upper_torso.position = Vec3::new(
+            0.0,
+            skeleton_attr.upper_torso.0,
+            skeleton_attr.upper_torso.1,
+        );
+        next.upper_torso.orientation =
+            Quaternion::rotation_z(slower * -1.2) * Quaternion::rotation_x(-0.3);
+        next.upper_torso.scale = Vec3::one();
+
+        next.control.position = Vec3::new(7.0, 9.0, -10.0);
+        next.control.orientation = Quaternion::rotation_x(slowersmooth * 0.35)
+            * Quaternion::rotation_y(0.0)
+            * Quaternion::rotation_z(slowersmooth * -0.5 + slower * -0.5);
+        next.control.scale = Vec3::one();
         if velocity < 0.5 {
-            next.head.position = Vec3::new(
-                0.0,
-                skeleton_attr.head.0,
-                skeleton_attr.head.1 + breathe * 0.2,
-            ) * 1.02;
-            next.head.orientation =
-                Quaternion::rotation_z(look.x * 0.6) * Quaternion::rotation_x(look.y * 0.6);
-            next.head.scale = Vec3::one() * 1.02;
-
-            next.upper_torso.position = Vec3::new(
-                0.0,
-                skeleton_attr.upper_torso.0,
-                skeleton_attr.upper_torso.1 + breathe * 0.5,
-            );
-            next.upper_torso.orientation =
-                Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-            next.upper_torso.scale = Vec3::one();
-
             next.lower_torso.position = Vec3::new(
                 0.0,
                 skeleton_attr.lower_torso.0,
-                skeleton_attr.lower_torso.1 + breathe * 0.15,
+                skeleton_attr.lower_torso.1,
             );
             next.lower_torso.orientation =
-                Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+                Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.2);
             next.lower_torso.scale = Vec3::one() * 1.02;
 
             next.jaw.position = Vec3::new(0.0, skeleton_attr.jaw.0, skeleton_attr.jaw.1 * 0.0);
@@ -153,7 +145,7 @@ impl Animation for WieldAnimation {
             next.leg_l.position = Vec3::new(
                 -skeleton_attr.leg.0,
                 skeleton_attr.leg.1,
-                skeleton_attr.leg.2 + breathe * 0.2,
+                skeleton_attr.leg.2,
             ) * 1.02;
             next.leg_l.orientation = Quaternion::rotation_z(0.0);
             next.leg_l.scale = Vec3::one() * 1.02;
@@ -161,7 +153,7 @@ impl Animation for WieldAnimation {
             next.leg_r.position = Vec3::new(
                 skeleton_attr.leg.0,
                 skeleton_attr.leg.1,
-                skeleton_attr.leg.2 + breathe * 0.2,
+                skeleton_attr.leg.2,
             ) * 1.02;
             next.leg_r.orientation = Quaternion::rotation_z(0.0);
             next.leg_r.scale = Vec3::one() * 1.02;
@@ -183,28 +175,9 @@ impl Animation for WieldAnimation {
             next.foot_r.scale = Vec3::one() / 8.0;
 
             next.torso.position = Vec3::new(0.0, 0.0, 0.0) / 8.0;
-            next.torso.orientation = Quaternion::rotation_z(test * 0.0);
+            next.torso.orientation = Quaternion::rotation_z(0.0);
             next.torso.scale = Vec3::one() / 8.0;
-
-            next.control.position = Vec3::new(7.0, 9.0, -10.0);
-            next.control.orientation = Quaternion::rotation_x(test * 0.02)
-                * Quaternion::rotation_y(test * 0.02)
-                * Quaternion::rotation_z(test * 0.02);
-            next.control.scale = Vec3::one();
         } else {
-            next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1) * 1.02;
-            next.head.orientation =
-                Quaternion::rotation_z(short * -0.18) * Quaternion::rotation_x(-0.05);
-            next.head.scale = Vec3::one() * 1.02;
-
-            next.upper_torso.position = Vec3::new(
-                0.0,
-                skeleton_attr.upper_torso.0,
-                skeleton_attr.upper_torso.1 + shortalt * -1.5,
-            );
-            next.upper_torso.orientation = Quaternion::rotation_z(short * 0.18);
-            next.upper_torso.scale = Vec3::one();
-
             next.lower_torso.position = Vec3::new(
                 0.0,
                 skeleton_attr.lower_torso.0,
@@ -237,12 +210,6 @@ impl Animation for WieldAnimation {
             next.torso.position = Vec3::new(0.0, 0.0, 0.0) / 8.0;
             next.torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(-0.25);
             next.torso.scale = Vec3::one() / 8.0;
-
-            next.control.position = Vec3::new(7.0, 9.0, -10.0);
-            next.control.orientation = Quaternion::rotation_x(test * 0.02)
-                * Quaternion::rotation_y(test * 0.02)
-                * Quaternion::rotation_z(test * 0.02);
-            next.control.scale = Vec3::one();
         }
 
         next

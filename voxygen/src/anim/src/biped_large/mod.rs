@@ -1,3 +1,4 @@
+pub mod alpha;
 pub mod idle;
 pub mod jump;
 pub mod run;
@@ -5,7 +6,8 @@ pub mod wield;
 
 // Reexports
 pub use self::{
-    idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation, wield::WieldAnimation,
+    alpha::AlphaAnimation, idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation,
+    wield::WieldAnimation,
 };
 
 use super::{make_bone, vek::*, Bone, FigureBoneData, Skeleton};
@@ -48,10 +50,10 @@ impl Skeleton for BipedLargeSkeleton {
         let upper_torso = Mat4::<f32>::from(self.upper_torso);
 
         let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
-        let control_mat = torso_mat * Mat4::<f32>::from(self.control) * upper_torso;
         let upper_torso_mat = torso_mat * upper_torso;
         let lower_torso_mat = upper_torso_mat * Mat4::<f32>::from(self.lower_torso);
         let head_mat = upper_torso_mat * Mat4::<f32>::from(self.head);
+        let control_mat = upper_torso_mat * Mat4::<f32>::from(self.control);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
             make_bone(head_mat),
@@ -115,10 +117,11 @@ impl Default for SkeletonAttr {
 
 impl<'a> From<&'a comp::biped_large::Body> for SkeletonAttr {
     fn from(body: &'a comp::biped_large::Body) -> Self {
-        use comp::biped_large::Species::*;
+        use comp::biped_large::{BodyType::*, Species::*};
         Self {
             head: match (body.species, body.body_type) {
-                (Ogre, _) => (3.0, 6.0),
+                (Ogre, Male) => (3.0, 9.0),
+                (Ogre, Female) => (1.0, 7.5),
                 (Cyclops, _) => (4.5, 7.5),
                 (Wendigo, _) => (3.0, 13.5),
                 (Troll, _) => (6.0, 10.0),
@@ -132,14 +135,16 @@ impl<'a> From<&'a comp::biped_large::Body> for SkeletonAttr {
                 (Dullahan, _) => (0.0, 0.0),
             },
             upper_torso: match (body.species, body.body_type) {
-                (Ogre, _) => (0.0, 19.0),
+                (Ogre, Male) => (0.0, 28.0),
+                (Ogre, Female) => (0.0, 28.0),
                 (Cyclops, _) => (-2.0, 27.0),
                 (Wendigo, _) => (-1.0, 29.0),
                 (Troll, _) => (-1.0, 27.5),
                 (Dullahan, _) => (0.0, 29.0),
             },
             lower_torso: match (body.species, body.body_type) {
-                (Ogre, _) => (1.0, -5.5),
+                (Ogre, Male) => (1.0, -7.0),
+                (Ogre, Female) => (0.0, -6.0),
                 (Cyclops, _) => (1.0, -4.5),
                 (Wendigo, _) => (-1.5, -6.0),
                 (Troll, _) => (1.0, -10.5),
@@ -153,28 +158,32 @@ impl<'a> From<&'a comp::biped_large::Body> for SkeletonAttr {
                 (Dullahan, _) => (0.0, 0.0),
             },
             shoulder: match (body.species, body.body_type) {
-                (Ogre, _) => (6.1, 0.5, 2.5),
+                (Ogre, Male) => (12.0, 0.5, 0.0),
+                (Ogre, Female) => (8.0, 0.5, -1.0),
                 (Cyclops, _) => (9.5, 2.5, 2.5),
                 (Wendigo, _) => (9.0, 0.5, -0.5),
                 (Troll, _) => (11.0, 0.5, -1.5),
                 (Dullahan, _) => (14.0, 0.5, 4.5),
             },
             hand: match (body.species, body.body_type) {
-                (Ogre, _) => (10.5, -1.0, -0.5),
+                (Ogre, Male) => (14.5, 0.0, -2.0),
+                (Ogre, Female) => (9.0, 0.5, -4.5),
                 (Cyclops, _) => (10.0, 2.0, -0.5),
                 (Wendigo, _) => (12.0, 0.0, -0.5),
                 (Troll, _) => (11.5, 0.0, -1.5),
                 (Dullahan, _) => (14.5, 0.0, -2.5),
             },
             leg: match (body.species, body.body_type) {
-                (Ogre, _) => (0.0, 0.0, 0.0),
+                (Ogre, Male) => (0.0, 0.0, -4.0),
+                (Ogre, Female) => (0.0, 0.0, -2.0),
                 (Cyclops, _) => (0.0, 0.0, -5.0),
                 (Wendigo, _) => (2.0, 2.0, -2.5),
                 (Troll, _) => (5.0, 0.0, -6.0),
                 (Dullahan, _) => (0.0, 0.0, -5.0),
             },
             foot: match (body.species, body.body_type) {
-                (Ogre, _) => (4.0, 2.5, 2.5),
+                (Ogre, Male) => (4.0, 2.5, 8.0),
+                (Ogre, Female) => (4.0, 0.5, 8.0),
                 (Cyclops, _) => (4.0, 0.5, 5.0),
                 (Wendigo, _) => (5.0, 0.5, 6.0),
                 (Troll, _) => (6.0, 0.5, 4.0),
