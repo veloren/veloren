@@ -47,6 +47,7 @@ const int FIREWORK_YELLOW = 8;
 const int LEAF = 9;
 const int FIREFLY = 10;
 const int BEE = 11;
+const int GROUND_SHOCKWAVE = 12;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -238,6 +239,16 @@ void main() {
 			) * 0.5,
 			lower,
 			vec4(vec3(1, 0.7, 0), 1),
+			spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
+		);
+	} else if (inst_mode == GROUND_SHOCKWAVE) {
+		attr = Attr(
+			linear_motion(
+				vec3(rand0 * 0.25, rand1 * 0.25, 0.0),
+				vec3(rand2 * 0.1, rand3 * 0.1, 0.0)
+			),
+			3.0 + 5.0 * rand5,
+			vec4(vec3(0.42, 0.32, 0.1), 1),
 			spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
 		);
 	} else {
