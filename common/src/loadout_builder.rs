@@ -1,4 +1,10 @@
-use crate::comp::{item::Item, Body, CharacterAbility, ItemConfig, Loadout};
+use crate::{
+    comp::{
+        item::{Item, ItemKind},
+        Alignment, Body, biped_large, CharacterAbility, ItemConfig, Loadout,
+    },
+};
+use rand::Rng;
 use std::time::Duration;
 
 /// Builder for character Loadouts, containing weapon and armour items belonging
@@ -60,6 +66,151 @@ impl LoadoutBuilder {
         )))
     }
 
+    /// Builds loadout of creature when spawned 
+    pub fn build_loadout(body: Body, alignment: Alignment, mut main_tool: Option<Item>) -> Self {
+        match body {
+            Body::BipedLarge(biped_large) => match biped_large.species {
+                biped_large::Species::Cyclops => {
+                    main_tool = Some(Item::new_from_asset_expect("common.items.weapons.bossweapon.cyclops_hammer"));
+                },
+                _ => {},
+            }
+            _ => {},
+        };
+
+        let active_item =
+            if let Some(ItemKind::Tool(tool)) = main_tool.as_ref().map(|i| i.kind()) {
+                let mut abilities = tool.get_abilities();
+                let mut ability_drain = abilities.drain(..);
+
+                main_tool.map(|item| ItemConfig {
+                    item,
+                    ability1: ability_drain.next(),
+                    ability2: ability_drain.next(),
+                    ability3: ability_drain.next(),
+                    block_ability: None,
+                    dodge_ability: Some(CharacterAbility::Roll),
+                })
+            } else {
+                Some(ItemConfig {
+                    // We need the empty item so npcs can attack
+                    item: Item::new_from_asset_expect("common.items.weapons.empty.empty"),
+                    ability1: Some(CharacterAbility::BasicMelee {
+                        energy_cost: 0,
+                        buildup_duration: Duration::from_millis(0),
+                        recover_duration: Duration::from_millis(400),
+                        base_healthchange: -40,
+                        knockback: 0.0,
+                        range: 3.5,
+                        max_angle: 15.0,
+                    }),
+                    ability2: None,
+                    ability3: None,
+                    block_ability: None,
+                    dodge_ability: None,
+                })
+            };
+
+        let loadout = match body {
+            Body::Humanoid(_) => match alignment {
+                Alignment::Npc => Loadout {
+                    active_item,
+                    second_item: None,
+                    shoulder: None,
+                    chest: Some(Item::new_from_asset_expect(
+                        match rand::thread_rng().gen_range(0, 10) {
+                            0 => "common.items.armor.chest.worker_green_0",
+                            1 => "common.items.armor.chest.worker_green_1",
+                            2 => "common.items.armor.chest.worker_red_0",
+                            3 => "common.items.armor.chest.worker_red_1",
+                            4 => "common.items.armor.chest.worker_purple_0",
+                            5 => "common.items.armor.chest.worker_purple_1",
+                            6 => "common.items.armor.chest.worker_yellow_0",
+                            7 => "common.items.armor.chest.worker_yellow_1",
+                            8 => "common.items.armor.chest.worker_orange_0",
+                            _ => "common.items.armor.chest.worker_orange_1",
+                        },
+                    )),
+                    belt: Some(Item::new_from_asset_expect(
+                        "common.items.armor.belt.leather_0",
+                    )),
+                    hand: None,
+                    pants: Some(Item::new_from_asset_expect(
+                        "common.items.armor.pants.worker_blue_0",
+                    )),
+                    foot: Some(Item::new_from_asset_expect(
+                        match rand::thread_rng().gen_range(0, 2) {
+                            0 => "common.items.armor.foot.leather_0",
+                            _ => "common.items.armor.starter.sandals_0",
+                        },
+                    )),
+                    back: None,
+                    ring: None,
+                    neck: None,
+                    lantern: None,
+                    glider: None,
+                    head: None,
+                    tabard: None,
+                },
+                Alignment::Enemy => Loadout {
+                    active_item,
+                    second_item: None,
+                    shoulder: Some(Item::new_from_asset_expect(
+                        "common.items.armor.shoulder.cultist_shoulder_purple",
+                    )),
+                    chest: Some(Item::new_from_asset_expect(
+                        "common.items.armor.chest.cultist_chest_purple",
+                    )),
+                    belt: Some(Item::new_from_asset_expect(
+                        "common.items.armor.belt.cultist_belt",
+                    )),
+                    hand: Some(Item::new_from_asset_expect(
+                        "common.items.armor.hand.cultist_hands_purple",
+                    )),
+                    pants: Some(Item::new_from_asset_expect(
+                        "common.items.armor.pants.cultist_legs_purple",
+                    )),
+                    foot: Some(Item::new_from_asset_expect(
+                        "common.items.armor.foot.cultist_boots",
+                    )),
+                    back: Some(Item::new_from_asset_expect(
+                        "common.items.armor.back.dungeon_purple-0",
+                    )),
+                    ring: None,
+                    neck: None,
+                    lantern: Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
+                    glider: None,
+                    head: None,
+                    tabard: None,
+                },
+                _ => LoadoutBuilder::animal(body).build(),
+            },
+            Body::BipedLarge(biped_large) => match biped_large.species {
+                biped_large::Species::Cyclops => Loadout {
+                    active_item,
+                    second_item: None,
+                    shoulder: None,
+                    chest: None,
+                    belt: None,
+                    hand: None,
+                    pants: None,
+                    foot: None,
+                    back: None,
+                    ring: None,
+                    neck: None,
+                    lantern: None,
+                    glider: None,
+                    head: None,
+                    tabard: None,
+                },
+                _ => LoadoutBuilder::animal(body).build(), 
+            }
+            _ => LoadoutBuilder::animal(body).build(),
+        };
+
+        Self(loadout)
+    }
+
     /// Default animal configuration
     pub fn animal(body: Body) -> Self {
         Self(Loadout {
@@ -113,6 +264,7 @@ impl LoadoutBuilder {
     pub fn default_item_config_from_str(item_ref: &str) -> ItemConfig {
         Self::default_item_config_from_item(Item::new_from_asset_expect(item_ref))
     }
+
 
     pub fn active_item(mut self, item: Option<ItemConfig>) -> Self {
         self.0.active_item = item;
