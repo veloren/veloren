@@ -93,21 +93,9 @@ pub enum StoreyFill {
 }
 
 impl StoreyFill {
-    fn has_lower(&self) -> bool {
-        if let StoreyFill::All = self {
-            true
-        } else {
-            false
-        }
-    }
+    fn has_lower(&self) -> bool { matches!(self, StoreyFill::All) }
 
-    fn has_upper(&self) -> bool {
-        if let StoreyFill::None = self {
-            false
-        } else {
-            true
-        }
-    }
+    fn has_upper(&self) -> bool { !matches!(self, StoreyFill::None) }
 }
 
 #[derive(Copy, Clone)]

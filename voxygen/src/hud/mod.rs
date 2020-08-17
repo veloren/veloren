@@ -477,10 +477,7 @@ impl Show {
             || self.spell
             || self.help
             || self.intro
-            || match self.open_windows {
-                Windows::None => false,
-                _ => true,
-            }
+            || !matches!(self.open_windows, Windows::None)
         {
             self.bag = false;
             self.esc_menu = false;
@@ -2453,7 +2450,7 @@ impl Hud {
         // conrod eats tabs. Un-eat a tabstop so tab completion can work
         if self.ui.ui.global_input().events().any(|event| {
             use conrod_core::{event, input};
-            match event {
+            matches!(event,
                 //event::Event::Raw(event::Input::Press(input::Button::Keyboard(input::Key::Tab)))
                 // => true,
                 event::Event::Ui(event::Ui::Press(
@@ -2462,9 +2459,7 @@ impl Hud {
                         button: event::Button::Keyboard(input::Key::Tab),
                         ..
                     },
-                )) => true,
-                _ => false,
-            }
+                )))
         }) {
             self.ui
                 .ui

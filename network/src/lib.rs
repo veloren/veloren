@@ -1,7 +1,7 @@
 #![deny(unsafe_code)]
 #![cfg_attr(test, deny(rust_2018_idioms))]
 #![cfg_attr(test, deny(warnings))]
-#![feature(try_trait, const_if_match)]
+#![feature(try_trait)]
 
 //! Crate to handle high level networking of messages with different
 //! requirements and priorities over a number of protocols

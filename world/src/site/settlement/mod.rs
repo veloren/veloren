@@ -236,10 +236,7 @@ impl Settlement {
             let origin = dir.map(|e| (e * 100.0) as i32);
             let origin = self
                 .land
-                .find_tile_near(origin, |plot| match plot {
-                    Some(&Plot::Field { .. }) => true,
-                    _ => false,
-                })
+                .find_tile_near(origin, |plot| matches!(plot, Some(&Plot::Field { .. })))
                 .unwrap();
 
             if let Some(path) = self.town.as_ref().and_then(|town| {
@@ -520,7 +517,7 @@ impl Settlement {
                 .land
                 .get_at_block(wpos - self.origin)
                 .plot
-                .map(|p| if let Plot::Hazard = p { true } else { false })
+                .map(|p| matches!(p, Plot::Hazard))
                 .unwrap_or(true),
             ..SpawnRules::default()
         }
