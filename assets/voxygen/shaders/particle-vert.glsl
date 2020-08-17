@@ -243,13 +243,12 @@ void main() {
 		);
 	} else if (inst_mode == GROUND_SHOCKWAVE) {
 		attr = Attr(
-			linear_motion(
-				vec3(rand0 * 0.25, rand1 * 0.25, 0.0),
-				vec3(rand2 * 0.1, rand3 * 0.1, 0.0)
-			),
-			3.0 + 5.0 * rand5,
-			vec4(vec3(0.42, 0.32, 0.1), 1),
-			spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
+			vec3(0.0),
+			vec3(1.0, 1.0, (3.0 * rand0 * sin(2.0 * lifetime * 3.14 * 2.0))) / 3,
+			//3.0 + 5.0 * rand5,
+			vec4(vec3(0.32 + (rand0 * 0.04), 0.22 + (rand1 * 0.03), 0.05 + (rand2 * 0.01)), 1),
+			//rotationMatrix(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
+			spin_in_axis(vec3(1,0,0),0)
 		);
 	} else {
 		attr = Attr(
