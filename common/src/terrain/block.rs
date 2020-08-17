@@ -201,12 +201,7 @@ impl BlockKind {
         }
     }
 
-    pub fn is_fluid(&self) -> bool {
-        match self {
-            BlockKind::Water => true,
-            _ => false,
-        }
-    }
+    pub fn is_fluid(&self) -> bool { matches!(self, BlockKind::Water) }
 
     pub fn get_glow(&self) -> Option<u8> {
         // TODO: When we have proper volumetric lighting

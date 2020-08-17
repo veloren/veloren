@@ -30,23 +30,19 @@ impl Event {
     }
 
     pub fn is_keyboard_or_mouse(&self) -> bool {
-        match self.0 {
+        matches!(self.0,
             Input::Press(_)
             | Input::Release(_)
             | Input::Motion(_)
             | Input::Touch(_)
-            | Input::Text(_) => true,
-            _ => false,
-        }
+            | Input::Text(_))
     }
 
     pub fn is_keyboard(&self) -> bool {
-        match self.0 {
+        matches!(self.0,
             Input::Press(Button::Keyboard(_))
             | Input::Release(Button::Keyboard(_))
-            | Input::Text(_) => true,
-            _ => false,
-        }
+            | Input::Text(_))
     }
 
     pub fn new_resize(dims: Vec2<f64>) -> Self { Self(Input::Resize(dims.x, dims.y)) }

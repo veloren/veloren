@@ -25,10 +25,5 @@ pub enum MatCell {
 impl Vox for MatCell {
     fn empty() -> Self { MatCell::None }
 
-    fn is_empty(&self) -> bool {
-        match self {
-            MatCell::None => true,
-            _ => false,
-        }
-    }
+    fn is_empty(&self) -> bool { matches!(self, MatCell::None) }
 }

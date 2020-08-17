@@ -192,7 +192,7 @@ impl Sys {
                             });
 
                             // Give the player a welcome message
-                            if settings.server_description.len() > 0 {
+                            if !settings.server_description.is_empty() {
                                 client.notify(
                                     ChatType::CommandInfo
                                         .server_msg(settings.server_description.clone()),

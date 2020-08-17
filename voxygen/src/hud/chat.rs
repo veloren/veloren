@@ -395,10 +395,7 @@ impl<'a> Widget for Chat<'a> {
             .widget_input(state.ids.chat_input)
             .presses()
             .key()
-            .any(|key_press| match key_press.key {
-                Key::Return if !state.input.is_empty() => true,
-                _ => false,
-            })
+            .any(|key_press| matches!(key_press.key, Key::Return if !state.input.is_empty()))
         {
             let msg = state.input.clone();
             state.update(|s| {

@@ -110,6 +110,7 @@ impl MapConfig {
     /// into the correct format for a buffer and writes to it.
     #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
     #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
+    #[allow(clippy::map_identity)] // TODO: Pending review in #587
     #[allow(clippy::many_single_char_names)]
     pub fn generate(
         &self,

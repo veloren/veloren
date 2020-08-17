@@ -206,6 +206,7 @@ impl StateExt for State {
         }
     }
 
+    #[allow(clippy::map_identity)] // TODO: Pending review in #587
     fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents) {
         let (body, stats, inventory, loadout) = components;
         // Make sure physics are accepted.

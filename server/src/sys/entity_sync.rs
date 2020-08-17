@@ -338,7 +338,7 @@ impl<'a> System<'a> for Sys {
                 .filter(|o| o.get_pos().and_then(&is_near).unwrap_or(true))
                 .cloned()
                 .collect::<Vec<_>>();
-            if outcomes.len() > 0 {
+            if !outcomes.is_empty() {
                 client.notify(ServerMsg::Outcomes(outcomes));
             }
         }
