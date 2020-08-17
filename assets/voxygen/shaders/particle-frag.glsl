@@ -86,5 +86,9 @@ void main() {
     vec3 color = surf_color;
 #endif
 
+<<<<<<< HEAD
 	tgt_color = vec4(color, f_col.a);
+=======
+	tgt_color = vec4(color, 1.0);
+>>>>>>> 62119c37a... Tweak particle effects
 }
