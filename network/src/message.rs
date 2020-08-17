@@ -112,14 +112,20 @@ pub(crate) fn partial_eq_bincode(first: &bincode::ErrorKind, second: &bincode::E
             bincode::ErrorKind::InvalidBoolEncoding(s) => f == s,
             _ => false,
         },
-        bincode::ErrorKind::InvalidCharEncoding => matches!(*second, bincode::ErrorKind::InvalidCharEncoding),
+        bincode::ErrorKind::InvalidCharEncoding => {
+            matches!(*second, bincode::ErrorKind::InvalidCharEncoding)
+        },
         bincode::ErrorKind::InvalidTagEncoding(f) => match *second {
             bincode::ErrorKind::InvalidTagEncoding(s) => f == s,
             _ => false,
         },
-        bincode::ErrorKind::DeserializeAnyNotSupported => matches!(*second, bincode::ErrorKind::DeserializeAnyNotSupported),
+        bincode::ErrorKind::DeserializeAnyNotSupported => {
+            matches!(*second, bincode::ErrorKind::DeserializeAnyNotSupported)
+        },
         bincode::ErrorKind::SizeLimit => matches!(*second, bincode::ErrorKind::SizeLimit),
-        bincode::ErrorKind::SequenceMustHaveLength => matches!(*second, bincode::ErrorKind::SequenceMustHaveLength),
+        bincode::ErrorKind::SequenceMustHaveLength => {
+            matches!(*second, bincode::ErrorKind::SequenceMustHaveLength)
+        },
         bincode::ErrorKind::Custom(ref f) => match *second {
             bincode::ErrorKind::Custom(ref s) => f == s,
             _ => false,

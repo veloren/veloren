@@ -100,12 +100,7 @@ impl<
 }
 
 impl Body {
-    pub fn is_humanoid(&self) -> bool {
-        match self {
-            Body::Humanoid(_) => true,
-            _ => false,
-        }
-    }
+    pub fn is_humanoid(&self) -> bool { matches!(self, Body::Humanoid(_)) }
 
     // Note: this might need to be refined to something more complex for realistic
     // behavior with less cylindrical bodies (e.g. wolfs)

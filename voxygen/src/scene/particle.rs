@@ -43,6 +43,7 @@ impl ParticleMgr {
         }
     }
 
+    #[allow(clippy::same_item_push)] // TODO: Pending review in #587
     pub fn handle_outcome(&mut self, outcome: &Outcome, scene_data: &SceneData) {
         let time = scene_data.state.get_time();
         let mut rng = rand::thread_rng();
@@ -177,6 +178,7 @@ impl ParticleMgr {
         }
     }
 
+    #[allow(clippy::same_item_push)] // TODO: Pending review in #587
     fn maintain_boltfirebig_particles(&mut self, scene_data: &SceneData, pos: &Pos) {
         let time = scene_data.state.get_time();
 
@@ -223,6 +225,7 @@ impl ParticleMgr {
         }
     }
 
+    #[allow(clippy::same_item_push)] // TODO: Pending review in #587
     fn maintain_boost_particles(&mut self, scene_data: &SceneData) {
         let state = scene_data.state;
         let ecs = state.ecs();

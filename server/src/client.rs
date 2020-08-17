@@ -50,17 +50,17 @@ impl Client {
     }
 
     pub fn is_registered(&self) -> bool {
-        match self.client_state {
-            ClientState::Registered | ClientState::Spectator | ClientState::Character => true,
-            _ => false,
-        }
+        matches!(
+            self.client_state,
+            ClientState::Registered | ClientState::Spectator | ClientState::Character
+        )
     }
 
     pub fn is_ingame(&self) -> bool {
-        match self.client_state {
-            ClientState::Spectator | ClientState::Character => true,
-            _ => false,
-        }
+        matches!(
+            self.client_state,
+            ClientState::Spectator | ClientState::Character
+        )
     }
 
     pub fn allow_state(&mut self, new_state: ClientState) {

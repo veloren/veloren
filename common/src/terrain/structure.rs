@@ -32,12 +32,7 @@ pub enum StructureBlock {
 impl Vox for StructureBlock {
     fn empty() -> Self { StructureBlock::None }
 
-    fn is_empty(&self) -> bool {
-        match self {
-            StructureBlock::None => true,
-            _ => false,
-        }
-    }
+    fn is_empty(&self) -> bool { matches!(self, StructureBlock::None) }
 }
 
 #[derive(Debug)]
