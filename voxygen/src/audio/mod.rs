@@ -44,6 +44,7 @@ pub struct AudioFrontend {
     listener: Listener,
 }
 
+#[allow(clippy::same_item_push)] // TODO: Pending review in #587
 impl AudioFrontend {
     /// Construct with given device
     #[allow(clippy::redundant_clone)] // TODO: Pending review in #587

@@ -171,11 +171,7 @@ impl CombatEventMapper {
     /// ::Equipping to mean the weapon is drawn. This will need updating if the
     /// animations change to match the wield_duration associated with the weapon
     fn weapon_drawn(character: &CharacterState) -> bool {
-        character.is_wield()
-            || match character {
-                CharacterState::Equipping { .. } => true,
-                _ => false,
-            }
+        character.is_wield() || matches!(character, CharacterState::Equipping { .. })
     }
 }
 
