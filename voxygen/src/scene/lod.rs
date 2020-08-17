@@ -42,10 +42,10 @@ impl Lod {
 
     pub fn set_detail(&mut self, detail: u32) {
         // Make sure the recorded detail is even.
-        self.data.tgt_detail = detail.max(100).min(2500) - self.data.tgt_detail % 2;
+        self.data.tgt_detail = detail.max(100).min(2500) - detail % 2;
     }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer, _time_of_day: f64) {
+    pub fn maintain(&mut self, renderer: &mut Renderer) {
         if self
             .model
             .as_ref()

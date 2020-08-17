@@ -632,7 +632,7 @@ impl Scene {
             .expect("Failed to update global constants");
 
         // Maintain LoD.
-        self.lod.maintain(renderer, time_of_day);
+        self.lod.maintain(renderer);
 
         // Maintain the terrain.
         let (_visible_bounds, visible_light_volume, visible_psr_bounds) = self.terrain.maintain(

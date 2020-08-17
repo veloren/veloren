@@ -11,6 +11,9 @@ pub type MeshGen<P, T, M> = (
     <M as Meshable<P, T>>::Result,
 );
 
+/// FIXME: Remove this whole trait at some point.  This "abstraction" is never
+/// abstracted over, and is organized completely differently from how we
+/// actually mesh things nowadays.
 pub trait Meshable<P: render::Pipeline, T> {
     type Pipeline: render::Pipeline;
     type TranslucentPipeline: render::Pipeline;

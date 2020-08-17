@@ -49,7 +49,7 @@ const DAMAGE_FADE_COEFFICIENT: f64 = 5.0;
 const MOVING_THRESHOLD: f32 = 0.7;
 const MOVING_THRESHOLD_SQR: f32 = MOVING_THRESHOLD * MOVING_THRESHOLD;
 
-/// camera data, fiigure LOD render distance.
+/// camera data, figure LOD render distance.
 pub type CameraData<'a> = (&'a Camera, f32);
 
 /// Enough data to render a figure model.
@@ -2622,7 +2622,7 @@ impl FigureColLights {
     }
 
     /// NOTE: Panics if the opaque model's length does not fit in a u32.
-    /// This is parto f the function contract.
+    /// This is part of the function contract.
     ///
     /// NOTE: Panics if the vertex range bounds are not in range of the opaque
     /// model stored in the BoneMeshes parameter.  This is part of the
@@ -2677,7 +2677,7 @@ impl FigureColLights {
             ..guillotiere::AllocatorOptions::default()
         });
         // TODO: Consider using a single texture atlas to store all figures, much like
-        // we do for terrain chunks.  We previoosly avoided this due to
+        // we do for terrain chunks.  We previously avoided this due to
         // perceived performance degradation for the figure use case, but with a
         // smaller atlas size this may be less likely.
         /* let texture = renderer.create_texture_raw(

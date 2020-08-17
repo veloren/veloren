@@ -70,15 +70,14 @@ impl ParticleMgr {
                     ),
                 );
 
-                self.particles.resize(
-                    self.particles.len() + 200,
+                self.particles.resize_with(self.particles.len() + 200, || {
                     Particle::new(
                         Duration::from_secs(4),
                         time,
                         ParticleMode::CampfireSmoke,
                         *pos + Vec2::<f32>::zero().map(|_| rng.gen_range(-1.0, 1.0) * power),
-                    ),
-                );
+                    )
+                });
             },
             Outcome::ProjectileShot { .. } => {},
         }

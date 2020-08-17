@@ -686,8 +686,11 @@ impl PlayState for SessionState {
 
             // Generate debug info, if needed (it iterates through enough data that we might
             // as well avoid it unless we need it).
-            let debug_info = if global_state.settings.gameplay.toggle_debug {
-                Some(DebugInfo {
+            let debug_info = global_state
+                .settings
+                .gameplay
+                .toggle_debug
+                .then(|| DebugInfo {
                     tps: global_state.clock.get_tps(),
                     ping_ms: self.client.borrow().get_ping_ms_rolling_avg(),
                     coordinates: self
@@ -723,10 +726,7 @@ impl PlayState for SessionState {
                     num_particles: self.scene.particle_mgr().particle_count() as u32,
                     num_particles_visible: self.scene.particle_mgr().particle_count_visible()
                         as u32,
-                })
-            } else {
-                None
-            };
+                });
 
             // Extract HUD events ensuring the client borrow gets dropped.
             let mut hud_events = self.hud.maintain(
@@ -1175,7 +1175,7 @@ fn under_cursor(
     let cam_dist = cam_ray.0;
 
     // The ray hit something, is it within range?
-    let (build_pos, select_pos) = if matches!(cam_ray.1, Ok(Some(_)) if 
+    let (build_pos, select_pos) = if matches!(cam_ray.1, Ok(Some(_)) if
         player_pos.distance_squared(cam_pos + cam_dir * cam_dist)
         <= MAX_PICKUP_RANGE_SQR)
     {

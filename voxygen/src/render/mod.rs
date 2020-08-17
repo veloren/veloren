@@ -69,7 +69,8 @@ pub enum AaMode {
     None,
     /// Fast approximate antialiasing.
     ///
-    /// This is a screen-space technique, and therefore
+    /// This is a screen-space technique, and therefore works fine with greedy
+    /// meshing.
     Fxaa,
     /// Multisampling AA, up to 4 samples per pixel.
     ///
@@ -135,7 +136,7 @@ pub enum CloudMode {
     ///   clouds), we currently branch to see if we need to render the clouds in
     ///   *every* fragment shader.  For machines that can't optimize the check,
     ///   this is absurdly expensive, so we should look at alternatives in the
-    ///   future that player better iwth the GPU.
+    ///   future that player better with the GPU.
     Regular,
 }
 
@@ -180,14 +181,14 @@ pub enum LightingMode {
     /// physically plausible (to some extent) lighting distribution.
     ///
     /// This mdoel may not work as well with purely directional lighting, and is
-    /// more expensive than the otehr models.
+    /// more expensive than the other models.
     Ashikhmin,
     /// Standard Blinn-Phong shading, combing Lambertian diffuse reflections and
     /// specular highlights.
     BlinnPhong,
     /// Standard Lambertian lighting model, with only diffuse reflections.  The
     /// cheapest lighting model by a decent margin, but the performance
-    /// dfifference between it and Blinn-Phong will probably only be
+    /// difference between it and Blinn-Phong will probably only be
     /// significant on low-end machines that are bottlenecked on fragment
     /// shading.
     Lambertian,
@@ -200,9 +201,9 @@ impl Default for LightingMode {
 /// Shadow map settings.
 #[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct ShadowMapMode {
-    /// Multiple of default resolution (default is currenttly the closest higher
-    /// power of two above the length of the longest diagonal of the screen
-    /// resolution, but this may change).
+    /// Multiple of default resolution (default, which is 1.0, is currently
+    /// the closest higher power of two above the length of the longest
+    /// diagonal of the screen resolution, but this may change).
     pub resolution: f32,
 }
 
