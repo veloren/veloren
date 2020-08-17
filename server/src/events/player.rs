@@ -80,7 +80,13 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
 pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event {
     if let Some(client) = server.state().read_storage::<Client>().get(entity) {
         trace!("Closing participant of client");
-        let participant = client.participant.lock().unwrap().take().unwrap();
+        let participant = match client.participant.try_lock() {
+            Ok(mut p) => p.take().unwrap(),
+            Err(e) => {
+                error!(?e, "coudln't lock participant for removal");
+                panic!("coudlnt lock participant, not good!");
+            },
+        };
         if let Err(e) = block_on(participant.disconnect()) {
             debug!(
                 ?e,
