@@ -10,7 +10,7 @@ use common::{
 };
 use futures_executor::block_on;
 use specs::{saveload::MarkerAllocator, Builder, Entity as EcsEntity, WorldExt};
-use tracing::{debug, error, trace};
+use tracing::{debug, error, trace, warn};
 
 pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
     let state = server.state_mut();
@@ -84,15 +84,27 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
             Ok(mut p) => p.take().unwrap(),
             Err(e) => {
                 error!(?e, "coudln't lock participant for removal");
-                panic!("coudlnt lock participant, not good!");
+                return Event::ClientDisconnected { entity };
             },
         };
-        if let Err(e) = block_on(participant.disconnect()) {
-            debug!(
-                ?e,
-                "Error when disconnecting client, maybe the pipe already broke"
-            );
-        };
+        std::thread::spawn(|| {
+            let pid = participant.remote_pid();
+            let now = std::time::Instant::now();
+            trace!(?pid, "start disconnect");
+            if let Err(e) = block_on(participant.disconnect()) {
+                debug!(
+                    ?e,
+                    "Error when disconnecting client, maybe the pipe already broke"
+                );
+            };
+            trace!(?pid, "finished disconnect");
+            let elapsed = now.elapsed();
+            if elapsed.as_millis() > 100 {
+                warn!(?elapsed, "disconecting took quite long");
+            } else {
+                debug!(?elapsed, "disconecting took");
+            }
+        });
     }
 
     let state = server.state_mut();
