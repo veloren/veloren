@@ -25,6 +25,7 @@ use std::{
     time::{Duration, Instant},
 };
 use tracing::*;
+use tracing_futures::Instrument;
 
 pub(crate) type A2bStreamOpen = (Prio, Promises, oneshot::Sender<Stream>);
 pub(crate) type S2bCreateChannel = (Cid, Sid, Protocols, Vec<(Cid, Frame)>, oneshot::Sender<()>);
@@ -477,6 +478,7 @@ impl BParticipant {
                         trace!(?cid, "Running channel in participant");
                         channel
                             .run(protocol, w2b_frames_s, leftover_cid_frame)
+                            .instrument(tracing::info_span!("", ?cid))
                             .await;
                         #[cfg(feature = "metrics")]
                         self.metrics

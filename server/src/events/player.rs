@@ -94,15 +94,16 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
             if let Err(e) = block_on(participant.disconnect()) {
                 debug!(
                     ?e,
+                    ?pid,
                     "Error when disconnecting client, maybe the pipe already broke"
                 );
             };
             trace!(?pid, "finished disconnect");
             let elapsed = now.elapsed();
             if elapsed.as_millis() > 100 {
-                warn!(?elapsed, "disconecting took quite long");
+                warn!(?elapsed, ?pid, "disconecting took quite long");
             } else {
-                debug!(?elapsed, "disconecting took");
+                debug!(?elapsed, ?pid, "disconecting took");
             }
         });
     }
