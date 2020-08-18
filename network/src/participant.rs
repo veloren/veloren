@@ -70,7 +70,7 @@ pub struct BParticipant {
     remote_pid: Pid,
     remote_pid_string: String, //optimisation
     offset_sid: Sid,
-    channels: Arc<RwLock<Vec<ChannelInfo>>>,
+    channels: Arc<RwLock<HashMap<Cid, ChannelInfo>>>,
     streams: RwLock<HashMap<Sid, StreamInfo>>,
     running_mgr: AtomicUsize,
     run_channels: Option<ControlChannels>,
@@ -119,7 +119,7 @@ impl BParticipant {
                 remote_pid,
                 remote_pid_string: remote_pid.to_string(),
                 offset_sid,
-                channels: Arc::new(RwLock::new(vec![])),
+                channels: Arc::new(RwLock::new(HashMap::new())),
                 streams: RwLock::new(HashMap::new()),
                 running_mgr: AtomicUsize::new(0),
                 run_channels,
@@ -252,27 +252,21 @@ impl BParticipant {
         // find out ideal channel here
         //TODO: just take first
         let mut lock = self.channels.write().await;
-        if let Some(ci) = lock.get_mut(0) {
-            //note: this is technically wrong we should only increase when it suceeded, but
-            // this requiered me to clone `frame` which is a to big performance impact for
-            // error handling
+        if let Some(ci) = lock.values_mut().next() {
+            //note: this is technically wrong we should only increase when it succeeded,
+            // but this requiered me to clone `frame` which is a to big
+            // performance impact for error handling
             #[cfg(feature = "metrics")]
             frames_out_total_cache
                 .with_label_values(ci.cid, &frame)
                 .inc();
             if let Err(e) = ci.b2w_frame_s.send(frame).await {
+                let cid = ci.cid;
                 warn!(
                     ?e,
-                    "The channel got closed unexpectedly, cleaning it up now."
+                    ?cid,
+                    "channel no longer available, maybe cleanup in process?"
                 );
-                let ci = lock.remove(0);
-                if let Err(e) = ci.b2r_read_shutdown.send(()) {
-                    debug!(
-                        ?e,
-                        "Error shutdowning channel, which is prob fine as we detected it to no \
-                         longer work in the first place"
-                    );
-                };
                 //TODO FIXME tags: takeover channel multiple
                 info!(
                     "FIXME: the frame is actually drop. which is fine for now as the participant \
@@ -292,10 +286,18 @@ impl BParticipant {
                 guard.0 = now;
                 let occurrences = guard.1 + 1;
                 guard.1 = 0;
-                error!(?occurrences, "Participant has no channel to communicate on");
+                let lastframe = frame;
+                error!(
+                    ?occurrences,
+                    ?lastframe,
+                    "Participant has no channel to communicate on"
+                );
             } else {
                 guard.1 += 1;
             }
+            //TEMP FIX: as we dont have channel takeover yet drop the whole bParticipant
+            self.close_api(Some(ParticipantError::ProtocolFailedUnrecoverable))
+                .await;
             false
         }
     }
@@ -463,7 +465,7 @@ impl BParticipant {
                     let channels = self.channels.clone();
                     async move {
                         let (channel, b2w_frame_s, b2r_read_shutdown) = Channel::new(cid);
-                        channels.write().await.push(ChannelInfo {
+                        channels.write().await.insert(cid, ChannelInfo {
                             cid,
                             cid_string: cid.to_string(),
                             b2w_frame_s,
@@ -485,7 +487,17 @@ impl BParticipant {
                             .channels_disconnected_total
                             .with_label_values(&[&self.remote_pid_string])
                             .inc();
-                        trace!(?cid, "Channel got closed");
+                        info!(?cid, "Channel got closed, cleaning up");
+                        //stopping read in case write triggered the failure
+                        if let Some(ci) = channels.write().await.remove(&cid) {
+                            if let Err(e) = ci.b2r_read_shutdown.send(()) {
+                                debug!(?e, "read channel was already shut down");
+                            };
+                        } //None means it prob got closed by closing the participant
+                        trace!(?cid, "Channel cleanup completed");
+                        //TEMP FIX: as we dont have channel takeover yet drop the whole
+                        // bParticipant
+                        self.close_api(None).await;
                     }
                 },
             )
@@ -575,9 +587,14 @@ impl BParticipant {
 
         b2b_prios_flushed_r.await.unwrap();
         debug!("Closing all channels, after flushed prios");
-        for ci in self.channels.write().await.drain(..) {
+        for (cid, ci) in self.channels.write().await.drain() {
             if let Err(e) = ci.b2r_read_shutdown.send(()) {
-                debug!(?e, ?ci.cid, "Seems like this read protocol got already dropped by closing the Stream itself, just ignoring the fact");
+                debug!(
+                    ?e,
+                    ?cid,
+                    "Seems like this read protocol got already dropped by closing the Stream \
+                     itself, ignoring"
+                );
             };
         }
 
@@ -649,7 +666,7 @@ impl BParticipant {
                     si.send_closed.store(true, Ordering::Relaxed);
                     si.b2a_msg_recv_s.close_channel();
                 },
-                None => warn!("Couldn't find the stream, might be simulanious close from remote"),
+                None => warn!("Couldn't find the stream, might be simultaneous close from remote"),
             }
 
             //TODO: what happens if RIGHT NOW the remote sends a StreamClose and this

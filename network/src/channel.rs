@@ -9,7 +9,7 @@ use crate::{
 };
 use futures::{
     channel::{mpsc, oneshot},
-    join,
+    join, select,
     sink::SinkExt,
     stream::StreamExt,
     FutureExt,
@@ -58,15 +58,15 @@ impl Channel {
         trace!(?self.cid, "Start up channel");
         match protocol {
             Protocols::Tcp(tcp) => {
-                futures::join!(
-                    tcp.read_from_wire(self.cid, &mut w2c_cid_frame_s, read_stop_receiver),
-                    tcp.write_to_wire(self.cid, c2w_frame_r),
+                select!(
+                    _ = tcp.read_from_wire(self.cid, &mut w2c_cid_frame_s, read_stop_receiver).fuse() => (),
+                    _ = tcp.write_to_wire(self.cid, c2w_frame_r).fuse() => (),
                 );
             },
             Protocols::Udp(udp) => {
-                futures::join!(
-                    udp.read_from_wire(self.cid, &mut w2c_cid_frame_s, read_stop_receiver),
-                    udp.write_to_wire(self.cid, c2w_frame_r),
+                select!(
+                    _ = udp.read_from_wire(self.cid, &mut w2c_cid_frame_s, read_stop_receiver).fuse() => (),
+                    _ = udp.write_to_wire(self.cid, c2w_frame_r).fuse() => (),
                 );
             },
         }
