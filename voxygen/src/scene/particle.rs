@@ -273,7 +273,7 @@ impl ParticleMgr {
 
         type BoiFn<'a> = fn(&'a BlocksOfInterest) -> &'a [Vec3<i32>];
         let particles: &[(BoiFn, _, _, _)] = &[
-            (|boi| &boi.leaves, 0.005, 30.0, ParticleMode::Leaf),
+            (|boi| &boi.leaves, 0.002, 30.0, ParticleMode::Leaf),
             (|boi| &boi.embers, 20.0, 0.25, ParticleMode::CampfireFire),
             (|boi| &boi.embers, 6.0, 30.0, ParticleMode::CampfireSmoke),
         ];
@@ -299,7 +299,7 @@ impl ParticleMgr {
                             Duration::from_secs_f32(*dur),
                             time,
                             *mode,
-                            block_pos.map(|e: i32| e as f32 + 0.5),
+                            block_pos.map(|e: i32| e as f32 + thread_rng().gen::<f32>()),
                         ));
                     }
                 }
