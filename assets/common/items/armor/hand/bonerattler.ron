@@ -1,0 +1,12 @@
+Item(
+    name: "Bonerattler Gauntlets",
+    description: "Made from the strongest bones.",
+    kind: Armor(
+        (
+            kind: Hand("Bonerattler"),
+            stats: (
+                protection: Normal(10.0),
+            ),
+        )
+    ),
+)

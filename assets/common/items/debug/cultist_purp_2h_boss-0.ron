@@ -1,0 +1,13 @@
+Item(
+    name: "Admin Greatsword",
+    description: "Shouldn't this be a hammer?",
+    kind: Tool(
+       (
+            kind: Sword("CultPurp0"),    
+            stats: (
+                equip_time_millis: 0,
+                power: 1000.0,
+            ),
+        )
+    ),
+)

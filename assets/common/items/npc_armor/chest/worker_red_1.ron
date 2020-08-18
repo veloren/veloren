@@ -1,0 +1,12 @@
+Item(
+    name: "Red Worker Shirt",
+    description: "Was used by a farmer, until recently.",
+    kind: Armor(
+        (
+            kind: Chest("WorkerRed1"),
+            stats: (
+                protection: Normal(80.0),
+            ),
+        )
+    ),
+)

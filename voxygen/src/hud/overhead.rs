@@ -193,9 +193,9 @@ impl<'a> Widget for Overhead<'a> {
             .font_size(font_size)
             .color(if self.in_group {
                 GROUP_MEMBER
-            } else {
-                DEFAULT_NPC
-            })
+            /*} else if targets player { //TODO: Add a way to see if the entity is trying to attack the player, their pet(s) or a member of their group and recolour their nametag accordingly
+                DEFAULT_NPC*/
+            } else {DEFAULT_NPC})
             .x_y(0.0, name_y + 1.0)
             .parent(id)
             .set(state.ids.name, ui);

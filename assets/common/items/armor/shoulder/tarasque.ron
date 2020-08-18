@@ -1,0 +1,12 @@
+Item(
+    name: "Tarasque Shoulder Pad",
+    description: "As strong as a tarasque shell.",
+    kind: Armor(
+        (
+            kind: Shoulder("Tarasque"),
+            stats: (
+                protection: Normal(15.0),
+            ),
+        )
+    ),
+)

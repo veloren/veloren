@@ -1,0 +1,12 @@
+Item(
+    name: "Bonerattler Chausses",
+    description: "Made from the strongest bones.",
+    kind: Armor(
+        (
+            kind: Pants("Bonerattler"),
+            stats: (
+                protection: Normal(20.0),
+            ),
+        )
+    ),
+)

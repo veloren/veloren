@@ -253,6 +253,7 @@ impl World {
                                     match quadruped_medium.species {
                                         quadruped_medium::Species::Catoblepas => is_hostile = false,
                                         quadruped_medium::Species::Mouflon => is_hostile = false,
+                                        quadruped_medium::Species::Tuskram => is_hostile = false,
                                         _ => is_hostile = true,
                                     }
                                 },

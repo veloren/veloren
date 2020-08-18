@@ -14,4 +14,5 @@
 	"apple_shroom_curry": (("common.items.food.apple_mushroom_curry", 1), [("common.items.food.mushroom", 8), ("common.items.food.coconut", 1), ("common.items.food.apple", 4), ("common.items.crafting_tools.mortar_pestle", 0)]),
 	"apples_stick": (("common.items.food.apple_stick", 1),[("common.items.crafting_ing.twigs", 2), ("common.items.food.apple", 2)]),
 	"mushroom_stick": (("common.items.food.mushroom_stick", 1),[("common.items.crafting_ing.twigs", 2), ("common.items.food.mushroom", 3)]),
+	"velorte_sceptre": (("common.items.weapons.staff.sceptre_velorite_0", 1),[("common.items.crafting_ing.twigs", 20), ("common.items.ore.veloritefrag", 10), ("common.items.crafting_ing.shiny_gem", 4), ("common.items.crafting_tools.craftsman_hammer", 0)]),
 }	

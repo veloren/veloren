@@ -176,6 +176,7 @@ impl<'a> Widget for Crafting<'a> {
         // Alignment
         Rectangle::fill_with([136.0, 378.0], color::TRANSPARENT)
             .top_left_with_margins_on(ids.window_frame, 74.0, 5.0)
+            .scroll_kids_vertically()
             .set(ids.align_rec, ui);
         Rectangle::fill_with([274.0, 340.0], color::TRANSPARENT)
             .top_right_with_margins_on(ids.window, 74.0, 5.0)
@@ -314,24 +315,6 @@ impl<'a> Widget for Crafting<'a> {
                     state.update(|s| s.selected_recipe = Some(name.clone()));
                 }
             }
-            // Image BG
-            /*Rectangle::fill_with([10.0, 10.0], color::TRANSPARENT)
-                .w_h(20.0, 20.0)
-                .mid_left_of(state.ids.recipe_names[i])
-                .set(state.ids.recipe_img_frame[i], ui);
-            //Item Image
-            Image::new(
-                self.item_imgs
-                    .img_id_or_not_found_img((&recipe.output.0).into()),
-            )
-            .w_h(18.0, 18.0)
-            .color(
-                can_perform
-                    .then_some(Some(TEXT_COLOR))
-                    .unwrap_or(Some(TEXT_GRAY_COLOR)),
-            )
-            .middle_of(state.ids.recipe_img_frame[i])
-            .set(state.ids.recipe_img[i], ui);*/
         }
 
         //Ingredients

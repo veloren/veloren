@@ -72,5 +72,13 @@
             vox_spec: ("armor.foot.twigsflowers_foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
+        "Tarasque":(
+            vox_spec: ("armor.foot.tarasque", (-2.5, -3.5, -2.0)),
+            color: None
+        ),
+        "Bonerattler":(
+            vox_spec: ("armor.foot.bonerattler", (-2.5, -3.5, -2.0)),
+            color: None
+        ),
     },
 ))

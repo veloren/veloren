@@ -2,7 +2,7 @@ use super::SysTimer;
 use crate::{chunk_generator::ChunkGenerator, client::Client, Tick};
 use common::{
     assets,
-    comp::{self, item, Alignment, CharacterAbility, ItemConfig, Player, Pos},
+    comp::{self, bird_medium, item, Alignment, CharacterAbility, ItemConfig, Player, Pos},
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
     msg::ServerMsg,
@@ -158,16 +158,16 @@ impl<'a> System<'a> for Sys {
                         shoulder: None,
                         chest: Some(assets::load_expect_cloned(
                             match rand::thread_rng().gen_range(0, 10) {
-                                0 => "common.items.armor.chest.worker_green_0",
-                                1 => "common.items.armor.chest.worker_green_1",
-                                2 => "common.items.armor.chest.worker_red_0",
-                                3 => "common.items.armor.chest.worker_red_1",
-                                4 => "common.items.armor.chest.worker_purple_0",
-                                5 => "common.items.armor.chest.worker_purple_1",
-                                6 => "common.items.armor.chest.worker_yellow_0",
-                                7 => "common.items.armor.chest.worker_yellow_1",
-                                8 => "common.items.armor.chest.worker_orange_0",
-                                _ => "common.items.armor.chest.worker_orange_1",
+                                0 => "common.items.npc_armor.chest.worker_green_0",
+                                1 => "common.items.npc_armor.chest.worker_green_1",
+                                2 => "common.items.npc_armor.chest.worker_red_0",
+                                3 => "common.items.npc_armor.chest.worker_red_1",
+                                4 => "common.items.npc_armor.chest.worker_purple_0",
+                                5 => "common.items.npc_armor.chest.worker_purple_1",
+                                6 => "common.items.npc_armor.chest.worker_yellow_0",
+                                7 => "common.items.npc_armor.chest.worker_yellow_1",
+                                8 => "common.items.npc_armor.chest.worker_orange_0",
+                                _ => "common.items.npc_armor.chest.worker_orange_1",
                             },
                         )),
                         belt: Some(assets::load_expect_cloned(
@@ -312,7 +312,15 @@ impl<'a> System<'a> for Sys {
                     .health
                     .set_to(stats.health.maximum(), comp::HealthSource::Revive);
 
-                let can_speak = alignment == comp::Alignment::Npc;
+                let can_speak = match body {
+                    comp::Body::Humanoid(_) => alignment == comp::Alignment::Npc,
+                    comp::Body::BirdMedium(bird_medium) => match bird_medium.species {
+                        // Parrots like to have a word in this, too...
+                        bird_medium::Species::Parrot => alignment == comp::Alignment::Npc,
+                        _ => false,
+                    },
+                    _ => false,
+                };
 
                 // TODO: This code sets an appropriate base_damage for the enemy. This doesn't
                 // work because the damage is now saved in an ability

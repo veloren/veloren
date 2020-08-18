@@ -192,6 +192,7 @@ widget_ids! {
         help,
         help_info,
         debug_info,
+        lantern_info,
 
         // Window Frames
         window_frame_0,
@@ -430,6 +431,7 @@ impl Show {
         if !self.esc_menu {
             self.crafting = open;
             self.bag = open;
+            self.map = false;
             self.want_grab = !open;
         }
     }
@@ -1582,9 +1584,9 @@ impl Hud {
                         .replace("{key}", help_key.to_string().as_str()),
                 )
                 .color(TEXT_COLOR)
-                .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
+                .bottom_left_with_margins_on(ui_widgets.window, 210.0, 10.0)
                 .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(16))
+                .font_size(self.fonts.cyri.scale(12))
                 .set(self.ids.help_info, ui_widgets);
             }
             // Info about Debug Shortcut
@@ -1600,10 +1602,28 @@ impl Hud {
                         .replace("{key}", toggle_debug_key.to_string().as_str()),
                 )
                 .color(TEXT_COLOR)
-                .down_from(self.ids.help_info, 5.0)
+                .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(12))
                 .set(self.ids.debug_info, ui_widgets);
+            }
+            // Lantern Key
+            if let Some(toggle_lantern_key) = global_state
+                .settings
+                .controls
+                .get_binding(GameInput::ToggleLantern)
+            {
+                Text::new(
+                    &self
+                        .voxygen_i18n
+                        .get("hud.press_key_to_toggle_lantern_fmt")
+                        .replace("{key}", toggle_lantern_key.to_string().as_str()),
+                )
+                .color(TEXT_COLOR)
+                .up_from(self.ids.help_info, 2.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(12))
+                .set(self.ids.lantern_info, ui_widgets);
             }
         }
 
@@ -1700,8 +1720,15 @@ impl Hud {
                 {
                     Some(bag::Event::Stats) => self.show.stats = !self.show.stats,
                     Some(bag::Event::Close) => {
+                        self.show.stats = false;
                         self.show.bag(false);
-                        self.force_ungrab = true;
+                        self.show.crafting(false);
+                        if self.show.social == false {
+                            self.show.want_grab = true;
+                            self.force_ungrab = false;
+                        } else {
+                            self.force_ungrab = true
+                        };
                     },
                     None => {},
                 }
@@ -1775,8 +1802,15 @@ impl Hud {
                             events.push(Event::CraftRecipe(r));
                         },
                         crafting::Event::Close => {
+                            self.show.stats = false;
                             self.show.crafting(false);
-                            self.force_ungrab = true;
+                            self.show.bag(false);
+                            if self.show.social == false {
+                                self.show.want_grab = true;
+                                self.force_ungrab = false;
+                            } else {
+                                self.force_ungrab = true
+                            };
                         },
                     }
                 }
@@ -1860,6 +1894,8 @@ impl Hud {
                         // Unpause the game if we are on singleplayer so that we can logout
                         #[cfg(feature = "singleplayer")]
                         global_state.unpause();
+                        self.show.want_grab = true;
+                        self.force_ungrab = false;
 
                         self.show.settings(false)
                     },
@@ -1996,7 +2032,12 @@ impl Hud {
                     match event {
                         social::Event::Close => {
                             self.show.social(false);
-                            self.force_ungrab = true;
+                            if self.show.bag == false {
+                                self.show.want_grab = true;
+                                self.force_ungrab = false;
+                            } else {
+                                self.force_ungrab = true
+                            };
                         },
                         social::Event::ChangeSocialTab(social_tab) => {
                             self.show.open_social_tab(social_tab)
@@ -2041,7 +2082,8 @@ impl Hud {
             {
                 Some(spell::Event::Close) => {
                     self.show.spell(false);
-                    self.force_ungrab = true;
+                    self.show.want_grab = true;
+                    self.force_ungrab = false;
                 },
                 None => {},
             }
@@ -2064,7 +2106,8 @@ impl Hud {
                 match event {
                     map::Event::Close => {
                         self.show.map(false);
-                        self.force_ungrab = true;
+                        self.show.want_grab = true;
+                        self.force_ungrab = false;
                     },
                     map::Event::MapZoom(map_zoom) => {
                         events.push(Event::MapZoom(map_zoom));

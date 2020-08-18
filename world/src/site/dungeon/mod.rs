@@ -12,6 +12,7 @@ use common::{
     astar::Astar,
     comp,
     generation::{ChunkSupplement, EntityInfo},
+    lottery::Lottery,
     npc,
     store::{Id, Store},
     terrain::{Block, BlockKind, Structure, TerrainChunkSize},
@@ -498,13 +499,17 @@ impl Floor {
                             boss_spawn_tile + if boss_tile_is_pillar { 1 } else { 0 };
 
                         if tile_pos == boss_spawn_tile && tile_wcenter.xy() == wpos2d {
+                            let chosen = assets::load_expect::<Lottery<String>>(
+                                "common.loot_tables.loot_table_boss_cultist-leader",
+                            );
+                            let chosen = chosen.choose();
                             let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
                                 .with_scale(4.0)
                                 .with_level(rng.gen_range(75, 100))
                                 .with_alignment(comp::Alignment::Enemy)
                                 .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
                                 .with_name(format!(
-                                    "{}, Cult Leader",
+                                    "{}\nCult Leader",
                                     npc::get_npc_name(npc::NpcKind::Humanoid)
                                 ))
                                 .with_main_tool(assets::load_expect_cloned(
@@ -515,50 +520,7 @@ impl Floor {
                                         },
                                     },
                                 ))
-                                .with_loot_drop(match rng.gen_range(0, 20) {
-                                    0 => comp::Item::expect_from_asset(
-                                        "common.items.boss_drops.lantern",
-                                    ),
-                                    1 => comp::Item::expect_from_asset(
-                                        "common.items.boss_drops.potions",
-                                    ),
-                                    2 => comp::Item::expect_from_asset(
-                                        "common.items.armor.belt.cultist_belt",
-                                    ),
-                                    3 => comp::Item::expect_from_asset(
-                                        "common.items.armor.chest.cultist_chest_purple",
-                                    ),
-                                    4 => comp::Item::expect_from_asset(
-                                        "common.items.armor.foot.cultist_boots",
-                                    ),
-                                    5 => comp::Item::expect_from_asset(
-                                        "common.items.armor.hand.cultist_hands_purple",
-                                    ),
-                                    6 => comp::Item::expect_from_asset(
-                                        "common.items.armor.pants.cultist_legs_purple",
-                                    ),
-                                    7 => comp::Item::expect_from_asset(
-                                        "common.items.armor.shoulder.cultist_shoulder_purple",
-                                    ),
-                                    8 => comp::Item::expect_from_asset(
-                                        "common.items.weapons.staff.cultist_staff",
-                                    ),
-                                    9 => comp::Item::expect_from_asset(
-                                        "common.items.weapons.sword.greatsword_2h_fine-1",
-                                    ),
-                                    10 => comp::Item::expect_from_asset(
-                                        "common.items.weapons.hammer.cultist_purp_2h-0",
-                                    ),
-                                    11 => comp::Item::expect_from_asset(
-                                        "common.items.weapons.sword.cultist_purp_2h-0",
-                                    ),
-                                    12 => comp::Item::expect_from_asset(
-                                        "common.items.armor.back.dungeon_purple-0",
-                                    ),
-                                    _ => comp::Item::expect_from_asset(
-                                        "common.items.boss_drops.exp_flask",
-                                    ),
-                                });
+                                .with_loot_drop(assets::load_expect_cloned(chosen));
 
                             supplement.add_entity(entity);
                         }

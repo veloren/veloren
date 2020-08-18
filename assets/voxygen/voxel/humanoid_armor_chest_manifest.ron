@@ -134,6 +134,14 @@
             vox_spec: ("armor.chest.leather-2", (-7.0, -3.5, 2.0)),
             color: None
         ),
+        "Tarasque":(
+            vox_spec: ("armor.chest.tarasque", (-8.0, -4.5, 2.0)),
+            color: None
+        ),
+        "Bonerattler":(
+            vox_spec: ("armor.chest.bonerattler", (-7.0, -4.5, 2.0)),
+            color: None
+        ),
     },
 )
 )

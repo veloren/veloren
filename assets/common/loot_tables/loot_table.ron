@@ -1,0 +1,4 @@
+[
+    // Fallback loot table
+    (1, "common.items.food.cheese"),
+]

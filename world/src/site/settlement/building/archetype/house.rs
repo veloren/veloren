@@ -535,6 +535,7 @@ impl Archetype for House {
                             .noise
                             .chance(Vec3::new(center_offset.x, center_offset.y, z), 0.2)
                     {
+                        let mut rng = rand::thread_rng();
                         let furniture = match self.noise.get(Vec3::new(
                             center_offset.x,
                             center_offset.y,
@@ -545,7 +546,13 @@ impl Archetype for House {
                             1 => BlockKind::ChairSingle,
                             2 => BlockKind::ChairDouble,
                             3 => BlockKind::CoatRack,
-                            4 => BlockKind::Crate,
+                            4 => {
+                                if rng.gen_range(0, 8) == 0 {
+                                    BlockKind::Chest
+                                } else {
+                                    BlockKind::Crate
+                                }
+                            },
                             6 => BlockKind::DrawerMedium,
                             7 => BlockKind::DrawerSmall,
                             8 => BlockKind::TableSide,

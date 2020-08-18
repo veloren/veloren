@@ -1,0 +1,27 @@
+[
+    // belts
+    (0.50, "common.items.armor.belt.leather_0"),
+    (0.50, "common.items.armor.belt.leather_2"),
+    // chests
+    (0.50, "common.items.armor.chest.leather_0"),
+    (0.50, "common.items.armor.chest.leather_2"),
+    // shoes
+    (0.50, "common.items.armor.foot.leather_0"),
+    (0.50, "common.items.armor.foot.leather_2"),
+    // pants
+    (0.33, "common.items.armor.pants.leather_0"),
+    (0.33, "common.items.armor.pants.leather_2"),
+    (0.33, "common.items.armor.pants.hunting"),
+    // shoulders
+    (0.10, "common.items.armor.shoulder.leather_strips"),
+    (0.20, "common.items.armor.shoulder.leather_0"),
+    (0.20, "common.items.armor.shoulder.leather_1"),
+    (0.20, "common.items.armor.shoulder.leather_2"),
+    (0.07, "common.items.armor.shoulder.leather_iron_0"),
+    (0.07, "common.items.armor.shoulder.leather_iron_1"),
+    (0.07, "common.items.armor.shoulder.leather_iron_2"),
+    (0.07, "common.items.armor.shoulder.leather_iron_3"),
+    //gloves
+    (0.50, "common.items.armor.hand.leather_0"),
+    (0.50, "common.items.armor.hand.leather_2"),
+]
