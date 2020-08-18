@@ -33,7 +33,7 @@ pub struct ServerMetrics {
 }
 
 impl TickMetrics {
-    pub fn new(registry: &Registry, tick: Arc<AtomicU64>) -> Result<Self, Box<dyn Error>> {
+    pub fn new(tick: Arc<AtomicU64>) -> Result<Self, Box<dyn Error>> {
         let player_online = IntGauge::with_opts(Opts::new(
             "player_online",
             "shows the number of clients connected to the server",
@@ -74,15 +74,6 @@ impl TickMetrics {
             .expect("Time went backwards");
         start_time.set(since_the_epoch.as_secs().try_into()?);
 
-        registry.register(Box::new(player_online.clone()))?;
-        registry.register(Box::new(entity_count.clone()))?;
-        registry.register(Box::new(build_info.clone()))?;
-        registry.register(Box::new(start_time.clone()))?;
-        registry.register(Box::new(time_of_day.clone()))?;
-        registry.register(Box::new(chonks_count.clone()))?;
-        registry.register(Box::new(chunks_count.clone()))?;
-        registry.register(Box::new(tick_time.clone()))?;
-
         Ok(Self {
             chonks_count,
             chunks_count,
@@ -95,6 +86,18 @@ impl TickMetrics {
             light_count,
             tick,
         })
+    }
+
+    pub fn register(&self, registry: &Registry) -> Result<(), Box<dyn Error>> {
+        registry.register(Box::new(self.player_online.clone()))?;
+        registry.register(Box::new(self.entity_count.clone()))?;
+        registry.register(Box::new(self.build_info.clone()))?;
+        registry.register(Box::new(self.start_time.clone()))?;
+        registry.register(Box::new(self.time_of_day.clone()))?;
+        registry.register(Box::new(self.chonks_count.clone()))?;
+        registry.register(Box::new(self.chunks_count.clone()))?;
+        registry.register(Box::new(self.tick_time.clone()))?;
+        Ok(())
     }
 
     pub fn is_100th_tick(&self) -> bool { self.tick.load(Ordering::Relaxed).rem_euclid(100) == 0 }
