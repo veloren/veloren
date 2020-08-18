@@ -16,7 +16,18 @@ pub struct CharacterProfile {
 impl Default for CharacterProfile {
     fn default() -> Self {
         CharacterProfile {
-            hotbar_slots: [None; 10],
+            hotbar_slots: [
+                None,
+                None,
+                None,
+                None,
+                None,
+                Some(hud::HotbarSlotContents::Inventory(0)),
+                Some(hud::HotbarSlotContents::Inventory(1)),
+                None,
+                None,
+                None,
+            ],
         }
     }
 }
@@ -183,13 +194,35 @@ mod tests {
     fn test_get_slots_with_empty_profile() {
         let mut profile = Profile::default();
         let slots = profile.get_hotbar_slots("TestServer", 12345);
-        assert_eq!(slots, [None; 10])
+        assert_eq!(slots, [
+            None,
+            None,
+            None,
+            None,
+            None,
+            Some(hud::HotbarSlotContents::Inventory(0)),
+            Some(hud::HotbarSlotContents::Inventory(1)),
+            None,
+            None,
+            None,
+        ])
     }
 
     #[test]
     fn test_set_slots_with_empty_profile() {
         let mut profile = Profile::default();
-        let slots = [None; 10];
+        let slots = [
+            None,
+            None,
+            None,
+            None,
+            None,
+            Some(hud::HotbarSlotContents::Inventory(0)),
+            Some(hud::HotbarSlotContents::Inventory(1)),
+            None,
+            None,
+            None,
+        ];
         profile.set_hotbar_slots("TestServer", 12345, slots);
     }
 }
