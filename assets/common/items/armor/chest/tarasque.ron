@@ -1,0 +1,12 @@
+Item(
+    name: "Tarasque Cuirass",
+    description: "As strong as a tarasque shell.",
+    kind: Armor(
+        (
+            kind: Chest("Tarasque"),
+            stats: (
+                protection: Normal(25.0),
+            ),
+        )
+    ),
+)

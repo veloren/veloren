@@ -700,6 +700,7 @@ impl<'a> Widget for Skillbar<'a> {
             Some(ToolKind::Bow(_)) => self.imgs.bow_m2,
             Some(ToolKind::Staff(kind)) => match kind.as_ref() {
                 "Sceptre" => self.imgs.heal_0,
+                "SceptreVelorite" => self.imgs.heal_0,
                 _ => self.imgs.staff_m2,
             },
             Some(ToolKind::Debug(kind)) => match kind.as_ref() {
@@ -720,6 +721,13 @@ impl<'a> Widget for Skillbar<'a> {
             },
             Some(ToolKind::Staff(kind)) => match kind.as_ref() {
                 "Sceptre" => {
+                    if self.energy.current() as f64 >= 400.0 {
+                        Color::Rgba(1.0, 1.0, 1.0, 1.0)
+                    } else {
+                        Color::Rgba(0.3, 0.3, 0.3, 0.8)
+                    }
+                },
+                "SceptreVelorite" => {
                     if self.energy.current() as f64 >= 400.0 {
                         Color::Rgba(1.0, 1.0, 1.0, 1.0)
                     } else {

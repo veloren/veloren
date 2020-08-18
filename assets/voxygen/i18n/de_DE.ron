@@ -152,7 +152,8 @@ https://account.veloren.net.
         "hud.you_died": "Ihr seid gestorben.",
         "hud.waypoint_saved": "Wegpunkt gesichert",
         
-        "hud.press_key_to_show_keybindings_fmt": "Drückt {key} um die Tastenbelegung zu zeigen",
+        "hud.press_key_to_show_keybindings_fmt": "[{key}] Tastenbelegung",
+        "hud.press_key_to_toggle_lantern_fmt": "[{key}] Laterne",
         "hud.press_key_to_show_debug_info_fmt": "Drückt {key} um die Debug-Info zu zeigen",
         "hud.press_key_to_toggle_keybindings_fmt": "Drückt {key} um die Tastenbelegung zu zeigen",
         "hud.press_key_to_toggle_debug_info_fmt": "Drückt {key} um die Debug-Info zu zeigen",

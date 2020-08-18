@@ -92,5 +92,13 @@
             vox_spec: ("armor.pants.twigsflowers_pants", (-6.0, -3.5, 0.0)),
             color: None
         ),
+        "Tarasque":(
+            vox_spec: ("armor.pants.tarasque", (-6.0, -4.5, 1.0)),
+            color: None
+        ),
+        "Bonerattler":(
+            vox_spec: ("armor.pants.bonerattler", (-5.0, -3.5, 1.0)),
+            color: None
+        ),
     },
 ))

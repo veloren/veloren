@@ -1,0 +1,38 @@
+[
+    // belts
+    (0.33, "common.items.armor.belt.cloth_blue_0"),
+    (0.33, "common.items.armor.belt.cloth_green_0"),
+    (0.33, "common.items.armor.belt.cloth_purple_0"),
+    // chests
+    (0.08, "common.items.armor.chest.cloth_blue_0"),
+    (0.08, "common.items.armor.chest.cloth_green_0"),
+    (0.08, "common.items.armor.chest.cloth_purple_0"),
+    (0.08, "common.items.armor.chest.worker_green_0"),
+    (0.08, "common.items.armor.chest.worker_green_1"),
+    (0.08, "common.items.armor.chest.worker_orange_0"),
+    (0.08, "common.items.armor.chest.worker_orange_1"),
+    (0.08, "common.items.armor.chest.worker_purple_0"),
+    (0.08, "common.items.armor.chest.worker_purple_1"),
+    (0.08, "common.items.armor.chest.worker_red_0"),
+    (0.08, "common.items.armor.chest.worker_red_1"),
+    (0.08, "common.items.armor.chest.worker_yellow_0"),
+    (0.08, "common.items.armor.chest.worker_yellow_1"),
+    // shoes
+    (0.33, "common.items.armor.foot.cloth_blue_0"),
+    (0.33, "common.items.armor.foot.cloth_green_0"),
+    (0.33, "common.items.armor.foot.cloth_purple_0"),
+    // pants
+    (0.25, "common.items.armor.pants.cloth_blue_0"),
+    (0.25, "common.items.armor.pants.cloth_green_0"),
+    (0.25, "common.items.armor.pants.cloth_purple_0"),
+    (0.25, "common.items.armor.pants.worker_blue_0"),
+    // shoulders
+    (0.25, "common.items.armor.shoulder.cloth_blue_0"),
+    (0.25, "common.items.armor.shoulder.cloth_blue_1"),
+    (0.25, "common.items.armor.shoulder.cloth_green_0"),
+    (0.25, "common.items.armor.shoulder.cloth_purple_0"),
+    //gloves
+    (0.33, "common.items.armor.hand.cloth_blue_0"),
+    (0.33, "common.items.armor.hand.cloth_green_0"),
+    (0.33, "common.items.armor.hand.cloth_purple_0"),
+]

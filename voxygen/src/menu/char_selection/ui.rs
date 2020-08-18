@@ -44,9 +44,11 @@ widget_ids! {
         // Background and logo
         charlist_bg,
         charlist_frame,
+        charlist_bottom,
+        selection_bot,
         charlist_alignment,
         selection_scrollbar,
-        creation_bg,
+        creation_bot,
         creation_frame,
         creation_alignment,
         server_name_text,
@@ -180,8 +182,6 @@ widget_ids! {
 image_ids! {
     struct Imgs {
         <VoxelGraphic>
-        charlist_frame: "voxygen.element.frames.window_4",
-        server_frame: "voxygen.element.frames.server_frame",
 
         // Info Window
         info_frame: "voxygen.element.frames.info_frame",
@@ -192,6 +192,7 @@ image_ids! {
         delete_button_press: "voxygen.element.buttons.x_red_press",
 
         <ImageGraphic>
+        frame_bot: "voxygen.element.frames.banner_bot",
         selection: "voxygen.element.frames.selection",
         selection_hover: "voxygen.element.frames.selection_hover",
         selection_press: "voxygen.element.frames.selection_press",
@@ -210,8 +211,6 @@ image_ids! {
         staff: "voxygen.element.icons.staff",
 
         // Species Icons
-        male: "voxygen.element.icons.male",
-        female: "voxygen.element.icons.female",
         human_m: "voxygen.element.icons.human_m",
         human_f: "voxygen.element.icons.human_f",
         orc_m: "voxygen.element.icons.orc_m",
@@ -224,6 +223,7 @@ image_ids! {
         elf_f: "voxygen.element.icons.elf_f",
         danari_m: "voxygen.element.icons.danari_m",
         danari_f: "voxygen.element.icons.danari_f",
+        //unknown: "voxygen.element.icons.missing_icon_grey",
         // Icon Borders
         icon_border: "voxygen.element.buttons.border",
         icon_border_mo: "voxygen.element.buttons.border_mo",
@@ -447,6 +447,7 @@ impl CharSelectionUi {
         })
         .title_font_size(self.fonts.cyri.scale(15))
         .desc_font_size(self.fonts.cyri.scale(10))
+        .parent(ui_widgets.window)
         .font_id(self.fonts.cyri.conrod_id)
         .title_text_color(TEXT_COLOR)
         .desc_text_color(TEXT_COLOR_2);
@@ -600,26 +601,21 @@ impl CharSelectionUi {
                 };
 
                 // Background for Server Frame
-                Rectangle::fill_with([386.0, 95.0], color::rgba(0.0, 0.0, 0.0, 0.9))
+                Rectangle::fill_with([400.0, 95.0], color::rgba(0.0, 0.0, 0.0, 0.8))
                     .top_left_with_margins_on(ui_widgets.window, 30.0, 30.0)
                     .set(self.ids.server_frame_bg, ui_widgets);
-                Image::new(self.imgs.server_frame)
-                    .w_h(400.0, 100.0)
-                    .color(Some(UI_MAIN))
-                    .middle_of(self.ids.server_frame_bg)
-                    .set(self.ids.server_frame, ui_widgets);
 
                 // Background for Char List
-                Rectangle::fill_with([386.0, 788.0], color::rgba(0.0, 0.0, 0.0, 0.8))
-                    .down_from(self.ids.server_frame_bg, 20.0)
-                    .set(self.ids.charlist_bg, ui_widgets);
-                Image::new(self.imgs.charlist_frame)
-                    .w_h(400.0, 800.0)
-                    .middle_of(self.ids.charlist_bg)
-                    .color(Some(UI_MAIN))
+                Rectangle::fill_with([400.0, 800.0], color::rgba(0.0, 0.0, 0.0, 0.8))
+                    .down_from(self.ids.server_frame_bg, 5.0)
                     .set(self.ids.charlist_frame, ui_widgets);
-                Rectangle::fill_with([386.0, 783.0], color::TRANSPARENT)
-                    .middle_of(self.ids.charlist_bg)
+                Image::new(self.imgs.frame_bot)
+                    .w_h(400.0, 48.0)
+                    .down_from(self.ids.charlist_frame, 0.0)
+                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.8)))
+                    .set(self.ids.selection_bot, ui_widgets);
+                Rectangle::fill_with([386.0, 800.0], color::TRANSPARENT)
+                    .mid_top_with_margin_on(self.ids.charlist_frame, 2.0)
                     .scroll_kids()
                     .scroll_kids_vertically()
                     .set(self.ids.charlist_alignment, ui_widgets);
@@ -951,21 +947,21 @@ impl CharSelectionUi {
 
                 // Window
                 Rectangle::fill_with(
-                    [386.0, ui_widgets.win_h - ui_widgets.win_h * 0.2],
+                    [400.0, ui_widgets.win_h - ui_widgets.win_h * 0.15],
                     color::rgba(0.0, 0.0, 0.0, 0.8),
                 )
                 .top_left_with_margins_on(ui_widgets.window, 30.0, 30.0)
-                .set(self.ids.creation_bg, ui_widgets);
-                Image::new(self.imgs.charlist_frame)
-                    .w_h(400.0, ui_widgets.win_h - ui_widgets.win_h * 0.19)
-                    .middle_of(self.ids.creation_bg)
-                    .color(Some(UI_MAIN))
-                    .set(self.ids.charlist_frame, ui_widgets);
+                .set(self.ids.creation_frame, ui_widgets);
+                Image::new(self.imgs.frame_bot)
+                    .w_h(400.0, 48.0)
+                    .down_from(self.ids.creation_frame, 0.0)
+                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.8)))
+                    .set(self.ids.creation_bot, ui_widgets);
                 Rectangle::fill_with(
-                    [386.0, ui_widgets.win_h - ui_widgets.win_h * 0.19],
+                    [386.0, ui_widgets.win_h - ui_widgets.win_h * 0.15],
                     color::TRANSPARENT,
                 )
-                .middle_of(self.ids.creation_bg)
+                .mid_top_with_margin_on(self.ids.creation_frame, 10.0)
                 .scroll_kids_vertically()
                 .set(self.ids.creation_alignment, ui_widgets);
                 Scrollbar::y_axis(self.ids.creation_alignment)
@@ -974,19 +970,29 @@ impl CharSelectionUi {
                     .rgba(0.33, 0.33, 0.33, 1.0)
                     .set(self.ids.selection_scrollbar, ui_widgets);
 
-                // Male/Female/Species Icons
-                Text::new(&self.voxygen_i18n.get("char_selection.character_creation"))
-                    .mid_top_with_margin_on(self.ids.creation_alignment, 10.0)
-                    .font_size(self.fonts.cyri.scale(24))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(self.ids.bodyspecies_text, ui_widgets);
+                // BodyType/Species Icons
+                let body_m_ico = match body.species {
+                    humanoid::Species::Human => self.imgs.human_m,
+                    humanoid::Species::Orc => self.imgs.orc_m,
+                    humanoid::Species::Dwarf => self.imgs.dwarf_m,
+                    humanoid::Species::Elf => self.imgs.elf_m,
+                    humanoid::Species::Undead => self.imgs.undead_m,
+                    humanoid::Species::Danari => self.imgs.danari_m,
+                };
+                let body_f_ico = match body.species {
+                    humanoid::Species::Human => self.imgs.human_f,
+                    humanoid::Species::Orc => self.imgs.orc_f,
+                    humanoid::Species::Dwarf => self.imgs.dwarf_f,
+                    humanoid::Species::Elf => self.imgs.elf_f,
+                    humanoid::Species::Undead => self.imgs.undead_f,
+                    humanoid::Species::Danari => self.imgs.danari_f,
+                };
                 // Alignment
                 Rectangle::fill_with([140.0, 72.0], color::TRANSPARENT)
                     .mid_top_with_margin_on(self.ids.creation_alignment, 60.0)
                     .set(self.ids.creation_buttons_alignment_1, ui_widgets);
-                // Male
-                Image::new(self.imgs.male)
+                // Bodytype M
+                Image::new(body_m_ico)
                     .w_h(70.0, 70.0)
                     .top_left_with_margins_on(self.ids.creation_buttons_alignment_1, 0.0, 0.0)
                     .set(self.ids.male, ui_widgets);
@@ -1004,8 +1010,8 @@ impl CharSelectionUi {
                     body.body_type = humanoid::BodyType::Male;
                     body.validate();
                 }
-                // Female
-                Image::new(self.imgs.female)
+                // Bodytype F
+                Image::new(body_f_ico)
                     .w_h(70.0, 70.0)
                     .top_right_with_margins_on(self.ids.creation_buttons_alignment_1, 0.0, 0.0)
                     .set(self.ids.female, ui_widgets);

@@ -1,0 +1,12 @@
+Item(
+    name: "Bonerattler Cuirass",
+    description: "Made from the strongest bones.",
+    kind: Armor(
+        (
+            kind: Chest("Bonerattler"),
+            stats: (
+                protection: Normal(25.0),
+            ),
+        )
+    ),
+)

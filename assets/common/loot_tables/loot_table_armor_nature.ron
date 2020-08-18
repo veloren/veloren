@@ -1,0 +1,32 @@
+[
+    // belts
+    (0.40, "common.items.armor.belt.druid"),
+    (0.20, "common.items.armor.belt.twig"),
+    (0.20, "common.items.armor.belt.twigsflowers"),
+    (0.20, "common.items.armor.belt.twigsleaves"),
+    // chests
+    (0.40, "common.items.armor.chest.druid"),
+    (0.20, "common.items.armor.chest.twig"),
+    (0.20, "common.items.armor.chest.twigsflowers"),
+    (0.20, "common.items.armor.chest.twigsleaves"),
+    // shoes
+    (0.40, "common.items.armor.foot.druid"),
+    (0.20, "common.items.armor.foot.twig"),
+    (0.20, "common.items.armor.foot.twigsflowers"),
+    (0.20, "common.items.armor.foot.twigsleaves"),
+    // pants
+    (0.40, "common.items.armor.pants.druid"),
+    (0.20, "common.items.armor.pants.twig"),
+    (0.20, "common.items.armor.pants.twigsflowers"),
+    (0.20, "common.items.armor.pants.twigsleaves"),
+    // shoulders
+    (0.40, "common.items.armor.shoulder.druidshoulder"),
+    (0.20, "common.items.armor.shoulder.twigs"),
+    (0.20, "common.items.armor.shoulder.twigsflowers"),
+    (0.20, "common.items.armor.shoulder.twigsleaves"),
+    //gloves
+    (0.40, "common.items.armor.hand.druid"),
+    (0.20, "common.items.armor.hand.twig"),
+    (0.20, "common.items.armor.hand.twigsflowers"),
+    (0.20, "common.items.armor.hand.twigsleaves"),
+]

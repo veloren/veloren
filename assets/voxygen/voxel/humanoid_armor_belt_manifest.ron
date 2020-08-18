@@ -76,5 +76,13 @@
             vox_spec: ("armor.belt.twigsflowers_belt", (-4.0, -3.5, -1.0)),
             color: None
         ),
+        "Tarasque":(
+            vox_spec: ("armor.belt.tarasque", (-5.0, -3.5, 2.0)),
+            color: None
+        ),
+        "Bonerattler":(
+            vox_spec: ("armor.belt.bonerattler", (-5.0, -4.5, 2.0)),
+            color: None
+        ),
     },
 ))

@@ -1,0 +1,10 @@
+[
+    // rings
+    (0.50, "common.items.armor.ring.ring_0"),
+    // capes
+    (0.25, "common.items.armor.back.short_0"),
+    (0.25, "common.items.armor.back.short_1"),
+    // necks
+    (0.25, "common.items.armor.neck.neck_0"),
+    (0.25, "common.items.armor.neck.neck_1"),
+]

@@ -227,8 +227,27 @@ impl Tool {
                             buildup_duration: Duration::from_millis(0),
                             recover_duration: Duration::from_millis(1000),
                             base_healthchange: (150.0 * self.base_power()) as i32,
-                            range: 10.0,
-                            max_angle: 45.0,
+                            range: 100.0,
+                            max_angle: 90.0,
+                        },
+                    ]
+                } else if kind == "SceptreVelorite" {
+                    vec![
+                        BasicMelee {
+                            energy_cost: 0,
+                            buildup_duration: Duration::from_millis(0),
+                            recover_duration: Duration::from_millis(300),
+                            base_healthchange: (-10.0 * self.base_power()) as i32,
+                            range: 5.0,
+                            max_angle: 20.0,
+                        },
+                        BasicMelee {
+                            energy_cost: 350,
+                            buildup_duration: Duration::from_millis(0),
+                            recover_duration: Duration::from_millis(1000),
+                            base_healthchange: (150.0 * self.base_power()) as i32,
+                            range: 100.0,
+                            max_angle: 90.0,
                         },
                     ]
                 } else {

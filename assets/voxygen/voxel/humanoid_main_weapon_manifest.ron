@@ -543,8 +543,12 @@
         color: None
     ),
     // Healing staff
-     Staff("Sceptre"): (
+    Staff("Sceptre"): (
         vox_spec: ("weapon.staff.wood-nature", (-1.0, -6.0, -5.0)),
+        color: None
+    ),
+    Staff("SceptreVelorite"): (
+        vox_spec: ("weapon.staff.ore-nature", (-1.0, -6.0, -5.0)),
         color: None
     ),
     // Misc

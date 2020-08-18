@@ -29,7 +29,7 @@ pub struct Colors {
 fn close(x: f32, tgt: f32, falloff: f32) -> f32 {
     (1.0 - (x - tgt).abs() / falloff).max(0.0).powf(0.5)
 }
-const MUSH_FACT: f32 = 0.001; // To balance everything around the mushroom spawning rate
+const MUSH_FACT: f32 = 0.0001; // To balance everything around the mushroom spawning rate
 pub fn apply_scatter_to<'a>(
     wpos2d: Vec2<i32>,
     mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
@@ -130,10 +130,10 @@ pub fn apply_scatter_to<'a>(
         // Collecable Objects
         // Only spawn twigs in temperate forests
         (Twigs, false, |c| {
-            ((c.tree_density - 0.5).max(0.0) * MUSH_FACT, None)
+            ((c.tree_density - 0.5).max(0.0) * MUSH_FACT *0.5, None)
         }),
         (Stones, false, |c| {
-            ((c.rockiness - 0.5).max(0.0) * MUSH_FACT, None)
+            ((c.rockiness - 0.5).max(0.0) * MUSH_FACT *0.5, None)
         }),
         // Don't spawn Mushrooms in snowy regions
         (Mushroom, false, |c| {
@@ -145,30 +145,41 @@ pub fn apply_scatter_to<'a>(
         // Grass
         (ShortGrass, false, |c| {
             (
-                close(c.temp, 0.0, 0.6).min(close(c.humidity, CONFIG.forest_hum, 0.35)) * 0.05,
-                Some((48.0, 0.7)),
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, 0.6, 0.35)) * 0.5,
+                Some((48.0, 0.4)),
             )
         }),
         (MediumGrass, false, |c| {
             (
-                close(c.temp, 0.0, 0.5).min(close(c.humidity, CONFIG.forest_hum, 0.35)) * 0.05,
-                Some((48.0, 0.4)),
+                close(c.temp, 0.0, 0.6).min(close(c.humidity, 0.6, 0.35)) * 0.5,
+                Some((48.0, 0.2)),
             )
         }),
         (LongGrass, false, |c| {
             (
-                close(c.temp, 0.4, 0.5).min(close(c.humidity, CONFIG.forest_hum, 0.2)) * 0.05,
-                Some((48.0, 0.5)),
+                close(c.temp, 0.4, 0.4).min(close(c.humidity, 0.8, 0.2)) * 0.5,
+                Some((48.0, 0.1)),
             )
         }),
-        (WheatGreen, false, |c| {
+        // Jungle Sprites
+        (LongGrass, false, |c| {
+            (
+                close(c.temp, CONFIG.tropical_temp, 0.4).min(close(
+                    c.humidity,
+                    CONFIG.jungle_hum,
+                    0.6,
+                )) * 0.5,
+                Some((60.0, 5.0)),
+            )
+        }),
+        /*(WheatGreen, false, |c| {
             (
                 close(c.temp, 0.4, 0.2).min(close(c.humidity, CONFIG.forest_hum, 0.1))
                     * MUSH_FACT
                     * 0.001,
                 None,
             )
-        }),
+        }),*/
         (GrassSnow, false, |c| {
             (
                 close(c.temp, CONFIG.snow_temp - 0.2, 0.4).min(close(
@@ -186,8 +197,8 @@ pub fn apply_scatter_to<'a>(
                     c.humidity,
                     CONFIG.desert_hum,
                     0.3,
-                )) * MUSH_FACT
-                    * 0.01,
+                )) * MUSH_FACT* 0.1,
+                    
                 None,
             )
         }),
@@ -197,19 +208,19 @@ pub fn apply_scatter_to<'a>(
                     c.humidity,
                     CONFIG.desert_hum,
                     0.2,
-                )) * MUSH_FACT
-                    * 0.01,
+                )) * MUSH_FACT* 0.1,
+                    
                 None,
             )
         }),
-        (BarrelCactus, false, |c| {
+        /*(BarrelCactus, false, |c| {
             (
                 close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
                     c.humidity,
                     CONFIG.desert_hum,
                     0.2,
                 )) * MUSH_FACT
-                    * 0.01,
+                    * 0.1,
                 None,
             )
         }),
@@ -220,7 +231,7 @@ pub fn apply_scatter_to<'a>(
                     CONFIG.desert_hum,
                     0.2,
                 )) * MUSH_FACT
-                    * 0.01,
+                * 0.1,
                 None,
             )
         }),
@@ -231,7 +242,7 @@ pub fn apply_scatter_to<'a>(
                     CONFIG.desert_hum,
                     0.2,
                 )) * MUSH_FACT
-                    * 0.01,
+                * 0.1,
                 None,
             )
         }),
@@ -242,7 +253,7 @@ pub fn apply_scatter_to<'a>(
                     CONFIG.desert_hum,
                     0.2,
                 )) * MUSH_FACT
-                    * 0.01,
+                * 0.1,
                 None,
             )
         }),
@@ -253,10 +264,10 @@ pub fn apply_scatter_to<'a>(
                     CONFIG.desert_hum,
                     0.2,
                 )) * MUSH_FACT
-                    * 0.01,
+                * 0.1,
                 None,
             )
-        }),
+        }),*/
     ];
 
     for y in 0..vol.size_xy().y as i32 {

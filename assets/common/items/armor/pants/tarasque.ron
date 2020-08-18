@@ -1,0 +1,12 @@
+Item(
+    name: "Tarasque Chausses",
+    description: "As strong as a tarasque shell.",
+    kind: Armor(
+        (
+            kind: Pants("Tarasque"),
+            stats: (
+                protection: Normal(20.0),
+            ),
+        )
+    ),
+)

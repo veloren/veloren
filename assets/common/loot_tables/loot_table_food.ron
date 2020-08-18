@@ -1,0 +1,11 @@
+[
+    // simple
+    (3, "common.items.food.cheese"),
+    (3, "common.items.food.apple"),
+    (3, "common.items.food.mushroom"),
+    (1, "common.items.food.coconut"),
+    // crafted
+    (0.05, "common.items.food.apple_mushroom_curry"),
+    (0.10, "common.items.food.apple_stick"),
+    (0.10, "common.items.food.mushroom_stick"),
+]
