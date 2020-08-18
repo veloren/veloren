@@ -37,7 +37,13 @@ let
         alsa-sys = _: { buildInputs = [ pkg-config alsaLib ]; };
         veloren-common = _: { NIX_GIT_HASH = gitHash; };
         veloren-network = _: { buildInputs = [ pkg-config openssl ]; };
-        veloren-voxygen = _: { buildInputs = [ atk cairo glib gtk3 pango ]; };
+        veloren-voxygen = _: {
+          buildInputs = [ atk cairo glib gtk3 pango ];
+          nativeBuildInputs = [ makeWrapper ];
+          postInstall = ''
+            wrapProgram $out/bin/veloren-voxygen --set LD_LIBRARY_PATH ${xorg.libX11}/lib
+          '';
+        };
       };
       inherit release pkgs nixpkgs;
     };
