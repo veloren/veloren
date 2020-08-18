@@ -316,12 +316,17 @@ lazy_static! {
             }
         }
 
+        tracing::trace!("Possible asset locations paths={:?}", paths);
+
         for path in paths.clone() {
             match find_folder::Search::ParentsThenKids(3, 1)
                 .of(path)
                 .for_folder("assets")
             {
-                Ok(assets_path) => return assets_path,
+                Ok(assets_path) => {
+                    tracing::info!("Assets located path={}", assets_path.display());
+                    return assets_path;
+                },
                 Err(_) => continue,
             }
         }
