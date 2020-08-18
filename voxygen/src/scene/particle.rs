@@ -157,7 +157,7 @@ impl ParticleMgr {
                 Duration::from_secs(10),
                 time,
                 ParticleMode::CampfireSmoke,
-                pos.0,
+                pos.0.map(|e| e + thread_rng().gen_range(-0.5, 0.5)),
             ));
         }
     }
@@ -272,18 +272,18 @@ impl ParticleMgr {
         });
 
         type BoiFn<'a> = fn(&'a BlocksOfInterest) -> &'a [Vec3<i32>];
-        let particles: &[(BoiFn, _, _, _)] = &[
-            (|boi| &boi.leaves, 0.002, 30.0, ParticleMode::Leaf),
-            (|boi| &boi.embers, 20.0, 0.25, ParticleMode::CampfireFire),
-            (|boi| &boi.embers, 6.0, 30.0, ParticleMode::CampfireSmoke),
+        // blocks, chunk range, emission density, lifetime, particle mode
+        let particles: &[(BoiFn, usize, f32, f32, ParticleMode)] = &[
+            (|boi| &boi.leaves, 4, 0.001, 30.0, ParticleMode::Leaf),
+            (|boi| &boi.embers, 2, 20.0, 0.25, ParticleMode::CampfireFire),
+            (|boi| &boi.embers, 8, 6.0, 30.0, ParticleMode::CampfireSmoke),
         ];
 
-        const RANGE: usize = 4;
-        for offset in Spiral2d::new().take((RANGE * 2 + 1).pow(2)) {
-            let chunk_pos = player_chunk + offset;
+        for (get_blocks, range, rate, dur, mode) in particles.iter() {
+            for offset in Spiral2d::new().take((*range * 2 + 1).pow(2)) {
+                let chunk_pos = player_chunk + offset;
 
-            terrain.get(chunk_pos).map(|chunk_data| {
-                for (get_blocks, rate, dur, mode) in particles.iter() {
+                terrain.get(chunk_pos).map(|chunk_data| {
                     let blocks = get_blocks(&chunk_data.blocks_of_interest);
 
                     let avg_particles = dt * blocks.len() as f32 * *rate;
@@ -302,8 +302,8 @@ impl ParticleMgr {
                             block_pos.map(|e: i32| e as f32 + thread_rng().gen::<f32>()),
                         ));
                     }
-                }
-            });
+                });
+            }
         }
     }
 
