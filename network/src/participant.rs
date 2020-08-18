@@ -206,13 +206,11 @@ impl BParticipant {
         #[cfg(feature = "metrics")]
         let mut send_cache =
             PidCidFrameCache::new(self.metrics.frames_out_total.clone(), self.remote_pid);
+        let mut i: u64 = 0;
         loop {
             let mut frames = VecDeque::new();
             prios.fill_frames(FRAMES_PER_TICK, &mut frames).await;
             let len = frames.len();
-            if len > 0 {
-                trace!("Tick {}", len);
-            }
             for (_, frame) in frames {
                 self.send_frame(
                     frame,
@@ -226,6 +224,10 @@ impl BParticipant {
                 .await
                 .unwrap();
             async_std::task::sleep(TICK_TIME).await;
+            i += 1;
+            if i.rem_euclid(1000) == 0 {
+                trace!("Did 1000 ticks");
+            }
             //shutdown after all msg are send!
             if closing_up && (len == 0) {
                 break;
