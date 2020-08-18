@@ -1019,11 +1019,11 @@ impl Scene {
         );
         self.lod.render(renderer, global);
 
-        // Render particle effects.
-        self.particle_mgr.render(renderer, scene_data, global, lod);
-
         // Render the skybox.
         renderer.render_skybox(&self.skybox.model, global, &self.skybox.locals, lod);
+
+        // Render particle effects.
+        self.particle_mgr.render(renderer, scene_data, global, lod);
 
         self.terrain.render_translucent(
             renderer,

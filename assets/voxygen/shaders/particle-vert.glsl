@@ -104,7 +104,7 @@ void main() {
 		attr = Attr(
 			linear_motion(
 				vec3(0.0, 0.0, 0.0),
-				vec3(rand2 * 0.1, rand3 * 0.1, 1.0 + rand4 * 0.1)// + vec3(sin(lifetime), sin(lifetime + 1.5), sin(lifetime * 4) * 0.25)
+				vec3(rand2 * 0.02, rand3 * 0.02, 1.0 + rand4 * 0.1)// + vec3(sin(lifetime), sin(lifetime + 1.5), sin(lifetime * 4) * 0.25)
 			),
 			linear_scale(0.5),
 			vec4(1, 1, 1, 0.3),
@@ -212,7 +212,7 @@ void main() {
 		);
 	}
 
-	f_pos = (inst_pos - focus_off.xyz) + (v_pos * attr.scale * SCALE * attr.rot + attr.offs);
+	f_pos = (inst_pos - 0.5 - focus_off.xyz) + (v_pos * attr.scale * SCALE * attr.rot + attr.offs);
 
 	// First 3 normals are negative, next 3 are positive
 	vec3 normals[6] = vec3[](vec3(-1,0,0), vec3(1,0,0), vec3(0,-1,0), vec3(0,1,0), vec3(0,0,-1), vec3(0,0,1));
