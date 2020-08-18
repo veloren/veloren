@@ -1,4 +1,4 @@
-use super::SceneData;
+use super::{terrain::BlocksOfInterest, SceneData, Terrain};
 use crate::{
     mesh::{greedy::GreedyMesh, Meshable},
     render::{
@@ -11,10 +11,14 @@ use common::{
     comp::{item::Reagent, object, Body, CharacterState, Pos},
     figure::Segment,
     outcome::Outcome,
+    spiral::Spiral2d,
+    state::DeltaTime,
+    terrain::TerrainChunk,
+    vol::RectRasterableVol,
 };
 use dot_vox::DotVoxData;
 use hashbrown::HashMap;
-use rand::Rng;
+use rand::prelude::*;
 use specs::{Join, WorldExt};
 use std::time::Duration;
 use vek::*;
@@ -83,7 +87,12 @@ impl ParticleMgr {
         }
     }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer, scene_data: &SceneData) {
+    pub fn maintain(
+        &mut self,
+        renderer: &mut Renderer,
+        scene_data: &SceneData,
+        terrain: &Terrain<TerrainChunk>,
+    ) {
         if scene_data.particles_enabled {
             // update timings
             self.scheduler.maintain(scene_data.state.get_time());
@@ -95,6 +104,7 @@ impl ParticleMgr {
             // add new Particle
             self.maintain_body_particles(scene_data);
             self.maintain_boost_particles(scene_data);
+            self.maintain_block_particles(scene_data, terrain);
         } else {
             // remove all particle lifespans
             self.particles.clear();
@@ -242,6 +252,58 @@ impl ParticleMgr {
                     ),
                 );
             }
+        }
+    }
+
+    #[allow(clippy::same_item_push)] // TODO: Pending review in #587
+    fn maintain_block_particles(
+        &mut self,
+        scene_data: &SceneData,
+        terrain: &Terrain<TerrainChunk>,
+    ) {
+        let dt = scene_data.state.ecs().fetch::<DeltaTime>().0;
+        let time = scene_data.state.get_time();
+        let player_pos = scene_data
+            .state
+            .read_component_cloned::<Pos>(scene_data.player_entity)
+            .unwrap_or_default();
+        let player_chunk = player_pos.0.xy().map2(TerrainChunk::RECT_SIZE, |e, sz| {
+            (e.floor() as i32).div_euclid(sz as i32)
+        });
+
+        type BoiFn<'a> = fn(&'a BlocksOfInterest) -> &'a [Vec3<i32>];
+        let particles: &[(BoiFn, _, _, _)] = &[
+            (|boi| &boi.leaves, 0.005, 30.0, ParticleMode::Leaf),
+            (|boi| &boi.embers, 20.0, 0.25, ParticleMode::CampfireFire),
+            (|boi| &boi.embers, 6.0, 30.0, ParticleMode::CampfireSmoke),
+        ];
+
+        const RANGE: usize = 4;
+        for offset in Spiral2d::new().take((RANGE * 2 + 1).pow(2)) {
+            let chunk_pos = player_chunk + offset;
+
+            terrain.get(chunk_pos).map(|chunk_data| {
+                for (get_blocks, rate, dur, mode) in particles.iter() {
+                    let blocks = get_blocks(&chunk_data.blocks_of_interest);
+
+                    let avg_particles = dt * blocks.len() as f32 * *rate;
+                    let particle_count = avg_particles.trunc() as usize
+                        + (thread_rng().gen::<f32>() < avg_particles.fract()) as usize;
+
+                    for _ in 0..particle_count {
+                        let block_pos =
+                            Vec3::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32))
+                                + blocks.choose(&mut thread_rng()).copied().unwrap(); // Can't fail
+
+                        self.particles.push(Particle::new(
+                            Duration::from_secs_f32(*dur),
+                            time,
+                            *mode,
+                            block_pos.map(|e: i32| e as f32 + 0.5),
+                        ));
+                    }
+                }
+            });
         }
     }
 

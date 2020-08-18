@@ -18,7 +18,7 @@
 
 in vec3 f_pos;
 flat in vec3 f_norm;
-in vec3 f_col;
+in vec4 f_col;
 
 out vec4 tgt_color;
 
@@ -50,7 +50,7 @@ void main() {
     DirectionalLight sun_info = get_sun_info(sun_dir, point_shadow * sun_shade_frac, f_pos);
     DirectionalLight moon_info = get_moon_info(moon_dir, point_shadow * moon_shade_frac);
 
-	vec3 surf_color = f_col;
+	vec3 surf_color = f_col.rgb;
     float alpha = 1.0;
     const float n2 = 1.5;
     const float R_s2s0 = pow((1.0 - n2) / (1.0 + n2), 2);
@@ -82,5 +82,5 @@ void main() {
     vec3 color = surf_color;
 #endif
 
-	tgt_color = vec4(color, 0.3);
+	tgt_color = vec4(color, f_col.a);
 }
