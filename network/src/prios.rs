@@ -16,8 +16,6 @@ use futures::channel::oneshot;
 use std::collections::{HashMap, HashSet, VecDeque};
 #[cfg(feature = "metrics")] use std::sync::Arc;
 
-use tracing::*;
-
 const PRIO_MAX: usize = 64;
 
 #[derive(Default)]
@@ -148,11 +146,8 @@ impl PrioManager {
 
     async fn tick(&mut self) {
         // Check Range
-        let mut messages = 0;
-        let mut closed = 0;
         for (prio, sid, msg) in self.messages_rx.try_iter() {
             debug_assert!(prio as usize <= PRIO_MAX);
-            messages += 1;
             #[cfg(feature = "metrics")]
             {
                 let sid_string = sid.to_string();
@@ -173,7 +168,11 @@ impl PrioManager {
         }
         //this must be AFTER messages
         for (sid, return_sender) in self.sid_flushed_rx.try_iter() {
-            closed += 1;
+            #[cfg(feature = "metrics")]
+            self.metrics
+                .streams_flushed
+                .with_label_values(&[&self.pid])
+                .inc();
             if let Some(cnt) = self.sid_owned.get_mut(&sid) {
                 // register sender
                 cnt.empty_notify = Some(return_sender);
@@ -181,9 +180,6 @@ impl PrioManager {
                 // return immediately
                 return_sender.send(()).unwrap();
             }
-        }
-        if messages > 0 || closed > 0 {
-            trace!(?messages, ?closed, "tick");
         }
     }
 
@@ -256,7 +252,6 @@ impl PrioManager {
                             }
                         }
                     } else {
-                        trace!(?msg.mid, "Repush message");
                         self.messages[prio as usize].push_front((sid, msg));
                     }
                 },

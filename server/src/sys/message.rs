@@ -25,6 +25,7 @@ use hashbrown::HashMap;
 use specs::{
     Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteExpect, WriteStorage,
 };
+use tracing::{debug, error, info, warn};
 
 impl Sys {
     ///We needed to move this to a async fn, if we would use a async closures
@@ -267,17 +268,13 @@ impl Sys {
                                     let msg = mode.new_message(*from, message);
                                     new_chat_msgs.push((Some(entity), msg));
                                 } else {
-                                    tracing::error!("Could not send message. Missing player uid");
+                                    error!("Could not send message. Missing player uid");
                                 }
                             },
                             Err(ChatMsgValidationError::TooLong) => {
                                 let max = MAX_BYTES_CHAT_MSG;
                                 let len = message.len();
-                                tracing::warn!(
-                                    ?len,
-                                    ?max,
-                                    "Recieved a chat message that's too long"
-                                )
+                                warn!(?len, ?max, "Recieved a chat message that's too long")
                             },
                         }
                     },
@@ -342,7 +339,9 @@ impl Sys {
                     client.notify(ServerMsg::Disconnect);
                 },
                 ClientMsg::Terminate => {
+                    debug!(?entity, "Client send message to termitate session");
                     server_emitter.emit(ServerEvent::ClientDisconnect(entity));
+                    break Ok(());
                 },
                 ClientMsg::RequestCharacterList => {
                     if let Some(player) = players.get(entity) {
@@ -351,11 +350,7 @@ impl Sys {
                 },
                 ClientMsg::CreateCharacter { alias, tool, body } => {
                     if let Err(error) = alias_validator.validate(&alias) {
-                        tracing::debug!(
-                            ?error,
-                            ?alias,
-                            "denied alias as it contained a banned word"
-                        );
+                        debug!(?error, ?alias, "denied alias as it contained a banned word");
                         client.notify(ServerMsg::CharacterActionError(error.to_string()));
                     } else if let Some(player) = players.get(entity) {
                         character_loader.create_character(
@@ -522,10 +517,15 @@ impl<'a> System<'a> for Sys {
             // Update client ping.
             if cnt > 0 {
                 client.last_ping = time.0
-            } else if time.0 - client.last_ping > CLIENT_TIMEOUT // Timeout
-                || network_err.is_err()
+            } else if time.0 - client.last_ping > CLIENT_TIMEOUT
+            // Timeout
+            {
+                info!(?entity, "timeout error with client, disconnecting");
+                server_emitter.emit(ServerEvent::ClientDisconnect(entity));
+            } else if network_err.is_err()
             // Postbox error
             {
+                debug!(?entity, "postbox error with client, disconnecting");
                 server_emitter.emit(ServerEvent::ClientDisconnect(entity));
             } else if time.0 - client.last_ping > CLIENT_TIMEOUT * 0.5 {
                 // Try pinging the client if the timeout is nearing.
