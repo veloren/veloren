@@ -942,7 +942,8 @@ impl Scene {
         self.figure_mgr.clean(scene_data.tick);
 
         // Maintain the particles.
-        self.particle_mgr.maintain(renderer, &scene_data);
+        self.particle_mgr
+            .maintain(renderer, &scene_data, &self.terrain);
 
         // Maintain audio
         self.sfx_mgr.maintain(

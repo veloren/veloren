@@ -26,7 +26,7 @@ in int inst_mode;
 
 out vec3 f_pos;
 flat out vec3 f_norm;
-out vec3 f_col;
+out vec4 f_col;
 out float f_ao;
 out float f_light;
 
@@ -43,6 +43,7 @@ const int FIREWORK_GREEN = 5;
 const int FIREWORK_PURPLE = 6;
 const int FIREWORK_RED = 7;
 const int FIREWORK_YELLOW = 8;
+const int LEAF = 9;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -50,7 +51,7 @@ const float earth_gravity = 9.807;
 struct Attr {
 	vec3 offs;
 	float scale;
-	vec3 col;
+	vec4 col;
 };
 
 float lifetime = tick.x - inst_time;
@@ -90,7 +91,7 @@ void main() {
 				vec3(rand2 * 0.1, rand3 * 0.1, 1.0 + rand4 * 0.1)// + vec3(sin(lifetime), sin(lifetime + 1.5), sin(lifetime * 4) * 0.25)
 			),
 			linear_scale(0.5),
-			vec3(1)
+			vec4(1, 1, 1, 0.3)
 		);
 	} else if (inst_mode == FIRE) {
 		attr = Attr(
@@ -99,7 +100,7 @@ void main() {
 				vec3(rand2 * 0.1, rand3 * 0.1, 2.0 + rand4 * 1.0)
 			),
 			1.0,
-			vec3(2, rand5 + 2, 0)
+			vec4(2, 0.8 + rand5 * 0.3, 0, 1)
 		);
 	} else if (inst_mode == GUN_POWDER_SPARK) {
 		attr = Attr(
@@ -108,7 +109,7 @@ void main() {
 				vec3(rand4, rand5, rand6) * 2.0 + grav_vel(earth_gravity)
 			),
 			1.0,
-			vec3(3.5, 3 + rand7, 0)
+			vec4(3.5, 3 + rand7, 0, 1)
 		);
 	} else if (inst_mode == SHRAPNEL) {
 		attr = Attr(
@@ -117,7 +118,7 @@ void main() {
 				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
 			),
 			3.0 + rand0,
-			vec3(0.6 + rand7 * 0.4)
+			vec4(vec3(0.6 + rand7 * 0.4), 1)
 		);
 	} else if (inst_mode == FIREWORK_BLUE) {
 		attr = Attr(
@@ -126,7 +127,7 @@ void main() {
 				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
 			),
 			3.0 + rand0,
-			vec3(0.6 + rand7 * 0.4)
+			vec4(vec3(0.6 + rand7 * 0.4), 0.3)
 		);
 	} else if (inst_mode == FIREWORK_GREEN) {
 		attr = Attr(
@@ -135,7 +136,7 @@ void main() {
 				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
 			),
 			3.0 + rand0,
-			vec3(0.6 + rand7 * 0.4)
+			vec4(vec3(0.6 + rand7 * 0.4), 0.3)
 		);
 	} else if (inst_mode == FIREWORK_PURPLE) {
 		attr = Attr(
@@ -144,7 +145,7 @@ void main() {
 				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
 			),
 			3.0 + rand0,
-			vec3(0.6 + rand7 * 0.4)
+			vec4(vec3(0.6 + rand7 * 0.4), 0.3)
 		);
 	} else if (inst_mode == FIREWORK_RED) {
 		attr = Attr(
@@ -153,7 +154,7 @@ void main() {
 				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
 			),
 			3.0 + rand0,
-			vec3(0.6 + rand7 * 0.4)
+			vec4(vec3(0.6 + rand7 * 0.4), 0.3)
 		);
 	} else if (inst_mode == FIREWORK_YELLOW) {
 		attr = Attr(
@@ -162,7 +163,16 @@ void main() {
 				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
 			),
 			3.0 + rand0,
-			vec3(0.6 + rand7 * 0.4)
+			vec4(vec3(0.6 + rand7 * 0.4), 0.3)
+		);
+	} else if (inst_mode == LEAF) {
+		attr = Attr(
+			linear_motion(
+				vec3(1.0, 1.0, 0.0),
+				vec3(0, 0, -2.0)
+			) + vec3(sin(lifetime), sin(lifetime + 0.7), sin(lifetime * 0.5)) * 2.0,
+			4,
+			vec4(vec3(0.2 + rand7 * 0.2, 0.2 + (0.5 + rand6 * 0.5) * 0.6, 0), 1)
 		);
 	} else {
 		attr = Attr(
@@ -171,7 +181,7 @@ void main() {
 				vec3(rand2 * 0.1, rand3 * 0.1, 1.0 + rand4 * 0.5)
 			),
 			exp_scale(-0.2),
-			vec3(1)
+			vec4(1)
 		);
 	}
 
@@ -179,14 +189,12 @@ void main() {
 
 	// First 3 normals are negative, next 3 are positive
 	vec3 normals[6] = vec3[](vec3(-1,0,0), vec3(1,0,0), vec3(0,-1,0), vec3(0,1,0), vec3(0,0,-1), vec3(0,0,1));
-	f_norm = 
+	f_norm =
 		// inst_pos *
 		normals[(v_norm_ao >> 0) & 0x7u];
 
 	//vec3 col = vec3((uvec3(v_col) >> uvec3(0, 8, 16)) & uvec3(0xFFu)) / 255.0;
-	f_col = 
-		//srgb_to_linear(col) * 
-		srgb_to_linear(attr.col);
+	f_col = vec4(srgb_to_linear(attr.col.rgb), attr.col.a);
 
 	gl_Position =
 		all_mat *

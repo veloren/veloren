@@ -88,6 +88,7 @@ impl Vertex {
     }
 }
 
+#[derive(Copy, Clone)]
 pub enum ParticleMode {
     CampfireSmoke = 0,
     CampfireFire = 1,
@@ -98,6 +99,7 @@ pub enum ParticleMode {
     FireworkPurple = 6,
     FireworkRed = 7,
     FireworkYellow = 8,
+    Leaf = 9,
 }
 
 impl ParticleMode {
