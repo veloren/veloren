@@ -108,7 +108,7 @@ void main() {
 			),
 			linear_scale(0.5),
 			vec4(1, 1, 1, 0.3),
-			rotationMatrix(vec3(1,0,0),0)
+			rotationMatrix(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
 		);
 	} else if (inst_mode == FIRE) {
 		attr = Attr(
@@ -118,7 +118,7 @@ void main() {
 			),
 			1.0,
 			vec4(2, 0.8 + rand5 * 0.3, 0, 1),
-			rotationMatrix(vec3(1,0,0),0)
+			rotationMatrix(vec3(rand6, rand7, rand8), rand9 * 3)
 		);
 	} else if (inst_mode == GUN_POWDER_SPARK) {
 		attr = Attr(
@@ -193,8 +193,8 @@ void main() {
 	} else if (inst_mode == LEAF) {
 		attr = Attr(
 			linear_motion(
-				vec3(1.0, 1.0, 0.0),
-				vec3(0, 0, -2.0)
+				vec3(0),
+				vec3(0, 0, -2)
 			) + vec3(sin(lifetime), sin(lifetime + 0.7), sin(lifetime * 0.5)) * 2.0,
 			4,
 			vec4(vec3(0.2 + rand7 * 0.2, 0.2 + (0.5 + rand6 * 0.5) * 0.6, 0), 1),
@@ -215,6 +215,7 @@ void main() {
 	f_pos = (inst_pos - 0.5 - focus_off.xyz) + (v_pos * attr.scale * SCALE * attr.rot + attr.offs);
 
 	// First 3 normals are negative, next 3 are positive
+	// TODO: Make particle normals match orientation
 	vec3 normals[6] = vec3[](vec3(-1,0,0), vec3(1,0,0), vec3(0,-1,0), vec3(0,1,0), vec3(0,0,-1), vec3(0,0,1));
 	f_norm =
 		// inst_pos *
