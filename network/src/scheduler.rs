@@ -621,6 +621,7 @@ impl Scheduler {
                         // move directly to participant!
                     },
                     Err(()) => {
+                        debug!(?cid, "Handshake from a new connection failed");
                         if let Some(pid_oneshot) = s2a_return_pid_s {
                             // someone is waiting with `connect`, so give them their Error
                             trace!(?cid, "returning the Err to api who requested the connect");

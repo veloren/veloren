@@ -68,10 +68,8 @@ impl TcpProtocol {
 
     /// read_except and if it fails, close the protocol
     async fn read_or_close(
-        cid: Cid,
         mut stream: &TcpStream,
         mut bytes: &mut [u8],
-        w2c_cid_frame_s: &mut mpsc::UnboundedSender<(Cid, Frame)>,
         mut end_receiver: &mut Fuse<oneshot::Receiver<()>>,
     ) -> bool {
         match select! {
@@ -80,15 +78,7 @@ impl TcpProtocol {
         } {
             Some(Ok(_)) => false,
             Some(Err(e)) => {
-                info!(
-                    ?e,
-                    "Closing tcp protocol due to read error, pushing close frame (to own \
-                     Channel/Participant) to gracefully shutdown"
-                );
-                w2c_cid_frame_s
-                    .send((cid, Frame::Shutdown))
-                    .await
-                    .expect("Channel or Participant seems no longer to exist to be Shutdown");
+                info!(?e, "Closing tcp protocol due to read error");
                 true
             },
             None => {
@@ -117,7 +107,7 @@ impl TcpProtocol {
 
         macro_rules! read_or_close {
             ($x:expr) => {
-                if TcpProtocol::read_or_close(cid, &stream, $x, w2c_cid_frame_s, &mut end_r).await {
+                if TcpProtocol::read_or_close(&stream, $x, &mut end_r).await {
                     trace!("read_or_close requested a shutdown");
                     break;
                 }
