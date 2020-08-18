@@ -78,7 +78,7 @@ impl State {
                     use common::comp::item::{tool::ToolKind, ItemKind};
                     if let ItemKind::Tool(kind) = kind {
                         if let ToolKind::Staff(kind) = &kind.kind {
-                            kind != "Sceptre"
+                            kind != "Sceptre" && kind != "SceptreVelorite"
                         } else if let ToolKind::Debug(kind) = &kind.kind {
                             kind == "Boost"
                         } else {
