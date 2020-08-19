@@ -21,6 +21,7 @@ in vec3 v_pos;
 in uint v_norm_ao;
 in vec3 inst_pos;
 in float inst_time;
+in float inst_lifespan;
 in float inst_entropy;
 in int inst_mode;
 
@@ -73,6 +74,10 @@ float linear_scale(float factor) {
 	return lifetime * factor;
 }
 
+float start_end(float from, float to) {
+	return mix(from, to, lifetime / inst_lifespan);
+}
+
 mat4 rotationMatrix(vec3 axis, float angle)
 {
     axis = normalize(axis);
@@ -104,10 +109,10 @@ void main() {
 		attr = Attr(
 			linear_motion(
 				vec3(0.0, 0.0, 0.0),
-				vec3(rand2 * 0.02, rand3 * 0.02, 1.0 + rand4 * 0.1)// + vec3(sin(lifetime), sin(lifetime + 1.5), sin(lifetime * 4) * 0.25)
+				vec3(rand2 * 0.02, rand3 * 0.02, 1.0 + rand4 * 0.1)
 			),
 			linear_scale(0.5),
-			vec4(1, 1, 1, 0.3),
+			vec4(1, 1, 1, start_end(1.0, 0.0)),
 			rotationMatrix(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
 		);
 	} else if (inst_mode == FIRE) {
@@ -220,7 +225,6 @@ void main() {
 	f_norm =
 		// inst_pos *
 		((normals[(v_norm_ao >> 0) & 0x7u]) * attr.rot).xyz;
-
 
 	//vec3 col = vec3((uvec3(v_col) >> uvec3(0, 8, 16)) & uvec3(0xFFu)) / 255.0;
 	f_col = vec4(srgb_to_linear(attr.col.rgb), attr.col.a);

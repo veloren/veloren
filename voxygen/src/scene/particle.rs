@@ -157,7 +157,7 @@ impl ParticleMgr {
                 Duration::from_secs(10),
                 time,
                 ParticleMode::CampfireSmoke,
-                pos.0.map(|e| e + thread_rng().gen_range(-0.5, 0.5)),
+                pos.0.map(|e| e + thread_rng().gen_range(-0.25, 0.25)),
             ));
         }
     }
@@ -276,7 +276,7 @@ impl ParticleMgr {
         let particles: &[(BoiFn, usize, f32, f32, ParticleMode)] = &[
             (|boi| &boi.leaves, 4, 0.001, 30.0, ParticleMode::Leaf),
             (|boi| &boi.embers, 2, 20.0, 0.25, ParticleMode::CampfireFire),
-            (|boi| &boi.embers, 8, 6.0, 30.0, ParticleMode::CampfireSmoke),
+            (|boi| &boi.embers, 8, 3.0, 40.0, ParticleMode::CampfireSmoke),
         ];
 
         for (get_blocks, range, rate, dur, mode) in particles.iter() {
@@ -461,7 +461,7 @@ impl Particle {
     fn new(lifespan: Duration, time: f64, mode: ParticleMode, pos: Vec3<f32>) -> Self {
         Particle {
             alive_until: time + lifespan.as_secs_f64(),
-            instance: ParticleInstance::new(time, mode, pos),
+            instance: ParticleInstance::new(time, lifespan.as_secs_f32(), mode, pos),
         }
     }
 }
