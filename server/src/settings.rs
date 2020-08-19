@@ -41,27 +41,7 @@ impl Default for ServerSettings {
             max_players: 100,
             start_time: 9.0 * 3600.0,
             map_file: None,
-            admins: [
-                "Pfau",
-                "zesterer",
-                "xMAC94x",
-                "Timo",
-                "Songtronix",
-                "slipped",
-                "Sharp",
-                "Acrimon",
-                "imbris",
-                "YuriMomo",
-                "Vechro",
-                "AngelOnFira",
-                "Nancok",
-                "Qutrin",
-                "Mckol",
-                "Treeco",
-            ]
-            .iter()
-            .map(|n| n.to_string())
-            .collect(),
+            admins: Vec::new(),
             whitelist: Vec::new(),
             persistence_db_dir: "saves".to_owned(),
             max_view_distance: Some(30),
