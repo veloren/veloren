@@ -52,7 +52,7 @@ struct Attr {
 	vec3 offs;
 	float scale;
 	vec4 col;
-	mat3 rot;
+	mat4 rot;
 };
 
 float lifetime = tick.x - inst_time;
@@ -73,18 +73,18 @@ float linear_scale(float factor) {
 	return lifetime * factor;
 }
 
-mat3 rotationMatrix(vec3 axis, float angle)
+mat4 rotationMatrix(vec3 axis, float angle)
 {
     axis = normalize(axis);
     float s = sin(angle);
     float c = cos(angle);
     float oc = 1.0 - c;
 
-    return mat3(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,
-                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,
-                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c);
+    return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,	0,
+                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,	0,
+                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,			0,
+				0,									0,									0,									1);
 }
-
 
 void main() {
 	float rand0 = hash(vec4(inst_entropy + 0));
@@ -212,14 +212,15 @@ void main() {
 		);
 	}
 
-	f_pos = (inst_pos - 0.5 - focus_off.xyz) + (v_pos * attr.scale * SCALE * attr.rot + attr.offs);
+	f_pos = (inst_pos - focus_off.xyz) + ((v_pos - 0.5) * attr.scale * SCALE * mat3(attr.rot) + attr.offs);
 
 	// First 3 normals are negative, next 3 are positive
 	// TODO: Make particle normals match orientation
-	vec3 normals[6] = vec3[](vec3(-1,0,0), vec3(1,0,0), vec3(0,-1,0), vec3(0,1,0), vec3(0,0,-1), vec3(0,0,1));
+	vec4 normals[6] = vec4[](vec4(-1,0,0,0), vec4(1,0,0,0), vec4(0,-1,0,0), vec4(0,1,0,0), vec4(0,0,-1,0), vec4(0,0,1,0));
 	f_norm =
 		// inst_pos *
-		normals[(v_norm_ao >> 0) & 0x7u];
+		((normals[(v_norm_ao >> 0) & 0x7u]) * attr.rot).xyz;
+
 
 	//vec3 col = vec3((uvec3(v_col) >> uvec3(0, 8, 16)) & uvec3(0xFFu)) / 255.0;
 	f_col = vec4(srgb_to_linear(attr.col.rgb), attr.col.a);
