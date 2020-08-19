@@ -14,6 +14,7 @@ pub mod quadruped_small;
 
 use crate::{
     assets::{self, Asset},
+    make_case_elim,
     npc::NpcKind,
 };
 use serde::{Deserialize, Serialize};
@@ -21,96 +22,26 @@ use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{fs::File, io::BufReader};
 
-/* pub trait PerBody {
-    type Humanoid;
-    type QuadrupedSmall;
-    type QuadrupedMedium;
-    type BirdMedium;
-    type FishMedium;
-    type Dragon;
-    type BirdSmall;
-    type FishSmall;
-    type BipedLarge;
-    type Object;
-    type Golem;
-    type Critter;
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum Body<Meta = BodyType, BodyMeta = ()>
-    where Meta: PerBody,
-{
-    Humanoid(Meta::Humanoid) = 0,
-    QuadrupedSmall(Meta::QuadrupedSmall) = 1,
-    QuadrupedMedium(Meta::QuadrupedMedium) = 2,
-    BirdMedium(Meta::BirdMedium) = 3,
-    FishMedium(Meta::FishMedium) = 4,
-    Dragon(Meta::Dragon) = 5,
-    BirdSmall(Meta::BirdSmall) = 6,
-    FishSmall(Meta::FishSmall) = 7,
-    BipedLarge(Meta::BipedLarge) = 8,
-    Object(Meta::Object) = 9,
-    Golem(Meta::Golem) = 10,
-    Critter(Meta::Critter) = 11,
-}
-
-/// Metadata intended to be stored per-body, together with data intended to be
-/// stored for each species for each body.
-///
-/// NOTE: Deliberately don't (yet?) implement serialize.
-#[derive(Clone, Debug, Deserialize)]
-pub struct AllBodies<BodyMeta, PerBodyMeta: Meta> {
-    pub humanoid: BodyData<BodyMeta, humanoid::AllSpecies<SpeciesMeta>>,
-    pub quadruped_small: BodyData<BodyMeta, quadruped_small::AllSpecies<SpeciesMeta>>,
-    pub quadruped_medium: BodyData<BodyMeta, quadruped_medium::AllSpecies<SpeciesMeta>>,
-    pub bird_medium: BodyData<BodyMeta, bird_medium::AllSpecies<SpeciesMeta>>,
-    pub fish_medium: BodyData<BodyMeta, ()>,
-    pub dragon: BodyData<BodyMeta, dragon::AllSpecies<SpeciesMeta>>,
-    pub bird_small: BodyData<BodyMeta, ()>,
-    pub fish_small: BodyData<BodyMeta, ()>
-    pub biped_large: BodyData<BodyMeta, biped_large::AllSpecies<SpeciesMeta>>,
-    pub object: BodyData<BodyMeta, ()>,
-    pub golem: BodyData<BodyMeta, golem::AllSpecies<SpeciesMeta>>,
-    pub critter: BodyData<BodyMeta, critter::AllSpecies<SpeciesMeta>>,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct BodyType;
-
-impl PerBody for BodyType {
-    type Humanoid = humanoid::Body;
-    type QuadrupedSmall = quadruped_small::Body;
-    type QuadrupedMedium = quadruped_medium::Body;
-    type BirdMedium = bird_medium::Body;
-    type FishMedium = fish_medium::Body;
-    type Dragon = dragon::Body;
-    type BirdSmall = bird_small::Body;
-    type FishSmall = fish_small::Body;
-    type BipedLarge = biped_large::Body;
-    type Object = object::Body;
-    type Golem = golem::Body;
-    type Critter = critter::Body;
-}
-*/
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum Body {
-    Humanoid(humanoid::Body) = 0,
-    QuadrupedSmall(quadruped_small::Body) = 1,
-    QuadrupedMedium(quadruped_medium::Body) = 2,
-    BirdMedium(bird_medium::Body) = 3,
-    FishMedium(fish_medium::Body) = 4,
-    Dragon(dragon::Body) = 5,
-    BirdSmall(bird_small::Body) = 6,
-    FishSmall(fish_small::Body) = 7,
-    BipedLarge(biped_large::Body) = 8,
-    Object(object::Body) = 9,
-    Golem(golem::Body) = 10,
-    Critter(critter::Body) = 11,
-    QuadrupedLow(quadruped_low::Body) = 12,
-}
+make_case_elim!(
+    body,
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    #[repr(u32)]
+    pub enum Body {
+        Humanoid(body: humanoid::Body) = 0,
+        QuadrupedSmall(body: quadruped_small::Body) = 1,
+        QuadrupedMedium(body: quadruped_medium::Body) = 2,
+        BirdMedium(body: bird_medium::Body) = 3,
+        FishMedium(body: fish_medium::Body) = 4,
+        Dragon(body: dragon::Body) = 5,
+        BirdSmall(body: bird_small::Body) = 6,
+        FishSmall(body: fish_small::Body) = 7,
+        BipedLarge(body: biped_large::Body)= 8,
+        Object(body: object::Body) = 9,
+        Golem(body: golem::Body) = 10,
+        Critter(body: critter::Body) = 11,
+        QuadrupedLow(body: quadruped_low::Body) = 12,
+    }
+);
 
 /// Data representing data generic to the body together with per-species data.
 ///

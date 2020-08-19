@@ -9,7 +9,7 @@ use common::{
         dragon::{BodyType as DBodyType, Species as DSpecies},
         fish_medium, fish_small,
         golem::{BodyType as GBodyType, Species as GSpecies},
-        humanoid::{Body, BodyType, EyeColor, Skin, Species},
+        humanoid::{self, Body, BodyType, EyeColor, Skin, Species},
         item::tool::ToolKind,
         object,
         quadruped_low::{BodyType as QLBodyType, Species as QLSpecies},
@@ -60,25 +60,6 @@ pub fn load_mesh(
     generate_mesh(load_segment(mesh_name), position)
 }
 
-fn color_segment(
-    mat_segment: MatSegment,
-    skin: Skin,
-    hair_color: Rgb<u8>,
-    eye_color: EyeColor,
-) -> Segment {
-    // TODO move some of the colors to common
-    mat_segment.to_segment(|mat| match mat {
-        Material::Skin => skin.rgb(),
-        Material::SkinDark => skin.dark_rgb(),
-        Material::SkinLight => skin.light_rgb(),
-        Material::Hair => hair_color,
-        // TODO add back multiple colors
-        Material::EyeLight => eye_color.light_rgb(),
-        Material::EyeDark => eye_color.dark_rgb(),
-        Material::EyeWhite => eye_color.white_rgb(),
-    })
-}
-
 fn recolor_grey(rgb: Rgb<u8>, color: Rgb<u8>) -> Rgb<u8> {
     use common::util::{linear_to_srgb, srgb_to_linear};
 
@@ -121,6 +102,63 @@ struct MobSidedVoxSpec {
     right: ArmorVoxSpec,
 }
 
+/// Color information not found in voxels, for humanoids.
+#[derive(Serialize, Deserialize)]
+pub struct HumColorSpec {
+    hair_colors: humanoid::species::PureCases<Vec<(u8, u8, u8)>>,
+    eye_colors_light: humanoid::eye_color::PureCases<(u8, u8, u8)>,
+    eye_colors_dark: humanoid::eye_color::PureCases<(u8, u8, u8)>,
+    eye_white: (u8, u8, u8),
+    skin_colors_plain: humanoid::skin::PureCases<(u8, u8, u8)>,
+    skin_colors_light: humanoid::skin::PureCases<(u8, u8, u8)>,
+    skin_colors_dark: humanoid::skin::PureCases<(u8, u8, u8)>,
+}
+
+impl Asset for HumColorSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
+    }
+}
+
+impl HumColorSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.humanoid_color_manifest", indicator).unwrap()
+    }
+
+    fn hair_color(&self, species: Species, val: u8) -> (u8, u8, u8) {
+        species
+            .elim_case_pure(&self.hair_colors)
+            .get(val as usize)
+            .copied()
+            .unwrap_or((0, 0, 0))
+    }
+
+    fn color_segment(
+        &self,
+        mat_segment: MatSegment,
+        skin: Skin,
+        hair_color: (u8, u8, u8),
+        eye_color: EyeColor,
+    ) -> Segment {
+        // TODO move some of the colors to common
+        mat_segment.to_segment(|mat| {
+            match mat {
+                Material::Skin => *skin.elim_case_pure(&self.skin_colors_plain),
+                Material::SkinDark => *skin.elim_case_pure(&self.skin_colors_dark),
+                Material::SkinLight => *skin.elim_case_pure(&self.skin_colors_light),
+                Material::Hair => hair_color,
+                // TODO add back multiple colors
+                Material::EyeLight => *eye_color.elim_case_pure(&self.eye_colors_light),
+                Material::EyeDark => *eye_color.elim_case_pure(&self.eye_colors_dark),
+                Material::EyeWhite => self.eye_white,
+            }
+            .into()
+        })
+    }
+}
+
 // All reliant on humanoid::Species and humanoid::BodyType
 #[derive(Serialize, Deserialize)]
 struct HumHeadSubSpec {
@@ -150,6 +188,7 @@ impl HumHeadSpec {
     pub fn mesh_head(
         &self,
         body: &Body,
+        color_spec: &HumColorSpec,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
         let spec = match self.0.get(&(body.species, body.body_type)) {
@@ -164,7 +203,8 @@ impl HumHeadSpec {
             },
         };
 
-        let hair_rgb = body.species.hair_color(body.hair_color);
+        let hair_color = color_spec.hair_color(body.species, body.hair_color);
+        let hair_rgb = hair_color.into();
         let skin_rgb = body.species.skin_color(body.skin);
         let eye_rgb = body.species.eye_color(body.eye_color);
 
@@ -173,10 +213,10 @@ impl HumHeadSpec {
 
         let eyes = match spec.eyes.get(body.eyes as usize) {
             Some(Some(spec)) => Some((
-                color_segment(
+                color_spec.color_segment(
                     graceful_load_mat_segment(&spec.0).map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
                     skin_rgb,
-                    hair_rgb,
+                    hair_color,
                     eye_rgb,
                 ),
                 Vec3::from(spec.1),
@@ -220,7 +260,7 @@ impl HumHeadSpec {
 
         let (head, origin_offset) = DynaUnionizer::new()
             .add(
-                color_segment(bare_head, skin_rgb, hair_rgb, eye_rgb),
+                color_spec.color_segment(bare_head, skin_rgb, hair_color, eye_rgb),
                 spec.head.1.into(),
             )
             .maybe_add(eyes)
@@ -356,6 +396,7 @@ impl HumArmorShoulderSpec {
     fn mesh_shoulder(
         &self,
         body: &Body,
+        color_spec: &HumColorSpec,
         shoulder: Option<&str>,
         flipped: bool,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
@@ -372,14 +413,14 @@ impl HumArmorShoulderSpec {
             &self.0.default
         };
 
-        let mut shoulder_segment = color_segment(
+        let mut shoulder_segment = color_spec.color_segment(
             if flipped {
                 graceful_load_mat_segment_flipped(&spec.left.vox_spec.0)
             } else {
                 graceful_load_mat_segment(&spec.right.vox_spec.0)
             },
             body.species.skin_color(body.skin),
-            body.species.hair_color(body.hair_color),
+            color_spec.hair_color(body.species, body.hair_color),
             body.species.eye_color(body.eye_color),
         );
 
@@ -410,19 +451,21 @@ impl HumArmorShoulderSpec {
     pub fn mesh_left_shoulder(
         &self,
         body: &Body,
+        color_spec: &HumColorSpec,
         shoulder: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        self.mesh_shoulder(body, shoulder, true, generate_mesh)
+        self.mesh_shoulder(body, color_spec, shoulder, true, generate_mesh)
     }
 
     pub fn mesh_right_shoulder(
         &self,
         body: &Body,
+        color_spec: &HumColorSpec,
         shoulder: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        self.mesh_shoulder(body, shoulder, false, generate_mesh)
+        self.mesh_shoulder(body, color_spec, shoulder, false, generate_mesh)
     }
 }
 // Chest
@@ -435,6 +478,7 @@ impl HumArmorChestSpec {
     pub fn mesh_chest(
         &self,
         body: &Body,
+        color_spec: &HumColorSpec,
         chest: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
@@ -451,10 +495,10 @@ impl HumArmorChestSpec {
         };
 
         let color = |mat_segment| {
-            color_segment(
+            color_spec.color_segment(
                 mat_segment,
                 body.species.skin_color(body.skin),
-                body.species.hair_color(body.hair_color),
+                color_spec.hair_color(body.species, body.hair_color),
                 body.species.eye_color(body.eye_color),
             )
         };
@@ -487,6 +531,7 @@ impl HumArmorHandSpec {
     fn mesh_hand(
         &self,
         body: &Body,
+        color_spec: &HumColorSpec,
         hand: Option<&str>,
         flipped: bool,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
@@ -503,14 +548,14 @@ impl HumArmorHandSpec {
             &self.0.default
         };
 
-        let mut hand_segment = color_segment(
+        let mut hand_segment = color_spec.color_segment(
             if flipped {
                 graceful_load_mat_segment_flipped(&spec.left.vox_spec.0)
             } else {
                 graceful_load_mat_segment(&spec.right.vox_spec.0)
             },
             body.species.skin_color(body.skin),
-            body.species.hair_color(body.hair_color),
+            color_spec.hair_color(body.species, body.hair_color),
             body.species.eye_color(body.eye_color),
         );
 
@@ -535,19 +580,21 @@ impl HumArmorHandSpec {
     pub fn mesh_left_hand(
         &self,
         body: &Body,
+        color_spec: &HumColorSpec,
         hand: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        self.mesh_hand(body, hand, true, generate_mesh)
+        self.mesh_hand(body, color_spec, hand, true, generate_mesh)
     }
 
     pub fn mesh_right_hand(
         &self,
         body: &Body,
+        color_spec: &HumColorSpec,
         hand: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        self.mesh_hand(body, hand, false, generate_mesh)
+        self.mesh_hand(body, color_spec, hand, false, generate_mesh)
     }
 }
 // Belt
@@ -560,6 +607,7 @@ impl HumArmorBeltSpec {
     pub fn mesh_belt(
         &self,
         body: &Body,
+        color_spec: &HumColorSpec,
         belt: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
@@ -575,10 +623,10 @@ impl HumArmorBeltSpec {
             &self.0.default
         };
 
-        let mut belt_segment = color_segment(
+        let mut belt_segment = color_spec.color_segment(
             graceful_load_mat_segment(&spec.vox_spec.0),
             body.species.skin_color(body.skin),
-            body.species.hair_color(body.hair_color),
+            color_spec.hair_color(body.species, body.hair_color),
             body.species.eye_color(body.eye_color),
         );
 
@@ -600,6 +648,7 @@ impl HumArmorBackSpec {
     pub fn mesh_back(
         &self,
         body: &Body,
+        color_spec: &HumColorSpec,
         back: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
@@ -615,10 +664,10 @@ impl HumArmorBackSpec {
             &self.0.default
         };
 
-        let mut back_segment = color_segment(
+        let mut back_segment = color_spec.color_segment(
             graceful_load_mat_segment(&spec.vox_spec.0),
             body.species.skin_color(body.skin),
-            body.species.hair_color(body.hair_color),
+            color_spec.hair_color(body.species, body.hair_color),
             body.species.eye_color(body.eye_color),
         );
         if let Some(color) = spec.color {
@@ -639,6 +688,7 @@ impl HumArmorPantsSpec {
     pub fn mesh_pants(
         &self,
         body: &Body,
+        color_spec: &HumColorSpec,
         pants: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
@@ -655,10 +705,10 @@ impl HumArmorPantsSpec {
         };
 
         let color = |mat_segment| {
-            color_segment(
+            color_spec.color_segment(
                 mat_segment,
                 body.species.skin_color(body.skin),
-                body.species.hair_color(body.hair_color),
+                color_spec.hair_color(body.species, body.hair_color),
                 body.species.eye_color(body.eye_color),
             )
         };
@@ -691,6 +741,7 @@ impl HumArmorFootSpec {
     fn mesh_foot(
         &self,
         body: &Body,
+        color_spec: &HumColorSpec,
         foot: Option<&str>,
         flipped: bool,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
@@ -707,14 +758,14 @@ impl HumArmorFootSpec {
             &self.0.default
         };
 
-        let mut foot_segment = color_segment(
+        let mut foot_segment = color_spec.color_segment(
             if flipped {
                 graceful_load_mat_segment_flipped(&spec.vox_spec.0)
             } else {
                 graceful_load_mat_segment(&spec.vox_spec.0)
             },
             body.species.skin_color(body.skin),
-            body.species.hair_color(body.hair_color),
+            color_spec.hair_color(body.species, body.hair_color),
             body.species.eye_color(body.eye_color),
         );
 
@@ -729,19 +780,21 @@ impl HumArmorFootSpec {
     pub fn mesh_left_foot(
         &self,
         body: &Body,
+        color_spec: &HumColorSpec,
         foot: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        self.mesh_foot(body, foot, true, generate_mesh)
+        self.mesh_foot(body, color_spec, foot, true, generate_mesh)
     }
 
     pub fn mesh_right_foot(
         &self,
         body: &Body,
+        color_spec: &HumColorSpec,
         foot: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        self.mesh_foot(body, foot, false, generate_mesh)
+        self.mesh_foot(body, color_spec, foot, false, generate_mesh)
     }
 }
 
@@ -802,6 +855,7 @@ impl HumArmorLanternSpec {
     pub fn mesh_lantern(
         &self,
         body: &Body,
+        color_spec: &HumColorSpec,
         lantern: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
@@ -817,10 +871,10 @@ impl HumArmorLanternSpec {
             &self.0.default
         };
 
-        let mut lantern_segment = color_segment(
+        let mut lantern_segment = color_spec.color_segment(
             graceful_load_mat_segment(&spec.vox_spec.0),
             body.species.skin_color(body.skin),
-            body.species.hair_color(body.hair_color),
+            color_spec.hair_color(body.species, body.hair_color),
             body.species.eye_color(body.eye_color),
         );
         if let Some(color) = spec.color {
@@ -841,6 +895,7 @@ impl HumArmorHeadSpec {
     pub fn mesh_head(
         &self,
         body: &Body,
+        color_spec: &HumColorSpec,
         head: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
@@ -857,10 +912,10 @@ impl HumArmorHeadSpec {
         };
 
         let color = |mat_segment| {
-            color_segment(
+            color_spec.color_segment(
                 mat_segment,
                 body.species.skin_color(body.skin),
-                body.species.hair_color(body.hair_color),
+                color_spec.hair_color(body.species, body.hair_color),
                 body.species.eye_color(body.eye_color),
             )
         };
@@ -892,6 +947,7 @@ impl HumArmorTabardSpec {
     pub fn mesh_tabard(
         &self,
         body: &Body,
+        color_spec: &HumColorSpec,
         tabard: Option<&str>,
         generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
@@ -908,10 +964,10 @@ impl HumArmorTabardSpec {
         };
 
         let color = |mat_segment| {
-            color_segment(
+            color_spec.color_segment(
                 mat_segment,
                 body.species.skin_color(body.skin),
-                body.species.hair_color(body.hair_color),
+                color_spec.hair_color(body.species, body.hair_color),
                 body.species.eye_color(body.eye_color),
             )
         };

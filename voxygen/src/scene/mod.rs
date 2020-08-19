@@ -663,16 +663,6 @@ impl Scene {
             // Construct matrices to transform from world space to light space for the sun
             // and moon.
             let directed_light_dir = math::Vec3::from(sun_dir);
-            // First, add a projected matrix for our directed hard lights.
-            // NOTE: This can be hard, so we should probably look at techniques for
-            // restricting what's in the light frustum for things like sunlight
-            // (i.e. potential shadow receivers and potential shadow casters, as
-            // well as other culling). The sun position is currently scaled so
-            // that the focus is halfway between the near plane and far plane;
-            // however, there is probably a much smarter way to do this.
-            // NOTE: Multiplying by 1.5 as an approxmiation for √(2)/2, to make sure we
-            // capture all chunks.
-            let radius = 0.75;
 
             // Optimal warping for directed lights:
             //
@@ -680,8 +670,6 @@ impl Scene {
             //
             // where n is near plane, f is far plane, y is the tilt angle between view and
             // light directon, and n_opt is the optimal near plane.
-            let directed_near = 1.0;
-            let _directed_far = directed_near + 2.0 * radius;
             // We also want a way to transform and scale this matrix (* 0.5 + 0.5) in order
             // to transform it correctly into texture coordinates, as well as
             // OpenGL coordinates.  Note that the matrix for directional light
@@ -692,7 +680,6 @@ impl Scene {
             // matrix; this helps avoid precision loss during the
             // multiplication.
             let look_at = math::Vec3::from(cam_pos);
-            let _light_scale = 1.5 * radius;
             // We upload view matrices as well, to assist in linearizing vertex positions.
             // (only for directional lights, so far).
             let mut directed_shadow_mats = Vec::with_capacity(6);
@@ -710,9 +697,6 @@ impl Scene {
             // Now, construct the full projection matrices in the first two directed light
             // slots.
             let mut shadow_mats = Vec::with_capacity(6 * (lights.len() + 1));
-            let z_n = 1.0;
-            let _z_f = f64::from(camera::FAR_PLANE);
-            let _scalar_fov = compute_scalar_fov(z_n, f64::from(fov), f64::from(aspect_ratio));
             shadow_mats.extend(directed_shadow_mats.iter().enumerate().map(
                 move |(idx, &light_view_mat)| {
                     if idx >= NUM_DIRECTED_LIGHTS {
@@ -847,11 +831,6 @@ impl Scene {
                         light_focus_pos.z,
                     ));
                     let shadow_view_mat: math::Mat4<f32> = w_v * light_all_mat;
-                    let _bounds0 = math::fit_psr(
-                        shadow_view_mat,
-                        visible_light_volume.iter().copied(),
-                        math::Vec4::homogenized,
-                    );
                     let w_p: math::Mat4<f32> = {
                         if factor > EPSILON_UPSILON {
                             // Projection for y

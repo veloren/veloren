@@ -18,6 +18,7 @@ dot_vox = "4.0"
 image = { version = "0.23.8", default-features = false, features = ["png"] }
 serde = { version = "1.0.110", features = ["derive"] }
 serde_json = "1.0.50"
+serde_repr = "0.1.6"
 ron = { version = "0.6", default-features = false }
 tracing = { version = "0.1", default-features = false }
 rand = "0.7"

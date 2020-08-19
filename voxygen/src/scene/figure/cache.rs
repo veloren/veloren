@@ -222,6 +222,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
     ) -> [Option<BoneMeshes>; 16] {
         match body {
             Body::Humanoid(body) => {
+                let humanoid_color_spec = HumColorSpec::load_watched(manifest_indicator);
                 let humanoid_head_spec = HumHeadSpec::load_watched(manifest_indicator);
                 let humanoid_armor_shoulder_spec =
                     HumArmorShoulderSpec::load_watched(manifest_indicator);
@@ -253,12 +254,16 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
 
                 [
                     third_person.map(|_| {
-                        humanoid_head_spec
-                            .mesh_head(body, |segment, offset| generate_mesh(segment, offset))
+                        humanoid_head_spec.mesh_head(
+                            body,
+                            &humanoid_color_spec,
+                            |segment, offset| generate_mesh(segment, offset),
+                        )
                     }),
                     third_person.map(|loadout| {
                         humanoid_armor_chest_spec.mesh_chest(
                             body,
+                            &humanoid_color_spec,
                             loadout.chest.as_deref(),
                             |segment, offset| generate_mesh(segment, offset),
                         )
@@ -266,6 +271,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                     third_person.map(|loadout| {
                         humanoid_armor_belt_spec.mesh_belt(
                             body,
+                            &humanoid_color_spec,
                             loadout.belt.as_deref(),
                             |segment, offset| generate_mesh(segment, offset),
                         )
@@ -273,6 +279,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                     third_person.map(|loadout| {
                         humanoid_armor_back_spec.mesh_back(
                             body,
+                            &humanoid_color_spec,
                             loadout.back.as_deref(),
                             |segment, offset| generate_mesh(segment, offset),
                         )
@@ -280,33 +287,39 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                     third_person.map(|loadout| {
                         humanoid_armor_pants_spec.mesh_pants(
                             body,
+                            &humanoid_color_spec,
                             loadout.pants.as_deref(),
                             |segment, offset| generate_mesh(segment, offset),
                         )
                     }),
-                    Some(
-                        humanoid_armor_hand_spec.mesh_left_hand(body, hand, |segment, offset| {
-                            generate_mesh(segment, offset)
-                        }),
-                    ),
-                    Some(humanoid_armor_hand_spec.mesh_right_hand(
+                    Some(humanoid_armor_hand_spec.mesh_left_hand(
                         body,
+                        &humanoid_color_spec,
                         hand,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
-                    Some(
-                        humanoid_armor_foot_spec.mesh_left_foot(body, foot, |segment, offset| {
-                            generate_mesh(segment, offset)
-                        }),
-                    ),
+                    Some(humanoid_armor_hand_spec.mesh_right_hand(
+                        body,
+                        &humanoid_color_spec,
+                        hand,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
+                    Some(humanoid_armor_foot_spec.mesh_left_foot(
+                        body,
+                        &humanoid_color_spec,
+                        foot,
+                        |segment, offset| generate_mesh(segment, offset),
+                    )),
                     Some(humanoid_armor_foot_spec.mesh_right_foot(
                         body,
+                        &humanoid_color_spec,
                         foot,
                         |segment, offset| generate_mesh(segment, offset),
                     )),
                     third_person.map(|loadout| {
                         humanoid_armor_shoulder_spec.mesh_left_shoulder(
                             body,
+                            &humanoid_color_spec,
                             loadout.shoulder.as_deref(),
                             |segment, offset| generate_mesh(segment, offset),
                         )
@@ -314,6 +327,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                     third_person.map(|loadout| {
                         humanoid_armor_shoulder_spec.mesh_right_shoulder(
                             body,
+                            &humanoid_color_spec,
                             loadout.shoulder.as_deref(),
                             |segment, offset| generate_mesh(segment, offset),
                         )
@@ -337,6 +351,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                     }),
                     Some(humanoid_armor_lantern_spec.mesh_lantern(
                         body,
+                        &humanoid_color_spec,
                         lantern,
                         |segment, offset| generate_mesh(segment, offset),
                     )),

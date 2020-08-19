@@ -1977,20 +1977,21 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.aa_mode_text, ui);
 
+            // NOTE: MSAA modes are currently disabled from the UI due to poor
+            // interaction with greedy meshing, and may eventually be removed.
             let mode_list = [
                 AaMode::None,
                 AaMode::Fxaa,
-                AaMode::MsaaX4,
+                /* AaMode::MsaaX4,
                 AaMode::MsaaX8,
-                AaMode::MsaaX16,
+                AaMode::MsaaX16, */
                 AaMode::SsaaX4,
             ];
             let mode_label_list = [
-                "No AA",
-                "FXAA",
-                "MSAA x4",
+                "No AA", "FXAA",
+                /* "MSAA x4",
                 "MSAA x8",
-                "MSAA x16 (experimental)",
+                "MSAA x16 (experimental)", */
                 "SSAA x4",
             ];
 
