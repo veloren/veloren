@@ -32,7 +32,12 @@ impl Player {
     pub fn is_valid(&self) -> bool { Self::alias_is_valid(&self.alias) }
 
     pub fn alias_is_valid(alias: &str) -> bool {
-        alias.chars().all(|c| c.is_alphanumeric() || c == '_') && alias.len() <= MAX_ALIAS_LEN
+        // TODO: Expose auth name validation and use it here.
+        // See https://gitlab.com/veloren/auth/-/blob/master/server/src/web.rs#L20
+        alias
+            .chars()
+            .all(|c| c.is_alphanumeric() || c == '_' || c == '-')
+            && alias.len() <= MAX_ALIAS_LEN
     }
 
     /// Not to be confused with uid
