@@ -217,7 +217,7 @@ void main() {
 		);
 	}
 
-	f_pos = (inst_pos - focus_off.xyz) + ((v_pos - 0.5) * attr.scale * SCALE * mat3(attr.rot) + attr.offs);
+	f_pos = (inst_pos - focus_off.xyz) + (v_pos * attr.scale * SCALE * mat3(attr.rot) + attr.offs);
 
 	// First 3 normals are negative, next 3 are positive
 	// TODO: Make particle normals match orientation

@@ -14,7 +14,7 @@ use common::{
     spiral::Spiral2d,
     state::DeltaTime,
     terrain::TerrainChunk,
-    vol::RectRasterableVol,
+    vol::{RectRasterableVol, SizedVol},
 };
 use dot_vox::DotVoxData;
 use hashbrown::HashMap;
@@ -367,11 +367,16 @@ fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<Particl
             guillotiere::Size::new(i32::from(max_texture_size), i32::from(max_texture_size));
         let mut greedy = GreedyMesh::new(max_size);
 
-        let mesh = Meshable::<ParticlePipeline, &mut GreedyMesh>::generate_mesh(
-            Segment::from(vox.as_ref()),
-            &mut greedy,
-        )
-        .0;
+        let segment = Segment::from(vox.as_ref());
+        let segment_size = segment.size();
+        let mut mesh =
+            Meshable::<ParticlePipeline, &mut GreedyMesh>::generate_mesh(segment, &mut greedy).0;
+        // Center particle vertices around origin
+        for vert in mesh.vertices_mut() {
+            vert.pos[0] -= segment_size.x as f32 / 2.0;
+            vert.pos[1] -= segment_size.y as f32 / 2.0;
+            vert.pos[2] -= segment_size.z as f32 / 2.0;
+        }
 
         // NOTE: Ignoring coloring / lighting for now.
         drop(greedy);
