@@ -3205,6 +3205,41 @@ rec {
         features = { "default" = [ "use_std" ]; };
         resolvedDefaultFeatures = [ "default" "use_std" ];
       };
+      "enum-iterator" = rec {
+        crateName = "enum-iterator";
+        version = "0.6.0";
+        edition = "2018";
+        sha256 = "1mxq9fds22paikg2c95kxkpxych4p1n3yzhca4q7fz8rl4hn76n7";
+        authors = [ "Stephane Raux <stephaneyfx@gmail.com>" ];
+        dependencies = [{
+          name = "enum-iterator-derive";
+          packageId = "enum-iterator-derive";
+        }];
+
+      };
+      "enum-iterator-derive" = rec {
+        crateName = "enum-iterator-derive";
+        version = "0.6.0";
+        edition = "2018";
+        sha256 = "01pc15d8l0ayrjv7xjjx1lxw2vypvlawcvc9ax7pdp60ywqsm50y";
+        procMacro = true;
+        authors = [ "Stephane Raux <stephaneyfx@gmail.com>" ];
+        dependencies = [
+          {
+            name = "proc-macro2";
+            packageId = "proc-macro2 1.0.18";
+          }
+          {
+            name = "quote";
+            packageId = "quote 1.0.7";
+          }
+          {
+            name = "syn";
+            packageId = "syn 1.0.33";
+          }
+        ];
+
+      };
       "error-chain" = rec {
         crateName = "error-chain";
         version = "0.12.2";
@@ -11920,7 +11955,7 @@ rec {
       };
       "veloren-chat-cli" = rec {
         crateName = "veloren-chat-cli";
-        version = "0.6.0";
+        version = "0.7.0";
         edition = "2018";
         crateBin = [{
           name = "veloren-chat-cli";
@@ -11958,7 +11993,7 @@ rec {
       };
       "veloren-client" = rec {
         crateName = "veloren-client";
-        version = "0.6.0";
+        version = "0.7.0";
         edition = "2018";
         src = lib.cleanSourceWith {
           filter = sourceFilter;
@@ -12036,7 +12071,7 @@ rec {
       };
       "veloren-common" = rec {
         crateName = "veloren-common";
-        version = "0.6.0";
+        version = "0.7.0";
         edition = "2018";
         src = lib.cleanSourceWith {
           filter = sourceFilter;
@@ -12063,6 +12098,10 @@ rec {
           {
             name = "dot_vox";
             packageId = "dot_vox";
+          }
+          {
+            name = "enum-iterator";
+            packageId = "enum-iterator";
           }
           {
             name = "find_folder";
@@ -12154,7 +12193,7 @@ rec {
       };
       "veloren-server" = rec {
         crateName = "veloren-server";
-        version = "0.6.0";
+        version = "0.7.0";
         edition = "2018";
         src = lib.cleanSourceWith {
           filter = sourceFilter;
@@ -12293,7 +12332,7 @@ rec {
       };
       "veloren-server-cli" = rec {
         crateName = "veloren-server-cli";
-        version = "0.6.0";
+        version = "0.7.0";
         edition = "2018";
         crateBin = [{
           name = "veloren-server-cli";
@@ -12336,7 +12375,7 @@ rec {
       };
       "veloren-voxygen" = rec {
         crateName = "veloren-voxygen";
-        version = "0.6.0";
+        version = "0.7.0";
         edition = "2018";
         crateBin = [{
           name = "veloren-voxygen";
@@ -12595,7 +12634,7 @@ rec {
       };
       "veloren-voxygen-anim" = rec {
         crateName = "veloren-voxygen-anim";
-        version = "0.6.0";
+        version = "0.7.0";
         edition = "2018";
         src = lib.cleanSourceWith {
           filter = sourceFilter;
@@ -12661,7 +12700,7 @@ rec {
       };
       "veloren-world" = rec {
         crateName = "veloren-world";
-        version = "0.6.0";
+        version = "0.7.0";
         edition = "2018";
         src = lib.cleanSourceWith {
           filter = sourceFilter;

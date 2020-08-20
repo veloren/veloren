@@ -7,7 +7,7 @@ let
   };
   rustChannel = mozPkgs.rustChannelOf {
     rustToolchain = ../rust-toolchain;
-    sha256 = "sha256-18R7sZfLGmtYkz24jUaq268fJO2A71p+dWvGm4DgqEw=";
+    sha256 = "sha256-hKjJt5RAI9cf55orvwGEkOXIGOaySX5dD2aj3iQ/IDs=";
   };
 in import nixpkgs {
   inherit system;
