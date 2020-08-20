@@ -1728,7 +1728,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 1,
                 // FIXME: Move back to 64 once we support multiple texture atlases, or figure out a
                 // way to increase the size of the terrain atlas.
-                30,
+                25,
                 // 65,
                 self.imgs.slider_indicator,
                 self.imgs.slider,

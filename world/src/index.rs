@@ -20,8 +20,8 @@ pub struct Index {
 /// An owned reference to indexed data.
 ///
 /// The data are split out so that we can replace the colors without disturbing
-/// the rest of the index, while also keeping all the adta within a single
-/// indirection (though possibly not contiguous).
+/// the rest of the index, while also keeping all the data within a single
+/// indirection.
 #[derive(Clone)]
 pub struct IndexOwned {
     colors: Arc<Colors>,

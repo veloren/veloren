@@ -9,10 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- New level of detail feature, letting you see all the world's terrain at any view distance.
+- Point and directional lights now cast realistic shadows, using shadow mapping.
+
 ### Changed
 - Fixed a bug where leaving the Settings menu by pressing "N" in single player kept the game paused
+- The world map has been refactored to support arbitrary sizes and compute horizon maps.
+- Veloren's lighting has been completely overhauled.
+- The graphics options were made much more flexible and configurable.
+- Many shader optimizations.
+- Voxel model creation was switched to use greedy meshing, improving performance.
+- Animation and terrain math were switched to use SIMD where possible, improving performance.
+- The way we cache glyphs was refactored, fixed, and optimized.
+- Colors for models and figures were adjusted to account for the saturation hack.
 
 ### Removed
+
+- MSAAA has been removed due to incompatibility with greeddy meshing.
+- Removed a saturation hack that led to colors being improperly displayed.
 
 ## [0.7.0] - 2020-08-15
 

@@ -171,7 +171,7 @@ pub enum FluidMode {
 }
 
 impl Default for FluidMode {
-    fn default() -> Self { FluidMode::Shiny }
+    fn default() -> Self { FluidMode::Cheap }
 }
 
 /// Lighting modes
