@@ -17,6 +17,7 @@ use anim::{
     fixture::FixtureSkeleton,
     Animation,
 };
+use client::Client;
 use common::{
     comp::{humanoid, item::ItemKind, Body, Loadout},
     figure::Segment,
@@ -97,11 +98,11 @@ pub struct SceneData {
 }
 
 impl Scene {
-    pub fn new(renderer: &mut Renderer, backdrop: Option<&str>) -> Self {
+    pub fn new(renderer: &mut Renderer, backdrop: Option<&str>, client: &Client) -> Self {
         let start_angle = 90.0f32.to_radians();
         let resolution = renderer.get_resolution().map(|e| e as f32);
 
-        let map_bounds = Vec2::new(-65536.0, 131071.0);
+        let map_bounds = client.world_map.2;
         let map_border = [0.0, 0.0, 0.0, 0.0];
         let map_image = [0];
         let alt_image = [0];

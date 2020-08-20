@@ -28,6 +28,7 @@ impl CharSelectionState {
         let scene = Scene::new(
             global_state.window.renderer_mut(),
             Some("fixture.selection_bg"),
+            &*client.borrow(),
         );
         Self {
             char_selection_ui: CharSelectionUi::new(global_state),

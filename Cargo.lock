@@ -3560,9 +3560,9 @@ dependencies = [
 
 [[package]]
 name = "roots"
-version = "0.0.5"
+version = "0.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e4c67c712ab62be58b24ab8960e2b95dd4ee00aac115c76f2709657821fe376d"
+checksum = "84348444bd7ad45729d0c49a4240d7cdc11c9d512c06c5ad1835c1ad4acda6db"
 
 [[package]]
 name = "route-recognizer"
