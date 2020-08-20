@@ -105,7 +105,7 @@ impl Animation for IdleAnimation {
             );
         }
         next.jaw.orientation = Quaternion::rotation_x(-0.1 + breathing * 2.0);
-        next.jaw.scale = Vec3::one() * 1.02;
+        next.jaw.scale = Vec3::one() * 0.98;
 
         next.tail.position = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1);
         next.tail.orientation =

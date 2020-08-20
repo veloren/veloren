@@ -2,7 +2,7 @@ use super::{
     super::{vek::*, Animation},
     BipedLargeSkeleton, SkeletonAttr,
 };
-use std::{f32::consts::PI, ops::Mul};
+use std::f32::consts::PI;
 
 pub struct RunAnimation;
 
@@ -36,6 +36,7 @@ impl Animation for RunAnimation {
                     * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin()).powf(2.0 as f32)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin());
+
         let footvertl = (anim_time as f32 * 16.0 * lab as f32).sin();
         let footvertr = (anim_time as f32 * 16.0 * lab as f32 + PI).sin();
         let handhoril = (anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin();
@@ -67,6 +68,7 @@ impl Animation for RunAnimation {
                     * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.5).sin()).powf(2.0 as f32)))
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.5).sin());
+
         let footvertl2 = (anim_time as f32 * 16.0 * lab as f32 + 0.5 * PI).sin();
         let footvertr2 = (anim_time as f32 * 16.0 * lab as f32 + 1.5 * PI).sin();
         let handhoril2 = (anim_time as f32 * 16.0 * lab as f32 + 0.5 * PI).sin();

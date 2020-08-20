@@ -577,6 +577,18 @@
             "werewolf": {
                 "keyword": "werewolf",
                 "generic": "Werewolf"
+            },
+            "lizardman_occult": {
+                "keyword": "lizardman_occult",
+                "generic": "Occult Lizardman"
+            },
+            "lizardman_mighty": {
+                "keyword": "lizardman_mighty",
+                "generic": "Mighty Lizardman"
+            },
+            "lizardman_sly": {
+                "keyword": "lizardman_sly",
+                "generic": "Sly Lizardman"
             }
         }
     },

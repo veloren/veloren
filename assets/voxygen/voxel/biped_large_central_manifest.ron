@@ -359,4 +359,184 @@
             center: ("armor.empty"),
         )
     ),
+    (Occultlizardman, Male): (
+        head: (
+            offset: (-3.0, 0.0, -4.5),
+            center: ("npc.lizardman_occult.male.head"),
+        ),
+        torso_upper: (
+            offset: (-5.0, -6.5, -7.0),
+            center: ("npc.lizardman_occult.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.0, -5.5, -8.0),
+            center: ("npc.lizardman_occult.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-2.0, 0.0, -2.0),
+            center: ("npc.lizardman_occult.male.jaw"),
+        ),
+        tail: (
+            offset: (-2.0, -16.0, -1.0),
+            center: ("npc.lizardman_occult.male.tail"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
+        ),
+        main: (
+            offset: (-1.5, -9.0, -10.0),
+            center: ("npc.lizardman_occult.male.weapon"),
+        )
+    ),
+    (Occultlizardman, Female): (
+        head: (
+            offset: (-3.0, 0.0, -4.5),
+            center: ("npc.lizardman_occult.female.head"),
+        ),
+        torso_upper: (
+            offset: (-5.0, -6.5, -7.0),
+            center: ("npc.lizardman_occult.female.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.0, -5.5, -8.0),
+            center: ("npc.lizardman_occult.female.torso_lower"),
+        ),
+        jaw: (
+            offset: (-2.0, 0.0, -2.0),
+            center: ("npc.lizardman_occult.female.jaw"),
+        ),
+        tail: (
+            offset: (-2.0, -16.0, -1.0),
+            center: ("npc.lizardman_occult.female.tail"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
+        ),
+        main: (
+            offset: (-1.5, -9.0, -10.0),
+            center: ("npc.lizardman_occult.female.weapon"),
+        )
+    ),
+    (Mightylizardman, Male): (
+        head: (
+            offset: (-3.0, 0.0, -4.5),
+            center: ("npc.lizardman_mighty.male.head"),
+        ),
+        torso_upper: (
+            offset: (-5.0, -6.5, -7.0),
+            center: ("npc.lizardman_mighty.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.0, -5.5, -8.0),
+            center: ("npc.lizardman_mighty.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-2.0, 0.0, -2.0),
+            center: ("npc.lizardman_mighty.male.jaw"),
+        ),
+        tail: (
+            offset: (-2.0, -16.0, -1.0),
+            center: ("npc.lizardman_mighty.male.tail"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
+        ),
+        main: (
+            offset: (-1.5, -9.0, -10.0),
+            center: ("npc.lizardman_mighty.male.weapon"),
+        )
+    ),
+    (Mightylizardman, Female): (
+        head: (
+            offset: (-3.0, 0.0, -4.5),
+            center: ("npc.lizardman_mighty.female.head"),
+        ),
+        torso_upper: (
+            offset: (-5.0, -6.5, -7.0),
+            center: ("npc.lizardman_mighty.female.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.0, -5.5, -8.0),
+            center: ("npc.lizardman_mighty.female.torso_lower"),
+        ),
+        jaw: (
+            offset: (-2.0, 0.0, -2.0),
+            center: ("npc.lizardman_mighty.female.jaw"),
+        ),
+        tail: (
+            offset: (-2.0, -16.0, -1.0),
+            center: ("npc.lizardman_mighty.female.tail"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
+        ),
+        main: (
+            offset: (-1.5, -9.0, -10.0),
+            center: ("npc.lizardman_mighty.female.weapon"),
+        )
+    ),
+    (Slylizardman, Male): (
+        head: (
+            offset: (-3.0, 0.0, -4.5),
+            center: ("npc.lizardman_sly.male.head"),
+        ),
+        torso_upper: (
+            offset: (-5.0, -6.5, -7.0),
+            center: ("npc.lizardman_sly.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.0, -5.5, -8.0),
+            center: ("npc.lizardman_sly.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-2.0, 0.0, -2.0),
+            center: ("npc.lizardman_sly.male.jaw"),
+        ),
+        tail: (
+            offset: (-2.0, -16.0, -1.0),
+            center: ("npc.lizardman_sly.male.tail"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
+        ),
+        main: (
+            offset: (-1.5, -9.0, -10.0),
+            center: ("npc.lizardman_sly.male.weapon"),
+        )
+    ),
+    (Slylizardman, Female): (
+        head: (
+            offset: (-3.0, 0.0, -4.5),
+            center: ("npc.lizardman_sly.female.head"),
+        ),
+        torso_upper: (
+            offset: (-5.0, -6.5, -7.0),
+            center: ("npc.lizardman_sly.female.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.0, -5.5, -8.0),
+            center: ("npc.lizardman_sly.female.torso_lower"),
+        ),
+        jaw: (
+            offset: (-2.0, 0.0, -2.0),
+            center: ("npc.lizardman_sly.female.jaw"),
+        ),
+        tail: (
+            offset: (-2.0, -16.0, -1.0),
+            center: ("npc.lizardman_sly.female.tail"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            center: ("armor.empty"),
+        ),
+        main: (
+            offset: (-1.5, -9.0, -10.0),
+            center: ("npc.lizardman_sly.female.weapon"),
+        )
+    ),
 })
