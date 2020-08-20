@@ -461,6 +461,13 @@ impl Floor {
                         && !tile_is_pillar
                     {
                         // Bad
+                        let chosen =
+                            assets::load_expect::<Lottery<String>>(match rng.gen_range(0, 5) {
+                                0 => "common.loot_tables.loot_table_humanoids",
+                                1 => "common.loot_tables.loot_table_armor_misc",
+                                _ => "common.loot_tables.loot_table_cultists",
+                            });
+                        let chosen = chosen.choose();
                         let entity = EntityInfo::at(
                             tile_wcenter.map(|e| e as f32)
                             // Randomly displace them a little
@@ -472,6 +479,7 @@ impl Floor {
                         .with_alignment(comp::Alignment::Enemy)
                         .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
                         .with_automatic_name()
+                        .with_loot_drop(assets::load_expect_cloned(chosen))
                         .with_main_tool(assets::load_expect_cloned(match rng.gen_range(0, 6) {
                             0 => "common.items.npc_weapons.axe.malachite_axe-0",
                             1 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
@@ -509,7 +517,7 @@ impl Floor {
                                 .with_alignment(comp::Alignment::Enemy)
                                 .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
                                 .with_name(format!(
-                                    "{}\nCult Leader",
+                                    "Cult Leader {}",
                                     npc::get_npc_name(npc::NpcKind::Humanoid)
                                 ))
                                 .with_main_tool(assets::load_expect_cloned(
@@ -620,7 +628,7 @@ impl Floor {
             self.tiles.get(tile_pos)
         {
             let room = &self.rooms[*room];
-            if RandomField::new(room.seed).chance(Vec3::from(pos), room.loot_density) {
+            if RandomField::new(room.seed).chance(Vec3::from(pos), room.loot_density * 0.5) {
                 BlockMask::new(Block::new(BlockKind::Chest, Rgb::white()), 1)
             } else {
                 empty

@@ -118,8 +118,8 @@ void main() {
 	} else if (inst_mode == FIRE) {
 		attr = Attr(
 			linear_motion(
-				vec3(rand0 * 0.25, rand1 * 0.25, 0.3),
-				vec3(rand2 * 0.1, rand3 * 0.1, 2.0 + rand4 * 1.0)
+				vec3(rand0 * 0.3, rand1 * 0.3, 0.2),
+				vec3(rand1 * 0.1, rand3 * 0.1, 3.0 + rand4 * 1.2)
 			),
 			1.0,
 			vec4(2, 0.8 + rand5 * 0.3, 0, 1),

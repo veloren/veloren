@@ -2,7 +2,7 @@ use crate::{
     column::ColumnSample,
     sim::SimChunk,
     util::{RandomField, Sampler},
-    Index, IndexRef, CONFIG,
+    IndexRef, CONFIG,
 };
 use common::{
     assets, comp,
@@ -130,10 +130,10 @@ pub fn apply_scatter_to<'a>(
         // Collecable Objects
         // Only spawn twigs in temperate forests
         (Twigs, false, |c| {
-            ((c.tree_density - 0.5).max(0.0) * MUSH_FACT *0.5, None)
+            ((c.tree_density - 0.5).max(0.0) * MUSH_FACT * 0.5, None)
         }),
         (Stones, false, |c| {
-            ((c.rockiness - 0.5).max(0.0) * MUSH_FACT *0.5, None)
+            ((c.rockiness - 0.5).max(0.0) * MUSH_FACT * 0.5, None)
         }),
         // Don't spawn Mushrooms in snowy regions
         (Mushroom, false, |c| {
@@ -197,8 +197,8 @@ pub fn apply_scatter_to<'a>(
                     c.humidity,
                     CONFIG.desert_hum,
                     0.3,
-                )) * MUSH_FACT* 0.1,
-                    
+                )) * MUSH_FACT
+                    * 0.1,
                 None,
             )
         }),
@@ -208,8 +208,8 @@ pub fn apply_scatter_to<'a>(
                     c.humidity,
                     CONFIG.desert_hum,
                     0.2,
-                )) * MUSH_FACT* 0.1,
-                    
+                )) * MUSH_FACT
+                    * 0.1,
                 None,
             )
         }),
