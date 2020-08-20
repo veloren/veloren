@@ -419,7 +419,7 @@ magically infused items?"#,
         "gameinput.declinegroupinvite": "Decline Group Invite",
         "gameinput.crafting": "Crafting",
         "gameinput.sneak": "Sneak",
-        "gameinput.swimdown": "Dive downwards",
+        "gameinput.swimdown": "Swim downwards",
         "gameinput.swimup": "Swim upwards",
         
         /// End GameInput section

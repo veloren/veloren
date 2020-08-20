@@ -1,9 +1,9 @@
 Item(
-    name: "Purple Linen Coat",
-    description: "A warm coat.",
+    name: "Agile Belt",
+    description: "",
     kind: Armor(
         (
-            kind: Shoulder("ClothPurple0"),
+            kind: Belt("Leather2"),
             stats: (
                 protection: Normal(1.0),
             ),

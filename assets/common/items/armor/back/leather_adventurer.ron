@@ -1,0 +1,12 @@
+Item(
+    name: "Agile Cape",
+    description: "Keeps your shoulders warm.",
+    kind: Armor(
+        (
+            kind: Back("Short2"),
+            stats: (
+                protection: Normal(0.2),
+            ),
+        )
+    ),
+)

@@ -1,0 +1,12 @@
+Item(
+    name: "Agile Gauntlets",
+    description: "",
+    kind: Armor(
+        (
+            kind: Hand("Leather2"),
+            stats: (
+                protection: Normal(4.0),
+            ),
+        )
+    ),
+)

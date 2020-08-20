@@ -6,7 +6,7 @@ Item(
             kind: Sword("Zweihander0"),    
             stats: (
                 equip_time_millis: 500,
-                power: 0.6,
+                power: 0.2,
             ),
         )
     ),

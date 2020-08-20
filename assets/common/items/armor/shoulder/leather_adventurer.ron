@@ -1,0 +1,12 @@
+Item(
+    name: "Agile Guards",
+    description: "",
+    kind: Armor(
+        (
+            kind: Shoulder("Leather1"),
+            stats: (
+                protection: Normal(6.0),
+            ),
+        )
+    ),
+)

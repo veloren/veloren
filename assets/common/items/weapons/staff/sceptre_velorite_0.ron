@@ -6,7 +6,7 @@ Item(
             kind: Staff("SceptreVelorite"),    
             stats: (
                 equip_time_millis: 400,
-                power: 1.0,
+                power: 2.0,
             ),
         )
     ),

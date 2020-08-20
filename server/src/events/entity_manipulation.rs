@@ -263,32 +263,25 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 },
             },
             Some(common::comp::Body::BipedLarge(biped_large)) => match biped_large.species {
-                _ => match rng.gen_range(0, 9) {
+                _ => match rng.gen_range(0, 8) {
                     0 => {
                         assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_food")
                     },
                     1 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_armor_misc",
-                    ),
-                    2 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_armor_light",
+                        "common.loot_tables.loot_table_armor_nature",
                     ),
                     3 => assets::load_expect::<Lottery<String>>(
                         "common.loot_tables.loot_table_armor_heavy",
                     ),
-                    4 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_armor_misc",
-                    ),
                     5 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_weapon_common",
-                    ),
-                    6 => assets::load_expect::<Lottery<String>>(
                         "common.loot_tables.loot_table_weapon_uncommon",
                     ),
-                    7 => assets::load_expect::<Lottery<String>>(
+                    6 => assets::load_expect::<Lottery<String>>(
                         "common.loot_tables.loot_table_weapon_rare",
                     ),
-                    _ => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table"),
+                    _ => assets::load_expect::<Lottery<String>>(
+                        "common.loot_tables.loot_table_cave_large",
+                    ),
                 },
             },
             Some(common::comp::Body::Golem(golem)) => match golem.species {
@@ -322,13 +315,9 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             },
             Some(common::comp::Body::Critter(critter)) => match critter.species {
                 _ => match rng.gen_range(0, 3) {
-                    0 => {
-                        assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_food")
-                    },
-                    1 => assets::load_expect::<Lottery<String>>(
+                    _ => assets::load_expect::<Lottery<String>>(
                         "common.loot_tables.loot_table_animal_parts",
                     ),
-                    _ => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table"),
                 },
             },
             Some(common::comp::Body::Dragon(_)) => {

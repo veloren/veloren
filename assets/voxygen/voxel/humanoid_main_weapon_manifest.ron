@@ -484,6 +484,10 @@
         vox_spec: ("weapon.bow.longbow_rare", (-2.0, -6.0, -2.5)),
         color: None
     ),
+    Bow("NatureOreLongbow"): (
+        vox_spec: ("weapon.bow.longbow_ore_nature-0", (-2.0, -4.0, -4.5)),
+        color: None
+    ),
     // Farming Equipment
     Farming("Broom"): (
         vox_spec: ("weapon.tool.broom-0", (-1.5, -4.0, -4.0)),
@@ -548,7 +552,7 @@
         color: None
     ),
     Staff("SceptreVelorite"): (
-        vox_spec: ("weapon.staff.ore-nature", (-1.0, -6.0, -5.0)),
+        vox_spec: ("weapon.staff.ore-nature", (-2.0, -6.0, -5.0)),
         color: None
     ),
     // Misc

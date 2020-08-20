@@ -405,7 +405,7 @@ impl<'a> Widget for Crafting<'a> {
                     .set(state.ids.ingredient_img[i], ui);
                 // Ingredients text and amount
                 // Don't show inventory amounts above 999 to avoid the widget clipping
-                let over9k = "999+";
+                let over9k = "99+";
                 let in_inv: &str = &self.inventory.item_count(item).to_string();
                 // Show Ingredients
                 // Align "Required" Text below last ingredient
@@ -429,7 +429,7 @@ impl<'a> Widget for Crafting<'a> {
                         "{}x {} ({})",
                         amount,
                         item.name(),
-                        if self.inventory.item_count(item) > 999 {
+                        if self.inventory.item_count(item) > 99 {
                             over9k
                         } else {
                             in_inv
@@ -439,7 +439,7 @@ impl<'a> Widget for Crafting<'a> {
                     Text::new(&input)
                         .right_from(state.ids.ingredient_frame[i], 10.0)
                         .font_id(self.fonts.cyri.conrod_id)
-                        .font_size(self.fonts.cyri.scale(14))
+                        .font_size(self.fonts.cyri.scale(12))
                         .color(col)
                         .set(state.ids.ingredients[i], ui);
                 }

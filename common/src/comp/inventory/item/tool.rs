@@ -245,7 +245,7 @@ impl Tool {
                             energy_cost: 350,
                             buildup_duration: Duration::from_millis(0),
                             recover_duration: Duration::from_millis(1000),
-                            base_healthchange: (150.0 * self.base_power()) as i32,
+                            base_healthchange: (350.0 * self.base_power()) as i32,
                             range: 100.0,
                             max_angle: 90.0,
                         },

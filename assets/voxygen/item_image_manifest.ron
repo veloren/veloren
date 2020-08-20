@@ -44,6 +44,10 @@
         "voxel.weapon.bow.longbow_rare",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
+    Tool(Bow("NatureOreLongbow")): VoxTrans(
+        "voxel.weapon.bow.longbow_ore_nature-0",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
     // Daggers
     Tool(Dagger("BasicDagger")): VoxTrans(
         "voxel.weapon.dagger.dagger_rusty",
@@ -1075,7 +1079,7 @@
         "voxel.armor.back.short-0",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
-     Armor(Back("Short1")): VoxTrans(
+    Armor(Back("Short1")): VoxTrans(
         "voxel.armor.back.short-1",
         (0.0, -2.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
@@ -1086,6 +1090,10 @@
     Armor(Back("DungPurp0")): VoxTrans(
         "voxel.armor.back.dung_purp-0",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    ),
+    Armor(Back("Short2")): VoxTrans(
+        "voxel.armor.back.short-2",
+        (0.0, -2.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
     // Rings
     Armor(Ring("Ring0")): Png(
