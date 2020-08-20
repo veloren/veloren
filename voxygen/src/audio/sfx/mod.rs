@@ -234,8 +234,10 @@ impl SfxMgr {
         }
 
         let ecs = state.ecs();
+        let focus_off = camera.get_focus_pos().map(f32::trunc);
+        let cam_pos = camera.dependents().cam_pos + focus_off;
 
-        audio.set_listener_pos(camera.dependents().cam_pos, camera.dependents().cam_dir);
+        audio.set_listener_pos(cam_pos, camera.dependents().cam_dir);
 
         // TODO: replace; deprecated in favor of outcomes
         self.event_mapper
@@ -247,7 +249,7 @@ impl SfxMgr {
         for event in events {
             let position = match event.pos {
                 Some(pos) => pos,
-                _ => camera.dependents().cam_pos,
+                _ => cam_pos,
             };
 
             if let Some(item) = self.triggers.get_trigger(&event.sfx) {

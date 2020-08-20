@@ -337,6 +337,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     .and_then(|ldt| slot::loadout_remove(slot, ldt)),
             };
 
+            // FIXME: We should really require the drop and write to be atomic!
             if let (Some(item), Some(pos)) =
                 (item, state.ecs().read_storage::<comp::Pos>().get(entity))
             {
@@ -363,6 +364,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 let recipe_book = default_recipe_book();
                 let craft_result = recipe_book.get(&recipe).and_then(|r| r.perform(inv).ok());
 
+                // FIXME: We should really require the drop and write to be atomic!
                 if craft_result.is_some() {
                     let _ = state.ecs().write_storage().insert(
                         entity,

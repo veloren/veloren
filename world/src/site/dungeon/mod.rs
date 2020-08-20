@@ -5,6 +5,7 @@ use crate::{
     sim::WorldSim,
     site::BlockMask,
     util::{attempt, Grid, RandomField, Sampler, CARDINALS, DIRS},
+    IndexRef,
 };
 use common::{
     assets,
@@ -20,6 +21,7 @@ use core::{f32, hash::BuildHasherDefault};
 use fxhash::FxHasher64;
 use lazy_static::lazy_static;
 use rand::prelude::*;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use vek::*;
 
@@ -35,6 +37,11 @@ pub struct Dungeon {
 pub struct GenCtx<'a, R: Rng> {
     sim: Option<&'a WorldSim>,
     rng: &'a mut R,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct Colors {
+    pub stone: (u8, u8, u8),
 }
 
 const ALT_OFFSET: i32 = -2;
@@ -80,6 +87,7 @@ impl Dungeon {
 
     pub fn apply_to<'a>(
         &'a self,
+        index: IndexRef,
         wpos2d: Vec2<i32>,
         mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
         vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
@@ -112,7 +120,14 @@ impl Dungeon {
                         .ok()
                         .copied()
                         .map(|sb| {
-                            block_from_structure(sb, spos, self.origin, self.seed, col_sample)
+                            block_from_structure(
+                                index,
+                                sb,
+                                spos,
+                                self.origin,
+                                self.seed,
+                                col_sample,
+                            )
                         })
                         .unwrap_or(None)
                     {
@@ -125,7 +140,7 @@ impl Dungeon {
                 for floor in &self.floors {
                     z -= floor.total_depth();
 
-                    let mut sampler = floor.col_sampler(rpos, z);
+                    let mut sampler = floor.col_sampler(index, rpos, z);
 
                     for rz in 0..floor.total_depth() {
                         if let Some(block) = sampler(rz).finish() {
@@ -574,16 +589,29 @@ impl Floor {
     }
 
     #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
-    pub fn col_sampler(&self, pos: Vec2<i32>, floor_z: i32) -> impl FnMut(i32) -> BlockMask + '_ {
+    pub fn col_sampler<'a>(
+        &'a self,
+        index: IndexRef<'a>,
+        pos: Vec2<i32>,
+        floor_z: i32,
+    ) -> impl FnMut(i32) -> BlockMask + 'a {
         let rpos = pos - self.tile_offset * TILE_SIZE;
         let tile_pos = rpos.map(|e| e.div_euclid(TILE_SIZE));
         let tile_center = tile_pos * TILE_SIZE + TILE_SIZE / 2;
         let rtile_pos = rpos - tile_center;
 
+        let colors = &index.colors.site.dungeon;
+
         let empty = BlockMask::new(Block::empty(), 1);
 
         let make_staircase = move |pos: Vec3<i32>, radius: f32, inner_radius: f32, stretch: f32| {
-            let stone = BlockMask::new(Block::new(BlockKind::Normal, Rgb::new(150, 150, 175)), 5);
+            let stone = BlockMask::new(
+                Block::new(
+                    BlockKind::Normal,
+                    /* Rgb::new(150, 150, 175) */ colors.stone.into(),
+                ),
+                5,
+            );
 
             if (pos.xy().magnitude_squared() as f32) < inner_radius.powf(2.0) {
                 stone

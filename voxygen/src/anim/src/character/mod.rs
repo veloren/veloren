@@ -36,120 +36,79 @@ pub use self::{
     swimwield::SwimWieldAnimation, wield::WieldAnimation,
 };
 
-use super::{Bone, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, Bone, FigureBoneData, Skeleton};
 use common::comp;
-use vek::{Vec3, Vec4};
+use core::convert::TryFrom;
 
-#[derive(Clone, Default)]
-pub struct CharacterSkeleton {
-    head: Bone,
-    chest: Bone,
-    belt: Bone,
-    back: Bone,
-    shorts: Bone,
-    l_hand: Bone,
-    r_hand: Bone,
-    l_foot: Bone,
-    r_foot: Bone,
-    l_shoulder: Bone,
-    r_shoulder: Bone,
-    glider: Bone,
-    main: Bone,
-    second: Bone,
-    lantern: Bone,
-    hold: Bone,
-    torso: Bone,
-    control: Bone,
-    l_control: Bone,
-    r_control: Bone,
-}
-
-impl CharacterSkeleton {
-    pub fn new() -> Self { Self::default() }
-}
+skeleton_impls!(struct CharacterSkeleton {
+    + head,
+    + chest,
+    + belt,
+    + back,
+    + shorts,
+    + l_hand,
+    + r_hand,
+    + l_foot,
+    + r_foot,
+    + l_shoulder,
+    + r_shoulder,
+    + glider,
+    + main,
+    + second,
+    + lantern,
+    + hold,
+    torso,
+    control,
+    l_control,
+    r_control,
+});
 
 impl Skeleton for CharacterSkeleton {
     type Attr = SkeletonAttr;
 
+    const BONE_COUNT: usize = 16;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"character_compute_mats\0";
 
-    fn bone_count(&self) -> usize { 16 }
-
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_compute_mats")]
 
-    fn compute_matrices_inner(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
-        let chest_mat = self.chest.compute_base_matrix();
-        let torso_mat = self.torso.compute_base_matrix();
-        let l_hand_mat = self.l_hand.compute_base_matrix();
-        let r_hand_mat = self.r_hand.compute_base_matrix();
-        let control_mat = self.control.compute_base_matrix();
-        let l_control_mat = self.l_control.compute_base_matrix();
-        let r_control_mat = self.r_control.compute_base_matrix();
-        let main_mat = self.main.compute_base_matrix();
-        let second_mat = self.second.compute_base_matrix();
-        let shorts_mat = self.shorts.compute_base_matrix();
-        let head_mat = self.head.compute_base_matrix();
+    fn compute_matrices_inner(
+        &self,
+        base_mat: Mat4<f32>,
+        buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
+    ) -> Vec3<f32> {
+        let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
+        let chest_mat = torso_mat * Mat4::<f32>::from(self.chest);
+        let head_mat = chest_mat * Mat4::<f32>::from(self.head);
+        let shorts_mat = chest_mat * Mat4::<f32>::from(self.shorts);
+        let control_mat = chest_mat * Mat4::<f32>::from(self.control);
+        let l_control_mat = control_mat * Mat4::<f32>::from(self.l_control);
+        let r_control_mat = control_mat * Mat4::<f32>::from(self.r_control);
 
-        let lantern_final_mat =
-            torso_mat * chest_mat * shorts_mat * self.lantern.compute_base_matrix();
+        let l_hand_mat = Mat4::<f32>::from(self.l_hand);
+        let lantern_mat = Mat4::<f32>::from(self.lantern);
 
-        (
-            [
-                FigureBoneData::new(torso_mat * chest_mat * head_mat),
-                FigureBoneData::new(torso_mat * chest_mat),
-                FigureBoneData::new(torso_mat * chest_mat * self.belt.compute_base_matrix()),
-                FigureBoneData::new(torso_mat * chest_mat * self.back.compute_base_matrix()),
-                FigureBoneData::new(torso_mat * chest_mat * shorts_mat),
-                FigureBoneData::new(
-                    torso_mat * chest_mat * control_mat * l_control_mat * l_hand_mat,
-                ),
-                FigureBoneData::new(
-                    torso_mat * chest_mat * control_mat * r_control_mat * r_hand_mat,
-                ),
-                FigureBoneData::new(torso_mat * self.l_foot.compute_base_matrix()),
-                FigureBoneData::new(torso_mat * self.r_foot.compute_base_matrix()),
-                FigureBoneData::new(torso_mat * chest_mat * self.l_shoulder.compute_base_matrix()),
-                FigureBoneData::new(torso_mat * chest_mat * self.r_shoulder.compute_base_matrix()),
-                FigureBoneData::new(torso_mat * chest_mat * self.glider.compute_base_matrix()),
-                FigureBoneData::new(torso_mat * chest_mat * control_mat * l_control_mat * main_mat),
-                FigureBoneData::new(
-                    torso_mat * chest_mat * control_mat * r_control_mat * second_mat,
-                ),
-                FigureBoneData::new(lantern_final_mat),
-                FigureBoneData::new(
-                    torso_mat
-                        * chest_mat
-                        * control_mat
-                        * l_hand_mat
-                        * self.hold.compute_base_matrix(),
-                ),
-            ],
-            (lantern_final_mat * Vec4::new(0.0, 0.0, 0.0, 1.0)).xyz(),
-        )
-    }
-
-    fn interpolate(&mut self, target: &Self, dt: f32) {
-        self.head.interpolate(&target.head, dt);
-        self.chest.interpolate(&target.chest, dt);
-        self.belt.interpolate(&target.belt, dt);
-        self.back.interpolate(&target.back, dt);
-        self.shorts.interpolate(&target.shorts, dt);
-        self.l_hand.interpolate(&target.l_hand, dt);
-        self.r_hand.interpolate(&target.r_hand, dt);
-        self.l_foot.interpolate(&target.l_foot, dt);
-        self.r_foot.interpolate(&target.r_foot, dt);
-        self.l_shoulder.interpolate(&target.l_shoulder, dt);
-        self.r_shoulder.interpolate(&target.r_shoulder, dt);
-        self.glider.interpolate(&target.glider, dt);
-        self.main.interpolate(&target.main, dt);
-        self.second.interpolate(&target.second, dt);
-        self.lantern.interpolate(&target.lantern, dt);
-        self.hold.interpolate(&target.hold, dt);
-        self.torso.interpolate(&target.torso, dt);
-        self.control.interpolate(&target.control, dt);
-        self.l_control.interpolate(&target.l_control, dt);
-        self.r_control.interpolate(&target.r_control, dt);
+        *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
+            make_bone(head_mat),
+            make_bone(chest_mat),
+            make_bone(chest_mat * Mat4::<f32>::from(self.belt)),
+            make_bone(chest_mat * Mat4::<f32>::from(self.back)),
+            make_bone(shorts_mat),
+            make_bone(l_control_mat * l_hand_mat),
+            make_bone(r_control_mat * Mat4::<f32>::from(self.r_hand)),
+            make_bone(torso_mat * Mat4::<f32>::from(self.l_foot)),
+            make_bone(torso_mat * Mat4::<f32>::from(self.r_foot)),
+            make_bone(chest_mat * Mat4::<f32>::from(self.l_shoulder)),
+            make_bone(chest_mat * Mat4::<f32>::from(self.r_shoulder)),
+            make_bone(chest_mat * Mat4::<f32>::from(self.glider)),
+            make_bone(l_control_mat * Mat4::<f32>::from(self.main)),
+            make_bone(r_control_mat * Mat4::<f32>::from(self.second)),
+            make_bone(shorts_mat * lantern_mat),
+            // FIXME: Should this be l_control_mat?
+            make_bone(control_mat * l_hand_mat * Mat4::<f32>::from(self.hold)),
+        ];
+        // NOTE: lantern_mat.cols.w = lantern_mat * Vec4::unit_w()
+        (head_mat * lantern_mat.cols.w).xyz()
     }
 }
 

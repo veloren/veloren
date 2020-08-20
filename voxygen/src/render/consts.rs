@@ -23,9 +23,14 @@ impl<T: Copy + gfx::traits::Pod> Consts<T> {
         &mut self,
         encoder: &mut gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
         vals: &[T],
+        offset: usize,
     ) -> Result<(), RenderError> {
-        encoder
-            .update_buffer(&self.buf, vals, 0)
-            .map_err(RenderError::UpdateError)
+        if vals.is_empty() {
+            Ok(())
+        } else {
+            encoder
+                .update_buffer(&self.buf, vals, offset)
+                .map_err(RenderError::UpdateError)
+        }
     }
 }

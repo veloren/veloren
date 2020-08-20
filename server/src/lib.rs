@@ -33,7 +33,7 @@ use common::{
     cmd::ChatCommand,
     comp::{self, ChatType},
     event::{EventBus, ServerEvent},
-    msg::{ClientState, ServerInfo, ServerMsg},
+    msg::{server::WorldMapMsg, ClientState, ServerInfo, ServerMsg},
     outcome::Outcome,
     recipe::default_recipe_book,
     state::{State, TimeOfDay},
@@ -55,15 +55,15 @@ use std::{
     time::{Duration, Instant},
 };
 #[cfg(not(feature = "worldgen"))]
-use test_world::{World, WORLD_SIZE};
+use test_world::{IndexOwned, World};
 use tracing::{debug, error, info, warn};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 #[cfg(feature = "worldgen")]
 use world::{
     civ::SiteKind,
-    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, WORLD_SIZE},
-    World,
+    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP},
+    IndexOwned, World,
 };
 
 #[macro_use] extern crate diesel;
@@ -82,7 +82,8 @@ pub struct Tick(u64);
 pub struct Server {
     state: State,
     world: Arc<World>,
-    map: Vec<u32>,
+    index: IndexOwned,
+    map: WorldMapMsg,
 
     network: Network,
 
@@ -173,7 +174,7 @@ impl Server {
         state.ecs_mut().insert(AliasValidator::new(banned_words));
 
         #[cfg(feature = "worldgen")]
-        let world = World::generate(settings.world_seed, WorldOpts {
+        let (world, index) = World::generate(settings.world_seed, WorldOpts {
             seed_elements: true,
             world_file: if let Some(ref opts) = settings.map_file {
                 opts.clone()
@@ -184,21 +185,27 @@ impl Server {
             ..WorldOpts::default()
         });
         #[cfg(feature = "worldgen")]
-        let map = world.get_map_data();
+        let map = world.get_map_data(index.as_index_ref());
 
         #[cfg(not(feature = "worldgen"))]
-        let world = World::generate(settings.world_seed);
+        let (world, index) = World::generate(settings.world_seed);
         #[cfg(not(feature = "worldgen"))]
-        let map = vec![0];
+        let map = WorldMapMsg {
+            dimensions: Vec2::new(1, 1),
+            max_height: 1.0,
+            rgba: vec![0],
+            horizons: [(vec![0], vec![0]), (vec![0], vec![0])],
+        };
 
         #[cfg(feature = "worldgen")]
         let spawn_point = {
+            let index = index.as_index_ref();
             // NOTE: all of these `.map(|e| e as [type])` calls should compile into no-ops,
             // but are needed to be explicit about casting (and to make the compiler stop
             // complaining)
 
             // spawn in the chunk, that is in the middle of the world
-            let center_chunk: Vec2<i32> = WORLD_SIZE.map(|e| e as i32) / 2;
+            let center_chunk: Vec2<i32> = world.sim().map_size_lg().chunks().map(i32::from) / 2;
 
             // Find a town to spawn in that's close to the centre of the world
             let spawn_chunk = world
@@ -219,11 +226,11 @@ impl Server {
             // get a z cache for the collumn in which we want to spawn
             let mut block_sampler = world.sample_blocks();
             let z_cache = block_sampler
-                .get_z_cache(spawn_location, world.index())
+                .get_z_cache(spawn_location, index)
                 .expect(&format!("no z_cache found for chunk: {}", spawn_chunk));
 
             // get the minimum and maximum z values at which there could be soild blocks
-            let (min_z, _, max_z) = z_cache.get_z_limits(&mut block_sampler, world.index());
+            let (min_z, _, max_z) = z_cache.get_z_limits(&mut block_sampler, index);
             // round range outwards, so no potential air block is missed
             let min_z = min_z.floor() as i32;
             let max_z = max_z.ceil() as i32;
@@ -239,7 +246,7 @@ impl Server {
                             Vec3::new(spawn_location.x, spawn_location.y, *z),
                             Some(&z_cache),
                             false,
-                            world.index(),
+                            index,
                         )
                         .map(|b| b.is_air())
                         .unwrap_or(false)
@@ -283,6 +290,7 @@ impl Server {
         let this = Self {
             state,
             world: Arc::new(world),
+            index,
             map,
 
             network,
@@ -488,6 +496,42 @@ impl Server {
                         .emit_now(message);
                 },
             });
+
+        {
+            // Check for new chunks; cancel and regenerate all chunks if the asset has been
+            // reloaded. Note that all of these assignments are no-ops, so the
+            // only work we do here on the fast path is perform a relaxed read on an atomic.
+            // boolean.
+            let index = &mut self.index;
+            let thread_pool = &mut self.thread_pool;
+            let world = &mut self.world;
+            let ecs = self.state.ecs_mut();
+
+            index.reload_colors_if_changed(|index| {
+                let mut chunk_generator = ecs.write_resource::<ChunkGenerator>();
+                let client = ecs.read_storage::<Client>();
+                let mut terrain = ecs.write_resource::<common::terrain::TerrainGrid>();
+
+                // Cancel all pending chunks.
+                chunk_generator.cancel_all();
+
+                if client.is_empty() {
+                    // No cilents, so just clear all terrain.
+                    terrain.clear();
+                } else {
+                    // There's at leasat one client, so regenerate all chunks.
+                    terrain.iter().for_each(|(pos, _)| {
+                        chunk_generator.generate_chunk(
+                            None,
+                            pos,
+                            thread_pool,
+                            world.clone(),
+                            index.clone(),
+                        );
+                    });
+                }
+            });
+        }
 
         let end_of_server_tick = Instant::now();
 
@@ -700,7 +744,7 @@ impl Server {
                         server_info: self.get_server_info(),
                         time_of_day: *self.state.ecs().read_resource(),
                         max_group_size: self.settings().max_player_group_size,
-                        world_map: (WORLD_SIZE.map(|e| e as u32), self.map.clone()),
+                        world_map: self.map.clone(),
                         recipe_book: (&*default_recipe_book()).clone(),
                     });
 
@@ -723,7 +767,13 @@ impl Server {
         self.state
             .ecs()
             .write_resource::<ChunkGenerator>()
-            .generate_chunk(entity, key, &mut self.thread_pool, self.world.clone());
+            .generate_chunk(
+                Some(entity),
+                key,
+                &mut self.thread_pool,
+                self.world.clone(),
+                self.index.clone(),
+            );
     }
 
     fn process_chat_cmd(&mut self, entity: EcsEntity, cmd: String) {

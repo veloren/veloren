@@ -63,7 +63,11 @@ impl SessionState {
     pub fn new(global_state: &mut GlobalState, client: Rc<RefCell<Client>>) -> Self {
         // Create a scene for this session. The scene handles visible elements of the
         // game world.
-        let mut scene = Scene::new(global_state.window.renderer_mut());
+        let mut scene = Scene::new(
+            global_state.window.renderer_mut(),
+            &*client.borrow(),
+            &global_state.settings,
+        );
         scene
             .camera_mut()
             .set_fov_deg(global_state.settings.graphics.fov);
@@ -218,6 +222,9 @@ impl PlayState for SessionState {
             let camera::Dependents {
                 cam_pos, cam_dir, ..
             } = self.scene.camera().dependents();
+            let focus_pos = self.scene.camera().get_focus_pos();
+            let focus_off = focus_pos.map(|e| e.trunc());
+            let cam_pos = cam_pos + focus_off;
 
             let (is_aiming, aim_dir_offset) = {
                 let client = self.client.borrow();
@@ -677,11 +684,13 @@ impl PlayState for SessionState {
                 .camera_mut()
                 .compute_dependents(&*self.client.borrow().state().terrain());
 
-            // Extract HUD events ensuring the client borrow gets dropped.
-            let mut hud_events = self.hud.maintain(
-                &self.client.borrow(),
-                global_state,
-                DebugInfo {
+            // Generate debug info, if needed (it iterates through enough data that we might
+            // as well avoid it unless we need it).
+            let debug_info = global_state
+                .settings
+                .gameplay
+                .toggle_debug
+                .then(|| DebugInfo {
                     tps: global_state.clock.get_tps(),
                     ping_ms: self.client.borrow().get_ping_ms_rolling_avg(),
                     coordinates: self
@@ -709,13 +718,21 @@ impl PlayState for SessionState {
                         .get(self.client.borrow().entity())
                         .cloned(),
                     num_chunks: self.scene.terrain().chunk_count() as u32,
+                    num_lights: self.scene.lights().len() as u32,
                     num_visible_chunks: self.scene.terrain().visible_chunk_count() as u32,
+                    num_shadow_chunks: self.scene.terrain().shadow_chunk_count() as u32,
                     num_figures: self.scene.figure_mgr().figure_count() as u32,
                     num_figures_visible: self.scene.figure_mgr().figure_count_visible() as u32,
                     num_particles: self.scene.particle_mgr().particle_count() as u32,
                     num_particles_visible: self.scene.particle_mgr().particle_count_visible()
                         as u32,
-                },
+                });
+
+            // Extract HUD events ensuring the client borrow gets dropped.
+            let mut hud_events = self.hud.maintain(
+                &self.client.borrow(),
+                global_state,
+                &debug_info,
                 &self.scene.camera(),
                 global_state.clock.get_last_delta(),
                 HudInfo {
@@ -731,7 +748,9 @@ impl PlayState for SessionState {
 
             // Look for changes in the localization files
             if global_state.localization_watcher.reloaded() {
-                hud_events.push(HudEvent::ChangeLanguage(self.voxygen_i18n.metadata.clone()));
+                hud_events.push(HudEvent::ChangeLanguage(Box::new(
+                    self.voxygen_i18n.metadata.clone(),
+                )));
             }
 
             // Maintain the UI.
@@ -804,6 +823,12 @@ impl PlayState for SessionState {
                         self.client.borrow_mut().set_view_distance(view_distance);
 
                         global_state.settings.graphics.view_distance = view_distance;
+                        global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::AdjustLodDetail(lod_detail) => {
+                        self.scene.lod.set_detail(lod_detail);
+
+                        global_state.settings.graphics.lod_detail = lod_detail;
                         global_state.settings.save_to_file_warn();
                     },
                     HudEvent::AdjustSpriteRenderDistance(sprite_render_distance) => {
@@ -919,34 +944,14 @@ impl PlayState for SessionState {
                         global_state.settings.graphics.gamma = new_gamma;
                         global_state.settings.save_to_file_warn();
                     },
-                    HudEvent::ChangeAaMode(new_aa_mode) => {
+                    HudEvent::ChangeRenderMode(new_render_mode) => {
                         // Do this first so if it crashes the setting isn't saved :)
                         global_state
                             .window
                             .renderer_mut()
-                            .set_aa_mode(new_aa_mode)
+                            .set_render_mode((&*new_render_mode).clone())
                             .unwrap();
-                        global_state.settings.graphics.aa_mode = new_aa_mode;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ChangeCloudMode(new_cloud_mode) => {
-                        // Do this first so if it crashes the setting isn't saved :)
-                        global_state
-                            .window
-                            .renderer_mut()
-                            .set_cloud_mode(new_cloud_mode)
-                            .unwrap();
-                        global_state.settings.graphics.cloud_mode = new_cloud_mode;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ChangeFluidMode(new_fluid_mode) => {
-                        // Do this first so if it crashes the setting isn't saved :)
-                        global_state
-                            .window
-                            .renderer_mut()
-                            .set_fluid_mode(new_fluid_mode)
-                            .unwrap();
-                        global_state.settings.graphics.fluid_mode = new_fluid_mode;
+                        global_state.settings.graphics.render_mode = *new_render_mode;
                         global_state.settings.save_to_file_warn();
                     },
                     HudEvent::ChangeResolution(new_resolution) => {
@@ -1170,7 +1175,7 @@ fn under_cursor(
     let cam_dist = cam_ray.0;
 
     // The ray hit something, is it within range?
-    let (build_pos, select_pos) = if matches!(cam_ray.1, Ok(Some(_)) if 
+    let (build_pos, select_pos) = if matches!(cam_ray.1, Ok(Some(_)) if
         player_pos.distance_squared(cam_pos + cam_dir * cam_dist)
         <= MAX_PICKUP_RANGE_SQR)
     {

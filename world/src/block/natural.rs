@@ -3,7 +3,7 @@ use crate::{
     all::ForestKind,
     column::{ColumnGen, ColumnSample},
     util::{RandomPerm, Sampler, SmallCache, UnitChooser},
-    Index, CONFIG,
+    IndexRef, CONFIG,
 };
 use common::terrain::Structure;
 use lazy_static::lazy_static;
@@ -20,7 +20,7 @@ pub fn structure_gen<'a>(
     st_pos: Vec2<i32>,
     st_seed: u32,
     st_sample: &ColumnSample,
-    index: &'a Index,
+    index: IndexRef<'a>,
 ) -> Option<StructureInfo> {
     // Assuming it's a tree... figure out when it SHOULDN'T spawn
     let random_seed = (st_seed as f64) / (u32::MAX as f64);

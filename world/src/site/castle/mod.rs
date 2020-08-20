@@ -3,9 +3,10 @@ use crate::{
     column::ColumnSample,
     sim::WorldSim,
     site::settlement::building::{
-        archetype::keep::{Attr, Keep as KeepArchetype},
+        archetype::keep::{Attr, FlagColor, Keep as KeepArchetype, StoneColor},
         Archetype, Ori,
     },
+    IndexRef,
 };
 use common::{
     generation::ChunkSupplement,
@@ -14,6 +15,7 @@ use common::{
 };
 use core::f32;
 use rand::prelude::*;
+use serde::{Deserialize, Serialize};
 use vek::*;
 
 struct Keep {
@@ -46,6 +48,9 @@ pub struct GenCtx<'a, R: Rng> {
     sim: Option<&'a mut WorldSim>,
     rng: &'a mut R,
 }
+
+#[derive(Deserialize, Serialize)]
+pub struct Colors;
 
 impl Castle {
     #[allow(clippy::let_and_return)] // TODO: Pending review in #587
@@ -167,6 +172,7 @@ impl Castle {
 
     pub fn apply_to<'a>(
         &'a self,
+        index: IndexRef,
         wpos2d: Vec2<i32>,
         mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
         vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
@@ -273,14 +279,14 @@ impl Castle {
 
                 let keep_archetype = KeepArchetype {
                     flag_color: if self.evil {
-                        Rgb::new(80, 10, 130)
+                        FlagColor::Evil
                     } else {
-                        Rgb::new(200, 80, 40)
+                        FlagColor::Good
                     },
                     stone_color: if self.evil {
-                        Rgb::new(65, 60, 55)
+                        StoneColor::Evil
                     } else {
-                        Rgb::new(100, 100, 110)
+                        StoneColor::Good
                     },
                 };
 
@@ -294,6 +300,7 @@ impl Castle {
                     }
 
                     let mut mask = keep_archetype.draw(
+                        index,
                         Vec3::from(wall_rpos) + Vec3::unit_z() * wpos.z - wall_alt,
                         wall_dist,
                         border_pos,
@@ -323,6 +330,7 @@ impl Castle {
 
                         let border_pos = (tower_wpos - wpos).xy().map(|e| e.abs());
                         mask = mask.resolve_with(keep_archetype.draw(
+                            index,
                             if (tower_wpos.x - wpos.x).abs() < (tower_wpos.y - wpos.y).abs() {
                                 wpos - tower_wpos
                             } else {
@@ -364,6 +372,7 @@ impl Castle {
 
                         let border_pos = (keep_wpos - wpos).xy().map(|e| e.abs());
                         mask = mask.resolve_with(keep_archetype.draw(
+                            index,
                             if (keep_wpos.x - wpos.x).abs() < (keep_wpos.y - wpos.y).abs() {
                                 wpos - keep_wpos
                             } else {

@@ -52,7 +52,7 @@ enum ImageSpec {
 impl ImageSpec {
     fn create_graphic(&self) -> Graphic {
         match self {
-            ImageSpec::Png(specifier) => Graphic::Image(graceful_load_img(&specifier)),
+            ImageSpec::Png(specifier) => Graphic::Image(graceful_load_img(&specifier), None),
             ImageSpec::Vox(specifier) => Graphic::Voxel(
                 graceful_load_segment_no_skin(&specifier),
                 Transform {

@@ -47,7 +47,7 @@ pub fn resize_pixel_art(image: &RgbaImage, new_width: u32, new_height: u32) -> R
     for x in 0..new_width {
         // Calculate sampling strategy
         let xsmin = x as f32 * wratio;
-        let xsmax = xsmin + wratio;
+        let xsmax = (xsmin + wratio).min(width as f32);
         // Min and max pixels covered
         let xminp = xsmin.floor() as u32;
         let xmaxp = ((xsmax - EPSILON).ceil() as u32)
@@ -63,7 +63,7 @@ pub fn resize_pixel_art(image: &RgbaImage, new_width: u32, new_height: u32) -> R
         for y in 0..new_height {
             // Calculate sampling strategy
             let ysmin = y as f32 * hratio;
-            let ysmax = ysmin + hratio;
+            let ysmax = (ysmin + hratio).min(height as f32);
             // Min and max of pixels covered
             let yminp = ysmin.floor() as u32;
             let ymaxp = ((ysmax - EPSILON).ceil() as u32)

@@ -1,11 +1,10 @@
 use super::{
     super::{Pipeline, TgtColorFmt, TgtDepthStencilFmt},
-    Globals, Light, Shadow,
+    shadow, Globals, Light, Shadow,
 };
 use gfx::{
     self, gfx_defines, gfx_impl_struct_meta, gfx_pipeline, gfx_pipeline_inner,
-    gfx_vertex_struct_meta,
-    state::{ColorMask, Comparison, Stencil, StencilOp},
+    gfx_vertex_struct_meta, state::ColorMask,
 };
 use vek::*;
 
@@ -13,7 +12,7 @@ gfx_defines! {
     vertex Vertex {
         pos: [f32; 3] = "v_pos",
         // ____BBBBBBBBGGGGGGGGRRRRRRRR
-        col: u32 = "v_col",
+        // col: u32 = "v_col",
         // ...AANNN
         // A = AO
         // N = Normal
@@ -54,16 +53,26 @@ gfx_defines! {
         lights: gfx::ConstantBuffer<Light> = "u_lights",
         shadows: gfx::ConstantBuffer<Shadow> = "u_shadows",
 
+        point_shadow_maps: gfx::TextureSampler<f32> = "t_point_shadow_maps",
+        directed_shadow_maps: gfx::TextureSampler<f32> = "t_directed_shadow_maps",
+
+        alt: gfx::TextureSampler<[f32; 2]> = "t_alt",
+        horizon: gfx::TextureSampler<[f32; 4]> = "t_horizon",
+
         noise: gfx::TextureSampler<f32> = "t_noise",
 
+        // Shadow stuff
+        light_shadows: gfx::ConstantBuffer<shadow::Locals> = "u_light_shadows",
+
         tgt_color: gfx::BlendTarget<TgtColorFmt> = ("tgt_color", ColorMask::all(), gfx::preset::blend::ALPHA),
-        tgt_depth_stencil: gfx::DepthStencilTarget<TgtDepthStencilFmt> = (gfx::preset::depth::LESS_EQUAL_WRITE,Stencil::new(Comparison::Always,0xff,(StencilOp::Keep,StencilOp::Keep,StencilOp::Keep))),
+        tgt_depth_stencil: gfx::DepthTarget<TgtDepthStencilFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,
+        // tgt_depth_stencil: gfx::DepthStencilTarget<TgtDepthStencilFmt> = (gfx::preset::depth::LESS_EQUAL_WRITE,Stencil::new(Comparison::Always,0xff,(StencilOp::Keep,StencilOp::Keep,StencilOp::Keep))),
     }
 }
 
 impl Vertex {
     #[allow(clippy::collapsible_if)]
-    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, col: Rgb<f32>, ao: f32) -> Self {
+    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>) -> Self {
         let norm_bits = if norm.x != 0.0 {
             if norm.x < 0.0 { 0 } else { 1 }
         } else if norm.y != 0.0 {
@@ -74,10 +83,7 @@ impl Vertex {
 
         Self {
             pos: pos.into_array(),
-            col: col
-                .map2(Rgb::new(0, 8, 16), |e, shift| ((e * 255.0) as u32) << shift)
-                .reduce_bitor(),
-            norm_ao: norm_bits | (((ao * 3.9999) as u32) << 3),
+            norm_ao: norm_bits,
         }
     }
 }

@@ -1,9 +1,9 @@
 use super::SceneData;
 use crate::{
-    mesh::Meshable,
+    mesh::{greedy::GreedyMesh, Meshable},
     render::{
-        pipelines::particle::ParticleMode, Consts, Globals, Instances, Light, Model,
-        ParticleInstance, ParticlePipeline, Renderer, Shadow,
+        pipelines::particle::ParticleMode, GlobalModel, Instances, LodData, Model,
+        ParticleInstance, ParticlePipeline, Renderer,
     },
 };
 use common::{
@@ -43,7 +43,6 @@ impl ParticleMgr {
         }
     }
 
-    #[allow(clippy::same_item_push)] // TODO: Pending review in #587
     pub fn handle_outcome(&mut self, outcome: &Outcome, scene_data: &SceneData) {
         let time = scene_data.state.get_time();
         let mut rng = rand::thread_rng();
@@ -54,8 +53,9 @@ impl ParticleMgr {
                 power,
                 reagent,
             } => {
-                for _ in 0..150 {
-                    self.particles.push(Particle::new(
+                self.particles.resize(
+                    self.particles.len() + 150,
+                    Particle::new(
                         Duration::from_millis(if reagent.is_some() { 1000 } else { 250 }),
                         time,
                         match reagent {
@@ -67,17 +67,17 @@ impl ParticleMgr {
                             None => ParticleMode::Shrapnel,
                         },
                         *pos,
-                    ));
-                }
+                    ),
+                );
 
-                for _ in 0..200 {
-                    self.particles.push(Particle::new(
+                self.particles.resize_with(self.particles.len() + 200, || {
+                    Particle::new(
                         Duration::from_secs(4),
                         time,
                         ParticleMode::CampfireSmoke,
                         *pos + Vec2::<f32>::zero().map(|_| rng.gen_range(-1.0, 1.0) * power),
-                    ));
-                }
+                    )
+                });
             },
             Outcome::ProjectileShot { .. } => {},
         }
@@ -108,14 +108,7 @@ impl ParticleMgr {
 
     fn maintain_body_particles(&mut self, scene_data: &SceneData) {
         let ecs = scene_data.state.ecs();
-        for (_i, (_entity, body, pos)) in (
-            &ecs.entities(),
-            &ecs.read_storage::<Body>(),
-            &ecs.read_storage::<Pos>(),
-        )
-            .join()
-            .enumerate()
-        {
+        for (body, pos) in (&ecs.read_storage::<Body>(), &ecs.read_storage::<Pos>()).join() {
             match body {
                 Body::Object(object::Body::CampfireLit) => {
                     self.maintain_campfirelit_particles(scene_data, pos)
@@ -178,29 +171,30 @@ impl ParticleMgr {
         }
     }
 
-    #[allow(clippy::same_item_push)] // TODO: Pending review in #587
     fn maintain_boltfirebig_particles(&mut self, scene_data: &SceneData, pos: &Pos) {
         let time = scene_data.state.get_time();
 
         // fire
-        for _ in 0..self.scheduler.heartbeats(Duration::from_millis(3)) {
-            self.particles.push(Particle::new(
+        self.particles.resize(
+            self.particles.len() + usize::from(self.scheduler.heartbeats(Duration::from_millis(3))),
+            Particle::new(
                 Duration::from_millis(250),
                 time,
                 ParticleMode::CampfireFire,
                 pos.0,
-            ));
-        }
+            ),
+        );
 
         // smoke
-        for _ in 0..self.scheduler.heartbeats(Duration::from_millis(5)) {
-            self.particles.push(Particle::new(
+        self.particles.resize(
+            self.particles.len() + usize::from(self.scheduler.heartbeats(Duration::from_millis(5))),
+            Particle::new(
                 Duration::from_secs(2),
                 time,
                 ParticleMode::CampfireSmoke,
                 pos.0,
-            ));
-        }
+            ),
+        );
     }
 
     fn maintain_bomb_particles(&mut self, scene_data: &SceneData, pos: &Pos) {
@@ -225,29 +219,28 @@ impl ParticleMgr {
         }
     }
 
-    #[allow(clippy::same_item_push)] // TODO: Pending review in #587
     fn maintain_boost_particles(&mut self, scene_data: &SceneData) {
         let state = scene_data.state;
         let ecs = state.ecs();
         let time = state.get_time();
 
-        for (_i, (_entity, pos, character_state)) in (
-            &ecs.entities(),
+        for (pos, character_state) in (
             &ecs.read_storage::<Pos>(),
             &ecs.read_storage::<CharacterState>(),
         )
             .join()
-            .enumerate()
         {
             if let CharacterState::Boost(_) = character_state {
-                for _ in 0..self.scheduler.heartbeats(Duration::from_millis(10)) {
-                    self.particles.push(Particle::new(
+                self.particles.resize(
+                    self.particles.len()
+                        + usize::from(self.scheduler.heartbeats(Duration::from_millis(10))),
+                    Particle::new(
                         Duration::from_secs(15),
                         time,
                         ParticleMode::CampfireSmoke,
                         pos.0,
-                    ));
-                }
+                    ),
+                );
             }
         }
     }
@@ -271,9 +264,8 @@ impl ParticleMgr {
         &self,
         renderer: &mut Renderer,
         scene_data: &SceneData,
-        globals: &Consts<Globals>,
-        lights: &Consts<Light>,
-        shadows: &Consts<Shadow>,
+        global: &GlobalModel,
+        lod: &LodData,
     ) {
         if scene_data.particles_enabled {
             let model = &self
@@ -281,7 +273,7 @@ impl ParticleMgr {
                 .get(DEFAULT_MODEL_KEY)
                 .expect("Expected particle model in cache");
 
-            renderer.render_particles(model, globals, &self.instances, lights, shadows);
+            renderer.render_particles(model, global, &self.instances, lod);
         }
     }
 
@@ -304,19 +296,26 @@ fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<Particl
     let mut model_cache = HashMap::new();
 
     model_cache.entry(DEFAULT_MODEL_KEY).or_insert_with(|| {
-        let offset = Vec3::zero();
-        let lod_scale = Vec3::one();
-
         let vox = assets::load_expect::<DotVoxData>(DEFAULT_MODEL_KEY);
 
-        let mesh = &Meshable::<ParticlePipeline, ParticlePipeline>::generate_mesh(
-            &Segment::from(vox.as_ref()),
-            (offset * lod_scale, Vec3::one() / lod_scale),
+        // NOTE: If we add texturing we may eventually try to share it among all
+        // particles in a single atlas.
+        let max_texture_size = renderer.max_texture_size();
+        let max_size =
+            guillotiere::Size::new(i32::from(max_texture_size), i32::from(max_texture_size));
+        let mut greedy = GreedyMesh::new(max_size);
+
+        let mesh = Meshable::<ParticlePipeline, &mut GreedyMesh>::generate_mesh(
+            Segment::from(vox.as_ref()),
+            &mut greedy,
         )
         .0;
 
+        // NOTE: Ignoring coloring / lighting for now.
+        drop(greedy);
+
         renderer
-            .create_model(mesh)
+            .create_model(&mesh)
             .expect("Failed to create particle model")
     });
 
@@ -390,6 +389,7 @@ impl HeartbeatScheduler {
     pub fn clear(&mut self) { self.timers.clear() }
 }
 
+#[derive(Clone, Copy)]
 struct Particle {
     alive_until: f64, // created_at + lifespan
     instance: ParticleInstance,

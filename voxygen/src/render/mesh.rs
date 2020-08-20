@@ -1,4 +1,5 @@
 use super::Pipeline;
+use core::{iter::FromIterator, ops::Range};
 
 /// A `Vec`-based mesh structure used to store mesh data on the CPU.
 pub struct Mesh<P: Pipeline> {
@@ -19,7 +20,7 @@ where
 impl<P: Pipeline> Mesh<P> {
     /// Create a new `Mesh`.
     #[allow(clippy::new_without_default)] // TODO: Pending review in #587
-    pub fn new() -> Self { Self { verts: vec![] } }
+    pub fn new() -> Self { Self { verts: Vec::new() } }
 
     /// Clear vertices, allows reusing allocated memory of the underlying Vec.
     pub fn clear(&mut self) { self.verts.clear(); }
@@ -68,6 +69,11 @@ impl<P: Pipeline> Mesh<P> {
     }
 
     pub fn iter(&self) -> std::slice::Iter<P::Vertex> { self.verts.iter() }
+
+    /// NOTE: Panics if vertex_range is out of bounds of vertices.
+    pub fn iter_mut(&mut self, vertex_range: Range<usize>) -> std::slice::IterMut<P::Vertex> {
+        self.verts[vertex_range].iter_mut()
+    }
 }
 
 impl<P: Pipeline> IntoIterator for Mesh<P> {
@@ -75,6 +81,24 @@ impl<P: Pipeline> IntoIterator for Mesh<P> {
     type Item = P::Vertex;
 
     fn into_iter(self) -> Self::IntoIter { self.verts.into_iter() }
+}
+
+impl<P: Pipeline> FromIterator<Tri<P>> for Mesh<P> {
+    fn from_iter<I: IntoIterator<Item = Tri<P>>>(tris: I) -> Self {
+        tris.into_iter().fold(Self::new(), |mut this, tri| {
+            this.push_tri(tri);
+            this
+        })
+    }
+}
+
+impl<P: Pipeline> FromIterator<Quad<P>> for Mesh<P> {
+    fn from_iter<I: IntoIterator<Item = Quad<P>>>(quads: I) -> Self {
+        quads.into_iter().fold(Self::new(), |mut this, quad| {
+            this.push_quad(quad);
+            this
+        })
+    }
 }
 
 /// Represents a triangle stored on the CPU.
@@ -99,5 +123,19 @@ pub struct Quad<P: Pipeline> {
 impl<P: Pipeline> Quad<P> {
     pub fn new(a: P::Vertex, b: P::Vertex, c: P::Vertex, d: P::Vertex) -> Self {
         Self { a, b, c, d }
+    }
+
+    pub fn rotated_by(self, n: usize) -> Self
+    where
+        P::Vertex: Clone,
+    {
+        let verts = [self.a, self.b, self.c, self.d];
+
+        Self {
+            a: verts[n % 4].clone(),
+            b: verts[(1 + n) % 4].clone(),
+            c: verts[(2 + n) % 4].clone(),
+            d: verts[(3 + n) % 4].clone(),
+        }
     }
 }

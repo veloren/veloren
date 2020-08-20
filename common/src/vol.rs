@@ -25,7 +25,7 @@ pub trait BaseVol {
     type Vox: Vox;
     type Error: Debug;
 
-    fn scaled_by(&self, scale: Vec3<f32>) -> Scaled<Self>
+    fn scaled_by(self, scale: Vec3<f32>) -> Scaled<Self>
     where
         Self: Sized,
     {

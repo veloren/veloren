@@ -1,23 +1,49 @@
 use common::{
     generation::{ChunkSupplement, EntityInfo},
-    terrain::{Block, BlockKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
+    terrain::{Block, BlockKind, MapSizeLg, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, Vox, WriteVol},
 };
 use rand::{prelude::*, rngs::SmallRng};
 use std::time::Duration;
 use vek::*;
 
-pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1, y: 1 };
+const DEFAULT_WORLD_CHUNKS_LG: MapSizeLg =
+    if let Ok(map_size_lg) = MapSizeLg::new(Vec2 { x: 1, y: 1 }) {
+        map_size_lg
+    } else {
+        panic!("Default world chunk size does not satisfy required invariants.");
+    };
 
 pub struct World;
 
+#[derive(Clone)]
+pub struct IndexOwned;
+
+#[derive(Clone, Copy)]
+pub struct IndexRef<'a>(&'a IndexOwned);
+
+impl IndexOwned {
+    pub fn reload_colors_if_changed<R>(
+        &mut self,
+        _reload: impl FnOnce(&mut Self) -> R,
+    ) -> Option<R> {
+        None
+    }
+
+    pub fn as_index_ref(&self) -> IndexRef { IndexRef(self) }
+}
+
 impl World {
-    pub fn generate(_seed: u32) -> Self { Self }
+    pub fn generate(_seed: u32) -> (Self, IndexOwned) { (Self, IndexOwned) }
 
     pub fn tick(&self, dt: Duration) {}
 
+    #[inline(always)]
+    pub const fn map_size_lg(&self) -> MapSizeLg { DEFAULT_WORLD_CHUNKS_LG }
+
     pub fn generate_chunk(
         &self,
+        _index: IndexRef,
         chunk_pos: Vec2<i32>,
         _should_continue: impl FnMut() -> bool,
     ) -> Result<(TerrainChunk, ChunkSupplement), ()> {

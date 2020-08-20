@@ -4,12 +4,16 @@ uniform u_globals {
 	mat4 proj_mat;
 	mat4 all_mat;
 	vec4 cam_pos;
+	vec4 focus_off;
 	vec4 focus_pos;
 	vec4 view_distance;
 	vec4 time_of_day;
+	vec4 sun_dir;
+	vec4 moon_dir;
 	vec4 tick;
 	vec4 screen_res;
 	uvec4 light_shadow_count;
+    vec4 shadow_proj_factors;
 	uvec4 medium;
 	ivec4 select_pos;
 	vec4 gamma;

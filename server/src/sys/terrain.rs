@@ -60,13 +60,16 @@ impl<'a> System<'a> for Sys {
         'insert_terrain_chunks: while let Some((key, res)) = chunk_generator.recv_new_chunk() {
             let (chunk, supplement) = match res {
                 Ok((chunk, supplement)) => (chunk, supplement),
-                Err(entity) => {
+                Err(Some(entity)) => {
                     if let Some(client) = clients.get_mut(entity) {
                         client.notify(ServerMsg::TerrainChunkUpdate {
                             key,
                             chunk: Err(()),
                         });
                     }
+                    continue 'insert_terrain_chunks;
+                },
+                Err(None) => {
                     continue 'insert_terrain_chunks;
                 },
             };

@@ -1,6 +1,8 @@
-use super::{super::Animation, QuadrupedSmallSkeleton, SkeletonAttr};
+use super::{
+    super::{vek::*, Animation},
+    QuadrupedSmallSkeleton, SkeletonAttr,
+};
 use std::f32::consts::PI;
-use vek::*;
 
 pub struct RunAnimation;
 
@@ -35,7 +37,7 @@ impl Animation for RunAnimation {
 
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
-        let tilt = if Vec2::new(ori, last_ori)
+        let tilt = if ::vek::Vec2::new(ori, last_ori)
             .map(|o| o.magnitude_squared())
             .map(|m| m > 0.001 && m.is_finite())
             .reduce_and()
@@ -48,13 +50,13 @@ impl Animation for RunAnimation {
         } * 1.3;
         let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude());
 
-        next.head.offset = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
-        next.head.ori = Quaternion::rotation_x(x_tilt * -0.5 + short * -0.2)
+        next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
+        next.head.orientation = Quaternion::rotation_x(x_tilt * -0.5 + short * -0.2)
             * Quaternion::rotation_y(tilt * 0.8)
             * Quaternion::rotation_z(tilt * -1.2);
         next.head.scale = Vec3::one();
 
-        next.chest.offset = Vec3::new(
+        next.chest.position = Vec3::new(
             0.0,
             skeleton_attr.chest.0,
             skeleton_attr.chest.1
@@ -62,54 +64,58 @@ impl Animation for RunAnimation {
                 + shortalt * 3.0 * skeleton_attr.spring,
         ) / 11.0
             * skeleton_attr.scaler;
-        next.chest.ori = Quaternion::rotation_x(short * 0.2 * skeleton_attr.spring + x_tilt)
-            * Quaternion::rotation_y(tilt * 0.8)
-            * Quaternion::rotation_z(tilt * -1.5);
+        next.chest.orientation =
+            Quaternion::rotation_x(short * 0.2 * skeleton_attr.spring + x_tilt)
+                * Quaternion::rotation_y(tilt * 0.8)
+                * Quaternion::rotation_z(tilt * -1.5);
         next.chest.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
-        next.leg_fl.offset = Vec3::new(
+        next.leg_fl.position = Vec3::new(
             -skeleton_attr.feet_f.0,
             skeleton_attr.feet_f.1 + footverttf * 3.0 * skeleton_attr.maximize,
             skeleton_attr.feet_f.2 + ((footvertf * -1.5).max(-1.0)),
         );
-        next.leg_fl.ori = Quaternion::rotation_x(0.2 + skeleton_attr.minimize * footverttf * 0.65)
-            * Quaternion::rotation_z(tilt * -0.5)
-            * Quaternion::rotation_y(tilt * 1.5);
+        next.leg_fl.orientation =
+            Quaternion::rotation_x(0.2 + skeleton_attr.minimize * footverttf * 0.65)
+                * Quaternion::rotation_z(tilt * -0.5)
+                * Quaternion::rotation_y(tilt * 1.5);
         next.leg_fl.scale = Vec3::one() * 1.02;
 
-        next.leg_fr.offset = Vec3::new(
+        next.leg_fr.position = Vec3::new(
             skeleton_attr.feet_f.0,
             skeleton_attr.feet_f.1 + footvertt * 3.0 * skeleton_attr.minimize,
             skeleton_attr.feet_f.2 + ((footvert * -1.5).max(-1.0)),
         );
-        next.leg_fr.ori = Quaternion::rotation_x(0.2 + skeleton_attr.maximize * footvertt * 0.65)
-            * Quaternion::rotation_z(tilt * -0.5)
-            * Quaternion::rotation_y(tilt * 1.5);
+        next.leg_fr.orientation =
+            Quaternion::rotation_x(0.2 + skeleton_attr.maximize * footvertt * 0.65)
+                * Quaternion::rotation_z(tilt * -0.5)
+                * Quaternion::rotation_y(tilt * 1.5);
         next.leg_fr.scale = Vec3::one() * 1.02;
 
-        next.leg_bl.offset = Vec3::new(
+        next.leg_bl.position = Vec3::new(
             -skeleton_attr.feet_b.0,
             skeleton_attr.feet_b.1 + footvertt * -1.4,
             skeleton_attr.feet_b.2 + ((footvert * 1.5).max(-1.0)),
         );
-        next.leg_bl.ori = Quaternion::rotation_x(-0.25 + skeleton_attr.maximize * footvertt * -0.8)
-            * Quaternion::rotation_y(tilt * 1.5)
-            * Quaternion::rotation_z(tilt * -1.5);
+        next.leg_bl.orientation =
+            Quaternion::rotation_x(-0.25 + skeleton_attr.maximize * footvertt * -0.8)
+                * Quaternion::rotation_y(tilt * 1.5)
+                * Quaternion::rotation_z(tilt * -1.5);
         next.leg_bl.scale = Vec3::one() * 1.02;
 
-        next.leg_br.offset = Vec3::new(
+        next.leg_br.position = Vec3::new(
             skeleton_attr.feet_b.0,
             skeleton_attr.feet_b.1 + footverttf * -1.4,
             skeleton_attr.feet_b.2 + ((footvertf * 1.5).max(-1.0)),
         );
-        next.leg_br.ori =
+        next.leg_br.orientation =
             Quaternion::rotation_x(-0.25 + skeleton_attr.maximize * footverttf * -0.8)
                 * Quaternion::rotation_y(tilt * 1.5)
                 * Quaternion::rotation_z(tilt * -1.5);
         next.leg_br.scale = Vec3::one() * 1.02;
 
-        next.tail.offset = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1);
-        next.tail.ori = Quaternion::rotation_x(short * 0.2 + x_tilt)
+        next.tail.position = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1);
+        next.tail.orientation = Quaternion::rotation_x(short * 0.2 + x_tilt)
             * Quaternion::rotation_y(tilt * 0.8)
             * Quaternion::rotation_z(tilt * 1.5);
         next.tail.scale = Vec3::one();

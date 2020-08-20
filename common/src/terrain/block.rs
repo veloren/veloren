@@ -453,10 +453,10 @@ pub struct Block {
 }
 
 impl Block {
-    pub fn new(kind: BlockKind, color: Rgb<u8>) -> Self {
+    pub const fn new(kind: BlockKind, color: Rgb<u8>) -> Self {
         Self {
             kind,
-            color: color.into_array(),
+            color: [color.r, color.g, color.b],
         }
     }
 

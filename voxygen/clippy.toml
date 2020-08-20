@@ -1,0 +1,2 @@
+# Because 7 is just very low, it corresponds to a 6-argument method.
+too-many-arguments-threshold = 10

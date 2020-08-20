@@ -22,16 +22,8 @@ fn main() {
 
     let (_context, device, factory, color_view, depth_view) = init_headless(context, dim);
 
-    let mut renderer = render::Renderer::new(
-        device,
-        factory,
-        color_view,
-        depth_view,
-        render::AaMode::SsaaX4,
-        render::CloudMode::Regular,
-        render::FluidMode::Shiny,
-    )
-    .unwrap();
+    let mut renderer =
+        render::Renderer::new(device, factory, color_view, depth_view, Default::default()).unwrap();
 
     // Create character
     let body = comp::humanoid::Body::random();

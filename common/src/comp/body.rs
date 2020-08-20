@@ -14,6 +14,7 @@ pub mod quadruped_small;
 
 use crate::{
     assets::{self, Asset},
+    make_case_elim,
     npc::NpcKind,
 };
 use serde::{Deserialize, Serialize};
@@ -21,23 +22,26 @@ use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{fs::File, io::BufReader};
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum Body {
-    Humanoid(humanoid::Body) = 0,
-    QuadrupedSmall(quadruped_small::Body) = 1,
-    QuadrupedMedium(quadruped_medium::Body) = 2,
-    BirdMedium(bird_medium::Body) = 3,
-    FishMedium(fish_medium::Body) = 4,
-    Dragon(dragon::Body) = 5,
-    BirdSmall(bird_small::Body) = 6,
-    FishSmall(fish_small::Body) = 7,
-    BipedLarge(biped_large::Body) = 8,
-    Object(object::Body) = 9,
-    Golem(golem::Body) = 10,
-    Critter(critter::Body) = 11,
-    QuadrupedLow(quadruped_low::Body) = 12,
-}
+make_case_elim!(
+    body,
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    #[repr(u32)]
+    pub enum Body {
+        Humanoid(body: humanoid::Body) = 0,
+        QuadrupedSmall(body: quadruped_small::Body) = 1,
+        QuadrupedMedium(body: quadruped_medium::Body) = 2,
+        BirdMedium(body: bird_medium::Body) = 3,
+        FishMedium(body: fish_medium::Body) = 4,
+        Dragon(body: dragon::Body) = 5,
+        BirdSmall(body: bird_small::Body) = 6,
+        FishSmall(body: fish_small::Body) = 7,
+        BipedLarge(body: biped_large::Body)= 8,
+        Object(body: object::Body) = 9,
+        Golem(body: golem::Body) = 10,
+        Critter(body: critter::Body) = 11,
+        QuadrupedLow(body: quadruped_low::Body) = 12,
+    }
+);
 
 /// Data representing data generic to the body together with per-species data.
 ///
@@ -60,10 +64,14 @@ pub struct AllBodies<BodyMeta, SpeciesMeta> {
     pub quadruped_small: BodyData<BodyMeta, quadruped_small::AllSpecies<SpeciesMeta>>,
     pub quadruped_medium: BodyData<BodyMeta, quadruped_medium::AllSpecies<SpeciesMeta>>,
     pub bird_medium: BodyData<BodyMeta, bird_medium::AllSpecies<SpeciesMeta>>,
+    pub fish_medium: BodyData<BodyMeta, ()>,
+    pub dragon: BodyData<BodyMeta, dragon::AllSpecies<SpeciesMeta>>,
+    pub bird_small: BodyData<BodyMeta, ()>,
+    pub fish_small: BodyData<BodyMeta, ()>,
     pub biped_large: BodyData<BodyMeta, biped_large::AllSpecies<SpeciesMeta>>,
+    pub object: BodyData<BodyMeta, ()>,
     pub golem: BodyData<BodyMeta, golem::AllSpecies<SpeciesMeta>>,
     pub critter: BodyData<BodyMeta, critter::AllSpecies<SpeciesMeta>>,
-    pub dragon: BodyData<BodyMeta, dragon::AllSpecies<SpeciesMeta>>,
     pub quadruped_low: BodyData<BodyMeta, quadruped_low::AllSpecies<SpeciesMeta>>,
 }
 
@@ -83,6 +91,30 @@ impl<BodyMeta, SpeciesMeta> core::ops::Index<NpcKind> for AllBodies<BodyMeta, Sp
             NpcKind::Rat => &self.critter.body,
             NpcKind::Reddragon => &self.dragon.body,
             NpcKind::Crocodile => &self.quadruped_low.body,
+        }
+    }
+}
+
+/// Can only retrieve body metadata by direct index.
+impl<'a, BodyMeta, SpeciesMeta> core::ops::Index<&'a Body> for AllBodies<BodyMeta, SpeciesMeta> {
+    type Output = BodyMeta;
+
+    #[inline]
+    fn index(&self, index: &Body) -> &Self::Output {
+        match index {
+            Body::Humanoid(_) => &self.humanoid.body,
+            Body::QuadrupedSmall(_) => &self.quadruped_small.body,
+            Body::QuadrupedMedium(_) => &self.quadruped_medium.body,
+            Body::BirdMedium(_) => &self.bird_medium.body,
+            Body::FishMedium(_) => &self.fish_medium.body,
+            Body::Dragon(_) => &self.dragon.body,
+            Body::BirdSmall(_) => &self.bird_small.body,
+            Body::FishSmall(_) => &self.fish_small.body,
+            Body::BipedLarge(_) => &self.biped_large.body,
+            Body::Object(_) => &self.object.body,
+            Body::Golem(_) => &self.golem.body,
+            Body::Critter(_) => &self.critter.body,
+            Body::QuadrupedLow(_) => &self.quadruped_low.body,
         }
     }
 }
