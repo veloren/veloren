@@ -11,11 +11,11 @@
             //(245, 232, 175), // Cream Blonde
             //(228, 208, 147), // Gold Blonde
             //(228, 223, 141), // Platinum Blonde
-            (199, 131, 58), // Summer Blonde
-            (107, 76, 51),  // Oak Skin4
-            //(203, 154, 98),  // Light Skin4
-            (64, 32, 18),  // Skin7 Skin4
-            (86, 72, 71),  // Ash Skin4
+            (176, 106, 41),  // Summer Blonde
+            (107, 76, 51),  // Oak
+            //(203, 154, 98),  // Light
+            (64, 32, 18),  // Skin7
+            (86, 72, 71),  // Ash
             (57, 56, 61),  // Raven Black
             (101, 83, 95), // Matte Purple
             (101, 57, 90), // Witch Purple
@@ -26,14 +26,15 @@
             (20, 19, 17), // Black
         ],
         Dwarf: [
-            (245, 232, 175), // Cream Blonde
-            (228, 208, 147), // Gold Blonde
-            (228, 223, 141), // Platinum Blonde
-            (199, 131, 58),  // Summer Blonde
-            (107, 76, 51),   // Oak Skin4
-            (203, 154, 98),  // Light Skin4
-            (64, 32, 18),    // Skin7 Skin4
-            (86, 72, 71),    // Ash Skin4
+            (210, 204, 130), // Platinum Blonde
+            (220, 199, 119), // Cream Blonde
+            (212, 156, 73), // Gold Blonde
+            (176, 106, 41),  // Summer Blonde
+            (216, 146, 114), // Matte Pink
+            (107, 76, 51),   // Oak
+            (203, 154, 98),  // Light
+            (64, 32, 18),    // Skin7
+            (86, 72, 71),    // Ash
             (57, 56, 61),    // Raven Black
             (101, 83, 95),   // Matte Purple
             (101, 57, 90),   // Witch Purple
@@ -42,8 +43,7 @@
             (191, 228, 254), // Ice NobleBlue
             (92, 80, 144),   // Kingfisher Blue
             (146, 198, 238), // Lagoon Blue
-            (174, 148, 161), // Matte Pink
-            (163, 186, 192), // Matte Green
+            (146, 166, 172), // Matte Green
             (0, 139, 58),    // Grass Green
             (48, 61, 52),    // Dark Green
             (20, 19, 17),    // Black
@@ -52,59 +52,59 @@
             (66, 83, 113),   // Mysterious Blue
             (13, 76, 41),    // Rainforest Green
             (245, 232, 175), // Cream Blonde
-            (228, 208, 147), // Gold Blonde
+            (212, 156, 73), // Gold Blonde
             (228, 223, 141), // Platinum Blonde
-            (199, 131, 58),  // Summer Blonde
-            (107, 76, 51),   // Oak Skin4
-            (203, 154, 98),  // Light Skin4
-            (64, 32, 18),    // Skin7 Skin4
-            (86, 72, 71),    // Ash Skin4
+            (176, 106, 41),  // Summer Blonde
+            (107, 76, 51),   // Oak
+            (203, 154, 98),  // Light
+            (64, 32, 18),    // Skin7
+            (86, 72, 71),    // Ash
             (57, 56, 61),    // Raven Black
             (101, 83, 95),   // Matte Purple
             (101, 57, 90),   // Witch Purple
             (135, 38, 39),   // Dark Red
             (88, 26, 29),    // Wine Red
-            (191, 228, 254), // Ice Blue
+            (103, 191, 254), // Ice Blue
             (92, 80, 144),   // Kingfisher Blue
             (146, 198, 238), // Lagoon Blue
-            (224, 182, 184), // Candy Pink
-            (174, 148, 161), // Matte Pink
-            (163, 186, 192), // Matte Green
+            (80, 156, 211), // Candy Pink
+            (216, 146, 114), // Matte Pink
+            (146, 166, 172), // Matte Green
             (84, 139, 107),  // Grass Green
             (48, 61, 52),    // Dark Green
             (20, 19, 17),    // Black
         ],
         Human: [
-            (245, 232, 175), // Cream Blonde
-            (228, 208, 147), // Gold Blonde
-            (228, 223, 141), // Platinum Blonde
-            (199, 131, 58),  // Summer Blonde
-            (107, 76, 51),   // Oak Skin4
-            (203, 154, 98),  // Light Skin4
-            (64, 32, 18),    // Skin7 Skin4
-            (86, 72, 71),    // Ash Skin4
+            (210, 204, 130), // Platinum Blonde
+            (220, 199, 119), // Cream Blonde
+            (212, 156, 73), // Gold Blonde
+            (176, 106, 41),  // Summer Blonde
+            (216, 146, 114), // Matte Pink
+            (203, 200, 98),  // Light
+            (107, 76, 51),   // Oak
+            (64, 32, 18),    // Skin7
+            (86, 72, 81),    // Ash
             (57, 56, 61),    // Raven Black
             (101, 83, 95),   // Matte Purple
             (101, 57, 90),   // Witch Purple
             (135, 38, 39),   // Dark Red
             (88, 26, 29),    // Wine Red
-            (191, 228, 254), // Ice Blue
+            (114, 137, 211), // Ice Blue
             (92, 80, 144),   // Kingfisher Blue
             (146, 198, 238), // Lagoon Blue
-            (224, 182, 184), // Candy Pink
-            (174, 148, 161), // Matte Pink
-            (163, 186, 192), // Matte Green
+            (80, 156, 211), // Candy Pink
+            (146, 166, 172), // Matte Green
             (84, 139, 107),  // Grass Green
             (48, 61, 52),    // Dark Green
             (20, 19, 17),    // Black
         ],
         Orc: [
             (66, 66, 59), // Wise Grey
-            //(107, 76, 51),  // Oak Skin4
-            //(203, 154, 98), // Light Skin4
-            (64, 32, 18),  // Skin7 Skin4
+            //(107, 76, 51),  // Oak
+            //(203, 154, 98), // Light
+            (64, 32, 18),  // Skin7
             (54, 30, 26),  // Dark Skin7
-            (86, 72, 71),  // Ash Skin4
+            (86, 72, 71),  // Ash
             (57, 56, 61),  // Raven Black
             (101, 83, 95), // Matte Purple
             (101, 57, 90), // Witch Purple
@@ -117,25 +117,25 @@
             //(245, 232, 175), // Cream Blonde
             (228, 208, 147), // Gold Blonde
             //(228, 223, 141), // Platinum Blonde
-            (199, 131, 58),  // Summer Blonde
-            (107, 76, 51),   // Oak Skin4
-            (203, 154, 98),  // Light Skin4
-            (64, 32, 18),    // Skin7 Skin4
-            (86, 72, 71),    // Ash Skin4
+            (176, 106, 41),  // Summer Blonde
+            (107, 76, 51),   // Oak
+            (203, 154, 98),  // Light
+            (64, 32, 18),    // Skin7
+            (86, 72, 71),    // Ash
             (57, 56, 61),    // Raven Black
             (101, 83, 95),   // Matte Purple
             (101, 57, 90),   // Witch Purple
             (111, 54, 117),  // Punky Purple
             (135, 38, 39),   // Dark Red
             (88, 26, 29),    // Wine Red
-            (191, 228, 254), // Ice Blue
+            (103, 191, 254), // Ice Blue
             (92, 80, 144),   // Kingfisher Blue
             (146, 198, 238), // Lagoon Blue
             (66, 66, 59),    // Decayed Grey
-            //(224, 182, 184), // Candy Pink
-            (174, 148, 161), // Matte Pink
+            //(80, 156, 211), // Candy Pink
+            (216, 146, 114), // Matte Pink
             (0, 131, 122),   // Rotten Green
-            (163, 186, 192), // Matte Green
+            (146, 166, 172), // Matte Green
             (84, 139, 107),  // Grass Green
             (48, 61, 52),    // Dark Green
             (20, 19, 17),    // Black
@@ -146,7 +146,7 @@
         NobleBlue: (75, 158, 191),
         CuriousGreen: (110, 167, 113),
         LoyalBrown: (73, 42, 36),
-        ViciousRed: (182, 0, 0),
+        ViciousRed: (169,0 ,47),
         PumpkinOrange: (220, 156, 19),
         GhastlyYellow: (221, 225, 31),
         MagicPurple: (137, 4, 177),
@@ -162,7 +162,7 @@
         NobleBlue: (62, 130, 159),
         CuriousGreen: (81, 124, 84),
         LoyalBrown: (54, 30, 26),
-        ViciousRed: (148, 0, 0),
+        ViciousRed: (119, 0, 33),
         PumpkinOrange: (209, 145, 18),
         GhastlyYellow: (205, 212, 29),
         MagicPurple: (110, 3, 143),
@@ -175,17 +175,17 @@
     ),
     eye_white: (255, 255, 255),
     skin_colors_plain: (
-        Skin1: (255, 229, 200),
-        Skin2: (255, 218, 190),
-        Skin3: (255, 206, 180),
-        Skin4: (255, 195, 170),
-        Skin5: (240, 184, 160),
-        Skin6: (225, 172, 150),
-        Skin7: (210, 161, 140),
-        Skin8: (195, 149, 130),
-        Skin9: (180, 138, 120),
-        Skin10: (165, 126, 110),
-        Skin11: (150, 114, 100),
+        Skin1: (228, 183, 160),
+        Skin2: (226, 181, 158),
+        Skin3: (223, 179, 157),
+        Skin4: (221, 177, 155),
+        Skin5: (218, 176, 154),
+        Skin6: (216, 174, 152),
+        Skin7: (213, 172, 151),
+        Skin8: (211, 170, 149),
+        Skin9: (198, 159, 140),
+        Skin10: (180, 144, 127),
+        Skin11: (163, 130, 114),
         Skin12: (135, 103, 90),
         Skin13: (120, 92, 80),
         Skin14: (105, 80, 70),
@@ -195,33 +195,33 @@
         Skin18: (45, 34, 30),
         Iron: (135, 113, 95),
         Steel: (108, 94, 86),
-        DanariOne: (104, 168, 196),
-        DanariTwo: (30, 149, 201),
-        DanariThree: (57, 120, 148),
-        DanariFour: (40, 85, 105),
-        ElfOne: (159, 136, 173),
+        DanariOne: (43, 166, 224),
+        DanariTwo: (40, 155, 210),
+        DanariThree: (37, 143, 195),
+        DanariFour: (34, 132, 181),
+        ElfOne: (118, 84, 157),
         ElfTwo: (99, 114, 161),
         // ElfThree: (230, 188, 198),
         OrcOne: (61, 130, 42),
         OrcTwo: (82, 117, 36),
         OrcThree: (71, 94, 42),
         OrcFour: (97, 54, 29),
-        UndeadOne: (240, 243, 239),
-        UndeadTwo: (178, 178, 178),
+        UndeadOne: (178, 178, 178),
+        UndeadTwo: (162, 157, 150),
         UndeadThree: (145, 135, 121),
     ),
     skin_colors_light: (
-        Skin1: (255, 229, 200),
-        Skin2: (255, 218, 190),
-        Skin3: (255, 206, 180),
-        Skin4: (255, 195, 170),
-        Skin5: (240, 184, 160),
-        Skin6: (225, 172, 150),
-        Skin7: (210, 161, 140),
-        Skin8: (195, 149, 130),
-        Skin9: (180, 138, 120),
-        Skin10: (165, 126, 110),
-        Skin11: (150, 114, 100),
+        Skin1: (233, 190, 166),
+        Skin2: (232, 188, 164),
+        Skin3: (229, 186, 163),
+        Skin4: (227, 184, 161),
+        Skin5: (224, 183, 159),
+        Skin6: (222, 181, 157),
+        Skin7: (220, 178, 156),
+        Skin8: (218, 176, 154),
+        Skin9: (205, 165, 145),
+        Skin10: (187, 149, 131),
+        Skin11: (169, 134, 118),
         Skin12: (135, 103, 90),
         Skin13: (120, 92, 80),
         Skin14: (105, 80, 70),
@@ -231,34 +231,34 @@
         Skin18: (45, 34, 30),
         Iron: (144, 125, 106),
         Steel: (120, 107, 99),
-        DanariOne: (116, 176, 208),
-        DanariTwo: (42, 158, 206),
-        DanariThree: (70, 133, 160),
-        DanariFour: (53, 96, 116),
-        ElfOne: (183, 155, 199), //178, 164, 186
-        ElfTwo: (137, 144, 167),
+        DanariOne: (44, 172, 230),
+        DanariTwo: (41, 161, 217),
+        DanariThree: (38, 148, 202),
+        DanariFour: (35, 136, 188),
+        ElfOne: (122, 87, 163),
+        ElfTwo: (102, 118, 167),
         //ElfThree: (242, 199, 209),
         OrcOne: (83, 165, 56),
         OrcTwo: (92, 132, 46),
         OrcThree: (84, 110, 54),
         OrcFour: (97, 54, 29),
-        UndeadOne: (254, 252, 251),
-        UndeadTwo: (190, 192, 191),
-        UndeadThree: (160, 151, 134),
+        UndeadOne: (185, 185, 185),
+        UndeadTwo: (168, 163, 155),
+        UndeadThree: (150, 139, 125),
     ),
     skin_colors_dark: (
-        Skin1: (242, 217, 189),
-        Skin2: (242, 207, 189),
-        Skin3: (242, 197, 172),
-        Skin4: (242, 186, 162),
-        Skin5: (212, 173, 150),
-        Skin6: (212, 163, 142),
-        Skin7: (196, 151, 132),
-        Skin8: (181, 139, 121),
-        Skin9: (168, 129, 113),
-        Skin10: (153, 117, 103),
-        Skin11: (138, 105, 92),
-        Skin12: (122, 93, 82),
+       Skin1: (222, 176, 154),
+        Skin2: (220, 174, 153),
+        Skin3: (217, 172, 152),
+        Skin4: (214, 171, 150),
+        Skin5: (211, 170, 149),
+        Skin6: (209, 168, 147),
+        Skin7: (206, 166, 146),
+        Skin8: (204, 164, 144),
+        Skin9: (191, 154, 136),
+        Skin10: (173, 139, 123),
+        Skin11: (157, 126, 110),
+        Skin12: (132, 103, 82),
         Skin13: (107, 82, 72),
         Skin14: (92, 70, 62),
         Skin15: (77, 59, 51),
@@ -267,19 +267,19 @@
         Skin18: (33, 25, 22),
         Iron: (124, 99, 82),
         Steel: (96, 81, 72),
-        DanariOne: (92, 155, 183),
-        DanariTwo: (25, 142, 192),
-        DanariThree: (52, 115, 143),
-        DanariFour: (34, 80, 99),
-        ElfOne: (148, 125, 161), //170, 157, 179
-        ElfTwo: (126, 132, 153),
+        DanariOne: (43, 166, 224),
+        DanariTwo: (40, 155, 210),
+        DanariThree: (37, 143, 195),
+        DanariFour: (34, 132, 181),
+        ElfOne: (114, 81, 152),
+        ElfTwo: (96, 110, 155),
         //ElfThree: (217, 178, 187),
         OrcOne: (55, 114, 36),
         OrcTwo: (70, 104, 29),
         OrcThree: (60, 83, 32),
         OrcFour: (84, 47, 25),
-        UndeadOne: (229, 231, 230),
-        UndeadTwo: (165, 166, 164),
-        UndeadThree: (130, 122, 106),
+        UndeadOne: (172, 172, 172),
+        UndeadTwo: (156, 152, 145),
+        UndeadThree: (128, 119, 107),
     ),
 )
