@@ -173,7 +173,7 @@ void main() {
 	// vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
     // Squared to account for prior saturation.
     float f_light = 1.0;// pow(f_light, 1.5);
-	vec3 reflect_color = get_sky_color(/*reflect_ray_dir*/beam_view_dir, time_of_day.x, f_pos, vec3(-100000), 0.25, false, _clouds) * f_light;
+	vec3 reflect_color = get_sky_color(/*reflect_ray_dir*/beam_view_dir, time_of_day.x, f_pos, vec3(-100000), 0.25, true, _clouds) * f_light;
     // /*const */vec3 water_color = srgb_to_linear(vec3(0.2, 0.5, 1.0));
     // /*const */vec3 water_color = srgb_to_linear(vec3(0.8, 0.9, 1.0));
     // NOTE: Linear RGB, attenuation coefficients for water at roughly R, G, B wavelengths.
@@ -309,7 +309,7 @@ void main() {
 
     // float log_cam = log(min(cam_attenuation.r, min(cam_attenuation.g, cam_attenuation.b)));
     float min_refl = min(emitted_light.r, min(emitted_light.g, emitted_light.b));
-    vec4 color = vec4(surf_color, passthrough * 1.0 / (1.0 + min_refl));// * (1.0 - /*log(1.0 + cam_attenuation)*//*cam_attenuation*/1.0 / (2.0 - log_cam)));
+    vec4 color = vec4(surf_color, (1.0 - passthrough) * 1.0 / (1.0 + min_refl));// * (1.0 - /*log(1.0 + cam_attenuation)*//*cam_attenuation*/1.0 / (2.0 - log_cam)));
     // vec4 color = vec4(surf_color, mix(1.0, 1.0 / (1.0 + /*0.25 * *//*diffuse_light*/(/*f_light * point_shadow*/reflected_light_point)), passthrough));
     // vec4 color = vec4(surf_color, mix(1.0, length(cam_attenuation), passthrough));
 

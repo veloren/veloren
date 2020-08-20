@@ -41,7 +41,7 @@ const float SUN_COLOR_FACTOR = 5.0;//6.0;// * 1.5;//1.8;
 
 const float UNDERWATER_MIST_DIST = 100.0;
 
-const float PERSISTENT_AMBIANCE = 1.0 / 80.0;// 1.0 / 512; // 0.00125 // 0.1;// 0.025; // 0.1;
+const float PERSISTENT_AMBIANCE = 1.0 / 32.0;// 1.0 / 80; // 1.0 / 512; // 0.00125 // 0.1;// 0.025; // 0.1;
 
 //vec3 get_sun_dir(float time_of_day) {
 //    const float TIME_FACTOR = (PI * 2.0) / (3600.0 * 24.0);
@@ -308,7 +308,7 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
     // float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
     // float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
 
-    emitted_light = light_frac + k_a * PERSISTENT_AMBIANCE;
+    emitted_light = light_frac + k_a * PERSISTENT_AMBIANCE * MU_SCATTER;
     // emitted_light = k_a * light_frac * (/*ambient_sides + */SUN_AMBIANCE * /*sun_light*/sun_chroma + /*vec3(moon_light)*/MOON_AMBIANCE * moon_chroma) + PERSISTENT_AMBIANCE;
 
     reflected_light = R_t_r * (
