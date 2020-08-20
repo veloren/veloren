@@ -601,7 +601,7 @@ impl Renderer {
     /// default, and 11 definitely does, so I assume it's natively supported
     /// by DirectX itself), OpenGL 3.2+, and Metal (done by default).  While
     /// there may be some GPUs that don't quite support it correctly, the
-    /// impact is relatively small, so there is no reaosn not to enable it where
+    /// impact is relatively small, so there is no reason not to enable it where
     /// available.
     #[allow(unsafe_code)]
     fn enable_seamless_cube_maps(device: &mut gfx_backend::Device) {

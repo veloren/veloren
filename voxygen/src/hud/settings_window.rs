@@ -1726,7 +1726,10 @@ impl<'a> Widget for SettingsWindow<'a> {
             if let Some(new_val) = ImageSlider::discrete(
                 self.global_state.settings.graphics.view_distance,
                 1,
-                65,
+                // FIXME: Move back to 64 once we support multiple texture atlases, or figure out a
+                // way to increase the size of the terrain atlas.
+                30,
+                // 65,
                 self.imgs.slider_indicator,
                 self.imgs.slider,
             )
@@ -2061,7 +2064,11 @@ impl<'a> Widget for SettingsWindow<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.fluid_mode_text, ui);
 
-            let mode_list = [FluidMode::Cheap, FluidMode::Shiny];
+            // FIXME: Add shiny water back to the UI once we fix the bug on nVidia cards.
+            let mode_list = [
+                FluidMode::Cheap,
+                // FluidMode::Shiny
+            ];
             let mode_label_list = [
                 &self
                     .localized_strings

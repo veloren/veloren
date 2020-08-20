@@ -213,8 +213,8 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
 
     /// NOTE: We deliberately call this function with only the key into the
     /// cache, to enforce that the cached state only depends on the key.  We
-    /// may end up using different from this cache eventually, in which case
-    /// this strategy might change.
+    /// may end up using a mechanism different from this cache eventually,
+    /// in which case this strategy might change.
     fn bone_meshes(
         FigureKey { body, extra }: &FigureKey,
         manifest_indicator: &mut ReloadIndicator,
@@ -1055,7 +1055,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                             // NOTE: Cast to u8 is safe because i <= 16.
                             .filter_map(|(i, bm)| bm.as_ref().map(|bm| (i as u8, bm.clone())))
                             .for_each(|(i, (_opaque_mesh, (bounds, vertex_range)))| {
-                                // Update the bone index for all vertices that belong ot this
+                                // Update the bone index for all vertices that belong to this
                                 // model.
                                 opaque
                                     .iter_mut(vertex_range)
@@ -1088,7 +1088,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         // able to store data for any figure.  So the only reason we would fail
                         // here would be if the user's computer could not store a texture large
                         // enough to fit all the LOD models for the figure, not for fundamental
-                        // reasonS related to fitting in a u32).
+                        // reasons related to fitting in a u32).
                         //
                         // Therefore, these casts are safe.
                         vertex_start as u32..opaque.vertices().len() as u32

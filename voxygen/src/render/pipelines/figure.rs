@@ -6,20 +6,11 @@ use crate::mesh::greedy::GreedyMesh;
 use core::ops::Range;
 use gfx::{
     self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta, gfx_pipeline,
-    gfx_pipeline_inner, gfx_vertex_struct_meta, state::ColorMask,
+    gfx_pipeline_inner, state::ColorMask,
 };
 use vek::*;
 
 gfx_defines! {
-    vertex Vertex {
-        pos_norm: u32 = "v_pos_norm",
-        col: u32 = "v_col",
-        // BBBBBBAA
-        // B = Bone
-        // A = AO
-        ao_bone: u8 = "v_ao_bone",
-    }
-
     constant Locals {
         model_mat: [[f32; 4]; 4] = "model_mat",
         model_col: [f32; 4] = "model_col",
@@ -34,7 +25,6 @@ gfx_defines! {
     }
 
     pipeline pipe {
-        // vbuf: gfx::VertexBuffer<Vertex> = (),
         vbuf: gfx::VertexBuffer<<TerrainPipeline as Pipeline>::Vertex> = (),
         // abuf: gfx::VertexBuffer<<TerrainPipeline as Pipeline>::Vertex> = (),
         col_lights: gfx::TextureSampler<[f32; 4]> = "t_col_light",
@@ -111,7 +101,7 @@ impl Default for BoneData {
 pub struct FigurePipeline;
 
 impl Pipeline for FigurePipeline {
-    type Vertex = Vertex;
+    type Vertex = <TerrainPipeline as Pipeline>::Vertex;
 }
 
 pub struct FigureModel {

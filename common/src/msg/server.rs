@@ -59,7 +59,7 @@ pub struct CharacterInfo {
 ///
 /// TODO: Add information for rivers (currently, we just prerender them on the
 /// server, but this is not a great solution for LoD.  The map rendering code is
-/// already set up to be able to take advantage of the rivrer rendering being
+/// already set up to be able to take advantage of the river rendering being
 /// split out, but the format is a little complicated for space reasons and it
 /// may take some tweaking to get right, so we avoid sending it for now).
 ///

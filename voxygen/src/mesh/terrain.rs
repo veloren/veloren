@@ -398,7 +398,6 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
 
         let min_bounds = mesh_delta;
         let bounds = Aabb {
-            // NOTE: Casts are safe since lower_bound and upper_bound both fit in a i16.
             min: min_bounds,
             max: max_bounds + min_bounds,
         };

@@ -26,7 +26,7 @@ impl<Context: SubContext<S>, T, S> Typed<Context, Pure<T>, S> for T {
 ///
 /// `expr` is the expression being matched on, generally of some enum type `Ty`.
 ///
-/// `case` represents the pattenrn match--it will generally be a stsructure with
+/// `case` represents the pattern match--it will generally be a structure with
 /// one field per constructor in `Ty`.  The field should contain enough
 /// information to run the match arm for that constructor, given the information
 /// contained in the constructor arguments.

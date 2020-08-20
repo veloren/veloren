@@ -10,26 +10,6 @@ type TodoRect = (
     Vec3<i32>,
 );
 
-/// `max_size`:
-///
-/// `draw_delta`:
-///
-/// `greedy_size`:
-///
-/// `greedy_size_cross`:
-///
-/// `get_light`:
-///
-/// `get_color`:
-///
-///
-/// `create_shadow`:
-/// Create a shadow vertex (used for both shadow and display rendering)
-/// given its position, normal, and meta information.  Note that the position
-/// received here is relative to `draw_delta`--it still needs to be translated
-/// to mesh coordinates.
-///
-/// `create_opaque`:
 pub struct GreedyConfig<D, FL, FC, FO, FS, FP> {
     pub data: D,
     /// The minimum position to mesh, in the coordinate system used
@@ -46,7 +26,7 @@ pub struct GreedyConfig<D, FL, FC, FO, FS, FP> {
     /// An important exception is during chunk rendering (where vertical faces
     /// at chunk boundaries would otherwise be rendered twice, and also
     /// force us to use more than 5 bits to represent x and y
-    /// positions--though there may be a clever way aruond the latter).
+    /// positions--though there may be a clever way around the latter).
     /// Thus, for chunk rendering we set the number of *vertical* planes to
     /// one less than the chunk size along the x and y dimensions, but keep
     /// the number of *horizontal* planes large enough to cover the whole
@@ -148,7 +128,7 @@ impl<'a> GreedyMesh<'a> {
     }
 
     /// Perform greedy meshing on a model, separately producing "pure" model
-    /// data (the opaque mesh, ttogether with atlas positions connecting
+    /// data (the opaque mesh, together with atlas positions connecting
     /// each rectangle with texture information), and raw light and color
     /// data ready to be used as a texture (accessible with `finalize`).
     /// Texture data built up within the same greedy mesh will be inserted
