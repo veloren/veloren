@@ -2073,9 +2073,9 @@ impl<'a> Widget for SettingsWindow<'a> {
                 &self
                     .localized_strings
                     .get("hud.settings.fluid_rendering_mode.cheap"),
-                &self
-                    .localized_strings
-                    .get("hud.settings.fluid_rendering_mode.shiny"),
+                /* &self
+                .localized_strings
+                .get("hud.settings.fluid_rendering_mode.shiny"), */
             ];
 
             // Get which fluid rendering mode is currently active
