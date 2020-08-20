@@ -30,10 +30,11 @@ impl Damage {
                     self.healthchange *= 1.0 - BLOCK_EFFICIENCY
                 }
                 // Armor
-                self.healthchange *= 1.0 - loadout.get_damage_reduction();
+                let damage_reduction = loadout.get_damage_reduction();
+                self.healthchange *= 1.0 - damage_reduction;
 
                 // Min damage
-                if self.healthchange > -10.0 {
+                if (damage_reduction - 1.0).abs() > f32::EPSILON && self.healthchange > -10.0 {
                     self.healthchange = -10.0;
                 }
             },
@@ -47,10 +48,11 @@ impl Damage {
                     self.healthchange *= 1.0 - BLOCK_EFFICIENCY
                 }
                 // Armor
-                self.healthchange *= 1.0 - loadout.get_damage_reduction();
+                let damage_reduction = loadout.get_damage_reduction();
+                self.healthchange *= 1.0 - damage_reduction;
 
                 // Min damage
-                if self.healthchange > -10.0 {
+                if (damage_reduction - 1.0).abs() > f32::EPSILON && self.healthchange > -10.0 {
                     self.healthchange = -10.0;
                 }
             },
@@ -64,10 +66,11 @@ impl Damage {
                     self.healthchange *= 1.0 - BLOCK_EFFICIENCY
                 }
                 // Armor
-                self.healthchange *= 1.0 - loadout.get_damage_reduction();
+                let damage_reduction = loadout.get_damage_reduction();
+                self.healthchange *= 1.0 - damage_reduction;
 
                 // Min damage
-                if self.healthchange > -10.0 {
+                if (damage_reduction - 1.0).abs() > f32::EPSILON && self.healthchange > -10.0 {
                     self.healthchange = -10.0;
                 }
             },
