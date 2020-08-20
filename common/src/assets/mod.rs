@@ -280,23 +280,14 @@ lazy_static! {
     pub static ref ASSETS_PATH: PathBuf = {
         let mut paths = Vec::new();
 
-        // VELOREN_ASSETS environment variable
+        // Note: Ordering matters here!
+
+        // 1. VELOREN_ASSETS environment variable
         if let Ok(var) = std::env::var("VELOREN_ASSETS") {
             paths.push(var.into());
         }
 
-        // Executable path
-        if let Ok(mut path) = std::env::current_exe() {
-            path.pop();
-            paths.push(path);
-        }
-
-        // Working path
-        if let Ok(path) = std::env::current_dir() {
-            paths.push(path);
-        }
-
-        // System paths
+        // 2. System paths
         #[cfg(all(unix, not(target_os = "macos"), not(target_os = "ios"), not(target_os = "android")))]
         {
             if let Ok(result) = std::env::var("XDG_DATA_HOME") {
@@ -316,12 +307,28 @@ lazy_static! {
             }
         }
 
+        // 3. Executable path
+        if let Ok(mut path) = std::env::current_exe() {
+            path.pop();
+            paths.push(path);
+        }
+
+        // 4. Working path
+        if let Ok(path) = std::env::current_dir() {
+            paths.push(path);
+        }
+
+        tracing::trace!("Possible asset locations paths={:?}", paths);
+
         for path in paths.clone() {
             match find_folder::Search::ParentsThenKids(3, 1)
                 .of(path)
                 .for_folder("assets")
             {
-                Ok(assets_path) => return assets_path,
+                Ok(assets_path) => {
+                    tracing::info!("Assets found path={}", assets_path.display());
+                    return assets_path;
+                },
                 Err(_) => continue,
             }
         }
