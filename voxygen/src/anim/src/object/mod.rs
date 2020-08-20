@@ -1,49 +1,36 @@
-use super::{FigureBoneData, Skeleton};
-use vek::*;
+use super::{make_bone, vek::*, FigureBoneData, Skeleton};
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct ObjectSkeleton;
-pub struct SkeletonAttr;
 
-impl ObjectSkeleton {
-    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
-    pub fn new() -> Self { Self {} }
+impl<'a, Factor> Lerp<Factor> for &'a ObjectSkeleton {
+    type Output = ObjectSkeleton;
+
+    fn lerp_unclamped_precise(_from: Self, _to: Self, _factor: Factor) -> Self::Output {
+        ObjectSkeleton
+    }
+
+    fn lerp_unclamped(_from: Self, _to: Self, _factor: Factor) -> Self::Output { ObjectSkeleton }
 }
+
+pub struct SkeletonAttr;
 
 const SCALE: f32 = 1.0 / 11.0;
 
 impl Skeleton for ObjectSkeleton {
     type Attr = SkeletonAttr;
 
+    const BONE_COUNT: usize = 1;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"object_compute_mats\0";
 
-    fn bone_count(&self) -> usize { 15 }
-
     #[cfg_attr(feature = "be-dyn-lib", export_name = "object_compute_mats")]
-    fn compute_matrices_inner(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
-        (
-            [
-                FigureBoneData::new(Mat4::scaling_3d(Vec3::broadcast(SCALE))),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-                FigureBoneData::new(vek::Mat4::identity()),
-            ],
-            Vec3::default(),
-        )
+    fn compute_matrices_inner(
+        &self,
+        base_mat: Mat4<f32>,
+        buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
+    ) -> Vec3<f32> {
+        buf[0] = make_bone(base_mat * Mat4::scaling_3d(SCALE));
+        Vec3::default()
     }
-
-    fn interpolate(&mut self, _target: &Self, _dt: f32) {}
 }

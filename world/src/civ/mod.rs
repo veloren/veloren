@@ -4,6 +4,7 @@ mod econ;
 
 use self::{Occupation::*, Stock::*};
 use crate::{
+    config::CONFIG,
     sim::WorldSim,
     site::{Castle, Dungeon, Settlement, Site as WorldSite},
     util::{attempt, seed_expan, MapVec, CARDINALS, NEIGHBORS},
@@ -14,7 +15,7 @@ use common::{
     path::Path,
     spiral::Spiral2d,
     store::{Id, Store},
-    terrain::TerrainChunkSize,
+    terrain::{MapSizeLg, TerrainChunkSize},
     vol::RectVolSize,
 };
 use core::{
@@ -29,7 +30,13 @@ use rand_chacha::ChaChaRng;
 use tracing::{debug, info, warn};
 use vek::*;
 
-const INITIAL_CIV_COUNT: usize = (crate::sim::WORLD_SIZE.x * crate::sim::WORLD_SIZE.y * 3) / 65536; //48 at default scale
+const fn initial_civ_count(map_size_lg: MapSizeLg) -> u32 {
+    // NOTE: since map_size_lg's dimensions must fit in a u16, we can safely add
+    // them here.
+    //
+    // NOTE: 48 at "default" scale of 10 × 10 chunk bits (1024 × 1024 chunks).
+    (3 << (map_size_lg.vec().x + map_size_lg.vec().y)) >> 16
+}
 
 #[allow(clippy::type_complexity)] // TODO: Pending review in #587
 #[derive(Default)]
@@ -74,21 +81,23 @@ impl Civs {
     pub fn generate(seed: u32, sim: &mut WorldSim, index: &mut Index) -> Self {
         let mut this = Self::default();
         let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
+        let initial_civ_count = initial_civ_count(sim.map_size_lg());
         let mut ctx = GenCtx { sim, rng };
 
+        // TODO: Care about world size when generating caves.
         for _ in 0..100 {
             this.generate_cave(&mut ctx);
         }
 
-        for _ in 0..INITIAL_CIV_COUNT {
+        for _ in 0..initial_civ_count {
             debug!("Creating civilisation...");
             if this.birth_civ(&mut ctx.reseed()).is_none() {
                 warn!("Failed to find starting site for civilisation.");
             }
         }
-        info!(?INITIAL_CIV_COUNT, "all civilisations created");
+        info!(?initial_civ_count, "all civilisations created");
 
-        for _ in 0..INITIAL_CIV_COUNT * 3 {
+        for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
                 let (kind, size) = match ctx.rng.gen_range(0, 8) {
                     0 => (SiteKind::Castle, 3),
@@ -163,6 +172,11 @@ impl Civs {
                         .filter(|chunk| !chunk.river.near_water())
                         .map(|chunk| {
                             let diff = Lerp::lerp_precise(chunk.alt, center_alt, factor) - chunk.alt;
+                            // Make sure we don't fall below sea level (fortunately, we don't have
+                            // to worry about the case where water_alt is already set to a correct
+                            // value higher than alt, since this chunk should have been filtered
+                            // out in that case).
+                            chunk.water_alt = CONFIG.sea_level.max(chunk.water_alt + diff);
                             chunk.alt += diff;
                             chunk.basement += diff;
                             chunk.rockiness = 0.0;

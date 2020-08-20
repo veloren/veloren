@@ -4,64 +4,103 @@ use super::{super::skeleton::*, Archetype};
 use crate::{
     site::BlockMask,
     util::{RandomField, Sampler},
+    IndexRef,
 };
 use common::{
+    make_case_elim,
     terrain::{Block, BlockKind},
     vol::Vox,
 };
 use rand::prelude::*;
+use serde::{Deserialize, Serialize};
 use vek::*;
 
-pub struct ColorTheme {
-    roof: Rgb<u8>,
-    wall: Rgb<u8>,
-    support: Rgb<u8>,
+#[derive(Deserialize, Serialize)]
+pub struct Colors {
+    pub foundation: (u8, u8, u8),
+    pub floor: (u8, u8, u8),
+    pub roof: roof_color::PureCases<(u8, u8, u8)>,
+    pub wall: wall_color::PureCases<(u8, u8, u8)>,
+    pub support: support_color::PureCases<(u8, u8, u8)>,
 }
 
-const ROOF_COLORS: &[Rgb<u8>] = &[
-    // Rgb::new(0x1D, 0x4D, 0x45),
-    // Rgb::new(0xB3, 0x7D, 0x60),
-    // Rgb::new(0xAC, 0x5D, 0x26),
-    // Rgb::new(0x32, 0x46, 0x6B),
-    // Rgb::new(0x2B, 0x19, 0x0F),
-    // Rgb::new(0x93, 0x78, 0x51),
-    // Rgb::new(0x92, 0x57, 0x24),
-    // Rgb::new(0x4A, 0x4E, 0x4E),
-    // Rgb::new(0x2F, 0x32, 0x47),
-    // Rgb::new(0x8F, 0x35, 0x43),
-    // Rgb::new(0x6D, 0x1E, 0x3A),
-    // Rgb::new(0x6D, 0xA7, 0x80),
-    // Rgb::new(0x4F, 0xA0, 0x95),
-    // Rgb::new(0xE2, 0xB9, 0x99),
-    // Rgb::new(0x7A, 0x30, 0x22),
-    // Rgb::new(0x4A, 0x06, 0x08),
-    // Rgb::new(0x8E, 0xB4, 0x57),
-    Rgb::new(0x99, 0x5E, 0x54),
-    Rgb::new(0x43, 0x63, 0x64),
-    Rgb::new(0x76, 0x6D, 0x68),
-    Rgb::new(0x7B, 0x41, 0x61),
-    Rgb::new(0x52, 0x20, 0x20),
-    Rgb::new(0x1A, 0x4A, 0x59),
-    Rgb::new(0xCC, 0x76, 0x4E),
+pub struct ColorTheme {
+    roof: RoofColor,
+    wall: WallColor,
+    support: SupportColor,
+}
+
+make_case_elim!(
+    roof_color,
+    #[repr(u32)]
+    #[derive(Clone, Copy)]
+    pub enum RoofColor {
+        Roof1 = 0,
+        Roof2 = 1,
+        Roof3 = 2,
+        Roof4 = 3,
+        Roof5 = 4,
+        Roof6 = 5,
+        Roof7 = 6,
+    }
+);
+
+make_case_elim!(
+    wall_color,
+    #[repr(u32)]
+    #[derive(Clone, Copy)]
+    pub enum WallColor {
+        Wall1 = 0,
+        Wall2 = 1,
+        Wall3 = 2,
+        Wall4 = 3,
+        Wall5 = 4,
+        Wall6 = 5,
+        Wall7 = 6,
+        Wall8 = 7,
+        Wall9 = 8,
+    }
+);
+
+make_case_elim!(
+    support_color,
+    #[repr(u32)]
+    #[derive(Clone, Copy)]
+    pub enum SupportColor {
+        Support1 = 0,
+        Support2 = 1,
+        Support3 = 2,
+        Support4 = 3,
+    }
+);
+
+const ROOF_COLORS: [RoofColor; roof_color::NUM_VARIANTS] = [
+    RoofColor::Roof1,
+    RoofColor::Roof2,
+    RoofColor::Roof3,
+    RoofColor::Roof4,
+    RoofColor::Roof4,
+    RoofColor::Roof6,
+    RoofColor::Roof7,
 ];
 
-const WALL_COLORS: &[Rgb<u8>] = &[
-    Rgb::new(200, 180, 150),
-    Rgb::new(0xB8, 0xB4, 0xA4),
-    Rgb::new(0x76, 0x6D, 0x68),
-    Rgb::new(0xF3, 0xC9, 0x8F),
-    Rgb::new(0xD3, 0xB7, 0x99),
-    Rgb::new(0xE1, 0xAB, 0x91),
-    Rgb::new(0x82, 0x57, 0x4C),
-    Rgb::new(0xB9, 0x96, 0x77),
-    Rgb::new(0xAE, 0x8D, 0x9C),
+const WALL_COLORS: [WallColor; wall_color::NUM_VARIANTS] = [
+    WallColor::Wall1,
+    WallColor::Wall2,
+    WallColor::Wall3,
+    WallColor::Wall4,
+    WallColor::Wall5,
+    WallColor::Wall6,
+    WallColor::Wall7,
+    WallColor::Wall8,
+    WallColor::Wall9,
 ];
 
-const SUPPORT_COLORS: &[Rgb<u8>] = &[
-    Rgb::new(60, 45, 30),
-    Rgb::new(0x65, 0x55, 0x56),
-    Rgb::new(0x53, 0x33, 0x13),
-    Rgb::new(0x58, 0x42, 0x33),
+const SUPPORT_COLORS: [SupportColor; support_color::NUM_VARIANTS] = [
+    SupportColor::Support1,
+    SupportColor::Support2,
+    SupportColor::Support3,
+    SupportColor::Support4,
 ];
 
 pub struct House {
@@ -210,6 +249,7 @@ impl Archetype for House {
     #[allow(clippy::int_plus_one)] // TODO: Pending review in #587
     fn draw(
         &self,
+        index: IndexRef,
         _pos: Vec3<i32>,
         dist: i32,
         bound_offset: Vec2<i32>,
@@ -220,6 +260,11 @@ impl Archetype for House {
         _len: i32,
         attr: &Self::Attr,
     ) -> BlockMask {
+        let colors = &index.colors.site.settlement.building.archetype.house;
+        let roof_color = *self.colors.roof.elim_case_pure(&colors.roof);
+        let wall_color = *self.colors.wall.elim_case_pure(&colors.wall);
+        let support_color = *self.colors.support.elim_case_pure(&colors.support);
+
         let profile = Vec2::new(bound_offset.x, z);
 
         let make_meta = |ori| {
@@ -240,6 +285,7 @@ impl Archetype for House {
             BlockMask::new(
                 Block::new(
                     BlockKind::Normal,
+                    // TODO: Clarify exactly how this affects the color.
                     Rgb::new(r, g, b)
                         .map(|e: u8| e.saturating_add((nz & 0x0F) as u8).saturating_sub(8)),
                 ),
@@ -253,11 +299,11 @@ impl Archetype for House {
         let foundation_layer = internal_layer + 1;
         let floor_layer = foundation_layer + 1;
 
-        let foundation = make_block((100, 100, 100)).with_priority(foundation_layer);
-        let log = make_block(self.colors.support.into_tuple());
-        let floor = make_block((100, 75, 50));
-        let wall = make_block(self.colors.wall.into_tuple()).with_priority(facade_layer);
-        let roof = make_block(self.colors.roof.into_tuple()).with_priority(facade_layer - 1);
+        let foundation = make_block(colors.foundation).with_priority(foundation_layer);
+        let log = make_block(support_color);
+        let floor = make_block(colors.floor);
+        let wall = make_block(wall_color).with_priority(facade_layer);
+        let roof = make_block(roof_color).with_priority(facade_layer - 1);
         let empty = BlockMask::nothing();
         let internal = BlockMask::new(Block::empty(), internal_layer);
         let end_window = BlockMask::new(

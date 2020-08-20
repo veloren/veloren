@@ -170,5 +170,13 @@ impl ReloadIndicator {
     }
 
     // Returns true if the watched file was changed
-    pub fn reloaded(&self) -> bool { self.reloaded.swap(false, Ordering::Acquire) }
+    pub fn reloaded(&self) -> bool {
+        // Optimize for the common case by performing an initial relaxed read, avoiding
+        // the atomic write.
+        if self.reloaded.load(Ordering::Relaxed) {
+            self.reloaded.swap(false, Ordering::Acquire)
+        } else {
+            false
+        }
+    }
 }

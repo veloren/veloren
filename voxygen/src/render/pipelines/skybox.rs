@@ -5,7 +5,6 @@ use super::{
 use gfx::{
     self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta, gfx_pipeline,
     gfx_pipeline_inner, gfx_vertex_struct_meta,
-    state::{Comparison, Stencil, StencilOp},
 };
 
 gfx_defines! {
@@ -23,10 +22,14 @@ gfx_defines! {
         locals: gfx::ConstantBuffer<Locals> = "u_locals",
         globals: gfx::ConstantBuffer<Globals> = "u_globals",
 
+        alt: gfx::TextureSampler<[f32; 2]> = "t_alt",
+        horizon: gfx::TextureSampler<[f32; 4]> = "t_horizon",
+
         noise: gfx::TextureSampler<f32> = "t_noise",
 
         tgt_color: gfx::RenderTarget<TgtColorFmt> = "tgt_color",
-        tgt_depth_stencil: gfx::DepthStencilTarget<TgtDepthStencilFmt> = (gfx::preset::depth::LESS_EQUAL_WRITE,Stencil::new(Comparison::Always,0xff,(StencilOp::Keep,StencilOp::Keep,StencilOp::Keep))),
+        tgt_depth_stencil: gfx::DepthTarget<TgtDepthStencilFmt> = gfx::preset::depth::LESS_EQUAL_TEST,
+        // tgt_depth_stencil: gfx::DepthStencilTarget<TgtDepthStencilFmt> = (gfx::preset::depth::LESS_EQUAL_WRITE,Stencil::new(Comparison::Always,0xff,(StencilOp::Keep,StencilOp::Keep,StencilOp::Keep))),
     }
 }
 

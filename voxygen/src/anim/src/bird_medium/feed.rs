@@ -1,6 +1,8 @@
-use super::{super::Animation, BirdMediumSkeleton, SkeletonAttr};
+use super::{
+    super::{vek::*, Animation},
+    BirdMediumSkeleton, SkeletonAttr,
+};
 use std::ops::Mul;
-use vek::*;
 
 pub struct FeedAnimation;
 
@@ -40,54 +42,55 @@ impl Animation for FeedAnimation {
                 * 0.25,
         );
 
-        next.head.offset = Vec3::new(0.0, skeleton_attr.head.0 + 1.0, -2.0 + skeleton_attr.head.1);
-        next.head.ori = Quaternion::rotation_z(duck_head_look.x)
+        next.head.position =
+            Vec3::new(0.0, skeleton_attr.head.0 + 1.0, -2.0 + skeleton_attr.head.1);
+        next.head.orientation = Quaternion::rotation_z(duck_head_look.x)
             * Quaternion::rotation_x(-0.3 / skeleton_attr.feed + wave_slow_cos * 0.03 + wave * 0.1);
         next.head.scale = Vec3::one();
 
-        next.torso.offset = Vec3::new(
+        next.torso.position = Vec3::new(
             0.0,
             skeleton_attr.chest.0 + skeleton_attr.feed,
             -1.0 - 5.0 * (skeleton_attr.feed - 1.0) + wave_slow * 0.3 + skeleton_attr.chest.1,
         ) / 11.0;
-        next.torso.ori = Quaternion::rotation_x(-0.5 * skeleton_attr.feed)
+        next.torso.orientation = Quaternion::rotation_x(-0.5 * skeleton_attr.feed)
             * Quaternion::rotation_y(wave_slow * 0.03);
         next.torso.scale = Vec3::one() / 11.0;
 
-        next.tail.offset = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1);
-        next.tail.ori = Quaternion::rotation_x(wave_slow_cos * 0.03);
+        next.tail.position = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1);
+        next.tail.orientation = Quaternion::rotation_x(wave_slow_cos * 0.03);
         next.tail.scale = Vec3::one();
 
-        next.wing_l.offset = Vec3::new(
+        next.wing_l.position = Vec3::new(
             -skeleton_attr.wing.0,
             skeleton_attr.wing.1,
             skeleton_attr.wing.2,
         );
-        next.wing_l.ori = Quaternion::rotation_y(0.4 - wave_slow * 0.1);
+        next.wing_l.orientation = Quaternion::rotation_y(0.4 - wave_slow * 0.1);
         next.wing_l.scale = Vec3::one() * 1.05;
 
-        next.wing_r.offset = Vec3::new(
+        next.wing_r.position = Vec3::new(
             skeleton_attr.wing.0,
             skeleton_attr.wing.1,
             skeleton_attr.wing.2,
         );
-        next.wing_r.ori = Quaternion::rotation_y(-0.4 + wave_slow * 0.1);
+        next.wing_r.orientation = Quaternion::rotation_y(-0.4 + wave_slow * 0.1);
         next.wing_r.scale = Vec3::one() * 1.05;
 
-        next.leg_l.offset = Vec3::new(
+        next.leg_l.position = Vec3::new(
             -skeleton_attr.foot.0,
             skeleton_attr.foot.1,
             skeleton_attr.foot.2,
         ) / 11.0;
-        next.leg_l.ori = Quaternion::rotation_y(0.0);
+        next.leg_l.orientation = Quaternion::rotation_y(0.0);
         next.leg_l.scale = Vec3::one() / 11.0;
 
-        next.leg_r.offset = Vec3::new(
+        next.leg_r.position = Vec3::new(
             skeleton_attr.foot.0,
             skeleton_attr.foot.1,
             skeleton_attr.foot.2,
         ) / 11.0;
-        next.leg_r.ori = Quaternion::rotation_x(0.0);
+        next.leg_r.orientation = Quaternion::rotation_x(0.0);
         next.leg_r.scale = Vec3::one() / 11.0;
         next
     }

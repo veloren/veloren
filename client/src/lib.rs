@@ -29,7 +29,7 @@ use common::{
     recipe::RecipeBook,
     state::State,
     sync::{Uid, UidAllocator, WorldSyncExt},
-    terrain::{block::Block, TerrainChunk, TerrainChunkSize},
+    terrain::{block::Block, neighbors, TerrainChunk, TerrainChunkSize},
     vol::RectVolSize,
 };
 use futures_executor::block_on;
@@ -40,6 +40,8 @@ use image::DynamicImage;
 use network::{
     Network, Participant, Pid, ProtocolAddr, Stream, PROMISES_CONSISTENCY, PROMISES_ORDERED,
 };
+use num::traits::FloatConst;
+use rayon::prelude::*;
 use std::{
     collections::VecDeque,
     net::SocketAddr,
@@ -74,7 +76,28 @@ pub struct Client {
     client_state: ClientState,
     thread_pool: ThreadPool,
     pub server_info: ServerInfo,
-    pub world_map: (Arc<DynamicImage>, Vec2<u32>),
+    /// Just the "base" layer for LOD; currently includes colors and nothing
+    /// else. In the future we'll add more layers, like shadows, rivers, and
+    /// probably foliage, cities, roads, and other structures.
+    pub lod_base: Vec<u32>,
+    /// The "height" layer for LOD; currently includes only land altitudes, but
+    /// in the future should also water depth, and probably other
+    /// information as well.
+    pub lod_alt: Vec<u32>,
+    /// The "shadow" layer for LOD.  Includes east and west horizon angles and
+    /// an approximate max occluder height, which we use to try to
+    /// approximate soft and volumetric shadows.
+    pub lod_horizon: Vec<u32>,
+    /// A fully rendered map image for use with the map and minimap; note that
+    /// this can be constructed dynamically by combining the layers of world
+    /// map data (e.g. with shadow map data or river data), but at present
+    /// we opt not to do this.
+    ///
+    /// The second element of the tuple is the world size (as a 2D grid,
+    /// in chunks), and the third element holds the minimum height for any land
+    /// chunk (i.e. the sea level) in its x coordinate, and the maximum land
+    /// height above this height (i.e. the max height) in its y coordinate.
+    pub world_map: (Arc<DynamicImage>, Vec2<u16>, Vec2<f32>),
     pub player_list: HashMap<Uid, PlayerInfo>,
     pub character_list: CharacterList,
     pub active_character_id: Option<i32>,
@@ -130,84 +153,217 @@ impl Client {
         // We reduce the thread count by 1 to keep rendering smooth
         thread_pool.set_num_threads((num_cpus::get() - 1).max(1));
 
-        let (network, f) = Network::new(Pid::new());
-        thread_pool.execute(f);
+        let (network, scheduler) = Network::new(Pid::new());
+        thread_pool.execute(scheduler);
 
         let participant = block_on(network.connect(ProtocolAddr::Tcp(addr.into())))?;
         let mut stream = block_on(participant.open(10, PROMISES_ORDERED | PROMISES_CONSISTENCY))?;
 
         // Wait for initial sync
-        let (state, entity, server_info, world_map, recipe_book, max_group_size) = block_on(
-            async {
-                loop {
-                    match stream.recv().await? {
-                        ServerMsg::InitialSync {
-                            entity_package,
-                            server_info,
-                            time_of_day,
-                            max_group_size,
-                            world_map: (map_size, world_map),
-                            recipe_book,
-                        } => {
-                            // TODO: Display that versions don't match in Voxygen
-                            if server_info.git_hash != *common::util::GIT_HASH {
-                                warn!(
-                                    "Server is running {}[{}], you are running {}[{}], versions \
-                                     might be incompatible!",
-                                    server_info.git_hash,
-                                    server_info.git_date,
-                                    common::util::GIT_HASH.to_string(),
-                                    common::util::GIT_DATE.to_string(),
+        let (
+            state,
+            entity,
+            server_info,
+            lod_base,
+            lod_alt,
+            lod_horizon,
+            world_map,
+            recipe_book,
+            max_group_size,
+        ) = block_on(async {
+            loop {
+                match stream.recv().await? {
+                    ServerMsg::InitialSync {
+                        entity_package,
+                        server_info,
+                        time_of_day,
+                        max_group_size,
+                        world_map,
+                        recipe_book,
+                    } => {
+                        // TODO: Display that versions don't match in Voxygen
+                        if server_info.git_hash != *common::util::GIT_HASH {
+                            warn!(
+                                "Server is running {}[{}], you are running {}[{}], versions might \
+                                 be incompatible!",
+                                server_info.git_hash,
+                                server_info.git_date,
+                                common::util::GIT_HASH.to_string(),
+                                common::util::GIT_DATE.to_string(),
+                            );
+                        }
+
+                        debug!("Auth Server: {:?}", server_info.auth_provider);
+
+                        // Initialize `State`
+                        let mut state = State::default();
+                        // Client-only components
+                        state
+                            .ecs_mut()
+                            .register::<comp::Last<comp::CharacterState>>();
+
+                        let entity = state.ecs_mut().apply_entity_package(entity_package);
+                        *state.ecs_mut().write_resource() = time_of_day;
+
+                        let map_size_lg = common::terrain::MapSizeLg::new(world_map.dimensions_lg)
+                            .map_err(|_| {
+                                Error::Other(format!(
+                                    "Server sent bad world map dimensions: {:?}",
+                                    world_map.dimensions_lg,
+                                ))
+                            })?;
+                        let map_size = map_size_lg.chunks();
+                        let max_height = world_map.max_height;
+                        let sea_level = world_map.sea_level;
+                        let rgba = world_map.rgba;
+                        let alt = world_map.alt;
+                        let expected_size =
+                            (u32::from(map_size.x) * u32::from(map_size.y)) as usize;
+                        if rgba.len() != expected_size {
+                            return Err(Error::Other("Server sent a bad world map image".into()));
+                        }
+                        if alt.len() != expected_size {
+                            return Err(Error::Other("Server sent a bad altitude map.".into()));
+                        }
+                        let [west, east] = world_map.horizons;
+                        let scale_angle =
+                            |a: u8| (a as f32 / 255.0 * <f32 as FloatConst>::FRAC_PI_2()).tan();
+                        let scale_height = |h: u8| h as f32 / 255.0 * max_height;
+                        let scale_height_big = |h: u32| (h >> 3) as f32 / 8191.0 * max_height;
+
+                        debug!("Preparing image...");
+                        let unzip_horizons = |(angles, heights): &(Vec<_>, Vec<_>)| {
+                            (
+                                angles.iter().copied().map(scale_angle).collect::<Vec<_>>(),
+                                heights
+                                    .iter()
+                                    .copied()
+                                    .map(scale_height)
+                                    .collect::<Vec<_>>(),
+                            )
+                        };
+                        let horizons = [unzip_horizons(&west), unzip_horizons(&east)];
+
+                        // Redraw map (with shadows this time).
+                        let mut world_map = vec![0u32; rgba.len()];
+                        let mut map_config = common::terrain::map::MapConfig::orthographic(
+                            map_size_lg,
+                            core::ops::RangeInclusive::new(0.0, max_height),
+                        );
+                        map_config.horizons = Some(&horizons);
+                        let rescale_height = |h: f32| h / max_height;
+                        let bounds_check = |pos: Vec2<i32>| {
+                            pos.reduce_partial_min() >= 0
+                                && pos.x < map_size.x as i32
+                                && pos.y < map_size.y as i32
+                        };
+                        map_config.generate(
+                            |pos| {
+                                let (rgba, alt, downhill_wpos) = if bounds_check(pos) {
+                                    let posi =
+                                        pos.y as usize * map_size.x as usize + pos.x as usize;
+                                    let [r, g, b, a] = rgba[posi].to_le_bytes();
+                                    let alti = alt[posi];
+                                    // Compute downhill.
+                                    let downhill = {
+                                        let mut best = -1;
+                                        let mut besth = alti;
+                                        for nposi in neighbors(map_size_lg, posi) {
+                                            let nbh = alt[nposi];
+                                            if nbh < besth {
+                                                besth = nbh;
+                                                best = nposi as isize;
+                                            }
+                                        }
+                                        best
+                                    };
+                                    let downhill_wpos = if downhill < 0 {
+                                        None
+                                    } else {
+                                        Some(
+                                            Vec2::new(
+                                                (downhill as usize % map_size.x as usize) as i32,
+                                                (downhill as usize / map_size.x as usize) as i32,
+                                            ) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                                        )
+                                    };
+                                    (Rgba::new(r, g, b, a), alti, downhill_wpos)
+                                } else {
+                                    (Rgba::zero(), 0, None)
+                                };
+                                let wpos = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
+                                let downhill_wpos = downhill_wpos.unwrap_or(
+                                    wpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                                 );
-                            }
-
-                            debug!("Auth Server: {:?}", server_info.auth_provider);
-
-                            // Initialize `State`
-                            let mut state = State::default();
-                            // Client-only components
-                            state
-                                .ecs_mut()
-                                .register::<comp::Last<comp::CharacterState>>();
-
-                            let entity = state.ecs_mut().apply_entity_package(entity_package);
-                            *state.ecs_mut().write_resource() = time_of_day;
-
-                            assert_eq!(world_map.len(), (map_size.x * map_size.y) as usize);
-                            let mut world_map_raw =
-                                vec![0u8; 4 * world_map.len()/*map_size.x * map_size.y*/];
-                            LittleEndian::write_u32_into(&world_map, &mut world_map_raw);
-                            debug!("Preparing image...");
-                            let world_map = Arc::new(
+                                let alt = rescale_height(scale_height_big(alt));
+                                common::terrain::map::MapSample {
+                                    rgb: Rgb::from(rgba),
+                                    alt: f64::from(alt),
+                                    downhill_wpos,
+                                    connections: None,
+                                }
+                            },
+                            |wpos| {
+                                let pos =
+                                    wpos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as i32);
+                                rescale_height(if bounds_check(pos) {
+                                    let posi =
+                                        pos.y as usize * map_size.x as usize + pos.x as usize;
+                                    scale_height_big(alt[posi])
+                                } else {
+                                    0.0
+                                })
+                            },
+                            |pos, (r, g, b, a)| {
+                                world_map[pos.y * map_size.x as usize + pos.x] =
+                                    u32::from_le_bytes([r, g, b, a]);
+                            },
+                        );
+                        let make_raw = |rgba| -> Result<_, Error> {
+                            let mut raw = vec![0u8; 4 * world_map.len()];
+                            LittleEndian::write_u32_into(rgba, &mut raw);
+                            Ok(Arc::new(
                                 image::DynamicImage::ImageRgba8({
                                 // Should not fail if the dimensions are correct.
-                                let world_map =
-                                    image::ImageBuffer::from_raw(map_size.x, map_size.y, world_map_raw);
-                                world_map.ok_or_else(|| Error::Other("Server sent a bad world map image".into()))?
+                                let map =
+                                    image::ImageBuffer::from_raw(u32::from(map_size.x), u32::from(map_size.y), raw);
+                                map.ok_or_else(|| Error::Other("Server sent a bad world map image".into()))?
                             })
-                                // Flip the image, since Voxygen uses an orientation where rotation from
-                                // positive x axis to positive y axis is counterclockwise around the z axis.
-                                .flipv(),
-                            );
-                            debug!("Done preparing image...");
+                            // Flip the image, since Voxygen uses an orientation where rotation from
+                            // positive x axis to positive y axis is counterclockwise around the z axis.
+                            .flipv(),
+                            ))
+                        };
+                        let lod_base = rgba;
+                        let lod_alt = alt;
+                        let world_map = make_raw(&world_map)?;
+                        let horizons = (west.0, west.1, east.0, east.1)
+                            .into_par_iter()
+                            .map(|(wa, wh, ea, eh)| u32::from_le_bytes([wa, wh, ea, eh]))
+                            .collect::<Vec<_>>();
+                        let lod_horizon = horizons;
+                        let map_bounds = Vec2::new(sea_level, max_height);
+                        debug!("Done preparing image...");
 
-                            break Ok((
-                                state,
-                                entity,
-                                server_info,
-                                (world_map, map_size),
-                                recipe_book,
-                                max_group_size,
-                            ));
-                        },
-                        ServerMsg::TooManyPlayers => break Err(Error::TooManyPlayers),
-                        err => {
-                            warn!("whoops, server mad {:?}, ignoring", err);
-                        },
-                    }
+                        break Ok((
+                            state,
+                            entity,
+                            server_info,
+                            lod_base,
+                            lod_alt,
+                            lod_horizon,
+                            (world_map, map_size, map_bounds),
+                            recipe_book,
+                            max_group_size,
+                        ));
+                    },
+                    ServerMsg::TooManyPlayers => break Err(Error::TooManyPlayers),
+                    err => {
+                        warn!("whoops, server mad {:?}, ignoring", err);
+                    },
                 }
-            },
-        )?;
+            }
+        })?;
 
         stream.send(ClientMsg::Ping)?;
 
@@ -222,6 +378,9 @@ impl Client {
             thread_pool,
             server_info,
             world_map,
+            lod_base,
+            lod_alt,
+            lod_horizon,
             player_list: HashMap::new(),
             character_list: CharacterList::default(),
             active_character_id: None,

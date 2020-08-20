@@ -134,7 +134,7 @@ impl<'a> Widget for Map<'a> {
             .set(state.ids.icon, ui);
 
         // Map Title
-        Text::new(&self.localized_strings.get("hud.map.map_title"))
+        Text::new(self.localized_strings.get("hud.map.map_title"))
             .mid_top_with_margin_on(state.ids.frame, 3.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(29))
@@ -142,15 +142,12 @@ impl<'a> Widget for Map<'a> {
             .set(state.ids.map_title, ui);
 
         // Questlog Title
-        Text::new(&format!(
-            "{}",
-            &self.localized_strings.get("hud.map.qlog_title")
-        ))
-        .mid_top_with_margin_on(state.ids.qlog_align, 6.0)
-        .font_id(self.fonts.cyri.conrod_id)
-        .font_size(self.fonts.cyri.scale(21))
-        .color(TEXT_COLOR)
-        .set(state.ids.qlog_title, ui);
+        Text::new(self.localized_strings.get("hud.map.qlog_title"))
+            .mid_top_with_margin_on(state.ids.qlog_align, 6.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(21))
+            .color(TEXT_COLOR)
+            .set(state.ids.qlog_title, ui);
 
         // X-Button
         if Button::image(self.imgs.close_button)
@@ -197,8 +194,10 @@ impl<'a> Widget for Map<'a> {
             .read_storage::<comp::Pos>()
             .get(self.client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
-        let w_src = worldsize.x / TerrainChunkSize::RECT_SIZE.x as f64 / zoom;
-        let h_src = worldsize.y / TerrainChunkSize::RECT_SIZE.y as f64 / zoom;
+        let max_zoom = (worldsize / TerrainChunkSize::RECT_SIZE.map(|e| e as f64))
+            .reduce_partial_max()/*.min(f64::MAX)*/;
+        let w_src = max_zoom / zoom;
+        let h_src = max_zoom / zoom;
         let rect_src = position::Rect::from_xy_dim(
             [
                 player_pos.x as f64 / TerrainChunkSize::RECT_SIZE.x as f64,

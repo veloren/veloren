@@ -9,7 +9,7 @@ default-run = "veloren-voxygen"
 # autobins = false
 
 [features]
-gl = ["gfx_device_gl"]
+gl = ["gfx_device_gl", "gfx_gl"]
 singleplayer = ["server"]
 tweak = ["const-tweaker"]
 hot-anim = ["anim/use-dyn-lib"]
@@ -25,6 +25,7 @@ anim = { package = "veloren-voxygen-anim", path = "src/anim", default-features =
 # Graphics
 gfx = "0.18.2"
 gfx_device_gl = { version = "0.16.2", optional = true }
+gfx_gl = { version = "0.6.1", optional = true }
 old_school_gfx_glutin_ext = "0.24"
 glutin = "0.24.1"
 winit = { version = "0.22.2", features = ["serde"] }
@@ -37,7 +38,7 @@ specs = { git = "https://github.com/amethyst/specs.git", rev = "7a2e348ab2223818
 specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", branch = "specs-git" }
 
 # Mathematics
-vek = { version = "0.11.0", features = ["serde"] }
+vek = { version = "0.12.0", features = ["platform_intrinsics", "serde"] }
 
 # Controller
 gilrs = { version = "0.7", features = ["serde"] }
@@ -49,11 +50,11 @@ server = { package = "veloren-server", path = "../server", optional = true }
 glsl-include = "0.3.1"
 failure = "0.1.6"
 dot_vox = "4.0"
-image = { version = "0.22.5", default-features = false, features = ["ico", "png"] }
+image = { version = "0.23.8", default-features = false, features = ["ico", "png"] }
 serde = "1.0"
 serde_derive = "1.0"
 ron = { version = "0.6", default-features = false }
-guillotiere = { git = "https://github.com/Imberflur/guillotiere" }
+guillotiere = "0.5.2"
 msgbox = { git = "https://github.com/bekker/msgbox-rs.git", default-features = false, rev = "68fe39a", optional = true }
 directories-next = "1.0.1"
 num = "0.2"
@@ -68,6 +69,7 @@ chrono = "0.4.9"
 bincode = "1.2"
 deunicode = "1.0"
 uvth = "3.1.1"
+# vec_map = { version = "0.8.2" }
 const-tweaker = { version = "0.3.1", optional = true }
 itertools = "0.9.0"
 

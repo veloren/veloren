@@ -17,7 +17,7 @@ widget_ids! {
 #[derive(WidgetCommon)]
 pub struct Overitem<'a> {
     name: &'a str,
-    distance: &'a f32,
+    _distance: &'a f32,
     fonts: &'a ConrodVoxygenFonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -27,7 +27,7 @@ impl<'a> Overitem<'a> {
     pub fn new(name: &'a str, distance: &'a f32, fonts: &'a ConrodVoxygenFonts) -> Self {
         Self {
             name,
-            distance,
+            _distance: distance,
             fonts,
             common: widget::CommonBuilder::default(),
         }
@@ -63,8 +63,8 @@ impl<'a> Widget for Overitem<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
 
-        let font_size =
-            ((1.0 - (self.distance / common::comp::MAX_PICKUP_RANGE_SQR)) * 30.0) as u32;
+        let font_size = 30;
+        // ((1.0 - (self.distance / common::comp::MAX_PICKUP_RANGE_SQR)) * 30.0) as u32;
 
         // ItemName
         Text::new(&self.name)

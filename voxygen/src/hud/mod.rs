@@ -46,8 +46,11 @@ use spell::Spell;
 use crate::{
     ecs::comp as vcomp,
     i18n::{i18n_asset_key, LanguageMetadata, VoxygenLocalization},
-    render::{AaMode, CloudMode, Consts, FluidMode, Globals, Renderer},
-    scene::camera::{self, Camera},
+    render::{Consts, Globals, RenderMode, Renderer},
+    scene::{
+        camera::{self, Camera},
+        lod,
+    },
     ui::{fonts::ConrodVoxygenFonts, slot, Graphic, Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, GameInput},
     GlobalState,
@@ -178,6 +181,7 @@ widget_ids! {
         time,
         entity_count,
         num_chunks,
+        num_lights,
         num_figures,
         num_particles,
 
@@ -245,7 +249,9 @@ pub struct DebugInfo {
     pub velocity: Option<comp::Vel>,
     pub ori: Option<comp::Ori>,
     pub num_chunks: u32,
+    pub num_lights: u32,
     pub num_visible_chunks: u32,
+    pub num_shadow_chunks: u32,
     pub num_figures: u32,
     pub num_figures_visible: u32,
     pub num_particles: u32,
@@ -268,6 +274,7 @@ pub enum Event {
     ToggleMouseYInvert(bool),
     ToggleSmoothPan(bool),
     AdjustViewDistance(u32),
+    AdjustLodDetail(u32),
     AdjustSpriteRenderDistance(u32),
     AdjustFigureLoDRenderDistance(u32),
     AdjustMusicVolume(f32),
@@ -280,9 +287,6 @@ pub enum Event {
     AdjustWindowSize([u16; 2]),
     ToggleParticlesEnabled(bool),
     ToggleFullscreen,
-    ChangeAaMode(AaMode),
-    ChangeCloudMode(CloudMode),
-    ChangeFluidMode(FluidMode),
     ChangeResolution([u16; 2]),
     ChangeBitDepth(Option<u16>),
     ChangeRefreshRate(Option<u16>),
@@ -305,14 +309,15 @@ pub enum Event {
     UseSlot(comp::slot::Slot),
     SwapSlots(comp::slot::Slot, comp::slot::Slot),
     DropSlot(comp::slot::Slot),
-    ChangeHotbarState(HotbarState),
+    ChangeHotbarState(Box<HotbarState>),
     Ability3(bool),
     Logout,
     Quit,
-    ChangeLanguage(LanguageMetadata),
+    ChangeLanguage(Box<LanguageMetadata>),
     ChangeBinding(GameInput),
     ResetBindings,
     ChangeFreeLookBehavior(PressBehavior),
+    ChangeRenderMode(Box<RenderMode>),
     ChangeAutoWalkBehavior(PressBehavior),
     ChangeStopAutoWalkOnInput(bool),
     CraftRecipe(String),
@@ -577,10 +582,17 @@ impl Hud {
         ui.set_scaling_mode(settings.gameplay.ui_scale);
         // Generate ids.
         let ids = Ids::new(ui.id_generator());
+        // NOTE: Use a border the same color as the LOD ocean color (but with a
+        // translucent alpha since UI have transparency and LOD doesn't).
+        let mut water_color = lod::water_color();
+        water_color.a = 0.5;
         // Load world map
         let world_map = (
-            ui.add_graphic_with_rotations(Graphic::Image(client.world_map.0.clone())),
-            client.world_map.1,
+            ui.add_graphic_with_rotations(Graphic::Image(
+                client.world_map.0.clone(),
+                Some(water_color),
+            )),
+            client.world_map.1.map(u32::from),
         );
         // Load images.
         let imgs = Imgs::load(&mut ui).expect("Failed to load images!");
@@ -670,7 +682,7 @@ impl Hud {
         &mut self,
         client: &Client,
         global_state: &GlobalState,
-        debug_info: DebugInfo,
+        debug_info: &Option<DebugInfo>,
         dt: Duration,
         info: HudInfo,
         camera: &Camera,
@@ -679,10 +691,6 @@ impl Hud {
         let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
         // pulse time for pulsating elements
         self.pulse = self.pulse + dt.as_secs_f32();
-        self.velocity = match debug_info.velocity {
-            Some(velocity) => velocity.0.magnitude(),
-            None => 0.0,
-        };
 
         let version = format!(
             "{}-{}",
@@ -776,7 +784,7 @@ impl Hud {
             }
 
             // Max amount the sct font size increases when "flashing"
-            const FLASH_MAX: f32 = 25.0;
+            const FLASH_MAX: u32 = 2;
 
             // Get player position.
             let player_pos = client
@@ -820,9 +828,9 @@ impl Hud {
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         let font_size = 30
-                            + (max_hp_frac * 30.0) as u32
+                            + ((max_hp_frac * 10.0) as u32) * 3
                             + if timer < 0.1 {
-                                (FLASH_MAX * (1.0 - timer / 0.1)) as u32
+                                FLASH_MAX * (((1.0 - timer / 0.1) * 10.0) as u32)
                             } else {
                                 0
                             };
@@ -873,9 +881,9 @@ impl Hud {
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         let font_size = 30
-                            + (max_hp_frac * 30.0) as u32
+                            + ((max_hp_frac * 10.0) as u32) * 3
                             + if floater.timer < 0.1 {
-                                (FLASH_MAX * (1.0 - floater.timer / 0.1)) as u32
+                                FLASH_MAX * (((1.0 - floater.timer / 0.1) * 10.0) as u32)
                             } else {
                                 0
                             };
@@ -955,7 +963,7 @@ impl Hud {
                             + ((exp_change.abs() as f32 / stats.exp.maximum() as f32).min(1.0)
                                 * 50.0) as u32
                             + if timer < 0.1 {
-                                (FLASH_MAX * (1.0 - timer / 0.1)) as u32
+                                FLASH_MAX * (((1.0 - timer / 0.1) * 10.0) as u32)
                             } else {
                                 0
                             };
@@ -999,7 +1007,7 @@ impl Hud {
                                     .min(1.0)
                                     * 50.0) as u32
                                 + if floater.timer < 0.1 {
-                                    (FLASH_MAX * (1.0 - floater.timer / 0.1)) as u32
+                                    FLASH_MAX * (((1.0 - floater.timer / 0.1) * 10.0) as u32)
                                 } else {
                                     0
                                 };
@@ -1228,9 +1236,9 @@ impl Hud {
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         let font_size = 30
-                            + (max_hp_frac * 30.0) as u32
+                            + ((max_hp_frac * 10.0) as u32) * 3
                             + if timer < 0.1 {
-                                (FLASH_MAX * (1.0 - timer / 0.1)) as u32
+                                FLASH_MAX * (((1.0 - timer / 0.1) * 10.0) as u32)
                             } else {
                                 0
                             };
@@ -1273,9 +1281,9 @@ impl Hud {
                             // Increase font size based on fraction of maximum health
                             // "flashes" by having a larger size in the first 100ms
                             let font_size = 30
-                                + (max_hp_frac * 30.0) as u32
+                                + ((max_hp_frac * 10.0) as u32) * 3
                                 + if floater.timer < 0.1 {
-                                    (FLASH_MAX * (1.0 - floater.timer / 0.1)) as u32
+                                    FLASH_MAX * (((1.0 - floater.timer / 0.1) * 10.0) as u32)
                                 } else {
                                     0
                                 };
@@ -1383,7 +1391,11 @@ impl Hud {
         }
 
         // Display debug window.
-        if global_state.settings.gameplay.toggle_debug {
+        if let Some(debug_info) = debug_info {
+            self.velocity = match debug_info.velocity {
+                Some(velocity) => velocity.0.magnitude(),
+                None => 0.0,
+            };
             // Alpha Version
             Text::new(&version)
                 .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
@@ -1489,8 +1501,8 @@ impl Hud {
 
             // Number of chunks
             Text::new(&format!(
-                "Chunks: {} ({} visible)",
-                debug_info.num_chunks, debug_info.num_visible_chunks,
+                "Chunks: {} ({} visible) & {} (shadow)",
+                debug_info.num_chunks, debug_info.num_visible_chunks, debug_info.num_shadow_chunks,
             ))
             .color(TEXT_COLOR)
             .down_from(self.ids.entity_count, 5.0)
@@ -1498,13 +1510,21 @@ impl Hud {
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.num_chunks, ui_widgets);
 
+            // Number of lights
+            Text::new(&format!("Lights: {}", debug_info.num_lights,))
+                .color(TEXT_COLOR)
+                .down_from(self.ids.num_chunks, 5.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .set(self.ids.num_lights, ui_widgets);
+
             // Number of figures
             Text::new(&format!(
                 "Figures: {} ({} visible)",
                 debug_info.num_figures, debug_info.num_figures_visible,
             ))
             .color(TEXT_COLOR)
-            .down_from(self.ids.num_chunks, 5.0)
+            .down_from(self.ids.num_lights, 5.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.num_figures, ui_widgets);
@@ -1867,6 +1887,9 @@ impl Hud {
                     settings_window::Event::AdjustViewDistance(view_distance) => {
                         events.push(Event::AdjustViewDistance(view_distance));
                     },
+                    settings_window::Event::AdjustLodDetail(lod_detail) => {
+                        events.push(Event::AdjustLodDetail(lod_detail));
+                    },
                     settings_window::Event::AdjustSpriteRenderDistance(view_distance) => {
                         events.push(Event::AdjustSpriteRenderDistance(view_distance));
                     },
@@ -1909,14 +1932,8 @@ impl Hud {
                     settings_window::Event::AdjustGamma(new_gamma) => {
                         events.push(Event::ChangeGamma(new_gamma));
                     },
-                    settings_window::Event::ChangeAaMode(new_aa_mode) => {
-                        events.push(Event::ChangeAaMode(new_aa_mode));
-                    },
-                    settings_window::Event::ChangeCloudMode(new_cloud_mode) => {
-                        events.push(Event::ChangeCloudMode(new_cloud_mode));
-                    },
-                    settings_window::Event::ChangeFluidMode(new_fluid_mode) => {
-                        events.push(Event::ChangeFluidMode(new_fluid_mode));
+                    settings_window::Event::ChangeRenderMode(new_render_mode) => {
+                        events.push(Event::ChangeRenderMode(new_render_mode));
                     },
                     settings_window::Event::ChangeResolution(new_resolution) => {
                         events.push(Event::ChangeResolution(new_resolution));
@@ -2142,10 +2159,10 @@ impl Hud {
                         events.push(Event::SwapSlots(a, b));
                     } else if let (Inventory(i), Hotbar(h)) = (a, b) {
                         self.hotbar.add_inventory_link(h, i.0);
-                        events.push(Event::ChangeHotbarState(self.hotbar.to_owned()));
+                        events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
                     } else if let (Hotbar(a), Hotbar(b)) = (a, b) {
                         self.hotbar.swap(a, b);
-                        events.push(Event::ChangeHotbarState(self.hotbar.to_owned()));
+                        events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
                     }
                 },
                 slot::Event::Dropped(from) => {
@@ -2154,7 +2171,7 @@ impl Hud {
                         events.push(Event::DropSlot(from));
                     } else if let Hotbar(h) = from {
                         self.hotbar.clear_slot(h);
-                        events.push(Event::ChangeHotbarState(self.hotbar.to_owned()));
+                        events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
                     }
                 },
                 slot::Event::Used(from) => {
@@ -2452,7 +2469,7 @@ impl Hud {
         &mut self,
         client: &Client,
         global_state: &mut GlobalState,
-        debug_info: DebugInfo,
+        debug_info: &Option<DebugInfo>,
         camera: &Camera,
         dt: Duration,
         info: HudInfo,
@@ -2461,8 +2478,7 @@ impl Hud {
         if self.ui.ui.global_input().events().any(|event| {
             use conrod_core::{event, input};
             matches!(event,
-                //event::Event::Raw(event::Input::Press(input::Button::Keyboard(input::Key::Tab)))
-                // => true,
+                /* event::Event::Raw(event::Input::Press(input::Button::Keyboard(input::Key::Tab))) | */
                 event::Event::Ui(event::Ui::Press(
                     _,
                     event::Press {
@@ -2476,6 +2492,11 @@ impl Hud {
                 .handle_event(conrod_core::event::Input::Text("\t".to_string()));
         }
 
+        if !self.show.ui {
+            // Optimization: skip maintaining UI when it's off.
+            return vec![];
+        }
+
         if let Some(maybe_id) = self.to_focus.take() {
             self.ui.focus_widget(maybe_id);
         }
@@ -2483,13 +2504,15 @@ impl Hud {
         let camera::Dependents {
             view_mat, proj_mat, ..
         } = camera.dependents();
-        self.ui.maintain(
-            &mut global_state.window.renderer_mut(),
-            Some(proj_mat * view_mat),
-        );
+        let focus_off = camera.get_focus_pos().map(f32::trunc);
 
         // Check if item images need to be reloaded
         self.item_imgs.reload_if_changed(&mut self.ui);
+
+        self.ui.maintain(
+            &mut global_state.window.renderer_mut(),
+            Some(proj_mat * view_mat * Mat4::translation_3d(-focus_off)),
+        );
 
         events
     }

@@ -1,6 +1,6 @@
 #![deny(unsafe_code)]
-#![allow(clippy::option_map_unit_fn)]
-#![feature(drain_filter, bool_to_option, or_patterns)]
+#![allow(clippy::option_map_unit_fn, incomplete_features)]
+#![feature(array_map, bool_to_option, const_generics, drain_filter, or_patterns)]
 #![recursion_limit = "2048"]
 
 #[macro_use]

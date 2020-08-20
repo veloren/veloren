@@ -10,6 +10,7 @@ use crate::{
     column::ColumnSample,
     sim::WorldSim,
     util::{RandomField, Sampler, StructureGen2d},
+    IndexRef,
 };
 use common::{
     assets,
@@ -25,8 +26,29 @@ use common::{
 use fxhash::FxHasher64;
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
+use serde::{Deserialize, Serialize};
 use std::{collections::VecDeque, f32, hash::BuildHasherDefault};
 use vek::*;
+
+#[derive(Deserialize, Serialize)]
+pub struct Colors {
+    pub building: building::Colors,
+
+    pub plot_town_path: (u8, u8, u8),
+
+    pub plot_field_dirt: (u8, u8, u8),
+    pub plot_field_mound: (u8, u8, u8),
+
+    pub wall_low: (u8, u8, u8),
+    pub wall_high: (u8, u8, u8),
+
+    pub tower_color: (u8, u8, u8),
+
+    pub plot_dirt: (u8, u8, u8),
+    pub plot_grass: (u8, u8, u8),
+    pub plot_water: (u8, u8, u8),
+    pub plot_town: (u8, u8, u8),
+}
 
 #[allow(dead_code)]
 pub fn gradient(line: [Vec2<f32>; 2]) -> f32 {
@@ -109,10 +131,10 @@ impl Structure {
         }
     }
 
-    pub fn sample(&self, rpos: Vec3<i32>) -> Option<Block> {
+    pub fn sample(&self, index: IndexRef, rpos: Vec3<i32>) -> Option<Block> {
         match &self.kind {
-            StructureKind::House(house) => house.sample(rpos),
-            StructureKind::Keep(keep) => keep.sample(rpos),
+            StructureKind::House(house) => house.sample(index, rpos),
+            StructureKind::Keep(keep) => keep.sample(index, rpos),
         }
     }
 }
@@ -527,10 +549,13 @@ impl Settlement {
     #[allow(clippy::modulo_one)] // TODO: Pending review in #587
     pub fn apply_to<'a>(
         &'a self,
+        index: IndexRef,
         wpos2d: Vec2<i32>,
         mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
         vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
     ) {
+        let colors = &index.colors.site.settlement;
+
         for y in 0..vol.size_xy().y as i32 {
             for x in 0..vol.size_xy().x as i32 {
                 let offs = Vec2::new(x, y);
@@ -586,47 +611,6 @@ impl Settlement {
                     }
                 }
 
-                // Paths
-                // if let Some((WayKind::Path, dist, nearest)) = sample.way {
-                //     let inset = -1;
-
-                //     // Try to use the column at the centre of the path for sampling to make
-                // them     // flatter
-                //     let col = get_column(offs + (nearest.floor().map(|e| e as i32) - rpos))
-                //         .unwrap_or(col_sample);
-                //     let (bridge_offset, depth) = if let Some(water_dist) = col.water_dist {
-                //         (
-                //             ((water_dist.max(0.0) * 0.2).min(f32::consts::PI).cos() + 1.0) *
-                // 5.0,             ((1.0 - ((water_dist + 2.0) *
-                // 0.3).min(0.0).cos().abs())
-                //                 * (col.riverless_alt + 5.0 - col.alt).max(0.0)
-                //                 * 1.75
-                //                 + 3.0) as i32,
-                //         )
-                //     } else {
-                //         (0.0, 3)
-                //     };
-                //     let surface_z = (col.riverless_alt + bridge_offset).floor() as i32;
-
-                //     for z in inset - depth..inset {
-                //         let _ = vol.set(
-                //             Vec3::new(offs.x, offs.y, surface_z + z),
-                //             if bridge_offset >= 2.0 && dist >= 3.0 || z < inset - 1 {
-                //                 Block::new(BlockKind::Normal, noisy_color(Rgb::new(80, 80,
-                // 100), 8))             } else {
-                //                 Block::new(BlockKind::Normal, noisy_color(Rgb::new(80, 50,
-                // 30), 8))             },
-                //         );
-                //     }
-                //     let head_space = (8 - (dist * 0.25).powf(6.0).round() as i32).max(1);
-                //     for z in inset..inset + head_space {
-                //         let pos = Vec3::new(offs.x, offs.y, surface_z + z);
-                //         if vol.get(pos).unwrap().kind() != BlockKind::Water {
-                //             let _ = vol.set(pos, Block::empty());
-                //         }
-                //     }
-                // // Ground colour
-                // } else
                 {
                     let mut surface_block = None;
 
@@ -634,9 +618,9 @@ impl Settlement {
                         |seed, n| self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, seed * 5)) % n;
 
                     let color = match sample.plot {
-                        Some(Plot::Dirt) => Some(Rgb::new(90, 70, 50)),
-                        Some(Plot::Grass) => Some(Rgb::new(100, 200, 0)),
-                        Some(Plot::Water) => Some(Rgb::new(100, 150, 250)),
+                        Some(Plot::Dirt) => Some(colors.plot_dirt.into()),
+                        Some(Plot::Grass) => Some(colors.plot_grass.into()),
+                        Some(Plot::Water) => Some(colors.plot_water.into()),
                         //Some(Plot::Town { district }) => None,
                         Some(Plot::Town { .. }) => {
                             if let Some((_, path_nearest, _, _)) = col_sample.path {
@@ -659,13 +643,16 @@ impl Settlement {
                                 }
                             }
 
-                            Some(Rgb::new(100, 95, 65).map2(Rgb::iota(), |e: u8, i: i32| {
-                                e.saturating_add(
-                                    (self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, i * 5)) % 1)
-                                        as u8,
-                                )
-                                .saturating_sub(8)
-                            }))
+                            Some(Rgb::from(colors.plot_town_path).map2(
+                                Rgb::iota(),
+                                |e: u8, i: i32| {
+                                    e.saturating_add(
+                                        (self.noise.get(Vec3::new(wpos2d.x, wpos2d.y, i * 5)) % 1)
+                                            as u8,
+                                    )
+                                    .saturating_sub(8)
+                                },
+                            ))
                         },
                         Some(Plot::Field { seed, crop, .. }) => {
                             let furrow_dirs = [
@@ -677,12 +664,13 @@ impl Settlement {
                             let furrow_dir = furrow_dirs[*seed as usize % furrow_dirs.len()];
                             let in_furrow = (wpos2d * furrow_dir).sum().rem_euclid(5) < 2;
 
-                            let dirt = Rgb::new(80, 55, 35).map(|e| {
+                            let dirt = Rgb::<u8>::from(colors.plot_field_dirt).map(|e| {
                                 e + (self.noise.get(Vec3::broadcast((seed % 4096 + 0) as i32)) % 32)
                                     as u8
                             });
-                            let mound =
-                                Rgb::new(70, 80, 30).map(|e| e + roll(0, 8) as u8).map(|e| {
+                            let mound = Rgb::<u8>::from(colors.plot_field_mound)
+                                .map(|e| e + roll(0, 8) as u8)
+                                .map(|e| {
                                     e + (self.noise.get(Vec3::broadcast((seed % 4096 + 1) as i32))
                                         % 32) as u8
                                 });
@@ -769,8 +757,8 @@ impl Settlement {
                 // Walls
                 if let Some((WayKind::Wall, dist, _)) = sample.way {
                     let color = Lerp::lerp(
-                        Rgb::new(130i32, 100, 0),
-                        Rgb::new(90, 70, 50),
+                        Rgb::<u8>::from(colors.wall_low).map(i32::from),
+                        Rgb::<u8>::from(colors.wall_high).map(i32::from),
                         (RandomField::new(0).get(wpos2d.into()) % 256) as f32 / 256.0,
                     )
                     .map(|e| (e % 256) as u8);
@@ -797,7 +785,7 @@ impl Settlement {
                     for z in -2..16 {
                         let _ = vol.set(
                             Vec3::new(offs.x, offs.y, surface_z + z),
-                            Block::new(BlockKind::Normal, Rgb::new(50, 50, 50)),
+                            Block::new(BlockKind::Normal, colors.tower_color.into()),
                         );
                     }
                 }
@@ -832,7 +820,7 @@ impl Settlement {
                         let wpos = Vec3::from(self.origin) + rpos;
                         let coffs = wpos - Vec3::from(wpos2d);
 
-                        if let Some(block) = structure.sample(rpos) {
+                        if let Some(block) = structure.sample(index, rpos) {
                             let _ = vol.set(coffs, block);
                         }
                     }
@@ -938,30 +926,24 @@ impl Settlement {
         }
     }
 
-    pub fn get_color(&self, pos: Vec2<i32>) -> Option<Rgb<u8>> {
+    pub fn get_color(&self, index: IndexRef, pos: Vec2<i32>) -> Option<Rgb<u8>> {
+        let colors = &index.colors.site.settlement;
+
         let sample = self.land.get_at_block(pos);
 
-        // match sample.tower {
-        //     Some((Tower::Wall, _)) => return Some(Rgb::new(50, 50, 50)),
-        //     _ => {},
-        // }
-
-        // match sample.way {
-        //     Some((WayKind::Path, _, _)) => return Some(Rgb::new(90, 70, 50)),
-        //     Some((WayKind::Hedge, _, _)) => return Some(Rgb::new(0, 150, 0)),
-        //     Some((WayKind::Wall, _, _)) => return Some(Rgb::new(60, 60, 60)),
-        //     _ => {},
-        // }
-
         match sample.plot {
-            Some(Plot::Dirt) => return Some(Rgb::new(90, 70, 50)),
-            Some(Plot::Grass) => return Some(Rgb::new(100, 200, 0)),
-            Some(Plot::Water) => return Some(Rgb::new(100, 150, 250)),
+            Some(Plot::Dirt) => return Some(colors.plot_dirt.into()),
+            Some(Plot::Grass) => return Some(colors.plot_grass.into()),
+            Some(Plot::Water) => return Some(colors.plot_water.into()),
             Some(Plot::Town { .. }) => {
-                return Some(Rgb::new(150, 110, 60).map2(Rgb::iota(), |e: u8, i: i32| {
-                    e.saturating_add((self.noise.get(Vec3::new(pos.x, pos.y, i * 5)) % 16) as u8)
+                return Some(
+                    Rgb::from(colors.plot_town).map2(Rgb::iota(), |e: u8, i: i32| {
+                        e.saturating_add(
+                            (self.noise.get(Vec3::new(pos.x, pos.y, i * 5)) % 16) as u8,
+                        )
                         .saturating_sub(8)
-                }));
+                    }),
+                );
             },
             Some(Plot::Field { seed, .. }) => {
                 let furrow_dirs = [
@@ -972,6 +954,12 @@ impl Settlement {
                 ];
                 let furrow_dir = furrow_dirs[*seed as usize % furrow_dirs.len()];
                 let furrow = (pos * furrow_dir).sum().rem_euclid(6) < 3;
+                // NOTE: Very hard to understand how to make this dynamically configurable.  The
+                // base values can easily cause the others to go out of range, and there's some
+                // weird scaling going on.  For now, we just let these remain hardcoded.
+                //
+                // FIXME: Rewrite this so that validity is not so heavily dependent on the exact
+                // color values.
                 return Some(Rgb::new(
                     if furrow {
                         100
@@ -1003,6 +991,8 @@ pub enum Crop {
     Sunflower,
 }
 
+// NOTE: No support for struct variants in make_case_elim yet, unfortunately, so
+// we can't use it.
 #[derive(Copy, Clone, PartialEq)]
 pub enum Plot {
     Hazard,
