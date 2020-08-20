@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- MSAAA has been removed due to incompatibility with greeddy meshing.
+- MSAA has been removed due to incompatibility with greedy meshing.
 - Removed a saturation hack that led to colors being improperly displayed.
 
 ## [0.7.0] - 2020-08-15

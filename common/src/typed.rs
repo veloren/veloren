@@ -41,13 +41,16 @@ impl<Context: SubContext<S>, T, S> Typed<Context, Pure<T>, S> for T {
 /// [make_case_elim!], as follows:
 ///
 /// ```
-/// make_case_elim!(
+///  # #![feature(arbitrary_enum_discriminant)]
+///  # #[macro_use] extern crate veloren_common;
+///
+/// veloren_common::make_case_elim!(
 ///     my_type_module,
 ///     #[repr(u32)]
-///     #[derive(Clone,Copy,OtherAttribs)]
+///     #[derive(Clone,Copy)]
 ///     pub enum MyType {
 ///         Constr1 = 0,
-///         Constr2(arg : ArgType) = 1,
+///         Constr2(arg : u8) = 1,
 ///         /* ..., */
 ///     }
 /// );
@@ -59,15 +62,20 @@ impl<Context: SubContext<S>, T, S> Typed<Context, Pure<T>, S> for T {
 /// few things.  In this case:
 ///
 /// ```
+/// # #![feature(arbitrary_enum_discriminant)]
+/// # #[macro_use] extern crate veloren_common;
+///
 /// #[repr(u32)]
-/// #[derive(Clone,Copy,OtherAttribs)]
+/// #[derive(Clone, Copy)]
 /// pub enum MyType {
 ///     Constr1 = 0,
-///     Constr2(arg : ArgType) = 1,
+///     Constr2(u8) = 1,
 ///     /* ..., */
 /// }
 ///
-/// mod make_case_elim {
+/// # #[allow(non_snake_case)]
+/// # #[allow(dead_code)]
+/// mod my_type_module {
 ///     use ::serde::{Deserialize, Serialize};
 ///
 ///     /// The number of variants in this enum.
@@ -75,7 +83,7 @@ impl<Context: SubContext<S>, T, S> Typed<Context, Pure<T>, S> for T {
 ///
 ///     /// An array of all the variant indices (in theory, this can be used by this or other
 ///     /// macros in order to easily build up things like uniform random samplers).
-///     pub const ALL_INDICES: [u32; NUM_VARIANTS] = [ 0, 1 ];
+///     pub const ALL_INDICES: [u32; NUM_VARIANTS] = [0, 1];
 ///
 ///     /// A convenience trait used to store a different type for each constructor in this
 ///     /// pattern.
@@ -92,14 +100,14 @@ impl<Context: SubContext<S>, T, S> Typed<Context, Pure<T>, S> for T {
 ///     /// the [Elim] argument.  Each field has the same name as the constructor it represents.
 ///     #[derive(Serialize, Deserialize)]
 ///     pub struct Cases<Elim: PackedElim> {
-///         pub constr: Elim::Constr1,
-///         pub constr: Elim::Constr2,
+///         pub Constr1: Elim::Constr1,
+///         pub Constr2: Elim::Constr2,
 ///     }
 ///
 ///     /// Finally, because it represents by an overwhelming margin the most common usecase, we
 ///     /// predefine a particular pattern matching strategy--"pure"--where every arm holds data of
 ///     /// the exact same type, T.
-///     impl<T> PackedElim for typed::Pure<T> {
+///     impl<T> PackedElim for veloren_common::typed::Pure<T> {
 ///         type Constr1 = T;
 ///         type Constr2 = T;
 ///     }
@@ -107,7 +115,7 @@ impl<Context: SubContext<S>, T, S> Typed<Context, Pure<T>, S> for T {
 ///     /// Because PureCases is so convenient, we have an alias for it.  Thus, in order to
 ///     /// represent a pattern match on an argument that returns a constant of type (u8,u8,u8) for
 ///     /// each arm, you'd use the type `PureCases<(u8, u8, u8)>`.
-///     pub type PureCases<Elim> = Cases<$crate::typed::Pure<Elim>>;
+///     pub type PureCases<Elim> = Cases<veloren_common::typed::Pure<Elim>>;
 /// }
 /// ```
 ///
