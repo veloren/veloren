@@ -15,7 +15,7 @@ const GEN_SIZE: i32 = 4;
 pub fn criterion_benchmark(c: &mut Criterion) {
     // Generate chunks here to test
     let mut terrain = TerrainGrid::new().unwrap();
-    let world = World::generate(42, sim::WorldOpts {
+    let (world, index) = World::generate(42, sim::WorldOpts {
         // NOTE: If this gets too expensive, we can turn it off.
         // TODO: Consider an option to turn off all erosion as well, or even provide altitude
         // directly with a closure.
@@ -23,10 +23,11 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         world_file: sim::FileOpts::LoadAsset(sim::DEFAULT_WORLD_MAP.into()),
         ..Default::default()
     });
+    let index = index.as_index_ref();
     (0..GEN_SIZE)
         .flat_map(|x| (0..GEN_SIZE).map(move |y| Vec2::new(x, y)))
         .map(|offset| offset + CENTER)
-        .map(|pos| (pos, world.generate_chunk(pos, || false).unwrap()))
+        .map(|pos| (pos, world.generate_chunk(index, pos, || false).unwrap()))
         .for_each(|(key, chunk)| {
             terrain.insert(key, Arc::new(chunk.0));
         });
@@ -132,7 +133,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             c.bench(
                 "meshing",
                 Benchmark::new(&format!("Terrain mesh {}, {}", x, y), move |b| {
-                    b.iter(|| volume.generate_mesh(black_box(range)))
+                    b.iter(|| volume.generate_mesh(black_box((range, Vec2::new(8192, 8192)))))
                 })
                 // Lower sample size to save time
                 .sample_size(15),

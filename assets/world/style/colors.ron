@@ -1,0 +1,152 @@
+#![enable(unwrap_newtypes)]
+#![enable(implicit_some)]
+
+// NOTE: Many of these colors are not used directly, but are modified in various ways (e.g. via
+// lerping).  So don't be too frustrated if a color change seems to have a different effect in
+// different places; just follow the trends.
+(
+    block: (
+        pyramid: (203, 170, 146),
+
+        // These are all ranges from low to high.
+        structure_blocks: (
+            None: None,
+            // Samples the surface color.
+            Grass: None,
+            // Water blocks ignore color information, and even if they didn't would not be lerped.
+            Water: None,
+            GreenSludge: None,
+            // Leaves all actually get interpolated.
+            TemperateLeaves: (start: (0, 132, 94), end: (142, 181, 0)),
+            PineLeaves: (start: (0, 60, 50), end: (30, 100, 10)),
+            PalmLeavesInner: (start: (61, 166, 43), end: (29, 130, 32)),
+            PalmLeavesOuter: (start: (62, 171, 38), end: (45, 171, 65)),
+            Acacia: (start: (15, 126, 50), end: (30, 180, 10)),
+            Liana: (start: (0, 125, 107), end: (0, 155, 129)),
+            Mangrove: (start: (32, 56, 22), end: (57, 69, 27)),
+        )
+
+        // Water blocks ignore color now so this isn't used, but just in case this color was worth
+        // remembering here it is.
+        // green_sludge: (30.0, 126.0, 23.0)
+    ),
+    column: (
+        cold_grass: (0.0, 0.5, 0.25),
+        warm_grass: (0.4, 0.8, 0.0),
+        dark_grass: (0.15, 0.4, 0.1),
+        wet_grass: (0.1, 0.8, 0.2),
+        cold_stone: (0.57, 0.67, 0.8),
+        hot_stone: (0.07, 0.07, 0.06),
+        warm_stone: (0.77, 0.77, 0.64),
+        beach_sand: (0.8, 0.75, 0.5),
+        desert_sand: (0.7, 0.4, 0.25),
+        snow: (0.8, 0.85, 1.0),
+
+        stone_col: (195, 187, 201),
+
+        dirt_low: (0.075, 0.07, 0.3),
+        dirt_high: (0.75, 0.55, 0.1),
+
+        snow_high: (0.01, 0.3, 0.0),
+        warm_stone_high: (0.3, 0.12, 0.2),
+
+        grass_high: (0.15, 0.2, 0.15),
+        tropical_high: (0.87, 0.62, 0.56),
+    ),
+    // NOTE: I think (but am not sure) that this is the color of stuff below the bottom-most
+    // ground.  I'm not sure how easy it is to see.
+    deep_stone_color: (125, 120, 130),
+    layer: (
+        bridge: (80, 80, 100),
+        stalagtite: (200, 200, 200),
+    ),
+    site: (
+        castle: (),
+        dungeon: (
+            stone: (150, 150, 175),
+        ),
+        settlement: (
+            building: (
+                archetype: (
+                    keep: (
+                        brick_base: (80, 80, 80),
+                        floor_base: (80, 60, 10),
+                        pole: (90, 70, 50),
+                        flag: (
+                            Evil: (80, 10, 130),
+                            Good: (200, 80, 40),
+                        ),
+                        stone: (
+                            Evil: (65, 60, 55),
+                            Good: (100, 100, 110),
+                        ),
+                    ),
+                    house: (
+                        foundation: (100, 100, 100),
+                        floor: (100, 75, 50),
+                        roof: (
+                            Roof1: (0x99, 0x5E, 0x54),
+                            Roof2: (0x43, 0x63, 0x64),
+                            Roof3: (0x76, 0x6D, 0x68),
+                            Roof4: (0x7B, 0x41, 0x61),
+                            Roof5: (0x52, 0x20, 0x20),
+                            Roof6: (0x1A, 0x4A, 0x59),
+                            Roof7: (0xCC, 0x76, 0x4E),
+                            // (0x1D, 0x4D, 0x45),
+                            // (0xB3, 0x7D, 0x60),
+                            // (0xAC, 0x5D, 0x26),
+                            // (0x32, 0x46, 0x6B),
+                            // (0x2B, 0x19, 0x0F),
+                            // (0x93, 0x78, 0x51),
+                            // (0x92, 0x57, 0x24),
+                            // (0x4A, 0x4E, 0x4E),
+                            // (0x2F, 0x32, 0x47),
+                            // (0x8F, 0x35, 0x43),
+                            // (0x6D, 0x1E, 0x3A),
+                            // (0x6D, 0xA7, 0x80),
+                            // (0x4F, 0xA0, 0x95),
+                            // (0xE2, 0xB9, 0x99),
+                            // (0x7A, 0x30, 0x22),
+                            // (0x4A, 0x06, 0x08),
+                            // (0x8E, 0xB4, 0x57),
+                        ),
+                        wall: (
+                            Wall1: (200, 180, 150),
+                            Wall2: (0xB8, 0xB4, 0xA4),
+                            Wall3: (0x76, 0x6D, 0x68),
+                            Wall4: (0xF3, 0xC9, 0x8F),
+                            Wall5: (0xD3, 0xB7, 0x99),
+                            Wall6: (0xE1, 0xAB, 0x91),
+                            Wall7: (0x82, 0x57, 0x4C),
+                            Wall8: (0xB9, 0x96, 0x77),
+                            Wall9: (0xAE, 0x8D, 0x9C),
+                        ),
+                        support: (
+                            Support1: (60, 45, 30),
+                            Support2: (0x65, 0x55, 0x56),
+                            Support3: (0x53, 0x33, 0x13),
+                            Support4: (0x58, 0x42, 0x33),
+                        ),
+                    ),
+                ),
+            ),
+            plot_town_path: (100, 95, 65),
+
+            plot_field_dirt: (80, 55, 35),
+            plot_field_mound: (70, 80, 30),
+
+            wall_low: (130, 100, 0),
+            wall_high :(90, 70, 50),
+
+            tower_color: (50, 50, 50),
+
+            // NOTE: Ideally these would be part of a make_case_elim, but we can't use it beacuse
+            // it doesn't support struct variants yet.
+            plot_dirt: (90, 70, 50),
+            plot_grass: (100, 200, 0),
+            plot_water: (100, 150, 250),
+            plot_town: (150, 110, 60),
+            // TODO: Add field furrow stuff.
+        ),
+    ),
+)

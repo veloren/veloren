@@ -1,3 +1,5 @@
+uniform sampler2D t_noise;
+
 float hash(vec4 p) {
 	p = fract(p * 0.3183099 + 0.1) - fract(p + 23.22121);
 	p *= 17.0;

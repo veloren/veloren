@@ -22,6 +22,15 @@ impl<P: Pipeline> Model<P> {
     }
 
     pub fn vertex_range(&self) -> Range<u32> { self.vertex_range.clone() }
+
+    /// Create a model with a slice of a portion of this model to send to the
+    /// renderer.
+    pub fn submodel(&self, vertex_range: Range<u32>) -> Model<P> {
+        Model {
+            vbuf: self.vbuf.clone(),
+            vertex_range,
+        }
+    }
 }
 
 /// Represents a mesh on the GPU which can be updated dynamically.
@@ -40,10 +49,10 @@ impl<P: Pipeline> DynamicModel<P> {
 
     /// Create a model with a slice of a portion of this model to send to the
     /// renderer.
-    pub fn submodel(&self, range: Range<usize>) -> Model<P> {
+    pub fn submodel(&self, vertex_range: Range<u32>) -> Model<P> {
         Model {
             vbuf: self.vbuf.clone(),
-            vertex_range: range.start as u32..range.end as u32,
+            vertex_range,
         }
     }
 

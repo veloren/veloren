@@ -82,7 +82,8 @@ impl CharacterState {
             | CharacterState::BasicBlock
             | CharacterState::LeapMelee(_)
             | CharacterState::SpinMelee(_)
-            | CharacterState::ChargedRanged(_))
+            | CharacterState::ChargedRanged(_)
+        )
     }
 
     pub fn is_attack(&self) -> bool {
@@ -93,7 +94,8 @@ impl CharacterState {
             | CharacterState::TripleStrike(_)
             | CharacterState::LeapMelee(_)
             | CharacterState::SpinMelee(_)
-            | CharacterState::ChargedRanged(_))
+            | CharacterState::ChargedRanged(_)
+        )
     }
 
     pub fn is_aimed(&self) -> bool {
@@ -104,7 +106,8 @@ impl CharacterState {
             | CharacterState::TripleStrike(_)
             | CharacterState::BasicBlock
             | CharacterState::LeapMelee(_)
-            | CharacterState::ChargedRanged(_))
+            | CharacterState::ChargedRanged(_)
+        )
     }
 
     pub fn is_block(&self) -> bool { matches!(self, CharacterState::BasicBlock) }

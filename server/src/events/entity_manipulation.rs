@@ -33,6 +33,14 @@ pub fn handle_damage(server: &Server, uid: Uid, change: HealthChange) {
 /// other players. If the entity that killed it had stats, then give it exp for
 /// the kill. Experience given is equal to the level of the entity that was
 /// killed times 10.
+// NOTE: Clippy incorrectly warns about a needless collect here because it does not
+// understand that the pet count (which is computed during the first iteration over the
+// members in range) is actually used by the second iteration over the members in range;
+// since we have no way of knowing the pet count before the first loop finishes, we
+// definitely need at least two loops.   Then (currently) our only options are to store
+// the member list in temporary space (e.g. by collecting to a vector), or to repeat
+// the loop; but repeating the loop would currently be very inefficient since it has to
+// rescan every entity on the server again.
 #[allow(clippy::needless_collect)]
 pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSource) {
     let state = server.state_mut();

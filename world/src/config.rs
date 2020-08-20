@@ -64,5 +64,5 @@ pub const CONFIG: Config = Config {
     river_roughness: 0.06125,
     river_max_width: 2.0,
     river_min_height: 0.25,
-    river_width_to_depth: 1.0,
+    river_width_to_depth: 8.0,
 };

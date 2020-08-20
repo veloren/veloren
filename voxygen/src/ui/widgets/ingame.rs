@@ -54,7 +54,7 @@ pub struct IngameParameters {
 }
 
 pub struct State {
-    id: Option<widget::Id>,
+    id: widget::Id,
     pub parameters: IngameParameters,
 }
 
@@ -78,7 +78,7 @@ impl<W: Ingameable> Widget for Ingame<W> {
 
     fn init_state(&self, mut id_gen: widget::id::Generator) -> Self::State {
         State {
-            id: Some(id_gen.next()),
+            id: id_gen.next(),
             parameters: IngameParameters {
                 num: self.prim_num,
                 pos: self.pos,
@@ -112,7 +112,7 @@ impl<W: Ingameable> Widget for Ingame<W> {
             });
         }
 
-        widget.set_ingame(state.id.unwrap(), ui)
+        widget.set_ingame(state.id, ui)
     }
 
     fn default_x_position(&self, _: &Ui) -> Position { Position::Absolute(0.0) }

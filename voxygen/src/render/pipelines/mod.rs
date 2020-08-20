@@ -1,16 +1,23 @@
 pub mod figure;
 pub mod fluid;
+pub mod lod_terrain;
 pub mod particle;
 pub mod postprocess;
+pub mod shadow;
 pub mod skybox;
 pub mod sprite;
 pub mod terrain;
 pub mod ui;
 
+use super::Consts;
 use crate::scene::camera::CameraMode;
 use common::terrain::BlockKind;
 use gfx::{self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta};
 use vek::*;
+
+pub const MAX_POINT_LIGHT_COUNT: usize = 31;
+pub const MAX_FIGURE_SHADOW_COUNT: usize = 24;
+pub const MAX_DIRECTED_LIGHT_COUNT: usize = 6;
 
 gfx_defines! {
     constant Globals {
@@ -18,13 +25,24 @@ gfx_defines! {
         proj_mat: [[f32; 4]; 4] = "proj_mat",
         all_mat: [[f32; 4]; 4] = "all_mat",
         cam_pos: [f32; 4] = "cam_pos",
+        focus_off: [f32; 4] = "focus_off",
         focus_pos: [f32; 4] = "focus_pos",
-        // TODO: Fix whatever alignment issue requires these uniforms to be aligned.
+        /// NOTE: view_distance.x is the horizontal view distance, view_distance.y is the LOD
+        /// detail, view_distance.z is the
+        /// minimum height over any land chunk (i.e. the sea level), and view_distance.w is the
+        /// maximum height over this minimum height.
+        ///
+        /// TODO: Fix whatever alignment issue requires these uniforms to be aligned.
         view_distance: [f32; 4] = "view_distance",
         time_of_day: [f32; 4] = "time_of_day", // TODO: Make this f64.
+        sun_dir: [f32; 4] = "sun_dir",
+        moon_dir: [f32; 4] = "moon_dir",
         tick: [f32; 4] = "tick",
+        /// x, y represent the resolution of the screen;
+        /// w, z represent the near and far planes of the shadow map.
         screen_res: [f32; 4] = "screen_res",
         light_shadow_count: [u32; 4] = "light_shadow_count",
+        shadow_proj_factors: [f32; 4] = "shadow_proj_factors",
         medium: [u32; 4] = "medium",
         select_pos: [i32; 4] = "select_pos",
         gamma: [f32; 4] = "gamma",
@@ -52,11 +70,15 @@ impl Globals {
         cam_pos: Vec3<f32>,
         focus_pos: Vec3<f32>,
         view_distance: f32,
+        tgt_detail: f32,
+        map_bounds: Vec2<f32>,
         time_of_day: f64,
         tick: f64,
         screen_res: Vec2<u16>,
+        shadow_planes: Vec2<f32>,
         light_count: usize,
         shadow_count: usize,
+        directed_light_count: usize,
         medium: BlockKind,
         select_pos: Option<Vec3<i32>>,
         gamma: f32,
@@ -68,12 +90,32 @@ impl Globals {
             proj_mat: proj_mat.into_col_arrays(),
             all_mat: (proj_mat * view_mat).into_col_arrays(),
             cam_pos: Vec4::from(cam_pos).into_array(),
-            focus_pos: Vec4::from(focus_pos).into_array(),
-            view_distance: [view_distance; 4],
+            focus_off: Vec4::from(focus_pos).map(|e: f32| e.trunc()).into_array(),
+            focus_pos: Vec4::from(focus_pos).map(|e: f32| e.fract()).into_array(),
+            view_distance: [view_distance, tgt_detail, map_bounds.x, map_bounds.y],
             time_of_day: [time_of_day as f32; 4],
+            sun_dir: Vec4::from_direction(Self::get_sun_dir(time_of_day)).into_array(),
+            moon_dir: Vec4::from_direction(Self::get_moon_dir(time_of_day)).into_array(),
             tick: [tick as f32; 4],
-            screen_res: Vec4::from(screen_res.map(|e| e as f32)).into_array(),
-            light_shadow_count: [light_count as u32, shadow_count as u32, 0, 0],
+            // Provide the shadow map far plane as well.
+            screen_res: [
+                screen_res.x as f32,
+                screen_res.y as f32,
+                shadow_planes.x,
+                shadow_planes.y,
+            ],
+            light_shadow_count: [
+                (light_count % (MAX_POINT_LIGHT_COUNT + 1)) as u32,
+                (shadow_count % (MAX_FIGURE_SHADOW_COUNT + 1)) as u32,
+                (directed_light_count % (MAX_DIRECTED_LIGHT_COUNT + 1)) as u32,
+                0,
+            ],
+            shadow_proj_factors: [
+                (shadow_planes.y + shadow_planes.x) / (shadow_planes.y - shadow_planes.x),
+                (2.0 * shadow_planes.y * shadow_planes.x) / (shadow_planes.y - shadow_planes.x),
+                0.0,
+                0.0,
+            ],
             medium: [if medium.is_fluid() { 1 } else { 0 }; 4],
             select_pos: select_pos
                 .map(|sp| Vec4::from(sp) + Vec4::unit_w())
@@ -83,6 +125,21 @@ impl Globals {
             cam_mode: cam_mode as u32,
             sprite_render_distance,
         }
+    }
+
+    fn get_angle_rad(time_of_day: f64) -> f32 {
+        const TIME_FACTOR: f32 = (std::f32::consts::PI * 2.0) / (3600.0 * 24.0);
+        time_of_day as f32 * TIME_FACTOR
+    }
+
+    pub fn get_sun_dir(time_of_day: f64) -> Vec3<f32> {
+        let angle_rad = Self::get_angle_rad(time_of_day);
+        Vec3::new(angle_rad.sin(), 0.0, angle_rad.cos())
+    }
+
+    pub fn get_moon_dir(time_of_day: f64) -> Vec3<f32> {
+        let angle_rad = Self::get_angle_rad(time_of_day);
+        -Vec3::new(angle_rad.sin(), 0.0, angle_rad.cos() - 0.5).normalized()
     }
 }
 
@@ -94,9 +151,13 @@ impl Default for Globals {
             Vec3::zero(),
             Vec3::zero(),
             0.0,
+            100.0,
+            Vec2::new(140.0, 2048.0),
             0.0,
             0.0,
             Vec2::new(800, 500),
+            Vec2::new(1.0, 25.0),
+            0,
             0,
             0,
             BlockKind::Air,
@@ -142,4 +203,12 @@ impl Shadow {
 
 impl Default for Shadow {
     fn default() -> Self { Self::new(Vec3::zero(), 0.0) }
+}
+
+// Global scene data spread across several arrays.
+pub struct GlobalModel {
+    pub globals: Consts<Globals>,
+    pub lights: Consts<Light>,
+    pub shadows: Consts<Shadow>,
+    pub shadow_mats: Consts<shadow::Locals>,
 }

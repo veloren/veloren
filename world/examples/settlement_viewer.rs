@@ -1,12 +1,15 @@
 use rand::thread_rng;
 use vek::*;
-use veloren_world::site::Settlement;
+use veloren_world::{index::Index, site::Settlement, IndexRef};
 
 const W: usize = 640;
 const H: usize = 480;
 
 #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
 fn main() {
+    let seed = 1337;
+    let (ref index, ref colors) = Index::new(seed);
+
     let mut win =
         minifb::Window::new("Settlement Viewer", W, H, minifb::WindowOptions::default()).unwrap();
 
@@ -14,6 +17,7 @@ fn main() {
 
     let mut focus = Vec2::<f32>::zero();
     let mut zoom = 1.0;
+    let index = IndexRef { colors, index };
 
     while win.is_open() {
         let mut buf = vec![0; W * H];
@@ -26,7 +30,7 @@ fn main() {
                 let pos = focus + win_to_pos(Vec2::new(i, j)) * zoom;
 
                 let color = settlement
-                    .get_color(pos.map(|e| e.floor() as i32))
+                    .get_color(index, pos.map(|e| e.floor() as i32))
                     .unwrap_or(Rgb::new(35, 50, 20));
 
                 buf[j * W + i] = u32::from_le_bytes([color.b, color.g, color.r, 255]);

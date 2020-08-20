@@ -1,11 +1,23 @@
 #version 330 core
 
+#include <constants.glsl>
+
+#define LIGHTING_TYPE LIGHTING_TYPE_REFLECTION
+
+#define LIGHTING_REFLECTION_KIND LIGHTING_REFLECTION_KIND_GLOSSY
+
+#define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
+
+#define LIGHTING_DISTRIBUTION_SCHEME LIGHTING_DISTRIBUTION_SCHEME_MICROFACET
+
+#define LIGHTING_DISTRIBUTION LIGHTING_DISTRIBUTION_BECKMANN
+
 #include <globals.glsl>
 #include <srgb.glsl>
 #include <random.glsl>
 
 in vec3 v_pos;
-in uint v_col;
+// in uint v_col;
 in uint v_norm_ao;
 in vec3 inst_pos;
 in float inst_time;
@@ -163,7 +175,7 @@ void main() {
 		);
 	}
 
-	f_pos = inst_pos + (v_pos * attr.scale * SCALE + attr.offs);
+	f_pos = (inst_pos - focus_off.xyz) + (v_pos * attr.scale * SCALE + attr.offs);
 
 	// First 3 normals are negative, next 3 are positive
 	vec3 normals[6] = vec3[](vec3(-1,0,0), vec3(1,0,0), vec3(0,-1,0), vec3(0,1,0), vec3(0,0,-1), vec3(0,0,1));
@@ -175,12 +187,8 @@ void main() {
 	f_col = 
 		//srgb_to_linear(col) * 
 		srgb_to_linear(attr.col);
-	f_ao = float((v_norm_ao >> 3) & 0x3u) / 4.0;
-
-	f_light = 1.0;
 
 	gl_Position =
 		all_mat *
 		vec4(f_pos, 1);
-	gl_Position.z = -1000.0 / (gl_Position.z + 10000.0);
 }

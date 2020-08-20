@@ -6,69 +6,46 @@ pub mod run;
 // Reexports
 pub use self::{feed::FeedAnimation, fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation};
 
-use super::{Bone, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, Bone, FigureBoneData, Skeleton};
 use common::comp::{self};
-use vek::Vec3;
+use core::convert::TryFrom;
 
-#[derive(Clone, Default)]
-pub struct BirdMediumSkeleton {
-    head: Bone,
-    torso: Bone,
-    tail: Bone,
-    wing_l: Bone,
-    wing_r: Bone,
-    leg_l: Bone,
-    leg_r: Bone,
-}
-
-impl BirdMediumSkeleton {
-    pub fn new() -> Self { Self::default() }
-}
+skeleton_impls!(struct BirdMediumSkeleton {
+    + head,
+    + torso,
+    + tail,
+    + wing_l,
+    + wing_r,
+    + leg_l,
+    + leg_r,
+});
 
 impl Skeleton for BirdMediumSkeleton {
     type Attr = SkeletonAttr;
 
+    const BONE_COUNT: usize = 7;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"bird_medium_compute_mats\0";
 
-    fn bone_count(&self) -> usize { 7 }
-
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_medium_compute_mats")]
 
-    fn compute_matrices_inner(&self) -> ([FigureBoneData; 16], Vec3<f32>) {
-        let torso_mat = self.torso.compute_base_matrix();
+    fn compute_matrices_inner(
+        &self,
+        base_mat: Mat4<f32>,
+        buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
+    ) -> Vec3<f32> {
+        let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
 
-        (
-            [
-                FigureBoneData::new(torso_mat * self.head.compute_base_matrix()),
-                FigureBoneData::new(torso_mat),
-                FigureBoneData::new(torso_mat * self.tail.compute_base_matrix()),
-                FigureBoneData::new(torso_mat * self.wing_l.compute_base_matrix()),
-                FigureBoneData::new(torso_mat * self.wing_r.compute_base_matrix()),
-                FigureBoneData::new(self.leg_l.compute_base_matrix()),
-                FigureBoneData::new(self.leg_r.compute_base_matrix()),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-                FigureBoneData::default(),
-            ],
-            Vec3::default(),
-        )
-    }
-
-    fn interpolate(&mut self, target: &Self, dt: f32) {
-        self.head.interpolate(&target.head, dt);
-        self.torso.interpolate(&target.torso, dt);
-        self.tail.interpolate(&target.tail, dt);
-        self.wing_l.interpolate(&target.wing_l, dt);
-        self.wing_r.interpolate(&target.wing_r, dt);
-        self.leg_l.interpolate(&target.leg_l, dt);
-        self.leg_r.interpolate(&target.leg_r, dt);
+        *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
+            make_bone(torso_mat * Mat4::<f32>::from(self.head)),
+            make_bone(torso_mat),
+            make_bone(torso_mat * Mat4::<f32>::from(self.tail)),
+            make_bone(torso_mat * Mat4::<f32>::from(self.wing_l)),
+            make_bone(torso_mat * Mat4::<f32>::from(self.wing_r)),
+            make_bone(base_mat * Mat4::<f32>::from(self.leg_l)),
+            make_bone(base_mat * Mat4::<f32>::from(self.leg_r)),
+        ];
+        Vec3::default()
     }
 }
 
