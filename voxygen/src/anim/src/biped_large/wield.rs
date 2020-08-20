@@ -69,6 +69,9 @@ impl Animation for WieldAnimation {
         .sqrt())
             * ((anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin());
 
+        let footvertl = (anim_time as f32 * 16.0 * lab as f32).sin();
+        let footvertr = (anim_time as f32 * 16.0 * lab as f32 + PI).sin();
+
         let footrotl = (((5.0)
             / (2.5
                 + (2.5)
@@ -272,6 +275,43 @@ impl Animation for WieldAnimation {
             next.torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(-0.25);
             next.torso.scale = Vec3::one() / 8.0;
 
+            next.leg_l.position = Vec3::new(
+                -skeleton_attr.leg.0,
+                skeleton_attr.leg.1,
+                skeleton_attr.leg.2,
+            ) * 0.98;
+            next.leg_l.orientation =
+                Quaternion::rotation_z(short * 0.18) * Quaternion::rotation_x(foothoril * 0.3);
+            next.leg_l.scale = Vec3::one() * 0.98;
+    
+            next.leg_r.position = Vec3::new(
+                skeleton_attr.leg.0,
+                skeleton_attr.leg.1,
+                skeleton_attr.leg.2,
+            ) * 0.98;
+    
+            next.leg_r.orientation =
+                Quaternion::rotation_z(short * 0.18) * Quaternion::rotation_x(foothorir * 0.3);
+            next.leg_r.scale = Vec3::one() * 0.98;
+    
+            next.foot_l.position = Vec3::new(
+                -skeleton_attr.foot.0,
+                4.0 + skeleton_attr.foot.1 + foothoril * 8.5,
+                skeleton_attr.foot.2 + ((footvertl * 6.5).max(0.0)),
+            ) / 8.0;
+            next.foot_l.orientation =
+                Quaternion::rotation_x(-0.5 + footrotl * 0.85) * Quaternion::rotation_y(0.0);
+            next.foot_l.scale = Vec3::one() / 8.0;
+    
+            next.foot_r.position = Vec3::new(
+                skeleton_attr.foot.0,
+                4.0 + skeleton_attr.foot.1 + foothorir * 8.5,
+                skeleton_attr.foot.2 + ((footvertr * 6.5).max(0.0)),
+            ) / 8.0;
+            next.foot_r.orientation =
+                Quaternion::rotation_x(-0.5 + footrotr * 0.85) * Quaternion::rotation_y(0.0);
+            next.foot_r.scale = Vec3::one() / 8.0;
+            
             next.control.position = Vec3::new(7.0, 9.0, -10.0);
             next.control.orientation = Quaternion::rotation_x(test * 0.02)
                 * Quaternion::rotation_y(test * 0.02)

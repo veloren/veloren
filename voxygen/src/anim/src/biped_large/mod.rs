@@ -140,6 +140,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Troll, _) => (6.0, 10.0),
                 (Dullahan, _) => (3.0, 6.0),
                 (Werewolf, _) => (19.0, 1.0),
+                (Occultlizardman, _) => (6.0, 3.5),
+                (Mightylizardman, _) => (6.0, 3.5),
+                (Slylizardman, _) => (6.0, 3.5),
             },
             jaw: match (body.species, body.body_type) {
                 (Ogre, _) => (0.0, 0.0),
@@ -148,6 +151,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Troll, _) => (2.0, -4.0),
                 (Dullahan, _) => (0.0, 0.0),
                 (Werewolf, _) => (-2.5, -4.5),
+                (Occultlizardman, _) => (1.0, -2.5),
+                (Mightylizardman, _) => (1.0, -2.5),
+                (Slylizardman, _) => (1.0, -2.5),
             },
             upper_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (0.0, 28.0),
@@ -157,6 +163,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Troll, _) => (-1.0, 27.5),
                 (Dullahan, _) => (0.0, 29.0),
                 (Werewolf, _) => (3.0, 26.5),
+                (Occultlizardman, _) => (3.0, 23.0),
+                (Mightylizardman, _) => (3.0, 23.0),
+                (Slylizardman, _) => (3.0, 23.0),
             },
             lower_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (1.0, -7.0),
@@ -166,6 +175,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Troll, _) => (1.0, -10.5),
                 (Dullahan, _) => (0.0, -6.5),
                 (Werewolf, _) => (1.0, -10.0),
+                (Occultlizardman, _) => (0.0, -6.0),
+                (Mightylizardman, _) => (0.0, -6.0),
+                (Slylizardman, _) => (0.0, -6.0),
             },
             tail: match (body.species, body.body_type) {
                 (Ogre, _) => (0.0, 0.0),
@@ -174,6 +186,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Troll, _) => (0.0, 0.0),
                 (Dullahan, _) => (0.0, 0.0),
                 (Werewolf, _) => (-5.5, -2.0),
+                (Occultlizardman, _) => (-5.5, -6.0),
+                (Mightylizardman, _) => (-5.5, -6.0),
+                (Slylizardman, _) => (-5.5, -6.0),
             },
             shoulder: match (body.species, body.body_type) {
                 (Ogre, Male) => (12.0, 0.5, 0.0),
@@ -183,6 +198,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Troll, _) => (11.0, 0.5, -1.5),
                 (Dullahan, _) => (14.0, 0.5, 4.5),
                 (Werewolf, _) => (9.0, 4.0, -6.5),
+                (Occultlizardman, _) => (7.5, 1.0, -1.5),
+                (Mightylizardman, _) => (7.5, 1.0, -1.5),
+                (Slylizardman, _) => (7.5, 1.0, -1.5),
             },
             hand: match (body.species, body.body_type) {
                 (Ogre, Male) => (14.5, 0.0, -2.0),
@@ -192,6 +210,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Troll, _) => (11.5, 0.0, -1.5),
                 (Dullahan, _) => (14.5, 0.0, -2.5),
                 (Werewolf, _) => (10.0, 2.5, -11.0),
+                (Occultlizardman, _) => (8.0, 1.5, -5.5),
+                (Mightylizardman, _) => (8.0, 1.5, -5.5),
+                (Slylizardman, _) => (8.0, 1.5, -5.5),
             },
             leg: match (body.species, body.body_type) {
                 (Ogre, Male) => (0.0, 0.0, -4.0),
@@ -201,6 +222,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Troll, _) => (5.0, 0.0, -6.0),
                 (Dullahan, _) => (0.0, 0.0, -5.0),
                 (Werewolf, _) => (4.5, 0.5, -3.0),
+                (Occultlizardman, _) => (3.0, 0.5, -6.0),
+                (Mightylizardman, _) => (3.0, 0.5, -6.0),
+                (Slylizardman, _) => (3.0, 0.5, -6.0),
             },
             foot: match (body.species, body.body_type) {
                 (Ogre, Male) => (4.0, 2.5, 8.0),
@@ -210,6 +234,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Troll, _) => (6.0, 0.5, 4.0),
                 (Dullahan, _) => (4.0, 2.5, 8.0),
                 (Werewolf, _) => (5.5, 6.5, 6.0),
+                (Occultlizardman, _) => (3.5, 4.0, 5.0),
+                (Mightylizardman, _) => (3.5, 4.0, 5.0),
+                (Slylizardman, _) => (3.5, 4.0, 5.0),
             },
             beast: match (body.species, body.body_type) {
                 (Werewolf, _) => (true),
