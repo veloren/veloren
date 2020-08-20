@@ -10,14 +10,22 @@ pub use self::{
     settlement::Settlement,
 };
 
-use crate::column::ColumnSample;
+use crate::{column::ColumnSample, IndexRef};
 use common::{
     generation::ChunkSupplement,
     terrain::Block,
     vol::{BaseVol, ReadVol, RectSizedVol, WriteVol},
 };
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 use vek::*;
+
+#[derive(Deserialize, Serialize)]
+pub struct Colors {
+    pub castle: castle::Colors,
+    pub dungeon: dungeon::Colors,
+    pub settlement: settlement::Colors,
+}
 
 pub struct SpawnRules {
     pub trees: bool,
@@ -86,14 +94,15 @@ impl Site {
 
     pub fn apply_to<'a>(
         &'a self,
+        index: IndexRef,
         wpos2d: Vec2<i32>,
         get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
         vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
     ) {
         match &self.kind {
-            SiteKind::Settlement(s) => s.apply_to(wpos2d, get_column, vol),
-            SiteKind::Dungeon(d) => d.apply_to(wpos2d, get_column, vol),
-            SiteKind::Castle(c) => c.apply_to(wpos2d, get_column, vol),
+            SiteKind::Settlement(s) => s.apply_to(index, wpos2d, get_column, vol),
+            SiteKind::Dungeon(d) => d.apply_to(index, wpos2d, get_column, vol),
+            SiteKind::Castle(c) => c.apply_to(index, wpos2d, get_column, vol),
         }
     }
 

@@ -1,6 +1,5 @@
 mod color;
 mod dir;
-mod typed;
 
 pub const GIT_VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/githash"));
 
@@ -11,4 +10,3 @@ lazy_static::lazy_static! {
 
 pub use color::*;
 pub use dir::*;
-pub use typed::*;

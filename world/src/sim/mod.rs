@@ -29,7 +29,7 @@ use crate::{
     column::ColumnGen,
     site::Site,
     util::{seed_expan, FastNoise, RandomField, Sampler, StructureGen2d, LOCALITY, NEIGHBORS},
-    Index, CONFIG,
+    IndexRef, CONFIG,
 };
 use common::{
     assets,
@@ -1408,7 +1408,7 @@ impl WorldSim {
 
     /// Draw a map of the world based on chunk information.  Returns a buffer of
     /// u32s.
-    pub fn get_map(&self, index: &Index) -> WorldMapMsg {
+    pub fn get_map(&self, index: IndexRef) -> WorldMapMsg {
         let mut map_config = MapConfig::orthographic(
             self.map_size_lg(),
             core::ops::RangeInclusive::new(CONFIG.sea_level, CONFIG.sea_level + self.max_height),

@@ -1,7 +1,7 @@
 use crate::{
     column::ColumnSample,
     sim::{RiverKind, WorldSim},
-    Index, CONFIG,
+    IndexRef, CONFIG,
 };
 use common::{
     terrain::{
@@ -63,10 +63,15 @@ pub fn sample_wpos(config: &MapConfig, sampler: &WorldSim, wpos: Vec2<i32>) -> f
 /// are to be used for some reason, one should pass a custom function to
 /// generate instead (e.g. one that just looks up the color in a cached
 /// array).
+// NOTE: Deliberately not putting Rgb colors here in the config file; they
+// aren't hot reloaded anyway, and for various reasons they're probably not a
+// good idea to update in that way (for example, we currently want water colors
+// to match voxygen's).  Eventually we'll fix these sorts of issues in some
+// other way.
 pub fn sample_pos(
     config: &MapConfig,
     sampler: &WorldSim,
-    index: &Index,
+    index: IndexRef,
     samples: Option<&[Option<ColumnSample>]>,
     pos: Vec2<i32>,
 ) -> MapSample {

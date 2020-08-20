@@ -16,8 +16,25 @@ const DEFAULT_WORLD_CHUNKS_LG: MapSizeLg =
 
 pub struct World;
 
+#[derive(Clone)]
+pub struct IndexOwned;
+
+#[derive(Clone, Copy)]
+pub struct IndexRef<'a>(&'a IndexOwned);
+
+impl IndexOwned {
+    pub fn reload_colors_if_changed<R>(
+        &mut self,
+        _reload: impl FnOnce(&mut Self) -> R,
+    ) -> Option<R> {
+        None
+    }
+
+    pub fn as_index_ref(&self) -> IndexRef { IndexRef(self) }
+}
+
 impl World {
-    pub fn generate(_seed: u32) -> Self { Self }
+    pub fn generate(_seed: u32) -> (Self, IndexOwned) { (Self, IndexOwned) }
 
     pub fn tick(&self, dt: Duration) {}
 
@@ -26,6 +43,7 @@ impl World {
 
     pub fn generate_chunk(
         &self,
+        _index: IndexRef,
         chunk_pos: Vec2<i32>,
         _should_continue: impl FnMut() -> bool,
     ) -> Result<(TerrainChunk, ChunkSupplement), ()> {

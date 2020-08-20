@@ -36,13 +36,14 @@ fn main() {
     let mut _map_file = PathBuf::from("./maps");
     _map_file.push(map_file);
 
-    let world = World::generate(5284, WorldOpts {
+    let (world, index) = World::generate(5284, WorldOpts {
         seed_elements: false,
         world_file: sim::FileOpts::LoadAsset(veloren_world::sim::DEFAULT_WORLD_MAP.into()),
         // world_file: sim::FileOpts::Load(_map_file),
         // world_file: sim::FileOpts::Save,
         ..WorldOpts::default()
     });
+    let index = index.as_index_ref();
     tracing::info!("Sampling data...");
     let sampler = world.sim();
     let map_size_lg = sampler.map_size_lg();
@@ -55,7 +56,7 @@ fn main() {
                 column_sample.get((
                     uniform_idx_as_vec2(map_size_lg, posi)
                         * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
-                    world.index(),
+                    index,
                 ))
             })
             .collect::<Vec<_>>()
@@ -68,7 +69,7 @@ fn main() {
                 sample_pos(
                     config,
                     sampler,
-                    world.index(),
+                    index,
                     samples,
                     uniform_idx_as_vec2(map_size_lg, posi),
                 )

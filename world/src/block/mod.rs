@@ -3,14 +3,27 @@ mod natural;
 use crate::{
     column::{ColumnGen, ColumnSample},
     util::{RandomField, Sampler, SmallCache},
-    Index,
+    IndexRef,
 };
 use common::{
-    terrain::{structure::StructureBlock, Block, BlockKind, Structure},
+    terrain::{
+        structure::{self, StructureBlock},
+        Block, BlockKind, Structure,
+    },
     vol::{ReadVol, Vox},
 };
-use std::ops::{Div, Mul};
+use core::ops::{Div, Mul, Range};
+use serde::{Deserialize, Serialize};
 use vek::*;
+
+#[derive(Deserialize, Serialize)]
+pub struct Colors {
+    pub pyramid: (u8, u8, u8),
+    // TODO(@Sharp): After the merge, construct enough infrastructure to make it convenient to
+    // define mapping functions over the input; i.e. we should be able to interpret some fields as
+    // defining App<Abs<Fun, Type>, Arg>, where Fun : (Context, Arg) → (S, Type).
+    pub structure_blocks: structure::structure_block::PureCases<Option<Range<(u8, u8, u8)>>>,
+}
 
 pub struct BlockGen<'a> {
     pub column_cache: SmallCache<Option<ColumnSample<'a>>>,
@@ -29,7 +42,7 @@ impl<'a> BlockGen<'a> {
         column_gen: &ColumnGen<'a>,
         cache: &'b mut SmallCache<Option<ColumnSample<'a>>>,
         wpos: Vec2<i32>,
-        index: &'a Index,
+        index: IndexRef<'a>,
     ) -> Option<&'b ColumnSample<'a>> {
         cache
             .get(wpos, |wpos| column_gen.get((wpos, index)))
@@ -43,7 +56,7 @@ impl<'a> BlockGen<'a> {
         close_cliffs: &[(Vec2<i32>, u32); 9],
         cliff_hill: f32,
         tolerance: f32,
-        index: &'a Index,
+        index: IndexRef<'a>,
     ) -> f32 {
         close_cliffs.iter().fold(
             0.0f32,
@@ -89,7 +102,7 @@ impl<'a> BlockGen<'a> {
         )
     }
 
-    pub fn get_z_cache(&mut self, wpos: Vec2<i32>, index: &'a Index) -> Option<ZCache<'a>> {
+    pub fn get_z_cache(&mut self, wpos: Vec2<i32>, index: IndexRef<'a>) -> Option<ZCache<'a>> {
         let BlockGen {
             column_cache,
             column_gen,
@@ -143,7 +156,7 @@ impl<'a> BlockGen<'a> {
         wpos: Vec3<i32>,
         z_cache: Option<&ZCache>,
         only_structures: bool,
-        index: &'a Index,
+        index: IndexRef<'a>,
     ) -> Option<Block> {
         let BlockGen {
             column_cache,
@@ -237,18 +250,7 @@ impl<'a> BlockGen<'a> {
 
             // Sample blocks
 
-            // let stone_col = Rgb::new(195, 187, 201);
-
-            // let dirt_col = Rgb::new(79, 67, 60);
-
-            let _air = Block::empty();
-            // let stone = Block::new(2, stone_col);
-            // let surface_stone = Block::new(1, Rgb::new(200, 220, 255));
-            // let dirt = Block::new(1, dirt_col);
-            // let sand = Block::new(1, Rgb::new(180, 150, 50));
-            // let warm_stone = Block::new(1, Rgb::new(165, 165, 130));
-
-            let water = Block::new(BlockKind::Water, Rgb::new(60, 90, 190));
+            let water = Block::new(BlockKind::Water, Rgb::zero());
 
             let grass_depth = (1.5 + 2.0 * chaos).min(height - basement_height);
             let block = if (wposf.z as f32) < height - grass_depth {
@@ -389,7 +391,7 @@ impl<'a> BlockGen<'a> {
             .iter()
             .find_map(|st| {
                 let (st, st_sample) = st.as_ref()?;
-                st.get(wpos, st_sample)
+                st.get(index, wpos, st_sample)
             })
             .or(block);
 
@@ -407,7 +409,7 @@ impl<'a> ZCache<'a> {
     pub fn get_z_limits<'b>(
         &self,
         block_gen: &mut BlockGen<'b>,
-        index: &'b Index,
+        index: IndexRef<'b>,
     ) -> (f32, f32, f32) {
         let min = self.sample.alt - (self.sample.chaos.min(1.0) * 16.0);
         let min = min - 4.0;
@@ -496,7 +498,7 @@ impl StructureInfo {
         }
     }
 
-    fn get(&self, wpos: Vec3<i32>, sample: &ColumnSample) -> Option<Block> {
+    fn get(&self, index: IndexRef, wpos: Vec3<i32>, sample: &ColumnSample) -> Option<Block> {
         match self.meta {
             StructureMeta::Pyramid { height } => {
                 if wpos.z - self.pos.z
@@ -505,7 +507,10 @@ impl StructureInfo {
                             .map(|e: i32| (e.abs() / 2) * 2)
                             .reduce_max()
                 {
-                    Some(Block::new(BlockKind::Dense, Rgb::new(203, 170, 146)))
+                    Some(Block::new(
+                        BlockKind::Dense,
+                        index.colors.block.pyramid.into(),
+                    ))
                 } else {
                     None
                 }
@@ -521,6 +526,7 @@ impl StructureInfo {
                     .ok()
                     .and_then(|b| {
                         block_from_structure(
+                            index,
                             *b,
                             block_pos,
                             self.pos.into(),
@@ -534,6 +540,7 @@ impl StructureInfo {
 }
 
 pub fn block_from_structure(
+    index: IndexRef,
     sblock: StructureBlock,
     pos: Vec3<i32>,
     structure_pos: Vec2<i32>,
@@ -545,119 +552,60 @@ pub fn block_from_structure(
     let lerp = ((field.get(Vec3::from(structure_pos)).rem_euclid(256)) as f32 / 255.0) * 0.85
         + ((field.get(pos + std::i32::MAX / 2).rem_euclid(256)) as f32 / 255.0) * 0.15;
 
-    let saturate_leaves = |col: Rgb<f32>| {
-        // /*saturate_srgb(col / 255.0, 0.65)*/
-        /* let rgb = srgb_to_linear(col / 255.0);
-        /* let mut xyy = rgb_to_xyy(rgb);
-        xyy.x *= xyy.x;
-        xyy.y *= xyy.y;
-        linear_to_srgb(xyy_to_rgb(xyy).map(|e| e.min(1.0).max(0.0))).map(|e| e * 255.0) */
-        /* let xyz = rgb_to_xyz(rgb);
-        let col_adjusted = if xyz.y == 0.0 {
-            Rgb::zero()
-        } else {
-            rgb / xyz.y
-        };
-        let col = col_adjusted * col_adjusted * xyz.y;
-        linear_to_srgb(col).map(|e| e * 255.0) */
-        /* let mut hsv = rgb_to_hsv(rgb);
-        hsv.y *= hsv.y;
-        linear_to_srgb(hsv_to_rgb(hsv).map(|e| e.min(1.0).max(0.0))).map(|e| e * 255.0) */
-        linear_to_srgb(rgb * rgb).map(|e| e * 255.0) */
-        col
-    };
-
     match sblock {
         StructureBlock::None => None,
+        StructureBlock::Hollow => Some(Block::empty()),
         StructureBlock::Grass => Some(Block::new(
             BlockKind::Normal,
             sample.surface_color.map(|e| (e * 255.0) as u8),
         )),
-        StructureBlock::TemperateLeaves => Some(Block::new(
-            BlockKind::Leaves,
-            Lerp::lerp(
-                saturate_leaves(Rgb::new(0.0, 132.0, 94.0)),
-                saturate_leaves(Rgb::new(142.0, 181.0, 0.0)),
-                lerp,
-            )
-            .map(|e| e as u8),
-        )),
-        StructureBlock::PineLeaves => Some(Block::new(
-            BlockKind::Leaves,
-            Lerp::lerp(Rgb::new(0.0, 60.0, 50.0), Rgb::new(30.0, 100.0, 10.0), lerp)
-                .map(|e| e as u8),
-        )),
-        StructureBlock::PalmLeavesInner => Some(Block::new(
-            BlockKind::Leaves,
-            Lerp::lerp(
-                Rgb::new(61.0, 166.0, 43.0),
-                Rgb::new(29.0, 130.0, 32.0),
-                lerp,
-            )
-            .map(|e| e as u8),
-        )),
-        StructureBlock::PalmLeavesOuter => Some(Block::new(
-            BlockKind::Leaves,
-            Lerp::lerp(
-                Rgb::new(62.0, 171.0, 38.0),
-                Rgb::new(45.0, 171.0, 65.0),
-                lerp,
-            )
-            .map(|e| e as u8),
-        )),
-        StructureBlock::Water => Some(Block::new(
-            BlockKind::Water,
-            saturate_leaves(Rgb::new(100.0, 150.0, 255.0)).map(|e| e as u8),
-        )),
+        StructureBlock::Normal(color) => {
+            Some(Block::new(BlockKind::Normal, color)).filter(|block| !block.is_empty())
+        },
+        // Water / sludge throw away their color bits currently, so we don't set anyway.
+        StructureBlock::Water => Some(Block::new(BlockKind::Water, Rgb::zero())),
         StructureBlock::GreenSludge => Some(Block::new(
             BlockKind::Water,
-            saturate_leaves(Rgb::new(30.0, 126.0, 23.0)).map(|e| e as u8),
+            // TODO: If/when liquid supports other colors again, revisit this.
+            Rgb::zero(),
         )),
-        StructureBlock::Acacia => Some(Block::new(
-            BlockKind::Leaves,
-            Lerp::lerp(
-                Rgb::new(15.0, 126.0, 50.0),
-                Rgb::new(30.0, 180.0, 10.0),
-                lerp,
-            )
-            .map(|e| e as u8),
-        )),
+        // None of these BlockKinds has an orientation, so we just use zero for the other color
+        // bits.
         StructureBlock::Fruit => Some(if field.get(pos + structure_pos) % 3 > 0 {
             Block::empty()
         } else {
-            Block::new(BlockKind::Apple, Rgb::new(1, 1, 1))
+            Block::new(BlockKind::Apple, Rgb::zero())
         }),
         StructureBlock::Coconut => Some(if field.get(pos + structure_pos) % 3 > 0 {
             Block::empty()
         } else {
-            Block::new(BlockKind::Coconut, Rgb::new(1, 1, 1))
+            Block::new(BlockKind::Coconut, Rgb::zero())
         }),
         StructureBlock::Chest => Some(if structure_seed % 10 < 7 {
             Block::empty()
         } else {
-            Block::new(BlockKind::Chest, Rgb::new(1, 1, 1))
+            Block::new(BlockKind::Chest, Rgb::zero())
         }),
-        StructureBlock::Liana => Some(Block::new(
-            BlockKind::Liana,
-            Lerp::lerp(
-                saturate_leaves(Rgb::new(0.0, 125.0, 107.0)),
-                saturate_leaves(Rgb::new(0.0, 155.0, 129.0)),
-                lerp,
-            )
-            .map(|e| e as u8),
-        )),
-        StructureBlock::Mangrove => Some(Block::new(
-            BlockKind::Leaves,
-            Lerp::lerp(
-                saturate_leaves(Rgb::new(32.0, 56.0, 22.0)),
-                saturate_leaves(Rgb::new(57.0, 69.0, 27.0)),
-                lerp,
-            )
-            .map(|e| e as u8),
-        )),
-        StructureBlock::Hollow => Some(Block::empty()),
-        StructureBlock::Normal(color) => {
-            Some(Block::new(BlockKind::Normal, color)).filter(|block| !block.is_empty())
-        },
+        // We interpolate all these BlockKinds as needed.
+        StructureBlock::TemperateLeaves
+        | StructureBlock::PineLeaves
+        | StructureBlock::PalmLeavesInner
+        | StructureBlock::PalmLeavesOuter
+        | StructureBlock::Acacia
+        | StructureBlock::Liana
+        | StructureBlock::Mangrove => sblock
+            .elim_case_pure(&index.colors.block.structure_blocks)
+            .as_ref()
+            .map(|range| {
+                Block::new(
+                    BlockKind::Leaves,
+                    Rgb::<f32>::lerp(
+                        Rgb::<u8>::from(range.start).map(f32::from),
+                        Rgb::<u8>::from(range.end).map(f32::from),
+                        lerp,
+                    )
+                    .map(|e| e as u8),
+                )
+            }),
     }
 }

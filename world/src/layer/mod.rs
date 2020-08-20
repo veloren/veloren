@@ -2,7 +2,7 @@ use crate::{
     column::ColumnSample,
     sim::SimChunk,
     util::{RandomField, Sampler},
-    Index,
+    IndexRef,
 };
 use common::{
     assets, comp,
@@ -13,11 +13,18 @@ use common::{
 };
 use noise::NoiseFn;
 use rand::prelude::*;
+use serde::{Deserialize, Serialize};
 use std::{
     f32,
     ops::{Mul, Sub},
 };
 use vek::*;
+
+#[derive(Deserialize, Serialize)]
+pub struct Colors {
+    pub bridge: (u8, u8, u8),
+    pub stalagtite: (u8, u8, u8),
+}
 
 fn close(x: f32, tgt: f32, falloff: f32) -> f32 {
     (1.0 - (x - tgt).abs() / falloff).max(0.0).powf(0.5)
@@ -27,7 +34,7 @@ pub fn apply_scatter_to<'a>(
     wpos2d: Vec2<i32>,
     mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
     vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
-    index: &Index,
+    index: IndexRef,
     chunk: &SimChunk,
 ) {
     use BlockKind::*;
@@ -150,7 +157,7 @@ pub fn apply_paths_to<'a>(
     wpos2d: Vec2<i32>,
     mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
     vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
-    _index: &Index,
+    index: IndexRef,
 ) {
     for y in 0..vol.size_xy().y as i32 {
         for x in 0..vol.size_xy().x as i32 {
@@ -213,7 +220,10 @@ pub fn apply_paths_to<'a>(
                     let _ = vol.set(
                         Vec3::new(offs.x, offs.y, surface_z + z),
                         if bridge_offset >= 2.0 && path_dist >= 3.0 || z < inset - 1 {
-                            Block::new(BlockKind::Normal, noisy_color(Rgb::new(80, 80, 100), 8))
+                            Block::new(
+                                BlockKind::Normal,
+                                noisy_color(index.colors.layer.bridge.into(), 8),
+                            )
                         } else {
                             let path_color = path.surface_color(
                                 col_sample.sub_surface_color.map(|e| (e * 255.0) as u8),
@@ -238,7 +248,7 @@ pub fn apply_caves_to<'a>(
     wpos2d: Vec2<i32>,
     mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
     vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
-    index: &Index,
+    index: IndexRef,
 ) {
     for y in 0..vol.size_xy().y as i32 {
         for x in 0..vol.size_xy().x as i32 {
@@ -297,7 +307,7 @@ pub fn apply_caves_to<'a>(
                 for z in cave_roof - stalagtites..cave_roof {
                     let _ = vol.set(
                         Vec3::new(offs.x, offs.y, z),
-                        Block::new(BlockKind::Rock, Rgb::broadcast(200)),
+                        Block::new(BlockKind::Rock, index.colors.layer.stalagtite.into()),
                     );
                 }
 
@@ -325,7 +335,7 @@ pub fn apply_caves_supplement<'a>(
     wpos2d: Vec2<i32>,
     mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
     vol: &(impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
-    index: &Index,
+    index: IndexRef,
     supplement: &mut ChunkSupplement,
 ) {
     for y in 0..vol.size_xy().y as i32 {

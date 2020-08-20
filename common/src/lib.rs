@@ -4,6 +4,7 @@
 #![feature(
     arbitrary_enum_discriminant,
     const_checked_int_methods,
+    fundamental,
     option_unwrap_none,
     bool_to_option,
     label_break_value,
@@ -38,6 +39,7 @@ pub mod store;
 pub mod sync;
 pub mod sys;
 pub mod terrain;
+pub mod typed;
 pub mod util;
 pub mod vol;
 pub mod volumes;

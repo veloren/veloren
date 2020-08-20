@@ -3,7 +3,7 @@ use crate::{
     block::StructureMeta,
     sim::{local_cells, Cave, Path, RiverKind, SimChunk, WorldSim},
     util::Sampler,
-    Index, CONFIG,
+    IndexRef, CONFIG,
 };
 use common::{
     terrain::{
@@ -13,6 +13,7 @@ use common::{
     vol::RectVolSize,
 };
 use noise::NoiseFn;
+use serde::{Deserialize, Serialize};
 use std::{
     cmp::Reverse,
     f32, f64,
@@ -23,6 +24,31 @@ use vek::*;
 
 pub struct ColumnGen<'a> {
     pub sim: &'a WorldSim,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct Colors {
+    pub cold_grass: (f32, f32, f32),
+    pub warm_grass: (f32, f32, f32),
+    pub dark_grass: (f32, f32, f32),
+    pub wet_grass: (f32, f32, f32),
+    pub cold_stone: (f32, f32, f32),
+    pub hot_stone: (f32, f32, f32),
+    pub warm_stone: (f32, f32, f32),
+    pub beach_sand: (f32, f32, f32),
+    pub desert_sand: (f32, f32, f32),
+    pub snow: (f32, f32, f32),
+
+    pub stone_col: (u8, u8, u8),
+
+    pub dirt_low: (f32, f32, f32),
+    pub dirt_high: (f32, f32, f32),
+
+    pub snow_high: (f32, f32, f32),
+    pub warm_stone_high: (f32, f32, f32),
+
+    pub grass_high: (f32, f32, f32),
+    pub tropical_high: (f32, f32, f32),
 }
 
 impl<'a> ColumnGen<'a> {
@@ -80,7 +106,7 @@ impl<'a> ColumnGen<'a> {
 }
 
 impl<'a> Sampler<'a> for ColumnGen<'a> {
-    type Index = (Vec2<i32>, &'a Index);
+    type Index = (Vec2<i32>, IndexRef<'a>);
     type Sample = Option<ColumnSample<'a>>;
 
     #[allow(clippy::float_cmp)] // TODO: Pending review in #587
@@ -765,25 +791,47 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .add(marble_small.sub(0.5).mul(0.25));
 
         // Colours
-        let cold_grass = Rgb::new(0.0, 0.5, 0.25);
-        let warm_grass = Rgb::new(0.4, 0.8, 0.0);
-        let dark_grass = Rgb::new(0.15, 0.4, 0.1);
-        let wet_grass = Rgb::new(0.1, 0.8, 0.2);
-        let cold_stone = Rgb::new(0.57, 0.67, 0.8);
-        let hot_stone = Rgb::new(0.07, 0.07, 0.06);
-        let warm_stone = Rgb::new(0.77, 0.77, 0.64);
-        let beach_sand = Rgb::new(0.8, 0.75, 0.5);
-        let desert_sand = Rgb::new(0.7, 0.4, 0.25);
-        let snow = Rgb::new(0.8, 0.85, 1.0);
+        let Colors {
+            cold_grass,
+            warm_grass,
+            dark_grass,
+            wet_grass,
+            cold_stone,
+            hot_stone,
+            warm_stone,
+            beach_sand,
+            desert_sand,
+            snow,
+            stone_col,
+            dirt_low,
+            dirt_high,
+            snow_high,
+            warm_stone_high,
+            grass_high,
+            tropical_high,
+        } = index.colors.column;
 
-        let stone_col = Rgb::new(195, 187, 201);
-        let dirt = Lerp::lerp(
-            Rgb::new(0.075, 0.07, 0.3),
-            Rgb::new(0.75, 0.55, 0.1),
-            marble,
-        );
-        let tundra = Lerp::lerp(snow, Rgb::new(0.01, 0.3, 0.0), 0.4 + marble * 0.6);
-        let dead_tundra = Lerp::lerp(warm_stone, Rgb::new(0.3, 0.12, 0.2), marble);
+        let cold_grass = cold_grass.into();
+        let warm_grass = warm_grass.into();
+        let dark_grass = dark_grass.into();
+        let wet_grass = wet_grass.into();
+        let cold_stone = cold_stone.into();
+        let hot_stone = hot_stone.into();
+        let warm_stone: Rgb<f32> = warm_stone.into();
+        let beach_sand = beach_sand.into();
+        let desert_sand = desert_sand.into();
+        let snow = snow.into();
+        let stone_col = stone_col.into();
+        let dirt_low: Rgb<f32> = dirt_low.into();
+        let dirt_high = dirt_high.into();
+        let snow_high = snow_high.into();
+        let warm_stone_high = warm_stone_high.into();
+        let grass_high = grass_high.into();
+        let tropical_high = tropical_high.into();
+
+        let dirt = Lerp::lerp(dirt_low, dirt_high, marble);
+        let tundra = Lerp::lerp(snow, snow_high, 0.4 + marble * 0.6);
+        let dead_tundra = Lerp::lerp(warm_stone, warm_stone_high, marble);
         let cliff = Rgb::lerp(cold_stone, hot_stone, marble);
 
         let grass = Rgb::lerp(
@@ -799,14 +847,14 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let tropical = Rgb::lerp(
             Rgb::lerp(
                 grass,
-                Rgb::new(0.15, 0.2, 0.15),
+                grass_high,
                 marble_small
                     .sub(0.5)
                     .mul(0.2)
                     .add(0.75.mul(1.0.sub(humidity)))
                     .powf(0.667),
             ),
-            Rgb::new(0.87, 0.62, 0.56),
+            tropical_high,
             marble.powf(1.5).sub(0.5).mul(4.0),
         );
 
