@@ -28,6 +28,9 @@ impl<P: Pipeline> Mesh<P> {
     /// Get a slice referencing the vertices of this mesh.
     pub fn vertices(&self) -> &[P::Vertex] { &self.verts }
 
+    /// Get a mutable slice referencing the vertices of this mesh.
+    pub fn vertices_mut(&mut self) -> &mut [P::Vertex] { &mut self.verts }
+
     /// Push a new vertex onto the end of this mesh.
     pub fn push(&mut self, vert: P::Vertex) { self.verts.push(vert); }
 
