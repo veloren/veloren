@@ -7,8 +7,8 @@ use common::{
 };
 use rayon::prelude::*;
 use std::{f64, io::Write, path::PathBuf, time::SystemTime};
-use tracing::warn;
-use tracing_subscriber;
+use tracing::{warn, Level};
+use tracing_subscriber::{filter::LevelFilter, EnvFilter, FmtSubscriber};
 use vek::*;
 use veloren_world::{
     sim::{self, get_horizon_map, sample_pos, sample_wpos, WorldOpts},
@@ -22,7 +22,10 @@ const H: usize = 1024;
 #[allow(clippy::needless_update)] // TODO: Pending review in #587
 #[allow(clippy::unused_io_amount)] // TODO: Pending review in #587
 fn main() {
-    tracing_subscriber::fmt::init();
+    FmtSubscriber::builder()
+        .with_max_level(Level::ERROR)
+        .with_env_filter(EnvFilter::from_default_env().add_directive(LevelFilter::INFO.into()))
+        .init();
 
     // To load a map file of your choice, replace map_file with the name of your map
     // (stored locally in the map directory of your Veloren root), and swap the
