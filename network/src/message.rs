@@ -99,37 +99,17 @@ pub(crate) fn partial_eq_io_error(first: &io::Error, second: &io::Error) -> bool
 }
 
 pub(crate) fn partial_eq_bincode(first: &bincode::ErrorKind, second: &bincode::ErrorKind) -> bool {
+    use bincode::ErrorKind::*;
     match *first {
-        bincode::ErrorKind::Io(ref f) => match *second {
-            bincode::ErrorKind::Io(ref s) => partial_eq_io_error(f, s),
-            _ => false,
-        },
-        bincode::ErrorKind::InvalidUtf8Encoding(f) => match *second {
-            bincode::ErrorKind::InvalidUtf8Encoding(s) => f == s,
-            _ => false,
-        },
-        bincode::ErrorKind::InvalidBoolEncoding(f) => match *second {
-            bincode::ErrorKind::InvalidBoolEncoding(s) => f == s,
-            _ => false,
-        },
-        bincode::ErrorKind::InvalidCharEncoding => {
-            matches!(*second, bincode::ErrorKind::InvalidCharEncoding)
-        },
-        bincode::ErrorKind::InvalidTagEncoding(f) => match *second {
-            bincode::ErrorKind::InvalidTagEncoding(s) => f == s,
-            _ => false,
-        },
-        bincode::ErrorKind::DeserializeAnyNotSupported => {
-            matches!(*second, bincode::ErrorKind::DeserializeAnyNotSupported)
-        },
-        bincode::ErrorKind::SizeLimit => matches!(*second, bincode::ErrorKind::SizeLimit),
-        bincode::ErrorKind::SequenceMustHaveLength => {
-            matches!(*second, bincode::ErrorKind::SequenceMustHaveLength)
-        },
-        bincode::ErrorKind::Custom(ref f) => match *second {
-            bincode::ErrorKind::Custom(ref s) => f == s,
-            _ => false,
-        },
+        Io(ref f) => matches!(*second, Io(ref s) if partial_eq_io_error(f, s)),
+        InvalidUtf8Encoding(f) => matches!(*second, InvalidUtf8Encoding(s) if f == s),
+        InvalidBoolEncoding(f) => matches!(*second, InvalidBoolEncoding(s) if f == s),
+        InvalidCharEncoding => matches!(*second, InvalidCharEncoding),
+        InvalidTagEncoding(f) => matches!(*second, InvalidTagEncoding(s) if f == s),
+        DeserializeAnyNotSupported => matches!(*second, DeserializeAnyNotSupported),
+        SizeLimit => matches!(*second, SizeLimit),
+        SequenceMustHaveLength => matches!(*second, SequenceMustHaveLength),
+        Custom(ref f) => matches!(*second, Custom(ref s) if f == s),
     }
 }
 

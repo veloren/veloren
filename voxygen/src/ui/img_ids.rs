@@ -24,7 +24,7 @@ impl<'a> GraphicCreator<'a> for ImageGraphic {
     type Specifier = &'a str;
 
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
-        Ok(Graphic::Image(load::<DynamicImage>(specifier)?))
+        Ok(Graphic::Image(load::<DynamicImage>(specifier)?, None))
     }
 }
 

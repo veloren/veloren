@@ -1,5 +1,5 @@
 #[cfg(not(feature = "worldgen"))]
-use crate::test_world::World;
+use crate::test_world::{IndexOwned, World};
 use common::{generation::ChunkSupplement, terrain::TerrainChunk};
 use crossbeam::channel;
 use hashbrown::{hash_map::Entry, HashMap};
@@ -9,11 +9,12 @@ use std::sync::{
     Arc,
 };
 use vek::*;
-#[cfg(feature = "worldgen")] use world::World;
+#[cfg(feature = "worldgen")]
+use world::{IndexOwned, World};
 
 type ChunkGenResult = (
     Vec2<i32>,
-    Result<(TerrainChunk, ChunkSupplement), EcsEntity>,
+    Result<(TerrainChunk, ChunkSupplement), Option<EcsEntity>>,
 );
 
 pub struct ChunkGenerator {
@@ -34,10 +35,11 @@ impl ChunkGenerator {
 
     pub fn generate_chunk(
         &mut self,
-        entity: EcsEntity,
+        entity: Option<EcsEntity>,
         key: Vec2<i32>,
         thread_pool: &mut uvth::ThreadPool,
         world: Arc<World>,
+        index: IndexOwned,
     ) {
         let v = if let Entry::Vacant(v) = self.pending_chunks.entry(key) {
             v
@@ -48,8 +50,9 @@ impl ChunkGenerator {
         v.insert(Arc::clone(&cancel));
         let chunk_tx = self.chunk_tx.clone();
         thread_pool.execute(move || {
+            let index = index.as_index_ref();
             let payload = world
-                .generate_chunk(key, || cancel.load(Ordering::Relaxed))
+                .generate_chunk(index, key, || cancel.load(Ordering::Relaxed))
                 .map_err(|_| entity);
             let _ = chunk_tx.send((key, payload));
         });
@@ -73,5 +76,11 @@ impl ChunkGenerator {
         if let Some(cancel) = self.pending_chunks.remove(&key) {
             cancel.store(true, Ordering::Relaxed);
         }
+    }
+
+    pub fn cancel_all(&mut self) {
+        self.pending_chunks.drain().for_each(|(_, cancel)| {
+            cancel.store(true, Ordering::Relaxed);
+        });
     }
 }

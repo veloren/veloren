@@ -1,6 +1,7 @@
 use super::BlockKind;
 use crate::{
     assets::{self, Asset},
+    make_case_elim,
     vol::{BaseVol, ReadVol, SizedVol, Vox, WriteVol},
     volumes::dyna::{Dyna, DynaError},
 };
@@ -9,25 +10,29 @@ use serde::Deserialize;
 use std::{fs::File, io::BufReader, sync::Arc};
 use vek::*;
 
-#[derive(Copy, Clone, PartialEq)]
-pub enum StructureBlock {
-    None,
-    Grass,
-    TemperateLeaves,
-    PineLeaves,
-    Acacia,
-    Mangrove,
-    PalmLeavesInner,
-    PalmLeavesOuter,
-    Water,
-    GreenSludge,
-    Fruit,
-    Coconut,
-    Chest,
-    Hollow,
-    Liana,
-    Normal(Rgb<u8>),
-}
+make_case_elim!(
+    structure_block,
+    #[derive(Copy, Clone, PartialEq)]
+    #[repr(u32)]
+    pub enum StructureBlock {
+        None = 0,
+        Grass = 1,
+        TemperateLeaves = 2,
+        PineLeaves = 3,
+        Acacia = 4,
+        Mangrove = 5,
+        PalmLeavesInner = 6,
+        PalmLeavesOuter = 7,
+        Water = 8,
+        GreenSludge = 9,
+        Fruit = 10,
+        Coconut = 11,
+        Chest = 12,
+        Hollow = 13,
+        Liana = 14,
+        Normal(color: Rgb<u8>) = 15,
+    }
+);
 
 impl Vox for StructureBlock {
     fn empty() -> Self { StructureBlock::None }

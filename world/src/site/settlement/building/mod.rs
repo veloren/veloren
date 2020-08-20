@@ -7,9 +7,16 @@ pub use self::{
     skeleton::*,
 };
 
+use crate::IndexRef;
 use common::terrain::Block;
 use rand::prelude::*;
+use serde::{Deserialize, Serialize};
 use vek::*;
+
+#[derive(Deserialize, Serialize)]
+pub struct Colors {
+    pub archetype: archetype::Colors,
+}
 
 pub struct Building<A: Archetype> {
     skel: Skeleton<A::Attr>,
@@ -46,13 +53,14 @@ impl<A: Archetype> Building<A> {
         }
     }
 
-    pub fn sample(&self, pos: Vec3<i32>) -> Option<Block> {
+    pub fn sample(&self, index: IndexRef, pos: Vec3<i32>) -> Option<Block> {
         let rpos = pos - self.origin;
         self.skel
             .sample_closest(
                 rpos,
                 |pos, dist, bound_offset, center_offset, ori, branch| {
                     self.archetype.draw(
+                        index,
                         pos,
                         dist,
                         bound_offset,

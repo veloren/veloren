@@ -137,10 +137,16 @@ fn handle_main_events_cleared(
     }
 
     if let Some(last) = states.last_mut() {
-        global_state.window.renderer_mut().clear();
-        last.render(global_state.window.renderer_mut(), &global_state.settings);
+        let renderer = global_state.window.renderer_mut();
+        // Clear the shadow maps.
+        renderer.clear_shadows();
+        // Clear the screen
+        renderer.clear();
+        // Render the screen using the global renderer
+        last.render(renderer, &global_state.settings);
         // Finish the frame.
         global_state.window.renderer_mut().flush();
+        // Display the frame on the window.
         global_state
             .window
             .swap_buffers()

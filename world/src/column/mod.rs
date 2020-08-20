@@ -1,16 +1,19 @@
 use crate::{
     all::ForestKind,
     block::StructureMeta,
-    sim::{
-        local_cells, uniform_idx_as_vec2, vec2_as_uniform_idx, Cave, Path, RiverKind, SimChunk,
-        WorldSim,
-    },
+    sim::{local_cells, Cave, Path, RiverKind, SimChunk, WorldSim},
     util::Sampler,
-    Index, CONFIG,
+    IndexRef, CONFIG,
 };
-use common::{terrain::TerrainChunkSize, vol::RectVolSize};
+use common::{
+    terrain::{
+        quadratic_nearest_point, river_spline_coeffs, uniform_idx_as_vec2, vec2_as_uniform_idx,
+        TerrainChunkSize,
+    },
+    vol::RectVolSize,
+};
 use noise::NoiseFn;
-use roots::find_roots_cubic;
+use serde::{Deserialize, Serialize};
 use std::{
     cmp::Reverse,
     f32, f64,
@@ -21,6 +24,31 @@ use vek::*;
 
 pub struct ColumnGen<'a> {
     pub sim: &'a WorldSim,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct Colors {
+    pub cold_grass: (f32, f32, f32),
+    pub warm_grass: (f32, f32, f32),
+    pub dark_grass: (f32, f32, f32),
+    pub wet_grass: (f32, f32, f32),
+    pub cold_stone: (f32, f32, f32),
+    pub hot_stone: (f32, f32, f32),
+    pub warm_stone: (f32, f32, f32),
+    pub beach_sand: (f32, f32, f32),
+    pub desert_sand: (f32, f32, f32),
+    pub snow: (f32, f32, f32),
+
+    pub stone_col: (u8, u8, u8),
+
+    pub dirt_low: (f32, f32, f32),
+    pub dirt_high: (f32, f32, f32),
+
+    pub snow_high: (f32, f32, f32),
+    pub warm_stone_high: (f32, f32, f32),
+
+    pub grass_high: (f32, f32, f32),
+    pub tropical_high: (f32, f32, f32),
 }
 
 impl<'a> ColumnGen<'a> {
@@ -77,102 +105,8 @@ impl<'a> ColumnGen<'a> {
     }
 }
 
-fn river_spline_coeffs(
-    // _sim: &WorldSim,
-    chunk_pos: Vec2<f64>,
-    spline_derivative: Vec2<f32>,
-    downhill_pos: Vec2<f64>,
-) -> Vec3<Vec2<f64>> {
-    let dxy = downhill_pos - chunk_pos;
-    // Since all splines have been precomputed, we don't have to do that much work
-    // to evaluate the spline.  The spline is just ax^2 + bx + c = 0, where
-    //
-    // a = dxy - chunk.river.spline_derivative
-    // b = chunk.river.spline_derivative
-    // c = chunk_pos
-    let spline_derivative = spline_derivative.map(|e| e as f64);
-    Vec3::new(dxy - spline_derivative, spline_derivative, chunk_pos)
-}
-
-/// Find the nearest point from a quadratic spline to this point (in terms of t,
-/// the "distance along the curve" by which our spline is parameterized).  Note
-/// that if t < 0.0 or t >= 1.0, we probably shouldn't be considered "on the
-/// curve"... hopefully this works out okay and gives us what we want (a
-/// river that extends outwards tangent to a quadratic curve, with width
-/// configured by distance along the line).
-#[allow(clippy::let_and_return)] // TODO: Pending review in #587
-#[allow(clippy::many_single_char_names)]
-pub fn quadratic_nearest_point(
-    spline: &Vec3<Vec2<f64>>,
-    point: Vec2<f64>,
-) -> Option<(f64, Vec2<f64>, f64)> {
-    let a = spline.z.x;
-    let b = spline.y.x;
-    let c = spline.x.x;
-    let d = point.x;
-    let e = spline.z.y;
-    let f = spline.y.y;
-    let g = spline.x.y;
-    let h = point.y;
-    // This is equivalent to solving the following cubic equation (derivation is a
-    // bit annoying):
-    //
-    // A = 2(c^2 + g^2)
-    // B = 3(b * c + g * f)
-    // C = ((a - d) * 2 * c + b^2 + (e - h) * 2 * g + f^2)
-    // D = ((a - d) * b + (e - h) * f)
-    //
-    // Ax³ + Bx² + Cx + D = 0
-    //
-    // Once solved, this yield up to three possible values for t (reflecting minimal
-    // and maximal values).  We should choose the minimal such real value with t
-    // between 0.0 and 1.0.  If we fall outside those bounds, then we are
-    // outside the spline and return None.
-    let a_ = (c * c + g * g) * 2.0;
-    let b_ = (b * c + g * f) * 3.0;
-    let a_d = a - d;
-    let e_h = e - h;
-    let c_ = a_d * c * 2.0 + b * b + e_h * g * 2.0 + f * f;
-    let d_ = a_d * b + e_h * f;
-    let roots = find_roots_cubic(a_, b_, c_, d_);
-    let roots = roots.as_ref();
-
-    let min_root = roots
-        .iter()
-        .copied()
-        .filter_map(|root| {
-            let river_point = spline.x * root * root + spline.y * root + spline.z;
-            let river_zero = spline.z;
-            let river_one = spline.x + spline.y + spline.z;
-            if root > 0.0 && root < 1.0 {
-                Some((root, river_point))
-            } else if river_point.distance_squared(river_zero) < 0.5 {
-                Some((root, /*river_point*/ river_zero))
-            } else if river_point.distance_squared(river_one) < 0.5 {
-                Some((root, /*river_point*/ river_one))
-            } else {
-                None
-            }
-        })
-        .map(|(root, river_point)| {
-            let river_distance = river_point.distance_squared(point);
-            (root, river_point, river_distance)
-        })
-        // In the (unlikely?) case that distances are equal, prefer the earliest point along the
-        // river.
-        .min_by(|&(ap, _, a), &(bp, _, b)| {
-            (a, ap < 0.0 || ap > 1.0, ap)
-                .partial_cmp(&(b, bp < 0.0 || bp > 1.0, bp))
-                .unwrap()
-        });
-    min_root
-}
-
-impl<'a, 'b> Sampler<'b> for ColumnGen<'a>
-where
-    'a: 'b,
-{
-    type Index = (Vec2<i32>, &'b Index);
+impl<'a> Sampler<'a> for ColumnGen<'a> {
+    type Index = (Vec2<i32>, IndexRef<'a>);
     type Sample = Option<ColumnSample<'a>>;
 
     #[allow(clippy::float_cmp)] // TODO: Pending review in #587
@@ -202,12 +136,13 @@ where
         let chunk_warp_factor = sim.get_interpolated_monotone(wpos, |chunk| chunk.warp_factor)?;
         let sim_chunk = sim.get(chunk_pos)?;
         let neighbor_coef = TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
-        let my_chunk_idx = vec2_as_uniform_idx(chunk_pos);
-        let neighbor_river_data = local_cells(my_chunk_idx).filter_map(|neighbor_idx: usize| {
-            let neighbor_pos = uniform_idx_as_vec2(neighbor_idx);
-            let neighbor_chunk = sim.get(neighbor_pos)?;
-            Some((neighbor_pos, neighbor_chunk, &neighbor_chunk.river))
-        });
+        let my_chunk_idx = vec2_as_uniform_idx(self.sim.map_size_lg(), chunk_pos);
+        let neighbor_river_data =
+            local_cells(self.sim.map_size_lg(), my_chunk_idx).filter_map(|neighbor_idx: usize| {
+                let neighbor_pos = uniform_idx_as_vec2(self.sim.map_size_lg(), neighbor_idx);
+                let neighbor_chunk = sim.get(neighbor_pos)?;
+                Some((neighbor_pos, neighbor_chunk, &neighbor_chunk.river))
+            });
         let lake_width = (TerrainChunkSize::RECT_SIZE.x as f64 * (2.0f64.sqrt())) + 12.0;
         let neighbor_river_data = neighbor_river_data.map(|(posj, chunkj, river)| {
             let kind = match river.river_kind {
@@ -856,25 +791,47 @@ where
             .add(marble_small.sub(0.5).mul(0.25));
 
         // Colours
-        let cold_grass = Rgb::new(0.0, 0.5, 0.25);
-        let warm_grass = Rgb::new(0.4, 0.8, 0.0);
-        let dark_grass = Rgb::new(0.15, 0.4, 0.1);
-        let wet_grass = Rgb::new(0.1, 0.8, 0.2);
-        let cold_stone = Rgb::new(0.57, 0.67, 0.8);
-        let hot_stone = Rgb::new(0.07, 0.07, 0.06);
-        let warm_stone = Rgb::new(0.77, 0.77, 0.64);
-        let beach_sand = Rgb::new(0.8, 0.75, 0.5);
-        let desert_sand = Rgb::new(0.7, 0.4, 0.25);
-        let snow = Rgb::new(0.8, 0.85, 1.0);
+        let Colors {
+            cold_grass,
+            warm_grass,
+            dark_grass,
+            wet_grass,
+            cold_stone,
+            hot_stone,
+            warm_stone,
+            beach_sand,
+            desert_sand,
+            snow,
+            stone_col,
+            dirt_low,
+            dirt_high,
+            snow_high,
+            warm_stone_high,
+            grass_high,
+            tropical_high,
+        } = index.colors.column;
 
-        let stone_col = Rgb::new(195, 187, 201);
-        let dirt = Lerp::lerp(
-            Rgb::new(0.075, 0.07, 0.3),
-            Rgb::new(0.75, 0.55, 0.1),
-            marble,
-        );
-        let tundra = Lerp::lerp(snow, Rgb::new(0.01, 0.3, 0.0), 0.4 + marble * 0.6);
-        let dead_tundra = Lerp::lerp(warm_stone, Rgb::new(0.3, 0.12, 0.2), marble);
+        let cold_grass = cold_grass.into();
+        let warm_grass = warm_grass.into();
+        let dark_grass = dark_grass.into();
+        let wet_grass = wet_grass.into();
+        let cold_stone = cold_stone.into();
+        let hot_stone = hot_stone.into();
+        let warm_stone: Rgb<f32> = warm_stone.into();
+        let beach_sand = beach_sand.into();
+        let desert_sand = desert_sand.into();
+        let snow = snow.into();
+        let stone_col = stone_col.into();
+        let dirt_low: Rgb<f32> = dirt_low.into();
+        let dirt_high = dirt_high.into();
+        let snow_high = snow_high.into();
+        let warm_stone_high = warm_stone_high.into();
+        let grass_high = grass_high.into();
+        let tropical_high = tropical_high.into();
+
+        let dirt = Lerp::lerp(dirt_low, dirt_high, marble);
+        let tundra = Lerp::lerp(snow, snow_high, 0.4 + marble * 0.6);
+        let dead_tundra = Lerp::lerp(warm_stone, warm_stone_high, marble);
         let cliff = Rgb::lerp(cold_stone, hot_stone, marble);
 
         let grass = Rgb::lerp(
@@ -890,14 +847,14 @@ where
         let tropical = Rgb::lerp(
             Rgb::lerp(
                 grass,
-                Rgb::new(0.15, 0.2, 0.15),
+                grass_high,
                 marble_small
                     .sub(0.5)
                     .mul(0.2)
                     .add(0.75.mul(1.0.sub(humidity)))
                     .powf(0.667),
             ),
-            Rgb::new(0.87, 0.62, 0.56),
+            tropical_high,
             marble.powf(1.5).sub(0.5).mul(4.0),
         );
 

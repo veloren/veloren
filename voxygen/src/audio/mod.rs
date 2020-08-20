@@ -44,22 +44,18 @@ pub struct AudioFrontend {
     listener: Listener,
 }
 
-#[allow(clippy::same_item_push)] // TODO: Pending review in #587
 impl AudioFrontend {
     /// Construct with given device
-    #[allow(clippy::redundant_clone)] // TODO: Pending review in #587
     pub fn new(device: String, max_sfx_channels: usize) -> Self {
-        let mut sfx_channels = Vec::with_capacity(max_sfx_channels);
         let audio_device = get_device_raw(&device);
 
+        let mut sfx_channels = Vec::with_capacity(max_sfx_channels);
         if let Some(audio_device) = &audio_device {
-            for _ in 0..max_sfx_channels {
-                sfx_channels.push(SfxChannel::new(&audio_device));
-            }
+            sfx_channels.resize_with(max_sfx_channels, || SfxChannel::new(&audio_device));
         }
 
         Self {
-            device: device.clone(),
+            device,
             device_list: list_devices(),
             audio_device,
             sound_cache: SoundCache::default(),

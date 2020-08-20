@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     i18n::{list_localizations, LanguageMetadata, VoxygenLocalization},
-    render::{AaMode, CloudMode, FluidMode},
+    render::{AaMode, CloudMode, FluidMode, LightingMode, RenderMode, ShadowMapMode, ShadowMode},
     ui::{fonts::ConrodVoxygenFonts, ImageSlider, ScaleMode, ToggleButton},
     window::GameInput,
     GlobalState,
@@ -16,6 +16,7 @@ use conrod_core::{
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
     WidgetCommon,
 };
+use core::convert::TryFrom;
 
 use itertools::Itertools;
 use std::iter::once;
@@ -94,6 +95,9 @@ widget_ids! {
         vd_slider,
         vd_text,
         vd_value,
+        lod_detail_slider,
+        lod_detail_text,
+        lod_detail_value,
         sprite_dist_slider,
         sprite_dist_text,
         sprite_dist_value,
@@ -128,6 +132,13 @@ widget_ids! {
         //
         fullscreen_button,
         fullscreen_label,
+        lighting_mode_text,
+        lighting_mode_list,
+        shadow_mode_text,
+        shadow_mode_list,
+        shadow_mode_map_resolution_text,
+        shadow_mode_map_resolution_slider,
+        shadow_mode_map_resolution_value,
         save_window_size_button,
         audio_volume_slider,
         audio_volume_text,
@@ -245,13 +256,12 @@ pub enum Event {
     AdjustSpriteRenderDistance(u32),
     AdjustFigureLoDRenderDistance(u32),
     AdjustFOV(u16),
+    AdjustLodDetail(u32),
     AdjustGamma(f32),
     AdjustWindowSize([u16; 2]),
     ToggleParticlesEnabled(bool),
     ToggleFullscreen,
-    ChangeAaMode(AaMode),
-    ChangeCloudMode(CloudMode),
-    ChangeFluidMode(FluidMode),
+    ChangeRenderMode(Box<RenderMode>),
     ChangeResolution([u16; 2]),
     ChangeBitDepth(Option<u16>),
     ChangeRefreshRate(Option<u16>),
@@ -269,7 +279,7 @@ pub enum Event {
     SctDamageBatch(bool),
     SpeechBubbleDarkMode(bool),
     SpeechBubbleIcon(bool),
-    ChangeLanguage(LanguageMetadata),
+    ChangeLanguage(Box<LanguageMetadata>),
     ChangeBinding(GameInput),
     ResetBindings,
     ChangeFreeLookBehavior(PressBehavior),
@@ -1239,7 +1249,9 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .label_font_id(self.fonts.cyri.conrod_id)
                 .set(state.ids.languages_list, ui)
             {
-                events.push(Event::ChangeLanguage(language_list[clicked].to_owned()));
+                events.push(Event::ChangeLanguage(Box::new(
+                    language_list[clicked].to_owned(),
+                )));
             }
         }
 
@@ -1714,7 +1726,10 @@ impl<'a> Widget for SettingsWindow<'a> {
             if let Some(new_val) = ImageSlider::discrete(
                 self.global_state.settings.graphics.view_distance,
                 1,
-                65,
+                // FIXME: Move back to 64 once we support multiple texture atlases, or figure out a
+                // way to increase the size of the terrain atlas.
+                25,
+                // 65,
                 self.imgs.slider_indicator,
                 self.imgs.slider,
             )
@@ -1805,9 +1820,47 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.fov_value, ui);
 
+            // LoD detail
+            Text::new(&self.localized_strings.get("hud.settings.lod_detail"))
+                .down_from(state.ids.fov_slider, 10.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.lod_detail_text, ui);
+
+            if let Some(new_val) = ImageSlider::discrete(
+                ((self.global_state.settings.graphics.lod_detail as f32 / 100.0).log(5.0) * 10.0)
+                    .round() as i32,
+                0,
+                20,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(104.0, 22.0)
+            .down_from(state.ids.lod_detail_text, 8.0)
+            .track_breadth(12.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.lod_detail_slider, ui)
+            {
+                events.push(Event::AdjustLodDetail(
+                    (5.0f32.powf(new_val as f32 / 10.0) * 100.0) as u32,
+                ));
+            }
+
+            Text::new(&format!(
+                "{}",
+                self.global_state.settings.graphics.lod_detail
+            ))
+            .right_from(state.ids.lod_detail_slider, 8.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.lod_detail_value, ui);
+
             // Gamma
             Text::new(&self.localized_strings.get("hud.settings.gamma"))
-                .down_from(state.ids.fov_slider, 10.0)
+                .down_from(state.ids.lod_detail_slider, 10.0)
                 .font_size(self.fonts.cyri.scale(14))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
@@ -1917,6 +1970,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.figure_dist_value, ui);
 
+            let render_mode = &self.global_state.settings.graphics.render_mode;
+
             // AaMode
             Text::new(&self.localized_strings.get("hud.settings.antialiasing_mode"))
                 .down_from(state.ids.gamma_slider, 8.0)
@@ -1925,27 +1980,26 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.aa_mode_text, ui);
 
+            // NOTE: MSAA modes are currently disabled from the UI due to poor
+            // interaction with greedy meshing, and may eventually be removed.
             let mode_list = [
                 AaMode::None,
                 AaMode::Fxaa,
-                AaMode::MsaaX4,
+                /* AaMode::MsaaX4,
                 AaMode::MsaaX8,
-                AaMode::MsaaX16,
+                AaMode::MsaaX16, */
                 AaMode::SsaaX4,
             ];
             let mode_label_list = [
-                "No AA",
-                "FXAA",
-                "MSAA x4",
+                "No AA", "FXAA",
+                /* "MSAA x4",
                 "MSAA x8",
-                "MSAA x16 (experimental)",
+                "MSAA x16 (experimental)", */
                 "SSAA x4",
             ];
 
             // Get which AA mode is currently active
-            let selected = mode_list
-                .iter()
-                .position(|x| *x == self.global_state.settings.graphics.aa_mode);
+            let selected = mode_list.iter().position(|x| *x == render_mode.aa);
 
             if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
                 .w_h(400.0, 22.0)
@@ -1955,7 +2009,10 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .down_from(state.ids.aa_mode_text, 8.0)
                 .set(state.ids.aa_mode_list, ui)
             {
-                events.push(Event::ChangeAaMode(mode_list[clicked]));
+                events.push(Event::ChangeRenderMode(Box::new(RenderMode {
+                    aa: mode_list[clicked],
+                    ..render_mode.clone()
+                })));
             }
 
             // CloudMode
@@ -1979,9 +2036,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             ];
 
             // Get which cloud rendering mode is currently active
-            let selected = mode_list
-                .iter()
-                .position(|x| *x == self.global_state.settings.graphics.cloud_mode);
+            let selected = mode_list.iter().position(|x| *x == render_mode.cloud);
 
             if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
                 .w_h(400.0, 22.0)
@@ -1991,7 +2046,10 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .down_from(state.ids.cloud_mode_text, 8.0)
                 .set(state.ids.cloud_mode_list, ui)
             {
-                events.push(Event::ChangeCloudMode(mode_list[clicked]));
+                events.push(Event::ChangeRenderMode(Box::new(RenderMode {
+                    cloud: mode_list[clicked],
+                    ..render_mode.clone()
+                })));
             }
 
             // FluidMode
@@ -2006,7 +2064,11 @@ impl<'a> Widget for SettingsWindow<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.fluid_mode_text, ui);
 
-            let mode_list = [FluidMode::Cheap, FluidMode::Shiny];
+            // FIXME: Add shiny water back to the UI once we fix the bug on nVidia cards.
+            let mode_list = [
+                FluidMode::Cheap,
+                // FluidMode::Shiny
+            ];
             let mode_label_list = [
                 &self
                     .localized_strings
@@ -2017,9 +2079,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             ];
 
             // Get which fluid rendering mode is currently active
-            let selected = mode_list
-                .iter()
-                .position(|x| *x == self.global_state.settings.graphics.fluid_mode);
+            let selected = mode_list.iter().position(|x| *x == render_mode.fluid);
 
             if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
                 .w_h(400.0, 22.0)
@@ -2029,14 +2089,155 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .down_from(state.ids.fluid_mode_text, 8.0)
                 .set(state.ids.fluid_mode_list, ui)
             {
-                events.push(Event::ChangeFluidMode(mode_list[clicked]));
+                events.push(Event::ChangeRenderMode(Box::new(RenderMode {
+                    fluid: mode_list[clicked],
+                    ..render_mode.clone()
+                })));
+            }
+
+            // LightingMode
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.lighting_rendering_mode"),
+            )
+            .down_from(state.ids.fluid_mode_list, 8.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.lighting_mode_text, ui);
+
+            let mode_list = [
+                LightingMode::Ashikhmin,
+                LightingMode::BlinnPhong,
+                LightingMode::Lambertian,
+            ];
+            let mode_label_list = [
+                &self
+                    .localized_strings
+                    .get("hud.settings.lighting_rendering_mode.ashikhmin"),
+                &self
+                    .localized_strings
+                    .get("hud.settings.lighting_rendering_mode.blinnphong"),
+                &self
+                    .localized_strings
+                    .get("hud.settings.lighting_rendering_mode.lambertian"),
+            ];
+
+            // Get which lighting rendering mode is currently active
+            let selected = mode_list.iter().position(|x| *x == render_mode.lighting);
+
+            if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
+                .w_h(400.0, 22.0)
+                .color(MENU_BG)
+                .label_color(TEXT_COLOR)
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .down_from(state.ids.lighting_mode_text, 8.0)
+                .set(state.ids.lighting_mode_list, ui)
+            {
+                events.push(Event::ChangeRenderMode(Box::new(RenderMode {
+                    lighting: mode_list[clicked],
+                    ..render_mode.clone()
+                })));
+            }
+
+            // ShadowMode
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.shadow_rendering_mode"),
+            )
+            .down_from(state.ids.lighting_mode_list, 8.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.shadow_mode_text, ui);
+
+            let shadow_map_mode = ShadowMapMode::try_from(render_mode.shadow).ok();
+            let mode_list = [
+                ShadowMode::None,
+                ShadowMode::Cheap,
+                ShadowMode::Map(shadow_map_mode.unwrap_or_default()),
+            ];
+            let mode_label_list = [
+                &self
+                    .localized_strings
+                    .get("hud.settings.shadow_rendering_mode.none"),
+                &self
+                    .localized_strings
+                    .get("hud.settings.shadow_rendering_mode.cheap"),
+                &self
+                    .localized_strings
+                    .get("hud.settings.shadow_rendering_mode.map"),
+            ];
+
+            // Get which shadow rendering mode is currently active
+            let selected = mode_list.iter().position(|x| *x == render_mode.shadow);
+
+            if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
+                .w_h(400.0, 22.0)
+                .color(MENU_BG)
+                .label_color(TEXT_COLOR)
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .down_from(state.ids.shadow_mode_text, 8.0)
+                .set(state.ids.shadow_mode_list, ui)
+            {
+                events.push(Event::ChangeRenderMode(Box::new(RenderMode {
+                    shadow: mode_list[clicked],
+                    ..render_mode.clone()
+                })));
+            }
+
+            if let Some(shadow_map_mode) = shadow_map_mode {
+                // Display the shadow map mode if selected.
+                Text::new(
+                    &self
+                        .localized_strings
+                        .get("hud.settings.shadow_rendering_mode.map.resolution"),
+                )
+                .right_from(state.ids.shadow_mode_list, 10.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.shadow_mode_map_resolution_text, ui);
+
+                if let Some(new_val) = ImageSlider::discrete(
+                    (shadow_map_mode.resolution.log2() * 4.0).round() as i8,
+                    -8,
+                    8,
+                    self.imgs.slider_indicator,
+                    self.imgs.slider,
+                )
+                .w_h(104.0, 22.0)
+                .right_from(state.ids.shadow_mode_map_resolution_text, 8.0)
+                .track_breadth(12.0)
+                .slider_length(10.0)
+                .pad_track((5.0, 5.0))
+                .set(state.ids.shadow_mode_map_resolution_slider, ui)
+                {
+                    events.push(Event::ChangeRenderMode(Box::new(RenderMode {
+                        shadow: ShadowMode::Map(ShadowMapMode {
+                            resolution: 2.0f32.powf(f32::from(new_val) / 4.0),
+                        }),
+                        ..render_mode.clone()
+                    })));
+                }
+
+                // TODO: Consider fixing to avoid allocation (it's probably not a bottleneck but
+                // there's no reason to allocate for numbers).
+                Text::new(&format!("{}", shadow_map_mode.resolution))
+                    .right_from(state.ids.shadow_mode_map_resolution_slider, 8.0)
+                    .font_size(self.fonts.cyri.scale(14))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.shadow_mode_map_resolution_value, ui);
             }
 
             // Particles
             Text::new(&self.localized_strings.get("hud.settings.particles"))
                 .font_size(self.fonts.cyri.scale(14))
                 .font_id(self.fonts.cyri.conrod_id)
-                .down_from(state.ids.fluid_mode_list, 8.0)
+                .down_from(state.ids.shadow_mode_list, 8.0)
                 .color(TEXT_COLOR)
                 .set(state.ids.particles_label, ui);
 

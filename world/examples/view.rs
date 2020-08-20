@@ -6,10 +6,12 @@ const W: usize = 640;
 const H: usize = 480;
 
 fn main() {
-    let world = World::generate(0, WorldOpts {
+    let (world, index) = World::generate(0, WorldOpts {
         seed_elements: true,
         ..WorldOpts::default()
     });
+
+    let index = index.as_index_ref();
 
     let sampler = world.sample_columns();
 
@@ -28,7 +30,7 @@ fn main() {
                 let pos = focus + Vec2::new(i as i32, j as i32) * scale;
 
                 let (alt, place) = sampler
-                    .get((pos, world.index()))
+                    .get((pos, index))
                     .map(|sample| {
                         (
                             sample.alt.sub(64.0).add(gain).mul(0.7).max(0.0).min(255.0) as u8,

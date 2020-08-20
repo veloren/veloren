@@ -199,7 +199,7 @@ pub fn draw_vox(
             .resize_exact(
                 output_size.x as u32,
                 output_size.y as u32,
-                image::FilterType::Triangle,
+                image::imageops::FilterType::Triangle,
             )
             .to_rgba(),
         SampleStrat::PixelCoverage => super::pixel_art::resize_pixel_art(

@@ -204,9 +204,10 @@ impl<'a> MainMenuUi {
         // Load images
         let imgs = Imgs::load(&mut ui).expect("Failed to load images");
         let rot_imgs = ImgsRot::load(&mut ui).expect("Failed to load images!");
-        let bg_img_id = ui.add_graphic(Graphic::Image(load_expect(
-            bg_imgs.choose(&mut rng).unwrap(),
-        )));
+        let bg_img_id = ui.add_graphic(Graphic::Image(
+            load_expect(bg_imgs.choose(&mut rng).unwrap()),
+            None,
+        ));
         //let chosen_tip = *tips.choose(&mut rng).unwrap();
         // Load language
         let voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(

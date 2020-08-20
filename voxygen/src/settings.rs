@@ -1,7 +1,7 @@
 use crate::{
     hud::{BarNumbers, CrosshairType, Intro, PressBehavior, ShortcutNumbers, XpBar},
     i18n,
-    render::{AaMode, CloudMode, FluidMode},
+    render::RenderMode,
     ui::ScaleMode,
     window::{GameInput, KeyMouse},
 };
@@ -616,14 +616,13 @@ pub struct GraphicsSettings {
     pub max_fps: u32,
     pub fov: u16,
     pub gamma: f32,
-    pub aa_mode: AaMode,
-    pub cloud_mode: CloudMode,
-    pub fluid_mode: FluidMode,
+    pub render_mode: RenderMode,
     pub resolution: [u16; 2],
     pub bit_depth: Option<u16>,
     pub refresh_rate: Option<u16>,
     pub window_size: [u16; 2],
     pub fullscreen: bool,
+    pub lod_detail: u32,
 }
 
 impl Default for GraphicsSettings {
@@ -636,17 +635,17 @@ impl Default for GraphicsSettings {
             max_fps: 60,
             fov: 50,
             gamma: 1.0,
-            aa_mode: AaMode::Fxaa,
-            cloud_mode: CloudMode::Regular,
-            fluid_mode: FluidMode::Shiny,
+            render_mode: RenderMode::default(),
             resolution: [1920, 1080],
             bit_depth: None,
             refresh_rate: None,
             window_size: [1920, 1080],
             fullscreen: false,
+            lod_detail: 300,
         }
     }
 }
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum AudioOutput {
     /// Veloren's audio system wont work on some systems,

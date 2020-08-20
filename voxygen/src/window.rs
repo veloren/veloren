@@ -529,7 +529,7 @@ impl Window {
 
         let (window, device, factory, win_color_view, win_depth_view) =
             glutin::ContextBuilder::new()
-                .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, (3, 2)))
+                .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, (3, 3)))
                 .with_vsync(false)
                 .with_gfx_color_depth::<WinColorFmt, WinDepthFmt>()
                 .build_windowed(win_builder, &event_loop)
@@ -585,9 +585,7 @@ impl Window {
                 factory,
                 win_color_view,
                 win_depth_view,
-                settings.graphics.aa_mode,
-                settings.graphics.cloud_mode,
-                settings.graphics.fluid_mode,
+                settings.graphics.render_mode.clone(),
             )?,
             window,
             cursor_grabbed: false,

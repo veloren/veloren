@@ -2,17 +2,29 @@ use super::{super::skeleton::*, Archetype};
 use crate::{
     site::BlockMask,
     util::{RandomField, Sampler},
+    IndexRef,
 };
 use common::{
+    make_case_elim,
     terrain::{Block, BlockKind},
     vol::Vox,
 };
 use rand::prelude::*;
+use serde::{Deserialize, Serialize};
 use vek::*;
 
+#[derive(Deserialize, Serialize)]
+pub struct Colors {
+    pub brick_base: (u8, u8, u8),
+    pub floor_base: (u8, u8, u8),
+    pub pole: (u8, u8, u8),
+    pub flag: flag_color::PureCases<(u8, u8, u8)>,
+    pub stone: stone_color::PureCases<(u8, u8, u8)>,
+}
+
 pub struct Keep {
-    pub flag_color: Rgb<u8>,
-    pub stone_color: Rgb<u8>,
+    pub flag_color: FlagColor,
+    pub stone_color: StoneColor,
 }
 
 pub struct Attr {
@@ -23,6 +35,24 @@ pub struct Attr {
     pub rounded: bool,
     pub has_doors: bool,
 }
+
+make_case_elim!(
+    flag_color,
+    #[repr(u32)]
+    pub enum FlagColor {
+        Good = 0,
+        Evil = 1,
+    }
+);
+
+make_case_elim!(
+    stone_color,
+    #[repr(u32)]
+    pub enum StoneColor {
+        Good = 0,
+        Evil = 1,
+    }
+);
 
 impl Archetype for Keep {
     type Attr = Attr;
@@ -71,8 +101,8 @@ impl Archetype for Keep {
 
         (
             Self {
-                flag_color: Rgb::new(200, 80, 40),
-                stone_color: Rgb::new(100, 100, 110),
+                flag_color: FlagColor::Good,
+                stone_color: StoneColor::Good,
             },
             skel,
         )
@@ -81,6 +111,7 @@ impl Archetype for Keep {
     #[allow(clippy::if_same_then_else)] // TODO: Pending review in #587
     fn draw(
         &self,
+        index: IndexRef,
         pos: Vec3<i32>,
         _dist: i32,
         bound_offset: Vec2<i32>,
@@ -91,6 +122,11 @@ impl Archetype for Keep {
         _len: i32,
         attr: &Self::Attr,
     ) -> BlockMask {
+        let dungeon_stone = index.colors.site.dungeon.stone;
+        let colors = &index.colors.site.settlement.building.archetype.keep;
+        let flag_color = self.flag_color.elim_case_pure(&colors.flag);
+        let stone_color = self.stone_color.elim_case_pure(&colors.stone);
+
         let profile = Vec2::new(bound_offset.x, z);
 
         let weak_layer = 1;
@@ -118,30 +154,35 @@ impl Archetype for Keep {
 
         let brick_tex_pos = (pos + Vec3::new(pos.z, pos.z, 0)) / Vec3::new(2, 2, 1);
         let brick_tex = RandomField::new(0).get(brick_tex_pos) as u8 % 24;
-        let foundation = make_block(80 + brick_tex, 80 + brick_tex, 80 + brick_tex);
+        let foundation = make_block(
+            colors.brick_base.0 + brick_tex,
+            colors.brick_base.1 + brick_tex,
+            colors.brick_base.2 + brick_tex,
+        );
         let wall = make_block(
-            self.stone_color.r + brick_tex,
-            self.stone_color.g + brick_tex,
-            self.stone_color.b + brick_tex,
+            stone_color.0 + brick_tex,
+            stone_color.1 + brick_tex,
+            stone_color.2 + brick_tex,
         );
         let window = BlockMask::new(
             Block::new(BlockKind::Window1, make_meta(ori.flip())),
             normal_layer,
         );
         let floor = make_block(
-            80 + (pos.y.abs() % 2) as u8 * 15,
-            60 + (pos.y.abs() % 2) as u8 * 15,
-            10 + (pos.y.abs() % 2) as u8 * 15,
+            colors.floor_base.0 + (pos.y.abs() % 2) as u8 * 15,
+            colors.floor_base.1 + (pos.y.abs() % 2) as u8 * 15,
+            colors.floor_base.2 + (pos.y.abs() % 2) as u8 * 15,
         )
         .with_priority(important_layer);
-        let pole = make_block(90, 70, 50).with_priority(important_layer);
-        let flag = make_block(self.flag_color.r, self.flag_color.g, self.flag_color.b)
-            .with_priority(important_layer);
+        let pole =
+            make_block(colors.pole.0, colors.pole.1, colors.pole.2).with_priority(important_layer);
+        let flag =
+            make_block(flag_color.0, flag_color.1, flag_color.2).with_priority(important_layer);
         let internal = BlockMask::new(Block::empty(), internal_layer);
         let empty = BlockMask::nothing();
 
         let make_staircase = move |pos: Vec3<i32>, radius: f32, inner_radius: f32, stretch: f32| {
-            let stone = BlockMask::new(Block::new(BlockKind::Normal, Rgb::new(150, 150, 175)), 5);
+            let stone = BlockMask::new(Block::new(BlockKind::Normal, dungeon_stone.into()), 5);
 
             if (pos.xy().magnitude_squared() as f32) < inner_radius.powf(2.0) {
                 stone
