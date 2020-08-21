@@ -1,0 +1,13 @@
+Item(
+    name: "Velorite Sceptre",
+    description: "Heals your allies with the mystical Velorite aura.",      
+    kind: Tool(
+        (
+            kind: Staff("SceptreVelorite"),    
+            stats: (
+                equip_time_millis: 400,
+                power: 2.0,
+            ),
+        )
+    ),
+)

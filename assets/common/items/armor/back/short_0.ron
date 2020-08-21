@@ -5,7 +5,7 @@ Item(
         (
             kind: Back("Short0"),
             stats: (
-                protection: Normal(0.2),
+                protection: Normal(0.3),
             ),
         )
     ),

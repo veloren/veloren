@@ -146,12 +146,12 @@ impl<'a> System<'a> for Sys {
 
             const AVG_FOLLOW_DIST: f32 = 6.0;
             const MAX_FOLLOW_DIST: f32 = 12.0;
-            const MAX_CHASE_DIST: f32 = 24.0;
+            const MAX_CHASE_DIST: f32 = 18.0;
             const LISTEN_DIST: f32 = 16.0;
             const SEARCH_DIST: f32 = 48.0;
-            const SIGHT_DIST: f32 = 128.0;
-            const MIN_ATTACK_DIST: f32 = 3.5;
-            const MAX_FLEE_DIST: f32 = 32.0;
+            const SIGHT_DIST: f32 = 80.0;
+            const MIN_ATTACK_DIST: f32 = 2.0;
+            const MAX_FLEE_DIST: f32 = 20.0;
 
             let scale = scales.get(entity).map(|s| s.0).unwrap_or(1.0);
 
@@ -332,7 +332,8 @@ impl<'a> System<'a> for Sys {
                                         inputs.move_dir = Vec2::from(bearing)
                                             .try_normalized()
                                             .unwrap_or(Vec2::zero())
-                                            * speed;
+                                            * speed
+                                            * 0.2; //Let small/slow animals flee slower than the player
                                         inputs.jump.set_state(bearing.z > 1.5);
                                         inputs.swimup.set_state(bearing.z > 0.5);
                                         inputs.swimdown.set_state(bearing.z < 0.5);

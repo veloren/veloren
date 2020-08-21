@@ -1,0 +1,12 @@
+Item(
+    name: "Purple Cultist Mantle",
+    description: "Ceremonial attire used by members.",
+    kind: Armor(
+        (
+            kind: Shoulder("CultistPurple"),
+            stats: (
+                protection: Normal(5.0),
+            ),
+        )
+    ),
+)

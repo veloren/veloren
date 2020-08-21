@@ -160,5 +160,25 @@
                 color: None
             )
         ),
+        "Tarasque": (
+            left: (
+                vox_spec: ("armor.hand.tarasque_left", (-2.5, -2.5, -2.5)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.hand.tarasque_right", (-2.5, -2.5, -2.5)),
+                color: None
+            )
+        ),
+        "Bonerattler": (
+            left: (
+                vox_spec: ("armor.hand.bonerattler_left", (-1.5, -1.5, -2.5)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.hand.bonerattler_right", (-1.5, -1.5, -2.5)),
+                color: None
+            )
+        ),
     },
 ))

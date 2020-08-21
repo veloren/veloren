@@ -1,0 +1,25 @@
+[    
+    // Crafting Ingredients
+    (1, "common.items.crafting_ing.empty_vial"),
+    (0.10, "common.items.crafting_ing.shiny_gem"), 
+    // Consumables
+    (0.2, "common.items.consumable.potion_minor"),
+    // Utility
+    (0.05, "common.items.utility.collar"),
+    // Food
+    (1, "common.items.food.coconut"),
+    (0.05, "common.items.food.apple_mushroom_curry"),
+    (0.10, "common.items.food.apple_stick"),
+    (0.10, "common.items.food.mushroom_stick"),
+    // Weapons
+    (0.15, "common.items.weapons.sword.wood_sword"),
+    (0.10, "common.items.weapons.axe.worn_iron_axe-0"),
+    (0.10, "common.items.weapons.axe.worn_iron_axe-1"),
+    (0.10, "common.items.weapons.axe.worn_iron_axe-2"),
+    (0.10, "common.items.weapons.axe.worn_iron_axe-3"),
+    (0.10, "common.items.weapons.axe.worn_iron_axe-4"),
+    (0.25, "common.items.weapons.staff.staff_nature"),
+    (0.15, "common.items.weapons.hammer.flimsy_hammer"),
+    (0.10, "common.items.weapons.hammer.wood_hammer-0"),
+    (0.25, "common.items.weapons.bow.wood_shortbow-0"),
+]

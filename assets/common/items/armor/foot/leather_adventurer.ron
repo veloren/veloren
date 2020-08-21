@@ -1,0 +1,12 @@
+Item(
+    name: "Agile Kickers",
+    description: "'Tightly packed pieces of leather to endure all weather.",
+    kind: Armor(
+        (
+            kind: Foot("Leather2"),
+            stats: (
+                protection: Normal(2.0),
+            ),
+        )
+    ),
+)

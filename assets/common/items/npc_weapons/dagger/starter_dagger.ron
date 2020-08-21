@@ -1,0 +1,13 @@
+Item(
+    name: "Rusty Dagger",
+    description: "Easily concealed.",
+    kind: Tool(
+        (
+            kind: Dagger("BasicDagger"),    
+            stats: (
+                equip_time_millis: 300,
+                power: 1.00,
+            ),
+        )
+    ),
+)

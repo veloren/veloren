@@ -1,0 +1,12 @@
+Item(
+    name: "Agile Guards",
+    description: "'Tightly packed pieces of leather to endure all weather.'",
+    kind: Armor(
+        (
+            kind: Shoulder("Leather2"),
+            stats: (
+                protection: Normal(6.0),
+            ),
+        )
+    ),
+)

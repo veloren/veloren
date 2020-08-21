@@ -105,6 +105,7 @@ impl World {
     pub fn sample_blocks(&self) -> BlockGen { BlockGen::new(ColumnGen::new(&self.sim)) }
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
+    #[allow(clippy::eval_order_dependence)]
     pub fn generate_chunk(
         &self,
         index: IndexRef,
@@ -205,9 +206,9 @@ impl World {
         let mut rng = rand::thread_rng();
 
         // Apply layers (paths, caves, etc.)
+        layer::apply_caves_to(chunk_wpos2d, sample_get, &mut chunk, index);
         layer::apply_scatter_to(chunk_wpos2d, sample_get, &mut chunk, index, sim_chunk);
         layer::apply_paths_to(chunk_wpos2d, sample_get, &mut chunk, index);
-        layer::apply_caves_to(chunk_wpos2d, sample_get, &mut chunk, index);
 
         // Apply site generation
         sim_chunk.sites.iter().for_each(|site| {
@@ -236,15 +237,61 @@ impl World {
                 && sim_chunk.chaos < 0.5
                 && !sim_chunk.is_underwater()
             {
+                // TODO: REFACTOR: Define specific alignments in a config file instead of here
+                let is_hostile: bool;
+                let is_giant = rng.gen_range(0, 8) == 0;
+                let quadmed = comp::Body::QuadrupedMedium(quadruped_medium::Body::random()); // Not all of them are hostile so we have to do the rng here
+                let quadlow = comp::Body::QuadrupedLow(quadruped_low::Body::random()); // Not all of them are hostile so we have to do the rng here
                 let entity = EntityInfo::at(gen_entity_pos())
-                    .with_alignment(comp::Alignment::Wild)
-                    .do_if(rng.gen_range(0, 8) == 0, |e| e.into_giant())
+                    .do_if(is_giant, |e| e.into_giant())
                     .with_body(match rng.gen_range(0, 5) {
-                        0 => comp::Body::QuadrupedMedium(quadruped_medium::Body::random()),
-                        1 => comp::Body::BirdMedium(bird_medium::Body::random()),
-                        2 => comp::Body::Critter(critter::Body::random()),
-                        3 => comp::Body::QuadrupedLow(quadruped_low::Body::random()),
-                        _ => comp::Body::QuadrupedSmall(quadruped_small::Body::random()),
+                        0 => {
+                            match quadmed {
+                                comp::Body::QuadrupedMedium(quadruped_medium) => {
+                                    match quadruped_medium.species {
+                                        quadruped_medium::Species::Catoblepas => is_hostile = false,
+                                        quadruped_medium::Species::Mouflon => is_hostile = false,
+                                        quadruped_medium::Species::Tuskram => is_hostile = false,
+                                        _ => is_hostile = true,
+                                    }
+                                },
+                                _ => is_hostile = true,
+                            };
+                            quadmed
+                        },
+                        1 => {
+                            is_hostile = false;
+                            comp::Body::BirdMedium(bird_medium::Body::random())
+                        },
+                        2 => {
+                            is_hostile = false;
+                            comp::Body::Critter(critter::Body::random())
+                        },
+                        3 => {
+                            match quadlow {
+                                comp::Body::QuadrupedLow(quadruped_low) => {
+                                    match quadruped_low.species {
+                                        quadruped_low::Species::Crocodile => is_hostile = true,
+                                        quadruped_low::Species::Alligator => is_hostile = true,
+                                        quadruped_low::Species::Maneater => is_hostile = true,
+                                        _ => is_hostile = false,
+                                    }
+                                },
+                                _ => is_hostile = false,
+                            };
+                            quadlow
+                        },
+                        _ => {
+                            is_hostile = false;
+                            comp::Body::QuadrupedSmall(quadruped_small::Body::random())
+                        },
+                    })
+                    .with_alignment(if is_hostile {
+                        comp::Alignment::Enemy
+                    } else if is_giant {
+                        comp::Alignment::Npc
+                    } else {
+                        comp::Alignment::Wild
                     })
                     .with_automatic_name();
 

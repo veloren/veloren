@@ -1,0 +1,12 @@
+Item(
+    name: "Tarasque Gauntlets",
+    description: "As strong as a tarasque shell.",
+    kind: Armor(
+        (
+            kind: Hand("Tarasque"),
+            stats: (
+                protection: Normal(10.0),
+            ),
+        )
+    ),
+)

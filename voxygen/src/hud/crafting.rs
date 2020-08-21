@@ -176,6 +176,7 @@ impl<'a> Widget for Crafting<'a> {
         // Alignment
         Rectangle::fill_with([136.0, 378.0], color::TRANSPARENT)
             .top_left_with_margins_on(ids.window_frame, 74.0, 5.0)
+            .scroll_kids_vertically()
             .set(ids.align_rec, ui);
         Rectangle::fill_with([274.0, 340.0], color::TRANSPARENT)
             .top_right_with_margins_on(ids.window, 74.0, 5.0)
@@ -245,24 +246,20 @@ impl<'a> Widget for Crafting<'a> {
                 {
                     let output_text = format!("x{}", &recipe.output.1.to_string());
                     // Output Image
+                    let (title, desc) = super::util::item_text(&recipe.output.0);
                     Button::image(
                         self.item_imgs
                             .img_id_or_not_found_img((&recipe.output.0).into()),
                     )
                     .w_h(55.0, 55.0)
                     .middle_of(state.ids.output_img_frame)
-                    .label(if recipe.output.1 > 1 {&output_text} else {""}) // Only show output amount for amounts > 1
+                    .label(&output_text)
                     .label_color(TEXT_COLOR)
                     .label_font_size(self.fonts.cyri.scale(14))
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_y(conrod_core::position::Relative::Scalar(-24.0))
                     .label_x(conrod_core::position::Relative::Scalar(24.0))
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        recipe.output.0.name(),
-                        recipe.output.0.description(),
-                        &item_tooltip,
-                    )
+                    .with_tooltip(self.tooltip_manager, title, &*desc, &item_tooltip)
                     .set(state.ids.output_img, ui);
                 }
             },
@@ -314,24 +311,6 @@ impl<'a> Widget for Crafting<'a> {
                     state.update(|s| s.selected_recipe = Some(name.clone()));
                 }
             }
-            // Image BG
-            /*Rectangle::fill_with([10.0, 10.0], color::TRANSPARENT)
-                .w_h(20.0, 20.0)
-                .mid_left_of(state.ids.recipe_names[i])
-                .set(state.ids.recipe_img_frame[i], ui);
-            //Item Image
-            Image::new(
-                self.item_imgs
-                    .img_id_or_not_found_img((&recipe.output.0).into()),
-            )
-            .w_h(18.0, 18.0)
-            .color(
-                can_perform
-                    .then_some(Some(TEXT_COLOR))
-                    .unwrap_or(Some(TEXT_GRAY_COLOR)),
-            )
-            .middle_of(state.ids.recipe_img_frame[i])
-            .set(state.ids.recipe_img[i], ui);*/
         }
 
         //Ingredients
@@ -412,17 +391,16 @@ impl<'a> Widget for Crafting<'a> {
                 };
                 frame.set(state.ids.ingredient_frame[i], ui);
                 //Item Image
-                let title = item.name();
-                let desc = item.description();
+                let (title, desc) = super::util::item_text(&item);
                 Button::image(self.item_imgs.img_id_or_not_found_img(item.into()))
                     .w_h(22.0, 22.0)
                     .middle_of(state.ids.ingredient_frame[i])
                     //.image_color(col)
-                    .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                    .with_tooltip(self.tooltip_manager, title, &*desc, &item_tooltip)
                     .set(state.ids.ingredient_img[i], ui);
                 // Ingredients text and amount
                 // Don't show inventory amounts above 999 to avoid the widget clipping
-                let over9k = "999+";
+                let over9k = "99+";
                 let in_inv: &str = &self.inventory.item_count(item).to_string();
                 // Show Ingredients
                 // Align "Required" Text below last ingredient
@@ -446,7 +424,7 @@ impl<'a> Widget for Crafting<'a> {
                         "{}x {} ({})",
                         amount,
                         item.name(),
-                        if self.inventory.item_count(item) > 999 {
+                        if self.inventory.item_count(item) > 99 {
                             over9k
                         } else {
                             in_inv
@@ -456,7 +434,7 @@ impl<'a> Widget for Crafting<'a> {
                     Text::new(&input)
                         .right_from(state.ids.ingredient_frame[i], 10.0)
                         .font_id(self.fonts.cyri.conrod_id)
-                        .font_size(self.fonts.cyri.scale(14))
+                        .font_size(self.fonts.cyri.scale(12))
                         .color(col)
                         .set(state.ids.ingredients[i], ui);
                 }

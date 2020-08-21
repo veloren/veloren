@@ -44,6 +44,10 @@
         "voxel.weapon.bow.longbow_rare",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
+    Tool(Bow("NatureOreLongbow")): VoxTrans(
+        "voxel.weapon.bow.longbow_ore_nature-0",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
     // Daggers
     Tool(Dagger("BasicDagger")): VoxTrans(
         "voxel.weapon.dagger.dagger_rusty",
@@ -505,6 +509,10 @@
     Tool(Staff("Sceptre")): VoxTrans(
         "voxel.weapon.staff.wood-nature",
         (1.0, -1.0, 0.0), (-310., 90.0, 0.0), 1.2,
+    ),
+     Tool(Staff("SceptreVelorite")): VoxTrans(
+        "voxel.weapon.staff.ore-nature",
+        (1.0, -1.0, 0.0), (-310., 90.0, 0.0), 1.15,
     ),
     // Shields
     Tool(Shield("BasicShield")): VoxTrans(
@@ -1011,6 +1019,56 @@
         "voxel.armor.shoulder.twigsflowers_shoulder_right",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
+    //Tarasque Set
+    Armor(Chest("Tarasque")): VoxTrans(
+        "voxel.armor.chest.tarasque",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Pants("Tarasque")): VoxTrans(
+        "voxel.armor.pants.tarasque",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Belt("Tarasque")): VoxTrans(
+        "voxel.armor.belt.tarasque",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
+    ),
+    Armor(Foot("Tarasque")): VoxTrans(
+        "voxel.armor.foot.tarasque",
+        (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
+    ),
+    Armor(Hand("Tarasque")): VoxTrans(
+        "voxel.armor.hand.tarasque_right",
+        (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
+    ),
+    Armor(Shoulder("Tarasque")): VoxTrans(
+        "voxel.armor.shoulder.tarasque_right",
+        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
+    ),
+    //Bonerattler Set
+    Armor(Chest("Bonerattler")): VoxTrans(
+        "voxel.armor.chest.bonerattler",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Pants("Bonerattler")): VoxTrans(
+        "voxel.armor.pants.bonerattler",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Belt("Bonerattler")): VoxTrans(
+        "voxel.armor.belt.bonerattler",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
+    ),
+    Armor(Foot("Bonerattler")): VoxTrans(
+        "voxel.armor.foot.bonerattler",
+        (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
+    ),
+    Armor(Hand("Bonerattler")): VoxTrans(
+        "voxel.armor.hand.bonerattler_right",
+        (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
+    ),
+    Armor(Shoulder("Bonerattler")): VoxTrans(
+        "voxel.armor.shoulder.bonerattler_right",
+        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
+    ),
     //misc
      Armor(Pants("Hunting")): VoxTrans(
         "voxel.armor.pants.grayscale",
@@ -1021,7 +1079,7 @@
         "voxel.armor.back.short-0",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
-     Armor(Back("Short1")): VoxTrans(
+    Armor(Back("Short1")): VoxTrans(
         "voxel.armor.back.short-1",
         (0.0, -2.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
@@ -1032,6 +1090,10 @@
     Armor(Back("DungPurp0")): VoxTrans(
         "voxel.armor.back.dung_purp-0",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
+    ),
+    Armor(Back("Short2")): VoxTrans(
+        "voxel.armor.back.short-2",
+        (0.0, -2.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
     // Rings
     Armor(Ring("Ring0")): Png(
