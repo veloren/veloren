@@ -334,6 +334,13 @@ impl Scheduler {
                 );
             };
         }
+        debug!("shutting down protocol listeners");
+        for (addr, end_channel_sender) in self.channel_listener.write().await.drain() {
+            trace!(?addr, "stopping listen on protocol");
+            if let Err(e) = end_channel_sender.send(()) {
+                warn!(?addr, ?e, "listener crashed/disconnected already");
+            }
+        }
         debug!("Scheduler shut down gracefully");
         //removing the possibility to create new participants, needed to close down
         // some mgr:

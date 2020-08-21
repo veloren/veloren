@@ -10,10 +10,7 @@ use tracing_subscriber::EnvFilter;
 use veloren_network::{Network, Participant, Pid, ProtocolAddr, Stream, PROMISES_NONE};
 
 #[allow(dead_code)]
-pub fn setup(tracing: bool, mut sleep: u64) -> (u64, u64) {
-    if tracing {
-        sleep += 1000
-    }
+pub fn setup(tracing: bool, sleep: u64) -> (u64, u64) {
     if sleep > 0 {
         thread::sleep(Duration::from_millis(sleep));
     }

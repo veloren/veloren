@@ -322,3 +322,25 @@ fn open_participant_after_remote_part_is_closed() {
     let mut s1_a = block_on(p_a.opened()).unwrap();
     assert_eq!(block_on(s1_a.recv()), Ok("HelloWorld".to_string()));
 }
+
+#[test]
+fn close_network_scheduler_completely() {
+    let (n_a, f) = Network::new(Pid::fake(0));
+    let ha = std::thread::spawn(f);
+    let (n_b, f) = Network::new(Pid::fake(1));
+    let hb = std::thread::spawn(f);
+    let addr = tcp();
+    block_on(n_a.listen(addr.clone())).unwrap();
+    let p_b = block_on(n_b.connect(addr)).unwrap();
+    let mut s1_b = block_on(p_b.open(10, PROMISES_NONE)).unwrap();
+    s1_b.send("HelloWorld").unwrap();
+
+    let p_a = block_on(n_a.connected()).unwrap();
+    let mut s1_a = block_on(p_a.opened()).unwrap();
+    assert_eq!(block_on(s1_a.recv()), Ok("HelloWorld".to_string()));
+    drop(n_a);
+    drop(n_b);
+    std::thread::sleep(std::time::Duration::from_millis(1000));
+    ha.join().unwrap();
+    hb.join().unwrap();
+}
