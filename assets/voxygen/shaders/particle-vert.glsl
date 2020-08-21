@@ -78,17 +78,17 @@ float start_end(float from, float to) {
 	return mix(from, to, lifetime / inst_lifespan);
 }
 
-mat4 rotationMatrix(vec3 axis, float angle)
+mat4 spin_in_axis(vec3 axis, float angle)
 {
-    axis = normalize(axis);
-    float s = sin(angle);
-    float c = cos(angle);
-    float oc = 1.0 - c;
+	axis = normalize(axis);
+	float s = sin(angle);
+	float c = cos(angle);
+	float oc = 1.0 - c;
 
-    return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,	0,
-                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,	0,
-                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,			0,
-				0,									0,									0,									1);
+	return mat4(oc * axis.x * axis.x + c,  oc * axis.x * axis.y - axis.z * s, oc * axis.z * axis.x + axis.y * s, 0,
+		oc * axis.x * axis.y + axis.z * s, oc * axis.y * axis.y + c,          oc * axis.y * axis.z - axis.x * s, 0,
+		oc * axis.z * axis.x - axis.y * s, oc * axis.y * axis.z + axis.x * s, oc * axis.z * axis.z + c,          0,
+		0,                                 0,                                 0,                                 1);
 }
 
 void main() {
@@ -113,7 +113,7 @@ void main() {
 			),
 			linear_scale(0.5),
 			vec4(1, 1, 1, start_end(1.0, 0.0)),
-			rotationMatrix(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
+			spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
 		);
 	} else if (inst_mode == FIRE) {
 		attr = Attr(
@@ -123,7 +123,7 @@ void main() {
 			),
 			1.0,
 			vec4(2, 0.8 + rand5 * 0.3, 0, 1),
-			rotationMatrix(vec3(rand6, rand7, rand8), rand9 * 3)
+			spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
 		);
 	} else if (inst_mode == GUN_POWDER_SPARK) {
 		attr = Attr(
@@ -133,7 +133,7 @@ void main() {
 			),
 			1.0,
 			vec4(3.5, 3 + rand7, 0, 1),
-			rotationMatrix(vec3(1,0,0),0)
+			spin_in_axis(vec3(1,0,0),0)
 		);
 	} else if (inst_mode == SHRAPNEL) {
 		attr = Attr(
@@ -143,7 +143,7 @@ void main() {
 			),
 			3.0 + rand0,
 			vec4(vec3(0.6 + rand7 * 0.4), 1),
-			rotationMatrix(vec3(1,0,0),0)
+			spin_in_axis(vec3(1,0,0),0)
 		);
 	} else if (inst_mode == FIREWORK_BLUE) {
 		attr = Attr(
@@ -153,7 +153,7 @@ void main() {
 			),
 			3.0 + rand0,
 			vec4(vec3(0.6 + rand7 * 0.4), 0.3),
-			rotationMatrix(vec3(1,0,0),0)
+			spin_in_axis(vec3(1,0,0),0)
 		);
 	} else if (inst_mode == FIREWORK_GREEN) {
 		attr = Attr(
@@ -163,7 +163,7 @@ void main() {
 			),
 			3.0 + rand0,
 			vec4(vec3(0.6 + rand7 * 0.4), 0.3),
-			rotationMatrix(vec3(1,0,0),0)
+			spin_in_axis(vec3(1,0,0),0)
 		);
 	} else if (inst_mode == FIREWORK_PURPLE) {
 		attr = Attr(
@@ -173,7 +173,7 @@ void main() {
 			),
 			3.0 + rand0,
 			vec4(vec3(0.6 + rand7 * 0.4), 0.3),
-			rotationMatrix(vec3(1,0,0),0)
+			spin_in_axis(vec3(1,0,0),0)
 		);
 	} else if (inst_mode == FIREWORK_RED) {
 		attr = Attr(
@@ -183,7 +183,7 @@ void main() {
 			),
 			3.0 + rand0,
 			vec4(vec3(0.6 + rand7 * 0.4), 0.3),
-			rotationMatrix(vec3(1,0,0),0)
+			spin_in_axis(vec3(1,0,0),0)
 		);
 	} else if (inst_mode == FIREWORK_YELLOW) {
 		attr = Attr(
@@ -193,7 +193,7 @@ void main() {
 			),
 			3.0 + rand0,
 			vec4(vec3(0.6 + rand7 * 0.4), 0.3),
-			rotationMatrix(vec3(1,0,0),0)
+			spin_in_axis(vec3(1,0,0),0)
 		);
 	} else if (inst_mode == LEAF) {
 		attr = Attr(
@@ -203,7 +203,7 @@ void main() {
 			) + vec3(sin(lifetime), sin(lifetime + 0.7), sin(lifetime * 0.5)) * 2.0,
 			4,
 			vec4(vec3(0.2 + rand7 * 0.2, 0.2 + (0.5 + rand6 * 0.5) * 0.6, 0), 1),
-			rotationMatrix(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
+			spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
 		);
 	} else {
 		attr = Attr(
@@ -213,7 +213,7 @@ void main() {
 			),
 			exp_scale(-0.2),
 			vec4(1),
-			rotationMatrix(vec3(1,0,0),0)
+			spin_in_axis(vec3(1,0,0),0)
 		);
 	}
 
