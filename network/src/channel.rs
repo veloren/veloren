@@ -1,6 +1,7 @@
 #[cfg(feature = "metrics")]
 use crate::metrics::NetworkMetrics;
 use crate::{
+    participant::C2pFrame,
     protocols::Protocols,
     types::{
         Cid, Frame, Pid, Sid, STREAM_ID_OFFSET1, STREAM_ID_OFFSET2, VELOREN_MAGIC_NUMBER,
@@ -41,8 +42,8 @@ impl Channel {
     pub async fn run(
         mut self,
         protocol: Protocols,
-        mut w2c_cid_frame_s: mpsc::UnboundedSender<(Cid, Frame)>,
-        mut leftover_cid_frame: Vec<(Cid, Frame)>,
+        mut w2c_cid_frame_s: mpsc::UnboundedSender<C2pFrame>,
+        mut leftover_cid_frame: Vec<C2pFrame>,
     ) {
         let c2w_frame_r = self.c2w_frame_r.take().unwrap();
         let read_stop_receiver = self.read_stop_receiver.take().unwrap();
@@ -58,13 +59,13 @@ impl Channel {
         trace!(?self.cid, "Start up channel");
         match protocol {
             Protocols::Tcp(tcp) => {
-                futures::join!(
+                join!(
                     tcp.read_from_wire(self.cid, &mut w2c_cid_frame_s, read_stop_receiver),
                     tcp.write_to_wire(self.cid, c2w_frame_r),
                 );
             },
             Protocols::Udp(udp) => {
-                futures::join!(
+                join!(
                     udp.read_from_wire(self.cid, &mut w2c_cid_frame_s, read_stop_receiver),
                     udp.write_to_wire(self.cid, c2w_frame_r),
                 );
@@ -113,12 +114,9 @@ impl Handshake {
         }
     }
 
-    pub async fn setup(
-        self,
-        protocol: &Protocols,
-    ) -> Result<(Pid, Sid, u128, Vec<(Cid, Frame)>), ()> {
+    pub async fn setup(self, protocol: &Protocols) -> Result<(Pid, Sid, u128, Vec<C2pFrame>), ()> {
         let (c2w_frame_s, c2w_frame_r) = mpsc::unbounded::<Frame>();
-        let (mut w2c_cid_frame_s, mut w2c_cid_frame_r) = mpsc::unbounded::<(Cid, Frame)>();
+        let (mut w2c_cid_frame_s, mut w2c_cid_frame_r) = mpsc::unbounded::<C2pFrame>();
 
         let (read_stop_sender, read_stop_receiver) = oneshot::channel();
         let handler_future =
@@ -160,7 +158,7 @@ impl Handshake {
 
     async fn frame_handler(
         &self,
-        w2c_cid_frame_r: &mut mpsc::UnboundedReceiver<(Cid, Frame)>,
+        w2c_cid_frame_r: &mut mpsc::UnboundedReceiver<C2pFrame>,
         mut c2w_frame_s: mpsc::UnboundedSender<Frame>,
         read_stop_sender: oneshot::Sender<()>,
     ) -> Result<(Pid, Sid, u128), ()> {
@@ -176,7 +174,7 @@ impl Handshake {
         let frame = w2c_cid_frame_r.next().await.map(|(_cid, frame)| frame);
         #[cfg(feature = "metrics")]
         {
-            if let Some(ref frame) = frame {
+            if let Some(Ok(ref frame)) = frame {
                 self.metrics
                     .frames_in_total
                     .with_label_values(&["", &cid_string, &frame.get_string()])
@@ -184,10 +182,10 @@ impl Handshake {
             }
         }
         let r = match frame {
-            Some(Frame::Handshake {
+            Some(Ok(Frame::Handshake {
                 magic_number,
                 version,
-            }) => {
+            })) => {
                 trace!(?magic_number, ?version, "Recv handshake");
                 if magic_number != VELOREN_MAGIC_NUMBER {
                     error!(?magic_number, "Connection with invalid magic_number");
@@ -221,18 +219,24 @@ impl Handshake {
                     Ok(())
                 }
             },
-            Some(Frame::Shutdown) => {
-                info!("Shutdown signal received");
-                Err(())
-            },
-            Some(Frame::Raw(bytes)) => {
-                match std::str::from_utf8(bytes.as_slice()) {
-                    Ok(string) => error!(?string, ERR_S),
-                    _ => error!(?bytes, ERR_S),
+            Some(Ok(frame)) => {
+                #[cfg(feature = "metrics")]
+                self.metrics
+                    .frames_in_total
+                    .with_label_values(&["", &cid_string, frame.get_string()])
+                    .inc();
+                if let Frame::Raw(bytes) = frame {
+                    match std::str::from_utf8(bytes.as_slice()) {
+                        Ok(string) => error!(?string, ERR_S),
+                        _ => error!(?bytes, ERR_S),
+                    }
                 }
                 Err(())
             },
-            Some(_) => Err(()),
+            Some(Err(())) => {
+                info!("Protocol got interrupted");
+                Err(())
+            },
             None => Err(()),
         };
         if let Err(()) = r {
@@ -248,7 +252,7 @@ impl Handshake {
 
         let frame = w2c_cid_frame_r.next().await.map(|(_cid, frame)| frame);
         let r = match frame {
-            Some(Frame::Init { pid, secret }) => {
+            Some(Ok(Frame::Init { pid, secret })) => {
                 debug!(?pid, "Participant send their ID");
                 let pid_string = pid.to_string();
                 #[cfg(feature = "metrics")]
@@ -265,20 +269,22 @@ impl Handshake {
                 info!(?pid, "This Handshake is now configured!");
                 Ok((pid, stream_id_offset, secret))
             },
-            Some(frame) => {
+            Some(Ok(frame)) => {
                 #[cfg(feature = "metrics")]
                 self.metrics
                     .frames_in_total
                     .with_label_values(&["", &cid_string, frame.get_string()])
                     .inc();
-                match frame {
-                    Frame::Shutdown => info!("Shutdown signal received"),
-                    Frame::Raw(bytes) => match std::str::from_utf8(bytes.as_slice()) {
+                if let Frame::Raw(bytes) = frame {
+                    match std::str::from_utf8(bytes.as_slice()) {
                         Ok(string) => error!(?string, ERR_S),
                         _ => error!(?bytes, ERR_S),
-                    },
-                    _ => (),
+                    }
                 }
+                Err(())
+            },
+            Some(Err(())) => {
+                info!("Protocol got interrupted");
                 Err(())
             },
             None => Err(()),

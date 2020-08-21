@@ -79,30 +79,32 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
 
 pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event {
     if let Some(client) = server.state().read_storage::<Client>().get(entity) {
-        trace!("Closing participant of client");
         let participant = match client.participant.try_lock() {
             Ok(mut p) => p.take().unwrap(),
             Err(e) => {
-                error!(?e, "coudln't lock participant for removal");
+                error!(?e, ?entity, "coudln't lock participant for removal");
                 return Event::ClientDisconnected { entity };
             },
         };
-        std::thread::spawn(|| {
-            let pid = participant.remote_pid();
+        let pid = participant.remote_pid();
+        std::thread::spawn(move || {
+            let span = tracing::span!(tracing::Level::DEBUG, "client_disconnect", ?pid, ?entity);
+            let _enter = span.enter();
             let now = std::time::Instant::now();
-            trace!(?pid, "start disconnect");
+            debug!(?pid, ?entity, "Start handle disconnect of client");
             if let Err(e) = block_on(participant.disconnect()) {
                 debug!(
                     ?e,
+                    ?pid,
                     "Error when disconnecting client, maybe the pipe already broke"
                 );
             };
             trace!(?pid, "finished disconnect");
             let elapsed = now.elapsed();
             if elapsed.as_millis() > 100 {
-                warn!(?elapsed, "disconecting took quite long");
+                warn!(?elapsed, ?pid, "disconecting took quite long");
             } else {
-                debug!(?elapsed, "disconecting took");
+                debug!(?elapsed, ?pid, "disconecting took");
             }
         });
     }

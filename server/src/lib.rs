@@ -274,16 +274,19 @@ impl Server {
 
         let mut metrics = ServerMetrics::new();
         // register all metrics submodules here
-        let tick_metrics = TickMetrics::new(metrics.registry(), metrics.tick_clone())
+        let tick_metrics = TickMetrics::new(metrics.tick_clone())
             .expect("Failed to initialize server tick metrics submodule.");
-        metrics
-            .run(settings.metrics_address)
-            .expect("Failed to initialize server metrics submodule.");
+        tick_metrics
+            .register(&metrics.registry())
+            .expect("failed to register tick metrics");
 
         let thread_pool = ThreadPoolBuilder::new()
             .name("veloren-worker".to_string())
             .build();
-        let (network, f) = Network::new(Pid::new());
+        let (network, f) = Network::new_with_registry(Pid::new(), &metrics.registry());
+        metrics
+            .run(settings.metrics_address)
+            .expect("Failed to initialize server metrics submodule.");
         thread_pool.execute(f);
         block_on(network.listen(ProtocolAddr::Tcp(settings.gameserver_address)))?;
 

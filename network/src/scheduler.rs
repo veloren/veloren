@@ -334,6 +334,13 @@ impl Scheduler {
                 );
             };
         }
+        debug!("shutting down protocol listeners");
+        for (addr, end_channel_sender) in self.channel_listener.write().await.drain() {
+            trace!(?addr, "stopping listen on protocol");
+            if let Err(e) = end_channel_sender.send(()) {
+                warn!(?addr, ?e, "listener crashed/disconnected already");
+            }
+        }
         debug!("Scheduler shut down gracefully");
         //removing the possibility to create new participants, needed to close down
         // some mgr:
@@ -512,7 +519,11 @@ impl Scheduler {
                     metrics.clone(),
                     send_handshake,
                 );
-                match handshake.setup(&protocol).await {
+                match handshake
+                    .setup(&protocol)
+                    .instrument(tracing::info_span!("handshake", ?cid))
+                    .await
+                {
                     Ok((pid, sid, secret, leftover_cid_frame)) => {
                         trace!(
                             ?cid,
@@ -583,14 +594,18 @@ impl Scheduler {
                             }
                         } else {
                             let pi = &participants[&pid];
-                            trace!("2nd+ channel of participant, going to compare security ids");
+                            trace!(
+                                ?cid,
+                                "2nd+ channel of participant, going to compare security ids"
+                            );
                             if pi.secret != secret {
                                 warn!(
+                                    ?cid,
                                     ?pid,
                                     ?secret,
                                     "Detected incompatible Secret!, this is probably an attack!"
                                 );
-                                error!("Just dropping here, TODO handle this correctly!");
+                                error!(?cid, "Just dropping here, TODO handle this correctly!");
                                 //TODO
                                 if let Some(pid_oneshot) = s2a_return_pid_s {
                                     // someone is waiting with `connect`, so give them their Error
@@ -604,6 +619,7 @@ impl Scheduler {
                                 return;
                             }
                             error!(
+                                ?cid,
                                 "Ufff i cant answer the pid_oneshot. as i need to create the SAME \
                                  participant. maybe switch to ARC"
                             );
@@ -612,9 +628,10 @@ impl Scheduler {
                         // move directly to participant!
                     },
                     Err(()) => {
+                        debug!(?cid, "Handshake from a new connection failed");
                         if let Some(pid_oneshot) = s2a_return_pid_s {
                             // someone is waiting with `connect`, so give them their Error
-                            trace!("returning the Err to api who requested the connect");
+                            trace!(?cid, "returning the Err to api who requested the connect");
                             pid_oneshot
                                 .send(Err(std::io::Error::new(
                                     std::io::ErrorKind::PermissionDenied,
@@ -625,7 +642,7 @@ impl Scheduler {
                     },
                 }
             }
-            .instrument(tracing::trace_span!("")),
+            .instrument(tracing::info_span!("")),
         ); /*WORKAROUND FOR SPAN NOT TO GET LOST*/
     }
 }

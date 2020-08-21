@@ -1,6 +1,9 @@
 #[cfg(feature = "metrics")]
 use crate::metrics::{CidFrameCache, NetworkMetrics};
-use crate::types::{Cid, Frame, Mid, Pid, Sid};
+use crate::{
+    participant::C2pFrame,
+    types::{Cid, Frame, Mid, Pid, Sid},
+};
 use async_std::{
     net::{TcpStream, UdpSocket},
     prelude::*,
@@ -71,8 +74,8 @@ impl TcpProtocol {
         cid: Cid,
         mut stream: &TcpStream,
         mut bytes: &mut [u8],
-        w2c_cid_frame_s: &mut mpsc::UnboundedSender<(Cid, Frame)>,
         mut end_receiver: &mut Fuse<oneshot::Receiver<()>>,
+        w2c_cid_frame_s: &mut mpsc::UnboundedSender<C2pFrame>,
     ) -> bool {
         match select! {
             r = stream.read_exact(&mut bytes).fuse() => Some(r),
@@ -80,20 +83,18 @@ impl TcpProtocol {
         } {
             Some(Ok(_)) => false,
             Some(Err(e)) => {
-                debug!(
-                    ?cid,
-                    ?e,
-                    "Closing tcp protocol due to read error, sending close frame to gracefully \
-                     shutdown"
-                );
+                info!(?e, "Closing tcp protocol due to read error");
+                //w2c_cid_frame_s is shared, dropping it wouldn't notify the receiver as every
+                // channel is holding a sender! thats why Ne need a explicit
+                // STOP here
                 w2c_cid_frame_s
-                    .send((cid, Frame::Shutdown))
+                    .send((cid, Err(())))
                     .await
-                    .expect("Channel or Participant seems no longer to exist to be Shutdown");
+                    .expect("Channel or Participant seems no longer to exist");
                 true
             },
             None => {
-                trace!(?cid, "shutdown requested");
+                trace!("shutdown requested");
                 true
             },
         }
@@ -102,7 +103,7 @@ impl TcpProtocol {
     pub async fn read_from_wire(
         &self,
         cid: Cid,
-        w2c_cid_frame_s: &mut mpsc::UnboundedSender<(Cid, Frame)>,
+        w2c_cid_frame_s: &mut mpsc::UnboundedSender<C2pFrame>,
         end_r: oneshot::Receiver<()>,
     ) {
         trace!("Starting up tcp read()");
@@ -118,8 +119,8 @@ impl TcpProtocol {
 
         macro_rules! read_or_close {
             ($x:expr) => {
-                if TcpProtocol::read_or_close(cid, &stream, $x, w2c_cid_frame_s, &mut end_r).await {
-                    info!("Tcp stream closed, shutting down read");
+                if TcpProtocol::read_or_close(cid, &stream, $x, &mut end_r, w2c_cid_frame_s).await {
+                    trace!("read_or_close requested a shutdown");
                     break;
                 }
             };
@@ -213,7 +214,7 @@ impl TcpProtocol {
             #[cfg(feature = "metrics")]
             metrics_cache.with_label_values(&frame).inc();
             w2c_cid_frame_s
-                .send((cid, frame))
+                .send((cid, Ok(frame)))
                 .await
                 .expect("Channel or Participant seems no longer to exist");
         }
@@ -228,7 +229,7 @@ impl TcpProtocol {
     ) -> bool {
         match stream.write_all(&bytes).await {
             Err(e) => {
-                debug!(
+                info!(
                     ?e,
                     "Got an error writing to tcp, going to close this channel"
                 );
@@ -255,7 +256,7 @@ impl TcpProtocol {
         macro_rules! write_or_close {
             ($x:expr) => {
                 if TcpProtocol::write_or_close(&mut stream, $x, &mut c2w_frame_r).await {
-                    info!("Tcp stream closed, shutting down write");
+                    trace!("write_or_close requested a shutdown");
                     break;
                 }
             };
@@ -342,7 +343,7 @@ impl UdpProtocol {
     pub async fn read_from_wire(
         &self,
         cid: Cid,
-        w2c_cid_frame_s: &mut mpsc::UnboundedSender<(Cid, Frame)>,
+        w2c_cid_frame_s: &mut mpsc::UnboundedSender<C2pFrame>,
         end_r: oneshot::Receiver<()>,
     ) {
         trace!("Starting up udp read()");
@@ -356,7 +357,14 @@ impl UdpProtocol {
         let mut data_in = self.data_in.lock().await;
         let mut end_r = end_r.fuse();
         while let Some(bytes) = select! {
-            r = data_in.next().fuse() => r,
+            r = data_in.next().fuse() => match r {
+                Some(r) => Some(r),
+                None => {
+                    info!("Udp read ended");
+                    w2c_cid_frame_s.send((cid, Err(()))).await.expect("Channel or Participant seems no longer to exist");
+                    None
+                }
+            },
             _ = end_r => None,
         } {
             trace!("Got raw UDP message with len: {}", bytes.len());
@@ -454,7 +462,7 @@ impl UdpProtocol {
             };
             #[cfg(feature = "metrics")]
             metrics_cache.with_label_values(&frame).inc();
-            w2c_cid_frame_s.send((cid, frame)).await.unwrap();
+            w2c_cid_frame_s.send((cid, Ok(frame))).await.unwrap();
         }
         trace!("Shutting down udp read()");
     }
@@ -565,10 +573,7 @@ impl UdpProtocol {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        metrics::NetworkMetrics,
-        types::{Cid, Pid},
-    };
+    use crate::{metrics::NetworkMetrics, types::Pid};
     use async_std::net;
     use futures::{executor::block_on, stream::StreamExt};
     use std::sync::Arc;
@@ -595,7 +600,7 @@ mod tests {
             client.flush();
 
             //handle data
-            let (mut w2c_cid_frame_s, mut w2c_cid_frame_r) = mpsc::unbounded::<(Cid, Frame)>();
+            let (mut w2c_cid_frame_s, mut w2c_cid_frame_r) = mpsc::unbounded::<C2pFrame>();
             let (read_stop_sender, read_stop_receiver) = oneshot::channel();
             let cid2 = cid;
             let t = std::thread::spawn(move || {
@@ -608,10 +613,10 @@ mod tests {
             //async_std::task::sleep(std::time::Duration::from_millis(1000));
             let (cid_r, frame) = w2c_cid_frame_r.next().await.unwrap();
             assert_eq!(cid, cid_r);
-            if let Frame::Handshake {
+            if let Ok(Frame::Handshake {
                 magic_number,
                 version,
-            } = frame
+            }) = frame
             {
                 assert_eq!(&magic_number, b"HELLOWO");
                 assert_eq!(version, [1337, 0, 42]);
@@ -644,7 +649,7 @@ mod tests {
             client.flush();
 
             //handle data
-            let (mut w2c_cid_frame_s, mut w2c_cid_frame_r) = mpsc::unbounded::<(Cid, Frame)>();
+            let (mut w2c_cid_frame_s, mut w2c_cid_frame_r) = mpsc::unbounded::<C2pFrame>();
             let (read_stop_sender, read_stop_receiver) = oneshot::channel();
             let cid2 = cid;
             let t = std::thread::spawn(move || {
@@ -656,7 +661,7 @@ mod tests {
             // Assert than we get some value back! Its a Raw!
             let (cid_r, frame) = w2c_cid_frame_r.next().await.unwrap();
             assert_eq!(cid, cid_r);
-            if let Frame::Raw(data) = frame {
+            if let Ok(Frame::Raw(data)) = frame {
                 assert_eq!(&data.as_slice(), b"x4hrtzsektfhxugzdtz5r78gzrtzfhxf");
             } else {
                 panic!("wrong frame type");

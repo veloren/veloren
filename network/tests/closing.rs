@@ -42,10 +42,11 @@ fn close_participant() {
     let (_n_a, p1_a, mut s1_a, _n_b, p1_b, mut s1_b) = block_on(network_participant_stream(tcp()));
 
     block_on(p1_a.disconnect()).unwrap();
-    assert_eq!(
-        block_on(p1_b.disconnect()),
-        Err(ParticipantError::ParticipantDisconnected)
-    );
+    //As no more read/write is run disconnect is successful or already disconnected
+    match block_on(p1_b.disconnect()) {
+        Ok(_) | Err(ParticipantError::ParticipantDisconnected) => (),
+        e => panic!("wrong disconnect type {:?}", e),
+    };
 
     assert_eq!(s1_a.send("Hello World"), Err(StreamError::StreamClosed));
     assert_eq!(
@@ -284,9 +285,9 @@ fn failed_stream_open_after_remote_part_is_closed() {
 
 #[test]
 fn open_participant_before_remote_part_is_closed() {
-    let (n_a, f) = Network::new(Pid::fake(1));
+    let (n_a, f) = Network::new(Pid::fake(0));
     std::thread::spawn(f);
-    let (n_b, f) = Network::new(Pid::fake(2));
+    let (n_b, f) = Network::new(Pid::fake(1));
     std::thread::spawn(f);
     let addr = tcp();
     block_on(n_a.listen(addr.clone())).unwrap();
@@ -304,9 +305,9 @@ fn open_participant_before_remote_part_is_closed() {
 
 #[test]
 fn open_participant_after_remote_part_is_closed() {
-    let (n_a, f) = Network::new(Pid::fake(1));
+    let (n_a, f) = Network::new(Pid::fake(0));
     std::thread::spawn(f);
-    let (n_b, f) = Network::new(Pid::fake(2));
+    let (n_b, f) = Network::new(Pid::fake(1));
     std::thread::spawn(f);
     let addr = tcp();
     block_on(n_a.listen(addr.clone())).unwrap();
@@ -320,4 +321,26 @@ fn open_participant_after_remote_part_is_closed() {
     let p_a = block_on(n_a.connected()).unwrap();
     let mut s1_a = block_on(p_a.opened()).unwrap();
     assert_eq!(block_on(s1_a.recv()), Ok("HelloWorld".to_string()));
+}
+
+#[test]
+fn close_network_scheduler_completely() {
+    let (n_a, f) = Network::new(Pid::fake(0));
+    let ha = std::thread::spawn(f);
+    let (n_b, f) = Network::new(Pid::fake(1));
+    let hb = std::thread::spawn(f);
+    let addr = tcp();
+    block_on(n_a.listen(addr.clone())).unwrap();
+    let p_b = block_on(n_b.connect(addr)).unwrap();
+    let mut s1_b = block_on(p_b.open(10, PROMISES_NONE)).unwrap();
+    s1_b.send("HelloWorld").unwrap();
+
+    let p_a = block_on(n_a.connected()).unwrap();
+    let mut s1_a = block_on(p_a.opened()).unwrap();
+    assert_eq!(block_on(s1_a.recv()), Ok("HelloWorld".to_string()));
+    drop(n_a);
+    drop(n_b);
+    std::thread::sleep(std::time::Duration::from_millis(1000));
+    ha.join().unwrap();
+    hb.join().unwrap();
 }
