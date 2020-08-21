@@ -217,9 +217,7 @@ impl Body {
                 _ => 100,
             },
             Body::FishMedium(_) => 50,
-            Body::Dragon(dragon) => match dragon.species {
-                _ => 5000,
-            },
+            Body::Dragon(_) => 5000,
             Body::BirdSmall(_) => 50,
             Body::FishSmall(_) => 20,
             Body::BipedLarge(biped_large) => match biped_large.species {
@@ -231,12 +229,8 @@ impl Body {
                 _ => 1000,
             },
             Body::Object(_) => 10000,
-            Body::Golem(golem) => match golem.species {
-                _ => 1500,
-            },
-            Body::Critter(critter) => match critter.species {
-                _ => 50,
-            },
+            Body::Golem(_) => 1500,
+            Body::Critter(_) => 50,
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Crocodile => 600,
                 quadruped_low::Species::Alligator => 600,
@@ -290,9 +284,7 @@ impl Body {
                 _ => 20,
             },
             Body::FishMedium(_) => 10,
-            Body::Dragon(dragon) => match dragon.species {
-                _ => 500,
-            },
+            Body::Dragon(_) => 500,
             Body::BirdSmall(_) => 10,
             Body::FishSmall(_) => 10,
             Body::BipedLarge(biped_large) => match biped_large.species {
@@ -304,12 +296,8 @@ impl Body {
                 _ => 100,
             },
             Body::Object(_) => 10,
-            Body::Golem(golem) => match golem.species {
-                _ => 150,
-            },
-            Body::Critter(critter) => match critter.species {
-                _ => 20,
-            },
+            Body::Golem(_) => 150,
+            Body::Critter(_) => 20,
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Crocodile => 20,
                 quadruped_low::Species::Alligator => 20,
@@ -361,9 +349,7 @@ impl Body {
                 _ => 8,
             },
             Body::FishMedium(_) => 2,
-            Body::Dragon(dragon) => match dragon.species {
-                _ => 1000,
-            },
+            Body::Dragon(_) => 1000,
             Body::BirdSmall(_) => 2,
             Body::FishSmall(_) => 2,
             Body::BipedLarge(biped_large) => match biped_large.species {
@@ -375,12 +361,8 @@ impl Body {
                 _ => 100,
             },
             Body::Object(_) => 1,
-            Body::Golem(golem) => match golem.species {
-                _ => 75,
-            },
-            Body::Critter(critter) => match critter.species {
-                _ => 2,
-            },
+            Body::Golem(_) => 75,
+            Body::Critter(_) => 2,
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Crocodile => 10,
                 quadruped_low::Species::Alligator => 10,
@@ -400,34 +382,18 @@ impl Body {
     pub fn base_exp_increase(&self) -> u32 {
         match self {
             Body::Humanoid(_) => 2,
-            Body::QuadrupedSmall(quadruped_small) => match quadruped_small.species {
-                _ => 1,
-            },
-            Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
-                _ => 1,
-            },
-            Body::BirdMedium(bird_medium) => match bird_medium.species {
-                _ => 1,
-            },
+            Body::QuadrupedSmall(_) => 1,
+            Body::QuadrupedMedium(_) => 1,
+            Body::BirdMedium(_) => 1,
             Body::FishMedium(_) => 1,
-            Body::Dragon(dragon) => match dragon.species {
-                _ => 32,
-            },
+            Body::Dragon(_) => 32,
             Body::BirdSmall(_) => 1,
             Body::FishSmall(_) => 1,
-            Body::BipedLarge(biped_large) => match biped_large.species {
-                _ => 2,
-            },
+            Body::BipedLarge(_) => 2,
             Body::Object(_) => 0,
-            Body::Golem(golem) => match golem.species {
-                _ => 5,
-            },
-            Body::Critter(critter) => match critter.species {
-                _ => 1,
-            },
-            Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
-                _ => 1,
-            },
+            Body::Golem(_) => 5,
+            Body::Critter(_) => 1,
+            Body::QuadrupedLow(_) => 1,
         }
     }
 
@@ -460,9 +426,7 @@ impl Body {
                 _ => 30,
             },
             Body::FishMedium(_) => 10,
-            Body::Dragon(dragon) => match dragon.species {
-                _ => 5000,
-            },
+            Body::Dragon(_) => 5000,
             Body::BirdSmall(_) => 10,
             Body::FishSmall(_) => 10,
             Body::BipedLarge(biped_large) => match biped_large.species {
@@ -474,12 +438,8 @@ impl Body {
                 _ => 60,
             },
             Body::Object(_) => 0,
-            Body::Golem(golem) => match golem.species {
-                _ => 250,
-            },
-            Body::Critter(critter) => match critter.species {
-                _ => 10,
-            },
+            Body::Golem(_) => 250,
+            Body::Critter(_) => 10,
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Crocodile => 50,
                 quadruped_low::Species::Alligator => 50,
@@ -495,38 +455,21 @@ impl Body {
         }
     }
 
-    #[allow(unreachable_patterns)]
     pub fn base_range(&self) -> f32 {
         match self {
             Body::Humanoid(_) => 5.0,
-            Body::QuadrupedSmall(quadruped_small) => match quadruped_small.species {
-                _ => 4.5,
-            },
-            Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
-                _ => 5.5,
-            },
-            Body::BirdMedium(bird_medium) => match bird_medium.species {
-                _ => 3.5,
-            },
+            Body::QuadrupedSmall(_) => 4.5,
+            Body::QuadrupedMedium(_) => 5.5,
+            Body::BirdMedium(_) => 3.5,
             Body::FishMedium(_) => 3.5,
-            Body::Dragon(dragon) => match dragon.species {
-                _ => 12.5,
-            },
+            Body::Dragon(_) => 12.5,
             Body::BirdSmall(_) => 3.0,
             Body::FishSmall(_) => 3.0,
-            Body::BipedLarge(biped_large) => match biped_large.species {
-                _ => 10.0,
-            },
+            Body::BipedLarge(_) => 10.0,
             Body::Object(_) => 3.0,
-            Body::Golem(golem) => match golem.species {
-                _ => 7.5,
-            },
-            Body::Critter(critter) => match critter.species {
-                _ => 3.0,
-            },
-            Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
-                _ => 4.5,
-            },
+            Body::Golem(_) => 7.5,
+            Body::Critter(_) => 3.0,
+            Body::QuadrupedLow(_) => 4.5,
         }
     }
 }

@@ -1,6 +1,6 @@
 Item(
     name: "Agile Belt",
-    description: "",
+    description: "'Tightly packed pieces of leather to endure all weather.'",
     kind: Armor(
         (
             kind: Belt("Leather2"),

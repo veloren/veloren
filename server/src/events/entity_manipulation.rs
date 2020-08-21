@@ -233,106 +233,80 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     },
                 }
             },
-            Some(common::comp::Body::QuadrupedMedium(quadruped_medium)) => {
-                match quadruped_medium.species {
-                    _ => match rng.gen_range(0, 4) {
-                        0 => assets::load_expect::<Lottery<String>>(
-                            "common.loot_tables.loot_table_food",
-                        ),
-                        1 => assets::load_expect::<Lottery<String>>(
-                            "common.loot_tables.loot_table_armor_misc",
-                        ),
-                        2 => assets::load_expect::<Lottery<String>>(
-                            "common.loot_tables.loot_table_animal_parts",
-                        ),
-                        _ => assets::load_expect::<Lottery<String>>(
-                            "common.loot_tables.loot_table_animal_parts",
-                        ),
-                    },
-                }
+            Some(common::comp::Body::QuadrupedMedium(_)) => match rng.gen_range(0, 4) {
+                0 => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_food"),
+                1 => assets::load_expect::<Lottery<String>>(
+                    "common.loot_tables.loot_table_armor_misc",
+                ),
+                2 => assets::load_expect::<Lottery<String>>(
+                    "common.loot_tables.loot_table_animal_parts",
+                ),
+                _ => assets::load_expect::<Lottery<String>>(
+                    "common.loot_tables.loot_table_animal_parts",
+                ),
             },
-            Some(common::comp::Body::BirdMedium(bird_medium)) => match bird_medium.species {
-                _ => match rng.gen_range(0, 3) {
-                    0 => {
-                        assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_food")
-                    },
-                    1 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_armor_misc",
-                    ),
-                    _ => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table"),
-                },
+            Some(common::comp::Body::BirdMedium(_)) => match rng.gen_range(0, 3) {
+                0 => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_food"),
+                1 => assets::load_expect::<Lottery<String>>(
+                    "common.loot_tables.loot_table_armor_misc",
+                ),
+                _ => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table"),
             },
-            Some(common::comp::Body::BipedLarge(biped_large)) => match biped_large.species {
-                _ => match rng.gen_range(0, 8) {
-                    0 => {
-                        assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_food")
-                    },
-                    1 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_armor_nature",
-                    ),
-                    3 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_armor_heavy",
-                    ),
-                    5 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_weapon_uncommon",
-                    ),
-                    6 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_weapon_rare",
-                    ),
-                    _ => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_cave_large",
-                    ),
-                },
+            Some(common::comp::Body::BipedLarge(_)) => match rng.gen_range(0, 8) {
+                0 => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_food"),
+                1 => assets::load_expect::<Lottery<String>>(
+                    "common.loot_tables.loot_table_armor_nature",
+                ),
+                3 => assets::load_expect::<Lottery<String>>(
+                    "common.loot_tables.loot_table_armor_heavy",
+                ),
+                5 => assets::load_expect::<Lottery<String>>(
+                    "common.loot_tables.loot_table_weapon_uncommon",
+                ),
+                6 => assets::load_expect::<Lottery<String>>(
+                    "common.loot_tables.loot_table_weapon_rare",
+                ),
+                _ => assets::load_expect::<Lottery<String>>(
+                    "common.loot_tables.loot_table_cave_large",
+                ),
             },
-            Some(common::comp::Body::Golem(golem)) => match golem.species {
-                _ => match rng.gen_range(0, 9) {
-                    0 => {
-                        assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_food")
-                    },
-                    1 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_armor_misc",
-                    ),
-                    2 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_armor_light",
-                    ),
-                    3 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_armor_heavy",
-                    ),
-                    4 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_armor_misc",
-                    ),
-                    5 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_weapon_common",
-                    ),
-                    6 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_weapon_uncommon",
-                    ),
-                    7 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_weapon_rare",
-                    ),
-                    _ => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table"),
-                },
+            Some(common::comp::Body::Golem(_)) => match rng.gen_range(0, 9) {
+                0 => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_food"),
+                1 => assets::load_expect::<Lottery<String>>(
+                    "common.loot_tables.loot_table_armor_misc",
+                ),
+                2 => assets::load_expect::<Lottery<String>>(
+                    "common.loot_tables.loot_table_armor_light",
+                ),
+                3 => assets::load_expect::<Lottery<String>>(
+                    "common.loot_tables.loot_table_armor_heavy",
+                ),
+                4 => assets::load_expect::<Lottery<String>>(
+                    "common.loot_tables.loot_table_armor_misc",
+                ),
+                5 => assets::load_expect::<Lottery<String>>(
+                    "common.loot_tables.loot_table_weapon_common",
+                ),
+                6 => assets::load_expect::<Lottery<String>>(
+                    "common.loot_tables.loot_table_weapon_uncommon",
+                ),
+                7 => assets::load_expect::<Lottery<String>>(
+                    "common.loot_tables.loot_table_weapon_rare",
+                ),
+                _ => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table"),
             },
-            Some(common::comp::Body::Critter(critter)) => match critter.species {
-                _ => match rng.gen_range(0, 3) {
-                    _ => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_animal_parts",
-                    ),
-                },
+            Some(common::comp::Body::Critter(_)) => {
+                assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_animal_parts")
             },
             Some(common::comp::Body::Dragon(_)) => {
                 assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_weapon_rare")
             },
-            Some(common::comp::Body::QuadrupedLow(quadruped_low)) => match quadruped_low.species {
-                _ => match rng.gen_range(0, 3) {
-                    0 => {
-                        assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_food")
-                    },
-                    1 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_animal_parts",
-                    ),
-                    _ => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table"),
-                },
+            Some(common::comp::Body::QuadrupedLow(_)) => match rng.gen_range(0, 3) {
+                0 => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_food"),
+                1 => assets::load_expect::<Lottery<String>>(
+                    "common.loot_tables.loot_table_animal_parts",
+                ),
+                _ => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table"),
             },
             _ => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table"),
         };

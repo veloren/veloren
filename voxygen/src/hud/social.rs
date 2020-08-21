@@ -344,7 +344,7 @@ impl<'a> Widget for Social<'a> {
                 .font_size(self.fonts.cyri.scale(14))
                 .color(TEXT_COLOR)
                 .set(state.ids.online_txt, ui);
-            Text::new(&(count - 1).to_string())
+            Text::new(&count.to_string())
                 .right_from(state.ids.online_txt, 5.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))

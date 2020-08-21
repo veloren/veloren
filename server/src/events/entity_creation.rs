@@ -1,8 +1,8 @@
 use crate::{sys, Server, StateExt};
 use common::{
     comp::{
-        self, Agent, Alignment, Body, Gravity, Item, ItemDrop, LightEmitter, Loadout, Pos,
-        Projectile, Scale, Stats, Vel, WaypointArea,
+        self, Agent, Alignment, Body, Gravity, Item, ItemDrop, LightAnimation, LightEmitter,
+        Loadout, Pos, Projectile, Scale, Stats, Vel, WaypointArea,
     },
     outcome::Outcome,
     util::Dir,
@@ -40,11 +40,11 @@ pub fn handle_create_npc(
 ) {
     let group = match alignment {
         Alignment::Wild => None,
+        Alignment::Passive => None,
         Alignment::Enemy => Some(group::ENEMY),
         Alignment::Npc | Alignment::Tame => Some(group::NPC),
         // TODO: handle
         Alignment::Owned(_) => None,
-        _ => None,
     };
 
     let entity = server
@@ -123,6 +123,11 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
             strength: 8.0,
             flicker: 1.0,
             animated: true,
+        })
+        .with(LightAnimation {
+            offset: Vec3::new(0.0, 0.0, 2.0),
+            col: Rgb::new(1.0, 0.8, 0.0),
+            strength: 8.0,
         })
         .with(WaypointArea::default())
         .build();
