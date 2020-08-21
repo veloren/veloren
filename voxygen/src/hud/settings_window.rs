@@ -2064,18 +2064,17 @@ impl<'a> Widget for SettingsWindow<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.fluid_mode_text, ui);
 
-            // FIXME: Add shiny water back to the UI once we fix the bug on nVidia cards.
             let mode_list = [
                 FluidMode::Cheap,
-                // FluidMode::Shiny
+                FluidMode::Shiny
             ];
             let mode_label_list = [
                 &self
                     .localized_strings
                     .get("hud.settings.fluid_rendering_mode.cheap"),
-                /* &self
-                .localized_strings
-                .get("hud.settings.fluid_rendering_mode.shiny"), */
+                &self
+                    .localized_strings
+                    .get("hud.settings.fluid_rendering_mode.shiny"),
             ];
 
             // Get which fluid rendering mode is currently active
