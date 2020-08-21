@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - New level of detail feature, letting you see all the world's terrain at any view distance.
 - Point and directional lights now cast realistic shadows, using shadow mapping.
+- Added leaf and chimney particles
 
 ### Changed
 - Fixed a bug where leaving the Settings menu by pressing "N" in single player kept the game paused

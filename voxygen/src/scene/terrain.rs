@@ -1,3 +1,7 @@
+mod watcher;
+
+pub use self::watcher::BlocksOfInterest;
+
 use crate::{
     mesh::{greedy::GreedyMesh, Meshable},
     render::{
@@ -35,7 +39,7 @@ enum Visibility {
     Visible = 2,
 }
 
-struct TerrainChunkData {
+pub struct TerrainChunkData {
     // GPU data
     load_time: f32,
     opaque_model: Model<TerrainPipeline>,
@@ -43,6 +47,7 @@ struct TerrainChunkData {
     col_lights: guillotiere::AllocId,
     sprite_instances: HashMap<(BlockKind, usize), Instances<SpriteInstance>>,
     locals: Consts<TerrainLocals>,
+    pub blocks_of_interest: BlocksOfInterest,
 
     visible: Visibility,
     can_shadow_point: bool,
@@ -51,6 +56,7 @@ struct TerrainChunkData {
     frustum_last_plane_index: u8,
 }
 
+#[derive(Copy, Clone)]
 struct ChunkMeshState {
     pos: Vec2<i32>,
     started_tick: u64,
@@ -67,6 +73,7 @@ struct MeshWorkerResponse {
     col_lights_info: ColLightInfo,
     sprite_instances: HashMap<(BlockKind, usize), Vec<SpriteInstance>>,
     started_tick: u64,
+    blocks_of_interest: BlocksOfInterest,
 }
 
 struct SpriteConfig {
@@ -392,6 +399,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
     started_tick: u64,
     volume: <VolGrid2d<V> as SampleVol<Aabr<i32>>>::Sample,
     max_texture_size: u16,
+    chunk: Arc<TerrainChunk>,
     range: Aabb<i32>,
     sprite_data: &HashMap<(BlockKind, usize), Vec<SpriteData>>,
 ) -> MeshWorkerResponse {
@@ -446,6 +454,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
 
             instances
         },
+        blocks_of_interest: BlocksOfInterest::from_chunk(&chunk),
         started_tick,
     }
 }
@@ -2575,7 +2584,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         // Limit ourselves to u16::MAX even if larger textures are supported.
         let max_texture_size = renderer.max_texture_size();
 
-        for todo in self
+        for (todo, chunk) in self
             .mesh_todo
             .values_mut()
             .filter(|todo| {
@@ -2584,6 +2593,14 @@ impl<V: RectRasterableVol> Terrain<V> {
                     .unwrap_or(true)
             })
             .min_by_key(|todo| todo.active_worker.unwrap_or(todo.started_tick))
+            // Find a reference to the actual `TerrainChunk` we're meshing
+            .and_then(|todo| {
+                let pos = todo.pos;
+                Some((todo, scene_data.state
+                    .terrain()
+                    .get_key_arc(pos)
+                    .cloned()?))
+            })
         {
             // TODO: find a alternative!
             if scene_data.thread_pool.queued_jobs() > 0 {
@@ -2644,6 +2661,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     started_tick,
                     volume,
                     max_texture_size,
+                    chunk,
                     aabb,
                     &sprite_data,
                 ));
@@ -2737,6 +2755,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                         visible: Visibility::OutOfRange,
                         can_shadow_point: false,
                         can_shadow_sun: false,
+                        blocks_of_interest: response.blocks_of_interest,
                         z_bounds: response.z_bounds,
                         frustum_last_plane_index: 0,
                     });
@@ -2919,6 +2938,10 @@ impl<V: RectRasterableVol> Terrain<V> {
             visible_light_volume,
             visible_psr_bounds,
         )
+    }
+
+    pub fn get(&self, chunk_key: Vec2<i32>) -> Option<&TerrainChunkData> {
+        self.chunks.get(&chunk_key)
     }
 
     pub fn chunk_count(&self) -> usize { self.chunks.len() }
