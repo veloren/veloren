@@ -942,7 +942,8 @@ impl Scene {
         self.figure_mgr.clean(scene_data.tick);
 
         // Maintain the particles.
-        self.particle_mgr.maintain(renderer, &scene_data);
+        self.particle_mgr
+            .maintain(renderer, &scene_data, &self.terrain);
 
         // Maintain audio
         self.sfx_mgr.maintain(
@@ -1018,11 +1019,11 @@ impl Scene {
         );
         self.lod.render(renderer, global);
 
-        // Render particle effects.
-        self.particle_mgr.render(renderer, scene_data, global, lod);
-
         // Render the skybox.
         renderer.render_skybox(&self.skybox.model, global, &self.skybox.locals, lod);
+
+        // Render particle effects.
+        self.particle_mgr.render(renderer, scene_data, global, lod);
 
         self.terrain.render_translucent(
             renderer,

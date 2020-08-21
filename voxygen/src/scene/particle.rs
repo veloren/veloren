@@ -1,4 +1,4 @@
-use super::SceneData;
+use super::{terrain::BlocksOfInterest, SceneData, Terrain};
 use crate::{
     mesh::{greedy::GreedyMesh, Meshable},
     render::{
@@ -11,10 +11,14 @@ use common::{
     comp::{item::Reagent, object, Body, CharacterState, Pos},
     figure::Segment,
     outcome::Outcome,
+    spiral::Spiral2d,
+    state::DeltaTime,
+    terrain::TerrainChunk,
+    vol::{RectRasterableVol, SizedVol},
 };
 use dot_vox::DotVoxData;
 use hashbrown::HashMap;
-use rand::Rng;
+use rand::prelude::*;
 use specs::{Join, WorldExt};
 use std::time::Duration;
 use vek::*;
@@ -83,7 +87,12 @@ impl ParticleMgr {
         }
     }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer, scene_data: &SceneData) {
+    pub fn maintain(
+        &mut self,
+        renderer: &mut Renderer,
+        scene_data: &SceneData,
+        terrain: &Terrain<TerrainChunk>,
+    ) {
         if scene_data.particles_enabled {
             // update timings
             self.scheduler.maintain(scene_data.state.get_time());
@@ -95,6 +104,7 @@ impl ParticleMgr {
             // add new Particle
             self.maintain_body_particles(scene_data);
             self.maintain_boost_particles(scene_data);
+            self.maintain_block_particles(scene_data, terrain);
         } else {
             // remove all particle lifespans
             self.particles.clear();
@@ -147,7 +157,7 @@ impl ParticleMgr {
                 Duration::from_secs(10),
                 time,
                 ParticleMode::CampfireSmoke,
-                pos.0,
+                pos.0.map(|e| e + thread_rng().gen_range(-0.25, 0.25)),
             ));
         }
     }
@@ -245,6 +255,69 @@ impl ParticleMgr {
         }
     }
 
+    #[allow(clippy::same_item_push)] // TODO: Pending review in #587
+    fn maintain_block_particles(
+        &mut self,
+        scene_data: &SceneData,
+        terrain: &Terrain<TerrainChunk>,
+    ) {
+        let dt = scene_data.state.ecs().fetch::<DeltaTime>().0;
+        let time = scene_data.state.get_time();
+        let player_pos = scene_data
+            .state
+            .read_component_cloned::<Pos>(scene_data.player_entity)
+            .unwrap_or_default();
+        let player_chunk = player_pos.0.xy().map2(TerrainChunk::RECT_SIZE, |e, sz| {
+            (e.floor() as i32).div_euclid(sz as i32)
+        });
+
+        type BoiFn<'a> = fn(&'a BlocksOfInterest) -> &'a [Vec3<i32>];
+        // blocks, chunk range, emission density, lifetime, particle mode
+        //
+        // - blocks: the function to select the blocks of interest that we should emit
+        //   from
+        // - chunk range: the range, in chunks, that the particles should be generated
+        //   in from the player
+        // - emission density: the density, per block per second, of the generated
+        //   particles
+        // - lifetime: the number of seconds that each particle should live for
+        // - particle mode: the visual mode of the generated particle
+        let particles: &[(BoiFn, usize, f32, f32, ParticleMode)] = &[
+            (|boi| &boi.leaves, 4, 0.001, 30.0, ParticleMode::Leaf),
+            (|boi| &boi.embers, 2, 20.0, 0.25, ParticleMode::CampfireFire),
+            (|boi| &boi.embers, 8, 3.0, 40.0, ParticleMode::CampfireSmoke),
+        ];
+
+        let mut rng = thread_rng();
+        for (get_blocks, range, rate, dur, mode) in particles.iter() {
+            for offset in Spiral2d::new().take((*range * 2 + 1).pow(2)) {
+                let chunk_pos = player_chunk + offset;
+
+                terrain.get(chunk_pos).map(|chunk_data| {
+                    let blocks = get_blocks(&chunk_data.blocks_of_interest);
+
+                    let avg_particles = dt * blocks.len() as f32 * *rate;
+                    let particle_count = avg_particles.trunc() as usize
+                        + (rng.gen::<f32>() < avg_particles.fract()) as usize;
+
+                    self.particles
+                        .resize_with(self.particles.len() + particle_count, || {
+                            let block_pos =
+                                Vec3::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32))
+                                    + blocks.choose(&mut rng).copied().unwrap(); // Can't fail
+
+                            Particle::new(
+                                Duration::from_secs_f32(*dur),
+                                time,
+                                *mode,
+                                block_pos.map(|e: i32| e as f32 + rng.gen::<f32>()),
+                            )
+                        })
+                });
+            }
+        }
+    }
+
     fn upload_particles(&mut self, renderer: &mut Renderer) {
         let all_cpu_instances = self
             .particles
@@ -305,11 +378,16 @@ fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<Particl
             guillotiere::Size::new(i32::from(max_texture_size), i32::from(max_texture_size));
         let mut greedy = GreedyMesh::new(max_size);
 
-        let mesh = Meshable::<ParticlePipeline, &mut GreedyMesh>::generate_mesh(
-            Segment::from(vox.as_ref()),
-            &mut greedy,
-        )
-        .0;
+        let segment = Segment::from(vox.as_ref());
+        let segment_size = segment.size();
+        let mut mesh =
+            Meshable::<ParticlePipeline, &mut GreedyMesh>::generate_mesh(segment, &mut greedy).0;
+        // Center particle vertices around origin
+        for vert in mesh.vertices_mut() {
+            vert.pos[0] -= segment_size.x as f32 / 2.0;
+            vert.pos[1] -= segment_size.y as f32 / 2.0;
+            vert.pos[2] -= segment_size.z as f32 / 2.0;
+        }
 
         // NOTE: Ignoring coloring / lighting for now.
         drop(greedy);
@@ -399,7 +477,7 @@ impl Particle {
     fn new(lifespan: Duration, time: f64, mode: ParticleMode, pos: Vec3<f32>) -> Self {
         Particle {
             alive_until: time + lifespan.as_secs_f64(),
-            instance: ParticleInstance::new(time, mode, pos),
+            instance: ParticleInstance::new(time, lifespan.as_secs_f32(), mode, pos),
         }
     }
 }

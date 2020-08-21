@@ -24,6 +24,9 @@ gfx_defines! {
         // can save 32 bits per instance, for particles that are not relatively animated.
         inst_time: f32 = "inst_time",
 
+        // The lifespan in seconds of the particle
+        inst_lifespan: f32 = "inst_lifespan",
+
         // a seed value for randomness
         // can save 32 bits per instance, for particles that don't need randomness/uniqueness.
         inst_entropy: f32 = "inst_entropy",
@@ -88,6 +91,7 @@ impl Vertex {
     }
 }
 
+#[derive(Copy, Clone)]
 pub enum ParticleMode {
     CampfireSmoke = 0,
     CampfireFire = 1,
@@ -98,6 +102,7 @@ pub enum ParticleMode {
     FireworkPurple = 6,
     FireworkRed = 7,
     FireworkYellow = 8,
+    Leaf = 9,
 }
 
 impl ParticleMode {
@@ -105,10 +110,16 @@ impl ParticleMode {
 }
 
 impl Instance {
-    pub fn new(inst_time: f64, inst_mode: ParticleMode, inst_pos: Vec3<f32>) -> Self {
+    pub fn new(
+        inst_time: f64,
+        lifespan: f32,
+        inst_mode: ParticleMode,
+        inst_pos: Vec3<f32>,
+    ) -> Self {
         use rand::Rng;
         Self {
             inst_time: inst_time as f32,
+            inst_lifespan: lifespan,
             inst_entropy: rand::thread_rng().gen(),
             inst_mode: inst_mode as i32,
             inst_pos: inst_pos.into_array(),
@@ -117,7 +128,7 @@ impl Instance {
 }
 
 impl Default for Instance {
-    fn default() -> Self { Self::new(0.0, ParticleMode::CampfireSmoke, Vec3::zero()) }
+    fn default() -> Self { Self::new(0.0, 0.0, ParticleMode::CampfireSmoke, Vec3::zero()) }
 }
 
 pub struct ParticlePipeline;
