@@ -496,19 +496,22 @@ impl PlayState for SessionState {
                                 .copied();
 
                             if let Some(player_pos) = player_pos {
-                                let entity = (
-                                    &client.state().ecs().entities(),
-                                    &client.state().ecs().read_storage::<comp::Pos>(),
-                                    &client.state().ecs().read_storage::<comp::Item>(),
-                                )
-                                    .join()
-                                    .filter(|(_, pos, _)| {
-                                        pos.0.distance_squared(player_pos.0) < MAX_PICKUP_RANGE_SQR
-                                    })
-                                    .min_by_key(|(_, pos, _)| {
-                                        (pos.0.distance_squared(player_pos.0) * 1000.0) as i32
-                                    })
-                                    .map(|(entity, _, _)| entity);
+                                let entity = self.target_entity.or_else(|| {
+                                    (
+                                        &client.state().ecs().entities(),
+                                        &client.state().ecs().read_storage::<comp::Pos>(),
+                                        &client.state().ecs().read_storage::<comp::Item>(),
+                                    )
+                                        .join()
+                                        .filter(|(_, pos, _)| {
+                                            pos.0.distance_squared(player_pos.0)
+                                                < MAX_PICKUP_RANGE_SQR
+                                        })
+                                        .min_by_key(|(_, pos, _)| {
+                                            (pos.0.distance_squared(player_pos.0) * 1000.0) as i32
+                                        })
+                                        .map(|(entity, _, _)| entity)
+                                });
 
                                 if let Some(entity) = entity {
                                     client.pick_up(entity);
