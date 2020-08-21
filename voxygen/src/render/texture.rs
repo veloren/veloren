@@ -1,38 +1,22 @@
-use super::{gfx_backend, RenderError};
-use gfx::{self, traits::Factory};
+use super::RenderError;
 use image::{DynamicImage, GenericImageView};
 use vek::Vec2;
-
-type DefaultShaderFormat = (gfx::format::R8_G8_B8_A8, gfx::format::Srgb);
+use wgpu::{util::DeviceExt, Extent3d};
 
 /// Represents an image that has been uploaded to the GPU.
-#[derive(Clone)]
-pub struct Texture<F: gfx::format::Formatted = DefaultShaderFormat>
-where
-    F::Surface: gfx::format::TextureSurface,
-    F::Channel: gfx::format::TextureChannel,
-    <F::Surface as gfx::format::SurfaceTyped>::DataType: Copy,
-{
-    pub tex: gfx::handle::Texture<gfx_backend::Resources, <F as gfx::format::Formatted>::Surface>,
-    pub srv: gfx::handle::ShaderResourceView<
-        gfx_backend::Resources,
-        <F as gfx::format::Formatted>::View,
-    >,
-    pub sampler: gfx::handle::Sampler<gfx_backend::Resources>,
+pub struct Texture {
+    pub tex: wgpu::TextureView,
+    pub sampler: wgpu::Sampler,
+    size: Extent3d,
 }
 
-impl<F: gfx::format::Formatted> Texture<F>
-where
-    F::Surface: gfx::format::TextureSurface,
-    F::Channel: gfx::format::TextureChannel,
-    <F::Surface as gfx::format::SurfaceTyped>::DataType: Copy,
-{
+impl Texture {
     pub fn new(
-        factory: &mut gfx_backend::Factory,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
         image: &DynamicImage,
-        filter_method: Option<gfx::texture::FilterMethod>,
-        wrap_mode: Option<gfx::texture::WrapMode>,
-        border: Option<gfx::texture::PackedColor>,
+        filter_method: Option<wgpu::FilterMode>,
+        addresse_mode: Option<wgpu::AddressMode>,
     ) -> Result<Self, RenderError> {
         // TODO: Actualy handle images that aren't in rgba format properly.
         let buffer = image.as_flat_samples_u8().ok_or_else(|| {
@@ -40,147 +24,143 @@ where
                 "We currently do not support color formats using more than 4 bytes / pixel.".into(),
             )
         })?;
-        let (tex, srv) = factory
-            .create_texture_immutable_u8::<F>(
-                gfx::texture::Kind::D2(
-                    image.width() as u16,
-                    image.height() as u16,
-                    gfx::texture::AaMode::Single,
-                ),
-                gfx::texture::Mipmap::Provided,
-                // Guarenteed to be correct, since all the conversions from DynamicImage to
-                // FlatSamples<u8> go through the underlying ImageBuffer's implementation of
-                // as_flat_samples(), which guarantees that the resulting FlatSamples is
-                // well-formed.
-                &[buffer.as_slice()],
-            )
-            .map_err(RenderError::CombinedError)?;
 
-        let mut sampler_info = gfx::texture::SamplerInfo::new(
-            filter_method.unwrap_or(gfx::texture::FilterMethod::Scale),
-            wrap_mode.unwrap_or(gfx::texture::WrapMode::Clamp),
+        let size = Extent3d {
+            width: image.width(),
+            height: image.height(),
+            depth: 1,
+        };
+
+        let tex = device.create_texture(&wgpu::TextureDescriptor {
+            label: None,
+            size,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8UnormSrgb,
+            usage: wgpu::TextureUsage::COPY_DST | wgpu::TextureUsage::SAMPLED,
+        });
+
+        let mut command_encoder =
+            device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+
+        queue.write_texture(
+            wgpu::TextureCopyViewBase {
+                texture: &tex,
+                mip_level: 0,
+                origin: wgpu::Origin3d::ZERO,
+            },
+            &[buffer.as_slice()],
+            wgpu::TextureDataLayout {
+                offset: 0,
+                bytes_per_row: image.width() * 4,
+                rows_per_image: image.height(),
+            },
+            wgpu::Extent3d {
+                width: image.width(),
+                height: image.height(),
+                depth: 1,
+            },
         );
-        let transparent = [0.0, 0.0, 0.0, 1.0].into();
-        sampler_info.border = border.unwrap_or(transparent);
+
+        let sampler_info = wgpu::SamplerDescriptor {
+            label: None,
+            address_mode_u: addresse_mode.unwrap_or(wgpu::AddressMode::ClampToEdge),
+            address_mode_v: addresse_mode.unwrap_or(wgpu::AddressMode::ClampToEdge),
+            address_mode_w: addresse_mode.unwrap_or(wgpu::AddressMode::ClampToEdge),
+            mag_filter: filter_method.unwrap_or(wgpu::FilterMode::Nearest),
+            min_filter: filter_method.unwrap_or(wgpu::FilterMode::Nearest),
+            mipmap_filter: wgpu::FilterMode::Nearest,
+            ..Default::default()
+        };
+
         Ok(Self {
             tex,
-            srv,
-            sampler: factory.create_sampler(sampler_info),
+            sampler: device.create_sampler(&sampler_info),
+            size,
         })
     }
 
-    pub fn new_dynamic(
-        factory: &mut gfx_backend::Factory,
-        width: u16,
-        height: u16,
-    ) -> Result<Self, RenderError> {
-        let tex = factory.create_texture(
-            gfx::texture::Kind::D2(
-                width,
-                height,
-                gfx::texture::AaMode::Single,
-            ),
-            1_u8,
-            gfx::memory::Bind::SHADER_RESOURCE,
-            gfx::memory::Usage::Dynamic,
-            Some(<<F as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped>::get_channel_type()),
-        )
-            .map_err(|err| RenderError::CombinedError(gfx::CombinedError::Texture(err)))?;
+    pub fn new_dynamic(device: &wgpu::Device, width: u16, height: u16) -> Self {
+        let size = wgpu::Extent3d {
+            width,
+            height,
+            depth: 1,
+        };
 
-        let srv = factory
-            .view_texture_as_shader_resource::<F>(&tex, (0, 0), gfx::format::Swizzle::new())
-            .map_err(|err| RenderError::CombinedError(gfx::CombinedError::Resource(err)))?;
+        let tex_info = device.create_texture(&wgpu::TextureDescriptor {
+            label: None,
+            size,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8UnormSrgb,
+            usage: wgpu::TextureUsage::COPY_DST | wgpu::TextureUsage::SAMPLED,
+        });
 
-        Ok(Self {
-            tex,
-            srv,
-            sampler: factory.create_sampler(gfx::texture::SamplerInfo::new(
-                gfx::texture::FilterMethod::Scale,
-                gfx::texture::WrapMode::Clamp,
-            )),
-        })
-    }
+        let sampler_info = wgpu::SamplerDescriptor {
+            label: None,
+            address_mode_u: wgpu::AddressMode::ClampToEdge,
+            address_mode_v: wgpu::AddressMode::ClampToEdge,
+            address_mode_w: wgpu::AddressMode::ClampToEdge,
+            mag_filter: wgpu::FilterMode::Nearest,
+            min_filter: wgpu::FilterMode::Nearest,
+            mipmap_filter: wgpu::FilterMode::Nearest,
+            ..Default::default()
+        };
 
-    pub fn new_immutable_raw(
-        factory: &mut gfx_backend::Factory,
-        kind: gfx::texture::Kind,
-        mipmap: gfx::texture::Mipmap,
-        data: &[&[<F::Surface as gfx::format::SurfaceTyped>::DataType]],
-        sampler_info: gfx::texture::SamplerInfo,
-    ) -> Result<Self, RenderError> {
-        let (tex, srv) = factory
-            .create_texture_immutable::<F>(kind, mipmap, data)
-            .map_err(RenderError::CombinedError)?;
-
-        Ok(Self {
-            tex,
-            srv,
-            sampler: factory.create_sampler(sampler_info),
-        })
+        Self::new_raw(device, tex_info, sampler_info)
     }
 
     pub fn new_raw(
-        _device: &mut gfx_backend::Device,
-        factory: &mut gfx_backend::Factory,
-        kind: gfx::texture::Kind,
-        max_levels: u8,
-        bind: gfx::memory::Bind,
-        usage: gfx::memory::Usage,
-        levels: (u8, u8),
-        swizzle: gfx::format::Swizzle,
-        sampler_info: gfx::texture::SamplerInfo,
-    ) -> Result<Self, RenderError> {
-        let tex = factory
-            .create_texture(
-                kind,
-                max_levels as gfx::texture::Level,
-                bind | gfx::memory::Bind::SHADER_RESOURCE,
-                usage,
-                Some(<<F as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped>::get_channel_type())
-            )
-            .map_err(|err| RenderError::CombinedError(gfx::CombinedError::Texture(err)))?;
-
-        let srv = factory
-            .view_texture_as_shader_resource::<F>(&tex, levels, swizzle)
-            .map_err(|err| RenderError::CombinedError(gfx::CombinedError::Resource(err)))?;
-
+        device: &wgpu::Device,
+        texture_info: wgpu::TextureDescriptor,
+        sampler_info: wgpu::SamplerDescriptor,
+    ) -> Self {
         Ok(Self {
-            tex,
-            srv,
-            sampler: factory.create_sampler(sampler_info),
+            tex: device.create_texture(&texture_info),
+            sampler: device.create_sampler(&sampler_info),
+            size: texture_info.size,
         })
     }
 
     /// Update a texture with the given data (used for updating the glyph cache
     /// texture).
-
     pub fn update(
         &self,
-        encoder: &mut gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
         offset: [u16; 2],
         size: [u16; 2],
-        data: &[<F::Surface as gfx::format::SurfaceTyped>::DataType],
+        data: &[u8],
     ) -> Result<(), RenderError> {
-        let info = gfx::texture::ImageInfoCommon {
-            xoffset: offset[0],
-            yoffset: offset[1],
-            zoffset: 0,
-            width: size[0],
-            height: size[1],
-            depth: 0,
-            format: (),
-            mipmap: 0,
-        };
-        encoder
-            .update_texture::<<F as gfx::format::Formatted>::Surface, F>(
-                &self.tex, None, info, data,
-            )
-            .map_err(RenderError::TexUpdateError)
+        // TODO: Only works for 2D images
+        queue.write_texture(
+            wgpu::TextureCopyViewBase {
+                texture: &self.tex,
+                mip_level: 0,
+                origin: wgpu::Origin3d {
+                    x: offset[0],
+                    y: offset[1],
+                    z: 0,
+                },
+            },
+            data,
+            // TODO: I heard some rumors that there are other
+            // formats that are not Rgba8
+            wgpu::TextureDataLayout {
+                offset: 0,
+                bytes_per_row: self.size.x * 4,
+                rows_per_image: self.size.y,
+            },
+            wgpu::Extent3d {
+                width: size[0],
+                height: size[1],
+                depth: 1,
+            },
+        );
     }
 
     /// Get dimensions of the represented image.
-    pub fn get_dimensions(&self) -> Vec2<u16> {
-        let (w, h, ..) = self.tex.get_info().kind.get_dimensions();
-        Vec2::new(w, h)
-    }
+    pub fn get_dimensions(&self) -> Extent3d { self.size }
 }

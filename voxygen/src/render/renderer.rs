@@ -1,28 +1,21 @@
 use super::{
     consts::Consts,
-    gfx_backend,
     instances::Instances,
     mesh::Mesh,
-    model::{DynamicModel, Model},
+    model::{Model},
     pipelines::{
         clouds, figure, fluid, lod_terrain, particle, postprocess, shadow, skybox, sprite, terrain,
         ui, GlobalModel, Globals,
     },
     texture::Texture,
-    AaMode, CloudMode, FilterMethod, FluidMode, LightingMode, Pipeline, RenderError, RenderMode,
-    ShadowMapMode, ShadowMode, WrapMode,
+    AaMode, CloudMode, FilterMode, FluidMode, LightingMode, RenderError, RenderMode,
+    ShadowMapMode, ShadowMode, AddressMode,
 };
 use common::assets::{self, AssetExt, AssetHandle};
 use common_base::span;
 use core::convert::TryFrom;
-use gfx::{
-    self,
-    handle::Sampler,
-    state::Comparison,
-    traits::{Device, Factory, FactoryExt},
-};
 use glsl_include::Context as IncludeContext;
-use tracing::{error, warn};
+use tracing::{error, info, warn};
 use vek::*;
 
 /// Represents the format of the pre-processed color target.
@@ -225,13 +218,11 @@ impl assets::Compound for Shaders {
 pub struct ShadowMapRenderer {
     // directed_encoder: gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
     // point_encoder: gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
-    directed_depth_stencil_view: ShadowDepthStencilView,
-    directed_res: ShadowResourceView,
-    directed_sampler: Sampler<gfx_backend::Resources>,
+    directed_depth_stencil_view: wgpu::TextureView,
+    directed_sampler: wgpu::Sampler,
 
-    point_depth_stencil_view: ShadowDepthStencilView,
-    point_res: ShadowResourceView,
-    point_sampler: Sampler<gfx_backend::Resources>,
+    point_depth_stencil_view: wgpu::TextureView,
+    point_sampler: wgpu::Sampler,
 
     point_pipeline: GfxPipeline<shadow::pipe::Init<'static>>,
     terrain_directed_pipeline: GfxPipeline<shadow::pipe::Init<'static>>,
@@ -243,22 +234,18 @@ pub struct ShadowMapRenderer {
 /// GPU, along with pipeline state objects (PSOs) needed to renderer different
 /// kinds of models to the screen.
 pub struct Renderer {
-    device: gfx_backend::Device,
-    encoder: gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
-    factory: gfx_backend::Factory,
+    device: wgpu::Device,
+    queue: wgpu::Queue,
+    swap_chain: wgpu::SwapChain,
 
-    win_color_view: WinColorView,
-    win_depth_view: WinDepthView,
+    win_depth_view: wgpu::TextureView,
 
-    tgt_color_view: TgtColorView,
-    tgt_depth_stencil_view: TgtDepthStencilView,
-    tgt_color_view_pp: TgtColorView,
+    tgt_color_view: wgpu::TextureView,
+    tgt_depth_stencil_view: wgpu::TextureView,
+    // TODO: rename
+    tgt_color_pp_view: wgpu::TextureView,
 
-    tgt_color_res: TgtColorRes,
-    tgt_depth_res: TgtDepthRes,
-    tgt_color_res_pp: TgtColorRes,
-
-    sampler: Sampler<gfx_backend::Resources>,
+    sampler: wgpu::Sampler,
 
     shadow_map: Option<ShadowMapRenderer>,
 
@@ -285,11 +272,8 @@ pub struct Renderer {
 impl Renderer {
     /// Create a new `Renderer` from a variety of backend-specific components
     /// and the window targets.
-    pub fn new(
-        mut device: gfx_backend::Device,
-        mut factory: gfx_backend::Factory,
-        win_color_view: WinColorView,
-        win_depth_view: WinDepthView,
+    pub async fn new(
+        window: &winit::window::Window,
         mode: RenderMode,
     ) -> Result<Self, RenderError> {
         // Enable seamless cubemaps globally, where available--they are essentially a
@@ -297,12 +281,59 @@ impl Renderer {
         //
         // Note that since we only have to enable this once globally, there is no point
         // in doing this on rerender.
-        Self::enable_seamless_cube_maps(&mut device);
+        // Self::enable_seamless_cube_maps(&mut device);
 
-        let dims = win_color_view.get_dimensions();
+        let dims = window.inner_size();
+
+        let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY | wgpu::BackendBit::SECONDARY);
+
+        // This is unsafe because the window handle must be valid, if you find a way to
+        // have an invalid winit::Window then you have bigger issues
+        #[allow(unsafe_code)]
+        let surface = unsafe { instance.create_surface(window) };
+
+        let adapter = instance
+            .request_adapter(wgpu::RequestAdapterOptionsBase {
+                power_preference: wgpu::PowerPreference::HighPerformance,
+                compatible_surface: Some(surface),
+            })
+            .await
+            .ok_or(RenderError::CouldNotFindAdapter)?;
+
+        use wgpu::{Features, Limits};
+
+        let (device, queue) = adapter
+            .request_device(
+                wgpu::DeviceDescriptor {
+                    // TODO
+                    features: Features::DEPTH_CLAMPING,
+                    limits: Limits::default(),
+                    shader_validation: true,
+                },
+                None,
+            )
+            .await?;
+
+        let info = device.get_info();
+        info!(
+            ?info.name,
+            ?info.vendor,
+            ?info.backend,
+            ?info.device,
+            ?info.device_type,
+            "selected graphics device"
+        );
+
+        let swap_chain = device.create_swap_chain(&surface, &wgpu::SwapChainDescriptor {
+            usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+            format: wgpu::TextureFormat::Bgra8UnormSrgb,
+            width: dims.0,
+            height: dims.1,
+            present_mode: wgpu::PresentMode::Immediate,
+        });
 
         let shadow_views = Self::create_shadow_views(
-            &mut factory,
+            &device,
             (dims.0, dims.1),
             &ShadowMapMode::try_from(mode.shadow).unwrap_or_default(),
         )
@@ -328,16 +359,18 @@ impl Renderer {
             point_shadow_pipeline,
             terrain_directed_shadow_pipeline,
             figure_directed_shadow_pipeline,
-        ) = create_pipelines(&mut factory, &shaders.read(), &mode, shadow_views.is_some())?;
+        ) = create_pipelines(
+            &device,
+            &mode,
+            shadow_views.is_some(),
+        )?;
 
         let (
             tgt_color_view,
             tgt_depth_stencil_view,
-            tgt_color_view_pp,
-            tgt_color_res,
-            tgt_depth_res,
-            tgt_color_res_pp,
-        ) = Self::create_rt_views(&mut factory, (dims.0, dims.1), &mode)?;
+            tgt_color_pp_view,
+            win_depth_view,
+        ) = Self::create_rt_views(&device, (dims.0, dims.1), &mode)?;
 
         let shadow_map = if let (
             Some(point_pipeline),
@@ -360,13 +393,11 @@ impl Renderer {
             ) = shadow_views;
             Some(ShadowMapRenderer {
                 directed_depth_stencil_view,
-                directed_res,
                 directed_sampler,
 
                 // point_encoder: factory.create_command_buffer().into(),
                 // directed_encoder: factory.create_command_buffer().into(),
                 point_depth_stencil_view,
-                point_res,
                 point_sampler,
 
                 point_pipeline,
@@ -377,34 +408,36 @@ impl Renderer {
             None
         };
 
-        let sampler = factory.create_sampler(gfx::texture::SamplerInfo::new(
-            gfx::texture::FilterMethod::Bilinear,
-            gfx::texture::WrapMode::Clamp,
-        ));
+        let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+            label: None,
+            address_mode_u: wgpu::AddressMode::ClampToEdge,
+            address_mode_v: wgpu::AddressMode::ClampToEdge,
+            address_mode_w: wgpu::AddressMode::ClampToEdge,
+            mag_filter: wgpu::FilterMode::Linear,
+            min_filter: wgpu::FilterMode::Linear,
+            mipmap_filter: wgpu::FilterMode::Nearest,
+            compare: None,
+            ..Default::default()
+        });
 
         let noise_tex = Texture::new(
-            &mut factory,
+            &device,
+            &queue,
             &assets::Image::load_expect("voxygen.texture.noise").read().0,
-            Some(gfx::texture::FilterMethod::Trilinear),
-            Some(gfx::texture::WrapMode::Tile),
-            None,
+            Some(wgpu::FilterMode::Linear),
+            Some(wgpu::AddressMode::Repeat),
         )?;
 
         Ok(Self {
             device,
-            encoder: factory.create_command_buffer().into(),
-            factory,
+            queue,
+            swap_chain,
 
-            win_color_view,
             win_depth_view,
 
             tgt_color_view,
             tgt_depth_stencil_view,
-            tgt_color_view_pp,
-
-            tgt_color_res,
-            tgt_depth_res,
-            tgt_color_res_pp,
+            tgt_color_pp_view,
 
             sampler,
 
@@ -483,7 +516,7 @@ impl Renderer {
             let (
                 tgt_color_view,
                 tgt_depth_stencil_view,
-                tgt_color_view_pp,
+                tgt_color_pp_view,
                 tgt_color_res,
                 tgt_depth_res,
                 tgt_color_res_pp,
@@ -493,7 +526,7 @@ impl Renderer {
             self.tgt_color_res_pp = tgt_color_res_pp;
             self.tgt_color_view = tgt_color_view;
             self.tgt_depth_stencil_view = tgt_depth_stencil_view;
-            self.tgt_color_view_pp = tgt_color_view_pp;
+            self.tgt_color_pp_view = tgt_color_pp_view;
             if let (Some(shadow_map), ShadowMode::Map(mode)) =
                 (self.shadow_map.as_mut(), self.mode.shadow)
             {
@@ -525,90 +558,103 @@ impl Renderer {
     }
 
     fn create_rt_views(
-        factory: &mut gfx_device_gl::Factory,
+        device: &wgpu::Device,
         size: (u16, u16),
         mode: &RenderMode,
-    ) -> Result<
-        (
-            TgtColorView,
-            TgtDepthStencilView,
-            TgtColorView,
-            TgtColorRes,
-            TgtDepthRes,
-            TgtColorRes,
-        ),
-        RenderError,
-    > {
+    ) -> Result<(wgpu::TextureView, wgpu::TextureView, wgpu::TextureView, wgpu::TextureView), RenderError> {
         let upscaled = Vec2::from(size)
             .map(|e: u16| (e as f32 * mode.upscale_mode.factor) as u16)
             .into_tuple();
-        let kind = match mode.aa {
-            AaMode::None | AaMode::Fxaa => {
-                gfx::texture::Kind::D2(upscaled.0, upscaled.1, gfx::texture::AaMode::Single)
-            },
+        let (width, height, sample_count) = match mode.aa {
+            AaMode::None | AaMode::Fxaa => (upscaled.0, upscaled.1, 1),
             // TODO: Ensure sampling in the shader is exactly between the 4 texels
-            AaMode::MsaaX4 => {
-                gfx::texture::Kind::D2(upscaled.0, upscaled.1, gfx::texture::AaMode::Multi(4))
-            },
-            AaMode::MsaaX8 => {
-                gfx::texture::Kind::D2(upscaled.0, upscaled.1, gfx::texture::AaMode::Multi(8))
-            },
-            AaMode::MsaaX16 => {
-                gfx::texture::Kind::D2(upscaled.0, upscaled.1, gfx::texture::AaMode::Multi(16))
-            },
+            // TODO: Figure out how to do upscaling correctly with SSAA
+            AaMode::MsaaX4 => (upscaled.0, upscaled.1, 4),
+            AaMode::MsaaX8 => (upscaled.0, upscaled.1, 8),
+            AaMode::MsaaX16 => (upscaled.0, upscaled.1, 16),
         };
         let levels = 1;
 
-        let color_cty = <<TgtColorFmt as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped
-                >::get_channel_type();
-        let mut color_tex = || {
-            factory.create_texture(
-                kind,
-                levels,
-                gfx::memory::Bind::SHADER_RESOURCE | gfx::memory::Bind::RENDER_TARGET,
-                gfx::memory::Usage::Data,
-                Some(color_cty),
-            )
-        };
-        let tgt_color_tex = color_tex()?;
-        let tgt_color_tex_pp = color_tex()?;
-        let mut color_res = |tex| {
-            factory.view_texture_as_shader_resource::<TgtColorFmt>(
-                tex,
-                (0, levels - 1),
-                gfx::format::Swizzle::new(),
-            )
-        };
-        let tgt_color_res = color_res(&tgt_color_tex)?;
-        let tgt_color_res_pp = color_res(&tgt_color_tex_pp)?;
-        let tgt_color_view = factory.view_texture_as_render_target(&tgt_color_tex, 0, None)?;
-        let tgt_color_view_pp =
-            factory.view_texture_as_render_target(&tgt_color_tex_pp, 0, None)?;
+        let mut color_view = || {
+            let tex = device.create_texture(&wgpu::TextureDescriptor {
+                label: None,
+                size: wgpu::Extent3d {
+                    width,
+                    height,
+                    depth: 1,
+                },
+                mip_level_count: levels,
+                sample_count,
+                dimension: wgpu::TextureDimension::D2,
+                format: wgpu::TextureFormat::Rgba8UnormSrgb,
+                usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+            });
 
-        let depth_stencil_cty = <<TgtDepthStencilFmt as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped>::get_channel_type();
-        let tgt_depth_stencil_tex = factory.create_texture(
-            kind,
-            levels,
-            gfx::memory::Bind::SHADER_RESOURCE | gfx::memory::Bind::DEPTH_STENCIL,
-            gfx::memory::Usage::Data,
-            Some(depth_stencil_cty),
-        )?;
-        let tgt_depth_res = factory.view_texture_as_shader_resource::<TgtDepthStencilFmt>(
-            &tgt_depth_stencil_tex,
-            (0, levels - 1),
-            gfx::format::Swizzle::new(),
-        )?;
+            tex.create_view(&wgpu::TextureViewDescriptor {
+                label: None,
+                format: Some(wgpu::TextureFormat::Rgba8UnormSrgb),
+                dimension: Some(wgpu::TextureViewDimension::D2),
+                aspect: wgpu::TextureAspect::Color,
+                base_mip_level: 0,
+                level_count: Some(levels),
+                base_array_layer: 0,
+                array_layer_count: None,
+            })
+        };
+
+        let tgt_color_view = color_view();
+        let tgt_color_pp_view = color_view();
+
+        let tgt_depth_stencil_tex = device.create_texture(&wgpu::TextureDescriptor {
+            label: None,
+            size: wgpu::Extent3d {
+                width,
+                height,
+                depth: 1,
+            },
+            mip_level_count: levels,
+            sample_count,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Depth24Plus,
+            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+        });
         let tgt_depth_stencil_view =
-            factory.view_texture_as_depth_stencil_trivial(&tgt_depth_stencil_tex)?;
+            tgt_depth_stencil_tex.create_view(&wgpu::TextureViewDescriptor {
+                label: None,
+                format: Some(wgpu::TextureFormat::Depth24Plus),
+                dimension: Some(wgpu::TextureViewDimension::D2),
+                aspect: wgpu::TextureAspect::DepthOnly,
+                base_mip_level: 0,
+                level_count: Some(levels),
+                base_array_layer: 0,
+                array_layer_count: None,
+            });
 
-        Ok((
-            tgt_color_view,
-            tgt_depth_stencil_view,
-            tgt_color_view_pp,
-            tgt_color_res,
-            tgt_depth_res,
-            tgt_color_res_pp,
-        ))
+        let win_depth_tex = device.create_texture(&wgpu::TextureDescriptor {
+            label: None,
+            size: wgpu::Extent3d {
+                width: size.0,
+                height: size.1,
+                depth: 1,
+            },
+            mip_level_count: levels,
+            sample_count,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Depth24Plus,
+            usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+        });
+        let win_depth_view = tgt_depth_stencil_tex.create_view(&wgpu::TextureViewDescriptor {
+            label: None,
+            format: Some(wgpu::TextureFormat::Depth24Plus),
+            dimension: Some(wgpu::TextureViewDimension::D2),
+            aspect: wgpu::TextureAspect::DepthOnly,
+            base_mip_level: 0,
+            level_count: Some(levels),
+            base_array_layer: 0,
+            array_layer_count: None,
+        });
+
+        Ok((tgt_color_view, tgt_depth_stencil_view, tgt_color_pp_view, win_depth_view))
     }
 
     /// Create textures and views for shadow maps.
@@ -616,24 +662,24 @@ impl Renderer {
     // disable the type complexity lint.
     #[allow(clippy::type_complexity)]
     fn create_shadow_views(
-        factory: &mut gfx_device_gl::Factory,
+        device: &wgpu::Device,
         size: (u16, u16),
         mode: &ShadowMapMode,
     ) -> Result<
         (
-            ShadowDepthStencilView,
-            ShadowResourceView,
-            Sampler<gfx_backend::Resources>,
-            ShadowDepthStencilView,
-            ShadowResourceView,
-            Sampler<gfx_backend::Resources>,
+            wgpu::TextureView,
+            wgpu::Sampler,
+            wgpu::TextureView,
+            wgpu::Sampler,
         ),
         RenderError,
     > {
         // (Attempt to) apply resolution factor to shadow map resolution.
         let resolution_factor = mode.resolution.clamped(0.25, 4.0);
 
-        let max_texture_size = Self::max_texture_size_raw(factory);
+        // This value is temporary as there are plans to include a way to get this in
+        // wgpu this is just a sane standard for now
+        let max_texture_size = 8000;
         // Limit to max texture size, rather than erroring.
         let size = Vec2::new(size.0, size.1).map(|e| {
             let size = f32::from(e) * resolution_factor;
@@ -677,72 +723,76 @@ impl Renderer {
             .filter(|&e| e <= max_texture_size)
             // Limit to max texture resolution rather than error.
             .unwrap_or(max_texture_size);
-        let depth_stencil_cty = <<ShadowDepthStencilFmt as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped>::get_channel_type();
 
-        let point_shadow_tex = factory
-            .create_texture(
-                gfx::texture::Kind::Cube(diag_two_size / 4),
-                levels as gfx::texture::Level,
-                gfx::memory::Bind::SHADER_RESOURCE | gfx::memory::Bind::DEPTH_STENCIL,
-                gfx::memory::Usage::Data,
-                Some(depth_stencil_cty),
-            )
-            .map_err(|err| RenderError::CombinedError(gfx::CombinedError::Texture(err)))?;
+        let point_shadow_tex = device.create_texture(&wgpu::TextureDescriptor {
+            label: None,
+            size: wgpu::Extent3d {
+                width: diag_two_size / 4,
+                height: diag_two_size / 4,
+                depth: 6,
+            },
+            mip_level_count: levels,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Depth24Plus,
+            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+        });
 
-        let point_tgt_shadow_view = factory
-            .view_texture_as_depth_stencil::<ShadowDepthStencilFmt>(
-                &point_shadow_tex,
-                0,
-                None,
-                gfx::texture::DepthStencilFlags::empty(),
-            )?;
+        let point_tgt_shadow_view = point_shadow_tex.create_view(&wgpu::TextureViewDescriptor {
+            label: None,
+            format: Some(wgpu::TextureFormat::Depth24Plus),
+            dimension: Some(wgpu::TextureViewDimension::Cube),
+            aspect: wgpu::TextureAspect::DepthOnly,
+            base_mip_level: 0,
+            level_count: Some(levels),
+            base_array_layer: 0,
+            array_layer_count: None,
+        });
 
-        let point_tgt_shadow_res = factory
-            .view_texture_as_shader_resource::<ShadowDepthStencilFmt>(
-                &point_shadow_tex,
-                (0, levels - 1),
-                gfx::format::Swizzle::new(),
-            )?;
+        let directed_shadow_tex = device.create_texture(&wgpu::TextureDescriptor {
+            label: None,
+            size: wgpu::Extent3d {
+                width: diag_two_size,
+                height: diag_two_size,
+                depth: 1,
+            },
+            mip_level_count: levels,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Depth24Plus,
+            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+        });
 
-        let directed_shadow_tex = factory
-            .create_texture(
-                gfx::texture::Kind::D2(diag_two_size, diag_two_size, gfx::texture::AaMode::Single),
-                levels as gfx::texture::Level,
-                gfx::memory::Bind::SHADER_RESOURCE | gfx::memory::Bind::DEPTH_STENCIL,
-                gfx::memory::Usage::Data,
-                Some(depth_stencil_cty),
-            )
-            .map_err(|err| RenderError::CombinedError(gfx::CombinedError::Texture(err)))?;
-        let directed_tgt_shadow_view = factory
-            .view_texture_as_depth_stencil::<ShadowDepthStencilFmt>(
-                &directed_shadow_tex,
-                0,
-                None,
-                gfx::texture::DepthStencilFlags::empty(),
-            )?;
-        let directed_tgt_shadow_res = factory
-            .view_texture_as_shader_resource::<ShadowDepthStencilFmt>(
-                &directed_shadow_tex,
-                (0, levels - 1),
-                gfx::format::Swizzle::new(),
-            )?;
+        let directed_tgt_shadow_view = point_shadow_tex.create_view(&wgpu::TextureViewDescriptor {
+            label: None,
+            format: Some(wgpu::TextureFormat::Depth24Plus),
+            dimension: Some(wgpu::TextureViewDimension::D2),
+            aspect: wgpu::TextureAspect::DepthOnly,
+            base_mip_level: 0,
+            level_count: Some(levels),
+            base_array_layer: 0,
+            array_layer_count: None,
+        });
 
-        let mut sampler_info = gfx::texture::SamplerInfo::new(
-            gfx::texture::FilterMethod::Bilinear,
-            // Lights should always be assumed to flood areas we can't see.
-            gfx::texture::WrapMode::Border,
-        );
-        sampler_info.comparison = Some(Comparison::LessEqual);
-        sampler_info.border = [1.0; 4].into();
-        let point_shadow_tex_sampler = factory.create_sampler(sampler_info);
-        let directed_shadow_tex_sampler = factory.create_sampler(sampler_info);
+        let sampler_info = wgpu::SamplerDescriptor {
+            label: None,
+            address_mode_u: wgpu::AddressMode::ClampToEdge,
+            address_mode_v: wgpu::AddressMode::ClampToEdge,
+            address_mode_w: wgpu::AddressMode::ClampToEdge,
+            mag_filter: wgpu::FilterMode::Linear,
+            min_filter: wgpu::FilterMode::Linear,
+            mipmap_filter: wgpu::FilterMode::Nearest,
+            compare: Some(wgpu::CompareFunction::LessEqual),
+            ..Default::default()
+        };
+
+        let point_shadow_tex_sampler = device.create_sampler(&sampler_info);
+        let directed_shadow_tex_sampler = device.create_sampler(&sampler_info);
 
         Ok((
             point_tgt_shadow_view,
-            point_tgt_shadow_res,
             point_shadow_tex_sampler,
             directed_tgt_shadow_view,
-            directed_tgt_shadow_res,
             directed_shadow_tex_sampler,
         ))
     }
@@ -797,51 +847,22 @@ impl Renderer {
     /// available.
     #[allow(unsafe_code)]
     fn enable_seamless_cube_maps(device: &mut gfx_backend::Device) {
-        unsafe {
-            // NOTE: Currently just fail silently rather than complain if the computer is on
-            // a version lower than 3.2, where seamless cubemaps were introduced.
-            if !device.get_info().is_version_supported(3, 2) {
-                return;
-            }
+        todo!()
+        // unsafe {
+        //     // NOTE: Currently just fail silently rather than complain if the
+        // computer is on     // a version lower than 3.2, where
+        // seamless cubemaps were introduced.     if !device.get_info().
+        // is_version_supported(3, 2) {         return;
+        //     }
 
-            // NOTE: Safe because GL_TEXTURE_CUBE_MAP_SEAMLESS is supported by OpenGL 3.2+
-            // (see https://www.khronos.org/opengl/wiki/Cubemap_Texture#Seamless_cubemap);
-            // enabling seamless cube maps should always be safe regardless of the state of
-            // the OpenGL context, so no further checks are needed.
-            device.with_gl(|gl| {
-                gl.Enable(gfx_gl::TEXTURE_CUBE_MAP_SEAMLESS);
-            });
-        }
-    }
-
-    /// NOTE: Supported by all but a handful of mobile GPUs
-    /// (see https://github.com/gpuweb/gpuweb/issues/480)
-    /// so wgpu should support it too.
-    #[allow(unsafe_code)]
-    fn set_depth_clamp(device: &mut gfx_backend::Device, depth_clamp: bool) {
-        unsafe {
-            // NOTE: Currently just fail silently rather than complain if the computer is on
-            // a version lower than 3.3, though we probably will complain
-            // elsewhere regardless, since shadow mapping is an optional feature
-            // and having depth clamping disabled won't cause undefined
-            // behavior, just incorrect shadowing from objects behind the viewer.
-            if !device.get_info().is_version_supported(3, 3) {
-                return;
-            }
-
-            // NOTE: Safe because glDepthClamp is (I believe) supported by
-            // OpenGL 3.3, so we shouldn't have to check for other OpenGL versions which
-            // may use different extensions.  Also, enabling depth clamping should
-            // essentially always be safe regardless of the state of the OpenGL
-            // context, so no further checks are needed.
-            device.with_gl(|gl| {
-                if depth_clamp {
-                    gl.Enable(gfx_gl::DEPTH_CLAMP);
-                } else {
-                    gl.Disable(gfx_gl::DEPTH_CLAMP);
-                }
-            });
-        }
+        //     // NOTE: Safe because GL_TEXTURE_CUBE_MAP_SEAMLESS is supported
+        // by OpenGL 3.2+     // (see https://www.khronos.org/opengl/wiki/Cubemap_Texture#Seamless_cubemap);
+        //     // enabling seamless cube maps should always be safe regardless
+        // of the state of     // the OpenGL context, so no further
+        // checks are needed.     device.with_gl(|gl| {
+        //         gl.Enable(gfx_gl::TEXTURE_CUBE_MAP_SEAMLESS);
+        //     });
+        // }
     }
 
     /// Queue the clearing of the depth target ready for a new frame to be
@@ -1109,47 +1130,58 @@ impl Renderer {
     /// a image::DynamicImage.
     #[allow(clippy::map_clone)] // TODO: Pending review in #587
     pub fn create_screenshot(&mut self) -> Result<image::DynamicImage, RenderError> {
-        let (width, height) = self.get_resolution().into_tuple();
-        use gfx::{
-            format::{Formatted, SurfaceTyped},
-            memory::Typed,
-        };
-        type WinSurfaceData = <<WinColorFmt as Formatted>::Surface as SurfaceTyped>::DataType;
-        let download = self
-            .factory
-            .create_download_buffer::<WinSurfaceData>(width as usize * height as usize)?;
-        self.encoder.copy_texture_to_buffer_raw(
-            self.win_color_view.raw().get_texture(),
-            None,
-            gfx::texture::RawImageInfo {
-                xoffset: 0,
-                yoffset: 0,
-                zoffset: 0,
-                width,
-                height,
-                depth: 0,
-                format: WinColorFmt::get_format(),
-                mipmap: 0,
-            },
-            download.raw(),
-            0,
-        )?;
-        self.flush();
+        todo!()
+        // let (width, height) = self.get_resolution().into_tuple();
 
-        // Assumes that the format is Rgba8.
-        let raw_data = self
-            .factory
-            .read_mapping(&download)?
-            .chunks_exact(width as usize)
-            .rev()
-            .flatten()
-            .flatten()
-            .map(|&e| e)
-            .collect::<Vec<_>>();
-        Ok(image::DynamicImage::ImageRgba8(
-            // Should not fail if the dimensions are correct.
-            image::ImageBuffer::from_raw(width as u32, height as u32, raw_data).unwrap(),
-        ))
+        // let download_buf = self
+        //     .device
+        //     .create_buffer(&wgpu::BufferDescriptor {
+        //         label: None,
+        //         size: width * height * 4,
+        //         usage : wgpu::BufferUsage::COPY_DST,
+        //         mapped_at_creation: true
+        //     });
+
+        // let encoder =
+        // self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor
+        // {label: None});
+
+        //     encoder.copy_texture_to_buffer(&wgpu::TextureCopyViewBase {
+        //         origin: &self.wi
+        //     }, destination, copy_size)
+
+        // self.encoder.copy_texture_to_buffer_raw(
+        //     self.win_color_view.raw().get_texture(),
+        //     None,
+        //     gfx::texture::RawImageInfo {
+        //         xoffset: 0,
+        //         yoffset: 0,
+        //         zoffset: 0,
+        //         width,
+        //         height,
+        //         depth: 0,
+        //         format: WinColorFmt::get_format(),
+        //         mipmap: 0,
+        //     },
+        //     download.raw(),
+        //     0,
+        // )?;
+        // self.flush();
+
+        // // Assumes that the format is Rgba8.
+        // let raw_data = self
+        //     .factory
+        //     .read_mapping(&download)?
+        //     .chunks_exact(width as usize)
+        //     .rev()
+        //     .flatten()
+        //     .flatten()
+        //     .map(|&e| e)
+        //     .collect::<Vec<_>>();
+        // Ok(image::DynamicImage::ImageRgba8(
+        //     // Should not fail if the dimensions are correct.
+        //     image::ImageBuffer::from_raw(width as u32, height as u32,
+        // raw_data).unwrap(), ))
     }
 
     /// Queue the rendering of the provided skybox model in the upcoming frame.
@@ -1825,7 +1857,7 @@ impl Renderer {
                 color_sampler: (self.tgt_color_res.clone(), self.sampler.clone()),
                 depth_sampler: (self.tgt_depth_res.clone(), self.sampler.clone()),
                 noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                tgt_color: self.tgt_color_view_pp.clone(),
+                tgt_color: self.tgt_color_pp_view.clone(),
             },
         )
     }

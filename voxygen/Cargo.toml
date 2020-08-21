@@ -22,14 +22,13 @@ runtimeLibs = ["libGL", "xorg.libX11", "xorg.libXcursor", "xorg.libXrandr", "xor
 buildInputs = ["xorg.libxcb"]
 
 [features]
-gl = ["gfx_device_gl", "gfx_gl"]
 hot-anim = ["anim/use-dyn-lib"]
 singleplayer = ["server"]
 simd = ["vek/platform_intrinsics"]
 tracy = ["common/tracy", "common-ecs/tracy", "common-frontend/tracy", "common-net/tracy", "common-systems/tracy", "common-state/tracy", "client/tracy"]
 plugins = ["client/plugins"]
 
-default = ["gl", "singleplayer", "native-dialog", "plugins", "simd"]
+default = ["singleplayer", "native-dialog", "plugins", "simd"]
 
 [dependencies]
 client = {package = "veloren-client", path = "../client"}
@@ -51,6 +50,8 @@ gfx_gl = {version = "0.6.1", optional = true}
 glutin = "0.26.0"
 old_school_gfx_glutin_ext = "0.26"
 winit = {version = "0.24.0", features = ["serde"]}
+wgpu = "0.6.0"
+zerocopy = "0.3.0"
 
 # Ui
 conrod_core = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
@@ -87,8 +88,7 @@ crossbeam-channel = "0.5"
 directories-next = "2.0"
 dot_vox = "4.0"
 enum-iterator = "0.6"
-strum = "0.20"
-strum_macros = "0.20"
+futures = "0.3"
 glsl-include = "0.3.1"
 guillotiere = "0.6"
 hashbrown = {version = "0.9", features = ["rayon", "serde", "nightly"]}
@@ -101,6 +101,8 @@ rand = "0.8"
 rodio = {version = "0.13", default-features = false, features = ["vorbis"]}
 ron = {version = "0.6", default-features = false}
 serde = {version = "1.0", features = [ "rc", "derive" ]}
+strum = "0.20"
+strum_macros = "0.20"
 treeculler = "0.2"
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread"] }
 num_cpus = "1.0"

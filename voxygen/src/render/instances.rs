@@ -1,34 +1,30 @@
-use super::{gfx_backend, RenderError};
-use gfx::{
-    self,
-    buffer::Role,
-    memory::{Bind, Usage},
-    Factory,
-};
+use super::{buffer::Buffer, RenderError};
+use zerocopy::AsBytes;
 
 /// Represents a mesh that has been sent to the GPU.
-pub struct Instances<T: Copy + gfx::traits::Pod> {
-    pub ibuf: gfx::handle::Buffer<gfx_backend::Resources, T>,
+#[derive(Clone)]
+pub struct Instances<T: Copy + AsBytes> {
+    buf: Buffer<T>,
 }
 
-impl<T: Copy + gfx::traits::Pod> Instances<T> {
-    pub fn new(factory: &mut gfx_backend::Factory, len: usize) -> Result<Self, RenderError> {
-        Ok(Self {
-            ibuf: factory
-                .create_buffer(len, Role::Vertex, Usage::Dynamic, Bind::empty())
-                .map_err(RenderError::BufferCreationError)?,
-        })
+impl<T: Copy + AsBytes> Instances<T> {
+    pub fn new(device: &mut wgpu::Device, len: usize) -> Self {
+        Self {
+            buf: Buffer::new(device, len, wgpu::BufferUsage::VERTEX),
+        }
     }
 
-    pub fn count(&self) -> usize { self.ibuf.len() }
+    pub fn count(&self) -> usize { self.buf.count() }
 
     pub fn update(
         &mut self,
-        encoder: &mut gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
-        instances: &[T],
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        vals: &[T],
+        offset: usize,
     ) -> Result<(), RenderError> {
-        encoder
-            .update_buffer(&self.ibuf, instances, 0)
-            .map_err(RenderError::UpdateError)
+        self.buf.update(device, queue, vals, offset)
     }
+
+    pub fn buf(&self) -> &wgpu::Buffer { self.buf.buf }
 }

@@ -1,56 +1,28 @@
 use super::{
-    super::{Mesh, Model, Pipeline, TerrainPipeline, TgtColorFmt, TgtDepthStencilFmt},
+    super::{Mesh, Model, TerrainPipeline, TgtColorFmt, TgtDepthStencilFmt},
     shadow, Globals, Light, Shadow,
 };
 use crate::mesh::greedy::GreedyMesh;
-use gfx::{
-    self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta, gfx_pipeline,
-    gfx_pipeline_inner, state::ColorMask,
-};
 use vek::*;
+use zerocopy::AsBytes;
 
-gfx_defines! {
-    constant Locals {
-        model_mat: [[f32; 4]; 4] = "model_mat",
-        highlight_col: [f32; 4] = "highlight_col",
-        model_light: [f32; 4] = "model_light",
-        model_glow: [f32; 4] = "model_glow",
-        atlas_offs: [i32; 4] = "atlas_offs",
-        model_pos: [f32; 3] = "model_pos",
-        flags: u32 = "flags",
-    }
+#[repr(C)]
+#[derive(Copy, Clone, Debug, AsBytes)]
+pub struct Locals {
+    model_mat: [[f32; 4]; 4],
+    highlight_col: [f32; 4],
+    model_light: [f32; 4],
+    model_glow: [f32; 4],
+    atlas_offs: [i32; 4],
+    model_pos: [f32; 3],
+    flags: u32,
+}
 
-    constant BoneData {
-        bone_mat: [[f32; 4]; 4] = "bone_mat",
-        normals_mat: [[f32; 4]; 4] = "normals_mat",
-    }
-
-    pipeline pipe {
-        vbuf: gfx::VertexBuffer<<TerrainPipeline as Pipeline>::Vertex> = (),
-        // abuf: gfx::VertexBuffer<<TerrainPipeline as Pipeline>::Vertex> = (),
-        col_lights: gfx::TextureSampler<[f32; 4]> = "t_col_light",
-
-        locals: gfx::ConstantBuffer<Locals> = "u_locals",
-        globals: gfx::ConstantBuffer<Globals> = "u_globals",
-        bones: gfx::ConstantBuffer<BoneData> = "u_bones",
-        lights: gfx::ConstantBuffer<Light> = "u_lights",
-        shadows: gfx::ConstantBuffer<Shadow> = "u_shadows",
-
-        point_shadow_maps: gfx::TextureSampler<f32> = "t_point_shadow_maps",
-        directed_shadow_maps: gfx::TextureSampler<f32> = "t_directed_shadow_maps",
-
-        alt: gfx::TextureSampler<[f32; 2]> = "t_alt",
-        horizon: gfx::TextureSampler<[f32; 4]> = "t_horizon",
-
-        noise: gfx::TextureSampler<f32> = "t_noise",
-
-        // Shadow stuff
-        light_shadows: gfx::ConstantBuffer<shadow::Locals> = "u_light_shadows",
-
-        tgt_color: gfx::BlendTarget<TgtColorFmt> = ("tgt_color", ColorMask::all(), gfx::preset::blend::ALPHA),
-        tgt_depth_stencil: gfx::DepthTarget<TgtDepthStencilFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,
-        // tgt_depth_stencil: gfx::DepthStencilTarget<TgtDepthStencilFmt> = (gfx::preset::depth::LESS_EQUAL_WRITE,Stencil::new(Comparison::Always,0xff,(StencilOp::Keep,StencilOp::Keep,StencilOp::Replace))),
-    }
+#[repr(C)]
+#[derive(Copy, Clone, Debug, AsBytes)]
+pub struct BoneData {
+    bone_mat: [[f32; 4]; 4],
+    normals_mat: [[f32; 4]; 4],
 }
 
 impl Locals {
@@ -76,6 +48,21 @@ impl Locals {
             flags,
         }
     }
+
+    fn layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: None,
+            entries: &[wgpu::BindGroupLayoutEntry {
+                binding: 0,
+                visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                ty: wgpu::BindingType::UniformBuffer {
+                    dynamic: false,
+                    min_binding_size: None,
+                },
+                count: None,
+            }],
+        })
+    }
 }
 
 impl Default for Locals {
@@ -99,16 +86,39 @@ impl BoneData {
             normals_mat: normals_mat.into_col_arrays(),
         }
     }
+
+    fn layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: None,
+            entries: &[wgpu::BindGroupLayoutEntry {
+                binding: 0,
+                visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                ty: wgpu::BindingType::UniformBuffer {
+                    dynamic: false,
+                    min_binding_size: None,
+                },
+                count: None,
+            }],
+        })
+    }
 }
 
 impl Default for BoneData {
     fn default() -> Self { Self::new(anim::vek::Mat4::identity(), anim::vek::Mat4::identity()) }
 }
 
-pub struct FigurePipeline;
+pub struct FigureLayout {
+    pub locals: wgpu::BindGroupLayout,
+    pub bone_data: wgpu::BindGroupLayout,
+}
 
-impl Pipeline for FigurePipeline {
-    type Vertex = <TerrainPipeline as Pipeline>::Vertex;
+impl FigureLayout {
+    pub fn new(device: &wgpu::Device) -> Self {
+        Self {
+            locals: Locals::locals_layout(device),
+            bone_data: BoneData::bone_data_layout(device),
+        }
+    }
 }
 
 pub struct FigureModel {
@@ -130,3 +140,49 @@ impl FigureModel {
 }
 
 pub type BoneMeshes = (Mesh<TerrainPipeline>, anim::vek::Aabb<f32>);
+
+//gfx_defines! {
+//    constant Locals {
+//        model_mat: [[f32; 4]; 4] = "model_mat",
+//        highlight_col: [f32; 4] = "highlight_col",
+//        model_light: [f32; 4] = "model_light",
+//        atlas_offs: [i32; 4] = "atlas_offs",
+//        model_pos: [f32; 3] = "model_pos",
+//        flags: u32 = "flags",
+//    }
+//
+//    constant BoneData {
+//        bone_mat: [[f32; 4]; 4] = "bone_mat",
+//        normals_mat: [[f32; 4]; 4] = "normals_mat",
+//    }
+//
+//    pipeline pipe {
+//        vbuf: gfx::VertexBuffer<<TerrainPipeline as Pipeline>::Vertex> = (),
+//        // abuf: gfx::VertexBuffer<<TerrainPipeline as Pipeline>::Vertex> =
+// (),        col_lights: gfx::TextureSampler<[f32; 4]> = "t_col_light",
+//
+//        locals: gfx::ConstantBuffer<Locals> = "u_locals",
+//        globals: gfx::ConstantBuffer<Globals> = "u_globals",
+//        bones: gfx::ConstantBuffer<BoneData> = "u_bones",
+//        lights: gfx::ConstantBuffer<Light> = "u_lights",
+//        shadows: gfx::ConstantBuffer<Shadow> = "u_shadows",
+//
+//        point_shadow_maps: gfx::TextureSampler<f32> = "t_point_shadow_maps",
+//        directed_shadow_maps: gfx::TextureSampler<f32> =
+// "t_directed_shadow_maps",
+//
+//        alt: gfx::TextureSampler<[f32; 2]> = "t_alt",
+//        horizon: gfx::TextureSampler<[f32; 4]> = "t_horizon",
+//
+//        noise: gfx::TextureSampler<f32> = "t_noise",
+//
+//        // Shadow stuff
+//        light_shadows: gfx::ConstantBuffer<shadow::Locals> =
+// "u_light_shadows",
+//
+//        tgt_color: gfx::BlendTarget<TgtColorFmt> = ("tgt_color",
+// ColorMask::all(), gfx::preset::blend::ALPHA),        tgt_depth_stencil:
+// gfx::DepthTarget<TgtDepthStencilFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,
+//        // tgt_depth_stencil: gfx::DepthStencilTarget<TgtDepthStencilFmt> =
+// (gfx::preset::depth::LESS_EQUAL_WRITE,Stencil::new(Comparison::Always,0xff,
+// (StencilOp::Keep,StencilOp::Keep,StencilOp::Replace))),    }

@@ -1,3 +1,4 @@
+mod buffer;
 #[allow(clippy::single_component_path_imports)] // TODO: Pending review in #587
 pub mod consts;
 mod error;
@@ -44,25 +45,9 @@ pub use self::{
     },
     texture::Texture,
 };
-pub use gfx::texture::{FilterMethod, WrapMode};
+pub use wgpu::{AddressMode, FilterMode};
 
-#[cfg(feature = "gl")]
-use gfx_device_gl as gfx_backend;
-
-/// Used to represent a specific rendering configuration.
-///
-/// Note that pipelines are tied to the
-/// rendering backend, and as such it is necessary to modify the rendering
-/// subsystem when adding new pipelines - custom pipelines are not currently an
-/// objective of the rendering subsystem.
-///
-/// # Examples
-///
-/// - `SkyboxPipeline`
-/// - `FigurePipeline`
-pub trait Pipeline {
-    type Vertex: Clone + gfx::traits::Pod + gfx::pso::buffer::Structure<gfx::format::Format>;
-}
+trait Vertex = Clone + zerocopy::AsBytes;
 
 use serde::{Deserialize, Serialize};
 /// Anti-aliasing modes

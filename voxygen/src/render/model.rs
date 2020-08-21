@@ -1,69 +1,48 @@
-use super::{gfx_backend, mesh::Mesh, Pipeline, RenderError};
-use gfx::{
-    buffer::Role,
-    memory::{Bind, Usage},
-    traits::FactoryExt,
-    Factory,
-};
+use super::{buffer::Buffer, mesh::Mesh, RenderError, Vertex};
 use std::ops::Range;
 
 /// Represents a mesh that has been sent to the GPU.
-pub struct Model<P: Pipeline> {
-    pub vbuf: gfx::handle::Buffer<gfx_backend::Resources, P::Vertex>,
+pub struct SubModel<'a, V: Vertex> {
     pub vertex_range: Range<u32>,
+    buf: &'a wgpu::Buffer,
+    phantom_data: std::marker::PhantomData<V>,
 }
 
-impl<P: Pipeline> Model<P> {
-    pub fn new(factory: &mut gfx_backend::Factory, mesh: &Mesh<P>) -> Self {
+impl<'a, V: Vertex> SubModel<'a, V> {
+    pub fn buf(&self) -> &wgpu::Buffer { self.buf }
+}
+
+/// Represents a mesh that has been sent to the GPU.
+pub struct Model<V: Vertex> {
+    vbuf: Buffer<V>,
+}
+
+impl<V: Vertex> Model<V> {
+    pub fn new(device: &wgpu::Device, mesh: &Mesh<V>) -> Self {
         Self {
-            vbuf: factory.create_vertex_buffer(mesh.vertices()),
-            vertex_range: 0..mesh.vertices().len() as u32,
+            vbuf: Buffer::new_with_data(device, wgpu::BufferUsage::VERTEX, mesh.vertices()),
         }
-    }
-
-    pub fn vertex_range(&self) -> Range<u32> { self.vertex_range.clone() }
-
-    /// Create a model with a slice of a portion of this model to send to the
-    /// renderer.
-    pub fn submodel(&self, vertex_range: Range<u32>) -> Model<P> {
-        Model {
-            vbuf: self.vbuf.clone(),
-            vertex_range,
-        }
-    }
-}
-
-/// Represents a mesh on the GPU which can be updated dynamically.
-pub struct DynamicModel<P: Pipeline> {
-    pub vbuf: gfx::handle::Buffer<gfx_backend::Resources, P::Vertex>,
-}
-
-impl<P: Pipeline> DynamicModel<P> {
-    pub fn new(factory: &mut gfx_backend::Factory, size: usize) -> Result<Self, RenderError> {
-        Ok(Self {
-            vbuf: factory
-                .create_buffer(size, Role::Vertex, Usage::Dynamic, Bind::empty())
-                .map_err(RenderError::BufferCreationError)?,
-        })
     }
 
     /// Create a model with a slice of a portion of this model to send to the
     /// renderer.
-    pub fn submodel(&self, vertex_range: Range<u32>) -> Model<P> {
-        Model {
-            vbuf: self.vbuf.clone(),
+    pub fn submodel(&self, vertex_range: Range<u32>) -> SubModel<V> {
+        SubModel {
             vertex_range,
+            buf: self.buf(),
+            phantom_data: std::marker::PhantomData,
         }
     }
 
     pub fn update(
-        &self,
-        encoder: &mut gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
-        mesh: &Mesh<P>,
+        &mut self,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        mesh: &Mesh<V>,
         offset: usize,
     ) -> Result<(), RenderError> {
-        encoder
-            .update_buffer(&self.vbuf, mesh.vertices(), offset)
-            .map_err(RenderError::UpdateError)
+        self.buf.update(device, queue, mesh.vertices(), offset)
     }
+
+    pub fn buf(&self) -> &wgpu::Buffer { self.vbuf.buf }
 }

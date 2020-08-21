@@ -1,15 +1,12 @@
-use super::Pipeline;
+use super::Vertex;
 use core::{iter::FromIterator, ops::Range};
 
 /// A `Vec`-based mesh structure used to store mesh data on the CPU.
-pub struct Mesh<P: Pipeline> {
-    verts: Vec<P::Vertex>,
+pub struct Mesh<V: Vertex> {
+    verts: Vec<V>,
 }
 
-impl<P: Pipeline> Clone for Mesh<P>
-where
-    P::Vertex: Clone,
-{
+impl<V: Vertex> Clone for Mesh<V> {
     fn clone(&self) -> Self {
         Self {
             verts: self.verts.clone(),
@@ -17,7 +14,7 @@ where
     }
 }
 
-impl<P: Pipeline> Mesh<P> {
+impl<V: Vertex> Mesh<V> {
     /// Create a new `Mesh`.
     #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self { Self { verts: Vec::new() } }
@@ -26,23 +23,23 @@ impl<P: Pipeline> Mesh<P> {
     pub fn clear(&mut self) { self.verts.clear(); }
 
     /// Get a slice referencing the vertices of this mesh.
-    pub fn vertices(&self) -> &[P::Vertex] { &self.verts }
+    pub fn vertices(&self) -> &[V] { &self.verts }
 
     /// Get a mutable slice referencing the vertices of this mesh.
     pub fn vertices_mut(&mut self) -> &mut [P::Vertex] { &mut self.verts }
 
     /// Push a new vertex onto the end of this mesh.
-    pub fn push(&mut self, vert: P::Vertex) { self.verts.push(vert); }
+    pub fn push(&mut self, vert: V) { self.verts.push(vert); }
 
     /// Push a new polygon onto the end of this mesh.
-    pub fn push_tri(&mut self, tri: Tri<P>) {
+    pub fn push_tri(&mut self, tri: Tri<V>) {
         self.verts.push(tri.a);
         self.verts.push(tri.b);
         self.verts.push(tri.c);
     }
 
     /// Push a new quad onto the end of this mesh.
-    pub fn push_quad(&mut self, quad: Quad<P>) {
+    pub fn push_quad(&mut self, quad: Quad<V>) {
         // A quad is composed of two triangles. The code below converts the former to
         // the latter.
 
@@ -73,10 +70,10 @@ impl<P: Pipeline> Mesh<P> {
     }
 
     /// Push the vertices of another mesh onto the end of this mesh.
-    pub fn push_mesh(&mut self, other: &Mesh<P>) { self.verts.extend_from_slice(other.vertices()); }
+    pub fn push_mesh(&mut self, other: &Mesh<V>) { self.verts.extend_from_slice(other.vertices()); }
 
     /// Map and push the vertices of another mesh onto the end of this mesh.
-    pub fn push_mesh_map<F: FnMut(P::Vertex) -> P::Vertex>(&mut self, other: &Mesh<P>, mut f: F) {
+    pub fn push_mesh_map<F: FnMut(V) -> V>(&mut self, other: &Mesh<V>, mut f: F) {
         // Reserve enough space in our Vec. This isn't necessary, but it tends to reduce
         // the number of required (re)allocations.
         self.verts.reserve(other.vertices().len());
@@ -86,23 +83,23 @@ impl<P: Pipeline> Mesh<P> {
         }
     }
 
-    pub fn iter(&self) -> std::slice::Iter<P::Vertex> { self.verts.iter() }
+    pub fn iter(&self) -> std::slice::Iter<V> { self.verts.iter() }
 
     /// NOTE: Panics if vertex_range is out of bounds of vertices.
-    pub fn iter_mut(&mut self, vertex_range: Range<usize>) -> std::slice::IterMut<P::Vertex> {
+    pub fn iter_mut(&mut self, vertex_range: Range<usize>) -> std::slice::IterMut<V> {
         self.verts[vertex_range].iter_mut()
     }
 }
 
-impl<P: Pipeline> IntoIterator for Mesh<P> {
-    type IntoIter = std::vec::IntoIter<P::Vertex>;
-    type Item = P::Vertex;
+impl<V: Vertex> IntoIterator for Mesh<V> {
+    type IntoIter = std::vec::IntoIter<V>;
+    type Item = V;
 
     fn into_iter(self) -> Self::IntoIter { self.verts.into_iter() }
 }
 
-impl<P: Pipeline> FromIterator<Tri<P>> for Mesh<P> {
-    fn from_iter<I: IntoIterator<Item = Tri<P>>>(tris: I) -> Self {
+impl<V: Vertex> FromIterator<Tri<V>> for Mesh<V> {
+    fn from_iter<I: IntoIterator<Item = Tri<V>>>(tris: I) -> Self {
         tris.into_iter().fold(Self::new(), |mut this, tri| {
             this.push_tri(tri);
             this
@@ -110,8 +107,8 @@ impl<P: Pipeline> FromIterator<Tri<P>> for Mesh<P> {
     }
 }
 
-impl<P: Pipeline> FromIterator<Quad<P>> for Mesh<P> {
-    fn from_iter<I: IntoIterator<Item = Quad<P>>>(quads: I) -> Self {
+impl<V: Vertex> FromIterator<Quad<V>> for Mesh<V> {
+    fn from_iter<I: IntoIterator<Item = Quad<V>>>(quads: I) -> Self {
         quads.into_iter().fold(Self::new(), |mut this, quad| {
             this.push_quad(quad);
             this
@@ -120,33 +117,28 @@ impl<P: Pipeline> FromIterator<Quad<P>> for Mesh<P> {
 }
 
 /// Represents a triangle stored on the CPU.
-pub struct Tri<P: Pipeline> {
-    a: P::Vertex,
-    b: P::Vertex,
-    c: P::Vertex,
+pub struct Tri<V: Vertex> {
+    a: V,
+    b: V,
+    c: V,
 }
 
-impl<P: Pipeline> Tri<P> {
-    pub fn new(a: P::Vertex, b: P::Vertex, c: P::Vertex) -> Self { Self { a, b, c } }
+impl<V: Vertex> Tri<V> {
+    pub fn new(a: V, b: V, c: V) -> Self { Self { a, b, c } }
 }
 
 /// Represents a quad stored on the CPU.
-pub struct Quad<P: Pipeline> {
-    a: P::Vertex,
-    b: P::Vertex,
-    c: P::Vertex,
-    d: P::Vertex,
+pub struct Quad<V: Vertex> {
+    a: V,
+    b: V,
+    c: V,
+    d: V,
 }
 
-impl<P: Pipeline> Quad<P> {
-    pub fn new(a: P::Vertex, b: P::Vertex, c: P::Vertex, d: P::Vertex) -> Self {
-        Self { a, b, c, d }
-    }
+impl<V: Vertex> Quad<V> {
+    pub fn new(a: V, b: V, c: V, d: V) -> Self { Self { a, b, c, d } }
 
-    pub fn rotated_by(self, n: usize) -> Self
-    where
-        P::Vertex: Clone,
-    {
+    pub fn rotated_by(self, n: usize) -> Self {
         let verts = [self.a, self.b, self.c, self.d];
 
         Self {
