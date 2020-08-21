@@ -273,12 +273,22 @@ impl ParticleMgr {
 
         type BoiFn<'a> = fn(&'a BlocksOfInterest) -> &'a [Vec3<i32>];
         // blocks, chunk range, emission density, lifetime, particle mode
+        //
+        // - blocks: the function to select the blocks of interest that we should emit
+        //   from
+        // - chunk range: the range, in chunks, that the particles should be generated
+        //   in from the player
+        // - emission density: the density, per block per second, of the generated
+        //   particles
+        // - lifetime: the number of seconds that each particle should live for
+        // - particle mode: the visual mode of the generated particle
         let particles: &[(BoiFn, usize, f32, f32, ParticleMode)] = &[
             (|boi| &boi.leaves, 4, 0.001, 30.0, ParticleMode::Leaf),
             (|boi| &boi.embers, 2, 20.0, 0.25, ParticleMode::CampfireFire),
             (|boi| &boi.embers, 8, 3.0, 40.0, ParticleMode::CampfireSmoke),
         ];
 
+        let mut rng = thread_rng();
         for (get_blocks, range, rate, dur, mode) in particles.iter() {
             for offset in Spiral2d::new().take((*range * 2 + 1).pow(2)) {
                 let chunk_pos = player_chunk + offset;
@@ -288,20 +298,21 @@ impl ParticleMgr {
 
                     let avg_particles = dt * blocks.len() as f32 * *rate;
                     let particle_count = avg_particles.trunc() as usize
-                        + (thread_rng().gen::<f32>() < avg_particles.fract()) as usize;
+                        + (rng.gen::<f32>() < avg_particles.fract()) as usize;
 
-                    for _ in 0..particle_count {
-                        let block_pos =
-                            Vec3::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32))
-                                + blocks.choose(&mut thread_rng()).copied().unwrap(); // Can't fail
+                    self.particles
+                        .resize_with(self.particles.len() + particle_count, || {
+                            let block_pos =
+                                Vec3::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32))
+                                    + blocks.choose(&mut rng).copied().unwrap(); // Can't fail
 
-                        self.particles.push(Particle::new(
-                            Duration::from_secs_f32(*dur),
-                            time,
-                            *mode,
-                            block_pos.map(|e: i32| e as f32 + thread_rng().gen::<f32>()),
-                        ));
-                    }
+                            Particle::new(
+                                Duration::from_secs_f32(*dur),
+                                time,
+                                *mode,
+                                block_pos.map(|e: i32| e as f32 + rng.gen::<f32>()),
+                            )
+                        })
                 });
             }
         }
