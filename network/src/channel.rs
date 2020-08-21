@@ -50,13 +50,13 @@ impl Channel {
 
         //reapply leftovers from handshake
         let cnt = leftover_cid_frame.len();
-        trace!(?self.cid, ?cnt, "Reapplying leftovers");
+        trace!(?cnt, "Reapplying leftovers");
         for cid_frame in leftover_cid_frame.drain(..) {
             w2c_cid_frame_s.send(cid_frame).await.unwrap();
         }
-        trace!(?self.cid, ?cnt, "All leftovers reapplied");
+        trace!(?cnt, "All leftovers reapplied");
 
-        trace!(?self.cid, "Start up channel");
+        trace!("Start up channel");
         match protocol {
             Protocols::Tcp(tcp) => {
                 join!(
@@ -72,7 +72,7 @@ impl Channel {
             },
         }
 
-        trace!(?self.cid, "Shut down channel");
+        trace!("Shut down channel");
     }
 }
 
@@ -148,7 +148,11 @@ impl Handshake {
                 }
                 let cnt = leftover_frames.len();
                 if cnt > 0 {
-                    debug!(?self.cid, ?cnt, "Some additional frames got already transfered, piping them to the bparticipant as leftover_frames");
+                    debug!(
+                        ?cnt,
+                        "Some additional frames got already transfered, piping them to the \
+                         bparticipant as leftover_frames"
+                    );
                 }
                 Ok((res.0, res.1, res.2, leftover_frames))
             },
