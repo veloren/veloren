@@ -619,12 +619,12 @@ fn handle_spawn(
                                 );
                             } else if let Some(group) = match alignment {
                                 comp::Alignment::Wild => None,
+                                comp::Alignment::Passive => None,
                                 comp::Alignment::Enemy => Some(comp::group::ENEMY),
                                 comp::Alignment::Npc | comp::Alignment::Tame => {
                                     Some(comp::group::NPC)
                                 },
                                 comp::Alignment::Owned(_) => unreachable!(),
-                                _ => None,
                             } {
                                 let _ =
                                     server.state.ecs().write_storage().insert(new_entity, group);

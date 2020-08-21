@@ -105,6 +105,7 @@ impl World {
     pub fn sample_blocks(&self) -> BlockGen { BlockGen::new(ColumnGen::new(&self.sim)) }
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
+    #[allow(clippy::eval_order_dependence)]
     pub fn generate_chunk(
         &self,
         index: IndexRef,
@@ -205,9 +206,9 @@ impl World {
         let mut rng = rand::thread_rng();
 
         // Apply layers (paths, caves, etc.)
+        layer::apply_caves_to(chunk_wpos2d, sample_get, &mut chunk, index);
         layer::apply_scatter_to(chunk_wpos2d, sample_get, &mut chunk, index, sim_chunk);
         layer::apply_paths_to(chunk_wpos2d, sample_get, &mut chunk, index);
-        layer::apply_caves_to(chunk_wpos2d, sample_get, &mut chunk, index);
 
         // Apply site generation
         sim_chunk.sites.iter().for_each(|site| {
@@ -236,12 +237,9 @@ impl World {
                 && sim_chunk.chaos < 0.5
                 && !sim_chunk.is_underwater()
             {
+                // TODO: REFACTOR: Define specific alignments in a config file instead of here
                 let is_hostile: bool;
-                let is_giant = if rng.gen_range(0, 8) == 0 {
-                    true
-                } else {
-                    false
-                };
+                let is_giant = rng.gen_range(0, 8) == 0;
                 let quadmed = comp::Body::QuadrupedMedium(quadruped_medium::Body::random()); // Not all of them are hostile so we have to do the rng here
                 let quadlow = comp::Body::QuadrupedLow(quadruped_low::Body::random()); // Not all of them are hostile so we have to do the rng here
                 let entity = EntityInfo::at(gen_entity_pos())

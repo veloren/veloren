@@ -109,10 +109,10 @@ void main() {
 		attr = Attr(
 			linear_motion(
 				vec3(0.0, 0.0, 0.0),
-				vec3(rand2 * 0.02, rand3 * 0.02, 1.0 + rand4 * 0.1)
+				vec3(rand2 * 0.1, rand3 * 0.1, 1.0 + rand4 * 0.1)
 			),
-			linear_scale(0.5),
-			vec4(1, 1, 1, start_end(1.0, 0.0)),
+			linear_scale(0.2),
+			vec4(1, 1, 1, start_end(0.1, 0.0)),
 			spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
 		);
 	} else if (inst_mode == FIRE) {
@@ -121,7 +121,7 @@ void main() {
 				vec3(rand0 * 0.3, rand1 * 0.3, 0.2),
 				vec3(rand1 * 0.1, rand3 * 0.1, 3.0 + rand4 * 1.2)
 			),
-			1.0,
+			1.3,
 			vec4(2, 0.8 + rand5 * 0.3, 0, 1),
 			spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
 		);

@@ -28,7 +28,6 @@ impl Alignment {
         match (self, other) {
             (Alignment::Enemy, Alignment::Enemy) => false,
             (Alignment::Enemy, Alignment::Wild) => false,
-            (Alignment::Enemy, Alignment::Tame) => true,
             (Alignment::Wild, Alignment::Enemy) => false,
             (Alignment::Wild, Alignment::Wild) => false,
             (Alignment::Npc, Alignment::Wild) => false,
@@ -69,7 +68,6 @@ impl Component for Alignment {
 pub struct Psyche {
     pub aggro: f32, // 0.0 = always flees, 1.0 = always attacks, 0.5 = flee at 50% health
 }
-#[allow(unreachable_patterns)]
 impl<'a> From<&'a Body> for Psyche {
     fn from(body: &'a Body) -> Self {
         Self {
@@ -81,7 +79,6 @@ impl<'a> From<&'a Body> for Psyche {
                     humanoid::Species::Human => 0.95,
                     humanoid::Species::Orc => 1.0,
                     humanoid::Species::Undead => 1.0,
-                    _ => 1.0,
                 },
                 Body::QuadrupedSmall(quadruped_small) => match quadruped_small.species {
                     quadruped_small::Species::Pig => 0.5,
@@ -100,7 +97,6 @@ impl<'a> From<&'a Body> for Psyche {
                     quadruped_small::Species::Rabbit => 0.1,
                     quadruped_small::Species::Truffler => 0.8,
                     quadruped_small::Species::Frog => 0.6,
-                    _ => 1.0,
                 },
                 Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
                     quadruped_medium::Species::Tuskram => 0.8,
@@ -119,7 +115,6 @@ impl<'a> From<&'a Body> for Psyche {
                     quadruped_low::Species::Rocksnapper => 1.0,
                     quadruped_low::Species::Pangolin => 0.6,
                     quadruped_low::Species::Maneater => 1.0,
-                    _ => 1.0,
                 },
                 Body::BirdMedium(_) => 1.0,
                 Body::BirdSmall(_) => 0.4,

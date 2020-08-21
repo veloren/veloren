@@ -145,19 +145,19 @@ pub fn apply_scatter_to<'a>(
         // Grass
         (ShortGrass, false, |c| {
             (
-                close(c.temp, 0.3, 0.4).min(close(c.humidity, 0.6, 0.35)) * 0.5,
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, 0.6, 0.35)) * 0.05,
                 Some((48.0, 0.4)),
             )
         }),
         (MediumGrass, false, |c| {
             (
-                close(c.temp, 0.0, 0.6).min(close(c.humidity, 0.6, 0.35)) * 0.5,
+                close(c.temp, 0.0, 0.6).min(close(c.humidity, 0.6, 0.35)) * 0.05,
                 Some((48.0, 0.2)),
             )
         }),
         (LongGrass, false, |c| {
             (
-                close(c.temp, 0.4, 0.4).min(close(c.humidity, 0.8, 0.2)) * 0.5,
+                close(c.temp, 0.4, 0.4).min(close(c.humidity, 0.8, 0.2)) * 0.08,
                 Some((48.0, 0.1)),
             )
         }),
@@ -168,7 +168,7 @@ pub fn apply_scatter_to<'a>(
                     c.humidity,
                     CONFIG.jungle_hum,
                     0.6,
-                )) * 0.5,
+                )) * 0.08,
                 Some((60.0, 5.0)),
             )
         }),
@@ -508,7 +508,7 @@ pub fn apply_caves_to<'a>(
         }
     }
 }
-
+#[allow(clippy::eval_order_dependence)]
 pub fn apply_caves_supplement<'a>(
     rng: &mut impl Rng,
     wpos2d: Vec2<i32>,

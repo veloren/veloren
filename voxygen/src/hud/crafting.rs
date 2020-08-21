@@ -246,24 +246,20 @@ impl<'a> Widget for Crafting<'a> {
                 {
                     let output_text = format!("x{}", &recipe.output.1.to_string());
                     // Output Image
+                    let (title, desc) = super::util::item_text(&recipe.output.0);
                     Button::image(
                         self.item_imgs
                             .img_id_or_not_found_img((&recipe.output.0).into()),
                     )
                     .w_h(55.0, 55.0)
                     .middle_of(state.ids.output_img_frame)
-                    .label(if recipe.output.1 > 1 {&output_text} else {""}) // Only show output amount for amounts > 1
+                    .label(&output_text)
                     .label_color(TEXT_COLOR)
                     .label_font_size(self.fonts.cyri.scale(14))
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_y(conrod_core::position::Relative::Scalar(-24.0))
                     .label_x(conrod_core::position::Relative::Scalar(24.0))
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        recipe.output.0.name(),
-                        recipe.output.0.description(),
-                        &item_tooltip,
-                    )
+                    .with_tooltip(self.tooltip_manager, title, &*desc, &item_tooltip)
                     .set(state.ids.output_img, ui);
                 }
             },
@@ -395,13 +391,12 @@ impl<'a> Widget for Crafting<'a> {
                 };
                 frame.set(state.ids.ingredient_frame[i], ui);
                 //Item Image
-                let title = item.name();
-                let desc = item.description();
+                let (title, desc) = super::util::item_text(&item);
                 Button::image(self.item_imgs.img_id_or_not_found_img(item.into()))
                     .w_h(22.0, 22.0)
                     .middle_of(state.ids.ingredient_frame[i])
                     //.image_color(col)
-                    .with_tooltip(self.tooltip_manager, title, desc, &item_tooltip)
+                    .with_tooltip(self.tooltip_manager, title, &*desc, &item_tooltip)
                     .set(state.ids.ingredient_img[i], ui);
                 // Ingredients text and amount
                 // Don't show inventory amounts above 999 to avoid the widget clipping

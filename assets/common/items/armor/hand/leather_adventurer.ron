@@ -1,6 +1,6 @@
 Item(
     name: "Agile Gauntlets",
-    description: "",
+    description: "'Tightly packed pieces of leather to endure all weather.'",
     kind: Armor(
         (
             kind: Hand("Leather2"),

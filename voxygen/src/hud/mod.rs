@@ -1723,7 +1723,7 @@ impl Hud {
                         self.show.stats = false;
                         self.show.bag(false);
                         self.show.crafting(false);
-                        if self.show.social == false {
+                        if !self.show.social {
                             self.show.want_grab = true;
                             self.force_ungrab = false;
                         } else {
@@ -1805,7 +1805,7 @@ impl Hud {
                             self.show.stats = false;
                             self.show.crafting(false);
                             self.show.bag(false);
-                            if self.show.social == false {
+                            if !self.show.social {
                                 self.show.want_grab = true;
                                 self.force_ungrab = false;
                             } else {
@@ -2032,7 +2032,7 @@ impl Hud {
                     match event {
                         social::Event::Close => {
                             self.show.social(false);
-                            if self.show.bag == false {
+                            if !self.show.bag {
                                 self.show.want_grab = true;
                                 self.force_ungrab = false;
                             } else {
