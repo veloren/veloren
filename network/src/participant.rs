@@ -28,7 +28,8 @@ use tracing::*;
 use tracing_futures::Instrument;
 
 pub(crate) type A2bStreamOpen = (Prio, Promises, oneshot::Sender<Stream>);
-pub(crate) type S2bCreateChannel = (Cid, Sid, Protocols, Vec<(Cid, Frame)>, oneshot::Sender<()>);
+pub(crate) type C2pFrame = (Cid, Result<Frame, ()>);
+pub(crate) type S2bCreateChannel = (Cid, Sid, Protocols, Vec<C2pFrame>, oneshot::Sender<()>);
 pub(crate) type S2bShutdownBparticipant = oneshot::Sender<Result<(), ParticipantError>>;
 pub(crate) type B2sPrioStatistic = (Pid, u64, u64);
 
@@ -143,7 +144,7 @@ impl BParticipant {
             oneshot::channel();
         let (shutdown_open_mgr_sender, shutdown_open_mgr_receiver) = oneshot::channel();
         let (b2b_prios_flushed_s, b2b_prios_flushed_r) = oneshot::channel();
-        let (w2b_frames_s, w2b_frames_r) = mpsc::unbounded::<(Cid, Frame)>();
+        let (w2b_frames_s, w2b_frames_r) = mpsc::unbounded::<C2pFrame>();
         let (prios, a2p_msg_s, b2p_notify_empty_stream_s) = PrioManager::new(
             #[cfg(feature = "metrics")]
             self.metrics.clone(),
@@ -255,27 +256,29 @@ impl BParticipant {
         //TODO: just take first
         let mut lock = self.channels.write().await;
         if let Some(ci) = lock.values_mut().next() {
-            //note: this is technically wrong we should only increase when it succeeded,
-            // but this requiered me to clone `frame` which is a to big
-            // performance impact for error handling
+            //we are increasing metrics without checking the result to please
+            // borrow_checker. otherwise we would need to close `frame` what we
+            // dont want!
             #[cfg(feature = "metrics")]
             frames_out_total_cache
                 .with_label_values(ci.cid, &frame)
                 .inc();
             if let Err(e) = ci.b2w_frame_s.send(frame).await {
                 let cid = ci.cid;
-                warn!(
-                    ?e,
-                    ?cid,
-                    "channel no longer available, maybe cleanup in process?"
-                );
+                info!(?e, ?cid, "channel no longer available");
+                if let Some(ci) = self.channels.write().await.remove(&cid) {
+                    trace!(?cid, "stopping read protocol");
+                    if let Err(e) = ci.b2r_read_shutdown.send(()) {
+                        trace!(?cid, ?e, "seems like was already shut down");
+                    }
+                }
                 //TODO FIXME tags: takeover channel multiple
                 info!(
                     "FIXME: the frame is actually drop. which is fine for now as the participant \
                      will be closed, but not if we do channel-takeover"
                 );
                 //TEMP FIX: as we dont have channel takeover yet drop the whole bParticipant
-                self.close_api(Some(ParticipantError::ProtocolFailedUnrecoverable))
+                self.close_write_api(Some(ParticipantError::ProtocolFailedUnrecoverable))
                     .await;
                 false
             } else {
@@ -297,16 +300,13 @@ impl BParticipant {
             } else {
                 guard.1 += 1;
             }
-            //TEMP FIX: as we dont have channel takeover yet drop the whole bParticipant
-            self.close_api(Some(ParticipantError::ProtocolFailedUnrecoverable))
-                .await;
             false
         }
     }
 
     async fn handle_frames_mgr(
         &self,
-        mut w2b_frames_r: mpsc::UnboundedReceiver<(Cid, Frame)>,
+        mut w2b_frames_r: mpsc::UnboundedReceiver<C2pFrame>,
         mut b2a_stream_opened_s: mpsc::UnboundedSender<Stream>,
         a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
         a2p_msg_s: crossbeam_channel::Sender<(Prio, Sid, OutgoingMessage)>,
@@ -318,8 +318,22 @@ impl BParticipant {
         let mut dropped_cnt = 0u64;
         let mut dropped_sid = Sid::new(0);
 
-        while let Some((cid, frame)) = w2b_frames_r.next().await {
-            //trace!("handling frame");
+        while let Some((cid, result_frame)) = w2b_frames_r.next().await {
+            //trace!(?result_frame, "handling frame");
+            let frame = match result_frame {
+                Ok(frame) => frame,
+                Err(()) => {
+                    // The read protocol stopped, i need to make sure that write gets stopped
+                    debug!("read protocol was closed. Stopping write protocol");
+                    if let Some(ci) = self.channels.write().await.get_mut(&cid) {
+                        ci.b2w_frame_s
+                            .close()
+                            .await
+                            .expect("couldn't stop write protocol");
+                    }
+                    continue;
+                },
+            };
             #[cfg(feature = "metrics")]
             {
                 let cid_string = cid.to_string();
@@ -328,8 +342,6 @@ impl BParticipant {
                     .with_label_values(&[&self.remote_pid_string, &cid_string, frame.get_string()])
                     .inc();
             }
-            #[cfg(not(feature = "metrics"))]
-            let _cid = cid;
             match frame {
                 Frame::OpenStream {
                     sid,
@@ -400,7 +412,7 @@ impl BParticipant {
                         false
                     };
                     if finished {
-                        //debug!(?mid, "finished receiving message");
+                        //trace!(?mid, "finished receiving message");
                         let imsg = messages.remove(&mid).unwrap();
                         if let Some(si) = self.streams.write().await.get_mut(&imsg.sid) {
                             if let Err(e) = si.b2a_msg_recv_s.send(imsg).await {
@@ -453,7 +465,7 @@ impl BParticipant {
     async fn create_channel_mgr(
         &self,
         s2b_create_channel_r: mpsc::UnboundedReceiver<S2bCreateChannel>,
-        w2b_frames_s: mpsc::UnboundedSender<(Cid, Frame)>,
+        w2b_frames_s: mpsc::UnboundedSender<C2pFrame>,
     ) {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
         trace!("Start create_channel_mgr");
@@ -489,17 +501,13 @@ impl BParticipant {
                             .channels_disconnected_total
                             .with_label_values(&[&self.remote_pid_string])
                             .inc();
-                        info!(?cid, "Channel got closed, cleaning up");
-                        //stopping read in case write triggered the failure
-                        if let Some(ci) = channels.write().await.remove(&cid) {
-                            if let Err(e) = ci.b2r_read_shutdown.send(()) {
-                                debug!(?e, "read channel was already shut down");
-                            };
-                        } //None means it prob got closed by closing the participant
+                        info!(?cid, "Channel got closed");
+                        //maybe channel got already dropped, we don't know.
+                        channels.write().await.remove(&cid);
                         trace!(?cid, "Channel cleanup completed");
                         //TEMP FIX: as we dont have channel takeover yet drop the whole
                         // bParticipant
-                        self.close_api(None).await;
+                        self.close_write_api(None).await;
                     }
                 },
             )
@@ -578,6 +586,9 @@ impl BParticipant {
         trace!("Start participant_shutdown_mgr");
         let sender = s2b_shutdown_bparticipant_r.await.unwrap();
 
+        let mut send_cache =
+            PidCidFrameCache::new(self.metrics.frames_out_total.clone(), self.remote_pid);
+
         self.close_api(None).await;
 
         debug!("Closing all managers");
@@ -588,6 +599,21 @@ impl BParticipant {
         }
 
         b2b_prios_flushed_r.await.unwrap();
+        if Some(ParticipantError::ParticipantDisconnected) != self.shutdown_info.read().await.error
+        {
+            debug!("Sending shutdown frame after flushed all prios");
+            if !self
+                .send_frame(
+                    Frame::Shutdown,
+                    #[cfg(feature = "metrics")]
+                    &mut send_cache,
+                )
+                .await
+            {
+                warn!("couldn't send shutdown frame, are channels already closed?");
+            }
+        }
+
         debug!("Closing all channels, after flushed prios");
         for (cid, ci) in self.channels.write().await.drain() {
             if let Err(e) = ci.b2r_read_shutdown.send(()) {
@@ -732,21 +758,29 @@ impl BParticipant {
         )
     }
 
-    /// close streams and set err
-    async fn close_api(&self, reason: Option<ParticipantError>) {
-        //closing api::Participant is done by closing all channels, exepct for the
-        // shutdown channel at this point!
+    async fn close_write_api(&self, reason: Option<ParticipantError>) {
+        trace!(?reason, "close_api");
         let mut lock = self.shutdown_info.write().await;
         if let Some(r) = reason {
             lock.error = Some(r);
         }
         lock.b2a_stream_opened_s.close_channel();
 
+        debug!("Closing all streams for write");
+        for (sid, si) in self.streams.write().await.iter() {
+            trace!(?sid, "Shutting down Stream for write");
+            si.send_closed.store(true, Ordering::Relaxed);
+        }
+    }
+
+    ///closing api::Participant is done by closing all channels, exepct for the
+    /// shutdown channel at this point!
+    async fn close_api(&self, reason: Option<ParticipantError>) {
+        self.close_write_api(reason).await;
         debug!("Closing all streams");
         for (sid, si) in self.streams.write().await.drain() {
             trace!(?sid, "Shutting down Stream");
             si.b2a_msg_recv_s.close_channel();
-            si.send_closed.store(true, Ordering::Relaxed);
         }
     }
 }

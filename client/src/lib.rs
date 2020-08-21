@@ -1383,8 +1383,10 @@ impl Client {
                     );
                 },
                 ServerMsg::Disconnect => {
+                    debug!("finally sendinge ClientMsg::Terminate");
                     frontend_events.push(Event::Disconnect);
                     self.singleton_stream.send(ClientMsg::Terminate)?;
+                    break Ok(());
                 },
                 ServerMsg::CharacterListUpdate(character_list) => {
                     self.character_list.characters = character_list;

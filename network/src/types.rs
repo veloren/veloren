@@ -146,10 +146,18 @@ impl Pid {
     /// This will panic if pid i greater than 7, as I do not want you to use
     /// this in production!
     #[doc(hidden)]
-    pub fn fake(pid: u8) -> Self {
-        assert!(pid < 8);
+    pub fn fake(pid_offset: u8) -> Self {
+        assert!(pid_offset < 8);
+        let o = pid_offset as u128;
+        const OFF: [u128; 5] = [
+            0x40,
+            0x40 * 0x40,
+            0x40 * 0x40 * 0x40,
+            0x40 * 0x40 * 0x40 * 0x40,
+            0x40 * 0x40 * 0x40 * 0x40 * 0x40,
+        ];
         Self {
-            internal: pid as u128,
+            internal: o + o * OFF[0] + o * OFF[1] + o * OFF[2] + o * OFF[3] + o * OFF[4],
         }
     }
 
@@ -251,7 +259,9 @@ mod tests {
     #[test]
     fn frame_creation() {
         Pid::new();
-        assert_eq!(format!("{}", Pid::fake(2)), "CAAAAA");
+        assert_eq!(format!("{}", Pid::fake(0)), "AAAAAA");
+        assert_eq!(format!("{}", Pid::fake(1)), "BBBBBB");
+        assert_eq!(format!("{}", Pid::fake(2)), "CCCCCC");
     }
 
     #[test]
