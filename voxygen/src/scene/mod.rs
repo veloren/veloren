@@ -1022,9 +1022,6 @@ impl Scene {
         // Render the skybox.
         renderer.render_skybox(&self.skybox.model, global, &self.skybox.locals, lod);
 
-        // Render particle effects.
-        self.particle_mgr.render(renderer, scene_data, global, lod);
-
         self.terrain.render_translucent(
             renderer,
             global,
@@ -1033,6 +1030,9 @@ impl Scene {
             cam_pos,
             scene_data.sprite_render_distance,
         );
+
+        // Render particle effects.
+        self.particle_mgr.render(renderer, scene_data, global, lod);
 
         renderer.render_post_process(
             &self.postprocess.model,
