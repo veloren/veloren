@@ -13,53 +13,58 @@ pub mod ui;
 use super::Consts;
 use crate::scene::camera::CameraMode;
 use common::terrain::BlockKind;
-use gfx::{self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta};
 use vek::*;
+use zerocopy::AsBytes;
 
 pub const MAX_POINT_LIGHT_COUNT: usize = 31;
 pub const MAX_FIGURE_SHADOW_COUNT: usize = 24;
 pub const MAX_DIRECTED_LIGHT_COUNT: usize = 6;
 
-gfx_defines! {
-    constant Globals {
-        view_mat: [[f32; 4]; 4] = "view_mat",
-        proj_mat: [[f32; 4]; 4] = "proj_mat",
-        all_mat: [[f32; 4]; 4] = "all_mat",
-        cam_pos: [f32; 4] = "cam_pos",
-        focus_off: [f32; 4] = "focus_off",
-        focus_pos: [f32; 4] = "focus_pos",
-        /// NOTE: view_distance.x is the horizontal view distance, view_distance.y is the LOD
-        /// detail, view_distance.z is the
-        /// minimum height over any land chunk (i.e. the sea level), and view_distance.w is the
-        /// maximum height over this minimum height.
-        ///
-        /// TODO: Fix whatever alignment issue requires these uniforms to be aligned.
-        view_distance: [f32; 4] = "view_distance",
-        time_of_day: [f32; 4] = "time_of_day", // TODO: Make this f64.
-        sun_dir: [f32; 4] = "sun_dir",
-        moon_dir: [f32; 4] = "moon_dir",
-        tick: [f32; 4] = "tick",
-        /// x, y represent the resolution of the screen;
-        /// w, z represent the near and far planes of the shadow map.
-        screen_res: [f32; 4] = "screen_res",
-        light_shadow_count: [u32; 4] = "light_shadow_count",
-        shadow_proj_factors: [f32; 4] = "shadow_proj_factors",
-        medium: [u32; 4] = "medium",
-        select_pos: [i32; 4] = "select_pos",
-        gamma_exposure: [f32; 4] = "gamma_exposure",
-        ambiance: f32 = "ambiance",
-        cam_mode: u32 = "cam_mode",
-        sprite_render_distance: f32 = "sprite_render_distance",
-    }
+#[repr(C)]
+#[derive(Copy, Clone, Debug, AsBytes)]
+pub struct Globals {
+    view_mat: [[f32; 4]; 4],
+    proj_mat: [[f32; 4]; 4],
+    all_mat: [[f32; 4]; 4],
+    cam_pos: [f32; 4],
+    focus_off: [f32; 4],
+    focus_pos: [f32; 4],
+    /// NOTE: view_distance.x is the horizontal view distance, view_distance.y
+    /// is the LOD detail, view_distance.z is the
+    /// minimum height over any land chunk (i.e. the sea level), and
+    /// view_distance.w is the maximum height over this minimum height.
+    ///
+    /// TODO: Fix whatever alignment issue requires these uniforms to be
+    /// aligned.
+    view_distance: [f32; 4],
+    time_of_day: [f32; 4], // TODO: Make this f64.
+    sun_dir: [f32; 4],
+    moon_dir: [f32; 4],
+    tick: [f32; 4],
+    /// x, y represent the resolution of the screen;
+    /// w, z represent the near and far planes of the shadow map.
+    screen_res: [f32; 4],
+    light_shadow_count: [u32; 4],
+    shadow_proj_factors: [f32; 4],
+    medium: [u32; 4],
+    select_pos: [i32; 4],
+    gamma_exposure: [f32; 4],
+    ambiance: f32,
+    cam_mode: u32,
+    sprite_render_distance: f32,
+}
 
-    constant Light {
-        pos: [f32; 4] = "light_pos",
-        col: [f32; 4] = "light_col",
-    }
+#[repr(C)]
+#[derive(Copy, Clone, Debug, AsBytes)]
+pub struct Light {
+    pos: [f32; 4],
+    col: [f32; 4],
+}
 
-    constant Shadow {
-        pos_radius: [f32; 4] = "shadow_pos_radius",
-    }
+#[repr(C)]
+#[derive(Copy, Clone, Debug, AsBytes)]
+pub struct Shadow {
+    pos_radius: [f32; 4],
 }
 
 impl Globals {
@@ -219,3 +224,35 @@ pub struct GlobalModel {
     pub shadows: Consts<Shadow>,
     pub shadow_mats: Consts<shadow::Locals>,
 }
+
+//gfx_defines! {
+//    constant Globals {
+//        view_mat: [[f32; 4]; 4] = "view_mat",
+//        proj_mat: [[f32; 4]; 4] = "proj_mat",
+//        all_mat: [[f32; 4]; 4] = "all_mat",
+//        cam_pos: [f32; 4] = "cam_pos",
+//        focus_off: [f32; 4] = "focus_off",
+//        focus_pos: [f32; 4] = "focus_pos",
+//        /// NOTE: view_distance.x is the horizontal view distance,
+// view_distance.y is the LOD        /// detail, view_distance.z is the
+//        /// minimum height over any land chunk (i.e. the sea level), and
+// view_distance.w is the        /// maximum height over this minimum height.
+//        ///
+//        /// TODO: Fix whatever alignment issue requires these uniforms to be
+// aligned.        view_distance: [f32; 4] = "view_distance",
+//        time_of_day: [f32; 4] = "time_of_day", // TODO: Make this f64.
+//        sun_dir: [f32; 4] = "sun_dir",
+//        moon_dir: [f32; 4] = "moon_dir",
+//        tick: [f32; 4] = "tick",
+//        /// x, y represent the resolution of the screen;
+//        /// w, z represent the near and far planes of the shadow map.
+//        screen_res: [f32; 4] = "screen_res",
+//        light_shadow_count: [u32; 4] = "light_shadow_count",
+//        shadow_proj_factors: [f32; 4] = "shadow_proj_factors",
+//        medium: [u32; 4] = "medium",
+//        select_pos: [i32; 4] = "select_pos",
+//        gamma_exposure: [f32; 4] = "gamma_exposure",
+//        ambiance: f32 = "ambiance",
+//        cam_mode: u32 = "cam_mode",
+//        sprite_render_distance: f32 = "sprite_render_distance",
+//    }

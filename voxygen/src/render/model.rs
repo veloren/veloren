@@ -24,6 +24,12 @@ impl<V: Vertex> Model<V> {
         }
     }
 
+    pub fn new_dynamic(device: &wgpu::Device, size: usize) -> Self {
+        Self {
+            vbuf: Buffer::new(device, size, wgpu::BufferUsage::VERTEX),
+        }
+    }
+
     /// Create a model with a slice of a portion of this model to send to the
     /// renderer.
     pub fn submodel(&self, vertex_range: Range<u32>) -> SubModel<V> {

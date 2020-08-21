@@ -1,4 +1,3 @@
-use super::RenderError;
 use wgpu::util::DeviceExt;
 use zerocopy::AsBytes;
 
@@ -45,7 +44,9 @@ impl<T: Copy + AsBytes> Buffer<T> {
         vals: &[T],
         offset: usize,
     ) {
-        queue.write_buffer(&self.buf, offset, vals.as_bytes())
+        if !vals.is_empty() {
+            queue.write_buffer(&self.buf, offset, vals.as_bytes())
+        }
     }
 
     pub fn count(&self) -> usize { self.count }

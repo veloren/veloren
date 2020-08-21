@@ -1,7 +1,6 @@
 use super::RenderError;
 use image::{DynamicImage, GenericImageView};
-use vek::Vec2;
-use wgpu::{util::DeviceExt, Extent3d};
+use wgpu::Extent3d;
 
 /// Represents an image that has been uploaded to the GPU.
 pub struct Texture {
@@ -133,6 +132,7 @@ impl Texture {
         offset: [u16; 2],
         size: [u16; 2],
         data: &[u8],
+        bytes_per_row: u32,
     ) -> Result<(), RenderError> {
         // TODO: Only works for 2D images
         queue.write_texture(
@@ -150,7 +150,7 @@ impl Texture {
             // formats that are not Rgba8
             wgpu::TextureDataLayout {
                 offset: 0,
-                bytes_per_row: self.size.x * 4,
+                bytes_per_row,
                 rows_per_image: self.size.y,
             },
             wgpu::Extent3d {

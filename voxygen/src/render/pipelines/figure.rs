@@ -1,7 +1,4 @@
-use super::{
-    super::{Mesh, Model, TerrainPipeline, TgtColorFmt, TgtDepthStencilFmt},
-    shadow, Globals, Light, Shadow,
-};
+use super::super::{Mesh, Model, TerrainPipeline};
 use crate::mesh::greedy::GreedyMesh;
 use vek::*;
 use zerocopy::AsBytes;
