@@ -2,7 +2,7 @@ use crate::{
     column::ColumnSample,
     sim::SimChunk,
     util::{RandomField, Sampler},
-    IndexRef,
+    IndexRef, CONFIG,
 };
 use common::{
     assets, comp,
@@ -29,7 +29,7 @@ pub struct Colors {
 fn close(x: f32, tgt: f32, falloff: f32) -> f32 {
     (1.0 - (x - tgt).abs() / falloff).max(0.0).powf(0.5)
 }
-
+const MUSH_FACT: f32 = 0.0001; // To balance everything around the mushroom spawning rate
 pub fn apply_scatter_to<'a>(
     wpos2d: Vec2<i32>,
     mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
@@ -39,32 +39,110 @@ pub fn apply_scatter_to<'a>(
 ) {
     use BlockKind::*;
     #[allow(clippy::type_complexity)]
+    // TODO: Add back all sprites we had before
     let scatter: &[(_, bool, fn(&SimChunk) -> (f32, Option<(f32, f32)>))] = &[
         // (density, Option<(wavelen, threshold)>)
+        // Flowers
         (BlueFlower, false, |c| {
             (
-                close(c.temp, -0.3, 0.7).min(close(c.humidity, 0.6, 0.35)) * 0.05,
-                Some((48.0, 0.6)),
+                close(c.temp, 0.1, 0.2).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                    * MUSH_FACT
+                    * 0.01,
+                Some((48.0, 0.2)),
             )
         }),
         (PinkFlower, false, |c| {
             (
-                close(c.temp, 0.15, 0.5).min(close(c.humidity, 0.6, 0.35)) * 0.05,
-                Some((48.0, 0.6)),
+                close(c.temp, 0.2, 0.2).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                    * MUSH_FACT
+                    * 0.01,
+                Some((48.0, 0.2)),
             )
         }),
-        (DeadBush, false, |c| {
+        (PurpleFlower, false, |c| {
             (
-                close(c.temp, 0.8, 0.3).min(close(c.humidity, 0.0, 0.4)) * 0.015,
+                close(c.temp, 0.3, 0.2).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                    * MUSH_FACT
+                    * 0.01,
+                Some((48.0, 0.2)),
+            )
+        }),
+        (RedFlower, false, |c| {
+            (
+                close(c.temp, 0.5, 0.2).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                    * MUSH_FACT
+                    * 0.01,
+                Some((48.0, 0.2)),
+            )
+        }),
+        (WhiteFlower, false, |c| {
+            (
+                close(c.temp, 0.0, 0.3).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                    * MUSH_FACT
+                    * 0.01,
+                Some((48.0, 0.2)),
+            )
+        }),
+        (YellowFlower, false, |c| {
+            (
+                close(c.temp, 0.3, 0.2).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                    * MUSH_FACT
+                    * 0.01,
+                Some((48.0, 0.2)),
+            )
+        }),
+        // Herbs and Spices
+        (LingonBerry, false, |c| {
+            (
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                    * MUSH_FACT
+                    * 0.5,
                 None,
             )
         }),
+        (LeafyPlant, false, |c| {
+            (
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                    * MUSH_FACT
+                    * 0.5,
+                None,
+            )
+        }),
+        (Fern, false, |c| {
+            (
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                    * MUSH_FACT
+                    * 0.5,
+                Some((48.0, 0.4)),
+            )
+        }),
+        (Blueberry, false, |c| {
+            (
+                close(c.temp, CONFIG.temperate_temp, 0.5).min(close(
+                    c.humidity,
+                    CONFIG.forest_hum,
+                    0.35,
+                )) * MUSH_FACT
+                    * 0.3,
+                None,
+            )
+        }),
+        // Collecable Objects
+        // Only spawn twigs in temperate forests
         (Twigs, false, |c| {
-            ((c.tree_density - 0.5).max(0.0) * 0.0025, None)
+            ((c.tree_density - 0.5).max(0.0) * MUSH_FACT * 0.5, None)
         }),
         (Stones, false, |c| {
-            ((c.rockiness - 0.5).max(0.0) * 0.005, None)
+            ((c.rockiness - 0.5).max(0.0) * MUSH_FACT * 0.5, None)
         }),
+        // Don't spawn Mushrooms in snowy regions
+        (Mushroom, false, |c| {
+            (
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35)) * MUSH_FACT,
+                None,
+            )
+        }),
+        // Grass
         (ShortGrass, false, |c| {
             (
                 close(c.temp, 0.3, 0.4).min(close(c.humidity, 0.6, 0.35)) * 0.05,
@@ -79,16 +157,117 @@ pub fn apply_scatter_to<'a>(
         }),
         (LongGrass, false, |c| {
             (
-                close(c.temp, 0.4, 0.4).min(close(c.humidity, 0.8, 0.2)) * 0.05,
+                close(c.temp, 0.4, 0.4).min(close(c.humidity, 0.8, 0.2)) * 0.08,
                 Some((48.0, 0.1)),
             )
         }),
-        (GrassSnow, false, |c| {
+        // Jungle Sprites
+        (LongGrass, false, |c| {
             (
-                close(c.temp, -0.4, 0.4).min(close(c.rockiness, 0.0, 0.5)) * 0.1,
-                Some((48.0, 0.6)),
+                close(c.temp, CONFIG.tropical_temp, 0.4).min(close(
+                    c.humidity,
+                    CONFIG.jungle_hum,
+                    0.6,
+                )) * 0.08,
+                Some((60.0, 5.0)),
             )
         }),
+        /*(WheatGreen, false, |c| {
+            (
+                close(c.temp, 0.4, 0.2).min(close(c.humidity, CONFIG.forest_hum, 0.1))
+                    * MUSH_FACT
+                    * 0.001,
+                None,
+            )
+        }),*/
+        (GrassSnow, false, |c| {
+            (
+                close(c.temp, CONFIG.snow_temp - 0.2, 0.4).min(close(
+                    c.humidity,
+                    CONFIG.forest_hum,
+                    0.5,
+                )) * 0.01,
+                Some((48.0, 0.2)),
+            )
+        }),
+        // Desert Plants
+        (DeadBush, false, |c| {
+            (
+                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
+                    c.humidity,
+                    CONFIG.desert_hum,
+                    0.3,
+                )) * MUSH_FACT
+                    * 0.1,
+                None,
+            )
+        }),
+        (LargeCactus, false, |c| {
+            (
+                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
+                    c.humidity,
+                    CONFIG.desert_hum,
+                    0.2,
+                )) * MUSH_FACT
+                    * 0.1,
+                None,
+            )
+        }),
+        /*(BarrelCactus, false, |c| {
+            (
+                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
+                    c.humidity,
+                    CONFIG.desert_hum,
+                    0.2,
+                )) * MUSH_FACT
+                    * 0.1,
+                None,
+            )
+        }),
+        (RoundCactus, false, |c| {
+            (
+                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
+                    c.humidity,
+                    CONFIG.desert_hum,
+                    0.2,
+                )) * MUSH_FACT
+                * 0.1,
+                None,
+            )
+        }),
+        (ShortCactus, false, |c| {
+            (
+                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
+                    c.humidity,
+                    CONFIG.desert_hum,
+                    0.2,
+                )) * MUSH_FACT
+                * 0.1,
+                None,
+            )
+        }),
+        (MedFlatCactus, false, |c| {
+            (
+                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
+                    c.humidity,
+                    CONFIG.desert_hum,
+                    0.2,
+                )) * MUSH_FACT
+                * 0.1,
+                None,
+            )
+        }),
+        (ShortFlatCactus, false, |c| {
+            (
+                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
+                    c.humidity,
+                    CONFIG.desert_hum,
+                    0.2,
+                )) * MUSH_FACT
+                * 0.1,
+                None,
+            )
+        }),*/
     ];
 
     for y in 0..vol.size_xy().y as i32 {
@@ -329,7 +508,7 @@ pub fn apply_caves_to<'a>(
         }
     }
 }
-
+#[allow(clippy::eval_order_dependence)]
 pub fn apply_caves_supplement<'a>(
     rng: &mut impl Rng,
     wpos2d: Vec2<i32>,
@@ -368,56 +547,45 @@ pub fn apply_caves_supplement<'a>(
                 let difficulty = cave_depth / 200.0;
 
                 // Scatter things in caves
-                if RandomField::new(index.seed).chance(wpos2d.into(), 0.00005 * difficulty)
+                if RandomField::new(index.seed).chance(wpos2d.into(), 0.000005 * difficulty)
                     && cave_base < surface_z as i32 - 40
                 {
+                    let is_hostile: bool;
                     let entity = EntityInfo::at(Vec3::new(
                         wpos2d.x as f32,
                         wpos2d.y as f32,
                         cave_base as f32,
                     ))
-                    .with_alignment(comp::Alignment::Enemy)
                     .with_body(match rng.gen_range(0, 6) {
                         0 => {
-                            let species = match rng.gen_range(0, 2) {
+                            is_hostile = false;
+                            let species = match rng.gen_range(0, 4) {
                                 0 => comp::quadruped_small::Species::Truffler,
-                                _ => comp::quadruped_small::Species::Hyena,
+                                1 => comp::quadruped_small::Species::Dodarock,
+                                2 => comp::quadruped_small::Species::Holladon,
+                                _ => comp::quadruped_small::Species::Batfox,
                             };
                             comp::quadruped_small::Body::random_with(rng, &species).into()
                         },
                         1 => {
-                            let species = match rng.gen_range(0, 3) {
+                            is_hostile = true;
+                            let species = match rng.gen_range(0, 5) {
                                 0 => comp::quadruped_medium::Species::Tarasque,
-                                1 => comp::quadruped_medium::Species::Frostfang,
                                 _ => comp::quadruped_medium::Species::Bonerattler,
                             };
                             comp::quadruped_medium::Body::random_with(rng, &species).into()
                         },
                         2 => {
-                            let species = match rng.gen_range(0, 3) {
-                                0 => comp::quadruped_low::Species::Maneater,
+                            is_hostile = true;
+                            let species = match rng.gen_range(0, 4) {
                                 1 => comp::quadruped_low::Species::Rocksnapper,
                                 _ => comp::quadruped_low::Species::Salamander,
                             };
                             comp::quadruped_low::Body::random_with(rng, &species).into()
                         },
                         3 => {
-                            let species = match rng.gen_range(0, 3) {
-                                0 => comp::critter::Species::Fungome,
-                                1 => comp::critter::Species::Axolotl,
-                                _ => comp::critter::Species::Rat,
-                            };
-                            comp::critter::Body::random_with(rng, &species).into()
-                        },
-                        4 => {
-                            #[allow(clippy::match_single_binding)]
-                            let species = match rng.gen_range(0, 1) {
-                                _ => comp::golem::Species::StoneGolem,
-                            };
-                            comp::golem::Body::random_with(rng, &species).into()
-                        },
-                        _ => {
-                            let species = match rng.gen_range(0, 4) {
+                            is_hostile = true;
+                            let species = match rng.gen_range(0, 8) {
                                 0 => comp::biped_large::Species::Ogre,
                                 1 => comp::biped_large::Species::Cyclops,
                                 2 => comp::biped_large::Species::Wendigo,
@@ -425,6 +593,19 @@ pub fn apply_caves_supplement<'a>(
                             };
                             comp::biped_large::Body::random_with(rng, &species).into()
                         },
+                        _ => {
+                            is_hostile = false;
+                            let species = match rng.gen_range(0, 5) {
+                                0 => comp::critter::Species::Fungome,
+                                _ => comp::critter::Species::Rat,
+                            };
+                            comp::critter::Body::random_with(rng, &species).into()
+                        },
+                    })
+                    .with_alignment(if is_hostile {
+                        comp::Alignment::Enemy
+                    } else {
+                        comp::Alignment::Wild
                     })
                     .with_automatic_name();
 

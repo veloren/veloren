@@ -20,5 +20,9 @@
           vox_spec: ("armor.back.short-1", (-5.0, -1.0, -11.0)),
           color: None
       ),   
+      "Short2": (
+          vox_spec: ("armor.back.short-2", (-5.0, -1.0, -11.0)),
+          color: None
+      ),   
     },
 ))

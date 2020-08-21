@@ -1,0 +1,13 @@
+Item(
+    name: "Sturdy Old Hammer",
+    description: "'Property of...' The rest is missing.",
+    kind: Tool(
+        (
+            kind: Hammer("BasicHammer"),    
+            stats: (
+                equip_time_millis: 500,
+                power: 0.50,
+            ),
+        )
+    ),
+)

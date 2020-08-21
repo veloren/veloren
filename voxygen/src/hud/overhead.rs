@@ -155,7 +155,9 @@ impl<'a> Widget for Overhead<'a> {
         let hp_percentage =
             self.stats.health.current() as f64 / self.stats.health.maximum() as f64 * 100.0;
         let level_comp = self.stats.level.level() as i64 - self.own_level as i64;
-        let name_y = if hp_percentage.abs() > 99.9 {
+        let health_current = (self.stats.health.current() / 10) as f64;
+        let health_max = (self.stats.health.maximum() / 10) as f64;
+        let name_y = if (health_current - health_max).abs() < 1e-6 {
             MANA_BAR_Y + 20.0
         } else if level_comp > 9 {
             MANA_BAR_Y + 38.0
@@ -163,6 +165,18 @@ impl<'a> Widget for Overhead<'a> {
             MANA_BAR_Y + 32.0
         };
         let font_size = if hp_percentage.abs() > 99.9 { 24 } else { 20 };
+        // Show K for numbers above 10^3 and truncate them
+        // Show M for numbers above 10^6 and truncate them
+        let health_cur_txt = match health_current as u32 {
+            0..=999 => format!("{:.0}", health_current.max(1.0)),
+            1000..=999999 => format!("{:.0}K", (health_current / 1000.0).max(1.0)),
+            _ => format!("{:.0}M", (health_current as f64 / 1.0e6).max(1.0)),
+        };
+        let health_max_txt = match health_max as u32 {
+            0..=999 => format!("{:.0}", health_max.max(1.0)),
+            1000..=999999 => format!("{:.0}K", (health_max / 1000.0).max(1.0)),
+            _ => format!("{:.0}M", (health_max as f64 / 1.0e6).max(1.0)),
+        };
         // Name
         Text::new(&self.name)
             .font_id(self.fonts.cyri.conrod_id)
@@ -176,6 +190,8 @@ impl<'a> Widget for Overhead<'a> {
             .font_size(font_size)
             .color(if self.in_group {
                 GROUP_MEMBER
+            /*} else if targets player { //TODO: Add a way to see if the entity is trying to attack the player, their pet(s) or a member of their group and recolour their nametag accordingly
+            DEFAULT_NPC*/
             } else {
                 DEFAULT_NPC
             })
@@ -363,12 +379,7 @@ impl<'a> Widget for Overhead<'a> {
                 }))
                 .parent(id)
                 .set(state.ids.health_bar, ui);
-            let mut txt = format!(
-                "{}/{}",
-                (self.stats.health.current() / 10).max(1) as u32, /* Don't show 0 health for
-                                                                   * living entities */
-                self.stats.health.maximum() / 10 as u32,
-            );
+            let mut txt = format!("{}/{}", health_cur_txt, health_max_txt);
             if self.stats.is_dead {
                 txt = self.voxygen_i18n.get("hud.group.dead").to_string()
             };

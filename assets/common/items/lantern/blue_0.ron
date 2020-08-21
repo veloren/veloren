@@ -4,7 +4,7 @@ Item(
     kind: Lantern(
         (
             kind: "Blue0",
-            color: (r: 64, g: 127, b: 153),
+            color: (r: 255, g: 128, b: 26),
             strength_thousandths: 4000,
             flicker_thousandths: 250,
         ),

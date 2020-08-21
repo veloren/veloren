@@ -10,6 +10,7 @@ use crate::{
     lottery::Lottery,
     terrain::{Block, BlockKind},
 };
+use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
@@ -144,6 +145,7 @@ impl Item {
     }
 
     pub fn try_reclaim_from_block(block: Block) -> Option<Self> {
+        let mut rng = rand::thread_rng();
         match block.kind() {
             BlockKind::Apple => Some(assets::load_expect_cloned("common.items.food.apple")),
             BlockKind::Mushroom => Some(assets::load_expect_cloned("common.items.food.mushroom")),
@@ -171,7 +173,27 @@ impl Item {
             BlockKind::ShortGrass => Some(assets::load_expect_cloned("common.items.grasses.short")),
             BlockKind::Coconut => Some(assets::load_expect_cloned("common.items.food.coconut")),
             BlockKind::Chest => {
-                let chosen = assets::load_expect::<Lottery<String>>("common.loot_table");
+                let chosen = match rng.gen_range(0, 5) {
+                    0 => {
+                        assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_food")
+                    },
+                    1 => assets::load_expect::<Lottery<String>>(
+                        "common.loot_tables.loot_table_crafting",
+                    ),
+                    2 => assets::load_expect::<Lottery<String>>(
+                        "common.loot_tables.loot_table_weapon_uncommon",
+                    ),
+                    3 => assets::load_expect::<Lottery<String>>(
+                        "common.loot_tables.loot_table_armor_misc",
+                    ),
+                    _ => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table"),
+                };
+                let chosen = chosen.choose();
+                Some(assets::load_expect_cloned(chosen))
+            },
+            BlockKind::Crate => {
+                let chosen =
+                    assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_food");
                 let chosen = chosen.choose();
 
                 Some(assets::load_expect_cloned(chosen))

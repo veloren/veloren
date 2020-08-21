@@ -1,0 +1,12 @@
+Item(
+    name: "Purple Cultist Gloves",
+    description: "Ceremonial attire used by members.",
+    kind: Armor(
+        (
+            kind: Hand("CultistPurple"),
+            stats: (
+                protection: Normal(2.0),
+            ),
+        )
+    ),
+)

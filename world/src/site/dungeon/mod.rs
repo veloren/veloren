@@ -12,6 +12,7 @@ use common::{
     astar::Astar,
     comp,
     generation::{ChunkSupplement, EntityInfo},
+    lottery::Lottery,
     npc,
     store::{Id, Store},
     terrain::{Block, BlockKind, Structure, TerrainChunkSize},
@@ -460,6 +461,13 @@ impl Floor {
                         && !tile_is_pillar
                     {
                         // Bad
+                        let chosen =
+                            assets::load_expect::<Lottery<String>>(match rng.gen_range(0, 5) {
+                                0 => "common.loot_tables.loot_table_humanoids",
+                                1 => "common.loot_tables.loot_table_armor_misc",
+                                _ => "common.loot_tables.loot_table_cultists",
+                            });
+                        let chosen = chosen.choose();
                         let entity = EntityInfo::at(
                             tile_wcenter.map(|e| e as f32)
                             // Randomly displace them a little
@@ -471,13 +479,14 @@ impl Floor {
                         .with_alignment(comp::Alignment::Enemy)
                         .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
                         .with_automatic_name()
+                        .with_loot_drop(assets::load_expect_cloned(chosen))
                         .with_main_tool(assets::load_expect_cloned(match rng.gen_range(0, 6) {
-                            0 => "common.items.weapons.axe.starter_axe",
-                            1 => "common.items.weapons.sword.starter_sword",
-                            2 => "common.items.weapons.sword.short_sword_0",
-                            3 => "common.items.weapons.hammer.hammer_1",
-                            4 => "common.items.weapons.staff.starter_staff",
-                            _ => "common.items.weapons.bow.starter_bow",
+                            0 => "common.items.npc_weapons.axe.malachite_axe-0",
+                            1 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
+                            2 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
+                            3 => "common.items.npc_weapons.hammer.cultist_purp_2h-0",
+                            4 => "common.items.npc_weapons.staff.cultist_staff",
+                            _ => "common.items.npc_weapons.bow.horn_longbow-0",
                         }));
 
                         supplement.add_entity(entity);
@@ -498,65 +507,28 @@ impl Floor {
                             boss_spawn_tile + if boss_tile_is_pillar { 1 } else { 0 };
 
                         if tile_pos == boss_spawn_tile && tile_wcenter.xy() == wpos2d {
+                            let chosen = assets::load_expect::<Lottery<String>>(
+                                "common.loot_tables.loot_table_boss_cultist-leader",
+                            );
+                            let chosen = chosen.choose();
                             let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
                                 .with_scale(4.0)
                                 .with_level(rng.gen_range(75, 100))
                                 .with_alignment(comp::Alignment::Enemy)
                                 .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
                                 .with_name(format!(
-                                    "{}, Cult Leader",
+                                    "Cult Leader {}",
                                     npc::get_npc_name(npc::NpcKind::Humanoid)
                                 ))
                                 .with_main_tool(assets::load_expect_cloned(
                                     match rng.gen_range(0, 1) {
-                                        //Add more possible cult leader weapons here
-                                        _ => "common.items.weapons.sword.cultist_purp_2h-0",
+                                        //Add more possible cult leader npc_weapons here
+                                        _ => {
+                                            "common.items.npc_weapons.sword.cultist_purp_2h_boss-0"
+                                        },
                                     },
                                 ))
-                                .with_loot_drop(match rng.gen_range(0, 20) {
-                                    0 => comp::Item::expect_from_asset(
-                                        "common.items.boss_drops.lantern",
-                                    ),
-                                    1 => comp::Item::expect_from_asset(
-                                        "common.items.boss_drops.potions",
-                                    ),
-                                    2 => comp::Item::expect_from_asset(
-                                        "common.items.armor.belt.cultist_belt",
-                                    ),
-                                    3 => comp::Item::expect_from_asset(
-                                        "common.items.armor.chest.cultist_chest_purple",
-                                    ),
-                                    4 => comp::Item::expect_from_asset(
-                                        "common.items.armor.foot.cultist_boots",
-                                    ),
-                                    5 => comp::Item::expect_from_asset(
-                                        "common.items.armor.hand.cultist_hands_purple",
-                                    ),
-                                    6 => comp::Item::expect_from_asset(
-                                        "common.items.armor.pants.cultist_legs_purple",
-                                    ),
-                                    7 => comp::Item::expect_from_asset(
-                                        "common.items.armor.shoulder.cultist_shoulder_purple",
-                                    ),
-                                    8 => comp::Item::expect_from_asset(
-                                        "common.items.weapons.staff.cultist_staff",
-                                    ),
-                                    9 => comp::Item::expect_from_asset(
-                                        "common.items.weapons.sword.greatsword_2h_fine-1",
-                                    ),
-                                    10 => comp::Item::expect_from_asset(
-                                        "common.items.weapons.sword.greatsword_2h_fine-2",
-                                    ),
-                                    11 => comp::Item::expect_from_asset(
-                                        "common.items.weapons.sword.cultist_purp_2h-0",
-                                    ),
-                                    12 => comp::Item::expect_from_asset(
-                                        "common.items.armor.back.dungeon_purple-0",
-                                    ),
-                                    _ => comp::Item::expect_from_asset(
-                                        "common.items.boss_drops.exp_flask",
-                                    ),
-                                });
+                                .with_loot_drop(assets::load_expect_cloned(chosen));
 
                             supplement.add_entity(entity);
                         }
@@ -656,7 +628,7 @@ impl Floor {
             self.tiles.get(tile_pos)
         {
             let room = &self.rooms[*room];
-            if RandomField::new(room.seed).chance(Vec3::from(pos), room.loot_density) {
+            if RandomField::new(room.seed).chance(Vec3::from(pos), room.loot_density * 0.5) {
                 BlockMask::new(Block::new(BlockKind::Chest, Rgb::white()), 1)
             } else {
                 empty

@@ -1,17 +1,35 @@
 {
-	"crafting_hammer": (("common.items.crafting_tools.craftsman_hammer", 1),[("common.items.crafting_ing.twigs", 10), ("common.items.crafting_ing.stones", 10)]),
-	"mortar_pestle": (("common.items.crafting_tools.mortar_pestle", 1), [("common.items.crafting_ing.stones", 6), ("common.items.food.coconut", 2), ("common.items.crafting_tools.craftsman_hammer", 0)]),	
+	// Tools
+	"crafting_hammer": (("common.items.crafting_tools.craftsman_hammer", 1),[("common.items.crafting_ing.twigs", 14), ("common.items.crafting_ing.stones", 12)]),
+	"mortar_pestle": (("common.items.crafting_tools.mortar_pestle", 1), [("common.items.crafting_ing.stones", 6), ("common.items.food.coconut", 2), ("common.items.crafting_tools.craftsman_hammer", 0)]),
+	// Ore and more
 	"velorite_frag": (("common.items.ore.veloritefrag", 2), [("common.items.ore.velorite", 1), ("common.items.crafting_tools.craftsman_hammer", 0)]),
+	//Potions
 	"potion_s": (("common.items.consumable.potion_minor", 1), [("common.items.crafting_ing.empty_vial", 1), ("common.items.ore.veloritefrag", 2)]),
 	"potion_m": (("common.items.consumable.potion_med", 1), [("common.items.consumable.potion_minor", 2), ("common.items.ore.veloritefrag", 4)]),
 	"collar_basic": (("common.items.utility.collar", 1), [("common.items.crafting_ing.leather_scraps", 5), ("common.items.crafting_ing.shiny_gem", 1)]),
-	"bomb_coconut": (("common.items.utility.bomb", 1), [("common.items.crafting_ing.stones", 10), ("common.items.food.coconut", 2), ("common.items.ore.veloritefrag", 2), ("common.items.crafting_tools.mortar_pestle", 0)]),	
-	"firework_blue": (("common.items.utility.firework_blue", 1), [("common.items.crafting_ing.twigs", 1), ("common.items.crafting_ing.stones", 1), ("common.items.food.coconut", 1), ("common.items.ore.veloritefrag", 1), ("common.items.crafting_tools.mortar_pestle", 0)]),	
-	"firework_green": (("common.items.utility.firework_green", 1), [("common.items.crafting_ing.twigs", 1), ("common.items.crafting_ing.stones", 1), ("common.items.food.coconut", 1), ("common.items.ore.veloritefrag", 1), ("common.items.crafting_tools.mortar_pestle", 0)]),	
-	"firework_purple": (("common.items.utility.firework_purple", 1), [("common.items.crafting_ing.twigs", 1), ("common.items.crafting_ing.stones", 1), ("common.items.food.coconut", 1), ("common.items.ore.veloritefrag", 1), ("common.items.crafting_tools.mortar_pestle", 0)]),	
-	"firework_red": (("common.items.utility.firework_red", 1), [("common.items.crafting_ing.twigs", 1), ("common.items.crafting_ing.stones", 1), ("common.items.food.coconut", 1), ("common.items.ore.veloritefrag", 1), ("common.items.crafting_tools.mortar_pestle", 0)]),	
-	"firework_yellow": (("common.items.utility.firework_yellow", 1), [("common.items.crafting_ing.twigs", 1), ("common.items.crafting_ing.stones", 1), ("common.items.food.coconut", 1), ("common.items.ore.veloritefrag", 1), ("common.items.crafting_tools.mortar_pestle", 0)]),	
-	"apple_shroom_curry": (("common.items.food.apple_mushroom_curry", 1), [("common.items.food.mushroom", 10), ("common.items.food.coconut", 1), ("common.items.food.apple", 5), ("common.items.crafting_tools.mortar_pestle", 0)]),
-	"apples_stick": (("common.items.food.apple_stick", 1),[("common.items.crafting_ing.twigs", 1), ("common.items.food.apple", 3)]),
-	"mushroom_stick": (("common.items.food.mushroom_stick", 1),[("common.items.crafting_ing.twigs", 1), ("common.items.food.mushroom", 5)]),
-}	
+	"bomb_coconut": (("common.items.utility.bomb", 1), [("common.items.crafting_ing.stones", 10), ("common.items.food.coconut", 2), ("common.items.ore.veloritefrag", 2), ("common.items.crafting_tools.mortar_pestle", 0)]),
+	// Firework
+	"firework_blue": (("common.items.utility.firework_blue", 1), [("common.items.crafting_ing.twigs", 1), ("common.items.crafting_ing.stones", 1), ("common.items.food.coconut", 1), ("common.items.ore.veloritefrag", 1), ("common.items.crafting_tools.mortar_pestle", 0)]),
+	"firework_green": (("common.items.utility.firework_green", 1), [("common.items.crafting_ing.twigs", 1), ("common.items.crafting_ing.stones", 1), ("common.items.food.coconut", 1), ("common.items.ore.veloritefrag", 1), ("common.items.crafting_tools.mortar_pestle", 0)]),
+	"firework_purple": (("common.items.utility.firework_purple", 1), [("common.items.crafting_ing.twigs", 1), ("common.items.crafting_ing.stones", 1), ("common.items.food.coconut", 1), ("common.items.ore.veloritefrag", 1), ("common.items.crafting_tools.mortar_pestle", 0)]),
+	"firework_red": (("common.items.utility.firework_red", 1), [("common.items.crafting_ing.twigs", 1), ("common.items.crafting_ing.stones", 1), ("common.items.food.coconut", 1), ("common.items.ore.veloritefrag", 1), ("common.items.crafting_tools.mortar_pestle", 0)]),
+	"firework_yellow": (("common.items.utility.firework_yellow", 1), [("common.items.crafting_ing.twigs", 1), ("common.items.crafting_ing.stones", 1), ("common.items.food.coconut", 1), ("common.items.ore.veloritefrag", 1), ("common.items.crafting_tools.mortar_pestle", 0)]),
+	// Food
+	"apple_shroom_curry": (("common.items.food.apple_mushroom_curry", 1), [("common.items.food.mushroom", 8), ("common.items.food.coconut", 1), ("common.items.food.apple", 4), ("common.items.crafting_tools.mortar_pestle", 0)]),
+	"apples_stick": (("common.items.food.apple_stick", 1),[("common.items.crafting_ing.twigs", 2), ("common.items.food.apple", 2)]),
+	"mushroom_stick": (("common.items.food.mushroom_stick", 1),[("common.items.crafting_ing.twigs", 2), ("common.items.food.mushroom", 3)]),
+	// Weapons
+	"velorite_sceptre": (("common.items.weapons.staff.sceptre_velorite_0", 1),[("common.items.crafting_ing.twigs", 20), ("common.items.ore.veloritefrag", 10), ("common.items.crafting_ing.shiny_gem", 4), ("common.items.crafting_tools.craftsman_hammer", 0)]),
+	// Enhanced starting weapons 
+	"better bow": (("common.items.weapons.bow.wood_shortbow-0", 1), [("common.items.crafting_ing.leather_scraps", 8),("common.items.crafting_ing.twigs", 4), ("common.items.crafting_ing.stones", 0)]),
+	"better sword": (("common.items.weapons.sword.wood_sword", 1), [("common.items.crafting_ing.leather_scraps", 4),("common.items.crafting_ing.twigs", 8), ("common.items.crafting_ing.stones", 0)]),
+	// Adventurer/Beginner Leather Set
+	"adventure back": (("common.items.armor.back.leather_adventurer", 1),[("common.items.crafting_ing.leather_scraps", 4)]),
+	"adventure belt": (("common.items.armor.belt.leather_adventurer", 1),[("common.items.crafting_ing.leather_scraps", 2)]),
+	"adventure chest": (("common.items.armor.chest.leather_adventurer", 1),[("common.items.crafting_ing.leather_scraps", 12)]),
+	"adventure feet": (("common.items.armor.foot.leather_adventurer", 1),[("common.items.crafting_ing.leather_scraps", 6)]),
+	"adventure hands": (("common.items.armor.hand.leather_adventurer", 1),[("common.items.crafting_ing.leather_scraps", 4)]),
+	"adventure pants": (("common.items.armor.pants.leather_adventurer", 1),[("common.items.crafting_ing.leather_scraps", 8)]),
+	"adventure shoulder": (("common.items.armor.shoulder.leather_adventurer", 1),[("common.items.crafting_ing.leather_scraps", 12)]),
+}

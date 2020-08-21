@@ -2,7 +2,7 @@ use super::SysTimer;
 use crate::{chunk_generator::ChunkGenerator, client::Client, Tick};
 use common::{
     assets,
-    comp::{self, item, Alignment, CharacterAbility, ItemConfig, Player, Pos},
+    comp::{self, bird_medium, item, Alignment, CharacterAbility, ItemConfig, Player, Pos},
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
     msg::ServerMsg,
@@ -158,16 +158,16 @@ impl<'a> System<'a> for Sys {
                         shoulder: None,
                         chest: Some(assets::load_expect_cloned(
                             match rand::thread_rng().gen_range(0, 10) {
-                                0 => "common.items.armor.chest.worker_green_0",
-                                1 => "common.items.armor.chest.worker_green_1",
-                                2 => "common.items.armor.chest.worker_red_0",
-                                3 => "common.items.armor.chest.worker_red_1",
-                                4 => "common.items.armor.chest.worker_purple_0",
-                                5 => "common.items.armor.chest.worker_purple_1",
-                                6 => "common.items.armor.chest.worker_yellow_0",
-                                7 => "common.items.armor.chest.worker_yellow_1",
-                                8 => "common.items.armor.chest.worker_orange_0",
-                                _ => "common.items.armor.chest.worker_orange_1",
+                                0 => "common.items.npc_armor.chest.worker_green_0",
+                                1 => "common.items.npc_armor.chest.worker_green_1",
+                                2 => "common.items.npc_armor.chest.worker_red_0",
+                                3 => "common.items.npc_armor.chest.worker_red_1",
+                                4 => "common.items.npc_armor.chest.worker_purple_0",
+                                5 => "common.items.npc_armor.chest.worker_purple_1",
+                                6 => "common.items.npc_armor.chest.worker_yellow_0",
+                                7 => "common.items.npc_armor.chest.worker_yellow_1",
+                                8 => "common.items.npc_armor.chest.worker_orange_0",
+                                _ => "common.items.npc_armor.chest.worker_orange_1",
                             },
                         )),
                         belt: Some(assets::load_expect_cloned(
@@ -194,25 +194,25 @@ impl<'a> System<'a> for Sys {
                         active_item,
                         second_item: None,
                         shoulder: Some(assets::load_expect_cloned(
-                            "common.items.armor.shoulder.cultist_shoulder_purple",
+                            "common.items.npc_armor.shoulder.cultist_shoulder_purple",
                         )),
                         chest: Some(assets::load_expect_cloned(
-                            "common.items.armor.chest.cultist_chest_purple",
+                            "common.items.npc_armor.chest.cultist_chest_purple",
                         )),
                         belt: Some(assets::load_expect_cloned(
-                            "common.items.armor.belt.cultist_belt",
+                            "common.items.npc_armor.belt.cultist_belt",
                         )),
                         hand: Some(assets::load_expect_cloned(
-                            "common.items.armor.hand.cultist_hands_purple",
+                            "common.items.npc_armor.hand.cultist_hands_purple",
                         )),
                         pants: Some(assets::load_expect_cloned(
-                            "common.items.armor.pants.cultist_legs_purple",
+                            "common.items.npc_armor.pants.cultist_legs_purple",
                         )),
                         foot: Some(assets::load_expect_cloned(
-                            "common.items.armor.foot.cultist_boots",
+                            "common.items.npc_armor.foot.cultist_boots",
                         )),
                         back: Some(assets::load_expect_cloned(
-                            "common.items.armor.back.dungeon_purple-0",
+                            "common.items.npc_armor.back.dungeon_purple-0",
                         )),
                         ring: None,
                         neck: None,
@@ -220,6 +220,11 @@ impl<'a> System<'a> for Sys {
                         head: None,
                         tabard: None,
                     },
+                    _ => LoadoutBuilder::animal(entity.body).build(),
+                };
+
+                loadout = match body {
+                    comp::Body::Humanoid(_) => loadout,
                     _ => LoadoutBuilder::animal(entity.body).build(),
                 };
 
@@ -255,7 +260,7 @@ impl<'a> System<'a> for Sys {
                     loadout = comp::Loadout {
                         active_item: Some(comp::ItemConfig {
                             item: assets::load_expect_cloned(
-                                "common.items.weapons.sword.zweihander_sword_0",
+                                "common.items.npc_weapons.sword.zweihander_sword_0",
                             ),
                             ability1: Some(CharacterAbility::BasicMelee {
                                 energy_cost: 0,
@@ -307,7 +312,15 @@ impl<'a> System<'a> for Sys {
                     .health
                     .set_to(stats.health.maximum(), comp::HealthSource::Revive);
 
-                let can_speak = alignment == comp::Alignment::Npc;
+                let can_speak = match body {
+                    comp::Body::Humanoid(_) => alignment == comp::Alignment::Npc,
+                    comp::Body::BirdMedium(bird_medium) => match bird_medium.species {
+                        // Parrots like to have a word in this, too...
+                        bird_medium::Species::Parrot => alignment == comp::Alignment::Npc,
+                        _ => false,
+                    },
+                    _ => false,
+                };
 
                 // TODO: This code sets an appropriate base_damage for the enemy. This doesn't
                 // work because the damage is now saved in an ability

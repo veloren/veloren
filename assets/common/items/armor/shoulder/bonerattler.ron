@@ -1,0 +1,12 @@
+Item(
+    name: "Bonerattler Shoulder Pad",
+    description: "Made from the strongest bones.",
+    kind: Armor(
+        (
+            kind: Shoulder("Bonerattler"),
+            stats: (
+                protection: Normal(15.0),
+            ),
+        )
+    ),
+)
