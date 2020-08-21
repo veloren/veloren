@@ -42,8 +42,11 @@ fn close_participant() {
     let (_n_a, p1_a, mut s1_a, _n_b, p1_b, mut s1_b) = block_on(network_participant_stream(tcp()));
 
     block_on(p1_a.disconnect()).unwrap();
-    //As no more read/write is done on p1_b the disconnect is successful
-    block_on(p1_b.disconnect()).unwrap();
+    //As no more read/write is run disconnect is successful or already disconnected
+    match block_on(p1_b.disconnect()) {
+        Ok(_) | Err(ParticipantError::ParticipantDisconnected) => (),
+        e => panic!("wrong disconnect type {:?}", e),
+    };
 
     assert_eq!(s1_a.send("Hello World"), Err(StreamError::StreamClosed));
     assert_eq!(
@@ -225,15 +228,6 @@ fn close_network_then_disconnect_part() {
 }
 
 #[test]
-/*
-FLANKY:
----- opened_stream_before_remote_part_is_closed stdout ----
-thread 'opened_stream_before_remote_part_is_closed' panicked at 'assertion failed: `(left == right)`
-  left: `Err(StreamClosed)`,
- right: `Ok("HelloWorld")`', network/tests/closing.rs:236:5
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
-
-*/
 fn opened_stream_before_remote_part_is_closed() {
     let (_, _) = helper::setup(false, 0);
     let (_n_a, p_a, _, _n_b, p_b, _) = block_on(network_participant_stream(tcp()));
@@ -291,9 +285,9 @@ fn failed_stream_open_after_remote_part_is_closed() {
 
 #[test]
 fn open_participant_before_remote_part_is_closed() {
-    let (n_a, f) = Network::new(Pid::fake(1));
+    let (n_a, f) = Network::new(Pid::fake(0));
     std::thread::spawn(f);
-    let (n_b, f) = Network::new(Pid::fake(2));
+    let (n_b, f) = Network::new(Pid::fake(1));
     std::thread::spawn(f);
     let addr = tcp();
     block_on(n_a.listen(addr.clone())).unwrap();
@@ -311,9 +305,9 @@ fn open_participant_before_remote_part_is_closed() {
 
 #[test]
 fn open_participant_after_remote_part_is_closed() {
-    let (n_a, f) = Network::new(Pid::fake(1));
+    let (n_a, f) = Network::new(Pid::fake(0));
     std::thread::spawn(f);
-    let (n_b, f) = Network::new(Pid::fake(2));
+    let (n_b, f) = Network::new(Pid::fake(1));
     std::thread::spawn(f);
     let addr = tcp();
     block_on(n_a.listen(addr.clone())).unwrap();
