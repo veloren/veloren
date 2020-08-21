@@ -34,6 +34,8 @@ pub struct NetworkMetrics {
     pub message_out_total: IntCounterVec,
     // send(prio) Messages throughput, seperated by STREAM AND PARTICIPANT,
     pub message_out_throughput: IntCounterVec,
+    // flushed(prio) stream count, seperated by PARTICIPANT,
+    pub streams_flushed: IntCounterVec,
     // TODO: queued Messages, seperated by STREAM (add PART, CHANNEL),
     // queued Messages, seperated by PARTICIPANT
     pub queued_count: IntGaugeVec,
@@ -167,6 +169,13 @@ impl NetworkMetrics {
             ),
             &["participant", "stream"],
         )?;
+        let streams_flushed = IntCounterVec::new(
+            Opts::new(
+                "stream_flushed",
+                "Number of flushed streams requested to PrioManager at participant level",
+            ),
+            &["participant"],
+        )?;
         let queued_count = IntGaugeVec::new(
             Opts::new(
                 "queued_count",
@@ -207,6 +216,7 @@ impl NetworkMetrics {
             wire_in_throughput,
             message_out_total,
             message_out_throughput,
+            streams_flushed,
             queued_count,
             queued_bytes,
             participants_ping,
