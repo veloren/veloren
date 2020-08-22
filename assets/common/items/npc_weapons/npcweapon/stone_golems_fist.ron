@@ -1,9 +1,9 @@
 Item(
-    name: "Cyclops Hammer",
-    description: "Wielded by a mighty cyclops.",
+    name: "Stone Golem's Fist",
+    description: "Was attached to a mighty stone golem.",
     kind: Tool(
         (
-            kind: NpcWeapon("CyclopsHammer"),    
+            kind: NpcWeapon("StoneGolemsFist"),    
             stats: (
                 equip_time_millis: 500,
                 power: 1.00,

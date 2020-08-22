@@ -1,9 +1,4 @@
-({  // Npc weapons (for test purposes, remove when done)
-    NpcWeapon("CyclopsHammer"): (
-        vox_spec: ("weapon.npcweapon.cyclops_hammer", (-2.5, -7.5, -5.0)),
-        color: None
-    ),
-    //Swords
+({  //Swords
     Sword("BasicSword"): (
         vox_spec: ("weapon.sword.rusty_2h", (-1.5, -6.5, -4.0)),
         color: None
