@@ -130,10 +130,10 @@ pub fn apply_scatter_to<'a>(
         // Collecable Objects
         // Only spawn twigs in temperate forests
         (Twigs, false, |c| {
-            ((c.tree_density - 0.5).max(0.0) * MUSH_FACT * 0.5, None)
+            ((c.tree_density - 0.5).max(0.0) * 0.001, None)
         }),
         (Stones, false, |c| {
-            ((c.rockiness - 0.5).max(0.0) * MUSH_FACT * 0.5, None)
+            ((c.rockiness - 0.5).max(0.0) * 0.05, None)
         }),
         // Don't spawn Mushrooms in snowy regions
         (Mushroom, false, |c| {
@@ -494,7 +494,7 @@ pub fn apply_caves_to<'a>(
                 let difficulty = cave_depth / 100.0;
 
                 // Scatter things in caves
-                if RandomField::new(index.seed).chance(wpos2d.into(), 0.002 * difficulty.powf(1.5))
+                if RandomField::new(index.seed).chance(wpos2d.into(), 0.001 * difficulty.powf(1.5))
                     && cave_base < surface_z as i32 - 25
                 {
                     let kind = *assets::load_expect::<Lottery<BlockKind>>("common.cave_scatter")
@@ -547,7 +547,7 @@ pub fn apply_caves_supplement<'a>(
                 let difficulty = cave_depth / 200.0;
 
                 // Scatter things in caves
-                if RandomField::new(index.seed).chance(wpos2d.into(), 0.000005 * difficulty)
+                if RandomField::new(index.seed).chance(wpos2d.into(), 0.001 * difficulty)
                     && cave_base < surface_z as i32 - 40
                 {
                     let is_hostile: bool;
