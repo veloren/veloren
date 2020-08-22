@@ -1,6 +1,6 @@
 Item(
-    name: "Wooden Sword",
-    description: "It's not sharp.",
+    name: "Forest Spirit",
+    description: "The resin glows.",
     kind: Tool(
         (
             kind: Sword("WoodTraining"),    

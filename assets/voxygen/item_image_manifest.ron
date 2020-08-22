@@ -67,7 +67,7 @@
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
     ),
     Tool(Sword("WoodTraining")): VoxTrans(
-        "voxel.weapon.sword.wood_2h",
+        "voxel.weapon.sword.wood_ore_2h",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.3,
     ),
     Tool(Sword("LongFine3")): VoxTrans(

@@ -173,20 +173,25 @@ impl Item {
             BlockKind::ShortGrass => Some(assets::load_expect_cloned("common.items.grasses.short")),
             BlockKind::Coconut => Some(assets::load_expect_cloned("common.items.food.coconut")),
             BlockKind::Chest => {
-                let chosen = match rng.gen_range(0, 5) {
-                    0 => {
-                        assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_food")
-                    },
-                    1 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_crafting",
-                    ),
-                    2 => assets::load_expect::<Lottery<String>>(
+                let chosen = match rng.gen_range(0, 7) {
+                    0 => assets::load_expect::<Lottery<String>>(
                         "common.loot_tables.loot_table_weapon_uncommon",
                     ),
+                    1 => assets::load_expect::<Lottery<String>>(
+                        "common.loot_tables.loot_weapon_common",
+                    ),
+                    2 => assets::load_expect::<Lottery<String>>(
+                        "common.loot_tables.loot_table_armor_light",
+                    ),
                     3 => assets::load_expect::<Lottery<String>>(
+                        "common.loot_tables.loot_table_armor_cloth",
+                    ),
+                    4 => assets::load_expect::<Lottery<String>>(
+                        "common.loot_tables.loot_table_armor_heavy",
+                    ),
+                    _ => assets::load_expect::<Lottery<String>>(
                         "common.loot_tables.loot_table_armor_misc",
                     ),
-                    _ => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table"),
                 };
                 let chosen = chosen.choose();
                 Some(assets::load_expect_cloned(chosen))
