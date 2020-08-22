@@ -281,6 +281,7 @@ impl Scheduler {
                     .send(finished_sender)
                     .unwrap();
                 drop(pi);
+                trace!("dropped bparticipant, waiting for finish");
                 let e = finished_receiver.await.unwrap();
                 return_once_successful_shutdown.send(e).unwrap();
             } else {
@@ -561,6 +562,8 @@ impl Scheduler {
                                 s2b_create_channel_s: s2b_create_channel_s.clone(),
                                 s2b_shutdown_bparticipant_s: Some(s2b_shutdown_bparticipant_s),
                             });
+                            drop(participants);
+                            trace!("dropped participants lock");
                             pool.spawn_ok(
                                 bparticipant
                                     .run(participant_channels.b2s_prio_statistic_s)
