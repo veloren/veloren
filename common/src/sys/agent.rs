@@ -525,7 +525,9 @@ impl<'a> System<'a> for Sys {
 
                     // Attack owner's attacker
                     let owner_stats = stats.get(owner)?;
-                    if owner_stats.health.last_change.0 < 5.0 {
+                    if owner_stats.health.last_change.0 < 5.0
+                        && owner_stats.health.last_change.1.amount < 0
+                    {
                         if let comp::HealthSource::Attack { by } =
                             owner_stats.health.last_change.1.cause
                         {

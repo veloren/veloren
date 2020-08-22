@@ -571,6 +571,7 @@ pub fn block_from_structure(
         )),
         // None of these BlockKinds has an orientation, so we just use zero for the other color
         // bits.
+        StructureBlock::Liana => Some(Block::new(BlockKind::Liana, Rgb::zero())),
         StructureBlock::Fruit => Some(if field.get(pos + structure_pos) % 3 > 0 {
             Block::empty()
         } else {
@@ -592,7 +593,6 @@ pub fn block_from_structure(
         | StructureBlock::PalmLeavesInner
         | StructureBlock::PalmLeavesOuter
         | StructureBlock::Acacia
-        | StructureBlock::Liana
         | StructureBlock::Mangrove => sblock
             .elim_case_pure(&index.colors.block.structure_blocks)
             .as_ref()
