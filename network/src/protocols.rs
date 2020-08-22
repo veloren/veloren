@@ -208,6 +208,7 @@ impl TcpProtocol {
                     //keep the first byte!
                     read_or_close!(&mut data[1..]);
                     data[0] = other;
+                    warn!(?data, "got a unexpected RAW msg");
                     Frame::Raw(data)
                 },
             };

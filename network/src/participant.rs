@@ -448,7 +448,10 @@ impl BParticipant {
                     self.close_api(Some(ParticipantError::ParticipantDisconnected))
                         .await;
                 },
-                f => unreachable!("Frame should never reache participant!: {:?}", f),
+                f => {
+                    //unreachable!("Frame should never reache participant!: {:?}", f);
+                    error!(?f, ?cid, "Frame should never reache participant!");
+                },
             }
         }
         if dropped_cnt > 0 {
