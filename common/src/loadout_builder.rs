@@ -1,7 +1,8 @@
 use crate::{
     comp::{
+        golem,
         item::{Item, ItemKind},
-        Alignment, Body, biped_large, CharacterAbility, ItemConfig, Loadout,
+        Alignment, Body, CharacterAbility, ItemConfig, Loadout,
     },
 };
 use rand::Rng;
@@ -66,15 +67,16 @@ impl LoadoutBuilder {
         )))
     }
 
-    /// Builds loadout of creature when spawned 
+    /// Builds loadout of creature when spawned
     pub fn build_loadout(body: Body, alignment: Alignment, mut main_tool: Option<Item>) -> Self {
         match body {
-            Body::BipedLarge(biped_large) => match biped_large.species {
-                biped_large::Species::Cyclops => {
-                    main_tool = Some(Item::new_from_asset_expect("common.items.weapons.bossweapon.cyclops_hammer"));
+            Body::Golem(golem) => match golem.species {
+                golem::Species::StoneGolem => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.weapons.bossweapon.stone_golems_fist",
+                    ));
                 },
-                _ => {},
-            }
+            },
             _ => {},
         };
 
@@ -185,8 +187,8 @@ impl LoadoutBuilder {
                 },
                 _ => LoadoutBuilder::animal(body).build(),
             },
-            Body::BipedLarge(biped_large) => match biped_large.species {
-                biped_large::Species::Cyclops => Loadout {
+            Body::Golem(golem) => match golem.species {
+                golem::Species::StoneGolem => Loadout {
                     active_item,
                     second_item: None,
                     shoulder: None,
@@ -203,8 +205,7 @@ impl LoadoutBuilder {
                     head: None,
                     tabard: None,
                 },
-                _ => LoadoutBuilder::animal(body).build(), 
-            }
+            },
             _ => LoadoutBuilder::animal(body).build(),
         };
 

@@ -519,11 +519,6 @@
         "voxel.weapon.shield.wood-0",
         (0.0, 0.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
     ),
-    // Npc weapons (for test purposes, remove when done)
-    Tool(NpcWeapon("CyclopsHammer")): VoxTrans(
-        "voxel.weapon.npcweapon.cyclops_hammer",
-        (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
     // Lanterns
     Lantern("Black0"): Png(
         "element.icons.lantern_black-0",

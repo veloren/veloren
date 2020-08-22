@@ -116,16 +116,6 @@ impl Tool {
 
         match &self.kind {
             Sword(_) => vec![
-                GroundShockwave {
-                    energy_cost: 0,
-                    buildup_duration: Duration::from_millis(500),
-                    recover_duration: Duration::from_millis(1000),
-                    damage: 500,
-                    knockback: -30.0,
-                    shockwave_angle: 90.0,
-                    shockwave_speed: 10.0,
-                    shockwave_duration: Duration::from_millis(3000),
-                },
                 TripleStrike {
                     base_damage: (60.0 * self.base_power()) as u32,
                     needs_timing: false,
@@ -359,7 +349,7 @@ impl Tool {
                 BasicBlock,
             ],
             NpcWeapon(kind) => {
-                if kind == "CyclopsHammer" {
+                if kind == "StoneGolemsFist" {
                     vec![
                         BasicMelee {
                             energy_cost: 0,
@@ -375,10 +365,10 @@ impl Tool {
                             buildup_duration: Duration::from_millis(500),
                             recover_duration: Duration::from_millis(1000),
                             damage: 500,
-                            knockback: -30.0,
+                            knockback: -40.0,
                             shockwave_angle: 90.0,
-                            shockwave_speed: 10.0,
-                            shockwave_duration: Duration::from_millis(3000),
+                            shockwave_speed: 20.0,
+                            shockwave_duration: Duration::from_millis(2000),
                         },
                     ]
                 } else {

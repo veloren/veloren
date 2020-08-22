@@ -214,7 +214,7 @@ impl<'a> System<'a> for Sys {
                             local_emitter.emit(LocalEvent::ApplyForce {
                                 entity: b,
                                 force: shockwave.knockback
-                                    * *Dir::slerp(ori.0, Dir::new(Vec3::new(0.0, 0.0, -1.0)), 0.5),
+                                    * *Dir::slerp(ori.0, Dir::new(Vec3::new(0.0, 0.0, -1.0)), 0.85),
                             });
                         } else {
                             local_emitter.emit(LocalEvent::ApplyForce {

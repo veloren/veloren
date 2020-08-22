@@ -263,7 +263,7 @@ impl Body {
                 _ => 1000,
             },
             Body::Object(_) => 10000,
-            Body::Golem(_) => 1500,
+            Body::Golem(_) => 2560,
             Body::Theropod(_) => 50,
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Crocodile => 600,
@@ -330,7 +330,7 @@ impl Body {
                 _ => 100,
             },
             Body::Object(_) => 10,
-            Body::Golem(_) => 150,
+            Body::Golem(_) => 260,
             Body::Theropod(_) => 20,
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Crocodile => 20,
@@ -395,7 +395,7 @@ impl Body {
                 _ => 100,
             },
             Body::Object(_) => 1,
-            Body::Golem(_) => 75,
+            Body::Golem(_) => 256,
             Body::Theropod(_) => 2,
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Crocodile => 10,
@@ -425,7 +425,7 @@ impl Body {
             Body::FishSmall(_) => 1,
             Body::BipedLarge(_) => 2,
             Body::Object(_) => 0,
-            Body::Golem(_) => 5,
+            Body::Golem(_) => 12,
             Body::Theropod(_) => 1,
             Body::QuadrupedLow(_) => 1,
         }
