@@ -43,7 +43,7 @@
         snow: (0.75, 0.8, 1.8),
         snow_moss: (0.35, 0.55, 0.7),
 
-        stone_col: (100, 100, 170),
+        stone_col: (70, 90, 150),
 
         dirt_low: (0.075, 0.07, 0.3),
         dirt_high: (0.75, 0.55, 0.1),
@@ -59,7 +59,7 @@
     deep_stone_color: (125, 120, 130),
     layer: (
         bridge: (80, 80, 100),
-        stalagtite: (140, 110, 250),
+        stalagtite: (140, 150, 200),
     ),
     site: (
         castle: (),
