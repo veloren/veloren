@@ -323,13 +323,11 @@ pub fn apply_scatter_to<'a>(
                             .unwrap_or(false)
                     })
                     .and_then(|solid_start| {
-                        (1..8)
-                            .map(|z| solid_start + z)
-                            .find(|z| {
-                                vol.get(Vec3::new(offs.x, offs.y, alt + z))
-                                    .map(|b| !b.is_solid())
-                                    .unwrap_or(true)
-                            })
+                        (1..8).map(|z| solid_start + z).find(|z| {
+                            vol.get(Vec3::new(offs.x, offs.y, alt + z))
+                                .map(|b| !b.is_solid())
+                                .unwrap_or(true)
+                        })
                     })
                 {
                     let _ = vol.set(
