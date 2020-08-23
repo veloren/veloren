@@ -2053,7 +2053,6 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
 
-                        // TODO!
                         _ => anim::golem::IdleAnimation::update_skeleton(
                             &GolemSkeleton::default(),
                             time,
@@ -2062,8 +2061,21 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
                     };
+                    let target_bones = match &character {
+                        CharacterState::BasicMelee(_) => {
+                            anim::golem::AlphaAnimation::update_skeleton(
+                                &target_base,
+                                (vel.0.magnitude(), time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        // TODO!
+                        _ => target_base,
+                    };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt);
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt);
                     state.update(
                         renderer,
                         pos.0,
