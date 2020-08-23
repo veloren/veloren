@@ -17,13 +17,13 @@
             Water: None,
             GreenSludge: None,
             // Leaves all actually get interpolated.
-            TemperateLeaves: (start: (0, 70, 45), end: (120, 185, 0)),
+            TemperateLeaves: (start: (0, 70, 45), end: (90, 140, 0)),
             PineLeaves: (start: (0, 60, 50), end: (30, 80, 10)),
-            PalmLeavesInner: (start: (61, 166, 43), end: (29, 130, 32)),
-            PalmLeavesOuter: (start: (62, 171, 38), end: (45, 171, 65)),
-            Acacia: (start: (30, 80, 0), end: (90, 110, 20)),
+            PalmLeavesInner: (start: (70, 140, 43), end: (55, 140, 32)),
+            PalmLeavesOuter: (start: (60, 130, 38), end: (30, 130, 65)),
+            Acacia: (start: (30, 100, 0), end: (90, 110, 20)),
             Liana: (start: (0, 125, 107), end: (0, 155, 129)),
-            Mangrove: (start: (15, 60, 10), end: (20, 100, 47)),
+            Mangrove: (start: (15, 80, 10), end: (20, 120, 47)),
         )
 
         // Water blocks ignore color now so this isn't used, but just in case this color was worth
@@ -31,7 +31,7 @@
         // green_sludge: (30.0, 126.0, 23.0)
     ),
     column: (
-        cold_grass: (-0.2, 0.3, 0.1),
+        cold_grass: (0.0, 0.3, 0.1),
         warm_grass: (0.3, 0.25, -0.8),
         dark_grass: (0.15, 0.4, 0.1),
         wet_grass: (0.1, 0.8, 0.2),
@@ -39,14 +39,14 @@
         hot_stone: (0.05, 0.05, 0.04),
         warm_stone: (0.30, 0.2, 0.15),
         beach_sand: (0.8, 0.75, 0.5),
-        desert_sand: (0.7, 0.4, 0.25),
+        desert_sand: (0.6, 0.4, 0.2),
         snow: (0.75, 0.8, 1.8),
         snow_moss: (0.35, 0.55, 0.7),
 
-        stone_col: (70, 90, 150),
+        stone_col: (90, 110, 150),
 
         dirt_low: (0.075, 0.07, 0.3),
-        dirt_high: (0.75, 0.55, 0.1),
+        dirt_high: (0.6, 0.3, 0.05),
 
         snow_high: (0.01, 0.3, 0.0),
         warm_stone_high: (0.25, 0.22, 0.3),
