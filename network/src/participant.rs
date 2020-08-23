@@ -614,6 +614,7 @@ impl BParticipant {
         trace!("Start participant_shutdown_mgr");
         let sender = s2b_shutdown_bparticipant_r.await.unwrap();
 
+        #[cfg(feature = "metrics")]
         let mut send_cache = MultiCidFrameCache::new(self.metrics.frames_out_total.clone());
 
         self.close_api(None).await;

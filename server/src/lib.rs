@@ -1,6 +1,7 @@
 #![deny(unsafe_code)]
 #![allow(clippy::option_map_unit_fn)]
 #![feature(bool_to_option, drain_filter, option_zip)]
+#![cfg_attr(not(feature = "worldgen"), feature(const_panic))]
 
 pub mod alias_validator;
 pub mod chunk_generator;
@@ -191,10 +192,12 @@ impl Server {
         let (world, index) = World::generate(settings.world_seed);
         #[cfg(not(feature = "worldgen"))]
         let map = WorldMapMsg {
-            dimensions: Vec2::new(1, 1),
+            dimensions_lg: Vec2::zero(),
             max_height: 1.0,
             rgba: vec![0],
             horizons: [(vec![0], vec![0]), (vec![0], vec![0])],
+            sea_level: 0.0,
+            alt: vec![30],
         };
 
         #[cfg(feature = "worldgen")]
