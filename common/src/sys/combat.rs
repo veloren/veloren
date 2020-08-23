@@ -154,7 +154,7 @@ impl<'a> System<'a> for Sys {
                     }
 
                     if attack.knockback != 0.0 {
-                        local_emitter.emit(LocalEvent::ApplyForce {
+                        server_emitter.emit(ServerEvent::Knockback {
                             entity: b,
                             force: attack.knockback
                                 * *Dir::slerp(ori.0, Dir::new(Vec3::new(0.0, 0.0, 1.0)), 0.5),

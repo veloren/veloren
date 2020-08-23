@@ -8,8 +8,8 @@ use entity_creation::{
     handle_loaded_character_data, handle_shockwave, handle_shoot,
 };
 use entity_manipulation::{
-    handle_damage, handle_destroy, handle_explosion, handle_land_on_ground, handle_level_up,
-    handle_respawn,
+    handle_damage, handle_destroy, handle_explosion, handle_knockback, handle_land_on_ground,
+    handle_level_up, handle_respawn,
 };
 use group_manip::handle_group;
 use interaction::{handle_lantern, handle_mount, handle_possess, handle_unmount};
@@ -75,6 +75,7 @@ impl Server {
                     pos,
                     ori,
                 } => handle_shockwave(self, properties, pos, ori),
+                ServerEvent::Knockback { entity, force } => handle_knockback(&self, entity, force),
                 ServerEvent::Damage { uid, change } => handle_damage(&self, uid, change),
                 ServerEvent::Destroy { entity, cause } => handle_destroy(self, entity, cause),
                 ServerEvent::InventoryManip(entity, manip) => handle_inventory(self, entity, manip),

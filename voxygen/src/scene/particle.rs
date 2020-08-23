@@ -420,6 +420,7 @@ impl ParticleMgr {
             }
         }
     }
+
     fn maintain_shockwave_particles(&mut self, scene_data: &SceneData) {
         let state = scene_data.state;
         let ecs = state.ecs();

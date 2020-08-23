@@ -63,7 +63,7 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
-        let mut local_emitter = local_bus.emitter();
+        let _local_emitter = local_bus.emitter();
 
         let time = time.0;
         let dt = dt.0;
@@ -211,13 +211,13 @@ impl<'a> System<'a> for Sys {
                     }
                     if shockwave.knockback != 0.0 {
                         if shockwave.knockback < 0.0 {
-                            local_emitter.emit(LocalEvent::ApplyForce {
+                            server_emitter.emit(ServerEvent::Knockback {
                                 entity: b,
                                 force: shockwave.knockback
                                     * *Dir::slerp(ori.0, Dir::new(Vec3::new(0.0, 0.0, -1.0)), 0.85),
                             });
                         } else {
-                            local_emitter.emit(LocalEvent::ApplyForce {
+                            server_emitter.emit(ServerEvent::Knockback {
                                 entity: b,
                                 force: shockwave.knockback
                                     * *Dir::slerp(ori.0, Dir::new(Vec3::new(0.0, 0.0, 1.0)), 0.5),
