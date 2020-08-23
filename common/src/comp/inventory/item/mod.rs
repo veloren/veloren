@@ -178,7 +178,7 @@ impl Item {
                         "common.loot_tables.loot_table_weapon_uncommon",
                     ),
                     1 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_weapon_common",
+                        "common.loot_tables.loot_table_weapon_common",
                     ),
                     2 => assets::load_expect::<Lottery<String>>(
                         "common.loot_tables.loot_table_armor_light",
