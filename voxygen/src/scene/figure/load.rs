@@ -2777,6 +2777,7 @@ struct GolemCenterSpec(HashMap<(GSpecies, GBodyType), SidedGCenterVoxSpec>);
 struct SidedGCenterVoxSpec {
     head: GolemCenterSubSpec,
     torso_upper: GolemCenterSubSpec,
+    torso_lower: GolemCenterSubSpec,
 }
 #[derive(Deserialize)]
 struct GolemCenterSubSpec {
@@ -2893,6 +2894,27 @@ impl GolemCenterSpec {
         let center = graceful_load_segment(&spec.torso_upper.center.0);
 
         (center, Vec3::from(spec.torso_upper.offset))
+    }
+
+    pub fn mesh_torso_lower(
+        &self,
+        species: GSpecies,
+        body_type: GBodyType,
+        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
+    ) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No torso lower specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+            },
+        };
+        let center = graceful_load_segment(&spec.torso_lower.center.0);
+
+        generate_mesh(center, Vec3::from(spec.torso_lower.offset))
     }
 }
 impl GolemLateralSpec {
