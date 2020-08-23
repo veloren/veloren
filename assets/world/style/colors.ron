@@ -17,13 +17,13 @@
             Water: None,
             GreenSludge: None,
             // Leaves all actually get interpolated.
-            TemperateLeaves: (start: (0, 132, 94), end: (142, 181, 0)),
-            PineLeaves: (start: (0, 60, 50), end: (30, 100, 10)),
+            TemperateLeaves: (start: (0, 70, 45), end: (120, 185, 0)),
+            PineLeaves: (start: (0, 60, 50), end: (30, 80, 10)),
             PalmLeavesInner: (start: (61, 166, 43), end: (29, 130, 32)),
             PalmLeavesOuter: (start: (62, 171, 38), end: (45, 171, 65)),
-            Acacia: (start: (15, 126, 50), end: (30, 180, 10)),
+            Acacia: (start: (30, 80, 0), end: (90, 110, 20)),
             Liana: (start: (0, 125, 107), end: (0, 155, 129)),
-            Mangrove: (start: (32, 56, 22), end: (57, 69, 27)),
+            Mangrove: (start: (15, 60, 10), end: (20, 100, 47)),
         )
 
         // Water blocks ignore color now so this isn't used, but just in case this color was worth
@@ -31,34 +31,35 @@
         // green_sludge: (30.0, 126.0, 23.0)
     ),
     column: (
-        cold_grass: (0.0, 0.5, 0.25),
-        warm_grass: (0.4, 0.8, 0.0),
+        cold_grass: (-0.2, 0.3, 0.1),
+        warm_grass: (0.3, 0.25, -0.8),
         dark_grass: (0.15, 0.4, 0.1),
         wet_grass: (0.1, 0.8, 0.2),
-        cold_stone: (0.57, 0.67, 0.8),
-        hot_stone: (0.07, 0.07, 0.06),
-        warm_stone: (0.77, 0.77, 0.64),
+        cold_stone: (0.4, 0.67, 0.8),
+        hot_stone: (0.05, 0.05, 0.04),
+        warm_stone: (0.30, 0.2, 0.15),
         beach_sand: (0.8, 0.75, 0.5),
         desert_sand: (0.7, 0.4, 0.25),
-        snow: (0.8, 0.85, 1.0),
+        snow: (0.75, 0.8, 1.8),
+        snow_moss: (0.35, 0.55, 0.7),
 
-        stone_col: (195, 187, 201),
+        stone_col: (100, 100, 170),
 
         dirt_low: (0.075, 0.07, 0.3),
         dirt_high: (0.75, 0.55, 0.1),
 
         snow_high: (0.01, 0.3, 0.0),
-        warm_stone_high: (0.3, 0.12, 0.2),
+        warm_stone_high: (0.25, 0.22, 0.3),
 
         grass_high: (0.15, 0.2, 0.15),
-        tropical_high: (0.87, 0.62, 0.56),
+        tropical_high: (0.95, 0.55, 0.50),
     ),
     // NOTE: I think (but am not sure) that this is the color of stuff below the bottom-most
     // ground.  I'm not sure how easy it is to see.
     deep_stone_color: (125, 120, 130),
     layer: (
         bridge: (80, 80, 100),
-        stalagtite: (200, 200, 200),
+        stalagtite: (140, 110, 250),
     ),
     site: (
         castle: (),
@@ -74,24 +75,25 @@
                         pole: (90, 70, 50),
                         flag: (
                             Evil: (80, 10, 130),
-                            Good: (200, 80, 40),
+                            Good: (150, 20, 0),
                         ),
                         stone: (
                             Evil: (65, 60, 55),
-                            Good: (100, 100, 110),
+                            Good: (70, 75, 80),
                         ),
                     ),
                     house: (
-                        foundation: (100, 100, 100),
+                        foundation: (70, 70, 70),
                         floor: (100, 75, 50),
                         roof: (
                             Roof1: (0x99, 0x5E, 0x54),
                             Roof2: (0x43, 0x63, 0x64),
                             Roof3: (0x76, 0x6D, 0x68),
-                            Roof4: (0x7B, 0x41, 0x61),
+                            Roof4: (0x65, 0x01, 0x41),
                             Roof5: (0x52, 0x20, 0x20),
-                            Roof6: (0x1A, 0x4A, 0x59),
-                            Roof7: (0xCC, 0x76, 0x4E),
+                            Roof6: (0x05, 0x3A, 0x40),
+                            Roof7: (0xCC, 0x56, 0x3E),
+                            Roof8: (0x05, 0x48, 0x40),
                             // (0x1D, 0x4D, 0x45),
                             // (0xB3, 0x7D, 0x60),
                             // (0xAC, 0x5D, 0x26),
@@ -122,18 +124,18 @@
                             Wall9: (0xAE, 0x8D, 0x9C),
                         ),
                         support: (
-                            Support1: (60, 45, 30),
-                            Support2: (0x65, 0x55, 0x56),
+                            Support1: (65, 30, 0),
+                            Support2: (0x35, 0x25, 0x26),
                             Support3: (0x53, 0x33, 0x13),
-                            Support4: (0x58, 0x42, 0x33),
+                            Support4: (0x65, 0x30, 0),
                         ),
                     ),
                 ),
             ),
-            plot_town_path: (100, 95, 65),
+            plot_town_path: (90, 70, 45),
 
-            plot_field_dirt: (80, 55, 35),
-            plot_field_mound: (70, 80, 30),
+            plot_field_dirt: (70, 25, 15),
+            plot_field_mound: (40, 60, 10),
 
             wall_low: (130, 100, 0),
             wall_high :(90, 70, 50),
