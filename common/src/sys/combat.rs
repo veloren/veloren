@@ -59,7 +59,7 @@ impl<'a> System<'a> for Sys {
         let start_time = std::time::Instant::now();
         span!(_guard, "run", "combat::Sys::run");
         let mut server_emitter = server_bus.emitter();
-        let mut local_emitter = local_bus.emitter();
+        let mut _local_emitter = local_bus.emitter();
         // Attacks
         for (entity, uid, pos, ori, scale_maybe, attack) in (
             &entities,
@@ -152,8 +152,7 @@ impl<'a> System<'a> for Sys {
                             },
                         });
                     }
-
-                    if attack.knockback != 0.0 {
+                    if attack.knockback != 0.0 && damage.healthchange != 0.0 {
                         server_emitter.emit(ServerEvent::Knockback {
                             entity: b,
                             force: attack.knockback

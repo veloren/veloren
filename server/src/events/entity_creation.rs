@@ -79,6 +79,7 @@ pub fn handle_create_npc(
     entity.build();
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn handle_shoot(
     server: &mut Server,
     entity: EcsEntity,
