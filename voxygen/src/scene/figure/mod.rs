@@ -2075,7 +2075,7 @@ impl FigureMgr {
                         _ => target_base,
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt);
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         pos.0,
