@@ -29,6 +29,7 @@ uniform u_locals {
 
 out vec3 f_pos;
 out vec3 f_norm;
+out float pull_down;
 // out vec2 v_pos_orig;
 // out vec4 f_square;
 // out vec4 f_shadow;
@@ -48,7 +49,8 @@ void main() {
 
     // f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
 
-	f_pos.z -= 1.0 / pow(distance(focus_pos.xy, f_pos.xy) / (view_distance.x * 0.95), 20.0);
+	pull_down = 1.0 / pow(distance(focus_pos.xy, f_pos.xy) / (view_distance.x * 0.95), 20.0);
+	f_pos.z -= pull_down;
 
 	// f_pos.z -= 100.0 * pow(1.0 + 0.01 / view_distance.x, -pow(distance(focus_pos.xy, f_pos.xy), 2.0));
     // f_pos.z = mix(-f_pos.z, f_pos.z, view_distance.x <= distance(focus_pos.xy, f_pos.xy) + 32.0);
