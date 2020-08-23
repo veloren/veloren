@@ -183,6 +183,7 @@ impl<'a> Widget for Crafting<'a> {
             .set(ids.align_ing, ui);
         let client = &self.client;
         // First available recipes, then unavailable ones
+        // TODO Sort these alphabetically by using "sort_by_key(|x| x.to_lowercase())"
         let recipe_iter = self
             .client
             .recipe_book()
