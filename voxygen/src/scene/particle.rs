@@ -265,7 +265,7 @@ impl ParticleMgr {
         let time = scene_data.state.get_time();
         let player_pos = scene_data
             .state
-            .read_component_cloned::<Pos>(scene_data.player_entity)
+            .read_component_copied::<Pos>(scene_data.player_entity)
             .unwrap_or_default();
         let player_chunk = player_pos.0.xy().map2(TerrainChunk::RECT_SIZE, |e, sz| {
             (e.floor() as i32).div_euclid(sz as i32)

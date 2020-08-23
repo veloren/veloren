@@ -168,7 +168,7 @@ impl StateExt for State {
         self.write_component(entity, comp::CharacterState::default());
         self.write_component(
             entity,
-            comp::Alignment::Owned(self.read_component_cloned(entity).unwrap()),
+            comp::Alignment::Owned(self.read_component_copied(entity).unwrap()),
         );
 
         // Make sure physics components are updated
@@ -207,7 +207,7 @@ impl StateExt for State {
     fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents) {
         let (body, stats, inventory, loadout) = components;
 
-        if let Some(player_uid) = self.read_component_cloned::<Uid>(entity) {
+        if let Some(player_uid) = self.read_component_copied::<Uid>(entity) {
             // Notify clients of a player list update
             self.notify_registered_clients(ServerMsg::PlayerListUpdate(
                 PlayerListUpdate::SelectedCharacter(player_uid, CharacterInfo {
