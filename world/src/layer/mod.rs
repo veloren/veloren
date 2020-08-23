@@ -312,20 +312,30 @@ pub fn apply_scatter_to<'a>(
                 });
 
             if let Some(bk) = bk {
-                let mut z = col_sample.alt as i32 - 4;
-                for _ in 0..8 {
-                    if vol
-                        .get(Vec3::new(offs.x, offs.y, z))
-                        .map(|b| !b.is_solid())
-                        .unwrap_or(true)
-                    {
-                        let _ = vol.set(
-                            Vec3::new(offs.x, offs.y, z),
-                            Block::new(bk, Rgb::broadcast(0)),
-                        );
-                        break;
-                    }
-                    z += 1;
+                let alt = col_sample.alt as i32;
+
+                // Find the intersection between ground and air, if there is one near the
+                // surface
+                if let Some(solid_end) = (-4..8)
+                    .find(|z| {
+                        vol.get(Vec3::new(offs.x, offs.y, alt + z))
+                            .map(|b| b.is_solid())
+                            .unwrap_or(false)
+                    })
+                    .and_then(|solid_start| {
+                        (1..8)
+                            .map(|z| solid_start + z)
+                            .find(|z| {
+                                vol.get(Vec3::new(offs.x, offs.y, alt + z))
+                                    .map(|b| !b.is_solid())
+                                    .unwrap_or(true)
+                            })
+                    })
+                {
+                    let _ = vol.set(
+                        Vec3::new(offs.x, offs.y, alt + solid_end),
+                        Block::new(bk, Rgb::broadcast(0)),
+                    );
                 }
             }
         }
