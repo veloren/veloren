@@ -7,10 +7,7 @@ use crate::{
     protocols::{Protocols, TcpProtocol, UdpProtocol},
     types::Pid,
 };
-use async_std::{
-    io, net,
-    sync::{Mutex, RwLock},
-};
+use async_std::{io, net, sync::Mutex};
 use futures::{
     channel::{mpsc, oneshot},
     executor::ThreadPool,
@@ -76,9 +73,9 @@ pub struct Scheduler {
     pool: Arc<ThreadPool>,
     run_channels: Option<ControlChannels>,
     participant_channels: Arc<Mutex<Option<ParticipantChannels>>>,
-    participants: Arc<RwLock<HashMap<Pid, ParticipantInfo>>>,
+    participants: Arc<Mutex<HashMap<Pid, ParticipantInfo>>>,
     channel_ids: Arc<AtomicU64>,
-    channel_listener: RwLock<HashMap<ProtocolAddr, oneshot::Sender<()>>>,
+    channel_listener: Mutex<HashMap<ProtocolAddr, oneshot::Sender<()>>>,
     #[cfg(feature = "metrics")]
     metrics: Arc<NetworkMetrics>,
 }
@@ -136,9 +133,9 @@ impl Scheduler {
                 pool: Arc::new(ThreadPool::new().unwrap()),
                 run_channels,
                 participant_channels: Arc::new(Mutex::new(Some(participant_channels))),
-                participants: Arc::new(RwLock::new(HashMap::new())),
+                participants: Arc::new(Mutex::new(HashMap::new())),
                 channel_ids: Arc::new(AtomicU64::new(0)),
-                channel_listener: RwLock::new(HashMap::new()),
+                channel_listener: Mutex::new(HashMap::new()),
                 #[cfg(feature = "metrics")]
                 metrics,
             },
@@ -180,7 +177,7 @@ impl Scheduler {
                         .inc();
                     let (end_sender, end_receiver) = oneshot::channel::<()>();
                     self.channel_listener
-                        .write()
+                        .lock()
                         .await
                         .insert(address.clone(), end_sender);
                     self.channel_creator(address, end_receiver, s2a_listen_result_s)
@@ -273,7 +270,7 @@ impl Scheduler {
             // 3. Participant will try to access the BParticipant senders and receivers with
             // their next api action, it will fail and be closed then.
             trace!(?pid, "Got request to close participant");
-            if let Some(mut pi) = self.participants.write().await.remove(&pid) {
+            if let Some(mut pi) = self.participants.lock().await.remove(&pid) {
                 let (finished_sender, finished_receiver) = oneshot::channel();
                 pi.s2b_shutdown_bparticipant_s
                     .take()
@@ -310,7 +307,7 @@ impl Scheduler {
         a2s_scheduler_shutdown_r.await.unwrap();
         self.closed.store(true, Ordering::Relaxed);
         debug!("Shutting down all BParticipants gracefully");
-        let mut participants = self.participants.write().await;
+        let mut participants = self.participants.lock().await;
         let waitings = participants
             .drain()
             .map(|(pid, mut pi)| {
@@ -336,7 +333,7 @@ impl Scheduler {
             };
         }
         debug!("shutting down protocol listeners");
-        for (addr, end_channel_sender) in self.channel_listener.write().await.drain() {
+        for (addr, end_channel_sender) in self.channel_listener.lock().await.drain() {
             trace!(?addr, "stopping listen on protocol");
             if let Err(e) = end_channel_sender.send(()) {
                 warn!(?addr, ?e, "listener crashed/disconnected already");
@@ -531,7 +528,7 @@ impl Scheduler {
                             ?pid,
                             "Detected that my channel is ready!, activating it :)"
                         );
-                        let mut participants = participants.write().await;
+                        let mut participants = participants.lock().await;
                         if !participants.contains_key(&pid) {
                             debug!(?cid, "New participant connected via a channel");
                             let (
