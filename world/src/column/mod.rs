@@ -38,6 +38,7 @@ pub struct Colors {
     pub beach_sand: (f32, f32, f32),
     pub desert_sand: (f32, f32, f32),
     pub snow: (f32, f32, f32),
+    pub snow_moss: (f32, f32, f32),
 
     pub stone_col: (u8, u8, u8),
 
@@ -802,6 +803,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             beach_sand,
             desert_sand,
             snow,
+            snow_moss,
             stone_col,
             dirt_low,
             dirt_high,
@@ -839,7 +841,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             warm_grass,
             marble.sub(0.5).add(1.0.sub(humidity).mul(0.5)).powf(1.5),
         );
-        let snow_moss = Rgb::lerp(snow, cold_grass, 0.4 + marble.powf(1.5) * 0.6);
+        let snow_moss = Rgb::lerp(snow_moss.into(), cold_grass, 0.4 + marble.powf(1.5) * 0.6);
         let moss = Rgb::lerp(dark_grass, cold_grass, marble.powf(1.5));
         let rainforest = Rgb::lerp(wet_grass, warm_grass, marble.powf(1.5));
         let sand = Rgb::lerp(beach_sand, desert_sand, marble);

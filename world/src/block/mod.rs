@@ -361,12 +361,11 @@ impl<'a> BlockGen<'a> {
 
                     Some(Block::new(
                         BlockKind::Rock,
-                        stone_col
-                            - Rgb::new(
-                                field0.get(wpos) as u8 % 16,
-                                field1.get(wpos) as u8 % 16,
-                                field2.get(wpos) as u8 % 16,
-                            ),
+                        stone_col.map2(Rgb::new(
+                            field0.get(wpos) as u8 % 16,
+                            field1.get(wpos) as u8 % 16,
+                            field2.get(wpos) as u8 % 16,
+                        ), |stone, x| stone.saturating_sub(x)),
                     ))
                 } else {
                     None
