@@ -8,11 +8,7 @@ use crate::{
     scheduler::Scheduler,
     types::{Mid, Pid, Prio, Promises, Sid},
 };
-use async_std::{
-    io,
-    sync::{Mutex, RwLock},
-    task,
-};
+use async_std::{io, sync::Mutex, task};
 use futures::{
     channel::{mpsc, oneshot},
     sink::SinkExt,
@@ -52,8 +48,8 @@ pub enum ProtocolAddr {
 pub struct Participant {
     local_pid: Pid,
     remote_pid: Pid,
-    a2b_stream_open_s: RwLock<mpsc::UnboundedSender<A2bStreamOpen>>,
-    b2a_stream_opened_r: RwLock<mpsc::UnboundedReceiver<Stream>>,
+    a2b_stream_open_s: Mutex<mpsc::UnboundedSender<A2bStreamOpen>>,
+    b2a_stream_opened_r: Mutex<mpsc::UnboundedReceiver<Stream>>,
     a2s_disconnect_s: A2sDisconnect,
 }
 
@@ -147,12 +143,12 @@ pub enum StreamError {
 /// [`connected`]: Network::connected
 pub struct Network {
     local_pid: Pid,
-    participant_disconnect_sender: RwLock<HashMap<Pid, A2sDisconnect>>,
+    participant_disconnect_sender: Mutex<HashMap<Pid, A2sDisconnect>>,
     listen_sender:
-        RwLock<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<async_std::io::Result<()>>)>>,
+        Mutex<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<async_std::io::Result<()>>)>>,
     connect_sender:
-        RwLock<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<io::Result<Participant>>)>>,
-    connected_receiver: RwLock<mpsc::UnboundedReceiver<Participant>>,
+        Mutex<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<io::Result<Participant>>)>>,
+    connected_receiver: Mutex<mpsc::UnboundedReceiver<Participant>>,
     shutdown_sender: Option<oneshot::Sender<()>>,
 }
 
@@ -249,10 +245,10 @@ impl Network {
         (
             Self {
                 local_pid: participant_id,
-                participant_disconnect_sender: RwLock::new(HashMap::new()),
-                listen_sender: RwLock::new(listen_sender),
-                connect_sender: RwLock::new(connect_sender),
-                connected_receiver: RwLock::new(connected_receiver),
+                participant_disconnect_sender: Mutex::new(HashMap::new()),
+                listen_sender: Mutex::new(listen_sender),
+                connect_sender: Mutex::new(connect_sender),
+                connected_receiver: Mutex::new(connected_receiver),
                 shutdown_sender: Some(shutdown_sender),
             },
             move || {
@@ -300,7 +296,7 @@ impl Network {
         let (s2a_result_s, s2a_result_r) = oneshot::channel::<async_std::io::Result<()>>();
         debug!(?address, "listening on address");
         self.listen_sender
-            .write()
+            .lock()
             .await
             .send((address, s2a_result_s))
             .await?;
@@ -356,7 +352,7 @@ impl Network {
         let (pid_sender, pid_receiver) = oneshot::channel::<io::Result<Participant>>();
         debug!(?address, "Connect to address");
         self.connect_sender
-            .write()
+            .lock()
             .await
             .send((address, pid_sender))
             .await?;
@@ -370,7 +366,7 @@ impl Network {
             "Received Participant id from remote and return to user"
         );
         self.participant_disconnect_sender
-            .write()
+            .lock()
             .await
             .insert(pid, participant.a2s_disconnect_s.clone());
         Ok(participant)
@@ -410,9 +406,9 @@ impl Network {
     /// [`Streams`]: crate::api::Stream
     /// [`listen`]: crate::api::Network::listen
     pub async fn connected(&self) -> Result<Participant, NetworkError> {
-        let participant = self.connected_receiver.write().await.next().await?;
+        let participant = self.connected_receiver.lock().await.next().await?;
         self.participant_disconnect_sender
-            .write()
+            .lock()
             .await
             .insert(participant.remote_pid, participant.a2s_disconnect_s.clone());
         Ok(participant)
@@ -430,8 +426,8 @@ impl Participant {
         Self {
             local_pid,
             remote_pid,
-            a2b_stream_open_s: RwLock::new(a2b_stream_open_s),
-            b2a_stream_opened_r: RwLock::new(b2a_stream_opened_r),
+            a2b_stream_open_s: Mutex::new(a2b_stream_open_s),
+            b2a_stream_opened_r: Mutex::new(b2a_stream_opened_r),
             a2s_disconnect_s: Arc::new(Mutex::new(Some(a2s_disconnect_s))),
         }
     }
@@ -477,11 +473,11 @@ impl Participant {
     ///
     /// [`Streams`]: crate::api::Stream
     pub async fn open(&self, prio: u8, promises: Promises) -> Result<Stream, ParticipantError> {
-        //use this lock for now to make sure that only one open at a time is made,
-        // TODO: not sure if we can paralise that, check in future
-        let mut a2b_stream_open_s = self.a2b_stream_open_s.write().await;
         let (p2a_return_stream_s, p2a_return_stream_r) = oneshot::channel();
-        if let Err(e) = a2b_stream_open_s
+        if let Err(e) = self
+            .a2b_stream_open_s
+            .lock()
+            .await
             .send((prio, promises, p2a_return_stream_s))
             .await
         {
@@ -535,10 +531,7 @@ impl Participant {
     /// [`connected`]: Network::connected
     /// [`open`]: Participant::open
     pub async fn opened(&self) -> Result<Stream, ParticipantError> {
-        //use this lock for now to make sure that only one open at a time is made,
-        // TODO: not sure if we can paralise that, check in future
-        let mut stream_opened_receiver = self.b2a_stream_opened_r.write().await;
-        match stream_opened_receiver.next().await {
+        match self.b2a_stream_opened_r.lock().await.next().await {
             Some(stream) => {
                 let sid = stream.sid;
                 debug!(?sid, ?self.remote_pid, "Receive opened stream");
@@ -861,7 +854,7 @@ impl Drop for Network {
             // we MUST avoid nested block_on, good that Network::Drop no longer triggers
             // Participant::Drop directly but just the BParticipant
             for (remote_pid, a2s_disconnect_s) in
-                self.participant_disconnect_sender.write().await.drain()
+                self.participant_disconnect_sender.lock().await.drain()
             {
                 match a2s_disconnect_s.lock().await.take() {
                     Some(mut a2s_disconnect_s) => {
