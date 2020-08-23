@@ -458,7 +458,7 @@ where
     let is_walkable = |pos: &Vec3<i32>| walkable(vol, *pos);
     let get_walkable_z = |pos| {
         let mut z_incr = 0;
-        for _ in 0..32 {
+        for _ in 0..128 {
             let test_pos = pos + Vec3::unit_z() * z_incr;
             if is_walkable(&test_pos) {
                 return Some(test_pos);
