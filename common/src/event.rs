@@ -56,6 +56,10 @@ pub enum ServerEvent {
         pos: Pos,
         ori: Ori,
     },
+    Knockback {
+        entity: EcsEntity,
+        force: Vec3<f32>,
+    },
     LandOnGround {
         entity: EcsEntity,
         vel: Vec3<f32>,

@@ -32,6 +32,19 @@ pub fn handle_damage(server: &Server, uid: Uid, change: HealthChange) {
     }
 }
 
+pub fn handle_knockback(server: &Server, entity: EcsEntity, force: Vec3<f32>) {
+    let state = &server.state;
+    let ecs = state.ecs();
+    let mut velocities = ecs.write_storage::<comp::Vel>();
+    if let Some(vel) = velocities.get_mut(entity) {
+        vel.0 = force;
+    }
+    let mut clients = state.ecs().write_storage::<Client>();
+    if let Some(client) = clients.get_mut(entity) {
+        client.notify(ServerMsg::Knockback(force));
+    }
+}
+
 /// Handle an entity dying. If it is a player, it will send a message to all
 /// other players. If the entity that killed it had stats, then give it exp for
 /// the kill. Experience given is equal to the level of the entity that was
