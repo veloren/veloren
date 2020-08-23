@@ -344,8 +344,17 @@ impl Scene {
             },
             // Zoom the camera when a zoom event occurs
             Event::Zoom(delta) => {
-                self.camera
-                    .zoom_switch(delta * (0.05 + self.camera.get_distance() * 0.01));
+                // when zooming in the distance the camera travelles should be based on the
+                // final distance. This is to make sure the camera travelles the
+                // same distance when zooming in and out
+                if delta < 0.0 {
+                    self.camera.zoom_switch(
+                        delta * (0.05 + self.camera.get_distance() * 0.01) / (1.0 - delta * 0.01),
+                    ); // Thank you Imbris for doing the math
+                } else {
+                    self.camera
+                        .zoom_switch(delta * (0.05 + self.camera.get_distance() * 0.01));
+                }
                 true
             },
             Event::AnalogGameInput(input) => match input {
