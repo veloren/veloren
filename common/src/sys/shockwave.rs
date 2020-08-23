@@ -209,7 +209,7 @@ impl<'a> System<'a> for Sys {
                             },
                         });
                     }
-                    if shockwave.knockback != 0.0 {
+                    if shockwave.knockback != 0.0 && damage.healthchange != 0.0 {
                         if shockwave.knockback < 0.0 {
                             server_emitter.emit(ServerEvent::Knockback {
                                 entity: b,

@@ -69,6 +69,7 @@ impl LoadoutBuilder {
 
     /// Builds loadout of creature when spawned
     pub fn build_loadout(body: Body, alignment: Alignment, mut main_tool: Option<Item>) -> Self {
+        #![allow(clippy::single_match)] // For when this is done to more than just golems.
         match body {
             Body::Golem(golem) => match golem.species {
                 golem::Species::StoneGolem => {
