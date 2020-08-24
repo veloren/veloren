@@ -113,7 +113,7 @@ impl CharacterBehavior for Data {
 
         // Handling movement
         if stage_time_active < Duration::from_millis(STAGE_DURATION / 3) {
-            let adjusted_accel = match (self.stage, data.physics.touch_entity.is_none()) {
+            let adjusted_accel = match (self.stage, data.physics.touch_entities.is_empty()) {
                 (Stage::First, true) => INITIAL_ACCEL,
                 (Stage::Second, true) => INITIAL_ACCEL * 0.75,
                 (Stage::Third, true) => INITIAL_ACCEL * 0.75,
