@@ -193,6 +193,7 @@ impl<'a> System<'a> for Sys {
                         ring: None,
                         neck: None,
                         lantern: None,
+                        glider: None,
                         head: None,
                         tabard: None,
                     },
@@ -225,6 +226,7 @@ impl<'a> System<'a> for Sys {
                         lantern: Some(comp::Item::new_from_asset_expect(
                             "common.items.lantern.black_0",
                         )),
+                        glider: None,
                         head: None,
                         tabard: None,
                     },
@@ -306,6 +308,7 @@ impl<'a> System<'a> for Sys {
                         ring: None,
                         neck: None,
                         lantern: None,
+                        glider: None,
                         head: None,
                         tabard: None,
                     };
