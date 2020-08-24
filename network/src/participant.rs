@@ -8,7 +8,7 @@ use crate::{
     protocols::Protocols,
     types::{Cid, Frame, Pid, Prio, Promises, Sid},
 };
-use async_std::sync::RwLock;
+use async_std::sync::{Mutex, RwLock};
 use futures::{
     channel::{mpsc, oneshot},
     future::FutureExt,
@@ -46,7 +46,7 @@ struct StreamInfo {
     prio: Prio,
     promises: Promises,
     send_closed: Arc<AtomicBool>,
-    b2a_msg_recv_s: mpsc::UnboundedSender<IncomingMessage>,
+    b2a_msg_recv_s: Mutex<mpsc::UnboundedSender<IncomingMessage>>,
 }
 
 #[derive(Debug)]
@@ -71,7 +71,7 @@ pub struct BParticipant {
     remote_pid: Pid,
     remote_pid_string: String, //optimisation
     offset_sid: Sid,
-    channels: Arc<RwLock<HashMap<Cid, ChannelInfo>>>,
+    channels: Arc<RwLock<HashMap<Cid, Mutex<ChannelInfo>>>>,
     streams: RwLock<HashMap<Sid, StreamInfo>>,
     running_mgr: AtomicUsize,
     run_channels: Option<ControlChannels>,
@@ -252,10 +252,10 @@ impl BParticipant {
         frame: Frame,
         #[cfg(feature = "metrics")] frames_out_total_cache: &mut PidCidFrameCache,
     ) -> bool {
-        // find out ideal channel here
-        //TODO: just take first
-        let mut lock = self.channels.write().await;
-        if let Some(ci) = lock.values_mut().next() {
+        let mut drop_cid = None;
+        // TODO: find out ideal channel here
+        let res = if let Some(ci) = self.channels.read().await.values().next() {
+            let mut ci = ci.lock().await;
             //we are increasing metrics without checking the result to please
             // borrow_checker. otherwise we would need to close `frame` what we
             // dont want!
@@ -266,20 +266,7 @@ impl BParticipant {
             if let Err(e) = ci.b2w_frame_s.send(frame).await {
                 let cid = ci.cid;
                 info!(?e, ?cid, "channel no longer available");
-                if let Some(ci) = self.channels.write().await.remove(&cid) {
-                    trace!(?cid, "stopping read protocol");
-                    if let Err(e) = ci.b2r_read_shutdown.send(()) {
-                        trace!(?cid, ?e, "seems like was already shut down");
-                    }
-                }
-                //TODO FIXME tags: takeover channel multiple
-                info!(
-                    "FIXME: the frame is actually drop. which is fine for now as the participant \
-                     will be closed, but not if we do channel-takeover"
-                );
-                //TEMP FIX: as we dont have channel takeover yet drop the whole bParticipant
-                self.close_write_api(Some(ParticipantError::ProtocolFailedUnrecoverable))
-                    .await;
+                drop_cid = Some(cid);
                 false
             } else {
                 true
@@ -301,7 +288,25 @@ impl BParticipant {
                 guard.1 += 1;
             }
             false
-        }
+        };
+        if let Some(cid) = drop_cid {
+            if let Some(ci) = self.channels.write().await.remove(&cid) {
+                let ci = ci.into_inner();
+                trace!(?cid, "stopping read protocol");
+                if let Err(e) = ci.b2r_read_shutdown.send(()) {
+                    trace!(?cid, ?e, "seems like was already shut down");
+                }
+            }
+            //TODO FIXME tags: takeover channel multiple
+            info!(
+                "FIXME: the frame is actually drop. which is fine for now as the participant will \
+                 be closed, but not if we do channel-takeover"
+            );
+            //TEMP FIX: as we dont have channel takeover yet drop the whole bParticipant
+            self.close_write_api(Some(ParticipantError::ProtocolFailedUnrecoverable))
+                .await;
+        };
+        res
     }
 
     async fn handle_frames_mgr(
@@ -325,7 +330,8 @@ impl BParticipant {
                 Err(()) => {
                     // The read protocol stopped, i need to make sure that write gets stopped
                     debug!("read protocol was closed. Stopping write protocol");
-                    if let Some(ci) = self.channels.write().await.get_mut(&cid) {
+                    if let Some(ci) = self.channels.read().await.get(&cid) {
+                        let mut ci = ci.lock().await;
                         ci.b2w_frame_s
                             .close()
                             .await
@@ -381,7 +387,7 @@ impl BParticipant {
                             .with_label_values(&[&self.remote_pid_string])
                             .inc();
                         si.send_closed.store(true, Ordering::Relaxed);
-                        si.b2a_msg_recv_s.close_channel();
+                        si.b2a_msg_recv_s.into_inner().close_channel();
                         trace!(?sid, "Closed stream from remote");
                     } else {
                         warn!(
@@ -414,8 +420,8 @@ impl BParticipant {
                     if finished {
                         //trace!(?mid, "finished receiving message");
                         let imsg = messages.remove(&mid).unwrap();
-                        if let Some(si) = self.streams.write().await.get_mut(&imsg.sid) {
-                            if let Err(e) = si.b2a_msg_recv_s.send(imsg).await {
+                        if let Some(si) = self.streams.read().await.get(&imsg.sid) {
+                            if let Err(e) = si.b2a_msg_recv_s.lock().await.send(imsg).await {
                                 warn!(
                                     ?e,
                                     ?mid,
@@ -449,8 +455,10 @@ impl BParticipant {
                         .await;
                 },
                 f => {
-                    //unreachable!("Frame should never reache participant!: {:?}", f);
-                    error!(?f, ?cid, "Frame should never reache participant!");
+                    unreachable!(
+                        "Frame should never reach participant!: {:?}, cid: {}",
+                        f, cid
+                    );
                 },
             }
         }
@@ -482,12 +490,15 @@ impl BParticipant {
                     let channels = self.channels.clone();
                     async move {
                         let (channel, b2w_frame_s, b2r_read_shutdown) = Channel::new(cid);
-                        channels.write().await.insert(cid, ChannelInfo {
+                        channels.write().await.insert(
                             cid,
-                            cid_string: cid.to_string(),
-                            b2w_frame_s,
-                            b2r_read_shutdown,
-                        });
+                            Mutex::new(ChannelInfo {
+                                cid,
+                                cid_string: cid.to_string(),
+                                b2w_frame_s,
+                                b2r_read_shutdown,
+                            }),
+                        );
                         b2s_create_channel_done_s.send(()).unwrap();
                         #[cfg(feature = "metrics")]
                         self.metrics
@@ -619,6 +630,7 @@ impl BParticipant {
 
         debug!("Closing all channels, after flushed prios");
         for (cid, ci) in self.channels.write().await.drain() {
+            let ci = ci.into_inner();
             if let Err(e) = ci.b2r_read_shutdown.send(()) {
                 debug!(
                     ?e,
@@ -655,7 +667,10 @@ impl BParticipant {
         sender
             .send(match lock.error.take() {
                 None => Ok(()),
-                Some(e) => Err(e),
+                Some(ParticipantError::ProtocolFailedUnrecoverable) => {
+                    Err(ParticipantError::ProtocolFailedUnrecoverable)
+                },
+                Some(ParticipantError::ParticipantDisconnected) => Ok(()),
             })
             .unwrap();
 
@@ -695,7 +710,7 @@ impl BParticipant {
             match self.streams.read().await.get(&sid) {
                 Some(si) => {
                     si.send_closed.store(true, Ordering::Relaxed);
-                    si.b2a_msg_recv_s.close_channel();
+                    si.b2a_msg_recv_s.lock().await.close_channel();
                 },
                 None => warn!("Couldn't find the stream, might be simultaneous close from remote"),
             }
@@ -742,7 +757,7 @@ impl BParticipant {
             prio,
             promises,
             send_closed: send_closed.clone(),
-            b2a_msg_recv_s,
+            b2a_msg_recv_s: Mutex::new(b2a_msg_recv_s),
         });
         #[cfg(feature = "metrics")]
         self.metrics
@@ -770,7 +785,7 @@ impl BParticipant {
         lock.b2a_stream_opened_s.close_channel();
 
         debug!("Closing all streams for write");
-        for (sid, si) in self.streams.write().await.iter() {
+        for (sid, si) in self.streams.read().await.iter() {
             trace!(?sid, "Shutting down Stream for write");
             si.send_closed.store(true, Ordering::Relaxed);
         }
@@ -783,7 +798,7 @@ impl BParticipant {
         debug!("Closing all streams");
         for (sid, si) in self.streams.write().await.drain() {
             trace!(?sid, "Shutting down Stream");
-            si.b2a_msg_recv_s.close_channel();
+            si.b2a_msg_recv_s.lock().await.close_channel();
         }
     }
 }
