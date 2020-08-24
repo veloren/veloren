@@ -66,6 +66,7 @@ impl SlotKey<Loadout, ItemImgs> for EquipSlot {
             EquipSlot::Mainhand => source.active_item.as_ref().map(|i| &i.item),
             EquipSlot::Offhand => source.second_item.as_ref().map(|i| &i.item),
             EquipSlot::Lantern => source.lantern.as_ref(),
+            EquipSlot::Glider => source.glider.as_ref(),
         };
 
         item.map(|i| (i.into(), None))

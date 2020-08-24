@@ -91,7 +91,7 @@ fn basic_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
 
 pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, rate: f32) {
     // Set direction based on move direction
-    let ori_dir = if update.character.is_block() {
+    let ori_dir = if update.character.is_attack() | update.character.is_block() {
         data.inputs.look_dir.xy()
     } else if !data.inputs.move_dir.is_approx_zero() {
         data.inputs.move_dir
@@ -176,6 +176,11 @@ pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.climb.is_some()
         && data.physics.on_wall.is_some()
         && !data.physics.on_ground
+        && !data
+            .physics
+            .in_fluid
+            .map(|depth| depth > 1.0)
+            .unwrap_or(false)
         //&& update.vel.0.z < 0.0
         && data.body.is_humanoid()
         && update.energy.current() > 100

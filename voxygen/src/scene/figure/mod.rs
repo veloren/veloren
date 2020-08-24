@@ -1537,7 +1537,7 @@ impl FigureMgr {
                         ),
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt);
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
                     state.update(
                         renderer,
                         pos.0,
@@ -1619,7 +1619,7 @@ impl FigureMgr {
                         ),
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt);
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
                     state.update(
                         renderer,
                         pos.0,
@@ -1702,7 +1702,7 @@ impl FigureMgr {
                         ),
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt);
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
                     state.update(
                         renderer,
                         pos.0,
@@ -1788,7 +1788,7 @@ impl FigureMgr {
                         ),
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt);
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
                     state.update(
                         renderer,
                         pos.0,
@@ -1874,7 +1874,7 @@ impl FigureMgr {
                         ),
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt);
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
                     state.update(
                         renderer,
                         pos.0,
@@ -2039,7 +2039,7 @@ impl FigureMgr {
                         // Running
                         (true, true, false) => anim::golem::RunAnimation::update_skeleton(
                             &GolemSkeleton::default(),
-                            (vel.0.magnitude(), time),
+                            (vel.0.magnitude(), ori, state.last_ori, time),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
