@@ -134,7 +134,7 @@
             ),
             plot_town_path: (90, 70, 45),
 
-            plot_field_dirt: (35, 10, 5),
+            plot_field_dirt: (55, 20, 5),
             plot_field_mound: (40, 60, 10),
 
             wall_low: (130, 100, 0),
