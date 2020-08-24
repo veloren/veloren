@@ -285,6 +285,7 @@ fn failed_stream_open_after_remote_part_is_closed() {
 
 #[test]
 fn open_participant_before_remote_part_is_closed() {
+    let (_, _) = helper::setup(false, 0);
     let (n_a, f) = Network::new(Pid::fake(0));
     std::thread::spawn(f);
     let (n_b, f) = Network::new(Pid::fake(1));
@@ -305,6 +306,7 @@ fn open_participant_before_remote_part_is_closed() {
 
 #[test]
 fn open_participant_after_remote_part_is_closed() {
+    let (_, _) = helper::setup(false, 0);
     let (n_a, f) = Network::new(Pid::fake(0));
     std::thread::spawn(f);
     let (n_b, f) = Network::new(Pid::fake(1));
@@ -325,6 +327,7 @@ fn open_participant_after_remote_part_is_closed() {
 
 #[test]
 fn close_network_scheduler_completely() {
+    let (_, _) = helper::setup(false, 0);
     let (n_a, f) = Network::new(Pid::fake(0));
     let ha = std::thread::spawn(f);
     let (n_b, f) = Network::new(Pid::fake(1));
