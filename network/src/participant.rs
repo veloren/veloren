@@ -667,7 +667,10 @@ impl BParticipant {
         sender
             .send(match lock.error.take() {
                 None => Ok(()),
-                Some(e) => Err(e),
+                Some(ParticipantError::ProtocolFailedUnrecoverable) => {
+                    Err(ParticipantError::ProtocolFailedUnrecoverable)
+                },
+                Some(ParticipantError::ParticipantDisconnected) => Ok(()),
             })
             .unwrap();
 

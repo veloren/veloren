@@ -42,11 +42,7 @@ fn close_participant() {
     let (_n_a, p1_a, mut s1_a, _n_b, p1_b, mut s1_b) = block_on(network_participant_stream(tcp()));
 
     block_on(p1_a.disconnect()).unwrap();
-    //As no more read/write is run disconnect is successful or already disconnected
-    match block_on(p1_b.disconnect()) {
-        Ok(_) | Err(ParticipantError::ParticipantDisconnected) => (),
-        e => panic!("wrong disconnect type {:?}", e),
-    };
+    block_on(p1_b.disconnect()).unwrap();
 
     assert_eq!(s1_a.send("Hello World"), Err(StreamError::StreamClosed));
     assert_eq!(
