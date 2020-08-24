@@ -417,6 +417,11 @@ impl<'a> Widget for Social<'a> {
                 } else {
                     button.down_from(state.ids.player_names[i - 1], 1.0)
                 };
+                let acc_name_txt = format!(
+                    "{}: {}",
+                    &self.localized_strings.get("hud.social.account"),
+                    alias
+                );
                 button
                     .w_h(133.0, 20.0)
                     .hover_image(if selected {
@@ -434,6 +439,7 @@ impl<'a> Widget for Social<'a> {
                     .label_y(conrod_core::position::Relative::Scalar(1.0))
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .label_color(TEXT_COLOR)
+                    .with_tooltip(self.tooltip_manager, &acc_name_txt, "", &button_tooltip)
                     .set(state.ids.player_names[i], ui);
                 // Player Levels
                 Button::image(if !selected {
