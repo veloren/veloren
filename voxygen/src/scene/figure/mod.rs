@@ -1244,7 +1244,7 @@ impl FigureMgr {
                         CharacterState::BasicMelee(_) => {
                             anim::quadruped_medium::AlphaAnimation::update_skeleton(
                                 &target_base,
-                                time,
+                                (vel.0.magnitude(), time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1344,7 +1344,7 @@ impl FigureMgr {
                         CharacterState::BasicMelee(_) => {
                             anim::quadruped_low::AlphaAnimation::update_skeleton(
                                 &target_base,
-                                time,
+                                (vel.0.magnitude(), time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
