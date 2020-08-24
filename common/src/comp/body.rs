@@ -139,43 +139,62 @@ impl Body {
     pub fn radius(&self) -> f32 {
         // TODO: Improve these values (some might be reliant on more info in inner type)
         match self {
-            Body::Humanoid(_) => 0.2,
-            Body::QuadrupedSmall(_) => 0.3,
+            Body::Humanoid(_) => 0.6,
+            Body::QuadrupedSmall(_) => 0.6,
             Body::QuadrupedMedium(_) => 0.9,
-            Body::Critter(_) => 0.2,
+            Body::QuadrupedLow(_) => 1.0,
+            Body::Critter(_) => 0.5,
             Body::BirdMedium(_) => 0.5,
             Body::FishMedium(_) => 0.5,
             Body::Dragon(_) => 2.5,
-            Body::BirdSmall(_) => 0.2,
-            Body::FishSmall(_) => 0.2,
-            Body::BipedLarge(_) => 3.0,
-            Body::Golem(_) => 2.5,
-            Body::QuadrupedLow(_) => 1.0,
-            Body::Object(_) => 0.3,
+            Body::BirdSmall(_) => 0.4,
+            Body::FishSmall(_) => 0.4,
+            Body::BipedLarge(_) => 2.0,
+            Body::Golem(_) => 1.75,
+            Body::Object(_) => 0.4,
         }
     }
 
     pub fn height(&self) -> f32 {
         match self {
             Body::Humanoid(humanoid) => match humanoid.species {
-                humanoid::Species::Danari => 0.8,
-                humanoid::Species::Dwarf => 0.9,
-                humanoid::Species::Orc => 1.14,
-                humanoid::Species::Undead => 0.95,
+                humanoid::Species::Danari => 0.5,
+                humanoid::Species::Dwarf => 1.55,
+                humanoid::Species::Orc => 1.95,
+                _ => 1.8,
+            },
+            Body::QuadrupedSmall(body) => match body.species {
+                quadruped_small::Species::Dodarock => 1.5,
+                quadruped_small::Species::Holladon => 1.5,
+                quadruped_small::Species::Truffler => 2.0,
                 _ => 1.0,
             },
-            Body::QuadrupedSmall(_) => 0.6,
-            Body::QuadrupedMedium(_) => 0.5,
-            Body::Critter(_) => 0.4,
-            Body::BirdMedium(_) => 1.2,
-            Body::FishMedium(_) => 1.0,
-            Body::Dragon(_) => 5.0,
-            Body::BirdSmall(_) => 0.4,
-            Body::FishSmall(_) => 0.4,
-            Body::BipedLarge(_) => 5.0,
-            Body::Golem(_) => 5.0,
-            Body::QuadrupedLow(_) => 0.5,
-            Body::Object(_) => 0.6,
+            Body::QuadrupedMedium(body) => match body.species {
+                quadruped_medium::Species::Tarasque => 2.5,
+                quadruped_medium::Species::Lion => 1.8,
+                quadruped_medium::Species::Saber => 1.8,
+                quadruped_medium::Species::Catoblepas => 2.8,
+                _ => 1.6,
+            },
+            Body::QuadrupedLow(body) => match body.species {
+                quadruped_low::Species::Monitor => 1.5,
+                quadruped_low::Species::Tortoise => 2.0,
+                quadruped_low::Species::Rocksnapper => 2.0,
+                quadruped_low::Species::Maneater => 4.0,
+                _ => 1.3,
+            },
+            Body::Critter(_) => 0.7,
+            Body::BirdMedium(body) => match body.species {
+                bird_medium::Species::Cockatrice => 1.8,
+                _ => 1.1,
+            },
+            Body::FishMedium(_) => 1.1,
+            Body::Dragon(_) => 20.0,
+            Body::BirdSmall(_) => 1.1,
+            Body::FishSmall(_) => 0.9,
+            Body::BipedLarge(_) => 4.5,
+            Body::Golem(_) => 5.8,
+            Body::Object(_) => 1.0,
         }
     }
 

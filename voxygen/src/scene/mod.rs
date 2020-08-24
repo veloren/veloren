@@ -476,7 +476,7 @@ impl Scene {
                     player_scale * 1.65
                 }
             },
-            CameraMode::ThirdPerson if scene_data.is_aiming => player_scale * 2.1,
+            CameraMode::ThirdPerson if scene_data.is_aiming => player_scale * 2.2,
             CameraMode::ThirdPerson => player_scale * 1.65,
             CameraMode::Freefly => 0.0,
         };

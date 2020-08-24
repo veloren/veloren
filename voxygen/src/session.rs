@@ -238,7 +238,7 @@ impl PlayState for SessionState {
                 (
                     is_aiming,
                     if is_aiming {
-                        Vec3::unit_z() * 0.025
+                        Vec3::unit_z() * 0.05
                     } else {
                         Vec3::zero()
                     },
