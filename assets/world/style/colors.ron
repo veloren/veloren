@@ -32,7 +32,7 @@
     ),
     column: (
         cold_grass: (0.0, 0.3, 0.1),
-        warm_grass: (0.3, 0.25, -0.8),
+        warm_grass: (0.5, 0.55, 0.0),
         dark_grass: (0.15, 0.4, 0.1),
         wet_grass: (0.1, 0.8, 0.2),
         cold_stone: (0.4, 0.67, 0.8),

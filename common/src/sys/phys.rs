@@ -126,10 +126,6 @@ impl<'a> System<'a> for Sys {
         // already possible with poorly-defined hitboxes anyway so it's not too
         // much of a concern.
         //
-        // Actually, the aforementioned case can't happen, but only because wall
-        // collision is checked prior to entity collision in the projectile
-        // code.
-        //
         // If this situation becomes a problem, this code should be integrated with the
         // terrain collision code below, although that's not trivial to do since
         // it means the step needs to take into account the speeds of both
