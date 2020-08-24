@@ -42,11 +42,7 @@ fn close_participant() {
     let (_n_a, p1_a, mut s1_a, _n_b, p1_b, mut s1_b) = block_on(network_participant_stream(tcp()));
 
     block_on(p1_a.disconnect()).unwrap();
-    //As no more read/write is run disconnect is successful or already disconnected
-    match block_on(p1_b.disconnect()) {
-        Ok(_) | Err(ParticipantError::ParticipantDisconnected) => (),
-        e => panic!("wrong disconnect type {:?}", e),
-    };
+    block_on(p1_b.disconnect()).unwrap();
 
     assert_eq!(s1_a.send("Hello World"), Err(StreamError::StreamClosed));
     assert_eq!(
@@ -285,6 +281,7 @@ fn failed_stream_open_after_remote_part_is_closed() {
 
 #[test]
 fn open_participant_before_remote_part_is_closed() {
+    let (_, _) = helper::setup(false, 0);
     let (n_a, f) = Network::new(Pid::fake(0));
     std::thread::spawn(f);
     let (n_b, f) = Network::new(Pid::fake(1));
@@ -305,6 +302,7 @@ fn open_participant_before_remote_part_is_closed() {
 
 #[test]
 fn open_participant_after_remote_part_is_closed() {
+    let (_, _) = helper::setup(false, 0);
     let (n_a, f) = Network::new(Pid::fake(0));
     std::thread::spawn(f);
     let (n_b, f) = Network::new(Pid::fake(1));
@@ -325,6 +323,7 @@ fn open_participant_after_remote_part_is_closed() {
 
 #[test]
 fn close_network_scheduler_completely() {
+    let (_, _) = helper::setup(false, 0);
     let (n_a, f) = Network::new(Pid::fake(0));
     let ha = std::thread::spawn(f);
     let (n_b, f) = Network::new(Pid::fake(1));
