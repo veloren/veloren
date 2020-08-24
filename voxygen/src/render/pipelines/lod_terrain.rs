@@ -1,18 +1,6 @@
-use super::{
-    super::{
-        LodAltFmt, LodColorFmt, LodTextureFmt, Pipeline, Renderer, Texture, TgtColorFmt,
-        TgtDepthStencilFmt,
-    },
-    Globals,
-};
+use super::super::{Renderer, Texture};
 use vek::*;
 use zerocopy::AsBytes;
-
-#[repr(C)]
-#[derive(Copy, Clone, Debug, AsBytes)]
-struct Vertex {
-    pos: [f32; 2],
-}
 
 // gfx_defines! {
 //     vertex Vertex {
@@ -42,6 +30,12 @@ struct Vertex {
 // (StencilOp::Keep,StencilOp::Keep,StencilOp::Keep))),     }
 // }
 
+#[repr(C)]
+#[derive(Copy, Clone, Debug, AsBytes)]
+pub struct Vertex {
+    pos: [f32; 2],
+}
+
 impl Vertex {
     pub fn new(pos: Vec2<f32>) -> Self {
         Self {
@@ -51,9 +45,9 @@ impl Vertex {
 }
 
 pub struct LodData {
-    pub map: Texture<LodColorFmt>,
-    pub alt: Texture<LodAltFmt>,
-    pub horizon: Texture<LodTextureFmt>,
+    pub map: Texture,
+    pub alt: Texture,
+    pub horizon: Texture,
     pub tgt_detail: u32,
 }
 
@@ -65,48 +59,100 @@ impl LodData {
         lod_alt: &[u32],
         lod_horizon: &[u32],
         tgt_detail: u32,
-        border_color: gfx::texture::PackedColor,
+        //border_color: gfx::texture::PackedColor,
     ) -> Self {
-        let kind = gfx::texture::Kind::D2(map_size.x, map_size.y, gfx::texture::AaMode::Single);
-        let info = gfx::texture::SamplerInfo::new(
-            gfx::texture::FilterMethod::Bilinear,
-            gfx::texture::WrapMode::Border,
+        let mut texture_info = wgpu::TextureDescriptor {
+            label: None,
+            size: wgpu::Extent3d {
+                width: map_size.x,
+                height: map_size.y,
+                depth: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8UnormSrgb,
+            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+        };
+
+        let sampler_info = wgpu::SamplerDescriptor {
+            label: None,
+            address_mode_u: wgpu::AddressMode::ClampToEdge,
+            address_mode_v: wgpu::AddressMode::ClampToEdge,
+            address_mode_w: wgpu::AddressMode::ClampToEdge,
+            mag_filter: wgpu::FilterMode::Linear,
+            min_filter: wgpu::FilterMode::Linear,
+            mipmap_filter: wgpu::FilterMode::Nearest,
+            border_color: Some(wgpu::SamplerBorderColor::TransparentBlack),
+            ..Default::default()
+        };
+
+        let map = renderer.create_texture_with_data_raw(
+            &texture_info,
+            &sampler_info,
+            map_size.x * 4,
+            [map_size.x, map_size.y],
+            lod_base.as_bytes(),
         );
+        texture_info = wgpu::TextureFormat::Rg16Uint;
+        let alt = renderer.create_texture_with_data_raw(
+            &texture_info,
+            &sampler_info,
+            map_size.x * 4,
+            [map_size.x, map_size.y],
+            lod_base.as_bytes(),
+        );
+        texture_info = wgpu::TextureFormat::Rgba8Unorm;
+        let horizon = renderer.create_texture_with_data_raw(
+            &texture_info,
+            &sampler_info,
+            map_size.x * 4,
+            [map_size.x, map_size.y],
+            lod_base.as_bytes(),
+        );
+
         Self {
-            map: renderer
-                .create_texture_immutable_raw(
-                    kind,
-                    gfx::texture::Mipmap::Provided,
-                    &[gfx::memory::cast_slice(lod_base)],
-                    SamplerInfo {
-                        border: border_color,
-                        ..info
-                    },
-                )
-                .expect("Failed to generate map texture"),
-            alt: renderer
-                .create_texture_immutable_raw(
-                    kind,
-                    gfx::texture::Mipmap::Provided,
-                    &[gfx::memory::cast_slice(lod_alt)],
-                    SamplerInfo {
-                        border: [0.0, 0.0, 0.0, 0.0].into(),
-                        ..info
-                    },
-                )
-                .expect("Failed to generate alt texture"),
-            horizon: renderer
-                .create_texture_immutable_raw(
-                    kind,
-                    gfx::texture::Mipmap::Provided,
-                    &[gfx::memory::cast_slice(lod_horizon)],
-                    SamplerInfo {
-                        border: [1.0, 0.0, 1.0, 0.0].into(),
-                        ..info
-                    },
-                )
-                .expect("Failed to generate horizon texture"),
+            map,
+            alt,
+            horizon,
             tgt_detail,
         }
+
+        // Self {
+        //     map: renderer
+        //         .create_texture_immutable_raw(
+        //             kind,
+        //             gfx::texture::Mipmap::Provided,
+        //             &[gfx::memory::cast_slice(lod_base)],
+        //             SamplerInfo {
+        //                 border: border_color,
+        //                 ..info
+        //             },
+        //         )
+        //         .expect("Failed to generate map texture"),
+        //     alt: renderer
+        //         .create_texture_immutable_raw(
+        //             kind,
+        //             gfx::texture::Mipmap::Provided,
+        //             &[gfx::memory::cast_slice(lod_alt)],
+        //             SamplerInfo {
+        //                 border: [0.0, 0.0, 0.0, 0.0].into(),
+        //                 ..info
+        //             },
+        //         )
+        //         .expect("Failed to generate alt texture"),
+        //     horizon: renderer
+        //         .create_texture_immutable_raw(
+        //             kind,
+        //             gfx::texture::Mipmap::Provided,
+        //             &[gfx::memory::cast_slice(lod_horizon)],
+        //             SamplerInfo {
+        //                 border: [1.0, 0.0, 1.0, 0.0].into(),
+        //                 ..info
+        //             },
+        //         )
+        //         .expect("Failed to generate horizon texture"),
+        //     tgt_detail,
+        // }
     }
 }

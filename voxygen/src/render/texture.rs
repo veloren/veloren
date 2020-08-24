@@ -15,7 +15,7 @@ impl Texture {
         queue: &wgpu::Queue,
         image: &DynamicImage,
         filter_method: Option<wgpu::FilterMode>,
-        addresse_mode: Option<wgpu::AddressMode>,
+        address_mode: Option<wgpu::AddressMode>,
     ) -> Result<Self, RenderError> {
         // TODO: Actualy handle images that aren't in rgba format properly.
         let buffer = image.as_flat_samples_u8().ok_or_else(|| {
@@ -64,9 +64,9 @@ impl Texture {
 
         let sampler_info = wgpu::SamplerDescriptor {
             label: None,
-            address_mode_u: addresse_mode.unwrap_or(wgpu::AddressMode::ClampToEdge),
-            address_mode_v: addresse_mode.unwrap_or(wgpu::AddressMode::ClampToEdge),
-            address_mode_w: addresse_mode.unwrap_or(wgpu::AddressMode::ClampToEdge),
+            address_mode_u: address_mode.unwrap_or(wgpu::AddressMode::ClampToEdge),
+            address_mode_v: address_mode.unwrap_or(wgpu::AddressMode::ClampToEdge),
+            address_mode_w: address_mode.unwrap_or(wgpu::AddressMode::ClampToEdge),
             mag_filter: filter_method.unwrap_or(wgpu::FilterMode::Nearest),
             min_filter: filter_method.unwrap_or(wgpu::FilterMode::Nearest),
             mipmap_filter: wgpu::FilterMode::Nearest,

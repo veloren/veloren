@@ -1,41 +1,48 @@
-use super::super::{Globals, Pipeline, Quad, Tri, WinColorFmt, WinDepthFmt};
-use gfx::{
-    self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta, gfx_pipeline,
-    gfx_pipeline_inner, gfx_vertex_struct_meta,
-};
+use super::super::{Quad, Tri};
 use vek::*;
+use zerocopy::AsBytes;
 
-gfx_defines! {
-    vertex Vertex {
-        pos: [f32; 2] = "v_pos",
-        uv: [f32; 2] = "v_uv",
-        color: [f32; 4] = "v_color",
-        center: [f32; 2] = "v_center",
-        mode: u32 = "v_mode",
-    }
+// gfx_defines! {
+//     vertex Vertex {
+//         pos: [f32; 2] = "v_pos",
+//         uv: [f32; 2] = "v_uv",
+//         color: [f32; 4] = "v_color",
+//         center: [f32; 2] = "v_center",
+//         mode: u32 = "v_mode",
+//     }
 
-    constant Locals {
-        pos: [f32; 4] = "w_pos",
-    }
+//     constant Locals {
+//         pos: [f32; 4] = "w_pos",
+//     }
 
-    pipeline pipe {
-        vbuf: gfx::VertexBuffer<Vertex> = (),
+//     pipeline pipe {
+//         vbuf: gfx::VertexBuffer<Vertex> = (),
 
-        locals: gfx::ConstantBuffer<Locals> = "u_locals",
-        globals: gfx::ConstantBuffer<Globals> = "u_globals",
-        tex: gfx::TextureSampler<[f32; 4]> = "u_tex",
+//         locals: gfx::ConstantBuffer<Locals> = "u_locals",
+//         globals: gfx::ConstantBuffer<Globals> = "u_globals",
+//         tex: gfx::TextureSampler<[f32; 4]> = "u_tex",
 
-        scissor: gfx::Scissor = (),
+//         scissor: gfx::Scissor = (),
 
-        tgt_color: gfx::BlendTarget<WinColorFmt> = ("tgt_color", gfx::state::ColorMask::all(), gfx::preset::blend::ALPHA),
-        tgt_depth: gfx::DepthTarget<WinDepthFmt> = gfx::preset::depth::LESS_EQUAL_TEST,
-    }
+//         tgt_color: gfx::BlendTarget<WinColorFmt> = ("tgt_color",
+// gfx::state::ColorMask::all(), gfx::preset::blend::ALPHA),         tgt_depth:
+// gfx::DepthTarget<WinDepthFmt> = gfx::preset::depth::LESS_EQUAL_TEST,     }
+// }
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug, AsBytes)]
+pub struct Vertex {
+    pos: [f32; 2],
+    uv: [f32; 2],
+    color: [f32; 4],
+    center: [f32; 2],
+    mode: u32,
 }
 
-pub struct UiPipeline;
-
-impl Pipeline for UiPipeline {
-    type Vertex = Vertex;
+#[repr(C)]
+#[derive(Copy, Clone, Debug, AsBytes)]
+pub struct Locals {
+    pos: [f32; 4],
 }
 
 impl From<Vec4<f32>> for Locals {
@@ -92,7 +99,7 @@ pub fn create_quad(
     uv_rect: Aabr<f32>,
     color: Rgba<f32>,
     mode: Mode,
-) -> Quad<UiPipeline> {
+) -> Quad<Vertex> {
     create_quad_vert_gradient(rect, uv_rect, color, color, mode)
 }
 
@@ -103,7 +110,7 @@ pub fn create_quad_vert_gradient(
     top_color: Rgba<f32>,
     bottom_color: Rgba<f32>,
     mode: Mode,
-) -> Quad<UiPipeline> {
+) -> Quad<Vertex> {
     let top_color = top_color.into_array();
     let bottom_color = bottom_color.into_array();
 
@@ -152,7 +159,7 @@ pub fn create_tri(
     uv_tri: [[f32; 2]; 3],
     color: Rgba<f32>,
     mode: Mode,
-) -> Tri<UiPipeline> {
+) -> Tri<Vertex> {
     let center = [0.0, 0.0];
     let mode_val = mode.value();
     let v = |pos, uv| Vertex {

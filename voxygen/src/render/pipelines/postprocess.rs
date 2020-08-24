@@ -1,40 +1,43 @@
-use super::{
-    super::{Mesh, Pipeline, TgtColorFmt, TgtDepthStencilFmt, Tri, WinColorFmt},
-    Globals,
-};
-use gfx::{
-    self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta, gfx_pipeline,
-    gfx_pipeline_inner, gfx_vertex_struct_meta,
-};
+use super::super::{Mesh, Tri};
 use vek::*;
+use zerocopy::AsBytes;
 
-gfx_defines! {
-    vertex Vertex {
-        pos: [f32; 2] = "v_pos",
-    }
+// gfx_defines! {
+//     vertex Vertex {
+//         pos: [f32; 2] = "v_pos",
+//     }
+//
+//     constant Locals {
+//         proj_mat_inv: [[f32; 4]; 4] = "proj_mat_inv",
+//         view_mat_inv: [[f32; 4]; 4] = "view_mat_inv",
+//     }
+//
+//     pipeline pipe {
+//         vbuf: gfx::VertexBuffer<Vertex> = (),
+//
+//         locals: gfx::ConstantBuffer<Locals> = "u_locals",
+//         globals: gfx::ConstantBuffer<Globals> = "u_globals",
+//
+//         map: gfx::TextureSampler<[f32; 4]> = "t_map",
+//         alt: gfx::TextureSampler<[f32; 2]> = "t_alt",
+//         horizon: gfx::TextureSampler<[f32; 4]> = "t_horizon",
+//
+//         color_sampler: gfx::TextureSampler<<TgtColorFmt as
+// gfx::format::Formatted>::View> = "src_color",         depth_sampler:
+// gfx::TextureSampler<<TgtDepthStencilFmt as gfx::format::Formatted>::View> =
+// "src_depth",
+//
+//         noise: gfx::TextureSampler<f32> = "t_noise",
+//
+//         tgt_color: gfx::RenderTarget<WinColorFmt> = "tgt_color",
+//     }
+// }
 
-    constant Locals {
-        proj_mat_inv: [[f32; 4]; 4] = "proj_mat_inv",
-        view_mat_inv: [[f32; 4]; 4] = "view_mat_inv",
-    }
-
-    pipeline pipe {
-        vbuf: gfx::VertexBuffer<Vertex> = (),
-
-        locals: gfx::ConstantBuffer<Locals> = "u_locals",
-        globals: gfx::ConstantBuffer<Globals> = "u_globals",
-
-        map: gfx::TextureSampler<[f32; 4]> = "t_map",
-        alt: gfx::TextureSampler<[f32; 2]> = "t_alt",
-        horizon: gfx::TextureSampler<[f32; 4]> = "t_horizon",
-
-        color_sampler: gfx::TextureSampler<<TgtColorFmt as gfx::format::Formatted>::View> = "src_color",
-        depth_sampler: gfx::TextureSampler<<TgtDepthStencilFmt as gfx::format::Formatted>::View> = "src_depth",
-
-        noise: gfx::TextureSampler<f32> = "t_noise",
-
-        tgt_color: gfx::RenderTarget<WinColorFmt> = "tgt_color",
-    }
+#[repr(C)]
+#[derive(Copy, Clone, Debug, AsBytes)]
+pub struct Locals {
+    proj_mat_inv: [[f32; 4]; 4],
+    view_mat_inv: [[f32; 4]; 4],
 }
 
 impl Default for Locals {
@@ -50,13 +53,13 @@ impl Locals {
     }
 }
 
-pub struct PostProcessPipeline;
-
-impl Pipeline for PostProcessPipeline {
-    type Vertex = Vertex;
+#[repr(C)]
+#[derive(Copy, Clone, Debug, AsBytes)]
+pub struct Vertex {
+    pub pos: [f32; 2],
 }
 
-pub fn create_mesh() -> Mesh<PostProcessPipeline> {
+pub fn create_mesh() -> Mesh<Vertex> {
     let mut mesh = Mesh::new();
 
     #[rustfmt::skip]

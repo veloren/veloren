@@ -84,12 +84,9 @@ use vek::*;
 //     gfx_backend::Resources,
 //     <ColLightFmt as gfx::format::Formatted>::View,
 // >;
-// /// A type representing data that can be converted to an immutable texture
-// map /// of ColLight data (used for texture atlases created during greedy
-// meshing). pub type ColLightInfo = (
-//     Vec<<<ColLightFmt as gfx::format::Formatted>::Surface as
-// gfx::format::SurfaceTyped>::DataType>,     Vec2<u16>,
-// );
+/// A type representing data that can be converted to an immutable texture map
+/// of ColLight data (used for texture atlases created during greedy meshing).
+pub type ColLightInfo = (Vec<[u8; 4]>, Vec2<u16>);
 
 /// Load from a GLSL file.
 pub struct Glsl(String);
@@ -309,7 +306,7 @@ impl Renderer {
             .request_device(
                 wgpu::DeviceDescriptor {
                     // TODO
-                    features: Features::DEPTH_CLAMPING,
+                    features: Features::DEPTH_CLAMPING | Features::ADDRESS_MODE_CLAMP_TO_BORDER,
                     limits: Limits::default(),
                     shader_validation: true,
                 },
@@ -1034,12 +1031,18 @@ impl Renderer {
         texture_info: wgpu::TextureDescriptor,
         sampler_info: wgpu::SamplerDescriptor,
         bytes_per_row: u32,
-        size: [u16; 2],
         data: &[u8],
     ) -> Texture {
         let tex = Texture::new_raw(&self.device, texture_info, sampler_info);
 
-        tex.update(&self.device, &self.queue, [0; 2], size, data, bytes_per_row);
+        tex.update(
+            &self.device,
+            &self.queue,
+            [0; 2],
+            [texture_info.size.x, texture_info.size.y],
+            data,
+            bytes_per_row,
+        );
 
         tex
     }
@@ -1054,28 +1057,34 @@ impl Renderer {
     }
 
     /// Create a new texture from the provided image.
+    ///
+    /// Currently only supports Rgba8Srgb
     pub fn create_texture(
         &mut self,
         image: &image::DynamicImage,
         filter_method: Option<FilterMode>,
-        addresse_mode: Option<AddressMode>,
+        address_mode: Option<AddressMode>,
     ) -> Texture {
         Texture::new(
             &self.device,
             &self.queue,
             image,
             filter_method,
-            addresse_mode,
+            address_mode,
         )
     }
 
-    /// Create a new dynamic texture (gfx::memory::Usage::Dynamic) with the
+    /// Create a new dynamic texture with the
     /// specified dimensions.
+    ///
+    /// Currently only supports Rgba8Srgb
     pub fn create_dynamic_texture(&mut self, dims: Vec2<u16>) -> Texture {
         Texture::new_dynamic(&mut self.factory, dims.x, dims.y)
     }
 
     /// Update a texture with the provided offset, size, and data.
+    ///
+    /// Currently only supports Rgba8Srgb
     pub fn update_texture(
         &mut self,
         texture: &Texture, /* <T> */

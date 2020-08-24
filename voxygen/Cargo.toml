@@ -44,13 +44,8 @@ anim = {package = "veloren-voxygen-anim", path = "anim"}
 i18n = {package = "veloren-i18n", path = "i18n"}
 
 # Graphics
-gfx = "0.18.2"
-gfx_device_gl = {version = "0.16.2", optional = true}
-gfx_gl = {version = "0.6.1", optional = true}
-glutin = "0.26.0"
-old_school_gfx_glutin_ext = "0.26"
 winit = {version = "0.24.0", features = ["serde"]}
-wgpu = "0.6.0"
+wgpu = {git="https://github.com/gfx-rs/wgpu-rs.git"}
 zerocopy = "0.3.0"
 
 # Ui

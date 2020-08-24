@@ -1,4 +1,7 @@
-use super::super::{Mesh, Model, TerrainPipeline};
+use super::{
+    super::{Mesh, Model},
+    terrain::Vertex,
+};
 use crate::mesh::greedy::GreedyMesh;
 use vek::*;
 use zerocopy::AsBytes;
@@ -119,7 +122,7 @@ impl FigureLayout {
 }
 
 pub struct FigureModel {
-    pub opaque: Model<TerrainPipeline>,
+    pub opaque: Model<Vertex>,
     /* TODO: Consider using mipmaps instead of storing multiple texture atlases for different
      * LOD levels. */
 }
@@ -136,7 +139,7 @@ impl FigureModel {
     }
 }
 
-pub type BoneMeshes = (Mesh<TerrainPipeline>, anim::vek::Aabb<f32>);
+pub type BoneMeshes = (Mesh<Vertex>, anim::vek::Aabb<f32>);
 
 //gfx_defines! {
 //    constant Locals {

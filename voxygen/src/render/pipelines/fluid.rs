@@ -1,12 +1,5 @@
-use super::super::TerrainLocals;
 use vek::*;
 use zerocopy::AsBytes;
-
-#[repr(C)]
-#[derive(Copy, Clone, Debug, AsBytes)]
-struct Vertex {
-    pos_norm: u32,
-}
 
 // gfx_defines! {
 //     vertex Vertex {
@@ -42,6 +35,12 @@ struct Vertex {
 // (gfx::preset::depth::LESS_EQUAL_TEST,Stencil::new(Comparison::Always,0xff,
 // (StencilOp::Keep,StencilOp::Keep,StencilOp::Keep))),     }
 // }
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug, AsBytes)]
+pub struct Vertex {
+    pos_norm: u32,
+}
 
 impl Vertex {
     #[allow(clippy::identity_op)] // TODO: Pending review in #587
