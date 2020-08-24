@@ -2064,10 +2064,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.fluid_mode_text, ui);
 
-            let mode_list = [
-                FluidMode::Cheap,
-                FluidMode::Shiny
-            ];
+            let mode_list = [FluidMode::Cheap, FluidMode::Shiny];
             let mode_label_list = [
                 &self
                     .localized_strings

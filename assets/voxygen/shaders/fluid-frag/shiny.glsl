@@ -132,13 +132,10 @@ void main() {
 	float wave10 = wave_height(wave_pos + vec3(0.1, 0, 0));
 	float wave01 = wave_height(wave_pos + vec3(0, 0.1, 0));
 
-    float slope;
-    // Prevent slope from being zero so no div by zero
-    if ((abs(wave00 - wave10) > 0.0001) && (abs(wave00 - wave01) > 0.0001)) {
-	    slope = abs(wave00 - wave10) * abs(wave00 - wave01);
-    } else {
-        slope = 0.0001;
-    }
+    // Possibility of div by zero when slope = 0,
+    // however this only results in no water surface appearing
+    // and is not likely to occur (could not find any occurrences)
+    float slope = abs(wave00 - wave10) * abs(wave00 - wave01);
 
 	vec3 nmap = vec3(
 		-(wave10 - wave00) / 0.1,
@@ -158,7 +155,7 @@ void main() {
     float f_alt = f_pos.z;
 #endif
 
-    float fluid_alt = f_norm.z == 0 ? f_alt : f_pos.z;
+    float fluid_alt = mix(f_pos.z, f_alt, f_norm.z == 0);
     const float alpha = 0.255/*/ / 4.0*//* / 4.0 / sqrt(2.0)*/;
     const float n2 = 1.3325;
     const float R_s2s0 = pow((1.0 - n2) / (1.0 + n2), 2);
