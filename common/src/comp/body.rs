@@ -158,7 +158,7 @@ impl Body {
     pub fn height(&self) -> f32 {
         match self {
             Body::Humanoid(humanoid) => match humanoid.species {
-                humanoid::Species::Danari => 0.5,
+                humanoid::Species::Danari => 1.5,
                 humanoid::Species::Dwarf => 1.55,
                 humanoid::Species::Orc => 1.95,
                 _ => 1.8,
