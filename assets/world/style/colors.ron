@@ -89,7 +89,7 @@
                             Roof1: (0x99, 0x5E, 0x54),
                             Roof2: (0x43, 0x63, 0x64),
                             Roof3: (0x76, 0x6D, 0x68),
-                            Roof4: (0x65, 0x01, 0x41),
+                            Roof4: (0x55, 0x25, 0x41),
                             Roof5: (0x52, 0x20, 0x20),
                             Roof6: (0x05, 0x3A, 0x40),
                             Roof7: (0xCC, 0x56, 0x3E),
@@ -134,7 +134,7 @@
             ),
             plot_town_path: (90, 70, 45),
 
-            plot_field_dirt: (70, 25, 15),
+            plot_field_dirt: (35, 10, 5),
             plot_field_mound: (40, 60, 10),
 
             wall_low: (130, 100, 0),
