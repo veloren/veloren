@@ -139,18 +139,18 @@ impl Body {
     pub fn radius(&self) -> f32 {
         // TODO: Improve these values (some might be reliant on more info in inner type)
         match self {
-            Body::Humanoid(_) => 0.6,
-            Body::QuadrupedSmall(_) => 0.6,
-            Body::QuadrupedMedium(_) => 0.9,
-            Body::QuadrupedLow(_) => 1.0,
-            Body::Critter(_) => 0.5,
-            Body::BirdMedium(_) => 0.5,
-            Body::FishMedium(_) => 0.5,
-            Body::Dragon(_) => 2.5,
-            Body::BirdSmall(_) => 0.4,
-            Body::FishSmall(_) => 0.4,
-            Body::BipedLarge(_) => 2.0,
-            Body::Golem(_) => 1.75,
+            Body::Humanoid(_) => 0.35,
+            Body::QuadrupedSmall(_) => 0.4,
+            Body::QuadrupedMedium(_) => 0.45,
+            Body::QuadrupedLow(_) => 0.45,
+            Body::Critter(_) => 0.3,
+            Body::BirdMedium(_) => 0.35,
+            Body::FishMedium(_) => 0.35,
+            Body::Dragon(_) => 8.0,
+            Body::BirdSmall(_) => 0.3,
+            Body::FishSmall(_) => 0.3,
+            Body::BipedLarge(_) => 0.5,
+            Body::Golem(_) => 0.4,
             Body::Object(_) => 0.4,
         }
     }

@@ -329,10 +329,11 @@ impl<'a> System<'a> for Sys {
                     z_max,
                 } => {
                     // Scale collider
-                    // TODO: Use scale when pathfinding is good enough to manage irregular entity sizes
-                    let radius = radius; // * scale;
+                    // TODO: Use scale & actual proportions when pathfinding is good enough to manage irregular entity
+                    // sizes
+                    let radius = radius.min(0.45); // * scale;
                     let z_min = z_min; // * scale;
-                    let z_max = z_max.max(1.0); // * scale;
+                    let z_max = z_max.clamped(1.0, 1.95); // * scale;
 
                     // Probe distances
                     let hdist = radius.ceil() as i32;
