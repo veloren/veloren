@@ -1,4 +1,5 @@
 use rand::Rng;
+use std::convert::TryFrom;
 
 pub type Mid = u64;
 pub type Cid = u64;
@@ -124,6 +125,58 @@ impl Frame {
 
     #[cfg(feature = "metrics")]
     pub fn get_string(&self) -> &str { Self::int_to_string(self.get_int()) }
+
+    pub fn gen_handshake(buf: [u8; 19]) -> Self {
+        let magic_number = *<&[u8; 7]>::try_from(&buf[0..7]).unwrap();
+        Frame::Handshake {
+            magic_number,
+            version: [
+                u32::from_le_bytes(*<&[u8; 4]>::try_from(&buf[7..11]).unwrap()),
+                u32::from_le_bytes(*<&[u8; 4]>::try_from(&buf[11..15]).unwrap()),
+                u32::from_le_bytes(*<&[u8; 4]>::try_from(&buf[15..19]).unwrap()),
+            ],
+        }
+    }
+
+    pub fn gen_init(buf: [u8; 32]) -> Self {
+        Frame::Init {
+            pid: Pid::from_le_bytes(*<&[u8; 16]>::try_from(&buf[0..16]).unwrap()),
+            secret: u128::from_le_bytes(*<&[u8; 16]>::try_from(&buf[16..32]).unwrap()),
+        }
+    }
+
+    pub fn gen_open_stream(buf: [u8; 10]) -> Self {
+        Frame::OpenStream {
+            sid: Sid::from_le_bytes(*<&[u8; 8]>::try_from(&buf[0..8]).unwrap()),
+            prio: buf[8],
+            promises: buf[9],
+        }
+    }
+
+    pub fn gen_close_stream(buf: [u8; 8]) -> Self {
+        Frame::CloseStream {
+            sid: Sid::from_le_bytes(*<&[u8; 8]>::try_from(&buf[0..8]).unwrap()),
+        }
+    }
+
+    pub fn gen_data_header(buf: [u8; 24]) -> Self {
+        Frame::DataHeader {
+            mid: Mid::from_le_bytes(*<&[u8; 8]>::try_from(&buf[0..8]).unwrap()),
+            sid: Sid::from_le_bytes(*<&[u8; 8]>::try_from(&buf[8..16]).unwrap()),
+            length: u64::from_le_bytes(*<&[u8; 8]>::try_from(&buf[16..24]).unwrap()),
+        }
+    }
+
+    pub fn gen_data(buf: [u8; 18]) -> (Mid, u64, u16) {
+        let mid = Mid::from_le_bytes(*<&[u8; 8]>::try_from(&buf[0..8]).unwrap());
+        let start = u64::from_le_bytes(*<&[u8; 8]>::try_from(&buf[8..16]).unwrap());
+        let length = u16::from_le_bytes(*<&[u8; 2]>::try_from(&buf[16..18]).unwrap());
+        (mid, start, length)
+    }
+
+    pub fn gen_raw(buf: [u8; 2]) -> u16 {
+        u16::from_le_bytes(*<&[u8; 2]>::try_from(&buf[0..2]).unwrap())
+    }
 }
 
 impl Pid {

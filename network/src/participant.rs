@@ -455,8 +455,10 @@ impl BParticipant {
                         .await;
                 },
                 f => {
-                    //unreachable!("Frame should never reache participant!: {:?}", f);
-                    error!(?f, ?cid, "Frame should never reache participant!");
+                    unreachable!(
+                        "Frame should never reach participant!: {:?}, cid: {}",
+                        f, cid
+                    );
                 },
             }
         }
