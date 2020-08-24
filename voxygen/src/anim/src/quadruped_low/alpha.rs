@@ -7,7 +7,7 @@ use std::f32::consts::PI;
 pub struct AlphaAnimation;
 
 impl Animation for AlphaAnimation {
-    type Dependency = f64;
+    type Dependency = (f32, f64);
     type Skeleton = QuadrupedLowSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -16,7 +16,7 @@ impl Animation for AlphaAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_low_alpha")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        _global_time: Self::Dependency,
+        (velocity, _global_time): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -66,39 +66,40 @@ impl Animation for AlphaAnimation {
             * Quaternion::rotation_x(-0.12)
             * Quaternion::rotation_z(short * 0.3);
         next.tail_rear.scale = Vec3::one() * 0.98;
+        if velocity < 1.0 {
+            next.foot_fl.position = Vec3::new(
+                -skeleton_attr.feet_f.0,
+                skeleton_attr.feet_f.1,
+                skeleton_attr.feet_f.2,
+            );
+            next.foot_fl.orientation = Quaternion::rotation_y(short * 0.12);
+            next.foot_fl.scale = Vec3::one();
 
-        next.foot_fl.position = Vec3::new(
-            -skeleton_attr.feet_f.0,
-            skeleton_attr.feet_f.1,
-            skeleton_attr.feet_f.2,
-        );
-        next.foot_fl.orientation = Quaternion::rotation_y(short * 0.12);
-        next.foot_fl.scale = Vec3::one();
+            next.foot_fr.position = Vec3::new(
+                skeleton_attr.feet_f.0,
+                skeleton_attr.feet_f.1,
+                skeleton_attr.feet_f.2,
+            );
+            next.foot_fr.orientation = Quaternion::rotation_y(short * 0.12);
+            next.foot_fr.scale = Vec3::one();
 
-        next.foot_fr.position = Vec3::new(
-            skeleton_attr.feet_f.0,
-            skeleton_attr.feet_f.1,
-            skeleton_attr.feet_f.2,
-        );
-        next.foot_fr.orientation = Quaternion::rotation_y(short * 0.12);
-        next.foot_fr.scale = Vec3::one();
+            next.foot_bl.position = Vec3::new(
+                -skeleton_attr.feet_b.0,
+                skeleton_attr.feet_b.1,
+                skeleton_attr.feet_b.2,
+            );
+            next.foot_bl.orientation = Quaternion::rotation_y(short * 0.12);
+            next.foot_bl.scale = Vec3::one();
 
-        next.foot_bl.position = Vec3::new(
-            -skeleton_attr.feet_b.0,
-            skeleton_attr.feet_b.1,
-            skeleton_attr.feet_b.2,
-        );
-        next.foot_bl.orientation = Quaternion::rotation_y(short * 0.12);
-        next.foot_bl.scale = Vec3::one();
-
-        next.foot_br.position = Vec3::new(
-            skeleton_attr.feet_b.0,
-            skeleton_attr.feet_b.1,
-            skeleton_attr.feet_b.2,
-        );
-        next.foot_br.orientation = Quaternion::rotation_y(short * 0.12);
-        next.foot_br.scale = Vec3::one();
-
+            next.foot_br.position = Vec3::new(
+                skeleton_attr.feet_b.0,
+                skeleton_attr.feet_b.1,
+                skeleton_attr.feet_b.2,
+            );
+            next.foot_br.orientation = Quaternion::rotation_y(short * 0.12);
+            next.foot_br.scale = Vec3::one();
+        } else {
+        };
         next
     }
 }
