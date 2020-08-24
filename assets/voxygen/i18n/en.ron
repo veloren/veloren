@@ -335,6 +335,7 @@ magically infused items?"#,
         "hud.social.name": "Name",
         "hud.social.level": "Level",
         "hud.social.zone": "Zone",
+        "hud.social.account": "Account",
 
 
         "hud.crafting": "Crafting",
