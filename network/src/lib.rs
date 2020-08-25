@@ -40,7 +40,7 @@
 //! ```rust
 //! use async_std::task::sleep;
 //! use futures::{executor::block_on, join};
-//! use veloren_network::{Network, Pid, ProtocolAddr, PROMISES_CONSISTENCY, PROMISES_ORDERED};
+//! use veloren_network::{Network, Pid, Promises, ProtocolAddr};
 //!
 //! // Client
 //! async fn client() -> std::result::Result<(), Box<dyn std::error::Error>> {
@@ -51,7 +51,7 @@
 //!         .connect(ProtocolAddr::Tcp("127.0.0.1:12345".parse().unwrap()))
 //!         .await?;
 //!     let mut stream = server
-//!         .open(10, PROMISES_ORDERED | PROMISES_CONSISTENCY)
+//!         .open(10, Promises::ORDERED | Promises::CONSISTENCY)
 //!         .await?;
 //!     stream.send("Hello World")?;
 //!     Ok(())
@@ -113,7 +113,4 @@ pub use api::{
     Network, NetworkError, Participant, ParticipantError, ProtocolAddr, Stream, StreamError,
 };
 pub use message::MessageBuffer;
-pub use types::{
-    Pid, Promises, PROMISES_COMPRESSED, PROMISES_CONSISTENCY, PROMISES_ENCRYPTED,
-    PROMISES_GUARANTEED_DELIVERY, PROMISES_NONE, PROMISES_ORDERED,
-};
+pub use types::{Pid, Promises};
