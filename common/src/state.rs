@@ -249,10 +249,14 @@ impl State {
         self.ecs.write_resource::<BlockChange>().set(pos, block);
     }
 
-    /// Set a block in this state's terrain. Will return `None` if the block has
-    /// already been modified this tick.
-    pub fn try_set_block(&mut self, pos: Vec3<i32>, block: Block) -> Option<()> {
-        self.ecs.write_resource::<BlockChange>().try_set(pos, block)
+    /// Check if the block at given position `pos` has already been modified
+    /// this tick.
+    pub fn can_set_block(&mut self, pos: Vec3<i32>) -> bool {
+        !self
+            .ecs
+            .write_resource::<BlockChange>()
+            .blocks
+            .contains_key(&pos)
     }
 
     /// Removes every chunk of the terrain.

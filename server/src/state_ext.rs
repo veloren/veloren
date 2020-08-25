@@ -18,8 +18,6 @@ use tracing::warn;
 use vek::*;
 
 pub trait StateExt {
-    /// Push an item into the provided entity's inventory
-    fn give_item(&mut self, entity: EcsEntity, item: comp::Item) -> bool;
     /// Updates a component associated with the entity based on the `Effect`
     fn apply_effect(&mut self, entity: EcsEntity, effect: Effect);
     /// Build a non-player character
@@ -56,22 +54,6 @@ pub trait StateExt {
 }
 
 impl StateExt for State {
-    fn give_item(&mut self, entity: EcsEntity, item: comp::Item) -> bool {
-        let success = self
-            .ecs()
-            .write_storage::<comp::Inventory>()
-            .get_mut(entity)
-            .map(|inv| inv.push(item.clone()).is_none())
-            .unwrap_or(false);
-        if success {
-            self.write_component(
-                entity,
-                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Collected(item)),
-            );
-        }
-        success
-    }
-
     fn apply_effect(&mut self, entity: EcsEntity, effect: Effect) {
         match effect {
             Effect::Health(change) => {
