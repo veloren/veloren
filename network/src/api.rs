@@ -166,7 +166,7 @@ impl Network {
     /// * `FnOnce` - you need to run the returning FnOnce exactly once, probably
     ///   in it's own thread. this is NOT done internally, so that you are free
     ///   to choose the threadpool implementation of your choice. We recommend
-    ///   using [`ThreadPool`] from [`uvth`] crate. This fn will runn the
+    ///   using [`ThreadPool`] from [`uvth`] crate. This fn will run the
     ///   Scheduler to handle all `Network` internals. Additional threads will
     ///   be allocated on an internal async-aware threadpool
     ///
@@ -208,7 +208,7 @@ impl Network {
     /// See [`new`]
     ///
     /// # additional Arguments
-    /// * `registry` - Provide a Registy in order to collect Prometheus metrics
+    /// * `registry` - Provide a Registry in order to collect Prometheus metrics
     ///   by this `Network`, `None` will deactivate Tracing. Tracing is done via
     ///   [`prometheus`]
     ///
@@ -301,14 +301,14 @@ impl Network {
             .send((address, s2a_result_s))
             .await?;
         match s2a_result_r.await? {
-            //waiting guarantees that we either listened sucessfully or get an error like port in
+            //waiting guarantees that we either listened successfully or get an error like port in
             // use
             Ok(()) => Ok(()),
             Err(e) => Err(NetworkError::ListenFailed(e)),
         }
     }
 
-    /// starts connectiong to an [`ProtocolAddr`].
+    /// starts connection to an [`ProtocolAddr`].
     /// When the method returns the Network either returns a [`Participant`]
     /// ready to open [`Streams`] on OR has returned a [`NetworkError`] (e.g.
     /// can't connect, or invalid Handshake) # Examples
@@ -443,7 +443,7 @@ impl Participant {
     /// * `promises` - use a combination of you prefered [`Promises`], see the
     ///   link for further documentation. You can combine them, e.g.
     ///   `PROMISES_ORDERED | PROMISES_CONSISTENCY` The Stream will then
-    ///   guarantee that those promisses are met.
+    ///   guarantee that those promises are met.
     ///
     /// A [`ParticipantError`] might be thrown if the `Participant` is already
     /// closed. [`Streams`] can be created without a answer from the remote
@@ -511,7 +511,7 @@ impl Participant {
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2110 and wait for the other side to open a stream
-    /// // Note: It's quite unusal to activly connect, but then wait on a stream to be connected, usually the Appication taking initiative want's to also create the first Stream.
+    /// // Note: It's quite unusual to actively connect, but then wait on a stream to be connected, usually the Application taking initiative want's to also create the first Stream.
     /// let (network, f) = Network::new(Pid::new());
     /// std::thread::spawn(f);
     /// # let (remote, fr) = Network::new(Pid::new());
@@ -557,7 +557,7 @@ impl Participant {
     /// There is NO `disconnected` function in `Participant`, if a `Participant`
     /// is no longer reachable (e.g. as the network cable was unplugged) the
     /// `Participant` will fail all action, but needs to be manually
-    /// disconected, using this function.
+    /// disconnected, using this function.
     ///
     /// # Examples
     /// ```rust
@@ -607,7 +607,7 @@ impl Participant {
                         match res {
                             Ok(()) => trace!(?pid, "Participant is now closed"),
                             Err(ref e) => {
-                                trace!(?pid, ?e, "Error occured during shutdown of participant")
+                                trace!(?pid, ?e, "Error occurred during shutdown of participant")
                             },
                         };
                         res
@@ -684,7 +684,7 @@ impl Stream {
     /// will be send. If the `Stream` is dropped from remote side no further
     /// messages are send, because the remote side has no way of listening
     /// to them either way. If the last channel is destroyed (e.g. by losing
-    /// the internet connection or non-gracefull shutdown, pending messages
+    /// the internet connection or non-graceful shutdown, pending messages
     /// are also dropped.
     ///
     /// # Example
@@ -906,7 +906,7 @@ impl Drop for Participant {
         match task::block_on(self.a2s_disconnect_s.lock()).take() {
             None => trace!(
                 ?pid,
-                "Participant has been shutdown cleanly, no further waiting is requiered!"
+                "Participant has been shutdown cleanly, no further waiting is required!"
             ),
             Some(mut a2s_disconnect_s) => {
                 debug!(?pid, "Disconnect from Scheduler");
@@ -936,7 +936,7 @@ impl Drop for Participant {
 
 impl Drop for Stream {
     fn drop(&mut self) {
-        // send if closed is unecessary but doesnt hurt, we must not crash
+        // send if closed is unnecessary but doesnt hurt, we must not crash
         if !self.send_closed.load(Ordering::Relaxed) {
             let sid = self.sid;
             let pid = self.pid;

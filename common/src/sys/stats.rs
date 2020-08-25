@@ -112,7 +112,7 @@ impl<'a> System<'a> for Sys {
                         energy.get_mut_unchecked().regen_rate = 0.0
                     }
                 },
-                // recover small amount of pasive energy from blocking, and bonus energy from
+                // recover small amount of passive energy from blocking, and bonus energy from
                 // blocking attacks?
                 CharacterState::BasicBlock => {
                     let res = {

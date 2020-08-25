@@ -9,7 +9,7 @@ use std::time::Duration;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
-    /// Can you hold the abilty beyond the prepare duration
+    /// Can you hold the ability beyond the prepare duration
     pub holdable: bool,
     /// How long we have to prepare the weapon
     pub prepare_duration: Duration,

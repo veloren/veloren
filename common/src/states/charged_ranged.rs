@@ -23,7 +23,7 @@ pub struct Data {
     pub initial_damage: u32,
     /// How much damage is dealt with max charge
     pub max_damage: u32,
-    /// How much knockback there is with no chage
+    /// How much knockback there is with no charge
     pub initial_knockback: f32,
     /// How much knockback there is at max charge
     pub max_knockback: f32,

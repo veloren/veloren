@@ -23,7 +23,7 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
     let mut polled_twice = false;
 
     event_loop.run(move |event, _, control_flow| {
-        // Continously run loop since we handle sleeping
+        // Continuously run loop since we handle sleeping
         *control_flow = winit::event_loop::ControlFlow::Poll;
 
         // Get events for the ui.

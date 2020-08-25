@@ -50,7 +50,7 @@ widget_ids! {
 
 pub struct State {
     ids: Ids,
-    // Holds the time when selection is made since this selection can be overriden
+    // Holds the time when selection is made since this selection can be overridden
     // by selecting an entity in-game
     selected_uid: Option<(Uid, Instant)>,
 }

@@ -100,14 +100,14 @@ pub fn tick(index: &mut Index, _world: &mut WorldSim, dt: f32) {
 /// simulation begins by assigning arbitrary values to each commodity and then
 /// incrementally updates them according to the final scarcity of the commodity
 /// at the end of the tick. This results in the formulation of values that are
-/// roughly analgous to prices for each commodity. The workforce is then
+/// roughly analogous to prices for each commodity. The workforce is then
 /// reassigned according to the respective commodity values. The simulation also
 /// includes damping terms that prevent cyclical inconsistencies in value
 /// rationalisation magnifying enough to crash the economy. We also ensure that
 /// a small number of workers are allocated to every industry (even inactive
 /// ones) each tick. This is not an accident: a small amount of productive
 /// capacity in one industry allows the economy to quickly pivot to a different
-/// prodution configuration should an additional commodity that acts as
+/// production configuration should an additional commodity that acts as
 /// production input become available. This means that the economy will
 /// dynamically react to environmental changes. If a product becomes available
 /// through a mechanism such as trade, an entire arm of the economy may

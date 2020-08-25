@@ -197,7 +197,7 @@ impl BParticipant {
         mut b2s_prio_statistic_s: mpsc::UnboundedSender<B2sPrioStatistic>,
     ) {
         //This time equals the MINIMUM Latency in average, so keep it down and //Todo:
-        // make it configureable or switch to await E.g. Prio 0 = await, prio 50
+        // make it configurable or switch to await E.g. Prio 0 = await, prio 50
         // wait for more messages
         const TICK_TIME: Duration = Duration::from_millis(10);
         const FRAMES_PER_TICK: usize = 10005;
@@ -244,7 +244,7 @@ impl BParticipant {
         self.running_mgr.fetch_sub(1, Ordering::Relaxed);
     }
 
-    //retruns false if sending isn't possible. In that case we have to render the
+    //returns false if sending isn't possible. In that case we have to render the
     // Participant `closed`
     #[must_use = "You need to check if the send was successful and report to client!"]
     async fn send_frame(
@@ -425,7 +425,7 @@ impl BParticipant {
                                 warn!(
                                     ?e,
                                     ?mid,
-                                    "Dropping message, as streams seem to be in act of beeing \
+                                    "Dropping message, as streams seem to be in act of being \
                                      dropped right now"
                                 );
                             }
@@ -584,7 +584,7 @@ impl BParticipant {
         self.running_mgr.fetch_sub(1, Ordering::Relaxed);
     }
 
-    /// when activated this function will drop the participant completly and
+    /// when activated this function will drop the participant completely and
     /// wait for everything to go right! Then return 1. Shutting down
     /// Streams for API and End user! 2. Wait for all "prio queued" Messages
     /// to be send. 3. Send Stream
@@ -791,7 +791,7 @@ impl BParticipant {
         }
     }
 
-    ///closing api::Participant is done by closing all channels, exepct for the
+    ///closing api::Participant is done by closing all channels, expect for the
     /// shutdown channel at this point!
     async fn close_api(&self, reason: Option<ParticipantError>) {
         self.close_write_api(reason).await;

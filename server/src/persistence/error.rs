@@ -8,11 +8,11 @@ use std::fmt;
 pub enum Error {
     // The player has already reached the max character limit
     CharacterLimitReached,
-    // An error occured while establish a db connection
+    // An error occurred while establish a db connection
     DatabaseConnectionError(diesel::ConnectionError),
-    // An error occured while running migrations
+    // An error occurred while running migrations
     DatabaseMigrationError(diesel_migrations::RunMigrationsError),
-    // An error occured when performing a database action
+    // An error occurred when performing a database action
     DatabaseError(diesel::result::Error),
     // Unable to load body or stats for a character
     CharacterDataError,

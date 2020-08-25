@@ -5,7 +5,7 @@ use std::{io, sync::Arc};
 
 //Todo: Evaluate switching to VecDeque for quickly adding and removing data
 // from front, back.
-// - It would prob requiere custom bincode code but thats possible.
+// - It would prob require custom bincode code but thats possible.
 /// Support struct used for optimising sending the same Message to multiple
 /// [`Stream`]
 ///
@@ -47,7 +47,7 @@ pub(crate) fn deserialize<M: DeserializeOwned>(buffer: MessageBuffer) -> bincode
     let span = lz4_compress::decompress(&buffer.data)
         .expect("lz4 decompression failed, failed to deserialze");
     //this might fail if you choose the wrong type for M. in that case probably X
-    // got transfered while you assume Y. probably this means your application
+    // got transferred while you assume Y. probably this means your application
     // logic is wrong. E.g. You expect a String, but just get a u8.
     bincode::deserialize(span.as_slice())
 }

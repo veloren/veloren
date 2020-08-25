@@ -275,7 +275,7 @@ impl HumHeadSpec {
         )
     }
 }
-// Armor spects should be in the same order, top to bottom.
+// Armor aspects should be in the same order, top to bottom.
 // These seem overly split up, but wanted to keep the armor seperated
 // unlike head which is done above.
 #[derive(Serialize, Deserialize)]

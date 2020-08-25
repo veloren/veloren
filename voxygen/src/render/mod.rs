@@ -75,19 +75,19 @@ pub enum AaMode {
     /// Multisampling AA, up to 4 samples per pixel.
     ///
     /// NOTE: MSAA modes don't (currently) work with greedy meshing, and will
-    /// also struggle in the futrue with deferred shading, so they may be
+    /// also struggle in the future with deferred shading, so they may be
     /// removed in the future.
     MsaaX4,
     /// Multisampling AA, up to 8 samples per pixel.
     ///
     /// NOTE: MSAA modes don't (currently) work with greedy meshing, and will
-    /// also struggle in the futrue with deferred shading, so they may be
+    /// also struggle in the future with deferred shading, so they may be
     /// removed in the future.
     MsaaX8,
     /// Multisampling AA, up to 16 samples per pixel.
     ///
     /// NOTE: MSAA modes don't (currently) work with greedy meshing, and will
-    /// also struggle in the futrue with deferred shading, so they may be
+    /// also struggle in the future with deferred shading, so they may be
     /// removed in the future.
     MsaaX16,
     /// Super-sampling antialiasing, 4 samples per pixel.
@@ -123,7 +123,7 @@ pub enum CloudMode {
     /// - The volumetric clouds use raymarching, which will cause catastrophic
     ///   performance degradation on GPUs without good support for loops.  There
     ///   is an attempt to minimize the impact of this using a z-range check,
-    ///   but on some low-end GPUs (such as some integraetd graphics cards) this
+    ///   but on some low-end GPUs (such as some integrated graphics cards) this
     ///   test doesn't appear to be able to be predicted well at shader
     ///   invocation time.
     /// - The cloud computations themselves are fairly involved, further
@@ -180,7 +180,7 @@ pub enum LightingMode {
     /// Ashikhmin-Shirley BRDF lighting model.  Attempts to generate a
     /// physically plausible (to some extent) lighting distribution.
     ///
-    /// This mdoel may not work as well with purely directional lighting, and is
+    /// This model may not work as well with purely directional lighting, and is
     /// more expensive than the other models.
     Ashikhmin,
     /// Standard Blinn-Phong shading, combing Lambertian diffuse reflections and

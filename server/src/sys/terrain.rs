@@ -17,9 +17,9 @@ use std::{sync::Arc, time::Duration};
 use vek::*;
 
 /// This system will handle loading generated chunks and unloading
-/// uneeded chunks.
+/// unneeded chunks.
 ///     1. Inserts newly generated chunks into the TerrainGrid
-///     2. Sends new chunks to neaby clients
+///     2. Sends new chunks to nearby clients
 ///     3. Handles the chunk's supplement (e.g. npcs)
 ///     4. Removes chunks outside the range of players
 pub struct Sys;

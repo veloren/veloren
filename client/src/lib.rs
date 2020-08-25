@@ -1000,7 +1000,7 @@ impl Client {
                 // -0.5 for being able to move to the corner of the current chunk
                 // -1 because chunks are not meshed if they don't have all their neighbors
                 //     (notice also that view_distance is decreased by 1)
-                //     (this subtraction on vd is ommitted elsewhere in order to provide
+                //     (this subtraction on vd is omitted elsewhere in order to provide
                 //     a buffer layer of loaded chunks)
                 let top = if 2 * (dist - 2).max(0).pow(2) > (view_distance - 1).pow(2) as i32 {
                     ((view_distance - 1).pow(2) as f32 - (dist - 2).pow(2) as f32)
@@ -1383,7 +1383,7 @@ impl Client {
                     );
                 },
                 ServerMsg::Disconnect => {
-                    debug!("finally sendinge ClientMsg::Terminate");
+                    debug!("finally sending ClientMsg::Terminate");
                     frontend_events.push(Event::Disconnect);
                     self.singleton_stream.send(ClientMsg::Terminate)?;
                     break Ok(());

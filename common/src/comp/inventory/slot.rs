@@ -86,7 +86,7 @@ impl ArmorSlot {
 // when they are not equipped, when that is implemented this helper function
 // should no longer be needed
 
-/// Create an ItemConfig for an item. Apply abilties to item.
+/// Create an ItemConfig for an item. Apply abilities to item.
 fn item_config(item: item::Item) -> comp::ItemConfig {
     let mut abilities = if let item::ItemKind::Tool(tool) = &item.kind {
         tool.get_abilities()
@@ -105,7 +105,7 @@ fn item_config(item: item::Item) -> comp::ItemConfig {
     }
 }
 
-/// Replace an equiptment slot with an item. Return the item that was in the
+/// Replace an equipment slot with an item. Return the item that was in the
 /// slot, if any. Doesn't update the inventory.
 fn loadout_replace(
     equip_slot: EquipSlot,

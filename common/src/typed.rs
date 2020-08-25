@@ -93,7 +93,7 @@ impl<Context: SubContext<S>, T, S> Typed<Context, Pure<T>, S> for T {
 ///     }
 ///
 ///     /// The actual *cases.*  If you think of pattern match arms as being closures that accept
-///     /// the cconstructor types as arguments, you can think of this structure as somehow
+///     /// the constructor types as arguments, you can think of this structure as somehow
 ///     /// representing just the data *owned* by the closure.  This is also what you will
 ///     /// generally store in your ron file--it has a field for each constructor of your enum,
 ///     /// with the types of all the fields specified by the implementation of [PackedElim] for

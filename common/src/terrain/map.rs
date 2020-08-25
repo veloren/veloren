@@ -250,7 +250,7 @@ pub struct MapConfig<'a> {
     ///
     /// (where θ is the half-angle of the FOV).
     ///
-    /// Taking the limit as θ → 90, we show that this degenrates to an
+    /// Taking the limit as θ → 90, we show that this degenerates to an
     /// orthogonal projection:
     ///
     /// lim{n → ∞}(-f(-n / z - 1) / (f - n)) = -(z - -n) / (f - n).
@@ -560,7 +560,7 @@ impl<'a> MapConfig<'a> {
                         });
                 });
 
-            // Color in connectins.
+            // Color in connections.
             let water_color_factor = 2.0;
             let g_water = 32.0 * water_color_factor;
             let b_water = 64.0 * water_color_factor;

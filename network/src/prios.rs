@@ -3,7 +3,7 @@
 //!all 5 numbers the throughput is halved.
 //!E.g. in the same time 100 prio0 messages are send, only 50 prio5, 25 prio10,
 //! 12 prio15 or 6 prio20 messages are send. Note: TODO: prio0 will be send
-//! immeadiatly when found!
+//! immediately when found!
 //!
 #[cfg(feature = "metrics")]
 use crate::metrics::NetworkMetrics;
@@ -29,7 +29,7 @@ pub(crate) struct PrioManager {
     messages: [VecDeque<(Sid, OutgoingMessage)>; PRIO_MAX],
     messages_rx: Receiver<(Prio, Sid, OutgoingMessage)>,
     sid_owned: HashMap<Sid, PidSidInfo>,
-    //you can register to be notified if a pid_sid combination is flushed completly here
+    //you can register to be notified if a pid_sid combination is flushed completely here
     sid_flushed_rx: Receiver<(Sid, oneshot::Sender<()>)>,
     queued: HashSet<u8>,
     #[cfg(feature = "metrics")]
@@ -194,7 +194,7 @@ impl PrioManager {
                 lowest = n_points;
                 lowest_id = Some(n)
             } else if n_points == lowest && lowest_id.is_some() && n < lowest_id.unwrap() {
-                //on equial points lowest first!
+                //on equal points lowest first!
                 lowest_id = Some(n)
             }
         }
@@ -231,7 +231,7 @@ impl PrioManager {
                     self.points[prio as usize] += Self::PRIOS[prio as usize];
                     //pop message from front of VecDeque, handle it and push it back, so that all
                     // => messages with same prio get a fair chance :)
-                    //TODO: evalaute not poping every time
+                    //TODO: evaluate not popping every time
                     let (sid, mut msg) = self.messages[prio as usize].pop_front().unwrap();
                     if msg.fill_next(sid, frames) {
                         //trace!(?m.mid, "finish message");
@@ -556,7 +556,7 @@ mod tests {
 
         //important in that test is, that after the first frames got cleared i reset
         // the Points even though 998 prio 16 messages have been send at this
-        // point and 0 prio20 messages the next mesasge is a prio16 message
+        // point and 0 prio20 messages the next message is a prio16 message
         // again, and only then prio20! we dont want to build dept over a idling
         // connection
         assert_header(&mut frames, 2, 3);
