@@ -37,9 +37,7 @@ use futures_timer::Delay;
 use futures_util::{select, FutureExt};
 use hashbrown::{HashMap, HashSet};
 use image::DynamicImage;
-use network::{
-    Network, Participant, Pid, ProtocolAddr, Stream, PROMISES_CONSISTENCY, PROMISES_ORDERED,
-};
+use network::{Network, Participant, Pid, Promises, ProtocolAddr, Stream};
 use num::traits::FloatConst;
 use rayon::prelude::*;
 use std::{
@@ -157,7 +155,10 @@ impl Client {
         thread_pool.execute(scheduler);
 
         let participant = block_on(network.connect(ProtocolAddr::Tcp(addr.into())))?;
-        let mut stream = block_on(participant.open(10, PROMISES_ORDERED | PROMISES_CONSISTENCY))?;
+        let mut stream = block_on(participant.open(
+            10,
+            Promises::ORDERED | Promises::CONSISTENCY | Promises::COMPRESSED,
+        ))?;
 
         // Wait for initial sync
         let (

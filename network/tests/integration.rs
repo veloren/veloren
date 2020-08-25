@@ -4,7 +4,7 @@ use veloren_network::{NetworkError, StreamError};
 mod helper;
 use helper::{network_participant_stream, tcp, udp};
 use std::io::ErrorKind;
-use veloren_network::{Network, Pid, ProtocolAddr, PROMISES_CONSISTENCY, PROMISES_ORDERED};
+use veloren_network::{Network, Pid, Promises, ProtocolAddr};
 
 #[test]
 #[ignore]
@@ -133,7 +133,7 @@ fn api_stream_send_main() -> std::result::Result<(), Box<dyn std::error::Error>>
             .await?;
         // keep it alive
         let _stream_p = remote_p
-            .open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY)
+            .open(16, Promises::ORDERED | Promises::CONSISTENCY)
             .await?;
         let participant_a = network.connected().await?;
         let mut stream_a = participant_a.opened().await?;
@@ -160,7 +160,7 @@ fn api_stream_recv_main() -> std::result::Result<(), Box<dyn std::error::Error>>
             .connect(ProtocolAddr::Tcp("127.0.0.1:1220".parse().unwrap()))
             .await?;
         let mut stream_p = remote_p
-            .open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY)
+            .open(16, Promises::ORDERED | Promises::CONSISTENCY)
             .await?;
         stream_p.send("Hello World")?;
         let participant_a = network.connected().await?;
@@ -178,7 +178,7 @@ fn wrong_parse() {
 
     s1_a.send(1337).unwrap();
     match block_on(s1_b.recv::<String>()) {
-        Err(StreamError::DeserializeError(_)) => (),
+        Err(StreamError::Deserialize(_)) => (),
         _ => panic!("this should fail, but it doesnt!"),
     }
 }
