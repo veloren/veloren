@@ -11,8 +11,8 @@ use crate::{
 };
 use rayon::iter::ParallelIterator;
 use specs::{
-    saveload::MarkerAllocator, storage, Entities, Join, ParJoin, Read, ReadExpect, ReadStorage,
-    System, WriteStorage,
+    saveload::MarkerAllocator, Entities, Join, ParJoin, Read, ReadExpect, ReadStorage, System,
+    WriteStorage,
 };
 use std::ops::Range;
 use vek::*;
@@ -96,25 +96,18 @@ impl<'a> System<'a> for Sys {
         let mut event_emitter = event_bus.emitter();
 
         // Add/reset physics state components
-        for entity in (
+        for (entity, _, _, _, _) in (
             &entities,
-            !&physics_states,
             &colliders,
             &positions,
             &velocities,
             &orientations,
         )
             .join()
-            .map(|(e, _, _, _, _, _)| e)
-            .collect::<Vec<_>>()
         {
-            match physics_states.entry(entity) {
-                Ok(storage::StorageEntry::Occupied(mut o)) => o.get_mut().clear(),
-                Ok(storage::StorageEntry::Vacant(v)) => {
-                    v.insert(Default::default());
-                },
-                Err(_) => {},
-            }
+            let _ = physics_states
+                .entry(entity)
+                .map(|e| e.or_insert_with(Default::default));
         }
 
         // Apply pushback
@@ -159,6 +152,8 @@ impl<'a> System<'a> for Sys {
                 .and_then(|uid| uid_allocator.retrieve_entity_internal(uid.into()))
                 .and_then(|e| groups.get(e));
 
+            let mut vel_delta = Vec3::zero();
+
             for (
                 entity_other,
                 other,
@@ -200,23 +195,17 @@ impl<'a> System<'a> for Sys {
                 let vel_other = velocities.get(entity_other).copied().unwrap_or_default().0;
 
                 // Sanity check: don't try colliding entities that are too far from each other
-                // Note: I think this catches all cases. If you get entitiy collision problems,
+                // Note: I think this catches all cases. If you get entity collision problems,
                 // try removing this!
                 if (pos.0 - pos_other.0).magnitude()
-                    > ((vel + vel_other) * dt.0).magnitude() + collision_dist
+                    > ((vel - vel_other) * dt.0).magnitude() + collision_dist
                 {
                     continue;
                 }
 
                 let min_collision_dist = 0.3;
-                // Ideally we'd deal with collision speed to minimise work here, but for not
-                // taking the maximum velocity of the two is fine.
-                let increments = (vel
-                    .magnitude_squared()
-                    .max(vel_other.magnitude_squared())
-                    .sqrt()
-                    * dt.0
-                    / min_collision_dist)
+                let increments = ((vel - vel_other).magnitude() * dt.0 / min_collision_dist)
+                    .max(1.0)
                     .ceil() as usize;
                 let step_delta = 1.0 / increments as f32;
                 let mut collided = false;
@@ -241,16 +230,18 @@ impl<'a> System<'a> for Sys {
                             let force = 40.0 * (collision_dist - diff.magnitude()) * mass_other
                                 / (mass + mass_other);
 
-                            // Change velocity
-                            velocities.get_mut(entity).map(|vel| {
-                                vel.0 += Vec3::from(diff.normalized()) * force * dt.0 * step_delta
-                            });
+                            vel_delta += Vec3::from(diff.normalized()) * force * step_delta;
                         }
 
                         collided = true;
                     }
                 }
             }
+
+            // Change velocity
+            velocities
+                .get_mut(entity)
+                .map(|vel| vel.0 += vel_delta * dt.0);
         }
 
         // Apply movement inputs
@@ -258,7 +249,7 @@ impl<'a> System<'a> for Sys {
             &entities,
             scales.maybe(),
             stickies.maybe(),
-            colliders.maybe(),
+            &colliders,
             &mut positions,
             &mut velocities,
             &mut orientations,
@@ -318,7 +309,7 @@ impl<'a> System<'a> for Sys {
                 Vec3::zero()
             };
 
-            match collider.copied().unwrap_or(Collider::Point) {
+            match *collider {
                 Collider::Box {
                     radius,
                     z_min,

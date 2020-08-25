@@ -100,7 +100,7 @@ pub struct PhysicsState {
 }
 
 impl PhysicsState {
-    pub fn clear(&mut self) {
+    pub fn reset(&mut self) {
         // Avoid allocation overhead!
         let mut touch_entities = std::mem::take(&mut self.touch_entities);
         touch_entities.clear();
