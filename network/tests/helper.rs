@@ -7,7 +7,7 @@ use std::{
 };
 use tracing::*;
 use tracing_subscriber::EnvFilter;
-use veloren_network::{Network, Participant, Pid, ProtocolAddr, Stream, PROMISES_NONE};
+use veloren_network::{Network, Participant, Pid, Promises, ProtocolAddr, Stream};
 
 #[allow(dead_code)]
 pub fn setup(tracing: bool, sleep: u64) -> (u64, u64) {
@@ -55,7 +55,7 @@ pub async fn network_participant_stream(
     let p1_b = n_b.connect(addr).await.unwrap();
     let p1_a = n_a.connected().await.unwrap();
 
-    let s1_a = p1_a.open(10, PROMISES_NONE).await.unwrap();
+    let s1_a = p1_a.open(10, Promises::empty()).await.unwrap();
     let s1_b = p1_b.opened().await.unwrap();
 
     (n_a, p1_a, s1_a, n_b, p1_b, s1_b)

@@ -20,7 +20,7 @@
 
 use async_std::task;
 use task::block_on;
-use veloren_network::{Network, ParticipantError, Pid, StreamError, PROMISES_NONE};
+use veloren_network::{Network, ParticipantError, Pid, Promises, StreamError};
 mod helper;
 use helper::{network_participant_stream, tcp};
 
@@ -227,7 +227,7 @@ fn close_network_then_disconnect_part() {
 fn opened_stream_before_remote_part_is_closed() {
     let (_, _) = helper::setup(false, 0);
     let (_n_a, p_a, _, _n_b, p_b, _) = block_on(network_participant_stream(tcp()));
-    let mut s2_a = block_on(p_a.open(10, PROMISES_NONE)).unwrap();
+    let mut s2_a = block_on(p_a.open(10, Promises::empty())).unwrap();
     s2_a.send("HelloWorld").unwrap();
     let mut s2_b = block_on(p_b.opened()).unwrap();
     drop(p_a);
@@ -239,7 +239,7 @@ fn opened_stream_before_remote_part_is_closed() {
 fn opened_stream_after_remote_part_is_closed() {
     let (_, _) = helper::setup(false, 0);
     let (_n_a, p_a, _, _n_b, p_b, _) = block_on(network_participant_stream(tcp()));
-    let mut s2_a = block_on(p_a.open(10, PROMISES_NONE)).unwrap();
+    let mut s2_a = block_on(p_a.open(10, Promises::empty())).unwrap();
     s2_a.send("HelloWorld").unwrap();
     drop(p_a);
     std::thread::sleep(std::time::Duration::from_millis(1000));
@@ -255,14 +255,14 @@ fn opened_stream_after_remote_part_is_closed() {
 fn open_stream_after_remote_part_is_closed() {
     let (_, _) = helper::setup(false, 0);
     let (_n_a, p_a, _, _n_b, p_b, _) = block_on(network_participant_stream(tcp()));
-    let mut s2_a = block_on(p_a.open(10, PROMISES_NONE)).unwrap();
+    let mut s2_a = block_on(p_a.open(10, Promises::empty())).unwrap();
     s2_a.send("HelloWorld").unwrap();
     drop(p_a);
     std::thread::sleep(std::time::Duration::from_millis(1000));
     let mut s2_b = block_on(p_b.opened()).unwrap();
     assert_eq!(block_on(s2_b.recv()), Ok("HelloWorld".to_string()));
     assert_eq!(
-        block_on(p_b.open(20, PROMISES_NONE)).unwrap_err(),
+        block_on(p_b.open(20, Promises::empty())).unwrap_err(),
         ParticipantError::ParticipantDisconnected
     );
 }
@@ -289,7 +289,7 @@ fn open_participant_before_remote_part_is_closed() {
     let addr = tcp();
     block_on(n_a.listen(addr.clone())).unwrap();
     let p_b = block_on(n_b.connect(addr)).unwrap();
-    let mut s1_b = block_on(p_b.open(10, PROMISES_NONE)).unwrap();
+    let mut s1_b = block_on(p_b.open(10, Promises::empty())).unwrap();
     s1_b.send("HelloWorld").unwrap();
     let p_a = block_on(n_a.connected()).unwrap();
     drop(s1_b);
@@ -310,7 +310,7 @@ fn open_participant_after_remote_part_is_closed() {
     let addr = tcp();
     block_on(n_a.listen(addr.clone())).unwrap();
     let p_b = block_on(n_b.connect(addr)).unwrap();
-    let mut s1_b = block_on(p_b.open(10, PROMISES_NONE)).unwrap();
+    let mut s1_b = block_on(p_b.open(10, Promises::empty())).unwrap();
     s1_b.send("HelloWorld").unwrap();
     drop(s1_b);
     drop(p_b);
@@ -331,7 +331,7 @@ fn close_network_scheduler_completely() {
     let addr = tcp();
     block_on(n_a.listen(addr.clone())).unwrap();
     let p_b = block_on(n_b.connect(addr)).unwrap();
-    let mut s1_b = block_on(p_b.open(10, PROMISES_NONE)).unwrap();
+    let mut s1_b = block_on(p_b.open(10, Promises::empty())).unwrap();
     s1_b.send("HelloWorld").unwrap();
 
     let p_a = block_on(n_a.connected()).unwrap();

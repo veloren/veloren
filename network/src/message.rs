@@ -1,6 +1,9 @@
 use serde::{de::DeserializeOwned, Serialize};
 //use std::collections::VecDeque;
-use crate::types::{Frame, Mid, Sid};
+use crate::{
+    api::StreamError,
+    types::{Frame, Mid, Sid},
+};
 use std::{io, sync::Arc};
 
 //Todo: Evaluate switching to VecDeque for quickly adding and removing data
@@ -33,23 +36,64 @@ pub(crate) struct IncomingMessage {
     pub sid: Sid,
 }
 
-pub(crate) fn serialize<M: Serialize>(message: &M) -> MessageBuffer {
+pub(crate) fn serialize<M: Serialize>(
+    message: &M,
+    #[cfg(feature = "compression")] compress: bool,
+) -> MessageBuffer {
     //this will never fail: https://docs.rs/bincode/0.8.0/bincode/fn.serialize.html
-    let writer = bincode::serialize(message).unwrap();
+    let serialized_data = bincode::serialize(message).unwrap();
+
+    #[cfg(not(feature = "compression"))]
+    let compress = false;
+
     MessageBuffer {
-        data: lz4_compress::compress(&writer),
+        data: if compress {
+            #[cfg(feature = "compression")]
+            {
+                let mut compressed_data = Vec::with_capacity(serialized_data.len() / 4 + 10);
+                let mut table = lz_fear::raw::U32Table::default();
+                lz_fear::raw::compress2(&serialized_data, 0, &mut table, &mut compressed_data)
+                    .unwrap();
+                compressed_data
+            }
+            #[cfg(not(feature = "compression"))]
+            unreachable!("compression isn't enabled as a feature");
+        } else {
+            serialized_data
+        },
     }
 }
 
-//pub(crate) fn deserialize<M: DeserializeOwned>(buffer: MessageBuffer) ->
-// std::Result<M, std::Box<bincode::error::bincode::ErrorKind>> {
-pub(crate) fn deserialize<M: DeserializeOwned>(buffer: MessageBuffer) -> bincode::Result<M> {
-    let span = lz4_compress::decompress(&buffer.data)
-        .expect("lz4 decompression failed, failed to deserialze");
-    //this might fail if you choose the wrong type for M. in that case probably X
-    // got transferred while you assume Y. probably this means your application
-    // logic is wrong. E.g. You expect a String, but just get a u8.
-    bincode::deserialize(span.as_slice())
+pub(crate) fn deserialize<M: DeserializeOwned>(
+    buffer: MessageBuffer,
+    #[cfg(feature = "compression")] compress: bool,
+) -> Result<M, StreamError> {
+    #[cfg(not(feature = "compression"))]
+    let compress = false;
+
+    let uncompressed_data = if compress {
+        #[cfg(feature = "compression")]
+        {
+            let mut uncompressed_data = Vec::with_capacity(buffer.data.len() * 2);
+            if let Err(e) = lz_fear::raw::decompress_raw(
+                &buffer.data,
+                &[0; 0],
+                &mut uncompressed_data,
+                usize::MAX,
+            ) {
+                return Err(StreamError::Compression(e));
+            }
+            uncompressed_data
+        }
+        #[cfg(not(feature = "compression"))]
+        unreachable!("compression isn't enabled as a feature");
+    } else {
+        buffer.data
+    };
+    match bincode::deserialize(uncompressed_data.as_slice()) {
+        Ok(m) => Ok(m),
+        Err(e) => Err(StreamError::Deserialize(e)),
+    }
 }
 
 impl OutgoingMessage {
@@ -142,12 +186,78 @@ mod tests {
     #[test]
     fn serialize_test() {
         let msg = "abc";
-        let mb = serialize(&msg);
-        assert_eq!(mb.data.len(), 9);
-        assert_eq!(mb.data[0], 34);
+        let mb = serialize(
+            &msg,
+            #[cfg(feature = "compression")]
+            false,
+        );
+        assert_eq!(mb.data.len(), 11);
+        assert_eq!(mb.data[0], 3);
+        assert_eq!(mb.data[1..7], [0, 0, 0, 0, 0, 0]);
+        assert_eq!(mb.data[8], b'a');
+        assert_eq!(mb.data[9], b'b');
+        assert_eq!(mb.data[10], b'c');
+    }
+
+    #[cfg(feature = "compression")]
+    #[test]
+    fn serialize_compress_small() {
+        let msg = "abc";
+        let mb = serialize(&msg, true);
+        assert_eq!(mb.data.len(), 12);
+        assert_eq!(mb.data[0], 176);
         assert_eq!(mb.data[1], 3);
-        assert_eq!(mb.data[6], b'a');
-        assert_eq!(mb.data[7], b'b');
-        assert_eq!(mb.data[8], b'c');
+        assert_eq!(mb.data[2..8], [0, 0, 0, 0, 0, 0]);
+        assert_eq!(mb.data[9], b'a');
+        assert_eq!(mb.data[10], b'b');
+        assert_eq!(mb.data[11], b'c');
+    }
+
+    #[cfg(feature = "compression")]
+    #[test]
+    fn serialize_compress_medium() {
+        let msg = (
+            "abccc",
+            100u32,
+            80u32,
+            "DATA",
+            4,
+            0,
+            0,
+            0,
+            "assets/data/plants/flowers/greenrose.ron",
+        );
+        let mb = serialize(&msg, true);
+        assert_eq!(mb.data.len(), 79);
+        assert_eq!(mb.data[0], 34);
+        assert_eq!(mb.data[1], 5);
+        assert_eq!(mb.data[2], 0);
+        assert_eq!(mb.data[3], 1);
+        assert_eq!(mb.data[20], 20);
+        assert_eq!(mb.data[40], 115);
+        assert_eq!(mb.data[60], 111);
+    }
+
+    #[cfg(feature = "compression")]
+    #[test]
+    fn serialize_compress_large() {
+        use rand::{Rng, SeedableRng};
+        let mut seed = [0u8; 32];
+        seed[8] = 13;
+        seed[9] = 37;
+        let mut rnd = rand::rngs::StdRng::from_seed(seed);
+        let mut msg = vec![0u8; 10000];
+        for (i, s) in msg.iter_mut().enumerate() {
+            match i.rem_euclid(32) {
+                2 => *s = 128,
+                3 => *s = 128 + 16,
+                4 => *s = 150,
+                11 => *s = 64,
+                12 => *s = rnd.gen::<u8>() / 32,
+                _ => {},
+            }
+        }
+        let mb = serialize(&msg, true);
+        assert_eq!(mb.data.len(), 1296);
     }
 }
