@@ -4645,6 +4645,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "tracing-tracy"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5f4c1889876942b9084677f5892b0bcf356e5265613e8a9834e7a7a30aa328ce"
+dependencies = [
+ "tracing-core",
+ "tracing-subscriber",
+ "tracy-client",
+]
+
+[[package]]
+name = "tracy-client"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "691a51a61f793699b6f2cd0e2dc1e803c29c757a5ef3159a2c1ace8bc6efbebc"
+dependencies = [
+ "tracy-client-sys",
+]
+
+[[package]]
+name = "tracy-client-sys"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba2668b37da9ba8981788b141037ef31f0e05af06addfdf75c3dd8cc0f2ce475"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "treeculler"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5008,6 +5037,7 @@ dependencies = [
  "tracing-appender",
  "tracing-log",
  "tracing-subscriber",
+ "tracing-tracy",
  "treeculler",
  "uvth 3.1.1",
  "vek 0.12.0",
