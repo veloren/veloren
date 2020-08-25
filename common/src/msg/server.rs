@@ -116,7 +116,7 @@ pub struct WorldMapMsg {
     ///   big a deal on the world map but is probably needed in order to ensure
     ///   smooth transitions between chunks in LoD view.  Additionally, when we
     ///   start using the shadow information to do local lighting on the world
-    ///   map, we'll want a quick way to test where we can go out of shadoow at
+    ///   map, we'll want a quick way to test where we can go out of shadow at
     ///   arbitrary heights (since the player and other entities cajn find
     ///   themselves far from the ground at times).  While this is only an
     ///   approximation to a proper distance map, hopefully it will give us
@@ -151,7 +151,7 @@ pub struct WorldMapMsg {
     /// probably be less effective.
     ///
     /// For related reasons, rather than storing distances as in a standard
-    /// distance map (which would lead to monotonically *decreaing* values
+    /// distance map (which would lead to monotonically *decreasing* values
     /// as we approached the occluder from a given direction), we store the
     /// estimated *occluder height.*  The idea here is that we replace the
     /// monotonic sequences with constant sequences, which are extremely
@@ -196,7 +196,7 @@ pub enum ServerMsg {
     CharacterDataLoadError(String),
     /// A list of characters belonging to the a authenticated player was sent
     CharacterListUpdate(Vec<CharacterItem>),
-    /// An error occured while creating or deleting a character
+    /// An error occurred while creating or deleting a character
     CharacterActionError(String),
     PlayerListUpdate(PlayerListUpdate),
     GroupUpdate(comp::group::ChangeNotification<sync::Uid>),

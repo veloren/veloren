@@ -430,7 +430,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
                             let ori = (block.get_ori().unwrap_or((seed % 4) as u8 * 2)) & 0b111;
                             let variation = seed as usize % cfg.variations;
                             let key = (block.kind(), variation);
-                            // NOTE: Safe bbecause we called sprite_config_for already.
+                            // NOTE: Safe because we called sprite_config_for already.
                             // NOTE: Safe because 0 ≤ ori < 8
                             let sprite_data = &sprite_data[&key][0];
                             let instance = SpriteInstance::new(
@@ -2684,7 +2684,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                         .get(&response.pos)
                         .map(|chunk| chunk.load_time)
                         .unwrap_or(current_time as f32);
-                    // TODO: Allocate new atlas on allocation faillure.
+                    // TODO: Allocate new atlas on allocation failure.
                     let (tex, tex_size) = response.col_lights_info;
                     let atlas = &mut self.atlas;
                     let allocation = atlas
@@ -2692,7 +2692,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                             i32::from(tex_size.x),
                             i32::from(tex_size.y),
                         ))
-                        .expect("Not yet implemented: allocate new atlas on allocation faillure.");
+                        .expect("Not yet implemented: allocate new atlas on allocation failure.");
                     // NOTE: Cast is safe since the origin was a u16.
                     let atlas_offs = Vec2::new(
                         allocation.rectangle.min.x as u16,

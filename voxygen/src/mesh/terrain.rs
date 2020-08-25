@@ -126,7 +126,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
         }
     };
 
-    // Propage light
+    // Propagate light
     while let Some(pos) = prop_que.pop_front() {
         let pos = Vec3::new(pos.0 as i32, pos.1 as i32, pos.2 as i32);
         let light = light_map[lm_idx(pos.x, pos.y, pos.z)];

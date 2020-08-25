@@ -422,7 +422,7 @@ impl HeartbeatScheduler {
         }
     }
 
-    /// updates the last elapsed times and elasped counts
+    /// updates the last elapsed times and elapsed counts
     /// this should be called once, and only once per tick.
     pub fn maintain(&mut self, now: f64) {
         self.last_known_time = now;
@@ -436,10 +436,10 @@ impl HeartbeatScheduler {
 
             *heartbeats = full_heartbeats as u8;
 
-            // the remaining partial freqency cycle, as a decimal.
+            // the remaining partial frequency cycle, as a decimal.
             let partial_heartbeat = total_heartbeats - full_heartbeats;
 
-            // the remaining partial freqency cycle, as a unit of time(f64).
+            // the remaining partial frequency cycle, as a unit of time(f64).
             let partial_heartbeat_as_time = frequency.mul_f64(partial_heartbeat).as_secs_f64();
 
             // now minus the left over heart beat count precision as seconds,
@@ -449,7 +449,7 @@ impl HeartbeatScheduler {
         }
     }
 
-    /// returns the number of times this duration has elasped since the last
+    /// returns the number of times this duration has elapsed since the last
     /// tick:
     /// - if it's more frequent then tick rate, it could be 1 or more.
     /// - if it's less frequent then tick rate, it could be 1 or 0.

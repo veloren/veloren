@@ -81,7 +81,7 @@ impl Dir {
         Self(slerp_normalized(from.0, to.0, factor))
     }
 
-    /// Note: this uses `from` if `to` is unormalizable
+    /// Note: this uses `from` if `to` is unnormalizable
     pub fn slerp_to_vec3(from: Self, to: Vec3<f32>, factor: f32) -> Self {
         Self(slerp_to_unnormalized(from.0, to, factor).unwrap_or_else(|e| e))
     }
@@ -185,7 +185,7 @@ fn slerp_normalized(from: vek::Vec3<f32>, to: vek::Vec3<f32>, factor: f32) -> ve
 /// Additionally, it avoids unnecessary calculations if they are near identical
 /// Assumes `from` is normalized and returns a normalized vector, but `to`
 /// doesn't need to be normalized
-/// Returns `Err(from)`` if `to` is unormalizable
+/// Returns `Err(from)`` if `to` is unnormalizable
 // TODO: in some cases we might want to base the slerp rate on the magnitude of
 // `to` for example when `to` is velocity and `from` is orientation
 fn slerp_to_unnormalized(

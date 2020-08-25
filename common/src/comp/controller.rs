@@ -87,7 +87,7 @@ impl Input {
     }
 
     /// Update input with newer version
-    /// Used to update inputs with input recieved from clients
+    /// Used to update inputs with input received from clients
     pub fn update_with_new(&mut self, new: Self) {
         if self.pressed != new.pressed {
             self.freshness = Freshness::New;

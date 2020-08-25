@@ -264,7 +264,7 @@ impl From<&comp::Inventory> for InventoryUpdate {
 /// which is loaded with their character data, however there are plans for each
 /// character to have multiple Loadouts which they can switch between during
 /// gameplay. Due to this Loadouts have a many to one relationship with
-/// characetrs, and a distinct `id`.
+/// characters, and a distinct `id`.
 #[derive(Associations, Queryable, Debug, Identifiable)]
 #[belongs_to(Character)]
 #[primary_key(id)]

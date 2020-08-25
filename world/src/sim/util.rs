@@ -40,7 +40,7 @@ pub fn map_edge_factor(map_size_lg: MapSizeLg, posi: usize) -> f32 {
 ///
 /// NOTE:
 ///
-/// Per [[1]], the problem of determing the CDF of
+/// Per [[1]], the problem of determining the CDF of
 /// the sum of uniformly distributed random variables over *different* ranges is
 /// considerably more complicated than it is for the same-range case.
 /// Fortunately, it also provides a reference to [2], which contains a complete

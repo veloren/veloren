@@ -40,7 +40,7 @@ impl Default for ServerProfile {
 /// `Profile` contains everything that can be configured in the profile.ron
 ///
 /// Initially it is just for persisting things that don't belong in
-/// setttings.ron - like the state of hotbar and any other character level
+/// settings.ron - like the state of hotbar and any other character level
 /// configuration.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]

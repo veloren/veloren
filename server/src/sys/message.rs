@@ -274,7 +274,7 @@ impl Sys {
                             Err(ChatMsgValidationError::TooLong) => {
                                 let max = MAX_BYTES_CHAT_MSG;
                                 let len = message.len();
-                                warn!(?len, ?max, "Recieved a chat message that's too long")
+                                warn!(?len, ?max, "Received a chat message that's too long")
                             },
                         }
                     },

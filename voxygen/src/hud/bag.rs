@@ -173,7 +173,7 @@ impl<'a> Widget for Bag<'a> {
         };
 
         let exp_percentage = (self.stats.exp.current() as f64) / (self.stats.exp.maximum() as f64);
-        let exp_treshold = format!(
+        let exp_threshold = format!(
             "{}/{} {}",
             self.stats.exp.current(),
             self.stats.exp.maximum(),
@@ -532,7 +532,7 @@ impl<'a> Widget for Bag<'a> {
                 .set(state.ids.expbar, ui);
 
             // Exp-Text
-            Text::new(&exp_treshold)
+            Text::new(&exp_threshold)
                 .mid_top_with_margin_on(state.ids.expbar, 10.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(15))

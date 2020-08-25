@@ -10,7 +10,7 @@ pub struct HpFloater {
     pub timer: f32,
     // Numbers of times significant damage has been dealt
     pub hp_change: i32,
-    // Used for randomly offseting
+    // Used for randomly offsetting
     pub rand: f32,
 }
 #[derive(Clone, Debug, Default)]

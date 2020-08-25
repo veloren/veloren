@@ -60,9 +60,9 @@ impl<'a> System<'a> for Sys {
         // To update subscriptions
         // 1. Iterate through clients
         // 2. Calculate current chunk position
-        // 3. If chunk is the same return, otherwise continue (use fuzzyiness)
+        // 3. If chunk is the same return, otherwise continue (use fuzziness)
         // 4. Iterate through subscribed regions
-        // 5. Check if region is still in range (use fuzzyiness)
+        // 5. Check if region is still in range (use fuzziness)
         // 6. If not in range
         //     - remove from hashset
         //     - inform client of which entities to remove
@@ -178,7 +178,7 @@ impl<'a> System<'a> for Sys {
                     (vd as f32 * chunk_size)
                         + (client::CHUNK_FUZZ as f32 + chunk_size) * 2.0f32.sqrt(),
                 ) {
-                    // Send client intial info about the entities in this region if it was not
+                    // Send client initial info about the entities in this region if it was not
                     // already within the set of subscribed regions
                     if subscription.regions.insert(key) {
                         if let Some(region) = region_map.get(key) {
@@ -268,7 +268,7 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
     } else {
         debug!(
             ?entity,
-            "Failed to initialize region subcription. Couldn't retrieve all the neccesary \
+            "Failed to initialize region subscription. Couldn't retrieve all the neccesary \
              components on the provided entity"
         );
     }

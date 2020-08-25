@@ -229,8 +229,8 @@ impl<'a> System<'a> for Sys {
             {
                 let mut comp_sync_package = CompSyncPackage::new();
                 let mut throttle = true;
-                // TODO: An entity that stoppped moving on a tick that it wasn't sent to the
-                // player will never have it's position updated
+                // TODO: An entity that stopped moving on a tick that it wasn't sent to the
+                // player will never have its position updated
                 match last_pos.get(entity).map(|&l| l.0 != pos) {
                     Some(false) => {},
                     Some(true) => {

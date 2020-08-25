@@ -117,7 +117,7 @@ pub struct Ui {
     cache: Cache,
     // Draw commands for the next render
     draw_commands: Vec<DrawCommand>,
-    // Mesh buffer for UI vertics; we reuse its allocation in order to limit vector reallocations
+    // Mesh buffer for UI vertices; we reuse its allocation in order to limit vector reallocations
     // during redrawing.
     mesh: Mesh<UiPipeline>,
     // Model for drawing the ui
@@ -762,7 +762,7 @@ impl Ui {
                     // Don't do anything if resolution is zero
                     if resolution.map(|e| e == 0).reduce_or() {
                         continue;
-                        // TODO: consider logging uneeded elements
+                        // TODO: consider logging unneeded elements
                     }
 
                     let color =

@@ -33,8 +33,8 @@ impl<'a> System<'a> for Sys {
         &mut self,
         (entities, my_entity, dt, mut my_exp_floater_list, uids, pos, stats, mut hp_floater_lists): Self::SystemData,
     ) {
-        // Add hp floater lists to all entities with stats and a postion
-        // Note: neccessary in order to know last_hp
+        // Add hp floater lists to all entities with stats and a position
+        // Note: necessary in order to know last_hp
         for (entity, last_hp) in (&entities, &stats, &pos, !&hp_floater_lists)
             .join()
             .map(|(e, s, _, _)| (e, s.health.current()))
@@ -63,9 +63,9 @@ impl<'a> System<'a> for Sys {
             // equivalently in the same frame)
             if hp_floater_list.last_hp != health.current() {
                 hp_floater_list.last_hp = health.current();
-                // TODO: What if multiple health changes occured since last check here
+                // TODO: What if multiple health changes occurred since last check here
                 // Also, If we make stats store a vec of the last_changes (from say the last
-                // frame), what if the client recieves the stats component from
+                // frame), what if the client receives the stats component from
                 // two different server ticks at once, then one will be lost
                 // (tbf this is probably a rare occurance and the results
                 // would just be a transient glitch in the display of these damage numbers)
@@ -96,7 +96,7 @@ impl<'a> System<'a> for Sys {
             }
         }
 
-        // Remove floater lists on entities without stats or without posistion
+        // Remove floater lists on entities without stats or without position
         for entity in (&entities, !&stats, &hp_floater_lists)
             .join()
             .map(|(e, _, _)| e)

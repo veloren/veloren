@@ -11,7 +11,7 @@ use tracing::{error, warn};
 //  - no support for more complex group structures
 //  - lack of npc group integration
 //  - relies on careful management of groups to maintain a valid state
-//  - the possesion rod could probably wreck this
+//  - the possession rod could probably wreck this
 //  - clients don't know which pets are theirs (could be easy to solve by
 //    putting owner uid in Role::Pet)
 
@@ -72,7 +72,7 @@ pub enum ChangeNotification<E> {
 // Note: now that we are dipping into uids here consider just using
 // ChangeNotification<Uid> everywhere
 // Also note when the same notification is sent to multiple destinations the
-// maping might be duplicated effort
+// mapping might be duplicated effort
 impl<E> ChangeNotification<E> {
     pub fn try_map<T>(self, f: impl Fn(E) -> Option<T>) -> Option<ChangeNotification<T>> {
         match self {
