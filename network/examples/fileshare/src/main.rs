@@ -83,7 +83,7 @@ fn get_options<'a, 'b>() -> App<'a, 'b> {
         .setting(clap::AppSettings::ColorAuto)
         .subcommand(SubCommand::with_name("quit").about("closes program"))
         .subcommand(SubCommand::with_name("disconnect").about("stop connections to all servers"))
-        .subcommand(SubCommand::with_name("t").about("quick test by connectiong to 127.0.0.1:1231"))
+        .subcommand(SubCommand::with_name("t").about("quick test by connecting to 127.0.0.1:1231"))
         .subcommand(
             SubCommand::with_name("connect")
                 .about("opens a connection to another instance of this fileserver network")

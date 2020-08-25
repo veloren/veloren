@@ -60,7 +60,7 @@ pub struct Data {
     pub stage_time_active: Duration,
     /// Whether current stage has exhausted its attack
     pub stage_exhausted: bool,
-    /// Whether state has performed intialization logic
+    /// Whether state has performed initialization logic
     pub initialized: bool,
     /// What this instance's current transition stat is
     pub transition_style: TransitionStyle,

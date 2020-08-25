@@ -88,7 +88,7 @@ pub(crate) struct Handshake {
 
 impl Handshake {
     #[cfg(debug_assertions)]
-    const WRONG_NUMBER: &'static [u8] = "Handshake does not contain the magic number requiered by \
+    const WRONG_NUMBER: &'static [u8] = "Handshake does not contain the magic number required by \
                                          veloren server.\nWe are not sure if you are a valid \
                                          veloren client.\nClosing the connection"
         .as_bytes();
@@ -150,7 +150,7 @@ impl Handshake {
                 if cnt > 0 {
                     debug!(
                         ?cnt,
-                        "Some additional frames got already transfered, piping them to the \
+                        "Some additional frames got already transferred, piping them to the \
                          bparticipant as leftover_frames"
                     );
                 }

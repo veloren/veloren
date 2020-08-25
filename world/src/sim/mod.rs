@@ -223,7 +223,7 @@ pub enum WorldFileError {
 /// least, we will try hard not to break maps between versions; if we can't
 /// avoid it, we can at least give a reasonable error message).
 ///
-/// NOTE: We rely somemwhat heavily on the implementation specifics of bincode
+/// NOTE: We rely somewhat heavily on the implementation specifics of bincode
 /// to make sure this is backwards compatible.  When adding new variants here,
 /// Be very careful to make sure tha the old variants are preserved in the
 /// correct order and with the correct names and indices, and make sure to keep
@@ -244,7 +244,7 @@ pub enum WorldFile {
 }
 
 /// Data for the most recent map type.  Update this when you add a new map
-/// verson.
+/// version.
 pub type ModernMap = WorldMap_0_7_0;
 
 /// The default world map.
@@ -266,7 +266,7 @@ impl WorldFileLegacy {
     /// should construct a call chain that ultimately ends up with a modern
     /// version.
     pub fn into_modern(self) -> Result<ModernMap, WorldFileError> {
-        // NOTE: At this point, we ssume that any remaining legacy maps were 1024 ×
+        // NOTE: At this point, we assume that any remaining legacy maps were 1024 ×
         // 1024.
         if self.alt.len() != self.basement.len() || self.alt.len() != 1024 * 1024 {
             return Err(WorldFileError::WorldSizeInvalid);
@@ -1135,7 +1135,7 @@ impl WorldSim {
             basement,
         } = map.into_modern().unwrap();
 
-        // Additional small-scale eroson after map load, only used during testing.
+        // Additional small-scale erosion after map load, only used during testing.
         let (alt, basement) = if n_post_load_steps == 0 {
             (alt, basement)
         } else {
@@ -2065,7 +2065,7 @@ impl SimChunk {
         // Not clear that we want this yet, let's see.
         let latitude_uniform = (pos.y as f32 / f32::from(self.map_size_lg().chunks().y)).sub(0.5).mul(2.0);
 
-        // Even less granular--if this matters we can make the sign affect the quantiy slightly.
+        // Even less granular--if this matters we can make the sign affect the quantity slightly.
         let abs_lat_uniform = latitude_uniform.abs(); */
 
         // Take the weighted average of our randomly generated base humidity, and the
@@ -2228,7 +2228,7 @@ impl SimChunk {
                     // Temperate climate with jungle humidity...
                     // https://en.wikipedia.org/wiki/Humid_subtropical_climates are often
                     // densely wooded and full of water.  Semitropical rainforests, basically.
-                    // For now we just treet them like other rainforests.
+                    // For now we just treat them like other rainforests.
                     ForestKind::Oak
                 } else if humidity > CONFIG.forest_hum {
                     // Moderate climate, moderate humidity.

@@ -75,7 +75,7 @@ pub type TgtColorRes = gfx::handle::ShaderResourceView<
     <TgtColorFmt as gfx::format::Formatted>::View,
 >;
 
-/// A handle to a greedy meshed color-light texture as a resorce.
+/// A handle to a greedy meshed color-light texture as a resource.
 pub type ColLightRes = gfx::handle::ShaderResourceView<
     gfx_backend::Resources,
     <ColLightFmt as gfx::format::Formatted>::View,
@@ -615,7 +615,7 @@ impl Renderer {
             // NOTE: Safe because GL_TEXTURE_CUBE_MAP_SEAMLESS is supported by OpenGL 3.2+
             // (see https://www.khronos.org/opengl/wiki/Cubemap_Texture#Seamless_cubemap);
             // enabling seamless cube maps should always be safe regardless of the state of
-            // the OpenGL context, so no further checks are needd.
+            // the OpenGL context, so no further checks are needed.
             device.with_gl(|gl| {
                 gl.Enable(gfx_gl::TEXTURE_CUBE_MAP_SEAMLESS);
             });
@@ -1686,7 +1686,7 @@ fn create_pipelines(
         r#"
 {}
 
-#define VOXYGEN_COMPUTATION_PREERENCE {}
+#define VOXYGEN_COMPUTATION_PREFERENCE {}
 #define FLUID_MODE {}
 #define CLOUD_MODE {}
 #define LIGHTING_ALGORITHM {}
@@ -1695,7 +1695,7 @@ fn create_pipelines(
 "#,
         constants,
         // TODO: Configurable vertex/fragment shader preference.
-        "VOXYGEN_COMPUTATION_PREERENCE_FRAGMENT",
+        "VOXYGEN_COMPUTATION_PREFERENCE_FRAGMENT",
         match mode.fluid {
             FluidMode::Cheap => "FLUID_MODE_CHEAP",
             FluidMode::Shiny => "FLUID_MODE_SHINY",

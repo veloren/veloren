@@ -2,7 +2,7 @@
 //!  - in the first line we call the helper, this is only debug code. in case
 //!    you want to have tracing for a special test you set set the bool = true
 //!    and the sleep to 10000 and your test will start 10 sec delayed with
-//!    tracing. You need a delay as otherwise the other tests polute your trace
+//!    tracing. You need a delay as otherwise the other tests pollute your trace
 //!  - the second line is to simulate a client and a server
 //!    `network_participant_stream` will return
 //!      - 2 networks

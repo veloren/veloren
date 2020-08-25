@@ -130,7 +130,7 @@ impl<'a> JoinData<'a> {
 }
 
 /// ## Character Behavior System
-/// Passes `JoinData` to `CharacterState`'s `behavior` handler fn's. Recieves a
+/// Passes `JoinData` to `CharacterState`'s `behavior` handler fn's. Receives a
 /// `StateUpdate` in return and performs updates to ECS Components from that.
 pub struct Sys;
 

@@ -16,7 +16,7 @@ pub struct GreedyConfig<D, FL, FC, FO, FS, FP> {
     /// for queries against the volume.
     pub draw_delta: Vec3<i32>,
     /// For each dimension i, for faces drawn in planes *parallel* to i,
-    /// represents the number of voxels considered along dimenson i in those
+    /// represents the number of voxels considered along dimension i in those
     /// planes, starting from `draw_delta`.
     pub greedy_size: Vec3<usize>,
     /// For each dimension i, represents the number of planes considered
@@ -53,7 +53,7 @@ pub struct GreedyConfig<D, FL, FC, FO, FS, FP> {
     /// otherwise have the same orientation, dimensions, and are
     /// next to each other.
     pub should_draw: FS,
-    /// Create an opauqe quad (used for only display rendering) from its
+    /// Create an opaque quad (used for only display rendering) from its
     /// top-left atlas position, the rectangle's dimensions in (2D) atlas
     /// space, a world position, the u and v axes of the rectangle in (3D)
     /// world space, the normal facing out frmo the rectangle in world
@@ -165,7 +165,7 @@ impl<'a> GreedyMesh<'a> {
     /// suspend meshing partway through in order to meet frame budget, and
     /// potentially use a single staged upload to the GPU.
     ///
-    /// Returns the ColLightsInfo corresponding to the consstructed atlas.
+    /// Returns the ColLightsInfo corresponding to the constructed atlas.
     pub fn finalize(self) -> ColLightInfo {
         let cur_size = self.col_lights_size;
         let col_lights = vec![
@@ -530,7 +530,7 @@ fn draw_col_lights<D>(
                     // could be if we used the right AO strategy).
                     // Each indirect light needs to come in through the direct light.
                     // Thus, we assign each light a score based on opacity (currently just 0 or
-                    // 1, but it could support transluscent lights in the future).
+                    // 1, but it could support translucent lights in the future).
                     // Thus, indirect_u_opacity and indirect_v_opacity are multiplied by
                     // direct_opacity, and indirect_uv_opacity is multiplied by
                     // the maximum of both of u and v's indirect opacities (since there are
@@ -553,7 +553,7 @@ fn draw_col_lights<D>(
                     // top-right block
                     let direct_v_opacity = get_opacity(data, light_pos - uv.y);
 
-                    // NOTE: Since we only support 0/1 opacities currently, we asssume
+                    // NOTE: Since we only support 0/1 opacities currently, we assume
                     // direct_opacity is  1, and the light value will be zero anyway for objects
                     // with opacity 0, we only "multiply" by indirect_uv_opacity for now (since
                     // it's the only one that could be 0 even if its light value is not).

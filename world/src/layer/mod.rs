@@ -127,7 +127,7 @@ pub fn apply_scatter_to<'a>(
                 None,
             )
         }),
-        // Collecable Objects
+        // Collectable Objects
         // Only spawn twigs in temperate forests
         (Twigs, false, |c| {
             ((c.tree_density - 0.5).max(0.0) * 1.0e-3, None)

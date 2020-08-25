@@ -141,7 +141,7 @@ impl<'a> System<'a> for Sys {
 
             let mut inputs = &mut controller.inputs;
 
-            // Default to looking in orientation direction (can be overriden below)
+            // Default to looking in orientation direction (can be overridden below)
             inputs.look_dir = ori.0;
 
             const AVG_FOLLOW_DIST: f32 = 6.0;
@@ -553,7 +553,7 @@ impl<'a> System<'a> for Sys {
             debug_assert!(inputs.look_dir.map(|e| !e.is_nan()).reduce_and());
         }
 
-        // Proccess group invites
+        // Process group invites
         for (_invite, alignment, agent, controller) in
             (&invites, &alignments, &mut agents, &mut controllers).join()
         {

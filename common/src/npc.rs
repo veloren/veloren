@@ -117,7 +117,7 @@ impl FromStr for NpcBody {
     type Err = ();
 
     /// Get an NPC kind from a string.  If a body kind is matched without an
-    /// associated species, generate the species randmly within it; if an
+    /// associated species, generate the species randomly within it; if an
     /// explicit species is found, generate a random member of the species;
     /// otherwise, return Err(()).
     fn from_str(s: &str) -> Result<Self, ()> { Self::from_str_with(s, kind_to_body) }

@@ -24,7 +24,7 @@ pub fn aabb_to_points<T: Float>(bounds: Aabb<T>) -> [Vec3<T>; 8] {
 /// a(x - x0) + b(y - y0) + c(z - z0) = 0, i.e.
 /// ax + by + cz - (a * x0 + b * y0 + c * z0) = 0, i.e.
 /// ax + by + cz = (a * x0 + b * y0 + c * z0), i.e.
-/// (lettiing d = a * x0 + b * y0 + c * z0)
+/// (letting d = a * x0 + b * y0 + c * z0)
 /// ax + by + cz = d
 ///
 /// where d is the distance of the plane from the origin.

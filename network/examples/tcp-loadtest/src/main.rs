@@ -93,7 +93,7 @@ fn main() -> Result<(), u32> {
     let cur = Instant::now();
     let dur = cur.duration_since(start_time);
     println!("================");
-    println!("test endet");
+    println!("test ended");
     println!(
         "total send: {}MiB",
         total_bytes_send.load(Ordering::Relaxed) / (1024 * 1024)

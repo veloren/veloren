@@ -1064,7 +1064,7 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                                     });
 
                                 // Update the figure bounds to the largest granularity seen so far
-                                // (NOTE: this is more than a little imeprfect).
+                                // (NOTE: this is more than a little imperfect).
                                 //
                                 // FIXME: Maybe use the default bone position in the idle animation
                                 // to figure this out instead?

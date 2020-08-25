@@ -18,7 +18,7 @@ pub struct Region {
     // Indices of neighboring regions
     neighbors: [Option<usize>; 8],
     // TODO consider SmallVec for these
-    // Entites that left or entered this region
+    // Entities that left or entered this region
     events: Vec<Event>,
 }
 impl Region {
@@ -96,7 +96,7 @@ impl RegionMap {
             tracked_entities: BitSet::new(),
             entities_to_move: Vec::new(),
             entities_to_remove: Vec::new(),
-            // rate is depedent on the rate the caller calls region_manager.tick()
+            // rate is dependent on the rate the caller calls region_manager.tick()
             tick: 0,
         }
     }
@@ -115,7 +115,7 @@ impl RegionMap {
                 .clear();
         }
 
-        // Add any untracked entites
+        // Add any untracked entities
         for (pos, id) in (&pos, &entities, !&self.tracked_entities)
             .join()
             .map(|(pos, e, _)| (pos, e.id()))
@@ -146,7 +146,7 @@ impl RegionMap {
                         let current_region = self.index_key(i).unwrap();
                         let key = Self::pos_key(pos);
                         // Consider switching
-                        // Caculate distance outside border
+                        // Calculate distance outside border
                         if key != current_region
                             && (Vec2::<i32>::from(pos) - Self::key_pos(current_region))
                                 .map(|e| e.abs() as u32)
@@ -168,7 +168,7 @@ impl RegionMap {
             }
 
             // Remove region if it is empty
-            // TODO: distribute this betweeen ticks
+            // TODO: distribute this between ticks
             let (key, region) = self.regions.get_index(i).unwrap();
             if region.removable() {
                 regions_to_remove.push(*key);
