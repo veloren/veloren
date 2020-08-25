@@ -121,7 +121,7 @@ impl<'a> SceneData<'a> {
     pub fn get_moon_dir(&self) -> Vec3<f32> { Globals::get_moon_dir(self.state.get_time_of_day()) }
 }
 
-/// Approximte a scalar field of view angle using the parameterization from
+/// Approximate a scalar field of view angle using the parameterization from
 /// section 4.3 of Lloyd's thesis:
 ///
 /// W_e = 2 n_e tan θ
@@ -678,13 +678,13 @@ impl Scene {
             // n_opt = 1 / sin y (z_n + √(z_n + (f - n) sin y))
             //
             // where n is near plane, f is far plane, y is the tilt angle between view and
-            // light directon, and n_opt is the optimal near plane.
+            // light direction, and n_opt is the optimal near plane.
             // We also want a way to transform and scale this matrix (* 0.5 + 0.5) in order
             // to transform it correctly into texture coordinates, as well as
             // OpenGL coordinates.  Note that the matrix for directional light
             // is *already* linear in the depth buffer.
             let texture_mat = Mat4::scaling_3d(0.5f32) * Mat4::translation_3d(1.0f32);
-            // We need to compute these offset matrices to tranform world space coordinates
+            // We need to compute these offset matrices to transform world space coordinates
             // to the translated ones we use when multiplying by the light space
             // matrix; this helps avoid precision loss during the
             // multiplication.

@@ -40,7 +40,7 @@ gfx_defines! {
         // a cube is:     f32 x 3 x 3 x 12 = 3456 bits
         // this vec is:   f32 x 3 x 1 x 1  = 96 bits (per instance!)
         // consider using a throw-away mesh and
-        // positioning the vertex verticies instead,
+        // positioning the vertex vertices instead,
         // if we have:
         // - a triangle mesh, and 3 or more instances.
         // - a quad mesh, and 6 or more instances.

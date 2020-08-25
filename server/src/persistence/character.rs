@@ -27,7 +27,7 @@ use tracing::{error, warn};
 
 type CharacterLoaderRequest = (specs::Entity, CharacterLoaderRequestKind);
 
-/// Available database operations when modifying a player's characetr list
+/// Available database operations when modifying a player's character list
 enum CharacterLoaderRequestKind {
     CreateCharacter {
         player_uuid: String,
@@ -311,7 +311,7 @@ fn load_character_list(player_uuid: &str, db_dir: &str) -> CharacterListResult {
 ///
 /// Note that sqlite does not support returning the inserted data after a
 /// successful insert. To workaround, we wrap this in a transaction which
-/// inserts, queries for the newly created chaacter id, then uses the character
+/// inserts, queries for the newly created character id, then uses the character
 /// id for subsequent insertions
 fn create_character(
     uuid: &str,

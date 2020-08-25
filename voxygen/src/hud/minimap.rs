@@ -189,7 +189,7 @@ impl<'a> Widget for MiniMap<'a> {
                 .get(self.client.entity())
                 .map_or(Vec3::zero(), |pos| pos.0);
 
-            // Get map image source rectangle dimensons.
+            // Get map image source rectangle dimensions.
             let w_src = max_zoom / zoom;
             let h_src = max_zoom / zoom;
 

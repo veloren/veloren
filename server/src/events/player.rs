@@ -82,7 +82,7 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
         let participant = match client.participant.try_lock() {
             Ok(mut p) => p.take().unwrap(),
             Err(e) => {
-                error!(?e, ?entity, "coudln't lock participant for removal");
+                error!(?e, ?entity, "couldn't lock participant for removal");
                 return Event::ClientDisconnected { entity };
             },
         };
@@ -102,9 +102,9 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
             trace!(?pid, "finished disconnect");
             let elapsed = now.elapsed();
             if elapsed.as_millis() > 100 {
-                warn!(?elapsed, ?pid, "disconecting took quite long");
+                warn!(?elapsed, ?pid, "disconnecting took quite long");
             } else {
-                debug!(?elapsed, ?pid, "disconecting took");
+                debug!(?elapsed, ?pid, "disconnecting took");
             }
         });
     }

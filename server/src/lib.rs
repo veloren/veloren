@@ -217,19 +217,19 @@ impl Server {
                 .unwrap_or(center_chunk);
 
             // calculate the absolute position of the chunk in the world
-            // (we could add TerrainChunkSize::RECT_SIZE / 2 here, to spawn in the midde of
+            // (we could add TerrainChunkSize::RECT_SIZE / 2 here, to spawn in the middle of
             // the chunk)
             let spawn_location = spawn_chunk.map2(TerrainChunkSize::RECT_SIZE, |e, sz| {
                 e as i32 * sz as i32 + sz as i32 / 2
             });
 
-            // get a z cache for the collumn in which we want to spawn
+            // get a z cache for the column in which we want to spawn
             let mut block_sampler = world.sample_blocks();
             let z_cache = block_sampler
                 .get_z_cache(spawn_location, index)
                 .expect(&format!("no z_cache found for chunk: {}", spawn_chunk));
 
-            // get the minimum and maximum z values at which there could be soild blocks
+            // get the minimum and maximum z values at which there could be solid blocks
             let (min_z, _, max_z) = z_cache.get_z_limits(&mut block_sampler, index);
             // round range outwards, so no potential air block is missed
             let min_z = min_z.floor() as i32;
@@ -237,7 +237,7 @@ impl Server {
 
             // loop over all blocks from min_z to max_z + 1
             // until the first air block is found
-            // (up to max_z + 1, because max_z could still be a soild block)
+            // (up to max_z + 1, because max_z could still be a solid block)
             // if no air block is found default to max_z + 1
             let z = (min_z..(max_z + 1) + 1)
                 .find(|z| {
@@ -394,7 +394,7 @@ impl Server {
 
         let before_message_system = Instant::now();
 
-        // Run message recieving sys before the systems in common for decreased latency
+        // Run message receiving sys before the systems in common for decreased latency
         // (e.g. run before controller system)
         sys::message::Sys.run_now(&self.state.ecs());
 
@@ -414,7 +414,7 @@ impl Server {
 
         // Apply terrain changes and update the region map after processing server
         // events so that changes made by server events will be immediately
-        // visble to client synchronization systems, minimizing the latency of
+        // visible to client synchronization systems, minimizing the latency of
         // `ServerEvent` mediated effects
         self.state.update_region_map();
         self.state.apply_terrain_changes();
@@ -519,10 +519,10 @@ impl Server {
                 chunk_generator.cancel_all();
 
                 if client.is_empty() {
-                    // No cilents, so just clear all terrain.
+                    // No clients, so just clear all terrain.
                     terrain.clear();
                 } else {
-                    // There's at leasat one client, so regenerate all chunks.
+                    // There's at least one client, so regenerate all chunks.
                     terrain.iter().for_each(|(pos, _)| {
                         chunk_generator.generate_chunk(
                             None,

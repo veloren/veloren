@@ -65,7 +65,7 @@ impl TickMetrics {
             "number of all chunks currently active on the server",
         ))?;
         let tick_time = IntGaugeVec::new(
-            Opts::new("tick_time", "time in ns requiered for a tick of the server"),
+            Opts::new("tick_time", "time in ns required for a tick of the server"),
             &["period"],
         )?;
 

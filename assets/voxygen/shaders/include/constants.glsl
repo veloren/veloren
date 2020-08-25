@@ -3,8 +3,8 @@
 /* TODO: Add the ability to control the tendency to do stuff in the vertex vs. fragment shader.
  * Currently this flag is ignored and always set to prefer fragment, but this tradeoff is not correct on all
  * machines in all cases (mine, for instance). */
-#define VOXYGEN_COMPUTATION_PREERENCE_FRAGMENT 0
-#define VOXYGEN_COMPUTATION_PREERENCE_VERTEX 1
+#define VOXYGEN_COMPUTATION_PREFERENCE_FRAGMENT 0
+#define VOXYGEN_COMPUTATION_PREFERENCE_VERTEX 1
 
 #define FLUID_MODE_CHEAP 0
 #define FLUID_MODE_SHINY 1
@@ -43,7 +43,7 @@
 /* Constants expected to be defined automatically by configuration: */
 
 /*
-#define VOXYGEN_COMPUTATION_PREERENCE <preference>
+#define VOXYGEN_COMPUTATION_PREFERENCE <preference>
 #define FLUID_MODE <mode>
 #define CLOUD_MODE <mode>
 #define LIGHTING_ALGORITHM <algorithm>

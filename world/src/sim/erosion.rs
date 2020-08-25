@@ -637,7 +637,7 @@ fn get_max_slope(
 ///    areas.
 /// 3. Now, iterate through the list in *order.*  Whether we used the filling
 ///    method to compute a "filled" version of each depression, or used the lake
-///    connection algoirthm described in [1], each node is guaranteed to have
+///    connection algorithm described in [1], each node is guaranteed to have
 ///    zero or one drainage edges out, representing the direction of water flow
 ///    for that node. For nodes i with zero drainage edges out (boundary nodes
 ///    and lake bottoms) we set the slope to 0 (so the change in altitude is
@@ -664,7 +664,7 @@ fn get_max_slope(
 ///
 /// https://github.com/fastscape-lem/fastscapelib-fortran/blob/master/src/StreamPowerLaw.f90
 ///
-/// The  approximate equation for soil production function (predictng the rate
+/// The  approximate equation for soil production function (predicting the rate
 /// at which bedrock turns into soil, increasing the distance between the
 /// basement and altitude) is taken from equation (11) from [2].  This (among
 /// numerous other sources) also includes at least one prediction that hillslope
@@ -1387,7 +1387,7 @@ fn erode(
                             // Because in the next round, if the old height is still wh_j or under,
                             // it will be set precisely equal to the
                             // estimated height, meaning it effectively
-                            // "vanishes" and just deposits sediment to its reciever.
+                            // "vanishes" and just deposits sediment to its receiver.
                             // (This is probably related to criteria for block Gauss-Seidel, etc.).
                             // NOTE: If we want erosion to proceed underwater, use h_j here instead
                             // of wh_j.
@@ -1445,7 +1445,7 @@ fn erode(
         }
         if n_gs_stream_power_law == max_n_gs_stream_power_law {
             warn!(
-                "Beware: Gauss-Siedel scheme not convergent: err={:?}, expected={:?}",
+                "Beware: Gauss-Seidel scheme not convergent: err={:?}, expected={:?}",
                 err, tol
             );
         }
@@ -1477,7 +1477,7 @@ fn erode(
 
             let posj = dh[posi];
             // Sediment height normal to bedrock.  NOTE: Currently we can actually have
-            // sedment and bedrock slope at different heights, meaning there's
+            // sediment and bedrock slope at different heights, meaning there's
             // no uniform slope.  There are probably more correct ways to
             // account for this, such as averaging, integrating, or doing things
             // by mass / volume instead of height, but for now we use the time-honored
@@ -1772,7 +1772,7 @@ pub fn fill_sinks<F: Float + Send + Sync>(
                 // Otherwise, we know this node's original height is below the new height of all
                 // of its neighbors.  Then, we try to choose the minimum new
                 // height among all this node's neighbors that is (plus a
-                // constant epislon) below this node's new height.
+                // constant epsilon) below this node's new height.
                 //
                 // (If there is no such node, then the node's new height must be (minus a
                 // constant epsilon) lower than the new height of every

@@ -14,18 +14,18 @@ const EPSILON: f32 = 0.0001;
 // Say we have two areas that we are combining to form a single pixel
 // A1 and A2 where these are the fraction of the area of the pixel each color
 // contributes to Then if the colors were opaque we would say that the final
-// color ouput color o3 is
+// color output color o3 is
 //     E1: o3 = A1 * o1 + A2 * o2
 // where o1 and o2 are the opaque colors of the two areas
 // now say the areas are actually translucent and these opaque colors are
-// derived by blending with a common backgound color b
+// derived by blending with a common background color b
 //     E2: o1 = c1 * a1 + b * (1 - a1)
 //     E3: o2 = c2 * a2 + b * (1 - a2)
 // we want to find the combined color (c3) and combined alpha (a3) such that
 //     E4: o3 = c3 * a3 + b * (1 - a3)
 // substitution of E2 and E3 into E1 gives
 //     E5: o3 = A1 * (c1 * a1 + b * (1 - a1)) + A2 * (c2 * a2 + b * (1 - a2))
-// combining E4 and E5 then separting like terms into separte equations gives
+// combining E4 and E5 then separating like terms into separate equations gives
 //     E6: c3 * a3 = A1 * c1 * a1 + A2 * c2 * a2
 //     E7: b * (1 - a3) = A1 * b * (1 - a1) + A2 * b * (1 - a2)
 // dropping b from E7 and solving for a3
@@ -119,7 +119,7 @@ pub fn resize_pixel_art(image: &RgbaImage, new_width: u32, new_height: u32) -> R
                 }
             }
             // Divide summed color by area sample covers and convert back to srgb
-            // I wonder if precalulating the inverse of these divs would have a significant
+            // I wonder if precalculating the inverse of these divs would have a significant
             // effect
             linear_color = linear_color / wratio / hratio;
             linear_color =

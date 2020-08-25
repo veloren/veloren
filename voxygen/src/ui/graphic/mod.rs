@@ -46,7 +46,7 @@ pub enum Rotation {
 
 /// Images larger than this are stored in individual textures
 /// Fraction of the total graphic cache size
-const ATLAS_CUTTOFF_FRAC: f32 = 0.2;
+const ATLAS_CUTOFF_FRAC: f32 = 0.2;
 /// Multiplied by current window size
 const GRAPHIC_CACHE_RELATIVE_SIZE: u16 = 1;
 
@@ -182,7 +182,7 @@ impl GraphicCache {
 
     pub fn get_graphic(&self, id: Id) -> Option<&Graphic> { self.graphic_map.get(&id) }
 
-    /// Used to aquire textures for rendering
+    /// Used to acquire textures for rendering
     pub fn get_tex(&self, id: TexId) -> &Texture {
         self.textures.get(id.0).expect("Invalid TexId used")
     }
@@ -287,7 +287,7 @@ impl GraphicCache {
             textures.push(texture);
             CachedDetails::Immutable { index }
         } else if atlas_size
-            .map2(dims, |a, d| a as f32 * ATLAS_CUTTOFF_FRAC >= d as f32)
+            .map2(dims, |a, d| a as f32 * ATLAS_CUTOFF_FRAC >= d as f32)
             .reduce_and()
         {
             // Fit into an atlas

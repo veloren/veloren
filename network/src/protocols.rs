@@ -481,8 +481,8 @@ impl UdpProtocol {
                         start += n;
                         if n != len {
                             error!(
-                                "THIS DOESNT WORK, as RECEIVER CURRENLTY ONLY HANDLES 1 FRAME per \
-                                 UDP message. splitting up will fail!"
+                                "THIS DOESN'T WORK, as RECEIVER CURRENTLY ONLY HANDLES 1 FRAME \
+                                 per UDP message. splitting up will fail!"
                             );
                         }
                     },

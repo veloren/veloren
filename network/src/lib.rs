@@ -15,11 +15,11 @@
 //! other [`Networks`] over the network protocols (e.g. TCP, UDP)
 //!
 //! To connect to another application, you must know it's [`ProtocolAddr`]. One
-//! side will call [`connect`], the other [`connected`]. If successfull both
+//! side will call [`connect`], the other [`connected`]. If successful both
 //! applications will now get a [`Participant`].
 //!
 //! This [`Participant`] represents the connection between those 2 applications.
-//! over the respective [`ProtocolAddr`] and with it the choosen network
+//! over the respective [`ProtocolAddr`] and with it the chosen network
 //! protocol. However messages can't be send directly via [`Participants`],
 //! instead you must open a [`Stream`] on it. Like above, one side has to call
 //! [`open`], the other [`opened`]. [`Streams`] can have a different priority

@@ -29,7 +29,7 @@ impl<'a> GraphicCreator<'a> for ImageGraphic {
 }
 
 pub enum VoxelGraphic {}
-// TODO: Are these uneeded now that we have PixArtGraphic?
+// TODO: Are these unneeded now that we have PixArtGraphic?
 pub enum VoxelSsGraphic {}
 pub enum VoxelSs4Graphic {}
 pub enum VoxelSs9Graphic {}

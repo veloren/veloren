@@ -25,7 +25,7 @@ pub const PROMISES_ORDERED: Promises = 1;
 /// like bit flips, this is done with a checksum.
 pub const PROMISES_CONSISTENCY: Promises = 2;
 /// this will guarantee that the other side will receive every message exactly
-/// once no messages are droped
+/// once no messages are dropped
 pub const PROMISES_GUARANTEED_DELIVERY: Promises = 4;
 /// this will enable the internal compression on this
 /// [`Stream`](crate::api::Stream)
@@ -65,7 +65,7 @@ pub(crate) enum Frame {
         pid: Pid,
         secret: u128,
     },
-    Shutdown, /* Shutsdown this channel gracefully, if all channels are shut down, Participant
+    Shutdown, /* Shutdown this channel gracefully, if all channels are shutdown, Participant
                * is deleted */
     OpenStream {
         sid: Sid,

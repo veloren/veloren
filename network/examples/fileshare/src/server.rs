@@ -72,7 +72,7 @@ impl Server {
                         match self.network.connect(addr.clone()).await {
                             Ok(p) => self.loop_participant(p).await,
                             Err(e) => {
-                                println!("Failled to connect to {:?}, err: {:?}", &addr, e);
+                                println!("Failed to connect to {:?}, err: {:?}", &addr, e);
                             },
                         }
                     },

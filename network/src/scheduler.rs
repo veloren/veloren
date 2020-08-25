@@ -327,8 +327,8 @@ impl Scheduler {
                 error!(
                     ?pid,
                     ?e,
-                    "Failed to finish sending all remainding messages to participant when \
-                     shutting down"
+                    "Failed to finish sending all remaining messages to participant when shutting \
+                     down"
                 );
             };
         }
@@ -490,7 +490,7 @@ impl Scheduler {
         //channels are unknown till PID is known!
         /* When A connects to a NETWORK, we, the listener answers with a Handshake.
           Pro: - Its easier to debug, as someone who opens a port gets a magic number back!
-          Contra: - DOS posibility because we answer fist
+          Contra: - DOS possibility because we answer first
                   - Speed, because otherwise the message can be send with the creation
         */
         let mut participant_channels = self.participant_channels.lock().await.clone().unwrap();
@@ -585,7 +585,7 @@ impl Scheduler {
                                 // someone is waiting with `connect`, so give them their PID
                                 pid_oneshot.send(Ok(participant)).unwrap();
                             } else {
-                                // noone is waiting on this Participant, return in to Network
+                                // no one is waiting on this Participant, return in to Network
                                 participant_channels
                                     .s2a_connected_s
                                     .send(participant)
