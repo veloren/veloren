@@ -26,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Colors for models and figures were adjusted to account for the saturation hack.
 - Fixed a bug where the closest item would be picked up instead of a selected item.
 - Fixed a bug where camera zoom in and zoom out distance didn't match.
+- Overhauled world colours
+- Improved projectile physics
+- Improved overhead aiming
 
 ### Removed
 

@@ -345,7 +345,7 @@ void main() {
     const float A = 0.055;
     const float W_INV = 1 / (1 + A);
     const float W_2 = W_INV * W_INV;//pow(W_INV, 2.4);
-    const float NOISE_FACTOR = 0.02;//pow(0.02, 1.2);
+    const float NOISE_FACTOR = 0.015;//pow(0.02, 1.2);
     vec3 noise_delta = (sqrt(f_col) * W_INV + noise * NOISE_FACTOR);
     // noise_delta = noise_delta * noise_delta * W_2 - f_col;
     // lum = W ⋅ col

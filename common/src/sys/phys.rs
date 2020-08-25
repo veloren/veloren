@@ -96,20 +96,153 @@ impl<'a> System<'a> for Sys {
     ) {
         let mut event_emitter = event_bus.emitter();
 
-        // Add physics state components
-        for entity in (
+        // Add/reset physics state components
+        for (entity, _, _, _, _) in (
             &entities,
-            !&physics_states,
             &colliders,
             &positions,
             &velocities,
             &orientations,
         )
             .join()
-            .map(|(e, _, _, _, _, _)| e)
-            .collect::<Vec<_>>()
         {
-            let _ = physics_states.insert(entity, Default::default());
+            let _ = physics_states
+                .entry(entity)
+                .map(|e| e.or_insert_with(Default::default));
+        }
+
+        // Apply pushback
+        //
+        // Note: We now do this first because we project velocity ahead. This is slighty
+        // imperfect and implies that we might get edge-cases where entities
+        // standing right next to the edge of a wall may get hit by projectiles
+        // fired into the wall very close to them. However, this sort of thing is
+        // already possible with poorly-defined hitboxes anyway so it's not too
+        // much of a concern.
+        //
+        // If this situation becomes a problem, this code should be integrated with the
+        // terrain collision code below, although that's not trivial to do since
+        // it means the step needs to take into account the speeds of both
+        // entities.
+        for (entity, pos, scale, mass, collider, _, _, physics, projectile) in (
+            &entities,
+            &positions,
+            scales.maybe(),
+            masses.maybe(),
+            colliders.maybe(),
+            !&mountings,
+            stickies.maybe(),
+            &mut physics_states,
+            // TODO: if we need to avoid collisions for other things consider moving whether it
+            // should interact into the collider component or into a separate component
+            projectiles.maybe(),
+        )
+            .join()
+            .filter(|(_, _, _, _, _, _, sticky, physics, _)| {
+                sticky.is_none() || (physics.on_wall.is_none() && !physics.on_ground)
+            })
+        {
+            let scale = scale.map(|s| s.0).unwrap_or(1.0);
+            let radius = collider.map(|c| c.get_radius()).unwrap_or(0.5);
+            let z_limits = collider.map(|c| c.get_z_limits()).unwrap_or((-0.5, 0.5));
+            let mass = mass.map(|m| m.0).unwrap_or(scale);
+
+            // Group to ignore collisions with
+            let ignore_group = projectile
+                .and_then(|p| p.owner)
+                .and_then(|uid| uid_allocator.retrieve_entity_internal(uid.into()))
+                .and_then(|e| groups.get(e));
+
+            let mut vel_delta = Vec3::zero();
+
+            for (
+                entity_other,
+                other,
+                pos_other,
+                scale_other,
+                mass_other,
+                collider_other,
+                _,
+                group,
+            ) in (
+                &entities,
+                &uids,
+                &positions,
+                scales.maybe(),
+                masses.maybe(),
+                colliders.maybe(),
+                !&mountings,
+                groups.maybe(),
+            )
+                .join()
+            {
+                if ignore_group.is_some() && ignore_group == group {
+                    continue;
+                }
+
+                let scale_other = scale_other.map(|s| s.0).unwrap_or(1.0);
+                let radius_other = collider_other.map(|c| c.get_radius()).unwrap_or(0.5);
+                let z_limits_other = collider_other
+                    .map(|c| c.get_z_limits())
+                    .unwrap_or((-0.5, 0.5));
+                let mass_other = mass_other.map(|m| m.0).unwrap_or(scale_other);
+                if mass_other == 0.0 {
+                    continue;
+                }
+
+                let collision_dist = scale * radius + scale_other * radius_other;
+
+                let vel = velocities.get(entity).copied().unwrap_or_default().0;
+                let vel_other = velocities.get(entity_other).copied().unwrap_or_default().0;
+
+                // Sanity check: don't try colliding entities that are too far from each other
+                // Note: I think this catches all cases. If you get entity collision problems,
+                // try removing this!
+                if (pos.0 - pos_other.0).xy().magnitude()
+                    > ((vel - vel_other) * dt.0).xy().magnitude() + collision_dist
+                {
+                    continue;
+                }
+
+                let min_collision_dist = 0.3;
+                let increments = ((vel - vel_other).magnitude() * dt.0 / min_collision_dist)
+                    .max(1.0)
+                    .ceil() as usize;
+                let step_delta = 1.0 / increments as f32;
+                let mut collided = false;
+                for i in 0..increments {
+                    let factor = i as f32 * step_delta;
+                    let pos = pos.0 + vel * dt.0 * factor;
+                    let pos_other = pos_other.0 + vel_other * dt.0 * factor;
+
+                    let diff = pos.xy() - pos_other.xy();
+
+                    if diff.magnitude_squared() <= collision_dist.powf(2.0)
+                        && pos.z + z_limits.1 * scale
+                            >= pos_other.z + z_limits_other.0 * scale_other
+                        && pos.z + z_limits.0 * scale
+                            <= pos_other.z + z_limits_other.1 * scale_other
+                    {
+                        if !collided {
+                            physics.touch_entities.push(*other);
+                        }
+
+                        if diff.magnitude_squared() > 0.0 {
+                            let force = 40.0 * (collision_dist - diff.magnitude()) * mass_other
+                                / (mass + mass_other);
+
+                            vel_delta += Vec3::from(diff.normalized()) * force * step_delta;
+                        }
+
+                        collided = true;
+                    }
+                }
+            }
+
+            // Change velocity
+            velocities
+                .get_mut(entity)
+                .map(|vel| vel.0 += vel_delta * dt.0);
         }
 
         // Apply movement inputs
@@ -177,16 +310,18 @@ impl<'a> System<'a> for Sys {
                 Vec3::zero()
             };
 
-            match collider {
+            match *collider {
                 Collider::Box {
                     radius,
                     z_min,
                     z_max,
                 } => {
                     // Scale collider
-                    let radius = *radius; // * scale;
-                    let z_min = *z_min; // * scale;
-                    let z_max = *z_max; // * scale;
+                    // TODO: Use scale & actual proportions when pathfinding is good enough to manage irregular entity
+                    // sizes
+                    let radius = radius.min(0.45); // * scale;
+                    let z_min = z_min; // * scale;
+                    let z_max = z_max.clamped(1.2, 1.95); // * scale;
 
                     // Probe distances
                     let hdist = radius.ceil() as i32;
@@ -515,74 +650,5 @@ impl<'a> System<'a> for Sys {
         land_on_grounds.into_iter().for_each(|(entity, vel)| {
             event_emitter.emit(ServerEvent::LandOnGround { entity, vel: vel.0 });
         });
-
-        // Apply pushback
-        for (pos, scale, mass, vel, _, _, _, physics, projectile) in (
-            &positions,
-            scales.maybe(),
-            masses.maybe(),
-            &mut velocities,
-            &colliders,
-            !&mountings,
-            stickies.maybe(),
-            &mut physics_states,
-            // TODO: if we need to avoid collisions for other things consider moving whether it
-            // should interact into the collider component or into a separate component
-            projectiles.maybe(),
-        )
-            .join()
-            .filter(|(_, _, _, _, _, _, sticky, physics, _)| {
-                sticky.is_none() || (physics.on_wall.is_none() && !physics.on_ground)
-            })
-        {
-            physics.touch_entity = None;
-
-            let scale = scale.map(|s| s.0).unwrap_or(1.0);
-            let mass = mass.map(|m| m.0).unwrap_or(scale);
-
-            // Group to ignore collisions with
-            let ignore_group = projectile
-                .and_then(|p| p.owner)
-                .and_then(|uid| uid_allocator.retrieve_entity_internal(uid.into()))
-                .and_then(|e| groups.get(e));
-
-            for (other, pos_other, scale_other, mass_other, _, _, group) in (
-                &uids,
-                &positions,
-                scales.maybe(),
-                masses.maybe(),
-                &colliders,
-                !&mountings,
-                groups.maybe(),
-            )
-                .join()
-            {
-                if ignore_group.is_some() && ignore_group == group {
-                    continue;
-                }
-
-                let scale_other = scale_other.map(|s| s.0).unwrap_or(1.0);
-
-                let mass_other = mass_other.map(|m| m.0).unwrap_or(scale_other);
-                if mass_other == 0.0 {
-                    continue;
-                }
-
-                let diff = Vec2::<f32>::from(pos.0 - pos_other.0);
-
-                let collision_dist = 0.55 * (scale + scale_other);
-
-                if diff.magnitude_squared() > 0.0
-                    && diff.magnitude_squared() < collision_dist.powf(2.0)
-                    && pos.0.z + 1.6 * scale > pos_other.0.z
-                    && pos.0.z < pos_other.0.z + 1.6 * scale_other
-                {
-                    let force = (collision_dist - diff.magnitude()) * 2.0 * mass_other
-                        / (mass + mass_other);
-                    vel.0 += Vec3::from(diff.normalized()) * force;
-                    physics.touch_entity = Some(*other);
-                }
-            }
-        }
     }
 }
