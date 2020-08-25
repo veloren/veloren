@@ -193,7 +193,7 @@ impl Body {
             Body::QuadrupedLow(body) => match body.species {
                 quadruped_low::Species::Monitor => 1.5,
                 quadruped_low::Species::Tortoise => 2.0,
-                quadruped_low::Species::Rocksnapper => 2.0,
+                quadruped_low::Species::Rocksnapper => 2.9,
                 quadruped_low::Species::Maneater => 4.0,
                 _ => 1.3,
             },
@@ -206,7 +206,7 @@ impl Body {
             Body::Dragon(_) => 20.0,
             Body::BirdSmall(_) => 1.1,
             Body::FishSmall(_) => 0.9,
-            Body::BipedLarge(_) => 4.5,
+            Body::BipedLarge(_) => 4.6,
             Body::Golem(_) => 5.8,
             Body::Object(_) => 1.0,
         }
