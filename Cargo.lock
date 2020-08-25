@@ -292,7 +292,7 @@ version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5753e2a71534719bf3f4e57006c3a4f0d2c672a4b676eec84161f763eca87dbf"
 dependencies = [
- "byteorder 1.3.4",
+ "byteorder",
  "serde",
 ]
 
@@ -389,12 +389,6 @@ checksum = "db7a1029718df60331e557c9e83a55523c955e5dd2a7bfeffad6bbd50b538ae9"
 
 [[package]]
 name = "byteorder"
-version = "0.5.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0fc10e8cc6b2580fda3f36eb6dc5316657f812a3df879a44a66fc9f0fdbc4855"
-
-[[package]]
-name = "byteorder"
 version = "1.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08c48aae112d48ed9f069b33538ea9e3e90aa263cfa3d1c24309612b1f7472de"
@@ -405,7 +399,7 @@ version = "0.4.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "206fdffcfa2df7cbe15601ef46c813fce0965eb3286db6b56c583b814b51c81c"
 dependencies = [
- "byteorder 1.3.4",
+ "byteorder",
  "either",
  "iovec",
 ]
@@ -1056,7 +1050,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73770f8e1fe7d64df17ca66ad28994a0a623ea497fa69486e14984e715c5d174"
 dependencies = [
  "adler32",
- "byteorder 1.3.4",
+ "byteorder",
 ]
 
 [[package]]
@@ -1082,7 +1076,7 @@ version = "1.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3e2de9deab977a153492a1468d1b1c0662c1cf39e5ea87d0c060ecd59ef18d8c"
 dependencies = [
- "byteorder 1.3.4",
+ "byteorder",
  "diesel_derives",
  "libsqlite3-sys",
 ]
@@ -1162,7 +1156,7 @@ version = "4.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "83c18405ef54de0398b77a3ec8394d3a1639e7bf060e1385201e8db40c44ab41"
 dependencies = [
- "byteorder 1.3.4",
+ "byteorder",
  "lazy_static",
  "log",
  "nom 4.2.3",
@@ -1262,6 +1256,26 @@ dependencies = [
  "quote 1.0.7",
  "syn 1.0.33",
  "synstructure",
+]
+
+[[package]]
+name = "fehler"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d5729fe49ba028cd550747b6e62cd3d841beccab5390aa398538c31a2d983635"
+dependencies = [
+ "fehler-macros",
+]
+
+[[package]]
+name = "fehler-macros"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ccb5acb1045ebbfa222e2c50679e392a71dd77030b78fb0189f2d9c5974400f9"
+dependencies = [
+ "proc-macro2 1.0.18",
+ "quote 1.0.7",
+ "syn 1.0.33",
 ]
 
 [[package]]
@@ -1476,7 +1490,7 @@ version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c31b6d751ae2c7f11320402d34e41349dd1016f8d5d45e48c4312bc8625af50c"
 dependencies = [
- "byteorder 1.3.4",
+ "byteorder",
 ]
 
 [[package]]
@@ -1886,7 +1900,7 @@ version = "0.1.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a5b34c246847f938a410a03c5458c7fee2274436675e76d8b903c08efc29c462"
 dependencies = [
- "byteorder 1.3.4",
+ "byteorder",
  "bytes",
  "fnv",
  "futures 0.1.29",
@@ -2075,7 +2089,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "543904170510c1b5fb65140485d84de4a57fddb2ed685481e9020ce3d2c9f64c"
 dependencies = [
  "bytemuck",
- "byteorder 1.3.4",
+ "byteorder",
  "num-iter",
  "num-rational 0.3.0",
  "num-traits",
@@ -2218,7 +2232,7 @@ version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be42bea7971f4ba0ea1e215730c29bc1ff9bd2a9c10013912f42a8dcf8d77c0d"
 dependencies = [
- "byteorder 1.3.4",
+ "byteorder",
  "ogg",
  "tinyvec",
 ]
@@ -2343,13 +2357,16 @@ dependencies = [
 ]
 
 [[package]]
-name = "lz4-compress"
+name = "lz-fear"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f966533a922a9bba9e95e594c1fdb3b9bf5fdcdb11e37e51ad84cd76e468b91"
+checksum = "06aad1ce45e4ccf7a8d7d43e0c3ad38dc5d2255174a5f29a3c39d961fbc6181d"
 dependencies = [
- "byteorder 0.5.3",
- "quick-error",
+ "bitflags",
+ "byteorder",
+ "fehler",
+ "thiserror",
+ "twox-hash",
 ]
 
 [[package]]
@@ -2833,7 +2850,7 @@ version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d79f1db9148be9d0e174bb3ac890f6030fcb1ed947267c5a91ee4c91b5a91e15"
 dependencies = [
- "byteorder 1.3.4",
+ "byteorder",
 ]
 
 [[package]]
@@ -3234,12 +3251,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "quick-error"
-version = "1.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1d01941d82fa2ab50be1e79e6714289dd7cde78eba4c074bc5a4374f650dfe0"
-
-[[package]]
 name = "quote"
 version = "0.6.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3510,7 +3521,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ae1ded71d66a4a97f5e961fd0cb25a5f366a42a41570d16a763a69c092c26ae4"
 dependencies = [
- "byteorder 1.3.4",
+ "byteorder",
  "regex-syntax",
 ]
 
@@ -3948,7 +3959,7 @@ version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f77b6b07e862c66a9f3e62a07588fee67cd90a9135a2b942409f195507b4fb51"
 dependencies = [
- "byteorder 1.3.4",
+ "byteorder",
 ]
 
 [[package]]
@@ -4474,6 +4485,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "44834418e2c5b16f47bedf35c28e148db099187dd5feee6367fb2525863af4f1"
 
 [[package]]
+name = "twox-hash"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3bfd5b7557925ce778ff9b9ef90e3ade34c524b5ff10e239c69a42d546d2af56"
+
+[[package]]
 name = "tynm"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4590,17 +4607,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "uvth"
-version = "4.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e5910f9106b96334c6cae1f1d77a764bda66ac4ca9f507f73259f184fe1bb6b"
-dependencies = [
- "crossbeam-channel 0.3.9",
- "log",
- "num_cpus",
-]
-
-[[package]]
 name = "vcpkg"
 version = "0.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4654,7 +4660,7 @@ name = "veloren-client"
 version = "0.7.0"
 dependencies = [
  "authc",
- "byteorder 1.3.4",
+ "byteorder",
  "futures-executor",
  "futures-timer",
  "futures-util",
@@ -4665,7 +4671,7 @@ dependencies = [
  "rayon",
  "specs",
  "tracing",
- "uvth 3.1.1",
+ "uvth",
  "vek 0.12.0",
  "veloren-common",
  "veloren_network",
@@ -4730,7 +4736,7 @@ dependencies = [
  "specs-idvs",
  "tiny_http",
  "tracing",
- "uvth 3.1.1",
+ "uvth",
  "vek 0.12.0",
  "veloren-common",
  "veloren-world",
@@ -4792,7 +4798,7 @@ dependencies = [
  "tracing-log",
  "tracing-subscriber",
  "treeculler",
- "uvth 3.1.1",
+ "uvth",
  "vek 0.12.0",
  "veloren-client",
  "veloren-common",
@@ -4847,21 +4853,22 @@ dependencies = [
 
 [[package]]
 name = "veloren_network"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "async-std",
  "bincode",
+ "bitflags",
  "crossbeam-channel 0.4.2",
  "futures 0.3.5",
  "lazy_static",
- "lz4-compress",
+ "lz-fear",
  "prometheus",
  "rand 0.7.3",
  "serde",
  "tracing",
  "tracing-futures",
  "tracing-subscriber",
- "uvth 4.0.1",
+ "uvth",
 ]
 
 [[package]]

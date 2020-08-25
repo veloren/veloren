@@ -14,6 +14,8 @@ use futures::{
     sink::SinkExt,
     stream::StreamExt,
 };
+#[cfg(feature = "compression")]
+use lz_fear::raw::DecodeError;
 #[cfg(feature = "metrics")]
 use prometheus::Registry;
 use serde::{de::DeserializeOwned, Serialize};
@@ -100,10 +102,15 @@ pub enum ParticipantError {
 }
 
 /// Error type thrown by [`Streams`](Stream) methods
+/// A Compression Error should only happen if a client sends malicious code.
+/// A Deserialize Error probably means you are expecting Type X while you
+/// actually got send type Y.
 #[derive(Debug)]
 pub enum StreamError {
     StreamClosed,
-    DeserializeError(Box<bincode::ErrorKind>),
+    #[cfg(feature = "compression")]
+    Compression(DecodeError),
+    Deserialize(bincode::Error),
 }
 
 /// Use the `Network` to create connections to other [`Participants`]
@@ -442,7 +449,7 @@ impl Participant {
     ///   etc...
     /// * `promises` - use a combination of you prefered [`Promises`], see the
     ///   link for further documentation. You can combine them, e.g.
-    ///   `PROMISES_ORDERED | PROMISES_CONSISTENCY` The Stream will then
+    ///   `Promises::ORDERED | Promises::CONSISTENCY` The Stream will then
     ///   guarantee that those promises are met.
     ///
     /// A [`ParticipantError`] might be thrown if the `Participant` is already
@@ -452,7 +459,7 @@ impl Participant {
     /// # Examples
     /// ```rust
     /// use futures::executor::block_on;
-    /// use veloren_network::{Network, Pid, ProtocolAddr, PROMISES_CONSISTENCY, PROMISES_ORDERED};
+    /// use veloren_network::{Network, Pid, Promises, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2100 and open a stream
@@ -465,7 +472,9 @@ impl Participant {
     ///     let p1 = network
     ///         .connect(ProtocolAddr::Tcp("127.0.0.1:2100".parse().unwrap()))
     ///         .await?;
-    ///     let _s1 = p1.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
+    ///     let _s1 = p1
+    ///         .open(16, Promises::ORDERED | Promises::CONSISTENCY)
+    ///         .await?;
     ///     # Ok(())
     /// })
     /// # }
@@ -506,7 +515,7 @@ impl Participant {
     ///
     /// # Examples
     /// ```rust
-    /// use veloren_network::{Network, Pid, ProtocolAddr, PROMISES_ORDERED, PROMISES_CONSISTENCY};
+    /// use veloren_network::{Network, Pid, ProtocolAddr, Promises};
     /// use futures::executor::block_on;
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
@@ -520,7 +529,7 @@ impl Participant {
     ///     # remote.listen(ProtocolAddr::Tcp("0.0.0.0:2110".parse().unwrap())).await?;
     ///     let p1 = network.connect(ProtocolAddr::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
     ///     # let p2 = remote.connected().await?;
-    ///     # p2.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
+    ///     # p2.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
     ///     let _s1 = p1.opened().await?;
     ///     # Ok(())
     /// })
@@ -690,7 +699,7 @@ impl Stream {
     /// # Example
     /// ```
     /// use veloren_network::{Network, ProtocolAddr, Pid};
-    /// # use veloren_network::{PROMISES_ORDERED, PROMISES_CONSISTENCY};
+    /// # use veloren_network::Promises;
     /// use futures::executor::block_on;
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
@@ -703,7 +712,7 @@ impl Stream {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
     ///     # // keep it alive
-    ///     # let _stream_p = remote_p.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
+    ///     # let _stream_p = remote_p.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
     ///     let participant_a = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
     ///     //Send  Message
@@ -718,18 +727,22 @@ impl Stream {
     /// [`Serialized`]: Serialize
     #[inline]
     pub fn send<M: Serialize>(&mut self, msg: M) -> Result<(), StreamError> {
-        self.send_raw(Arc::new(message::serialize(&msg)))
+        self.send_raw(Arc::new(message::serialize(
+            &msg,
+            #[cfg(feature = "compression")]
+            self.promises.contains(Promises::COMPRESSED),
+        )))
     }
 
-    /// This methods give the option to skip multiple calls of [`bincode`], e.g.
-    /// in case the same Message needs to send on multiple `Streams` to multiple
-    /// [`Participants`]. Other then that, the same rules apply than for
-    /// [`send`]
+    /// This methods give the option to skip multiple calls of [`bincode`] and
+    /// [`compress`], e.g. in case the same Message needs to send on
+    /// multiple `Streams` to multiple [`Participants`]. Other then that,
+    /// the same rules apply than for [`send`]
     ///
     /// # Example
     /// ```rust
     /// use veloren_network::{Network, ProtocolAddr, Pid, MessageBuffer};
-    /// # use veloren_network::{PROMISES_ORDERED, PROMISES_CONSISTENCY};
+    /// # use veloren_network::Promises;
     /// use futures::executor::block_on;
     /// use bincode;
     /// use std::sync::Arc;
@@ -746,8 +759,8 @@ impl Stream {
     ///     # let remote1_p = remote1.connect(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
     ///     # let remote2_p = remote2.connect(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
     ///     # assert_eq!(remote1_p.remote_pid(), remote2_p.remote_pid());
-    ///     # remote1_p.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
-    ///     # remote2_p.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
+    ///     # remote1_p.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # remote2_p.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
     ///     let participant_a = network.connected().await?;
     ///     let participant_b = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
@@ -768,6 +781,7 @@ impl Stream {
     ///
     /// [`send`]: Stream::send
     /// [`Participants`]: crate::api::Participant
+    /// [`compress`]: lz_fear::raw::compress2
     pub fn send_raw(&mut self, messagebuffer: Arc<MessageBuffer>) -> Result<(), StreamError> {
         if self.send_closed.load(Ordering::Relaxed) {
             return Err(StreamError::StreamClosed);
@@ -794,7 +808,7 @@ impl Stream {
     /// # Example
     /// ```
     /// use veloren_network::{Network, ProtocolAddr, Pid};
-    /// # use veloren_network::{PROMISES_ORDERED, PROMISES_CONSISTENCY};
+    /// # use veloren_network::Promises;
     /// use futures::executor::block_on;
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
@@ -806,7 +820,7 @@ impl Stream {
     /// block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
-    ///     # let mut stream_p = remote_p.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY).await?;
+    ///     # let mut stream_p = remote_p.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
     ///     # stream_p.send("Hello World");
     ///     let participant_a = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
@@ -818,14 +832,19 @@ impl Stream {
     /// ```
     #[inline]
     pub async fn recv<M: DeserializeOwned>(&mut self) -> Result<M, StreamError> {
-        Ok(message::deserialize(self.recv_raw().await?)?)
+        message::deserialize(
+            self.recv_raw().await?,
+            #[cfg(feature = "compression")]
+            self.promises.contains(Promises::COMPRESSED),
+        )
     }
 
-    /// the equivalent like [`send_raw`] but for [`recv`], no [`bincode`] is
-    /// executed for performance reasons.
+    /// the equivalent like [`send_raw`] but for [`recv`], no [`bincode`] or
+    /// [`decompress`] is executed for performance reasons.
     ///
     /// [`send_raw`]: Stream::send_raw
     /// [`recv`]: Stream::recv
+    /// [`decompress`]: lz_fear::raw::decompress_raw
     pub async fn recv_raw(&mut self) -> Result<MessageBuffer, StreamError> {
         let msg = self.b2a_msg_recv_r.next().await?;
         Ok(msg.buffer)
@@ -991,16 +1010,16 @@ impl From<oneshot::Canceled> for NetworkError {
 }
 
 impl From<Box<bincode::ErrorKind>> for StreamError {
-    fn from(err: Box<bincode::ErrorKind>) -> Self { StreamError::DeserializeError(err) }
+    fn from(err: Box<bincode::ErrorKind>) -> Self { StreamError::Deserialize(err) }
 }
 
 impl core::fmt::Display for StreamError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             StreamError::StreamClosed => write!(f, "stream closed"),
-            StreamError::DeserializeError(err) => {
-                write!(f, "deserialize error on message: {}", err)
-            },
+            #[cfg(feature = "compression")]
+            StreamError::Compression(err) => write!(f, "compression error on message: {}", err),
+            StreamError::Deserialize(err) => write!(f, "deserialize error on message: {}", err),
         }
     }
 }
@@ -1032,11 +1051,22 @@ impl core::cmp::PartialEq for StreamError {
         match self {
             StreamError::StreamClosed => match other {
                 StreamError::StreamClosed => true,
-                StreamError::DeserializeError(_) => false,
+                #[cfg(feature = "compression")]
+                StreamError::Compression(_) => false,
+                StreamError::Deserialize(_) => false,
             },
-            StreamError::DeserializeError(err) => match other {
+            #[cfg(feature = "compression")]
+            StreamError::Compression(err) => match other {
                 StreamError::StreamClosed => false,
-                StreamError::DeserializeError(other_err) => partial_eq_bincode(err, other_err),
+                #[cfg(feature = "compression")]
+                StreamError::Compression(other_err) => err == other_err,
+                StreamError::Deserialize(_) => false,
+            },
+            StreamError::Deserialize(err) => match other {
+                StreamError::StreamClosed => false,
+                #[cfg(feature = "compression")]
+                StreamError::Compression(_) => false,
+                StreamError::Deserialize(other_err) => partial_eq_bincode(err, other_err),
             },
         }
     }

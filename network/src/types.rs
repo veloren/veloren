@@ -1,41 +1,42 @@
+use bitflags::bitflags;
 use rand::Rng;
 use std::convert::TryFrom;
 
 pub type Mid = u64;
 pub type Cid = u64;
 pub type Prio = u8;
-/// use promises to modify the behavior of [`Streams`].
-/// available promises are:
-/// * [`PROMISES_NONE`]
-/// * [`PROMISES_ORDERED`]
-/// * [`PROMISES_CONSISTENCY`]
-/// * [`PROMISES_GUARANTEED_DELIVERY`]
-/// * [`PROMISES_COMPRESSED`]
-/// * [`PROMISES_ENCRYPTED`]
-///
-/// [`Streams`]: crate::api::Stream
-pub type Promises = u8;
 
-/// use for no special promises on this [`Stream`](crate::api::Stream).
-pub const PROMISES_NONE: Promises = 0;
-/// this will guarantee that the order of messages which are send on one side,
-/// is the same when received on the other.
-pub const PROMISES_ORDERED: Promises = 1;
-/// this will guarantee that messages received haven't been altered by errors,
-/// like bit flips, this is done with a checksum.
-pub const PROMISES_CONSISTENCY: Promises = 2;
-/// this will guarantee that the other side will receive every message exactly
-/// once no messages are dropped
-pub const PROMISES_GUARANTEED_DELIVERY: Promises = 4;
-/// this will enable the internal compression on this
-/// [`Stream`](crate::api::Stream)
-pub const PROMISES_COMPRESSED: Promises = 8;
-/// this will enable the internal encryption on this
-/// [`Stream`](crate::api::Stream)
-pub const PROMISES_ENCRYPTED: Promises = 16;
+bitflags! {
+    /// use promises to modify the behavior of [`Streams`].
+    /// see the consts in this `struct` for
+    ///
+    /// [`Streams`]: crate::api::Stream
+    pub struct Promises: u8 {
+        /// this will guarantee that the order of messages which are send on one side,
+        /// is the same when received on the other.
+        const ORDERED = 0b00000001;
+        /// this will guarantee that messages received haven't been altered by errors,
+        /// like bit flips, this is done with a checksum.
+        const CONSISTENCY = 0b00000010;
+        /// this will guarantee that the other side will receive every message exactly
+        /// once no messages are dropped
+        const GUARANTEED_DELIVERY = 0b00000100;
+        /// this will enable the internal compression on this
+        /// [`Stream`](crate::api::Stream)
+        #[cfg(feature = "compression")]
+        const COMPRESSED = 0b00001000;
+        /// this will enable the internal encryption on this
+        /// [`Stream`](crate::api::Stream)
+        const ENCRYPTED = 0b00010000;
+    }
+}
+
+impl Promises {
+    pub const fn to_le_bytes(self) -> [u8; 1] { self.bits.to_le_bytes() }
+}
 
 pub(crate) const VELOREN_MAGIC_NUMBER: [u8; 7] = [86, 69, 76, 79, 82, 69, 78]; //VELOREN
-pub const VELOREN_NETWORK_VERSION: [u32; 3] = [0, 4, 0];
+pub const VELOREN_NETWORK_VERSION: [u32; 3] = [0, 5, 0];
 pub(crate) const STREAM_ID_OFFSET1: Sid = Sid::new(0);
 pub(crate) const STREAM_ID_OFFSET2: Sid = Sid::new(u64::MAX / 2);
 
@@ -149,7 +150,7 @@ impl Frame {
         Frame::OpenStream {
             sid: Sid::from_le_bytes(*<&[u8; 8]>::try_from(&buf[0..8]).unwrap()),
             prio: buf[8],
-            promises: buf[9],
+            promises: Promises::from_bits_truncate(buf[9]),
         }
     }
 
