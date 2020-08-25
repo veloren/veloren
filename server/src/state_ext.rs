@@ -102,20 +102,15 @@ impl StateExt for State {
             .with(comp::Vel(Vec3::zero()))
             .with(comp::Ori::default())
             .with(comp::Collider::Box {
-                radius: 0.4,
+                radius: body.radius(),
                 z_min: 0.0,
-                z_max: 1.75,
+                z_max: body.height(),
             })
             .with(comp::Controller::default())
             .with(body)
             .with(stats)
             .with(comp::Alignment::Npc)
             .with(comp::Energy::new(500))
-            .with(comp::Collider::Box {
-                radius: 0.4,
-                z_min: 0.0,
-                z_max: 1.75,
-            })
             .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())
             .with(loadout)
@@ -127,13 +122,13 @@ impl StateExt for State {
             .with(pos)
             .with(comp::Vel(Vec3::zero()))
             .with(comp::Ori::default())
-            .with(comp::Body::Object(object))
             .with(comp::Mass(5.0))
             .with(comp::Collider::Box {
-                radius: 0.4,
+                radius: comp::Body::Object(object).radius(),
                 z_min: 0.0,
-                z_max: 0.9,
+                z_max: comp::Body::Object(object).height(),
             })
+            .with(comp::Body::Object(object))
             .with(comp::Gravity(1.0))
     }
 
@@ -223,6 +218,11 @@ impl StateExt for State {
             }),
         ));
 
+        self.write_component(entity, comp::Collider::Box {
+            radius: body.radius(),
+            z_min: 0.0,
+            z_max: body.height(),
+        });
         self.write_component(entity, body);
         self.write_component(entity, stats);
         self.write_component(entity, inventory);

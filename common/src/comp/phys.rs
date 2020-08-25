@@ -55,6 +55,22 @@ pub enum Collider {
     Point,
 }
 
+impl Collider {
+    pub fn get_radius(&self) -> f32 {
+        match self {
+            Collider::Box { radius, .. } => *radius,
+            Collider::Point => 0.0,
+        }
+    }
+
+    pub fn get_z_limits(&self) -> (f32, f32) {
+        match self {
+            Collider::Box { z_min, z_max, .. } => (*z_min, *z_max),
+            Collider::Point => (0.0, 0.0),
+        }
+    }
+}
+
 impl Component for Collider {
     type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
 }
@@ -74,16 +90,26 @@ impl Component for Sticky {
 }
 
 // PhysicsState
-#[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PhysicsState {
     pub on_ground: bool,
     pub on_ceiling: bool,
     pub on_wall: Option<Vec3<f32>>,
-    pub touch_entity: Option<Uid>,
+    pub touch_entities: Vec<Uid>,
     pub in_fluid: Option<f32>, // Depth
 }
 
 impl PhysicsState {
+    pub fn reset(&mut self) {
+        // Avoid allocation overhead!
+        let mut touch_entities = std::mem::take(&mut self.touch_entities);
+        touch_entities.clear();
+        *self = Self {
+            touch_entities,
+            ..Self::default()
+        }
+    }
+
     pub fn on_surface(&self) -> Option<Vec3<f32>> {
         self.on_ground
             .then_some(-Vec3::unit_z())

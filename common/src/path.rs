@@ -418,7 +418,7 @@ impl Chaser {
             });
 
             if !walking_towards_edge {
-                Some(((tgt - pos) * Vec3::new(1.0, 1.0, 0.0), 0.75))
+                Some(((tgt - pos) * Vec3::new(1.0, 1.0, 0.0), 1.0))
             } else {
                 None
             }

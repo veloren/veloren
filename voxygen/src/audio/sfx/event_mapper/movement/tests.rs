@@ -82,10 +82,7 @@ fn maps_idle() {
         &CharacterState::Idle {},
         &PhysicsState {
             on_ground: true,
-            on_ceiling: false,
-            on_wall: None,
-            touch_entity: None,
-            in_fluid: None,
+            ..Default::default()
         },
         &PreviousEntityState {
             event: SfxEvent::Idle,
@@ -104,10 +101,7 @@ fn maps_run_with_sufficient_velocity() {
         &CharacterState::Idle {},
         &PhysicsState {
             on_ground: true,
-            on_ceiling: false,
-            on_wall: None,
-            touch_entity: None,
-            in_fluid: None,
+            ..Default::default()
         },
         &PreviousEntityState {
             event: SfxEvent::Idle,
@@ -126,10 +120,7 @@ fn does_not_map_run_with_insufficient_velocity() {
         &CharacterState::Idle {},
         &PhysicsState {
             on_ground: true,
-            on_ceiling: false,
-            on_wall: None,
-            touch_entity: None,
-            in_fluid: None,
+            ..Default::default()
         },
         &PreviousEntityState {
             event: SfxEvent::Idle,
@@ -146,13 +137,7 @@ fn does_not_map_run_with_insufficient_velocity() {
 fn does_not_map_run_with_sufficient_velocity_but_not_on_ground() {
     let result = MovementEventMapper::map_movement_event(
         &CharacterState::Idle {},
-        &PhysicsState {
-            on_ground: false,
-            on_ceiling: false,
-            on_wall: None,
-            touch_entity: None,
-            in_fluid: None,
-        },
+        &Default::default(),
         &PreviousEntityState {
             event: SfxEvent::Idle,
             time: Instant::now(),
@@ -173,10 +158,7 @@ fn maps_roll() {
         }),
         &PhysicsState {
             on_ground: true,
-            on_ceiling: false,
-            on_wall: None,
-            touch_entity: None,
-            in_fluid: None,
+            ..Default::default()
         },
         &PreviousEntityState {
             event: SfxEvent::Run,
@@ -195,10 +177,7 @@ fn maps_land_on_ground_to_run() {
         &CharacterState::Idle {},
         &PhysicsState {
             on_ground: true,
-            on_ceiling: false,
-            on_wall: None,
-            touch_entity: None,
-            in_fluid: None,
+            ..Default::default()
         },
         &PreviousEntityState {
             event: SfxEvent::Idle,
@@ -215,13 +194,7 @@ fn maps_land_on_ground_to_run() {
 fn maps_glider_open() {
     let result = MovementEventMapper::map_movement_event(
         &CharacterState::Glide {},
-        &PhysicsState {
-            on_ground: false,
-            on_ceiling: false,
-            on_wall: None,
-            touch_entity: None,
-            in_fluid: None,
-        },
+        &Default::default(),
         &PreviousEntityState {
             event: SfxEvent::Jump,
             time: Instant::now(),
@@ -237,13 +210,7 @@ fn maps_glider_open() {
 fn maps_glide() {
     let result = MovementEventMapper::map_movement_event(
         &CharacterState::Glide {},
-        &PhysicsState {
-            on_ground: false,
-            on_ceiling: false,
-            on_wall: None,
-            touch_entity: None,
-            in_fluid: None,
-        },
+        &Default::default(),
         &PreviousEntityState {
             event: SfxEvent::Glide,
             time: Instant::now(),
@@ -259,13 +226,7 @@ fn maps_glide() {
 fn maps_glider_close_when_closing_mid_flight() {
     let result = MovementEventMapper::map_movement_event(
         &CharacterState::Idle {},
-        &PhysicsState {
-            on_ground: false,
-            on_ceiling: false,
-            on_wall: None,
-            touch_entity: None,
-            in_fluid: None,
-        },
+        &Default::default(),
         &PreviousEntityState {
             event: SfxEvent::Glide,
             time: Instant::now(),
@@ -284,10 +245,7 @@ fn maps_glider_close_when_landing() {
         &CharacterState::Idle {},
         &PhysicsState {
             on_ground: true,
-            on_ceiling: false,
-            on_wall: None,
-            touch_entity: None,
-            in_fluid: None,
+            ..Default::default()
         },
         &PreviousEntityState {
             event: SfxEvent::Glide,
@@ -305,10 +263,7 @@ fn maps_quadrupeds_running() {
     let result = MovementEventMapper::map_non_humanoid_movement_event(
         &PhysicsState {
             on_ground: true,
-            on_ceiling: false,
-            on_wall: None,
-            touch_entity: None,
-            in_fluid: None,
+            ..Default::default()
         },
         Vec3::new(0.5, 0.8, 0.0),
     );

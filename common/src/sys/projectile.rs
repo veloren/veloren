@@ -61,30 +61,13 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            // Hit something solid
-            if physics.on_wall.is_some() || physics.on_ground || physics.on_ceiling {
-                for effect in projectile.hit_solid.drain(..) {
-                    match effect {
-                        projectile::Effect::Explode { power } => {
-                            server_emitter.emit(ServerEvent::Explosion {
-                                pos: pos.0,
-                                power,
-                                owner: projectile.owner,
-                                friendly_damage: false,
-                                reagent: None,
-                            })
-                        },
-                        projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
-                            entity,
-                            cause: HealthSource::World,
-                        }),
-                        _ => {},
-                    }
-                }
-            }
             // Hit entity
-            else if let Some(other) = physics.touch_entity {
-                for effect in projectile.hit_entity.drain(..) {
+            for other in physics.touch_entities.iter().copied() {
+                if projectile.owner == Some(other) {
+                    continue;
+                }
+
+                for effect in projectile.hit_entity.iter().cloned() {
                     match effect {
                         projectile::Effect::Damage(healthchange) => {
                             let owner_uid = projectile.owner.unwrap();
@@ -151,7 +134,31 @@ impl<'a> System<'a> for Sys {
                         _ => {},
                     }
                 }
-            } else if let Some(dir) = velocities
+            }
+
+            // Hit something solid
+            if physics.on_wall.is_some() || physics.on_ground || physics.on_ceiling {
+                for effect in projectile.hit_solid.drain(..) {
+                    match effect {
+                        projectile::Effect::Explode { power } => {
+                            server_emitter.emit(ServerEvent::Explosion {
+                                pos: pos.0,
+                                power,
+                                owner: projectile.owner,
+                                friendly_damage: false,
+                                reagent: None,
+                            })
+                        },
+                        projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
+                            entity,
+                            cause: HealthSource::World,
+                        }),
+                        _ => {},
+                    }
+                }
+            }
+
+            if let Some(dir) = velocities
                 .get(entity)
                 .and_then(|vel| vel.0.try_normalized())
             {

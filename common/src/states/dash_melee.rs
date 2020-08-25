@@ -33,7 +33,7 @@ impl CharacterBehavior for Data {
             }
         }
 
-        if self.buildup_duration != Duration::default() && data.physics.touch_entity.is_none() {
+        if self.buildup_duration != Duration::default() && data.physics.touch_entities.is_empty() {
             // Build up (this will move you forward)
             update.vel.0 = Vec3::new(0.0, 0.0, update.vel.0.z)
                 + (update.vel.0 * Vec3::new(1.0, 1.0, 0.0)
