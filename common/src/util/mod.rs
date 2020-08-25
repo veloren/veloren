@@ -10,3 +10,20 @@ lazy_static::lazy_static! {
 
 pub use color::*;
 pub use dir::*;
+
+// https://discordapp.com/channels/676678179678715904/676685797524766720/723358438943621151
+#[macro_export]
+macro_rules! span {
+    ($guard_name:tt, $level:ident, $name:expr, $($fields:tt)*) => {
+        let span = tracing::span!(tracing::Level::$level, $name, $($fields)*);
+        let $guard_name = span.enter();
+    };
+    ($guard_name:tt, $level:ident, $name:expr) => {
+        let span = tracing::span!(tracing::Level::$level, $name);
+        let $guard_name = span.enter();
+    };
+    ($guard_name:tt, $name:expr) => {
+        let span = tracing::span!(tracing::Level::INFO, $name);
+        let $guard_name = span.enter();
+    };
+}

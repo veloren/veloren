@@ -77,11 +77,13 @@ pub fn init(settings: &Settings) -> Vec<impl Drop> {
                 tracing_appender::rolling::daily(&settings.log.logs_path, LOG_FILENAME);
             let (non_blocking_file, _file_guard) = tracing_appender::non_blocking(file_appender);
             _guards.push(_file_guard);
-            registry()
+            let subscriber = registry()
                 .with(tracing_subscriber::fmt::layer().with_writer(non_blocking))
                 .with(tracing_subscriber::fmt::layer().with_writer(non_blocking_file))
-                .with(filter)
-                .init();
+                .with(filter);
+            #[cfg(feature = "tracy")]
+            let subscriber = subscriber.with(tracing_tracy::TracyLayer::new());
+            subscriber.init();
             let logdir = &settings.log.logs_path;
             info!(?logdir, "Setup terminal and file logging.");
         },
@@ -91,10 +93,12 @@ pub fn init(settings: &Settings) -> Vec<impl Drop> {
                 ?e,
                 "Failed to create log file!. Falling back to terminal logging only.",
             );
-            registry()
+            let subscriber = registry()
                 .with(tracing_subscriber::fmt::layer().with_writer(non_blocking))
-                .with(filter)
-                .init();
+                .with(filter);
+            #[cfg(feature = "tracy")]
+            let subscriber = subscriber.with(tracing_tracy::TracyLayer::new());
+            subscriber.init();
             info!("Setup terminal logging.");
         },
     };
