@@ -68,7 +68,6 @@ use std::{
     time::Instant,
 };
 use vek::*;
-
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const TEXT_GRAY_COLOR: Color = Color::Rgba(0.5, 0.5, 0.5, 1.0);
@@ -126,7 +125,7 @@ const UI_HIGHLIGHT_0: Color = Color::Rgba(0.79, 1.09, 1.09, 1.0);
 //const UI_DARK_0: Color = Color::Rgba(0.25, 0.37, 0.37, 1.0);
 
 /// Distance at which nametags are visible for group members
-const NAMETAG_GROUP_RANGE: f32 = 300.0;
+const NAMETAG_GROUP_RANGE: f32 = 1000.0;
 /// Distance at which nametags are visible
 const NAMETAG_RANGE: f32 = 40.0;
 /// Time nametags stay visible after doing damage even if they are out of range
@@ -1153,8 +1152,7 @@ impl Hud {
                             name,
                             stats,
                             energy,
-                            // TODO: when body.height() is more accurate remove the 2.0
-                            body.height() * 2.0 * scale.map_or(1.0, |s| s.0),
+                            body.height() * scale.map_or(1.0, |s| s.0) + 0.5,
                             hpfl,
                             uid,
                             in_group,
@@ -1169,6 +1167,9 @@ impl Hud {
                     &mut ui_widgets.widget_id_generator(),
                 );
                 let ingame_pos = pos + Vec3::unit_z() * height_offset;
+
+                //
+                // * height_offset
 
                 // Speech bubble, name, level, and hp bars
                 overhead::Overhead::new(

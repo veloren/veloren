@@ -13,7 +13,6 @@ use conrod_core::{
     widget::{self, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-
 const MAX_BUBBLE_WIDTH: f64 = 250.0;
 
 widget_ids! {
@@ -148,18 +147,19 @@ impl<'a> Widget for Overhead<'a> {
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { id, state, ui, .. } = args;
-
-        const BARSIZE: f64 = 2.0;
+        const BARSIZE: f64 = 2.0; // Scaling
         const MANA_BAR_HEIGHT: f64 = BARSIZE * 1.5;
         const MANA_BAR_Y: f64 = MANA_BAR_HEIGHT / 2.0;
+        // Used to set healthbar colours based on hp_percentage
         let hp_percentage =
             self.stats.health.current() as f64 / self.stats.health.maximum() as f64 * 100.0;
+        // Compare levels to decide if a skull is shown
         let level_comp = self.stats.level.level() as i64 - self.own_level as i64;
         let health_current = (self.stats.health.current() / 10) as f64;
         let health_max = (self.stats.health.maximum() / 10) as f64;
         let name_y = if (health_current - health_max).abs() < 1e-6 {
             MANA_BAR_Y + 20.0
-        } else if level_comp > 9 {
+        } else if level_comp > 9 && !self.in_group {
             MANA_BAR_Y + 38.0
         } else {
             MANA_BAR_Y + 32.0
@@ -426,7 +426,7 @@ impl<'a> Widget for Overhead<'a> {
             // + 5-10 levels above player -> high
             // -5 - +5 levels around player level -> equal
             // - 5 levels below player -> low
-            if level_comp > 9 {
+            if level_comp > 9 && !self.in_group {
                 let skull_ani = ((self.pulse * 0.7/* speed factor */).cos() * 0.5 + 0.5) * 10.0; //Animation timer
                 Image::new(if skull_ani as i32 == 1 && rand::random::<f32>() < 0.9 {
                     self.imgs.skull_2
@@ -439,13 +439,15 @@ impl<'a> Widget for Overhead<'a> {
                 .parent(id)
                 .set(state.ids.level_skull, ui);
             } else {
+                let fnt_size = match self.stats.level.level() {
+                    0..=9 => 15,
+                    10..=99 => 12,
+                    100..=999 => 9,
+                    _ => 2,
+                };
                 Text::new(&format!("{}", self.stats.level.level()))
                     .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(if self.stats.level.level() > 9 && level_comp < 10 {
-                        14
-                    } else {
-                        15
-                    })
+                    .font_size(fnt_size)
                     .color(if level_comp > 4 {
                         HIGH
                     } else if level_comp < -5 {
