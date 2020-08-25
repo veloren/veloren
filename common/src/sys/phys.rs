@@ -197,8 +197,8 @@ impl<'a> System<'a> for Sys {
                 // Sanity check: don't try colliding entities that are too far from each other
                 // Note: I think this catches all cases. If you get entity collision problems,
                 // try removing this!
-                if (pos.0 - pos_other.0).magnitude()
-                    > ((vel - vel_other) * dt.0).magnitude() + collision_dist
+                if (pos.0 - pos_other.0).xy().magnitude()
+                    > ((vel - vel_other) * dt.0).xy().magnitude() + collision_dist
                 {
                     continue;
                 }
