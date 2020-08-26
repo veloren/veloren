@@ -5,9 +5,9 @@ use async_std::{
     sync::{Mutex, RwLock},
 };
 use futures::{channel::mpsc, future::FutureExt, stream::StreamExt};
-use network::{ProtocolAddr, Network, Participant, Pid, Stream, PROMISES_CONSISTENCY, PROMISES_ORDERED};
 use std::{collections::HashMap, sync::Arc};
 use tracing::*;
+use veloren_network::{Network, Participant, Pid, Promises, ProtocolAddr, Stream};
 
 #[derive(Debug)]
 struct ControlChannels {
@@ -125,8 +125,8 @@ impl Server {
 
     async fn loop_participant(&self, p: Participant) {
         if let (Ok(cmd_out), Ok(file_out), Ok(cmd_in), Ok(file_in)) = (
-            p.open(15, PROMISES_CONSISTENCY | PROMISES_ORDERED).await,
-            p.open(40, PROMISES_CONSISTENCY).await,
+            p.open(15, Promises::ORDERED | Promises::CONSISTENCY).await,
+            p.open(40, Promises::CONSISTENCY).await,
             p.opened().await,
             p.opened().await,
         ) {

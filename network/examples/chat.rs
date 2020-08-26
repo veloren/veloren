@@ -1,19 +1,19 @@
 //!run with
 //! ```bash
-//! (cd network/examples/chat && RUST_BACKTRACE=1 cargo run --release -- --trace=info --port 15006)
-//! (cd network/examples/chat && RUST_BACKTRACE=1 cargo run --release -- --trace=info --port 15006 --mode=client)
+//! RUST_BACKTRACE=1 cargo run --example chat -- --trace=info --port 15006
+//! RUST_BACKTRACE=1 cargo run --example chat -- --trace=info --port 15006 --mode=client
 //! ```
-use async_std::io;
-use async_std::sync::RwLock;
+use async_std::{io, sync::RwLock};
 use clap::{App, Arg};
 use futures::executor::{block_on, ThreadPool};
-use network::{ProtocolAddr, Network, Participant, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
 use std::{sync::Arc, thread, time::Duration};
 use tracing::*;
 use tracing_subscriber::EnvFilter;
+use veloren_network::{Network, Participant, Pid, Promises, ProtocolAddr};
 
 ///This example contains a simple chatserver, that allows to send messages
-/// between participants, it's neither pretty nor perfect, but it should show how to integrate network
+/// between participants, it's neither pretty nor perfect, but it should show
+/// how to integrate network
 fn main() {
     let matches = App::new("Chat example")
         .version("0.1.0")
@@ -116,7 +116,11 @@ fn server(address: ProtocolAddr) {
     });
 }
 
-async fn client_connection(_network: Arc<Network>, participant: Arc<Participant>, participants: Arc<RwLock<Vec<Arc<Participant>>>>) {
+async fn client_connection(
+    _network: Arc<Network>,
+    participant: Arc<Participant>,
+    participants: Arc<RwLock<Vec<Arc<Participant>>>>,
+) {
     let mut s1 = participant.opened().await.unwrap();
     let username = s1.recv::<String>().await.unwrap();
     println!("[{}] connected", username);
@@ -128,12 +132,8 @@ async fn client_connection(_network: Arc<Network>, participant: Arc<Participant>
             Ok(msg) => {
                 println!("[{}]: {}", username, msg);
                 for p in participants.read().await.iter() {
-                    match p
-                        .open(32, PROMISES_ORDERED | PROMISES_CONSISTENCY)
-                        .await {
-                        Err(_) => {
-                            info!("error talking to client, //TODO drop it")
-                        },
+                    match p.open(32, Promises::ORDERED | Promises::CONSISTENCY).await {
+                        Err(_) => info!("error talking to client, //TODO drop it"),
                         Ok(mut s) => s.send((username.clone(), msg.clone())).unwrap(),
                     };
                 }
@@ -151,7 +151,7 @@ fn client(address: ProtocolAddr) {
     block_on(async {
         let p1 = client.connect(address.clone()).await.unwrap(); //remote representation of p1
         let mut s1 = p1
-            .open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY)
+            .open(16, Promises::ORDERED | Promises::CONSISTENCY)
             .await
             .unwrap(); //remote representation of s1
         println!("Enter your username:");

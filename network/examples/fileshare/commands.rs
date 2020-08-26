@@ -2,9 +2,9 @@ use async_std::{
     fs,
     path::{Path, PathBuf},
 };
-use network::{ProtocolAddr, Participant, Stream};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
+use veloren_network::{Participant, ProtocolAddr, Stream};
 
 use std::collections::HashMap;
 

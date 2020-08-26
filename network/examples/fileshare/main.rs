@@ -1,8 +1,9 @@
 #![feature(async_closure, exclusive_range_pattern)]
 //!run with
-//! (cd network/examples/fileshare && RUST_BACKTRACE=1 cargo run --profile=release -Z unstable-options  -- --trace=info --port 15006)
-//! (cd network/examples/fileshare && RUST_BACKTRACE=1 cargo run --profile=release -Z unstable-options  -- --trace=info --port 15007)
-//! ```
+//! (cd network/examples/fileshare && RUST_BACKTRACE=1 cargo run
+//! --profile=release -Z unstable-options  -- --trace=info --port 15006)
+//! (cd network/examples/fileshare && RUST_BACKTRACE=1 cargo run
+//! --profile=release -Z unstable-options  -- --trace=info --port 15007) ```
 use async_std::{io, path::PathBuf};
 use clap::{App, Arg, SubCommand};
 use futures::{
@@ -10,10 +11,10 @@ use futures::{
     executor::{block_on, ThreadPool},
     sink::SinkExt,
 };
-use network::ProtocolAddr;
 use std::{thread, time::Duration};
 use tracing::*;
 use tracing_subscriber::EnvFilter;
+use veloren_network::ProtocolAddr;
 mod commands;
 mod server;
 use commands::{FileInfo, LocalCommand};
@@ -155,7 +156,11 @@ async fn client(mut cmd_sender: mpsc::UnboundedSender<LocalCommand>) {
                 cmd_sender.send(LocalCommand::Disconnect).await.unwrap();
             },
             ("connect", Some(connect_matches)) => {
-                let socketaddr = connect_matches.value_of("ip:port").unwrap().parse().unwrap();
+                let socketaddr = connect_matches
+                    .value_of("ip:port")
+                    .unwrap()
+                    .parse()
+                    .unwrap();
                 cmd_sender
                     .send(LocalCommand::Connect(ProtocolAddr::Tcp(socketaddr)))
                     .await
