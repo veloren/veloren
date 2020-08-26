@@ -4,6 +4,7 @@ check:
   script:
     - ln -s /dockercache/cache-all target
     - RUSTFLAGS="-D warnings" cargo check --locked
+    - RUSTFLAGS="-D warnings" cargo check --examples --locked
 
 code-quality:
   extends: .recompile-branch
