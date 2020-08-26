@@ -1,4 +1,5 @@
 use common::{
+    span,
     terrain::{BlockKind, TerrainChunk},
     vol::{IntoVolIterator, RectRasterableVol},
 };
@@ -16,6 +17,7 @@ pub struct BlocksOfInterest {
 
 impl BlocksOfInterest {
     pub fn from_chunk(chunk: &TerrainChunk) -> Self {
+        span!(_guard, "BlocksOfInterest::from_chunk");
         let mut leaves = Vec::new();
         let mut grass = Vec::new();
         let mut embers = Vec::new();

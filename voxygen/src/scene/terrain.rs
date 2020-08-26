@@ -15,6 +15,7 @@ use super::{math, LodData, SceneData};
 use common::{
     assets::{Asset, Ron},
     figure::Segment,
+    span,
     spiral::Spiral2d,
     terrain::{block, Block, BlockKind, TerrainChunk},
     vol::{BaseVol, ReadVol, RectRasterableVol, SampleVol, Vox},
@@ -124,6 +125,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
     sprite_data: &HashMap<(BlockKind, usize), Vec<SpriteData>>,
     sprite_config: &SpriteSpec,
 ) -> MeshWorkerResponse {
+    span!(_guard, "mesh_worker");
     let (opaque_mesh, fluid_mesh, _shadow_mesh, (bounds, col_lights_info)) =
         volume.generate_mesh((range, Vec2::new(max_texture_size, max_texture_size)));
     MeshWorkerResponse {
@@ -134,6 +136,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
         col_lights_info,
         // Extract sprite locations from volume
         sprite_instances: {
+            span!(_guard, "extract sprite_instances");
             let mut instances = HashMap::new();
 
             for x in 0..V::RECT_SIZE.x as i32 {
@@ -382,6 +385,7 @@ impl<V: RectRasterableVol> Terrain<V> {
     fn make_atlas(
         renderer: &mut Renderer,
     ) -> Result<(AtlasAllocator, Texture<ColLightFmt>), RenderError> {
+        span!(_guard, "Terrain::make_atlas");
         let max_texture_size = renderer.max_texture_size();
         let atlas_size =
             guillotiere::Size::new(i32::from(max_texture_size), i32::from(max_texture_size));
@@ -449,12 +453,14 @@ impl<V: RectRasterableVol> Terrain<V> {
         view_mat: Mat4<f32>,
         proj_mat: Mat4<f32>,
     ) -> (Aabb<f32>, Vec<math::Vec3<f32>>, math::Aabr<f32>) {
+        span!(_guard, "Terrain::maintain");
         let current_tick = scene_data.tick;
         let current_time = scene_data.state.get_time();
         let mut visible_bounding_box: Option<Aabb<f32>> = None;
 
         // Add any recently created or changed chunks to the list of chunks to be
         // meshed.
+        span!(guard, "Add new/modified chunks to mesh todo list");
         for (modified, pos) in scene_data
             .state
             .terrain_changes()
@@ -501,9 +507,12 @@ impl<V: RectRasterableVol> Terrain<V> {
                 }
             }
         }
+        drop(guard);
 
         // Add the chunks belonging to recently changed blocks to the list of chunks to
         // be meshed
+        span!(guard, "Add chunks with modified blocks to mesh todo list");
+        // TODO: would be useful if modified blocks were grouped by chunk
         for pos in scene_data
             .state
             .terrain_changes()
@@ -542,6 +551,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                 }
             }
         }
+        drop(guard);
 
         // Remove any models for chunks that have been recently removed.
         for &pos in &scene_data.state.terrain_changes().removed_chunks {
@@ -551,6 +561,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         // Limit ourselves to u16::MAX even if larger textures are supported.
         let max_texture_size = renderer.max_texture_size();
 
+        span!(guard, "Queue meshing from todo list");
         for (todo, chunk) in self
             .mesh_todo
             .values_mut()
@@ -637,11 +648,13 @@ impl<V: RectRasterableVol> Terrain<V> {
             });
             todo.active_worker = Some(todo.started_tick);
         }
+        drop(guard);
 
         // Receive a chunk mesh from a worker thread and upload it to the GPU, then
         // store it. Only pull out one chunk per frame to avoid an unacceptable
         // amount of blocking lag due to the GPU upload. That still gives us a
         // 60 chunks / second budget to play with.
+        span!(guard, "Get/upload meshed chunk");
         if let Ok(response) = self.mesh_recv.recv_timeout(Duration::new(0, 0)) {
             match self.mesh_todo.get(&response.pos) {
                 // It's the mesh we want, insert the newly finished model into the terrain model
@@ -739,14 +752,18 @@ impl<V: RectRasterableVol> Terrain<V> {
                 None => {},
             }
         }
+        drop(guard);
 
         // Construct view frustum
+        span!(guard, "Construct view frustum");
         let focus_off = focus_pos.map(|e| e.trunc());
         let frustum = Frustum::from_modelview_projection(
             (proj_mat * view_mat * Mat4::translation_3d(-focus_off)).into_col_arrays(),
         );
+        drop(guard);
 
         // Update chunk visibility
+        span!(guard, "Update chunk visibility");
         let chunk_sz = V::RECT_SIZE.x as f32;
         for (pos, chunk) in &mut self.chunks {
             let chunk_pos = pos.as_::<f32>() * chunk_sz;
@@ -796,7 +813,9 @@ impl<V: RectRasterableVol> Terrain<V> {
             // (and hardcodes the shadow distance).  Should ideally exist per-light, too.
             chunk.can_shadow_point = distance_2 < (128.0 * 128.0);
         }
+        drop(guard);
 
+        span!(guard, "Shadow magic");
         // PSRs: potential shadow receivers
         let visible_bounding_box = visible_bounding_box.unwrap_or(Aabb {
             min: focus_pos - 2.0,
@@ -901,6 +920,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                 max: math::Vec2::zero(),
             })
         };
+        drop(guard);
 
         (
             visible_bounding_box,
@@ -931,6 +951,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         (is_daylight, light_data): super::LightData,
         focus_pos: Vec3<f32>,
     ) {
+        span!(_guard, "Terrain::render_shadows");
         if !renderer.render_mode().shadow.is_map() {
             return;
         };
@@ -992,6 +1013,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         lod: &LodData,
         focus_pos: Vec3<f32>,
     ) {
+        span!(_guard, "Terrain::render");
         let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
             (e as i32).div_euclid(sz as i32)
         });
@@ -1025,6 +1047,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         cam_pos: Vec3<f32>,
         sprite_render_distance: f32,
     ) {
+        span!(_guard, "Terrain::render_translucent");
         let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
             (e as i32).div_euclid(sz as i32)
         });
@@ -1038,6 +1061,8 @@ impl<V: RectRasterableVol> Terrain<V> {
             .take(self.chunks.len());
 
         // Terrain sprites
+        // TODO: move to separate functions
+        span!(guard, "Terrain sprites");
         let chunk_size = V::RECT_SIZE.map(|e| e as f32);
         let chunk_mag = (chunk_size * (f32::consts::SQRT_2 * 0.5)).magnitude_squared();
         for (pos, chunk) in chunk_iter.clone() {
@@ -1096,6 +1121,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                 }
             }
         }
+        drop(guard);
 
         // Translucent
         chunk_iter
