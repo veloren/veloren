@@ -1,5 +1,5 @@
 #[cfg(feature = "metrics")]
-use crate::metrics::{NetworkMetrics, PidCidFrameCache};
+use crate::metrics::{MultiCidFrameCache, NetworkMetrics};
 use crate::{
     api::{ParticipantError, Stream},
     channel::Channel,
@@ -205,8 +205,7 @@ impl BParticipant {
         let mut closing_up = false;
         trace!("Start send_mgr");
         #[cfg(feature = "metrics")]
-        let mut send_cache =
-            PidCidFrameCache::new(self.metrics.frames_out_total.clone(), self.remote_pid);
+        let mut send_cache = MultiCidFrameCache::new(self.metrics.frames_out_total.clone());
         let mut i: u64 = 0;
         loop {
             let mut frames = VecDeque::new();
@@ -250,7 +249,7 @@ impl BParticipant {
     async fn send_frame(
         &self,
         frame: Frame,
-        #[cfg(feature = "metrics")] frames_out_total_cache: &mut PidCidFrameCache,
+        #[cfg(feature = "metrics")] frames_out_total_cache: &mut MultiCidFrameCache,
     ) -> bool {
         let mut drop_cid = None;
         // TODO: find out ideal channel here
@@ -345,7 +344,7 @@ impl BParticipant {
                 let cid_string = cid.to_string();
                 self.metrics
                     .frames_in_total
-                    .with_label_values(&[&self.remote_pid_string, &cid_string, frame.get_string()])
+                    .with_label_values(&[&cid_string, frame.get_string()])
                     .inc();
             }
             match frame {
@@ -490,7 +489,9 @@ impl BParticipant {
                     let channels = self.channels.clone();
                     async move {
                         let (channel, b2w_frame_s, b2r_read_shutdown) = Channel::new(cid);
-                        channels.write().await.insert(
+                        let mut lock = channels.write().await;
+                        let mut channel_no = lock.len();
+                        lock.insert(
                             cid,
                             Mutex::new(ChannelInfo {
                                 cid,
@@ -499,13 +500,27 @@ impl BParticipant {
                                 b2r_read_shutdown,
                             }),
                         );
+                        drop(lock);
                         b2s_create_channel_done_s.send(()).unwrap();
                         #[cfg(feature = "metrics")]
-                        self.metrics
-                            .channels_connected_total
-                            .with_label_values(&[&self.remote_pid_string])
-                            .inc();
-                        trace!(?cid, "Running channel in participant");
+                        {
+                            self.metrics
+                                .channels_connected_total
+                                .with_label_values(&[&self.remote_pid_string])
+                                .inc();
+                            if channel_no > 5 {
+                                debug!(?channel_no, "metrics will overwrite channel #5");
+                                channel_no = 5;
+                            }
+                            self.metrics
+                                .participants_channel_ids
+                                .with_label_values(&[
+                                    &self.remote_pid_string,
+                                    &channel_no.to_string(),
+                                ])
+                                .set(cid as i64);
+                        }
+                        trace!(?cid, ?channel_no, "Running channel in participant");
                         channel
                             .run(protocol, w2b_frames_s, leftover_cid_frame)
                             .instrument(tracing::info_span!("", ?cid))
@@ -541,8 +556,7 @@ impl BParticipant {
         trace!("Start open_mgr");
         let mut stream_ids = self.offset_sid;
         #[cfg(feature = "metrics")]
-        let mut send_cache =
-            PidCidFrameCache::new(self.metrics.frames_out_total.clone(), self.remote_pid);
+        let mut send_cache = MultiCidFrameCache::new(self.metrics.frames_out_total.clone());
         let mut shutdown_open_mgr_receiver = shutdown_open_mgr_receiver.fuse();
         //from api or shutdown signal
         while let Some((prio, promises, p2a_return_stream)) = select! {
@@ -600,8 +614,7 @@ impl BParticipant {
         trace!("Start participant_shutdown_mgr");
         let sender = s2b_shutdown_bparticipant_r.await.unwrap();
 
-        let mut send_cache =
-            PidCidFrameCache::new(self.metrics.frames_out_total.clone(), self.remote_pid);
+        let mut send_cache = MultiCidFrameCache::new(self.metrics.frames_out_total.clone());
 
         self.close_api(None).await;
 
@@ -687,8 +700,7 @@ impl BParticipant {
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
         trace!("Start stream_close_mgr");
         #[cfg(feature = "metrics")]
-        let mut send_cache =
-            PidCidFrameCache::new(self.metrics.frames_out_total.clone(), self.remote_pid);
+        let mut send_cache = MultiCidFrameCache::new(self.metrics.frames_out_total.clone());
         let mut shutdown_stream_close_mgr_receiver = shutdown_stream_close_mgr_receiver.fuse();
 
         //from api or shutdown signal
