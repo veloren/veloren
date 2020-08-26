@@ -89,7 +89,7 @@ use common::{
     assets,
     comp::{
         item::{ItemKind, ToolCategory},
-        CharacterAbilityType, InventoryUpdateEvent,
+        object, Body, CharacterAbilityType, InventoryUpdateEvent,
     },
     event::EventBus,
     outcome::Outcome,
@@ -97,10 +97,11 @@ use common::{
 };
 use event_mapper::SfxEventMapper;
 use hashbrown::HashMap;
+use rand::prelude::*;
 use serde::Deserialize;
 use specs::WorldExt;
 use std::convert::TryFrom;
-use tracing::warn;
+use tracing::{debug, warn};
 use vek::*;
 
 /// We watch the states of nearby entities in order to emit SFX at their
@@ -254,6 +255,10 @@ impl SfxMgr {
 
             if let Some(item) = self.triggers.get_trigger(&event.sfx) {
                 let sfx_file = match item.files.len() {
+                    0 => {
+                        debug!("Sfx event {:?} is missing audio file.", event.sfx);
+                        "voxygen.audio.sfx.placeholder"
+                    },
                     1 => item
                         .files
                         .last()
@@ -265,6 +270,8 @@ impl SfxMgr {
                 };
 
                 audio.play_sfx(sfx_file, position, event.vol);
+            } else {
+                debug!("Missing sfx trigger config for sfx event. {:?}", event.sfx);
             }
         }
     }
@@ -277,19 +284,39 @@ impl SfxMgr {
         match outcome {
             Outcome::Explosion { pos, power, .. } => {
                 audio.play_sfx(
-                    // TODO: from sfx triggers config
+                    // TODO: from sfx config?
                     "voxygen.audio.sfx.explosion",
                     *pos,
                     Some((*power / 2.5).min(1.5)),
                 );
             },
-            Outcome::ProjectileShot { pos, .. } => {
-                audio.play_sfx(
-                    // TODO: from sfx triggers config
-                    "voxygen.audio.sfx.glider_open",
-                    *pos,
-                    None,
-                );
+            Outcome::ProjectileShot { pos, body, .. } => {
+                // TODO: from sfx config?
+                match body {
+                    Body::Object(
+                        object::Body::Arrow | object::Body::MultiArrow | object::Body::ArrowSnake,
+                    ) => {
+                        let file_ref = vec![
+                            "voxygen.audio.sfx.abilities.arrow_shot_1",
+                            "voxygen.audio.sfx.abilities.arrow_shot_2",
+                            "voxygen.audio.sfx.abilities.arrow_shot_3",
+                            "voxygen.audio.sfx.abilities.arrow_shot_4",
+                        ][rand::thread_rng().gen_range(1, 4)];
+
+                        audio.play_sfx(file_ref, *pos, None);
+                    },
+                    Body::Object(object::Body::BoltFire | object::Body::BoltFireBig) => {
+                        let file_ref = vec![
+                            "voxygen.audio.sfx.abilities.fire_shot_1",
+                            "voxygen.audio.sfx.abilities.fire_shot_2",
+                        ][rand::thread_rng().gen_range(1, 2)];
+
+                        audio.play_sfx(file_ref, *pos, None);
+                    },
+                    _ => {
+                        // not mapped to sfx file
+                    },
+                }
             },
         }
     }
