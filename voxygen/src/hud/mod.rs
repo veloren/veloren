@@ -56,7 +56,7 @@ use crate::{
     GlobalState,
 };
 use client::Client;
-use common::{assets::Asset, comp, sync::Uid, terrain::TerrainChunk, vol::RectRasterableVol};
+use common::{assets::Asset, comp, span, sync::Uid, terrain::TerrainChunk, vol::RectRasterableVol};
 use conrod_core::{
     text::cursor::Index,
     widget::{self, Button, Image, Text},
@@ -688,6 +688,7 @@ impl Hud {
         info: HudInfo,
         camera: &Camera,
     ) -> Vec<Event> {
+        span!(_guard, "Hud::update_layout");
         let mut events = std::mem::replace(&mut self.events, Vec::new());
         let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
         // pulse time for pulsating elements
@@ -2532,6 +2533,7 @@ impl Hud {
         dt: Duration,
         info: HudInfo,
     ) -> Vec<Event> {
+        span!(_guard, "Hud::maintain");
         // conrod eats tabs. Un-eat a tabstop so tab completion can work
         if self.ui.ui.global_input().events().any(|event| {
             use conrod_core::{event, input};
@@ -2576,6 +2578,7 @@ impl Hud {
     }
 
     pub fn render(&self, renderer: &mut Renderer, globals: &Consts<Globals>) {
+        span!(_guard, "Hud::render");
         // Don't show anything if the UI is toggled off.
         if self.show.ui {
             self.ui.render(renderer, Some(globals));

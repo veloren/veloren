@@ -4,6 +4,7 @@ use crate::{
         Sticky, Vel,
     },
     event::{EventBus, ServerEvent},
+    span,
     state::DeltaTime,
     sync::{Uid, UidAllocator},
     terrain::{Block, BlockKind, TerrainGrid},
@@ -94,6 +95,7 @@ impl<'a> System<'a> for Sys {
             projectiles,
         ): Self::SystemData,
     ) {
+        span!(_guard, "<phys::Sys as System>::run");
         let mut event_emitter = event_bus.emitter();
 
         // Add/reset physics state components

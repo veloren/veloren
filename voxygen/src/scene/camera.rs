@@ -1,4 +1,7 @@
-use common::vol::{ReadVol, Vox};
+use common::{
+    span,
+    vol::{ReadVol, Vox},
+};
 use std::f32::consts::PI;
 use treeculler::Frustum;
 use vek::*;
@@ -78,6 +81,7 @@ impl Camera {
     /// Compute the transformation matrices (view matrix and projection matrix)
     /// and position of the camera.
     pub fn compute_dependents(&mut self, terrain: &impl ReadVol) {
+        span!(_guard, "Camera::compute_dependents");
         let dist = {
             let (start, end) = (self.focus - self.forward() * self.dist, self.focus);
 

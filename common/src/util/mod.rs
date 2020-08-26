@@ -23,7 +23,44 @@ macro_rules! span {
         let $guard_name = span.enter();
     };
     ($guard_name:tt, $name:expr) => {
-        let span = tracing::span!(tracing::Level::INFO, $name);
+        let span = tracing::span!(tracing::Level::TRACE, $name);
         let $guard_name = span.enter();
+    };
+}
+
+/// There's no guard, but really this is actually the guard
+pub struct GuardlessSpan {
+    span: tracing::Span,
+    subscriber: tracing::Dispatch,
+}
+
+impl GuardlessSpan {
+    pub fn new(span: tracing::Span) -> Self {
+        let subscriber = tracing::dispatcher::get_default(|d| d.clone());
+        span.id().map(|id| subscriber.enter(&id));
+        Self { span, subscriber }
+    }
+}
+
+impl Drop for GuardlessSpan {
+    fn drop(&mut self) { self.span.id().map(|id| self.subscriber.exit(&id)); }
+}
+
+#[macro_export]
+macro_rules! no_guard_span {
+    ($level:ident, $name:expr, $($fields:tt)*) => {
+        GuardlessSpan::new(
+            tracing::span!(tracing::Level::$level, $name, $($fields)*)
+        )
+    };
+    ($level:ident, $name:expr) => {
+        GuardlessSpan::new(
+            tracing::span!(tracing::Level::$level, $name)
+        )
+    };
+    ($name:expr) => {
+        GuardlessSpan::new(
+            tracing::span!(tracing::Level::TRACE, $name)
+        )
     };
 }

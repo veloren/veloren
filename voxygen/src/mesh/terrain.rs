@@ -6,6 +6,7 @@ use crate::{
     render::{self, ColLightInfo, FluidPipeline, Mesh, ShadowPipeline, TerrainPipeline},
 };
 use common::{
+    span,
     terrain::{Block, BlockKind},
     vol::{ReadVol, RectRasterableVol, Vox},
     volumes::vol_grid_2d::{CachedVolGrid2d, VolGrid2d},
@@ -47,6 +48,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     vol: &VolGrid2d<V>,
     lit_blocks: impl Iterator<Item = (Vec3<i32>, u8)>,
 ) -> impl FnMut(Vec3<i32>) -> f32 + '_ {
+    span!(_guard, "calc_light");
     const UNKNOWN: u8 = 255;
     const OPAQUE: u8 = 254;
 
@@ -240,6 +242,7 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
         self,
         (range, max_texture_size): Self::Supplement,
     ) -> MeshGen<TerrainPipeline, FluidPipeline, Self> {
+        span!(_guard, "<&VolGrid2d as Meshable<_, _>::generate_mesh");
         // Find blocks that should glow
         // FIXME: Replace with real lit blocks when we actually have blocks that glow.
         let lit_blocks = core::iter::empty();
@@ -256,6 +259,7 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
         let mut lowest_air = range.size().d;
         let mut highest_air = 0;
         let flat_get = {
+            span!(_guard, "copy to flat array");
             let (w, h, d) = range.size().into_tuple();
             // z can range from -1..range.size().d + 1
             let d = d + 2;
