@@ -38,3 +38,6 @@ lz-fear = { version = "0.1.1", optional = true }
 tracing-subscriber = { version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec"] }
 # `uvth` needed for doc tests
 uvth = { version = ">= 3.0, <= 4.0", default-features = false }
+clap = { version = "2.33", default-features = false }
+shellexpand = "2.0.0"
+tiny_http = "0.7.0"

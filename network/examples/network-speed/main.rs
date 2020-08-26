@@ -7,7 +7,6 @@ mod metrics;
 
 use clap::{App, Arg};
 use futures::executor::block_on;
-use network::{ProtocolAddr, MessageBuffer, Network, Pid, PROMISES_CONSISTENCY, PROMISES_ORDERED};
 use serde::{Deserialize, Serialize};
 use std::{
     sync::Arc,
@@ -16,6 +15,7 @@ use std::{
 };
 use tracing::*;
 use tracing_subscriber::EnvFilter;
+use veloren_network::{MessageBuffer, Network, Pid, Promises, ProtocolAddr};
 
 #[derive(Serialize, Deserialize, Debug)]
 enum Msg {
@@ -153,7 +153,7 @@ fn client(address: ProtocolAddr) {
     metrics.run("0.0.0.0:59111".parse().unwrap()).unwrap();
 
     let p1 = block_on(client.connect(address.clone())).unwrap(); //remote representation of p1
-    let mut s1 = block_on(p1.open(16, PROMISES_ORDERED | PROMISES_CONSISTENCY)).unwrap(); //remote representation of s1
+    let mut s1 = block_on(p1.open(16, Promises::ORDERED | Promises::CONSISTENCY)).unwrap(); //remote representation of s1
     let mut last = Instant::now();
     let mut id = 0u64;
     let raw_msg = Arc::new(MessageBuffer {
