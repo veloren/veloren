@@ -4,6 +4,7 @@ use crate::{
         Loadout, Ori, PhysicsState, Pos, Projectile, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
+    span,
     state::DeltaTime,
     sync::UidAllocator,
     util::Dir,
@@ -48,6 +49,7 @@ impl<'a> System<'a> for Sys {
             loadouts,
         ): Self::SystemData,
     ) {
+        span!(_guard, "projectile::Sys::run");
         let mut local_emitter = local_bus.emitter();
         let mut server_emitter = server_bus.emitter();
 

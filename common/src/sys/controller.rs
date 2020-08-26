@@ -4,6 +4,7 @@ use crate::{
         CharacterState, ControlEvent, Controller, InventoryManip,
     },
     event::{EventBus, LocalEvent, ServerEvent},
+    span,
     state::DeltaTime,
     sync::{Uid, UidAllocator},
 };
@@ -43,6 +44,7 @@ impl<'a> System<'a> for Sys {
             uids,
         ): Self::SystemData,
     ) {
+        span!(_guard, "controller::Sys::run");
         let mut server_emitter = server_bus.emitter();
 
         for (entity, _uid, controller, character_state) in
