@@ -1,6 +1,7 @@
 use crate::{
     comp::{CharacterState, Energy, EnergySource, HealthSource, Stats},
     event::{EventBus, ServerEvent},
+    span,
     state::DeltaTime,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
@@ -24,6 +25,7 @@ impl<'a> System<'a> for Sys {
         &mut self,
         (entities, dt, server_event_bus, character_states, mut stats, mut energies): Self::SystemData,
     ) {
+        span!(_guard, "stats::Sys::run");
         let mut server_event_emitter = server_event_bus.emitter();
 
         // Increment last change timer

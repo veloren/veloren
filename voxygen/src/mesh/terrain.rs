@@ -242,7 +242,7 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
         self,
         (range, max_texture_size): Self::Supplement,
     ) -> MeshGen<TerrainPipeline, FluidPipeline, Self> {
-        span!(_guard, "<&VolGrid2d as Meshable<_, _>::generate_mesh");
+        span!(_guard, "<&VolGrid2d as Meshable<_, _>>::generate_mesh");
         // Find blocks that should glow
         // FIXME: Replace with real lit blocks when we actually have blocks that glow.
         let lit_blocks = core::iter::empty();
