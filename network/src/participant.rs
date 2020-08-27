@@ -490,7 +490,10 @@ impl BParticipant {
                     async move {
                         let (channel, b2w_frame_s, b2r_read_shutdown) = Channel::new(cid);
                         let mut lock = channels.write().await;
+                        #[cfg(feature = "metrics")]
                         let mut channel_no = lock.len();
+                        #[cfg(not(feature = "metrics"))]
+                        let channel_no = lock.len();
                         lock.insert(
                             cid,
                             Mutex::new(ChannelInfo {
