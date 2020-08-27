@@ -71,6 +71,9 @@ pub enum CharacterState {
     ChargedRanged(charged_ranged::Data),
     /// A ground shockwave attack
     GroundShockwave(ground_shockwave::Data),
+    /// A continuous attack that affects all creatures in a cone originating
+    /// from the source
+    BasicBeam(basic_beam::Data),
 }
 
 impl CharacterState {
@@ -86,6 +89,7 @@ impl CharacterState {
             | CharacterState::SpinMelee(_)
             | CharacterState::ChargedRanged(_)
             | CharacterState::GroundShockwave(_)
+            | CharacterState::BasicBeam(_)
         )
     }
 
@@ -99,6 +103,7 @@ impl CharacterState {
             | CharacterState::SpinMelee(_)
             | CharacterState::ChargedRanged(_)
             | CharacterState::GroundShockwave(_)
+            | CharacterState::BasicBeam(_)
         )
     }
 
@@ -112,6 +117,7 @@ impl CharacterState {
             | CharacterState::LeapMelee(_)
             | CharacterState::ChargedRanged(_)
             | CharacterState::GroundShockwave(_)
+            | CharacterState::BasicBeam(_)
         )
     }
 
@@ -136,12 +142,15 @@ impl Component for CharacterState {
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Attacking {
-    pub base_healthchange: i32,
+    pub base_damage: u32,
+    pub base_heal: u32,
     pub range: f32,
     pub max_angle: f32,
     pub applied: bool,
     pub hit_count: u32,
     pub knockback: f32,
+    pub is_melee: bool,
+    pub lifesteal_eff: f32,
 }
 
 impl Component for Attacking {

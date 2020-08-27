@@ -99,7 +99,7 @@ impl<'a> System<'a> for Sys {
                 let scale_b = scale_b_maybe.map_or(1.0, |s| s.0);
                 let rad_b = body_b.radius() * scale_b;
 
-                // Check if it is a hit
+                // Check if it is a damaging hit
                 if entity != b
                     && !stats_b.is_dead
                     // Spherical wedge shaped attack field
@@ -113,18 +113,24 @@ impl<'a> System<'a> for Sys {
                         .unwrap_or(false);
                     // Don't heal if outside group
                     // Don't damage in the same group
-                    if same_group != (attack.base_healthchange > 0) {
-                        continue;
+                    let (mut is_heal, mut is_damage) = (false, false);
+                    if !same_group && (attack.base_damage > 0) {
+                        is_damage = true;
+                    }
+                    if same_group && (attack.base_heal > 0) {
+                        is_heal = true;
                     }
 
                     // Weapon gives base damage
-                    let source = if attack.base_healthchange > 0 {
+                    let source = if is_heal {
                         DamageSource::Healing
-                    } else {
+                    } else if attack.is_melee {
                         DamageSource::Melee
+                    } else {
+                        DamageSource::Energy
                     };
                     let mut damage = Damage {
-                        healthchange: attack.base_healthchange as f32,
+                        healthchange: -(attack.base_damage as f32),
                         source,
                     };
 
@@ -135,22 +141,24 @@ impl<'a> System<'a> for Sys {
                         damage.modify_damage(block, loadout);
                     }
 
-                    if damage.healthchange < 0.0 {
+                    if damage.healthchange != 0.0 {
+                        let cause = if is_heal { HealthSource::Healing { by: Some(*uid) } } else { HealthSource::Attack { by: *uid } };
                         server_emitter.emit(ServerEvent::Damage {
                             uid: *uid_b,
                             change: HealthChange {
                                 amount: damage.healthchange as i32,
-                                cause: HealthSource::Attack { by: *uid },
+                                cause,
                             },
                         });
-                    } else if damage.healthchange > 0.0 {
-                        server_emitter.emit(ServerEvent::Damage {
-                            uid: *uid_b,
-                            change: HealthChange {
-                                amount: damage.healthchange as i32,
-                                cause: HealthSource::Healing { by: Some(*uid) },
-                            },
-                        });
+                        if attack.lifesteal_eff != 0.0 && is_damage {
+                            server_emitter.emit(ServerEvent::Damage {
+                                uid: *uid,
+                                change: HealthChange {
+                                    amount: (-damage.healthchange * attack.lifesteal_eff) as i32,
+                                    cause: HealthSource::Attack { by: *uid },
+                                },
+                            });
+                        }
                     }
                     if attack.knockback != 0.0 && damage.healthchange != 0.0 {
                         let kb_dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));

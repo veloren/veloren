@@ -300,43 +300,24 @@ impl Tool {
                 max_angle: 20.0,
             }],
             Staff(kind) => {
-                if kind == "Sceptre" {
+                if kind == "Sceptre" || kind == "SceptreVelorite" {
                     vec![
-                        BasicMelee {
+                        BasicBeam {
                             energy_cost: 0,
-                            buildup_duration: Duration::from_millis(0),
-                            recover_duration: Duration::from_millis(300),
-                            base_healthchange: (-10.0 * self.base_power()) as i32,
-                            knockback: 0.0,
-                            range: 5.0,
-                            max_angle: 20.0,
+                            buildup_duration: Duration::from_millis(250),
+                            recover_duration: Duration::from_millis(250),
+                            base_hps: (100.0 * self.base_power()) as u32,
+                            base_dps: (80.0 * self.base_power()) as u32,
+                            range: 25.0,
+                            max_angle: 1.0,
+                            lifesteal_eff: 0.2,
+                            energy_regen: 50,
                         },
                         BasicMelee {
                             energy_cost: 350,
                             buildup_duration: Duration::from_millis(0),
                             recover_duration: Duration::from_millis(1000),
                             base_healthchange: (150.0 * self.base_power()) as i32,
-                            knockback: 0.0,
-                            range: 100.0,
-                            max_angle: 90.0,
-                        },
-                    ]
-                } else if kind == "SceptreVelorite" {
-                    vec![
-                        BasicMelee {
-                            energy_cost: 0,
-                            buildup_duration: Duration::from_millis(0),
-                            recover_duration: Duration::from_millis(300),
-                            base_healthchange: (-10.0 * self.base_power()) as i32,
-                            knockback: 0.0,
-                            range: 5.0,
-                            max_angle: 20.0,
-                        },
-                        BasicMelee {
-                            energy_cost: 350,
-                            buildup_duration: Duration::from_millis(0),
-                            recover_duration: Duration::from_millis(1000),
-                            base_healthchange: (350.0 * self.base_power()) as i32,
                             knockback: 0.0,
                             range: 100.0,
                             max_angle: 90.0,
