@@ -168,8 +168,11 @@ impl StateExt for State {
         self.write_component(entity, comp::CharacterState::default());
         self.write_component(
             entity,
-            comp::Alignment::Owned(self.read_component_cloned(entity).unwrap()),
+            comp::Alignment::Owned(self.read_component_copied(entity).unwrap()),
         );
+
+        // Make sure physics components are updated
+        self.write_component(entity, comp::ForceUpdate);
 
         // Set the character id for the player
         // TODO this results in a warning in the console: "Error modifying synced
@@ -203,38 +206,31 @@ impl StateExt for State {
 
     fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents) {
         let (body, stats, inventory, loadout) = components;
-        // Make sure physics are accepted.
-        self.write_component(entity, comp::ForceUpdate);
 
-        // Notify clients of a player list update
-        let client_uid = self
-            .read_component_cloned::<Uid>(entity)
-            .expect("Client doesn't have a Uid!!!");
+        if let Some(player_uid) = self.read_component_copied::<Uid>(entity) {
+            // Notify clients of a player list update
+            self.notify_registered_clients(ServerMsg::PlayerListUpdate(
+                PlayerListUpdate::SelectedCharacter(player_uid, CharacterInfo {
+                    name: String::from(&stats.name),
+                    level: stats.level.level(),
+                }),
+            ));
 
-        self.notify_registered_clients(ServerMsg::PlayerListUpdate(
-            PlayerListUpdate::SelectedCharacter(client_uid, CharacterInfo {
-                name: String::from(&stats.name),
-                level: stats.level.level(),
-            }),
-        ));
+            self.write_component(entity, comp::Collider::Box {
+                radius: body.radius(),
+                z_min: 0.0,
+                z_max: body.height(),
+            });
+            self.write_component(entity, body);
+            self.write_component(entity, stats);
+            self.write_component(entity, inventory);
+            self.write_component(entity, loadout);
 
-        self.write_component(entity, comp::Collider::Box {
-            radius: body.radius(),
-            z_min: 0.0,
-            z_max: body.height(),
-        });
-        self.write_component(entity, body);
-        self.write_component(entity, stats);
-        self.write_component(entity, inventory);
-        self.write_component(entity, loadout);
-
-        self.write_component(
-            entity,
-            comp::InventoryUpdate::new(comp::InventoryUpdateEvent::default()),
-        );
-
-        // Make sure physics are accepted.
-        self.write_component(entity, comp::ForceUpdate);
+            self.write_component(
+                entity,
+                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::default()),
+            );
+        }
     }
 
     /// Send the chat message to the proper players. Say and region are limited

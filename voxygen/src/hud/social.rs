@@ -515,7 +515,7 @@ impl<'a> Widget for Social<'a> {
                         })
                         .or_else(|| {
                             self.selected_entity
-                                .and_then(|s| self.client.state().read_component_cloned(s.0))
+                                .and_then(|s| self.client.state().read_component_copied(s.0))
                         })
                         .filter(|selected| {
                             // Prevent inviting entities already in the same group
