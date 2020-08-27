@@ -319,11 +319,7 @@ impl Handshake {
             .unwrap();
     }
 
-    async fn send_init(
-        &self,
-        c2w_frame_s: &mut mpsc::UnboundedSender<Frame>,
-        #[cfg(not(feature = "metrics"))] _pid_string: &str,
-    ) {
+    async fn send_init(&self, c2w_frame_s: &mut mpsc::UnboundedSender<Frame>) {
         #[cfg(feature = "metrics")]
         self.metrics
             .frames_out_total
