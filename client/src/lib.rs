@@ -556,7 +556,7 @@ impl Client {
     }
 
     pub fn pick_up(&mut self, entity: EcsEntity) {
-        if let Some(uid) = self.state.read_component_cloned(entity) {
+        if let Some(uid) = self.state.read_component_copied(entity) {
             self.singleton_stream
                 .send(ClientMsg::ControlEvent(ControlEvent::InventoryManip(
                     InventoryManip::Pickup(uid),
@@ -680,7 +680,7 @@ impl Client {
     }
 
     pub fn mount(&mut self, entity: EcsEntity) {
-        if let Some(uid) = self.state.read_component_cloned(entity) {
+        if let Some(uid) = self.state.read_component_copied(entity) {
             self.singleton_stream
                 .send(ClientMsg::ControlEvent(ControlEvent::Mount(uid)))
                 .unwrap();
@@ -1456,7 +1456,7 @@ impl Client {
     pub fn entity(&self) -> EcsEntity { self.entity }
 
     /// Get the player's Uid.
-    pub fn uid(&self) -> Option<Uid> { self.state.read_component_cloned(self.entity) }
+    pub fn uid(&self) -> Option<Uid> { self.state.read_component_copied(self.entity) }
 
     /// Get the client state
     pub fn get_client_state(&self) -> ClientState { self.client_state }
@@ -1509,7 +1509,7 @@ impl Client {
     pub fn is_admin(&self) -> bool {
         let client_uid = self
             .state
-            .read_component_cloned::<Uid>(self.entity)
+            .read_component_copied::<Uid>(self.entity)
             .expect("Client doesn't have a Uid!!!");
 
         self.player_list

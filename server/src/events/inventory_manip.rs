@@ -169,10 +169,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                     thrown_items.push((
                                         *pos,
                                         state
-                                            .read_component_cloned::<comp::Vel>(entity)
+                                            .read_component_copied::<comp::Vel>(entity)
                                             .unwrap_or_default(),
                                         state
-                                            .read_component_cloned::<comp::Ori>(entity)
+                                            .read_component_copied::<comp::Ori>(entity)
                                             .unwrap_or_default(),
                                         *kind,
                                     ));
@@ -187,7 +187,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                     state.read_storage::<comp::Pos>().get(entity)
                                 {
                                     let uid = state
-                                        .read_component_cloned(entity)
+                                        .read_component_copied(entity)
                                         .expect("Expected player to have a UID");
                                     if (
                                         &state.read_storage::<comp::Alignment>(),
@@ -344,7 +344,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 dropped_items.push((
                     *pos,
                     state
-                        .read_component_cloned::<comp::Ori>(entity)
+                        .read_component_copied::<comp::Ori>(entity)
                         .unwrap_or_default(),
                     item,
                 ));
@@ -377,10 +377,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     for _ in 0..amount {
                         dropped_items.push((
                             state
-                                .read_component_cloned::<comp::Pos>(entity)
+                                .read_component_copied::<comp::Pos>(entity)
                                 .unwrap_or_default(),
                             state
-                                .read_component_cloned::<comp::Ori>(entity)
+                                .read_component_copied::<comp::Ori>(entity)
                                 .unwrap_or_default(),
                             item.clone(),
                         ));
@@ -422,7 +422,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             },
         };
 
-        let uid = state.read_component_cloned::<Uid>(entity);
+        let uid = state.read_component_copied::<Uid>(entity);
 
         let mut new_entity = state
             .create_object(Default::default(), match kind {
