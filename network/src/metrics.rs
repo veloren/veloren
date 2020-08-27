@@ -6,14 +6,18 @@ use prometheus::{
 use std::error::Error;
 use tracing::*;
 
-//TODO: switch over to Counter for frames_count, message_count, bytes_send,
-// frames_message_count 1 NetworkMetrics per Network
+/// 1:1 relation between NetworkMetrics and Network
+/// use 2NF here and avoid redundant data like CHANNEL AND PARTICIPANT encoding.
+/// as this will cause a matrix that is full of 0 but needs alot of bandwith and
+/// storage
 #[allow(dead_code)]
 pub struct NetworkMetrics {
     pub listen_requests_total: IntCounterVec,
     pub connect_requests_total: IntCounterVec,
     pub participants_connected_total: IntCounter,
     pub participants_disconnected_total: IntCounter,
+    // channel id's, seperated by PARTICIPANT, max 5
+    pub participants_channel_ids: IntGaugeVec,
     // opened Channels, seperated by PARTICIPANT
     pub channels_connected_total: IntCounterVec,
     pub channels_disconnected_total: IntCounterVec,
@@ -71,6 +75,13 @@ impl NetworkMetrics {
             "participants_disconnected_total",
             "Shows the number of participants disconnected to the network",
         ))?;
+        let participants_channel_ids = IntGaugeVec::new(
+            Opts::new(
+                "participants_channel_ids",
+                "Channel numbers belonging to a Participant in the network",
+            ),
+            &["participant", "no"],
+        )?;
         let channels_connected_total = IntCounterVec::new(
             Opts::new(
                 "channels_connected_total",
@@ -116,14 +127,14 @@ impl NetworkMetrics {
                 "frames_out_total",
                 "Number of all frames send per channel, at the channel level",
             ),
-            &["participant", "channel", "frametype"],
+            &["channel", "frametype"],
         )?;
         let frames_in_total = IntCounterVec::new(
             Opts::new(
                 "frames_in_total",
                 "Number of all frames received per channel, at the channel level",
             ),
-            &["participant", "channel", "frametype"],
+            &["channel", "frametype"],
         )?;
         let frames_wire_out_total = IntCounterVec::new(
             Opts::new(
@@ -203,6 +214,7 @@ impl NetworkMetrics {
             connect_requests_total,
             participants_connected_total,
             participants_disconnected_total,
+            participants_channel_ids,
             channels_connected_total,
             channels_disconnected_total,
             streams_opened_total,
@@ -228,6 +240,7 @@ impl NetworkMetrics {
         registry.register(Box::new(self.connect_requests_total.clone()))?;
         registry.register(Box::new(self.participants_connected_total.clone()))?;
         registry.register(Box::new(self.participants_disconnected_total.clone()))?;
+        registry.register(Box::new(self.participants_channel_ids.clone()))?;
         registry.register(Box::new(self.channels_connected_total.clone()))?;
         registry.register(Box::new(self.channels_disconnected_total.clone()))?;
         registry.register(Box::new(self.streams_opened_total.clone()))?;
@@ -266,19 +279,17 @@ pub(crate) struct PidCidFrameCache<T: MetricVecBuilder> {
 }
 */
 
-pub(crate) struct PidCidFrameCache {
+pub(crate) struct MultiCidFrameCache {
     metric: IntCounterVec,
-    pid: String,
-    cache: Vec<[GenericCounter<AtomicI64>; Frame::FRAMES_LEN as usize]>,
+    cache: Vec<[Option<GenericCounter<AtomicI64>>; Frame::FRAMES_LEN as usize]>,
 }
 
-impl PidCidFrameCache {
-    const CACHE_SIZE: usize = 512;
+impl MultiCidFrameCache {
+    const CACHE_SIZE: usize = 2048;
 
-    pub fn new(metric: IntCounterVec, pid: Pid) -> Self {
+    pub fn new(metric: IntCounterVec) -> Self {
         Self {
             metric,
-            pid: pid.to_string(),
             cache: vec![],
         }
     }
@@ -291,33 +302,22 @@ impl PidCidFrameCache {
                 "cid, getting quite high, is this a attack on the cache?"
             );
         }
-        for i in start_cid..=cid as usize {
-            let cid = (i as Cid).to_string();
-            let entry = [
-                self.metric
-                    .with_label_values(&[&self.pid, &cid, Frame::int_to_string(0)]),
-                self.metric
-                    .with_label_values(&[&self.pid, &cid, Frame::int_to_string(1)]),
-                self.metric
-                    .with_label_values(&[&self.pid, &cid, Frame::int_to_string(2)]),
-                self.metric
-                    .with_label_values(&[&self.pid, &cid, Frame::int_to_string(3)]),
-                self.metric
-                    .with_label_values(&[&self.pid, &cid, Frame::int_to_string(4)]),
-                self.metric
-                    .with_label_values(&[&self.pid, &cid, Frame::int_to_string(5)]),
-                self.metric
-                    .with_label_values(&[&self.pid, &cid, Frame::int_to_string(6)]),
-                self.metric
-                    .with_label_values(&[&self.pid, &cid, Frame::int_to_string(7)]),
-            ];
-            self.cache.push(entry);
-        }
+        self.cache.resize((cid + 1) as usize, [
+            None, None, None, None, None, None, None, None,
+        ]);
     }
 
     pub fn with_label_values(&mut self, cid: Cid, frame: &Frame) -> &GenericCounter<AtomicI64> {
         self.populate(cid);
-        &self.cache[cid as usize][frame.get_int() as usize]
+        let frame_int = frame.get_int() as usize;
+        let r = &mut self.cache[cid as usize][frame_int];
+        if r.is_none() {
+            *r = Some(
+                self.metric
+                    .with_label_values(&[&cid.to_string(), &frame_int.to_string()]),
+            );
+        }
+        r.as_ref().unwrap()
     }
 }
 
@@ -361,12 +361,12 @@ mod tests {
     }
 
     #[test]
-    fn pid_cid_frame_cache() {
+    fn multi_cid_frame_cache() {
         let pid = Pid::fake(1);
         let frame1 = Frame::Raw(b"Foo".to_vec());
         let frame2 = Frame::Raw(b"Bar".to_vec());
         let metrics = NetworkMetrics::new(&pid).unwrap();
-        let mut cache = PidCidFrameCache::new(metrics.frames_in_total, pid);
+        let mut cache = MultiCidFrameCache::new(metrics.frames_in_total);
         let v1 = cache.with_label_values(1, &frame1);
         v1.inc();
         assert_eq!(v1.get(), 1);
