@@ -181,7 +181,7 @@ impl Handshake {
             if let Some(Ok(ref frame)) = frame {
                 self.metrics
                     .frames_in_total
-                    .with_label_values(&["", &cid_string, &frame.get_string()])
+                    .with_label_values(&[&cid_string, &frame.get_string()])
                     .inc();
             }
         }
@@ -216,7 +216,7 @@ impl Handshake {
                 } else {
                     debug!("Handshake completed");
                     if self.init_handshake {
-                        self.send_init(&mut c2w_frame_s, "").await;
+                        self.send_init(&mut c2w_frame_s).await;
                     } else {
                         self.send_handshake(&mut c2w_frame_s).await;
                     }
@@ -227,7 +227,7 @@ impl Handshake {
                 #[cfg(feature = "metrics")]
                 self.metrics
                     .frames_in_total
-                    .with_label_values(&["", &cid_string, frame.get_string()])
+                    .with_label_values(&[&cid_string, frame.get_string()])
                     .inc();
                 if let Frame::Raw(bytes) = frame {
                     match std::str::from_utf8(bytes.as_slice()) {
@@ -258,16 +258,15 @@ impl Handshake {
         let r = match frame {
             Some(Ok(Frame::Init { pid, secret })) => {
                 debug!(?pid, "Participant send their ID");
-                let pid_string = pid.to_string();
                 #[cfg(feature = "metrics")]
                 self.metrics
                     .frames_in_total
-                    .with_label_values(&[&pid_string, &cid_string, "ParticipantId"])
+                    .with_label_values(&[&cid_string, "ParticipantId"])
                     .inc();
                 let stream_id_offset = if self.init_handshake {
                     STREAM_ID_OFFSET1
                 } else {
-                    self.send_init(&mut c2w_frame_s, &pid_string).await;
+                    self.send_init(&mut c2w_frame_s).await;
                     STREAM_ID_OFFSET2
                 };
                 info!(?pid, "This Handshake is now configured!");
@@ -277,7 +276,7 @@ impl Handshake {
                 #[cfg(feature = "metrics")]
                 self.metrics
                     .frames_in_total
-                    .with_label_values(&["", &cid_string, frame.get_string()])
+                    .with_label_values(&[&cid_string, frame.get_string()])
                     .inc();
                 if let Frame::Raw(bytes) = frame {
                     match std::str::from_utf8(bytes.as_slice()) {
@@ -309,7 +308,7 @@ impl Handshake {
         #[cfg(feature = "metrics")]
         self.metrics
             .frames_out_total
-            .with_label_values(&["", &self.cid.to_string(), "Handshake"])
+            .with_label_values(&[&self.cid.to_string(), "Handshake"])
             .inc();
         c2w_frame_s
             .send(Frame::Handshake {
@@ -323,13 +322,12 @@ impl Handshake {
     async fn send_init(
         &self,
         c2w_frame_s: &mut mpsc::UnboundedSender<Frame>,
-        #[cfg(feature = "metrics")] pid_string: &str,
         #[cfg(not(feature = "metrics"))] _pid_string: &str,
     ) {
         #[cfg(feature = "metrics")]
         self.metrics
             .frames_out_total
-            .with_label_values(&[pid_string, &self.cid.to_string(), "ParticipantId"])
+            .with_label_values(&[&self.cid.to_string(), "ParticipantId"])
             .inc();
         c2w_frame_s
             .send(Frame::Init {
@@ -352,11 +350,11 @@ impl Handshake {
             let cid_string = self.cid.to_string();
             self.metrics
                 .frames_out_total
-                .with_label_values(&["", &cid_string, "Raw"])
+                .with_label_values(&[&cid_string, "Raw"])
                 .inc();
             self.metrics
                 .frames_out_total
-                .with_label_values(&["", &cid_string, "Shutdown"])
+                .with_label_values(&[&cid_string, "Shutdown"])
                 .inc();
         }
         c2w_frame_s.send(Frame::Raw(data)).await.unwrap();
