@@ -73,12 +73,15 @@ impl CharacterBehavior for Data {
         } else if !self.exhausted {
             // Hit attempt
             data.updater.insert(data.entity, Attacking {
-                base_healthchange: -(self.base_damage as i32),
+                base_damage: self.base_damage,
+                base_heal: 0,
                 range: 4.5,
                 max_angle: 360_f32.to_radians(),
                 applied: false,
                 hit_count: 0,
                 knockback: 25.0,
+                is_melee: true,
+                lifesteal_eff: 0.0,
             });
 
             update.character = CharacterState::LeapMelee(Data {

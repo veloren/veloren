@@ -1,3 +1,4 @@
+pub mod basic_beam;
 pub mod basic_block;
 pub mod basic_melee;
 pub mod basic_ranged;

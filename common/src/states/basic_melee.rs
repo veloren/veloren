@@ -46,14 +46,25 @@ impl CharacterBehavior for Data {
                 exhausted: false,
             });
         } else if !self.exhausted {
+            let (damage, heal): (u32, u32);
+            if self.base_healthchange > 0 {
+                heal = self.base_healthchange as u32;
+                damage = 0;
+            } else {
+                damage = (-self.base_healthchange) as u32;
+                heal = 0;
+            }
             // Hit attempt
             data.updater.insert(data.entity, Attacking {
-                base_healthchange: self.base_healthchange,
+                base_damage: damage,
+                base_heal: heal,
                 range: self.range,
                 max_angle: self.max_angle.to_radians(),
                 applied: false,
                 hit_count: 0,
                 knockback: self.knockback,
+                is_melee: true,
+                lifesteal_eff: 0.0,
             });
 
             update.character = CharacterState::BasicMelee(Data {

@@ -113,7 +113,8 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::ComboMelee { .. }
                 | CharacterState::BasicRanged { .. }
                 | CharacterState::ChargedRanged { .. }
-                | CharacterState::GroundShockwave { .. } => {
+                | CharacterState::GroundShockwave { .. }
+                | CharacterState::BasicBeam { .. } => {
                     if energy.get_unchecked().regen_rate != 0.0 {
                         energy.get_mut_unchecked().regen_rate = 0.0
                     }

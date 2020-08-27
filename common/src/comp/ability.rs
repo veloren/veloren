@@ -24,6 +24,7 @@ pub enum CharacterAbilityType {
     LeapMelee,
     SpinMelee,
     GroundShockwave,
+    BasicBeam,
 }
 
 impl From<&CharacterState> for CharacterAbilityType {
@@ -39,6 +40,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::SpinMelee(_) => Self::SpinMelee,
             CharacterState::ChargedRanged(_) => Self::ChargedRanged,
             CharacterState::GroundShockwave(_) => Self::ChargedRanged,
+            CharacterState::BasicBeam(_) => Self::BasicBeam,
             _ => Self::BasicMelee,
         }
     }
@@ -146,6 +148,17 @@ pub enum CharacterAbility {
         shockwave_duration: Duration,
         requires_ground: bool,
     },
+    BasicBeam {
+        energy_cost: u32,
+        buildup_duration: Duration,
+        recover_duration: Duration,
+        base_hps: u32,
+        base_dps: u32,
+        range: f32,
+        max_angle: f32,
+        lifesteal_eff: f32,
+        energy_regen: u32,
+    },
 }
 
 impl CharacterAbility {
@@ -187,6 +200,10 @@ impl CharacterAbility {
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
             CharacterAbility::GroundShockwave { energy_cost, .. } => update
+                .energy
+                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                .is_ok(),
+            CharacterAbility::BasicBeam { energy_cost, .. } => update
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
@@ -496,6 +513,29 @@ impl From<&CharacterAbility> for CharacterState {
                 shockwave_speed: *shockwave_speed,
                 shockwave_duration: *shockwave_duration,
                 requires_ground: *requires_ground,
+            }),
+            CharacterAbility::BasicBeam {
+                energy_cost: _,
+                buildup_duration,
+                recover_duration,
+                base_hps,
+                base_dps,
+                range,
+                max_angle,
+                lifesteal_eff,
+                energy_regen,
+            } => CharacterState::BasicBeam(basic_beam::Data {
+                exhausted: false,
+                buildup_duration: *buildup_duration,
+                cooldown_duration: Duration::from_millis(250),
+                cooldown_duration_default: Duration::from_millis(250),
+                recover_duration: *recover_duration,
+                base_hps: *base_hps,
+                base_dps: *base_dps,
+                range: *range,
+                max_angle: *max_angle,
+                lifesteal_eff: *lifesteal_eff,
+                energy_regen: *energy_regen,
             }),
         }
     }
