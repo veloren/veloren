@@ -1,5 +1,4 @@
 use super::cache::FigureKey;
-use crate::render::{BoneMeshes, Mesh};
 use common::{
     assets::{self, watch::ReloadIndicator, Asset, AssetWith, Ron},
     comp::{
@@ -25,6 +24,8 @@ use serde_derive::Deserialize;
 use std::sync::Arc;
 use tracing::{error, warn};
 use vek::*;
+
+pub type BoneMeshes = (Segment, Vec3<f32>);
 
 fn load_segment(mesh_name: &str) -> Segment {
     let full_specifier: String = ["voxygen.voxel.", mesh_name].concat();
@@ -53,12 +54,8 @@ fn graceful_load_mat_segment_flipped(mesh_name: &str) -> MatSegment {
     MatSegment::from_vox(graceful_load_vox(mesh_name).as_ref(), true)
 }
 
-pub fn load_mesh(
-    mesh_name: &str,
-    position: Vec3<f32>,
-    generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-) -> BoneMeshes {
-    generate_mesh(load_segment(mesh_name), position)
+pub fn load_mesh(mesh_name: &str, position: Vec3<f32>) -> BoneMeshes {
+    (load_segment(mesh_name), position)
 }
 
 fn recolor_grey(rgb: Rgb<u8>, color: Rgb<u8>) -> Rgb<u8> {
@@ -96,7 +93,6 @@ pub trait BodySpec: Sized {
     fn bone_meshes(
         key: &FigureKey<Self>,
         spec: &Self::Spec,
-        generate_mesh: impl FnMut(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> [Option<BoneMeshes>; anim::MAX_BONE_COUNT];
 }
 
@@ -104,7 +100,7 @@ macro_rules! make_vox_spec {
     (
         $body:ty,
         struct $Spec:ident { $( $(+)? $field:ident: $ty:ty = $asset_path:literal),* $(,)? },
-        |$self_pat:pat, $spec_pat:pat, $generate_mesh:pat| $bone_meshes:block $(,)?
+        |$self_pat:pat, $spec_pat:pat| $bone_meshes:block $(,)?
     ) => {
         #[derive(Clone)]
         pub struct $Spec {
@@ -130,7 +126,6 @@ macro_rules! make_vox_spec {
             fn bone_meshes(
                 $self_pat: &FigureKey<Self>,
                 $spec_pat: &Self::Spec,
-                $generate_mesh: impl FnMut(Segment, Vec3<f32>) -> BoneMeshes,
             ) -> [Option<BoneMeshes>; anim::MAX_BONE_COUNT] {
                 $bone_meshes
             }
@@ -221,12 +216,7 @@ struct HumHeadSubSpec {
 struct HumHeadSpec(HashMap<(Species, BodyType), HumHeadSubSpec>);
 
 impl HumHeadSpec {
-    fn mesh_head(
-        &self,
-        body: &Body,
-        color_spec: &HumColorSpec,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_head(&self, body: &Body, color_spec: &HumColorSpec) -> BoneMeshes {
         let spec = match self.0.get(&(body.species, body.body_type)) {
             Some(spec) => spec,
             None => {
@@ -235,7 +225,7 @@ impl HumHeadSpec {
                     ?body.body_type,
                     "No head specification exists for the combination of species and body"
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
 
@@ -305,7 +295,7 @@ impl HumHeadSpec {
             .maybe_add(accessory)
             .unify();
 
-        generate_mesh(
+        (
             head,
             Vec3::from(spec.offset) + origin_offset.map(|e| e as f32 * -1.0),
         )
@@ -363,7 +353,7 @@ make_vox_spec!(
         /* armor_head: HumArmorHeadSpec = "voxygen.voxel.humanoid_armor_head_manifest",
         tabard: HumArmorTabardSpec = "voxygen.voxel.humanoid_armor_tabard_manifest", */
     },
-    |FigureKey { body, extra }, spec, mut generate_mesh| {
+    |FigureKey { body, extra }, spec| {
         const DEFAULT_LOADOUT: super::cache::CharacterCacheKey = super::cache::CharacterCacheKey {
             third_person: None,
             tool: None,
@@ -385,7 +375,6 @@ make_vox_spec!(
                 spec.head.asset.mesh_head(
                     body,
                     &spec.color.asset,
-                    |segment, offset| generate_mesh(segment, offset),
                 )
             }),
             third_person.map(|loadout| {
@@ -393,7 +382,6 @@ make_vox_spec!(
                     body,
                     &spec.color.asset,
                     loadout.chest.as_deref(),
-                    |segment, offset| generate_mesh(segment, offset),
                 )
             }),
             third_person.map(|loadout| {
@@ -401,7 +389,6 @@ make_vox_spec!(
                     body,
                     &spec.color.asset,
                     loadout.belt.as_deref(),
-                    |segment, offset| generate_mesh(segment, offset),
                 )
             }),
             third_person.map(|loadout| {
@@ -409,7 +396,6 @@ make_vox_spec!(
                     body,
                     &spec.color.asset,
                     loadout.back.as_deref(),
-                    |segment, offset| generate_mesh(segment, offset),
                 )
             }),
             third_person.map(|loadout| {
@@ -417,39 +403,33 @@ make_vox_spec!(
                     body,
                     &spec.color.asset,
                     loadout.pants.as_deref(),
-                    |segment, offset| generate_mesh(segment, offset),
                 )
             }),
             Some(spec.armor_hand.asset.mesh_left_hand(
                 body,
                 &spec.color.asset,
                 hand,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.armor_hand.asset.mesh_right_hand(
                 body,
                 &spec.color.asset,
                 hand,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.armor_foot.asset.mesh_left_foot(
                 body,
                 &spec.color.asset,
                 foot,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.armor_foot.asset.mesh_right_foot(
                 body,
                 &spec.color.asset,
                 foot,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             third_person.map(|loadout| {
                 spec.armor_shoulder.asset.mesh_left_shoulder(
                     body,
                     &spec.color.asset,
                     loadout.shoulder.as_deref(),
-                    |segment, offset| generate_mesh(segment, offset),
                 )
             }),
             third_person.map(|loadout| {
@@ -457,33 +437,27 @@ make_vox_spec!(
                     body,
                     &spec.color.asset,
                     loadout.shoulder.as_deref(),
-                    |segment, offset| generate_mesh(segment, offset),
                 )
             }),
-            Some(mesh_glider(|segment, offset| {
-                generate_mesh(segment, offset)
-            })),
-            tool.map(|tool| {
+            Some(mesh_glider()),
+            tool.and_then(|tool| tool.active.as_ref()).map(|tool| {
                 spec.main_weapon.asset.mesh_main_weapon(
-                    tool.active.as_ref(),
+                    tool,
                     false,
-                    |segment, offset| generate_mesh(segment, offset),
                 )
             }),
-            tool.map(|tool| {
+            tool.and_then(|tool| tool.second.as_ref()).map(|tool| {
                 spec.main_weapon.asset.mesh_main_weapon(
-                    tool.second.as_ref(),
+                    tool,
                     true,
-                    |segment, offset| generate_mesh(segment, offset),
                 )
             }),
             Some(spec.armor_lantern.asset.mesh_lantern(
                 body,
                 &spec.color.asset,
                 lantern,
-                |segment, offset| generate_mesh(segment, offset),
             )),
-            Some(mesh_hold(|segment, offset| generate_mesh(segment, offset))),
+            Some(mesh_hold()),
         ]
     },
 );
@@ -496,14 +470,13 @@ impl HumArmorShoulderSpec {
         color_spec: &HumColorSpec,
         shoulder: Option<&str>,
         flipped: bool,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
         let spec = if let Some(shoulder) = shoulder {
             match self.0.map.get(shoulder) {
                 Some(spec) => spec,
                 None => {
                     error!(?shoulder, "No shoulder specification exists");
-                    return load_mesh("not_found", Vec3::new(-3.0, -3.5, 0.1), generate_mesh);
+                    return load_mesh("not_found", Vec3::new(-3.0, -3.5, 0.1));
                 },
             }
         } else {
@@ -542,7 +515,7 @@ impl HumArmorShoulderSpec {
                 shoulder_segment.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(shoulder_color)));
         }
 
-        generate_mesh(shoulder_segment, Vec3::from(offset))
+        (shoulder_segment, Vec3::from(offset))
     }
 
     fn mesh_left_shoulder(
@@ -550,9 +523,8 @@ impl HumArmorShoulderSpec {
         body: &Body,
         color_spec: &HumColorSpec,
         shoulder: Option<&str>,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        self.mesh_shoulder(body, color_spec, shoulder, true, generate_mesh)
+        self.mesh_shoulder(body, color_spec, shoulder, true)
     }
 
     fn mesh_right_shoulder(
@@ -560,9 +532,8 @@ impl HumArmorShoulderSpec {
         body: &Body,
         color_spec: &HumColorSpec,
         shoulder: Option<&str>,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        self.mesh_shoulder(body, color_spec, shoulder, false, generate_mesh)
+        self.mesh_shoulder(body, color_spec, shoulder, false)
     }
 }
 // Chest
@@ -572,14 +543,13 @@ impl HumArmorChestSpec {
         body: &Body,
         color_spec: &HumColorSpec,
         chest: Option<&str>,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
         let spec = if let Some(chest) = chest {
             match self.0.map.get(chest) {
                 Some(spec) => spec,
                 None => {
                     error!(?chest, "No chest specification exists");
-                    return load_mesh("not_found", Vec3::new(-7.0, -3.5, 2.0), generate_mesh);
+                    return load_mesh("not_found", Vec3::new(-7.0, -3.5, 2.0));
                 },
             }
         } else {
@@ -610,7 +580,7 @@ impl HumArmorChestSpec {
             .unify()
             .0;
 
-        generate_mesh(chest, Vec3::from(spec.vox_spec.1))
+        (chest, Vec3::from(spec.vox_spec.1))
     }
 }
 // Hand
@@ -621,14 +591,13 @@ impl HumArmorHandSpec {
         color_spec: &HumColorSpec,
         hand: Option<&str>,
         flipped: bool,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
         let spec = if let Some(hand) = hand {
             match self.0.map.get(hand) {
                 Some(spec) => spec,
                 None => {
                     error!(?hand, "No hand specification exists");
-                    return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0), generate_mesh);
+                    return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
                 },
             }
         } else {
@@ -661,7 +630,7 @@ impl HumArmorHandSpec {
             hand_segment = hand_segment.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(hand_color)));
         }
 
-        generate_mesh(hand_segment, Vec3::from(offset))
+        (hand_segment, Vec3::from(offset))
     }
 
     fn mesh_left_hand(
@@ -669,9 +638,8 @@ impl HumArmorHandSpec {
         body: &Body,
         color_spec: &HumColorSpec,
         hand: Option<&str>,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        self.mesh_hand(body, color_spec, hand, true, generate_mesh)
+        self.mesh_hand(body, color_spec, hand, true)
     }
 
     fn mesh_right_hand(
@@ -679,26 +647,19 @@ impl HumArmorHandSpec {
         body: &Body,
         color_spec: &HumColorSpec,
         hand: Option<&str>,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        self.mesh_hand(body, color_spec, hand, false, generate_mesh)
+        self.mesh_hand(body, color_spec, hand, false)
     }
 }
 // Belt
 impl HumArmorBeltSpec {
-    fn mesh_belt(
-        &self,
-        body: &Body,
-        color_spec: &HumColorSpec,
-        belt: Option<&str>,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_belt(&self, body: &Body, color_spec: &HumColorSpec, belt: Option<&str>) -> BoneMeshes {
         let spec = if let Some(belt) = belt {
             match self.0.map.get(belt) {
                 Some(spec) => spec,
                 None => {
                     error!(?belt, "No belt specification exists");
-                    return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0), generate_mesh);
+                    return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0));
                 },
             }
         } else {
@@ -717,24 +678,18 @@ impl HumArmorBeltSpec {
             belt_segment = belt_segment.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(belt_color)));
         }
 
-        generate_mesh(belt_segment, Vec3::from(spec.vox_spec.1))
+        (belt_segment, Vec3::from(spec.vox_spec.1))
     }
 }
 // Cape
 impl HumArmorBackSpec {
-    fn mesh_back(
-        &self,
-        body: &Body,
-        color_spec: &HumColorSpec,
-        back: Option<&str>,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_back(&self, body: &Body, color_spec: &HumColorSpec, back: Option<&str>) -> BoneMeshes {
         let spec = if let Some(back) = back {
             match self.0.map.get(back) {
                 Some(spec) => spec,
                 None => {
                     error!(?back, "No back specification exists");
-                    return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0), generate_mesh);
+                    return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0));
                 },
             }
         } else {
@@ -752,7 +707,7 @@ impl HumArmorBackSpec {
             back_segment = back_segment.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(back_color)));
         }
 
-        generate_mesh(back_segment, Vec3::from(spec.vox_spec.1))
+        (back_segment, Vec3::from(spec.vox_spec.1))
     }
 }
 // Legs
@@ -762,14 +717,13 @@ impl HumArmorPantsSpec {
         body: &Body,
         color_spec: &HumColorSpec,
         pants: Option<&str>,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
         let spec = if let Some(pants) = pants {
             match self.0.map.get(pants) {
                 Some(spec) => spec,
                 None => {
                     error!(?pants, "No pants specification exists");
-                    return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0), generate_mesh);
+                    return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0));
                 },
             }
         } else {
@@ -800,7 +754,7 @@ impl HumArmorPantsSpec {
             .unify()
             .0;
 
-        generate_mesh(pants, Vec3::from(spec.vox_spec.1))
+        (pants, Vec3::from(spec.vox_spec.1))
     }
 }
 // Foot
@@ -811,14 +765,13 @@ impl HumArmorFootSpec {
         color_spec: &HumColorSpec,
         foot: Option<&str>,
         flipped: bool,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
         let spec = if let Some(foot) = foot {
             match self.0.map.get(foot) {
                 Some(spec) => spec,
                 None => {
                     error!(?foot, "No foot specification exists");
-                    return load_mesh("not_found", Vec3::new(-2.5, -3.5, -9.0), generate_mesh);
+                    return load_mesh("not_found", Vec3::new(-2.5, -3.5, -9.0));
                 },
             }
         } else {
@@ -841,7 +794,7 @@ impl HumArmorFootSpec {
             foot_segment = foot_segment.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(foot_color)));
         }
 
-        generate_mesh(foot_segment, Vec3::from(spec.vox_spec.1))
+        (foot_segment, Vec3::from(spec.vox_spec.1))
     }
 
     fn mesh_left_foot(
@@ -849,9 +802,8 @@ impl HumArmorFootSpec {
         body: &Body,
         color_spec: &HumColorSpec,
         foot: Option<&str>,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        self.mesh_foot(body, color_spec, foot, true, generate_mesh)
+        self.mesh_foot(body, color_spec, foot, true)
     }
 
     fn mesh_right_foot(
@@ -859,30 +811,18 @@ impl HumArmorFootSpec {
         body: &Body,
         color_spec: &HumColorSpec,
         foot: Option<&str>,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
-        self.mesh_foot(body, color_spec, foot, false, generate_mesh)
+        self.mesh_foot(body, color_spec, foot, false)
     }
 }
 
 impl HumMainWeaponSpec {
-    fn mesh_main_weapon(
-        &self,
-        tool_kind: Option<&ToolKind>,
-        flipped: bool,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
-        let tool_kind = if let Some(kind) = tool_kind {
-            kind
-        } else {
-            return (Mesh::new(), (anim::vek::Aabb::default(), 0..0));
-        };
-
+    fn mesh_main_weapon(&self, tool_kind: &ToolKind, flipped: bool) -> BoneMeshes {
         let spec = match self.0.get(tool_kind) {
             Some(spec) => spec,
             None => {
                 error!(?tool_kind, "No tool/weapon specification exists");
-                return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
             },
         };
 
@@ -904,7 +844,7 @@ impl HumMainWeaponSpec {
             spec.vox_spec.1[2],
         );
 
-        generate_mesh(tool_kind_segment, offset)
+        (tool_kind_segment, offset)
     }
 }
 
@@ -915,14 +855,13 @@ impl HumArmorLanternSpec {
         body: &Body,
         color_spec: &HumColorSpec,
         lantern: Option<&str>,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
         let spec = if let Some(kind) = lantern {
             match self.0.map.get(kind) {
                 Some(spec) => spec,
                 None => {
                     error!(?kind, "No lantern specification exists");
-                    return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0), generate_mesh);
+                    return load_mesh("not_found", Vec3::new(-4.0, -3.5, 2.0));
                 },
             }
         } else {
@@ -941,25 +880,19 @@ impl HumArmorLanternSpec {
                 lantern_segment.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(lantern_color)));
         }
 
-        generate_mesh(lantern_segment, Vec3::from(spec.vox_spec.1))
+        (lantern_segment, Vec3::from(spec.vox_spec.1))
     }
 }
 impl HumArmorHeadSpec {
     /// FIXME: Either use this, or remove it.
     #[allow(dead_code)]
-    fn mesh_head(
-        &self,
-        body: &Body,
-        color_spec: &HumColorSpec,
-        head: Option<&str>,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_head(&self, body: &Body, color_spec: &HumColorSpec, head: Option<&str>) -> BoneMeshes {
         let spec = if let Some(head) = head {
             match self.0.map.get(head) {
                 Some(spec) => spec,
                 None => {
                     error!(?head, "No head specification exists");
-                    return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0), generate_mesh);
+                    return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0));
                 },
             }
         } else {
@@ -990,7 +923,7 @@ impl HumArmorHeadSpec {
             .unify()
             .0;
 
-        generate_mesh(head, Vec3::from(spec.vox_spec.1))
+        (head, Vec3::from(spec.vox_spec.1))
     }
 }
 impl HumArmorTabardSpec {
@@ -1001,14 +934,13 @@ impl HumArmorTabardSpec {
         body: &Body,
         color_spec: &HumColorSpec,
         tabard: Option<&str>,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
     ) -> BoneMeshes {
         let spec = if let Some(tabard) = tabard {
             match self.0.map.get(tabard) {
                 Some(spec) => spec,
                 None => {
                     error!(?tabard, "No tabard specification exists");
-                    return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0), generate_mesh);
+                    return load_mesh("not_found", Vec3::new(-5.0, -3.5, 1.0));
                 },
             }
         } else {
@@ -1039,23 +971,16 @@ impl HumArmorTabardSpec {
             .unify()
             .0;
 
-        generate_mesh(tabard, Vec3::from(spec.vox_spec.1))
+        (tabard, Vec3::from(spec.vox_spec.1))
     }
 }
 // TODO: Inventory
-fn mesh_glider(generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes) -> BoneMeshes {
-    load_mesh(
-        "object.glider",
-        Vec3::new(-26.0, -26.0, -5.0),
-        generate_mesh,
-    )
-}
+fn mesh_glider() -> BoneMeshes { load_mesh("object.glider", Vec3::new(-26.0, -26.0, -5.0)) }
 
-fn mesh_hold(generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes) -> BoneMeshes {
+fn mesh_hold() -> BoneMeshes {
     load_mesh(
         "weapon.projectile.simple-arrow",
         Vec3::new(-0.5, -6.0, -1.5),
-        generate_mesh,
     )
 }
 
@@ -1097,42 +1022,35 @@ make_vox_spec!(
         central: QuadrupedSmallCentralSpec = "voxygen.voxel.quadruped_small_central_manifest",
         lateral: QuadrupedSmallLateralSpec = "voxygen.voxel.quadruped_small_lateral_manifest",
     },
-    |FigureKey { body, .. }, spec, mut generate_mesh| {
+    |FigureKey { body, .. }, spec| {
         [
             Some(spec.central.asset.mesh_head(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.central.asset.mesh_chest(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_fl(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_fr(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_bl(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_br(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.central.asset.mesh_tail(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             None,
             None,
@@ -1148,12 +1066,7 @@ make_vox_spec!(
 );
 
 impl QuadrupedSmallCentralSpec {
-    fn mesh_head(
-        &self,
-        species: QSSpecies,
-        body_type: QSBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_head(&self, species: QSSpecies, body_type: QSBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1161,20 +1074,15 @@ impl QuadrupedSmallCentralSpec {
                     "No head specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let central = graceful_load_segment(&spec.head.central.0);
 
-        generate_mesh(central, Vec3::from(spec.head.offset))
+        (central, Vec3::from(spec.head.offset))
     }
 
-    fn mesh_chest(
-        &self,
-        species: QSSpecies,
-        body_type: QSBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_chest(&self, species: QSSpecies, body_type: QSBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1182,20 +1090,15 @@ impl QuadrupedSmallCentralSpec {
                     "No chest specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let central = graceful_load_segment(&spec.chest.central.0);
 
-        generate_mesh(central, Vec3::from(spec.chest.offset))
+        (central, Vec3::from(spec.chest.offset))
     }
 
-    fn mesh_tail(
-        &self,
-        species: QSSpecies,
-        body_type: QSBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_tail(&self, species: QSSpecies, body_type: QSBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1203,22 +1106,17 @@ impl QuadrupedSmallCentralSpec {
                     "No tail specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let central = graceful_load_segment(&spec.tail.central.0);
 
-        generate_mesh(central, Vec3::from(spec.tail.offset))
+        (central, Vec3::from(spec.tail.offset))
     }
 }
 
 impl QuadrupedSmallLateralSpec {
-    fn mesh_foot_fl(
-        &self,
-        species: QSSpecies,
-        body_type: QSBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_fl(&self, species: QSSpecies, body_type: QSBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1226,20 +1124,15 @@ impl QuadrupedSmallLateralSpec {
                     "No leg specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.left_front.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.left_front.offset))
+        (lateral, Vec3::from(spec.left_front.offset))
     }
 
-    fn mesh_foot_fr(
-        &self,
-        species: QSSpecies,
-        body_type: QSBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_fr(&self, species: QSSpecies, body_type: QSBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1247,20 +1140,15 @@ impl QuadrupedSmallLateralSpec {
                     "No leg specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.right_front.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.right_front.offset))
+        (lateral, Vec3::from(spec.right_front.offset))
     }
 
-    fn mesh_foot_bl(
-        &self,
-        species: QSSpecies,
-        body_type: QSBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_bl(&self, species: QSSpecies, body_type: QSBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1268,20 +1156,15 @@ impl QuadrupedSmallLateralSpec {
                     "No leg specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.left_back.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.left_back.offset))
+        (lateral, Vec3::from(spec.left_back.offset))
     }
 
-    fn mesh_foot_br(
-        &self,
-        species: QSSpecies,
-        body_type: QSBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_br(&self, species: QSSpecies, body_type: QSBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1289,12 +1172,12 @@ impl QuadrupedSmallLateralSpec {
                     "No leg specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.right_back.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.right_back.offset))
+        (lateral, Vec3::from(spec.right_back.offset))
     }
 }
 
@@ -1343,82 +1226,67 @@ make_vox_spec!(
         central: QuadrupedMediumCentralSpec = "voxygen.voxel.quadruped_medium_central_manifest",
         lateral: QuadrupedMediumLateralSpec = "voxygen.voxel.quadruped_medium_lateral_manifest",
     },
-    |FigureKey { body, .. }, spec, mut generate_mesh| {
+    |FigureKey { body, .. }, spec| {
         [
             Some(spec.central.asset.mesh_head_upper(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.central.asset.mesh_head_lower(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.central.asset.mesh_jaw(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.central.asset.mesh_tail(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.central.asset.mesh_torso_front(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.central.asset.mesh_torso_back(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.central.asset.mesh_ears(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_leg_fl(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_leg_fr(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_leg_bl(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_leg_br(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_fl(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_fr(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_bl(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_br(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             None,
         ]
@@ -1426,12 +1294,7 @@ make_vox_spec!(
 );
 
 impl QuadrupedMediumCentralSpec {
-    fn mesh_head_upper(
-        &self,
-        species: QMSpecies,
-        body_type: QMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_head_upper(&self, species: QMSpecies, body_type: QMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1439,20 +1302,15 @@ impl QuadrupedMediumCentralSpec {
                     "No upper head specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let central = graceful_load_segment(&spec.upper.central.0);
 
-        generate_mesh(central, Vec3::from(spec.upper.offset))
+        (central, Vec3::from(spec.upper.offset))
     }
 
-    fn mesh_head_lower(
-        &self,
-        species: QMSpecies,
-        body_type: QMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_head_lower(&self, species: QMSpecies, body_type: QMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1460,20 +1318,15 @@ impl QuadrupedMediumCentralSpec {
                     "No lower head specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let central = graceful_load_segment(&spec.lower.central.0);
 
-        generate_mesh(central, Vec3::from(spec.lower.offset))
+        (central, Vec3::from(spec.lower.offset))
     }
 
-    fn mesh_jaw(
-        &self,
-        species: QMSpecies,
-        body_type: QMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_jaw(&self, species: QMSpecies, body_type: QMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1481,20 +1334,15 @@ impl QuadrupedMediumCentralSpec {
                     "No jaw specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let central = graceful_load_segment(&spec.jaw.central.0);
 
-        generate_mesh(central, Vec3::from(spec.jaw.offset))
+        (central, Vec3::from(spec.jaw.offset))
     }
 
-    fn mesh_ears(
-        &self,
-        species: QMSpecies,
-        body_type: QMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_ears(&self, species: QMSpecies, body_type: QMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1502,20 +1350,15 @@ impl QuadrupedMediumCentralSpec {
                     "No ears specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let central = graceful_load_segment(&spec.ears.central.0);
 
-        generate_mesh(central, Vec3::from(spec.ears.offset))
+        (central, Vec3::from(spec.ears.offset))
     }
 
-    fn mesh_torso_front(
-        &self,
-        species: QMSpecies,
-        body_type: QMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_torso_front(&self, species: QMSpecies, body_type: QMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1523,20 +1366,15 @@ impl QuadrupedMediumCentralSpec {
                     "No torso specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let central = graceful_load_segment(&spec.torso_front.central.0);
 
-        generate_mesh(central, Vec3::from(spec.torso_front.offset))
+        (central, Vec3::from(spec.torso_front.offset))
     }
 
-    fn mesh_torso_back(
-        &self,
-        species: QMSpecies,
-        body_type: QMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_torso_back(&self, species: QMSpecies, body_type: QMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1544,20 +1382,15 @@ impl QuadrupedMediumCentralSpec {
                     "No torso specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let central = graceful_load_segment(&spec.torso_back.central.0);
 
-        generate_mesh(central, Vec3::from(spec.torso_back.offset))
+        (central, Vec3::from(spec.torso_back.offset))
     }
 
-    fn mesh_tail(
-        &self,
-        species: QMSpecies,
-        body_type: QMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_tail(&self, species: QMSpecies, body_type: QMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1565,22 +1398,17 @@ impl QuadrupedMediumCentralSpec {
                     "No tail specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let central = graceful_load_segment(&spec.tail.central.0);
 
-        generate_mesh(central, Vec3::from(spec.tail.offset))
+        (central, Vec3::from(spec.tail.offset))
     }
 }
 
 impl QuadrupedMediumLateralSpec {
-    fn mesh_leg_fl(
-        &self,
-        species: QMSpecies,
-        body_type: QMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_leg_fl(&self, species: QMSpecies, body_type: QMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1588,20 +1416,15 @@ impl QuadrupedMediumLateralSpec {
                     "No leg specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.leg_fl.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.leg_fl.offset))
+        (lateral, Vec3::from(spec.leg_fl.offset))
     }
 
-    fn mesh_leg_fr(
-        &self,
-        species: QMSpecies,
-        body_type: QMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_leg_fr(&self, species: QMSpecies, body_type: QMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1609,20 +1432,15 @@ impl QuadrupedMediumLateralSpec {
                     "No leg specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.leg_fr.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.leg_fr.offset))
+        (lateral, Vec3::from(spec.leg_fr.offset))
     }
 
-    fn mesh_leg_bl(
-        &self,
-        species: QMSpecies,
-        body_type: QMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_leg_bl(&self, species: QMSpecies, body_type: QMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1630,20 +1448,15 @@ impl QuadrupedMediumLateralSpec {
                     "No leg specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.leg_bl.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.leg_bl.offset))
+        (lateral, Vec3::from(spec.leg_bl.offset))
     }
 
-    fn mesh_leg_br(
-        &self,
-        species: QMSpecies,
-        body_type: QMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_leg_br(&self, species: QMSpecies, body_type: QMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1651,20 +1464,15 @@ impl QuadrupedMediumLateralSpec {
                     "No leg specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.leg_br.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.leg_br.offset))
+        (lateral, Vec3::from(spec.leg_br.offset))
     }
 
-    fn mesh_foot_fl(
-        &self,
-        species: QMSpecies,
-        body_type: QMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_fl(&self, species: QMSpecies, body_type: QMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1672,20 +1480,15 @@ impl QuadrupedMediumLateralSpec {
                     "No foot specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.foot_fl.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.foot_fl.offset))
+        (lateral, Vec3::from(spec.foot_fl.offset))
     }
 
-    fn mesh_foot_fr(
-        &self,
-        species: QMSpecies,
-        body_type: QMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_fr(&self, species: QMSpecies, body_type: QMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1693,20 +1496,15 @@ impl QuadrupedMediumLateralSpec {
                     "No foot specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.foot_fr.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.foot_fr.offset))
+        (lateral, Vec3::from(spec.foot_fr.offset))
     }
 
-    fn mesh_foot_bl(
-        &self,
-        species: QMSpecies,
-        body_type: QMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_bl(&self, species: QMSpecies, body_type: QMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1714,20 +1512,15 @@ impl QuadrupedMediumLateralSpec {
                     "No foot specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.foot_bl.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.foot_bl.offset))
+        (lateral, Vec3::from(spec.foot_bl.offset))
     }
 
-    fn mesh_foot_br(
-        &self,
-        species: QMSpecies,
-        body_type: QMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_br(&self, species: QMSpecies, body_type: QMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1735,12 +1528,12 @@ impl QuadrupedMediumLateralSpec {
                     "No foot specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.foot_br.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.foot_br.offset))
+        (lateral, Vec3::from(spec.foot_br.offset))
     }
 }
 
@@ -1782,42 +1575,35 @@ make_vox_spec!(
         center: BirdMediumCenterSpec = "voxygen.voxel.bird_medium_center_manifest",
         lateral: BirdMediumLateralSpec = "voxygen.voxel.bird_medium_lateral_manifest",
     },
-    |FigureKey { body, .. }, spec, mut generate_mesh| {
+    |FigureKey { body, .. }, spec| {
         [
             Some(spec.center.asset.mesh_head(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.center.asset.mesh_torso(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.center.asset.mesh_tail(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_wing_l(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_wing_r(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_l(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_r(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             None,
             None,
@@ -1833,12 +1619,7 @@ make_vox_spec!(
 );
 
 impl BirdMediumCenterSpec {
-    fn mesh_head(
-        &self,
-        species: BMSpecies,
-        body_type: BMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_head(&self, species: BMSpecies, body_type: BMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1846,20 +1627,15 @@ impl BirdMediumCenterSpec {
                     "No head specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let center = graceful_load_segment(&spec.head.center.0);
 
-        generate_mesh(center, Vec3::from(spec.head.offset))
+        (center, Vec3::from(spec.head.offset))
     }
 
-    fn mesh_torso(
-        &self,
-        species: BMSpecies,
-        body_type: BMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_torso(&self, species: BMSpecies, body_type: BMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1867,20 +1643,15 @@ impl BirdMediumCenterSpec {
                     "No torso specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let center = graceful_load_segment(&spec.torso.center.0);
 
-        generate_mesh(center, Vec3::from(spec.torso.offset))
+        (center, Vec3::from(spec.torso.offset))
     }
 
-    fn mesh_tail(
-        &self,
-        species: BMSpecies,
-        body_type: BMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_tail(&self, species: BMSpecies, body_type: BMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1888,21 +1659,16 @@ impl BirdMediumCenterSpec {
                     "No tail specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let center = graceful_load_segment(&spec.tail.center.0);
 
-        generate_mesh(center, Vec3::from(spec.tail.offset))
+        (center, Vec3::from(spec.tail.offset))
     }
 }
 impl BirdMediumLateralSpec {
-    fn mesh_wing_l(
-        &self,
-        species: BMSpecies,
-        body_type: BMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_wing_l(&self, species: BMSpecies, body_type: BMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1910,20 +1676,15 @@ impl BirdMediumLateralSpec {
                     "No wing specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.wing_l.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.wing_l.offset))
+        (lateral, Vec3::from(spec.wing_l.offset))
     }
 
-    fn mesh_wing_r(
-        &self,
-        species: BMSpecies,
-        body_type: BMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_wing_r(&self, species: BMSpecies, body_type: BMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1931,20 +1692,15 @@ impl BirdMediumLateralSpec {
                     "No wing specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.wing_r.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.wing_r.offset))
+        (lateral, Vec3::from(spec.wing_r.offset))
     }
 
-    fn mesh_foot_l(
-        &self,
-        species: BMSpecies,
-        body_type: BMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_l(&self, species: BMSpecies, body_type: BMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1952,20 +1708,15 @@ impl BirdMediumLateralSpec {
                     "No foot specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.foot_l.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.foot_l.offset))
+        (lateral, Vec3::from(spec.foot_l.offset))
     }
 
-    fn mesh_foot_r(
-        &self,
-        species: BMSpecies,
-        body_type: BMBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_r(&self, species: BMSpecies, body_type: BMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -1973,12 +1724,12 @@ impl BirdMediumLateralSpec {
                     "No foot specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.foot_r.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.foot_r.offset))
+        (lateral, Vec3::from(spec.foot_r.offset))
     }
 }
 ////
@@ -2004,32 +1755,27 @@ make_vox_spec!(
     struct CritterSpec {
         center: CritterCenterSpec = "voxygen.voxel.critter_center_manifest",
     },
-    |FigureKey { body, .. }, spec, mut generate_mesh| {
+    |FigureKey { body, .. }, spec| {
         [
             Some(spec.center.asset.mesh_head(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.center.asset.mesh_chest(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.center.asset.mesh_feet_f(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.center.asset.mesh_feet_b(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.center.asset.mesh_tail(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             None,
             None,
@@ -2047,12 +1793,7 @@ make_vox_spec!(
 );
 
 impl CritterCenterSpec {
-    fn mesh_head(
-        &self,
-        species: CSpecies,
-        body_type: CBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_head(&self, species: CSpecies, body_type: CBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2060,20 +1801,15 @@ impl CritterCenterSpec {
                     "No head specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let center = graceful_load_segment(&spec.head.center.0);
 
-        generate_mesh(center, Vec3::from(spec.head.offset))
+        (center, Vec3::from(spec.head.offset))
     }
 
-    fn mesh_chest(
-        &self,
-        species: CSpecies,
-        body_type: CBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_chest(&self, species: CSpecies, body_type: CBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2081,20 +1817,15 @@ impl CritterCenterSpec {
                     "No chest specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let center = graceful_load_segment(&spec.chest.center.0);
 
-        generate_mesh(center, Vec3::from(spec.chest.offset))
+        (center, Vec3::from(spec.chest.offset))
     }
 
-    fn mesh_feet_f(
-        &self,
-        species: CSpecies,
-        body_type: CBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_feet_f(&self, species: CSpecies, body_type: CBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2102,20 +1833,15 @@ impl CritterCenterSpec {
                     "No feet specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let center = graceful_load_segment(&spec.feet_f.center.0);
 
-        generate_mesh(center, Vec3::from(spec.feet_f.offset))
+        (center, Vec3::from(spec.feet_f.offset))
     }
 
-    fn mesh_feet_b(
-        &self,
-        species: CSpecies,
-        body_type: CBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_feet_b(&self, species: CSpecies, body_type: CBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2123,20 +1849,15 @@ impl CritterCenterSpec {
                     "No feet specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let center = graceful_load_segment(&spec.feet_b.center.0);
 
-        generate_mesh(center, Vec3::from(spec.feet_b.offset))
+        (center, Vec3::from(spec.feet_b.offset))
     }
 
-    fn mesh_tail(
-        &self,
-        species: CSpecies,
-        body_type: CBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_tail(&self, species: CSpecies, body_type: CBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2144,38 +1865,26 @@ impl CritterCenterSpec {
                     "No tail specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let center = graceful_load_segment(&spec.tail.center.0);
 
-        generate_mesh(center, Vec3::from(spec.tail.offset))
+        (center, Vec3::from(spec.tail.offset))
     }
 }
 ////
 make_vox_spec!(
     fish_medium::Body,
     struct FishMediumSpec {},
-    |FigureKey { body, .. }, _spec, mut generate_mesh| {
+    |FigureKey { body, .. }, _spec| {
         [
-            Some(mesh_fish_medium_head(body.head, |segment, offset| {
-                generate_mesh(segment, offset)
-            })),
-            Some(mesh_fish_medium_torso(body.torso, |segment, offset| {
-                generate_mesh(segment, offset)
-            })),
-            Some(mesh_fish_medium_rear(body.rear, |segment, offset| {
-                generate_mesh(segment, offset)
-            })),
-            Some(mesh_fish_medium_tail(body.tail, |segment, offset| {
-                generate_mesh(segment, offset)
-            })),
-            Some(mesh_fish_medium_fin_l(body.fin_l, |segment, offset| {
-                generate_mesh(segment, offset)
-            })),
-            Some(mesh_fish_medium_fin_r(body.fin_r, |segment, offset| {
-                generate_mesh(segment, offset)
-            })),
+            Some(mesh_fish_medium_head(body.head)),
+            Some(mesh_fish_medium_torso(body.torso)),
+            Some(mesh_fish_medium_rear(body.rear)),
+            Some(mesh_fish_medium_tail(body.tail)),
+            Some(mesh_fish_medium_fin_l(body.fin_l)),
+            Some(mesh_fish_medium_fin_r(body.fin_r)),
             None,
             None,
             None,
@@ -2190,81 +1899,57 @@ make_vox_spec!(
     },
 );
 
-fn mesh_fish_medium_head(
-    head: fish_medium::Head,
-    generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-) -> BoneMeshes {
+fn mesh_fish_medium_head(head: fish_medium::Head) -> BoneMeshes {
     load_mesh(
         match head {
             fish_medium::Head::Default => "npc.marlin.head",
         },
         Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
     )
 }
 
-fn mesh_fish_medium_torso(
-    torso: fish_medium::Torso,
-    generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-) -> BoneMeshes {
+fn mesh_fish_medium_torso(torso: fish_medium::Torso) -> BoneMeshes {
     load_mesh(
         match torso {
             fish_medium::Torso::Default => "npc.marlin.torso",
         },
         Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
     )
 }
 
-fn mesh_fish_medium_rear(
-    rear: fish_medium::Rear,
-    generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-) -> BoneMeshes {
+fn mesh_fish_medium_rear(rear: fish_medium::Rear) -> BoneMeshes {
     load_mesh(
         match rear {
             fish_medium::Rear::Default => "npc.marlin.rear",
         },
         Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
     )
 }
 
-fn mesh_fish_medium_tail(
-    tail: fish_medium::Tail,
-    generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-) -> BoneMeshes {
+fn mesh_fish_medium_tail(tail: fish_medium::Tail) -> BoneMeshes {
     load_mesh(
         match tail {
             fish_medium::Tail::Default => "npc.marlin.tail",
         },
         Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
     )
 }
 
-fn mesh_fish_medium_fin_l(
-    fin_l: fish_medium::FinL,
-    generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-) -> BoneMeshes {
+fn mesh_fish_medium_fin_l(fin_l: fish_medium::FinL) -> BoneMeshes {
     load_mesh(
         match fin_l {
             fish_medium::FinL::Default => "npc.marlin.fin_l",
         },
         Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
     )
 }
 
-fn mesh_fish_medium_fin_r(
-    fin_r: fish_medium::FinR,
-    generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-) -> BoneMeshes {
+fn mesh_fish_medium_fin_r(fin_r: fish_medium::FinR) -> BoneMeshes {
     load_mesh(
         match fin_r {
             fish_medium::FinR::Default => "npc.marlin.fin_r",
         },
         Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
     )
 }
 
@@ -2315,82 +2000,67 @@ make_vox_spec!(
         center: DragonCenterSpec = "voxygen.voxel.dragon_center_manifest",
         lateral: DragonLateralSpec = "voxygen.voxel.dragon_lateral_manifest",
     },
-    |FigureKey { body, .. }, spec, mut generate_mesh| {
+    |FigureKey { body, .. }, spec| {
         [
             Some(spec.center.asset.mesh_head_upper(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.center.asset.mesh_head_lower(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.center.asset.mesh_jaw(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.center.asset.mesh_chest_front(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.center.asset.mesh_chest_rear(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.center.asset.mesh_tail_front(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.center.asset.mesh_tail_rear(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_wing_in_l(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_wing_in_r(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_wing_out_l(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_wing_out_r(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_fl(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_fr(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_bl(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_br(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             None,
         ]
@@ -2398,12 +2068,7 @@ make_vox_spec!(
 );
 
 impl DragonCenterSpec {
-    fn mesh_head_upper(
-        &self,
-        species: DSpecies,
-        body_type: DBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_head_upper(&self, species: DSpecies, body_type: DBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2411,20 +2076,15 @@ impl DragonCenterSpec {
                     "No upper head specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let central = graceful_load_segment(&spec.upper.center.0);
 
-        generate_mesh(central, Vec3::from(spec.upper.offset))
+        (central, Vec3::from(spec.upper.offset))
     }
 
-    fn mesh_head_lower(
-        &self,
-        species: DSpecies,
-        body_type: DBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_head_lower(&self, species: DSpecies, body_type: DBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2432,20 +2092,15 @@ impl DragonCenterSpec {
                     "No lower head specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let central = graceful_load_segment(&spec.lower.center.0);
 
-        generate_mesh(central, Vec3::from(spec.lower.offset))
+        (central, Vec3::from(spec.lower.offset))
     }
 
-    fn mesh_jaw(
-        &self,
-        species: DSpecies,
-        body_type: DBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_jaw(&self, species: DSpecies, body_type: DBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2453,20 +2108,15 @@ impl DragonCenterSpec {
                     "No jaw specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let central = graceful_load_segment(&spec.jaw.center.0);
 
-        generate_mesh(central, Vec3::from(spec.jaw.offset))
+        (central, Vec3::from(spec.jaw.offset))
     }
 
-    fn mesh_chest_front(
-        &self,
-        species: DSpecies,
-        body_type: DBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_chest_front(&self, species: DSpecies, body_type: DBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2474,20 +2124,15 @@ impl DragonCenterSpec {
                     "No chest front specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let center = graceful_load_segment(&spec.chest_front.center.0);
 
-        generate_mesh(center, Vec3::from(spec.chest_front.offset))
+        (center, Vec3::from(spec.chest_front.offset))
     }
 
-    fn mesh_chest_rear(
-        &self,
-        species: DSpecies,
-        body_type: DBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_chest_rear(&self, species: DSpecies, body_type: DBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2495,20 +2140,15 @@ impl DragonCenterSpec {
                     "No chest rear specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let center = graceful_load_segment(&spec.chest_rear.center.0);
 
-        generate_mesh(center, Vec3::from(spec.chest_rear.offset))
+        (center, Vec3::from(spec.chest_rear.offset))
     }
 
-    fn mesh_tail_front(
-        &self,
-        species: DSpecies,
-        body_type: DBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_tail_front(&self, species: DSpecies, body_type: DBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2516,20 +2156,15 @@ impl DragonCenterSpec {
                     "No tail front specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let center = graceful_load_segment(&spec.tail_front.center.0);
 
-        generate_mesh(center, Vec3::from(spec.tail_front.offset))
+        (center, Vec3::from(spec.tail_front.offset))
     }
 
-    fn mesh_tail_rear(
-        &self,
-        species: DSpecies,
-        body_type: DBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_tail_rear(&self, species: DSpecies, body_type: DBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2537,21 +2172,16 @@ impl DragonCenterSpec {
                     "No tail rear specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let center = graceful_load_segment(&spec.tail_rear.center.0);
 
-        generate_mesh(center, Vec3::from(spec.tail_rear.offset))
+        (center, Vec3::from(spec.tail_rear.offset))
     }
 }
 impl DragonLateralSpec {
-    fn mesh_wing_in_l(
-        &self,
-        species: DSpecies,
-        body_type: DBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_wing_in_l(&self, species: DSpecies, body_type: DBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2559,20 +2189,15 @@ impl DragonLateralSpec {
                     "No wing specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.wing_in_l.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.wing_in_l.offset))
+        (lateral, Vec3::from(spec.wing_in_l.offset))
     }
 
-    fn mesh_wing_in_r(
-        &self,
-        species: DSpecies,
-        body_type: DBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_wing_in_r(&self, species: DSpecies, body_type: DBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2580,20 +2205,15 @@ impl DragonLateralSpec {
                     "No wing specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.wing_in_r.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.wing_in_r.offset))
+        (lateral, Vec3::from(spec.wing_in_r.offset))
     }
 
-    fn mesh_wing_out_l(
-        &self,
-        species: DSpecies,
-        body_type: DBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_wing_out_l(&self, species: DSpecies, body_type: DBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2601,20 +2221,15 @@ impl DragonLateralSpec {
                     "No wing specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.wing_out_l.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.wing_out_l.offset))
+        (lateral, Vec3::from(spec.wing_out_l.offset))
     }
 
-    fn mesh_wing_out_r(
-        &self,
-        species: DSpecies,
-        body_type: DBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_wing_out_r(&self, species: DSpecies, body_type: DBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2622,20 +2237,15 @@ impl DragonLateralSpec {
                     "No wing specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.wing_out_r.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.wing_out_r.offset))
+        (lateral, Vec3::from(spec.wing_out_r.offset))
     }
 
-    fn mesh_foot_fl(
-        &self,
-        species: DSpecies,
-        body_type: DBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_fl(&self, species: DSpecies, body_type: DBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2643,20 +2253,15 @@ impl DragonLateralSpec {
                     "No foot specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.foot_fl.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.foot_fl.offset))
+        (lateral, Vec3::from(spec.foot_fl.offset))
     }
 
-    fn mesh_foot_fr(
-        &self,
-        species: DSpecies,
-        body_type: DBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_fr(&self, species: DSpecies, body_type: DBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2664,20 +2269,15 @@ impl DragonLateralSpec {
                     "No foot specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.foot_fr.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.foot_fr.offset))
+        (lateral, Vec3::from(spec.foot_fr.offset))
     }
 
-    fn mesh_foot_bl(
-        &self,
-        species: DSpecies,
-        body_type: DBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_bl(&self, species: DSpecies, body_type: DBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2685,20 +2285,15 @@ impl DragonLateralSpec {
                     "No foot specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.foot_bl.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.foot_bl.offset))
+        (lateral, Vec3::from(spec.foot_bl.offset))
     }
 
-    fn mesh_foot_br(
-        &self,
-        species: DSpecies,
-        body_type: DBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_br(&self, species: DSpecies, body_type: DBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2706,12 +2301,12 @@ impl DragonLateralSpec {
                     "No foot specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.foot_br.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.foot_br.offset))
+        (lateral, Vec3::from(spec.foot_br.offset))
     }
 }
 
@@ -2719,20 +2314,12 @@ impl DragonLateralSpec {
 make_vox_spec!(
     bird_small::Body,
     struct BirdSmallSpec {},
-    |FigureKey { body, .. }, _spec, mut generate_mesh| {
+    |FigureKey { body, .. }, _spec| {
         [
-            Some(mesh_bird_small_head(body.head, |segment, offset| {
-                generate_mesh(segment, offset)
-            })),
-            Some(mesh_bird_small_torso(body.torso, |segment, offset| {
-                generate_mesh(segment, offset)
-            })),
-            Some(mesh_bird_small_wing_l(body.wing_l, |segment, offset| {
-                generate_mesh(segment, offset)
-            })),
-            Some(mesh_bird_small_wing_r(body.wing_r, |segment, offset| {
-                generate_mesh(segment, offset)
-            })),
+            Some(mesh_bird_small_head(body.head)),
+            Some(mesh_bird_small_torso(body.torso)),
+            Some(mesh_bird_small_wing_l(body.wing_l)),
+            Some(mesh_bird_small_wing_r(body.wing_r)),
             None,
             None,
             None,
@@ -2749,69 +2336,49 @@ make_vox_spec!(
     },
 );
 
-fn mesh_bird_small_head(
-    head: bird_small::Head,
-    generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-) -> BoneMeshes {
+fn mesh_bird_small_head(head: bird_small::Head) -> BoneMeshes {
     load_mesh(
         match head {
             bird_small::Head::Default => "npc.crow.head",
         },
         Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
     )
 }
 
-fn mesh_bird_small_torso(
-    torso: bird_small::Torso,
-    generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-) -> BoneMeshes {
+fn mesh_bird_small_torso(torso: bird_small::Torso) -> BoneMeshes {
     load_mesh(
         match torso {
             bird_small::Torso::Default => "npc.crow.torso",
         },
         Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
     )
 }
 
-fn mesh_bird_small_wing_l(
-    wing_l: bird_small::WingL,
-    generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-) -> BoneMeshes {
+fn mesh_bird_small_wing_l(wing_l: bird_small::WingL) -> BoneMeshes {
     load_mesh(
         match wing_l {
             bird_small::WingL::Default => "npc.crow.wing_l",
         },
         Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
     )
 }
 
-fn mesh_bird_small_wing_r(
-    wing_r: bird_small::WingR,
-    generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-) -> BoneMeshes {
+fn mesh_bird_small_wing_r(wing_r: bird_small::WingR) -> BoneMeshes {
     load_mesh(
         match wing_r {
             bird_small::WingR::Default => "npc.crow.wing_r",
         },
         Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
     )
 }
 ////
 make_vox_spec!(
     fish_small::Body,
     struct FishSmallSpec {},
-    |FigureKey { body, .. }, _spec, mut generate_mesh| {
+    |FigureKey { body, .. }, _spec| {
         [
-            Some(mesh_fish_small_torso(body.torso, |segment, offset| {
-                generate_mesh(segment, offset)
-            })),
-            Some(mesh_fish_small_tail(body.tail, |segment, offset| {
-                generate_mesh(segment, offset)
-            })),
+            Some(mesh_fish_small_torso(body.torso)),
+            Some(mesh_fish_small_tail(body.tail)),
             None,
             None,
             None,
@@ -2830,29 +2397,21 @@ make_vox_spec!(
     },
 );
 
-fn mesh_fish_small_torso(
-    torso: fish_small::Torso,
-    generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-) -> BoneMeshes {
+fn mesh_fish_small_torso(torso: fish_small::Torso) -> BoneMeshes {
     load_mesh(
         match torso {
             fish_small::Torso::Default => "npc.cardinalfish.torso",
         },
         Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
     )
 }
 
-fn mesh_fish_small_tail(
-    tail: fish_small::Tail,
-    generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-) -> BoneMeshes {
+fn mesh_fish_small_tail(tail: fish_small::Tail) -> BoneMeshes {
     load_mesh(
         match tail {
             fish_small::Tail::Default => "npc.cardinalfish.tail",
         },
         Vec3::new(-7.0, -6.0, -6.0),
-        generate_mesh,
     )
 }
 ////
@@ -2901,82 +2460,67 @@ make_vox_spec!(
         center: BipedLargeCenterSpec = "voxygen.voxel.biped_large_center_manifest",
         lateral: BipedLargeLateralSpec = "voxygen.voxel.biped_large_lateral_manifest",
     },
-    |FigureKey { body, .. }, spec, mut generate_mesh| {
+    |FigureKey { body, .. }, spec| {
         [
             Some(spec.center.asset.mesh_head(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.center.asset.mesh_jaw(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.center.asset.mesh_torso_upper(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.center.asset.mesh_torso_lower(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.center.asset.mesh_tail(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.center.asset.mesh_main(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.center.asset.mesh_second(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_shoulder_l(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_shoulder_r(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_hand_l(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_hand_r(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_leg_l(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_leg_r(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_l(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_r(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             None,
         ]
@@ -2984,12 +2528,7 @@ make_vox_spec!(
 );
 
 impl BipedLargeCenterSpec {
-    fn mesh_head(
-        &self,
-        species: BLSpecies,
-        body_type: BLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_head(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -2997,20 +2536,15 @@ impl BipedLargeCenterSpec {
                     "No head specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let center = graceful_load_segment(&spec.head.center.0);
 
-        generate_mesh(center, Vec3::from(spec.head.offset))
+        (center, Vec3::from(spec.head.offset))
     }
 
-    fn mesh_jaw(
-        &self,
-        species: BLSpecies,
-        body_type: BLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_jaw(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3018,20 +2552,15 @@ impl BipedLargeCenterSpec {
                     "No jaw specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let center = graceful_load_segment(&spec.jaw.center.0);
 
-        generate_mesh(center, Vec3::from(spec.jaw.offset))
+        (center, Vec3::from(spec.jaw.offset))
     }
 
-    fn mesh_torso_upper(
-        &self,
-        species: BLSpecies,
-        body_type: BLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_torso_upper(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3039,20 +2568,15 @@ impl BipedLargeCenterSpec {
                     "No torso upper specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let center = graceful_load_segment(&spec.torso_upper.center.0);
 
-        generate_mesh(center, Vec3::from(spec.torso_upper.offset))
+        (center, Vec3::from(spec.torso_upper.offset))
     }
 
-    fn mesh_torso_lower(
-        &self,
-        species: BLSpecies,
-        body_type: BLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_torso_lower(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3060,20 +2584,15 @@ impl BipedLargeCenterSpec {
                     "No torso lower specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let center = graceful_load_segment(&spec.torso_lower.center.0);
 
-        generate_mesh(center, Vec3::from(spec.torso_lower.offset))
+        (center, Vec3::from(spec.torso_lower.offset))
     }
 
-    fn mesh_tail(
-        &self,
-        species: BLSpecies,
-        body_type: BLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_tail(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3081,20 +2600,15 @@ impl BipedLargeCenterSpec {
                     "No tail specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let center = graceful_load_segment(&spec.tail.center.0);
 
-        generate_mesh(center, Vec3::from(spec.tail.offset))
+        (center, Vec3::from(spec.tail.offset))
     }
 
-    fn mesh_main(
-        &self,
-        species: BLSpecies,
-        body_type: BLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_main(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3102,20 +2616,15 @@ impl BipedLargeCenterSpec {
                     "No main weapon specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let center = graceful_load_segment(&spec.main.center.0);
 
-        generate_mesh(center, Vec3::from(spec.main.offset))
+        (center, Vec3::from(spec.main.offset))
     }
 
-    fn mesh_second(
-        &self,
-        species: BLSpecies,
-        body_type: BLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_second(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3123,21 +2632,16 @@ impl BipedLargeCenterSpec {
                     "No second weapon specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let center = graceful_load_segment(&spec.second.center.0);
 
-        generate_mesh(center, Vec3::from(spec.second.offset))
+        (center, Vec3::from(spec.second.offset))
     }
 }
 impl BipedLargeLateralSpec {
-    fn mesh_shoulder_l(
-        &self,
-        species: BLSpecies,
-        body_type: BLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_shoulder_l(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3145,20 +2649,15 @@ impl BipedLargeLateralSpec {
                     "No shoulder specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.shoulder_l.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.shoulder_l.offset))
+        (lateral, Vec3::from(spec.shoulder_l.offset))
     }
 
-    fn mesh_shoulder_r(
-        &self,
-        species: BLSpecies,
-        body_type: BLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_shoulder_r(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3166,20 +2665,15 @@ impl BipedLargeLateralSpec {
                     "No shoulder specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.shoulder_r.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.shoulder_r.offset))
+        (lateral, Vec3::from(spec.shoulder_r.offset))
     }
 
-    fn mesh_hand_l(
-        &self,
-        species: BLSpecies,
-        body_type: BLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_hand_l(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3187,20 +2681,15 @@ impl BipedLargeLateralSpec {
                     "No hand specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.hand_l.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.hand_l.offset))
+        (lateral, Vec3::from(spec.hand_l.offset))
     }
 
-    fn mesh_hand_r(
-        &self,
-        species: BLSpecies,
-        body_type: BLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_hand_r(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3208,20 +2697,15 @@ impl BipedLargeLateralSpec {
                     "No hand specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.hand_r.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.hand_r.offset))
+        (lateral, Vec3::from(spec.hand_r.offset))
     }
 
-    fn mesh_leg_l(
-        &self,
-        species: BLSpecies,
-        body_type: BLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_leg_l(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3229,20 +2713,15 @@ impl BipedLargeLateralSpec {
                     "No leg specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.leg_l.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.leg_l.offset))
+        (lateral, Vec3::from(spec.leg_l.offset))
     }
 
-    fn mesh_leg_r(
-        &self,
-        species: BLSpecies,
-        body_type: BLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_leg_r(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3250,20 +2729,15 @@ impl BipedLargeLateralSpec {
                     "No leg specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.leg_r.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.leg_r.offset))
+        (lateral, Vec3::from(spec.leg_r.offset))
     }
 
-    fn mesh_foot_l(
-        &self,
-        species: BLSpecies,
-        body_type: BLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_l(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3271,20 +2745,15 @@ impl BipedLargeLateralSpec {
                     "No foot specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.foot_l.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.foot_l.offset))
+        (lateral, Vec3::from(spec.foot_l.offset))
     }
 
-    fn mesh_foot_r(
-        &self,
-        species: BLSpecies,
-        body_type: BLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_r(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3292,12 +2761,12 @@ impl BipedLargeLateralSpec {
                     "No foot specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.foot_r.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.foot_r.offset))
+        (lateral, Vec3::from(spec.foot_r.offset))
     }
 }
 ////
@@ -3341,57 +2810,47 @@ make_vox_spec!(
         center: GolemCenterSpec = "voxygen.voxel.golem_center_manifest",
         lateral: GolemLateralSpec = "voxygen.voxel.golem_lateral_manifest",
     },
-    |FigureKey { body, .. }, spec, mut generate_mesh| {
+    |FigureKey { body, .. }, spec| {
         [
             Some(spec.center.asset.mesh_head(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.center.asset.mesh_torso_upper(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_shoulder_l(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_shoulder_r(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_hand_l(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_hand_r(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_leg_l(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_leg_r(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_l(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_r(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             None,
             None,
@@ -3404,12 +2863,7 @@ make_vox_spec!(
 );
 
 impl GolemCenterSpec {
-    fn mesh_head(
-        &self,
-        species: GSpecies,
-        body_type: GBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_head(&self, species: GSpecies, body_type: GBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3417,20 +2871,15 @@ impl GolemCenterSpec {
                     "No head specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let center = graceful_load_segment(&spec.head.center.0);
 
-        generate_mesh(center, Vec3::from(spec.head.offset))
+        (center, Vec3::from(spec.head.offset))
     }
 
-    fn mesh_torso_upper(
-        &self,
-        species: GSpecies,
-        body_type: GBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_torso_upper(&self, species: GSpecies, body_type: GBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3438,21 +2887,16 @@ impl GolemCenterSpec {
                     "No torso upper specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let center = graceful_load_segment(&spec.torso_upper.center.0);
 
-        generate_mesh(center, Vec3::from(spec.torso_upper.offset))
+        (center, Vec3::from(spec.torso_upper.offset))
     }
 }
 impl GolemLateralSpec {
-    fn mesh_shoulder_l(
-        &self,
-        species: GSpecies,
-        body_type: GBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_shoulder_l(&self, species: GSpecies, body_type: GBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3460,20 +2904,15 @@ impl GolemLateralSpec {
                     "No shoulder specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.shoulder_l.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.shoulder_l.offset))
+        (lateral, Vec3::from(spec.shoulder_l.offset))
     }
 
-    fn mesh_shoulder_r(
-        &self,
-        species: GSpecies,
-        body_type: GBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_shoulder_r(&self, species: GSpecies, body_type: GBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3481,20 +2920,15 @@ impl GolemLateralSpec {
                     "No shoulder specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.shoulder_r.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.shoulder_r.offset))
+        (lateral, Vec3::from(spec.shoulder_r.offset))
     }
 
-    fn mesh_hand_l(
-        &self,
-        species: GSpecies,
-        body_type: GBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_hand_l(&self, species: GSpecies, body_type: GBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3502,20 +2936,15 @@ impl GolemLateralSpec {
                     "No hand specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.hand_l.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.hand_l.offset))
+        (lateral, Vec3::from(spec.hand_l.offset))
     }
 
-    fn mesh_hand_r(
-        &self,
-        species: GSpecies,
-        body_type: GBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_hand_r(&self, species: GSpecies, body_type: GBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3523,20 +2952,15 @@ impl GolemLateralSpec {
                     "No hand specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.hand_r.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.hand_r.offset))
+        (lateral, Vec3::from(spec.hand_r.offset))
     }
 
-    fn mesh_leg_l(
-        &self,
-        species: GSpecies,
-        body_type: GBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_leg_l(&self, species: GSpecies, body_type: GBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3544,20 +2968,15 @@ impl GolemLateralSpec {
                     "No leg specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.leg_l.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.leg_l.offset))
+        (lateral, Vec3::from(spec.leg_l.offset))
     }
 
-    fn mesh_leg_r(
-        &self,
-        species: GSpecies,
-        body_type: GBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_leg_r(&self, species: GSpecies, body_type: GBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3565,20 +2984,15 @@ impl GolemLateralSpec {
                     "No leg specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.leg_r.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.leg_r.offset))
+        (lateral, Vec3::from(spec.leg_r.offset))
     }
 
-    fn mesh_foot_l(
-        &self,
-        species: GSpecies,
-        body_type: GBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_l(&self, species: GSpecies, body_type: GBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3586,20 +3000,15 @@ impl GolemLateralSpec {
                     "No foot specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.foot_l.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.foot_l.offset))
+        (lateral, Vec3::from(spec.foot_l.offset))
     }
 
-    fn mesh_foot_r(
-        &self,
-        species: GSpecies,
-        body_type: GBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_r(&self, species: GSpecies, body_type: GBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3607,12 +3016,12 @@ impl GolemLateralSpec {
                     "No foot specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.foot_r.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.foot_r.offset))
+        (lateral, Vec3::from(spec.foot_r.offset))
     }
 }
 
@@ -3657,57 +3066,47 @@ make_vox_spec!(
         central: QuadrupedLowCentralSpec = "voxygen.voxel.quadruped_low_central_manifest",
         lateral: QuadrupedLowLateralSpec = "voxygen.voxel.quadruped_low_lateral_manifest",
     },
-    |FigureKey { body, .. }, spec, mut generate_mesh| {
+    |FigureKey { body, .. }, spec| {
         [
             Some(spec.central.asset.mesh_head_upper(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.central.asset.mesh_head_lower(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.central.asset.mesh_jaw(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.central.asset.mesh_chest(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.central.asset.mesh_tail_front(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.central.asset.mesh_tail_rear(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_fl(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_fr(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_bl(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             Some(spec.lateral.asset.mesh_foot_br(
                 body.species,
                 body.body_type,
-                |segment, offset| generate_mesh(segment, offset),
             )),
             None,
             None,
@@ -3720,12 +3119,7 @@ make_vox_spec!(
 );
 
 impl QuadrupedLowCentralSpec {
-    fn mesh_head_upper(
-        &self,
-        species: QLSpecies,
-        body_type: QLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_head_upper(&self, species: QLSpecies, body_type: QLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3733,20 +3127,15 @@ impl QuadrupedLowCentralSpec {
                     "No upper head specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let central = graceful_load_segment(&spec.upper.central.0);
 
-        generate_mesh(central, Vec3::from(spec.upper.offset))
+        (central, Vec3::from(spec.upper.offset))
     }
 
-    fn mesh_head_lower(
-        &self,
-        species: QLSpecies,
-        body_type: QLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_head_lower(&self, species: QLSpecies, body_type: QLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3754,20 +3143,15 @@ impl QuadrupedLowCentralSpec {
                     "No lower head specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let central = graceful_load_segment(&spec.lower.central.0);
 
-        generate_mesh(central, Vec3::from(spec.lower.offset))
+        (central, Vec3::from(spec.lower.offset))
     }
 
-    fn mesh_jaw(
-        &self,
-        species: QLSpecies,
-        body_type: QLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_jaw(&self, species: QLSpecies, body_type: QLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3775,20 +3159,15 @@ impl QuadrupedLowCentralSpec {
                     "No jaw specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let central = graceful_load_segment(&spec.jaw.central.0);
 
-        generate_mesh(central, Vec3::from(spec.jaw.offset))
+        (central, Vec3::from(spec.jaw.offset))
     }
 
-    fn mesh_chest(
-        &self,
-        species: QLSpecies,
-        body_type: QLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_chest(&self, species: QLSpecies, body_type: QLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3796,20 +3175,15 @@ impl QuadrupedLowCentralSpec {
                     "No chest specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let central = graceful_load_segment(&spec.chest.central.0);
 
-        generate_mesh(central, Vec3::from(spec.chest.offset))
+        (central, Vec3::from(spec.chest.offset))
     }
 
-    fn mesh_tail_rear(
-        &self,
-        species: QLSpecies,
-        body_type: QLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_tail_rear(&self, species: QLSpecies, body_type: QLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3817,20 +3191,15 @@ impl QuadrupedLowCentralSpec {
                     "No tail_rear specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let central = graceful_load_segment(&spec.tail_rear.central.0);
 
-        generate_mesh(central, Vec3::from(spec.tail_rear.offset))
+        (central, Vec3::from(spec.tail_rear.offset))
     }
 
-    fn mesh_tail_front(
-        &self,
-        species: QLSpecies,
-        body_type: QLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_tail_front(&self, species: QLSpecies, body_type: QLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3838,22 +3207,17 @@ impl QuadrupedLowCentralSpec {
                     "No tail_front specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let central = graceful_load_segment(&spec.tail_front.central.0);
 
-        generate_mesh(central, Vec3::from(spec.tail_front.offset))
+        (central, Vec3::from(spec.tail_front.offset))
     }
 }
 
 impl QuadrupedLowLateralSpec {
-    fn mesh_foot_fl(
-        &self,
-        species: QLSpecies,
-        body_type: QLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_fl(&self, species: QLSpecies, body_type: QLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3861,20 +3225,15 @@ impl QuadrupedLowLateralSpec {
                     "No foot specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.front_left.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.front_left.offset))
+        (lateral, Vec3::from(spec.front_left.offset))
     }
 
-    fn mesh_foot_fr(
-        &self,
-        species: QLSpecies,
-        body_type: QLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_fr(&self, species: QLSpecies, body_type: QLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3882,20 +3241,15 @@ impl QuadrupedLowLateralSpec {
                     "No foot specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.front_right.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.front_right.offset))
+        (lateral, Vec3::from(spec.front_right.offset))
     }
 
-    fn mesh_foot_bl(
-        &self,
-        species: QLSpecies,
-        body_type: QLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_bl(&self, species: QLSpecies, body_type: QLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3903,20 +3257,15 @@ impl QuadrupedLowLateralSpec {
                     "No foot specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.back_left.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.back_left.offset))
+        (lateral, Vec3::from(spec.back_left.offset))
     }
 
-    fn mesh_foot_br(
-        &self,
-        species: QLSpecies,
-        body_type: QLBodyType,
-        generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> BoneMeshes {
+    fn mesh_foot_br(&self, species: QLSpecies, body_type: QLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
@@ -3924,12 +3273,12 @@ impl QuadrupedLowLateralSpec {
                     "No foot specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5), generate_mesh);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
         let lateral = graceful_load_segment(&spec.back_right.lateral.0);
 
-        generate_mesh(lateral, Vec3::from(spec.back_right.offset))
+        (lateral, Vec3::from(spec.back_right.offset))
     }
 }
 
@@ -3937,9 +3286,9 @@ impl QuadrupedLowLateralSpec {
 make_vox_spec!(
     object::Body,
     struct ObjectSpec {},
-    |FigureKey { body, .. }, _spec, generate_mesh| {
+    |FigureKey { body, .. }, _spec| {
         [
-            Some(mesh_object(body, generate_mesh)),
+            Some(mesh_object(body)),
             None,
             None,
             None,
@@ -3959,10 +3308,7 @@ make_vox_spec!(
     },
 );
 
-fn mesh_object(
-    obj: &object::Body,
-    generate_mesh: impl FnOnce(Segment, Vec3<f32>) -> BoneMeshes,
-) -> BoneMeshes {
+fn mesh_object(obj: &object::Body) -> BoneMeshes {
     use object::Body;
 
     let (name, offset) = match obj {
@@ -4051,5 +3397,5 @@ fn mesh_object(
         Body::TrainingDummy => ("object.training_dummy", Vec3::new(-7.0, -5.0, 0.0)),
         Body::MultiArrow => ("weapon.projectile.multi-arrow", Vec3::new(-4.0, -9.5, -5.0)),
     };
-    load_mesh(name, offset, generate_mesh)
+    load_mesh(name, offset)
 }

@@ -105,11 +105,6 @@ impl Vertex {
     {
         [col.r, col.g, col.b, light]
     }
-
-    /// Set the bone_idx for an existing figure vertex.
-    pub fn set_bone_idx(&mut self, bone_idx: u8) {
-        self.pos_norm = (self.pos_norm & !(0xF << 27)) | ((bone_idx as u32 & 0xF) << 27);
-    }
 }
 
 impl Locals {

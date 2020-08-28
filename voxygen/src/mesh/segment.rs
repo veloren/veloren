@@ -13,7 +13,6 @@ use common::{
     figure::Cell,
     vol::{BaseVol, ReadVol, SizedVol, Vox},
 };
-use core::ops::Range;
 use vek::*;
 
 type SpriteVertex = <SpritePipeline as render::Pipeline>::Vertex;
@@ -28,32 +27,26 @@ where
      * &'a V: BaseVol<Vox=Cell>, */
 {
     type Pipeline = TerrainPipeline;
-    /// NOTE: The result provides the (roughly) computed bounds for the model,
-    /// and the vertex range meshed for this model; we return this instead
-    /// of the full opaque mesh so we can avoid allocating a separate mesh
-    /// for each bone.
-    ///
-    /// Later, we can iterate through the bone array and correctly assign bone
-    /// ids to all vertices in range for each segment.
-    ///
-    /// FIXME: A refactor of the figure cache to not just return an array of
-    /// models (thus allowing us to knoe the bone index ahead of time) would
-    /// avoid needing per-bone information at all.
-    type Result = (math::Aabb<f32>, Range<usize>);
+    type Result = math::Aabb<f32>;
     type ShadowPipeline = ShadowPipeline;
+    /// NOTE: bone_idx must be in [0, 15] (may be bumped to [0, 31] at some
+    /// point).
     type Supplement = (
         &'b mut GreedyMesh<'a>,
         &'b mut Mesh<Self::Pipeline>,
         Vec3<f32>,
         Vec3<f32>,
+        u8,
     );
     type TranslucentPipeline = FigurePipeline;
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn generate_mesh(
         self,
-        (greedy, opaque_mesh, offs, scale): Self::Supplement,
+        (greedy, opaque_mesh, offs, scale, bone_idx): Self::Supplement,
     ) -> MeshGen<FigurePipeline, &'b mut GreedyMesh<'a>, Self> {
+        assert!(bone_idx <= 15, "Bone index for figures must be in [0, 15]");
+
         let max_size = greedy.max_size();
         // NOTE: Required because we steal two bits from the normal in the shadow uint
         // in order to store the bone index.  The two bits are instead taken out
@@ -98,10 +91,9 @@ where
             })
         };
         let create_opaque = |atlas_pos, pos, norm| {
-            TerrainVertex::new_figure(atlas_pos, (pos + offs) * scale, norm, 0)
+            TerrainVertex::new_figure(atlas_pos, (pos + offs) * scale, norm, bone_idx)
         };
 
-        let start = opaque_mesh.vertices().len();
         greedy.push(GreedyConfig {
             data: self,
             draw_delta,
@@ -129,14 +121,8 @@ where
             max: math::Vec3::from((upper_bound.as_::<f32>() + offs) * scale),
         }
         .made_valid();
-        let vertex_range = start..opaque_mesh.vertices().len();
 
-        (
-            Mesh::new(),
-            Mesh::new(),
-            Mesh::new(),
-            (bounds, vertex_range),
-        )
+        (Mesh::new(), Mesh::new(), Mesh::new(), bounds)
     }
 }
 
