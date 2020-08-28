@@ -1120,6 +1120,7 @@ fn handle_explosion(
                     owner: ecs.read_storage::<Uid>().get(target).copied(),
                     friendly_damage: true,
                     reagent: None,
+                    percent_damage: 1.0,
                 })
         },
         None => server.notify_client(

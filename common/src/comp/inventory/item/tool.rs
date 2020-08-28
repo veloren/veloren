@@ -313,14 +313,37 @@ impl Tool {
                             lifesteal_eff: 0.25,
                             energy_regen: 120,
                         },
-                        BasicMelee {
-                            energy_cost: 350,
-                            buildup_duration: Duration::from_millis(0),
-                            recover_duration: Duration::from_millis(1000),
-                            base_healthchange: (150.0 * self.base_power()) as i32,
-                            knockback: 0.0,
-                            range: 100.0,
-                            max_angle: 90.0,
+                        BasicRanged {
+                            energy_cost: 400,
+                            holdable: true,
+                            prepare_duration: Duration::from_millis(800),
+                            recover_duration: Duration::from_millis(50),
+                            projectile: Projectile {
+                                hit_solid: vec![
+                                    projectile::Effect::Explode {
+                                        power: 1.4 * self.base_power(),
+                                        percent_damage: 0.2,
+                                    },
+                                    projectile::Effect::Vanish,
+                                ],
+                                hit_entity: vec![
+                                    projectile::Effect::Explode {
+                                        power: 1.4 * self.base_power(),
+                                        percent_damage: 0.2,
+                                    },
+                                    projectile::Effect::Vanish,
+                                ],
+                                time_left: Duration::from_secs(20),
+                                owner: None,
+                                ignore_group: true,
+                            },
+                            projectile_body: Body::Object(object::Body::BoltFireBig),
+                            projectile_light: Some(LightEmitter {
+                                col: (0.0, 1.0, 0.0).into(),
+                                ..Default::default()
+                            }),
+                            projectile_gravity: None,
+                            projectile_speed: 25.0,
                         },
                     ]
                 } else {
@@ -368,12 +391,14 @@ impl Tool {
                                 hit_solid: vec![
                                     projectile::Effect::Explode {
                                         power: 1.4 * self.base_power(),
+                                        percent_damage: 1.0,
                                     },
                                     projectile::Effect::Vanish,
                                 ],
                                 hit_entity: vec![
                                     projectile::Effect::Explode {
                                         power: 1.4 * self.base_power(),
+                                        percent_damage: 1.0,
                                     },
                                     projectile::Effect::Vanish,
                                 ],

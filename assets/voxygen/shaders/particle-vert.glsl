@@ -251,10 +251,10 @@ void main() {
 		);
 	} else if (inst_mode == HEALING_BEAM) {
 		attr = Attr(
-			vec3(rand0 * 0.2, rand1 * 0.2, rand2 * 0.2 + 1),
-			1,
+			vec3(rand0 * lifetime * 15, rand1 * lifetime * 15, rand2 * lifetime * 15 + 1),
+			1 + rand3,
 			vec4(vec3(0, 1, 0), 1),
-			spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
+			spin_in_axis(vec3(1, 0, 0), 0)
 		);
 	} else {
 		attr = Attr(
