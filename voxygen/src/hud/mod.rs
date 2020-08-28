@@ -2166,7 +2166,7 @@ impl Hud {
                         .replace("{key}", freelook_key.to_string().as_str()),
                 )
                 .color(TEXT_BG)
-                .mid_top_with_margin_on(ui_widgets.window, 130.0)
+                .mid_top_with_margin_on(ui_widgets.window, 40.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(20))
                 .set(self.ids.free_look_bg, ui_widgets);
@@ -2188,10 +2188,7 @@ impl Hud {
         if self.show.auto_walk {
             Text::new(&self.voxygen_i18n.get("hud.auto_walk_indicator"))
                 .color(TEXT_BG)
-                .mid_top_with_margin_on(
-                    ui_widgets.window,
-                    if self.show.free_look { 128.0 } else { 100.0 },
-                )
+                .mid_top_with_margin_on(ui_widgets.window, 70.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(20))
                 .set(self.ids.auto_walk_bg, ui_widgets);
