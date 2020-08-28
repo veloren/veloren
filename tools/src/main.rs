@@ -5,10 +5,14 @@ use std::{
 };
 use structopt::StructOpt;
 
-use common::{assets, comp};
+use common::{
+    assets::{self, Asset},
+    comp,
+};
 use comp::item::{
     armor::{ArmorKind, Protection},
     tool::ToolKind,
+    ItemAsset,
 };
 
 #[derive(StructOpt)]
@@ -43,7 +47,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                         .to_string()
                         .replace("/", ".");
 
-                    let asset = assets::load_expect_cloned::<comp::Item>(asset_identifier);
+                    let asset = ItemAsset::load_expect_cloned(asset_identifier);
 
                     match &asset.kind {
                         comp::item::ItemKind::Armor(armor) => {
@@ -109,7 +113,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                         .display()
                         .to_string()
                         .replace("/", ".");
-                    let asset = assets::load_expect_cloned::<comp::Item>(asset_identifier);
+                    let asset = ItemAsset::load_expect_cloned(asset_identifier);
 
                     match &asset.kind {
                         comp::item::ItemKind::Tool(tool) => {

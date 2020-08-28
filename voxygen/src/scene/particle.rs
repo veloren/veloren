@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use common::{
-    assets,
+    assets::Asset,
     comp::{item::Reagent, object, Body, CharacterState, Pos},
     figure::Segment,
     outcome::Outcome,
@@ -369,7 +369,7 @@ fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<Particl
     let mut model_cache = HashMap::new();
 
     model_cache.entry(DEFAULT_MODEL_KEY).or_insert_with(|| {
-        let vox = assets::load_expect::<DotVoxData>(DEFAULT_MODEL_KEY);
+        let vox = DotVoxData::load_expect(DEFAULT_MODEL_KEY);
 
         // NOTE: If we add texturing we may eventually try to share it among all
         // particles in a single atlas.

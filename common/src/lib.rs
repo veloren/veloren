@@ -1,9 +1,12 @@
 #![deny(unsafe_code)]
 #![allow(clippy::option_map_unit_fn)]
+#![allow(incomplete_features)]
 #![type_length_limit = "1664759"]
 #![feature(
     arbitrary_enum_discriminant,
+    associated_type_defaults,
     const_checked_int_methods,
+    const_generics,
     fundamental,
     option_unwrap_none,
     bool_to_option,

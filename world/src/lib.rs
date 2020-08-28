@@ -34,7 +34,6 @@ use crate::{
     util::{Grid, Sampler},
 };
 use common::{
-    assets::{self, Asset},
     comp::{self, bird_medium, critter, quadruped_low, quadruped_medium, quadruped_small},
     generation::{ChunkSupplement, EntityInfo},
     msg::server::WorldMapMsg,
@@ -42,8 +41,8 @@ use common::{
     vol::{ReadVol, RectVolSize, Vox, WriteVol},
 };
 use rand::Rng;
-use serde::{Deserialize, Serialize};
-use std::{fs::File, io::BufReader, time::Duration};
+use serde::Deserialize;
+use std::time::Duration;
 use vek::*;
 
 #[derive(Debug)]
@@ -56,21 +55,13 @@ pub struct World {
     civs: civ::Civs,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize)]
 pub struct Colors {
     pub deep_stone_color: (u8, u8, u8),
     pub block: block::Colors,
     pub column: column::Colors,
     pub layer: layer::Colors,
     pub site: site::Colors,
-}
-
-impl Asset for Colors {
-    const ENDINGS: &'static [&'static str] = &["ron"];
-
-    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
-    }
 }
 
 impl World {

@@ -15,7 +15,7 @@ use common::{
 };
 use core::f32;
 use rand::prelude::*;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use vek::*;
 
 struct Keep {
@@ -49,7 +49,7 @@ pub struct GenCtx<'a, R: Rng> {
     rng: &'a mut R,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize)]
 pub struct Colors;
 
 impl Castle {

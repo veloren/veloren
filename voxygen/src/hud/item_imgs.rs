@@ -97,7 +97,7 @@ impl ItemImgs {
     pub fn new(ui: &mut Ui, not_found: Id) -> Self {
         let mut indicator = ReloadIndicator::new();
         Self {
-            map: assets::load_watched::<ItemImagesSpec>(
+            map: ItemImagesSpec::load_watched(
                 "voxygen.item_image_manifest",
                 &mut indicator,
             )
@@ -118,7 +118,7 @@ impl ItemImgs {
     /// Reuses img ids
     pub fn reload_if_changed(&mut self, ui: &mut Ui) {
         if self.indicator.reloaded() {
-            for (kind, spec) in assets::load::<ItemImagesSpec>("voxygen.item_image_manifest")
+            for (kind, spec) in ItemImagesSpec::load("voxygen.item_image_manifest")
                 .expect("Unable to load item image manifest")
                 .0
                 .iter()
@@ -160,21 +160,21 @@ impl ItemImgs {
 // TODO: remove code dup?
 fn graceful_load_vox(specifier: &str) -> Arc<DotVoxData> {
     let full_specifier: String = ["voxygen.", specifier].concat();
-    match assets::load::<DotVoxData>(full_specifier.as_str()) {
+    match DotVoxData::load(full_specifier.as_str()) {
         Ok(dot_vox) => dot_vox,
         Err(_) => {
             error!(?full_specifier, "Could not load vox file for item images",);
-            assets::load_expect::<DotVoxData>("voxygen.voxel.not_found")
+            DotVoxData::load_expect("voxygen.voxel.not_found")
         },
     }
 }
 fn graceful_load_img(specifier: &str) -> Arc<DynamicImage> {
     let full_specifier: String = ["voxygen.", specifier].concat();
-    match assets::load::<DynamicImage>(full_specifier.as_str()) {
+    match DynamicImage::load(full_specifier.as_str()) {
         Ok(img) => img,
         Err(_) => {
             error!(?full_specifier, "Could not load image file for item images");
-            assets::load_expect::<DynamicImage>("voxygen.element.not_found")
+            DynamicImage::load_expect("voxygen.element.not_found")
         },
     }
 }

@@ -1,9 +1,10 @@
 use super::*;
+use crate::assets::Asset;
 use lazy_static::lazy_static;
 lazy_static! {
     static ref TEST_ITEMS: Vec<Item> = vec![
-        assets::load_expect_cloned("common.items.debug.boost"),
-        assets::load_expect_cloned("common.items.debug.possess")
+        item::ItemAsset::load_expect_cloned("common.items.debug.boost"),
+        item::ItemAsset::load_expect_cloned("common.items.debug.possess")
     ];
 }
 

@@ -1,12 +1,12 @@
-(
-    [        
-        (
-            specifier: "world.structure.natural.witch-hut",
-            center: (10, 13, 9)
-        ),
-        (
-            specifier: "world.structure.natural.tree-house",
-            center: (20, 15, 10)
-        ),
-    ]
-)
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.natural.witch-hut",
+        center: (10, 13, 9)
+    ),
+    (
+        specifier: "world.structure.natural.tree-house",
+        center: (20, 15, 10)
+    ),
+]

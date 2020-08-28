@@ -1,5 +1,7 @@
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
 
+pub type Body = ();
+
 #[derive(Clone, Default)]
 pub struct FixtureSkeleton;
 
@@ -17,6 +19,7 @@ impl<'a, Factor> Lerp<Factor> for &'a FixtureSkeleton {
 
 impl Skeleton for FixtureSkeleton {
     type Attr = SkeletonAttr;
+    type Body = Body;
 
     const BONE_COUNT: usize = 1;
     #[cfg(feature = "use-dyn-lib")]
@@ -32,4 +35,12 @@ impl Skeleton for FixtureSkeleton {
         buf[0] = make_bone(base_mat);
         Vec3::default()
     }
+}
+
+impl Default for SkeletonAttr {
+    fn default() -> Self { Self }
+}
+
+impl<'a> From<&'a Body> for SkeletonAttr {
+    fn from(_body: &'a Body) -> Self { Self }
 }

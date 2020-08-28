@@ -1,8 +1,12 @@
 use super::SysTimer;
 use crate::{chunk_generator::ChunkGenerator, client::Client, Tick};
 use common::{
-    assets,
-    comp::{self, bird_medium, item, Alignment, CharacterAbility, ItemConfig, Player, Pos},
+    assets::Asset,
+    comp::{
+        self, bird_medium,
+        item::{self, ItemAsset},
+        Alignment, CharacterAbility, ItemConfig, Player, Pos,
+    },
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
     msg::ServerMsg,
@@ -135,7 +139,7 @@ impl<'a> System<'a> for Sys {
                     } else {
                         Some(ItemConfig {
                             // We need the empty item so npcs can attack
-                            item: assets::load_expect_cloned("common.items.weapons.empty.empty"),
+                            item: ItemAsset::load_expect_cloned("common.items.weapons.empty.empty"),
                             ability1: Some(CharacterAbility::BasicMelee {
                                 energy_cost: 0,
                                 buildup_duration: Duration::from_millis(0),
@@ -156,7 +160,7 @@ impl<'a> System<'a> for Sys {
                         active_item,
                         second_item: None,
                         shoulder: None,
-                        chest: Some(assets::load_expect_cloned(
+                        chest: Some(ItemAsset::load_expect_cloned(
                             match rand::thread_rng().gen_range(0, 10) {
                                 0 => "common.items.npc_armor.chest.worker_green_0",
                                 1 => "common.items.npc_armor.chest.worker_green_1",
@@ -170,14 +174,14 @@ impl<'a> System<'a> for Sys {
                                 _ => "common.items.npc_armor.chest.worker_orange_1",
                             },
                         )),
-                        belt: Some(assets::load_expect_cloned(
+                        belt: Some(ItemAsset::load_expect_cloned(
                             "common.items.armor.belt.leather_0",
                         )),
                         hand: None,
-                        pants: Some(assets::load_expect_cloned(
+                        pants: Some(ItemAsset::load_expect_cloned(
                             "common.items.armor.pants.worker_blue_0",
                         )),
-                        foot: Some(assets::load_expect_cloned(
+                        foot: Some(ItemAsset::load_expect_cloned(
                             match rand::thread_rng().gen_range(0, 2) {
                                 0 => "common.items.armor.foot.leather_0",
                                 _ => "common.items.armor.starter.sandals_0",
@@ -193,30 +197,32 @@ impl<'a> System<'a> for Sys {
                     comp::Alignment::Enemy => comp::Loadout {
                         active_item,
                         second_item: None,
-                        shoulder: Some(assets::load_expect_cloned(
+                        shoulder: Some(ItemAsset::load_expect_cloned(
                             "common.items.npc_armor.shoulder.cultist_shoulder_purple",
                         )),
-                        chest: Some(assets::load_expect_cloned(
+                        chest: Some(ItemAsset::load_expect_cloned(
                             "common.items.npc_armor.chest.cultist_chest_purple",
                         )),
-                        belt: Some(assets::load_expect_cloned(
+                        belt: Some(ItemAsset::load_expect_cloned(
                             "common.items.npc_armor.belt.cultist_belt",
                         )),
-                        hand: Some(assets::load_expect_cloned(
+                        hand: Some(ItemAsset::load_expect_cloned(
                             "common.items.npc_armor.hand.cultist_hands_purple",
                         )),
-                        pants: Some(assets::load_expect_cloned(
+                        pants: Some(ItemAsset::load_expect_cloned(
                             "common.items.npc_armor.pants.cultist_legs_purple",
                         )),
-                        foot: Some(assets::load_expect_cloned(
+                        foot: Some(ItemAsset::load_expect_cloned(
                             "common.items.npc_armor.foot.cultist_boots",
                         )),
-                        back: Some(assets::load_expect_cloned(
+                        back: Some(ItemAsset::load_expect_cloned(
                             "common.items.npc_armor.back.dungeon_purple-0",
                         )),
                         ring: None,
                         neck: None,
-                        lantern: Some(assets::load_expect_cloned("common.items.lantern.black_0")),
+                        lantern: Some(ItemAsset::load_expect_cloned(
+                            "common.items.lantern.black_0",
+                        )),
                         head: None,
                         tabard: None,
                     },
@@ -259,7 +265,7 @@ impl<'a> System<'a> for Sys {
                     }
                     loadout = comp::Loadout {
                         active_item: Some(comp::ItemConfig {
-                            item: assets::load_expect_cloned(
+                            item: ItemAsset::load_expect_cloned(
                                 "common.items.npc_weapons.sword.zweihander_sword_0",
                             ),
                             ability1: Some(CharacterAbility::BasicMelee {
@@ -276,22 +282,22 @@ impl<'a> System<'a> for Sys {
                             dodge_ability: None,
                         }),
                         second_item: None,
-                        shoulder: Some(assets::load_expect_cloned(
+                        shoulder: Some(ItemAsset::load_expect_cloned(
                             "common.items.armor.shoulder.plate_0",
                         )),
-                        chest: Some(assets::load_expect_cloned(
+                        chest: Some(ItemAsset::load_expect_cloned(
                             "common.items.armor.chest.plate_green_0",
                         )),
-                        belt: Some(assets::load_expect_cloned(
+                        belt: Some(ItemAsset::load_expect_cloned(
                             "common.items.armor.belt.plate_0",
                         )),
-                        hand: Some(assets::load_expect_cloned(
+                        hand: Some(ItemAsset::load_expect_cloned(
                             "common.items.armor.hand.plate_0",
                         )),
-                        pants: Some(assets::load_expect_cloned(
+                        pants: Some(ItemAsset::load_expect_cloned(
                             "common.items.armor.pants.plate_green_0",
                         )),
-                        foot: Some(assets::load_expect_cloned(
+                        foot: Some(ItemAsset::load_expect_cloned(
                             "common.items.armor.foot.plate_0",
                         )),
                         back: None,

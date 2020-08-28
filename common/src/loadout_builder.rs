@@ -1,7 +1,7 @@
 use crate::{
-    assets,
+    assets::Asset,
     comp::{
-        item::{Item, ItemKind},
+        item::{Item, ItemAsset, ItemKind},
         Body, CharacterAbility, ItemConfig, Loadout,
     },
 };
@@ -48,16 +48,16 @@ impl LoadoutBuilder {
     /// Set default armor items for the loadout. This may vary with game
     /// updates, but should be safe defaults for a new character.
     pub fn defaults(self) -> Self {
-        self.chest(Some(assets::load_expect_cloned(
+        self.chest(Some(ItemAsset::load_expect_cloned(
             "common.items.armor.starter.rugged_chest",
         )))
-        .pants(Some(assets::load_expect_cloned(
+        .pants(Some(ItemAsset::load_expect_cloned(
             "common.items.armor.starter.rugged_pants",
         )))
-        .foot(Some(assets::load_expect_cloned(
+        .foot(Some(ItemAsset::load_expect_cloned(
             "common.items.armor.starter.sandals_0",
         )))
-        .lantern(Some(assets::load_expect_cloned(
+        .lantern(Some(ItemAsset::load_expect_cloned(
             "common.items.armor.starter.lantern",
         )))
     }
@@ -66,7 +66,7 @@ impl LoadoutBuilder {
     pub fn animal(body: Body) -> Self {
         Self(Loadout {
             active_item: Some(ItemConfig {
-                item: assets::load_expect_cloned("common.items.weapons.empty.empty"),
+                item: ItemAsset::load_expect_cloned("common.items.weapons.empty.empty"),
                 ability1: Some(CharacterAbility::BasicMelee {
                     energy_cost: 10,
                     buildup_duration: Duration::from_millis(600),
@@ -125,7 +125,7 @@ impl LoadoutBuilder {
     /// Get an [Item](../comp/struct.Item.html) by its string
     /// reference by loading its asset
     pub fn item_from_str(item_ref: Option<&str>) -> Option<Item> {
-        item_ref.and_then(|specifier| assets::load_cloned::<Item>(&specifier).ok())
+        item_ref.and_then(|specifier| ItemAsset::load_cloned(&specifier).ok())
     }
 
     /// Get an item's (weapon's) default

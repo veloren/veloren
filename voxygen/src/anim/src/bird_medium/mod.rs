@@ -6,9 +6,11 @@ pub mod run;
 // Reexports
 pub use self::{feed::FeedAnimation, fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation};
 
-use super::{make_bone, vek::*, Bone, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Skeleton};
 use common::comp::{self};
 use core::convert::TryFrom;
+
+pub type Body = comp::bird_medium::Body;
 
 skeleton_impls!(struct BirdMediumSkeleton {
     + head,
@@ -22,6 +24,7 @@ skeleton_impls!(struct BirdMediumSkeleton {
 
 impl Skeleton for BirdMediumSkeleton {
     type Attr = SkeletonAttr;
+    type Body = Body;
 
     const BONE_COUNT: usize = 7;
     #[cfg(feature = "use-dyn-lib")]
@@ -82,8 +85,8 @@ impl Default for SkeletonAttr {
     }
 }
 
-impl<'a> From<&'a comp::bird_medium::Body> for SkeletonAttr {
-    fn from(body: &'a comp::bird_medium::Body) -> Self {
+impl<'a> From<&'a Body> for SkeletonAttr {
+    fn from(body: &'a Body) -> Self {
         use comp::bird_medium::Species::*;
         Self {
             head: match (body.species, body.body_type) {

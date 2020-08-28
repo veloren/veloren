@@ -1,7 +1,4 @@
-use common::{
-    assets,
-    assets::{load_expect, load_glob, Asset},
-};
+use common::assets::{self, Asset};
 use deunicode::deunicode;
 use ron::de::from_reader;
 use serde_derive::*;
@@ -100,7 +97,7 @@ impl VoxygenLocalization {
     /// Return the missing keys compared to the reference language
     pub fn list_missing_entries(&self) -> (HashSet<String>, HashSet<String>) {
         let reference_localization =
-            load_expect::<VoxygenLocalization>(i18n_asset_key(REFERENCE_LANG).as_ref());
+            VoxygenLocalization::load_expect(i18n_asset_key(REFERENCE_LANG).as_ref());
 
         let reference_string_keys: HashSet<_> =
             reference_localization.string_map.keys().cloned().collect();
@@ -169,7 +166,7 @@ impl Asset for VoxygenLocalization {
 /// Load all the available languages located in the Voxygen asset directory
 pub fn list_localizations() -> Vec<LanguageMetadata> {
     let voxygen_locales_assets = "voxygen.i18n.*";
-    let lang_list = load_glob::<VoxygenLocalization>(voxygen_locales_assets).unwrap();
+    let lang_list = VoxygenLocalization::load_glob(voxygen_locales_assets).unwrap();
     lang_list.iter().map(|e| (*e).metadata.clone()).collect()
 }
 

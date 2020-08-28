@@ -1,24 +1,24 @@
-(
-    [
-        (
-            specifier: "world.tree.acacia.1",
-            center: (17, 18, 4)
-        ),
-        (
-            specifier: "world.tree.acacia.2",
-            center: (5, 5, 4)
-        ),
-        (
-            specifier: "world.tree.acacia.3",
-            center: (6, 6, 3)
-        ),
-        (
-            specifier: "world.tree.acacia.4",
-            center: (12, 14, 4)
-        ),
-        (
-            specifier: "world.tree.acacia.5",
-            center: (19, 19, 4)
-        ),
-    ]
-)
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.tree.acacia.1",
+        center: (17, 18, 4)
+    ),
+    (
+        specifier: "world.tree.acacia.2",
+        center: (5, 5, 4)
+    ),
+    (
+        specifier: "world.tree.acacia.3",
+        center: (6, 6, 3)
+    ),
+    (
+        specifier: "world.tree.acacia.4",
+        center: (12, 14, 4)
+    ),
+    (
+        specifier: "world.tree.acacia.5",
+        center: (19, 19, 4)
+    ),
+]

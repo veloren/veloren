@@ -1,6 +1,6 @@
 use super::{Graphic, SampleStrat, Transform};
 use common::{
-    assets::{load, Error},
+    assets::{Asset, Error},
     figure::Segment,
 };
 use dot_vox::DotVoxData;
@@ -24,7 +24,7 @@ impl<'a> GraphicCreator<'a> for ImageGraphic {
     type Specifier = &'a str;
 
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
-        Ok(Graphic::Image(load::<DynamicImage>(specifier)?, None))
+        Ok(Graphic::Image(DynamicImage::load(specifier)?, None))
     }
 }
 
@@ -37,7 +37,7 @@ pub enum VoxelSs9Graphic {}
 pub enum VoxelPixArtGraphic {}
 
 fn load_segment(specifier: &str) -> Result<Arc<Segment>, Error> {
-    let dot_vox = load::<DotVoxData>(specifier)?;
+    let dot_vox = DotVoxData::load(specifier)?;
     let seg = dot_vox.as_ref().into();
     Ok(Arc::new(seg))
 }

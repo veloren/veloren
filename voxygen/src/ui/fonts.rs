@@ -1,4 +1,5 @@
 use crate::i18n::{Font, VoxygenFonts};
+use common::assets::Asset;
 
 pub struct ConrodVoxygenFont {
     metadata: Font,
@@ -10,7 +11,7 @@ impl ConrodVoxygenFont {
     pub fn new(font: &Font, ui: &mut crate::ui::Ui) -> ConrodVoxygenFont {
         return Self {
             metadata: font.clone(),
-            conrod_id: ui.new_font(common::assets::load_expect(&font.asset_key)),
+            conrod_id: ui.new_font(crate::ui::Font::load_expect(&font.asset_key)),
         };
     }
 
