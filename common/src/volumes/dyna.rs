@@ -59,6 +59,14 @@ impl<V: Vox, M, A: Access> SizedVol for Dyna<V, M, A> {
     fn upper_bound(&self) -> Vec3<i32> { self.sz.map(|e| e as i32) }
 }
 
+impl<'a, V: Vox, M, A: Access> SizedVol for &'a Dyna<V, M, A> {
+    #[inline(always)]
+    fn lower_bound(&self) -> Vec3<i32> { (*self).lower_bound() }
+
+    #[inline(always)]
+    fn upper_bound(&self) -> Vec3<i32> { (*self).upper_bound() }
+}
+
 impl<V: Vox, M, A: Access> ReadVol for Dyna<V, M, A> {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&V, DynaError> {

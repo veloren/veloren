@@ -50,11 +50,12 @@ fn generate_mesh<'a>(
     mesh: &mut Mesh<TerrainPipeline>,
     segment: Segment,
     offset: Vec3<f32>,
+    bone_idx: u8,
 ) -> BoneMeshes {
     let (opaque, _, /* shadow */ _, bounds) =
         Meshable::<FigurePipeline, &mut GreedyMesh>::generate_mesh(
             segment,
-            (greedy, mesh, offset, Vec3::one()),
+            (greedy, mesh, offset, Vec3::one(), bone_idx),
         );
     (opaque /* , shadow */, bounds)
 }
@@ -154,16 +155,14 @@ impl Scene {
                 let mut state = FigureState::new(renderer, FixtureSkeleton::default());
                 let mut greedy = FigureModel::make_greedy();
                 let mut opaque_mesh = Mesh::new();
-                let (_opaque_mesh, (bounds, range)) = load_mesh(
-                    specifier,
-                    Vec3::new(-55.0, -49.5, -2.0),
-                    |segment, offset| generate_mesh(&mut greedy, &mut opaque_mesh, segment, offset),
-                );
+                let (segment, offset) = load_mesh(specifier, Vec3::new(-55.0, -49.5, -2.0));
+                let (_opaque_mesh, bounds) =
+                    generate_mesh(&mut greedy, &mut opaque_mesh, segment, offset, 0);
                 // NOTE: Since MagicaVoxel sizes are limited to 256 × 256 × 256, and there are
                 // at most 3 meshed vertices per unique vertex, we know the
                 // total size is bounded by 2^24 * 3 * 1.5 which is bounded by
                 // 2^27, which fits in a u32.
-                let range = range.start as u32..range.end as u32;
+                let range = 0..opaque_mesh.vertices().len() as u32;
                 let model = col_lights
                     .create_figure(renderer, greedy.finalize(), (opaque_mesh, bounds), [range])
                     .unwrap();
