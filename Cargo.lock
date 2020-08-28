@@ -4800,6 +4800,7 @@ dependencies = [
  "directories-next",
  "dispatch 0.1.4",
  "dot_vox",
+ "enum-iterator",
  "euc",
  "failure",
  "gfx",
