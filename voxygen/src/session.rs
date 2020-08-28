@@ -13,7 +13,7 @@ use crate::{
 };
 use client::{self, Client};
 use common::{
-    assets::{load_expect, load_watched},
+    assets::Asset,
     comp,
     comp::{
         ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel, MAX_MOUNT_RANGE_SQR,
@@ -72,7 +72,7 @@ impl SessionState {
             .camera_mut()
             .set_fov_deg(global_state.settings.graphics.fov);
         let hud = Hud::new(global_state, &client.borrow());
-        let voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+        let voxygen_i18n = VoxygenLocalization::load_expect(&i18n_asset_key(
             &global_state.settings.language.selected_language,
         ));
 
@@ -196,7 +196,7 @@ impl PlayState for SessionState {
 
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
         // NOTE: Not strictly necessary, but useful for hotloading translation changes.
-        self.voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+        self.voxygen_i18n = VoxygenLocalization::load_expect(&i18n_asset_key(
             &global_state.settings.language.selected_language,
         ));
 
@@ -991,7 +991,7 @@ impl PlayState for SessionState {
                     HudEvent::ChangeLanguage(new_language) => {
                         global_state.settings.language.selected_language =
                             new_language.language_identifier;
-                        self.voxygen_i18n = load_watched::<VoxygenLocalization>(
+                        self.voxygen_i18n = VoxygenLocalization::load_watched(
                             &i18n_asset_key(&global_state.settings.language.selected_language),
                             &mut global_state.localization_watcher,
                         )

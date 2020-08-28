@@ -13,10 +13,10 @@ use common::{
     vol::{ReadVol, Vox},
 };
 use core::ops::{Div, Mul, Range};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use vek::*;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize)]
 pub struct Colors {
     pub pyramid: (u8, u8, u8),
     // TODO(@Sharp): After the merge, construct enough infrastructure to make it convenient to

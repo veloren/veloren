@@ -9,14 +9,14 @@ macro_rules! skeleton_impls {
         #[derive(Clone, Default)]
         pub struct $Skeleton {
             $(
-                $bone: Bone,
+                $bone: $crate::Bone,
             )*
         }
 
-        impl<'a, Factor> Lerp<Factor> for &'a $Skeleton
+        impl<'a, Factor> $crate::vek::Lerp<Factor> for &'a $Skeleton
             where
                 Factor: Copy,
-                Bone: Lerp<Factor, Output=Bone>
+                $crate::Bone: Lerp<Factor, Output=$crate::Bone>
         {
             type Output = $Skeleton;
 
@@ -79,6 +79,7 @@ pub type Bone = Transform<f32, f32, f32>;
 
 pub trait Skeleton: Send + Sync + 'static {
     type Attr;
+    type Body;
 
     const BONE_COUNT: usize;
 

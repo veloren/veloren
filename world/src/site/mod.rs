@@ -17,10 +17,10 @@ use common::{
     vol::{BaseVol, ReadVol, RectSizedVol, WriteVol},
 };
 use rand::Rng;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use vek::*;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize)]
 pub struct Colors {
     pub castle: castle::Colors,
     pub dungeon: dungeon::Colors,

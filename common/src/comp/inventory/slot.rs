@@ -266,15 +266,16 @@ pub fn swap(
 ///
 /// ```
 /// use veloren_common::{
-///     assets,
+///     assets::Asset,
 ///     comp::{
+///         item::ItemAsset,
 ///         slot::{equip, EquipSlot},
 ///         Inventory, Item,
 ///     },
 ///     LoadoutBuilder,
 /// };
 ///
-/// let boots: Option<Item> = Some(assets::load_expect_cloned(
+/// let boots: Option<Item> = Some(ItemAsset::load_expect_cloned(
 ///     "common.items.testing.test_boots",
 /// ));
 ///
@@ -361,7 +362,7 @@ pub fn unequip(slot: EquipSlot, inventory: &mut Inventory, loadout: &mut Loadout
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{assets, LoadoutBuilder};
+    use crate::{assets::Asset, comp::item::ItemAsset, LoadoutBuilder};
 
     #[test]
     fn test_unequip_items_both_hands() {
@@ -396,11 +397,11 @@ mod tests {
 
     #[test]
     fn test_equip_item() {
-        let boots: Option<comp::Item> = Some(assets::load_expect_cloned(
+        let boots: Option<comp::Item> = Some(ItemAsset::load_expect_cloned(
             "common.items.testing.test_boots",
         ));
 
-        let starting_sandles: Option<comp::Item> = Some(assets::load_expect_cloned(
+        let starting_sandles: Option<comp::Item> = Some(ItemAsset::load_expect_cloned(
             "common.items.armor.starter.sandals_0",
         ));
 
@@ -425,11 +426,11 @@ mod tests {
 
     #[test]
     fn test_loadout_replace() {
-        let boots: Option<comp::Item> = Some(assets::load_expect_cloned(
+        let boots: Option<comp::Item> = Some(ItemAsset::load_expect_cloned(
             "common.items.testing.test_boots",
         ));
 
-        let starting_sandles: Option<comp::Item> = Some(assets::load_expect_cloned(
+        let starting_sandles: Option<comp::Item> = Some(ItemAsset::load_expect_cloned(
             "common.items.armor.starter.sandals_0",
         ));
 

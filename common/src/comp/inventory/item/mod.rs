@@ -5,7 +5,7 @@ pub mod tool;
 pub use tool::{Hands, Tool, ToolCategory, ToolKind};
 
 use crate::{
-    assets::{self, Asset},
+    assets::{self, Asset, Ron},
     effect::Effect,
     lottery::Lottery,
     terrain::{Block, BlockKind},
@@ -14,7 +14,6 @@ use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
-use std::{fs::File, io::BufReader};
 use vek::Rgb;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -90,13 +89,7 @@ pub struct Item {
     pub kind: ItemKind,
 }
 
-impl Asset for Item {
-    const ENDINGS: &'static [&'static str] = &["ron"];
-
-    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
-    }
-}
+pub type ItemAsset = Ron<Item>;
 
 impl Item {
     // TODO: consider alternatives such as default abilities that can be added to a
@@ -109,7 +102,7 @@ impl Item {
         }
     }
 
-    pub fn expect_from_asset(asset: &str) -> Self { (*assets::load_expect::<Self>(asset)).clone() }
+    pub fn expect_from_asset(asset: &str) -> Self { (*ItemAsset::load_expect(asset)).clone() }
 
     pub fn set_amount(&mut self, give_amount: u32) -> Result<(), assets::Error> {
         use ItemKind::*;
@@ -145,75 +138,44 @@ impl Item {
     }
 
     pub fn try_reclaim_from_block(block: Block) -> Option<Self> {
+        let chosen;
         let mut rng = rand::thread_rng();
-        match block.kind() {
-            BlockKind::Apple => Some(assets::load_expect_cloned("common.items.food.apple")),
-            BlockKind::Mushroom => Some(assets::load_expect_cloned("common.items.food.mushroom")),
-            BlockKind::Velorite => Some(assets::load_expect_cloned("common.items.ore.velorite")),
-            BlockKind::VeloriteFrag => {
-                Some(assets::load_expect_cloned("common.items.ore.veloritefrag"))
-            },
-            BlockKind::BlueFlower => Some(assets::load_expect_cloned("common.items.flowers.blue")),
-            BlockKind::PinkFlower => Some(assets::load_expect_cloned("common.items.flowers.pink")),
-            BlockKind::PurpleFlower => {
-                Some(assets::load_expect_cloned("common.items.flowers.purple"))
-            },
-            BlockKind::RedFlower => Some(assets::load_expect_cloned("common.items.flowers.red")),
-            BlockKind::WhiteFlower => {
-                Some(assets::load_expect_cloned("common.items.flowers.white"))
-            },
-            BlockKind::YellowFlower => {
-                Some(assets::load_expect_cloned("common.items.flowers.yellow"))
-            },
-            BlockKind::Sunflower => Some(assets::load_expect_cloned("common.items.flowers.sun")),
-            BlockKind::LongGrass => Some(assets::load_expect_cloned("common.items.grasses.long")),
-            BlockKind::MediumGrass => {
-                Some(assets::load_expect_cloned("common.items.grasses.medium"))
-            },
-            BlockKind::ShortGrass => Some(assets::load_expect_cloned("common.items.grasses.short")),
-            BlockKind::Coconut => Some(assets::load_expect_cloned("common.items.food.coconut")),
+        Some(ItemAsset::load_expect_cloned(match block.kind() {
+            BlockKind::Apple => "common.items.food.apple",
+            BlockKind::Mushroom => "common.items.food.mushroom",
+            BlockKind::Velorite => "common.items.ore.velorite",
+            BlockKind::VeloriteFrag => "common.items.ore.veloritefrag",
+            BlockKind::BlueFlower => "common.items.flowers.blue",
+            BlockKind::PinkFlower => "common.items.flowers.pink",
+            BlockKind::PurpleFlower => "common.items.flowers.purple",
+            BlockKind::RedFlower => "common.items.flowers.red",
+            BlockKind::WhiteFlower => "common.items.flowers.white",
+            BlockKind::YellowFlower => "common.items.flowers.yellow",
+            BlockKind::Sunflower => "common.items.flowers.sun",
+            BlockKind::LongGrass => "common.items.grasses.long",
+            BlockKind::MediumGrass => "common.items.grasses.medium",
+            BlockKind::ShortGrass => "common.items.grasses.short",
+            BlockKind::Coconut => "common.items.food.coconut",
             BlockKind::Chest => {
-                let chosen = match rng.gen_range(0, 7) {
-                    0 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_weapon_uncommon",
-                    ),
-                    1 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_weapon_common",
-                    ),
-                    2 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_armor_light",
-                    ),
-                    3 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_armor_cloth",
-                    ),
-                    4 => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_armor_heavy",
-                    ),
-                    _ => assets::load_expect::<Lottery<String>>(
-                        "common.loot_tables.loot_table_armor_misc",
-                    ),
-                };
-                let chosen = chosen.choose();
-                Some(assets::load_expect_cloned(chosen))
+                chosen = Lottery::<String>::load_expect(match rng.gen_range(0, 7) {
+                    0 => "common.loot_tables.loot_table_weapon_uncommon",
+                    1 => "common.loot_tables.loot_table_weapon_common",
+                    2 => "common.loot_tables.loot_table_armor_light",
+                    3 => "common.loot_tables.loot_table_armor_cloth",
+                    4 => "common.loot_tables.loot_table_armor_heavy",
+                    _ => "common.loot_tables.loot_table_armor_misc",
+                });
+                chosen.choose()
             },
             BlockKind::Crate => {
-                let chosen =
-                    assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_food");
-                let chosen = chosen.choose();
-
-                Some(assets::load_expect_cloned(chosen))
+                chosen = Lottery::<String>::load_expect("common.loot_tables.loot_table_food");
+                chosen.choose()
             },
-            BlockKind::Stones => Some(assets::load_expect_cloned(
-                "common.items.crafting_ing.stones",
-            )),
-            BlockKind::Twigs => Some(assets::load_expect_cloned(
-                "common.items.crafting_ing.twigs",
-            )),
-            BlockKind::ShinyGem => Some(assets::load_expect_cloned(
-                "common.items.crafting_ing.shiny_gem",
-            )),
-            _ => None,
-        }
+            BlockKind::Stones => "common.items.crafting_ing.stones",
+            BlockKind::Twigs => "common.items.crafting_ing.twigs",
+            BlockKind::ShinyGem => "common.items.crafting_ing.shiny_gem",
+            _ => return None,
+        }))
     }
 
     /// Determines whether two items are superficially equivalent to one another

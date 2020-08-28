@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Overhauled world colours
 - Improved projectile physics
 - Improved overhead aiming
+- Figure meshing no longer blocks the main thread.
 
 ### Removed
 

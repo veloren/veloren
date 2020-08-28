@@ -4,10 +4,10 @@ pub mod keep;
 use super::skeleton::*;
 use crate::{site::BlockMask, IndexRef};
 use rand::prelude::*;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use vek::*;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize)]
 pub struct Colors {
     pub house: house::Colors,
     pub keep: keep::Colors,

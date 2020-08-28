@@ -36,9 +36,11 @@ pub use self::{
     swimwield::SwimWieldAnimation, wield::WieldAnimation,
 };
 
-use super::{make_bone, vek::*, Bone, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Skeleton};
 use common::comp;
 use core::convert::TryFrom;
+
+pub type Body = comp::humanoid::Body;
 
 skeleton_impls!(struct CharacterSkeleton {
     + head,
@@ -65,6 +67,7 @@ skeleton_impls!(struct CharacterSkeleton {
 
 impl Skeleton for CharacterSkeleton {
     type Attr = SkeletonAttr;
+    type Body = Body;
 
     const BONE_COUNT: usize = 16;
     #[cfg(feature = "use-dyn-lib")]
@@ -156,7 +159,7 @@ impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
 }
 
 impl SkeletonAttr {
-    pub fn calculate_scale(body: &comp::humanoid::Body) -> f32 {
+    pub fn calculate_scale(body: &Body) -> f32 {
         use comp::humanoid::{BodyType::*, Species::*};
         match (body.species, body.body_type) {
             (Orc, Male) => 1.14,
@@ -175,9 +178,9 @@ impl SkeletonAttr {
     }
 }
 
-impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
+impl<'a> From<&'a Body> for SkeletonAttr {
     #[allow(clippy::match_single_binding)] // TODO: Pending review in #587
-    fn from(body: &'a comp::humanoid::Body) -> Self {
+    fn from(body: &'a Body) -> Self {
         use comp::humanoid::{BodyType::*, Species::*};
         Self {
             scaler: SkeletonAttr::calculate_scale(body),

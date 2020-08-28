@@ -10,10 +10,10 @@ use common::{
     vol::Vox,
 };
 use rand::prelude::*;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use vek::*;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize)]
 pub struct Colors {
     pub brick_base: (u8, u8, u8),
     pub floor_base: (u8, u8, u8),

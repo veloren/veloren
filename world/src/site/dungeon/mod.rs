@@ -8,9 +8,9 @@ use crate::{
     IndexRef,
 };
 use common::{
-    assets,
+    assets::Asset,
     astar::Astar,
-    comp,
+    comp::{self, item::ItemAsset},
     generation::{ChunkSupplement, EntityInfo},
     lottery::Lottery,
     npc,
@@ -22,7 +22,7 @@ use core::{f32, hash::BuildHasherDefault};
 use fxhash::FxHasher64;
 use lazy_static::lazy_static;
 use rand::prelude::*;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::sync::Arc;
 use vek::*;
 
@@ -40,7 +40,7 @@ pub struct GenCtx<'a, R: Rng> {
     rng: &'a mut R,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize)]
 pub struct Colors {
     pub stone: (u8, u8, u8),
 }
@@ -461,12 +461,11 @@ impl Floor {
                         && !tile_is_pillar
                     {
                         // Bad
-                        let chosen =
-                            assets::load_expect::<Lottery<String>>(match rng.gen_range(0, 5) {
-                                0 => "common.loot_tables.loot_table_humanoids",
-                                1 => "common.loot_tables.loot_table_armor_misc",
-                                _ => "common.loot_tables.loot_table_cultists",
-                            });
+                        let chosen = Lottery::<String>::load_expect(match rng.gen_range(0, 5) {
+                            0 => "common.loot_tables.loot_table_humanoids",
+                            1 => "common.loot_tables.loot_table_armor_misc",
+                            _ => "common.loot_tables.loot_table_cultists",
+                        });
                         let chosen = chosen.choose();
                         let entity = EntityInfo::at(
                             tile_wcenter.map(|e| e as f32)
@@ -479,8 +478,8 @@ impl Floor {
                         .with_alignment(comp::Alignment::Enemy)
                         .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
                         .with_automatic_name()
-                        .with_loot_drop(assets::load_expect_cloned(chosen))
-                        .with_main_tool(assets::load_expect_cloned(match rng.gen_range(0, 6) {
+                        .with_loot_drop(ItemAsset::load_expect_cloned(chosen))
+                        .with_main_tool(ItemAsset::load_expect_cloned(match rng.gen_range(0, 6) {
                             0 => "common.items.npc_weapons.axe.malachite_axe-0",
                             1 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
                             2 => "common.items.npc_weapons.sword.cultist_purp_2h-0",
@@ -507,7 +506,7 @@ impl Floor {
                             boss_spawn_tile + if boss_tile_is_pillar { 1 } else { 0 };
 
                         if tile_pos == boss_spawn_tile && tile_wcenter.xy() == wpos2d {
-                            let chosen = assets::load_expect::<Lottery<String>>(
+                            let chosen = Lottery::<String>::load_expect(
                                 "common.loot_tables.loot_table_boss_cultist-leader",
                             );
                             let chosen = chosen.choose();
@@ -520,7 +519,7 @@ impl Floor {
                                     "Cult Leader {}",
                                     npc::get_npc_name(npc::NpcKind::Humanoid)
                                 ))
-                                .with_main_tool(assets::load_expect_cloned(
+                                .with_main_tool(ItemAsset::load_expect_cloned(
                                     match rng.gen_range(0, 1) {
                                         //Add more possible cult leader npc_weapons here
                                         _ => {
@@ -528,7 +527,7 @@ impl Floor {
                                         },
                                     },
                                 ))
-                                .with_loot_drop(assets::load_expect_cloned(chosen));
+                                .with_loot_drop(ItemAsset::load_expect_cloned(chosen));
 
                             supplement.add_entity(entity);
                         }

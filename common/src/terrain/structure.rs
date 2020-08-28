@@ -1,6 +1,6 @@
 use super::BlockKind;
 use crate::{
-    assets::{self, Asset},
+    assets::{self, Asset, Ron},
     make_case_elim,
     vol::{BaseVol, ReadVol, SizedVol, Vox, WriteVol},
     volumes::dyna::{Dyna, DynaError},
@@ -53,15 +53,11 @@ pub struct Structure {
 
 impl Structure {
     pub fn load_group(specifier: &str) -> Vec<Arc<Structure>> {
-        let spec = assets::load::<StructuresSpec>(&["world.manifests.", specifier].concat());
-        spec.unwrap()
-            .0
-            .iter()
+        let spec = StructuresSpec::load_expect(&["world.manifests.", specifier].concat());
+        spec.iter()
             .map(|sp| {
-                assets::load_map(&sp.specifier[..], |s: Structure| {
-                    s.with_center(Vec3::from(sp.center))
-                })
-                .unwrap()
+                Structure::load_map(&sp.specifier[..], |s| s.with_center(Vec3::from(sp.center)))
+                    .unwrap()
             })
             .collect()
     }
@@ -170,13 +166,5 @@ struct StructureSpec {
     specifier: String,
     center: [i32; 3],
 }
-#[derive(Deserialize)]
-struct StructuresSpec(Vec<StructureSpec>);
 
-impl Asset for StructuresSpec {
-    const ENDINGS: &'static [&'static str] = &["ron"];
-
-    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
-        ron::de::from_reader(buf_reader).map_err(assets::Error::parse_error)
-    }
-}
+type StructuresSpec = Ron<Vec<StructureSpec>>;

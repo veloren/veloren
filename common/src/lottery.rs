@@ -1,9 +1,9 @@
 use crate::assets::{self, Asset};
 use rand::prelude::*;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize};
 use std::{fs::File, io::BufReader};
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct Lottery<T> {
     items: Vec<(f32, T)>,
     total: f32,
@@ -48,14 +48,14 @@ impl<T> Lottery<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{assets, comp::Item};
+    use crate::comp::item::ItemAsset;
     #[test]
     fn test_loot_table() {
-        let test = assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table");
+        let test = Lottery::<String>::load_expect("common.loot_tables.loot_table");
 
         for (_, item) in test.iter() {
             assert!(
-                assets::load::<Item>(item).is_ok(),
+                ItemAsset::load(item).is_ok(),
                 "Invalid loot table item '{}'",
                 item
             );

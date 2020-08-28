@@ -9,7 +9,7 @@ use crate::{
     },
     GlobalState,
 };
-use common::assets::load_expect;
+use common::assets::Asset;
 use conrod_core::{
     color,
     color::TRANSPARENT,
@@ -17,6 +17,7 @@ use conrod_core::{
     widget::{text_box::Event as TextBoxEvent, Button, Image, List, Rectangle, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
+use image::DynamicImage;
 use rand::{seq::SliceRandom, thread_rng, Rng};
 use std::time::Duration;
 
@@ -205,12 +206,12 @@ impl<'a> MainMenuUi {
         let imgs = Imgs::load(&mut ui).expect("Failed to load images");
         let rot_imgs = ImgsRot::load(&mut ui).expect("Failed to load images!");
         let bg_img_id = ui.add_graphic(Graphic::Image(
-            load_expect(bg_imgs.choose(&mut rng).unwrap()),
+            DynamicImage::load_expect(bg_imgs.choose(&mut rng).unwrap()),
             None,
         ));
         //let chosen_tip = *tips.choose(&mut rng).unwrap();
         // Load language
-        let voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+        let voxygen_i18n = VoxygenLocalization::load_expect(&i18n_asset_key(
             &global_state.settings.language.selected_language,
         ));
         // Load fonts.
