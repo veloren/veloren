@@ -198,10 +198,10 @@ macro_rules! make_case_elim {
         }
 
         #[allow(unused_parens)]
-        impl<'a, Elim: $mod::PackedElim, Context, Type, S>
-            $crate::typed::Typed<Context, Type, S> for $crate::typed::ElimCase<&'a $ty, &'a $mod::Cases<Elim>, Type>
+        impl<'a, 'b, Elim: $mod::PackedElim, Context, Type, S>
+            $crate::typed::Typed<Context, Type, S> for $crate::typed::ElimCase<&'a $ty, &'b $mod::Cases<Elim>, Type>
             where
-                $( &'a Elim::$constr: $crate::typed::Typed<($( ($( &'a $arg_ty, )*), )? Context), Type, S>, )*
+                $( &'b Elim::$constr: $crate::typed::Typed<($( ($( &'a $arg_ty, )*), )? Context), Type, S>, )*
         {
             fn reduce(self, context: Context) -> (Type, S)
             {
@@ -218,10 +218,10 @@ macro_rules! make_case_elim {
         }
 
         impl $ty {
-            pub fn elim_case<'a, Elim: $mod::PackedElim, Context, S, Type>(&'a self, cases: &'a $mod::Cases<Elim>, context: Context) ->
+            pub fn elim_case<'a, 'b, Elim: $mod::PackedElim, Context, S, Type>(&'a self, cases: &'b $mod::Cases<Elim>, context: Context) ->
                 (Type, S)
             where
-                $crate::typed::ElimCase<&'a $ty, &'a $mod::Cases<Elim>, Type> : $crate::typed::Typed<Context, Type, S>,
+                $crate::typed::ElimCase<&'a $ty, &'b $mod::Cases<Elim>, Type> : $crate::typed::Typed<Context, Type, S>,
             {
                 use $crate::typed::Typed;
 
@@ -233,7 +233,7 @@ macro_rules! make_case_elim {
                 case.reduce(context)
             }
 
-            pub fn elim_case_pure<'a, Type>(&'a self, cases: &'a $mod::PureCases<Type>) -> &'a Type
+            pub fn elim_case_pure<'a, 'b, Type>(&'a self, cases: &'b $mod::PureCases<Type>) -> &'b Type
             {
                 let ($crate::typed::Pure(expr), ()) = self.elim_case(cases, ());
                 expr
