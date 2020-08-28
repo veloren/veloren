@@ -1876,7 +1876,7 @@ impl Renderer {
 /// Creates all the pipelines used to render.
 #[allow(clippy::type_complexity)] // TODO: Pending review in #587
 fn create_pipelines(
-    factory: &mut gfx_backend::Factory,
+    factory: &wgpu::Device,
     shaders: &Shaders,
     mode: &RenderMode,
     has_shadow_views: bool,
@@ -1951,17 +1951,37 @@ fn create_pipelines(
         _ => shaders.cloud_regular,
     };
 
-    let mut include_ctx = IncludeContext::new();
-    include_ctx.include("constants.glsl", &constants);
-    include_ctx.include("globals.glsl", &shaders.globals.read().0);
-    include_ctx.include("shadows.glsl", &shaders.shadows.read().0);
-    include_ctx.include("sky.glsl", &shaders.sky.read().0);
-    include_ctx.include("light.glsl", &shaders.light.read().0);
-    include_ctx.include("srgb.glsl", &shaders.srgb.read().0);
-    include_ctx.include("random.glsl", &shaders.random.read().0);
-    include_ctx.include("lod.glsl", &shaders.lod.read().0);
-    include_ctx.include("anti-aliasing.glsl", &anti_alias.read().0);
-    include_ctx.include("cloud.glsl", &cloud.read().0);
+    let mut compiler = shaderc::Compiler::new().ok_or(RenderError::ErrorInitializingCompiler)?;
+    let mut options = shaderc::CompileOptions::new().ok_or(RenderError::ErrorInitializingCompiler)?;
+    options.set_optimization_level(shaderc::OptimizationLevel::Performance);
+    options.set_include_callback(move |name,_,shader_name,_| {
+        Ok(shaderc::ResolvedInclude {
+            resolved_name: name,
+            content: match name {
+                "constants.glsl" => constants,
+                "globals.glsl" => globals,
+                "shadows.glsl" => shadows,
+                "sky.glsl" => sky,
+                "light.glsl" => light,
+                "srgb.glsl" => srgb,
+                "random.glsl" => &random,
+                "lod.glsl" => &lod,
+                "anti-aliasing.glsl" => &anti_alias,
+                "cloud.glsl" => &cloud,
+                other => return Err(format!("Include {} is not defined",other))
+            }
+        } )
+    });
+
+    let figure_vert = &shaders.figure_vert.read().0;
+
+    let terrain_point_shadow_vert = &shaders.terrain_point_shadow_vert.read().0;
+
+    let terrain_directed_shadow_vert = &shaders.terrain_directed_shadow_vert.read().0;
+
+    let figure_directed_shadow_vert = &shadows.figure_directed_shadow_vert.read().0;
+
+    let directed_shadow_frag = &shaders.directed_shadow_frag.read().0;
 
     // Construct a pipeline for rendering skyboxes
     let skybox_pipeline = create_pipeline(
@@ -2165,35 +2185,11 @@ fn create_pipelines(
 }
 
 /// Create a new pipeline from the provided vertex shader and fragment shader.
-fn create_pipeline<P: gfx::pso::PipelineInit>(
-    factory: &mut gfx_backend::Factory,
-    pipe: P,
-    vs: &str,
-    fs: &str,
-    ctx: &IncludeContext,
-    cull_face: gfx::state::CullFace,
-) -> Result<GfxPipeline<P>, RenderError> {
-    let vs = ctx.expand(vs)?;
-    let fs = ctx.expand(fs)?;
-
-    let program = factory.link_program(vs.as_bytes(), fs.as_bytes())?;
-
-    let result = Ok(GfxPipeline {
-        pso: factory.create_pipeline_from_program(
-            &program,
-            gfx::Primitive::TriangleList,
-            gfx::state::Rasterizer {
-                front_face: gfx::state::FrontFace::CounterClockwise,
-                cull_face,
-                method: gfx::state::RasterMethod::Fill,
-                offset: None,
-                samples: Some(gfx::state::MultiSample),
-            },
-            pipe,
-        )?,
-    });
-
-    result
+fn create_pipeline(
+    device: &wgpu::Device,
+    desc: &wgpu::RenderPipelineDescriptor
+) -> wgpu::RenderPipeline {
+    device.create_render_pipeline(desc)
 }
 
 /// Create a new shadow map pipeline.

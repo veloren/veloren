@@ -7,6 +7,8 @@ pub enum RenderError {
     SwapChainError(wgpu::SwapChainError),
     CustomError(String),
     CouldNotFindAdapter,
+    ErrorInitializingCompiler,
+    ShaderError(shaderc::Error)
 }
 
 impl From<wgpu::RequestDeviceError> for RenderError {
@@ -16,6 +18,11 @@ impl From<wgpu::RequestDeviceError> for RenderError {
 impl From<wgpu::BufferAsyncError> for RenderError {
     fn from(err: wgpu::BufferAsyncError) -> Self { Self::MappingError(err) }
 }
+
 impl From<wgpu::SwapChainError> for RenderError {
     fn from(err: wgpu::SwapChainError) -> Self { Self::SwapChainError(err) }
+}
+
+impl From<shaderc::Error> for RenderError {
+    fn from(err: shaderc::Error) -> Self { Self::ShaderError(err) }
 }

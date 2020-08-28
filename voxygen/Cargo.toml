@@ -46,7 +46,8 @@ i18n = {package = "veloren-i18n", path = "i18n"}
 # Graphics
 winit = {version = "0.24.0", features = ["serde"]}
 wgpu = {git="https://github.com/gfx-rs/wgpu-rs.git"}
-zerocopy = "0.3.0"
+zerocopy = "0.3"
+shaderc = "0.6.2"
 
 # Ui
 conrod_core = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
@@ -84,7 +85,6 @@ directories-next = "2.0"
 dot_vox = "4.0"
 enum-iterator = "0.6"
 futures = "0.3"
-glsl-include = "0.3.1"
 guillotiere = "0.6"
 hashbrown = {version = "0.9", features = ["rayon", "serde", "nightly"]}
 image = {version = "0.23.12", default-features = false, features = ["ico", "png"]}
