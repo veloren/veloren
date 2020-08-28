@@ -9,7 +9,7 @@ pub enum Effect {
     Damage(i32),
     Knockback(f32),
     RewardEnergy(u32),
-    Explode { power: f32 },
+    Explode { power: f32, percent_damage: f32 },
     Vanish,
     Stick,
     Possess,

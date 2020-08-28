@@ -33,6 +33,7 @@ pub enum ServerEvent {
         owner: Option<Uid>,
         friendly_damage: bool,
         reagent: Option<Reagent>,
+        percent_damage: f32,
     },
     Damage {
         uid: Uid,

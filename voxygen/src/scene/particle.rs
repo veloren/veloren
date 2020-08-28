@@ -315,16 +315,15 @@ impl ParticleMgr {
         {
             if let CharacterState::BasicBeam(b) = character_state {
                 if b.buildup_duration == Duration::default() {
-                    let scale = 5.0;
                     let particle_ori = b.particle_ori.unwrap_or(*ori.vec());
                     for _ in 0..self.scheduler.heartbeats(Duration::from_millis(10)) {
-                        for d in 0..((b.range * scale) as i32) {
+                        for d in 0..(b.range as i32) {
                             self.particles.push(
                                 Particle::new(
-                                    Duration::from_millis(10),
+                                    Duration::from_millis(50),
                                     time,
                                     ParticleMode::HealingBeam,
-                                    pos.0 + particle_ori * (d as f32) / scale,
+                                    pos.0 + particle_ori * (d as f32),
                                 ),
                             );
                         }
