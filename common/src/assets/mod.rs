@@ -1,14 +1,14 @@
 //! Load assets (images or voxel data) from files
 pub mod watch;
 
+use core::{any::Any, fmt, marker::PhantomData};
 use dot_vox::DotVoxData;
 use hashbrown::HashMap;
 use image::DynamicImage;
 use lazy_static::lazy_static;
+use serde::Deserialize;
 use serde_json::Value;
 use std::{
-    any::Any,
-    fmt,
     fs::{self, File, ReadDir},
     io::{BufReader, Read},
     path::PathBuf,
@@ -61,167 +61,16 @@ lazy_static! {
         RwLock::new(HashMap::new());
 }
 
-// TODO: Remove this function. It's only used in world/ in a really ugly way.To
-// do this properly assets should have all their necessary data in one file. A
-// ron file could be used to combine voxel data with positioning data for
-// example.
-/// Function used to load assets from the filesystem or the cache. Permits
-/// manipulating the loaded asset with a mapping function. Example usage:
-/// ```no_run
-/// use vek::*;
-/// use veloren_common::{assets, terrain::Structure};
-///
-/// let my_tree_structure = assets::load_map("world.tree.oak_green.1", |s: Structure| {
-///     s.with_center(Vec3::new(15, 18, 14))
-/// })
-/// .unwrap();
-/// ```
-pub fn load_map<A: Asset + 'static, F: FnOnce(A) -> A>(
-    specifier: &str,
-    f: F,
-) -> Result<Arc<A>, Error> {
-    let assets_write = ASSETS.read().unwrap();
-    match assets_write.get(specifier) {
-        Some(asset) => Ok(Arc::clone(asset).downcast()?),
-        None => {
-            drop(assets_write); // Drop the asset hashmap to permit recursive loading
-            let asset = Arc::new(f(A::parse(load_file(specifier, A::ENDINGS)?)?));
-            let clone = Arc::clone(&asset);
-            ASSETS.write().unwrap().insert(specifier.to_owned(), clone);
-            Ok(asset)
-        },
-    }
-}
-
-pub fn load_glob<A: Asset + 'static>(specifier: &str) -> Result<Arc<Vec<Arc<A>>>, Error> {
-    if let Some(assets) = ASSETS.read().unwrap().get(specifier) {
-        return Ok(Arc::clone(assets).downcast()?);
-    }
-
-    // Get glob matches
-    let glob_matches = read_dir(specifier.trim_end_matches(".*")).map(|dir| {
-        dir.filter_map(|direntry| {
-            direntry.ok().and_then(|file| {
-                file.file_name()
-                    .to_string_lossy()
-                    .rsplitn(2, '.')
-                    .last()
-                    .map(|s| s.to_owned())
-            })
-        })
-        .collect::<Vec<_>>()
-    });
-
-    match glob_matches {
-        Ok(glob_matches) => {
-            let assets = Arc::new(
-                glob_matches
-                    .into_iter()
-                    .filter_map(|name| {
-                        load(&specifier.replace("*", &name))
-                            .map_err(|e| {
-                                error!(
-                                    ?e,
-                                    "Failed to load \"{}\" as part of glob \"{}\"", name, specifier
-                                )
-                            })
-                            .ok()
-                    })
-                    .collect::<Vec<_>>(),
-            );
-            let clone = Arc::clone(&assets);
-
-            let mut assets_write = ASSETS.write().unwrap();
-            assets_write.insert(specifier.to_owned(), clone);
-            Ok(assets)
-        },
-        Err(error) => Err(error),
-    }
-}
-
-/// Function used to load assets from the filesystem or the cache.
-/// Example usage:
-/// ```no_run
-/// use image::DynamicImage;
-/// use veloren_common::assets;
-///
-/// let my_image = assets::load::<DynamicImage>("core.ui.backgrounds.city").unwrap();
-/// ```
-pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
-    load_map(specifier, |x| x)
-}
-
-/// Function used to load assets from the filesystem or the cache and return a
-/// clone.
-pub fn load_cloned<A: Asset + Clone + 'static>(specifier: &str) -> Result<A, Error> {
-    load::<A>(specifier).map(|asset| (*asset).clone())
-}
-
-/// Function used to load essential assets from the filesystem or the cache. It
-/// will panic if the asset is not found. Example usage:
-/// ```no_run
-/// use image::DynamicImage;
-/// use veloren_common::assets;
-///
-/// let my_image = assets::load_expect::<DynamicImage>("core.ui.backgrounds.city");
-/// ```
-pub fn load_expect<A: Asset + 'static>(specifier: &str) -> Arc<A> {
-    load(specifier).unwrap_or_else(|err| {
-        panic!(
-            "Failed loading essential asset: {} (error={:?})",
-            specifier, err
-        )
-    })
-}
-
-/// Function used to load essential assets from the filesystem or the cache and
-/// return a clone. It will panic if the asset is not found.
-pub fn load_expect_cloned<A: Asset + Clone + 'static>(specifier: &str) -> A {
-    load_expect::<A>(specifier).as_ref().clone()
-}
-
-/// Load an asset while registering it to be watched and reloaded when it
-/// changes
-pub fn load_watched<A: Asset + 'static>(
-    specifier: &str,
-    indicator: &mut watch::ReloadIndicator,
-) -> Result<Arc<A>, Error> {
-    let asset = load(specifier)?;
-
-    // Determine path to watch
-    let path = unpack_specifier(specifier);
-    let mut path_with_extension = None;
-    for ending in A::ENDINGS {
-        let mut path = path.clone();
-        path.set_extension(ending);
-
-        if path.exists() {
-            path_with_extension = Some(path);
-            break;
-        }
-    }
-
-    let owned_specifier = specifier.to_string();
-    indicator.add(
-        path_with_extension.ok_or_else(|| Error::NotFound(path.to_string_lossy().into_owned()))?,
-        move || {
-            if let Err(e) = reload::<A>(&owned_specifier) {
-                error!(?e, ?owned_specifier, "Error reloading owned_specifier");
-            }
-        },
-    );
-
-    Ok(asset)
-}
-
-fn reload<A: Asset + 'static>(specifier: &str) -> Result<(), Error> {
+fn reload<A: Asset>(specifier: &str) -> Result<(), Error>
+where
+    A::Output: Send + Sync + 'static,
+{
     let asset = Arc::new(A::parse(load_file(specifier, A::ENDINGS)?)?);
-    let clone = Arc::clone(&asset);
     let mut assets_write = ASSETS.write().unwrap();
     match assets_write.get_mut(specifier) {
-        Some(a) => *a = clone,
+        Some(a) => *a = asset,
         None => {
-            assets_write.insert(specifier.to_owned(), clone);
+            assets_write.insert(specifier.to_owned(), asset);
         },
     }
 
@@ -230,10 +79,189 @@ fn reload<A: Asset + 'static>(specifier: &str) -> Result<(), Error> {
 
 /// The Asset trait, which is implemented by all structures that have their data
 /// stored in the filesystem.
-pub trait Asset: Send + Sync + Sized {
+pub trait Asset: Sized {
+    type Output = Self;
+
     const ENDINGS: &'static [&'static str];
     /// Parse the input file and return the correct Asset.
-    fn parse(buf_reader: BufReader<File>) -> Result<Self, Error>;
+    fn parse(buf_reader: BufReader<File>) -> Result<Self::Output, Error>;
+
+    // TODO: Remove this function. It's only used in world/ in a really ugly way.To
+    // do this properly assets should have all their necessary data in one file. A
+    // ron file could be used to combine voxel data with positioning data for
+    // example.
+    /// Function used to load assets from the filesystem or the cache. Permits
+    /// manipulating the loaded asset with a mapping function. Example usage:
+    /// ```no_run
+    /// use vek::*;
+    /// use veloren_common::{assets::Asset, terrain::Structure};
+    ///
+    /// let my_tree_structure = Structure::load_map("world.tree.oak_green.1", |s: Structure| {
+    ///     s.with_center(Vec3::new(15, 18, 14))
+    /// })
+    /// .unwrap();
+    /// ```
+    fn load_map<F: FnOnce(Self::Output) -> Self::Output>(
+        specifier: &str,
+        f: F,
+    ) -> Result<Arc<Self::Output>, Error>
+    where
+        Self::Output: Send + Sync + 'static,
+    {
+        let assets_write = ASSETS.read().unwrap();
+        match assets_write.get(specifier) {
+            Some(asset) => Ok(Arc::clone(asset).downcast()?),
+            None => {
+                drop(assets_write); // Drop the asset hashmap to permit recursive loading
+                let asset = Arc::new(f(Self::parse(load_file(specifier, Self::ENDINGS)?)?));
+                let clone = Arc::clone(&asset);
+                ASSETS.write().unwrap().insert(specifier.to_owned(), clone);
+                Ok(asset)
+            },
+        }
+    }
+
+    fn load_glob(specifier: &str) -> Result<Arc<Vec<Arc<Self::Output>>>, Error>
+    where
+        Self::Output: Send + Sync + 'static,
+    {
+        if let Some(assets) = ASSETS.read().unwrap().get(specifier) {
+            return Ok(Arc::clone(assets).downcast()?);
+        }
+
+        // Get glob matches
+        let glob_matches = read_dir(specifier.trim_end_matches(".*")).map(|dir| {
+            dir.filter_map(|direntry| {
+                direntry.ok().and_then(|file| {
+                    file.file_name()
+                        .to_string_lossy()
+                        .rsplitn(2, '.')
+                        .last()
+                        .map(|s| s.to_owned())
+                })
+            })
+            .collect::<Vec<_>>()
+        });
+
+        match glob_matches {
+            Ok(glob_matches) => {
+                let assets = Arc::new(
+                    glob_matches
+                        .into_iter()
+                        .filter_map(|name| {
+                            Self::load(&specifier.replace("*", &name))
+                                .map_err(|e| {
+                                    error!(
+                                        ?e,
+                                        "Failed to load \"{}\" as part of glob \"{}\"",
+                                        name,
+                                        specifier
+                                    )
+                                })
+                                .ok()
+                        })
+                        .collect::<Vec<_>>(),
+                );
+                let clone = Arc::clone(&assets);
+
+                let mut assets_write = ASSETS.write().unwrap();
+                assets_write.insert(specifier.to_owned(), clone);
+                Ok(assets)
+            },
+            Err(error) => Err(error),
+        }
+    }
+
+    /// Function used to load assets from the filesystem or the cache.
+    /// Example usage:
+    /// ```no_run
+    /// use image::DynamicImage;
+    /// use veloren_common::assets::Asset;
+    ///
+    /// let my_image = DynamicImage::load("core.ui.backgrounds.city").unwrap();
+    /// ```
+    fn load(specifier: &str) -> Result<Arc<Self::Output>, Error>
+    where
+        Self::Output: Send + Sync + 'static,
+    {
+        Self::load_map(specifier, |x| x)
+    }
+
+    /// Function used to load assets from the filesystem or the cache and return
+    /// a clone.
+    fn load_cloned(specifier: &str) -> Result<Self::Output, Error>
+    where
+        Self::Output: Clone + Send + Sync + 'static,
+    {
+        Self::load(specifier).map(|asset| (*asset).clone())
+    }
+
+    /// Function used to load essential assets from the filesystem or the cache.
+    /// It will panic if the asset is not found. Example usage:
+    /// ```no_run
+    /// use image::DynamicImage;
+    /// use veloren_common::assets::Asset;
+    ///
+    /// let my_image = DynamicImage::load_expect("core.ui.backgrounds.city");
+    /// ```
+    fn load_expect(specifier: &str) -> Arc<Self::Output>
+    where
+        Self::Output: Send + Sync + 'static,
+    {
+        Self::load(specifier).unwrap_or_else(|err| {
+            panic!(
+                "Failed loading essential asset: {} (error={:?})",
+                specifier, err
+            )
+        })
+    }
+
+    /// Function used to load essential assets from the filesystem or the cache
+    /// and return a clone. It will panic if the asset is not found.
+    fn load_expect_cloned(specifier: &str) -> Self::Output
+    where
+        Self::Output: Clone + Send + Sync + 'static,
+    {
+        Self::load_expect(specifier).as_ref().clone()
+    }
+
+    /// Load an asset while registering it to be watched and reloaded when it
+    /// changes
+    fn load_watched(
+        specifier: &str,
+        indicator: &mut watch::ReloadIndicator,
+    ) -> Result<Arc<Self::Output>, Error>
+    where
+        Self::Output: Send + Sync + 'static,
+    {
+        let asset = Self::load(specifier)?;
+
+        // Determine path to watch
+        let path = unpack_specifier(specifier);
+        let mut path_with_extension = None;
+        for ending in Self::ENDINGS {
+            let mut path = path.clone();
+            path.set_extension(ending);
+
+            if path.exists() {
+                path_with_extension = Some(path);
+                break;
+            }
+        }
+
+        let owned_specifier = specifier.to_string();
+        indicator.add(
+            path_with_extension
+                .ok_or_else(|| Error::NotFound(path.to_string_lossy().into_owned()))?,
+            move || {
+                if let Err(e) = reload::<Self>(&owned_specifier) {
+                    error!(?e, ?owned_specifier, "Error reloading owned_specifier");
+                }
+            },
+        );
+
+        Ok(asset)
+    }
 }
 
 impl Asset for DynamicImage {
@@ -265,13 +293,45 @@ impl Asset for Value {
     }
 }
 
-impl Asset for String {
-    const ENDINGS: &'static [&'static str] = &["glsl"];
+/// Load fron an arbitrary RON file.
+pub struct Ron<T>(pub PhantomData<T>);
 
-    fn parse(mut buf_reader: BufReader<File>) -> Result<Self, Error> {
-        let mut string = String::new();
-        buf_reader.read_to_string(&mut string)?;
-        Ok(string)
+impl<T: Send + Sync + for<'de> Deserialize<'de>> Asset for Ron<T> {
+    type Output = T;
+
+    const ENDINGS: &'static [&'static str] = &["ron"];
+
+    fn parse(buf_reader: BufReader<File>) -> Result<T, Error> {
+        ron::de::from_reader(buf_reader).map_err(Error::parse_error)
+    }
+}
+
+/// Load from a specific asset path.
+pub struct AssetWith<T: Asset, const ASSET_PATH: &'static str> {
+    pub asset: Arc<T::Output>,
+}
+
+impl<T: Asset, const ASSET_PATH: &'static str> Clone for AssetWith<T, ASSET_PATH> {
+    fn clone(&self) -> Self {
+        Self {
+            asset: Arc::clone(&self.asset),
+        }
+    }
+}
+
+impl<T: Asset, const ASSET_PATH: &'static str> AssetWith<T, ASSET_PATH>
+where
+    T::Output: Send + Sync + 'static,
+{
+    #[inline]
+    pub fn load_watched(indicator: &mut watch::ReloadIndicator) -> Result<Self, Error> {
+        T::load_watched(ASSET_PATH, indicator).map(|asset| Self { asset })
+    }
+
+    #[inline]
+    pub fn reload(&mut self) -> Result<(), Error> {
+        self.asset = T::load(ASSET_PATH)?;
+        Ok(())
     }
 }
 

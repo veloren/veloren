@@ -19,7 +19,7 @@ use anim::{
 };
 use client::Client;
 use common::{
-    comp::{humanoid, item::ItemKind, Body, Loadout},
+    comp::{humanoid, item::ItemKind, Loadout},
     figure::Segment,
     terrain::BlockKind,
     vol::{BaseVol, ReadVol, Vox},
@@ -87,10 +87,11 @@ pub struct Scene {
     char_ori: f32,
 }
 
-pub struct SceneData {
+pub struct SceneData<'a> {
     pub time: f64,
     pub delta_time: f32,
     pub tick: u64,
+    pub thread_pool: &'a uvth::ThreadPool,
     pub body: Option<humanoid::Body>,
     pub gamma: f32,
     pub figure_lod_render_distance: f32,
@@ -164,7 +165,7 @@ impl Scene {
                 // 2^27, which fits in a u32.
                 let range = range.start as u32..range.end as u32;
                 let model = col_lights
-                    .create_figure(renderer, greedy, (opaque_mesh, bounds), [range])
+                    .create_figure(renderer, greedy.finalize(), (opaque_mesh, bounds), [range])
                     .unwrap();
                 let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
                 state.update(
@@ -175,7 +176,7 @@ impl Scene {
                     Rgba::broadcast(1.0),
                     15.0, // Want to get there immediately.
                     1.0,
-                    &model,
+                    Some(&model),
                     0,
                     true,
                     false,
@@ -304,16 +305,17 @@ impl Scene {
             *self.figure_state.skeleton_mut() =
                 anim::vek::Lerp::lerp(&*self.figure_state.skeleton_mut(), &tgt_skeleton, dt_lerp);
 
-            let model = &self
+            let model = self
                 .figure_model_cache
                 .get_or_create_model(
                     renderer,
                     &mut self.col_lights,
-                    Body::Humanoid(body),
+                    body,
                     loadout,
                     scene_data.tick,
                     CameraMode::default(),
                     None,
+                    scene_data.thread_pool,
                 )
                 .0;
             let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
@@ -325,7 +327,7 @@ impl Scene {
                 Rgba::broadcast(1.0),
                 scene_data.delta_time,
                 1.0,
-                &model,
+                model,
                 0,
                 true,
                 false,
@@ -350,27 +352,25 @@ impl Scene {
         );
 
         if let Some(body) = body {
-            let model = &self
-                .figure_model_cache
-                .get_or_create_model(
-                    renderer,
-                    &mut self.col_lights,
-                    Body::Humanoid(body),
-                    loadout,
-                    tick,
-                    CameraMode::default(),
-                    None,
-                )
-                .0;
-
-            renderer.render_figure(
-                &model.models[0],
-                &self.col_lights.texture(model),
-                &self.data,
-                self.figure_state.locals(),
-                self.figure_state.bone_consts(),
-                &self.lod,
+            let model = &self.figure_model_cache.get_model(
+                &self.col_lights,
+                body,
+                loadout,
+                tick,
+                CameraMode::default(),
+                None,
             );
+
+            if let Some(model) = model {
+                renderer.render_figure(
+                    &model.models[0],
+                    &self.col_lights.texture(model),
+                    &self.data,
+                    self.figure_state.locals(),
+                    self.figure_state.bone_consts(),
+                    &self.lod,
+                );
+            }
         }
 
         if let Some((model, state)) = &self.backdrop {

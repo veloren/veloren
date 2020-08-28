@@ -5,9 +5,11 @@ pub mod run;
 // Reexports
 pub use self::{idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
 
-use super::{make_bone, vek::*, Bone, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Skeleton};
 use common::comp::{self};
 use core::convert::TryFrom;
+
+pub type Body = comp::fish_small::Body;
 
 skeleton_impls!(struct FishSmallSkeleton {
     + torso,
@@ -16,6 +18,7 @@ skeleton_impls!(struct FishSmallSkeleton {
 
 impl Skeleton for FishSmallSkeleton {
     type Attr = SkeletonAttr;
+    type Body = Body;
 
     const BONE_COUNT: usize = 2;
     #[cfg(feature = "use-dyn-lib")]
@@ -55,6 +58,6 @@ impl Default for SkeletonAttr {
     fn default() -> Self { Self }
 }
 
-impl<'a> From<&'a comp::fish_small::Body> for SkeletonAttr {
-    fn from(_body: &'a comp::fish_small::Body) -> Self { Self }
+impl<'a> From<&'a Body> for SkeletonAttr {
+    fn from(_body: &'a Body) -> Self { Self }
 }

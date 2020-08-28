@@ -1,6 +1,6 @@
 use crate::{
     assets::{self, Asset},
-    comp::{Inventory, Item},
+    comp::{item::ItemAsset, Inventory, Item},
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -78,12 +78,12 @@ impl Asset for RecipeBook {
                     .map::<Result<(String, Recipe), assets::Error>, _>(
                         |(name, ((output, amount), inputs))| {
                             Ok((name, Recipe {
-                                output: ((&*assets::load::<Item>(&output)?).clone(), amount),
+                                output: ((&*ItemAsset::load(&output)?).clone(), amount),
                                 inputs: inputs
                                     .into_iter()
                                     .map::<Result<(Item, usize), assets::Error>, _>(
                                         |(name, amount)| {
-                                            Ok(((&*assets::load::<Item>(&name)?).clone(), amount))
+                                            Ok(((&*ItemAsset::load(&name)?).clone(), amount))
                                         },
                                     )
                                     .collect::<Result<_, _>>()?,
@@ -96,4 +96,4 @@ impl Asset for RecipeBook {
     }
 }
 
-pub fn default_recipe_book() -> Arc<RecipeBook> { assets::load_expect("common.recipe_book") }
+pub fn default_recipe_book() -> Arc<RecipeBook> { RecipeBook::load_expect("common.recipe_book") }

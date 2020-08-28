@@ -1,44 +1,44 @@
-(
-    [
-        (
-            specifier: "world.tree.desert_palm.1",
-            center: (7, 8, 2)
-        ),
-        (
-            specifier: "world.tree.desert_palm.2",
-            center: (8, 7, 2)
-        ),
-        (
-            specifier: "world.tree.desert_palm.3",
-            center: (7, 8, 2)
-        ),
-        (
-            specifier: "world.tree.desert_palm.4",
-            center: (6, 7, 2)
-        ),
-        (
-            specifier: "world.tree.desert_palm.5",
-            center: (6, 7, 2)
-        ),
-        (
-            specifier: "world.tree.desert_palm.6",
-            center: (7, 7, 2)
-        ),
-        (
-            specifier: "world.tree.desert_palm.7",
-            center: (7, 7, 2)
-        ),
-        (
-            specifier: "world.tree.desert_palm.8",
-            center: (5, 7, 2)
-        ),
-        (
-            specifier: "world.tree.desert_palm.9",
-            center: (7, 7, 2)
-        ),
-        (
-            specifier: "world.tree.desert_palm.10",
-            center: (6, 7, 2)
-        ),
-    ]
-)
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.tree.desert_palm.1",
+        center: (7, 8, 2)
+    ),
+    (
+        specifier: "world.tree.desert_palm.2",
+        center: (8, 7, 2)
+    ),
+    (
+        specifier: "world.tree.desert_palm.3",
+        center: (7, 8, 2)
+    ),
+    (
+        specifier: "world.tree.desert_palm.4",
+        center: (6, 7, 2)
+    ),
+    (
+        specifier: "world.tree.desert_palm.5",
+        center: (6, 7, 2)
+    ),
+    (
+        specifier: "world.tree.desert_palm.6",
+        center: (7, 7, 2)
+    ),
+    (
+        specifier: "world.tree.desert_palm.7",
+        center: (7, 7, 2)
+    ),
+    (
+        specifier: "world.tree.desert_palm.8",
+        center: (5, 7, 2)
+    ),
+    (
+        specifier: "world.tree.desert_palm.9",
+        center: (7, 7, 2)
+    ),
+    (
+        specifier: "world.tree.desert_palm.10",
+        center: (6, 7, 2)
+    ),
+]

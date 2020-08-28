@@ -12,7 +12,7 @@ use super::{
     AaMode, CloudMode, FilterMethod, FluidMode, LightingMode, Pipeline, RenderError, RenderMode,
     ShadowMapMode, ShadowMode, WrapMode,
 };
-use common::assets::{self, watch::ReloadIndicator};
+use common::assets::{self, watch::ReloadIndicator, Asset};
 use core::convert::TryFrom;
 use gfx::{
     self,
@@ -21,6 +21,11 @@ use gfx::{
     traits::{Device, Factory, FactoryExt},
 };
 use glsl_include::Context as IncludeContext;
+use image::DynamicImage;
+use std::{
+    fs::File,
+    io::{BufReader, Read},
+};
 use tracing::{error, warn};
 use vek::*;
 
@@ -86,6 +91,21 @@ pub type ColLightInfo = (
     Vec<<<ColLightFmt as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType>,
     Vec2<u16>,
 );
+
+/// Load from a GLSL file.
+pub struct Glsl;
+
+impl Asset for Glsl {
+    type Output = String;
+
+    const ENDINGS: &'static [&'static str] = &["glsl"];
+
+    fn parse(mut buf_reader: BufReader<File>) -> Result<String, assets::Error> {
+        let mut string = String::new();
+        buf_reader.read_to_string(&mut string)?;
+        Ok(string)
+    }
+}
 
 /// A type that holds shadow map data.  Since shadow mapping may not be
 /// supported on all platforms, we try to keep it separate.
@@ -240,7 +260,7 @@ impl Renderer {
 
         let noise_tex = Texture::new(
             &mut factory,
-            &assets::load_expect("voxygen.texture.noise"),
+            &DynamicImage::load_expect("voxygen.texture.noise"),
             Some(gfx::texture::FilterMethod::Bilinear),
             Some(gfx::texture::WrapMode::Tile),
             None,
@@ -1654,32 +1674,19 @@ fn create_pipelines(
     ),
     RenderError,
 > {
-    let constants = assets::load_watched::<String>(
-        "voxygen.shaders.include.constants",
-        shader_reload_indicator,
-    )
-    .unwrap();
+    let constants =
+        Glsl::load_watched("voxygen.shaders.include.constants", shader_reload_indicator).unwrap();
     let globals =
-        assets::load_watched::<String>("voxygen.shaders.include.globals", shader_reload_indicator)
-            .unwrap();
-    let sky =
-        assets::load_watched::<String>("voxygen.shaders.include.sky", shader_reload_indicator)
-            .unwrap();
+        Glsl::load_watched("voxygen.shaders.include.globals", shader_reload_indicator).unwrap();
+    let sky = Glsl::load_watched("voxygen.shaders.include.sky", shader_reload_indicator).unwrap();
     let light =
-        assets::load_watched::<String>("voxygen.shaders.include.light", shader_reload_indicator)
-            .unwrap();
-    let srgb =
-        assets::load_watched::<String>("voxygen.shaders.include.srgb", shader_reload_indicator)
-            .unwrap();
+        Glsl::load_watched("voxygen.shaders.include.light", shader_reload_indicator).unwrap();
+    let srgb = Glsl::load_watched("voxygen.shaders.include.srgb", shader_reload_indicator).unwrap();
     let random =
-        assets::load_watched::<String>("voxygen.shaders.include.random", shader_reload_indicator)
-            .unwrap();
-    let lod =
-        assets::load_watched::<String>("voxygen.shaders.include.lod", shader_reload_indicator)
-            .unwrap();
+        Glsl::load_watched("voxygen.shaders.include.random", shader_reload_indicator).unwrap();
+    let lod = Glsl::load_watched("voxygen.shaders.include.lod", shader_reload_indicator).unwrap();
     let shadows =
-        assets::load_watched::<String>("voxygen.shaders.include.shadows", shader_reload_indicator)
-            .unwrap();
+        Glsl::load_watched("voxygen.shaders.include.shadows", shader_reload_indicator).unwrap();
 
     // We dynamically add extra configuration settings to the constants file.
     let constants = format!(
@@ -1716,7 +1723,7 @@ fn create_pipelines(
         },
     );
 
-    let anti_alias = assets::load_watched::<String>(
+    let anti_alias = Glsl::load_watched(
         &["voxygen.shaders.antialias.", match mode.aa {
             AaMode::None | AaMode::SsaaX4 => "none",
             AaMode::Fxaa => "fxaa",
@@ -1729,7 +1736,7 @@ fn create_pipelines(
     )
     .unwrap();
 
-    let cloud = assets::load_watched::<String>(
+    let cloud = Glsl::load_watched(
         &["voxygen.shaders.include.cloud.", match mode.cloud {
             CloudMode::None => "none",
             CloudMode::Regular => "regular",
@@ -1752,28 +1759,27 @@ fn create_pipelines(
     include_ctx.include("cloud.glsl", &cloud);
 
     let figure_vert =
-        assets::load_watched::<String>("voxygen.shaders.figure-vert", shader_reload_indicator)
-            .unwrap();
+        Glsl::load_watched("voxygen.shaders.figure-vert", shader_reload_indicator).unwrap();
 
-    let terrain_point_shadow_vert = assets::load_watched::<String>(
+    let terrain_point_shadow_vert = Glsl::load_watched(
         "voxygen.shaders.light-shadows-vert",
         shader_reload_indicator,
     )
     .unwrap();
 
-    let terrain_directed_shadow_vert = assets::load_watched::<String>(
+    let terrain_directed_shadow_vert = Glsl::load_watched(
         "voxygen.shaders.light-shadows-directed-vert",
         shader_reload_indicator,
     )
     .unwrap();
 
-    let figure_directed_shadow_vert = assets::load_watched::<String>(
+    let figure_directed_shadow_vert = Glsl::load_watched(
         "voxygen.shaders.light-shadows-figure-vert",
         shader_reload_indicator,
     )
     .unwrap();
 
-    let directed_shadow_frag = &assets::load_watched::<String>(
+    let directed_shadow_frag = Glsl::load_watched(
         "voxygen.shaders.light-shadows-directed-frag",
         shader_reload_indicator,
     )
@@ -1783,10 +1789,8 @@ fn create_pipelines(
     let skybox_pipeline = create_pipeline(
         factory,
         skybox::pipe::new(),
-        &assets::load_watched::<String>("voxygen.shaders.skybox-vert", shader_reload_indicator)
-            .unwrap(),
-        &assets::load_watched::<String>("voxygen.shaders.skybox-frag", shader_reload_indicator)
-            .unwrap(),
+        &Glsl::load_watched("voxygen.shaders.skybox-vert", shader_reload_indicator).unwrap(),
+        &Glsl::load_watched("voxygen.shaders.skybox-frag", shader_reload_indicator).unwrap(),
         &include_ctx,
         gfx::state::CullFace::Back,
     )?;
@@ -1796,8 +1800,7 @@ fn create_pipelines(
         factory,
         figure::pipe::new(),
         &figure_vert,
-        &assets::load_watched::<String>("voxygen.shaders.figure-frag", shader_reload_indicator)
-            .unwrap(),
+        &Glsl::load_watched("voxygen.shaders.figure-frag", shader_reload_indicator).unwrap(),
         &include_ctx,
         gfx::state::CullFace::Back,
     )?;
@@ -1806,10 +1809,8 @@ fn create_pipelines(
     let terrain_pipeline = create_pipeline(
         factory,
         terrain::pipe::new(),
-        &assets::load_watched::<String>("voxygen.shaders.terrain-vert", shader_reload_indicator)
-            .unwrap(),
-        &assets::load_watched::<String>("voxygen.shaders.terrain-frag", shader_reload_indicator)
-            .unwrap(),
+        &Glsl::load_watched("voxygen.shaders.terrain-vert", shader_reload_indicator).unwrap(),
+        &Glsl::load_watched("voxygen.shaders.terrain-frag", shader_reload_indicator).unwrap(),
         &include_ctx,
         gfx::state::CullFace::Back,
     )?;
@@ -1818,9 +1819,8 @@ fn create_pipelines(
     let fluid_pipeline = create_pipeline(
         factory,
         fluid::pipe::new(),
-        &assets::load_watched::<String>("voxygen.shaders.fluid-vert", shader_reload_indicator)
-            .unwrap(),
-        &assets::load_watched::<String>(
+        &Glsl::load_watched("voxygen.shaders.fluid-vert", shader_reload_indicator).unwrap(),
+        &Glsl::load_watched(
             &["voxygen.shaders.fluid-frag.", match mode.fluid {
                 FluidMode::Cheap => "cheap",
                 FluidMode::Shiny => "shiny",
@@ -1837,10 +1837,8 @@ fn create_pipelines(
     let sprite_pipeline = create_pipeline(
         factory,
         sprite::pipe::new(),
-        &assets::load_watched::<String>("voxygen.shaders.sprite-vert", shader_reload_indicator)
-            .unwrap(),
-        &assets::load_watched::<String>("voxygen.shaders.sprite-frag", shader_reload_indicator)
-            .unwrap(),
+        &Glsl::load_watched("voxygen.shaders.sprite-vert", shader_reload_indicator).unwrap(),
+        &Glsl::load_watched("voxygen.shaders.sprite-frag", shader_reload_indicator).unwrap(),
         &include_ctx,
         gfx::state::CullFace::Back,
     )?;
@@ -1849,10 +1847,8 @@ fn create_pipelines(
     let particle_pipeline = create_pipeline(
         factory,
         particle::pipe::new(),
-        &assets::load_watched::<String>("voxygen.shaders.particle-vert", shader_reload_indicator)
-            .unwrap(),
-        &assets::load_watched::<String>("voxygen.shaders.particle-frag", shader_reload_indicator)
-            .unwrap(),
+        &Glsl::load_watched("voxygen.shaders.particle-vert", shader_reload_indicator).unwrap(),
+        &Glsl::load_watched("voxygen.shaders.particle-frag", shader_reload_indicator).unwrap(),
         &include_ctx,
         gfx::state::CullFace::Back,
     )?;
@@ -1861,10 +1857,8 @@ fn create_pipelines(
     let ui_pipeline = create_pipeline(
         factory,
         ui::pipe::new(),
-        &assets::load_watched::<String>("voxygen.shaders.ui-vert", shader_reload_indicator)
-            .unwrap(),
-        &assets::load_watched::<String>("voxygen.shaders.ui-frag", shader_reload_indicator)
-            .unwrap(),
+        &Glsl::load_watched("voxygen.shaders.ui-vert", shader_reload_indicator).unwrap(),
+        &Glsl::load_watched("voxygen.shaders.ui-frag", shader_reload_indicator).unwrap(),
         &include_ctx,
         gfx::state::CullFace::Back,
     )?;
@@ -1873,16 +1867,8 @@ fn create_pipelines(
     let lod_terrain_pipeline = create_pipeline(
         factory,
         lod_terrain::pipe::new(),
-        &assets::load_watched::<String>(
-            "voxygen.shaders.lod-terrain-vert",
-            shader_reload_indicator,
-        )
-        .unwrap(),
-        &assets::load_watched::<String>(
-            "voxygen.shaders.lod-terrain-frag",
-            shader_reload_indicator,
-        )
-        .unwrap(),
+        &Glsl::load_watched("voxygen.shaders.lod-terrain-vert", shader_reload_indicator).unwrap(),
+        &Glsl::load_watched("voxygen.shaders.lod-terrain-frag", shader_reload_indicator).unwrap(),
         &include_ctx,
         gfx::state::CullFace::Back,
     )?;
@@ -1891,16 +1877,8 @@ fn create_pipelines(
     let postprocess_pipeline = create_pipeline(
         factory,
         postprocess::pipe::new(),
-        &assets::load_watched::<String>(
-            "voxygen.shaders.postprocess-vert",
-            shader_reload_indicator,
-        )
-        .unwrap(),
-        &assets::load_watched::<String>(
-            "voxygen.shaders.postprocess-frag",
-            shader_reload_indicator,
-        )
-        .unwrap(),
+        &Glsl::load_watched("voxygen.shaders.postprocess-vert", shader_reload_indicator).unwrap(),
+        &Glsl::load_watched("voxygen.shaders.postprocess-frag", shader_reload_indicator).unwrap(),
         &include_ctx,
         gfx::state::CullFace::Back,
     )?;
@@ -1918,7 +1896,7 @@ fn create_pipelines(
             ..figure::pipe::new()
         },
         &figure_vert,
-        &assets::load_watched::<String>(
+        &Glsl::load_watched(
             "voxygen.shaders.player-shadow-frag",
             shader_reload_indicator,
         )
@@ -1933,13 +1911,13 @@ fn create_pipelines(
         shadow::pipe::new(),
         &terrain_point_shadow_vert,
         Some(
-            &assets::load_watched::<String>(
+            &Glsl::load_watched(
                 "voxygen.shaders.light-shadows-geom",
                 shader_reload_indicator,
             )
             .unwrap(),
         ),
-        &assets::load_watched::<String>(
+        &Glsl::load_watched(
             "voxygen.shaders.light-shadows-frag",
             shader_reload_indicator,
         )

@@ -13,9 +13,9 @@ use crate::{
     IndexRef,
 };
 use common::{
-    assets,
+    assets::Asset,
     astar::Astar,
-    comp::{self, bird_medium, humanoid, object, quadruped_small},
+    comp::{self, bird_medium, humanoid, item::ItemAsset, object, quadruped_small},
     generation::{ChunkSupplement, EntityInfo},
     path::Path,
     spiral::Spiral2d,
@@ -26,11 +26,11 @@ use common::{
 use fxhash::FxHasher64;
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::{collections::VecDeque, f32, hash::BuildHasherDefault};
 use vek::*;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize)]
 pub struct Colors {
     pub building: building::Colors,
 
@@ -904,7 +904,7 @@ impl Settlement {
                             comp::Alignment::Tame
                         })
                         .do_if(is_human && rng.gen(), |entity| {
-                            entity.with_main_tool(assets::load_expect_cloned(
+                            entity.with_main_tool(ItemAsset::load_expect_cloned(
                                 match rng.gen_range(0, 7) {
                                     0 => "common.items.npc_weapons.tool.broom",
                                     1 => "common.items.npc_weapons.tool.hoe",

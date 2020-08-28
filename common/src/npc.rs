@@ -1,5 +1,5 @@
 use crate::{
-    assets,
+    assets::Asset,
     comp::{self, AllBodies, Body},
 };
 use lazy_static::lazy_static;
@@ -63,7 +63,7 @@ pub struct SpeciesNames {
 pub type NpcNames = AllBodies<BodyNames, SpeciesNames>;
 
 lazy_static! {
-    pub static ref NPC_NAMES: Arc<NpcNames> = assets::load_expect("common.npc_names");
+    pub static ref NPC_NAMES: Arc<NpcNames> = NpcNames::load_expect("common.npc_names");
 }
 
 impl FromStr for NpcKind {

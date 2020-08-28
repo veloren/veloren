@@ -10,10 +10,10 @@ pub use self::{
 use crate::IndexRef;
 use common::terrain::Block;
 use rand::prelude::*;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use vek::*;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize)]
 pub struct Colors {
     pub archetype: archetype::Colors,
 }

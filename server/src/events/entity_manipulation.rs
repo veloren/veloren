@@ -1,9 +1,9 @@
 use crate::{client::Client, comp::quadruped_small, Server, SpawnPoint, StateExt};
 use common::{
-    assets,
+    assets::Asset,
     comp::{
-        self, object, Alignment, Body, Damage, DamageSource, Group, HealthChange, HealthSource,
-        Player, Pos, Stats,
+        self, item::ItemAsset, object, Alignment, Body, Damage, DamageSource, Group, HealthChange,
+        HealthSource, Player, Pos, Stats,
     },
     lottery::Lottery,
     msg::{PlayerListUpdate, ServerMsg},
@@ -186,130 +186,68 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         // Decide for a loot drop before turning into a lootbag
         let old_body = state.ecs().write_storage::<Body>().remove(entity);
         let mut rng = rand::thread_rng();
-        let drop = match old_body {
+        let drop = Lottery::<String>::load_expect(match old_body {
             Some(common::comp::Body::Humanoid(_)) => match rng.gen_range(0, 4) {
-                0 => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_humanoids",
-                ),
-                1 => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_armor_light",
-                ),
-                2 => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_armor_cloth",
-                ),
-                3 => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_weapon_common",
-                ),
-                _ => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_humanoids",
-                ),
+                0 => "common.loot_tables.loot_table_humanoids",
+                1 => "common.loot_tables.loot_table_armor_light",
+                2 => "common.loot_tables.loot_table_armor_cloth",
+                3 => "common.loot_tables.loot_table_weapon_common",
+                _ => "common.loot_tables.loot_table_humanoids",
             },
             Some(common::comp::Body::QuadrupedSmall(quadruped_small)) => {
                 match quadruped_small.species {
                     quadruped_small::Species::Dodarock => match rng.gen_range(0, 6) {
-                        0 => assets::load_expect::<Lottery<String>>(
-                            "common.loot_tables.loot_table_armor_misc",
-                        ),
-                        1 => assets::load_expect::<Lottery<String>>(
-                            "common.loot_tables.loot_table_rocks",
-                        ),
-                        _ => assets::load_expect::<Lottery<String>>(
-                            "common.loot_tables.loot_table_rocks",
-                        ),
+                        0 => "common.loot_tables.loot_table_armor_misc",
+                        1 => "common.loot_tables.loot_table_rocks",
+                        _ => "common.loot_tables.loot_table_rocks",
                     },
                     _ => match rng.gen_range(0, 4) {
-                        0 => assets::load_expect::<Lottery<String>>(
-                            "common.loot_tables.loot_table_food",
-                        ),
-                        1 => assets::load_expect::<Lottery<String>>(
-                            "common.loot_tables.loot_table_armor_misc",
-                        ),
-                        2 => assets::load_expect::<Lottery<String>>(
-                            "common.loot_tables.loot_table_animal_parts",
-                        ),
-                        _ => assets::load_expect::<Lottery<String>>(
-                            "common.loot_tables.loot_table_animal_parts",
-                        ),
+                        0 => "common.loot_tables.loot_table_food",
+                        1 => "common.loot_tables.loot_table_armor_misc",
+                        2 => "common.loot_tables.loot_table_animal_parts",
+                        _ => "common.loot_tables.loot_table_animal_parts",
                     },
                 }
             },
             Some(common::comp::Body::QuadrupedMedium(_)) => match rng.gen_range(0, 4) {
-                0 => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_food"),
-                1 => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_armor_misc",
-                ),
-                2 => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_animal_parts",
-                ),
-                _ => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_animal_parts",
-                ),
+                0 => "common.loot_tables.loot_table_food",
+                1 => "common.loot_tables.loot_table_armor_misc",
+                2 => "common.loot_tables.loot_table_animal_parts",
+                _ => "common.loot_tables.loot_table_animal_parts",
             },
             Some(common::comp::Body::BirdMedium(_)) => match rng.gen_range(0, 3) {
-                0 => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_food"),
-                1 => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_armor_misc",
-                ),
-                _ => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table"),
+                0 => "common.loot_tables.loot_table_food",
+                1 => "common.loot_tables.loot_table_armor_misc",
+                _ => "common.loot_tables.loot_table",
             },
             Some(common::comp::Body::BipedLarge(_)) => match rng.gen_range(0, 8) {
-                0 => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_food"),
-                1 => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_armor_nature",
-                ),
-                3 => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_armor_heavy",
-                ),
-                5 => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_weapon_uncommon",
-                ),
-                6 => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_weapon_rare",
-                ),
-                _ => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_cave_large",
-                ),
+                0 => "common.loot_tables.loot_table_food",
+                1 => "common.loot_tables.loot_table_armor_nature",
+                3 => "common.loot_tables.loot_table_armor_heavy",
+                5 => "common.loot_tables.loot_table_weapon_uncommon",
+                6 => "common.loot_tables.loot_table_weapon_rare",
+                _ => "common.loot_tables.loot_table_cave_large",
             },
             Some(common::comp::Body::Golem(_)) => match rng.gen_range(0, 9) {
-                0 => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_food"),
-                1 => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_armor_misc",
-                ),
-                2 => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_armor_light",
-                ),
-                3 => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_armor_heavy",
-                ),
-                4 => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_armor_misc",
-                ),
-                5 => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_weapon_common",
-                ),
-                6 => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_weapon_uncommon",
-                ),
-                7 => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_weapon_rare",
-                ),
-                _ => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table"),
+                0 => "common.loot_tables.loot_table_food",
+                1 => "common.loot_tables.loot_table_armor_misc",
+                2 => "common.loot_tables.loot_table_armor_light",
+                3 => "common.loot_tables.loot_table_armor_heavy",
+                4 => "common.loot_tables.loot_table_armor_misc",
+                5 => "common.loot_tables.loot_table_weapon_common",
+                6 => "common.loot_tables.loot_table_weapon_uncommon",
+                7 => "common.loot_tables.loot_table_weapon_rare",
+                _ => "common.loot_tables.loot_table",
             },
-            Some(common::comp::Body::Critter(_)) => {
-                assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_animal_parts")
-            },
-            Some(common::comp::Body::Dragon(_)) => {
-                assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_weapon_rare")
-            },
+            Some(common::comp::Body::Critter(_)) => "common.loot_tables.loot_table_animal_parts",
+            Some(common::comp::Body::Dragon(_)) => "common.loot_tables.loot_table_weapon_rare",
             Some(common::comp::Body::QuadrupedLow(_)) => match rng.gen_range(0, 3) {
-                0 => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table_food"),
-                1 => assets::load_expect::<Lottery<String>>(
-                    "common.loot_tables.loot_table_animal_parts",
-                ),
-                _ => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table"),
+                0 => "common.loot_tables.loot_table_food",
+                1 => "common.loot_tables.loot_table_animal_parts",
+                _ => "common.loot_tables.loot_table",
             },
-            _ => assets::load_expect::<Lottery<String>>("common.loot_tables.loot_table"),
-        };
+            _ => "common.loot_tables.loot_table",
+        });
         let drop = drop.choose();
         // Replace npc with lootbag containing drop
         let _ = state
@@ -321,7 +259,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             item_drops.remove(entity);
             item_drop.0
         } else {
-            assets::load_expect_cloned(drop)
+            ItemAsset::load_expect_cloned(drop)
         };
 
         let _ = state.ecs().write_storage().insert(entity, item);

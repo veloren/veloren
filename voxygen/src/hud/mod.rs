@@ -56,7 +56,7 @@ use crate::{
     GlobalState,
 };
 use client::Client;
-use common::{assets::load_expect, comp, sync::Uid, terrain::TerrainChunk, vol::RectRasterableVol};
+use common::{assets::Asset, comp, sync::Uid, terrain::TerrainChunk, vol::RectRasterableVol};
 use conrod_core::{
     text::cursor::Index,
     widget::{self, Button, Image, Text},
@@ -602,7 +602,7 @@ impl Hud {
         // Load item images.
         let item_imgs = ItemImgs::new(&mut ui, imgs.not_found);
         // Load language.
-        let voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+        let voxygen_i18n = VoxygenLocalization::load_expect(&i18n_asset_key(
             &global_state.settings.language.selected_language,
         ));
         // Load fonts.

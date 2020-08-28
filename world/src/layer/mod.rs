@@ -5,7 +5,8 @@ use crate::{
     IndexRef, CONFIG,
 };
 use common::{
-    assets, comp,
+    assets::Asset,
+    comp,
     generation::{ChunkSupplement, EntityInfo},
     lottery::Lottery,
     terrain::{Block, BlockKind},
@@ -13,14 +14,14 @@ use common::{
 };
 use noise::NoiseFn;
 use rand::prelude::*;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::{
     f32,
     ops::{Mul, Sub},
 };
 use vek::*;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize)]
 pub struct Colors {
     pub bridge: (u8, u8, u8),
     pub stalagtite: (u8, u8, u8),
@@ -505,7 +506,7 @@ pub fn apply_caves_to<'a>(
                 if RandomField::new(index.seed).chance(wpos2d.into(), 0.001 * difficulty.powf(1.5))
                     && cave_base < surface_z as i32 - 25
                 {
-                    let kind = *assets::load_expect::<Lottery<BlockKind>>("common.cave_scatter")
+                    let kind = *Lottery::<BlockKind>::load_expect("common.cave_scatter")
                         .choose_seeded(RandomField::new(index.seed + 1).get(wpos2d.into()));
                     let _ = vol.set(
                         Vec3::new(offs.x, offs.y, cave_base),

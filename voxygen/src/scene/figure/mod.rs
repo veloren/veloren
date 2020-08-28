@@ -6,10 +6,9 @@ pub use load::load_mesh; // TODO: Don't make this public.
 
 use crate::{
     ecs::comp::Interpolated,
-    mesh::greedy::GreedyMesh,
     render::{
-        ColLightFmt, Consts, FigureBoneData, FigureLocals, FigureModel, GlobalModel, Mesh,
-        RenderError, Renderer, ShadowPipeline, TerrainPipeline, Texture,
+        ColLightFmt, ColLightInfo, Consts, FigureBoneData, FigureLocals, FigureModel, GlobalModel,
+        Mesh, RenderError, Renderer, ShadowPipeline, TerrainPipeline, Texture,
     },
     scene::{
         camera::{Camera, CameraMode, Dependents},
@@ -308,6 +307,7 @@ pub struct FigureMgr {
     fish_medium_model_cache: FigureModelCache<FishMediumSkeleton>,
     fish_small_model_cache: FigureModelCache<FishSmallSkeleton>,
     biped_large_model_cache: FigureModelCache<BipedLargeSkeleton>,
+    object_model_cache: FigureModelCache<ObjectSkeleton>,
     golem_model_cache: FigureModelCache<GolemSkeleton>,
     states: FigureMgrStates,
 }
@@ -327,6 +327,7 @@ impl FigureMgr {
             fish_medium_model_cache: FigureModelCache::new(),
             fish_small_model_cache: FigureModelCache::new(),
             biped_large_model_cache: FigureModelCache::new(),
+            object_model_cache: FigureModelCache::new(),
             golem_model_cache: FigureModelCache::new(),
             states: FigureMgrStates::default(),
         }
@@ -354,6 +355,7 @@ impl FigureMgr {
             .clean(&mut self.col_lights, tick);
         self.biped_large_model_cache
             .clean(&mut self.col_lights, tick);
+        self.object_model_cache.clean(&mut self.col_lights, tick);
         self.golem_model_cache.clean(&mut self.col_lights, tick);
     }
 
@@ -685,7 +687,7 @@ impl FigureMgr {
             };
 
             match body {
-                Body::Humanoid(_) => {
+                Body::Humanoid(body) => {
                     let (model, skeleton_attr) = self.model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
@@ -694,6 +696,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
+                        scene_data.thread_pool,
                     );
 
                     let state = self
@@ -1046,7 +1049,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model,
+                        model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -1054,7 +1057,7 @@ impl FigureMgr {
                         &mut update_buf,
                     );
                 },
-                Body::QuadrupedSmall(_) => {
+                Body::QuadrupedSmall(body) => {
                     let (model, skeleton_attr) =
                         self.quadruped_small_model_cache.get_or_create_model(
                             renderer,
@@ -1064,6 +1067,7 @@ impl FigureMgr {
                             tick,
                             player_camera_mode,
                             player_character_state,
+                            scene_data.thread_pool,
                         );
 
                     let state = self
@@ -1147,7 +1151,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model,
+                        model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -1155,7 +1159,7 @@ impl FigureMgr {
                         &mut update_buf,
                     );
                 },
-                Body::QuadrupedMedium(_) => {
+                Body::QuadrupedMedium(body) => {
                     let (model, skeleton_attr) =
                         self.quadruped_medium_model_cache.get_or_create_model(
                             renderer,
@@ -1165,6 +1169,7 @@ impl FigureMgr {
                             tick,
                             player_camera_mode,
                             player_character_state,
+                            scene_data.thread_pool,
                         );
 
                     let state = self
@@ -1248,7 +1253,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model,
+                        model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -1256,7 +1261,7 @@ impl FigureMgr {
                         &mut update_buf,
                     );
                 },
-                Body::QuadrupedLow(_) => {
+                Body::QuadrupedLow(body) => {
                     let (model, skeleton_attr) =
                         self.quadruped_low_model_cache.get_or_create_model(
                             renderer,
@@ -1266,6 +1271,7 @@ impl FigureMgr {
                             tick,
                             player_camera_mode,
                             player_character_state,
+                            scene_data.thread_pool,
                         );
 
                     let state = self
@@ -1347,7 +1353,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model,
+                        model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -1355,7 +1361,7 @@ impl FigureMgr {
                         &mut update_buf,
                     );
                 },
-                Body::BirdMedium(_) => {
+                Body::BirdMedium(body) => {
                     let (model, skeleton_attr) = self.bird_medium_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
@@ -1364,6 +1370,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
+                        scene_data.thread_pool,
                     );
 
                     let state = self
@@ -1443,7 +1450,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model,
+                        model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -1451,7 +1458,7 @@ impl FigureMgr {
                         &mut update_buf,
                     );
                 },
-                Body::FishMedium(_) => {
+                Body::FishMedium(body) => {
                     let (model, skeleton_attr) = self.fish_medium_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
@@ -1460,6 +1467,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
+                        scene_data.thread_pool,
                     );
 
                     let state = self
@@ -1528,7 +1536,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model,
+                        model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -1536,7 +1544,7 @@ impl FigureMgr {
                         &mut update_buf,
                     );
                 },
-                Body::Dragon(_) => {
+                Body::Dragon(body) => {
                     let (model, skeleton_attr) = self.dragon_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
@@ -1545,6 +1553,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
+                        scene_data.thread_pool,
                     );
 
                     let state =
@@ -1609,7 +1618,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model,
+                        model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -1617,7 +1626,7 @@ impl FigureMgr {
                         &mut update_buf,
                     );
                 },
-                Body::Critter(_) => {
+                Body::Critter(body) => {
                     let (model, skeleton_attr) = self.critter_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
@@ -1626,6 +1635,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
+                        scene_data.thread_pool,
                     );
 
                     let state =
@@ -1691,7 +1701,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model,
+                        model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -1699,7 +1709,7 @@ impl FigureMgr {
                         &mut update_buf,
                     );
                 },
-                Body::BirdSmall(_) => {
+                Body::BirdSmall(body) => {
                     let (model, skeleton_attr) = self.bird_small_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
@@ -1708,6 +1718,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
+                        scene_data.thread_pool,
                     );
 
                     let state = self
@@ -1776,7 +1787,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model,
+                        model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -1784,7 +1795,7 @@ impl FigureMgr {
                         &mut update_buf,
                     );
                 },
-                Body::FishSmall(_) => {
+                Body::FishSmall(body) => {
                     let (model, skeleton_attr) = self.fish_small_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
@@ -1793,6 +1804,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
+                        scene_data.thread_pool,
                     );
 
                     let state = self
@@ -1861,7 +1873,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model,
+                        model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -1869,7 +1881,7 @@ impl FigureMgr {
                         &mut update_buf,
                     );
                 },
-                Body::BipedLarge(_) => {
+                Body::BipedLarge(body) => {
                     let (model, skeleton_attr) = self.biped_large_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
@@ -1878,6 +1890,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
+                        scene_data.thread_pool,
                     );
 
                     let state = self
@@ -1966,7 +1979,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model,
+                        model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -1974,7 +1987,7 @@ impl FigureMgr {
                         &mut update_buf,
                     );
                 },
-                Body::Golem(_) => {
+                Body::Golem(body) => {
                     let (model, skeleton_attr) = self.golem_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
@@ -1983,6 +1996,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
+                        scene_data.thread_pool,
                     );
 
                     let state =
@@ -2048,7 +2062,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model,
+                        model,
                         lpindex,
                         in_frustum,
                         is_player,
@@ -2056,8 +2070,8 @@ impl FigureMgr {
                         &mut update_buf,
                     );
                 },
-                Body::Object(_) => {
-                    let (model, _) = &self.model_cache.get_or_create_model(
+                Body::Object(body) => {
+                    let (model, _) = self.object_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
                         *body,
@@ -2065,6 +2079,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
+                        scene_data.thread_pool,
                     );
 
                     let state =
@@ -2080,7 +2095,7 @@ impl FigureMgr {
                         col,
                         dt,
                         state_animation_rate,
-                        &model,
+                        model,
                         lpindex,
                         true,
                         is_player,
@@ -2102,7 +2117,7 @@ impl FigureMgr {
     }
 
     pub fn render_shadows(
-        &mut self,
+        &self,
         renderer: &mut Renderer,
         state: &State,
         tick: u64,
@@ -2127,7 +2142,6 @@ impl FigureMgr {
             .filter(|(_, _, _, _, stats, _, _)| stats.map_or(true, |s| !s.is_dead))
             .for_each(|(entity, pos, _, body, _, loadout, _)| {
                 if let Some((locals, bone_consts, model, _)) = self.get_model_for_render(
-                    renderer,
                     tick,
                     camera,
                     None,
@@ -2153,7 +2167,7 @@ impl FigureMgr {
 
     #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn render(
-        &mut self,
+        &self,
         renderer: &mut Renderer,
         state: &State,
         player_entity: EcsEntity,
@@ -2184,7 +2198,6 @@ impl FigureMgr {
 
             if !is_player {
                 if let Some((locals, bone_consts, model, col_lights)) = self.get_model_for_render(
-                    renderer,
                     tick,
                     camera,
                     character_state,
@@ -2204,7 +2217,7 @@ impl FigureMgr {
 
     #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn render_player(
-        &mut self,
+        &self,
         renderer: &mut Renderer,
         state: &State,
         player_entity: EcsEntity,
@@ -2233,7 +2246,6 @@ impl FigureMgr {
             let loadout = loadout_storage.get(player_entity);
 
             if let Some((locals, bone_consts, model, col_lights)) = self.get_model_for_render(
-                renderer,
                 tick,
                 camera,
                 character_state,
@@ -2260,8 +2272,7 @@ impl FigureMgr {
 
     #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     fn get_model_for_render(
-        &mut self,
-        renderer: &mut Renderer,
+        &self,
         tick: u64,
         camera: &Camera,
         character_state: Option<&CharacterState>,
@@ -2283,7 +2294,7 @@ impl FigureMgr {
         let character_state = if is_player { character_state } else { None };
 
         let FigureMgr {
-            col_lights: ref mut col_lights_,
+            col_lights: ref col_lights_,
             model_cache,
             critter_model_cache,
             quadruped_small_model_cache,
@@ -2295,6 +2306,7 @@ impl FigureMgr {
             fish_medium_model_cache,
             fish_small_model_cache,
             biped_large_model_cache,
+            object_model_cache,
             golem_model_cache,
             states:
                 FigureMgrStates {
@@ -2313,269 +2325,232 @@ impl FigureMgr {
                     object_states,
                 },
         } = self;
-        let col_lights = &mut *col_lights_;
+        let col_lights = &*col_lights_;
         if let Some((locals, bone_consts, model_entry)) = match body {
-            Body::Humanoid(_) => character_states
+            Body::Humanoid(body) => character_states
                 .get(&entity)
                 .filter(|state| filter_state(&*state))
                 .map(move |state| {
                     (
                         state.locals(),
                         state.bone_consts(),
-                        &model_cache
-                            .get_or_create_model(
-                                renderer,
-                                col_lights,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
+                        model_cache.get_model(
+                            col_lights,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        ),
                     )
                 }),
-            Body::QuadrupedSmall(_) => quadruped_small_states
+            Body::QuadrupedSmall(body) => quadruped_small_states
                 .get(&entity)
                 .filter(|state| filter_state(&*state))
                 .map(move |state| {
                     (
                         state.locals(),
                         state.bone_consts(),
-                        &quadruped_small_model_cache
-                            .get_or_create_model(
-                                renderer,
-                                col_lights,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
+                        quadruped_small_model_cache.get_model(
+                            col_lights,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        ),
                     )
                 }),
-            Body::QuadrupedMedium(_) => quadruped_medium_states
+            Body::QuadrupedMedium(body) => quadruped_medium_states
                 .get(&entity)
                 .filter(|state| filter_state(&*state))
                 .map(move |state| {
                     (
                         state.locals(),
                         state.bone_consts(),
-                        &quadruped_medium_model_cache
-                            .get_or_create_model(
-                                renderer,
-                                col_lights,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
+                        quadruped_medium_model_cache.get_model(
+                            col_lights,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        ),
                     )
                 }),
-            Body::QuadrupedLow(_) => quadruped_low_states
+            Body::QuadrupedLow(body) => quadruped_low_states
                 .get(&entity)
                 .filter(|state| filter_state(&*state))
                 .map(move |state| {
                     (
                         state.locals(),
                         state.bone_consts(),
-                        &quadruped_low_model_cache
-                            .get_or_create_model(
-                                renderer,
-                                col_lights,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
+                        quadruped_low_model_cache.get_model(
+                            col_lights,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        ),
                     )
                 }),
-            Body::BirdMedium(_) => bird_medium_states
+            Body::BirdMedium(body) => bird_medium_states
                 .get(&entity)
                 .filter(|state| filter_state(&*state))
                 .map(move |state| {
                     (
                         state.locals(),
                         state.bone_consts(),
-                        &bird_medium_model_cache
-                            .get_or_create_model(
-                                renderer,
-                                col_lights,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
+                        bird_medium_model_cache.get_model(
+                            col_lights,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        ),
                     )
                 }),
-            Body::FishMedium(_) => fish_medium_states
+            Body::FishMedium(body) => fish_medium_states
                 .get(&entity)
                 .filter(|state| filter_state(&*state))
                 .map(move |state| {
                     (
                         state.locals(),
                         state.bone_consts(),
-                        &fish_medium_model_cache
-                            .get_or_create_model(
-                                renderer,
-                                col_lights,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
+                        fish_medium_model_cache.get_model(
+                            col_lights,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        ),
                     )
                 }),
-            Body::Critter(_) => critter_states
+            Body::Critter(body) => critter_states
                 .get(&entity)
                 .filter(|state| filter_state(&*state))
                 .map(move |state| {
                     (
                         state.locals(),
                         state.bone_consts(),
-                        &critter_model_cache
-                            .get_or_create_model(
-                                renderer,
-                                col_lights,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
+                        critter_model_cache.get_model(
+                            col_lights,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        ),
                     )
                 }),
-            Body::Dragon(_) => dragon_states
+            Body::Dragon(body) => dragon_states
                 .get(&entity)
                 .filter(|state| filter_state(&*state))
                 .map(move |state| {
                     (
                         state.locals(),
                         state.bone_consts(),
-                        &dragon_model_cache
-                            .get_or_create_model(
-                                renderer,
-                                col_lights,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
+                        dragon_model_cache.get_model(
+                            col_lights,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        ),
                     )
                 }),
-            Body::BirdSmall(_) => bird_small_states
+            Body::BirdSmall(body) => bird_small_states
                 .get(&entity)
                 .filter(|state| filter_state(&*state))
                 .map(move |state| {
                     (
                         state.locals(),
                         state.bone_consts(),
-                        &bird_small_model_cache
-                            .get_or_create_model(
-                                renderer,
-                                col_lights,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
+                        bird_small_model_cache.get_model(
+                            col_lights,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        ),
                     )
                 }),
-            Body::FishSmall(_) => fish_small_states
+            Body::FishSmall(body) => fish_small_states
                 .get(&entity)
                 .filter(|state| filter_state(&*state))
                 .map(move |state| {
                     (
                         state.locals(),
                         state.bone_consts(),
-                        &fish_small_model_cache
-                            .get_or_create_model(
-                                renderer,
-                                col_lights,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
+                        fish_small_model_cache.get_model(
+                            col_lights,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        ),
                     )
                 }),
-            Body::BipedLarge(_) => biped_large_states
+            Body::BipedLarge(body) => biped_large_states
                 .get(&entity)
                 .filter(|state| filter_state(&*state))
                 .map(move |state| {
                     (
                         state.locals(),
                         state.bone_consts(),
-                        &biped_large_model_cache
-                            .get_or_create_model(
-                                renderer,
-                                col_lights,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
+                        biped_large_model_cache.get_model(
+                            col_lights,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        ),
                     )
                 }),
-            Body::Golem(_) => golem_states
+            Body::Golem(body) => golem_states
                 .get(&entity)
                 .filter(|state| filter_state(&*state))
                 .map(move |state| {
                     (
                         state.locals(),
                         state.bone_consts(),
-                        &golem_model_cache
-                            .get_or_create_model(
-                                renderer,
-                                col_lights,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
+                        golem_model_cache.get_model(
+                            col_lights,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        ),
                     )
                 }),
-            Body::Object(_) => object_states
+            Body::Object(body) => object_states
                 .get(&entity)
                 .filter(|state| filter_state(&*state))
                 .map(move |state| {
                     (
                         state.locals(),
                         state.bone_consts(),
-                        &model_cache
-                            .get_or_create_model(
-                                renderer,
-                                col_lights,
-                                *body,
-                                loadout,
-                                tick,
-                                player_camera_mode,
-                                character_state,
-                            )
-                            .0,
+                        object_model_cache.get_model(
+                            col_lights,
+                            *body,
+                            loadout,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        ),
                     )
                 }),
         } {
+            let model_entry = model_entry?;
+
             let figure_low_detail_distance = figure_lod_render_distance * 0.75;
             let figure_mid_detail_distance = figure_lod_render_distance * 0.5;
 
@@ -2627,14 +2602,13 @@ impl FigureColLights {
     /// NOTE: Panics if the vertex range bounds are not in range of the opaque
     /// model stored in the BoneMeshes parameter.  This is part of the
     /// function contract.
-    pub fn create_figure<'a, const N: usize>(
+    pub fn create_figure<const N: usize>(
         &mut self,
         renderer: &mut Renderer,
-        greedy: GreedyMesh<'a>,
+        (tex, tex_size): ColLightInfo,
         (opaque, bounds): (Mesh<TerrainPipeline>, math::Aabb<f32>),
         vertex_range: [Range<u32>; N],
     ) -> Result<FigureModelEntry<N>, RenderError> {
-        let (tex, tex_size) = greedy.finalize();
         let atlas = &mut self.atlas;
         let allocation = atlas
             .allocate(guillotiere::Size::new(
@@ -2771,14 +2745,31 @@ impl<S: Skeleton> FigureState<S> {
         col: vek::Rgba<f32>,
         dt: f32,
         state_animation_rate: f32,
-        model: &FigureModelEntry<N>,
+        model: Option<&FigureModelEntry<N>>,
         _lpindex: u8,
         _visible: bool,
         is_player: bool,
-        camera: &Camera,
+        _camera: &Camera,
         buf: &mut [anim::FigureBoneData; anim::MAX_BONE_COUNT],
     ) {
-        let _frustum = camera.frustum();
+        // NOTE: As long as update() always gets called after get_or_create_model(), and
+        // visibility is not set again until after the model is rendered, we
+        // know we don't pair the character model with invalid model state.
+        //
+        // Currently, the only exception to this during normal gameplay is in the very
+        // first tick after a model is created (so there's no `last_character`
+        // state).  So in theory, we could have incorrect model data during this
+        // tick.  It is possible to resolve this in a few ways, but since
+        // currently we don't actually use the model state for anything, we
+        // currently ignore this potential issue.
+        //
+        // FIXME: Address the above at some point.
+        let model = if let Some(model) = model {
+            model
+        } else {
+            self.visible = false;
+            return;
+        };
 
         // Approximate as a sphere with radius equal to the
         // largest dimension (if we were exact, it should just be half the largest
