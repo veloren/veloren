@@ -120,6 +120,9 @@ impl<'a> System<'a> for Sys {
                     if same_group && (attack.base_heal > 0) {
                         is_heal = true;
                     }
+                    if !is_heal && !is_damage {
+                        continue;
+                    }
 
                     // Weapon gives base damage
                     let source = if is_heal {
@@ -129,8 +132,13 @@ impl<'a> System<'a> for Sys {
                     } else {
                         DamageSource::Energy
                     };
+                    let healthchange = if is_heal {
+                        attack.base_heal as f32
+                    } else {
+                        -(attack.base_damage as f32)
+                    };
                     let mut damage = Damage {
-                        healthchange: -(attack.base_damage as f32),
+                        healthchange,
                         source,
                     };
 
@@ -150,7 +158,7 @@ impl<'a> System<'a> for Sys {
                                 cause,
                             },
                         });
-                        if attack.lifesteal_eff != 0.0 && is_damage {
+                        if attack.lifesteal_eff > 0.0 && is_damage {
                             server_emitter.emit(ServerEvent::Damage {
                                 uid: *uid,
                                 change: HealthChange {

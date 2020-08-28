@@ -310,8 +310,8 @@ impl Tool {
                             base_dps: (80.0 * self.base_power()) as u32,
                             range: 25.0,
                             max_angle: 1.0,
-                            lifesteal_eff: 0.2,
-                            energy_regen: 50,
+                            lifesteal_eff: 0.25,
+                            energy_regen: 120,
                         },
                         BasicMelee {
                             energy_cost: 350,

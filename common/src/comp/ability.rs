@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::time::Duration;
+use vek::Vec3;
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
 pub enum CharacterAbilityType {
@@ -526,6 +527,7 @@ impl From<&CharacterAbility> for CharacterState {
                 energy_regen,
             } => CharacterState::BasicBeam(basic_beam::Data {
                 exhausted: false,
+                particle_ori: None::<Vec3<f32>>,
                 buildup_duration: *buildup_duration,
                 cooldown_duration: Duration::from_millis(250),
                 cooldown_duration_default: Duration::from_millis(250),
