@@ -48,6 +48,7 @@ const int LEAF = 9;
 const int FIREFLY = 10;
 const int BEE = 11;
 const int GROUND_SHOCKWAVE = 12;
+const int HEALING_BEAM = 13;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -247,6 +248,13 @@ void main() {
 			vec3(11.0, 11.0, (33.0 * rand0 * sin(2.0 * lifetime * 3.14 * 2.0))) / 3,
 			vec4(vec3(0.32 + (rand0 * 0.04), 0.22 + (rand1 * 0.03), 0.05 + (rand2 * 0.01)), 1),
 			spin_in_axis(vec3(1,0,0),0)
+		);
+	} else if (inst_mode == HEALING_BEAM) {
+		attr = Attr(
+			vec3(rand0 * 0.2, rand1 * 0.2, rand2 * 0.2 + 1),
+			1,
+			vec4(vec3(0, 1, 0), 1),
+			spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
 		);
 	} else {
 		attr = Attr(

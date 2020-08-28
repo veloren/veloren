@@ -5,11 +5,14 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
+use vek::Vec3;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
     /// Whether the attack can currently deal damage
     pub exhausted: bool,
+    /// Used for particle stuffs
+    pub particle_ori: Option<Vec3<f32>>,
     /// How long until state should deal damage or heal
     pub buildup_duration: Duration,
     /// How long until weapon can deal another tick of damage
@@ -46,6 +49,7 @@ impl CharacterBehavior for Data {
             // Build up
             update.character = CharacterState::BasicBeam(Data {
                 exhausted: self.exhausted,
+                particle_ori: Some(*data.inputs.look_dir),
                 buildup_duration: self
                     .buildup_duration
                     .checked_sub(Duration::from_secs_f32(data.dt.0))
@@ -73,11 +77,12 @@ impl CharacterBehavior for Data {
                 hit_count: 0,
                 knockback: 0.0,
                 is_melee: false,
-                lifesteal_eff: 0.0,
+                lifesteal_eff: self.lifesteal_eff,
             });
 
             update.character = CharacterState::BasicBeam(Data {
                 exhausted: true,
+                particle_ori: Some(*data.inputs.look_dir),
                 buildup_duration: self.buildup_duration,
                 recover_duration: self.recover_duration,
                 cooldown_duration: self.cooldown_duration_default,
@@ -89,18 +94,11 @@ impl CharacterBehavior for Data {
                 lifesteal_eff: self.lifesteal_eff,
                 energy_regen: self.energy_regen,
             });
-
-            // Grant energy and lifesteal on successful hit
-            if let Some(attack) = data.attacking {
-                if attack.applied && attack.hit_count > 0 {
-                    let energy = (self.energy_regen as f32 / ticks_per_sec) as i32;
-                    update.energy.change_by(energy, EnergySource::HitEnemy);
-                }
-            }
         } else if data.inputs.primary.is_pressed() && self.cooldown_duration != Duration::default() {
             // Cooldown until next tick of damage
             update.character = CharacterState::BasicBeam(Data {
                 exhausted: self.exhausted,
+                particle_ori: Some(*data.inputs.look_dir),
                 buildup_duration: self.buildup_duration,
                 cooldown_duration: self
                     .cooldown_duration
@@ -118,6 +116,7 @@ impl CharacterBehavior for Data {
         } else if data.inputs.primary.is_pressed() {
             update.character = CharacterState::BasicBeam(Data {
                 exhausted: false,
+                particle_ori: Some(*data.inputs.look_dir),
                 buildup_duration: self.buildup_duration,
                 recover_duration: self.recover_duration,
                 cooldown_duration: self.cooldown_duration_default,
@@ -129,10 +128,15 @@ impl CharacterBehavior for Data {
                 lifesteal_eff: self.lifesteal_eff,
                 energy_regen: self.energy_regen,
             });
+
+            // Grant energy on successful hit
+            let energy = (self.energy_regen as f32 / ticks_per_sec) as i32;
+            update.energy.change_by(energy, EnergySource::HitEnemy);
         } else if self.recover_duration != Duration::default() {
             // Recovery
             update.character = CharacterState::BasicBeam(Data {
                 exhausted: self.exhausted,
+                particle_ori: Some(*data.inputs.look_dir),
                 buildup_duration: self.buildup_duration,
                 cooldown_duration: self.cooldown_duration,
                 cooldown_duration_default: self.cooldown_duration_default,

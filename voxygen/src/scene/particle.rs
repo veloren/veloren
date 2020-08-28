@@ -112,6 +112,7 @@ impl ParticleMgr {
             // add new Particle
             self.maintain_body_particles(scene_data);
             self.maintain_boost_particles(scene_data);
+            self.maintain_beam_particles(scene_data);
             self.maintain_block_particles(scene_data, terrain);
             self.maintain_shockwave_particles(scene_data);
         } else {
@@ -296,6 +297,39 @@ impl ParticleMgr {
                         )
                     },
                 );
+            }
+        }
+    }
+
+    fn maintain_beam_particles(&mut self, scene_data: &SceneData) {
+        let state = scene_data.state;
+        let ecs = state.ecs();
+        let time = state.get_time();
+
+        for (pos, ori, character_state) in (
+            &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<Ori>(),
+            &ecs.read_storage::<CharacterState>(),
+        )
+            .join()
+        {
+            if let CharacterState::BasicBeam(b) = character_state {
+                if b.buildup_duration == Duration::default() {
+                    let scale = 5.0;
+                    let particle_ori = b.particle_ori.unwrap_or(*ori.vec());
+                    for _ in 0..self.scheduler.heartbeats(Duration::from_millis(10)) {
+                        for d in 0..((b.range * scale) as i32) {
+                            self.particles.push(
+                                Particle::new(
+                                    Duration::from_millis(10),
+                                    time,
+                                    ParticleMode::HealingBeam,
+                                    pos.0 + particle_ori * (d as f32) / scale,
+                                ),
+                            );
+                        }
+                    }
+                }
             }
         }
     }
