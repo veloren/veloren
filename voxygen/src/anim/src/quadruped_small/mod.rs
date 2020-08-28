@@ -6,9 +6,11 @@ pub mod run;
 // Reexports
 pub use self::{feed::FeedAnimation, idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation};
 
-use super::{make_bone, vek::*, Bone, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Skeleton};
 use common::comp::{self};
 use core::convert::TryFrom;
+
+pub type Body = comp::quadruped_small::Body;
 
 skeleton_impls!(struct QuadrupedSmallSkeleton {
     + head,
@@ -22,6 +24,7 @@ skeleton_impls!(struct QuadrupedSmallSkeleton {
 
 impl Skeleton for QuadrupedSmallSkeleton {
     type Attr = SkeletonAttr;
+    type Body = Body;
 
     const BONE_COUNT: usize = 7;
     #[cfg(feature = "use-dyn-lib")]
@@ -90,8 +93,8 @@ impl Default for SkeletonAttr {
     }
 }
 
-impl<'a> From<&'a comp::quadruped_small::Body> for SkeletonAttr {
-    fn from(body: &'a comp::quadruped_small::Body) -> Self {
+impl<'a> From<&'a Body> for SkeletonAttr {
+    fn from(body: &'a Body) -> Self {
         use comp::quadruped_small::Species::*;
         Self {
             head: match (body.species, body.body_type) {

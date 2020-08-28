@@ -5,9 +5,9 @@
 use crate::{client::Client, Server, StateExt};
 use chrono::{NaiveTime, Timelike};
 use common::{
-    assets,
+    assets::Asset,
     cmd::{ChatCommand, CHAT_COMMANDS, CHAT_SHORTCUTS},
-    comp::{self, ChatType, Item, LightEmitter, WaypointArea},
+    comp::{self, item::ItemAsset, ChatType, Item, LightEmitter, WaypointArea},
     event::{EventBus, ServerEvent},
     msg::{Notification, PlayerListUpdate, ServerMsg},
     npc::{self, get_npc_name},
@@ -117,7 +117,7 @@ fn handle_give_item(
         scan_fmt_some!(&args, &action.arg_fmt(), String, u32)
     {
         let give_amount = give_amount_opt.unwrap_or(1);
-        if let Ok(item) = assets::load_cloned(&item_name) {
+        if let Ok(item) = ItemAsset::load_cloned(&item_name) {
             let mut item: Item = item;
             if let Ok(()) = item.set_amount(give_amount.min(2000)) {
                 server
@@ -1640,7 +1640,7 @@ fn handle_debug(
     _args: String,
     _action: &ChatCommand,
 ) {
-    if let Ok(items) = assets::load_glob::<Item>("common.items.debug.*") {
+    if let Ok(items) = ItemAsset::load_glob("common.items.debug.*") {
         server
             .state()
             .ecs()

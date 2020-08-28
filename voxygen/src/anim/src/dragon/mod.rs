@@ -5,9 +5,11 @@ pub mod run;
 // Reexports
 pub use self::{fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation};
 
-use super::{make_bone, vek::*, Bone, FigureBoneData, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Skeleton};
 use common::comp::{self};
 use core::convert::TryFrom;
+
+pub type Body = comp::dragon::Body;
 
 skeleton_impls!(struct DragonSkeleton {
     + head_upper,
@@ -29,6 +31,7 @@ skeleton_impls!(struct DragonSkeleton {
 
 impl Skeleton for DragonSkeleton {
     type Attr = SkeletonAttr;
+    type Body = Body;
 
     const BONE_COUNT: usize = 15;
     #[cfg(feature = "use-dyn-lib")]
@@ -115,8 +118,8 @@ impl Default for SkeletonAttr {
     }
 }
 
-impl<'a> From<&'a comp::dragon::Body> for SkeletonAttr {
-    fn from(body: &'a comp::dragon::Body) -> Self {
+impl<'a> From<&'a Body> for SkeletonAttr {
+    fn from(body: &'a Body) -> Self {
         use comp::dragon::Species::*;
         Self {
             head_upper: match (body.species, body.body_type) {

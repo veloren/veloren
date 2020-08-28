@@ -11,10 +11,9 @@ use crate::{
 };
 use client::Client;
 use common::{
-    assets,
-    assets::load_expect,
+    assets::Asset,
     character::{Character, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
-    comp::{self, humanoid},
+    comp::{self, humanoid, item::ItemAsset},
     LoadoutBuilder,
 };
 use conrod_core::{
@@ -321,7 +320,7 @@ impl CharSelectionUi {
         let imgs = Imgs::load(&mut ui).expect("Failed to load images!");
         let rot_imgs = ImgsRot::load(&mut ui).expect("Failed to load images!");
         // Load language
-        let voxygen_i18n = load_expect::<VoxygenLocalization>(&i18n_asset_key(
+        let voxygen_i18n = VoxygenLocalization::load_expect(&i18n_asset_key(
             &global_state.settings.language.selected_language,
         ));
         // Load fonts.
@@ -378,20 +377,24 @@ impl CharSelectionUi {
             },
             Mode::Create { loadout, tool, .. } => {
                 loadout.active_item = tool.map(|tool| comp::ItemConfig {
-                    item: (*load_expect::<comp::Item>(tool)).clone(),
+                    // FIXME: Error gracefully.
+                    item: (*ItemAsset::load_expect(tool)).clone(),
                     ability1: None,
                     ability2: None,
                     ability3: None,
                     block_ability: None,
                     dodge_ability: None,
                 });
-                loadout.chest = Some(assets::load_expect_cloned(
+                // FIXME: Error gracefully.
+                loadout.chest = Some(ItemAsset::load_expect_cloned(
                     "common.items.armor.starter.rugged_chest",
                 ));
-                loadout.pants = Some(assets::load_expect_cloned(
+                // FIXME: Error gracefully.
+                loadout.pants = Some(ItemAsset::load_expect_cloned(
                     "common.items.armor.starter.rugged_pants",
                 ));
-                loadout.foot = Some(assets::load_expect_cloned(
+                // FIXME: Error gracefully.
+                loadout.foot = Some(ItemAsset::load_expect_cloned(
                     "common.items.armor.starter.sandals_0",
                 ));
                 Some(loadout.clone())

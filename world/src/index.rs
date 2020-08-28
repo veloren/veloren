@@ -1,6 +1,6 @@
 use crate::{site::Site, Colors};
 use common::{
-    assets::{self, watch::ReloadIndicator},
+    assets::{watch::ReloadIndicator, Asset, Ron},
     store::Store,
 };
 use core::ops::Deref;
@@ -53,7 +53,7 @@ impl Index {
     /// NOTE: Panics if the color manifest cannot be loaded.
     pub fn new(seed: u32) -> (Self, Arc<Colors>) {
         let mut indicator = ReloadIndicator::new();
-        let colors = assets::load_watched::<Colors>(WORLD_COLORS_MANIFEST, &mut indicator)
+        let colors = Ron::<Colors>::load_watched(WORLD_COLORS_MANIFEST, &mut indicator)
             .expect("Could not load world colors!");
 
         (
@@ -90,7 +90,7 @@ impl IndexOwned {
     ) -> Option<R> {
         self.indicator.reloaded().then(move || {
             // We know the asset was loaded before, so load_expect should be fine.
-            self.colors = assets::load_expect::<Colors>(WORLD_COLORS_MANIFEST);
+            self.colors = Ron::<Colors>::load_expect(WORLD_COLORS_MANIFEST);
             reload(self)
         })
     }

@@ -13,7 +13,7 @@ use common::{
     vol::RectVolSize,
 };
 use noise::NoiseFn;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::{
     cmp::Reverse,
     f32, f64,
@@ -26,7 +26,7 @@ pub struct ColumnGen<'a> {
     pub sim: &'a WorldSim,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize)]
 pub struct Colors {
     pub cold_grass: (f32, f32, f32),
     pub warm_grass: (f32, f32, f32),

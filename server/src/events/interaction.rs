@@ -3,7 +3,7 @@ use crate::{
     Server,
 };
 use common::{
-    assets,
+    assets::Asset,
     comp::{self, item},
     msg::ServerMsg,
     sync::{Uid, WorldSyncExt},
@@ -125,7 +125,7 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
                     .expect("Could not read loadouts component while possessing")
                     .or_insert(comp::Loadout::default());
 
-                let item = assets::load_expect_cloned::<comp::Item>("common.items.debug.possess");
+                let item = item::ItemAsset::load_expect_cloned("common.items.debug.possess");
                 if let item::ItemKind::Tool(tool) = &item.kind {
                     let mut abilities = tool.get_abilities();
                     let mut ability_drain = abilities.drain(..);

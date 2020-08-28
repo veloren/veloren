@@ -10,7 +10,7 @@ use crate::{
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{assets, comp, msg::ClientState, state::DeltaTime};
+use common::{assets::Asset, comp, msg::ClientState, state::DeltaTime};
 use specs::WorldExt;
 use std::{cell::RefCell, rc::Rc};
 use tracing::error;
@@ -126,6 +126,7 @@ impl PlayState for CharSelectionState {
                     time: client.state().get_time(),
                     delta_time: client.state().ecs().read_resource::<DeltaTime>().0,
                     tick: client.get_tick(),
+                    thread_pool: client.thread_pool(),
                     body: humanoid_body,
                     gamma: global_state.settings.graphics.gamma,
                     mouse_smoothing: global_state.settings.gameplay.smooth_pan_enable,
@@ -143,7 +144,7 @@ impl PlayState for CharSelectionState {
             }
 
             // Tick the client (currently only to keep the connection alive).
-            let localized_strings = assets::load_expect::<VoxygenLocalization>(&i18n_asset_key(
+            let localized_strings = VoxygenLocalization::load_expect(&i18n_asset_key(
                 &global_state.settings.language.selected_language,
             ));
 

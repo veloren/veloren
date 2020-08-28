@@ -1,4 +1,7 @@
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
+use common::comp::{self};
+
+pub type Body = comp::object::Body;
 
 #[derive(Clone, Default)]
 pub struct ObjectSkeleton;
@@ -19,6 +22,7 @@ const SCALE: f32 = 1.0 / 11.0;
 
 impl Skeleton for ObjectSkeleton {
     type Attr = SkeletonAttr;
+    type Body = Body;
 
     const BONE_COUNT: usize = 1;
     #[cfg(feature = "use-dyn-lib")]
@@ -33,4 +37,12 @@ impl Skeleton for ObjectSkeleton {
         buf[0] = make_bone(base_mat * Mat4::scaling_3d(SCALE));
         Vec3::default()
     }
+}
+
+impl Default for SkeletonAttr {
+    fn default() -> Self { Self }
+}
+
+impl<'a> From<&'a Body> for SkeletonAttr {
+    fn from(_body: &'a Body) -> Self { Self }
 }

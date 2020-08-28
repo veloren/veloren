@@ -13,7 +13,7 @@ use crate::{
 
 use super::{math, LodData, SceneData};
 use common::{
-    assets,
+    assets::Asset,
     figure::Segment,
     spiral::Spiral2d,
     terrain::{Block, BlockKind, TerrainChunk},
@@ -25,6 +25,7 @@ use crossbeam::channel;
 use dot_vox::DotVoxData;
 use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
+use image::DynamicImage;
 use std::sync::Arc;
 use tracing::warn;
 use treeculler::{BVol, Frustum, AABB};
@@ -525,7 +526,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         // NOTE: Tracks the start vertex of the next model to be meshed.
         let mut make_models = |(kind, variation), s, offset, lod_axes: Vec3<f32>| {
             let scaled = [1.0, 0.8, 0.6, 0.4, 0.2];
-            let model = assets::load_expect::<DotVoxData>(s);
+            let model = DotVoxData::load_expect(s);
             let zero = Vec3::zero();
             let model_size = model
                 .models
@@ -2401,7 +2402,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             sprite_col_lights,
             waves: renderer
                 .create_texture(
-                    &assets::load_expect("voxygen.texture.waves"),
+                    &DynamicImage::load_expect("voxygen.texture.waves"),
                     Some(gfx::texture::FilterMethod::Trilinear),
                     Some(gfx::texture::WrapMode::Tile),
                     None,

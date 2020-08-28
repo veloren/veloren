@@ -1,7 +1,9 @@
-use super::{load::*, FigureModelEntry};
+use super::{load::BodySpec, FigureModelEntry};
 use crate::{
     mesh::{greedy::GreedyMesh, Meshable},
-    render::{BoneMeshes, FigureModel, FigurePipeline, Mesh, Renderer, TerrainPipeline},
+    render::{
+        BoneMeshes, ColLightInfo, FigureModel, FigurePipeline, Mesh, Renderer, TerrainPipeline,
+    },
     scene::camera::CameraMode,
 };
 use anim::Skeleton;
@@ -13,41 +15,72 @@ use common::{
             tool::ToolKind,
             ItemKind,
         },
-        Body, CharacterState, Loadout,
+        CharacterState, Loadout,
     },
     figure::Segment,
     vol::BaseVol,
 };
-use core::convert::TryInto;
+use core::{hash::Hash, ops::Range};
+use crossbeam::atomic;
 use hashbrown::{hash_map::Entry, HashMap};
+use std::sync::Arc;
 use vek::*;
 
-pub type FigureModelEntryLod = FigureModelEntry<3>;
+/// A type produced by mesh worker threads corresponding to the information
+/// needed to mesh figures.
+struct MeshWorkerResponse<const N: usize> {
+    col_light: ColLightInfo,
+    opaque: Mesh<TerrainPipeline>,
+    bounds: anim::vek::Aabb<f32>,
+    vertex_range: [Range<u32>; N],
+}
 
-#[derive(Eq, Hash, PartialEq)]
-struct FigureKey {
+/// NOTE: To test this cell for validity, we currently first use
+/// Arc::get_mut(), and then only if that succeeds do we call AtomicCell::take.
+/// This way, we avoid all atomic updates for the fast path read in the "not yet
+/// updated" case (though it would be faster without weak pointers); since once
+/// it's updated, we switch from `Pending` to `Done`, this is only suboptimal
+/// for one frame.
+type MeshWorkerCell<const N: usize> = atomic::AtomicCell<Option<MeshWorkerResponse<N>>>;
+
+/// A future FigureModelEntryLod.
+enum FigureModelEntryFuture<const N: usize> {
+    /// We can poll the future to see whether the figure model is ready.
+    // TODO: See if we can find away to either get rid of this Arc, or reuse Arcs across different
+    // figures.  Updates to uvth for thread pool shared storage might obviate this requirement.
+    Pending(Arc<MeshWorkerCell<N>>),
+    /// Stores the already-meshed model.
+    Done(FigureModelEntry<N>),
+}
+
+const LOD_COUNT: usize = 3;
+
+type FigureModelEntryLod<'b> = Option<&'b FigureModelEntry<LOD_COUNT>>;
+
+#[derive(Clone, Eq, Hash, PartialEq)]
+pub struct FigureKey<Body> {
     /// Body pointed to by this key.
-    body: Body,
+    pub(super) body: Body,
     /// Extra state.
-    extra: Option<Box<CharacterCacheKey>>,
+    pub(super) extra: Option<Arc<CharacterCacheKey>>,
 }
 
 /// Character data that should be visible when tools are visible (i.e. in third
 /// person or when the character is in a tool-using state).
 #[derive(Eq, Hash, PartialEq)]
-pub struct CharacterToolKey {
-    active: Option<ToolKind>,
-    second: Option<ToolKind>,
+pub(super) struct CharacterToolKey {
+    pub active: Option<ToolKind>,
+    pub second: Option<ToolKind>,
 }
 
 /// Character data that exists in third person only.
 #[derive(Eq, Hash, PartialEq)]
-struct CharacterThirdPersonKey {
-    shoulder: Option<String>,
-    chest: Option<String>,
-    belt: Option<String>,
-    back: Option<String>,
-    pants: Option<String>,
+pub(super) struct CharacterThirdPersonKey {
+    pub shoulder: Option<String>,
+    pub chest: Option<String>,
+    pub belt: Option<String>,
+    pub back: Option<String>,
+    pub pants: Option<String>,
 }
 
 #[derive(Eq, Hash, PartialEq)]
@@ -55,9 +88,9 @@ struct CharacterThirdPersonKey {
 /// store only the minimum information required to correctly update the model.
 ///
 /// TODO: Memoize, etc.
-struct CharacterCacheKey {
+pub(super) struct CharacterCacheKey {
     /// Character state that is only visible in third person.
-    third_person: Option<CharacterThirdPersonKey>,
+    pub third_person: Option<CharacterThirdPersonKey>,
     /// Tool state should be present when a character is either in third person,
     /// or is in first person and the character state is tool-using.
     ///
@@ -66,10 +99,10 @@ struct CharacterCacheKey {
     /// tools are equipped, but currently we are more focused on the big
     /// performance impact of recreating the whole model whenever the character
     /// state changes, so for now we don't bother with this.
-    tool: Option<CharacterToolKey>,
-    lantern: Option<String>,
-    hand: Option<String>,
-    foot: Option<String>,
+    pub tool: Option<CharacterToolKey>,
+    pub lantern: Option<String>,
+    pub hand: Option<String>,
+    pub foot: Option<String>,
 }
 
 impl CharacterCacheKey {
@@ -197,813 +230,53 @@ impl CharacterCacheKey {
 pub struct FigureModelCache<Skel = anim::character::CharacterSkeleton>
 where
     Skel: Skeleton,
+    Skel::Body: BodySpec,
 {
-    models: HashMap<FigureKey, ((FigureModelEntryLod, Skel::Attr), u64)>,
+    models: HashMap<FigureKey<Skel::Body>, ((FigureModelEntryFuture<LOD_COUNT>, Skel::Attr), u64)>,
+    manifests: Arc<<Skel::Body as BodySpec>::Spec>,
     manifest_indicator: ReloadIndicator,
 }
 
-impl<Skel: Skeleton> FigureModelCache<Skel> {
+impl<Skel: Skeleton> FigureModelCache<Skel>
+where
+    Skel::Body: BodySpec + Eq + Hash,
+{
     #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {
+        let mut manifest_indicator = ReloadIndicator::new();
         Self {
             models: HashMap::new(),
-            manifest_indicator: ReloadIndicator::new(),
+            // NOTE: It might be better to bubble this error up rather than panicking.
+            manifests: Arc::new(
+                <Skel::Body as BodySpec>::load_watched(&mut manifest_indicator)
+                    .expect("Could not load manifests for body type"),
+            ),
+            manifest_indicator,
         }
     }
 
-    /// NOTE: We deliberately call this function with only the key into the
-    /// cache, to enforce that the cached state only depends on the key.  We
-    /// may end up using a mechanism different from this cache eventually,
-    /// in which case this strategy might change.
-    fn bone_meshes(
-        FigureKey { body, extra }: &FigureKey,
-        manifest_indicator: &mut ReloadIndicator,
-        mut generate_mesh: impl FnMut(Segment, Vec3<f32>) -> BoneMeshes,
-    ) -> [Option<BoneMeshes>; 16] {
-        match body {
-            Body::Humanoid(body) => {
-                let humanoid_color_spec = HumColorSpec::load_watched(manifest_indicator);
-                let humanoid_head_spec = HumHeadSpec::load_watched(manifest_indicator);
-                let humanoid_armor_shoulder_spec =
-                    HumArmorShoulderSpec::load_watched(manifest_indicator);
-                let humanoid_armor_chest_spec = HumArmorChestSpec::load_watched(manifest_indicator);
-                let humanoid_armor_hand_spec = HumArmorHandSpec::load_watched(manifest_indicator);
-                let humanoid_armor_belt_spec = HumArmorBeltSpec::load_watched(manifest_indicator);
-                let humanoid_armor_back_spec = HumArmorBackSpec::load_watched(manifest_indicator);
-                let humanoid_armor_lantern_spec =
-                    HumArmorLanternSpec::load_watched(manifest_indicator);
-                let humanoid_armor_pants_spec = HumArmorPantsSpec::load_watched(manifest_indicator);
-                let humanoid_armor_foot_spec = HumArmorFootSpec::load_watched(manifest_indicator);
-                let humanoid_main_weapon_spec = HumMainWeaponSpec::load_watched(manifest_indicator);
-
-                const DEFAULT_LOADOUT: CharacterCacheKey = CharacterCacheKey {
-                    third_person: None,
-                    tool: None,
-                    lantern: None,
-                    hand: None,
-                    foot: None,
-                };
-
-                // TODO: This is bad code, maybe this method should return Option<_>
-                let loadout = extra.as_deref().unwrap_or(&DEFAULT_LOADOUT);
-                let third_person = loadout.third_person.as_ref();
-                let tool = loadout.tool.as_ref();
-                let lantern = loadout.lantern.as_deref();
-                let hand = loadout.hand.as_deref();
-                let foot = loadout.foot.as_deref();
-
-                [
-                    third_person.map(|_| {
-                        humanoid_head_spec.mesh_head(
-                            body,
-                            &humanoid_color_spec,
-                            |segment, offset| generate_mesh(segment, offset),
-                        )
-                    }),
-                    third_person.map(|loadout| {
-                        humanoid_armor_chest_spec.mesh_chest(
-                            body,
-                            &humanoid_color_spec,
-                            loadout.chest.as_deref(),
-                            |segment, offset| generate_mesh(segment, offset),
-                        )
-                    }),
-                    third_person.map(|loadout| {
-                        humanoid_armor_belt_spec.mesh_belt(
-                            body,
-                            &humanoid_color_spec,
-                            loadout.belt.as_deref(),
-                            |segment, offset| generate_mesh(segment, offset),
-                        )
-                    }),
-                    third_person.map(|loadout| {
-                        humanoid_armor_back_spec.mesh_back(
-                            body,
-                            &humanoid_color_spec,
-                            loadout.back.as_deref(),
-                            |segment, offset| generate_mesh(segment, offset),
-                        )
-                    }),
-                    third_person.map(|loadout| {
-                        humanoid_armor_pants_spec.mesh_pants(
-                            body,
-                            &humanoid_color_spec,
-                            loadout.pants.as_deref(),
-                            |segment, offset| generate_mesh(segment, offset),
-                        )
-                    }),
-                    Some(humanoid_armor_hand_spec.mesh_left_hand(
-                        body,
-                        &humanoid_color_spec,
-                        hand,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(humanoid_armor_hand_spec.mesh_right_hand(
-                        body,
-                        &humanoid_color_spec,
-                        hand,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(humanoid_armor_foot_spec.mesh_left_foot(
-                        body,
-                        &humanoid_color_spec,
-                        foot,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(humanoid_armor_foot_spec.mesh_right_foot(
-                        body,
-                        &humanoid_color_spec,
-                        foot,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    third_person.map(|loadout| {
-                        humanoid_armor_shoulder_spec.mesh_left_shoulder(
-                            body,
-                            &humanoid_color_spec,
-                            loadout.shoulder.as_deref(),
-                            |segment, offset| generate_mesh(segment, offset),
-                        )
-                    }),
-                    third_person.map(|loadout| {
-                        humanoid_armor_shoulder_spec.mesh_right_shoulder(
-                            body,
-                            &humanoid_color_spec,
-                            loadout.shoulder.as_deref(),
-                            |segment, offset| generate_mesh(segment, offset),
-                        )
-                    }),
-                    Some(mesh_glider(|segment, offset| {
-                        generate_mesh(segment, offset)
-                    })),
-                    tool.map(|tool| {
-                        humanoid_main_weapon_spec.mesh_main_weapon(
-                            tool.active.as_ref(),
-                            false,
-                            |segment, offset| generate_mesh(segment, offset),
-                        )
-                    }),
-                    tool.map(|tool| {
-                        humanoid_main_weapon_spec.mesh_main_weapon(
-                            tool.second.as_ref(),
-                            true,
-                            |segment, offset| generate_mesh(segment, offset),
-                        )
-                    }),
-                    Some(humanoid_armor_lantern_spec.mesh_lantern(
-                        body,
-                        &humanoid_color_spec,
-                        lantern,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(mesh_hold(|segment, offset| generate_mesh(segment, offset))),
-                ]
-            },
-            Body::QuadrupedSmall(body) => {
-                let quadruped_small_central_spec =
-                    QuadrupedSmallCentralSpec::load_watched(manifest_indicator);
-                let quadruped_small_lateral_spec =
-                    QuadrupedSmallLateralSpec::load_watched(manifest_indicator);
-
-                [
-                    Some(quadruped_small_central_spec.mesh_head(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_small_central_spec.mesh_chest(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_small_lateral_spec.mesh_foot_fl(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_small_lateral_spec.mesh_foot_fr(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_small_lateral_spec.mesh_foot_bl(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_small_lateral_spec.mesh_foot_br(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_small_central_spec.mesh_tail(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                ]
-            },
-            Body::QuadrupedMedium(body) => {
-                let quadruped_medium_central_spec =
-                    QuadrupedMediumCentralSpec::load_watched(manifest_indicator);
-                let quadruped_medium_lateral_spec =
-                    QuadrupedMediumLateralSpec::load_watched(manifest_indicator);
-
-                [
-                    Some(quadruped_medium_central_spec.mesh_head_upper(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_medium_central_spec.mesh_head_lower(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_medium_central_spec.mesh_jaw(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_medium_central_spec.mesh_tail(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_medium_central_spec.mesh_torso_front(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_medium_central_spec.mesh_torso_back(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_medium_central_spec.mesh_ears(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_medium_lateral_spec.mesh_leg_fl(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_medium_lateral_spec.mesh_leg_fr(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_medium_lateral_spec.mesh_leg_bl(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_medium_lateral_spec.mesh_leg_br(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_medium_lateral_spec.mesh_foot_fl(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_medium_lateral_spec.mesh_foot_fr(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_medium_lateral_spec.mesh_foot_bl(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_medium_lateral_spec.mesh_foot_br(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    None,
-                ]
-            },
-            Body::BirdMedium(body) => {
-                let bird_medium_center_spec =
-                    BirdMediumCenterSpec::load_watched(manifest_indicator);
-                let bird_medium_lateral_spec =
-                    BirdMediumLateralSpec::load_watched(manifest_indicator);
-
-                [
-                    Some(bird_medium_center_spec.mesh_head(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(bird_medium_center_spec.mesh_torso(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(bird_medium_center_spec.mesh_tail(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(bird_medium_lateral_spec.mesh_wing_l(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(bird_medium_lateral_spec.mesh_wing_r(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(bird_medium_lateral_spec.mesh_foot_l(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(bird_medium_lateral_spec.mesh_foot_r(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                ]
-            },
-            Body::FishMedium(body) => [
-                Some(mesh_fish_medium_head(body.head, |segment, offset| {
-                    generate_mesh(segment, offset)
-                })),
-                Some(mesh_fish_medium_torso(body.torso, |segment, offset| {
-                    generate_mesh(segment, offset)
-                })),
-                Some(mesh_fish_medium_rear(body.rear, |segment, offset| {
-                    generate_mesh(segment, offset)
-                })),
-                Some(mesh_fish_medium_tail(body.tail, |segment, offset| {
-                    generate_mesh(segment, offset)
-                })),
-                Some(mesh_fish_medium_fin_l(body.fin_l, |segment, offset| {
-                    generate_mesh(segment, offset)
-                })),
-                Some(mesh_fish_medium_fin_r(body.fin_r, |segment, offset| {
-                    generate_mesh(segment, offset)
-                })),
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-            ],
-            Body::Dragon(body) => {
-                let dragon_center_spec = DragonCenterSpec::load_watched(manifest_indicator);
-                let dragon_lateral_spec = DragonLateralSpec::load_watched(manifest_indicator);
-
-                [
-                    Some(dragon_center_spec.mesh_head_upper(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(dragon_center_spec.mesh_head_lower(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(dragon_center_spec.mesh_jaw(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(dragon_center_spec.mesh_chest_front(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(dragon_center_spec.mesh_chest_rear(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(dragon_center_spec.mesh_tail_front(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(dragon_center_spec.mesh_tail_rear(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(dragon_lateral_spec.mesh_wing_in_l(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(dragon_lateral_spec.mesh_wing_in_r(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(dragon_lateral_spec.mesh_wing_out_l(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(dragon_lateral_spec.mesh_wing_out_r(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(dragon_lateral_spec.mesh_foot_fl(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(dragon_lateral_spec.mesh_foot_fr(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(dragon_lateral_spec.mesh_foot_bl(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(dragon_lateral_spec.mesh_foot_br(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    None,
-                ]
-            },
-            Body::BirdSmall(body) => [
-                Some(mesh_bird_small_head(body.head, |segment, offset| {
-                    generate_mesh(segment, offset)
-                })),
-                Some(mesh_bird_small_torso(body.torso, |segment, offset| {
-                    generate_mesh(segment, offset)
-                })),
-                Some(mesh_bird_small_wing_l(body.wing_l, |segment, offset| {
-                    generate_mesh(segment, offset)
-                })),
-                Some(mesh_bird_small_wing_r(body.wing_r, |segment, offset| {
-                    generate_mesh(segment, offset)
-                })),
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-            ],
-            Body::FishSmall(body) => [
-                Some(mesh_fish_small_torso(body.torso, |segment, offset| {
-                    generate_mesh(segment, offset)
-                })),
-                Some(mesh_fish_small_tail(body.tail, |segment, offset| {
-                    generate_mesh(segment, offset)
-                })),
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-            ],
-            Body::BipedLarge(body) => {
-                let biped_large_center_spec =
-                    BipedLargeCenterSpec::load_watched(manifest_indicator);
-                let biped_large_lateral_spec =
-                    BipedLargeLateralSpec::load_watched(manifest_indicator);
-
-                [
-                    Some(biped_large_center_spec.mesh_head(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(biped_large_center_spec.mesh_jaw(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(biped_large_center_spec.mesh_torso_upper(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(biped_large_center_spec.mesh_torso_lower(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(biped_large_center_spec.mesh_tail(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(biped_large_center_spec.mesh_main(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(biped_large_center_spec.mesh_second(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(biped_large_lateral_spec.mesh_shoulder_l(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(biped_large_lateral_spec.mesh_shoulder_r(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(biped_large_lateral_spec.mesh_hand_l(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(biped_large_lateral_spec.mesh_hand_r(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(biped_large_lateral_spec.mesh_leg_l(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(biped_large_lateral_spec.mesh_leg_r(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(biped_large_lateral_spec.mesh_foot_l(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(biped_large_lateral_spec.mesh_foot_r(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    None,
-                ]
-            },
-            Body::Golem(body) => {
-                let golem_center_spec = GolemCenterSpec::load_watched(manifest_indicator);
-                let golem_lateral_spec = GolemLateralSpec::load_watched(manifest_indicator);
-
-                [
-                    Some(golem_center_spec.mesh_head(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(golem_center_spec.mesh_torso_upper(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(golem_lateral_spec.mesh_shoulder_l(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(golem_lateral_spec.mesh_shoulder_r(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(golem_lateral_spec.mesh_hand_l(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(golem_lateral_spec.mesh_hand_r(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(golem_lateral_spec.mesh_leg_l(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(golem_lateral_spec.mesh_leg_r(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(golem_lateral_spec.mesh_foot_l(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(golem_lateral_spec.mesh_foot_r(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                ]
-            },
-            Body::Critter(body) => {
-                let critter_center_spec = CritterCenterSpec::load_watched(manifest_indicator);
-
-                [
-                    Some(critter_center_spec.mesh_head(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(critter_center_spec.mesh_chest(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(critter_center_spec.mesh_feet_f(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(critter_center_spec.mesh_feet_b(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(critter_center_spec.mesh_tail(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                ]
-            },
-            Body::QuadrupedLow(body) => {
-                let quadruped_low_central_spec =
-                    QuadrupedLowCentralSpec::load_watched(manifest_indicator);
-                let quadruped_low_lateral_spec =
-                    QuadrupedLowLateralSpec::load_watched(manifest_indicator);
-
-                [
-                    Some(quadruped_low_central_spec.mesh_head_upper(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_low_central_spec.mesh_head_lower(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_low_central_spec.mesh_jaw(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_low_central_spec.mesh_chest(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_low_central_spec.mesh_tail_front(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_low_central_spec.mesh_tail_rear(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_low_lateral_spec.mesh_foot_fl(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_low_lateral_spec.mesh_foot_fr(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_low_lateral_spec.mesh_foot_bl(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    Some(quadruped_low_lateral_spec.mesh_foot_br(
-                        body.species,
-                        body.body_type,
-                        |segment, offset| generate_mesh(segment, offset),
-                    )),
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                ]
-            },
-            Body::Object(object) => [
-                Some(mesh_object(object, generate_mesh)),
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-            ],
-        }
-    }
-
-    pub fn get_or_create_model(
-        &mut self,
-        renderer: &mut Renderer,
-        col_lights: &mut super::FigureColLights,
-        body: Body,
+    /// NOTE: Intended for render time (useful with systems like wgpu that
+    /// expect data used by the rendering pipelines to be stable throughout
+    /// the render pass).
+    ///
+    /// NOTE: Since this is intended to be called primarily in order to render
+    /// the model, we don't return skeleton data.
+    pub fn get_model<'b>(
+        &'b self,
+        // TODO: If we ever convert to using an atlas here, use this.
+        _col_lights: &super::FigureColLights,
+        body: Skel::Body,
         loadout: Option<&Loadout>,
-        tick: u64,
+        // TODO: Consider updating the tick by putting it in a Cell.
+        _tick: u64,
         camera_mode: CameraMode,
         character_state: Option<&CharacterState>,
-    ) -> &(FigureModelEntryLod, Skel::Attr)
-    where
-        for<'a> &'a common::comp::Body: std::convert::TryInto<Skel::Attr>,
-        Skel::Attr: Default,
-    {
+    ) -> FigureModelEntryLod<'b> {
+        // TODO: Use raw entries to avoid lots of allocation (among other things).
         let key = FigureKey {
             body,
             extra: loadout.map(|loadout| {
-                Box::new(CharacterCacheKey::from(
+                Arc::new(CharacterCacheKey::from(
                     character_state,
                     camera_mode,
                     loadout,
@@ -1011,21 +284,90 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
             }),
         };
 
+        if let Some(((FigureModelEntryFuture::Done(model), _), _)) = self.models.get(&key) {
+            Some(model)
+        } else {
+            None
+        }
+    }
+
+    pub fn get_or_create_model<'c>(
+        &'c mut self,
+        renderer: &mut Renderer,
+        col_lights: &mut super::FigureColLights,
+        body: Skel::Body,
+        loadout: Option<&Loadout>,
+        tick: u64,
+        camera_mode: CameraMode,
+        character_state: Option<&CharacterState>,
+        thread_pool: &uvth::ThreadPool,
+    ) -> (FigureModelEntryLod<'c>, &'c Skel::Attr)
+    where
+        for<'a> &'a Skel::Body: Into<Skel::Attr>,
+        Skel::Body: Clone + Send + Sync + 'static,
+        <Skel::Body as BodySpec>::Spec: Send + Sync + 'static,
+    {
+        let skeleton_attr = (&body).into();
+        let key = FigureKey {
+            body,
+            extra: loadout.map(|loadout| {
+                Arc::new(CharacterCacheKey::from(
+                    character_state,
+                    camera_mode,
+                    loadout,
+                ))
+            }),
+        };
+
+        // TODO: Use raw entries to avoid significant performance overhead.
         match self.models.entry(key) {
             Entry::Occupied(o) => {
-                let (model, last_used) = o.into_mut();
+                let ((model, skel), last_used) = o.into_mut();
                 *last_used = tick;
-                model
+                (
+                    match model {
+                        FigureModelEntryFuture::Pending(recv) => {
+                            if let Some(MeshWorkerResponse {
+                                col_light,
+                                opaque,
+                                bounds,
+                                vertex_range,
+                            }) = Arc::get_mut(recv).take().and_then(|cell| cell.take())
+                            {
+                                // FIXME: We really need to stop hard failing on failure to upload
+                                // to the GPU.
+                                let model_entry = col_lights
+                                    .create_figure(
+                                        renderer,
+                                        col_light,
+                                        (opaque, bounds),
+                                        vertex_range,
+                                    )
+                                    .expect("Failed to upload figure data to the GPU!");
+                                *model = FigureModelEntryFuture::Done(model_entry);
+                                // NOTE: Borrow checker isn't smart enough to figure this out.
+                                if let FigureModelEntryFuture::Done(model) = model {
+                                    Some(model)
+                                } else {
+                                    unreachable!();
+                                }
+                            } else {
+                                None
+                            }
+                        },
+                        FigureModelEntryFuture::Done(model) => Some(model),
+                    },
+                    skel,
+                )
             },
             Entry::Vacant(v) => {
-                let key = v.key();
-                let model = {
-                    let skeleton_attr = (&body)
-                        .try_into()
-                        .ok()
-                        .unwrap_or_else(<Skel::Attr as Default>::default);
+                let key = v.key().clone();
+                let slot = Arc::new(atomic::AtomicCell::new(None));
+                let manifests = Arc::clone(&self.manifests);
+                let slot_ = Arc::clone(&slot);
 
-                    let manifest_indicator = &mut self.manifest_indicator;
+                thread_pool.execute(move || {
+                    let manifests = &*manifests;
                     let mut greedy = FigureModel::make_greedy();
                     let mut opaque = Mesh::<TerrainPipeline>::new();
                     // Choose the most conservative bounds for any LOD model.
@@ -1045,10 +387,13 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                     )
                         -> _| {
                         let vertex_start = opaque.vertices().len();
-                        let meshes =
-                            Self::bone_meshes(key, manifest_indicator, |segment, offset| {
+                        let meshes = <Skel::Body as BodySpec>::bone_meshes(
+                            &key,
+                            &*manifests,
+                            |segment, offset| {
                                 generate_mesh(&mut greedy, &mut opaque, segment, offset)
-                            });
+                            },
+                        );
                         meshes
                             .iter()
                             .enumerate()
@@ -1153,24 +498,36 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                         make_model(generate_mesh_lod_mid),
                         make_model(generate_mesh_lod_low),
                     ];
-                    (
-                        col_lights
-                            .create_figure(renderer, greedy, (opaque, figure_bounds), models)
-                            .expect("Failed to upload figure data to the GPU!"),
-                        skeleton_attr,
-                    )
-                };
-                &v.insert((model, tick)).0
+
+                    slot_.store(Some(MeshWorkerResponse {
+                        col_light: greedy.finalize(),
+                        opaque,
+                        bounds: figure_bounds,
+                        vertex_range: models,
+                    }));
+                });
+
+                let skel = &(v
+                    .insert(((FigureModelEntryFuture::Pending(slot), skeleton_attr), tick))
+                    .0)
+                    .1;
+                (None, skel)
             },
         }
     }
 
-    pub fn clean(&mut self, col_lights: &mut super::FigureColLights, tick: u64) {
+    pub fn clean(&mut self, col_lights: &mut super::FigureColLights, tick: u64)
+    where
+        <Skel::Body as BodySpec>::Spec: Clone,
+    {
         // Check for reloaded manifests
         // TODO: maybe do this in a different function, maintain?
         if self.manifest_indicator.reloaded() {
             col_lights.atlas.clear();
             self.models.clear();
+            if let Err(err) = <Skel::Body as BodySpec>::reload(Arc::make_mut(&mut self.manifests)) {
+                tracing::warn!(?err, "Hot reload failed.");
+            }
         }
         // TODO: Don't hard-code this.
         if tick % 60 == 0 {
@@ -1179,7 +536,9 @@ impl<Skel: Skeleton> FigureModelCache<Skel> {
                 let delta = 60 * 60;
                 let alive = *last_used + delta > tick;
                 if !alive {
-                    col_lights.atlas.deallocate(model_entry.allocation.id);
+                    if let FigureModelEntryFuture::Done(model_entry) = model_entry {
+                        col_lights.atlas.deallocate(model_entry.allocation.id);
+                    }
                 }
                 alive
             });
