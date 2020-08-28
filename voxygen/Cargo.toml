@@ -50,6 +50,7 @@ server = { package = "veloren-server", path = "../server", optional = true }
 glsl-include = "0.3.1"
 failure = "0.1.6"
 dot_vox = "4.0"
+enum-iterator = "0.6"
 image = { version = "0.23.8", default-features = false, features = ["ico", "png"] }
 serde = "1.0"
 serde_derive = "1.0"
