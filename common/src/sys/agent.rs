@@ -84,6 +84,7 @@ impl<'a> System<'a> for Sys {
             invites,
         ): Self::SystemData,
     ) {
+        span!(_guard, "agent::Sys::run");
         for (
             entity,
             pos,
@@ -117,7 +118,6 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            span!(_guard, "agent::Sys::run");
             // Hack, replace with better system when groups are more sophisticated
             // Override alignment if in a group unless entity is owned already
             let alignment = if !matches!(alignment, Some(Alignment::Owned(_))) {

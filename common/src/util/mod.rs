@@ -23,8 +23,20 @@ macro_rules! span {
         let $guard_name = span.enter();
     };
     ($guard_name:tt, $name:expr) => {
+        #[cfg(not(feature = "tracy"))]
         let span = tracing::span!(tracing::Level::TRACE, $name);
+        #[cfg(not(feature = "tracy"))]
         let $guard_name = span.enter();
+        // Directly use `tracy_client` to decrease overhead for better timing
+        #[cfg(feature = "tracy")]
+        let $guard_name = tracy_client::Span::new(
+            $name,
+            "",
+            module_path!(),
+            line!(),
+            // No callstack since this has significant overhead
+            0,
+        );
     };
 }
 

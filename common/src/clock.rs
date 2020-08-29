@@ -1,3 +1,4 @@
+use crate::span;
 use std::{
     thread,
     time::{Duration, Instant},
@@ -31,6 +32,7 @@ impl Clock {
     pub fn get_avg_delta(&self) -> Duration { Duration::from_secs_f64(self.running_tps_average) }
 
     pub fn tick(&mut self, tgt: Duration) {
+        span!(_guard, "Clock::tick");
         let delta = Instant::now().duration_since(self.last_sys_time);
 
         // Attempt to sleep to fill the gap.

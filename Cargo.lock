@@ -4646,9 +4646,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-tracy"
-version = "0.1.2"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f4c1889876942b9084677f5892b0bcf356e5265613e8a9834e7a7a30aa328ce"
+checksum = "d4f1c3ed7f680cf645838f62e8dd1f64cd3820ad1af0b8d9585fd69d97f0feab"
 dependencies = [
  "tracing-core",
  "tracing-subscriber",
@@ -4657,18 +4657,18 @@ dependencies = [
 
 [[package]]
 name = "tracy-client"
-version = "0.7.3"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "691a51a61f793699b6f2cd0e2dc1e803c29c757a5ef3159a2c1ace8bc6efbebc"
+checksum = "650c280019cd1a841752d50f6a834216a2c8a810aeb18bdd48054be23cacd8a6"
 dependencies = [
  "tracy-client-sys",
 ]
 
 [[package]]
 name = "tracy-client-sys"
-version = "0.8.0"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba2668b37da9ba8981788b141037ef31f0e05af06addfdf75c3dd8cc0f2ce475"
+checksum = "c07e4636dad390858d247cf2633eaea90e67d7e21151cd476bbfd070d321279f"
 dependencies = [
  "cc",
 ]
@@ -4939,6 +4939,7 @@ dependencies = [
  "specs-idvs",
  "sum_type",
  "tracing",
+ "tracy-client",
  "vek 0.12.0",
 ]
 
@@ -4986,6 +4987,7 @@ dependencies = [
  "lazy_static",
  "tracing",
  "tracing-subscriber",
+ "tracing-tracy",
  "tui",
  "veloren-common",
  "veloren-server",
@@ -5038,6 +5040,7 @@ dependencies = [
  "tracing-log",
  "tracing-subscriber",
  "tracing-tracy",
+ "tracy-client",
  "treeculler",
  "uvth 3.1.1",
  "vek 0.12.0",

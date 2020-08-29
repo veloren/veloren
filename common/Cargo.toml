@@ -6,6 +6,7 @@ edition = "2018"
 
 [features]
 no-assets = []
+tracy = ["tracy-client"]
 
 [dependencies]
 arraygen = "0.1.13"
@@ -33,6 +34,9 @@ sum_type = "0.2.0"
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "b943c85e4a38f5ec60cd18c34c73097640162bfe" }
 slab = "0.4.2"
 enum-iterator = "0.6"
+
+# Tracy
+tracy-client = { version = "0.8.0", optional = true }
 
 [dev-dependencies]
 criterion = "0.3"
