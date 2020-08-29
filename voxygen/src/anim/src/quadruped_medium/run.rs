@@ -25,7 +25,7 @@ impl Animation for RunAnimation {
         let speed = Vec2::<f32>::from(velocity).magnitude();
         *rate = 1.0;
         //let increasefreqtest = (((1.0/speed)*3.0).round()).min(5.0);
-        let lab = 0.1; //6
+        let lab = 0.6; //6
         let amplitude = (speed / 24.0).max(0.25);
         let amplitude2 = (speed * 1.4 / 24.0).max(0.6);
         let amplitude3 = (speed / 24.0).max(0.35);
@@ -106,8 +106,8 @@ impl Animation for RunAnimation {
         next.head_upper.position =
             Vec3::new(0.0, skeleton_attr.head_upper.0, skeleton_attr.head_upper.1);
         next.head_upper.orientation =
-            Quaternion::rotation_x(look.y * 0.1 / canceler + amplitude * short * -0.03 - 0.1)
-                * Quaternion::rotation_z(look.x * 0.1 / canceler + tilt * -1.2)
+            Quaternion::rotation_x(look.y*0.3  / ((canceler).max(0.5)) + amplitude * short * -0.03 - 0.1)
+                * Quaternion::rotation_z(look.x*0.3  / ((canceler).max(0.5)) + tilt * -1.2)
                 * Quaternion::rotation_y(tilt * 0.8);
         next.head_upper.scale = Vec3::one();
 

@@ -1122,6 +1122,16 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        // Running
+                        (false, _, true) => {
+                            anim::quadruped_small::RunAnimation::update_skeleton(
+                                &QuadrupedSmallSkeleton::default(),
+                                (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         // In air
                         (false, _, false) => anim::quadruped_small::JumpAnimation::update_skeleton(
                             &QuadrupedSmallSkeleton::default(),
@@ -1215,7 +1225,15 @@ impl FigureMgr {
                             )
                         },
                         // Running
-                        (true, true, _) => anim::quadruped_medium::RunAnimation::update_skeleton(
+                        (true, true, false) => anim::quadruped_medium::RunAnimation::update_skeleton(
+                            &QuadrupedMediumSkeleton::default(),
+                            (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                        //Swimming
+                        (false, _, true) => anim::quadruped_medium::RunAnimation::update_skeleton(
                             &QuadrupedMediumSkeleton::default(),
                             (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
                             state.state_time,
@@ -1317,7 +1335,15 @@ impl FigureMgr {
                             )
                         },
                         // Running
-                        (true, true, _) => anim::quadruped_low::RunAnimation::update_skeleton(
+                        (true, true, false) => anim::quadruped_low::RunAnimation::update_skeleton(
+                            &QuadrupedLowSkeleton::default(),
+                            (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                        // Swimming
+                        (false, _, true) => anim::quadruped_low::RunAnimation::update_skeleton(
                             &QuadrupedLowSkeleton::default(),
                             (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
                             state.state_time,
@@ -1414,7 +1440,15 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
                         // Running
-                        (true, true, _) => anim::bird_medium::RunAnimation::update_skeleton(
+                        (true, true, false) => anim::bird_medium::RunAnimation::update_skeleton(
+                            &BirdMediumSkeleton::default(),
+                            (vel.0.magnitude(), time),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                        // Running
+                        (false, _, true) => anim::bird_medium::RunAnimation::update_skeleton(
                             &BirdMediumSkeleton::default(),
                             (vel.0.magnitude(), time),
                             state.state_time,
