@@ -4,6 +4,7 @@ use crate::{
     persistence::character::CharacterLoader, ServerSettings,
 };
 use common::{
+    span,
     comp::{
         Admin, AdminList, CanBuild, ChatMode, ChatType, ControlEvent, Controller, ForceUpdate, Ori,
         Player, Pos, Stats, UnresolvedChatMsg, Vel,
@@ -454,6 +455,7 @@ impl<'a> System<'a> for Sys {
             alias_validator,
         ): Self::SystemData,
     ) {
+        span!(_guard, "message::Sys::run");
         timer.start();
 
         let mut server_emitter = server_event_bus.emitter();

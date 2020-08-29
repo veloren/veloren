@@ -3,6 +3,7 @@ use crate::client::Client;
 use common::{
     comp::{Player, Pos},
     msg::ServerMsg,
+    span,
     state::TerrainChanges,
     terrain::TerrainGrid,
 };
@@ -26,6 +27,7 @@ impl<'a> System<'a> for Sys {
         &mut self,
         (terrain, terrain_changes, mut timer, positions, players, mut clients): Self::SystemData,
     ) {
+        span!(_guard, "terrain_sync::Sys::run");
         timer.start();
 
         // Sync changed chunks

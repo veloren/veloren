@@ -11,6 +11,7 @@ use common::{
     msg::ServerMsg,
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
+    span,
     state::TimeOfDay,
     sync::{CompSyncPackage, Uid},
     terrain::TerrainChunkSize,
@@ -77,6 +78,7 @@ impl<'a> System<'a> for Sys {
             trackers,
         ): Self::SystemData,
     ) {
+        span!(_guard, "entity_sync::Sys::run");
         timer.start();
 
         let tick = tick.0;

@@ -6,6 +6,7 @@ use common::{
     comp,
     comp::{group, Player},
     msg::{ClientState, PlayerListUpdate, ServerMsg},
+    span,
     sync::{Uid, UidAllocator},
 };
 use futures_executor::block_on;
@@ -13,6 +14,7 @@ use specs::{saveload::MarkerAllocator, Builder, Entity as EcsEntity, WorldExt};
 use tracing::{debug, error, trace, warn};
 
 pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
+    span!(_guard, "handle_exit_ingame");
     let state = server.state_mut();
 
     // Create new entity with just `Client`, `Uid`, and `Player` components
@@ -78,6 +80,7 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
 }
 
 pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event {
+    span!(_guard, "handle_client_disconnect");
     if let Some(client) = server.state().read_storage::<Client>().get(entity) {
         let participant = match client.participant.try_lock() {
             Ok(mut p) => p.take().unwrap(),

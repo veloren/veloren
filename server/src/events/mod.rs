@@ -1,5 +1,8 @@
 use crate::{state_ext::StateExt, Server};
-use common::event::{EventBus, ServerEvent};
+use common::{
+    event::{EventBus, ServerEvent},
+    span,
+};
 use entity_creation::{
     handle_create_npc, handle_create_waypoint, handle_initialize_character,
     handle_loaded_character_data, handle_shoot,
@@ -36,6 +39,7 @@ pub enum Event {
 
 impl Server {
     pub fn handle_events(&mut self) -> Vec<Event> {
+        span!(_guard, "Server::handle_events");
         let mut frontend_events = Vec::new();
 
         let mut requested_chunks = Vec::new();

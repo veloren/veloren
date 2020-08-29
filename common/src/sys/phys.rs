@@ -354,7 +354,6 @@ impl<'a> System<'a> for Sys {
                         radius: f32,
                         z_range: Range<f32>,
                     ) -> impl Iterator<Item = Aabb<f32>> + 'a {
-                        span!(_guard, "collision_iter");
                         near_iter.filter_map(move |(i, j, k)| {
                             let block_pos = pos.map(|e| e.floor() as i32) + Vec3::new(i, j, k);
 
