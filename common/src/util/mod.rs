@@ -11,6 +11,8 @@ lazy_static::lazy_static! {
 pub use color::*;
 pub use dir::*;
 
+#[cfg(feature = "tracy")] pub use tracy_client;
+
 // https://discordapp.com/channels/676678179678715904/676685797524766720/723358438943621151
 #[macro_export]
 macro_rules! span {

@@ -12,9 +12,9 @@ use crate::{
 use common::clock::Clock;
 use server::{Event, Input, Server, ServerSettings};
 use tracing::{info, Level};
-use tracing_subscriber::{
-    filter::LevelFilter, layer::SubscriberExt, prelude::*, EnvFilter, FmtSubscriber,
-};
+use tracing_subscriber::{filter::LevelFilter, EnvFilter, FmtSubscriber};
+#[cfg(feature = "tracy")]
+use tracing_subscriber::{layer::SubscriberExt, prelude::*};
 
 use clap::{App, Arg};
 use std::{io, sync::mpsc, time::Duration};
@@ -77,6 +77,8 @@ fn main() -> io::Result<()> {
         .init();
 
     #[cfg(not(feature = "tracy"))]
+    // TODO: when tracing gets per Layer filters re-enable this when the tracy feature is being
+    // used (and do the same in voxygen)
     {
         let subscriber = FmtSubscriber::builder()
             .with_max_level(Level::ERROR)
@@ -122,7 +124,8 @@ fn main() -> io::Result<()> {
 
         // Clean up the server after a tick.
         server.cleanup();
-        tracing::trace!(tracy.frame_mark = true);
+        #[cfg(feature = "tracy")]
+        common::util::tracy_client::finish_continuous_frame!();
 
         match msg_r.try_recv() {
             Ok(msg) => match msg {

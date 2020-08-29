@@ -4,7 +4,6 @@ use crate::{
     persistence::character::CharacterLoader, ServerSettings,
 };
 use common::{
-    span,
     comp::{
         Admin, AdminList, CanBuild, ChatMode, ChatType, ControlEvent, Controller, ForceUpdate, Ori,
         Player, Pos, Stats, UnresolvedChatMsg, Vel,
@@ -14,6 +13,7 @@ use common::{
         validate_chat_msg, CharacterInfo, ChatMsgValidationError, ClientMsg, ClientState,
         PlayerInfo, PlayerListUpdate, RequestStateError, ServerMsg, MAX_BYTES_CHAT_MSG,
     },
+    span,
     state::{BlockChange, Time},
     sync::Uid,
     terrain::{Block, TerrainChunkSize, TerrainGrid},
