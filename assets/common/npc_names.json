@@ -461,6 +461,30 @@
             "frog": {
                 "keyword": "frog",
                 "generic": "Frog"
+            },
+            "rat": {
+                "keyword": "rat",
+                "generic": "Rat"
+            },
+            "axolotl": {
+                "keyword": "axolotl",
+                "generic": "Axolotl"
+            },
+            "gecko": {
+                "keyword": "gecko",
+                "generic": "Gecko"
+            },
+            "turtle": {
+                "keyword": "turtle",
+                "generic": "Turtle"
+            },
+            "squirrel": {
+                "keyword": "squirrel",
+                "generic": "Squirrel"
+            },
+            "fungome": {
+                "keyword": "fungome",
+                "generic": "Fungome"
             }
         }
     },
@@ -550,37 +574,21 @@
             }
         }
     },
-    "critter": {
+    "theropod": {
         "body": {
-            "keyword": "critter",
+            "keyword": "theropod",
             "names": [
                 "Remy"
             ]
         },
         "species": {
-            "rat": {
-                "keyword": "rat",
-                "generic": "Rat"
+            "archaeos": {
+                "keyword": "archaeos",
+                "generic": "Archaeos"
             },
-            "axolotl": {
-                "keyword": "axolotl",
-                "generic": "Axolotl"
-            },
-            "gecko": {
-                "keyword": "gecko",
-                "generic": "Gecko"
-            },
-            "turtle": {
-                "keyword": "turtle",
-                "generic": "Turtle"
-            },
-            "squirrel": {
-                "keyword": "squirrel",
-                "generic": "Squirrel"
-            },
-            "fungome": {
-                "keyword": "fungome",
-                "generic": "Fungome"
+            "odontotyrannos": {
+                "keyword": "odontotyrannos",
+                "generic": "Odontotyrannos"
             }
         }
     },

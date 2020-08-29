@@ -29,29 +29,32 @@ impl From<Body> for super::Body {
     fn from(body: Body) -> Self { super::Body::QuadrupedSmall(body) }
 }
 
-make_case_elim!(
-    species,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-    #[repr(u32)]
-    pub enum Species {
-        Pig = 0,
-        Fox = 1,
-        Sheep = 2,
-        Boar = 3,
-        Jackalope = 4,
-        Skunk = 5,
-        Cat = 6,
-        Batfox = 7,
-        Raccoon = 8,
-        Quokka = 9,
-        Dodarock = 10,
-        Holladon = 11,
-        Hyena = 12,
-        Rabbit = 13,
-        Truffler = 14,
-        Frog = 15,
-    }
-);
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u32)]
+pub enum Species {
+    Pig = 0,
+    Fox = 1,
+    Sheep = 2,
+    Boar = 3,
+    Jackalope = 4,
+    Skunk = 5,
+    Cat = 6,
+    Batfox = 7,
+    Raccoon = 8,
+    Quokka = 9,
+    Dodarock = 10,
+    Holladon = 11,
+    Hyena = 12,
+    Rabbit = 13,
+    Truffler = 14,
+    Frog = 15,
+    Rat = 16,
+    Axolotl = 17,
+    Gecko = 18,
+    Turtle = 19,
+    Squirrel = 20,
+    Fungome = 21,
+}
 
 /// Data representing per-species generic data.
 ///
@@ -74,6 +77,12 @@ pub struct AllSpecies<SpeciesMeta> {
     pub rabbit: SpeciesMeta,
     pub truffler: SpeciesMeta,
     pub frog: SpeciesMeta,
+    pub rat: SpeciesMeta,
+    pub axolotl: SpeciesMeta,
+    pub gecko: SpeciesMeta,
+    pub turtle: SpeciesMeta,
+    pub squirrel: SpeciesMeta,
+    pub fungome: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -98,11 +107,17 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::Rabbit => &self.rabbit,
             Species::Truffler => &self.truffler,
             Species::Frog => &self.frog,
+            Species::Rat => &self.rat,
+            Species::Axolotl => &self.axolotl,
+            Species::Gecko => &self.gecko,
+            Species::Turtle => &self.turtle,
+            Species::Squirrel => &self.squirrel,
+            Species::Fungome => &self.fungome,
         }
     }
 }
 
-pub const ALL_SPECIES: [Species; 16] = [
+pub const ALL_SPECIES: [Species; 22] = [
     Species::Pig,
     Species::Fox,
     Species::Sheep,
@@ -119,6 +134,12 @@ pub const ALL_SPECIES: [Species; 16] = [
     Species::Rabbit,
     Species::Truffler,
     Species::Frog,
+    Species::Rat,
+    Species::Axolotl,
+    Species::Gecko,
+    Species::Turtle,
+    Species::Squirrel,
+    Species::Fungome,
 ];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {

@@ -41,7 +41,7 @@ impl Body {
             Body::BipedLarge(_) => 75.0,
             Body::Object(_) => 40.0,
             Body::Golem(_) => 60.0,
-            Body::Critter(_) => 85.0,
+            Body::Theropod(_) => 85.0,
             Body::QuadrupedLow(_) => 120.0,
         }
     }
@@ -59,7 +59,7 @@ impl Body {
             Body::BipedLarge(_) => 12.0,
             Body::Object(_) => 5.0,
             Body::Golem(_) => 8.0,
-            Body::Critter(_) => 35.0,
+            Body::Theropod(_) => 35.0,
             Body::QuadrupedLow(_) => 12.0,
         }
     }
