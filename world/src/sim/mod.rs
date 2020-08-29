@@ -2182,7 +2182,7 @@ impl SimChunk {
             downhill,
             temp,
             humidity,
-            rockiness: if true {
+            rockiness: if true && !river.is_river() {
                 (gen_ctx.rock_nz.get((wposf.div(1024.0)).into_array()) as f32)
                     .sub(0.1)
                     .mul(1.3)
