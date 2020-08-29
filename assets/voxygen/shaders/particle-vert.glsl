@@ -277,7 +277,7 @@ void main() {
 		attr = Attr(
 			spiral_motion(beam_pos2() - inst_pos, 0.3 * (floor(2 * hash(vec4(inst_time)) + 0.5) - 0.5), lifetime / 2),
 			(1.7 - 0.7 * abs(floor(2 * hash(vec4(inst_time)) - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick.x * 10 - lifetime * 4)),
-			vec4(vec3(0, 0.7 + 0.3 * sin(tick.x * 8 - lifetime * 3), 0), 1),
+			vec4(vec3(0.3, 0.7 + 0.4 * sin(tick.x * 8 - lifetime * 3), 0.3 + 0.1 * sin (tick.x * 2)), 0.3),
 			spin_in_axis(vec3(inst_entropy, inst_misc, inst_lifespan), tick.z)
 		);
 	} else if (inst_mode == ENERGY_NATURE) {
