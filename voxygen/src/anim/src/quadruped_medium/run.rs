@@ -133,11 +133,11 @@ impl Animation for RunAnimation {
             skeleton_attr.torso_front.1
                 + canceler * 1.0
                 + canceler * shortalt * 2.5
-                + x_tilt * 10.0,
+                + x_tilt * 10.0 * canceler,
         ) * skeleton_attr.scaler
             / 11.0;
         next.torso_front.orientation =
-            Quaternion::rotation_x((amplitude * (short * -0.13).max(-0.2)) + x_tilt)
+            Quaternion::rotation_x((amplitude * (short * -0.13).max(-0.2)) + x_tilt * (canceler * 6.0).min(1.0))
                 * Quaternion::rotation_y(tilt * 0.8)
                 * Quaternion::rotation_z(tilt * -1.5);
         next.torso_front.scale = Vec3::one() * skeleton_attr.scaler / 11.0;

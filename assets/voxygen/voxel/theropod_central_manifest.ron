@@ -5,7 +5,7 @@
             central: ("npc.archaeos.male.head"),
         ),
         jaw: (
-            offset: (-4.5, -9.0, -3.0),
+            offset: (-5.5, -9.0, -3.0),
             central: ("npc.archaeos.male.jaw"),
         ),
         neck: (
@@ -35,7 +35,7 @@
             central: ("npc.archaeos.male.head"),
         ),
         jaw: (
-            offset: (-4.5, -9.0, -3.0),
+            offset: (-5.5, -9.0, -3.0),
             central: ("npc.archaeos.male.jaw"),
         ),
         neck: (
@@ -61,62 +61,62 @@
     ),
     (Odontotyrannos, Male): (
         head: (
-            offset: (-4.5, -4.0, -4.0),
-            central: ("npc.rat.male.head"),
+            offset: (-10.5, 0.0, -8.0),
+            central: ("npc.odontotyrannos.male.head"),
         ),
         jaw: (
-            offset: (-4.5, -6.0, -4.0),
-            central: ("npc.rat.male.chest"),
+            offset: (-6.5, -7.0, -3.0),
+            central: ("npc.odontotyrannos.male.jaw"),
         ),
         neck: (
-            offset: (-4.0, -1.5, -1.0),
-            central: ("npc.rat.male.chest"),
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         ),
         chest_front: (
-            offset: (-4.0, -1.5, -1.0),
-            central: ("npc.rat.male.chest"),
+            offset: (-5.5, -5.0, -6.0),
+            central: ("npc.odontotyrannos.male.chest_front"),
         ),
         chest_back: (
-            offset: (-4.0, -1.5, -1.0),
-            central: ("npc.rat.male.chest"),
+            offset: (-6.5, -8.0, -8.5),
+            central: ("npc.odontotyrannos.male.chest_back"),
         ),
         tail_front: (
-            offset: (-0.5, -4.0, -1.5),
-            central: ("npc.rat.male.chest"),
+            offset: (-3.5, -8.0, -5.5),
+            central: ("npc.odontotyrannos.male.tail_front"),
         ),
         tail_back: (
-            offset: (-0.5, -4.0, -1.5),
-            central: ("npc.rat.male.chest"),
+            offset: (-2.5, -8.0, -3.0),
+            central: ("npc.odontotyrannos.male.tail_back"),
         ),
     ),
     (Odontotyrannos, Female): (
         head: (
-            offset: (-4.5, -4.0, -4.0),
-            central: ("npc.rat.male.head"),
+            offset: (-10.5, 0.0, -8.0),
+            central: ("npc.odontotyrannos.male.head"),
         ),
         jaw: (
-            offset: (-4.5, -6.0, -4.0),
-            central: ("npc.rat.male.chest"),
+            offset: (-6.5, -7.0, -3.0),
+            central: ("npc.odontotyrannos.male.jaw"),
         ),
         neck: (
-            offset: (-4.0, -1.5, -1.0),
-            central: ("npc.rat.male.chest"),
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         ),
         chest_front: (
-            offset: (-4.0, -1.5, -1.0),
-            central: ("npc.rat.male.chest"),
+            offset: (-5.5, -5.0, -6.0),
+            central: ("npc.odontotyrannos.male.chest_front"),
         ),
         chest_back: (
-            offset: (-4.0, -1.5, -1.0),
-            central: ("npc.rat.male.chest"),
+            offset: (-6.5, -8.0, -8.5),
+            central: ("npc.odontotyrannos.male.chest_back"),
         ),
         tail_front: (
-            offset: (-0.5, -4.0, -1.5),
-            central: ("npc.rat.male.chest"),
+            offset: (-3.5, -8.0, -5.5),
+            central: ("npc.odontotyrannos.male.tail_front"),
         ),
         tail_back: (
-            offset: (-0.5, -4.0, -1.5),
-            central: ("npc.rat.male.chest"),
+            offset: (-2.5, -8.0, -3.0),
+            central: ("npc.odontotyrannos.male.tail_back"),
         ),
     ),
 })
