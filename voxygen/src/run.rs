@@ -162,7 +162,8 @@ fn handle_main_events_cleared(
             .swap_buffers()
             .expect("Failed to swap window buffers!");
         drop(guard);
-        tracing::trace!(tracy.frame_mark = true);
+        #[cfg(feature = "tracy")]
+        common::util::tracy_client::finish_continuous_frame!();
     }
 
     if !exit {

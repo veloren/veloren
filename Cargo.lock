@@ -5040,7 +5040,6 @@ dependencies = [
  "tracing-log",
  "tracing-subscriber",
  "tracing-tracy",
- "tracy-client",
  "treeculler",
  "uvth 3.1.1",
  "vek 0.12.0",

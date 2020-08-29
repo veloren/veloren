@@ -12,7 +12,7 @@ version = "0.7.0"
 gl = ["gfx_device_gl", "gfx_gl"]
 hot-anim = ["anim/use-dyn-lib"]
 singleplayer = ["server"]
-tracy = ["tracing-tracy", "tracy-client", "common/tracy"]
+tracy = ["tracing-tracy", "common/tracy"]
 tweak = ["const-tweaker"]
 
 default = ["gl", "singleplayer", "msgbox"]
@@ -84,7 +84,6 @@ tracing-subscriber = {version = "0.2.3", default-features = false, features = ["
 
 # Tracy
 tracing-tracy = { version = "0.2.0", optional = true }
-tracy-client = { version = "0.8.0", optional = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 dispatch = "0.1.4"
