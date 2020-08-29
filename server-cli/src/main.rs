@@ -12,7 +12,9 @@ use crate::{
 use common::clock::Clock;
 use server::{Event, Input, Server, ServerSettings};
 use tracing::{info, Level};
-use tracing_subscriber::{filter::LevelFilter, EnvFilter, FmtSubscriber};
+use tracing_subscriber::{
+    filter::LevelFilter, layer::SubscriberExt, prelude::*, EnvFilter, FmtSubscriber,
+};
 
 use clap::{App, Arg};
 use std::{io, sync::mpsc, time::Duration};
@@ -49,6 +51,7 @@ fn main() -> io::Result<()> {
     let (mut tui, msg_r) = Tui::new();
 
     // Init logging
+    #[cfg(not(feature = "tracy"))]
     let filter = match std::env::var_os(RUST_LOG_ENV).map(|s| s.into_string()) {
         Some(Ok(env)) => {
             let mut filter = EnvFilter::new("veloren_world::sim=info")
@@ -68,14 +71,22 @@ fn main() -> io::Result<()> {
             .add_directive(LevelFilter::INFO.into()),
     };
 
-    let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::ERROR)
-        .with_env_filter(filter);
+    #[cfg(feature = "tracy")]
+    tracing_subscriber::registry()
+        .with(tracing_tracy::TracyLayer::new().with_stackdepth(0))
+        .init();
 
-    if basic {
-        subscriber.init();
-    } else {
-        subscriber.with_writer(|| LOG.clone()).init();
+    #[cfg(not(feature = "tracy"))]
+    {
+        let subscriber = FmtSubscriber::builder()
+            .with_max_level(Level::ERROR)
+            .with_env_filter(filter);
+
+        if basic {
+            subscriber.init();
+        } else {
+            subscriber.with_writer(|| LOG.clone()).init();
+        }
     }
 
     tui.run(basic);
@@ -111,6 +122,7 @@ fn main() -> io::Result<()> {
 
         // Clean up the server after a tick.
         server.cleanup();
+        tracing::trace!(tracy.frame_mark = true);
 
         match msg_r.try_recv() {
             Ok(msg) => match msg {

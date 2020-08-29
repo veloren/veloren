@@ -7,17 +7,21 @@ edition = "2018"
 [features]
 worldgen = ["server/worldgen"]
 default = ["worldgen"]
+tracy = ["common/tracy", "tracing-tracy"]
 
 [dependencies]
 server = { package = "veloren-server", path = "../server", default-features = false }
 common = { package = "veloren-common", path = "../common" }
 
-tracing = { version = "0.1", default-features = false }
-tracing-subscriber = { version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec"] }
-crossterm = "0.17"
-lazy_static = "1"
 ansi-parser = "0.6"
 clap = "2.33"
+crossterm = "0.17"
+lazy_static = "1"
+tracing = { version = "0.1", default-features = false }
+tracing-subscriber = { version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec"] }
+
+# Tracy
+tracing-tracy = { version = "0.2.0", optional = true }
 
 [dependencies.tui]
 git = "https://github.com/fdehau/tui-rs.git"

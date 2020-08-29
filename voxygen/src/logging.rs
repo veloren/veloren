@@ -93,7 +93,9 @@ pub fn init(settings: &Settings) -> Vec<impl Drop> {
                 .init();
             #[cfg(feature = "tracy")]
             registry()
-                .with(tracing_tracy::TracyLayer::new())
+                // NOTE: collecting stacks has a significant overhead (x6 overhead of
+                // starting/stopping a span through the layer interface)
+                .with(tracing_tracy::TracyLayer::new().with_stackdepth(0))
                 .with(filter)
                 .init();
             let logdir = &settings.log.logs_path;
@@ -111,7 +113,7 @@ pub fn init(settings: &Settings) -> Vec<impl Drop> {
                 .with(filter);
             #[cfg(feature = "tracy")]
             registry()
-                .with(tracing_tracy::TracyLayer::new())
+                .with(tracing_tracy::TracyLayer::new().with_stackdepth(0))
                 .with(filter)
                 .init();
             info!("Setup terminal logging.");
