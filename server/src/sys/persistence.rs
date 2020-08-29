@@ -2,7 +2,10 @@ use crate::{
     persistence::character,
     sys::{SysScheduler, SysTimer},
 };
-use common::comp::{Inventory, Loadout, Player, Stats};
+use common::{
+    comp::{Inventory, Loadout, Player, Stats},
+    span,
+};
 use specs::{Join, ReadExpect, ReadStorage, System, Write};
 
 pub struct Sys;
@@ -31,6 +34,7 @@ impl<'a> System<'a> for Sys {
             mut timer,
         ): Self::SystemData,
     ) {
+        span!(_guard, "persistence::Sys::run");
         if scheduler.should_run() {
             timer.start();
             updater.batch_update(
