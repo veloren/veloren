@@ -2296,6 +2296,7 @@ impl Hud {
         ) {
             if let Some(slots::SlotKind::Inventory(i)) = slot_manager.selected() {
                 hotbar.add_inventory_link(slot, i.0);
+                events.push(Event::ChangeHotbarState(Box::new(hotbar.to_owned())));
                 slot_manager.idle();
             } else {
                 let just_pressed = hotbar.process_input(slot, state);
