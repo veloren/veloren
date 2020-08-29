@@ -58,37 +58,50 @@ impl ParticleMgr {
                 pos,
                 power,
                 reagent,
+                percent_damage,
             } => {
-                self.particles.resize_with(
-                    self.particles.len() + if reagent.is_some() { 300 } else { 150 },
-                    || {
+                if *percent_damage < 0.5 {
+                    self.particles.resize_with(self.particles.len() + 200, || {
                         Particle::new(
-                            Duration::from_millis(if reagent.is_some() { 1000 } else { 250 }),
+                            Duration::from_secs(1),
                             time,
-                            match reagent {
-                                Some(Reagent::Blue) => ParticleMode::FireworkBlue,
-                                Some(Reagent::Green) => ParticleMode::FireworkGreen,
-                                Some(Reagent::Purple) => ParticleMode::FireworkPurple,
-                                Some(Reagent::Red) => ParticleMode::FireworkRed,
-                                Some(Reagent::Yellow) => ParticleMode::FireworkYellow,
-                                None => ParticleMode::Shrapnel,
-                            },
-                            *pos,
+                            ParticleMode::EnergyNature,
+                            *pos + Vec3::<f32>::zero().map(|_| rng.gen_range(-3.0, 3.0) * power),
                         )
-                    },
-                );
+                    });
+                } else {
+                    self.particles.resize_with(
+                        self.particles.len() + if reagent.is_some() { 300 } else { 150 },
+                        || {
+                            Particle::new(
+                                Duration::from_millis(if reagent.is_some() { 1000 } else { 250 }),
+                                time,
+                                match reagent {
+                                    Some(Reagent::Blue) => ParticleMode::FireworkBlue,
+                                    Some(Reagent::Green) => ParticleMode::FireworkGreen,
+                                    Some(Reagent::Purple) => ParticleMode::FireworkPurple,
+                                    Some(Reagent::Red) => ParticleMode::FireworkRed,
+                                    Some(Reagent::Yellow) => ParticleMode::FireworkYellow,
+                                    None => ParticleMode::Shrapnel,
+                                },
+                                *pos,
+                            )
+                        },
+                    );
 
-                self.particles.resize_with(
-                    self.particles.len() + if reagent.is_some() { 100 } else { 200 },
-                    || {
-                        Particle::new(
-                            Duration::from_secs(4),
-                            time,
-                            ParticleMode::CampfireSmoke,
-                            *pos + Vec2::<f32>::zero().map(|_| rng.gen_range(-1.0, 1.0) * power),
-                        )
-                    },
-                );
+                    self.particles.resize_with(
+                        self.particles.len() + if reagent.is_some() { 100 } else { 200 },
+                        || {
+                            Particle::new(
+                                Duration::from_secs(4),
+                                time,
+                                ParticleMode::CampfireSmoke,
+                                *pos + Vec2::<f32>::zero()
+                                    .map(|_| rng.gen_range(-1.0, 1.0) * power),
+                            )
+                        },
+                    );
+                }
             },
             Outcome::ProjectileShot { .. } => {},
         }
@@ -143,6 +156,9 @@ impl ParticleMgr {
                 },
                 Body::Object(object::Body::BoltFireBig) => {
                     self.maintain_boltfirebig_particles(scene_data, pos)
+                },
+                Body::Object(object::Body::BoltNature) => {
+                    self.maintain_boltnature_particles(scene_data, pos)
                 },
                 Body::Object(
                     object::Body::Bomb
@@ -241,6 +257,21 @@ impl ParticleMgr {
         );
     }
 
+    fn maintain_boltnature_particles(&mut self, scene_data: &SceneData, pos: &Pos) {
+        let time = scene_data.state.get_time();
+
+        // nature
+        self.particles.resize(
+            self.particles.len() + usize::from(self.scheduler.heartbeats(Duration::from_millis(3))),
+            Particle::new(
+                Duration::from_millis(250),
+                time,
+                ParticleMode::EnergyNature,
+                pos.0,
+            ),
+        );
+    }
+
     fn maintain_bomb_particles(&mut self, scene_data: &SceneData, pos: &Pos) {
         span!(
             _guard,
@@ -314,19 +345,19 @@ impl ParticleMgr {
             .join()
         {
             if let CharacterState::BasicBeam(b) = character_state {
-                if b.buildup_duration == Duration::default() {
-                    let particle_ori = b.particle_ori.unwrap_or(*ori.vec());
-                    for _ in 0..self.scheduler.heartbeats(Duration::from_millis(10)) {
-                        for d in 0..(b.range as i32) {
-                            self.particles.push(
-                                Particle::new(
-                                    Duration::from_millis(50),
-                                    time,
-                                    ParticleMode::HealingBeam,
-                                    pos.0 + particle_ori * (d as f32),
-                                ),
-                            );
-                        }
+                let particle_ori = b.particle_ori.unwrap_or(*ori.vec());
+                for _ in 0..self.scheduler.heartbeats(Duration::from_millis(5)) {
+                    let buildup = b.buildup_duration.as_millis() as i32;
+                    for t in 0..((buildup / 50) + 1) {
+                        let frac = ((t * 50) as f32) / 250.0; // Default value of buildup duration hardcoded for now, as it currently decreases over time
+                        let dur = (2000.0 * (1.0 - frac)).max(0.0) as u64;
+                        self.particles.push(Particle::new_beam(
+                            Duration::from_millis(dur),
+                            time,
+                            ParticleMode::HealingBeam,
+                            pos.0 + particle_ori * b.range * frac,
+                            pos.0 + particle_ori * b.range,
+                        ));
                     }
                 }
             }
@@ -677,6 +708,19 @@ impl Particle {
         Particle {
             alive_until: time + lifespan.as_secs_f64(),
             instance: ParticleInstance::new(time, lifespan.as_secs_f32(), mode, pos),
+        }
+    }
+
+    fn new_beam(
+        lifespan: Duration,
+        time: f64,
+        mode: ParticleMode,
+        pos1: Vec3<f32>,
+        pos2: Vec3<f32>,
+    ) -> Self {
+        Particle {
+            alive_until: time + lifespan.as_secs_f64(),
+            instance: ParticleInstance::new_beam(time, mode, pos1, pos2),
         }
     }
 }

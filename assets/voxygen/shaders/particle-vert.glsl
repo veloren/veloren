@@ -23,6 +23,7 @@ in vec3 inst_pos;
 in float inst_time;
 in float inst_lifespan;
 in float inst_entropy;
+in float inst_misc;
 in int inst_mode;
 
 out vec3 f_pos;
@@ -49,6 +50,7 @@ const int FIREFLY = 10;
 const int BEE = 11;
 const int GROUND_SHOCKWAVE = 12;
 const int HEALING_BEAM = 13;
+const int ENERGY_NATURE = 14;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -102,6 +104,28 @@ mat4 identity() {
 		0, 0, 1, 0,
 		0, 0, 0, 1
 	);
+}
+
+vec3 beam_pos2() {
+	return vec3(inst_lifespan, inst_entropy, inst_misc);
+}
+
+vec3 perp_axis1(vec3 axis) {
+	return normalize(vec3(axis.y + axis.z, -axis.x + axis.z, -axis.x - axis.y));
+}
+
+vec3 perp_axis2(vec3 axis1, vec3 axis2) {
+	return normalize(vec3(axis1.y * axis2.z - axis1.z * axis2.y, axis1.z * axis2.x - axis1.x * axis2.z, axis1.x * axis2.y - axis1.y * axis2.x));
+}
+
+vec3 spiral_motion(vec3 line, float radius, float time_function) {
+	vec3 axis2 = perp_axis1(line);
+	vec3 axis3 = perp_axis2(line, axis2);
+
+	return line * time_function + vec3(
+		radius * cos(10 * time_function) * axis2.x + radius * sin(10 * time_function) * axis3.x,
+		radius * cos(10 * time_function) * axis2.y + radius * sin(10 * time_function) * axis3.y,
+		radius * cos(10 * time_function) * axis2.z + radius * sin(10 * time_function) * axis3.z + 1.0);
 }
 
 void main() {
@@ -251,10 +275,20 @@ void main() {
 		);
 	} else if (inst_mode == HEALING_BEAM) {
 		attr = Attr(
-			vec3(rand0 * lifetime * 15, rand1 * lifetime * 15, rand2 * lifetime * 15 + 1),
-			1 + rand3,
+			spiral_motion(beam_pos2() - inst_pos, 0.3 * (floor(2 * hash(vec4(inst_time)) + 0.5) - 0.5), lifetime / 2),
+			(1.7 - 0.7 * abs(floor(2 * hash(vec4(inst_time)) - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick.x * 10 - lifetime * 4)),
+			vec4(vec3(0, 0.7 + 0.3 * sin(tick.x * 8 - lifetime * 3), 0), 1),
+			spin_in_axis(vec3(inst_entropy, inst_misc, inst_lifespan), tick.z)
+		);
+	} else if (inst_mode == ENERGY_NATURE) {
+		attr = Attr(
+			linear_motion(
+				vec3(rand0 * 1, rand1 * 1, rand2 * 1),
+				vec3(rand3 * 2, rand4 * 2, rand5 * 2)
+			),
+			0.8,
 			vec4(vec3(0, 1, 0), 1),
-			spin_in_axis(vec3(1, 0, 0), 0)
+			spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
 		);
 	} else {
 		attr = Attr(

@@ -94,7 +94,8 @@ impl CharacterBehavior for Data {
                 lifesteal_eff: self.lifesteal_eff,
                 energy_regen: self.energy_regen,
             });
-        } else if data.inputs.primary.is_pressed() && self.cooldown_duration != Duration::default() {
+        } else if data.inputs.primary.is_pressed() && self.cooldown_duration != Duration::default()
+        {
             // Cooldown until next tick of damage
             update.character = CharacterState::BasicBeam(Data {
                 exhausted: self.exhausted,
@@ -157,8 +158,6 @@ impl CharacterBehavior for Data {
             // Make sure attack component is removed
             data.updater.remove::<Attacking>(data.entity);
         }
-
-        
 
         update
     }

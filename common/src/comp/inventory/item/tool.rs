@@ -314,7 +314,7 @@ impl Tool {
                             energy_regen: 120,
                         },
                         BasicRanged {
-                            energy_cost: 400,
+                            energy_cost: 0,
                             holdable: true,
                             prepare_duration: Duration::from_millis(800),
                             recover_duration: Duration::from_millis(50),
@@ -337,12 +337,12 @@ impl Tool {
                                 owner: None,
                                 ignore_group: true,
                             },
-                            projectile_body: Body::Object(object::Body::BoltFireBig),
+                            projectile_body: Body::Object(object::Body::BoltNature),
                             projectile_light: Some(LightEmitter {
                                 col: (0.0, 1.0, 0.0).into(),
                                 ..Default::default()
                             }),
-                            projectile_gravity: None,
+                            projectile_gravity: Some(Gravity(1.0)),
                             projectile_speed: 25.0,
                         },
                     ]
