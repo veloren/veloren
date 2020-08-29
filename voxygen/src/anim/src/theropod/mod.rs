@@ -77,12 +77,9 @@ pub struct SkeletonAttr {
     chest_back: (f32, f32),
     tail_front: (f32, f32),
     tail_back: (f32, f32),
-    hand_l: (f32, f32, f32),
-    hand_r: (f32, f32, f32),
-    leg_l: (f32, f32, f32),
-    leg_r: (f32, f32, f32),
-    foot_l: (f32, f32, f32),
-    foot_r: (f32, f32, f32),
+    hand: (f32, f32, f32),
+    leg: (f32, f32, f32),
+    foot: (f32, f32, f32),
 }
 
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -106,12 +103,9 @@ impl Default for SkeletonAttr {
             chest_back: (0.0, 0.0),
             tail_front: (0.0, 0.0),
             tail_back: (0.0, 0.0),
-            hand_l: (0.0, 0.0, 0.0),
-            hand_r: (0.0, 0.0, 0.0),
-            leg_l: (0.0, 0.0, 0.0),
-            leg_r: (0.0, 0.0, 0.0),
-            foot_l: (0.0, 0.0, 0.0),
-            foot_r: (0.0, 0.0, 0.0),
+            hand: (0.0, 0.0, 0.0),
+            leg: (0.0, 0.0, 0.0),
+            foot: (0.0, 0.0, 0.0),
         }
     }
 }
@@ -121,56 +115,44 @@ impl<'a> From<&'a Body> for SkeletonAttr {
         use comp::theropod::Species::*;
         Self {
             head: match (body.species, body.body_type) {
-                (Archaeos, _) => (6.5, 3.0),
-                (Odontotyrannos, _) => (5.0, 1.0),
+                (Archaeos, _) => (8.0, 4.0),
+                (Odontotyrannos, _) => (-2.5, 3.0),
             },
             jaw: match (body.species, body.body_type) {
-                (Archaeos, _) => (0.0, 6.0),
-                (Odontotyrannos, _) => (-1.0, 3.0),
+                (Archaeos, _) => (10.0, -7.0),
+                (Odontotyrannos, _) => (10.0, -7.0),
             },
             neck: match (body.species, body.body_type) {
-                (Archaeos, _) => (0.0, 6.0),
-                (Odontotyrannos, _) => (-1.0, 3.0),
+                (Archaeos, _) => (4.5, -2.0),
+                (Odontotyrannos, _) => (4.5, -2.0),
             },
             chest_front: match (body.species, body.body_type) {
-                (Archaeos, _) => (0.0, 6.0),
-                (Odontotyrannos, _) => (-1.0, 3.0),
+                (Archaeos, _) => (4.5, 20.0),
+                (Odontotyrannos, _) => (4.0, 13.0),
             },
             chest_back: match (body.species, body.body_type) {
-                (Archaeos, _) => (0.0, 6.0),
-                (Odontotyrannos, _) => (-1.0, 3.0),
+                (Archaeos, _) => (-5.5, -1.0),
+                (Odontotyrannos, _) => (-5.0, 2.0),
             },
             tail_front: match (body.species, body.body_type) {
-                (Archaeos, _) => (-8.0, -1.0),
-                (Odontotyrannos, _) => (-7.0, -1.0),
+                (Archaeos, _) => (-9.0, -1.5),
+                (Odontotyrannos, _) => (-8.0, -1.0),
             },
             tail_back: match (body.species, body.body_type) {
-                (Archaeos, _) => (-8.0, -1.0),
-                (Odontotyrannos, _) => (-7.0, -1.0),
+                (Archaeos, _) => (-20.0, -0.5),
+                (Odontotyrannos, _) => (-19.0, -1.5),
             },
-            hand_l: match (body.species, body.body_type) {
-                (Archaeos, _) => (-8.0, -1.0, 0.0),
-                (Odontotyrannos, _) => (-7.0, -1.0, 0.0),
+            hand: match (body.species, body.body_type) {
+                (Archaeos, _) => (2.5, -2.5, -4.0),
+                (Odontotyrannos, _) => (3.5, 3.0, -4.0),
             },
-            hand_r: match (body.species, body.body_type) {
-                (Archaeos, _) => (8.0, -1.0, 0.0),
-                (Odontotyrannos, _) => (7.0, -1.0, 0.0),
+            leg: match (body.species, body.body_type) {
+                (Archaeos, _) => (4.5, -9.0, -4.0),
+                (Odontotyrannos, _) => (5.5, -6.5, -2.0),
             },
-            leg_l: match (body.species, body.body_type) {
-                (Archaeos, _) => (-8.0, -1.0, 0.0),
-                (Odontotyrannos, _) => (-7.0, -1.0, 0.0),
-            },
-            leg_r: match (body.species, body.body_type) {
-                (Archaeos, _) => (8.0, -1.0, 0.0),
-                (Odontotyrannos, _) => (7.0, -1.0, 0.0),
-            },
-            foot_l: match (body.species, body.body_type) {
-                (Archaeos, _) => (-8.0, -1.0, 0.0),
-                (Odontotyrannos, _) => (-7.0, -1.0, 0.0),
-            },
-            foot_r: match (body.species, body.body_type) {
-                (Archaeos, _) => (8.0, -1.0, 0.0),
-                (Odontotyrannos, _) => (7.0, -1.0, 0.0),
+            foot: match (body.species, body.body_type) {
+                (Archaeos, _) => (1.0, -0.5, -8.0),
+                (Odontotyrannos, _) => (-1.0, -6.5, -3.0),
             },
         }
     }
