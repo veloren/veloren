@@ -462,6 +462,7 @@ pub fn handle_explosion(
             pos,
             power,
             reagent,
+            percent_damage,
         });
     let owner_entity = owner.and_then(|uid| {
         ecs.read_resource::<UidAllocator>()
@@ -486,9 +487,14 @@ pub fn handle_explosion(
             && distance_squared < hit_range.powi(2)
         {
             // See if entities are in the same group
-            let same_group = owner_entity
-                    .and_then(|e| groups.get(e))
-                    .map_or(false, |group_a| Some(group_a) == groups.get(entity_b));
+            let mut same_group = owner_entity
+                .and_then(|e| groups.get(e))
+                .map_or(false, |group_a| Some(group_a) == groups.get(entity_b));
+            if let Some(entity) = owner_entity {
+                if entity == entity_b {
+                    same_group = true;
+                }
+            }
             // Don't heal if outside group
             // Don't damage in the same group
             let (mut is_heal, mut is_damage) = (false, false);

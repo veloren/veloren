@@ -620,7 +620,11 @@ impl<'a> Widget for Skillbar<'a> {
                     ToolKind::Hammer(_) => self.imgs.twohhammer_m1,
                     ToolKind::Axe(_) => self.imgs.twohaxe_m1,
                     ToolKind::Bow(_) => self.imgs.bow_m1,
-                    ToolKind::Staff(_) => self.imgs.staff_m1,
+                    ToolKind::Staff(kind) => match kind.as_ref() {
+                        "Sceptre" => self.imgs.heal_0,
+                        "SceptreVelorite" => self.imgs.heal_0,
+                        _ => self.imgs.staff_m1,
+                    },
                     ToolKind::Debug(kind) => match kind.as_ref() {
                         "Boost" => self.imgs.flyingrod_m1,
                         _ => self.imgs.nothing,
@@ -699,8 +703,8 @@ impl<'a> Widget for Skillbar<'a> {
             Some(ToolKind::Axe(_)) => self.imgs.axespin,
             Some(ToolKind::Bow(_)) => self.imgs.bow_m2,
             Some(ToolKind::Staff(kind)) => match kind.as_ref() {
-                "Sceptre" => self.imgs.heal_0,
-                "SceptreVelorite" => self.imgs.heal_0,
+                "Sceptre" => self.imgs.heal_bomb,
+                "SceptreVelorite" => self.imgs.heal_bomb,
                 _ => self.imgs.staff_m2,
             },
             Some(ToolKind::Debug(kind)) => match kind.as_ref() {
