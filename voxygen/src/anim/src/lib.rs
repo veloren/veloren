@@ -43,7 +43,6 @@ pub mod biped_large;
 pub mod bird_medium;
 pub mod bird_small;
 pub mod character;
-pub mod critter;
 pub mod dragon;
 #[cfg(feature = "use-dyn-lib")] pub mod dyn_lib;
 pub mod fish_medium;
@@ -54,6 +53,7 @@ pub mod object;
 pub mod quadruped_low;
 pub mod quadruped_medium;
 pub mod quadruped_small;
+pub mod theropod;
 pub mod vek;
 
 #[cfg(feature = "use-dyn-lib")]

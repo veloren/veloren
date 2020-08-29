@@ -35,7 +35,7 @@ use crate::{
     util::{Grid, Sampler},
 };
 use common::{
-    comp::{self, bird_medium, critter, quadruped_low, quadruped_medium, quadruped_small},
+    comp::{self, bird_medium, quadruped_low, quadruped_medium, quadruped_small, theropod},
     generation::{ChunkSupplement, EntityInfo},
     msg::server::WorldMapMsg,
     terrain::{Block, BlockKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
@@ -256,8 +256,8 @@ impl World {
                             comp::Body::BirdMedium(bird_medium::Body::random())
                         },
                         2 => {
-                            is_hostile = false;
-                            comp::Body::Critter(critter::Body::random())
+                            is_hostile = true;
+                            comp::Body::Theropod(theropod::Body::random())
                         },
                         3 => {
                             match quadlow {

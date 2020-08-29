@@ -110,7 +110,7 @@ impl EntityInfo {
                 Some(get_npc_name(&NPC_NAMES.quadruped_medium, body.species))
             },
             Body::BirdMedium(body) => Some(get_npc_name(&NPC_NAMES.bird_medium, body.species)),
-            Body::Critter(body) => Some(get_npc_name(&NPC_NAMES.critter, body.species)),
+            Body::Theropod(body) => Some(get_npc_name(&NPC_NAMES.theropod, body.species)),
             Body::QuadrupedSmall(body) => {
                 Some(get_npc_name(&NPC_NAMES.quadruped_small, body.species))
             },

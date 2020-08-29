@@ -55,7 +55,7 @@ impl LoadoutBuilder {
         .lantern(Some(Item::new_from_asset_expect(
             "common.items.armor.starter.lantern",
         )))
-        .glider(Some(assets::load_expect_cloned(
+        .glider(Some(ItemAsset::load_expect_cloned(
             "common.items.armor.starter.glider",
         )))
     }

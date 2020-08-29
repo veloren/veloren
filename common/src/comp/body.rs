@@ -1,7 +1,6 @@
 pub mod biped_large;
 pub mod bird_medium;
 pub mod bird_small;
-pub mod critter;
 pub mod dragon;
 pub mod fish_medium;
 pub mod fish_small;
@@ -11,6 +10,7 @@ pub mod object;
 pub mod quadruped_low;
 pub mod quadruped_medium;
 pub mod quadruped_small;
+pub mod theropod;
 
 use crate::{
     assets::{self, Asset},
@@ -39,7 +39,7 @@ make_case_elim!(
         BipedLarge(body: biped_large::Body)= 8,
         Object(body: object::Body) = 9,
         Golem(body: golem::Body) = 10,
-        Critter(body: critter::Body) = 11,
+        Theropod(body: theropod::Body) = 11,
         QuadrupedLow(body: quadruped_low::Body) = 12,
     }
 );
@@ -72,7 +72,7 @@ pub struct AllBodies<BodyMeta, SpeciesMeta> {
     pub biped_large: BodyData<BodyMeta, biped_large::AllSpecies<SpeciesMeta>>,
     pub object: BodyData<BodyMeta, ()>,
     pub golem: BodyData<BodyMeta, golem::AllSpecies<SpeciesMeta>>,
-    pub critter: BodyData<BodyMeta, critter::AllSpecies<SpeciesMeta>>,
+    pub theropod: BodyData<BodyMeta, theropod::AllSpecies<SpeciesMeta>>,
     pub quadruped_low: BodyData<BodyMeta, quadruped_low::AllSpecies<SpeciesMeta>>,
 }
 
@@ -89,7 +89,7 @@ impl<BodyMeta, SpeciesMeta> core::ops::Index<NpcKind> for AllBodies<BodyMeta, Sp
             NpcKind::Duck => &self.bird_medium.body,
             NpcKind::Ogre => &self.biped_large.body,
             NpcKind::StoneGolem => &self.golem.body,
-            NpcKind::Rat => &self.critter.body,
+            NpcKind::Archaeos => &self.theropod.body,
             NpcKind::Reddragon => &self.dragon.body,
             NpcKind::Crocodile => &self.quadruped_low.body,
         }
@@ -114,7 +114,7 @@ impl<'a, BodyMeta, SpeciesMeta> core::ops::Index<&'a Body> for AllBodies<BodyMet
             Body::BipedLarge(_) => &self.biped_large.body,
             Body::Object(_) => &self.object.body,
             Body::Golem(_) => &self.golem.body,
-            Body::Critter(_) => &self.critter.body,
+            Body::Theropod(_) => &self.theropod.body,
             Body::QuadrupedLow(_) => &self.quadruped_low.body,
         }
     }
@@ -158,7 +158,7 @@ impl Body {
                 quadruped_low::Species::Pangolin => 1.3,
                 _ => 1.6,
             },
-            Body::Critter(_) => 0.3,
+            Body::Theropod(_) => 0.3,
             Body::BirdMedium(_) => 0.35,
             Body::FishMedium(_) => 0.35,
             Body::Dragon(_) => 8.0,
@@ -198,7 +198,7 @@ impl Body {
                 quadruped_low::Species::Maneater => 4.0,
                 _ => 1.3,
             },
-            Body::Critter(_) => 0.7,
+            Body::Theropod(_) => 0.7,
             Body::BirdMedium(body) => match body.species {
                 bird_medium::Species::Cockatrice => 1.8,
                 _ => 1.1,
@@ -264,7 +264,7 @@ impl Body {
             },
             Body::Object(_) => 10000,
             Body::Golem(_) => 1500,
-            Body::Critter(_) => 50,
+            Body::Theropod(_) => 50,
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Crocodile => 600,
                 quadruped_low::Species::Alligator => 600,
@@ -331,7 +331,7 @@ impl Body {
             },
             Body::Object(_) => 10,
             Body::Golem(_) => 150,
-            Body::Critter(_) => 20,
+            Body::Theropod(_) => 20,
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Crocodile => 20,
                 quadruped_low::Species::Alligator => 20,
@@ -396,7 +396,7 @@ impl Body {
             },
             Body::Object(_) => 1,
             Body::Golem(_) => 75,
-            Body::Critter(_) => 2,
+            Body::Theropod(_) => 2,
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Crocodile => 10,
                 quadruped_low::Species::Alligator => 10,
@@ -426,7 +426,7 @@ impl Body {
             Body::BipedLarge(_) => 2,
             Body::Object(_) => 0,
             Body::Golem(_) => 5,
-            Body::Critter(_) => 1,
+            Body::Theropod(_) => 1,
             Body::QuadrupedLow(_) => 1,
         }
     }
@@ -473,7 +473,7 @@ impl Body {
             },
             Body::Object(_) => 0,
             Body::Golem(_) => 250,
-            Body::Critter(_) => 10,
+            Body::Theropod(_) => 10,
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Crocodile => 50,
                 quadruped_low::Species::Alligator => 50,
@@ -502,7 +502,7 @@ impl Body {
             Body::BipedLarge(_) => 10.0,
             Body::Object(_) => 3.0,
             Body::Golem(_) => 7.5,
-            Body::Critter(_) => 3.0,
+            Body::Theropod(_) => 3.0,
             Body::QuadrupedLow(_) => 4.5,
         }
     }

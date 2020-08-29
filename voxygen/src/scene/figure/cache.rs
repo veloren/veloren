@@ -254,6 +254,7 @@ where
             manifest_indicator,
         }
     }
+
     /// NOTE: Intended for render time (useful with systems like wgpu that
     /// expect data used by the rendering pipelines to be stable throughout
     /// the render pass).
@@ -283,6 +284,12 @@ where
             }),
         };
 
+        if let Some(((FigureModelEntryFuture::Done(model), _), _)) = self.models.get(&key) {
+            Some(model)
+        } else {
+            None
+        }
+    }
 
     pub fn get_or_create_model<'c>(
         &'c mut self,
