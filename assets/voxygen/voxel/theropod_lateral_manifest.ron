@@ -1,7 +1,7 @@
 ({
     (Archaeos, Male): (
         hand_l: (
-            offset: (-4.0, 2.0, -9.0),
+            offset: (-4.0, -2.0, -9.0),
             lateral: ("npc.archaeos.male.hand_l"),
         ),
         hand_r: (
@@ -27,7 +27,7 @@
     ),
     (Archaeos, Female): (
         hand_l: (
-            offset: (-4.0, 2.0, -9.0),
+            offset: (-4.0, -2.0, -9.0),
             lateral: ("npc.archaeos.male.hand_l"),
         ),
         hand_r: (

@@ -5,7 +5,7 @@
             central: ("npc.archaeos.male.head"),
         ),
         jaw: (
-            offset: (-5.5, -9.0, -3.0),
+            offset: (-5.5, 0.0, -3.0),
             central: ("npc.archaeos.male.jaw"),
         ),
         neck: (
@@ -25,7 +25,7 @@
             central: ("npc.archaeos.male.tail_front"),
         ),
         tail_back: (
-            offset: (-7.5, -11.0, -3.0),
+            offset: (-7.5, -23.0, -3.0),
             central: ("npc.archaeos.male.tail_back"),
         ),
     ),
@@ -35,7 +35,7 @@
             central: ("npc.archaeos.male.head"),
         ),
         jaw: (
-            offset: (-5.5, -9.0, -3.0),
+            offset: (-5.5, 0.0, -3.0),
             central: ("npc.archaeos.male.jaw"),
         ),
         neck: (
@@ -55,7 +55,7 @@
             central: ("npc.archaeos.male.tail_front"),
         ),
         tail_back: (
-            offset: (-7.5, -11.0, -3.0),
+            offset: (-7.5, -23.0, -3.0),
             central: ("npc.archaeos.male.tail_back"),
         ),
     ),
@@ -65,7 +65,7 @@
             central: ("npc.odontotyrannos.male.head"),
         ),
         jaw: (
-            offset: (-6.5, -7.0, -3.0),
+            offset: (-6.5, 0.0, -3.0),
             central: ("npc.odontotyrannos.male.jaw"),
         ),
         neck: (
@@ -85,7 +85,7 @@
             central: ("npc.odontotyrannos.male.tail_front"),
         ),
         tail_back: (
-            offset: (-2.5, -8.0, -3.0),
+            offset: (-2.5, -23.0, -3.0),
             central: ("npc.odontotyrannos.male.tail_back"),
         ),
     ),
@@ -95,7 +95,7 @@
             central: ("npc.odontotyrannos.male.head"),
         ),
         jaw: (
-            offset: (-6.5, -7.0, -3.0),
+            offset: (-6.5, 0.0, -3.0),
             central: ("npc.odontotyrannos.male.jaw"),
         ),
         neck: (
