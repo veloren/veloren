@@ -1947,4 +1947,16 @@ GrassSnow: Some((
     ],
     wind_sway: 0.2,
 )),
+
+// Reed
+Reed: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.reed.reed-0",
+            offset: (-6.5, -6.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+    ],
+    wind_sway: 0.65,
+)),
 )

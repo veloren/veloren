@@ -42,6 +42,7 @@ pub mod store;
 pub mod sync;
 pub mod sys;
 pub mod terrain;
+pub mod time;
 pub mod typed;
 pub mod util;
 pub mod vol;

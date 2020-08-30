@@ -14,6 +14,7 @@ use common::{
     spiral::Spiral2d,
     state::DeltaTime,
     terrain::TerrainChunk,
+    time::DayPeriod,
     vol::{RectRasterableVol, SizedVol},
 };
 use dot_vox::DotVoxData;
@@ -283,7 +284,7 @@ impl ParticleMgr {
         });
 
         type BoiFn<'a> = fn(&'a BlocksOfInterest) -> &'a [Vec3<i32>];
-        // blocks, chunk range, emission density, lifetime, particle mode
+        // blocks, chunk range, emission density, lifetime, particle mode, condition
         //
         // - blocks: the function to select the blocks of interest that we should emit
         //   from
@@ -293,14 +294,48 @@ impl ParticleMgr {
         //   particles
         // - lifetime: the number of seconds that each particle should live for
         // - particle mode: the visual mode of the generated particle
-        let particles: &[(BoiFn, usize, f32, f32, ParticleMode)] = &[
-            (|boi| &boi.leaves, 4, 0.001, 30.0, ParticleMode::Leaf),
-            (|boi| &boi.embers, 2, 20.0, 0.25, ParticleMode::CampfireFire),
-            (|boi| &boi.embers, 8, 3.0, 40.0, ParticleMode::CampfireSmoke),
+        // - Condition required for emissions
+        let particles: &[(BoiFn, usize, f32, f32, ParticleMode, fn(&SceneData) -> bool)] = &[
+            (
+                |boi| &boi.leaves,
+                4,
+                0.001,
+                30.0,
+                ParticleMode::Leaf,
+                |_| true,
+            ),
+            (
+                |boi| &boi.embers,
+                2,
+                20.0,
+                0.25,
+                ParticleMode::CampfireFire,
+                |_| true,
+            ),
+            (
+                |boi| &boi.embers,
+                8,
+                3.0,
+                40.0,
+                ParticleMode::CampfireSmoke,
+                |_| true,
+            ),
+            (
+                |boi| &boi.grass,
+                5,
+                0.001,
+                40.0,
+                ParticleMode::Firefly,
+                |sd| sd.state.get_day_period().is_dark(),
+            ),
         ];
 
         let mut rng = thread_rng();
-        for (get_blocks, range, rate, dur, mode) in particles.iter() {
+        for (get_blocks, range, rate, dur, mode, cond) in particles.iter() {
+            if !cond(scene_data) {
+                continue;
+            }
+
             for offset in Spiral2d::new().take((*range * 2 + 1).pow(2)) {
                 let chunk_pos = player_chunk + offset;
 
