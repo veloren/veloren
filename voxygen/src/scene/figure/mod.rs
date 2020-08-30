@@ -43,6 +43,7 @@ use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
 use specs::{Entity as EcsEntity, Join, LazyUpdate, WorldExt};
 use treeculler::{BVol, BoundingSphere};
+use vek::*;
 
 const DAMAGE_FADE_COEFFICIENT: f64 = 5.0;
 const MOVING_THRESHOLD: f32 = 0.7;
@@ -363,13 +364,22 @@ impl FigureMgr {
     // TODO: Pending review in #587
     pub fn update_lighting(&mut self, scene_data: &SceneData) {
         let ecs = scene_data.state.ecs();
-        for (entity, light_emitter) in (&ecs.entities(), &ecs.read_storage::<LightEmitter>()).join()
-        {
+        for (
+            entity,
+            body,
+            light_emitter,
+        ) in (
+            &ecs.entities(),
+            ecs.read_storage::<common::comp::Body>().maybe(),
+            &ecs.read_storage::<LightEmitter>(),
+        ).join() {
             // Add LightAnimation for objects with a LightEmitter
             let mut anim_storage = ecs.write_storage::<LightAnimation>();
             if let None = anim_storage.get_mut(entity) {
                 let anim = LightAnimation {
-                    offset: vek::Vec3::zero(),
+                    offset: body
+                        .map(|b| b.default_light_offset())
+                        .unwrap_or_else(Vec3::zero),
                     col: light_emitter.col,
                     strength: 0.0,
                 };
