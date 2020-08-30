@@ -2,7 +2,7 @@ use std::fs;
 
 use crate::settings::Settings;
 
-use tracing::{error, info};
+use tracing::{debug, error, info, trace};
 use tracing_subscriber::{filter::LevelFilter, prelude::*, registry, EnvFilter};
 
 const RUST_LOG_ENV: &str = "RUST_LOG";
@@ -38,14 +38,18 @@ pub fn init(settings: &Settings) -> Vec<impl Drop> {
     // means that if you need lower level logging for a specific module, then
     // put it in the environment in the correct format i.e. DEBUG logging for
     // this crate would be veloren_voxygen=debug.
+    let base_exceptions = |env: EnvFilter| {
+        env.add_directive("dot_vox::parser=warn".parse().unwrap())
+            .add_directive("gfx_device_gl=warn".parse().unwrap())
+            .add_directive("uvth=warn".parse().unwrap())
+            .add_directive("tiny_http=warn".parse().unwrap())
+            .add_directive("mio::sys::windows=debug".parse().unwrap())
+            .add_directive(LevelFilter::INFO.into())
+    };
 
     let filter = match std::env::var_os(RUST_LOG_ENV).map(|s| s.into_string()) {
         Some(Ok(env)) => {
-            let mut filter = EnvFilter::new("dot_vox::parser=warn")
-                .add_directive("gfx_device_gl=warn".parse().unwrap())
-                .add_directive("uvth=warn".parse().unwrap())
-                .add_directive("tiny_http=warn".parse().unwrap())
-                .add_directive(LevelFilter::INFO.into());
+            let mut filter = base_exceptions(EnvFilter::new(""));
             for s in env.split(',').into_iter() {
                 match s.parse() {
                     Ok(d) => filter = filter.add_directive(d),
@@ -54,12 +58,7 @@ pub fn init(settings: &Settings) -> Vec<impl Drop> {
             }
             filter
         },
-        _ => EnvFilter::from_env(RUST_LOG_ENV)
-            .add_directive("dot_vox::parser=warn".parse().unwrap())
-            .add_directive("gfx_device_gl=warn".parse().unwrap())
-            .add_directive("uvth=warn".parse().unwrap())
-            .add_directive("tiny_http=warn".parse().unwrap())
-            .add_directive(LevelFilter::INFO.into()),
+        _ => base_exceptions(EnvFilter::from_env(RUST_LOG_ENV)),
     };
 
     // Create the terminal writer layer.
@@ -99,6 +98,8 @@ pub fn init(settings: &Settings) -> Vec<impl Drop> {
             info!("Setup terminal logging.");
         },
     };
+    debug!("Tracing is successfully set to DEBUG or TRACE");
+    trace!("Tracing is successfully set to TRACE");
 
     // Return the guards
     _guards
