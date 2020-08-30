@@ -1,0 +1,13 @@
+Item(
+    name: "Naturalist Walking Stick",
+    description: "Heals your allies with the power of nature.",      
+    kind: Tool(
+        (
+            kind: Staff("Sceptre"),    
+            stats: (
+                equip_time_millis: 400,
+                power: 0.50,
+            ),
+        )
+    ),
+)
