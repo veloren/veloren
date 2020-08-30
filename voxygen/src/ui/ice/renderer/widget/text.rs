@@ -42,54 +42,14 @@ impl text::Renderer for IcedRenderer {
         horizontal_alignment: HorizontalAlignment,
         vertical_alignment: VerticalAlignment,
     ) -> Self::Output {
-        use glyph_brush::{HorizontalAlign, VerticalAlign};
-        // glyph_brush thought it would be a great idea to change what the bounds and
-        // position mean based on the alignment
-        // TODO: add option to align based on the geometry of the rendered glyphs
-        // instead of all possible glyphs
-        let (x, h_align) = match horizontal_alignment {
-            HorizontalAlignment::Left => (bounds.x, HorizontalAlign::Left),
-            HorizontalAlignment::Center => (bounds.center_x(), HorizontalAlign::Center),
-            HorizontalAlignment::Right => (bounds.x + bounds.width, HorizontalAlign::Right),
-        };
-
-        let (y, v_align) = match vertical_alignment {
-            VerticalAlignment::Top => (bounds.y, VerticalAlign::Top),
-            VerticalAlignment::Center => (bounds.center_y(), VerticalAlign::Center),
-            VerticalAlignment::Bottom => (bounds.y + bounds.height, VerticalAlign::Bottom),
-        };
-
-        let p_scale = self.p_scale;
-
-        let section = glyph_brush::Section {
-            screen_position: (x * p_scale, y * p_scale),
-            bounds: (bounds.width * p_scale, bounds.height * p_scale),
-            layout: glyph_brush::Layout::Wrap {
-                line_breaker: Default::default(),
-                h_align,
-                v_align,
-            },
-            text: vec![glyph_brush::Text {
-                text: content,
-                scale: (size as f32 * p_scale).into(),
-                font_id: font.0,
-                extra: (),
-            }],
-        };
-
-        let glyphs = self
-            .cache
-            .glyph_cache_mut()
-            .glyphs(section)
-            .filter(|g| {
-                !content[g.byte_index..]
-                    .chars()
-                    .next()
-                    .unwrap()
-                    .is_whitespace()
-            })
-            .cloned()
-            .collect::<Vec<_>>();
+        let glyphs = self.position_glyphs(
+            bounds,
+            horizontal_alignment,
+            vertical_alignment,
+            content,
+            size,
+            font,
+        );
 
         (
             Primitive::Text {

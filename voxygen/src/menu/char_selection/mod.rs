@@ -37,13 +37,22 @@ impl CharSelectionState {
         }
     }
 
-    fn get_humanoid_body(&self, client: &Client) -> Option<comp::humanoid::Body> {
-        self.char_selection_ui
-            .display_character(&client.character_list.characters)
-            .and_then(|character| match character.body {
-                comp::Body::Humanoid(body) => Some(body),
-                _ => None,
+    fn get_humanoid_body_loadout<'a>(
+        char_selection_ui: &'a CharSelectionUi,
+        client: &'a Client,
+    ) -> (Option<comp::humanoid::Body>, Option<&'a comp::Loadout>) {
+        char_selection_ui
+            .display_body_loadout(&client.character_list.characters)
+            .map(|(body, loadout)| {
+                (
+                    match body {
+                        comp::Body::Humanoid(body) => Some(body),
+                        _ => None,
+                    },
+                    Some(loadout),
+                )
             })
+            .unwrap_or_default()
     }
 }
 
@@ -87,7 +96,9 @@ impl PlayState for CharSelectionState {
                         return PlayStateResult::Pop;
                     },
                     ui::Event::AddCharacter { alias, tool, body } => {
-                        self.client.borrow_mut().create_character(alias, tool, body);
+                        self.client
+                            .borrow_mut()
+                            .create_character(alias, Some(tool), body);
                     },
                     ui::Event::DeleteCharacter(character_id) => {
                         self.client.borrow_mut().delete_character(character_id);
@@ -103,13 +114,11 @@ impl PlayState for CharSelectionState {
                 }
             }
 
-            let loadout = self.char_selection_ui.get_loadout();
-
             // Maintain the scene.
             {
                 let client = self.client.borrow();
-                let humanoid_body = self.get_humanoid_body(&client);
-                let loadout = self.char_selection_ui.get_loadout();
+                let (humanoid_body, loadout) =
+                    Self::get_humanoid_body_loadout(&self.char_selection_ui, &client);
 
                 // Maintain the scene.
                 let scene_data = scene::SceneData {
@@ -128,11 +137,8 @@ impl PlayState for CharSelectionState {
                         as f32,
                 };
 
-                self.scene.maintain(
-                    global_state.window.renderer_mut(),
-                    scene_data,
-                    loadout.as_ref(),
-                );
+                self.scene
+                    .maintain(global_state.window.renderer_mut(), scene_data, loadout);
             }
 
             // Tick the client (currently only to keep the connection alive).
@@ -187,12 +193,12 @@ impl PlayState for CharSelectionState {
 
     fn render(&mut self, renderer: &mut Renderer, _: &Settings) {
         let client = self.client.borrow();
-        let humanoid_body = self.get_humanoid_body(&client);
-        let loadout = self.char_selection_ui.get_loadout();
+        let (humanoid_body, loadout) =
+            Self::get_humanoid_body_loadout(&self.char_selection_ui, &client);
 
         // Render the scene.
         self.scene
-            .render(renderer, client.get_tick(), humanoid_body, loadout.as_ref());
+            .render(renderer, client.get_tick(), humanoid_body, loadout);
 
         // Draw the UI to the screen.
         self.char_selection_ui.render(renderer);
