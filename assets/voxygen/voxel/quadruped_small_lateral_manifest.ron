@@ -809,4 +809,76 @@
             lateral: ("npc.fungome.male.foot_br"),
         ),
     ),
+    (Porcupine, Male): (
+        left_front: (
+            offset: (-1.5, -2.5, -2.0),
+            lateral: ("npc.porcupine.male.foot_fl"),
+        ),
+        right_front: (
+            offset: (-1.5, -2.5, -2.0),
+            lateral: ("npc.porcupine.male.foot_fr"),
+        ),
+        left_back: (
+            offset: (-2.0, -3.0, -3.0),
+            lateral: ("npc.porcupine.male.foot_bl"),
+        ),
+        right_back: (
+            offset: (-2.0, -3.0, -3.0),
+            lateral: ("npc.porcupine.male.foot_br"),
+        ),
+    ),
+    (Porcupine, Female): (
+        left_front: (
+            offset: (-1.5, -2.5, -2.0),
+            lateral: ("npc.porcupine.male.foot_fl"),
+        ),
+        right_front: (
+            offset: (-1.5, -2.5, -2.0),
+            lateral: ("npc.porcupine.male.foot_fr"),
+        ),
+        left_back: (
+            offset: (-2.0, -3.0, -3.0),
+            lateral: ("npc.porcupine.male.foot_bl"),
+        ),
+        right_back: (
+            offset: (-2.0, -3.0, -3.0),
+            lateral: ("npc.porcupine.male.foot_br"),
+        ),
+    ),
+    (Beaver, Male): (
+        left_front: (
+            offset: (-1.5, -2.0, -2.0),
+            lateral: ("npc.beaver.male.foot_fl"),
+        ),
+        right_front: (
+            offset: (-1.5, -2.5, -2.0),
+            lateral: ("npc.beaver.male.foot_fr"),
+        ),
+        left_back: (
+            offset: (-2.0, -2.5, -3.0),
+            lateral: ("npc.beaver.male.foot_bl"),
+        ),
+        right_back: (
+            offset: (-2.0, -2.5, -3.0),
+            lateral: ("npc.beaver.male.foot_br"),
+        ),
+    ),
+    (Beaver, Female): (
+        left_front: (
+            offset: (-1.5, -2.0, -2.0),
+            lateral: ("npc.beaver.male.foot_fl"),
+        ),
+        right_front: (
+            offset: (-1.5, -2.5, -2.0),
+            lateral: ("npc.beaver.male.foot_fr"),
+        ),
+        left_back: (
+            offset: (-2.0, -2.5, -3.0),
+            lateral: ("npc.beaver.male.foot_bl"),
+        ),
+        right_back: (
+            offset: (-2.0, -2.5, -3.0),
+            lateral: ("npc.beaver.male.foot_br"),
+        ),
+    ),
 })

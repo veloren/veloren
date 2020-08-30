@@ -747,4 +747,140 @@
             lateral: ("npc.bonerattler.male.foot_br"),
         ),
     ),
+    (Deer, Male): (
+        leg_fl: (
+            offset: (-1.5, -2.5, -2.5),
+            lateral: ("npc.deer.male.leg_fl"),
+        ),
+        leg_fr: (
+            offset: (-1.5, -2.5, -2.5),
+            lateral: ("npc.deer.male.leg_fr"),
+        ),
+        leg_bl: (
+            offset: (-2.0, -1.0, -2.5),
+            lateral: ("npc.deer.male.leg_bl"),
+        ),
+        leg_br: (
+            offset: (-2.0, -1.0, -2.5),
+            lateral: ("npc.deer.male.leg_br"),
+        ),
+        foot_fl: (
+            offset: (-1.0, -1.0, -8.0),
+            lateral: ("npc.deer.male.foot_fl"),
+        ),
+        foot_fr: (
+            offset: (-1.0, -1.0, -8.0),
+            lateral: ("npc.deer.male.foot_fr"),
+        ),
+        foot_bl: (
+            offset: (-1.0, -2.0, -9.0),
+            lateral: ("npc.deer.male.foot_bl"),
+        ),
+        foot_br: (
+            offset: (-1.0, -2.0, -9.0),
+            lateral: ("npc.deer.male.foot_br"),
+        ),
+    ),
+    (Deer, Female): (
+        leg_fl: (
+            offset: (-1.5, -2.5, -2.5),
+            lateral: ("npc.deer.female.leg_fl"),
+        ),
+        leg_fr: (
+            offset: (-1.5, -2.5, -2.5),
+            lateral: ("npc.deer.female.leg_fr"),
+        ),
+        leg_bl: (
+            offset: (-2.0, -1.0, -2.5),
+            lateral: ("npc.deer.female.leg_bl"),
+        ),
+        leg_br: (
+            offset: (-2.0, -1.0, -2.5),
+            lateral: ("npc.deer.female.leg_br"),
+        ),
+        foot_fl: (
+            offset: (-1.0, -1.0, -8.0),
+            lateral: ("npc.deer.female.foot_fl"),
+        ),
+        foot_fr: (
+            offset: (-1.0, -1.0, -8.0),
+            lateral: ("npc.deer.female.foot_fr"),
+        ),
+        foot_bl: (
+            offset: (-1.0, -2.0, -9.0),
+            lateral: ("npc.deer.female.foot_bl"),
+        ),
+        foot_br: (
+            offset: (-1.0, -2.0, -9.0),
+            lateral: ("npc.deer.female.foot_br"),
+        ),
+    ),
+    (Hirdrassil, Male): (
+        leg_fl: (
+            offset: (-1.5, -3.0, -2.5),
+            lateral: ("npc.hirdrassil.male.leg_fl"),
+        ),
+        leg_fr: (
+            offset: (-1.5, -3.0, -2.5),
+            lateral: ("npc.hirdrassil.male.leg_fr"),
+        ),
+        leg_bl: (
+            offset: (-2.0, -1.0, -2.5),
+            lateral: ("npc.hirdrassil.male.leg_bl"),
+        ),
+        leg_br: (
+            offset: (-2.0, -1.0, -2.5),
+            lateral: ("npc.hirdrassil.male.leg_br"),
+        ),
+        foot_fl: (
+            offset: (-2.0, -1.0, -9.0),
+            lateral: ("npc.hirdrassil.male.foot_fl"),
+        ),
+        foot_fr: (
+            offset: (-2.0, -1.0, -9.0),
+            lateral: ("npc.hirdrassil.male.foot_fr"),
+        ),
+        foot_bl: (
+            offset: (-2.0, -2.5, -7.0),
+            lateral: ("npc.hirdrassil.male.foot_bl"),
+        ),
+        foot_br: (
+            offset: (-2.0, -2.5, -7.0),
+            lateral: ("npc.hirdrassil.male.foot_br"),
+        ),
+    ),
+    (Hirdrassil, Female): (
+        leg_fl: (
+            offset: (-1.5, -3.0, -2.5),
+            lateral: ("npc.hirdrassil.male.leg_fl"),
+        ),
+        leg_fr: (
+            offset: (-1.5, -3.0, -2.5),
+            lateral: ("npc.hirdrassil.male.leg_fr"),
+        ),
+        leg_bl: (
+            offset: (-2.0, -1.0, -2.5),
+            lateral: ("npc.hirdrassil.male.leg_bl"),
+        ),
+        leg_br: (
+            offset: (-2.0, -1.0, -2.5),
+            lateral: ("npc.hirdrassil.male.leg_br"),
+        ),
+        foot_fl: (
+            offset: (-2.0, -1.0, -9.0),
+            lateral: ("npc.hirdrassil.male.foot_fl"),
+        ),
+        foot_fr: (
+            offset: (-2.0, -1.0, -9.0),
+            lateral: ("npc.hirdrassil.male.foot_fr"),
+        ),
+        foot_bl: (
+            offset: (-2.0, -2.5, -7.0),
+            lateral: ("npc.hirdrassil.male.foot_bl"),
+        ),
+        foot_br: (
+            offset: (-2.0, -2.5, -7.0),
+            lateral: ("npc.hirdrassil.male.foot_br"),
+        ),
+    ),
 })
