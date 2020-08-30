@@ -28,7 +28,7 @@ pub struct Colors {
 }
 
 fn close(x: f32, tgt: f32, falloff: f32) -> f32 {
-    (1.0 - (x - tgt).abs() / falloff).max(0.0).powf(0.5)
+    (1.0 - (x - tgt).abs() / falloff).max(0.0).powf(0.125)
 }
 const MUSH_FACT: f32 = 1.0e-4; // To balance everything around the mushroom spawning rate
 pub fn apply_scatter_to<'a>(
@@ -50,75 +50,90 @@ pub fn apply_scatter_to<'a>(
         // Flowers
         (BlueFlower, false, |c, col| {
             (
-                close(c.temp, 0.1, 0.2).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                close(c.temp, CONFIG.temperate_temp, 0.7).min(close(
+                    c.humidity,
+                    CONFIG.jungle_hum,
+                    0.4,
+                )) * col.tree_density
                     * MUSH_FACT
-                    * 0.01,
-                Some((48.0, 0.2)),
+                    * 256.0,
+                Some((256.0, 0.25)),
             )
         }),
         (PinkFlower, false, |c, col| {
             (
-                close(c.temp, 0.2, 0.2).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                close(c.temp, 0.0, 0.7).min(close(c.humidity, CONFIG.jungle_hum, 0.4))
+                    * col.tree_density
                     * MUSH_FACT
-                    * 0.01,
-                Some((48.0, 0.2)),
+                    * 350.0,
+                Some((64.0, 0.2)),
             )
         }),
         (PurpleFlower, false, |c, col| {
             (
-                close(c.temp, 0.3, 0.2).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                close(c.temp, CONFIG.temperate_temp, 0.7).min(close(
+                    c.humidity,
+                    CONFIG.jungle_hum,
+                    0.4,
+                )) * col.tree_density
                     * MUSH_FACT
-                    * 0.01,
-                Some((48.0, 0.2)),
+                    * 350.0,
+                Some((64.0, 0.2)),
             )
         }),
         (RedFlower, false, |c, col| {
             (
-                close(c.temp, 0.5, 0.2).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                close(c.temp, CONFIG.tropical_temp, 0.6).min(close(
+                    c.humidity,
+                    CONFIG.jungle_hum,
+                    0.3,
+                )) * col.tree_density
                     * MUSH_FACT
-                    * 0.01,
-                Some((48.0, 0.2)),
+                    * 350.0,
+                Some((64.0, 0.1)),
             )
         }),
         (WhiteFlower, false, |c, col| {
             (
-                close(c.temp, 0.0, 0.3).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                close(c.temp, 0.0, 0.7).min(close(c.humidity, CONFIG.jungle_hum, 0.4))
+                    * col.tree_density
                     * MUSH_FACT
-                    * 0.01,
-                Some((48.0, 0.2)),
+                    * 350.0,
+                Some((64.0, 0.2)),
             )
         }),
         (YellowFlower, false, |c, col| {
             (
-                close(c.temp, 0.3, 0.2).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                close(c.temp, 0.0, 0.7).min(close(c.humidity, CONFIG.jungle_hum, 0.4))
+                    * col.tree_density
                     * MUSH_FACT
-                    * 0.01,
-                Some((48.0, 0.2)),
+                    * 350.0,
+                Some((64.0, 0.2)),
             )
         }),
         // Herbs and Spices
         (LingonBerry, false, |c, col| {
             (
-                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.jungle_hum, 0.5))
                     * MUSH_FACT
-                    * 0.5,
+                    * 2.5,
                 None,
             )
         }),
         (LeafyPlant, false, |c, col| {
             (
-                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.jungle_hum, 0.3))
                     * MUSH_FACT
-                    * 0.5,
+                    * 4.0,
                 None,
             )
         }),
         (Fern, false, |c, col| {
             (
-                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.35))
+                close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.5))
                     * MUSH_FACT
                     * 0.5,
-                Some((48.0, 0.4)),
+                Some((48.0, 0.3)),
             )
         }),
         (Blueberry, false, |c, col| {
@@ -126,7 +141,7 @@ pub fn apply_scatter_to<'a>(
                 close(c.temp, CONFIG.temperate_temp, 0.5).min(close(
                     c.humidity,
                     CONFIG.forest_hum,
-                    0.35,
+                    0.5,
                 )) * MUSH_FACT
                     * 0.3,
                 None,
@@ -150,33 +165,33 @@ pub fn apply_scatter_to<'a>(
         // Grass
         (ShortGrass, false, |c, col| {
             (
-                close(c.temp, 0.3, 0.4).min(close(c.humidity, 0.6, 0.35)) * 0.05,
-                Some((48.0, 0.4)),
+                close(c.temp, 0.2, 0.65).min(close(c.humidity, CONFIG.jungle_hum, 0.4)) * 0.03,
+                None,
             )
         }),
         (MediumGrass, false, |c, col| {
             (
-                close(c.temp, 0.0, 0.6).min(close(c.humidity, 0.6, 0.35)) * 0.05,
-                Some((48.0, 0.2)),
+                close(c.temp, 0.2, 0.6).min(close(c.humidity, CONFIG.jungle_hum, 0.4)) * 0.02,
+                None,
             )
         }),
         (LongGrass, false, |c, col| {
             (
-                close(c.temp, 0.4, 0.4).min(close(c.humidity, 0.8, 0.2)) * 0.08,
-                Some((48.0, 0.1)),
+                close(c.temp, 0.3, 0.35).min(close(c.humidity, CONFIG.jungle_hum, 0.3)) * 0.15,
+                Some((48.0, 0.3)),
             )
         }),
         // Jungle Sprites
-        (LongGrass, false, |c, col| {
-            (
-                close(c.temp, CONFIG.tropical_temp, 0.4).min(close(
-                    c.humidity,
-                    CONFIG.jungle_hum,
-                    0.6,
-                )) * 0.08,
-                Some((60.0, 5.0)),
-            )
-        }),
+        // (LongGrass, false, |c, col| {
+        //     (
+        //         close(c.temp, CONFIG.tropical_temp, 0.4).min(close(
+        //             c.humidity,
+        //             CONFIG.jungle_hum,
+        //             0.6,
+        //         )) * 0.08,
+        //         Some((60.0, 5.0)),
+        //     )
+        // }),
         /*(WheatGreen, false, |c, col| {
             (
                 close(c.temp, 0.4, 0.2).min(close(c.humidity, CONFIG.forest_hum, 0.1))
@@ -198,12 +213,7 @@ pub fn apply_scatter_to<'a>(
         // Desert Plants
         (DeadBush, false, |c, col| {
             (
-                close(c.temp, CONFIG.desert_temp + 0.2, 0.3).min(close(
-                    c.humidity,
-                    CONFIG.desert_hum,
-                    0.3,
-                )) * MUSH_FACT
-                    * 0.1,
+                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 15.0,
                 None,
             )
         }),
@@ -280,7 +290,7 @@ pub fn apply_scatter_to<'a>(
                         .water_dist
                         .map(|wd| Lerp::lerp(0.2, 0.0, (wd / 8.0).clamped(0.0, 1.0)))
                         .unwrap_or(0.0),
-                None,
+                Some((128.0, 0.5)),
             )
         }),
     ];
@@ -307,22 +317,27 @@ pub fn apply_scatter_to<'a>(
                     let (density, patch) = f(chunk, col_sample);
                     let is_patch = patch
                         .map(|(wavelen, threshold)| {
-                            index.noise.scatter_nz.get(
-                                wpos2d
-                                    .map(|e| e as f64 / wavelen as f64 + i as f64 * 43.0)
-                                    .into_array(),
-                            ) < threshold as f64
+                            index
+                                .noise
+                                .scatter_nz
+                                .get(
+                                    wpos2d
+                                        .map(|e| e as f64 / wavelen as f64 + i as f64 * 43.0)
+                                        .into_array(),
+                                )
+                                .abs()
+                                > 1.0 - threshold as f64
                         })
-                        .unwrap_or(false);
-                    if density <= 0.0
-                        || is_patch
-                        || !RandomField::new(i as u32)
+                        .unwrap_or(true);
+                    if density > 0.0
+                        && is_patch
+                        && RandomField::new(i as u32)
                             .chance(Vec3::new(wpos2d.x, wpos2d.y, 0), density)
-                        || underwater != *is_underwater
+                        && underwater == *is_underwater
                     {
-                        None
-                    } else {
                         Some(*bk)
+                    } else {
+                        None
                     }
                 });
 
