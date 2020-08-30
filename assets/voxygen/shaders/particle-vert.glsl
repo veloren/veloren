@@ -46,6 +46,7 @@ const int FIREWORK_RED = 7;
 const int FIREWORK_YELLOW = 8;
 const int LEAF = 9;
 const int FIREFLY = 10;
+const int BEE = 11;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -225,6 +226,18 @@ void main() {
 			),
 			raise,
 			vec4(vec3(5, 5, 1.1), 1),
+			spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
+		);
+	} else if (inst_mode == BEE) {
+		float lower = pow(sin(3.1416 * lifetime / inst_lifespan), 0.2);
+		attr = Attr(
+			vec3(0, 0, lower * -0.5) + vec3(
+				sin(lifetime * 2.0 + rand0) + sin(lifetime * 9.0 + rand3) * 0.3,
+				sin(lifetime * 3.0 + rand1) + sin(lifetime * 10.0 + rand4) * 0.3,
+				sin(lifetime * 4.0 + rand2) + sin(lifetime * 11.0 + rand5) * 0.3
+			) * 0.5,
+			lower,
+			vec4(vec3(1, 0.7, 0), 1),
 			spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
 		);
 	} else {
