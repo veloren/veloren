@@ -314,7 +314,7 @@ impl Tool {
                             energy_regen: 120,
                         },
                         BasicRanged {
-                            energy_cost: 0,
+                            energy_cost: 400,
                             holdable: true,
                             prepare_duration: Duration::from_millis(800),
                             recover_duration: Duration::from_millis(50),
