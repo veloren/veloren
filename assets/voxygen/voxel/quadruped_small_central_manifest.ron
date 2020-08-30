@@ -630,4 +630,60 @@
             central: ("armor.empty"),
         ),
     ),
+    (Porcupine, Male):(
+        head: (
+            offset: (-2.5, 0.0, -7.0),
+            central: ("npc.porcupine.male.head"),
+        ),
+        chest: (
+            offset: (-7.5, -10.0, -8.0),
+            central: ("npc.porcupine.male.chest"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+    ),
+    (Porcupine, Female):(
+        head: (
+            offset: (-2.5, 0.0, -7.0),
+            central: ("npc.porcupine.male.head"),
+        ),
+        chest: (
+            offset: (-7.5, -10.0, -8.0),
+            central: ("npc.porcupine.male.chest"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+    ),
+    (Beaver, Male):(
+        head: (
+            offset: (-4.0, 0.0, -3.0),
+            central: ("npc.beaver.male.head"),
+        ),
+        chest: (
+            offset: (-4.0, -6.0, -4.0),
+            central: ("npc.beaver.male.chest"),
+        ),
+        tail: (
+            offset: (-3.0, -9.0, -2.0),
+            central: ("npc.beaver.male.tail"),
+        ),
+    ),
+    (Beaver, Female):(
+        head: (
+            offset: (-4.0, 0.0, -3.0),
+            central: ("npc.beaver.male.head"),
+        ),
+        chest: (
+            offset: (-4.0, -6.0, -4.0),
+            central: ("npc.beaver.male.chest"),
+        ),
+        tail: (
+            offset: (-3.0, -9.0, -2.0),
+            central: ("npc.beaver.male.tail"),
+        ),
+    ),
 })

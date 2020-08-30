@@ -286,6 +286,14 @@
             "bonerattler": {
                 "keyword": "bonerattler",
                 "generic": "Bonerattler"
+            },
+            "deer": {
+                "keyword": "deer",
+                "generic": "Deer"
+            },
+            "hirdrassil": {
+                "keyword": "hirdrassil",
+                "generic": "Hirdrassil"
             }
         }
     },
@@ -485,6 +493,14 @@
             "fungome": {
                 "keyword": "fungome",
                 "generic": "Fungome"
+            },
+            "porcupine": {
+                "keyword": "porcupine",
+                "generic": "Porcupine"
+            },
+            "beaver": {
+                "keyword": "beaver",
+                "generic": "Beaver"
             }
         }
     },

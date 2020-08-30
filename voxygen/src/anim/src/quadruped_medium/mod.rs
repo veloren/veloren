@@ -129,7 +129,7 @@ impl Default for SkeletonAttr {
 
 impl<'a> From<&'a Body> for SkeletonAttr {
     fn from(body: &'a Body) -> Self {
-        use comp::quadruped_medium::Species::*;
+        use comp::quadruped_medium::{BodyType::*, Species::*};
         Self {
             head_upper: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.0, -1.0),
@@ -143,6 +143,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mouflon, _) => (-2.5, 6.0),
                 (Catoblepas, _) => (-1.0, -6.5),
                 (Bonerattler, _) => (-1.0, 2.5),
+                (Deer, Male) => (-4.5, 11.0),
+                (Deer, Female) => (-2.5, 8.0),
+                (Hirdrassil, _) => (-12.0, 16.0),
             },
             head_lower: match (body.species, body.body_type) {
                 (Grolgar, _) => (1.0, -1.0),
@@ -156,6 +159,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mouflon, _) => (-1.0, 0.5),
                 (Catoblepas, _) => (19.5, -2.0),
                 (Bonerattler, _) => (7.0, -1.5),
+                (Deer, _) => (-0.5, 1.0),
+                (Hirdrassil, _) => (-1.0, 0.5),
             },
             jaw: match (body.species, body.body_type) {
                 (Grolgar, _) => (7.0, 1.5),
@@ -169,6 +174,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mouflon, _) => (10.5, -4.0),
                 (Catoblepas, _) => (1.0, -4.0),
                 (Bonerattler, _) => (3.0, -3.0),
+                (Deer, Male) => (9.0, -5.5),
+                (Deer, Female) => (7.0, -2.0),
+                (Hirdrassil, _) => (14.5, -15.0),
             },
             tail: match (body.species, body.body_type) {
                 (Grolgar, _) => (-11.5, -0.5),
@@ -182,6 +190,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mouflon, _) => (-10.5, 3.0),
                 (Catoblepas, _) => (-8.5, -2.0),
                 (Bonerattler, _) => (-10.0, 1.5),
+                (Deer, _) => (-8.5, 6.5),
+                (Hirdrassil, _) => (-9.0, 5.0),
             },
             torso_front: match (body.species, body.body_type) {
                 (Grolgar, _) => (10.0, 13.0),
@@ -195,6 +205,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mouflon, _) => (11.0, 13.5),
                 (Catoblepas, _) => (7.5, 19.5),
                 (Bonerattler, _) => (6.0, 12.5),
+                (Deer, _) => (11.0, 13.5),
+                (Hirdrassil, _) => (11.0, 14.5),
             },
             torso_back: match (body.species, body.body_type) {
                 (Grolgar, _) => (-10.0, 1.5),
@@ -208,6 +220,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mouflon, _) => (-8.5, -0.5),
                 (Catoblepas, _) => (-8.5, -4.5),
                 (Bonerattler, _) => (-5.0, 0.0),
+                (Deer, _) => (-9.0, 0.5),
+                (Hirdrassil, _) => (-9.0, -0.5),
             },
             ears: match (body.species, body.body_type) {
                 (Grolgar, _) => (5.0, 8.0),
@@ -221,6 +235,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mouflon, _) => (2.5, 5.0),
                 (Catoblepas, _) => (11.0, -3.0),
                 (Bonerattler, _) => (2.0, 3.5),
+                (Deer, _) => (2.5, 5.0),
+                (Hirdrassil, _) => (2.5, 5.0),
             },
             leg_f: match (body.species, body.body_type) {
                 (Grolgar, _) => (-7.0, 4.0, 0.0),
@@ -234,6 +250,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mouflon, _) => (4.0, -5.0, -5.0),
                 (Catoblepas, _) => (7.0, 2.0, -6.0),
                 (Bonerattler, _) => (5.5, 5.0, -4.0),
+                (Deer, _) => (3.5, -4.5, -3.5),
+                (Hirdrassil, _) => (4.5, -6.0, -3.5),
             },
             leg_b: match (body.species, body.body_type) {
                 (Grolgar, _) => (6.0, -6.5, -5.5),
@@ -247,6 +265,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mouflon, _) => (3.5, -8.0, -4.5),
                 (Catoblepas, _) => (6.0, -2.5, -2.5),
                 (Bonerattler, _) => (6.0, -8.0, -4.0),
+                (Deer, _) => (3.0, -8.0, -5.0),
+                (Hirdrassil, _) => (4.0, -8.0, -6.0),
             },
             feet_f: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.0, -9.0, -7.0),
@@ -260,6 +280,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mouflon, _) => (-0.5, -0.5, -1.5),
                 (Catoblepas, _) => (1.0, 4.0, -3.0),
                 (Bonerattler, _) => (-0.5, -3.0, -2.5),
+                (Deer, _) => (-0.5, -0.5, -2.5),
+                (Hirdrassil, _) => (-0.5, -3.0, -2.5),
             },
             feet_b: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.0, 0.0, -5.0),
@@ -273,6 +295,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mouflon, _) => (-1.0, 0.0, -2.5),
                 (Catoblepas, _) => (0.5, 0.5, -3.0),
                 (Bonerattler, _) => (0.0, 3.0, -2.5),
+                (Deer, _) => (-1.0, 0.0, -0.5),
+                (Hirdrassil, _) => (-1.0, 0.0, -1.5),
             },
             scaler: match (body.species, body.body_type) {
                 (Grolgar, _) => (1.3),
@@ -286,6 +310,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mouflon, _) => (1.0),
                 (Catoblepas, _) => (1.3),
                 (Bonerattler, _) => (1.0),
+                (Deer, _) => (1.0),
+                (Hirdrassil, _) => (1.0),
             },
             dampen: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.5),
@@ -299,6 +325,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mouflon, _) => (1.0),
                 (Catoblepas, _) => (0.6),
                 (Bonerattler, _) => (0.6),
+                (Deer, _) => (1.0),
+                (Hirdrassil, _) => (1.0),
             },
             maximize: match (body.species, body.body_type) {
                 (Grolgar, _) => (2.0),
@@ -312,6 +340,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mouflon, _) => (1.1),
                 (Catoblepas, _) => (0.0),
                 (Bonerattler, _) => (0.8),
+                (Deer, _) => (1.1),
+                (Hirdrassil, _) => (1.1),
             },
             tempo: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.95),
@@ -325,6 +355,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mouflon, _) => (0.85),
                 (Catoblepas, _) => (0.8),
                 (Bonerattler, _) => (1.0),
+                (Deer, _) => (0.85),
+                (Hirdrassil, _) => (0.85),
             },
         }
     }

@@ -120,6 +120,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Turtle, _) => (4.0, 3.0),
                 (Squirrel, _) => (7.5, -9.0),
                 (Fungome, _) => (4.0, 2.0),
+                (Porcupine, _) => (6.0, 1.0),
+                (Beaver, _) => (5.5, 0.0),
             },
             chest: match (body.species, body.body_type) {
                 (Pig, _) => (0.0, 6.0),
@@ -144,6 +146,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Turtle, _) => (4.0, 3.0),
                 (Squirrel, _) => (7.5, -9.0),
                 (Fungome, _) => (4.0, 2.0),
+                (Porcupine, _) => (2.0, 11.0),
+                (Beaver, _) => (2.0, 6.0),
             },
             feet_f: match (body.species, body.body_type) {
                 (Pig, _) => (4.5, 3.5, -1.0),
@@ -168,6 +172,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Turtle, _) => (4.0, 3.0, 0.0),
                 (Squirrel, _) => (7.5, -9.0, 0.0),
                 (Fungome, _) => (4.0, 2.0, 0.0),
+                (Porcupine, _) => (4.0, 6.5, -9.0),
+                (Beaver, _) => (4.5, 4.5, -4.0),
             },
             feet_b: match (body.species, body.body_type) {
                 (Pig, _) => (3.5, -2.0, 0.0),
@@ -192,6 +198,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Turtle, _) => (4.0, 3.0, 0.0),
                 (Squirrel, _) => (7.5, -9.0, 0.0),
                 (Fungome, _) => (4.0, 2.0, 0.0),
+                (Porcupine, _) => (4.5, -1.0, -8.0),
+                (Beaver, _) => (4.0, -2.5, -3.0),
             },
             tail: match (body.species, body.body_type) {
                 (Pig, _) => (-4.5, 2.5),
@@ -216,6 +224,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Turtle, _) => (4.0, 3.0),
                 (Squirrel, _) => (7.5, -9.0),
                 (Fungome, _) => (4.0, 2.0),
+                (Porcupine, _) => (-6.0, 1.0),
+                (Beaver, _) => (-6.5, -1.0),
             },
             scaler: match (body.species, body.body_type) {
                 (Pig, _) => (0.9),
@@ -240,6 +250,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Turtle, _) => (4.0),
                 (Squirrel, _) => (7.5),
                 (Fungome, _) => (4.0),
+                (Porcupine, _) => (1.0),
+                (Beaver, _) => (1.0),
             },
             tempo: match (body.species, body.body_type) {
                 (Pig, _) => (1.0),
@@ -264,6 +276,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Turtle, _) => (4.0),
                 (Squirrel, _) => (7.5),
                 (Fungome, _) => (4.0),
+                (Porcupine, _) => (1.2),
+                (Beaver, _) => (1.2),
             },
             maximize: match (body.species, body.body_type) {
                 (Pig, _) => (1.0),
@@ -288,6 +302,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Turtle, _) => (0.1),
                 (Squirrel, _) => (0.1),
                 (Fungome, _) => (0.1),
+                (Porcupine, _) => (1.0),
+                (Beaver, _) => (1.0),
             },
             minimize: match (body.species, body.body_type) {
                 (Pig, _) => (0.6),
@@ -312,6 +328,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Turtle, _) => (0.1),
                 (Squirrel, _) => (0.1),
                 (Fungome, _) => (0.1),
+                (Porcupine, _) => (0.9),
+                (Beaver, _) => (0.9),
             },
             spring: match (body.species, body.body_type) {
                 (Pig, _) => (1.0),
@@ -336,6 +354,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Turtle, _) => (0.1),
                 (Squirrel, _) => (0.1),
                 (Fungome, _) => (0.1),
+                (Porcupine, _) => (1.3),
+                (Beaver, _) => (1.3),
             },
             feed: match (body.species, body.body_type) {
                 (Pig, _) => (1.0),
@@ -360,6 +380,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Turtle, _) => (0.1),
                 (Squirrel, _) => (0.1),
                 (Fungome, _) => (0.1),
+                (Porcupine, _) => (1.0),
+                (Beaver, _) => (1.0),
             },
         }
     }
