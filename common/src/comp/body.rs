@@ -21,6 +21,7 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{fs::File, io::BufReader};
+use vek::*;
 
 make_case_elim!(
     body,
@@ -503,6 +504,14 @@ impl Body {
             Body::Golem(_) => 7.5,
             Body::Critter(_) => 3.0,
             Body::QuadrupedLow(_) => 4.5,
+        }
+    }
+
+    pub fn default_light_offset(&self) -> Vec3<f32> {
+        // TODO: Make this a manifest
+        match self {
+            Body::Object(_) => Vec3::unit_z() * 0.5,
+            _ => Vec3::unit_z(),
         }
     }
 }
