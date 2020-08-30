@@ -7,12 +7,14 @@ use vek::*;
 
 pub struct BlocksOfInterest {
     pub leaves: Vec<Vec3<i32>>,
+    pub grass: Vec<Vec3<i32>>,
     pub embers: Vec<Vec3<i32>>,
 }
 
 impl BlocksOfInterest {
     pub fn from_chunk(chunk: &TerrainChunk) -> Self {
         let mut leaves = Vec::new();
+        let mut grass = Vec::new();
         let mut embers = Vec::new();
 
         chunk
@@ -27,11 +29,17 @@ impl BlocksOfInterest {
             .for_each(|(pos, block)| {
                 if block.kind() == BlockKind::Leaves && thread_rng().gen_range(0, 16) == 0 {
                     leaves.push(pos);
+                } else if block.kind() == BlockKind::Grass && thread_rng().gen_range(0, 16) == 0 {
+                    grass.push(pos);
                 } else if block.kind() == BlockKind::Ember {
                     embers.push(pos);
                 }
             });
 
-        Self { leaves, embers }
+        Self {
+            leaves,
+            grass,
+            embers,
+        }
     }
 }

@@ -774,6 +774,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .div(100.0)
                 .into_array(),
         ) as f32)
+            //.mul(water_dist.map(|wd| (wd / 2.0).clamped(0.0, 1.0).powf(0.5)).unwrap_or(1.0))
             .mul(rockiness)
             .sub(0.4)
             .max(0.0)
@@ -995,6 +996,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         } else {
             (alt, ground, sub_surface_color)
         };
+
+        // Make river banks not have grass
+        let ground = water_dist
+            .map(|wd| Lerp::lerp(sub_surface_color, ground, (wd / 3.0).clamped(0.0, 1.0)))
+            .unwrap_or(ground);
 
         let near_ocean = max_river.and_then(|(_, _, river_data, _)| {
             if (river_data.is_lake() || river_data.river_kind == Some(RiverKind::Ocean))

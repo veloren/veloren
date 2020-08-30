@@ -71,6 +71,9 @@ void main() {
 
     max_light += lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
 
+	// TODO: Not this
+	emitted_light += max(f_col.rgb - 1.0, vec3(0));
+
 	surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
 
 #if (CLOUD_MODE == CLOUD_MODE_REGULAR)

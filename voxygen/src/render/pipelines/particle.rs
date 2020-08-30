@@ -103,6 +103,7 @@ pub enum ParticleMode {
     FireworkRed = 7,
     FireworkYellow = 8,
     Leaf = 9,
+    Firefly = 10,
 }
 
 impl ParticleMode {

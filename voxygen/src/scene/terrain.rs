@@ -91,6 +91,7 @@ struct SpriteModelConfig<Model> {
     lod_axes: (f32, f32, f32),
 }
 
+<<<<<<< HEAD
 #[derive(Deserialize)]
 /// Configuration data for a group of sprites (currently associated with a
 /// particular BlockKind).
