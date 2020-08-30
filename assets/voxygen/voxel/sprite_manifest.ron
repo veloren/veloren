@@ -1959,4 +1959,16 @@ Reed: Some((
     ],
     wind_sway: 0.65,
 )),
+
+// Beehive
+Beehive: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.beehive.beehive",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.1,
+)),
 )

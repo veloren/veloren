@@ -328,6 +328,14 @@ impl ParticleMgr {
                 ParticleMode::Firefly,
                 |sd| sd.state.get_day_period().is_dark(),
             ),
+            (
+                |boi| &boi.beehives,
+                3,
+                0.5,
+                30.0,
+                ParticleMode::Bee,
+                |sd| sd.state.get_day_period().is_light(),
+            ),
         ];
 
         let mut rng = thread_rng();

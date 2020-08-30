@@ -9,6 +9,7 @@ pub struct BlocksOfInterest {
     pub leaves: Vec<Vec3<i32>>,
     pub grass: Vec<Vec3<i32>>,
     pub embers: Vec<Vec3<i32>>,
+    pub beehives: Vec<Vec3<i32>>,
 }
 
 impl BlocksOfInterest {
@@ -16,6 +17,7 @@ impl BlocksOfInterest {
         let mut leaves = Vec::new();
         let mut grass = Vec::new();
         let mut embers = Vec::new();
+        let mut beehives = Vec::new();
 
         chunk
             .vol_iter(
@@ -33,6 +35,8 @@ impl BlocksOfInterest {
                     grass.push(pos);
                 } else if block.kind() == BlockKind::Ember {
                     embers.push(pos);
+                } else if block.kind() == BlockKind::Beehive {
+                    beehives.push(pos);
                 }
             });
 
@@ -40,6 +44,7 @@ impl BlocksOfInterest {
             leaves,
             grass,
             embers,
+            beehives,
         }
     }
 }
