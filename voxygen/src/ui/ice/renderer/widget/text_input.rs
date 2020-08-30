@@ -60,7 +60,7 @@ impl text_input::Renderer for IcedRenderer {
                     font_id: font.0,
                     extra: (),
                 }],
-            };
+            i;
             let font = glyph_calculator.fonts()[font.0].as_scaled(size as f32);
             let space_id = font.glyph_id(' ');
             let x_id = font.glyph_id('x');
@@ -215,9 +215,22 @@ impl text_input::Renderer for IcedRenderer {
         };
 
         let display_text = text.unwrap_or(if state.is_focused() { "" } else { placeholder });
-        let section = glyph_brush::Section {
-            // Note: clip offset is an integer so we don't have to worry about not accounting for
-            // that here where the alignment of the glyphs with pixels affects rasterization
+        // Note: clip offset is an integer so we don't have to worry about not
+        // accounting for that here where the alignment of the glyphs with
+        // pixels affects rasterization
+        let glyphs = self.position_glyphs(
+            Rectangle {
+                width: 1000.0, // hacky
+                ..bounds
+            },
+            iced::HorizontalAlignment::Left,
+            iced::VerticalAlignment::Center,
+            display_text,
+            size,
+            font,
+        );
+        // TODO: delete if new arrangment behaves nicely
+        /*let section = glyph_brush::Section {
             screen_position: (text_bounds.x * p_scale, text_bounds.center_y() * p_scale),
             bounds: (
                 10000.0, /* text_bounds.width * p_scale */
@@ -234,26 +247,7 @@ impl text_input::Renderer for IcedRenderer {
                 font_id: font.0,
                 extra: (),
             }],
-        };
-
-        let glyphs = self
-            .cache
-            .glyph_cache_mut()
-            .glyphs(section)
-            // We would still have to generate vertices for these even if they have no pixels
-            // Note: this is somewhat hacky and could fail if there is a non-whitespace character
-            // that is not visible (to solve this we could use the extra values in
-            // queue_pre_positioned to keep track of which glyphs are actually returned by
-            // proccess_queued)
-            .filter(|g| {
-                !display_text[g.byte_index..]
-                    .chars()
-                    .next()
-                    .unwrap()
-                    .is_whitespace()
-            })
-            .cloned()
-            .collect::<Vec<_>>();
+        };*/
 
         let text_primitive = Primitive::Text {
             glyphs,

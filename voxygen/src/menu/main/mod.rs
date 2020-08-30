@@ -10,7 +10,7 @@ use crate::{
 };
 use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
 use common::{assets::Asset, comp, span};
-use tracing::{error, warn};
+use tracing::error;
 use ui::{Event as MainMenuEvent, MainMenuUi};
 
 pub struct MainMenuState {
@@ -221,12 +221,11 @@ impl PlayState for MainMenuState {
                 } => {
                     let mut net_settings = &mut global_state.settings.networking;
                     net_settings.username = username.clone();
+                    net_settings.default_server = server_address.clone();
                     if !net_settings.servers.contains(&server_address) {
                         net_settings.servers.push(server_address.clone());
                     }
-                    if let Err(err) = global_state.settings.save_to_file() {
-                        warn!("Failed to save settings: {:?}", err);
-                    }
+                    global_state.settings.save_to_file_warn();
 
                     attempt_login(
                         &mut global_state.settings,

@@ -266,7 +266,8 @@ impl IcedRenderer {
                         let mesh_index = *mesh_index;
                         let linear_color = *linear_color;
                         // Could potentially pass this in as part of the extras
-                        let offset = offset.map(|e| e as f32 * p_scale) / half_res;
+                        let offset =
+                            offset.map(|e| e as f32 * p_scale) / half_res * Vec2::new(-1.0, 1.0);
                         (0..*glyph_count).map(move |i| (mesh_index + i * 6, linear_color, offset))
                     })
                     .zip(self.last_glyph_verts.iter())
@@ -371,6 +372,68 @@ impl IcedRenderer {
         Aabr { min, max }
     }
 
+    fn position_glyphs(
+        &mut self,
+        bounds: iced::Rectangle,
+        horizontal_alignment: iced::HorizontalAlignment,
+        vertical_alignment: iced::VerticalAlignment,
+        text: &str,
+        size: u16,
+        font: FontId,
+    ) -> Vec<glyph_brush::SectionGlyph> {
+        use glyph_brush::{GlyphCruncher, HorizontalAlign, VerticalAlign};
+        // TODO: add option to align based on the geometry of the rendered glyphs
+        // instead of all possible glyphs
+        let (x, h_align) = match horizontal_alignment {
+            iced::HorizontalAlignment::Left => (bounds.x, HorizontalAlign::Left),
+            iced::HorizontalAlignment::Center => (bounds.center_x(), HorizontalAlign::Center),
+            iced::HorizontalAlignment::Right => (bounds.x + bounds.width, HorizontalAlign::Right),
+        };
+
+        let (y, v_align) = match vertical_alignment {
+            iced::VerticalAlignment::Top => (bounds.y, VerticalAlign::Top),
+            iced::VerticalAlignment::Center => (bounds.center_y(), VerticalAlign::Center),
+            iced::VerticalAlignment::Bottom => (bounds.y + bounds.height, VerticalAlign::Bottom),
+        };
+
+        let p_scale = self.p_scale;
+
+        let section = glyph_brush::Section {
+            screen_position: (x * p_scale, y * p_scale),
+            bounds: (bounds.width * p_scale, bounds.height * p_scale),
+            layout: glyph_brush::Layout::Wrap {
+                line_breaker: Default::default(),
+                h_align,
+                v_align,
+            },
+            text: vec![glyph_brush::Text {
+                text,
+                scale: (size as f32 * p_scale).into(),
+                font_id: font.0,
+                extra: (),
+            }],
+        };
+
+        self
+            .cache
+            .glyph_cache_mut()
+            .glyphs(section)
+            // We would still have to generate vertices for these even if they have no pixels
+            // Note: this is somewhat hacky and could fail if there is a non-whitespace character
+            // that is not visible (to solve this we could use the extra values in
+            // queue_pre_positioned to keep track of which glyphs are actually returned by
+            // proccess_queued)
+            .filter(|g| {
+                !text[g.byte_index..]
+                    .chars()
+                    .next()
+                    .unwrap()
+                    .is_whitespace()
+            })
+            .cloned()
+            .collect()
+    }
+
     fn draw_primitive(&mut self, primitive: Primitive, offset: Vec2<u32>, renderer: &mut Renderer) {
         match primitive {
             Primitive::Group { primitives } => {
@@ -391,8 +454,8 @@ impl IcedRenderer {
 
                 let (graphic_id, rotation) = handle;
                 let gl_aabr = self.gl_aabr(iced::Rectangle {
-                    x: bounds.x + offset.x as f32,
-                    y: bounds.y + offset.y as f32,
+                    x: bounds.x - offset.x as f32,
+                    y: bounds.y - offset.y as f32,
                     ..bounds
                 });
 
@@ -468,8 +531,8 @@ impl IcedRenderer {
                 self.switch_state(State::Plain);
 
                 let gl_aabr = self.gl_aabr(iced::Rectangle {
-                    x: bounds.x + offset.x as f32,
-                    y: bounds.y + offset.y as f32,
+                    x: bounds.x - offset.x as f32,
+                    y: bounds.y - offset.y as f32,
                     ..bounds
                 });
 
@@ -497,8 +560,8 @@ impl IcedRenderer {
                 self.switch_state(State::Plain);
 
                 let gl_aabr = self.gl_aabr(iced::Rectangle {
-                    x: bounds.x + offset.x as f32,
-                    y: bounds.y + offset.y as f32,
+                    x: bounds.x - offset.x as f32,
+                    y: bounds.y - offset.y as f32,
                     ..bounds
                 });
 

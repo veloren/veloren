@@ -116,14 +116,14 @@ where
         let over_size = over.size();
 
         let size = limits.resolve(Size {
-            width: under_size.width.max(over_size.width),
-            height: under_size.height.max(over_size.height),
+            width: under_size.width.max(over_size.width + padding * 2.0),
+            height: under_size.height.max(over_size.height + padding * 2.0),
         });
 
         over.move_to(Point::new(padding, padding));
         over.align(self.horizontal_alignment, self.vertical_alignment, size);
 
-        layout::Node::with_children(size.pad(padding), vec![over, under])
+        layout::Node::with_children(size, vec![over, under])
     }
 
     fn on_event(
@@ -135,9 +135,12 @@ where
         renderer: &R,
         clipboard: Option<&dyn Clipboard>,
     ) {
+        let mut children = layout.children();
+        let over_layout = children.next().unwrap();
+
         self.over.on_event(
             event.clone(),
-            layout,
+            over_layout,
             cursor_position,
             messages,
             renderer,
@@ -147,16 +150,11 @@ where
         // If mouse press check if over the overlay widget before sending to under
         // widget
         if !matches!(&event, Event::Mouse(mouse::Event::ButtonPressed(_)))
-            || !layout
-                .children()
-                .next()
-                .unwrap()
-                .bounds()
-                .contains(cursor_position)
+            || !over_layout.bounds().contains(cursor_position)
         {
             self.under.on_event(
                 event,
-                layout,
+                children.next().unwrap(),
                 cursor_position,
                 messages,
                 renderer,

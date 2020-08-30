@@ -1,4 +1,6 @@
-use iced::{layout, Clipboard, Element, Event, Hasher, Layout, Length, Point, Rectangle, Widget};
+use iced::{
+    layout, Clipboard, Element, Event, Hasher, Layout, Length, Point, Rectangle, Size, Widget,
+};
 use std::{hash::Hash, u32};
 
 // Note: it might be more efficient to make this generic over the content type?
@@ -70,17 +72,15 @@ impl<'a, M, R> Widget<M, R> for AspectRatioContainer<'a, M, R>
 where
     R: self::Renderer,
 {
-    fn width(&self) -> Length { Length::Fill }
+    fn width(&self) -> Length { Length::Shrink }
 
-    fn height(&self) -> Length { Length::Fill }
+    fn height(&self) -> Length { Length::Shrink }
 
     fn layout(&self, renderer: &R, limits: &layout::Limits) -> layout::Node {
         let limits = limits
             .loose()
             .max_width(self.max_width)
-            .max_height(self.max_height)
-            .width(self.width())
-            .height(self.height());
+            .max_height(self.max_height);
 
         let aspect_ratio = match &self.aspect_ratio {
             AspectRatio::Image(handle) => {
@@ -107,7 +107,9 @@ where
             limits.max_height((max_width / aspect_ratio) as u32)
         };
 
-        let content = self.content.layout(renderer, &limits.loose());
+        // Remove fill limits in case one of the parents was Shrink
+        let limits = layout::Limits::new(Size::ZERO, limits.max());
+        let content = self.content.layout(renderer, &limits);
 
         layout::Node::with_children(limits.max(), vec![content])
     }

@@ -108,6 +108,9 @@ Is the client up to date?"#,
 
 
         /// Start Main screen section
+        "main.username": "Username",
+        "main.server": "Server",
+        "main.password": "Password",
         "main.connecting": "Connecting",
         "main.creating_world": "Creating world",
         "main.tip": "Tip:",
@@ -494,7 +497,7 @@ magically infused items?"#,
         "char_selection.accessories": "Accessories",
         "char_selection.create_info_name": "Your Character needs a name!",
 
-        /// End chracter selection section
+        /// End character selection section
 
 
         /// Start character window section

@@ -7,8 +7,11 @@ use crate::{
         ice::{
             component::neat_button,
             style,
-            widget::{AspectRatioContainer, Overlay},
-            Element, IcedUi as Ui,
+            widget::{
+                mouse_detector, AspectRatioContainer, BackgroundContainer, Image, MouseDetector,
+                Overlay, Padding,
+            },
+            Element, IcedRenderer, IcedUi as Ui,
         },
         img_ids::{ImageGraphic, VoxelGraphic},
     },
@@ -19,6 +22,7 @@ use common::{
     assets::Asset,
     character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
     comp::{self, humanoid},
+    LoadoutBuilder,
 };
 //ImageFrame, Tooltip,
 use crate::settings::Settings;
@@ -26,7 +30,7 @@ use crate::settings::Settings;
 //use ui::ice::widget;
 use iced::{
     button, scrollable, text_input, Align, Button, Column, Container, HorizontalAlignment, Length,
-    Row, Scrollable, Space, Text,
+    Row, Scrollable, Space, Text, TextInput,
 };
 use vek::Rgba;
 
@@ -40,17 +44,17 @@ const STARTER_BOW: &str = "common.items.weapons.bow.starter_bow";
 const STARTER_AXE: &str = "common.items.weapons.axe.starter_axe";
 const STARTER_STAFF: &str = "common.items.weapons.staff.starter_staff";
 const STARTER_SWORD: &str = "common.items.weapons.sword.starter_sword";
+const STARTER_DAGGER: &str = "common.items.weapons.dagger.starter_dagger";
 
 // TODO: look into what was using this in old ui
 const UI_MAIN: iced::Color = iced::Color::from_rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue
 
 image_ids_ice! {
     struct Imgs {
-        <VoxelGraphic>
+        <ImageGraphic>
         slider_range: "voxygen.element.slider.track",
         slider_indicator: "voxygen.element.slider.indicator",
 
-        <ImageGraphic>
         gray_corner: "voxygen.element.frames.gray.corner",
         gray_edge: "voxygen.element.frames.gray.edge",
 
@@ -73,8 +77,6 @@ image_ids_ice! {
         staff: "voxygen.element.icons.staff",
 
         // Species Icons
-        male: "voxygen.element.icons.male",
-        female: "voxygen.element.icons.female",
         human_m: "voxygen.element.icons.human_m",
         human_f: "voxygen.element.icons.human_f",
         orc_m: "voxygen.element.icons.orc_m",
@@ -115,7 +117,7 @@ pub enum Event {
     Play(CharacterId),
     AddCharacter {
         alias: String,
-        tool: Option<String>,
+        tool: String,
         body: comp::Body,
     },
     DeleteCharacter(CharacterId),
@@ -123,6 +125,7 @@ pub enum Event {
 
 enum Mode {
     Select {
+        info_content: Option<InfoContent>,
         // Index of selected character
         selected: Option<usize>,
 
@@ -132,13 +135,20 @@ enum Mode {
         logout_button: button::State,
         enter_world_button: button::State,
         change_server_button: button::State,
+        yes_button: button::State,
+        no_button: button::State,
     },
     Create {
         name: String, // TODO: default to username
         body: humanoid::Body,
         loadout: comp::Loadout,
-        tool: Option<&'static str>,
+        // TODO: does this need to be an option, never seems to be none
+        tool: &'static str,
 
+        body_type_buttons: [button::State; 2],
+        species_buttons: [button::State; 6],
+        tool_buttons: [button::State; 6],
+        scroll: scrollable::State,
         name_input: text_input::State,
         back_button: button::State,
         create_button: button::State,
@@ -148,6 +158,7 @@ enum Mode {
 impl Mode {
     pub fn select() -> Self {
         Self::Select {
+            info_content: None,
             selected: None,
             characters_scroll: Default::default(),
             character_buttons: Vec::new(),
@@ -155,16 +166,29 @@ impl Mode {
             logout_button: Default::default(),
             enter_world_button: Default::default(),
             change_server_button: Default::default(),
+            yes_button: Default::default(),
+            no_button: Default::default(),
         }
     }
 
     pub fn create(name: String) -> Self {
+        let tool = STARTER_SWORD;
+
+        let loadout = LoadoutBuilder::new()
+            .defaults()
+            .active_item(Some(LoadoutBuilder::default_item_config_from_str(tool)))
+            .build();
+
         Self::Create {
             name,
             body: humanoid::Body::random(),
-            loadout: comp::Loadout::default(),
-            tool: Some(STARTER_SWORD),
+            loadout,
+            tool,
 
+            body_type_buttons: Default::default(),
+            species_buttons: Default::default(),
+            tool_buttons: Default::default(),
+            scroll: Default::default(),
             name_input: Default::default(),
             back_button: Default::default(),
             create_button: Default::default(),
@@ -204,7 +228,8 @@ struct Controls {
     // Alpha disclaimer
     alpha: String,
 
-    info_content: Option<InfoContent>,
+    // Zone for rotating the character with the mouse
+    mouse_detector: mouse_detector::State,
     // enter: bool,
     mode: Mode,
 }
@@ -214,11 +239,17 @@ enum Message {
     Back,
     Logout,
     EnterWorld,
+    Select(usize),
     Delete(usize),
     ChangeServer,
     NewCharacter,
     CreateCharacter,
     Name(String),
+    BodyType(humanoid::BodyType),
+    Species(humanoid::Species),
+    Tool(&'static str),
+    CancelDeletion,
+    ConfirmDeletion,
 }
 
 impl Controls {
@@ -237,14 +268,15 @@ impl Controls {
             version,
             alpha,
 
-            info_content: None,
+            mouse_detector: Default::default(),
             mode: Mode::select(),
         }
     }
 
     fn view(&mut self, settings: &Settings, client: &Client) -> Element<Message> {
-        // TODO: if enter key pressed and character is selected then enter the world
-        // TODO: tooltip widget
+        // TODO: use font scale thing for text size (use on button size for buttons with
+        // text) TODO: if enter key pressed and character is selected then enter
+        // the world TODO: tooltip widget
 
         let imgs = &self.imgs;
         let fonts = &self.fonts;
@@ -275,6 +307,7 @@ impl Controls {
 
         let content = match &mut self.mode {
             Mode::Select {
+                info_content,
                 selected,
                 ref mut characters_scroll,
                 ref mut character_buttons,
@@ -282,14 +315,14 @@ impl Controls {
                 ref mut logout_button,
                 ref mut enter_world_button,
                 ref mut change_server_button,
+                ref mut yes_button,
+                ref mut no_button,
             } => {
-                // TODO: impl delete prompt as overlay
                 let server = Container::new(
                     Column::with_children(vec![
                         Text::new(&client.server_info.name)
-                        .size(fonts.cyri.scale(25))
-                        //.horizontal_alignment(HorizontalAlignment::Center)
-                        .into(),
+                            .size(fonts.cyri.scale(25))
+                            .into(),
                         Container::new(neat_button(
                             change_server_button,
                             i18n.get("char_selection.change_server"),
@@ -333,18 +366,19 @@ impl Controls {
                             Overlay::new(
                                 Button::new(
                                     select_button,
-                                    Space::new(Length::Units(20), Length::Units(20)),
+                                    Space::new(Length::Units(16), Length::Units(16)),
                                 )
                                 .style(
                                     style::button::Style::new(imgs.delete_button)
                                         .hover_image(imgs.delete_button_hover)
                                         .press_image(imgs.delete_button_press),
-                                ),
+                                )
+                                .on_press(Message::Delete(i)),
                                 AspectRatioContainer::new(
                                     Button::new(
                                         delete_button,
                                         Column::with_children(vec![
-                                            Text::new("Hi").width(Length::Fill).into(),
+                                            Text::new("Hi").into(),
                                             Text::new("Hi").into(),
                                             Text::new("Hi").into(),
                                         ]),
@@ -353,11 +387,14 @@ impl Controls {
                                         style::button::Style::new(imgs.selection)
                                             .hover_image(imgs.selection_hover)
                                             .press_image(imgs.selection_press),
-                                    ),
+                                    )
+                                    .width(Length::Fill)
+                                    .height(Length::Fill)
+                                    .on_press(Message::Select(i)),
                                 )
                                 .ratio_of_image(imgs.selection),
                             )
-                            .padding(15)
+                            .padding(12)
                             .align_x(Align::End)
                             .into()
                         })
@@ -393,7 +430,6 @@ impl Controls {
                             )
                             .width(Length::Fill)
                             .height(Length::Fill);
-                            // TODO: try to get better interface for this in iced
                             if num < MAX_CHARACTERS_PER_PLAYER {
                                 button.on_press(Message::NewCharacter)
                             } else {
@@ -410,7 +446,7 @@ impl Controls {
                 // children method
                 let characters = Container::new(
                     Scrollable::new(characters_scroll)
-                        .push(Column::with_children(characters).spacing(2)),
+                        .push(Column::with_children(characters).spacing(4)),
                 )
                 .style(style::container::Style::color_with_image_border(
                     Rgba::new(0, 0, 0, 217),
@@ -424,13 +460,18 @@ impl Controls {
                 let right_column = Column::with_children(vec![server.into(), characters.into()])
                     .padding(15)
                     .spacing(10)
-                    .width(Length::Fill)
-                    .height(Length::Fill)
-                    .max_width(360);
-
-                let top = Container::new(right_column)
-                    .width(Length::Fill)
+                    .width(Length::Units(360)) // TODO: see if we can get iced to work with settings below
+                    //.max_width(360)
+                    //.width(Length::Fill)
                     .height(Length::Fill);
+
+                let top = Row::with_children(vec![
+                    right_column.into(),
+                    MouseDetector::new(&mut self.mouse_detector, Length::Fill, Length::Fill).into(),
+                ])
+                .padding(15)
+                .width(Length::Fill)
+                .height(Length::Fill);
 
                 let logout = neat_button(
                     logout_button,
@@ -462,30 +503,359 @@ impl Controls {
                 ])
                 .align_items(Align::End);
 
-                Column::with_children(vec![top.into(), bottom.into()])
+                let content = Column::with_children(vec![top.into(), bottom.into()])
                     .width(Length::Fill)
-                    .height(Length::Fill)
+                    .height(Length::Fill);
+
+                // Overlay delete prompt
+                if let Some(info_content) = info_content {
+                    let over: Element<_> = match info_content {
+                        InfoContent::Deletion(_) => Container::new(
+                            Column::with_children(vec![
+                                Text::new(self.i18n.get("char_selection.delete_permanently"))
+                                    .size(fonts.cyri.scale(24))
+                                    .into(),
+                                Row::with_children(vec![
+                                    neat_button(
+                                        no_button,
+                                        i18n.get("common.no"),
+                                        FILL_FRAC_ONE,
+                                        button_style,
+                                        Some(Message::CancelDeletion),
+                                    ),
+                                    neat_button(
+                                        yes_button,
+                                        i18n.get("common.yes"),
+                                        FILL_FRAC_ONE,
+                                        button_style,
+                                        Some(Message::ConfirmDeletion),
+                                    ),
+                                ])
+                                .height(Length::Units(28))
+                                .spacing(30)
+                                .into(),
+                            ])
+                            .align_items(Align::Center)
+                            .spacing(10),
+                        )
+                        .style(
+                            style::container::Style::color_with_double_cornerless_border(
+                                (0, 0, 0, 200).into(),
+                                (3, 4, 4, 255).into(),
+                                (28, 28, 22, 255).into(),
+                            ),
+                        )
+                        .width(Length::Fill)
+                        .height(Length::Fill)
+                        .max_width(400)
+                        .max_height(130)
+                        .padding(16)
+                        .center_x()
+                        .center_y()
+                        .into(),
+                        // TODO
+                        _ => Space::new(Length::Shrink, Length::Shrink).into(),
+                    };
+
+                    Overlay::new(over, content)
+                        .width(Length::Fill)
+                        .height(Length::Fill)
+                        .center_x()
+                        .center_y()
+                        .into()
+                } else {
+                    content.into()
+                }
             },
             Mode::Create {
                 name,
                 body,
                 loadout,
                 tool,
-                name_input,
-                back_button,
-                create_button,
+                ref mut scroll,
+                ref mut body_type_buttons,
+                ref mut species_buttons,
+                ref mut tool_buttons,
+                ref mut name_input,
+                ref mut back_button,
+                ref mut create_button,
             } => {
-                let top_row = Row::with_children(vec![]);
-                let bottom_row = Row::with_children(vec![]);
+                let unselected_style = style::button::Style::new(imgs.icon_border)
+                    .hover_image(imgs.icon_border_mo)
+                    .press_image(imgs.icon_border_press);
 
-                Column::with_children(vec![top_row.into(), bottom_row.into()])
+                let selected_style = style::button::Style::new(imgs.icon_border_pressed)
+                    .hover_image(imgs.icon_border_mo)
+                    .press_image(imgs.icon_border_press);
+
+                let icon_button = |button, selected, msg, img| {
+                    Container::new(
+                        Button::<_, IcedRenderer>::new(
+                            button,
+                            Space::new(Length::Units(70), Length::Units(70)),
+                        )
+                        .style(if selected {
+                            selected_style
+                        } else {
+                            unselected_style
+                        })
+                        .on_press(msg),
+                    )
+                    .style(style::container::Style::image(img))
+                };
+
+                let (body_m_ico, body_f_ico) = match body.species {
+                    humanoid::Species::Human => (imgs.human_m, imgs.human_f),
+                    humanoid::Species::Orc => (imgs.orc_m, imgs.orc_f),
+                    humanoid::Species::Dwarf => (imgs.dwarf_m, imgs.dwarf_f),
+                    humanoid::Species::Elf => (imgs.elf_m, imgs.elf_f),
+                    humanoid::Species::Undead => (imgs.undead_m, imgs.undead_f),
+                    humanoid::Species::Danari => (imgs.danari_m, imgs.danari_f),
+                };
+
+                let [ref mut body_m_button, ref mut body_f_button] = body_type_buttons;
+                let body_type = Row::with_children(vec![
+                    icon_button(
+                        body_m_button,
+                        matches!(body.body_type, humanoid::BodyType::Male),
+                        Message::BodyType(humanoid::BodyType::Male),
+                        body_m_ico,
+                    )
+                    .into(),
+                    icon_button(
+                        body_f_button,
+                        matches!(body.body_type, humanoid::BodyType::Female),
+                        Message::BodyType(humanoid::BodyType::Female),
+                        body_f_ico,
+                    )
+                    .into(),
+                ])
+                .spacing(1);
+
+                let (human_icon, orc_icon, dwarf_icon, elf_icon, undead_icon, danari_icon) =
+                    match body.body_type {
+                        humanoid::BodyType::Male => (
+                            self.imgs.human_m,
+                            self.imgs.orc_m,
+                            self.imgs.dwarf_m,
+                            self.imgs.elf_m,
+                            self.imgs.undead_m,
+                            self.imgs.danari_m,
+                        ),
+                        humanoid::BodyType::Female => (
+                            self.imgs.human_f,
+                            self.imgs.orc_f,
+                            self.imgs.dwarf_f,
+                            self.imgs.elf_f,
+                            self.imgs.undead_f,
+                            self.imgs.danari_f,
+                        ),
+                    };
+
+                // TODO: tooltips
+                let [ref mut human_button, ref mut orc_button, ref mut dwarf_button, ref mut elf_button, ref mut undead_button, ref mut danari_button] =
+                    species_buttons;
+                let species = Column::with_children(vec![
+                    Row::with_children(vec![
+                        icon_button(
+                            human_button,
+                            matches!(body.species, humanoid::Species::Human),
+                            Message::Species(humanoid::Species::Human),
+                            human_icon,
+                        )
+                        .into(),
+                        icon_button(
+                            orc_button,
+                            matches!(body.species, humanoid::Species::Orc),
+                            Message::Species(humanoid::Species::Orc),
+                            orc_icon,
+                        )
+                        .into(),
+                        icon_button(
+                            dwarf_button,
+                            matches!(body.species, humanoid::Species::Dwarf),
+                            Message::Species(humanoid::Species::Dwarf),
+                            dwarf_icon,
+                        )
+                        .into(),
+                    ])
+                    .spacing(1)
+                    .into(),
+                    Row::with_children(vec![
+                        icon_button(
+                            elf_button,
+                            matches!(body.species, humanoid::Species::Elf),
+                            Message::Species(humanoid::Species::Elf),
+                            elf_icon,
+                        )
+                        .into(),
+                        icon_button(
+                            undead_button,
+                            matches!(body.species, humanoid::Species::Undead),
+                            Message::Species(humanoid::Species::Undead),
+                            undead_icon,
+                        )
+                        .into(),
+                        icon_button(
+                            danari_button,
+                            matches!(body.species, humanoid::Species::Danari),
+                            Message::Species(humanoid::Species::Danari),
+                            danari_icon,
+                        )
+                        .into(),
+                    ])
+                    .spacing(1)
+                    .into(),
+                ])
+                .spacing(1);
+
+                let [ref mut sword_button, ref mut daggers_button, ref mut axe_button, ref mut hammer_button, ref mut bow_button, ref mut staff_button] =
+                    tool_buttons;
+                let tool = Column::with_children(vec![
+                    Row::with_children(vec![
+                        icon_button(
+                            sword_button,
+                            *tool == STARTER_SWORD,
+                            Message::Tool(STARTER_SWORD),
+                            imgs.sword,
+                        )
+                        .into(),
+                        icon_button(
+                            daggers_button,
+                            *tool == STARTER_DAGGER,
+                            Message::Tool(STARTER_DAGGER),
+                            imgs.daggers,
+                        )
+                        .into(),
+                        icon_button(
+                            axe_button,
+                            *tool == STARTER_AXE,
+                            Message::Tool(STARTER_AXE),
+                            imgs.axe,
+                        )
+                        .into(),
+                    ])
+                    .spacing(1)
+                    .into(),
+                    Row::with_children(vec![
+                        icon_button(
+                            hammer_button,
+                            *tool == STARTER_HAMMER,
+                            Message::Tool(STARTER_HAMMER),
+                            imgs.hammer,
+                        )
+                        .into(),
+                        icon_button(
+                            bow_button,
+                            *tool == STARTER_BOW,
+                            Message::Tool(STARTER_BOW),
+                            imgs.bow,
+                        )
+                        .into(),
+                        icon_button(
+                            staff_button,
+                            *tool == STARTER_STAFF,
+                            Message::Tool(STARTER_STAFF),
+                            imgs.staff,
+                        )
+                        .into(),
+                    ])
+                    .spacing(1)
+                    .into(),
+                ])
+                .spacing(1);
+
+                let column_content = vec![body_type.into(), species.into(), tool.into()];
+
+                let right_column = Container::new(
+                    Column::with_children(vec![
+                        Text::new(i18n.get("char_selection.character_creation"))
+                            .size(fonts.cyri.scale(26))
+                            .into(),
+                        Scrollable::new(scroll)
+                            .push(
+                                Column::with_children(column_content)
+                                    .align_items(Align::Center)
+                                    .spacing(16),
+                            )
+                            .into(),
+                    ])
+                    .spacing(20)
+                    .padding(10)
+                    .width(Length::Fill)
+                    .align_items(Align::Center),
+                )
+                .style(style::container::Style::color_with_image_border(
+                    Rgba::new(0, 0, 0, 217),
+                    imgs.gray_corner,
+                    imgs.gray_edge,
+                ))
+                .padding(10)
+                .width(Length::Units(360)) // TODO: see if we can get iced to work with settings below
+                //.max_width(360)
+                //.width(Length::Fill)
+                .height(Length::Fill);
+
+                let top = Row::with_children(vec![
+                    right_column.into(),
+                    MouseDetector::new(&mut self.mouse_detector, Length::Fill, Length::Fill).into(),
+                ])
+                .padding(15)
+                .width(Length::Fill)
+                .height(Length::Fill);
+
+                let back = neat_button(
+                    back_button,
+                    i18n.get("common.back"),
+                    FILL_FRAC_ONE,
+                    button_style,
+                    Some(Message::Back),
+                );
+
+                let name_input = BackgroundContainer::new(
+                    Image::new(imgs.name_input)
+                        .height(Length::Units(40))
+                        .fix_aspect_ratio(),
+                    TextInput::new(name_input, "Character Name", &name, Message::Name)
+                        .size(25)
+                        .on_submit(Message::CreateCharacter),
+                )
+                .padding(Padding::new().horizontal(7).top(5));
+
+                let create = neat_button(
+                    create_button,
+                    i18n.get("common.create"),
+                    FILL_FRAC_ONE,
+                    button_style,
+                    (!name.is_empty()).then_some(Message::CreateCharacter),
+                );
+
+                let bottom = Row::with_children(vec![
+                    Container::new(back)
+                        .width(Length::Fill)
+                        .height(Length::Units(40))
+                        .into(),
+                    Container::new(name_input)
+                        .width(Length::Fill)
+                        .center_x()
+                        .into(),
+                    Container::new(create)
+                        .width(Length::Fill)
+                        .height(Length::Units(40))
+                        .align_x(Align::End)
+                        .into(),
+                ])
+                .align_items(Align::End);
+
+                Column::with_children(vec![top.into(), bottom.into()])
                     .width(Length::Fill)
                     .height(Length::Fill)
+                    .into()
             },
         };
 
         Container::new(
-            Column::with_children(vec![top_text.into(), content.into()])
+            Column::with_children(vec![top_text.into(), content])
                 .spacing(3)
                 .width(Length::Fill)
                 .height(Length::Fill),
@@ -494,15 +864,7 @@ impl Controls {
         .into()
     }
 
-    fn update(
-        &mut self,
-        message: Message,
-        events: &mut Vec<Event>,
-        settings: &Settings,
-        characters: &[CharacterItem],
-    ) {
-        let servers = &settings.networking.servers;
-
+    fn update(&mut self, message: Message, events: &mut Vec<Event>, characters: &[CharacterItem]) {
         match message {
             Message::Back => {
                 if matches!(&self.mode, Mode::Create { .. }) {
@@ -518,15 +880,20 @@ impl Controls {
                     ..
                 } = &self.mode
                 {
-                    // TODO: eliminate option in character id
+                    // TODO: eliminate option in character id?
                     if let Some(id) = characters.get(*selected).and_then(|i| i.character.id) {
                         events.push(Event::Play(id));
                     }
                 }
             },
+            Message::Select(idx) => {
+                if let Mode::Select { selected, .. } = &mut self.mode {
+                    *selected = Some(idx);
+                }
+            },
             Message::Delete(idx) => {
-                if let Some(id) = characters.get(idx).and_then(|i| i.character.id) {
-                    events.push(Event::DeleteCharacter(id));
+                if let Mode::Select { info_content, .. } = &mut self.mode {
+                    *info_content = Some(InfoContent::Deletion(idx));
                 }
             },
             Message::ChangeServer => {
@@ -544,7 +911,7 @@ impl Controls {
                 {
                     events.push(Event::AddCharacter {
                         alias: name.clone(),
-                        tool: tool.map(String::from),
+                        tool: String::from(*tool),
                         body: comp::Body::Humanoid(*body),
                     });
                     self.mode = Mode::select();
@@ -555,16 +922,54 @@ impl Controls {
                     *name = value;
                 }
             },
+            Message::BodyType(value) => {
+                if let Mode::Create { body, .. } = &mut self.mode {
+                    body.body_type = value;
+                    body.validate();
+                }
+            },
+            Message::Species(value) => {
+                if let Mode::Create { body, .. } = &mut self.mode {
+                    body.species = value;
+                    body.validate();
+                }
+            },
+            Message::Tool(value) => {
+                if let Mode::Create { tool, loadout, .. } = &mut self.mode {
+                    *tool = value;
+                    loadout.active_item = Some(LoadoutBuilder::default_item_config_from_str(*tool));
+                }
+            },
+            Message::ConfirmDeletion => {
+                if let Mode::Select { info_content, .. } = &mut self.mode {
+                    if let Some(InfoContent::Deletion(idx)) = info_content {
+                        if let Some(id) = characters.get(*idx).and_then(|i| i.character.id) {
+                            events.push(Event::DeleteCharacter(id));
+                        }
+                        *info_content = None;
+                    }
+                }
+            },
+            Message::CancelDeletion => {
+                if let Mode::Select { info_content, .. } = &mut self.mode {
+                    if let Some(InfoContent::Deletion(idx)) = info_content {
+                        *info_content = None;
+                    }
+                }
+            },
         }
     }
 
     /// Get the character to display
-    pub fn display_character(&self, characters: &[CharacterItem]) -> Option<&CharacterItem> {
-        match self.mode {
-            // TODO
-            Mode::Select { .. } => None,
-            // TODO
-            Mode::Create { .. } => None,
+    pub fn display_body_loadout<'a>(
+        &'a self,
+        characters: &'a [CharacterItem],
+    ) -> Option<(comp::Body, &'a comp::Loadout)> {
+        match &self.mode {
+            Mode::Select { selected, .. } => selected
+                .and_then(|idx| characters.get(idx))
+                .map(|i| (i.body, &i.loadout)),
+            Mode::Create { loadout, body, .. } => Some((comp::Body::Humanoid(*body), loadout)),
         }
     }
 }
@@ -607,44 +1012,11 @@ impl CharSelectionUi {
         Self { ui, controls }
     }
 
-    pub fn display_character(&self, characters: &[CharacterItem]) -> Option<&CharacterItem> {
-        self.controls.display_character(characters)
-    }
-
-    // TODO
-    pub fn get_loadout(&mut self) -> Option<comp::Loadout> {
-        // TODO: error gracefully
-        // TODO: don't clone
-        /*match &mut self.mode {
-            Mode::Select(character_list) => {
-                if let Some(data) = character_list {
-                    data.get(self.selected_character).map(|c| c.loadout.clone())
-                } else {
-                    None
-                }
-            },
-            Mode::Create { loadout, tool, .. } => {
-                loadout.active_item = tool.map(|tool| comp::ItemConfig {
-                    item: comp::Item::new_from_asset_expect(tool),
-                    ability1: None,
-                    ability2: None,
-                    ability3: None,
-                    block_ability: None,
-                    dodge_ability: None,
-                });
-                loadout.chest = Some(comp::Item::new_from_asset_expect(
-                    "common.items.armor.starter.rugged_chest",
-                ));
-                loadout.pants = Some(comp::Item::new_from_asset_expect(
-                    "common.items.armor.starter.rugged_pants",
-                ));
-                loadout.foot = Some(comp::Item::new_from_asset_expect(
-                    "common.items.armor.starter.sandals_0",
-                ));
-                Some(loadout.clone())
-            },
-        }*/
-        None
+    pub fn display_body_loadout<'a>(
+        &'a self,
+        characters: &'a [CharacterItem],
+    ) -> Option<(comp::Body, &'a comp::Loadout)> {
+        self.controls.display_body_loadout(characters)
     }
 
     pub fn handle_event(&mut self, event: window::Event) -> bool {
@@ -654,15 +1026,13 @@ impl CharSelectionUi {
                 true
             },
             window::Event::MouseButton(_, window::PressState::Pressed) => {
-                // TODO: implement this with iced
-                // !self.ui.no_widget_capturing_mouse()
-                false
+                !self.controls.mouse_detector.mouse_over()
             },
             _ => false,
         }
     }
 
-    // TODO: do we need whole client here or just character list
+    // TODO: do we need whole client here or just character list?
     pub fn maintain(&mut self, global_state: &mut GlobalState, client: &mut Client) -> Vec<Event> {
         let mut events = Vec::new();
 
@@ -672,17 +1042,13 @@ impl CharSelectionUi {
         );
 
         messages.into_iter().for_each(|message| {
-            self.controls.update(
-                message,
-                &mut events,
-                &global_state.settings,
-                &client.character_list.characters,
-            )
+            self.controls
+                .update(message, &mut events, &client.character_list.characters)
         });
 
         events
     }
 
-    // TODO: do we need globals
+    // TODO: do we need globals?
     pub fn render(&self, renderer: &mut Renderer) { self.ui.render(renderer); }
 }
