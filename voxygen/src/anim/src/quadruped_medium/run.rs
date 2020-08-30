@@ -169,7 +169,7 @@ impl Animation for RunAnimation {
 
         next.leg_fr.position = Vec3::new(
             skeleton_attr.leg_f.0,
-            skeleton_attr.leg_f.1 + amplitude3 * foot2b * -2.2,
+            skeleton_attr.leg_f.1 + amplitude3 * foot2b * -2.2,////////////fix
             skeleton_attr.leg_f.2 + amplitude3 * foot2a * 2.8,
         );
         next.leg_fr.orientation =
