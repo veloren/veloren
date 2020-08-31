@@ -545,11 +545,11 @@
     ),
     (Mouflon, Male): (
         leg_fl: (
-            offset: (-1.5, -2.5, -2.5),
+            offset: (-1.5, -2.5, -4.0),
             lateral: ("npc.mouflon.male.leg_fl"),
         ),
         leg_fr: (
-            offset: (-1.5, -2.5, -2.5),
+            offset: (-1.5, -2.5, -4.0),
             lateral: ("npc.mouflon.male.leg_fr"),
         ),
         leg_bl: (
@@ -579,19 +579,19 @@
     ),
     (Mouflon, Female): (
         leg_fl: (
-            offset: (-1.5, -2.5, -2.5),
+            offset: (-1.5, -2.5, -4.0),
             lateral: ("npc.mouflon.male.leg_fl"),
         ),
         leg_fr: (
-            offset: (-1.5, -2.5, -2.5),
+            offset: (-1.5, -2.5, -4.0),
             lateral: ("npc.mouflon.male.leg_fr"),
         ),
         leg_bl: (
-            offset: (-2.0, -1.0, -2.5),
+            offset: (-2.0, -2.5, -4.0),
             lateral: ("npc.mouflon.male.leg_bl"),
         ),
         leg_br: (
-            offset: (-2.0, -1.0, -2.5),
+            offset: (-2.0, -2.5, -4.0),
             lateral: ("npc.mouflon.male.leg_br"),
         ),
         foot_fl: (
@@ -749,19 +749,19 @@
     ),
     (Deer, Male): (
         leg_fl: (
-            offset: (-1.5, -2.5, -2.5),
+            offset: (-1.5, -2.5, -3.5),
             lateral: ("npc.deer.male.leg_fl"),
         ),
         leg_fr: (
-            offset: (-1.5, -2.5, -2.5),
+            offset: (-1.5, -2.5, -3.5),
             lateral: ("npc.deer.male.leg_fr"),
         ),
         leg_bl: (
-            offset: (-2.0, -1.0, -2.5),
+            offset: (-2.0, -2.5, -4.0),
             lateral: ("npc.deer.male.leg_bl"),
         ),
         leg_br: (
-            offset: (-2.0, -1.0, -2.5),
+            offset: (-2.0, -2.5, -4.0),
             lateral: ("npc.deer.male.leg_br"),
         ),
         foot_fl: (
@@ -783,19 +783,19 @@
     ),
     (Deer, Female): (
         leg_fl: (
-            offset: (-1.5, -2.5, -2.5),
+            offset: (-1.5, -2.5, -3.5),
             lateral: ("npc.deer.female.leg_fl"),
         ),
         leg_fr: (
-            offset: (-1.5, -2.5, -2.5),
+            offset: (-1.5, -2.5, -3.5),
             lateral: ("npc.deer.female.leg_fr"),
         ),
         leg_bl: (
-            offset: (-2.0, -1.0, -2.5),
+            offset: (-2.0, -2.5, -4.0),
             lateral: ("npc.deer.female.leg_bl"),
         ),
         leg_br: (
-            offset: (-2.0, -1.0, -2.5),
+            offset: (-2.0, -2.5, -4.0),
             lateral: ("npc.deer.female.leg_br"),
         ),
         foot_fl: (
@@ -817,19 +817,19 @@
     ),
     (Hirdrassil, Male): (
         leg_fl: (
-            offset: (-1.5, -3.0, -2.5),
+            offset: (-1.5, -3.0, -4.0),
             lateral: ("npc.hirdrassil.male.leg_fl"),
         ),
         leg_fr: (
-            offset: (-1.5, -3.0, -2.5),
+            offset: (-1.5, -3.0, -4.0),
             lateral: ("npc.hirdrassil.male.leg_fr"),
         ),
         leg_bl: (
-            offset: (-2.0, -1.0, -2.5),
+            offset: (-2.0, -2.5, -5.0),
             lateral: ("npc.hirdrassil.male.leg_bl"),
         ),
         leg_br: (
-            offset: (-2.0, -1.0, -2.5),
+            offset: (-2.0, -2.5, -5.0),
             lateral: ("npc.hirdrassil.male.leg_br"),
         ),
         foot_fl: (
@@ -851,19 +851,19 @@
     ),
     (Hirdrassil, Female): (
         leg_fl: (
-            offset: (-1.5, -3.0, -2.5),
+            offset: (-1.5, -3.0, -4.0),
             lateral: ("npc.hirdrassil.male.leg_fl"),
         ),
         leg_fr: (
-            offset: (-1.5, -3.0, -2.5),
+            offset: (-1.5, -3.0, -4.0),
             lateral: ("npc.hirdrassil.male.leg_fr"),
         ),
         leg_bl: (
-            offset: (-2.0, -1.0, -2.5),
+            offset: (-2.0, -2.5, -5.0),
             lateral: ("npc.hirdrassil.male.leg_bl"),
         ),
         leg_br: (
-            offset: (-2.0, -1.0, -2.5),
+            offset: (-2.0, -2.5, -5.0),
             lateral: ("npc.hirdrassil.male.leg_br"),
         ),
         foot_fl: (
