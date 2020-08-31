@@ -972,6 +972,22 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::BasicBeam(_) => {
+                            anim::character::ChargeAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    vel.0.magnitude(),
+                                    ori,
+                                    state.last_ori,
+                                    time,
+                                ),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;
                             let stage_time = s.timer.as_secs_f64();
