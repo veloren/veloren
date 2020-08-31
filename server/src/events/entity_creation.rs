@@ -1,7 +1,7 @@
 use crate::{sys, Server, StateExt};
 use common::{
     comp::{
-        self, Agent, Alignment, Body, Gravity, Item, ItemDrop, LightAnimation, LightEmitter,
+        self, Agent, Alignment, Body, Gravity, Item, ItemDrop, LightEmitter,
         Loadout, Pos, Projectile, Scale, Stats, Vel, WaypointArea,
     },
     outcome::Outcome,
