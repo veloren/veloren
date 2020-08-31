@@ -129,8 +129,13 @@ impl CharacterBehavior for Data {
             });
 
             // Grant energy on successful hit
-            let energy = (self.energy_regen as f32 / self.tick_rate) as i32;
-            update.energy.change_by(energy, EnergySource::HitEnemy);
+            if let Some(attack) = data.attacking {
+                if attack.applied && attack.hit_count > 0 {
+                    data.updater.remove::<Attacking>(data.entity);
+                    let energy = (self.energy_regen as f32 / self.tick_rate) as i32;
+                    update.energy.change_by(energy, EnergySource::HitEnemy);
+                }
+            }
         } else if self.recover_duration != Duration::default() {
             // Recovery
             update.character = CharacterState::BasicBeam(Data {
