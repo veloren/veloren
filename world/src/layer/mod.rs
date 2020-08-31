@@ -69,6 +69,15 @@ pub fn apply_scatter_to<'a>(
                 Some((64.0, 0.2)),
             )
         }),
+        (Sunflower, false, |c, col| {
+            (
+                close(c.temp, 0.0, 0.7).min(close(c.humidity, CONFIG.jungle_hum, 0.4))
+                    * col.tree_density
+                    * MUSH_FACT
+                    * 350.0,
+                Some((1024.0, 0.15)),
+            )
+        }),
         (PurpleFlower, false, |c, col| {
             (
                 close(c.temp, CONFIG.temperate_temp, 0.7).min(close(
