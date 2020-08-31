@@ -73,8 +73,9 @@ void main() {
 	// Pre-calculate bone matrix
 	/* uint bone_idx = (v_ao_bone >> 2) & 0x3Fu; */
 	uint bone_idx = (v_pos_norm >> 27) & 0xFu;
-    BoneData bone_data = bones[bone_idx];
-    mat4 bone_mat = bone_data.bone_mat;
+
+	mat4 bone_mat = bones[bone_idx].bone_mat;
+	mat4 normals_mat = bones[bone_idx].normals_mat;
 	mat4 combined_mat = /*model_mat * */bone_mat;
 
 	vec3 pos = (vec3((uvec3(v_pos_norm) >> uvec3(0, 9, 18)) & uvec3(0x1FFu)) - 256.0) / 2.0;
@@ -105,7 +106,7 @@ void main() {
     // vec3 norm = normals[normal_idx];
     uint axis_idx = v_atlas_pos & 3u;
 
-    vec3 norm = bone_data.normals_mat[axis_idx].xyz;
+    vec3 norm = normals_mat[axis_idx].xyz;
     // norm = normalize(norm);
     // vec3 norm = norm_mat * vec4(uvec3(1 << axis_idx) & uvec3(0x1u, 0x3u, 0x7u), 1);
 
