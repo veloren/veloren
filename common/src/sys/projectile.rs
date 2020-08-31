@@ -156,9 +156,7 @@ impl<'a> System<'a> for Sys {
                         _ => {},
                     }
                 }
-            }
-
-            if let Some(dir) = velocities
+            } else if let Some(dir) = velocities
                 .get(entity)
                 .and_then(|vel| vel.0.try_normalized())
             {
