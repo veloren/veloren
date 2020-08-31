@@ -308,10 +308,11 @@ impl Tool {
                             recover_duration: Duration::from_millis(250),
                             base_hps: (60.0 * self.base_power()) as u32,
                             base_dps: (40.0 * self.base_power()) as u32,
+                            tick_rate: 2.0,
                             range: 25.0,
                             max_angle: 1.0,
                             lifesteal_eff: 0.25,
-                            energy_regen: 10,
+                            energy_regen: 100,
                         },
                         BasicRanged {
                             energy_cost: 800,
