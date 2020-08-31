@@ -162,7 +162,7 @@ impl Animation for RunAnimation {
             skeleton_attr.leg_f.2 + amplitude3 * foot1a * 2.3,
         );
         next.leg_fl.orientation =
-            Quaternion::rotation_x(0.2 * canceler + amplitude3 * foot1a * 0.35)
+            Quaternion::rotation_x(0.2 * canceler + amplitude3 * foot1a * 0.85)
                 * Quaternion::rotation_z(tilt * -0.5)
                 * Quaternion::rotation_y(tilt * 1.5);
         next.leg_fl.scale = Vec3::one() * 1.02;
@@ -173,7 +173,7 @@ impl Animation for RunAnimation {
             skeleton_attr.leg_f.2 + amplitude3 * foot2a * 2.8,
         );
         next.leg_fr.orientation =
-            Quaternion::rotation_x(0.2 * canceler + amplitude3 * foot2a * 0.35)
+            Quaternion::rotation_x(0.2 * canceler + amplitude3 * foot2a * 0.85)
                 * Quaternion::rotation_z(tilt * -0.5)
                 * Quaternion::rotation_y(tilt * 1.5);
         next.leg_fr.scale = Vec3::one() * 1.02;
@@ -183,7 +183,7 @@ impl Animation for RunAnimation {
             skeleton_attr.leg_b.1 + amplitude3 * foot3b * -1.1,
             skeleton_attr.leg_b.2 + canceler + amplitude3 * foot3a * 1.6,
         );
-        next.leg_bl.orientation = Quaternion::rotation_x(amplitude3 * foot3a * 0.12)
+        next.leg_bl.orientation = Quaternion::rotation_x(amplitude3 * foot1b * 0.85)
             * Quaternion::rotation_y(tilt * 1.5)
             * Quaternion::rotation_z(tilt * -1.5);
         next.leg_bl.scale = Vec3::one() * 1.02;
@@ -193,7 +193,7 @@ impl Animation for RunAnimation {
             skeleton_attr.leg_b.1 + amplitude3 * foot4b * -1.1,
             skeleton_attr.leg_b.2 + canceler + amplitude3 * foot4a * 1.6,
         );
-        next.leg_br.orientation = Quaternion::rotation_x(amplitude3 * foot4b * 0.12)
+        next.leg_br.orientation = Quaternion::rotation_x(amplitude3 * foot2b * 0.85)
             * Quaternion::rotation_y(tilt * 1.5)
             * Quaternion::rotation_z(tilt * -1.5);
         next.leg_br.scale = Vec3::one() * 1.02;
@@ -204,7 +204,7 @@ impl Animation for RunAnimation {
             skeleton_attr.feet_f.2 + (foot1a * 2.0).max(-1.0) * amplitude2 + 1.0 * canceler,
         );
         next.foot_fl.orientation = Quaternion::rotation_x(
-            ((1.0 - skeleton_attr.dampen) * -1.0) * canceler + amplitude2 * foot1b * -0.8,
+            ((1.0 - skeleton_attr.dampen) * -1.0) * canceler + amplitude2 * foot1b * -0.7,
         ) * Quaternion::rotation_y(tilt * -1.0);
         next.foot_fl.scale = Vec3::one() * 0.96;
 
@@ -214,7 +214,7 @@ impl Animation for RunAnimation {
             skeleton_attr.feet_f.2 + (foot2a * 2.0).max(-1.0) * amplitude2 + 1.0 * canceler,
         );
         next.foot_fr.orientation = Quaternion::rotation_x(
-            ((1.0 - skeleton_attr.dampen) * -1.0) * canceler + amplitude2 * foot2b * -0.8,
+            ((1.0 - skeleton_attr.dampen) * -1.0) * canceler + amplitude2 * foot2b * -0.7,
         ) * Quaternion::rotation_y(tilt * -1.0);
         next.foot_fr.scale = Vec3::one() * 0.96;
 
@@ -224,7 +224,7 @@ impl Animation for RunAnimation {
             skeleton_attr.feet_b.2 + (foot3a * 0.5).max(0.0) * amplitude2 + 2.0 * canceler,
         );
         next.foot_bl.orientation =
-            Quaternion::rotation_x(amplitude2 * foot3b * -0.9 - 0.5 * canceler)
+            Quaternion::rotation_x(amplitude2 * foot3b * -0.5 - 0.5 * canceler)
                 * Quaternion::rotation_y(tilt * -1.0);
         next.foot_bl.scale = Vec3::one() * 0.96;
 
@@ -234,7 +234,7 @@ impl Animation for RunAnimation {
             skeleton_attr.feet_b.2 + (foot4a * 0.5).max(0.0) * amplitude2 + 2.0 * canceler,
         );
         next.foot_br.orientation =
-            Quaternion::rotation_x(amplitude2 * foot4b * -0.9 - 0.5 * canceler)
+            Quaternion::rotation_x(amplitude2 * foot4b * -0.5 - 0.5 * canceler)
                 * Quaternion::rotation_y(tilt * -1.0);
         next.foot_br.scale = Vec3::one() * 0.96;
         next

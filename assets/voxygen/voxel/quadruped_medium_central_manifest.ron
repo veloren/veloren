@@ -661,7 +661,7 @@
     ),
     (Deer, Male): (
         upper: (
-            offset: (-6.0, 0.0, -8.0),
+            offset: (-6.0, -5.0, 0.0),
             central: ("npc.deer.male.head_upper"),
         ),
         lower: (
@@ -685,13 +685,13 @@
             central: ("armor.empty"),
         ),
         tail: (
-            offset: (-2.0, -3.0, -6.0),
+            offset: (-2.0, -2.0, 0.0),
             central: ("npc.deer.male.tail"),
         ),
     ),
     (Deer, Female): (
         upper: (
-            offset: (-6.0, 0.0, -4.5),
+            offset: (-6.0, -3.0, 0.0),
             central: ("npc.deer.female.head_upper"),
         ),
         lower: (
@@ -715,13 +715,13 @@
             central: ("armor.empty"),
         ),
         tail: (
-            offset: (-2.0, -3.0, -6.0),
-            central: ("npc.deer.female.tail"),
+            offset: (-2.0, -2.0, 0.0),
+            central: ("npc.deer.male.tail"),
         ),
     ),
     (Hirdrassil, Male): (
         upper: (
-            offset: (-9.0, 0.0, -11.5),
+            offset: (-9.0, -12.0, 0.0),
             central: ("npc.hirdrassil.male.head_upper"),
         ),
         lower: (
@@ -729,7 +729,7 @@
             central: ("npc.hirdrassil.male.head_lower"),
         ),
         jaw: (
-            offset: (-1.0, 0.0, -1.0),
+            offset: (-1.0, 0.0, -7.0),
             central: ("npc.hirdrassil.male.jaw"),
         ),
         torso_front: (
@@ -745,13 +745,13 @@
             central: ("armor.empty"),
         ),
         tail: (
-            offset: (-2.0, -4.0, -3.0),
+            offset: (-2.0, -2.0, 0.0),
             central: ("npc.hirdrassil.male.tail"),
         ),
     ),
     (Hirdrassil, Female): (
         upper: (
-            offset: (-9.0, 0.0, -11.5),
+            offset: (-9.0, -12.0, 0.0),
             central: ("npc.hirdrassil.male.head_upper"),
         ),
         lower: (
@@ -759,7 +759,7 @@
             central: ("npc.hirdrassil.male.head_lower"),
         ),
         jaw: (
-            offset: (-1.0, 0.0, -1.0),
+            offset: (-1.0, 0.0, -7.0),
             central: ("npc.hirdrassil.male.jaw"),
         ),
         torso_front: (
@@ -775,7 +775,7 @@
             central: ("armor.empty"),
         ),
         tail: (
-            offset: (-2.0, -4.0, -3.0),
+            offset: (-2.0, -2.0, 0.0),
             central: ("npc.hirdrassil.male.tail"),
         ),
     ),

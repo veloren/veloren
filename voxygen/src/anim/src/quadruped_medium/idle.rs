@@ -71,9 +71,9 @@ impl Animation for IdleAnimation {
         next.jaw.position = Vec3::new(
             0.0,
             skeleton_attr.jaw.0 - slower * 0.12,
-            skeleton_attr.jaw.1 + slow * 0.2,
+            skeleton_attr.jaw.1 + slow * 0.2 + 0.5,
         );
-        next.jaw.orientation = Quaternion::rotation_x(slow * 0.05);
+        next.jaw.orientation = Quaternion::rotation_x(slow * 0.05 - 0.08);
         next.jaw.scale = Vec3::one() * 1.02;
 
         next.tail.position = Vec3::new(0.0, skeleton_attr.tail.0, skeleton_attr.tail.1);
