@@ -130,6 +130,7 @@ impl CharacterBehavior for Data {
                         });
                     }
 
+<<<<<<< HEAD
                     // This logic basically just decides if a charge should end, and prevents the
                     // character state spamming attacks while checking if it has hit something
                     if !self.exhausted {
@@ -190,6 +191,32 @@ impl CharacterBehavior for Data {
                             exhausted: self.exhausted,
                         })
                     }
+=======
+            update.character = CharacterState::DashMelee(Data {
+                buildup_duration: self
+                    .buildup_duration
+                    .checked_sub(Duration::from_secs_f32(data.dt.0))
+                    .unwrap_or_default(),
+                recover_duration: self.recover_duration,
+                base_damage: self.base_damage,
+                exhausted: false,
+                initialize: false,
+            });
+        } else if !self.exhausted {
+            // Hit attempt
+            data.updater.insert(data.entity, Attacking {
+                base_damage: self.base_damage,
+                base_heal: 0,
+                range: 3.5,
+                max_angle: 45_f32.to_radians(),
+                applied: false,
+                hit_count: 0,
+                knockback: 0.0,
+                is_melee: true,
+                lifesteal_eff: 0.0,
+                look_dir: None,
+            });
+>>>>>>> 8e6d0821c... Beams now have spherical hit detection.
 
                     // Consumes energy if there's enough left and charge has not stopped
                     update.energy.change_by(

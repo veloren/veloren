@@ -76,6 +76,7 @@ impl CharacterBehavior for Data {
                 knockback: 0.0,
                 is_melee: false,
                 lifesteal_eff: self.lifesteal_eff,
+                look_dir: self.particle_ori,
             });
 
             update.character = CharacterState::BasicBeam(Data {
