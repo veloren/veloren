@@ -393,13 +393,14 @@ lazy_static! {
 
         tracing::trace!("Possible asset locations paths={:?}", paths);
 
-        for path in paths.clone() {
-            match find_folder::check_dir("assets", &path) {
-                Ok(assets_path) => {
-                    tracing::info!("Assets found path={}", assets_path.display());
-                    return assets_path;
-                },
-                Err(_) => continue,
+        for mut path in paths.clone() {
+            if !path.ends_with("assets") {
+                path = path.join("assets");
+            }
+
+            if path.is_dir() {
+                tracing::info!("Assets found path={}", path.display());
+                return path;
             }
         }
 
