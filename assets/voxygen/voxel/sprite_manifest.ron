@@ -1953,11 +1953,31 @@ Reed: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.reed.reed-0",
-            offset: (-6.5, -6.5, 0.0),
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.reed.reed-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.reed.reed-2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.reed.reed-3",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.reed.reed-4",
+            offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.5),
         ),
     ],
-    wind_sway: 0.65,
+    wind_sway: 0.3,
 )),
 
 // Beehive
