@@ -1,11 +1,15 @@
+use crate::{make_case_elim, make_proj_elim};
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct Body {
-    pub species: Species,
-    pub body_type: BodyType,
-}
+make_proj_elim!(
+    body,
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    pub struct Body {
+        pub species: Species,
+        pub body_type: BodyType,
+    }
+);
 
 impl Body {
     pub fn random() -> Self {
@@ -25,26 +29,29 @@ impl From<Body> for super::Body {
     fn from(body: Body) -> Self { super::Body::QuadrupedSmall(body) }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum Species {
-    Pig = 0,
-    Fox = 1,
-    Sheep = 2,
-    Boar = 3,
-    Jackalope = 4,
-    Skunk = 5,
-    Cat = 6,
-    Batfox = 7,
-    Raccoon = 8,
-    Quokka = 9,
-    Dodarock = 10,
-    Holladon = 11,
-    Hyena = 12,
-    Rabbit = 13,
-    Truffler = 14,
-    Frog = 15,
-}
+make_case_elim!(
+    species,
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    #[repr(u32)]
+    pub enum Species {
+        Pig = 0,
+        Fox = 1,
+        Sheep = 2,
+        Boar = 3,
+        Jackalope = 4,
+        Skunk = 5,
+        Cat = 6,
+        Batfox = 7,
+        Raccoon = 8,
+        Quokka = 9,
+        Dodarock = 10,
+        Holladon = 11,
+        Hyena = 12,
+        Rabbit = 13,
+        Truffler = 14,
+        Frog = 15,
+    }
+);
 
 /// Data representing per-species generic data.
 ///
@@ -121,10 +128,14 @@ impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     fn into_iter(self) -> Self::IntoIter { ALL_SPECIES.iter().copied() }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum BodyType {
-    Female = 0,
-    Male = 1,
-}
+make_case_elim!(
+    body_type,
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    #[repr(u32)]
+    pub enum BodyType {
+        Female = 0,
+        Male = 1,
+    }
+);
+
 pub const ALL_BODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];
