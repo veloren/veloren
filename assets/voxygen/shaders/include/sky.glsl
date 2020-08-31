@@ -470,21 +470,21 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
 float fog(vec3 f_pos, vec3 focus_pos, uint medium) {
     return max(1.0 - 5000.0 / (1.0 + distance(f_pos.xy, focus_pos.xy)), 0.0);
 
-    float fog_radius = view_distance.x;
-    float mist_radius = 10000000.0;
+    // float fog_radius = view_distance.x;
+    // float mist_radius = 10000000.0;
 
-    float min_fog = 0.5;
-    float max_fog = 1.0;
+    // float min_fog = 0.5;
+    // float max_fog = 1.0;
 
-    if (medium == 1u) {
-        mist_radius = UNDERWATER_MIST_DIST;
-        min_fog = 0.0;
-    }
+    // if (medium == 1u) {
+    //     mist_radius = UNDERWATER_MIST_DIST;
+    //     min_fog = 0.0;
+    // }
 
-    float fog = distance(f_pos.xy, focus_pos.xy) / fog_radius;
-    float mist = distance(f_pos, focus_pos) / mist_radius;
+    // float fog = distance(f_pos.xy, focus_pos.xy) / fog_radius;
+    // float mist = distance(f_pos, focus_pos) / mist_radius;
 
-    return pow(clamp((max(fog, mist) - min_fog) / (max_fog - min_fog), 0.0, 1.0), 1.7);
+    // return pow(clamp((max(fog, mist) - min_fog) / (max_fog - min_fog), 0.0, 1.0), 1.7);
 }
 
 /* vec3 illuminate(vec3 color, vec3 light, vec3 diffuse, vec3 ambience) {
@@ -493,55 +493,55 @@ float fog(vec3 f_pos, vec3 focus_pos, uint medium) {
 } */
 vec3 illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitted, vec3 reflected) {
     return emitted + reflected;
-    const float NIGHT_EXPOSURE = 10.0;
-    const float DUSK_EXPOSURE = 2.0;//0.8;
-    const float DAY_EXPOSURE = 1.0;//0.7;
+    // const float NIGHT_EXPOSURE = 10.0;
+    // const float DUSK_EXPOSURE = 2.0;//0.8;
+    // const float DAY_EXPOSURE = 1.0;//0.7;
 
-#if (LIGHTING_ALGORITHM == LIGHTING_ALGORITHM_ASHIKHMIN)
-    const float DAY_SATURATION = 1.1;
-#else
-    const float DAY_SATURATION = 1.0;
-#endif
-    const float DUSK_SATURATION = 0.6;
-    const float NIGHT_SATURATION = 0.1;
+// #if (LIGHTING_ALGORITHM == LIGHTING_ALGORITHM_ASHIKHMIN)
+//     const float DAY_SATURATION = 1.1;
+// #else
+//     const float DAY_SATURATION = 1.0;
+// #endif
+    // const float DUSK_SATURATION = 0.6;
+    // const float NIGHT_SATURATION = 0.1;
 
-    const float gamma = /*0.5*//*1.*0*/1.0;//1.0;
+    // const float gamma = /*0.5*//*1.*0*/1.0;//1.0;
     /* float light = length(emitted + reflected);
     float color = srgb_to_linear(emitted + reflected);
     float avg_col = (color.r + color.g + color.b) / 3.0;
     return ((color - avg_col) * light + reflected * avg_col) * (emitted + reflected); */
     // float max_intensity = vec3(1.0);
-    vec3 color = emitted + reflected;
-    float lum = rel_luminance(color);
+    // vec3 color = emitted + reflected;
+    // float lum = rel_luminance(color);
     // float lum_sky = lum - max_light;
 
     /* vec3 sun_dir = get_sun_dir(time_of_day.x);
     vec3 moon_dir = get_moon_dir(time_of_day.x); */
-    float sky_light = rel_luminance(
-            get_sun_color(/*sun_dir*/) * get_sun_brightness(/*sun_dir*/) * SUN_COLOR_FACTOR +
-            get_moon_color(/*moon_dir*/) * get_moon_brightness(/*moon_dir*/));
+    // float sky_light = rel_luminance(
+    //         get_sun_color(/*sun_dir*/) * get_sun_brightness(/*sun_dir*/) * SUN_COLOR_FACTOR +
+    //         get_moon_color(/*moon_dir*/) * get_moon_brightness(/*moon_dir*/));
 
     // Tone mapped value.
     // vec3 T = /*color*//*lum*/color;//normalize(color) * lum / (1.0 + lum);
     // float alpha = 0.5;//2.0;
-    float alpha = mix(
-        mix(
-            DUSK_EXPOSURE,
-            NIGHT_EXPOSURE,
-            max(sun_dir.z, 0)
-        ),
-        DAY_EXPOSURE,
-        max(-sun_dir.z, 0)
-    );
-    vec3 now_light = moon_dir.z < 0 ? moon_dir.xyz : sun_dir.xyz;
-    float cos_view_light = dot(-now_light, view_dir);
+    // float alpha = mix(
+    //     mix(
+    //         DUSK_EXPOSURE,
+    //         NIGHT_EXPOSURE,
+    //         max(sun_dir.z, 0)
+    //     ),
+    //     DAY_EXPOSURE,
+    //     max(-sun_dir.z, 0)
+    // );
+    // vec3 now_light = moon_dir.z < 0 ? moon_dir.xyz : sun_dir.xyz;
+    // float cos_view_light = dot(-now_light, view_dir);
     // alpha *= exp(1.0 - cos_view_light);
     // sky_light *= 1.0 - log(1.0 + view_dir.z);
-    float alph = sky_light > 0.0 && max_light > 0.0 ? mix(1.0 / log(/*1.0*//*1.0 + *//*lum_sky + */1.0 + max_light / (0.0 + sky_light)), 1.0, clamp(max_light - sky_light, 0.0, 1.0)) : 1.0;
-    alpha = alpha * min(alph, 1.0);//((max_light > 0.0 && max_light > sky_light /* && sky_light > 0.0*/) ? /*1.0*/1.0 / log(/*1.0*//*1.0 + *//*lum_sky + */1.0 + max_light - (0.0 + sky_light)) : 1.0);
+    // float alph = sky_light > 0.0 && max_light > 0.0 ? mix(1.0 / log(/*1.0*//*1.0 + *//*lum_sky + */1.0 + max_light / (0.0 + sky_light)), 1.0, clamp(max_light - sky_light, 0.0, 1.0)) : 1.0;
+    // alpha = alpha * min(alph, 1.0);//((max_light > 0.0 && max_light > sky_light /* && sky_light > 0.0*/) ? /*1.0*/1.0 / log(/*1.0*//*1.0 + *//*lum_sky + */1.0 + max_light - (0.0 + sky_light)) : 1.0);
     // alpha = alpha * min(1.0, (max_light == 0.0 ? 1.0 : (1.0 + abs(lum_sky)) / /*(1.0 + max_light)*/max_light));
 
-    vec3 col_adjusted = lum == 0.0 ? vec3(0.0) : color / lum;
+    // vec3 col_adjusted = lum == 0.0 ? vec3(0.0) : color / lum;
 
     // float L = lum == 0.0 ? 0.0 : log(lum);
 
@@ -560,30 +560,30 @@ vec3 illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitted
     // // float T = lum;
     // float O = exp(B_ + D);
 
-    float T = 1.0 - exp(-alpha * lum);//lum / (1.0 + lum);
+    // float T = 1.0 - exp(-alpha * lum);//lum / (1.0 + lum);
     // float T = lum;
 
     // Heuristic desaturation
     // const float s = 0.8;
-    float s = mix(
-        mix(
-            DUSK_SATURATION,
-            NIGHT_SATURATION,
-            max(sun_dir.z, 0)
-        ),
-        DAY_SATURATION,
-        max(-sun_dir.z, 0)
-    );
+    // float s = mix(
+    //     mix(
+    //         DUSK_SATURATION,
+    //         NIGHT_SATURATION,
+    //         max(sun_dir.z, 0)
+    //     ),
+    //     DAY_SATURATION,
+    //     max(-sun_dir.z, 0)
+    // );
     // s = max(s, (max_light) / (1.0 + s));
-    s = max(s, max_light / (1.0 + max_light));
+    // s = max(s, max_light / (1.0 + max_light));
 
-    vec3 c = pow(col_adjusted, vec3(s)) * T;
+    // vec3 c = pow(col_adjusted, vec3(s)) * T;
     // vec3 c = col_adjusted * T;
     // vec3 c = sqrt(col_adjusted) * T;
     // vec3 c = /*col_adjusted * */col_adjusted * T;
 
     // return color;
-    return c;
+    // return c;
     // float sum_col = color.r + color.g + color.b;
     // return /*srgb_to_linear*/(/*0.5*//*0.125 * */vec3(pow(color.x, gamma), pow(color.y, gamma), pow(color.z, gamma)));
 }
