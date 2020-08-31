@@ -4726,7 +4726,6 @@ dependencies = [
  "crossbeam",
  "dot_vox",
  "enum-iterator",
- "find_folder",
  "hashbrown",
  "image",
  "indexmap",
