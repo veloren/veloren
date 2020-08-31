@@ -1,4 +1,5 @@
 use core::marker::PhantomData;
+use serde::{Deserialize, Serialize};
 
 pub trait SubContext<Context> {
     fn sub_context(self) -> Context;
@@ -16,10 +17,52 @@ pub trait Typed<Context, Type, S> {
     fn reduce(self, context: Context) -> (Type, S);
 }
 
+/// Given a head expression (Self) and a target type (Type),
+/// attempt to synthesize a term that reduces head into the target type.
+///
+/// How we do this depends on the type of the head expression:
+///
+/// - For enums, we synthesize a match on the current head.  For each match arm,
+///   we then repeat this process on the constructor arguments; if there are no
+///   constructor arguments, we synthesize a literal (Pure term). (TODO: Handle
+///   > 1 tuple properly--for now we just synthesize a Pure term for these
+///   cases).
+///
+/// - For structs, we synthesize a projection on the current head.  For each
+///   projection, we then repeat this process on the type of the projected
+///   field.
+///
+/// - For other types (which currently have to opt out during the field
+///   declaration), we synthesize a literal.
+///
+/// TODO: Differentiate between the context and the stack at some point; for
+/// now, we only use the context as a stack.
+pub trait SynthTyped<Context, Target> {
+    type Expr;
+}
+
+/// Weak head reduction type (equivalent to applying a reduction to the head
+/// variable, but this way we don't have to implement variable lookup and it
+/// doesn't serialize with variables).
+#[fundamental]
+#[serde(transparent)]
+#[derive(Deserialize, Serialize)]
+pub struct WeakHead<Reduction, Type> {
+    pub red: Reduction,
+    #[serde(skip)]
+    pub ty: PhantomData<Type>,
+}
+
+#[serde(transparent)]
+#[derive(Deserialize, Serialize)]
 pub struct Pure<T>(pub T);
 
-impl<Context: SubContext<S>, T, S> Typed<Context, Pure<T>, S> for T {
-    fn reduce(self, context: Context) -> (Pure<T>, S) { (Pure(self), context.sub_context()) }
+impl<'a, Context: SubContext<S>, T, S> Typed<Context, &'a T, S> for &'a Pure<T> {
+    fn reduce(self, context: Context) -> (&'a T, S) { (&self.0, context.sub_context()) }
+}
+
+impl<Context, Target> SynthTyped<Context, Target> for WeakHead<Pure<Target>, Target> {
+    type Expr = Pure<Target>;
 }
 
 /// A lazy pattern match reified as a Rust type.
@@ -50,7 +93,7 @@ impl<Context: SubContext<S>, T, S> Typed<Context, Pure<T>, S> for T {
 ///     #[derive(Clone,Copy)]
 ///     pub enum MyType {
 ///         Constr1 = 0,
-///         Constr2(arg : u8) = 1,
+///         #[typed(pure)] Constr2(arg : u8) = 1,
 ///         /* ..., */
 ///     }
 /// );
@@ -141,17 +184,25 @@ impl<Context: SubContext<S>, T, S> Typed<Context, Pure<T>, S> for T {
 ///
 /// Limitations:
 ///
-/// Unfortunately, due to restrictions on procedural macros, we currently always
+/// Unfortunately, due to restrictions on macro_rules, we currently always
 /// require the types defined to #[repr(inttype)] as you can see above.  There
 /// are also some other current limitations that we hopefully will be able to
 /// lift at some point; struct variants are not yet supported, and neither
 /// attributes on fields.
 #[fundamental]
-pub struct ElimCase<Expr, Cases, Type> {
-    pub expr: Expr,
+#[serde(transparent)]
+#[derive(Deserialize, Serialize)]
+pub struct ElimCase<Cases> {
     pub cases: Cases,
-    pub ty: PhantomData<Type>,
 }
+
+#[fundamental]
+#[serde(transparent)]
+#[derive(Deserialize, Serialize)]
+pub struct ElimProj<Proj> {
+    pub proj: Proj,
+}
+pub type ElimWeak<Type, Elim> = <WeakHead<Type, Elim> as SynthTyped<((Type,), ()), Elim>>::Expr;
 
 #[macro_export]
 macro_rules! as_item {
@@ -161,9 +212,32 @@ macro_rules! as_item {
 }
 
 #[macro_export]
+/// This macro is used internally by typed.
+///
+/// We use this in order to reliably construct a "representative" type for the
+/// weak head reduction type.  We need this because for some types of arguments
+/// (empty variants for an enum, fields or constructor arguments explicitly
+/// marked as #[typed(pure)], etc.) won't directly implement the WeakHead trait;
+/// in such cases, we just synthesize a literal of the appropriate type.
+macro_rules! make_weak_head_type {
+    ($Target:ty, $( #[$attr:meta] )* , ) => {
+        $crate::typed::Pure<$Target>
+    };
+    ($Target:ty, #[ typed(pure) ] , $( $extra:tt )*) => {
+        $crate::typed::Pure<$Target>
+    };
+    ($Target:ty, , $Type:ty, $( $extra:tt )*) => {
+        $crate::typed::Pure<$Target>
+    };
+    ($Target:ty, , $Type:ty) => {
+        $Type
+    }
+}
+
+#[macro_export]
 macro_rules! make_case_elim {
-    ($mod:ident, $( #[$ty_attr:meta] )* $vis:vis enum $ty:ident {
-        $( $constr:ident $( ( $( $arg_name:ident : $arg_ty:ty ),* ) )? = $index:expr ),* $(,)?
+    ($mod:ident, $( #[ $ty_attr:meta ] )* $vis:vis enum $ty:ident {
+        $( $( #[$( $constr_attr:tt )*] )* $constr:ident $( ( $( $arg_name:ident : $arg_ty:ty ),* ) )? = $index:expr ),* $(,)?
     }) => {
         $crate::as_item! {
             $( #[$ty_attr] )*
@@ -190,26 +264,48 @@ macro_rules! make_case_elim {
                 $( pub $constr : Elim::$constr, )*
             }
 
-            impl<T> PackedElim for $crate::typed::Pure<T> {
-                $( type $constr = T; )*
-            }
+            pub type PureCases<Elim> = $crate::typed::ElimCase<Cases<$crate::typed::Pure<Elim>>>;
+        }
 
-            pub type PureCases<Elim> = Cases<$crate::typed::Pure<Elim>>;
+        impl<T> $mod::PackedElim for $crate::typed::Pure<T> {
+            $( type $constr = $crate::typed::Pure<T>; )*
+        }
+
+        #[allow(unused_parens)]
+        impl<Target> $mod::PackedElim for $crate::typed::WeakHead<$ty, Target>
+            where $(
+                $crate::typed::WeakHead<$crate::make_weak_head_type!(Target, $( #[$( $constr_attr )*] )* , $( $( $arg_ty ),* )?), Target> :
+                $crate::typed::SynthTyped<($( ($( $arg_ty, )*), )? ()), Target>,
+            )*
+        {
+            $( type $constr =
+               <$crate::typed::WeakHead<$crate::make_weak_head_type!(Target, $( #[$( $constr_attr )*] )* , $( $( $arg_ty ),* )?), Target>
+               as $crate::typed::SynthTyped<($( ($( $arg_ty, )*), )? ()), Target>>::Expr;
+            )*
+        }
+
+        #[allow(unused_parens)]
+        impl<Context, Target> $crate::typed::SynthTyped<(($ty,), Context), Target> for $crate::typed::WeakHead<$ty, Target>
+            where $(
+                $crate::typed::WeakHead<$crate::make_weak_head_type!(Target, $( #[$( $constr_attr )*] )* , $( $( $arg_ty ),* )?), Target> :
+                $crate::typed::SynthTyped<($( ($( $arg_ty, )*), )? ()), Target>,
+            )*
+        {
+            type Expr = $crate::typed::ElimCase<$mod::Cases<$crate::typed::WeakHead<$ty, Target>>>;
         }
 
         #[allow(unused_parens)]
         impl<'a, 'b, Elim: $mod::PackedElim, Context, Type, S>
-            $crate::typed::Typed<Context, Type, S> for $crate::typed::ElimCase<&'a $ty, &'b $mod::Cases<Elim>, Type>
+            $crate::typed::Typed<((&'a $ty,), Context), Type, S> for &'b $crate::typed::ElimCase<$mod::Cases<Elim>>
             where
-                $( &'b Elim::$constr: $crate::typed::Typed<($( ($( &'a $arg_ty, )*), )? Context), Type, S>, )*
+                $( &'b Elim::$constr: $crate::typed::Typed<($( ($( &'a $arg_ty, )*), )? Context), Type, S> ),*
         {
-            fn reduce(self, context: Context) -> (Type, S)
+            fn reduce(self, ((head,), context): ((&'a $ty,), Context)) -> (Type, S)
             {
-                let Self { expr, cases, .. } = self;
-                match expr {
+                match head {
                     $( $ty::$constr $( ($( $arg_name, )*) )? =>
                         <_ as $crate::typed::Typed<_, Type, _>>::reduce(
-                            &cases.$constr,
+                            &self.cases.$constr,
                             ($( ($( $arg_name, )*), )? context),
                         ),
                     )*
@@ -218,24 +314,132 @@ macro_rules! make_case_elim {
         }
 
         impl $ty {
-            pub fn elim_case<'a, 'b, Elim: $mod::PackedElim, Context, S, Type>(&'a self, cases: &'b $mod::Cases<Elim>, context: Context) ->
-                (Type, S)
+            pub fn elim<'a, Elim, Context, S, Type>(&'a self, elim: Elim, context: Context) -> (Type, S)
             where
-                $crate::typed::ElimCase<&'a $ty, &'b $mod::Cases<Elim>, Type> : $crate::typed::Typed<Context, Type, S>,
+                Elim : $crate::typed::Typed<((&'a $ty,), Context), Type, S>,
             {
-                use $crate::typed::Typed;
-
-                let case = $crate::typed::ElimCase {
-                    expr: self,
-                    cases,
-                    ty: ::core::marker::PhantomData,
-                };
-                case.reduce(context)
+                elim.reduce(((self,), context))
             }
 
             pub fn elim_case_pure<'a, 'b, Type>(&'a self, cases: &'b $mod::PureCases<Type>) -> &'b Type
             {
-                let ($crate::typed::Pure(expr), ()) = self.elim_case(cases, ());
+                let (expr, ()) = self.elim(cases, ());
+                expr
+            }
+
+            #[allow(unused_parens)]
+            pub fn elim_case_weak<'a, 'b, Type>(&'a self, cases: &'b $crate::typed::ElimWeak<Self, Type>) -> &'b Type
+            where $(
+                $crate::typed::WeakHead<$crate::make_weak_head_type!(Type, $( #[$( $constr_attr )*] )* , $( $( $arg_ty ),* )?), Type> :
+                $crate::typed::SynthTyped<($( ($( $arg_ty, )*), )? ()), Type>,
+            )*
+                &'b $crate::typed::ElimWeak<Self, Type> : $crate::typed::Typed<((&'a $ty,), ()), &'b Type, ()>,
+            {
+                let (expr, ()) = self.elim(cases, ());
+                expr
+            }
+        }
+    }
+}
+
+#[macro_export]
+macro_rules! make_proj_elim {
+    ($mod:ident, $( #[ $ty_attr:meta ] )* $vis:vis struct $ty:ident {
+        $( $( #[$( $constr_attr:tt )*] )* $field_vis:vis $constr:ident : $arg_ty:ty ),* $(,)?
+    }) => {
+        $crate::as_item! {
+            $( #[$ty_attr] )*
+            $vis struct $ty {
+                $( $field_vis $constr : $arg_ty, )*
+            }
+        }
+
+        #[allow(non_camel_case_types)]
+        #[allow(dead_code)]
+        $vis mod $mod {
+            use ::serde::{Deserialize, Serialize};
+
+            pub trait PackedElim {
+                $( type $constr; )*
+            }
+
+            #[derive(Serialize, Deserialize)]
+            pub enum Proj<Elim: PackedElim> {
+                $( $constr(Elim::$constr), )*
+            }
+
+            pub type PureProj<Elim> = $crate::typed::ElimProj<Proj<$crate::typed::Pure<Elim>>>;
+        }
+
+        impl<T> $mod::PackedElim for $crate::typed::Pure<T> {
+            $( type $constr = $crate::typed::Pure<T>; )*
+        }
+
+        #[allow(unused_parens)]
+        impl<Target> $mod::PackedElim for $crate::typed::WeakHead<$ty, Target>
+            where $(
+                $crate::typed::WeakHead<$crate::make_weak_head_type!(Target, $( #[$( $constr_attr )*] )* , $arg_ty), Target> :
+                $crate::typed::SynthTyped<(($arg_ty,), ()), Target>,
+            )*
+        {
+            $( type $constr =
+               <$crate::typed::WeakHead<$crate::make_weak_head_type!(Target, $( #[$( $constr_attr )*] )* , $arg_ty), Target>
+               as $crate::typed::SynthTyped<(($arg_ty,), ()), Target>>::Expr;
+            )*
+        }
+
+        #[allow(unused_parens)]
+        impl<Context, Target> $crate::typed::SynthTyped<(($ty,), Context), Target> for $crate::typed::WeakHead<$ty, Target>
+            where $(
+                $crate::typed::WeakHead<$crate::make_weak_head_type!(Target, $( #[$( $constr_attr )*] )* , $arg_ty), Target> :
+                $crate::typed::SynthTyped<(($arg_ty,), ()), Target>,
+            )*
+        {
+            type Expr = $crate::typed::ElimProj<$mod::Proj<$crate::typed::WeakHead<$ty, Target>>>;
+        }
+
+        #[allow(unused_parens)]
+        impl<'a, 'b, Elim: $mod::PackedElim, Context, Type, S>
+            $crate::typed::Typed<((&'a $ty,), Context), Type, S> for &'b $crate::typed::ElimProj<$mod::Proj<Elim>>
+            where
+                $( &'b Elim::$constr: $crate::typed::Typed<((&'a $arg_ty,), Context), Type, S> ),*
+        {
+            fn reduce(self, ((head,), context): ((&'a $ty,), Context)) -> (Type, S)
+            {
+                match self.proj {
+                    $( $mod::Proj::$constr(ref projection) =>
+                        <_ as $crate::typed::Typed<_, Type, _>>::reduce(
+                            projection,
+                            ((&head.$constr,), context),
+                        ),
+                    )*
+                }
+            }
+        }
+
+        impl $ty {
+            pub fn elim<'a, Elim, Context, S, Type>(&'a self, elim: Elim, context: Context) -> (Type, S)
+            where
+                Elim : $crate::typed::Typed<((&'a $ty,), Context), Type, S>,
+            {
+                elim.reduce(((self,), context))
+            }
+
+            pub fn elim_proj_pure<'a, 'b, Type>(&'a self, cases: &'b $mod::PureProj<Type>) -> &'b Type
+            {
+                let (expr, ()) = self.elim(cases, ());
+                expr
+            }
+
+            #[allow(unused_parens)]
+            pub fn elim_proj_weak<'a, 'b, Type>(&'a self, cases: &'b $crate::typed::ElimWeak<Self, Type>) -> &'b Type
+            where $(
+                $crate::typed::WeakHead<$crate::make_weak_head_type!(Type, $( #[$( $constr_attr )*] )* , $arg_ty), Type> :
+                $crate::typed::SynthTyped<(($arg_ty,), ()), Type>,
+            )*
+                &'b $crate::typed::ElimWeak<Self, Type> : $crate::typed::Typed<((&'a $ty,), ()), &'b Type, ()>,
+            {
+                let (expr, ()) = self.elim(cases, ());
                 expr
             }
         }
