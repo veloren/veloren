@@ -337,6 +337,12 @@ where
 
 lazy_static! {
     /// Lazy static to find and cache where the asset directory is.
+    /// Cases we need to account for:
+    /// 1. Running through airshipper (`assets` next to binary)
+    /// 2. Install with package manager and run (assets probably in `/usr/share/veloren/assets` while binary in `/usr/bin/`)
+    /// 3. Download & hopefully extract zip (`assets` next to binary)
+    /// 4. Running through cargo (`assets` in workspace root but not always in cwd incase you `cd voxygen && cargo r`)
+    /// 5. Running executable in the target dir (`assets` in workspace)
     pub static ref ASSETS_PATH: PathBuf = {
         let mut paths = Vec::new();
 
@@ -347,44 +353,48 @@ lazy_static! {
             paths.push(var.into());
         }
 
-        // 2. System paths
-        #[cfg(all(unix, not(target_os = "macos"), not(target_os = "ios"), not(target_os = "android")))]
-        {
-            if let Ok(result) = std::env::var("XDG_DATA_HOME") {
-                paths.push(format!("{}/veloren/assets", result).into());
-            } else if let Ok(result) = std::env::var("HOME") {
-                paths.push(format!("{}/.local/share/veloren/assets", result).into());
-            }
-
-            if let Ok(result) = std::env::var("XDG_DATA_DIRS") {
-                result.split(':').for_each(|x| paths.push(format!("{}/veloren/assets", x).into()));
-            } else {
-                // Fallback
-                let fallback_paths = vec!["/usr/local/share", "/usr/share"];
-                for fallback_path in fallback_paths {
-                    paths.push(format!("{}/veloren/assets", fallback_path).into());
-                }
-            }
-        }
-
-        // 3. Executable path
+        // 2. Executable path
         if let Ok(mut path) = std::env::current_exe() {
             path.pop();
             paths.push(path);
         }
 
-        // 4. Working path
+        // 3. Working path
         if let Ok(path) = std::env::current_dir() {
             paths.push(path);
+        }
+
+        // 4. Cargo Workspace (e.g. local development)
+        // https://github.com/rust-lang/cargo/issues/3946#issuecomment-359619839
+        if let Ok(Ok(path)) = std::env::var("CARGO_MANIFEST_DIR").map(|s| s.parse::<PathBuf>()) {
+            paths.push(path.parent().unwrap().to_path_buf());
+            paths.push(path);
+        }
+
+        // 5. System paths
+        #[cfg(all(unix, not(target_os = "macos"), not(target_os = "ios"), not(target_os = "android")))]
+        {
+            if let Ok(result) = std::env::var("XDG_DATA_HOME") {
+                paths.push(format!("{}/veloren/", result).into());
+            } else if let Ok(result) = std::env::var("HOME") {
+                paths.push(format!("{}/.local/share/veloren/", result).into());
+            }
+
+            if let Ok(result) = std::env::var("XDG_DATA_DIRS") {
+                result.split(':').for_each(|x| paths.push(format!("{}/veloren/", x).into()));
+            } else {
+                // Fallback
+                let fallback_paths = vec!["/usr/local/share", "/usr/share"];
+                for fallback_path in fallback_paths {
+                    paths.push(format!("{}/veloren/", fallback_path).into());
+                }
+            }
         }
 
         tracing::trace!("Possible asset locations paths={:?}", paths);
 
         for path in paths.clone() {
-            match find_folder::Search::ParentsThenKids(3, 1)
-                .of(path)
-                .for_folder("assets")
-            {
+            match find_folder::check_dir("assets", &path) {
                 Ok(assets_path) => {
                     tracing::info!("Assets found path={}", assets_path.display());
                     return assets_path;
