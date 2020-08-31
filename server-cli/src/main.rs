@@ -1,180 +1,27 @@
 #![deny(unsafe_code)]
 
+mod tui_runner;
+mod tuilog;
+
 #[macro_use] extern crate lazy_static;
 
+use crate::{
+    tui_runner::{Message, Tui},
+    tuilog::TuiLog,
+};
 use common::clock::Clock;
 use server::{Event, Input, Server, ServerSettings};
 use tracing::{error, info, warn, Level};
 use tracing_subscriber::{filter::LevelFilter, EnvFilter, FmtSubscriber};
 
 use clap::{App, Arg};
-use crossterm::{
-    event::{DisableMouseCapture, EnableMouseCapture},
-    execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
-};
-use std::{
-    io::{self, Write},
-    sync::{mpsc, Arc, Mutex},
-    time::Duration,
-};
-use tui::{
-    backend::CrosstermBackend,
-    layout::Rect,
-    text::Text,
-    widgets::{Block, Borders, Paragraph, Wrap},
-    Terminal,
-};
+use std::{io, sync::mpsc, time::Duration};
 
 const TPS: u64 = 30;
 const RUST_LOG_ENV: &str = "RUST_LOG";
 
-#[derive(Debug, Clone)]
-enum Message {
-    Quit,
-}
-
-const COMMANDS: [Command; 2] = [
-    Command {
-        name: "quit",
-        description: "Closes the server",
-        split_spaces: true,
-        args: 0,
-        cmd: |_, sender| sender.send(Message::Quit).unwrap(),
-    },
-    Command {
-        name: "help",
-        description: "List all command available",
-        split_spaces: true,
-        args: 0,
-        cmd: |_, _| {
-            info!("===== Help =====");
-            for command in COMMANDS.iter() {
-                info!("{} - {}", command.name, command.description)
-            }
-            info!("================");
-        },
-    },
-];
-
-struct Command<'a> {
-    pub name: &'a str,
-    pub description: &'a str,
-    // Whether or not the command splits the arguments on whitespace
-    pub split_spaces: bool,
-    pub args: usize,
-    pub cmd: fn(Vec<String>, &mut mpsc::Sender<Message>),
-}
-
 lazy_static! {
     static ref LOG: TuiLog<'static> = TuiLog::default();
-}
-
-#[derive(Debug, Default, Clone)]
-struct TuiLog<'a> {
-    inner: Arc<Mutex<Text<'a>>>,
-}
-
-impl<'a> TuiLog<'a> {
-    fn resize(&self, h: usize) {
-        let mut inner = self.inner.lock().unwrap();
-
-        if inner.height() > h {
-            let length = inner.height() - h;
-            inner.lines.drain(0..length);
-        }
-    }
-
-    fn height(&self, rect: Rect) -> u16 {
-        // TODO: There's probably a better solution
-        let inner = self.inner.lock().unwrap();
-        let mut h = 0;
-
-        for line in inner.lines.iter() {
-            let mut w = 0;
-
-            for word in line.0.iter() {
-                if word.width() + w > rect.width as usize {
-                    h += (word.width() / rect.width as usize).min(1);
-                    w = word.width() % rect.width as usize;
-                } else {
-                    w += word.width();
-                }
-            }
-
-            h += 1;
-        }
-
-        h as u16
-    }
-}
-
-impl<'a> Write for TuiLog<'a> {
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        use ansi_parser::{AnsiParser, AnsiSequence, Output};
-        use tui::{
-            style::{Color, Modifier},
-            text::{Span, Spans},
-        };
-
-        let line = String::from_utf8(buf.into())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-        let mut spans = Vec::new();
-        let mut span = Span::raw("");
-
-        for out in line.ansi_parse() {
-            match out {
-                Output::TextBlock(text) => {
-                    span.content = format!("{}{}", span.content.to_owned(), text).into()
-                },
-                Output::Escape(seq) => {
-                    if span.content.len() != 0 {
-                        spans.push(span);
-
-                        span = Span::raw("");
-                    }
-
-                    match seq {
-                        AnsiSequence::SetGraphicsMode(values) => {
-                            const COLOR_TABLE: [Color; 8] = [
-                                Color::Black,
-                                Color::Red,
-                                Color::Green,
-                                Color::Yellow,
-                                Color::Blue,
-                                Color::Magenta,
-                                Color::Cyan,
-                                Color::White,
-                            ];
-
-                            let mut iter = values.iter();
-
-                            match iter.next().unwrap() {
-                                0 => {},
-                                2 => span.style.add_modifier = Modifier::DIM,
-                                idx @ 30..=37 => {
-                                    span.style.fg = Some(COLOR_TABLE[(idx - 30) as usize])
-                                },
-                                _ => println!("{:#?}", values),
-                            }
-                        },
-                        _ => println!("{:#?}", seq),
-                    }
-                },
-            }
-        }
-
-        if span.content.len() != 0 {
-            spans.push(span);
-        }
-
-        self.inner.lock().unwrap().lines.push(Spans(spans));
-
-        Ok(buf.len())
-    }
-
-    fn flush(&mut self) -> io::Result<()> { Ok(()) }
 }
 
 fn main() -> io::Result<()> {
@@ -199,6 +46,7 @@ fn main() -> io::Result<()> {
         .get_matches();
 
     let basic = matches.is_present("basic");
+    let (mut tui, msg_r) = Tui::new();
 
     // Init logging
     let filter = match std::env::var_os(RUST_LOG_ENV).map(|s| s.into_string()) {
@@ -230,10 +78,8 @@ fn main() -> io::Result<()> {
         subscriber.with_writer(|| LOG.clone()).init();
     }
 
-    let (sender, receiver) = mpsc::channel();
-
     if !basic {
-        start_tui(sender);
+        tui.run();
     }
 
     info!("Starting server...");
@@ -268,7 +114,7 @@ fn main() -> io::Result<()> {
         // Clean up the server after a tick.
         server.cleanup();
 
-        match receiver.try_recv() {
+        match msg_r.try_recv() {
             Ok(msg) => match msg {
                 Message::Quit => {
                     info!("Closing the server");
@@ -285,150 +131,8 @@ fn main() -> io::Result<()> {
         clock.tick(Duration::from_millis(1000 / TPS));
     }
 
-    if !basic {
-        stop_tui();
-    }
+    drop(tui);
+    std::thread::sleep(Duration::from_millis(10));
 
     Ok(())
-}
-
-fn start_tui(mut sender: mpsc::Sender<Message>) {
-    enable_raw_mode().unwrap();
-    let mut stdout = io::stdout();
-    execute!(stdout, EnterAlternateScreen, EnableMouseCapture).unwrap();
-
-    let hook = std::panic::take_hook();
-    std::panic::set_hook(Box::new(move |info| {
-        stop_tui();
-        hook(info);
-    }));
-
-    std::thread::spawn(move || {
-        // Start the tui
-        let stdout = io::stdout();
-        let backend = CrosstermBackend::new(stdout);
-        let mut terminal = Terminal::new(backend).unwrap();
-
-        let mut input = String::new();
-
-        let _ = terminal.clear();
-
-        loop {
-            let _ = terminal.draw(|f| {
-                let (log_rect, input_rect) = if f.size().height > 6 {
-                    let mut log_rect = f.size();
-                    log_rect.height -= 3;
-
-                    let mut input_rect = f.size();
-                    input_rect.y = input_rect.height - 3;
-                    input_rect.height = 3;
-
-                    (log_rect, input_rect)
-                } else {
-                    (f.size(), Rect::default())
-                };
-
-                let block = Block::default().borders(Borders::ALL);
-                let size = block.inner(log_rect);
-
-                LOG.resize(size.height as usize);
-
-                let scroll = (LOG.height(size) as i16 - size.height as i16).max(0) as u16;
-
-                print!("{} {} {}", LOG.height(size) as i16, size.width, size.height);
-
-                let logger = Paragraph::new(LOG.inner.lock().unwrap().clone())
-                    .block(block)
-                    .wrap(Wrap { trim: false })
-                    .scroll((scroll, 0));
-                f.render_widget(logger, log_rect);
-
-                let text: Text = input.as_str().into();
-
-                let block = Block::default().borders(Borders::ALL);
-                let size = block.inner(input_rect);
-
-                let x = (size.x + text.width() as u16).min(size.width);
-
-                let input_field = Paragraph::new(text).block(block);
-                f.render_widget(input_field, input_rect);
-
-                f.set_cursor(x, size.y);
-
-                use crossterm::event::*;
-
-                if poll(Duration::from_millis(10)).unwrap() {
-                    if let Event::Key(event) = read().unwrap() {
-                        match event.code {
-                            KeyCode::Char('c') => {
-                                if event.modifiers.contains(KeyModifiers::CONTROL) {
-                                    sender.send(Message::Quit).unwrap()
-                                } else {
-                                    input.push('c');
-                                }
-                            },
-                            KeyCode::Char(c) => input.push(c),
-                            KeyCode::Backspace => {
-                                input.pop();
-                            },
-                            KeyCode::Enter => {
-                                let mut args = input.as_str().split_whitespace();
-
-                                if let Some(cmd_name) = args.next() {
-                                    if let Some(cmd) =
-                                        COMMANDS.iter().find(|cmd| cmd.name == cmd_name)
-                                    {
-                                        let args = args.collect::<Vec<_>>();
-
-                                        let (arg_len, args) = if cmd.split_spaces {
-                                            (
-                                                args.len(),
-                                                args.into_iter()
-                                                    .map(|s| s.to_string())
-                                                    .collect::<Vec<String>>(),
-                                            )
-                                        } else {
-                                            (1, vec![args.into_iter().collect::<String>()])
-                                        };
-
-                                        match arg_len.cmp(&cmd.args) {
-                                            std::cmp::Ordering::Less => {
-                                                error!("{} takes {} arguments", cmd_name, cmd.args)
-                                            },
-                                            std::cmp::Ordering::Greater => {
-                                                warn!(
-                                                    "{} only takes {} arguments",
-                                                    cmd_name, cmd.args
-                                                );
-                                                let cmd = cmd.cmd;
-
-                                                cmd(args, &mut sender)
-                                            },
-                                            std::cmp::Ordering::Equal => {
-                                                let cmd = cmd.cmd;
-
-                                                cmd(args, &mut sender)
-                                            },
-                                        }
-                                    } else {
-                                        error!("{} not found", cmd_name);
-                                    }
-                                }
-
-                                input = String::new();
-                            },
-                            _ => {},
-                        }
-                    }
-                }
-            });
-        }
-    });
-}
-
-fn stop_tui() {
-    let mut stdout = io::stdout();
-
-    disable_raw_mode().unwrap();
-    execute!(stdout, LeaveAlternateScreen, DisableMouseCapture).unwrap();
 }
