@@ -11,7 +11,7 @@ use crate::{
 };
 use common::clock::Clock;
 use server::{Event, Input, Server, ServerSettings};
-use tracing::{error, info, warn, Level};
+use tracing::{info, Level};
 use tracing_subscriber::{filter::LevelFilter, EnvFilter, FmtSubscriber};
 
 use clap::{App, Arg};

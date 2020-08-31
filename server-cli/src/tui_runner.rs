@@ -6,7 +6,7 @@ use crossterm::{
 };
 use std::{
     io::{self, Write},
-    sync::mpsc,
+    sync::{Arc, mpsc, atomic::{AtomicBool, Ordering}},
     time::Duration,
 };
 use tracing::{error, info, warn};
@@ -58,6 +58,7 @@ pub const COMMANDS: [Command; 2] = [
 pub struct Tui {
     msg_s: Option<mpsc::Sender<Message>>,
     background: Option<std::thread::JoinHandle<()>>,
+    running: Arc<AtomicBool>,
 }
 
 impl Tui {
@@ -67,12 +68,11 @@ impl Tui {
             Self {
                 msg_s: Some(msg_s),
                 background: None,
+                running: Arc::new(AtomicBool::new(true)),
             },
             msg_r,
         )
     }
-
-    fn inner() {}
 
     fn handle_events(input: &mut String, msg_s: &mut mpsc::Sender<Message>) {
         use crossterm::event::*;
@@ -142,10 +142,12 @@ impl Tui {
 
         let hook = std::panic::take_hook();
         std::panic::set_hook(Box::new(move |info| {
+            Self::shutdown();
             hook(info);
         }));
 
         let mut msg_s = self.msg_s.take().unwrap();
+        let running = self.running.clone();
 
         self.background = Some(std::thread::spawn(move || {
             // Start the tui
@@ -155,10 +157,19 @@ impl Tui {
 
             let mut input = String::new();
 
-            let _ = terminal.clear();
+            if let Err(e) = terminal.clear() {
+                error!(?e, "clouldn't clean terminal");
+            };
+            let mut i: u64 = 0;
 
-            loop {
-                let _ = terminal.draw(|f| {
+            while running.load(Ordering::Relaxed) {
+                i += 1;
+                // This is a tmp fix that does a full redraw all 10 ticks, in case the backend breaks (which happens sometimes)
+                if i.rem_euclid(10) == 0 {
+                    let size = terminal.size().unwrap();
+                    terminal.resize(size).unwrap();
+                }
+                if let Err(e) = terminal.draw(|f| {
                     let (log_rect, input_rect) = if f.size().height > 6 {
                         let mut log_rect = f.size();
                         log_rect.height -= 3;
@@ -179,7 +190,7 @@ impl Tui {
 
                     let scroll = (LOG.height(size) as i16 - size.height as i16).max(0) as u16;
 
-                    print!("{} {} {}", LOG.height(size) as i16, size.width, size.height);
+                    //trace!(?i, "{} {} {}", LOG.height(size) as i16, size.width, size.height);
 
                     let logger = Paragraph::new(LOG.inner.lock().unwrap().clone())
                         .block(block)
@@ -198,23 +209,32 @@ impl Tui {
                     f.render_widget(input_field, input_rect);
 
                     f.set_cursor(x, size.y);
-
-                    use crossterm::event::*;
-
-                    if poll(Duration::from_millis(10)).unwrap() {
-                        Self::handle_events(&mut input, &mut msg_s);
-                    };
-                });
+                }) {
+                    warn!(?e, "couldn't draw frame");
+                };
+                if crossterm::event::poll(Duration::from_millis(100)).unwrap() {
+                    Self::handle_events(&mut input, &mut msg_s);
+                };
             }
+
+            if let Err(e) = terminal.clear() {
+                error!(?e, "clouldn't clean terminal");
+            };
         }));
+    }
+
+    fn shutdown() {
+        let mut stdout = io::stdout();
+
+        disable_raw_mode().unwrap();
+        execute!(stdout, LeaveAlternateScreen, DisableMouseCapture).unwrap();
     }
 }
 
 impl Drop for Tui {
     fn drop(&mut self) {
-        let mut stdout = io::stdout();
-
-        disable_raw_mode().unwrap();
-        execute!(stdout, LeaveAlternateScreen, DisableMouseCapture).unwrap();
+        self.running.store(false, Ordering::Relaxed);
+        self.background.take().map(|m| m.join());
+        Self::shutdown();
     }
 }
