@@ -186,7 +186,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             scaler: SkeletonAttr::calculate_scale(body),
             head_scale: match (body.species, body.body_type) {
                 (Orc, Male) => 0.9,
-                (Orc, Female) => 1.0,
+                (Orc, Female) => 0.9,
                 (Human, Male) => 0.9,
                 (Human, Female) => 0.9,
                 (Elf, Male) => 0.9,
