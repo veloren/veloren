@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, FlaggedStorage, VecStorage};
 use specs_idvs::IdvStorage;
 use std::collections::VecDeque;
+use vek::Vec3;
 
 /// Data returned from character behavior fn's to Character Behavior System.
 pub struct StateUpdate {
@@ -151,6 +152,7 @@ pub struct Attacking {
     pub knockback: f32,
     pub is_melee: bool,
     pub lifesteal_eff: f32,
+    pub look_dir: Option<Vec3<f32>>,
 }
 
 impl Component for Attacking {
