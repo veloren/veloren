@@ -150,22 +150,25 @@ impl<'a> System<'a> for Sys {
                     }
 
                     if damage.healthchange != 0.0 {
-                        let cause = if is_heal { HealthSource::Healing { by: Some(*uid) } } else { HealthSource::Attack { by: *uid } };
-                        server_emitter.emit(ServerEvent::Damage {
-                            uid: *uid_b,
-                            change: HealthChange {
-                                amount: damage.healthchange as i32,
-                                cause,
-                            },
-                        });
-                        if attack.lifesteal_eff > 0.0 && is_damage {
+                        if is_damage || stats_b.health.current() != stats_b.health.maximum() {
+                            let cause = if is_heal { HealthSource::Healing { by: Some(*uid) } } else { HealthSource::Attack { by: *uid } };
                             server_emitter.emit(ServerEvent::Damage {
-                                uid: *uid,
+                                uid: *uid_b,
                                 change: HealthChange {
-                                    amount: (-damage.healthchange * attack.lifesteal_eff) as i32,
-                                    cause: HealthSource::Attack { by: *uid },
+                                    amount: damage.healthchange as i32,
+                                    cause,
                                 },
                             });
+                            if attack.lifesteal_eff > 0.0 && is_damage {
+                                server_emitter.emit(ServerEvent::Damage {
+                                    uid: *uid,
+                                    change: HealthChange {
+                                        amount: (-damage.healthchange * attack.lifesteal_eff) as i32,
+                                        cause: HealthSource::Healing { by: Some(*uid) },
+                                    },
+                                });
+                            }
+                            attack.hit_count += 1;
                         }
                     }
                     if attack.knockback != 0.0 && damage.healthchange != 0.0 {
@@ -176,7 +179,6 @@ impl<'a> System<'a> for Sys {
                                 * *Dir::slerp(kb_dir, Dir::new(Vec3::new(0.0, 0.0, 1.0)), 0.5),
                         });
                     }
-                    attack.hit_count += 1;
                 }
             }
         }
