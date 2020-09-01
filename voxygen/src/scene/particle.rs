@@ -57,31 +57,36 @@ impl ParticleMgr {
                 power,
                 reagent,
             } => {
-                self.particles.resize(
-                    self.particles.len() + 150,
-                    Particle::new(
-                        Duration::from_millis(if reagent.is_some() { 1000 } else { 250 }),
-                        time,
-                        match reagent {
-                            Some(Reagent::Blue) => ParticleMode::FireworkBlue,
-                            Some(Reagent::Green) => ParticleMode::FireworkGreen,
-                            Some(Reagent::Purple) => ParticleMode::FireworkPurple,
-                            Some(Reagent::Red) => ParticleMode::FireworkRed,
-                            Some(Reagent::Yellow) => ParticleMode::FireworkYellow,
-                            None => ParticleMode::Shrapnel,
-                        },
-                        *pos,
-                    ),
+                self.particles.resize_with(
+                    self.particles.len() + if reagent.is_some() { 300 } else { 150 },
+                    || {
+                        Particle::new(
+                            Duration::from_millis(if reagent.is_some() { 1000 } else { 250 }),
+                            time,
+                            match reagent {
+                                Some(Reagent::Blue) => ParticleMode::FireworkBlue,
+                                Some(Reagent::Green) => ParticleMode::FireworkGreen,
+                                Some(Reagent::Purple) => ParticleMode::FireworkPurple,
+                                Some(Reagent::Red) => ParticleMode::FireworkRed,
+                                Some(Reagent::Yellow) => ParticleMode::FireworkYellow,
+                                None => ParticleMode::Shrapnel,
+                            },
+                            *pos,
+                        )
+                    },
                 );
 
-                self.particles.resize_with(self.particles.len() + 200, || {
-                    Particle::new(
-                        Duration::from_secs(4),
-                        time,
-                        ParticleMode::CampfireSmoke,
-                        *pos + Vec2::<f32>::zero().map(|_| rng.gen_range(-1.0, 1.0) * power),
-                    )
-                });
+                self.particles.resize_with(
+                    self.particles.len() + if reagent.is_some() { 100 } else { 200 },
+                    || {
+                        Particle::new(
+                            Duration::from_secs(4),
+                            time,
+                            ParticleMode::CampfireSmoke,
+                            *pos + Vec2::<f32>::zero().map(|_| rng.gen_range(-1.0, 1.0) * power),
+                        )
+                    },
+                );
             },
             Outcome::ProjectileShot { .. } => {},
         }
@@ -185,25 +190,29 @@ impl ParticleMgr {
         let time = scene_data.state.get_time();
 
         // fire
-        self.particles.resize(
+        self.particles.resize_with(
             self.particles.len() + usize::from(self.scheduler.heartbeats(Duration::from_millis(3))),
-            Particle::new(
-                Duration::from_millis(250),
-                time,
-                ParticleMode::CampfireFire,
-                pos.0,
-            ),
+            || {
+                Particle::new(
+                    Duration::from_millis(250),
+                    time,
+                    ParticleMode::CampfireFire,
+                    pos.0,
+                )
+            },
         );
 
         // smoke
-        self.particles.resize(
+        self.particles.resize_with(
             self.particles.len() + usize::from(self.scheduler.heartbeats(Duration::from_millis(5))),
-            Particle::new(
-                Duration::from_secs(2),
-                time,
-                ParticleMode::CampfireSmoke,
-                pos.0,
-            ),
+            || {
+                Particle::new(
+                    Duration::from_secs(2),
+                    time,
+                    ParticleMode::CampfireSmoke,
+                    pos.0,
+                )
+            },
         );
     }
 
@@ -241,15 +250,17 @@ impl ParticleMgr {
             .join()
         {
             if let CharacterState::Boost(_) = character_state {
-                self.particles.resize(
+                self.particles.resize_with(
                     self.particles.len()
                         + usize::from(self.scheduler.heartbeats(Duration::from_millis(10))),
-                    Particle::new(
-                        Duration::from_secs(15),
-                        time,
-                        ParticleMode::CampfireSmoke,
-                        pos.0,
-                    ),
+                    || {
+                        Particle::new(
+                            Duration::from_secs(15),
+                            time,
+                            ParticleMode::CampfireSmoke,
+                            pos.0,
+                        )
+                    },
                 );
             }
         }

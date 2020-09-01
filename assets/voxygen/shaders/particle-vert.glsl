@@ -91,6 +91,15 @@ mat4 spin_in_axis(vec3 axis, float angle)
 		0,                                 0,                                 0,                                 1);
 }
 
+mat4 identity() {
+	return mat4(
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1
+	);
+}
+
 void main() {
 	float rand0 = hash(vec4(inst_entropy + 0));
 	float rand1 = hash(vec4(inst_entropy + 1));
@@ -108,7 +117,7 @@ void main() {
 	if (inst_mode == SMOKE) {
 		attr = Attr(
 			linear_motion(
-				vec3(0.0, 0.0, 0.0),
+				vec3(0),
 				vec3(rand2 * 0.02, rand3 * 0.02, 1.0 + rand4 * 0.1)
 			),
 			linear_scale(0.5),
@@ -148,52 +157,52 @@ void main() {
 	} else if (inst_mode == FIREWORK_BLUE) {
 		attr = Attr(
 			linear_motion(
-				vec3(0.0, 1.0, 1.0),
-				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
+				vec3(0),
+				vec3(rand1, rand2, rand3) * 40.0 + grav_vel(earth_gravity)
 			),
 			3.0 + rand0,
-			vec4(vec3(0.6 + rand7 * 0.4), 0.3),
-			spin_in_axis(vec3(1,0,0),0)
+			vec4(0.15, 0.4, 1, 1),
+			identity()
 		);
 	} else if (inst_mode == FIREWORK_GREEN) {
 		attr = Attr(
 			linear_motion(
-				vec3(0.0, 1.0, 0.0),
-				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
+				vec3(0),
+				vec3(rand1, rand2, rand3) * 40.0 + grav_vel(earth_gravity)
 			),
 			3.0 + rand0,
-			vec4(vec3(0.6 + rand7 * 0.4), 0.3),
-			spin_in_axis(vec3(1,0,0),0)
+			vec4(0, 1, 0, 1),
+			identity()
 		);
 	} else if (inst_mode == FIREWORK_PURPLE) {
 		attr = Attr(
 			linear_motion(
-				vec3(1.0, 0.0, 1.0),
-				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
+				vec3(0),
+				vec3(rand1, rand2, rand3) * 40.0 + grav_vel(earth_gravity)
 			),
 			3.0 + rand0,
-			vec4(vec3(0.6 + rand7 * 0.4), 0.3),
-			spin_in_axis(vec3(1,0,0),0)
+			vec4(0.7, 0.0, 1.0, 1.0),
+			identity()
 		);
 	} else if (inst_mode == FIREWORK_RED) {
 		attr = Attr(
 			linear_motion(
-				vec3(1.0, 0.0, 0.0),
-				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
+				vec3(0),
+				vec3(rand1, rand2, rand3) * 40.0 + grav_vel(earth_gravity)
 			),
 			3.0 + rand0,
-			vec4(vec3(0.6 + rand7 * 0.4), 0.3),
-			spin_in_axis(vec3(1,0,0),0)
+			vec4(1, 0, 0, 1),
+			identity()
 		);
 	} else if (inst_mode == FIREWORK_YELLOW) {
 		attr = Attr(
 			linear_motion(
-				vec3(1.0, 1.0, 0.0),
-				vec3(rand4, rand5, rand6) * 40.0 + grav_vel(earth_gravity)
+				vec3(0),
+				vec3(rand1, rand2, rand3) * 40.0 + grav_vel(earth_gravity)
 			),
 			3.0 + rand0,
-			vec4(vec3(0.6 + rand7 * 0.4), 0.3),
-			spin_in_axis(vec3(1,0,0),0)
+			vec4(1, 1, 0, 1),
+			identity()
 		);
 	} else if (inst_mode == LEAF) {
 		attr = Attr(
