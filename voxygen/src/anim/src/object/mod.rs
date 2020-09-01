@@ -35,7 +35,9 @@ impl Skeleton for ObjectSkeleton {
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
     ) -> Vec3<f32> {
         buf[0] = make_bone(base_mat * Mat4::scaling_3d(SCALE));
-        Vec3::default()
+        // TODO: Make dependent on bone, when we find an easier way to make that
+        // information available.
+        Vec3::unit_z() * 0.5
     }
 }
 

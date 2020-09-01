@@ -1,11 +1,15 @@
+use crate::{make_case_elim, make_proj_elim};
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct Body {
-    pub species: Species,
-    pub body_type: BodyType,
-}
+make_proj_elim!(
+    body,
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    pub struct Body {
+        pub species: Species,
+        pub body_type: BodyType,
+    }
+);
 
 impl Body {
     pub fn random() -> Self {
@@ -25,18 +29,21 @@ impl From<Body> for super::Body {
     fn from(body: Body) -> Self { super::Body::BirdMedium(body) }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum Species {
-    Duck = 0,
-    Chicken = 1,
-    Goose = 2,
-    Peacock = 3,
-    Eagle = 4,
-    Snowyowl = 5,
-    Parrot = 6,
-    Cockatrice = 7,
-}
+make_case_elim!(
+    species,
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    #[repr(u32)]
+    pub enum Species {
+        Duck = 0,
+        Chicken = 1,
+        Goose = 2,
+        Peacock = 3,
+        Eagle = 4,
+        Snowyowl = 5,
+        Parrot = 6,
+        Cockatrice = 7,
+    }
+);
 
 /// Data representing per-species generic data.
 ///
@@ -89,10 +96,13 @@ impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     fn into_iter(self) -> Self::IntoIter { ALL_SPECIES.iter().copied() }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum BodyType {
-    Female = 0,
-    Male = 1,
-}
+make_case_elim!(
+    body_type,
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    #[repr(u32)]
+    pub enum BodyType {
+        Female = 0,
+        Male = 1,
+    }
+);
 pub const ALL_BODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];

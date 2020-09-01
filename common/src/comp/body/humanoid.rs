@@ -1,20 +1,30 @@
-use crate::make_case_elim;
+use crate::{make_case_elim, make_proj_elim};
 use rand::{seq::SliceRandom, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct Body {
-    pub species: Species,
-    pub body_type: BodyType,
-    pub hair_style: u8,
-    pub beard: u8,
-    pub eyes: u8,
-    pub accessory: u8,
-    pub hair_color: u8,
-    pub skin: u8,
-    pub eye_color: u8,
-}
+make_proj_elim!(
+    body,
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    pub struct Body {
+        pub species: Species,
+        pub body_type: BodyType,
+        #[typed(pure)]
+        pub hair_style: u8,
+        #[typed(pure)]
+        pub beard: u8,
+        #[typed(pure)]
+        pub eyes: u8,
+        #[typed(pure)]
+        pub accessory: u8,
+        #[typed(pure)]
+        pub hair_color: u8,
+        #[typed(pure)]
+        pub skin: u8,
+        #[typed(pure)]
+        pub eye_color: u8,
+    }
+);
 
 impl Body {
     pub fn random() -> Self {
