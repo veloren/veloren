@@ -131,8 +131,5 @@ fn main() -> io::Result<()> {
         clock.tick(Duration::from_millis(1000 / TPS));
     }
 
-    drop(tui);
-    std::thread::sleep(Duration::from_millis(10));
-
     Ok(())
 }

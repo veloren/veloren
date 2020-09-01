@@ -4632,8 +4632,7 @@ checksum = "e604eb7b43c06650e854be16a2a03155743d3752dd1c943f6829e26b7a36e382"
 [[package]]
 name = "tui"
 version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a977b0bb2e2033a6fef950f218f13622c3c34e59754b704ce3492dedab1dfe95"
+source = "git+https://github.com/fdehau/tui-rs.git?branch=paragraph-scroll#54b841fab6cfdb38e8dc1382176e965787964b4c"
 dependencies = [
  "bitflags",
  "cassowary",

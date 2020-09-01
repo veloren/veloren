@@ -2,7 +2,8 @@ use std::{
     io::{self, Write},
     sync::{Arc, Mutex},
 };
-use tui::{layout::Rect, text::Text};
+use tracing::warn;
+use tui::text::Text;
 
 #[derive(Debug, Default, Clone)]
 pub struct TuiLog<'a> {
@@ -13,33 +14,7 @@ impl<'a> TuiLog<'a> {
     pub fn resize(&self, h: usize) {
         let mut inner = self.inner.lock().unwrap();
 
-        if inner.height() > h {
-            let length = inner.height() - h;
-            inner.lines.drain(0..length);
-        }
-    }
-
-    pub fn height(&self, rect: Rect) -> u16 {
-        // TODO: There's probably a better solution
-        let inner = self.inner.lock().unwrap();
-        let mut h = 0;
-
-        for line in inner.lines.iter() {
-            let mut w = 0;
-
-            for word in line.0.iter() {
-                if word.width() + w > rect.width as usize {
-                    h += (word.width() / rect.width as usize).min(1);
-                    w = word.width() % rect.width as usize;
-                } else {
-                    w += word.width();
-                }
-            }
-
-            h += 1;
-        }
-
-        h as u16
+        inner.lines.truncate(h);
     }
 }
 
@@ -86,14 +61,15 @@ impl<'a> Write for TuiLog<'a> {
 
                             match iter.next().unwrap() {
                                 0 => {},
+                                1 => span.style.add_modifier = Modifier::BOLD,
                                 2 => span.style.add_modifier = Modifier::DIM,
                                 idx @ 30..=37 => {
                                     span.style.fg = Some(COLOR_TABLE[(idx - 30) as usize])
                                 },
-                                _ => println!("{:#?}", values),
+                                _ => warn!("Unknown color {:#?}", values),
                             }
                         },
-                        _ => println!("{:#?}", seq),
+                        _ => warn!("Unknown sequence {:#?}", seq),
                     }
                 },
             }
