@@ -70,7 +70,7 @@ use world::{
 #[macro_use] extern crate diesel;
 #[macro_use] extern crate diesel_migrations;
 
-const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
+const CLIENT_TIMEOUT: f64 = 40.0; // Seconds
 
 #[derive(Copy, Clone)]
 struct SpawnPoint(Vec3<f32>);

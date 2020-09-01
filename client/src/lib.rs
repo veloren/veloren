@@ -53,7 +53,7 @@ use vek::*;
 // The duration of network inactivity until the player is kicked
 // @TODO: in the future, this should be configurable on the server
 // and be provided to the client
-const SERVER_TIMEOUT: f64 = 20.0;
+const SERVER_TIMEOUT: f64 = 40.0;
 
 // After this duration has elapsed, the user will begin getting kick warnings in
 // their chat window
