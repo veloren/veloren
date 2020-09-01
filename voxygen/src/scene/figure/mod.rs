@@ -378,10 +378,10 @@ impl FigureMgr {
         }
         let dt = ecs.fetch::<DeltaTime>().0;
         let updater = ecs.read_resource::<LazyUpdate>();
-        for (entity, waypoint, light_emitter_opt, light_anim) in (
+        for (entity, light_emitter_opt, body, light_anim) in (
             &ecs.entities(),
-            ecs.read_storage::<common::comp::WaypointArea>().maybe(),
             ecs.read_storage::<LightEmitter>().maybe(),
+            ecs.read_storage::<Body>().maybe(),
             &mut ecs.write_storage::<LightAnimation>(),
         )
             .join()
@@ -401,10 +401,7 @@ impl FigureMgr {
                 } else {
                     (vek::Rgb::zero(), 0.0, 0.0, true)
                 };
-            if let Some(_) = waypoint {
-                light_anim.offset = vek::Vec3::unit_z() * 5.0;
-            }
-            if let Some(state) = self.states.character_states.get(&entity) {
+            if let Some(state) = body.and_then(|body| self.states.get_mut(body, &entity)) {
                 light_anim.offset = vek::Vec3::from(state.lantern_offset);
             }
             if !light_anim.strength.is_normal() {

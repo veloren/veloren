@@ -1,13 +1,18 @@
+use crate::{make_case_elim, make_proj_elim};
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct Body {
-    pub head: Head,
-    pub torso: Torso,
-    pub wing_l: WingL,
-    pub wing_r: WingR,
-}
+make_proj_elim!(
+    body,
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    pub struct Body {
+        pub head: Head,
+        pub torso: Torso,
+        pub wing_l: WingL,
+        pub wing_r: WingR,
+    }
+);
+
 impl Body {
     pub fn random() -> Self {
         let mut rng = thread_rng();
@@ -20,30 +25,42 @@ impl Body {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum Head {
-    Default,
-}
+make_case_elim!(
+    head,
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    #[repr(u32)]
+    pub enum Head {
+        Default = 0,
+    }
+);
 const ALL_HEADS: [Head; 1] = [Head::Default];
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum Torso {
-    Default,
-}
+make_case_elim!(
+    torso,
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    #[repr(u32)]
+    pub enum Torso {
+        Default = 0,
+    }
+);
 const ALL_TORSOS: [Torso; 1] = [Torso::Default];
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum WingL {
-    Default,
-}
+make_case_elim!(
+    wing_l,
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    #[repr(u32)]
+    pub enum WingL {
+        Default = 0,
+    }
+);
 const ALL_WING_LS: [WingL; 1] = [WingL::Default];
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum WingR {
-    Default,
-}
+make_case_elim!(
+    wing_r,
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    #[repr(u32)]
+    pub enum WingR {
+        Default = 0,
+    }
+);
 const ALL_WING_RS: [WingR; 1] = [WingR::Default];
