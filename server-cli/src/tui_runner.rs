@@ -6,7 +6,10 @@ use crossterm::{
 };
 use std::{
     io::{self, Write},
-    sync::{Arc, mpsc, atomic::{AtomicBool, Ordering}},
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        mpsc, Arc,
+    },
     time::Duration,
 };
 use tracing::{error, info, warn};
@@ -136,9 +139,10 @@ impl Tui {
     }
 
     pub fn run(&mut self) {
-        enable_raw_mode().unwrap();
         let mut stdout = io::stdout();
         execute!(stdout, EnterAlternateScreen, EnableMouseCapture).unwrap();
+
+        enable_raw_mode().unwrap();
 
         let hook = std::panic::take_hook();
         std::panic::set_hook(Box::new(move |info| {
@@ -160,15 +164,8 @@ impl Tui {
             if let Err(e) = terminal.clear() {
                 error!(?e, "clouldn't clean terminal");
             };
-            let mut i: u64 = 0;
 
             while running.load(Ordering::Relaxed) {
-                i += 1;
-                // This is a tmp fix that does a full redraw all 10 ticks, in case the backend breaks (which happens sometimes)
-                if i.rem_euclid(10) == 0 {
-                    let size = terminal.size().unwrap();
-                    terminal.resize(size).unwrap();
-                }
                 if let Err(e) = terminal.draw(|f| {
                     let (log_rect, input_rect) = if f.size().height > 6 {
                         let mut log_rect = f.size();
@@ -184,18 +181,17 @@ impl Tui {
                     };
 
                     let block = Block::default().borders(Borders::ALL);
-                    let size = block.inner(log_rect);
 
-                    LOG.resize(size.height as usize);
-
-                    let scroll = (LOG.height(size) as i16 - size.height as i16).max(0) as u16;
-
-                    //trace!(?i, "{} {} {}", LOG.height(size) as i16, size.width, size.height);
+                    let mut wrap = Wrap::default();
+                    wrap.scroll_callback = Some(Box::new(|text_area, lines| {
+                        LOG.resize(text_area.height as usize);
+                        let len = lines.len() as u16;
+                        (len.saturating_sub(text_area.height), 0)
+                    }));
 
                     let logger = Paragraph::new(LOG.inner.lock().unwrap().clone())
                         .block(block)
-                        .wrap(Wrap { trim: false })
-                        .scroll((scroll, 0));
+                        .wrap(wrap);
                     f.render_widget(logger, log_rect);
 
                     let text: Text = input.as_str().into();
@@ -212,22 +208,18 @@ impl Tui {
                 }) {
                     warn!(?e, "couldn't draw frame");
                 };
-                if crossterm::event::poll(Duration::from_millis(100)).unwrap() {
+                if crossterm::event::poll(Duration::from_millis(10)).unwrap() {
                     Self::handle_events(&mut input, &mut msg_s);
                 };
             }
-
-            if let Err(e) = terminal.clear() {
-                error!(?e, "clouldn't clean terminal");
-            };
         }));
     }
 
     fn shutdown() {
         let mut stdout = io::stdout();
 
-        disable_raw_mode().unwrap();
         execute!(stdout, LeaveAlternateScreen, DisableMouseCapture).unwrap();
+        disable_raw_mode().unwrap();
     }
 }
 
