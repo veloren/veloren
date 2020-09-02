@@ -15,8 +15,8 @@ use core::convert::TryFrom;
 pub type Body = comp::quadruped_medium::Body;
 
 skeleton_impls!(struct QuadrupedMediumSkeleton {
-    + head_upper,
-    + head_lower,
+    + head,
+    + neck,
     + jaw,
     + tail,
     + torso_front,
@@ -48,21 +48,21 @@ impl Skeleton for QuadrupedMediumSkeleton {
     ) -> Vec3<f32> {
         let torso_front_mat = base_mat * Mat4::<f32>::from(self.torso_front);
         let torso_back_mat = torso_front_mat * Mat4::<f32>::from(self.torso_back);
-        let head_lower_mat = torso_front_mat * Mat4::<f32>::from(self.head_lower);
+        let neck_mat = torso_front_mat * Mat4::<f32>::from(self.neck);
         let leg_fl_mat = torso_front_mat * Mat4::<f32>::from(self.leg_fl);
         let leg_fr_mat = torso_front_mat * Mat4::<f32>::from(self.leg_fr);
         let leg_bl_mat = torso_back_mat * Mat4::<f32>::from(self.leg_bl);
         let leg_br_mat = torso_back_mat * Mat4::<f32>::from(self.leg_br);
-        let head_upper_mat = head_lower_mat * Mat4::<f32>::from(self.head_upper);
+        let head_mat = neck_mat * Mat4::<f32>::from(self.head);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(head_upper_mat),
-            make_bone(head_lower_mat),
-            make_bone(head_upper_mat * Mat4::<f32>::from(self.jaw)),
+            make_bone(head_mat),
+            make_bone(neck_mat),
+            make_bone(head_mat * Mat4::<f32>::from(self.jaw)),
             make_bone(torso_back_mat * Mat4::<f32>::from(self.tail)),
             make_bone(torso_front_mat),
             make_bone(torso_back_mat),
-            make_bone(head_upper_mat * Mat4::<f32>::from(self.ears)),
+            make_bone(head_mat * Mat4::<f32>::from(self.ears)),
             make_bone(leg_fl_mat),
             make_bone(leg_fr_mat),
             make_bone(leg_bl_mat),
@@ -77,8 +77,8 @@ impl Skeleton for QuadrupedMediumSkeleton {
 }
 
 pub struct SkeletonAttr {
-    head_upper: (f32, f32),
-    head_lower: (f32, f32),
+    head: (f32, f32),
+    neck: (f32, f32),
     jaw: (f32, f32),
     tail: (f32, f32),
     torso_back: (f32, f32),
@@ -109,8 +109,8 @@ impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
 impl Default for SkeletonAttr {
     fn default() -> Self {
         Self {
-            head_upper: (0.0, 0.0),
-            head_lower: (0.0, 0.0),
+            head: (0.0, 0.0),
+            neck: (0.0, 0.0),
             jaw: (0.0, 0.0),
             tail: (0.0, 0.0),
             torso_back: (0.0, 0.0),
@@ -133,7 +133,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
     fn from(body: &'a Body) -> Self {
         use comp::quadruped_medium::{BodyType::*, Species::*};
         Self {
-            head_upper: match (body.species, body.body_type) {
+            head: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.0, -1.0),
                 (Saber, _) => (0.0, -3.0),
                 (Tuskram, _) => (0.0, 1.0),
@@ -149,7 +149,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Deer, Female) => (0.5, 3.5),
                 (Hirdrassil, _) => (0.0, 5.0),
             },
-            head_lower: match (body.species, body.body_type) {
+            neck: match (body.species, body.body_type) {
                 (Grolgar, _) => (1.0, -1.0),
                 (Saber, _) => (1.0, 0.0),
                 (Tuskram, _) => (1.0, 1.0),

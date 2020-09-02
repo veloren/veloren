@@ -51,22 +51,22 @@ impl Animation for IdleAnimation {
                 * 0.125,
         );
 
-        next.head_upper.position = Vec3::new(
+        next.head.position = Vec3::new(
             0.0,
-            skeleton_attr.head_upper.0,
-            skeleton_attr.head_upper.1 + slower * 0.2,
+            skeleton_attr.head.0,
+            skeleton_attr.head.1 + slower * 0.2,
         );
-        next.head_upper.orientation =
+        next.head.orientation =
             Quaternion::rotation_z(0.3 * look.x) * Quaternion::rotation_x(0.3 * look.y);
-        next.head_upper.scale = Vec3::one();
+        next.head.scale = Vec3::one();
 
-        next.head_lower.position = Vec3::new(
+        next.neck.position = Vec3::new(
             0.0,
-            skeleton_attr.head_lower.0,
-            skeleton_attr.head_lower.1 + slower * 0.1,
+            skeleton_attr.neck.0,
+            skeleton_attr.neck.1 + slower * 0.1,
         );
-        next.head_lower.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-        next.head_lower.scale = Vec3::one() * 1.02;
+        next.neck.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+        next.neck.scale = Vec3::one() * 1.02;
 
         next.jaw.position = Vec3::new(
             0.0,

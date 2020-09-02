@@ -1209,7 +1209,7 @@ impl FigureMgr {
 
                     let target_base = match (
                         physics.on_ground,
-                        vel.0.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                        vel.0.magnitude_squared() > 0.25, // Moving
                         physics.in_fluid.is_some(),                       // In water
                     ) {
                         // Standing
