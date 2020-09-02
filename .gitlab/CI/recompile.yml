@@ -6,7 +6,7 @@
     - if: $CI_COMMIT_REF_NAME !~ /^master$/
       # No '-' here is *very* important: https://docs.gitlab.com/ee/ci/yaml/#complex-rule-clauses
       changes:
-        - "**/*.{rs,ron,toml,vox,png}"
+        - "**/*.{glsl,rs,ron,toml,vox,png}"
         - "rust-toolchain"
         - ".gitlab-ci.yml"
         - "**/*.yml"
@@ -17,7 +17,7 @@
     - veloren-docker
   rules:
     - changes:
-        - "**/*.{rs,ron,toml,vox,png,wav}"
+        - "**/*.{glsl,rs,ron,toml,vox,png,wav}"
         - "rust-toolchain"
         - ".gitlab-ci.yml"
         - "**/*.yml"
