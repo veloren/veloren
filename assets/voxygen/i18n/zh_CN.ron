@@ -1,4 +1,18 @@
-/// Localization for "global" Simplified Chinese
+/// 本地化文件说明
+///
+/// 为了使本地化文档可读,请遵循以下步骤
+/// 规则:
+/// - 使用说明下一部分目的的注释来分隔字符串映射部分
+/// - 中文本地化标点符号请统一使用 英文标点符号,例如',.?!:'
+/// - 在多行字符串前加上注释
+/// - 在多行字符串之后追加一个空白行,在两个节之后追加
+///
+/// 要在Veloren中添加新语言,只需增加对应语言文化代码的`.ron`文件
+/// 在游戏根目录下的 `assets/voxygen/i18n` 添加文件!
+///
+/// 注意: 本地化文件应以 UTF-8无BOM 格式保存
+
+/// "全局"本地化  Simplified Chinese-简体中文
 VoxygenLocalization(
     metadata: (
         language_name: "Simplified Chinese",
@@ -43,7 +57,7 @@ VoxygenLocalization(
         "common.video": "图像",
         "common.sound": "声音",
         "common.resume": "继续",
-        "common.characters": "人物",
+        "common.characters": "角色",
         "common.close": "关闭",
         "common.yes": "是",
         "common.no": "否",
@@ -51,15 +65,18 @@ VoxygenLocalization(
         "common.create": "创建",
         "common.okay": "好",
         "common.accept": "同意",
+        "common.decline": "拒绝",
         "common.disclaimer": "免责声明",
         "common.cancel": "返回",
         "common.none": "无",
         "common.error": "错误",
         "common.fatal_error": "致命错误",
+        "common.you": "你",
+        "common.automatic": "自动",
 
         // Message when connection to the server is lost
         "common.connection_lost": r#"连接丢失!
-服务器有没有重启?
+服务器是否重启?
 客户端是否更新?"#,
 
 
@@ -86,16 +103,17 @@ VoxygenLocalization(
         // Welcome notice that appears the first time Veloren is started
         "main.notice": r#"欢迎加入 Veloren Alpha版 !
 
-在您开始享受游戏之前，请注意一些事情:
+在您开始享受游戏之前,请注意一些事情:
 
-- 这是非常前期的 alpha 版本，您会遇到不少错误、未完成的游戏模式、未完善的游戏机制以及缺失的功能。 
+- 这是非常前期的 alpha 版本,您会遇到不少错误、未完成的游戏模式、未完善的游戏机制以及缺失的功能. 
 
-- 如果有建设性的意见反馈或是错误汇报，可以通过 Reddit、GitLab 或者我们的 Discord 服务器联系我们。
+- 如果有建设性的意见反馈或是错误汇报,可以通过 Reddit、GitLab 或者我们的 Discord 服务器联系我们.
 
-- Veloren 的授权条款是GPL3. 意思是你可以免费游玩，修改并重新发布游戏（衍生内容也必须是GPL3）
+- Veloren 的授权条款是GPL3. 意思是你可以免费游玩,
+修改并重新发布游戏（衍生内容也必须是GPL3）
 
 - Veloren 是一个非营利的社区项目, 参与该项目的都是志愿者.
-如果你想在项目中看到你的身影，欢迎加入开发或艺术团队!
+如果你想在项目中看到你的身影,欢迎加入开发或艺术团队!
 
 感谢您抽出宝贵的时间阅读此通知,希望您喜欢这款游戏!
 
@@ -104,7 +122,8 @@ VoxygenLocalization(
         // Login process description
         "main.login_process": r#"有关登录的信息:
 
-请注意，您现在需要一个账户，在启用身份验证的服务器上游玩。
+请注意,您现在需要一个账户,
+在启用身份验证的服务器上游玩.
 
 你可以通过下面的网站创建用户.
 
@@ -113,13 +132,13 @@ https://account.veloren.net."#,
         "main.login.authentication_error": "服务器验证错误",
         "main.login.server_full": "服务器已满",
         "main.login.untrusted_auth_server": "认证服务器不可信",
-        "main.login.outdated_client_or_server": "服务器与客户端可能版本不兼容，请检查更新.",
+        "main.login.outdated_client_or_server": "服务器与客户端可能版本不兼容,请检查更新.",
         "main.login.timeout": "超时: 服务器无法及时响应.",
         "main.login.server_shut_down": "服务器已关闭",
         "main.login.already_logged_in": "您已登入服务器.",
         "main.login.network_error": "网络错误",
         "main.login.failed_sending_request": "认证服务器请求失败",
-        "main.login.invalid_character": "选择的人物无效",
+        "main.login.invalid_character": "选择的角色无效",
         "main.login.client_crashed": "客户端崩溃",
         "main.login.not_on_whitelist": "您需要在管理员的白名单里才可以加入",
 
@@ -127,7 +146,7 @@ https://account.veloren.net."#,
 
 
         /// Start HUD Section
-        "hud.do_not_show_on_startup": "开始时不显示这个",
+        "hud.do_not_show_on_startup": "启动时不显示这个",
         "hud.show_tips": "显示提示",
         "hud.quests": "任务",
         "hud.you_died": "你死了",
@@ -148,7 +167,7 @@ https://account.veloren.net."#,
 
         // SCT outputs
         "hud.sct.experience": "{amount} 经验",
-        "hud.sct.block": "阻拦",
+        "hud.sct.block": "格挡",
 
         // Respawn message
         "hud.press_key_to_respawn": r#"按下 {key} 您可以在上一个复活点重生."#,
@@ -178,20 +197,20 @@ https://account.veloren.net."#,
 
 Veloren 的夜晚会变得非常的黑.
 
-按下 G 可以点亮你的灯笼.
+按下 G 可以点亮你的提灯.
 
 
-按下 Tab 可以释放光标用于关闭窗口!
+按下 Tab 可以释放鼠标指针用于关闭窗口!
 
 
 祝你在Veloren世界玩的愉快."#,
 
-"hud.temp_quest_headline": r#"请帮助我们，旅行者!"#,
+"hud.temp_quest_headline": r#"请帮助我们,旅行者!"#,
 "hud.temp_quest_text": r#"在我们宁静的城镇周围
 遍布地下城,里面充满了邪恶的信徒!
 
 
-组织人手, 带上食物
+组织队伍, 带上食物
 击败他们邪恶的领袖和同伙.
 
 
@@ -212,7 +231,7 @@ Veloren 的夜晚会变得非常的黑.
         "hud.bag.shoulders": "肩膀",
         "hud.bag.chest": "胸部",
         "hud.bag.hands": "手部",
-        "hud.bag.lantern": "灯笼",
+        "hud.bag.lantern": "提灯",
         "hud.bag.belt": "腰带",
         "hud.bag.ring": "戒指",
         "hud.bag.back": "背部",
@@ -234,7 +253,7 @@ Veloren 的夜晚会变得非常的黑.
         "hud.settings.help_window": "帮助",
         "hud.settings.debug_info": "调试信息",
         "hud.settings.tips_on_startup": "开始时的提示信息",
-        "hud.settings.ui_scale": "ui缩放",
+        "hud.settings.ui_scale": "UI缩放",
         "hud.settings.relative_scaling": "相对缩放",
         "hud.settings.custom_scaling": "自定义缩放",
         "hud.settings.crosshair": "准星",
@@ -243,7 +262,7 @@ Veloren 的夜晚会变得非常的黑.
         "hud.settings.toggle_shortcuts": "显示快捷键",
         "hud.settings.toggle_bar_experience": "显示经验条",
         "hud.settings.scrolling_combat_text": "战斗信息",
-        "hud.settings.single_damage_number": "单一伤害",
+        "hud.settings.single_damage_number": "单次伤害",
         "hud.settings.cumulated_damage": "累计伤害",
         "hud.settings.incoming_damage": "所受伤害",
         "hud.settings.cumulated_incoming_damage": "累计所受伤害",
@@ -279,6 +298,10 @@ Veloren 的夜晚会变得非常的黑.
         "hud.settings.fluid_rendering_mode.cheap": "简单",
         "hud.settings.fluid_rendering_mode.shiny": "闪烁",
         "hud.settings.cloud_rendering_mode.regular": "一般",
+        "hud.settings.particles": "粒子",
+        "hud.settings.resolution": "分辨率",
+        "hud.settings.bit_depth": "图像深度",
+        "hud.settings.refresh_rate": "刷新率",
         "hud.settings.fullscreen": "全屏",
         "hud.settings.save_window_size": "保存窗口大小",
 
@@ -291,17 +314,34 @@ Veloren 的夜晚会变得非常的黑.
         "hud.settings.reset_keybinds": "重置快捷键",
 
         "hud.social": "社交",
-        "hud.social.online": "线上",
+        "hud.social.online": "在线",
         "hud.social.friends": "好友",
         "hud.social.not_yet_available": "尚不可用",
-        "hud.social.faction": "派别",
+        "hud.social.faction": "阵营",
         "hud.social.play_online_fmt": "{nb_player} 玩家在线",
+        "hud.social.name": "名称",
+        "hud.social.level": "等级",
+        "hud.social.zone": "区域",
 
-        "hud.crafting": "制作中",
+		
+        "hud.crafting": "制作",
         "hud.crafting.recipes": "食谱",
         "hud.crafting.ingredients": "配方:",
         "hud.crafting.craft": "制作",
         "hud.crafting.tool_cata": "需要:",
+
+        "hud.group": "队伍",
+        "hud.group.invite_to_join": "{name} 邀请你加入它们的队伍!",
+        "hud.group.invite": "邀请",
+        "hud.group.kick": "踢出",
+        "hud.group.assign_leader": "指定队长",
+        "hud.group.leave": "离开队伍",
+        "hud.group.dead" : "死亡",
+        "hud.group.out_of_range": "超出范围",
+        "hud.group.add_friend": "添加好友",
+        "hud.group.link_group": "连接队伍",
+        "hud.group.in_menu": "菜单中",
+        "hud.group.members": "队伍成员",
 
         "hud.spell": "法术",        
 
@@ -315,7 +355,7 @@ Veloren 的夜晚会变得非常的黑.
 
         "gameinput.primary": "普通攻击",
         "gameinput.secondary": "特殊攻击/格挡/瞄准",
-       "gameinput.slot1": "技能栏 1",
+        "gameinput.slot1": "技能栏 1",
         "gameinput.slot2": "技能栏 2",
         "gameinput.slot3": "技能栏 3",
         "gameinput.slot4": "技能栏 4",
@@ -325,14 +365,14 @@ Veloren 的夜晚会变得非常的黑.
         "gameinput.slot8": "技能栏 8",
         "gameinput.slot9": "技能栏 9",
         "gameinput.slot10": "技能栏 10",
-        "gameinput.swaploadout": "缓存加载",
-        "gameinput.togglecursor": "切换光标",
+        "gameinput.swaploadout": "切换武器",
+        "gameinput.togglecursor": "切换显示指针",
         "gameinput.help": "切换帮助窗口",
         "gameinput.toggleinterface": "切换显示界面",
         "gameinput.toggledebug": "切换显示FPS和调试信息",
         "gameinput.screenshot": "截图",
-        "gameinput.toggleingameui": "切换显示名称",
-        "gameinput.fullscreen": "切换显示全屏",
+        "gameinput.toggleingameui": "切换显示准星",
+        "gameinput.fullscreen": "切换全屏",
         "gameinput.moveforward": "前进",
         "gameinput.moveleft": "向左移动",
         "gameinput.moveright": "向右移动",
@@ -343,11 +383,11 @@ Veloren 的夜晚会变得非常的黑.
         "gameinput.climb": "攀爬",
         "gameinput.climbdown": "向下攀爬",
         "gameinput.wallleap": "越过障碍",
-        "gameinput.togglelantern": "切换显示灯笼",
-        "gameinput.mount": "安装",
-        "gameinput.enter": "进入",
+        "gameinput.togglelantern": "切换提灯",
+        "gameinput.mount": "骑乘",
+        "gameinput.chat": "聊天",
         "gameinput.command": "指令",
-        "gameinput.escape": "逃脱",
+        "gameinput.escape": "退出",
         "gameinput.map": "地图",
         "gameinput.bag": "背包",
         "gameinput.social": "社交",
@@ -357,10 +397,17 @@ Veloren 的夜晚会变得非常的黑.
         "gameinput.respawn": "重生",
         "gameinput.charge": "冲锋",
         "gameinput.togglewield": "切换手持",
-        "gameinput.interact": "相互影响",
+        "gameinput.interact": "交互",
         "gameinput.freelook": "自由视角",
         "gameinput.autowalk": "自动行走",
         "gameinput.dance": "跳舞",
+        "gameinput.select": "选择实体",
+        "gameinput.acceptgroupinvite": "接受组队邀请",
+        "gameinput.declinegroupinvite": "拒绝组队邀请",
+        "gameinput.crafting": "制作",
+        "gameinput.sneak": "潜行",
+        "gameinput.swimdown": "下潜",
+        "gameinput.swimup": "上浮",
 
         /// End GameInput section
 
@@ -368,32 +415,32 @@ Veloren 的夜晚会变得非常的黑.
         /// Start chracter selection section
         "char_selection.loading_characters": "加载人物中...",
         "char_selection.delete_permanently": "确定永久删除此角色?",
-        "char_selection.deleting_character": "删除人物中...",
+        "char_selection.deleting_character": "删除角色中...",
         "char_selection.change_server": "切换服务器",
         "char_selection.enter_world": "进入世界",
         "char_selection.logout": "登出",
         "char_selection.create_new_charater": "创建新的角色",
         "char_selection.creating_character": "创建角色中...",
-        "char_selection.character_creation": "人物创作",
+        "char_selection.character_creation": "创建角色",
 
         "char_selection.human_default": "普通人类",
         "char_selection.level_fmt": "等级 {level_nb}",
         "char_selection.uncanny_valley": "荒野",
-        "char_selection.plains_of_uncertainty": "不确定的平原",
+        "char_selection.plains_of_uncertainty": "谜之平原",
         "char_selection.beard": "胡须",
         "char_selection.hair_style": "发型",
         "char_selection.hair_color": "发色",
         "char_selection.eye_color": "眼睛颜色",
         "char_selection.skin": "肤色",
-        "char_selection.eyeshape": "眼睛细节",
+        "char_selection.eyeshape": "眼睛形状",
         "char_selection.accessories": "配饰",
-        "char_selection.create_info_name": "你的人物需要一个名字!",
+        "char_selection.create_info_name": "你的角色需要一个名字!",
 
         /// End chracter selection section
 
 
         /// Start character window section
-        "character_window.character_name": "人物名称",
+        "character_window.character_name": "角色名称",
         // Character stats
         "character_window.character_stats": r#"耐力
 
@@ -416,31 +463,34 @@ Veloren 的夜晚会变得非常的黑.
     
     vector_map: {     
         "loading.tips": [
-            "按下 'G' 来点亮灯笼.",
+            "按下 'G' 来点亮提灯.",
             "按下 'F1' 查看所有默认快捷键.",
-            "你可以通过 /say 或 /s 只与您周围的玩家聊天.",
-            "你可以通过 /region 或 /r 只与您数百个方块范围内的玩家聊天.",
-            "你可以通过 /tell 玩家名称 发送私人消息.",
+            "你可以输入 /say 或 /s 只与您周围的玩家聊天.",
+            "你可以输入 /region 或 /r 只与你区域范围内的玩家聊天.",
+            "你可以输入 /group 或 /g 只与你的队伍的玩家聊天.",
+            "你可以输入 /tell 玩家名称 发送私人消息.",
             "相同等级的NPC可能具有不同的难度.",
-            "注意地面上的食物，箱子以及其他战利品!",
-            "包里全是食物? 尝试使用它们制作更好的食物!",
-            "不知道做什么？ 地图上褐色斑点区域有地牢!",    
+            "注意地面上的食物,箱子以及其他战利品!",
+            "背包里全是食物? 尝试使用它们制作更好的食物!",
+            "不知道做什么? 地图上褐色标点区域有地牢!",    
             "不要忘记调整图形设置. 按 'N' 打开设置.",
-            "和其他人一起玩! 按 'O' 查看在线人员.", 
+            "和其他人一起玩! 按 'O' 查看在线玩家.", 
             "生命值下面有骷髅标识的NPC比您强大的多.",
             "按下 'J' 跳舞!",
             "按下 'LShift' 可以打开滑翔翼并立刻起飞",
             "Veloren 处于Alpha阶段. 我们每天都在努力改善它!",
-            "如果您想加入开发团队或与我们聊天，请加入我们的Discord服务器.",            
+            "如果您想加入开发团队或与我们聊天,请加入我们的Discord服务器.",   
+            "你可以在设置中的生命栏中切换显示你的生命状态.",
+            "查看统计信息请点击在背包界面中的'统计'按钮.",          
         ],         
         "npc.speech.villager_under_attack": [
-            "救命！我受到攻击!",
-            "救命！我受到攻击!",
+            "救命, 我们受到攻击!",
+            "救命! 我们受到攻击!",
             "哎哟! 我受到攻击!",
-            "哎哟! 我受到攻击!我需要帮助!",
-            "救命！我受到攻击!",
-            "唉哟! 我受到攻击!我需要帮助!",
-            "唉哟! 我受到攻击!我需要帮助!",
+            "哎哟! 我受到攻击! 我需要帮助!",
+            "快救我! 我受到攻击!",
+            "我受到攻击! 救命!",
+            "我受到攻击! 我需要帮助!",
             "救命!",
             "救命! 救命!",
             "救命! 救命! 救命!",
@@ -464,12 +514,12 @@ Veloren 的夜晚会变得非常的黑.
             "你别想逃了! 守卫!",
             "你是恶魔!",
             "救命!",
-            "救救我!",
+            "救救我! 拜托!",
             "哎哟! 守卫! 救命!",
             "他们会来找我的!",
             "救命! 救命! 我被压迫了!",
-            "啊, now we see the violence inherent in the system.",
-            "Tis but a scratch!",
+            "啊, 我们看到了这存在于系统里的暴力.",
+            "这只是擦伤而已!",
             "停下来!",
             "我曾经对你做过什么?!",
             "不要攻击我了!",
@@ -478,16 +528,16 @@ Veloren 的夜晚会变得非常的黑.
             "停下来! 然后滚蛋!",
             "你现在让我很生气!",
             "噢! 你以为你是谁?!",
-            "我会让你听到的!",
-            "请停一下! 我没有任何值钱的东西!",
-            "I'll set my brother on you, he's bigger than I am!",
+            "我会帮你的!",
+            "停, 请停一下! 我没有任何值钱的东西!",
+            "我把我的兄弟放在你身上, 他比我的大多了!",
             "不, 我要告诉妈妈!",
             "诅咒你!",
             "请不要这么做.",
             "那不是很好!",
-            "Your weapon works, you can put it away now!",
+            "你的武器很好, 现在可以收起来了!",
             "绕了我吧!",
-            "拜托了，我还有家庭!",
+            "拜托了, 我还有家庭!",
             "我还小就要死了!",
             "我们可以谈谈这个吗?",
             "暴力永远不是解决问题的方式!",
@@ -496,7 +546,7 @@ Veloren 的夜晚会变得非常的黑.
             "诶!",
             "真没礼貌!",
             "拜托, 求求你了!",
-            "A pox upon you!",
+            "你有病啊!",
             "这不好玩.",
             "你怎么敢?!",
             "你会为此复出代价的!",
@@ -507,12 +557,12 @@ Veloren 的夜晚会变得非常的黑.
             "再见吧, 恶魔!",
             "真的好疼!",
             "为什么要这么做?",
-            "砸瓦鲁多!",
-            "You must have me confused with someone else!",
-            "I don't deserve this!",
+            "神经病啊, 停手!",
+            "你让我和别人感到很迷惑!",
+            "我不应该这样!",
             "请不要再这样做.",
             "守卫, 把这个怪物扔进湖里!",
-            "I'll set my tarrasque on you!",
+            "我会把怪兽放在你身上!",
         ],        
     }
 )
