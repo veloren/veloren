@@ -322,8 +322,8 @@ impl ParticleMgr {
             ),
             (
                 |boi| &boi.reeds,
-                3,
-                0.01,
+                6,
+                0.004,
                 40.0,
                 ParticleMode::Firefly,
                 |sd| sd.state.get_day_period().is_dark(),
@@ -331,7 +331,7 @@ impl ParticleMgr {
             (
                 |boi| &boi.flowers,
                 5,
-                0.005,
+                0.002,
                 40.0,
                 ParticleMode::Firefly,
                 |sd| sd.state.get_day_period().is_dark(),
