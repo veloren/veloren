@@ -78,9 +78,7 @@ fn main() -> io::Result<()> {
         subscriber.with_writer(|| LOG.clone()).init();
     }
 
-    if !basic {
-        tui.run();
-    }
+    tui.run(basic);
 
     info!("Starting server...");
 
