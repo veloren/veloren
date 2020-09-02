@@ -325,7 +325,7 @@
             central: ("npc.tiger.male.ears"),
         ),
         tail: (
-            offset: (-1.5, -12.0, -1.0),
+            offset: (-1.5, -12.0, -10.0),
             central: ("npc.tiger.male.tail"),
         ),
     ),
@@ -355,7 +355,7 @@
             central: ("npc.tiger.male.ears"),
         ),
         tail: (
-            offset: (-1.5, -12.0, -1.0),
+            offset: (-1.5, -12.0, -10.0),
             central: ("npc.tiger.male.tail"),
         ),
     ),
