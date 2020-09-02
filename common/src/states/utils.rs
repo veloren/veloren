@@ -32,7 +32,7 @@ impl Body {
         match self {
             Body::Humanoid(_) => 100.0,
             Body::QuadrupedSmall(_) => 125.0,
-            Body::QuadrupedMedium(_) => 180.0,
+            Body::QuadrupedMedium(_) => 30.0,
             Body::BirdMedium(_) => 80.0,
             Body::FishMedium(_) => 50.0,
             Body::Dragon(_) => 250.0,

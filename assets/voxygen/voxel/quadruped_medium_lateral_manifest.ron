@@ -1,11 +1,11 @@
 ({
     (Grolgar, Male): (
         leg_fl: (
-            offset: (-2.5, -12.0, -7.5),//these are done very case by case
+            offset: (-2.5, -5.0, -10.0),//these are done very case by case
             lateral: ("npc.grolgar.male.leg_fl"),
         ),
         leg_fr: (
-            offset: (-2.5, -12.0, -7.5),
+            offset: (-2.5, -5.0, -10.0),
             lateral: ("npc.grolgar.male.leg_fr"),
         ),
         leg_bl: (
@@ -17,11 +17,11 @@
             lateral: ("npc.grolgar.male.leg_br"),
         ),
         foot_fl: (
-            offset: (-2.5, -3.0, -6.0),//y pivot should be -1/4 of the y dimension of the model
+            offset: (-2.5, -2.0, -6.0),//y pivot should be -1/4 of the y dimension of the model
             lateral: ("npc.grolgar.male.foot_fl"),
         ),
         foot_fr: (
-            offset: (-2.5, -3.0, -6.0),//y pivot should be -1/4 of the y dimension of the model
+            offset: (-2.5, -2.0, -6.0),//y pivot should be -1/4 of the y dimension of the model
             lateral: ("npc.grolgar.male.foot_fr"),
         ),
         foot_bl: (
@@ -35,11 +35,11 @@
     ),
     (Grolgar, Female): (
         leg_fl: (
-            offset: (-2.5, -12.0, -7.5),
+            offset: (-2.5, -5.0, -10.0),
             lateral: ("npc.grolgar.male.leg_fl"),
         ),
         leg_fr: (
-            offset: (-2.5, -12.0, -7.5),
+            offset: (-2.5, -5.0, -10.0),
             lateral: ("npc.grolgar.male.leg_fr"),
         ),
         leg_bl: (
@@ -51,11 +51,11 @@
             lateral: ("npc.grolgar.male.leg_br"),
         ),
         foot_fl: (
-            offset: (-2.5, -3.0, -6.0),
+            offset: (-2.5, -2.0, -6.0),
             lateral: ("npc.grolgar.male.foot_fl"),
         ),
         foot_fr: (
-            offset: (-2.5, -3.0, -6.0),
+            offset: (-2.5, -2.0, -6.0),
             lateral: ("npc.grolgar.male.foot_fr"),
         ),
         foot_bl: (
@@ -341,19 +341,19 @@
     ),
     (Tiger, Male): (
         leg_fl: (
-            offset: (-2.0, -3.0, -5.0),
+            offset: (-2.0, -3.0, -10.0),
             lateral: ("npc.tiger.male.leg_fl"),
         ),
         leg_fr: (
-            offset: (-2.0, -3.0, -5.0),
+            offset: (-2.0, -3.0, -10.0),
             lateral: ("npc.tiger.male.leg_fr"),
         ),
         leg_bl: (
-            offset: (-2.0, -3.0, -5.0),
+            offset: (-2.0, -3.0, -10.0),
             lateral: ("npc.tiger.male.leg_bl"),
         ),
         leg_br: (
-            offset: (-2.0, -3.0, -5.0),
+            offset: (-2.0, -3.0, -10.0),
             lateral: ("npc.tiger.male.leg_br"),
         ),
         foot_fl: (
@@ -375,19 +375,19 @@
     ),
     (Tiger, Female): (
         leg_fl: (
-            offset: (-2.0, -3.0, -5.0),
+            offset: (-2.0, -3.0, -10.0),
             lateral: ("npc.tiger.male.leg_fl"),
         ),
         leg_fr: (
-            offset: (-2.0, -3.0, -5.0),
+            offset: (-2.0, -3.0, -10.0),
             lateral: ("npc.tiger.male.leg_fr"),
         ),
         leg_bl: (
-            offset: (-2.0, -3.0, -5.0),
+            offset: (-2.0, -3.0, -10.0),
             lateral: ("npc.tiger.male.leg_bl"),
         ),
         leg_br: (
-            offset: (-2.0, -3.0, -5.0),
+            offset: (-2.0, -3.0, -10.0),
             lateral: ("npc.tiger.male.leg_br"),
         ),
         foot_fl: (
@@ -569,11 +569,11 @@
             lateral: ("npc.mouflon.male.foot_fr"),
         ),
         foot_bl: (
-            offset: (-1.0, -2.0, -6.0),
+            offset: (-1.0, -2.0, -10.0),
             lateral: ("npc.mouflon.male.foot_bl"),
         ),
         foot_br: (
-            offset: (-1.0, -2.0, -6.0),
+            offset: (-1.0, -2.0, -10.0),
             lateral: ("npc.mouflon.male.foot_br"),
         ),
     ),
@@ -603,11 +603,11 @@
             lateral: ("npc.mouflon.male.foot_fr"),
         ),
         foot_bl: (
-            offset: (-1.0, -2.0, -6.0),
+            offset: (-1.0, -2.0, -10.0),
             lateral: ("npc.mouflon.male.foot_bl"),
         ),
         foot_br: (
-            offset: (-1.0, -2.0, -6.0),
+            offset: (-1.0, -2.0, -10.0),
             lateral: ("npc.mouflon.male.foot_br"),
         ),
     ),
