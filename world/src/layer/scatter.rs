@@ -1,9 +1,4 @@
-use crate::{
-    column::ColumnSample,
-    sim::SimChunk,
-    util::{RandomField},
-    IndexRef, CONFIG,
-};
+use crate::{column::ColumnSample, sim::SimChunk, util::RandomField, IndexRef, CONFIG};
 use common::{
     terrain::{Block, BlockKind},
     vol::{BaseVol, ReadVol, RectSizedVol, WriteVol},
@@ -102,7 +97,7 @@ pub fn apply_scatter_to<'a>(
                     * col.tree_density
                     * MUSH_FACT
                     * 350.0,
-                Some((1024.0, 0.15)),
+                Some((300.0, 0.2)),
             )
         }),
         // Herbs and Spices
