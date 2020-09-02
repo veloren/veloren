@@ -99,21 +99,21 @@ impl Animation for RunAnimation {
         let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude());
 
         //Gallop
-        next.head_upper.position =
-            Vec3::new(0.0, skeleton_attr.head_upper.0, skeleton_attr.head_upper.1);
-        next.head_upper.orientation = Quaternion::rotation_x(
+        next.head.position =
+            Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
+        next.head.orientation = Quaternion::rotation_x(
             look.y * 0.3 / ((canceler).max(0.5)) + amplitude * short * -0.03 - 0.1,
         ) * Quaternion::rotation_z(
             look.x * 0.3 / ((canceler).max(0.5)) + tilt * -1.2,
         ) * Quaternion::rotation_y(tilt * 0.8);
-        next.head_upper.scale = Vec3::one();
+        next.head.scale = Vec3::one();
 
-        next.head_lower.position =
-            Vec3::new(0.0, skeleton_attr.head_lower.0, skeleton_attr.head_lower.1);
-        next.head_lower.orientation = Quaternion::rotation_z(tilt * -0.8)
+        next.neck.position =
+            Vec3::new(0.0, skeleton_attr.neck.0, skeleton_attr.neck.1);
+        next.neck.orientation = Quaternion::rotation_z(tilt * -0.8)
             * Quaternion::rotation_x(amplitude * short * -0.05)
             * Quaternion::rotation_y(tilt * 0.3);
-        next.head_lower.scale = Vec3::one() * 1.02;
+        next.neck.scale = Vec3::one() * 1.02;
 
         next.jaw.position = Vec3::new(0.0, skeleton_attr.jaw.0, skeleton_attr.jaw.1);
         next.jaw.orientation = Quaternion::rotation_x(0.0);

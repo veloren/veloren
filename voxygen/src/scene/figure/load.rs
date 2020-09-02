@@ -1187,8 +1187,8 @@ struct QuadrupedMediumCentralSpec(HashMap<(QMSpecies, QMBodyType), SidedQMCentra
 
 #[derive(Deserialize)]
 struct SidedQMCentralVoxSpec {
-    upper: QuadrupedMediumCentralSubSpec,
-    lower: QuadrupedMediumCentralSubSpec,
+    head: QuadrupedMediumCentralSubSpec,
+    neck: QuadrupedMediumCentralSubSpec,
     jaw: QuadrupedMediumCentralSubSpec,
     ears: QuadrupedMediumCentralSubSpec,
     torso_front: QuadrupedMediumCentralSubSpec,
@@ -1228,11 +1228,11 @@ make_vox_spec!(
     },
     |FigureKey { body, .. }, spec| {
         [
-            Some(spec.central.asset.mesh_head_upper(
+            Some(spec.central.asset.mesh_head(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.asset.mesh_head_lower(
+            Some(spec.central.asset.mesh_neck(
                 body.species,
                 body.body_type,
             )),
@@ -1294,36 +1294,36 @@ make_vox_spec!(
 );
 
 impl QuadrupedMediumCentralSpec {
-    fn mesh_head_upper(&self, species: QMSpecies, body_type: QMBodyType) -> BoneMeshes {
+    fn mesh_head(&self, species: QMSpecies, body_type: QMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
                 error!(
-                    "No upper head specification exists for the combination of {:?} and {:?}",
+                    "No head specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.upper.central.0);
+        let central = graceful_load_segment(&spec.head.central.0);
 
-        (central, Vec3::from(spec.upper.offset))
+        (central, Vec3::from(spec.head.offset))
     }
 
-    fn mesh_head_lower(&self, species: QMSpecies, body_type: QMBodyType) -> BoneMeshes {
+    fn mesh_neck(&self, species: QMSpecies, body_type: QMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
             None => {
                 error!(
-                    "No lower head specification exists for the combination of {:?} and {:?}",
+                    "No neck specification exists for the combination of {:?} and {:?}",
                     species, body_type
                 );
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.lower.central.0);
+        let central = graceful_load_segment(&spec.neck.central.0);
 
-        (central, Vec3::from(spec.lower.offset))
+        (central, Vec3::from(spec.neck.offset))
     }
 
     fn mesh_jaw(&self, species: QMSpecies, body_type: QMBodyType) -> BoneMeshes {
@@ -1539,18 +1539,18 @@ impl QuadrupedMediumLateralSpec {
 
 ////
 #[derive(Deserialize)]
-struct BirdMediumCenterSpec(HashMap<(BMSpecies, BMBodyType), SidedBMCenterVoxSpec>);
+struct BirdMediumCentralSpec(HashMap<(BMSpecies, BMBodyType), SidedBMCentralVoxSpec>);
 
 #[derive(Deserialize)]
-struct SidedBMCenterVoxSpec {
-    head: BirdMediumCenterSubSpec,
-    torso: BirdMediumCenterSubSpec,
-    tail: BirdMediumCenterSubSpec,
+struct SidedBMCentralVoxSpec {
+    head: BirdMediumCentralSubSpec,
+    torso: BirdMediumCentralSubSpec,
+    tail: BirdMediumCentralSubSpec,
 }
 #[derive(Deserialize)]
-struct BirdMediumCenterSubSpec {
+struct BirdMediumCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
-    center: VoxSimple,
+    central: VoxSimple,
 }
 
 #[derive(Deserialize)]
@@ -1572,20 +1572,20 @@ struct BirdMediumLateralSubSpec {
 make_vox_spec!(
     bird_medium::Body,
     struct BirdMediumSpec {
-        center: BirdMediumCenterSpec = "voxygen.voxel.bird_medium_center_manifest",
+        central: BirdMediumCentralSpec = "voxygen.voxel.bird_medium_central_manifest",
         lateral: BirdMediumLateralSpec = "voxygen.voxel.bird_medium_lateral_manifest",
     },
     |FigureKey { body, .. }, spec| {
         [
-            Some(spec.center.asset.mesh_head(
+            Some(spec.central.asset.mesh_head(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.center.asset.mesh_torso(
+            Some(spec.central.asset.mesh_torso(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.center.asset.mesh_tail(
+            Some(spec.central.asset.mesh_tail(
                 body.species,
                 body.body_type,
             )),
@@ -1618,7 +1618,7 @@ make_vox_spec!(
     },
 );
 
-impl BirdMediumCenterSpec {
+impl BirdMediumCentralSpec {
     fn mesh_head(&self, species: BMSpecies, body_type: BMBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -1630,9 +1630,9 @@ impl BirdMediumCenterSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let center = graceful_load_segment(&spec.head.center.0);
+        let central = graceful_load_segment(&spec.head.central.0);
 
-        (center, Vec3::from(spec.head.offset))
+        (central, Vec3::from(spec.head.offset))
     }
 
     fn mesh_torso(&self, species: BMSpecies, body_type: BMBodyType) -> BoneMeshes {
@@ -1646,9 +1646,9 @@ impl BirdMediumCenterSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let center = graceful_load_segment(&spec.torso.center.0);
+        let central = graceful_load_segment(&spec.torso.central.0);
 
-        (center, Vec3::from(spec.torso.offset))
+        (central, Vec3::from(spec.torso.offset))
     }
 
     fn mesh_tail(&self, species: BMSpecies, body_type: BMBodyType) -> BoneMeshes {
@@ -1662,9 +1662,9 @@ impl BirdMediumCenterSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let center = graceful_load_segment(&spec.tail.center.0);
+        let central = graceful_load_segment(&spec.tail.central.0);
 
-        (center, Vec3::from(spec.tail.offset))
+        (central, Vec3::from(spec.tail.offset))
     }
 }
 impl BirdMediumLateralSpec {
@@ -2160,22 +2160,22 @@ fn mesh_fish_medium_fin_r(fin_r: fish_medium::FinR) -> BoneMeshes {
 ////
 
 #[derive(Deserialize)]
-struct DragonCenterSpec(HashMap<(DSpecies, DBodyType), SidedDCenterVoxSpec>);
+struct DragonCentralSpec(HashMap<(DSpecies, DBodyType), SidedDCentralVoxSpec>);
 
 #[derive(Deserialize)]
-struct SidedDCenterVoxSpec {
-    upper: DragonCenterSubSpec,
-    lower: DragonCenterSubSpec,
-    jaw: DragonCenterSubSpec,
-    chest_front: DragonCenterSubSpec,
-    chest_rear: DragonCenterSubSpec,
-    tail_front: DragonCenterSubSpec,
-    tail_rear: DragonCenterSubSpec,
+struct SidedDCentralVoxSpec {
+    upper: DragonCentralSubSpec,
+    lower: DragonCentralSubSpec,
+    jaw: DragonCentralSubSpec,
+    chest_front: DragonCentralSubSpec,
+    chest_rear: DragonCentralSubSpec,
+    tail_front: DragonCentralSubSpec,
+    tail_rear: DragonCentralSubSpec,
 }
 #[derive(Deserialize)]
-struct DragonCenterSubSpec {
+struct DragonCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
-    center: VoxSimple,
+    central: VoxSimple,
 }
 
 #[derive(Deserialize)]
@@ -2201,36 +2201,36 @@ struct DragonLateralSubSpec {
 make_vox_spec!(
     dragon::Body,
     struct DragonSpec {
-        center: DragonCenterSpec = "voxygen.voxel.dragon_center_manifest",
+        central: DragonCentralSpec = "voxygen.voxel.dragon_central_manifest",
         lateral: DragonLateralSpec = "voxygen.voxel.dragon_lateral_manifest",
     },
     |FigureKey { body, .. }, spec| {
         [
-            Some(spec.center.asset.mesh_head_upper(
+            Some(spec.central.asset.mesh_head_upper(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.center.asset.mesh_head_lower(
+            Some(spec.central.asset.mesh_head_lower(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.center.asset.mesh_jaw(
+            Some(spec.central.asset.mesh_jaw(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.center.asset.mesh_chest_front(
+            Some(spec.central.asset.mesh_chest_front(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.center.asset.mesh_chest_rear(
+            Some(spec.central.asset.mesh_chest_rear(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.center.asset.mesh_tail_front(
+            Some(spec.central.asset.mesh_tail_front(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.center.asset.mesh_tail_rear(
+            Some(spec.central.asset.mesh_tail_rear(
                 body.species,
                 body.body_type,
             )),
@@ -2271,7 +2271,7 @@ make_vox_spec!(
     },
 );
 
-impl DragonCenterSpec {
+impl DragonCentralSpec {
     fn mesh_head_upper(&self, species: DSpecies, body_type: DBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -2283,7 +2283,7 @@ impl DragonCenterSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.upper.center.0);
+        let central = graceful_load_segment(&spec.upper.central.0);
 
         (central, Vec3::from(spec.upper.offset))
     }
@@ -2299,7 +2299,7 @@ impl DragonCenterSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.lower.center.0);
+        let central = graceful_load_segment(&spec.lower.central.0);
 
         (central, Vec3::from(spec.lower.offset))
     }
@@ -2315,7 +2315,7 @@ impl DragonCenterSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.jaw.center.0);
+        let central = graceful_load_segment(&spec.jaw.central.0);
 
         (central, Vec3::from(spec.jaw.offset))
     }
@@ -2331,9 +2331,9 @@ impl DragonCenterSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let center = graceful_load_segment(&spec.chest_front.center.0);
+        let central = graceful_load_segment(&spec.chest_front.central.0);
 
-        (center, Vec3::from(spec.chest_front.offset))
+        (central, Vec3::from(spec.chest_front.offset))
     }
 
     fn mesh_chest_rear(&self, species: DSpecies, body_type: DBodyType) -> BoneMeshes {
@@ -2347,9 +2347,9 @@ impl DragonCenterSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let center = graceful_load_segment(&spec.chest_rear.center.0);
+        let central = graceful_load_segment(&spec.chest_rear.central.0);
 
-        (center, Vec3::from(spec.chest_rear.offset))
+        (central, Vec3::from(spec.chest_rear.offset))
     }
 
     fn mesh_tail_front(&self, species: DSpecies, body_type: DBodyType) -> BoneMeshes {
@@ -2363,9 +2363,9 @@ impl DragonCenterSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let center = graceful_load_segment(&spec.tail_front.center.0);
+        let central = graceful_load_segment(&spec.tail_front.central.0);
 
-        (center, Vec3::from(spec.tail_front.offset))
+        (central, Vec3::from(spec.tail_front.offset))
     }
 
     fn mesh_tail_rear(&self, species: DSpecies, body_type: DBodyType) -> BoneMeshes {
@@ -2379,9 +2379,9 @@ impl DragonCenterSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let center = graceful_load_segment(&spec.tail_rear.center.0);
+        let central = graceful_load_segment(&spec.tail_rear.central.0);
 
-        (center, Vec3::from(spec.tail_rear.offset))
+        (central, Vec3::from(spec.tail_rear.offset))
     }
 }
 impl DragonLateralSpec {
@@ -2620,22 +2620,22 @@ fn mesh_fish_small_tail(tail: fish_small::Tail) -> BoneMeshes {
 }
 ////
 #[derive(Deserialize)]
-struct BipedLargeCenterSpec(HashMap<(BLSpecies, BLBodyType), SidedBLCenterVoxSpec>);
+struct BipedLargeCentralSpec(HashMap<(BLSpecies, BLBodyType), SidedBLCentralVoxSpec>);
 
 #[derive(Deserialize)]
-struct SidedBLCenterVoxSpec {
-    head: BipedLargeCenterSubSpec,
-    jaw: BipedLargeCenterSubSpec,
-    torso_upper: BipedLargeCenterSubSpec,
-    torso_lower: BipedLargeCenterSubSpec,
-    tail: BipedLargeCenterSubSpec,
-    main: BipedLargeCenterSubSpec,
-    second: BipedLargeCenterSubSpec,
+struct SidedBLCentralVoxSpec {
+    head: BipedLargeCentralSubSpec,
+    jaw: BipedLargeCentralSubSpec,
+    torso_upper: BipedLargeCentralSubSpec,
+    torso_lower: BipedLargeCentralSubSpec,
+    tail: BipedLargeCentralSubSpec,
+    main: BipedLargeCentralSubSpec,
+    second: BipedLargeCentralSubSpec,
 }
 #[derive(Deserialize)]
-struct BipedLargeCenterSubSpec {
+struct BipedLargeCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
-    center: VoxSimple,
+    central: VoxSimple,
 }
 
 #[derive(Deserialize)]
@@ -2661,36 +2661,36 @@ struct BipedLargeLateralSubSpec {
 make_vox_spec!(
     biped_large::Body,
     struct BipedLargeSpec {
-        center: BipedLargeCenterSpec = "voxygen.voxel.biped_large_center_manifest",
+        central: BipedLargeCentralSpec = "voxygen.voxel.biped_large_central_manifest",
         lateral: BipedLargeLateralSpec = "voxygen.voxel.biped_large_lateral_manifest",
     },
     |FigureKey { body, .. }, spec| {
         [
-            Some(spec.center.asset.mesh_head(
+            Some(spec.central.asset.mesh_head(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.center.asset.mesh_jaw(
+            Some(spec.central.asset.mesh_jaw(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.center.asset.mesh_torso_upper(
+            Some(spec.central.asset.mesh_torso_upper(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.center.asset.mesh_torso_lower(
+            Some(spec.central.asset.mesh_torso_lower(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.center.asset.mesh_tail(
+            Some(spec.central.asset.mesh_tail(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.center.asset.mesh_main(
+            Some(spec.central.asset.mesh_main(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.center.asset.mesh_second(
+            Some(spec.central.asset.mesh_second(
                 body.species,
                 body.body_type,
             )),
@@ -2731,7 +2731,7 @@ make_vox_spec!(
     },
 );
 
-impl BipedLargeCenterSpec {
+impl BipedLargeCentralSpec {
     fn mesh_head(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -2743,9 +2743,9 @@ impl BipedLargeCenterSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let center = graceful_load_segment(&spec.head.center.0);
+        let central = graceful_load_segment(&spec.head.central.0);
 
-        (center, Vec3::from(spec.head.offset))
+        (central, Vec3::from(spec.head.offset))
     }
 
     fn mesh_jaw(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
@@ -2759,9 +2759,9 @@ impl BipedLargeCenterSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let center = graceful_load_segment(&spec.jaw.center.0);
+        let central = graceful_load_segment(&spec.jaw.central.0);
 
-        (center, Vec3::from(spec.jaw.offset))
+        (central, Vec3::from(spec.jaw.offset))
     }
 
     fn mesh_torso_upper(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
@@ -2775,9 +2775,9 @@ impl BipedLargeCenterSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let center = graceful_load_segment(&spec.torso_upper.center.0);
+        let central = graceful_load_segment(&spec.torso_upper.central.0);
 
-        (center, Vec3::from(spec.torso_upper.offset))
+        (central, Vec3::from(spec.torso_upper.offset))
     }
 
     fn mesh_torso_lower(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
@@ -2791,9 +2791,9 @@ impl BipedLargeCenterSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let center = graceful_load_segment(&spec.torso_lower.center.0);
+        let central = graceful_load_segment(&spec.torso_lower.central.0);
 
-        (center, Vec3::from(spec.torso_lower.offset))
+        (central, Vec3::from(spec.torso_lower.offset))
     }
 
     fn mesh_tail(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
@@ -2807,9 +2807,9 @@ impl BipedLargeCenterSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let center = graceful_load_segment(&spec.tail.center.0);
+        let central = graceful_load_segment(&spec.tail.central.0);
 
-        (center, Vec3::from(spec.tail.offset))
+        (central, Vec3::from(spec.tail.offset))
     }
 
     fn mesh_main(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
@@ -2823,9 +2823,9 @@ impl BipedLargeCenterSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let center = graceful_load_segment(&spec.main.center.0);
+        let central = graceful_load_segment(&spec.main.central.0);
 
-        (center, Vec3::from(spec.main.offset))
+        (central, Vec3::from(spec.main.offset))
     }
 
     fn mesh_second(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
@@ -2839,9 +2839,9 @@ impl BipedLargeCenterSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let center = graceful_load_segment(&spec.second.center.0);
+        let central = graceful_load_segment(&spec.second.central.0);
 
-        (center, Vec3::from(spec.second.offset))
+        (central, Vec3::from(spec.second.offset))
     }
 }
 impl BipedLargeLateralSpec {
@@ -2975,18 +2975,18 @@ impl BipedLargeLateralSpec {
 }
 ////
 #[derive(Deserialize)]
-struct GolemCenterSpec(HashMap<(GSpecies, GBodyType), SidedGCenterVoxSpec>);
+struct GolemCentralSpec(HashMap<(GSpecies, GBodyType), SidedGCentralVoxSpec>);
 
 #[derive(Deserialize)]
-struct SidedGCenterVoxSpec {
-    head: GolemCenterSubSpec,
-    torso_upper: GolemCenterSubSpec,
-    torso_lower: GolemCenterSubSpec,
+struct SidedGCentralVoxSpec {
+    head: GolemCentralSubSpec,
+    torso_upper: GolemCentralSubSpec,
+    torso_lower: GolemCentralSubSpec,
 }
 #[derive(Deserialize)]
-struct GolemCenterSubSpec {
+struct GolemCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
-    center: VoxSimple,
+    central: VoxSimple,
 }
 
 #[derive(Deserialize)]
@@ -3012,20 +3012,20 @@ struct GolemLateralSubSpec {
 make_vox_spec!(
     golem::Body,
     struct GolemSpec {
-        center: GolemCenterSpec = "voxygen.voxel.golem_center_manifest",
+        central: GolemCentralSpec = "voxygen.voxel.golem_central_manifest",
         lateral: GolemLateralSpec = "voxygen.voxel.golem_lateral_manifest",
     },
     |FigureKey { body, .. }, spec| {
         [
-            Some(spec.center.asset.mesh_head(
+            Some(spec.central.asset.mesh_head(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.center.asset.mesh_torso_upper(
+            Some(spec.central.asset.mesh_torso_upper(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.center.asset.mesh_torso_lower(
+            Some(spec.central.asset.mesh_torso_lower(
                 body.species,
                 body.body_type,
             )),
@@ -3070,7 +3070,7 @@ make_vox_spec!(
     },
 );
 
-impl GolemCenterSpec {
+impl GolemCentralSpec {
     fn mesh_head(&self, species: GSpecies, body_type: GBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -3082,9 +3082,9 @@ impl GolemCenterSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let center = graceful_load_segment(&spec.head.center.0);
+        let central = graceful_load_segment(&spec.head.central.0);
 
-        (center, Vec3::from(spec.head.offset))
+        (central, Vec3::from(spec.head.offset))
     }
 
     fn mesh_torso_upper(&self, species: GSpecies, body_type: GBodyType) -> BoneMeshes {
@@ -3098,9 +3098,9 @@ impl GolemCenterSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let center = graceful_load_segment(&spec.torso_upper.center.0);
+        let central = graceful_load_segment(&spec.torso_upper.central.0);
 
-        (center, Vec3::from(spec.torso_upper.offset))
+        (central, Vec3::from(spec.torso_upper.offset))
     }
 
     pub fn mesh_torso_lower(
@@ -3118,9 +3118,9 @@ impl GolemCenterSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let center = graceful_load_segment(&spec.torso_lower.center.0);
+        let central = graceful_load_segment(&spec.torso_lower.central.0);
 
-        (center, Vec3::from(spec.torso_lower.offset))
+        (central, Vec3::from(spec.torso_lower.offset))
     }
 }
 impl GolemLateralSpec {

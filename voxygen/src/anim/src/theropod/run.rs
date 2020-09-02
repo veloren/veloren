@@ -41,7 +41,6 @@ impl Animation for RunAnimation {
             0.9 * (1.0 * 1.0)
         };
 
-        let speedadjust = if speed < 5.0 { 0.0 } else { speed / 25.0 };
         let short = (((1.0)
             / (0.72
                 + 0.28
