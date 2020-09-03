@@ -72,11 +72,11 @@ impl Animation for RunAnimation {
 
         next.leg_fl.position = Vec3::new(
             -skeleton_attr.feet_f.0,
-            skeleton_attr.feet_f.1 + footverttf * 3.0 * skeleton_attr.maximize,
+            skeleton_attr.feet_f.1 + footverttf * 3.0 * skeleton_attr.minimize,
             skeleton_attr.feet_f.2 + ((footvertf * -1.5).max(-1.0)),
         );
         next.leg_fl.orientation =
-            Quaternion::rotation_x(0.2 + skeleton_attr.minimize * footverttf * 0.65)
+            Quaternion::rotation_x(0.2 + skeleton_attr.maximize * footverttf * 0.65)
                 * Quaternion::rotation_z(tilt * -0.5)
                 * Quaternion::rotation_y(tilt * 1.5);
         next.leg_fl.scale = Vec3::one() * 1.02;

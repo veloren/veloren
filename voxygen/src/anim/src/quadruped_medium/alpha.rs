@@ -32,14 +32,12 @@ impl Animation for AlphaAnimation {
         .sqrt())
             * ((anim_time as f32 * 4.0 + PI * 0.5).sin());
 
-        next.head.position =
-            Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
+        next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
         next.head.orientation =
             Quaternion::rotation_y(short * -0.2) * Quaternion::rotation_x(0.1 + short * 0.2);
         next.head.scale = Vec3::one();
 
-        next.neck.position =
-            Vec3::new(0.0, skeleton_attr.neck.0, skeleton_attr.neck.1);
+        next.neck.position = Vec3::new(0.0, skeleton_attr.neck.0, skeleton_attr.neck.1);
         next.neck.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next.neck.scale = Vec3::one() * 1.02;
 

@@ -1,7 +1,7 @@
 use super::{super::Animation, SkeletonAttr, TheropodSkeleton};
 //use std::{f32::consts::PI, ops::Mul};
 use super::super::vek::*;
-use std::{f32::consts::PI, ops::Mul};
+use std::ops::Mul;
 
 pub struct IdleAnimation;
 
@@ -23,13 +23,26 @@ impl Animation for IdleAnimation {
         let mut next = (*skeleton).clone();
 
         let breathe = (anim_time as f32 * 0.8).sin();
+        let head_look = Vec2::new(
+            ((global_time + anim_time) as f32 / 8.0)
+                .floor()
+                .mul(7331.0)
+                .sin()
+                * 0.5,
+            ((global_time + anim_time) as f32 / 8.0)
+                .floor()
+                .mul(1337.0)
+                .sin()
+                * 0.25,
+        );
 
         next.head.position = Vec3::new(
             0.0,
             skeleton_attr.head.0,
             skeleton_attr.head.1 + breathe * 0.3,
         );
-        next.head.orientation = Quaternion::rotation_x(breathe * 0.1 - 0.1);
+        next.head.orientation = Quaternion::rotation_x(head_look.y + breathe * 0.1 - 0.1)
+            * Quaternion::rotation_z(head_look.x);
         next.head.scale = Vec3::one() * 1.02;
 
         next.jaw.position = Vec3::new(0.0, skeleton_attr.jaw.0, skeleton_attr.jaw.1);

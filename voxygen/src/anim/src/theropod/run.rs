@@ -32,7 +32,6 @@ impl Animation for RunAnimation {
 
         let canceler = speed / topspeed;
         let lab = 0.5; //6
-        let amplitude = (speed / topspeed).max(0.25);
         let amplitude2 = (speed * 1.4 / topspeed).max(0.6);
         let amplitude3 = (speed / topspeed).max(0.35);
         let speedmult = if speed > 0.0 {
