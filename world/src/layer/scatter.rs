@@ -37,7 +37,7 @@ pub fn apply_scatter_to<'a>(
                 )) * col.tree_density
                     * MUSH_FACT
                     * 256.0,
-                Some((256.0, 0.25)),
+                Some((512.0, 0.25)),
             )
         }),
         (PinkFlower, false, |c, col| {
@@ -46,7 +46,7 @@ pub fn apply_scatter_to<'a>(
                     * col.tree_density
                     * MUSH_FACT
                     * 350.0,
-                Some((64.0, 0.2)),
+                Some((128.0, 0.1)),
             )
         }),
         (PurpleFlower, false, |c, col| {
@@ -58,7 +58,7 @@ pub fn apply_scatter_to<'a>(
                 )) * col.tree_density
                     * MUSH_FACT
                     * 350.0,
-                Some((64.0, 0.2)),
+                Some((128.0, 0.1)),
             )
         }),
         (RedFlower, false, |c, col| {
@@ -70,7 +70,7 @@ pub fn apply_scatter_to<'a>(
                 )) * col.tree_density
                     * MUSH_FACT
                     * 350.0,
-                Some((64.0, 0.1)),
+                Some((128.0, 0.05)),
             )
         }),
         (WhiteFlower, false, |c, col| {
@@ -79,7 +79,7 @@ pub fn apply_scatter_to<'a>(
                     * col.tree_density
                     * MUSH_FACT
                     * 350.0,
-                Some((64.0, 0.2)),
+                Some((128.0, 0.1)),
             )
         }),
         (YellowFlower, false, |c, col| {
@@ -88,7 +88,7 @@ pub fn apply_scatter_to<'a>(
                     * col.tree_density
                     * MUSH_FACT
                     * 350.0,
-                Some((64.0, 0.2)),
+                Some((128.0, 0.1)),
             )
         }),
         (Sunflower, false, |c, col| {
@@ -97,7 +97,7 @@ pub fn apply_scatter_to<'a>(
                     * col.tree_density
                     * MUSH_FACT
                     * 350.0,
-                Some((300.0, 0.2)),
+                Some((512.0, 0.15)),
             )
         }),
         // Herbs and Spices
@@ -121,8 +121,8 @@ pub fn apply_scatter_to<'a>(
             (
                 close(c.temp, 0.3, 0.4).min(close(c.humidity, CONFIG.forest_hum, 0.5))
                     * MUSH_FACT
-                    * 0.5,
-                Some((48.0, 0.3)),
+                    * 0.25,
+                Some((64.0, 0.2)),
             )
         }),
         (Blueberry, false, |c, _| {
@@ -154,20 +154,20 @@ pub fn apply_scatter_to<'a>(
         // Grass
         (ShortGrass, false, |c, _| {
             (
-                close(c.temp, 0.2, 0.65).min(close(c.humidity, CONFIG.jungle_hum, 0.4)) * 0.03,
+                close(c.temp, 0.2, 0.65).min(close(c.humidity, CONFIG.jungle_hum, 0.4)) * 0.015,
                 None,
             )
         }),
         (MediumGrass, false, |c, _| {
             (
-                close(c.temp, 0.2, 0.6).min(close(c.humidity, CONFIG.jungle_hum, 0.4)) * 0.02,
+                close(c.temp, 0.2, 0.6).min(close(c.humidity, CONFIG.jungle_hum, 0.4)) * 0.012,
                 None,
             )
         }),
         (LongGrass, false, |c, _| {
             (
                 close(c.temp, 0.3, 0.35).min(close(c.humidity, CONFIG.jungle_hum, 0.3)) * 0.15,
-                Some((48.0, 0.3)),
+                Some((48.0, 0.2)),
             )
         }),
         // Jungle Sprites
