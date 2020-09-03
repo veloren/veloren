@@ -1,11 +1,12 @@
 pub mod alpha;
+pub mod feed;
 pub mod idle;
 pub mod jump;
 pub mod run;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation,
+    alpha::AlphaAnimation, feed::FeedAnimation, idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
@@ -92,6 +93,7 @@ pub struct SkeletonAttr {
     startangle: f32,
     tempo: f32,
     spring: f32,
+    feed: (bool, f32),
 }
 
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -123,6 +125,7 @@ impl Default for SkeletonAttr {
             startangle: 0.0,
             tempo: 0.0,
             spring: 0.0,
+            feed: (false, 0.0),
         }
     }
 }
@@ -140,7 +143,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Tiger, _) => (2.0, 1.0),
                 (Wolf, _) => (-0.5, 3.0),
                 (Frostfang, _) => (1.0, -2.0),
-                (Mouflon, _) => (-2.5, 6.0),
+                (Mouflon, _) => (0.5, 1.5),
                 (Catoblepas, _) => (-1.0, -6.5),
                 (Bonerattler, _) => (-1.0, 2.5),
                 (Deer, Male) => (0.5, 3.5),
@@ -156,7 +159,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Tiger, _) => (0.0, 0.0),
                 (Wolf, _) => (-4.5, 2.0),
                 (Frostfang, _) => (2.0, 1.5),
-                (Mouflon, _) => (-1.0, 0.5),
+                (Mouflon, _) => (-1.0, 1.0),
                 (Catoblepas, _) => (19.5, -2.0),
                 (Bonerattler, _) => (7.0, -1.5),
                 (Deer, _) => (-0.5, 1.0),
@@ -171,7 +174,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Tiger, _) => (3.5, -4.0),
                 (Wolf, _) => (5.0, -3.0),
                 (Frostfang, _) => (4.0, -3.0),
-                (Mouflon, _) => (10.5, -4.0),
+                (Mouflon, _) => (6.0, 0.5),
                 (Catoblepas, _) => (1.0, -4.0),
                 (Bonerattler, _) => (3.0, -3.0),
                 (Deer, _) => (3.5, 2.0),
@@ -357,6 +360,13 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Bonerattler, _) => (1.1),
                 (Deer, _) => (0.9),
                 (Hirdrassil, _) => (1.1),
+            },
+            feed: match (body.species, body.body_type) {
+                (Tuskram, _) => (true, 0.5),
+                (Mouflon, _) => (true, 1.0),
+                (Deer, _) => (true, 1.0),
+                (Hirdrassil, _) => (true, 0.9),
+                (_, _) => (false, 0.0),
             },
         }
     }
