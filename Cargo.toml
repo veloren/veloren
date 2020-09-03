@@ -7,7 +7,6 @@ members = [
 	"chat-cli",
 	"server",
 	"server-cli",
-	"server-gui",
 	"voxygen",
 	"world",
 	"network",
