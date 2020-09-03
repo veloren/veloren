@@ -554,10 +554,10 @@ impl<'a> System<'a> for Sys {
         }
 
         // Process group invites
-        for (_invite, alignment, agent, controller) in
-            (&invites, &alignments, &mut agents, &mut controllers).join()
+        for (_invite, /*alignment,*/ agent, controller) in
+            (&invites, /*&alignments,*/ &mut agents, &mut controllers).join()
         {
-            let accept = matches!(alignment, Alignment::Npc);
+            let accept = false; // set back to "matches!(alignment, Alignment::Npc)" when we got better NPC recruitment mechanics
             if accept {
                 // Clear agent comp
                 *agent = Agent::default();
