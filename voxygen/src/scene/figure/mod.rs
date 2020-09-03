@@ -1268,6 +1268,15 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::Sit { .. } => {
+                            anim::quadruped_medium::FeedAnimation::update_skeleton(
+                                &target_base,
+                                time,
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         // TODO!
                         _ => target_base,
                     };

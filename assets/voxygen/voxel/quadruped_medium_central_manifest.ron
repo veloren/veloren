@@ -481,7 +481,7 @@
     ),
     (Mouflon, Male): (
         head: (
-            offset: (-7.0, 0.0, -4.5),
+            offset: (-7.0, -5.0, 0.0),
             central: ("npc.mouflon.male.head"),
         ),
         neck: (
@@ -511,7 +511,7 @@
     ),
     (Mouflon, Female): (
         head: (
-            offset: (-7.0, 0.0, -4.5),
+            offset: (-7.0, -5.0, 0.0),
             central: ("npc.mouflon.male.head"),
         ),
         neck: (
