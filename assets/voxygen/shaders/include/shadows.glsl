@@ -154,8 +154,8 @@ float ShadowCalculationDirected(in vec3 fragPos)//in vec4 /*light_pos[2]*/sun_po
     } */
     // vec3 fragPos = sun_pos.xyz;// / sun_pos.w;//light_pos[lightIndex].xyz;
     // sun_pos.z += sun_pos.w * bias;
-    ShadowLocals sun_shadow = shadowMats[0];
-    vec4 sun_pos = sun_shadow.texture_mat * vec4(fragPos, 1.0);
+    mat4 texture_mat = shadowMats[0].texture_mat;
+    vec4 sun_pos = texture_mat * vec4(fragPos, 1.0);
     // sun_pos.z -= sun_pos.w * bias;
     float visibility = textureProj(t_directed_shadow_maps, sun_pos);
     /* float visibilityLeft = textureProj(t_directed_shadow_maps, sun_shadow.texture_mat * vec4(fragPos + vec3(0.0, -diskRadius, 0.0), 1.0));
