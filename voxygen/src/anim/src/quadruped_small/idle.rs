@@ -25,7 +25,7 @@ impl Animation for IdleAnimation {
 
         let slow = (anim_time as f32 * 3.5).sin();
 
-        let slow_alt = (anim_time as f32 * 3.5 + PI).sin();
+        let slow_alt = (anim_time as f32 * 3.5 + PI / 2.0).sin();
 
         let head_look = Vec2::new(
             ((global_time + anim_time) as f32 / 8.0)

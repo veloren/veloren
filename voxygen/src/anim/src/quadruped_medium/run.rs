@@ -99,8 +99,7 @@ impl Animation for RunAnimation {
         let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude());
 
         //Gallop
-        next.head.position =
-            Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
+        next.head.position = Vec3::new(0.0, skeleton_attr.head.0, skeleton_attr.head.1);
         next.head.orientation = Quaternion::rotation_x(
             look.y * 0.3 / ((canceler).max(0.5)) + amplitude * short * -0.03 - 0.1,
         ) * Quaternion::rotation_z(
@@ -108,8 +107,7 @@ impl Animation for RunAnimation {
         ) * Quaternion::rotation_y(tilt * 0.8);
         next.head.scale = Vec3::one();
 
-        next.neck.position =
-            Vec3::new(0.0, skeleton_attr.neck.0, skeleton_attr.neck.1);
+        next.neck.position = Vec3::new(0.0, skeleton_attr.neck.0, skeleton_attr.neck.1);
         next.neck.orientation = Quaternion::rotation_z(tilt * -0.8)
             * Quaternion::rotation_x(amplitude * short * -0.05)
             * Quaternion::rotation_y(tilt * 0.3);
