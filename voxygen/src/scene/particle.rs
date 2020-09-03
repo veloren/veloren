@@ -14,7 +14,6 @@ use common::{
     spiral::Spiral2d,
     state::DeltaTime,
     terrain::TerrainChunk,
-    time::DayPeriod,
     vol::{RectRasterableVol, SizedVol},
 };
 use dot_vox::DotVoxData;
