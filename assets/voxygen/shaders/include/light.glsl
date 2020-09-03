@@ -142,7 +142,7 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
 		// float strength = attenuation_strength(difference);// pow(attenuation_strength(difference), 0.6);
         // // NOTE: This normalizes strength to 1.0 at the center of the point source.
         // float strength = 1.0 / (1.0 + distance_2);
-        float strength = 1.0 / (1 + distance_2);
+        float strength = 1.0 / (4 + distance_2);
 
 		// Multiply the vec3 only once
         const float PI = 3.1415926535897932384626433832795;
