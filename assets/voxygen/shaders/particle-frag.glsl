@@ -71,6 +71,7 @@ void main() {
 
     max_light += lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
 
+	// Allow particles to glow at night
 	// TODO: Not this
 	emitted_light += max(f_col.rgb - 1.0, vec3(0));
 
