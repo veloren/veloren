@@ -1,15 +1,53 @@
 #![deny(unsafe_code)]
 
+mod tui_runner;
+mod tuilog;
+
+#[macro_use] extern crate lazy_static;
+
+use crate::{
+    tui_runner::{Message, Tui},
+    tuilog::TuiLog,
+};
 use common::clock::Clock;
 use server::{Event, Input, Server, ServerSettings};
-use std::time::Duration;
 use tracing::{info, Level};
 use tracing_subscriber::{filter::LevelFilter, EnvFilter, FmtSubscriber};
+
+use clap::{App, Arg};
+use std::{io, sync::mpsc, time::Duration};
 
 const TPS: u64 = 30;
 const RUST_LOG_ENV: &str = "RUST_LOG";
 
-fn main() {
+lazy_static! {
+    static ref LOG: TuiLog<'static> = TuiLog::default();
+}
+
+fn main() -> io::Result<()> {
+    let matches = App::new("Veloren server cli")
+        .version(
+            format!(
+                "{}-{}",
+                env!("CARGO_PKG_VERSION"),
+                common::util::GIT_HASH.to_string()
+            )
+            .as_str(),
+        )
+        .author("The veloren devs <https://gitlab.com/veloren/veloren>")
+        .about("The veloren server cli provides an easy to use interface to start a veloren server")
+        .arg(
+            Arg::with_name("basic")
+                .short("b")
+                .long("basic")
+                .help("Disables the tui")
+                .takes_value(false),
+        )
+        .get_matches();
+
+    let basic = matches.is_present("basic");
+    let (mut tui, msg_r) = Tui::new();
+
     // Init logging
     let filter = match std::env::var_os(RUST_LOG_ENV).map(|s| s.into_string()) {
         Some(Ok(env)) => {
@@ -30,10 +68,17 @@ fn main() {
             .add_directive(LevelFilter::INFO.into()),
     };
 
-    FmtSubscriber::builder()
+    let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::ERROR)
-        .with_env_filter(filter)
-        .init();
+        .with_env_filter(filter);
+
+    if basic {
+        subscriber.init();
+    } else {
+        subscriber.with_writer(|| LOG.clone()).init();
+    }
+
+    tui.run(basic);
 
     info!("Starting server...");
 
@@ -44,7 +89,6 @@ fn main() {
     let settings = ServerSettings::load();
     let server_port = &settings.gameserver_address.port();
     let metrics_port = &settings.metrics_address.port();
-
     // Create server
     let mut server = Server::new(settings).expect("Failed to create server instance!");
 
@@ -68,7 +112,22 @@ fn main() {
         // Clean up the server after a tick.
         server.cleanup();
 
+        match msg_r.try_recv() {
+            Ok(msg) => match msg {
+                Message::Quit => {
+                    info!("Closing the server");
+                    break;
+                },
+            },
+            Err(e) => match e {
+                mpsc::TryRecvError::Empty => {},
+                mpsc::TryRecvError::Disconnected => panic!(),
+            },
+        };
+
         // Wait for the next tick.
         clock.tick(Duration::from_millis(1000 / TPS));
     }
+
+    Ok(())
 }
