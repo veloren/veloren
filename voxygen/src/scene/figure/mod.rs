@@ -364,15 +364,13 @@ impl FigureMgr {
     // TODO: Pending review in #587
     pub fn update_lighting(&mut self, scene_data: &SceneData) {
         let ecs = scene_data.state.ecs();
-        for (
-            entity,
-            body,
-            light_emitter,
-        ) in (
+        for (entity, body, light_emitter) in (
             &ecs.entities(),
             ecs.read_storage::<common::comp::Body>().maybe(),
             &ecs.read_storage::<LightEmitter>(),
-        ).join() {
+        )
+            .join()
+        {
             // Add LightAnimation for objects with a LightEmitter
             let mut anim_storage = ecs.write_storage::<LightAnimation>();
             if let None = anim_storage.get_mut(entity) {

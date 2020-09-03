@@ -7,11 +7,7 @@ pub enum DayPeriod {
 }
 
 impl DayPeriod {
-    pub fn is_dark(&self) -> bool {
-        *self == DayPeriod::Night
-    }
+    pub fn is_dark(&self) -> bool { *self == DayPeriod::Night }
 
-    pub fn is_light(&self) -> bool {
-        !self.is_dark()
-    }
+    pub fn is_light(&self) -> bool { !self.is_dark() }
 }
