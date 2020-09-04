@@ -37,7 +37,7 @@ pub fn apply_scatter_to<'a>(
                 )) * col.tree_density
                     * MUSH_FACT
                     * 256.0,
-                Some((512.0, 0.25)),
+                Some((256.0, 0.25)),
             )
         }),
         (PinkFlower, false, |c, col| {
@@ -46,7 +46,7 @@ pub fn apply_scatter_to<'a>(
                     * col.tree_density
                     * MUSH_FACT
                     * 350.0,
-                Some((128.0, 0.1)),
+                Some((100.0, 0.1)),
             )
         }),
         (PurpleFlower, false, |c, col| {
@@ -58,7 +58,7 @@ pub fn apply_scatter_to<'a>(
                 )) * col.tree_density
                     * MUSH_FACT
                     * 350.0,
-                Some((128.0, 0.1)),
+                Some((100.0, 0.1)),
             )
         }),
         (RedFlower, false, |c, col| {
@@ -70,7 +70,7 @@ pub fn apply_scatter_to<'a>(
                 )) * col.tree_density
                     * MUSH_FACT
                     * 350.0,
-                Some((128.0, 0.05)),
+                Some((100.0, 0.05)),
             )
         }),
         (WhiteFlower, false, |c, col| {
@@ -79,7 +79,7 @@ pub fn apply_scatter_to<'a>(
                     * col.tree_density
                     * MUSH_FACT
                     * 350.0,
-                Some((128.0, 0.1)),
+                Some((100.0, 0.1)),
             )
         }),
         (YellowFlower, false, |c, col| {
@@ -88,7 +88,7 @@ pub fn apply_scatter_to<'a>(
                     * col.tree_density
                     * MUSH_FACT
                     * 350.0,
-                Some((128.0, 0.1)),
+                Some((100.0, 0.1)),
             )
         }),
         (Sunflower, false, |c, col| {
@@ -97,7 +97,7 @@ pub fn apply_scatter_to<'a>(
                     * col.tree_density
                     * MUSH_FACT
                     * 350.0,
-                Some((512.0, 0.15)),
+                Some((100.0, 0.15)),
             )
         }),
         // Herbs and Spices
