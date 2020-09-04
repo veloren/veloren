@@ -3,7 +3,7 @@ Item(
     description: "Thank goodness for big pockets",
     kind: Glider(
         (
-            kind: Blue,
-        )
+            kind: "Blue",
+        ),
     ),
 )
