@@ -3,7 +3,6 @@ use super::{
     shadow, Globals, Light, Shadow,
 };
 use crate::mesh::greedy::GreedyMesh;
-use core::ops::Range;
 use gfx::{
     self, gfx_constant_struct_meta, gfx_defines, gfx_impl_struct_meta, gfx_pipeline,
     gfx_pipeline_inner, state::ColorMask,
@@ -122,4 +121,4 @@ impl FigureModel {
     }
 }
 
-pub type BoneMeshes = (Mesh<TerrainPipeline>, (anim::vek::Aabb<f32>, Range<usize>));
+pub type BoneMeshes = (Mesh<TerrainPipeline>, anim::vek::Aabb<f32>);
