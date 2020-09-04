@@ -16,6 +16,6 @@ pub mod roll;
 pub mod sit;
 pub mod sneak;
 pub mod spin_melee;
-pub mod triple_strike;
+pub mod combo_melee;
 pub mod utils;
 pub mod wielding;

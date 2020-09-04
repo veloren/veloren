@@ -30,7 +30,6 @@ use common::{
     },
     span,
     state::{DeltaTime, State},
-    states::triple_strike,
     terrain::TerrainChunk,
     vol::RectRasterableVol,
 };
@@ -912,8 +911,8 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::TripleStrike(s) => match s.stage {
-                            triple_strike::Stage::First => {
+                        CharacterState::ComboMelee(s) => match s.stage {
+                            1 => {
                                 anim::character::AlphaAnimation::update_skeleton(
                                     &target_base,
                                     (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
@@ -922,7 +921,7 @@ impl FigureMgr {
                                     skeleton_attr,
                                 )
                             },
-                            triple_strike::Stage::Second => {
+                            2 => {
                                 anim::character::SpinAnimation::update_skeleton(
                                     &target_base,
                                     (active_tool_kind, second_tool_kind, time),
@@ -931,7 +930,7 @@ impl FigureMgr {
                                     skeleton_attr,
                                 )
                             },
-                            triple_strike::Stage::Third => {
+                            _ => {
                                 anim::character::BetaAnimation::update_skeleton(
                                     &target_base,
                                     (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
