@@ -595,217 +595,217 @@
     ),
     (Rat, Male): (
         left_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-1.5, -2.0, -4.0),
             lateral: ("npc.rat.male.foot_fl"),
         ),
         right_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-1.5, -2.0, -4.0),
             lateral: ("npc.rat.male.foot_fr"),
         ),
         left_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-1.5, -2.5, -6.0),
             lateral: ("npc.rat.male.foot_bl"),
         ),
         right_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-1.5, -2.5, -6.0),
             lateral: ("npc.rat.male.foot_br"),
         ),
     ),
     (Rat, Female): (
         left_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-1.5, -2.0, -4.0),
             lateral: ("npc.rat.male.foot_fl"),
         ),
         right_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-1.5, -2.0, -4.0),
             lateral: ("npc.rat.male.foot_fr"),
         ),
         left_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-1.5, -2.5, -6.0),
             lateral: ("npc.rat.male.foot_bl"),
         ),
         right_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-1.5, -2.5, -6.0),
             lateral: ("npc.rat.male.foot_br"),
         ),
     ),
     (Axolotl, Male): (
         left_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-5.5, -0.5, -3.0),
             lateral: ("npc.axolotl.male.foot_fl"),
         ),
         right_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-0.5, -0.5, -3.0),
             lateral: ("npc.axolotl.male.foot_fr"),
         ),
         left_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-5.5, -3.5, -3.0),
             lateral: ("npc.axolotl.male.foot_bl"),
         ),
         right_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-0.5, -3.5, -3.0),
             lateral: ("npc.axolotl.male.foot_br"),
         ),
     ),
     (Axolotl, Female): (
         left_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-5.5, -0.5, -3.0),
             lateral: ("npc.axolotl.male.foot_fl"),
         ),
         right_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-0.5, -0.5, -3.0),
             lateral: ("npc.axolotl.male.foot_fr"),
         ),
         left_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-5.5, -3.5, -3.0),
             lateral: ("npc.axolotl.male.foot_bl"),
         ),
         right_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-0.5, -3.5, -3.0),
             lateral: ("npc.axolotl.male.foot_br"),
         ),
     ),
     (Gecko, Male): (
         left_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-5.5, -1.0, -3.5),
             lateral: ("npc.gecko.male.foot_fl"),
         ),
         right_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-0.5, -1.0, -3.5),
             lateral: ("npc.gecko.male.foot_fr"),
         ),
         left_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-5.5, -4.0, -3.5),
             lateral: ("npc.gecko.male.foot_bl"),
         ),
         right_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-0.5, -4.0, -3.5),
             lateral: ("npc.gecko.male.foot_br"),
         ),
     ),
     (Gecko, Female): (
         left_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-5.5, -1.0, -3.5),
             lateral: ("npc.gecko.male.foot_fl"),
         ),
         right_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-0.5, -1.0, -3.5),
             lateral: ("npc.gecko.male.foot_fr"),
         ),
         left_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-5.5, -4.0, -3.5),
             lateral: ("npc.gecko.male.foot_bl"),
         ),
         right_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-0.5, -4.0, -3.5),
             lateral: ("npc.gecko.male.foot_br"),
         ),
     ),
     (Turtle, Male): (
         left_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-1.5, -0.5, -4.0),
             lateral: ("npc.turtle.male.foot_fl"),
         ),
         right_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-1.5, -0.5, -4.0),
             lateral: ("npc.turtle.male.foot_fr"),
         ),
         left_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-2.0, -2.5, -4.0),
             lateral: ("npc.turtle.male.foot_bl"),
         ),
         right_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-2.0, -2.5, -4.0),
             lateral: ("npc.turtle.male.foot_br"),
         ),
     ),
     (Turtle, Female): (
         left_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-1.5, -0.5, -4.0),
             lateral: ("npc.turtle.male.foot_fl"),
         ),
         right_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-1.5, -0.5, -4.0),
             lateral: ("npc.turtle.male.foot_fr"),
         ),
         left_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-2.0, -2.5, -4.0),
             lateral: ("npc.turtle.male.foot_bl"),
         ),
         right_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-2.0, -2.5, -4.0),
             lateral: ("npc.turtle.male.foot_br"),
         ),
     ),
     (Squirrel, Male): (
         left_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-1.5, -1.5, -4.0),
             lateral: ("npc.squirrel.male.foot_fl"),
         ),
         right_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-1.5, -1.5, -4.0),
             lateral: ("npc.squirrel.male.foot_fr"),
         ),
         left_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-1.5, -2.0, -5.0),
             lateral: ("npc.squirrel.male.foot_bl"),
         ),
         right_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-1.5, -2.0, -5.0),
             lateral: ("npc.squirrel.male.foot_br"),
         ),
     ),
     (Squirrel, Female): (
         left_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-1.5, -1.5, -4.0),
             lateral: ("npc.squirrel.male.foot_fl"),
         ),
         right_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-1.5, -1.5, -4.0),
             lateral: ("npc.squirrel.male.foot_fr"),
         ),
         left_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-1.5, -2.0, -5.0),
             lateral: ("npc.squirrel.male.foot_bl"),
         ),
         right_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-1.5, -2.0, -5.0),
             lateral: ("npc.squirrel.male.foot_br"),
         ),
     ),
     (Fungome, Male): (
         left_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-2.5, -0.5, -3.0),
             lateral: ("npc.fungome.male.foot_fl"),
         ),
         right_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-0.5, -0.5, -3.0),
             lateral: ("npc.fungome.male.foot_fr"),
         ),
         left_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-2.5, -1.0, -3.0),
             lateral: ("npc.fungome.male.foot_bl"),
         ),
         right_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-0.5, -1.0, -3.0),
             lateral: ("npc.fungome.male.foot_br"),
         ),
     ),
     (Fungome, Female): (
         left_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-2.5, -0.5, -3.0),
             lateral: ("npc.fungome.male.foot_fl"),
         ),
         right_front: (
-            offset: (-2.5, -2.5, -4.0),
+            offset: (-0.5, -0.5, -3.0),
             lateral: ("npc.fungome.male.foot_fr"),
         ),
         left_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-2.5, -1.0, -3.0),
             lateral: ("npc.fungome.male.foot_bl"),
         ),
         right_back: (
-            offset: (-2.5, -3.5, -4.0),
+            offset: (-0.5, -1.0, -3.0),
             lateral: ("npc.fungome.male.foot_br"),
         ),
     ),
