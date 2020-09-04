@@ -28,7 +28,8 @@ pub struct Stage {
     pub base_recover_duration: Duration,
 }
 
-/// A sequence of attacks that can incrementally become faster and more damaging.
+/// A sequence of attacks that can incrementally become faster and more
+/// damaging.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
     /// Indicates what stage the combo is in
@@ -82,7 +83,11 @@ impl CharacterBehavior for Data {
         } else if !self.exhausted {
             // Hit attempt
             data.updater.insert(data.entity, Attacking {
-                base_healthchange: -((self.stage_data[stage_index].max_damage.min(self.stage_data[stage_index].base_damage + self.combo / self.num_stages * self.stage_data[stage_index].damage_increase)) as i32),
+                base_healthchange: -((self.stage_data[stage_index].max_damage.min(
+                    self.stage_data[stage_index].base_damage
+                        + self.combo / self.num_stages
+                            * self.stage_data[stage_index].damage_increase,
+                )) as i32),
                 range: self.stage_data[stage_index].range,
                 max_angle: self.stage_data[stage_index].angle.to_radians(),
                 applied: false,
@@ -118,7 +123,9 @@ impl CharacterBehavior for Data {
                     .checked_add(Duration::from_secs_f32(data.dt.0))
                     .unwrap_or_default(),
             });
-        } else if self.timer < self.combo_duration + self.stage_data[stage_index].base_recover_duration {
+        } else if self.timer
+            < self.combo_duration + self.stage_data[stage_index].base_recover_duration
+        {
             if data.inputs.primary.is_pressed() {
                 update.character = CharacterState::ComboMelee(Data {
                     stage: (self.stage % self.num_stages) + 1,
@@ -159,7 +166,10 @@ impl CharacterBehavior for Data {
         // Grant energy on successful hit
         if let Some(attack) = data.attacking {
             if attack.applied && attack.hit_count > 0 {
-                let energy = self.max_energy_gain.min(self.initial_energy_gain + self.combo * self.energy_increase) as i32;
+                let energy = self
+                    .max_energy_gain
+                    .min(self.initial_energy_gain + self.combo * self.energy_increase)
+                    as i32;
                 data.updater.remove::<Attacking>(data.entity);
                 update.energy.change_by(energy, EnergySource::HitEnemy);
             }
