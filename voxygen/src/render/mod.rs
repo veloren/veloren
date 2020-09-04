@@ -228,7 +228,7 @@ pub enum ShadowMode {
 }
 
 impl Default for ShadowMode {
-    fn default() -> Self { ShadowMode::Cheap }
+    fn default() -> Self { ShadowMode::Map(Default::default()) }
 }
 
 impl core::convert::TryFrom<ShadowMode> for ShadowMapMode {
