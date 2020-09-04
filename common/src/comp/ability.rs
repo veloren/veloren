@@ -1,10 +1,9 @@
 use crate::{
     comp::{
-        ability::Stage,
         item::{armor::Protection, Item, ItemKind},
         Body, CharacterState, EnergySource, Gravity, LightEmitter, Projectile, StateUpdate,
     },
-    states::{triple_strike::*, *},
+    states::*,
     sys::character_behavior::JoinData,
 };
 use arraygen::Arraygen;
@@ -21,7 +20,7 @@ pub enum CharacterAbilityType {
     ChargedRanged,
     DashMelee,
     BasicBlock,
-    TripleStrike(Stage),
+    ComboMelee,
     LeapMelee,
     SpinMelee,
     GroundShockwave,
@@ -36,7 +35,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::DashMelee(_) => Self::DashMelee,
             CharacterState::BasicBlock => Self::BasicBlock,
             CharacterState::LeapMelee(_) => Self::LeapMelee,
-            CharacterState::TripleStrike(data) => Self::TripleStrike(data.stage),
+            CharacterState::ComboMelee(_) => Self::ComboMelee,
             CharacterState::SpinMelee(_) => Self::SpinMelee,
             CharacterState::ChargedRanged(_) => Self::ChargedRanged,
             CharacterState::GroundShockwave(_) => Self::ChargedRanged,
@@ -79,9 +78,12 @@ pub enum CharacterAbility {
     },
     BasicBlock,
     Roll,
-    TripleStrike {
-        base_damage: u32,
-        needs_timing: bool,
+    ComboMelee {
+        stage_data: Vec<combo_melee::Stage>,
+        initial_energy_gain: u32,
+        max_energy_gain: u32,
+        energy_increase: u32,
+        combo_duration: Duration,
     },
     LeapMelee {
         energy_cost: u32,
@@ -130,11 +132,6 @@ impl CharacterAbility {
     /// applicable.
     pub fn requirements_paid(&self, data: &JoinData, update: &mut StateUpdate) -> bool {
         match self {
-            CharacterAbility::TripleStrike { .. } => {
-                data.physics.on_ground
-                    && data.body.is_humanoid()
-                    && data.inputs.look_dir.xy().magnitude_squared() > 0.01
-            },
             CharacterAbility::Roll => {
                 data.physics.on_ground
                     && data.body.is_humanoid()
@@ -328,20 +325,23 @@ impl From<&CharacterAbility> for CharacterState {
                 remaining_duration: Duration::from_millis(500),
                 was_wielded: false, // false by default. utils might set it to true
             }),
-            CharacterAbility::TripleStrike {
-                base_damage,
-                needs_timing,
-            } => CharacterState::TripleStrike(triple_strike::Data {
-                base_damage: *base_damage,
-                stage: triple_strike::Stage::First,
-                stage_exhausted: false,
-                stage_time_active: Duration::default(),
-                initialized: false,
-                transition_style: if *needs_timing {
-                    TransitionStyle::Timed(TimingState::NotPressed)
-                } else {
-                    TransitionStyle::Hold(HoldingState::Holding)
-                },
+            CharacterAbility::ComboMelee {
+                stage_data,
+                initial_energy_gain,
+                max_energy_gain,
+                energy_increase,
+                combo_duration,
+            } => CharacterState::ComboMelee(combo_melee::Data {
+                stage: 1,
+                num_stages: stage_data.len() as u32,
+                combo: 0,
+                stage_data: stage_data.clone(),
+                exhausted: false,
+                initial_energy_gain: *initial_energy_gain,
+                max_energy_gain: *max_energy_gain,
+                energy_increase: *energy_increase,
+                combo_duration: *combo_duration,
+                timer: Duration::default(),
             }),
             CharacterAbility::LeapMelee {
                 energy_cost: _,

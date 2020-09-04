@@ -71,7 +71,7 @@
 //!     ],
 //!     threshold: 1.2,
 //! ),
-//! // A multi-stage attack ability which depends on the weapon
+//! // A multi-stage attack ability which depends on the weapon (To do: update example)
 //! Attack(TripleStrike(First), Sword): (
 //!     files: [
 //!         "voxygen.audio.sfx.weapon.sword_03",

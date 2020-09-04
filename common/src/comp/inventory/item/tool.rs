@@ -1,8 +1,11 @@
 // Note: If you changes here "break" old character saves you can change the
 // version in voxygen\src\meta.rs in order to reset save files to being empty
 
-use crate::comp::{
-    body::object, projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile,
+use crate::{
+    comp::{
+        body::object, projectile, Body, CharacterAbility, Gravity, LightEmitter, Projectile,
+    },
+    states::combo_melee,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -116,9 +119,46 @@ impl Tool {
 
         match &self.kind {
             Sword(_) => vec![
-                TripleStrike {
-                    base_damage: (60.0 * self.base_power()) as u32,
-                    needs_timing: false,
+                ComboMelee {
+                    stage_data: vec![
+                        combo_melee::Stage {
+                            stage: 1,
+                            base_damage: 30,
+                            max_damage: 50,
+                            damage_increase: 10,
+                            knockback: 5.0,
+                            range: 3.5,
+                            angle: 45.0,
+                            base_buildup_duration: Duration::from_millis(150),
+                            base_recover_duration: Duration::from_millis(100),
+                        },
+                        combo_melee::Stage {
+                            stage: 2,
+                            base_damage: 50,
+                            max_damage: 80,
+                            damage_increase: 15,
+                            knockback: 5.0,
+                            range: 3.5,
+                            angle: 45.0,
+                            base_buildup_duration: Duration::from_millis(150),
+                            base_recover_duration: Duration::from_millis(100),
+                        },
+                        combo_melee::Stage {
+                            stage: 3,
+                            base_damage: 70,
+                            max_damage: 110,
+                            damage_increase: 20,
+                            knockback: 5.0,
+                            range: 3.5,
+                            angle: 45.0,
+                            base_buildup_duration: Duration::from_millis(150),
+                            base_recover_duration: Duration::from_millis(100),
+                        },
+                    ],
+                    initial_energy_gain: 0,
+                    max_energy_gain: 100,
+                    energy_increase: 20,
+                    combo_duration: Duration::from_millis(250),
                 },
                 DashMelee {
                     energy_cost: 700,
@@ -128,9 +168,46 @@ impl Tool {
                 },
             ],
             Axe(_) => vec![
-                TripleStrike {
-                    base_damage: (80.0 * self.base_power()) as u32,
-                    needs_timing: true,
+                ComboMelee {
+                    stage_data: vec![
+                        combo_melee::Stage {
+                            stage: 1,
+                            base_damage: 30,
+                            max_damage: 50,
+                            damage_increase: 10,
+                            knockback: 5.0,
+                            range: 3.5,
+                            angle: 45.0,
+                            base_buildup_duration: Duration::from_millis(150),
+                            base_recover_duration: Duration::from_millis(100),
+                        },
+                        combo_melee::Stage {
+                            stage: 2,
+                            base_damage: 50,
+                            max_damage: 80,
+                            damage_increase: 15,
+                            knockback: 5.0,
+                            range: 3.5,
+                            angle: 45.0,
+                            base_buildup_duration: Duration::from_millis(150),
+                            base_recover_duration: Duration::from_millis(100),
+                        },
+                        combo_melee::Stage {
+                            stage: 3,
+                            base_damage: 70,
+                            max_damage: 110,
+                            damage_increase: 20,
+                            knockback: 5.0,
+                            range: 3.5,
+                            angle: 45.0,
+                            base_buildup_duration: Duration::from_millis(150),
+                            base_recover_duration: Duration::from_millis(100),
+                        },
+                    ],
+                    initial_energy_gain: 0,
+                    max_energy_gain: 100,
+                    energy_increase: 20,
+                    combo_duration: Duration::from_millis(250),
                 },
                 SpinMelee {
                     energy_cost: 100,
