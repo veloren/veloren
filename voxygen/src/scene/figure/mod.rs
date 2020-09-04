@@ -911,34 +911,46 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::ComboMelee(s) => match s.stage {
-                            1 => {
-                                anim::character::AlphaAnimation::update_skeleton(
+                        CharacterState::ComboMelee(s) => {
+                            let stage_index = (s.stage - 1) as usize;
+                            let stage_time = if !s.exhausted {
+                                s.timer.as_secs_f64()
+                            } else {
+                                s.timer.as_secs_f64()
+                                    + s.stage_data[stage_index]
+                                        .base_buildup_duration
+                                        .as_secs_f64()
+                            };
+                            let stage_progress = stage_time
+                                / (s.stage_data[stage_index]
+                                    .base_buildup_duration
+                                    .as_secs_f64()
+                                    + s.stage_data[stage_index]
+                                        .base_recover_duration
+                                        .as_secs_f64());
+                            match s.stage {
+                                1 => anim::character::AlphaAnimation::update_skeleton(
                                     &target_base,
                                     (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
-                                    state.state_time,
+                                    stage_progress,
                                     &mut state_animation_rate,
                                     skeleton_attr,
-                                )
-                            },
-                            2 => {
-                                anim::character::SpinAnimation::update_skeleton(
+                                ),
+                                2 => anim::character::SpinAnimation::update_skeleton(
                                     &target_base,
                                     (active_tool_kind, second_tool_kind, time),
-                                    state.state_time,
+                                    stage_progress,
                                     &mut state_animation_rate,
                                     skeleton_attr,
-                                )
-                            },
-                            _ => {
-                                anim::character::BetaAnimation::update_skeleton(
+                                ),
+                                _ => anim::character::BetaAnimation::update_skeleton(
                                     &target_base,
                                     (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
-                                    state.state_time,
+                                    stage_progress,
                                     &mut state_animation_rate,
                                     skeleton_attr,
-                                )
-                            },
+                                ),
+                            }
                         },
                         CharacterState::BasicBlock { .. } => {
                             anim::character::BlockIdleAnimation::update_skeleton(
