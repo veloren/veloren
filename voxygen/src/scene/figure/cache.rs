@@ -367,7 +367,11 @@ where
                 let slot_ = Arc::clone(&slot);
 
                 thread_pool.execute(move || {
+                    // First, load all the base vertex data.
                     let manifests = &*manifests;
+                    let meshes = <Skel::Body as BodySpec>::bone_meshes(&key, &*manifests);
+
+                    // Then, set up meshing context.
                     let mut greedy = FigureModel::make_greedy();
                     let mut opaque = Mesh::<TerrainPipeline>::new();
                     // Choose the most conservative bounds for any LOD model.
@@ -382,31 +386,21 @@ where
                     let mut make_model = |generate_mesh: for<'a, 'b> fn(
                         &mut GreedyMesh<'a>,
                         &'b mut _,
+                        &'a _,
                         _,
                         _,
                     )
                         -> _| {
                         let vertex_start = opaque.vertices().len();
-                        let meshes = <Skel::Body as BodySpec>::bone_meshes(
-                            &key,
-                            &*manifests,
-                            |segment, offset| {
-                                generate_mesh(&mut greedy, &mut opaque, segment, offset)
-                            },
-                        );
                         meshes
                             .iter()
                             .enumerate()
-                            // NOTE: Cast to u8 is safe because i <= 16.
-                            .filter_map(|(i, bm)| bm.as_ref().map(|bm| (i as u8, bm.clone())))
-                            .for_each(|(i, (_opaque_mesh, (bounds, vertex_range)))| {
-                                // Update the bone index for all vertices that belong to this
-                                // model.
-                                opaque
-                                    .iter_mut(vertex_range)
-                                    .for_each(|vert| {
-                                        vert.set_bone_idx(i);
-                                    });
+                            // NOTE: Cast to u8 is safe because i < 16.
+                            .filter_map(|(i, bm)| bm.as_ref().map(|bm| (i as u8, bm)))
+                            .for_each(|(i, (segment, offset))| {
+                                // Generate this mesh.
+                                let (_opaque_mesh, bounds) =
+                                    generate_mesh(&mut greedy, &mut opaque, segment, *offset, i);
 
                                 // Update the figure bounds to the largest granularity seen so far
                                 // (NOTE: this is more than a little imperfect).
@@ -442,13 +436,14 @@ where
                     fn generate_mesh<'a>(
                         greedy: &mut GreedyMesh<'a>,
                         opaque_mesh: &mut Mesh<TerrainPipeline>,
-                        segment: Segment,
+                        segment: &'a Segment,
                         offset: Vec3<f32>,
+                        bone_idx: u8,
                     ) -> BoneMeshes {
                         let (opaque, _, _, bounds) =
                             Meshable::<FigurePipeline, &mut GreedyMesh>::generate_mesh(
                                 segment,
-                                (greedy, opaque_mesh, offset, Vec3::one()),
+                                (greedy, opaque_mesh, offset, Vec3::one(), bone_idx),
                             );
                         (opaque, bounds)
                     }
@@ -456,8 +451,9 @@ where
                     fn generate_mesh_lod_mid<'a>(
                         greedy: &mut GreedyMesh<'a>,
                         opaque_mesh: &mut Mesh<TerrainPipeline>,
-                        segment: Segment,
+                        segment: &'a Segment,
                         offset: Vec3<f32>,
+                        bone_idx: u8,
                     ) -> BoneMeshes {
                         let lod_scale = 0.6;
                         let (opaque, _, _, bounds) =
@@ -468,6 +464,7 @@ where
                                     opaque_mesh,
                                     offset * lod_scale,
                                     Vec3::one() / lod_scale,
+                                    bone_idx,
                                 ),
                             );
                         (opaque, bounds)
@@ -476,8 +473,9 @@ where
                     fn generate_mesh_lod_low<'a>(
                         greedy: &mut GreedyMesh<'a>,
                         opaque_mesh: &mut Mesh<TerrainPipeline>,
-                        segment: Segment,
+                        segment: &'a Segment,
                         offset: Vec3<f32>,
+                        bone_idx: u8,
                     ) -> BoneMeshes {
                         let lod_scale = 0.3;
                         let (opaque, _, _, bounds) =
@@ -488,6 +486,7 @@ where
                                     opaque_mesh,
                                     offset * lod_scale,
                                     Vec3::one() / lod_scale,
+                                    bone_idx,
                                 ),
                             );
                         (opaque, bounds)

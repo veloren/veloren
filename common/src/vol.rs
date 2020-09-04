@@ -273,3 +273,8 @@ impl<'a, T: ReadVol> Iterator for DefaultVolIterator<'a, T> {
         None
     }
 }
+
+impl<'b, T: ReadVol> ReadVol for &'b T {
+    #[inline(always)]
+    fn get<'a>(&'a self, pos: Vec3<i32>) -> Result<&'a Self::Vox, Self::Error> { (*self).get(pos) }
+}
