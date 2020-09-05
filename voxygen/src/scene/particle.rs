@@ -347,15 +347,12 @@ impl ParticleMgr {
             if let CharacterState::BasicBeam(b) = character_state {
                 let particle_ori = b.particle_ori.unwrap_or(*ori.vec());
                 for _ in 0..self.scheduler.heartbeats(Duration::from_millis(5)) {
-                    let buildup = b.buildup_duration.as_millis() as i32;
-                    for t in 0..((buildup / 50) + 1) {
-                        let frac = ((t * 50) as f32) / 250.0; // Default value of buildup duration hardcoded for now, as it currently decreases over time
-                        let dur = (2000.0 * (1.0 - frac)).max(0.0) as u64;
+                    if b.buildup_duration == Duration::default() {
                         self.particles.push(Particle::new_beam(
-                            Duration::from_millis(dur),
+                            b.beam_duration,
                             time,
                             ParticleMode::HealingBeam,
-                            pos.0 + particle_ori * b.range * frac,
+                            pos.0,
                             pos.0 + particle_ori * b.range,
                         ));
                     }

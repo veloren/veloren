@@ -127,6 +127,7 @@ impl State {
         ecs.register::<comp::Object>();
         ecs.register::<comp::Group>();
         ecs.register::<comp::Shockwave>();
+        ecs.register::<comp::Beam>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();

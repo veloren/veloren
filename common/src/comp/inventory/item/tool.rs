@@ -306,6 +306,7 @@ impl Tool {
                             energy_cost: 0,
                             buildup_duration: Duration::from_millis(250),
                             recover_duration: Duration::from_millis(250),
+                            beam_duration: Duration::from_secs(2),
                             base_hps: (60.0 * self.base_power()) as u32,
                             base_dps: (40.0 * self.base_power()) as u32,
                             tick_rate: 2.0,

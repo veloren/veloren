@@ -45,6 +45,13 @@ pub trait StateExt {
         pos: comp::Pos,
         ori: comp::Ori,
     ) -> EcsEntityBuilder;
+    /// Build a beam entity
+    fn create_beam(
+        &mut self,
+        properties: comp::beam::Properties,
+        pos: comp::Pos,
+        ori: comp::Ori,
+    ) -> EcsEntityBuilder;
     /// Insert common/default components for a new character joining the server
     fn initialize_character_data(&mut self, entity: EcsEntity, character_id: CharacterId);
     /// Update the components associated with the entity's current character.
@@ -151,6 +158,22 @@ impl StateExt for State {
             .with(pos)
             .with(ori)
             .with(comp::Shockwave {
+                properties,
+                creation: None,
+            })
+    }
+
+    fn create_beam(
+        &mut self,
+        properties: comp::beam::Properties,
+        pos: comp::Pos,
+        ori: comp::Ori,
+    ) -> EcsEntityBuilder {
+        self.ecs_mut()
+            .create_entity_synced()
+            .with(pos)
+            .with(ori)
+            .with(comp::Beam {
                 properties,
                 creation: None,
             })

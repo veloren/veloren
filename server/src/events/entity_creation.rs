@@ -2,7 +2,7 @@ use crate::{sys, Server, StateExt};
 use common::{
     character::CharacterId,
     comp::{
-        self, humanoid::DEFAULT_HUMANOID_EYE_HEIGHT, shockwave, Agent, Alignment, Body, Gravity,
+        self, beam, humanoid::DEFAULT_HUMANOID_EYE_HEIGHT, shockwave, Agent, Alignment, Body, Gravity,
         Item, ItemDrop, LightEmitter, Loadout, Ori, Pos, Projectile, Scale, Stats, Vel,
         WaypointArea,
     },
@@ -134,6 +134,11 @@ pub fn handle_shockwave(
 ) {
     let state = server.state_mut();
     state.create_shockwave(properties, pos, ori).build();
+}
+
+pub fn handle_beam(server: &mut Server, properties: beam::Properties, pos: Pos, ori: Ori) {
+    let state = server.state_mut();
+    state.create_beam(properties, pos, ori).build();
 }
 
 pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
