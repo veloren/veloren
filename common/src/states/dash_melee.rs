@@ -212,9 +212,6 @@ impl CharacterBehavior for Data {
                 applied: false,
                 hit_count: 0,
                 knockback: 0.0,
-                is_melee: true,
-                lifesteal_eff: 0.0,
-                look_dir: None,
             });
 >>>>>>> 8e6d0821c... Beams now have spherical hit detection.
 
