@@ -46,6 +46,12 @@ pub fn handle_damage(server: &Server, uid: Uid, change: HealthChange) {
 pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSource) {
     let state = server.state_mut();
 
+    // TODO: Investigate duplicate `Destroy` events (but don't remove this).
+    // If the entity was already deleted, it can't be destroyed again.
+    if !state.ecs().is_alive(entity) {
+        return;
+    }
+
     // Chat message
     if let Some(player) = state.ecs().read_storage::<Player>().get(entity) {
         let msg = if let HealthSource::Attack { by }
