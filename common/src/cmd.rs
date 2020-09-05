@@ -201,7 +201,7 @@ impl ChatCommand {
                 "Prints some debug information about a column",
                 NoAdmin,
             ),
-            ChatCommand::Dummy => cmd(vec![], "Spawns a training dummy", NoAdmin),
+            ChatCommand::Dummy => cmd(vec![], "Spawns a training dummy", Admin),
             ChatCommand::Explosion => cmd(
                 vec![Float("radius", 5.0, Required)],
                 "Explodes the ground around you",
