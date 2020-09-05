@@ -100,23 +100,54 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             let block = state.terrain().get(pos).ok().copied();
 
             if let Some(block) = block {
-                let has_inv_space = state
-                    .ecs()
-                    .read_storage::<comp::Inventory>()
-                    .get(entity)
-                    .map(|inv| !inv.is_full())
-                    .unwrap_or(false);
-
-                if !has_inv_space {
-                    state.write_component(
-                        entity,
-                        comp::InventoryUpdate::new(comp::InventoryUpdateEvent::CollectFailed),
+                if block.is_collectible() && state.can_set_block(pos) {
+                    if let Some(item) = comp::Item::try_reclaim_from_block(block) {
+                        let (event, item_was_added) = if let Some(inv) = state
+                            .ecs()
+                            .write_storage::<comp::Inventory>()
+                            .get_mut(entity)
+                        {
+                            match inv.push(item.clone()) {
+                                None => (
+                                    Some(comp::InventoryUpdate::new(
+                                        comp::InventoryUpdateEvent::Collected(item),
+                                    )),
+                                    true,
+                                ),
+                                Some(_) => (
+                                    Some(comp::InventoryUpdate::new(
+                                        comp::InventoryUpdateEvent::CollectFailed,
+                                    )),
+                                    false,
+                                ),
+                            }
+                        } else {
+                            debug!(
+                                "Can't add item to inventory: entity has no inventory ({:?})",
+                                entity
+                            );
+                            (None, false)
+                        };
+                        if let Some(event) = event {
+                            state.write_component(entity, event);
+                            if item_was_added {
+                                // we made sure earlier the block was not already modified this tick
+                                state.set_block(pos, Block::empty())
+                            };
+                        }
+                    } else {
+                        debug!(
+                            "Failed to reclaim item from block at pos={} or entity had no \
+                             inventory",
+                            pos
+                        )
+                    }
+                } else {
+                    debug!(
+                        "Can't reclaim item from block at pos={}: block is not collectable or was \
+                         already set this tick.",
+                        pos
                     );
-                } else if block.is_collectible()
-                    && state.try_set_block(pos, Block::empty()).is_some()
-                {
-                    comp::Item::try_reclaim_from_block(block)
-                        .map(|item| state.give_item(entity, item));
                 }
             }
         },
