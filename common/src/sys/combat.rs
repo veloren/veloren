@@ -88,7 +88,7 @@ impl<'a> System<'a> for Sys {
                 &bodies,
             )
                 .join()
-            {   
+            {
                 // 2D versions
                 let pos2 = Vec2::from(pos.0);
                 let pos_b2 = Vec2::<f32>::from(pos_b.0);
@@ -105,7 +105,6 @@ impl<'a> System<'a> for Sys {
                     // Spherical wedge shaped attack field
                     && pos.0.distance_squared(pos_b.0) < (rad_b + scale * attack.range).powi(2)
                     && ori2.angle_between(pos_b2 - pos2) < attack.max_angle + (rad_b / pos2.distance(pos_b2)).atan()
-    
                 {
                     // See if entities are in the same group
                     let same_group = groups

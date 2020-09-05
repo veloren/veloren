@@ -137,7 +137,7 @@ impl<'a> System<'a> for Sys {
                     && !stats_b.is_dead
                     // Collision shapes
                     && (sphere_wedge_cylinder_collision(pos.0, frame_start_dist, frame_end_dist, *ori.0, beam.angle, pos_b.0, rad_b, height_b)
-                    || last_pos_b_maybe.map_or(false, |pos_maybe| {sphere_wedge_cylinder_collision(pos.0, frame_start_dist, frame_end_dist, *ori.0, beam.angle, pos_maybe.0.0, rad_b, height_b)}));
+                    || last_pos_b_maybe.map_or(false, |pos_maybe| {sphere_wedge_cylinder_collision(pos.0, frame_start_dist, frame_end_dist, *ori.0, beam.angle, (pos_maybe.0).0, rad_b, height_b)}));
 
                 if hit {
                     // See if entities are in the same group
@@ -209,7 +209,11 @@ fn sphere_wedge_cylinder_collision(
 ) -> bool {
     // Converts all coordinates so that the new origin is in the center of the
     // cylinder
-    let center_pos_b = Vec3::new(bottom_pos_b.x, bottom_pos_b.y, bottom_pos_b.z + length_b / 2.0);
+    let center_pos_b = Vec3::new(
+        bottom_pos_b.x,
+        bottom_pos_b.y,
+        bottom_pos_b.z + length_b / 2.0,
+    );
     let pos = real_pos - center_pos_b;
     let pos_b = Vec3::zero();
     if pos.distance_squared(pos_b) > (max_rad + rad_b + length_b).powi(2) {
@@ -222,30 +226,61 @@ fn sphere_wedge_cylinder_collision(
         let ori2 = Vec2::from(ori);
         let distance = pos2.distance(Vec2::zero());
         let in_range = distance < max_rad && distance > min_rad;
-        let in_angle = pos2.angle_between(-ori2) < angle + (rad_b / distance).atan().abs()
-            && pos.angle_between(-ori) < angle + (length_b / 2.0 / distance).atan().abs();
+        // Done so that if distance = 0, atan() can still be calculated https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=6d2221bb9454debdfca8f9c52d1edb29
+        let tangent_value1: f32 = rad_b / distance;
+        let tangent_value2: f32 = length_b / 2.0 / distance;
+        let in_angle = pos2.angle_between(-ori2) < angle + (tangent_value1).atan().abs()
+            && pos.angle_between(-ori) < angle + (tangent_value2).atan().abs();
         in_range && in_angle
     } else {
         // Checks case 2: if sphere collides with top/bottom of cylinder, doesn't use
-        // paper. Logic used here is it checks if line between centers passes through either cap, then if the cap is within range, then if withing angle of beam. If line
+        // paper. Logic used here is it checks if line between centers passes through
+        // either cap, then if the cap is within range, then if withing angle of beam.
+        // If line
         let sign = if pos.z > 0.0 { 1.0 } else { -1.0 };
+        let height = sign * length_b / 2.0;
         let (in_range, in_angle): (bool, bool);
+        // Gets relatively how far along the line (between sphere and cylinder centers)
+        // the endcap of the cylinder is, is between 0 and 1 when sphere center is not
+        // in cylinder
         let intersect_frac = (length_b / 2.0 / pos.z).abs();
+        // Gets the position of the cylinder edge closest to the sphere center
         let edge_pos = Vec3::new(pos.x, pos.y, 0.0).normalized() * rad_b;
-        let intersect_point = Vec2::new(pos.x * intersect_frac, pos.y  * intersect_frac);
+        // Gets point on line between sphere and cylinder centers that the z value is
+        // equal to the endcap z location
+        let intersect_point = Vec2::new(pos.x * intersect_frac, pos.y * intersect_frac);
+        // Checks if line between sphere and cylinder center passes through cap of
+        // cylinder
         if intersect_point.distance_squared(Vec2::zero()) <= rad_b.powi(2) {
-            // Checks if line between sphere and cylinder center passes through cap of cylinder
-            let distance_squared = Vec3::new(intersect_point.x, intersect_point.y, length_b / 2.0).distance_squared(pos);
+            let distance_squared = Vec3::new(intersect_point.x, intersect_point.y, height)
+                .distance_squared(pos);
             in_range = distance_squared < max_rad.powi(2) && distance_squared > min_rad.powi(2);
-            let mod_pos = Vec3::new(pos.x, pos.y, pos.z - sign * length_b / 2.0); // Changes position so I can compare this with origin instead of original position with top of cylinder
-            let angle2 = (pos_b - mod_pos).angle_between(edge_pos - mod_pos); // Angle between (line between center of endcap and sphere center) and (line between edge of endcap and sphere center)
-            in_angle = mod_pos.angle_between(-ori) < angle + angle2;
+            // Changes position so I can compare this with origin instead of original
+            // position with top of cylinder
+            let mod_pos = Vec3::new(pos.x, pos.y, pos.z - height);
+            // Angle between (line between center of endcap and sphere center) and (line
+            // between edge of endcap and sphere center)
+            let angle2 = (pos_b - mod_pos).angle_between(edge_pos - mod_pos);
+            // The 1.25 gives margin for error
+            in_angle = mod_pos.angle_between(-ori) < angle + (angle2 * 1.25);
         } else {
-            let endcap_edge_pos = Vec3::new(edge_pos.x, edge_pos.y, sign * length_b / 2.0);
+            // TODO: Handle collision for this case more accurately
+            // For this case, the nearest point will be the edge of the endcap
+            let endcap_edge_pos = Vec3::new(edge_pos.x, edge_pos.y, height);
             let distance_squared = endcap_edge_pos.distance_squared(pos);
-            in_range = distance_squared < max_rad.powi(2) && distance_squared > min_rad.powi(2);
-            let angle2 = (endcap_edge_pos - pos).angle_between(edge_pos - pos); // Angle between (line between center of sphere, and edge of cylinder in center height) and (line between center of sphere, and edge of endcap)
-            in_angle = (pos - edge_pos).angle_between(-ori) < angle + angle2;
+            in_range = distance_squared > min_rad.powi(2) && distance_squared < max_rad.powi(2);
+            // Gets position on opposite edge of same endcap
+            let opp_end_edge_pos = Vec3::new(-edge_pos.x, -edge_pos.y, height);
+            // Gets position on same edge of opposite endcap
+            let bot_end_edge_pos = Vec3::new(edge_pos.x, edge_pos.y, -height);
+            // Gets side positions on same endcap
+            let side_end_edge_pos_1 = Vec3::new(edge_pos.y, -edge_pos.x, height);
+            let side_end_edge_pos_2 = Vec3::new(-edge_pos.y, edge_pos.x, height);
+            // Gets whichever angle is bigger, between half of sphere center and both opposite edge and bottom edge, or sphere center and both the side edges
+            let angle2 = (opp_end_edge_pos - pos).angle_between(bot_end_edge_pos - pos).min((side_end_edge_pos_1 - pos).angle_between(side_end_edge_pos_2 - pos));
+            // Will be somewhat inaccurate, tends towards hitting when it shouldn't
+            // Checks angle between orientation and line between sphere and cylinder centers
+            in_angle = pos.angle_between(-ori) < angle + angle2;
         }
         in_range && in_angle
     }
