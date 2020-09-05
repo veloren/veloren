@@ -7,13 +7,21 @@ use vek::*;
 
 pub struct BlocksOfInterest {
     pub leaves: Vec<Vec3<i32>>,
+    pub grass: Vec<Vec3<i32>>,
     pub embers: Vec<Vec3<i32>>,
+    pub beehives: Vec<Vec3<i32>>,
+    pub reeds: Vec<Vec3<i32>>,
+    pub flowers: Vec<Vec3<i32>>,
 }
 
 impl BlocksOfInterest {
     pub fn from_chunk(chunk: &TerrainChunk) -> Self {
         let mut leaves = Vec::new();
+        let mut grass = Vec::new();
         let mut embers = Vec::new();
+        let mut beehives = Vec::new();
+        let mut reeds = Vec::new();
+        let mut flowers = Vec::new();
 
         chunk
             .vol_iter(
@@ -24,14 +32,36 @@ impl BlocksOfInterest {
                     chunk.get_max_z(),
                 ),
             )
-            .for_each(|(pos, block)| {
-                if block.kind() == BlockKind::Leaves && thread_rng().gen_range(0, 16) == 0 {
-                    leaves.push(pos);
-                } else if block.kind() == BlockKind::Ember {
-                    embers.push(pos);
-                }
+            .for_each(|(pos, block)| match block.kind() {
+                BlockKind::Leaves => {
+                    if thread_rng().gen_range(0, 16) == 0 {
+                        leaves.push(pos)
+                    }
+                },
+                BlockKind::Grass => {
+                    if thread_rng().gen_range(0, 16) == 0 {
+                        grass.push(pos)
+                    }
+                },
+                BlockKind::Ember => embers.push(pos),
+                BlockKind::Beehive => beehives.push(pos),
+                BlockKind::Reed => reeds.push(pos),
+                BlockKind::PinkFlower => flowers.push(pos),
+                BlockKind::PurpleFlower => flowers.push(pos),
+                BlockKind::RedFlower => flowers.push(pos),
+                BlockKind::WhiteFlower => flowers.push(pos),
+                BlockKind::YellowFlower => flowers.push(pos),
+                BlockKind::Sunflower => flowers.push(pos),
+                _ => {},
             });
 
-        Self { leaves, embers }
+        Self {
+            leaves,
+            grass,
+            embers,
+            beehives,
+            reeds,
+            flowers,
+        }
     }
 }

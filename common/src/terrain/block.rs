@@ -93,6 +93,8 @@ make_case_elim!(
         DropGate = 0x50,
         DropGateBottom = 0x51,
         GrassSnow = 0x52,
+        Reed = 0x53,
+        Beehive = 0x54,
     }
 );
 
@@ -200,6 +202,8 @@ impl BlockKind {
             BlockKind::DropGate => false,
             BlockKind::DropGateBottom => false,
             BlockKind::GrassSnow => true,
+            BlockKind::Reed => true,
+            BlockKind::Beehive => true,
             _ => false,
         }
     }
@@ -296,6 +300,8 @@ impl BlockKind {
             BlockKind::DropGate => false,
             BlockKind::DropGateBottom => false,
             BlockKind::GrassSnow => false,
+            BlockKind::Reed => false,
+            BlockKind::Beehive => false,
             _ => true,
         }
     }
@@ -373,6 +379,7 @@ impl BlockKind {
             BlockKind::DropGate => true,
             BlockKind::DropGateBottom => false,
             BlockKind::GrassSnow => false,
+            BlockKind::Reed => false,
             _ => true,
         }
     }
@@ -502,7 +509,8 @@ impl Block {
             | BlockKind::Chest
             | BlockKind::DropGate
             | BlockKind::DropGateBottom
-            | BlockKind::Door => Some(self.color[0] & 0b111),
+            | BlockKind::Door
+            | BlockKind::Beehive => Some(self.color[0] & 0b111),
             _ => None,
         }
     }

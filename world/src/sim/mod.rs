@@ -1657,7 +1657,7 @@ impl WorldSim {
 
                     let new_chunk = this.get(downhill_pos)?;
                     const SLIDE_THRESHOLD: f32 = 5.0;
-                    if new_chunk.is_underwater() || new_chunk.alt + SLIDE_THRESHOLD < chunk.alt {
+                    if new_chunk.river.near_water() || new_chunk.alt + SLIDE_THRESHOLD < chunk.alt {
                         break;
                     } else {
                         chunk = new_chunk;
@@ -2184,6 +2184,7 @@ impl SimChunk {
             humidity,
             rockiness: if true {
                 (gen_ctx.rock_nz.get((wposf.div(1024.0)).into_array()) as f32)
+                    //.add(if river.near_river() { 20.0 } else { 0.0 })
                     .sub(0.1)
                     .mul(1.3)
                     .max(0.0)

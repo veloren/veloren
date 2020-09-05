@@ -282,32 +282,85 @@ impl ParticleMgr {
             (e.floor() as i32).div_euclid(sz as i32)
         });
 
-        type BoiFn<'a> = fn(&'a BlocksOfInterest) -> &'a [Vec3<i32>];
-        // blocks, chunk range, emission density, lifetime, particle mode
-        //
-        // - blocks: the function to select the blocks of interest that we should emit
-        //   from
-        // - chunk range: the range, in chunks, that the particles should be generated
-        //   in from the player
-        // - emission density: the density, per block per second, of the generated
-        //   particles
-        // - lifetime: the number of seconds that each particle should live for
-        // - particle mode: the visual mode of the generated particle
-        let particles: &[(BoiFn, usize, f32, f32, ParticleMode)] = &[
-            (|boi| &boi.leaves, 4, 0.001, 30.0, ParticleMode::Leaf),
-            (|boi| &boi.embers, 2, 20.0, 0.25, ParticleMode::CampfireFire),
-            (|boi| &boi.embers, 8, 3.0, 40.0, ParticleMode::CampfireSmoke),
+        struct BlockParticles<'a> {
+            // The function to select the blocks of interest that we should emit from
+            blocks: fn(&'a BlocksOfInterest) -> &'a [Vec3<i32>],
+            // The range, in chunks, that the particles should be generated in from the player
+            range: usize,
+            // The emission rate, per block per second, of the generated particles
+            rate: f32,
+            // The number of seconds that each particle should live for
+            lifetime: f32,
+            // The visual mode of the generated particle
+            mode: ParticleMode,
+            // Condition that must be true
+            cond: fn(&SceneData) -> bool,
+        }
+
+        let particles: &[BlockParticles] = &[
+            BlockParticles {
+                blocks: |boi| &boi.leaves,
+                range: 4,
+                rate: 0.001,
+                lifetime: 30.0,
+                mode: ParticleMode::Leaf,
+                cond: |_| true,
+            },
+            BlockParticles {
+                blocks: |boi| &boi.embers,
+                range: 2,
+                rate: 20.0,
+                lifetime: 0.25,
+                mode: ParticleMode::CampfireFire,
+                cond: |_| true,
+            },
+            BlockParticles {
+                blocks: |boi| &boi.embers,
+                range: 8,
+                rate: 3.0,
+                lifetime: 40.0,
+                mode: ParticleMode::CampfireSmoke,
+                cond: |_| true,
+            },
+            BlockParticles {
+                blocks: |boi| &boi.reeds,
+                range: 6,
+                rate: 0.004,
+                lifetime: 40.0,
+                mode: ParticleMode::Firefly,
+                cond: |sd| sd.state.get_day_period().is_dark(),
+            },
+            BlockParticles {
+                blocks: |boi| &boi.flowers,
+                range: 5,
+                rate: 0.002,
+                lifetime: 40.0,
+                mode: ParticleMode::Firefly,
+                cond: |sd| sd.state.get_day_period().is_dark(),
+            },
+            BlockParticles {
+                blocks: |boi| &boi.beehives,
+                range: 3,
+                rate: 0.5,
+                lifetime: 30.0,
+                mode: ParticleMode::Bee,
+                cond: |sd| sd.state.get_day_period().is_light(),
+            },
         ];
 
         let mut rng = thread_rng();
-        for (get_blocks, range, rate, dur, mode) in particles.iter() {
-            for offset in Spiral2d::new().take((*range * 2 + 1).pow(2)) {
+        for particles in particles.iter() {
+            if !(particles.cond)(scene_data) {
+                continue;
+            }
+
+            for offset in Spiral2d::new().take((particles.range * 2 + 1).pow(2)) {
                 let chunk_pos = player_chunk + offset;
 
                 terrain.get(chunk_pos).map(|chunk_data| {
-                    let blocks = get_blocks(&chunk_data.blocks_of_interest);
+                    let blocks = (particles.blocks)(&chunk_data.blocks_of_interest);
 
-                    let avg_particles = dt * blocks.len() as f32 * *rate;
+                    let avg_particles = dt * blocks.len() as f32 * particles.rate;
                     let particle_count = avg_particles.trunc() as usize
                         + (rng.gen::<f32>() < avg_particles.fract()) as usize;
 
@@ -318,9 +371,9 @@ impl ParticleMgr {
                                     + blocks.choose(&mut rng).copied().unwrap(); // Can't fail
 
                             Particle::new(
-                                Duration::from_secs_f32(*dur),
+                                Duration::from_secs_f32(particles.lifetime),
                                 time,
-                                *mode,
+                                particles.mode,
                                 block_pos.map(|e: i32| e as f32 + rng.gen::<f32>()),
                             )
                         })

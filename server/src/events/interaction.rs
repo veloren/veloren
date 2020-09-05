@@ -41,7 +41,7 @@ pub fn handle_lantern(server: &mut Server, entity: EcsEntity) {
                 .insert(entity, comp::LightEmitter {
                     col: lantern.color(),
                     strength: lantern.strength(),
-                    flicker: 1.0,
+                    flicker: 0.35,
                     animated: true,
                 });
         }

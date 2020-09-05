@@ -574,10 +574,12 @@ pub fn block_from_structure(
         // None of these BlockKinds has an orientation, so we just use zero for the other color
         // bits.
         StructureBlock::Liana => Some(Block::new(BlockKind::Liana, Rgb::zero())),
-        StructureBlock::Fruit => Some(if field.get(pos + structure_pos) % 3 > 0 {
-            Block::empty()
-        } else {
+        StructureBlock::Fruit => Some(if field.get(pos + structure_pos) % 24 == 0 {
+            Block::new(BlockKind::Beehive, Rgb::zero())
+        } else if field.get(pos + structure_pos + 1) % 3 == 0 {
             Block::new(BlockKind::Apple, Rgb::zero())
+        } else {
+            Block::empty()
         }),
         StructureBlock::Coconut => Some(if field.get(pos + structure_pos) % 3 > 0 {
             Block::empty()

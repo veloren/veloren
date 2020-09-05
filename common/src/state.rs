@@ -5,6 +5,7 @@ use crate::{
     sync::WorldSyncExt,
     sys,
     terrain::{Block, TerrainChunk, TerrainGrid},
+    time::DayPeriod,
     vol::WriteVol,
 };
 use hashbrown::{HashMap, HashSet};
@@ -229,6 +230,22 @@ impl State {
     /// Note that this should not be used for physics, animations or other such
     /// localised timings.
     pub fn get_time_of_day(&self) -> f64 { self.ecs.read_resource::<TimeOfDay>().0 }
+
+    /// Get the current in-game day period (period of the day/night cycle)
+    pub fn get_day_period(&self) -> DayPeriod {
+        let tod = self.get_time_of_day().rem_euclid(60.0 * 60.0 * 24.0);
+        if tod < 60.0 * 60.0 * 4.0 {
+            DayPeriod::Night
+        } else if tod < 60.0 * 60.0 * 10.0 {
+            DayPeriod::Morning
+        } else if tod < 60.0 * 60.0 * 16.0 {
+            DayPeriod::Noon
+        } else if tod < 60.0 * 60.0 * 20.0 {
+            DayPeriod::Evening
+        } else {
+            DayPeriod::Night
+        }
+    }
 
     /// Get the current in-game time.
     ///
