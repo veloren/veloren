@@ -17,6 +17,7 @@ mod column;
 pub mod config;
 pub mod index;
 pub mod layer;
+pub mod rtsim;
 pub mod sim;
 pub mod sim2;
 pub mod site;

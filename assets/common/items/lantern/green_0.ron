@@ -5,8 +5,8 @@ Item(
         (
             kind: "Green0",
             color: (r: 255, g: 128, b: 26),
-            strength_thousandths: 4000,
-            flicker_thousandths: 500,
+            strength_thousandths: 6000,
+            flicker_thousandths: 250,
         ),
     ),
 )

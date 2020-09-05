@@ -358,6 +358,9 @@ impl Server {
     /// Get a reference to the server's world.
     pub fn world(&self) -> &World { &self.world }
 
+    /// Get a reference to the server's world map.
+    pub fn map(&self) -> &WorldMapMsg { &self.map }
+
     /// Execute a single server tick, handle input and update the game state by
     /// the given duration.
     pub fn tick(&mut self, _input: Input, dt: Duration) -> Result<Vec<Event>, Error> {

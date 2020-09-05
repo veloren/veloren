@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Point and directional lights now cast realistic shadows, using shadow mapping.
 - Added leaf and chimney particles
 - Some more combat sound effects
+- Beehives and bees
+- Fireflies
 
 ### Changed
 
