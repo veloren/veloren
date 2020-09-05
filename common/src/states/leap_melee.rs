@@ -80,9 +80,6 @@ impl CharacterBehavior for Data {
                 applied: false,
                 hit_count: 0,
                 knockback: 25.0,
-                is_melee: true,
-                lifesteal_eff: 0.0,
-                look_dir: None,
             });
 
             update.character = CharacterState::LeapMelee(Data {

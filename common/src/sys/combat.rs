@@ -88,7 +88,12 @@ impl<'a> System<'a> for Sys {
                 &bodies,
             )
                 .join()
-            {
+            {   
+                // 2D versions
+                let pos2 = Vec2::from(pos.0);
+                let pos_b2 = Vec2::<f32>::from(pos_b.0);
+                let ori2 = Vec2::from(*ori.0);
+
                 // Scales
                 let scale = scale_maybe.map_or(1.0, |s| s.0);
                 let scale_b = scale_b_maybe.map_or(1.0, |s| s.0);
@@ -97,26 +102,10 @@ impl<'a> System<'a> for Sys {
                 // Check if it is a damaging hit
                 if entity != b
                     && !stats_b.is_dead
-                    && ((attack.is_melee
-                        && cylindrical_hit_detection(
-                            *pos,
-                            *ori,
-                            *pos_b,
-                            rad_b,
-                            scale,
-                            attack.range,
-                            attack.max_angle,
-                        ))
-                        || (!attack.is_melee
-                            && spherical_hit_detection(
-                                *pos,
-                                *pos_b,
-                                rad_b,
-                                scale,
-                                attack.range,
-                                attack.max_angle,
-                                attack.look_dir.unwrap_or(*ori.0),
-                            )))
+                    // Spherical wedge shaped attack field
+                    && pos.0.distance_squared(pos_b.0) < (rad_b + scale * attack.range).powi(2)
+                    && ori2.angle_between(pos_b2 - pos2) < attack.max_angle + (rad_b / pos2.distance(pos_b2)).atan()
+    
                 {
                     // See if entities are in the same group
                     let same_group = groups
@@ -139,10 +128,8 @@ impl<'a> System<'a> for Sys {
                     // Weapon gives base damage
                     let source = if is_heal {
                         DamageSource::Healing
-                    } else if attack.is_melee {
-                        DamageSource::Melee
                     } else {
-                        DamageSource::Energy
+                        DamageSource::Melee
                     };
                     let healthchange = if is_heal {
                         attack.base_heal as f32
@@ -171,16 +158,6 @@ impl<'a> System<'a> for Sys {
                                     cause,
                                 },
                             });
-                            if attack.lifesteal_eff > 0.0 && is_damage {
-                                server_emitter.emit(ServerEvent::Damage {
-                                    uid: *uid,
-                                    change: HealthChange {
-                                        amount: (-damage.healthchange * attack.lifesteal_eff)
-                                            as i32,
-                                        cause: HealthSource::Healing { by: Some(*uid) },
-                                    },
-                                });
-                            }
                             attack.hit_count += 1;
                         }
                     }
@@ -200,35 +177,4 @@ impl<'a> System<'a> for Sys {
             std::sync::atomic::Ordering::Relaxed,
         );
     }
-}
-
-fn cylindrical_hit_detection(
-    pos: Pos,
-    ori: Ori,
-    pos_b: Pos,
-    rad_b: f32,
-    scale: f32,
-    range: f32,
-    angle: f32,
-) -> bool {
-    // 2D versions
-    let pos2 = Vec2::from(pos.0);
-    let pos_b2 = Vec2::<f32>::from(pos_b.0);
-    let ori2 = Vec2::from(*ori.0);
-
-    return pos.0.distance_squared(pos_b.0) < (rad_b + scale * range).powi(2)
-        && ori2.angle_between(pos_b2 - pos2) < angle + (rad_b / pos2.distance(pos_b2)).atan();
-}
-
-fn spherical_hit_detection(
-    pos: Pos,
-    pos_b: Pos,
-    rad_b: f32,
-    scale: f32,
-    range: f32,
-    angle: f32,
-    ori: Vec3<f32>,
-) -> bool {
-    return pos.0.distance_squared(pos_b.0) < (rad_b + scale * range).powi(2)
-        && ori.angle_between(pos_b.0 - pos.0) < angle + (rad_b / pos.0.distance(pos_b.0)).atan();
 }

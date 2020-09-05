@@ -63,9 +63,6 @@ impl CharacterBehavior for Data {
                 applied: false,
                 hit_count: 0,
                 knockback: self.knockback,
-                is_melee: true,
-                lifesteal_eff: 0.0,
-                look_dir: None,
             });
 
             update.character = CharacterState::BasicMelee(Data {

@@ -151,7 +151,7 @@ impl<'a> System<'a> for Sys {
                     }
 
                     // Weapon gives base damage
-                    let source = DamageSource::Melee;
+                    let source = DamageSource::Energy;
 
                     let mut damage = Damage {
                         healthchange: -(beam.damage as f32),
