@@ -1,5 +1,5 @@
 use crate::{
-    comp::{beam, Attacking, CharacterState, EnergySource, Ori, Pos, StateUpdate},
+    comp::{beam, CharacterState, EnergySource, Ori, Pos, StateUpdate},
     event::ServerEvent,
     states::utils::*,
     sys::character_behavior::*,
@@ -139,15 +139,6 @@ impl CharacterBehavior for Data {
                 lifesteal_eff: self.lifesteal_eff,
                 energy_regen: self.energy_regen,
             });
-
-            // Grant energy on successful hit
-            if let Some(attack) = data.attacking {
-                if attack.applied && attack.hit_count > 0 {
-                    data.updater.remove::<Attacking>(data.entity);
-                    let energy = (self.energy_regen as f32 / self.tick_rate) as i32;
-                    update.energy.change_by(energy, EnergySource::HitEnemy);
-                }
-            }
         } else if self.recover_duration != Duration::default() {
             // Recovery
             update.character = CharacterState::BasicBeam(Data {
@@ -171,8 +162,6 @@ impl CharacterBehavior for Data {
         } else {
             // Done
             update.character = CharacterState::Wielding;
-            // Make sure attack component is removed
-            data.updater.remove::<Attacking>(data.entity);
         }
 
         update
