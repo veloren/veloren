@@ -46,6 +46,12 @@ pub fn handle_damage(server: &Server, uid: Uid, change: HealthChange) {
 pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSource) {
     let state = server.state_mut();
 
+    // TODO: Investigate duplicate `Destroy` events (but don't remove this).
+    // If the entity was already deleted, it can't be destroyed again.
+    if !state.ecs().is_alive(entity) {
+        return;
+    }
+
     // Chat message
     if let Some(player) = state.ecs().read_storage::<Player>().get(entity) {
         let msg = if let HealthSource::Attack { by }
@@ -183,101 +189,105 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             .write_storage::<comp::CharacterState>()
             .insert(entity, comp::CharacterState::default());
     } else if state.ecs().read_storage::<comp::Agent>().contains(entity) {
+        use specs::Builder;
+
         // Decide for a loot drop before turning into a lootbag
         let old_body = state.ecs().write_storage::<Body>().remove(entity);
         let mut rng = rand::thread_rng();
-        let drop = Lottery::<String>::load_expect(match old_body {
-            Some(common::comp::Body::Humanoid(_)) => match rng.gen_range(0, 4) {
-                0 => "common.loot_tables.loot_table_humanoids",
-                1 => "common.loot_tables.loot_table_armor_light",
-                2 => "common.loot_tables.loot_table_armor_cloth",
-                3 => "common.loot_tables.loot_table_weapon_common",
-                _ => "common.loot_tables.loot_table_humanoids",
-            },
-            Some(common::comp::Body::QuadrupedSmall(quadruped_small)) => {
-                match quadruped_small.species {
-                    quadruped_small::Species::Dodarock => match rng.gen_range(0, 6) {
-                        0 => "common.loot_tables.loot_table_armor_misc",
-                        1 => "common.loot_tables.loot_table_rocks",
-                        _ => "common.loot_tables.loot_table_rocks",
-                    },
-                    _ => match rng.gen_range(0, 4) {
-                        0 => "common.loot_tables.loot_table_food",
-                        1 => "common.loot_tables.loot_table_armor_misc",
-                        2 => "common.loot_tables.loot_table_animal_parts",
-                        _ => "common.loot_tables.loot_table_animal_parts",
-                    },
-                }
-            },
-            Some(common::comp::Body::QuadrupedMedium(_)) => match rng.gen_range(0, 4) {
-                0 => "common.loot_tables.loot_table_food",
-                1 => "common.loot_tables.loot_table_armor_misc",
-                2 => "common.loot_tables.loot_table_animal_parts",
-                _ => "common.loot_tables.loot_table_animal_parts",
-            },
-            Some(common::comp::Body::BirdMedium(_)) => match rng.gen_range(0, 3) {
-                0 => "common.loot_tables.loot_table_food",
-                1 => "common.loot_tables.loot_table_armor_misc",
+        let mut lottery = || {
+            Lottery::<String>::load_expect(match old_body {
+                Some(common::comp::Body::Humanoid(_)) => match rng.gen_range(0, 4) {
+                    0 => "common.loot_tables.loot_table_humanoids",
+                    1 => "common.loot_tables.loot_table_armor_light",
+                    2 => "common.loot_tables.loot_table_armor_cloth",
+                    3 => "common.loot_tables.loot_table_weapon_common",
+                    _ => "common.loot_tables.loot_table_humanoids",
+                },
+                Some(common::comp::Body::QuadrupedSmall(quadruped_small)) => {
+                    match quadruped_small.species {
+                        quadruped_small::Species::Dodarock => match rng.gen_range(0, 6) {
+                            0 => "common.loot_tables.loot_table_armor_misc",
+                            1 => "common.loot_tables.loot_table_rocks",
+                            _ => "common.loot_tables.loot_table_rocks",
+                        },
+                        _ => match rng.gen_range(0, 4) {
+                            0 => "common.loot_tables.loot_table_food",
+                            1 => "common.loot_tables.loot_table_armor_misc",
+                            2 => "common.loot_tables.loot_table_animal_parts",
+                            _ => "common.loot_tables.loot_table_animal_parts",
+                        },
+                    }
+                },
+                Some(common::comp::Body::QuadrupedMedium(_)) => match rng.gen_range(0, 4) {
+                    0 => "common.loot_tables.loot_table_food",
+                    1 => "common.loot_tables.loot_table_armor_misc",
+                    2 => "common.loot_tables.loot_table_animal_parts",
+                    _ => "common.loot_tables.loot_table_animal_parts",
+                },
+                Some(common::comp::Body::BirdMedium(_)) => match rng.gen_range(0, 3) {
+                    0 => "common.loot_tables.loot_table_food",
+                    1 => "common.loot_tables.loot_table_armor_misc",
+                    _ => "common.loot_tables.loot_table",
+                },
+                Some(common::comp::Body::BipedLarge(_)) => match rng.gen_range(0, 8) {
+                    0 => "common.loot_tables.loot_table_food",
+                    1 => "common.loot_tables.loot_table_armor_nature",
+                    3 => "common.loot_tables.loot_table_armor_heavy",
+                    5 => "common.loot_tables.loot_table_weapon_uncommon",
+                    6 => "common.loot_tables.loot_table_weapon_rare",
+                    _ => "common.loot_tables.loot_table_cave_large",
+                },
+                Some(common::comp::Body::Golem(_)) => match rng.gen_range(0, 9) {
+                    0 => "common.loot_tables.loot_table_food",
+                    1 => "common.loot_tables.loot_table_armor_misc",
+                    2 => "common.loot_tables.loot_table_armor_light",
+                    3 => "common.loot_tables.loot_table_armor_heavy",
+                    4 => "common.loot_tables.loot_table_armor_misc",
+                    5 => "common.loot_tables.loot_table_weapon_common",
+                    6 => "common.loot_tables.loot_table_weapon_uncommon",
+                    7 => "common.loot_tables.loot_table_weapon_rare",
+                    _ => "common.loot_tables.loot_table",
+                },
+                Some(common::comp::Body::Critter(_)) => {
+                    "common.loot_tables.loot_table_animal_parts"
+                },
+                Some(common::comp::Body::Dragon(_)) => "common.loot_tables.loot_table_weapon_rare",
+                Some(common::comp::Body::QuadrupedLow(_)) => match rng.gen_range(0, 3) {
+                    0 => "common.loot_tables.loot_table_food",
+                    1 => "common.loot_tables.loot_table_animal_parts",
+                    _ => "common.loot_tables.loot_table",
+                },
                 _ => "common.loot_tables.loot_table",
-            },
-            Some(common::comp::Body::BipedLarge(_)) => match rng.gen_range(0, 8) {
-                0 => "common.loot_tables.loot_table_food",
-                1 => "common.loot_tables.loot_table_armor_nature",
-                3 => "common.loot_tables.loot_table_armor_heavy",
-                5 => "common.loot_tables.loot_table_weapon_uncommon",
-                6 => "common.loot_tables.loot_table_weapon_rare",
-                _ => "common.loot_tables.loot_table_cave_large",
-            },
-            Some(common::comp::Body::Golem(_)) => match rng.gen_range(0, 9) {
-                0 => "common.loot_tables.loot_table_food",
-                1 => "common.loot_tables.loot_table_armor_misc",
-                2 => "common.loot_tables.loot_table_armor_light",
-                3 => "common.loot_tables.loot_table_armor_heavy",
-                4 => "common.loot_tables.loot_table_armor_misc",
-                5 => "common.loot_tables.loot_table_weapon_common",
-                6 => "common.loot_tables.loot_table_weapon_uncommon",
-                7 => "common.loot_tables.loot_table_weapon_rare",
-                _ => "common.loot_tables.loot_table",
-            },
-            Some(common::comp::Body::Critter(_)) => "common.loot_tables.loot_table_animal_parts",
-            Some(common::comp::Body::Dragon(_)) => "common.loot_tables.loot_table_weapon_rare",
-            Some(common::comp::Body::QuadrupedLow(_)) => match rng.gen_range(0, 3) {
-                0 => "common.loot_tables.loot_table_food",
-                1 => "common.loot_tables.loot_table_animal_parts",
-                _ => "common.loot_tables.loot_table",
-            },
-            _ => "common.loot_tables.loot_table",
-        });
-        let drop = drop.choose();
-        // Replace npc with lootbag containing drop
-        let _ = state
-            .ecs()
-            .write_storage()
-            .insert(entity, Body::Object(object::Body::Pouch));
-        let mut item_drops = state.ecs().write_storage::<comp::ItemDrop>();
-        let item = if let Some(item_drop) = item_drops.get(entity).cloned() {
-            item_drops.remove(entity);
-            item_drop.0
-        } else {
-            ItemAsset::load_expect_cloned(drop)
+            })
         };
 
-        let _ = state.ecs().write_storage().insert(entity, item);
+        let item = {
+            let mut item_drops = state.ecs().write_storage::<comp::ItemDrop>();
+            item_drops.remove(entity).map_or_else(
+                || ItemAsset::load_expect_cloned(lottery().choose()),
+                |item_drop| item_drop.0,
+            )
+        };
 
-        state.ecs().write_storage::<comp::Stats>().remove(entity);
-        state.ecs().write_storage::<comp::Agent>().remove(entity);
-        state
-            .ecs()
-            .write_storage::<comp::LightEmitter>()
-            .remove(entity);
-        state
-            .ecs()
-            .write_storage::<comp::CharacterState>()
-            .remove(entity);
-        state
-            .ecs()
-            .write_storage::<comp::Controller>()
-            .remove(entity);
+        let pos = state.ecs().read_storage::<comp::Pos>().get(entity).cloned();
+        if let Some(pos) = pos {
+            let _ = state
+                .create_object(
+                    comp::Pos(pos.0 + Vec3::unit_z() * 0.25),
+                    object::Body::Pouch,
+                )
+                .with(item)
+                .build();
+        } else {
+            error!(
+                ?entity,
+                "Entity doesn't have a position, no bag is being dropped"
+            )
+        }
+
+        let _ = state
+            .delete_entity_recorded(entity)
+            .map_err(|e| error!(?e, ?entity, "Failed to delete destroyed entity"));
     } else {
         let _ = state
             .delete_entity_recorded(entity)
