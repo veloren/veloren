@@ -1,5 +1,6 @@
 use crate::{
-    comp::{Attacking, CharacterState, EnergySource, StateUpdate},
+    comp::{beam, Attacking, CharacterState, EnergySource, Ori, Pos, StateUpdate},
+    event::ServerEvent,
     states::utils::*,
     sys::character_behavior::*,
 };
@@ -19,6 +20,8 @@ pub struct Data {
     pub cooldown_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
+    /// How long each beam segment persists for
+    pub beam_duration: Duration,
     /// Base healing per second
     pub base_hps: u32,
     /// Base damage per second
@@ -54,6 +57,7 @@ impl CharacterBehavior for Data {
                     .unwrap_or_default(),
                 cooldown_duration: self.cooldown_duration,
                 recover_duration: self.recover_duration,
+                beam_duration: self.beam_duration,
                 base_hps: self.base_hps,
                 base_dps: self.base_dps,
                 tick_rate: self.tick_rate,
@@ -65,18 +69,22 @@ impl CharacterBehavior for Data {
         } else if data.inputs.primary.is_pressed() && !self.exhausted {
             let damage = (self.base_dps as f32 / self.tick_rate) as u32;
             let heal = (self.base_hps as f32 / self.tick_rate) as u32;
-            // Hit attempt
-            data.updater.insert(data.entity, Attacking {
-                base_damage: damage,
-                base_heal: heal,
-                range: self.range,
-                max_angle: self.max_angle.to_radians(),
-                applied: false,
-                hit_count: 0,
-                knockback: 0.0,
-                is_melee: false,
+            let speed = self.range / self.beam_duration.as_secs_f32();
+            let properties = beam::Properties {
+                angle: self.max_angle.to_radians(),
+                speed,
+                damage,
+                heal,
                 lifesteal_eff: self.lifesteal_eff,
-                look_dir: self.particle_ori,
+                duration: self.beam_duration,
+                owner: Some(*data.uid),
+            };
+            let pos = Pos(data.pos.0 + Vec3::new(0.0, 0.0, 1.0));
+            // Create beam segment
+            update.server_events.push_front(ServerEvent::Beam {
+                properties,
+                pos,
+                ori: Ori(data.inputs.look_dir),
             });
 
             update.character = CharacterState::BasicBeam(Data {
@@ -85,6 +93,7 @@ impl CharacterBehavior for Data {
                 buildup_duration: self.buildup_duration,
                 recover_duration: self.recover_duration,
                 cooldown_duration: Duration::from_secs_f32(1.0 / self.tick_rate),
+                beam_duration: self.beam_duration,
                 base_hps: self.base_hps,
                 base_dps: self.base_dps,
                 tick_rate: self.tick_rate,
@@ -105,6 +114,7 @@ impl CharacterBehavior for Data {
                     .checked_sub(Duration::from_secs_f32(data.dt.0))
                     .unwrap_or_default(),
                 recover_duration: self.recover_duration,
+                beam_duration: self.beam_duration,
                 base_hps: self.base_hps,
                 base_dps: self.base_dps,
                 tick_rate: self.tick_rate,
@@ -120,6 +130,7 @@ impl CharacterBehavior for Data {
                 buildup_duration: self.buildup_duration,
                 recover_duration: self.recover_duration,
                 cooldown_duration: self.cooldown_duration,
+                beam_duration: self.beam_duration,
                 base_hps: self.base_hps,
                 base_dps: self.base_dps,
                 tick_rate: self.tick_rate,
@@ -148,6 +159,7 @@ impl CharacterBehavior for Data {
                     .recover_duration
                     .checked_sub(Duration::from_secs_f32(data.dt.0))
                     .unwrap_or_default(),
+                beam_duration: self.beam_duration,
                 base_hps: self.base_hps,
                 base_dps: self.base_dps,
                 tick_rate: self.tick_rate,

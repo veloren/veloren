@@ -30,6 +30,7 @@ sum_type! {
         Vel(comp::Vel),
         Ori(comp::Ori),
         Shockwave(comp::Shockwave),
+        Beam(comp::Beam),
     }
 }
 // Automatically derive From<T> for EcsCompPhantom
@@ -58,6 +59,7 @@ sum_type! {
         Vel(PhantomData<comp::Vel>),
         Ori(PhantomData<comp::Ori>),
         Shockwave(PhantomData<comp::Shockwave>),
+        Beam(PhantomData<comp::Beam>),
     }
 }
 impl sync::CompPacket for EcsCompPacket {
@@ -86,6 +88,7 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Vel(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Ori(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Shockwave(comp) => sync::handle_insert(comp, entity, world),
+            EcsCompPacket::Beam(comp) => sync::handle_insert(comp, entity, world),
         }
     }
 
@@ -112,6 +115,7 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Vel(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Ori(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Shockwave(comp) => sync::handle_modify(comp, entity, world),
+            EcsCompPacket::Beam(comp) => sync::handle_modify(comp, entity, world),
         }
     }
 
@@ -142,6 +146,7 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPhantom::Vel(_) => sync::handle_remove::<comp::Vel>(entity, world),
             EcsCompPhantom::Ori(_) => sync::handle_remove::<comp::Ori>(entity, world),
             EcsCompPhantom::Shockwave(_) => sync::handle_remove::<comp::Shockwave>(entity, world),
+            EcsCompPhantom::Beam(_) => sync::handle_remove::<comp::Ori>(entity, world),
         }
     }
 }
