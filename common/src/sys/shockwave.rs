@@ -155,6 +155,10 @@ impl<'a> System<'a> for Sys {
                 let scale_b = scale_b_maybe.map_or(1.0, |s| s.0);
                 let rad_b = body_b.radius() * scale_b;
 
+                // Angle checks
+                let pos_b_ground = Vec3::new(pos_b.0.x, pos_b.0.y, pos.0.z);
+                let max_angle = 15.0_f32.to_radians();
+
                 // Check if it is a hit
                 let hit = entity != b
                     && !stats_b.is_dead
@@ -169,6 +173,7 @@ impl<'a> System<'a> for Sys {
                             arc_strip.collides_with_circle(Circle { pos, radius: rad_b })
                         })
                     }
+                    && (pos_b_ground - pos.0).angle_between(pos_b.0 - pos.0) < max_angle
                     && (!shockwave.requires_ground || physics_state_b.on_ground);
 
                 if hit {

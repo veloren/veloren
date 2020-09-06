@@ -225,7 +225,7 @@ void main() {
 				sin(lifetime * 3.0 + rand1) + sin(lifetime * 8.0 + rand4) * 0.3,
 				sin(lifetime * 2.0 + rand2) + sin(lifetime * 9.0 + rand5) * 0.3
 			),
-			raise,
+			vec3(raise),
 			vec4(vec3(5, 5, 1.1), 1),
 			spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
 		);
@@ -237,7 +237,7 @@ void main() {
 				sin(lifetime * 3.0 + rand1) + sin(lifetime * 10.0 + rand4) * 0.3,
 				sin(lifetime * 4.0 + rand2) + sin(lifetime * 11.0 + rand5) * 0.3
 			) * 0.5,
-			lower,
+			vec3(lower),
 			vec4(vec3(1, 0.7, 0), 1),
 			spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
 		);

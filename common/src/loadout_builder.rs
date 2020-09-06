@@ -267,7 +267,6 @@ impl LoadoutBuilder {
         Self::default_item_config_from_item(Item::new_from_asset_expect(item_ref))
     }
 
-
     pub fn active_item(mut self, item: Option<ItemConfig>) -> Self {
         self.0.active_item = item;
 
