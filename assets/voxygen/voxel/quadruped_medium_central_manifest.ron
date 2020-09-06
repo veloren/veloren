@@ -125,7 +125,7 @@
             central: ("npc.tuskram.male.head"),
         ),
         neck: (
-            offset: (-4.0, -4.0, -3.5),
+            offset: (-4.0, -5.0, -3.5),
             central: ("npc.tuskram.male.neck"),
         ),
         jaw: (
@@ -155,7 +155,7 @@
             central: ("npc.tuskram.male.head"),
         ),
         neck: (
-            offset: (-4.0, -4.0, -3.5),
+            offset: (-4.0, -5.0, -3.5),
             central: ("npc.tuskram.male.neck"),
         ),
         jaw: (
@@ -301,7 +301,7 @@
     ),
     (Tiger, Male): (
         head: (
-            offset: (-5.5, 0.0, -5.0),
+            offset: (-5.5, -1.0, -5.0),
             central: ("npc.tiger.male.head"),
         ),
         neck: (
@@ -331,7 +331,7 @@
     ),
     (Tiger, Female): (
         head: (
-            offset: (-5.5, 0.0, -5.0),
+            offset: (-5.5, -1.0, -5.0),
             central: ("npc.tiger.male.head"),
         ),
         neck: (
@@ -719,26 +719,26 @@
             central: ("npc.deer.male.tail"),
         ),
     ),
-    (Hirdrassil, Male): (
+    (Hirdrasil, Male): (
         head: (
             offset: (-9.0, -12.0, 0.0),
-            central: ("npc.hirdrassil.male.head"),
+            central: ("npc.hirdrasil.male.head"),
         ),
         neck: (
             offset: (-4.0, -4.0, -6.0),
-            central: ("npc.hirdrassil.male.neck"),
+            central: ("npc.hirdrasil.male.neck"),
         ),
         jaw: (
             offset: (-1.0, 0.0, -7.0),
-            central: ("npc.hirdrassil.male.jaw"),
+            central: ("npc.hirdrasil.male.jaw"),
         ),
         torso_front: (
             offset: (-4.0, -10.0, -5.5),
-            central: ("npc.hirdrassil.male.torso_front"),
+            central: ("npc.hirdrasil.male.torso_front"),
         ),
         torso_back: (
             offset: (-4.0, -11.0, -4.0),
-            central: ("npc.hirdrassil.male.torso_back"),
+            central: ("npc.hirdrasil.male.torso_back"),
         ),
         ears: (
             offset: (0.0, 0.0, 0.0),
@@ -746,29 +746,29 @@
         ),
         tail: (
             offset: (-2.0, -2.0, 0.0),
-            central: ("npc.hirdrassil.male.tail"),
+            central: ("npc.hirdrasil.male.tail"),
         ),
     ),
-    (Hirdrassil, Female): (
+    (Hirdrasil, Female): (
         head: (
             offset: (-9.0, -12.0, 0.0),
-            central: ("npc.hirdrassil.male.head"),
+            central: ("npc.hirdrasil.male.head"),
         ),
         neck: (
             offset: (-4.0, -4.0, -6.0),
-            central: ("npc.hirdrassil.male.neck"),
+            central: ("npc.hirdrasil.male.neck"),
         ),
         jaw: (
             offset: (-1.0, 0.0, -7.0),
-            central: ("npc.hirdrassil.male.jaw"),
+            central: ("npc.hirdrasil.male.jaw"),
         ),
         torso_front: (
             offset: (-4.0, -10.0, -5.5),
-            central: ("npc.hirdrassil.male.torso_front"),
+            central: ("npc.hirdrasil.male.torso_front"),
         ),
         torso_back: (
             offset: (-4.0, -11.0, -4.0),
-            central: ("npc.hirdrassil.male.torso_back"),
+            central: ("npc.hirdrasil.male.torso_back"),
         ),
         ears: (
             offset: (0.0, 0.0, 0.0),
@@ -776,7 +776,7 @@
         ),
         tail: (
             offset: (-2.0, -2.0, 0.0),
-            central: ("npc.hirdrassil.male.tail"),
+            central: ("npc.hirdrasil.male.tail"),
         ),
     ),
 })
