@@ -31,7 +31,7 @@ macro_rules! span {
         let $guard_name = span.enter();
         // Directly use `tracy_client` to decrease overhead for better timing
         #[cfg(feature = "tracy")]
-        let $guard_name = tracy_client::Span::new(
+        let $guard_name = $crate::util::tracy_client::Span::new(
             $name,
             "",
             module_path!(),

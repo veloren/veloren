@@ -63,11 +63,7 @@ pub fn init(settings: &Settings) -> Vec<impl Drop> {
     };
 
     #[cfg(feature = "tracy")]
-    let filter = EnvFilter::new("dot_vox::parser=warn")
-        .add_directive("gfx_device_gl=warn".parse().unwrap())
-        .add_directive("uvth=warn".parse().unwrap())
-        .add_directive("tiny_http=warn".parse().unwrap())
-        .add_directive(LevelFilter::TRACE.into());
+    let filter = base_exceptions(EnvFilter::new("")).add_directive(LevelFilter::TRACE.into());
 
     // Create the terminal writer layer.
     let (non_blocking, _stdio_guard) = tracing_appender::non_blocking(std::io::stdout());
