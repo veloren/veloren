@@ -230,12 +230,12 @@ impl StateExt for State {
         });
 
         match &msg.chat_type {
-            comp::ChatType::Online
-            | comp::ChatType::Offline
+            comp::ChatType::Online(_)
+            | comp::ChatType::Offline(_)
             | comp::ChatType::CommandInfo
             | comp::ChatType::CommandError
             | comp::ChatType::Loot
-            | comp::ChatType::Kill
+            | comp::ChatType::Kill(_, _)
             | comp::ChatType::Meta
             | comp::ChatType::World(_) => {
                 self.notify_registered_clients(ServerMsg::ChatMsg(resolved_msg))
@@ -323,7 +323,7 @@ impl StateExt for State {
             .join()
             .filter(|c| c.is_registered())
         {
-            client.notify(msg.clone())
+            client.notify(msg.clone());
         }
     }
 

@@ -474,14 +474,14 @@ fn cursor_offset_to_index(
 /// Get the color and icon for the current line in the chat box
 fn render_chat_line(chat_type: &ChatType<String>, imgs: &Imgs) -> (Color, conrod_core::image::Id) {
     match chat_type {
-        ChatType::Online => (ONLINE_COLOR, imgs.chat_online_small),
-        ChatType::Offline => (OFFLINE_COLOR, imgs.chat_offline_small),
+        ChatType::Online(_) => (ONLINE_COLOR, imgs.chat_online_small),
+        ChatType::Offline(_) => (OFFLINE_COLOR, imgs.chat_offline_small),
         ChatType::CommandError => (ERROR_COLOR, imgs.chat_command_error_small),
         ChatType::CommandInfo => (INFO_COLOR, imgs.chat_command_info_small),
         ChatType::Loot => (LOOT_COLOR, imgs.chat_loot_small),
         ChatType::GroupMeta(_) => (GROUP_COLOR, imgs.chat_group_small),
         ChatType::FactionMeta(_) => (FACTION_COLOR, imgs.chat_faction_small),
-        ChatType::Kill => (KILL_COLOR, imgs.chat_kill_small),
+        ChatType::Kill(_, _) => (KILL_COLOR, imgs.chat_kill_small),
         ChatType::Tell(_from, _to) => (TELL_COLOR, imgs.chat_tell_small),
         ChatType::Say(_uid) => (SAY_COLOR, imgs.chat_say_small),
         ChatType::Group(_uid, _s) => (GROUP_COLOR, imgs.chat_group_small),
