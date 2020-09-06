@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        group, Beam, Body, CharacterState, Damage, DamageSource, HealthChange, HealthSource, Last,
-        Loadout, Ori, Pos, Scale, Stats,
+        group, Beam, Body, CharacterState, Damage, DamageSource, Energy, EnergySource,
+        HealthChange, HealthSource, Last, Loadout, Ori, Pos, Scale, Stats,
     },
     event::{EventBus, ServerEvent},
     state::{DeltaTime, Time},
@@ -33,6 +33,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Loadout>,
         ReadStorage<'a, group::Group>,
         ReadStorage<'a, CharacterState>,
+        WriteStorage<'a, Energy>,
         WriteStorage<'a, Beam>,
     );
 
@@ -54,6 +55,7 @@ impl<'a> System<'a> for Sys {
             loadouts,
             groups,
             character_states,
+            mut energies,
             mut beams,
         ): Self::SystemData,
     ) {
@@ -145,16 +147,37 @@ impl<'a> System<'a> for Sys {
                         .map(|group_a| Some(group_a) == groups.get(b))
                         .unwrap_or(Some(*uid_b) == beam.owner);
 
+                    // If owner, shouldn't heal or damage
+                    if Some(*uid_b) == beam.owner {
+                        continue;
+                    }
+                    // Don't heal if outside group
                     // Don't damage in the same group
-                    if same_group {
+                    let (mut is_heal, mut is_damage) = (false, false);
+                    if !same_group && (beam.damage > 0) {
+                        is_damage = true;
+                    }
+                    if same_group && (beam.heal > 0) {
+                        is_heal = true;
+                    }
+                    if !is_heal && !is_damage {
                         continue;
                     }
 
                     // Weapon gives base damage
-                    let source = DamageSource::Energy;
+                    let source = if is_heal {
+                        DamageSource::Healing
+                    } else {
+                        DamageSource::Energy
+                    };
+                    let healthchange = if is_heal {
+                        beam.heal as f32
+                    } else {
+                        -(beam.damage as f32)
+                    };
 
                     let mut damage = Damage {
-                        healthchange: -(beam.damage as f32),
+                        healthchange,
                         source,
                     };
 
@@ -176,6 +199,24 @@ impl<'a> System<'a> for Sys {
                                 },
                             },
                         });
+                        if is_damage && beam.lifesteal_eff > 0.0 {
+                            server_emitter.emit(ServerEvent::Damage {
+                                uid: beam.owner.unwrap_or(*uid),
+                                change: HealthChange {
+                                    amount: (-damage.healthchange * beam.lifesteal_eff) as i32,
+                                    cause: HealthSource::Attack {
+                                        by: beam.owner.unwrap_or(*uid),
+                                    },
+                                },
+                            });
+                        }
+                        if let Some(energy_mut) = beam
+                            .owner
+                            .and_then(|o| uid_allocator.retrieve_entity_internal(o.into()))
+                            .and_then(|o| energies.get_mut(o))
+                        {
+                            energy_mut.change_by(beam.energy_regen as i32, EnergySource::HitEnemy);
+                        }
                     }
                 }
             }
