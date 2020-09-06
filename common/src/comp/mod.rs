@@ -3,7 +3,7 @@ mod admin;
 pub mod agent;
 mod body;
 mod character_state;
-mod chat;
+pub mod chat;
 mod controller;
 mod damage;
 mod energy;
