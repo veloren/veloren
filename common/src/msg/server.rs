@@ -11,6 +11,7 @@ use crate::{
 use authc::AuthClientError;
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
 use vek::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -189,6 +190,7 @@ pub enum ServerMsg {
         server_info: ServerInfo,
         time_of_day: state::TimeOfDay,
         max_group_size: u32,
+        client_timeout: Duration,
         world_map: WorldMapMsg,
         recipe_book: RecipeBook,
     },

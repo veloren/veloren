@@ -1,7 +1,7 @@
 use super::SysTimer;
 use crate::{
     alias_validator::AliasValidator, client::Client, login_provider::LoginProvider,
-    persistence::character::CharacterLoader, ServerSettings, CLIENT_TIMEOUT,
+    persistence::character::CharacterLoader, ServerSettings,
 };
 use common::{
     comp::{
@@ -519,7 +519,7 @@ impl<'a> System<'a> for Sys {
             // Update client ping.
             if cnt > 0 {
                 client.last_ping = time.0
-            } else if time.0 - client.last_ping > CLIENT_TIMEOUT
+            } else if time.0 - client.last_ping > settings.client_timeout.as_secs() as f64
             // Timeout
             {
                 info!(?entity, "timeout error with client, disconnecting");
@@ -529,7 +529,7 @@ impl<'a> System<'a> for Sys {
             {
                 debug!(?entity, "postbox error with client, disconnecting");
                 server_emitter.emit(ServerEvent::ClientDisconnect(entity));
-            } else if time.0 - client.last_ping > CLIENT_TIMEOUT * 0.5 {
+            } else if time.0 - client.last_ping > settings.client_timeout.as_secs() as f64 * 0.5 {
                 // Try pinging the client if the timeout is nearing.
                 client.notify(ServerMsg::Ping);
             }
