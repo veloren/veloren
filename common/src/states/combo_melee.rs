@@ -40,8 +40,6 @@ pub struct Data {
     pub combo: u32,
     /// Data for first stage
     pub stage_data: Vec<Stage>,
-    /// Whether state can deal more damage
-    pub exhausted: bool,
     /// Initial energy gain per strike
     pub initial_energy_gain: u32,
     /// Max energy gain per strike
@@ -52,6 +50,12 @@ pub struct Data {
     pub combo_duration: Duration,
     /// Timer for each stage
     pub timer: Duration,
+    /// Checks if state is in buildup duration
+    pub in_buildup: bool,
+    /// Checks if state is in recover duration
+    pub in_recover: bool,
+    /// Checks if state is in combo duration
+    pub in_combo: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -63,14 +67,13 @@ impl CharacterBehavior for Data {
 
         let stage_index = (self.stage - 1) as usize;
 
-        if !self.exhausted && self.timer < self.stage_data[stage_index].base_buildup_duration {
+        if self.in_buildup && self.timer < self.stage_data[stage_index].base_buildup_duration {
             // Build up
             update.character = CharacterState::ComboMelee(Data {
                 stage: self.stage,
                 num_stages: self.num_stages,
                 combo: self.combo,
                 stage_data: self.stage_data.clone(),
-                exhausted: self.exhausted,
                 initial_energy_gain: self.initial_energy_gain,
                 max_energy_gain: self.max_energy_gain,
                 energy_increase: self.energy_increase,
@@ -79,8 +82,11 @@ impl CharacterBehavior for Data {
                     .timer
                     .checked_add(Duration::from_secs_f32(data.dt.0))
                     .unwrap_or_default(),
+                in_buildup: self.in_buildup,
+                in_recover: self.in_recover,
+                in_combo: self.in_combo,
             });
-        } else if !self.exhausted {
+        } else if self.in_buildup {
             // Hit attempt
             data.updater.insert(data.entity, Attacking {
                 base_healthchange: -((self.stage_data[stage_index].max_damage.min(
@@ -100,20 +106,21 @@ impl CharacterBehavior for Data {
                 num_stages: self.num_stages,
                 combo: self.combo,
                 stage_data: self.stage_data.clone(),
-                exhausted: true,
                 initial_energy_gain: self.initial_energy_gain,
                 max_energy_gain: self.max_energy_gain,
                 energy_increase: self.energy_increase,
                 combo_duration: self.combo_duration,
                 timer: Duration::default(),
+                in_buildup: false,
+                in_recover: true,
+                in_combo: self.in_combo,
             });
-        } else if self.timer < self.stage_data[stage_index].base_recover_duration {
+        } else if self.in_recover && self.timer < self.stage_data[stage_index].base_recover_duration {
             update.character = CharacterState::ComboMelee(Data {
                 stage: self.stage,
                 num_stages: self.num_stages,
                 combo: self.combo,
                 stage_data: self.stage_data.clone(),
-                exhausted: self.exhausted,
                 initial_energy_gain: self.initial_energy_gain,
                 max_energy_gain: self.max_energy_gain,
                 energy_increase: self.energy_increase,
@@ -122,22 +129,40 @@ impl CharacterBehavior for Data {
                     .timer
                     .checked_add(Duration::from_secs_f32(data.dt.0))
                     .unwrap_or_default(),
+                in_buildup: self.in_buildup,
+                in_recover: self.in_recover,
+                in_combo: self.in_combo,
             });
-        } else if self.timer
-            < self.combo_duration + self.stage_data[stage_index].base_recover_duration
-        {
+        } else if self.in_recover {
+            update.character = CharacterState::ComboMelee(Data {
+                stage: self.stage,
+                num_stages: self.num_stages,
+                combo: self.combo,
+                stage_data: self.stage_data.clone(),
+                initial_energy_gain: self.initial_energy_gain,
+                max_energy_gain: self.max_energy_gain,
+                energy_increase: self.energy_increase,
+                combo_duration: self.combo_duration,
+                timer: Duration::default(),
+                in_buildup: self.in_buildup,
+                in_recover: false,
+                in_combo: true,
+            });
+        } else if self.in_combo && self.timer < self.combo_duration {
             if data.inputs.primary.is_pressed() {
                 update.character = CharacterState::ComboMelee(Data {
                     stage: (self.stage % self.num_stages) + 1,
                     num_stages: self.num_stages,
                     combo: self.combo + 1,
                     stage_data: self.stage_data.clone(),
-                    exhausted: false,
                     initial_energy_gain: self.initial_energy_gain,
                     max_energy_gain: self.max_energy_gain,
                     energy_increase: self.energy_increase,
                     combo_duration: self.combo_duration,
                     timer: Duration::default(),
+                    in_buildup: true,
+                    in_recover: self.in_recover,
+                    in_combo: false,
                 });
             } else {
                 update.character = CharacterState::ComboMelee(Data {
@@ -145,7 +170,6 @@ impl CharacterBehavior for Data {
                     num_stages: self.num_stages,
                     combo: self.combo,
                     stage_data: self.stage_data.clone(),
-                    exhausted: self.exhausted,
                     initial_energy_gain: self.initial_energy_gain,
                     max_energy_gain: self.max_energy_gain,
                     energy_increase: self.energy_increase,
@@ -154,6 +178,9 @@ impl CharacterBehavior for Data {
                         .timer
                         .checked_add(Duration::from_secs_f32(data.dt.0))
                         .unwrap_or_default(),
+                in_buildup: self.in_buildup,
+                in_recover: self.in_recover,
+                in_combo: self.in_combo,
                 });
             }
         } else {
