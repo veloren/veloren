@@ -1,6 +1,6 @@
 use portpicker::pick_unused_port;
 use serde::{Deserialize, Serialize};
-use std::{fs, io::prelude::*, net::SocketAddr, path::PathBuf};
+use std::{fs, io::prelude::*, net::SocketAddr, path::PathBuf, time::Duration};
 use tracing::{error, warn};
 use world::sim::FileOpts;
 
@@ -27,6 +27,7 @@ pub struct ServerSettings {
     pub max_view_distance: Option<u32>,
     pub banned_words_files: Vec<PathBuf>,
     pub max_player_group_size: u32,
+    pub client_timeout: Duration,
 }
 
 impl Default for ServerSettings {
@@ -47,6 +48,7 @@ impl Default for ServerSettings {
             max_view_distance: Some(30),
             banned_words_files: Vec::new(),
             max_player_group_size: 6,
+            client_timeout: Duration::from_secs(40),
         }
     }
 }
@@ -113,6 +115,7 @@ impl ServerSettings {
                                                        * to use admin commands or not */
             persistence_db_dir,
             max_view_distance: None,
+            client_timeout: Duration::from_secs(180),
             ..load // Fill in remaining fields from server_settings.ron.
         }
     }

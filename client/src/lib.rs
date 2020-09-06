@@ -52,14 +52,6 @@ use tracing::{debug, error, trace, warn};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 
-// The duration of network inactivity until the player is kicked
-// @TODO: in the future, this should be configurable on the server
-// and be provided to the client
-const SERVER_TIMEOUT: f64 = 40.0;
-
-// After this duration has elapsed, the user will begin getting kick warnings in
-// their chat window
-const SERVER_TIMEOUT_GRACE_PERIOD: f64 = 14.0;
 const PING_ROLLING_AVERAGE_SECS: usize = 10;
 
 pub enum Event {
@@ -117,6 +109,7 @@ pub struct Client {
     participant: Option<Participant>,
     singleton_stream: Stream,
 
+    client_timeout: Duration,
     last_server_ping: f64,
     last_server_pong: f64,
     last_ping_delta: f64,
@@ -173,6 +166,7 @@ impl Client {
             world_map,
             recipe_book,
             max_group_size,
+            client_timeout,
         ) = block_on(async {
             loop {
                 match stream.recv().await? {
@@ -181,6 +175,7 @@ impl Client {
                         server_info,
                         time_of_day,
                         max_group_size,
+                        client_timeout,
                         world_map,
                         recipe_book,
                     } => {
@@ -358,6 +353,7 @@ impl Client {
                             (world_map, map_size, map_bounds),
                             recipe_book,
                             max_group_size,
+                            client_timeout,
                         ));
                     },
                     ServerMsg::TooManyPlayers => break Err(Error::TooManyPlayers),
@@ -399,6 +395,7 @@ impl Client {
             _network: network,
             participant: Some(participant),
             singleton_stream: stream,
+            client_timeout,
 
             last_server_ping: 0.0,
             last_server_pong: 0.0,
@@ -1434,7 +1431,10 @@ impl Client {
             let duration_since_last_pong = self.state.get_time() - self.last_server_pong;
 
             // Dispatch a notification to the HUD warning they will be kicked in {n} seconds
-            if duration_since_last_pong >= SERVER_TIMEOUT_GRACE_PERIOD
+            const KICK_WARNING_AFTER_REL_TO_TIMEOUT_FRACTION: f64 = 0.75;
+            if duration_since_last_pong
+                >= (self.client_timeout.as_secs() as f64
+                    * KICK_WARNING_AFTER_REL_TO_TIMEOUT_FRACTION)
                 && self.state.get_time() - duration_since_last_pong > 0.
             {
                 frontend_events.push(Event::DisconnectionNotification(
@@ -1453,7 +1453,9 @@ impl Client {
             )
         })?;
 
-        if handles_msg == 0 && self.state.get_time() - self.last_server_pong > SERVER_TIMEOUT {
+        if handles_msg == 0
+            && self.state.get_time() - self.last_server_pong > self.client_timeout.as_secs() as f64
+        {
             return Err(Error::ServerTimeout);
         }
 
