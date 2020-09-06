@@ -245,15 +245,22 @@ fn sphere_wedge_cylinder_collision(
         // in cylinder
         let intersect_frac = (length_b / 2.0 / pos.z).abs();
         // Gets the position of the cylinder edge closest to the sphere center
-        let edge_pos = Vec3::new(pos.x, pos.y, 0.0).normalized() * rad_b;
+        let edge_pos = if let Some(vec) = Vec3::new(pos.x, pos.y, 0.0).try_normalized() {
+            vec * rad_b
+        } else {
+            // Returns an arbitrary location that is still guaranteed to be on the cylinder
+            // edge. This case should only happen when the sphere is directly above the
+            // cylinder, in which case all positions on edge are equally close.
+            Vec3::new(rad_b, 0.0, 0.0)
+        };
         // Gets point on line between sphere and cylinder centers that the z value is
         // equal to the endcap z location
         let intersect_point = Vec2::new(pos.x * intersect_frac, pos.y * intersect_frac);
         // Checks if line between sphere and cylinder center passes through cap of
         // cylinder
         if intersect_point.distance_squared(Vec2::zero()) <= rad_b.powi(2) {
-            let distance_squared = Vec3::new(intersect_point.x, intersect_point.y, height)
-                .distance_squared(pos);
+            let distance_squared =
+                Vec3::new(intersect_point.x, intersect_point.y, height).distance_squared(pos);
             in_range = distance_squared < max_rad.powi(2) && distance_squared > min_rad.powi(2);
             // Changes position so I can compare this with origin instead of original
             // position with top of cylinder
@@ -276,8 +283,11 @@ fn sphere_wedge_cylinder_collision(
             // Gets side positions on same endcap
             let side_end_edge_pos_1 = Vec3::new(edge_pos.y, -edge_pos.x, height);
             let side_end_edge_pos_2 = Vec3::new(-edge_pos.y, edge_pos.x, height);
-            // Gets whichever angle is bigger, between half of sphere center and both opposite edge and bottom edge, or sphere center and both the side edges
-            let angle2 = (opp_end_edge_pos - pos).angle_between(bot_end_edge_pos - pos).min((side_end_edge_pos_1 - pos).angle_between(side_end_edge_pos_2 - pos));
+            // Gets whichever angle is bigger, between half of sphere center and both
+            // opposite edge and bottom edge, or sphere center and both the side edges
+            let angle2 = (opp_end_edge_pos - pos)
+                .angle_between(bot_end_edge_pos - pos)
+                .min((side_end_edge_pos_1 - pos).angle_between(side_end_edge_pos_2 - pos));
             // Will be somewhat inaccurate, tends towards hitting when it shouldn't
             // Checks angle between orientation and line between sphere and cylinder centers
             in_angle = pos.angle_between(-ori) < angle + angle2;

@@ -61,14 +61,18 @@ impl ParticleMgr {
                 percent_damage,
             } => {
                 if *percent_damage < 0.5 {
-                    self.particles.resize_with(self.particles.len() + 200, || {
-                        Particle::new(
-                            Duration::from_secs(1),
-                            time,
-                            ParticleMode::EnergyNature,
-                            *pos + Vec3::<f32>::zero().map(|_| rng.gen_range(-3.0, 3.0) * power),
-                        )
-                    });
+                    self.particles.resize_with(
+                        self.particles.len() + (200.0 * power) as usize,
+                        || {
+                            Particle::new(
+                                Duration::from_secs(1),
+                                time,
+                                ParticleMode::EnergyNature,
+                                *pos + Vec3::<f32>::zero()
+                                    .map(|_| rng.gen_range(-3.0, 3.0) * power),
+                            )
+                        },
+                    );
                 } else {
                     self.particles.resize_with(
                         self.particles.len() + if reagent.is_some() { 300 } else { 150 },
@@ -261,14 +265,16 @@ impl ParticleMgr {
         let time = scene_data.state.get_time();
 
         // nature
-        self.particles.resize(
+        self.particles.resize_with(
             self.particles.len() + usize::from(self.scheduler.heartbeats(Duration::from_millis(3))),
-            Particle::new(
-                Duration::from_millis(250),
-                time,
-                ParticleMode::EnergyNature,
-                pos.0,
-            ),
+            || {
+                Particle::new(
+                    Duration::from_millis(250),
+                    time,
+                    ParticleMode::EnergyNature,
+                    pos.0,
+                )
+            },
         );
     }
 
