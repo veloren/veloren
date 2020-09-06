@@ -159,7 +159,7 @@ https://account.veloren.net."#,
         "hud.press_key_to_toggle_debug_info_fmt": "Press {key} to toggle debug info",
 
         // Chat outputs
-        "hud.chat.online_msg": "[{name}] is now online.",
+        "hud.chat.online_msg": "[{name}] joined.",
         "hud.chat.offline_msg": "{name} went offline.",
         "hud.chat.loot_msg": "You picked up [{item}]",
         "hud.chat.loot_fail": "Your Inventory is full!",

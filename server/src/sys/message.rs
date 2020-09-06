@@ -203,12 +203,14 @@ impl Sys {
                             // Only send login message if it wasn't already
                             // sent previously
                             if !client.login_msg_sent {
-                                new_chat_msgs.push((None, UnresolvedChatMsg {
-                                    chat_type: ChatType::Online,
-                                    message: format!("[{}] is now online.", &player.alias), // TODO: Localize this
-                                }));
+                                if let Some(player_uid) = uids.get(entity) {
+                                    new_chat_msgs.push((None, UnresolvedChatMsg {
+                                        chat_type: ChatType::Online(*player_uid),
+                                        message: "".to_string(),
+                                    }));
 
-                                client.login_msg_sent = true;
+                                    client.login_msg_sent = true;
+                                }
                             }
                         } else {
                             client.notify(ServerMsg::CharacterDataLoadError(String::from(

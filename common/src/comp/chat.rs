@@ -45,21 +45,39 @@ impl Default for ChatMode {
     fn default() -> Self { Self::World }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum KillType {
+    Melee,
+    Projectile,
+    // Projectile(String), TODO: add projectile name when available
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum KillSource {
+    Player(Uid, KillType),
+    NonPlayer(String, KillType),
+    Environment(String),
+    FallDamage,
+    Suicide,
+    Other,
+}
+
 /// List of chat types. Each one is colored differently and has its own icon.
 ///
 /// This is a superset of `SpeechBubbleType`, which is a superset of `ChatMode`
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ChatType<G> {
     /// A player came online
-    Online,
+    Online(Uid),
     /// A player went offline
-    Offline,
+    Offline(Uid),
     /// The result of chat commands
     CommandInfo,
     /// A chat command failed
     CommandError,
-    /// Inform players that someone died
-    Kill,
+    /// Inform players that someone died (Source, Victim) Source may be None
+    /// (ex: fall damage)
+    Kill(KillSource, Uid),
     /// Server notifications to a group, such as player join/leave
     GroupMeta(G),
     /// Server notifications to a faction, such as player join/leave
@@ -105,7 +123,7 @@ impl ChatType<String> {
         ServerMsg::ChatMsg(self.chat_msg(msg))
     }
 }
-
+// Stores chat text, type
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenericChatMsg<G> {
     pub chat_type: ChatType<G>,
@@ -127,14 +145,14 @@ impl<G> GenericChatMsg<G> {
 
     pub fn map_group<T>(self, mut f: impl FnMut(G) -> T) -> GenericChatMsg<T> {
         let chat_type = match self.chat_type {
-            ChatType::Online => ChatType::Online,
-            ChatType::Offline => ChatType::Offline,
+            ChatType::Online(a) => ChatType::Online(a),
+            ChatType::Offline(a) => ChatType::Offline(a),
             ChatType::CommandInfo => ChatType::CommandInfo,
             ChatType::CommandError => ChatType::CommandError,
             ChatType::Loot => ChatType::Loot,
             ChatType::FactionMeta(a) => ChatType::FactionMeta(a),
             ChatType::GroupMeta(g) => ChatType::GroupMeta(f(g)),
-            ChatType::Kill => ChatType::Kill,
+            ChatType::Kill(a, b) => ChatType::Kill(a, b),
             ChatType::Tell(a, b) => ChatType::Tell(a, b),
             ChatType::Say(a) => ChatType::Say(a),
             ChatType::Group(a, g) => ChatType::Group(a, f(g)),
@@ -163,14 +181,14 @@ impl<G> GenericChatMsg<G> {
 
     pub fn icon(&self) -> SpeechBubbleType {
         match &self.chat_type {
-            ChatType::Online => SpeechBubbleType::None,
-            ChatType::Offline => SpeechBubbleType::None,
+            ChatType::Online(_) => SpeechBubbleType::None,
+            ChatType::Offline(_) => SpeechBubbleType::None,
             ChatType::CommandInfo => SpeechBubbleType::None,
             ChatType::CommandError => SpeechBubbleType::None,
             ChatType::Loot => SpeechBubbleType::None,
             ChatType::FactionMeta(_) => SpeechBubbleType::None,
             ChatType::GroupMeta(_) => SpeechBubbleType::None,
-            ChatType::Kill => SpeechBubbleType::None,
+            ChatType::Kill(_, _) => SpeechBubbleType::None,
             ChatType::Tell(_u, _) => SpeechBubbleType::Tell,
             ChatType::Say(_u) => SpeechBubbleType::Say,
             ChatType::Group(_u, _s) => SpeechBubbleType::Group,
@@ -184,14 +202,14 @@ impl<G> GenericChatMsg<G> {
 
     pub fn uid(&self) -> Option<Uid> {
         match &self.chat_type {
-            ChatType::Online => None,
-            ChatType::Offline => None,
+            ChatType::Online(_) => None,
+            ChatType::Offline(_) => None,
             ChatType::CommandInfo => None,
             ChatType::CommandError => None,
             ChatType::Loot => None,
             ChatType::FactionMeta(_) => None,
             ChatType::GroupMeta(_) => None,
-            ChatType::Kill => None,
+            ChatType::Kill(_, _) => None,
             ChatType::Tell(u, _t) => Some(*u),
             ChatType::Say(u) => Some(*u),
             ChatType::Group(u, _s) => Some(*u),

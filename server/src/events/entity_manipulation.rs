@@ -2,8 +2,11 @@ use crate::{client::Client, comp::quadruped_small, Server, SpawnPoint, StateExt}
 use common::{
     assets::Asset,
     comp::{
-        self, item::ItemAsset, object, Alignment, Body, Damage, DamageSource, Group, HealthChange,
-        HealthSource, Player, Pos, Stats,
+        self,
+        chat::{KillSource, KillType},
+        item::ItemAsset,
+        object, Alignment, Body, Damage, DamageSource, Group, HealthChange, HealthSource, Player,
+        Pos, Stats,
     },
     lottery::Lottery,
     msg::{PlayerListUpdate, ServerMsg},
@@ -53,25 +56,68 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
     }
 
     // Chat message
-    if let Some(player) = state.ecs().read_storage::<Player>().get(entity) {
-        let msg = if let HealthSource::Attack { by }
-        | HealthSource::Projectile { owner: Some(by) } = cause
-        {
-            state.ecs().entity_from_uid(by.into()).and_then(|attacker| {
-                state
-                    .ecs()
-                    .read_storage::<Player>()
-                    .get(attacker)
-                    .map(|attacker_alias| {
-                        format!("{} was killed by {}", &player.alias, &attacker_alias.alias)
-                    })
-            })
-        } else {
-            None
+    // If it was a player that died
+    if let Some(_player) = state.ecs().read_storage::<Player>().get(entity) {
+        if let Some(uid) = state.ecs().read_storage::<Uid>().get(entity) {
+            let kill_source = match cause {
+                HealthSource::Attack { by } => {
+                    // Get attacker entity
+                    if let Some(char_entity) = state.ecs().entity_from_uid(by.into()) {
+                        // Check if attacker is another player or entity with stats (npc)
+                        if state
+                            .ecs()
+                            .read_storage::<Player>()
+                            .get(char_entity)
+                            .is_some()
+                        {
+                            KillSource::Player(by, KillType::Melee)
+                        } else if let Some(stats) =
+                            state.ecs().read_storage::<Stats>().get(char_entity)
+                        {
+                            KillSource::NonPlayer(stats.name.clone(), KillType::Melee)
+                        } else {
+                            KillSource::NonPlayer("Unknown".to_string(), KillType::Melee)
+                        }
+                    } else {
+                        KillSource::NonPlayer("Unknown".to_string(), KillType::Melee)
+                    }
+                },
+                HealthSource::Projectile { owner: Some(by) } => {
+                    // Get projectile owner entity TODO: add names to projectiles and send in
+                    // message
+                    if let Some(char_entity) = state.ecs().entity_from_uid(by.into()) {
+                        // Check if attacker is another player or entity with stats (npc)
+                        if state
+                            .ecs()
+                            .read_storage::<Player>()
+                            .get(char_entity)
+                            .is_some()
+                        {
+                            KillSource::Player(by, KillType::Projectile)
+                        } else if let Some(stats) =
+                            state.ecs().read_storage::<Stats>().get(char_entity)
+                        {
+                            KillSource::NonPlayer(stats.name.clone(), KillType::Projectile)
+                        } else {
+                            KillSource::NonPlayer("Unknown".to_string(), KillType::Projectile)
+                        }
+                    } else {
+                        KillSource::NonPlayer("Unknown".to_string(), KillType::Projectile)
+                    }
+                },
+                HealthSource::World => KillSource::FallDamage,
+                HealthSource::Suicide => KillSource::Suicide,
+                HealthSource::Projectile { owner: None }
+                | HealthSource::Revive
+                | HealthSource::Command
+                | HealthSource::LevelUp
+                | HealthSource::Item
+                | HealthSource::Unknown => KillSource::Other,
+            };
+            state.notify_registered_clients(
+                comp::ChatType::Kill(kill_source, *uid).server_msg("".to_string()),
+            );
         }
-        .unwrap_or(format!("{} died", &player.alias));
-
-        state.notify_registered_clients(comp::ChatType::Kill.server_msg(msg));
     }
 
     // Give EXP to the killer if entity had stats
