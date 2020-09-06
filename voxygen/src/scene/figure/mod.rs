@@ -30,6 +30,7 @@ use common::{
     },
     span,
     state::{DeltaTime, State},
+    states::combo_melee::StageSection,
     terrain::TerrainChunk,
     vol::RectRasterableVol,
 };
@@ -915,20 +916,24 @@ impl FigureMgr {
                             let stage_index = (s.stage - 1) as usize;
                             let stage_time = s.timer.as_secs_f64();
                             let swing_frac = 0.5; // What percentage of buildup is swing animation
-                            let in_swing: bool;
-                            let stage_progress = if s.in_buildup {
-                                let buildup_progress = stage_time / s.stage_data[stage_index].base_buildup_duration.as_secs_f64();
-                                if buildup_progress < swing_frac {
-                                    in_swing = false;
-                                    buildup_progress / (1.0 - swing_frac)
-                                } else {
-                                    in_swing = true;
-                                    (buildup_progress - (1.0 - swing_frac)) / swing_frac
-                                }
-                            } else if s.in_recover {
-                                stage_time / s.stage_data[stage_index].base_recover_duration.as_secs_f64()
-                            } else {
-                                stage_time / s.combo_duration.as_secs_f64()
+                            let mut stage_section = s.stage_section;
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    let buildup_progress = stage_time / s.stage_data[stage_index].base_buildup_duration.as_secs_f64();
+                                    if buildup_progress < swing_frac {
+                                        buildup_progress / (1.0 - swing_frac)
+                                    } else {
+                                        stage_section = StageSection::Swing;
+                                        (buildup_progress - (1.0 - swing_frac)) / swing_frac
+                                    }
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.stage_data[stage_index].base_recover_duration.as_secs_f64()
+                                },
+                                StageSection::Combo => {
+                                    stage_time / s.combo_duration.as_secs_f64()
+                                },
+                                _ => 0.0,
                             };
                             match s.stage {
                                 1 => anim::character::AlphaAnimation::update_skeleton(

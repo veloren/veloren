@@ -341,9 +341,7 @@ impl From<&CharacterAbility> for CharacterState {
                 energy_increase: *energy_increase,
                 combo_duration: *combo_duration,
                 timer: Duration::default(),
-                in_buildup: true,
-                in_recover: false,
-                in_combo: false,
+                stage_section: combo_melee::StageSection::Buildup,
             }),
             CharacterAbility::LeapMelee {
                 energy_cost: _,

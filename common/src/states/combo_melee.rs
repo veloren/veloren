@@ -28,6 +28,15 @@ pub struct Stage {
     pub base_recover_duration: Duration,
 }
 
+/// Determines whether state is in buildup, swing, recover, or combo
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum StageSection {
+    Buildup,
+    Swing,
+    Recover,
+    Combo,
+}
+
 /// A sequence of attacks that can incrementally become faster and more
 /// damaging.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -50,12 +59,8 @@ pub struct Data {
     pub combo_duration: Duration,
     /// Timer for each stage
     pub timer: Duration,
-    /// Checks if state is in buildup duration
-    pub in_buildup: bool,
-    /// Checks if state is in recover duration
-    pub in_recover: bool,
-    /// Checks if state is in combo duration
-    pub in_combo: bool,
+    /// Checks what section a stage is in
+    pub stage_section: StageSection,
 }
 
 impl CharacterBehavior for Data {
@@ -67,7 +72,7 @@ impl CharacterBehavior for Data {
 
         let stage_index = (self.stage - 1) as usize;
 
-        if self.in_buildup && self.timer < self.stage_data[stage_index].base_buildup_duration {
+        if self.stage_section == StageSection::Buildup && self.timer < self.stage_data[stage_index].base_buildup_duration {
             // Build up
             update.character = CharacterState::ComboMelee(Data {
                 stage: self.stage,
@@ -82,11 +87,9 @@ impl CharacterBehavior for Data {
                     .timer
                     .checked_add(Duration::from_secs_f32(data.dt.0))
                     .unwrap_or_default(),
-                in_buildup: self.in_buildup,
-                in_recover: self.in_recover,
-                in_combo: self.in_combo,
+                stage_section: self.stage_section,
             });
-        } else if self.in_buildup {
+        } else if self.stage_section == StageSection::Buildup {
             // Hit attempt
             data.updater.insert(data.entity, Attacking {
                 base_healthchange: -((self.stage_data[stage_index].max_damage.min(
@@ -111,11 +114,9 @@ impl CharacterBehavior for Data {
                 energy_increase: self.energy_increase,
                 combo_duration: self.combo_duration,
                 timer: Duration::default(),
-                in_buildup: false,
-                in_recover: true,
-                in_combo: self.in_combo,
+                stage_section: StageSection::Recover,
             });
-        } else if self.in_recover && self.timer < self.stage_data[stage_index].base_recover_duration {
+        } else if self.stage_section == StageSection::Recover && self.timer < self.stage_data[stage_index].base_recover_duration {
             update.character = CharacterState::ComboMelee(Data {
                 stage: self.stage,
                 num_stages: self.num_stages,
@@ -129,11 +130,9 @@ impl CharacterBehavior for Data {
                     .timer
                     .checked_add(Duration::from_secs_f32(data.dt.0))
                     .unwrap_or_default(),
-                in_buildup: self.in_buildup,
-                in_recover: self.in_recover,
-                in_combo: self.in_combo,
+                stage_section: self.stage_section,
             });
-        } else if self.in_recover {
+        } else if self.stage_section == StageSection::Recover {
             update.character = CharacterState::ComboMelee(Data {
                 stage: self.stage,
                 num_stages: self.num_stages,
@@ -144,11 +143,9 @@ impl CharacterBehavior for Data {
                 energy_increase: self.energy_increase,
                 combo_duration: self.combo_duration,
                 timer: Duration::default(),
-                in_buildup: self.in_buildup,
-                in_recover: false,
-                in_combo: true,
+                stage_section: StageSection::Combo,
             });
-        } else if self.in_combo && self.timer < self.combo_duration {
+        } else if self.stage_section == StageSection::Combo && self.timer < self.combo_duration {
             if data.inputs.primary.is_pressed() {
                 update.character = CharacterState::ComboMelee(Data {
                     stage: (self.stage % self.num_stages) + 1,
@@ -160,9 +157,7 @@ impl CharacterBehavior for Data {
                     energy_increase: self.energy_increase,
                     combo_duration: self.combo_duration,
                     timer: Duration::default(),
-                    in_buildup: true,
-                    in_recover: self.in_recover,
-                    in_combo: false,
+                    stage_section: StageSection::Buildup,
                 });
             } else {
                 update.character = CharacterState::ComboMelee(Data {
@@ -178,9 +173,7 @@ impl CharacterBehavior for Data {
                         .timer
                         .checked_add(Duration::from_secs_f32(data.dt.0))
                         .unwrap_or_default(),
-                in_buildup: self.in_buildup,
-                in_recover: self.in_recover,
-                in_combo: self.in_combo,
+                stage_section: self.stage_section,
                 });
             }
         } else {
