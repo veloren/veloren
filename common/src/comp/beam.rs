@@ -11,6 +11,7 @@ pub struct Properties {
     pub damage: u32,
     pub heal: u32,
     pub lifesteal_eff: f32,
+    pub energy_regen: u32,
     pub duration: Duration,
     pub owner: Option<Uid>,
 }

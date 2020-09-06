@@ -1,5 +1,5 @@
 use crate::{
-    comp::{beam, CharacterState, EnergySource, Ori, Pos, StateUpdate},
+    comp::{beam, CharacterState, Ori, Pos, StateUpdate},
     event::ServerEvent,
     states::utils::*,
     sys::character_behavior::*,
@@ -69,6 +69,7 @@ impl CharacterBehavior for Data {
         } else if data.inputs.primary.is_pressed() && !self.exhausted {
             let damage = (self.base_dps as f32 / self.tick_rate) as u32;
             let heal = (self.base_hps as f32 / self.tick_rate) as u32;
+            let energy = (self.energy_regen as f32 / self.tick_rate) as u32;
             let speed = self.range / self.beam_duration.as_secs_f32();
             let properties = beam::Properties {
                 angle: self.max_angle.to_radians(),
@@ -76,6 +77,7 @@ impl CharacterBehavior for Data {
                 damage,
                 heal,
                 lifesteal_eff: self.lifesteal_eff,
+                energy_regen: energy,
                 duration: self.beam_duration,
                 owner: Some(*data.uid),
             };
