@@ -17,7 +17,9 @@ use byteorder::{ByteOrder, LittleEndian};
 use common::{
     character::CharacterItem,
     comp::{
-        self, group, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip,
+        self,
+        chat::{KillSource, KillType},
+        group, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip,
         InventoryManip, InventoryUpdateEvent,
     },
     msg::{
@@ -1226,7 +1228,10 @@ impl Client {
                                 frontend_events.push(Event::Chat(
                                     comp::ChatType::GroupMeta("Group".into()).chat_msg(format!(
                                         "[{}] joined group",
-                                        player_info.player_alias
+                                        self.personalize_alias(
+                                            uid,
+                                            player_info.player_alias.clone()
+                                        )
                                     )),
                                 ));
                             }
@@ -1243,7 +1248,10 @@ impl Client {
                                 frontend_events.push(Event::Chat(
                                     comp::ChatType::GroupMeta("Group".into()).chat_msg(format!(
                                         "[{}] left group",
-                                        player_info.player_alias
+                                        self.personalize_alias(
+                                            uid,
+                                            player_info.player_alias.clone()
+                                        )
                                     )),
                                 ));
                             }
@@ -1539,17 +1547,32 @@ impl Client {
         self.entity = entity_builder.with(uid).build();
     }
 
+    /// Change player alias to "You" if client belongs to matching player
+    fn personalize_alias(&self, uid: Uid, alias: String) -> String {
+        let client_uid = self.uid().expect("Client doesn't have a Uid!!!");
+        if client_uid == uid {
+            "You".to_string() // TODO: Localize
+        } else {
+            alias
+        }
+    }
+
     /// Format a message for the client (voxygen chat box or chat-cli)
     pub fn format_message(&self, msg: &comp::ChatMsg, character_name: bool) -> String {
-        let comp::ChatMsg { chat_type, message } = &msg;
+        let comp::ChatMsg {
+            chat_type, message, ..
+        } = &msg;
         let alias_of_uid = |uid| {
             self.player_list
                 .get(uid)
                 .map_or("<?>".to_string(), |player_info| {
                     if player_info.is_admin {
-                        format!("ADMIN - {}", player_info.player_alias)
+                        format!(
+                            "ADMIN - {}",
+                            self.personalize_alias(*uid, player_info.player_alias.clone())
+                        )
                     } else {
-                        player_info.player_alias.to_string()
+                        self.personalize_alias(*uid, player_info.player_alias.clone())
                     }
                 })
         };
@@ -1580,14 +1603,44 @@ impl Client {
             }
         };
         match chat_type {
-            comp::ChatType::Online => message.to_string(),
-            comp::ChatType::Offline => message.to_string(),
+            comp::ChatType::Online(uid) => format!("{} joined", alias_of_uid(uid)),
+            comp::ChatType::Offline(uid) => format!("{} left", alias_of_uid(uid)),
             comp::ChatType::CommandError => message.to_string(),
             comp::ChatType::CommandInfo => message.to_string(),
             comp::ChatType::Loot => message.to_string(),
             comp::ChatType::FactionMeta(_) => message.to_string(),
             comp::ChatType::GroupMeta(_) => message.to_string(),
-            comp::ChatType::Kill => message.to_string(),
+            comp::ChatType::Kill(kill_source, victim) => {
+                // TODO: Localize
+                match kill_source {
+                    KillSource::Player(attacker_uid, KillType::Melee) => format!(
+                        "{} killed {}",
+                        alias_of_uid(attacker_uid),
+                        alias_of_uid(victim)
+                    ),
+                    KillSource::Player(attacker_uid, KillType::Projectile) => format!(
+                        "{} shot {}",
+                        alias_of_uid(attacker_uid),
+                        alias_of_uid(victim)
+                    ),
+                    KillSource::NonPlayer(attacker_name, KillType::Melee) => {
+                        format!("[{}] killed {}", attacker_name, alias_of_uid(victim))
+                    },
+                    KillSource::NonPlayer(attacker_name, KillType::Projectile) => {
+                        format!("[{}] shot {}", attacker_name, alias_of_uid(victim))
+                    },
+                    KillSource::Environment(environment) => {
+                        format!("{} died in [{}]", alias_of_uid(victim), environment)
+                    },
+                    KillSource::FallDamage => {
+                        format!("{} died from fall damage", alias_of_uid(victim))
+                    },
+                    KillSource::Suicide => {
+                        format!("{} died from self-inflicted wounds", alias_of_uid(victim))
+                    },
+                    KillSource::Other => format!("{} died", alias_of_uid(victim)),
+                }
+            },
             comp::ChatType::Tell(from, to) => {
                 let from_alias = alias_of_uid(from);
                 let to_alias = alias_of_uid(to);

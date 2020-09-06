@@ -112,21 +112,21 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
     let state = server.state_mut();
 
     // Tell other clients to remove from player list
+    // And send a disconnected message
     if let (Some(uid), Some(_)) = (
         state.read_storage::<Uid>().get(entity),
         state.read_storage::<comp::Player>().get(entity),
     ) {
-        state.notify_registered_clients(ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(*uid)))
+        state.notify_registered_clients(comp::ChatType::Offline(*uid).server_msg(""));
+
+        state
+            .notify_registered_clients(ServerMsg::PlayerListUpdate(PlayerListUpdate::Remove(*uid)));
     }
 
     // Make sure to remove the player from the logged in list. (See LoginProvider)
-    // And send a disconnected message
     if let Some(player) = state.ecs().read_storage::<Player>().get(entity) {
         let mut login_provider = state.ecs().write_resource::<LoginProvider>();
         login_provider.logout(player.uuid());
-
-        let msg = comp::ChatType::Offline.server_msg(format!("[{}] went offline.", &player.alias));
-        state.notify_registered_clients(msg);
     }
 
     // Sync the player's character data to the database

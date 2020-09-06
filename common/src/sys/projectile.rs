@@ -86,7 +86,9 @@ impl<'a> System<'a> for Sys {
                                     uid: other,
                                     change: HealthChange {
                                         amount: damage.healthchange as i32,
-                                        cause: HealthSource::Attack { by: owner_uid },
+                                        cause: HealthSource::Projectile {
+                                            owner: Some(owner_uid),
+                                        },
                                     },
                                 });
                             }
