@@ -70,8 +70,6 @@ use world::{
 #[macro_use] extern crate diesel;
 #[macro_use] extern crate diesel_migrations;
 
-const CLIENT_TIMEOUT: f64 = 40.0; // Seconds
-
 #[derive(Copy, Clone)]
 struct SpawnPoint(Vec3<f32>);
 
@@ -753,6 +751,7 @@ impl Server {
                         server_info: self.get_server_info(),
                         time_of_day: *self.state.ecs().read_resource(),
                         max_group_size: self.settings().max_player_group_size,
+                        client_timeout: self.settings().client_timeout,
                         world_map: self.map.clone(),
                         recipe_book: (&*default_recipe_book()).clone(),
                     });
