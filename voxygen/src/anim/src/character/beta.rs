@@ -4,7 +4,7 @@ use super::{
 };
 use common::{
     comp::item::{Hands, ToolKind},
-    states::combo_melee::StageSection,
+    states::wielding::StageSection,
 };
 
 pub struct BetaAnimation;
