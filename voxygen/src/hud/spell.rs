@@ -1,5 +1,5 @@
 use super::{img_ids::Imgs, Show, TEXT_COLOR, UI_MAIN};
-use crate::ui::fonts::ConrodVoxygenFonts;
+use crate::{i18n::VoxygenLocalization, ui::fonts::ConrodVoxygenFonts};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
@@ -7,8 +7,6 @@ use conrod_core::{
 };
 
 use client::{self, Client};
-
-use crate::i18n::VoxygenLocalization;
 
 widget_ids! {
     pub struct Ids {

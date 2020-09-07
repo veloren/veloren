@@ -6,7 +6,7 @@ use crate::{
     i18n::{list_localizations, LanguageMetadata, VoxygenLocalization},
     render::{AaMode, CloudMode, FluidMode, LightingMode, RenderMode, ShadowMapMode, ShadowMode},
     ui::{fonts::ConrodVoxygenFonts, ImageSlider, ScaleMode, ToggleButton},
-    window::GameInput,
+    window::{FullScreenSettings, FullscreenMode, GameInput},
     GlobalState,
 };
 use conrod_core::{
@@ -119,6 +119,8 @@ widget_ids! {
         cloud_mode_list,
         fluid_mode_text,
         fluid_mode_list,
+        fullscreen_mode_text,
+        fullscreen_mode_list,
         //
         resolution,
         resolution_label,
@@ -259,12 +261,9 @@ pub enum Event {
     AdjustLodDetail(u32),
     AdjustGamma(f32),
     AdjustWindowSize([u16; 2]),
+    ChangeFullscreenMode(FullScreenSettings),
     ToggleParticlesEnabled(bool),
-    ToggleFullscreen,
     ChangeRenderMode(Box<RenderMode>),
-    ChangeResolution([u16; 2]),
-    ChangeBitDepth(Option<u16>),
-    ChangeRefreshRate(Option<u16>),
     AdjustMusicVolume(f32),
     AdjustSfxVolume(f32),
     ChangeAudioDevice(String),
@@ -2284,9 +2283,9 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .map(|res| format!("{}x{}", res[0], res[1]))
                     .collect::<Vec<String>>()
                     .as_slice(),
-                resolutions
-                    .iter()
-                    .position(|res| res == &self.global_state.settings.graphics.resolution),
+                resolutions.iter().position(|res| {
+                    res == &self.global_state.settings.graphics.fullscreen.resolution
+                }),
             )
             .w_h(128.0, 22.0)
             .color(MENU_BG)
@@ -2295,17 +2294,22 @@ impl<'a> Widget for SettingsWindow<'a> {
             .down_from(state.ids.resolution_label, 10.0)
             .set(state.ids.resolution, ui)
             {
-                events.push(Event::ChangeResolution(resolutions[clicked]));
+                events.push(Event::ChangeFullscreenMode(FullScreenSettings {
+                    resolution: resolutions[clicked],
+                    ..self.global_state.settings.graphics.fullscreen
+                }));
             }
 
             // Bit Depth and Refresh Rate
             let correct_res: Vec<VideoMode> = video_modes
                 .into_iter()
                 .filter(|mode| {
-                    mode.size().width == self.global_state.settings.graphics.resolution[0] as u32
+                    mode.size().width
+                        == self.global_state.settings.graphics.fullscreen.resolution[0] as u32
                 })
                 .filter(|mode| {
-                    mode.size().height == self.global_state.settings.graphics.resolution[1] as u32
+                    mode.size().height
+                        == self.global_state.settings.graphics.fullscreen.resolution[1] as u32
                 })
                 .collect();
 
@@ -2313,7 +2317,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             let bit_depths: Vec<u16> = correct_res
                 .iter()
                 .filter(
-                    |mode| match self.global_state.settings.graphics.refresh_rate {
+                    |mode| match self.global_state.settings.graphics.fullscreen.refresh_rate {
                         Some(refresh_rate) => mode.refresh_rate() == refresh_rate,
                         None => true,
                     },
@@ -2337,7 +2341,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .chain(bit_depths.iter().map(|depth| format!("{}", depth)))
                     .collect::<Vec<String>>()
                     .as_slice(),
-                match self.global_state.settings.graphics.bit_depth {
+                match self.global_state.settings.graphics.fullscreen.bit_depth {
                     Some(bit_depth) => bit_depths
                         .iter()
                         .position(|depth| depth == &bit_depth)
@@ -2353,20 +2357,25 @@ impl<'a> Widget for SettingsWindow<'a> {
             .right_from(state.ids.resolution, 8.0)
             .set(state.ids.bit_depth, ui)
             {
-                events.push(Event::ChangeBitDepth(if clicked == 0 {
-                    None
-                } else {
-                    Some(bit_depths[clicked - 1])
+                events.push(Event::ChangeFullscreenMode(FullScreenSettings {
+                    bit_depth: if clicked == 0 {
+                        None
+                    } else {
+                        Some(bit_depths[clicked - 1])
+                    },
+                    ..self.global_state.settings.graphics.fullscreen
                 }));
             }
 
             // Refresh Rate
             let refresh_rates: Vec<u16> = correct_res
                 .into_iter()
-                .filter(|mode| match self.global_state.settings.graphics.bit_depth {
-                    Some(bit_depth) => mode.bit_depth() == bit_depth,
-                    None => true,
-                })
+                .filter(
+                    |mode| match self.global_state.settings.graphics.fullscreen.bit_depth {
+                        Some(bit_depth) => mode.bit_depth() == bit_depth,
+                        None => true,
+                    },
+                )
                 .sorted_by_key(|mode| mode.refresh_rate())
                 .map(|mode| mode.refresh_rate())
                 .rev()
@@ -2386,7 +2395,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .chain(refresh_rates.iter().map(|rate| format!("{}", rate)))
                     .collect::<Vec<String>>()
                     .as_slice(),
-                match self.global_state.settings.graphics.refresh_rate {
+                match self.global_state.settings.graphics.fullscreen.refresh_rate {
                     Some(refresh_rate) => refresh_rates
                         .iter()
                         .position(|rate| rate == &refresh_rate)
@@ -2402,10 +2411,13 @@ impl<'a> Widget for SettingsWindow<'a> {
             .right_from(state.ids.bit_depth, 8.0)
             .set(state.ids.refresh_rate, ui)
             {
-                events.push(Event::ChangeRefreshRate(if clicked == 0 {
-                    None
-                } else {
-                    Some(refresh_rates[clicked - 1])
+                events.push(Event::ChangeFullscreenMode(FullScreenSettings {
+                    refresh_rate: if clicked == 0 {
+                        None
+                    } else {
+                        Some(refresh_rates[clicked - 1])
+                    },
+                    ..self.global_state.settings.graphics.fullscreen
                 }));
             }
 
@@ -2417,8 +2429,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.fullscreen_label, ui);
 
-            let fullscreen = ToggleButton::new(
-                self.global_state.settings.graphics.fullscreen,
+            let enabled = ToggleButton::new(
+                self.global_state.settings.graphics.fullscreen.enabled,
                 self.imgs.checkbox,
                 self.imgs.checkbox_checked,
             )
@@ -2428,8 +2440,48 @@ impl<'a> Widget for SettingsWindow<'a> {
             .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
             .set(state.ids.fullscreen_button, ui);
 
-            if self.global_state.settings.graphics.fullscreen != fullscreen {
-                events.push(Event::ToggleFullscreen);
+            if self.global_state.settings.graphics.fullscreen.enabled != enabled {
+                events.push(Event::ChangeFullscreenMode(FullScreenSettings {
+                    enabled,
+                    ..self.global_state.settings.graphics.fullscreen
+                }));
+            }
+
+            // Fullscreen Mode
+            Text::new(&self.localized_strings.get("hud.settings.fullscreen_mode"))
+                .down_from(state.ids.fullscreen_label, 8.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.fullscreen_mode_text, ui);
+
+            let mode_list = [FullscreenMode::Exclusive, FullscreenMode::Borderless];
+            let mode_label_list = [
+                &self
+                    .localized_strings
+                    .get("hud.settings.fullscreen_mode.exclusive"),
+                &self
+                    .localized_strings
+                    .get("hud.settings.fullscreen_mode.borderless"),
+            ];
+
+            // Get which fullscreen mode is currently active
+            let selected = mode_list
+                .iter()
+                .position(|x| *x == self.global_state.settings.graphics.fullscreen.mode);
+
+            if let Some(clicked) = DropDownList::new(&mode_label_list, selected)
+                .w_h(400.0, 22.0)
+                .color(MENU_BG)
+                .label_color(TEXT_COLOR)
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .down_from(state.ids.fullscreen_mode_text, 8.0)
+                .set(state.ids.fullscreen_mode_list, ui)
+            {
+                events.push(Event::ChangeFullscreenMode(FullScreenSettings {
+                    mode: mode_list[clicked],
+                    ..self.global_state.settings.graphics.fullscreen
+                }));
             }
 
             // Save current screen size
@@ -2437,7 +2489,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .w_h(31.0 * 5.0, 12.0 * 2.0)
                 .hover_image(self.imgs.settings_button_hover)
                 .press_image(self.imgs.settings_button_press)
-                .down_from(state.ids.fullscreen_label, 12.0)
+                .down_from(state.ids.fullscreen_mode_list, 12.0)
                 .label(&self.localized_strings.get("hud.settings.save_window_size"))
                 .label_font_size(self.fonts.cyri.scale(14))
                 .label_color(TEXT_COLOR)

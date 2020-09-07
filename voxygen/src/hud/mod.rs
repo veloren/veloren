@@ -19,7 +19,6 @@ mod social;
 mod spell;
 mod util;
 
-use crate::{ecs::comp::HpFloaterList, hud::img_ids::ImgsRot, ui::img_ids::Rotations};
 pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
 
 pub use settings_window::ScaleChange;
@@ -44,15 +43,16 @@ use social::{Social, SocialTab};
 use spell::Spell;
 
 use crate::{
-    ecs::comp as vcomp,
+    ecs::{comp as vcomp, comp::HpFloaterList},
+    hud::img_ids::ImgsRot,
     i18n::{i18n_asset_key, LanguageMetadata, VoxygenLocalization},
     render::{Consts, Globals, RenderMode, Renderer},
     scene::{
         camera::{self, Camera},
         lod,
     },
-    ui::{fonts::ConrodVoxygenFonts, slot, Graphic, Ingameable, ScaleMode, Ui},
-    window::{Event as WinEvent, GameInput},
+    ui::{fonts::ConrodVoxygenFonts, img_ids::Rotations, slot, Graphic, Ingameable, ScaleMode, Ui},
+    window::{Event as WinEvent, FullScreenSettings, GameInput},
     GlobalState,
 };
 use client::Client;
@@ -285,11 +285,8 @@ pub enum Event {
     ChangeGamma(f32),
     MapZoom(f64),
     AdjustWindowSize([u16; 2]),
+    ChangeFullscreenMode(FullScreenSettings),
     ToggleParticlesEnabled(bool),
-    ToggleFullscreen,
-    ChangeResolution([u16; 2]),
-    ChangeBitDepth(Option<u16>),
-    ChangeRefreshRate(Option<u16>),
     CrosshairTransp(f32),
     ChatTransp(f32),
     ChatCharName(bool),
@@ -1972,23 +1969,14 @@ impl Hud {
                     settings_window::Event::ChangeRenderMode(new_render_mode) => {
                         events.push(Event::ChangeRenderMode(new_render_mode));
                     },
-                    settings_window::Event::ChangeResolution(new_resolution) => {
-                        events.push(Event::ChangeResolution(new_resolution));
-                    },
-                    settings_window::Event::ChangeBitDepth(new_bit_depth) => {
-                        events.push(Event::ChangeBitDepth(new_bit_depth));
-                    },
-                    settings_window::Event::ChangeRefreshRate(new_refresh_rate) => {
-                        events.push(Event::ChangeRefreshRate(new_refresh_rate));
-                    },
                     settings_window::Event::ChangeLanguage(language) => {
                         events.push(Event::ChangeLanguage(language));
                     },
+                    settings_window::Event::ChangeFullscreenMode(new_fullscreen_settings) => {
+                        events.push(Event::ChangeFullscreenMode(new_fullscreen_settings));
+                    },
                     settings_window::Event::ToggleParticlesEnabled(particles_enabled) => {
                         events.push(Event::ToggleParticlesEnabled(particles_enabled));
-                    },
-                    settings_window::Event::ToggleFullscreen => {
-                        events.push(Event::ToggleFullscreen);
                     },
                     settings_window::Event::AdjustWindowSize(new_size) => {
                         events.push(Event::AdjustWindowSize(new_size));
