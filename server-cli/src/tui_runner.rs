@@ -118,10 +118,24 @@ impl Tui {
                 while running.load(Ordering::Relaxed) {
                     let mut line = String::new();
 
-                    io::stdin().read_line(&mut line).unwrap();
-                    debug!(?line, "basic mode: command entered");
-
-                    parse_command(&line, &mut msg_s);
+                    match io::stdin().read_line(&mut line) {
+                        Err(e) => {
+                            error!(
+                                ?e,
+                                "couldn't read from stdin, cli commands are disabled now!"
+                            );
+                            break;
+                        },
+                        Ok(0) => {
+                            //Docker seem to send EOL all the time
+                            warn!("EOL recieved, cli commands are disabled now!");
+                            break;
+                        },
+                        Ok(_) => {
+                            debug!(?line, "basic mode: command entered");
+                            parse_command(&line, &mut msg_s);
+                        },
+                    }
                 }
             });
         } else {
