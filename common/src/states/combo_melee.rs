@@ -1,6 +1,6 @@
 use crate::{
     comp::{Attacking, CharacterState, EnergySource, StateUpdate},
-    states::utils::*,
+    states::{utils::*, wielding::StageSection},
     sys::character_behavior::{CharacterBehavior, JoinData},
 };
 use serde::{Deserialize, Serialize};
@@ -24,19 +24,10 @@ pub struct Stage {
     pub angle: f32,
     /// Initial buildup duration of stage (how long until state can deal damage)
     pub base_buildup_duration: Duration,
+    /// Duration of stage spent in swing (controls animation stuff, and can also be used to handle movement separately to buildup)
+    pub base_swing_duration: Duration,
     /// Initial recover duration of stage (how long until character exits state)
     pub base_recover_duration: Duration,
-    /// Determines what portion of the buildup duration is a swing. Used for animation purposes.
-    pub swing_frac: f64,
-}
-
-/// Determines whether state is in buildup, swing, recover, or combo
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum StageSection {
-    Buildup,
-    Swing,
-    Recover,
-    Combo,
 }
 
 /// A sequence of attacks that can incrementally become faster and more
@@ -94,6 +85,37 @@ impl CharacterBehavior for Data {
                 stage_section: self.stage_section,
             });
         } else if self.stage_section == StageSection::Buildup {
+            update.character = CharacterState::ComboMelee(Data {
+                stage: self.stage,
+                num_stages: self.num_stages,
+                combo: self.combo,
+                stage_data: self.stage_data.clone(),
+                initial_energy_gain: self.initial_energy_gain,
+                max_energy_gain: self.max_energy_gain,
+                energy_increase: self.energy_increase,
+                combo_duration: self.combo_duration,
+                timer: Duration::default(),
+                stage_section: StageSection::Swing,
+            });
+        } else if self.stage_section == StageSection::Swing
+            && self.timer < self.stage_data[stage_index].base_swing_duration
+        {
+            update.character = CharacterState::ComboMelee(Data {
+                stage: self.stage,
+                num_stages: self.num_stages,
+                combo: self.combo,
+                stage_data: self.stage_data.clone(),
+                initial_energy_gain: self.initial_energy_gain,
+                max_energy_gain: self.max_energy_gain,
+                energy_increase: self.energy_increase,
+                combo_duration: self.combo_duration,
+                timer: self
+                    .timer
+                    .checked_add(Duration::from_secs_f32(data.dt.0))
+                    .unwrap_or_default(),
+                stage_section: self.stage_section,
+            });
+        } else if self.stage_section == StageSection::Swing {
             // Hit attempt
             data.updater.insert(data.entity, Attacking {
                 base_healthchange: -((self.stage_data[stage_index].max_damage.min(

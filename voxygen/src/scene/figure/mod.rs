@@ -30,7 +30,7 @@ use common::{
     },
     span,
     state::{DeltaTime, State},
-    states::combo_melee::StageSection,
+    states::wielding::StageSection,
     terrain::TerrainChunk,
     vol::RectRasterableVol,
 };
@@ -915,19 +915,18 @@ impl FigureMgr {
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;
                             let stage_time = s.timer.as_secs_f64();
-                            let mut stage_section = Some(s.stage_section);
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    let buildup_progress = stage_time
+                                    stage_time
                                         / s.stage_data[stage_index]
                                             .base_buildup_duration
-                                            .as_secs_f64();
-                                    if buildup_progress < s.stage_data[stage_index].swing_frac {
-                                        buildup_progress / (1.0 - s.stage_data[stage_index].swing_frac)
-                                    } else {
-                                        stage_section = Some(StageSection::Swing);
-                                        (buildup_progress - (1.0 - s.stage_data[stage_index].swing_frac)) / s.stage_data[stage_index].swing_frac
-                                    }
+                                            .as_secs_f64()
+                                },
+                                StageSection::Swing => {
+                                    stage_time
+                                        / s.stage_data[stage_index]
+                                            .base_swing_duration
+                                            .as_secs_f64()
                                 },
                                 StageSection::Recover => {
                                     stage_time
@@ -936,26 +935,25 @@ impl FigureMgr {
                                             .as_secs_f64()
                                 },
                                 StageSection::Combo => stage_time / s.combo_duration.as_secs_f64(),
-                                _ => 0.0,
                             };
                             match s.stage {
                                 1 => anim::character::AlphaAnimation::update_skeleton(
                                     &target_base,
-                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time, stage_section),
+                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time, Some(s.stage_section)),
                                     stage_progress,
                                     &mut state_animation_rate,
                                     skeleton_attr,
                                 ),
                                 2 => anim::character::SpinAnimation::update_skeleton(
                                     &target_base,
-                                    (active_tool_kind, second_tool_kind, time, stage_section),
+                                    (active_tool_kind, second_tool_kind, time, Some(s.stage_section)),
                                     stage_progress,
                                     &mut state_animation_rate,
                                     skeleton_attr,
                                 ),
                                 _ => anim::character::BetaAnimation::update_skeleton(
                                     &target_base,
-                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time, stage_section),
+                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time, Some(s.stage_section)),
                                     stage_progress,
                                     &mut state_animation_rate,
                                     skeleton_attr,
