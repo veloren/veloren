@@ -12,7 +12,7 @@ use std::{
     },
     time::Duration,
 };
-use tracing::{error, info, warn};
+use tracing::{debug, error, info, warn};
 use tui::{
     backend::CrosstermBackend,
     layout::Rect,
@@ -93,6 +93,7 @@ impl Tui {
                     input.pop();
                 },
                 KeyCode::Enter => {
+                    debug!(?input, "tui mode: command entered");
                     parse_command(input, msg_s);
 
                     *input = String::new();
@@ -115,11 +116,12 @@ impl Tui {
         if basic {
             std::thread::spawn(move || {
                 while running.load(Ordering::Relaxed) {
-                    let mut buf = String::new();
+                    let mut line = String::new();
 
-                    io::stdin().read_line(&mut buf).unwrap();
+                    io::stdin().read_line(&mut line).unwrap();
+                    debug!(?line, "basic mode: command entered");
 
-                    parse_command(&buf, &mut msg_s);
+                    parse_command(&line, &mut msg_s);
                 }
             });
         } else {
@@ -182,7 +184,7 @@ impl Tui {
                     }) {
                         warn!(?e, "couldn't draw frame");
                     };
-                    if crossterm::event::poll(Duration::from_millis(10)).unwrap() {
+                    if crossterm::event::poll(Duration::from_millis(100)).unwrap() {
                         Self::handle_events(&mut input, &mut msg_s);
                     };
                 }
