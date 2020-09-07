@@ -78,7 +78,7 @@ impl<'a> System<'a> for Sys {
             trackers,
         ): Self::SystemData,
     ) {
-        span!(_guard, "entity_sync::Sys::run");
+        span!(_guard, "run", "entity_sync::Sys::run");
         timer.start();
 
         let tick = tick.0;

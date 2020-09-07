@@ -25,7 +25,7 @@ impl<'a> System<'a> for Sys {
         &mut self,
         (entities, mut invites, mut pending_invites, mut clients, uids, mut timer): Self::SystemData,
     ) {
-        span!(_guard, "invite_timeout::Sys::run");
+        span!(_guard, "run", "invite_timeout::Sys::run");
         timer.start();
 
         let now = std::time::Instant::now();

@@ -92,7 +92,6 @@ fn handle_main_events_cleared(
     let mut exit = true;
     while let Some(state_result) = states.last_mut().map(|last| {
         let events = global_state.window.fetch_events();
-        span!(_guard, "PlayState::tick");
         last.tick(global_state, events)
     }) {
         // Implement state transfer logic.

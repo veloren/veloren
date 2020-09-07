@@ -107,7 +107,7 @@ impl RegionMap {
     // TODO maintain within a system?
     // TODO special case large entities
     pub fn tick(&mut self, pos: ReadStorage<Pos>, vel: ReadStorage<Vel>, entities: Entities) {
-        span!(_guard, "Region::tick");
+        span!(_guard, "tick", "Region::tick");
         self.tick += 1;
         // Clear events within each region
         for i in 0..self.regions.len() {

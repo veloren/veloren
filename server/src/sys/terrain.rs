@@ -56,7 +56,7 @@ impl<'a> System<'a> for Sys {
             mut clients,
         ): Self::SystemData,
     ) {
-        span!(_guard, "terrain::Sys::run");
+        span!(_guard, "run", "terrain::Sys::run");
         timer.start();
 
         let mut server_emitter = server_event_bus.emitter();

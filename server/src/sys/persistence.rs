@@ -34,7 +34,7 @@ impl<'a> System<'a> for Sys {
             mut timer,
         ): Self::SystemData,
     ) {
-        span!(_guard, "persistence::Sys::run");
+        span!(_guard, "run", "persistence::Sys::run");
         if scheduler.should_run() {
             timer.start();
             updater.batch_update(

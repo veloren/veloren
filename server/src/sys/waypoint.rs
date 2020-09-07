@@ -31,7 +31,7 @@ impl<'a> System<'a> for Sys {
         &mut self,
         (entities, positions, players, waypoint_areas, mut waypoints, mut clients, time, mut timer): Self::SystemData,
     ) {
-        span!(_guard, "waypoint::Sys::run");
+        span!(_guard, "run", "waypoint::Sys::run");
         timer.start();
 
         for (entity, player_pos, _, client) in

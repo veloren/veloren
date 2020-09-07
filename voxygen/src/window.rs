@@ -1049,7 +1049,7 @@ impl Window {
     }
 
     pub fn swap_buffers(&self) -> Result<(), Error> {
-        span!(_guard, "Window::swap_buffers");
+        span!(_guard, "swap_buffers", "Window::swap_buffers");
         self.window
             .swap_buffers()
             .map_err(|err| Error::BackendError(Box::new(err)))

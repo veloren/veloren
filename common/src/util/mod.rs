@@ -40,6 +40,12 @@ macro_rules! span {
             0,
         );
     };
+    ($guard_name:tt, $no_tracy_name:expr, $tracy_name:expr) => {
+        #[cfg(not(feature = "tracy"))]
+        $crate::span!($guard_name, $no_tracy_name);
+        #[cfg(feature = "tracy")]
+        $crate::span!($guard_name, $tracy_name);
+    };
 }
 
 /// There's no guard, but really this is actually the guard

@@ -102,7 +102,7 @@ impl<'a> GreedyMesh<'a> {
     /// most 30 bits total, meaning we are restricted to "only" at most 2^15
     /// × 2^15 atlases even if the hardware supports larger ones.
     pub fn new(max_size: guillotiere::Size) -> Self {
-        span!(_guard, "GreedyMesh::new");
+        span!(_guard, "new", "GreedyMesh::new");
         let min_max_dim = max_size.width.min(max_size.height);
         assert!(
             min_max_dim >= 4,
@@ -150,7 +150,7 @@ impl<'a> GreedyMesh<'a> {
         FS: for<'r> FnMut(&'r mut D, Vec3<i32>, Vec3<i32>, Vec2<Vec3<i32>>) -> Option<(bool, M)>,
         FP: FnMut(Vec2<u16>, Vec2<Vec2<u16>>, Vec3<f32>, Vec2<Vec3<f32>>, Vec3<f32>, &M),
     {
-        span!(_guard, "GreedyMesh::push");
+        span!(_guard, "push", "GreedyMesh::push");
         let cont = greedy_mesh(
             &mut self.atlas,
             &mut self.col_lights_size,
@@ -170,7 +170,7 @@ impl<'a> GreedyMesh<'a> {
     ///
     /// Returns the ColLightsInfo corresponding to the constructed atlas.
     pub fn finalize(self) -> ColLightInfo {
-        span!(_guard, "GreedyMesh::finalize");
+        span!(_guard, "finalize", "GreedyMesh::finalize");
         let cur_size = self.col_lights_size;
         let col_lights = vec![
             TerrainVertex::make_col_light(254, Rgb::broadcast(254));

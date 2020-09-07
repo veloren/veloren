@@ -17,7 +17,7 @@ pub struct BlocksOfInterest {
 
 impl BlocksOfInterest {
     pub fn from_chunk(chunk: &TerrainChunk) -> Self {
-        span!(_guard, "BlocksOfInterest::from_chunk");
+        span!(_guard, "from_chunk", "BlocksOfInterest::from_chunk");
         let mut leaves = Vec::new();
         let mut grass = Vec::new();
         let mut embers = Vec::new();

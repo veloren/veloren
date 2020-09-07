@@ -56,7 +56,7 @@ impl<'a> System<'a> for Sys {
             tracked_comps,
         ): Self::SystemData,
     ) {
-        span!(_guard, "subscription::Sys::run");
+        span!(_guard, "run", "subscription::Sys::run");
         timer.start();
 
         // To update subscriptions

@@ -49,7 +49,7 @@ impl<'a> System<'a> for Sys {
             loadouts,
         ): Self::SystemData,
     ) {
-        span!(_guard, "projectile::Sys::run");
+        span!(_guard, "run", "projectile::Sys::run");
         let mut local_emitter = local_bus.emitter();
         let mut server_emitter = server_bus.emitter();
 
