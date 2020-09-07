@@ -119,10 +119,7 @@ fn main() -> io::Result<()> {
                     break;
                 },
             },
-            Err(e) => match e {
-                mpsc::TryRecvError::Empty => {},
-                mpsc::TryRecvError::Disconnected => panic!(),
-            },
+            Err(mpsc::TryRecvError::Empty) | Err(mpsc::TryRecvError::Disconnected) => {},
         };
 
         // Wait for the next tick.
