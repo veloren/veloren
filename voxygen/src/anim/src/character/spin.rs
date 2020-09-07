@@ -14,7 +14,7 @@ pub struct Input {
 pub struct SpinAnimation;
 
 impl Animation for SpinAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, f64, StageSection);
+    type Dependency = (Option<ToolKind>, Option<ToolKind>, f64, Option<StageSection>);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -62,59 +62,61 @@ impl Animation for SpinAnimation {
                 * Quaternion::rotation_y(0.0)
                 * Quaternion::rotation_z(0.0);
 
-            match stage_section {
-                StageSection::Buildup => {
-                    //println!("{:.3} build", anim_time);
-                    next.control.position = Vec3::new(5.0, 11.0 + build * 0.6, 2.0 + build * 0.6);
-                    next.control.orientation = Quaternion::rotation_x(-1.57)
-                        * Quaternion::rotation_y(2.8)
-                        * Quaternion::rotation_z(1.0);
-                    next.chest.orientation = Quaternion::rotation_y(movement * -0.1)
-                        * Quaternion::rotation_z(build * 0.05 + movement * -0.6);
-                    next.belt.orientation = Quaternion::rotation_x(movement * 0.1);
+            if let Some(stage_section) = stage_section {
+                match stage_section {
+                    StageSection::Buildup => {
+                        //println!("{:.3} build", anim_time);
+                        next.control.position = Vec3::new(5.0, 11.0 + build * 0.6, 2.0 + build * 0.6);
+                        next.control.orientation = Quaternion::rotation_x(-1.57)
+                            * Quaternion::rotation_y(2.8)
+                            * Quaternion::rotation_z(1.0);
+                        next.chest.orientation = Quaternion::rotation_y(movement * -0.1)
+                            * Quaternion::rotation_z(build * 0.05 + movement * -0.6);
+                        next.belt.orientation = Quaternion::rotation_x(movement * 0.1);
 
-                    next.shorts.orientation = Quaternion::rotation_x(movement * 0.1);
+                        next.shorts.orientation = Quaternion::rotation_x(movement * 0.1);
 
-                    next.head.orientation = Quaternion::rotation_y(movement * 0.1)
-                        * Quaternion::rotation_z(movement * 0.4);
-                },
-                StageSection::Swing => {
-                    //println!("{:.3} swing", anim_time);
-                    next.control.position = Vec3::new(
-                        7.0 + movement * -8.0,
-                        11.0 + test * 3.0,
-                        2.0 + test * 3.5 + movement * 3.0,
-                    );
-                    next.control.orientation =
-                        Quaternion::rotation_x(-1.57 + movement * -0.6 + test * -0.25)
-                            * Quaternion::rotation_y(2.8 + movement * -2.0)
-                            * Quaternion::rotation_z(1.0 + movement * 1.0);
-                    next.head.orientation = Quaternion::rotation_z(-test * 0.8);
-                    next.chest.orientation = Quaternion::rotation_x(test * 0.15)
-                        * Quaternion::rotation_y(movement * 0.3)
-                        * Quaternion::rotation_z(movement * 1.5);
-                    next.belt.orientation = Quaternion::rotation_z(test2 * 0.5);
-                    next.shorts.orientation = Quaternion::rotation_z(test2 * 1.5);
-                    next.torso.orientation = Quaternion::rotation_z(test2 * 7.2);
-                },
-                StageSection::Recover => {
-                    //println!("{:.3} recover", anim_time);
-                    next.control.position = Vec3::new(
-                        -8.0,
-                        11.0 - recover * 0.8 + movement * -10.0,
-                        6.0 - recover * 0.4 + movement * -4.0,
-                    );
-                    next.control.orientation = Quaternion::rotation_x(-1.57)
-                        * Quaternion::rotation_y(0.0)
-                        * Quaternion::rotation_z(1.0);
-                    next.chest.orientation = Quaternion::rotation_y(movement * -0.1)
-                        * Quaternion::rotation_z(movement * 0.4);
-                    next.head.orientation = Quaternion::rotation_y(movement * 0.1)
-                        * Quaternion::rotation_z(movement * -0.1);
-                },
-                StageSection::Combo => {
-                    //println!("{:.3} combo", anim_time);
-                },
+                        next.head.orientation = Quaternion::rotation_y(movement * 0.1)
+                            * Quaternion::rotation_z(movement * 0.4);
+                    },
+                    StageSection::Swing => {
+                        //println!("{:.3} swing", anim_time);
+                        next.control.position = Vec3::new(
+                            7.0 + movement * -8.0,
+                            11.0 + test * 3.0,
+                            2.0 + test * 3.5 + movement * 3.0,
+                        );
+                        next.control.orientation =
+                            Quaternion::rotation_x(-1.57 + movement * -0.6 + test * -0.25)
+                                * Quaternion::rotation_y(2.8 + movement * -2.0)
+                                * Quaternion::rotation_z(1.0 + movement * 1.0);
+                        next.head.orientation = Quaternion::rotation_z(-test * 0.8);
+                        next.chest.orientation = Quaternion::rotation_x(test * 0.15)
+                            * Quaternion::rotation_y(movement * 0.3)
+                            * Quaternion::rotation_z(movement * 1.5);
+                        next.belt.orientation = Quaternion::rotation_z(test2 * 0.5);
+                        next.shorts.orientation = Quaternion::rotation_z(test2 * 1.5);
+                        next.torso.orientation = Quaternion::rotation_z(test2 * 7.2);
+                    },
+                    StageSection::Recover => {
+                        //println!("{:.3} recover", anim_time);
+                        next.control.position = Vec3::new(
+                            -8.0,
+                            11.0 - recover * 0.8 + movement * -10.0,
+                            6.0 - recover * 0.4 + movement * -4.0,
+                        );
+                        next.control.orientation = Quaternion::rotation_x(-1.57)
+                            * Quaternion::rotation_y(0.0)
+                            * Quaternion::rotation_z(1.0);
+                        next.chest.orientation = Quaternion::rotation_y(movement * -0.1)
+                            * Quaternion::rotation_z(movement * 0.4);
+                        next.head.orientation = Quaternion::rotation_y(movement * 0.1)
+                            * Quaternion::rotation_z(movement * -0.1);
+                    },
+                    StageSection::Combo => {
+                        //println!("{:.3} combo", anim_time);
+                    },
+                }
             }
         }
         //        println!("{:?}", stage_progress),

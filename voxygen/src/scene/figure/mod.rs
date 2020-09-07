@@ -809,7 +809,7 @@ impl FigureMgr {
                         CharacterState::BasicMelee(_) => {
                             anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
+                                (active_tool_kind, second_tool_kind, vel.0.magnitude(), time, None),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -879,7 +879,7 @@ impl FigureMgr {
                         CharacterState::Boost(_) => {
                             anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
+                                (active_tool_kind, second_tool_kind, vel.0.magnitude(), time, None),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -915,19 +915,18 @@ impl FigureMgr {
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;
                             let stage_time = s.timer.as_secs_f64();
-                            let swing_frac = 0.6; // What percentage of buildup is swing animation
-                            let mut stage_section = s.stage_section;
+                            let mut stage_section = Some(s.stage_section);
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
                                     let buildup_progress = stage_time
                                         / s.stage_data[stage_index]
                                             .base_buildup_duration
                                             .as_secs_f64();
-                                    if buildup_progress < swing_frac {
-                                        buildup_progress / (1.0 - swing_frac)
+                                    if buildup_progress < s.stage_data[stage_index].swing_frac {
+                                        buildup_progress / (1.0 - s.stage_data[stage_index].swing_frac)
                                     } else {
-                                        stage_section = StageSection::Swing;
-                                        (buildup_progress - (1.0 - swing_frac)) / swing_frac
+                                        stage_section = Some(StageSection::Swing);
+                                        (buildup_progress - (1.0 - s.stage_data[stage_index].swing_frac)) / s.stage_data[stage_index].swing_frac
                                     }
                                 },
                                 StageSection::Recover => {
@@ -942,7 +941,7 @@ impl FigureMgr {
                             match s.stage {
                                 1 => anim::character::AlphaAnimation::update_skeleton(
                                     &target_base,
-                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
+                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time, stage_section),
                                     stage_progress,
                                     &mut state_animation_rate,
                                     skeleton_attr,
@@ -956,7 +955,7 @@ impl FigureMgr {
                                 ),
                                 _ => anim::character::BetaAnimation::update_skeleton(
                                     &target_base,
-                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
+                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time, stage_section),
                                     stage_progress,
                                     &mut state_animation_rate,
                                     skeleton_attr,
