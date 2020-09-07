@@ -148,17 +148,15 @@ impl<'a> System<'a> for Sys {
                     }
 
                     if damage.healthchange != 0.0 {
-                        if is_damage || stats_b.health.current() != stats_b.health.maximum() {
-                            let cause = if is_heal { HealthSource::Healing { by: Some(*uid) } } else { HealthSource::Attack { by: *uid } };
-                            server_emitter.emit(ServerEvent::Damage {
-                                uid: *uid_b,
-                                change: HealthChange {
-                                    amount: damage.healthchange as i32,
-                                    cause,
-                                },
-                            });
-                            attack.hit_count += 1;
-                        }
+                        let cause = if is_heal { HealthSource::Healing { by: Some(*uid) } } else { HealthSource::Attack { by: *uid } };
+                        server_emitter.emit(ServerEvent::Damage {
+                            uid: *uid_b,
+                            change: HealthChange {
+                                amount: damage.healthchange as i32,
+                                cause,
+                            },
+                        });
+                        attack.hit_count += 1;
                     }
                     if attack.knockback != 0.0 && damage.healthchange != 0.0 {
                         let kb_dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));

@@ -210,12 +210,15 @@ impl<'a> System<'a> for Sys {
                                 },
                             });
                         }
-                        if let Some(energy_mut) = beam
-                            .owner
-                            .and_then(|o| uid_allocator.retrieve_entity_internal(o.into()))
-                            .and_then(|o| energies.get_mut(o))
-                        {
-                            energy_mut.change_by(beam.energy_regen as i32, EnergySource::HitEnemy);
+                        if is_damage || stats_b.health.current() != stats_b.health.maximum() {
+                            if let Some(energy_mut) = beam
+                                .owner
+                                .and_then(|o| uid_allocator.retrieve_entity_internal(o.into()))
+                                .and_then(|o| energies.get_mut(o))
+                            {
+                                energy_mut
+                                    .change_by(beam.energy_regen as i32, EnergySource::HitEnemy);
+                            }
                         }
                     }
                 }
@@ -236,6 +239,7 @@ impl<'a> System<'a> for Sys {
 
 /// Assumes upright cylinder
 /// See page 12 of https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.396.7952&rep=rep1&type=pdf
+#[allow(clippy::too_many_arguments)]
 fn sphere_wedge_cylinder_collision(
     // Values for spherical wedge
     real_pos: Vec3<f32>,
