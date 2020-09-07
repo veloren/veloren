@@ -72,7 +72,9 @@ impl CharacterBehavior for Data {
 
         let stage_index = (self.stage - 1) as usize;
 
-        if self.stage_section == StageSection::Buildup && self.timer < self.stage_data[stage_index].base_buildup_duration {
+        if self.stage_section == StageSection::Buildup
+            && self.timer < self.stage_data[stage_index].base_buildup_duration
+        {
             // Build up
             update.character = CharacterState::ComboMelee(Data {
                 stage: self.stage,
@@ -116,7 +118,9 @@ impl CharacterBehavior for Data {
                 timer: Duration::default(),
                 stage_section: StageSection::Recover,
             });
-        } else if self.stage_section == StageSection::Recover && self.timer < self.stage_data[stage_index].base_recover_duration {
+        } else if self.stage_section == StageSection::Recover
+            && self.timer < self.stage_data[stage_index].base_recover_duration
+        {
             update.character = CharacterState::ComboMelee(Data {
                 stage: self.stage,
                 num_stages: self.num_stages,
@@ -173,7 +177,7 @@ impl CharacterBehavior for Data {
                         .timer
                         .checked_add(Duration::from_secs_f32(data.dt.0))
                         .unwrap_or_default(),
-                stage_section: self.stage_section,
+                    stage_section: self.stage_section,
                 });
             }
         } else {

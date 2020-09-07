@@ -111,18 +111,18 @@ impl Animation for WieldAnimation {
         match active_tool_kind {
             //TODO: Inventory
             Some(ToolKind::Sword(_)) => {
-                next.l_hand.position = Vec3::new(-0.75, -1.0, -2.5);
+                next.l_hand.position = Vec3::new(-0.75, -1.0, 2.5);
                 next.l_hand.orientation =
                     Quaternion::rotation_x(1.47) * Quaternion::rotation_y(-0.2);
                 next.l_hand.scale = Vec3::one() * 1.04;
-                next.r_hand.position = Vec3::new(0.75, -1.5, -5.5);
+                next.r_hand.position = Vec3::new(0.75, -1.5, -0.5);
                 next.r_hand.orientation =
                     Quaternion::rotation_x(1.47) * Quaternion::rotation_y(0.3);
                 next.r_hand.scale = Vec3::one() * 1.05;
                 next.main.position = Vec3::new(0.0, 0.0, -3.0);
                 next.main.orientation = Quaternion::rotation_x(-0.1);
 
-                next.control.position = Vec3::new(-7.0, 6.0, 6.0);
+                next.control.position = Vec3::new(-7.0, 7.0, 2.0);
                 next.control.orientation = Quaternion::rotation_x(u_slow * 0.15)
                     * Quaternion::rotation_z(u_slowalt * 0.08);
                 next.control.scale = Vec3::one();

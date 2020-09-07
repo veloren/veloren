@@ -915,11 +915,14 @@ impl FigureMgr {
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;
                             let stage_time = s.timer.as_secs_f64();
-                            let swing_frac = 0.5; // What percentage of buildup is swing animation
+                            let swing_frac = 0.6; // What percentage of buildup is swing animation
                             let mut stage_section = s.stage_section;
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    let buildup_progress = stage_time / s.stage_data[stage_index].base_buildup_duration.as_secs_f64();
+                                    let buildup_progress = stage_time
+                                        / s.stage_data[stage_index]
+                                            .base_buildup_duration
+                                            .as_secs_f64();
                                     if buildup_progress < swing_frac {
                                         buildup_progress / (1.0 - swing_frac)
                                     } else {
@@ -928,11 +931,12 @@ impl FigureMgr {
                                     }
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.stage_data[stage_index].base_recover_duration.as_secs_f64()
+                                    stage_time
+                                        / s.stage_data[stage_index]
+                                            .base_recover_duration
+                                            .as_secs_f64()
                                 },
-                                StageSection::Combo => {
-                                    stage_time / s.combo_duration.as_secs_f64()
-                                },
+                                StageSection::Combo => stage_time / s.combo_duration.as_secs_f64(),
                                 _ => 0.0,
                             };
                             match s.stage {
@@ -945,7 +949,7 @@ impl FigureMgr {
                                 ),
                                 2 => anim::character::SpinAnimation::update_skeleton(
                                     &target_base,
-                                    (active_tool_kind, second_tool_kind, time),
+                                    (active_tool_kind, second_tool_kind, time, stage_section),
                                     stage_progress,
                                     &mut state_animation_rate,
                                     skeleton_attr,
