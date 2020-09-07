@@ -65,6 +65,7 @@ enum DrawKind {
     // Text and non-textured geometry
     Plain,
 }
+
 enum DrawCommand {
     Draw { kind: DrawKind, verts: Range<u32> },
     Scissor(Aabr<u16>),
