@@ -2,7 +2,10 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::comp::item::{Hands, ToolKind};
+use common::{
+    comp::item::{Hands, ToolKind},
+    states::combo_melee::StageSection,
+};
 use std::f32::consts::PI;
 
 pub struct AlphaAnimation;
