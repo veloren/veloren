@@ -127,7 +127,7 @@ impl Tui {
                             break;
                         },
                         Ok(0) => {
-                            //Docker seem to send EOL all the time
+                            //Docker seem to send EOF all the time
                             warn!("EOF received, cli commands are disabled now!");
                             break;
                         },
