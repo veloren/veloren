@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Some more combat sound effects
 - Beehives and bees
 - Fireflies
+- Fullscreen modes now show two options (exclusive and borderless)
 
 ### Changed
 

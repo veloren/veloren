@@ -489,7 +489,7 @@ pub struct Window {
     pub zoom_sensitivity: u32,
     pub zoom_inversion: bool,
     pub mouse_y_inversion: bool,
-    fullscreen: bool,
+    fullscreen: FullScreenSettings,
     modifiers: winit::event::ModifiersState,
     needs_refresh_resize: bool,
     keypress_map: HashMap<GameInput, winit::event::ElementState>,
@@ -593,7 +593,7 @@ impl Window {
             zoom_sensitivity: settings.gameplay.zoom_sensitivity,
             zoom_inversion: settings.gameplay.zoom_inversion,
             mouse_y_inversion: settings.gameplay.mouse_y_inversion,
-            fullscreen: false,
+            fullscreen: FullScreenSettings::default(),
             modifiers: Default::default(),
             needs_refresh_resize: false,
             keypress_map,
@@ -611,12 +611,7 @@ impl Window {
             toggle_fullscreen: false,
         };
 
-        this.fullscreen(
-            settings.graphics.fullscreen,
-            settings.graphics.resolution,
-            settings.graphics.bit_depth,
-            settings.graphics.refresh_rate,
-        );
+        this.set_fullscreen_mode(settings.graphics.fullscreen);
 
         Ok((this, event_loop))
     }
@@ -1062,17 +1057,17 @@ impl Window {
     }
 
     pub fn toggle_fullscreen(&mut self, settings: &mut Settings) {
-        self.fullscreen(
-            !self.is_fullscreen(),
-            settings.graphics.resolution,
-            settings.graphics.bit_depth,
-            settings.graphics.refresh_rate,
-        );
-        settings.graphics.fullscreen = self.is_fullscreen();
+        let fullscreen = FullScreenSettings {
+            enabled: !self.is_fullscreen(),
+            ..settings.graphics.fullscreen
+        };
+
+        self.set_fullscreen_mode(fullscreen);
+        settings.graphics.fullscreen = fullscreen;
         settings.save_to_file_warn();
     }
 
-    pub fn is_fullscreen(&self) -> bool { self.fullscreen }
+    pub fn is_fullscreen(&self) -> bool { self.fullscreen.enabled }
 
     pub fn select_video_mode_rec(
         &self,
@@ -1250,22 +1245,26 @@ impl Window {
             })
     }
 
-    pub fn fullscreen(
-        &mut self,
-        fullscreen: bool,
-        resolution: [u16; 2],
-        bit_depth: Option<u16>,
-        refresh_rate: Option<u16>,
-    ) {
+    pub fn set_fullscreen_mode(&mut self, fullscreen: FullScreenSettings) {
         let window = self.window.window();
         self.fullscreen = fullscreen;
-        if fullscreen {
-            window.set_fullscreen(Some(winit::window::Fullscreen::Exclusive(
-                self.select_video_mode(resolution, bit_depth, refresh_rate),
-            )));
-        } else {
-            window.set_fullscreen(None);
-        }
+        window.set_fullscreen(
+            fullscreen
+                .enabled
+                .then(|| match fullscreen.mode {
+                    FullscreenMode::Exclusive => {
+                        winit::window::Fullscreen::Exclusive(self.select_video_mode(
+                            fullscreen.resolution,
+                            fullscreen.bit_depth,
+                            fullscreen.refresh_rate,
+                        ))
+                    },
+                    FullscreenMode::Borderless => {
+                        winit::window::Fullscreen::Borderless(window.current_monitor())
+                    },
+                })
+                .or_else(|| None),
+        );
     }
 
     pub fn needs_refresh_resize(&mut self) { self.needs_refresh_resize = true; }
@@ -1374,5 +1373,35 @@ impl Window {
 
     pub fn set_keybinding_mode(&mut self, game_input: GameInput) {
         self.remapping_keybindings = Some(game_input);
+    }
+}
+
+#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
+pub enum FullscreenMode {
+    Exclusive,
+    Borderless,
+}
+
+impl Default for FullscreenMode {
+    fn default() -> Self { FullscreenMode::Borderless }
+}
+#[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct FullScreenSettings {
+    pub enabled: bool,
+    pub mode: FullscreenMode,
+    pub resolution: [u16; 2],
+    pub bit_depth: Option<u16>,
+    pub refresh_rate: Option<u16>,
+}
+
+impl Default for FullScreenSettings {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            mode: FullscreenMode::Borderless,
+            resolution: [1920, 1080],
+            bit_depth: None,
+            refresh_rate: None,
+        }
     }
 }

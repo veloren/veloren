@@ -957,37 +957,6 @@ impl PlayState for SessionState {
                         global_state.settings.graphics.render_mode = *new_render_mode;
                         global_state.settings.save_to_file_warn();
                     },
-                    HudEvent::ChangeResolution(new_resolution) => {
-                        // Do this first so if it crashes the setting isn't saved :)
-                        global_state.window.fullscreen(
-                            global_state.settings.graphics.fullscreen,
-                            new_resolution,
-                            global_state.settings.graphics.bit_depth,
-                            global_state.settings.graphics.refresh_rate,
-                        );
-                        global_state.settings.graphics.resolution = new_resolution;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ChangeBitDepth(new_bit_depth) => {
-                        global_state.window.fullscreen(
-                            global_state.settings.graphics.fullscreen,
-                            global_state.settings.graphics.resolution,
-                            new_bit_depth,
-                            global_state.settings.graphics.refresh_rate,
-                        );
-                        global_state.settings.graphics.bit_depth = new_bit_depth;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ChangeRefreshRate(new_refresh_rate) => {
-                        global_state.window.fullscreen(
-                            global_state.settings.graphics.fullscreen,
-                            global_state.settings.graphics.resolution,
-                            global_state.settings.graphics.bit_depth,
-                            new_refresh_rate,
-                        );
-                        global_state.settings.graphics.refresh_rate = new_refresh_rate;
-                        global_state.settings.save_to_file_warn();
-                    },
                     HudEvent::ChangeLanguage(new_language) => {
                         global_state.settings.language.selected_language =
                             new_language.language_identifier;
@@ -999,14 +968,16 @@ impl PlayState for SessionState {
                         self.voxygen_i18n.log_missing_entries();
                         self.hud.update_language(self.voxygen_i18n.clone());
                     },
+                    HudEvent::ChangeFullscreenMode(new_fullscreen_settings) => {
+                        global_state
+                            .window
+                            .set_fullscreen_mode(new_fullscreen_settings);
+                        global_state.settings.graphics.fullscreen = new_fullscreen_settings;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::ToggleParticlesEnabled(particles_enabled) => {
                         global_state.settings.graphics.particles_enabled = particles_enabled;
                         global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ToggleFullscreen => {
-                        global_state
-                            .window
-                            .toggle_fullscreen(&mut global_state.settings);
                     },
                     HudEvent::AdjustWindowSize(new_size) => {
                         global_state.window.set_size(new_size.into());

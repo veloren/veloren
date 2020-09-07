@@ -3,7 +3,7 @@ use crate::{
     i18n,
     render::RenderMode,
     ui::ScaleMode,
-    window::{GameInput, KeyMouse},
+    window::{FullScreenSettings, GameInput, KeyMouse},
 };
 use directories_next::{ProjectDirs, UserDirs};
 use hashbrown::{HashMap, HashSet};
@@ -617,11 +617,8 @@ pub struct GraphicsSettings {
     pub fov: u16,
     pub gamma: f32,
     pub render_mode: RenderMode,
-    pub resolution: [u16; 2],
-    pub bit_depth: Option<u16>,
-    pub refresh_rate: Option<u16>,
     pub window_size: [u16; 2],
-    pub fullscreen: bool,
+    pub fullscreen: FullScreenSettings,
     pub lod_detail: u32,
 }
 
@@ -636,11 +633,8 @@ impl Default for GraphicsSettings {
             fov: 50,
             gamma: 1.0,
             render_mode: RenderMode::default(),
-            resolution: [1920, 1080],
-            bit_depth: None,
-            refresh_rate: None,
             window_size: [1920, 1080],
-            fullscreen: false,
+            fullscreen: FullScreenSettings::default(),
             lod_detail: 300,
         }
     }
