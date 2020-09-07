@@ -26,6 +26,8 @@ pub struct Stage {
     pub base_buildup_duration: Duration,
     /// Initial recover duration of stage (how long until character exits state)
     pub base_recover_duration: Duration,
+    /// Determines what portion of the buildup duration is a swing. Used for animation purposes.
+    pub swing_frac: f64,
 }
 
 /// Determines whether state is in buildup, swing, recover, or combo
