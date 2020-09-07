@@ -27,7 +27,7 @@ impl<'a> System<'a> for Sys {
     );
 
     fn run(&mut self, (mut timer, comps, mut trackers): Self::SystemData) {
-        span!(_guard, "sentinel::Sys::run");
+        span!(_guard, "run", "sentinel::Sys::run");
         timer.start();
 
         record_changes(&comps, &mut trackers);

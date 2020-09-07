@@ -606,7 +606,7 @@ impl Renderer {
     /// Queue the clearing of the shadow targets ready for a new frame to be
     /// rendered.
     pub fn clear_shadows(&mut self) {
-        span!(_guard, "Renderer::clear_shadows");
+        span!(_guard, "clear_shadows", "Renderer::clear_shadows");
         if !self.mode.shadow.is_map() {
             return;
         }
@@ -679,7 +679,7 @@ impl Renderer {
     /// Queue the clearing of the depth target ready for a new frame to be
     /// rendered.
     pub fn clear(&mut self) {
-        span!(_guard, "Renderer::clear");
+        span!(_guard, "clear", "Renderer::clear");
         self.encoder.clear_depth(&self.tgt_depth_stencil_view, 1.0);
         // self.encoder.clear_stencil(&self.tgt_depth_stencil_view, 0);
         self.encoder.clear_depth(&self.win_depth_view, 1.0);
@@ -715,7 +715,7 @@ impl Renderer {
     /// Perform all queued draw calls for this frame and clean up discarded
     /// items.
     pub fn flush(&mut self) {
-        span!(_guard, "Renderer::flush");
+        span!(_guard, "flush", "Renderer::flush");
         self.encoder.flush(&mut self.device);
         self.device.cleanup();
 

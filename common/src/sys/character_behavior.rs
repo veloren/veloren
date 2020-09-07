@@ -184,7 +184,7 @@ impl<'a> System<'a> for Sys {
             mountings,
         ): Self::SystemData,
     ) {
-        span!(_guard, "character_behavior::Sys::run");
+        span!(_guard, "run", "character_behavior::Sys::run");
         let mut server_emitter = server_bus.emitter();
         let mut local_emitter = local_bus.emitter();
 

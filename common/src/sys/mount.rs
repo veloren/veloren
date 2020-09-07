@@ -37,7 +37,7 @@ impl<'a> System<'a> for Sys {
             mut orientations,
         ): Self::SystemData,
     ) {
-        span!(_guard, "mount::Sys::run");
+        span!(_guard, "run", "mount::Sys::run");
         // Mounted entities.
         for (entity, mut mount_states) in (&entities, &mut mount_state.restrict_mut()).join() {
             match mount_states.get_unchecked() {

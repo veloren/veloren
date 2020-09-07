@@ -95,7 +95,7 @@ impl<'a> System<'a> for Sys {
             projectiles,
         ): Self::SystemData,
     ) {
-        span!(_guard, "phys::Sys::run");
+        span!(_guard, "run", "phys::Sys::run");
         let mut event_emitter = event_bus.emitter();
 
         // Add/reset physics state components

@@ -44,7 +44,7 @@ impl<'a> System<'a> for Sys {
             uids,
         ): Self::SystemData,
     ) {
-        span!(_guard, "controller::Sys::run");
+        span!(_guard, "run", "controller::Sys::run");
         let mut server_emitter = server_bus.emitter();
 
         for (entity, _uid, controller, character_state) in

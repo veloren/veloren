@@ -55,7 +55,7 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>, G: RayForEach<V::Vox>> Ray<'a, V, F, G
     }
 
     pub fn cast(mut self) -> (f32, Result<Option<&'a V::Vox>, V::Error>) {
-        span!(_guard, "Ray::cast");
+        span!(_guard, "cast", "Ray::cast");
         // TODO: Fully test this!
 
         const PLANCK: f32 = 0.001;

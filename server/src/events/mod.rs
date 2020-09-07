@@ -39,7 +39,7 @@ pub enum Event {
 
 impl Server {
     pub fn handle_events(&mut self) -> Vec<Event> {
-        span!(_guard, "Server::handle_events");
+        span!(_guard, "handle_events", "Server::handle_events");
         let mut frontend_events = Vec::new();
 
         let mut requested_chunks = Vec::new();

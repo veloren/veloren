@@ -53,7 +53,7 @@ impl<'a> System<'a> for Sys {
             character_states,
         ): Self::SystemData,
     ) {
-        span!(_guard, "combat::Sys::run");
+        span!(_guard, "run", "combat::Sys::run");
         let mut server_emitter = server_bus.emitter();
         let mut local_emitter = local_bus.emitter();
         // Attacks

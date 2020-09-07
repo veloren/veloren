@@ -9,7 +9,7 @@ use crate::{
     PlayStateResult,
 };
 use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
-use common::{assets::Asset, comp};
+use common::{assets::Asset, comp, span};
 use tracing::{error, warn};
 use ui::{Event as MainMenuEvent, MainMenuUi};
 
@@ -46,6 +46,7 @@ impl PlayState for MainMenuState {
     }
 
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
+        span!(_guard, "tick", "<MainMenuState as PlayState>::tick");
         let localized_strings = crate::i18n::VoxygenLocalization::load_expect(
             &crate::i18n::i18n_asset_key(&global_state.settings.language.selected_language),
         );

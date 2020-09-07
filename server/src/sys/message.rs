@@ -455,7 +455,7 @@ impl<'a> System<'a> for Sys {
             alias_validator,
         ): Self::SystemData,
     ) {
-        span!(_guard, "message::Sys::run");
+        span!(_guard, "run", "message::Sys::run");
         timer.start();
 
         let mut server_emitter = server_event_bus.emitter();

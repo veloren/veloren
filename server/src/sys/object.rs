@@ -24,7 +24,7 @@ impl<'a> System<'a> for Sys {
         &mut self,
         (entities, _dt, server_bus, positions, velocities, physics_states, mut objects): Self::SystemData,
     ) {
-        span!(_guard, "object::Sys::run");
+        span!(_guard, "run", "object::Sys::run");
         let mut server_emitter = server_bus.emitter();
 
         // Objects

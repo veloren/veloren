@@ -385,7 +385,7 @@ impl<V: RectRasterableVol> Terrain<V> {
     fn make_atlas(
         renderer: &mut Renderer,
     ) -> Result<(AtlasAllocator, Texture<ColLightFmt>), RenderError> {
-        span!(_guard, "Terrain::make_atlas");
+        span!(_guard, "male_atlas", "Terrain::make_atlas");
         let max_texture_size = renderer.max_texture_size();
         let atlas_size =
             guillotiere::Size::new(i32::from(max_texture_size), i32::from(max_texture_size));
@@ -453,7 +453,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         view_mat: Mat4<f32>,
         proj_mat: Mat4<f32>,
     ) -> (Aabb<f32>, Vec<math::Vec3<f32>>, math::Aabr<f32>) {
-        span!(_guard, "Terrain::maintain");
+        span!(_guard, "maintain", "Terrain::maintain");
         let current_tick = scene_data.tick;
         let current_time = scene_data.state.get_time();
         let mut visible_bounding_box: Option<Aabb<f32>> = None;
@@ -951,7 +951,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         (is_daylight, light_data): super::LightData,
         focus_pos: Vec3<f32>,
     ) {
-        span!(_guard, "Terrain::render_shadows");
+        span!(_guard, "render_shadows", "Terrain::render_shadows");
         if !renderer.render_mode().shadow.is_map() {
             return;
         };
@@ -1013,7 +1013,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         lod: &LodData,
         focus_pos: Vec3<f32>,
     ) {
-        span!(_guard, "Terrain::render");
+        span!(_guard, "render", "Terrain::render");
         let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
             (e as i32).div_euclid(sz as i32)
         });
@@ -1047,7 +1047,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         cam_pos: Vec3<f32>,
         sprite_render_distance: f32,
     ) {
-        span!(_guard, "Terrain::render_translucent");
+        span!(_guard, "render_translucent", "Terrain::render_translucent");
         let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
             (e as i32).div_euclid(sz as i32)
         });

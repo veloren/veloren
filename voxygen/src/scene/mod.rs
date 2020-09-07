@@ -380,7 +380,7 @@ impl Scene {
         scene_data: &SceneData,
         audio: &mut AudioFrontend,
     ) {
-        span!(_guard, "Scene::handle_outcome");
+        span!(_guard, "handle_outcome", "Scene::handle_outcome");
         self.particle_mgr.handle_outcome(&outcome, &scene_data);
         self.sfx_mgr.handle_outcome(&outcome, audio);
 
@@ -424,7 +424,7 @@ impl Scene {
         audio: &mut AudioFrontend,
         scene_data: &SceneData,
     ) {
-        span!(_guard, "Scene::maintain");
+        span!(_guard, "maintain", "Scene::maintain");
         // Get player position.
         let ecs = scene_data.state.ecs();
 
@@ -976,7 +976,7 @@ impl Scene {
         tick: u64,
         scene_data: &SceneData,
     ) {
-        span!(_guard, "Scene::render");
+        span!(_guard, "render", "Scene::render");
         let sun_dir = scene_data.get_sun_dir();
         let is_daylight = sun_dir.z < 0.0;
         let focus_pos = self.camera.get_focus_pos();

@@ -292,7 +292,7 @@ impl Ui {
 
     #[allow(clippy::float_cmp)] // TODO: Pending review in #587
     pub fn maintain(&mut self, renderer: &mut Renderer, view_projection_mat: Option<Mat4<f32>>) {
-        span!(_guard, "Ui::maintain");
+        span!(_guard, "maintain", "Ui::maintain");
         // Maintain tooltip manager
         self.tooltip_manager
             .maintain(self.ui.global_input(), self.scale.scale_factor_logical());
@@ -334,7 +334,7 @@ impl Ui {
         view_projection_mat: Option<Mat4<f32>>,
         retry: &mut bool,
     ) {
-        span!(_guard, "Ui::maintain_internal");
+        span!(_guard, "internal", "Ui::maintain_internal");
         let (graphic_cache, text_cache, glyph_cache, cache_tex) = self.cache.cache_mut_and_tex();
 
         let mut primitives = if *retry {
@@ -979,7 +979,7 @@ impl Ui {
     }
 
     pub fn render(&self, renderer: &mut Renderer, maybe_globals: Option<&Consts<Globals>>) {
-        span!(_guard, "Ui::render");
+        span!(_guard, "render", "Ui::render");
         let mut scissor = default_scissor(renderer);
         let globals = maybe_globals.unwrap_or(&self.default_globals);
         let mut locals = &self.interface_locals;
