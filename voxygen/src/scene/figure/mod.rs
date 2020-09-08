@@ -809,7 +809,13 @@ impl FigureMgr {
                         CharacterState::BasicMelee(_) => {
                             anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, second_tool_kind, vel.0.magnitude(), time, None),
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    vel.0.magnitude(),
+                                    time,
+                                    None,
+                                ),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -879,7 +885,13 @@ impl FigureMgr {
                         CharacterState::Boost(_) => {
                             anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, second_tool_kind, vel.0.magnitude(), time, None),
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    vel.0.magnitude(),
+                                    time,
+                                    None,
+                                ),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -939,21 +951,38 @@ impl FigureMgr {
                             match s.stage {
                                 1 => anim::character::AlphaAnimation::update_skeleton(
                                     &target_base,
-                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time, Some(s.stage_section)),
+                                    (
+                                        active_tool_kind,
+                                        second_tool_kind,
+                                        vel.0.magnitude(),
+                                        time,
+                                        Some(s.stage_section),
+                                    ),
                                     stage_progress,
                                     &mut state_animation_rate,
                                     skeleton_attr,
                                 ),
                                 2 => anim::character::SpinAnimation::update_skeleton(
                                     &target_base,
-                                    (active_tool_kind, second_tool_kind, time, Some(s.stage_section)),
+                                    (
+                                        active_tool_kind,
+                                        second_tool_kind,
+                                        time,
+                                        Some(s.stage_section),
+                                    ),
                                     stage_progress,
                                     &mut state_animation_rate,
                                     skeleton_attr,
                                 ),
                                 _ => anim::character::BetaAnimation::update_skeleton(
                                     &target_base,
-                                    (active_tool_kind, second_tool_kind, vel.0.magnitude(), time, Some(s.stage_section)),
+                                    (
+                                        active_tool_kind,
+                                        second_tool_kind,
+                                        vel.0.magnitude(),
+                                        time,
+                                        Some(s.stage_section),
+                                    ),
                                     stage_progress,
                                     &mut state_animation_rate,
                                     skeleton_attr,

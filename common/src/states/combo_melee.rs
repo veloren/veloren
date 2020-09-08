@@ -24,7 +24,8 @@ pub struct Stage {
     pub angle: f32,
     /// Initial buildup duration of stage (how long until state can deal damage)
     pub base_buildup_duration: Duration,
-    /// Duration of stage spent in swing (controls animation stuff, and can also be used to handle movement separately to buildup)
+    /// Duration of stage spent in swing (controls animation stuff, and can also
+    /// be used to handle movement separately to buildup)
     pub base_swing_duration: Duration,
     /// Initial recover duration of stage (how long until character exits state)
     pub base_recover_duration: Duration,

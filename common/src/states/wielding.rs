@@ -59,9 +59,9 @@ impl CharacterBehavior for Data {
     }
 }
 
-
-
-/// Determines what portion a state is in. Used in all attacks (eventually). Is used to control aspects of animation code, as well as logic within the character states.
+/// Determines what portion a state is in. Used in all attacks (eventually). Is
+/// used to control aspects of animation code, as well as logic within the
+/// character states.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum StageSection {
     Buildup,
