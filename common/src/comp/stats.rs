@@ -25,6 +25,7 @@ pub enum HealthSource {
     Command,
     LevelUp,
     Item,
+    Healing { by: Uid },
     Unknown,
 }
 

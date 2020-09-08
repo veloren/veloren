@@ -60,7 +60,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
     if let Some(_player) = state.ecs().read_storage::<Player>().get(entity) {
         if let Some(uid) = state.ecs().read_storage::<Uid>().get(entity) {
             let kill_source = match cause {
-                HealthSource::Attack { by } => {
+                HealthSource::Attack { by } | HealthSource::Healing { by } => {
                     // Get attacker entity
                     if let Some(char_entity) = state.ecs().entity_from_uid(by.into()) {
                         // Check if attacker is another player or entity with stats (npc)
