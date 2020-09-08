@@ -14,7 +14,12 @@ pub struct Input {
 pub struct SpinAnimation;
 
 impl Animation for SpinAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, f64, Option<StageSection>);
+    type Dependency = (
+        Option<ToolKind>,
+        Option<ToolKind>,
+        f64,
+        Option<StageSection>,
+    );
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -66,18 +71,19 @@ impl Animation for SpinAnimation {
                 match stage_section {
                     StageSection::Buildup => {
                         //println!("{:.3} build", anim_time);
-                        next.control.position = Vec3::new(5.0, 11.0 + build * 0.6, 2.0 + build * 0.6);
-                        next.control.orientation = Quaternion::rotation_x(-1.57)
-                            * Quaternion::rotation_y(2.8)
-                            * Quaternion::rotation_z(1.0);
+                        next.control.position =
+                            Vec3::new(5.0, 11.0 + build * 0.6, 2.0 + build * 0.6);
+                        next.control.orientation = Quaternion::rotation_x(0.0)
+                            * Quaternion::rotation_y(-0.57 + movement * 2.0)
+                            * Quaternion::rotation_z(0.0);
                         next.chest.orientation = Quaternion::rotation_y(movement * -0.1)
-                            * Quaternion::rotation_z(build * 0.05 + movement * -0.6);
+                            * Quaternion::rotation_z(-1.07 + movement * -0.6);
                         next.belt.orientation = Quaternion::rotation_x(movement * 0.1);
 
                         next.shorts.orientation = Quaternion::rotation_x(movement * 0.1);
 
                         next.head.orientation = Quaternion::rotation_y(movement * 0.1)
-                            * Quaternion::rotation_z(movement * 0.4);
+                            * Quaternion::rotation_z(1.07 + movement * 0.4);
                     },
                     StageSection::Swing => {
                         //println!("{:.3} swing", anim_time);
@@ -98,7 +104,7 @@ impl Animation for SpinAnimation {
                         next.shorts.orientation = Quaternion::rotation_z(test2 * 1.5);
                         next.torso.orientation = Quaternion::rotation_z(test2 * 7.2);
                     },
-                    StageSection::Recover => {
+                    StageSection::Recover | StageSection::Combo => {
                         //println!("{:.3} recover", anim_time);
                         next.control.position = Vec3::new(
                             -8.0,
@@ -112,9 +118,6 @@ impl Animation for SpinAnimation {
                             * Quaternion::rotation_z(movement * 0.4);
                         next.head.orientation = Quaternion::rotation_y(movement * 0.1)
                             * Quaternion::rotation_z(movement * -0.1);
-                    },
-                    StageSection::Combo => {
-                        //println!("{:.3} combo", anim_time);
                     },
                 }
             }
