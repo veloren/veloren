@@ -156,7 +156,7 @@ https://account.veloren.net."#,
 
         // Chat outputs
         "hud.chat.online_msg": "[{name}] se ha conectado.",
-        "hud.chat.offline_msg": "{name} se ha desconectado.",
+        "hud.chat.offline_msg": "[{name}] se ha desconectado.",
         "hud.chat.loot_msg": "Recogiste [{item}]",
         "hud.chat.loot_fail": "Tu inventario está lleno!",
         "hud.chat.goodbye": "Adiós!",
