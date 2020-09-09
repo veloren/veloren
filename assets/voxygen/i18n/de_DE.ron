@@ -160,7 +160,7 @@ https://account.veloren.net.
 
         // Chat outputs
         "hud.chat.online_msg": "[{name}] ist jetzt online.", 
-        "hud.chat.offline_msg": "{name} ist jetzt offline.", 
+        "hud.chat.offline_msg": "[{name}] ist jetzt offline.", 
         "hud.chat.loot_msg": "Ihr erhaltet [{item}]",        
         "hud.chat.loot_fail": "Euer Inventar ist voll!",
         "hud.chat.goodbye": "Verbindung getrennt.",

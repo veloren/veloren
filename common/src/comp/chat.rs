@@ -49,6 +49,7 @@ impl Default for ChatMode {
 pub enum KillType {
     Melee,
     Projectile,
+    Explosion,
     // Projectile(String), TODO: add projectile name when available
 }
 

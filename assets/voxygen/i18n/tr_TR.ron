@@ -162,7 +162,7 @@ bir hesap oluşturabilirsin."#,
 
         // Chat outputs
         "hud.chat.online_msg": "[{name}] çevrimiçi oldu.",
-        "hud.chat.offline_msg": "{name} çevrimdışı oldu.",
+        "hud.chat.offline_msg": "[{name}] çevrimdışı oldu.",
         "hud.chat.loot_msg": "[{item}] topladın.",
         "hud.chat.loot_fail": "Envanterin dolu!",
         "hud.chat.goodbye": "Hoşçakal!",

@@ -144,7 +144,7 @@ https://account.veloren.net."#,
 
         // Chat outputs
         "hud.chat.online_msg": "[{name}] сейчас онлайн.",
-        "hud.chat.offline_msg": "{name} сейчас оффлайн.",
+        "hud.chat.offline_msg": "[{name}] сейчас оффлайн.",
         "hud.chat.loot_msg": "Вы подобрали [{item}]",
         "hud.chat.loot_fail": "Ваш инвентарь полон!",
         "hud.chat.goodbye": "До встречи!",
