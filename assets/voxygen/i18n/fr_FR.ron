@@ -140,7 +140,7 @@ https://account.veloren.net."#,
 
         // Sorties Tchat
         "hud.chat.online_msg": "[{name}] est maintenant en ligne.",
-        "hud.chat.offline_msg": "{name} s'est déconnecté.",
+        "hud.chat.offline_msg": "[{name}] s'est déconnecté.",
         "hud.chat.loot_msg": "Vous avez ramassé [{item}]",
         "hud.chat.loot_fail": "Votre inventaire est plein!",
         "hud.chat.goodbye": "Au revoir!",

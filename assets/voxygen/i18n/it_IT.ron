@@ -207,7 +207,7 @@ https://account.veloren.net."#,
 
                  // Chat outputs
                  "hud.chat.online_msg": "[{name}] è ora online.", 
-                 "hud.chat.offline_msg": "{name} è andato offline.", 
+                 "hud.chat.offline_msg": "[{name}] è andato offline.", 
                  "hud.chat.loot_msg": "Hai raccolto [{item}]",
                  "hud.chat.loot_fail": "Il tuo inventario è pieno!",
                  "hud.chat.goodbye": "Addio!",

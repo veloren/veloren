@@ -2,10 +2,13 @@ use super::{
     img_ids::Imgs, ERROR_COLOR, FACTION_COLOR, GROUP_COLOR, INFO_COLOR, KILL_COLOR, LOOT_COLOR,
     OFFLINE_COLOR, ONLINE_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR, WORLD_COLOR,
 };
-use crate::{ui::fonts::ConrodVoxygenFonts, GlobalState};
+use crate::{i18n::VoxygenLocalization, ui::fonts::ConrodVoxygenFonts, GlobalState};
 use client::{cmd, Client};
 use common::{
-    comp::{ChatMsg, ChatType},
+    comp::{
+        chat::{KillSource, KillType},
+        ChatMsg, ChatType,
+    },
     msg::validate_chat_msg,
 };
 use conrod_core::{
@@ -56,6 +59,8 @@ pub struct Chat<'a> {
 
     // TODO: add an option to adjust this
     history_max: usize,
+
+    localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
 }
 
 impl<'a> Chat<'a> {
@@ -65,6 +70,7 @@ impl<'a> Chat<'a> {
         global_state: &'a GlobalState,
         imgs: &'a Imgs,
         fonts: &'a ConrodVoxygenFonts,
+        localized_strings: &'a std::sync::Arc<VoxygenLocalization>,
     ) -> Self {
         Self {
             new_messages,
@@ -77,6 +83,7 @@ impl<'a> Chat<'a> {
             global_state,
             common: widget::CommonBuilder::default(),
             history_max: 32,
+            localized_strings,
         }
     }
 
@@ -333,9 +340,67 @@ impl<'a> Widget for Chat<'a> {
         while let Some(item) = items.next(ui) {
             // This would be easier if conrod used the v-metrics from rusttype.
             if item.i < state.messages.len() {
-                let message = &state.messages[item.i];
+                let mut message = state.messages[item.i].clone();
                 let (color, icon) = render_chat_line(&message.chat_type, &self.imgs);
-                let msg = self.client.format_message(message, show_char_name);
+                let ChatMsg { chat_type, .. } = &message;
+                // For each ChatType needing localization get/set matching pre-formatted
+                // localized string. This string will be formatted with the data
+                // provided in ChatType in the client/src/lib.rs
+                // fn format_message called below
+                message.message = match chat_type {
+                    ChatType::Online(_) => self
+                        .localized_strings
+                        .get("hud.chat.online_msg")
+                        .to_string(),
+                    ChatType::Offline(_) => self
+                        .localized_strings
+                        .get("hud.chat.offline_msg")
+                        .to_string(),
+                    ChatType::Kill(kill_source, _) => match kill_source {
+                        KillSource::Player(_, KillType::Melee) => self
+                            .localized_strings
+                            .get("hud.chat.pvp_melee_kill_msg")
+                            .to_string(),
+                        KillSource::Player(_, KillType::Projectile) => self
+                            .localized_strings
+                            .get("hud.chat.pvp_ranged_kill_msg")
+                            .to_string(),
+                        KillSource::Player(_, KillType::Explosion) => self
+                            .localized_strings
+                            .get("hud.chat.pvp_explosion_kill_msg")
+                            .to_string(),
+                        KillSource::NonPlayer(_, KillType::Melee) => self
+                            .localized_strings
+                            .get("hud.chat.npc_melee_kill_msg")
+                            .to_string(),
+                        KillSource::NonPlayer(_, KillType::Projectile) => self
+                            .localized_strings
+                            .get("hud.chat.npc_ranged_kill_msg")
+                            .to_string(),
+                        KillSource::NonPlayer(_, KillType::Explosion) => self
+                            .localized_strings
+                            .get("hud.chat.npc_explosion_kill_msg")
+                            .to_string(),
+                        KillSource::Environment(_) => self
+                            .localized_strings
+                            .get("hud.chat.environmental_kill_msg")
+                            .to_string(),
+                        KillSource::FallDamage => self
+                            .localized_strings
+                            .get("hud.chat.fall_kill_msg")
+                            .to_string(),
+                        KillSource::Suicide => self
+                            .localized_strings
+                            .get("hud.chat.suicide_msg")
+                            .to_string(),
+                        KillSource::Other => self
+                            .localized_strings
+                            .get("hud.chat.default_death_msg")
+                            .to_string(),
+                    },
+                    _ => message.message,
+                };
+                let msg = self.client.format_message(&message, show_char_name);
                 let text = Text::new(&msg)
                     .font_size(self.fonts.opensans.scale(15))
                     .font_id(self.fonts.opensans.conrod_id)

@@ -76,10 +76,10 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         {
                             KillSource::NonPlayer(stats.name.clone(), KillType::Melee)
                         } else {
-                            KillSource::NonPlayer("Unknown".to_string(), KillType::Melee)
+                            KillSource::NonPlayer("<?>".to_string(), KillType::Melee)
                         }
                     } else {
-                        KillSource::NonPlayer("Unknown".to_string(), KillType::Melee)
+                        KillSource::NonPlayer("<?>".to_string(), KillType::Melee)
                     }
                 },
                 HealthSource::Projectile { owner: Some(by) } => {
@@ -99,15 +99,38 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         {
                             KillSource::NonPlayer(stats.name.clone(), KillType::Projectile)
                         } else {
-                            KillSource::NonPlayer("Unknown".to_string(), KillType::Projectile)
+                            KillSource::NonPlayer("<?>".to_string(), KillType::Projectile)
                         }
                     } else {
-                        KillSource::NonPlayer("Unknown".to_string(), KillType::Projectile)
+                        KillSource::NonPlayer("<?>".to_string(), KillType::Projectile)
+                    }
+                },
+                HealthSource::Explosion { owner: Some(by) } => {
+                    // Get explosion owner entity
+                    if let Some(char_entity) = state.ecs().entity_from_uid(by.into()) {
+                        // Check if attacker is another player or entity with stats (npc)
+                        if state
+                            .ecs()
+                            .read_storage::<Player>()
+                            .get(char_entity)
+                            .is_some()
+                        {
+                            KillSource::Player(by, KillType::Explosion)
+                        } else if let Some(stats) =
+                            state.ecs().read_storage::<Stats>().get(char_entity)
+                        {
+                            KillSource::NonPlayer(stats.name.clone(), KillType::Explosion)
+                        } else {
+                            KillSource::NonPlayer("<?>".to_string(), KillType::Explosion)
+                        }
+                    } else {
+                        KillSource::NonPlayer("<?>".to_string(), KillType::Explosion)
                     }
                 },
                 HealthSource::World => KillSource::FallDamage,
                 HealthSource::Suicide => KillSource::Suicide,
                 HealthSource::Projectile { owner: None }
+                | HealthSource::Explosion { owner: None }
                 | HealthSource::Revive
                 | HealthSource::Command
                 | HealthSource::LevelUp
@@ -472,7 +495,7 @@ pub fn handle_explosion(
 
             stats_b.health.change_by(HealthChange {
                 amount: damage.healthchange as i32,
-                cause: HealthSource::Projectile { owner },
+                cause: HealthSource::Explosion { owner },
             });
         }
     }

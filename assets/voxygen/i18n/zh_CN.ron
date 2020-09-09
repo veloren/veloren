@@ -159,7 +159,7 @@ https://account.veloren.net."#,
 
         // Chat outputs
         "hud.chat.online_msg": "[{name}] 正在线上.",
-        "hud.chat.offline_msg": "{name} 下线了.",
+        "hud.chat.offline_msg": "[{name}] 下线了.",
         "hud.chat.loot_msg": "你捡起了 [{item}]",
         "hud.chat.loot_fail": "你的背包已满!",
         "hud.chat.goodbye": "再见!",
