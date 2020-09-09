@@ -100,13 +100,31 @@ fn main() {
             backtrace::Backtrace::new(),
         );
 
-        #[cfg(feature = "msgbox")]
+        #[cfg(feature = "native-dialog")]
         {
-            #[cfg(target_os = "macos")]
-            dispatch::Queue::main()
-                .sync(|| msgbox::create("Voxygen has panicked", &msg, msgbox::IconType::Error));
-            #[cfg(not(target_os = "macos"))]
-            msgbox::create("Voxygen has panicked", &msg, msgbox::IconType::Error);
+            use native_dialog::{Dialog, MessageAlert, MessageType};
+
+            let mbox = move || {
+                MessageAlert {
+                    title: "Voxygen has panicked",
+                    //somehow `<` and `>` are invalid characters and cause the msg to get replaced
+                    // by some generic text thus i replace them
+                    text: &msg.replace('<', "[").replace('>', "]"),
+                    typ: MessageType::Error,
+                }
+                .show()
+                .unwrap()
+            };
+
+            // On windows we need to spawn a thread as the msg doesn't work otherwise
+            #[cfg(target_os = "windows")]
+            std::thread::spawn(move || {
+                mbox();
+            })
+            .join();
+
+            #[cfg(not(target_os = "windows"))]
+            mbox();
         }
 
         default_hook(panic_info);

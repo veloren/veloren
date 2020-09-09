@@ -14,7 +14,7 @@ hot-anim = ["anim/use-dyn-lib"]
 singleplayer = ["server"]
 tweak = ["const-tweaker"]
 
-default = ["gl", "singleplayer", "msgbox"]
+default = ["gl", "singleplayer", "native-dialog"]
 
 [dependencies]
 client = {package = "veloren-client", path = "../client"}
@@ -61,7 +61,7 @@ glsl-include = "0.3.1"
 guillotiere = "0.5.2"
 hashbrown = {version = "0.7.2", features = ["rayon", "serde", "nightly"]}
 image = {version = "0.23.8", default-features = false, features = ["ico", "png"]}
-msgbox = {git = "https://github.com/bekker/msgbox-rs.git", default-features = false, rev = "68fe39a", optional = true}
+native-dialog = { version = "0.4.2", default-features = false, optional = true }
 num = "0.2"
 rand = "0.7"
 rodio = {version = "0.11", default-features = false, features = ["wav", "vorbis"]}
