@@ -29,6 +29,8 @@ pub struct Stage {
     pub base_swing_duration: Duration,
     /// Initial recover duration of stage (how long until character exits state)
     pub base_recover_duration: Duration,
+    /// How much forward movement there is in the swing portion of the stage
+    pub forward_movement: f32,
 }
 
 /// A sequence of attacks that can incrementally become faster and more
@@ -55,14 +57,16 @@ pub struct Data {
     pub timer: Duration,
     /// Checks what section a stage is in
     pub stage_section: StageSection,
+    /// Whether the state should go onto the next stage
+    pub next_stage: bool,
 }
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_orientation(data, &mut update, 5.0);
-        handle_move(data, &mut update, 0.8);
+        handle_orientation(data, &mut update, 1.0);
+        handle_move(data, &mut update, 0.1);
 
         let stage_index = (self.stage - 1) as usize;
 
@@ -84,8 +88,10 @@ impl CharacterBehavior for Data {
                     .checked_add(Duration::from_secs_f32(data.dt.0))
                     .unwrap_or_default(),
                 stage_section: self.stage_section,
+                next_stage: self.next_stage,
             });
         } else if self.stage_section == StageSection::Buildup {
+            // Transitions to swing section of stage
             update.character = CharacterState::ComboMelee(Data {
                 stage: self.stage,
                 num_stages: self.num_stages,
@@ -97,10 +103,15 @@ impl CharacterBehavior for Data {
                 combo_duration: self.combo_duration,
                 timer: Duration::default(),
                 stage_section: StageSection::Swing,
+                next_stage: self.next_stage,
             });
         } else if self.stage_section == StageSection::Swing
             && self.timer < self.stage_data[stage_index].base_swing_duration
         {
+            // Forward movement
+            forward_move(data, &mut update, 0.1, self.stage_data[stage_index].forward_movement * 3.0);
+            
+            // Swings
             update.character = CharacterState::ComboMelee(Data {
                 stage: self.stage,
                 num_stages: self.num_stages,
@@ -115,6 +126,7 @@ impl CharacterBehavior for Data {
                     .checked_add(Duration::from_secs_f32(data.dt.0))
                     .unwrap_or_default(),
                 stage_section: self.stage_section,
+                next_stage: self.next_stage,
             });
         } else if self.stage_section == StageSection::Swing {
             // Hit attempt
@@ -131,6 +143,7 @@ impl CharacterBehavior for Data {
                 knockback: self.stage_data[stage_index].knockback,
             });
 
+            // Transitions to recover section of stage
             update.character = CharacterState::ComboMelee(Data {
                 stage: self.stage,
                 num_stages: self.num_stages,
@@ -142,51 +155,29 @@ impl CharacterBehavior for Data {
                 combo_duration: self.combo_duration,
                 timer: Duration::default(),
                 stage_section: StageSection::Recover,
+                next_stage: self.next_stage,
             });
         } else if self.stage_section == StageSection::Recover
             && self.timer < self.stage_data[stage_index].base_recover_duration
         {
-            update.character = CharacterState::ComboMelee(Data {
-                stage: self.stage,
-                num_stages: self.num_stages,
-                combo: self.combo,
-                stage_data: self.stage_data.clone(),
-                initial_energy_gain: self.initial_energy_gain,
-                max_energy_gain: self.max_energy_gain,
-                energy_increase: self.energy_increase,
-                combo_duration: self.combo_duration,
-                timer: self
-                    .timer
-                    .checked_add(Duration::from_secs_f32(data.dt.0))
-                    .unwrap_or_default(),
-                stage_section: self.stage_section,
-            });
-        } else if self.stage_section == StageSection::Recover {
-            update.character = CharacterState::ComboMelee(Data {
-                stage: self.stage,
-                num_stages: self.num_stages,
-                combo: self.combo,
-                stage_data: self.stage_data.clone(),
-                initial_energy_gain: self.initial_energy_gain,
-                max_energy_gain: self.max_energy_gain,
-                energy_increase: self.energy_increase,
-                combo_duration: self.combo_duration,
-                timer: Duration::default(),
-                stage_section: StageSection::Combo,
-            });
-        } else if self.stage_section == StageSection::Combo && self.timer < self.combo_duration {
+            // Recovers
             if data.inputs.primary.is_pressed() {
+                // Checks if state will transition to next stage after recover
                 update.character = CharacterState::ComboMelee(Data {
-                    stage: (self.stage % self.num_stages) + 1,
+                    stage: self.stage,
                     num_stages: self.num_stages,
-                    combo: self.combo + 1,
+                    combo: self.combo,
                     stage_data: self.stage_data.clone(),
                     initial_energy_gain: self.initial_energy_gain,
                     max_energy_gain: self.max_energy_gain,
                     energy_increase: self.energy_increase,
                     combo_duration: self.combo_duration,
-                    timer: Duration::default(),
-                    stage_section: StageSection::Buildup,
+                    timer: self
+                        .timer
+                        .checked_add(Duration::from_secs_f32(data.dt.0))
+                        .unwrap_or_default(),
+                    stage_section: self.stage_section,
+                    next_stage: true,
                 });
             } else {
                 update.character = CharacterState::ComboMelee(Data {
@@ -203,8 +194,71 @@ impl CharacterBehavior for Data {
                         .checked_add(Duration::from_secs_f32(data.dt.0))
                         .unwrap_or_default(),
                     stage_section: self.stage_section,
+                    next_stage: self.next_stage,
                 });
             }
+        } /*else if self.stage_section == StageSection::Recover {
+            update.character = CharacterState::ComboMelee(Data {
+                stage: self.stage,
+                num_stages: self.num_stages,
+                combo: self.combo,
+                stage_data: self.stage_data.clone(),
+                initial_energy_gain: self.initial_energy_gain,
+                max_energy_gain: self.max_energy_gain,
+                energy_increase: self.energy_increase,
+                combo_duration: self.combo_duration,
+                timer: Duration::default(),
+                stage_section: StageSection::Combo,
+                next_stage: self.next_stage,
+            });
+        } else if self.stage_section == StageSection::Combo && self.timer < self.combo_duration {
+            if data.inputs.primary.is_pressed() {
+                update.character = CharacterState::ComboMelee(Data {
+                    stage: (self.stage % self.num_stages) + 1,
+                    num_stages: self.num_stages,
+                    combo: self.combo + 1,
+                    stage_data: self.stage_data.clone(),
+                    initial_energy_gain: self.initial_energy_gain,
+                    max_energy_gain: self.max_energy_gain,
+                    energy_increase: self.energy_increase,
+                    combo_duration: self.combo_duration,
+                    timer: Duration::default(),
+                    stage_section: StageSection::Buildup,
+                    next_stage: self.next_stage,
+                });
+            } else {
+                update.character = CharacterState::ComboMelee(Data {
+                    stage: self.stage,
+                    num_stages: self.num_stages,
+                    combo: self.combo,
+                    stage_data: self.stage_data.clone(),
+                    initial_energy_gain: self.initial_energy_gain,
+                    max_energy_gain: self.max_energy_gain,
+                    energy_increase: self.energy_increase,
+                    combo_duration: self.combo_duration,
+                    timer: self
+                        .timer
+                        .checked_add(Duration::from_secs_f32(data.dt.0))
+                        .unwrap_or_default(),
+                    stage_section: self.stage_section,
+                    next_stage: self.next_stage,
+                });
+            }
+        }*/ else if self.next_stage {
+            // Transitions to buildup section of next stage
+            update.character = CharacterState::ComboMelee(Data {
+                stage: (self.stage % self.num_stages) + 1,
+                num_stages: self.num_stages,
+                combo: self.combo + 1,
+                stage_data: self.stage_data.clone(),
+                initial_energy_gain: self.initial_energy_gain,
+                max_energy_gain: self.max_energy_gain,
+                energy_increase: self.energy_increase,
+                combo_duration: self.combo_duration,
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
+                next_stage: false,
+            });  
         } else {
             // Done
             update.character = CharacterState::Wielding;
