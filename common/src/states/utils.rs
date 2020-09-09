@@ -89,6 +89,20 @@ fn basic_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     handle_orientation(data, update, data.body.base_ori_rate());
 }
 
+/// Similar to basic_move function, but with forced forward movement
+pub fn forward_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, forward: f32) {
+    let accel = if data.physics.on_ground {
+        data.body.base_accel()
+    } else {
+        BASE_HUMANOID_AIR_ACCEL
+    };
+
+    update.vel.0 =
+        update.vel.0 + Vec2::broadcast(data.dt.0) * data.inputs.move_dir * accel * efficiency + (*update.ori.0).xy() * forward;
+
+    handle_orientation(data, update, data.body.base_ori_rate());
+}
+
 pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, rate: f32) {
     // Set direction based on move direction
     let ori_dir = if update.character.is_attack() | update.character.is_block() {
