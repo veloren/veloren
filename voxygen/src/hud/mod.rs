@@ -1826,6 +1826,7 @@ impl Hud {
             global_state,
             &self.imgs,
             &self.fonts,
+            &self.voxygen_i18n,
         )
         .and_then(self.force_chat_input.take(), |c, input| c.input(input))
         .and_then(self.tab_complete.take(), |c, input| {

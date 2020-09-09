@@ -142,7 +142,7 @@ https://account.veloren.net."#,
 
         // Chat outputs
         "hud.chat.online_msg": "[{name}] está online.", 
-        "hud.chat.offline_msg": "{name} está offline.", 
+        "hud.chat.offline_msg": "[{name}] está offline.", 
         "hud.chat.loot_msg": "Você pegou [{item}]",
         "hud.chat.loot_fail": "Seu Inventário está cheio!",
         "hud.chat.goodbye": "Tchau!",
