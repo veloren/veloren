@@ -82,15 +82,27 @@ impl<'a> System<'a> for Sys {
                             }
 
                             if other != owner_uid {
-                                server_emitter.emit(ServerEvent::Damage {
-                                    uid: other,
-                                    change: HealthChange {
-                                        amount: damage.healthchange as i32,
-                                        cause: HealthSource::Projectile {
-                                            owner: Some(owner_uid),
+                                if damage.healthchange < 0.0 {
+                                    server_emitter.emit(ServerEvent::Damage {
+                                        uid: other,
+                                        change: HealthChange {
+                                            amount: damage.healthchange as i32,
+                                            cause: HealthSource::Projectile {
+                                                owner: Some(owner_uid),
+                                            },
                                         },
-                                    },
-                                });
+                                    });
+                                } else if damage.healthchange > 0.0 {
+                                    server_emitter.emit(ServerEvent::Damage {
+                                        uid: other,
+                                        change: HealthChange {
+                                            amount: damage.healthchange as i32,
+                                            cause: HealthSource::Healing {
+                                                by: Some(owner_uid),
+                                            },
+                                        },
+                                    });
+                                }
                             }
                         },
                         projectile::Effect::Knockback(knockback) => {

@@ -142,7 +142,7 @@ impl<'a> System<'a> for Sys {
                             uid: *uid_b,
                             change: HealthChange {
                                 amount: damage.healthchange as i32,
-                                cause: HealthSource::Healing { by: *uid },
+                                cause: HealthSource::Healing { by: Some(*uid) },
                             },
                         });
                     }
