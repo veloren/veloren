@@ -135,6 +135,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 | HealthSource::Command
                 | HealthSource::LevelUp
                 | HealthSource::Item
+                | HealthSource::Healing { by: _ }
                 | HealthSource::Unknown => KillSource::Other,
             };
             state.notify_registered_clients(
@@ -450,7 +451,6 @@ pub fn handle_explosion(
             power,
             reagent,
         });
-
     let owner_entity = owner.and_then(|uid| {
         ecs.read_resource::<UidAllocator>()
             .retrieve_entity_internal(uid.into())
@@ -493,10 +493,17 @@ pub fn handle_explosion(
                 damage.modify_damage(block, loadout);
             }
 
-            stats_b.health.change_by(HealthChange {
-                amount: damage.healthchange as i32,
-                cause: HealthSource::Explosion { owner },
-            });
+            if damage.healthchange < 0.0 {
+                stats_b.health.change_by(HealthChange {
+                    amount: damage.healthchange as i32,
+                    cause: HealthSource::Explosion { owner },
+                });
+            } else if damage.healthchange > 0.0 {
+                stats_b.health.change_by(HealthChange {
+                    amount: damage.healthchange as i32,
+                    cause: HealthSource::Healing { by: owner },
+                });
+            }
         }
     }
 
