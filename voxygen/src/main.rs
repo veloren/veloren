@@ -116,9 +116,6 @@ fn main() {
                 .unwrap()
             };
 
-            #[cfg(target_os = "macos")]
-            dispatch::Queue::main().sync(mbox);
-
             // On windows we need to spawn a thread as the msg doesn't work otherwise
             #[cfg(target_os = "windows")]
             std::thread::spawn(move || {
@@ -126,7 +123,7 @@ fn main() {
             })
             .join();
 
-            #[cfg(all(not(target_os = "macos"), not(target_os = "windows")))]
+            #[cfg(not(target_os = "windows"))]
             mbox();
         }
 
