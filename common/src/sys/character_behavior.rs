@@ -4,6 +4,7 @@ use crate::{
         Loadout, Mounting, Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
+    span,
     state::DeltaTime,
     states,
     sync::{Uid, UidAllocator},
@@ -183,6 +184,7 @@ impl<'a> System<'a> for Sys {
             mountings,
         ): Self::SystemData,
     ) {
+        span!(_guard, "run", "character_behavior::Sys::run");
         let mut server_emitter = server_bus.emitter();
         let mut local_emitter = local_bus.emitter();
 

@@ -3,6 +3,7 @@ use crate::client::Client;
 use common::{
     comp::group::{Invite, PendingInvites},
     msg::{InviteAnswer, ServerMsg},
+    span,
     sync::Uid,
 };
 use specs::{Entities, Join, ReadStorage, System, Write, WriteStorage};
@@ -24,6 +25,7 @@ impl<'a> System<'a> for Sys {
         &mut self,
         (entities, mut invites, mut pending_invites, mut clients, uids, mut timer): Self::SystemData,
     ) {
+        span!(_guard, "run", "invite_timeout::Sys::run");
         timer.start();
 
         let now = std::time::Instant::now();

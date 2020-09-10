@@ -4,6 +4,7 @@ use crate::{
         Loadout, Ori, Pos, Scale, Stats,
     },
     event::{EventBus, LocalEvent, ServerEvent},
+    span,
     sync::Uid,
     util::Dir,
 };
@@ -52,6 +53,7 @@ impl<'a> System<'a> for Sys {
             character_states,
         ): Self::SystemData,
     ) {
+        span!(_guard, "run", "combat::Sys::run");
         let mut server_emitter = server_bus.emitter();
         let mut local_emitter = local_bus.emitter();
         // Attacks

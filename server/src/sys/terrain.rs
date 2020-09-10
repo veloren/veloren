@@ -11,6 +11,7 @@ use common::{
     generation::get_npc_name,
     msg::ServerMsg,
     npc::NPC_NAMES,
+    span,
     state::TerrainChanges,
     terrain::TerrainGrid,
     LoadoutBuilder,
@@ -55,6 +56,7 @@ impl<'a> System<'a> for Sys {
             mut clients,
         ): Self::SystemData,
     ) {
+        span!(_guard, "run", "terrain::Sys::run");
         timer.start();
 
         let mut server_emitter = server_event_bus.emitter();

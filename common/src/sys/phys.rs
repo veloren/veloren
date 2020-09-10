@@ -4,6 +4,7 @@ use crate::{
         Sticky, Vel,
     },
     event::{EventBus, ServerEvent},
+    span,
     state::DeltaTime,
     sync::{Uid, UidAllocator},
     terrain::{Block, BlockKind, TerrainGrid},
@@ -94,9 +95,11 @@ impl<'a> System<'a> for Sys {
             projectiles,
         ): Self::SystemData,
     ) {
+        span!(_guard, "run", "phys::Sys::run");
         let mut event_emitter = event_bus.emitter();
 
         // Add/reset physics state components
+        span!(guard, "Add/reset physics state components");
         for (entity, _, _, _, _) in (
             &entities,
             &colliders,
@@ -110,6 +113,7 @@ impl<'a> System<'a> for Sys {
                 .entry(entity)
                 .map(|e| e.or_insert_with(Default::default));
         }
+        drop(guard);
 
         // Apply pushback
         //
@@ -124,6 +128,7 @@ impl<'a> System<'a> for Sys {
         // terrain collision code below, although that's not trivial to do since
         // it means the step needs to take into account the speeds of both
         // entities.
+        span!(guard, "Apply pushback");
         for (entity, pos, scale, mass, collider, _, _, physics, projectile) in (
             &entities,
             &positions,
@@ -244,8 +249,10 @@ impl<'a> System<'a> for Sys {
                 .get_mut(entity)
                 .map(|vel| vel.0 += vel_delta * dt.0);
         }
+        drop(guard);
 
         // Apply movement inputs
+        span!(guard, "Apply movement and terrain collision");
         let land_on_grounds = (
             &entities,
             scales.maybe(),
@@ -646,6 +653,7 @@ impl<'a> System<'a> for Sys {
             land_on_grounds_a.append(&mut land_on_grounds_b);
             land_on_grounds_a
         });
+        drop(guard);
 
         land_on_grounds.into_iter().for_each(|(entity, vel)| {
             event_emitter.emit(ServerEvent::LandOnGround { entity, vel: vel.0 });
