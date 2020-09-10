@@ -1609,38 +1609,97 @@ impl Client {
             // in voxygen/src/hud/chat.rs before being formatted here.
             // Kill messages are generated in server/src/events/entity_manipulation.rs
             // fn handle_destroy
-            comp::ChatType::Online(uid) => message.replace("{name}", &alias_of_uid(uid)),
-            comp::ChatType::Offline(uid) => message.replace("{name}", &alias_of_uid(uid)),
+            comp::ChatType::Online(uid) => {
+                // Default message formats if no localized message string is set by hud
+                // Needed for cli clients that don't set localization info
+                if message == "" {
+                    format!("[{}] came online", alias_of_uid(uid))
+                } else {
+                    message.replace("{name}", &alias_of_uid(uid))
+                }
+            },
+            comp::ChatType::Offline(uid) => {
+                // Default message formats if no localized message string is set by hud
+                // Needed for cli clients that don't set localization info
+                if message == "" {
+                    format!("[{}] went offline", alias_of_uid(uid))
+                } else {
+                    message.replace("{name}", &alias_of_uid(uid))
+                }
+            },
             comp::ChatType::CommandError => message.to_string(),
             comp::ChatType::CommandInfo => message.to_string(),
             comp::ChatType::Loot => message.to_string(),
             comp::ChatType::FactionMeta(_) => message.to_string(),
             comp::ChatType::GroupMeta(_) => message.to_string(),
-            comp::ChatType::Kill(kill_source, victim) => match kill_source {
-                KillSource::Player(attacker_uid, KillType::Melee) => message
-                    .replace("{attacker}", &alias_of_uid(attacker_uid))
-                    .replace("{victim}", &alias_of_uid(victim)),
-                KillSource::Player(attacker_uid, KillType::Projectile) => message
-                    .replace("{attacker}", &alias_of_uid(attacker_uid))
-                    .replace("{victim}", &alias_of_uid(victim)),
-                KillSource::Player(attacker_uid, KillType::Explosion) => message
-                    .replace("{attacker}", &alias_of_uid(attacker_uid))
-                    .replace("{victim}", &alias_of_uid(victim)),
-                KillSource::NonPlayer(attacker_name, KillType::Melee) => message
-                    .replace("{attacker}", attacker_name)
-                    .replace("{victim}", &alias_of_uid(victim)),
-                KillSource::NonPlayer(attacker_name, KillType::Projectile) => message
-                    .replace("{attacker}", attacker_name)
-                    .replace("{victim}", &alias_of_uid(victim)),
-                KillSource::NonPlayer(attacker_name, KillType::Explosion) => message
-                    .replace("{attacker}", attacker_name)
-                    .replace("{victim}", &alias_of_uid(victim)),
-                KillSource::Environment(environment) => message
-                    .replace("{name}", &alias_of_uid(victim))
-                    .replace("{environment}", environment),
-                KillSource::FallDamage => message.replace("{name}", &alias_of_uid(victim)),
-                KillSource::Suicide => message.replace("{name}", &alias_of_uid(victim)),
-                KillSource::Other => message.replace("{name}", &alias_of_uid(victim)),
+            comp::ChatType::Kill(kill_source, victim) => {
+                // Default message formats if no localized message string is set by hud
+                // Needed for cli clients that don't set localization info
+                if message == "" {
+                    match kill_source {
+                        KillSource::Player(attacker_uid, KillType::Melee) => format!(
+                            "[{}] killed [{}]",
+                            alias_of_uid(attacker_uid),
+                            alias_of_uid(victim)
+                        ),
+                        KillSource::Player(attacker_uid, KillType::Projectile) => format!(
+                            "[{}] shot [{}]",
+                            alias_of_uid(attacker_uid),
+                            alias_of_uid(victim)
+                        ),
+                        KillSource::Player(attacker_uid, KillType::Explosion) => format!(
+                            "[{}] blew up [{}]",
+                            alias_of_uid(attacker_uid),
+                            alias_of_uid(victim)
+                        ),
+                        KillSource::NonPlayer(attacker_name, KillType::Melee) => {
+                            format!("{} killed [{}]", attacker_name, alias_of_uid(victim))
+                        },
+                        KillSource::NonPlayer(attacker_name, KillType::Projectile) => {
+                            format!("{} shot [{}]", attacker_name, alias_of_uid(victim))
+                        },
+                        KillSource::NonPlayer(attacker_name, KillType::Explosion) => {
+                            format!("{} blew up [{}]", attacker_name, alias_of_uid(victim))
+                        },
+                        KillSource::Environment(environment) => {
+                            format!("[{}] died in {}", alias_of_uid(victim), environment)
+                        },
+                        KillSource::FallDamage => {
+                            format!("[{}] died from fall damage", alias_of_uid(victim))
+                        },
+                        KillSource::Suicide => {
+                            format!("[{}] died from self-inflicted wounds", alias_of_uid(victim))
+                        },
+                        KillSource::Other => format!("[{}] died", alias_of_uid(victim)),
+                    }
+                } else {
+                    match kill_source {
+                        KillSource::Player(attacker_uid, KillType::Melee) => message
+                            .replace("{attacker}", &alias_of_uid(attacker_uid))
+                            .replace("{victim}", &alias_of_uid(victim)),
+                        KillSource::Player(attacker_uid, KillType::Projectile) => message
+                            .replace("{attacker}", &alias_of_uid(attacker_uid))
+                            .replace("{victim}", &alias_of_uid(victim)),
+                        KillSource::Player(attacker_uid, KillType::Explosion) => message
+                            .replace("{attacker}", &alias_of_uid(attacker_uid))
+                            .replace("{victim}", &alias_of_uid(victim)),
+                        KillSource::NonPlayer(attacker_name, KillType::Melee) => message
+                            .replace("{attacker}", attacker_name)
+                            .replace("{victim}", &alias_of_uid(victim)),
+                        KillSource::NonPlayer(attacker_name, KillType::Projectile) => message
+                            .replace("{attacker}", attacker_name)
+                            .replace("{victim}", &alias_of_uid(victim)),
+                        KillSource::NonPlayer(attacker_name, KillType::Explosion) => message
+                            .replace("{attacker}", attacker_name)
+                            .replace("{victim}", &alias_of_uid(victim)),
+                        KillSource::Environment(environment) => message
+                            .replace("{name}", &alias_of_uid(victim))
+                            .replace("{environment}", environment),
+                        KillSource::FallDamage => message.replace("{name}", &alias_of_uid(victim)),
+                        KillSource::Suicide => message.replace("{name}", &alias_of_uid(victim)),
+                        KillSource::Other => message.replace("{name}", &alias_of_uid(victim)),
+                    }
+                }
             },
             comp::ChatType::Tell(from, to) => {
                 let from_alias = alias_of_uid(from);
