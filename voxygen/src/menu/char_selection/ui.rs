@@ -35,7 +35,8 @@ const STARTER_AXE: &str = "common.items.weapons.axe.starter_axe";
 const STARTER_STAFF: &str = "common.items.weapons.staff.starter_staff";
 const STARTER_SWORD: &str = "common.items.weapons.sword.starter_sword";
 const STARTER_DAGGER: &str = "common.items.weapons.dagger.starter_dagger";
-//const STARTER_SCEPTRE: &str = "common.items.weapons.dagger.starter_dagger";
+//const STARTER_SCEPTRE: &str = "common.items.weapons.sceptre.starter_sceptre";
+// // Use in future MR to make this a starter weapon
 
 // UI Color-Theme
 const UI_MAIN: Color = Color::Rgba(0.61, 0.70, 0.70, 1.0); // Greenish Blue

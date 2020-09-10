@@ -300,7 +300,7 @@ impl Tool {
                 max_angle: 20.0,
             }],
             Staff(kind) => {
-                if kind == "Sceptre" || kind == "SceptreVelorite" {
+                if kind == "Sceptre" || kind == "SceptreVelorite" || kind == "StarterSceptre" {
                     vec![
                         BasicBeam {
                             energy_cost: 0,

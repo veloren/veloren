@@ -507,11 +507,15 @@
     ),
     // Healing staff
     Tool(Staff("Sceptre")): VoxTrans(
-        "voxel.weapon.staff.wood-nature",
+        "voxel.weapon.sceptre.wood-nature",
         (1.0, -1.0, 0.0), (-310., 90.0, 0.0), 1.2,
     ),
+    Tool(Staff("StarterSceptre")): VoxTrans(
+        "voxel.weapon.sceptre.wood-simple",
+        (0.0, -0.0, 0.0), (-310., 90.0, 0.0), 1.25,
+    ),
      Tool(Staff("SceptreVelorite")): VoxTrans(
-        "voxel.weapon.staff.ore-nature",
+        "voxel.weapon.sceptre.ore-nature",
         (1.0, -1.0, 0.0), (-310., 90.0, 0.0), 1.15,
     ),
     // Shields
