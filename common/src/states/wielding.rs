@@ -3,7 +3,6 @@ use crate::{
     comp::{CharacterState, StateUpdate},
     sys::character_behavior::{CharacterBehavior, JoinData},
 };
-use serde::{Deserialize, Serialize};
 
 pub struct Data;
 
@@ -57,15 +56,4 @@ impl CharacterBehavior for Data {
         attempt_swap_loadout(data, &mut update);
         update
     }
-}
-
-/// Determines what portion a state is in. Used in all attacks (eventually). Is
-/// used to control aspects of animation code, as well as logic within the
-/// character states.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum StageSection {
-    Buildup,
-    Swing,
-    Recover,
-    Combo,
 }

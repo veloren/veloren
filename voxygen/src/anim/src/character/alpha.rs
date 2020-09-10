@@ -4,7 +4,7 @@ use super::{
 };
 use common::{
     comp::item::{Hands, ToolKind},
-    states::wielding::StageSection,
+    states::utils::StageSection,
 };
 use std::f32::consts::PI;
 
@@ -119,7 +119,7 @@ impl Animation for AlphaAnimation {
                         // next.torso.orientation = Quaternion::rotation_z(test2
                         // * 7.2);
                     },
-                    StageSection::Recover | StageSection::Combo => {
+                    StageSection::Recover => {
                         //println!("{:.3} recover", anim_time);
                         next.control.position = Vec3::new(-7.0, 7.0, 2.0);
                         next.control.orientation = Quaternion::rotation_x(0.0)
@@ -131,6 +131,7 @@ impl Animation for AlphaAnimation {
                         next.head.orientation =
                             Quaternion::rotation_y(0.0) * Quaternion::rotation_z(1.57);
                     },
+                    _ => {},
                 }
             }
         }

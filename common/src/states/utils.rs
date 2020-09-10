@@ -8,6 +8,7 @@ use crate::{
     sys::{character_behavior::JoinData, phys::GRAVITY},
     util::Dir,
 };
+use serde::{Deserialize, Serialize};
 use vek::*;
 
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
@@ -97,10 +98,12 @@ pub fn forward_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, 
         BASE_HUMANOID_AIR_ACCEL
     };
 
-    update.vel.0 =
-        update.vel.0 + Vec2::broadcast(data.dt.0) * data.inputs.move_dir * accel * efficiency + (*update.ori.0).xy() * forward;
+    update.vel.0 = update.vel.0
+        + Vec2::broadcast(data.dt.0)
+            * accel
+            * (data.inputs.move_dir * efficiency + (*update.ori.0).xy() * forward);
 
-    handle_orientation(data, update, data.body.base_ori_rate());
+    handle_orientation(data, update, data.body.base_ori_rate() * efficiency);
 }
 
 pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, rate: f32) {
@@ -343,4 +346,15 @@ pub fn unwrap_tool_data<'a>(data: &'a JoinData) -> Option<&'a Tool> {
     } else {
         None
     }
+}
+
+/// Determines what portion a state is in. Used in all attacks (eventually). Is
+/// used to control aspects of animation code, as well as logic within the
+/// character states.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum StageSection {
+    Buildup,
+    Swing,
+    Recover,
+    Charge,
 }

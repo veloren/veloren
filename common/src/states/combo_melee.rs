@@ -1,6 +1,6 @@
 use crate::{
     comp::{Attacking, CharacterState, EnergySource, StateUpdate},
-    states::{utils::*, wielding::StageSection},
+    states::utils::{StageSection, *},
     sys::character_behavior::{CharacterBehavior, JoinData},
 };
 use serde::{Deserialize, Serialize};
@@ -109,8 +109,13 @@ impl CharacterBehavior for Data {
             && self.timer < self.stage_data[stage_index].base_swing_duration
         {
             // Forward movement
-            forward_move(data, &mut update, 0.1, self.stage_data[stage_index].forward_movement * 3.0);
-            
+            forward_move(
+                data,
+                &mut update,
+                0.1,
+                self.stage_data[stage_index].forward_movement,
+            );
+
             // Swings
             update.character = CharacterState::ComboMelee(Data {
                 stage: self.stage,
@@ -197,54 +202,7 @@ impl CharacterBehavior for Data {
                     next_stage: self.next_stage,
                 });
             }
-        } /*else if self.stage_section == StageSection::Recover {
-            update.character = CharacterState::ComboMelee(Data {
-                stage: self.stage,
-                num_stages: self.num_stages,
-                combo: self.combo,
-                stage_data: self.stage_data.clone(),
-                initial_energy_gain: self.initial_energy_gain,
-                max_energy_gain: self.max_energy_gain,
-                energy_increase: self.energy_increase,
-                combo_duration: self.combo_duration,
-                timer: Duration::default(),
-                stage_section: StageSection::Combo,
-                next_stage: self.next_stage,
-            });
-        } else if self.stage_section == StageSection::Combo && self.timer < self.combo_duration {
-            if data.inputs.primary.is_pressed() {
-                update.character = CharacterState::ComboMelee(Data {
-                    stage: (self.stage % self.num_stages) + 1,
-                    num_stages: self.num_stages,
-                    combo: self.combo + 1,
-                    stage_data: self.stage_data.clone(),
-                    initial_energy_gain: self.initial_energy_gain,
-                    max_energy_gain: self.max_energy_gain,
-                    energy_increase: self.energy_increase,
-                    combo_duration: self.combo_duration,
-                    timer: Duration::default(),
-                    stage_section: StageSection::Buildup,
-                    next_stage: self.next_stage,
-                });
-            } else {
-                update.character = CharacterState::ComboMelee(Data {
-                    stage: self.stage,
-                    num_stages: self.num_stages,
-                    combo: self.combo,
-                    stage_data: self.stage_data.clone(),
-                    initial_energy_gain: self.initial_energy_gain,
-                    max_energy_gain: self.max_energy_gain,
-                    energy_increase: self.energy_increase,
-                    combo_duration: self.combo_duration,
-                    timer: self
-                        .timer
-                        .checked_add(Duration::from_secs_f32(data.dt.0))
-                        .unwrap_or_default(),
-                    stage_section: self.stage_section,
-                    next_stage: self.next_stage,
-                });
-            }
-        }*/ else if self.next_stage {
+        } else if self.next_stage {
             // Transitions to buildup section of next stage
             update.character = CharacterState::ComboMelee(Data {
                 stage: (self.stage % self.num_stages) + 1,
@@ -258,7 +216,7 @@ impl CharacterBehavior for Data {
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
                 next_stage: false,
-            });  
+            });
         } else {
             // Done
             update.character = CharacterState::Wielding;
