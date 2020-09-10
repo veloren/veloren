@@ -623,6 +623,7 @@ impl<'a> Widget for Skillbar<'a> {
                     ToolKind::Staff(kind) => match kind.as_ref() {
                         "Sceptre" => self.imgs.heal_0,
                         "SceptreVelorite" => self.imgs.heal_0,
+                        "StarterSceptre" => self.imgs.heal_0,
                         _ => self.imgs.staff_m1,
                     },
                     ToolKind::Debug(kind) => match kind.as_ref() {
@@ -705,6 +706,7 @@ impl<'a> Widget for Skillbar<'a> {
             Some(ToolKind::Staff(kind)) => match kind.as_ref() {
                 "Sceptre" => self.imgs.heal_bomb,
                 "SceptreVelorite" => self.imgs.heal_bomb,
+                "StarterSceptre" => self.imgs.heal_bomb,
                 _ => self.imgs.staff_m2,
             },
             Some(ToolKind::Debug(kind)) => match kind.as_ref() {
