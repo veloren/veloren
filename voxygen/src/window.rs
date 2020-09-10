@@ -4,6 +4,7 @@ use crate::{
     settings::{ControlSettings, Settings},
     ui, Error,
 };
+use common::span;
 use crossbeam::channel;
 use gilrs::{EventType, Gilrs};
 use hashbrown::HashMap;
@@ -1043,6 +1044,7 @@ impl Window {
     }
 
     pub fn swap_buffers(&self) -> Result<(), Error> {
+        span!(_guard, "swap_buffers", "Window::swap_buffers");
         self.window
             .swap_buffers()
             .map_err(|err| Error::BackendError(Box::new(err)))

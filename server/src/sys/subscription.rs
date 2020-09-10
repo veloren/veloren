@@ -7,6 +7,7 @@ use common::{
     comp::{Ori, Player, Pos, Vel},
     msg::ServerMsg,
     region::{region_in_vd, regions_in_vd, Event as RegionEvent, RegionMap},
+    span,
     sync::Uid,
     terrain::TerrainChunkSize,
     vol::RectVolSize,
@@ -55,6 +56,7 @@ impl<'a> System<'a> for Sys {
             tracked_comps,
         ): Self::SystemData,
     ) {
+        span!(_guard, "run", "subscription::Sys::run");
         timer.start();
 
         // To update subscriptions

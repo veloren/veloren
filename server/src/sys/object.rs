@@ -1,6 +1,7 @@
 use common::{
     comp::{HealthSource, Object, PhysicsState, Pos, Vel},
     event::{EventBus, ServerEvent},
+    span,
     state::DeltaTime,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
@@ -23,6 +24,7 @@ impl<'a> System<'a> for Sys {
         &mut self,
         (entities, _dt, server_bus, positions, velocities, physics_states, mut objects): Self::SystemData,
     ) {
+        span!(_guard, "run", "object::Sys::run");
         let mut server_emitter = server_bus.emitter();
 
         // Objects

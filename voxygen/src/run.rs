@@ -4,6 +4,7 @@ use crate::{
     window::{Event, EventLoop},
     Direction, GlobalState, PlayState, PlayStateResult,
 };
+use common::{no_guard_span, span, util::GuardlessSpan};
 use std::{mem, time::Duration};
 use tracing::debug;
 
@@ -22,6 +23,9 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
     // See: https://github.com/rust-windowing/winit/issues/1418
     let mut polled_twice = false;
 
+    let mut poll_span = None;
+    let mut event_span = None;
+
     event_loop.run(move |event, _, control_flow| {
         // Continuously run loop since we handle sleeping
         *control_flow = winit::event_loop::ControlFlow::Poll;
@@ -32,16 +36,26 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
         }
 
         match event {
+            winit::event::Event::NewEvents(_) => {
+                event_span = Some(no_guard_span!("Process Events"));
+            },
             winit::event::Event::MainEventsCleared => {
+                event_span.take();
+                poll_span.take();
                 if polled_twice {
                     handle_main_events_cleared(&mut states, control_flow, &mut global_state);
                 }
+                poll_span = Some(no_guard_span!("Poll Winit"));
                 polled_twice = !polled_twice;
             },
-            winit::event::Event::WindowEvent { event, .. } => global_state
-                .window
-                .handle_window_event(event, &mut global_state.settings),
+            winit::event::Event::WindowEvent { event, .. } => {
+                span!(_guard, "Handle WindowEvent");
+                global_state
+                    .window
+                    .handle_window_event(event, &mut global_state.settings)
+            },
             winit::event::Event::DeviceEvent { event, .. } => {
+                span!(_guard, "Handle DeviceEvent");
                 global_state.window.handle_device_event(event)
             },
             winit::event::Event::LoopDestroyed => {
@@ -59,6 +73,7 @@ fn handle_main_events_cleared(
     control_flow: &mut winit::event_loop::ControlFlow,
     global_state: &mut GlobalState,
 ) {
+    span!(guard, "Handle MainEventsCleared");
     // Screenshot / Fullscreen toggle
     global_state
         .window
@@ -82,14 +97,6 @@ fn handle_main_events_cleared(
         // Implement state transfer logic.
         match state_result {
             PlayStateResult::Continue => {
-                // Wait for the next tick.
-                global_state.clock.tick(Duration::from_millis(
-                    1000 / global_state.settings.graphics.max_fps as u64,
-                ));
-
-                // Maintain global state.
-                global_state.maintain(global_state.clock.get_last_delta().as_secs_f32());
-
                 exit = false;
                 break;
             },
@@ -136,7 +143,9 @@ fn handle_main_events_cleared(
         *control_flow = winit::event_loop::ControlFlow::Exit;
     }
 
+    drop(guard);
     if let Some(last) = states.last_mut() {
+        span!(guard, "Render");
         let renderer = global_state.window.renderer_mut();
         // Clear the shadow maps.
         renderer.clear_shadows();
@@ -151,5 +160,20 @@ fn handle_main_events_cleared(
             .window
             .swap_buffers()
             .expect("Failed to swap window buffers!");
+        drop(guard);
+        #[cfg(feature = "tracy")]
+        common::util::tracy_client::finish_continuous_frame!();
+    }
+
+    if !exit {
+        // Wait for the next tick.
+        span!(_guard, "Main thread sleep");
+        global_state.clock.tick(Duration::from_millis(
+            1000 / global_state.settings.graphics.max_fps as u64,
+        ));
+
+        span!(_guard, "Maintain global state");
+        // Maintain global state.
+        global_state.maintain(global_state.clock.get_last_delta().as_secs_f32());
     }
 }

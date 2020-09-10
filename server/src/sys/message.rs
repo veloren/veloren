@@ -13,6 +13,7 @@ use common::{
         validate_chat_msg, CharacterInfo, ChatMsgValidationError, ClientMsg, ClientState,
         PlayerInfo, PlayerListUpdate, RequestStateError, ServerMsg, MAX_BYTES_CHAT_MSG,
     },
+    span,
     state::{BlockChange, Time},
     sync::Uid,
     terrain::{Block, TerrainChunkSize, TerrainGrid},
@@ -454,6 +455,7 @@ impl<'a> System<'a> for Sys {
             alias_validator,
         ): Self::SystemData,
     ) {
+        span!(_guard, "run", "message::Sys::run");
         timer.start();
 
         let mut server_emitter = server_event_bus.emitter();

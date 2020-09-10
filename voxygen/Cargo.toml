@@ -12,6 +12,7 @@ version = "0.7.0"
 gl = ["gfx_device_gl", "gfx_gl"]
 hot-anim = ["anim/use-dyn-lib"]
 singleplayer = ["server"]
+tracy = ["tracing-tracy", "common/tracy"]
 tweak = ["const-tweaker"]
 
 default = ["gl", "singleplayer", "native-dialog"]
@@ -80,6 +81,9 @@ tracing = "0.1"
 tracing-appender = "0.1"
 tracing-log = "0.1.1"
 tracing-subscriber = {version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec", "tracing-log"]}
+
+# Tracy
+tracing-tracy = { version = "0.2.0", optional = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 dispatch = "0.1.4"

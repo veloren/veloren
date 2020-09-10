@@ -28,6 +28,7 @@ use common::{
         item::ItemKind, Body, CharacterState, Item, Last, LightAnimation, LightEmitter, Loadout,
         Ori, PhysicsState, Pos, Scale, Stats, Vel,
     },
+    span,
     state::{DeltaTime, State},
     states::triple_strike,
     terrain::TerrainChunk,
@@ -195,6 +196,7 @@ impl FigureMgrStates {
     }
 
     fn retain(&mut self, mut f: impl FnMut(&EcsEntity, &mut FigureStateMeta) -> bool) {
+        span!(_guard, "retain", "FigureManagerStates::retain");
         self.character_states.retain(|k, v| f(k, &mut *v));
         self.quadruped_small_states.retain(|k, v| f(k, &mut *v));
         self.quadruped_medium_states.retain(|k, v| f(k, &mut *v));
@@ -337,6 +339,7 @@ impl FigureMgr {
     pub fn col_lights(&self) -> &FigureColLights { &self.col_lights }
 
     pub fn clean(&mut self, tick: u64) {
+        span!(_guard, "clean", "FigureManager::clean");
         self.model_cache.clean(&mut self.col_lights, tick);
         self.critter_model_cache.clean(&mut self.col_lights, tick);
         self.quadruped_small_model_cache
@@ -363,6 +366,7 @@ impl FigureMgr {
     #[allow(clippy::redundant_pattern_matching)]
     // TODO: Pending review in #587
     pub fn update_lighting(&mut self, scene_data: &SceneData) {
+        span!(_guard, "update_lighting", "FigureManager::update_lighting");
         let ecs = scene_data.state.ecs();
         for (entity, body, light_emitter) in (
             &ecs.entities(),
@@ -451,6 +455,7 @@ impl FigureMgr {
         visible_psr_bounds: math::Aabr<f32>,
         camera: &Camera,
     ) -> anim::vek::Aabb<f32> {
+        span!(_guard, "maintain", "FigureManager::maintain");
         let state = scene_data.state;
         let time = state.get_time();
         let tick = scene_data.tick;
@@ -2130,6 +2135,7 @@ impl FigureMgr {
         (is_daylight, _light_data): super::LightData,
         (camera, figure_lod_render_distance): CameraData,
     ) {
+        span!(_guard, "render_shadows", "FigureManager::render_shadows");
         let ecs = state.ecs();
 
         if is_daylight && renderer.render_mode().shadow.is_map() {
@@ -2181,6 +2187,7 @@ impl FigureMgr {
         lod: &LodData,
         (camera, figure_lod_render_distance): CameraData,
     ) {
+        span!(_guard, "render", "FigureManager::render");
         let ecs = state.ecs();
 
         let character_state_storage = state.read_storage::<common::comp::CharacterState>();
@@ -2231,6 +2238,7 @@ impl FigureMgr {
         lod: &LodData,
         (camera, figure_lod_render_distance): CameraData,
     ) {
+        span!(_guard, "render_player", "FigureManager::render_player");
         let ecs = state.ecs();
 
         let character_state_storage = state.read_storage::<common::comp::CharacterState>();
@@ -2614,6 +2622,7 @@ impl FigureColLights {
         (opaque, bounds): (Mesh<TerrainPipeline>, math::Aabb<f32>),
         vertex_range: [Range<u32>; N],
     ) -> Result<FigureModelEntry<N>, RenderError> {
+        span!(_guard, "create_figure", "FigureColLights::create_figure");
         let atlas = &mut self.atlas;
         let allocation = atlas
             .allocate(guillotiere::Size::new(

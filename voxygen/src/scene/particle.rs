@@ -11,6 +11,7 @@ use common::{
     comp::{item::Reagent, object, Body, CharacterState, Pos},
     figure::Segment,
     outcome::Outcome,
+    span,
     spiral::Spiral2d,
     state::DeltaTime,
     terrain::TerrainChunk,
@@ -48,6 +49,7 @@ impl ParticleMgr {
     }
 
     pub fn handle_outcome(&mut self, outcome: &Outcome, scene_data: &SceneData) {
+        span!(_guard, "handle_outcome", "ParticleMgr::handle_outcome");
         let time = scene_data.state.get_time();
         let mut rng = rand::thread_rng();
 
@@ -98,6 +100,7 @@ impl ParticleMgr {
         scene_data: &SceneData,
         terrain: &Terrain<TerrainChunk>,
     ) {
+        span!(_guard, "maintain", "ParticleMgr::maintain");
         if scene_data.particles_enabled {
             // update timings
             self.scheduler.maintain(scene_data.state.get_time());
@@ -122,6 +125,11 @@ impl ParticleMgr {
     }
 
     fn maintain_body_particles(&mut self, scene_data: &SceneData) {
+        span!(
+            _guard,
+            "body_particles",
+            "ParticleMgr::maintain_body_particles"
+        );
         let ecs = scene_data.state.ecs();
         for (body, pos) in (&ecs.read_storage::<Body>(), &ecs.read_storage::<Pos>()).join() {
             match body {
@@ -148,6 +156,11 @@ impl ParticleMgr {
     }
 
     fn maintain_campfirelit_particles(&mut self, scene_data: &SceneData, pos: &Pos) {
+        span!(
+            _guard,
+            "campfirelit_particles",
+            "ParticleMgr::maintain_campfirelit_particles"
+        );
         let time = scene_data.state.get_time();
 
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(10)) {
@@ -168,6 +181,11 @@ impl ParticleMgr {
     }
 
     fn maintain_boltfire_particles(&mut self, scene_data: &SceneData, pos: &Pos) {
+        span!(
+            _guard,
+            "boltfire_particles",
+            "ParticleMgr::maintain_boltfire_particles"
+        );
         let time = scene_data.state.get_time();
 
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(10)) {
@@ -187,6 +205,11 @@ impl ParticleMgr {
     }
 
     fn maintain_boltfirebig_particles(&mut self, scene_data: &SceneData, pos: &Pos) {
+        span!(
+            _guard,
+            "boltfirebig_particles",
+            "ParticleMgr::maintain_boltfirebig_particles"
+        );
         let time = scene_data.state.get_time();
 
         // fire
@@ -217,6 +240,11 @@ impl ParticleMgr {
     }
 
     fn maintain_bomb_particles(&mut self, scene_data: &SceneData, pos: &Pos) {
+        span!(
+            _guard,
+            "bomb_particles",
+            "ParticleMgr::maintain_bomb_particles"
+        );
         let time = scene_data.state.get_time();
 
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(10)) {
@@ -239,6 +267,11 @@ impl ParticleMgr {
     }
 
     fn maintain_boost_particles(&mut self, scene_data: &SceneData) {
+        span!(
+            _guard,
+            "boost_particles",
+            "ParticleMgr::maintain_boost_particles"
+        );
         let state = scene_data.state;
         let ecs = state.ecs();
         let time = state.get_time();
@@ -272,6 +305,11 @@ impl ParticleMgr {
         scene_data: &SceneData,
         terrain: &Terrain<TerrainChunk>,
     ) {
+        span!(
+            _guard,
+            "block_particles",
+            "ParticleMgr::maintain_block_particles"
+        );
         let dt = scene_data.state.ecs().fetch::<DeltaTime>().0;
         let time = scene_data.state.get_time();
         let player_pos = scene_data
@@ -383,6 +421,7 @@ impl ParticleMgr {
     }
 
     fn upload_particles(&mut self, renderer: &mut Renderer) {
+        span!(_guard, "upload_particles", "ParticleMgr::upload_particles");
         let all_cpu_instances = self
             .particles
             .iter()
@@ -404,6 +443,7 @@ impl ParticleMgr {
         global: &GlobalModel,
         lod: &LodData,
     ) {
+        span!(_guard, "render", "ParticleMgr::render");
         if scene_data.particles_enabled {
             let model = &self
                 .model_cache
@@ -489,6 +529,7 @@ impl HeartbeatScheduler {
     /// updates the last elapsed times and elapsed counts
     /// this should be called once, and only once per tick.
     pub fn maintain(&mut self, now: f64) {
+        span!(_guard, "maintain", "HeartbeatScheduler::maintain");
         self.last_known_time = now;
 
         for (frequency, (last_update, heartbeats)) in self.timers.iter_mut() {
@@ -520,6 +561,7 @@ impl HeartbeatScheduler {
     /// - if it's equal to the tick rate, it could be between 2 and 0, due to
     /// delta time variance.
     pub fn heartbeats(&mut self, frequency: Duration) -> u8 {
+        span!(_guard, "HeartbeatScheduler::heartbeats");
         let last_known_time = self.last_known_time;
 
         self.timers

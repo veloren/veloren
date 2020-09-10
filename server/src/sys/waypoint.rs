@@ -3,6 +3,7 @@ use crate::client::Client;
 use common::{
     comp::{Player, Pos, Waypoint, WaypointArea},
     msg::{Notification, ServerMsg},
+    span,
     state::Time,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, Write, WriteStorage};
@@ -30,6 +31,7 @@ impl<'a> System<'a> for Sys {
         &mut self,
         (entities, positions, players, waypoint_areas, mut waypoints, mut clients, time, mut timer): Self::SystemData,
     ) {
+        span!(_guard, "run", "waypoint::Sys::run");
         timer.start();
 
         for (entity, player_pos, _, client) in

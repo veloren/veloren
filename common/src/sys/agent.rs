@@ -11,6 +11,7 @@ use crate::{
     },
     event::{EventBus, ServerEvent},
     path::{Chaser, TraversalConfig},
+    span,
     state::{DeltaTime, Time},
     sync::{Uid, UidAllocator},
     terrain::TerrainGrid,
@@ -83,6 +84,7 @@ impl<'a> System<'a> for Sys {
             invites,
         ): Self::SystemData,
     ) {
+        span!(_guard, "run", "agent::Sys::run");
         for (
             entity,
             pos,

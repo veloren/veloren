@@ -22,6 +22,7 @@ use common::{
     event::EventBus,
     msg::ClientState,
     outcome::Outcome,
+    span,
     terrain::{Block, BlockKind},
     util::Dir,
     vol::ReadVol,
@@ -111,6 +112,7 @@ impl SessionState {
         global_state: &mut GlobalState,
         outcomes: &mut Vec<Outcome>,
     ) -> Result<TickAction, Error> {
+        span!(_guard, "tick", "Session::tick");
         self.inputs.tick(dt);
 
         let mut client = self.client.borrow_mut();
@@ -195,6 +197,7 @@ impl PlayState for SessionState {
     }
 
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
+        span!(_guard, "tick", "<Session as PlayState>::tick");
         // NOTE: Not strictly necessary, but useful for hotloading translation changes.
         self.voxygen_i18n = VoxygenLocalization::load_expect(&i18n_asset_key(
             &global_state.settings.language.selected_language,
@@ -1084,6 +1087,7 @@ impl PlayState for SessionState {
     ///
     /// This method should be called once per frame.
     fn render(&mut self, renderer: &mut Renderer, settings: &Settings) {
+        span!(_guard, "render", "<Session as PlayState>::render");
         // Render the screen using the global renderer
         {
             let client = self.client.borrow();

@@ -47,6 +47,7 @@ pub fn init(settings: &Settings) -> Vec<impl Drop> {
             .add_directive(LevelFilter::INFO.into())
     };
 
+    #[cfg(not(feature = "tracy"))]
     let filter = match std::env::var_os(RUST_LOG_ENV).map(|s| s.into_string()) {
         Some(Ok(env)) => {
             let mut filter = base_exceptions(EnvFilter::new(""));
@@ -60,6 +61,9 @@ pub fn init(settings: &Settings) -> Vec<impl Drop> {
         },
         _ => base_exceptions(EnvFilter::from_env(RUST_LOG_ENV)),
     };
+
+    #[cfg(feature = "tracy")]
+    let filter = base_exceptions(EnvFilter::new("")).add_directive(LevelFilter::TRACE.into());
 
     // Create the terminal writer layer.
     let (non_blocking, _stdio_guard) = tracing_appender::non_blocking(std::io::stdout());
@@ -77,9 +81,17 @@ pub fn init(settings: &Settings) -> Vec<impl Drop> {
                 tracing_appender::rolling::daily(&settings.log.logs_path, LOG_FILENAME);
             let (non_blocking_file, _file_guard) = tracing_appender::non_blocking(file_appender);
             _guards.push(_file_guard);
+            #[cfg(not(feature = "tracy"))]
             registry()
                 .with(tracing_subscriber::fmt::layer().with_writer(non_blocking))
                 .with(tracing_subscriber::fmt::layer().with_writer(non_blocking_file))
+                .with(filter)
+                .init();
+            #[cfg(feature = "tracy")]
+            registry()
+                // NOTE: collecting stacks has a significant overhead (x6 overhead of
+                // starting/stopping a span through the layer interface)
+                .with(tracing_tracy::TracyLayer::new().with_stackdepth(0))
                 .with(filter)
                 .init();
             let logdir = &settings.log.logs_path;
@@ -91,8 +103,13 @@ pub fn init(settings: &Settings) -> Vec<impl Drop> {
                 ?e,
                 "Failed to create log file!. Falling back to terminal logging only.",
             );
+            #[cfg(not(feature = "tracy"))]
             registry()
                 .with(tracing_subscriber::fmt::layer().with_writer(non_blocking))
+                .with(filter);
+            #[cfg(feature = "tracy")]
+            registry()
+                .with(tracing_tracy::TracyLayer::new().with_stackdepth(0))
                 .with(filter)
                 .init();
             info!("Setup terminal logging.");

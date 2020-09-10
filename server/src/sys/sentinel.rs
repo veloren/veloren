@@ -5,6 +5,7 @@ use common::{
         Loadout, Mass, MountState, Mounting, Ori, Player, Pos, Scale, Stats, Sticky, Vel,
     },
     msg::EcsCompPacket,
+    span,
     sync::{CompSyncPackage, EntityPackage, EntitySyncPackage, Uid, UpdateTracker, WorldSyncExt},
 };
 use hashbrown::HashMap;
@@ -26,6 +27,7 @@ impl<'a> System<'a> for Sys {
     );
 
     fn run(&mut self, (mut timer, comps, mut trackers): Self::SystemData) {
+        span!(_guard, "run", "sentinel::Sys::run");
         timer.start();
 
         record_changes(&comps, &mut trackers);
