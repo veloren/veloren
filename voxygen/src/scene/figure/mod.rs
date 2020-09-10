@@ -30,7 +30,7 @@ use common::{
     },
     span,
     state::{DeltaTime, State},
-    states::wielding::StageSection,
+    states::utils::StageSection,
     terrain::TerrainChunk,
     vol::RectRasterableVol,
 };
@@ -946,7 +946,7 @@ impl FigureMgr {
                                             .base_recover_duration
                                             .as_secs_f64()
                                 },
-                                StageSection::Combo => stage_time / s.combo_duration.as_secs_f64(),
+                                _ => 0.0,
                             };
                             match s.stage {
                                 1 => anim::character::AlphaAnimation::update_skeleton(

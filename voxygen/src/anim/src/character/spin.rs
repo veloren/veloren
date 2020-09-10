@@ -4,7 +4,7 @@ use super::{
 };
 use common::{
     comp::item::{Hands, ToolKind},
-    states::wielding::StageSection,
+    states::utils::StageSection,
 };
 use std::f32::consts::PI;
 
@@ -104,7 +104,7 @@ impl Animation for SpinAnimation {
                         next.shorts.orientation = Quaternion::rotation_z(test2 * 1.5);
                         next.torso.orientation = Quaternion::rotation_z(test2 * 7.2);
                     },
-                    StageSection::Recover | StageSection::Combo => {
+                    StageSection::Recover => {
                         //println!("{:.3} recover", anim_time);
                         next.control.position = Vec3::new(
                             -8.0,
@@ -119,6 +119,7 @@ impl Animation for SpinAnimation {
                         next.head.orientation = Quaternion::rotation_y(movement * 0.1)
                             * Quaternion::rotation_z(movement * -0.1);
                     },
+                    _ => {},
                 }
             }
         }

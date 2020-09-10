@@ -4,7 +4,7 @@ use super::{
 };
 use common::{
     comp::item::{Hands, ToolKind},
-    states::wielding::StageSection,
+    states::utils::StageSection,
 };
 
 pub struct BetaAnimation;
@@ -98,7 +98,7 @@ impl Animation for BetaAnimation {
                         next.head.orientation = Quaternion::rotation_y(0.1)
                             * Quaternion::rotation_z(-1.2 + test * -0.5);
                     },
-                    StageSection::Recover | StageSection::Combo => {
+                    StageSection::Recover => {
                         next.control.position = Vec3::new(10.0 + movement * -5.0, 8.0, 6.0);
                         next.control.orientation = Quaternion::rotation_x(-1.57)
                             * Quaternion::rotation_y(2.0)
@@ -108,6 +108,7 @@ impl Animation for BetaAnimation {
                         next.head.orientation =
                             Quaternion::rotation_y(0.1) * Quaternion::rotation_z(-1.5);
                     },
+                    _ => {},
                 }
             }
         }
