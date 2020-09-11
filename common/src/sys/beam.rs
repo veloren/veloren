@@ -190,13 +190,12 @@ impl<'a> System<'a> for Sys {
                     }
 
                     if damage.healthchange != 0.0 {
+                        let cause = if is_heal { HealthSource::Healing { by: Some(*uid) } } else { HealthSource::Attack { by: *uid } };
                         server_emitter.emit(ServerEvent::Damage {
                             uid: *uid_b,
                             change: HealthChange {
                                 amount: damage.healthchange as i32,
-                                cause: HealthSource::Attack {
-                                    by: beam.owner.unwrap_or(*uid),
-                                },
+                                cause,
                             },
                         });
                         if is_damage && beam.lifesteal_eff > 0.0 {

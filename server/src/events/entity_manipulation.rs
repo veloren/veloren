@@ -533,15 +533,11 @@ pub fn handle_explosion(
                 damage.modify_damage(block, loadout);
             }
 
-            if damage.healthchange < 0.0 {
+            if damage.healthchange != 0.0 {
+                let cause = if is_heal { HealthSource::Healing { by: owner } } else { HealthSource::Explosion { owner } };
                 stats_b.health.change_by(HealthChange {
                     amount: damage.healthchange as i32,
-                    cause: HealthSource::Explosion { owner },
-                });
-            } else if damage.healthchange > 0.0 {
-                stats_b.health.change_by(HealthChange {
-                    amount: damage.healthchange as i32,
-                    cause: HealthSource::Healing { by: owner },
+                    cause,
                 });
             }
         }
