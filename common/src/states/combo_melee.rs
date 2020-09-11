@@ -86,7 +86,7 @@ impl CharacterBehavior for Data {
                 energy_increase: self.energy_increase,
                 timer: self
                     .timer
-                    .checked_add(Duration::from_secs_f32((1.0 + self.max_speed_increase * (1.0 - self.speed_increase.powi((self.combo / self.num_stages) as i32))) * data.dt.0))
+                    .checked_add(Duration::from_secs_f32((1.0 + self.max_speed_increase * (1.0 - self.speed_increase.powi(self.combo as i32))) * data.dt.0))
                     .unwrap_or_default(),
                 stage_section: self.stage_section,
                 next_stage: self.next_stage,
@@ -145,7 +145,7 @@ impl CharacterBehavior for Data {
                 energy_increase: self.energy_increase,
                 timer: self
                     .timer
-                    .checked_add(Duration::from_secs_f32((1.0 + self.max_speed_increase * (1.0 - self.speed_increase.powi((self.combo / self.num_stages) as i32))) * data.dt.0))
+                    .checked_add(Duration::from_secs_f32((1.0 + self.max_speed_increase * (1.0 - self.speed_increase.powi(self.combo as i32))) * data.dt.0))
                     .unwrap_or_default(),
                 stage_section: self.stage_section,
                 next_stage: self.next_stage,
@@ -184,7 +184,7 @@ impl CharacterBehavior for Data {
                     energy_increase: self.energy_increase,
                     timer: self
                         .timer
-                        .checked_add(Duration::from_secs_f32((1.0 + self.max_speed_increase * (1.0 - self.speed_increase.powi((self.combo / self.num_stages) as i32))) * data.dt.0))
+                        .checked_add(Duration::from_secs_f32((1.0 + self.max_speed_increase * (1.0 - self.speed_increase.powi(self.combo as i32))) * data.dt.0))
                         .unwrap_or_default(),
                     stage_section: self.stage_section,
                     next_stage: true,
@@ -202,7 +202,7 @@ impl CharacterBehavior for Data {
                     energy_increase: self.energy_increase,
                     timer: self
                         .timer
-                        .checked_add(Duration::from_secs_f32((1.0 + self.max_speed_increase * (1.0 - self.speed_increase.powi((self.combo / self.num_stages) as i32))) * data.dt.0))
+                        .checked_add(Duration::from_secs_f32((1.0 + self.max_speed_increase * (1.0 - self.speed_increase.powi(self.combo as i32))) * data.dt.0))
                         .unwrap_or_default(),
                     stage_section: self.stage_section,
                     next_stage: self.next_stage,
@@ -215,7 +215,7 @@ impl CharacterBehavior for Data {
             update.character = CharacterState::ComboMelee(Data {
                 stage: (self.stage % self.num_stages) + 1,
                 num_stages: self.num_stages,
-                combo: self.combo + 1,
+                combo: self.combo,
                 stage_data: self.stage_data.clone(),
                 initial_energy_gain: self.initial_energy_gain,
                 max_energy_gain: self.max_energy_gain,
@@ -240,6 +240,20 @@ impl CharacterBehavior for Data {
                     .max_energy_gain
                     .min(self.initial_energy_gain + self.combo * self.energy_increase)
                     as i32;
+                update.character = CharacterState::ComboMelee(Data {
+                    stage: self.stage,
+                    num_stages: self.num_stages,
+                    combo: self.combo + 1,
+                    stage_data: self.stage_data.clone(),
+                    initial_energy_gain: self.initial_energy_gain,
+                    max_energy_gain: self.max_energy_gain,
+                    energy_increase: self.energy_increase,
+                    timer: self.timer,
+                    stage_section: self.stage_section,
+                    next_stage: self.next_stage,
+                    speed_increase: self.speed_increase,
+                    max_speed_increase: self.max_speed_increase,
+                });
                 data.updater.remove::<Attacking>(data.entity);
                 update.energy.change_by(energy, EnergySource::HitEnemy);
             }
