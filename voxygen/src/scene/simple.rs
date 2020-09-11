@@ -26,6 +26,7 @@ use common::{
 };
 use tracing::error;
 use vek::*;
+use winit::event::MouseButton;
 
 #[derive(PartialEq, Eq, Copy, Clone)]
 struct VoidVox;
@@ -84,7 +85,8 @@ pub struct Scene {
     figure_model_cache: FigureModelCache,
     figure_state: FigureState<CharacterSkeleton>,
 
-    turning: bool,
+    turning_camera: bool,
+    turning_character: bool,
     char_ori: f32,
 }
 
@@ -188,7 +190,8 @@ impl Scene {
 
             camera,
 
-            turning: false,
+            turning_camera: false,
+            turning_character: false,
             char_ori: -start_angle,
         }
     }
@@ -208,12 +211,23 @@ impl Scene {
                 self.camera.set_aspect_ratio(dims.x as f32 / dims.y as f32);
                 true
             },
-            Event::MouseButton(_, state) => {
-                self.turning = state == PressState::Pressed;
+            Event::MouseButton(button, state) => {
+                if state == PressState::Pressed {
+                    self.turning_camera = button == MouseButton::Right;
+                    self.turning_character = button == MouseButton::Left;
+                } else {
+                    self.turning_camera = false;
+                    self.turning_character = false;
+                }
                 true
             },
-            Event::CursorMove(delta) if self.turning => {
-                self.char_ori += delta.x * 0.01;
+            Event::CursorMove(delta) => {
+                if self.turning_camera {
+                    self.camera.rotate_by(Vec3::new(delta.x * 0.01, 0.0, 0.0))
+                }
+                if self.turning_character {
+                    self.char_ori += delta.x * 0.01;
+                }
                 true
             },
             // All other events are unhandled
