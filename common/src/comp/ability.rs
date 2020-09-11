@@ -92,7 +92,8 @@ pub enum CharacterAbility {
         initial_energy_gain: u32,
         max_energy_gain: u32,
         energy_increase: u32,
-        combo_duration: Duration,
+        speed_increase: f32,
+        max_speed_increase: f32,
     },
     LeapMelee {
         energy_cost: u32,
@@ -361,7 +362,8 @@ impl From<&CharacterAbility> for CharacterState {
                 initial_energy_gain,
                 max_energy_gain,
                 energy_increase,
-                combo_duration,
+                speed_increase,
+                max_speed_increase,
             } => CharacterState::ComboMelee(combo_melee::Data {
                 stage: 1,
                 num_stages: stage_data.len() as u32,
@@ -370,10 +372,11 @@ impl From<&CharacterAbility> for CharacterState {
                 initial_energy_gain: *initial_energy_gain,
                 max_energy_gain: *max_energy_gain,
                 energy_increase: *energy_increase,
-                combo_duration: *combo_duration,
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
                 next_stage: false,
+                speed_increase: *speed_increase,
+                max_speed_increase: *max_speed_increase,
             }),
             CharacterAbility::LeapMelee {
                 energy_cost: _,

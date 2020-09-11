@@ -51,14 +51,16 @@ pub struct Data {
     pub max_energy_gain: u32,
     /// Energy gain increase per combo
     pub energy_increase: u32,
-    /// Duration for the next stage to be activated
-    pub combo_duration: Duration,
     /// Timer for each stage
     pub timer: Duration,
     /// Checks what section a stage is in
     pub stage_section: StageSection,
     /// Whether the state should go onto the next stage
     pub next_stage: bool,
+    /// (100% - speed_increase) is percentage speed increases from current to max when combo increases
+    pub speed_increase: f32,
+    /// (100% + max_speed_increase) is the max attack speed
+    pub max_speed_increase: f32,
 }
 
 impl CharacterBehavior for Data {
@@ -82,13 +84,14 @@ impl CharacterBehavior for Data {
                 initial_energy_gain: self.initial_energy_gain,
                 max_energy_gain: self.max_energy_gain,
                 energy_increase: self.energy_increase,
-                combo_duration: self.combo_duration,
                 timer: self
                     .timer
-                    .checked_add(Duration::from_secs_f32(data.dt.0))
+                    .checked_add(Duration::from_secs_f32((1.0 + self.max_speed_increase * (1.0 - self.speed_increase.powi((self.combo / self.num_stages) as i32))) * data.dt.0))
                     .unwrap_or_default(),
                 stage_section: self.stage_section,
                 next_stage: self.next_stage,
+                speed_increase: self.speed_increase,
+                max_speed_increase: self.max_speed_increase,
             });
         } else if self.stage_section == StageSection::Buildup {
             // Transitions to swing section of stage
@@ -100,10 +103,11 @@ impl CharacterBehavior for Data {
                 initial_energy_gain: self.initial_energy_gain,
                 max_energy_gain: self.max_energy_gain,
                 energy_increase: self.energy_increase,
-                combo_duration: self.combo_duration,
                 timer: Duration::default(),
                 stage_section: StageSection::Swing,
                 next_stage: self.next_stage,
+                speed_increase: self.speed_increase,
+                max_speed_increase: self.max_speed_increase,
             });
 
             // Hit attempt
@@ -139,13 +143,14 @@ impl CharacterBehavior for Data {
                 initial_energy_gain: self.initial_energy_gain,
                 max_energy_gain: self.max_energy_gain,
                 energy_increase: self.energy_increase,
-                combo_duration: self.combo_duration,
                 timer: self
                     .timer
-                    .checked_add(Duration::from_secs_f32(data.dt.0))
+                    .checked_add(Duration::from_secs_f32((1.0 + self.max_speed_increase * (1.0 - self.speed_increase.powi((self.combo / self.num_stages) as i32))) * data.dt.0))
                     .unwrap_or_default(),
                 stage_section: self.stage_section,
                 next_stage: self.next_stage,
+                speed_increase: self.speed_increase,
+                max_speed_increase: self.max_speed_increase,
             });
         } else if self.stage_section == StageSection::Swing {
             // Transitions to recover section of stage
@@ -157,10 +162,11 @@ impl CharacterBehavior for Data {
                 initial_energy_gain: self.initial_energy_gain,
                 max_energy_gain: self.max_energy_gain,
                 energy_increase: self.energy_increase,
-                combo_duration: self.combo_duration,
                 timer: Duration::default(),
                 stage_section: StageSection::Recover,
                 next_stage: self.next_stage,
+                speed_increase: self.speed_increase,
+                max_speed_increase: self.max_speed_increase,
             });
         } else if self.stage_section == StageSection::Recover
             && self.timer < self.stage_data[stage_index].base_recover_duration
@@ -176,13 +182,14 @@ impl CharacterBehavior for Data {
                     initial_energy_gain: self.initial_energy_gain,
                     max_energy_gain: self.max_energy_gain,
                     energy_increase: self.energy_increase,
-                    combo_duration: self.combo_duration,
                     timer: self
                         .timer
-                        .checked_add(Duration::from_secs_f32(data.dt.0))
+                        .checked_add(Duration::from_secs_f32((1.0 + self.max_speed_increase * (1.0 - self.speed_increase.powi((self.combo / self.num_stages) as i32))) * data.dt.0))
                         .unwrap_or_default(),
                     stage_section: self.stage_section,
                     next_stage: true,
+                    speed_increase: self.speed_increase,
+                    max_speed_increase: self.max_speed_increase,
                 });
             } else {
                 update.character = CharacterState::ComboMelee(Data {
@@ -193,13 +200,14 @@ impl CharacterBehavior for Data {
                     initial_energy_gain: self.initial_energy_gain,
                     max_energy_gain: self.max_energy_gain,
                     energy_increase: self.energy_increase,
-                    combo_duration: self.combo_duration,
                     timer: self
                         .timer
-                        .checked_add(Duration::from_secs_f32(data.dt.0))
+                        .checked_add(Duration::from_secs_f32((1.0 + self.max_speed_increase * (1.0 - self.speed_increase.powi((self.combo / self.num_stages) as i32))) * data.dt.0))
                         .unwrap_or_default(),
                     stage_section: self.stage_section,
                     next_stage: self.next_stage,
+                    speed_increase: self.speed_increase,
+                    max_speed_increase: self.max_speed_increase,
                 });
             }
         } else if self.next_stage {
@@ -212,10 +220,11 @@ impl CharacterBehavior for Data {
                 initial_energy_gain: self.initial_energy_gain,
                 max_energy_gain: self.max_energy_gain,
                 energy_increase: self.energy_increase,
-                combo_duration: self.combo_duration,
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
                 next_stage: false,
+                speed_increase: self.speed_increase,
+                max_speed_increase: self.max_speed_increase,
             });
         } else {
             // Done
