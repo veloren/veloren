@@ -31,6 +31,8 @@ pub struct StaticData {
     pub buildup_duration: Duration,
     /// How long the state charges for until it reaches max damage
     pub charge_duration: Duration,
+    /// Suration of state spent in swing
+    pub swing_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
 }
@@ -174,6 +176,27 @@ impl CharacterBehavior for Data {
             );
         } else if self.stage_section == StageSection::Charge {
             // Transitions to swing section of stage
+            update.character = CharacterState::DashMelee(Data {
+                static_data: self.static_data,
+                end_charge: self.end_charge,
+                timer: Duration::default(),
+                stage_section: StageSection::Swing,
+                exhausted: self.exhausted,
+            })
+        } else if self.stage_section == StageSection::Swing && self.timer < self.static_data.swing_duration {
+            // Swings
+            update.character = CharacterState::DashMelee(Data {
+                static_data: self.static_data,
+                end_charge: self.end_charge,
+                timer: self
+                    .timer
+                    .checked_add(Duration::from_secs_f32(data.dt.0))
+                    .unwrap_or_default(),
+                stage_section: self.stage_section,
+                exhausted: self.exhausted,
+            })
+        } else if self.stage_section == StageSection::Swing {
+            // Transitions to recover section of stage
             update.character = CharacterState::DashMelee(Data {
                 static_data: self.static_data,
                 end_charge: self.end_charge,

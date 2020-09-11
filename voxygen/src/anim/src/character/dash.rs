@@ -2,7 +2,10 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::comp::item::{Hands, ToolKind};
+use common::{
+    comp::item::{Hands, ToolKind},
+    states::utils::StageSection,
+};
 
 pub struct Input {
     pub attack: bool,
@@ -10,7 +13,7 @@ pub struct Input {
 pub struct DashAnimation;
 
 impl Animation for DashAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, f64);
+    type Dependency = (Option<ToolKind>, Option<ToolKind>, f64, Option<StageSection>);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -20,7 +23,7 @@ impl Animation for DashAnimation {
     #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, _global_time): Self::Dependency,
+        (active_tool_kind, second_tool_kind, _global_time, stage_section): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -42,6 +45,23 @@ impl Animation for DashAnimation {
         match active_tool_kind {
             //TODO: Inventory
             Some(ToolKind::Sword(_)) => {
+                if let Some(stage_section) = stage_section {
+                    match stage_section {
+                        StageSection::Buildup => {
+
+                        },
+                        StageSection::Charge => {
+
+                        },
+                        StageSection::Swing => {
+
+                        },
+                        StageSection::Recover => {
+
+                        }
+                    }
+                }
+                
                 next.head.position = Vec3::new(
                     0.0,
                     -2.0 + skeleton_attr.head.0,
