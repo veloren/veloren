@@ -203,13 +203,23 @@ impl<'a> System<'a> for Sys {
                         damage.modify_damage(block, loadout);
                     }
 
-                    if damage.healthchange != 0.0 {
+                    if damage.healthchange < 0.0 {
                         server_emitter.emit(ServerEvent::Damage {
                             uid: *uid_b,
                             change: HealthChange {
                                 amount: damage.healthchange as i32,
                                 cause: HealthSource::Attack {
                                     by: shockwave.owner.unwrap_or(*uid),
+                                },
+                            },
+                        });
+                    } else if damage.healthchange > 0.0 {
+                        server_emitter.emit(ServerEvent::Damage {
+                            uid: *uid_b,
+                            change: HealthChange {
+                                amount: damage.healthchange as i32,
+                                cause: HealthSource::Healing {
+                                    by: Some(shockwave.owner.unwrap_or(*uid)),
                                 },
                             },
                         });
