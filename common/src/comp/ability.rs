@@ -83,7 +83,6 @@ pub enum CharacterAbility {
         buildup_duration: Duration,
         charge_duration: Duration,
         infinite_charge: bool,
-        swing_duration: Duration,
         recover_duration: Duration,
     },
     BasicBlock,
@@ -331,7 +330,6 @@ impl From<&CharacterAbility> for CharacterState {
                 buildup_duration,
                 charge_duration,
                 infinite_charge,
-                swing_duration,
                 recover_duration,
             } => CharacterState::DashMelee(dash_melee::Data {
                 static_data: dash_melee::StaticData {
