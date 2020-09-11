@@ -177,6 +177,7 @@ impl Tool {
                     forward_speed: 4.0,
                     buildup_duration: Duration::from_millis(200),
                     charge_duration: Duration::from_millis(400),
+                    swing_duration: Duration::from_millis(100),
                     recover_duration: Duration::from_millis(750),
                     infinite_charge: true,
                 },
