@@ -92,11 +92,22 @@ impl CharacterBehavior for Data {
                 timer: Duration::default(),
                 stage_section: StageSection::Charge,
             })
-        } else if self.stage_section == StageSection::Charge /*&& data.physics.touch_entities.is_empty()*/ && ((self.timer < self.charge_duration && !self.infinite_charge) || (data.inputs.secondary.is_pressed() && self.infinite_charge)) && update.energy.current() > 0
+        } else if self.stage_section == StageSection::Charge && data.physics.touch_entities.is_empty() && ((self.timer < self.charge_duration && !self.infinite_charge) || (data.inputs.secondary.is_pressed() && self.infinite_charge)) && update.energy.current() > 0
         {
             // Forward movement
             forward_move(data, &mut update, 0.1, self.forward_speed);
 
+            // Checks how much a charge has built up
+            let charge_attained = if self.timer > self.charge_duration_attained {
+                if self.timer > self.charge_duration_attained {
+                    self.charge_duration
+                } else {
+                    self.timer
+                }
+            } else {
+                self.charge_duration_attained
+            };
+            
             // Charges
             update.character = CharacterState::DashMelee(Data {
                 base_damage: self.base_damage,
@@ -109,7 +120,7 @@ impl CharacterBehavior for Data {
                 forward_speed: self.forward_speed,
                 buildup_duration: self.buildup_duration,
                 charge_duration: self.charge_duration,
-                charge_duration_attained: self.charge_duration_attained,
+                charge_duration_attained: charge_attained,
                 infinite_charge: self.infinite_charge,
                 swing_duration: self.swing_duration,
                 recover_duration: self.recover_duration,
@@ -147,15 +158,6 @@ impl CharacterBehavior for Data {
             })
         } else if self.stage_section == StageSection::Swing && self.timer < self.swing_duration {
             // Swings
-            let charge_attained = if self.timer > self.charge_duration_attained {
-                if self.timer > self.charge_duration_attained {
-                    self.charge_duration
-                } else {
-                    self.timer
-                }
-            } else {
-                self.charge_duration_attained
-            };
             update.character = CharacterState::DashMelee(Data {
                 base_damage: self.base_damage,
                 max_damage: self.max_damage,
@@ -167,7 +169,7 @@ impl CharacterBehavior for Data {
                 forward_speed: self.forward_speed,
                 buildup_duration: self.buildup_duration,
                 charge_duration: self.charge_duration,
-                charge_duration_attained: charge_attained,
+                charge_duration_attained: self.charge_duration_attained,
                 infinite_charge: self.infinite_charge,
                 swing_duration: self.swing_duration,
                 recover_duration: self.recover_duration,

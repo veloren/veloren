@@ -156,6 +156,9 @@ impl<'a> System<'a> for Sys {
             let z_limits = collider.map(|c| c.get_z_limits()).unwrap_or((-0.5, 0.5));
             let mass = mass.map(|m| m.0).unwrap_or(scale);
 
+            // Resets touch_entities in physics
+            physics.touch_entities.clear();
+
             // Group to ignore collisions with
             let ignore_group = projectile
                 .filter(|p| p.ignore_group)
@@ -187,6 +190,10 @@ impl<'a> System<'a> for Sys {
                 .join()
             {
                 if entity == entity_other || (ignore_group.is_some() && ignore_group == group_b) {
+                    continue;
+                }
+                
+                if entity_other == entity {
                     continue;
                 }
 
