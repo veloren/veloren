@@ -121,7 +121,8 @@ fn main() {
             std::thread::spawn(move || {
                 mbox();
             })
-            .join();
+            .join()
+            .unwrap();
 
             #[cfg(not(target_os = "windows"))]
             mbox();
