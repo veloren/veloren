@@ -105,6 +105,20 @@ impl CharacterBehavior for Data {
                 stage_section: StageSection::Swing,
                 next_stage: self.next_stage,
             });
+
+            // Hit attempt
+            data.updater.insert(data.entity, Attacking {
+                base_healthchange: -((self.stage_data[stage_index].max_damage.min(
+                    self.stage_data[stage_index].base_damage
+                        + self.combo / self.num_stages
+                            * self.stage_data[stage_index].damage_increase,
+                )) as i32),
+                range: self.stage_data[stage_index].range,
+                max_angle: self.stage_data[stage_index].angle.to_radians(),
+                applied: false,
+                hit_count: 0,
+                knockback: self.stage_data[stage_index].knockback,
+            });
         } else if self.stage_section == StageSection::Swing
             && self.timer < self.stage_data[stage_index].base_swing_duration
         {
@@ -134,20 +148,6 @@ impl CharacterBehavior for Data {
                 next_stage: self.next_stage,
             });
         } else if self.stage_section == StageSection::Swing {
-            // Hit attempt
-            data.updater.insert(data.entity, Attacking {
-                base_healthchange: -((self.stage_data[stage_index].max_damage.min(
-                    self.stage_data[stage_index].base_damage
-                        + self.combo / self.num_stages
-                            * self.stage_data[stage_index].damage_increase,
-                )) as i32),
-                range: self.stage_data[stage_index].range,
-                max_angle: self.stage_data[stage_index].angle.to_radians(),
-                applied: false,
-                hit_count: 0,
-                knockback: self.stage_data[stage_index].knockback,
-            });
-
             // Transitions to recover section of stage
             update.character = CharacterState::ComboMelee(Data {
                 stage: self.stage,
