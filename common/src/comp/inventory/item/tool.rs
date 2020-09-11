@@ -162,8 +162,8 @@ impl Tool {
                     initial_energy_gain: 0,
                     max_energy_gain: 100,
                     energy_increase: 20,
-                    speed_increase: 0.9,
-                    max_speed_increase: 0.8,
+                    speed_increase: 0.05,
+                    max_speed_increase: 1.8,
                 },
                 DashMelee {
                     energy_cost: 200,
@@ -177,8 +177,8 @@ impl Tool {
                     forward_speed: 4.0,
                     buildup_duration: Duration::from_millis(200),
                     charge_duration: Duration::from_millis(400),
-                    infinite_charge: true,
                     recover_duration: Duration::from_millis(750),
+                    infinite_charge: true,
                 },
             ],
             Axe(_) => vec![

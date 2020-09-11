@@ -375,8 +375,8 @@ impl From<&CharacterAbility> for CharacterState {
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
                 next_stage: false,
-                speed_increase: *speed_increase,
-                max_speed_increase: *max_speed_increase,
+                speed_increase: 1.0 - *speed_increase,
+                max_speed_increase: *max_speed_increase - 1.0,
             }),
             CharacterAbility::LeapMelee {
                 energy_cost: _,
