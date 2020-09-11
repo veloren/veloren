@@ -74,7 +74,7 @@ impl LoadoutBuilder {
             Body::Golem(golem) => match golem.species {
                 golem::Species::StoneGolem => {
                     main_tool = Some(Item::new_from_asset_expect(
-                        "common.items.weapons.bossweapon.stone_golems_fist",
+                        "common.items.npc_weapons.npcweapon.stone_golems_fist",
                     ));
                 },
             },
