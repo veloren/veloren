@@ -13,7 +13,12 @@ pub struct Input {
 pub struct DashAnimation;
 
 impl Animation for DashAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, f64, Option<StageSection>);
+    type Dependency = (
+        Option<ToolKind>,
+        Option<ToolKind>,
+        f64,
+        Option<StageSection>,
+    );
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -47,21 +52,13 @@ impl Animation for DashAnimation {
             Some(ToolKind::Sword(_)) => {
                 if let Some(stage_section) = stage_section {
                     match stage_section {
-                        StageSection::Buildup => {
-
-                        },
-                        StageSection::Charge => {
-
-                        },
-                        StageSection::Swing => {
-
-                        },
-                        StageSection::Recover => {
-
-                        }
+                        StageSection::Buildup => {},
+                        StageSection::Charge => {},
+                        StageSection::Swing => {},
+                        StageSection::Recover => {},
                     }
                 }
-                
+
                 next.head.position = Vec3::new(
                     0.0,
                     -2.0 + skeleton_attr.head.0,

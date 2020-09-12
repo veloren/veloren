@@ -6,7 +6,7 @@ ItemDef(
             kind: Sword("Zweihander0"),    
             stats: (
                 equip_time_millis: 500,
-                power: 0.2,
+                power: 0.75,
             ),
         )
     ),

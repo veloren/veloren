@@ -94,19 +94,19 @@
             ],
             threshold: 0.5,
         ),
-        Attack(ComboMelee(First), Sword): (
+        Attack(ComboMelee(1), Sword): (
             files: [
                 "voxygen.audio.sfx.abilities.swing_sword",
             ],
             threshold: 0.7,
         ),
-        Attack(ComboMelee(Second), Sword): (
+        Attack(ComboMelee(2), Sword): (
             files: [
                 "voxygen.audio.sfx.abilities.separated_second_swing",
             ],
             threshold: 0.7,
         ),
-        Attack(ComboMelee(Third), Sword): (
+        Attack(ComboMelee(3), Sword): (
             files: [
                 "voxygen.audio.sfx.abilities.separated_third_swing",
             ],
@@ -174,19 +174,7 @@
             ],
             threshold: 0.5,
         ),
-        Attack(ComboMelee(First), Axe): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing",
-            ],
-            threshold: 0.7,
-        ),
-        Attack(ComboMelee(Second), Axe): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing",
-            ],
-            threshold: 0.7,
-        ),
-        Attack(ComboMelee(Third), Axe): (
+        Attack(BasicMelee, Axe): (
             files: [
                 "voxygen.audio.sfx.abilities.swing",
             ],
