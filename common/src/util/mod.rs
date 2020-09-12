@@ -1,5 +1,6 @@
 mod color;
 mod dir;
+mod option;
 
 pub const GIT_VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/githash"));
 
@@ -10,6 +11,7 @@ lazy_static::lazy_static! {
 
 pub use color::*;
 pub use dir::*;
+pub use option::*;
 
 #[cfg(feature = "tracy")] pub use tracy_client;
 
