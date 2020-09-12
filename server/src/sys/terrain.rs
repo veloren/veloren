@@ -115,10 +115,16 @@ impl<'a> System<'a> for Sys {
                 let mut body = entity.body;
                 let name = entity.name.unwrap_or_else(|| "Unnamed".to_string());
                 let alignment = entity.alignment;
-                let main_tool = entity.main_tool;
+                let mut main_tool = entity.main_tool;
                 let mut stats = comp::Stats::new(name, body);
                 // let damage = stats.level.level() as i32; TODO: Make NPC base damage
                 // non-linearly depend on their level
+
+                if entity.is_giant {
+                    main_tool = Some(comp::Item::new_from_asset_expect(
+                        "common.items.npc_weapons.sword.zweihander_sword_0",
+                    ));
+                }
 
                 let mut loadout = LoadoutBuilder::build_loadout(body, alignment, main_tool).build();
 
@@ -152,24 +158,7 @@ impl<'a> System<'a> for Sys {
                         );
                     }
                     loadout = comp::Loadout {
-                        active_item: Some(comp::ItemConfig {
-                            item: comp::Item::new_from_asset_expect(
-                                "common.items.npc_weapons.sword.zweihander_sword_0",
-                            ),
-                            ability1: Some(CharacterAbility::BasicMelee {
-                                energy_cost: 0,
-                                buildup_duration: Duration::from_millis(800),
-                                recover_duration: Duration::from_millis(200),
-                                base_healthchange: -100,
-                                knockback: 0.0,
-                                range: 3.5,
-                                max_angle: 60.0,
-                            }),
-                            ability2: None,
-                            ability3: None,
-                            block_ability: None,
-                            dodge_ability: None,
-                        }),
+                        active_item,
                         second_item: None,
                         shoulder: Some(comp::Item::new_from_asset_expect(
                             "common.items.armor.shoulder.plate_0",

@@ -98,10 +98,9 @@ pub fn forward_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, 
         BASE_HUMANOID_AIR_ACCEL
     };
 
-    update.vel.0 = update.vel.0
-        + Vec2::broadcast(data.dt.0)
-            * accel
-            * (data.inputs.move_dir * efficiency + (*update.ori.0).xy() * forward);
+    update.vel.0 += Vec2::broadcast(data.dt.0)
+        * accel
+        * (data.inputs.move_dir * efficiency + (*update.ori.0).xy() * forward);
 
     handle_orientation(data, update, data.body.base_ori_rate() * efficiency);
 }

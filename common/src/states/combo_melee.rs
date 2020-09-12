@@ -43,7 +43,7 @@ pub struct Data {
     pub num_stages: u32,
     /// Number of consecutive strikes
     pub combo: u32,
-    /// Data for first stage
+    /// Data for each stage
     pub stage_data: Vec<Stage>,
     /// Initial energy gain per strike
     pub initial_energy_gain: u32,
@@ -57,10 +57,13 @@ pub struct Data {
     pub stage_section: StageSection,
     /// Whether the state should go onto the next stage
     pub next_stage: bool,
-    /// (100% - speed_increase) is percentage speed increases from current to max when combo increases
+    /// (100% - speed_increase) is percentage speed increases from current to
+    /// max when combo increases
     pub speed_increase: f32,
     /// (100% + max_speed_increase) is the max attack speed
     pub max_speed_increase: f32,
+    /// Whether the state can be interrupted by other abilities
+    pub is_interruptible: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -68,9 +71,21 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         handle_orientation(data, &mut update, 1.0);
-        handle_move(data, &mut update, 0.1);
+        handle_move(data, &mut update, 0.3);
 
         let stage_index = (self.stage - 1) as usize;
+
+        // Allows for other states to interrupt this state
+        if self.is_interruptible && !data.inputs.primary.is_pressed() {
+            if data.inputs.roll.is_pressed() {
+                handle_dodge_input(data, &mut update);
+                return update;
+            }
+            if data.inputs.secondary.is_pressed() {
+                handle_ability2_input(data, &mut update);
+                return update;
+            }
+        }
 
         if self.stage_section == StageSection::Buildup
             && self.timer < self.stage_data[stage_index].base_buildup_duration
@@ -86,12 +101,17 @@ impl CharacterBehavior for Data {
                 energy_increase: self.energy_increase,
                 timer: self
                     .timer
-                    .checked_add(Duration::from_secs_f32((1.0 + self.max_speed_increase * (1.0 - self.speed_increase.powi(self.combo as i32))) * data.dt.0))
+                    .checked_add(Duration::from_secs_f32(
+                        (1.0 + self.max_speed_increase
+                            * (1.0 - self.speed_increase.powi(self.combo as i32)))
+                            * data.dt.0,
+                    ))
                     .unwrap_or_default(),
                 stage_section: self.stage_section,
                 next_stage: self.next_stage,
                 speed_increase: self.speed_increase,
                 max_speed_increase: self.max_speed_increase,
+                is_interruptible: self.is_interruptible,
             });
         } else if self.stage_section == StageSection::Buildup {
             // Transitions to swing section of stage
@@ -108,6 +128,7 @@ impl CharacterBehavior for Data {
                 next_stage: self.next_stage,
                 speed_increase: self.speed_increase,
                 max_speed_increase: self.max_speed_increase,
+                is_interruptible: self.is_interruptible,
             });
 
             // Hit attempt
@@ -130,7 +151,7 @@ impl CharacterBehavior for Data {
             forward_move(
                 data,
                 &mut update,
-                0.1,
+                0.3,
                 self.stage_data[stage_index].forward_movement,
             );
 
@@ -145,12 +166,17 @@ impl CharacterBehavior for Data {
                 energy_increase: self.energy_increase,
                 timer: self
                     .timer
-                    .checked_add(Duration::from_secs_f32((1.0 + self.max_speed_increase * (1.0 - self.speed_increase.powi(self.combo as i32))) * data.dt.0))
+                    .checked_add(Duration::from_secs_f32(
+                        (1.0 + self.max_speed_increase
+                            * (1.0 - self.speed_increase.powi(self.combo as i32)))
+                            * data.dt.0,
+                    ))
                     .unwrap_or_default(),
                 stage_section: self.stage_section,
                 next_stage: self.next_stage,
                 speed_increase: self.speed_increase,
                 max_speed_increase: self.max_speed_increase,
+                is_interruptible: self.is_interruptible,
             });
         } else if self.stage_section == StageSection::Swing {
             // Transitions to recover section of stage
@@ -167,6 +193,7 @@ impl CharacterBehavior for Data {
                 next_stage: self.next_stage,
                 speed_increase: self.speed_increase,
                 max_speed_increase: self.max_speed_increase,
+                is_interruptible: self.is_interruptible,
             });
         } else if self.stage_section == StageSection::Recover
             && self.timer < self.stage_data[stage_index].base_recover_duration
@@ -184,12 +211,17 @@ impl CharacterBehavior for Data {
                     energy_increase: self.energy_increase,
                     timer: self
                         .timer
-                        .checked_add(Duration::from_secs_f32((1.0 + self.max_speed_increase * (1.0 - self.speed_increase.powi(self.combo as i32))) * data.dt.0))
+                        .checked_add(Duration::from_secs_f32(
+                            (1.0 + self.max_speed_increase
+                                * (1.0 - self.speed_increase.powi(self.combo as i32)))
+                                * data.dt.0,
+                        ))
                         .unwrap_or_default(),
                     stage_section: self.stage_section,
                     next_stage: true,
                     speed_increase: self.speed_increase,
                     max_speed_increase: self.max_speed_increase,
+                    is_interruptible: self.is_interruptible,
                 });
             } else {
                 update.character = CharacterState::ComboMelee(Data {
@@ -202,12 +234,17 @@ impl CharacterBehavior for Data {
                     energy_increase: self.energy_increase,
                     timer: self
                         .timer
-                        .checked_add(Duration::from_secs_f32((1.0 + self.max_speed_increase * (1.0 - self.speed_increase.powi(self.combo as i32))) * data.dt.0))
+                        .checked_add(Duration::from_secs_f32(
+                            (1.0 + self.max_speed_increase
+                                * (1.0 - self.speed_increase.powi(self.combo as i32)))
+                                * data.dt.0,
+                        ))
                         .unwrap_or_default(),
                     stage_section: self.stage_section,
                     next_stage: self.next_stage,
                     speed_increase: self.speed_increase,
                     max_speed_increase: self.max_speed_increase,
+                    is_interruptible: self.is_interruptible,
                 });
             }
         } else if self.next_stage {
@@ -225,6 +262,7 @@ impl CharacterBehavior for Data {
                 next_stage: false,
                 speed_increase: self.speed_increase,
                 max_speed_increase: self.max_speed_increase,
+                is_interruptible: self.is_interruptible,
             });
         } else {
             // Done
@@ -253,6 +291,7 @@ impl CharacterBehavior for Data {
                     next_stage: self.next_stage,
                     speed_increase: self.speed_increase,
                     max_speed_increase: self.max_speed_increase,
+                    is_interruptible: self.is_interruptible,
                 });
                 data.updater.remove::<Attacking>(data.entity);
                 update.energy.change_by(energy, EnergySource::HitEnemy);
