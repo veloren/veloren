@@ -944,7 +944,7 @@ impl Renderer {
     }
 
     /// Create a new set of constants with the provided values.
-    pub fn create_consts<T: Copy + zerocopy::AsBytes>(
+    pub fn create_consts<T: Copy + bytemuck::Pod>(
         &mut self,
         vals: &[T],
     ) -> Result<Consts<T>, RenderError> {
@@ -954,16 +954,12 @@ impl Renderer {
     }
 
     /// Update a set of constants with the provided values.
-    pub fn update_consts<T: Copy + zerocopy::AsBytes>(
-        &mut self,
-        consts: &mut Consts<T>,
-        vals: &[T],
-    ) -> Result<(), RenderError> {
+    pub fn update_consts<T: Copy + bytemuck::Pod>(&mut self, consts: &mut Consts<T>, vals: &[T]) {
         consts.update(&mut self.encoder, vals, 0)
     }
 
     /// Create a new set of instances with the provided values.
-    pub fn create_instances<T: Copy + zerocopy::AsBytes>(
+    pub fn create_instances<T: Copy + bytemuck::Pod>(
         &mut self,
         vals: &[T],
     ) -> Result<Instances<T>, RenderError> {

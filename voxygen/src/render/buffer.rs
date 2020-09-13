@@ -1,15 +1,15 @@
+use bytemuck::Pod;
 use wgpu::util::DeviceExt;
-use zerocopy::AsBytes;
 
 #[derive(Clone)]
-pub struct Buffer<T: Copy + AsBytes> {
+pub struct Buffer<T: Copy + Pod> {
     pub buf: wgpu::Buffer,
     // bytes
     count: usize,
     phantom_data: std::marker::PhantomData<T>,
 }
 
-impl<T: Copy + AsBytes> Buffer<T> {
+impl<T: Copy + Pod> Buffer<T> {
     pub fn new(device: &mut wgpu::Device, cap: usize, usage: wgpu::BufferUsage) -> Self {
         Self {
             buf: device.create_buffer(&wgpu::BufferDescriptor {

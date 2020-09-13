@@ -3,7 +3,7 @@ use crate::{
     mesh::{greedy::GreedyMesh, Meshable},
     render::{
         pipelines::particle::ParticleMode, GlobalModel, Instances, Light, LodData, Model,
-        ParticleInstance, ParticlePipeline, Renderer,
+        ParticleInstance, ParticleVertex, Renderer,
     },
 };
 use common::{
@@ -38,7 +38,7 @@ pub struct ParticleMgr {
     instances: Instances<ParticleInstance>,
 
     /// GPU Vertex Buffers
-    model_cache: HashMap<&'static str, Model<ParticlePipeline>>,
+    model_cache: HashMap<&'static str, Model<ParticleVertex>>,
 }
 
 impl ParticleMgr {
@@ -1211,7 +1211,7 @@ fn default_instances(renderer: &mut Renderer) -> Instances<ParticleInstance> {
 
 const DEFAULT_MODEL_KEY: &str = "voxygen.voxel.particle";
 
-fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<ParticlePipeline>> {
+fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<ParticleVertex>> {
     let mut model_cache = HashMap::new();
 
     model_cache.entry(DEFAULT_MODEL_KEY).or_insert_with(|| {
@@ -1227,7 +1227,7 @@ fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<Particl
         let segment = Segment::from(&vox.read().0);
         let segment_size = segment.size();
         let mut mesh =
-            Meshable::<ParticlePipeline, &mut GreedyMesh>::generate_mesh(segment, &mut greedy).0;
+            Meshable::<ParticleVertex, &mut GreedyMesh>::generate_mesh(segment, &mut greedy).0;
         // Center particle vertices around origin
         for vert in mesh.vertices_mut() {
             vert.pos[0] -= segment_size.x as f32 / 2.0;

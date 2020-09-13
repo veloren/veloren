@@ -1,13 +1,13 @@
 use super::{buffer::Buffer, RenderError};
-use zerocopy::AsBytes;
+use bytemuck::Pod;
 
 /// Represents a mesh that has been sent to the GPU.
 #[derive(Clone)]
-pub struct Instances<T: Copy + AsBytes> {
+pub struct Instances<T: Copy + Pod> {
     buf: Buffer<T>,
 }
 
-impl<T: Copy + AsBytes> Instances<T> {
+impl<T: Copy + Pod> Instances<T> {
     pub fn new(device: &mut wgpu::Device, len: usize) -> Self {
         Self {
             buf: Buffer::new(device, len, wgpu::BufferUsage::VERTEX),

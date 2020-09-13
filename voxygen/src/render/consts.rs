@@ -1,15 +1,15 @@
-use super::{buffer::Buffer, RenderError};
-use zerocopy::AsBytes;
+use super::buffer::Buffer;
+use bytemuck::Pod;
 
 /// A handle to a series of constants sitting on the GPU. This is used to hold
 /// information used in the rendering process that does not change throughout a
 /// single render pass.
 #[derive(Clone)]
-pub struct Consts<T: Copy + AsBytes> {
+pub struct Consts<T: Copy + Pod> {
     buf: Buffer<T>,
 }
 
-impl<T: Copy + AsBytes> Consts<T> {
+impl<T: Copy + Pod> Consts<T> {
     /// Create a new `Const<T>`.
     pub fn new(device: &mut wgpu::Device, len: usize) -> Self {
         Self {
@@ -24,7 +24,7 @@ impl<T: Copy + AsBytes> Consts<T> {
         queue: &wgpu::Queue,
         vals: &[T],
         offset: usize,
-    ) -> Result<(), RenderError> {
+    ) {
         self.buf.update(device, queue, vals, offset)
     }
 

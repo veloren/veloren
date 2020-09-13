@@ -1,7 +1,7 @@
 use crate::{
     render::{
-        pipelines::lod_terrain::{Locals, LodData, Vertex},
-        Consts, GlobalModel, LodTerrainPipeline, Mesh, Model, Quad, Renderer,
+        pipelines::lod_terrain::{LodData, Vertex},
+        GlobalModel, LodTerrainVertex, Mesh, Model, Quad, Renderer,
     },
     settings::Settings,
 };
@@ -10,8 +10,7 @@ use common::{spiral::Spiral2d, util::srgba_to_linear};
 use vek::*;
 
 pub struct Lod {
-    model: Option<(u32, Model<LodTerrainPipeline>)>,
-    locals: Consts<Locals>,
+    model: Option<(u32, Model<LodTerrainVertex>)>,
     data: LodData,
 }
 
@@ -25,7 +24,6 @@ impl Lod {
     pub fn new(renderer: &mut Renderer, client: &Client, settings: &Settings) -> Self {
         Self {
             model: None,
-            locals: renderer.create_consts(&[Locals::default()]).unwrap(),
             data: LodData::new(
                 renderer,
                 client.world_data().chunk_size(),
@@ -33,7 +31,7 @@ impl Lod {
                 client.world_data().lod_alt.raw(),
                 client.world_data().lod_horizon.raw(),
                 settings.graphics.lod_detail.max(100).min(2500),
-                water_color().into_array().into(),
+                // water_color().into_array().into(),
             ),
         }
     }
@@ -68,7 +66,7 @@ impl Lod {
     }
 }
 
-fn create_lod_terrain_mesh(detail: u32) -> Mesh<LodTerrainPipeline> {
+fn create_lod_terrain_mesh(detail: u32) -> Mesh<LodTerrainVertex> {
     // detail is even, so we choose odd detail (detail + 1) to create two even
     // halves with an empty hole.
     let detail = detail + 1;

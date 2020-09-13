@@ -1,8 +1,8 @@
 use super::super::{AaMode, GlobalsLayouts, Mesh, Quad};
-use zerocopy::AsBytes;
+use bytemuck::Pod;
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, AsBytes)]
+#[derive(Copy, Clone, Debug, Pod)]
 pub struct Vertex {
     pub pos: [f32; 3],
 }

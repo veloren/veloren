@@ -1,9 +1,9 @@
 use super::super::{AaMode, GlobalsLayouts};
+use bytemuck::Pod;
 use vek::*;
-use zerocopy::AsBytes;
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, AsBytes)]
+#[derive(Copy, Clone, Debug, Pod)]
 pub struct Vertex {
     pos_norm: u32,
     atlas_pos: u32,
@@ -129,7 +129,7 @@ impl Vertex {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, AsBytes)]
+#[derive(Copy, Clone, Debug, Pod)]
 pub struct Locals {
     model_offs: [f32; 3],
     load_time: f32,

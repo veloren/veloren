@@ -1,10 +1,10 @@
 use super::super::{AaMode, GlobalsLayouts, TerrainLayout};
+use bytemuck::Pod;
 use core::fmt;
 use vek::*;
-use zerocopy::AsBytes;
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, AsBytes)]
+#[derive(Copy, Clone, Debug, Pod)]
 pub struct Vertex {
     pos: [f32; 3],
     // Because we try to restrict terrain sprite data to a 128×128 block
@@ -70,7 +70,7 @@ impl Vertex {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, AsBytes)]
+#[derive(Copy, Clone, Debug, Pod)]
 pub struct Instance {
     pos_ori: u32,
     inst_mat0: [f32; 4],
@@ -122,7 +122,7 @@ impl Default for Instance {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, AsBytes)]
+#[derive(Copy, Clone, Debug, Pod)]
 pub struct Locals {
     // Each matrix performs rotatation, translation, and scaling, relative to the sprite
     // origin, for all sprite instances.  The matrix will be in an array indexed by the

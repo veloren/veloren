@@ -1,6 +1,6 @@
 use super::graphic::{Graphic, GraphicCache, Id as GraphicId};
 use crate::{
-    render::{Mesh, Renderer, Texture, UiPipeline},
+    render::{Mesh, Renderer, Texture, UIVertex},
     Error,
 };
 use conrod_core::{text::GlyphCache, widget::Id};
@@ -13,7 +13,7 @@ const GLYPH_CACHE_SIZE: u16 = 1;
 const SCALE_TOLERANCE: f32 = 0.5;
 const POSITION_TOLERANCE: f32 = 0.5;
 
-type TextCache = HashMap<Id, Mesh<UiPipeline>>;
+type TextCache = HashMap<Id, Mesh<UIVertex>>;
 
 pub struct Cache {
     // Map from text ids to their positioned glyphs.

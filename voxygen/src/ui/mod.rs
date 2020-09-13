@@ -27,8 +27,8 @@ pub use widgets::{
 
 use crate::{
     render::{
-        create_ui_quad, create_ui_tri, Consts, DynamicModel, Globals, Mesh, RenderError, Renderer,
-        UiLocals, UiMode, UiPipeline,
+        create_ui_quad, create_ui_tri, Consts, Globals, Mesh, Model, RenderError, Renderer,
+        UIVertex, UiLocals, UiMode,
     },
     window::Window,
     Error,
@@ -109,9 +109,9 @@ pub struct Ui {
     draw_commands: Vec<DrawCommand>,
     // Mesh buffer for UI vertices; we reuse its allocation in order to limit vector reallocations
     // during redrawing.
-    mesh: Mesh<UiPipeline>,
+    mesh: Mesh<UIVertex>,
     // Model for drawing the ui
-    model: DynamicModel<UiPipeline>,
+    model: Model<UIVertex>,
     // Consts for default ui drawing position (ie the interface)
     interface_locals: Consts<UiLocals>,
     default_globals: Consts<Globals>,
@@ -577,7 +577,13 @@ impl Ui {
                         .map(|x| [255, 255, 255, *x])
                         .collect::<Vec<[u8; 4]>>();
 
-                    if let Err(err) = renderer.update_texture(cache_tex, offset, size, &new_data) {
+                    if let Err(err) = renderer.update_texture(
+                        cache_tex,
+                        offset,
+                        size,
+                        &new_data,
+                        rect.width() * 4,
+                    ) {
                         warn!("Failed to update texture: {:?}", err);
                     }
                 }) {

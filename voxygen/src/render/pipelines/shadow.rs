@@ -2,11 +2,11 @@ use super::super::{
     AaMode, ColLightInfo, FigureLayout, GlobalsLayouts, Renderer, TerrainLayout, TerrainVertex,
     Texture,
 };
+use bytemuck::Pod;
 use vek::*;
-use zerocopy::AsBytes;
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, AsBytes)]
+#[derive(Copy, Clone, Debug, Pod)]
 pub struct Locals {
     shadow_matrices: [[f32; 4]; 4],
     texture_mats: [[f32; 4]; 4],

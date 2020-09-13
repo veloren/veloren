@@ -1,9 +1,9 @@
 use super::super::{AaMode, GlobalsLayouts, Quad, Tri};
+use bytemuck::Pod;
 use vek::*;
-use zerocopy::AsBytes;
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, AsBytes)]
+#[derive(Copy, Clone, Debug, Pod)]
 pub struct Vertex {
     pos: [f32; 2],
     uv: [f32; 2],
@@ -24,7 +24,7 @@ impl Vertex {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, AsBytes)]
+#[derive(Copy, Clone, Debug, Pod)]
 pub struct Locals {
     pos: [f32; 4],
 }
