@@ -8,7 +8,7 @@ pub enum RenderError {
     CustomError(String),
     CouldNotFindAdapter,
     ErrorInitializingCompiler,
-    ShaderError(shaderc::Error)
+    ShaderError(shaderc::Error),
 }
 
 impl From<wgpu::RequestDeviceError> for RenderError {

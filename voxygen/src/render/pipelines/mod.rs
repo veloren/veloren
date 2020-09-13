@@ -225,34 +225,201 @@ pub struct GlobalModel {
     pub shadow_mats: Consts<shadow::Locals>,
 }
 
-//gfx_defines! {
-//    constant Globals {
-//        view_mat: [[f32; 4]; 4] = "view_mat",
-//        proj_mat: [[f32; 4]; 4] = "proj_mat",
-//        all_mat: [[f32; 4]; 4] = "all_mat",
-//        cam_pos: [f32; 4] = "cam_pos",
-//        focus_off: [f32; 4] = "focus_off",
-//        focus_pos: [f32; 4] = "focus_pos",
-//        /// NOTE: view_distance.x is the horizontal view distance,
-// view_distance.y is the LOD        /// detail, view_distance.z is the
-//        /// minimum height over any land chunk (i.e. the sea level), and
-// view_distance.w is the        /// maximum height over this minimum height.
-//        ///
-//        /// TODO: Fix whatever alignment issue requires these uniforms to be
-// aligned.        view_distance: [f32; 4] = "view_distance",
-//        time_of_day: [f32; 4] = "time_of_day", // TODO: Make this f64.
-//        sun_dir: [f32; 4] = "sun_dir",
-//        moon_dir: [f32; 4] = "moon_dir",
-//        tick: [f32; 4] = "tick",
-//        /// x, y represent the resolution of the screen;
-//        /// w, z represent the near and far planes of the shadow map.
-//        screen_res: [f32; 4] = "screen_res",
-//        light_shadow_count: [u32; 4] = "light_shadow_count",
-//        shadow_proj_factors: [f32; 4] = "shadow_proj_factors",
-//        medium: [u32; 4] = "medium",
-//        select_pos: [i32; 4] = "select_pos",
-//        gamma_exposure: [f32; 4] = "gamma_exposure",
-//        ambiance: f32 = "ambiance",
-//        cam_mode: u32 = "cam_mode",
-//        sprite_render_distance: f32 = "sprite_render_distance",
-//    }
+pub struct GlobalsLayouts {
+    pub globals: wgpu::BindGroupLayout,
+    pub light: wgpu::BindGroupLayout,
+    pub shadow: wgpu::BindGroupLayout,
+    pub alt_horizon: wgpu::BindGroupLayout,
+    pub shadow_maps: wgpu::BindGroupLayout,
+    pub light_shadows: wgpu::BindGroupLayout,
+    pub lod_map: wgpu::BindGroupLayout,
+}
+
+impl GlobalsLayouts {
+    pub fn new(device: &wgpu::Device) -> Self {
+        let globals = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: Some("Globals layout"),
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::UniformBuffer {
+                        dynamic: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::SampledTexture {
+                        dimension: wgpu::TextureViewDimension::D2,
+                        component_type: wgpu::TextureComponentType::Float,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 2,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler { comparison: false },
+                    count: None,
+                },
+            ],
+        });
+        let light = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: Some("Light layout"),
+            entries: &[wgpu::BindGroupLayoutEntry {
+                binding: 0,
+                visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                ty: wgpu::BindingType::UniformBuffer {
+                    dynamic: false,
+                    min_binding_size: None,
+                },
+                count: None,
+            }],
+        });
+        let shadow = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: Some("Shadow layout"),
+            entries: &[wgpu::BindGroupLayoutEntry {
+                binding: 0,
+                visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                ty: wgpu::BindingType::UniformBuffer {
+                    dynamic: false,
+                    min_binding_size: None,
+                },
+                count: None,
+            }],
+        });
+
+        let alt_horizon = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: Some("alt/horizon layout"),
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::SampledTexture {
+                        component_type: wgpu::TextureComponentType::Float,
+                        dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler { comparison: false },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 2,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::SampledTexture {
+                        component_type: wgpu::TextureComponentType::Float,
+                        dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 3,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler { comparison: false },
+                    count: None,
+                },
+            ],
+        });
+
+        let shadow_maps = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: Some("Shadow maps layout"),
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::SampledTexture {
+                        component_type: wgpu::TextureComponentType::Float,
+                        dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler { comparison: false },
+                    count: None,
+                },
+            ],
+        });
+
+        let light_shadows = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: Some("Light shadows layout"),
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::SampledTexture {
+                        component_type: wgpu::TextureComponentType::Float,
+                        dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler { comparison: false },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 2,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::SampledTexture {
+                        component_type: wgpu::TextureComponentType::Float,
+                        dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 3,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler { comparison: false },
+                    count: None,
+                },
+            ],
+        });
+
+        let lod_map = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: Some("Lod layout"),
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::SampledTexture {
+                        component_type: wgpu::TextureComponentType::Float,
+                        dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler { comparison: false },
+                    count: None,
+                },
+            ],
+        });
+
+        Self {
+            globals,
+            light,
+            shadow,
+            alt_horizon,
+            shadow_maps,
+            light_shadows,
+            lod_map,
+        }
+    }
+}

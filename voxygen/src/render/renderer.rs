@@ -5,7 +5,7 @@ use super::{
     model::Model,
     pipelines::{
         clouds, figure, fluid, lod_terrain, particle, postprocess, shadow, skybox, sprite, terrain,
-        ui, GlobalModel, Globals,
+        ui, GlobalsLayouts,
     },
     texture::Texture,
     AaMode, AddressMode, CloudMode, FilterMode, FluidMode, LightingMode, RenderError, RenderMode,
@@ -14,76 +14,9 @@ use super::{
 use common::assets::{self, AssetExt, AssetHandle};
 use common_base::span;
 use core::convert::TryFrom;
-use glsl_include::Context as IncludeContext;
 use tracing::{error, info, warn};
 use vek::*;
 
-// /// Represents the format of the pre-processed color target.
-// // TODO: `(gfx::format::R11_G11_B10, gfx::format::Float)` would be better in
-// // theory, but it doesn't seem to work
-// pub type TgtColorFmt = gfx::format::Rgba16F;
-// /// Represents the format of the pre-processed depth and stencil target.
-// pub type TgtDepthStencilFmt = gfx::format::Depth;
-//
-// /// Represents the format of the window's color target.
-// pub type WinColorFmt = gfx::format::Srgba8;
-// /// Represents the format of the window's depth target.
-// pub type WinDepthFmt = gfx::format::Depth;
-//
-// /// Represents the format of the pre-processed shadow depth target.
-// pub type ShadowDepthStencilFmt = gfx::format::Depth;
-//
-// /// A handle to a pre-processed color target.
-// pub type TgtColorView = gfx::handle::RenderTargetView<gfx_backend::Resources,
-// TgtColorFmt>; /// A handle to a pre-processed depth target.
-// pub type TgtDepthStencilView =
-//     gfx::handle::DepthStencilView<gfx_backend::Resources,
-// TgtDepthStencilFmt>;
-//
-// /// A handle to a window color target.
-// pub type WinColorView = gfx::handle::RenderTargetView<gfx_backend::Resources,
-// WinColorFmt>; /// A handle to a window depth target.
-// pub type WinDepthView = gfx::handle::DepthStencilView<gfx_backend::Resources,
-// WinDepthFmt>;
-//
-// /// Represents the format of LOD shadows.
-// pub type LodTextureFmt = (gfx::format::R8_G8_B8_A8, gfx::format::Unorm);
-//
-// /// Represents the format of LOD altitudes.
-// pub type LodAltFmt = (gfx::format::R16_G16, gfx::format::Unorm);
-//
-// /// Represents the format of LOD map colors.
-// pub type LodColorFmt = (gfx::format::R8_G8_B8_A8, gfx::format::Srgb);
-//
-// /// Represents the format of greedy meshed color-light textures.
-// pub type ColLightFmt = (gfx::format::R8_G8_B8_A8, gfx::format::Unorm);
-//
-// /// A handle to a shadow depth target.
-// pub type ShadowDepthStencilView =
-//     gfx::handle::DepthStencilView<gfx_backend::Resources,
-// ShadowDepthStencilFmt>; /// A handle to a shadow depth target as a resource.
-// pub type ShadowResourceView = gfx::handle::ShaderResourceView<
-//     gfx_backend::Resources,
-//     <ShadowDepthStencilFmt as gfx::format::Formatted>::View,
-// >;
-//
-// /// A handle to a render color target as a resource.
-// pub type TgtColorRes = gfx::handle::ShaderResourceView<
-//     gfx_backend::Resources,
-//     <TgtColorFmt as gfx::format::Formatted>::View,
-// >;
-//
-// /// A handle to a render depth target as a resource.
-// pub type TgtDepthRes = gfx::handle::ShaderResourceView<
-//     gfx_backend::Resources,
-//     <TgtDepthStencilFmt as gfx::format::Formatted>::View,
-// >;
-//
-// /// A handle to a greedy meshed color-light texture as a resource.
-// pub type ColLightRes = gfx::handle::ShaderResourceView<
-//     gfx_backend::Resources,
-//     <ColLightFmt as gfx::format::Formatted>::View,
-// >;
 /// A type representing data that can be converted to an immutable texture map
 /// of ColLight data (used for texture atlases created during greedy meshing).
 pub type ColLightInfo = (Vec<[u8; 4]>, Vec2<u16>);
@@ -223,9 +156,23 @@ pub struct ShadowMapRenderer {
     point_depth_stencil_view: wgpu::TextureView,
     point_sampler: wgpu::Sampler,
 
-    point_pipeline: wgpu::RenderPipeline,
-    terrain_directed_pipeline: wgpu::RenderPipeline,
-    figure_directed_pipeline: wgpu::RenderPipeline,
+    point_pipeline: shadow::ShadowPipeline,
+    terrain_directed_pipeline: shadow::ShadowPipeline,
+    figure_directed_pipeline: shadow::ShadowFigurePipeline,
+    layout: shadow::ShadowLayout,
+}
+
+/// A type that stores all the layouts associated with this renderer.
+pub struct Layouts {
+    pub(self) global: GlobalsLayouts,
+
+    pub(self) figure: figure::FigureLayout,
+    pub(self) fluid: fluid::FluidLayout,
+    pub(self) postprocess: postprocess::PostProcessLayout,
+    pub(self) shadow: shadow::ShadowLayout,
+    pub(self) sprite: sprite::SpriteLayout,
+    pub(self) terrain: terrain::TerrainLayout,
+    pub(self) ui: ui::UILayout,
 }
 
 /// A type that encapsulates rendering state. `Renderer` is central to Voxygen's
@@ -249,18 +196,20 @@ pub struct Renderer {
 
     shadow_map: Option<ShadowMapRenderer>,
 
-    skybox_pipeline: wgpu::RenderPipeline,
-    figure_pipeline: wgpu::RenderPipeline,
-    terrain_pipeline: wgpu::RenderPipeline,
-    fluid_pipeline: wgpu::RenderPipeline,
-    sprite_pipeline: wgpu::RenderPipeline,
-    particle_pipeline: wgpu::RenderPipeline,
-    ui_pipeline: wgpu::RenderPipeline,
-    lod_terrain_pipeline: wgpu::RenderPipeline,
-    clouds_pipeline: wgpu::RenderPipeline,
-    postprocess_pipeline: wgpu::RenderPipeline,
-    #[allow(dead_code)] //TODO: remove ?
-    player_shadow_pipeline: wgpu::RenderPipeline,
+    layouts: Layouts,
+
+    figure_pipeline: figure::FigurePipeline,
+    fluid_pipeline: fluid::FluidPipeline,
+    lod_terrain_pipeline: lod_terrain::LodTerrainPipeline,
+    particle_pipeline: particle::ParticlePipeline,
+    //clouds_pipeline: wgpu::RenderPipeline,
+    postprocess_pipeline: postprocess::PostProcessPipeline,
+    // Consider reenabling at some time
+    // player_shadow_pipeline: figure::FigurePipeline,
+    skybox_pipeline: skybox::SkyboxPipeline,
+    sprite_pipeline: sprite::SpritePipeline,
+    terrain_pipeline: terrain::TerrainPipeline,
+    ui_pipeline: ui::UIPipeline,
 
     shaders: AssetHandle<Shaders>,
 
@@ -346,6 +295,30 @@ impl Renderer {
 
         let shaders = Shaders::load_expect("");
 
+        let layouts = {
+            let global = GlobalsLayouts::new(&device);
+
+            let figure = figure::FigureLayout::new(&device);
+            let fluid = fluid::FluidLayout::new(&device);
+            let postprocess = postprocess::PostProcessLayout::new(&device);
+            let shadow = shadow::ShadowLayout::new(&device);
+            let sprite = sprite::SpriteLayout::new(&device);
+            let terrain = terrain::TerrainLayout::new(&device);
+            let ui = ui::UILayout::new(&device);
+
+            Layouts {
+                global,
+
+                figure,
+                fluid,
+                postprocess,
+                shadow,
+                sprite,
+                terrain,
+                ui,
+            }
+        };
+
         let (
             skybox_pipeline,
             figure_pipeline,
@@ -357,13 +330,13 @@ impl Renderer {
             lod_terrain_pipeline,
             clouds_pipeline,
             postprocess_pipeline,
-            player_shadow_pipeline,
+            //player_shadow_pipeline,
             point_shadow_pipeline,
             terrain_directed_shadow_pipeline,
             figure_directed_shadow_pipeline,
         ) = create_pipelines(
             &device,
-            &mode,
+            &layouts & mode,
             shadow_views.is_some(),
         )?;
 
@@ -389,6 +362,9 @@ impl Renderer {
                 directed_res,
                 directed_sampler,
             ) = shadow_views;
+
+            let layout = shadow::ShadowLayout::new(&device);
+
             Some(ShadowMapRenderer {
                 directed_depth_stencil_view,
                 directed_sampler,
@@ -401,6 +377,8 @@ impl Renderer {
                 point_pipeline,
                 terrain_directed_pipeline,
                 figure_directed_pipeline,
+
+                layout,
             })
         } else {
             None
@@ -442,6 +420,8 @@ impl Renderer {
 
             shadow_map,
 
+            layouts,
+
             skybox_pipeline,
             figure_pipeline,
             terrain_pipeline,
@@ -452,9 +432,9 @@ impl Renderer {
             lod_terrain_pipeline,
             clouds_pipeline,
             postprocess_pipeline,
-            player_shadow_pipeline,
-
             shaders,
+            //player_shadow_pipeline,
+            shader_reload_indicator,
 
             noise_tex,
 
@@ -868,32 +848,32 @@ impl Renderer {
         self.encoder.clear_depth(&self.win_depth_view, 1.0);
     }
 
-    /// Set up shadow rendering.
-    pub fn start_shadows(&mut self) {
-        if !self.mode.shadow.is_map() {
-            return;
-        }
-        if let Some(_shadow_map) = self.shadow_map.as_mut() {
-            self.encoder.flush(&mut self.device);
-            Self::set_depth_clamp(&mut self.device, true);
-        }
-    }
+    // /// Set up shadow rendering.
+    // pub fn start_shadows(&mut self) {
+    //     if !self.mode.shadow.is_map() {
+    //         return;
+    //     }
+    //     if let Some(_shadow_map) = self.shadow_map.as_mut() {
+    //         self.encoder.flush(&mut self.device);
+    //         Self::set_depth_clamp(&mut self.device, true);
+    //     }
+    // }
 
-    /// Perform all queued draw calls for global.shadows.
-    pub fn flush_shadows(&mut self) {
-        if !self.mode.shadow.is_map() {
-            return;
-        }
-        if let Some(_shadow_map) = self.shadow_map.as_mut() {
-            let point_encoder = &mut self.encoder;
-            // let point_encoder = &mut shadow_map.point_encoder;
-            point_encoder.flush(&mut self.device);
-            // let directed_encoder = &mut shadow_map.directed_encoder;
-            // directed_encoder.flush(&mut self.device);
-            // Reset depth clamping.
-            Self::set_depth_clamp(&mut self.device, false);
-        }
-    }
+    // /// Perform all queued draw calls for global.shadows.
+    // pub fn flush_shadows(&mut self) {
+    //     if !self.mode.shadow.is_map() {
+    //         return;
+    //     }
+    //     if let Some(_shadow_map) = self.shadow_map.as_mut() {
+    //         let point_encoder = &mut self.encoder;
+    //         // let point_encoder = &mut shadow_map.point_encoder;
+    //         point_encoder.flush(&mut self.device);
+    //         // let directed_encoder = &mut shadow_map.directed_encoder;
+    //         // directed_encoder.flush(&mut self.device);
+    //         // Reset depth clamping.
+    //         Self::set_depth_clamp(&mut self.device, false);
+    //     }
+    // }
 
     /// Perform all queued draw calls for this frame and clean up discarded
     /// items.
@@ -1163,742 +1143,755 @@ impl Renderer {
         // raw_data).unwrap(), ))
     }
 
-    /// Queue the rendering of the provided skybox model in the upcoming frame.
-    pub fn render_skybox(
-        &mut self,
-        model: &Model<skybox::SkyboxPipeline>,
-        global: &GlobalModel,
-        locals: &Consts<skybox::Locals>,
-        lod: &lod_terrain::LodData,
-    ) {
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.skybox_pipeline.pso,
-            &skybox::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                locals: locals.buf.clone(),
-                globals: global.globals.buf.clone(),
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                tgt_color: self.tgt_color_view.clone(),
-                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
-            },
-        );
-    }
+    // /// Queue the rendering of the provided skybox model in the upcoming frame.
+    // pub fn render_skybox(
+    //     &mut self,
+    //     model: &Model<skybox::SkyboxPipeline>,
+    //     global: &GlobalModel,
+    //     locals: &Consts<skybox::Locals>,
+    //     lod: &lod_terrain::LodData,
+    // ) {
+    //     self.encoder.draw(
+    //         &gfx::Slice {
+    //             start: model.vertex_range().start,
+    //             end: model.vertex_range().end,
+    //             base_vertex: 0,
+    //             instances: None,
+    //             buffer: gfx::IndexBuffer::Auto,
+    //         },
+    //         &self.skybox_pipeline.pso,
+    //         &skybox::pipe::Data {
+    //             vbuf: model.vbuf.clone(),
+    //             locals: locals.buf.clone(),
+    //             globals: global.globals.buf.clone(),
+    //             noise: (self.noise_tex.srv.clone(),
+    // self.noise_tex.sampler.clone()),             alt: (lod.alt.srv.clone(),
+    // lod.alt.sampler.clone()),             horizon: (lod.horizon.srv.clone(),
+    // lod.horizon.sampler.clone()),             tgt_color:
+    // self.tgt_color_view.clone(),             tgt_depth_stencil:
+    // (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),         },
+    //     );
+    // }
 
-    /// Queue the rendering of the provided figure model in the upcoming frame.
-    pub fn render_figure(
-        &mut self,
-        model: &figure::FigureModel,
-        col_lights: &Texture<ColLightFmt>,
-        global: &GlobalModel,
-        locals: &Consts<figure::Locals>,
-        bones: &Consts<figure::BoneData>,
-        lod: &lod_terrain::LodData,
-    ) {
-        let (point_shadow_maps, directed_shadow_maps) =
-            if let Some(shadow_map) = &mut self.shadow_map {
-                (
-                    (
-                        shadow_map.point_res.clone(),
-                        shadow_map.point_sampler.clone(),
-                    ),
-                    (
-                        shadow_map.directed_res.clone(),
-                        shadow_map.directed_sampler.clone(),
-                    ),
-                )
-            } else {
-                (
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                )
-            };
-        let model = &model.opaque;
+    // /// Queue the rendering of the provided figure model in the upcoming frame.
+    // pub fn render_figure(
+    //     &mut self,
+    //     model: &figure::FigureModel,
+    //     col_lights: &Texture<ColLightFmt>,
+    //     global: &GlobalModel,
+    //     locals: &Consts<figure::Locals>,
+    //     bones: &Consts<figure::BoneData>,
+    //     lod: &lod_terrain::LodData,
+    // ) {
+    //     let (point_shadow_maps, directed_shadow_maps) =
+    //         if let Some(shadow_map) = &mut self.shadow_map {
+    //             (
+    //                 (
+    //                     shadow_map.point_res.clone(),
+    //                     shadow_map.point_sampler.clone(),
+    //                 ),
+    //                 (
+    //                     shadow_map.directed_res.clone(),
+    //                     shadow_map.directed_sampler.clone(),
+    //                 ),
+    //             )
+    //         } else {
+    //             (
+    //                 (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+    //                 (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+    //             )
+    //         };
+    //     let model = &model.opaque;
 
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.figure_pipeline.pso,
-            &figure::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                col_lights: (col_lights.srv.clone(), col_lights.sampler.clone()),
-                locals: locals.buf.clone(),
-                globals: global.globals.buf.clone(),
-                bones: bones.buf.clone(),
-                lights: global.lights.buf.clone(),
-                shadows: global.shadows.buf.clone(),
-                light_shadows: global.shadow_mats.buf.clone(),
-                point_shadow_maps,
-                directed_shadow_maps,
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                tgt_color: self.tgt_color_view.clone(),
-                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
-            },
-        );
-    }
+    //     self.encoder.draw(
+    //         &gfx::Slice {
+    //             start: model.vertex_range().start,
+    //             end: model.vertex_range().end,
+    //             base_vertex: 0,
+    //             instances: None,
+    //             buffer: gfx::IndexBuffer::Auto,
+    //         },
+    //         &self.figure_pipeline.pso,
+    //         &figure::pipe::Data {
+    //             vbuf: model.vbuf.clone(),
+    //             col_lights: (col_lights.srv.clone(), col_lights.sampler.clone()),
+    //             locals: locals.buf.clone(),
+    //             globals: global.globals.buf.clone(),
+    //             bones: bones.buf.clone(),
+    //             lights: global.lights.buf.clone(),
+    //             shadows: global.shadows.buf.clone(),
+    //             light_shadows: global.shadow_mats.buf.clone(),
+    //             point_shadow_maps,
+    //             directed_shadow_maps,
+    //             noise: (self.noise_tex.srv.clone(),
+    // self.noise_tex.sampler.clone()),             alt: (lod.alt.srv.clone(),
+    // lod.alt.sampler.clone()),             horizon: (lod.horizon.srv.clone(),
+    // lod.horizon.sampler.clone()),             tgt_color:
+    // self.tgt_color_view.clone(),             tgt_depth_stencil:
+    // (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),         },
+    //     );
+    // }
 
-    /// Queue the rendering of the player silhouette in the upcoming frame.
-    pub fn render_player_shadow(
-        &mut self,
-        _model: &figure::FigureModel,
-        _col_lights: &Texture<ColLightFmt>,
-        _global: &GlobalModel,
-        _bones: &Consts<figure::BoneData>,
-        _lod: &lod_terrain::LodData,
-        _locals: &Consts<shadow::Locals>,
-    ) {
-        // FIXME: Consider reenabling at some point.
-        /* let (point_shadow_maps, directed_shadow_maps) =
-            if let Some(shadow_map) = &mut self.shadow_map {
-                (
-                    (
-                        shadow_map.point_res.clone(),
-                        shadow_map.point_sampler.clone(),
-                    ),
-                    (
-                        shadow_map.directed_res.clone(),
-                        shadow_map.directed_sampler.clone(),
-                    ),
-                )
-            } else {
-                (
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                )
-            };
-        let model = &model.opaque;
+    // /// Queue the rendering of the player silhouette in the upcoming frame.
+    // pub fn render_player_shadow(
+    //     &mut self,
+    //     _model: &figure::FigureModel,
+    //     _col_lights: &Texture<ColLightFmt>,
+    //     _global: &GlobalModel,
+    //     _bones: &Consts<figure::BoneData>,
+    //     _lod: &lod_terrain::LodData,
+    //     _locals: &Consts<shadow::Locals>,
+    // ) {
+    //     // FIXME: Consider reenabling at some point.
+    //     /* let (point_shadow_maps, directed_shadow_maps) =
+    //         if let Some(shadow_map) = &mut self.shadow_map {
+    //             (
+    //                 (
+    //                     shadow_map.point_res.clone(),
+    //                     shadow_map.point_sampler.clone(),
+    //                 ),
+    //                 (
+    //                     shadow_map.directed_res.clone(),
+    //                     shadow_map.directed_sampler.clone(),
+    //                 ),
+    //             )
+    //         } else {
+    //             (
+    //                 (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+    //                 (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+    //             )
+    //         };
+    //     let model = &model.opaque;
 
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.player_shadow_pipeline.pso,
-            &figure::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                col_lights: (col_lights.srv.clone(), col_lights.sampler.clone()),
-                locals: locals.buf.clone(),
-                globals: global.globals.buf.clone(),
-                bones: bones.buf.clone(),
-                lights: global.lights.buf.clone(),
-                shadows: global.shadows.buf.clone(),
-                light_shadows: global.shadow_mats.buf.clone(),
-                point_shadow_maps,
-                directed_shadow_maps,
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                tgt_color: self.tgt_color_view.clone(),
-                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (0, 0) */),
-            },
-        ); */
-    }
+    //     self.encoder.draw(
+    //         &gfx::Slice {
+    //             start: model.vertex_range().start,
+    //             end: model.vertex_range().end,
+    //             base_vertex: 0,
+    //             instances: None,
+    //             buffer: gfx::IndexBuffer::Auto,
+    //         },
+    //         &self.player_shadow_pipeline.pso,
+    //         &figure::pipe::Data {
+    //             vbuf: model.vbuf.clone(),
+    //             col_lights: (col_lights.srv.clone(), col_lights.sampler.clone()),
+    //             locals: locals.buf.clone(),
+    //             globals: global.globals.buf.clone(),
+    //             bones: bones.buf.clone(),
+    //             lights: global.lights.buf.clone(),
+    //             shadows: global.shadows.buf.clone(),
+    //             light_shadows: global.shadow_mats.buf.clone(),
+    //             point_shadow_maps,
+    //             directed_shadow_maps,
+    //             noise: (self.noise_tex.srv.clone(),
+    // self.noise_tex.sampler.clone()),             alt: (lod.alt.srv.clone(),
+    // lod.alt.sampler.clone()),             horizon: (lod.horizon.srv.clone(),
+    // lod.horizon.sampler.clone()),             tgt_color:
+    // self.tgt_color_view.clone(),             tgt_depth_stencil:
+    // (self.tgt_depth_stencil_view.clone()/* , (0, 0) */),         },
+    //     ); */
+    // }
 
-    /// Queue the rendering of the player model in the upcoming frame.
-    pub fn render_player(
-        &mut self,
-        model: &figure::FigureModel,
-        col_lights: &Texture<ColLightFmt>,
-        global: &GlobalModel,
-        locals: &Consts<figure::Locals>,
-        bones: &Consts<figure::BoneData>,
-        lod: &lod_terrain::LodData,
-    ) {
-        let (point_shadow_maps, directed_shadow_maps) =
-            if let Some(shadow_map) = &mut self.shadow_map {
-                (
-                    (
-                        shadow_map.point_res.clone(),
-                        shadow_map.point_sampler.clone(),
-                    ),
-                    (
-                        shadow_map.directed_res.clone(),
-                        shadow_map.directed_sampler.clone(),
-                    ),
-                )
-            } else {
-                (
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                )
-            };
-        let model = &model.opaque;
+    // /// Queue the rendering of the player model in the upcoming frame.
+    // pub fn render_player(
+    //     &mut self,
+    //     model: &figure::FigureModel,
+    //     col_lights: &Texture<ColLightFmt>,
+    //     global: &GlobalModel,
+    //     locals: &Consts<figure::Locals>,
+    //     bones: &Consts<figure::BoneData>,
+    //     lod: &lod_terrain::LodData,
+    // ) {
+    //     let (point_shadow_maps, directed_shadow_maps) =
+    //         if let Some(shadow_map) = &mut self.shadow_map {
+    //             (
+    //                 (
+    //                     shadow_map.point_res.clone(),
+    //                     shadow_map.point_sampler.clone(),
+    //                 ),
+    //                 (
+    //                     shadow_map.directed_res.clone(),
+    //                     shadow_map.directed_sampler.clone(),
+    //                 ),
+    //             )
+    //         } else {
+    //             (
+    //                 (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+    //                 (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+    //             )
+    //         };
+    //     let model = &model.opaque;
 
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.figure_pipeline.pso,
-            &figure::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                col_lights: (col_lights.srv.clone(), col_lights.sampler.clone()),
-                locals: locals.buf.clone(),
-                globals: global.globals.buf.clone(),
-                bones: bones.buf.clone(),
-                lights: global.lights.buf.clone(),
-                shadows: global.shadows.buf.clone(),
-                light_shadows: global.shadow_mats.buf.clone(),
-                point_shadow_maps,
-                directed_shadow_maps,
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                tgt_color: self.tgt_color_view.clone(),
-                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
-            },
-        );
-    }
+    //     self.encoder.draw(
+    //         &gfx::Slice {
+    //             start: model.vertex_range().start,
+    //             end: model.vertex_range().end,
+    //             base_vertex: 0,
+    //             instances: None,
+    //             buffer: gfx::IndexBuffer::Auto,
+    //         },
+    //         &self.figure_pipeline.pso,
+    //         &figure::pipe::Data {
+    //             vbuf: model.vbuf.clone(),
+    //             col_lights: (col_lights.srv.clone(), col_lights.sampler.clone()),
+    //             locals: locals.buf.clone(),
+    //             globals: global.globals.buf.clone(),
+    //             bones: bones.buf.clone(),
+    //             lights: global.lights.buf.clone(),
+    //             shadows: global.shadows.buf.clone(),
+    //             light_shadows: global.shadow_mats.buf.clone(),
+    //             point_shadow_maps,
+    //             directed_shadow_maps,
+    //             noise: (self.noise_tex.srv.clone(),
+    // self.noise_tex.sampler.clone()),             alt: (lod.alt.srv.clone(),
+    // lod.alt.sampler.clone()),             horizon: (lod.horizon.srv.clone(),
+    // lod.horizon.sampler.clone()),             tgt_color:
+    // self.tgt_color_view.clone(),             tgt_depth_stencil:
+    // (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),         },
+    //     );
+    // }
 
-    /// Queue the rendering of the provided terrain chunk model in the upcoming
-    /// frame.
-    pub fn render_terrain_chunk(
-        &mut self,
-        model: &Model<terrain::TerrainPipeline>,
-        col_lights: &Texture<ColLightFmt>,
-        global: &GlobalModel,
-        locals: &Consts<terrain::Locals>,
-        lod: &lod_terrain::LodData,
-    ) {
-        let (point_shadow_maps, directed_shadow_maps) =
-            if let Some(shadow_map) = &mut self.shadow_map {
-                (
-                    (
-                        shadow_map.point_res.clone(),
-                        shadow_map.point_sampler.clone(),
-                    ),
-                    (
-                        shadow_map.directed_res.clone(),
-                        shadow_map.directed_sampler.clone(),
-                    ),
-                )
-            } else {
-                (
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                )
-            };
+    // /// Queue the rendering of the provided terrain chunk model in the upcoming
+    // /// frame.
+    // pub fn render_terrain_chunk(
+    //     &mut self,
+    //     model: &Model<terrain::TerrainPipeline>,
+    //     col_lights: &Texture<ColLightFmt>,
+    //     global: &GlobalModel,
+    //     locals: &Consts<terrain::Locals>,
+    //     lod: &lod_terrain::LodData,
+    // ) {
+    //     let (point_shadow_maps, directed_shadow_maps) =
+    //         if let Some(shadow_map) = &mut self.shadow_map {
+    //             (
+    //                 (
+    //                     shadow_map.point_res.clone(),
+    //                     shadow_map.point_sampler.clone(),
+    //                 ),
+    //                 (
+    //                     shadow_map.directed_res.clone(),
+    //                     shadow_map.directed_sampler.clone(),
+    //                 ),
+    //             )
+    //         } else {
+    //             (
+    //                 (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+    //                 (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+    //             )
+    //         };
 
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.terrain_pipeline.pso,
-            &terrain::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                // TODO: Consider splitting out texture atlas data into a separate vertex buffer,
-                // since we don't need it for things like global.shadows.
-                col_lights: (col_lights.srv.clone(), col_lights.sampler.clone()),
-                locals: locals.buf.clone(),
-                globals: global.globals.buf.clone(),
-                lights: global.lights.buf.clone(),
-                shadows: global.shadows.buf.clone(),
-                light_shadows: global.shadow_mats.buf.clone(),
-                point_shadow_maps,
-                directed_shadow_maps,
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                tgt_color: self.tgt_color_view.clone(),
-                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
-            },
-        );
-    }
+    //     self.encoder.draw(
+    //         &gfx::Slice {
+    //             start: model.vertex_range().start,
+    //             end: model.vertex_range().end,
+    //             base_vertex: 0,
+    //             instances: None,
+    //             buffer: gfx::IndexBuffer::Auto,
+    //         },
+    //         &self.terrain_pipeline.pso,
+    //         &terrain::pipe::Data {
+    //             vbuf: model.vbuf.clone(),
+    //             // TODO: Consider splitting out texture atlas data into a
+    // separate vertex buffer,             // since we don't need it for things
+    // like global.shadows.             col_lights: (col_lights.srv.clone(),
+    // col_lights.sampler.clone()),             locals: locals.buf.clone(),
+    //             globals: global.globals.buf.clone(),
+    //             lights: global.lights.buf.clone(),
+    //             shadows: global.shadows.buf.clone(),
+    //             light_shadows: global.shadow_mats.buf.clone(),
+    //             point_shadow_maps,
+    //             directed_shadow_maps,
+    //             noise: (self.noise_tex.srv.clone(),
+    // self.noise_tex.sampler.clone()),             alt: (lod.alt.srv.clone(),
+    // lod.alt.sampler.clone()),             horizon: (lod.horizon.srv.clone(),
+    // lod.horizon.sampler.clone()),             tgt_color:
+    // self.tgt_color_view.clone(),             tgt_depth_stencil:
+    // (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),         },
+    //     );
+    // }
 
-    /// Queue the rendering of a shadow map from a point light in the upcoming
-    /// frame.
-    pub fn render_shadow_point(
-        &mut self,
-        model: &Model<terrain::TerrainPipeline>,
-        global: &GlobalModel,
-        terrain_locals: &Consts<terrain::Locals>,
-        locals: &Consts<shadow::Locals>,
-    ) {
-        if !self.mode.shadow.is_map() {
-            return;
-        }
-        // NOTE: Don't render shadows if the shader is not supported.
-        let shadow_map = if let Some(shadow_map) = &mut self.shadow_map {
-            shadow_map
-        } else {
-            return;
-        };
+    // /// Queue the rendering of a shadow map from a point light in the upcoming
+    // /// frame.
+    // pub fn render_shadow_point(
+    //     &mut self,
+    //     model: &Model<terrain::TerrainPipeline>,
+    //     global: &GlobalModel,
+    //     terrain_locals: &Consts<terrain::Locals>,
+    //     locals: &Consts<shadow::Locals>,
+    // ) {
+    //     if !self.mode.shadow.is_map() {
+    //         return;
+    //     }
+    //     // NOTE: Don't render shadows if the shader is not supported.
+    //     let shadow_map = if let Some(shadow_map) = &mut self.shadow_map {
+    //         shadow_map
+    //     } else {
+    //         return;
+    //     };
 
-        // let point_encoder = &mut shadow_map.point_encoder;
-        let point_encoder = &mut self.encoder;
-        point_encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &shadow_map.point_pipeline.pso,
-            &shadow::pipe::Data {
-                // Terrain vertex stuff
-                vbuf: model.vbuf.clone(),
-                locals: terrain_locals.buf.clone(),
-                globals: global.globals.buf.clone(),
+    //     // let point_encoder = &mut shadow_map.point_encoder;
+    //     let point_encoder = &mut self.encoder;
+    //     point_encoder.draw(
+    //         &gfx::Slice {
+    //             start: model.vertex_range().start,
+    //             end: model.vertex_range().end,
+    //             base_vertex: 0,
+    //             instances: None,
+    //             buffer: gfx::IndexBuffer::Auto,
+    //         },
+    //         &shadow_map.point_pipeline.pso,
+    //         &shadow::pipe::Data {
+    //             // Terrain vertex stuff
+    //             vbuf: model.vbuf.clone(),
+    //             locals: terrain_locals.buf.clone(),
+    //             globals: global.globals.buf.clone(),
 
-                // Shadow stuff
-                light_shadows: locals.buf.clone(),
-                tgt_depth_stencil: shadow_map.point_depth_stencil_view.clone(),
-            },
-        );
-    }
+    //             // Shadow stuff
+    //             light_shadows: locals.buf.clone(),
+    //             tgt_depth_stencil: shadow_map.point_depth_stencil_view.clone(),
+    //         },
+    //     );
+    // }
 
-    /// Queue the rendering of terrain shadow map from all directional lights in
-    /// the upcoming frame.
-    pub fn render_terrain_shadow_directed(
-        &mut self,
-        model: &Model<terrain::TerrainPipeline>,
-        global: &GlobalModel,
-        terrain_locals: &Consts<terrain::Locals>,
-        locals: &Consts<shadow::Locals>,
-    ) {
-        if !self.mode.shadow.is_map() {
-            return;
-        }
-        // NOTE: Don't render shadows if the shader is not supported.
-        let shadow_map = if let Some(shadow_map) = &mut self.shadow_map {
-            shadow_map
-        } else {
-            return;
-        };
+    // /// Queue the rendering of terrain shadow map from all directional lights in
+    // /// the upcoming frame.
+    // pub fn render_terrain_shadow_directed(
+    //     &mut self,
+    //     model: &Model<terrain::TerrainPipeline>,
+    //     global: &GlobalModel,
+    //     terrain_locals: &Consts<terrain::Locals>,
+    //     locals: &Consts<shadow::Locals>,
+    // ) {
+    //     if !self.mode.shadow.is_map() {
+    //         return;
+    //     }
+    //     // NOTE: Don't render shadows if the shader is not supported.
+    //     let shadow_map = if let Some(shadow_map) = &mut self.shadow_map {
+    //         shadow_map
+    //     } else {
+    //         return;
+    //     };
 
-        // let directed_encoder = &mut shadow_map.directed_encoder;
-        let directed_encoder = &mut self.encoder;
-        directed_encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &shadow_map.terrain_directed_pipeline.pso,
-            &shadow::pipe::Data {
-                // Terrain vertex stuff
-                vbuf: model.vbuf.clone(),
-                locals: terrain_locals.buf.clone(),
-                globals: global.globals.buf.clone(),
+    //     // let directed_encoder = &mut shadow_map.directed_encoder;
+    //     let directed_encoder = &mut self.encoder;
+    //     directed_encoder.draw(
+    //         &gfx::Slice {
+    //             start: model.vertex_range().start,
+    //             end: model.vertex_range().end,
+    //             base_vertex: 0,
+    //             instances: None,
+    //             buffer: gfx::IndexBuffer::Auto,
+    //         },
+    //         &shadow_map.terrain_directed_pipeline.pso,
+    //         &shadow::pipe::Data {
+    //             // Terrain vertex stuff
+    //             vbuf: model.vbuf.clone(),
+    //             locals: terrain_locals.buf.clone(),
+    //             globals: global.globals.buf.clone(),
 
-                // Shadow stuff
-                light_shadows: locals.buf.clone(),
-                tgt_depth_stencil: shadow_map.directed_depth_stencil_view.clone(),
-            },
-        );
-    }
+    //             // Shadow stuff
+    //             light_shadows: locals.buf.clone(),
+    //             tgt_depth_stencil:
+    // shadow_map.directed_depth_stencil_view.clone(),         },
+    //     );
+    // }
 
-    /// Queue the rendering of figure shadow map from all directional lights in
-    /// the upcoming frame.
-    pub fn render_figure_shadow_directed(
-        &mut self,
-        model: &figure::FigureModel,
-        global: &GlobalModel,
-        figure_locals: &Consts<figure::Locals>,
-        bones: &Consts<figure::BoneData>,
-        locals: &Consts<shadow::Locals>,
-    ) {
-        if !self.mode.shadow.is_map() {
-            return;
-        }
-        // NOTE: Don't render shadows if the shader is not supported.
-        let shadow_map = if let Some(shadow_map) = &mut self.shadow_map {
-            shadow_map
-        } else {
-            return;
-        };
-        let model = &model.opaque;
+    // /// Queue the rendering of figure shadow map from all directional lights in
+    // /// the upcoming frame.
+    // pub fn render_figure_shadow_directed(
+    //     &mut self,
+    //     model: &figure::FigureModel,
+    //     global: &GlobalModel,
+    //     figure_locals: &Consts<figure::Locals>,
+    //     bones: &Consts<figure::BoneData>,
+    //     locals: &Consts<shadow::Locals>,
+    // ) {
+    //     if !self.mode.shadow.is_map() {
+    //         return;
+    //     }
+    //     // NOTE: Don't render shadows if the shader is not supported.
+    //     let shadow_map = if let Some(shadow_map) = &mut self.shadow_map {
+    //         shadow_map
+    //     } else {
+    //         return;
+    //     };
+    //     let model = &model.opaque;
 
-        // let directed_encoder = &mut shadow_map.directed_encoder;
-        let directed_encoder = &mut self.encoder;
-        directed_encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &shadow_map.figure_directed_pipeline.pso,
-            &shadow::figure_pipe::Data {
-                // Terrain vertex stuff
-                vbuf: model.vbuf.clone(),
-                locals: figure_locals.buf.clone(),
-                bones: bones.buf.clone(),
-                globals: global.globals.buf.clone(),
+    //     // let directed_encoder = &mut shadow_map.directed_encoder;
+    //     let directed_encoder = &mut self.encoder;
+    //     directed_encoder.draw(
+    //         &gfx::Slice {
+    //             start: model.vertex_range().start,
+    //             end: model.vertex_range().end,
+    //             base_vertex: 0,
+    //             instances: None,
+    //             buffer: gfx::IndexBuffer::Auto,
+    //         },
+    //         &shadow_map.figure_directed_pipeline.pso,
+    //         &shadow::figure_pipe::Data {
+    //             // Terrain vertex stuff
+    //             vbuf: model.vbuf.clone(),
+    //             locals: figure_locals.buf.clone(),
+    //             bones: bones.buf.clone(),
+    //             globals: global.globals.buf.clone(),
 
-                // Shadow stuff
-                light_shadows: locals.buf.clone(),
-                tgt_depth_stencil: shadow_map.directed_depth_stencil_view.clone(),
-            },
-        );
-    }
+    //             // Shadow stuff
+    //             light_shadows: locals.buf.clone(),
+    //             tgt_depth_stencil:
+    // shadow_map.directed_depth_stencil_view.clone(),         },
+    //     );
+    // }
 
-    /// Queue the rendering of the provided terrain chunk model in the upcoming
-    /// frame.
-    pub fn render_fluid_chunk(
-        &mut self,
-        model: &Model<fluid::FluidPipeline>,
-        global: &GlobalModel,
-        locals: &Consts<terrain::Locals>,
-        lod: &lod_terrain::LodData,
-        waves: &Texture,
-    ) {
-        let (point_shadow_maps, directed_shadow_maps) =
-            if let Some(shadow_map) = &mut self.shadow_map {
-                (
-                    (
-                        shadow_map.point_res.clone(),
-                        shadow_map.point_sampler.clone(),
-                    ),
-                    (
-                        shadow_map.directed_res.clone(),
-                        shadow_map.directed_sampler.clone(),
-                    ),
-                )
-            } else {
-                (
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                )
-            };
+    // /// Queue the rendering of the provided terrain chunk model in the upcoming
+    // /// frame.
+    // pub fn render_fluid_chunk(
+    //     &mut self,
+    //     model: &Model<fluid::FluidPipeline>,
+    //     global: &GlobalModel,
+    //     locals: &Consts<terrain::Locals>,
+    //     lod: &lod_terrain::LodData,
+    //     waves: &Texture,
+    // ) {
+    //     let (point_shadow_maps, directed_shadow_maps) =
+    //         if let Some(shadow_map) = &mut self.shadow_map {
+    //             (
+    //                 (
+    //                     shadow_map.point_res.clone(),
+    //                     shadow_map.point_sampler.clone(),
+    //                 ),
+    //                 (
+    //                     shadow_map.directed_res.clone(),
+    //                     shadow_map.directed_sampler.clone(),
+    //                 ),
+    //             )
+    //         } else {
+    //             (
+    //                 (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+    //                 (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+    //             )
+    //         };
 
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.fluid_pipeline.pso,
-            &fluid::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                locals: locals.buf.clone(),
-                globals: global.globals.buf.clone(),
-                lights: global.lights.buf.clone(),
-                shadows: global.shadows.buf.clone(),
-                light_shadows: global.shadow_mats.buf.clone(),
-                point_shadow_maps,
-                directed_shadow_maps,
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                waves: (waves.srv.clone(), waves.sampler.clone()),
-                tgt_color: self.tgt_color_view.clone(),
-                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
-            },
-        );
-    }
+    //     self.encoder.draw(
+    //         &gfx::Slice {
+    //             start: model.vertex_range().start,
+    //             end: model.vertex_range().end,
+    //             base_vertex: 0,
+    //             instances: None,
+    //             buffer: gfx::IndexBuffer::Auto,
+    //         },
+    //         &self.fluid_pipeline.pso,
+    //         &fluid::pipe::Data {
+    //             vbuf: model.vbuf.clone(),
+    //             locals: locals.buf.clone(),
+    //             globals: global.globals.buf.clone(),
+    //             lights: global.lights.buf.clone(),
+    //             shadows: global.shadows.buf.clone(),
+    //             light_shadows: global.shadow_mats.buf.clone(),
+    //             point_shadow_maps,
+    //             directed_shadow_maps,
+    //             alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
+    //             horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
+    //             noise: (self.noise_tex.srv.clone(),
+    // self.noise_tex.sampler.clone()),             waves: (waves.srv.clone(),
+    // waves.sampler.clone()),             tgt_color:
+    // self.tgt_color_view.clone(),             tgt_depth_stencil:
+    // (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),         },
+    //     );
+    // }
 
-    /// Queue the rendering of the provided terrain chunk model in the upcoming
-    /// frame.
-    pub fn render_sprites(
-        &mut self,
-        model: &Model<sprite::SpritePipeline>,
-        col_lights: &Texture<ColLightFmt>,
-        global: &GlobalModel,
-        terrain_locals: &Consts<terrain::Locals>,
-        locals: &Consts<sprite::Locals>,
-        instances: &Instances<sprite::Instance>,
-        lod: &lod_terrain::LodData,
-    ) {
-        let (point_shadow_maps, directed_shadow_maps) =
-            if let Some(shadow_map) = &mut self.shadow_map {
-                (
-                    (
-                        shadow_map.point_res.clone(),
-                        shadow_map.point_sampler.clone(),
-                    ),
-                    (
-                        shadow_map.directed_res.clone(),
-                        shadow_map.directed_sampler.clone(),
-                    ),
-                )
-            } else {
-                (
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                )
-            };
+    // /// Queue the rendering of the provided terrain chunk model in the upcoming
+    // /// frame.
+    // pub fn render_sprites(
+    //     &mut self,
+    //     model: &Model<sprite::SpritePipeline>,
+    //     col_lights: &Texture<ColLightFmt>,
+    //     global: &GlobalModel,
+    //     terrain_locals: &Consts<terrain::Locals>,
+    //     locals: &Consts<sprite::Locals>,
+    //     instances: &Instances<sprite::Instance>,
+    //     lod: &lod_terrain::LodData,
+    // ) {
+    //     let (point_shadow_maps, directed_shadow_maps) =
+    //         if let Some(shadow_map) = &mut self.shadow_map {
+    //             (
+    //                 (
+    //                     shadow_map.point_res.clone(),
+    //                     shadow_map.point_sampler.clone(),
+    //                 ),
+    //                 (
+    //                     shadow_map.directed_res.clone(),
+    //                     shadow_map.directed_sampler.clone(),
+    //                 ),
+    //             )
+    //         } else {
+    //             (
+    //                 (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+    //                 (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+    //             )
+    //         };
 
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: Some((instances.count() as u32, 0)),
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.sprite_pipeline.pso,
-            &sprite::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                ibuf: instances.ibuf.clone(),
-                col_lights: (col_lights.srv.clone(), col_lights.sampler.clone()),
-                terrain_locals: terrain_locals.buf.clone(),
-                // NOTE: It would be nice if this wasn't needed and we could use a constant buffer
-                // offset into the sprite data.  Hopefully, when we switch to wgpu we can do this,
-                // as it offers the exact API we want (the equivalent can be done in OpenGL using
-                // glBindBufferOffset).
-                locals: locals.buf.clone(),
-                globals: global.globals.buf.clone(),
-                lights: global.lights.buf.clone(),
-                shadows: global.shadows.buf.clone(),
-                light_shadows: global.shadow_mats.buf.clone(),
-                point_shadow_maps,
-                directed_shadow_maps,
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                tgt_color: self.tgt_color_view.clone(),
-                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
-            },
-        );
-    }
+    //     self.encoder.draw(
+    //         &gfx::Slice {
+    //             start: model.vertex_range().start,
+    //             end: model.vertex_range().end,
+    //             base_vertex: 0,
+    //             instances: Some((instances.count() as u32, 0)),
+    //             buffer: gfx::IndexBuffer::Auto,
+    //         },
+    //         &self.sprite_pipeline.pso,
+    //         &sprite::pipe::Data {
+    //             vbuf: model.vbuf.clone(),
+    //             ibuf: instances.ibuf.clone(),
+    //             col_lights: (col_lights.srv.clone(), col_lights.sampler.clone()),
+    //             terrain_locals: terrain_locals.buf.clone(),
+    //             // NOTE: It would be nice if this wasn't needed and we could use
+    // a constant buffer             // offset into the sprite data.  Hopefully,
+    // when we switch to wgpu we can do this,             // as it offers the
+    // exact API we want (the equivalent can be done in OpenGL using            
+    // // glBindBufferOffset).             locals: locals.buf.clone(),
+    //             globals: global.globals.buf.clone(),
+    //             lights: global.lights.buf.clone(),
+    //             shadows: global.shadows.buf.clone(),
+    //             light_shadows: global.shadow_mats.buf.clone(),
+    //             point_shadow_maps,
+    //             directed_shadow_maps,
+    //             noise: (self.noise_tex.srv.clone(),
+    // self.noise_tex.sampler.clone()),             alt: (lod.alt.srv.clone(),
+    // lod.alt.sampler.clone()),             horizon: (lod.horizon.srv.clone(),
+    // lod.horizon.sampler.clone()),             tgt_color:
+    // self.tgt_color_view.clone(),             tgt_depth_stencil:
+    // (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),         },
+    //     );
+    // }
 
-    /// Queue the rendering of the provided LoD terrain model in the upcoming
-    /// frame.
-    pub fn render_lod_terrain(
-        &mut self,
-        model: &Model<lod_terrain::LodTerrainPipeline>,
-        global: &GlobalModel,
-        locals: &Consts<lod_terrain::Locals>,
-        lod: &lod_terrain::LodData,
-    ) {
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.lod_terrain_pipeline.pso,
-            &lod_terrain::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                locals: locals.buf.clone(),
-                globals: global.globals.buf.clone(),
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                map: (lod.map.srv.clone(), lod.map.sampler.clone()),
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                tgt_color: self.tgt_color_view.clone(),
-                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
-            },
-        );
-    }
+    // /// Queue the rendering of the provided LoD terrain model in the upcoming
+    // /// frame.
+    // pub fn render_lod_terrain(
+    //     &mut self,
+    //     model: &Model<lod_terrain::LodTerrainPipeline>,
+    //     global: &GlobalModel,
+    //     locals: &Consts<lod_terrain::Locals>,
+    //     lod: &lod_terrain::LodData,
+    // ) {
+    //     self.encoder.draw(
+    //         &gfx::Slice {
+    //             start: model.vertex_range().start,
+    //             end: model.vertex_range().end,
+    //             base_vertex: 0,
+    //             instances: None,
+    //             buffer: gfx::IndexBuffer::Auto,
+    //         },
+    //         &self.lod_terrain_pipeline.pso,
+    //         &lod_terrain::pipe::Data {
+    //             vbuf: model.vbuf.clone(),
+    //             locals: locals.buf.clone(),
+    //             globals: global.globals.buf.clone(),
+    //             noise: (self.noise_tex.srv.clone(),
+    // self.noise_tex.sampler.clone()),             map: (lod.map.srv.clone(),
+    // lod.map.sampler.clone()),             alt: (lod.alt.srv.clone(),
+    // lod.alt.sampler.clone()),             horizon: (lod.horizon.srv.clone(),
+    // lod.horizon.sampler.clone()),             tgt_color:
+    // self.tgt_color_view.clone(),             tgt_depth_stencil:
+    // (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),         },
+    //     );
+    // }
 
-    /// Queue the rendering of the provided particle in the upcoming frame.
-    pub fn render_particles(
-        &mut self,
-        model: &Model<particle::ParticlePipeline>,
-        global: &GlobalModel,
-        instances: &Instances<particle::Instance>,
-        lod: &lod_terrain::LodData,
-    ) {
-        let (point_shadow_maps, directed_shadow_maps) =
-            if let Some(shadow_map) = &mut self.shadow_map {
-                (
-                    (
-                        shadow_map.point_res.clone(),
-                        shadow_map.point_sampler.clone(),
-                    ),
-                    (
-                        shadow_map.directed_res.clone(),
-                        shadow_map.directed_sampler.clone(),
-                    ),
-                )
-            } else {
-                (
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                    (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                )
-            };
+    // /// Queue the rendering of the provided particle in the upcoming frame.
+    // pub fn render_particles(
+    //     &mut self,
+    //     model: &Model<particle::ParticlePipeline>,
+    //     global: &GlobalModel,
+    //     instances: &Instances<particle::Instance>,
+    //     lod: &lod_terrain::LodData,
+    // ) {
+    //     let (point_shadow_maps, directed_shadow_maps) =
+    //         if let Some(shadow_map) = &mut self.shadow_map {
+    //             (
+    //                 (
+    //                     shadow_map.point_res.clone(),
+    //                     shadow_map.point_sampler.clone(),
+    //                 ),
+    //                 (
+    //                     shadow_map.directed_res.clone(),
+    //                     shadow_map.directed_sampler.clone(),
+    //                 ),
+    //             )
+    //         } else {
+    //             (
+    //                 (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+    //                 (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+    //             )
+    //         };
 
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: Some((instances.count() as u32, 0)),
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.particle_pipeline.pso,
-            &particle::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                ibuf: instances.ibuf.clone(),
-                globals: global.globals.buf.clone(),
-                lights: global.lights.buf.clone(),
-                shadows: global.shadows.buf.clone(),
-                light_shadows: global.shadow_mats.buf.clone(),
-                point_shadow_maps,
-                directed_shadow_maps,
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                tgt_color: self.tgt_color_view.clone(),
-                tgt_depth_stencil: (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),
-            },
-        );
-    }
+    //     self.encoder.draw(
+    //         &gfx::Slice {
+    //             start: model.vertex_range().start,
+    //             end: model.vertex_range().end,
+    //             base_vertex: 0,
+    //             instances: Some((instances.count() as u32, 0)),
+    //             buffer: gfx::IndexBuffer::Auto,
+    //         },
+    //         &self.particle_pipeline.pso,
+    //         &particle::pipe::Data {
+    //             vbuf: model.vbuf.clone(),
+    //             ibuf: instances.ibuf.clone(),
+    //             globals: global.globals.buf.clone(),
+    //             lights: global.lights.buf.clone(),
+    //             shadows: global.shadows.buf.clone(),
+    //             light_shadows: global.shadow_mats.buf.clone(),
+    //             point_shadow_maps,
+    //             directed_shadow_maps,
+    //             noise: (self.noise_tex.srv.clone(),
+    // self.noise_tex.sampler.clone()),             alt: (lod.alt.srv.clone(),
+    // lod.alt.sampler.clone()),             horizon: (lod.horizon.srv.clone(),
+    // lod.horizon.sampler.clone()),             tgt_color:
+    // self.tgt_color_view.clone(),             tgt_depth_stencil:
+    // (self.tgt_depth_stencil_view.clone()/* , (1, 1) */),         },
+    //     );
+    // }
 
-    /// Queue the rendering of the provided UI element in the upcoming frame.
-    pub fn render_ui_element<F: gfx::format::Formatted<View = [f32; 4]>>(
-        &mut self,
-        model: Model<ui::UiPipeline>,
-        tex: &Texture<F>,
-        scissor: Aabr<u16>,
-        globals: &Consts<Globals>,
-        locals: &Consts<ui::Locals>,
-    ) where
-        F::Surface: gfx::format::TextureSurface,
-        F::Channel: gfx::format::TextureChannel,
-        <F::Surface as gfx::format::SurfaceTyped>::DataType: Copy,
-    {
-        let Aabr { min, max } = scissor;
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range.start,
-                end: model.vertex_range.end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.ui_pipeline.pso,
-            &ui::pipe::Data {
-                vbuf: model.vbuf,
-                scissor: gfx::Rect {
-                    x: min.x,
-                    y: min.y,
-                    w: max.x - min.x,
-                    h: max.y - min.y,
-                },
-                tex: (tex.srv.clone(), tex.sampler.clone()),
-                locals: locals.buf.clone(),
-                globals: globals.buf.clone(),
-                tgt_color: self.win_color_view.clone(),
-                tgt_depth: self.win_depth_view.clone(),
-            },
-        );
-    }
+    // /// Queue the rendering of the provided UI element in the upcoming frame.
+    // pub fn render_ui_element<F: gfx::format::Formatted<View = [f32; 4]>>(
+    //     &mut self,
+    //     model: Model<ui::UiPipeline>,
+    //     tex: &Texture<F>,
+    //     scissor: Aabr<u16>,
+    //     globals: &Consts<Globals>,
+    //     locals: &Consts<ui::Locals>,
+    // ) where
+    //     F::Surface: gfx::format::TextureSurface,
+    //     F::Channel: gfx::format::TextureChannel,
+    //     <F::Surface as gfx::format::SurfaceTyped>::DataType: Copy,
+    // {
+    //     let Aabr { min, max } = scissor;
+    //     self.encoder.draw(
+    //         &gfx::Slice {
+    //             start: model.vertex_range.start,
+    //             end: model.vertex_range.end,
+    //             base_vertex: 0,
+    //             instances: None,
+    //             buffer: gfx::IndexBuffer::Auto,
+    //         },
+    //         &self.ui_pipeline.pso,
+    //         &ui::pipe::Data {
+    //             vbuf: model.vbuf,
+    //             scissor: gfx::Rect {
+    //                 x: min.x,
+    //                 y: min.y,
+    //                 w: max.x - min.x,
+    //                 h: max.y - min.y,
+    //             },
+    //             tex: (tex.srv.clone(), tex.sampler.clone()),
+    //             locals: locals.buf.clone(),
+    //             globals: globals.buf.clone(),
+    //             tgt_color: self.win_color_view.clone(),
+    //             tgt_depth: self.win_depth_view.clone(),
+    //         },
+    //     );
+    // }
 
-    pub fn render_clouds(
-        &mut self,
-        model: &Model<clouds::CloudsPipeline>,
-        globals: &Consts<Globals>,
-        locals: &Consts<clouds::Locals>,
-        lod: &lod_terrain::LodData,
-    ) {
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.clouds_pipeline.pso,
-            &clouds::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                locals: locals.buf.clone(),
-                globals: globals.buf.clone(),
-                map: (lod.map.srv.clone(), lod.map.sampler.clone()),
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                color_sampler: (self.tgt_color_res.clone(), self.sampler.clone()),
-                depth_sampler: (self.tgt_depth_res.clone(), self.sampler.clone()),
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                tgt_color: self.tgt_color_pp_view.clone(),
-            },
-        )
-    }
+    // pub fn render_clouds(
+    //     &mut self,
+    //     model: &Model<clouds::CloudsPipeline>,
+    //     globals: &Consts<Globals>,
+    //     locals: &Consts<clouds::Locals>,
+    //     lod: &lod_terrain::LodData,
+    // ) {
+    //     self.encoder.draw(
+    //         &gfx::Slice {
+    //             start: model.vertex_range().start,
+    //             end: model.vertex_range().end,
+    //             base_vertex: 0,
+    //             instances: None,
+    //             buffer: gfx::IndexBuffer::Auto,
+    //         },
+    //         &self.clouds_pipeline.pso,
+    //         &clouds::pipe::Data {
+    //             vbuf: model.vbuf.clone(),
+    //             locals: locals.buf.clone(),
+    //             globals: globals.buf.clone(),
+    //             map: (lod.map.srv.clone(), lod.map.sampler.clone()),
+    //             alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
+    //             horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
+    //             color_sampler: (self.tgt_color_res.clone(),
+    // self.sampler.clone()),             depth_sampler:
+    // (self.tgt_depth_res.clone(), self.sampler.clone()),             noise:
+    // (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),            
+    // tgt_color: self.tgt_color_pp_view.clone(),         },
+    //     )
+    // }
 
-    pub fn render_post_process(
-        &mut self,
-        model: &Model<postprocess::PostProcessPipeline>,
-        globals: &Consts<Globals>,
-        locals: &Consts<postprocess::Locals>,
-        lod: &lod_terrain::LodData,
-    ) {
-        self.encoder.draw(
-            &gfx::Slice {
-                start: model.vertex_range().start,
-                end: model.vertex_range().end,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
-            &self.postprocess_pipeline.pso,
-            &postprocess::pipe::Data {
-                vbuf: model.vbuf.clone(),
-                locals: locals.buf.clone(),
-                globals: globals.buf.clone(),
-                map: (lod.map.srv.clone(), lod.map.sampler.clone()),
-                alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
-                horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
-                color_sampler: (self.tgt_color_res_pp.clone(), self.sampler.clone()),
-                depth_sampler: (self.tgt_depth_res.clone(), self.sampler.clone()),
-                noise: (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-                tgt_color: self.win_color_view.clone(),
-            },
-        )
-    }
+    // pub fn render_post_process(
+    //     &mut self,
+    //     model: &Model<postprocess::PostProcessPipeline>,
+    //     globals: &Consts<Globals>,
+    //     locals: &Consts<postprocess::Locals>,
+    //     lod: &lod_terrain::LodData,
+    // ) {
+    //     self.encoder.draw(
+    //         &gfx::Slice {
+    //             start: model.vertex_range().start,
+    //             end: model.vertex_range().end,
+    //             base_vertex: 0,
+    //             instances: None,
+    //             buffer: gfx::IndexBuffer::Auto,
+    //         },
+    //         &self.postprocess_pipeline.pso,
+    //         &postprocess::pipe::Data {
+    //             vbuf: model.vbuf.clone(),
+    //             locals: locals.buf.clone(),
+    //             globals: globals.buf.clone(),
+    //             map: (lod.map.srv.clone(), lod.map.sampler.clone()),
+    //             alt: (lod.alt.srv.clone(), lod.alt.sampler.clone()),
+    //             horizon: (lod.horizon.srv.clone(), lod.horizon.sampler.clone()),
+    //             color_sampler: (self.tgt_color_res_pp.clone(),
+    // self.sampler.clone()),             depth_sampler:
+    // (self.tgt_depth_res.clone(), self.sampler.clone()),             noise:
+    // (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),            
+    // tgt_color: self.win_color_view.clone(),         },
+    //     )
+    // }
 }
 
 /// Creates all the pipelines used to render.
 #[allow(clippy::type_complexity)] // TODO: Pending review in #587
 fn create_pipelines(
-    factory: &wgpu::Device,
+    device: &wgpu::Device,
+    layouts: &Layouts,
     shaders: &Shaders,
     mode: &RenderMode,
+    sc_desc: &wgpu::SwapChainDescriptor,
     has_shadow_views: bool,
 ) -> Result<
     (
-        wgpu::RenderPipeline,
-        wgpu::RenderPipeline,
-        wgpu::RenderPipeline,
-        wgpu::RenderPipeline,
-        wgpu::RenderPipeline,
-        wgpu::RenderPipeline,
-        wgpu::RenderPipeline,
-        wgpu::RenderPipeline,
-        wgpu::RenderPipeline,
-        wgpu::RenderPipeline,
-        wgpu::RenderPipeline,
-        Option<wgpu::RenderPipeline>,
-        Option<wgpu::RenderPipeline>,
-        Option<wgpu::RenderPipeline>,
+        skybox::SkyboxPipeline,
+        figure::FigurePipeline,
+        terrain::TerrainPipeline,
+        fluid::FluidPipeline,
+        sprite::SpritePipeline,
+        particle::ParticlePipeline,
+        ui::UIPipeline,
+        lod_terrain::LodTerrainPipeline,
+        // TODO: clouds
+        postprocess::PostProcessPipeline,
+        //figure::FigurePipeline,
+        Option<shadow::ShadowPipeline>,
+        Option<shadow::ShadowPipeline>,
+        Option<shadow::ShadowFigurePipeline>,
     ),
     RenderError,
 > {
+    use shaderc::{CompileOptions, Compiler, OptimizationLevel, ResolvedInclude, ShaderKind};
+
+    let constants = &shaders.constants.read().0;
+    let globals = &shaders.globals.read().0;
+    let sky = &shaders.sky.read().0;
+    let light = &shaders.light.read().0;
+    let srgb = &shaders.srgb.read().0;
+    let random = &shaders.random.read().0;
+    let lod = &shaders.lod.read().0;
+    let shadows = &shaders.shadows.read().0;
+
     // We dynamically add extra configuration settings to the constants file.
     let constants = format!(
         r#"
@@ -1911,7 +1904,7 @@ fn create_pipelines(
 #define SHADOW_MODE {}
 
 "#,
-        shaders.constants.read().0,
+        constants,
         // TODO: Configurable vertex/fragment shader preference.
         "VOXYGEN_COMPUTATION_PREFERENCE_FRAGMENT",
         match mode.fluid {
@@ -1951,11 +1944,11 @@ fn create_pipelines(
         _ => shaders.cloud_regular,
     };
 
-    let mut compiler = shaderc::Compiler::new().ok_or(RenderError::ErrorInitializingCompiler)?;
-    let mut options = shaderc::CompileOptions::new().ok_or(RenderError::ErrorInitializingCompiler)?;
-    options.set_optimization_level(shaderc::OptimizationLevel::Performance);
-    options.set_include_callback(move |name,_,shader_name,_| {
-        Ok(shaderc::ResolvedInclude {
+    let mut compiler = Compiler::new().ok_or(RenderError::ErrorInitializingCompiler)?;
+    let mut options = CompileOptions::new().ok_or(RenderError::ErrorInitializingCompiler)?;
+    options.set_optimization_level(OptimizationLevel::Performance);
+    options.set_include_callback(move |name, _, shader_name, _| {
+        Ok(ResolvedInclude {
             resolved_name: name,
             content: match name {
                 "constants.glsl" => constants,
@@ -1968,9 +1961,9 @@ fn create_pipelines(
                 "lod.glsl" => &lod,
                 "anti-aliasing.glsl" => &anti_alias,
                 "cloud.glsl" => &cloud,
-                other => return Err(format!("Include {} is not defined",other))
-            }
-        } )
+                other => return Err(format!("Include {} is not defined", other)),
+            },
+        })
     });
 
     let figure_vert = &shaders.figure_vert.read().0;
@@ -1983,188 +1976,371 @@ fn create_pipelines(
 
     let directed_shadow_frag = &shaders.directed_shadow_frag.read().0;
 
-    // Construct a pipeline for rendering skyboxes
-    let skybox_pipeline = create_pipeline(
-        factory,
-        skybox::pipe::new(),
-        &shaders.skybox_vert.read().0,
-        &shaders.skybox_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
+    let figure_vert_mod = create_shader_module(
+        device,
+        &mut compiler,
+        figure_vert,
+        ShaderKind::Vertex,
+        "figure-vert.glsl",
+        &options,
     )?;
+
+    let terrain_point_shadow_vert_mod = create_shader_module(
+        device,
+        &mut compiler,
+        terrain_point_shadow_vert,
+        ShaderKind::Vertex,
+        "light-shadows-vert.glsl",
+        &options,
+    )?;
+
+    let terrain_directed_shadow_vert_mod = create_shader_module(
+        device,
+        &mut compiler,
+        terrain_directed_shadow_vert,
+        ShaderKind::Vertex,
+        "light-shadows-directed-vert.glsl",
+        &options,
+    )?;
+
+    let figure_directed_shadow_vert_mod = create_shader_module(
+        device,
+        &mut compiler,
+        figure_directed_shadow_vert,
+        ShaderKind::Vertex,
+        "light-shadows-figure-vert.glsl",
+        &options,
+    )?;
+
+    // TODO: closure to to make calling this easier
+
+    let directed_shadow_frag_mod = create_shader_module(
+        device,
+        &mut compiler,
+        directed_shadow_frag,
+        ShaderKind::Fragment,
+        "light-shadows-directed-frag.glsl",
+        &options,
+    )?;
+
+    // Construct a pipeline for rendering skyboxes
+    let skybox_pipeline = skybox::SkyboxPipeline::new(
+        device,
+        create_shader_module(
+            device,
+            &mut compiler,
+            shaders.skybox_vert.read().0,
+            ShaderKind::Vertex,
+            "skybox-vert.glsl",
+            &options,
+        ),
+        create_shader_module(
+            device,
+            &mut compiler,
+            shaders.skybox_frag.read().0,
+            ShaderKind::Fragment,
+            "skybox-frag.glsl",
+            &options,
+        ),
+        sc_desc,
+        layouts,
+        mode.aa,
+    );
 
     // Construct a pipeline for rendering figures
-    let figure_pipeline = create_pipeline(
-        factory,
-        figure::pipe::new(),
-        &shaders.figure_vert.read().0,
-        &shaders.figure_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-    )?;
+    let figure_pipeline = figure::FigurePipeline::new(
+        device,
+        &figure_vert_mod,
+        create_shader_module(
+            device,
+            &mut compiler,
+            shaders.figure_frag.read().0,
+            ShaderKind::Fragment,
+            "figure-frag.glsl",
+            &options,
+        ),
+        sc_desc,
+        layouts,
+        mode.aa,
+    );
 
     // Construct a pipeline for rendering terrain
-    let terrain_pipeline = create_pipeline(
-        factory,
-        terrain::pipe::new(),
-        &shaders.terrain_vert.read().0,
-        &shaders.terrain_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-    )?;
+    let terrain_pipeline = terrain::TerrainPipeline::new(
+        device,
+        create_shader_module(
+            device,
+            &mut compiler,
+            shaders.terrain_vert.read().0,
+            ShaderKind::Vertex,
+            "terrain-vert.glsl",
+            &options,
+        ),
+        create_shader_module(
+            device,
+            &mut compiler,
+            shaders.terrain_frag.read().0,
+            ShaderKind::Fragment,
+            "terrain-frag.glsl",
+            &options,
+        ),
+        sc_desc,
+        layouts,
+        mode.aa,
+    );
 
     // Construct a pipeline for rendering fluids
-    let fluid_pipeline = create_pipeline(
-        factory,
-        fluid::pipe::new(),
-        &shaders.fluid_vert.read().0,
-        &match mode.fluid {
-            FluidMode::Cheap => shaders.fluid_frag_cheap,
-            FluidMode::Shiny => shaders.fluid_frag_shiny,
-        }
-        .read()
-        .0,
-        &include_ctx,
-        gfx::state::CullFace::Nothing,
-    )?;
+    let fluid_pipeline = fluid::FluidPipeline::new(
+        device,
+        create_shader_module(
+            device,
+            &mut compiler,
+            shaders.fluid_vert.read().0,
+            ShaderKind::Vertex,
+            "terrain-vert.glsl",
+            &options,
+        ),
+        create_shader_module(
+            device,
+            &mut compiler,
+            match mode.fluid {
+                FluidMode::Cheap => shaders.fluid_frag_cheap.read().0,
+                FluidMode::Shiny => shaders.fluid_frag_shiny.read().0,
+            },
+            ShaderKind::Fragment,
+            "fluid-frag.glsl",
+            &options,
+        ),
+        sc_desc,
+        layouts,
+        mode.aa,
+    );
 
     // Construct a pipeline for rendering sprites
-    let sprite_pipeline = create_pipeline(
-        factory,
-        sprite::pipe::new(),
-        &shaders.sprite_vert.read().0,
-        &shaders.sprite_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-    )?;
+    let sprite_pipeline = sprite::SpritePipeline::new(
+        device,
+        create_shader_module(
+            device,
+            &mut compiler,
+            shaders.sprite_vert.read().0,
+            ShaderKind::Vertex,
+            "sprite-vert.glsl",
+            &options,
+        ),
+        create_shader_module(
+            device,
+            &mut compiler,
+            shaders.sprite_frag.read().0,
+            ShaderKind::Fragment,
+            "sprite-frag.glsl",
+            &options,
+        ),
+        sc_desc,
+        layouts,
+        mode.aa,
+    );
 
     // Construct a pipeline for rendering particles
-    let particle_pipeline = create_pipeline(
-        factory,
-        particle::pipe::new(),
-        &shaders.particle_vert.read().0,
-        &shaders.particle_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-    )?;
+    let particle_pipeline = particle::ParticlePipeline::new(
+        device,
+        create_shader_module(
+            device,
+            &mut compiler,
+            shaders.particle_vert.read().0,
+            ShaderKind::Vertex,
+            "particle-vert.glsl",
+            &options,
+        ),
+        create_shader_module(
+            device,
+            &mut compiler,
+            shaders.particle_frag.read().0,
+            ShaderKind::Fragment,
+            "particle-frag.glsl",
+            &options,
+        ),
+        sc_desc,
+        layouts,
+        mode.aa,
+    );
 
     // Construct a pipeline for rendering UI elements
-    let ui_pipeline = create_pipeline(
-        factory,
-        ui::pipe::new(),
-        &shaders.ui_vert.read().0,
-        &shaders.ui_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-    )?;
+    let ui_pipeline = ui::UIPipeline::new(
+        device,
+        create_shader_module(
+            device,
+            &mut compiler,
+            shaders.ui_vert.read().0,
+            ShaderKind::Vertex,
+            "ui-vert.glsl",
+            &options,
+        ),
+        create_shader_module(
+            device,
+            &mut compiler,
+            shaders.ui_frag.read().0,
+            ShaderKind::Fragment,
+            "ui-frag.glsl",
+            &options,
+        ),
+        sc_desc,
+        layouts,
+        mode.aa,
+    );
 
     // Construct a pipeline for rendering terrain
-    let lod_terrain_pipeline = create_pipeline(
-        factory,
-        lod_terrain::pipe::new(),
-        &shaders.lod_terrain_vert.read().0,
-        &shaders.lod_terrain_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-    )?;
+    let lod_terrain_pipeline = lod_terrain::LodTerrainPipeline::new(
+        device,
+        create_shader_module(
+            device,
+            &mut compiler,
+            shaders.lod_terrain_vert.read().0,
+            ShaderKind::Vertex,
+            "lod-terrain-vert.glsl",
+            &options,
+        ),
+        create_shader_module(
+            device,
+            &mut compiler,
+            shaders.lod_terrain_frag.read().0,
+            ShaderKind::Fragment,
+            "lod-terrain-frag.glsl",
+            &options,
+        ),
+        sc_desc,
+        layouts,
+        mode.aa,
+    );
 
     // Construct a pipeline for rendering our clouds (a kind of post-processing)
-    let clouds_pipeline = create_pipeline(
-        factory,
-        clouds::pipe::new(),
-        &shaders.clouds_vert.read().0,
-        &shaders.clouds_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-    )?;
+    // let clouds_pipeline = create_pipeline(
+    //     factory,
+    //     clouds::pipe::new(),
+    //     &Glsl::load_watched("voxygen.shaders.clouds-vert",
+    // shader_reload_indicator).unwrap(),     &Glsl::load_watched("voxygen.
+    // shaders.clouds-frag", shader_reload_indicator).unwrap(),
+    //     &include_ctx,
+    //     gfx::state::CullFace::Back,
+    // )?;
 
     // Construct a pipeline for rendering our post-processing
-    let postprocess_pipeline = create_pipeline(
-        factory,
-        postprocess::pipe::new(),
-        &shaders.postprocess_vert.read().0,
-        &shaders.postprocess_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-    )?;
+    let postprocess_pipeline = postprocess::PostProcessPipeline::new(
+        device,
+        create_shader_module(
+            device,
+            &mut compiler,
+            shaders.postprocess_vert.read().0,
+            ShaderKind::Vertex,
+            "postprocess-vert.glsl",
+            &options,
+        ),
+        create_shader_module(
+            device,
+            &mut compiler,
+            shaders.postprocess_frag.read().0,
+            ShaderKind::Fragment,
+            "postprocess-frag.glsl",
+            &options,
+        ),
+        sc_desc,
+        layouts,
+        mode.aa,
+    );
 
-    // Construct a pipeline for rendering the player silhouette
-    let player_shadow_pipeline = create_pipeline(
-        factory,
-        figure::pipe::Init {
-            tgt_depth_stencil: (gfx::preset::depth::PASS_TEST/*,
-            Stencil::new(
-                Comparison::Equal,
-                0xff,
-                (StencilOp::Keep, StencilOp::Keep, StencilOp::Keep),
-            ),*/),
-            ..figure::pipe::new()
-        },
-        &shaders.figure_vert.read().0,
-        &shaders.player_shadow_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-    )?;
+    // Consider reenabling at some time in the future
+    //
+    // // Construct a pipeline for rendering the player silhouette
+    // let player_shadow_pipeline = create_pipeline(
+    //     factory,
+    //     figure::pipe::Init {
+    //         tgt_depth_stencil: (gfx::preset::depth::PASS_TEST/*,
+    //         Stencil::new(
+    //             Comparison::Equal,
+    //             0xff,
+    //             (StencilOp::Keep, StencilOp::Keep, StencilOp::Keep),
+    //         ),*/),
+    //         ..figure::pipe::new()
+    //     },
+    //     &figure_vert,
+    //     &Glsl::load_watched(
+    //         "voxygen.shaders.player-shadow-frag",
+    //         shader_reload_indicator,
+    //     )
+    //     .unwrap(),
+    //     &include_ctx,
+    //     gfx::state::CullFace::Back,
+    // )?;
 
-    // Construct a pipeline for rendering point light terrain shadow maps.
-    let point_shadow_pipeline = match create_shadow_pipeline(
-        factory,
-        shadow::pipe::new(),
-        &shaders.terrain_point_shadow_vert.read().0,
-        Some(&shaders.light_shadows_geom.read().0),
-        &shaders.light_shadows_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-        None, // Some(gfx::state::Offset(2, 0))
-    ) {
-        Ok(pipe) => Some(pipe),
-        Err(err) => {
-            warn!("Could not load point shadow map pipeline: {:?}", err);
-            None
-        },
-    };
+    // Sharp can fix it later ;)
+    //
+    // // Construct a pipeline for rendering point light terrain shadow maps.
+    // let point_shadow_pipeline = match create_shadow_pipeline(
+    //     factory,
+    //     shadow::pipe::new(),
+    //     &terrain_point_shadow_vert,
+    //     Some(
+    //         &Glsl::load_watched(
+    //             "voxygen.shaders.light-shadows-geom",
+    //             shader_reload_indicator,
+    //         )
+    //         .unwrap(),
+    //     ),
+    //     &Glsl::load_watched(
+    //         "voxygen.shaders.light-shadows-frag",
+    //         shader_reload_indicator,
+    //     )
+    //     .unwrap(),
+    //     &include_ctx,
+    //     gfx::state::CullFace::Back,
+    //     None, // Some(gfx::state::Offset(2, 0))
+    // ) {
+    //     Ok(pipe) => Some(pipe),
+    //     Err(err) => {
+    //         warn!("Could not load point shadow map pipeline: {:?}", err);
+    //         None
+    //     },
+    // };
 
-    // Construct a pipeline for rendering directional light terrain shadow maps.
-    let terrain_directed_shadow_pipeline = match create_shadow_pipeline(
-        factory,
-        shadow::pipe::new(),
-        &shaders.terrain_directed_shadow_vert.read().0,
-        None,
-        &shaders.directed_shadow_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-        None, // Some(gfx::state::Offset(2, 1))
-    ) {
-        Ok(pipe) => Some(pipe),
-        Err(err) => {
-            warn!(
-                "Could not load directed terrain shadow map pipeline: {:?}",
-                err
-            );
-            None
-        },
-    };
+    // // Construct a pipeline for rendering directional light terrain shadow maps.
+    // let terrain_directed_shadow_pipeline = match create_shadow_pipeline(
+    //     factory,
+    //     shadow::pipe::new(),
+    //     &terrain_directed_shadow_vert,
+    //     None,
+    //     &directed_shadow_frag,
+    //     &include_ctx,
+    //     gfx::state::CullFace::Back,
+    //     None, // Some(gfx::state::Offset(2, 1))
+    // ) {
+    //     Ok(pipe) => Some(pipe),
+    //     Err(err) => {
+    //         warn!(
+    //             "Could not load directed terrain shadow map pipeline: {:?}",
+    //             err
+    //         );
+    //         None
+    //     },
+    // };
 
-    // Construct a pipeline for rendering directional light figure shadow maps.
-    let figure_directed_shadow_pipeline = match create_shadow_pipeline(
-        factory,
-        shadow::figure_pipe::new(),
-        &shaders.figure_directed_shadow_vert.read().0,
-        None,
-        &shaders.directed_shadow_frag.read().0,
-        &include_ctx,
-        gfx::state::CullFace::Back,
-        None, // Some(gfx::state::Offset(2, 1))
-    ) {
-        Ok(pipe) => Some(pipe),
-        Err(err) => {
-            warn!(
-                "Could not load directed figure shadow map pipeline: {:?}",
-                err
-            );
-            None
-        },
-    };
+    // // Construct a pipeline for rendering directional light figure shadow maps.
+    // let figure_directed_shadow_pipeline = match create_shadow_pipeline(
+    //     factory,
+    //     shadow::figure_pipe::new(),
+    //     &figure_directed_shadow_vert,
+    //     None,
+    //     &directed_shadow_frag,
+    //     &include_ctx,
+    //     gfx::state::CullFace::Back,
+    //     None, // Some(gfx::state::Offset(2, 1))
+    // ) {
+    //     Ok(pipe) => Some(pipe),
+    //     Err(err) => {
+    //         warn!(
+    //             "Could not load directed figure shadow map pipeline: {:?}",
+    //             err
+    //         );
+    //         None
+    //     },
+    // };
 
     Ok((
         skybox_pipeline,
@@ -2177,61 +2353,24 @@ fn create_pipelines(
         lod_terrain_pipeline,
         clouds_pipeline,
         postprocess_pipeline,
-        player_shadow_pipeline,
-        point_shadow_pipeline,
-        terrain_directed_shadow_pipeline,
-        figure_directed_shadow_pipeline,
+        // player_shadow_pipeline,
+        None,
+        None,
+        None,
     ))
 }
 
-/// Create a new pipeline from the provided vertex shader and fragment shader.
-fn create_pipeline(
+pub fn create_shader_module(
     device: &wgpu::Device,
-    desc: &wgpu::RenderPipelineDescriptor
-) -> wgpu::RenderPipeline {
-    device.create_render_pipeline(desc)
-}
+    compiler: &mut shaderc::Compiler,
+    source: &str,
+    kind: shaderc::ShaderKind,
+    file_name: &str,
+    options: &shaderc::CompileOptions,
+) -> Result<wgpu::ShaderModule, RenderError> {
+    use std::borrow::Cow;
 
-/// Create a new shadow map pipeline.
-fn create_shadow_pipeline<P: gfx::pso::PipelineInit>(
-    factory: &mut gfx_backend::Factory,
-    pipe: P,
-    vs: &str,
-    gs: Option<&str>,
-    fs: &str,
-    ctx: &IncludeContext,
-    cull_face: gfx::state::CullFace,
-    offset: Option<gfx::state::Offset>,
-) -> Result<GfxPipeline<P>, RenderError> {
-    let vs = ctx.expand(vs)?;
-    let gs = gs.map(|gs| ctx.expand(gs)).transpose()?;
-    let fs = ctx.expand(fs)?;
+    let spv = compiler.compile_into_spirv(source, kind, file_name, "main", Some(options))?;
 
-    let shader_set = if let Some(gs) = gs {
-        factory.create_shader_set_geometry(vs.as_bytes(), gs.as_bytes(), fs.as_bytes())?
-    } else {
-        factory.create_shader_set(vs.as_bytes(), fs.as_bytes())?
-    };
-
-    Ok(GfxPipeline {
-        pso: factory.create_pipeline_state(
-            &shader_set,
-            gfx::Primitive::TriangleList,
-            gfx::state::Rasterizer {
-                front_face: gfx::state::FrontFace::CounterClockwise,
-                // Second-depth shadow mapping: should help reduce z-fighting provided all objects
-                // are "watertight" (every triangle edge is shared with at most one other
-                // triangle); this *should* be true for Veloren.
-                cull_face: match cull_face {
-                    gfx::state::CullFace::Front => gfx::state::CullFace::Back,
-                    gfx::state::CullFace::Back => gfx::state::CullFace::Front,
-                    gfx::state::CullFace::Nothing => gfx::state::CullFace::Nothing,
-                },
-                method: gfx::state::RasterMethod::Fill,
-                offset,
-                samples: None,
-            },
-            pipe,
-        )?,
-    })
+    Ok(device.create_shader_module(wgpu::ShaderModule::SpirV(Cow::Bowrrowed(spv.as_binary()))))
 }

@@ -1,40 +1,6 @@
+use super::super::{AaMode, GlobalsLayouts};
 use vek::*;
 use zerocopy::AsBytes;
-
-// gfx_defines! {
-//     vertex Vertex {
-//         pos_norm: u32 = "v_pos_norm",
-//     }
-
-//     pipeline pipe {
-//         vbuf: gfx::VertexBuffer<Vertex> = (),
-
-//         locals: gfx::ConstantBuffer<TerrainLocals> = "u_locals",
-//         globals: gfx::ConstantBuffer<Globals> = "u_globals",
-//         lights: gfx::ConstantBuffer<Light> = "u_lights",
-//         shadows: gfx::ConstantBuffer<Shadow> = "u_shadows",
-
-//         point_shadow_maps: gfx::TextureSampler<f32> = "t_point_shadow_maps",
-//         directed_shadow_maps: gfx::TextureSampler<f32> =
-// "t_directed_shadow_maps",
-
-//         alt: gfx::TextureSampler<[f32; 2]> = "t_alt",
-//         horizon: gfx::TextureSampler<[f32; 4]> = "t_horizon",
-
-//         noise: gfx::TextureSampler<f32> = "t_noise",
-//         waves: gfx::TextureSampler<[f32; 4]> = "t_waves",
-
-//         // Shadow stuff
-//         light_shadows: gfx::ConstantBuffer<shadow::Locals> =
-// "u_light_shadows",
-
-//         tgt_color: gfx::BlendTarget<TgtColorFmt> = ("tgt_color",
-// ColorMask::all(), gfx::preset::blend::ALPHA),         tgt_depth_stencil:
-// gfx::DepthTarget<TgtDepthStencilFmt> = gfx::preset::depth::LESS_EQUAL_TEST,
-//         // tgt_depth_stencil: gfx::DepthStencilTarget<TgtDepthStencilFmt> =
-// (gfx::preset::depth::LESS_EQUAL_TEST,Stencil::new(Comparison::Always,0xff,
-// (StencilOp::Keep,StencilOp::Keep,StencilOp::Keep))),     }
-// }
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, AsBytes)]
@@ -62,6 +28,149 @@ impl Vertex {
                 | ((pos.y as u32) & 0x003F) << 6
                 | (((pos.z + EXTRA_NEG_Z).max(0.0).min((1 << 17) as f32) as u32) & 0x1FFFF) << 12
                 | (norm_bits & 0x7) << 29,
+        }
+    }
+
+    fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
+        use std::mem;
+        wgpu::VertexBufferDescriptor {
+            stride: mem::size_of::<Self>() as wgpu::BufferAddress,
+            step_mode: wgpu::InputStepMode::Vertex,
+            attributes: &[wgpu::VertexAttributeDescriptor {
+                offset: 0,
+                shader_location: 0,
+                format: wgpu::VertexFormat::Uint,
+            }],
+        }
+    }
+}
+
+pub struct FluidLayout {
+    pub waves: wgpu::BindGroupLayout,
+}
+
+impl FluidLayout {
+    pub fn new(device: &wgpu::Device) -> Self {
+        Self {
+            waves: device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: None,
+                entries: &[
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                        ty: wgpu::BindingType::SampledTexture {
+                            component_type: wgpu::TextureComponentType::Float,
+                            dimension: wgpu::TextureViewDimension::D2,
+                            multisampled: false,
+                        },
+                        count: None,
+                    },
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 1,
+                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                        ty: wgpu::BindingType::Sampler { comparison: false },
+                        count: None,
+                    },
+                ],
+            }),
+        }
+    }
+}
+
+pub struct FluidPipeline {
+    pub pipeline: wgpu::RenderPipeline,
+}
+
+impl FluidPipeline {
+    pub fn new(
+        device: &wgpu::Device,
+        vs_module: &wgpu::ShaderModule,
+        fs_module: &wgpu::ShaderModule,
+        sc_desc: &wgpu::SwapChainDescriptor,
+        global_layout: &GlobalsLayouts,
+        layout: &FluidLayout,
+        aa_mode: AaMode,
+    ) -> Self {
+        let render_pipeline_layout =
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("Fluid pipeline layout"),
+                push_constant_ranges: &[],
+                bind_group_layouts: &[
+                    &global_layout.globals,
+                    &global_layout.alt_horizon,
+                    &global_layout.light,
+                    &global_layout.shadow,
+                    &global_layout.shadow_maps,
+                    &global_layout.light_shadows,
+                    &layout.waves,
+                ],
+            });
+
+        let samples = match aa_mode {
+            AaMode::None | AaMode::Fxaa => 1,
+            // TODO: Ensure sampling in the shader is exactly between the 4 texels
+            AaMode::SsaaX4 => 1,
+            AaMode::MsaaX4 => 4,
+            AaMode::MsaaX8 => 8,
+            AaMode::MsaaX16 => 16,
+        };
+
+        let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("Fluid pipeline"),
+            layout: Some(&render_pipeline_layout),
+            vertex_stage: wgpu::ProgrammableStageDescriptor {
+                module: vs_module,
+                entry_point: "main",
+            },
+            fragment_stage: Some(wgpu::ProgrammableStageDescriptor {
+                module: fs_module,
+                entry_point: "main",
+            }),
+            rasterization_state: Some(wgpu::RasterizationStateDescriptor {
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: wgpu::CullMode::None,
+                clamp_depth: false,
+                depth_bias: 0,
+                depth_bias_slope_scale: 0.0,
+                depth_bias_clamp: 0.0,
+            }),
+            primitive_topology: wgpu::PrimitiveTopology::TriangleList,
+            color_states: &[wgpu::ColorStateDescriptor {
+                format: sc_desc.format,
+                color_blend: wgpu::BlendDescriptor {
+                    src_factor: wgpu::BlendFactor::SrcAlpha,
+                    dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                    operation: wgpu::BlendOperation::Add,
+                },
+                alpha_blend: wgpu::BlendDescriptor {
+                    src_factor: wgpu::BlendFactor::One,
+                    dst_factor: wgpu::BlendFactor::One,
+                    operation: wgpu::BlendOperation::Add,
+                },
+                write_mask: wgpu::ColorWrite::ALL,
+            }],
+            depth_stencil_state: Some(wgpu::DepthStencilStateDescriptor {
+                format: wgpu::TextureFormat::Depth24Plus,
+                depth_write_enabled: false,
+                depth_compare: wgpu::CompareFunction::LessEqual,
+                stencil: wgpu::StencilStateDescriptor {
+                    front: wgpu::StencilStateFaceDescriptor::IGNORE,
+                    back: wgpu::StencilStateFaceDescriptor::IGNORE,
+                    read_mask: !0,
+                    write_mask: !0,
+                },
+            }),
+            vertex_state: wgpu::VertexStateDescriptor {
+                index_format: wgpu::IndexFormat::Uint16,
+                vertex_buffers: &[Vertex::desc()],
+            },
+            sample_count: samples,
+            sample_mask: !0,
+            alpha_to_coverage_enabled: false,
+        });
+
+        Self {
+            pipeline: render_pipeline,
         }
     }
 }
