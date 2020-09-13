@@ -7,11 +7,13 @@ use crate::{
 };
 use common::{
     span,
-    terrain::{Block, BlockKind},
+    terrain::Block,
+    util::either_with,
     vol::{ReadVol, RectRasterableVol, Vox},
     volumes::vol_grid_2d::{CachedVolGrid2d, VolGrid2d},
 };
 use std::{collections::VecDeque, fmt::Debug};
+use tracing::error;
 use vek::*;
 
 type TerrainVertex = <TerrainPipeline as render::Pipeline>::Vertex;
@@ -25,19 +27,6 @@ enum FaceKind {
     /// Fluid face that is facing something non-opaque, non-tangible,
     /// and non-fluid (most likely air).
     Fluid,
-}
-
-trait Blendable {
-    fn is_blended(&self) -> bool;
-}
-
-impl Blendable for BlockKind {
-    #[allow(clippy::match_single_binding)] // TODO: Pending review in #587
-    fn is_blended(&self) -> bool {
-        match self {
-            _ => false,
-        }
-    }
 }
 
 const SUNLIGHT: u8 = 24;
@@ -256,12 +245,9 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
         // Calculate chunk lighting
         let mut light = calc_light(range, self, lit_blocks);
 
-        let mut lowest_opaque = range.size().d;
-        let mut highest_opaque = 0;
-        let mut lowest_fluid = range.size().d;
-        let mut highest_fluid = 0;
-        let mut lowest_air = range.size().d;
-        let mut highest_air = 0;
+        let mut opaque_limits = None::<Limits>;
+        let mut fluid_limits = None::<Limits>;
+        let mut air_limits = None::<Limits>;
         let flat_get = {
             span!(_guard, "copy to flat array");
             let (w, h, d) = range.size().into_tuple();
@@ -279,15 +265,18 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
                                 .map(|b| *b)
                                 .unwrap_or(Block::empty());
                             if block.is_opaque() {
-                                lowest_opaque = lowest_opaque.min(z);
-                                highest_opaque = highest_opaque.max(z);
+                                opaque_limits = opaque_limits
+                                    .map(|l| l.including(z))
+                                    .or_else(|| Some(Limits::from_value(z)));
                             } else if block.is_fluid() {
-                                lowest_fluid = lowest_fluid.min(z);
-                                highest_fluid = highest_fluid.max(z);
+                                fluid_limits = fluid_limits
+                                    .map(|l| l.including(z))
+                                    .or_else(|| Some(Limits::from_value(z)));
                             } else {
                                 // Assume air
-                                lowest_air = lowest_air.min(z);
-                                highest_air = highest_air.max(z);
+                                air_limits = air_limits
+                                    .map(|l| l.including(z))
+                                    .or_else(|| Some(Limits::from_value(z)));
                             };
                             flat[i] = block;
                             i += 1;
@@ -307,35 +296,29 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug>
             }
         };
 
-        // TODO: figure out why this has to be -2 instead of -1
         // Constrain iterated area
-        let z_start = if (lowest_air > lowest_opaque && lowest_air <= lowest_fluid)
-            || (lowest_air > lowest_fluid && lowest_air <= lowest_opaque)
-        {
-            lowest_air - 2
-        } else if lowest_fluid > lowest_opaque && lowest_fluid <= lowest_air {
-            lowest_fluid - 2
-        } else if lowest_fluid > lowest_air && lowest_fluid <= lowest_opaque {
-            lowest_fluid - 1
-        } else {
-            lowest_opaque - 1
+        let (z_start, z_end) = match (air_limits, fluid_limits, opaque_limits) {
+            (Some(air), Some(fluid), Some(opaque)) => air.three_way_intersection(fluid, opaque),
+            (Some(air), Some(fluid), None) => air.intersection(fluid),
+            (Some(air), None, Some(opaque)) => air.intersection(opaque),
+            (None, Some(fluid), Some(opaque)) => fluid.intersection(opaque),
+            // No interfaces (Note: if there are multiple fluid types this could change)
+            (Some(_), None, None) | (None, Some(_), None) | (None, None, Some(_)) => None,
+            (None, None, None) => {
+                error!("Impossible unless given an input AABB that has a height of zero");
+                None
+            },
         }
-        .max(0);
-        let z_end = if (highest_air < highest_opaque && highest_air >= highest_fluid)
-            || (highest_air < highest_fluid && highest_air >= highest_opaque)
-        {
-            highest_air + 1
-        } else if highest_fluid < highest_opaque && highest_fluid >= highest_air {
-            highest_fluid + 1
-        } else if highest_fluid < highest_air && highest_fluid >= highest_opaque {
-            highest_fluid
-        } else {
-            highest_opaque
-        }
-        .min(range.size().d - 1);
+        .map_or((0, 0), |limits| {
+            let (start, end) = limits.into_tuple();
+            let start = start.max(0);
+            let end = end.min(range.size().d - 1).max(start);
+            (start, end)
+        });
 
         let max_size =
             guillotiere::Size::new(i32::from(max_texture_size.x), i32::from(max_texture_size.y));
+        assert!(z_end >= z_start);
         let greedy_size = Vec3::new(range.size().w - 2, range.size().h - 2, z_end - z_start + 1);
         // NOTE: Terrain sizes are limited to 32 x 32 x 16384 (to fit in 24 bits: 5 + 5
         // + 14). FIXME: Make this function fallible, since the terrain
@@ -451,4 +434,50 @@ fn should_draw_greedy(
             }),
         ))
     }
+}
+
+/// 1D Aabr
+#[derive(Copy, Clone, Debug)]
+struct Limits {
+    min: i32,
+    max: i32,
+}
+
+impl Limits {
+    fn from_value(v: i32) -> Self { Self { min: v, max: v } }
+
+    fn including(mut self, v: i32) -> Self {
+        if v < self.min {
+            self.min = v
+        } else if v > self.max {
+            self.max = v
+        }
+        self
+    }
+
+    fn union(self, other: Self) -> Self {
+        Self {
+            min: self.min.min(other.min),
+            max: self.max.max(other.max),
+        }
+    }
+
+    // Find limits that include the overlap of the two
+    fn intersection(self, other: Self) -> Option<Self> {
+        // Expands intersection by 1 since that fits our use-case
+        // (we need to get blocks on either side of the interface)
+        let min = self.min.max(other.min) - 1;
+        let max = self.max.min(other.max) + 1;
+
+        (min < max).then_some(Self { min, max })
+    }
+
+    // Find limits that include any areas of overlap between two of the three
+    fn three_way_intersection(self, two: Self, three: Self) -> Option<Self> {
+        let intersection = self.intersection(two);
+        let intersection = either_with(self.intersection(three), intersection, Limits::union);
+        either_with(two.intersection(three), intersection, Limits::union)
+    }
+
+    fn into_tuple(self) -> (i32, i32) { (self.min, self.max) }
 }

@@ -385,7 +385,7 @@ impl<V: RectRasterableVol> Terrain<V> {
     fn make_atlas(
         renderer: &mut Renderer,
     ) -> Result<(AtlasAllocator, Texture<ColLightFmt>), RenderError> {
-        span!(_guard, "male_atlas", "Terrain::make_atlas");
+        span!(_guard, "make_atlas", "Terrain::make_atlas");
         let max_texture_size = renderer.max_texture_size();
         let atlas_size =
             guillotiere::Size::new(i32::from(max_texture_size), i32::from(max_texture_size));
@@ -436,6 +436,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             // Temporarily remember dead chunks for shadowing purposes.
             self.shadow_chunks.push((pos, chunk));
         }
+
         if let Some(_todo) = self.mesh_todo.remove(&pos) {
             //Do nothing on todo mesh removal.
         }
@@ -453,6 +454,22 @@ impl<V: RectRasterableVol> Terrain<V> {
         view_mat: Mat4<f32>,
         proj_mat: Mat4<f32>,
     ) -> (Aabb<f32>, Vec<math::Vec3<f32>>, math::Aabr<f32>) {
+        // Remove any models for chunks that have been recently removed.
+        // Note: Does this before adding to todo list just in case removed chunks were
+        // replaced with new chunks (although this would probably be recorded as
+        // modified chunks)
+        for &pos in &scene_data.state.terrain_changes().removed_chunks {
+            self.remove_chunk(pos);
+            // Remove neighbors from meshing todo
+            for i in -1..2 {
+                for j in -1..2 {
+                    if i != 0 || j != 0 {
+                        self.mesh_todo.remove(&(pos + Vec2::new(i, j)));
+                    }
+                }
+            }
+        }
+
         span!(_guard, "maintain", "Terrain::maintain");
         let current_tick = scene_data.tick;
         let current_time = scene_data.state.get_time();
@@ -552,11 +569,6 @@ impl<V: RectRasterableVol> Terrain<V> {
             }
         }
         drop(guard);
-
-        // Remove any models for chunks that have been recently removed.
-        for &pos in &scene_data.state.terrain_changes().removed_chunks {
-            self.remove_chunk(pos);
-        }
 
         // Limit ourselves to u16::MAX even if larger textures are supported.
         let max_texture_size = renderer.max_texture_size();
