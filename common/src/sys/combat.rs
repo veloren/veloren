@@ -148,7 +148,11 @@ impl<'a> System<'a> for Sys {
                     }
 
                     if damage.healthchange != 0.0 {
-                        let cause = if is_heal { HealthSource::Healing { by: Some(*uid) } } else { HealthSource::Attack { by: *uid } };
+                        let cause = if is_heal {
+                            HealthSource::Healing { by: Some(*uid) }
+                        } else {
+                            HealthSource::Attack { by: *uid }
+                        };
                         server_emitter.emit(ServerEvent::Damage {
                             uid: *uid_b,
                             change: HealthChange {

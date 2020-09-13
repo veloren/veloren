@@ -138,10 +138,33 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         KillSource::NonPlayer("<?>".to_string(), KillType::Explosion)
                     }
                 },
+                HealthSource::Energy { owner: Some(by) } => {
+                    // Get energy owner entity
+                    if let Some(char_entity) = state.ecs().entity_from_uid(by.into()) {
+                        // Check if attacker is another player or entity with stats (npc)
+                        if state
+                            .ecs()
+                            .read_storage::<Player>()
+                            .get(char_entity)
+                            .is_some()
+                        {
+                            KillSource::Player(by, KillType::Energy)
+                        } else if let Some(stats) =
+                            state.ecs().read_storage::<Stats>().get(char_entity)
+                        {
+                            KillSource::NonPlayer(stats.name.clone(), KillType::Energy)
+                        } else {
+                            KillSource::NonPlayer("<?>".to_string(), KillType::Energy)
+                        }
+                    } else {
+                        KillSource::NonPlayer("<?>".to_string(), KillType::Energy)
+                    }
+                },
                 HealthSource::World => KillSource::FallDamage,
                 HealthSource::Suicide => KillSource::Suicide,
                 HealthSource::Projectile { owner: None }
                 | HealthSource::Explosion { owner: None }
+                | HealthSource::Energy { owner: None }
                 | HealthSource::Revive
                 | HealthSource::Command
                 | HealthSource::LevelUp
@@ -158,8 +181,10 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
     // Give EXP to the killer if entity had stats
     (|| {
         let mut stats = state.ecs().write_storage::<Stats>();
-        let by = if let HealthSource::Attack { by } | HealthSource::Projectile { owner: Some(by) } =
-            cause
+        let by = if let HealthSource::Attack { by }
+        | HealthSource::Projectile { owner: Some(by) }
+        | HealthSource::Energy { owner: Some(by) }
+        | HealthSource::Explosion { owner: Some(by) } = cause
         {
             by
         } else {
@@ -534,7 +559,11 @@ pub fn handle_explosion(
             }
 
             if damage.healthchange != 0.0 {
-                let cause = if is_heal { HealthSource::Healing { by: owner } } else { HealthSource::Explosion { owner } };
+                let cause = if is_heal {
+                    HealthSource::Healing { by: owner }
+                } else {
+                    HealthSource::Explosion { owner }
+                };
                 stats_b.health.change_by(HealthChange {
                     amount: damage.healthchange as i32,
                     cause,

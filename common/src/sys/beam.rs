@@ -190,7 +190,11 @@ impl<'a> System<'a> for Sys {
                     }
 
                     if damage.healthchange != 0.0 {
-                        let cause = if is_heal { HealthSource::Healing { by: Some(*uid) } } else { HealthSource::Attack { by: *uid } };
+                        let cause = if is_heal {
+                            HealthSource::Healing { by: beam.owner }
+                        } else {
+                            HealthSource::Energy { owner: beam.owner }
+                        };
                         server_emitter.emit(ServerEvent::Damage {
                             uid: *uid_b,
                             change: HealthChange {
@@ -203,9 +207,7 @@ impl<'a> System<'a> for Sys {
                                 uid: beam.owner.unwrap_or(*uid),
                                 change: HealthChange {
                                     amount: (-damage.healthchange * beam.lifesteal_eff) as i32,
-                                    cause: HealthSource::Attack {
-                                        by: beam.owner.unwrap_or(*uid),
-                                    },
+                                    cause: HealthSource::Healing { by: beam.owner },
                                 },
                             });
                         }

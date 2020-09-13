@@ -1673,6 +1673,11 @@ impl Client {
                             alias_of_uid(attacker_uid),
                             alias_of_uid(victim)
                         ),
+                        KillSource::Player(attacker_uid, KillType::Energy) => format!(
+                            "[{}] used magic to kill [{}]",
+                            alias_of_uid(attacker_uid),
+                            alias_of_uid(victim)
+                        ),
                         KillSource::NonPlayer(attacker_name, KillType::Melee) => {
                             format!("{} killed [{}]", attacker_name, alias_of_uid(victim))
                         },
@@ -1682,6 +1687,11 @@ impl Client {
                         KillSource::NonPlayer(attacker_name, KillType::Explosion) => {
                             format!("{} blew up [{}]", attacker_name, alias_of_uid(victim))
                         },
+                        KillSource::NonPlayer(attacker_name, KillType::Energy) => format!(
+                            "{} used magic to kill [{}]",
+                            attacker_name,
+                            alias_of_uid(victim)
+                        ),
                         KillSource::Environment(environment) => {
                             format!("[{}] died in {}", alias_of_uid(victim), environment)
                         },
@@ -1704,6 +1714,9 @@ impl Client {
                         KillSource::Player(attacker_uid, KillType::Explosion) => message
                             .replace("{attacker}", &alias_of_uid(attacker_uid))
                             .replace("{victim}", &alias_of_uid(victim)),
+                        KillSource::Player(attacker_uid, KillType::Energy) => message
+                            .replace("{attacker}", &alias_of_uid(attacker_uid))
+                            .replace("{victim}", &alias_of_uid(victim)),
                         KillSource::NonPlayer(attacker_name, KillType::Melee) => message
                             .replace("{attacker}", attacker_name)
                             .replace("{victim}", &alias_of_uid(victim)),
@@ -1711,6 +1724,9 @@ impl Client {
                             .replace("{attacker}", attacker_name)
                             .replace("{victim}", &alias_of_uid(victim)),
                         KillSource::NonPlayer(attacker_name, KillType::Explosion) => message
+                            .replace("{attacker}", attacker_name)
+                            .replace("{victim}", &alias_of_uid(victim)),
+                        KillSource::NonPlayer(attacker_name, KillType::Energy) => message
                             .replace("{attacker}", attacker_name)
                             .replace("{victim}", &alias_of_uid(victim)),
                         KillSource::Environment(environment) => message

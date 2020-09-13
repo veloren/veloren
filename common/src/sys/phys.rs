@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        Collider, Gravity, Group, Mass, Mounting, Ori, PhysicsState, Pos, Projectile, Scale,
+        Beam, Collider, Gravity, Group, Mass, Mounting, Ori, PhysicsState, Pos, Projectile, Scale,
         Sticky, Vel,
     },
     event::{EventBus, ServerEvent},
@@ -70,6 +70,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Mounting>,
         ReadStorage<'a, Group>,
         ReadStorage<'a, Projectile>,
+        ReadStorage<'a, Beam>,
     );
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
@@ -96,6 +97,7 @@ impl<'a> System<'a> for Sys {
             mountings,
             groups,
             projectiles,
+            beams,
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
@@ -133,7 +135,7 @@ impl<'a> System<'a> for Sys {
         // it means the step needs to take into account the speeds of both
         // entities.
         span!(guard, "Apply pushback");
-        for (entity, pos, scale, mass, collider, _, _, physics, projectile) in (
+        for (entity, pos, scale, mass, collider, _, _, physics, projectile, _) in (
             &entities,
             &positions,
             scales.maybe(),
@@ -145,10 +147,13 @@ impl<'a> System<'a> for Sys {
             // TODO: if we need to avoid collisions for other things consider moving whether it
             // should interact into the collider component or into a separate component
             projectiles.maybe(),
+            beams.maybe(),
         )
             .join()
-            .filter(|(_, _, _, _, _, _, sticky, physics, _)| {
-                sticky.is_none() || (physics.on_wall.is_none() && !physics.on_ground)
+            .filter(|(_, _, _, _, _, _, sticky, physics, _, beam)| {
+                sticky.is_none()
+                    || (physics.on_wall.is_none() && !physics.on_ground)
+                    || beam.is_none()
             })
         {
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
@@ -177,6 +182,7 @@ impl<'a> System<'a> for Sys {
                 collider_other,
                 _,
                 group_b,
+                _,
             ) in (
                 &entities,
                 &uids,
@@ -186,8 +192,10 @@ impl<'a> System<'a> for Sys {
                 colliders.maybe(),
                 !&mountings,
                 groups.maybe(),
+                beams.maybe(),
             )
                 .join()
+                .filter(|(_, _, _, _, _, _, _, _, beam)| beam.is_none())
             {
                 if entity == entity_other || (ignore_group.is_some() && ignore_group == group_b) {
                     continue;
