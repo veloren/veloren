@@ -350,7 +350,7 @@ pub fn unwrap_tool_data<'a>(data: &'a JoinData) -> Option<&'a Tool> {
 /// Determines what portion a state is in. Used in all attacks (eventually). Is
 /// used to control aspects of animation code, as well as logic within the
 /// character states.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub enum StageSection {
     Buildup,
     Swing,

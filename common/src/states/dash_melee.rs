@@ -64,13 +64,13 @@ impl CharacterBehavior for Data {
 
         // Allows for other states to interrupt this state
         if self.static_data.is_interruptible && !data.inputs.secondary.is_pressed() {
-            if data.inputs.roll.is_pressed() {
-                handle_dodge_input(data, &mut update);
-                return update;
-            }
-            if data.inputs.primary.is_pressed() {
-                handle_ability1_input(data, &mut update);
-                return update;
+            handle_dodge_input(data, &mut update);
+            handle_ability1_input(data, &mut update);
+            match update.character {
+                CharacterState::DashMelee(_) => {},
+                _ => {
+                    return update;
+                },
             }
         }
 
