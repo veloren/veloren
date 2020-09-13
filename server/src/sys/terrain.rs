@@ -1,7 +1,7 @@
 use super::SysTimer;
 use crate::{chunk_generator::ChunkGenerator, client::Client, Tick};
 use common::{
-    comp::{self, bird_medium, Alignment, CharacterAbility, Player, Pos},
+    comp::{self, bird_medium, Alignment, Player, Pos},
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
     msg::ServerMsg,
@@ -13,7 +13,7 @@ use common::{
 };
 use rand::Rng;
 use specs::{Join, Read, ReadStorage, System, Write, WriteExpect, WriteStorage};
-use std::{sync::Arc, time::Duration};
+use std::sync::Arc;
 use vek::*;
 
 /// This system will handle loading generated chunks and unloading
@@ -115,18 +115,12 @@ impl<'a> System<'a> for Sys {
                 let mut body = entity.body;
                 let name = entity.name.unwrap_or_else(|| "Unnamed".to_string());
                 let alignment = entity.alignment;
-                let mut main_tool = entity.main_tool;
+                let main_tool = entity.main_tool;
                 let mut stats = comp::Stats::new(name, body);
                 // let damage = stats.level.level() as i32; TODO: Make NPC base damage
                 // non-linearly depend on their level
 
-                if entity.is_giant {
-                    main_tool = Some(comp::Item::new_from_asset_expect(
-                        "common.items.npc_weapons.sword.zweihander_sword_0",
-                    ));
-                }
-
-                let mut loadout = LoadoutBuilder::build_loadout(body, alignment, main_tool).build();
+                let loadout = LoadoutBuilder::build_loadout(body, alignment, main_tool, entity.is_giant).build();
 
                 let mut scale = entity.scale;
 
@@ -157,36 +151,6 @@ impl<'a> System<'a> for Sys {
                             body,
                         );
                     }
-                    loadout = comp::Loadout {
-                        active_item,
-                        second_item: None,
-                        shoulder: Some(comp::Item::new_from_asset_expect(
-                            "common.items.armor.shoulder.plate_0",
-                        )),
-                        chest: Some(comp::Item::new_from_asset_expect(
-                            "common.items.armor.chest.plate_green_0",
-                        )),
-                        belt: Some(comp::Item::new_from_asset_expect(
-                            "common.items.armor.belt.plate_0",
-                        )),
-                        hand: Some(comp::Item::new_from_asset_expect(
-                            "common.items.armor.hand.plate_0",
-                        )),
-                        pants: Some(comp::Item::new_from_asset_expect(
-                            "common.items.armor.pants.plate_green_0",
-                        )),
-                        foot: Some(comp::Item::new_from_asset_expect(
-                            "common.items.armor.foot.plate_0",
-                        )),
-                        back: None,
-                        ring: None,
-                        neck: None,
-                        lantern: None,
-                        glider: None,
-                        head: None,
-                        tabard: None,
-                    };
-
                     stats.level.set_level(rand::thread_rng().gen_range(30, 35));
                     scale = 2.0 + rand::random::<f32>();
                 }
