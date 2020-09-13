@@ -227,12 +227,6 @@ pub struct GlobalModel {
 
 pub struct GlobalsLayouts {
     pub globals: wgpu::BindGroupLayout,
-    pub light: wgpu::BindGroupLayout,
-    pub shadow: wgpu::BindGroupLayout,
-    pub alt_horizon: wgpu::BindGroupLayout,
-    pub shadow_maps: wgpu::BindGroupLayout,
-    pub light_shadows: wgpu::BindGroupLayout,
-    pub lod_map: wgpu::BindGroupLayout,
 }
 
 impl GlobalsLayouts {
@@ -240,6 +234,7 @@ impl GlobalsLayouts {
         let globals = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("Globals layout"),
             entries: &[
+                // Global uniform
                 wgpu::BindGroupLayoutEntry {
                     binding: 0,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
@@ -249,6 +244,7 @@ impl GlobalsLayouts {
                     },
                     count: None,
                 },
+                // Noise tex
                 wgpu::BindGroupLayoutEntry {
                     binding: 1,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
@@ -265,76 +261,29 @@ impl GlobalsLayouts {
                     ty: wgpu::BindingType::Sampler { comparison: false },
                     count: None,
                 },
-            ],
-        });
-        let light = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("Light layout"),
-            entries: &[wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                ty: wgpu::BindingType::UniformBuffer {
-                    dynamic: false,
-                    min_binding_size: None,
-                },
-                count: None,
-            }],
-        });
-        let shadow = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("Shadow layout"),
-            entries: &[wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                ty: wgpu::BindingType::UniformBuffer {
-                    dynamic: false,
-                    min_binding_size: None,
-                },
-                count: None,
-            }],
-        });
-
-        let alt_horizon = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("alt/horizon layout"),
-            entries: &[
-                wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                    ty: wgpu::BindingType::SampledTexture {
-                        component_type: wgpu::TextureComponentType::Float,
-                        dimension: wgpu::TextureViewDimension::D2,
-                        multisampled: false,
-                    },
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 1,
-                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                    ty: wgpu::BindingType::Sampler { comparison: false },
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 2,
-                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                    ty: wgpu::BindingType::SampledTexture {
-                        component_type: wgpu::TextureComponentType::Float,
-                        dimension: wgpu::TextureViewDimension::D2,
-                        multisampled: false,
-                    },
-                    count: None,
-                },
+                // Light uniform
                 wgpu::BindGroupLayoutEntry {
                     binding: 3,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                    ty: wgpu::BindingType::Sampler { comparison: false },
+                    ty: wgpu::BindingType::UniformBuffer {
+                        dynamic: false,
+                        min_binding_size: None,
+                    },
                     count: None,
                 },
-            ],
-        });
-
-        let shadow_maps = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("Shadow maps layout"),
-            entries: &[
+                // Shadow uniform
                 wgpu::BindGroupLayoutEntry {
-                    binding: 0,
+                    binding: 4,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::UniformBuffer {
+                        dynamic: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
+                },
+                // Alt texture
+                wgpu::BindGroupLayoutEntry {
+                    binding: 5,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::SampledTexture {
                         component_type: wgpu::TextureComponentType::Float,
@@ -344,19 +293,14 @@ impl GlobalsLayouts {
                     count: None,
                 },
                 wgpu::BindGroupLayoutEntry {
-                    binding: 1,
+                    binding: 6,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::Sampler { comparison: false },
                     count: None,
                 },
-            ],
-        });
-
-        let light_shadows = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("Light shadows layout"),
-            entries: &[
+                // Horizon texture
                 wgpu::BindGroupLayoutEntry {
-                    binding: 0,
+                    binding: 7,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::SampledTexture {
                         component_type: wgpu::TextureComponentType::Float,
@@ -366,13 +310,14 @@ impl GlobalsLayouts {
                     count: None,
                 },
                 wgpu::BindGroupLayoutEntry {
-                    binding: 1,
+                    binding: 8,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::Sampler { comparison: false },
                     count: None,
                 },
+                // light shadows
                 wgpu::BindGroupLayoutEntry {
-                    binding: 2,
+                    binding: 9,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::SampledTexture {
                         component_type: wgpu::TextureComponentType::Float,
@@ -382,19 +327,14 @@ impl GlobalsLayouts {
                     count: None,
                 },
                 wgpu::BindGroupLayoutEntry {
-                    binding: 3,
+                    binding: 10,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::Sampler { comparison: false },
                     count: None,
                 },
-            ],
-        });
-
-        let lod_map = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("Lod layout"),
-            entries: &[
+                // point shadow_maps
                 wgpu::BindGroupLayoutEntry {
-                    binding: 0,
+                    binding: 11,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::SampledTexture {
                         component_type: wgpu::TextureComponentType::Float,
@@ -404,7 +344,41 @@ impl GlobalsLayouts {
                     count: None,
                 },
                 wgpu::BindGroupLayoutEntry {
-                    binding: 1,
+                    binding: 12,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler { comparison: false },
+                    count: None,
+                },
+                // directed shadow maps
+                wgpu::BindGroupLayoutEntry {
+                    binding: 13,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::SampledTexture {
+                        component_type: wgpu::TextureComponentType::Float,
+                        dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 14,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler { comparison: false },
+                    count: None,
+                },
+                // lod map (t_map)
+                wgpu::BindGroupLayoutEntry {
+                    binding: 15,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::SampledTexture {
+                        component_type: wgpu::TextureComponentType::Float,
+                        dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 16,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::Sampler { comparison: false },
                     count: None,
@@ -412,14 +386,6 @@ impl GlobalsLayouts {
             ],
         });
 
-        Self {
-            globals,
-            light,
-            shadow,
-            alt_horizon,
-            shadow_maps,
-            light_shadows,
-            lod_map,
-        }
+        Self { globals }
     }
 }

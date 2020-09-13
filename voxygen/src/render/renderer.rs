@@ -1647,7 +1647,7 @@ impl Renderer {
     //             // NOTE: It would be nice if this wasn't needed and we could use
     // a constant buffer             // offset into the sprite data.  Hopefully,
     // when we switch to wgpu we can do this,             // as it offers the
-    // exact API we want (the equivalent can be done in OpenGL using            
+    // exact API we want (the equivalent can be done in OpenGL using
     // // glBindBufferOffset).             locals: locals.buf.clone(),
     //             globals: global.globals.buf.clone(),
     //             lights: global.lights.buf.clone(),
@@ -1816,7 +1816,7 @@ impl Renderer {
     //             color_sampler: (self.tgt_color_res.clone(),
     // self.sampler.clone()),             depth_sampler:
     // (self.tgt_depth_res.clone(), self.sampler.clone()),             noise:
-    // (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),            
+    // (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
     // tgt_color: self.tgt_color_pp_view.clone(),         },
     //     )
     // }
@@ -1847,7 +1847,7 @@ impl Renderer {
     //             color_sampler: (self.tgt_color_res_pp.clone(),
     // self.sampler.clone()),             depth_sampler:
     // (self.tgt_depth_res.clone(), self.sampler.clone()),             noise:
-    // (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),            
+    // (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
     // tgt_color: self.win_color_view.clone(),         },
     //     )
     // }

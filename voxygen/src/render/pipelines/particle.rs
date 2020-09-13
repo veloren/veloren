@@ -179,14 +179,7 @@ impl ParticlePipeline {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Particle pipeline layout"),
                 push_constant_ranges: &[],
-                bind_group_layouts: &[
-                    &global_layout.globals,
-                    &global_layout.alt_horizon,
-                    &global_layout.light,
-                    &global_layout.shadow,
-                    &global_layout.shadow_maps,
-                    &global_layout.light_shadows,
-                ],
+                bind_group_layouts: &[&global_layout.globals],
             });
 
         let samples = match aa_mode {

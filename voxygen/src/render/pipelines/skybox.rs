@@ -39,7 +39,7 @@ impl SkyboxPipeline {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Skybox pipeline layout"),
                 push_constant_ranges: &[],
-                bind_group_layouts: &[&layouts.globals, &layouts.alt_horizon],
+                bind_group_layouts: &[&layouts.globals],
             });
 
         let samples = match aa_mode {

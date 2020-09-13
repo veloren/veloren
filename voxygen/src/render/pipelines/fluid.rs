@@ -95,15 +95,7 @@ impl FluidPipeline {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Fluid pipeline layout"),
                 push_constant_ranges: &[],
-                bind_group_layouts: &[
-                    &global_layout.globals,
-                    &global_layout.alt_horizon,
-                    &global_layout.light,
-                    &global_layout.shadow,
-                    &global_layout.shadow_maps,
-                    &global_layout.light_shadows,
-                    &layout.waves,
-                ],
+                bind_group_layouts: &[&global_layout.globals, &layout.waves],
             });
 
         let samples = match aa_mode {

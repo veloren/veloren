@@ -1,5 +1,6 @@
 use super::super::{
-    AaMode, ColLightInfo, FigureLayout, GlobalsLayouts, Renderer, TerrainVertex, Texture,
+    AaMode, ColLightInfo, FigureLayout, GlobalsLayouts, Renderer, TerrainLayout, TerrainVertex,
+    Texture,
 };
 use vek::*;
 use zerocopy::AsBytes;
@@ -99,7 +100,8 @@ impl ShadowFigurePipeline {
         fs_module: &wgpu::ShaderModule,
         sc_desc: &wgpu::SwapChainDescriptor,
         global_layout: &GlobalsLayouts,
-        layout: &FigureLayout,
+        figure_layout: &FigureLayout,
+        layout: &ShadowLayout,
         aa_mode: AaMode,
     ) -> Self {
         let render_pipeline_layout =
@@ -108,8 +110,8 @@ impl ShadowFigurePipeline {
                 push_constant_ranges: &[],
                 bind_group_layouts: &[
                     &global_layout.globals,
-                    &global_layout.light_shadows,
-                    &layout.waves,
+                    &figure_layout.locals,
+                    &layout.locals,
                 ],
             });
 
@@ -180,6 +182,7 @@ impl ShadowPipeline {
         fs_module: &wgpu::ShaderModule,
         sc_desc: &wgpu::SwapChainDescriptor,
         global_layout: &GlobalsLayouts,
+        terrain_layout: &TerrainLayout,
         layout: &ShadowLayout,
         aa_mode: AaMode,
     ) -> Self {
@@ -189,7 +192,7 @@ impl ShadowPipeline {
                 push_constant_ranges: &[],
                 bind_group_layouts: &[
                     &global_layout.globals,
-                    &global_layout.light_shadows,
+                    &terrain_layout.locals,
                     &layout.locals,
                 ],
             });

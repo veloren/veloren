@@ -163,18 +163,27 @@ impl Locals {
 
 pub struct SpriteLayout {
     pub locals: wgpu::BindGroupLayout,
-    pub col_lights: wgpu::BindGroupLayout,
 }
 
 impl SpriteLayout {
     pub fn new(device: &wgpu::Device) -> Self {
         Self {
-            locals: Locals::layout(device),
-            col_lights: device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            locals: device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
                 label: None,
                 entries: &[
+                    // locals
                     wgpu::BindGroupLayoutEntry {
                         binding: 0,
+                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                        ty: wgpu::BindingType::UniformBuffer {
+                            dynamic: false,
+                            min_binding_size: None,
+                        },
+                        count: None,
+                    },
+                    // col lights
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 1,
                         visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                         ty: wgpu::BindingType::SampledTexture {
                             component_type: wgpu::TextureComponentType::Float,
@@ -184,7 +193,7 @@ impl SpriteLayout {
                         count: None,
                     },
                     wgpu::BindGroupLayoutEntry {
-                        binding: 1,
+                        binding: 2,
                         visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                         ty: wgpu::BindingType::Sampler { comparison: false },
                         count: None,
@@ -216,14 +225,8 @@ impl SpritePipeline {
                 push_constant_ranges: &[],
                 bind_group_layouts: &[
                     &global_layout.globals,
-                    &global_layout.alt_horizon,
-                    &global_layout.light,
-                    &global_layout.shadow,
-                    &global_layout.shadow_maps,
-                    &global_layout.light_shadows,
-                    &layout.col_lights,
-                    &layout.locals,
                     &terrain_layout.locals,
+                    &layout.locals,
                 ],
             });
 

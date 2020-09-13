@@ -29,23 +29,6 @@ pub struct Locals {
     pos: [f32; 4],
 }
 
-impl Locals {
-    fn layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
-        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: None,
-            entries: &[wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                ty: wgpu::BindingType::UniformBuffer {
-                    dynamic: false,
-                    min_binding_size: None,
-                },
-                count: None,
-            }],
-        })
-    }
-}
-
 impl From<Vec4<f32>> for Locals {
     fn from(pos: Vec4<f32>) -> Self {
         Self {
@@ -97,18 +80,27 @@ impl Mode {
 
 pub struct UILayout {
     pub locals: wgpu::BindGroupLayout,
-    pub tex: wgpu::BindGroupLayout,
 }
 
 impl UILayout {
     pub fn new(device: &wgpu::Device) -> Self {
         Self {
-            locals: Locals::layout(device),
-            tex: device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            locals: device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
                 label: None,
                 entries: &[
+                    // locals
                     wgpu::BindGroupLayoutEntry {
                         binding: 0,
+                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                        ty: wgpu::BindingType::UniformBuffer {
+                            dynamic: false,
+                            min_binding_size: None,
+                        },
+                        count: None,
+                    },
+                    // texture
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 1,
                         visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                         ty: wgpu::BindingType::SampledTexture {
                             component_type: wgpu::TextureComponentType::Float,
@@ -118,7 +110,7 @@ impl UILayout {
                         count: None,
                     },
                     wgpu::BindGroupLayoutEntry {
-                        binding: 1,
+                        binding: 2,
                         visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                         ty: wgpu::BindingType::Sampler { comparison: false },
                         count: None,
@@ -147,7 +139,7 @@ impl UIPipeline {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("UI pipeline layout"),
                 push_constant_ranges: &[],
-                bind_group_layouts: &[&global_layout.globals, &layout.locals, &layout.tex],
+                bind_group_layouts: &[&global_layout.globals, &layout.locals],
             });
 
         let samples = match aa_mode {
