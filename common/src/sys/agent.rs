@@ -498,7 +498,9 @@ impl<'a> System<'a> for Sys {
                 // Only if the attack was recent
                 if my_stats.health.last_change.0 < 3.0 {
                     if let comp::HealthSource::Attack { by }
-                    | comp::HealthSource::Projectile { owner: Some(by) } =
+                    | comp::HealthSource::Projectile { owner: Some(by) }
+                    | comp::HealthSource::Energy { owner: Some(by) }
+                    | comp::HealthSource::Explosion { owner: Some(by) } =
                         my_stats.health.last_change.1.cause
                     {
                         if !agent.activity.is_attack() {

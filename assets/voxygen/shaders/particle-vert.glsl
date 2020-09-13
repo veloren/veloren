@@ -123,9 +123,9 @@ vec3 spiral_motion(vec3 line, float radius, float time_function) {
 	vec3 axis3 = perp_axis2(line, axis2);
 
 	return line * time_function + vec3(
-		radius * cos(10 * time_function) * axis2.x + radius * sin(10 * time_function) * axis3.x,
-		radius * cos(10 * time_function) * axis2.y + radius * sin(10 * time_function) * axis3.y,
-		radius * cos(10 * time_function) * axis2.z + radius * sin(10 * time_function) * axis3.z + 1.0);
+		radius * cos(10 * time_function - inst_time) * axis2.x + radius * sin(10 * time_function - inst_time) * axis3.x,
+		radius * cos(10 * time_function - inst_time) * axis2.y + radius * sin(10 * time_function - inst_time) * axis3.y,
+		radius * cos(10 * time_function - inst_time) * axis2.z + radius * sin(10 * time_function - inst_time) * axis3.z + 1.0);
 }
 
 void main() {
@@ -275,7 +275,7 @@ void main() {
 		);
 	} else if (inst_mode == HEALING_BEAM) {
 		attr = Attr(
-			spiral_motion(beam_pos2() - inst_pos, 0.3 * (floor(2 * hash(vec4(inst_time)) + 0.5) - 0.5), lifetime / 2),
+			spiral_motion(beam_pos2() - inst_pos, 0.3 * (floor(2 * hash(vec4(inst_time)) + 0.5) - 0.5), lifetime / 1), // The 1 that lifetime is divided by is the duration of the beam. It is currently hardcoded here due to limitations in passing in variables.
 			vec3((1.7 - 0.7 * abs(floor(2 * hash(vec4(inst_time)) - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick.x * 10 - lifetime * 4))),
 			vec4(vec3(0.3, 0.7 + 0.4 * sin(tick.x * 8 - lifetime * 3), 0.3 + 0.1 * sin (tick.x * 2)), 0.3),
 			spin_in_axis(vec3(inst_entropy, inst_misc, inst_lifespan), tick.z)

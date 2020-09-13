@@ -352,13 +352,16 @@ impl ParticleMgr {
         {
             if let CharacterState::BasicBeam(b) = character_state {
                 let particle_ori = b.particle_ori.unwrap_or(*ori.vec());
-                for _ in 0..self.scheduler.heartbeats(Duration::from_millis(5)) {
+                for i in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {
                     if b.buildup_duration == Duration::default() {
                         self.particles.push(Particle::new_beam(
                             b.beam_duration,
-                            time,
+                            time + (i as f64) / 1000.0,
                             ParticleMode::HealingBeam,
-                            pos.0,
+                            pos.0
+                                + (i as f32 / b.beam_duration.as_millis() as f32)
+                                    * particle_ori
+                                    * b.range,
                             pos.0 + particle_ori * b.range,
                         ));
                     }

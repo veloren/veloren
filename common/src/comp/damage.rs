@@ -40,11 +40,6 @@ impl Damage {
                 if (damage_reduction - 1.0).abs() > f32::EPSILON {
                     self.healthchange += critdamage;
                 }
-
-                // Min damage
-                if (damage_reduction - 1.0).abs() > f32::EPSILON && self.healthchange > -10.0 {
-                    self.healthchange = -10.0;
-                }
             },
             DamageSource::Projectile => {
                 // Critical hit
@@ -58,11 +53,6 @@ impl Damage {
                 // Armor
                 let damage_reduction = loadout.get_damage_reduction();
                 self.healthchange *= 1.0 - damage_reduction;
-
-                // Min damage
-                if (damage_reduction - 1.0).abs() > f32::EPSILON && self.healthchange > -10.0 {
-                    self.healthchange = -10.0;
-                }
             },
             DamageSource::Explosion => {
                 // Block
@@ -72,31 +62,16 @@ impl Damage {
                 // Armor
                 let damage_reduction = loadout.get_damage_reduction();
                 self.healthchange *= 1.0 - damage_reduction;
-
-                // Min damage
-                if (damage_reduction - 1.0).abs() > f32::EPSILON && self.healthchange > -10.0 {
-                    self.healthchange = -10.0;
-                }
             },
             DamageSource::Shockwave => {
                 // Armor
                 let damage_reduction = loadout.get_damage_reduction();
                 self.healthchange *= 1.0 - damage_reduction;
-
-                // Min damage
-                if (damage_reduction - 1.0).abs() > f32::EPSILON && self.healthchange > -10.0 {
-                    self.healthchange = -10.0;
-                }
             },
             DamageSource::Energy => {
                 // Armor
                 let damage_reduction = loadout.get_damage_reduction();
                 self.healthchange *= 1.0 - damage_reduction;
-
-                // Min damage
-                if (damage_reduction - 1.0).abs() > f32::EPSILON && self.healthchange > -10.0 {
-                    self.healthchange = -10.0;
-                }
             },
             _ => {},
         }
